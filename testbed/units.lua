@@ -1,6 +1,21 @@
 require "tundra.syntax.glob"
 
 Program {
+	Name = "Fake6502",
+
+	Sources = { 
+		FGlob {
+			Dir = "examples/Fake6502",
+			Extensions = { ".c", ".cpp", ".m" },
+			Filters = {
+				{ Pattern = "macosx"; Config = "macosx-*-*" },
+				{ Pattern = "windows"; Config = { "win32-*-*", "win64-*-*" } },
+			},
+		},
+	},
+}
+
+Program {
 	Name = "prodbg-qt5",
 
 	Env = {
@@ -44,5 +59,6 @@ Program {
 	Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore"  },
 }
 
+Default "Fake6502"
 Default "prodbg-qt5"
 
