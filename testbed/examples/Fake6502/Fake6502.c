@@ -312,10 +312,6 @@ static uint16_t getvalue() {
         else return((uint16_t)read6502(ea));
 }
 
-static uint16_t getvalue16() {
-    return((uint16_t)read6502(ea) | ((uint16_t)read6502(ea+1) << 8));
-}
-
 static void putvalue(uint16_t saveval) {
     if (addrtable[opcode] == acc) a = (uint8_t)(saveval & 0x00FF);
         else write6502(ea, (saveval & 0x00FF));
