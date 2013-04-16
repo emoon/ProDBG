@@ -17,12 +17,13 @@ extern "C" {
 */
 
 typedef void* ServiceFunc(const char* serviceName);
+typedef void RegisterPlugin(int type, void* data);
 
 /*! \fn int RegisterPlugin(const char* serviceName)
 	\breif This function will be called to invoko the plugin
 */
 
-int CreatePlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin, void* reserved);
+//int CreatePlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin, void* reserved);
 
 /*
  *
@@ -35,9 +36,36 @@ typedef struct PDMemoryViewPlugin
 	void* (*createInstance)(void* parentWindow, ServiceFunc* serviceFunc);
 	void (*destroyInstance)(void* userData);
 	void (*displayMemory)(void* userData, void* memory);
-	void (*uiEvent)(void* userData, uint64_t id, uint64_t eventType);
+	void (*uiEvent)(void* userData, int id, int eventType);
 
 } PDMemoryViewPlugin;
+
+//
+
+typedef enum PDDebugAction
+{
+	PD_DEBUG_ACTION_BREAK,
+	PD_DEBUG_ACTION_STEP,
+	PD_DEBUG_ACTION_STEP_OVER,
+	PD_DEBUG_ACTION_SET_CODE_BREAKPOINT,
+
+} PDDebugAction;
+
+typedef struct PDDebugPlugin
+{
+	void* (*createInstance)(ServiceFunc* serviceFunc);
+	void (*destroyInstance)(void* userData);
+	
+	void (*action)(void* userData, PDDebugAction action, void* actionData);
+
+} PDDebugPlugin;
+
+enum
+{
+	PD_DEBUGGER_TYPE = 0,
+};
+
+// 
 
 #ifdef _cplusplus
 }
