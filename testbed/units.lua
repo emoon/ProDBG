@@ -4,16 +4,44 @@ Program {
 	Name = "Fake6502",
 
 	Sources = { 
-		FGlob {
+		Glob {
 			Dir = "examples/Fake6502",
 			Extensions = { ".c", ".cpp", ".m" },
-			Filters = {
-				{ Pattern = "macosx"; Config = "macosx-*-*" },
-				{ Pattern = "windows"; Config = { "win32-*-*", "win64-*-*" } },
-			},
 		},
 	},
 }
+
+StaticLibrary {
+	Name = "core",
+	Sources = { 
+		Glob {
+			Dir = "src/frontend/core",
+			Extensions = { ".c", ".cpp", ".m" },
+		},
+	},
+}
+
+---------- Plugins -----------------
+
+SharedLibrary {
+	Name = "LLDBPlugin",
+	
+	Env = {
+		CPPPATH = { 
+			"API",
+		},
+	},
+
+	Sources = { 
+		Glob {
+			Dir = "plugins/lldb",
+			Extensions = { ".c", ".cpp", ".m" },
+		},
+	},
+}
+
+------------------------------------
+
 
 Program {
 	Name = "prodbg-qt5",
@@ -54,11 +82,14 @@ Program {
 		},
 	},
 
+	Depends = { "core" },
+
 	Libs = { { "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = "win32-*-*" } },
 
 	Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore"  },
 }
 
+Default "LLDBPlugin"
 Default "Fake6502"
 Default "prodbg-qt5"
 
