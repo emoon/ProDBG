@@ -51,11 +51,19 @@ typedef enum PDDebugAction
 
 } PDDebugAction;
 
+typedef enum PDLaunchAction
+{
+	PD_DEBUG_LAUNCH,
+	PD_DEBUG_ATTATCH,
+
+} PDLaunchAction;
+
 typedef struct PDDebugPlugin
 {
 	void* (*createInstance)(ServiceFunc* serviceFunc);
 	void (*destroyInstance)(void* userData);
 	
+	void (*start)(void* userData, PDLaunchAction action, void* launchData);
 	void (*action)(void* userData, PDDebugAction action, void* actionData);
 
 } PDDebugPlugin;

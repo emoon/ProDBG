@@ -2,12 +2,17 @@
 #include <stdlib.h> 
 #include <stdio.h> 
 #include <string.h> 
+#include <SBTarget.h>
+#include <SBListener.h>
+#include <SBProcess.h>
+#include <SBDebugger.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct LLDBPlugin
 {
-	int someData; ///
+	lldb::SBDebugger debugger;
+	lldb::SBTarget target;
 
 } LLDBPlugin;
 
@@ -15,8 +20,7 @@ typedef struct LLDBPlugin
 
 static void* createInstance(ServiceFunc* serviceFunc)
 {
-	LLDBPlugin* plugin = malloc(sizeof(LLDBPlugin));
-	memset(plugin, 0, sizeof(LLDBPlugin));
+	LLDBPlugin* plugin = new LLDBPlugin; 
 	return plugin;
 }
 
@@ -69,17 +73,39 @@ static void actionCallback(void* userData, PDDebugAction action, void* actionDat
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void startCallback(void* userData, PDLaunchAction action, void* launchData)
+{
+	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+
+	// very hacky right now but is only used for testing anyway
+	plugin->target = plugin->debugger.CreateTarget((const char*)launchData);
+	lldb::SBProcess process = plugin->target.LaunchSimple(0, 0, 0);
+	usleep(10000);
+	process.Kill();
+	process.Destroy();
+	lldb::SBDebugger::Destroy(plugin->debugger);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDDebugPlugin plugin =
 {
 	createInstance,
 	destroyInstance,
+	startCallback,
 	actionCallback,
 };
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C"
+{
 
 void InitPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin)
 {
 	registerPlugin(PD_DEBUGGER_TYPE, &plugin);
+}
+
 }
 
