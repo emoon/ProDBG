@@ -68,10 +68,10 @@ typedef struct PDDebugPlugin
 
 } PDDebugPlugin;
 
-enum
+typedef enum ProDBGPluginType
 {
-	PD_DEBUGGER_TYPE = 0,
-};
+	PD_PTYPE_DEBUGGER = 1,
+} ProDBGPluginType;
 
 // 
 

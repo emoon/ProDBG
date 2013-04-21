@@ -13,6 +13,9 @@ Program {
 
 StaticLibrary {
 	Name = "core",
+
+	Env = { CPPPATH = { "src/frontend", "API" } },
+
 	Sources = { 
 		Glob {
 			Dir = "src/frontend/core",
@@ -29,7 +32,15 @@ SharedLibrary {
 	Env = {
 		CPPPATH = { 
 			"API",
+			"plugins/lldb",
+			"plugins/lldb/Frameworks/LLDB.Framework/Headers",
 		},
+
+		SHLIBOPTS = { 
+			{ "-Fplugins/lldb/Frameworks", "-lstdc++"; Config = "macosx-clang-*" },
+		},
+
+		CXXCOM = { "-std=c++11", "-stdlib=libc++"; Config = "macosx-clang-*" },
 	},
 
 	Sources = { 
@@ -38,6 +49,8 @@ SharedLibrary {
 			Extensions = { ".c", ".cpp", ".m" },
 		},
 	},
+
+	Frameworks = { "LLDB" },
 }
 
 ------------------------------------
@@ -47,7 +60,10 @@ Program {
 	Name = "prodbg-qt5",
 
 	Env = {
-		CPPPATH = { ".", 
+		CPPPATH = { 
+			".", 
+			"API",
+			"src/frontend",
 			"$(QT5)/include/QtWidgets",
 			"$(QT5)/include/QtGui",
 			"$(QT5)/include", 
@@ -66,7 +82,8 @@ Program {
 		},
 
 		PROGCOM = { 
-			{ "-F$(QT5)/lib", "-lstdc++"; Config = "macosx-clang-*" },
+			-- hacky hacky
+			{ "-F$(QT5)/lib", "-lstdc++", "-rpath tundra-output$(SEP)macosx-clang-debug-default"; Config = "macosx-clang-*" },
 		},
 
 	},
