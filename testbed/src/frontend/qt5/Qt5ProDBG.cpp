@@ -3,6 +3,7 @@
 #include <QWidget>
 #include <core/PluginHandler.h>
 #include <ProDBGAPI.h>
+#include "Qt5CodeEditor.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -16,6 +17,11 @@ int realMain(int argc, char* argv[])
 	window.resize(800, 600);
 	window.show();
 	window.setWindowTitle(QApplication::translate("toplevel", "ProDBG"));
+
+	CodeEditor* editor = new CodeEditor(&window);
+	editor->setWindowFlags(Qt::Dialog);
+	editor->setMinimumSize(400, 400);
+	editor->show();
 
 	// Try to load plugin (hard coded to for now)
 
