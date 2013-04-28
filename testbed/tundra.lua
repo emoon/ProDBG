@@ -29,6 +29,11 @@ local win32 = {
 }
 
 Build {
+
+	Passes = {
+		GenerateSources = { Name="Generate sources", BuildOrder = 1 },
+	},
+
 	Units = "units.lua",
 
 	Configs = {

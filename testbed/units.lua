@@ -1,5 +1,27 @@
 require "tundra.syntax.glob"
 
+-- Used to generate the moc cpp files as needed for .h that uses Q_OBJECT
+
+DefRule {
+	Name = "MocGeneration",
+	Pass = "GenerateSources",
+	Command = "$(QT5)/bin/moc $(<) -o $(@)",
+
+	Blueprint = {
+		Source = { Required = true, Type = "string", Help = "Input filename", },
+		OutName = { Required = true, Type = "string", Help = "Output filename", },
+	},
+
+	Setup = function (env, data)
+		return {
+			InputFiles    = { data.Source },
+			OutputFiles   = { "$(OBJECTDIR)/_generated/" .. data.OutName },
+		}
+	end,
+}
+
+-- Example 6502 emulator
+
 Program {
 	Name = "Fake6502",
 
@@ -10,6 +32,8 @@ Program {
 		},
 	},
 }
+
+-- Core Lib
 
 StaticLibrary {
 	Name = "core",
@@ -48,6 +72,7 @@ SharedLibrary {
 			Dir = "plugins/lldb",
 			Extensions = { ".c", ".cpp", ".m" },
 		},
+
 	},
 
 	Frameworks = { "LLDB" },
@@ -66,6 +91,7 @@ Program {
 			"src/frontend",
 			"$(QT5)/include/QtWidgets",
 			"$(QT5)/include/QtGui",
+			"$(QT5)/include/QtCore", 
 			"$(QT5)/include", 
 		},
 		PROGOPTS = {
@@ -96,6 +122,11 @@ Program {
 				{ Pattern = "macosx"; Config = "macosx-*-*" },
 				{ Pattern = "windows"; Config = { "win32-*-*", "win64-*-*" } },
 			},
+		},
+
+		MocGeneration {
+			Source = "src/frontend/Qt5/Qt5CodeEditor.h",
+			OutName = "Qt5CodeEditor_moc.cpp"
 		},
 	},
 

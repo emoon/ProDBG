@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QPlainTextEdit>
-//#include <QObject>
+#include <QObject>
 
 QT_BEGIN_NAMESPACE
 class QPaintEvent;
@@ -19,7 +19,7 @@ class LineNumberArea;
 
 class CodeEditor : public QPlainTextEdit
 {
-    //Q_OBJECT
+    Q_OBJECT
 
 public:
     CodeEditor(QWidget* parent = 0);
