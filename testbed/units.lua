@@ -128,6 +128,11 @@ Program {
 			Source = "src/frontend/Qt5/Qt5CodeEditor.h",
 			OutName = "Qt5CodeEditor_moc.cpp"
 		},
+		
+		MocGeneration {
+			Source = "src/frontend/Qt5/Qt5MainWindow.h",
+			OutName = "Qt5MainWindow_moc.cpp"
+		},
 	},
 
 	Depends = { "core" },
