@@ -16,6 +16,9 @@ class Qt5MainWindow : public QMainWindow
 public:
 	Qt5MainWindow();
 
+private slots:
+	void newFile();
+
 private:
 
 	QMenu* m_fileMenu;
