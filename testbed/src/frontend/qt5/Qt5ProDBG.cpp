@@ -11,6 +11,8 @@
 namespace prodbg
 {
 
+int realMain(int argc, char* argv[]);
+
 int realMain(int argc, char* argv[])
 {
 	QApplication app(argc, argv);

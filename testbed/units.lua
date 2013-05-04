@@ -25,6 +25,12 @@ DefRule {
 Program {
 	Name = "Fake6502",
 
+	Env = {
+		CCOPTS = {
+			{ "-Wno-conversion", "-Wno-pedantic"; Config = "macosx-*-*" },
+		},
+	},
+
 	Sources = { 
 		Glob {
 			Dir = "examples/Fake6502",
@@ -38,7 +44,15 @@ Program {
 StaticLibrary {
 	Name = "core",
 
-	Env = { CPPPATH = { "src/frontend", "API" } },
+	Env = { 
+		CXXOPTS = {
+			{ 
+			"-Wno-global-constructors", 
+			"-Wno-exit-time-destructors" ; Config = "macosx-clang-*" },
+		},
+		
+		CPPPATH = { "src/frontend", "API" } 
+	},
 
 	Sources = { 
 		Glob {
@@ -58,6 +72,14 @@ SharedLibrary {
 			"API",
 			"plugins/lldb",
 			"plugins/lldb/Frameworks/LLDB.Framework/Headers",
+		},
+
+		CXXOPTS = {
+			{ 
+			"-Wno-unused-parameter",
+			"-Wno-missing-prototypes",
+			"-Wno-unused-member-function",
+			"-Wno-c++98-compat-pedantic" ; Config = "macosx-clang-*" },
 		},
 
 		SHLIBOPTS = { 
@@ -103,8 +125,17 @@ Program {
 			{ "PRODBG_WIN"; Config = { "win32-*-*", "win64-*-*" } },
 		},
 
-		CPPOPTS = {
-			{ "-Werror", "-pedantic-errors", "-Wall"; Config = "macosx-clang-*" },
+		CXXOPTS = {
+			{ 
+			"-Wno-padded",
+			"-Wno-global-constructors",
+			"-Wno-long-long",
+			"-Wno-unreachable-code",
+			"-Wno-float-equal",
+			"-Wno-disabled-macro-expansion",
+			"-Wno-conversion",
+			"-Wno-weak-vtables",
+			"-Wno-sign-conversion" ; Config = "macosx-clang-*" },
 		},
 
 		PROGCOM = { 

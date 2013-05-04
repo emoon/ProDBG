@@ -71,8 +71,6 @@ static void actionCallback(void* userData, PDDebugAction action, void* actionDat
 		case PD_DEBUG_ACTION_STEP : onStep(plugin, actionData); break;
 		case PD_DEBUG_ACTION_STEP_OVER : onStepOver(plugin, actionData); break;
 		case PD_DEBUG_ACTION_SET_CODE_BREAKPOINT : onSetCodeBreakpoint(plugin, actionData); break;
-		default:
-			break;
 	}
 }
 

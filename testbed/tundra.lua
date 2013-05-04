@@ -6,8 +6,13 @@ local macosx = {
 		QT5 = native.getenv("QT5"),
 		CCOPTS = {
 			"-Wall",
-			"-Wno-deprecated-declarations", -- TickCount issue no Mountain Lion (needs to be fixed)
-			"-I.", "-DMACOSX", "-Wall",
+			"-I.", "-DMACOSX", "-Weverything", "-Wno-missing-prototypes",
+			{ "-O0", "-g"; Config = "*-*-debug" },
+			{ "-O3"; Config = "*-*-release" },
+		},
+
+		CXXOPTS = {
+			"-Werror", "-I.", "-DMACOSX", "-Weverything", 
 			{ "-O0", "-g"; Config = "*-*-debug" },
 			{ "-O3"; Config = "*-*-release" },
 		},

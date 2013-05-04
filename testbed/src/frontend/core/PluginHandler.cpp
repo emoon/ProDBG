@@ -59,7 +59,7 @@ bool PluginHandler_addPlugin(const char* plugin)
 
 Plugin* PluginHandler_getPlugins(int* count)
 {
-	*count = s_plugins.size();
+	*count = (int)s_plugins.size();
 	return &s_plugins[0];
 }
 

@@ -47,14 +47,14 @@ typedef enum PDDebugAction
 	PD_DEBUG_ACTION_BREAK,
 	PD_DEBUG_ACTION_STEP,
 	PD_DEBUG_ACTION_STEP_OVER,
-	PD_DEBUG_ACTION_SET_CODE_BREAKPOINT,
+	PD_DEBUG_ACTION_SET_CODE_BREAKPOINT
 
 } PDDebugAction;
 
 typedef enum PDLaunchAction
 {
 	PD_DEBUG_LAUNCH,
-	PD_DEBUG_ATTATCH,
+	PD_DEBUG_ATTATCH
 
 } PDLaunchAction;
 
@@ -70,7 +70,7 @@ typedef struct PDDebugPlugin
 
 typedef enum ProDBGPluginType
 {
-	PD_PTYPE_DEBUGGER = 1,
+	PD_PTYPE_DEBUGGER = 1
 } ProDBGPluginType;
 
 // 

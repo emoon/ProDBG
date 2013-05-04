@@ -10,6 +10,7 @@ namespace prodbg
 struct Plugin
 {
 	void* data;
+	int temp;
 	int type;
 };
 
