@@ -24,11 +24,13 @@ class CodeEditor : public QPlainTextEdit
 public:
     CodeEditor(QWidget* parent = 0);
 
+	void readSourceFile(const char* file);
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int lineNumberAreaWidth();
 
 protected:
     void resizeEvent(QResizeEvent* event);
+	void keyPressEvent(QKeyEvent* event);
 
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);

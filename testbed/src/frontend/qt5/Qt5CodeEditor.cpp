@@ -73,10 +73,11 @@ void CodeEditor::highlightCurrentLine()
 {
     QList<QTextEdit::ExtraSelection> extraSelections;
 
-    if (!isReadOnly()) {
+    if (!isReadOnly()) 
+    {
         QTextEdit::ExtraSelection selection;
         
-        QColor lineColor = QColor(Qt::yellow).lighter(160);
+        QColor lineColor = QColor(Qt::darkGray).lighter(50);
 
         selection.format.setBackground(lineColor);
         selection.format.setProperty(QTextFormat::FullWidthSelection, true);
@@ -116,6 +117,41 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
         ++blockNumber;
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeEditor::keyPressEvent(QKeyEvent* event)
+{
+	int key = event->key();
+	printf("%08x %08x\n", key, Qt::Key_F8);
+	if (event->key() == Qt::Key_F8)
+	{
+		printf("toggle breakpoint\n");
+		return;
+	}
+
+	QPlainTextEdit::keyPressEvent(event);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeEditor::readSourceFile(const char* filename)
+{
+	QFile f(filename);
+
+	if (!f.exists())
+	{
+		printf("Unable to open %s\n", filename);
+		return;
+	}
+
+	f.open(QFile::ReadOnly | QFile::Text);
+
+	QTextStream ts(&f);
+	setPlainText(ts.readAll());
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
 
