@@ -11,9 +11,10 @@
 namespace prodbg
 {
 
-int realMain(int argc, char* argv[]);
 
-int realMain(int argc, char* argv[])
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int realMain(int argc, char* argv[])
 {
 	QApplication app(argc, argv);
 	Qt5MainWindow window;
@@ -21,10 +22,26 @@ int realMain(int argc, char* argv[])
 	window.show();
 	window.setWindowTitle(QApplication::translate("toplevel", "ProDBG"));
 
-	CodeEditor* editor = new CodeEditor(&window);
-	editor->setWindowFlags(Qt::Dialog);
-	editor->setMinimumSize(400, 400);
-	editor->show();
+	app.setStyle("plastique");
+
+	{
+		QFile f("data/darkorange.stylesheet");
+
+		if (!f.exists())
+		{
+			printf("Unable to stylesheet\n");
+		}
+		else
+		{
+			f.open(QFile::ReadOnly | QFile::Text);
+			QTextStream ts(&f);
+			app.setStyleSheet(ts.readAll());
+		}
+	}
+
+	window.readSourceFile("/Users/emoon/temp/foo.c");
+
+	// test
 
 	// Try to load plugin (hard coded to for now)
 
