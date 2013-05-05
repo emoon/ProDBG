@@ -9,6 +9,7 @@
 #include <SBHostOS.h>
 #include <SBEvent.h>
 #include <SBBreakpoint.h>
+#include <SBStream.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -72,7 +73,44 @@ static void actionCallback(void* userData, PDDebugAction action, void* actionDat
 		case PD_DEBUG_ACTION_STEP_OVER : onStepOver(plugin, actionData); break;
 		case PD_DEBUG_ACTION_SET_CODE_BREAKPOINT : onSetCodeBreakpoint(plugin, actionData); break;
 	}
+
 }
+
+const char* sections_names[] =
+{
+	"eSectionTypeInvalid",
+	"eSectionTypeCode",
+	"eSectionTypeContainer",              // The section contains child sections
+	"eSectionTypeData",
+	"eSectionTypeDataCString",            // Inlined C string data
+	"eSectionTypeDataCStringPointers",    // Pointers to C string data
+	"eSectionTypeDataSymbolAddress",      // Address of a symbol in the symbol table
+	"eSectionTypeData4",
+	"eSectionTypeData8",
+	"eSectionTypeData16",
+	"eSectionTypeDataPointers",
+	"eSectionTypeDebug",
+	"eSectionTypeZeroFill",
+	"eSectionTypeDataObjCMessageRefs",    // Pointer to function pointer + selector
+	"eSectionTypeDataObjCCFStrings",      // Objective C const CFString/NSString objects
+	"eSectionTypeDWARFDebugAbbrev",
+	"eSectionTypeDWARFDebugAranges",
+	"eSectionTypeDWARFDebugFrame",
+	"eSectionTypeDWARFDebugInfo",
+	"eSectionTypeDWARFDebugLine",
+	"eSectionTypeDWARFDebugLoc",
+	"eSectionTypeDWARFDebugMacInfo",
+	"eSectionTypeDWARFDebugPubNames",
+	"eSectionTypeDWARFDebugPubTypes",
+	"eSectionTypeDWARFDebugRanges",
+	"eSectionTypeDWARFDebugStr",
+	"eSectionTypeDWARFAppleNames",
+	"eSectionTypeDWARFAppleTypes",
+	"eSectionTypeDWARFAppleNamespaces",
+	"eSectionTypeDWARFAppleObjC",
+	"eSectionTypeEHFrame",
+	"eSectionTypeOther"
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -96,6 +134,48 @@ static void startCallback(void* userData, PDLaunchAction action, void* launchDat
 	// very hacky right now but is only used for testing anyway
 	plugin->target = plugin->debugger.CreateTarget((const char*)launchData);
 	lldb::SBBreakpoint breakpoint = plugin->target.BreakpointCreateByName("main");
+
+	// dump some data
+	//
+	
+	for (uint32_t i = 0; i < 1;/*plugin->target.GetNumModules()*/ ++i)
+	{
+		lldb::SBStream desc;
+    	lldb::SBModule module = plugin->target.GetModuleAtIndex(i);
+
+    	module.GetDescription(desc);
+
+    	printf("module desc %s\n", desc.GetData());
+    	printf("CompileUnits %d\n", module.GetNumCompileUnits());
+
+		for (size_t k = 0; k < module.GetNumCompileUnits(); ++k)
+		{
+			lldb::SBCompileUnit unit = module.GetCompileUnitAtIndex((uint32_t)k);
+
+			for (size_t p = 0; p < unit.GetNumSupportFiles(); ++p)
+			{
+				lldb::SBFileSpec fileSpec = unit.GetSupportFileAtIndex((uint32_t)p);
+				printf("support file %s\n", fileSpec.GetFilename());
+			}
+		}
+
+		for (uint32_t k = 0; k < module.GetNumSymbols(); ++k)
+		{
+			lldb::SBSymbol symbol = module.GetSymbolAtIndex(k);
+			printf("%d %s\n", k, symbol.GetName());
+		}
+
+		/*
+    	printf("ModuleDesc %s\n", desc.GetData());
+    	
+    	for (uint32_t p = 0; p < module.GetNumSections(); ++p)
+		{
+			lldb::SBSection section = module.GetSectionAtIndex(p);
+			printSectionsReursive(section, 0);
+		}
+		*/
+	}
+
 
 	if (breakpoint.IsValid())
 	{
