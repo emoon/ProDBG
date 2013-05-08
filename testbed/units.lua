@@ -76,8 +76,9 @@ SharedLibrary {
 
 		CXXOPTS = {
 			{ 
+			"-std=c++11", 
 			"-Wno-padded",
-			"-Wno-documentation",
+			--"-Wno-documentation",
 			"-Wno-unused-parameter",
 			"-Wno-missing-prototypes",
 			"-Wno-unused-member-function",
@@ -88,7 +89,7 @@ SharedLibrary {
 			{ "-Fplugins/lldb/Frameworks", "-lstdc++"; Config = "macosx-clang-*" },
 		},
 
-		CXXCOM = { "-std=c++11", "-stdlib=libc++"; Config = "macosx-clang-*" },
+		CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
 	},
 
 	Sources = { 
@@ -129,7 +130,13 @@ Program {
 
 		CXXOPTS = {
 			{ 
+			--"-mmacosx-version-min=10.7",
+			"-std=gnu0x",
+			"-std=c++11",
+			"-stdlib=libc++",
 			"-Wno-padded",
+			"-Wno-c++98-compat",
+			"-Wno-c++98-compat-pedantic",
 			"-Wno-global-constructors",
 			"-Wno-long-long",
 			"-Wno-unreachable-code",
