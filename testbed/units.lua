@@ -77,6 +77,7 @@ SharedLibrary {
 		CXXOPTS = {
 			{ 
 			"-Wno-padded",
+			"-Wno-documentation",
 			"-Wno-unused-parameter",
 			"-Wno-missing-prototypes",
 			"-Wno-unused-member-function",
