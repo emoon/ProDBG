@@ -78,7 +78,7 @@ SharedLibrary {
 			{ 
 			"-std=c++11", 
 			"-Wno-padded",
-			--"-Wno-documentation",
+			"-Wno-documentation",
 			"-Wno-unused-parameter",
 			"-Wno-missing-prototypes",
 			"-Wno-unused-member-function",
@@ -135,12 +135,8 @@ Program {
 			"-std=c++11",
 			"-stdlib=libc++",
 			"-Wno-padded",
-<<<<<<< HEAD
 			"-Wno-c++98-compat",
 			"-Wno-c++98-compat-pedantic",
-=======
-			"-Wno-extra-semi",
->>>>>>> WIP hex editor widget
 			"-Wno-global-constructors",
 			"-Wno-long-long",
 			"-Wno-unreachable-code",
@@ -148,6 +144,7 @@ Program {
 			"-Wno-disabled-macro-expansion",
 			"-Wno-conversion",
 			"-Wno-weak-vtables",
+			"-Wno-extra-semi",
 			"-Wno-undefined-reinterpret-cast", -- needed for Qt signals :(
 			"-Wno-sign-conversion" ; Config = "macosx-clang-*" },
 		},
@@ -205,4 +202,3 @@ Program {
 Default "LLDBPlugin"
 Default "Fake6502"
 Default "prodbg-qt5"
-
