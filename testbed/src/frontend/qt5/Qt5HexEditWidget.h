@@ -19,7 +19,7 @@ class Qt5HexEditWidget : public QScrollArea
     Q_PROPERTY(QFont font READ getFont WRITE setFont);
 
 public:
-	Qt5HexEditWidget(QWidget* parent = 0);
+	Qt5HexEditWidget(QWidget* parent = nullptr);
 
 	void insert(int index, const QByteArray& values);
     void insert(int index, char value);
