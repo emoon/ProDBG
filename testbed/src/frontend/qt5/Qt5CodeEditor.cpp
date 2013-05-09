@@ -80,7 +80,7 @@ void CodeEditor::highlightCurrentLine()
         QTextEdit::ExtraSelection selection;
         QTextCursor cursor = textCursor();
 
-        printf("%d\n", cursor.blockNumber());
+        //printf("%d\n", cursor.blockNumber());
         
         QColor lineColor = QColor(Qt::darkGray).lighter(50);
 

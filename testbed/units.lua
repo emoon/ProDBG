@@ -135,8 +135,12 @@ Program {
 			"-std=c++11",
 			"-stdlib=libc++",
 			"-Wno-padded",
+<<<<<<< HEAD
 			"-Wno-c++98-compat",
 			"-Wno-c++98-compat-pedantic",
+=======
+			"-Wno-extra-semi",
+>>>>>>> WIP hex editor widget
 			"-Wno-global-constructors",
 			"-Wno-long-long",
 			"-Wno-unreachable-code",
@@ -144,6 +148,7 @@ Program {
 			"-Wno-disabled-macro-expansion",
 			"-Wno-conversion",
 			"-Wno-weak-vtables",
+			"-Wno-undefined-reinterpret-cast", -- needed for Qt signals :(
 			"-Wno-sign-conversion" ; Config = "macosx-clang-*" },
 		},
 
@@ -172,6 +177,21 @@ Program {
 		MocGeneration {
 			Source = "src/frontend/Qt5/Qt5MainWindow.h",
 			OutName = "Qt5MainWindow_moc.cpp"
+		},
+
+		MocGeneration {
+			Source = "src/frontend/Qt5/Qt5HexEditWindow.h",
+			OutName = "Qt5HexEditWindow_moc.cpp"
+		},
+
+		MocGeneration {
+			Source = "src/frontend/Qt5/Qt5HexEditInternal.h",
+			OutName = "Qt5HexEditInternal_moc.cpp"
+		},
+
+		MocGeneration {
+			Source = "src/frontend/Qt5/Qt5HexEditWidget.h",
+			OutName = "Qt5HexEditWidget_moc.cpp"
 		},
 	},
 

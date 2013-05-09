@@ -21,11 +21,13 @@ public:
 
 private slots:
 	void newFile();
+	void openHexEditor();
 
 private:
 
 	CodeEditor* m_codeEditor;
 	QMenu* m_fileMenu;
+	QMenu* m_experimentsMenu;
 	QMenu* m_helpMenu;
 };
 

@@ -17,10 +17,8 @@ namespace prodbg
 static int realMain(int argc, char* argv[])
 {
 	QApplication app(argc, argv);
-	Qt5MainWindow window;
-	window.resize(800, 600);
-	window.show();
-	window.setWindowTitle(QApplication::translate("toplevel", "ProDBG"));
+	app.setApplicationName("ProDBG");
+	app.setOrganizationName("ProDBG");
 
 	app.setStyle("plastique");
 
@@ -39,7 +37,12 @@ static int realMain(int argc, char* argv[])
 		}
 	}
 
-	window.readSourceFile("/Users/emoon/temp/foo.c");
+	Qt5MainWindow window;
+	window.resize(800, 600);
+	window.show();
+	window.setWindowTitle(QApplication::translate("toplevel", "ProDBG"));
+
+    window.readSourceFile("examples/Fake6502/Fake6502.c");
 
 	// test
 
