@@ -39,10 +39,14 @@ Qt5MainWindow::Qt5MainWindow()
 
 	m_fileMenu = menuBar()->addMenu(tr("&File"));
 	m_fileMenu->addAction(newAct);
+
 	// experiments menu actions
 	QAction* hexEditAct = new QAction(tr("Hex Editor Test"), this);
+	hexEditAct->setStatusTip(tr("Launch hex editor test"));
+	connect(hexEditAct, SIGNAL(triggered()), this, SLOT(openHexEditor()));
 
 	// connect experiments menu
+
 	m_experimentsMenu = menuBar()->addMenu(tr("&Experiments"));
 	m_experimentsMenu->addAction(hexEditAct);
 
