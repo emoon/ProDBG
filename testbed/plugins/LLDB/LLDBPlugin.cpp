@@ -125,19 +125,21 @@ static void startCallback(void* userData, PDLaunchAction action, void* launchDat
  	plugin->debugger = lldb::SBDebugger::Create(false);
  	plugin->listener = plugin->debugger.GetListener(); 
 
+	/*
 	const char* cat[] =
 	{
 		"all",
 		0
 	};
+	*/
 
 	// very hacky right now but is only used for testing anyway
 	plugin->target = plugin->debugger.CreateTarget((const char*)launchData);
-	lldb::SBBreakpoint breakpoint = plugin->target.BreakpointCreateByName("main");
 
 	// dump some data
 	//
 	
+#if 0
 	for (uint32_t i = 0; i < 1;/*plugin->target.GetNumModules()*/ ++i)
 	{
 		lldb::SBStream desc;
@@ -175,8 +177,10 @@ static void startCallback(void* userData, PDLaunchAction action, void* launchDat
 		}
 		*/
 	}
+#endif
 
 
+	/*
 	if (breakpoint.IsValid())
 	{
 		printf("Added valid breakpoint\n");
@@ -186,6 +190,7 @@ static void startCallback(void* userData, PDLaunchAction action, void* launchDat
 	{
 		printf("Unable to enable log!\n");
 	}
+	*/
 	
 	if (!plugin->target.IsValid())
 		return;

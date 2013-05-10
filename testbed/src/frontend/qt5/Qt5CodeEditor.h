@@ -2,6 +2,9 @@
 
 #include <QPlainTextEdit>
 #include <QObject>
+#include <vector>
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 QT_BEGIN_NAMESPACE
 class QPaintEvent;
@@ -9,6 +12,10 @@ class QResizeEvent;
 class QSize;
 class QWidget;
 QT_END_NAMESPACE
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct PDDebugPlugin;
 
 namespace prodbg
 {
@@ -24,6 +31,7 @@ class CodeEditor : public QPlainTextEdit
 public:
     CodeEditor(QWidget* parent = 0);
 
+	void beginDebug(const char* executable);
 	void readSourceFile(const char* file);
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int lineNumberAreaWidth();
@@ -31,6 +39,7 @@ public:
 protected:
     void resizeEvent(QResizeEvent* event);
 	void keyPressEvent(QKeyEvent* event);
+	void step();
 
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
@@ -38,7 +47,15 @@ private slots:
     void updateLineNumberArea(const QRect &, int);
 
 private:
+
+	PDDebugPlugin* m_debuggerPlugin;
+	void* m_pluginData;
+
     QWidget* m_lineNumberArea;
+	uint32_t* m_breakpoints;
+	uint32_t m_breakpointCount;
+	uint32_t m_breakpointCountMax;
+	const char* m_sourceFile;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

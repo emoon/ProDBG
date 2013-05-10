@@ -38,18 +38,22 @@ static int realMain(int argc, char* argv[])
 	}
 
 	Qt5MainWindow window;
-	window.resize(800, 600);
+	window.resize(900, 600);
 	window.show();
 	window.setWindowTitle(QApplication::translate("toplevel", "ProDBG"));
 
-    window.readSourceFile("examples/Fake6502/Fake6502.c");
+    window.readSourceFile("examples/Fake6502/Fake6502Main.c");
 
 	// test
 
 	// Try to load plugin (hard coded to for now)
 
+	if (!PluginHandler_addPlugin("tundra-output/macosx-clang-debug-default/libLLDBPlugin.dylib"))
+	{
+		printf("Unable to load LLDBPlugin\n");
+	}
+	
 	/*
-	if (PluginHandler_addPlugin("tundra-output/macosx-clang-debug-default/libLLDBPlugin.dylib"))
 	{
 		int count;
 
