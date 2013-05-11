@@ -47,7 +47,7 @@ int CodeEditor::lineNumberAreaWidth()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeEditor::updateLineNumberAreaWidth(int /* newBlockCount */)
+void CodeEditor::updateLineNumberAreaWidth(int)
 { 
     setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
 }
