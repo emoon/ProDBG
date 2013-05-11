@@ -114,7 +114,7 @@ const char* sections_names[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void startCallback(void* userData, PDLaunchAction action, void* launchData)
+static bool startCallback(void* userData, PDLaunchAction action, void* launchData)
 {
 	LLDBPlugin* plugin = (LLDBPlugin*)userData;
 
@@ -193,7 +193,9 @@ static void startCallback(void* userData, PDLaunchAction action, void* launchDat
 	*/
 	
 	if (!plugin->target.IsValid())
-		return;
+		return false;
+
+	/*
 
 	printf("Target is valid, launching\n");
 
@@ -234,6 +236,9 @@ static void startCallback(void* userData, PDLaunchAction action, void* launchDat
 
 		usleep(10000);
 	}
+	*/
+
+	return true;
 
 	//process.Destroy();
 	//lldb::SBDebugger::Destroy(plugin->debugger);

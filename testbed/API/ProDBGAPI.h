@@ -63,7 +63,7 @@ typedef struct PDDebugPlugin
 	void* (*createInstance)(ServiceFunc* serviceFunc);
 	void (*destroyInstance)(void* userData);
 	
-	void (*start)(void* userData, PDLaunchAction action, void* launchData);
+	bool (*start)(void* userData, PDLaunchAction action, void* launchData);
 	void (*action)(void* userData, PDDebugAction action, void* actionData);
 
 } PDDebugPlugin;

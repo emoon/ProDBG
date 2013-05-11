@@ -2,6 +2,7 @@
 #include <QtGui>
 #include <core/PluginHandler.h>
 #include <ProDBGAPI.h>
+#include "Qt5DebuggerThread.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -144,8 +145,19 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 
 void CodeEditor::beginDebug(const char* executable)
 {
-	int count;
+	//int count;
 
+	printf("beginDebug %s %d\n", executable, (uint32_t)(uint64_t)QThread::currentThreadId());
+
+	QThread* thread = new QThread;
+	Qt5DebuggerThread* worker = new Qt5DebuggerThread();
+	worker->moveToThread(thread);
+	connect(thread, SIGNAL(started()), worker, SLOT(start()));
+	connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
+
+	thread->start();
+
+	/*
 	Plugin* plugin = PluginHandler_getPlugins(&count);
 
 	if (count == 1)
@@ -157,6 +169,7 @@ void CodeEditor::beginDebug(const char* executable)
 
 		m_debuggerPlugin->start(m_pluginData, PD_DEBUG_LAUNCH, (void*)executable);
 	}
+	*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

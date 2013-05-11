@@ -190,6 +190,11 @@ Program {
 			Source = "src/frontend/Qt5/Qt5HexEditWidget.h",
 			OutName = "Qt5HexEditWidget_moc.cpp"
 		},
+
+		MocGeneration {
+			Source = "src/frontend/Qt5/Qt5DebuggerThread.h",
+			OutName = "Qt5DebuggerThread_moc.cpp"
+		},
 	},
 
 	Depends = { "core" },
