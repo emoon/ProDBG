@@ -140,36 +140,17 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
         ++blockNumber;
     }
 }
+	
+static Qt5DebuggerThread* s_worker = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeEditor::beginDebug(const char* executable)
 {
-	//int count;
-
 	printf("beginDebug %s %d\n", executable, (uint32_t)(uint64_t)QThread::currentThreadId());
 
-	QThread* thread = new QThread;
-	Qt5DebuggerThread* worker = new Qt5DebuggerThread();
-	worker->moveToThread(thread);
-	connect(thread, SIGNAL(started()), worker, SLOT(start()));
-	connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
-
-	thread->start();
-
-	/*
-	Plugin* plugin = PluginHandler_getPlugins(&count);
-
-	if (count == 1)
-	{
-		// try to start debugging session of a plugin
-
-		m_debuggerPlugin = (PDDebugPlugin*)plugin->data;
-		m_pluginData = m_debuggerPlugin->createInstance(0);
-
-		m_debuggerPlugin->start(m_pluginData, PD_DEBUG_LAUNCH, (void*)executable);
-	}
-	*/
+	s_worker = new Qt5DebuggerThread(executable);
+	s_worker->start();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -202,6 +183,8 @@ void CodeEditor::keyPressEvent(QKeyEvent* event)
 		}
 
 		m_breakpoints[m_breakpointCount++] = lineNum;
+		if (s_worker)
+	 		QMetaObject::invokeMethod(s_worker, "breakPoint",  Qt::QueuedConnection,  Q_ARG(int, lineNum));
 
 		return;
 	}

@@ -3,6 +3,7 @@
 #include <stdio.h> 
 #include <string.h> 
 #include <SBTarget.h>
+#include <SBThread.h>
 #include <SBListener.h>
 #include <SBProcess.h>
 #include <SBDebugger.h>
@@ -13,11 +14,24 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+enum DebugState
+{
+	DebugState_default,
+	DebugState_updateEvent,
+	DebugState_stopException,
+	DebugState_stopBreakpoint,
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef struct LLDBPlugin
 {
 	lldb::SBDebugger debugger;
 	lldb::SBTarget target;
 	lldb::SBListener listener;
+	lldb::SBProcess process;
+	DebugState debugState;
 
 } LLDBPlugin;
 
@@ -27,6 +41,7 @@ static void* createInstance(ServiceFunc* serviceFunc)
 {
 	printf("Create instance\n");
 	LLDBPlugin* plugin = new LLDBPlugin; 
+	plugin->debugState = DebugState_default;
 	return plugin;
 }
 
@@ -62,55 +77,177 @@ static void onSetCodeBreakpoint(LLDBPlugin* data, void* actionData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void actionCallback(void* userData, PDDebugAction action, void* actionData)
+static void onContinue(LLDBPlugin* data, void* actionData)
 {
-	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+	data->process.Continue();
+}
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum State
+{
+	State_Default,
+	State_InvalidProcess,
+	State_Exit,
+	State_Restart
+};
+
+const bool m_verbose = true;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void updateLLDBEvent(LLDBPlugin* plugin)
+{
+	if (!plugin->process.IsValid())
+		return;
+
+	lldb::SBEvent evt;
+
+	plugin->listener.WaitForEvent(1, evt);
+	lldb::StateType state = lldb::SBProcess::GetStateFromEvent(evt);
+
+	printf("event = %s\n", lldb::SBDebugger::StateAsCString(state));
+
+	if (lldb::SBProcess::GetRestartedFromEvent(evt))
+		return;
+
+	switch (state)
+	{
+		case lldb::eStateInvalid:
+		case lldb::eStateDetached:
+		case lldb::eStateCrashed:
+		case lldb::eStateUnloaded:
+			return;
+
+		case lldb::eStateExited:
+			return;
+
+		case lldb::eStateConnected:
+		case lldb::eStateAttaching:
+		case lldb::eStateLaunching:
+		case lldb::eStateRunning:
+		case lldb::eStateStepping:
+			return;
+
+		case lldb::eStateStopped:
+		case lldb::eStateSuspended:
+		{
+			//call_test_step = true;
+			bool fatal = false;
+			bool selected_thread = false;
+			for (uint32_t thread_index = 0; thread_index < plugin->process.GetNumThreads(); thread_index++)
+			{
+				lldb::SBThread thread(plugin->process.GetThreadAtIndex((size_t)thread_index));
+				lldb::SBFrame frame(thread.GetFrameAtIndex(0));
+				bool select_thread = false;
+				lldb::StopReason stop_reason = thread.GetStopReason();
+
+				if (m_verbose) 
+					printf("tid = 0x%llx pc = 0x%llx ",thread.GetThreadID(),frame.GetPC());
+
+				switch (stop_reason)
+				{
+					case lldb::eStopReasonNone:
+						if (m_verbose)
+							printf("none\n");
+						break;
+						
+					case lldb::eStopReasonTrace:
+						select_thread = true;
+						if (m_verbose)
+							printf("trace\n");
+						break;
+						
+					case lldb::eStopReasonPlanComplete:
+						select_thread = true;
+						if (m_verbose)
+							printf("plan complete\n");
+						break;
+					case lldb::eStopReasonThreadExiting:
+						if (m_verbose)
+							printf("thread exiting\n");
+						break;
+					case lldb::eStopReasonExec:
+						if (m_verbose)
+							printf("exec\n");
+						break;
+					case lldb::eStopReasonInvalid:
+						if (m_verbose)
+							printf("invalid\n");
+						break;
+					case lldb::eStopReasonException:
+						select_thread = true;
+						plugin->debugState = DebugState_stopException;
+						if (m_verbose)
+							printf("exception\n");
+						fatal = true;
+						break;
+					case lldb::eStopReasonBreakpoint:
+						select_thread = true;
+						plugin->debugState = DebugState_stopBreakpoint;
+						if (m_verbose)
+							printf("breakpoint id = %lld.%lld\n",thread.GetStopReasonDataAtIndex(0),thread.GetStopReasonDataAtIndex(1));
+						break;
+					case lldb::eStopReasonWatchpoint:
+						select_thread = true;
+						if (m_verbose)
+							printf("watchpoint id = %lld\n",thread.GetStopReasonDataAtIndex(0));
+						break;
+					case lldb::eStopReasonSignal:
+						select_thread = true;
+						if (m_verbose)
+							printf("signal %d\n",(int)thread.GetStopReasonDataAtIndex(0));
+						break;
+				}
+				if (select_thread && !selected_thread)
+				{
+					//m_thread = thread;
+					selected_thread = plugin->process.SetSelectedThread(thread);
+				}
+			}
+		}
+		break;
+	}
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void updateAction(LLDBPlugin* plugin, PDDebugAction action, void* actionData)
+{
 	switch (action)
 	{
 		case PD_DEBUG_ACTION_BREAK : onBreak(plugin, actionData); break;
 		case PD_DEBUG_ACTION_STEP : onStep(plugin, actionData); break;
+		case PD_DEBUG_ACTION_CONTINUE : onContinue(plugin, actionData); break;
 		case PD_DEBUG_ACTION_STEP_OVER : onStepOver(plugin, actionData); break;
 		case PD_DEBUG_ACTION_SET_CODE_BREAKPOINT : onSetCodeBreakpoint(plugin, actionData); break;
+		case PD_DEBUG_ACTION_NONE : break;
 	}
-
 }
 
-const char* sections_names[] =
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void actionCallback(void* userData, PDDebugAction action, void* actionData)
 {
-	"eSectionTypeInvalid",
-	"eSectionTypeCode",
-	"eSectionTypeContainer",              // The section contains child sections
-	"eSectionTypeData",
-	"eSectionTypeDataCString",            // Inlined C string data
-	"eSectionTypeDataCStringPointers",    // Pointers to C string data
-	"eSectionTypeDataSymbolAddress",      // Address of a symbol in the symbol table
-	"eSectionTypeData4",
-	"eSectionTypeData8",
-	"eSectionTypeData16",
-	"eSectionTypeDataPointers",
-	"eSectionTypeDebug",
-	"eSectionTypeZeroFill",
-	"eSectionTypeDataObjCMessageRefs",    // Pointer to function pointer + selector
-	"eSectionTypeDataObjCCFStrings",      // Objective C const CFString/NSString objects
-	"eSectionTypeDWARFDebugAbbrev",
-	"eSectionTypeDWARFDebugAranges",
-	"eSectionTypeDWARFDebugFrame",
-	"eSectionTypeDWARFDebugInfo",
-	"eSectionTypeDWARFDebugLine",
-	"eSectionTypeDWARFDebugLoc",
-	"eSectionTypeDWARFDebugMacInfo",
-	"eSectionTypeDWARFDebugPubNames",
-	"eSectionTypeDWARFDebugPubTypes",
-	"eSectionTypeDWARFDebugRanges",
-	"eSectionTypeDWARFDebugStr",
-	"eSectionTypeDWARFAppleNames",
-	"eSectionTypeDWARFAppleTypes",
-	"eSectionTypeDWARFAppleNamespaces",
-	"eSectionTypeDWARFAppleObjC",
-	"eSectionTypeEHFrame",
-	"eSectionTypeOther"
-};
+	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+
+	switch (plugin->debugState)
+	{
+		case DebugState_updateEvent : updateLLDBEvent(plugin); break;
+		case DebugState_stopException :
+		case DebugState_stopBreakpoint :
+		{
+			updateAction(plugin, action, actionData);
+			break;
+		}
+
+		case DebugState_default : return;	// nothing to do yet
+	}
+
+	printf("callback\n");
+
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -121,7 +258,7 @@ static bool startCallback(void* userData, PDLaunchAction action, void* launchDat
 	printf("Trying to start debug session\n");
 
 	lldb::SBDebugger::Initialize();
-	lldb::SBHostOS::ThreadCreated ("<lldb-tester.app.main>");
+	//lldb::SBHostOS::ThreadCreated ("<lldb-tester.app.main>");
  	plugin->debugger = lldb::SBDebugger::Create(false);
  	plugin->listener = plugin->debugger.GetListener(); 
 
@@ -195,30 +332,29 @@ static bool startCallback(void* userData, PDLaunchAction action, void* launchDat
 	if (!plugin->target.IsValid())
 		return false;
 
-	/*
-
 	printf("Target is valid, launching\n");
 
 	lldb::SBLaunchInfo launchInfo(0);
 	lldb::SBError error;
 
-	lldb::SBProcess process = plugin->target.Launch(launchInfo, error);
+	plugin->process = plugin->target.Launch(launchInfo, error);
 
 	if (!error.Success())
 	{
 		printf("error false\n");
-		return;
+		return false;
 	}
 
-	if (!process.IsValid())
+	if (!plugin->process.IsValid())
 	{
 		printf("process not valid\n");
-		return;
+		return false;
 	}
 
-	process.GetBroadcaster().AddListener(
+	plugin->process.GetBroadcaster().AddListener(
 			plugin->listener, 
 			lldb::SBProcess::eBroadcastBitStateChanged | lldb::SBProcess::eBroadcastBitInterrupt);
+	/*
 
     lldb::SBEvent evt;
 
@@ -237,6 +373,8 @@ static bool startCallback(void* userData, PDLaunchAction action, void* launchDat
 		usleep(10000);
 	}
 	*/
+
+	printf("Started ok!\n");
 
 	return true;
 
@@ -267,4 +405,64 @@ void InitPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerP
 }
 
 }
+
+/*
+if (call_test_step)
+{
+	do_the_call:
+	if (m_verbose)
+		printf("RUNNING STEP %d\n",m_step);
+	ActionWanted action;
+	TestStep(m_step, action);
+	m_step++;
+	SBError err;
+	switch (action.type)
+	{
+	case ActionWanted::Type::eContinue:
+		err = m_process.Continue();
+		break;
+	case ActionWanted::Type::eStepOut:
+		if (action.thread.IsValid() == false)
+		{
+			if (m_verbose)
+			{
+				Xcode::RunCommand(m_debugger,"bt all",true);
+				printf("error: invalid thread for step out on step %d\n", m_step);
+			}
+			exit(501);
+		}
+		m_process.SetSelectedThread(action.thread);
+		action.thread.StepOut();
+		break;
+	case ActionWanted::Type::eStepOver:
+		if (action.thread.IsValid() == false)
+		{
+			if (m_verbose)
+			{
+				Xcode::RunCommand(m_debugger,"bt all",true);
+				printf("error: invalid thread for step over %d\n",m_step);
+			}
+			exit(500);
+		}
+		m_process.SetSelectedThread(action.thread);
+		action.thread.StepOver();
+		break;
+	case ActionWanted::Type::eRelaunch:
+		if (m_process.IsValid())
+		{
+			m_process.Kill();
+			m_process.Clear();
+		}
+		Launch(action.launch_info);
+		break;
+	case ActionWanted::Type::eKill:
+		if (m_verbose)
+			printf("kill\n");
+		m_process.Kill();
+		return;
+	case ActionWanted::Type::eCallNext:
+		goto do_the_call;
+		break;
+	}
+*/
 

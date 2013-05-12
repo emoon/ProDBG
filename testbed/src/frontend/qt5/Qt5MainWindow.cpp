@@ -28,7 +28,7 @@ void Qt5MainWindow::openHexEditor()
 
 void Qt5MainWindow::startDebuggingTest()
 {
-	m_codeEditor->beginDebug("foo");
+	m_codeEditor->beginDebug("tundra-output/macosx-clang-debug-default/Fake6502");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

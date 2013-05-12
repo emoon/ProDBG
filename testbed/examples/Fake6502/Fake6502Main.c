@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <unistd.h>
 
 static uint8_t s_memory6502[65536];
 
@@ -33,11 +34,24 @@ void write6502(uint16_t address, uint8_t value)
 
 int main(int argc, const char* argv[])
 {
-	FILE* f;
-	int cycleCount;
+	//FILE* f;
+	//int cycleCount;
 
+	(void)argc;
+	(void)argv;
 	reset6502();
 
+	usleep(100000);
+
+	(*(volatile int*)0) = 0x666;
+
+	while (1)
+	{
+		printf("Doing stuff\n");
+		usleep(10000);
+	}
+
+	/*
 	if (argc < 2)
 	{
 		printf("Usage: Fake6502 image.bin (max 64k in size) cyclecount\n");
@@ -57,7 +71,8 @@ int main(int argc, const char* argv[])
 	// exec the CPU
 
 	exec6502(cycleCount);
+	*/
 
-	return 0;
+	//return 0;
 }
 
