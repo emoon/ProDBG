@@ -8,13 +8,13 @@ local macosx = {
 			"-Wall",
 			"-I.", "-DMACOSX", "-Weverything", "-Wno-missing-prototypes",
 			{ "-O0", "-g"; Config = "*-*-debug" },
-			{ "-O3"; Config = "*-*-release" },
+			{ "-O3", "-g"; Config = "*-*-release" },
 		},
 
 		CXXOPTS = {
 			"-Werror", "-I.", "-DMACOSX", "-Weverything", 
 			{ "-O0", "-g"; Config = "*-*-debug" },
-			{ "-O3"; Config = "*-*-release" },
+			{ "-O3", "-g"; Config = "*-*-release" },
 		},
 	},
 
