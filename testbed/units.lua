@@ -1,4 +1,6 @@
 require "tundra.syntax.glob"
+require "tundra.path"
+require "tundra.util"
 
 -- Used to generate the moc cpp files as needed for .h that uses Q_OBJECT
 
@@ -19,6 +21,16 @@ DefRule {
 		}
 	end,
 }
+
+-- Used to send a list of header files 
+
+local function MocGenerationMulti(sources)
+ local result = {}
+ for _, src in ipairs(tundra.util.flatten(sources)) do
+   result[#result + 1] = MocGeneration { Source = src, OutName = tundra.path.get_filename_base(src) .. "_moc.cpp" }
+ end
+ return result
+end
 
 -- Example 6502 emulator
 
@@ -128,9 +140,7 @@ Program {
 			{ "PRODBG_WIN"; Config = { "win32-*-*", "win64-*-*" } },
 		},
 
-		CXXOPTS = {
-			{ 
-			--"-mmacosx-version-min=10.7",
+		CXXOPTS = { { 
 			"-std=gnu0x",
 			"-std=c++11",
 			"-stdlib=libc++",
@@ -166,34 +176,11 @@ Program {
 			},
 		},
 
-		MocGeneration {
-			Source = "src/frontend/Qt5/Qt5CodeEditor.h",
-			OutName = "Qt5CodeEditor_moc.cpp"
-		},
-		
-		MocGeneration {
-			Source = "src/frontend/Qt5/Qt5MainWindow.h",
-			OutName = "Qt5MainWindow_moc.cpp"
-		},
-
-		MocGeneration {
-			Source = "src/frontend/Qt5/Qt5HexEditWindow.h",
-			OutName = "Qt5HexEditWindow_moc.cpp"
-		},
-
-		MocGeneration {
-			Source = "src/frontend/Qt5/Qt5HexEditInternal.h",
-			OutName = "Qt5HexEditInternal_moc.cpp"
-		},
-
-		MocGeneration {
-			Source = "src/frontend/Qt5/Qt5HexEditWidget.h",
-			OutName = "Qt5HexEditWidget_moc.cpp"
-		},
-
-		MocGeneration {
-			Source = "src/frontend/Qt5/Qt5DebuggerThread.h",
-			OutName = "Qt5DebuggerThread_moc.cpp"
+		MocGenerationMulti {
+			Glob { 
+				Dir = "src/frontend/Qt5", 
+				Extensions = { ".h" } 
+			}, 
 		},
 	},
 
