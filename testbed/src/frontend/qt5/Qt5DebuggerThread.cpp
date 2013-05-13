@@ -17,7 +17,7 @@ Qt5DebuggerThread::Qt5DebuggerThread(const char* executable) :
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-void Qt5DebuggerThread::run()
+void Qt5DebuggerThread::start()
 {
 	int count;
 
@@ -26,7 +26,10 @@ void Qt5DebuggerThread::run()
 	Plugin* plugin = PluginHandler_getPlugins(&count);
 
 	if (count != 1)
+	{
+		emit finished();
 		return;
+	}
 
 	// try to start debugging session of a plugin
 
@@ -34,15 +37,21 @@ void Qt5DebuggerThread::run()
 	m_pluginData = m_debuggerPlugin->createInstance(0);
 
 	if (!m_debuggerPlugin->start(m_pluginData, PD_DEBUG_LAUNCH, (void*)m_executable))
-		return;
-
-	// TODO: Handle exit from thread
-
-	while (1)
 	{
-		m_debuggerPlugin->action(m_pluginData, PD_DEBUG_ACTION_NONE, 0);
-		msleep(10);
+		emit finished();
+		return;
 	}
+
+	connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
+	m_timer.start(10);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void Qt5DebuggerThread::update()
+{
+	m_debuggerPlugin->action(m_pluginData, PD_DEBUG_ACTION_NONE, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

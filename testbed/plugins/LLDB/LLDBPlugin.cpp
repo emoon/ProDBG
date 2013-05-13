@@ -354,25 +354,8 @@ static bool startCallback(void* userData, PDLaunchAction action, void* launchDat
 	plugin->process.GetBroadcaster().AddListener(
 			plugin->listener, 
 			lldb::SBProcess::eBroadcastBitStateChanged | lldb::SBProcess::eBroadcastBitInterrupt);
-	/*
 
-    lldb::SBEvent evt;
-
-    while (1)
-	{
-		plugin->listener.WaitForEvent (UINT32_MAX, evt);
-		lldb::StateType state =  lldb::SBProcess::GetStateFromEvent (evt);
-		printf("event = %s\n", lldb::SBDebugger::StateAsCString(state));
-
-		if (state == lldb::eStateStopped)
-		{
-			process.Kill();
-			return;
-		}
-
-		usleep(10000);
-	}
-	*/
+	plugin->debugState = DebugState_updateEvent;
 
 	printf("Started ok!\n");
 
