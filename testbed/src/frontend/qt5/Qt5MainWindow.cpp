@@ -33,6 +33,14 @@ void Qt5MainWindow::startDebuggingTest()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Qt5MainWindow::getDebugStatus()
+{
+	printf("Qt5MainWindow::getDebugStatus\n");
+	m_codeEditor->getDebugStatus();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Qt5MainWindow::Qt5MainWindow()
 {
 	//setAttribute(Qt::WA_DeleteOnClose);
@@ -59,11 +67,16 @@ Qt5MainWindow::Qt5MainWindow()
 	basicDebugAction->setStatusTip(tr("Start basic debugging test"));
 	connect(basicDebugAction, SIGNAL(triggered()), this, SLOT(startDebuggingTest()));
 
+	QAction* getStatusAction = new QAction(tr("Basic Debugging GetStatus"), this);
+	getStatusAction->setStatusTip(tr("Get debugStatus"));
+	connect(getStatusAction, SIGNAL(triggered()), this, SLOT(getDebugStatus()));
+
 	// connect experiments menu
 
 	m_experimentsMenu = menuBar()->addMenu(tr("&Experiments"));
 	m_experimentsMenu->addAction(hexEditAct);
 	m_experimentsMenu->addAction(basicDebugAction);
+	m_experimentsMenu->addAction(getStatusAction);
 
 	m_codeEditor = new CodeEditor(this);
 	setCentralWidget(m_codeEditor);

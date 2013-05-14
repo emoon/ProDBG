@@ -140,6 +140,8 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
         ++blockNumber;
     }
 }
+
+static Qt5DebuggerThread* q_debugThread = 0; 
 	
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -148,10 +150,11 @@ void CodeEditor::beginDebug(const char* executable)
 	printf("beginDebug %s %d\n", executable, (uint32_t)(uint64_t)QThread::currentThreadId());
 
 	QThread* thread = new QThread;
-	Qt5DebuggerThread* worker = new Qt5DebuggerThread(executable);
-	worker->moveToThread(thread);
-	connect(thread, SIGNAL(started()), worker, SLOT(start()));
-	connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
+	q_debugThread = new Qt5DebuggerThread(executable);
+	q_debugThread->moveToThread(thread);
+	connect(thread, SIGNAL(started()), q_debugThread, SLOT(start()));
+	connect(q_debugThread, SIGNAL(finished()), thread, SLOT(quit()));
+	connect(this, SIGNAL(updateCodeEditor()), thread, SLOT(getUpdateState()));
 	thread->start();
 }
 
@@ -215,6 +218,18 @@ void CodeEditor::readSourceFile(const char* filename)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeEditor::getUpdateState()
+{
+	getDebugStatus();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeEditor::getDebugStatus()
+{
+	q_debugThread->getDebugStatus();
+}
 
 }
 

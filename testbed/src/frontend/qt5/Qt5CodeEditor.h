@@ -33,6 +33,7 @@ public:
 	void beginDebug(const char* executable);
 	void readSourceFile(const char* file);
     void lineNumberAreaPaintEvent(QPaintEvent *event);
+    void getDebugStatus();
     int lineNumberAreaWidth();
 
 protected:
@@ -44,6 +45,7 @@ private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
     void highlightCurrentLine();
     void updateLineNumberArea(const QRect &, int);
+    void getUpdateState();
 
 private:
 

@@ -22,6 +22,7 @@ public:
 public slots:
     void start();
 	void update();
+	void getDebugStatus();
  
 signals:
     void finished();

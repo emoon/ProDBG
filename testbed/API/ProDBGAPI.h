@@ -40,7 +40,7 @@ typedef struct PDMemoryViewPlugin
 
 } PDMemoryViewPlugin;
 
-//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef enum PDDebugAction
 {
@@ -53,12 +53,39 @@ typedef enum PDDebugAction
 
 } PDDebugAction;
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef enum PDDebugState 
+{
+	PDDebugState_default,
+	PDDebugState_noTarget,
+	PDDebugState_breakpoint,
+	PDDebugState_breakpointFileLine,
+	PDDebugState_exception,
+	PDDebugState_custom
+
+} PDDebugState;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Used when we have a break/exception on a certain line
+
+typedef struct PDDebugStateFileLine
+{
+	char filename[4096];
+	int line;
+
+} PDDebugStateFileLine;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef enum PDLaunchAction
 {
 	PD_DEBUG_LAUNCH,
 	PD_DEBUG_ATTATCH
 
 } PDLaunchAction;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct PDDebugPlugin
 {
@@ -67,6 +94,8 @@ typedef struct PDDebugPlugin
 	
 	bool (*start)(void* userData, PDLaunchAction action, void* launchData);
 	void (*action)(void* userData, PDDebugAction action, void* actionData);
+
+	PDDebugState (*getState)(void* userData, void** data);
 
 } PDDebugPlugin;
 

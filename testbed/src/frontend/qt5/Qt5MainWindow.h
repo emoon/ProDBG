@@ -29,6 +29,7 @@ private slots:
 	void newFile();
 	void openHexEditor();
 	void startDebuggingTest();
+	void getDebugStatus();
 private:
 
 	CodeEditor* m_codeEditor;

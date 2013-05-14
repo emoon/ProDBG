@@ -32,6 +32,7 @@ typedef struct LLDBPlugin
 	lldb::SBListener listener;
 	lldb::SBProcess process;
 	DebugState debugState;
+	PDDebugStateFileLine filelineData;
 
 } LLDBPlugin;
 
@@ -244,9 +245,6 @@ static void actionCallback(void* userData, PDDebugAction action, void* actionDat
 
 		case DebugState_default : return;	// nothing to do yet
 	}
-
-	printf("callback\n");
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -367,14 +365,73 @@ static bool startCallback(void* userData, PDLaunchAction action, void* launchDat
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static PDDebugState getState(void* userData, void** data)
+{
+	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+
+	printf("gettingState %d\n", plugin->debugState);
+
+	switch (plugin->debugState)
+	{
+		case DebugState_updateEvent : break;
+		case DebugState_stopException :
+		case DebugState_stopBreakpoint :
+		{
+			// Get the filename & line of the exception/breakpoint
+			// TODO: Right now we assume that we only got the break/exception at the first thread.
+
+			lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
+			lldb::SBFrame frame(thread.GetFrameAtIndex(0));
+			lldb::SBCompileUnit compileUnit = frame.GetCompileUnit();
+			lldb::SBFileSpec filespec(plugin->process.GetTarget().GetExecutable());
+
+			//filespec.GetPath((char*)&plugin->filelineData.filename, 4096);
+
+			if (compileUnit.GetNumSupportFiles() > 0)
+			{
+				char filename[2048];
+				lldb::SBFileSpec fileSpec = compileUnit.GetSupportFileAtIndex(0);
+				fileSpec.GetPath((char*)&plugin->filelineData.filename, sizeof(filename));
+			}
+
+			auto fp = frame.GetFP();
+			lldb::SBThread thread_dup = frame.GetThread();
+			char path[1024];
+			filespec.GetPath(&path[0],1024);
+			auto state = plugin->process.GetState();
+			//auto pCount_dup = plugin->process.GetNumThreads();
+			auto byte_size = plugin->process.GetAddressByteSize();
+			auto pc = frame.GetPC();
+			lldb::SBSymbolContext context(frame.GetSymbolContext(0x0000006e));
+			lldb::SBModule module(context.GetModule());
+			lldb::SBLineEntry entry(context.GetLineEntry());
+			lldb::SBFileSpec entry_filespec(plugin->process.GetTarget().GetExecutable());
+			char entry_path[1024];
+			entry_filespec.GetPath(&entry_path[0], 1024);
+			auto line_1 = entry.GetLine();
+			//auto line_2 = entry.GetLine();
+			//auto fname = frame.GetFunctionName();
+			plugin->filelineData.line = (int)line_1;
+			//printf("%llu %s %d %d %llu %s %d %s\n",fp,plugin->filelineData.filename,state,byte_size,pc,entry_path,line_1,fname);
+			break;
+		}
+
+		case DebugState_default : return PDDebugState_default;	// nothing to do yet
+	}
+
+	return PDDebugState_default;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDDebugPlugin plugin =
 {
 	createInstance,
 	destroyInstance,
 	startCallback,
 	actionCallback,
+	getState,
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
