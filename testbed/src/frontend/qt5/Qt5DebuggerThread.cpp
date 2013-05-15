@@ -51,15 +51,19 @@ void Qt5DebuggerThread::start()
 void Qt5DebuggerThread::update()
 {
 	m_debuggerPlugin->action(m_pluginData, PD_DEBUG_ACTION_NONE, 0);
+
+	// TODO: Fix me (we shouldn't really call this all the time
+	emit callUIthread();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5DebuggerThread::getDebugStatus()
+PDDebugState Qt5DebuggerThread::getDebugState(void** data)
 {
-	void* returnData = nullptr;
-	m_debuggerPlugin->getState(m_pluginData, &returnData); 
+	return m_debuggerPlugin->getState(m_pluginData, data);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 }

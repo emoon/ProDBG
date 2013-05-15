@@ -35,8 +35,8 @@ void Qt5MainWindow::startDebuggingTest()
 
 void Qt5MainWindow::getDebugStatus()
 {
-	printf("Qt5MainWindow::getDebugStatus\n");
-	m_codeEditor->getDebugStatus();
+	//printf("Qt5MainWindow::getDebugStatus\n");
+	//m_codeEditor->getDebugStatus();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

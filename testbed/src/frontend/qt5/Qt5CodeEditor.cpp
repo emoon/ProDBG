@@ -23,6 +23,7 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent)
 	m_breakpointCountMax = 1024;
 	m_breakpointCount = 0;
 	m_sourceFile = 0;
+	m_debugState = PDDebugState_default;
 
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
@@ -154,7 +155,8 @@ void CodeEditor::beginDebug(const char* executable)
 	q_debugThread->moveToThread(thread);
 	connect(thread, SIGNAL(started()), q_debugThread, SLOT(start()));
 	connect(q_debugThread, SIGNAL(finished()), thread, SLOT(quit()));
-	connect(this, SIGNAL(updateCodeEditor()), thread, SLOT(getUpdateState()));
+	connect(q_debugThread, SIGNAL(callUIthread()), this, SLOT(updateUIThread()));
+
 	thread->start();
 }
 
@@ -219,16 +221,44 @@ void CodeEditor::readSourceFile(const char* filename)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeEditor::getUpdateState()
+void CodeEditor::updateUIThread()
 {
-	getDebugStatus();
-}
+	PDDebugState state;
+	void* data;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	state = q_debugThread->getDebugState(&data);
 
-void CodeEditor::getDebugStatus()
-{
-	q_debugThread->getDebugStatus();
+	if (state != m_debugState)
+	{
+		printf("updating status from worker..\n");
+
+		switch (state)
+		{
+			case PDDebugState_breakpoint : 
+			{
+				PDDebugStateFileLine* filelineData = (PDDebugStateFileLine*)data;
+
+				printf("Goto line %d\n", filelineData->line);
+
+				const QTextBlock &block = document()->findBlockByNumber(filelineData->line - 1);
+				QTextCursor cursor(block);
+				cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, 0);
+				setTextCursor(cursor);
+				centerCursor();
+				setFocus();
+				break;
+			}
+	
+			case PDDebugState_default :
+			case PDDebugState_noTarget :
+			case PDDebugState_breakpointFileLine :
+			case PDDebugState_exception :
+			case PDDebugState_custom :
+				break;
+		}
+
+		m_debugState = state;
+	}
 }
 
 }

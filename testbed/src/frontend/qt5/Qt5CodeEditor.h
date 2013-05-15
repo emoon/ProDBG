@@ -2,6 +2,7 @@
 
 #include <QPlainTextEdit>
 #include <QObject>
+#include <ProDBGAPI.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -33,7 +34,6 @@ public:
 	void beginDebug(const char* executable);
 	void readSourceFile(const char* file);
     void lineNumberAreaPaintEvent(QPaintEvent *event);
-    void getDebugStatus();
     int lineNumberAreaWidth();
 
 protected:
@@ -45,7 +45,7 @@ private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
     void highlightCurrentLine();
     void updateLineNumberArea(const QRect &, int);
-    void getUpdateState();
+    void updateUIThread();
 
 private:
 
@@ -57,6 +57,7 @@ private:
 	uint32_t m_breakpointCount;
 	uint32_t m_breakpointCountMax;
 	const char* m_sourceFile;
+	PDDebugState m_debugState;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

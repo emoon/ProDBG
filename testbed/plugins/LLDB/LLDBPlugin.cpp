@@ -369,7 +369,7 @@ static PDDebugState getState(void* userData, void** data)
 {
 	LLDBPlugin* plugin = (LLDBPlugin*)userData;
 
-	printf("gettingState %d\n", plugin->debugState);
+	//printf("gettingState %d\n", plugin->debugState);
 
 	switch (plugin->debugState)
 	{
@@ -377,6 +377,8 @@ static PDDebugState getState(void* userData, void** data)
 		case DebugState_stopException :
 		case DebugState_stopBreakpoint :
 		{
+			*data = &plugin->filelineData;
+
 			// Get the filename & line of the exception/breakpoint
 			// TODO: Right now we assume that we only got the break/exception at the first thread.
 
@@ -394,14 +396,14 @@ static PDDebugState getState(void* userData, void** data)
 				fileSpec.GetPath((char*)&plugin->filelineData.filename, sizeof(filename));
 			}
 
-			auto fp = frame.GetFP();
+			//auto fp = frame.GetFP();
 			lldb::SBThread thread_dup = frame.GetThread();
 			char path[1024];
 			filespec.GetPath(&path[0],1024);
-			auto state = plugin->process.GetState();
+			//auto state = plugin->process.GetState();
 			//auto pCount_dup = plugin->process.GetNumThreads();
-			auto byte_size = plugin->process.GetAddressByteSize();
-			auto pc = frame.GetPC();
+			//auto byte_size = plugin->process.GetAddressByteSize();
+			//auto pc = frame.GetPC();
 			lldb::SBSymbolContext context(frame.GetSymbolContext(0x0000006e));
 			lldb::SBModule module(context.GetModule());
 			lldb::SBLineEntry entry(context.GetLineEntry());
@@ -413,7 +415,9 @@ static PDDebugState getState(void* userData, void** data)
 			//auto fname = frame.GetFunctionName();
 			plugin->filelineData.line = (int)line_1;
 			//printf("%llu %s %d %d %llu %s %d %s\n",fp,plugin->filelineData.filename,state,byte_size,pc,entry_path,line_1,fname);
-			break;
+			//break;
+
+			return PDDebugState_breakpoint;
 		}
 
 		case DebugState_default : return PDDebugState_default;	// nothing to do yet

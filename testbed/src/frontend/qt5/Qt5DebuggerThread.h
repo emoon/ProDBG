@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QTimer>
+#include <ProDBGAPI.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -18,14 +19,15 @@ class Qt5DebuggerThread : public QObject
 
 public:
 	Qt5DebuggerThread(const char* executable);
+	PDDebugState getDebugState(void** data);
 
 public slots:
     void start();
 	void update();
-	void getDebugStatus();
  
 signals:
     void finished();
+	void callUIthread();
 
 private:
 
