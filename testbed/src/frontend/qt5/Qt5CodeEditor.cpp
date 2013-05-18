@@ -19,10 +19,27 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent)
     connect(this, SIGNAL(updateRequest(const QRect &, int)), this, SLOT(updateLineNumberArea(const QRect&, int)));
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
 
-	m_breakpoints = new uint32_t[1024];
+	m_threadRunner = new QThread;
+
+	m_debuggerThread = new Qt5DebuggerThread();
+	m_debuggerThread->moveToThread(m_threadRunner);
+
+	connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
+	connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
+	connect(m_debuggerThread, SIGNAL(callUIthread()), this, SLOT(updateUIThread()));
+
+	connect(m_debuggerThread, &Qt5DebuggerThread::addBreakpointUI, this, &CodeEditor::addBreakpoint); 
+	connect(m_debuggerThread, &Qt5DebuggerThread::setFileLine, this, &CodeEditor::setFileLine); 
+
+	connect(this, &CodeEditor::tryAddBreakpoint, m_debuggerThread, &Qt5DebuggerThread::tryAddBreakpoint); 
+	connect(this, &CodeEditor::tryStartDebugging, m_debuggerThread, &Qt5DebuggerThread::tryStartDebugging); 
+	connect(this, &CodeEditor::tryStep, m_debuggerThread, &Qt5DebuggerThread::tryStep); 
+
+	m_threadRunner->start();
+
+	m_breakpoints = new PDBreakpointFileLine[1024];
 	m_breakpointCountMax = 1024;
 	m_breakpointCount = 0;
-	m_sourceFile = 0;
 	m_debugState = PDDebugState_default;
 
     updateLineNumberAreaWidth(0);
@@ -127,7 +144,7 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 
 			for (uint32_t i = 0, count = m_breakpointCount; i < count; ++i)
 			{
-            	if (m_breakpoints[i] == (uint32_t)blockNumber)
+            	if (m_breakpoints[i].line == blockNumber)
 				{
             		painter.drawArc(0, top + 1, 16, height - 2, 0, 360 * 16);
             		break;
@@ -142,30 +159,20 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
     }
 }
 
-static Qt5DebuggerThread* q_debugThread = 0; 
-	
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeEditor::beginDebug(const char* executable)
 {
 	printf("beginDebug %s %d\n", executable, (uint32_t)(uint64_t)QThread::currentThreadId());
 
-	QThread* thread = new QThread;
-	q_debugThread = new Qt5DebuggerThread(executable);
-	q_debugThread->moveToThread(thread);
-	connect(thread, SIGNAL(started()), q_debugThread, SLOT(start()));
-	connect(q_debugThread, SIGNAL(finished()), thread, SLOT(quit()));
-	connect(q_debugThread, SIGNAL(callUIthread()), this, SLOT(updateUIThread()));
-
-	thread->start();
+	emit tryStartDebugging(executable, m_breakpoints, (int)m_breakpointCount);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeEditor::step()
 {
-
-
+	emit tryStep();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -177,11 +184,11 @@ void CodeEditor::keyPressEvent(QKeyEvent* event)
 	if (event->key() == Qt::Key_F8)
 	{
         QTextCursor cursor = textCursor();
-        uint32_t lineNum = (uint32_t)cursor.blockNumber();
+        int lineNum = cursor.blockNumber();
 
 		for (uint32_t i = 0, count = m_breakpointCount; i < count; ++i)
 		{
-			if (m_breakpoints[i] == lineNum)
+			if (m_breakpoints[i].line == lineNum)
 			{
 				m_breakpoints[i] = m_breakpoints[count-1];
 				m_breakpointCount--;
@@ -189,7 +196,10 @@ void CodeEditor::keyPressEvent(QKeyEvent* event)
 			}
 		}
 
-		m_breakpoints[m_breakpointCount++] = lineNum;
+		printf("begin Adding breakpoint\n");
+
+		emit tryAddBreakpoint(m_sourceFile, lineNum);
+
 		return;
 	}
 
@@ -226,7 +236,7 @@ void CodeEditor::updateUIThread()
 	PDDebugState state;
 	void* data;
 
-	state = q_debugThread->getDebugState(&data);
+	state = m_debuggerThread->getDebugState(&data);
 
 	if (state != m_debugState)
 	{
@@ -240,7 +250,7 @@ void CodeEditor::updateUIThread()
 
 				printf("Goto line %d\n", filelineData->line);
 
-				const QTextBlock &block = document()->findBlockByNumber(filelineData->line - 1);
+				const QTextBlock& block = document()->findBlockByNumber(filelineData->line - 1);
 				QTextCursor cursor(block);
 				cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, 0);
 				setTextCursor(cursor);
@@ -260,6 +270,37 @@ void CodeEditor::updateUIThread()
 		m_debugState = state;
 	}
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeEditor::setFileLine(const char* file, int line)
+{
+	// TODO: update filename
+	(void)file;
+
+	const QTextBlock& block = document()->findBlockByNumber(line - 1);
+	QTextCursor cursor(block);
+	cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, 0);
+	setTextCursor(cursor);
+	centerCursor();
+	setFocus();
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeEditor::addBreakpoint(const char* filename, int line, int id)
+{
+	int breakpoint = m_breakpointCount++;
+
+	m_breakpoints[breakpoint].filename = strdup(filename);
+	m_breakpoints[breakpoint].line = line;
+	m_breakpoints[breakpoint].id = id;
+
+	printf("Added breakpoint %s %d %d (count %d)\n", filename, line, id, m_breakpointCount);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
 

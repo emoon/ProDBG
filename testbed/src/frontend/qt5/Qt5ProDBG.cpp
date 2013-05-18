@@ -17,6 +17,12 @@ namespace prodbg
 static int realMain(int argc, char* argv[])
 {
 	QApplication app(argc, argv);
+
+	if (!PluginHandler_addPlugin("tundra-output/macosx-clang-debug-default/libLLDBPlugin.dylib"))
+	{
+		printf("Unable to load LLDBPlugin\n");
+	}
+
 	app.setApplicationName("ProDBG");
 	app.setOrganizationName("ProDBG");
 
@@ -48,10 +54,6 @@ static int realMain(int argc, char* argv[])
 
 	// Try to load plugin (hard coded to for now)
 
-	if (!PluginHandler_addPlugin("tundra-output/macosx-clang-debug-default/libLLDBPlugin.dylib"))
-	{
-		printf("Unable to load LLDBPlugin\n");
-	}
 	
 	/*
 	{

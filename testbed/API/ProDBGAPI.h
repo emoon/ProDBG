@@ -87,15 +87,37 @@ typedef enum PDLaunchAction
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef enum PDBreakpointType
+{
+	PDBreakpointType_FileLine,
+	PDBreakpointType_watchPoint,
+	PDBreakpointType_address,
+	PDBreakpointType_custom
+
+} PDBreakpointType;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct PDBreakpointFileLine
+{
+	const char* filename;
+	int line;
+	int id;
+} PDBreakpointFileLine;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef struct PDDebugPlugin
 {
 	void* (*createInstance)(ServiceFunc* serviceFunc);
 	void (*destroyInstance)(void* userData);
-	
-	bool (*start)(void* userData, PDLaunchAction action, void* launchData);
+
+	bool (*start)(void* userData, PDLaunchAction action, void* launchData, PDBreakpointFileLine* breakpoints, int bpCount);
 	void (*action)(void* userData, PDDebugAction action, void* actionData);
 
 	PDDebugState (*getState)(void* userData, void** data);
+	int (*addBreakpoint)(void* userData, PDBreakpointType type, void* breakpointData);
+	void (*removeBreakpoint)(void* userData, int id); 
 
 } PDDebugPlugin;
 

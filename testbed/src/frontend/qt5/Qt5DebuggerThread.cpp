@@ -10,9 +10,9 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5DebuggerThread::Qt5DebuggerThread(const char* executable) : 
-	m_executable(executable)
+Qt5DebuggerThread::Qt5DebuggerThread()
 {
+	m_fileLine.filename = new char[4096];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,14 +36,36 @@ void Qt5DebuggerThread::start()
 	m_debuggerPlugin = (PDDebugPlugin*)plugin->data;
 	m_pluginData = m_debuggerPlugin->createInstance(0);
 
-	if (!m_debuggerPlugin->start(m_pluginData, PD_DEBUG_LAUNCH, (void*)m_executable))
-	{
-		emit finished();
-		return;
-	}
-
 	connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
-	m_timer.start(10);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5DebuggerThread::tryAddBreakpoint(const char* filename, int line)
+{
+	PDBreakpointFileLine fileLineBP = { filename, line, 0 };
+
+	printf("Qt5DebuggerThread::tryAddBreakpoint\n");
+
+	int id = m_debuggerPlugin->addBreakpoint(m_pluginData, PDBreakpointType_FileLine, &fileLineBP);
+
+	printf("id %d\n", id);
+
+	emit addBreakpointUI(filename, fileLineBP.line, id); // important to use .line from input struct as it can be changed
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5DebuggerThread::tryStartDebugging(const char* filename, PDBreakpointFileLine* breakpoints, int bpCount)
+{
+	m_executable = filename;
+
+	// Start the debugging and if we manage start the update that will be called each 10 ms
+
+	if (m_debuggerPlugin->start(m_pluginData, PD_DEBUG_LAUNCH, (void*)m_executable, breakpoints, bpCount))
+	{
+		m_timer.start(10);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,6 +76,17 @@ void Qt5DebuggerThread::update()
 
 	// TODO: Fix me (we shouldn't really call this all the time
 	emit callUIthread();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5DebuggerThread::tryStep()
+{
+	m_debuggerPlugin->action(m_pluginData, PD_DEBUG_ACTION_STEP, &m_fileLine);
+
+	printf("Want to step to %s %d\n", m_fileLine.filename, m_fileLine.line); 
+
+	emit setFileLine(m_fileLine.filename, m_fileLine.line); 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

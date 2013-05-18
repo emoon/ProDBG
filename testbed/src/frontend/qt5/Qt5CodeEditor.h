@@ -2,6 +2,7 @@
 
 #include <QPlainTextEdit>
 #include <QObject>
+#include <QString>
 #include <ProDBGAPI.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -11,6 +12,7 @@ class QPaintEvent;
 class QResizeEvent;
 class QSize;
 class QWidget;
+class QThread;
 QT_END_NAMESPACE
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -21,6 +23,15 @@ namespace prodbg
 {
 
 class LineNumberArea;
+class Qt5DebuggerThread;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct FileLineBreakpoint
+{
+	QString filename;
+	int line;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -46,6 +57,13 @@ private slots:
     void highlightCurrentLine();
     void updateLineNumberArea(const QRect &, int);
     void updateUIThread();
+    void addBreakpoint(const char* filename, int line, int id);
+    void setFileLine(const char* file, int line);
+
+signals:
+	void tryAddBreakpoint(const char*, int line);
+	void tryStartDebugging(const char* filename, PDBreakpointFileLine* breakpoints, int bpCount);
+	void tryStep();
 
 private:
 
@@ -53,11 +71,14 @@ private:
 	void* m_pluginData;
 
     QWidget* m_lineNumberArea;
-	uint32_t* m_breakpoints;
+	
+	PDBreakpointFileLine* m_breakpoints;
 	uint32_t m_breakpointCount;
 	uint32_t m_breakpointCountMax;
 	const char* m_sourceFile;
 	PDDebugState m_debugState;
+	Qt5DebuggerThread* m_debuggerThread;
+	QThread* m_threadRunner;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

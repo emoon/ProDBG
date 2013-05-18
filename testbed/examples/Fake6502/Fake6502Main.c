@@ -43,7 +43,7 @@ int main(int argc, const char* argv[])
 
 	usleep(100000);
 
-	(*(volatile int*)0) = 0x666;
+	//(*(volatile int*)0) = 0x666;
 
 	while (1)
 	{
