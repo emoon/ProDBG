@@ -34,6 +34,7 @@ void write6502(uint16_t address, uint8_t value)
 
 int main(int argc, const char* argv[])
 {
+	int t = 0;
 	//FILE* f;
 	//int cycleCount;
 
@@ -42,6 +43,11 @@ int main(int argc, const char* argv[])
 	reset6502();
 
 	usleep(100000);
+
+	t += 0;
+	t += 1;
+	t += 2;
+	t += 3;
 
 	//(*(volatile int*)0) = 0x666;
 

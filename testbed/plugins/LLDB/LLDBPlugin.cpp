@@ -11,6 +11,8 @@
 #include <SBEvent.h>
 #include <SBBreakpoint.h>
 #include <SBStream.h>
+#include <SBCommandInterpreter.h> 
+#include <SBCommandReturnObject.h> 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -45,8 +47,8 @@ static void* createInstance(ServiceFunc* serviceFunc)
 	printf("Create instance\n");
 	LLDBPlugin* plugin = new LLDBPlugin; 
 
+	plugin->debugger = lldb::SBDebugger::Create(false);
 	plugin->debugState = DebugState_default;
- 	plugin->debugger = lldb::SBDebugger::Create(false);
  	plugin->listener = plugin->debugger.GetListener(); 
 
 	return plugin;
@@ -74,15 +76,33 @@ static void onStep(LLDBPlugin* plugin, PDBreakpointFileLine* fileLine)
 
 	lldb::SBThread thread(plugin->process.GetThreadAtIndex((size_t)0));
 
+	lldb::SBEvent evt;
+
+	printf("thread stopReason %d\n", thread.GetStopReason());
 	printf("threadValid %d\n", thread.IsValid());
 
 	thread.StepInto();
 
-	lldb::SBFrame frame(thread.GetSelectedFrame());
-	lldb::SBCompileUnit compileUnit = frame.GetCompileUnit();
+	// FIXME!
+
+	lldb::StateType state = lldb::SBProcess::GetStateFromEvent(evt);
+	plugin->listener.WaitForEvent(1, evt);
+
+	while (state == lldb::eStateRunning)
+	{
+		plugin->listener.WaitForEvent(1, evt);
+		state = lldb::SBProcess::GetStateFromEvent(evt);
+	}
+
+	printf("event = %s\n", lldb::SBDebugger::StateAsCString(state));
+
+	printf("thread stopReason %d\n", thread.GetStopReason());
+	printf("threadValid %d\n", thread.IsValid());
 
 	printf("%d %d %d\n", thread.IsSuspended(), thread.IsStopped(), thread.GetNumFrames());
 
+	lldb::SBFrame frame(thread.GetSelectedFrame());
+	lldb::SBCompileUnit compileUnit = frame.GetCompileUnit();
 
 	printf("frame valid %d\n", frame.IsValid());
 	printf("processState %d\n", plugin->process.GetState());
@@ -353,6 +373,9 @@ static bool startDebugging(void* userData, PDLaunchAction action, void* launchDa
 	printf("Started ok!\n");
 
 	// TODO
+
+	lldb::SBCommandReturnObject result;
+    plugin->debugger.GetCommandInterpreter().HandleCommand("log enable lldb all", result);
 
 	return true;
 
