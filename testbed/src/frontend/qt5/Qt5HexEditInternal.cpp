@@ -809,18 +809,23 @@ void Qt5HexEditInternal::handleSelectCommands(QKeyEvent* event)
 
 void Qt5HexEditInternal::handleEditCommands(QKeyEvent* event)
 {
-	if (m_readOnly)
+    if (m_readOnly)
 		return;
 
-	const int characterX = (m_cursorX - m_hexPosition) / m_characterWidth;
+    const int characterX = (m_cursorX - m_hexPosition) / m_characterWidth;
     const int positionX  = (characterX / 3) * 2 + (characterX % 3);
     
     int positionValues = (m_cursorY / m_characterHeight) * kBytesPerLine + positionX / 2;
 
 	// Hex input
-	const int key = int(event->text()[0].digitValue());
+	const int key = int(event->text()[0].toLower().toLatin1());
+
+    printf("Got edit event: %d %c\n", key, key);
+
+    //if ((key >= '0' && key <= '9') || (key >= 'a' && key <= 'f'))
     if ((key >= '0' && key <= '9') || (key >= 'a' && key <= 'f'))
     {
+        
         if (getSelectionBegin() != getSelectionEnd())
         {
             positionValues = getSelectionBegin();

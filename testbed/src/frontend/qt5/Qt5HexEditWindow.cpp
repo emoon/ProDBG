@@ -24,6 +24,16 @@ Qt5HexEditWindow::~Qt5HexEditWindow()
 
 }
 
+void Qt5HexEditWindow::setAddress(int address)
+{
+    m_addressLabel->setText(QString("%1").arg(address, 1, 16));
+}
+
+void Qt5HexEditWindow::setSize(int size)
+{
+    m_sizeLabel->setText(QString("%1").arg(size));
+}
+
 void Qt5HexEditWindow::initialize()
 {
 	setAttribute(Qt::WA_DeleteOnClose);
@@ -95,6 +105,20 @@ void Qt5HexEditWindow::testEditor()
                              .arg(file.errorString()));
         return;
     }
+
+    m_hexEdit->setAddressArea(true);
+    m_hexEdit->setAsciiArea(true);
+    m_hexEdit->setHighlighting(true);
+    m_hexEdit->setOverwriteMode(false);
+    m_hexEdit->setReadOnly(false);
+
+    m_hexEdit->setHighlightingColor(QColor(0xff, 0xff, 0x99, 0xff));
+    //QColor lineColor = QColor(Qt::darkGray).lighter(50);
+    m_hexEdit->setAddressAreaColor(Qt::black);//QColor(0xd4, 0xd4, 0xd4, 0xff));
+    m_hexEdit->setSelectionColor(QColor(0x6d, 0x9e, 0xff, 0xff));
+    m_hexEdit->setFont(QFont("Courier", 12));
+
+    m_hexEdit->setAddressWidth(4);
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
     m_hexEdit->setData(file.readAll());

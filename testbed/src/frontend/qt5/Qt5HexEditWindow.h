@@ -26,6 +26,8 @@ protected:
 
 private slots:
 	//onClose();
+	void setAddress(int address);
+	void setSize(int size);
 
 private:
 	void initialize();
