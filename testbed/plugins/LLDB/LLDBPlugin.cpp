@@ -83,6 +83,9 @@ static void onStep(LLDBPlugin* plugin, PDBreakpointFileLine* fileLine)
 
 	thread.StepInto();
 
+	plugin->debugState = DebugState_updateEvent;
+
+	/*
 	// FIXME!
 
 	lldb::StateType state = lldb::SBProcess::GetStateFromEvent(evt);
@@ -123,6 +126,7 @@ static void onStep(LLDBPlugin* plugin, PDBreakpointFileLine* fileLine)
 	lldb::SBFileSpec entry_filespec(plugin->process.GetTarget().GetExecutable());
 
 	fileLine->line = (int)entry.GetLine();
+	*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -222,6 +226,7 @@ static void updateLLDBEvent(LLDBPlugin* plugin)
 						
 					case lldb::eStopReasonPlanComplete:
 						select_thread = true;
+						plugin->debugState = DebugState_stopBreakpoint;
 						if (m_verbose)
 							printf("plan complete\n");
 						break;
