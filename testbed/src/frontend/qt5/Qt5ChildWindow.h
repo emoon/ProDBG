@@ -9,7 +9,7 @@
 namespace prodbg
 {
 
-class Qt5ChildWindow : public CodeEditor
+class Qt5ChildWindow : public Qt5CodeEditor
 {
 	Q_OBJECT
 
