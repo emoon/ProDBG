@@ -46,9 +46,6 @@ static int realMain(int argc, char* argv[])
 	Qt5MainWindow window;
 	window.resize(900, 600);
 	window.show();
-	window.setWindowTitle(QApplication::translate("toplevel", "ProDBG"));
-
-    window.readSourceFile("examples/Fake6502/Fake6502Main.c");
 
 	// test
 
