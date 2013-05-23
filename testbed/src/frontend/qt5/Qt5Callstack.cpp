@@ -1,4 +1,5 @@
 #include "Qt5CallStack.h"
+#include <QStandardItemModel>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -9,6 +10,24 @@ namespace prodbg
 
 Qt5CallStack::Qt5CallStack()
 {
+	setColumnCount(2);
+	QList<QTreeWidgetItem*> items;
+
+	QStringList headers;
+	headers << "Address" << "Module" << "Name";
+
+	for (int i = 0; i < 10; ++i)
+	{
+		QStringList list;
+
+		list << "meh" << "foo" << "baz";
+
+		items.append(new QTreeWidgetItem((QTreeWidget*)0, list)); 
+	}
+
+	insertTopLevelItems(0, items);
+
+	setHeaderLabels(headers);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

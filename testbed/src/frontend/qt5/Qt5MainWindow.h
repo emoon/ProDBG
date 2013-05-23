@@ -19,8 +19,8 @@ QT_END_NAMESPACE
 namespace prodbg
 {
 
-class CodeEditor;
 class Qt5ChildWindow;
+class Qt5CallStack;
 
 class Qt5MainWindow : public QMainWindow
 {
@@ -45,6 +45,7 @@ private slots:
 	void updateWindowMenu();
 
 	void setActiveSubWindow(QWidget* window);
+	void openCallstack();
 
 private:
 	void createActions();
@@ -65,6 +66,7 @@ private:
 	QSignalMapper* m_windowMapper;
 
 	QMenu* m_windowMenu;
+	Qt5CallStack* m_callstack;
 
 	QAction* m_closeAction;
 	QAction* m_closeAllAction;

@@ -2,6 +2,7 @@
 #include "Qt5ChildWindow.h"
 #include "Qt5CodeEditor.h"
 #include "Qt5HexEditWindow.h"
+#include "Qt5CallStack.h"
 #include <QAction>
 #include <QMenuBar>
 #include <QStatusBar>
@@ -34,6 +35,15 @@ void Qt5MainWindow::openHexEditor()
 {
 	Qt5HexEditWindow* window = new Qt5HexEditWindow;
 	window->resize(1024, 768);
+	window->show();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::openCallstack()
+{
+	Qt5CallStack* window = new Qt5CallStack;
+	window->resize(320, 200);
 	window->show();
 }
 
@@ -238,12 +248,17 @@ Qt5MainWindow::Qt5MainWindow()
 	getStatusAction->setStatusTip(tr("Get debugStatus"));
 	connect(getStatusAction, SIGNAL(triggered()), this, SLOT(getDebugStatus()));
 
+	QAction* callStackAction = new QAction(tr("Open Callstack"), this);
+	callStackAction->setStatusTip(tr("Open Callstack"));
+	connect(callStackAction, SIGNAL(triggered()), this, SLOT(openCallstack()));
+
 	// connect experiments menu
 
 	m_experimentsMenu = menuBar()->addMenu(tr("&Experiments"));
 	m_experimentsMenu->addAction(hexEditAct);
 	m_experimentsMenu->addAction(basicDebugAction);
 	m_experimentsMenu->addAction(getStatusAction);
+	m_experimentsMenu->addAction(callStackAction);
 
 	m_mdiArea = new QMdiArea;
 	m_mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
