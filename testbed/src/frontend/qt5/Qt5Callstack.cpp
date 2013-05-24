@@ -20,7 +20,7 @@ Qt5CallStack::Qt5CallStack()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CallStack::updateCallstack(QStringList strings)
+void Qt5CallStack::updateCallStack(QStringList strings)
 {
 	QList<QTreeWidgetItem*> items;
 

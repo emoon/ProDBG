@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QTimer>
+#include <QStringList>
 #include <ProDBGAPI.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -33,6 +34,7 @@ signals:
 	void callUIthread();
 	void addBreakpointUI(const char* filename, int line, int id);
     void setFileLine(const char* file, int line);
+    void setCallStack(QStringList callstack);
 
 private:
 

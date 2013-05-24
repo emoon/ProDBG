@@ -496,6 +496,46 @@ static void removeBreakpoint(void* userData, int id)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void getCallStack(void* userData, PDCallstack* callStack, int* maxEntries)
+{
+	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+	
+	lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
+
+	int frameCount = (int)thread.GetNumFrames();
+	
+	if (frameCount > *maxEntries)
+		frameCount = *maxEntries;
+		
+	*maxEntries = frameCount;
+		
+	for (int i = 0; i < frameCount; ++i)
+	{
+		lldb::SBFrame frame = thread.GetFrameAtIndex((uint32_t)i); 
+		lldb::SBModule module = frame.GetModule();
+		lldb::SBCompileUnit compileUnit = frame.GetCompileUnit();
+		lldb::SBSymbolContext context(frame.GetSymbolContext(0x0000006e));
+		lldb::SBLineEntry entry(context.GetLineEntry());
+
+		callStack[i].address = (uint64_t)frame.GetPC();
+		module.GetFileSpec().GetPath(callStack[i].moduleName, 1024);
+		
+		if (compileUnit.GetNumSupportFiles() > 0)
+		{
+			char filename[2048];
+			lldb::SBFileSpec fileSpec = compileUnit.GetSupportFileAtIndex(0);
+			fileSpec.GetPath((char*)&plugin->filelineData.filename, sizeof(filename));
+			sprintf(callStack[i].fileLine, "%s:%d", filename, entry.GetLine());
+		}
+		else
+		{
+			strcpy(callStack[i].fileLine, "<unknown>"); 
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDDebugPlugin plugin =
 {
 	createInstance,
@@ -505,6 +545,7 @@ static PDDebugPlugin plugin =
 	getState,
 	addBreakpoint,
 	removeBreakpoint,
+	getCallStack,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

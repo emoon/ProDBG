@@ -16,8 +16,8 @@ class Qt5CallStack : public QTreeWidget
 public:
 	Qt5CallStack();
 
-private slots:
-	void updateCallstack(QStringList strings);
+public slots:
+	void updateCallStack(QStringList strings);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
