@@ -546,7 +546,6 @@ static void getLocals(void* userData, PDLocals* locals, int* maxEntries)
 	lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
 	lldb::SBFrame frame = thread.GetSelectedFrame();
 	
-	
     lldb::SBValueList variables = frame.GetVariables(true, true, true, true);
     
     uint32_t localVarsCount = variables.GetSize();
@@ -556,12 +555,9 @@ static void getLocals(void* userData, PDLocals* locals, int* maxEntries)
     else
     	localVarsCount = (uint32_t)*maxEntries;
     	
-	printf("getting locals %d\n", localVarsCount);
-    	
     for (uint32_t i = 0; i < localVarsCount; ++i)
     {
     	PDLocals* local = &locals[i]; 
-    	printf("%d count %d\n", __LINE__, i);
     	lldb::SBValue value = variables.GetValueAtIndex(i);
     	
     	// TODO: Verify this line
@@ -571,7 +567,6 @@ static void getLocals(void* userData, PDLocals* locals, int* maxEntries)
     		strcpy(local->value, value.GetValue());
    		else
     		strcpy(local->value, "Unknown"); 
-    		
     		
     	if (value.GetTypeName())
     		strcpy(local->type, value.GetTypeName());
@@ -583,8 +578,6 @@ static void getLocals(void* userData, PDLocals* locals, int* maxEntries)
     	else
     		strcpy(local->name, "Unknown"); 
 	}
-	
-	printf("getting locals done\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
