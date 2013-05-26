@@ -355,7 +355,7 @@ int Qt5HexEditInternal::calculateCursorPos(QPoint position) const
 	int result = -1;
 
     // Find character under cursor
-    if ((position.x() >= m_hexPosition) and (position.x() < (m_hexPosition + kHexCharsInLine * m_characterWidth)))
+    if ((position.x() >= m_hexPosition) && (position.x() < (m_hexPosition + kHexCharsInLine * m_characterWidth)))
     {
         int positionX = (position.x() - m_hexPosition) / m_characterWidth;
 
@@ -540,7 +540,7 @@ void Qt5HexEditInternal::paintEvent(QPaintEvent* event)
         QByteArray hex;
 
         int positionX = m_hexPosition;
-        for (int columnIndex = 0; ((lineIndex + columnIndex) < m_data.getSize() and (columnIndex < kBytesPerLine)); ++columnIndex)
+        for (int columnIndex = 0; ((lineIndex + columnIndex) < m_data.getSize() && (columnIndex < kBytesPerLine)); ++columnIndex)
         {
             int positionValues = lineIndex + columnIndex;
             if ((getSelectionBegin() <= positionValues) && (getSelectionEnd() > positionValues))
@@ -593,7 +593,7 @@ void Qt5HexEditInternal::paintEvent(QPaintEvent* event)
         for (int lineIndex = firstLineIndex, positionY = startPositionY; lineIndex < lastLineIndex; lineIndex += kBytesPerLine, positionY += m_characterHeight)
         {
             int asciiPositionX = m_asciiPosition;
-            for (int columnIndex = 0; ((lineIndex + columnIndex) < m_data.getSize() and (columnIndex < kBytesPerLine)); ++columnIndex)
+            for (int columnIndex = 0; ((lineIndex + columnIndex) < m_data.getSize() && (columnIndex < kBytesPerLine)); ++columnIndex)
             {
                 painter.drawText(asciiPositionX, positionY, m_data.getAsciiChar(lineIndex + columnIndex));
                 asciiPositionX += m_characterWidth;

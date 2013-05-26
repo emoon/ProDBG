@@ -1,4 +1,7 @@
 #include <ProDBGAPI.h>
+
+#ifndef _WIN32
+
 #include <stdlib.h> 
 #include <stdio.h> 
 #include <string.h> 
@@ -612,3 +615,4 @@ void InitPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerP
 
 }
 
+#endif
