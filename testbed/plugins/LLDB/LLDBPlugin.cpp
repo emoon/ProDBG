@@ -11,6 +11,7 @@
 #include <SBEvent.h>
 #include <SBBreakpoint.h>
 #include <SBStream.h>
+#include <SBValueList.h>
 #include <SBCommandInterpreter.h> 
 #include <SBCommandReturnObject.h> 
 
@@ -536,6 +537,55 @@ static void getCallStack(void* userData, PDCallstack* callStack, int* maxEntries
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void getLocals(void* userData, PDLocals* locals, int* maxEntries)
+{
+	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+	lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
+	lldb::SBFrame frame = thread.GetSelectedFrame();
+	
+	
+    lldb::SBValueList variables = frame.GetVariables(true, true, true, true);
+    
+    uint32_t localVarsCount = variables.GetSize();
+
+    if (localVarsCount < (uint32_t)*maxEntries)
+    	*maxEntries	= (int)localVarsCount;
+    else
+    	localVarsCount = (uint32_t)*maxEntries;
+    	
+	printf("getting locals %d\n", localVarsCount);
+    	
+    for (uint32_t i = 0; i < localVarsCount; ++i)
+    {
+    	PDLocals* local = &locals[i]; 
+    	printf("%d count %d\n", __LINE__, i);
+    	lldb::SBValue value = variables.GetValueAtIndex(i);
+    	
+    	// TODO: Verify this line
+    	sprintf(local->address, "%016llx", (uint64_t)value.GetAddress().GetFileAddress());
+    	
+    	if (value.GetValue())
+    		strcpy(local->value, value.GetValue());
+   		else
+    		strcpy(local->value, "Unknown"); 
+    		
+    		
+    	if (value.GetTypeName())
+    		strcpy(local->type, value.GetTypeName());
+    	else
+    		strcpy(local->type, "Unknown"); 
+
+		if (value.GetName())
+    		strcpy(local->name, value.GetName());
+    	else
+    		strcpy(local->name, "Unknown"); 
+	}
+	
+	printf("getting locals done\n");
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDDebugPlugin plugin =
 {
 	createInstance,
@@ -546,6 +596,7 @@ static PDDebugPlugin plugin =
 	addBreakpoint,
 	removeBreakpoint,
 	getCallStack,
+	getLocals,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

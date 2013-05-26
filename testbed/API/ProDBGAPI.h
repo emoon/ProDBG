@@ -118,6 +118,17 @@ typedef struct PDCallStack
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef struct PDLocals
+{
+	char address[32];
+	char value[32];
+	char type[4096];
+	char name[4096]; 
+
+} PDLocals;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef struct PDDebugPlugin
 {
 	void* (*createInstance)(ServiceFunc* serviceFunc);
@@ -131,6 +142,7 @@ typedef struct PDDebugPlugin
 	void (*removeBreakpoint)(void* userData, int id); 
 	
 	void (*getCallStack)(void* userData, PDCallStack* callStack, int* maxEntries); 
+	void (*getLocals)(void* userData, PDLocals* local, int* maxEntries); 
 
 } PDDebugPlugin;
 

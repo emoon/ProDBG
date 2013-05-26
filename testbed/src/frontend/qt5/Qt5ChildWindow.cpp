@@ -9,7 +9,7 @@ Qt5ChildWindow::Qt5ChildWindow()
 	setAttribute(Qt::WA_DeleteOnClose);
 
 	// TEMP:
-	resize(QSize(400, 400));
+	resize(QSize(800, 600));
 	readSourceFile("examples/Fake6502/Fake6502Main.c");
 }
 

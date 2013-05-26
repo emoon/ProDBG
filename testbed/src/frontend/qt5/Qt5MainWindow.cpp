@@ -187,7 +187,7 @@ void Qt5MainWindow::readSettings()
 {
 	QSettings settings("ProDBG", "ProDBG");
 	QPoint position = settings.value("position", QPoint(200, 200)).toPoint();
-	QSize size = settings.value("size", QSize(400, 400)).toSize();
+	QSize size = settings.value("size", QSize(800, 600)).toSize();
 	move(position);
 	resize(size);
 }

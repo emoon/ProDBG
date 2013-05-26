@@ -103,5 +103,13 @@ void Qt5DebuggerThread::getCallStack(PDCallstack* callStack, int* maxEntries)
 	return m_debuggerPlugin->getCallStack(m_pluginData, callStack, maxEntries);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5DebuggerThread::getLocals(PDLocals* locals, int* maxEntries)
+{
+	return m_debuggerPlugin->getLocals(m_pluginData, locals, maxEntries);
+}
+
+
 }
 

@@ -4,6 +4,7 @@
 #include <ProDBGAPI.h>
 #include "Qt5DebuggerThread.h"
 #include "Qt5CallStack.h"
+#include "Qt5Locals.h"
 #include "ProDBGAPI.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -25,6 +26,8 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent)
 
 	m_debuggerThread = new Qt5DebuggerThread();
 	m_callstack = new Qt5CallStack(parent);
+	m_locals = new Qt5Locals(parent);
+	
 	m_debuggerThread->moveToThread(m_threadRunner);
 
 	connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
@@ -43,6 +46,9 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent)
 	
 	m_callstack->resize(320, 200);
 	m_callstack->show();
+	
+	m_locals->resize(320, 200);
+	m_locals->show();
 
 	connect(this, &Qt5CodeEditor::tryStep, m_debuggerThread, &Qt5DebuggerThread::tryStep); 
 
@@ -279,6 +285,17 @@ void Qt5CodeEditor::updateUIThread()
 					m_callstack->updateCallStack(stackEntries, count);
 				}
 				
+				// Update locals
+			
+				if (m_locals)
+				{
+					PDLocals locals[64];
+					int count = 64;
+					
+					m_debuggerThread->getLocals(locals, &count);
+					m_locals->updateLocals(locals, count);
+				}
+
 				break;
 			}
 	

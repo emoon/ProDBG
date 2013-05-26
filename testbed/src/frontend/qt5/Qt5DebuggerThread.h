@@ -3,11 +3,9 @@
 #include <QObject>
 #include <QTimer>
 #include <QStringList>
-#include <ProDBGAPI.h>
+#include "ProDBGAPI.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-struct PDDebugPlugin;
 
 namespace prodbg
 {
@@ -22,6 +20,7 @@ public:
 	Qt5DebuggerThread();
 	PDDebugState getDebugState(void** data);
 	void getCallStack(PDCallstack* callStack, int* maxEntries);
+	void getLocals(PDLocals* locals, int* maxEntries);
 
 public slots:
     void start();
