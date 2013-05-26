@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QTreeWidget>
-#include <QStringList>
 
 struct PDCallStack;
 
@@ -18,7 +17,6 @@ class Qt5CallStack : public QTreeWidget
 public:
 	Qt5CallStack(QWidget* parent);
 
-public slots:
 	void updateCallStack(PDCallStack* callStack, int entires);
 };
 
