@@ -201,9 +201,9 @@ local native = require('tundra.native')
 
 -- only build LLDBPlugin on Mac
 
---if native.host_platform == "macosx" then
---	Default "LLDBPlugin"
---end
+if native.host_platform == "macosx" then
+	Default "LLDBPlugin"
+end
 
 Default "Fake6502"
 Default "prodbg-qt5"
