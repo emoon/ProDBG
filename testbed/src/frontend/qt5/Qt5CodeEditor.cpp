@@ -4,6 +4,7 @@
 #include <ProDBGAPI.h>
 #include "Qt5DebuggerThread.h"
 #include "Qt5CallStack.h"
+#include "ProDBGAPI.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -23,7 +24,7 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent)
 	m_threadRunner = new QThread;
 
 	m_debuggerThread = new Qt5DebuggerThread();
-	m_callstack = new Qt5CallStack;
+	m_callstack = new Qt5CallStack(parent);
 	m_debuggerThread->moveToThread(m_threadRunner);
 
 	connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
@@ -36,7 +37,7 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent)
 	connect(this, &Qt5CodeEditor::tryAddBreakpoint, m_debuggerThread, &Qt5DebuggerThread::tryAddBreakpoint); 
 	connect(this, &Qt5CodeEditor::tryStartDebugging, m_debuggerThread, &Qt5DebuggerThread::tryStartDebugging); 
 	
-	connect(m_debuggerThread, &Qt5DebuggerThread::setCallStack, m_callstack, &Qt5CallStack::updateCallStack); 
+	//connect(m_debuggerThread, &Qt5DebuggerThread::setCallStack, m_callstack, &Qt5CallStack::updateCallStack); 
 	
 	// TODO: Ok.. a bit ugly to have this here so need to separate this out
 	
@@ -266,6 +267,18 @@ void Qt5CodeEditor::updateUIThread()
 				setTextCursor(cursor);
 				centerCursor();
 				setFocus();
+				
+				// Update callstack
+				
+				if (m_callstack)
+				{
+					PDCallStack stackEntries[128];
+					int count = 128;
+					
+					m_debuggerThread->getCallStack(stackEntries, &count);
+					m_callstack->updateCallStack(stackEntries, count);
+				}
+				
 				break;
 			}
 	

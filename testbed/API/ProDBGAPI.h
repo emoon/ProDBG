@@ -109,7 +109,7 @@ typedef struct PDBreakpointFileLine
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDCallstack
+typedef struct PDCallStack
 {
 	uint64_t address;
 	char moduleName[1024];
@@ -130,7 +130,7 @@ typedef struct PDDebugPlugin
 	int (*addBreakpoint)(void* userData, PDBreakpointType type, void* breakpointData);
 	void (*removeBreakpoint)(void* userData, int id); 
 	
-	void (*getCallStack)(void* userData, PDCallstack* callStack, int* maxEntries); 
+	void (*getCallStack)(void* userData, PDCallStack* callStack, int* maxEntries); 
 
 } PDDebugPlugin;
 

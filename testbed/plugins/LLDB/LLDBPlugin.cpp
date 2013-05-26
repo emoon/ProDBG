@@ -524,7 +524,7 @@ static void getCallStack(void* userData, PDCallstack* callStack, int* maxEntries
 		{
 			char filename[2048];
 			lldb::SBFileSpec fileSpec = compileUnit.GetSupportFileAtIndex(0);
-			fileSpec.GetPath((char*)&plugin->filelineData.filename, sizeof(filename));
+			fileSpec.GetPath(filename, sizeof(filename));
 			sprintf(callStack[i].fileLine, "%s:%d", filename, entry.GetLine());
 		}
 		else

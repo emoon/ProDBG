@@ -3,6 +3,8 @@
 #include <QTreeWidget>
 #include <QStringList>
 
+struct PDCallStack;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace prodbg
@@ -14,10 +16,10 @@ class Qt5CallStack : public QTreeWidget
 {
 	Q_OBJECT
 public:
-	Qt5CallStack();
+	Qt5CallStack(QWidget* parent);
 
 public slots:
-	void updateCallStack(QStringList strings);
+	void updateCallStack(PDCallStack* callStack, int entires);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -98,6 +98,10 @@ PDDebugState Qt5DebuggerThread::getDebugState(void** data)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Qt5DebuggerThread::getCallStack(PDCallstack* callStack, int* maxEntries)
+{
+	return m_debuggerPlugin->getCallStack(m_pluginData, callStack, maxEntries);
+}
 
 }
 

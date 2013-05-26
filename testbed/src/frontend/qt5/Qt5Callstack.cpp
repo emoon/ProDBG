@@ -1,5 +1,5 @@
 #include "Qt5CallStack.h"
-#include <QStandardItemModel>
+#include "ProDBGAPI.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -8,7 +8,7 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5CallStack::Qt5CallStack()
+Qt5CallStack::Qt5CallStack(QWidget* parent) : QTreeWidget(parent)
 {
 	setColumnCount(3);
 
@@ -20,18 +20,21 @@ Qt5CallStack::Qt5CallStack()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CallStack::updateCallStack(QStringList strings)
+void Qt5CallStack::updateCallStack(PDCallStack* callStack, int count)
 {
 	QList<QTreeWidgetItem*> items;
 
 	clear();
 
-	// don't really like this approach but...
-
-	for (int i = 0; i < strings.size(); i += 3)
+	for (int i = 0; i < count; ++i) 
 	{
+		char addressString[32];
 		QStringList temp;
-		temp << strings.at(i + 0) << strings.at(i + 1) << strings.at(i + 2);
+
+		const PDCallStack* callStackEntry = &callStack[i];
+		sprintf(addressString, "%016llx", callStackEntry->address);
+		
+		temp << addressString << callStackEntry->moduleName << callStackEntry->fileLine;
 		items.append(new QTreeWidgetItem((QTreeWidget*)0, temp)); 
 	}
 

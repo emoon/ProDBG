@@ -21,6 +21,7 @@ class Qt5DebuggerThread : public QObject
 public:
 	Qt5DebuggerThread();
 	PDDebugState getDebugState(void** data);
+	void getCallStack(PDCallstack* callStack, int* maxEntries);
 
 public slots:
     void start();
