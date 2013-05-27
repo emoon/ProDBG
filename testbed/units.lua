@@ -169,7 +169,7 @@ Program {
 	Sources = { 
 		FGlob {
 			Dir = "src/frontend/Qt5",
-			Extensions = { ".c", ".cpp", ".m" },
+			Extensions = { ".c", ".cpp", ".m", ".mm" },
 			Filters = {
 				{ Pattern = "macosx"; Config = "macosx-*-*" },
 				{ Pattern = "windows"; Config = { "win32-*-*", "win64-*-*" } },
