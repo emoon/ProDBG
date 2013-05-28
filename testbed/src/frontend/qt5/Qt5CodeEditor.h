@@ -17,15 +17,11 @@ QT_END_NAMESPACE
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct PDDebugPlugin;
-
 namespace prodbg
 {
 
 class LineNumberArea;
-class Qt5DebuggerThread;
-class Qt5CallStack;
-class Qt5Locals;
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -44,7 +40,6 @@ class Qt5CodeEditor : public QPlainTextEdit
 public:
     Qt5CodeEditor(QWidget* parent = 0);
 
-	void beginDebug(const char* executable);
 	void readSourceFile(const char* file);
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int lineNumberAreaWidth();
@@ -58,8 +53,6 @@ private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
     void highlightCurrentLine();
     void updateLineNumberArea(const QRect &, int);
-    void updateUIThread();
-    void addBreakpoint(const char* filename, int line, int id);
     void setFileLine(const char* file, int line);
 
 signals:
@@ -68,21 +61,8 @@ signals:
 	void tryStep();
 
 private:
-
-	PDDebugPlugin* m_debuggerPlugin;
-	void* m_pluginData;
-
     QWidget* m_lineNumberArea;
-	
-	PDBreakpointFileLine* m_breakpoints;
-	uint32_t m_breakpointCount;
-	uint32_t m_breakpointCountMax;
 	const char* m_sourceFile;
-	PDDebugState m_debugState;
-	Qt5DebuggerThread* m_debuggerThread;
-	QThread* m_threadRunner;
-	Qt5CallStack* m_callstack;
-	Qt5Locals* m_locals;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

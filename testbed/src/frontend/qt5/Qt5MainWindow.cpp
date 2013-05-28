@@ -5,10 +5,18 @@
 #include "Qt5HexEditWindow.h"
 #include "Qt5CallStackView.h"
 #include "Qt5LocalsView.h"
+#include "Qt5SourceCodeView.h"
 #include <QAction>
 #include <QMenuBar>
 #include <QStatusBar>
 #include <QLabel>
+
+#include <core/PluginHandler.h>
+#include <ProDBGAPI.h>
+#include "Qt5DebuggerThread.h"
+#include "Qt5CallStack.h"
+#include "Qt5Locals.h"
+#include "ProDBGAPI.h"
 
 namespace prodbg
 {
@@ -59,21 +67,19 @@ void Qt5MainWindow::newLocalsView()
 	addDockWidget(Qt::LeftDockWidgetArea, dock);
 }
 
-void Qt5MainWindow::newExampleView3()
+void Qt5MainWindow::newSourceCodeView()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
-	/*Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
+	Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
 	dock->setAttribute(Qt::WA_DeleteOnClose, true);
 
 	Qt5DynamicView* dynamicView = new Qt5DynamicView(this, dock, this);
 	dock->setWidget(dynamicView);
 
-	Qt5ExampleView3* exampleView = new Qt5ExampleView3(this, dock, dynamicView);
-	dynamicView->m_children[0] = exampleView;
-	dynamicView->assignView(exampleView);
+	Qt5SourceCodeView* sourceCodeView = new Qt5SourceCodeView(this, dock, dynamicView);
+	dynamicView->m_children[0] = sourceCodeView;
+	dynamicView->assignView(sourceCodeView);
 
-	addDockWidget(Qt::LeftDockWidgetArea, dock);*/
+	addDockWidget(Qt::LeftDockWidgetArea, dock);
 }
 
 void Qt5MainWindow::assignCallStackView()
@@ -110,12 +116,107 @@ void Qt5MainWindow::assignLocalsView()
 	dynamicView->assignView(localsView);
 }
 
+void Qt5MainWindow::assignSourceCodeView()
+{
+	Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
+	if (dynamicView == nullptr)
+		return;
+
+	Qt5SourceCodeView* sourceCodeView = new Qt5SourceCodeView(this, nullptr, dynamicView);
+	if (dynamicView->m_children[0] != nullptr)
+	{
+		dynamicView->m_children[0]->hide();
+		dynamicView->m_children[0]->deleteLater();
+	}
+
+	dynamicView->m_children[0] = sourceCodeView;
+	dynamicView->assignView(sourceCodeView);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 void Qt5MainWindow::fileSettingsFinished(int result)
 {
 	(void)result;
+}
+
+void Qt5MainWindow::updateUiThread()
+{
+	PDDebugState state;
+	void* data;
+
+	state = m_debuggerThread->getDebugState(&data);
+
+	if (state != m_debugState)
+	{
+		printf("updating status from worker..\n");
+
+		switch (state)
+		{
+			case PDDebugState_breakpoint: 
+			{
+				PDDebugStateFileLine* filelineData = (PDDebugStateFileLine*)data;
+
+				printf("Goto line %d\n", filelineData->line);
+
+				/*if (m_sourceCodeView)
+				{
+					const QTextBlock& block = document()->findBlockByNumber(filelineData->line - 1);
+					QTextCursor cursor(block);
+					cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, 0);
+					setTextCursor(cursor);
+					centerCursor();
+					setFocus();
+				}
+				*/
+				
+				// Update callstack
+				
+				/*if (m_callstack)
+				{
+					PDCallStack stackEntries[128];
+					int count = 128;
+					
+					m_debuggerThread->getCallStack(stackEntries, &count);
+					m_callstack->updateCallStack(stackEntries, count);
+				}*/
+				
+				// Update locals
+			
+				/*if (m_locals)
+				{
+					PDLocals locals[64];
+					int count = 64;
+					
+					m_debuggerThread->getLocals(locals, &count);
+					m_locals->updateLocals(locals, count);
+				}*/
+
+				break;
+			}
+	
+			case PDDebugState_default :
+			case PDDebugState_noTarget :
+			case PDDebugState_breakpointFileLine :
+			case PDDebugState_exception :
+			case PDDebugState_custom :
+				break;
+		}
+
+		m_debugState = state;
+	}
+}
+
+void Qt5MainWindow::addBreakpoint(const char* filename, int line, int id)
+{
+	int breakpoint = m_breakpointCount++;
+
+	m_breakpoints[breakpoint].filename = strdup(filename);
+	m_breakpoints[breakpoint].line = line;
+	m_breakpoints[breakpoint].id = id;
+
+	printf("Added breakpoint %s %d %d (count %d)\n", filename, line, id, m_breakpointCount);
 }
 
 void Qt5MainWindow::createActions()
@@ -146,13 +247,14 @@ void Qt5MainWindow::createActions()
 
 	// Describe dynamic view assignment actions
 	m_windowNewDynamicViewAction = new QAction(tr("Dynamic View"), this);
-	m_windowNewExampleView1Action = new QAction(tr("CallStack View"), this);
-	m_windowNewExampleView2Action = new QAction(tr("Locals View"), this);
-	m_windowNewExampleView3Action = new QAction(tr("Example View 3"), this);
 
-	m_windowAssignExampleView1Action = new QAction(tr("CallStack View"), this);
-	m_windowAssignExampleView2Action = new QAction(tr("Locals View"), this);
-	m_windowAssignExampleView3Action = new QAction(tr("Example View 3"), this);
+	m_windowNewCallStackViewAction = new QAction(tr("CallStack View"), this);
+	m_windowNewLocalsViewAction = new QAction(tr("Locals View"), this);
+	m_windowNewSourceCodeViewAction = new QAction(tr("Source Code View"), this);
+
+	m_windowAssignCallStackViewAction = new QAction(tr("CallStack View"), this);
+	m_windowAssignLocalsViewAction = new QAction(tr("Locals View"), this);
+	m_windowAssignSourceCodeViewAction = new QAction(tr("Source Code View"), this);
 
 	// Descibe help menu actions
 	///////////////////////////////////////////////////////////////////////////////////////////
@@ -187,14 +289,14 @@ void Qt5MainWindow::createMenus()
 
 	m_newWindowMenu = new QMenu("New View", mainMenuBar);
 	m_newWindowMenu->addAction(m_windowNewDynamicViewAction);
-	m_newWindowMenu->addAction(m_windowNewExampleView1Action);
-	m_newWindowMenu->addAction(m_windowNewExampleView2Action);
-	m_newWindowMenu->addAction(m_windowNewExampleView3Action);
+	m_newWindowMenu->addAction(m_windowNewCallStackViewAction);
+	m_newWindowMenu->addAction(m_windowNewLocalsViewAction);
+	m_newWindowMenu->addAction(m_windowNewSourceCodeViewAction);
 
 	m_dynamicWindowAssignViewMenu = new QMenu("Assign View", mainMenuBar);
-	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignExampleView1Action);
-	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignExampleView2Action);
-	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignExampleView3Action);
+	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignCallStackViewAction);
+	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignLocalsViewAction);
+	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignSourceCodeViewAction);
 
 	m_dynamicWindowMenu = new QMenu("Dynamic View", mainMenuBar);
 	m_dynamicWindowMenu->addAction(m_windowSplitVerticallyAction);
@@ -315,13 +417,13 @@ void Qt5MainWindow::setupWorkspace()
 
 	// Describe dynamic view assignment actions
 	connect(m_windowNewDynamicViewAction, SIGNAL(triggered()), this, SLOT(newDynamicView()));
-	connect(m_windowNewExampleView1Action, SIGNAL(triggered()), this, SLOT(newCallStackView()));
-	connect(m_windowNewExampleView2Action, SIGNAL(triggered()), this, SLOT(newLocalsView()));
-	connect(m_windowNewExampleView3Action, SIGNAL(triggered()), this, SLOT(newExampleView3()));
+	connect(m_windowNewCallStackViewAction, SIGNAL(triggered()), this, SLOT(newCallStackView()));
+	connect(m_windowNewLocalsViewAction, SIGNAL(triggered()), this, SLOT(newLocalsView()));
+	connect(m_windowNewSourceCodeViewAction, SIGNAL(triggered()), this, SLOT(newSourceCodeView()));
 
-	connect(m_windowAssignExampleView1Action, SIGNAL(triggered()), this, SLOT(assignCallStackView()));
-	connect(m_windowAssignExampleView2Action, SIGNAL(triggered()), this, SLOT(assignLocalsView()));
-	//connect(m_windowAssignExampleView3Action, SIGNAL(triggered()), this, SLOT(assignExampleView3()));
+	connect(m_windowAssignCallStackViewAction, SIGNAL(triggered()), this, SLOT(assignCallStackView()));
+	connect(m_windowAssignLocalsViewAction, SIGNAL(triggered()), this, SLOT(assignLocalsView()));
+	connect(m_windowAssignSourceCodeViewAction, SIGNAL(triggered()), this, SLOT(assignSourceCodeView()));
 
 	// Descibe help menu actions
 	///////////////////////////////////////////////////////////////////////////////////////////
@@ -637,7 +739,32 @@ void Qt5MainWindow::fileSaveLayout()
 
 void Qt5MainWindow::debugStart()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
+	m_threadRunner = new QThread;
+	m_debuggerThread = new Qt5DebuggerThread();
+	m_debuggerThread->moveToThread(m_threadRunner);
+
+	connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
+	connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
+	connect(m_debuggerThread, SIGNAL(callUIthread()), this, SLOT(updateUiThread()));
+
+	// TODO: Connect signals
+
+	m_threadRunner->start();
+
+	m_breakpoints = new PDBreakpointFileLine[1024];
+	m_breakpointCountMax = 1024;
+	m_breakpointCount = 0;
+	m_debugState = PDDebugState_default;
+
+
+	const char* executable = "tundra-output/macosx-clang-debug-default/Fake6502";
+
+
+
+
+	printf("beginDebug %s %d\n", executable, (uint32_t)(uint64_t)QThread::currentThreadId());
+
+	// TODO: emit tryStartDebugging(executable, m_breakpoints, (int)m_breakpointCount);
 }
 
 void Qt5MainWindow::helpIndex()

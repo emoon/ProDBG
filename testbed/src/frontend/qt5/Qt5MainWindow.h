@@ -11,17 +11,23 @@
 
 QT_BEGIN_NAMESPACE
 class QMenu;
-
 class QProgressBar;
 QT_END_NAMESPACE
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct PDDebugPlugin;
 
 namespace prodbg
 {
 
 class Qt5DockWidget;
 class Qt5SettingsWindow;
+class Qt5CallStackView;
+class Qt5LocalsView;
+class Qt5SourceCodeView;
+
+class Qt5DebuggerThread;
 
 #ifndef QT5_MAX_VIEWS
 #define QT5_MAX_VIEWS 65535
@@ -103,14 +109,19 @@ public:
 
 private slots:
 	void newDynamicView();
+
 	void newCallStackView();
 	void newLocalsView();
-	void newExampleView3();
+	void newSourceCodeView();
 
 	void assignCallStackView();
 	void assignLocalsView();
+	void assignSourceCodeView();
 
 	void fileSettingsFinished(int result);
+
+	void updateUiThread();
+	void addBreakpoint(const char* filename, int line, int id);
 
 protected:
 	enum Qt5ViewType m_currentViewType;
@@ -166,13 +177,13 @@ private:
 
 	// TODO: Encapsulate specific view logic into plugins or something
 	QAction* m_windowNewDynamicViewAction;
-	QAction* m_windowNewExampleView1Action;
-	QAction* m_windowNewExampleView2Action;
-	QAction* m_windowNewExampleView3Action;
+	QAction* m_windowNewCallStackViewAction;
+	QAction* m_windowNewLocalsViewAction;
+	QAction* m_windowNewSourceCodeViewAction;
 
-	QAction* m_windowAssignExampleView1Action;
-	QAction* m_windowAssignExampleView2Action;
-	QAction* m_windowAssignExampleView3Action;
+	QAction* m_windowAssignCallStackViewAction;
+	QAction* m_windowAssignLocalsViewAction;
+	QAction* m_windowAssignSourceCodeViewAction;
 
 	QAction* m_helpAboutAction;
 	QAction* m_helpContentsAction;
@@ -180,14 +191,27 @@ private:
 
 
 
-Qt5ContextMenu* m_currentWindowMenu;
+	Qt5ContextMenu* m_currentWindowMenu;
 
 	Qt5SettingsWindow* m_settingsWindow;
-	
 
-	
 
 	bool m_centralWidgetSet;
+
+
+	PDDebugPlugin* m_debuggerPlugin;
+	void* m_pluginData;
+	PDBreakpointFileLine* m_breakpoints;
+	uint32_t m_breakpointCount;
+	uint32_t m_breakpointCountMax;
+	PDDebugState m_debugState;
+	Qt5DebuggerThread* m_debuggerThread;
+	QThread* m_threadRunner;
+
+
+	//QList<Qt5CallStackView*> m_callStackViews;
+	//QList<Qt5LocalsView*> m_localsViews;
+	//QList<Qt5SourceCodeView*> m_sourceCodeViews;
 
 signals:
 	void signalSettings();
