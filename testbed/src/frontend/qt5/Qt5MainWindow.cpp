@@ -4,6 +4,7 @@
 #include "Qt5DockWidget.h"
 #include "Qt5HexEditWindow.h"
 #include "Qt5CallStackView.h"
+#include "Qt5LocalsView.h"
 #include <QAction>
 #include <QMenuBar>
 #include <QStatusBar>
@@ -28,7 +29,7 @@ void Qt5MainWindow::newDynamicView()
 	emit dynamicView->signalDelayedSetCentralWidget(dynamicView->m_statusLabel);
 }
 
-void Qt5MainWindow::newExampleView1()
+void Qt5MainWindow::newCallStackView()
 {
 	Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
 	dock->setAttribute(Qt::WA_DeleteOnClose, true);
@@ -43,21 +44,19 @@ void Qt5MainWindow::newExampleView1()
 	addDockWidget(Qt::LeftDockWidgetArea, dock);
 }
 
-void Qt5MainWindow::newExampleView2()
+void Qt5MainWindow::newLocalsView()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
-	/*Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
+	Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
 	dock->setAttribute(Qt::WA_DeleteOnClose, true);
 
 	Qt5DynamicView* dynamicView = new Qt5DynamicView(this, dock, this);
 	dock->setWidget(dynamicView);
 
-	Qt5ExampleView2* exampleView = new Qt5ExampleView2(this, dock, dynamicView);
-	dynamicView->m_children[0] = exampleView;
-	dynamicView->assignView(exampleView);
+	Qt5LocalsView* localsView = new Qt5LocalsView(this, dock, dynamicView);
+	dynamicView->m_children[0] = localsView;
+	dynamicView->assignView(localsView);
 
-	addDockWidget(Qt::LeftDockWidgetArea, dock);*/
+	addDockWidget(Qt::LeftDockWidgetArea, dock);
 }
 
 void Qt5MainWindow::newExampleView3()
@@ -77,7 +76,7 @@ void Qt5MainWindow::newExampleView3()
 	addDockWidget(Qt::LeftDockWidgetArea, dock);*/
 }
 
-void Qt5MainWindow::assignExampleView1()
+void Qt5MainWindow::assignCallStackView()
 {
 	Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
 	if (dynamicView == nullptr)
@@ -92,6 +91,23 @@ void Qt5MainWindow::assignExampleView1()
 
 	dynamicView->m_children[0] = callStackView;
 	dynamicView->assignView(callStackView);
+}
+
+void Qt5MainWindow::assignLocalsView()
+{
+	Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
+	if (dynamicView == nullptr)
+		return;
+
+	Qt5LocalsView* localsView = new Qt5LocalsView(this, nullptr, dynamicView);
+	if (dynamicView->m_children[0] != nullptr)
+	{
+		dynamicView->m_children[0]->hide();
+		dynamicView->m_children[0]->deleteLater();
+	}
+
+	dynamicView->m_children[0] = localsView;
+	dynamicView->assignView(localsView);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -130,12 +146,12 @@ void Qt5MainWindow::createActions()
 
 	// Describe dynamic view assignment actions
 	m_windowNewDynamicViewAction = new QAction(tr("Dynamic View"), this);
-	m_windowNewExampleView1Action = new QAction(tr("Example View 1"), this);
-	m_windowNewExampleView2Action = new QAction(tr("Example View 2"), this);
+	m_windowNewExampleView1Action = new QAction(tr("CallStack View"), this);
+	m_windowNewExampleView2Action = new QAction(tr("Locals View"), this);
 	m_windowNewExampleView3Action = new QAction(tr("Example View 3"), this);
 
-	m_windowAssignExampleView1Action = new QAction(tr("Example View 1"), this);
-	m_windowAssignExampleView2Action = new QAction(tr("Example View 2"), this);
+	m_windowAssignExampleView1Action = new QAction(tr("CallStack View"), this);
+	m_windowAssignExampleView2Action = new QAction(tr("Locals View"), this);
 	m_windowAssignExampleView3Action = new QAction(tr("Example View 3"), this);
 
 	// Descibe help menu actions
@@ -299,12 +315,12 @@ void Qt5MainWindow::setupWorkspace()
 
 	// Describe dynamic view assignment actions
 	connect(m_windowNewDynamicViewAction, SIGNAL(triggered()), this, SLOT(newDynamicView()));
-	connect(m_windowNewExampleView1Action, SIGNAL(triggered()), this, SLOT(newExampleView1()));
-	connect(m_windowNewExampleView2Action, SIGNAL(triggered()), this, SLOT(newExampleView2()));
+	connect(m_windowNewExampleView1Action, SIGNAL(triggered()), this, SLOT(newCallStackView()));
+	connect(m_windowNewExampleView2Action, SIGNAL(triggered()), this, SLOT(newLocalsView()));
 	connect(m_windowNewExampleView3Action, SIGNAL(triggered()), this, SLOT(newExampleView3()));
 
-	connect(m_windowAssignExampleView1Action, SIGNAL(triggered()), this, SLOT(assignExampleView1()));
-	//connect(m_windowAssignExampleView2Action, SIGNAL(triggered()), this, SLOT(assignExampleView2()));
+	connect(m_windowAssignExampleView1Action, SIGNAL(triggered()), this, SLOT(assignCallStackView()));
+	connect(m_windowAssignExampleView2Action, SIGNAL(triggered()), this, SLOT(assignLocalsView()));
 	//connect(m_windowAssignExampleView3Action, SIGNAL(triggered()), this, SLOT(assignExampleView3()));
 
 	// Descibe help menu actions

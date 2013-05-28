@@ -103,11 +103,12 @@ public:
 
 private slots:
 	void newDynamicView();
-	void newExampleView1();
-	void newExampleView2();
+	void newCallStackView();
+	void newLocalsView();
 	void newExampleView3();
 
-	void assignExampleView1();
+	void assignCallStackView();
+	void assignLocalsView();
 
 	void fileSettingsFinished(int result);
 
