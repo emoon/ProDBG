@@ -3,6 +3,7 @@
 #include "Qt5DynamicView.h"
 #include "Qt5DockWidget.h"
 #include "Qt5HexEditWindow.h"
+#include "Qt5CallStackView.h"
 #include <QAction>
 #include <QMenuBar>
 #include <QStatusBar>
@@ -33,17 +34,17 @@ void Qt5MainWindow::newExampleView1()
 {
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 
-	/*Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
+	Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
 	dock->setAttribute(Qt::WA_DeleteOnClose, true);
 
 	Qt5DynamicView* dynamicView = new Qt5DynamicView(this, dock, this);
 	dock->setWidget(dynamicView);
 
-	Qt5ExampleView1* exampleView = new Qt5ExampleView1(this, dock, dynamicView);
-	dynamicView->m_children[0] = exampleView;
-	dynamicView->assignView(exampleView);
+	Qt5CallStackView* callStackView = new Qt5CallStackView(this, dock, dynamicView);
+	dynamicView->m_children[0] = callStackView;
+	dynamicView->assignView(callStackView);
 
-	addDockWidget(Qt::LeftDockWidgetArea, dock);*/
+	addDockWidget(Qt::LeftDockWidgetArea, dock);
 }
 
 void Qt5MainWindow::newExampleView2()

@@ -12,6 +12,9 @@ enum Qt5ViewType
 	Qt5ViewType_Dynamic = 0x0004,
 
 	Qt5ViewType_PluginStart = 0x0020,
+
+	// TODO: Temp
+	Qt5ViewType_CallStack
 };
 
 class Qt5LayoutEntry
