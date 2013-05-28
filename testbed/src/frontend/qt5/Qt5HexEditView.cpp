@@ -1,98 +1,112 @@
-#include "Qt5HexEditWindow.h"
-#include <QAction>
-#include <QLabel>
-#include <QMenuBar>
-#include <QHBoxLayout>
+#include "Qt5HexEditView.h"
+#include "Qt5MainWindow.h"
 
 namespace prodbg
 {
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-Qt5HexEditWindow::Qt5HexEditWindow()//QWindow* parent)
-//: QWindow(parent)
+Qt5HexEditViewContextMenu::Qt5HexEditViewContextMenu(Qt5MainWindow* mainWindow, Qt5BaseView* parent)
+: Qt5DynamicViewContextMenu(mainWindow, parent)
 {
-	initialize();
 }
 
-Qt5HexEditWindow::~Qt5HexEditWindow()
+Qt5HexEditViewContextMenu::~Qt5HexEditViewContextMenu()
 {
-
 }
 
-void Qt5HexEditWindow::setAddress(int address)
+Qt5HexEditView::Qt5HexEditView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5DynamicView* parent)
+: Qt5BaseView(mainWindow, dock, parent)
 {
-    m_addressLabel->setText(QString("%1").arg(address, 1, 16));
-}
+	m_type = Qt5ViewType_HexEdit;
 
-void Qt5HexEditWindow::setSize(int size)
-{
-    m_sizeLabel->setText(QString("%1").arg(size));
-}
+	focusInEvent(nullptr);
+	
+	m_hexEdit = new Qt5HexEditWidget(parent);
+    setCentralWidget(m_hexEdit);
 
-void Qt5HexEditWindow::initialize()
-{
-	setAttribute(Qt::WA_DeleteOnClose);
+    connect(parent, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+    connect(m_hexEdit, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
 
-	m_hexEdit = new Qt5HexEditWidget;
-	setCentralWidget(m_hexEdit);
+    m_hexEdit->setFocusProxy(this);
 
-	initializeStatusBar();
+    m_statusBar = new QStatusBar(m_hexEdit);
 
-	setUnifiedTitleAndToolBarOnMac(true);
-
-	testEditor();
-}
-
-void Qt5HexEditWindow::initializeStatusBar()
-{
-	// Address Label
+    // Address Label
     m_addressNameLabel = new QLabel();
     m_addressNameLabel->setText(tr("Address:"));
-    statusBar()->addPermanentWidget(m_addressNameLabel);
+    m_statusBar->addPermanentWidget(m_addressNameLabel);
 
     m_addressLabel = new QLabel();
     m_addressLabel->setFrameShape(QFrame::Panel);
     m_addressLabel->setFrameShadow(QFrame::Sunken);
     m_addressLabel->setMinimumWidth(70);
-    statusBar()->addPermanentWidget(m_addressLabel);
+    m_statusBar->addPermanentWidget(m_addressLabel);
 
     connect(m_hexEdit, SIGNAL(currentAddressChanged(int)), this, SLOT(setAddress(int)));
 
     // Size Label
     m_sizeNameLabel = new QLabel();
     m_sizeNameLabel->setText(tr("Size:"));
-    statusBar()->addPermanentWidget(m_sizeNameLabel);
+    m_statusBar->addPermanentWidget(m_sizeNameLabel);
 
     m_sizeLabel = new QLabel();
     m_sizeLabel->setFrameShape(QFrame::Panel);
     m_sizeLabel->setFrameShadow(QFrame::Sunken);
     m_sizeLabel->setMinimumWidth(70);
-    statusBar()->addPermanentWidget(m_sizeLabel);
+    m_statusBar->addPermanentWidget(m_sizeLabel);
 
     connect(m_hexEdit, SIGNAL(currentSizeChanged(int)), this, SLOT(setSize(int)));
 
     // Overwrite Mode Label
     m_overwriteModeNameLabel = new QLabel();
     m_overwriteModeNameLabel->setText(tr("Mode:"));
-    statusBar()->addPermanentWidget(m_overwriteModeNameLabel);
+    m_statusBar->addPermanentWidget(m_overwriteModeNameLabel);
 
     m_overwriteModeLabel = new QLabel();
     m_overwriteModeLabel->setFrameShape(QFrame::Panel);
     m_overwriteModeLabel->setFrameShadow(QFrame::Sunken);
     m_overwriteModeLabel->setMinimumWidth(70);
-    statusBar()->addPermanentWidget(m_overwriteModeLabel);
+    m_statusBar->addPermanentWidget(m_overwriteModeLabel);
 
     //setOverwriteMode(m_hexEdit->getOverwriteMode());
 
-    statusBar()->showMessage(tr("Ready"));
+    m_statusBar->showMessage(tr("Ready"));
+
+    testEditor();
 }
 
-void Qt5HexEditWindow::testEditor()
+Qt5HexEditView::~Qt5HexEditView()
+{
+	disconnect();
+	
+	// Reset Focus Tracking (for safety)
+	m_mainWindow->setCurrentWindow(nullptr, Qt5ViewType_Reset);
+
+	centralWidget()->deleteLater();
+    emit signalDelayedSetCentralWidget(nullptr);
+}
+
+void Qt5HexEditView::setAddress(int address)
+{
+    m_addressLabel->setText(QString("%1").arg(address, 1, 16));
+}
+
+void Qt5HexEditView::setSize(int size)
+{
+    m_sizeLabel->setText(QString("%1").arg(size));
+}
+
+void Qt5HexEditView::buildLayout()
+{
+
+}
+
+void Qt5HexEditView::applyLayout(Qt5Layout* layout)
+{
+	(void)layout;
+}
+
+void Qt5HexEditView::testEditor()
 {
 	QString fileName = QString(tr("examples/SimpleBin/MyTest.bin"));
 
@@ -127,8 +141,7 @@ void Qt5HexEditWindow::testEditor()
     setWindowFilePath(fileName);
 
     //setCurrentFile(fileName);
-    statusBar()->showMessage(tr("File loaded"), 2000);
+    m_statusBar->showMessage(tr("File loaded"), 2000);
 }
 
 }
-
