@@ -39,6 +39,7 @@ class Qt5CodeEditor : public QPlainTextEdit
 
 public:
     Qt5CodeEditor(QWidget* parent = 0);
+    virtual ~Qt5CodeEditor();
 
 	void readSourceFile(const char* file);
     void lineNumberAreaPaintEvent(QPaintEvent *event);
@@ -54,6 +55,7 @@ private slots:
     void highlightCurrentLine();
     void updateLineNumberArea(const QRect &, int);
     void setFileLine(const char* file, int line);
+    void sessionUpdate();
 
 signals:
 	void tryAddBreakpoint(const char*, int line);

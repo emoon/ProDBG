@@ -1,4 +1,5 @@
 #include "Qt5DebuggerThread.h"
+#include "Qt5DebugSession.h"
 #include <QThread>
 #include <core/PluginHandler.h>
 #include <ProDBGAPI.h>
@@ -20,8 +21,6 @@ Qt5DebuggerThread::Qt5DebuggerThread()
 void Qt5DebuggerThread::start()
 {
 	int count;
-
-	printf("update debugger thread %d\n", (uint32_t)(uint64_t)QThread::currentThreadId());
 
 	Plugin* plugin = PluginHandler_getPlugins(&count);
 
@@ -51,7 +50,11 @@ void Qt5DebuggerThread::tryAddBreakpoint(const char* filename, int line)
 
 	printf("id %d\n", id);
 
-	emit addBreakpointUI(filename, fileLineBP.line, id); // important to use .line from input struct as it can be changed
+	g_debugSession->addBreakpoint(filename, line, id);
+
+	// update the UI thread after we added a breakpoint
+
+	emit callUIthread();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,9 +76,6 @@ void Qt5DebuggerThread::tryStartDebugging(const char* filename, PDBreakpointFile
 void Qt5DebuggerThread::update()
 {
 	m_debuggerPlugin->action(m_pluginData, PD_DEBUG_ACTION_NONE, 0);
-
-	// TODO: Fix me (we shouldn't really call this all the time
-	emit callUIthread();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
