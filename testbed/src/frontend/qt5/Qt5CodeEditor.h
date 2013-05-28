@@ -24,6 +24,8 @@ namespace prodbg
 
 class LineNumberArea;
 class Qt5DebuggerThread;
+class Qt5CallStack;
+class Qt5Locals;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -35,12 +37,12 @@ struct FileLineBreakpoint
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class CodeEditor : public QPlainTextEdit
+class Qt5CodeEditor : public QPlainTextEdit
 {
     Q_OBJECT
 
 public:
-    CodeEditor(QWidget* parent = 0);
+    Qt5CodeEditor(QWidget* parent = 0);
 
 	void beginDebug(const char* executable);
 	void readSourceFile(const char* file);
@@ -79,6 +81,8 @@ private:
 	PDDebugState m_debugState;
 	Qt5DebuggerThread* m_debuggerThread;
 	QThread* m_threadRunner;
+	Qt5CallStack* m_callstack;
+	Qt5Locals* m_locals;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,14 +90,14 @@ private:
 class LineNumberArea : public QWidget
 {
 public:
-    LineNumberArea(CodeEditor* editor) : QWidget(editor), m_codeEditor(editor) { }
+    LineNumberArea(Qt5CodeEditor* editor) : QWidget(editor), m_codeEditor(editor) { }
     QSize sizeHint() const { return QSize(m_codeEditor->lineNumberAreaWidth(), 0); }
 
 protected:
     void paintEvent(QPaintEvent* event) { m_codeEditor->lineNumberAreaPaintEvent(event); }
 
 private:
-    CodeEditor* m_codeEditor;
+    Qt5CodeEditor* m_codeEditor;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 static uint8_t s_memory6502[65536];
 
@@ -32,6 +34,41 @@ void write6502(uint16_t address, uint8_t value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void bar(int mehBa)
+{
+	int i;
+	int me = 0;
+	int baha = 2;
+	float lala_la = 4.0f;
+	
+	(void)me;
+	(void)baha;
+	(void)lala_la;
+	(void)mehBa;
+
+	for (i = 0; i < 10; ++i)
+	{
+		printf("%d\n", i);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void foo()
+{
+	bar(1337);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void tempCall()
+{
+	foo();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main(int argc, const char* argv[])
 {
 	int t = 0;
@@ -41,8 +78,12 @@ int main(int argc, const char* argv[])
 	(void)argc;
 	(void)argv;
 	reset6502();
+	
+	tempCall();
 
+#ifndef _WIN32
 	usleep(100000);
+#endif
 
 	t += 0;
 	t += 1;
@@ -51,10 +92,14 @@ int main(int argc, const char* argv[])
 
 	//(*(volatile int*)0) = 0x666;
 
+#ifndef _WIN32
 	while (1)
+#endif
 	{
 		printf("Doing stuff\n");
+	#ifndef _WIN32
 		usleep(10000);
+	#endif
 	}
 
 	/*

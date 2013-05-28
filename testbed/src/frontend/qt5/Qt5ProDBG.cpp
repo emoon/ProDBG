@@ -6,6 +6,10 @@
 #include "Qt5CodeEditor.h"
 #include "Qt5MainWindow.h"
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace prodbg
@@ -80,8 +84,16 @@ static int realMain(int argc, char* argv[])
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef WIN32
+int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+{
+	return prodbg::realMain(0, 0);
+}
+			
+#else
 int main(int argc, char* argv[])
 {
 	return prodbg::realMain(argc, argv);
 }
+#endif
 

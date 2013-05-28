@@ -3,6 +3,8 @@
 #ifndef _PRODBGAPI_H_
 #define _PRODBGAPI_H_
 
+#include <stdint.h>
+
 #ifdef _cplusplus
 extern "C" {
 #endif
@@ -107,6 +109,26 @@ typedef struct PDBreakpointFileLine
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef struct PDCallStack
+{
+	uint64_t address;
+	char moduleName[1024];
+	char fileLine[2048];
+} PDCallstack;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct PDLocals
+{
+	char address[32];
+	char value[32];
+	char type[4096];
+	char name[4096]; 
+
+} PDLocals;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef struct PDDebugPlugin
 {
 	void* (*createInstance)(ServiceFunc* serviceFunc);
@@ -118,6 +140,9 @@ typedef struct PDDebugPlugin
 	PDDebugState (*getState)(void* userData, void** data);
 	int (*addBreakpoint)(void* userData, PDBreakpointType type, void* breakpointData);
 	void (*removeBreakpoint)(void* userData, int id); 
+	
+	void (*getCallStack)(void* userData, PDCallStack* callStack, int* maxEntries); 
+	void (*getLocals)(void* userData, PDLocals* local, int* maxEntries); 
 
 } PDDebugPlugin;
 

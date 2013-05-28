@@ -33,6 +33,18 @@ local win32 = {
 	},
 }
 
+local win64 = {
+	Env = {
+		QT5 = native.getenv("QT5"),
+ 		GENERATE_PDB = "1",
+		CCOPTS = {
+			"/W4", "/I.", "/WX", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4152", "/wd4996", "/wd4389",
+			{ "/Od"; Config = "*-*-debug" },
+			{ "/O2"; Config = "*-*-release" },
+		},
+	},
+}
+
 Build {
 
 	Passes = {
@@ -43,6 +55,6 @@ Build {
 
 	Configs = {
 		Config { Name = "macosx-clang", DefaultOnHost = "macosx", Inherit = macosx, Tools = { "clang-osx" } },
-		Config { Name = "win32-msvc", DefaultOnHost = { "windows" }, Inherit = win32, Tools = { "msvc" } },
+		Config { Name = "win64-msvc", DefaultOnHost = { "windows" }, Inherit = win64, Tools = { "msvc" } },
 	},
 }

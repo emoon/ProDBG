@@ -2,11 +2,10 @@
 
 #include <QObject>
 #include <QTimer>
-#include <ProDBGAPI.h>
+#include <QStringList>
+#include "ProDBGAPI.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-struct PDDebugPlugin;
 
 namespace prodbg
 {
@@ -20,6 +19,8 @@ class Qt5DebuggerThread : public QObject
 public:
 	Qt5DebuggerThread();
 	PDDebugState getDebugState(void** data);
+	void getCallStack(PDCallstack* callStack, int* maxEntries);
+	void getLocals(PDLocals* locals, int* maxEntries);
 
 public slots:
     void start();
@@ -33,6 +34,7 @@ signals:
 	void callUIthread();
 	void addBreakpointUI(const char* filename, int line, int id);
     void setFileLine(const char* file, int line);
+    void setCallStack(QStringList callstack);
 
 private:
 

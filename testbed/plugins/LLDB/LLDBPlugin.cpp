@@ -1,4 +1,7 @@
 #include <ProDBGAPI.h>
+
+#ifndef _WIN32
+
 #include <stdlib.h> 
 #include <stdio.h> 
 #include <string.h> 
@@ -11,6 +14,7 @@
 #include <SBEvent.h>
 #include <SBBreakpoint.h>
 #include <SBStream.h>
+#include <SBValueList.h>
 #include <SBCommandInterpreter.h> 
 #include <SBCommandReturnObject.h> 
 
@@ -83,6 +87,9 @@ static void onStep(LLDBPlugin* plugin, PDBreakpointFileLine* fileLine)
 
 	thread.StepInto();
 
+	plugin->debugState = DebugState_updateEvent;
+
+	/*
 	// FIXME!
 
 	lldb::StateType state = lldb::SBProcess::GetStateFromEvent(evt);
@@ -123,6 +130,7 @@ static void onStep(LLDBPlugin* plugin, PDBreakpointFileLine* fileLine)
 	lldb::SBFileSpec entry_filespec(plugin->process.GetTarget().GetExecutable());
 
 	fileLine->line = (int)entry.GetLine();
+	*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -222,6 +230,7 @@ static void updateLLDBEvent(LLDBPlugin* plugin)
 						
 					case lldb::eStopReasonPlanComplete:
 						select_thread = true;
+						plugin->debugState = DebugState_stopBreakpoint;
 						if (m_verbose)
 							printf("plan complete\n");
 						break;
@@ -491,6 +500,88 @@ static void removeBreakpoint(void* userData, int id)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void getCallStack(void* userData, PDCallstack* callStack, int* maxEntries)
+{
+	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+	
+	lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
+
+	int frameCount = (int)thread.GetNumFrames();
+	
+	if (frameCount > *maxEntries)
+		frameCount = *maxEntries;
+		
+	*maxEntries = frameCount;
+		
+	for (int i = 0; i < frameCount; ++i)
+	{
+		lldb::SBFrame frame = thread.GetFrameAtIndex((uint32_t)i); 
+		lldb::SBModule module = frame.GetModule();
+		lldb::SBCompileUnit compileUnit = frame.GetCompileUnit();
+		lldb::SBSymbolContext context(frame.GetSymbolContext(0x0000006e));
+		lldb::SBLineEntry entry(context.GetLineEntry());
+
+		callStack[i].address = (uint64_t)frame.GetPC();
+		module.GetFileSpec().GetPath(callStack[i].moduleName, 1024);
+		
+		if (compileUnit.GetNumSupportFiles() > 0)
+		{
+			char filename[2048];
+			lldb::SBFileSpec fileSpec = compileUnit.GetSupportFileAtIndex(0);
+			fileSpec.GetPath(filename, sizeof(filename));
+			sprintf(callStack[i].fileLine, "%s:%d", filename, entry.GetLine());
+		}
+		else
+		{
+			strcpy(callStack[i].fileLine, "<unknown>"); 
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void getLocals(void* userData, PDLocals* locals, int* maxEntries)
+{
+	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+	lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
+	lldb::SBFrame frame = thread.GetSelectedFrame();
+	
+    lldb::SBValueList variables = frame.GetVariables(true, true, true, true);
+    
+    uint32_t localVarsCount = variables.GetSize();
+
+    if (localVarsCount < (uint32_t)*maxEntries)
+    	*maxEntries	= (int)localVarsCount;
+    else
+    	localVarsCount = (uint32_t)*maxEntries;
+    	
+    for (uint32_t i = 0; i < localVarsCount; ++i)
+    {
+    	PDLocals* local = &locals[i]; 
+    	lldb::SBValue value = variables.GetValueAtIndex(i);
+    	
+    	// TODO: Verify this line
+    	sprintf(local->address, "%016llx", (uint64_t)value.GetAddress().GetFileAddress());
+    	
+    	if (value.GetValue())
+    		strcpy(local->value, value.GetValue());
+   		else
+    		strcpy(local->value, "Unknown"); 
+    		
+    	if (value.GetTypeName())
+    		strcpy(local->type, value.GetTypeName());
+    	else
+    		strcpy(local->type, "Unknown"); 
+
+		if (value.GetName())
+    		strcpy(local->name, value.GetName());
+    	else
+    		strcpy(local->name, "Unknown"); 
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDDebugPlugin plugin =
 {
 	createInstance,
@@ -500,6 +591,8 @@ static PDDebugPlugin plugin =
 	getState,
 	addBreakpoint,
 	removeBreakpoint,
+	getCallStack,
+	getLocals,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -515,3 +608,4 @@ void InitPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerP
 
 }
 
+#endif

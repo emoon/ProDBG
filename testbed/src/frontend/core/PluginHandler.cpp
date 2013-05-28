@@ -1,12 +1,18 @@
 #include "PluginHandler.h"
 #include <core/io/SharedObject.h> 
 #include <ProDBGAPI.h>
+#include <stdio.h>
+#include <stdlib.h>
+#ifndef _WIN32
 #include <vector>
+#endif
 
 namespace prodbg
 {
 
+#ifndef _WIN32
 static std::vector<Plugin> s_plugins;
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -19,7 +25,9 @@ static void registerPlugin(int type, void* data)
 
 	printf("Register plugin (type %d data %p)\n", type, data);
 
+#ifndef _WIN32
 	s_plugins.push_back(plugin);
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,8 +67,13 @@ bool PluginHandler_addPlugin(const char* plugin)
 
 Plugin* PluginHandler_getPlugins(int* count)
 {
+#ifdef _WIN32
+	*count = 0;
+	return 0;
+#else
 	*count = (int)s_plugins.size();
 	return &s_plugins[0];
+#endif
 }
 
 }

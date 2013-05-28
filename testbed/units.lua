@@ -131,6 +131,11 @@ Program {
 			"$(QT5)/include/QtCore", 
 			"$(QT5)/include", 
 		},
+
+		LIBPATH = {
+			{ "$(QT5)/lib"; Config = { "win32-*-*", "win64-*-*" } },
+		},
+
 		PROGOPTS = {
 			{ "/SUBSYSTEM:WINDOWS", "/DEBUG"; Config = { "win32-*-*", "win64-*-*" } },
 		},
@@ -186,11 +191,19 @@ Program {
 
 	Depends = { "core" },
 
-	Libs = { { "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = "win32-*-*" } },
+	Libs = { { "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib",
+	           "Qt5GUi.lib", "Qt5Core.lib", "Qt5Concurrent.lib", "Qt5Widgets.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 
 	Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore", "QtConcurrent"  },
 }
 
-Default "LLDBPlugin"
+local native = require('tundra.native')
+
+-- only build LLDBPlugin on Mac
+
+if native.host_platform == "macosx" then
+	Default "LLDBPlugin"
+end
+
 Default "Fake6502"
 Default "prodbg-qt5"

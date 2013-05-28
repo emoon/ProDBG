@@ -3,6 +3,9 @@
 #include <core/PluginHandler.h>
 #include <ProDBGAPI.h>
 #include "Qt5DebuggerThread.h"
+#include "Qt5CallStack.h"
+#include "Qt5Locals.h"
+#include "ProDBGAPI.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -11,7 +14,7 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent)
+Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent)
 {
     m_lineNumberArea = new LineNumberArea(this);
 
@@ -22,18 +25,32 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent)
 	m_threadRunner = new QThread;
 
 	m_debuggerThread = new Qt5DebuggerThread();
+	m_callstack = new Qt5CallStack(parent);
+	m_locals = new Qt5Locals(parent);
+	
 	m_debuggerThread->moveToThread(m_threadRunner);
 
 	connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
 	connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
 	connect(m_debuggerThread, SIGNAL(callUIthread()), this, SLOT(updateUIThread()));
 
-	connect(m_debuggerThread, &Qt5DebuggerThread::addBreakpointUI, this, &CodeEditor::addBreakpoint); 
-	connect(m_debuggerThread, &Qt5DebuggerThread::setFileLine, this, &CodeEditor::setFileLine); 
+	connect(m_debuggerThread, &Qt5DebuggerThread::addBreakpointUI, this, &Qt5CodeEditor::addBreakpoint); 
+	connect(m_debuggerThread, &Qt5DebuggerThread::setFileLine, this, &Qt5CodeEditor::setFileLine); 
 
-	connect(this, &CodeEditor::tryAddBreakpoint, m_debuggerThread, &Qt5DebuggerThread::tryAddBreakpoint); 
-	connect(this, &CodeEditor::tryStartDebugging, m_debuggerThread, &Qt5DebuggerThread::tryStartDebugging); 
-	connect(this, &CodeEditor::tryStep, m_debuggerThread, &Qt5DebuggerThread::tryStep); 
+	connect(this, &Qt5CodeEditor::tryAddBreakpoint, m_debuggerThread, &Qt5DebuggerThread::tryAddBreakpoint); 
+	connect(this, &Qt5CodeEditor::tryStartDebugging, m_debuggerThread, &Qt5DebuggerThread::tryStartDebugging); 
+	
+	//connect(m_debuggerThread, &Qt5DebuggerThread::setCallStack, m_callstack, &Qt5CallStack::updateCallStack); 
+	
+	// TODO: Ok.. a bit ugly to have this here so need to separate this out
+	
+	m_callstack->resize(320, 200);
+	m_callstack->show();
+	
+	m_locals->resize(320, 200);
+	m_locals->show();
+
+	connect(this, &Qt5CodeEditor::tryStep, m_debuggerThread, &Qt5DebuggerThread::tryStep); 
 
 	m_threadRunner->start();
 
@@ -48,7 +65,7 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int CodeEditor::lineNumberAreaWidth()
+int Qt5CodeEditor::lineNumberAreaWidth()
 {
     int digits = 1;
     int max = qMax(1, blockCount());
@@ -66,14 +83,14 @@ int CodeEditor::lineNumberAreaWidth()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeEditor::updateLineNumberAreaWidth(int)
+void Qt5CodeEditor::updateLineNumberAreaWidth(int)
 { 
     setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeEditor::updateLineNumberArea(const QRect &rect, int dy)
+void Qt5CodeEditor::updateLineNumberArea(const QRect &rect, int dy)
 {
     if (dy)
         m_lineNumberArea->scroll(0, dy);
@@ -86,7 +103,7 @@ void CodeEditor::updateLineNumberArea(const QRect &rect, int dy)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeEditor::resizeEvent(QResizeEvent *e)
+void Qt5CodeEditor::resizeEvent(QResizeEvent *e)
 {
     QPlainTextEdit::resizeEvent(e);
 
@@ -96,7 +113,7 @@ void CodeEditor::resizeEvent(QResizeEvent *e)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeEditor::highlightCurrentLine()
+void Qt5CodeEditor::highlightCurrentLine()
 {
     QList<QTextEdit::ExtraSelection> extraSelections;
 
@@ -122,7 +139,7 @@ void CodeEditor::highlightCurrentLine()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
+void Qt5CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 {
     QPainter painter(m_lineNumberArea);
     painter.fillRect(event->rect(), Qt::lightGray);
@@ -161,7 +178,7 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeEditor::beginDebug(const char* executable)
+void Qt5CodeEditor::beginDebug(const char* executable)
 {
 	printf("beginDebug %s %d\n", executable, (uint32_t)(uint64_t)QThread::currentThreadId());
 
@@ -170,14 +187,14 @@ void CodeEditor::beginDebug(const char* executable)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeEditor::step()
+void Qt5CodeEditor::step()
 {
 	emit tryStep();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeEditor::keyPressEvent(QKeyEvent* event)
+void Qt5CodeEditor::keyPressEvent(QKeyEvent* event)
 {
 	//int key = event->key();
 	//printf("%08x %08x\n", key, Qt::Key_F8);
@@ -211,7 +228,7 @@ void CodeEditor::keyPressEvent(QKeyEvent* event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeEditor::readSourceFile(const char* filename)
+void Qt5CodeEditor::readSourceFile(const char* filename)
 {
 	QFile f(filename);
 
@@ -231,7 +248,7 @@ void CodeEditor::readSourceFile(const char* filename)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeEditor::updateUIThread()
+void Qt5CodeEditor::updateUIThread()
 {
 	PDDebugState state;
 	void* data;
@@ -256,6 +273,29 @@ void CodeEditor::updateUIThread()
 				setTextCursor(cursor);
 				centerCursor();
 				setFocus();
+				
+				// Update callstack
+				
+				if (m_callstack)
+				{
+					PDCallStack stackEntries[128];
+					int count = 128;
+					
+					m_debuggerThread->getCallStack(stackEntries, &count);
+					m_callstack->updateCallStack(stackEntries, count);
+				}
+				
+				// Update locals
+			
+				if (m_locals)
+				{
+					PDLocals locals[64];
+					int count = 64;
+					
+					m_debuggerThread->getLocals(locals, &count);
+					m_locals->updateLocals(locals, count);
+				}
+
 				break;
 			}
 	
@@ -273,7 +313,7 @@ void CodeEditor::updateUIThread()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeEditor::setFileLine(const char* file, int line)
+void Qt5CodeEditor::setFileLine(const char* file, int line)
 {
 	// TODO: update filename
 	(void)file;
@@ -289,7 +329,7 @@ void CodeEditor::setFileLine(const char* file, int line)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeEditor::addBreakpoint(const char* filename, int line, int id)
+void Qt5CodeEditor::addBreakpoint(const char* filename, int line, int id)
 {
 	int breakpoint = m_breakpointCount++;
 

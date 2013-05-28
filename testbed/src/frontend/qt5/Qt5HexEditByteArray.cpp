@@ -27,7 +27,7 @@ int Qt5HexEditByteArray::getAddressWidth() const
 
 void Qt5HexEditByteArray::setAddressWidth(int width)
 {
-	if ((width >= 0) and (width <= 6))
+	if ((width >= 0) && (width <= 6))
     {
         m_addressNumbers = width;
     }
@@ -145,7 +145,7 @@ QChar Qt5HexEditByteArray::getAsciiChar(int index) const
 {
 	char value = m_data[index];
 
-    if ((value < 0x20) or (value > 0x7e))
+    if ((value < 0x20) || (value > 0x7e))
     {
     	value = '.';
     }
