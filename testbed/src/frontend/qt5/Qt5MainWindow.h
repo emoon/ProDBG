@@ -120,9 +120,6 @@ private slots:
 
 	void fileSettingsFinished(int result);
 
-	void updateUiThread();
-	void addBreakpoint(const char* filename, int line, int id);
-
 protected:
 	enum Qt5ViewType m_currentViewType;
 	enum Qt5ViewType m_lastViewType;
@@ -151,7 +148,6 @@ private:
 	void createMenus();
 	void createToolBars();
 	void createStatusBar();
-
 
 	QMenu* m_fileMenu;
 	QMenu* m_windowMenu;
@@ -189,29 +185,10 @@ private:
 	QAction* m_helpContentsAction;
 	QAction* m_helpIndexAction;
 
-
-
 	Qt5ContextMenu* m_currentWindowMenu;
-
 	Qt5SettingsWindow* m_settingsWindow;
 
-
 	bool m_centralWidgetSet;
-
-
-	PDDebugPlugin* m_debuggerPlugin;
-	void* m_pluginData;
-	PDBreakpointFileLine* m_breakpoints;
-	uint32_t m_breakpointCount;
-	uint32_t m_breakpointCountMax;
-	PDDebugState m_debugState;
-	Qt5DebuggerThread* m_debuggerThread;
-	QThread* m_threadRunner;
-
-
-	//QList<Qt5CallStackView*> m_callStackViews;
-	//QList<Qt5LocalsView*> m_localsViews;
-	//QList<Qt5SourceCodeView*> m_sourceCodeViews;
 
 signals:
 	void signalSettings();

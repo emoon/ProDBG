@@ -1,4 +1,5 @@
 #include "Qt5CodeEditor.h"
+#include "Qt5DebugSession.h"
 #include <QtGui>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,6 +33,29 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent)
 
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
+
+    g_debugSession->connectWidget(this);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Qt5CodeEditor::~Qt5CodeEditor()
+{
+    g_debugSession->disconnectWidget(this);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// update called from the debugging session
+
+void Qt5CodeEditor::sessionUpdate()
+{
+	const char* filename;
+	int line;
+
+	if (g_debugSession->getFilenameLine(&filename, &line))
+		setFileLine(filename, line);
+
+	update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,8 +117,6 @@ void Qt5CodeEditor::highlightCurrentLine()
         QTextEdit::ExtraSelection selection;
         QTextCursor cursor = textCursor();
 
-        //printf("%d\n", cursor.blockNumber());
-        
         QColor lineColor = QColor(Qt::darkGray).lighter(50);
 
         selection.format.setBackground(lineColor);
@@ -130,16 +152,8 @@ void Qt5CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
             painter.setPen(Qt::black);
             painter.drawText(0, top, width, height, Qt::AlignRight, number);
 
-			// TODO:
-			/*for (uint32_t i = 0, count = m_breakpointCount; i < count; ++i)
-			{
-            	if (m_breakpoints[i].line == blockNumber)
-				{
-            		painter.drawArc(0, top + 1, 16, height - 2, 0, 360 * 16);
-            		break;
-				}
-			}
-			*/
+            if (g_debugSession->hasLineBreakpoint(blockNumber))
+           		painter.drawArc(0, top + 1, 16, height - 2, 0, 360 * 16);
         }
 
         block = block.next();
@@ -153,36 +167,19 @@ void Qt5CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 
 void Qt5CodeEditor::step()
 {
-	// TODO: emit tryStep();
+	g_debugSession->step();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5CodeEditor::keyPressEvent(QKeyEvent* event)
 {
-	//int key = event->key();
-	//printf("%08x %08x\n", key, Qt::Key_F8);
 	if (event->key() == Qt::Key_F8)
 	{
-        //QTextCursor cursor = textCursor();
-        //int lineNum = cursor.blockNumber();
-
-        // TODO:
-		/*
-		for (uint32_t i = 0, count = m_breakpointCount; i < count; ++i)
-		{
-			if (m_breakpoints[i].line == lineNum)
-			{
-				m_breakpoints[i] = m_breakpoints[count-1];
-				m_breakpointCount--;
-				return;
-			}
-		}
-
-		printf("begin Adding breakpoint\n");
-
-		emit tryAddBreakpoint(m_sourceFile, lineNum);
-		*/
+        QTextCursor cursor = textCursor();
+        int lineNum = cursor.blockNumber();
+        
+		g_debugSession->addBreakpointUI(m_sourceFile, lineNum);
 
 		return;
 	}
@@ -227,10 +224,6 @@ void Qt5CodeEditor::setFileLine(const char* file, int line)
 	centerCursor();
 	setFocus();
 }
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

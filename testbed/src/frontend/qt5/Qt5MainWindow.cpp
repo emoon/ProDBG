@@ -17,6 +17,7 @@
 #include "Qt5CallStack.h"
 #include "Qt5Locals.h"
 #include "ProDBGAPI.h"
+#include "Qt5DebugSession.h"
 
 namespace prodbg
 {
@@ -135,88 +136,9 @@ void Qt5MainWindow::assignSourceCodeView()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 void Qt5MainWindow::fileSettingsFinished(int result)
 {
 	(void)result;
-}
-
-void Qt5MainWindow::updateUiThread()
-{
-	PDDebugState state;
-	void* data;
-
-	state = m_debuggerThread->getDebugState(&data);
-
-	if (state != m_debugState)
-	{
-		printf("updating status from worker..\n");
-
-		switch (state)
-		{
-			case PDDebugState_breakpoint: 
-			{
-				PDDebugStateFileLine* filelineData = (PDDebugStateFileLine*)data;
-
-				printf("Goto line %d\n", filelineData->line);
-
-				/*if (m_sourceCodeView)
-				{
-					const QTextBlock& block = document()->findBlockByNumber(filelineData->line - 1);
-					QTextCursor cursor(block);
-					cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, 0);
-					setTextCursor(cursor);
-					centerCursor();
-					setFocus();
-				}
-				*/
-				
-				// Update callstack
-				
-				/*if (m_callstack)
-				{
-					PDCallStack stackEntries[128];
-					int count = 128;
-					
-					m_debuggerThread->getCallStack(stackEntries, &count);
-					m_callstack->updateCallStack(stackEntries, count);
-				}*/
-				
-				// Update locals
-			
-				/*if (m_locals)
-				{
-					PDLocals locals[64];
-					int count = 64;
-					
-					m_debuggerThread->getLocals(locals, &count);
-					m_locals->updateLocals(locals, count);
-				}*/
-
-				break;
-			}
-	
-			case PDDebugState_default :
-			case PDDebugState_noTarget :
-			case PDDebugState_breakpointFileLine :
-			case PDDebugState_exception :
-			case PDDebugState_custom :
-				break;
-		}
-
-		m_debugState = state;
-	}
-}
-
-void Qt5MainWindow::addBreakpoint(const char* filename, int line, int id)
-{
-	int breakpoint = m_breakpointCount++;
-
-	m_breakpoints[breakpoint].filename = strdup(filename);
-	m_breakpoints[breakpoint].line = line;
-	m_breakpoints[breakpoint].id = id;
-
-	printf("Added breakpoint %s %d %d (count %d)\n", filename, line, id, m_breakpointCount);
 }
 
 void Qt5MainWindow::createActions()
@@ -379,13 +301,15 @@ Qt5MainWindow::Qt5MainWindow()
 	connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
 	connect(m_backgroundWidget, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
 
-	
-
 	QString objectName;
 	objectName.setNum(m_id);
 	setObjectName(objectName);
 
 	connect(this, SIGNAL(destroyed(QObject*)), this, SLOT(shutdown(QObject*)));
+
+	// TODO: This is a bit temporary but will do for now
+
+	Qt5DebugSession::createSession();
 }
 
 Qt5MainWindow::~Qt5MainWindow()
@@ -739,32 +663,6 @@ void Qt5MainWindow::fileSaveLayout()
 
 void Qt5MainWindow::debugStart()
 {
-	m_threadRunner = new QThread;
-	m_debuggerThread = new Qt5DebuggerThread();
-	m_debuggerThread->moveToThread(m_threadRunner);
-
-	connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
-	connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
-	connect(m_debuggerThread, SIGNAL(callUIthread()), this, SLOT(updateUiThread()));
-
-	// TODO: Connect signals
-
-	m_threadRunner->start();
-
-	m_breakpoints = new PDBreakpointFileLine[1024];
-	m_breakpointCountMax = 1024;
-	m_breakpointCount = 0;
-	m_debugState = PDDebugState_default;
-
-
-	const char* executable = "tundra-output/macosx-clang-debug-default/Fake6502";
-
-
-
-
-	printf("beginDebug %s %d\n", executable, (uint32_t)(uint64_t)QThread::currentThreadId());
-
-	// TODO: emit tryStartDebugging(executable, m_breakpoints, (int)m_breakpointCount);
 }
 
 void Qt5MainWindow::helpIndex()
