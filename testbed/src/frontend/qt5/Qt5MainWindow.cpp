@@ -18,8 +18,6 @@ const char* QT5_BUILD_VERSION = "v0.0.1";
 
 void Qt5MainWindow::newDynamicView()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
 	Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
 	dock->setAttribute(Qt::WA_DeleteOnClose, true);
 
@@ -32,8 +30,6 @@ void Qt5MainWindow::newDynamicView()
 
 void Qt5MainWindow::newExampleView1()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
 	Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
 	dock->setAttribute(Qt::WA_DeleteOnClose, true);
 
@@ -79,6 +75,23 @@ void Qt5MainWindow::newExampleView3()
 	dynamicView->assignView(exampleView);
 
 	addDockWidget(Qt::LeftDockWidgetArea, dock);*/
+}
+
+void Qt5MainWindow::assignExampleView1()
+{
+	Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
+	if (dynamicView == nullptr)
+		return;
+
+	Qt5CallStackView* callStackView = new Qt5CallStackView(this, nullptr, dynamicView);
+	if (dynamicView->m_children[0] != nullptr)
+	{
+		dynamicView->m_children[0]->hide();
+		dynamicView->m_children[0]->deleteLater();
+	}
+
+	dynamicView->m_children[0] = callStackView;
+	dynamicView->assignView(callStackView);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -202,17 +215,11 @@ void Qt5MainWindow::createStatusBar()
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5MainWindow::Qt5MainWindow()
 : Qt5BaseView(this, nullptr, nullptr)
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
-	
-
 	m_backgroundWidget = new QWidget;
 	QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	sizePolicy.setHorizontalStretch(0);
@@ -265,8 +272,6 @@ Qt5MainWindow::Qt5MainWindow()
 
 Qt5MainWindow::~Qt5MainWindow()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
 	m_shutdown = true;
 }
 
@@ -298,6 +303,10 @@ void Qt5MainWindow::setupWorkspace()
 	connect(m_windowNewExampleView2Action, SIGNAL(triggered()), this, SLOT(newExampleView2()));
 	connect(m_windowNewExampleView3Action, SIGNAL(triggered()), this, SLOT(newExampleView3()));
 
+	connect(m_windowAssignExampleView1Action, SIGNAL(triggered()), this, SLOT(assignExampleView1()));
+	//connect(m_windowAssignExampleView2Action, SIGNAL(triggered()), this, SLOT(assignExampleView2()));
+	//connect(m_windowAssignExampleView3Action, SIGNAL(triggered()), this, SLOT(assignExampleView3()));
+
 	// Descibe help menu actions
 	///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -311,8 +320,6 @@ void Qt5MainWindow::setupWorkspace()
 
 void Qt5MainWindow::setCurrentWindow(Qt5BaseView* widget, Qt5ViewType type)
 {
-	printf("Event-S: %s - %s\n", __FILE__, __FUNCTION__);
-
 	if (m_shutdown)
 		return;
 
@@ -399,14 +406,10 @@ void Qt5MainWindow::setCurrentWindow(Qt5BaseView* widget, Qt5ViewType type)
 		m_windowCloseViewAction->setEnabled(false);
 		m_deletingDockWidget = false;
 	}
-
-	printf("Event-E: %s - %s\n", __FILE__, __FUNCTION__);
 }
 
 Qt5BaseView* Qt5MainWindow::getCurrentWindow(Qt5ViewType type)
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
 	if (m_shutdown)
 		return nullptr;
 
@@ -564,8 +567,6 @@ void Qt5MainWindow::closeEvent(QCloseEvent*)
 
 void Qt5MainWindow::contextMenuEvent(QContextMenuEvent*)
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
 	if (m_shutdown)
 		return;
 
@@ -577,8 +578,6 @@ void Qt5MainWindow::contextMenuEvent(QContextMenuEvent*)
 
 void Qt5MainWindow::focusInEvent(QFocusEvent*)
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
 	if (m_currentView == this || m_shutdown)
 		return;
 
@@ -602,7 +601,6 @@ void Qt5MainWindow::focusInEvent(QFocusEvent*)
 
 void Qt5MainWindow::fileExit()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 	close();
 }
 
@@ -643,8 +641,6 @@ void Qt5MainWindow::helpAbout()
 
 void Qt5MainWindow::setWindowMenu(Qt5ContextMenu* menu)
 {
-	printf("Event-S: %s - %s\n", __FILE__, __FUNCTION__);
-
 	Q_ASSERT(menu != nullptr);
 
 	if (m_shutdown)
@@ -669,12 +665,10 @@ void Qt5MainWindow::setWindowMenu(Qt5ContextMenu* menu)
 	Q_ASSERT(m_helpMenu != nullptr);
 	Q_ASSERT(m_currentWindowMenu != nullptr);
 	mainMenuBar->insertAction(m_helpMenu->menuAction(), m_currentWindowMenu->menuAction());
-	printf("Event-E: %s - %s\n", __FILE__, __FUNCTION__);
 }
 
 Qt5ContextMenu* Qt5MainWindow::getWindowMenu()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 	if (m_shutdown)
 		return nullptr;
 
@@ -693,8 +687,6 @@ void Qt5MainWindow::triggerSignalApplyLayout(Qt5Layout* layout)
 
 void Qt5MainWindow::windowSplitVertically()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
 	Qt5DynamicView* view = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
 	if (view == nullptr)
 		return;
@@ -704,8 +696,6 @@ void Qt5MainWindow::windowSplitVertically()
 
 void Qt5MainWindow::windowSplitHorizontally()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
 	Qt5DynamicView* view = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
 	if (view == nullptr)
 		return;
@@ -715,8 +705,6 @@ void Qt5MainWindow::windowSplitHorizontally()
 
 void Qt5MainWindow::windowFillMainWindow()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
 	Qt5DynamicView* view = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
 	if (view == nullptr)
 		return;
@@ -776,13 +764,132 @@ void Qt5MainWindow::windowUnfillMainWindow()
 
 void Qt5MainWindow::windowDeleteView()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
+	Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
+	if (dynamicView == nullptr)
+		return;
+
+	// Most the time the m_pParent of a dynamic view will be another Dynamic View.
+	// However, for base Dynamic views, (Who have a mainwindow as a parent) it will be of type AR_Impl_Main.
+	// Therefore, I can't give it the proper type in the header, so you have to cast it when you need to deal
+	// with its specialized members.
+	//
+	// Even though it's annoying spam, it's very important because it means our Dynamic Views stay
+	// agnostic and behave as they should no matter what they are embedded into.
+
+	m_deletingDockWidget = true;
+	setCurrentWindow(this, Qt5ViewType_Main);
+
+	Qt5ContextMenu* windowMenu = new Qt5ContextMenu(this, this);
+	setWindowMenu(windowMenu);
+
+	// If we are embedded into the MainWindow then we just delete ourself!
+	if (dynamicView->m_parent == this && dynamicView->m_parentDock == nullptr)
+	{
+		dynamicView->deleteLater();
+		m_centralWidgetSet = false;
+		m_backgroundWidget = new QWidget(this);
+		m_backgroundWidget->setObjectName(QString::fromUtf8("backgroundWidget"));
+		//m_backgroundWidget->setPalette(m_backgroundPalette);
+		m_backgroundWidget->setAutoFillBackground(true);
+		emit signalDelayedSetCentralWidget(m_backgroundWidget);
+		return;
+	}
+
+	// If we are the only remaining DynamicView in a DockWidget then we
+	// remove the dock, delete ourself, then delete the dock.
+	if (dynamicView->m_parentDock != nullptr)
+	{
+		removeDockWidget(dynamicView->m_parentDock);
+		dynamicView->m_parentDock->deleteLater();
+		dynamicView->deleteLater();
+		return;
+	}
+
+	Qt5DynamicView* parent = (Qt5DynamicView*)dynamicView->m_parent;
+	Qt5DynamicView* child1 = (Qt5DynamicView*)parent->m_children[0];
+	Qt5DynamicView* child2 = (Qt5DynamicView*)parent->m_children[1];
+
+	// Otherwise, we delete ourself, our parent,
+	// and put our sibling view where the parent used to be.
+	if (child1 == dynamicView)
+	{
+		if (parent->m_parentDock != nullptr)
+		{
+			child2->m_parent = this;
+			child2->setParent(this);
+			child2->m_parentDock = parent->m_parentDock;
+			child2->m_parentDock->setWidget(child2);
+		}
+		else if (parent->m_parentDock == nullptr && parent->m_parent == this)
+		{
+			child2->m_parent = this;
+			child2->setParent(this);
+			emit signalDelayedSetCentralWidget(child2);
+		}
+		else
+		{
+			int index = 0;
+			if (((Qt5DynamicView*)parent->m_parent)->m_children[0] == parent)
+			{
+				index = ((Qt5DynamicView *)parent->m_parent)->m_splitter->indexOf(((Qt5DynamicView*)parent->m_parent)->m_children[0]);
+				((Qt5DynamicView*)parent->m_parent)->m_children[0] = child2;
+			}
+			else if (((Qt5DynamicView*)parent->m_parent)->m_children[1] == parent)
+			{
+				index = ((Qt5DynamicView*)parent->m_parent)->m_splitter->indexOf(((Qt5DynamicView*)parent->m_parent)->m_children[1]);
+				((Qt5DynamicView*)parent->m_parent)->m_children[1] = child2;
+			}
+
+			child2->m_parent = parent->m_parent;
+			child2->setParent(parent->m_parent);
+
+			((Qt5DynamicView*)parent->m_parent)->m_splitter->insertWidget(index, child2);
+		}
+	}
+	else if (child2 == dynamicView)
+	{
+		if (parent->m_parentDock)
+		{
+			child1->m_parent = this;
+			child1->setParent(this);
+			child1->m_parentDock = parent->m_parentDock;
+			child1->m_parentDock->setWidget(child1);
+		}
+		else if (parent->m_parentDock == nullptr && parent->m_parent == this)
+		{
+			child1->m_parent = this;
+			child1->setParent(this);
+			emit signalDelayedSetCentralWidget(child1);
+		}
+		else
+		{
+			int index = 0;
+			if (((Qt5DynamicView*)parent->m_parent)->m_children[0] == parent)
+			{
+				index = ((Qt5DynamicView*)parent->m_parent)->m_splitter->indexOf(((Qt5DynamicView*)parent->m_parent)->m_children[0]);
+				((Qt5DynamicView*)parent->m_parent)->m_children[0] = child1;
+			}
+			else if (((Qt5DynamicView*)parent->m_parent)->m_children[1] == parent)
+			{
+				index = ((Qt5DynamicView*)parent->m_parent)->m_splitter->indexOf(((Qt5DynamicView*)parent->m_parent)->m_children[1]);
+				((Qt5DynamicView*)parent->m_parent)->m_children[1] = child1;
+			}
+
+			child1->m_parent = parent->m_parent;
+			child1->setParent(parent->m_parent);
+
+			((Qt5DynamicView*)parent->m_parent)->m_splitter->insertWidget(index, child1);
+		}
+	}
+
+	dynamicView->deleteLater();
+	parent->deleteLater();
+
+	return;
 }
 
 void Qt5MainWindow::windowCloseView()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
 	Qt5DynamicView* view = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
 	if (view == nullptr)
 		return;
@@ -812,8 +919,6 @@ void Qt5MainWindow::windowCloseView()
 
 void Qt5MainWindow::contextMenuProxy(const QPoint&)
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
 	if (m_shutdown)
 		return;
 

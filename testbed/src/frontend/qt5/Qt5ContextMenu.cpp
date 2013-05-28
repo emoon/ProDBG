@@ -12,10 +12,12 @@ Qt5ContextMenu::Qt5ContextMenu(Qt5MainWindow* mainWindow, Qt5BaseView* parent)
 {
 	setObjectName(QString::fromUtf8("Qt5ContextMenu"));
 	setTitle(tr("&Window"));
-	printf("GWTEST - S: %s\n", __FILE__);
+	printf("ProDBG - Start https://bugreports.qt-project.org/browse/QTBUG-30767 Bug\n");
+	// https://bugreports.qt-project.org/browse/QTBUG-30767
 	addAction(m_mainWindow->m_newWindowMenu->menuAction());
+	printf("ProDBG - End https://bugreports.qt-project.org/browse/QTBUG-30767 Bug\n");
+
 	addAction(m_mainWindow->m_windowCloseViewAction);
-	printf("GWTEST - E: %s\n", __FILE__);
 }
 
 Qt5ContextMenu::~Qt5ContextMenu()

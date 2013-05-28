@@ -13,9 +13,7 @@ Qt5BaseView::Qt5BaseView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5Base
 , m_parent(parent)
 , m_type(Qt5ViewType_Reset)
 {
-    printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
-	setParent(m_parent);
+    setParent(m_parent);
 
     if (m_mainWindow == this)
     {
@@ -43,15 +41,12 @@ Qt5BaseView::Qt5BaseView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5Base
 
 Qt5BaseView::~Qt5BaseView()
 {
-    printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
     m_mainWindow->m_viewCount--;
     m_mainWindow->deleteView(m_id);
 }
 
 void Qt5BaseView::contextMenuEvent(QContextMenuEvent* event)
 {
-    printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
     focusInEvent(nullptr);
 
     if (!hasSplitter())
@@ -67,8 +62,6 @@ void Qt5BaseView::contextMenuEvent(QContextMenuEvent* event)
 
 void Qt5BaseView::focusInEvent(QFocusEvent* event)
 {
-    printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
     Qt5BaseView* baseView = m_mainWindow->getCurrentWindow(Qt5ViewType_Dock);
     if (baseView != nullptr)
     {
@@ -110,9 +103,6 @@ void Qt5BaseView::focusInEvent(QFocusEvent* event)
 
 void Qt5BaseView::closeEvent(QCloseEvent* event)
 {
-    printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
-
     m_mainWindow->setCurrentWindow(m_mainWindow, Qt5ViewType_Main);
     m_mainWindow->setWindowMenu(new Qt5ContextMenu(m_mainWindow, m_mainWindow));
 
@@ -124,8 +114,6 @@ void Qt5BaseView::closeEvent(QCloseEvent* event)
 
 void Qt5BaseView::contextMenuProxy(const QPoint&)
 {
-    printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
     focusInEvent(nullptr);
     if (!hasSplitter())
     {
@@ -135,16 +123,12 @@ void Qt5BaseView::contextMenuProxy(const QPoint&)
 
 void Qt5BaseView::delayedSetCentralWidget(QWidget* widget)
 {
-    printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
-	setCentralWidget(widget);
+    setCentralWidget(widget);
 }
 
 bool Qt5BaseView::hasSplitter() const
 {
-    printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
-
-	if (getViewType() == Qt5ViewType_Dynamic)
+    if (getViewType() == Qt5ViewType_Dynamic)
     {
         return ((Qt5DynamicView*)this)->getSplitter() != nullptr;
     }

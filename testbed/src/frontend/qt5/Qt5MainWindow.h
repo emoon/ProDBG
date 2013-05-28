@@ -107,6 +107,8 @@ private slots:
 	void newExampleView2();
 	void newExampleView3();
 
+	void assignExampleView1();
+
 	void fileSettingsFinished(int result);
 
 protected:
