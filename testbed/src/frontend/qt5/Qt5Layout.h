@@ -16,7 +16,8 @@ enum Qt5ViewType
 	// TODO: Temp
 	Qt5ViewType_CallStack,
 	Qt5ViewType_Locals,
-	Qt5ViewType_SourceCode
+	Qt5ViewType_SourceCode,
+	Qt5ViewType_HexEdit
 };
 
 class Qt5LayoutEntry

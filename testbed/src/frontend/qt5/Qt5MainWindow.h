@@ -26,6 +26,7 @@ class Qt5SettingsWindow;
 class Qt5CallStackView;
 class Qt5LocalsView;
 class Qt5SourceCodeView;
+class Qt5HexEditView;
 
 class Qt5DebuggerThread;
 
@@ -113,10 +114,12 @@ private slots:
 	void newCallStackView();
 	void newLocalsView();
 	void newSourceCodeView();
+	void newHexEditView();
 
 	void assignCallStackView();
 	void assignLocalsView();
 	void assignSourceCodeView();
+	void assignHexEditView();
 
 	void fileSettingsFinished(int result);
 
@@ -176,10 +179,12 @@ private:
 	QAction* m_windowNewCallStackViewAction;
 	QAction* m_windowNewLocalsViewAction;
 	QAction* m_windowNewSourceCodeViewAction;
+	QAction* m_windowNewHexEditViewAction;
 
 	QAction* m_windowAssignCallStackViewAction;
 	QAction* m_windowAssignLocalsViewAction;
 	QAction* m_windowAssignSourceCodeViewAction;
+	QAction* m_windowAssignHexEditViewAction;
 
 	QAction* m_helpAboutAction;
 	QAction* m_helpContentsAction;
