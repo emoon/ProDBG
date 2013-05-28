@@ -12,8 +12,8 @@ namespace prodbg
 Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent)
 {
 	// http://www.qtcentre.org/threads/39941-readonly-QTextEdit-with-visible-Cursor
-	setReadOnly(true);
-	setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
+	//setReadOnly(true);
+	//setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
 
     m_lineNumberArea = new LineNumberArea(this);
 
@@ -174,6 +174,8 @@ void Qt5CodeEditor::step()
 
 void Qt5CodeEditor::keyPressEvent(QKeyEvent* event)
 {
+	printf("pressing key.......\n");
+
 	if (event->key() == Qt::Key_F8)
 	{
         QTextCursor cursor = textCursor();

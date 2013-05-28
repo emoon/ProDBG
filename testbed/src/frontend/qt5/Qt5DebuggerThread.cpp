@@ -63,6 +63,8 @@ void Qt5DebuggerThread::tryStartDebugging(const char* filename, PDBreakpointFile
 {
 	m_executable = filename;
 
+	printf("Try starting debugging of %s breakpoint count (%d)\n", filename, bpCount);
+
 	// Start the debugging and if we manage start the update that will be called each 10 ms
 
 	if (m_debuggerPlugin->start(m_pluginData, PD_DEBUG_LAUNCH, (void*)m_executable, breakpoints, bpCount))

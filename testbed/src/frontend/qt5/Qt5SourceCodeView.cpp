@@ -27,7 +27,7 @@ Qt5SourceCodeView::Qt5SourceCodeView(Qt5MainWindow* mainWindow, Qt5DockWidget* d
     connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
     connect(m_sourceCode, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
 
-    m_sourceCode->setFocusProxy(this);
+    //m_sourceCode->setFocusProxy(this);
 
     m_sourceCode->readSourceFile("examples/Fake6502/Fake6502Main.c");
     //m_sourceCode->beginDebug("tundra-output/macosx-clang-debug-default/Fake6502");
