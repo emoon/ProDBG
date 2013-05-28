@@ -11,7 +11,22 @@ enum Qt5ViewType
 	Qt5ViewType_Main = 0x0003,
 	Qt5ViewType_Dynamic = 0x0004,
 
-	Qt5ViewType_CodeEditor = 0x0005
+	Qt5ViewType_PluginStart = 0x0020,
+};
+
+class Qt5LayoutEntry
+{
+public:
+    Qt5LayoutEntry()
+	{
+	};
+};
+
+class Qt5Layout
+{
+public:
+	int m_numEntries;
+	Qt5LayoutEntry* m_entries;
 };
 
 }
