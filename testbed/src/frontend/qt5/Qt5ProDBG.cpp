@@ -45,6 +45,7 @@ static int realMain(int argc, char* argv[])
 
 	Qt5MainWindow window;
 	window.resize(900, 600);
+	window.setupWorkspace();
 	window.show();
 
 	// test
