@@ -70,10 +70,21 @@ void Qt5DebugSession::disconnectWidget(QObject* widget)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TODO: Rewrite, sort by name and such
 
-bool Qt5DebugSession::hasLineBreakpoint(int line)
+bool Qt5DebugSession::hasLineBreakpoint(const char* filename, int line)
 {
-    (void)line;
+	for (int i = 0, e = m_breakpointCount; i < e; ++i)
+    {
+    	const PDBreakpointFileLine* breakpoint = &m_breakpoints[i];
+    	
+    	if (!strstr(breakpoint->filename, filename))
+    		continue;
+    		
+    	if (breakpoint->line == line)
+    		return true;
+    }
+
     return false;
 }
 
@@ -85,21 +96,22 @@ void Qt5DebugSession::step()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5DebugSession::addBreakpointUI(const char* file, int line)
+bool Qt5DebugSession::addBreakpointUI(const char* file, int line)
 {
-    file = "Fake6502Main.c"; // temp temp
-
     // if we don't have a thread the session debugging session hasn't started yet so it's fine to add the bp directly
 
     if (!m_debuggerThread)
     {
         printf("Qt5DebugSession::addBreakpointUI %s %d\n", file, line);
         addBreakpoint(file, line, -2);
+        return true;
     }
     else
     {
         emit tryAddBreakpoint(file, line);
     }
+    
+    return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -120,10 +132,10 @@ bool Qt5DebugSession::addBreakpoint(const char* file, int line, int id)
 
 void Qt5DebugSession::delBreakpoint(int id)
 {
-   PDBreakpointFileLine* breakpoints = m_breakpoints; 
-   int count = m_breakpointCount;
+	PDBreakpointFileLine* breakpoints = m_breakpoints; 
+	int count = m_breakpointCount;
 
-    for (int i = 0, e = count; i < e; ++i)
+	for (int i = 0, e = count; i < e; ++i)
     {
         if (breakpoints[i].id == id)
         {

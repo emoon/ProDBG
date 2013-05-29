@@ -154,7 +154,7 @@ void Qt5CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
             painter.setPen(Qt::black);
             painter.drawText(0, top, width, height, Qt::AlignRight, number);
 
-            if (g_debugSession->hasLineBreakpoint(blockNumber))
+            if (g_debugSession->hasLineBreakpoint(m_sourceFile, blockNumber))
            		painter.drawArc(0, top + 1, 16, height - 2, 0, 360 * 16);
         }
 
@@ -176,14 +176,15 @@ void Qt5CodeEditor::step()
 
 void Qt5CodeEditor::keyPressEvent(QKeyEvent* event)
 {
-	printf("pressing key.......\n");
-
 	if (event->key() == Qt::Key_F8)
 	{
         QTextCursor cursor = textCursor();
         int lineNum = cursor.blockNumber();
+
+        // Check if this breakpoint was added directly on the UI thread then update the window to show it 
         
-		g_debugSession->addBreakpointUI(m_sourceFile, lineNum);
+		if (g_debugSession->addBreakpointUI(m_sourceFile, lineNum))
+			update();
 
 		return;
 	}

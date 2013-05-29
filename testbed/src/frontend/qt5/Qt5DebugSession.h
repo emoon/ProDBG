@@ -33,13 +33,13 @@ public:
     void begin(const char* executable);
     void step();
 
-    bool hasLineBreakpoint(int line);
+    bool hasLineBreakpoint(const char* filename, int line);
     bool getFilenameLine(const char** filename, int* line);
 
     bool addBreakpoint(const char* file, int line, int id);
     void delBreakpoint(int id);
 
-    void addBreakpointUI(const char* file, int line);
+    bool addBreakpointUI(const char* file, int line);
     void delBreakpointUI(int id);
 
 signals:
