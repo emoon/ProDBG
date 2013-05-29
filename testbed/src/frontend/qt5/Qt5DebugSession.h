@@ -41,6 +41,10 @@ public:
 
     bool addBreakpointUI(const char* file, int line);
     void delBreakpointUI(int id);
+    
+private slots:
+	// Called from the debugging thread when a step finished
+	void stepFinished();
 
 signals:
 	void tryStartDebugging(const char* filename, PDBreakpointFileLine* breakpoints, int bpCount);
