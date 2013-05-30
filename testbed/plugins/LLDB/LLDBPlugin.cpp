@@ -279,6 +279,14 @@ static void updateLLDBEvent(LLDBPlugin* plugin)
 		}
 		break;
 	}
+
+	const int bufferSize = 2048;
+	char buffer[bufferSize];
+	size_t amountRead = 0;
+	while ((amountRead = plugin->process.GetSTDOUT(buffer, bufferSize)) > 0)
+	{
+		printf("%s", buffer);
+	}
 }
 
 
@@ -373,7 +381,9 @@ static bool startDebugging(void* userData, PDLaunchAction action, void* launchDa
 
 	plugin->process.GetBroadcaster().AddListener(
 			plugin->listener, 
-			lldb::SBProcess::eBroadcastBitStateChanged | lldb::SBProcess::eBroadcastBitInterrupt);
+			lldb::SBProcess::eBroadcastBitStateChanged |
+			lldb::SBProcess::eBroadcastBitInterrupt);// |
+			//lldb::SBProcess::eBroadcastBitSTDOUT);
 
 	plugin->debugState = DebugState_updateEvent;
 
