@@ -2,6 +2,7 @@
 #include "Qt5DebuggerThread.h"
 #include "Qt5CodeEditor.h"
 #include "Qt5CallStack.h"
+#include "Qt5Locals.h"
 #include <QThread>
 #ifndef _WIN32
 #include <unistd.h>
@@ -146,6 +147,11 @@ void Qt5DebugSession::setDebugDataState(PDDebugDataState* state)
     for (auto i = m_callStacks.begin(); i != m_callStacks.end(); i++) 
     {
        (*i)->updateCallStack((PDCallStack*)&state->callStack, state->callStackCount); 
+    }
+
+    for (auto i = m_locals.begin(); i != m_locals.end(); i++) 
+    {
+       (*i)->updateLocals((PDLocals*)&state->locals, state->localsCount); 
     }
 }
 

@@ -400,14 +400,19 @@ void getLocals(void* userData, PDLocals* locals, int* maxEntries)
 	lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
 	lldb::SBFrame frame = thread.GetSelectedFrame();
 	
-    lldb::SBValueList variables = frame.GetVariables(true, true, true, true);
+    lldb::SBValueList variables = frame.GetVariables(true, true, true, false);
     
     uint32_t localVarsCount = variables.GetSize();
 
+    // TODO: Fix me
+	*maxEntries = (int)localVarsCount; 
+
+	/*
     if (localVarsCount < (uint32_t)*maxEntries)
     	*maxEntries	= (int)localVarsCount;
     else
     	localVarsCount = (uint32_t)*maxEntries;
+    */
     	
     for (uint32_t i = 0; i < localVarsCount; ++i)
     {
@@ -526,7 +531,7 @@ static PDDebugState getState(void* userData, PDDebugDataState* dataState)
 			dataState->localsCount = 64;
 
 			getCallStack(plugin, (PDCallStack*)&dataState->callStack, &dataState->callStackCount);
-			//getLocals(plugin, (PDLocals*)&dataState->locals, &dataState->localsCount);
+			getLocals(plugin, (PDLocals*)&dataState->locals, &dataState->localsCount);
 
 			return PDDebugState_breakpoint;
 		}
