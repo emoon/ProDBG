@@ -36,14 +36,14 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent)
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
 
-    g_debugSession->connectWidget(this);
+    g_debugSession->addCodeEditor(this);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5CodeEditor::~Qt5CodeEditor()
 {
-    g_debugSession->disconnectWidget(this);
+    g_debugSession->delCodeEditor(this);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -169,6 +169,7 @@ void Qt5CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 
 void Qt5CodeEditor::step()
 {
+	printf("Doing step\n");
 	g_debugSession->step();
 }
 

@@ -72,7 +72,7 @@ static void onBreak(LLDBPlugin* data, void* actionData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void onStep(LLDBPlugin* plugin, PDBreakpointFileLine* fileLine)
+static void onStep(LLDBPlugin* plugin)
 {
 	printf("Do step inside the lldb plugin\n");
 
@@ -289,7 +289,7 @@ static void updateAction(LLDBPlugin* plugin, PDDebugAction action, void* actionD
 	switch (action)
 	{
 		case PD_DEBUG_ACTION_BREAK : onBreak(plugin, actionData); break;
-		case PD_DEBUG_ACTION_STEP : onStep(plugin, (PDBreakpointFileLine*)actionData); break;
+		case PD_DEBUG_ACTION_STEP : onStep(plugin); break;
 		case PD_DEBUG_ACTION_CONTINUE : onContinue(plugin, actionData); break;
 		case PD_DEBUG_ACTION_STEP_OVER : onStepOver(plugin, actionData); break;
 		case PD_DEBUG_ACTION_SET_CODE_BREAKPOINT : onSetCodeBreakpoint(plugin, actionData); break;
@@ -364,7 +364,7 @@ static bool startDebugging(void* userData, PDLaunchAction action, void* launchDa
 
    		lldb::SBBreakpoint breakpoint = plugin->target.BreakpointCreateByLocation(fileLine->filename, (uint32_t)fileLine->line);
 
-		if (!breakpoint.IsValid())
+		if (breakpoint.IsValid())
 		{
 			printf("Added breakpoint %s %d\n", fileLine->filename, fileLine->line);
 			fileLine->id = breakpoint.GetID();
@@ -392,14 +392,93 @@ static bool startDebugging(void* userData, PDLaunchAction action, void* launchDa
 	//lldb::SBDebugger::Destroy(plugin->debugger);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void getLocals(void* userData, PDLocals* locals, int* maxEntries)
+{
+	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+	lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
+	lldb::SBFrame frame = thread.GetSelectedFrame();
+	
+    lldb::SBValueList variables = frame.GetVariables(true, true, true, true);
+    
+    uint32_t localVarsCount = variables.GetSize();
+
+    if (localVarsCount < (uint32_t)*maxEntries)
+    	*maxEntries	= (int)localVarsCount;
+    else
+    	localVarsCount = (uint32_t)*maxEntries;
+    	
+    for (uint32_t i = 0; i < localVarsCount; ++i)
+    {
+    	PDLocals* local = &locals[i]; 
+    	lldb::SBValue value = variables.GetValueAtIndex(i);
+    	
+    	// TODO: Verify this line
+    	sprintf(local->address, "%016llx", (uint64_t)value.GetAddress().GetFileAddress());
+    	
+    	if (value.GetValue())
+    		strcpy(local->value, value.GetValue());
+   		else
+    		strcpy(local->value, "Unknown"); 
+    		
+    	if (value.GetTypeName())
+    		strcpy(local->type, value.GetTypeName());
+    	else
+    		strcpy(local->type, "Unknown"); 
+
+		if (value.GetName())
+    		strcpy(local->name, value.GetName());
+    	else
+    		strcpy(local->name, "Unknown"); 
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDDebugState getState(void* userData, void** data)
+void getCallStack(void* userData, PDCallstack* callStack, int* maxEntries)
 {
 	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+	
+	lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
 
-	//printf("gettingState %d\n", plugin->debugState);
+	int frameCount = (int)thread.GetNumFrames();
+	
+	if (frameCount > *maxEntries)
+		frameCount = *maxEntries;
+		
+	*maxEntries = frameCount;
+		
+	for (int i = 0; i < frameCount; ++i)
+	{
+		lldb::SBFrame frame = thread.GetFrameAtIndex((uint32_t)i); 
+		lldb::SBModule module = frame.GetModule();
+		lldb::SBCompileUnit compileUnit = frame.GetCompileUnit();
+		lldb::SBSymbolContext context(frame.GetSymbolContext(0x0000006e));
+		lldb::SBLineEntry entry(context.GetLineEntry());
+
+		callStack[i].address = (uint64_t)frame.GetPC();
+		module.GetFileSpec().GetPath(callStack[i].moduleName, 1024);
+		
+		if (compileUnit.GetNumSupportFiles() > 0)
+		{
+			char filename[2048];
+			lldb::SBFileSpec fileSpec = compileUnit.GetSupportFileAtIndex(0);
+			fileSpec.GetPath(filename, sizeof(filename));
+			sprintf(callStack[i].fileLine, "%s:%d", filename, entry.GetLine());
+		}
+		else
+		{
+			strcpy(callStack[i].fileLine, "<unknown>"); 
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PDDebugState getState(void* userData, PDDebugDataState* dataState)
+{
+	LLDBPlugin* plugin = (LLDBPlugin*)userData;
 
 	switch (plugin->debugState)
 	{
@@ -407,8 +486,6 @@ static PDDebugState getState(void* userData, void** data)
 		case DebugState_stopException :
 		case DebugState_stopBreakpoint :
 		{
-			*data = &plugin->filelineData;
-
 			// Get the filename & line of the exception/breakpoint
 			// TODO: Right now we assume that we only got the break/exception at the first thread.
 
@@ -423,7 +500,7 @@ static PDDebugState getState(void* userData, void** data)
 			{
 				char filename[2048];
 				lldb::SBFileSpec fileSpec = compileUnit.GetSupportFileAtIndex(0);
-				fileSpec.GetPath((char*)&plugin->filelineData.filename, sizeof(filename));
+				fileSpec.GetPath((char*)&dataState->filename, sizeof(filename));
 			}
 
 			//auto fp = frame.GetFP();
@@ -438,14 +515,18 @@ static PDDebugState getState(void* userData, void** data)
 			lldb::SBModule module(context.GetModule());
 			lldb::SBLineEntry entry(context.GetLineEntry());
 			lldb::SBFileSpec entry_filespec(plugin->process.GetTarget().GetExecutable());
-			char entry_path[1024];
-			entry_filespec.GetPath(&entry_path[0], 1024);
+			//char entry_path[1024];
+			//entry_filespec.GetPath(&entry_path[0], 1024);
 			auto line_1 = entry.GetLine();
 			//auto line_2 = entry.GetLine();
 			//auto fname = frame.GetFunctionName();
-			plugin->filelineData.line = (int)line_1;
-			//printf("%llu %s %d %d %llu %s %d %s\n",fp,plugin->filelineData.filename,state,byte_size,pc,entry_path,line_1,fname);
-			//break;
+			dataState->line = (int)line_1;
+
+			dataState->callStackCount = 32;
+			dataState->localsCount = 64;
+
+			getCallStack(plugin, (PDCallStack*)&dataState->callStack, &dataState->callStackCount);
+			//getLocals(plugin, (PDLocals*)&dataState->locals, &dataState->localsCount);
 
 			return PDDebugState_breakpoint;
 		}
@@ -498,87 +579,6 @@ static void removeBreakpoint(void* userData, int id)
 	plugin->target.BreakpointDelete((lldb::break_id_t)id);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void getCallStack(void* userData, PDCallstack* callStack, int* maxEntries)
-{
-	LLDBPlugin* plugin = (LLDBPlugin*)userData;
-	
-	lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
-
-	int frameCount = (int)thread.GetNumFrames();
-	
-	if (frameCount > *maxEntries)
-		frameCount = *maxEntries;
-		
-	*maxEntries = frameCount;
-		
-	for (int i = 0; i < frameCount; ++i)
-	{
-		lldb::SBFrame frame = thread.GetFrameAtIndex((uint32_t)i); 
-		lldb::SBModule module = frame.GetModule();
-		lldb::SBCompileUnit compileUnit = frame.GetCompileUnit();
-		lldb::SBSymbolContext context(frame.GetSymbolContext(0x0000006e));
-		lldb::SBLineEntry entry(context.GetLineEntry());
-
-		callStack[i].address = (uint64_t)frame.GetPC();
-		module.GetFileSpec().GetPath(callStack[i].moduleName, 1024);
-		
-		if (compileUnit.GetNumSupportFiles() > 0)
-		{
-			char filename[2048];
-			lldb::SBFileSpec fileSpec = compileUnit.GetSupportFileAtIndex(0);
-			fileSpec.GetPath(filename, sizeof(filename));
-			sprintf(callStack[i].fileLine, "%s:%d", filename, entry.GetLine());
-		}
-		else
-		{
-			strcpy(callStack[i].fileLine, "<unknown>"); 
-		}
-	}
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void getLocals(void* userData, PDLocals* locals, int* maxEntries)
-{
-	LLDBPlugin* plugin = (LLDBPlugin*)userData;
-	lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
-	lldb::SBFrame frame = thread.GetSelectedFrame();
-	
-    lldb::SBValueList variables = frame.GetVariables(true, true, true, true);
-    
-    uint32_t localVarsCount = variables.GetSize();
-
-    if (localVarsCount < (uint32_t)*maxEntries)
-    	*maxEntries	= (int)localVarsCount;
-    else
-    	localVarsCount = (uint32_t)*maxEntries;
-    	
-    for (uint32_t i = 0; i < localVarsCount; ++i)
-    {
-    	PDLocals* local = &locals[i]; 
-    	lldb::SBValue value = variables.GetValueAtIndex(i);
-    	
-    	// TODO: Verify this line
-    	sprintf(local->address, "%016llx", (uint64_t)value.GetAddress().GetFileAddress());
-    	
-    	if (value.GetValue())
-    		strcpy(local->value, value.GetValue());
-   		else
-    		strcpy(local->value, "Unknown"); 
-    		
-    	if (value.GetTypeName())
-    		strcpy(local->type, value.GetTypeName());
-    	else
-    		strcpy(local->type, "Unknown"); 
-
-		if (value.GetName())
-    		strcpy(local->name, value.GetName());
-    	else
-    		strcpy(local->name, "Unknown"); 
-	}
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -591,8 +591,6 @@ static PDDebugPlugin plugin =
 	getState,
 	addBreakpoint,
 	removeBreakpoint,
-	getCallStack,
-	getLocals,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

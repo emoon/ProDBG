@@ -18,9 +18,6 @@ class Qt5DebuggerThread : public QObject
 
 public:
 	Qt5DebuggerThread();
-	PDDebugState getDebugState(void** data);
-	void getCallStack(PDCallstack* callStack, int* maxEntries);
-	void getLocals(PDLocals* locals, int* maxEntries);
 
 public slots:
     void start();
@@ -31,18 +28,17 @@ public slots:
  
 signals:
     void finished();
-	void callUIthread();
 	void addBreakpointUI(const char* filename, int line, int id);
-    void setFileLine(const char* file, int line);
-    void setCallStack(QStringList callstack);
+	void sendDebugDataState(PDDebugDataState* state);
 
 private:
 
-	PDBreakpointFileLine m_fileLine;
+	PDDebugDataState m_debugDataState;
 
 	PDDebugPlugin* m_debuggerPlugin;
 	const char* m_executable;
 	void* m_pluginData;
+	int m_oldLine; // temp hack
 	QTimer m_timer;
 };
 

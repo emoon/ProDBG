@@ -15,6 +15,9 @@ QT_END_NAMESPACE
 namespace prodbg
 {
 
+class Qt5CodeEditor;
+class Qt5Locals;
+class Qt5CallStack;
 class Qt5DebuggerThread;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -28,8 +31,16 @@ public:
 
     Qt5DebugSession();
 
-    void connectWidget(QObject* widget);
-    void disconnectWidget(QObject* widget);
+    // TODO: Do this more generic
+
+    void addCodeEditor(Qt5CodeEditor* codeEditor);
+    void addLocals(Qt5Locals* locals);
+    void addCallStack(Qt5CallStack* callStack);
+
+    void delCodeEditor(Qt5CodeEditor* codeEditor);
+    void delLocals(Qt5Locals* locals);
+    void delCallStack(Qt5CallStack* callStack);
+
     void begin(const char* executable);
     void step();
 
@@ -43,18 +54,22 @@ public:
     void delBreakpointUI(int id);
     
 private slots:
-	// Called from the debugging thread when a step finished
-	void stepFinished();
+	// Called from the when a state change has happen that require UI update 
+	void setDebugDataState(PDDebugDataState* state);
 
 signals:
 	void tryStartDebugging(const char* filename, PDBreakpointFileLine* breakpoints, int bpCount);
 	void tryAddBreakpoint(const char* filename, int line);
+	void tryStep();
 
 private:
 
+    QList<Qt5CodeEditor*> m_codeEditors;
+    QList<Qt5Locals*> m_locals;
+    QList<Qt5CallStack*> m_callStacks;
+
 	PDDebugPlugin* m_debuggerPlugin;
 	void* m_pluginData;
-	PDDebugState m_debugState;
 	QThread* m_threadRunner;
 
     Qt5DebuggerThread* m_debuggerThread;

@@ -112,8 +112,8 @@ typedef struct PDBreakpointFileLine
 typedef struct PDCallStack
 {
 	uint64_t address;
-	char moduleName[1024];
-	char fileLine[2048];
+	char moduleName[256];
+	char fileLine[256];
 } PDCallstack;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,10 +122,28 @@ typedef struct PDLocals
 {
 	char address[32];
 	char value[32];
-	char type[4096];
-	char name[4096]; 
+	char type[256];
+	char name[1024]; 
 
 } PDLocals;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// This is a bit temprory but used for testing now
+
+typedef struct PDDebugDataState
+{
+	PDDebugState state;
+
+	char filename[2048];		// current file if exception, breakpoint 
+	int line;						// current line if exception, breakpoint 
+
+	PDLocals locals[64];			// max 64 locals right now
+	PDCallStack callStack[32];		// 32 entries callstack
+
+	int localsCount;
+	int callStackCount;
+
+} PDDebugDataState;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -137,12 +155,9 @@ typedef struct PDDebugPlugin
 	bool (*start)(void* userData, PDLaunchAction action, void* launchData, PDBreakpointFileLine* breakpoints, int bpCount);
 	void (*action)(void* userData, PDDebugAction action, void* actionData);
 
-	PDDebugState (*getState)(void* userData, void** data);
+	PDDebugState (*getState)(void* userData, PDDebugDataState* dataState);
 	int (*addBreakpoint)(void* userData, PDBreakpointType type, void* breakpointData);
 	void (*removeBreakpoint)(void* userData, int id); 
-	
-	void (*getCallStack)(void* userData, PDCallStack* callStack, int* maxEntries); 
-	void (*getLocals)(void* userData, PDLocals* local, int* maxEntries); 
 
 } PDDebugPlugin;
 

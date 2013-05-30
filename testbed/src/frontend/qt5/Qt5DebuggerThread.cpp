@@ -11,9 +11,8 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5DebuggerThread::Qt5DebuggerThread()
+Qt5DebuggerThread::Qt5DebuggerThread() : m_oldLine(-1)
 {
-	m_fileLine.filename = new char[4096];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -21,6 +20,8 @@ Qt5DebuggerThread::Qt5DebuggerThread()
 void Qt5DebuggerThread::start()
 {
 	int count;
+
+	printf("start size struct %d Qt5DebuggerThread\n", (int)sizeof(PDDebugDataState));
 
 	Plugin* plugin = PluginHandler_getPlugins(&count);
 
@@ -36,6 +37,8 @@ void Qt5DebuggerThread::start()
 	m_pluginData = m_debuggerPlugin->createInstance(0);
 
 	connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
+
+	printf("end start Qt5DebuggerThread\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,16 +57,16 @@ void Qt5DebuggerThread::tryAddBreakpoint(const char* filename, int line)
 
 	// update the UI thread after we added a breakpoint
 
-	emit callUIthread();
+	//emit callUIthread();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5DebuggerThread::tryStartDebugging(const char* filename, PDBreakpointFileLine* breakpoints, int bpCount)
 {
-	m_executable = filename;
-
 	printf("Try starting debugging of %s breakpoint count (%d)\n", filename, bpCount);
+
+	m_executable = filename;
 
 	// Start the debugging and if we manage start the update that will be called each 10 ms
 
@@ -78,40 +81,25 @@ void Qt5DebuggerThread::tryStartDebugging(const char* filename, PDBreakpointFile
 void Qt5DebuggerThread::update()
 {
 	m_debuggerPlugin->action(m_pluginData, PD_DEBUG_ACTION_NONE, 0);
+
+	if (PDDebugState_breakpoint == m_debuggerPlugin->getState(m_pluginData, &m_debugDataState))
+	{
+		// TODO: fix ugly line hack here (temproray not to resend the data all the time if not needed)
+	
+		if (m_oldLine != m_debugDataState.line)
+		{
+			emit sendDebugDataState(&m_debugDataState);
+			m_oldLine = m_debugDataState.line;
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5DebuggerThread::tryStep()
 {
-	m_debuggerPlugin->action(m_pluginData, PD_DEBUG_ACTION_STEP, &m_fileLine);
-
-	printf("Want to step to %s %d\n", m_fileLine.filename, m_fileLine.line); 
-
-	emit setFileLine(m_fileLine.filename, m_fileLine.line); 
+	m_debuggerPlugin->action(m_pluginData, PD_DEBUG_ACTION_STEP, 0);
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-PDDebugState Qt5DebuggerThread::getDebugState(void** data)
-{
-	return m_debuggerPlugin->getState(m_pluginData, data);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5DebuggerThread::getCallStack(PDCallstack* callStack, int* maxEntries)
-{
-	return m_debuggerPlugin->getCallStack(m_pluginData, callStack, maxEntries);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5DebuggerThread::getLocals(PDLocals* locals, int* maxEntries)
-{
-	return m_debuggerPlugin->getLocals(m_pluginData, locals, maxEntries);
-}
-
 
 }
 

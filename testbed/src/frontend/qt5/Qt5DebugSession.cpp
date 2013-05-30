@@ -1,6 +1,10 @@
 #include "Qt5DebugSession.h"
 #include "Qt5DebuggerThread.h"
+#include "Qt5CodeEditor.h"
 #include <QThread>
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -24,15 +28,50 @@ Qt5DebugSession::Qt5DebugSession()
 
 void Qt5DebugSession::createSession()
 {
+    printf("Qt5DebugSession::createSession\n");
     g_debugSession = new Qt5DebugSession;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5DebugSession::addCodeEditor(Qt5CodeEditor* codeEditor)
+{
+    m_codeEditors.push_back(codeEditor);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Called from the debugging thread when a step finished
 
-void Qt5DebugSession::stepFinished()
+void Qt5DebugSession::addLocals(Qt5Locals* locals)
 {
+    m_locals.push_back(locals);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5DebugSession::addCallStack(Qt5CallStack* callStack)
+{
+    m_callStacks.push_back(callStack);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5DebugSession::delCodeEditor(Qt5CodeEditor* codeEditor)
+{
+    m_codeEditors.removeOne(codeEditor);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5DebugSession::delLocals(Qt5Locals* locals)
+{
+    m_locals.removeOne(locals);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5DebugSession::delCallStack(Qt5CallStack* callStack)
+{
+    m_callStacks.removeOne(callStack);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,12 +79,15 @@ void Qt5DebugSession::stepFinished()
 void Qt5DebugSession::begin(const char* executable)
 {
 	m_threadRunner = new QThread;
-	m_debuggerThread = new Qt5DebuggerThread();
+	m_debuggerThread = new Qt5DebuggerThread;
 	m_debuggerThread->moveToThread(m_threadRunner);
 
 	connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
 	connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
 	connect(this, &Qt5DebugSession::tryStartDebugging, m_debuggerThread, &Qt5DebuggerThread::tryStartDebugging); 
+	connect(this, &Qt5DebugSession::tryStep, m_debuggerThread, &Qt5DebuggerThread::tryStep); 
+
+	connect(m_debuggerThread, &Qt5DebuggerThread::sendDebugDataState, this, &Qt5DebugSession::setDebugDataState); 
 
 	m_threadRunner->start();
 
@@ -61,20 +103,6 @@ bool Qt5DebugSession::getFilenameLine(const char** filename, int* line)
     (void)filename;
     (void)line;
     return false;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5DebugSession::connectWidget(QObject* widget)
-{
-	connect(this, SIGNAL(callUIthread()), widget, SLOT(sessionUpdate()));
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5DebugSession::disconnectWidget(QObject* widget)
-{
-	disconnect(this, SIGNAL(callUIthread()), widget, SLOT(sessionUpdate()));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,6 +128,19 @@ bool Qt5DebugSession::hasLineBreakpoint(const char* filename, int line)
 
 void Qt5DebugSession::step()
 {
+    emit tryStep();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5DebugSession::setDebugDataState(PDDebugDataState* state)
+{
+    // Might not be safe... but we do it anyway! ha!
+
+    for (auto i = m_codeEditors.begin(); i != m_codeEditors.end(); i++) 
+    {
+       (*i)->setFileLine(state->filename, state->line); 
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
