@@ -179,7 +179,10 @@ static void updateLLDBEvent(LLDBPlugin* plugin)
 	printf("event = %s\n", lldb::SBDebugger::StateAsCString(state));
 
 	if (lldb::SBProcess::GetRestartedFromEvent(evt))
+	{
+		printf("lldb::SBProcess::GetRestartedFromEvent(evt)\n");
 		return;
+	}
 
 	switch (state)
 	{
