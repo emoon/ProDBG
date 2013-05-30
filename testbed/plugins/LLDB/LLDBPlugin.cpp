@@ -463,9 +463,10 @@ void getCallStack(void* userData, PDCallstack* callStack, int* maxEntries)
 
 	int frameCount = (int)thread.GetNumFrames();
 	
-	if (frameCount > *maxEntries)
-		frameCount = *maxEntries;
+	//if (frameCount > *maxEntries)
+	//	frameCount = *maxEntries;
 		
+	// TODO: fix me
 	*maxEntries = frameCount;
 		
 	for (int i = 0; i < frameCount; ++i)
@@ -541,8 +542,8 @@ static PDDebugState getState(void* userData, PDDebugDataState* dataState)
 			//auto fname = frame.GetFunctionName();
 			dataState->line = (int)line_1;
 
-			dataState->callStackCount = 32;
-			dataState->localsCount = 64;
+			//dataState->callStackCount = 32;
+			//dataState->localsCount = 64;
 
 			getCallStack(plugin, (PDCallStack*)&dataState->callStack, &dataState->callStackCount);
 			getLocals(plugin, (PDLocals*)&dataState->locals, &dataState->localsCount);
