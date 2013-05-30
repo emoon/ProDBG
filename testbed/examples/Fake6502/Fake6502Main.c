@@ -5,7 +5,7 @@
 #include <unistd.h>
 #endif
 
-static uint8_t s_memory6502[65536];
+static uint8_t* s_memory6502; //[65536];
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Some exters from the 6502 emulator that we need to control it
@@ -77,7 +77,7 @@ int main(int argc, const char* argv[])
 
 	(void)argc;
 	(void)argv;
-	reset6502();
+	//reset6502();
 	
 	tempCall();
 
