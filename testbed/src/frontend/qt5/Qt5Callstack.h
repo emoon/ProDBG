@@ -16,6 +16,7 @@ class Qt5CallStack : public QTreeWidget
 	Q_OBJECT
 public:
 	Qt5CallStack(QWidget* parent);
+	virtual ~Qt5CallStack();
 
 	void updateCallStack(PDCallStack* callStack, int entires);
 };
