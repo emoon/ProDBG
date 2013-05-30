@@ -14,6 +14,7 @@ class Qt5Locals : public QTreeWidget
 	Q_OBJECT
 public:
 	Qt5Locals(QWidget* parent);
+	virtual ~Qt5Locals();
 
 	void updateLocals(PDLocals* locals, int entires);
 };
