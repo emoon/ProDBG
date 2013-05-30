@@ -140,19 +140,13 @@ void Qt5DebugSession::setDebugDataState(PDDebugDataState* state)
     // Might not be safe... but we do it anyway! ha!
 
     for (auto i = m_codeEditors.begin(); i != m_codeEditors.end(); i++) 
-    {
-       (*i)->setFileLine(state->filename, state->line); 
-    }
+        (*i)->setFileLine(state->filename, state->line); 
 
     for (auto i = m_callStacks.begin(); i != m_callStacks.end(); i++) 
-    {
-       (*i)->updateCallStack((PDCallStack*)&state->callStack, state->callStackCount); 
-    }
+        (*i)->updateCallStack((PDCallStack*)&state->callStack, state->callStackCount); 
 
     for (auto i = m_locals.begin(); i != m_locals.end(); i++) 
-    {
-       (*i)->updateLocals((PDLocals*)&state->locals, state->localsCount); 
-    }
+        (*i)->updateLocals((PDLocals*)&state->locals, state->localsCount); 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
