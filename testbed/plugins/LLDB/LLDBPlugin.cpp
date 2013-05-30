@@ -227,6 +227,7 @@ static void updateLLDBEvent(LLDBPlugin* plugin)
 						
 					case lldb::eStopReasonTrace:
 						select_thread = true;
+						plugin->debugState = DebugState_stopBreakpoint;
 						if (m_verbose)
 							printf("trace\n");
 						break;
