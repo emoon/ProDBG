@@ -6,6 +6,7 @@
 #include "Qt5LocalsView.h"
 #include "Qt5SourceCodeView.h"
 #include "Qt5HexEditView.h"
+#include "Qt5DebugOutputView.h"
 #include <QAction>
 #include <QMenuBar>
 #include <QStatusBar>
@@ -98,6 +99,21 @@ void Qt5MainWindow::newHexEditView()
 	addDockWidget(Qt::LeftDockWidgetArea, dock);
 }
 
+void Qt5MainWindow::newDebugOutputView()
+{
+	Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
+	dock->setAttribute(Qt::WA_DeleteOnClose, true);
+
+	Qt5DynamicView* dynamicView = new Qt5DynamicView(this, dock, this);
+	dock->setWidget(dynamicView);
+
+	Qt5DebugOutputView* debugOutputView = new Qt5DebugOutputView(this, dock, dynamicView);
+	dynamicView->m_children[0] = debugOutputView;
+	dynamicView->assignView(debugOutputView);
+
+	addDockWidget(Qt::LeftDockWidgetArea, dock);
+}
+
 void Qt5MainWindow::assignCallStackView()
 {
 	Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
@@ -166,6 +182,23 @@ void Qt5MainWindow::assignHexEditView()
 	dynamicView->assignView(hexEditView);
 }
 
+void Qt5MainWindow::assignDebugOutputView()
+{
+	Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
+	if (dynamicView == nullptr)
+		return;
+
+	Qt5DebugOutputView* debugOutputView = new Qt5DebugOutputView(this, nullptr, dynamicView);
+	if (dynamicView->m_children[0] != nullptr)
+	{
+		dynamicView->m_children[0]->hide();
+		dynamicView->m_children[0]->deleteLater();
+	}
+
+	dynamicView->m_children[0] = debugOutputView;
+	dynamicView->assignView(debugOutputView);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::fileSettingsFinished(int result)
@@ -206,11 +239,13 @@ void Qt5MainWindow::createActions()
 	m_windowNewLocalsViewAction = new QAction(tr("Locals View"), this);
 	m_windowNewSourceCodeViewAction = new QAction(tr("Source Code View"), this);
 	m_windowNewHexEditViewAction = new QAction(tr("Hex Edit View"), this);
+	m_windowNewDebugOutputViewAction = new QAction(tr("Debug Output View"), this);
 
 	m_windowAssignCallStackViewAction = new QAction(tr("CallStack View"), this);
 	m_windowAssignLocalsViewAction = new QAction(tr("Locals View"), this);
 	m_windowAssignSourceCodeViewAction = new QAction(tr("Source Code View"), this);
 	m_windowAssignHexEditViewAction = new QAction(tr("Hex Edit View"), this);
+	m_windowAssignDebugOutputViewAction = new QAction(tr("Debug Output View"), this);
 
 	// Descibe help menu actions
 	///////////////////////////////////////////////////////////////////////////////////////////
@@ -249,12 +284,14 @@ void Qt5MainWindow::createMenus()
 	m_newWindowMenu->addAction(m_windowNewLocalsViewAction);
 	m_newWindowMenu->addAction(m_windowNewSourceCodeViewAction);
 	m_newWindowMenu->addAction(m_windowNewHexEditViewAction);
+	m_newWindowMenu->addAction(m_windowNewDebugOutputViewAction);
 
 	m_dynamicWindowAssignViewMenu = new QMenu("Assign View", mainMenuBar);
 	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignCallStackViewAction);
 	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignLocalsViewAction);
 	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignSourceCodeViewAction);
 	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignHexEditViewAction);
+	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignDebugOutputViewAction);
 
 	m_dynamicWindowMenu = new QMenu("Dynamic View", mainMenuBar);
 	m_dynamicWindowMenu->addAction(m_windowSplitVerticallyAction);
@@ -381,11 +418,13 @@ void Qt5MainWindow::setupWorkspace()
 	connect(m_windowNewLocalsViewAction, SIGNAL(triggered()), this, SLOT(newLocalsView()));
 	connect(m_windowNewSourceCodeViewAction, SIGNAL(triggered()), this, SLOT(newSourceCodeView()));
 	connect(m_windowNewHexEditViewAction, SIGNAL(triggered()), this, SLOT(newHexEditView()));
+	connect(m_windowNewDebugOutputViewAction, SIGNAL(triggered()), this, SLOT(newDebugOutputView()));
 
 	connect(m_windowAssignCallStackViewAction, SIGNAL(triggered()), this, SLOT(assignCallStackView()));
 	connect(m_windowAssignLocalsViewAction, SIGNAL(triggered()), this, SLOT(assignLocalsView()));
 	connect(m_windowAssignSourceCodeViewAction, SIGNAL(triggered()), this, SLOT(assignSourceCodeView()));
 	connect(m_windowAssignHexEditViewAction, SIGNAL(triggered()), this, SLOT(assignHexEditView()));
+	connect(m_windowAssignDebugOutputViewAction, SIGNAL(triggered()), this, SLOT(assignDebugOutputView()));
 
 	// Descibe help menu actions
 	///////////////////////////////////////////////////////////////////////////////////////////
