@@ -18,7 +18,7 @@ public:
 	Qt5CallStack(QWidget* parent);
 	virtual ~Qt5CallStack();
 
-	void updateCallStack(PDCallStack* callStack, int entires);
+	void updateCallStack(PDCallStack* callStack, int count);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
