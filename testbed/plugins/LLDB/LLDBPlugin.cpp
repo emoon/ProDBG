@@ -38,13 +38,13 @@ typedef struct LLDBPlugin
 	lldb::SBListener listener;
 	lldb::SBProcess process;
 	DebugState debugState;
-	PDDebugStateFileLine filelineData;
+	const char* targetName;
 
 } LLDBPlugin;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void* createInstance(ServiceFunc* serviceFunc)
+void* createInstance(ServiceFunc* serviceFunc)
 {
 	lldb::SBDebugger::Initialize();
 
@@ -60,7 +60,7 @@ static void* createInstance(ServiceFunc* serviceFunc)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void destroyInstance(void* userData)
+void destroyInstance(void* userData)
 {
 }
 
@@ -135,19 +135,19 @@ static void onStep(LLDBPlugin* plugin)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void onStepOver(LLDBPlugin* data, void* actionData)
+void onStepOver(LLDBPlugin* data, void* actionData)
 {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void onSetCodeBreakpoint(LLDBPlugin* data, void* actionData)
+void onSetCodeBreakpoint(LLDBPlugin* data, void* actionData)
 {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void onContinue(LLDBPlugin* data, void* actionData)
+void onContinue(LLDBPlugin* data, void* actionData)
 {
 	data->process.Continue();
 }
@@ -296,22 +296,23 @@ static void updateLLDBEvent(LLDBPlugin* plugin)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void updateAction(LLDBPlugin* plugin, PDDebugAction action, void* actionData)
+static void updateAction(LLDBPlugin* plugin, PDAction action, void* actionData)
 {
 	switch (action)
 	{
-		case PD_DEBUG_ACTION_BREAK : onBreak(plugin, actionData); break;
-		case PD_DEBUG_ACTION_STEP : onStep(plugin); break;
-		case PD_DEBUG_ACTION_CONTINUE : onContinue(plugin, actionData); break;
-		case PD_DEBUG_ACTION_STEP_OVER : onStepOver(plugin, actionData); break;
-		case PD_DEBUG_ACTION_SET_CODE_BREAKPOINT : onSetCodeBreakpoint(plugin, actionData); break;
-		case PD_DEBUG_ACTION_NONE : break;
+		case PDAction_break : onBreak(plugin, actionData); break;
+		case PDAction_step : onStep(plugin); break;
+		case PDAction_run : onContinue(plugin, actionData); break;
+		case PDAction_stepOver : onStepOver(plugin, actionData); break;
+		case PDAction_stepOut :
+		case PDAction_custom :
+		case PDAction_none : break;
 	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void actionCallback(void* userData, PDDebugAction action, void* actionData)
+void actionCallback(void* userData, PDAction action, void* actionData)
 {
 	LLDBPlugin* plugin = (LLDBPlugin*)userData;
 
@@ -329,6 +330,8 @@ static void actionCallback(void* userData, PDDebugAction action, void* actionDat
 	}
 }
 
+/*
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static bool startDebugging(void* userData, PDLaunchAction action, void* launchData, PDBreakpointFileLine* breakpoints, int bpCount)
@@ -337,7 +340,7 @@ static bool startDebugging(void* userData, PDLaunchAction action, void* launchDa
 
 	// TODO: Check action here
 
-	plugin->target = plugin->debugger.CreateTarget((const char*)launchData);
+	plugin->target = plugin->debugger.CreateTarget(plugin->target);
 
 	if (!plugin->target.IsValid())
 		return false;
@@ -406,6 +409,7 @@ static bool startDebugging(void* userData, PDLaunchAction action, void* launchDa
 	//lldb::SBDebugger::Destroy(plugin->debugger);
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void getLocals(void* userData, PDLocals* locals, int* maxEntries)
@@ -420,13 +424,6 @@ void getLocals(void* userData, PDLocals* locals, int* maxEntries)
 
     // TODO: Fix me
 	*maxEntries = (int)localVarsCount; 
-
-	/*
-    if (localVarsCount < (uint32_t)*maxEntries)
-    	*maxEntries	= (int)localVarsCount;
-    else
-    	localVarsCount = (uint32_t)*maxEntries;
-    */
     	
     for (uint32_t i = 0; i < localVarsCount; ++i)
     {
@@ -598,19 +595,23 @@ static void removeBreakpoint(void* userData, int id)
 
 	plugin->target.BreakpointDelete((lldb::break_id_t)id);
 }
+*/
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDDebugPlugin plugin =
+static PDBackendPlugin plugin =
 {
-	createInstance,
-	destroyInstance,
-	startDebugging,
-	actionCallback,
-	getState,
-	addBreakpoint,
-	removeBreakpoint,
+	0,
+	//createInstance,
+	//destroyInstance,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -621,7 +622,7 @@ extern "C"
 void InitPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin)
 {
 	printf("Starting to register Plugin!\n");
-	registerPlugin(PD_PTYPE_DEBUGGER, &plugin);
+	registerPlugin(0, &plugin);
 }
 
 }

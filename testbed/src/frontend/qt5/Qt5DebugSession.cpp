@@ -19,9 +19,6 @@ Qt5DebugSession* g_debugSession = 0;
 
 Qt5DebugSession::Qt5DebugSession()
 {
-    m_breakpoints = new PDBreakpointFileLine[256];
-    m_breakpointCount = 0; 
-    m_breakpointMaxCount = 256;
     m_debuggerThread = 0;
     m_threadRunner = 0;
 }
@@ -89,13 +86,15 @@ void Qt5DebugSession::begin(const char* executable)
 	connect(this, &Qt5DebugSession::tryStartDebugging, m_debuggerThread, &Qt5DebuggerThread::tryStartDebugging); 
 	connect(this, &Qt5DebugSession::tryStep, m_debuggerThread, &Qt5DebuggerThread::tryStep); 
 
-	connect(m_debuggerThread, &Qt5DebuggerThread::sendDebugDataState, this, &Qt5DebugSession::setDebugDataState); 
+	//connect(m_debuggerThread, &Qt5DebuggerThread::sendDebugDataState, this, &Qt5DebugSession::setDebugDataState); 
 
 	m_threadRunner->start();
 
 	printf("beginDebug %s %d\n", executable, (uint32_t)(uint64_t)QThread::currentThreadId());
 
-	emit tryStartDebugging(executable, m_breakpoints, (int)m_breakpointCount);
+	// TODO: Write executable to debugger plugin
+
+	emit tryStartDebugging();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -114,7 +113,7 @@ bool Qt5DebugSession::hasLineBreakpoint(const char* filename, int line)
 {
 	for (int i = 0, e = m_breakpointCount; i < e; ++i)
     {
-    	const PDBreakpointFileLine* breakpoint = &m_breakpoints[i];
+    	const BreakpointFileLine* breakpoint = &m_breakpoints[i];
     	
     	if (!strstr(breakpoint->filename, filename))
     		continue;
@@ -135,6 +134,7 @@ void Qt5DebugSession::step()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 void Qt5DebugSession::setDebugDataState(PDDebugDataState* state)
 {
     // Might not be safe... but we do it anyway! ha!
@@ -148,6 +148,7 @@ void Qt5DebugSession::setDebugDataState(PDDebugDataState* state)
     for (auto i = m_locals.begin(); i != m_locals.end(); i++) 
         (*i)->updateLocals((PDLocals*)&state->locals, state->localsCount); 
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -163,7 +164,7 @@ bool Qt5DebugSession::addBreakpointUI(const char* file, int line)
     }
     else
     {
-        emit tryAddBreakpoint(file, line);
+        //emit tryAddBreakpoint(file, line);
     }
     
     return false;
@@ -176,7 +177,7 @@ bool Qt5DebugSession::addBreakpoint(const char* file, int line, int id)
     if (m_breakpointCount + 1 >= m_breakpointMaxCount)
         return false;
 
-    PDBreakpointFileLine* bp = &m_breakpoints[m_breakpointCount++];
+    BreakpointFileLine* bp = &m_breakpoints[m_breakpointCount++];
         
     *bp = { file, line, id };
 
@@ -187,7 +188,7 @@ bool Qt5DebugSession::addBreakpoint(const char* file, int line, int id)
 
 void Qt5DebugSession::delBreakpoint(int id)
 {
-	PDBreakpointFileLine* breakpoints = m_breakpoints; 
+	BreakpointFileLine* breakpoints = m_breakpoints; 
 	int count = m_breakpointCount;
 
 	for (int i = 0, e = count; i < e; ++i)

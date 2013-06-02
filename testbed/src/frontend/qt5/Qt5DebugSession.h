@@ -55,11 +55,10 @@ public:
     
 private slots:
 	// Called from the when a state change has happen that require UI update 
-	void setDebugDataState(PDDebugDataState* state);
+	//void setDebugDataState(PDDebugDataState* state);
 
 signals:
-	void tryStartDebugging(const char* filename, PDBreakpointFileLine* breakpoints, int bpCount);
-	void tryAddBreakpoint(const char* filename, int line);
+	void tryStartDebugging();
 	void tryStep();
 
 private:
@@ -68,15 +67,23 @@ private:
     QList<Qt5Locals*> m_locals;
     QList<Qt5CallStack*> m_callStacks;
 
-	PDDebugPlugin* m_debuggerPlugin;
+	PDBackendPlugin* m_debuggerPlugin;
 	void* m_pluginData;
 	QThread* m_threadRunner;
 
-    Qt5DebuggerThread* m_debuggerThread;
-    PDBreakpointFileLine* m_breakpoints;
-
+	struct BreakpointFileLine
+	{
+		const char* filename;
+		int line;
+		int id;
+	};
+		
+	BreakpointFileLine* m_breakpoints;
+ 
     int m_breakpointCount;
     int m_breakpointMaxCount;
+
+    Qt5DebuggerThread* m_debuggerThread;
 };
 
 extern Qt5DebugSession* g_debugSession;

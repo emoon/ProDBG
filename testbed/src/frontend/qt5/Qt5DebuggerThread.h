@@ -4,6 +4,7 @@
 #include <QTimer>
 #include <QStringList>
 #include "ProDBGAPI.h"
+#include "Core/DataPacket.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -22,23 +23,17 @@ public:
 public slots:
     void start();
 	void update();
-	void tryAddBreakpoint(const char*, int line);
-	void tryStartDebugging(const char* filename, PDBreakpointFileLine* breakpoints, int bpCount);
 	void tryStep();
+	void tryStartDebugging();
  
 signals:
     void finished();
-	void addBreakpointUI(const char* filename, int line, int id);
-	void sendDebugDataState(PDDebugDataState* state);
+    void sendData(DataPacket packet);
 
 private:
 
-	PDDebugDataState m_debugDataState;
-
-	PDDebugPlugin* m_debuggerPlugin;
-	const char* m_executable;
+	PDBackendPlugin* m_debuggerPlugin;
 	void* m_pluginData;
-	int m_oldLine; // temp hack
 	QTimer m_timer;
 };
 

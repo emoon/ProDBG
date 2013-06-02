@@ -1,8 +1,7 @@
 #pragma once
 
 #include <QTreeWidget>
-
-struct PDLocals;
+#include <ProDBGAPI.h>
 
 namespace prodbg
 {
@@ -16,7 +15,7 @@ public:
 	Qt5Locals(QWidget* parent);
 	virtual ~Qt5Locals();
 
-	void updateLocals(PDLocals* locals, int entires);
+	void updateLocals(PDSerializeRead* reader, PDToken token);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

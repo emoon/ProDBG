@@ -11,7 +11,7 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5DebuggerThread::Qt5DebuggerThread() : m_oldLine(-1)
+Qt5DebuggerThread::Qt5DebuggerThread()
 {
 }
 
@@ -21,7 +21,7 @@ void Qt5DebuggerThread::start()
 {
 	int count;
 
-	printf("start size struct %d Qt5DebuggerThread\n", (int)sizeof(PDDebugDataState));
+	printf("start Qt5DebuggerThread\n");
 
 	Plugin* plugin = PluginHandler_getPlugins(&count);
 
@@ -33,7 +33,7 @@ void Qt5DebuggerThread::start()
 
 	// try to start debugging session of a plugin
 
-	m_debuggerPlugin = (PDDebugPlugin*)plugin->data;
+	m_debuggerPlugin = (PDBackendPlugin*)plugin->data;
 	m_pluginData = m_debuggerPlugin->createInstance(0);
 
 	connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
@@ -43,34 +43,13 @@ void Qt5DebuggerThread::start()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5DebuggerThread::tryAddBreakpoint(const char* filename, int line)
+void Qt5DebuggerThread::tryStartDebugging()
 {
-	PDBreakpointFileLine fileLineBP = { filename, line, 0 };
-
-	printf("Qt5DebuggerThread::tryAddBreakpoint\n");
-
-	int id = m_debuggerPlugin->addBreakpoint(m_pluginData, PDBreakpointType_FileLine, &fileLineBP);
-
-	printf("id %d\n", id);
-
-	g_debugSession->addBreakpoint(filename, line, id);
-
-	// update the UI thread after we added a breakpoint
-
-	//emit callUIthread();
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5DebuggerThread::tryStartDebugging(const char* filename, PDBreakpointFileLine* breakpoints, int bpCount)
-{
-	printf("Try starting debugging of %s breakpoint count (%d)\n", filename, bpCount);
-
-	m_executable = filename;
+	printf("Try starting debugging\n");
 
 	// Start the debugging and if we manage start the update that will be called each 10 ms
 
-	if (m_debuggerPlugin->start(m_pluginData, PD_DEBUG_LAUNCH, (void*)m_executable, breakpoints, bpCount))
+	if (m_debuggerPlugin->action(m_pluginData, PDAction_run))
 	{
 		m_timer.start(10);
 	}
@@ -80,10 +59,9 @@ void Qt5DebuggerThread::tryStartDebugging(const char* filename, PDBreakpointFile
 
 void Qt5DebuggerThread::update()
 {
-	m_debuggerPlugin->action(m_pluginData, PD_DEBUG_ACTION_NONE, 0);
-
-	if (PDDebugState_breakpoint == m_debuggerPlugin->getState(m_pluginData, &m_debugDataState))
+	if (PDDebugState_paused == m_debuggerPlugin->update(m_pluginData))
 	{
+		/*
 		// TODO: fix ugly line hack here (temproray not to resend the data all the time if not needed)
 	
 		if (m_oldLine != m_debugDataState.line)
@@ -91,6 +69,7 @@ void Qt5DebuggerThread::update()
 			emit sendDebugDataState(&m_debugDataState);
 			m_oldLine = m_debugDataState.line;
 		}
+		*/
 	}
 }
 
@@ -98,7 +77,7 @@ void Qt5DebuggerThread::update()
 
 void Qt5DebuggerThread::tryStep()
 {
-	m_debuggerPlugin->action(m_pluginData, PD_DEBUG_ACTION_STEP, 0);
+	m_debuggerPlugin->action(m_pluginData, PDAction_step);
 }
 
 }

@@ -21,7 +21,7 @@ static void registerPlugin(int type, void* data)
 	Plugin plugin;
 
 	plugin.data = data;
-	plugin.type = (ProDBGPluginType)type;
+	plugin.type = type;
 
 	printf("Register plugin (type %d data %p)\n", type, data);
 
