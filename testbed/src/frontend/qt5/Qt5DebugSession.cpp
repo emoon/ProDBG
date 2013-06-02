@@ -3,6 +3,7 @@
 #include "Qt5CodeEditor.h"
 #include "Qt5CallStack.h"
 #include "Qt5Locals.h"
+#include "Qt5DebugOutput.h"
 #include <QThread>
 #ifndef _WIN32
 #include <unistd.h>
@@ -57,6 +58,13 @@ void Qt5DebugSession::addCallStack(Qt5CallStack* callStack)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Qt5DebugSession::addDebugOutput(Qt5DebugOutput* debugOutput)
+{
+    m_debugOutputs.push_back(debugOutput);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5DebugSession::delCodeEditor(Qt5CodeEditor* codeEditor)
 {
     m_codeEditors.removeOne(codeEditor);
@@ -74,6 +82,13 @@ void Qt5DebugSession::delLocals(Qt5Locals* locals)
 void Qt5DebugSession::delCallStack(Qt5CallStack* callStack)
 {
     m_callStacks.removeOne(callStack);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5DebugSession::delDebugOutput(Qt5DebugOutput* debugOutput)
+{
+    m_debugOutputs.removeOne(debugOutput);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -147,6 +162,11 @@ void Qt5DebugSession::setDebugDataState(PDDebugDataState* state)
 
     for (auto i = m_locals.begin(); i != m_locals.end(); i++) 
         (*i)->updateLocals((PDLocals*)&state->locals, state->localsCount); 
+
+    for (auto i = m_debugOutputs.begin(); i != m_debugOutputs.end(); ++i)
+        (*i)->updateDebugOutput((PDDebugOutput*)&state->debugOutput);
+
+    ((PDDebugOutput*)&state->debugOutput)->output[0] = 0x0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

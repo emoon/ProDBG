@@ -283,14 +283,6 @@ static void updateLLDBEvent(LLDBPlugin* plugin)
 		}
 		break;
 	}
-
-	const int bufferSize = 2048;
-	char buffer[bufferSize];
-	size_t amountRead = 0;
-	while ((amountRead = plugin->process.GetSTDOUT(buffer, bufferSize)) > 0)
-	{
-		printf("%s", buffer);
-	}
 }
 
 
@@ -455,6 +447,17 @@ void getLocals(void* userData, PDLocals* locals, int* maxEntries)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void getDebugOutput(void* userData, PDDebugOutput* debugOutput)
+{
+	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+	
+	const int bufferSize = 2048;
+	size_t amountRead = plugin->process.GetSTDOUT(debugOutput->output, bufferSize);
+	debugOutput->output[amountRead] = 0x0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void getCallStack(void* userData, PDCallstack* callStack, int* maxEntries)
 {
 	LLDBPlugin* plugin = (LLDBPlugin*)userData;
@@ -547,6 +550,7 @@ static PDDebugState getState(void* userData, PDDebugDataState* dataState)
 
 			getCallStack(plugin, (PDCallStack*)&dataState->callStack, &dataState->callStackCount);
 			getLocals(plugin, (PDLocals*)&dataState->locals, &dataState->localsCount);
+			getDebugOutput(plugin, (PDDebugOutput*)&dataState->debugOutput);
 
 			return PDDebugState_breakpoint;
 		}

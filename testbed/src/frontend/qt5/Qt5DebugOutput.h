@@ -2,6 +2,8 @@
 
 #include <QPlainTextEdit>
 
+struct PDDebugOutput;
+
 namespace prodbg
 {
 
@@ -13,7 +15,7 @@ public:
     Qt5DebugOutput(QWidget* parent = 0);
     virtual ~Qt5DebugOutput();
 
-	void appendLine(const char* line);
+	void updateDebugOutput(PDDebugOutput* debugOutput);
 };
 
 }

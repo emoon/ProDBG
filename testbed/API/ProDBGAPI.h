@@ -128,6 +128,13 @@ typedef struct PDLocals
 } PDLocals;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct PDDebugOutput
+{
+	char output[2048];
+} PDDebugOutput;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This is a bit temprory but used for testing now
 
 typedef struct PDDebugDataState
@@ -139,6 +146,7 @@ typedef struct PDDebugDataState
 
 	PDLocals locals[64];			// max 64 locals right now
 	PDCallStack callStack[32];		// 32 entries callstack
+	PDDebugOutput debugOutput;
 
 	int localsCount;
 	int callStackCount;

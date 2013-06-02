@@ -18,6 +18,7 @@ namespace prodbg
 class Qt5CodeEditor;
 class Qt5Locals;
 class Qt5CallStack;
+class Qt5DebugOutput;
 class Qt5DebuggerThread;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,10 +37,12 @@ public:
     void addCodeEditor(Qt5CodeEditor* codeEditor);
     void addLocals(Qt5Locals* locals);
     void addCallStack(Qt5CallStack* callStack);
+    void addDebugOutput(Qt5DebugOutput* debugOutput);
 
     void delCodeEditor(Qt5CodeEditor* codeEditor);
     void delLocals(Qt5Locals* locals);
     void delCallStack(Qt5CallStack* callStack);
+    void delDebugOutput(Qt5DebugOutput* debugOutput);
 
     void begin(const char* executable);
     void step();
@@ -67,6 +70,7 @@ private:
     QList<Qt5CodeEditor*> m_codeEditors;
     QList<Qt5Locals*> m_locals;
     QList<Qt5CallStack*> m_callStacks;
+    QList<Qt5DebugOutput*> m_debugOutputs;
 
 	PDDebugPlugin* m_debuggerPlugin;
 	void* m_pluginData;
