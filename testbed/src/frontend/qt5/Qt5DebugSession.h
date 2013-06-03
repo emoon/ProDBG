@@ -2,6 +2,7 @@
 
 #include <ProDBGAPI.h>
 #include <QObject>
+#include <QVector>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -56,6 +57,7 @@ public:
 private slots:
 	// Called from the when a state change has happen that require UI update 
 	//void setDebugDataState(PDDebugDataState* state);
+	void setDebugState(PDSerializeRead* reader);
 
 signals:
 	void tryStartDebugging();
@@ -71,6 +73,10 @@ private:
 	void* m_pluginData;
 	QThread* m_threadRunner;
 
+	// Not sure how we should deal with this but lets keep it
+	// here like a cache.
+	// Maybe we should have this inside a more general cache
+
 	struct BreakpointFileLine
 	{
 		const char* filename;
@@ -78,6 +84,7 @@ private:
 		int id;
 	};
 		
+	//QVector<BreakpointFileLine> m_breakpoints;
 	BreakpointFileLine* m_breakpoints;
  
     int m_breakpointCount;

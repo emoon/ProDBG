@@ -134,21 +134,43 @@ void Qt5DebugSession::step()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-void Qt5DebugSession::setDebugDataState(PDDebugDataState* state)
+void Qt5DebugSession::setDebugState(PDSerializeRead* reader)
 {
-    // Might not be safe... but we do it anyway! ha!
+	while (reader->bytesLeft(reader->readData) > 0)
+	{
+		int size = PDREAD_INT(reader);
+		PDEventType type = (PDEventType)PDREAD_INT(reader);
 
-    for (auto i = m_codeEditors.begin(); i != m_codeEditors.end(); i++) 
-        (*i)->setFileLine(state->filename, state->line); 
+		switch (type)
+		{
+			case PDEventType_locals:
+			{
+				for (auto i = m_locals.begin(); i != m_locals.end(); i++) 
+					(*i)->update(reader);
+				break;
+			}
 
-    for (auto i = m_callStacks.begin(); i != m_callStacks.end(); i++) 
-        (*i)->updateCallStack((PDCallStack*)&state->callStack, state->callStackCount); 
+			case PDEventType_callStack:
+			{
+				for (auto i = m_callStacks.begin(); i != m_callStacks.end(); i++) 
+					(*i)->update(reader);
+				break;
+			}
 
-    for (auto i = m_locals.begin(); i != m_locals.end(); i++) 
-        (*i)->updateLocals((PDLocals*)&state->locals, state->localsCount); 
+			case PDEventType_watch:
+			case PDEventType_registers:
+			case PDEventType_memory:
+			case PDEventType_tty:
+			default:
+			{
+				// If we don't know the type we just skip all data
+
+				printf("Unknown readerType %d\n", type);
+				PDREAD_SKIP_BYTES(reader, size);
+			}
+		}
+	}
 }
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -188,7 +210,7 @@ bool Qt5DebugSession::addBreakpoint(const char* file, int line, int id)
 
 void Qt5DebugSession::delBreakpoint(int id)
 {
-	BreakpointFileLine* breakpoints = m_breakpoints; 
+	BreakpointFileLine* breakpoints = m_breakpoints;
 	int count = m_breakpointCount;
 
 	for (int i = 0, e = count; i < e; ++i)

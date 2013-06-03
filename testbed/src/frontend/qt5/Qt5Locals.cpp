@@ -30,11 +30,15 @@ Qt5Locals::~Qt5Locals()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5Locals::updateLocals(PDSerializeRead* reader, PDToken token)
+void Qt5Locals::update(PDSerializeRead* reader)
 {
 	QList<QTreeWidgetItem*> items;
-	
-	int count = reader->readInt(token);
+
+	// TODO: Handle the type here and validate it
+	int localsType = PDREAD_INT(reader); 
+	(void)localsType;
+
+	int count = PDREAD_INT(reader);
 
 	clear();
 	
@@ -42,10 +46,10 @@ void Qt5Locals::updateLocals(PDSerializeRead* reader, PDToken token)
 	{
 		QStringList temp;
 		
-		const char* name = reader->readString(token);
-		const char* value = reader->readString(token);
-		const char* type = reader->readString(token);
-		const char* address = reader->readString(token);
+		const char* name = PDREAD_STRING(reader);
+		const char* value = PDREAD_STRING(reader);
+		const char* type = PDREAD_STRING(reader);
+		const char* address = PDREAD_STRING(reader);
 
 		temp << name << value << type << address;
 		items.append(new QTreeWidgetItem((QTreeWidget*)0, temp)); 

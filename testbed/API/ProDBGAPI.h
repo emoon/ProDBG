@@ -56,31 +56,35 @@ typedef enum PDAction
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef enum PDEventID
+typedef enum PDEventType
 {
-    PDBEventID_locals,
-    PDBEventID_callStack,
-    PDBEventID_watch,
-    PDBEventID_registers,
-    PDBEventID_memory,
-    PDBEventID_tty,
-    PDBEventID_setBreakpointAddress,
-    PDBEventID_setBreakpointSourceLine,
-    PDBEventID_setExecutable,
-    PDBEventID_attachToProcess,
-    PDBEventID_attachToRemoteSession,
-    PDBEventID_custom = 0x1000
+    PDEventType_locals,
+    PDEventType_callStack,
+    PDEventType_watch,
+    PDEventType_registers,
+    PDEventType_memory,
+    PDEventType_tty,
+    PDEventType_setBreakpointAddress,
+    PDEventType_setBreakpointSourceLine,
+    PDEventType_setExecutable,
+    PDEventType_attachToProcess,
+    PDEventType_attachToRemoteSession,
+    PDEventType_custom = 0x1000
 
-} PDEventID;
+} PDEventType;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct PDSerializeWrite
 {
-    PDToken (*open)();
-    void (*writeInt)(PDToken token, int);
-    void (*writeString)(PDToken token, const char* string);
-    void (*close)(PDToken token);
+	// First Argument to all functions
+	void* writeData;
+
+	// Write 32-bit integer
+    void (*writeInt)(void* writeData, int);
+
+    // Write null-teminated string
+    void (*writeString)(void* writeData, const char* string);
 
 } PDSerializeWrite;
 
@@ -88,10 +92,33 @@ typedef struct PDSerializeWrite
 
 typedef struct PDSerializeRead
 {
-    int (*readInt)(PDToken token);
-    const char* (*readString)(PDToken token);
+	// First argument to all functions
+	void* readData;
+
+	// Read a 32-bit int from the stream
+	// TODO: better with int32/uint32/I32/I16, etc and maybe add readI4Array(...) with count
+    int (*readInt)(void* readData);
+
+    // Read zero terminated string (caller needs to take a copy if reqired)
+    const char* (*readString)(void* readData);
+
+    // Checks how many bytes that there are left in the stream
+	int (*bytesLeft)(void* readData);
+
+	// Skip bytes to be read (useful if there is a unknown section with known size)
+	void (*skipBytes)(void* readData, int count);
 
 } PDSerializeRead;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Helper macros 
+
+#define PDREAD_INT(reader) reader->readInt(reader->readData)
+#define PDREAD_STRING(reader) reader->readString(reader->readData)
+#define PDREAD_SKIP_BYTES(reader, n) reader->skipBytes(reader->readData, n)
+
+#define PDWRITE_INT(writer, value) writer->writeInt(writer->writeData, value)
+#define PDWRITE_STRING(writer, value) writer->writeString(writer->writeData, value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -115,10 +142,10 @@ typedef struct PDBackendPlugin
     bool (*action)(void* userData, PDAction action);
 
     // Get some data state  
-    void (*getState)(void* userData, PDEventID eventId, PDSerializeWrite* serialize);
+    void (*getState)(void* userData, PDEventType eventId, PDSerializeWrite* serialize);
 
     // set some data state  
-    void (*setState)(void* userData, PDEventID eventId, PDSerializeRead* serialize);
+    void (*setState)(void* userData, PDEventType eventId, PDSerializeRead* serialize);
 
 } PDBackendPlugin;
 

@@ -17,12 +17,10 @@ public:
 	Qt5CallStack(QWidget* parent);
 	virtual ~Qt5CallStack();
 
-	void update(PDSerializeRead* reader, PDToken token);
-
+	void update(PDSerializeRead* reader);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 }
 

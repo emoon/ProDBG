@@ -30,21 +30,25 @@ Qt5CallStack::~Qt5CallStack()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CallStack::update(PDSerializeRead* reader, PDToken token)
+void Qt5CallStack::update(PDSerializeRead* reader)
 {
 	QList<QTreeWidgetItem*> items;
 
 	clear();
 
-	int count = reader->readInt(token);
+	// TODO: Handle different types here and verify that we support it
+	int type = PDREAD_INT(reader);
+	(void)type;
+
+	int count = PDREAD_INT(reader);
 
 	for (int i = 0; i < count; ++i) 
 	{
 		QStringList temp;
 
-		const char* address = reader->readString(token);
-		const char* moduleName = reader->readString(token);
-		const char* fileLine = reader->readString(token);
+		const char* address = PDREAD_STRING(reader);
+		const char* moduleName = PDREAD_STRING(reader);
+		const char* fileLine = PDREAD_STRING(reader);
 
 		temp << address << moduleName << fileLine;
 		items.append(new QTreeWidgetItem((QTreeWidget*)0, temp)); 

@@ -15,7 +15,7 @@ public:
 	Qt5Locals(QWidget* parent);
 	virtual ~Qt5Locals();
 
-	void updateLocals(PDSerializeRead* reader, PDToken token);
+	void update(PDSerializeRead* reader);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

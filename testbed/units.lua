@@ -160,6 +160,7 @@ Program {
 			"-Wno-conversion",
 			"-Wno-weak-vtables",
 			"-Wno-extra-semi",
+			"-Wno-switch-enum",
 			"-Wno-undefined-reinterpret-cast", -- needed for Qt signals :(
 			"-Wno-sign-conversion" ; Config = "macosx-clang-*" },
 		},
