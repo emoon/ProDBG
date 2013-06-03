@@ -59,7 +59,9 @@ void Qt5DebuggerThread::tryStartDebugging()
 
 void Qt5DebuggerThread::update()
 {
-	if (PDDebugState_paused == m_debuggerPlugin->update(m_pluginData))
+	PDDebugState state = m_debuggerPlugin->update(m_pluginData);
+
+	if (PDDebugState_stopException == state || PDDebugState_stopBreakpoint == state) 
 	{
 		/*
 		// TODO: fix ugly line hack here (temproray not to resend the data all the time if not needed)

@@ -94,6 +94,8 @@ SharedLibrary {
 			"-Wno-unused-parameter",
 			"-Wno-missing-prototypes",
 			"-Wno-unused-member-function",
+			"-Wno-switch",
+			"-Wno-switch-enum",
 			"-Wno-c++98-compat-pedantic" ; Config = "macosx-clang-*" },
 		},
 

@@ -36,7 +36,8 @@ typedef enum PDDebugState
 {
     PDDebugState_noTarget,         // nothing is running 
     PDDebugState_running,          // target is being executed 
-    PDDebugState_paused,           // exception, breakpoint, etc 
+    PDDebugState_stopBreakpoint,   // Stop on Breakpoint 
+    PDDebugState_stopException,    // Stop on Exception 
     PDDebugState_stepping,         // code is currently being stepped/traced/etc 
     PDDebugState_custom = 0x1000   // Start of custom ids 
 } PDDebugState;
@@ -58,12 +59,13 @@ typedef enum PDAction
 
 typedef enum PDEventType
 {
-    PDEventType_locals,
-    PDEventType_callStack,
-    PDEventType_watch,
-    PDEventType_registers,
-    PDEventType_memory,
-    PDEventType_tty,
+    PDEventType_getLocals,
+    PDEventType_getCallStack,
+    PDEventType_getWatch,
+    PDEventType_getRegisters,
+    PDEventType_getMemory,
+    PDEventType_getTty,
+    PDEventType_getExceptionLocation,
     PDEventType_setBreakpointAddress,
     PDEventType_setBreakpointSourceLine,
     PDEventType_setExecutable,
@@ -80,7 +82,7 @@ typedef struct PDSerializeWrite
 	// First Argument to all functions
 	void* writeData;
 
-	// Write 32-bit integer
+	// Write 32-bit signed integer
     void (*writeInt)(void* writeData, int);
 
     // Write null-teminated string

@@ -143,24 +143,24 @@ void Qt5DebugSession::setDebugState(PDSerializeRead* reader)
 
 		switch (type)
 		{
-			case PDEventType_locals:
+			case PDEventType_getLocals:
 			{
 				for (auto i = m_locals.begin(); i != m_locals.end(); i++) 
 					(*i)->update(reader);
 				break;
 			}
 
-			case PDEventType_callStack:
+			case PDEventType_getCallStack:
 			{
 				for (auto i = m_callStacks.begin(); i != m_callStacks.end(); i++) 
 					(*i)->update(reader);
 				break;
 			}
 
-			case PDEventType_watch:
-			case PDEventType_registers:
-			case PDEventType_memory:
-			case PDEventType_tty:
+			//case PDEventType_watch:
+			//case PDEventType_registers:
+			//case PDEventType_memory:
+			//case PDEventType_tty:
 			default:
 			{
 				// If we don't know the type we just skip all data
