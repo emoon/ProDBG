@@ -59,7 +59,12 @@ StaticLibrary {
 	Env = { 
 		CXXOPTS = {
 			{ 
+			"-std=gnu0x",
+			"-std=c++11",
+			"-stdlib=libc++",
+			"-Wno-c++98-compat-pedantic",
 			"-Wno-global-constructors", 
+			"-Wno-gnu",
 			"-Wno-exit-time-destructors" ; Config = "macosx-clang-*" },
 		},
 		

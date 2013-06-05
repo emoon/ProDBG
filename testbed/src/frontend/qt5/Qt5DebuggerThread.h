@@ -25,16 +25,27 @@ public slots:
 	void update();
 	void tryStep();
 	void tryStartDebugging();
+
+    // data is here to be set to the serializer. Not very elgent so we should maybe wrap it in something better
+	void getData(void* serializeData);
  
 signals:
     void finished();
-    void sendData(DataPacket packet);
+
+    // data is here to be set to the serializer. Not very elgent so we should maybe wrap it in something better
+    void sendData(void* serializedata);
 
 private:
+	
+	void sendState();
 
+	PDDebugState m_debugState;
 	PDBackendPlugin* m_debuggerPlugin;
 	void* m_pluginData;
 	QTimer m_timer;
+
+	PDSerializeRead m_reader;
+	PDSerializeWrite m_writer;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

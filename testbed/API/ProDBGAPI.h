@@ -119,6 +119,8 @@ typedef struct PDSerializeRead
 #define PDREAD_STRING(reader) reader->readString(reader->readData)
 #define PDREAD_SKIP_BYTES(reader, n) reader->skipBytes(reader->readData, n)
 
+#define PDWRITE_EVENT_BEGIN(writer, event, id) writer->eventBegin(writer->writeData, event, id)
+#define PDWRITE_EVENT_END(writer, event, id) writer->eventEnd(writer->writeData)
 #define PDWRITE_INT(writer, value) writer->writeInt(writer->writeData, value)
 #define PDWRITE_STRING(writer, value) writer->writeString(writer->writeData, value)
 
@@ -144,10 +146,10 @@ typedef struct PDBackendPlugin
     bool (*action)(void* userData, PDAction action);
 
     // Get some data state  
-    void (*getState)(void* userData, PDEventType eventId, PDSerializeWrite* serialize);
+    void (*getState)(void* userData, PDEventType eventType, int eventId, PDSerializeWrite* serialize);
 
     // set some data state  
-    void (*setState)(void* userData, PDEventType eventId, PDSerializeRead* serialize);
+    void (*setState)(void* userData, PDEventType event, int eventId, PDSerializeRead* reader, PDSerializeWrite* writer);
 
 } PDBackendPlugin;
 

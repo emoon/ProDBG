@@ -340,48 +340,47 @@ static bool startDebugging(void* userData, PDLaunchAction action, void* launchDa
 	//process.Destroy();
 	//lldb::SBDebugger::Destroy(plugin->debugger);
 }
-
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void getLocals(void* userData, PDLocals* locals, int* maxEntries)
+void getLocals(LLDBPlugin* plugin, PDSerializeWrite* writer) 
 {
-	LLDBPlugin* plugin = (LLDBPlugin*)userData;
 	lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
 	lldb::SBFrame frame = thread.GetSelectedFrame();
 	
     lldb::SBValueList variables = frame.GetVariables(true, true, true, false);
     
-    uint32_t localVarsCount = variables.GetSize();
+    uint32_t count = variables.GetSize();
 
-    // TODO: Fix me
-	*maxEntries = (int)localVarsCount; 
+    PDWRITE_INT(writer, (int)count);
     	
-    for (uint32_t i = 0; i < localVarsCount; ++i)
+    for (uint32_t i = 0; i < count; ++i)
     {
-    	PDLocals* local = &locals[i]; 
+    	char address[32];
     	lldb::SBValue value = variables.GetValueAtIndex(i);
     	
     	// TODO: Verify this line
-    	sprintf(local->address, "%016llx", (uint64_t)value.GetAddress().GetFileAddress());
+    	sprintf(address, "%016llx", (uint64_t)value.GetAddress().GetFileAddress());
+    		
+    	PDWRITE_STRING(writer, address);
     	
     	if (value.GetValue())
-    		strcpy(local->value, value.GetValue());
+    		PDWRITE_STRING(writer, value.GetValue());
    		else
-    		strcpy(local->value, "Unknown"); 
+    		PDWRITE_STRING(writer, "Unknown"); 
     		
     	if (value.GetTypeName())
-    		strcpy(local->type, value.GetTypeName());
+    		PDWRITE_STRING(writer, value.GetTypeName());
     	else
-    		strcpy(local->type, "Unknown"); 
+    		PDWRITE_STRING(writer, "Unknown"); 
 
 		if (value.GetName())
-    		strcpy(local->name, value.GetName());
+    		PDWRITE_STRING(writer, value.GetName());
     	else
-    		strcpy(local->name, "Unknown"); 
+    		PDWRITE_STRING(writer, "Unknown"); 
 	}
 }
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -512,14 +511,17 @@ static void removeBreakpoint(void* userData, int id)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void getState(void* userData, PDEventType eventId, PDSerializeWrite* writer)
+void getState(void* userData, PDEventType eventType, int eventId, PDSerializeWrite* writer)
 {
 	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+
+	(void)eventId;
 
 	switch (eventId)
 	{
 		case PDEventType_getLocals: 
 		{
+			getLocals(plugin, writer);
 			break;
 		}
 
@@ -537,18 +539,46 @@ void getState(void* userData, PDEventType eventId, PDSerializeWrite* writer)
 
 		case PDEventType_getTty:
 		{
-
+			break;
 		}
 	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void setState(void* userData, PDEventType eventId, PDSerializeRead* serialize)
+void setState(void* userData, PDEventType inEvent, int eventId, PDSerializeRead* reader, PDSerializeWrite* writer)
 {
-	(void)userData;
-	(void)eventId;
-	(void)serialize;
+	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+	int size = PDREAD_INT(reader);
+
+	// to be used to write back replies (using the eventId when sending back)
+	(void)writer;
+
+	switch (inEvent)
+	{
+		case PDEventType_setBreakpointSourceLine:
+		{
+			const char* filename = PDREAD_STRING(reader);
+			uint32_t line = (uint32_t)PDREAD_INT(reader);
+
+    		lldb::SBBreakpoint breakpoint = plugin->target.BreakpointCreateByLocation(filename, line);
+    		if (!breakpoint.IsValid())
+			{
+				printf("Unable to set breakpoint at %s:%d\n", filename, line);
+    			return;
+			}
+
+			printf("Set breakpoint at %s:%d\n", filename, line);
+
+			break;
+		}
+
+		default:
+		{
+			reader->skipBytes(reader->readData, size);
+			break;
+		}
+	}
 }
 
 
