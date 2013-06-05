@@ -10,9 +10,8 @@
 namespace prodbg
 {
 
-#ifndef _WIN32
-static std::vector<Plugin> s_plugins;
-#endif
+static Plugin s_plugins[128];
+static int pluginCount = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -25,9 +24,7 @@ static void registerPlugin(int type, void* data)
 
 	printf("Register plugin (type %d data %p)\n", type, data);
 
-#ifndef _WIN32
-	s_plugins.push_back(plugin);
-#endif
+	s_plugins[pluginCount++] = plugin;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,13 +64,8 @@ bool PluginHandler_addPlugin(const char* plugin)
 
 Plugin* PluginHandler_getPlugins(int* count)
 {
-#ifdef _WIN32
-	*count = 0;
-	return 0;
-#else
-	*count = (int)s_plugins.size();
+	*count = pluginCount; 
 	return &s_plugins[0];
-#endif
 }
 
 }
