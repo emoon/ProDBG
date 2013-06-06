@@ -34,10 +34,6 @@ void Qt5Locals::update(PDSerializeRead* reader)
 {
 	QList<QTreeWidgetItem*> items;
 
-	// TODO: Handle the type here and validate it
-	int localsType = PDREAD_INT(reader); 
-	(void)localsType;
-
 	int count = PDREAD_INT(reader);
 
 	clear();

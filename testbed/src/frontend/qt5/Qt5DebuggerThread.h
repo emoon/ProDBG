@@ -25,8 +25,6 @@ public slots:
 	void update();
 	void tryStep();
 	void tryStartDebugging();
-
-    // data is here to be set to the serializer. Not very elgent so we should maybe wrap it in something better
 	void getData(void* serializeData);
  
 signals:

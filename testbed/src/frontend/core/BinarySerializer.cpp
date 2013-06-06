@@ -31,7 +31,7 @@ static void writeInt(void* writeData, int v)
 
 	int writeOffset = data->writeOffset;
 
-	if (writeOffset + 4 >= data->maxAllocSize)
+	if (writeOffset + 4 <= data->maxAllocSize)
 	{
 		uint8_t* writePtr = data->dataStart + writeOffset;
 
@@ -44,7 +44,8 @@ static void writeInt(void* writeData, int v)
 	}
 	else
 	{
-		log_error("Unable to write to serializeData because it's full!. Needs to add code to handle this\n");
+		log_error("Unable to write to serializeData because it's full (writeOffset %d maxSize %d)\n", 
+				  writeOffset, data->maxAllocSize);
 	}
 }
 
@@ -58,7 +59,9 @@ static void writeString(void* writeData, const char* string)
 
 	int len = (int)strlen(string) + 1;
 
-	if (writeOffset + len >= data->maxAllocSize)
+	//log_debug("WriteString %s (length %d) writeOffset %d\n", string, len, writeOffset);
+
+	if (writeOffset + len <= data->maxAllocSize)
 	{
 		uint8_t* writePtr = data->dataStart + writeOffset;
 		memcpy(writePtr, string, (size_t)len); // memcpy as we want to include the 0 at the end
@@ -66,7 +69,8 @@ static void writeString(void* writeData, const char* string)
 	}
 	else
 	{
-		log_error("Unable to write to serializeData because it's full!. Needs to add code to handle this\n");
+		log_error("Unable to write to serializeData because it's full (writeOffset %d maxSize %d)\n", 
+				  writeOffset, data->maxAllocSize);
 	}
 }
 
@@ -75,6 +79,8 @@ static void writeString(void* writeData, const char* string)
 static const char* readString(void* readData)
 {
 	BinarySerializerData* data = (BinarySerializerData*)readData;
+
+	log_debug("readOffset %d\n", data->readOffset);
 
 	const char* string = (const char*)(data->dataStart + data->readOffset);
 	data->readOffset += strlen(string) + 1;
@@ -96,6 +102,8 @@ static int readInt(void* readData)
 	uint8_t* intData = (uint8_t*)(data->dataStart + data->readOffset);
 
 	int v = (intData[0] << 24) | (intData[1] << 16) | (intData[2] << 8) | intData[3];
+
+	log_debug("readInt %d offset %d\n", v, data->readOffset);
 
 	data->readOffset += 4;
 
@@ -134,6 +142,7 @@ void BinarySerializer_saveReadOffset(struct PDSerializeRead* reader)
 {
 	BinarySerializerData* data = (BinarySerializerData*)reader->readData;
 	data->readSaveOffset = data->readOffset;
+	log_debug("data->readSaveOffset = %d\n", data->readSaveOffset);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,7 +150,8 @@ void BinarySerializer_saveReadOffset(struct PDSerializeRead* reader)
 void BinarySerializer_gotoNextOffset(struct PDSerializeRead* reader, int offset)
 {
 	BinarySerializerData* data = (BinarySerializerData*)reader->readData;
-	data->readOffset += offset;
+	data->readOffset = data->readSaveOffset + offset;
+	log_debug("data->readOffset = %d\n", data->readOffset);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -154,6 +164,9 @@ void BinarySerializer_initWriter(struct PDSerializeWrite* writer)
 	data->maxAllocSize = 256 * 1024;
 	data->dataStart = (uint8_t*)malloc((size_t)data->maxAllocSize);
 
+	log_debug("writerData %p\n", data->dataStart);
+
+	writer->writeData = data;
 	writer->writeInt = writeInt;
 	writer->writeString = writeString;
 }
@@ -196,6 +209,8 @@ void BinarySerialize_endEvent(struct PDSerializeWrite* writer)
 	writePtr[1] = (size >> 16) & 0xff;
 	writePtr[2] = (size >> 8) & 0xff;
 	writePtr[3] = (size >> 0) & 0xff;
+
+	data->writeEventStarted = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -215,10 +230,11 @@ void BinarySerializer_destroyData(void* serData)
 {
 	BinarySerializerData* data = (BinarySerializerData*)serData;
 
+	free(data->dataStart);
+
 	// pattern so if there is a bug and we read from delete memory it's easier to catch
 	memset(data, 0xcd, sizeof(BinarySerializerData));
 
-	free(data->dataStart);
 	free(data);
 }
 

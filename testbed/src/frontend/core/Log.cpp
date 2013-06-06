@@ -7,6 +7,9 @@
 #include <Windows.h>
 #endif
 
+namespace prodbg
+{
+
 static int s_log_level = 0;
 static int s_old_level = 0;
 
@@ -19,7 +22,7 @@ void log(int logLevel, const char* filename, int line, const char* format, ...)
     if (logLevel < s_log_level)
         return;
 
-    printf("%s:%d", filename, line);
+    printf("%s:%d ", filename, line);
 
     va_start(ap, format);
 #if defined(_WIN32)
@@ -55,3 +58,6 @@ void log_level_pop()
     s_log_level = s_old_level;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+}

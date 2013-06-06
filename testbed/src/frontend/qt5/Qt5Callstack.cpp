@@ -36,10 +36,6 @@ void Qt5CallStack::update(PDSerializeRead* reader)
 
 	clear();
 
-	// TODO: Handle different types here and verify that we support it
-	int type = PDREAD_INT(reader);
-	(void)type;
-
 	int count = PDREAD_INT(reader);
 
 	for (int i = 0; i < count; ++i) 

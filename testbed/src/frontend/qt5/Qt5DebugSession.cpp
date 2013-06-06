@@ -4,6 +4,7 @@
 #include "Qt5CallStack.h"
 #include "Qt5Locals.h"
 #include "core/BinarySerializer.h"
+#include "core/Log.h"
 #include <QThread>
 #ifndef _WIN32
 #include <unistd.h>
@@ -22,6 +23,8 @@ Qt5DebugSession::Qt5DebugSession()
 {
     m_debuggerThread = 0;
     m_threadRunner = 0;
+    m_breakpointCount = 0;
+    m_breakpointMaxCount = 0;;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -98,11 +101,13 @@ void Qt5DebugSession::begin(const char* executable)
 
 	printf("beginDebug %s %d\n", executable, (uint32_t)(uint64_t)QThread::currentThreadId());
 
+	m_threadRunner->start();
+
 	BinarySerializer_initWriter(writer);
 
 	// Write executable
 
-	BinarySerialize_beginEvent(writer, PDEventType_setExecutable, 0);
+	BinarySerialize_beginEvent(writer, PDEventType_setExecutable, 1337);
 	PDWRITE_STRING(writer, executable);
 	BinarySerialize_endEvent(writer);
 
@@ -167,21 +172,37 @@ void Qt5DebugSession::getData(void* readerData)
 		int size = PDREAD_INT(readerPtr);
 		PDEventType type = (PDEventType)PDREAD_INT(readerPtr);
 		int eventId = PDREAD_INT(readerPtr);
-		(void)eventId;
+
+		log_debug("Qt5DebugSession::getData size %d type %d eventId %d\n", size, (int)type, eventId);
 
 		switch (type)
 		{
 			case PDEventType_getLocals:
 			{
-				for (auto i = m_locals.begin(); i != m_locals.end(); i++) 
-					(*i)->update(readerPtr);
+				// Only update 1 for now
+				if (m_locals.size() > 0)
+					m_locals[0]->update(readerPtr);
 				break;
 			}
 
 			case PDEventType_getCallStack:
 			{
-				for (auto i = m_callStacks.begin(); i != m_callStacks.end(); i++) 
-					(*i)->update(readerPtr);
+				// Only update 1 for now
+				if (m_callStacks.size() > 0)
+					m_callStacks[0]->update(readerPtr);
+
+				break;
+			}
+
+			case PDEventType_getExceptionLocation:
+			{
+				const char* filename = PDREAD_STRING(readerPtr);
+				int line = PDREAD_INT(readerPtr);
+
+				// Only update 1 for now
+				if (m_codeEditors.size() > 0)
+					m_codeEditors[0]->setFileLine(filename, line);
+
 				break;
 			}
 

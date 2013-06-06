@@ -390,7 +390,7 @@ void getState(void* userData, PDEventType eventType, int eventId, PDSerializeWri
 
 	(void)eventId;
 
-	switch (eventId)
+	switch (eventType)
 	{
 		case PDEventType_getLocals: 
 		{
@@ -422,7 +422,6 @@ void getState(void* userData, PDEventType eventType, int eventId, PDSerializeWri
 void setState(void* userData, PDEventType inEvent, int eventId, PDSerializeRead* reader, PDSerializeWrite* writer)
 {
 	LLDBPlugin* plugin = (LLDBPlugin*)userData;
-	int size = PDREAD_INT(reader);
 
 	// to be used to write back replies (using the eventId when sending back)
 	(void)writer;
@@ -486,12 +485,9 @@ void setState(void* userData, PDEventType inEvent, int eventId, PDSerializeRead*
 					plugin->listener, 
 					lldb::SBProcess::eBroadcastBitStateChanged |
 					lldb::SBProcess::eBroadcastBitInterrupt);
-			break;
-		}
-
-		default:
-		{
-			PDREAD_SKIP_BYTES(reader, size);
+		
+			plugin->debugState = PDDebugState_running;
+			
 			break;
 		}
 	}
