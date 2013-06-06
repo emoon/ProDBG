@@ -37,6 +37,8 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent)
     highlightCurrentLine();
 
     g_debugSession->addCodeEditor(this);
+
+    m_sourceFile = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -213,15 +215,16 @@ void Qt5CodeEditor::readSourceFile(const char* filename)
 	QTextStream ts(&f);
 	setPlainText(ts.readAll());
 
-	m_sourceFile = filename;
+	free((void*)m_sourceFile);
+	m_sourceFile = strdup(filename);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5CodeEditor::setFileLine(const char* file, int line)
 {
-	// TODO: update filename
-	(void)file;
+	if (strcmp(file, m_sourceFile))
+		readSourceFile(file);
 
 	const QTextBlock& block = document()->findBlockByNumber(line - 1);
 	QTextCursor cursor(block);

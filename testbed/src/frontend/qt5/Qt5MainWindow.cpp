@@ -740,7 +740,8 @@ void Qt5MainWindow::fileSaveLayout()
 
 void Qt5MainWindow::debugStart()
 {
-	g_debugSession->begin("tundra-output/macosx-clang-debug-default/Fake6502");
+	//g_debugSession->begin("tundra-output/macosx-clang-debug-default/Fake6502");
+	g_debugSession->begin("tundra-output/macosx-clang-debug-default/prodbg-qt5");
 }
 
 void Qt5MainWindow::helpIndex()
