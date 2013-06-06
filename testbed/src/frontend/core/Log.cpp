@@ -12,12 +12,14 @@ static int s_old_level = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void log(int logLevel, const char* format, ...)
+void log(int logLevel, const char* filename, int line, const char* format, ...)
 {
     va_list ap;
 
     if (logLevel < s_log_level)
         return;
+
+    printf("%s:%d", filename, line);
 
     va_start(ap, format);
 #if defined(_WIN32)
