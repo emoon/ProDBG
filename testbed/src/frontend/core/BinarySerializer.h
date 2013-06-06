@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ProDBGAPI.h>
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct PDSerializeRead;
@@ -10,7 +12,7 @@ struct PDSerializeWrite;
 namespace prodbg
 {
 
-void BinarySerialize_beginEvent(struct PDSerializeWrite* writer);
+void BinarySerialize_beginEvent(struct PDSerializeWrite* writer, PDEventType eventType, int eventId);
 void BinarySerialize_endEvent(struct PDSerializeWrite* writer);
 
 void BinarySerializer_initWriter(struct PDSerializeWrite* writer);

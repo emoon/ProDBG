@@ -3,6 +3,7 @@
 #include "Qt5CodeEditor.h"
 #include "Qt5CallStack.h"
 #include "Qt5Locals.h"
+#include "core/BinarySerializer.h"
 #include <QThread>
 #ifndef _WIN32
 #include <unistd.h>
@@ -77,24 +78,44 @@ void Qt5DebugSession::delCallStack(Qt5CallStack* callStack)
 
 void Qt5DebugSession::begin(const char* executable)
 {
+	PDSerializeWrite writer_;
+	PDSerializeWrite* writer = &writer_;
+
 	m_threadRunner = new QThread;
 	m_debuggerThread = new Qt5DebuggerThread;
 	m_debuggerThread->moveToThread(m_threadRunner);
+
+	// TODO: Not sure if we should set this up here, would be better to move it so we don't need to actually
+	//       start a executable/etc when doing a begin
 
 	connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
 	connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
 	connect(this, &Qt5DebugSession::tryStartDebugging, m_debuggerThread, &Qt5DebuggerThread::tryStartDebugging); 
 	connect(this, &Qt5DebugSession::tryStep, m_debuggerThread, &Qt5DebuggerThread::tryStep); 
 
-	//connect(m_debuggerThread, &Qt5DebuggerThread::sendDebugDataState, this, &Qt5DebugSession::setDebugDataState); 
-
-	m_threadRunner->start();
+	connect(m_debuggerThread, &Qt5DebuggerThread::sendData, this, &Qt5DebugSession::getData); 
+	connect(this, &Qt5DebugSession::sendData, m_debuggerThread, &Qt5DebuggerThread::getData); 
 
 	printf("beginDebug %s %d\n", executable, (uint32_t)(uint64_t)QThread::currentThreadId());
 
+	BinarySerializer_initWriter(writer);
+
+	// Write executable
+
+	BinarySerialize_beginEvent(writer, PDEventType_setExecutable, 0);
+	PDWRITE_STRING(writer, executable);
+	BinarySerialize_endEvent(writer);
+
+	// TODO: Write breakpoints here
+
+	// Write start
+
+	BinarySerialize_beginEvent(writer, PDEventType_start, 0);
+	BinarySerialize_endEvent(writer);
+
 	// TODO: Write executable to debugger plugin
 
-	emit tryStartDebugging();
+	emit sendData(writer->writeData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -134,26 +155,33 @@ void Qt5DebugSession::step()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5DebugSession::setDebugState(PDSerializeRead* reader)
+void Qt5DebugSession::getData(void* readerData)
 {
-	while (reader->bytesLeft(reader->readData) > 0)
+	PDSerializeRead reader;
+	PDSerializeRead* readerPtr = &reader;
+
+	BinarySerializer_initReader(readerPtr, readerData);
+
+	while (PDREAD_BYTES_LEFT(readerPtr) > 0)
 	{
-		int size = PDREAD_INT(reader);
-		PDEventType type = (PDEventType)PDREAD_INT(reader);
+		int size = PDREAD_INT(readerPtr);
+		PDEventType type = (PDEventType)PDREAD_INT(readerPtr);
+		int eventId = PDREAD_INT(readerPtr);
+		(void)eventId;
 
 		switch (type)
 		{
 			case PDEventType_getLocals:
 			{
 				for (auto i = m_locals.begin(); i != m_locals.end(); i++) 
-					(*i)->update(reader);
+					(*i)->update(readerPtr);
 				break;
 			}
 
 			case PDEventType_getCallStack:
 			{
 				for (auto i = m_callStacks.begin(); i != m_callStacks.end(); i++) 
-					(*i)->update(reader);
+					(*i)->update(readerPtr);
 				break;
 			}
 
@@ -166,7 +194,7 @@ void Qt5DebugSession::setDebugState(PDSerializeRead* reader)
 				// If we don't know the type we just skip all data
 
 				printf("Unknown readerType %d\n", type);
-				PDREAD_SKIP_BYTES(reader, size);
+				PDREAD_SKIP_BYTES(readerPtr, size);
 			}
 		}
 	}

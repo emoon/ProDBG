@@ -53,7 +53,7 @@ void Qt5DebuggerThread::getData(void* serializeData)
 
 	BinarySerializer_initReader(readerPtr, serializeData);
 
-	while (reader.bytesLeft(reader.readData) > 0)
+	while (PDREAD_BYTES_LEFT(readerPtr) > 0)
 	{
 		int size = PDREAD_INT(readerPtr);
 		int id = PDREAD_INT(readerPtr);
@@ -100,23 +100,23 @@ void Qt5DebuggerThread::sendState()
 
 	// get locals
 
-	BinarySerialize_beginEvent(&writer);
+	BinarySerialize_beginEvent(&writer, PDEventType_getLocals, 0);
 	m_debuggerPlugin->getState(m_pluginData, PDEventType_getLocals, 0, &writer);
 	BinarySerialize_endEvent(&writer);
 
 	// get callstack
 
-	BinarySerialize_beginEvent(&writer);
+	BinarySerialize_beginEvent(&writer, PDEventType_getCallStack, 0);
 	m_debuggerPlugin->getState(m_pluginData, PDEventType_getCallStack, 0, &writer);
 	BinarySerialize_endEvent(&writer);
 
 	// get exception location
 
-	BinarySerialize_beginEvent(&writer);
+	BinarySerialize_beginEvent(&writer, PDEventType_getExceptionLocation, 0);
 	m_debuggerPlugin->getState(m_pluginData, PDEventType_getExceptionLocation, 0, &writer);
 	BinarySerialize_endEvent(&writer);
 
-	//emit sendState(writer.writeData);
+	emit sendData(writer.writeData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,9 +125,6 @@ void Qt5DebuggerThread::update()
 {
 	PDDebugState state = m_debuggerPlugin->update(m_pluginData);
 
-	// TODO: We likely need to handle this better here as a step can be very short and fast (1 instruction)
-	// and thus we won't detect a new state change here and not send the current state back to the UI 
-
 	if (m_debugState != state)
 	{
 		if (PDDebugState_stopException == state || PDDebugState_stopBreakpoint == state) 
@@ -135,6 +132,8 @@ void Qt5DebuggerThread::update()
 
 		m_debugState = state; 
 	}	
+
+	// TODO: Deal with TTY
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

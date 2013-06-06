@@ -56,12 +56,12 @@ public:
     
 private slots:
 	// Called from the when a state change has happen that require UI update 
-	//void setDebugDataState(PDDebugDataState* state);
-	void setDebugState(PDSerializeRead* reader);
+	void getData(void* readerData);
 
 signals:
 	void tryStartDebugging();
 	void tryStep();
+	void sendData(void* readerData);
 
 private:
 

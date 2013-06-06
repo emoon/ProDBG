@@ -68,6 +68,7 @@ typedef enum PDEventType
     PDEventType_getExceptionLocation,
     PDEventType_setBreakpointAddress,
     PDEventType_setBreakpointSourceLine,
+    PDEventType_start,
     PDEventType_setExecutable,
     PDEventType_attachToProcess,
     PDEventType_attachToRemoteSession,
@@ -118,6 +119,7 @@ typedef struct PDSerializeRead
 #define PDREAD_INT(reader) reader->readInt(reader->readData)
 #define PDREAD_STRING(reader) reader->readString(reader->readData)
 #define PDREAD_SKIP_BYTES(reader, n) reader->skipBytes(reader->readData, n)
+#define PDREAD_BYTES_LEFT(reader) reader->bytesLeft(reader->readData)
 
 #define PDWRITE_EVENT_BEGIN(writer, event, id) writer->eventBegin(writer->writeData, event, id)
 #define PDWRITE_EVENT_END(writer, event, id) writer->eventEnd(writer->writeData)

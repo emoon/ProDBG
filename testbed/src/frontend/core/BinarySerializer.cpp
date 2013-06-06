@@ -14,8 +14,12 @@ struct BinarySerializerData
 	uint8_t* dataStart;
 	int maxAllocSize;
 	int readOffset;
+
 	int writeOffset;
 	int readSaveOffset;
+
+	int beginEventOffset;
+	int writeEventStarted; 
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -156,16 +160,42 @@ void BinarySerializer_initWriter(struct PDSerializeWrite* writer)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BinarySerialize_beginEvent(struct PDSerializeWrite* writer)
+void BinarySerialize_beginEvent(struct PDSerializeWrite* writer, PDEventType eventType, int eventId)
 {
-	(void)writer;
+	BinarySerializerData* data = (BinarySerializerData*)writer->writeData;
+
+	// event id should be 0 at this point (endEvent should have been called)
+
+	if (data->writeEventStarted)
+		log_error("Event is still in progress yet beginEvent has been called. Make sure to call endEvent first\n");
+
+	// store start of the event (where we are going to write the size of the event
+	data->beginEventOffset = data->writeOffset;
+	data->writeEventStarted = 1;
+
+	PDWRITE_INT(writer, 0);		// size (will be filled in later
+	PDWRITE_INT(writer, (int)eventType);		
+	PDWRITE_INT(writer, eventId);		
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BinarySerialize_endEvent(struct PDSerializeWrite* writer)
 {
-	(void)writer;
+	BinarySerializerData* data = (BinarySerializerData*)writer->writeData;
+
+	if (!data->writeEventStarted)
+		log_error("No event has been started. Make sure to call beginEvent first\n");
+
+	// write the correct size 
+
+	int size = data->writeOffset - data->beginEventOffset;
+	uint8_t* writePtr = data->dataStart + data->beginEventOffset;
+
+	writePtr[0] = (size >> 24) & 0xff;
+	writePtr[1] = (size >> 16) & 0xff;
+	writePtr[2] = (size >> 8) & 0xff;
+	writePtr[3] = (size >> 0) & 0xff;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

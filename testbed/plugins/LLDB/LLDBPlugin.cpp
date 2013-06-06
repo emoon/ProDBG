@@ -261,87 +261,6 @@ PDDebugState updateCallback(void* userData)
 	return plugin->debugState;
 }
 
-
-/*
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static bool startDebugging(void* userData, PDLaunchAction action, void* launchData, PDBreakpointFileLine* breakpoints, int bpCount)
-{
-	LLDBPlugin* plugin = (LLDBPlugin*)userData;
-
-	// TODO: Check action here
-
-	plugin->target = plugin->debugger.CreateTarget(plugin->target);
-
-	if (!plugin->target.IsValid())
-		return false;
-
-	printf("Target is valid, launching\n");
-
-	lldb::SBLaunchInfo launchInfo(0);
-	lldb::SBError error;
-
-	plugin->process = plugin->target.Launch(launchInfo, error);
-
-	if (!error.Success())
-	{
-		printf("error false\n");
-		return false;
-	}
-
-	if (!plugin->process.IsValid())
-	{
-		printf("process not valid\n");
-		return false;
-	}
-
-	// Add breakpoints if we have any
-
-	for (int i = 0; i < bpCount; ++i)
-	{
-		// TODO: Yeah modifing this one is a race with the main-thread so we should lock at this point
-
-		PDBreakpointFileLine* fileLine = &breakpoints[i]; 
-
-		printf("Trying to add breakpoint %s %d %d\n", fileLine->filename, fileLine->line, fileLine->id);
-
-		if (fileLine->id >= 0)
-			continue;
-
-   		lldb::SBBreakpoint breakpoint = plugin->target.BreakpointCreateByLocation(fileLine->filename, (uint32_t)fileLine->line);
-
-		if (breakpoint.IsValid())
-		{
-			printf("Added breakpoint %s %d\n", fileLine->filename, fileLine->line);
-			fileLine->id = breakpoint.GetID();
-		}
-	}
-
-	plugin->process.GetBroadcaster().AddListener(
-			plugin->listener, 
-			lldb::SBProcess::eBroadcastBitStateChanged |
-			lldb::SBProcess::eBroadcastBitInterrupt);// |
-			//lldb::SBProcess::eBroadcastBitSTDOUT);
-
-	plugin->debugState = DebugState_updateEvent;
-
-	// TODO: We should callback to main-thread here so we can update the the UI with the valid breakpoints after we started
-
-	printf("Started ok!\n");
-
-	// TODO
-
-	lldb::SBCommandReturnObject result;
-    plugin->debugger.GetCommandInterpreter().HandleCommand("log enable lldb all", result);
-
-	return true;
-
-	//process.Destroy();
-	//lldb::SBDebugger::Destroy(plugin->debugger);
-}
-*/
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void getLocals(LLDBPlugin* plugin, PDSerializeWrite* writer) 
@@ -463,52 +382,6 @@ static void getExceptionLocation(LLDBPlugin* plugin, PDSerializeWrite* writer)
 	PDWRITE_INT(writer, line);
 }
 
-/*
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static int addBreakpoint(void* userData, PDBreakpointType type, void* breakpointData)
-{
-	LLDBPlugin* plugin = (LLDBPlugin*)userData;
-
-	if (!plugin->target.IsValid())
-		return -2;
-
-	switch (type)
-	{
-		case PDBreakpointType_FileLine :
-		{
-			PDBreakpointFileLine* fileLine = (PDBreakpointFileLine*)breakpointData;
-    		lldb::SBBreakpoint breakpoint = plugin->target.BreakpointCreateByLocation(fileLine->filename, (uint32_t)fileLine->line);
-    		if (!breakpoint.IsValid())
-    			return -1;
-
-    		return (int)breakpoint.GetID();
-		}
-
-		case PDBreakpointType_watchPoint :
-		case PDBreakpointType_address :
-		case PDBreakpointType_custom :
-			break;
-	}
-
-	return -1;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void removeBreakpoint(void* userData, int id)
-{
-	LLDBPlugin* plugin = (LLDBPlugin*)userData;
-
-	if (!plugin->target.IsValid())
-		return;
-
-	plugin->target.BreakpointDelete((lldb::break_id_t)id);
-}
-*/
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void getState(void* userData, PDEventType eventType, int eventId, PDSerializeWrite* writer)
@@ -553,6 +426,7 @@ void setState(void* userData, PDEventType inEvent, int eventId, PDSerializeRead*
 
 	// to be used to write back replies (using the eventId when sending back)
 	(void)writer;
+	(void)eventId;
 
 	switch (inEvent)
 	{
@@ -569,13 +443,55 @@ void setState(void* userData, PDEventType inEvent, int eventId, PDSerializeRead*
 			}
 
 			printf("Set breakpoint at %s:%d\n", filename, line);
+			break;
+		}
 
+		case PDEventType_setExecutable:
+		{
+			const char* filename = PDREAD_STRING(reader);
+
+			plugin->target = plugin->debugger.CreateTarget(filename);
+
+			if (!plugin->target.IsValid())
+			{
+				printf("Unable to create valid target (%s)\n", filename);
+			}
+
+			printf("Valid target %s\n", filename); 
+			break;
+		}
+
+		case PDEventType_start:
+		{
+			lldb::SBLaunchInfo launchInfo(0);
+			lldb::SBError error;
+
+			plugin->process = plugin->target.Launch(launchInfo, error);
+
+			if (!error.Success())
+			{
+				printf("error false\n");
+				return;
+			}
+
+			if (!plugin->process.IsValid())
+			{
+				printf("process not valid\n");
+				return;
+			}
+
+			printf("Started valid process\n");
+
+			plugin->process.GetBroadcaster().AddListener(
+					plugin->listener, 
+					lldb::SBProcess::eBroadcastBitStateChanged |
+					lldb::SBProcess::eBroadcastBitInterrupt);
 			break;
 		}
 
 		default:
 		{
-			reader->skipBytes(reader->readData, size);
+			PDREAD_SKIP_BYTES(reader, size);
 			break;
 		}
 	}
