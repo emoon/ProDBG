@@ -3,6 +3,7 @@
 #include "Qt5CodeEditor.h"
 #include "Qt5CallStack.h"
 #include "Qt5Locals.h"
+#include "Qt5DebugOutput.h"
 #include "core/BinarySerializer.h"
 #include "core/Log.h"
 #include <QThread>
@@ -64,6 +65,13 @@ void Qt5DebugSession::addCallStack(Qt5CallStack* callStack)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Qt5DebugSession::addTty(Qt5DebugOutput* debugOutput)
+{
+    m_debugOutputs.push_back(debugOutput);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5DebugSession::delCodeEditor(Qt5CodeEditor* codeEditor)
 {
     m_codeEditors.removeOne(codeEditor);
@@ -81,6 +89,13 @@ void Qt5DebugSession::delLocals(Qt5Locals* locals)
 void Qt5DebugSession::delCallStack(Qt5CallStack* callStack)
 {
     m_callStacks.removeOne(callStack);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5DebugSession::delTty(Qt5DebugOutput* debugOutput)
+{
+    m_debugOutputs.removeOne(debugOutput);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -186,8 +201,7 @@ void Qt5DebugSession::getData(void* readerData)
 		int size = PDREAD_INT(readerPtr);
 		PDEventType type = (PDEventType)PDREAD_INT(readerPtr);
 		int eventId = PDREAD_INT(readerPtr);
-
-		log_debug("Qt5DebugSession::getData size %d type %d eventId %d\n", size, (int)type, eventId);
+		(void)eventId;
 
 		switch (type)
 		{
@@ -196,6 +210,9 @@ void Qt5DebugSession::getData(void* readerData)
 				// Only update 1 for now
 				if (m_locals.size() > 0)
 					m_locals[0]->update(readerPtr);
+				else
+					PDREAD_SKIP_BYTES(readerPtr, size - 12);
+
 				break;
 			}
 
@@ -204,6 +221,8 @@ void Qt5DebugSession::getData(void* readerData)
 				// Only update 1 for now
 				if (m_callStacks.size() > 0)
 					m_callStacks[0]->update(readerPtr);
+				else
+					PDREAD_SKIP_BYTES(readerPtr, size - 12);
 
 				break;
 			}
@@ -216,6 +235,19 @@ void Qt5DebugSession::getData(void* readerData)
 				// Only update 1 for now
 				if (m_codeEditors.size() > 0)
 					m_codeEditors[0]->setFileLine(filename, line);
+				else
+					PDREAD_SKIP_BYTES(readerPtr, size - 12);
+
+				break;
+			}
+
+			case PDEventType_getTty:
+			{
+				const char* string = PDREAD_STRING(readerPtr);
+				if (m_debugOutputs.size() > 0)
+					m_debugOutputs[0]->appendText(string);
+				else
+					PDREAD_SKIP_BYTES(readerPtr, size - 12);
 
 				break;
 			}
@@ -223,7 +255,6 @@ void Qt5DebugSession::getData(void* readerData)
 			//case PDEventType_watch:
 			//case PDEventType_registers:
 			//case PDEventType_memory:
-			//case PDEventType_tty:
 			default:
 			{
 				// If we don't know the type we just skip all data

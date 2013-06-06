@@ -20,6 +20,7 @@ class Qt5CodeEditor;
 class Qt5Locals;
 class Qt5CallStack;
 class Qt5DebuggerThread;
+class Qt5DebugOutput;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -37,10 +38,12 @@ public:
     void addCodeEditor(Qt5CodeEditor* codeEditor);
     void addLocals(Qt5Locals* locals);
     void addCallStack(Qt5CallStack* callStack);
+    void addTty(Qt5DebugOutput* output);
 
     void delCodeEditor(Qt5CodeEditor* codeEditor);
     void delLocals(Qt5Locals* locals);
     void delCallStack(Qt5CallStack* callStack);
+    void delTty(Qt5DebugOutput* output);
 
     void begin(const char* executable);
     void step();
@@ -68,6 +71,7 @@ private:
     QList<Qt5CodeEditor*> m_codeEditors;
     QList<Qt5Locals*> m_locals;
     QList<Qt5CallStack*> m_callStacks;
+    QList<Qt5DebugOutput*> m_debugOutputs;
 
 	PDBackendPlugin* m_debuggerPlugin;
 	void* m_pluginData;

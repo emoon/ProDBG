@@ -59,8 +59,6 @@ static void writeString(void* writeData, const char* string)
 
 	int len = (int)strlen(string) + 1;
 
-	//log_debug("WriteString %s (length %d) writeOffset %d\n", string, len, writeOffset);
-
 	if (writeOffset + len <= data->maxAllocSize)
 	{
 		uint8_t* writePtr = data->dataStart + writeOffset;
@@ -80,12 +78,10 @@ static const char* readString(void* readData)
 {
 	BinarySerializerData* data = (BinarySerializerData*)readData;
 
-	log_debug("readOffset %d\n", data->readOffset);
-
 	const char* string = (const char*)(data->dataStart + data->readOffset);
 	data->readOffset += strlen(string) + 1;
 
-	if (data->readOffset >= data->writeOffset)
+	if (data->readOffset > data->writeOffset)
 	{
 		log_error("Reading past end of writeData (readOffset %d writeOffset %d)\n", data->readOffset, data->writeOffset);
 	}
@@ -103,11 +99,9 @@ static int readInt(void* readData)
 
 	int v = (intData[0] << 24) | (intData[1] << 16) | (intData[2] << 8) | intData[3];
 
-	log_debug("readInt %d offset %d\n", v, data->readOffset);
-
 	data->readOffset += 4;
 
-	if (data->readOffset >= data->writeOffset)
+	if (data->readOffset > data->writeOffset)
 	{
 		log_error("Reading past end of writeData (readOffset %d writeOffset %d)\n", data->readOffset, data->writeOffset);
 	}
@@ -142,7 +136,6 @@ void BinarySerializer_saveReadOffset(struct PDSerializeRead* reader)
 {
 	BinarySerializerData* data = (BinarySerializerData*)reader->readData;
 	data->readSaveOffset = data->readOffset;
-	log_debug("data->readSaveOffset = %d\n", data->readSaveOffset);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,7 +144,6 @@ void BinarySerializer_gotoNextOffset(struct PDSerializeRead* reader, int offset)
 {
 	BinarySerializerData* data = (BinarySerializerData*)reader->readData;
 	data->readOffset = data->readSaveOffset + offset;
-	log_debug("data->readOffset = %d\n", data->readOffset);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -163,8 +155,6 @@ void BinarySerializer_initWriter(struct PDSerializeWrite* writer)
 
 	data->maxAllocSize = 256 * 1024;
 	data->dataStart = (uint8_t*)malloc((size_t)data->maxAllocSize);
-
-	log_debug("writerData %p\n", data->dataStart);
 
 	writer->writeData = data;
 	writer->writeInt = writeInt;
@@ -222,6 +212,14 @@ void BinarySerializer_initReader(struct PDSerializeRead* reader, void* data)
 	reader->readString = readString;
 	reader->bytesLeft = bytesLeft;
 	reader->skipBytes = skipBytes;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int BinarySerializer_writeSize(struct PDSerializeWrite* writer)
+{
+	BinarySerializerData* data = (BinarySerializerData*)writer->writeData;
+	return data->writeOffset;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

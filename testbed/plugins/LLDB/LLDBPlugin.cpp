@@ -214,13 +214,6 @@ static void updateLLDBEvent(LLDBPlugin* plugin)
 		break;
 	}
 
-	const int bufferSize = 2048;
-	char buffer[bufferSize];
-	size_t amountRead = 0;
-	while ((amountRead = plugin->process.GetSTDOUT(buffer, bufferSize)) > 0)
-	{
-		printf("%s", buffer);
-	}
 }
 
 
@@ -412,6 +405,20 @@ void getState(void* userData, PDEventType eventType, int eventId, PDSerializeWri
 
 		case PDEventType_getTty:
 		{
+			// TODO: Make this buffer dynamic somehow in case it run out of space?
+			const int bufferSize = 4 * 1024;
+			char buffer[bufferSize];
+
+			memset(buffer, 0, bufferSize);
+
+			size_t amountRead = plugin->process.GetSTDOUT(buffer, bufferSize);
+
+			if (amountRead > 0)
+			{
+				printf("Adding the following text to TTY %s", buffer);
+				PDWRITE_STRING(writer, buffer);
+			}
+
 			break;
 		}
 	}

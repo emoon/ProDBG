@@ -22,6 +22,7 @@ void BinarySerializer_initReaderFromWriter(struct PDSerializeWrite* reader, stru
 void BinarySerializer_saveReadOffset(struct PDSerializeRead* reader);
 void BinarySerializer_gotoNextOffset(struct PDSerializeRead* reader, int offset);
 
+int  BinarySerializer_writeSize(struct PDSerializeWrite* writer);
 void BinarySerializer_destroyData(void* data);
 
 }

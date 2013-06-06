@@ -7,9 +7,9 @@ namespace prodbg
 
 enum  
 {
-    R_DEBUG, 
-    R_INFO, 
-    R_ERROR 
+    LOG_DEBUG, 
+    LOG_INFO, 
+    LOG_ERROR 
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -21,8 +21,9 @@ void log_level_pop();
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define log_error(...) log(R_ERROR,  __FILE__, __LINE__, __VA_ARGS__);
-#define log_debug(...) log(R_DEBUG,  __FILE__, __LINE__, __VA_ARGS__);
+#define log_error(...) log(LOG_ERROR,  __FILE__, __LINE__, __VA_ARGS__);
+#define log_debug(...) log(LOG_DEBUG,  __FILE__, __LINE__, __VA_ARGS__);
+#define log_info(...)  log(LOG_INFO,   __FILE__, __LINE__, __VA_ARGS__);
 
 }
 

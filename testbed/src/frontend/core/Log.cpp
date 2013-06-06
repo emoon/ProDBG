@@ -22,7 +22,12 @@ void log(int logLevel, const char* filename, int line, const char* format, ...)
     if (logLevel < s_log_level)
         return;
 
-    printf("%s:%d ", filename, line);
+    switch (logLevel)
+	{
+		case LOG_DEBUG : printf("%s:%d DEBUG ", filename, line); break;
+		case LOG_INFO  :  printf("%s:%d INFO  ", filename, line); break;
+		case LOG_ERROR :  printf("%s:%d ERROR ", filename, line); break;
+	}
 
     va_start(ap, format);
 #if defined(_WIN32)

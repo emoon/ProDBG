@@ -131,6 +131,12 @@ void Qt5DebuggerThread::sendState()
 	BinarySerialize_beginEvent(&writer, PDEventType_getExceptionLocation, 0);
 	m_debuggerPlugin->getState(m_pluginData, PDEventType_getExceptionLocation, 0, &writer);
 	BinarySerialize_endEvent(&writer);
+	
+	// get TTY 
+
+	BinarySerialize_beginEvent(&writer, PDEventType_getTty, 0);
+	m_debuggerPlugin->getState(m_pluginData, PDEventType_getTty, 0, &writer);
+	BinarySerialize_endEvent(&writer);
 
 	emit sendData(writer.writeData);
 }
@@ -152,7 +158,20 @@ void Qt5DebuggerThread::update()
 		m_debugState = state; 
 	}	
 
-	// TODO: Deal with TTY
+	// Send over the TTY if any
+	
+	PDSerializeWrite writer;
+	BinarySerializer_initWriter(&writer);
+	BinarySerialize_beginEvent(&writer, PDEventType_getTty, 0);
+	m_debuggerPlugin->getState(m_pluginData, PDEventType_getTty, 0, &writer);
+	BinarySerialize_endEvent(&writer);
+
+	// Only send data if we have something to send
+	
+	if (BinarySerializer_writeSize(&writer) > 12)
+		emit sendData(writer.writeData);
+	else
+		BinarySerializer_destroyData(writer.writeData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
