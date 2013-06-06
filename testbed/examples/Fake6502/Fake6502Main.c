@@ -81,6 +81,8 @@ int main(int argc, const char* argv[])
 	
 	tempCall();
 
+	*((volatile int*)0) = 0x666;
+
 #ifndef _WIN32
 	usleep(100000);
 #endif
