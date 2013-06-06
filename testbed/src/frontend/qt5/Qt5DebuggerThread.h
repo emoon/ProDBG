@@ -24,7 +24,7 @@ public slots:
     void start();
 	void update();
 	void tryStep();
-	void tryStartDebugging();
+	//void tryStartDebugging();
 	void getData(void* serializeData);
  
 signals:

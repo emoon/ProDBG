@@ -25,6 +25,12 @@ Qt5DebugSession::Qt5DebugSession()
     m_threadRunner = 0;
     m_breakpointCount = 0;
     m_breakpointMaxCount = 0;;
+
+    // TODO: Dynamic Array
+	m_breakpoints = new BreakpointFileLine[256];
+
+    m_breakpointCount = 0;
+    m_breakpointMaxCount = 256;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +99,7 @@ void Qt5DebugSession::begin(const char* executable)
 
 	connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
 	connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
-	connect(this, &Qt5DebugSession::tryStartDebugging, m_debuggerThread, &Qt5DebuggerThread::tryStartDebugging); 
+	//connect(this, &Qt5DebugSession::tryStartDebugging, m_debuggerThread, &Qt5DebuggerThread::tryStartDebugging); 
 	connect(this, &Qt5DebugSession::tryStep, m_debuggerThread, &Qt5DebuggerThread::tryStep); 
 
 	connect(m_debuggerThread, &Qt5DebuggerThread::sendData, this, &Qt5DebugSession::getData); 
@@ -112,6 +118,14 @@ void Qt5DebugSession::begin(const char* executable)
 	BinarySerialize_endEvent(writer);
 
 	// TODO: Write breakpoints here
+
+	for (int i = 0, count = m_breakpointCount; i != count; ++i)
+	{
+		BinarySerialize_beginEvent(writer, PDEventType_setBreakpointSourceLine, 0);
+		PDWRITE_STRING(writer, m_breakpoints[i].filename);
+		PDWRITE_INT(writer, m_breakpoints[i].line);
+		BinarySerialize_endEvent(writer);
+	}
 
 	// Write start
 
