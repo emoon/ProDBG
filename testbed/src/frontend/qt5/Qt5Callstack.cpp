@@ -30,21 +30,23 @@ Qt5CallStack::~Qt5CallStack()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CallStack::updateCallStack(PDCallStack* callStack, int count)
+void Qt5CallStack::update(PDSerializeRead* reader)
 {
 	QList<QTreeWidgetItem*> items;
 
 	clear();
 
+	int count = PDREAD_INT(reader);
+
 	for (int i = 0; i < count; ++i) 
 	{
-		char addressString[32];
 		QStringList temp;
 
-		const PDCallStack* callStackEntry = &callStack[i];
-		sprintf(addressString, "%016llx", callStackEntry->address);
-		
-		temp << addressString << callStackEntry->moduleName << callStackEntry->fileLine;
+		const char* address = PDREAD_STRING(reader);
+		const char* moduleName = PDREAD_STRING(reader);
+		const char* fileLine = PDREAD_STRING(reader);
+
+		temp << address << moduleName << fileLine;
 		items.append(new QTreeWidgetItem((QTreeWidget*)0, temp)); 
 	}
 

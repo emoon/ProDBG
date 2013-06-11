@@ -59,7 +59,7 @@ private slots:
 
 signals:
 	void tryAddBreakpoint(const char*, int line);
-	void tryStartDebugging(const char* filename, PDBreakpointFileLine* breakpoints, int bpCount);
+	void tryStartDebugging(const char* filename);
 	void tryStep();
 
 private:

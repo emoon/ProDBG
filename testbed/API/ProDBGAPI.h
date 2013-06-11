@@ -10,171 +10,150 @@ extern "C" {
 #endif
 
 /*! \fn void* ServiceFunc(const char* serviceName)
-	\breif Service Function. Provides services for the plugin to use.
-	Example:
-	 ProDBGUI* ui = serviceFunc(PRODBG_UI_SERVICE);
-	 ProDBServerInfo* serverInfo = serviceFunc(PRODBG_SERVERINFO_SERVICE);
-	 It's ok for the plugin to hold a pointer to the requested service during its life time.
+    \breif Service Function. Provides services for the plugin to use.
+    Example:
+     ProDBGUI* ui = serviceFunc(PRODBG_UI_SERVICE);
+     ProDBServerInfo* serverInfo = serviceFunc(PRODBG_SERVERINFO_SERVICE);
+     It's ok for the plugin to hold a pointer to the requested service during its life time.
     \param serviceName The name of the requested service. It's *highly* recommended to use the defines for the wanted service.
 */
 
 typedef void* ServiceFunc(const char* serviceName);
 typedef void RegisterPlugin(int type, void* data);
 
-/*! \fn int RegisterPlugin(const char* serviceName)
-	\breif This function will be called to invoko the plugin
-*/
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//int CreatePlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin, void* reserved);
-
-/*
- *
- * Layout of a MemoryViewPlugin (used for testing
- *
- */
-
-typedef struct PDMemoryViewPlugin
+enum
 {
-	void* (*createInstance)(void* parentWindow, ServiceFunc* serviceFunc);
-	void (*destroyInstance)(void* userData);
-	void (*displayMemory)(void* userData, void* memory);
-	void (*uiEvent)(void* userData, int id, int eventType);
+    PD_API_VERSION = 1
+};
 
-} PDMemoryViewPlugin;
+typedef uint64_t PDToken;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef enum PDDebugAction
+typedef enum PDDebugState
 {
-	PD_DEBUG_ACTION_BREAK,
-	PD_DEBUG_ACTION_STEP,
-	PD_DEBUG_ACTION_STEP_OVER,
-	PD_DEBUG_ACTION_CONTINUE,
-	PD_DEBUG_ACTION_SET_CODE_BREAKPOINT,
-	PD_DEBUG_ACTION_NONE
-
-} PDDebugAction;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef enum PDDebugState 
-{
-	PDDebugState_default,
-	PDDebugState_noTarget,
-	PDDebugState_breakpoint,
-	PDDebugState_breakpointFileLine,
-	PDDebugState_exception,
-	PDDebugState_custom
-
+    PDDebugState_noTarget,         // nothing is running 
+    PDDebugState_running,          // target is being executed 
+    PDDebugState_stopBreakpoint,   // Stop on Breakpoint 
+    PDDebugState_stopException,    // Stop on Exception 
+    PDDebugState_stepping,         // code is currently being stepped/traced/etc 
+    PDDebugState_custom = 0x1000   // Start of custom ids 
 } PDDebugState;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Used when we have a break/exception on a certain line
 
-typedef struct PDDebugStateFileLine
+typedef enum PDAction
 {
-	char filename[4096];
-	int line;
-
-} PDDebugStateFileLine;
+    PDAction_none,
+    PDAction_break,
+    PDAction_run,
+    PDAction_step,
+    PDAction_stepOut,
+    PDAction_stepOver,
+    PDAction_custom = 0x1000
+} PDAction;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef enum PDLaunchAction
+typedef enum PDEventType
 {
-	PD_DEBUG_LAUNCH,
-	PD_DEBUG_ATTATCH
+    PDEventType_getLocals,
+    PDEventType_getCallStack,
+    PDEventType_getWatch,
+    PDEventType_getRegisters,
+    PDEventType_getMemory,
+    PDEventType_getTty,
+    PDEventType_getExceptionLocation,
+    PDEventType_setBreakpointAddress,
+    PDEventType_setBreakpointSourceLine,
+    PDEventType_start,
+    PDEventType_setExecutable,
+    PDEventType_attachToProcess,
+    PDEventType_attachToRemoteSession,
+    PDEventType_custom = 0x1000
 
-} PDLaunchAction;
+} PDEventType;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef enum PDBreakpointType
+typedef struct PDSerializeWrite
 {
-	PDBreakpointType_FileLine,
-	PDBreakpointType_watchPoint,
-	PDBreakpointType_address,
-	PDBreakpointType_custom
+	// First Argument to all functions
+	void* writeData;
 
-} PDBreakpointType;
+	// Write 32-bit signed integer
+    void (*writeInt)(void* writeData, int);
+
+    // Write null-teminated string
+    void (*writeString)(void* writeData, const char* string);
+
+} PDSerializeWrite;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct PDSerializeRead
+{
+	// First argument to all functions
+	void* readData;
+
+	// Read a 32-bit int from the stream
+	// TODO: better with int32/uint32/I32/I16, etc and maybe add readI4Array(...) with count
+    int (*readInt)(void* readData);
+
+    // Read zero terminated string (caller needs to take a copy if reqired)
+    const char* (*readString)(void* readData);
+
+    // Checks how many bytes that there are left in the stream
+	int (*bytesLeft)(void* readData);
+
+	// Skip bytes to be read (useful if there is a unknown section with known size)
+	void (*skipBytes)(void* readData, int count);
+
+} PDSerializeRead;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Helper macros 
+
+#define PDREAD_INT(reader) reader->readInt(reader->readData)
+#define PDREAD_STRING(reader) reader->readString(reader->readData)
+#define PDREAD_SKIP_BYTES(reader, n) reader->skipBytes(reader->readData, n)
+#define PDREAD_BYTES_LEFT(reader) reader->bytesLeft(reader->readData)
+
+#define PDWRITE_EVENT_BEGIN(writer, event, id) writer->eventBegin(writer->writeData, event, id)
+#define PDWRITE_EVENT_END(writer, event, id) writer->eventEnd(writer->writeData)
+#define PDWRITE_INT(writer, value) writer->writeInt(writer->writeData, value)
+#define PDWRITE_STRING(writer, value) writer->writeString(writer->writeData, value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDBreakpointFileLine
+typedef struct PDBackendPlugin
 {
-	const char* filename;
-	int line;
-	int id;
-} PDBreakpointFileLine;
+    int version;
+    const char* name;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Create and destroy instance of the plugin
+    
+    void* (*createInstance)(ServiceFunc* serviceFunc);
+    void (*destroyInstance)(void* userData);
 
-typedef struct PDCallStack
-{
-	uint64_t address;
-	char moduleName[256];
-	char fileLine[256];
-} PDCallstack;
+    // Updates and Returns the current state of the plugin.
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    PDDebugState (*update)(void* userData);
 
-typedef struct PDLocals
-{
-	char address[32];
-	char value[32];
-	char type[256];
-	char name[1024]; 
+    // Various actions can be send to the plugin. like
+    // Break, continue, exit, detach etc.
 
-} PDLocals;
+    bool (*action)(void* userData, PDAction action);
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Get some data state  
+    void (*getState)(void* userData, PDEventType eventType, int eventId, PDSerializeWrite* serialize);
 
-typedef struct PDDebugOutput
-{
-	char output[2048];
-} PDDebugOutput;
+    // set some data state  
+    void (*setState)(void* userData, PDEventType event, int eventId, PDSerializeRead* reader, PDSerializeWrite* writer);
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// This is a bit temprory but used for testing now
-
-typedef struct PDDebugDataState
-{
-	PDDebugState state;
-
-	char filename[2048];		// current file if exception, breakpoint 
-	int line;						// current line if exception, breakpoint 
-
-	PDLocals locals[64];			// max 64 locals right now
-	PDCallStack callStack[32];		// 32 entries callstack
-	PDDebugOutput debugOutput;
-
-	int localsCount;
-	int callStackCount;
-
-} PDDebugDataState;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef struct PDDebugPlugin
-{
-	void* (*createInstance)(ServiceFunc* serviceFunc);
-	void (*destroyInstance)(void* userData);
-
-	bool (*start)(void* userData, PDLaunchAction action, void* launchData, PDBreakpointFileLine* breakpoints, int bpCount);
-	void (*action)(void* userData, PDDebugAction action, void* actionData);
-
-	PDDebugState (*getState)(void* userData, PDDebugDataState* dataState);
-	int (*addBreakpoint)(void* userData, PDBreakpointType type, void* breakpointData);
-	void (*removeBreakpoint)(void* userData, int id); 
-
-} PDDebugPlugin;
-
-typedef enum ProDBGPluginType
-{
-	PD_PTYPE_DEBUGGER = 1
-} ProDBGPluginType;
-
-// 
+} PDBackendPlugin;
 
 #ifdef _cplusplus
 }

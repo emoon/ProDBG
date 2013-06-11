@@ -59,7 +59,12 @@ StaticLibrary {
 	Env = { 
 		CXXOPTS = {
 			{ 
+			"-std=gnu0x",
+			"-std=c++11",
+			"-stdlib=libc++",
+			"-Wno-c++98-compat-pedantic",
 			"-Wno-global-constructors", 
+			"-Wno-gnu",
 			"-Wno-exit-time-destructors" ; Config = "macosx-clang-*" },
 		},
 		
@@ -94,6 +99,8 @@ SharedLibrary {
 			"-Wno-unused-parameter",
 			"-Wno-missing-prototypes",
 			"-Wno-unused-member-function",
+			"-Wno-switch",
+			"-Wno-switch-enum",
 			"-Wno-c++98-compat-pedantic" ; Config = "macosx-clang-*" },
 		},
 
@@ -160,6 +167,7 @@ Program {
 			"-Wno-conversion",
 			"-Wno-weak-vtables",
 			"-Wno-extra-semi",
+			"-Wno-switch-enum",
 			"-Wno-undefined-reinterpret-cast", -- needed for Qt signals :(
 			"-Wno-sign-conversion" ; Config = "macosx-clang-*" },
 		},

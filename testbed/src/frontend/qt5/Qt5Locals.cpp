@@ -30,9 +30,11 @@ Qt5Locals::~Qt5Locals()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5Locals::updateLocals(PDLocals* locals, int count)
+void Qt5Locals::update(PDSerializeRead* reader)
 {
 	QList<QTreeWidgetItem*> items;
+
+	int count = PDREAD_INT(reader);
 
 	clear();
 	
@@ -40,9 +42,12 @@ void Qt5Locals::updateLocals(PDLocals* locals, int count)
 	{
 		QStringList temp;
 		
-		PDLocals* local = &locals[i];
+		const char* name = PDREAD_STRING(reader);
+		const char* value = PDREAD_STRING(reader);
+		const char* type = PDREAD_STRING(reader);
+		const char* address = PDREAD_STRING(reader);
 
-		temp << local->name << local->value << local->type << local->address;
+		temp << name << value << type << address;
 		items.append(new QTreeWidgetItem((QTreeWidget*)0, temp)); 
 	}
 

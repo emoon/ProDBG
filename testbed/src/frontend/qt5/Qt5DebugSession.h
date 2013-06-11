@@ -2,6 +2,7 @@
 
 #include <ProDBGAPI.h>
 #include <QObject>
+#include <QVector>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -18,8 +19,8 @@ namespace prodbg
 class Qt5CodeEditor;
 class Qt5Locals;
 class Qt5CallStack;
-class Qt5DebugOutput;
 class Qt5DebuggerThread;
+class Qt5DebugOutput;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -37,12 +38,12 @@ public:
     void addCodeEditor(Qt5CodeEditor* codeEditor);
     void addLocals(Qt5Locals* locals);
     void addCallStack(Qt5CallStack* callStack);
-    void addDebugOutput(Qt5DebugOutput* debugOutput);
+    void addTty(Qt5DebugOutput* output);
 
     void delCodeEditor(Qt5CodeEditor* codeEditor);
     void delLocals(Qt5Locals* locals);
     void delCallStack(Qt5CallStack* callStack);
-    void delDebugOutput(Qt5DebugOutput* debugOutput);
+    void delTty(Qt5DebugOutput* output);
 
     void begin(const char* executable);
     void step();
@@ -58,12 +59,12 @@ public:
     
 private slots:
 	// Called from the when a state change has happen that require UI update 
-	void setDebugDataState(PDDebugDataState* state);
+	void getData(void* readerData);
 
 signals:
-	void tryStartDebugging(const char* filename, PDBreakpointFileLine* breakpoints, int bpCount);
-	void tryAddBreakpoint(const char* filename, int line);
+	void tryStartDebugging();
 	void tryStep();
+	void sendData(void* readerData);
 
 private:
 
@@ -72,15 +73,28 @@ private:
     QList<Qt5CallStack*> m_callStacks;
     QList<Qt5DebugOutput*> m_debugOutputs;
 
-	PDDebugPlugin* m_debuggerPlugin;
+	PDBackendPlugin* m_debuggerPlugin;
 	void* m_pluginData;
 	QThread* m_threadRunner;
 
-    Qt5DebuggerThread* m_debuggerThread;
-    PDBreakpointFileLine* m_breakpoints;
+	// Not sure how we should deal with this but lets keep it
+	// here like a cache.
+	// Maybe we should have this inside a more general cache
 
+	struct BreakpointFileLine
+	{
+		const char* filename;
+		int line;
+		int id;
+	};
+		
+	//QVector<BreakpointFileLine> m_breakpoints;
+	BreakpointFileLine* m_breakpoints;
+ 
     int m_breakpointCount;
     int m_breakpointMaxCount;
+
+    Qt5DebuggerThread* m_debuggerThread;
 };
 
 extern Qt5DebugSession* g_debugSession;

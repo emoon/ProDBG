@@ -29,7 +29,8 @@ Qt5SourceCodeView::Qt5SourceCodeView(Qt5MainWindow* mainWindow, Qt5DockWidget* d
 
     //m_sourceCode->setFocusProxy(this);
 
-    m_sourceCode->readSourceFile("examples/Fake6502/Fake6502Main.c");
+    //m_sourceCode->readSourceFile("examples/Fake6502/Fake6502Main.c");
+    m_sourceCode->readSourceFile("src/frontend/qt5/Qt5MainWindow.cpp");
     //m_sourceCode->beginDebug("tundra-output/macosx-clang-debug-default/Fake6502");
 }
 

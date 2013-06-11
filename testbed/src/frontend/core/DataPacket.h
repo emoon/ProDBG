@@ -1,0 +1,18 @@
+#pragma once
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace prodbg
+{
+
+struct DataPacket
+{
+    int sessionId;
+    int eventType;
+    int eventId;
+    void* data;
+    int size;
+};
+
+}
+

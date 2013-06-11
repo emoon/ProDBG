@@ -1,29 +1,40 @@
 #include "Qt5DebugOutput.h"
 #include "Qt5DebugSession.h"
-#include "ProDBGAPI.h"
 
 namespace prodbg
 {
 
-Qt5DebugOutput::Qt5DebugOutput(QWidget* parent)
-: QPlainTextEdit(parent)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Qt5DebugOutput::Qt5DebugOutput(QWidget* parent) : QPlainTextEdit(parent)
 {
 	setLineWrapMode(QPlainTextEdit::NoWrap);
-
-	g_debugSession->addDebugOutput(this);
+	setPlainText(tr("This is the debug output!"));
+	g_debugSession->addTty(this);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5DebugOutput::~Qt5DebugOutput()
 {
-	g_debugSession->delDebugOutput(this);
+	g_debugSession->delTty(this);
 }
 
-void Qt5DebugOutput::updateDebugOutput(PDDebugOutput* debugOutput)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5DebugOutput::appendText(const char* line)
 {
-	if (debugOutput->output[0] == 0x0)
+	if (line[0] == 0)
 		return;
-	
-	appendPlainText(debugOutput->output);
+
+	//printf("Called with line  %s\n", line);
+	//printf("Called with chars %x %x %x %x\n", line[0], line[1], line[2], line[3]);
+
+	QString t = QString::fromLocal8Bit(line);
+	t.replace(QString("\n"), QString(""));
+	t.replace(QString("\r"), QString(""));
+
+	appendPlainText(t);
 }
 
 }
