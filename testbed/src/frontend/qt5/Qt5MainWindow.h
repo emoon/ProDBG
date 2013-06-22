@@ -4,6 +4,7 @@
 
 #include <QMainWindow>
 #include <QObject>
+#include <QSignalMapper>
 #include "Qt5BaseView.h"
 #include "Qt5Layout.h"
 
@@ -34,6 +35,8 @@ class Qt5DebuggerThread;
 #ifndef QT5_MAX_VIEWS
 #define QT5_MAX_VIEWS 65535
 #endif
+
+struct MenuDescriptor;
 
 class Qt5MainWindow : public Qt5BaseView
 {
@@ -125,6 +128,7 @@ private slots:
 	void assignDebugOutputView();
 
 	void fileSettingsFinished(int result);
+	void onMenu(int id);
 
 protected:
 	enum Qt5ViewType m_currentViewType;
@@ -150,25 +154,21 @@ protected:
 	int m_progressBarStateCount;
 
 private:
+
+	void createMenu(MenuDescriptor* desc, QMenu* parentMenu);
+
 	void createActions();
 	void createMenus();
 	void createToolBars();
 	void createStatusBar();
 
-	QMenu* m_fileMenu;
+	QSignalMapper* m_signalMapper;
+
 	QMenu* m_windowMenu;
 	QMenu* m_newWindowMenu;
 	QMenu* m_dynamicWindowMenu;
 	QMenu* m_dynamicWindowAssignViewMenu;
-	QMenu* m_debugMenu;
 	QMenu* m_helpMenu;
-
-	QAction* m_fileResetLayoutAction;
-	QAction* m_fileExitAction;
-	QAction* m_fileSettingsAction;
-	QAction* m_fileSaveLayoutAction;
-
-	QAction* m_debugStartAction;
 
 	QAction* m_windowSplitVerticallyAction;
 	QAction* m_windowSplitHorizontallyAction;

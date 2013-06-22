@@ -13,6 +13,7 @@
 #include <QLabel>
 
 #include <core/PluginHandler.h>
+#include <core/Core.h>
 #include <ProDBGAPI.h>
 #include "Qt5DebuggerThread.h"
 #include "Qt5CallStack.h"
@@ -39,6 +40,8 @@ void Qt5MainWindow::newDynamicView()
 	emit dynamicView->signalDelayedSetCentralWidget(dynamicView->m_statusLabel);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::newCallStackView()
 {
 	Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
@@ -53,6 +56,8 @@ void Qt5MainWindow::newCallStackView()
 
 	addDockWidget(Qt::LeftDockWidgetArea, dock);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::newLocalsView()
 {
@@ -69,6 +74,8 @@ void Qt5MainWindow::newLocalsView()
 	addDockWidget(Qt::LeftDockWidgetArea, dock);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::newSourceCodeView()
 {
 	Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
@@ -83,6 +90,9 @@ void Qt5MainWindow::newSourceCodeView()
 
 	addDockWidget(Qt::LeftDockWidgetArea, dock);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 void Qt5MainWindow::newHexEditView()
 {
@@ -99,6 +109,8 @@ void Qt5MainWindow::newHexEditView()
 	addDockWidget(Qt::LeftDockWidgetArea, dock);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::newDebugOutputView()
 {
 	Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
@@ -113,6 +125,8 @@ void Qt5MainWindow::newDebugOutputView()
 
 	addDockWidget(Qt::LeftDockWidgetArea, dock);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::assignCallStackView()
 {
@@ -131,6 +145,8 @@ void Qt5MainWindow::assignCallStackView()
 	dynamicView->assignView(callStackView);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::assignLocalsView()
 {
 	Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
@@ -147,6 +163,8 @@ void Qt5MainWindow::assignLocalsView()
 	dynamicView->m_children[0] = localsView;
 	dynamicView->assignView(localsView);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::assignSourceCodeView()
 {
@@ -165,6 +183,8 @@ void Qt5MainWindow::assignSourceCodeView()
 	dynamicView->assignView(sourceCodeView);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::assignHexEditView()
 {
 	Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
@@ -181,6 +201,8 @@ void Qt5MainWindow::assignHexEditView()
 	dynamicView->m_children[0] = hexEditView;
 	dynamicView->assignView(hexEditView);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::assignDebugOutputView()
 {
@@ -206,21 +228,144 @@ void Qt5MainWindow::fileSettingsFinished(int result)
 	(void)result;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct MenuDescriptor
+{
+	const char* name;
+	int id;
+	bool active;
+	const char* shortCut;
+	MenuDescriptor* subMenu;
+};
+
+// File - 
+// New Project
+// Load -> Project...
+//         Executable...
+//         Symbols...
+//         Crash Dump...
+//         Default Layout
+// Save -> Project
+//         Project As...
+//         Default Layout
+// Recent -> Source Files (cmd + 1)
+//
+// Debug -
+// Go (F5)
+// Stop (Shift + F5)
+// -----------------
+// Step (F11)
+// Restricted Step (Cmd+F11)
+// Step Over (F11)
+// Step Out (Shift + F11)
+// ---------------------
+// Attach process
+//
+//
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum MenuIds
+{
+	//
+	
+	MENU_SEPARATOR = 1,
+
+ 	MENU_FILE_NEW_PROJECT = 0x1000,	
+ 	MENU_FILE_CLOSE_PROJECT,	
+ 	MENU_FILE_LOAD_PROJECT,	
+ 	MENU_FILE_LOAD_EXECUTABLE,	
+ 	MENU_FILE_LOAD_SOURCE,	
+ 	MENU_FILE_LOAD_DEFAULT_LAYOUT,	
+
+ 	// Debug
+
+	MENU_DEBUG_GO,
+	MENU_DEBUG_STOP,
+	MENU_DEBUG_RELOAD,
+	MENU_DEBUG_STEP,
+	MENU_DEBUG_STEP_OVER,
+	MENU_DEBUG_STEP_OUT,
+	MENU_DEBUG_ATTACH_TO_PROCESS,
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static MenuDescriptor s_loadMenu[] =
+{
+	{ "Project...", MENU_FILE_LOAD_PROJECT, false, "Ctrl+L", 0 },
+	{ "Executable...", MENU_FILE_LOAD_EXECUTABLE, true, "Ctrl+F3", 0 },
+	{ "Source...", MENU_FILE_LOAD_SOURCE, true, "Ctrl+O", 0 },
+	{ "Default Layout", MENU_FILE_LOAD_DEFAULT_LAYOUT, false, "", 0 },
+	{ 0, 0, 0, 0, 0 },
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static MenuDescriptor s_fileMenu[] =
+{
+	{ "New Project", MENU_FILE_NEW_PROJECT, false, "Ctrl+N", 0 },
+	{ "Load", 0, true, "", s_loadMenu },
+	{ "", MENU_SEPARATOR, true, "", 0 },
+	{ "Close Project", MENU_FILE_CLOSE_PROJECT, false, "Ctrl+D", 0 },
+	{ "", MENU_SEPARATOR, true, "", 0 },
+	{ 0, 0, 0, 0, 0 },
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static MenuDescriptor s_debugMenu[] =
+{
+	{ "Go", MENU_DEBUG_GO, true, "F5", 0 },
+	{ "Stop", MENU_DEBUG_STOP, true, "Shift+F5", 0 },
+	{ "Reload", MENU_DEBUG_RELOAD, true, "Ctrl+F2", 0 },
+	{ "", MENU_SEPARATOR, true, "", 0 },
+	{ "Step", MENU_DEBUG_STEP, true, "F11", 0 },
+	{ "Step Over", MENU_DEBUG_STEP_OVER, true, "F10", 0 },
+	{ "Step Out", MENU_DEBUG_STEP_OVER, true, "Shift+F11", 0 },
+	{ "Attach process...", MENU_DEBUG_ATTACH_TO_PROCESS, false, "", 0 },
+	{ 0, 0, 0, 0, 0 },
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::onMenu(int id)
+{
+	printf("%d\n", id);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::createMenu(MenuDescriptor* desc, QMenu* menu)
+{
+	while (desc->name)
+	{
+		if (desc->id == MENU_SEPARATOR)
+			menu->addSeparator();
+		else if (desc->subMenu)
+		{
+			QMenu* newMenu = menu->addMenu(desc->name);
+			createMenu(desc->subMenu, newMenu);
+		}
+		else
+		{
+			QAction* action = new QAction(desc->name, this);
+			action->setShortcut(QKeySequence(QString(desc->shortCut)));
+			action->setEnabled(desc->active);
+			m_signalMapper->setMapping(action, desc->id);
+			menu->addAction(action);
+			connect(action, SIGNAL(triggered()), m_signalMapper, SLOT(map()));
+		}
+
+		desc++;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::createActions()
 {
-	// Describe file menu actions
-	///////////////////////////////////////////////////////////////////////////////////////////
-
-	m_fileSettingsAction = new QAction(tr("Settings"), this);
-	m_fileSaveLayoutAction = new QAction(tr("Save Layout"), this);
-	m_fileResetLayoutAction = new QAction(tr("Reset Layout"), this);
-	m_fileExitAction = new QAction(tr("Exit"), this);
-
-	// Describe debug menu actions
-	///////////////////////////////////////////////////////////////////////////////////////////
-
-	m_debugStartAction = new QAction(tr("Start"), this);
-
 	// Describe window menu actions
 	///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -255,6 +400,8 @@ void Qt5MainWindow::createActions()
 	m_helpIndexAction = new QAction(tr("&Index..."), this);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::createMenus()
 {
 	QMenuBar* mainMenuBar = menuBar();
@@ -262,18 +409,8 @@ void Qt5MainWindow::createMenus()
 	// Connect file menu
 	///////////////////////////////////////////////////////////////////////////////////////////
 
-	m_fileMenu = menuBar()->addMenu(tr("&File"));
-	m_fileMenu->addAction(m_fileSaveLayoutAction);
-	m_fileMenu->addAction(m_fileSettingsAction);
-	m_fileMenu->addAction(m_fileResetLayoutAction);
-	m_fileMenu->addSeparator();
-	m_fileMenu->addAction(m_fileExitAction);
-
-	// Connect debug menu
-	///////////////////////////////////////////////////////////////////////////////////////////
-
-	m_debugMenu = menuBar()->addMenu(tr("&Debug"));
-	m_debugMenu->addAction(m_debugStartAction);
+	createMenu(s_fileMenu, menuBar()->addMenu(tr("&File")));
+	createMenu(s_debugMenu, menuBar()->addMenu(tr("&Debug")));
 
 	// Connect window menu
 	///////////////////////////////////////////////////////////////////////////////////////////
@@ -316,12 +453,18 @@ void Qt5MainWindow::createMenus()
 	m_helpMenu->addAction(m_helpIndexAction);
 	m_helpMenu->addSeparator();
 	m_helpMenu->addAction(m_helpAboutAction);
+
+	connect(m_signalMapper, SIGNAL(mapped(int)), SLOT(onMenu(int)));
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::createToolBars()
 {
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::createStatusBar()
 {
@@ -330,8 +473,7 @@ void Qt5MainWindow::createStatusBar()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5MainWindow::Qt5MainWindow()
-: Qt5BaseView(this, nullptr, nullptr)
+Qt5MainWindow::Qt5MainWindow() : Qt5BaseView(this, nullptr, nullptr)
 {
 	m_backgroundWidget = new QWidget;
 	QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -342,6 +484,7 @@ Qt5MainWindow::Qt5MainWindow()
 	m_backgroundWidget->setFocusProxy(this);
 	setCentralWidget(m_backgroundWidget);
 
+	m_signalMapper = new QSignalMapper(this);
 
 	createActions();
 	createMenus();
@@ -385,23 +528,17 @@ Qt5MainWindow::Qt5MainWindow()
 	Qt5DebugSession::createSession();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Qt5MainWindow::~Qt5MainWindow()
 {
 	m_shutdown = true;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::setupWorkspace()
 {
-	connect(m_fileSettingsAction, SIGNAL(triggered()), this, SLOT(fileSettings()));
-	connect(m_fileSaveLayoutAction, SIGNAL(triggered()), this, SLOT(fileSaveLayout()));
-	connect(m_fileResetLayoutAction, SIGNAL(triggered()), this, SLOT(fileResetLayout()));
-	connect(m_fileExitAction, SIGNAL(triggered()), this, SLOT(fileExit()));
-
-	// Describe debug menu actions
-	///////////////////////////////////////////////////////////////////////////////////////////
-
-	connect(m_debugStartAction, SIGNAL(triggered()), this, SLOT(debugStart()));
-
 	// Describe window menu actions
 	///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -436,6 +573,8 @@ void Qt5MainWindow::setupWorkspace()
 	focusInEvent(nullptr);
 	m_type = Qt5ViewType_Main;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::setCurrentWindow(Qt5BaseView* widget, Qt5ViewType type)
 {
@@ -527,6 +666,8 @@ void Qt5MainWindow::setCurrentWindow(Qt5BaseView* widget, Qt5ViewType type)
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Qt5BaseView* Qt5MainWindow::getCurrentWindow(Qt5ViewType type)
 {
 	if (m_shutdown)
@@ -609,22 +750,30 @@ Qt5BaseView* Qt5MainWindow::getCurrentWindow(Qt5ViewType type)
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::loadLayout(Qt5Layout* layout)
 {
 	(void)layout;
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::saveLayout()
 {
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::addLayout(Qt5LayoutEntry* layoutEntry)
 {
 	(void)layoutEntry;
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int Qt5MainWindow::addView()
 {
@@ -663,11 +812,15 @@ int Qt5MainWindow::addView()
 	return nextView;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::deleteView(int id)
 {
 	m_viewTable[id] = false;
 	m_nextView = -1;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::resetViews()
 {
@@ -679,10 +832,14 @@ void Qt5MainWindow::resetViews()
 	m_nextView = -1;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::closeEvent(QCloseEvent*)
 {
 	shutdown(this);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::contextMenuEvent(QContextMenuEvent*)
 {
@@ -694,6 +851,8 @@ void Qt5MainWindow::contextMenuEvent(QContextMenuEvent*)
 	Q_ASSERT(m_currentWindowMenu != nullptr);
 	m_currentWindowMenu->display(cursor().pos());
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::focusInEvent(QFocusEvent*)
 {
@@ -713,30 +872,35 @@ void Qt5MainWindow::focusInEvent(QFocusEvent*)
 	// menu of the menuBar.
 }
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 void Qt5MainWindow::fileExit()
 {
 	close();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::fileResetLayout()
 {
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::fileSettings()
 {
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::fileSaveLayout()
 {
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::debugStart()
 {
@@ -744,20 +908,28 @@ void Qt5MainWindow::debugStart()
 	g_debugSession->begin("tundra-output/macosx-clang-debug-default/prodbg-qt5");
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::helpIndex()
 {
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::helpContents()
 {
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::helpAbout()
 {
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::setWindowMenu(Qt5ContextMenu* menu)
 {
@@ -787,6 +959,8 @@ void Qt5MainWindow::setWindowMenu(Qt5ContextMenu* menu)
 	mainMenuBar->insertAction(m_helpMenu->menuAction(), m_currentWindowMenu->menuAction());
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Qt5ContextMenu* Qt5MainWindow::getWindowMenu()
 {
 	if (m_shutdown)
@@ -795,15 +969,21 @@ Qt5ContextMenu* Qt5MainWindow::getWindowMenu()
 	return m_currentWindowMenu;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::triggerSignalSettings()
 {
 	emit signalSettings();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::triggerSignalApplyLayout(Qt5Layout* layout)
 {
 	emit signalApplyLayout(layout);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::windowSplitVertically()
 {
@@ -814,6 +994,8 @@ void Qt5MainWindow::windowSplitVertically()
 	view->splitView(Qt::Horizontal);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::windowSplitHorizontally()
 {
 	Qt5DynamicView* view = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
@@ -822,6 +1004,8 @@ void Qt5MainWindow::windowSplitHorizontally()
 
 	view->splitView(Qt::Vertical);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::windowFillMainWindow()
 {
@@ -877,10 +1061,14 @@ void Qt5MainWindow::windowFillMainWindow()
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::windowUnfillMainWindow()
 {
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::windowDeleteView()
 {
@@ -1008,6 +1196,8 @@ void Qt5MainWindow::windowDeleteView()
 	return;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::windowCloseView()
 {
 	Qt5DynamicView* view = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
@@ -1037,6 +1227,8 @@ void Qt5MainWindow::windowCloseView()
 	view->deleteLater();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::contextMenuProxy(const QPoint&)
 {
 	if (m_shutdown)
@@ -1046,21 +1238,29 @@ void Qt5MainWindow::contextMenuProxy(const QPoint&)
 	m_currentWindowMenu->display(cursor().pos());
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::applySettings()
 {
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::buildLayout()
 {
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::applyLayout(Qt5Layout* layout)
 {
 	(void)layout;
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::shutdown(QObject*)
 {
@@ -1077,10 +1277,14 @@ void Qt5MainWindow::shutdown(QObject*)
 	saveLayout();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::errorMessage(const QString& message)
 {
 	QMessageBox::critical((QWidget*)parent(), QString("Error"), QString(message), QMessageBox::Ok, QMessageBox::Ok);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
 
