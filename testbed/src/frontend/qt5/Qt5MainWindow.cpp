@@ -239,31 +239,6 @@ struct MenuDescriptor
 	MenuDescriptor* subMenu;
 };
 
-// File - 
-// New Project
-// Load -> Project...
-//         Executable...
-//         Symbols...
-//         Crash Dump...
-//         Default Layout
-// Save -> Project
-//         Project As...
-//         Default Layout
-// Recent -> Source Files (cmd + 1)
-//
-// Debug -
-// Go (F5)
-// Stop (Shift + F5)
-// -----------------
-// Step (F11)
-// Restricted Step (Cmd+F11)
-// Step Over (F11)
-// Step Out (Shift + F11)
-// ---------------------
-// Attach process
-//
-//
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 enum MenuIds
