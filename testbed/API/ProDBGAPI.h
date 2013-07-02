@@ -4,6 +4,7 @@
 #define _PRODBGAPI_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef _cplusplus
 extern "C" {
@@ -66,6 +67,7 @@ typedef enum PDEventType
     PDEventType_getMemory,
     PDEventType_getTty,
     PDEventType_getExceptionLocation,
+    PDEventType_getDisassembly,
     PDEventType_setBreakpointAddress,
     PDEventType_setBreakpointSourceLine,
     PDEventType_start,
@@ -144,7 +146,6 @@ typedef struct PDBackendPlugin
 
     // Various actions can be send to the plugin. like
     // Break, continue, exit, detach etc.
-
     bool (*action)(void* userData, PDAction action);
 
     // Get some data state  
