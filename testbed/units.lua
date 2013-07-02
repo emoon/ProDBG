@@ -32,6 +32,23 @@ local function MocGenerationMulti(sources)
  return result
 end
 
+StaticLibrary {
+	Name = "RemoteAPI",
+
+	Env = { 
+		
+		CPPPATH = { "API" } 
+	},
+
+	Sources = { 
+		Glob {
+			Dir = "api/RemoteAPI",
+			Extensions = { ".c" },
+		},
+	},
+}
+
+
 -- Example 6502 emulator
 
 Program {
@@ -39,7 +56,7 @@ Program {
 
 	Env = {
 		CCOPTS = {
-			{ "-Wno-conversion", "-Wno-pedantic"; Config = "macosx-*-*" },
+			{ "-Wno-conversion", "-Wno-pedantic", "-Wno-format-nonliteral"; Config = "macosx-*-*" },
 		},
 	},
 
@@ -49,6 +66,8 @@ Program {
 			Extensions = { ".c", ".cpp", ".m" },
 		},
 	},
+
+	Depends = { "RemoteAPI" },
 }
 
 -- Core Lib

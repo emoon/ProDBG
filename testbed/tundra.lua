@@ -6,7 +6,7 @@ local macosx = {
 		QT5 = native.getenv("QT5"),
 		CCOPTS = {
 			"-Wall",
-			"-I.", "-DMACOSX", "-Weverything", "-Wno-missing-prototypes",
+			"-I.", "-DMACOSX", "-Weverything", "-Wno-missing-prototypes", "-Wno-padded",
 			{ "-O0", "-g"; Config = "*-*-debug" },
 			{ "-O3", "-g"; Config = "*-*-release" },
 		},
