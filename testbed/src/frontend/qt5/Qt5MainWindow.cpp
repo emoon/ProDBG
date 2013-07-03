@@ -1,7 +1,5 @@
 #include "Qt5MainWindow.h"
 #include "Qt5BaseView.h"
-#include "Qt5DynamicView.h"
-#include "Qt5DockWidget.h"
 #include "Qt5CallStackView.h"
 #include "Qt5LocalsView.h"
 #include "Qt5SourceCodeView.h"
@@ -44,181 +42,70 @@ void Qt5MainWindow::newDynamicView()
 
 void Qt5MainWindow::newCallStackView()
 {
-	Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
-	dock->setAttribute(Qt::WA_DeleteOnClose, true);
-
-	Qt5DynamicView* dynamicView = new Qt5DynamicView(this, dock, this);
-	dock->setWidget(dynamicView);
-
-	Qt5CallStackView* callStackView = new Qt5CallStackView(this, dock, dynamicView);
-	dynamicView->m_children[0] = callStackView;
-	dynamicView->assignView(callStackView);
-
-	addDockWidget(Qt::LeftDockWidgetArea, dock);
+	newView<Qt5CallStackView>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::newLocalsView()
 {
-	Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
-	dock->setAttribute(Qt::WA_DeleteOnClose, true);
-
-	Qt5DynamicView* dynamicView = new Qt5DynamicView(this, dock, this);
-	dock->setWidget(dynamicView);
-
-	Qt5LocalsView* localsView = new Qt5LocalsView(this, dock, dynamicView);
-	dynamicView->m_children[0] = localsView;
-	dynamicView->assignView(localsView);
-
-	addDockWidget(Qt::LeftDockWidgetArea, dock);
+	newView<Qt5LocalsView>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::newSourceCodeView()
 {
-	Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
-	dock->setAttribute(Qt::WA_DeleteOnClose, true);
-
-	Qt5DynamicView* dynamicView = new Qt5DynamicView(this, dock, this);
-	dock->setWidget(dynamicView);
-
-	Qt5SourceCodeView* sourceCodeView = new Qt5SourceCodeView(this, dock, dynamicView);
-	dynamicView->m_children[0] = sourceCodeView;
-	dynamicView->assignView(sourceCodeView);
-
-	addDockWidget(Qt::LeftDockWidgetArea, dock);
+	newView<Qt5SourceCodeView>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 void Qt5MainWindow::newHexEditView()
 {
-	Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
-	dock->setAttribute(Qt::WA_DeleteOnClose, true);
-
-	Qt5DynamicView* dynamicView = new Qt5DynamicView(this, dock, this);
-	dock->setWidget(dynamicView);
-
-	Qt5HexEditView* hexEditView = new Qt5HexEditView(this, dock, dynamicView);
-	dynamicView->m_children[0] = hexEditView;
-	dynamicView->assignView(hexEditView);
-
-	addDockWidget(Qt::LeftDockWidgetArea, dock);
+	newView<Qt5HexEditView>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::newDebugOutputView()
 {
-	Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
-	dock->setAttribute(Qt::WA_DeleteOnClose, true);
-
-	Qt5DynamicView* dynamicView = new Qt5DynamicView(this, dock, this);
-	dock->setWidget(dynamicView);
-
-	Qt5DebugOutputView* debugOutputView = new Qt5DebugOutputView(this, dock, dynamicView);
-	dynamicView->m_children[0] = debugOutputView;
-	dynamicView->assignView(debugOutputView);
-
-	addDockWidget(Qt::LeftDockWidgetArea, dock);
+	newView<Qt5DebugOutputView>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::assignCallStackView()
 {
-	Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
-	if (dynamicView == nullptr)
-		return;
-
-	Qt5CallStackView* callStackView = new Qt5CallStackView(this, nullptr, dynamicView);
-	if (dynamicView->m_children[0] != nullptr)
-	{
-		dynamicView->m_children[0]->hide();
-		dynamicView->m_children[0]->deleteLater();
-	}
-
-	dynamicView->m_children[0] = callStackView;
-	dynamicView->assignView(callStackView);
+	assignView<Qt5CallStackView>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::assignLocalsView()
 {
-	Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
-	if (dynamicView == nullptr)
-		return;
-
-	Qt5LocalsView* localsView = new Qt5LocalsView(this, nullptr, dynamicView);
-	if (dynamicView->m_children[0] != nullptr)
-	{
-		dynamicView->m_children[0]->hide();
-		dynamicView->m_children[0]->deleteLater();
-	}
-
-	dynamicView->m_children[0] = localsView;
-	dynamicView->assignView(localsView);
+	assignView<Qt5LocalsView>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::assignSourceCodeView()
 {
-	Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
-	if (dynamicView == nullptr)
-		return;
-
-	Qt5SourceCodeView* sourceCodeView = new Qt5SourceCodeView(this, nullptr, dynamicView);
-	if (dynamicView->m_children[0] != nullptr)
-	{
-		dynamicView->m_children[0]->hide();
-		dynamicView->m_children[0]->deleteLater();
-	}
-
-	dynamicView->m_children[0] = sourceCodeView;
-	dynamicView->assignView(sourceCodeView);
+	assignView<Qt5SourceCodeView>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::assignHexEditView()
 {
-	Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
-	if (dynamicView == nullptr)
-		return;
-
-	Qt5HexEditView* hexEditView = new Qt5HexEditView(this, nullptr, dynamicView);
-	if (dynamicView->m_children[0] != nullptr)
-	{
-		dynamicView->m_children[0]->hide();
-		dynamicView->m_children[0]->deleteLater();
-	}
-
-	dynamicView->m_children[0] = hexEditView;
-	dynamicView->assignView(hexEditView);
+	assignView<Qt5HexEditView>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::assignDebugOutputView()
 {
-	Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
-	if (dynamicView == nullptr)
-		return;
-
-	Qt5DebugOutputView* debugOutputView = new Qt5DebugOutputView(this, nullptr, dynamicView);
-	if (dynamicView->m_children[0] != nullptr)
-	{
-		dynamicView->m_children[0]->hide();
-		dynamicView->m_children[0]->deleteLater();
-	}
-
-	dynamicView->m_children[0] = debugOutputView;
-	dynamicView->assignView(debugOutputView);
+	assignView<Qt5DebugOutputView>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -263,6 +150,7 @@ enum MenuIds
 	MENU_DEBUG_STEP_OVER,
 	MENU_DEBUG_STEP_OUT,
 	MENU_DEBUG_ATTACH_TO_PROCESS,
+	MENU_DEBUG_ATTACH_TO_REMOTE_PROCESS,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -300,6 +188,7 @@ static MenuDescriptor s_debugMenu[] =
 	{ "Step Over", MENU_DEBUG_STEP_OVER, true, "F10", 0 },
 	{ "Step Out", MENU_DEBUG_STEP_OVER, true, "Shift+F11", 0 },
 	{ "Attach process...", MENU_DEBUG_ATTACH_TO_PROCESS, false, "", 0 },
+	{ "Attach Remote process...", MENU_DEBUG_ATTACH_TO_PROCESS, true, "Ctrl+r", 0 },
 	{ 0, 0, 0, 0, 0 },
 };
 
@@ -384,8 +273,8 @@ void Qt5MainWindow::createMenus()
 	// Connect file menu
 	///////////////////////////////////////////////////////////////////////////////////////////
 
-	createMenu(s_fileMenu, menuBar()->addMenu(tr("&File")));
-	createMenu(s_debugMenu, menuBar()->addMenu(tr("&Debug")));
+	createMenu(s_fileMenu, mainMenuBar->addMenu(tr("&File")));
+	createMenu(s_debugMenu, mainMenuBar->addMenu(tr("&Debug")));
 
 	// Connect window menu
 	///////////////////////////////////////////////////////////////////////////////////////////
@@ -501,6 +390,10 @@ Qt5MainWindow::Qt5MainWindow() : Qt5BaseView(this, nullptr, nullptr)
 	// TODO: This is a bit temporary but will do for now
 
 	Qt5DebugSession::createSession();
+
+	newSourceCodeView();
+	newLocalsView();
+	newCallStackView();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

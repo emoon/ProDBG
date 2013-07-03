@@ -7,6 +7,8 @@
 #include <QSignalMapper>
 #include "Qt5BaseView.h"
 #include "Qt5Layout.h"
+#include "Qt5DockWidget.h"
+#include "Qt5DynamicView.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -22,7 +24,6 @@ struct PDDebugPlugin;
 namespace prodbg
 {
 
-class Qt5DockWidget;
 class Qt5SettingsWindow;
 class Qt5CallStackView;
 class Qt5LocalsView;
@@ -199,6 +200,42 @@ private:
 	Qt5SettingsWindow* m_settingsWindow;
 
 	bool m_centralWidgetSet;
+
+	// Temporary. Used to reduce some code bloat
+
+	template<class T> void newView()
+	{
+		Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
+		dock->setAttribute(Qt::WA_DeleteOnClose, true);
+
+		Qt5DynamicView* dynamicView = new Qt5DynamicView(this, dock, this);
+		dock->setWidget(dynamicView);
+
+		T* view = new T(this, dock, dynamicView);
+		dynamicView->m_children[0] = view;
+		dynamicView->assignView(view);
+
+		addDockWidget(Qt::LeftDockWidgetArea, dock);
+	}
+
+	// Temporary. Used to reduce some code bloat
+
+	template<class T> void assignView()
+	{
+		Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
+		if (dynamicView == nullptr)
+			return;
+
+		T* view = new T(this, nullptr, dynamicView);
+		if (dynamicView->m_children[0] != nullptr)
+		{
+			dynamicView->m_children[0]->hide();
+			dynamicView->m_children[0]->deleteLater();
+		}
+
+		dynamicView->m_children[0] = view;
+		dynamicView->assignView(view);
+	}
 
 signals:
 	void signalSettings();
