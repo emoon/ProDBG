@@ -26,10 +26,11 @@ int PDRemote_create(struct PDBackendPlugin* plugin, int waitForConnection);
  *
  * This function is required to be called now and then in your application as it keeps the connection with the
  * debugger alive (listening to incoming events, etc)
+ * \param sleepTime optional amount of time to sleep in miliseconds (useful if called in a tight loop)
  *
  */
 
-int PDRemote_update();
+int PDRemote_update(int sleepTime);
 
 /**
  * \brief Check connection status 
