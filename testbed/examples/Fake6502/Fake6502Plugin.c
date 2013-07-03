@@ -1,0 +1,75 @@
+#include "../../API/ProDBGAPI.h" 
+#include "Debugger6502.h"
+#include <stdlib.h>
+
+Debugger6502* g_debugger;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void* createInstance(ServiceFunc* serviceFunc)
+{
+	(void)serviceFunc;
+	g_debugger = malloc(sizeof(Debugger6502));	// this is a bit ugly but for this plugin we only have one instance
+	return g_debugger;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void destroyInstance(void* userData)
+{
+	free(userData);
+	g_debugger = 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PDDebugState update(void* userData)
+{
+	(void)userData;
+	return PDDebugState_running;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static bool action(void* userData, PDAction action)
+{
+	Debugger6502* debugger = (Debugger6502*)userData;
+	debugger->action = (int)action;
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void getState(void* userData, PDEventType eventType, int eventId, PDSerializeWrite* writer)
+{
+	(void)userData;
+	(void)eventType;
+	(void)eventId;
+	(void)writer;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void setState(void* userData, PDEventType event, int eventId, PDSerializeRead* reader, PDSerializeWrite* writer)
+{
+	(void)userData;
+	(void)event;
+	(void)eventId;
+	(void)reader;
+	(void)writer;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+PDBackendPlugin s_debuggerPlugin =
+{
+	1,
+	"Fake6502",
+    createInstance,
+    destroyInstance,
+    update,
+    action,
+    getState,
+    setState,
+};
+

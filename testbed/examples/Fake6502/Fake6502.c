@@ -109,6 +109,9 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include "Debugger6502.h"
+#include "../../API/Remote.h"
+#include "../../API/ProDBGAPI.h"
 
 //6502 defines
 #define UNDOCUMENTED //when this is defined, undocumented opcodes are handled.
@@ -946,7 +949,27 @@ void exec6502(uint32_t tickcount) {
 
 }
 
-void step6502() {
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void updateDebugger()
+{
+	// if we aren't connected with the debugger just update the connection every 128 cycles to save some CPU
+
+    if (!PDRemote_isConnected())
+	{
+		if ((instructions & 127) == 0)
+			PDRemote_update(0);
+
+		return;
+	}
+
+	PDRemote_update(0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void step6502() 
+{
     opcode = read6502(pc++);
     status |= FLAG_CONSTANT;
 
@@ -961,12 +984,33 @@ void step6502() {
 
     instructions++;
 
-    if (callexternal) (*loopexternal)();
 }
 
-void hookexternal(void *funcptr) {
-    if (funcptr != (void *)NULL) {
-        loopexternal = funcptr;
-        callexternal = 1;
-    } else callexternal = 0;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void execute6502()
+{
+	updateDebugger();
+
+	// if we should break we should stop here and just have a loop that waits for the next thing to happen
+
+	if (g_debugger->action == PDAction_break)
+	{
+		while (1)
+		{
+			switch (g_debugger->action)
+			{
+				case PDAction_run : goto go_on;	// start running as usually
+				case PDAction_step : step6502(); break;
+				default : break;
+			}
+
+			PDRemote_update(1);
+		}
+	}
+
+go_on:;	
+
+	step6502();
 }
+
