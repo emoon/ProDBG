@@ -56,7 +56,7 @@ Program {
 
 	Env = {
 		CCOPTS = {
-			{ "-Wno-conversion", "-Wno-pedantic", "-Wno-format-nonliteral"; Config = "macosx-*-*" },
+			{ "-Wno-conversion", "-Werror", "-Wno-pedantic", "-Wno-format-nonliteral"; Config = "macosx-*-*" },
 		},
 	},
 
