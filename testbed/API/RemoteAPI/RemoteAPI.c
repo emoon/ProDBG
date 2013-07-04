@@ -3,6 +3,7 @@
 #include <ProDBGAPI.h>
 
 #include <stdint.h>
+#include <stdio.h>
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -38,6 +39,7 @@ int PDRemote_create(struct PDBackendPlugin* plugin, int waitForConnection)
 
 	// \todo Verify that this plugin is ok
 	s_plugin = plugin;
+	s_userData = plugin->createInstance(0);
 
 	// wait for connection if waitForConnecion > 0
 
@@ -66,10 +68,13 @@ static void processCommands()
 	if (!RemoteConnection_recv(s_conn, (char*)&command, 4, 0)) 
 		return;
 
+
 	// top 16-bits = type of command
 	// lower 16-bits = action/event
 
 	command = htonl(command);	// make sure we have right endian format
+
+	printf("got command %04x\n", command);
 
 	// \todo: Make sure to use enum/defines here
 
