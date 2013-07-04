@@ -176,8 +176,7 @@ void Qt5CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 
 void Qt5CodeEditor::step()
 {
-	printf("Doing step\n");
-	g_debugSession->step();
+	g_debugSession->callAction(PDAction_step);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

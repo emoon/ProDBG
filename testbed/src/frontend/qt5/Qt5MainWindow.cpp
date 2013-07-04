@@ -188,7 +188,7 @@ static MenuDescriptor s_debugMenu[] =
 	{ "Step Over", MENU_DEBUG_STEP_OVER, true, "F10", 0 },
 	{ "Step Out", MENU_DEBUG_STEP_OVER, true, "Shift+F11", 0 },
 	{ "Attach process...", MENU_DEBUG_ATTACH_TO_PROCESS, false, "", 0 },
-	{ "Attach Remote process...", MENU_DEBUG_ATTACH_TO_PROCESS, true, "Ctrl+r", 0 },
+	{ "Attach Remote process...", MENU_DEBUG_ATTACH_TO_REMOTE_PROCESS , true, "Ctrl+r", 0 },
 	{ 0, 0, 0, 0, 0 },
 };
 
@@ -196,6 +196,33 @@ static MenuDescriptor s_debugMenu[] =
 
 void Qt5MainWindow::onMenu(int id)
 {
+	switch (id)
+	{
+		case MENU_DEBUG_ATTACH_TO_REMOTE_PROCESS :
+		{
+			g_debugSession->beginRemote("127.0.0.1", 1340);
+			break;
+		}
+
+		case MENU_DEBUG_GO :
+		{
+			g_debugSession->callAction(PDAction_run);
+			break;
+		}
+
+		case MENU_DEBUG_STOP :
+		{
+			g_debugSession->callAction(PDAction_break);
+			break;
+		}
+
+		case MENU_DEBUG_STEP :
+		{
+			g_debugSession->callAction(PDAction_step);
+			break;
+		}
+	}
+
 	printf("%d\n", id);
 }
 

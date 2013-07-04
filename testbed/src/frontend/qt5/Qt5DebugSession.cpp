@@ -106,7 +106,7 @@ void Qt5DebugSession::begin(const char* executable)
 	PDSerializeWrite* writer = &writer_;
 
 	m_threadRunner = new QThread;
-	m_debuggerThread = new Qt5DebuggerThread;
+	m_debuggerThread = new Qt5DebuggerThread(Qt5DebuggerThread::Local);
 	m_debuggerThread->moveToThread(m_threadRunner);
 
 	// TODO: Not sure if we should set this up here, would be better to move it so we don't need to actually
@@ -114,9 +114,7 @@ void Qt5DebugSession::begin(const char* executable)
 
 	connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
 	connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
-	//connect(this, &Qt5DebugSession::tryStartDebugging, m_debuggerThread, &Qt5DebuggerThread::tryStartDebugging); 
-	connect(this, &Qt5DebugSession::tryStep, m_debuggerThread, &Qt5DebuggerThread::tryStep); 
-
+	connect(this, &Qt5DebugSession::tryAction, m_debuggerThread, &Qt5DebuggerThread::doAction); 
 	connect(m_debuggerThread, &Qt5DebuggerThread::sendData, this, &Qt5DebugSession::getData); 
 	connect(this, &Qt5DebugSession::sendData, m_debuggerThread, &Qt5DebuggerThread::getData); 
 
@@ -153,6 +151,30 @@ void Qt5DebugSession::begin(const char* executable)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// This is to start a remote session
+
+void Qt5DebugSession::beginRemote(const char* address, int port)
+{
+	m_threadRunner = new QThread;
+	m_debuggerThread = new Qt5DebuggerThread(Qt5DebuggerThread::Remote);
+	m_debuggerThread->moveToThread(m_threadRunner);
+	m_debuggerThread->setRemoteTarget(address, port);
+
+	// TODO: Not sure if we should set this up here, would be better to move it so we don't need to actually
+	//       start a executable/etc when doing a begin
+
+	connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
+	connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
+	connect(this, &Qt5DebugSession::tryAction, m_debuggerThread, &Qt5DebuggerThread::doAction); 
+	connect(m_debuggerThread, &Qt5DebuggerThread::sendData, this, &Qt5DebugSession::getData); 
+	connect(this, &Qt5DebugSession::sendData, m_debuggerThread, &Qt5DebuggerThread::getData); 
+
+	printf("beginDebug %s:%d %d\n", address, port, (uint32_t)(uint64_t)QThread::currentThreadId());
+
+	m_threadRunner->start();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Qt5DebugSession::getFilenameLine(const char** filename, int* line)
 {
@@ -182,9 +204,9 @@ bool Qt5DebugSession::hasLineBreakpoint(const char* filename, int line)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5DebugSession::step()
+void Qt5DebugSession::callAction(int action)
 {
-    emit tryStep();
+    emit tryAction(action);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

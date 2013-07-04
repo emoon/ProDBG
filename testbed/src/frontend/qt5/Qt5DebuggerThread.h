@@ -6,10 +6,13 @@
 #include "ProDBGAPI.h"
 #include "Core/DataPacket.h"
 
+struct RemoteConnection;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace prodbg
 {
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -18,13 +21,20 @@ class Qt5DebuggerThread : public QObject
 	Q_OBJECT
 
 public:
-	Qt5DebuggerThread();
+
+	enum TargetType
+	{
+		Local,
+		Remote
+	};
+
+	Qt5DebuggerThread(TargetType type);
+	void setRemoteTarget(const char* hostName, int port);
 
 public slots:
     void start();
 	void update();
-	void tryStep();
-	//void tryStartDebugging();
+	void doAction(int action);
 	void getData(void* serializeData);
  
 signals:
@@ -41,6 +51,10 @@ private:
 	PDBackendPlugin* m_debuggerPlugin;
 	void* m_pluginData;
 	QTimer m_timer;
+	const char* m_targetHost;
+	RemoteConnection* m_connection;
+	int m_port;
+	TargetType m_targetType;
 
 	PDSerializeRead m_reader;
 	PDSerializeWrite m_writer;

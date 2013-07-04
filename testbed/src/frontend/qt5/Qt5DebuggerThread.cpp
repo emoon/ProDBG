@@ -5,6 +5,7 @@
 #include <core/BinarySerializer.h>
 #include <core/Log.h>
 #include <ProDBGAPI.h>
+#include "../../../API/RemoteAPI/RemoteConnection.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -13,7 +14,9 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5DebuggerThread::Qt5DebuggerThread() : m_debugState(PDDebugState_noTarget)
+Qt5DebuggerThread::Qt5DebuggerThread(Qt5DebuggerThread::TargetType type) : 
+	m_debugState(PDDebugState_noTarget),
+	m_targetType(type)
 {
 }
 
@@ -23,24 +26,45 @@ void Qt5DebuggerThread::start()
 {
 	int count;
 
-	printf("start Qt5DebuggerThread\n");
-
-	Plugin* plugin = PluginHandler_getPlugins(&count);
-
-	if (count != 1)
+	if (m_targetType == Local)
 	{
-		emit finished();
-		return;
+		printf("start Qt5DebuggerThread\n");
+
+		Plugin* plugin = PluginHandler_getPlugins(&count);
+
+		if (count != 1)
+		{
+			emit finished();
+			return;
+		}
+
+		// try to start debugging session of a plugin
+
+		m_debuggerPlugin = (PDBackendPlugin*)plugin->data;
+		m_pluginData = m_debuggerPlugin->createInstance(0);
+
+		connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
+
+		printf("end start Qt5DebuggerThread\n");
 	}
+	else
+	{
+		RemoteConnection* conn = RemoteConnection_create(RemoteConnectionType_Connect, m_port);
 
-	// try to start debugging session of a plugin
+		if (!RemoteConnection_connect(conn, m_targetHost, m_port))
+		{
+			printf("Unable to connect to %s:%d\n", m_targetHost, m_port);
+			RemoteConnection_destroy(conn);
+			emit finished();
+			return;
+		}
+		else
+		{
+			printf("Connected to %s:%d\n", m_targetHost, m_port);
+		}
 
-	m_debuggerPlugin = (PDBackendPlugin*)plugin->data;
-	m_pluginData = m_debuggerPlugin->createInstance(0);
-
-	connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
-
-	printf("end start Qt5DebuggerThread\n");
+		m_connection = conn;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -88,6 +112,14 @@ void Qt5DebuggerThread::getData(void* serializeData)
 	// After we finished reading the data we free it up
 	
 	BinarySerializer_destroyData(serializeData);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5DebuggerThread::setRemoteTarget(const char* hostName, int port)
+{
+	m_targetHost = strdup(hostName);
+	m_port = port;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -176,9 +208,18 @@ void Qt5DebuggerThread::update()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5DebuggerThread::tryStep()
+void Qt5DebuggerThread::doAction(int action)
 {
-	m_debuggerPlugin->action(m_pluginData, PDAction_step);
+	if (m_targetType == Local)
+		m_debuggerPlugin->action(m_pluginData, (PDAction)action);
+	else
+	{
+		if (RemoteConnection_isConnected(m_connection))
+		{
+			uint32_t command = htonl(0 << 16 | action);
+			RemoteConnection_send(m_connection, &command, sizeof(uint32_t), 0);
+		}
+	}
 }
 
 }

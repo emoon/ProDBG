@@ -46,7 +46,8 @@ public:
     void delTty(Qt5DebugOutput* output);
 
     void begin(const char* executable);
-    void step();
+    void beginRemote(const char* remoteTarget, int port);
+    void callAction(int action);
 
     bool hasLineBreakpoint(const char* filename, int line);
     bool getFilenameLine(const char** filename, int* line);
@@ -63,7 +64,7 @@ private slots:
 
 signals:
 	void tryStartDebugging();
-	void tryStep();
+	void tryAction(int);
 	void sendData(void* readerData);
 
 private:
