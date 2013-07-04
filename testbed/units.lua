@@ -216,7 +216,7 @@ Program {
 		},
 	},
 
-	Depends = { "core" },
+	Depends = { "core", "RemoteAPI" },
 
 	Libs = { { "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib",
 	           "Qt5GUi.lib", "Qt5Core.lib", "Qt5Concurrent.lib", "Qt5Widgets.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
