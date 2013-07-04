@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #ifndef _WIN32
 #include <unistd.h>
 #endif
 #include "Debugger6502.h"
 #include "../../API/Remote.h"
 
-static uint8_t* s_memory6502; //[65536];
+uint8_t* s_memory6502; //[65536];
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Some exters from the 6502 emulator that we need to control it
@@ -19,6 +20,7 @@ extern uint32_t clockticks6502;
 extern uint32_t clockgoal6502;
 void exec6502(uint32_t tickcount);
 void step6502();
+extern void disassemble(unsigned short begin, unsigned short end);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Read function  for the emulated 6502 CPU
@@ -41,34 +43,49 @@ void write6502(uint16_t address, uint8_t value)
 int main(int argc, const char* argv[])
 {
 	FILE* f;
+	int size;
 
 	(void)argc;
 	(void)argv;
 	reset6502();
 	
-	*((volatile int*)0) = 0x666;
-
-	if (argc < 2)
+	if (argc < 1)
 	{
-		printf("Usage: Fake6502 image.bin (max 64k in size)");
+		printf("Usage: Fake6502 image.bin (max 64k in size)\n");
+		return 0;
 	}
 
-	if (!(f = fopen(argv[2], "rb")))
+	if (!(f = fopen(argv[1], "rb")))
 	{
 		printf("Unable to open %s\n", argv[2]);
 		return -1;
 	}
 
-	fread(s_memory6502, 1, 65536, f);
+	// offset with 6 due to stupid compiler
+
+	fseek(f, 0, SEEK_END);
+	size = ftell(f) - 6;
+	fseek(f, 6, SEEK_SET);
+
+	s_memory6502 = malloc(65536);
+	memset(s_memory6502, 0, 65536);
+
+	fread(s_memory6502, 1, size, f);
 	fclose(f);
+	printf("size %d\n", size);
+
+	disassemble(0, size);
 
 	if (!PDRemote_create(&s_debuggerPlugin, 0))
 	{
 		printf("Unable to setup debugger connection\n");
 	}
 
-	execute6502();
+	while (1)
+	{
+		execute6502();
+	}
 
-	return 0;
+	//return 0;
 }
 

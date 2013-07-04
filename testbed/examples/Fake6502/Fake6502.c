@@ -211,7 +211,7 @@ uint8_t pull8() {
 }
 
 void reset6502() {
-    pc = (uint16_t)read6502(0xFFFC) | ((uint16_t)read6502(0xFFFD) << 8);
+    pc = 0;//(uint16_t)read6502(0xFFFC) | ((uint16_t)read6502(0xFFFD) << 8);
     a = 0;
     x = 0;
     y = 0;
@@ -963,12 +963,12 @@ static void updateDebugger()
 		return;
 	}
 
-	PDRemote_update(0);
+	PDRemote_update(1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void step6502() 
+void step6502(int printRegs) 
 {
     opcode = read6502(pc++);
     status |= FLAG_CONSTANT;
@@ -984,14 +984,17 @@ void step6502()
 
     instructions++;
 
+	if (printRegs)
+	{
+    	printf("pc %04x sp %02x a %02x x %02x y %02x status %02x\n",
+    		   pc, sp, a, x, y, status);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void execute6502()
 {
-	updateDebugger();
-
 	// if we should break we should stop here and just have a loop that waits for the next thing to happen
 
 	if (g_debugger->action == PDAction_break)
@@ -1001,16 +1004,26 @@ void execute6502()
 			switch (g_debugger->action)
 			{
 				case PDAction_run : goto go_on;	// start running as usually
-				case PDAction_step : step6502(); break;
+				case PDAction_step : 
+				{
+					step6502(1); 
+					g_debugger->action = PDAction_none;
+					break;
+				}
+				
 				default : break;
 			}
 
 			PDRemote_update(1);
 		}
 	}
+	else
+	{
+		updateDebugger();
+	}
 
 go_on:;	
 
-	step6502();
+	step6502(0);
 }
 
