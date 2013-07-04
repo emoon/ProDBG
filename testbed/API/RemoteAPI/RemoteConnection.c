@@ -26,6 +26,10 @@
 #define INVALID_SOCKET -1
 #endif
 
+#if !defined(_WIN32)
+#define closesocket close
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct RemoteConnection
@@ -91,6 +95,8 @@ static int createListner(RemoteConnection* conn, int port)
 	while (listen(conn->serverSocket, SOMAXCONN) == -1)
 		;
 
+	printf("Created listener\n");
+
 	return 1;
 }
 
@@ -127,21 +133,63 @@ struct RemoteConnection* RemoteConnection_create(enum RemoteConnectionType type,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+int RemoteConnection_connect(RemoteConnection* conn, const char* address, int port)
+{
+	struct hostent* he;
+	struct sockaddr_in sa;
+	char** ap;
+	int sock = INVALID_SOCKET;
+
+	printf("Trying to connect\n");
+
+	he = gethostbyname(address);
+
+	if (!he)
+	{
+		printf("Failed to get hostname\n");
+		return 0;
+	}
+
+	for (ap = he->h_addr_list; *ap; ++ap) 
+	{
+		sa.sin_family = (sa_family_t)he->h_addrtype;
+		sa.sin_port = htons(port);
+
+		memcpy(&sa.sin_addr, *ap, he->h_length);
+
+		sock = socket(he->h_addrtype, SOCK_STREAM, 0);
+		if (sock == INVALID_SOCKET)
+			continue;
+
+		if (connect(sock, (struct sockaddr *)&sa, sizeof(sa)) >= 0)
+			break;
+
+		closesocket(sock);
+		sock = INVALID_SOCKET;
+	}
+
+	if (sock == INVALID_SOCKET)
+	{
+		printf("No socket to connect to\n");
+		return 0;
+	}
+
+	conn->socket = sock;
+
+	printf("Connected!\n");
+
+	return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void RemoteConnection_destroy(struct RemoteConnection* conn)
 {
 	if (conn->socket != INVALID_SOCKET)
-	#if defined(_WIN32)
 		closesocket(conn->socket);
-	#else
-		close(conn->socket);
-	#endif
 
 	if (conn->serverSocket != INVALID_SOCKET)
-	#if defined(_WIN32)
 		closesocket(conn->serverSocket);
-	#else
-		close(conn->serverSocket);
-	#endif
 
 	free(conn);
 }
@@ -160,13 +208,21 @@ static int clientConnect(RemoteConnection* conn, struct sockaddr_in* host)
 	struct sockaddr_in hostTemp;
 	unsigned int hostSize = sizeof(struct sockaddr_in);
 
+	printf("Trying to accept\n");
+
 	conn->socket = accept(conn->serverSocket, (struct sockaddr*)&hostTemp, (socklen_t*)&hostSize);
 
 	if (INVALID_SOCKET == conn->socket) 
+	{
+		perror("accept");
+		printf("Unable to accept connection..\n");
 		return 0;
+	}
 
 	if (NULL != host) 
 		*host = hostTemp;
+
+	printf("Accept done\n");
 
 	return 1;
 }
@@ -193,7 +249,7 @@ void RemoteConnection_updateListner(RemoteConnection* conn)
 	if (select(conn->serverSocket + 1, &fds, NULL, NULL, &timeout) > 0)
 	{
 		if (clientConnect(conn, &client))
-			printf("Connected to %s", inet_ntoa(client.sin_addr));
+			printf("Connected to %s\n", inet_ntoa(client.sin_addr));
 	}
 }
 
@@ -201,12 +257,10 @@ void RemoteConnection_updateListner(RemoteConnection* conn)
 
 int RemoteConnection_disconnect(RemoteConnection* conn)
 {
+	printf("Disconnected\n");
+
 	if (conn->socket != INVALID_SOCKET)
-	#if defined(_WIN32)
 		closesocket(conn->socket);
-	#else
-		close(conn->socket);
-	#endif
 
 	conn->socket = INVALID_SOCKET;
 
@@ -235,7 +289,7 @@ int RemoteConnection_recv(RemoteConnection* conn, char* buffer, int length, int 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int RemoteConnection_send(RemoteConnection* conn, const char* buffer, int length, int flags)
+int RemoteConnection_send(RemoteConnection* conn, const void* buffer, int length, int flags)
 {
 	int ret;
 

@@ -1,7 +1,7 @@
 #ifndef _REMOTECONNECTION_H_
 #define _REMOTECONNECTION_H_
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -25,14 +25,14 @@ void RemoteConnection_updateListner(struct RemoteConnection* conn);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int RemoteConnection_isConnected(struct RemoteConnection* connection);
-int RemoteConnection_connect(const char* address, int port, int timeout);
+int RemoteConnection_connect(struct RemoteConnection* connection, const char* address, int port);
 int RemoteConnection_disconnect(struct RemoteConnection* connection);
 
 int RemoteConnection_recv(struct RemoteConnection* connection, char* buffer, int length, int flags);
-int RemoteConnection_send(struct RemoteConnection* connection, const char* buffer, int length, int flags);
+int RemoteConnection_send(struct RemoteConnection* connection, const void* buffer, int length, int flags);
 int RemoteConnection_pollRead(struct RemoteConnection* connection);
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 
