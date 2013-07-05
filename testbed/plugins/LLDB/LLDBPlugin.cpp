@@ -350,7 +350,7 @@ static void getExceptionLocation(LLDBPlugin* plugin, PDSerializeWrite* writer)
 	memset(filename, 0, sizeof(filename));
 
 	// Get the filename & line of the exception/breakpoint
-	// TODO: Right now we assume that we only got the break/exception at the first thread.
+	// \todo: Right now we assume that we only got the break/exception at the first thread.
 
 	lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
 	lldb::SBFrame frame(thread.GetFrameAtIndex(0));
@@ -369,38 +369,40 @@ static void getExceptionLocation(LLDBPlugin* plugin, PDSerializeWrite* writer)
 	lldb::SBLineEntry entry(context.GetLineEntry());
 	int line = (int)entry.GetLine();
 
-	// TODO: Write the type of exception presented here (might be just address for example if assembly)
+	// \todo: Write the type of exception presented here (might be just address for example if assembly)
 
+	PDWRITE_STRING(writer, "fileline");
 	PDWRITE_STRING(writer, filename);
 	PDWRITE_INT(writer, line);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void getState(void* userData, PDEventType eventType, int eventId, PDSerializeWrite* writer)
+int getState(void* userData, PDEventType eventType, int eventId, PDSerializeRead* reader, PDSerializeWrite* writer)
 {
 	LLDBPlugin* plugin = (LLDBPlugin*)userData;
 
 	(void)eventId;
+	(void)reader;
 
 	switch (eventType)
 	{
 		case PDEventType_getLocals: 
 		{
 			getLocals(plugin, writer);
-			break;
+			return 1;
 		}
 
 		case PDEventType_getCallStack:
 		{
 			getCallStack(plugin, writer);
-			break;
+			return 1;
 		}
 
 		case PDEventType_getExceptionLocation:
 		{
 			getExceptionLocation(plugin, writer);
-			break;
+			return 1;
 		}
 
 		case PDEventType_getTty:
@@ -419,14 +421,16 @@ void getState(void* userData, PDEventType eventType, int eventId, PDSerializeWri
 				PDWRITE_STRING(writer, buffer);
 			}
 
-			break;
+			return 1;
 		}
 	}
+
+	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void setState(void* userData, PDEventType inEvent, int eventId, PDSerializeRead* reader, PDSerializeWrite* writer)
+int setState(void* userData, PDEventType inEvent, int eventId, PDSerializeRead* reader, PDSerializeWrite* writer)
 {
 	LLDBPlugin* plugin = (LLDBPlugin*)userData;
 
@@ -445,11 +449,12 @@ void setState(void* userData, PDEventType inEvent, int eventId, PDSerializeRead*
     		if (!breakpoint.IsValid())
 			{
 				printf("Unable to set breakpoint at %s:%d\n", filename, line);
-    			return;
+    			return 0;
 			}
 
 			printf("Set breakpoint at %s:%d\n", filename, line);
-			break;
+
+			return 1;
 		}
 
 		case PDEventType_setExecutable:
@@ -464,7 +469,8 @@ void setState(void* userData, PDEventType inEvent, int eventId, PDSerializeRead*
 			}
 
 			printf("Valid target %s\n", filename); 
-			break;
+
+			return 1;
 		}
 
 		case PDEventType_start:
@@ -477,13 +483,13 @@ void setState(void* userData, PDEventType inEvent, int eventId, PDSerializeRead*
 			if (!error.Success())
 			{
 				printf("error false\n");
-				return;
+				return 0;
 			}
 
 			if (!plugin->process.IsValid())
 			{
 				printf("process not valid\n");
-				return;
+				return 0;
 			}
 
 			printf("Started valid process\n");
@@ -495,9 +501,11 @@ void setState(void* userData, PDEventType inEvent, int eventId, PDSerializeRead*
 		
 			plugin->debugState = PDDebugState_running;
 			
-			break;
+			return 1;
 		}
 	}
+
+	return 0;
 }
 
 
