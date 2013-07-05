@@ -997,17 +997,17 @@ void execute6502()
 {
 	// if we should break we should stop here and just have a loop that waits for the next thing to happen
 
-	if (g_debugger->action == PDAction_break)
+	if (g_debugger->runState == PDDebugState_stopException) 
 	{
 		while (1)
 		{
-			switch (g_debugger->action)
+			switch (g_debugger->runState)
 			{
-				case PDAction_run : goto go_on;	// start running as usually
-				case PDAction_step : 
+				case PDDebugState_running : goto go_on;	// start running as usually
+				case PDDebugState_stepping : 
 				{
 					step6502(1); 
-					g_debugger->action = PDAction_none;
+					g_debugger->runState = PDDebugState_stopException;
 					break;
 				}
 				
