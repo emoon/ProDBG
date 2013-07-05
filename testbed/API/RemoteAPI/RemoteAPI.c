@@ -1,9 +1,11 @@
 #include "../Remote.h"
+#include "BinarySerializer.h"
 #include "RemoteConnection.h"
 #include <ProDBGAPI.h>
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -16,6 +18,7 @@
 static struct RemoteConnection* s_conn;
 static struct PDBackendPlugin* s_plugin;
 static void* s_userData;
+static PDDebugState s_currentState = PDDebugState_running; 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -68,7 +71,6 @@ static void processCommands()
 	if (!RemoteConnection_recv(s_conn, (char*)&command, 4, 0)) 
 		return;
 
-
 	// top 16-bits = type of command
 	// lower 16-bits = action/event
 
@@ -86,6 +88,76 @@ static void processCommands()
 			s_plugin->action(s_userData, (PDAction)(command & 0xffff));
 			break;
 		}
+
+		// Event
+		case 1:
+		{
+			void* data;
+			int retSize, size;
+			PDSerializeWrite writer;
+			PDSerializeRead reader;
+			PDSerializeRead* readerPtr = &reader;
+
+			// Grab how big buffer we need to allocate
+			RemoteConnection_recv(s_conn, (char*)&size, 4, 0);
+			size = (int)(uint32_t)htonl(size);	
+
+			if (!(data = malloc((size_t)size)))
+			{
+				printf("Unable to allocate recv buffer (size %d)\n", size);
+				return;
+			}
+
+			if ((retSize = RemoteConnection_recv(s_conn, data, size, 0)) != size)
+			{
+				printf("Unable to get data from socket (wantedSize %d got Size %d\n", size, retSize);
+				return;
+			}
+
+			BinarySerializer_initReaderFromStream(readerPtr, data, size);
+			BinarySerializer_initWriter(&writer);
+
+			while (PDREAD_BYTES_LEFT(readerPtr) > 0)
+			{
+				int eventSize, type, eventId;
+
+				BinarySerializer_saveReadOffset(readerPtr);
+
+				eventSize = PDREAD_INT(readerPtr);
+				type = PDREAD_INT(readerPtr);
+				eventId = PDREAD_INT(readerPtr);
+
+				// getEvent
+				// \todo proper enum/constant here
+
+				if (eventId < 0x500)
+				{
+					BinarySerialize_beginEvent(&writer, (PDEventType)type, 0);
+					s_plugin->getState(s_userData, (PDEventType)type, eventId, readerPtr, &writer);
+					BinarySerialize_endEvent(&writer);
+				}
+				else
+				{
+					s_plugin->setState(s_userData, (PDEventType)type, eventId, readerPtr, &writer);
+				}
+		
+				BinarySerializer_gotoNextOffset(readerPtr, eventSize);
+			}
+
+			// Lets send back the data!
+
+			size = BinarySerializer_writeSize(&writer);
+			data = BinarySerializer_getStartData(&writer);
+
+			if ((retSize = RemoteConnection_send(s_conn, data, size, 0)) != size)
+			{
+				// \todo correct logging functions
+				printf("Unable to send exception location (wanted SendSize %d got Size %d)\n", size, retSize); 
+			}
+
+			BinarySerializer_destroyData(&writer);
+			BinarySerializer_destroyData(readerPtr);
+		}
 	}
 }
 
@@ -93,6 +165,8 @@ static void processCommands()
 
 int PDRemote_update(int sleepTime)
 {
+	PDDebugState state;
+
 	if (sleepTime > 0)
 		sleepMs(sleepTime);
 
@@ -100,6 +174,53 @@ int PDRemote_update(int sleepTime)
 
 	if (RemoteConnection_pollRead(s_conn))
 		processCommands();
+
+	state = s_plugin->update(s_userData);
+
+	// take action if state has changed
+
+	if (state != s_currentState)
+	{
+		printf("changeState (%d %d)\n", state, s_currentState);
+
+		if (state == PDDebugState_stopException && RemoteConnection_isConnected(s_conn))
+		{
+			int size, retSize, handledException;
+			void* ptr;
+
+			PDSerializeWrite writer;
+			BinarySerializer_initWriter(&writer);
+
+			// Here we only grab the exception location and the debugger can
+			// request more data as seen fit based on that info
+
+			BinarySerialize_beginEvent(&writer, PDEventType_getExceptionLocation, 0);
+			handledException = s_plugin->getState(s_userData, PDEventType_getExceptionLocation, 0, 0, &writer);
+			BinarySerialize_endEvent(&writer);
+
+			if (!handledException)
+			{
+				printf("Not proper handling of PDEventType_getExceptionLocation in getState. Debugging won't work correct\n");
+				BinarySerializer_destroyData(&writer);
+				return 1;
+			}
+			
+			size = BinarySerializer_writeSize(&writer);
+			ptr = BinarySerializer_getStartData(&writer);
+
+			printf("sending some stuff over to the debugger (size %d)\n", size);
+
+			if ((retSize = RemoteConnection_send(s_conn, ptr, size, 0)) != size)
+			{
+				// \todo correct logging functions
+				printf("Unable to send exception location (wanted SendSize %d got Size %d)\n", size, retSize); 
+			}
+
+			//BinarySerializer_destroyData(&writer);
+		}
+
+		s_currentState = state;
+	}
 
 	return 1;
 }
