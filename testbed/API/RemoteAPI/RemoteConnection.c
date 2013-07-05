@@ -278,8 +278,9 @@ int RemoteConnection_recv(RemoteConnection* conn, char* buffer, int length, int 
 
 	ret = (int)recv(conn->socket, buffer, (size_t)length, flags);
 
-	if (ret != length)
+	if (ret <= 0)
 	{
+		printf("recv %d %d\n", ret, length);
 		RemoteConnection_disconnect(conn);
 		return 0;
 	}
