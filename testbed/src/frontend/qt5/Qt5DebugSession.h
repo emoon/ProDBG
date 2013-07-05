@@ -60,7 +60,7 @@ public:
     
 private slots:
 	// Called from the when a state change has happen that require UI update 
-	void getData(void* readerData);
+	void setState(void* readerData);
 
 signals:
 	void tryStartDebugging();

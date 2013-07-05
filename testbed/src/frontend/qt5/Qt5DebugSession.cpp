@@ -4,7 +4,7 @@
 #include "Qt5CallStack.h"
 #include "Qt5Locals.h"
 #include "Qt5DebugOutput.h"
-#include "core/BinarySerializer.h"
+#include "../../../API/RemoteAPI/BinarySerializer.h"
 #include "core/Log.h"
 #include <QThread>
 #ifndef _WIN32
@@ -115,8 +115,8 @@ void Qt5DebugSession::begin(const char* executable)
 	connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
 	connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
 	connect(this, &Qt5DebugSession::tryAction, m_debuggerThread, &Qt5DebuggerThread::doAction); 
-	connect(m_debuggerThread, &Qt5DebuggerThread::sendData, this, &Qt5DebugSession::getData); 
-	connect(this, &Qt5DebugSession::sendData, m_debuggerThread, &Qt5DebuggerThread::getData); 
+	connect(m_debuggerThread, &Qt5DebuggerThread::setState, this, &Qt5DebugSession::setState);
+	connect(this, &Qt5DebugSession::setState, m_debuggerThread, &Qt5DebuggerThread::setState); 
 
 	printf("beginDebug %s %d\n", executable, (uint32_t)(uint64_t)QThread::currentThreadId());
 
@@ -166,8 +166,8 @@ void Qt5DebugSession::beginRemote(const char* address, int port)
 	connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
 	connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
 	connect(this, &Qt5DebugSession::tryAction, m_debuggerThread, &Qt5DebuggerThread::doAction); 
-	connect(m_debuggerThread, &Qt5DebuggerThread::sendData, this, &Qt5DebugSession::getData); 
-	connect(this, &Qt5DebugSession::sendData, m_debuggerThread, &Qt5DebuggerThread::getData); 
+	connect(m_debuggerThread, &Qt5DebuggerThread::sendData, this, &Qt5DebugSession::setState); 
+	connect(this, &Qt5DebugSession::sendData, m_debuggerThread, &Qt5DebuggerThread::setState); 
 
 	printf("beginDebug %s:%d %d\n", address, port, (uint32_t)(uint64_t)QThread::currentThreadId());
 
@@ -211,7 +211,7 @@ void Qt5DebugSession::callAction(int action)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5DebugSession::getData(void* readerData)
+void Qt5DebugSession::setState(void* readerData)
 {
 	PDSerializeRead reader;
 	PDSerializeRead* readerPtr = &reader;
