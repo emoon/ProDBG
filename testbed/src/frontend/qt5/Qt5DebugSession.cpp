@@ -251,14 +251,33 @@ void Qt5DebugSession::setState(void* readerData)
 
 			case PDEventType_getExceptionLocation:
 			{
-				const char* filename = PDREAD_STRING(readerPtr);
-				int line = PDREAD_INT(readerPtr);
+				const char* exceptionType = PDREAD_STRING(readerPtr);
 
-				// Only update 1 for now
-				if (m_codeEditors.size() > 0)
-					m_codeEditors[0]->setFileLine(filename, line);
-				else
-					PDREAD_SKIP_BYTES(readerPtr, size - 12);
+				if (!strcmp(exceptionType, "fileline"))
+				{
+					const char* filename = PDREAD_STRING(readerPtr);
+
+					int line = PDREAD_INT(readerPtr);
+
+					// Only update 1 for now
+					if (m_codeEditors.size() > 0)
+						m_codeEditors[0]->setFileLine(filename, line);
+					else
+						PDREAD_SKIP_BYTES(readerPtr, size - 12);
+				}
+				else if(!strcmp(exceptionType, "address"))
+				{
+					uint16_t addressSize = PDREAD_U16(readerPtr);
+					uint64_t address = 0;
+
+					switch (addressSize)
+					{
+						case 2 : address = PDREAD_U16(readerPtr); break;
+						case 4 : address = PDREAD_INT(readerPtr); break;
+					}
+
+					printf("exception address 0x%x\n", (uint32_t)address);
+				}
 
 				break;
 			}

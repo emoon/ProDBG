@@ -2,9 +2,9 @@
 #include "Qt5DebugSession.h"
 #include <QThread>
 #include <core/PluginHandler.h>
-#include <core/BinarySerializer.h>
 #include <core/Log.h>
 #include <ProDBGAPI.h>
+#include "../../../API/RemoteAPI/BinarySerializer.h"
 #include "../../../API/RemoteAPI/RemoteConnection.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -26,6 +26,8 @@ void Qt5DebuggerThread::start()
 {
 	int count;
 
+	connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
+
 	if (m_targetType == Local)
 	{
 		printf("start Qt5DebuggerThread\n");
@@ -43,8 +45,6 @@ void Qt5DebuggerThread::start()
 		m_debuggerPlugin = (PDBackendPlugin*)plugin->data;
 		m_pluginData = m_debuggerPlugin->createInstance(0);
 
-		connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
-
 		printf("end start Qt5DebuggerThread\n");
 	}
 	else
@@ -58,12 +58,13 @@ void Qt5DebuggerThread::start()
 			emit finished();
 			return;
 		}
-		else
-		{
-			printf("Connected to %s:%d\n", m_targetHost, m_port);
-		}
 
 		m_connection = conn;
+
+		printf("Connected to %s:%d\n", m_targetHost, m_port);
+
+		if (!m_timer.isActive())
+			m_timer.start(10);
 	}
 }
 
@@ -71,7 +72,7 @@ void Qt5DebuggerThread::start()
 // This gets called from the DebugSession (which is on the UI thread) and when the data gets here this thread has
 // owner ship of the data and will release it when done with it
 
-void Qt5DebuggerThread::getData(void* serializeData)
+void Qt5DebuggerThread::setState(void* serializeData)
 {
 	PDSerializeRead reader;
 	PDSerializeRead* readerPtr = &reader;
@@ -97,7 +98,7 @@ void Qt5DebuggerThread::getData(void* serializeData)
 
 		m_debuggerPlugin->setState(m_pluginData, event, id, readerPtr, 0);	// can't write back here yet
 
-		BinarySerializer_gotoNextOffset(readerPtr, size);	// -8 as we read 3 ints for size, eventType, id
+		BinarySerializer_gotoNextOffset(readerPtr, size);
 	}
 
 	// TODO: Not really sure if this is the best way to handle this
@@ -149,25 +150,25 @@ void Qt5DebuggerThread::sendState()
 	// get locals
 
 	BinarySerialize_beginEvent(&writer, PDEventType_getLocals, 0);
-	m_debuggerPlugin->getState(m_pluginData, PDEventType_getLocals, 0, &writer);
+	m_debuggerPlugin->getState(m_pluginData, PDEventType_getLocals, 0, 0, &writer);
 	BinarySerialize_endEvent(&writer);
 
 	// get callstack
 
 	BinarySerialize_beginEvent(&writer, PDEventType_getCallStack, 0);
-	m_debuggerPlugin->getState(m_pluginData, PDEventType_getCallStack, 0, &writer);
+	m_debuggerPlugin->getState(m_pluginData, PDEventType_getCallStack, 0, 0, &writer);
 	BinarySerialize_endEvent(&writer);
 
 	// get exception location
 
 	BinarySerialize_beginEvent(&writer, PDEventType_getExceptionLocation, 0);
-	m_debuggerPlugin->getState(m_pluginData, PDEventType_getExceptionLocation, 0, &writer);
+	m_debuggerPlugin->getState(m_pluginData, PDEventType_getExceptionLocation, 0, 0, &writer);
 	BinarySerialize_endEvent(&writer);
 	
 	// get TTY 
 
 	BinarySerialize_beginEvent(&writer, PDEventType_getTty, 0);
-	m_debuggerPlugin->getState(m_pluginData, PDEventType_getTty, 0, &writer);
+	m_debuggerPlugin->getState(m_pluginData, PDEventType_getTty, 0, 0, &writer);
 	BinarySerialize_endEvent(&writer);
 
 	emit sendData(writer.writeData);
@@ -177,33 +178,61 @@ void Qt5DebuggerThread::sendState()
 
 void Qt5DebuggerThread::update()
 {
-	PDDebugState state = m_debuggerPlugin->update(m_pluginData);
-
-	if (m_debugState != state)
+	if (m_targetType == Local)
 	{
-		if (PDDebugState_stopException == state || PDDebugState_stopBreakpoint == state) 
+		PDDebugState state = m_debuggerPlugin->update(m_pluginData);
+
+		if (m_debugState != state)
 		{
-			log_debug("Got exception! Sending over state to UI\n");
-			sendState();
+			if (PDDebugState_stopException == state || PDDebugState_stopBreakpoint == state) 
+			{
+				log_debug("Got exception! Sending over state to UI\n");
+				sendState();
+			}
+
+			m_debugState = state; 
+		}	
+
+		// Send over the TTY if any
+		
+		PDSerializeWrite writer;
+		BinarySerializer_initWriter(&writer);
+		BinarySerialize_beginEvent(&writer, PDEventType_getTty, 0);
+		m_debuggerPlugin->getState(m_pluginData, PDEventType_getTty, 0, 0, &writer);
+		BinarySerialize_endEvent(&writer);
+
+		// Only send data if we have something to send
+		
+		if (BinarySerializer_writeSize(&writer) > 12)
+			emit sendData(writer.writeData);
+		else
+			BinarySerializer_destroyData(writer.writeData);
+	}
+	else
+	{
+		int totalSize = 0;
+		int retSize;
+		PDSerializeRead reader;
+
+		// \todo Growing buffer for large transfers
+		uint8_t* tempBuffer = (uint8_t*)malloc(1024 * 1024); 	// temprory
+
+		if (!RemoteConnection_pollRead(m_connection))
+			return;
+
+		while (1)
+		{
+			if ((retSize = RemoteConnection_recv(m_connection, (char*)&tempBuffer[totalSize], 1024, 0)) != 1024)
+				break;
+
+			totalSize += 1024;
 		}
 
-		m_debugState = state; 
-	}	
+		totalSize += retSize;
+		BinarySerializer_initReaderFromStream(&reader, tempBuffer, totalSize);
 
-	// Send over the TTY if any
-	
-	PDSerializeWrite writer;
-	BinarySerializer_initWriter(&writer);
-	BinarySerialize_beginEvent(&writer, PDEventType_getTty, 0);
-	m_debuggerPlugin->getState(m_pluginData, PDEventType_getTty, 0, &writer);
-	BinarySerialize_endEvent(&writer);
-
-	// Only send data if we have something to send
-	
-	if (BinarySerializer_writeSize(&writer) > 12)
-		emit sendData(writer.writeData);
-	else
-		BinarySerializer_destroyData(writer.writeData);
+		emit sendData(reader.readData);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

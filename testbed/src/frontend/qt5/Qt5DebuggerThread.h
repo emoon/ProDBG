@@ -35,7 +35,7 @@ public slots:
     void start();
 	void update();
 	void doAction(int action);
-	void getData(void* serializeData);
+	void setState(void* serializeData);
  
 signals:
     void finished();
