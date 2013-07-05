@@ -1,15 +1,12 @@
 #include "BinarySerializer.h"
-#include "core/Log.h"
 #include <ProDBGAPI.h>
 #include <string.h>
 #include <stdlib.h>
-
-namespace prodbg
-{
+#include <stdio.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct BinarySerializerData
+typedef struct BinarySerializerData
 {
 	uint8_t* dataStart;
 	int maxAllocSize;
@@ -20,7 +17,7 @@ struct BinarySerializerData
 
 	int beginEventOffset;
 	int writeEventStarted; 
-};
+} BinarySerializerData;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Reader and writer functions
@@ -44,8 +41,58 @@ static void writeInt(void* writeData, int v)
 	}
 	else
 	{
-		log_error("Unable to write to serializeData because it's full (writeOffset %d maxSize %d)\n", 
-				  writeOffset, data->maxAllocSize);
+		// \todo proper logging macro
+		printf("Unable to write to serializeData because it's full (writeOffset %d maxSize %d)\n", 
+			   writeOffset, data->maxAllocSize);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void writeU16(void* writeData, uint16_t v)
+{
+	BinarySerializerData* data = (BinarySerializerData*)writeData;
+
+	int writeOffset = data->writeOffset;
+
+	if (writeOffset + 2 <= data->maxAllocSize)
+	{
+		uint8_t* writePtr = data->dataStart + writeOffset;
+
+		writePtr[0] = (v >> 8) & 0xff;
+		writePtr[1] = (v >> 0) & 0xff;
+
+		data->writeOffset = writeOffset + 2;
+	}
+	else
+	{
+		// \todo proper logging macro
+		printf("Unable to write to serializeData because it's full (writeOffset %d maxSize %d)\n", 
+			   writeOffset, data->maxAllocSize);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void writeU8(void* writeData, uint8_t v)
+{
+	BinarySerializerData* data = (BinarySerializerData*)writeData;
+
+	int writeOffset = data->writeOffset;
+
+	if (writeOffset + 1 <= data->maxAllocSize)
+	{
+		uint8_t* writePtr = data->dataStart + writeOffset;
+
+		writePtr[0] = (v >> 0) & 0xff;
+
+		data->writeOffset = writeOffset + 1;
+	}
+	else
+	{
+		// \todo proper logging macro
+		printf("Unable to write to serializeData because it's full (writeOffset %d maxSize %d)\n", 
+			   writeOffset, data->maxAllocSize);
 	}
 }
 
@@ -67,8 +114,9 @@ static void writeString(void* writeData, const char* string)
 	}
 	else
 	{
-		log_error("Unable to write to serializeData because it's full (writeOffset %d maxSize %d)\n", 
-				  writeOffset, data->maxAllocSize);
+		// \todo proper logging macro
+		printf("Unable to write to serializeData because it's full (writeOffset %d maxSize %d)\n", 
+			   writeOffset, data->maxAllocSize);
 	}
 }
 
@@ -83,7 +131,8 @@ static const char* readString(void* readData)
 
 	if (data->readOffset > data->writeOffset)
 	{
-		log_error("Reading past end of writeData (readOffset %d writeOffset %d)\n", data->readOffset, data->writeOffset);
+		// \todo proper logging macro
+		printf("Reading past end of writeData (readOffset %d writeOffset %d)\n", data->readOffset, data->writeOffset);
 	}
 
 	return string; 
@@ -103,7 +152,49 @@ static int readInt(void* readData)
 
 	if (data->readOffset > data->writeOffset)
 	{
-		log_error("Reading past end of writeData (readOffset %d writeOffset %d)\n", data->readOffset, data->writeOffset);
+		// \todo proper logging macro
+		printf("Reading past end of writeData (readOffset %d writeOffset %d)\n", data->readOffset, data->writeOffset);
+	}
+
+	return v;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static unsigned short readU16(void* readData)
+{
+	BinarySerializerData* data = (BinarySerializerData*)readData;
+
+	uint8_t* intData = (uint8_t*)(data->dataStart + data->readOffset);
+
+	uint16_t v = (uint16_t)(intData[0] << 8) | (uint16_t)intData[1];
+
+	data->readOffset += 2;
+
+	if (data->readOffset > data->writeOffset)
+	{
+		// \todo proper logging macro
+		printf("Reading past end of writeData (readOffset %d writeOffset %d)\n", data->readOffset, data->writeOffset);
+	}
+
+	return v;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static uint8_t readU8(void* readData)
+{
+	BinarySerializerData* data = (BinarySerializerData*)readData;
+
+	uint8_t* intData = (uint8_t*)(data->dataStart + data->readOffset);
+	uint8_t v = intData[0];
+
+	data->readOffset += 1;
+
+	if (data->readOffset > data->writeOffset)
+	{
+		// \todo proper logging macro
+		printf("Reading past end of writeData (readOffset %d writeOffset %d)\n", data->readOffset, data->writeOffset);
 	}
 
 	return v;
@@ -126,7 +217,8 @@ static void skipBytes(void* readData, int size)
 
 	if (data->readOffset >= data->writeOffset)
 	{
-		log_error("Skiping past end of writeData (readOffset %d writeOffset %d)\n", data->readOffset, data->writeOffset);
+		// \todo proper logging macro
+		printf("Skiping past end of writeData (readOffset %d writeOffset %d)\n", data->readOffset, data->writeOffset);
 	}
 }
 
@@ -158,6 +250,8 @@ void BinarySerializer_initWriter(struct PDSerializeWrite* writer)
 
 	writer->writeData = data;
 	writer->writeInt = writeInt;
+	writer->writeU8 = writeU8;
+	writer->writeU16 = writeU16;
 	writer->writeString = writeString;
 }
 
@@ -170,7 +264,10 @@ void BinarySerialize_beginEvent(struct PDSerializeWrite* writer, PDEventType eve
 	// event id should be 0 at this point (endEvent should have been called)
 
 	if (data->writeEventStarted)
-		log_error("Event is still in progress yet beginEvent has been called. Make sure to call endEvent first\n");
+	{
+		// \todo proper logging macro
+		printf("Event is still in progress yet beginEvent has been called. Make sure to call endEvent first\n");
+	}
 
 	// store start of the event (where we are going to write the size of the event
 	data->beginEventOffset = data->writeOffset;
@@ -188,7 +285,10 @@ void BinarySerialize_endEvent(struct PDSerializeWrite* writer)
 	BinarySerializerData* data = (BinarySerializerData*)writer->writeData;
 
 	if (!data->writeEventStarted)
-		log_error("No event has been started. Make sure to call beginEvent first\n");
+	{
+		// \todo proper logging macro
+		printf("No event has been started. Make sure to call beginEvent first\n");
+	}
 
 	// write the correct size 
 
@@ -209,9 +309,25 @@ void BinarySerializer_initReader(struct PDSerializeRead* reader, void* data)
 {
 	reader->readData = data;
 	reader->readInt = readInt;
+	reader->readU8 = readU8;
+	reader->readU16 = readU16;
 	reader->readString = readString;
 	reader->bytesLeft = bytesLeft;
 	reader->skipBytes = skipBytes;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BinarySerializer_initReaderFromStream(struct PDSerializeRead* reader, void* inputData, int size) 
+{
+	BinarySerializerData* data = (BinarySerializerData*)malloc(sizeof(BinarySerializerData));
+	memset(data, 0, sizeof(BinarySerializerData));
+
+	data->dataStart = inputData;
+	data->maxAllocSize = size;
+	data->writeOffset = size;
+
+	BinarySerializer_initReader(reader, data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -220,6 +336,14 @@ int BinarySerializer_writeSize(struct PDSerializeWrite* writer)
 {
 	BinarySerializerData* data = (BinarySerializerData*)writer->writeData;
 	return data->writeOffset;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void* BinarySerializer_getStartData(struct PDSerializeWrite* writer)
+{
+	BinarySerializerData* data = (BinarySerializerData*)writer->writeData;
+	return data->dataStart;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -234,7 +358,5 @@ void BinarySerializer_destroyData(void* serData)
 	memset(data, 0xcd, sizeof(BinarySerializerData));
 
 	free(data);
-}
-
 }
 
