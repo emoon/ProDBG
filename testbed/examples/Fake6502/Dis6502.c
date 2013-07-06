@@ -373,6 +373,7 @@ int disassemblyOne(unsigned short addr)
 	int adt = dis6502[op].type & ADT_MASK;
 
 	char* dst = disassembled[addr];
+	memset(dst, 0, 64); 
 
 	//instructions[addr].op = op;
 	//instructions[addr].disassembled = dst;
@@ -386,12 +387,12 @@ int disassemblyOne(unsigned short addr)
 		case 1:
 			if (!strcmp(dis6502[op].nimonic, "und"))
 				adt = ADT_IMM;
-			pos += sprintf(dst + pos, "%02x      ", op);
+			pos += sprintf(dst + pos, "%04x %02x      ", addr, op);
 			pos += sprintf(dst + pos, "    %s ", dis6502[op].nimonic);
 			pos += sprintf(dst + pos, adtString[adt], op);
 			break;
 		case 2:
-			pos += sprintf(dst + pos, "%02x %02x   ", op, readMem8(addr+1));
+			pos += sprintf(dst + pos, "%04x %02x %02x   ", addr, op, readMem8(addr+1));
 			pos += sprintf(dst + pos, "    %s ", dis6502[op].nimonic);
 			if (adt == ADT_REL) {
 				unsigned char disp = readMem8(addr+1);
@@ -405,7 +406,7 @@ int disassemblyOne(unsigned short addr)
 			}
 			break;
 		case 3:
-			pos += sprintf(dst + pos, "%02x %02x %02x", op, readMem8(addr+1), readMem8(addr+2));
+			pos += sprintf(dst + pos, "%04x %02x %02x %02x", addr, op, readMem8(addr+1), readMem8(addr+2));
 			pos += sprintf(dst + pos, "    %s ", dis6502[op].nimonic);
 			pos += sprintf(dst + pos, adtString[adt], readMem16(addr+1));
 			break;
@@ -414,7 +415,7 @@ int disassemblyOne(unsigned short addr)
 		}
 		pos += sprintf(dst + pos,"\n");
 	} else {
-		pos += sprintf(dst + pos," %02x      db #$%02x     \n", op, op);
+		pos += sprintf(dst + pos,"%04x %02x      db #$%02x     \n", addr, op, op);
 		size = 1;
 	}
 
@@ -431,6 +432,31 @@ void disassemble(unsigned short begin, unsigned short end)
 
 	for (i = begin; i <= end; )
 		i += disassemblyOne(i);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int disassembleToBuffer(char* dest, int address, int instCount)
+{
+	int totalLength = 0;
+	int len = 0;
+
+	for (int i = 0; i < instCount; ++i)
+	{
+		char* source = disassembled[address];
+		address += disassemblyOne(address);
+
+		len = strlen(source);
+
+		strncpy(dest, source, len);
+		dest += len;
+	}
+
+	dest[totalLength] = 0;
+
+	printf("TotalLength %d\n", totalLength);
+
+	return totalLength;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

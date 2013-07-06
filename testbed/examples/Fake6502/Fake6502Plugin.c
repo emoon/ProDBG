@@ -2,10 +2,12 @@
 #include "Debugger6502.h"
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 Debugger6502* g_debugger;
 extern uint16_t pc;
 extern uint8_t sp, a, x, y, status;
+extern int disassembleToBuffer(char* dest, int address, int instCount);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -112,14 +114,13 @@ static void getExceptionLocation(PDSerializeWrite* writer)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-static void getDisassembly(PDSerializeWrite* writer)
+static void getDisassembly(PDSerializeWrite* writer, int start, int instCount)
 {
-	(void)writer;
-
-
+	char temp[65536];
+	disassembleToBuffer(temp, start, instCount);
+	PDWRITE_STRING(writer, temp);
+	printf("getDisassembly %s\n", temp);
 }
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -144,8 +145,17 @@ static int getState(void* userData, PDEventType eventType, int eventId, PDSerial
 
 		case PDEventType_getExceptionLocation :
 		{
+			printf("getExceptionLocation\n");
 			getExceptionLocation(writer);
 			return 1;
+		}
+
+		case PDEventType_getDisassembly :
+		{
+			int start = PDREAD_INT(reader);
+			int count = PDREAD_INT(reader);
+			printf("getDisassembly %d %d\n", start, count);
+			getDisassembly(writer, start, count);
 		}
 	}
 
