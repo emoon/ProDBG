@@ -232,9 +232,11 @@ void Qt5CodeEditor::setAddress(uint64_t address)
 			char* temp = ba.data() + 4;
 			uint64_t ta = strtoul(ba.data(), &temp, 16);
 
+			//printf("address 0x%x 0x%x\n", (uint32_t)address, (uint32_t)ta);
+
 			if (ta == address)
 			{
-				setLine(i + m_lineStart);
+				setLine(i + m_lineStart + 1);
 				return;
 			}
 		}
@@ -245,10 +247,12 @@ void Qt5CodeEditor::setAddress(uint64_t address)
 		// is valid (from the disassembly point of view) If we had some more contex it would
 		// be nice to be able to request code around a PC.
 
-		g_debugSession->requestDisassembly(m_address, (m_lineEnd - m_lineStart));
+		printf("request address 0x%x\n", (uint32_t)m_address);
 
 		if (m_address < m_disassemblyStart)
 			m_disassemblyStart = m_address;
+
+		g_debugSession->requestDisassembly(m_disassemblyStart, (m_lineEnd - m_lineStart));
 
 		m_disassemblyEnd = 0x40;
 	}
