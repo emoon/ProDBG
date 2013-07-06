@@ -9,7 +9,12 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent)
+Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent),
+	m_address(0),
+	m_disassemblyStart(0),
+	m_disassemblyEnd(0),
+	m_lineStart(0),
+	m_lineEnd(0)
 {
 	// http://www.qtcentre.org/threads/39941-readonly-QTextEdit-with-visible-Cursor
 	//setReadOnly(true);
@@ -153,6 +158,8 @@ void Qt5CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
     int width = m_lineNumberArea->width();
     int height = fontMetrics().height();
 
+	m_lineStart = blockNumber;
+
     while (block.isValid() && top <= event->rect().bottom()) 
     {
         if (block.isVisible() && bottom >= event->rect().top()) 
@@ -170,6 +177,8 @@ void Qt5CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
         bottom = top + (int) blockBoundingRect(block).height();
         ++blockNumber;
     }
+
+	m_lineEnd = blockNumber;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -177,6 +186,86 @@ void Qt5CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 void Qt5CodeEditor::step()
 {
 	g_debugSession->callAction(PDAction_step);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5CodeEditor::setMode(Mode mode)
+{
+	m_mode = mode;
+
+	switch (mode)
+	{
+		case Sourcefile : 
+		case Mixed : 
+			break;
+
+		case Disassembly : 
+		{
+
+			break;
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5CodeEditor::setAddress(uint64_t address)
+{
+	m_address = address;
+
+	// Check if disassembly is with in the range of what we have
+
+	if (address >= m_disassemblyStart && m_address < m_disassemblyEnd)
+	{
+		// We have the address within the range so now we need to find the current line
+		// \todo: We should really just keep a faster way to look this up using a struct
+		// with address + text line for each line so we don't need to performe this operation
+		// which is just a waste of time
+
+		QString text = toPlainText();
+		QStringList textList = text.split("\n");
+
+		for (int i = 0, lineCount = textList.size(); i < lineCount; ++i)
+		{
+			QByteArray ba = textList[i].toLocal8Bit();
+			char* temp = ba.data() + 4;
+			uint64_t ta = strtoul(ba.data(), &temp, 16);
+
+			if (ta == address)
+			{
+				setLine(i + m_lineStart);
+				return;
+			}
+		}
+	}
+	else
+	{
+		// Right now we request from only from the PC because we know that that location
+		// is valid (from the disassembly point of view) If we had some more contex it would
+		// be nice to be able to request code around a PC.
+
+		g_debugSession->requestDisassembly(m_address, (m_lineEnd - m_lineStart));
+
+		if (m_address < m_disassemblyStart)
+			m_disassemblyStart = m_address;
+
+		m_disassemblyEnd = 0x40;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5CodeEditor::setDisassembly(const char* text)
+{
+	// \todo: We should be a bit smarter than clearing the whole buffer when we set this
+	// and keep track on sub regions that we can request instead by keeping track of valid start points
+	// the disassembly meroy
+
+	printf("setDisassembly %s\n", text);
+
+	QString string = QString::fromLocal8Bit(text);
+	setPlainText(string);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -225,11 +314,8 @@ void Qt5CodeEditor::readSourceFile(const char* filename)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CodeEditor::setFileLine(const char* file, int line)
+void Qt5CodeEditor::setLine(int line)
 {
-	if (strcmp(file, m_sourceFile))
-		readSourceFile(file);
-
 	const QTextBlock& block = document()->findBlockByNumber(line - 1);
 	QTextCursor cursor(block);
 	cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, 0);
@@ -238,6 +324,15 @@ void Qt5CodeEditor::setFileLine(const char* file, int line)
 	setFocus();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5CodeEditor::setFileLine(const char* file, int line)
+{
+	if (strcmp(file, m_sourceFile))
+		readSourceFile(file);
+
+	setLine(line);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

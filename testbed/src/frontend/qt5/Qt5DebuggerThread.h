@@ -35,13 +35,13 @@ public slots:
     void start();
 	void update();
 	void doAction(int action);
-	void setState(void* serializeData);
+	void setState(void* serializeData, int size);
  
 signals:
     void finished();
 
     // data is here to be set to the serializer. Not very elgent so we should maybe wrap it in something better
-    void sendData(void* serializedata);
+    void sendData(void* serializedata, int size);
 
 private:
 	

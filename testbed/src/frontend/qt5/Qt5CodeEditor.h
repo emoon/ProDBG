@@ -22,7 +22,6 @@ namespace prodbg
 
 class LineNumberArea;
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct FileLineBreakpoint
@@ -38,13 +37,26 @@ class Qt5CodeEditor : public QPlainTextEdit
     Q_OBJECT
 
 public:
+
+	enum Mode
+	{
+		Sourcefile,			// Sourcefile (.c .s) etc
+		Disassembly,		// Disassembly
+		Mixed,				// Mixed Source + Disassembly mode
+	};
+
     Qt5CodeEditor(QWidget* parent = 0);
     virtual ~Qt5CodeEditor();
 
+	void setMode(Mode mode);
+	void setExceptionAddress(uint64_t address);
 	void readSourceFile(const char* file);
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     void setFileLine(const char* file, int line);
+    void setAddress(uint64_t address);
+    void setLine(int line);
     int lineNumberAreaWidth();
+	void setDisassembly(const char* text);
 
 protected:
     void resizeEvent(QResizeEvent* event);
@@ -65,6 +77,16 @@ signals:
 private:
     QWidget* m_lineNumberArea;
 	const char* m_sourceFile;
+	Mode m_mode;
+
+	uint64_t m_address;
+	uint64_t m_disassemblyStart;
+	uint64_t m_disassemblyEnd;
+
+	int m_lineStart;
+	int m_lineEnd;
+
+	// Range of dissassembly (this currently assumes that the disassembly is non-SMC)
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

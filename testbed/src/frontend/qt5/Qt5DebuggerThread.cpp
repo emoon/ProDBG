@@ -72,47 +72,67 @@ void Qt5DebuggerThread::start()
 // This gets called from the DebugSession (which is on the UI thread) and when the data gets here this thread has
 // owner ship of the data and will release it when done with it
 
-void Qt5DebuggerThread::setState(void* serializeData)
+void Qt5DebuggerThread::setState(void* serializeData, int serSize)
 {
-	PDSerializeRead reader;
-	PDSerializeRead* readerPtr = &reader;
-
-	log_debug("Qt5DebuggerThread::getData\n");
-
-	BinarySerializer_initReader(readerPtr, serializeData);
-
-	while (PDREAD_BYTES_LEFT(readerPtr) > 0)
+	if (m_targetType == Local)
 	{
-		BinarySerializer_saveReadOffset(readerPtr);
+		PDSerializeRead reader;
+		PDSerializeRead* readerPtr = &reader;
 
-		int size = PDREAD_INT(readerPtr);
-		PDEventType event = (PDEventType)PDREAD_INT(readerPtr);
-		int id = PDREAD_INT(readerPtr);
+		log_debug("Qt5DebuggerThread::getData\n");
 
-		log_debug("event %d size %d id %d\n", (int)event, size, id);
+		BinarySerializer_initReader(readerPtr, serializeData);
 
-		// We do the save offset/goto next offset as the the plugin may not handle the event and we want to go to the
-		// next one and this way the plugin doesn't need to report back if it handled the event or not.
-		// This forces us to handle it but worth it as it reduced the complexity for the plugins and it it's easy
-		// to forget to return the correct error code and that would cause this loop to loop for ever which is bad.
+		while (PDREAD_BYTES_LEFT(readerPtr) > 0)
+		{
+			BinarySerializer_saveReadOffset(readerPtr);
 
-		m_debuggerPlugin->setState(m_pluginData, event, id, readerPtr, 0);	// can't write back here yet
+			int size = PDREAD_INT(readerPtr);
+			PDEventType event = (PDEventType)PDREAD_INT(readerPtr);
+			int id = PDREAD_INT(readerPtr);
 
-		BinarySerializer_gotoNextOffset(readerPtr, size);
+			log_debug("event %d size %d id %d\n", (int)event, size, id);
+
+			// We do the save offset/goto next offset as the the plugin may not handle the event and we want to go to the
+			// next one and this way the plugin doesn't need to report back if it handled the event or not.
+			// This forces us to handle it but worth it as it reduced the complexity for the plugins and it it's easy
+			// to forget to return the correct error code and that would cause this loop to loop for ever which is bad.
+
+			m_debuggerPlugin->setState(m_pluginData, event, id, readerPtr, 0);	// can't write back here yet
+
+			BinarySerializer_gotoNextOffset(readerPtr, size);
+		}
+
+		// TODO: Not really sure if this is the best way to handle this
+
+		if (m_debuggerPlugin->update(m_pluginData) == PDDebugState_running)
+		{
+			// if timer isn't active at this point we should start it
+			if (!m_timer.isActive())
+				m_timer.start(10);
+		}
+
+		// After we finished reading the data we free it up
+		
+		BinarySerializer_destroyData(serializeData);
 	}
-
-	// TODO: Not really sure if this is the best way to handle this
-
-	if (m_debuggerPlugin->update(m_pluginData) == PDDebugState_running)
+	else
 	{
-		// if timer isn't active at this point we should start it
-		if (!m_timer.isActive())
-			m_timer.start(10);
-	}
+		if (RemoteConnection_isConnected(m_connection))
+		{
+			uint32_t tempBuffer[1024];
+			tempBuffer[0] = htonl(1 << 16);
+			memcpy((char*)&tempBuffer[1], serializeData, serSize);
 
-	// After we finished reading the data we free it up
-	
-	BinarySerializer_destroyData(serializeData);
+			printf("Sending request to target (size %d)\n", serSize + (int)sizeof(uint32_t));
+			RemoteConnection_send(m_connection, tempBuffer, serSize + sizeof(uint32_t), 0);
+
+			// \todo: Merge into 1 buffer? Not sure if this is really save
+			//uint32_t command = htonl(1 << 16);
+			//RemoteConnection_send(m_connection, &command, sizeof(uint32_t), 0);
+			//RemoteConnection_send(m_connection, serializeData, serSize, 0);
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -171,7 +191,7 @@ void Qt5DebuggerThread::sendState()
 	m_debuggerPlugin->getState(m_pluginData, PDEventType_getTty, 0, 0, &writer);
 	BinarySerialize_endEvent(&writer);
 
-	emit sendData(writer.writeData);
+	emit sendData(writer.writeData, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,7 +224,7 @@ void Qt5DebuggerThread::update()
 		// Only send data if we have something to send
 		
 		if (BinarySerializer_writeSize(&writer) > 12)
-			emit sendData(writer.writeData);
+			emit sendData(writer.writeData, 0);
 		else
 			BinarySerializer_destroyData(writer.writeData);
 	}
@@ -231,7 +251,7 @@ void Qt5DebuggerThread::update()
 		totalSize += retSize;
 		BinarySerializer_initReaderFromStream(&reader, tempBuffer, totalSize);
 
-		emit sendData(reader.readData);
+		emit sendData(reader.readData, totalSize);
 	}
 }
 

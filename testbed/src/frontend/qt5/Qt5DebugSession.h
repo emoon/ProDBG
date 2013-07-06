@@ -48,6 +48,7 @@ public:
     void begin(const char* executable);
     void beginRemote(const char* remoteTarget, int port);
     void callAction(int action);
+    void requestDisassembly(uint64_t startAddress, int instructionCount);
 
     bool hasLineBreakpoint(const char* filename, int line);
     bool getFilenameLine(const char** filename, int* line);
@@ -60,12 +61,12 @@ public:
     
 private slots:
 	// Called from the when a state change has happen that require UI update 
-	void setState(void* readerData);
+	void setState(void* readerData, int size);
 
 signals:
 	void tryStartDebugging();
 	void tryAction(int);
-	void sendData(void* readerData);
+	void sendData(void* readerData, int size);
 
 private:
 

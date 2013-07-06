@@ -147,7 +147,7 @@ void Qt5DebugSession::begin(const char* executable)
 
 	// TODO: Write executable to debugger plugin
 
-	emit sendData(writer->writeData);
+	emit sendData(writer->writeData, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -211,10 +211,31 @@ void Qt5DebugSession::callAction(int action)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5DebugSession::setState(void* readerData)
+void Qt5DebugSession::requestDisassembly(uint64_t startAddress, int instructionCount)
+{
+	PDSerializeWrite writer_;
+	PDSerializeWrite* writer = &writer_;
+
+	BinarySerializer_initWriter(writer);
+
+	// \todo Should we always write down a 64-bit address here or not?
+
+	BinarySerialize_beginEvent(writer, PDEventType_getDisassembly, 0);
+	PDWRITE_INT(writer, (int)startAddress);
+	PDWRITE_INT(writer, instructionCount); 
+	BinarySerialize_endEvent(writer);
+
+	emit sendData(BinarySerializer_getStartData(writer), BinarySerializer_writeSize(writer));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5DebugSession::setState(void* readerData, int serSize)
 {
 	PDSerializeRead reader;
 	PDSerializeRead* readerPtr = &reader;
+
+	(void)serSize;
 
 	BinarySerializer_initReader(readerPtr, readerData);
 
@@ -253,6 +274,8 @@ void Qt5DebugSession::setState(void* readerData)
 			{
 				const char* exceptionType = PDREAD_STRING(readerPtr);
 
+				printf("get exception\n");
+
 				if (!strcmp(exceptionType, "fileline"))
 				{
 					const char* filename = PDREAD_STRING(readerPtr);
@@ -276,7 +299,29 @@ void Qt5DebugSession::setState(void* readerData)
 						case 4 : address = PDREAD_INT(readerPtr); break;
 					}
 
+					// Only update 1 for now
+					if (m_codeEditors.size() > 0)
+					{
+						m_codeEditors[0]->setMode(Qt5CodeEditor::Disassembly);
+						m_codeEditors[0]->setAddress(address);
+					}
+
 					printf("exception address 0x%x\n", (uint32_t)address);
+				}
+
+				break;
+			}
+
+			case PDEventType_getDisassembly:
+			{
+				const char* disassembly = PDREAD_STRING(readerPtr);
+
+				// Only update 1 for now
+				if (m_codeEditors.size() > 0)
+				{
+					// \todo Specific editor/decided mode if disassembly or not?
+					m_codeEditors[0]->setMode(Qt5CodeEditor::Disassembly);
+					m_codeEditors[0]->setDisassembly(disassembly);
 				}
 
 				break;
