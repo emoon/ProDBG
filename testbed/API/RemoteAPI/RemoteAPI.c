@@ -99,8 +99,8 @@ static void processCommands()
 			PDSerializeRead* readerPtr = &reader;
 
 			// Grab how big buffer we need to allocate
-			RemoteConnection_recv(s_conn, (char*)&size, 4, 0);
-			size = (int)(uint32_t)htonl(size);	
+			//RemoteConnection_recv(s_conn, (char*)&size, 4, 0);
+			size = 64 * 1024; 
 
 			if (!(data = malloc((size_t)size)))
 			{
@@ -108,13 +108,13 @@ static void processCommands()
 				return;
 			}
 
-			if ((retSize = RemoteConnection_recv(s_conn, data, size, 0)) != size)
+			if ((retSize = RemoteConnection_recv(s_conn, data, size, 0)) <= 0)
 			{
 				printf("Unable to get data from socket (wantedSize %d got Size %d\n", size, retSize);
 				return;
 			}
 
-			BinarySerializer_initReaderFromStream(readerPtr, data, size);
+			BinarySerializer_initReaderFromStream(readerPtr, data, retSize);
 			BinarySerializer_initWriter(&writer);
 
 			while (PDREAD_BYTES_LEFT(readerPtr) > 0)
@@ -126,6 +126,8 @@ static void processCommands()
 				eventSize = PDREAD_INT(readerPtr);
 				type = PDREAD_INT(readerPtr);
 				eventId = PDREAD_INT(readerPtr);
+
+				printf("requesting eventSize %d type %d eventId %d\n", eventSize, type, eventId);	
 
 				// getEvent
 				// \todo proper enum/constant here
@@ -155,8 +157,8 @@ static void processCommands()
 				printf("Unable to send exception location (wanted SendSize %d got Size %d)\n", size, retSize); 
 			}
 
-			BinarySerializer_destroyData(&writer);
-			BinarySerializer_destroyData(readerPtr);
+			//BinarySerializer_destroyData(&writer);
+			//BinarySerializer_destroyData(readerPtr);
 		}
 	}
 }
