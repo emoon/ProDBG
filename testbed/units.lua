@@ -37,7 +37,20 @@ StaticLibrary {
 
 	Env = { 
 		
-		CPPPATH = { "API" } 
+		CPPPATH = { "API" },
+		CCOPTS = {
+			"-Wno-conversion", 
+			"-Wno-pedantic", 
+			"-Wno-conversion",
+			"-Wno-covered-switch-default",
+			"-Wno-unreachable-code",
+			"-Wno-bad-function-cast",
+			"-Wno-missing-field-initializers",
+			"-Wno-float-equal",
+			"-Wno-conversion",
+			"-Wno-switch-enum",
+			"-Wno-format-nonliteral"; Config = "macosx-*-*" 
+		},
 	},
 
 	Sources = { 
@@ -56,7 +69,15 @@ Program {
 
 	Env = {
 		CCOPTS = {
-			{ "-Wno-conversion", "-Werror", "-Wno-pedantic", "-Wno-format-nonliteral"; Config = "macosx-*-*" },
+			{ 
+			"-Wno-conversion", 
+			"-Werror", 
+			"-Wno-pedantic", 
+			"-Wno-conversion",
+			"-Wno-missing-field-initializers",
+			"-Wno-conversion",
+			"-Wno-switch-enum",
+			"-Wno-format-nonliteral"; Config = "macosx-*-*" },
 		},
 	},
 
