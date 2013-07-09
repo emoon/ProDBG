@@ -5,10 +5,13 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "PDReadWrite.h"
 
 #ifdef _cplusplus
 extern "C" {
 #endif
+
+struct bson;
 
 /*! \fn void* ServiceFunc(const char* serviceName)
     \breif Service Function. Provides services for the plugin to use.
@@ -29,20 +32,6 @@ enum
     PD_API_VERSION = 1
 };
 
-typedef uint64_t PDToken;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef enum PDDebugState
-{
-    PDDebugState_noTarget,         // nothing is running 
-    PDDebugState_running,          // target is being executed 
-    PDDebugState_stopBreakpoint,   // Stop on Breakpoint 
-    PDDebugState_stopException,    // Stop on Exception 
-    PDDebugState_stepping,         // code is currently being stepped/traced/etc 
-    PDDebugState_custom = 0x1000   // Start of custom ids 
-} PDDebugState;
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef enum PDAction
@@ -60,96 +49,35 @@ typedef enum PDAction
 
 typedef enum PDEventType
 {
-	// get events
-
     PDEventType_getLocals,
+    PDEventType_setLocals,
     PDEventType_getCallStack,
+    PDEventType_setCallStack,
     PDEventType_getWatch,
+    PDEventType_setWatch,
     PDEventType_getRegisters,
+    PDEventType_setRegisters,
     PDEventType_getMemory,
+    PDEventType_setMemory,
     PDEventType_getTty,
+    PDEventType_setTty,
     PDEventType_getExceptionLocation,
+    PDEventType_setExceptionLocation,
     PDEventType_getDisassembly,
+    PDEventType_setDisassembly,
 
-    // set events
-
-    PDEventType_setBreakpointAddress = 0x500,
+    PDEventType_setBreakpointAddress,
+    PDEventType_getBreakpointAddress,
     PDEventType_setBreakpointSourceLine,
-    PDEventType_start,
+    PDEventType_geBreakpointSourceLine,
     PDEventType_setExecutable,
     PDEventType_attachToProcess,
     PDEventType_attachToRemoteSession,
 
-	// custom
-
+	/// Custom events. Here you can have your own events. Note that they must start with PDEventType_custom  and up
     PDEventType_custom = 0x1000
 
 } PDEventType;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef struct PDSerializeWrite
-{
-	// First Argument to all functions
-	void* writeData;
-
-	// Write 32-bit signed integer
-    void (*writeInt)(void* writeData, int);
-
-	// Write unsigned signed short (16-bit)
-    void (*writeU16)(void* writeData, unsigned short);
-
-	// Write unsigned char (8-bit) 
-    void (*writeU8)(void* writeData, unsigned char);
-
-    // Write null-teminated string
-    void (*writeString)(void* writeData, const char* string);
-
-} PDSerializeWrite;
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef struct PDSerializeRead
-{
-	// First argument to all functions
-	void* readData;
-
-	// Read a 32-bit int from the stream
-	// TODO: better with int32/uint32/I32/I16, etc and maybe add readI4Array(...) with count
-    int (*readInt)(void* readData);
-
-    // TODO: Extend even more
-    unsigned short (*readU16)(void* readData);
-
-    // TODO: Extend even more
-    unsigned char (*readU8)(void* readData);
-
-    // Read zero terminated string (caller needs to take a copy if reqired)
-    const char* (*readString)(void* readData);
-
-    // Checks how many bytes that there are left in the stream
-	int (*bytesLeft)(void* readData);
-
-	// Skip bytes to be read (useful if there is a unknown section with known size)
-	void (*skipBytes)(void* readData, int count);
-
-} PDSerializeRead;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Helper macros 
-
-#define PDREAD_INT(reader) reader->readInt(reader->readData)
-#define PDREAD_U16(reader) reader->readU16(reader->readData)
-#define PDREAD_STRING(reader) reader->readString(reader->readData)
-#define PDREAD_SKIP_BYTES(reader, n) reader->skipBytes(reader->readData, n)
-#define PDREAD_BYTES_LEFT(reader) reader->bytesLeft(reader->readData)
-
-#define PDWRITE_EVENT_BEGIN(writer, event, id) writer->eventBegin(writer->writeData, event, id)
-#define PDWRITE_EVENT_END(writer, event, id) writer->eventEnd(writer->writeData)
-#define PDWRITE_INT(writer, value) writer->writeInt(writer->writeData, value)
-#define PDWRITE_U16(writer, value) writer->writeU16(writer->writeData, value)
-#define PDWRITE_U8(writer, value) writer->writeU8(writer->writeData, value)
-#define PDWRITE_STRING(writer, value) writer->writeString(writer->writeData, value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -163,19 +91,12 @@ typedef struct PDBackendPlugin
     void* (*createInstance)(ServiceFunc* serviceFunc);
     void (*destroyInstance)(void* userData);
 
+	// Writer functions used for writing data back to the host
+	PDWriter writer;
+
     // Updates and Returns the current state of the plugin.
 
-    PDDebugState (*update)(void* userData);
-
-    // Various actions can be send to the plugin. like
-    // Break, continue, exit, detach etc.
-    bool (*action)(void* userData, PDAction action);
-
-    // Get some data state  
-    int (*getState)(void* userData, PDEventType eventType, int eventId, PDSerializeRead* reader, PDSerializeWrite* writer);
-
-    // set/get some dat
-    int (*setState)(void* userData, PDEventType event, int eventId, PDSerializeRead* reader, PDSerializeWrite* writer);
+    void (*update)(void* userData, PDAction action, PDWriter                 * inEvents, struct* bson* outEvents);
 
 } PDBackendPlugin;
 
