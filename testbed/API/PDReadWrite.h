@@ -15,7 +15,7 @@ struct PDReaderIterator;
 enum PDReadWriteType
 {
 	/// Default type that represnts no type 
-	PDReadWriteType_None,			
+	PDReadWriteType_none,			
 	/// signed 8 bit value
 	PDReadWriteType_s8,			
 	/// unsigned 8 bit value
@@ -425,18 +425,35 @@ typedef struct PDReader
     *       }
     *
     *    }
+    *
+    *    type = PDRead_iteratorNext(reader, it); 
     * }
-    *
-    *
     * \endcode
     *
     */
 	PDReadWriteType (*readIteratorBegin)(struct PDReader* reader, struct PDReaderIterator** it, struct PDReaderIterator* eventIt);
+
+   /**
+    *
+    * Increase the iterator to the next value. See PDRead::readIteratorBegin for example usage. 
+    *
+    * @param reader The reader
+    * @param it the iterator
+    * @return the type of the next value and returns PDReadWriteType_none if no more values
+    *
+    */
 	PDReadWriteType (*readIteratorNext)(struct PDReader* reader, struct PDReaderIterator* it);
 
-	// find functions
+   /**
+    *
+    * Find the id within the current scope and return the value (coverted to) int8_t 
+    * It's worth to note that this function will only search within the current scope of
+    * the iterator (meaning if there are arrays and arrays of arrays) this function will not return those
+    *
+    */
 
 	int8_t (*readFindS8)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
+
 	uint8_t (*readFindU8)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
 	int16_t (*readFindS16)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
 	uint16_t (*readFindU16)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
@@ -449,7 +466,7 @@ typedef struct PDReader
 	const char* (*readFindString)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
 	void* (*readFindData)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
 
-	struct PDReaderIterator* (*readFindArray)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
+	struct PDReaderIterator* (*readFindArray)(struct PDReader* reader, const char* id, struct PDReaderIterator* it, struct PDReaderIterater** arrayIt);
 	struct PDReaderIterator* (*readNextArray)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
 
 	int8_t (*readS8)(struct PDReader* reader, const char** id, struct PDReaderIterator* it);
