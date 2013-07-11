@@ -39,9 +39,23 @@ enum PDReadWriteType
 	/// const char* string (null terminated) 
 	PDReadWriteType_string,		
 	/// data array (void*) 
-	PDReadWriteType_data,		
-	/// Event that usually matches PDEventType 
-	PDReadWriteType_event		
+	PDReadWriteType_data
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum PDReadStatus
+{
+	// Read operation completed without any problems
+	PDReadStatus_ok = (1 << 8),
+	// Read operation completed but value was converted (for example u16 -> u8 which may cause issues)
+	PDReadStatus_converted,
+	// Read operation falied due to illeal type (example when reading s8 and type is string) 
+	PDReadStatus_illegalType,
+	// Read operation failed because the ID supplied to search function couldn't be found 
+	PDReadStatus_notFound,
+	// Mask used to get the type
+	PDReadWrite_typeMask = 0xff
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -368,7 +382,7 @@ typedef struct PDReader
     * @return The event type and is usually a PDEventType but pluins can use custom events as well
     *
     * \code
-    * struct PDReaderIterator* eventIt;
+    * struct PDReadIterator* eventIt;
     *
     * int event = PDRead_iteratorGetEvent(reader, &eventIt);
     *
@@ -384,7 +398,7 @@ typedef struct PDReader
     * }
     * \endcode
     */
-	int (*readIteratorGetEvent)(struct PDReader* reader, struct PDReaderIterator** it);
+	int (*readIteratorBeginEvent)(struct PDReader* reader, struct PDReadIterator** it);
 
    /**
     *
@@ -395,23 +409,25 @@ typedef struct PDReader
     * @return The event type and is usually a PDEventType but pluins can use custom events as well
     *
     */
-	int (*readIteratorNextEvent)(struct PDReader* reader, struct PDReaderIterator* it);
+	int (*readIteratorNextEvent)(struct PDReader* reader, struct PDReadIterator* it);
 
    /**
     *
     * Used to iterater over data within a scope. When accessing data within a a scope there are two
-    * ways of doing it and one way is to use iterators and use the corresponing read operation.
+    * ways of doing it and one way is to use iterators and use the corresponing read operation and the other
+    * is to use one of the find functions (detailed futher down)
     *
     * @param reader The reader object
     * @param it iterator that will be using when traversing the data
-    * @param eventIt iterator for the event 
+    * @param keyName name of the key for the current key/value
+    * @param parentIt The parent iterator (may be the eventIt or an array iterator for example) 
     *
     * \note This example code assumes that eventIt (as seen in the PDRead::readIteratorGetEvent example)
     *       has been initialized correctly
     *
     * \code
     *
-    * PDReadWriteType type = PDRead_iteratorBegin(reader, &it, eventIt);
+    * PDReadWriteType type = PDRead_iteratorBegin(reader, &it, &keyName, eventIt);
     *
     * while (type)
     * {
@@ -431,56 +447,110 @@ typedef struct PDReader
     * \endcode
     *
     */
-	PDReadWriteType (*readIteratorBegin)(struct PDReader* reader, struct PDReaderIterator** it, struct PDReaderIterator* eventIt);
+	PDReadWriteType (*readIteratorBegin)(struct PDReader* reader, struct PDReaderIterator** it, const char** keyName, struct PDReaderIterator* parentIt);
 
    /**
     *
     * Increase the iterator to the next value. See PDRead::readIteratorBegin for example usage. 
     *
     * @param reader The reader
-    * @param it the iterator
+    * @param keyName Name of the key for the current key/value
+    * @param it The iterator
     * @return the type of the next value and returns PDReadWriteType_none if no more values
     *
     */
-	PDReadWriteType (*readIteratorNext)(struct PDReader* reader, struct PDReaderIterator* it);
+	PDReadWriteType (*readIteratorNext)(struct PDReader* reader, const char** keyName, struct PDReaderIterator* it);
 
-   /**
+   /** @name Find functions
+    * 
+    * All of them work in the same way except they have different types that they write back.
     *
-    * Find the id within the current scope and return the value (coverted to) int8_t 
+    * Find the id within the current scope and set the res variable to the (converted value) 
     * It's worth to note that this function will only search within the current scope of
     * the iterator (meaning if there are arrays and arrays of arrays) this function will not return those
     *
+    * @param reader The reader object.
+    * @param res Result in the given type (s8/u16/etc) if the function completed successfully.
+    * @param id string of the identifier to search for
+    * @return Lower 8-bit is the type of the the value in the struture (meaning that if you do a readS8 the value
+    *         in the reader may be of a different type) the upper 8-bit describes if the read operator was successful or not
+    *         See PDReadStatus for a complete list of codes
+    *
+    * \code
+    * This code shows what happens when trying to read s8 value but the value is actually a
+    * string and how you can handle the case be simply doing a readString instead
+    *
+ 	* if ((status = PDRead_findS8(reader, &value, "foo", it) >> 8) == PDReadStatus_illegalType)
+	* {
+	*     type = status & PDReadWrite_TypeMask;
+	* 
+	*  	  if (type == PDReadWiteType_string)
+	*  	  {
+	*          PDRead_readString(reader, &stringVal, it);
+	*     }
+	* }
+    * \endcode
+    *
     */
+   ///@{
+	PDReadStatus (*readFindS8)(struct PDReader* reader, int8_t* res, const char* id, struct PDReaderIterator* it);
+	PDReadStatus (*readFindU8)(struct PDReader* reader, uint8_t* res, const char* id, struct PDReaderIterator* it);
+	PDReadStatus (*readFindS16)(struct PDReader* reader, int16_t* res, const char* id, struct PDReaderIterator* it);
+	PDReadStatus (*readFindU16)(struct PDReader* reader, uint16_t* res, const char* id, struct PDReaderIterator* it);
+	PDReadStatus (*readFindS32)(struct PDReader* reader, int32_t* res, const char* id, struct PDReaderIterator* it);
+	PDReadStatus (*readFindU32)(struct PDReader* reader, uint32_t* res, const char* id, struct PDReaderIterator* it);
+	PDReadStatus (*readFindS64)(struct PDReader* reader, int64_t* res, const char* id, struct PDReaderIterator* it);
+	PDReadStatus (*readFindU64)(struct PDReader* reader, uint64_t* res, const char* id, struct PDReaderIterator* it);
+	PDReadStatus (*readFindFloat)(struct PDReader* reader, float* res, const char* id, struct PDReaderIterator* it);
+	PDReadStatus (*readFindDouble)(struct PDReader* reader, double* res, const char* id, struct PDReaderIterator* it);
+	PDReadStatus (*readFindString)(struct PDReader* reader, const char* res, const char* id, struct PDReaderIterator* it);
+	PDReadStatus (*readFindData)(struct PDReader* reader, void* data, uint64_t* size, const char* id, struct PDReaderIterator* it);
+	PDReadStatus (*readFindArray)(struct PDReader* reader, struct PDReaderIterater** arrayIt, const char* id, struct PDReaderIterator* it);
+   ///@}
 
-	int8_t (*readFindS8)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
-
-	uint8_t (*readFindU8)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
-	int16_t (*readFindS16)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
-	uint16_t (*readFindU16)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
-	int32_t (*readFindS32)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
-	uint32_t (*readFindU32)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
-	int64_t (*readFindS64)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
-	uint64_t (*readFindU64)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
-	float (*readFindFloat)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
-	double (*readFindDouble)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
-	const char* (*readFindString)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
-	void* (*readFindData)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
-
-	struct PDReaderIterator* (*readFindArray)(struct PDReader* reader, const char* id, struct PDReaderIterator* it, struct PDReaderIterater** arrayIt);
-	struct PDReaderIterator* (*readNextArray)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
-
-	int8_t (*readS8)(struct PDReader* reader, const char** id, struct PDReaderIterator* it);
-	uint8_t (*readU8)(struct PDReader* reader, const char** id, struct PDReaderIterator* it);
-	int16_t (*readS16)(struct PDReader* reader, const char** id, struct PDReaderIterator* it);
-	uint16_t (*readU16)(struct PDReader* reader, const char** id, struct PDReaderIterator* it);
-	int32_t (*readS32)(struct PDReader* reader, const char** id, struct PDReaderIterator* it);
-	uint32_t (*readU32)(struct PDReader* reader, const char** id, struct PDReaderIterator* it);
-	int64_t (*readS64)(struct PDReader* reader, const char** id, struct PDReaderIterator* it);
-	uint64_t (*readU64)(struct PDReader* reader, const char** id, struct PDReaderIterator* it);
-	float (*readFloat)(struct PDReader* reader, const char** id, struct PDReaderIterator* it);
-	double (*readDouble)(struct PDReader* reader, const char* id, struct PDReaderIterator* it);
-	const char* (*readString)(struct PDReader* reader, const char** id, struct PDReaderIterator* it);
-	void* (*readData)(struct PDReader* reader, const char** id, struct PDReaderIterator* it);
+   /** @name Read functions
+    *
+    * These functions will read the data at the iterator to the res and id varibles. Just as in the finder functions
+    * the code will try to convert the value if it can but will otherwise return an error code
+    *
+    * @param reader The reader object.
+    * @param res Result in the given type (s8/u16/etc) if the function completed successfully.
+    * @param id string of the identifier to search for the current iterator postion (can be NULL if output is ignored)
+    * @return Lower 8-bit is the type of the the value in the struture (meaning that if you do a readS8 the value
+    *         in the reader may be of a different type) the upper 8-bit describes if the read operator was successful or not
+    *         See PDReadStatus for a complete list of codes
+    *
+    * \code
+    * cons char* key;
+    * This code shows what happens when trying to read s8 value but the value is actually a
+    * string and how you can handle the case be simply doing a readString instead
+    *
+ 	* if ((status = PDRead_s8(reader, &value, &key, it) >> 8) == PDReadStatus_illegalType)
+	* {
+	*     type = status & PDReadWrite_TypeMask;
+	* 
+	*  	  if (type == PDReadWiteType_string)
+	*  	  {
+	*          PDRead_string(reader, &stringVal, 0, it);
+	*     }
+	* }
+    * \endcode
+    */
+   ///@{
+	PDReadStatus (*readS8)(struct PDReader* reader, int8_t* res, const char** id, struct PDReaderIterator* it);
+	PDReadStatus (*readU8)(struct PDReader* reader, uint8_t* res, const char** id, struct PDReaderIterator* it);
+	PDReadStatus (*readS16)(struct PDReader* reader, int16_t* res, const char** id, struct PDReaderIterator* it);
+	PDReadStatus (*readU16)(struct PDReader* reader, uint16_t* res, const char** id, struct PDReaderIterator* it);
+	PDReadStatus (*readS32)(struct PDReader* reader, int32_t* res, const char** id, struct PDReaderIterator* it);
+	PDReadStatus (*readU32)(struct PDReader* reader, uint32_t* res, const char** id, struct PDReaderIterator* it);
+	PDReadStatus (*readS64)(struct PDReader* reader, int64_t* res, const char** id, struct PDReaderIterator* it);
+	PDReadStatus (*readU64)(struct PDReader* reader, uint64_t* res, const char** id, struct PDReaderIterator* it);
+	PDReadStatus (*readFloat)(struct PDReader* reader, float* res, const char** id, struct PDReaderIterator* it);
+	PDReadStatus (*readDouble)(struct PDReader* reader, double* res, const char* id, struct PDReaderIterator* it);
+	PDReadStatus (*readString)(struct PDReader* reader, const char* res, const char** id, struct PDReaderIterator* it);
+	PDReadStatus (*readData)(struct PDReader* reader, void* res, uint64_t* size, const char** id, struct PDReaderIterator* it);
+	PDReadStatus (*readArray)(struct PDReader* reader, struct PDReaderIterater** arrayIt, const char* id, struct PDReaderIterator* it);
+   ///@}
 
 } PDReader;
 
