@@ -1,18 +1,21 @@
 #include "../PDReadWrite.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct WriterData
 {
-	int foo;
+	uint8_t* data;
+	unsigned int size;
 } WriterData;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static PDWriteStatus writeEventBegin(struct PDWriter* writer, int event)
 {
+	printf("writeEventBegin\n");
 	(void)writer;
 	(void)event;
 	return PDWriteStatus_fail;
@@ -22,6 +25,7 @@ static PDWriteStatus writeEventBegin(struct PDWriter* writer, int event)
 
 static PDWriteStatus writeEventEnd(struct PDWriter* writer)
 {
+	printf("writeEventEnd\n");
 	(void)writer;
 	return PDWriteStatus_fail;
 }
@@ -225,4 +229,32 @@ void PDBinaryWriter_init(PDWriter* writer)
 	writer->data = malloc(sizeof(WriterData));
 	memset(writer->data, 0, sizeof(WriterData));
 }
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void* PDBinaryWriter_getData(PDWriter* writer)
+{
+	WriterData* data = (WriterData*)writer->data;
+	return data->data;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+unsigned int PDBinaryWriter_getSize(PDWriter* writer)
+{
+	WriterData* data = (WriterData*)writer->data;
+	return data->size;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PDBinaryWriter_reset(PDWriter* writer)
+{
+	WriterData* data = (WriterData*)writer->data;
+	void* tempData = data->data;
+	memset(data, 0, sizeof(WriterData));
+	data->data = tempData;
+}
+
 
