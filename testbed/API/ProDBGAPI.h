@@ -92,11 +92,13 @@ typedef struct PDBackendPlugin
     void (*destroyInstance)(void* userData);
 
 	// Writer functions used for writing data back to the host
+	PDReader reader;
+
+	// Writer functions used for writing data back to the host
 	PDWriter writer;
 
     // Updates and Returns the current state of the plugin.
-
-    void (*update)(void* userData, PDAction action, PDWriter                 * inEvents, struct* bson* outEvents);
+    void (*update)(void* userData, PDAction action, PDReader* inEvents, PDWriter* outEvents);
 
 } PDBackendPlugin;
 
