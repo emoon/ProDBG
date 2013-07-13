@@ -39,6 +39,7 @@ StaticLibrary {
 		
 		CPPPATH = { "API" },
 		CCOPTS = {
+			"-Wno-visibility",
 			"-Wno-conversion", 
 			"-Wno-pedantic", 
 			"-Wno-conversion",
@@ -61,6 +62,21 @@ StaticLibrary {
 	},
 }
 
+StaticLibrary {
+	Name = "CuTest",
+
+	Env = { 
+		
+		CPPPATH = { "tests/CuTest" },
+	},
+
+	Sources = { 
+		Glob {
+			Dir = "tests/CuTest",
+			Extensions = { ".c" },
+		},
+	},
+}
 
 -- Example 6502 emulator
 
@@ -249,9 +265,34 @@ local native = require('tundra.native')
 
 -- only build LLDBPlugin on Mac
 
-if native.host_platform == "macosx" then
-	Default "LLDBPlugin"
-end
+--if native.host_platform == "macosx" then
+--	Default "LLDBPlugin"
+--end
 
-Default "Fake6502"
-Default "prodbg-qt5"
+
+Program {
+	Name = "TestReadWrite",
+
+	Env = {
+		CPPPATH = { 
+			"tests/CuTest",
+			"API",
+		},
+
+		CCOPTS = {
+			{ 
+			"-Wno-visibility"; Config = "macosx-*-*" },
+		},
+	},
+
+	Sources = { "tests/API/ReadWrite.c" },
+	Depends = { "CuTest", "RemoteAPI" },
+}
+
+
+------------ Tests ---------------
+
+Default "TestReadWrite"
+
+--Default "Fake6502"
+--Default "prodbg-qt5"
