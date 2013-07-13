@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/*
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct BinarySerializerData
@@ -224,23 +227,23 @@ static void skipBytes(void* readData, int size)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BinarySerializer_saveReadOffset(struct PDSerializeRead* reader)
+void BinarySerializer_saveReadOffset(struct PDReader* reader)
 {
-	BinarySerializerData* data = (BinarySerializerData*)reader->readData;
+	BinarySerializerData* data = (BinarySerializerData*)reader->data;
 	data->readSaveOffset = data->readOffset;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BinarySerializer_gotoNextOffset(struct PDSerializeRead* reader, int offset)
+void BinarySerializer_gotoNextOffset(struct PDReader* reader, int offset)
 {
-	BinarySerializerData* data = (BinarySerializerData*)reader->readData;
+	BinarySerializerData* data = (BinarySerializerData*)reader->data;
 	data->readOffset = data->readSaveOffset + offset;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BinarySerializer_initWriter(struct PDSerializeWrite* writer)
+void BinarySerializer_initWriter(struct PDWriter* writer)
 {
 	BinarySerializerData* data = (BinarySerializerData*)malloc(sizeof(BinarySerializerData));
 	memset(data, 0, sizeof(BinarySerializerData));
@@ -248,8 +251,8 @@ void BinarySerializer_initWriter(struct PDSerializeWrite* writer)
 	data->maxAllocSize = 256 * 1024;
 	data->dataStart = (uint8_t*)malloc((size_t)data->maxAllocSize);
 
-	writer->writeData = data;
-	writer->writeInt = writeInt;
+	writer->data = data;
+	//writer->writeInt = writeInt;
 	writer->writeU8 = writeU8;
 	writer->writeU16 = writeU16;
 	writer->writeString = writeString;
@@ -257,7 +260,7 @@ void BinarySerializer_initWriter(struct PDSerializeWrite* writer)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BinarySerialize_beginEvent(struct PDSerializeWrite* writer, PDEventType eventType, int eventId)
+void BinarySerialize_beginEvent(struct PDWriter* writer, PDEventType eventType, int eventId)
 {
 	BinarySerializerData* data = (BinarySerializerData*)writer->writeData;
 
@@ -280,7 +283,7 @@ void BinarySerialize_beginEvent(struct PDSerializeWrite* writer, PDEventType eve
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BinarySerialize_endEvent(struct PDSerializeWrite* writer)
+void BinarySerialize_endEvent(struct PDWriter* writer)
 {
 	BinarySerializerData* data = (BinarySerializerData*)writer->writeData;
 
@@ -305,9 +308,9 @@ void BinarySerialize_endEvent(struct PDSerializeWrite* writer)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BinarySerializer_initReader(struct PDSerializeRead* reader, void* data)
+void BinarySerializer_initReader(struct PDReader* reader, void* data)
 {
-	reader->readData = data;
+	reader->data = data;
 	reader->readInt = readInt;
 	reader->readU8 = readU8;
 	reader->readU16 = readU16;
@@ -318,7 +321,7 @@ void BinarySerializer_initReader(struct PDSerializeRead* reader, void* data)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BinarySerializer_initReaderFromStream(struct PDSerializeRead* reader, void* inputData, int size) 
+void BinarySerializer_initReaderFromStream(struct PDReader* reader, void* inputData, int size) 
 {
 	BinarySerializerData* data = (BinarySerializerData*)malloc(sizeof(BinarySerializerData));
 	memset(data, 0, sizeof(BinarySerializerData));
@@ -332,7 +335,7 @@ void BinarySerializer_initReaderFromStream(struct PDSerializeRead* reader, void*
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int BinarySerializer_writeSize(struct PDSerializeWrite* writer)
+int BinarySerializer_writeSize(struct PDWriter* writer)
 {
 	BinarySerializerData* data = (BinarySerializerData*)writer->writeData;
 	return data->writeOffset;
@@ -340,7 +343,7 @@ int BinarySerializer_writeSize(struct PDSerializeWrite* writer)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void* BinarySerializer_getStartData(struct PDSerializeWrite* writer)
+void* BinarySerializer_getStartData(struct PDWriter* writer)
 {
 	BinarySerializerData* data = (BinarySerializerData*)writer->writeData;
 	return data->dataStart;
@@ -359,4 +362,6 @@ void BinarySerializer_destroyData(void* serData)
 
 	free(data);
 }
+
+*/
 
