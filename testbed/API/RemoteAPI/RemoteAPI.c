@@ -1,6 +1,7 @@
 #include "../Remote.h"
 #include "BinarySerializer.h"
 #include "RemoteConnection.h"
+#include "bson.h"
 #include <ProDBGAPI.h>
 
 #include <stdint.h>
@@ -18,11 +19,11 @@
 static struct RemoteConnection* s_conn;
 static struct PDBackendPlugin* s_plugin;
 static void* s_userData;
-static PDDebugState s_currentState = PDDebugState_running; 
+//static PDDebugState s_currentState = PDDebugState_running; 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void sleepMs(int ms)
+void sleepMs(int ms)
 {
 #ifdef _MSC_VER
 	Sleep(ms);
@@ -59,12 +60,20 @@ int PDRemote_create(struct PDBackendPlugin* plugin, int waitForConnection)
 
 	}
 
+	{
+		bson b;
+		bson_init(&b);
+		bson_append_int( &b, "total", 2298 );
+		bson_finish(&b);
+		bson_print(&b);
+	}
+
 	return 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void processCommands()
+void processCommands()
 {
 	uint32_t command;
 
@@ -85,13 +94,14 @@ static void processCommands()
 		// Action
 		case 0 :
 		{
-			s_plugin->action(s_userData, (PDAction)(command & 0xffff));
+			//s_plugin->action(s_userData, (PDAction)(command & 0xffff));
 			break;
 		}
 
 		// Event
 		case 1:
 		{
+			/*
 			void* data;
 			int retSize, size;
 			PDSerializeWrite writer;
@@ -159,6 +169,7 @@ static void processCommands()
 
 			//BinarySerializer_destroyData(&writer);
 			//BinarySerializer_destroyData(readerPtr);
+		*/
 		}
 	}
 }
@@ -167,6 +178,8 @@ static void processCommands()
 
 int PDRemote_update(int sleepTime)
 {
+	(void)sleepTime;
+	/*
 	PDDebugState state;
 
 	if (sleepTime > 0)
@@ -223,6 +236,7 @@ int PDRemote_update(int sleepTime)
 
 		s_currentState = state;
 	}
+	*/
 
 	return 1;
 }
