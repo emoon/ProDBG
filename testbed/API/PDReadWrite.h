@@ -40,8 +40,12 @@ typedef enum PDReadType
 	PDReadType_string,		
 	/// data array (void*) 
 	PDReadType_data,
+	/// EventType 
+	PDReadType_event,
 	/// Array type 
-	PDReadType_array
+	PDReadType_array,
+	/// Array type 
+	PDReadType_arrayEntry,
 } PDReadType;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,7 +101,7 @@ typedef struct PDWriter
 	* PDWrite_eventEnd();
 	* \endcode
 	*/
-	PDWriteStatus (*writeEventBegin)(struct PDWriter* writer, int event);
+	PDWriteStatus (*writeEventBegin)(struct PDWriter* writer, uint16_t event);
 
 	/**
 	* This ends an event. Notice that PDWrite_beginEvent needs to be started first 
