@@ -3,10 +3,10 @@
 #include <ProDBGAPI.h>
 #include <PDReadWrite.h>
 
-PDReader readerData;
-PDWriter writerData;
-PDReader* reader = 0; 
-PDWriter* writer = 0; 
+static PDReader readerData;
+static PDWriter writerData;
+static PDReader* reader = 0; 
+static PDWriter* writer = 0; 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // These are private functions that is needed to setup the reader/writer
@@ -34,7 +34,7 @@ void testReadEvent(CuTest* tc)
 {
 	void* data;
 	unsigned int size;
-	struct PDReaderIterator* it;
+	PDReaderIterator it;
 
 	CuAssertTrue(tc, (data = PDBinaryWriter_getData(writer)) != 0);
 	CuAssertTrue(tc, (size = PDBinaryWriter_getSize(writer)) != 0);
@@ -65,8 +65,8 @@ void testReadSingleString(CuTest* tc)
 	const char* keyNameTemp;
 	const char* stringVal;
 	unsigned int size;
-	struct PDReaderIterator* eventIt;
-	struct PDReaderIterator* it;
+	PDReaderIterator eventIt;
+	PDReaderIterator it;
 
 	CuAssertTrue(tc, (data = PDBinaryWriter_getData(writer)) != 0);
 	CuAssertTrue(tc, (size = PDBinaryWriter_getSize(writer)) != 0);
@@ -151,8 +151,8 @@ void testAllValuesRead(CuTest* tc)
 	const char* double_id;
 	const char* string_id;
 	const char* data_id;
-	struct PDReaderIterator* eventIt;
-	struct PDReaderIterator* it;
+	PDReaderIterator eventIt;
+	PDReaderIterator it;
 
 	PDBinaryReader_initStream(reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer)); 
 
@@ -255,7 +255,7 @@ void testAllValuesRead(CuTest* tc)
 void testFind(CuTest* tc)
 {
 	uint16_t u16;
-	struct PDReaderIterator* eventIt;
+	PDReaderIterator eventIt;
 
 	PDBinaryReader_initStream(reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer)); 
 
@@ -307,8 +307,8 @@ void testArray(CuTest* cu)
 
 void testArrayRead(CuTest* tc)
 {
-	struct PDReaderIterator* eventIt;
-	struct PDReaderIterator* arrayIter;
+	PDReaderIterator eventIt;
+	PDReaderIterator arrayIter;
 
 	PDBinaryReader_initStream(reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer)); 
 

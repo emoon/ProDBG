@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-struct PDReaderIterator;
+typedef uint64_t PDReaderIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -401,7 +401,7 @@ typedef struct PDReader
     * @return The event type and is usually a PDEventType but pluins can use custom events as well
     *
     * \code
-    * struct PDReaderIterator* eventIt;
+    * PDReaderIterator eventIt;
     *
     * int event = PDRead_iteratorGetEvent(reader, &eventIt);
     *
@@ -417,7 +417,7 @@ typedef struct PDReader
     * }
     * \endcode
     */
-	uint32_t (*readIteratorBeginEvent)(struct PDReader* reader, struct PDReaderIterator** it);
+	uint32_t (*readIteratorBeginEvent)(struct PDReader* reader, PDReaderIterator* it);
 
    /**
     *
@@ -428,7 +428,7 @@ typedef struct PDReader
     * @return The event type and is usually a PDEventType but pluins can use custom events as well
     *
     */
-	uint32_t (*readIteratorNextEvent)(struct PDReader* reader, struct PDReaderIterator** it);
+	uint32_t (*readIteratorNextEvent)(struct PDReader* reader, PDReaderIterator* it);
 
    /**
     *
@@ -466,7 +466,7 @@ typedef struct PDReader
     * \endcode
     *
     */
-	uint32_t (*readIteratorBegin)(struct PDReader* reader, struct PDReaderIterator** it, const char** keyName, struct PDReaderIterator* parentIt);
+	uint32_t (*readIteratorBegin)(struct PDReader* reader, PDReaderIterator* it, const char** keyName, PDReaderIterator parentIt);
 
    /**
     *
@@ -478,7 +478,7 @@ typedef struct PDReader
     * @return the type of the next value and returns PDReadType_none if no more values
     *
     */
-	uint32_t (*readIteratorNext)(struct PDReader* reader, const char** keyName, struct PDReaderIterator** it);
+	uint32_t (*readIteratorNext)(struct PDReader* reader, const char** keyName, PDReaderIterator* it);
 
    /** @name Find functions
     * 
@@ -512,19 +512,19 @@ typedef struct PDReader
     *
     */
    ///@{
-	uint32_t (*readFindS8)(struct PDReader* reader, int8_t* res, const char* id, struct PDReaderIterator* it);
-	uint32_t (*readFindU8)(struct PDReader* reader, uint8_t* res, const char* id, struct PDReaderIterator* it);
-	uint32_t (*readFindS16)(struct PDReader* reader, int16_t* res, const char* id, struct PDReaderIterator* it);
-	uint32_t (*readFindU16)(struct PDReader* reader, uint16_t* res, const char* id, struct PDReaderIterator* it);
-	uint32_t (*readFindS32)(struct PDReader* reader, int32_t* res, const char* id, struct PDReaderIterator* it);
-	uint32_t (*readFindU32)(struct PDReader* reader, uint32_t* res, const char* id, struct PDReaderIterator* it);
-	uint32_t (*readFindS64)(struct PDReader* reader, int64_t* res, const char* id, struct PDReaderIterator* it);
-	uint32_t (*readFindU64)(struct PDReader* reader, uint64_t* res, const char* id, struct PDReaderIterator* it);
-	uint32_t (*readFindFloat)(struct PDReader* reader, float* res, const char* id, struct PDReaderIterator* it);
-	uint32_t (*readFindDouble)(struct PDReader* reader, double* res, const char* id, struct PDReaderIterator* it);
-	uint32_t (*readFindString)(struct PDReader* reader, const char** res, const char* id, struct PDReaderIterator* it);
-	uint32_t (*readFindData)(struct PDReader* reader, void** data, uint64_t* size, const char* id, struct PDReaderIterator* it);
-	uint32_t (*readFindArray)(struct PDReader* reader, struct PDReaderIterator** arrayIt, const char* id, struct PDReaderIterator* it);
+	uint32_t (*readFindS8)(struct PDReader* reader, int8_t* res, const char* id, PDReaderIterator it);
+	uint32_t (*readFindU8)(struct PDReader* reader, uint8_t* res, const char* id, PDReaderIterator it);
+	uint32_t (*readFindS16)(struct PDReader* reader, int16_t* res, const char* id, PDReaderIterator it);
+	uint32_t (*readFindU16)(struct PDReader* reader, uint16_t* res, const char* id, PDReaderIterator it);
+	uint32_t (*readFindS32)(struct PDReader* reader, int32_t* res, const char* id, PDReaderIterator it);
+	uint32_t (*readFindU32)(struct PDReader* reader, uint32_t* res, const char* id, PDReaderIterator it);
+	uint32_t (*readFindS64)(struct PDReader* reader, int64_t* res, const char* id, PDReaderIterator it);
+	uint32_t (*readFindU64)(struct PDReader* reader, uint64_t* res, const char* id, PDReaderIterator it);
+	uint32_t (*readFindFloat)(struct PDReader* reader, float* res, const char* id, PDReaderIterator it);
+	uint32_t (*readFindDouble)(struct PDReader* reader, double* res, const char* id, PDReaderIterator it);
+	uint32_t (*readFindString)(struct PDReader* reader, const char** res, const char* id, PDReaderIterator it);
+	uint32_t (*readFindData)(struct PDReader* reader, void** data, uint64_t* size, const char* id, PDReaderIterator it);
+	uint32_t (*readFindArray)(struct PDReader* reader, PDReaderIterator* arrayIt, const char* id, PDReaderIterator it);
    ///@}
 
    /** @name Read functions
@@ -556,19 +556,19 @@ typedef struct PDReader
     * \endcode
     */
    ///@{
-	uint32_t (*readS8)(struct PDReader* reader, int8_t* res, const char** id, struct PDReaderIterator** it);
-	uint32_t (*readU8)(struct PDReader* reader, uint8_t* res, const char** id, struct PDReaderIterator** it);
-	uint32_t (*readS16)(struct PDReader* reader, int16_t* res, const char** id, struct PDReaderIterator** it);
-	uint32_t (*readU16)(struct PDReader* reader, uint16_t* res, const char** id, struct PDReaderIterator** it);
-	uint32_t (*readS32)(struct PDReader* reader, int32_t* res, const char** id, struct PDReaderIterator** it);
-	uint32_t (*readU32)(struct PDReader* reader, uint32_t* res, const char** id, struct PDReaderIterator** it);
-	uint32_t (*readS64)(struct PDReader* reader, int64_t* res, const char** id, struct PDReaderIterator** it);
-	uint32_t (*readU64)(struct PDReader* reader, uint64_t* res, const char** id, struct PDReaderIterator** it);
-	uint32_t (*readFloat)(struct PDReader* reader, float* res, const char** id, struct PDReaderIterator** it);
-	uint32_t (*readDouble)(struct PDReader* reader, double* res, const char** id, struct PDReaderIterator** it);
-	uint32_t (*readString)(struct PDReader* reader, const char** res, const char** id, struct PDReaderIterator** it);
-	uint32_t (*readData)(struct PDReader* reader, void** res, unsigned int* size, const char** id, struct PDReaderIterator** it);
-	uint32_t (*readArray)(struct PDReader* reader, struct PDReaderIterator** arrayIt, const char* id, struct PDReaderIterator** it);
+	uint32_t (*readS8)(struct PDReader* reader, int8_t* res, const char** id, PDReaderIterator* it);
+	uint32_t (*readU8)(struct PDReader* reader, uint8_t* res, const char** id, PDReaderIterator* it);
+	uint32_t (*readS16)(struct PDReader* reader, int16_t* res, const char** id, PDReaderIterator* it);
+	uint32_t (*readU16)(struct PDReader* reader, uint16_t* res, const char** id, PDReaderIterator* it);
+	uint32_t (*readS32)(struct PDReader* reader, int32_t* res, const char** id, PDReaderIterator* it);
+	uint32_t (*readU32)(struct PDReader* reader, uint32_t* res, const char** id, PDReaderIterator* it);
+	uint32_t (*readS64)(struct PDReader* reader, int64_t* res, const char** id, PDReaderIterator* it);
+	uint32_t (*readU64)(struct PDReader* reader, uint64_t* res, const char** id, PDReaderIterator* it);
+	uint32_t (*readFloat)(struct PDReader* reader, float* res, const char** id, PDReaderIterator* it);
+	uint32_t (*readDouble)(struct PDReader* reader, double* res, const char** id, PDReaderIterator* it);
+	uint32_t (*readString)(struct PDReader* reader, const char** res, const char** id, PDReaderIterator* it);
+	uint32_t (*readData)(struct PDReader* reader, void** res, unsigned int* size, const char** id, PDReaderIterator* it);
+	uint32_t (*readArray)(struct PDReader* reader, PDReaderIterator* arrayIt, const char* id, PDReaderIterator* it);
    ///@}
 
 } PDReader;

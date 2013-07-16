@@ -14,7 +14,7 @@ extern "C" {
 struct bson;
 
 /*! \fn void* ServiceFunc(const char* serviceName)
-    \breif Service Function. Provides services for the plugin to use.
+    Service Function. Provides services for the plugin to use.
     Example:
      ProDBGUI* ui = serviceFunc(PRODBG_UI_SERVICE);
      ProDBServerInfo* serverInfo = serviceFunc(PRODBG_SERVERINFO_SERVICE);
