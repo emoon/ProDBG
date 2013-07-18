@@ -1,5 +1,6 @@
 #include "../PDReadWrite.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,7 +93,7 @@ static inline uint64_t getOffsetUpper(ReaderData* readerData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static uint16_t readGetEvent(struct PDReader* reader)
+static uint32_t readGetEvent(struct PDReader* reader)
 {
 	ReaderData* rData = (ReaderData*)reader->data;
 	uint16_t event;
@@ -110,7 +111,7 @@ static uint16_t readGetEvent(struct PDReader* reader)
 
 	if (type != PDReadType_event)
 	{
-		printf("Unable to read event as type is wrong (expected % but got %d) all read operations will now fail.\n",
+		printf("Unable to read event as type is wrong (expected %d but got %d) all read operations will now fail.\n",
 			   PDReadType_event, type);
 		return 0;
 	}
@@ -124,35 +125,62 @@ static uint16_t readGetEvent(struct PDReader* reader)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static uint32_t readIteratorBegin(struct PDReader* reader, PDReaderIterator* it, const char** keyName, PDReaderIterator parentIt)
+static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
 {
-	ReaderData* rData = (ReaderData*)reader->data;
+	while (start < end)
+	{
+		uint32_t size;
+		uint8_t typeId = getU8(start);
 
-	(void)reader;
-	(void)it;
-	(void)keyName;
-	(void)parentIt;
-	return PDReadType_none | PDReadStatus_fail;
+		// data is a special case as it has 32-bit size instead of 64k 
+
+		if (typeId == PDReadType_data)
+		{
+			size = getU32(start + 1);
+
+			if (!strcmp((char*)start + 5, id))
+				return start;
+		}
+		else 
+		{
+			size = getU16(start + 1);
+
+			if (!strcmp((char*)start + 3, id))
+				return start;
+		}
+
+		start += size;
+	}
+
+	// not found
+
+	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static uint32_t readIteratorNext(struct PDReader* reader, const char** keyName, PDReaderIterator* it)
+static uint8_t* findId(struct PDReader* reader, const char* id, PDReaderIterator it)
 {
-	(void)reader;
-	(void)keyName;
-	(void)it;
-	return PDReadType_none | PDReadStatus_fail;
+	ReaderData* rData = (ReaderData*)reader->data;
+
+	// if iterator is 0 we search the event stream,
+
+	if (it == 0)
+	{
+		// if no iterater we will just search the whole event
+
+		return findIdByRange(id, rData->data, rData->nextEvent);
+	}
+
+	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint32_t readFindS8(struct PDReader* reader, int8_t* res, const char* id, PDReaderIterator it)
 {
-	(void)reader;
+	findId(reader, id, it);
 	(void)res;
-	(void)id;
-	(void)it;
 	return PDReadType_none | PDReadStatus_fail;
 }
 
@@ -437,10 +465,7 @@ static uint32_t readArray(struct PDReader* reader, PDReaderIterator* arrayIt, co
 
 void PDBinaryReader_init(PDReader* reader)
 {
-	reader->readIteratorBeginEvent = readIteratorBeginEvent;
-	reader->readIteratorNextEvent = readIteratorNextEvent;
-	reader->readIteratorBegin = readIteratorBegin;
-	reader->readIteratorNext = readIteratorNext;
+	reader->readGetEvent = readGetEvent;
 	reader->readFindS8 = readFindS8;
 	reader->readFindU8 = readFindU8;
 	reader->readFindS16 = readFindS16;

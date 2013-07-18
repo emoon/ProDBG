@@ -26,9 +26,9 @@ static inline uint8_t* writeIdSize(uint8_t* data, const char* id, uint8_t type, 
 	size_t len = strlen(id);
 	uint16_t totalSize = ((uint16_t)len) + typeSize + 2;	// + 2 for type + null termitator of string
 
-	data[0] = (totalSize >> 8) & 0xff; 
-	data[1] = (totalSize >> 0) & 0xff; 
-	data[2] = type; 
+	data[0] = type; 
+	data[1] = (totalSize >> 8) & 0xff; 
+	data[2] = (totalSize >> 0) & 0xff; 
 
 	memcpy(data + 3, id, len + 1);
 
@@ -231,18 +231,24 @@ static PDWriteStatus writeString(struct PDWriter* writer, const char* id, const 
 static PDWriteStatus writeData(struct PDWriter* writer, const char* id, void* data, unsigned int len)
 {
 	WriterData* wData = (WriterData*)writer->data;
+	size_t idLen = strlen(id);
 
-	// with data that can be > 16-bits in size we do a small trick by in writeId writing the first 16-bit
-	// and then we write the remanining 16-bits before the data starts
+	// for data we special case a bit with having the size in 32-bit instead to support > 64k size
 	
-	wData->data = writeIdSize(wData->data, id, PDReadType_u64, (len & 0xffff) + 2); // + 2 for 2-bytes extra size
-	wData->data[0] = (len >> 24) & 0xff;
-	wData->data[1] = (len >> 16) & 0xff;
-	memcpy(wData->data + 2, data, len);
+	uint16_t totalSize = ((uint16_t)idLen) + 4 + 1 + len + 1; // size (4) + type (1) + id_len (+1) null teminator 
+
+	wData->data[0] = PDReadType_data; 
+	wData->data[1] = (totalSize >> 24) & 0xff; 
+	wData->data[2] = (totalSize >> 16) & 0xff; 
+	wData->data[3] = (totalSize >> 8) & 0xff; 
+	wData->data[4] = (totalSize >> 0) & 0xff; 
+
+	memcpy(wData->data + 5, id, idLen + 1);
+	memcpy(wData->data + 5 + idLen + 1, data, len);
 	
-	wData += len + 2;
+	wData += totalSize;
 	
-	return PDWriteStatus_fail;
+	return PDWriteStatus_ok;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
