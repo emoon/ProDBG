@@ -392,32 +392,27 @@ typedef struct PDReader
     *
     * When events are being sent to a plugin its possible to send more than one
     * at the same time. This means it must be possible to iterate over them and also possible
-    * to skip the ones that the plugin may not support. Iterators are used for this and by calling GetEvent and then
-    * inside a loop call NextEvent its possible to iterate over all the events
+    * to skip the ones that the plugin may not support. The code will handle tracking of where next
+   	* event will begin and return PDEventType_none (0) when there are no more events 
     *
     * @param reader The reader object.
-    * @param it This is the iterator that will be used when iterating over the events. Notice
-    *           that the iterator can not be changed by the user and is for internal use only by the system
     * @return The event type and is usually a PDEventType but pluins can use custom events as well
     *
     * \code
-    * PDReaderIterator eventIt;
     *
-    * int event = PDRead_iteratorGetEvent(reader, &eventIt);
+    * u16_t event;
     *
-    * while (event)
+    * while ((event = PDRead_getEvent(reader)))
     * {
     *    switch (event)
     *    {
     *       case PDEvent_setBreakpoint : ....
     *       case PDEvent_setExecutable : ....
     *    }
-    *
-    *    event = PDRead_iteratorGetNextEvent(reader, eventIt);
     * }
     * \endcode
     */
-	uint32_t (*readIteratorBeginEvent)(struct PDReader* reader, PDReaderIterator* it);
+	uint32_t (*readGetEvent)(struct PDReader* reader);
 
    /**
     *
@@ -607,8 +602,7 @@ typedef struct PDReader
  *
  */
 
-#define PDRead_iteratorBeginEvent(r, it) r->readIteratorBeginEvent(r, it)
-#define PDRead_iteratorNextEvent(r, it) r->readIteratorNextEvent(r, it)
+#define PDRead_getEvent(r) r->getEvent(r, it)
 #define PDRead_iteratorBegin(r, it, keyName, parentIt) r->readIteratorBegin(r, it, keyName, parentIt)
 #define PDRead_iteratorNext(r, keyName, it) r->readIteratorNext(r, keyName, it)
 #define PDRead_findS8(r, res, id, it) r->readFindS8(r, res, id, it)

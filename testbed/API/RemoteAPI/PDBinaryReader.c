@@ -7,7 +7,15 @@
 typedef struct ReaderData
 {
 	void* data;
+	void* dataStart;
+	uint8_t* nextEvent;
 	unsigned int size;
+	// failure params
+
+	int readFail;
+	int type;
+	int offset;
+
 } ReaderData;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -76,26 +84,50 @@ static inline uint64_t getU64(uint8_t* ptr)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static uint32_t readIteratorBeginEvent(struct PDReader* reader, PDReaderIterator* it)
+static inline uint64_t getOffsetUpper(ReaderData* readerData)
 {
-	(void)reader;
-	(void)it;
-	return 0;
+	uint64_t t = ((uintptr_t)readerData->data - (uintptr_t)readerData->dataStart);
+	return t << 32L;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static uint32_t readIteratorNextEvent(struct PDReader* reader, PDReaderIterator* it)
+static uint16_t readGetEvent(struct PDReader* reader)
 {
-	(void)reader;
-	(void)it;
-	return 0;
+	ReaderData* rData = (ReaderData*)reader->data;
+	uint16_t event;
+	uint8_t type; 
+	uint8_t* data;
+
+	// if this is not set we expect this to be the first event and just read from data
+
+	if (!rData->nextEvent)
+		data = rData->data;
+	else
+		data = rData->nextEvent;
+
+	type = *data;
+
+	if (type != PDReadType_event)
+	{
+		printf("Unable to read event as type is wrong (expected % but got %d) all read operations will now fail.\n",
+			   PDReadType_event, type);
+		return 0;
+	}
+
+	event = getU16(data + 1);
+	rData->nextEvent = data + getU32(data + 3);
+	rData->data += 7; // points to the next of data in the stream
+
+	return event;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint32_t readIteratorBegin(struct PDReader* reader, PDReaderIterator* it, const char** keyName, PDReaderIterator parentIt)
 {
+	ReaderData* rData = (ReaderData*)reader->data;
+
 	(void)reader;
 	(void)it;
 	(void)keyName;
