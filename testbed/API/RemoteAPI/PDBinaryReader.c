@@ -185,142 +185,158 @@ static uint8_t* findId(struct PDReader* reader, const char* id, PDReaderIterator
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define findValue(inType, realType, getFunc)
+	uint8_t type; \
+	uint16_t offset; \
+	const uint8_t* dataPtr = findId(reader, id, it); \
+	if (!offset) \
+		return PDReadStatus_notFound; \
+	type = *dataPtr; \
+	offset = getU16(dataPtr + 1) - sizeof(realType); \
+	if (type == inType) \
+	{
+		*res = getFunc(dataPtr + offset); \
+		return PDReadStatus_ok | inType; \
+	} \
+	if (type < PDReadType_numericTypes) \
+	{ \
+		switch (type) \
+		{
+			case PDReadType_s8 : *res = (realType)getS8(dataPtr + offset); return PDReadType_s8 | PDReadStatus_converted; \
+			case PDReadType_u8 : *res = (realType)getU8(dataPtr + offset); return PDReadType_u8 | PDReadStatus_converted;  \
+			case PDReadType_s16 : *res = (realType)getU16(dataPtr + offset); return PDReadType_s16 | PDReadStatus_converted; \
+			case PDReadType_u16 : *res = (realType)getU16(dataPtr + offset); return PDReadType_u16 | PDReadStatus_converted; \
+			case PDReadType_s32 : *res = (realType)getU32(dataPtr + offset); return PDReadType_s32 | PDReadStatus_converted; \
+			case PDReadType_u32 : *res = (realType)getU32(dataPtr + offset); return PDReadType_u32 | PDReadStatus_converted; \
+			case PDReadType_s64 : *res = (realType)getU64(dataPtr + offset); return PDReadType_s64 | PDReadStatus_converted; \
+			case PDReadType_u64 : *res = (realType)getU64(dataPtr + offset); return PDReadType_u64 | PDReadStatus_converted; \
+			case PDReadType_float : *res = (realType)getFloat(dataPtr + offset); return PDReadType_float | PDReadStatus_converted; \
+			case PDReadType_double : *res = (realType)getDouble(dataPtr + offset); return PDReadType_float | PDReadStatus_converted; \
+		} \
+	} \
+	return (PDReadType)type | PDReadStatus_illegalType
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static uint32_t readFindS8(struct PDReader* reader, int8_t* res, const char* id, PDReaderIterator it)
 {
-	uint8_t type;
-	const uint8_t* offset = findId(reader, id, it);
-
-	if (!offset)
-		return PDReadStatus_notFound;
-	
-	type = *offset;
-
-
-
-	(void)res;
-	return PDReadType_none | PDReadStatus_fail;
+	findValue(PDReaderType_s8, int8_t, getS8);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint32_t readFindU8(struct PDReader* reader, uint8_t* res, const char* id, PDReaderIterator it)
 {
-	(void)reader;
-	(void)res;
-	(void)id;
-	(void)it;
-	return PDReadType_none | PDReadStatus_fail;
+	findValue(PDReaderType_u8, uint8_t, getU8);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint32_t readFindS16(struct PDReader* reader, int16_t* res, const char* id, PDReaderIterator it)
 {
-	(void)reader;
-	(void)res;
-	(void)id;
-	(void)it;
-	return PDReadType_none | PDReadStatus_fail;
+	findValue(PDReaderType_s16, int16_t, getS16);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint32_t readFindU16(struct PDReader* reader, uint16_t* res, const char* id, PDReaderIterator it)
 {
-	(void)reader;
-	(void)res;
-	(void)id;
-	(void)it;
-	return PDReadType_none | PDReadStatus_fail;
+	findValue(PDReaderType_u16, uint16_t, getU16);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint32_t readFindS32(struct PDReader* reader, int32_t* res, const char* id, PDReaderIterator it)
 {
-	(void)reader;
-	(void)res;
-	(void)id;
-	(void)it;
-	return PDReadType_none | PDReadStatus_fail;
+	findValue(PDReaderType_s32, int32_t, getS32);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint32_t readFindU32(struct PDReader* reader, uint32_t* res, const char* id, PDReaderIterator it)
 {
-	(void)reader;
-	(void)res;
-	(void)id;
-	(void)it;
-	return PDReadType_none | PDReadStatus_fail;
+	findValue(PDReaderType_u32, uint32_t, getU32);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint32_t readFindS64(struct PDReader* reader, int64_t* res, const char* id, PDReaderIterator it)
 {
-	(void)reader;
-	(void)res;
-	(void)id;
-	(void)it;
-	return PDReadType_none | PDReadStatus_fail;
+	findValue(PDReaderType_s64, int64_t, getS64);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint32_t readFindU64(struct PDReader* reader, uint64_t* res, const char* id, PDReaderIterator it)
 {
-	(void)reader;
-	(void)res;
-	(void)id;
-	(void)it;
-	return PDReadType_none | PDReadStatus_fail;
+	findValue(PDReaderType_u64, uint64_t, getU64);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint32_t readFindFloat(struct PDReader* reader, float* res, const char* id, PDReaderIterator it)
 {
-	(void)reader;
-	(void)res;
-	(void)id;
-	(void)it;
-	return PDReadType_none | PDReadStatus_fail;
+	findValue(PDReaderType_float, float, getFloat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint32_t readFindDouble(struct PDReader* reader, double* res, const char* id, PDReaderIterator it)
 {
-	(void)reader;
-	(void)res;
-	(void)id;
-	(void)it;
-	return PDReadType_none | PDReadStatus_fail;
+	findValue(PDReaderType_double, double, getDouble);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint32_t readFindString(struct PDReader* reader, const char** res, const char* id, PDReaderIterator it)
 {
-	(void)reader;
-	(void)res;
-	(void)id;
-	(void)it;
-	return PDReadType_none | PDReadStatus_fail;
+	uint8_t type; 
+	int len;
+	uint16_t offset; 
+
+	const uint8_t* dataPtr = findId(reader, id, it); 
+	if (!offset) 
+		return PDReadStatus_notFound; 
+
+	type = *dataPtr; 
+
+	if (type != PDReadType_string)
+		return (PDReadType)type | PDReadStatus_illegalType;
+
+	// find the offset to the string
+
+	len = strlen((char*)dataPtr + 3);
+	*res = dataPtr + 3 + len;
+	
+	return (PDReadType)type | PDReadStatus_ok;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint32_t readFindData(struct PDReader* reader, void** data, uint64_t* size, const char* id, PDReaderIterator it)
 {
-	(void)reader;
-	(void)data;
-	(void)size;
-	(void)id;
-	(void)it;
-	return PDReadType_none | PDReadStatus_fail;
+	uint8_t type; 
+	int idLength;
+	uint32_t size;
+	uint16_t offset; 
+
+	const uint8_t* dataPtr = findId(reader, id, it); 
+	if (!offset) 
+		return PDReadStatus_notFound; 
+
+	type = *dataPtr; 
+
+	if (type != PDReadType_data)
+		return (PDReadType)type | PDReadStatus_illegalType;
+
+	idLength = strlen(dataPtr + 5) + 1;
+
+	// find the offset to the string
+
+	*size = getU32(dataPtr + 1) - idLength;
+	*data = dataPtr + 5 + idLength;
+
+	return PDReadType_data | PDReadStatus_ok;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
