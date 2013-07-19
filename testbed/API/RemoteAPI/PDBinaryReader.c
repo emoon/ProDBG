@@ -10,6 +10,9 @@ typedef struct ReaderData
 	void* data;
 	void* dataStart;
 	uint8_t* nextEvent;
+	uint8_t* arrayStart;
+	uint8_t* arrayEnd;
+
 	unsigned int size;
 	// failure params
 
@@ -343,11 +346,33 @@ static uint32_t readFindData(struct PDReader* reader, void** data, uint64_t* siz
 
 static uint32_t readFindArray(struct PDReader* reader, PDReaderIterator* arrayIt, const char* id, PDReaderIterator it)
 {
-	(void)reader;
-	(void)arrayIt;
-	(void)id;
-	(void)it;
-	return PDReadType_none | PDReadStatus_fail;
+	uint8_t type; 
+	int idLength;
+	uint32_t size;
+	uint16_t offset; 
+	ReaderData* rData = (ReaderData*)reader->data;
+
+	const uint8_t* dataPtr = findId(reader, id, it); 
+	if (!offset) 
+		return PDReadStatus_notFound; 
+
+	type = *dataPtr; 
+
+	if (type != PDReadType_array)
+		return (PDReadType)type | PDReadStatus_illegalType;
+
+	idLength = strlen(dataPtr + 5) + 1;
+
+	size = getU32(dataPtr + 1);
+
+	rData->arrayStart = dataPtr + 5 + idLength;
+	rData->arrayEnd = dataPtr + size;
+
+	// find the offset to the string
+
+	*arrayIt = (uintptr_t)rData->arrayStart;
+
+	return PDReadType_array | PDReadStatus_ok;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -337,7 +337,7 @@ static PDWriteStatus writeArrayBegin(struct PDWriter* writer, const char* name)
 	memcpy(wData->data + 5, name, len);
 	wData->writingArray = 1;
 
-	// we will store the size here (at writeEndEvent) so skip 4 bytes a head
+	// we will store the size here (at writArrayEnd) so skip 4 bytes a head
 	wData->data += len + 5;
 
 	return PDWriteStatus_ok;
