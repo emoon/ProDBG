@@ -171,6 +171,14 @@ static uint8_t* findId(struct PDReader* reader, const char* id, PDReaderIterator
 
 		return findIdByRange(id, rData->data, rData->nextEvent);
 	}
+	else
+	{
+		uint32_t dataOffset = it >> 32LL;  
+		uint32_t size = it & 0xffffffffLL;
+		uint8_t* start = rData->dataStart + dataOffset;
+		uint8_t* end = start + size;
+		return findIdByRange(id, start, end);
+	}
 
 	return 0;
 }
@@ -179,7 +187,16 @@ static uint8_t* findId(struct PDReader* reader, const char* id, PDReaderIterator
 
 static uint32_t readFindS8(struct PDReader* reader, int8_t* res, const char* id, PDReaderIterator it)
 {
-	findId(reader, id, it);
+	uint8_t type;
+	const uint8_t* offset = findId(reader, id, it);
+
+	if (!offset)
+		return PDReadStatus_notFound;
+	
+	type = *offset;
+
+
+
 	(void)res;
 	return PDReadType_none | PDReadStatus_fail;
 }

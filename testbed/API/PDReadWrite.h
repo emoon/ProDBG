@@ -36,6 +36,8 @@ typedef enum PDReadType
 	PDReadType_float,		
 	/// 64 bit floating point value 
 	PDReadType_double,		
+	// End of the numberic types
+	PDReadType_endNumericTypes,
 	/// const char* string (null terminated) 
 	PDReadType_string,		
 	/// data array (void*) 
