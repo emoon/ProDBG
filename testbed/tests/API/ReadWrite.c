@@ -30,6 +30,14 @@ void testWriteEvent(CuTest* tc)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void testNullReader(CuTest* tc)
+{
+	PDReader* t = 0;
+	CuAssertTrue(tc, PDRead_getEvent(t) == 0);	// if null ptr for getEvent this should always return 0 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void testReadEvent(CuTest* tc)
 {
 	void* data;
@@ -344,6 +352,7 @@ CuSuite* getSuite()
 {
 	CuSuite* suite = CuSuiteNew();
 
+	SUITE_ADD_TEST(suite, testNullReader);
 	SUITE_ADD_TEST(suite, testWriteEvent);
 	SUITE_ADD_TEST(suite, testReadEvent);
 	SUITE_ADD_TEST(suite, testWriteSingleString);
