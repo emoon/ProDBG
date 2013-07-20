@@ -48,6 +48,8 @@ typedef enum PDReadType
 	PDReadType_array,
 	/// Array type 
 	PDReadType_arrayEntry,
+	/// total count of types 
+	PDReadType_count,
 } PDReadType;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -477,6 +479,15 @@ typedef struct PDReader
     */
 	uint32_t (*readIteratorNext)(struct PDReader* reader, const char** keyName, PDReaderIterator* it);
 
+   /**
+    *
+    *
+    *
+    *
+    *
+    */
+	int32_t (*readNextEntry)(struct PDReader* reader, PDReaderIterator* arrayIt);
+
    /** @name Find functions
     * 
     * All of them work in the same way except they have different types that they write back.
@@ -568,6 +579,14 @@ typedef struct PDReader
 	uint32_t (*readArray)(struct PDReader* reader, PDReaderIterator* arrayIt, const char* id, PDReaderIterator* it);
    ///@}
 
+   	/**
+   	 *
+   	 * Dumps the whole tree to a human-friendly readable format
+   	 *
+   	 *
+   	 */
+   	void (*readDumpData)(struct PDReader* reader);
+
 } PDReader;
 
 
@@ -604,7 +623,8 @@ typedef struct PDReader
  *
  */
 
-#define PDRead_getEvent(r) r->getEvent(r, it)
+#define PDRead_getEvent(r) r->readGetEvent(r)
+#define PDRead_getNextEntry(r, it) r->readNextEntry(r, it)
 #define PDRead_iteratorBegin(r, it, keyName, parentIt) r->readIteratorBegin(r, it, keyName, parentIt)
 #define PDRead_iteratorNext(r, keyName, it) r->readIteratorNext(r, keyName, it)
 #define PDRead_findS8(r, res, id, it) r->readFindS8(r, res, id, it)
@@ -633,6 +653,7 @@ typedef struct PDReader
 #define PDRead_string(r, res, id, it) r->readString(r, res, id, it)
 #define PDRead_data(r, res, size, id, it) r->readData(r, res, size, id, it)
 #define PDRead_array(r, arrayIt, id, it) r->readArray(r, arrayIt, id, it)
+#define PDRead_dumpData(r) r->readDumpData(r)
 
 #ifdef __cplusplus
 }
