@@ -68,6 +68,7 @@ StaticLibrary {
 	Env = { 
 		
 		CPPPATH = { "tests/CuTest" },
+		CCOPTS = { "-Wno-format-nonliteral"; Config = "macosx-*-*" },
 	},
 
 	Sources = { 
