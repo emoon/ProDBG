@@ -122,6 +122,7 @@ StaticLibrary {
 			"-Wno-c++98-compat-pedantic",
 			"-Wno-global-constructors", 
 			"-Wno-gnu",
+			"-Wno-documentation",
 			"-Wno-exit-time-destructors" ; Config = "macosx-clang-*" },
 		},
 		
@@ -227,6 +228,7 @@ Program {
 			"-Wno-extra-semi",
 			"-Wno-switch-enum",
 			"-Wno-undefined-reinterpret-cast", -- needed for Qt signals :(
+			"-Wno-documentation", -- seems like clang doesn't like some valid syntax :/
 			"-Wno-sign-conversion" ; Config = "macosx-clang-*" },
 		},
 
@@ -295,6 +297,6 @@ Program {
 ------------ Tests ---------------
 
 Default "TestReadWrite"
+Default "prodbg-qt5"
 
 --Default "Fake6502"
---Default "prodbg-qt5"
