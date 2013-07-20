@@ -158,7 +158,8 @@ SharedLibrary {
 			"-Wno-unused-member-function",
 			"-Wno-switch",
 			"-Wno-switch-enum",
-			"-Wno-c++98-compat-pedantic" ; Config = "macosx-clang-*" },
+			"-Wno-c++98-compat-pedantic",
+			"-Wno-missing-field-initializers"; Config = "macosx-clang-*" },
 		},
 
 		SHLIBOPTS = { 
@@ -266,9 +267,9 @@ local native = require('tundra.native')
 
 -- only build LLDBPlugin on Mac
 
---if native.host_platform == "macosx" then
---	Default "LLDBPlugin"
---end
+if native.host_platform == "macosx" then
+	Default "LLDBPlugin"
+end
 
 
 Program {

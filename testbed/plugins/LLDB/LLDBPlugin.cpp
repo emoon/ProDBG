@@ -26,8 +26,9 @@ typedef struct LLDBPlugin
 	lldb::SBTarget target;
 	lldb::SBListener listener;
 	lldb::SBProcess process;
+	PDDebugState state;
+
 	const char* targetName;
-	PDDebugState debugState;
 
 } LLDBPlugin;
 
@@ -41,7 +42,7 @@ void* createInstance(ServiceFunc* serviceFunc)
 	LLDBPlugin* plugin = new LLDBPlugin; 
 
 	plugin->debugger = lldb::SBDebugger::Create(false);
-	plugin->debugState = PDDebugState_noTarget;
+	plugin->state = PDDebugState_noTarget;
  	plugin->listener = plugin->debugger.GetListener(); 
 
 	return plugin;
@@ -51,43 +52,6 @@ void* createInstance(ServiceFunc* serviceFunc)
 
 void destroyInstance(void* userData)
 {
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void onBreak(LLDBPlugin* data)
-{
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void onStep(LLDBPlugin* plugin)
-{
-	lldb::SBEvent evt;
-
-	// TODO: Handle more than one thread here
-
-	lldb::SBThread thread(plugin->process.GetThreadAtIndex((size_t)0));
-
-	printf("thread stopReason %d\n", thread.GetStopReason());
-	printf("threadValid %d\n", thread.IsValid());
-
-	thread.StepInto();
-
-	plugin->debugState = PDDebugState_running;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void onStepOver(LLDBPlugin* data)
-{
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void onContinue(LLDBPlugin* data)
-{
-	data->process.Continue();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -157,14 +121,14 @@ static void updateLLDBEvent(LLDBPlugin* plugin)
 						
 					case lldb::eStopReasonTrace:
 						select_thread = true;
-						plugin->debugState = PDDebugState_stopBreakpoint;
+						plugin->state = PDDebugState_trace;
 						if (m_verbose)
 							printf("trace\n");
 						break;
 						
 					case lldb::eStopReasonPlanComplete:
 						select_thread = true;
-						plugin->debugState = PDDebugState_stopBreakpoint;
+						plugin->state = PDDebugState_trace;
 						if (m_verbose)
 							printf("plan complete\n");
 						break;
@@ -182,14 +146,14 @@ static void updateLLDBEvent(LLDBPlugin* plugin)
 						break;
 					case lldb::eStopReasonException:
 						select_thread = true;
-						plugin->debugState = PDDebugState_stopException;
+						plugin->state = PDDebugState_stopException;
 						if (m_verbose)
 							printf("exception\n");
 						fatal = true;
 						break;
 					case lldb::eStopReasonBreakpoint:
 						select_thread = true;
-						plugin->debugState = PDDebugState_stopBreakpoint;
+						plugin->state = PDDebugState_stopBreakpoint;
 						if (m_verbose)
 							printf("breakpoint id = %lld.%lld\n",thread.GetStopReasonDataAtIndex(0),thread.GetStopReasonDataAtIndex(1));
 						break;
@@ -206,111 +170,113 @@ static void updateLLDBEvent(LLDBPlugin* plugin)
 				}
 				if (select_thread && !selected_thread)
 				{
-					//m_thread = thread;
 					selected_thread = plugin->process.SetSelectedThread(thread);
 				}
 			}
 		}
 		break;
 	}
-
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool actionCallback(void* userData, PDAction action)
+static void onStop(LLDBPlugin* plugin)
 {
-	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+	(void)plugin;
+}
 
-	switch (action)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void onBreak(LLDBPlugin* plugin)
+{
+	(void)plugin;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void onStep(LLDBPlugin* plugin)
+{
+	lldb::SBEvent evt;
+
+	// TODO: Handle more than one thread here
+
+	lldb::SBThread thread(plugin->process.GetThreadAtIndex((size_t)0));
+
+	printf("thread stopReason %d\n", thread.GetStopReason());
+	printf("threadValid %d\n", thread.IsValid());
+
+	thread.StepInto();
+
+	plugin->state = PDDebugState_running;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void onStepOver(LLDBPlugin* data)
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void onRun(LLDBPlugin* plugin)
+{
+	// if we haven't started the executable start it here
+
+	if (plugin->state == PDDebugState_noTarget)
 	{
-		case PDAction_break : onBreak(plugin); break;
-		case PDAction_step : onStep(plugin); break;
-		case PDAction_run : onContinue(plugin); break;
-		case PDAction_stepOver : onStepOver(plugin); break;
-		case PDAction_stepOut :
-		case PDAction_custom :
-		case PDAction_none : break;
-	}
+		lldb::SBLaunchInfo launchInfo(0);
+		lldb::SBError error;
 
-	// TODO: Handle if the were able to execute the action or not (for example stepping will not work
-	//       if we are in state running.
+		plugin->process = plugin->target.Launch(launchInfo, error);
 
-	return true;
-}
+		if (!error.Success())
+		{
+			printf("error false\n");
+			return;
+		}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		if (!plugin->process.IsValid())
+		{
+			printf("process not valid\n");
+			return;
+		}
 
-PDDebugState updateCallback(void* userData)
-{
-	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+		printf("Started valid process\n");
 
-	switch (plugin->debugState)
-	{
-		case PDDebugState_running : updateLLDBEvent(plugin); break;
-	}
-
-	return plugin->debugState;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void getLocals(LLDBPlugin* plugin, PDSerializeWrite* writer) 
-{
-	lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
-	lldb::SBFrame frame = thread.GetSelectedFrame();
+		plugin->process.GetBroadcaster().AddListener(
+				plugin->listener, 
+				lldb::SBProcess::eBroadcastBitStateChanged |
+				lldb::SBProcess::eBroadcastBitInterrupt);
 	
-    lldb::SBValueList variables = frame.GetVariables(true, true, true, false);
-    
-    uint32_t count = variables.GetSize();
+		plugin->state = PDDebugState_running;
 
-    PDWRITE_INT(writer, (int)count);
-    	
-    for (uint32_t i = 0; i < count; ++i)
-    {
-    	char address[32];
-    	lldb::SBValue value = variables.GetValueAtIndex(i);
-    	
-    	// TODO: Verify this line
-    	sprintf(address, "%016llx", (uint64_t)value.GetAddress().GetFileAddress());
-    		
-    	PDWRITE_STRING(writer, address);
-    	
-    	if (value.GetValue())
-    		PDWRITE_STRING(writer, value.GetValue());
-   		else
-    		PDWRITE_STRING(writer, "Unknown"); 
-    		
-    	if (value.GetTypeName())
-    		PDWRITE_STRING(writer, value.GetTypeName());
-    	else
-    		PDWRITE_STRING(writer, "Unknown"); 
-
-		if (value.GetName())
-    		PDWRITE_STRING(writer, value.GetName());
-    	else
-    		PDWRITE_STRING(writer, "Unknown"); 
+		return;
 	}
+
+	plugin->process.Continue();
+	plugin->state = PDDebugState_running;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void getCallStack(LLDBPlugin* plugin, PDSerializeWrite* writer)
+static void setCallstack(LLDBPlugin* plugin, PDWriter* writer)
 {
 	lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
 
 	int frameCount = (int)thread.GetNumFrames();
 
+	if (frameCount == 0)
+		return;
+
 	// TODO: Write type of callstack
-	
-	PDWRITE_INT(writer, frameCount);
+
+	PDWrite_eventBegin(writer, PDEventType_setCallstack);
+	PDWrite_arrayBegin(writer, "callstack");
 		
 	for (int i = 0; i < frameCount; ++i)
 	{
 		char fileLine[2048];
 		char moduleName[2048];
-		char addressName[32];
 
 		lldb::SBFrame frame = thread.GetFrameAtIndex((uint32_t)i); 
 		lldb::SBModule module = frame.GetModule();
@@ -319,9 +285,10 @@ static void getCallStack(LLDBPlugin* plugin, PDSerializeWrite* writer)
 		lldb::SBLineEntry entry(context.GetLineEntry());
 
 		uint64_t address = (uint64_t)frame.GetPC();
-		sprintf(addressName, "%016llx", address);
 
 		module.GetFileSpec().GetPath(moduleName, sizeof(moduleName));
+
+		PDWrite_arrayEntryBegin(writer);
 		
 		if (compileUnit.GetNumSupportFiles() > 0)
 		{
@@ -329,24 +296,24 @@ static void getCallStack(LLDBPlugin* plugin, PDSerializeWrite* writer)
 			lldb::SBFileSpec fileSpec = compileUnit.GetSupportFileAtIndex(0);
 			fileSpec.GetPath(filename, sizeof(filename));
 			sprintf(fileLine, "%s:%d", filename, entry.GetLine());
-		}
-		else
-		{
-			strcpy(fileLine, "<unknown>"); 
+
+			PDWrite_string(writer, "filename", filename);
+			PDWrite_u32(writer, "line", entry.GetLine());
 		}
 
-		PDWRITE_STRING(writer, addressName);
-		PDWRITE_STRING(writer, moduleName);
-		PDWRITE_STRING(writer, fileLine);
+		PDWrite_u64(writer, "address", address);
+
+		PDWrite_arrayEntryEnd(writer);
 	}
+
+	PDWrite_arrayEnd(writer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void getExceptionLocation(LLDBPlugin* plugin, PDSerializeWrite* writer)
+static void setExceptionLocation(LLDBPlugin* plugin, PDWriter* writer)
 {
 	char filename[2048];
-
 	memset(filename, 0, sizeof(filename));
 
 	// Get the filename & line of the exception/breakpoint
@@ -357,8 +324,6 @@ static void getExceptionLocation(LLDBPlugin* plugin, PDSerializeWrite* writer)
 	lldb::SBCompileUnit compileUnit = frame.GetCompileUnit();
 	lldb::SBFileSpec filespec(plugin->process.GetTarget().GetExecutable());
 
-	//filespec.GetPath((char*)&plugin->filelineData.filename, 4096);
-
 	if (compileUnit.GetNumSupportFiles() > 0)
 	{
 		lldb::SBFileSpec fileSpec = compileUnit.GetSupportFileAtIndex(0);
@@ -367,147 +332,159 @@ static void getExceptionLocation(LLDBPlugin* plugin, PDSerializeWrite* writer)
 
 	lldb::SBSymbolContext context(frame.GetSymbolContext(0x0000006e));
 	lldb::SBLineEntry entry(context.GetLineEntry());
-	int line = (int)entry.GetLine();
-
-	// \todo: Write the type of exception presented here (might be just address for example if assembly)
-
-	PDWRITE_STRING(writer, "fileline");
-	PDWRITE_STRING(writer, filename);
-	PDWRITE_INT(writer, line);
+	uint32_t line = entry.GetLine();
+	
+	PDWrite_eventBegin(writer, PDEventType_setExceptionLocation);
+	PDWrite_string(writer, "filename", filename);
+	PDWrite_u32(writer, "line", line);
+	PDWrite_eventEnd(writer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int getState(void* userData, PDEventType eventType, int eventId, PDSerializeRead* reader, PDSerializeWrite* writer)
+static void setTty(LLDBPlugin* plugin, PDWriter* writer)
 {
-	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+	const int bufferSize = 4 * 1024;
+	char buffer[bufferSize];
 
-	(void)eventId;
-	(void)reader;
+	size_t amountRead = plugin->process.GetSTDOUT(buffer, bufferSize);
 
-	switch (eventType)
+	if (amountRead > 0)
 	{
-		case PDEventType_getLocals: 
-		{
-			getLocals(plugin, writer);
-			return 1;
-		}
-
-		case PDEventType_getCallStack:
-		{
-			getCallStack(plugin, writer);
-			return 1;
-		}
-
-		case PDEventType_getExceptionLocation:
-		{
-			getExceptionLocation(plugin, writer);
-			return 1;
-		}
-
-		case PDEventType_getTty:
-		{
-			// TODO: Make this buffer dynamic somehow in case it run out of space?
-			const int bufferSize = 4 * 1024;
-			char buffer[bufferSize];
-
-			memset(buffer, 0, bufferSize);
-
-			size_t amountRead = plugin->process.GetSTDOUT(buffer, bufferSize);
-
-			if (amountRead > 0)
-			{
-				printf("Adding the following text to TTY %s", buffer);
-				PDWRITE_STRING(writer, buffer);
-			}
-
-			return 1;
-		}
+		PDWrite_eventBegin(writer, PDEventType_setTty);
+		PDWrite_string(writer, "tty", buffer);
+		PDWrite_eventEnd(writer);	
 	}
-
-	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int setState(void* userData, PDEventType inEvent, int eventId, PDSerializeRead* reader, PDSerializeWrite* writer)
+static void setExecutable(LLDBPlugin* plugin, PDReader* reader)
 {
-	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+	const char* filename;
 
-	// to be used to write back replies (using the eventId when sending back)
-	(void)writer;
-	(void)eventId;
-
-	switch (inEvent)
+	if ((PDRead_findString(reader, &filename, "filename", 0) & PDReadStatus_typeMask) != PDReadStatus_ok)
 	{
-		case PDEventType_setBreakpointSourceLine:
+		printf("Unable to find filename id which is required when starting a LLDB debug session\n");
+		return;
+	}
+
+	plugin->target = plugin->debugger.CreateTarget(filename);
+
+	if (!plugin->target.IsValid())
+		printf("Unable to create valid target (%s)\n", filename);
+
+	printf("Valid target %s\n", filename); 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void setLocals(LLDBPlugin* plugin, PDWriter* writer)
+{
+	lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
+	lldb::SBFrame frame = thread.GetSelectedFrame();
+	
+    lldb::SBValueList variables = frame.GetVariables(true, true, true, false);
+    
+    uint32_t count = variables.GetSize();
+
+    if (count <= 0)
+    	return;
+
+	PDWrite_eventBegin(writer, PDEventType_setLocals);
+	PDWrite_arrayBegin(writer, "locals");
+    	
+    for (uint32_t i = 0; i < count; ++i)
+    {
+    	lldb::SBValue value = variables.GetValueAtIndex(i);
+
+    	PDWrite_arrayEntryBegin(writer);
+    	
+    	PDWrite_u64(writer, "address", value.GetAddress().GetFileAddress());
+
+    	if (value.GetValue())
+    		PDWrite_string(writer, "value", value.GetValue());
+
+    	if (value.GetTypeName())
+    		PDWrite_string(writer, "type", value.GetTypeName());
+    		
+    	if (value.GetName())
+    		PDWrite_string(writer, "name", value.GetName());
+
+		PDWrite_arrayEntryEnd(writer);
+	}
+
+	PDWrite_arrayEnd(writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void setBreakpoint(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer)
+{
+	const char* filename;
+	uint32_t line;
+
+	PDRead_findString(reader, &filename, "filename", 0);
+	PDRead_findU32(reader, &line, "line", 0);
+
+	// \todo Handle failure here
+
+	lldb::SBBreakpoint breakpoint = plugin->target.BreakpointCreateByLocation(filename, line);
+	if (!breakpoint.IsValid())
+	{
+		// \todo send back if breakpoint couldn't be set
+		printf("Unable to set breakpoint at %s:%d\n", filename, line);
+		return;
+	}
+
+	printf("Set breakpoint at %s:%d\n", filename, line);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void processEvents(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer)
+{
+	uint32_t event;
+
+	while ((event = PDRead_getEvent(reader)))
+	{
+		switch (event)
 		{
-			const char* filename = PDREAD_STRING(reader);
-			uint32_t line = (uint32_t)PDREAD_INT(reader);
-
-    		lldb::SBBreakpoint breakpoint = plugin->target.BreakpointCreateByLocation(filename, line);
-    		if (!breakpoint.IsValid())
-			{
-				printf("Unable to set breakpoint at %s:%d\n", filename, line);
-    			return 0;
-			}
-
-			printf("Set breakpoint at %s:%d\n", filename, line);
-
-			return 1;
-		}
-
-		case PDEventType_setExecutable:
-		{
-			const char* filename = PDREAD_STRING(reader);
-
-			plugin->target = plugin->debugger.CreateTarget(filename);
-
-			if (!plugin->target.IsValid())
-			{
-				printf("Unable to create valid target (%s)\n", filename);
-			}
-
-			printf("Valid target %s\n", filename); 
-
-			return 1;
-		}
-
-		case PDEventType_start:
-		{
-			lldb::SBLaunchInfo launchInfo(0);
-			lldb::SBError error;
-
-			plugin->process = plugin->target.Launch(launchInfo, error);
-
-			if (!error.Success())
-			{
-				printf("error false\n");
-				return 0;
-			}
-
-			if (!plugin->process.IsValid())
-			{
-				printf("process not valid\n");
-				return 0;
-			}
-
-			printf("Started valid process\n");
-
-			plugin->process.GetBroadcaster().AddListener(
-					plugin->listener, 
-					lldb::SBProcess::eBroadcastBitStateChanged |
-					lldb::SBProcess::eBroadcastBitInterrupt);
-		
-			plugin->debugState = PDDebugState_running;
-			
-			return 1;
+			case PDEventType_getExceptionLocation : setExceptionLocation(plugin, writer); break;
+			case PDEventType_getCallstack : setCallstack(plugin, writer); break;
+			case PDEventType_setExecutable : setExecutable(plugin, reader); break;
+			case PDEventType_getLocals : setLocals(plugin, writer); break;
+			case PDEventType_setBreakpoint : setBreakpoint(plugin, reader, writer); break;
 		}
 	}
 
-	return 0;
+	setTty(plugin, writer);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PDDebugState update(void* userData, PDAction action, PDReader* inEvents, PDWriter* outEvents)
+{
+	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+
+	switch (action)
+	{
+		case PDAction_stop : onStop(plugin); break;
+		case PDAction_break : onBreak(plugin); break;
+		case PDAction_run : onRun(plugin); break;
+		case PDAction_step : onStep(plugin); break;
+		case PDAction_stepOut : onStepOver(plugin); break;
+		case PDAction_stepOver : onStepOver(plugin); break;
+	}
+
+	if (plugin->state == PDDebugState_running)
+		updateLLDBEvent(plugin);
+
+	processEvents(plugin, inEvents, outEvents);
+
+	return plugin->state;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -517,10 +494,7 @@ static PDBackendPlugin plugin =
 	"LLDB Mac OS X",
 	createInstance,
 	destroyInstance,
-	updateCallback,
-	actionCallback,
-	getState,
-	setState,
+	update,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

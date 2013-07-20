@@ -37,6 +37,7 @@ enum
 typedef enum PDAction
 {
     PDAction_none,
+    PDAction_stop,
     PDAction_break,
     PDAction_run,
     PDAction_step,
@@ -47,12 +48,23 @@ typedef enum PDAction
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef enum PDDebugState
+{
+	PDDebugState_noTarget,
+	PDDebugState_running,
+	PDDebugState_stopBreakpoint,
+	PDDebugState_stopException,
+	PDDebugState_trace,
+} PDDebugState;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef enum PDEventType
 {
     PDEventType_getLocals,
     PDEventType_setLocals,
-    PDEventType_getCallStack,
-    PDEventType_setCallStack,
+    PDEventType_getCallstack,
+    PDEventType_setCallstack,
     PDEventType_getWatch,
     PDEventType_setWatch,
     PDEventType_getRegisters,
@@ -66,10 +78,8 @@ typedef enum PDEventType
     PDEventType_getDisassembly,
     PDEventType_setDisassembly,
 
-    PDEventType_setBreakpointAddress,
-    PDEventType_getBreakpointAddress,
-    PDEventType_setBreakpointSourceLine,
-    PDEventType_geBreakpointSourceLine,
+    PDEventType_setBreakpoint,
+    PDEventType_getBreakpoint,
     PDEventType_setExecutable,
     PDEventType_attachToProcess,
     PDEventType_attachToRemoteSession,
@@ -86,19 +96,18 @@ typedef struct PDBackendPlugin
     int version;
     const char* name;
 
-    // Create and destroy instance of the plugin
-    
     void* (*createInstance)(ServiceFunc* serviceFunc);
     void (*destroyInstance)(void* userData);
+
+    // Updates and Returns the current state of the plugin.
+    PDDebugState (*update)(void* userData, PDAction action, PDReader* inEvents, PDWriter* outEvents);
 
 	// Writer functions used for writing data back to the host
 	PDReader reader;
 
 	// Writer functions used for writing data back to the host
 	PDWriter writer;
-
-    // Updates and Returns the current state of the plugin.
-    void (*update)(void* userData, PDAction action, PDReader* inEvents, PDWriter* outEvents);
+    // Create and destroy instance of the plugin
 
 } PDBackendPlugin;
 
