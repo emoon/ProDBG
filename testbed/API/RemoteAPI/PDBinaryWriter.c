@@ -15,6 +15,7 @@ typedef struct WriterData
 	unsigned int writingEvent;
 	unsigned int writingArray;
 	unsigned int writingArrayEntry;
+	unsigned int entryCount;
 	unsigned int maxSize;
 	unsigned int size;
 } WriterData;
@@ -24,7 +25,7 @@ typedef struct WriterData
 static inline uint8_t* writeIdSize(uint8_t* data, const char* id, uint8_t type, uint16_t typeSize)
 {
 	size_t len = strlen(id);
-	uint16_t totalSize = ((uint16_t)len) + typeSize + 2;	// + 2 for type + null termitator of string
+	uint16_t totalSize = ((uint16_t)len) + typeSize + 4;	// + 4 for: type (1 byte) size (2 bytes) null term (1 byte) 
 
 	data[0] = type; 
 	data[1] = (totalSize >> 8) & 0xff; 
@@ -42,6 +43,9 @@ static PDWriteStatus writeS8(struct PDWriter* writer, const char* id, int8_t v)
 	WriterData* wData = (WriterData*)writer->data;
 	wData->data = writeIdSize(wData->data, id, PDReadType_s8, sizeof(int8_t));
 	*wData->data++ = v;
+
+	if (wData->writingArrayEntry) 
+		wData->entryCount++;
 	
 	return PDWriteStatus_ok;
 }
@@ -53,6 +57,9 @@ static PDWriteStatus writeU8(struct PDWriter* writer, const char* id, uint8_t v)
 	WriterData* wData = (WriterData*)writer->data;
 	wData->data = writeIdSize(wData->data, id, PDReadType_u8, sizeof(uint8_t));
 	*wData->data++ = v;
+
+	if (wData->writingArrayEntry) 
+		wData->entryCount++;
 	
 	return PDWriteStatus_ok;
 }
@@ -68,6 +75,9 @@ static PDWriteStatus writeS16(struct PDWriter* writer, const char* id, int16_t v
 	wData->data[1] = (v >> 0) & 0xff;
 	wData->data += 2;
 
+	if (wData->writingArrayEntry) 
+		wData->entryCount++;
+
 	return PDWriteStatus_ok;
 }
 
@@ -81,6 +91,9 @@ static PDWriteStatus writeU16(struct PDWriter* writer, const char* id, uint16_t 
 	wData->data[0] = (v >> 8) & 0xff;
 	wData->data[1] = (v >> 0) & 0xff;
 	wData->data += 2;
+
+	if (wData->writingArrayEntry) 
+		wData->entryCount++;
 
 	return PDWriteStatus_ok;
 }
@@ -98,6 +111,9 @@ static PDWriteStatus writeS32(struct PDWriter* writer, const char* id, int32_t v
 	wData->data[3] = (v >> 0) & 0xff;
 	wData->data += 4;
 
+	if (wData->writingArrayEntry) 
+		wData->entryCount++;
+
 	return PDWriteStatus_ok;
 }
 
@@ -113,6 +129,9 @@ static PDWriteStatus writeU32(struct PDWriter* writer, const char* id, uint32_t 
 	wData->data[2] = (v >> 8) & 0xff;
 	wData->data[3] = (v >> 0) & 0xff;
 	wData->data += 4;
+
+	if (wData->writingArrayEntry) 
+		wData->entryCount++;
 
 	return PDWriteStatus_ok;
 }
@@ -134,6 +153,9 @@ static PDWriteStatus writeS64(struct PDWriter* writer, const char* id, int64_t v
 	wData->data[6] = (v >> 0) & 0xff;
 	wData->data += 8;
 
+	if (wData->writingArrayEntry) 
+		wData->entryCount++;
+
 	return PDWriteStatus_ok;
 }
 
@@ -154,6 +176,9 @@ static PDWriteStatus writeU64(struct PDWriter* writer, const char* id, uint64_t 
 	wData->data[6] = (v >> 0) & 0xff;
 	wData->data += 8;
 
+	if (wData->writingArrayEntry) 
+		wData->entryCount++;
+
 	return PDWriteStatus_ok;
 }
 
@@ -163,7 +188,7 @@ union Convert
 {
 	double dv;
 	float fv;
-	uint64_t u32;
+	uint32_t u32;
 	uint64_t u64;
 };
 
@@ -182,6 +207,9 @@ static PDWriteStatus writeFloat(struct PDWriter* writer, const char* id, float v
 	wData->data[2] = (c.u32 >> 8) & 0xff;
 	wData->data[3] = (c.u32 >> 0) & 0xff;
 	wData->data += 4;
+
+	if (wData->writingArrayEntry) 
+		wData->entryCount++;
 
 	return PDWriteStatus_ok;
 }
@@ -206,6 +234,9 @@ static PDWriteStatus writeDouble(struct PDWriter* writer, const char* id, double
 	wData->data[6] = (c.u64 >> 0) & 0xff;
 	wData->data += 8;
 
+	if (wData->writingArrayEntry) 
+		wData->entryCount++;
+
 	return PDWriteStatus_ok;
 }
 
@@ -222,6 +253,9 @@ static PDWriteStatus writeString(struct PDWriter* writer, const char* id, const 
 	memcpy(wData->data, v, len);
 
 	wData->data += len;
+
+	if (wData->writingArrayEntry) 
+		wData->entryCount++;
 	
 	return PDWriteStatus_ok;
 }
@@ -247,6 +281,9 @@ static PDWriteStatus writeData(struct PDWriter* writer, const char* id, void* da
 	memcpy(wData->data + 5 + idLen + 1, data, len);
 	
 	wData += totalSize;
+	
+	if (wData->writingArrayEntry) 
+		wData->entryCount++;
 	
 	return PDWriteStatus_ok;
 }
@@ -290,8 +327,8 @@ static PDWriteStatus writeEventEnd(struct PDWriter* writer)
 		return PDWriteStatus_fail;
 	}
 
-	// + 4 to include the meta data at the begining with the size
-	size = (uint32_t)(uintptr_t)(wData->eventOffset - wData->data) + 3; 
+	// + 3 to include the meta data at the begining with the size
+	size = (uint32_t)(uintptr_t)(wData->data - wData->eventOffset) + 3; 
 	wData->eventOffset[0] = (size >> 24) & 0xff;
 	wData->eventOffset[1] = (size >> 16) & 0xff;
 	wData->eventOffset[2] = (size >> 8) & 0xff;
@@ -316,6 +353,58 @@ static PDWriteStatus writeHeaderArrayEnd(struct PDWriter* writer)
 {
 	(void)writer;
 	return PDWriteStatus_fail;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PDWriteStatus writeArrayEntryBegin(struct PDWriter* writer)
+{
+	WriterData* wData = (WriterData*)writer->data;
+	wData->entryOffset = wData->data + 1; 
+
+	if (wData->writingArrayEntry)
+	{
+		// \todo proper logging here
+		printf("Unable to write arrayEntryBegin as no endArrayEntry has been called for previous entry.\n");
+		return PDWriteStatus_fail;
+	}
+
+	wData->data[0] = PDReadType_arrayEntry;
+	wData->writingArrayEntry = 1;
+	wData->entryCount = 0;
+
+	// we will store the size and entryCount here (at writeEndEvent) so skip 4 bytes a head
+	wData->data += 7;
+
+	return PDWriteStatus_ok;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PDWriteStatus writeArrayEntryEnd(struct PDWriter* writer)
+{
+	uint32_t size;
+	WriterData* wData = (WriterData*)writer->data;
+
+	if (!wData->writingArrayEntry)
+	{
+		// \todo proper logging here
+		printf("Unable to write arrayEntryEnd as no arrayEntryBegin has been called before this call\n");
+		return PDWriteStatus_fail;
+	}
+
+	// + 1 to include the meta data at the begining with the size
+	size = (uint32_t)(uintptr_t)(wData->data - wData->entryOffset) + 1; 
+	wData->entryOffset[0] = (size >> 24) & 0xff;
+	wData->entryOffset[1] = (size >> 16) & 0xff;
+	wData->entryOffset[2] = (size >> 8) & 0xff;
+	wData->entryOffset[3] = (size >> 0) & 0xff;
+	wData->entryOffset[4] = (wData->entryCount >> 8) & 0xff;
+	wData->entryOffset[5] = (wData->entryCount >> 0) & 0xff;
+
+	wData->writingArrayEntry = 0;
+
+	return PDWriteStatus_ok;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -357,64 +446,22 @@ static PDWriteStatus writeArrayEnd(struct PDWriter* writer)
 		return PDWriteStatus_fail;
 	}
 
+	// write an empty arrayEntry to indicate there are no more entries in the array
+	
+	writeArrayEntryBegin(writer);
+	writeArrayEntryEnd(writer);
+
 	// + 1 to include the meta data at the begining with the size
-	size = (uint32_t)(uintptr_t)(wData->arrayOffset - wData->data) + 1; 
-	wData->eventOffset[0] = (size >> 24) & 0xff;
-	wData->eventOffset[1] = (size >> 16) & 0xff;
-	wData->eventOffset[2] = (size >> 8) & 0xff;
-	wData->eventOffset[3] = (size >> 0) & 0xff;
+	size = (uint32_t)(uintptr_t)(wData->data - wData->arrayOffset) + 1; 
+	wData->arrayOffset[0] = (size >> 24) & 0xff;
+	wData->arrayOffset[1] = (size >> 16) & 0xff;
+	wData->arrayOffset[2] = (size >> 8) & 0xff;
+	wData->arrayOffset[3] = (size >> 0) & 0xff;
 	wData->writingArray = 0;
 
 	return PDWriteStatus_ok;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static PDWriteStatus writeArrayEntryBegin(struct PDWriter* writer)
-{
-	WriterData* wData = (WriterData*)writer->data;
-	wData->entryOffset = wData->data + 1; 
-
-	if (wData->writingArrayEntry)
-	{
-		// \todo proper logging here
-		printf("Unable to write arrayEntryBegin as no endArrayEntry has been called for previous entry.\n");
-		return PDWriteStatus_fail;
-	}
-
-	wData->data[0] = PDReadType_arrayEntry;
-	wData->writingArrayEntry = 1;
-
-	// we will store the size here (at writeEndEvent) so skip 4 bytes a head
-	wData->data += 5;
-
-	return PDWriteStatus_ok;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static PDWriteStatus writeArrayEntryEnd(struct PDWriter* writer)
-{
-	uint32_t size;
-	WriterData* wData = (WriterData*)writer->data;
-
-	if (!wData->writingArrayEntry)
-	{
-		// \todo proper logging here
-		printf("Unable to write arrayEntryEnd as no arrayEntryBegin has been called before this call\n");
-		return PDWriteStatus_fail;
-	}
-
-	// + 1 to include the meta data at the begining with the size
-	size = (uint32_t)(uintptr_t)(wData->entryOffset - wData->data) + 1; 
-	wData->eventOffset[0] = (size >> 24) & 0xff;
-	wData->eventOffset[1] = (size >> 16) & 0xff;
-	wData->eventOffset[2] = (size >> 8) & 0xff;
-	wData->eventOffset[3] = (size >> 0) & 0xff;
-	wData->writingArrayEntry = 0;
-
-	return PDWriteStatus_fail;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -479,6 +526,7 @@ void PDBinaryWriter_reset(PDWriter* writer)
 	void* tempData = data->dataStart;
 	memset(data, 0, sizeof(WriterData));
 	data->data = data->dataStart = tempData;
+	memset(data->data, 0xcd, 1024 * 1024); 
 }
 
 
