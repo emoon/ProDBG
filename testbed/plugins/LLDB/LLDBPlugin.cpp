@@ -1,7 +1,6 @@
-#include <ProDBGAPI.h>
-
 #ifndef _WIN32
 
+#include <ProDBGAPI.h>
 #include <stdlib.h> 
 #include <stdio.h> 
 #include <string.h> 
@@ -301,6 +300,7 @@ static void setCallstack(LLDBPlugin* plugin, PDWriter* writer)
 			PDWrite_u32(writer, "line", entry.GetLine());
 		}
 
+		PDWrite_string(writer, "module_name", moduleName);
 		PDWrite_u64(writer, "address", address);
 
 		PDWrite_arrayEntryEnd(writer);

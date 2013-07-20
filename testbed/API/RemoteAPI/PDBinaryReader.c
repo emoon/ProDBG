@@ -1,4 +1,5 @@
 #include "../PDReadWrite.h"
+#include "PDReadWrite_private.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -121,6 +122,9 @@ static uint32_t readGetEvent(struct PDReader* reader)
 	uint16_t event;
 	uint8_t type; 
 	uint8_t* data;
+
+	if (!reader)
+		return 0;
 
 	if (rData->nextEvent >= rData->dataEnd)
 		return 0;
@@ -635,8 +639,7 @@ static void readDumpData(struct PDReader* reader)
 		printf("}\n");
 	}
 
-	rData->data = rData->dataStart;
-	rData->nextEvent = 0;
+	PDBinaryReader_reset(reader);
 }
 
 
@@ -688,4 +691,20 @@ void PDBinaryReader_initStream(PDReader* reader, void* data, unsigned int size)
 	readerData->nextEvent = 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PDBinaryReader_reset(PDReader* reader)
+{
+	ReaderData* readerData = (ReaderData*)reader->data;
+	readerData->data = readerData->dataStart;
+	readerData->nextEvent = 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PDBinaryReader_destroy(PDReader* reader)
+{
+	ReaderData* readerData = (ReaderData*)reader->data;
+	free(readerData);
+}
 

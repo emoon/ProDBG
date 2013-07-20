@@ -501,7 +501,6 @@ void PDBinaryWriter_init(PDWriter* writer)
 	data->maxSize = 1024 * 1024;
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void* PDBinaryWriter_getData(PDWriter* writer)
@@ -526,7 +525,12 @@ void PDBinaryWriter_reset(PDWriter* writer)
 	void* tempData = data->dataStart;
 	memset(data, 0, sizeof(WriterData));
 	data->data = data->dataStart = tempData;
-	memset(data->data, 0xcd, 1024 * 1024); 
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PDBinaryWriter_destroy(PDWriter* writer)
+{
+	free(writer);
+}
 

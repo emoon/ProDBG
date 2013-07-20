@@ -1,6 +1,7 @@
 #include "Qt5Locals.h"
 #include "ProDBGAPI.h"
 #include "Qt5DebugSession.h"
+#include "core/log.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -30,27 +31,38 @@ Qt5Locals::~Qt5Locals()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5Locals::update(PDSerializeRead* reader)
+void Qt5Locals::update(PDReader* reader)
 {
+	PDReaderIterator it;
+
 	QList<QTreeWidgetItem*> items;
 
-	int count = PDREAD_INT(reader);
+	PDRead_findArray(reader, &it, "locals", 0);
 
-	clear();
-	
-	for (int i = 0; i < count; ++i) 
+	if (!it)
 	{
-		QStringList temp;
-		
-		const char* name = PDREAD_STRING(reader);
-		const char* value = PDREAD_STRING(reader);
-		const char* type = PDREAD_STRING(reader);
-		const char* address = PDREAD_STRING(reader);
-
-		temp << name << value << type << address;
-		items.append(new QTreeWidgetItem((QTreeWidget*)0, temp)); 
+		log_info("Unable to find locals array from reader\n");
+		return;
 	}
 
+	while (PDRead_getNextEntry(reader, &it))
+	{
+		const char* name = "";
+		const char* value = "";
+		const char* type = "";
+		uint64_t address;
+
+		QStringList temp;
+
+		PDRead_findString(reader, &name, "name", it);
+		PDRead_findString(reader, &value, "value", it);
+		PDRead_findString(reader, &type, "type", it);
+		PDRead_findU64(reader, &address, "address", it);
+
+		temp << name << value << type << QString::number(address);
+		items.append(new QTreeWidgetItem((QTreeWidget*)0, temp)); 
+	}
+	
 	insertTopLevelItems(0, items);
 }
 

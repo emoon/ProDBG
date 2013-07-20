@@ -45,7 +45,7 @@ signals:
 
 private:
 	
-	void sendState();
+	void updateLocal(void* readData, int readSize, int action);
 
 	PDDebugState m_debugState;
 	PDBackendPlugin* m_debuggerPlugin;
@@ -56,8 +56,8 @@ private:
 	int m_port;
 	TargetType m_targetType;
 
-	PDSerializeRead m_reader;
-	PDSerializeWrite m_writer;
+	PDReader m_reader;
+	PDWriter m_writer;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

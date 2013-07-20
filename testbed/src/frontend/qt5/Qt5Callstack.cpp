@@ -1,6 +1,7 @@
 #include "Qt5CallStack.h"
 #include "Qt5DebugSession.h"
 #include "ProDBGAPI.h"
+#include "core/log.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -14,7 +15,7 @@ Qt5CallStack::Qt5CallStack(QWidget* parent) : QTreeWidget(parent)
 	setColumnCount(3);
 
 	QStringList headers;
-	headers << "Address" << "Module" << "Name";
+	headers << "Address" << "Module" << "Name" << "Line";
 
 	setHeaderLabels(headers);
 
@@ -30,23 +31,37 @@ Qt5CallStack::~Qt5CallStack()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CallStack::update(PDSerializeRead* reader)
+void Qt5CallStack::update(PDReader* reader)
 {
+	PDReaderIterator it;
+
 	QList<QTreeWidgetItem*> items;
 
 	clear();
 
-	int count = PDREAD_INT(reader);
+	PDRead_findArray(reader, &it, "callstack", 0);
 
-	for (int i = 0; i < count; ++i) 
+	if (!it)
 	{
+		log_info("Unable to find any callstack array\n");
+		return;
+	}
+
+	while (PDRead_getNextEntry(reader, &it))
+	{
+		const char* filename = "";
+		const char* module = "";
+		uint64_t address = 0;
+		uint32_t line = 0;
+
 		QStringList temp;
 
-		const char* address = PDREAD_STRING(reader);
-		const char* moduleName = PDREAD_STRING(reader);
-		const char* fileLine = PDREAD_STRING(reader);
+		PDRead_findString(reader, &filename, "filename", it);
+		PDRead_findString(reader, &module, "module_name", it);
+		PDRead_findU32(reader, &line, "line", it);
+		PDRead_findU64(reader, &address, "address", it);
 
-		temp << address << moduleName << fileLine;
+		temp << QString::number(address) << module << filename << QString::number(line);
 		items.append(new QTreeWidgetItem((QTreeWidget*)0, temp)); 
 	}
 

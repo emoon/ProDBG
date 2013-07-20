@@ -1,5 +1,4 @@
 #include "../Remote.h"
-#include "BinarySerializer.h"
 #include "RemoteConnection.h"
 #include "bson.h"
 #include <ProDBGAPI.h>

@@ -4,12 +4,12 @@
 #include "Qt5CallStack.h"
 #include "Qt5Locals.h"
 #include "Qt5DebugOutput.h"
-#include "../../../API/RemoteAPI/BinarySerializer.h"
 #include "core/Log.h"
 #include <QThread>
 #ifndef _WIN32
 #include <unistd.h>
 #endif
+#include "../../../API/RemoteAPI/PDReadWrite_private.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -102,12 +102,12 @@ void Qt5DebugSession::delTty(Qt5DebugOutput* debugOutput)
 
 void Qt5DebugSession::begin(const char* executable)
 {
-	PDSerializeWrite writer_;
-	PDSerializeWrite* writer = &writer_;
-
 	m_threadRunner = new QThread;
 	m_debuggerThread = new Qt5DebuggerThread(Qt5DebuggerThread::Local);
 	m_debuggerThread->moveToThread(m_threadRunner);
+
+	PDWriter writerData;
+	PDWriter* writer = &writerData;
 
 	// TODO: Not sure if we should set this up here, would be better to move it so we don't need to actually
 	//       start a executable/etc when doing a begin
@@ -122,32 +122,23 @@ void Qt5DebugSession::begin(const char* executable)
 
 	m_threadRunner->start();
 
-	BinarySerializer_initWriter(writer);
+	PDBinaryWriter_init(writer);
 
 	// Write executable
 
-	BinarySerialize_beginEvent(writer, PDEventType_setExecutable, 1337);
-	PDWRITE_STRING(writer, executable);
-	BinarySerialize_endEvent(writer);
-
-	// TODO: Write breakpoints here
+	PDWrite_eventBegin(writer, PDEventType_setExecutable);
+	PDWrite_string(writer, "filename", executable);
+	PDWrite_eventEnd(writer);
 
 	for (int i = 0, count = m_breakpointCount; i != count; ++i)
 	{
-		BinarySerialize_beginEvent(writer, PDEventType_setBreakpointSourceLine, 0);
-		PDWRITE_STRING(writer, m_breakpoints[i].filename);
-		PDWRITE_INT(writer, m_breakpoints[i].line);
-		BinarySerialize_endEvent(writer);
+		PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
+		PDWrite_string(writer, "filename", m_breakpoints[i].filename);
+		PDWrite_u32(writer, "line", m_breakpoints[i].line);
+		PDWrite_eventEnd(writer);
 	}
 
-	// Write start
-
-	BinarySerialize_beginEvent(writer, PDEventType_start, 0);
-	BinarySerialize_endEvent(writer);
-
-	// TODO: Write executable to debugger plugin
-
-	emit sendData(writer->writeData, 0);
+	emit sendData(PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -213,6 +204,9 @@ void Qt5DebugSession::callAction(int action)
 
 void Qt5DebugSession::requestDisassembly(uint64_t startAddress, int instructionCount)
 {
+	(void)startAddress;
+	(void)instructionCount;
+	/*
 	PDSerializeWrite writer_;
 	PDSerializeWrite* writer = &writer_;
 
@@ -226,94 +220,60 @@ void Qt5DebugSession::requestDisassembly(uint64_t startAddress, int instructionC
 	BinarySerialize_endEvent(writer);
 
 	emit sendData(BinarySerializer_getStartData(writer), BinarySerializer_writeSize(writer));
+	*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5DebugSession::setState(void* readerData, int serSize)
 {
-	PDSerializeRead reader;
-	PDSerializeRead* readerPtr = &reader;
+	int event;
+	PDReader readerD;
+	PDReader* reader = &readerD;
 
-	(void)serSize;
+	PDBinaryReader_init(reader);
+	PDBinaryReader_initStream(reader, readerData, serSize);
 
-	BinarySerializer_initReader(readerPtr, readerData);
-
-	while (PDREAD_BYTES_LEFT(readerPtr) > 0)
+	while ((event = PDRead_getEvent(reader)))
 	{
-		int size = PDREAD_INT(readerPtr);
-		PDEventType type = (PDEventType)PDREAD_INT(readerPtr);
-		int eventId = PDREAD_INT(readerPtr);
-		(void)eventId;
-
-		switch (type)
+		switch (event)
 		{
-			case PDEventType_getLocals:
+			case PDEventType_setLocals:
 			{
 				// Only update 1 for now
 				if (m_locals.size() > 0)
-					m_locals[0]->update(readerPtr);
-				else
-					PDREAD_SKIP_BYTES(readerPtr, size - 12);
+					m_locals[0]->update(reader);
 
 				break;
 			}
 
-			case PDEventType_getCallStack:
+			case PDEventType_setExceptionLocation:
 			{
-				// Only update 1 for now
-				if (m_callStacks.size() > 0)
-					m_callStacks[0]->update(readerPtr);
-				else
-					PDREAD_SKIP_BYTES(readerPtr, size - 12);
+				const char* filename = 0;
+				uint64_t address = 0;
+				uint32_t line = 0;
 
-				break;
-			}
+				PDRead_findString(reader, &filename, "filename", 0);
+				PDRead_findU32(reader, &line, "line", 0);
+				PDRead_findU64(reader, &address, "address", 0);
 
-			case PDEventType_getExceptionLocation:
-			{
-				const char* exceptionType = PDREAD_STRING(readerPtr);
-
-				printf("get exception\n");
-
-				if (!strcmp(exceptionType, "fileline"))
+				if (filename)
 				{
-					const char* filename = PDREAD_STRING(readerPtr);
-
-					int line = PDREAD_INT(readerPtr);
-
-					// Only update 1 for now
 					if (m_codeEditors.size() > 0)
 						m_codeEditors[0]->setFileLine(filename, line);
-					else
-						PDREAD_SKIP_BYTES(readerPtr, size - 12);
 				}
-				else if(!strcmp(exceptionType, "address"))
+				else
 				{
-					uint16_t addressSize = PDREAD_U16(readerPtr);
-					uint64_t address = 0;
-
-					switch (addressSize)
-					{
-						case 2 : address = PDREAD_U16(readerPtr); break;
-						case 4 : address = PDREAD_INT(readerPtr); break;
-					}
-
-					// Only update 1 for now
-					if (m_codeEditors.size() > 0)
-					{
-						m_codeEditors[0]->setMode(Qt5CodeEditor::Disassembly);
-						m_codeEditors[0]->setAddress(address);
-					}
-
-					printf("exception address 0x%x\n", (uint32_t)address);
+					m_codeEditors[0]->setMode(Qt5CodeEditor::Disassembly);
+					m_codeEditors[0]->setAddress(address);
 				}
 
 				break;
 			}
 
-			case PDEventType_getDisassembly:
+			case PDEventType_setDisassembly:
 			{
+				/*
 				const char* disassembly = PDREAD_STRING(readerPtr);
 
 				// Only update 1 for now
@@ -323,33 +283,26 @@ void Qt5DebugSession::setState(void* readerData, int serSize)
 					m_codeEditors[0]->setMode(Qt5CodeEditor::Disassembly);
 					m_codeEditors[0]->setDisassembly(disassembly);
 				}
+				*/
 
 				break;
 			}
 
-			case PDEventType_getTty:
+			case PDEventType_setTty:
 			{
-				const char* string = PDREAD_STRING(readerPtr);
-				if (m_debugOutputs.size() > 0)
-					m_debugOutputs[0]->appendText(string);
-				else
-					PDREAD_SKIP_BYTES(readerPtr, size - 12);
+				const char* tty;
+
+				PDRead_findString(reader, &tty, "tty", 0);
+
+				if (tty && m_debugOutputs.size() > 0)
+					m_debugOutputs[0]->appendText(tty);
 
 				break;
-			}
-
-			//case PDEventType_watch:
-			//case PDEventType_registers:
-			//case PDEventType_memory:
-			default:
-			{
-				// If we don't know the type we just skip all data
-
-				printf("Unknown readerType %d\n", type);
-				PDREAD_SKIP_BYTES(readerPtr, size);
 			}
 		}
 	}
+
+	free(readerData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
