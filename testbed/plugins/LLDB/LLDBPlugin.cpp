@@ -59,126 +59,6 @@ const bool m_verbose = true;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void updateLLDBEvent(LLDBPlugin* plugin)
-{
-	if (!plugin->process.IsValid())
-		return;
-
-	lldb::SBEvent evt;
-
-	plugin->listener.WaitForEvent(1, evt);
-	lldb::StateType state = lldb::SBProcess::GetStateFromEvent(evt);
-
-	printf("event = %s\n", lldb::SBDebugger::StateAsCString(state));
-
-	if (lldb::SBProcess::GetRestartedFromEvent(evt))
-	{
-		printf("lldb::SBProcess::GetRestartedFromEvent(evt)\n");
-		return;
-	}
-
-	switch (state)
-	{
-		case lldb::eStateInvalid:
-		case lldb::eStateDetached:
-		case lldb::eStateCrashed:
-		case lldb::eStateUnloaded:
-			return;
-
-		case lldb::eStateExited:
-			return;
-
-		case lldb::eStateConnected:
-		case lldb::eStateAttaching:
-		case lldb::eStateLaunching:
-		case lldb::eStateRunning:
-		case lldb::eStateStepping:
-			return;
-
-		case lldb::eStateStopped:
-		case lldb::eStateSuspended:
-		{
-			//call_test_step = true;
-			bool fatal = false;
-			bool selected_thread = false;
-			for (uint32_t thread_index = 0; thread_index < plugin->process.GetNumThreads(); thread_index++)
-			{
-				lldb::SBThread thread(plugin->process.GetThreadAtIndex((size_t)thread_index));
-				lldb::SBFrame frame(thread.GetFrameAtIndex(0));
-				bool select_thread = false;
-				lldb::StopReason stop_reason = thread.GetStopReason();
-
-				if (m_verbose) 
-					printf("tid = 0x%llx pc = 0x%llx ",thread.GetThreadID(),frame.GetPC());
-
-				switch (stop_reason)
-				{
-					case lldb::eStopReasonNone:
-						if (m_verbose)
-							printf("none\n");
-						break;
-						
-					case lldb::eStopReasonTrace:
-						select_thread = true;
-						plugin->state = PDDebugState_trace;
-						if (m_verbose)
-							printf("trace\n");
-						break;
-						
-					case lldb::eStopReasonPlanComplete:
-						select_thread = true;
-						plugin->state = PDDebugState_trace;
-						if (m_verbose)
-							printf("plan complete\n");
-						break;
-					case lldb::eStopReasonThreadExiting:
-						if (m_verbose)
-							printf("thread exiting\n");
-						break;
-					case lldb::eStopReasonExec:
-						if (m_verbose)
-							printf("exec\n");
-						break;
-					case lldb::eStopReasonInvalid:
-						if (m_verbose)
-							printf("invalid\n");
-						break;
-					case lldb::eStopReasonException:
-						select_thread = true;
-						plugin->state = PDDebugState_stopException;
-						if (m_verbose)
-							printf("exception\n");
-						fatal = true;
-						break;
-					case lldb::eStopReasonBreakpoint:
-						select_thread = true;
-						plugin->state = PDDebugState_stopBreakpoint;
-						if (m_verbose)
-							printf("breakpoint id = %lld.%lld\n",thread.GetStopReasonDataAtIndex(0),thread.GetStopReasonDataAtIndex(1));
-						break;
-					case lldb::eStopReasonWatchpoint:
-						select_thread = true;
-						if (m_verbose)
-							printf("watchpoint id = %lld\n",thread.GetStopReasonDataAtIndex(0));
-						break;
-					case lldb::eStopReasonSignal:
-						select_thread = true;
-						if (m_verbose)
-							printf("signal %d\n",(int)thread.GetStopReasonDataAtIndex(0));
-						break;
-				}
-				if (select_thread && !selected_thread)
-				{
-					selected_thread = plugin->process.SetSelectedThread(thread);
-				}
-			}
-		}
-		break;
-	}
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 static void onStop(LLDBPlugin* plugin)
 {
 	(void)plugin;
@@ -307,6 +187,7 @@ static void setCallstack(LLDBPlugin* plugin, PDWriter* writer)
 	}
 
 	PDWrite_arrayEnd(writer);
+	PDWrite_eventEnd(writer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -361,13 +242,17 @@ static void setTty(LLDBPlugin* plugin, PDWriter* writer)
 
 static void setExecutable(LLDBPlugin* plugin, PDReader* reader)
 {
-	const char* filename;
+	const char* filename = 0;
 
-	if ((PDRead_findString(reader, &filename, "filename", 0) & PDReadStatus_typeMask) != PDReadStatus_ok)
+	PDRead_findString(reader, &filename, "filename", 0);
+
+	if (!filename)
 	{
-		printf("Unable to find filename id which is required when starting a LLDB debug session\n");
+		printf("Unable to find filename which is required when starting a LLDB debug session\n");
 		return;
 	}
+
+	printf("found filename \"%s\"\n", filename);
 
 	plugin->target = plugin->debugger.CreateTarget(filename);
 
@@ -415,6 +300,7 @@ static void setLocals(LLDBPlugin* plugin, PDWriter* writer)
 	}
 
 	PDWrite_arrayEnd(writer);
+	PDWrite_eventEnd(writer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -440,34 +326,10 @@ static void setBreakpoint(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer
 	printf("Set breakpoint at %s:%d\n", filename, line);
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void processEvents(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer)
+static void doAction(LLDBPlugin* plugin, PDAction action)
 {
-	uint32_t event;
-
-	while ((event = PDRead_getEvent(reader)))
-	{
-		switch (event)
-		{
-			case PDEventType_getExceptionLocation : setExceptionLocation(plugin, writer); break;
-			case PDEventType_getCallstack : setCallstack(plugin, writer); break;
-			case PDEventType_setExecutable : setExecutable(plugin, reader); break;
-			case PDEventType_getLocals : setLocals(plugin, writer); break;
-			case PDEventType_setBreakpoint : setBreakpoint(plugin, reader, writer); break;
-		}
-	}
-
-	setTty(plugin, writer);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static PDDebugState update(void* userData, PDAction action, PDReader* inEvents, PDWriter* outEvents)
-{
-	LLDBPlugin* plugin = (LLDBPlugin*)userData;
-
 	switch (action)
 	{
 		case PDAction_stop : onStop(plugin); break;
@@ -477,11 +339,239 @@ static PDDebugState update(void* userData, PDAction action, PDReader* inEvents, 
 		case PDAction_stepOut : onStepOver(plugin); break;
 		case PDAction_stepOver : onStepOver(plugin); break;
 	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void eventAction(LLDBPlugin* plugin, PDReader* reader)
+{
+	uint32_t action = 0;
+
+	printf("LLDBPlugin; %d\n", (PDRead_findU32(reader, &action, "action", 0) & 0xff) >> 8);
+	printf("LLDBPlugin: got action (from event) %d\n", action);
+
+	doAction(plugin, (PDAction)action);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static const char* eventTypes[] =
+{
+    "PDEventType_getLocals",
+    "PDEventType_setLocals",
+    "PDEventType_getCallstack",
+    "PDEventType_setCallstack",
+    "PDEventType_getWatch",
+    "PDEventType_setWatch",
+    "PDEventType_getRegisters",
+    "PDEventType_setRegisters",
+    "PDEventType_getMemory",
+    "PDEventType_setMemory",
+    "PDEventType_getTty",
+    "PDEventType_setTty",
+    "PDEventType_getExceptionLocation",
+    "PDEventType_setExceptionLocation",
+    "PDEventType_getDisassembly",
+    "PDEventType_setDisassembly",
+    "PDEventType_setBreakpoint",
+    "PDEventType_getBreakpoint",
+    "PDEventType_setExecutable",
+    "PDEventType_attachToProcess",
+    "PDEventType_attachToRemoteSession",
+    "PDEventType_action",
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void processEvents(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer)
+{
+	uint32_t event;
+
+	while ((event = PDRead_getEvent(reader)))
+	{
+		printf("LLDBPlugin: %d Got event %s\n", event, eventTypes[event]);
+
+		switch (event)
+		{
+			case PDEventType_getExceptionLocation : setExceptionLocation(plugin, writer); break;
+			case PDEventType_getCallstack : setCallstack(plugin, writer); break;
+			case PDEventType_setExecutable : setExecutable(plugin, reader); break;
+			case PDEventType_getLocals : setLocals(plugin, writer); break;
+			case PDEventType_setBreakpoint : setBreakpoint(plugin, reader, writer); break;
+			case PDEventType_action : eventAction(plugin, reader); break;
+		}
+	}
+
+	setTty(plugin, writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void sendExceptionState(LLDBPlugin* plugin, PDWriter* writer)
+{
+	setCallstack(plugin, writer);
+	setExceptionLocation(plugin, writer);
+	setLocals(plugin, writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void updateLLDBEvent(LLDBPlugin* plugin, PDWriter* writer)
+{
+	if (!plugin->process.IsValid())
+		return;
+
+	lldb::SBEvent evt;
+
+	plugin->listener.WaitForEvent(1, evt);
+	lldb::StateType state = lldb::SBProcess::GetStateFromEvent(evt);
+
+	printf("event = %s\n", lldb::SBDebugger::StateAsCString(state));
+
+	if (lldb::SBProcess::GetRestartedFromEvent(evt))
+	{
+		printf("lldb::SBProcess::GetRestartedFromEvent(evt)\n");
+		return;
+	}
+
+	switch (state)
+	{
+		case lldb::eStateInvalid:
+		case lldb::eStateDetached:
+		case lldb::eStateCrashed:
+		case lldb::eStateUnloaded:
+			return;
+
+		case lldb::eStateExited:
+			return;
+
+		case lldb::eStateConnected:
+		case lldb::eStateAttaching:
+		case lldb::eStateLaunching:
+		case lldb::eStateRunning:
+		case lldb::eStateStepping:
+			return;
+
+		case lldb::eStateStopped:
+		case lldb::eStateSuspended:
+		{
+			//call_test_step = true;
+			bool fatal = false;
+			bool selected_thread = false;
+			for (uint32_t thread_index = 0; thread_index < plugin->process.GetNumThreads(); thread_index++)
+			{
+				lldb::SBThread thread(plugin->process.GetThreadAtIndex((size_t)thread_index));
+				lldb::SBFrame frame(thread.GetFrameAtIndex(0));
+				bool select_thread = false;
+				lldb::StopReason stop_reason = thread.GetStopReason();
+
+				if (m_verbose) 
+					printf("tid = 0x%llx pc = 0x%llx ",thread.GetThreadID(),frame.GetPC());
+
+				switch (stop_reason)
+				{
+					case lldb::eStopReasonNone:
+						if (m_verbose)
+							printf("none\n");
+						break;
+						
+					case lldb::eStopReasonTrace:
+						select_thread = true;
+						plugin->state = PDDebugState_trace;
+						if (m_verbose)
+							printf("trace\n");
+						break;
+						
+					case lldb::eStopReasonPlanComplete:
+						select_thread = true;
+
+						sendExceptionState(plugin, writer);
+
+						plugin->state = PDDebugState_trace;
+						if (m_verbose)
+							printf("plan complete\n");
+						break;
+					case lldb::eStopReasonThreadExiting:
+						if (m_verbose)
+							printf("thread exiting\n");
+						break;
+					case lldb::eStopReasonExec:
+						if (m_verbose)
+							printf("exec\n");
+						break;
+					case lldb::eStopReasonInvalid:
+						if (m_verbose)
+							printf("invalid\n");
+						break;
+
+					case lldb::eStopReasonException:
+					{
+						select_thread = true;
+
+						if (plugin->state != PDDebugState_stopException)
+							sendExceptionState(plugin, writer);
+						
+						plugin->state = PDDebugState_stopException;
+
+						if (m_verbose)
+							printf("exception\n");
+						fatal = true;
+
+						break;
+					}
+
+					case lldb::eStopReasonBreakpoint:
+					{
+						select_thread = true;
+
+						if (plugin->state != PDDebugState_stopBreakpoint)
+							sendExceptionState(plugin, writer);
+
+						plugin->state = PDDebugState_stopBreakpoint;
+
+						if (m_verbose)
+							printf("breakpoint id = %lld.%lld\n",thread.GetStopReasonDataAtIndex(0),thread.GetStopReasonDataAtIndex(1));
+
+						break;
+					}
+
+					case lldb::eStopReasonWatchpoint:
+						select_thread = true;
+						if (m_verbose)
+							printf("watchpoint id = %lld\n",thread.GetStopReasonDataAtIndex(0));
+						break;
+					case lldb::eStopReasonSignal:
+						select_thread = true;
+						if (m_verbose)
+							printf("signal %d\n",(int)thread.GetStopReasonDataAtIndex(0));
+						break;
+				}
+				if (select_thread && !selected_thread)
+				{
+					selected_thread = plugin->process.SetSelectedThread(thread);
+				}
+			}
+		}
+		break;
+	}
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PDDebugState update(void* userData, PDAction action, PDReader* reader, PDWriter* writer)
+{
+	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+
+	//printf("LLDBPlugin: update %d %p %p\n", (int)action, reader, writer);
+
+	doAction(plugin, action);
 
 	if (plugin->state == PDDebugState_running)
-		updateLLDBEvent(plugin);
+		updateLLDBEvent(plugin, writer);
 
-	processEvents(plugin, inEvents, outEvents);
+	processEvents(plugin, reader, writer);
 
 	return plugin->state;
 }

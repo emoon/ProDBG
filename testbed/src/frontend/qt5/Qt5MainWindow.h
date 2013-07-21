@@ -81,8 +81,6 @@ public slots:
 	void fileResetLayout();
 	void fileExit();
 
-	void debugStart();
-
 	// Dynamic Views
 	void windowSplitVertically();
 	void windowSplitHorizontally();

@@ -198,6 +198,27 @@ void Qt5MainWindow::onMenu(int id)
 {
 	switch (id)
 	{
+		case MENU_FILE_LOAD_EXECUTABLE :
+		{
+			QString filename = QFileDialog::getOpenFileName(this, tr("Open File"),
+															"/home",
+															tr("*"));	
+
+			if (filename.isNull())
+				return;
+
+			const char* file = strdup(filename.toLatin1().constData());
+
+			printf("Qt5MainWindow::onMenu %s\n", file);
+
+			g_debugSession->begin(file, true);
+
+			free((void*)file);
+
+			break;
+		}
+
+
 		case MENU_DEBUG_ATTACH_TO_REMOTE_PROCESS :
 		{
 			g_debugSession->beginRemote("127.0.0.1", 1340);
@@ -797,11 +818,13 @@ void Qt5MainWindow::fileSaveLayout()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 void Qt5MainWindow::debugStart()
 {
 	//g_debugSession->begin("tundra-output/macosx-clang-debug-default/Fake6502");
-	g_debugSession->begin("tundra-output/macosx-clang-debug-default/prodbg-qt5");
+	//g_debugSession->begin("tundra-output/macosx-clang-debug-default/prodbg-qt5");
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -178,6 +178,8 @@ void Qt5DebuggerThread::update()
 
 void Qt5DebuggerThread::doAction(int action)
 {
+	printf("Qt5DebuggerThread::doAction\n");
+
 	if (m_targetType == Local)
 	{
 		updateLocal(0, 0, action);

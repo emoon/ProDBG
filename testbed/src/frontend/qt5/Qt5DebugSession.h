@@ -45,7 +45,7 @@ public:
     void delCallStack(Qt5CallStack* callStack);
     void delTty(Qt5DebugOutput* output);
 
-    void begin(const char* executable);
+    void begin(const char* executable, bool run);
     void beginRemote(const char* remoteTarget, int port);
     void callAction(int action);
     void requestDisassembly(uint64_t startAddress, int instructionCount);

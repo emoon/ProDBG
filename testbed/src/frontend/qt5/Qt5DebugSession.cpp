@@ -100,7 +100,7 @@ void Qt5DebugSession::delTty(Qt5DebugOutput* debugOutput)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5DebugSession::begin(const char* executable)
+void Qt5DebugSession::begin(const char* executable, bool run)
 {
 	m_threadRunner = new QThread;
 	m_debuggerThread = new Qt5DebuggerThread(Qt5DebuggerThread::Local);
@@ -115,8 +115,8 @@ void Qt5DebugSession::begin(const char* executable)
 	connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
 	connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
 	connect(this, &Qt5DebugSession::tryAction, m_debuggerThread, &Qt5DebuggerThread::doAction); 
-	connect(m_debuggerThread, &Qt5DebuggerThread::setState, this, &Qt5DebugSession::setState);
-	connect(this, &Qt5DebugSession::setState, m_debuggerThread, &Qt5DebuggerThread::setState); 
+	connect(m_debuggerThread, &Qt5DebuggerThread::sendData, this, &Qt5DebugSession::setState);
+	connect(this, &Qt5DebugSession::sendData, m_debuggerThread, &Qt5DebuggerThread::setState); 
 
 	printf("beginDebug %s %d\n", executable, (uint32_t)(uint64_t)QThread::currentThreadId());
 
@@ -125,6 +125,8 @@ void Qt5DebugSession::begin(const char* executable)
 	PDBinaryWriter_init(writer);
 
 	// Write executable
+	
+	printf("Writing down filename %s to executable\n", executable);
 
 	PDWrite_eventBegin(writer, PDEventType_setExecutable);
 	PDWrite_string(writer, "filename", executable);
@@ -135,6 +137,13 @@ void Qt5DebugSession::begin(const char* executable)
 		PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
 		PDWrite_string(writer, "filename", m_breakpoints[i].filename);
 		PDWrite_u32(writer, "line", m_breakpoints[i].line);
+		PDWrite_eventEnd(writer);
+	}
+
+	if (run)
+	{
+		PDWrite_eventBegin(writer, PDEventType_action);
+		PDWrite_u32(writer, "action", 3);
 		PDWrite_eventEnd(writer);
 	}
 
