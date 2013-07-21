@@ -7,13 +7,14 @@
 Debugger6502* g_debugger;
 extern uint16_t pc;
 extern uint8_t sp, a, x, y, status;
-extern int disassembleToBuffer(char* dest, int address, int instCount);
+extern int disassembleToBuffer(char* dest, int* address, int* instCount);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void* createInstance(ServiceFunc* serviceFunc)
 {
 	(void)serviceFunc;
+
 	g_debugger = malloc(sizeof(Debugger6502));	// this is a bit ugly but for this plugin we only have one instance
 	memset(g_debugger, 0, sizeof(Debugger6502));
 
@@ -30,14 +31,8 @@ static void destroyInstance(void* userData)
 	g_debugger = 0;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDDebugState update(void* userData)
-{
-	Debugger6502* debugger = (Debugger6502*)userData;
-	return debugger->runState;
-}
-
+/*
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static bool action(void* userData, PDAction action)
@@ -161,18 +156,141 @@ static int getState(void* userData, PDEventType eventType, int eventId, PDSerial
 
 	return 0;
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int setState(void* userData, PDEventType event, int eventId, PDSerializeRead* reader, PDSerializeWrite* writer)
+static void writeRegister(PDWriter* writer, const char* name, uint8_t size, uint16_t reg, bool readOnly)
 {
-	(void)userData;
-	(void)event;
-	(void)eventId;
-	(void)reader;
-	(void)writer;
+	PDWrite_arrayEntryBegin(writer);
+	PDWrite_string(writer, "name", name);
+	PDWrite_u8(writer, "size", size);
 
-	return 0;
+	if (readOnly)
+		PDWrite_u8(writer, "read_only", 1);
+
+	PDWrite_u16(writer, "register", reg);
+
+	PDWrite_arrayEntryEnd(writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void setRegisters(PDWriter* writer)
+{
+	PDWrite_eventBegin(writer, PDEventType_setRegisters);
+	PDWrite_arrayBegin(writer, "registers");
+
+	writeRegister(writer, "pc", 2, pc, 1);
+	writeRegister(writer, "sp", 1, sp, 0);
+	writeRegister(writer, "a", 1, x, 0);
+	writeRegister(writer, "x", 1, x, 0);
+	writeRegister(writer, "y", 1, y, 0);
+	writeRegister(writer, "status", 1, y, 1);
+
+	PDWrite_arrayEnd(writer);
+	PDWrite_eventEnd(writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void setExceptionLocation(PDWriter* writer)
+{
+	PDWrite_eventBegin(writer,PDEventType_setExceptionLocation); 
+	PDWrite_u16(writer, "address", pc);
+	PDWrite_u8(writer, "address_size", 2);
+	PDWrite_eventEnd(writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void setDisassembly(PDWriter* writer, int start, int instCount)
+{
+	char temp[65536];
+
+	disassembleToBuffer(temp, &start, &instCount);
+
+	PDWrite_eventBegin(writer, PDEventType_setDisassembly);
+	PDWrite_u16(writer, "address_start", start);
+	PDWrite_u16(writer, "instruction_count", instCount);
+	PDWrite_string(writer, "string_buffer", temp);
+	PDWrite_eventEnd(writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void getDisassembly(PDReader* reader, PDWriter* writer)
+{
+	uint16_t start = 0;
+	uint32_t instCount = 1;
+
+	PDRead_findU16(reader, &start, "address_start", 0);
+	PDRead_findU32(reader, &instCount, "instruction_count", 0);
+
+	setDisassembly(writer, start, instCount);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void sendState(PDWriter* writer)
+{
+	setExceptionLocation(writer);
+	setRegisters(writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void doAction(Debugger6502* debugger, PDAction action, PDWriter* writer)
+{
+	int t = (int)action;
+
+	switch (t)
+	{
+		case PDAction_break : 
+		{
+			// On this target we can anways break so just set that we have stopped on breakpoint
+			debugger->runState = PDDebugState_stopException;
+			sendState(writer);
+			break;
+		}
+
+		case PDAction_run : 
+		{
+			// on this target we can always start running directly again
+			debugger->runState = PDDebugState_running;
+			break;
+		}
+
+		case PDAction_step : 
+		{
+			// on this target we can always stepp 
+			debugger->runState = PDDebugState_trace;
+			sendState(writer);
+			break;
+		}
+	}
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PDDebugState update(void* userData, PDAction action, PDReader* reader, PDWriter* writer)
+{
+	int event = 0;
+
+	Debugger6502* debugger = (Debugger6502*)userData;
+
+	doAction(debugger, action, writer);
+
+	while ((event = PDRead_getEvent(reader)))
+	{
+		switch (event)
+		{
+			case PDEventType_getDisassembly : getDisassembly(reader, writer); break;
+		}
+	}
+
+	return debugger->runState;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -184,8 +302,5 @@ PDBackendPlugin s_debuggerPlugin =
     createInstance,
     destroyInstance,
     update,
-    action,
-    getState,
-    setState,
 };
 

@@ -298,5 +298,4 @@ Program {
 
 Default "TestReadWrite"
 Default "prodbg-qt5"
-
---Default "Fake6502"
+Default "Fake6502"

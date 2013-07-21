@@ -125,6 +125,9 @@ static uint32_t readGetEvent(struct PDReader* reader)
 	uint8_t type; 
 	uint8_t* data;
 
+	if (!rData->data)
+		return 0;
+
 	if (rData->nextEvent >= rData->dataEnd)
 		return 0;
 

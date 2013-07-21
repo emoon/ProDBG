@@ -436,10 +436,16 @@ void disassemble(unsigned short begin, unsigned short end)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int disassembleToBuffer(char* dest, int address, int instCount)
+int disassembleToBuffer(char* dest, int* addressIn, int* instCountIn)
 {
 	int totalLength = 0;
 	int len = 0;
+	int address = *addressIn;
+	int instCount = *instCountIn;
+
+	// hacky (assume we can grab everything from zero)
+	
+	address = 0;
 
 	for (int i = 0; i < instCount; ++i)
 	{
@@ -451,6 +457,8 @@ int disassembleToBuffer(char* dest, int address, int instCount)
 		strncpy(dest, source, len);
 		dest += len;
 	}
+
+	*addressIn = 0;
 
 	dest[totalLength] = 0;
 

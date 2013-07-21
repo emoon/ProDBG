@@ -81,6 +81,7 @@ typedef enum PDEventType
     PDEventType_setBreakpoint,
     PDEventType_getBreakpoint,
     PDEventType_setExecutable,
+    PDEventType_action,
     PDEventType_attachToProcess,
     PDEventType_attachToRemoteSession,
 

@@ -1004,7 +1004,7 @@ void execute6502()
 			switch (g_debugger->runState)
 			{
 				case PDDebugState_running : goto go_on;	// start running as usually
-				case PDDebugState_stepping : 
+				case PDDebugState_trace : 
 				{
 					step6502(1); 
 					g_debugger->runState = PDDebugState_stopException;
