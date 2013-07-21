@@ -54,6 +54,34 @@ void testReadEvent(CuTest* tc)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void testWriteReadAction(CuTest* tc)
+{
+	const char* filename = 0;
+	uint32_t value = 0xfadebabe;
+	PDBinaryWriter_reset(writer);
+
+	PDWrite_eventBegin(writer, PDEventType_setExecutable);
+	PDWrite_string(writer, "filename", "/Users/emoon/code/ProDBG/testbed/tundra-output/macosx-clang-debug-default/TestReadWrite");
+	PDWrite_eventEnd(writer);
+
+	PDWrite_eventBegin(writer, PDEventType_action);
+	PDWrite_u32(writer, "mepa", 3);
+	PDWrite_u32(writer, "action", 3);
+	PDWrite_eventEnd(writer);
+
+	PDBinaryReader_initStream(reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer)); 
+
+	CuAssertTrue(tc, PDRead_getEvent(reader) == PDEventType_setExecutable);
+	CuAssertTrue(tc, PDRead_findString(reader, &filename, "filename", 0) == (PDReadStatus_ok | PDReadType_string));
+	CuAssertStrEquals(tc, "/Users/emoon/code/ProDBG/testbed/tundra-output/macosx-clang-debug-default/TestReadWrite", filename);
+
+	CuAssertTrue(tc, PDRead_getEvent(reader) == PDEventType_action);
+	CuAssertTrue(tc, PDRead_findU32(reader, &value, "action", 0) == (PDReadStatus_ok | PDReadType_u32));
+	CuAssertTrue(tc, value == 3);  
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void testWriteSingleString(CuTest* tc)
 {
 	PDBinaryWriter_reset(writer);
@@ -317,8 +345,6 @@ void testArrayRead(CuTest* tc)
 
 	PDBinaryReader_initStream(reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer)); 
 
-	PDRead_dumpData(reader);
-
 	CuAssertTrue(tc, PDRead_getEvent(reader) == 5);
 
 	CuAssertTrue(tc, (PDRead_findArray(reader, &arrayIter, "items", 0) & PDReadStatus_typeMask) == PDReadType_array);
@@ -351,8 +377,9 @@ void testArrayRead(CuTest* tc)
 CuSuite* getSuite()
 {
 	CuSuite* suite = CuSuiteNew();
-
-	SUITE_ADD_TEST(suite, testNullReader);
+	
+	//SUITE_ADD_TEST(suite, testNullReader);
+	SUITE_ADD_TEST(suite, testWriteReadAction);
 	SUITE_ADD_TEST(suite, testWriteEvent);
 	SUITE_ADD_TEST(suite, testReadEvent);
 	SUITE_ADD_TEST(suite, testWriteSingleString);

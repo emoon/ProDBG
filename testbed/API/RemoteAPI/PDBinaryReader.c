@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 
+const bool g_debugLogging = false;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct ReaderData
@@ -123,9 +125,6 @@ static uint32_t readGetEvent(struct PDReader* reader)
 	uint8_t type; 
 	uint8_t* data;
 
-	if (!reader)
-		return 0;
-
 	if (rData->nextEvent >= rData->dataEnd)
 		return 0;
 
@@ -147,10 +146,33 @@ static uint32_t readGetEvent(struct PDReader* reader)
 
 	event = getU16(data + 1);
 	rData->nextEvent = data + getU32(data + 3);
-	rData->data += 7; // points to the next of data in the stream
+	rData->data = data + 7; // points to the next of data in the stream
 
 	return event;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static const char* typeTable[] =
+{
+	"PDReadType_none",			
+	"PDReadType_s8",			
+	"PDReadType_u8",			
+	"PDReadType_s16",		
+	"PDReadType_u16",		
+	"PDReadType_s32",		
+	"PDReadType_u32",		
+	"PDReadType_s64",		
+	"PDReadType_u64",		
+	"PDReadType_float",		
+	"PDReadType_double",		
+	"PDReadType_endNumericTypes",
+	"PDReadType_string",		
+	"PDReadType_data",
+	"PDReadType_event",
+	"PDReadType_array",
+	"PDReadType_arrayEntry",
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -161,7 +183,13 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
 		uint32_t size;
 		uint8_t typeId = getU8(start);
 
-		printf("typeId %d\n", typeId); 
+		if (g_debugLogging)
+		{
+			if (typeId <PDReadType_count)
+				printf("typeId %s\n", typeTable[typeId]); 
+			else
+				printf("typeId %d (outside valid range)\n", typeId); 
+		}
 
 		// data is a special case as it has 32-bit size instead of 64k 
 
@@ -176,7 +204,8 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
 		{
 			size = getU16(start + 1);
 
-			printf("%s %s\n", (char*)start + 3, id);
+			if (g_debugLogging)
+				printf("current string - %s searching for - %s\n", (char*)start + 3, id);
 
 			if (!strcmp((char*)start + 3, id))
 				return start;
@@ -201,11 +230,12 @@ static uint8_t* findId(struct PDReader* reader, const char* id, PDReaderIterator
 	if (it == 0)
 	{
 		// if no iterater we will just search the whole event
-
 		return findIdByRange(id, rData->data, rData->nextEvent);
 	}
 	else
 	{
+		// serach within the event but skip 7 bytes ahead to not read the event itself
+
 		uint32_t dataOffset = it >> 32LL;  
 		uint32_t size = it & 0xffffffffLL;
 		uint8_t* start = rData->dataStart + dataOffset;
@@ -589,30 +619,9 @@ static void readDumpData(struct PDReader* reader)
 	int eventId;
 	ReaderData* rData = (ReaderData*)reader->data;
 
-	static const char* typeTable[] =
-	{
-		"PDReadType_none",			
-		"PDReadType_s8",			
-		"PDReadType_u8",			
-		"PDReadType_s16",		
-		"PDReadType_u16",		
-		"PDReadType_s32",		
-		"PDReadType_u32",		
-		"PDReadType_s64",		
-		"PDReadType_u64",		
-		"PDReadType_float",		
-		"PDReadType_double",		
-		"PDReadType_endNumericTypes",
-		"PDReadType_string",		
-		"PDReadType_data",
-		"PDReadType_event",
-		"PDReadType_array",
-		"PDReadType_arrayEntry",
-	};
-
 	while ((eventId = PDRead_getEvent(reader)))
 	{
-		printf("{ = event %d\n\n", eventId);
+		printf("{ = event %d - (start %p end %p)\n", eventId, rData->data, rData->nextEvent);
 
 		while (rData->data < (void*)rData->nextEvent)
 		{
