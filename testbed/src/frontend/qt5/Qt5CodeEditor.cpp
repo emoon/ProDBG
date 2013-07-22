@@ -260,11 +260,16 @@ void Qt5CodeEditor::setAddress(uint64_t address)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CodeEditor::setDisassembly(const char* text)
+void Qt5CodeEditor::setDisassembly(const char* text, int64_t startAddress, int32_t instructionCount)
 {
+	(void)instructionCount;
+
 	// \todo: We should be a bit smarter than clearing the whole buffer when we set this
 	// and keep track on sub regions that we can request instead by keeping track of valid start points
 	// the disassembly meroy
+
+	if (startAddress != -1LL)
+		m_disassemblyStart = (uint64_t)startAddress; 
 
 	printf("setDisassembly %s\n", text);
 
