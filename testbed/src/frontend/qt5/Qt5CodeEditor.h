@@ -56,7 +56,7 @@ public:
     void setAddress(uint64_t address);
     void setLine(int line);
     int lineNumberAreaWidth();
-	void setDisassembly(const char* text);
+	void setDisassembly(const char* text, int64_t start, int32_t instructionCount);
 
 protected:
     void resizeEvent(QResizeEvent* event);
