@@ -531,6 +531,7 @@ void PDBinaryWriter_reset(PDWriter* writer)
 
 void PDBinaryWriter_destroy(PDWriter* writer)
 {
-	free(writer);
+	free(writer->data);
+	writer->data = 0;
 }
 
