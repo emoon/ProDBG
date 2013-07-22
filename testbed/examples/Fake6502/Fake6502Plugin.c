@@ -31,133 +31,6 @@ static void destroyInstance(void* userData)
 	g_debugger = 0;
 }
 
-
-/*
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static bool action(void* userData, PDAction action)
-{
-	int t = (int)action;
-	Debugger6502* debugger = (Debugger6502*)userData;
-
-	switch (t)
-	{
-		case PDAction_break : 
-		{
-			// On this target we can anways break so just set that we have stopped on breakpoint
-			debugger->runState = PDDebugState_stopException;
-			break;
-		}
-
-		case PDAction_run : 
-		{
-			// on this target we can always start running directly again
-			debugger->runState = PDDebugState_running;
-			break;
-		}
-
-		case PDAction_step : 
-		{
-			// on this target we can always stepp 
-			debugger->runState = PDDebugState_stepping;
-			break;
-		}
-	}
-
-	return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void getRegisters(PDSerializeWrite* writer)
-{
-	PDWRITE_INT(writer, 7);				// 7 registers;
-
-	PDWRITE_STRING(writer, "pc");		// register name
-	PDWRITE_U16(writer, 2);				// number of bytes in register
-	PDWRITE_U16(writer, pc);			// value 
-
-	PDWRITE_STRING(writer, "sp");		// register name
-	PDWRITE_U16(writer, 1);				// number of bytes in register
-	PDWRITE_U16(writer, sp);			// value 
-
-	PDWRITE_STRING(writer, "a");		// register name
-	PDWRITE_U16(writer, 1);				// number of bytes in register
-	PDWRITE_U8(writer, a);				// value 
-
-	PDWRITE_STRING(writer, "x");		// register name
-	PDWRITE_U16(writer, 1);				// number of bytes in register
-	PDWRITE_U8(writer, x);				// value 
-
-	PDWRITE_STRING(writer, "y");		// register name
-	PDWRITE_U16(writer, 1);				// number of bytes in register
-	PDWRITE_U8(writer, y);				// value 
-
-	PDWRITE_STRING(writer, "status");	// register name
-	PDWRITE_U16(writer, 1);				// number of bytes in register
-	PDWRITE_U8(writer, status);			// value 
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void getExceptionLocation(PDSerializeWrite* writer)
-{
-	PDWRITE_STRING(writer, "address");
-	PDWRITE_U16(writer, 2);				// size of address in bytes 
-	PDWRITE_U16(writer, pc);			// location of pc 
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void getDisassembly(PDSerializeWrite* writer, int start, int instCount)
-{
-	char temp[65536];
-	disassembleToBuffer(temp, start, instCount);
-	PDWRITE_STRING(writer, temp);
-	printf("getDisassembly %s\n", temp);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static int getState(void* userData, PDEventType eventType, int eventId, PDSerializeRead* reader, PDSerializeWrite* writer)
-{
-	int et = (int)eventType;
-	//Debugger6502* debugger = (Debugger6502*)userData;
-
-	(void)userData;
-	(void)eventType;
-	(void)eventId;
-	(void)writer;
-	(void)reader;
-
-	switch (et)
-	{
-		case PDEventType_getRegisters :
-		{
-			getRegisters(writer);
-			return 1;
-		}
-
-		case PDEventType_getExceptionLocation :
-		{
-			printf("getExceptionLocation\n");
-			getExceptionLocation(writer);
-			return 1;
-		}
-
-		case PDEventType_getDisassembly :
-		{
-			int start = PDREAD_INT(reader);
-			int count = PDREAD_INT(reader);
-			printf("getDisassembly %d %d\n", start, count);
-			getDisassembly(writer, start, count);
-		}
-	}
-
-	return 0;
-}
-*/
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void writeRegister(PDWriter* writer, const char* name, uint8_t size, uint16_t reg, bool readOnly)
@@ -249,6 +122,8 @@ static void doAction(Debugger6502* debugger, PDAction action, PDWriter* writer)
 		case PDAction_break : 
 		{
 			// On this target we can anways break so just set that we have stopped on breakpoint
+			
+			printf("Fake6502Debugger: break\n");
 			debugger->runState = PDDebugState_stopException;
 			sendState(writer);
 			break;
@@ -257,6 +132,7 @@ static void doAction(Debugger6502* debugger, PDAction action, PDWriter* writer)
 		case PDAction_run : 
 		{
 			// on this target we can always start running directly again
+			printf("Fake6502Debugger: run\n");
 			debugger->runState = PDDebugState_running;
 			break;
 		}
@@ -264,6 +140,7 @@ static void doAction(Debugger6502* debugger, PDAction action, PDWriter* writer)
 		case PDAction_step : 
 		{
 			// on this target we can always stepp 
+			printf("Fake6502Debugger: step\n");
 			debugger->runState = PDDebugState_trace;
 			sendState(writer);
 			break;

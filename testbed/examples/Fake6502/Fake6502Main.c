@@ -48,8 +48,8 @@ int main(int argc, const char* argv[])
 	(void)argc;
 	(void)argv;
 	reset6502();
-	
-	if (argc < 1)
+
+	if (argc < 2)
 	{
 		printf("Usage: Fake6502 image.bin (max 64k in size)\n");
 		return 0;
@@ -57,7 +57,7 @@ int main(int argc, const char* argv[])
 
 	if (!(f = fopen(argv[1], "rb")))
 	{
-		printf("Unable to open %s\n", argv[2]);
+		printf("Unable to open %s\n", argv[1]);
 		return -1;
 	}
 
