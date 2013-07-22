@@ -213,23 +213,19 @@ void Qt5DebugSession::callAction(int action)
 
 void Qt5DebugSession::requestDisassembly(uint64_t startAddress, int instructionCount)
 {
-	(void)startAddress;
-	(void)instructionCount;
-	/*
-	PDSerializeWrite writer_;
-	PDSerializeWrite* writer = &writer_;
+	PDWriter writerData;
+	PDWriter* writer = &writerData;
 
-	BinarySerializer_initWriter(writer);
+	PDBinaryWriter_init(writer);
 
-	// \todo Should we always write down a 64-bit address here or not?
+	PDWrite_eventBegin(writer, PDEventType_getDisassembly);
+	PDWrite_u64(writer, "address_start", startAddress);
+	PDWrite_u32(writer, "instruction_count", instructionCount);
+	PDWrite_eventEnd(writer);
 
-	BinarySerialize_beginEvent(writer, PDEventType_getDisassembly, 0);
-	PDWRITE_INT(writer, (int)startAddress);
-	PDWRITE_INT(writer, instructionCount); 
-	BinarySerialize_endEvent(writer);
+	emit sendData(PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
 
-	emit sendData(BinarySerializer_getStartData(writer), BinarySerializer_writeSize(writer));
-	*/
+	PDBinaryWriter_destroy(writer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -282,17 +278,21 @@ void Qt5DebugSession::setState(void* readerData, int serSize)
 
 			case PDEventType_setDisassembly:
 			{
-				/*
-				const char* disassembly = PDREAD_STRING(readerPtr);
+				int64_t start = -1;
+				int32_t instructionCount = -1;
+				const char* stringBuffer = 0;
+
+				PDRead_findString(reader, &stringBuffer, "string_buffer", 0);
+				PDRead_findS32(reader, &instructionCount, "instruction_count", 0);
+				PDRead_findS64(reader, &start, "start_address", 0);
 
 				// Only update 1 for now
 				if (m_codeEditors.size() > 0)
 				{
 					// \todo Specific editor/decided mode if disassembly or not?
 					m_codeEditors[0]->setMode(Qt5CodeEditor::Disassembly);
-					m_codeEditors[0]->setDisassembly(disassembly);
+					m_codeEditors[0]->setDisassembly(stringBuffer, start, instructionCount);
 				}
-				*/
 
 				break;
 			}
