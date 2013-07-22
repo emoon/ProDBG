@@ -85,6 +85,7 @@ Program {
 	Name = "Fake6502",
 
 	Env = {
+		CPPPATH = { "API" },
 		CCOPTS = {
 			{ 
 			"-Wno-conversion", 

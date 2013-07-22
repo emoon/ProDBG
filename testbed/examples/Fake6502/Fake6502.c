@@ -109,9 +109,8 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <ProDBGAPI.h>
 #include "Debugger6502.h"
-#include "../../API/Remote.h"
-#include "../../API/ProDBGAPI.h"
 
 //6502 defines
 #define UNDOCUMENTED //when this is defined, undocumented opcodes are handled.

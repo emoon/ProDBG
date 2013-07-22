@@ -6,12 +6,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "PDReadWrite.h"
+#include "PDRemote.h"
 
 #ifdef _cplusplus
 extern "C" {
 #endif
-
-struct bson;
 
 /*! \fn void* ServiceFunc(const char* serviceName)
     Service Function. Provides services for the plugin to use.

@@ -6,7 +6,7 @@
 #include <unistd.h>
 #endif
 #include "Debugger6502.h"
-#include "../../API/Remote.h"
+#include <ProDBGAPI.h>
 
 uint8_t* s_memory6502; //[65536];
 
