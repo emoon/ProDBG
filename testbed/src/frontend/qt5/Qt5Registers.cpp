@@ -121,8 +121,6 @@ static void buildRegisterList(PDReader* reader, QVector<Register*>& registers)
 			strcpy(reg->name, name); 
 			registers.push_back(reg);
 
-			printf("readType %d\n", type & PDReadStatus_typeMask);
-
 			switch (type & PDReadStatus_typeMask)
 			{
 				case PDReadType_u8 : reg->type = RegisterType_u8; break;
@@ -133,8 +131,6 @@ static void buildRegisterList(PDReader* reader, QVector<Register*>& registers)
 				case PDReadType_double : reg->type = RegisterType_double; break;
 			}
 
-			printf("regType %d\n", reg->type);
-			
 			PDRead_findU8(reader, &reg->readOnly, "read_only", it);
 			PDRead_findU8(reader, &reg->statusFlags, "flags", it);
 		}
@@ -152,23 +148,22 @@ static void fillList(QList<QTreeWidgetItem*>&items, QVector<Register*>& register
 {
 	for (int i = 0, size = registers.size(); i < size; ++i)
 	{
-		char tempV[128];
 		QStringList temp;
+		QString tempV;
+
 		Register* reg = registers[i];
 
 		temp << reg->name;
 
 		switch (reg->type)
 		{
-			case RegisterType_u8 : sprintf(tempV, "%x", reg->value.u8); break;
-			case RegisterType_u16 : sprintf(tempV, "0x%04x", reg->value.u16); break;
-			case RegisterType_u32 : sprintf(tempV, "0x%08x", reg->value.u32); break;
-			case RegisterType_u64 : sprintf(tempV, "0x%08x", (uint32_t)reg->value.u64); break;
-			case RegisterType_float : sprintf(tempV, "%8.8f", reg->value.f); break;
-			case RegisterType_double : sprintf(tempV, "%8.8f", reg->value.d); break;
+			case RegisterType_u8 : temp << tempV.sprintf("0x%x", reg->value.u8); break;
+			case RegisterType_u16 : temp << tempV.sprintf("0x%04x", reg->value.u16); break;
+			case RegisterType_u32 : temp << tempV.sprintf("0x%08x", reg->value.u32); break;
+			case RegisterType_u64 : temp << tempV.sprintf("0x%016llx", reg->value.u64); break;
+			case RegisterType_float : temp << tempV.sprintf("%8.8f", reg->value.f); break;
+			case RegisterType_double : temp << tempV.sprintf("%8.8f", reg->value.d); break;
 		}
-
-		temp << tempV;
 
 		items.append(new QTreeWidgetItem((QTreeWidget*)0, temp)); 
 	}
