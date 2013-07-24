@@ -342,9 +342,11 @@ bool Qt5DebugSession::addBreakpoint(const char* file, int line, int id)
         return false;
 
     BreakpointFileLine* bp = &m_breakpoints[m_breakpointCount++];
-        
-    *bp = { file, line, id };
 
+	bp->filename = file;
+	bp->line = line;
+	bp->id = id;
+        
     return true;
 }
 

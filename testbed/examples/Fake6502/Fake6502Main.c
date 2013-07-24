@@ -55,7 +55,7 @@ int main(int argc, const char* argv[])
 		return 0;
 	}
 
-	if (!(f = fopen(argv[1], "rb")))
+	if ((f = fopen(argv[1], "rb")) != 0)
 	{
 		printf("Unable to open %s\n", argv[1]);
 		return -1;
@@ -72,16 +72,16 @@ int main(int argc, const char* argv[])
 
 	fread(s_memory6502, 1, size, f);
 	fclose(f);
-	printf("size %d\n", size);
+	printf("size %d\n", (unsigned int)size);
 
-	disassemble(0, size);
+	disassemble(0, (unsigned short)size);
 
 	if (!PDRemote_create(&s_debuggerPlugin, 0))
 	{
 		printf("Unable to setup debugger connection\n");
 	}
 
-	while (1)
+	for (;;)	
 	{
 		execute6502();
 	}

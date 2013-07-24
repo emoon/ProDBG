@@ -12,6 +12,7 @@
 #else
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <Winsock2.h>
 #endif
 
 static struct RemoteConnection* s_conn;

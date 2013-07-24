@@ -106,6 +106,8 @@ Program {
 		},
 	},
 
+	Libs = { { "wsock32.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
+
 	Depends = { "RemoteAPI" },
 }
 

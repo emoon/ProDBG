@@ -7,6 +7,10 @@
 #include "../../../API/RemoteAPI/RemoteConnection.h"
 #include "../../../API/RemoteAPI/PDReadWrite_private.h"
 
+#ifdef _WIN32
+#include <winsock2.h>
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace prodbg

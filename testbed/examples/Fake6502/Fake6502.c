@@ -998,7 +998,7 @@ void execute6502()
 
 	if (g_debugger->runState == PDDebugState_stopException) 
 	{
-		while (1)
+		for (;;) 
 		{
 			switch (g_debugger->runState)
 			{

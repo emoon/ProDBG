@@ -369,6 +369,8 @@ static unsigned short readMem16(unsigned short addr)
 
 int disassemblyOne(unsigned short addr)
 {
+	int pos = 0;
+	int size;
 	unsigned char op = readMem8(addr);
 	int adt = dis6502[op].type & ADT_MASK;
 
@@ -378,8 +380,6 @@ int disassemblyOne(unsigned short addr)
 	//instructions[addr].op = op;
 	//instructions[addr].disassembled = dst;
 
-	int pos = 0;
-	int size;
 	if (addr < 0xfffa) 
 	{
 		size = opByteLength[adt];
@@ -428,16 +428,17 @@ int disassemblyOne(unsigned short addr)
 
 void disassemble(unsigned short begin, unsigned short end)
 {
-	unsigned int i;
+	int i;
 
 	for (i = begin; i <= end; )
-		i += disassemblyOne(i);
+		i += disassemblyOne((unsigned short)i);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int disassembleToBuffer(char* dest, int* addressIn, int* instCountIn)
 {
+	int i;
 	int totalLength = 0;
 	int len = 0;
 	int address = *addressIn;
@@ -447,10 +448,10 @@ int disassembleToBuffer(char* dest, int* addressIn, int* instCountIn)
 	
 	address = 0;
 
-	for (int i = 0; i < instCount; ++i)
+	for (i = 0; i < instCount; ++i)
 	{
 		char* source = disassembled[address];
-		address += disassemblyOne(address);
+		address += disassemblyOne((unsigned short)address);
 
 		len = strlen(source);
 

@@ -4,7 +4,6 @@
 #define _PRODBGAPI_H_
 
 #include <stdint.h>
-#include <stdbool.h>
 #include "PDReadWrite.h"
 #include "PDRemote.h"
 

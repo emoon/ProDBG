@@ -22,6 +22,12 @@ typedef struct WriterData
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef _WIN32
+#define inline __inline
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline uint8_t* writeIdSize(uint8_t* data, const char* id, uint8_t type, uint16_t typeSize)
 {
 	size_t len = strlen(id);
@@ -249,7 +255,7 @@ static PDWriteStatus writeString(struct PDWriter* writer, const char* id, const 
 	
 	len = strlen(v) + 1;
 
-	wData->data = writeIdSize(wData->data, id, PDReadType_string, len); 
+	wData->data = writeIdSize(wData->data, id, PDReadType_string, (uint16_t)len); 
 	memcpy(wData->data, v, len);
 
 	wData->data += len;
@@ -269,7 +275,7 @@ static PDWriteStatus writeData(struct PDWriter* writer, const char* id, void* da
 
 	// for data we special case a bit with having the size in 32-bit instead to support > 64k size
 	
-	uint16_t totalSize = ((uint16_t)idLen) + 4 + 1 + len + 1; // size (4) + type (1) + id_len (+1) null teminator 
+	uint32_t totalSize = ((uint16_t)idLen) + 4 + 1 + len + 1; // size (4) + type (1) + id_len (+1) null teminator 
 
 	wData->data[0] = PDReadType_data; 
 	wData->data[1] = (totalSize >> 24) & 0xff; 

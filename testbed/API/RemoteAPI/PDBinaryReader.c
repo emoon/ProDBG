@@ -4,17 +4,23 @@
 #include <stdio.h>
 #include <string.h>
 
-const bool g_debugLogging = false;
+const uint8_t g_debugLogging = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct ReaderData
 {
-	void* data;
-	void* dataStart;
+	uint8_t* data;
+	uint8_t* dataStart;
 	uint8_t* dataEnd;
 	uint8_t* nextEvent;
 } ReaderData;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef _WIN32
+#define inline __inline
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -238,27 +244,24 @@ static uint8_t* findId(struct PDReader* reader, const char* id, PDReaderIterator
 	else
 	{
 		// serach within the event but skip 7 bytes ahead to not read the event itself
-
 		uint32_t dataOffset = it >> 32LL;  
 		uint32_t size = it & 0xffffffffLL;
 		uint8_t* start = rData->dataStart + dataOffset;
 		uint8_t* end = start + size;
 		return findIdByRange(id, start, end);
 	}
-
-	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define findValue(inType, realType, getFunc) \
 	uint8_t type; \
-	uint16_t offset; \
+	uint32_t offset; \
 	const uint8_t* dataPtr = findId(reader, id, it); \
 	if (!dataPtr) \
 		return PDReadStatus_notFound; \
 	type = *dataPtr; \
-	offset = getU16(dataPtr + 1) - sizeof(realType); \
+	offset = getU16(dataPtr + 1) - (sizeof(realType)); \
 	if (type == inType) \
 	{ \
 		*res = getFunc(dataPtr + offset); \
@@ -398,7 +401,7 @@ static uint32_t readFindData(struct PDReader* reader, void** data, uint64_t* siz
 	// find the offset to the string
 
 	*size = getU32(dataPtr + 1) - idLength;
-	*data = (void*)dataPtr + 5 + idLength;
+	*data = (void*)(dataPtr + 5 + idLength);
 
 	return PDReadType_data | PDReadStatus_ok;
 }
@@ -622,11 +625,11 @@ static void readDumpData(struct PDReader* reader)
 	int eventId;
 	ReaderData* rData = (ReaderData*)reader->data;
 
-	while ((eventId = PDRead_getEvent(reader)))
+	while ((eventId = PDRead_getEvent(reader)) != 0)
 	{
 		printf("{ = event %d - (start %p end %p)\n", eventId, rData->data, rData->nextEvent);
 
-		while (rData->data < (void*)rData->nextEvent)
+		while (rData->data < rData->nextEvent)
 		{
 			uint8_t type = *(uint8_t*)rData->data;
 			uint32_t size = getU16(rData->data + 1);
@@ -699,7 +702,7 @@ void PDBinaryReader_initStream(PDReader* reader, void* data, unsigned int size)
 {
 	ReaderData* readerData = (ReaderData*)reader->data;
 	readerData->data = readerData->dataStart = data;
-	readerData->dataEnd = data + size;
+	readerData->dataEnd = (uint8_t*)data + size;
 	readerData->nextEvent = 0;
 }
 

@@ -33,7 +33,7 @@ static void destroyInstance(void* userData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void writeRegister(PDWriter* writer, const char* name, uint8_t size, uint16_t reg, bool readOnly)
+static void writeRegister(PDWriter* writer, const char* name, uint8_t size, uint16_t reg, uint8_t readOnly)
 {
 	PDWrite_arrayEntryBegin(writer);
 	PDWrite_string(writer, "name", name);
@@ -84,8 +84,8 @@ static void setDisassembly(PDWriter* writer, int start, int instCount)
 	disassembleToBuffer(temp, &start, &instCount);
 
 	PDWrite_eventBegin(writer, PDEventType_setDisassembly);
-	PDWrite_u16(writer, "address_start", start);
-	PDWrite_u16(writer, "instruction_count", instCount);
+	PDWrite_u16(writer, "address_start", (uint16_t)start);
+	PDWrite_u16(writer, "instruction_count", (uint16_t)instCount);
 	PDWrite_string(writer, "string_buffer", temp);
 	PDWrite_eventEnd(writer);
 }
@@ -159,7 +159,7 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
 
 	doAction(debugger, action, writer);
 
-	while ((event = PDRead_getEvent(reader)))
+	while ((event = PDRead_getEvent(reader)) != 0)
 	{
 		switch (event)
 		{

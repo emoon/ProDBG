@@ -43,7 +43,7 @@ typedef struct RemoteConnection
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static inline int socketPoll(int socket)
+static int socketPoll(int socket)
 {
 	struct timeval to = { 0, 0 };
 	fd_set fds;
@@ -78,7 +78,7 @@ static int createListner(RemoteConnection* conn, int port)
 
 	sin.sin_family = AF_INET;
 	sin.sin_addr.s_addr = INADDR_ANY;
-	sin.sin_port = htons(port);
+	sin.sin_port = htons((unsigned short)port);
 
 	if (setsockopt(conn->serverSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&yes, sizeof(int)) == -1)
 	{
@@ -152,8 +152,12 @@ int RemoteConnection_connect(RemoteConnection* conn, const char* address, int po
 
 	for (ap = he->h_addr_list; *ap; ++ap) 
 	{
+	#ifndef _WIN32
 		sa.sin_family = (sa_family_t)he->h_addrtype;
-		sa.sin_port = htons(port);
+	#else
+		sa.sin_family = (unsigned short)he->h_addrtype;
+	#endif
+		sa.sin_port = htons((unsigned short)port);
 
 		memcpy(&sa.sin_addr, *ap, he->h_length);
 
@@ -236,7 +240,15 @@ void RemoteConnection_updateListner(RemoteConnection* conn)
 	fd_set fds;
 
 	FD_ZERO(&fds);
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4127)
+#endif
 	FD_SET(conn->serverSocket, &fds);
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
