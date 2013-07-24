@@ -3,6 +3,7 @@
 #include "Qt5CodeEditor.h"
 #include "Qt5CallStack.h"
 #include "Qt5Locals.h"
+#include "Qt5Registers.h"
 #include "Qt5DebugOutput.h"
 #include "core/Log.h"
 #include <QThread>
@@ -319,6 +320,14 @@ void Qt5DebugSession::setState(void* readerData, int serSize)
 
 				if (tty && m_debugOutputs.size() > 0)
 					m_debugOutputs[0]->appendText(tty);
+
+				break;
+			}
+
+			case PDEventType_setRegisters:
+			{
+				if (m_registers.size() > 0)
+					m_registers[0]->update(reader);
 
 				break;
 			}
