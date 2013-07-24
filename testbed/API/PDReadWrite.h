@@ -56,15 +56,15 @@ typedef enum PDReadType
 enum PDReadStatus
 {
 	// Read operation completed without any problems
-	PDReadStatus_ok = (1 << 8),
+	PDReadStatus_ok = 1 << 8,
 	// Read operation completed but value was converted (for example u16 -> u8 which may cause issues)
-	PDReadStatus_converted,
+	PDReadStatus_converted = 2 << 8,
 	// Read operation falied due to illeal type (example when reading s8 and type is string) 
-	PDReadStatus_illegalType,
+	PDReadStatus_illegalType = 3 << 8,
 	// Read operation failed because the ID supplied to search function couldn't be found 
-	PDReadStatus_notFound,
+	PDReadStatus_notFound = 4 << 8,
 	// Read operation failed (generic error) 
-	PDReadStatus_fail,
+	PDReadStatus_fail = 5 << 8,
 	// Mask used to get the type
 	PDReadStatus_typeMask = 0xff
 };
