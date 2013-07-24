@@ -20,7 +20,8 @@ enum Qt5ViewType
 	Qt5ViewType_Locals,
 	Qt5ViewType_SourceCode,
 	Qt5ViewType_HexEdit,
-	Qt5ViewType_DebugOutput
+	Qt5ViewType_DebugOutput,
+	Qt5ViewType_Registers
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

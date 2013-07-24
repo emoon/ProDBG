@@ -21,6 +21,7 @@ class Qt5Locals;
 class Qt5CallStack;
 class Qt5DebuggerThread;
 class Qt5DebugOutput;
+class Qt5Registers;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -39,11 +40,13 @@ public:
     void addLocals(Qt5Locals* locals);
     void addCallStack(Qt5CallStack* callStack);
     void addTty(Qt5DebugOutput* output);
+	void addRegisters(Qt5Registers* registers);
 
     void delCodeEditor(Qt5CodeEditor* codeEditor);
     void delLocals(Qt5Locals* locals);
     void delCallStack(Qt5CallStack* callStack);
     void delTty(Qt5DebugOutput* output);
+	void delRegisters(Qt5Registers* registers);
 
     void begin(const char* executable, bool run);
     void beginRemote(const char* remoteTarget, int port);
@@ -74,6 +77,7 @@ private:
     QList<Qt5Locals*> m_locals;
     QList<Qt5CallStack*> m_callStacks;
     QList<Qt5DebugOutput*> m_debugOutputs;
+    QList<Qt5Registers*> m_registers;
 
 	PDBackendPlugin* m_debuggerPlugin;
 	void* m_pluginData;

@@ -115,6 +115,7 @@ private slots:
 	void newDynamicView();
 
 	void newCallStackView();
+	void newRegistersView();
 	void newLocalsView();
 	void newSourceCodeView();
 	void newHexEditView();

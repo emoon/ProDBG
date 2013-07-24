@@ -65,8 +65,7 @@ void Qt5DebuggerThread::start()
 
 		printf("Connected to %s:%d\n", m_targetHost, m_port);
 
-		if (!m_timer.isActive())
-			m_timer.start(10);
+		m_timer.start(20);
 	}
 }
 

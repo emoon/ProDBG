@@ -1,6 +1,7 @@
 #include "Qt5MainWindow.h"
 #include "Qt5BaseView.h"
 #include "Qt5CallStackView.h"
+#include "Qt5RegistersView.h"
 #include "Qt5LocalsView.h"
 #include "Qt5SourceCodeView.h"
 #include "Qt5HexEditView.h"
@@ -43,6 +44,13 @@ void Qt5MainWindow::newDynamicView()
 void Qt5MainWindow::newCallStackView()
 {
 	newView<Qt5CallStackView>();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::newRegistersView()
+{
+	newView<Qt5RegistersView>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -440,8 +448,7 @@ Qt5MainWindow::Qt5MainWindow() : Qt5BaseView(this, nullptr, nullptr)
 	Qt5DebugSession::createSession();
 
 	newSourceCodeView();
-	newLocalsView();
-	newCallStackView();
+	newRegistersView();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
