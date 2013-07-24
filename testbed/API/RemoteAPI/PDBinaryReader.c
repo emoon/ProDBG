@@ -256,7 +256,7 @@ static uint8_t* findId(struct PDReader* reader, const char* id, PDReaderIterator
 
 #define findValue(inType, realType, getFunc) \
 	uint8_t type; \
-	uint32_t offset; \
+	size_t offset; \
 	const uint8_t* dataPtr = findId(reader, id, it); \
 	if (!dataPtr) \
 		return PDReadStatus_notFound; \
@@ -374,7 +374,7 @@ static uint32_t readFindString(struct PDReader* reader, const char** res, const 
 
 	// find the offset to the string
 
-	len = strlen((char*)dataPtr + 3);
+	len = (int)strlen((char*)dataPtr + 3);
 	*res = (const char*)dataPtr + 3 + len + 1;
 	
 	return (PDReadType)type | PDReadStatus_ok;
@@ -396,7 +396,7 @@ static uint32_t readFindData(struct PDReader* reader, void** data, uint64_t* siz
 	if (type != PDReadType_data)
 		return (PDReadType)type | PDReadStatus_illegalType;
 
-	idLength = strlen((char*)dataPtr + 5) + 1;
+	idLength = (int)strlen((char*)dataPtr + 5) + 1;
 
 	// find the offset to the string
 
@@ -426,7 +426,7 @@ static uint32_t readFindArray(struct PDReader* reader, PDReaderIterator* arrayIt
 	if (type != PDReadType_array)
 		return (PDReadType)type | PDReadStatus_illegalType;
 
-	idLength = strlen((char*)dataPtr + 5) + 1;
+	idLength = (int)strlen((char*)dataPtr + 5) + 1;
 
 	// get offset to the array entry
 

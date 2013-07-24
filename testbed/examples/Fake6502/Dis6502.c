@@ -453,7 +453,7 @@ int disassembleToBuffer(char* dest, int* addressIn, int* instCountIn)
 		char* source = disassembled[address];
 		address += disassemblyOne((unsigned short)address);
 
-		len = strlen(source);
+		len = (int)strlen(source);
 
 		strncpy(dest, source, len);
 		dest += len;

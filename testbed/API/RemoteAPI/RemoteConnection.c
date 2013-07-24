@@ -69,7 +69,7 @@ static int createListner(RemoteConnection* conn, int port)
 	struct sockaddr_in sin;
 	int yes = 1;
 
-	conn->serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+	conn->serverSocket = (int)socket(AF_INET, SOCK_STREAM, 0);
 
 	if (conn->serverSocket == INVALID_SOCKET)
 		return 0;
@@ -161,7 +161,7 @@ int RemoteConnection_connect(RemoteConnection* conn, const char* address, int po
 
 		memcpy(&sa.sin_addr, *ap, he->h_length);
 
-		sock = socket(he->h_addrtype, SOCK_STREAM, 0);
+		sock = (int)socket(he->h_addrtype, SOCK_STREAM, 0);
 		if (sock == INVALID_SOCKET)
 			continue;
 
@@ -214,7 +214,7 @@ static int clientConnect(RemoteConnection* conn, struct sockaddr_in* host)
 
 	printf("Trying to accept\n");
 
-	conn->socket = accept(conn->serverSocket, (struct sockaddr*)&hostTemp, (socklen_t*)&hostSize);
+	conn->socket = (int)accept(conn->serverSocket, (struct sockaddr*)&hostTemp, (socklen_t*)&hostSize);
 
 	if (INVALID_SOCKET == conn->socket) 
 	{
