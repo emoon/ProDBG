@@ -55,7 +55,7 @@ int main(int argc, const char* argv[])
 		return 0;
 	}
 
-	if ((f = fopen(argv[1], "rb")) != 0)
+	if ((f = fopen(argv[1], "rb")) == 0)
 	{
 		printf("Unable to open %s\n", argv[1]);
 		return -1;
