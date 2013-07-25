@@ -165,7 +165,10 @@ static void fillList(QList<QTreeWidgetItem*>&items, QVector<Register*>& register
 			case RegisterType_double : temp << tempV.sprintf("%8.8f", reg->value.d); break;
 		}
 
-		items.append(new QTreeWidgetItem((QTreeWidget*)0, temp)); 
+		QTreeWidgetItem* item = new QTreeWidgetItem((QTreeWidget*)0, temp);
+		item->setFlags(item->flags() | Qt::ItemIsEditable);
+
+		items.append(item);
 	}
 }
 
