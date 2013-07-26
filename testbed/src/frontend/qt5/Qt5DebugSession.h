@@ -64,12 +64,12 @@ public:
     
 private slots:
 	// Called from the when a state change has happen that require UI update 
-	void setState(void* readerData, int size);
+	void setState(uint8_t* readerData, int size);
 
 signals:
 	void tryStartDebugging();
 	void tryAction(int);
-	void sendData(void* readerData, int size);
+	void sendData(uint8_t* readerData, int size);
 
 private:
 

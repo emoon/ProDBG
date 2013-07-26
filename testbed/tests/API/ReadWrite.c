@@ -13,7 +13,7 @@ static PDWriter* writer = 0;
 
 void PDBinaryWriter_init(PDWriter* writer);
 void PDBinaryWriter_reset(PDWriter* writer);
-void* PDBinaryWriter_getData(PDWriter* writer);
+uint8_t* PDBinaryWriter_getData(PDWriter* writer);
 unsigned int PDBinaryWriter_getSize(PDWriter* writer);
 
 void PDBinaryReader_init(PDReader* reader);

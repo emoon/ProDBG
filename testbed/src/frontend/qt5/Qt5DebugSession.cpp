@@ -162,7 +162,7 @@ void Qt5DebugSession::begin(const char* executable, bool run)
 		PDWrite_eventEnd(writer);
 	}
 
-	emit sendData(PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
+	emit sendData((uint8_t*)PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -174,6 +174,9 @@ void Qt5DebugSession::beginRemote(const char* address, int port)
 	m_debuggerThread = new Qt5DebuggerThread(Qt5DebuggerThread::Remote);
 	m_debuggerThread->moveToThread(m_threadRunner);
 	m_debuggerThread->setRemoteTarget(address, port);
+
+	PDWriter writerData;
+	PDWriter* writer = &writerData;
 
 	// TODO: Not sure if we should set this up here, would be better to move it so we don't need to actually
 	//       start a executable/etc when doing a begin
@@ -187,6 +190,18 @@ void Qt5DebugSession::beginRemote(const char* address, int port)
 	printf("beginDebug %s:%d %d\n", address, port, (uint32_t)(uint64_t)QThread::currentThreadId());
 
 	m_threadRunner->start();
+
+	PDBinaryWriter_init(writer);
+
+	for (int i = 0, count = m_breakpointCount; i != count; ++i)
+	{
+		PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
+		PDWrite_string(writer, "filename", m_breakpoints[i].filename);
+		PDWrite_u32(writer, "line", m_breakpoints[i].line);
+		PDWrite_eventEnd(writer);
+	}
+
+	emit sendData((uint8_t*)PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -245,7 +260,7 @@ void Qt5DebugSession::requestDisassembly(uint64_t startAddress, int instructionC
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5DebugSession::setState(void* readerData, int serSize)
+void Qt5DebugSession::setState(uint8_t* readerData, int serSize)
 {
 	int event;
 	PDReader readerD;

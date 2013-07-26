@@ -1,4 +1,5 @@
 #include "../PDReadWrite.h"
+#include "PDReadWrite_private.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -504,15 +505,32 @@ void PDBinaryWriter_init(PDWriter* writer)
 	// \todo: Make this tweakble/custom allocator 1 meg should be enough most of the time
 
 	data->data = data->dataStart = malloc(1024 * 1024);
+	// reserve 4 bytes at the start (to be used for size and 2 flags at the top)
+	data->data += 4;
 	data->maxSize = 1024 * 1024;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void* PDBinaryWriter_getData(PDWriter* writer)
+unsigned char* PDBinaryWriter_getData(PDWriter* writer)
 {
 	WriterData* data = (WriterData*)writer->data;
 	return data->dataStart;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Write size at the very start of the data
+
+void PDBinaryWriter_finalize(PDWriter* writer)
+{
+	WriterData* data = (WriterData*)writer->data;
+	uint8_t* wData = data->dataStart;
+	uint32_t v = PDBinaryWriter_getSize(writer) + 4;
+
+	wData[0] = (v >> 24) & 0xff;
+	wData[1] = (v >> 16) & 0xff;
+	wData[2] = (v >> 8) & 0xff;
+	wData[3] = (v >> 0) & 0xff;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -520,7 +538,7 @@ void* PDBinaryWriter_getData(PDWriter* writer)
 unsigned int PDBinaryWriter_getSize(PDWriter* writer)
 {
 	WriterData* data = (WriterData*)writer->data;
-	return (int)(uintptr_t)(data->data - data->dataStart); 
+	return (int)(uintptr_t)(data->data - (data->dataStart + 4)); 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -531,6 +549,7 @@ void PDBinaryWriter_reset(PDWriter* writer)
 	void* tempData = data->dataStart;
 	memset(data, 0, sizeof(WriterData));
 	data->data = data->dataStart = tempData;
+	data->data += 4;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -320,6 +320,87 @@ int RemoteConnection_send(RemoteConnection* conn, const void* buffer, int length
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+int RemoteConnection_sendStream(RemoteConnection* conn, const char* buffer)
+{
+	int sizeCount = 0;
+	// stream has the size at the very start and 2 top bits used for other things
+	int32_t size = ((buffer[0] & 0x3f) << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
+
+	printf("Going to send stream of size %d\n", size);
+
+	while (size != 0)
+	{
+		uint32_t sizeLeft = size > 1024 ? 1024 : size;
+
+		int sent = RemoteConnection_send(conn, buffer, sizeLeft, 0);
+
+		printf("sent %d out of %d bytes\n", sent, size);
+
+		if (sent == 0)
+			return sizeCount;
+
+		buffer += 1024;
+		size -= sizeLeft;
+		sizeCount += sizeLeft;
+	}
+
+	return sizeCount; 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+unsigned char* RemoteConnection_recvStream(RemoteConnection* conn, unsigned char* outputBuffer, int size)
+{
+	uint8_t* retBuffer = outputBuffer;
+	uint8_t ownBuffer = 0;
+
+	if (!outputBuffer)
+	{
+		outputBuffer = retBuffer = malloc(size);
+		memset(outputBuffer, 0xcd, size);
+		ownBuffer = 1;
+	}
+
+	outputBuffer[0] = (size >> 24) & 0xff; 
+	outputBuffer[1] = (size >> 16) & 0xff;
+	outputBuffer[2] = (size >> 8) & 0xff;
+	outputBuffer[3] = (size >> 0) & 0xff;
+
+	outputBuffer += 4;
+	size -= 4;
+
+	printf("about to get data (expected size %d)\n", size);
+	printf("filling buffer %p\n", outputBuffer);
+
+	while (size != 0)
+	{
+		uint32_t currSize = size > 1024 ? 1024 : size;
+
+		int ret = RemoteConnection_recv(conn, (char*)outputBuffer, currSize, 0);
+
+		printf("got size %d (%d)\n", ret, currSize);
+
+		if (ret <= 0)
+		{
+			printf("Lost connection or error :(\n");
+
+			if (ownBuffer)
+				free(outputBuffer);
+
+			return 0;
+		}
+
+		outputBuffer += 1024;
+
+		size -= currSize;
+	}
+
+	return retBuffer;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int RemoteConnection_pollRead(RemoteConnection* conn)
 {
 	if (!RemoteConnection_connected(conn))

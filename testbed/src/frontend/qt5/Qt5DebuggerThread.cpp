@@ -18,6 +18,14 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static inline int32_t getS32(const uint8_t* ptr)
+{
+	int32_t v = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3];
+	return v; 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Qt5DebuggerThread::Qt5DebuggerThread(Qt5DebuggerThread::TargetType type) : 
 	m_debugState(PDDebugState_noTarget),
 	m_targetType(type)
@@ -73,7 +81,7 @@ void Qt5DebuggerThread::start()
 
 void Qt5DebuggerThread::updateLocal(void* serializeData, int serSize, int action)
 {
-	PDBinaryReader_initStream(&m_reader, serializeData, serSize);
+	PDBinaryReader_initStream(&m_reader, (uint8_t*)serializeData, serSize);
 
 	// \todo This will alloc memory all the time but we may not use it. better to use some prealloced chunks?
 	
@@ -86,13 +94,15 @@ void Qt5DebuggerThread::updateLocal(void* serializeData, int serSize, int action
 			m_timer.start(10);
 	}
 
+	PDBinaryWriter_finalize(&m_writer);
+
 	// if we have some data written in the update lets send it back
 
 	uint32_t size = PDBinaryWriter_getSize(&m_writer);
 	void* data = PDBinaryWriter_getData(&m_writer);
 
 	if (size > 0)
-		emit sendData(data, size);
+		emit sendData((uint8_t*)data, size);
 	else
 		free(data);
 }
@@ -101,7 +111,7 @@ void Qt5DebuggerThread::updateLocal(void* serializeData, int serSize, int action
 // This gets called from the DebugSession (which is on the UI thread) and when the data gets here this thread has
 // owner ship of the data and will release it when done with it
 
-void Qt5DebuggerThread::setState(void* serializeData, int serSize)
+void Qt5DebuggerThread::setState(uint8_t* serializeData, int serSize)
 {
 	if (m_targetType == Local)
 	{
@@ -111,24 +121,15 @@ void Qt5DebuggerThread::setState(void* serializeData, int serSize)
 	{
 		if (RemoteConnection_isConnected(m_connection))
 		{
-			uint32_t tempBuffer[1024];
+			// double write down the size to make sure it hasn't been missed
 
-			if (serSize > (int)(sizeof(tempBuffer) - 4))
-			{
-				printf("Unable to send data as size is bigger than supported buffer (%d %d)!\n", (int)sizeof(tempBuffer), serSize);
-				return;
-			}
+			serializeData[0] = (serSize >> 24) & 0xff;
+			serializeData[1] = (serSize >> 16) & 0xff;
+			serializeData[2] = (serSize >> 8) & 0xff;
+			serializeData[3] = (serSize >> 0) & 0xff;
 
-			tempBuffer[0] = htonl(1 << 16);
-			memcpy((char*)&tempBuffer[1], serializeData, serSize);
-
-			printf("Sending request to target (size %d)\n", serSize + (int)sizeof(uint32_t));
-			RemoteConnection_send(m_connection, tempBuffer, serSize + sizeof(uint32_t), 0);
-
-			// \todo: Merge into 1 buffer? Not sure if this is really save
-			//uint32_t command = htonl(1 << 16);
-			//RemoteConnection_send(m_connection, &command, sizeof(uint32_t), 0);
-			//RemoteConnection_send(m_connection, serializeData, serSize, 0);
+			if (serSize > 0)
+				RemoteConnection_sendStream(m_connection, (char*)serializeData);
 		}
 	}
 
@@ -155,25 +156,21 @@ void Qt5DebuggerThread::update()
 	else
 	{
 		int totalSize = 0;
-		int retSize;
-
-		// \todo Growing buffer for large transfers
-		uint8_t* tempBuffer = (uint8_t*)malloc(1024 * 1024); 	// temprory
+		uint8_t cmd[4];
+		uint8_t* outputBuffer;
 
 		if (!RemoteConnection_pollRead(m_connection))
 			return;
-
-		while (1)
+		
+		if (RemoteConnection_recv(m_connection, (char*)&cmd, 4, 0)) 
 		{
-			if ((retSize = RemoteConnection_recv(m_connection, (char*)&tempBuffer[totalSize], 1024, 0)) != 1024)
-				break;
+			totalSize = (cmd[0] << 24) | (cmd[1] << 16) | (cmd[2] << 8) | cmd[3];
+			
+			outputBuffer = RemoteConnection_recvStream(m_connection, 0, totalSize); 
 
-			totalSize += 1024;
+			if (outputBuffer)
+				emit sendData(outputBuffer, totalSize);
 		}
-
-		totalSize += retSize;
-
-		emit sendData(tempBuffer, totalSize);
 	}
 }
 
@@ -191,7 +188,11 @@ void Qt5DebuggerThread::doAction(int action)
 	{
 		if (RemoteConnection_isConnected(m_connection))
 		{
-			uint32_t command = htonl(0 << 16 | action);
+			uint8_t command[4];
+			command[0] = 1 << 7; // action tag
+			command[1] = 0;
+			command[2] = (action >> 8) & 0xff; 
+			command[3] = (action >> 0) & 0xff; 
 			RemoteConnection_send(m_connection, &command, sizeof(uint32_t), 0);
 		}
 	}

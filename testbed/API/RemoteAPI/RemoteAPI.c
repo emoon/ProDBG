@@ -27,6 +27,13 @@ static PDReader* s_reader;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+enum
+{
+	BlockSize = 1024,
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void sleepMs(int ms)
 {
 #ifdef _MSC_VER
@@ -76,7 +83,7 @@ int PDRemote_create(struct PDBackendPlugin* plugin, int waitForConnection)
 int PDRemote_update(int sleepTime)
 {
 	PDDebugState state;
-	void* recvData = 0;
+	uint8_t* recvData = 0;
 	int recvSize = 0;
 	int action = 0;
 	void* data;
@@ -91,25 +98,21 @@ int PDRemote_update(int sleepTime)
 
 	if (RemoteConnection_pollRead(s_conn))
 	{
-		uint32_t type;
-		uint32_t command;
+		uint8_t cmd[4];
 
-		if (RemoteConnection_recv(s_conn, (char*)&command, 4, 0)) 
+		if (RemoteConnection_recv(s_conn, (char*)&cmd, 4, 0)) 
 		{
-			command = htonl(command);	// make sure we have right endian format
-			type = command >> 16;
-
-			if (type == 0)
+			if (cmd[0] & (1 << 7))
 			{
-				action = (command & 0xffff);
+				action = (cmd[2] << 8) | cmd[3];
 			}
-			else if (type == 1)
+			else
 			{
-				recvData = malloc(1024 * 1024);
+				recvSize  = ((cmd[0] & 0x3f) << 24) | (cmd[1] << 16) | (cmd[2] << 8) | cmd[3];
 
-				if ((recvSize = RemoteConnection_recv(s_conn, recvData, 1024 * 1024, 0)) <= 0)
+				if (!(recvData = RemoteConnection_recvStream(s_conn, 0, recvSize )))
 				{
-					printf("Unable to get data from socket (wantedSize %d got Size %d\n", 1024 * 1024, recvSize);
+					printf("Unable to get data from stream\n");
 					free(recvData);
 					recvData = 0;
 					recvSize = 0;
@@ -123,24 +126,24 @@ int PDRemote_update(int sleepTime)
 
 	state = s_plugin->update(s_userData, (PDAction)action, s_reader, s_writer);
 
+	PDBinaryWriter_finalize(s_writer);
+
 	size = PDBinaryWriter_getSize(s_writer);
 	data = PDBinaryWriter_getData(s_writer);
 
-	if (size > 0 && RemoteConnection_isConnected(s_conn))
-	{
-		int retSize = 0;
+	// make sure to only send data if we have something to send (4 is only the size with no data)
 
-		if ((retSize = RemoteConnection_send(s_conn, data, size, 0)) != (int)size)
-		{
-			printf("Unable to send exception location (wanted SendSize %d got Size %d)\n", size, retSize); 
-		}
+	if (size > 4 && RemoteConnection_isConnected(s_conn))
+	{
+		RemoteConnection_sendStream(s_conn, data);
 	}
 
 	free(recvData);
 	free(data);
+
 	PDBinaryWriter_destroy(s_writer);
 
-	return (int)state;
+	return PDRemote_isConnected();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
