@@ -7,9 +7,73 @@
 namespace prodbg
 {
 
+class AssemblyHighlighter : public QSyntaxHighlighter
+{   
+
+  public:    
+	AssemblyHighlighter(QTextDocument* document) : QSyntaxHighlighter(document) 
+	{
+		m_matchRegisters.clear();
+	};
+
+	~AssemblyHighlighter() {};
+
+	void clearRegisterList()
+	{
+		m_matchRegisters.clear();
+	}
+	
+	void highlightBlock(const QString& text)
+	{
+		int matchRegCount = m_matchRegisters.count();
+
+		for (int i = 0; i < text.length(); ++i) 
+		{
+			for (int p = 0; p < matchRegCount; ++p)
+			{
+				const RegInfo& info = m_matchRegisters[p];
+
+				if (text.mid(i, info.length) == info.name)
+					setFormat(i, info.length, info.color);
+			}
+		}  
+	}
+
+	void addRegister(QString registerName)
+	{
+		RegInfo info;
+
+		qDebug() << "added registerName " << registerName;
+
+		static QColor colors[] =
+		{
+			Qt::red,
+			Qt::blue,
+			Qt::magenta
+		};
+
+		info.length = registerName.length();
+		info.color = colors[m_matchRegisters.count() % 3];
+		info.name = registerName;
+		m_matchRegisters.push_back(info);
+	}
+
+  private:
+  	
+  	struct RegInfo
+	{
+		int length;
+		QColor color;
+		QString name;
+	};
+
+  	QVector<RegInfo> m_matchRegisters;
+};
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent),
+	m_assemblyHighlighter(0),
 	m_address(0),
 	m_disassemblyStart(0),
 	m_disassemblyEnd(0),
@@ -17,8 +81,8 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent),
 	m_lineEnd(0)
 {
 	// http://www.qtcentre.org/threads/39941-readonly-QTextEdit-with-visible-Cursor
-	//setReadOnly(true);
-	//setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
+	setReadOnly(true);
+	setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
 
     setLineWrapMode(QPlainTextEdit::NoWrap);
 
@@ -28,25 +92,21 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent),
     connect(this, SIGNAL(updateRequest(const QRect &, int)), this, SLOT(updateLineNumberArea(const QRect&, int)));
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
 
-	// TODO: connect(m_debuggerThread, &Qt5DebuggerThread::addBreakpointUI, this, &Qt5CodeEditor::addBreakpoint); 
-	// TODO: connect(m_debuggerThread, &Qt5DebuggerThread::setFileLine, this, &Qt5CodeEditor::setFileLine); 
-
-	// TODO: connect(this, &Qt5CodeEditor::tryAddBreakpoint, m_debuggerThread, &Qt5DebuggerThread::tryAddBreakpoint); 
-	// TODO: connect(this, &Qt5CodeEditor::tryStartDebugging, m_debuggerThread, &Qt5DebuggerThread::tryStartDebugging); 
-	
-	//connect(m_debuggerThread, &Qt5DebuggerThread::setCallStack, m_callstack, &Qt5CallStack::updateCallStack); 
-	
-	//connect(this, &Qt5CodeEditor::tryStep, m_debuggerThread, &Qt5DebuggerThread::tryStep); 
-
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
 
+#if defined(_WIN32)
     QFont font("Courier", 11);
-    font.setStyleHint(QFont::Courier, QFont::NoAntialias);
+#else
+    QFont font("Courier", 13);
+#endif
+    //font.setStyleHint(QFont::Courier, QFont::NoAntialias);
 
     setFont(font);
 
     g_debugSession->addCodeEditor(this);
+
+    m_assemblyHighlighter = new AssemblyHighlighter(document());
 
     m_sourceFile = 0;
 }
@@ -126,19 +186,50 @@ void Qt5CodeEditor::highlightCurrentLine()
 {
     QList<QTextEdit::ExtraSelection> extraSelections;
 
-    if (!isReadOnly()) 
-    {
-        QTextEdit::ExtraSelection selection;
-        QTextCursor cursor = textCursor();
+	QTextEdit::ExtraSelection selection;
+	QTextCursor cursor = textCursor();
 
-        QColor lineColor = QColor(Qt::darkGray).lighter(50);
+	QString	text = cursor.selectedText();
 
-        selection.format.setBackground(lineColor);
-        selection.format.setProperty(QTextFormat::FullWidthSelection, true);
-        selection.cursor = cursor;
-        selection.cursor.clearSelection();
-        extraSelections.append(selection);
-    }
+	QString string = cursor.block().text();
+
+	if (m_assemblyHighlighter)
+	{
+		printf("parsing line...\n");
+
+		m_assemblyHighlighter->clearRegisterList();
+
+		bool addedReg = false;
+
+		// Update the syntax highlighter if we should highlight assembly
+
+		for (int i = 0, length = string.length() - 1; i < length; ++i)
+		{
+			if (string[i] == ';')
+				break;
+
+			if (string[i] == 'd' || string[i] == 'a')
+			{
+				if (string[i + 1] >= '0' && string[i + 1] <= '9')
+				{
+					printf("found reg!\n");
+					m_assemblyHighlighter->addRegister(string.mid(i, 2));
+					addedReg = true;
+				}
+			}
+		}
+
+		if (addedReg)
+			m_assemblyHighlighter->rehighlight();
+	}
+
+	QColor lineColor = QColor(Qt::lightGray).lighter(100);
+
+	selection.format.setBackground(lineColor);
+	selection.format.setProperty(QTextFormat::FullWidthSelection, true);
+	selection.cursor = cursor;
+	selection.cursor.clearSelection();
+	extraSelections.append(selection);
 
     setExtraSelections(extraSelections);
 }

@@ -30,52 +30,10 @@ static int realMain(int argc, char* argv[])
 	app.setApplicationName("ProDBG");
 	app.setOrganizationName("ProDBG");
 
-	app.setStyle("plastique");
-
-	{
-		QFile f("data/darkorange.stylesheet");
-
-		if (!f.exists())
-		{
-			printf("Unable to stylesheet\n");
-		}
-		else
-		{
-			f.open(QFile::ReadOnly | QFile::Text);
-			QTextStream ts(&f);
-			app.setStyleSheet(ts.readAll());
-		}
-	}
-
 	Qt5MainWindow window;
 	window.resize(900, 600);
 	window.setupWorkspace();
 	window.show();
-
-	// test
-
-	// Try to load plugin (hard coded to for now)
-
-	
-	/*
-	{
-		int count;
-
-		// Hard coded for now as well
-	
-		Plugin* plugin = PluginHandler_getPlugins(&count);
-
-		if (count == 1)
-		{
-			// try to start debugging session of a plugin
-
-
-			PDDebugPlugin* debugPlugin = (PDDebugPlugin*)plugin->data;
-			void* userData = debugPlugin->createInstance(0);
-			debugPlugin->start(userData, PD_DEBUG_LAUNCH, (void*)"/Users/emoon/temp/foo");
-		}
-	}
-	*/
 
 	return app.exec();
 }

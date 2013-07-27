@@ -20,6 +20,7 @@ QT_END_NAMESPACE
 namespace prodbg
 {
 
+class AssemblyHighlighter;
 class LineNumberArea;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,6 +76,8 @@ signals:
 	void tryStep();
 
 private:
+
+	AssemblyHighlighter* m_assemblyHighlighter;
     QWidget* m_lineNumberArea;
 	const char* m_sourceFile;
 	Mode m_mode;
