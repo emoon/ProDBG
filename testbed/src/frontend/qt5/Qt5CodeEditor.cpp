@@ -43,13 +43,11 @@ class AssemblyHighlighter : public QSyntaxHighlighter
 	{
 		RegInfo info;
 
-		qDebug() << "added registerName " << registerName;
-
 		static QColor colors[] =
 		{
 			Qt::red,
+			Qt::magenta,
 			Qt::blue,
-			Qt::magenta
 		};
 
 		info.length = registerName.length();
@@ -80,7 +78,6 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent),
 	m_lineStart(0),
 	m_lineEnd(0)
 {
-	// http://www.qtcentre.org/threads/39941-readonly-QTextEdit-with-visible-Cursor
 	setReadOnly(true);
 	setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
 
@@ -100,7 +97,6 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent),
 #else
     QFont font("Courier", 13);
 #endif
-    //font.setStyleHint(QFont::Courier, QFont::NoAntialias);
 
     setFont(font);
 
@@ -195,8 +191,6 @@ void Qt5CodeEditor::highlightCurrentLine()
 
 	if (m_assemblyHighlighter)
 	{
-		printf("parsing line...\n");
-
 		m_assemblyHighlighter->clearRegisterList();
 
 		bool addedReg = false;
@@ -212,7 +206,6 @@ void Qt5CodeEditor::highlightCurrentLine()
 			{
 				if (string[i + 1] >= '0' && string[i + 1] <= '9')
 				{
-					printf("found reg!\n");
 					m_assemblyHighlighter->addRegister(string.mid(i, 2));
 					addedReg = true;
 				}

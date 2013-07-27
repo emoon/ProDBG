@@ -6,6 +6,7 @@
 #include "Qt5Registers.h"
 #include "Qt5DebugOutput.h"
 #include "core/Log.h"
+#include "core/AssemblyRegister.h"
 #include <QThread>
 #ifndef _WIN32
 #include <unistd.h>
@@ -27,6 +28,8 @@ Qt5DebugSession::Qt5DebugSession()
     m_threadRunner = 0;
     m_breakpointCount = 0;
     m_breakpointMaxCount = 0;;
+	m_assemblyRegisters = 0;
+	m_assemblyRegistersCount = 0;
 
     // TODO: Dynamic Array
 	m_breakpoints = new BreakpointFileLine[256];
@@ -341,8 +344,10 @@ void Qt5DebugSession::setState(uint8_t* readerData, int serSize)
 
 			case PDEventType_setRegisters:
 			{
+				m_assemblyRegisters = AssemblyRegister_buildFromReader(reader, m_assemblyRegisters, &m_assemblyRegistersCount);  
+				
 				if (m_registers.size() > 0)
-					m_registers[0]->update(reader);
+					m_registers[0]->update(m_assemblyRegisters, m_assemblyRegistersCount);
 
 				break;
 			}

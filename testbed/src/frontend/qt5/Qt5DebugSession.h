@@ -11,11 +11,13 @@ class QWidget;
 class QThread;
 QT_END_NAMESPACE
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace prodbg
 {
 
+struct AssemblyRegister;
 class Qt5CodeEditor;
 class Qt5Locals;
 class Qt5CallStack;
@@ -93,10 +95,13 @@ private:
 		int line;
 		int id;
 	};
+
+	AssemblyRegister* m_assemblyRegisters;
 		
 	//QVector<BreakpointFileLine> m_breakpoints;
 	BreakpointFileLine* m_breakpoints;
  
+ 	int m_assemblyRegistersCount;
     int m_breakpointCount;
     int m_breakpointMaxCount;
 
