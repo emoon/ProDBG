@@ -2,11 +2,29 @@
 #include "Qt5DebugSession.h"
 #include "ProDBGAPI.h"
 #include "core/log.h"
+#include <QStandardItemModel>
+#include <QKeyEvent>
+#include <QEvent>
+#include <QListView>
+#include <QTableView>
+#include <QSplitter>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace prodbg
 {
+
+ bool KeyPressEater::eventFilter(QObject *obj, QEvent *event)
+ {
+     if (event->type() == QEvent::KeyPress) {
+         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+         qDebug("Ate key press %d", keyEvent->key());
+         return true;
+     } else {
+         // standard event processing
+         return QObject::eventFilter(obj, event);
+     }
+ }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -56,15 +74,41 @@ struct Register
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5Registers::Qt5Registers(QWidget* parent) : QTreeWidget(parent)
+Qt5Registers::Qt5Registers(QWidget* parent) : QTreeView(parent)
 {
-	setColumnCount(3);
+	QStringList horzHeaders;
+    horzHeaders << "Register" << "Value"; 
 
-	QStringList headers;
-	headers << "Name" << "Value";
+	m_model = new QStandardItemModel(this);
+    m_model->setHorizontalHeaderLabels(horzHeaders);
+	setModel(m_model);
 
-	setHeaderLabels(headers);
+	// temp fill
 
+	Register* reg = new Register;
+	memset(reg, 0, sizeof(Register));
+	strcpy(reg->name, "d0"); 
+	m_registers.push_back(reg);
+	reg->type = RegisterType_u32;
+	reg->value.u32 = 0x120;
+
+	reg = new Register;
+	memset(reg, 0, sizeof(Register));
+	strcpy(reg->name, "d1"); 
+	reg->type = RegisterType_u32;
+	m_registers.push_back(reg);
+	reg->value.u32 = 0x12001401;
+
+	reg = new Register;
+	memset(reg, 0, sizeof(Register));
+	strcpy(reg->name, "fp0"); 
+	reg->type = RegisterType_float;
+	m_registers.push_back(reg);
+	reg->value.f = 1.043f;
+
+	update(0);
+
+	//installEventFilter(new KeyPressEater());
 	g_debugSession->addRegisters(this);
 }
 
@@ -144,7 +188,7 @@ static void buildRegisterList(PDReader* reader, QVector<Register*>& registers)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Don clear this all the time but track changes instead
 
-static void fillList(QList<QTreeWidgetItem*>&items, QVector<Register*>& registers)
+static void fillList(QStandardItemModel* model, QVector<Register*>& registers)
 {
 	for (int i = 0, size = registers.size(); i < size; ++i)
 	{
@@ -152,8 +196,6 @@ static void fillList(QList<QTreeWidgetItem*>&items, QVector<Register*>& register
 		QString tempV;
 
 		Register* reg = registers[i];
-
-		temp << reg->name;
 
 		switch (reg->type)
 		{
@@ -165,25 +207,92 @@ static void fillList(QList<QTreeWidgetItem*>&items, QVector<Register*>& register
 			case RegisterType_double : temp << tempV.sprintf("%8.8f", reg->value.d); break;
 		}
 
-		QTreeWidgetItem* item = new QTreeWidgetItem((QTreeWidget*)0, temp);
-		item->setFlags(item->flags() | Qt::ItemIsEditable);
+		QList<QStandardItem*> newIt;
+		QStandardItem * item = new QStandardItem(reg->name);
+		item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
+		newIt.append(item);
 
-		items.append(item);
+		item = new QStandardItem(tempV);
+		item->setBackground(QBrush(Qt::yellow));
+
+		item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsEditable);
+		newIt.append(item);
+		model->appendRow(newIt);
 	}
+
+	/*
+ QTreeView *tree = new QTreeView();
+  tree->setModel( model );
+  tree->show();
+  */
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5Registers::update(PDReader* reader)
 {
-	QList<QTreeWidgetItem*> items;
+	if (reader)
+		buildRegisterList(reader, m_registers);
 
-	clear();
+	fillList(m_model, m_registers);
+ /* 
+	QTreeView *tree = new QTreeView();
+  QListView *list = new QListView();
+  QTableView *table = new QTableView();
+  
+  QSplitter* splitter = new QSplitter();
+  splitter->addWidget( tree );
+  splitter->addWidget( list );
+  splitter->addWidget( table );
+  
+  QStandardItemModel* model = new QStandardItemModel( 5, 2 );
+  for( int r=0; r<5; r++ ) 
+    for( int c=0; c<2; c++) 
+    {
+      QStandardItem *item = new QStandardItem( QString("Row:%0, Column:%1").arg(r).arg(c) );
+      
+      if( c == 0 )
+        for( int i=0; i<3; i++ )
+        {
+          QStandardItem *child = new QStandardItem( QString("Item %0").arg(i) );
+          child->setEditable( false );
+          item->appendRow( child );
+        }
+      
+      model->setItem(r, c, item);
+    }
 
-	buildRegisterList(reader, m_registers);
-	fillList(items, m_registers);
+  model->setHorizontalHeaderItem( 0, new QStandardItem( "Foo" ) );
+  model->setHorizontalHeaderItem( 1, new QStandardItem( "Bar-Baz" ) );
 
-	insertTopLevelItems(0, items);
+  tree->setModel( model );
+  list->setModel( model );
+  table->setModel( model );
+
+  list->setSelectionModel( selectionModel() );
+  table->setSelectionModel( selectionModel() );
+
+  table->setSelectionBehavior( QAbstractItemView::SelectRows );
+  table->setSelectionMode( QAbstractItemView::SingleSelection );
+
+  splitter->show();
+*/
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+void Qt5Registers::keyPressEvent(QKeyEvent* event)
+{
+	auto m = selectedIndexes();
+
+	if (!m.empty())
+	{
+		auto t = m[0];
+		(void)t;
+	}
+
+	QTreeView::keyPressEvent(event);
 }
 
 }

@@ -38,7 +38,13 @@ local win64 = {
 		QT5 = native.getenv("QT5"),
  		GENERATE_PDB = "1",
 		CCOPTS = {
-			"/W4", "/I.", "/WX", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4152", "/wd4996", "/wd4389",
+			"/MT", "/W4", "/I.", "/WX", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4152", "/wd4996", "/wd4389",
+			{ "/Od"; Config = "*-*-debug" },
+			{ "/O2"; Config = "*-*-release" },
+		},
+
+		CXXOPTS = {
+			"/MT", "/I.", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4152", "/wd4996", "/wd4389",
 			{ "/Od"; Config = "*-*-debug" },
 			{ "/O2"; Config = "*-*-release" },
 		},

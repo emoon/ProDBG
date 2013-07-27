@@ -23,11 +23,10 @@ Qt5RegistersView::Qt5RegistersView(Qt5MainWindow* mainWindow, Qt5DockWidget* doc
 	m_locals = new Qt5Registers(parent);
     setCentralWidget(m_locals);
 
-    connect(parent, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-    connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-    connect(m_locals, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-
-    m_locals->setFocusProxy(this);
+    //connect(parent, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+    //connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+    //connect(m_locals, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+    //m_locals->setFocusProxy(this);
 }
 
 Qt5RegistersView::~Qt5RegistersView()

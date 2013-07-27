@@ -25,7 +25,7 @@ Handle SharedObject_open(const char* filename)
 		printf("Unable to dlload %s (error %s)\n", filename, dlerror());
 	return handle;
 #elif defined(_WIN32)
-	return (Handle)LoadLibrary(filename);
+	return (Handle)LoadLibraryA(filename);
 #else
 	#error "Unsupported target"
 #endif

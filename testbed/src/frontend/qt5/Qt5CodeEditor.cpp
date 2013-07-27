@@ -41,7 +41,7 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent),
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
 
-    QFont font("Courier", 13);
+    QFont font("Courier", 11);
     font.setStyleHint(QFont::Courier, QFont::NoAntialias);
 
     setFont(font);
