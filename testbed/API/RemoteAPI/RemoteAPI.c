@@ -110,7 +110,7 @@ int PDRemote_update(int sleepTime)
 			{
 				recvSize  = ((cmd[0] & 0x3f) << 24) | (cmd[1] << 16) | (cmd[2] << 8) | cmd[3];
 
-				if (!(recvData = RemoteConnection_recvStream(s_conn, 0, recvSize )))
+				if ((recvData = RemoteConnection_recvStream(s_conn, 0, recvSize)) == 0)
 				{
 					printf("Unable to get data from stream\n");
 					free(recvData);

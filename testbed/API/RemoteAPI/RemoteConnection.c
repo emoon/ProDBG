@@ -1,5 +1,6 @@
 #include "RemoteConnection.h"
 #include <string.h>
+#include <stdint.h>
 
 #if defined(_MSC_VER)
 #pragma warning(disable: 4496)
