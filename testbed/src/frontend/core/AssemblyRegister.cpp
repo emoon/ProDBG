@@ -71,6 +71,7 @@ AssemblyRegister* AssemblyRegister_buildFromReader(PDReader* reader, AssemblyReg
 			reg = &registers[count++];
 
 			strcpy(reg->name, name); 
+			reg->nameLength = (int)strlen(name);
 
 			switch (type & PDReadStatus_typeMask)
 			{
@@ -82,8 +83,8 @@ AssemblyRegister* AssemblyRegister_buildFromReader(PDReader* reader, AssemblyReg
 				case PDReadType_double : reg->type = AssemblyRegisterType_double; break;
 			}
 
-			PDRead_findU32(reader, &reg->readOnly, "read_only", it);
-			PDRead_findU32(reader, &reg->statusFlags, "flags", it);
+			PDRead_findU16(reader, &reg->readOnly, "read_only", it);
+			PDRead_findU16(reader, &reg->statusFlags, "flags", it);
 		}
 
 		// TODO: Handle if we have registers that are wider than 64-bit

@@ -1,5 +1,6 @@
 #include "Qt5CodeEditor.h"
 #include "Qt5DebugSession.h"
+#include "core/AssemblyRegister.h"
 #include <QtGui>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -194,11 +195,27 @@ void Qt5CodeEditor::highlightCurrentLine()
 		m_assemblyHighlighter->clearRegisterList();
 
 		bool addedReg = false;
+		int registerCount = m_assemblyRegistersCount;
+
+		QByteArray ba = string.toLatin1();
+  		const char* lineText = ba.data();
 
 		// Update the syntax highlighter if we should highlight assembly
 
 		for (int i = 0, length = string.length() - 1; i < length; ++i)
 		{
+			for (int p = 0; p < registerCount; ++p)
+			{
+				const AssemblyRegister* reg = &m_assemblyRegisters[p];
+
+				if (!strncmp(&lineText[i], reg->name, reg->nameLength))
+				{
+					m_assemblyHighlighter->addRegister(string.mid(i, 2));
+					addedReg = true;
+				}
+			}
+
+			/*
 			if (string[i] == ';')
 				break;
 
@@ -210,6 +227,7 @@ void Qt5CodeEditor::highlightCurrentLine()
 					addedReg = true;
 				}
 			}
+			*/
 		}
 
 		if (addedReg)
@@ -415,6 +433,14 @@ void Qt5CodeEditor::setLine(int line)
 	setTextCursor(cursor);
 	centerCursor();
 	setFocus();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5CodeEditor::setAssemblyRegisters(AssemblyRegister* registers, int count)
+{
+	m_assemblyRegisters = registers;
+	m_assemblyRegistersCount = count;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

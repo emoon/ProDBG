@@ -20,6 +20,7 @@ QT_END_NAMESPACE
 namespace prodbg
 {
 
+struct AssemblyRegister;
 class AssemblyHighlighter;
 class LineNumberArea;
 
@@ -58,6 +59,7 @@ public:
     void setLine(int line);
     int lineNumberAreaWidth();
 	void setDisassembly(const char* text, int64_t start, int32_t instructionCount);
+	void setAssemblyRegisters(AssemblyRegister* registers, int count);
 
 protected:
     void resizeEvent(QResizeEvent* event);
@@ -80,6 +82,7 @@ private:
 	AssemblyHighlighter* m_assemblyHighlighter;
     QWidget* m_lineNumberArea;
 	const char* m_sourceFile;
+	AssemblyRegister* m_assemblyRegisters;
 	Mode m_mode;
 
 	uint64_t m_address;
@@ -88,6 +91,7 @@ private:
 
 	int m_lineStart;
 	int m_lineEnd;
+	int m_assemblyRegistersCount;
 
 	// Range of dissassembly (this currently assumes that the disassembly is non-SMC)
 };

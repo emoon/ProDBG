@@ -349,6 +349,9 @@ void Qt5DebugSession::setState(uint8_t* readerData, int serSize)
 				if (m_registers.size() > 0)
 					m_registers[0]->update(m_assemblyRegisters, m_assemblyRegistersCount);
 
+				if (m_codeEditors.size() > 0)
+					m_codeEditors[0]->setAssemblyRegisters(m_assemblyRegisters, m_assemblyRegistersCount);
+
 				break;
 			}
 		}

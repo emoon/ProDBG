@@ -67,7 +67,7 @@ static void fillList(QStandardItemModel* model, AssemblyRegister* registers, int
 		newIt.append(item);
 
 		item = new QStandardItem(tempV);
-		item->setBackground(QBrush(Qt::yellow));
+		//item->setBackground(QBrush(Qt::yellow));
 
 		item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsEditable);
 		newIt.append(item);
@@ -79,6 +79,8 @@ static void fillList(QStandardItemModel* model, AssemblyRegister* registers, int
 
 void Qt5Registers::update(AssemblyRegister* registers, int count)
 {
+	m_model->clear();
+
 	fillList(m_model, registers, count);
 }
 
