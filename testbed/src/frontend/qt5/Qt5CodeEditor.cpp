@@ -34,6 +34,8 @@ class AssemblyHighlighter : public QSyntaxHighlighter
 			{
 				const RegInfo& info = m_matchRegisters[p];
 
+				// \todo Don't use mid. It returns a new QString so we will do malloc/free for each call
+
 				if (text.mid(i, info.length) == info.name)
 					setFormat(i, info.length, info.color);
 			}
@@ -214,20 +216,6 @@ void Qt5CodeEditor::highlightCurrentLine()
 					addedReg = true;
 				}
 			}
-
-			/*
-			if (string[i] == ';')
-				break;
-
-			if (string[i] == 'd' || string[i] == 'a')
-			{
-				if (string[i + 1] >= '0' && string[i + 1] <= '9')
-				{
-					m_assemblyHighlighter->addRegister(string.mid(i, 2));
-					addedReg = true;
-				}
-			}
-			*/
 		}
 
 		if (addedReg)
