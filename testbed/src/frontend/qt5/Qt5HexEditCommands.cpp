@@ -3,6 +3,8 @@
 namespace prodbg
 {
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Qt5HexEditValueUndoCommand::Qt5HexEditValueUndoCommand(Qt5HexEditByteArray* data,
     	                                               Operation operation,
     	                                               int characterPosition,
@@ -17,6 +19,8 @@ Qt5HexEditValueUndoCommand::Qt5HexEditValueUndoCommand(Qt5HexEditByteArray* data
 , m_wasChanged(false)
 {
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5HexEditValueUndoCommand::undo()
 {
@@ -37,6 +41,8 @@ void Qt5HexEditValueUndoCommand::undo()
             break;
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5HexEditValueUndoCommand::redo()
 {
@@ -60,6 +66,8 @@ void Qt5HexEditValueUndoCommand::redo()
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool Qt5HexEditValueUndoCommand::mergeWith(const QUndoCommand* command)
 {
     bool result = false;
@@ -81,6 +89,8 @@ bool Qt5HexEditValueUndoCommand::mergeWith(const QUndoCommand* command)
     return result;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Qt5HexEditRangeUndoCommand::Qt5HexEditRangeUndoCommand(Qt5HexEditByteArray* data,
     	                                               Operation operation,
     	                                               int positionValues,
@@ -95,6 +105,8 @@ Qt5HexEditRangeUndoCommand::Qt5HexEditRangeUndoCommand(Qt5HexEditByteArray* data
 , m_newValues(newValues)
 {
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5HexEditRangeUndoCommand::undo()
 {
@@ -115,6 +127,8 @@ void Qt5HexEditRangeUndoCommand::undo()
             break;
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5HexEditRangeUndoCommand::redo()
 {

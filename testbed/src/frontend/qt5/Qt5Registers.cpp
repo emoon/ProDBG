@@ -26,7 +26,13 @@ Qt5Registers::Qt5Registers(QWidget* parent) : QTreeView(parent)
     m_model->setHorizontalHeaderLabels(horzHeaders);
 	setModel(m_model);
 
-	//update(0);
+#if defined(_WIN32)
+    QFont font("Courier", 11);
+#else
+    QFont font("Courier", 13);
+#endif
+
+    setFont(font);
 
 	g_debugSession->addRegisters(this);
 }
