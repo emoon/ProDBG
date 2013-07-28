@@ -145,8 +145,7 @@ void Qt5HexEditView::testEditor()
     m_hexEdit->setReadOnly(false);
 
     m_hexEdit->setHighlightingColor(QColor(0xff, 0xff, 0x99, 0xff));
-    //QColor lineColor = QColor(Qt::darkGray).lighter(50);
-    m_hexEdit->setAddressAreaColor(Qt::black);//QColor(0xd4, 0xd4, 0xd4, 0xff));
+    m_hexEdit->setAddressAreaColor(QColor(0xd4, 0xd4, 0xd4, 0xff));
     m_hexEdit->setSelectionColor(QColor(0x6d, 0x9e, 0xff, 0xff));
     m_hexEdit->setFont(QFont("Courier", 12));
 
