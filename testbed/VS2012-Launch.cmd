@@ -29,9 +29,9 @@ SET VSVARS="%VSPATH%..\..\VC\bin\x86_amd64\vcvarsx86_amd64.bat
 CALL %VSVARS%
 
 REM ======= Start VS2010 asynchronously =========
-START "" %VSEXE% tundra-output\tundra-generated.sln
+START "" %VSEXE% t2-output\tundra-generated.sln
 
 REM ======= Wait 3 seconds, hopefully the VS window has appeared by then =========
 REM Without this delay, the VS window will be opened in the background
-ping 127.0.0.1 -n 6 -w 1000 >NUL
+REM ping 127.0.0.1 -n 6 -w 1000 >NUL
 
