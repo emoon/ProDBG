@@ -63,4 +63,19 @@ Build {
 		Config { Name = "macosx-clang", DefaultOnHost = "macosx", Inherit = macosx, Tools = { "clang-osx" } },
 		Config { Name = "win64-msvc", DefaultOnHost = { "windows" }, Inherit = win64, Tools = { "msvc" } },
 	},
+
+	IdeGenerationHints = {
+		Msvc = {
+			-- Remap config names to MSVC platform names (affects things like header scanning & debugging)
+			PlatformMappings = {
+				['win64-msvc'] = 'x64',
+			},
+			-- Remap variant names to MSVC friendly names
+			VariantMappings = {
+				['release']    = 'Release',
+				['debug']      = 'Debug',
+			},
+		},
+	},
+	
 }
