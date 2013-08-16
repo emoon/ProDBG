@@ -29,6 +29,23 @@ static int realMain(int argc, char* argv[])
 
 	app.setApplicationName("ProDBG");
 	app.setOrganizationName("ProDBG");
+	
+	app.setStyle("plastique");
+
+	{
+		QFile f("data/darkorange.stylesheet");
+
+		if (!f.exists())
+		{
+			printf("Unable to stylesheet\n");
+		}
+		else
+		{
+			f.open(QFile::ReadOnly | QFile::Text);
+			QTextStream ts(&f);
+			app.setStyleSheet(ts.readAll());
+		}
+	}
 
 	Qt5MainWindow window;
 	window.resize(900, 600);
