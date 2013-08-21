@@ -28,6 +28,11 @@ static inline int32_t getS32(const uint8_t* ptr)
 
 Qt5DebuggerThread::Qt5DebuggerThread(Qt5DebuggerThread::TargetType type) : 
 	m_debugState(PDDebugState_noTarget),
+	m_debuggerPlugin(nullptr),
+	m_pluginData(nullptr),
+	m_targetHost(nullptr),
+	m_connection(nullptr),
+	m_port(0),
 	m_targetType(type)
 {
 }

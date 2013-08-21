@@ -414,6 +414,9 @@ int RemoteConnection_pollRead(RemoteConnection* conn)
 
 int RemoteConnection_isConnected(RemoteConnection* conn)
 {
+	if (conn == NULL)
+		return 0;
+
 	return conn->socket != INVALID_SOCKET;
 }
 
