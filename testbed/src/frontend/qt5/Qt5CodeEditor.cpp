@@ -381,6 +381,8 @@ void Qt5CodeEditor::keyPressEvent(QKeyEvent* event)
 
         // Check if this breakpoint was added directly on the UI thread then update the window to show it 
         
+        printf("Add breakpoint %s\n",  m_sourceFile);
+
 		if (g_debugSession->addBreakpointUI(m_sourceFile, lineNum))
 			update();
 
@@ -400,18 +402,14 @@ void Qt5CodeEditor::readSourceFile(const char* filename)
 	QFile f(filename);
 
 	if (!f.exists())
-	{
-		printf("Unable to open %s\n", filename);
 		return;
-	}
-
-	f.open(QFile::ReadOnly | QFile::Text);
-
-	QTextStream ts(&f);
-	setPlainText(ts.readAll());
 
 	free((void*)m_sourceFile);
 	m_sourceFile = strdup(filename);
+
+	f.open(QFile::ReadOnly | QFile::Text);
+	QTextStream ts(&f);
+	setPlainText(ts.readAll());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
