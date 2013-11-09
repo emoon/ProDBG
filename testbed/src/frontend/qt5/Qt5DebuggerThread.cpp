@@ -126,20 +126,13 @@ void Qt5DebuggerThread::setState(uint8_t* serializeData, int serSize)
 	{
 		if (RemoteConnection_isConnected(m_connection))
 		{
-			// double write down the size to make sure it hasn't been missed
-
-			serializeData[0] = (serSize >> 24) & 0xff;
-			serializeData[1] = (serSize >> 16) & 0xff;
-			serializeData[2] = (serSize >> 8) & 0xff;
-			serializeData[3] = (serSize >> 0) & 0xff;
-
 			if (serSize > 0)
-				RemoteConnection_sendStream(m_connection, (char*)serializeData);
+				RemoteConnection_sendStream(m_connection, serializeData);
 		}
 	}
 
 	// After we finished reading the data we free it up
-	free(serializeData);
+	//free(serializeData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
