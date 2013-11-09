@@ -230,6 +230,8 @@ Program {
 			"-Wno-weak-vtables",
 			"-Wno-extra-semi",
 			"-Wno-switch-enum",
+			"-Wno-nested-anon-types",
+			"-Wno-duplicate-enum",
 			"-Wno-undefined-reinterpret-cast", -- needed for Qt signals :(
 			"-Wno-documentation", -- seems like clang doesn't like some valid syntax :/
 			"-Wno-sign-conversion" ; Config = "macosx-clang-*" },
