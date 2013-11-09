@@ -81,7 +81,8 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent),
 	m_disassemblyStart(0),
 	m_disassemblyEnd(0),
 	m_lineStart(0),
-	m_lineEnd(0)
+	m_lineEnd(0),
+	m_assemblyRegistersCount(0)
 {
 	setReadOnly(true);
 	setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
