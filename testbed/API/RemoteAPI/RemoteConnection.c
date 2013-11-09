@@ -321,7 +321,7 @@ int RemoteConnection_send(RemoteConnection* conn, const void* buffer, int length
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int RemoteConnection_sendStream(RemoteConnection* conn, const char* buffer)
+int RemoteConnection_sendStream(RemoteConnection* conn, const unsigned char* buffer)
 {
 	int sizeCount = 0;
 	// stream has the size at the very start and 2 top bits used for other things

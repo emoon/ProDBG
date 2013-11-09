@@ -32,7 +32,7 @@ int RemoteConnection_recv(struct RemoteConnection* connection, char* buffer, int
 int RemoteConnection_send(struct RemoteConnection* connection, const void* buffer, int length, int flags);
 int RemoteConnection_pollRead(struct RemoteConnection* connection);
 
-int RemoteConnection_sendStream(struct RemoteConnection* connection, const char* buffer);
+int RemoteConnection_sendStream(struct RemoteConnection* connection, const unsigned char* buffer);
 unsigned char* RemoteConnection_recvStream(struct RemoteConnection* connection, unsigned char* out, int size);
 
 
