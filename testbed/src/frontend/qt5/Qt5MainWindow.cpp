@@ -226,6 +226,23 @@ void Qt5MainWindow::onMenu(int id)
 			break;
 		}
 
+		case MENU_FILE_LOAD_SOURCE :
+		{
+
+			QString filename = QFileDialog::getOpenFileName(this, tr("Open File"),
+															"/home",
+															tr("*"));	
+
+			if (filename.isNull())
+				return;
+
+			const char* file = filename.toLatin1().constData();
+
+			g_debugSession->readSourceFile(file);
+
+			break;
+		}
+
 
 		case MENU_DEBUG_ATTACH_TO_REMOTE_PROCESS :
 		{

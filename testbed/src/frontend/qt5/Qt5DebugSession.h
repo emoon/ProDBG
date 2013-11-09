@@ -63,6 +63,9 @@ public:
 
     bool addBreakpointUI(const char* file, int line);
     void delBreakpointUI(int id);
+
+    // TODO: Should we really have this here?
+    void readSourceFile(const char* file);
     
 private slots:
 	// Called from the when a state change has happen that require UI update 
