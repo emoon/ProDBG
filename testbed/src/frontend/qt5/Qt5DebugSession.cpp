@@ -165,6 +165,8 @@ void Qt5DebugSession::begin(const char* executable, bool run)
 		PDWrite_eventEnd(writer);
 	}
 
+	PDBinaryWriter_finalize(writer);
+
 	emit sendData((uint8_t*)PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
 }
 
@@ -203,6 +205,8 @@ void Qt5DebugSession::beginRemote(const char* address, int port)
 		PDWrite_u32(writer, "line", m_breakpoints[i].line);
 		PDWrite_eventEnd(writer);
 	}
+
+	PDBinaryWriter_finalize(writer);
 
 	emit sendData((uint8_t*)PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
 }
