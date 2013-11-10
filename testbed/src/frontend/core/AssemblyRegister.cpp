@@ -79,19 +79,8 @@ AssemblyRegister* AssemblyRegister_buildFromReader(PDReader* reader, AssemblyReg
 				case PDReadType_u16 : reg->type = AssemblyRegisterType_u16; break;
 				case PDReadType_u32 : reg->type = AssemblyRegisterType_u32; break;
 				case PDReadType_u64 : reg->type = AssemblyRegisterType_u64; break;
-				case PDReadType_float : 
-				{
-					PDRead_findFloat(reader, &reg->value.f, "register", it);
-					reg->type = AssemblyRegisterType_float; 
-					break;
-				}
-				
-				case PDReadType_double : 
-				{
-					PDRead_findDouble(reader, &reg->value.d, "register", it);
-					reg->type = AssemblyRegisterType_double; 
-					break;
-				}
+				case PDReadType_float : reg->type = AssemblyRegisterType_float; break;
+				case PDReadType_double : reg->type = AssemblyRegisterType_double; break;
 			}
 		}
 
