@@ -22,6 +22,11 @@ static int realMain(int argc, char* argv[])
 {
 	QApplication app(argc, argv);
 
+	QCoreApplication::setOrganizationName("ProDBG Crew");
+	QCoreApplication::setOrganizationDomain("prodbg.com");
+	QCoreApplication::setApplicationName("ProDBG");
+	QCoreApplication::setApplicationVersion("0.0.1");
+
 	if (!PluginHandler_addPlugin("tundra-output/macosx-clang-debug-default/libLLDBPlugin.dylib"))
 	{
 		printf("Unable to load LLDBPlugin\n");
@@ -48,7 +53,6 @@ static int realMain(int argc, char* argv[])
 	}
 
 	Qt5MainWindow window;
-	window.resize(900, 600);
 	window.setupWorkspace();
 	window.show();
 

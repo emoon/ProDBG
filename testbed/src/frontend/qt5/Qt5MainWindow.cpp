@@ -464,6 +464,8 @@ Qt5MainWindow::Qt5MainWindow() : Qt5BaseView(this, nullptr, nullptr)
 
 	Qt5DebugSession::createSession();
 
+	readSettings();
+
 	newSourceCodeView();
 	newRegistersView();
 }
@@ -1215,8 +1217,10 @@ void Qt5MainWindow::shutdown(QObject*)
 		m_settingsWindow = nullptr;
 	}*/
 
-// saveSettings();
 	saveLayout();
+	writeSettings();
+
+	printf("Shutdown\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1228,5 +1232,27 @@ void Qt5MainWindow::errorMessage(const QString& message)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Qt5MainWindow::writeSettings()
+{
+	QSettings settings;
+    settings.beginGroup("MainWindow");
+    settings.setValue("size", size());
+    settings.setValue("pos", pos());
+    settings.endGroup();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::readSettings()
+{
+    QSettings settings;
+
+    settings.beginGroup("MainWindow");
+    resize(settings.value("size", size()).toSize());
+    move(settings.value("pos", pos()).toPoint());
+    settings.endGroup();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+}

@@ -161,6 +161,8 @@ private:
 	void createMenus();
 	void createToolBars();
 	void createStatusBar();
+	void readSettings();
+	void writeSettings();
 
 	QSignalMapper* m_signalMapper;
 
