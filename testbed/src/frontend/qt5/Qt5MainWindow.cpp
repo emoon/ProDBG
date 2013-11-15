@@ -968,7 +968,7 @@ void Qt5MainWindow::windowFillMainWindow()
 		view = reinterpret_cast<Qt5DynamicView*>(view->m_parent);
 	}
 
-	if (view == nullptr || view->m_parent == this)
+	if (view == nullptr || view->m_parent != this)
 		return;
 
 	if (m_centralWidgetSet)
@@ -1012,7 +1012,38 @@ void Qt5MainWindow::windowFillMainWindow()
 
 void Qt5MainWindow::windowUnfillMainWindow()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
+	Qt5DynamicView* view = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
+	if (view == nullptr)
+		return;
+
+	while (view != nullptr &&
+		   view->m_type >= Qt5ViewType_Dynamic &&
+		   view->m_parent != nullptr &&
+		   view->m_parent != this &&
+		   view != reinterpret_cast<Qt5DynamicView*>(centralWidget()))
+	{
+		view = reinterpret_cast<Qt5DynamicView*>(view->m_parent);
+	}
+
+	if (view == nullptr || view->m_parent != this || view != reinterpret_cast<Qt5DynamicView*>(centralWidget()))
+		return;
+
+	if (m_centralWidgetSet)
+	{
+		Qt5DynamicView* current = reinterpret_cast<Qt5DynamicView*>(centralWidget());
+		Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, current->m_id);
+		dock->setAttribute(Qt::WA_DeleteOnClose, true);
+		dock->setWidget(current);
+		current->m_parentDock = dock;
+		addDockWidget(Qt::LeftDockWidgetArea, dock);
+
+		m_centralWidgetSet = false;
+		m_backgroundWidget = new QWidget(this);
+		m_backgroundWidget->setObjectName(QString::fromUtf8("backgroundWidget"));
+		//m_backgroundWidget->setPalette(m_backgroundPalette);
+		m_backgroundWidget->setAutoFillBackground(true);
+		emit signalDelayedSetCentralWidget(m_backgroundWidget);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1188,6 +1219,46 @@ void Qt5MainWindow::contextMenuProxy(const QPoint&)
 void Qt5MainWindow::applySettings()
 {
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
+
+	if (m_shutdown)
+		return;
+
+#if 0
+#if NcFeature(NcPlatformWindows)
+	if (Qt5Setting* win32StyleSetting = g_settings->getSetting(Qt5SettingId_QtStyleWin32))
+	{
+        Qt5SettingArgument* argument = g_settings->getArgument(win32StyleSetting, 0);
+		if ((bool)argument->data)
+		{
+			g_application->setStyle(new QPlastiqueStyle);
+		}
+		else
+		{
+			g_application->setStyle(new QWindowsXPStyle);
+		}
+	}
+	else
+#endif
+	{
+		g_application->setStyle(new QPlastiqueStyle);
+	}
+#endif
+
+	QStyle* style = new QProxyStyle(QStyleFactory::create("fusion"));
+	g_application->setStyle(style);
+
+	QFile f("data/darkorange.stylesheet");
+
+	if (!f.exists())
+	{
+		printf("Unable to stylesheet\n");
+	}
+	else
+	{
+		f.open(QFile::ReadOnly | QFile::Text);
+		QTextStream ts(&f);
+		g_application->setStyleSheet(ts.readAll());
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1218,6 +1289,7 @@ void Qt5MainWindow::shutdown(QObject*)
 		m_settingsWindow = nullptr;
 	}*/
 
+	g_settings->saveSettings();
 	saveLayout();
 	writeSettings();
 
