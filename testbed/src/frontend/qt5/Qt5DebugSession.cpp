@@ -267,6 +267,27 @@ void Qt5DebugSession::requestDisassembly(uint64_t startAddress, int instructionC
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Qt5DebugSession::sendBreakpoint(const char* filename, int line)
+{
+	PDWriter writerData;
+	PDWriter* writer = &writerData;
+
+	PDBinaryWriter_init(writer);
+
+	PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
+	PDWrite_string(writer, "filename", filename);
+	PDWrite_u32(writer, "line", line);
+	PDWrite_eventEnd(writer);
+
+	PDBinaryWriter_finalize(writer);
+
+	emit sendData(PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
+
+	PDBinaryWriter_destroy(writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5DebugSession::setState(uint8_t* readerData, int serSize)
 {
 	int event;
@@ -372,22 +393,24 @@ bool Qt5DebugSession::addBreakpointUI(const char* file, int line)
 
     if (!m_debuggerThread)
     {
-        printf("Qt5DebugSession::addBreakpointUI %s %d\n", file, line);
         addBreakpoint(file, line, -2);
         return true;
     }
     else
     {
-        //emit tryAddBreakpoint(file, line);
+        addBreakpoint(file, line, -2);
+		sendBreakpoint(file, line);
     }
-    
-    return false;
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Qt5DebugSession::addBreakpoint(const char* file, int line, int id)
 {
+	printf("%s:%d\n", __FILE__, __LINE__);
+
     if (m_breakpointCount + 1 >= m_breakpointMaxCount)
         return false;
 
@@ -396,6 +419,8 @@ bool Qt5DebugSession::addBreakpoint(const char* file, int line, int id)
 	bp->filename = file;
 	bp->line = line;
 	bp->id = id;
+
+	printf("Adding breakpoint at %s:%d\n", file, line);
         
     return true;
 }

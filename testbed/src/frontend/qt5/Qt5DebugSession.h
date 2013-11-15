@@ -78,6 +78,8 @@ signals:
 
 private:
 
+	void sendBreakpoint(const char* filename, int line);
+
     QList<Qt5CodeEditor*> m_codeEditors;
     QList<Qt5Locals*> m_locals;
     QList<Qt5CallStack*> m_callStacks;
