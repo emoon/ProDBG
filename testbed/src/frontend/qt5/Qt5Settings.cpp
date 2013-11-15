@@ -59,7 +59,35 @@ int32_t Qt5Settings::getSettingCount() const
 
 void Qt5Settings::addSetting(Qt5Setting* setting)
 {
-	(void)setting;
+	int32 index;
+
+	for (index = 0; index < QT5_MAX_SETTINGS; ++index)
+	{
+		if (m_settings[index].id == setting->id)
+		{
+            resetArguments(&m_settings[index]);
+			break;
+		}
+	}
+	
+	if (index >= QT5_MAX_SETTINGS || m_settingCount == 0)
+	{
+		for (index = 0; index < QT5_MAX_SETTINGS; ++index)
+		{
+			if (m_settings[index].id == Qt5SettingId_Reset)
+			{
+				++m_settingCount;
+				break;
+			}
+		}
+	}
+
+	if (index >= QT5_MAX_SETTINGS)
+		return;
+
+	m_settings[index].id = setting->id;
+    copyArguments(&m_settings[index], setting);
+    m_settings[index].argumentCount = setting->argumentCount;
 }
 
 Qt5Setting* Qt5Settings::getSetting(Qt5SettingId id)
@@ -164,7 +192,7 @@ void Qt5Settings::defaultSettings()
 				{
 					Qt5SettingId id = Qt5SettingId_Reset;
 					Qt5SettingArgumentType type = Qt5SettingArgumentType_Reset;
-					
+
 					QString valueString;
 
 					QXmlStreamAttributes itemAttributes = xmlReader.attributes();
@@ -202,63 +230,63 @@ void Qt5Settings::defaultSettings()
 							case Qt5SettingArgumentType_Int8:
 							{
 								int8 value = static_cast<int8>(valueString.toShort());
-								addArgument(&setting, type, &value, sizeof(int8));
+								addArgument(&setting, type, reinterpret_cast<int8*>(value), sizeof(int8));
 								break;
 							}
 
 							case Qt5SettingArgumentType_Int16:
 							{
 								int16 value = static_cast<int16>(valueString.toShort());
-								addArgument(&setting, type, &value, sizeof(int16));
+								addArgument(&setting, type, reinterpret_cast<int16*>(value), sizeof(int16));
 								break;
 							}
 
 							case Qt5SettingArgumentType_Int32:
 							{
 								int32 value = static_cast<int32>(valueString.toInt());
-								addArgument(&setting, type, &value, sizeof(int32));
+								addArgument(&setting, type, reinterpret_cast<int32*>(value), sizeof(int32));
 								break;
 							}
 
 							case Qt5SettingArgumentType_Int64:
 							{
 								int64 value = static_cast<int64>(valueString.toLongLong());
-								addArgument(&setting, type, &value, sizeof(int64));
+								addArgument(&setting, type, reinterpret_cast<int64*>(value), sizeof(int64));
 								break;
 							}
 
 							case Qt5SettingArgumentType_UInt8:
 							{
 								uint8 value = static_cast<uint8>(valueString.toUShort());
-								addArgument(&setting, type, &value, sizeof(uint8));
+								addArgument(&setting, type, reinterpret_cast<uint8*>(value), sizeof(uint8));
 								break;
 							}
 
 							case Qt5SettingArgumentType_UInt16:
 							{
 								uint16 value = static_cast<uint16>(valueString.toUShort());
-								addArgument(&setting, type, &value, sizeof(uint16));
+								addArgument(&setting, type, reinterpret_cast<uint16*>(value), sizeof(uint16));
 								break;
 							}
 
 							case Qt5SettingArgumentType_UInt32:
 							{
 								uint32 value = static_cast<uint32>(valueString.toUInt());
-								addArgument(&setting, type, &value, sizeof(uint32));
+								addArgument(&setting, type, reinterpret_cast<uint32*>(value), sizeof(uint32));
 								break;
 							}
 
 							case Qt5SettingArgumentType_UInt64:
 							{
 								uint64 value = static_cast<uint64>(valueString.toULongLong());
-								addArgument(&setting, type, &value, sizeof(uint64));
+								addArgument(&setting, type, reinterpret_cast<uint64*>(value), sizeof(uint64));
 								break;
 							}
 
 							case Qt5SettingArgumentType_Bool:
 							{
 								bool value = static_cast<int8>(valueString.toShort());
-								addArgument(&setting, type, &value, sizeof(bool));
+								addArgument(&setting, type, reinterpret_cast<bool*>(value), sizeof(bool));
 								break;
 							}
 
@@ -299,10 +327,82 @@ void Qt5Settings::defaultSettings()
 
 void Qt5Settings::addArgument(Qt5Setting* setting, Qt5SettingArgumentType type, void* dataPointer, uint64 dataSize)
 {
-	(void)setting;
-	(void)type;
-	(void)dataPointer;
-	(void)dataSize;
+	uint32 argumentId;
+
+    for (argumentId = 0; argumentId < QT5_MAX_SETTING_ARGUMENTS; ++argumentId)
+    {
+        if (setting->arguments[argumentId].type == Qt5SettingArgumentType_Reset)
+        {
+            break;
+        }
+    }  
+
+    if (argumentId >= QT5_MAX_SETTING_ARGUMENTS)
+    {
+        return;
+    }
+
+    setting->arguments[argumentId].type = type;
+    setting->arguments[argumentId].dataSize = dataSize;
+
+    switch (type)
+    {
+        case Qt5SettingArgumentType_Int8:
+        case Qt5SettingArgumentType_Int16:
+        case Qt5SettingArgumentType_Int32:
+        case Qt5SettingArgumentType_UInt8:
+        case Qt5SettingArgumentType_UInt16:
+        case Qt5SettingArgumentType_UInt32:
+        case Qt5SettingArgumentType_Bool:
+        {
+            setting->arguments[argumentId].dataPointer = dataPointer;
+            break;
+        }
+
+        case Qt5SettingArgumentType_Int64:
+        case Qt5SettingArgumentType_UInt64:
+        {
+            setting->arguments[argumentId].dataPointer = calloc(sizeof(int64), 1);
+            memcpy(setting->arguments[argumentId].dataPointer, dataPointer, sizeof(int64));
+            break;
+        }
+
+        case Qt5SettingArgumentType_String:
+        {
+            if (dataPointer)
+            {
+            	const uint32 stringLength = strlen(static_cast<char8*>(dataPointer));
+                setting->arguments[argumentId].dataPointer = calloc(stringLength + 1, 1);
+                memcpy(setting->arguments[argumentId].dataPointer, dataPointer, stringLength + 1);
+            }
+            else
+            {
+                setting->arguments[argumentId].dataPointer = nullptr;
+            }
+
+            break;
+        }
+
+        case Qt5SettingArgumentType_Blob:
+        {
+            if (dataPointer)
+            {
+                setting->arguments[argumentId].dataPointer = calloc(dataSize, 1);
+                memcpy(setting->arguments[argumentId].dataPointer, dataPointer, dataSize);
+            }
+            else
+            {
+                setting->arguments[argumentId].dataPointer = nullptr;
+            }
+
+            break;
+        }
+
+        default:
+            break;
+    }
+
+    ++setting->argumentCount;
 }
 
 Qt5SettingArgument* Qt5Settings::getArgument(Qt5Setting* setting, uint32 id)
@@ -312,8 +412,65 @@ Qt5SettingArgument* Qt5Settings::getArgument(Qt5Setting* setting, uint32 id)
 
 void Qt5Settings::copyArgument(Qt5SettingArgument* dst, const Qt5SettingArgument& src)
 {
-	(void)dst;
-	(void)src;
+	dst->type = src.type;
+    dst->dataSize = src.dataSize;
+    
+    switch (dst->type)
+    {
+        case Qt5SettingArgumentType_Int8:
+        case Qt5SettingArgumentType_Int16:
+        case Qt5SettingArgumentType_Int32:
+        case Qt5SettingArgumentType_UInt8:
+        case Qt5SettingArgumentType_UInt16:
+        case Qt5SettingArgumentType_UInt32:
+        case Qt5SettingArgumentType_Bool:
+        {
+            dst->dataPointer = src.dataPointer;
+            break;
+        }
+
+        case Qt5SettingArgumentType_Int64:
+        case Qt5SettingArgumentType_UInt64:
+        {
+            dst->dataPointer = calloc(sizeof(int64), 1);
+            memcpy(dst->dataPointer, &src.dataPointer, sizeof(int64));
+            break;
+        }
+
+        case Qt5SettingArgumentType_String:
+        {
+            if (src.dataPointer)
+            {
+            	const uint32 stringLength = strlen(static_cast<char8*>(src.dataPointer));
+                dst->dataPointer = calloc(stringLength + 1, 1);
+                memcpy(dst->dataPointer, src.dataPointer, stringLength + 1);
+            }
+            else
+            {
+                dst->dataPointer = nullptr;
+            }
+
+            break;
+        }
+
+        case Qt5SettingArgumentType_Blob:
+        {
+            if (src.dataPointer)
+            {
+                dst->dataPointer = calloc(dst->dataSize, 1);
+                memcpy(dst->dataPointer, src.dataPointer, dst->dataSize);
+            }
+            else
+            {
+                dst->dataPointer = nullptr;
+            }
+
+            break;
+        }
+
+        default:
+            break;
+    }
 }
 
 void Qt5Settings::copyArguments(Qt5Setting* dst, Qt5Setting* src)
@@ -370,9 +527,87 @@ void Qt5Settings::resetArguments(Qt5Setting* setting, bool initialize)
 
 void Qt5Settings::saveArgument(Qt5Setting* setting, const uint32 settingIndex, const uint32 argumentIndex)
 {
-	(void)setting;
-	(void)settingIndex;
-	(void)argumentIndex;
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+                       QCoreApplication::organizationName(),
+                       QCoreApplication::applicationName());
+
+	char8 idString[256];
+
+    sprintf(idString, "Setting%i/Argument%i/Type", settingIndex, argumentIndex);
+    settings.setValue(idString, static_cast<int32>(setting->arguments[argumentIndex].type));
+
+    sprintf(idString, "Setting%i/Argument%i/Size", settingIndex, argumentIndex);
+    settings.setValue(idString, static_cast<int32>(setting->arguments[argumentIndex].dataSize));
+
+    sprintf(idString, "Setting%i/Argument%i/Data", settingIndex, argumentIndex);
+
+    switch(setting->arguments[argumentIndex].type)
+    {
+        case Qt5SettingArgumentType_Int8:
+        case Qt5SettingArgumentType_Int16:
+        case Qt5SettingArgumentType_Int32:
+        {
+            settings.setValue(idString,
+            				  int32((int64)setting->arguments[argumentIndex].dataPointer));
+            break;
+        }
+
+        case Qt5SettingArgumentType_UInt8:
+        case Qt5SettingArgumentType_UInt16:
+        case Qt5SettingArgumentType_UInt32:
+        {
+            settings.setValue(idString,
+            				  uint32((uint64)setting->arguments[argumentIndex].dataPointer));
+            break;
+        }
+
+        case Qt5SettingArgumentType_Int64:
+        {
+            settings.setValue(idString,
+            				  *((qlonglong*)setting->arguments[argumentIndex].dataPointer));
+            break;
+        }
+
+        case Qt5SettingArgumentType_UInt64:
+        {
+            settings.setValue(idString,
+            				  *((qulonglong*)setting->arguments[argumentIndex].dataPointer));
+            break;
+        }
+
+        case Qt5SettingArgumentType_Bool:
+        {
+            settings.setValue(idString,
+            				  bool(setting->arguments[argumentIndex].dataPointer));
+            break;
+        }
+
+        case Qt5SettingArgumentType_String:
+        {
+            if (setting->arguments[argumentIndex].dataPointer)
+            {
+                settings.setValue(idString,
+                	              static_cast<char8*>(setting->arguments[argumentIndex].dataPointer));
+            }
+
+            break;
+        }
+
+        case Qt5SettingArgumentType_Blob:
+        {
+            if (setting->arguments[argumentIndex].dataPointer)
+            {
+                settings.setValue(idString,
+                	              QByteArray(static_cast<char8*>(setting->arguments[argumentIndex].dataPointer),
+                	              	         setting->arguments[argumentIndex].dataSize));
+            }
+
+            break;
+        }
+
+        default:
+            break;
+    }
 }
 
 void Qt5Settings::saveArguments(Qt5Setting* setting, const uint32 settingIndex)
@@ -385,9 +620,108 @@ void Qt5Settings::saveArguments(Qt5Setting* setting, const uint32 settingIndex)
 
 void Qt5Settings::loadArgument(Qt5Setting* setting, const uint32 settingIndex, const uint32 argumentIndex)
 {
-	(void)setting;
-	(void)settingIndex;
-	(void)argumentIndex;
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+                       QCoreApplication::organizationName(),
+                       QCoreApplication::applicationName());
+
+    char8 idString[256];
+
+    sprintf(idString, "Setting%i/Argument%i/Type", settingIndex, argumentIndex);
+    setting->arguments[argumentIndex].type = static_cast<Qt5SettingArgumentType>(settings.value(idString).toInt());
+
+    sprintf(idString, "Setting%i/Argument%i/Size", settingIndex, argumentIndex);
+    setting->arguments[argumentIndex].dataSize = settings.value(idString).toInt();
+
+    sprintf(idString, "Setting%i/Argument%i/Data", settingIndex, argumentIndex);
+
+    switch (setting->arguments[argumentIndex].type)
+    {
+        case Qt5SettingArgumentType_Int8:
+        case Qt5SettingArgumentType_Int16:
+        case Qt5SettingArgumentType_Int32:
+        {
+            setting->arguments[argumentIndex].dataPointer = reinterpret_cast<int32*>(settings.value(idString).toInt());
+            break;
+        }
+
+        case Qt5SettingArgumentType_UInt8:
+        case Qt5SettingArgumentType_UInt16:
+        case Qt5SettingArgumentType_UInt32:
+        {
+            setting->arguments[argumentIndex].dataPointer = reinterpret_cast<int32*>(settings.value(idString).toUInt());
+            break;
+        }
+
+        case Qt5SettingArgumentType_Int64:
+        {
+            setting->arguments[argumentIndex].dataPointer = calloc(sizeof(int64), 1);
+            qlonglong tmpLongLong = settings.value(idString).toLongLong();
+            memcpy(setting->arguments[argumentIndex].dataPointer, &tmpLongLong, sizeof(int64));
+            break;
+        }
+
+        case Qt5SettingArgumentType_UInt64:
+        {
+            setting->arguments[argumentIndex].dataPointer = calloc(sizeof(uint64), 1);
+            qulonglong tmpULongLong = settings.value(idString).toULongLong();
+            memcpy(setting->arguments[argumentIndex].dataPointer, &tmpULongLong, sizeof(uint64));
+            break;
+        }
+
+        case Qt5SettingArgumentType_Bool:
+        {
+            setting->arguments[argumentIndex].dataPointer = reinterpret_cast<bool*>(settings.value(idString).toBool());
+            break;
+        }
+
+        case Qt5SettingArgumentType_String:
+        {
+            if (setting->arguments[argumentIndex].dataPointer)
+            {
+				free(setting->arguments[argumentIndex].dataPointer);
+			}
+
+            QString tmpString = settings.value(idString).toString();
+            if (!tmpString.isNull() && tmpString.length() > 0)
+            {
+                QByteArray tmpbStr = tmpString.toLatin1();
+                const char8* tempStr = tmpbStr.data();
+                setting->arguments[argumentIndex].dataPointer = static_cast<char8*>(calloc(strlen(tempStr) + 1, 1));
+                memcpy(setting->arguments[argumentIndex].dataPointer, tempStr, strlen(tempStr) + 1);
+            }
+            else
+            {
+                setting->arguments[argumentIndex].dataPointer = nullptr;
+            }
+
+            break;
+        }
+
+        case Qt5SettingArgumentType_Blob:
+        {
+            if (setting->arguments[argumentIndex].dataPointer)
+            {
+				free(setting->arguments[argumentIndex].dataPointer);
+			}
+
+			QByteArray tmpData = settings.value(idString).toByteArray();
+			if (!tmpData.isNull() && tmpData.size() > 0)
+			{
+				const char8* tempData = tmpData.data();
+				setting->arguments[argumentIndex].dataPointer = static_cast<char8*>(calloc(setting->arguments[argumentIndex].dataSize, 1));
+				memcpy(setting->arguments[argumentIndex].dataPointer, tempData, setting->arguments[argumentIndex].dataSize);
+			}
+			else
+			{
+				setting->arguments[argumentIndex].dataPointer = nullptr;
+			}
+
+            break;
+        }
+
+        default:
+            break;
+    }
 }
 
 void Qt5Settings::loadArguments(Qt5Setting* setting, const uint32 settingIndex)
@@ -505,7 +839,120 @@ void Qt5Settings::saveLayout(Qt5Layout* layout)
 
 void Qt5Settings::loadLayout(Qt5Layout* layout)
 {
-	(void)layout;
+	QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+                       QCoreApplication::organizationName(),
+                       QCoreApplication::applicationName());
+
+	if (!settings.contains("Layout/EntryCount"))
+	{
+		layout->entryCount = 0;
+		return;
+	}
+
+	char8 idString[256];
+
+	layout->entryCount = settings.value("Layout/EntryCount").toInt();
+	layout->entries = static_cast<Qt5LayoutEntry*>(malloc(sizeof(Qt5LayoutEntry) * layout->entryCount));
+
+	for (int32 index = 0; index < layout->entryCount; ++index)
+	{
+		resetEntry(&layout->entries[index]);
+
+		sprintf(idString, "Layout/Entry%i/EntryId", index);
+		layout->entries[index].entryId = settings.value(idString).toInt();
+
+		sprintf(idString, "Layout/Entry%i/ViewType", index);
+		layout->entries[index].viewType = static_cast<Qt5ViewType>(settings.value(idString).toInt());
+
+		sprintf(idString, "Layout/Entry%i/ParentId", index);
+		layout->entries[index].parentId = settings.value(idString).toInt();
+
+		sprintf(idString, "Layout/Entry%i/PositionX", index);
+		layout->entries[index].positionX = settings.value(idString).toInt();
+
+		sprintf(idString, "Layout/Entry%i/PositionY", index);
+		layout->entries[index].positionY = settings.value(idString).toInt();
+
+		sprintf(idString, "Layout/Entry%i/SizeX", index);
+		layout->entries[index].sizeX = settings.value(idString).toInt();
+
+		sprintf(idString, "Layout/Entry%i/SizeY", index);
+		layout->entries[index].sizeY = settings.value(idString).toInt();
+
+		sprintf(idString, "Layout/Entry%i/ExtendedData", index);
+
+        if (settings.value(idString).type() == QVariant::String)
+        {
+            QByteArray value = settings.value(idString).toByteArray();
+
+            if (layout->entries[index].extendedData.dataPointer)
+            {
+                free(layout->entries[index].extendedData.dataPointer);
+                layout->entries[index].extendedData.dataPointer = nullptr;
+            }
+
+		    layout->entries[index].extendedData.dataPointer = calloc(value.size() + 1, sizeof(char8));
+            strcpy(static_cast<char8*>(layout->entries[index].extendedData.dataPointer), value.data());
+            layout->entries[index].extendedData.dataSize = value.size();
+            layout->entries[index].extendedData.type = Qt5SettingArgumentType_String;
+        }
+
+        if (layout->entries[index].viewType == Qt5ViewType_Main)
+		{
+			sprintf(idString, "Layout/Entry%i/IsMaximized", index);
+			layout->entries[index].isMaximized = settings.value(idString).toBool();
+
+			sprintf(idString, "Layout/Entry%i/MainWindowState", index);
+			layout->entries[index].mainWindowState = new QByteArray(settings.value(idString).toByteArray());
+		}
+		else if (layout->entries[index].viewType == Qt5ViewType_Dynamic)
+		{
+			sprintf(idString, "Layout/Entry%i/Child1", index);
+			layout->entries[index].child1 = settings.value(idString).toInt();
+
+			sprintf(idString, "Layout/Entry%i/Child2", index);
+			layout->entries[index].child2 = settings.value(idString).toInt();
+
+			sprintf(idString, "Layout/Entry%i/IsFloating", index);
+			layout->entries[index].isFloating = settings.value(idString).toBool();
+
+			sprintf(idString, "Layout/Entry%i/HasSplitter", index);
+			layout->entries[index].hasSplitter = settings.value(idString).toBool();
+
+			sprintf(idString, "Layout/Entry%i/FillMainWindow", index);
+			layout->entries[index].fillMainWindow = settings.value(idString).toBool();
+
+			sprintf(idString, "Layout/Entry%i/TopLevel", index);
+			layout->entries[index].topLevel = settings.value(idString).toBool();
+
+			if (layout->entries[index].hasSplitter)
+			{
+				sprintf(idString, "Layout/Entry%i/splitregion1size", index);
+				layout->entries[index].splitRegion1Size = settings.value(idString).toInt();
+
+				sprintf(idString, "Layout/Entry%i/splitregion2size", index);
+				layout->entries[index].splitRegion2Size = settings.value(idString).toInt();
+
+				sprintf(idString, "Layout/Entry%i/splitdirection", index);
+				layout->entries[index].splitDirection = static_cast<Qt::Orientation>(settings.value(idString).toInt());
+			}
+
+			if (!layout->entries[index].fillMainWindow)
+			{
+				sprintf(idString, "Layout/Entry%i/DockPositionX", index);
+				layout->entries[index].dockPositionX = settings.value(idString).toInt();
+
+				sprintf(idString, "Layout/Entry%i/DockPositionY", index);
+				layout->entries[index].dockPositionY = settings.value(idString).toInt();
+
+				sprintf(idString, "Layout/Entry%i/DockSizeX", index);
+				layout->entries[index].dockSizeX = settings.value(idString).toInt();
+
+				sprintf(idString, "Layout/Entry%i/DockSizeY", index);
+				layout->entries[index].dockSizeY = settings.value(idString).toInt();
+			}
+		}
+	}
 }
 
 #if NcFeature(Qt5SettingsDebugLayout)
