@@ -98,7 +98,7 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent),
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
 
-#if defined(_WIN32)
+#if NcFeature(NcPlatformWindows)
     QFont font("Courier", 11);
 #else
     QFont font("Courier", 13);
