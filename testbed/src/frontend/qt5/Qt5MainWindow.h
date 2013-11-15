@@ -43,6 +43,7 @@ class Qt5DebuggerThread;
 struct MenuDescriptor;
 
 extern Qt5Settings* g_settings;
+extern QApplication* g_application;
 
 class Qt5MainWindow : public Qt5BaseView
 {

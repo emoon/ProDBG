@@ -16,12 +16,12 @@
 namespace prodbg
 {
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int realMain(int argc, char* argv[])
 {
 	QApplication app(argc, argv);
+	g_application = &app;
 
 	app.setApplicationName("ProDBG");
 	app.setApplicationVersion("0.0.1");
