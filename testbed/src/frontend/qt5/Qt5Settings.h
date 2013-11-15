@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Qt5Layout.h"
+#include <core/Core.h>
 
 #include <QMap>
 
@@ -12,13 +12,17 @@
 #define QT5_MAX_SETTING_ARGUMENTS 128
 #endif
 
+// Change to NcOn to print out layout to tty
+#define Qt5SettingsDebugLayout NcOn
+
 namespace prodbg
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Qt5Layout;
-class Qt5LayoutEntry;
+struct Qt5Layout;
+struct Qt5LayoutEntry;
+
 class Qt5MainWindow;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,14 +65,14 @@ struct Qt5SettingArgument
 {
     Qt5SettingArgumentType type;
     void* dataPointer;
-    uint64_t dataSize;
+    uint64 dataSize;
 };
 
 struct Qt5Setting
 {
 	Qt5SettingId id;
 	Qt5SettingArgument arguments[QT5_MAX_SETTING_ARGUMENTS]; 
-    uint32_t argumentCount;
+    uint32 argumentCount;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -79,7 +83,7 @@ public:
 	Qt5Settings(Qt5MainWindow* mainWindow);
 	virtual ~Qt5Settings();
 
-	void setSettingCount(int32_t count);
+	void setSettingCount(int32 count);
 	int32_t getSettingCount() const;
 
 	void addSetting(Qt5Setting* setting);
@@ -91,8 +95,8 @@ public:
 	void copySettings(Qt5Settings* dst);
 	void defaultSettings();
 
-	void addArgument(Qt5Setting* setting, Qt5SettingArgumentType type, void* dataPointer, uint64_t dataSize);
-    Qt5SettingArgument* getArgument(Qt5Setting* setting, uint32_t id);
+	void addArgument(Qt5Setting* setting, Qt5SettingArgumentType type, void* dataPointer, uint64 dataSize);
+    Qt5SettingArgument* getArgument(Qt5Setting* setting, uint32 id);
     
     void copyArgument(Qt5SettingArgument* dst, const Qt5SettingArgument& src);
     void copyArguments(Qt5Setting* dst, Qt5Setting* src);
@@ -100,14 +104,18 @@ public:
     void resetArgument(Qt5SettingArgument* dst, bool initialize = false);
     void resetArguments(Qt5Setting* setting, bool initialize = false);
 
-    void saveArgument(Qt5Setting* setting, const uint32_t settingIndex, const uint32_t argumentIndex);
-    void saveArguments(Qt5Setting* setting, const uint32_t settingIndex);
+    void saveArgument(Qt5Setting* setting, const uint32 settingIndex, const uint32 argumentIndex);
+    void saveArguments(Qt5Setting* setting, const uint32 settingIndex);
 
-    void loadArgument(Qt5Setting* setting, const uint32_t settingIndex, const uint32_t argumentIndex);
-    void loadArguments(Qt5Setting* setting, const uint32_t settingIndex);
+    void loadArgument(Qt5Setting* setting, const uint32 settingIndex, const uint32 argumentIndex);
+    void loadArguments(Qt5Setting* setting, const uint32 settingIndex);
 
 	void saveLayout(Qt5Layout* layout);
 	void loadLayout(Qt5Layout* layout);
+
+#if NcFeature(Qt5SettingsDebugLayout)
+	void debugLayout(Qt5Layout* layout);
+#endif
 
 	void resetEntry(Qt5LayoutEntry* entry);
 
@@ -119,7 +127,7 @@ protected:
 
 private:
 	Qt5Setting m_settings[QT5_MAX_SETTINGS];
-	int32_t m_settingCount;
+	int32 m_settingCount;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
