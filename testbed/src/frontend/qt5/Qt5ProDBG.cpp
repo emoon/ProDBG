@@ -1,6 +1,7 @@
 #include <QtGui>
 #include <QApplication>
 #include <QWidget>
+#include <QMessageBox>
 #include <core/PluginHandler.h>
 #include <ProDBGAPI.h>
 #include "Qt5CodeEditor.h"
@@ -22,19 +23,27 @@ static int realMain(int argc, char* argv[])
 {
 	QApplication app(argc, argv);
 
-	QCoreApplication::setOrganizationName("ProDBG Crew");
-	QCoreApplication::setOrganizationDomain("prodbg.com");
-	QCoreApplication::setApplicationName("ProDBG");
-	QCoreApplication::setApplicationVersion("0.0.1");
+	app.setApplicationName("ProDBG");
+	app.setApplicationVersion("0.0.1");
 
+	app.setOrganizationName("ProDBG");
+	app.setOrganizationDomain("www.prodbg.com");
+
+	// \todo: We need to remove this hardcoding at some point
 	if (!PluginHandler_addPlugin("tundra-output/macosx-clang-debug-default/libLLDBPlugin.dylib"))
 	{
 		printf("Unable to load LLDBPlugin\n");
+
+		int ret = QMessageBox::critical(nullptr,
+			                           "ProDBG",
+                                       "Error loading LLDB plugin!\n\n"
+                                       "Debugging will not function correctly.",
+                                       QMessageBox::Ignore | QMessageBox::Abort,
+                                       QMessageBox::Abort);
+		if (ret == QMessageBox::Abort)
+			return -1;
 	}
 
-	app.setApplicationName("ProDBG");
-	app.setOrganizationName("ProDBG");
-	
 	app.setStyle("plastique");
 
 	{
