@@ -2,6 +2,9 @@
 #include <QApplication>
 #include <QWidget>
 #include <QMessageBox>
+#include <QProxyStyle>
+#include <QStyleFactory>
+
 #include <core/PluginHandler.h>
 #include <ProDBGAPI.h>
 #include "Qt5CodeEditor.h"
@@ -44,30 +47,37 @@ static int realMain(int argc, char* argv[])
 			return -1;
 	}
 
-	app.setStyle("plastique");
+	QStyle* style = new QProxyStyle(QStyleFactory::create("fusion"));
+	g_application->setStyle(style);
 
+	QFile f("data/darkorange.stylesheet");
+
+	if (!f.exists())
 	{
-		QFile f("data/darkorange.stylesheet");
-
-		if (!f.exists())
-		{
-			printf("Unable to stylesheet\n");
-		}
-		else
-		{
-			f.open(QFile::ReadOnly | QFile::Text);
-			QTextStream ts(&f);
-			app.setStyleSheet(ts.readAll());
-		}
+		printf("Unable to stylesheet\n");
 	}
-
-
+	else
+	{
+		f.open(QFile::ReadOnly | QFile::Text);
+		QTextStream ts(&f);
+		g_application->setStyleSheet(ts.readAll());
+	}
 
 	Qt5MainWindow window;
 	Qt5Settings settings(&window);
 	g_settings = &settings;
 	window.setupWorkspace();
+	app.connect(g_application, SIGNAL(lastWindowClosed()), g_application, SLOT(quit()));
+	g_settings->loadSettings();
+	Qt5Layout layout;
+	window.loadLayout(&layout);
 	window.show();
+
+	if (layout.entryCount > 0)
+	{
+		window.triggerSignalApplyLayout(&layout);
+		free(layout.entries);
+	}
 
 	return app.exec();
 }
