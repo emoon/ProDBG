@@ -1,5 +1,10 @@
 #pragma once
 
+#include <core/Core.h>
+#include <qt5/Qt5Settings.h>
+
+#include <QSplitter>
+
 namespace prodbg
 {
 
@@ -15,7 +20,7 @@ enum Qt5ViewType
 
 	Qt5ViewType_PluginStart = 0x0020,
 
-	// TODO: Temp
+	// \todo: Temp
 	Qt5ViewType_CallStack,
 	Qt5ViewType_Locals,
 	Qt5ViewType_SourceCode,
@@ -26,21 +31,92 @@ enum Qt5ViewType
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Qt5LayoutEntry
+struct Qt5LayoutEntry
 {
-public:
-    Qt5LayoutEntry()
-	{
-	}
+	///! Id number of layout entry
+	int32 entryId;
+
+	///! Global X position
+	int32 positionX;
+
+	///! Global Y position
+	int32 positionY;
+
+	///! Width of view
+	int32 sizeX;
+
+	///! Height of view
+	int32 sizeY;
+
+	///! If number of parent (0 if main window)
+	int32 parentId;
+
+	///! View tyoe of layout entry
+	Qt5ViewType viewType;
+
+	// Main Window Parameters
+	
+	///! Flag for whether or not the main window is maximized
+	bool isMaximized;
+
+	///! Binary blob for the main window state
+	QByteArray* mainWindowState;
+
+	// Dynamic View Parameters
+	
+	///! Splitter orientation
+	Qt::Orientation splitDirection;
+	
+	///! Size of splitter region 1
+	int32 splitRegion1Size;
+
+	///! Size of splitter region 2
+	int32 splitRegion2Size;
+
+	///! Id number of child 1 (0 if none)
+	int32 child1;
+
+	///! Id number of child 2 (0 if none)
+	int32 child2;
+
+	///! Global X position of dock
+	int32 dockPositionX;
+
+	///! Global Y position of dock
+	int32 dockPositionY;
+
+	///! Width of dock
+	int32 dockSizeX;
+
+	///! Height of dock
+	int32 dockSizeY;
+
+	///! Is docked or floating
+	bool isFloating;
+
+	///! Whether dynamic view has a splitter
+	bool hasSplitter;
+
+	///! Whether the dynamic view is filling the main window (not a dock widget)
+	bool fillMainWindow;
+
+	///! Whether this is a top level dynamic view (main window as its parent)
+	bool topLevel;
+
+	// Miscellaneous
+	
+	///! View specific extended data
+	Qt5SettingArgument extendedData;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Qt5Layout
+struct Qt5Layout
 {
-public:
-	int m_numEntries;
-	Qt5LayoutEntry* m_entries;
+	int32 entryCount;
+	Qt5LayoutEntry* entries;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
