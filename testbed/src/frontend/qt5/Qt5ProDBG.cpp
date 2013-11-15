@@ -61,7 +61,11 @@ static int realMain(int argc, char* argv[])
 		}
 	}
 
+
+
 	Qt5MainWindow window;
+	Qt5Settings settings(&window);
+	g_settings = &settings;
 	window.setupWorkspace();
 	window.show();
 

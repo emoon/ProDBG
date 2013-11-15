@@ -149,7 +149,152 @@ void Qt5Settings::copySettings(Qt5Settings* dst)
 
 void Qt5Settings::defaultSettings()
 {
+	QFile xmlFile(":/DefaultSettings.xml");
+	if (!xmlFile.open(QIODevice::ReadOnly | QIODevice::Text))
+         return;
 
+	QXmlStreamReader xmlReader(&xmlFile);
+    while (!xmlReader.atEnd())
+	{
+		switch (xmlReader.readNext())
+		{
+			case QXmlStreamReader::StartElement:
+			{
+				if (!xmlReader.name().compare(QString("Setting"), Qt::CaseInsensitive))
+				{
+					Qt5SettingId id = Qt5SettingId_Reset;
+					Qt5SettingArgumentType type = Qt5SettingArgumentType_Reset;
+					
+					QString valueString;
+
+					QXmlStreamAttributes itemAttributes = xmlReader.attributes();
+					
+					int32 attributeCount = 0;
+
+					while (!itemAttributes.empty() && attributeCount < itemAttributes.count())
+					{
+						QXmlStreamAttribute itemAttribute = itemAttributes.at(attributeCount);
+
+						if (!itemAttribute.name().compare(QString("Name"), Qt::CaseInsensitive))
+						{
+							id = m_settingIdMap.value(itemAttribute.value().toString().toUpper());
+						}
+						else if (!itemAttribute.name().compare(QString("Type"), Qt::CaseInsensitive))
+						{
+							type = m_argumentTypeMap.value(itemAttribute.value().toString().toUpper());
+						}
+						else if (!itemAttribute.name().compare(QString("Value"), Qt::CaseInsensitive))
+						{
+							valueString = itemAttribute.value().toString();
+						}
+
+						++attributeCount;
+					}
+
+					if (id > 0)
+					{
+						Qt5Setting setting;
+						setting.id = id;
+						g_settings->resetArguments(&setting, true);
+
+						switch (type)
+						{
+							case Qt5SettingArgumentType_Int8:
+							{
+								int8 value = static_cast<int8>(valueString.toShort());
+								addArgument(&setting, type, &value, sizeof(int8));
+								break;
+							}
+
+							case Qt5SettingArgumentType_Int16:
+							{
+								int16 value = static_cast<int16>(valueString.toShort());
+								addArgument(&setting, type, &value, sizeof(int16));
+								break;
+							}
+
+							case Qt5SettingArgumentType_Int32:
+							{
+								int32 value = static_cast<int32>(valueString.toInt());
+								addArgument(&setting, type, &value, sizeof(int32));
+								break;
+							}
+
+							case Qt5SettingArgumentType_Int64:
+							{
+								int64 value = static_cast<int64>(valueString.toLongLong());
+								addArgument(&setting, type, &value, sizeof(int64));
+								break;
+							}
+
+							case Qt5SettingArgumentType_UInt8:
+							{
+								uint8 value = static_cast<uint8>(valueString.toUShort());
+								addArgument(&setting, type, &value, sizeof(uint8));
+								break;
+							}
+
+							case Qt5SettingArgumentType_UInt16:
+							{
+								uint16 value = static_cast<uint16>(valueString.toUShort());
+								addArgument(&setting, type, &value, sizeof(uint16));
+								break;
+							}
+
+							case Qt5SettingArgumentType_UInt32:
+							{
+								uint32 value = static_cast<uint32>(valueString.toUInt());
+								addArgument(&setting, type, &value, sizeof(uint32));
+								break;
+							}
+
+							case Qt5SettingArgumentType_UInt64:
+							{
+								uint64 value = static_cast<uint64>(valueString.toULongLong());
+								addArgument(&setting, type, &value, sizeof(uint64));
+								break;
+							}
+
+							case Qt5SettingArgumentType_Bool:
+							{
+								bool value = static_cast<int8>(valueString.toShort());
+								addArgument(&setting, type, &value, sizeof(bool));
+								break;
+							}
+
+							case Qt5SettingArgumentType_String:
+							{
+								QByteArray value = valueString.toLatin1();
+								addArgument(&setting, type, value.data(), sizeof(value.length()));
+								break;
+							}
+
+							case Qt5SettingArgumentType_Blob:
+							{
+								QByteArray value = valueString.toLatin1();
+								addArgument(&setting, type, value.data(), sizeof(value.length()));
+								break;
+							}
+
+							default:
+							{
+								addArgument(&setting, Qt5SettingArgumentType_Reset, nullptr, 0);
+								break;
+							}
+
+						}
+						
+						addSetting(&setting);
+					}
+				}
+
+				break;
+			}
+
+			default:
+				break;
+		}
+	}
 }
 
 void Qt5Settings::addArgument(Qt5Setting* setting, Qt5SettingArgumentType type, void* dataPointer, uint64 dataSize)

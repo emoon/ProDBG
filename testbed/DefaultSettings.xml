@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<DefaultSettings>
+  <Setting name="OpaqueSplitter" type="bool" value="1"></Setting>
+  <Setting name="QtStyleWin32" type="bool" value="1"></Setting>
+</DefaultSettings>

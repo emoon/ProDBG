@@ -5,10 +5,13 @@
 #include <QMainWindow>
 #include <QObject>
 #include <QSignalMapper>
-#include "Qt5BaseView.h"
-#include "Qt5Layout.h"
-#include "Qt5DockWidget.h"
-#include "Qt5DynamicView.h"
+
+#include <core/Core.h>
+#include <qt5/Qt5BaseView.h>
+#include <qt5/Qt5Layout.h>
+#include <qt5/Qt5DockWidget.h>
+#include <qt5/Qt5DynamicView.h>
+#include <qt5/Qt5Settings.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -38,6 +41,8 @@ class Qt5DebuggerThread;
 #endif
 
 struct MenuDescriptor;
+
+extern Qt5Settings* g_settings;
 
 class Qt5MainWindow : public Qt5BaseView
 {
@@ -139,9 +144,9 @@ protected:
 
 	Qt5LayoutEntry* m_layoutEntries;
 
-	int m_currentLayoutEntry;
-	int m_viewCount;
-	int m_nextView;
+	int32 m_currentLayoutEntry;
+	int32 m_viewCount;
+	int32 m_nextView;
 
 	bool m_viewTable[QT5_MAX_VIEWS];
 
@@ -151,7 +156,7 @@ protected:
 	QWidget* m_backgroundWidget;
 
 	QProgressBar* m_mainWindowProgressBar;
-	int m_progressBarStateCount;
+	int32 m_progressBarStateCount;
 
 private:
 
