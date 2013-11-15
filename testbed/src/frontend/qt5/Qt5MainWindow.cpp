@@ -1234,7 +1234,9 @@ void Qt5MainWindow::errorMessage(const QString& message)
 
 void Qt5MainWindow::writeSettings()
 {
-	QSettings settings;
+	QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+                       QCoreApplication::organizationName(),
+                       QCoreApplication::applicationName());
     settings.beginGroup("MainWindow");
     settings.setValue("size", size());
     settings.setValue("pos", pos());
