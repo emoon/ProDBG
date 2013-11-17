@@ -30,20 +30,6 @@ QApplication* g_application = nullptr;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5MainWindow::newDynamicView()
-{
-	Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
-	dock->setAttribute(Qt::WA_DeleteOnClose, true);
-
-	Qt5DynamicView* dynamicView = new Qt5DynamicView(this, dock, this);
-	dock->setWidget(dynamicView);
-	addDockWidget(Qt::LeftDockWidgetArea, dock);
-
-	emit dynamicView->signalDelayedSetCentralWidget(dynamicView->m_statusLabel);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void Qt5MainWindow::newCallStackView()
 {
 	newView<Qt5CallStackView>();
@@ -128,6 +114,90 @@ void Qt5MainWindow::assignDebugOutputView()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Qt5MainWindow::splitHorizontalCallStackView()
+{
+	splitHorizontalView<Qt5CallStackView>();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::splitHorizontalLocalsView()
+{
+	splitHorizontalView<Qt5LocalsView>();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::splitHorizontalRegistersView()
+{
+	splitHorizontalView<Qt5RegistersView>();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::splitHorizontalSourceCodeView()
+{
+	splitHorizontalView<Qt5SourceCodeView>();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::splitHorizontalHexEditView()
+{
+	splitHorizontalView<Qt5HexEditView>();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::splitHorizontalDebugOutputView()
+{
+	splitHorizontalView<Qt5DebugOutputView>();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::splitVerticalCallStackView()
+{
+	splitVerticalView<Qt5CallStackView>();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::splitVerticalLocalsView()
+{
+	splitVerticalView<Qt5LocalsView>();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::splitVerticalRegistersView()
+{
+	splitVerticalView<Qt5RegistersView>();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::splitVerticalSourceCodeView()
+{
+	splitVerticalView<Qt5SourceCodeView>();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::splitVerticalHexEditView()
+{
+	splitVerticalView<Qt5HexEditView>();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::splitVerticalDebugOutputView()
+{
+	splitVerticalView<Qt5DebugOutputView>();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5MainWindow::fileSettingsFinished(int result)
 {
 	(void)result;
@@ -137,10 +207,10 @@ void Qt5MainWindow::fileSettingsFinished(int result)
 
 struct MenuDescriptor
 {
-	const char* name;
-	int id;
+	const char8* name;
+	int32 id;
 	bool active;
-	const char* shortCut;
+	const char8* shortCut;
 	MenuDescriptor* subMenu;
 };
 
@@ -316,8 +386,6 @@ void Qt5MainWindow::createActions()
 	// Describe window menu actions
 	///////////////////////////////////////////////////////////////////////////////////////////
 
-	m_windowSplitVerticallyAction = new QAction(tr("Split Vertically"), this);
-	m_windowSplitHorizontallyAction = new QAction(tr("Split Horizontally"), this);
 	m_windowFillMainWindowAction = new QAction(tr("Fill Main Window"), this);
 	m_windowUnfillMainWindowAction = new QAction(tr("Unfill Main Window"), this);
 	m_windowDeleteViewAction = new QAction(tr("Delete View"), this);
@@ -325,7 +393,6 @@ void Qt5MainWindow::createActions()
 	m_windowCloseViewAction->setEnabled(false);
 
 	// Describe dynamic view assignment actions
-	m_windowNewDynamicViewAction = new QAction(tr("Dynamic View"), this);
 
 	m_windowNewCallStackViewAction = new QAction(tr("CallStack View"), this);
 	m_windowNewLocalsViewAction = new QAction(tr("Locals View"), this);
@@ -340,6 +407,20 @@ void Qt5MainWindow::createActions()
 	m_windowAssignSourceCodeViewAction = new QAction(tr("Source Code View"), this);
 	m_windowAssignHexEditViewAction = new QAction(tr("Hex Edit View"), this);
 	m_windowAssignDebugOutputViewAction = new QAction(tr("Debug Output View"), this);
+
+	m_windowSplitHorizontalCallStackViewAction = new QAction(tr("CallStack View"), this);
+	m_windowSplitHorizontalLocalsViewAction = new QAction(tr("Locals View"), this);
+	m_windowSplitHorizontalRegistersViewAction = new QAction(tr("Registers View"), this);
+	m_windowSplitHorizontalSourceCodeViewAction = new QAction(tr("Source Code View"), this);
+	m_windowSplitHorizontalHexEditViewAction = new QAction(tr("Hex Edit View"), this);
+	m_windowSplitHorizontalDebugOutputViewAction = new QAction(tr("Debug Output View"), this);
+
+	m_windowSplitVerticalCallStackViewAction = new QAction(tr("CallStack View"), this);
+	m_windowSplitVerticalLocalsViewAction = new QAction(tr("Locals View"), this);
+	m_windowSplitVerticalRegistersViewAction = new QAction(tr("Registers View"), this);
+	m_windowSplitVerticalSourceCodeViewAction = new QAction(tr("Source Code View"), this);
+	m_windowSplitVerticalHexEditViewAction = new QAction(tr("Hex Edit View"), this);
+	m_windowSplitVerticalDebugOutputViewAction = new QAction(tr("Debug Output View"), this);
 
 	// Descibe help menu actions
 	///////////////////////////////////////////////////////////////////////////////////////////
@@ -365,7 +446,6 @@ void Qt5MainWindow::createMenus()
 	///////////////////////////////////////////////////////////////////////////////////////////
 
 	m_newWindowMenu = new QMenu("New View", mainMenuBar);
-	m_newWindowMenu->addAction(m_windowNewDynamicViewAction);
 	m_newWindowMenu->addAction(m_windowNewCallStackViewAction);
 	m_newWindowMenu->addAction(m_windowNewLocalsViewAction);
 	m_newWindowMenu->addAction(m_windowNewRegistersViewAction);
@@ -381,14 +461,31 @@ void Qt5MainWindow::createMenus()
 	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignHexEditViewAction);
 	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignDebugOutputViewAction);
 
+	m_dynamicWindowSplitHorizontalViewMenu = new QMenu("Split View Horizontally", mainMenuBar);
+	m_dynamicWindowSplitHorizontalViewMenu->addAction(m_windowSplitHorizontalCallStackViewAction);
+	m_dynamicWindowSplitHorizontalViewMenu->addAction(m_windowSplitHorizontalLocalsViewAction);
+	m_dynamicWindowSplitHorizontalViewMenu->addAction(m_windowSplitHorizontalRegistersViewAction);
+	m_dynamicWindowSplitHorizontalViewMenu->addAction(m_windowSplitHorizontalSourceCodeViewAction);
+	m_dynamicWindowSplitHorizontalViewMenu->addAction(m_windowSplitHorizontalHexEditViewAction);
+	m_dynamicWindowSplitHorizontalViewMenu->addAction(m_windowSplitHorizontalDebugOutputViewAction);
+
+	m_dynamicWindowSplitVerticalViewMenu = new QMenu("Split View Vertically", mainMenuBar);
+	m_dynamicWindowSplitVerticalViewMenu->addAction(m_windowSplitVerticalCallStackViewAction);
+	m_dynamicWindowSplitVerticalViewMenu->addAction(m_windowSplitVerticalLocalsViewAction);
+	m_dynamicWindowSplitVerticalViewMenu->addAction(m_windowSplitVerticalRegistersViewAction);
+	m_dynamicWindowSplitVerticalViewMenu->addAction(m_windowSplitVerticalSourceCodeViewAction);
+	m_dynamicWindowSplitVerticalViewMenu->addAction(m_windowSplitVerticalHexEditViewAction);
+	m_dynamicWindowSplitVerticalViewMenu->addAction(m_windowSplitVerticalDebugOutputViewAction);
+
+
 	m_dynamicWindowMenu = new QMenu("Dynamic View", mainMenuBar);
-	m_dynamicWindowMenu->addAction(m_windowSplitVerticallyAction);
-	m_dynamicWindowMenu->addAction(m_windowSplitHorizontallyAction);
 	m_dynamicWindowMenu->addAction(m_windowFillMainWindowAction);
 	m_dynamicWindowMenu->addAction(m_windowDeleteViewAction);
 	m_dynamicWindowMenu->addSeparator();
 	m_dynamicWindowMenu->setEnabled(false);
 	m_dynamicWindowMenu->addMenu(m_dynamicWindowAssignViewMenu);
+	m_dynamicWindowMenu->addMenu(m_dynamicWindowSplitHorizontalViewMenu);
+	m_dynamicWindowMenu->addMenu(m_dynamicWindowSplitVerticalViewMenu);
 
 	m_windowMenu = new QMenu("&Window", mainMenuBar);
 	m_windowMenu->addMenu(m_newWindowMenu);
@@ -496,15 +593,12 @@ void Qt5MainWindow::setupWorkspace()
 	// Describe window menu actions
 	///////////////////////////////////////////////////////////////////////////////////////////
 
-	connect(m_windowSplitVerticallyAction, SIGNAL(triggered()), this, SLOT(windowSplitVertically()));
-	connect(m_windowSplitHorizontallyAction, SIGNAL(triggered()), this, SLOT(windowSplitHorizontally()));
 	connect(m_windowFillMainWindowAction, SIGNAL(triggered()), this, SLOT(windowFillMainWindow()));
 	connect(m_windowUnfillMainWindowAction, SIGNAL(triggered()), this, SLOT(windowUnfillMainWindow()));
 	connect(m_windowDeleteViewAction, SIGNAL(triggered()), this, SLOT(windowDeleteView()));
 	connect(m_windowCloseViewAction, SIGNAL(triggered()), this, SLOT(windowCloseView()));
 
 	// Describe dynamic view assignment actions
-	connect(m_windowNewDynamicViewAction, SIGNAL(triggered()), this, SLOT(newDynamicView()));
 	connect(m_windowNewCallStackViewAction, SIGNAL(triggered()), this, SLOT(newCallStackView()));
 	connect(m_windowNewLocalsViewAction, SIGNAL(triggered()), this, SLOT(newLocalsView()));
 	connect(m_windowNewRegistersViewAction, SIGNAL(triggered()), this, SLOT(newRegistersView()));
@@ -518,6 +612,21 @@ void Qt5MainWindow::setupWorkspace()
 	connect(m_windowAssignSourceCodeViewAction, SIGNAL(triggered()), this, SLOT(assignSourceCodeView()));
 	connect(m_windowAssignHexEditViewAction, SIGNAL(triggered()), this, SLOT(assignHexEditView()));
 	connect(m_windowAssignDebugOutputViewAction, SIGNAL(triggered()), this, SLOT(assignDebugOutputView()));
+
+	// Describe dynamic view split actions
+	connect(m_windowSplitHorizontalCallStackViewAction, SIGNAL(triggered()), this, SLOT(splitHorizontalCallStackView()));
+	connect(m_windowSplitHorizontalLocalsViewAction, SIGNAL(triggered()), this, SLOT(splitHorizontalLocalsView()));
+	connect(m_windowSplitHorizontalRegistersViewAction, SIGNAL(triggered()), this, SLOT(splitHorizontalRegistersView()));
+	connect(m_windowSplitHorizontalSourceCodeViewAction, SIGNAL(triggered()), this, SLOT(splitHorizontalSourceCodeView()));
+	connect(m_windowSplitHorizontalHexEditViewAction, SIGNAL(triggered()), this, SLOT(splitHorizontalHexEditView()));
+	connect(m_windowSplitHorizontalDebugOutputViewAction, SIGNAL(triggered()), this, SLOT(splitHorizontalDebugOutputView()));
+
+	connect(m_windowSplitVerticalCallStackViewAction, SIGNAL(triggered()), this, SLOT(splitVerticalCallStackView()));
+	connect(m_windowSplitVerticalLocalsViewAction, SIGNAL(triggered()), this, SLOT(splitVerticalLocalsView()));
+	connect(m_windowSplitVerticalRegistersViewAction, SIGNAL(triggered()), this, SLOT(splitVerticalRegistersView()));
+	connect(m_windowSplitVerticalSourceCodeViewAction, SIGNAL(triggered()), this, SLOT(splitVerticalSourceCodeView()));
+	connect(m_windowSplitVerticalHexEditViewAction, SIGNAL(triggered()), this, SLOT(splitVerticalHexEditView()));
+	connect(m_windowSplitVerticalDebugOutputViewAction, SIGNAL(triggered()), this, SLOT(splitVerticalDebugOutputView()));
 
 	// Descibe help menu actions
 	///////////////////////////////////////////////////////////////////////////////////////////
@@ -913,13 +1022,11 @@ void Qt5MainWindow::loadLayout(Qt5Layout* layout)
 
 void Qt5MainWindow::saveLayout()
 {
-	printf("Start Event: %s - %s\n", __FILE__, __FUNCTION__);
-
 	Qt5Layout layout;
 
 	m_layoutEntries = m_viewCount > 0 ? static_cast<Qt5LayoutEntry*>(malloc(sizeof(Qt5LayoutEntry) * m_viewCount)) : nullptr;
-	if (m_layoutEntries != nullptr)
-		memset(m_layoutEntries, 0x0, sizeof(Qt5LayoutEntry) * m_viewCount);
+	for (int32 entryIndex = 0; entryIndex < m_viewCount; ++entryIndex)
+		g_settings->resetEntry(&m_layoutEntries[entryIndex]);
 
 	m_currentLayoutEntry = 0;
 
@@ -931,16 +1038,12 @@ void Qt5MainWindow::saveLayout()
 	g_settings->saveLayout(&layout);
 
 	free(m_layoutEntries);
-
-	printf("Finish Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::addLayout(Qt5LayoutEntry* layoutEntry)
 {
-	printf("Start Event: %s - %s\n", __FILE__, __FUNCTION__);
-
 	if (m_layoutEntries[m_currentLayoutEntry].extendedData.dataPointer)
     {
         free(m_layoutEntries[m_currentLayoutEntry].extendedData.dataPointer);
@@ -949,8 +1052,6 @@ void Qt5MainWindow::addLayout(Qt5LayoutEntry* layoutEntry)
 
 	memcpy(&m_layoutEntries[m_currentLayoutEntry], layoutEntry, sizeof(Qt5LayoutEntry));
 	++m_currentLayoutEntry;
-
-	printf("Finish Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1169,28 +1270,6 @@ void Qt5MainWindow::triggerSignalApplyLayout(Qt5Layout* layout)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5MainWindow::windowSplitVertically()
-{
-	Qt5DynamicView* view = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
-	if (view == nullptr)
-		return;
-
-	view->splitView(Qt::Horizontal);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5MainWindow::windowSplitHorizontally()
-{
-	Qt5DynamicView* view = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
-	if (view == nullptr)
-		return;
-
-	view->splitView(Qt::Vertical);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void Qt5MainWindow::windowFillMainWindow()
 {
 	Qt5DynamicView* view = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
@@ -1290,15 +1369,7 @@ void Qt5MainWindow::windowDeleteView()
 	Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
 	if (dynamicView == nullptr)
 		return;
-
-	// Most the time the m_pParent of a dynamic view will be another Dynamic View.
-	// However, for base Dynamic views, (Who have a mainwindow as a parent) it will be of type AR_Impl_Main.
-	// Therefore, I can't give it the proper type in the header, so you have to cast it when you need to deal
-	// with its specialized members.
-	//
-	// Even though it's annoying spam, it's very important because it means our Dynamic Views stay
-	// agnostic and behave as they should no matter what they are embedded into.
-
+ 
 	m_deletingDockWidget = true;
 	setCurrentWindow(this, Qt5ViewType_Main);
 

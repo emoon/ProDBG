@@ -15,8 +15,8 @@ Qt5DynamicViewContextMenu::Qt5DynamicViewContextMenu(Qt5MainWindow* mainWindow, 
 {
 	addSeparator();
 	addAction(m_mainWindow->m_dynamicWindowAssignViewMenu->menuAction());
-	addAction(m_mainWindow->m_windowSplitVerticallyAction);
-	addAction(m_mainWindow->m_windowSplitHorizontallyAction);
+	addAction(m_mainWindow->m_dynamicWindowSplitHorizontalViewMenu->menuAction());
+	addAction(m_mainWindow->m_dynamicWindowSplitVerticalViewMenu->menuAction());
 	addAction(m_mainWindow->m_windowFillMainWindowAction);
 	addAction(m_mainWindow->m_windowUnfillMainWindowAction);
 	addAction(m_mainWindow->m_windowDeleteViewAction);
@@ -107,7 +107,7 @@ void Qt5DynamicView::splitView(Qt::Orientation orientation)
 			newViewOrig->assignView(m_children[0]);
 			newViewOrig->m_children[0] = m_children[0];
 			m_children[0]->setParent(newViewOrig);
-			m_children[0]->m_parent = newViewOrig; // GW-TODO: Huh?
+			m_children[0]->m_parent = newViewOrig;
 			m_children[0]->m_parentDock = nullptr;
 		}
 		else
@@ -122,11 +122,16 @@ void Qt5DynamicView::splitView(Qt::Orientation orientation)
 
 		emit newView->signalDelayedSetCentralWidget(newView->m_statusLabel);
 
+        Q_ASSERT(m_children[0] != nullptr);
+        Q_ASSERT(m_children[1] != nullptr);
+        
 		m_splitter->addWidget(m_children[0]);
 		m_splitter->addWidget(m_children[1]);
 
 		m_splitter->setStretchFactor(0, 0);
 		m_splitter->setStretchFactor(1, 0);
+
+		printf("GWDEBUG: Qt5DynamicView::splitView - Splitter count: %d\n", m_splitter->count());
 
 		emit signalDelayedSetCentralWidget(m_splitter);
 	}
@@ -137,7 +142,13 @@ void Qt5DynamicView::splitView(Qt::Orientation orientation)
 void Qt5DynamicView::assignView(Qt5BaseView* view)
 {
 	if (m_splitter != nullptr)
+	{
+		printf("GWDEBUG: Qt5DynamicView::assignView - Splitter count: %d\n", m_splitter->count());
+		QList<int32> it = m_splitter->sizes();
+		printf("GWDEBUG: Qt5DynamicView::assignView - Splitter size test: %d\n", it.count());
+
 		return;
+	}
 
 	if (m_statusLabel != nullptr)
 	{
@@ -233,7 +244,13 @@ void Qt5DynamicView::buildLayout()
 
 	if (m_splitter)
 	{
+		printf("GWDEBUG: Qt5DynamicView::buildLayout - Splitter count test: %d\n", m_splitter->count());
+
 		QList<int32> it = m_splitter->sizes();
+
+		printf("GWDEBUG: Qt5DynamicView::buildLayout - Splitter size test: %d\n", it.count());
+
+
 		entry.splitRegion1Size = it[0];
 		entry.splitRegion2Size = it[1];
 		entry.splitDirection = m_splitter->orientation();
@@ -296,6 +313,8 @@ void Qt5DynamicView::applyLayout(Qt5Layout* layout)
 
 		m_splitter->setStretchFactor(0, 0);
 		m_splitter->setStretchFactor(1, 0);
+
+		printf("GWDEBUG: Qt5DynamicView::applyLayout - Splitter count: %d\n", m_splitter->count());
 
 		emit signalDelayedSetCentralWidget(m_splitter);
 	}

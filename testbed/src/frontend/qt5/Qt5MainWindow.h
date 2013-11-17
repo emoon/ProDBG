@@ -93,8 +93,6 @@ public slots:
 	void fileExit();
 
 	// Dynamic Views
-	void windowSplitVertically();
-	void windowSplitHorizontally();
 	void windowFillMainWindow();
 	void windowUnfillMainWindow();
 	void windowDeleteView();
@@ -123,8 +121,6 @@ public:
 	Qt5BaseView* getCurrentWindow(Qt5ViewType type);
 
 private slots:
-	void newDynamicView();
-
 	void newCallStackView();
 	void newLocalsView();
 	void newRegistersView();
@@ -138,6 +134,20 @@ private slots:
 	void assignSourceCodeView();
 	void assignHexEditView();
 	void assignDebugOutputView();
+
+	void splitHorizontalCallStackView();
+	void splitHorizontalLocalsView();
+	void splitHorizontalRegistersView();
+	void splitHorizontalSourceCodeView();
+	void splitHorizontalHexEditView();
+	void splitHorizontalDebugOutputView();
+
+	void splitVerticalCallStackView();
+	void splitVerticalLocalsView();
+	void splitVerticalRegistersView();
+	void splitVerticalSourceCodeView();
+	void splitVerticalHexEditView();
+	void splitVerticalDebugOutputView();
 
 	void fileSettingsFinished(int result);
 	void onMenu(int id);
@@ -180,17 +190,16 @@ private:
 	QMenu* m_newWindowMenu;
 	QMenu* m_dynamicWindowMenu;
 	QMenu* m_dynamicWindowAssignViewMenu;
+	QMenu* m_dynamicWindowSplitHorizontalViewMenu;
+	QMenu* m_dynamicWindowSplitVerticalViewMenu;
 	QMenu* m_helpMenu;
 
-	QAction* m_windowSplitVerticallyAction;
-	QAction* m_windowSplitHorizontallyAction;
 	QAction* m_windowFillMainWindowAction;
 	QAction* m_windowUnfillMainWindowAction;
 	QAction* m_windowDeleteViewAction;
 	QAction* m_windowCloseViewAction;
 
 	// TODO: Encapsulate specific view logic into plugins or something
-	QAction* m_windowNewDynamicViewAction;
 	QAction* m_windowNewCallStackViewAction;
 	QAction* m_windowNewLocalsViewAction;
 	QAction* m_windowNewRegistersViewAction;
@@ -204,6 +213,20 @@ private:
 	QAction* m_windowAssignSourceCodeViewAction;
 	QAction* m_windowAssignHexEditViewAction;
 	QAction* m_windowAssignDebugOutputViewAction;
+
+	QAction* m_windowSplitHorizontalCallStackViewAction;
+	QAction* m_windowSplitHorizontalLocalsViewAction;
+	QAction* m_windowSplitHorizontalRegistersViewAction;
+	QAction* m_windowSplitHorizontalSourceCodeViewAction;
+	QAction* m_windowSplitHorizontalHexEditViewAction;
+	QAction* m_windowSplitHorizontalDebugOutputViewAction;
+
+	QAction* m_windowSplitVerticalCallStackViewAction;
+	QAction* m_windowSplitVerticalLocalsViewAction;
+	QAction* m_windowSplitVerticalRegistersViewAction;
+	QAction* m_windowSplitVerticalSourceCodeViewAction;
+	QAction* m_windowSplitVerticalHexEditViewAction;
+	QAction* m_windowSplitVerticalDebugOutputViewAction;
 
 	QAction* m_helpAboutAction;
 	QAction* m_helpContentsAction;
@@ -223,6 +246,8 @@ private:
 
 		Qt5DynamicView* dynamicView = new Qt5DynamicView(this, dock, this);
 		dock->setWidget(dynamicView);
+
+		//emit dynamicView->signalDelayedSetCentralWidget(dynamicView->m_statusLabel);
 
 		T* view = new T(this, dock, dynamicView);
 		dynamicView->m_children[0] = view;
@@ -248,6 +273,28 @@ private:
 
 		dynamicView->m_children[0] = view;
 		dynamicView->assignView(view);
+	}
+
+	template<class T> void splitHorizontalView()
+	{
+		Qt5DynamicView* view = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
+		if (view == nullptr)
+			return;
+
+		view->splitView(Qt::Vertical);
+
+		assignView<T>();
+	}
+
+	template<class T> void splitVerticalView()
+	{
+		Qt5DynamicView* view = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
+		if (view == nullptr)
+			return;
+
+		view->splitView(Qt::Horizontal);
+
+		assignView<T>();
 	}
 
 signals:
