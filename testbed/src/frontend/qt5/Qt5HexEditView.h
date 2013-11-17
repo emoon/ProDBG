@@ -37,15 +37,16 @@ public:
 		return Qt5ViewType_HexEdit;
 	}
 
+	virtual QString getViewTypeName() const
+	{
+		return "Memory";
+	}
+
 protected:
 	virtual Qt5ContextMenu* createContextMenu()
 	{
 		return new Qt5HexEditViewContextMenu(m_mainWindow, this);
 	}
-
-public slots:
-	void buildLayout();
-	void applyLayout(Qt5Layout* layout);
 
 private slots:
 	void setAddress(int address);

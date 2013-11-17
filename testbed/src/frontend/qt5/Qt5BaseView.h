@@ -5,6 +5,7 @@
 #include "Qt5CodeEditor.h"
 #include "Qt5Layout.h"
 #include <QMainWindow>
+#include <QLabel>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -31,9 +32,10 @@ public:
     virtual ~Qt5BaseView();
 
     virtual Qt5ViewType getViewType() const = 0;
+    virtual QString getViewTypeName() const = 0;
 
-    int m_id;
-    int m_entry;
+    int32 m_id;
+    int32 m_entry;
 
 protected:
     virtual void contextMenuEvent(QContextMenuEvent* event);
@@ -45,16 +47,21 @@ protected:
         return nullptr;
     }
 
+    QFrame* createFrameEmbedWidget(QWidget* widget, const QString& title);
+
+protected:
     Qt5MainWindow* m_mainWindow;
     Qt5DockWidget* m_parentDock;
     Qt5BaseView* m_parent;
     Qt5ViewType m_type;
+    QFrame* m_frame;
+    QLabel* m_idLabel;
 
 public slots:
     virtual void contextMenuProxy(const QPoint& position);
     virtual void applySettings() {}
-    virtual void buildLayout() = 0;
-    virtual void applyLayout(Qt5Layout* layout) = 0;
+    virtual void buildLayout();
+    virtual void applyLayout(Qt5Layout* layout);
 
 private slots:
     void delayedSetCentralWidget(QWidget* widget);

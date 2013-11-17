@@ -81,6 +81,11 @@ public:
 		return Qt5ViewType_Main;
 	}
 
+	virtual QString getViewTypeName() const
+	{
+		return "Main Window";
+	}
+
 public slots:
 	void fileSettings();
 	void fileSaveLayout();
@@ -121,14 +126,15 @@ private slots:
 	void newDynamicView();
 
 	void newCallStackView();
-	void newRegistersView();
 	void newLocalsView();
+	void newRegistersView();
 	void newSourceCodeView();
 	void newHexEditView();
 	void newDebugOutputView();
 
 	void assignCallStackView();
 	void assignLocalsView();
+	void assignRegistersView();
 	void assignSourceCodeView();
 	void assignHexEditView();
 	void assignDebugOutputView();
@@ -167,8 +173,6 @@ private:
 	void createMenus();
 	void createToolBars();
 	void createStatusBar();
-	void readSettings();
-	void writeSettings();
 
 	QSignalMapper* m_signalMapper;
 
@@ -189,12 +193,14 @@ private:
 	QAction* m_windowNewDynamicViewAction;
 	QAction* m_windowNewCallStackViewAction;
 	QAction* m_windowNewLocalsViewAction;
+	QAction* m_windowNewRegistersViewAction;
 	QAction* m_windowNewSourceCodeViewAction;
 	QAction* m_windowNewHexEditViewAction;
 	QAction* m_windowNewDebugOutputViewAction;
 
 	QAction* m_windowAssignCallStackViewAction;
 	QAction* m_windowAssignLocalsViewAction;
+	QAction* m_windowAssignRegistersViewAction;
 	QAction* m_windowAssignSourceCodeViewAction;
 	QAction* m_windowAssignHexEditViewAction;
 	QAction* m_windowAssignDebugOutputViewAction;

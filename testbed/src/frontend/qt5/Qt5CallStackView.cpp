@@ -25,15 +25,13 @@ Qt5CallStackView::Qt5CallStackView(Qt5MainWindow* mainWindow, Qt5DockWidget* doc
 	m_type = Qt5ViewType_CallStack;
 
 	focusInEvent(nullptr);
-	
-	m_callStack = new Qt5CallStack(parent);
-    setCentralWidget(m_callStack);
 
-    connect(parent, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-    connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+	m_callStack = new Qt5CallStack(this);
+	m_callStack->setFocusProxy(this);
+
+	createFrameEmbedWidget(m_callStack, "Call Stack");
+
     connect(m_callStack, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-
-    m_callStack->setFocusProxy(this);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -47,19 +45,6 @@ Qt5CallStackView::~Qt5CallStackView()
 
 	centralWidget()->deleteLater();
     emit signalDelayedSetCentralWidget(nullptr);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5CallStackView::buildLayout()
-{
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5CallStackView::applyLayout(Qt5Layout* layout)
-{
-	(void)layout;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

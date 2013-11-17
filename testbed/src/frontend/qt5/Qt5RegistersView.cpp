@@ -27,14 +27,11 @@ Qt5RegistersView::Qt5RegistersView(Qt5MainWindow* mainWindow, Qt5DockWidget* doc
 	m_type = Qt5ViewType_Registers;
 
 	focusInEvent(nullptr);
-	
-	m_locals = new Qt5Registers(parent);
-    setCentralWidget(m_locals);
 
-    //connect(parent, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-    //connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-    //connect(m_locals, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-    //m_locals->setFocusProxy(this);
+	m_locals = new Qt5Registers(this);
+    m_locals->setFocusProxy(this);
+
+    createFrameEmbedWidget(m_locals, "Registers");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,19 +45,6 @@ Qt5RegistersView::~Qt5RegistersView()
 
 	centralWidget()->deleteLater();
     emit signalDelayedSetCentralWidget(nullptr);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5RegistersView::buildLayout()
-{
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5RegistersView::applyLayout(Qt5Layout* layout)
-{
-	(void)layout;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -37,15 +37,16 @@ public:
 		return Qt5ViewType_Locals;
 	}
 
+	virtual QString getViewTypeName() const
+	{
+		return "Locals";
+	}
+
 protected:
 	virtual Qt5ContextMenu* createContextMenu()
 	{
 		return new Qt5LocalsViewContextMenu(m_mainWindow, this);
 	}
-
-public slots:
-	void buildLayout();
-	void applyLayout(Qt5Layout* layout);
 
 private:
 	Qt5Locals* m_locals;

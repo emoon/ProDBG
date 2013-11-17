@@ -27,15 +27,14 @@ Qt5DebugOutputView::Qt5DebugOutputView(Qt5MainWindow* mainWindow, Qt5DockWidget*
 	m_type = Qt5ViewType_DebugOutput;
 
 	focusInEvent(nullptr);
-	
-	m_debugOutput = new Qt5DebugOutput(parent);
-    setCentralWidget(m_debugOutput);
 
-    connect(parent, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-    connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+	m_debugOutput = new Qt5DebugOutput(this);
+	m_debugOutput->setFocusProxy(this);
+	m_debugOutput->setContextMenuPolicy(Qt::CustomContextMenu);
+
+	createFrameEmbedWidget(m_debugOutput, "Debug Output");
+
     connect(m_debugOutput, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-
-    m_debugOutput->setFocusProxy(this);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -49,19 +48,6 @@ Qt5DebugOutputView::~Qt5DebugOutputView()
 
 	centralWidget()->deleteLater();
     emit signalDelayedSetCentralWidget(nullptr);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5DebugOutputView::buildLayout()
-{
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5DebugOutputView::applyLayout(Qt5Layout* layout)
-{
-	(void)layout;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

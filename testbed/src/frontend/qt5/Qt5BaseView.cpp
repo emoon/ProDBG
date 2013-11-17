@@ -13,6 +13,8 @@ Qt5BaseView::Qt5BaseView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5Base
 , m_parentDock(dock)
 , m_parent(parent)
 , m_type(Qt5ViewType_Reset)
+, m_frame(nullptr)
+, m_idLabel(nullptr)
 {
     setParent(m_parent);
 
@@ -29,6 +31,9 @@ Qt5BaseView::Qt5BaseView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5Base
     }
 
     connect(this, SIGNAL(signalDelayedSetCentralWidget(QWidget*)), this, SLOT(delayedSetCentralWidget(QWidget*)), Qt::QueuedConnection);
+
+    connect(parent, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
 
     m_id = m_mainWindow->addView();
     m_entry = 0;
@@ -52,6 +57,8 @@ Qt5BaseView::~Qt5BaseView()
 
 void Qt5BaseView::contextMenuEvent(QContextMenuEvent* event)
 {
+    printf("%s :: contextMenuEvent\n", qPrintable(getViewTypeName()));
+
     focusInEvent(nullptr);
 
     if (!hasSplitter())
@@ -123,13 +130,113 @@ void Qt5BaseView::closeEvent(QCloseEvent* event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+QFrame* Qt5BaseView::createFrameEmbedWidget(QWidget* widget, const QString& title)
+{
+    m_frame = new QFrame(this);
+    m_frame->setFrameShape(QFrame::Box);
+    m_frame->setFrameShadow(QFrame::Plain);
+    m_frame->setContextMenuPolicy(Qt::CustomContextMenu);
+    m_frame->setFocusPolicy(Qt::WheelFocus);
+    m_frame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    QVBoxLayout* frameLayout = new QVBoxLayout();
+    frameLayout->setContentsMargins(2, 2, 2, 2);
+
+    QFont headerFont = QGuiApplication::font();
+    headerFont.setWeight(75);
+    headerFont.setBold(true);
+
+    QHBoxLayout* headerLayout = new QHBoxLayout();
+    headerLayout->setContentsMargins(2, 2, 0, 0);
+
+    QLabel* titleLabel = new QLabel();
+    titleLabel->setFont(headerFont);
+    titleLabel->setFocusPolicy(Qt::NoFocus);
+    titleLabel->setContextMenuPolicy(Qt::CustomContextMenu);
+    titleLabel->setText(title);
+
+    m_idLabel = new QLabel();
+    m_idLabel->setFont(headerFont);
+    m_idLabel->setContextMenuPolicy(Qt::CustomContextMenu);
+    m_idLabel->setText("");
+
+    headerLayout->addWidget(titleLabel);
+    headerLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
+    headerLayout->addWidget(m_idLabel);
+
+    QFrame* horizontalLine = new QFrame();
+    horizontalLine->setFrameShape(QFrame::HLine);
+    horizontalLine->setFrameShadow(QFrame::Plain);
+    horizontalLine->setContextMenuPolicy(Qt::CustomContextMenu);
+    horizontalLine->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+    frameLayout->addLayout(headerLayout);
+
+    frameLayout->addWidget(horizontalLine);
+
+    if (widget != nullptr)
+    {
+        widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        frameLayout->addWidget(widget);
+    }
+
+    m_frame->setLayout(frameLayout);
+    setCentralWidget(m_frame);
+
+    connect(m_frame, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+    connect(titleLabel, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+    connect(m_idLabel, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+
+    m_frame->setFocusProxy(this);
+
+    return m_frame;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Qt5BaseView::contextMenuProxy(const QPoint&)
 {
+    printf("%s :: contextMenuProxy\n", qPrintable(getViewTypeName()));
+    
     focusInEvent(nullptr);
     if (!hasSplitter())
     {
         m_mainWindow->getWindowMenu()->display(cursor().pos());
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5BaseView::buildLayout()
+{
+    Qt5LayoutEntry entry;
+    g_settings->resetEntry(&entry);
+
+    entry.entryId = m_id;
+    entry.viewType = m_type;
+    entry.parentId = m_parent->m_id;
+    entry.positionX = mapToGlobal(pos()).x();
+    entry.positionY = mapToGlobal(pos()).y();
+    entry.sizeX = width();
+    entry.sizeY = height();
+
+    m_mainWindow->addLayout(&entry);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5BaseView::applyLayout(Qt5Layout* layout)
+{
+    Qt5LayoutEntry* entry = &layout->entries[m_entry];
+
+    QPoint mpos = mapFromGlobal(QPoint(entry->positionX, entry->positionY));
+    setGeometry(mpos.x(), mpos.y(), entry->sizeX, entry->sizeY);
+
+    QString idString;
+    idString.setNum(entry->entryId);
+    idString.prepend("( ID: ");
+    idString.append(" )");
+    m_idLabel->setText(idString);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

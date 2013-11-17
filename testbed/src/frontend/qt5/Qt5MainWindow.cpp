@@ -51,16 +51,16 @@ void Qt5MainWindow::newCallStackView()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5MainWindow::newRegistersView()
+void Qt5MainWindow::newLocalsView()
 {
-	newView<Qt5RegistersView>();
+	newView<Qt5LocalsView>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5MainWindow::newLocalsView()
+void Qt5MainWindow::newRegistersView()
 {
-	newView<Qt5LocalsView>();
+	newView<Qt5RegistersView>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,6 +96,13 @@ void Qt5MainWindow::assignCallStackView()
 void Qt5MainWindow::assignLocalsView()
 {
 	assignView<Qt5LocalsView>();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5MainWindow::assignRegistersView()
+{
+	assignView<Qt5RegistersView>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -322,12 +329,14 @@ void Qt5MainWindow::createActions()
 
 	m_windowNewCallStackViewAction = new QAction(tr("CallStack View"), this);
 	m_windowNewLocalsViewAction = new QAction(tr("Locals View"), this);
+	m_windowNewRegistersViewAction = new QAction(tr("Registers View"), this);
 	m_windowNewSourceCodeViewAction = new QAction(tr("Source Code View"), this);
 	m_windowNewHexEditViewAction = new QAction(tr("Hex Edit View"), this);
 	m_windowNewDebugOutputViewAction = new QAction(tr("Debug Output View"), this);
 
 	m_windowAssignCallStackViewAction = new QAction(tr("CallStack View"), this);
 	m_windowAssignLocalsViewAction = new QAction(tr("Locals View"), this);
+	m_windowAssignRegistersViewAction = new QAction(tr("Registers View"), this);
 	m_windowAssignSourceCodeViewAction = new QAction(tr("Source Code View"), this);
 	m_windowAssignHexEditViewAction = new QAction(tr("Hex Edit View"), this);
 	m_windowAssignDebugOutputViewAction = new QAction(tr("Debug Output View"), this);
@@ -359,6 +368,7 @@ void Qt5MainWindow::createMenus()
 	m_newWindowMenu->addAction(m_windowNewDynamicViewAction);
 	m_newWindowMenu->addAction(m_windowNewCallStackViewAction);
 	m_newWindowMenu->addAction(m_windowNewLocalsViewAction);
+	m_newWindowMenu->addAction(m_windowNewRegistersViewAction);
 	m_newWindowMenu->addAction(m_windowNewSourceCodeViewAction);
 	m_newWindowMenu->addAction(m_windowNewHexEditViewAction);
 	m_newWindowMenu->addAction(m_windowNewDebugOutputViewAction);
@@ -366,6 +376,7 @@ void Qt5MainWindow::createMenus()
 	m_dynamicWindowAssignViewMenu = new QMenu("Assign View", mainMenuBar);
 	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignCallStackViewAction);
 	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignLocalsViewAction);
+	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignRegistersViewAction);
 	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignSourceCodeViewAction);
 	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignHexEditViewAction);
 	m_dynamicWindowAssignViewMenu->addAction(m_windowAssignDebugOutputViewAction);
@@ -454,6 +465,10 @@ Qt5MainWindow::Qt5MainWindow() : Qt5BaseView(this, nullptr, nullptr)
 
 	m_id = m_mainWindow->addView();
 
+	connect(this, SIGNAL(signalBuildLayout()), this, SLOT(buildLayout()));
+	connect(this, SIGNAL(signalApplyLayout(Qt5Layout*)), this, SLOT(applyLayout(Qt5Layout*)));
+	connect(this, SIGNAL(signalSettings()), this, SLOT(applySettings()));
+
 	connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
 	connect(m_backgroundWidget, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
 
@@ -464,13 +479,7 @@ Qt5MainWindow::Qt5MainWindow() : Qt5BaseView(this, nullptr, nullptr)
 	connect(this, SIGNAL(destroyed(QObject*)), this, SLOT(shutdown(QObject*)));
 
 	// TODO: This is a bit temporary but will do for now
-
 	Qt5DebugSession::createSession();
-
-	readSettings();
-
-	newSourceCodeView();
-	newRegistersView();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -498,12 +507,14 @@ void Qt5MainWindow::setupWorkspace()
 	connect(m_windowNewDynamicViewAction, SIGNAL(triggered()), this, SLOT(newDynamicView()));
 	connect(m_windowNewCallStackViewAction, SIGNAL(triggered()), this, SLOT(newCallStackView()));
 	connect(m_windowNewLocalsViewAction, SIGNAL(triggered()), this, SLOT(newLocalsView()));
+	connect(m_windowNewRegistersViewAction, SIGNAL(triggered()), this, SLOT(newRegistersView()));
 	connect(m_windowNewSourceCodeViewAction, SIGNAL(triggered()), this, SLOT(newSourceCodeView()));
 	connect(m_windowNewHexEditViewAction, SIGNAL(triggered()), this, SLOT(newHexEditView()));
 	connect(m_windowNewDebugOutputViewAction, SIGNAL(triggered()), this, SLOT(newDebugOutputView()));
 
 	connect(m_windowAssignCallStackViewAction, SIGNAL(triggered()), this, SLOT(assignCallStackView()));
 	connect(m_windowAssignLocalsViewAction, SIGNAL(triggered()), this, SLOT(assignLocalsView()));
+	connect(m_windowAssignRegistersViewAction, SIGNAL(triggered()), this, SLOT(assignRegistersView()));
 	connect(m_windowAssignSourceCodeViewAction, SIGNAL(triggered()), this, SLOT(assignSourceCodeView()));
 	connect(m_windowAssignHexEditViewAction, SIGNAL(triggered()), this, SLOT(assignHexEditView()));
 	connect(m_windowAssignDebugOutputViewAction, SIGNAL(triggered()), this, SLOT(assignDebugOutputView()));
@@ -697,39 +708,263 @@ Qt5BaseView* Qt5MainWindow::getCurrentWindow(Qt5ViewType type)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static inline Qt5BaseView* findObject(Qt5BaseView** objects, int32 count, int32 id)
+{
+	for (int32 index = 0; index < count; ++index)
+	{	
+		if (objects[index])
+		{
+			if (objects[index]->m_id == id)
+				return objects[index];
+		}
+	}
+
+	return nullptr;
+}
+
 void Qt5MainWindow::loadLayout(Qt5Layout* layout)
 {
-	(void)layout;
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
+
+	g_settings->loadLayout(layout);
+
+	if (layout->entryCount <= 0)
+		return;
+
+	int32 index;
+
+	for (index = 0; index < layout->entryCount; ++index)
+	{
+		if (layout->entries[index].viewType == Qt5ViewType_Main)
+			break;
+	}
+
+	if (index >= layout->entryCount)
+	{
+		printf("LAYOUT DATA IS CORRUPT!\n");
+		// Layout data is corrupt
+		return;
+	}
+
+	m_id = layout->entries[index].entryId;
+	m_entry = index;
+
+	Qt5BaseView** objects = new Qt5BaseView*[layout->entryCount];
+
+	for (index = 0; index < layout->entryCount; ++index)
+		objects[index] = nullptr;
+
+	// Setup main view and dynamic views
+	for (index = 0; index < layout->entryCount; ++index)
+	{
+		switch (layout->entries[index].viewType)
+		{
+			case Qt5ViewType_Main:
+			{
+				objects[index] = this;
+				break;
+			}
+
+			case Qt5ViewType_Dynamic:
+			{
+				Qt5DockWidget* dock = nullptr;
+				if ((layout->entries[index].topLevel && !layout->entries[index].fillMainWindow) ||
+					(layout->entries[index].topLevel && m_centralWidgetSet))
+				{
+					dock = new Qt5DockWidget(tr("Dynamic View"), this, this, layout->entries[index].entryId);
+					dock->setAttribute(Qt::WA_DeleteOnClose, true);
+				}
+
+				Qt5DynamicView* dynamicView = new Qt5DynamicView(this, dock, findObject(objects, layout->entryCount, layout->entries[index].parentId));
+				objects[index] = dynamicView;
+				dynamicView->m_id = layout->entries[index].entryId;
+				dynamicView->m_entry = index;
+
+				if (layout->entries[index].topLevel && layout->entries[index].fillMainWindow && !m_centralWidgetSet)
+				{
+					if (centralWidget())
+					{
+						centralWidget()->deleteLater();
+					}
+
+					m_centralWidgetSet = true;
+
+					emit signalDelayedSetCentralWidget(dynamicView);
+				}
+				else if (layout->entries[index].topLevel)
+				{
+					dock->setWidget(dynamicView);
+					addDockWidget(Qt::LeftDockWidgetArea, dock);
+				}
+				
+				emit dynamicView->signalDelayedSetCentralWidget(dynamicView->m_statusLabel);
+			#if 1
+				// Debug code
+				dynamicView->m_statusLabel->setText(QString("Restored Dynamic View\nid: %1 | parent: %2\nchild1: %3 | child2: %4").arg(layout->entries[index].entryId).arg(layout->entries[index].parentId).arg(layout->entries[index].child1).arg(layout->entries[index].child2));
+			#endif
+				break;
+			}
+			default:
+				break;
+		}
+	}
+
+	// Create all view objects except parents and children (need another pass after all pointers are known)
+	for (index = 0; index < layout->entryCount; ++index)
+	{
+		switch (layout->entries[index].viewType)
+		{
+			case Qt5ViewType_CallStack:
+			{
+				Qt5CallStackView* callStackView = new Qt5CallStackView(this, nullptr, (Qt5DynamicView*)findObject(objects, layout->entryCount, layout->entries[index].parentId));
+				objects[index] = callStackView;
+				callStackView->m_id = layout->entries[index].entryId;
+				callStackView->m_entry = index;
+				break;
+			}
+
+			case Qt5ViewType_Locals:
+			{
+				Qt5LocalsView* localsView = new Qt5LocalsView(this, nullptr, (Qt5DynamicView*)findObject(objects, layout->entryCount, layout->entries[index].parentId));
+				objects[index] = localsView;
+				localsView->m_id = layout->entries[index].entryId;
+				localsView->m_entry = index;
+				break;
+			}
+
+			case Qt5ViewType_SourceCode:
+			{
+				Qt5SourceCodeView* sourceCodeView = new Qt5SourceCodeView(this, nullptr, (Qt5DynamicView*)findObject(objects, layout->entryCount, layout->entries[index].parentId));
+				objects[index] = sourceCodeView;
+				sourceCodeView->m_id = layout->entries[index].entryId;
+				sourceCodeView->m_entry = index;
+				break;
+			}
+
+			case Qt5ViewType_HexEdit:
+			{
+				Qt5HexEditView* hexEditView = new Qt5HexEditView(this, nullptr, (Qt5DynamicView*)findObject(objects, layout->entryCount, layout->entries[index].parentId));
+				objects[index] = hexEditView;
+				hexEditView->m_id = layout->entries[index].entryId;
+				hexEditView->m_entry = index;
+				break;
+			}
+
+			case Qt5ViewType_DebugOutput:
+			{
+				Qt5DebugOutputView* debugOutputView = new Qt5DebugOutputView(this, nullptr, (Qt5DynamicView*)findObject(objects, layout->entryCount, layout->entries[index].parentId));
+				objects[index] = debugOutputView;
+				debugOutputView->m_id = layout->entries[index].entryId;
+				debugOutputView->m_entry = index;
+				break;
+			}
+
+			case Qt5ViewType_Registers:
+			{
+				Qt5RegistersView* registersView = new Qt5RegistersView(this, nullptr, (Qt5DynamicView*)findObject(objects, layout->entryCount, layout->entries[index].parentId));
+				objects[index] = registersView;
+				registersView->m_id = layout->entries[index].entryId;
+				registersView->m_entry = index;
+				break;
+			}
+
+			default:
+				break;
+		}
+	}
+
+	resetViews();
+
+	m_viewTable[m_id] = true;
+
+	// Assign all parent and child pointers to objects if applicable.
+	for (index = 0; index < layout->entryCount; ++index)
+	{
+		if (objects[index] && objects[index]->m_type > Qt5ViewType_Main)
+		{
+			objects[index]->m_parent = findObject(objects, layout->entryCount, layout->entries[index].parentId);
+
+			m_viewTable[objects[index]->m_id] = true;
+
+			if (objects[index]->m_parentDock)
+				objects[index]->setParent(objects[index]->m_parentDock);
+			else
+				objects[index]->setParent(objects[index]->m_parent);
+
+			if (objects[index]->m_type == Qt5ViewType_Dynamic)
+			{
+				if (layout->entries[index].child1 > 0)
+					((Qt5DynamicView*)objects[index])->m_children[0] = findObject(objects, layout->entryCount, layout->entries[index].child1);
+				
+				if (layout->entries[index].child2 > 0)
+					((Qt5DynamicView*)objects[index])->m_children[1] = findObject(objects, layout->entryCount, layout->entries[index].child2);
+			}
+			else if (objects[index]->m_type > Qt5ViewType_Dynamic)
+			{
+				((Qt5DynamicView*)objects[index]->m_parent)->assignView(objects[index]);
+			}
+		}
+	}
+
+	delete [] objects;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::saveLayout()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
+	printf("Start Event: %s - %s\n", __FILE__, __FUNCTION__);
+
+	Qt5Layout layout;
+
+	m_layoutEntries = m_viewCount > 0 ? static_cast<Qt5LayoutEntry*>(malloc(sizeof(Qt5LayoutEntry) * m_viewCount)) : nullptr;
+	if (m_layoutEntries != nullptr)
+		memset(m_layoutEntries, 0x0, sizeof(Qt5LayoutEntry) * m_viewCount);
+
+	m_currentLayoutEntry = 0;
+
+	emit signalBuildLayout();
+
+	layout.entryCount = m_currentLayoutEntry;
+	layout.entries = m_layoutEntries;
+
+	g_settings->saveLayout(&layout);
+
+	free(m_layoutEntries);
+
+	printf("Finish Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::addLayout(Qt5LayoutEntry* layoutEntry)
 {
-	(void)layoutEntry;
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
+	printf("Start Event: %s - %s\n", __FILE__, __FUNCTION__);
+
+	if (m_layoutEntries[m_currentLayoutEntry].extendedData.dataPointer)
+    {
+        free(m_layoutEntries[m_currentLayoutEntry].extendedData.dataPointer);
+        m_layoutEntries[m_currentLayoutEntry].extendedData.dataPointer = nullptr;
+    }
+
+	memcpy(&m_layoutEntries[m_currentLayoutEntry], layoutEntry, sizeof(Qt5LayoutEntry));
+	++m_currentLayoutEntry;
+
+	printf("Finish Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5MainWindow::addView()
+int32 Qt5MainWindow::addView()
 {
 	if (m_nextView >= QT5_MAX_VIEWS)
 		return -1;
 
-	int nextView = -1;
+	int32 nextView = -1;
 
 	if (m_nextView <= -1)
 	{
-		for (int index = 0; index < QT5_MAX_VIEWS; ++index)
+		for (int32 index = 0; index < QT5_MAX_VIEWS; ++index)
 		{
 			if (!m_viewTable[index])
 			{
@@ -744,7 +979,7 @@ int Qt5MainWindow::addView()
 		nextView = m_nextView;
 	}
 
-	for (int index = 0; index < QT5_MAX_VIEWS; ++index)
+	for (int32 index = 0; index < QT5_MAX_VIEWS; ++index)
 	{
 		if (!m_viewTable[index])
 		{
@@ -769,7 +1004,7 @@ void Qt5MainWindow::deleteView(int id)
 
 void Qt5MainWindow::resetViews()
 {
-	for (int index = 0; index < QT5_MAX_VIEWS; ++index)
+	for (int32 index = 0; index < QT5_MAX_VIEWS; ++index)
 	{
 		m_viewTable[index] = false;
 	}
@@ -843,6 +1078,8 @@ void Qt5MainWindow::fileSettings()
 void Qt5MainWindow::fileSaveLayout()
 {
 	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
+
+	saveLayout();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1218,7 +1455,7 @@ void Qt5MainWindow::contextMenuProxy(const QPoint&)
 
 void Qt5MainWindow::applySettings()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
+	printf("Start Event: %s - %s\n", __FILE__, __FUNCTION__);
 
 	if (m_shutdown)
 		return;
@@ -1259,27 +1496,59 @@ void Qt5MainWindow::applySettings()
 		QTextStream ts(&f);
 		g_application->setStyleSheet(ts.readAll());
 	}
+
+	printf("Finish Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::buildLayout()
 {
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
+	printf("Start Event: %s - %s\n", __FILE__, __FUNCTION__);
+
+	Qt5LayoutEntry entry;
+	g_settings->resetEntry(&entry);
+
+	entry.entryId = m_id;
+	entry.viewType = m_type;
+	entry.parentId = 0;
+	entry.positionX = pos().x();
+	entry.positionY = pos().y();
+	entry.sizeX = width();
+	entry.sizeY = height();
+	entry.isMaximized = isMaximized();
+	entry.mainWindowState = new QByteArray(saveState());
+
+	addLayout(&entry);
+
+	printf("Finish Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::applyLayout(Qt5Layout* layout)
 {
-	(void)layout;
-	printf("Event: %s - %s\n", __FILE__, __FUNCTION__);
+	printf("Start Event: %s - %s\n", __FILE__, __FUNCTION__);
+
+	Qt5LayoutEntry* entry = &layout->entries[m_entry];
+
+    resize(entry->sizeX, entry->sizeY);
+    move(entry->positionX, entry->positionY);
+
+	if (entry->isMaximized)
+		showMaximized();
+
+	restoreState(*entry->mainWindowState);
+
+	printf("Finish Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5MainWindow::shutdown(QObject*)
 {
+	printf("Start Event: %s - %s\n", __FILE__, __FUNCTION__);
+
 	m_shutdown = true;
 
 	/*if (m_settingsWindow != nullptr)
@@ -1289,11 +1558,12 @@ void Qt5MainWindow::shutdown(QObject*)
 		m_settingsWindow = nullptr;
 	}*/
 
+	
+
 	g_settings->saveSettings();
 	saveLayout();
-	writeSettings();
 
-	printf("Shutdown\n");
+	printf("Finish Event: %s - %s\n", __FILE__, __FUNCTION__);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1301,31 +1571,6 @@ void Qt5MainWindow::shutdown(QObject*)
 void Qt5MainWindow::errorMessage(const QString& message)
 {
 	QMessageBox::critical((QWidget*)parent(), QString("Error"), QString(message), QMessageBox::Ok, QMessageBox::Ok);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5MainWindow::writeSettings()
-{
-	QSettings settings(QSettings::IniFormat, QSettings::UserScope,
-                       QCoreApplication::organizationName(),
-                       QCoreApplication::applicationName());
-    settings.beginGroup("MainWindow");
-    settings.setValue("size", size());
-    settings.setValue("pos", pos());
-    settings.endGroup();
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5MainWindow::readSettings()
-{
-    QSettings settings;
-
-    settings.beginGroup("MainWindow");
-    resize(settings.value("size", size()).toSize());
-    move(settings.value("pos", pos()).toPoint());
-    settings.endGroup();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

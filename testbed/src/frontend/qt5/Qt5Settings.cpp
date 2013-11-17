@@ -927,13 +927,13 @@ void Qt5Settings::loadLayout(Qt5Layout* layout)
 
 			if (layout->entries[index].hasSplitter)
 			{
-				sprintf(idString, "Layout/Entry%i/splitregion1size", index);
+				sprintf(idString, "Layout/Entry%i/SplitRegion1Size", index);
 				layout->entries[index].splitRegion1Size = settings.value(idString).toInt();
 
-				sprintf(idString, "Layout/Entry%i/splitregion2size", index);
+				sprintf(idString, "Layout/Entry%i/SplitRegion2Size", index);
 				layout->entries[index].splitRegion2Size = settings.value(idString).toInt();
 
-				sprintf(idString, "Layout/Entry%i/splitdirection", index);
+				sprintf(idString, "Layout/Entry%i/SplitDirection", index);
 				layout->entries[index].splitDirection = static_cast<Qt::Orientation>(settings.value(idString).toInt());
 			}
 
@@ -956,13 +956,55 @@ void Qt5Settings::loadLayout(Qt5Layout* layout)
 }
 
 #if NcFeature(Qt5SettingsDebugLayout)
+inline const char* viewTypeToString(Qt5ViewType type)
+{
+	switch (type)
+	{
+		case Qt5ViewType_Init:
+			return "Init";
+
+		case Qt5ViewType_Reset:
+			return "Reset";
+
+		case Qt5ViewType_Dock:
+			return "Dock";
+
+		case Qt5ViewType_Main:
+			return "Main";
+
+		case Qt5ViewType_Dynamic:
+			return "Dynamic";
+
+		case Qt5ViewType_CallStack:
+			return "CallStack";
+
+		case Qt5ViewType_Locals:
+			return "Locals";
+
+		case Qt5ViewType_SourceCode:
+			return "Source";
+
+		case Qt5ViewType_HexEdit:
+			return "Memory";
+
+		case Qt5ViewType_DebugOutput:
+			return "DebugOutput";
+
+		case Qt5ViewType_Registers:
+			return "Registers";
+
+		default:
+			return type >= Qt5ViewType_PluginStart ? "Unknown Plugin" : "Unknown";
+	}
+}
+
 void Qt5Settings::debugLayout(Qt5Layout* layout)
 {
 	for (int32 index = 0; index < layout->entryCount; ++index)
 	{
 		printf("View[%d]\n",     index);
 		printf("\tId: %d\n",     layout->entries[index].entryId);
-		printf("\tType: %d\n",   layout->entries[index].viewType);
+		printf("\tType: %s\n",   viewTypeToString(layout->entries[index].viewType));
 		printf("\tParent: %d\n", layout->entries[index].parentId);
 		printf("\tPosX: %d\n",   layout->entries[index].positionX);
 		printf("\tPosY: %d\n",   layout->entries[index].positionY);

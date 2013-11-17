@@ -37,15 +37,16 @@ public:
 		return Qt5ViewType_SourceCode;
 	}
 
+	virtual QString getViewTypeName() const
+	{
+		return "Source";
+	}
+
 protected:
 	virtual Qt5ContextMenu* createContextMenu()
 	{
 		return new Qt5SourceCodeViewContextMenu(m_mainWindow, this);
 	}
-
-public slots:
-	void buildLayout();
-	void applyLayout(Qt5Layout* layout);
 
 private:
 	Qt5CodeEditor* m_sourceCode;

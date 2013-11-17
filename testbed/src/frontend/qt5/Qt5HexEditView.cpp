@@ -25,15 +25,15 @@ Qt5HexEditView::Qt5HexEditView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Q
 	m_type = Qt5ViewType_HexEdit;
 
 	focusInEvent(nullptr);
-	
-	m_hexEdit = new Qt5HexEditWidget(parent);
-    setCentralWidget(m_hexEdit);
 
-    connect(parent, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-    connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+    m_hexEdit = new Qt5HexEditWidget(this);
+    m_hexEdit->setFocusProxy(this);
+
+    createFrameEmbedWidget(m_hexEdit, "Memory");
+
     connect(m_hexEdit, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
 
-    m_hexEdit->setFocusProxy(this);
+    // \todo: this code is awful
 
     m_statusBar = new QStatusBar(m_hexEdit);
 
@@ -106,20 +106,6 @@ void Qt5HexEditView::setAddress(int address)
 void Qt5HexEditView::setSize(int size)
 {
     m_sizeLabel->setText(QString("%1").arg(size));
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5HexEditView::buildLayout()
-{
-
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5HexEditView::applyLayout(Qt5Layout* layout)
-{
-	(void)layout;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -37,15 +37,16 @@ public:
 		return Qt5ViewType_Registers;
 	}
 
+	virtual QString getViewTypeName() const
+	{
+		return "Registers";
+	}
+
 protected:
 	virtual Qt5ContextMenu* createContextMenu()
 	{
 		return new Qt5RegistersViewContextMenu(m_mainWindow, this);
 	}
-
-public slots:
-	void buildLayout();
-	void applyLayout(Qt5Layout* layout);
 
 private:
 	Qt5Registers* m_locals;

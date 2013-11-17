@@ -25,15 +25,13 @@ Qt5SourceCodeView::Qt5SourceCodeView(Qt5MainWindow* mainWindow, Qt5DockWidget* d
 	m_type = Qt5ViewType_SourceCode;
 
 	focusInEvent(nullptr);
-	
-	m_sourceCode = new Qt5CodeEditor(parent);
-    setCentralWidget(m_sourceCode);
 
-    connect(parent, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-    connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+	m_sourceCode = new Qt5CodeEditor(this);
+    // \todo: m_sourceCode->setFocusProxy(this);
+
+    createFrameEmbedWidget(m_sourceCode, "Source");
+
     connect(m_sourceCode, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-
-    //m_sourceCode->setFocusProxy(this);
 
     m_sourceCode->readSourceFile("examples/Fake6502/Fake6502Main.c");
 }
@@ -49,19 +47,6 @@ Qt5SourceCodeView::~Qt5SourceCodeView()
 
 	centralWidget()->deleteLater();
     emit signalDelayedSetCentralWidget(nullptr);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5SourceCodeView::buildLayout()
-{
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5SourceCodeView::applyLayout(Qt5Layout* layout)
-{
-	(void)layout;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

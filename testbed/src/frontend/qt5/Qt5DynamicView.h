@@ -49,6 +49,11 @@ public:
 		return Qt5ViewType_Dynamic;
 	}
 
+	virtual QString getViewTypeName() const
+	{
+		return "Dynamic View";
+	}
+
 	QSplitter* getSplitter() const
 	{
 		return m_splitter;

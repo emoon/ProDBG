@@ -25,15 +25,13 @@ Qt5LocalsView::Qt5LocalsView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5
 	m_type = Qt5ViewType_Locals;
 
 	focusInEvent(nullptr);
-	
-	m_locals = new Qt5Locals(parent);
-    setCentralWidget(m_locals);
 
-    connect(parent, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-    connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-    connect(m_locals, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-
+	m_locals = new Qt5Locals(this);
     m_locals->setFocusProxy(this);
+
+    createFrameEmbedWidget(m_locals, "Locals");
+	
+    connect(m_locals, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -47,20 +45,6 @@ Qt5LocalsView::~Qt5LocalsView()
 
 	centralWidget()->deleteLater();
     emit signalDelayedSetCentralWidget(nullptr);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5LocalsView::buildLayout()
-{
-
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Qt5LocalsView::applyLayout(Qt5Layout* layout)
-{
-	(void)layout;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

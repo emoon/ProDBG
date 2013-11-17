@@ -37,15 +37,16 @@ public:
 		return Qt5ViewType_DebugOutput;
 	}
 
+	virtual QString getViewTypeName() const
+	{
+		return "Debug Output";
+	}
+
 protected:
 	virtual Qt5ContextMenu* createContextMenu()
 	{
 		return new Qt5DebugOutputViewContextMenu(m_mainWindow, this);
 	}
-
-public slots:
-	void buildLayout();
-	void applyLayout(Qt5Layout* layout);
 
 private:
 	Qt5DebugOutput* m_debugOutput;

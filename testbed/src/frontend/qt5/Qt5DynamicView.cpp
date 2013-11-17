@@ -94,15 +94,12 @@ void Qt5DynamicView::splitView(Qt::Orientation orientation)
 
 		m_splitter = new QSplitter(orientation, this);
 
-		// GW-TODO:
-		/*
-		Qt5Setting* splitterSetting = m_currentSettings->getSetting(Qt5Setting_SplitterOpaque);
+		Qt5Setting* splitterSetting = g_settings->getSetting(Qt5SettingId_OpaqueSplitter);
 		if (splitterSetting != nullptr)
 		{
-			Qt5SettingArgument* argument = m_currentSettings->getArgument(splitterSetting, 0);
-			m_splitter->setOpaqueResize((bool)argument->data);
+			Qt5SettingArgument* argument = g_settings->getArgument(splitterSetting, 0);
+			m_splitter->setOpaqueResize((bool)argument->dataPointer);
 		}
-		*/
 
 		Qt5DynamicView* newViewOrig = new Qt5DynamicView(m_mainWindow, nullptr, this);
 		if (m_children[0] != nullptr)
@@ -158,12 +155,91 @@ void Qt5DynamicView::assignView(Qt5BaseView* view)
 
 void Qt5DynamicView::applySettings()
 {
+	printf("Qt5DynamicView::applySettings\n");
+
+	if (m_splitter == nullptr)
+		return;
+
+	Qt5Setting* splitterSetting = g_settings->getSetting(Qt5SettingId_OpaqueSplitter);
+	if (splitterSetting != nullptr)
+	{
+		Qt5SettingArgument* argument = g_settings->getArgument(splitterSetting, 0);
+		m_splitter->setOpaqueResize((bool)argument->dataPointer);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5DynamicView::buildLayout()
 {
+	Qt5LayoutEntry entry;
+	g_settings->resetEntry(&entry);
+
+	entry.entryId = m_id;
+	entry.viewType = m_type;
+	entry.parentId = m_parent->m_id;
+	entry.positionX = mapToGlobal(pos()).x();
+	entry.positionY = mapToGlobal(pos()).y();
+	entry.sizeX = width();
+	entry.sizeY = height();
+
+	if (m_children[0])
+		entry.child1 = m_children[0]->m_id;
+	else
+		entry.child1 = 0;
+
+	if (m_children[1])
+		entry.child2 = m_children[1]->m_id;
+	else
+		entry.child2 = 0;
+
+	if (m_parentDock)
+	{
+		entry.isFloating = m_parentDock->isFloating();
+		if (entry.isFloating)
+		{
+			entry.dockPositionX = m_parentDock->pos().x();
+			entry.dockPositionY = m_parentDock->pos().y();
+			entry.dockSizeX = m_parentDock->width();
+			entry.dockSizeY = m_parentDock->height();
+		}
+		else
+		{
+			entry.dockPositionX = 0;
+			entry.dockPositionY = 0;
+			entry.dockSizeX = 0;
+			entry.dockSizeY = 0;
+		}
+	}
+	else
+	{
+		entry.isFloating = false;
+	}
+
+	if (m_splitter)
+		entry.hasSplitter = true;
+	else
+		entry.hasSplitter = false;
+
+	if (m_parent == m_mainWindow)
+		entry.topLevel = true;
+	else
+		entry.topLevel = false;
+
+	if (m_parentDock == nullptr && m_mainWindow->centralWidget() == this)
+		entry.fillMainWindow = true;
+	else
+		entry.fillMainWindow = false;
+
+	if (m_splitter)
+	{
+		QList<int32> it = m_splitter->sizes();
+		entry.splitRegion1Size = it[0];
+		entry.splitRegion2Size = it[1];
+		entry.splitDirection = m_splitter->orientation();
+	}
+
+	m_mainWindow->addLayout(&entry);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -171,6 +247,52 @@ void Qt5DynamicView::buildLayout()
 void Qt5DynamicView::applyLayout(Qt5Layout* layout)
 {
 	(void)layout;
+
+	printf("Qt5DynamicView::applyLayout\n");
+
+	Qt5LayoutEntry* entry = &layout->entries[m_entry];
+	
+	if (m_parentDock)
+	{
+		if(entry->isFloating)
+		{
+			m_parentDock->setGeometry(entry->dockPositionX, entry->dockPositionY, entry->dockSizeX, entry->dockSizeY);
+			m_parentDock->setFloating(true);
+ 		}
+		else
+		{
+			m_parentDock->setFloating(false);
+		}
+	}
+
+	QPoint mpos = mapFromGlobal(QPoint(entry->positionX, entry->positionY));
+	setGeometry(mpos.x(), mpos.y(), entry->sizeX, entry->sizeY);
+
+	if (!m_splitter && m_children[0] && m_children[1])
+	{
+		if (m_statusLabel)
+		{
+			m_statusLabel->deleteLater();
+			m_statusLabel = nullptr;
+		}
+
+		m_splitter = new QSplitter(entry->splitDirection, this);
+
+		Qt5Setting* splitterSetting = g_settings->getSetting(Qt5SettingId_OpaqueSplitter);
+		if (splitterSetting != nullptr)
+		{
+			Qt5SettingArgument* argument = g_settings->getArgument(splitterSetting, 0);
+			m_splitter->setOpaqueResize((bool)argument->dataPointer);
+		}
+
+		m_splitter->addWidget(m_children[0]);
+		m_splitter->addWidget(m_children[1]);
+
+		m_splitter->setStretchFactor(0, 0);
+		m_splitter->setStretchFactor(1, 0);
+
+		emit signalDelayedSetCentralWidget(m_splitter);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

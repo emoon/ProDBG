@@ -37,15 +37,16 @@ public:
 		return Qt5ViewType_CallStack;
 	}
 
+	virtual QString getViewTypeName() const
+	{
+		return "Call Stack";
+	}
+
 protected:
 	virtual Qt5ContextMenu* createContextMenu()
 	{
 		return new Qt5CallStackViewContextMenu(m_mainWindow, this);
 	}
-
-public slots:
-	void buildLayout();
-	void applyLayout(Qt5Layout* layout);
 
 private:
 	Qt5CallStack* m_callStack;
