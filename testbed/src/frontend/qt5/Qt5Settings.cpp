@@ -817,6 +817,9 @@ void Qt5Settings::saveLayout(Qt5Layout* layout)
 
 				sprintf(idString, "Layout/Entry%i/SplitDirection", index);
 				settings.setValue(idString, static_cast<int32>(layout->entries[index].splitDirection));
+
+				printf("GWDEBUG: Qt5DynamicView::saveLayout - direction: %s\n",
+					layout->entries[index].splitDirection == Qt::Horizontal ? "Horizontal" : "Vertical");
 			}
 
 			if (!layout->entries[index].fillMainWindow)
@@ -935,6 +938,9 @@ void Qt5Settings::loadLayout(Qt5Layout* layout)
 
 				sprintf(idString, "Layout/Entry%i/SplitDirection", index);
 				layout->entries[index].splitDirection = static_cast<Qt::Orientation>(settings.value(idString).toInt());
+
+				printf("GWDEBUG: Qt5DynamicView::loadLayout - direction: %s\n",
+					layout->entries[index].splitDirection == Qt::Horizontal ? "Horizontal" : "Vertical");
 			}
 
 			if (!layout->entries[index].fillMainWindow)
@@ -956,7 +962,7 @@ void Qt5Settings::loadLayout(Qt5Layout* layout)
 }
 
 #if NcFeature(Qt5SettingsDebugLayout)
-inline const char* viewTypeToString(Qt5ViewType type)
+inline const char8* viewTypeToString(Qt5ViewType type)
 {
 	switch (type)
 	{
@@ -1002,22 +1008,41 @@ void Qt5Settings::debugLayout(Qt5Layout* layout)
 {
 	for (int32 index = 0; index < layout->entryCount; ++index)
 	{
-		printf("View[%d]\n",     index);
-		printf("\tId: %d\n",     layout->entries[index].entryId);
-		printf("\tType: %s\n",   viewTypeToString(layout->entries[index].viewType));
-		printf("\tParent: %d\n", layout->entries[index].parentId);
-		printf("\tPosX: %d\n",   layout->entries[index].positionX);
-		printf("\tPosY: %d\n",   layout->entries[index].positionY);
+		const Qt5LayoutEntry& entry = layout->entries[index];
 
-		if (layout->entries[index].viewType == Qt5ViewType_Dynamic)
+		printf("View[%d]\n",     index);
+		printf("\tId: %d\n",     entry.entryId);
+		printf("\tType: %s\n",   viewTypeToString(entry.viewType));
+		printf("\tParent: %d\n", entry.parentId);
+		printf("\tPosX: %d\n",   entry.positionX);
+		printf("\tPosY: %d\n",   entry.positionY);
+
+		if (entry.viewType == Qt5ViewType_Dynamic)
 		{
 			printf("\tDynamic View Properties:\n");
-			printf("\t\tChild1: %d\n",           layout->entries[index].child1);
-			printf("\t\tChild2: %d\n",           layout->entries[index].child2);
-			printf("\t\tIs Floating: %d\n",      layout->entries[index].isFloating);
-			printf("\t\tHas Splitter: %d\n",     layout->entries[index].hasSplitter);
-			printf("\t\tTop Level: %d\n",        layout->entries[index].topLevel);
-			printf("\t\tFill Main Window: %d\n", layout->entries[index].fillMainWindow);
+			printf("\t\tChild1: %d\n",           entry.child1);
+			printf("\t\tChild2: %d\n",           entry.child2);
+			printf("\t\tIs Floating: %d\n",      entry.isFloating);
+			printf("\t\tHas Splitter: %d\n",     entry.hasSplitter);
+			printf("\t\tTop Level: %d\n",        entry.topLevel);
+			printf("\t\tFill Main Window: %d\n", entry.fillMainWindow);
+
+			if (entry.hasSplitter)
+			{
+				printf("\t\tSplitter Properties:\n");
+				printf("\t\t\tRegion 1 Size: %d\n", entry.splitRegion1Size);
+				printf("\t\t\tRegion 2 Size: %d\n", entry.splitRegion2Size);
+				printf("\t\t\tDirection: %s\n", entry.splitDirection == Qt::Horizontal ? "Horizontal" : "Vertical");
+			}
+
+			if (!entry.fillMainWindow)
+			{
+				printf("\t\tDock Properties:\n");
+				printf("\t\t\tPosX: %d\n", entry.dockPositionX);
+				printf("\t\t\tPosY: %d\n", entry.dockPositionY);
+				printf("\t\t\tSizeX: %d\n", entry.dockSizeX);
+				printf("\t\t\tSizeY: %d\n", entry.dockSizeY);
+			}
 		}
 
 		printf("\n");

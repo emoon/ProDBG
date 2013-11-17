@@ -237,6 +237,9 @@ void Qt5DynamicView::buildLayout()
 		entry.splitRegion1Size = it[0];
 		entry.splitRegion2Size = it[1];
 		entry.splitDirection = m_splitter->orientation();
+
+		printf("GWDEBUG: Qt5DynamicView::buildLayout - direction: %s\n",
+			entry.splitDirection == Qt::Horizontal ? "Horizontal" : "Vertical");
 	}
 
 	m_mainWindow->addLayout(&entry);
@@ -275,6 +278,9 @@ void Qt5DynamicView::applyLayout(Qt5Layout* layout)
 			m_statusLabel->deleteLater();
 			m_statusLabel = nullptr;
 		}
+
+		printf("GWDEBUG: Qt5DynamicView::applyLayout - direction: %s\n",
+			entry->splitDirection == Qt::Horizontal ? "Horizontal" : "Vertical");
 
 		m_splitter = new QSplitter(entry->splitDirection, this);
 
