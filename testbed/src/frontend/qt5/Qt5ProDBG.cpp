@@ -71,6 +71,8 @@ static int realMain(int argc, char* argv[])
 	g_settings->loadSettings();
 	Qt5Layout layout;
 	window.loadLayout(&layout);
+
+#if 0
 	window.show();
 
 	if (layout.entryCount > 0)
@@ -78,6 +80,15 @@ static int realMain(int argc, char* argv[])
 		window.triggerSignalApplyLayout(&layout);
 		free(layout.entries);
 	}
+#else
+	if (layout.entryCount > 0)
+	{
+		window.triggerSignalApplyLayout(&layout);
+		free(layout.entries);
+	}
+
+	window.show();
+#endif
 
 	return app.exec();
 }
