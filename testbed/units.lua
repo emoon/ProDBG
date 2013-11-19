@@ -211,7 +211,7 @@ Program {
 
 		CPPDEFS = {
 			{ "PRODBG_MAC", Config = "macosx-*-*" },
-			{ "PRODBG_WIN"; Config = { "win32-*-*", "win64-*-*" } },
+			{ "PRODBG_WIN", "QT_NO_OPENGL"; Config = { "win32-*-*", "win64-*-*" } },
 		},
 
 		CXXOPTS = { { 
