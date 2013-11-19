@@ -45,7 +45,7 @@ void Qt5DebuggerThread::start()
 
 	PDBinaryReader_init(&m_reader);
 
-	connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
+	connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
 
 	if (m_targetType == Local)
 	{
@@ -78,7 +78,7 @@ void Qt5DebuggerThread::start()
 
 		printf("Connected to %s:%d\n", m_targetHost, m_port);
 
-		m_timer.start(20);
+		m_timer->start(20);
 	}
 }
 
@@ -95,8 +95,8 @@ void Qt5DebuggerThread::updateLocal(void* serializeData, int serSize, int action
 	if (m_debuggerPlugin->update(m_pluginData, (PDAction)action, &m_reader, &m_writer) == PDDebugState_running)
 	{
 		// if timer isn't active at this point we should start it
-		if (!m_timer.isActive())
-			m_timer.start(10);
+		if (!m_timer->isActive())
+			m_timer->start(10);
 	}
 
 	PDBinaryWriter_finalize(&m_writer);

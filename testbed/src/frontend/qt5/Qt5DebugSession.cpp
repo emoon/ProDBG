@@ -180,6 +180,9 @@ void Qt5DebugSession::beginRemote(const char* address, int port)
 	m_debuggerThread->moveToThread(m_threadRunner);
 	m_debuggerThread->setRemoteTarget(address, port);
 
+	m_debuggerThread->m_timer = new QTimer(0); //parent must be null
+	m_debuggerThread->m_timer->moveToThread(m_threadRunner);
+
 	PDWriter writerData;
 	PDWriter* writer = &writerData;
 
@@ -193,6 +196,7 @@ void Qt5DebugSession::beginRemote(const char* address, int port)
 	connect(this, &Qt5DebugSession::sendData, m_debuggerThread, &Qt5DebuggerThread::setState); 
 
 	printf("beginDebug %s:%d %d\n", address, port, (uint32_t)(uint64_t)QThread::currentThreadId());
+
 
 	m_threadRunner->start();
 

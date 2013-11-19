@@ -31,6 +31,9 @@ public:
 	Qt5DebuggerThread(TargetType type);
 	void setRemoteTarget(const char* hostName, int port);
 
+public:
+	QTimer* m_timer;
+
 public slots:
     void start();
 	void update();
@@ -43,6 +46,7 @@ signals:
     // data is here to be set to the serializer. Not very elgent so we should maybe wrap it in something better
     void sendData(uint8_t* serializedata, int size);
 
+
 private:
 	
 	void updateLocal(void* readData, int readSize, int action);
@@ -50,7 +54,6 @@ private:
 	PDDebugState m_debugState;
 	PDBackendPlugin* m_debuggerPlugin;
 	void* m_pluginData;
-	QTimer m_timer;
 	const char* m_targetHost;
 	RemoteConnection* m_connection;
 	int m_port;
