@@ -84,7 +84,7 @@ public:
 	virtual ~Qt5Settings();
 
 	void setSettingCount(int32 count);
-	int32_t getSettingCount() const;
+	int getSettingCount() const;
 
 	void addSetting(Qt5Setting* setting);
 	Qt5Setting* getSetting(Qt5SettingId id);

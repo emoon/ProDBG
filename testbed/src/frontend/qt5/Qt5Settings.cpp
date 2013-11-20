@@ -8,7 +8,7 @@
 #include <QCoreApplication>
 
 #if NcFeature(NcPlatformWindows)
-#include <QPlastiqueStyle>
+//#include <QPlastiqueStyle>
 #endif
 
 namespace prodbg

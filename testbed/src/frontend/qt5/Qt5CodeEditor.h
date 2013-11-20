@@ -15,6 +15,7 @@ class QResizeEvent;
 class QSize;
 class QWidget;
 class QThread;
+class QFileSystemWatcher;
 QT_END_NAMESPACE
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,6 +74,7 @@ private slots:
     void highlightCurrentLine();
     void updateLineNumberArea(const QRect &, int);
     void sessionUpdate();
+    void fileChange(const QString filename);
 
 signals:
 	void tryAddBreakpoint(const char*, int line);
@@ -83,6 +85,8 @@ private:
 
 	AssemblyHighlighter* m_assemblyHighlighter;
     QWidget* m_lineNumberArea;
+	QFileSystemWatcher* m_fileWatcher;
+
 	const char* m_sourceFile;
 	AssemblyRegister* m_assemblyRegisters;
 	Mode m_mode;

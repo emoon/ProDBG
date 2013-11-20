@@ -2,6 +2,7 @@
 #include "Qt5DebugSession.h"
 #include "core/AssemblyRegister.h"
 #include <QtGui>
+#include <QMessageBox>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -77,6 +78,9 @@ class AssemblyHighlighter : public QSyntaxHighlighter
 
 Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent),
 	m_assemblyHighlighter(0),
+	m_lineNumberArea(nullptr),
+	m_fileWatcher(nullptr),
+	m_sourceFile(nullptr),
 	m_address(0),
 	m_disassemblyStart(0),
 	m_disassemblyEnd(0),
@@ -90,13 +94,16 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent),
     setLineWrapMode(QPlainTextEdit::NoWrap);
 
     m_lineNumberArea = new LineNumberArea(this);
+	m_fileWatcher = new QFileSystemWatcher(this); 
 
     connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth(int)));
     connect(this, SIGNAL(updateRequest(const QRect &, int)), this, SLOT(updateLineNumberArea(const QRect&, int)));
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
+    connect(m_fileWatcher, SIGNAL(fileChanged(const QString&)), this, SLOT(fileChange(const QString)));
 
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
+
 
 #if NcFeature(NcPlatformWindows)
     QFont font("Courier", 11);
@@ -117,6 +124,8 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent) : QPlainTextEdit(parent),
 
 Qt5CodeEditor::~Qt5CodeEditor()
 {
+	delete m_assemblyHighlighter; 
+	delete m_fileWatcher;
     g_debugSession->delCodeEditor(this);
 }
 
@@ -132,6 +141,33 @@ void Qt5CodeEditor::sessionUpdate()
 		setFileLine(filename, line);
 
 	update();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Qt5CodeEditor::fileChange(const QString filename)
+{
+	QMessageBox::StandardButton reply;
+
+	reply = QMessageBox::question(this, "File has been changed", "File" + filename + " was changed, Reload?", 
+								  QMessageBox::Yes|QMessageBox::No);
+
+	if (reply != QMessageBox::Yes) 
+		return;
+
+	QFile f(filename);
+
+	if (!f.exists())
+		return;
+
+	f.open(QFile::ReadOnly | QFile::Text);
+	QTextStream ts(&f);
+	setPlainText(ts.readAll());
+
+	// BUG: We need to readd the file here as it seems the watcher thinks it has been deleted (even if just changed)
+	//      so we only get one notification of a change so when doing a re-add here we get correct notifications again
+
+    m_fileWatcher->addPath(filename);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -404,8 +440,13 @@ void Qt5CodeEditor::readSourceFile(const char* filename)
 	if (!f.exists())
 		return;
 
+	if (m_sourceFile)
+		m_fileWatcher->removePath(QString(m_sourceFile));
+
 	free((void*)m_sourceFile);
 	m_sourceFile = strdup(filename);
+
+	m_fileWatcher->addPath(QString(filename));
 
 	f.open(QFile::ReadOnly | QFile::Text);
 	QTextStream ts(&f);
