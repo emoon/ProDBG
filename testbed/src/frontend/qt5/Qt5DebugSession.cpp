@@ -123,6 +123,9 @@ void Qt5DebugSession::begin(const char* executable, bool run)
 	m_threadRunner = new QThread;
 	m_debuggerThread = new Qt5DebuggerThread(Qt5DebuggerThread::Local);
 	m_debuggerThread->moveToThread(m_threadRunner);
+    
+    m_debuggerThread->m_timer = new QTimer(0); //parent must be null
+    m_debuggerThread->m_timer->moveToThread(m_threadRunner);
 
 	PDWriter writerData;
 	PDWriter* writer = &writerData;
