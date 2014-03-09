@@ -22,9 +22,9 @@ Qt5HexEditViewContextMenu::~Qt5HexEditViewContextMenu()
 Qt5HexEditView::Qt5HexEditView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5DynamicView* parent)
 : Qt5BaseView(mainWindow, dock, parent)
 {
-	m_type = Qt5ViewType_HexEdit;
+    m_type = Qt5ViewType_HexEdit;
 
-	focusInEvent(nullptr);
+    focusInEvent(nullptr);
 
     m_hexEdit = new Qt5HexEditWidget(this);
     m_hexEdit->setFocusProxy(this);
@@ -85,12 +85,12 @@ Qt5HexEditView::Qt5HexEditView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Q
 
 Qt5HexEditView::~Qt5HexEditView()
 {
-	disconnect();
-	
-	// Reset Focus Tracking (for safety)
-	m_mainWindow->setCurrentWindow(nullptr, Qt5ViewType_Reset);
+    disconnect();
+    
+    // Reset Focus Tracking (for safety)
+    m_mainWindow->setCurrentWindow(nullptr, Qt5ViewType_Reset);
 
-	centralWidget()->deleteLater();
+    centralWidget()->deleteLater();
     emit signalDelayedSetCentralWidget(nullptr);
 }
 
@@ -112,9 +112,9 @@ void Qt5HexEditView::setSize(int size)
 
 void Qt5HexEditView::testEditor()
 {
-	QString fileName = QString(tr("examples/SimpleBin/MyTest.bin"));
+    QString fileName = QString(tr("examples/SimpleBin/MyTest.bin"));
 
-	QFile file(fileName);
+    QFile file(fileName);
     if (!file.open(QFile::ReadOnly))
     {
         QMessageBox::warning(this, tr("SDI"),

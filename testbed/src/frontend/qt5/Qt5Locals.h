@@ -14,12 +14,12 @@ namespace prodbg
 
 class Qt5Locals : public QTreeWidget
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	Qt5Locals(QWidget* parent);
-	virtual ~Qt5Locals();
+    Qt5Locals(QWidget* parent);
+    virtual ~Qt5Locals();
 
-	void update(PDReader* reader);
+    void update(PDReader* reader);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

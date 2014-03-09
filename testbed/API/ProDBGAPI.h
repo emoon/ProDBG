@@ -48,11 +48,11 @@ typedef enum PDAction
 
 typedef enum PDDebugState
 {
-	PDDebugState_noTarget,
-	PDDebugState_running,
-	PDDebugState_stopBreakpoint,
-	PDDebugState_stopException,
-	PDDebugState_trace,
+    PDDebugState_noTarget,
+    PDDebugState_running,
+    PDDebugState_stopBreakpoint,
+    PDDebugState_stopException,
+    PDDebugState_trace,
 } PDDebugState;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ typedef enum PDEventType
     PDEventType_attachToProcess,
     PDEventType_attachToRemoteSession,
 
-	/// Custom events. Here you can have your own events. Note that they must start with PDEventType_custom  and up
+    /// Custom events. Here you can have your own events. Note that they must start with PDEventType_custom  and up
     PDEventType_custom = 0x1000
 
 } PDEventType;
@@ -101,11 +101,11 @@ typedef struct PDBackendPlugin
     // Updates and Returns the current state of the plugin.
     PDDebugState (*update)(void* userData, PDAction action, PDReader* inEvents, PDWriter* outEvents);
 
-	// Writer functions used for writing data back to the host
-	PDReader reader;
+    // Writer functions used for writing data back to the host
+    PDReader reader;
 
-	// Writer functions used for writing data back to the host
-	PDWriter writer;
+    // Writer functions used for writing data back to the host
+    PDWriter writer;
     // Create and destroy instance of the plugin
 
 } PDBackendPlugin;

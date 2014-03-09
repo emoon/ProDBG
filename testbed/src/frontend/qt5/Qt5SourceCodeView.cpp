@@ -22,11 +22,11 @@ Qt5SourceCodeViewContextMenu::~Qt5SourceCodeViewContextMenu()
 Qt5SourceCodeView::Qt5SourceCodeView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5DynamicView* parent)
 : Qt5BaseView(mainWindow, dock, parent)
 {
-	m_type = Qt5ViewType_SourceCode;
+    m_type = Qt5ViewType_SourceCode;
 
-	focusInEvent(nullptr);
+    focusInEvent(nullptr);
 
-	m_sourceCode = new Qt5CodeEditor(this);
+    m_sourceCode = new Qt5CodeEditor(this);
     // \todo: m_sourceCode->setFocusProxy(this);
 
     createFrameEmbedWidget(m_sourceCode, "Source");
@@ -40,12 +40,12 @@ Qt5SourceCodeView::Qt5SourceCodeView(Qt5MainWindow* mainWindow, Qt5DockWidget* d
 
 Qt5SourceCodeView::~Qt5SourceCodeView()
 {
-	disconnect();
-	
-	// Reset Focus Tracking (for safety)
-	m_mainWindow->setCurrentWindow(nullptr, Qt5ViewType_Reset);
+    disconnect();
+    
+    // Reset Focus Tracking (for safety)
+    m_mainWindow->setCurrentWindow(nullptr, Qt5ViewType_Reset);
 
-	centralWidget()->deleteLater();
+    centralWidget()->deleteLater();
     emit signalDelayedSetCentralWidget(nullptr);
 }
 

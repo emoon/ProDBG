@@ -21,14 +21,14 @@ class Qt5BaseView;
 
 class Qt5BaseView : public QMainWindow
 {
-	Q_OBJECT
+    Q_OBJECT
 
     friend class Qt5DynamicView;
     friend class Qt5MainWindow;
     friend class Qt5DockWidget;
 
 public:
-	Qt5BaseView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5BaseView* parent = nullptr);
+    Qt5BaseView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5BaseView* parent = nullptr);
     virtual ~Qt5BaseView();
 
     virtual Qt5ViewType getViewType() const = 0;

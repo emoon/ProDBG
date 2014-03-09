@@ -24,11 +24,11 @@ Qt5RegistersViewContextMenu::~Qt5RegistersViewContextMenu()
 Qt5RegistersView::Qt5RegistersView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5DynamicView* parent)
 : Qt5BaseView(mainWindow, dock, parent)
 {
-	m_type = Qt5ViewType_Registers;
+    m_type = Qt5ViewType_Registers;
 
-	focusInEvent(nullptr);
+    focusInEvent(nullptr);
 
-	m_locals = new Qt5Registers(this);
+    m_locals = new Qt5Registers(this);
     m_locals->setFocusProxy(this);
 
     createFrameEmbedWidget(m_locals, "Registers");
@@ -38,12 +38,12 @@ Qt5RegistersView::Qt5RegistersView(Qt5MainWindow* mainWindow, Qt5DockWidget* doc
 
 Qt5RegistersView::~Qt5RegistersView()
 {
-	disconnect();
-	
-	// Reset Focus Tracking (for safety)
-	m_mainWindow->setCurrentWindow(nullptr, Qt5ViewType_Reset);
+    disconnect();
+    
+    // Reset Focus Tracking (for safety)
+    m_mainWindow->setCurrentWindow(nullptr, Qt5ViewType_Reset);
 
-	centralWidget()->deleteLater();
+    centralWidget()->deleteLater();
     emit signalDelayedSetCentralWidget(nullptr);
 }
 

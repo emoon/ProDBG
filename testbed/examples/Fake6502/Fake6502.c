@@ -952,17 +952,17 @@ void exec6502(uint32_t tickcount) {
 
 static void updateDebugger()
 {
-	// if we aren't connected with the debugger just update the connection every 128 cycles to save some CPU
+    // if we aren't connected with the debugger just update the connection every 128 cycles to save some CPU
 
     if (!PDRemote_isConnected())
-	{
-		if ((instructions & 127) == 0)
-			PDRemote_update(0);
+    {
+        if ((instructions & 127) == 0)
+            PDRemote_update(0);
 
-		return;
-	}
+        return;
+    }
 
-	PDRemote_update(1);
+    PDRemote_update(1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -983,46 +983,46 @@ void step6502(int printRegs)
 
     instructions++;
 
-	if (printRegs)
-	{
-    	printf("pc %04x sp %02x a %02x x %02x y %02x status %02x\n",
-    		   pc, sp, a, x, y, status);
-	}
+    if (printRegs)
+    {
+        printf("pc %04x sp %02x a %02x x %02x y %02x status %02x\n",
+               pc, sp, a, x, y, status);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void execute6502()
 {
-	// if we should break we should stop here and just have a loop that waits for the next thing to happen
+    // if we should break we should stop here and just have a loop that waits for the next thing to happen
 
-	if (g_debugger->runState == PDDebugState_stopException) 
-	{
-		for (;;) 
-		{
-			switch (g_debugger->runState)
-			{
-				case PDDebugState_running : goto go_on;	// start running as usually
-				case PDDebugState_trace : 
-				{
-					step6502(1); 
-					g_debugger->runState = PDDebugState_stopException;
-					break;
-				}
-				
-				default : break;
-			}
+    if (g_debugger->runState == PDDebugState_stopException) 
+    {
+        for (;;) 
+        {
+            switch (g_debugger->runState)
+            {
+                case PDDebugState_running : goto go_on;    // start running as usually
+                case PDDebugState_trace : 
+                {
+                    step6502(1); 
+                    g_debugger->runState = PDDebugState_stopException;
+                    break;
+                }
+                
+                default : break;
+            }
 
-			PDRemote_update(1);
-		}
-	}
-	else
-	{
-		updateDebugger();
-	}
+            PDRemote_update(1);
+        }
+    }
+    else
+    {
+        updateDebugger();
+    }
 
-go_on:;	
+go_on:;    
 
-	step6502(0);
+    step6502(0);
 }
 

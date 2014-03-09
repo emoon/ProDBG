@@ -4,7 +4,7 @@
 
 typedef struct MyMemoryViewer
 {
-	int someData;
+    int someData;
 
 } MyMemoryViewer;
 
@@ -12,7 +12,7 @@ typedef struct MyMemoryViewer
 
 enum
 {
-	MYBUTTON_EVENT = 1,
+    MYBUTTON_EVENT = 1,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -25,43 +25,43 @@ static int displayMemory(void* userData, void* data, uint64_t length)
 
 static void uiEvent(void* userData, uint32_t id, uint32_t eventType) 
 {
-	MyMemoryViewer* data = (MyMemoryViewer*)userData;
+    MyMemoryViewer* data = (MyMemoryViewer*)userData;
 
-	switch (id)
-	{
-		case MYBUTTON_EVENT :
-		{
-			break;
-		}
-	}
+    switch (id)
+    {
+        case MYBUTTON_EVENT :
+        {
+            break;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void* createInstance(void* parentWindow, ServiceFunc* serviceFunc)
 {
-	MyMemoryViewer* instanceData = malloc(sizeof(MyMemoryViewer));
-	PDUIFuncs* uiFuncs = serviceFunc(PD_UI_GLOBAL); 
+    MyMemoryViewer* instanceData = malloc(sizeof(MyMemoryViewer));
+    PDUIFuncs* uiFuncs = serviceFunc(PD_UI_GLOBAL); 
 
-	uiFuncs->pushButton(parentWindow, "MyTestPutton", MYBUTTON_EVENT);
+    uiFuncs->pushButton(parentWindow, "MyTestPutton", MYBUTTON_EVENT);
 
-	return instanceData;
+    return instanceData;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static PDMemoryViewPlugin memoryPlugin =
 {
-	createInstance,
-	destroyInstance,
-	displayMemory,
-	uiEvent,
+    createInstance,
+    destroyInstance,
+    displayMemory,
+    uiEvent,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int RegisterPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin)
 {
-	registerPlugin(PD_MEMORY_VIEWER, &memoryPlugin);
+    registerPlugin(PD_MEMORY_VIEWER, &memoryPlugin);
 }
 

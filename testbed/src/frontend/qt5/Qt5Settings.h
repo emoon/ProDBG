@@ -29,20 +29,20 @@ class Qt5MainWindow;
 
 enum Qt5SettingId
 {
-	Qt5SettingId_Reset = 0,
+    Qt5SettingId_Reset = 0,
 
-	// 0x1000+ - General settings
-	Qt5SettingId_OpaqueSplitter = 0x1000,
-	Qt5SettingId_OpaqueDockSplitter = 0x1001,
+    // 0x1000+ - General settings
+    Qt5SettingId_OpaqueSplitter = 0x1000,
+    Qt5SettingId_OpaqueDockSplitter = 0x1001,
 
-	// 0x10000+ - Windows settings
-	Qt5SettingId_QtStyleWin32 = 0x10000,
+    // 0x10000+ - Windows settings
+    Qt5SettingId_QtStyleWin32 = 0x10000,
 
-	// 0x20000+ - Mac settings
-	
-	// 0x30000+ - Unix\Linux settings
-	
-	// 0x50000+ - Plugin settings
+    // 0x20000+ - Mac settings
+    
+    // 0x30000+ - Unix\Linux settings
+    
+    // 0x50000+ - Plugin settings
 };
 
 enum Qt5SettingArgumentType
@@ -70,8 +70,8 @@ struct Qt5SettingArgument
 
 struct Qt5Setting
 {
-	Qt5SettingId id;
-	Qt5SettingArgument arguments[QT5_MAX_SETTING_ARGUMENTS]; 
+    Qt5SettingId id;
+    Qt5SettingArgument arguments[QT5_MAX_SETTING_ARGUMENTS]; 
     uint32 argumentCount;
 };
 
@@ -80,22 +80,22 @@ struct Qt5Setting
 class Qt5Settings
 {
 public:
-	Qt5Settings(Qt5MainWindow* mainWindow);
-	virtual ~Qt5Settings();
+    Qt5Settings(Qt5MainWindow* mainWindow);
+    virtual ~Qt5Settings();
 
-	void setSettingCount(int32 count);
-	int getSettingCount() const;
+    void setSettingCount(int32 count);
+    int getSettingCount() const;
 
-	void addSetting(Qt5Setting* setting);
-	Qt5Setting* getSetting(Qt5SettingId id);
+    void addSetting(Qt5Setting* setting);
+    Qt5Setting* getSetting(Qt5SettingId id);
 
-	void resetSettings();
-	void saveSettings();
-	void loadSettings();
-	void copySettings(Qt5Settings* dst);
-	void defaultSettings();
+    void resetSettings();
+    void saveSettings();
+    void loadSettings();
+    void copySettings(Qt5Settings* dst);
+    void defaultSettings();
 
-	void addArgument(Qt5Setting* setting, Qt5SettingArgumentType type, void* dataPointer, uint64 dataSize);
+    void addArgument(Qt5Setting* setting, Qt5SettingArgumentType type, void* dataPointer, uint64 dataSize);
     Qt5SettingArgument* getArgument(Qt5Setting* setting, uint32 id);
     
     void copyArgument(Qt5SettingArgument* dst, const Qt5SettingArgument& src);
@@ -110,24 +110,24 @@ public:
     void loadArgument(Qt5Setting* setting, const uint32 settingIndex, const uint32 argumentIndex);
     void loadArguments(Qt5Setting* setting, const uint32 settingIndex);
 
-	void saveLayout(Qt5Layout* layout);
-	void loadLayout(Qt5Layout* layout);
+    void saveLayout(Qt5Layout* layout);
+    void loadLayout(Qt5Layout* layout);
 
 #if NcFeature(Qt5SettingsDebugLayout)
-	void debugLayout(Qt5Layout* layout);
+    void debugLayout(Qt5Layout* layout);
 #endif
 
-	void resetEntry(Qt5LayoutEntry* entry);
+    void resetEntry(Qt5LayoutEntry* entry);
 
 protected:
-	Qt5MainWindow* m_mainWindow;
+    Qt5MainWindow* m_mainWindow;
 
-	QMap<QString, Qt5SettingArgumentType> m_argumentTypeMap;
-	QMap<QString, Qt5SettingId> m_settingIdMap;
+    QMap<QString, Qt5SettingArgumentType> m_argumentTypeMap;
+    QMap<QString, Qt5SettingId> m_settingIdMap;
 
 private:
-	Qt5Setting m_settings[QT5_MAX_SETTINGS];
-	int32 m_settingCount;
+    Qt5Setting m_settings[QT5_MAX_SETTINGS];
+    int32 m_settingCount;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -19,7 +19,7 @@ public:
     Qt5DebugOutput(QWidget* parent = 0);
     virtual ~Qt5DebugOutput();
 
-	void appendText(const char* line);
+    void appendText(const char* line);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

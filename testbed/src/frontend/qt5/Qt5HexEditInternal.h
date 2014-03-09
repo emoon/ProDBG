@@ -23,7 +23,7 @@ namespace prodbg
 
 class Qt5HexEditInternal : public QWidget
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
     Qt5HexEditInternal(QScrollArea* parent);
@@ -49,7 +49,7 @@ public:
     QString getReadableStringFromSelection();
 
 public:
-	void setAddressArea(bool addressArea);
+    void setAddressArea(bool addressArea);
     void setAddressWidth(int addressWidth);
     void setAsciiArea(bool asciiArea);
     void setHighlighting(bool mode);
@@ -81,13 +81,13 @@ public:
     virtual void setFont(const QFont& font);
 
 signals:
-	void currentAddressChanged(int address);
+    void currentAddressChanged(int address);
     void currentSizeChanged(int size);
     void dataChanged();
     void overwriteModeChanged(bool state);
 
 protected:
-	int calculateCursorPos(QPoint position) const;
+    int calculateCursorPos(QPoint position) const;
 
     void resetSelection(int position);
     void resetSelection();
@@ -98,51 +98,51 @@ protected:
     int getSelectionEnd() const;
 
 protected:
-	void keyPressEvent(QKeyEvent* event);
+    void keyPressEvent(QKeyEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
     void mousePressEvent(QMouseEvent* event);
     void paintEvent(QPaintEvent* event);
 
 private slots:
-	void updateCursor();
+    void updateCursor();
 
 private:
     void adjust();
     void ensureVisible();
 
     void handleCursorMovements(QKeyEvent* event);
-	void handleSelectCommands(QKeyEvent* event);
+    void handleSelectCommands(QKeyEvent* event);
     void handleEditCommands(QKeyEvent* event);
 
 private:
-	Qt5HexEditByteArray m_data;
-	QTimer m_cursorTimer;
-	QColor m_addressAreaColor;
-	QColor m_highlightingColor;
-	QColor m_selectionColor;
-	QScrollArea* m_scrollArea;
-	QUndoStack* m_undoStack;
+    Qt5HexEditByteArray m_data;
+    QTimer m_cursorTimer;
+    QColor m_addressAreaColor;
+    QColor m_highlightingColor;
+    QColor m_selectionColor;
+    QScrollArea* m_scrollArea;
+    QUndoStack* m_undoStack;
 
-	int m_characterWidth;
-	int m_characterHeight;
-	int m_cursorX;
-	int m_cursorY;
-	int m_cursorPosition;
-	int m_addressPosition;
-	int m_hexPosition;
-	int m_asciiPosition;
-	int m_selectionBegin;
-	int m_selectionEnd;
-	int m_selectionAnchor;
-	int m_size;
+    int m_characterWidth;
+    int m_characterHeight;
+    int m_cursorX;
+    int m_cursorY;
+    int m_cursorPosition;
+    int m_addressPosition;
+    int m_hexPosition;
+    int m_asciiPosition;
+    int m_selectionBegin;
+    int m_selectionEnd;
+    int m_selectionAnchor;
+    int m_size;
 
-	bool m_blinking      : 1;
-	bool m_shouldRender  : 1;
-	bool m_addressArea   : 1;
-	bool m_asciiArea     : 1;
-	bool m_highlighting  : 1;
-	bool m_overwriteMode : 1;
-	bool m_readOnly      : 1;
+    bool m_blinking      : 1;
+    bool m_shouldRender  : 1;
+    bool m_addressArea   : 1;
+    bool m_asciiArea     : 1;
+    bool m_highlighting  : 1;
+    bool m_overwriteMode : 1;
+    bool m_readOnly      : 1;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

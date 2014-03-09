@@ -42,13 +42,13 @@ public:
     void addLocals(Qt5Locals* locals);
     void addCallStack(Qt5CallStack* callStack);
     void addTty(Qt5DebugOutput* output);
-	void addRegisters(Qt5Registers* registers);
+    void addRegisters(Qt5Registers* registers);
 
     void delCodeEditor(Qt5CodeEditor* codeEditor);
     void delLocals(Qt5Locals* locals);
     void delCallStack(Qt5CallStack* callStack);
     void delTty(Qt5DebugOutput* output);
-	void delRegisters(Qt5Registers* registers);
+    void delRegisters(Qt5Registers* registers);
 
     void begin(const char* executable, bool run);
     void beginRemote(const char* remoteTarget, int port);
@@ -68,17 +68,17 @@ public:
     void readSourceFile(const char* file);
     
 private slots:
-	// Called from the when a state change has happen that require UI update 
-	void setState(uint8_t* readerData, int size);
+    // Called from the when a state change has happen that require UI update 
+    void setState(uint8_t* readerData, int size);
 
 signals:
-	void tryStartDebugging();
-	void tryAction(int);
-	void sendData(uint8_t* readerData, int size);
+    void tryStartDebugging();
+    void tryAction(int);
+    void sendData(uint8_t* readerData, int size);
 
 private:
 
-	void sendBreakpoint(const char* filename, int line);
+    void sendBreakpoint(const char* filename, int line);
 
     QList<Qt5CodeEditor*> m_codeEditors;
     QList<Qt5Locals*> m_locals;
@@ -86,27 +86,27 @@ private:
     QList<Qt5DebugOutput*> m_debugOutputs;
     QList<Qt5Registers*> m_registers;
 
-	PDBackendPlugin* m_debuggerPlugin;
-	void* m_pluginData;
-	QThread* m_threadRunner;
+    PDBackendPlugin* m_debuggerPlugin;
+    void* m_pluginData;
+    QThread* m_threadRunner;
 
-	// Not sure how we should deal with this but lets keep it
-	// here like a cache.
-	// Maybe we should have this inside a more general cache
+    // Not sure how we should deal with this but lets keep it
+    // here like a cache.
+    // Maybe we should have this inside a more general cache
 
-	struct BreakpointFileLine
-	{
-		const char* filename;
-		int line;
-		int id;
-	};
+    struct BreakpointFileLine
+    {
+        const char* filename;
+        int line;
+        int id;
+    };
 
-	AssemblyRegister* m_assemblyRegisters;
-		
-	//QVector<BreakpointFileLine> m_breakpoints;
-	BreakpointFileLine* m_breakpoints;
+    AssemblyRegister* m_assemblyRegisters;
+        
+    //QVector<BreakpointFileLine> m_breakpoints;
+    BreakpointFileLine* m_breakpoints;
  
- 	int m_assemblyRegistersCount;
+     int m_assemblyRegistersCount;
     int m_breakpointCount;
     int m_breakpointMaxCount;
 

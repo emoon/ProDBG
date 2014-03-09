@@ -17,16 +17,16 @@ class Qt5HexEditValueUndoCommand : public QUndoCommand
 public:
     enum Operation
     {
-    	InsertOperation,
-    	RemoveOperation,
-    	ReplaceOperation
+        InsertOperation,
+        RemoveOperation,
+        ReplaceOperation
     };
 
     Qt5HexEditValueUndoCommand(Qt5HexEditByteArray* data,
-    	                       Operation operation,
-    	                       int characterPosition,
-    	                       char characterNew,
-    	                       QUndoCommand* parent = 0);
+                               Operation operation,
+                               int characterPosition,
+                               char characterNew,
+                               QUndoCommand* parent = 0);
 
     void undo();
     void redo();
@@ -49,17 +49,17 @@ class Qt5HexEditRangeUndoCommand : public QUndoCommand
 public:
     enum Operation
     {
-    	InsertOperation,
-    	RemoveOperation,
-    	ReplaceOperation
+        InsertOperation,
+        RemoveOperation,
+        ReplaceOperation
     };
 
     Qt5HexEditRangeUndoCommand(Qt5HexEditByteArray* data,
-    	                       Operation operation,
-    	                       int positionValues,
-    	                       const QByteArray& newValues,
-    	                       int length = 0,
-    	                       QUndoCommand* parent = 0);
+                               Operation operation,
+                               int positionValues,
+                               const QByteArray& newValues,
+                               int length = 0,
+                               QUndoCommand* parent = 0);
 
     void undo();
     void redo();

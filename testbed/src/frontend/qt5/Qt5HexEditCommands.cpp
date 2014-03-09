@@ -6,10 +6,10 @@ namespace prodbg
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5HexEditValueUndoCommand::Qt5HexEditValueUndoCommand(Qt5HexEditByteArray* data,
-    	                                               Operation operation,
-    	                                               int characterPosition,
-    	                                               char characterNew,
-    	                                               QUndoCommand* parent)
+                                                       Operation operation,
+                                                       int characterPosition,
+                                                       char characterNew,
+                                                       QUndoCommand* parent)
 : QUndoCommand(parent)
 , m_data(data)
 , m_operation(operation)
@@ -24,7 +24,7 @@ Qt5HexEditValueUndoCommand::Qt5HexEditValueUndoCommand(Qt5HexEditByteArray* data
 
 void Qt5HexEditValueUndoCommand::undo()
 {
-	switch (m_operation)
+    switch (m_operation)
     {
         case InsertOperation:
             m_data->remove(m_characterPosition, 1);
@@ -46,7 +46,7 @@ void Qt5HexEditValueUndoCommand::undo()
 
 void Qt5HexEditValueUndoCommand::redo()
 {
-	switch (m_operation)
+    switch (m_operation)
     {
         case InsertOperation:
             m_data->insert(m_characterPosition, m_characterNew);
@@ -74,7 +74,7 @@ bool Qt5HexEditValueUndoCommand::mergeWith(const QUndoCommand* command)
 
     if (m_operation != RemoveOperation)
     {
-    	const Qt5HexEditValueUndoCommand* nextCommand = static_cast<const Qt5HexEditValueUndoCommand*>(command);
+        const Qt5HexEditValueUndoCommand* nextCommand = static_cast<const Qt5HexEditValueUndoCommand*>(command);
         
         if (nextCommand->m_operation == ReplaceOperation)
         {
@@ -92,11 +92,11 @@ bool Qt5HexEditValueUndoCommand::mergeWith(const QUndoCommand* command)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5HexEditRangeUndoCommand::Qt5HexEditRangeUndoCommand(Qt5HexEditByteArray* data,
-    	                                               Operation operation,
-    	                                               int positionValues,
-    	                                               const QByteArray& newValues,
-    	                                               int length,
-    	                                               QUndoCommand* parent)
+                                                       Operation operation,
+                                                       int positionValues,
+                                                       const QByteArray& newValues,
+                                                       int length,
+                                                       QUndoCommand* parent)
 : QUndoCommand(parent)
 , m_data(data)
 , m_operation(operation)
@@ -110,7 +110,7 @@ Qt5HexEditRangeUndoCommand::Qt5HexEditRangeUndoCommand(Qt5HexEditByteArray* data
 
 void Qt5HexEditRangeUndoCommand::undo()
 {
-	switch (m_operation)
+    switch (m_operation)
     {
         case InsertOperation:
             m_data->remove(m_positionValues, m_newValues.length());
@@ -132,7 +132,7 @@ void Qt5HexEditRangeUndoCommand::undo()
 
 void Qt5HexEditRangeUndoCommand::redo()
 {
-	switch (m_operation)
+    switch (m_operation)
     {
         case InsertOperation:
             m_data->insert(m_positionValues, m_newValues);

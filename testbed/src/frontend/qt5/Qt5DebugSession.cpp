@@ -28,11 +28,11 @@ Qt5DebugSession::Qt5DebugSession()
     m_threadRunner = 0;
     m_breakpointCount = 0;
     m_breakpointMaxCount = 0;;
-	m_assemblyRegisters = 0;
-	m_assemblyRegistersCount = 0;
+    m_assemblyRegisters = 0;
+    m_assemblyRegistersCount = 0;
 
     // TODO: Dynamic Array
-	m_breakpoints = new BreakpointFileLine[256];
+    m_breakpoints = new BreakpointFileLine[256];
 
     m_breakpointCount = 0;
     m_breakpointMaxCount = 256;
@@ -120,57 +120,57 @@ void Qt5DebugSession::delRegisters(Qt5Registers* registers)
 
 void Qt5DebugSession::begin(const char* executable, bool run)
 {
-	m_threadRunner = new QThread;
-	m_debuggerThread = new Qt5DebuggerThread(Qt5DebuggerThread::Local);
-	m_debuggerThread->moveToThread(m_threadRunner);
+    m_threadRunner = new QThread;
+    m_debuggerThread = new Qt5DebuggerThread(Qt5DebuggerThread::Local);
+    m_debuggerThread->moveToThread(m_threadRunner);
     
     m_debuggerThread->m_timer = new QTimer(0); //parent must be null
     m_debuggerThread->m_timer->moveToThread(m_threadRunner);
 
-	PDWriter writerData;
-	PDWriter* writer = &writerData;
+    PDWriter writerData;
+    PDWriter* writer = &writerData;
 
-	// TODO: Not sure if we should set this up here, would be better to move it so we don't need to actually
-	//       start a executable/etc when doing a begin
+    // TODO: Not sure if we should set this up here, would be better to move it so we don't need to actually
+    //       start a executable/etc when doing a begin
 
-	connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
-	connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
-	connect(this, &Qt5DebugSession::tryAction, m_debuggerThread, &Qt5DebuggerThread::doAction); 
-	connect(m_debuggerThread, &Qt5DebuggerThread::sendData, this, &Qt5DebugSession::setState);
-	connect(this, &Qt5DebugSession::sendData, m_debuggerThread, &Qt5DebuggerThread::setState); 
+    connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
+    connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
+    connect(this, &Qt5DebugSession::tryAction, m_debuggerThread, &Qt5DebuggerThread::doAction); 
+    connect(m_debuggerThread, &Qt5DebuggerThread::sendData, this, &Qt5DebugSession::setState);
+    connect(this, &Qt5DebugSession::sendData, m_debuggerThread, &Qt5DebuggerThread::setState); 
 
-	printf("beginDebug %s %d\n", executable, (uint32_t)(uint64_t)QThread::currentThreadId());
+    printf("beginDebug %s %d\n", executable, (uint32_t)(uint64_t)QThread::currentThreadId());
 
-	m_threadRunner->start();
+    m_threadRunner->start();
 
-	PDBinaryWriter_init(writer);
+    PDBinaryWriter_init(writer);
 
-	// Write executable
-	
-	printf("Writing down filename %s to executable\n", executable);
+    // Write executable
+    
+    printf("Writing down filename %s to executable\n", executable);
 
-	PDWrite_eventBegin(writer, PDEventType_setExecutable);
-	PDWrite_string(writer, "filename", executable);
-	PDWrite_eventEnd(writer);
+    PDWrite_eventBegin(writer, PDEventType_setExecutable);
+    PDWrite_string(writer, "filename", executable);
+    PDWrite_eventEnd(writer);
 
-	for (int i = 0, count = m_breakpointCount; i != count; ++i)
-	{
-		PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
-		PDWrite_string(writer, "filename", m_breakpoints[i].filename);
-		PDWrite_u32(writer, "line", m_breakpoints[i].line);
-		PDWrite_eventEnd(writer);
-	}
+    for (int i = 0, count = m_breakpointCount; i != count; ++i)
+    {
+        PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
+        PDWrite_string(writer, "filename", m_breakpoints[i].filename);
+        PDWrite_u32(writer, "line", m_breakpoints[i].line);
+        PDWrite_eventEnd(writer);
+    }
 
-	if (run)
-	{
-		PDWrite_eventBegin(writer, PDEventType_action);
-		PDWrite_u32(writer, "action", 3);
-		PDWrite_eventEnd(writer);
-	}
+    if (run)
+    {
+        PDWrite_eventBegin(writer, PDEventType_action);
+        PDWrite_u32(writer, "action", 3);
+        PDWrite_eventEnd(writer);
+    }
 
-	PDBinaryWriter_finalize(writer);
+    PDBinaryWriter_finalize(writer);
 
-	emit sendData((uint8_t*)PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
+    emit sendData((uint8_t*)PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -178,44 +178,44 @@ void Qt5DebugSession::begin(const char* executable, bool run)
 
 void Qt5DebugSession::beginRemote(const char* address, int port)
 {
-	m_threadRunner = new QThread;
-	m_debuggerThread = new Qt5DebuggerThread(Qt5DebuggerThread::Remote);
-	m_debuggerThread->moveToThread(m_threadRunner);
-	m_debuggerThread->setRemoteTarget(address, port);
+    m_threadRunner = new QThread;
+    m_debuggerThread = new Qt5DebuggerThread(Qt5DebuggerThread::Remote);
+    m_debuggerThread->moveToThread(m_threadRunner);
+    m_debuggerThread->setRemoteTarget(address, port);
 
-	m_debuggerThread->m_timer = new QTimer(0); //parent must be null
-	m_debuggerThread->m_timer->moveToThread(m_threadRunner);
+    m_debuggerThread->m_timer = new QTimer(0); //parent must be null
+    m_debuggerThread->m_timer->moveToThread(m_threadRunner);
 
-	PDWriter writerData;
-	PDWriter* writer = &writerData;
+    PDWriter writerData;
+    PDWriter* writer = &writerData;
 
-	// TODO: Not sure if we should set this up here, would be better to move it so we don't need to actually
-	//       start a executable/etc when doing a begin
+    // TODO: Not sure if we should set this up here, would be better to move it so we don't need to actually
+    //       start a executable/etc when doing a begin
 
-	connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
-	connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
-	connect(this, &Qt5DebugSession::tryAction, m_debuggerThread, &Qt5DebuggerThread::doAction); 
-	connect(m_debuggerThread, &Qt5DebuggerThread::sendData, this, &Qt5DebugSession::setState); 
-	connect(this, &Qt5DebugSession::sendData, m_debuggerThread, &Qt5DebuggerThread::setState); 
+    connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
+    connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
+    connect(this, &Qt5DebugSession::tryAction, m_debuggerThread, &Qt5DebuggerThread::doAction); 
+    connect(m_debuggerThread, &Qt5DebuggerThread::sendData, this, &Qt5DebugSession::setState); 
+    connect(this, &Qt5DebugSession::sendData, m_debuggerThread, &Qt5DebuggerThread::setState); 
 
-	printf("beginDebug %s:%d %d\n", address, port, (uint32_t)(uint64_t)QThread::currentThreadId());
+    printf("beginDebug %s:%d %d\n", address, port, (uint32_t)(uint64_t)QThread::currentThreadId());
 
 
-	m_threadRunner->start();
+    m_threadRunner->start();
 
-	PDBinaryWriter_init(writer);
+    PDBinaryWriter_init(writer);
 
-	for (int i = 0, count = m_breakpointCount; i != count; ++i)
-	{
-		PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
-		PDWrite_string(writer, "filename", m_breakpoints[i].filename);
-		PDWrite_u32(writer, "line", m_breakpoints[i].line);
-		PDWrite_eventEnd(writer);
-	}
+    for (int i = 0, count = m_breakpointCount; i != count; ++i)
+    {
+        PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
+        PDWrite_string(writer, "filename", m_breakpoints[i].filename);
+        PDWrite_u32(writer, "line", m_breakpoints[i].line);
+        PDWrite_eventEnd(writer);
+    }
 
-	PDBinaryWriter_finalize(writer);
+    PDBinaryWriter_finalize(writer);
 
-	emit sendData((uint8_t*)PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
+    emit sendData((uint8_t*)PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -232,15 +232,15 @@ bool Qt5DebugSession::getFilenameLine(const char** filename, int* line)
 
 bool Qt5DebugSession::hasLineBreakpoint(const char* filename, int line)
 {
-	for (int i = 0, e = m_breakpointCount; i < e; ++i)
+    for (int i = 0, e = m_breakpointCount; i < e; ++i)
     {
-    	const BreakpointFileLine* breakpoint = &m_breakpoints[i];
-    	
-    	if (!strstr(breakpoint->filename, filename))
-    		continue;
-    		
-    	if (breakpoint->line == line)
-    		return true;
+        const BreakpointFileLine* breakpoint = &m_breakpoints[i];
+        
+        if (!strstr(breakpoint->filename, filename))
+            continue;
+            
+        if (breakpoint->line == line)
+            return true;
     }
 
     return false;
@@ -257,139 +257,139 @@ void Qt5DebugSession::callAction(int action)
 
 void Qt5DebugSession::requestDisassembly(uint64_t startAddress, int instructionCount)
 {
-	PDWriter writerData;
-	PDWriter* writer = &writerData;
+    PDWriter writerData;
+    PDWriter* writer = &writerData;
 
-	PDBinaryWriter_init(writer);
+    PDBinaryWriter_init(writer);
 
-	PDWrite_eventBegin(writer, PDEventType_getDisassembly);
-	PDWrite_u64(writer, "address_start", startAddress);
-	PDWrite_u32(writer, "instruction_count", instructionCount);
-	PDWrite_eventEnd(writer);
+    PDWrite_eventBegin(writer, PDEventType_getDisassembly);
+    PDWrite_u64(writer, "address_start", startAddress);
+    PDWrite_u32(writer, "instruction_count", instructionCount);
+    PDWrite_eventEnd(writer);
 
-	emit sendData(PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
+    emit sendData(PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
 
-	PDBinaryWriter_destroy(writer);
+    PDBinaryWriter_destroy(writer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5DebugSession::sendBreakpoint(const char* filename, int line)
 {
-	PDWriter writerData;
-	PDWriter* writer = &writerData;
+    PDWriter writerData;
+    PDWriter* writer = &writerData;
 
-	PDBinaryWriter_init(writer);
+    PDBinaryWriter_init(writer);
 
-	PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
-	PDWrite_string(writer, "filename", filename);
-	PDWrite_u32(writer, "line", line);
-	PDWrite_eventEnd(writer);
+    PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
+    PDWrite_string(writer, "filename", filename);
+    PDWrite_u32(writer, "line", line);
+    PDWrite_eventEnd(writer);
 
-	PDBinaryWriter_finalize(writer);
+    PDBinaryWriter_finalize(writer);
 
-	emit sendData(PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
+    emit sendData(PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
 
-	PDBinaryWriter_destroy(writer);
+    PDBinaryWriter_destroy(writer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5DebugSession::setState(uint8_t* readerData, int serSize)
 {
-	int event;
-	PDReader readerD;
-	PDReader* reader = &readerD;
+    int event;
+    PDReader readerD;
+    PDReader* reader = &readerD;
 
-	PDBinaryReader_init(reader);
-	PDBinaryReader_initStream(reader, readerData, serSize);
+    PDBinaryReader_init(reader);
+    PDBinaryReader_initStream(reader, readerData, serSize);
 
-	while ((event = PDRead_getEvent(reader)))
-	{
-		switch (event)
-		{
-			case PDEventType_setLocals:
-			{
-				// Only update 1 for now
-				if (m_locals.size() > 0)
-					m_locals[0]->update(reader);
+    while ((event = PDRead_getEvent(reader)))
+    {
+        switch (event)
+        {
+            case PDEventType_setLocals:
+            {
+                // Only update 1 for now
+                if (m_locals.size() > 0)
+                    m_locals[0]->update(reader);
 
-				break;
-			}
+                break;
+            }
 
-			case PDEventType_setExceptionLocation:
-			{
-				const char* filename = 0;
-				uint64_t address = 0;
-				uint32_t line = 0;
+            case PDEventType_setExceptionLocation:
+            {
+                const char* filename = 0;
+                uint64_t address = 0;
+                uint32_t line = 0;
 
-				PDRead_findString(reader, &filename, "filename", 0);
-				PDRead_findU32(reader, &line, "line", 0);
-				PDRead_findU64(reader, &address, "address", 0);
+                PDRead_findString(reader, &filename, "filename", 0);
+                PDRead_findU32(reader, &line, "line", 0);
+                PDRead_findU64(reader, &address, "address", 0);
 
-				if (filename)
-				{
-					if (m_codeEditors.size() > 0)
-						m_codeEditors[0]->setFileLine(filename, line);
-				}
-				else
-				{
-					m_codeEditors[0]->setMode(Qt5CodeEditor::Disassembly);
-					m_codeEditors[0]->setAddress(address);
-				}
+                if (filename)
+                {
+                    if (m_codeEditors.size() > 0)
+                        m_codeEditors[0]->setFileLine(filename, line);
+                }
+                else
+                {
+                    m_codeEditors[0]->setMode(Qt5CodeEditor::Disassembly);
+                    m_codeEditors[0]->setAddress(address);
+                }
 
-				break;
-			}
+                break;
+            }
 
-			case PDEventType_setDisassembly:
-			{
-				int64_t start = -1;
-				int32_t instructionCount = -1;
-				const char* stringBuffer = 0;
+            case PDEventType_setDisassembly:
+            {
+                int64_t start = -1;
+                int32_t instructionCount = -1;
+                const char* stringBuffer = 0;
 
-				PDRead_findString(reader, &stringBuffer, "string_buffer", 0);
-				PDRead_findS32(reader, &instructionCount, "instruction_count", 0);
-				PDRead_findS64(reader, &start, "start_address", 0);
+                PDRead_findString(reader, &stringBuffer, "string_buffer", 0);
+                PDRead_findS32(reader, &instructionCount, "instruction_count", 0);
+                PDRead_findS64(reader, &start, "start_address", 0);
 
-				// Only update 1 for now
-				if (m_codeEditors.size() > 0)
-				{
-					// \todo Specific editor/decided mode if disassembly or not?
-					m_codeEditors[0]->setMode(Qt5CodeEditor::Disassembly);
-					m_codeEditors[0]->setDisassembly(stringBuffer, start, instructionCount);
-				}
+                // Only update 1 for now
+                if (m_codeEditors.size() > 0)
+                {
+                    // \todo Specific editor/decided mode if disassembly or not?
+                    m_codeEditors[0]->setMode(Qt5CodeEditor::Disassembly);
+                    m_codeEditors[0]->setDisassembly(stringBuffer, start, instructionCount);
+                }
 
-				break;
-			}
+                break;
+            }
 
-			case PDEventType_setTty:
-			{
-				const char* tty;
+            case PDEventType_setTty:
+            {
+                const char* tty;
 
-				PDRead_findString(reader, &tty, "tty", 0);
+                PDRead_findString(reader, &tty, "tty", 0);
 
-				if (tty && m_debugOutputs.size() > 0)
-					m_debugOutputs[0]->appendText(tty);
+                if (tty && m_debugOutputs.size() > 0)
+                    m_debugOutputs[0]->appendText(tty);
 
-				break;
-			}
+                break;
+            }
 
-			case PDEventType_setRegisters:
-			{
-				m_assemblyRegisters = AssemblyRegister_buildFromReader(reader, m_assemblyRegisters, &m_assemblyRegistersCount);  
-				
-				if (m_registers.size() > 0)
-					m_registers[0]->update(m_assemblyRegisters, m_assemblyRegistersCount);
+            case PDEventType_setRegisters:
+            {
+                m_assemblyRegisters = AssemblyRegister_buildFromReader(reader, m_assemblyRegisters, &m_assemblyRegistersCount);  
+                
+                if (m_registers.size() > 0)
+                    m_registers[0]->update(m_assemblyRegisters, m_assemblyRegistersCount);
 
-				if (m_codeEditors.size() > 0)
-					m_codeEditors[0]->setAssemblyRegisters(m_assemblyRegisters, m_assemblyRegistersCount);
+                if (m_codeEditors.size() > 0)
+                    m_codeEditors[0]->setAssemblyRegisters(m_assemblyRegisters, m_assemblyRegistersCount);
 
-				break;
-			}
-		}
-	}
+                break;
+            }
+        }
+    }
 
-	free(readerData);
+    free(readerData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -406,7 +406,7 @@ bool Qt5DebugSession::addBreakpointUI(const char* file, int line)
     else
     {
         addBreakpoint(file, line, -2);
-		sendBreakpoint(file, line);
+        sendBreakpoint(file, line);
     }
 
     return true;
@@ -416,18 +416,18 @@ bool Qt5DebugSession::addBreakpointUI(const char* file, int line)
 
 bool Qt5DebugSession::addBreakpoint(const char* file, int line, int id)
 {
-	printf("%s:%d\n", __FILE__, __LINE__);
+    printf("%s:%d\n", __FILE__, __LINE__);
 
     if (m_breakpointCount + 1 >= m_breakpointMaxCount)
         return false;
 
     BreakpointFileLine* bp = &m_breakpoints[m_breakpointCount++];
 
-	bp->filename = file;
-	bp->line = line;
-	bp->id = id;
+    bp->filename = file;
+    bp->line = line;
+    bp->id = id;
 
-	printf("Adding breakpoint at %s:%d\n", file, line);
+    printf("Adding breakpoint at %s:%d\n", file, line);
         
     return true;
 }
@@ -436,10 +436,10 @@ bool Qt5DebugSession::addBreakpoint(const char* file, int line, int id)
 
 void Qt5DebugSession::delBreakpoint(int id)
 {
-	BreakpointFileLine* breakpoints = m_breakpoints;
-	int count = m_breakpointCount;
+    BreakpointFileLine* breakpoints = m_breakpoints;
+    int count = m_breakpointCount;
 
-	for (int i = 0, e = count; i < e; ++i)
+    for (int i = 0, e = count; i < e; ++i)
     {
         if (breakpoints[i].id == id)
         {
@@ -458,8 +458,8 @@ void Qt5DebugSession::delBreakpoint(int id)
 
 void Qt5DebugSession::readSourceFile(const char* file)
 {
-	if (m_codeEditors.size() > 0)
-		m_codeEditors[0]->readSourceFile(file);
+    if (m_codeEditors.size() > 0)
+        m_codeEditors[0]->readSourceFile(file);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

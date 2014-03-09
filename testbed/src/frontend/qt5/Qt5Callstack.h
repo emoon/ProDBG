@@ -12,12 +12,12 @@ namespace prodbg
 
 class Qt5CallStack : public QTreeWidget
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	Qt5CallStack(QWidget* parent);
-	virtual ~Qt5CallStack();
+    Qt5CallStack(QWidget* parent);
+    virtual ~Qt5CallStack();
 
-	void update(PDReader* reader);
+    void update(PDReader* reader);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

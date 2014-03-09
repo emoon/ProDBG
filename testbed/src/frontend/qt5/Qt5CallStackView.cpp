@@ -22,14 +22,14 @@ Qt5CallStackViewContextMenu::~Qt5CallStackViewContextMenu()
 Qt5CallStackView::Qt5CallStackView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5DynamicView* parent)
 : Qt5BaseView(mainWindow, dock, parent)
 {
-	m_type = Qt5ViewType_CallStack;
+    m_type = Qt5ViewType_CallStack;
 
-	focusInEvent(nullptr);
+    focusInEvent(nullptr);
 
-	m_callStack = new Qt5CallStack(this);
-	m_callStack->setFocusProxy(this);
+    m_callStack = new Qt5CallStack(this);
+    m_callStack->setFocusProxy(this);
 
-	createFrameEmbedWidget(m_callStack, "Call Stack");
+    createFrameEmbedWidget(m_callStack, "Call Stack");
 
     connect(m_callStack, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
 }
@@ -38,12 +38,12 @@ Qt5CallStackView::Qt5CallStackView(Qt5MainWindow* mainWindow, Qt5DockWidget* doc
 
 Qt5CallStackView::~Qt5CallStackView()
 {
-	disconnect();
-	
-	// Reset Focus Tracking (for safety)
-	m_mainWindow->setCurrentWindow(nullptr, Qt5ViewType_Reset);
+    disconnect();
+    
+    // Reset Focus Tracking (for safety)
+    m_mainWindow->setCurrentWindow(nullptr, Qt5ViewType_Reset);
 
-	centralWidget()->deleteLater();
+    centralWidget()->deleteLater();
     emit signalDelayedSetCentralWidget(nullptr);
 }
 

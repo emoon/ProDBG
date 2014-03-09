@@ -5,7 +5,7 @@
 
 typedef struct Debugger6502
 {
-	int runState;
+    int runState;
 
 } Debugger6502;
 

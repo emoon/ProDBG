@@ -20,15 +20,15 @@ struct AssemblyRegister;
 
 class Qt5Registers : public QTreeView
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	Qt5Registers(QWidget* parent);
-	virtual ~Qt5Registers();
-	void update(AssemblyRegister* registers, int count);
+    Qt5Registers(QWidget* parent);
+    virtual ~Qt5Registers();
+    void update(AssemblyRegister* registers, int count);
 protected:
-	virtual void keyPressEvent(QKeyEvent* event);
+    virtual void keyPressEvent(QKeyEvent* event);
 
-	QStandardItemModel* m_model;
+    QStandardItemModel* m_model;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

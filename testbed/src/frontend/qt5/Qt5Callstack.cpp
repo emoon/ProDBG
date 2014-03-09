@@ -12,60 +12,60 @@ namespace prodbg
 
 Qt5CallStack::Qt5CallStack(QWidget* parent) : QTreeWidget(parent)
 {
-	setColumnCount(3);
+    setColumnCount(3);
 
-	QStringList headers;
-	headers << "Address" << "Module" << "Name" << "Line";
+    QStringList headers;
+    headers << "Address" << "Module" << "Name" << "Line";
 
-	setHeaderLabels(headers);
+    setHeaderLabels(headers);
 
-	g_debugSession->addCallStack(this);
+    g_debugSession->addCallStack(this);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5CallStack::~Qt5CallStack()
 {
-	g_debugSession->delCallStack(this);
+    g_debugSession->delCallStack(this);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Qt5CallStack::update(PDReader* reader)
 {
-	PDReaderIterator it;
+    PDReaderIterator it;
 
-	QList<QTreeWidgetItem*> items;
+    QList<QTreeWidgetItem*> items;
 
-	clear();
+    clear();
 
-	PDRead_findArray(reader, &it, "callstack", 0);
+    PDRead_findArray(reader, &it, "callstack", 0);
 
-	if (!it)
-	{
-		log_info("Unable to find any callstack array\n");
-		return;
-	}
+    if (!it)
+    {
+        log_info("Unable to find any callstack array\n");
+        return;
+    }
 
-	while (PDRead_getNextEntry(reader, &it))
-	{
-		const char* filename = "";
-		const char* module = "";
-		uint64_t address = 0;
-		uint32_t line = 0;
+    while (PDRead_getNextEntry(reader, &it))
+    {
+        const char* filename = "";
+        const char* module = "";
+        uint64_t address = 0;
+        uint32_t line = 0;
 
-		QStringList temp;
+        QStringList temp;
 
-		PDRead_findString(reader, &filename, "filename", it);
-		PDRead_findString(reader, &module, "module_name", it);
-		PDRead_findU32(reader, &line, "line", it);
-		PDRead_findU64(reader, &address, "address", it);
+        PDRead_findString(reader, &filename, "filename", it);
+        PDRead_findString(reader, &module, "module_name", it);
+        PDRead_findU32(reader, &line, "line", it);
+        PDRead_findU64(reader, &address, "address", it);
 
-		temp << QString::number(address) << module << filename << QString::number(line);
-		items.append(new QTreeWidgetItem((QTreeWidget*)0, temp)); 
-	}
+        temp << QString::number(address) << module << filename << QString::number(line);
+        items.append(new QTreeWidgetItem((QTreeWidget*)0, temp)); 
+    }
 
-	insertTopLevelItems(0, items);
+    insertTopLevelItems(0, items);
 }
 
 }

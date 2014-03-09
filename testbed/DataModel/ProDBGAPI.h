@@ -42,25 +42,25 @@ typedef enum PDDebugState
 
 typedef enum PDAction
 {
-	PDAction_none,
-	PDAction_break,
-	PDAction_run,
-	PDAction_step,
-	PDAction_stepOut,
-	PDAction_stepStepOver,
-	PDAction_custom = 0x1000,
+    PDAction_none,
+    PDAction_break,
+    PDAction_run,
+    PDAction_step,
+    PDAction_stepOut,
+    PDAction_stepStepOver,
+    PDAction_custom = 0x1000,
 } PDAction;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef enum PDEventID
 {
-	PDBEventID_locals,
-	PDBEventID_callStack,
-	PDBEventID_watch,
-	PDBEventID_registers,
-	PDBEventID_memory,
-	PDBEventID_custom = 0x1000,
+    PDBEventID_locals,
+    PDBEventID_callStack,
+    PDBEventID_watch,
+    PDBEventID_registers,
+    PDBEventID_memory,
+    PDBEventID_custom = 0x1000,
 
 } PDEventID;
 
@@ -86,10 +86,10 @@ typedef struct PDBackendPlugin
     int (*action)(void* userData, PDAction action);
 
     // Get some data state  
-	void (*getState)(void* userData, PDEventID eventId, SerializeFuncs* serialize);
+    void (*getState)(void* userData, PDEventID eventId, SerializeFuncs* serialize);
 
     // set some data state  
-	void (*setState)(void* userData, PDEventID eventId, SerializeFuncs* serialize);
+    void (*setState)(void* userData, PDEventID eventId, SerializeFuncs* serialize);
 
 } PDBackendPlugin;
 

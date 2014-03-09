@@ -18,27 +18,27 @@ namespace prodbg
 
 class Qt5DebuggerThread : public QObject
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
 
-	enum TargetType
-	{
-		Local,
-		Remote
-	};
+    enum TargetType
+    {
+        Local,
+        Remote
+    };
 
-	Qt5DebuggerThread(TargetType type);
-	void setRemoteTarget(const char* hostName, int port);
+    Qt5DebuggerThread(TargetType type);
+    void setRemoteTarget(const char* hostName, int port);
 
 public:
-	QTimer* m_timer;
+    QTimer* m_timer;
 
 public slots:
     void start();
-	void update();
-	void doAction(int action);
-	void setState(uint8_t* serializeData, int size);
+    void update();
+    void doAction(int action);
+    void setState(uint8_t* serializeData, int size);
  
 signals:
     void finished();
@@ -48,19 +48,19 @@ signals:
 
 
 private:
-	
-	void updateLocal(void* readData, int readSize, int action);
+    
+    void updateLocal(void* readData, int readSize, int action);
 
-	PDDebugState m_debugState;
-	PDBackendPlugin* m_debuggerPlugin;
-	void* m_pluginData;
-	const char* m_targetHost;
-	RemoteConnection* m_connection;
-	int m_port;
-	TargetType m_targetType;
+    PDDebugState m_debugState;
+    PDBackendPlugin* m_debuggerPlugin;
+    void* m_pluginData;
+    const char* m_targetHost;
+    RemoteConnection* m_connection;
+    int m_port;
+    TargetType m_targetType;
 
-	PDReader m_reader;
-	PDWriter m_writer;
+    PDReader m_reader;
+    PDWriter m_writer;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

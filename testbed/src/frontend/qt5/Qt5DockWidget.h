@@ -18,25 +18,25 @@ class Qt5BaseView;
 
 class Qt5DockWidget : public QDockWidget
 {
-	Q_OBJECT;
+    Q_OBJECT;
 
 public:
-	Qt5DockWidget(const QString& title,
-		          Qt5MainWindow* mainWindow,
-		          Qt5BaseView* parent = nullptr,
-		          int childId = 0,
-		          Qt::WindowFlags flags = 0);
+    Qt5DockWidget(const QString& title,
+                  Qt5MainWindow* mainWindow,
+                  Qt5BaseView* parent = nullptr,
+                  int childId = 0,
+                  Qt::WindowFlags flags = 0);
 
-	virtual ~Qt5DockWidget();
+    virtual ~Qt5DockWidget();
 
 protected:
-	void closeEvent(QCloseEvent* event);
+    void closeEvent(QCloseEvent* event);
 
 private:
-	Qt5MainWindow* m_mainWindow;
-	Qt5BaseView* m_parent;
-	int m_width;
-	int m_height;
+    Qt5MainWindow* m_mainWindow;
+    Qt5BaseView* m_parent;
+    int m_width;
+    int m_height;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

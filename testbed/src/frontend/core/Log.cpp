@@ -23,23 +23,23 @@ void log(int logLevel, const char* filename, int line, const char* format, ...)
         return;
 
     switch (logLevel)
-	{
-		case LOG_DEBUG : printf("%s:%d DEBUG ", filename, line); break;
-		case LOG_INFO  :  printf("%s:%d INFO  ", filename, line); break;
-		case LOG_ERROR :  printf("%s:%d ERROR ", filename, line); break;
-	}
+    {
+        case LOG_DEBUG : printf("%s:%d DEBUG ", filename, line); break;
+        case LOG_INFO  :  printf("%s:%d INFO  ", filename, line); break;
+        case LOG_ERROR :  printf("%s:%d ERROR ", filename, line); break;
+    }
 
     va_start(ap, format);
 #if defined(_WIN32)
-	{
-		char buffer[2048];
-		vsprintf(buffer, format, ap);
-		OutputDebugStringA(buffer);
-	}
+    {
+        char buffer[2048];
+        vsprintf(buffer, format, ap);
+        OutputDebugStringA(buffer);
+    }
 #else
-	vprintf(format, ap);
+    vprintf(format, ap);
 #endif   
-	va_end(ap);
+    va_end(ap);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

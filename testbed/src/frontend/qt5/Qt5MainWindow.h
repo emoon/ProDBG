@@ -47,260 +47,260 @@ extern QApplication* g_application;
 
 class Qt5MainWindow : public Qt5BaseView
 {
-	Q_OBJECT
+    Q_OBJECT
 
-	friend class Qt5BaseView;
-	friend class Qt5DockWidget;
-	friend class Qt5ContextMenu;
-	friend class Qt5DynamicViewContextMenu;
+    friend class Qt5BaseView;
+    friend class Qt5DockWidget;
+    friend class Qt5ContextMenu;
+    friend class Qt5DynamicViewContextMenu;
 
 public:
-	Qt5MainWindow();
-	virtual ~Qt5MainWindow();
+    Qt5MainWindow();
+    virtual ~Qt5MainWindow();
 
-	void setupWorkspace();
+    void setupWorkspace();
 
-	void setWindowMenu(Qt5ContextMenu* menu);
-	Qt5ContextMenu* getWindowMenu();
+    void setWindowMenu(Qt5ContextMenu* menu);
+    Qt5ContextMenu* getWindowMenu();
 
-	void triggerSignalSettings();
-	void triggerSignalApplyLayout(Qt5Layout* layout);
+    void triggerSignalSettings();
+    void triggerSignalApplyLayout(Qt5Layout* layout);
 
-	void loadLayout(Qt5Layout* layout);
-	void saveLayout();
-	void addLayout(Qt5LayoutEntry* layoutEntry);
+    void loadLayout(Qt5Layout* layout);
+    void saveLayout();
+    void addLayout(Qt5LayoutEntry* layoutEntry);
 
-	int addView();
-	void deleteView(int id);
-	void resetViews();
+    int addView();
+    void deleteView(int id);
+    void resetViews();
 
-	void readSourceFile(const char* filename);
+    void readSourceFile(const char* filename);
 
-	virtual Qt5ViewType getViewType() const
-	{
-		return Qt5ViewType_Main;
-	}
+    virtual Qt5ViewType getViewType() const
+    {
+        return Qt5ViewType_Main;
+    }
 
-	virtual QString getViewTypeName() const
-	{
-		return "Main Window";
-	}
+    virtual QString getViewTypeName() const
+    {
+        return "Main Window";
+    }
 
 public slots:
-	void fileSettings();
-	void fileSaveLayout();
-	void fileResetLayout();
-	void fileExit();
+    void fileSettings();
+    void fileSaveLayout();
+    void fileResetLayout();
+    void fileExit();
 
-	// Dynamic Views
-	void windowFillMainWindow();
-	void windowUnfillMainWindow();
-	void windowDeleteView();
-	void windowCloseView();
+    // Dynamic Views
+    void windowFillMainWindow();
+    void windowUnfillMainWindow();
+    void windowDeleteView();
+    void windowCloseView();
 
-	void helpIndex();
-	void helpContents();
-	void helpAbout();
+    void helpIndex();
+    void helpContents();
+    void helpAbout();
 
-	void contextMenuProxy(const QPoint& position);
+    void contextMenuProxy(const QPoint& position);
 
-	void applySettings();
-	void buildLayout();
-	void applyLayout(Qt5Layout* layout);
+    void applySettings();
+    void buildLayout();
+    void applyLayout(Qt5Layout* layout);
 
-	void shutdown(QObject* object);
-	void errorMessage(const QString& message);
+    void shutdown(QObject* object);
+    void errorMessage(const QString& message);
 
 protected:
-	void closeEvent(QCloseEvent* event);
-	void contextMenuEvent(QContextMenuEvent* event);
-	void focusInEvent(QFocusEvent* event);
+    void closeEvent(QCloseEvent* event);
+    void contextMenuEvent(QContextMenuEvent* event);
+    void focusInEvent(QFocusEvent* event);
 
 public:
-	void setCurrentWindow(Qt5BaseView* widget, Qt5ViewType viewType);
-	Qt5BaseView* getCurrentWindow(Qt5ViewType type);
+    void setCurrentWindow(Qt5BaseView* widget, Qt5ViewType viewType);
+    Qt5BaseView* getCurrentWindow(Qt5ViewType type);
 
 private slots:
-	void newCallStackView();
-	void newLocalsView();
-	void newRegistersView();
-	void newSourceCodeView();
-	void newHexEditView();
-	void newDebugOutputView();
+    void newCallStackView();
+    void newLocalsView();
+    void newRegistersView();
+    void newSourceCodeView();
+    void newHexEditView();
+    void newDebugOutputView();
 
-	void assignCallStackView();
-	void assignLocalsView();
-	void assignRegistersView();
-	void assignSourceCodeView();
-	void assignHexEditView();
-	void assignDebugOutputView();
+    void assignCallStackView();
+    void assignLocalsView();
+    void assignRegistersView();
+    void assignSourceCodeView();
+    void assignHexEditView();
+    void assignDebugOutputView();
 
-	void splitHorizontalCallStackView();
-	void splitHorizontalLocalsView();
-	void splitHorizontalRegistersView();
-	void splitHorizontalSourceCodeView();
-	void splitHorizontalHexEditView();
-	void splitHorizontalDebugOutputView();
+    void splitHorizontalCallStackView();
+    void splitHorizontalLocalsView();
+    void splitHorizontalRegistersView();
+    void splitHorizontalSourceCodeView();
+    void splitHorizontalHexEditView();
+    void splitHorizontalDebugOutputView();
 
-	void splitVerticalCallStackView();
-	void splitVerticalLocalsView();
-	void splitVerticalRegistersView();
-	void splitVerticalSourceCodeView();
-	void splitVerticalHexEditView();
-	void splitVerticalDebugOutputView();
+    void splitVerticalCallStackView();
+    void splitVerticalLocalsView();
+    void splitVerticalRegistersView();
+    void splitVerticalSourceCodeView();
+    void splitVerticalHexEditView();
+    void splitVerticalDebugOutputView();
 
-	void fileSettingsFinished(int result);
-	void onMenu(int id);
+    void fileSettingsFinished(int result);
+    void onMenu(int id);
 
 protected:
-	enum Qt5ViewType m_currentViewType;
-	enum Qt5ViewType m_lastViewType;
+    enum Qt5ViewType m_currentViewType;
+    enum Qt5ViewType m_lastViewType;
 
-	Qt5BaseView* m_currentView;
-	Qt5BaseView* m_lastView;
+    Qt5BaseView* m_currentView;
+    Qt5BaseView* m_lastView;
 
-	Qt5LayoutEntry* m_layoutEntries;
+    Qt5LayoutEntry* m_layoutEntries;
 
-	int32 m_currentLayoutEntry;
-	int32 m_viewCount;
-	int32 m_nextView;
+    int32 m_currentLayoutEntry;
+    int32 m_viewCount;
+    int32 m_nextView;
 
-	bool m_viewTable[QT5_MAX_VIEWS];
+    bool m_viewTable[QT5_MAX_VIEWS];
 
-	bool m_deletingDockWidget;
-	bool m_shutdown;
+    bool m_deletingDockWidget;
+    bool m_shutdown;
 
-	QWidget* m_backgroundWidget;
+    QWidget* m_backgroundWidget;
 
-	QProgressBar* m_mainWindowProgressBar;
-	int32 m_progressBarStateCount;
+    QProgressBar* m_mainWindowProgressBar;
+    int32 m_progressBarStateCount;
 
 private:
 
-	void createMenu(MenuDescriptor* desc, QMenu* parentMenu);
+    void createMenu(MenuDescriptor* desc, QMenu* parentMenu);
 
-	void createActions();
-	void createMenus();
-	void createToolBars();
-	void createStatusBar();
+    void createActions();
+    void createMenus();
+    void createToolBars();
+    void createStatusBar();
 
-	QSignalMapper* m_signalMapper;
+    QSignalMapper* m_signalMapper;
 
-	QMenu* m_windowMenu;
-	QMenu* m_newWindowMenu;
-	QMenu* m_dynamicWindowMenu;
-	QMenu* m_dynamicWindowAssignViewMenu;
-	QMenu* m_dynamicWindowSplitHorizontalViewMenu;
-	QMenu* m_dynamicWindowSplitVerticalViewMenu;
-	QMenu* m_helpMenu;
+    QMenu* m_windowMenu;
+    QMenu* m_newWindowMenu;
+    QMenu* m_dynamicWindowMenu;
+    QMenu* m_dynamicWindowAssignViewMenu;
+    QMenu* m_dynamicWindowSplitHorizontalViewMenu;
+    QMenu* m_dynamicWindowSplitVerticalViewMenu;
+    QMenu* m_helpMenu;
 
-	QAction* m_windowFillMainWindowAction;
-	QAction* m_windowUnfillMainWindowAction;
-	QAction* m_windowDeleteViewAction;
-	QAction* m_windowCloseViewAction;
+    QAction* m_windowFillMainWindowAction;
+    QAction* m_windowUnfillMainWindowAction;
+    QAction* m_windowDeleteViewAction;
+    QAction* m_windowCloseViewAction;
 
-	// TODO: Encapsulate specific view logic into plugins or something
-	QAction* m_windowNewCallStackViewAction;
-	QAction* m_windowNewLocalsViewAction;
-	QAction* m_windowNewRegistersViewAction;
-	QAction* m_windowNewSourceCodeViewAction;
-	QAction* m_windowNewHexEditViewAction;
-	QAction* m_windowNewDebugOutputViewAction;
+    // TODO: Encapsulate specific view logic into plugins or something
+    QAction* m_windowNewCallStackViewAction;
+    QAction* m_windowNewLocalsViewAction;
+    QAction* m_windowNewRegistersViewAction;
+    QAction* m_windowNewSourceCodeViewAction;
+    QAction* m_windowNewHexEditViewAction;
+    QAction* m_windowNewDebugOutputViewAction;
 
-	QAction* m_windowAssignCallStackViewAction;
-	QAction* m_windowAssignLocalsViewAction;
-	QAction* m_windowAssignRegistersViewAction;
-	QAction* m_windowAssignSourceCodeViewAction;
-	QAction* m_windowAssignHexEditViewAction;
-	QAction* m_windowAssignDebugOutputViewAction;
+    QAction* m_windowAssignCallStackViewAction;
+    QAction* m_windowAssignLocalsViewAction;
+    QAction* m_windowAssignRegistersViewAction;
+    QAction* m_windowAssignSourceCodeViewAction;
+    QAction* m_windowAssignHexEditViewAction;
+    QAction* m_windowAssignDebugOutputViewAction;
 
-	QAction* m_windowSplitHorizontalCallStackViewAction;
-	QAction* m_windowSplitHorizontalLocalsViewAction;
-	QAction* m_windowSplitHorizontalRegistersViewAction;
-	QAction* m_windowSplitHorizontalSourceCodeViewAction;
-	QAction* m_windowSplitHorizontalHexEditViewAction;
-	QAction* m_windowSplitHorizontalDebugOutputViewAction;
+    QAction* m_windowSplitHorizontalCallStackViewAction;
+    QAction* m_windowSplitHorizontalLocalsViewAction;
+    QAction* m_windowSplitHorizontalRegistersViewAction;
+    QAction* m_windowSplitHorizontalSourceCodeViewAction;
+    QAction* m_windowSplitHorizontalHexEditViewAction;
+    QAction* m_windowSplitHorizontalDebugOutputViewAction;
 
-	QAction* m_windowSplitVerticalCallStackViewAction;
-	QAction* m_windowSplitVerticalLocalsViewAction;
-	QAction* m_windowSplitVerticalRegistersViewAction;
-	QAction* m_windowSplitVerticalSourceCodeViewAction;
-	QAction* m_windowSplitVerticalHexEditViewAction;
-	QAction* m_windowSplitVerticalDebugOutputViewAction;
+    QAction* m_windowSplitVerticalCallStackViewAction;
+    QAction* m_windowSplitVerticalLocalsViewAction;
+    QAction* m_windowSplitVerticalRegistersViewAction;
+    QAction* m_windowSplitVerticalSourceCodeViewAction;
+    QAction* m_windowSplitVerticalHexEditViewAction;
+    QAction* m_windowSplitVerticalDebugOutputViewAction;
 
-	QAction* m_helpAboutAction;
-	QAction* m_helpContentsAction;
-	QAction* m_helpIndexAction;
+    QAction* m_helpAboutAction;
+    QAction* m_helpContentsAction;
+    QAction* m_helpIndexAction;
 
-	Qt5ContextMenu* m_currentWindowMenu;
-	Qt5SettingsWindow* m_settingsWindow;
+    Qt5ContextMenu* m_currentWindowMenu;
+    Qt5SettingsWindow* m_settingsWindow;
 
-	bool m_centralWidgetSet;
+    bool m_centralWidgetSet;
 
-	// Temporary. Used to reduce some code bloat
+    // Temporary. Used to reduce some code bloat
 
-	template<class T> void newView()
-	{
-		Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
-		dock->setAttribute(Qt::WA_DeleteOnClose, true);
+    template<class T> void newView()
+    {
+        Qt5DockWidget* dock = new Qt5DockWidget(tr("Dynamic View"), this, this, m_nextView);
+        dock->setAttribute(Qt::WA_DeleteOnClose, true);
 
-		Qt5DynamicView* dynamicView = new Qt5DynamicView(this, dock, this);
-		dock->setWidget(dynamicView);
+        Qt5DynamicView* dynamicView = new Qt5DynamicView(this, dock, this);
+        dock->setWidget(dynamicView);
 
-		//emit dynamicView->signalDelayedSetCentralWidget(dynamicView->m_statusLabel);
+        //emit dynamicView->signalDelayedSetCentralWidget(dynamicView->m_statusLabel);
 
-		T* view = new T(this, dock, dynamicView);
-		dynamicView->m_children[0] = view;
-		dynamicView->assignView(view);
+        T* view = new T(this, dock, dynamicView);
+        dynamicView->m_children[0] = view;
+        dynamicView->assignView(view);
 
-		addDockWidget(Qt::LeftDockWidgetArea, dock);
-	}
+        addDockWidget(Qt::LeftDockWidgetArea, dock);
+    }
 
-	// Temporary. Used to reduce some code bloat
+    // Temporary. Used to reduce some code bloat
 
-	template<class T> void assignView()
-	{
-		Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
-		if (dynamicView == nullptr)
-			return;
+    template<class T> void assignView()
+    {
+        Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
+        if (dynamicView == nullptr)
+            return;
 
-		T* view = new T(this, nullptr, dynamicView);
-		if (dynamicView->m_children[0] != nullptr)
-		{
-			dynamicView->m_children[0]->hide();
-			dynamicView->m_children[0]->deleteLater();
-		}
+        T* view = new T(this, nullptr, dynamicView);
+        if (dynamicView->m_children[0] != nullptr)
+        {
+            dynamicView->m_children[0]->hide();
+            dynamicView->m_children[0]->deleteLater();
+        }
 
-		dynamicView->m_children[0] = view;
-		dynamicView->assignView(view);
-	}
+        dynamicView->m_children[0] = view;
+        dynamicView->assignView(view);
+    }
 
-	template<class T> void splitHorizontalView()
-	{
-		Qt5DynamicView* view = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
-		if (view == nullptr)
-			return;
+    template<class T> void splitHorizontalView()
+    {
+        Qt5DynamicView* view = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
+        if (view == nullptr)
+            return;
 
-		view->splitView(Qt::Vertical);
+        view->splitView(Qt::Vertical);
 
-		assignView<T>();
-	}
+        assignView<T>();
+    }
 
-	template<class T> void splitVerticalView()
-	{
-		Qt5DynamicView* view = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
-		if (view == nullptr)
-			return;
+    template<class T> void splitVerticalView()
+    {
+        Qt5DynamicView* view = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
+        if (view == nullptr)
+            return;
 
-		view->splitView(Qt::Horizontal);
+        view->splitView(Qt::Horizontal);
 
-		assignView<T>();
-	}
+        assignView<T>();
+    }
 
 signals:
-	void signalSettings();
-	void signalBuildLayout();
-	void signalApplyLayout(Qt5Layout* layout);
+    void signalSettings();
+    void signalBuildLayout();
+    void signalApplyLayout(Qt5Layout* layout);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

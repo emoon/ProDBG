@@ -19,15 +19,15 @@ namespace prodbg
 
 Handle SharedObject_open(const char* filename)
 {
-	Handle handle;
+    Handle handle;
 #if defined(__APPLE__)
-	if (!(handle = dlopen(filename, RTLD_LOCAL | RTLD_LAZY)))
-		printf("Unable to dlload %s (error %s)\n", filename, dlerror());
-	return handle;
+    if (!(handle = dlopen(filename, RTLD_LOCAL | RTLD_LAZY)))
+        printf("Unable to dlload %s (error %s)\n", filename, dlerror());
+    return handle;
 #elif defined(_WIN32)
-	return (Handle)LoadLibraryA(filename);
+    return (Handle)LoadLibraryA(filename);
 #else
-	#error "Unsupported target"
+    #error "Unsupported target"
 #endif
 }
 
@@ -36,11 +36,11 @@ Handle SharedObject_open(const char* filename)
 void SharedObject_close(Handle handle)
 {
 #if defined(__APPLE__)
-	dlclose(handle);
+    dlclose(handle);
 #elif defined(_WIN32)
-	//CloseLibrary((HMODULE)handle);
+    //CloseLibrary((HMODULE)handle);
 #else
-	#error "Unsupported target"
+    #error "Unsupported target"
 #endif
 }
 
@@ -49,13 +49,13 @@ void SharedObject_close(Handle handle)
 void* SharedObject_getSym(Handle handle, const char* name)
 {
 #if defined(__APPLE__)
-	return dlsym(handle, name);
+    return dlsym(handle, name);
 #elif defined(_WIN32)
-	(void)name;
-	return 0;
-	//return (void*)GetProcAddress(handle, name);
+    (void)name;
+    return 0;
+    //return (void*)GetProcAddress(handle, name);
 #else
-	#error "Unsupported target"
+    #error "Unsupported target"
 #endif
 }
 

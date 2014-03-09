@@ -15,41 +15,41 @@ namespace prodbg
 
 class Qt5DebugOutputViewContextMenu : public Qt5DynamicViewContextMenu
 {
-	Q_OBJECT;
+    Q_OBJECT;
 
 public:
-	Qt5DebugOutputViewContextMenu(Qt5MainWindow* mainWindow, Qt5BaseView* parent = nullptr);
-	virtual ~Qt5DebugOutputViewContextMenu();
+    Qt5DebugOutputViewContextMenu(Qt5MainWindow* mainWindow, Qt5BaseView* parent = nullptr);
+    virtual ~Qt5DebugOutputViewContextMenu();
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class Qt5DebugOutputView : public Qt5BaseView
 {
-	Q_OBJECT;
+    Q_OBJECT;
 
 public:
-	Qt5DebugOutputView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5DynamicView* parent = nullptr);
-	virtual ~Qt5DebugOutputView();
+    Qt5DebugOutputView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5DynamicView* parent = nullptr);
+    virtual ~Qt5DebugOutputView();
 
-	virtual Qt5ViewType getViewType() const
-	{
-		return Qt5ViewType_DebugOutput;
-	}
+    virtual Qt5ViewType getViewType() const
+    {
+        return Qt5ViewType_DebugOutput;
+    }
 
-	virtual QString getViewTypeName() const
-	{
-		return "Debug Output";
-	}
+    virtual QString getViewTypeName() const
+    {
+        return "Debug Output";
+    }
 
 protected:
-	virtual Qt5ContextMenu* createContextMenu()
-	{
-		return new Qt5DebugOutputViewContextMenu(m_mainWindow, this);
-	}
+    virtual Qt5ContextMenu* createContextMenu()
+    {
+        return new Qt5DebugOutputViewContextMenu(m_mainWindow, this);
+    }
 
 private:
-	Qt5DebugOutput* m_debugOutput;
+    Qt5DebugOutput* m_debugOutput;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

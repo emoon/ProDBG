@@ -17,8 +17,8 @@ class Qt5HexEditInternal;
 
 class Qt5HexEditWidget : public QScrollArea
 {
-	Q_OBJECT;
-	Q_PROPERTY(QByteArray data READ getData WRITE setData);
+    Q_OBJECT;
+    Q_PROPERTY(QByteArray data READ getData WRITE setData);
     Q_PROPERTY(int addressOffset READ getAddressOffset WRITE setAddressOffset);
     Q_PROPERTY(QColor addressAreaColor READ getAddressAreaColor WRITE setAddressAreaColor);
     Q_PROPERTY(int cursorPosition READ getCursorPosition WRITE setCursorPosition);
@@ -29,9 +29,9 @@ class Qt5HexEditWidget : public QScrollArea
     Q_PROPERTY(QFont font READ getFont WRITE setFont);
 
 public:
-	Qt5HexEditWidget(QWidget* parent = nullptr);
+    Qt5HexEditWidget(QWidget* parent = nullptr);
 
-	void insert(int index, const QByteArray& values);
+    void insert(int index, const QByteArray& values);
     void insert(int index, char value);
 
     int indexOf(const QByteArray& values, int from = 0) const;
@@ -45,7 +45,7 @@ public:
     QString getReadableStringFromSelection();
 
 public:
-	void setAddressOffset(int offset);
+    void setAddressOffset(int offset);
     int getAddressOffset() const;
 
     void setCursorPosition(int cursorPosition);
@@ -82,7 +82,7 @@ public slots:
     void redo();
 
 signals:
-	void currentAddressChanged(int address);
+    void currentAddressChanged(int address);
     void currentSizeChanged(int size);
     void overwriteModeChanged(bool state);
     void dataChanged();
