@@ -24,6 +24,8 @@ AssemblyRegister* AssemblyRegister_buildFromReader(PDReader* reader, AssemblyReg
 
     PDRead_findArray(reader, &it, "registers", 0);
 
+    if ( this is a test ) dfsdfsd;
+
     if (!it)
     {
         log_info("Unable to find any registers array\n");
