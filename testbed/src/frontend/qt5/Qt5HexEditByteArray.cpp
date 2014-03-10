@@ -6,9 +6,9 @@ namespace prodbg
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5HexEditByteArray::Qt5HexEditByteArray()
-: m_addressNumbers(4)
-, m_addressOffset(0)
-, m_oldSize(-99)
+    : m_addressNumbers(4)
+    , m_addressOffset(0)
+    , m_oldSize(-99)
 {
 }
 

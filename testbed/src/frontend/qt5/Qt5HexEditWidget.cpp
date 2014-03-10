@@ -10,11 +10,11 @@ namespace prodbg
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5HexEditWidget::Qt5HexEditWidget(QWidget* parent)
-: QScrollArea(parent)
-, m_internal(new Qt5HexEditInternal(this))
+    : QScrollArea(parent)
+    , m_internal(new Qt5HexEditInternal(this))
 {
     setAttribute(Qt::WA_DeleteOnClose);
-    
+
     setWidget(m_internal);
     setWidgetResizable(true);
 
@@ -22,7 +22,7 @@ Qt5HexEditWidget::Qt5HexEditWidget(QWidget* parent)
     connect(m_internal, SIGNAL(currentSizeChanged(int)), this, SIGNAL(currentSizeChanged(int)));
     connect(m_internal, SIGNAL(overwriteModeChanged(bool)), this, SIGNAL(overwriteModeChanged(bool)));
     connect(m_internal, SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
-    
+
     setFocusPolicy(Qt::NoFocus);
 }
 

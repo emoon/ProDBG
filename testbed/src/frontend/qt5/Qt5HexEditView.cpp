@@ -7,7 +7,7 @@ namespace prodbg
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5HexEditViewContextMenu::Qt5HexEditViewContextMenu(Qt5MainWindow* mainWindow, Qt5BaseView* parent)
-: Qt5DynamicViewContextMenu(mainWindow, parent)
+    : Qt5DynamicViewContextMenu(mainWindow, parent)
 {
 }
 
@@ -20,7 +20,7 @@ Qt5HexEditViewContextMenu::~Qt5HexEditViewContextMenu()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5HexEditView::Qt5HexEditView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5DynamicView* parent)
-: Qt5BaseView(mainWindow, dock, parent)
+    : Qt5BaseView(mainWindow, dock, parent)
 {
     m_type = Qt5ViewType_HexEdit;
 
@@ -31,7 +31,7 @@ Qt5HexEditView::Qt5HexEditView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Q
 
     createFrameEmbedWidget(m_hexEdit, "Memory");
 
-    connect(m_hexEdit, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+    connect(m_hexEdit, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(contextMenuProxy(const QPoint &)));
 
     // \todo: this code is awful
 
@@ -86,7 +86,7 @@ Qt5HexEditView::Qt5HexEditView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Q
 Qt5HexEditView::~Qt5HexEditView()
 {
     disconnect();
-    
+
     // Reset Focus Tracking (for safety)
     m_mainWindow->setCurrentWindow(nullptr, Qt5ViewType_Reset);
 

@@ -16,9 +16,9 @@ extern "C" {
      ProDBServerInfo* serverInfo = serviceFunc(PRODBG_SERVERINFO_SERVICE);
      It's ok for the plugin to hold a pointer to the requested service during its life time.
     \param serviceName The name of the requested service. It's *highly* recommended to use the defines for the wanted service.
-*/
+ */
 
-typedef void* ServiceFunc(const char* serviceName);
+typedef void* ServiceFunc (const char* serviceName);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -31,11 +31,11 @@ enum
 
 typedef enum PDDebugState
 {
-    PDDebugState_noTarget,         // nothing is running 
-    PDDebugState_running,          // target is being executed 
-    PDDebugState_paused,           // exception, breakpoint, etc 
-    PDDebugState_stepping,         // code is currently being stepped/traced/etc 
-    PDDebugState_custom = 0x1000,  // code is currently being stepped/traced/etc 
+    PDDebugState_noTarget,         // nothing is running
+    PDDebugState_running,          // target is being executed
+    PDDebugState_paused,           // exception, breakpoint, etc
+    PDDebugState_stepping,         // code is currently being stepped/traced/etc
+    PDDebugState_custom = 0x1000,  // code is currently being stepped/traced/etc
 } PDDebugState;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,24 +72,24 @@ typedef struct PDBackendPlugin
     const char* name;
 
     // Create and destroy instance of the plugin
-    
-    void* (*createInstance)(ServiceFunc* serviceFunc);
-    void (*destroyInstance)(void* userData);
+
+    void* (*createInstance)(ServiceFunc * serviceFunc);
+    void (* destroyInstance)(void* userData);
 
     // Updates and Returns the current state of the plugin.
 
-    PDDebugState (*update)(void* userData);
+    PDDebugState (* update)(void* userData);
 
     // Various actions can be send to the plugin. like
     // Break, continue, exit, detach etc.
 
-    int (*action)(void* userData, PDAction action);
+    int (* action)(void* userData, PDAction action);
 
-    // Get some data state  
-    void (*getState)(void* userData, PDEventID eventId, SerializeFuncs* serialize);
+    // Get some data state
+    void (* getState)(void* userData, PDEventID eventId, SerializeFuncs* serialize);
 
-    // set some data state  
-    void (*setState)(void* userData, PDEventID eventId, SerializeFuncs* serialize);
+    // set some data state
+    void (* setState)(void* userData, PDEventID eventId, SerializeFuncs* serialize);
 
 } PDBackendPlugin;
 

@@ -39,7 +39,7 @@ public slots:
     void update();
     void doAction(int action);
     void setState(uint8_t* serializeData, int size);
- 
+
 signals:
     void finished();
 
@@ -48,7 +48,7 @@ signals:
 
 
 private:
-    
+
     void updateLocal(void* readData, int readSize, int action);
 
     PDDebugState m_debugState;

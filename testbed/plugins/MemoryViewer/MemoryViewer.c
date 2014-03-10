@@ -23,13 +23,13 @@ static int displayMemory(void* userData, void* data, uint64_t length)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void uiEvent(void* userData, uint32_t id, uint32_t eventType) 
+static void uiEvent(void* userData, uint32_t id, uint32_t eventType)
 {
     MyMemoryViewer* data = (MyMemoryViewer*)userData;
 
     switch (id)
     {
-        case MYBUTTON_EVENT :
+        case MYBUTTON_EVENT:
         {
             break;
         }
@@ -41,7 +41,7 @@ static void uiEvent(void* userData, uint32_t id, uint32_t eventType)
 static void* createInstance(void* parentWindow, ServiceFunc* serviceFunc)
 {
     MyMemoryViewer* instanceData = malloc(sizeof(MyMemoryViewer));
-    PDUIFuncs* uiFuncs = serviceFunc(PD_UI_GLOBAL); 
+    PDUIFuncs* uiFuncs = serviceFunc(PD_UI_GLOBAL);
 
     uiFuncs->pushButton(parentWindow, "MyTestPutton", MYBUTTON_EVENT);
 

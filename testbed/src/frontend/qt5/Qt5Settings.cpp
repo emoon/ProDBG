@@ -15,8 +15,8 @@ namespace prodbg
 {
 
 Qt5Settings::Qt5Settings(Qt5MainWindow* mainWindow)
-: m_mainWindow(mainWindow)
-, m_settingCount(0)
+    : m_mainWindow(mainWindow)
+    , m_settingCount(0)
 {
     resetSettings();
 
@@ -69,7 +69,7 @@ void Qt5Settings::addSetting(Qt5Setting* setting)
             break;
         }
     }
-    
+
     if (index >= QT5_MAX_SETTINGS || m_settingCount == 0)
     {
         for (index = 0; index < QT5_MAX_SETTINGS; ++index)
@@ -117,12 +117,12 @@ void Qt5Settings::saveSettings()
     QSettings settings(QSettings::IniFormat, QSettings::UserScope,
                        QCoreApplication::organizationName(),
                        QCoreApplication::applicationName());
-    
+
     char8 idString[256];
 
     settings.setValue("Settings/Count", static_cast<int32>(m_settingCount));
 
-    for(int32 index = 0; index < m_settingCount; ++index)
+    for (int32 index = 0; index < m_settingCount; ++index)
     {
         sprintf(idString, "Setting%i/Id", index);
         settings.setValue(idString, static_cast<int32>(m_settings[index].id));
@@ -139,7 +139,7 @@ void Qt5Settings::loadSettings()
     QSettings settings(QSettings::IniFormat, QSettings::UserScope,
                        QCoreApplication::organizationName(),
                        QCoreApplication::applicationName());
-    
+
     char8 idString[256];
 
     if (!settings.contains("Settings/SettingCount"))
@@ -179,7 +179,7 @@ void Qt5Settings::defaultSettings()
 {
     QFile xmlFile(":/DefaultSettings.xml");
     if (!xmlFile.open(QIODevice::ReadOnly | QIODevice::Text))
-         return;
+        return;
 
     QXmlStreamReader xmlReader(&xmlFile);
     while (!xmlReader.atEnd())
@@ -196,7 +196,7 @@ void Qt5Settings::defaultSettings()
                     QString valueString;
 
                     QXmlStreamAttributes itemAttributes = xmlReader.attributes();
-                    
+
                     int32 attributeCount = 0;
 
                     while (!itemAttributes.empty() && attributeCount < itemAttributes.count())
@@ -311,7 +311,7 @@ void Qt5Settings::defaultSettings()
                             }
 
                         }
-                        
+
                         addSetting(&setting);
                     }
                 }
@@ -335,7 +335,7 @@ void Qt5Settings::addArgument(Qt5Setting* setting, Qt5SettingArgumentType type, 
         {
             break;
         }
-    }  
+    }
 
     if (argumentId >= QT5_MAX_SETTING_ARGUMENTS)
     {
@@ -414,7 +414,7 @@ void Qt5Settings::copyArgument(Qt5SettingArgument* dst, const Qt5SettingArgument
 {
     dst->type = src.type;
     dst->dataSize = src.dataSize;
-    
+
     switch (dst->type)
     {
         case Qt5SettingArgumentType_Int8:
@@ -541,7 +541,7 @@ void Qt5Settings::saveArgument(Qt5Setting* setting, const uint32 settingIndex, c
 
     sprintf(idString, "Setting%i/Argument%i/Data", settingIndex, argumentIndex);
 
-    switch(setting->arguments[argumentIndex].type)
+    switch (setting->arguments[argumentIndex].type)
     {
         case Qt5SettingArgumentType_Int8:
         case Qt5SettingArgumentType_Int16:
@@ -599,7 +599,7 @@ void Qt5Settings::saveArgument(Qt5Setting* setting, const uint32 settingIndex, c
             {
                 settings.setValue(idString,
                                   QByteArray(static_cast<char8*>(setting->arguments[argumentIndex].dataPointer),
-                                               setting->arguments[argumentIndex].dataSize));
+                                             setting->arguments[argumentIndex].dataSize));
             }
 
             break;
@@ -751,7 +751,7 @@ void Qt5Settings::saveLayout(Qt5Layout* layout)
     {
         sprintf(idString, "Layout/Entry%i/EntryId", index);
         settings.setValue(idString, static_cast<int32>(layout->entries[index].entryId));
-        
+
         sprintf(idString, "Layout/Entry%i/ViewType", index);
         settings.setValue(idString, static_cast<int32>(layout->entries[index].viewType));
 
@@ -819,7 +819,7 @@ void Qt5Settings::saveLayout(Qt5Layout* layout)
                 settings.setValue(idString, static_cast<int32>(layout->entries[index].splitDirection));
 
                 printf("GWDEBUG: Qt5DynamicView::saveLayout - direction: %s\n",
-                    layout->entries[index].splitDirection == Qt::Horizontal ? "Horizontal" : "Vertical");
+                       layout->entries[index].splitDirection == Qt::Horizontal ? "Horizontal" : "Vertical");
             }
 
             if (!layout->entries[index].fillMainWindow)
@@ -940,7 +940,7 @@ void Qt5Settings::loadLayout(Qt5Layout* layout)
                 layout->entries[index].splitDirection = static_cast<Qt::Orientation>(settings.value(idString).toInt());
 
                 printf("GWDEBUG: Qt5DynamicView::loadLayout - direction: %s\n",
-                    layout->entries[index].splitDirection == Qt::Horizontal ? "Horizontal" : "Vertical");
+                       layout->entries[index].splitDirection == Qt::Horizontal ? "Horizontal" : "Vertical");
             }
 
             if (!layout->entries[index].fillMainWindow)

@@ -18,10 +18,10 @@ const int kBytesPerLine   = 16;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5HexEditInternal::Qt5HexEditInternal(QScrollArea* parent)
-: QWidget(parent)
-, m_scrollArea(parent)
-, m_undoStack(new QUndoStack(this))
-, m_size(0)
+    : QWidget(parent)
+    , m_scrollArea(parent)
+    , m_undoStack(new QUndoStack(this))
+    , m_size(0)
 {
     setAddressWidth(4);
     setAddressOffset(0);
@@ -445,7 +445,7 @@ int Qt5HexEditInternal::calculateCursorPos(QPoint position) const
         }
 
         int positionY = ((position.y() - 3) / m_characterHeight) * 2 * kBytesPerLine;
-        
+
         result = positionX + positionY;
     }
 
@@ -783,7 +783,7 @@ void Qt5HexEditInternal::handleCursorMovements(QKeyEvent* event)
 
     if (event->matches(QKeySequence::MoveToEndOfLine))
     {
-        setCursorPosition(m_cursorPosition | (2 * kBytesPerLine -1));
+        setCursorPosition(m_cursorPosition | (2 * kBytesPerLine - 1));
         resetSelection(m_cursorPosition);
     }
 
@@ -920,7 +920,7 @@ void Qt5HexEditInternal::handleEditCommands(QKeyEvent* event)
 
     const int characterX = (m_cursorX - m_hexPosition) / m_characterWidth;
     const int positionX  = (characterX / 3) * 2 + (characterX % 3);
-    
+
     int positionValues = (m_cursorY / m_characterHeight) * kBytesPerLine + positionX / 2;
 
     // Hex input
@@ -931,7 +931,7 @@ void Qt5HexEditInternal::handleEditCommands(QKeyEvent* event)
     //if ((key >= '0' && key <= '9') || (key >= 'a' && key <= 'f'))
     if ((key >= '0' && key <= '9') || (key >= 'a' && key <= 'f'))
     {
-        
+
         if (getSelectionBegin() != getSelectionEnd())
         {
             positionValues = getSelectionBegin();
@@ -950,7 +950,7 @@ void Qt5HexEditInternal::handleEditCommands(QKeyEvent* event)
         if (m_data.getSize() > 0)
         {
             QByteArray hexValue = m_data.getData().mid(positionValues, 1).toHex();
-            
+
             if ((characterX % 3) == 0)
             {
                 hexValue[0] = key;

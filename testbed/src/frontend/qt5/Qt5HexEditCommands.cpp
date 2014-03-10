@@ -6,17 +6,17 @@ namespace prodbg
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5HexEditValueUndoCommand::Qt5HexEditValueUndoCommand(Qt5HexEditByteArray* data,
-                                                       Operation operation,
-                                                       int characterPosition,
-                                                       char characterNew,
-                                                       QUndoCommand* parent)
-: QUndoCommand(parent)
-, m_data(data)
-, m_operation(operation)
-, m_characterPosition(characterPosition)
-, m_characterNew(characterNew)
-, m_characterOld(0)
-, m_wasChanged(false)
+                                                       Operation            operation,
+                                                       int                  characterPosition,
+                                                       char                 characterNew,
+                                                       QUndoCommand*        parent)
+    : QUndoCommand(parent)
+    , m_data(data)
+    , m_operation(operation)
+    , m_characterPosition(characterPosition)
+    , m_characterNew(characterNew)
+    , m_characterOld(0)
+    , m_wasChanged(false)
 {
 }
 
@@ -75,7 +75,7 @@ bool Qt5HexEditValueUndoCommand::mergeWith(const QUndoCommand* command)
     if (m_operation != RemoveOperation)
     {
         const Qt5HexEditValueUndoCommand* nextCommand = static_cast<const Qt5HexEditValueUndoCommand*>(command);
-        
+
         if (nextCommand->m_operation == ReplaceOperation)
         {
             if (nextCommand->m_characterPosition == m_characterPosition)
@@ -92,17 +92,17 @@ bool Qt5HexEditValueUndoCommand::mergeWith(const QUndoCommand* command)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5HexEditRangeUndoCommand::Qt5HexEditRangeUndoCommand(Qt5HexEditByteArray* data,
-                                                       Operation operation,
-                                                       int positionValues,
-                                                       const QByteArray& newValues,
-                                                       int length,
-                                                       QUndoCommand* parent)
-: QUndoCommand(parent)
-, m_data(data)
-, m_operation(operation)
-, m_positionValues(positionValues)
-, m_length(length)
-, m_newValues(newValues)
+                                                       Operation            operation,
+                                                       int                  positionValues,
+                                                       const QByteArray&    newValues,
+                                                       int                  length,
+                                                       QUndoCommand*        parent)
+    : QUndoCommand(parent)
+    , m_data(data)
+    , m_operation(operation)
+    , m_positionValues(positionValues)
+    , m_length(length)
+    , m_newValues(newValues)
 {
 }
 

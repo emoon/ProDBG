@@ -11,7 +11,7 @@ namespace prodbg
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5DynamicViewContextMenu::Qt5DynamicViewContextMenu(Qt5MainWindow* mainWindow, Qt5BaseView* parent)
-: Qt5ContextMenu(mainWindow, parent)
+    : Qt5ContextMenu(mainWindow, parent)
 {
     addSeparator();
     addAction(m_mainWindow->m_dynamicWindowAssignViewMenu->menuAction());
@@ -31,8 +31,8 @@ Qt5DynamicViewContextMenu::~Qt5DynamicViewContextMenu()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5DynamicView::Qt5DynamicView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5BaseView* parent)
-: Qt5BaseView(mainWindow, dock, parent)
-, m_splitter(nullptr)
+    : Qt5BaseView(mainWindow, dock, parent)
+    , m_splitter(nullptr)
 {
     m_type = Qt5ViewType_Dynamic;
 
@@ -56,8 +56,8 @@ Qt5DynamicView::Qt5DynamicView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Q
 
     setCentralWidget(m_statusLabel);
 
-    connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-    connect(m_statusLabel, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(contextMenuProxy(const QPoint &)));
+    connect(m_statusLabel, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(contextMenuProxy(const QPoint &)));
     m_statusLabel->setFocusProxy(this);
 }
 
@@ -124,7 +124,7 @@ void Qt5DynamicView::splitView(Qt::Orientation orientation)
 
         Q_ASSERT(m_children[0] != nullptr);
         Q_ASSERT(m_children[1] != nullptr);
-        
+
         m_splitter->addWidget(m_children[0]);
         m_splitter->addWidget(m_children[1]);
 
@@ -256,7 +256,7 @@ void Qt5DynamicView::buildLayout()
         entry.splitDirection = m_splitter->orientation();
 
         printf("GWDEBUG: Qt5DynamicView::buildLayout - direction: %s\n",
-            entry.splitDirection == Qt::Horizontal ? "Horizontal" : "Vertical");
+               entry.splitDirection == Qt::Horizontal ? "Horizontal" : "Vertical");
     }
 
     m_mainWindow->addLayout(&entry);
@@ -271,14 +271,14 @@ void Qt5DynamicView::applyLayout(Qt5Layout* layout)
     printf("Qt5DynamicView::applyLayout\n");
 
     Qt5LayoutEntry* entry = &layout->entries[m_entry];
-    
+
     if (m_parentDock)
     {
-        if(entry->isFloating)
+        if (entry->isFloating)
         {
             m_parentDock->setGeometry(entry->dockPositionX, entry->dockPositionY, entry->dockSizeX, entry->dockSizeY);
             m_parentDock->setFloating(true);
-         }
+        }
         else
         {
             m_parentDock->setFloating(false);
@@ -297,7 +297,7 @@ void Qt5DynamicView::applyLayout(Qt5Layout* layout)
         }
 
         printf("GWDEBUG: Qt5DynamicView::applyLayout - direction: %s\n",
-            entry->splitDirection == Qt::Horizontal ? "Horizontal" : "Vertical");
+               entry->splitDirection == Qt::Horizontal ? "Horizontal" : "Vertical");
 
         m_splitter = new QSplitter(entry->splitDirection, this);
 

@@ -9,12 +9,12 @@ namespace prodbg
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5BaseView::Qt5BaseView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5BaseView* parent)
-: m_mainWindow(mainWindow)
-, m_parentDock(dock)
-, m_parent(parent)
-, m_type(Qt5ViewType_Reset)
-, m_frame(nullptr)
-, m_idLabel(nullptr)
+    : m_mainWindow(mainWindow)
+    , m_parentDock(dock)
+    , m_parent(parent)
+    , m_type(Qt5ViewType_Reset)
+    , m_frame(nullptr)
+    , m_idLabel(nullptr)
 {
     setParent(m_parent);
 
@@ -32,8 +32,8 @@ Qt5BaseView::Qt5BaseView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5Base
 
     connect(this, SIGNAL(signalDelayedSetCentralWidget(QWidget*)), this, SLOT(delayedSetCentralWidget(QWidget*)), Qt::QueuedConnection);
 
-    connect(parent, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-    connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+    connect(parent, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(contextMenuProxy(const QPoint &)));
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(contextMenuProxy(const QPoint &)));
 
     m_id = m_mainWindow->addView();
     m_entry = 0;
@@ -88,7 +88,7 @@ void Qt5BaseView::focusInEvent(QFocusEvent* event)
             m_mainWindow->m_windowCloseViewAction->setEnabled(true);
         }
     }
-    
+
     if (m_mainWindow->m_currentView == this)
         return;
 
@@ -183,9 +183,9 @@ QFrame* Qt5BaseView::createFrameEmbedWidget(QWidget* widget, const QString& titl
     m_frame->setLayout(frameLayout);
     setCentralWidget(m_frame);
 
-    connect(m_frame, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-    connect(titleLabel, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-    connect(m_idLabel, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+    connect(m_frame, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(contextMenuProxy(const QPoint &)));
+    connect(titleLabel, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(contextMenuProxy(const QPoint &)));
+    connect(m_idLabel, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(contextMenuProxy(const QPoint &)));
 
     m_frame->setFocusProxy(this);
 
@@ -197,7 +197,7 @@ QFrame* Qt5BaseView::createFrameEmbedWidget(QWidget* widget, const QString& titl
 void Qt5BaseView::contextMenuProxy(const QPoint&)
 {
     printf("%s :: contextMenuProxy\n", qPrintable(getViewTypeName()));
-    
+
     focusInEvent(nullptr);
     if (!hasSplitter())
     {

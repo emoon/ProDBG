@@ -88,7 +88,7 @@ int PDRemote_update(int sleepTime)
     int action = 0;
     void* data;
     uint32_t size;
-    
+
     if (sleepTime > 0)
         sleepMs(sleepTime);
 
@@ -100,7 +100,7 @@ int PDRemote_update(int sleepTime)
     {
         uint8_t cmd[4];
 
-        if (RemoteConnection_recv(s_conn, (char*)&cmd, 4, 0)) 
+        if (RemoteConnection_recv(s_conn, (char*)&cmd, 4, 0))
         {
             if (cmd[0] & (1 << 7))
             {

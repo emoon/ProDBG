@@ -7,16 +7,16 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5DockWidget::Qt5DockWidget(const QString& title,
-                             Qt5MainWindow* mainWindow,
-                             Qt5BaseView* parent,
-                             int childId,
+Qt5DockWidget::Qt5DockWidget(const QString&  title,
+                             Qt5MainWindow*  mainWindow,
+                             Qt5BaseView*    parent,
+                             int             childId,
                              Qt::WindowFlags flags)
-: QDockWidget(title, parent, flags)
-, m_mainWindow(mainWindow)
-, m_parent(parent)
-, m_width(0)
-, m_height(0)
+    : QDockWidget(title, parent, flags)
+    , m_mainWindow(mainWindow)
+    , m_parent(parent)
+    , m_width(0)
+    , m_height(0)
 {
     QString objectName;
     objectName.setNum(childId);

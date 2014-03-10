@@ -1,5 +1,5 @@
 #include "PluginHandler.h"
-#include <core/io/SharedObject.h> 
+#include <core/io/SharedObject.h>
 #include <ProDBGAPI.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,7 +32,7 @@ static void registerPlugin(int type, void* data)
 bool PluginHandler_addPlugin(const char* plugin)
 {
     Handle handle;
-    void* (*initPlugin)(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin);
+    void* (* initPlugin)(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin);
 
     printf("Trying to load %s\n", plugin);
 
@@ -52,8 +52,8 @@ bool PluginHandler_addPlugin(const char* plugin)
         SharedObject_close(handle);
         return false;
     }
-        
-    *(void **)(&initPlugin) = function;
+
+    *(void**)(&initPlugin) = function;
 
     initPlugin(1, 0, registerPlugin);
 
@@ -64,7 +64,7 @@ bool PluginHandler_addPlugin(const char* plugin)
 
 Plugin* PluginHandler_getPlugins(int* count)
 {
-    *count = pluginCount; 
+    *count = pluginCount;
     return &s_plugins[0];
 }
 

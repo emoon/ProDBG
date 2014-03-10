@@ -66,9 +66,9 @@ public:
 
     // TODO: Should we really have this here?
     void readSourceFile(const char* file);
-    
+
 private slots:
-    // Called from the when a state change has happen that require UI update 
+    // Called from the when a state change has happen that require UI update
     void setState(uint8_t* readerData, int size);
 
 signals:
@@ -97,16 +97,16 @@ private:
     struct BreakpointFileLine
     {
         const char* filename;
-        int line;
-        int id;
+        int         line;
+        int         id;
     };
 
     AssemblyRegister* m_assemblyRegisters;
-        
+
     //QVector<BreakpointFileLine> m_breakpoints;
     BreakpointFileLine* m_breakpoints;
- 
-     int m_assemblyRegistersCount;
+
+    int m_assemblyRegistersCount;
     int m_breakpointCount;
     int m_breakpointMaxCount;
 

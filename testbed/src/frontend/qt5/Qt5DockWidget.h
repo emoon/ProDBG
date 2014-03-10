@@ -21,10 +21,10 @@ class Qt5DockWidget : public QDockWidget
     Q_OBJECT;
 
 public:
-    Qt5DockWidget(const QString& title,
-                  Qt5MainWindow* mainWindow,
-                  Qt5BaseView* parent = nullptr,
-                  int childId = 0,
+    Qt5DockWidget(const QString&  title,
+                  Qt5MainWindow*  mainWindow,
+                  Qt5BaseView*    parent = nullptr,
+                  int             childId = 0,
                   Qt::WindowFlags flags = 0);
 
     virtual ~Qt5DockWidget();

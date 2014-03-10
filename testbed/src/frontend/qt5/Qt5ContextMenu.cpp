@@ -10,13 +10,13 @@ namespace prodbg
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5ContextMenu::Qt5ContextMenu(Qt5MainWindow* mainWindow, Qt5BaseView* parent)
-: QMenu(parent)
-, m_mainWindow(mainWindow)
-, m_parent(parent)
+    : QMenu(parent)
+    , m_mainWindow(mainWindow)
+    , m_parent(parent)
 {
     setObjectName(QString::fromUtf8("Qt5ContextMenu"));
     setTitle(tr("&Window"));
-    
+
     // https://bugreports.qt-project.org/browse/QTBUG-30767
     addAction(m_mainWindow->m_newWindowMenu->menuAction());
 

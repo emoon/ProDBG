@@ -7,11 +7,11 @@ namespace prodbg
 
 struct DataPacket
 {
-    int sessionId;
-    int eventType;
-    int eventId;
+    int   sessionId;
+    int   eventType;
+    int   eventId;
     void* data;
-    int size;
+    int   size;
 };
 
 }

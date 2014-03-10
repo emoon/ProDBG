@@ -39,9 +39,9 @@ enum Qt5SettingId
     Qt5SettingId_QtStyleWin32 = 0x10000,
 
     // 0x20000+ - Mac settings
-    
+
     // 0x30000+ - Unix\Linux settings
-    
+
     // 0x50000+ - Plugin settings
 };
 
@@ -64,15 +64,15 @@ enum Qt5SettingArgumentType
 struct Qt5SettingArgument
 {
     Qt5SettingArgumentType type;
-    void* dataPointer;
-    uint64 dataSize;
+    void*                  dataPointer;
+    uint64                 dataSize;
 };
 
 struct Qt5Setting
 {
-    Qt5SettingId id;
-    Qt5SettingArgument arguments[QT5_MAX_SETTING_ARGUMENTS]; 
-    uint32 argumentCount;
+    Qt5SettingId       id;
+    Qt5SettingArgument arguments[QT5_MAX_SETTING_ARGUMENTS];
+    uint32             argumentCount;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,7 +97,7 @@ public:
 
     void addArgument(Qt5Setting* setting, Qt5SettingArgumentType type, void* dataPointer, uint64 dataSize);
     Qt5SettingArgument* getArgument(Qt5Setting* setting, uint32 id);
-    
+
     void copyArgument(Qt5SettingArgument* dst, const Qt5SettingArgument& src);
     void copyArguments(Qt5Setting* dst, Qt5Setting* src);
 

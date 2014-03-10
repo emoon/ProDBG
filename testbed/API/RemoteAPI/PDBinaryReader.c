@@ -26,8 +26,8 @@ typedef struct ReaderData
 
 union Convert
 {
-    double dv;
-    float fv;
+    double   dv;
+    float    fv;
     uint64_t u32;
     uint64_t u64;
 };
@@ -51,7 +51,7 @@ static inline uint8_t getU8(const uint8_t* ptr)
 static inline uint16_t getS16(const uint8_t* ptr)
 {
     int16_t v = (ptr[0] << 8) | ptr[1];
-    return v; 
+    return v;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ static inline uint16_t getS16(const uint8_t* ptr)
 static inline uint16_t getU16(const uint8_t* ptr)
 {
     uint16_t v = (ptr[0] << 8) | ptr[1];
-    return v; 
+    return v;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,7 +67,7 @@ static inline uint16_t getU16(const uint8_t* ptr)
 static inline int32_t getS32(const uint8_t* ptr)
 {
     int32_t v = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3];
-    return v; 
+    return v;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,7 +75,7 @@ static inline int32_t getS32(const uint8_t* ptr)
 static inline int32_t getU32(const uint8_t* ptr)
 {
     uint32_t v = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3];
-    return v; 
+    return v;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,8 +83,8 @@ static inline int32_t getU32(const uint8_t* ptr)
 static inline int64_t getS64(const uint8_t* ptr)
 {
     int64_t v = ((uint64_t)ptr[0] << 56) | ((uint64_t)ptr[1] << 48) | ((uint64_t)ptr[2] << 40) | ((uint64_t)ptr[3] << 32) |
-                (ptr[4] << 24) | (ptr[5] << 16) | (ptr[6]  << 8) | ptr[7];
-    return v; 
+                (ptr[4] << 24) | (ptr[5] << 16) | (ptr[6] << 8) | ptr[7];
+    return v;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,8 +92,8 @@ static inline int64_t getS64(const uint8_t* ptr)
 static inline uint64_t getU64(const uint8_t* ptr)
 {
     uint64_t v = ((uint64_t)ptr[0] << 56) | ((uint64_t)ptr[1] << 48) | ((uint64_t)ptr[2] << 40) | ((uint64_t)ptr[3] << 32) |
-                (ptr[4] << 24) | (ptr[5] << 16) | (ptr[6]  << 8) | ptr[7];
-    return v; 
+                 (ptr[4] << 24) | (ptr[5] << 16) | (ptr[6] << 8) | ptr[7];
+    return v;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -101,8 +101,8 @@ static inline uint64_t getU64(const uint8_t* ptr)
 static inline double getDouble(const uint8_t* ptr)
 {
     union Convert c;
-    c.u64 = getU64(ptr); 
-    return c.dv; 
+    c.u64 = getU64(ptr);
+    return c.dv;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,7 +111,7 @@ static inline float getFloat(const uint8_t* ptr)
 {
     union Convert c;
     c.u32 = getU32(ptr);
-    return c.fv; 
+    return c.fv;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -128,7 +128,7 @@ static uint32_t readGetEvent(struct PDReader* reader)
 {
     ReaderData* rData = (ReaderData*)reader->data;
     uint16_t event;
-    uint8_t type; 
+    uint8_t type;
     uint8_t* data;
 
     if (!rData->data)
@@ -164,19 +164,19 @@ static uint32_t readGetEvent(struct PDReader* reader)
 
 static const char* typeTable[] =
 {
-    "PDReadType_none",            
-    "PDReadType_s8",            
-    "PDReadType_u8",            
-    "PDReadType_s16",        
-    "PDReadType_u16",        
-    "PDReadType_s32",        
-    "PDReadType_u32",        
-    "PDReadType_s64",        
-    "PDReadType_u64",        
-    "PDReadType_float",        
-    "PDReadType_double",        
+    "PDReadType_none",
+    "PDReadType_s8",
+    "PDReadType_u8",
+    "PDReadType_s16",
+    "PDReadType_u16",
+    "PDReadType_s32",
+    "PDReadType_u32",
+    "PDReadType_s64",
+    "PDReadType_u64",
+    "PDReadType_float",
+    "PDReadType_double",
     "PDReadType_endNumericTypes",
-    "PDReadType_string",        
+    "PDReadType_string",
     "PDReadType_data",
     "PDReadType_event",
     "PDReadType_array",
@@ -195,12 +195,12 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
         if (g_debugLogging)
         {
             if (typeId <PDReadType_count)
-                printf("typeId %s\n", typeTable[typeId]); 
+                printf("typeId %s\n", typeTable[typeId]);
             else
-                printf("typeId %d (outside valid range)\n", typeId); 
+                printf("typeId %d (outside valid range)\n", typeId);
         }
 
-        // data is a special case as it has 32-bit size instead of 64k 
+        // data is a special case as it has 32-bit size instead of 64k
 
         if (typeId == PDReadType_data || typeId == PDReadType_array)
         {
@@ -209,7 +209,7 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
             if (!strcmp((char*)start + 5, id))
                 return start;
         }
-        else 
+        else
         {
             size = getU16(start + 1);
 
@@ -244,7 +244,7 @@ static uint8_t* findId(struct PDReader* reader, const char* id, PDReaderIterator
     else
     {
         // serach within the event but skip 7 bytes ahead to not read the event itself
-        uint32_t dataOffset = it >> 32LL;  
+        uint32_t dataOffset = it >> 32LL;
         uint32_t size = it & 0xffffffffLL;
         uint8_t* start = rData->dataStart + dataOffset;
         uint8_t* end = start + size;
@@ -269,19 +269,29 @@ static uint8_t* findId(struct PDReader* reader, const char* id, PDReaderIterator
     } \
     if (type < PDReadType_endNumericTypes) \
     { \
-        offset = strlen((const char*)dataPtr + 3) + 4;\
+        offset = strlen((const char*)dataPtr + 3) + 4; \
         switch (type) \
         { \
-            case PDReadType_s8 : *res = (realType)getS8(dataPtr + offset); return PDReadType_s8 | PDReadStatus_converted; \
-            case PDReadType_u8 : *res = (realType)getU8(dataPtr + offset); return PDReadType_u8 | PDReadStatus_converted;  \
-            case PDReadType_s16 : *res = (realType)getU16(dataPtr + offset); return PDReadType_s16 | PDReadStatus_converted; \
-            case PDReadType_u16 : *res = (realType)getU16(dataPtr + offset); return PDReadType_u16 | PDReadStatus_converted; \
-            case PDReadType_s32 : *res = (realType)getU32(dataPtr + offset); return PDReadType_s32 | PDReadStatus_converted; \
-            case PDReadType_u32 : *res = (realType)getU32(dataPtr + offset); return PDReadType_u32 | PDReadStatus_converted; \
-            case PDReadType_s64 : *res = (realType)getU64(dataPtr + offset); return PDReadType_s64 | PDReadStatus_converted; \
-            case PDReadType_u64 : *res = (realType)getU64(dataPtr + offset); return PDReadType_u64 | PDReadStatus_converted; \
-            case PDReadType_float : *res = (realType)getFloat(dataPtr + offset); return PDReadType_float | PDReadStatus_converted; \
-            case PDReadType_double : *res = (realType)getDouble(dataPtr + offset); return PDReadType_float | PDReadStatus_converted; \
+            case PDReadType_s8: \
+                *res = (realType)getS8(dataPtr + offset); return PDReadType_s8 | PDReadStatus_converted; \
+            case PDReadType_u8: \
+                *res = (realType)getU8(dataPtr + offset); return PDReadType_u8 | PDReadStatus_converted;  \
+            case PDReadType_s16: \
+                *res = (realType)getU16(dataPtr + offset); return PDReadType_s16 | PDReadStatus_converted; \
+            case PDReadType_u16: \
+                *res = (realType)getU16(dataPtr + offset); return PDReadType_u16 | PDReadStatus_converted; \
+            case PDReadType_s32: \
+                *res = (realType)getU32(dataPtr + offset); return PDReadType_s32 | PDReadStatus_converted; \
+            case PDReadType_u32: \
+                *res = (realType)getU32(dataPtr + offset); return PDReadType_u32 | PDReadStatus_converted; \
+            case PDReadType_s64: \
+                *res = (realType)getU64(dataPtr + offset); return PDReadType_s64 | PDReadStatus_converted; \
+            case PDReadType_u64: \
+                *res = (realType)getU64(dataPtr + offset); return PDReadType_u64 | PDReadStatus_converted; \
+            case PDReadType_float: \
+                *res = (realType)getFloat(dataPtr + offset); return PDReadType_float | PDReadStatus_converted; \
+            case PDReadType_double: \
+                *res = (realType)getDouble(dataPtr + offset); return PDReadType_float | PDReadStatus_converted; \
         } \
     } \
     return (PDReadType)type | PDReadStatus_illegalType
@@ -360,14 +370,14 @@ static uint32_t readFindDouble(struct PDReader* reader, double* res, const char*
 
 static uint32_t readFindString(struct PDReader* reader, const char** res, const char* id, PDReaderIterator it)
 {
-    uint8_t type; 
+    uint8_t type;
     int len;
 
-    const uint8_t* dataPtr = findId(reader, id, it); 
-    if (!dataPtr) 
-        return PDReadStatus_notFound; 
+    const uint8_t* dataPtr = findId(reader, id, it);
+    if (!dataPtr)
+        return PDReadStatus_notFound;
 
-    type = *dataPtr; 
+    type = *dataPtr;
 
     if (type != PDReadType_string)
         return (PDReadType)type | PDReadStatus_illegalType;
@@ -376,7 +386,7 @@ static uint32_t readFindString(struct PDReader* reader, const char** res, const 
 
     len = (int)strlen((char*)dataPtr + 3);
     *res = (const char*)dataPtr + 3 + len + 1;
-    
+
     return (PDReadType)type | PDReadStatus_ok;
 }
 
@@ -384,14 +394,14 @@ static uint32_t readFindString(struct PDReader* reader, const char** res, const 
 
 static uint32_t readFindData(struct PDReader* reader, void** data, uint64_t* size, const char* id, PDReaderIterator it)
 {
-    uint8_t type; 
+    uint8_t type;
     int idLength;
 
-    const uint8_t* dataPtr = findId(reader, id, it); 
-    if (!dataPtr) 
-        return PDReadStatus_notFound; 
+    const uint8_t* dataPtr = findId(reader, id, it);
+    if (!dataPtr)
+        return PDReadStatus_notFound;
 
-    type = *dataPtr; 
+    type = *dataPtr;
 
     if (type != PDReadType_data)
         return (PDReadType)type | PDReadStatus_illegalType;
@@ -410,18 +420,18 @@ static uint32_t readFindData(struct PDReader* reader, void** data, uint64_t* siz
 
 static uint32_t readFindArray(struct PDReader* reader, PDReaderIterator* arrayIt, const char* id, PDReaderIterator it)
 {
-    uint8_t type; 
+    uint8_t type;
     int idLength;
     ReaderData* rData = (ReaderData*)reader->data;
 
-    const uint8_t* dataPtr = findId(reader, id, it); 
-    if (!dataPtr) 
+    const uint8_t* dataPtr = findId(reader, id, it);
+    if (!dataPtr)
     {
         printf("Array %s not found\n", id);
-        return PDReadStatus_notFound; 
+        return PDReadStatus_notFound;
     }
 
-    type = *dataPtr; 
+    type = *dataPtr;
 
     if (type != PDReadType_array)
         return (PDReadType)type | PDReadStatus_illegalType;
@@ -453,7 +463,7 @@ static int32_t readNextEntry(struct PDReader* reader, PDReaderIterator* arrayIt)
 
     ReaderData* rData = (ReaderData*)reader->data;
     uint32_t offset = it >> 32LL;
-    uint32_t size = it & 0xffffffffLL; 
+    uint32_t size = it & 0xffffffffLL;
     uint8_t* entryStart = rData->dataStart + offset + size;
 
     if ((type = *entryStart) != PDReadType_arrayEntry)

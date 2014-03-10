@@ -23,10 +23,10 @@ public:
     };
 
     Qt5HexEditValueUndoCommand(Qt5HexEditByteArray* data,
-                               Operation operation,
-                               int characterPosition,
-                               char characterNew,
-                               QUndoCommand* parent = 0);
+                               Operation            operation,
+                               int                  characterPosition,
+                               char                 characterNew,
+                               QUndoCommand*        parent = 0);
 
     void undo();
     void redo();
@@ -36,7 +36,7 @@ public:
 private:
     Qt5HexEditByteArray* m_data;
     Operation m_operation;
-    int  m_characterPosition;
+    int m_characterPosition;
     char m_characterNew;
     char m_characterOld;
     bool m_wasChanged : 1;
@@ -55,11 +55,11 @@ public:
     };
 
     Qt5HexEditRangeUndoCommand(Qt5HexEditByteArray* data,
-                               Operation operation,
-                               int positionValues,
-                               const QByteArray& newValues,
-                               int length = 0,
-                               QUndoCommand* parent = 0);
+                               Operation            operation,
+                               int                  positionValues,
+                               const QByteArray&    newValues,
+                               int                  length = 0,
+                               QUndoCommand*        parent = 0);
 
     void undo();
     void redo();

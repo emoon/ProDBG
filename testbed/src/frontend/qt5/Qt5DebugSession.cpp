@@ -123,7 +123,7 @@ void Qt5DebugSession::begin(const char* executable, bool run)
     m_threadRunner = new QThread;
     m_debuggerThread = new Qt5DebuggerThread(Qt5DebuggerThread::Local);
     m_debuggerThread->moveToThread(m_threadRunner);
-    
+
     m_debuggerThread->m_timer = new QTimer(0); //parent must be null
     m_debuggerThread->m_timer->moveToThread(m_threadRunner);
 
@@ -133,11 +133,11 @@ void Qt5DebugSession::begin(const char* executable, bool run)
     // TODO: Not sure if we should set this up here, would be better to move it so we don't need to actually
     //       start a executable/etc when doing a begin
 
-    connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
-    connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
-    connect(this, &Qt5DebugSession::tryAction, m_debuggerThread, &Qt5DebuggerThread::doAction); 
+    connect(m_threadRunner, SIGNAL(started()), m_debuggerThread, SLOT(start()));
+    connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner, SLOT(quit()));
+    connect(this, &Qt5DebugSession::tryAction, m_debuggerThread, &Qt5DebuggerThread::doAction);
     connect(m_debuggerThread, &Qt5DebuggerThread::sendData, this, &Qt5DebugSession::setState);
-    connect(this, &Qt5DebugSession::sendData, m_debuggerThread, &Qt5DebuggerThread::setState); 
+    connect(this, &Qt5DebugSession::sendData, m_debuggerThread, &Qt5DebuggerThread::setState);
 
     printf("beginDebug %s %d\n", executable, (uint32_t)(uint64_t)QThread::currentThreadId());
 
@@ -146,7 +146,7 @@ void Qt5DebugSession::begin(const char* executable, bool run)
     PDBinaryWriter_init(writer);
 
     // Write executable
-    
+
     printf("Writing down filename %s to executable\n", executable);
 
     PDWrite_eventBegin(writer, PDEventType_setExecutable);
@@ -192,11 +192,11 @@ void Qt5DebugSession::beginRemote(const char* address, int port)
     // TODO: Not sure if we should set this up here, would be better to move it so we don't need to actually
     //       start a executable/etc when doing a begin
 
-    connect(m_threadRunner , SIGNAL(started()), m_debuggerThread, SLOT(start()));
-    connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner , SLOT(quit()));
-    connect(this, &Qt5DebugSession::tryAction, m_debuggerThread, &Qt5DebuggerThread::doAction); 
-    connect(m_debuggerThread, &Qt5DebuggerThread::sendData, this, &Qt5DebugSession::setState); 
-    connect(this, &Qt5DebugSession::sendData, m_debuggerThread, &Qt5DebuggerThread::setState); 
+    connect(m_threadRunner, SIGNAL(started()), m_debuggerThread, SLOT(start()));
+    connect(m_debuggerThread, SIGNAL(finished()), m_threadRunner, SLOT(quit()));
+    connect(this, &Qt5DebugSession::tryAction, m_debuggerThread, &Qt5DebuggerThread::doAction);
+    connect(m_debuggerThread, &Qt5DebuggerThread::sendData, this, &Qt5DebugSession::setState);
+    connect(this, &Qt5DebugSession::sendData, m_debuggerThread, &Qt5DebuggerThread::setState);
 
     printf("beginDebug %s:%d %d\n", address, port, (uint32_t)(uint64_t)QThread::currentThreadId());
 
@@ -235,10 +235,10 @@ bool Qt5DebugSession::hasLineBreakpoint(const char* filename, int line)
     for (int i = 0, e = m_breakpointCount; i < e; ++i)
     {
         const BreakpointFileLine* breakpoint = &m_breakpoints[i];
-        
+
         if (!strstr(breakpoint->filename, filename))
             continue;
-            
+
         if (breakpoint->line == line)
             return true;
     }
@@ -376,8 +376,8 @@ void Qt5DebugSession::setState(uint8_t* readerData, int serSize)
 
             case PDEventType_setRegisters:
             {
-                m_assemblyRegisters = AssemblyRegister_buildFromReader(reader, m_assemblyRegisters, &m_assemblyRegistersCount);  
-                
+                m_assemblyRegisters = AssemblyRegister_buildFromReader(reader, m_assemblyRegisters, &m_assemblyRegistersCount);
+
                 if (m_registers.size() > 0)
                     m_registers[0]->update(m_assemblyRegisters, m_assemblyRegistersCount);
 
@@ -428,7 +428,7 @@ bool Qt5DebugSession::addBreakpoint(const char* file, int line, int id)
     bp->id = id;
 
     printf("Adding breakpoint at %s:%d\n", file, line);
-        
+
     return true;
 }
 

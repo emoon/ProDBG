@@ -11,12 +11,12 @@ namespace prodbg
 
 union AssemblyRegisterValue
 {
-    double d;
+    double   d;
     uint64_t u64;
-    float f;
+    float    f;
     uint32_t u32;
     uint16_t u16;
-    uint8_t u8;
+    uint8_t  u8;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,12 +36,12 @@ enum AssemblyRegisterType
 struct AssemblyRegister
 {
     AssemblyRegisterValue value;    // the actual value of the registr (\todo support more than one value)
-    AssemblyRegisterType type;        // Register type
-    char name[64];                    // Name of the register
-    int nameLength;                    // length of the name
-    int count;                        // number of "internal" registers (4 x u32 for SSE for example)
-    uint16_t readOnly;                // Set if the register is read-only (can't be changed by user)
-    uint16_t statusFlags;            // Flags (usually carry, overflow, etc)
+    AssemblyRegisterType  type;       // Register type
+    char                  name[64];   // Name of the register
+    int                   nameLength;  // length of the name
+    int                   count;      // number of "internal" registers (4 x u32 for SSE for example)
+    uint16_t              readOnly;   // Set if the register is read-only (can't be changed by user)
+    uint16_t              statusFlags; // Flags (usually carry, overflow, etc)
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

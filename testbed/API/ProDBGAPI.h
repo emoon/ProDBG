@@ -18,10 +18,10 @@ extern "C" {
      ProDBServerInfo* serverInfo = serviceFunc(PRODBG_SERVERINFO_SERVICE);
      It's ok for the plugin to hold a pointer to the requested service during its life time.
     \param serviceName The name of the requested service. It's *highly* recommended to use the defines for the wanted service.
-*/
+ */
 
-typedef void* ServiceFunc(const char* serviceName);
-typedef void RegisterPlugin(int type, void* data);
+typedef void* ServiceFunc (const char* serviceName);
+typedef void RegisterPlugin (int type, void* data);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -92,14 +92,14 @@ typedef enum PDEventType
 
 typedef struct PDBackendPlugin
 {
-    int version;
+    int         version;
     const char* name;
 
-    void* (*createInstance)(ServiceFunc* serviceFunc);
-    void (*destroyInstance)(void* userData);
+    void* (*createInstance)(ServiceFunc * serviceFunc);
+    void (* destroyInstance)(void* userData);
 
     // Updates and Returns the current state of the plugin.
-    PDDebugState (*update)(void* userData, PDAction action, PDReader* inEvents, PDWriter* outEvents);
+    PDDebugState (* update)(void* userData, PDAction action, PDReader* inEvents, PDWriter* outEvents);
 
     // Writer functions used for writing data back to the host
     PDReader reader;

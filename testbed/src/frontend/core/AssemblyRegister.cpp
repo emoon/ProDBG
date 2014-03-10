@@ -70,17 +70,23 @@ AssemblyRegister* AssemblyRegister_buildFromReader(PDReader* reader, AssemblyReg
             }
 
             reg = &registers[count++];
-            strcpy(reg->name, name); 
+            strcpy(reg->name, name);
             reg->nameLength = (int)strlen(name);
 
             switch (type & PDReadStatus_typeMask)
             {
-                case PDReadType_u8 : reg->type = AssemblyRegisterType_u8; break;
-                case PDReadType_u16 : reg->type = AssemblyRegisterType_u16; break;
-                case PDReadType_u32 : reg->type = AssemblyRegisterType_u32; break;
-                case PDReadType_u64 : reg->type = AssemblyRegisterType_u64; break;
-                case PDReadType_float : reg->type = AssemblyRegisterType_float; break;
-                case PDReadType_double : reg->type = AssemblyRegisterType_double; break;
+                case PDReadType_u8:
+                    reg->type = AssemblyRegisterType_u8; break;
+                case PDReadType_u16:
+                    reg->type = AssemblyRegisterType_u16; break;
+                case PDReadType_u32:
+                    reg->type = AssemblyRegisterType_u32; break;
+                case PDReadType_u64:
+                    reg->type = AssemblyRegisterType_u64; break;
+                case PDReadType_float:
+                    reg->type = AssemblyRegisterType_float; break;
+                case PDReadType_double:
+                    reg->type = AssemblyRegisterType_double; break;
             }
         }
 
@@ -88,13 +94,13 @@ AssemblyRegister* AssemblyRegister_buildFromReader(PDReader* reader, AssemblyReg
 
         switch (type & PDReadStatus_typeMask)
         {
-            case PDReadType_float : 
+            case PDReadType_float:
             {
                 PDRead_findFloat(reader, &reg->value.f, "register", it);
                 break;
             }
-            
-            case PDReadType_double : 
+
+            case PDReadType_double:
             {
                 PDRead_findDouble(reader, &reg->value.d, "register", it);
                 break;

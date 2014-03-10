@@ -38,11 +38,11 @@ static int realMain(int argc, char* argv[])
         printf("Unable to load LLDBPlugin\n");
 
         int ret = QMessageBox::critical(nullptr,
-                                       "ProDBG",
-                                       "Error loading LLDB plugin!\n\n"
-                                       "Debugging will not function correctly.",
-                                       QMessageBox::Ignore | QMessageBox::Abort,
-                                       QMessageBox::Abort);
+                                        "ProDBG",
+                                        "Error loading LLDB plugin!\n\n"
+                                        "Debugging will not function correctly.",
+                                        QMessageBox::Ignore | QMessageBox::Abort,
+                                        QMessageBox::Abort);
         if (ret == QMessageBox::Abort)
             return -1;
     }
@@ -102,7 +102,7 @@ int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
     return prodbg::realMain(0, 0);
 }
-            
+
 #else
 int main(int argc, char* argv[])
 {

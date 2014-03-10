@@ -24,7 +24,7 @@ Qt5Locals::Qt5Locals(QWidget* parent) : QTreeWidget(parent)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5Locals::~Qt5Locals() 
+Qt5Locals::~Qt5Locals()
 {
     g_debugSession->delLocals(this);
 }
@@ -60,9 +60,9 @@ void Qt5Locals::update(PDReader* reader)
         PDRead_findU64(reader, &address, "address", it);
 
         temp << name << value << type << QString::number(address);
-        items.append(new QTreeWidgetItem((QTreeWidget*)0, temp)); 
+        items.append(new QTreeWidgetItem((QTreeWidget*)0, temp));
     }
-    
+
     insertTopLevelItems(0, items);
 }
 

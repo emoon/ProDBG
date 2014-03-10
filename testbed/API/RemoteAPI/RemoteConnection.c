@@ -87,7 +87,7 @@ static int createListner(RemoteConnection* conn, int port)
         return 0;
     }
 
-    if (-1 == bind(conn->serverSocket, (struct sockaddr *)&sin, sizeof(sin)))
+    if (-1 == bind(conn->serverSocket, (struct sockaddr*)&sin, sizeof(sin)))
     {
         perror("bind");
         return 0;
@@ -109,8 +109,8 @@ struct RemoteConnection* RemoteConnection_create(enum RemoteConnectionType type,
     RemoteConnection* conn = 0;
 
 #if defined(_WIN32)
-     WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2,0),&wsaData) != 0)
+    WSADATA wsaData;
+    if (WSAStartup(MAKEWORD(2, 0), &wsaData) != 0)
         return 0;
 #endif
 
@@ -151,7 +151,7 @@ int RemoteConnection_connect(RemoteConnection* conn, const char* address, int po
         return 0;
     }
 
-    for (ap = he->h_addr_list; *ap; ++ap) 
+    for (ap = he->h_addr_list; *ap; ++ap)
     {
     #ifndef _WIN32
         sa.sin_family = (sa_family_t)he->h_addrtype;
@@ -166,7 +166,7 @@ int RemoteConnection_connect(RemoteConnection* conn, const char* address, int po
         if (sock == INVALID_SOCKET)
             continue;
 
-        if (connect(sock, (struct sockaddr *)&sa, sizeof(sa)) >= 0)
+        if (connect(sock, (struct sockaddr*)&sa, sizeof(sa)) >= 0)
             break;
 
         closesocket(sock);
@@ -217,14 +217,14 @@ static int clientConnect(RemoteConnection* conn, struct sockaddr_in* host)
 
     conn->socket = (int)accept(conn->serverSocket, (struct sockaddr*)&hostTemp, (socklen_t*)&hostSize);
 
-    if (INVALID_SOCKET == conn->socket) 
+    if (INVALID_SOCKET == conn->socket)
     {
         perror("accept");
         printf("Unable to accept connection..\n");
         return 0;
     }
 
-    if (NULL != host) 
+    if (NULL != host)
         *host = hostTemp;
 
     printf("Accept done\n");
@@ -253,12 +253,12 @@ void RemoteConnection_updateListner(RemoteConnection* conn)
 
     timeout.tv_sec = 0;
     timeout.tv_usec = 0;
-    
+
     if (RemoteConnection_isConnected(conn))
         return;
 
     // look for new clients
-    
+
     if (select(conn->serverSocket + 1, &fds, NULL, NULL, &timeout) > 0)
     {
         if (clientConnect(conn, &client))
@@ -345,7 +345,7 @@ int RemoteConnection_sendStream(RemoteConnection* conn, const unsigned char* buf
         sizeCount += sizeLeft;
     }
 
-    return sizeCount; 
+    return sizeCount;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -362,7 +362,7 @@ unsigned char* RemoteConnection_recvStream(RemoteConnection* conn, unsigned char
         ownBuffer = 1;
     }
 
-    outputBuffer[0] = (size >> 24) & 0xff; 
+    outputBuffer[0] = (size >> 24) & 0xff;
     outputBuffer[1] = (size >> 16) & 0xff;
     outputBuffer[2] = (size >> 8) & 0xff;
     outputBuffer[3] = (size >> 0) & 0xff;

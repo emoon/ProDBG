@@ -55,7 +55,7 @@ struct Qt5LayoutEntry
     Qt5ViewType viewType;
 
     // Main Window Parameters
-    
+
     ///! Flag for whether or not the main window is maximized
     bool isMaximized;
 
@@ -63,10 +63,10 @@ struct Qt5LayoutEntry
     QByteArray* mainWindowState;
 
     // Dynamic View Parameters
-    
+
     ///! Splitter orientation
     Qt::Orientation splitDirection;
-    
+
     ///! Size of splitter region 1
     int32 splitRegion1Size;
 
@@ -104,7 +104,7 @@ struct Qt5LayoutEntry
     bool topLevel;
 
     // Miscellaneous
-    
+
     ///! View specific extended data
     Qt5SettingArgument extendedData;
 };
@@ -113,7 +113,7 @@ struct Qt5LayoutEntry
 
 struct Qt5Layout
 {
-    int32 entryCount;
+    int32           entryCount;
     Qt5LayoutEntry* entries;
 };
 

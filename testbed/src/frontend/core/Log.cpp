@@ -24,9 +24,12 @@ void log(int logLevel, const char* filename, int line, const char* format, ...)
 
     switch (logLevel)
     {
-        case LOG_DEBUG : printf("%s:%d DEBUG ", filename, line); break;
-        case LOG_INFO  :  printf("%s:%d INFO  ", filename, line); break;
-        case LOG_ERROR :  printf("%s:%d ERROR ", filename, line); break;
+        case LOG_DEBUG:
+            printf("%s:%d DEBUG ", filename, line); break;
+        case LOG_INFO:
+            printf("%s:%d INFO  ", filename, line); break;
+        case LOG_ERROR:
+            printf("%s:%d ERROR ", filename, line); break;
     }
 
     va_start(ap, format);
@@ -38,7 +41,7 @@ void log(int logLevel, const char* filename, int line, const char* format, ...)
     }
 #else
     vprintf(format, ap);
-#endif   
+#endif
     va_end(ap);
 }
 

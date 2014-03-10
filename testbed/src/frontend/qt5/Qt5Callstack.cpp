@@ -62,7 +62,7 @@ void Qt5CallStack::update(PDReader* reader)
         PDRead_findU64(reader, &address, "address", it);
 
         temp << QString::number(address) << module << filename << QString::number(line);
-        items.append(new QTreeWidgetItem((QTreeWidget*)0, temp)); 
+        items.append(new QTreeWidgetItem((QTreeWidget*)0, temp));
     }
 
     insertTopLevelItems(0, items);

@@ -207,10 +207,10 @@ void Qt5MainWindow::fileSettingsFinished(int result)
 
 struct MenuDescriptor
 {
-    const char8* name;
-    int32 id;
-    bool active;
-    const char8* shortCut;
+    const char8*    name;
+    int32           id;
+    bool            active;
+    const char8*    shortCut;
     MenuDescriptor* subMenu;
 };
 
@@ -219,17 +219,17 @@ struct MenuDescriptor
 enum MenuIds
 {
     //
-    
+
     MENU_SEPARATOR = 1,
 
-     MENU_FILE_NEW_PROJECT = 0x1000,    
-     MENU_FILE_CLOSE_PROJECT,    
-     MENU_FILE_LOAD_PROJECT,    
-     MENU_FILE_LOAD_EXECUTABLE,    
-     MENU_FILE_LOAD_SOURCE,    
-     MENU_FILE_LOAD_DEFAULT_LAYOUT,    
+    MENU_FILE_NEW_PROJECT = 0x1000,
+    MENU_FILE_CLOSE_PROJECT,
+    MENU_FILE_LOAD_PROJECT,
+    MENU_FILE_LOAD_EXECUTABLE,
+    MENU_FILE_LOAD_SOURCE,
+    MENU_FILE_LOAD_DEFAULT_LAYOUT,
 
-     // Debug
+    // Debug
 
     MENU_DEBUG_GO,
     MENU_DEBUG_STOP,
@@ -276,7 +276,7 @@ static MenuDescriptor s_debugMenu[] =
     { "Step Over", MENU_DEBUG_STEP_OVER, true, "F10", 0 },
     { "Step Out", MENU_DEBUG_STEP_OVER, true, "Shift+F11", 0 },
     { "Attach process...", MENU_DEBUG_ATTACH_TO_PROCESS, false, "", 0 },
-    { "Attach Remote process...", MENU_DEBUG_ATTACH_TO_REMOTE_PROCESS , true, "Ctrl+r", 0 },
+    { "Attach Remote process...", MENU_DEBUG_ATTACH_TO_REMOTE_PROCESS, true, "Ctrl+r", 0 },
     { 0, 0, 0, 0, 0 },
 };
 
@@ -286,11 +286,11 @@ void Qt5MainWindow::onMenu(int id)
 {
     switch (id)
     {
-        case MENU_FILE_LOAD_EXECUTABLE :
+        case MENU_FILE_LOAD_EXECUTABLE:
         {
             QString filename = QFileDialog::getOpenFileName(this, tr("Open File"),
                                                             "/home",
-                                                            tr("*"));    
+                                                            tr("*"));
 
             if (filename.isNull())
                 return;
@@ -306,12 +306,12 @@ void Qt5MainWindow::onMenu(int id)
             break;
         }
 
-        case MENU_FILE_LOAD_SOURCE :
+        case MENU_FILE_LOAD_SOURCE:
         {
 
             QString filename = QFileDialog::getOpenFileName(this, tr("Open File"),
                                                             "/home",
-                                                            tr("*"));    
+                                                            tr("*"));
 
             if (filename.isNull())
                 return;
@@ -324,25 +324,25 @@ void Qt5MainWindow::onMenu(int id)
         }
 
 
-        case MENU_DEBUG_ATTACH_TO_REMOTE_PROCESS :
+        case MENU_DEBUG_ATTACH_TO_REMOTE_PROCESS:
         {
             g_debugSession->beginRemote("127.0.0.1", 1340);
             break;
         }
 
-        case MENU_DEBUG_GO :
+        case MENU_DEBUG_GO:
         {
             g_debugSession->callAction(PDAction_run);
             break;
         }
 
-        case MENU_DEBUG_STOP :
+        case MENU_DEBUG_STOP:
         {
             g_debugSession->callAction(PDAction_break);
             break;
         }
 
-        case MENU_DEBUG_STEP :
+        case MENU_DEBUG_STEP:
         {
             g_debugSession->callAction(PDAction_step);
             break;
@@ -491,7 +491,7 @@ void Qt5MainWindow::createMenus()
     m_windowMenu->addMenu(m_newWindowMenu);
     m_windowMenu->addAction(m_windowCloseViewAction);
     m_windowMenu->addSeparator();
-    m_windowMenu->addMenu(m_dynamicWindowMenu);    
+    m_windowMenu->addMenu(m_dynamicWindowMenu);
 
     // Connect help menu
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -566,8 +566,8 @@ Qt5MainWindow::Qt5MainWindow() : Qt5BaseView(this, nullptr, nullptr)
     connect(this, SIGNAL(signalApplyLayout(Qt5Layout*)), this, SLOT(applyLayout(Qt5Layout*)));
     connect(this, SIGNAL(signalSettings()), this, SLOT(applySettings()));
 
-    connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
-    connect(m_backgroundWidget, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenuProxy(const QPoint&)));
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(contextMenuProxy(const QPoint &)));
+    connect(m_backgroundWidget, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(contextMenuProxy(const QPoint &)));
 
     QString objectName;
     objectName.setNum(m_id);
@@ -798,7 +798,7 @@ Qt5BaseView* Qt5MainWindow::getCurrentWindow(Qt5ViewType type)
                 dynamicView = (Qt5DynamicView*)dynamicView->m_parent;
             }
         }
-        
+
         return dynamicView;
     }
     else if (m_currentViewType == type)
@@ -811,7 +811,7 @@ Qt5BaseView* Qt5MainWindow::getCurrentWindow(Qt5ViewType type)
     }
     else
     {
-        return nullptr;    
+        return nullptr;
     }
 }
 
@@ -820,7 +820,7 @@ Qt5BaseView* Qt5MainWindow::getCurrentWindow(Qt5ViewType type)
 static inline Qt5BaseView* findObject(Qt5BaseView** objects, int32 count, int32 id)
 {
     for (int32 index = 0; index < count; ++index)
-    {    
+    {
         if (objects[index])
         {
             if (objects[index]->m_id == id)
@@ -905,7 +905,7 @@ void Qt5MainWindow::loadLayout(Qt5Layout* layout)
                     dock->setWidget(dynamicView);
                     addDockWidget(Qt::LeftDockWidgetArea, dock);
                 }
-                
+
                 emit dynamicView->signalDelayedSetCentralWidget(dynamicView->m_statusLabel);
             #if 1
                 // Debug code
@@ -1004,7 +1004,7 @@ void Qt5MainWindow::loadLayout(Qt5Layout* layout)
             {
                 if (layout->entries[index].child1 > 0)
                     ((Qt5DynamicView*)objects[index])->m_children[0] = findObject(objects, layout->entryCount, layout->entries[index].child1);
-                
+
                 if (layout->entries[index].child2 > 0)
                     ((Qt5DynamicView*)objects[index])->m_children[1] = findObject(objects, layout->entryCount, layout->entries[index].child2);
             }
@@ -1128,7 +1128,7 @@ void Qt5MainWindow::contextMenuEvent(QContextMenuEvent*)
         return;
 
     setCurrentWindow(this, Qt5ViewType_Main);
-    
+
     Q_ASSERT(m_currentWindowMenu != nullptr);
     m_currentWindowMenu->display(cursor().pos());
 }
@@ -1186,12 +1186,12 @@ void Qt5MainWindow::fileSaveLayout()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-void Qt5MainWindow::debugStart()
-{
+   void Qt5MainWindow::debugStart()
+   {
     //g_debugSession->begin("tundra-output/macosx-clang-debug-default/Fake6502");
     //g_debugSession->begin("tundra-output/macosx-clang-debug-default/prodbg-qt5");
-}
-*/
+   }
+ */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1227,7 +1227,7 @@ void Qt5MainWindow::setWindowMenu(Qt5ContextMenu* menu)
     Q_ASSERT(mainMenuBar != nullptr);
 
     if (m_currentWindowMenu != nullptr)
-    {        
+    {
         mainMenuBar->removeAction(m_currentWindowMenu->menuAction());
         m_currentWindowMenu->deleteLater();
     }
@@ -1369,7 +1369,7 @@ void Qt5MainWindow::windowDeleteView()
     Qt5DynamicView* dynamicView = reinterpret_cast<Qt5DynamicView*>(getCurrentWindow(Qt5ViewType_Dynamic));
     if (dynamicView == nullptr)
         return;
- 
+
     m_deletingDockWidget = true;
     setCurrentWindow(this, Qt5ViewType_Main);
 
@@ -1425,7 +1425,7 @@ void Qt5MainWindow::windowDeleteView()
             int index = 0;
             if (((Qt5DynamicView*)parent->m_parent)->m_children[0] == parent)
             {
-                index = ((Qt5DynamicView *)parent->m_parent)->m_splitter->indexOf(((Qt5DynamicView*)parent->m_parent)->m_children[0]);
+                index = ((Qt5DynamicView*)parent->m_parent)->m_splitter->indexOf(((Qt5DynamicView*)parent->m_parent)->m_children[0]);
                 ((Qt5DynamicView*)parent->m_parent)->m_children[0] = child2;
             }
             else if (((Qt5DynamicView*)parent->m_parent)->m_children[1] == parent)
@@ -1533,7 +1533,7 @@ void Qt5MainWindow::applySettings()
 
 #if 0
 #if NcFeature(NcPlatformWindows)
-    if (Qt5Setting* win32StyleSetting = g_settings->getSetting(Qt5SettingId_QtStyleWin32))
+    if (Qt5Setting * win32StyleSetting = g_settings->getSetting(Qt5SettingId_QtStyleWin32))
     {
         Qt5SettingArgument* argument = g_settings->getArgument(win32StyleSetting, 0);
         if ((bool)argument->data)
@@ -1623,13 +1623,13 @@ void Qt5MainWindow::shutdown(QObject*)
     m_shutdown = true;
 
     /*if (m_settingsWindow != nullptr)
-    {
+       {
         m_settingsWindow->close();
         m_settingsWindow->deleteLater();
         m_settingsWindow = nullptr;
-    }*/
+       }*/
 
-    
+
 
     g_settings->saveSettings();
     saveLayout();
@@ -1645,5 +1645,5 @@ void Qt5MainWindow::errorMessage(const QString& message)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
 }

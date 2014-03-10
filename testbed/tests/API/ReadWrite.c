@@ -5,8 +5,8 @@
 
 static PDReader readerData;
 static PDWriter writerData;
-static PDReader* reader = 0; 
-static PDWriter* writer = 0; 
+static PDReader* reader = 0;
+static PDWriter* writer = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // These are private functions that is needed to setup the reader/writer
@@ -33,7 +33,7 @@ void testWriteEvent(CuTest* tc)
 void testNullReader(CuTest* tc)
 {
     PDReader* t = 0;
-    CuAssertTrue(tc, PDRead_getEvent(t) == 0);    // if null ptr for getEvent this should always return 0 
+    CuAssertTrue(tc, PDRead_getEvent(t) == 0);    // if null ptr for getEvent this should always return 0
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ void testReadEvent(CuTest* tc)
     CuAssertTrue(tc, (data = PDBinaryWriter_getData(writer)) != 0);
     CuAssertTrue(tc, (size = PDBinaryWriter_getSize(writer)) != 0);
 
-    PDBinaryReader_initStream(reader, data, size); 
+    PDBinaryReader_initStream(reader, data, size);
 
     CuAssertTrue(tc, PDRead_getEvent(reader) == 1);    // expect 1 as written testWriteEvent
     CuAssertTrue(tc, PDRead_getEvent(reader) == 0);    // should be 0 as no more events
@@ -69,7 +69,7 @@ void testWriteReadAction(CuTest* tc)
     PDWrite_u32(writer, "action", 3);
     PDWrite_eventEnd(writer);
 
-    PDBinaryReader_initStream(reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer)); 
+    PDBinaryReader_initStream(reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
 
     CuAssertTrue(tc, PDRead_getEvent(reader) == PDEventType_setExecutable);
     CuAssertTrue(tc, PDRead_findString(reader, &filename, "filename", 0) == (PDReadStatus_ok | PDReadType_string));
@@ -77,7 +77,7 @@ void testWriteReadAction(CuTest* tc)
 
     CuAssertTrue(tc, PDRead_getEvent(reader) == PDEventType_action);
     CuAssertTrue(tc, PDRead_findU32(reader, &value, "action", 0) == (PDReadStatus_ok | PDReadType_u32));
-    CuAssertTrue(tc, value == 3);  
+    CuAssertTrue(tc, value == 3);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,7 +103,7 @@ void testReadSingleString(CuTest* tc)
     CuAssertTrue(tc, (data = PDBinaryWriter_getData(writer)) != 0);
     CuAssertTrue(tc, (size = PDBinaryWriter_getSize(writer)) != 0);
 
-    PDBinaryReader_initStream(reader, data, size); 
+    PDBinaryReader_initStream(reader, data, size);
 
     CuAssertTrue(tc, PDRead_getEvent(reader) == 2);
 
@@ -182,82 +182,82 @@ void testAllValuesRead(CuTest* tc)
     const char* data_id;
     PDReaderIterator it;
 
-    PDBinaryReader_initStream(reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer)); 
+    PDBinaryReader_initStream(reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
 
     CuAssertTrue(tc, PDRead_getEvent(reader) == 2);
     // s8
 
     CuAssertTrue(tc, (PDRead_s8(reader, &s8, &s8_id, &it) & PDReadStatus_typeMask) == PDReadType_s8);
     CuAssertStrEquals(tc, s8_id, "my_s8");
-    CuAssertTrue(tc, s8 == -2);  
+    CuAssertTrue(tc, s8 == -2);
 
     // u8
 
     CuAssertTrue(tc, (PDRead_u8(reader, &u8, &u8_id, &it) & PDReadStatus_typeMask) == PDReadType_u8);
     CuAssertStrEquals(tc, s8_id, "my_u8");
-    CuAssertTrue(tc, u8 == 3);  
+    CuAssertTrue(tc, u8 == 3);
 
     // s16
 
     CuAssertTrue(tc, (PDRead_s16(reader, &s16, &s16_id, &it) & PDReadStatus_typeMask) == PDReadType_s16);
     CuAssertStrEquals(tc, s16_id, "my_s16");
-    CuAssertTrue(tc, s16 == -2000);  
+    CuAssertTrue(tc, s16 == -2000);
 
     // u16
 
     CuAssertTrue(tc, (PDRead_u16(reader, &u16, &u16_id, &it) & PDReadStatus_typeMask) == PDReadType_u16);
     CuAssertStrEquals(tc, u16_id, "my_u16");
-    CuAssertTrue(tc, u16 == 56);  
+    CuAssertTrue(tc, u16 == 56);
 
     // s32
 
     CuAssertTrue(tc, (PDRead_s32(reader, &s32, &s32_id, &it) & PDReadStatus_typeMask) == PDReadType_s32);
     CuAssertStrEquals(tc, s32_id, "my_s32");
-    CuAssertTrue(tc, s32 == -300000);  
+    CuAssertTrue(tc, s32 == -300000);
 
     // u32
 
     CuAssertTrue(tc, (PDRead_u32(reader, &u32, &u32_id, &it) & PDReadStatus_typeMask) == PDReadType_u32);
     CuAssertStrEquals(tc, u32_id, "my_u32");
-    CuAssertTrue(tc, u32 == 4000000);  
+    CuAssertTrue(tc, u32 == 4000000);
 
     // s64
 
     CuAssertTrue(tc, (PDRead_s64(reader, &s64, &s64_id, &it) & PDReadStatus_typeMask) == PDReadType_s64);
     CuAssertStrEquals(tc, s64_id, "my_s64");
-    CuAssertTrue(tc, s64 == -1400000L);  
+    CuAssertTrue(tc, s64 == -1400000L);
 
     // u64
 
     CuAssertTrue(tc, (PDRead_u64(reader, &u64, &u64_id, &it) & PDReadStatus_typeMask) == PDReadType_u64);
     CuAssertStrEquals(tc, u64_id, "my_u64");
-    CuAssertTrue(tc, u64 == 6000000L);  
+    CuAssertTrue(tc, u64 == 6000000L);
 
     // float
 
     CuAssertTrue(tc, (PDRead_float(reader, &fvalue, &float_id, &it) & PDReadStatus_typeMask) == PDReadType_float);
     CuAssertStrEquals(tc, float_id, "my_float");
-    CuAssertTrue(tc, fvalue == 14.0f);  
+    CuAssertTrue(tc, fvalue == 14.0f);
 
     // float 2
 
     CuAssertTrue(tc, (PDRead_float(reader, &fvalue, &float_id, &it) & PDReadStatus_typeMask) == PDReadType_float);
     CuAssertStrEquals(tc, float_id, "my_float2");
-    CuAssertTrue(tc, fvalue > -24.0f + 0.001f && fvalue < -24.0f - 0.0001f);  
+    CuAssertTrue(tc, fvalue > -24.0f + 0.001f && fvalue < -24.0f - 0.0001f);
 
     // double
 
     CuAssertTrue(tc, (PDRead_double(reader, &dvalue, &double_id, &it) & PDReadStatus_typeMask) == PDReadType_double);
     CuAssertStrEquals(tc, double_id, "my_double");
-    CuAssertTrue(tc, dvalue == 23.0f);  
+    CuAssertTrue(tc, dvalue == 23.0f);
 
     // double 2
 
     CuAssertTrue(tc, (PDRead_double(reader, &dvalue, &double_id, &it) & PDReadStatus_typeMask) == PDReadType_double);
     CuAssertStrEquals(tc, double_id, "my_double2");
-    CuAssertTrue(tc, dvalue == 63.0);  
+    CuAssertTrue(tc, dvalue == 63.0);
 
-    // string 
+    // string
 
     CuAssertTrue(tc, (PDRead_string(reader, &string, &string_id, &it) & PDReadStatus_typeMask) == PDReadType_string);
     CuAssertStrEquals(tc, string_id, "my_string");
@@ -267,11 +267,11 @@ void testAllValuesRead(CuTest* tc)
 
     CuAssertTrue(tc, (PDRead_data(reader, (void*)&data, &size, &data_id, &it) & PDReadStatus_typeMask) == PDReadType_string);
     CuAssertStrEquals(tc, data_id, "my_data");
-    CuAssertTrue(tc, size == sizeof(s_data));  
-    CuAssertTrue(tc, data[0] == s_data[0]); 
-    CuAssertTrue(tc, data[1] == s_data[1]); 
-    CuAssertTrue(tc, data[2] == s_data[2]); 
-    CuAssertTrue(tc, data[5] == s_data[5]); 
+    CuAssertTrue(tc, size == sizeof(s_data));
+    CuAssertTrue(tc, data[0] == s_data[0]);
+    CuAssertTrue(tc, data[1] == s_data[1]);
+    CuAssertTrue(tc, data[2] == s_data[2]);
+    CuAssertTrue(tc, data[5] == s_data[5]);
 
     CuAssertTrue(tc, PDRead_getEvent(reader) == 0);
 }
@@ -284,20 +284,20 @@ void testFind(CuTest* tc)
     uint16_t u16;
     uint32_t u32;
 
-    PDBinaryReader_initStream(reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer)); 
+    PDBinaryReader_initStream(reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
 
     CuAssertTrue(tc, PDRead_getEvent(reader) == 3);
 
     // u16
 
     CuAssertTrue(tc, PDRead_findU16(reader, &u16, "my_u16", 0) == (PDReadStatus_ok | PDReadType_u16));
-    CuAssertTrue(tc, u16 == 56);  
+    CuAssertTrue(tc, u16 == 56);
 
     CuAssertTrue(tc, PDRead_findU32(reader, &u32, "my_u32", 0) == (PDReadStatus_ok | PDReadType_u32));
-    CuAssertTrue(tc, u32 == 4000000);  
+    CuAssertTrue(tc, u32 == 4000000);
 
     CuAssertTrue(tc, PDRead_findU8(reader, &u8, "my_u16", 0) == (PDReadStatus_converted | PDReadType_u16));
-    CuAssertTrue(tc, u8 == 56); 
+    CuAssertTrue(tc, u8 == 56);
 
     CuAssertTrue(tc, PDRead_getEvent(reader) == 0);
 }
@@ -343,7 +343,7 @@ void testArrayRead(CuTest* tc)
 {
     PDReaderIterator arrayIter;
 
-    PDBinaryReader_initStream(reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer)); 
+    PDBinaryReader_initStream(reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
 
     CuAssertTrue(tc, PDRead_getEvent(reader) == 5);
 
@@ -356,7 +356,7 @@ void testArrayRead(CuTest* tc)
         int8_t s8;
         const char* string1;
 
-        CuAssertTrue(tc, PDRead_getNextEntry(reader, &arrayIter) == 3); 
+        CuAssertTrue(tc, PDRead_getNextEntry(reader, &arrayIter) == 3);
 
         CuAssertTrue(tc, PDRead_findString(reader, &string1, "test", arrayIter) == (PDReadType_string | PDReadStatus_ok));
         CuAssertStrEquals(tc, "some test data", string1);
@@ -377,7 +377,7 @@ void testArrayRead(CuTest* tc)
 CuSuite* getSuite()
 {
     CuSuite* suite = CuSuiteNew();
-    
+
     //SUITE_ADD_TEST(suite, testNullReader);
     SUITE_ADD_TEST(suite, testWriteReadAction);
     SUITE_ADD_TEST(suite, testWriteEvent);

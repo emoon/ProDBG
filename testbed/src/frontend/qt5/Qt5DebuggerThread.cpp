@@ -21,13 +21,13 @@ namespace prodbg
 static inline int32_t getS32(const uint8_t* ptr)
 {
     int32_t v = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3];
-    return v; 
+    return v;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5DebuggerThread::Qt5DebuggerThread(Qt5DebuggerThread::TargetType type) : 
-    m_debugState(PDDebugState_noTarget),
+Qt5DebuggerThread::Qt5DebuggerThread(Qt5DebuggerThread::TargetType type)
+    : m_debugState(PDDebugState_noTarget),
     m_debuggerPlugin(nullptr),
     m_pluginData(nullptr),
     m_targetHost(nullptr),
@@ -38,7 +38,7 @@ Qt5DebuggerThread::Qt5DebuggerThread(Qt5DebuggerThread::TargetType type) :
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
 void Qt5DebuggerThread::start()
 {
     int count;
@@ -89,7 +89,7 @@ void Qt5DebuggerThread::updateLocal(void* serializeData, int serSize, int action
     PDBinaryReader_initStream(&m_reader, (uint8_t*)serializeData, serSize);
 
     // \todo This will alloc memory all the time but we may not use it. better to use some prealloced chunks?
-    
+
     PDBinaryWriter_init(&m_writer);
 
     if (m_debuggerPlugin->update(m_pluginData, (PDAction)action, &m_reader, &m_writer) == PDDebugState_running)
@@ -159,12 +159,12 @@ void Qt5DebuggerThread::update()
 
         if (!RemoteConnection_pollRead(m_connection))
             return;
-        
-        if (RemoteConnection_recv(m_connection, (char*)&cmd, 4, 0)) 
+
+        if (RemoteConnection_recv(m_connection, (char*)&cmd, 4, 0))
         {
             totalSize = (cmd[0] << 24) | (cmd[1] << 16) | (cmd[2] << 8) | cmd[3];
-            
-            outputBuffer = RemoteConnection_recvStream(m_connection, 0, totalSize); 
+
+            outputBuffer = RemoteConnection_recvStream(m_connection, 0, totalSize);
 
             if (outputBuffer)
                 emit sendData(outputBuffer, totalSize);
@@ -189,8 +189,8 @@ void Qt5DebuggerThread::doAction(int action)
             uint8_t command[4];
             command[0] = 1 << 7; // action tag
             command[1] = 0;
-            command[2] = (action >> 8) & 0xff; 
-            command[3] = (action >> 0) & 0xff; 
+            command[2] = (action >> 8) & 0xff;
+            command[3] = (action >> 0) & 0xff;
             RemoteConnection_send(m_connection, &command, sizeof(uint32_t), 0);
         }
     }

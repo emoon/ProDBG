@@ -20,7 +20,7 @@ namespace prodbg
 Qt5Registers::Qt5Registers(QWidget* parent) : QTreeView(parent)
 {
     QStringList horzHeaders;
-    horzHeaders << "Register" << "Value"; 
+    horzHeaders << "Register" << "Value";
 
     m_model = new QStandardItemModel(this);
     m_model->setHorizontalHeaderLabels(horzHeaders);
@@ -48,7 +48,7 @@ Qt5Registers::~Qt5Registers()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Don clear this all the time but track changes instead
 
-static void fillList(QStandardItemModel* model, AssemblyRegister* registers, int count) 
+static void fillList(QStandardItemModel* model, AssemblyRegister* registers, int count)
 {
     for (int i = 0; i < count; ++i)
     {
@@ -59,16 +59,22 @@ static void fillList(QStandardItemModel* model, AssemblyRegister* registers, int
 
         switch (reg->type)
         {
-            case AssemblyRegisterType_u8 : temp << tempV.sprintf("0x%x", reg->value.u8); break;
-            case AssemblyRegisterType_u16 : temp << tempV.sprintf("0x%04x", reg->value.u16); break;
-            case AssemblyRegisterType_u32 : temp << tempV.sprintf("0x%08x", reg->value.u32); break;
-            case AssemblyRegisterType_u64 : temp << tempV.sprintf("0x%016llx", reg->value.u64); break;
-            case AssemblyRegisterType_float : temp << tempV.sprintf("%8.8f", reg->value.f); break;
-            case AssemblyRegisterType_double : temp << tempV.sprintf("%8.8f", reg->value.d); break;
+            case AssemblyRegisterType_u8:
+                temp << tempV.sprintf("0x%x", reg->value.u8); break;
+            case AssemblyRegisterType_u16:
+                temp << tempV.sprintf("0x%04x", reg->value.u16); break;
+            case AssemblyRegisterType_u32:
+                temp << tempV.sprintf("0x%08x", reg->value.u32); break;
+            case AssemblyRegisterType_u64:
+                temp << tempV.sprintf("0x%016llx", reg->value.u64); break;
+            case AssemblyRegisterType_float:
+                temp << tempV.sprintf("%8.8f", reg->value.f); break;
+            case AssemblyRegisterType_double:
+                temp << tempV.sprintf("%8.8f", reg->value.d); break;
         }
 
         QList<QStandardItem*> newIt;
-        QStandardItem * item = new QStandardItem(reg->name);
+        QStandardItem* item = new QStandardItem(reg->name);
         item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
         newIt.append(item);
 
@@ -91,7 +97,7 @@ void Qt5Registers::update(AssemblyRegister* registers, int count)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
 void Qt5Registers::keyPressEvent(QKeyEvent* event)
 {
     auto m = selectedIndexes();
