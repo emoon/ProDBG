@@ -32,7 +32,7 @@ class LineNumberArea;
 struct FileLineBreakpoint
 {
     QString filename;
-    int line;
+    int     line;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,9 +45,9 @@ public:
 
     enum Mode
     {
-        Sourcefile,            // Sourcefile (.c .s) etc
+        Sourcefile,         // Sourcefile (.c .s) etc
         Disassembly,        // Disassembly
-        Mixed,                // Mixed Source + Disassembly mode
+        Mixed,              // Mixed Source + Disassembly mode
     };
 
     Qt5CodeEditor(QWidget* parent = 0);
@@ -56,7 +56,7 @@ public:
     void setMode(Mode mode);
     void setExceptionAddress(uint64_t address);
     void readSourceFile(const char* file);
-    void lineNumberAreaPaintEvent(QPaintEvent *event);
+    void lineNumberAreaPaintEvent(QPaintEvent* event);
     void setFileLine(const char* file, int line);
     void setAddress(uint64_t address);
     void setLine(int line);
@@ -72,7 +72,7 @@ protected:
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
     void highlightCurrentLine();
-    void updateLineNumberArea(const QRect &, int);
+    void updateLineNumberArea(const QRect&, int);
     void sessionUpdate();
     void fileChange(const QString filename);
 
@@ -107,7 +107,7 @@ private:
 class LineNumberArea : public QWidget
 {
 public:
-    LineNumberArea(Qt5CodeEditor* editor) : QWidget(editor), m_codeEditor(editor) { }
+    LineNumberArea(Qt5CodeEditor* editor) : QWidget(editor), m_codeEditor(editor) {}
     QSize sizeHint() const { return QSize(m_codeEditor->lineNumberAreaWidth(), 0); }
 
 protected:
