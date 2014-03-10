@@ -20,7 +20,7 @@ public:
         m_matchRegisters.clear();
     }
 
-    ~AssemblyHighlighter() {};
+    ~AssemblyHighlighter() {}
 
     void clearRegisterList()
     {

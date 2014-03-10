@@ -27,7 +27,7 @@ Qt5DebugSession::Qt5DebugSession()
     m_debuggerThread = 0;
     m_threadRunner = 0;
     m_breakpointCount = 0;
-    m_breakpointMaxCount = 0;;
+    m_breakpointMaxCount = 0;
     m_assemblyRegisters = 0;
     m_assemblyRegistersCount = 0;
 
