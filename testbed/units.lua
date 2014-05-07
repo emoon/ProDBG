@@ -149,7 +149,7 @@ SharedLibrary {
         CPPPATH = { 
             "API",
             "plugins/LLDB",
-            "plugins/LLDB/Frameworks/LLDB.Framework/Headers",
+            "plugins/LLDB/Frameworks/LLDB.Framework/Versions/A/Headers",
         },
 
         CXXOPTS = {
