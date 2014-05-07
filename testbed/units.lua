@@ -148,8 +148,8 @@ SharedLibrary {
     Env = {
         CPPPATH = { 
             "API",
-            "plugins/lldb",
-            "plugins/lldb/Frameworks/LLDB.Framework/Headers",
+            "plugins/LLDB",
+            "plugins/LLDB/Frameworks/LLDB.Framework/Headers",
         },
 
         CXXOPTS = {
@@ -167,7 +167,7 @@ SharedLibrary {
         },
 
         SHLIBOPTS = { 
-            { "-Fplugins/lldb/Frameworks", "-lstdc++"; Config = "macosx-clang-*" },
+            { "-Fplugins/LLDB/Frameworks", "-lstdc++"; Config = "macosx-clang-*" },
         },
 
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
@@ -175,7 +175,7 @@ SharedLibrary {
 
     Sources = { 
         Glob {
-            Dir = "plugins/lldb",
+            Dir = "plugins/LLDB",
             Extensions = { ".c", ".cpp", ".m" },
         },
 
