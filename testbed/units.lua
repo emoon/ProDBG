@@ -167,7 +167,7 @@ SharedLibrary {
         },
 
         SHLIBOPTS = { 
-            { "-Fplugins/LLDB/Frameworks/LLDB.framework/Versions/A", "-lstdc++"; Config = "macosx-clang-*" },
+            { "-Fplugins/LLDB/Frameworks", "-lstdc++"; Config = "macosx-clang-*" },
         },
 
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
@@ -274,9 +274,9 @@ local native = require('tundra.native')
 
 -- only build LLDBPlugin on Mac
 
-if native.host_platform == "macosx" then
-    Default "LLDBPlugin"
-end
+--if native.host_platform == "macosx" then
+--   Default "LLDBPlugin"
+--end
 
 
 Program {
