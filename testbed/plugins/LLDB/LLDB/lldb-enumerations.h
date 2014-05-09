@@ -46,7 +46,9 @@ namespace lldb {
         eLaunchFlagDisableSTDIO = (1u << 4),  ///< Disable stdio for inferior process (e.g. for a GUI app)
         eLaunchFlagLaunchInTTY  = (1u << 5),  ///< Launch the process in a new TTY if supported by the host 
         eLaunchFlagLaunchInShell= (1u << 6),   ///< Launch the process inside a shell to get shell expansion
-        eLaunchFlagLaunchInSeparateProcessGroup = (1u << 7) ///< Launch the process in a separate process group
+        eLaunchFlagLaunchInSeparateProcessGroup = (1u << 7), ///< Launch the process in a separate process group
+        eLaunchFlagsDontMonitorProcess = (1u << 8)  ///< If you are going to hand the process off (e.g. to debugserver)
+                                                    ///< set this flag so lldb & the handee don't race to reap it.
     } LaunchFlags;
         
     //----------------------------------------------------------------------
@@ -198,6 +200,22 @@ namespace lldb {
 
 
     //----------------------------------------------------------------------
+    // The results of expression evaluation:
+    //----------------------------------------------------------------------
+    typedef enum ExpressionResults
+    {
+        eExpressionCompleted = 0,
+        eExpressionSetupError,
+        eExpressionParseError,
+        eExpressionDiscarded,
+        eExpressionInterrupted,
+        eExpressionHitBreakpoint,
+        eExpressionTimedOut,
+        eExpressionResultUnavailable,
+        eExpressionStoppedForDebug
+    } ExpressionResults;
+
+    //----------------------------------------------------------------------
     // Connection Status Types
     //----------------------------------------------------------------------
     typedef enum ConnectionStatus
@@ -207,7 +225,8 @@ namespace lldb {
         eConnectionStatusError,           // Check GetError() for details
         eConnectionStatusTimedOut,        // Request timed out
         eConnectionStatusNoConnection,    // No connection
-        eConnectionStatusLostConnection   // Lost connection while connected to a valid connection
+        eConnectionStatusLostConnection,  // Lost connection while connected to a valid connection
+        eConnectionStatusInterrupted      // Interrupted read
     } ConnectionStatus;
 
     typedef enum ErrorType
@@ -215,7 +234,8 @@ namespace lldb {
         eErrorTypeInvalid,
         eErrorTypeGeneric,      ///< Generic errors that can be any value.
         eErrorTypeMachKernel,   ///< Mach kernel error codes.
-        eErrorTypePOSIX         ///< POSIX error codes.
+        eErrorTypePOSIX,        ///< POSIX error codes.
+        eErrorTypeExpression    ///< These are from the ExpressionResults enum.
     } ErrorType;
 
 
@@ -380,6 +400,7 @@ namespace lldb {
         eArgTypeClassName,
         eArgTypeCommandName,
         eArgTypeCount,
+        eArgTypeDescriptionVerbosity,
         eArgTypeDirectoryName,
         eArgTypeDisassemblyFlavor,
         eArgTypeEndAddress,
@@ -406,6 +427,9 @@ namespace lldb {
         eArgTypeOffset,
         eArgTypeOldPathPrefix,
         eArgTypeOneLiner,
+        eArgTypePath,
+        eArgTypePermissionsNumber,
+        eArgTypePermissionsString,
         eArgTypePid,
         eArgTypePlugin,
         eArgTypeProcessName,
@@ -480,7 +504,8 @@ namespace lldb {
         eSymbolTypeUndefined,
         eSymbolTypeObjCClass,
         eSymbolTypeObjCMetaClass,
-        eSymbolTypeObjCIVar
+        eSymbolTypeObjCIVar,
+        eSymbolTypeReExported
     } SymbolType;
     
     typedef enum SectionType
@@ -515,6 +540,10 @@ namespace lldb {
         eSectionTypeDWARFAppleTypes,
         eSectionTypeDWARFAppleNamespaces,
         eSectionTypeDWARFAppleObjC,
+        eSectionTypeELFSymbolTable,       // Elf SHT_SYMTAB section
+        eSectionTypeELFDynamicSymbols,    // Elf SHT_DYNSYM section
+        eSectionTypeELFRelocationEntries, // Elf SHT_REL or SHT_REL section
+        eSectionTypeELFDynamicLinkInfo,   // Elf SHT_DYNAMIC section
         eSectionTypeEHFrame,
         eSectionTypeOther
         
@@ -541,10 +570,7 @@ namespace lldb {
                                                     // methods or selectors will be searched.
         eFunctionNameTypeMethod     = (1u << 4),    // Find function by method name (C++) with no namespace or arguments
         eFunctionNameTypeSelector   = (1u << 5),    // Find function by selector name (ObjC) names
-        eFunctionNameTypeAny        = (eFunctionNameTypeFull     |
-                                       eFunctionNameTypeBase     |
-                                       eFunctionNameTypeMethod   |
-                                       eFunctionNameTypeSelector )
+        eFunctionNameTypeAny        = eFunctionNameTypeAuto // DEPRECATED: use eFunctionNameTypeAuto
     } FunctionNameType;
     
     
@@ -613,7 +639,7 @@ namespace lldb {
         eTypeClassOther             = (1u << 31),
         // Define a mask that can be used for any type when finding types
         eTypeClassAny               = (0xffffffffu)
-    }TypeClass;
+    } TypeClass;
 
     typedef enum TemplateArgumentKind
     {
@@ -677,6 +703,88 @@ namespace lldb {
         eAddressClassDebug,
         eAddressClassRuntime
     } AddressClass;
+
+    //----------------------------------------------------------------------
+    // File Permissions
+    //
+    // Designed to mimic the unix file permission bits so they can be
+    // used with functions that set 'mode_t' to certain values for
+    // permissions.
+    //----------------------------------------------------------------------
+    typedef enum FilePermissions
+    {
+        eFilePermissionsUserRead        = (1u << 8),
+        eFilePermissionsUserWrite       = (1u << 7),
+        eFilePermissionsUserExecute     = (1u << 6),
+        eFilePermissionsGroupRead       = (1u << 5),
+        eFilePermissionsGroupWrite      = (1u << 4),
+        eFilePermissionsGroupExecute    = (1u << 3),
+        eFilePermissionsWorldRead       = (1u << 2),
+        eFilePermissionsWorldWrite      = (1u << 1),
+        eFilePermissionsWorldExecute    = (1u << 0),
+        
+        eFilePermissionsUserRW      = (eFilePermissionsUserRead    | eFilePermissionsUserWrite      | 0                             ),
+        eFileFilePermissionsUserRX  = (eFilePermissionsUserRead    | 0                              | eFilePermissionsUserExecute   ),
+        eFilePermissionsUserRWX     = (eFilePermissionsUserRead    | eFilePermissionsUserWrite      | eFilePermissionsUserExecute   ),
+            
+        eFilePermissionsGroupRW     = (eFilePermissionsGroupRead   | eFilePermissionsGroupWrite     | 0                             ),
+        eFilePermissionsGroupRX     = (eFilePermissionsGroupRead   | 0                              | eFilePermissionsGroupExecute  ),
+        eFilePermissionsGroupRWX    = (eFilePermissionsGroupRead   | eFilePermissionsGroupWrite     | eFilePermissionsGroupExecute  ),
+        
+        eFilePermissionsWorldRW     = (eFilePermissionsWorldRead   | eFilePermissionsWorldWrite     | 0                             ),
+        eFilePermissionsWorldRX     = (eFilePermissionsWorldRead   | 0                              | eFilePermissionsWorldExecute  ),
+        eFilePermissionsWorldRWX    = (eFilePermissionsWorldRead   | eFilePermissionsWorldWrite     | eFilePermissionsWorldExecute  ),
+        
+        eFilePermissionsEveryoneR   = (eFilePermissionsUserRead    | eFilePermissionsGroupRead      | eFilePermissionsWorldRead     ),
+        eFilePermissionsEveryoneW   = (eFilePermissionsUserWrite   | eFilePermissionsGroupWrite     | eFilePermissionsWorldWrite    ),
+        eFilePermissionsEveryoneX   = (eFilePermissionsUserExecute | eFilePermissionsGroupExecute   | eFilePermissionsWorldExecute  ),
+        
+        eFilePermissionsEveryoneRW  = (eFilePermissionsEveryoneR   | eFilePermissionsEveryoneW      | 0                             ),
+        eFilePermissionsEveryoneRX  = (eFilePermissionsEveryoneR   | 0                              | eFilePermissionsEveryoneX     ),
+        eFilePermissionsEveryoneRWX = (eFilePermissionsEveryoneR   | eFilePermissionsEveryoneW      | eFilePermissionsEveryoneX     ),
+        eFilePermissionsFileDefault = eFilePermissionsUserRW,
+        eFilePermissionsDirectoryDefault = eFilePermissionsUserRWX,
+    } FilePermissions;
+
+    //----------------------------------------------------------------------
+    // Queue work item types
+    //
+    // The different types of work that can be enqueued on a libdispatch
+    // aka Grand Central Dispatch (GCD) queue.
+    //----------------------------------------------------------------------
+    typedef enum QueueItemKind
+    {
+        eQueueItemKindUnknown = 0,
+        eQueueItemKindFunction,
+        eQueueItemKindBlock
+    } QueueItemKind;
+
+    //----------------------------------------------------------------------
+    // Queue type
+    // libdispatch aka Grand Central Dispatch (GCD) queues can be either serial
+    // (executing on one thread) or concurrent (executing on multiple threads).
+    //----------------------------------------------------------------------
+    typedef enum QueueKind
+    {
+        eQueueKindUnknown = 0,
+        eQueueKindSerial,
+        eQueueKindConcurrent
+    } QueueKind;
+    
+    //----------------------------------------------------------------------
+    // Expression Evaluation Stages
+    // These are the cancellable stages of expression evaluation, passed to the
+    // expression evaluation callback, so that you can interrupt expression
+    // evaluation at the various points in its lifecycle.
+    //----------------------------------------------------------------------
+    typedef enum ExpressionEvaluationPhase
+    {
+        eExpressionEvaluationParse = 0,
+        eExpressionEvaluationIRGen,
+        eExpressionEvaluationExecution,
+        eExpressionEvaluationComplete
+    } ExpressionEvaluationPhase;
+    
 
 } // namespace lldb
 

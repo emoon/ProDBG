@@ -4,18 +4,19 @@
 #include <stdlib.h> 
 #include <stdio.h> 
 #include <string.h> 
-#include <SBTarget.h>
-#include <SBThread.h>
-#include <SBListener.h>
-#include <SBProcess.h>
-#include <SBDebugger.h>
-#include <SBHostOS.h>
-#include <SBEvent.h>
-#include <SBBreakpoint.h>
-#include <SBStream.h>
-#include <SBValueList.h>
-#include <SBCommandInterpreter.h> 
-#include <SBCommandReturnObject.h> 
+#include <LLDB/SBModuleSpec.h>
+#include <LLDB/SBTarget.h>
+#include <LLDB/SBThread.h>
+#include <LLDB/SBListener.h>
+#include <LLDB/SBProcess.h>
+#include <LLDB/SBDebugger.h>
+#include <LLDB/SBHostOS.h>
+#include <LLDB/SBEvent.h>
+#include <LLDB/SBBreakpoint.h>
+#include <LLDB/SBStream.h>
+#include <LLDB/SBValueList.h>
+#include <LLDB/SBCommandInterpreter.h> 
+#include <LLDB/SBCommandReturnObject.h> 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

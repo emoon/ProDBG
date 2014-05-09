@@ -149,7 +149,7 @@ SharedLibrary {
         CPPPATH = { 
             "API",
             "plugins/LLDB",
-            "plugins/LLDB/Frameworks/LLDB.Framework/Versions/A/Headers",
+            -- "plugins/LLDB/Frameworks/LLDB.Framework/Headers",
         },
 
         CXXOPTS = {
@@ -274,9 +274,9 @@ local native = require('tundra.native')
 
 -- only build LLDBPlugin on Mac
 
---if native.host_platform == "macosx" then
---   Default "LLDBPlugin"
---end
+if native.host_platform == "macosx" then
+   Default "LLDBPlugin"
+end
 
 
 Program {

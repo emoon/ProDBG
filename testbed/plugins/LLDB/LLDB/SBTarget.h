@@ -47,6 +47,35 @@ public:
     void
     SetGroupID (uint32_t gid);
     
+    SBFileSpec
+    GetExecutableFile ();
+    
+    //----------------------------------------------------------------------
+    /// Set the executable file that will be used to launch the process and
+    /// optionally set it as the first argument in the argument vector.
+    ///
+    /// This only needs to be specified if clients wish to carefully control
+    /// the exact path will be used to launch a binary. If you create a
+    /// target with a symlink, that simlink will get resolved in the target
+    /// and the resolved path will get used to launch the process. Calling
+    /// this function can help you still launch your process using the
+    /// path of your choice.
+    ///
+    /// If this function is not called prior to launching with
+    /// SBTarget::Launch(...), the target will use the resolved executable
+    /// path that was used to create the target.
+    ///
+    /// @param[in] exe_file
+    ///     The override path to use when launching the executable.
+    ///
+    /// @param[in] add_as_first_arg
+    ///     If true, then the path will be inserted into the argument vector
+    ///     prior to launching. Otherwise the argument vector will be left
+    ///     alone.
+    //----------------------------------------------------------------------
+    void
+    SetExecutableFile (SBFileSpec exe_file, bool add_as_first_arg);
+    
     uint32_t
     GetNumArguments ();
     
@@ -109,6 +138,12 @@ public:
     
     bool
     AddSuppressFileAction (int fd, bool read, bool write);
+    
+    void
+    SetLaunchEventData (const char *data);
+    
+    const char *
+    GetLaunchEventData () const;
     
 protected:
     friend class SBTarget;
@@ -248,6 +283,8 @@ public:
 
     SBTarget (const lldb::SBTarget& rhs);
 
+    SBTarget (const lldb::TargetSP& target_sp);
+    
     const lldb::SBTarget&
     operator = (const lldb::SBTarget& rhs);
 
@@ -265,6 +302,23 @@ public:
     lldb::SBProcess
     GetProcess ();
 
+    //------------------------------------------------------------------
+    /// Install any binaries that need to be installed.
+    ///
+    /// This function does nothing when debugging on the host system.
+    /// When connected to remote platforms, the target's main executable
+    /// and any modules that have their remote install path set will be
+    /// installed on the remote platform. If the main executable doesn't
+    /// have an install location set, it will be installed in the remote
+    /// platform's working directory.
+    ///
+    /// @return
+    ///     An error describing anything that went wrong during
+    ///     installation.
+    //------------------------------------------------------------------
+    SBError
+    Install();
+    
     //------------------------------------------------------------------
     /// Launch a new process.
     ///
@@ -475,6 +529,10 @@ public:
                const char *triple,
                const char *uuid_cstr,
                const char *symfile);
+    
+    lldb::SBModule
+    AddModule (const SBModuleSpec &module_spec);
+
     uint32_t
     GetNumModules () const;
 
@@ -623,8 +681,46 @@ public:
     void
     Clear ();
 
+    //------------------------------------------------------------------
+    /// Resolve a current load address into a section offset address.
+    ///
+    /// @param[in] vm_addr
+    ///     A virtual address from the current process state that is to
+    ///     be translated into a section offset address.
+    ///
+    /// @return
+    ///     An SBAddress which will be valid if \a vm_addr was
+    ///     successfully resolved into a section offset address, or an
+    ///     invalid SBAddress if \a vm_addr doesn't resolve to a section
+    ///     in a module.
+    //------------------------------------------------------------------
     lldb::SBAddress
     ResolveLoadAddress (lldb::addr_t vm_addr);
+
+    //------------------------------------------------------------------
+    /// Resolve a current load address into a section offset address
+    /// using the process stop ID to identify a time in the past.
+    ///
+    /// @param[in] stop_id
+    ///     Each time a process stops, the process stop ID integer gets
+    ///     incremented. These stop IDs are used to identify past times
+    ///     and can be used in history objects as a cheap way to store
+    ///     the time at which the sample was taken. Specifying
+    ///     UINT32_MAX will always resolve the address using the
+    ///     currently loaded sections.
+    ///
+    /// @param[in] vm_addr
+    ///     A virtual address from the current process state that is to
+    ///     be translated into a section offset address.
+    ///
+    /// @return
+    ///     An SBAddress which will be valid if \a vm_addr was
+    ///     successfully resolved into a section offset address, or an
+    ///     invalid SBAddress if \a vm_addr doesn't resolve to a section
+    ///     in a module.
+    //------------------------------------------------------------------
+    lldb::SBAddress
+    ResolvePastLoadAddress (uint32_t stop_id, lldb::addr_t vm_addr);
 
     SBSymbolContext
     ResolveSymbolContextForAddress (const SBAddress& addr, 
@@ -741,6 +837,9 @@ public:
     lldb::SBType
     GetBasicType(lldb::BasicType type);
     
+    lldb::SBValue
+    CreateValueFromAddress (const char *name, lldb::SBAddress addr, lldb::SBType type);
+    
     SBSourceManager
     GetSourceManager();
     
@@ -801,8 +900,6 @@ protected:
     // Constructors are private, use static Target::Create function to
     // create an instance of this class.
     //------------------------------------------------------------------
-
-    SBTarget (const lldb::TargetSP& target_sp);
 
     lldb::TargetSP
     GetSP () const;

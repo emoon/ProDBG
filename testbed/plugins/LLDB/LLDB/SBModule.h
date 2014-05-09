@@ -26,6 +26,8 @@ public:
 
     SBModule (const SBModule &rhs);
 
+    SBModule (const SBModuleSpec &module_spec);
+
     const SBModule &
     operator = (const SBModule &rhs);
 
@@ -74,6 +76,42 @@ public:
     bool
     SetPlatformFileSpec (const lldb::SBFileSpec &platform_file);
 
+    //------------------------------------------------------------------
+    /// Get accessor for the remote install path for a module.
+    ///
+    /// When debugging to a remote platform by connecting to a remote
+    /// platform, the install path of the module can be set. If the
+    /// install path is set, every time the process is about to launch
+    /// the target will install this module on the remote platform prior
+    /// to launching.
+    ///
+    /// @return
+    ///     A file specification object.
+    //------------------------------------------------------------------
+    lldb::SBFileSpec
+    GetRemoteInstallFileSpec ();
+    
+    //------------------------------------------------------------------
+    /// Set accessor for the remote install path for a module.
+    ///
+    /// When debugging to a remote platform by connecting to a remote
+    /// platform, the install path of the module can be set. If the
+    /// install path is set, every time the process is about to launch
+    /// the target will install this module on the remote platform prior
+    /// to launching.
+    ///
+    /// If \a file specifies a full path to an install location, the
+    /// module will be installed to this path. If the path is relative
+    /// (no directory specified, or the path is partial like "usr/lib"
+    /// or "./usr/lib", then the install path will be resolved using
+    /// the platform's current working directory as the base path.
+    ///
+    /// @param[in]
+    ///     A file specification object.
+    //------------------------------------------------------------------
+    bool
+    SetRemoteInstallFileSpec (lldb::SBFileSpec &file);
+    
     lldb::ByteOrder
     GetByteOrder ();
     
@@ -197,9 +235,45 @@ public:
     lldb::SBTypeList
     FindTypes (const char* type);
     
+    //------------------------------------------------------------------
+    /// Get a type using its type ID.
+    ///
+    /// Each symbol file reader will assign different user IDs to their
+    /// types, but it is sometimes useful when debugging type issues to
+    /// be able to grab a type using its type ID.
+    ///
+    /// For DWARF debug info, the type ID is the DIE offset.
+    ///
+    /// @param[in] uid
+    ///     The type user ID.
+    ///
+    /// @return
+    ///     An SBType for the given type ID, or an empty SBType if the
+    ///     type was not found.
+    //------------------------------------------------------------------
+    lldb::SBType
+    GetTypeByID (lldb::user_id_t uid);
+
     lldb::SBType
     GetBasicType(lldb::BasicType type);
-    
+
+    //------------------------------------------------------------------
+    /// Get all types matching \a type_mask from debug info in this
+    /// module.
+    ///
+    /// @param[in] type_mask
+    ///     A bitfield that consists of one or more bits logically OR'ed
+    ///     together from the lldb::TypeClass enumeration. This allows
+    ///     you to request only structure types, or only class, struct
+    ///     and union types. Passing in lldb::eTypeClassAny will return
+    ///     all types found in the debug information for this module.
+    ///
+    /// @return
+    ///     A list of types in this module that match \a type_mask
+    //------------------------------------------------------------------
+    lldb::SBTypeList
+    GetTypes (uint32_t type_mask = lldb::eTypeClassAny);
+
     //------------------------------------------------------------------
     /// Get the module version numbers.
     ///
