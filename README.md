@@ -14,7 +14,9 @@ The status of the project currently is that lots of things are moving around so 
 ### Build Instructions
 
 Qt5.2.1 is required and a QT5 enviroment variable needs to look something like this
+
 Mac: QT5=path/to/qt5/5.2.1/clang_64
+
 Win64: QT5=path\tq\Qt5\5.2.1\msvc2012_64 (Only 64-bit is support on Windows)
 
 ### Mac
