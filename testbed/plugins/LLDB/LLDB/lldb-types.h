@@ -14,11 +14,8 @@
 #include <LLDB/lldb-forward.h>
 
 #include <assert.h>
-#include <pthread.h>
 #include <signal.h>
 #include <stdint.h>
-#include <stdbool.h>
-#include <unistd.h>
 
 //----------------------------------------------------------------------
 // All host systems must define:
@@ -38,32 +35,57 @@
 // things should be defined. Currently MacOSX is being assumed by default
 // since that is what lldb was first developed for.
 
-namespace lldb {
-        //----------------------------------------------------------------------
-        // MacOSX Types
-        //----------------------------------------------------------------------
-        typedef ::pthread_mutex_t   mutex_t;
-        typedef pthread_cond_t      condition_t;
-        typedef pthread_t           thread_t;                   // Host thread type
-        typedef void *              thread_arg_t;               // Host thread argument type
-        typedef void *              thread_result_t;            // Host thread result type
-        typedef void *              (*thread_func_t)(void *);   // Host thread function type
-        typedef void                (*LogOutputCallback) (const char *, void *baton);
-        typedef bool                (*CommandOverrideCallback)(void *baton, const char **argv);
-} // namespace lldb
+#ifndef _MSC_VER
+#include <stdbool.h>
+#include <unistd.h>
+#endif
 
-#if defined(__MINGW32__)
+#ifdef _WIN32
 
-const lldb::thread_t lldb_invalid_host_thread_const = { NULL, 0 } ;
-#define LLDB_INVALID_HOST_THREAD         (lldb_invalid_host_thread_const)
-#define IS_VALID_LLDB_HOST_THREAD(t)     (!(NULL == (t).p && 0 == (t).x))
+#include <process.h>
+
+namespace lldb
+{
+    typedef void*               mutex_t;
+    typedef void*               condition_t;
+    typedef void*               rwlock_t;
+    typedef uintptr_t           thread_t;                   // Host thread type
+    typedef uint32_t            thread_key_t;
+    typedef void *              thread_arg_t;               // Host thread argument type
+    typedef unsigned            thread_result_t;            // Host thread result type
+    typedef thread_result_t     (*thread_func_t)(void *);   // Host thread function type
+}
 
 #else
 
-#define LLDB_INVALID_HOST_THREAD         ((lldb::thread_t)NULL)
-#define IS_VALID_LLDB_HOST_THREAD(t)     ((t) != LLDB_INVALID_HOST_THREAD)
+#include <pthread.h>
+
+namespace lldb
+{
+    //----------------------------------------------------------------------
+    // MacOSX Types
+    //----------------------------------------------------------------------
+    typedef ::pthread_mutex_t   mutex_t;
+    typedef pthread_cond_t      condition_t;
+    typedef pthread_rwlock_t    rwlock_t;
+    typedef pthread_t           thread_t;                   // Host thread type
+    typedef pthread_key_t       thread_key_t;
+    typedef void *              thread_arg_t;               // Host thread argument type
+    typedef void *              thread_result_t;            // Host thread result type
+    typedef void *              (*thread_func_t)(void *);   // Host thread function type
+} // namespace lldb
 
 #endif
+
+namespace lldb
+{
+    typedef void                (*LogOutputCallback) (const char *, void *baton);
+    typedef bool                (*CommandOverrideCallback)(void *baton, const char **argv);
+    typedef bool                (*ExpressionCancelCallback) (ExpressionEvaluationPhase phase, void *baton);
+}
+
+#define LLDB_INVALID_HOST_THREAD         ((lldb::thread_t)NULL)
+#define IS_VALID_LLDB_HOST_THREAD(t)     ((t) != LLDB_INVALID_HOST_THREAD)
 
 #define LLDB_INVALID_HOST_TIME           { 0, 0 }
 
@@ -77,6 +99,7 @@ namespace lldb
     typedef int32_t     break_id_t;
     typedef int32_t     watch_id_t;
     typedef void *      clang_type_t;
+    typedef uint64_t    queue_id_t;
 }
 
 

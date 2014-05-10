@@ -12,6 +12,18 @@
 
 #include <LLDB/lldb-types.h>
 
+#if defined (_WIN32)
+    #if defined(EXPORT_LIBLLDB)
+        #define  LLDB_API __declspec(dllexport)
+    #elif defined(IMPORT_LIBLLDB)
+        #define  LLDB_API __declspec(dllimport)
+    #else
+        #define LLDB_API
+    #endif
+#else // defined (_MSC_VER)
+    #define LLDB_API
+#endif
+
 #if !defined(UINT32_MAX)
     #define UINT32_MAX 4294967295U
 #endif
@@ -25,14 +37,15 @@
 //
 // A build script phase can modify this version number if needed.
 //----------------------------------------------------------------------
-#define LLDB_VERSION 300 
+#define LLDB_VERSION 320 
 #define LLDB_REVISION 0 
-#define LLDB_VERSION_STRING "300.99.0" 
+#define LLDB_VERSION_STRING "320.99.0" 
 
 //----------------------------------------------------------------------
 // LLDB defines
 //----------------------------------------------------------------------
 #define LLDB_GENERIC_ERROR              UINT32_MAX
+#define LLDB_DEFAULT_SHELL              "/bin/sh"
 
 //----------------------------------------------------------------------
 // Breakpoints
@@ -49,6 +62,7 @@
 #define LLDB_WATCH_ID_IS_VALID(uid)     ((uid) != (LLDB_INVALID_WATCH_ID))
 #define LLDB_WATCH_TYPE_READ            (1u << 0)
 #define LLDB_WATCH_TYPE_WRITE           (1u << 1)
+#define LLDB_WATCH_TYPE_IS_VALID(type)  ((type | LLDB_WATCH_TYPE_READ) || (type | LLDB_WATCH_TYPE_WRITE))
 
 //----------------------------------------------------------------------
 // Generic Register Numbers
@@ -73,6 +87,7 @@
 #define LLDB_INVALID_INDEX32            UINT32_MAX
 #define LLDB_INVALID_IVAR_OFFSET        UINT32_MAX
 #define LLDB_INVALID_IMAGE_TOKEN        UINT32_MAX
+#define LLDB_INVALID_MODULE_VERSION     UINT32_MAX
 #define LLDB_INVALID_REGNUM             UINT32_MAX
 #define LLDB_INVALID_UID                UINT64_MAX
 #define LLDB_INVALID_PROCESS_ID         0
@@ -80,6 +95,8 @@
 #define LLDB_INVALID_FRAME_ID           UINT32_MAX
 #define LLDB_INVALID_SIGNAL_NUMBER      INT32_MAX
 #define LLDB_INVALID_OFFSET             UINT64_MAX // Must match max of lldb::offset_t
+#define LLDB_INVALID_LINE_NUMBER        UINT32_MAX
+#define LLDB_INVALID_QUEUE_ID           0
 
 //----------------------------------------------------------------------
 /// CPU Type defintions
@@ -107,6 +124,15 @@
 #define LLDB_OPT_SET_9                  (1U << 8)
 #define LLDB_OPT_SET_10                 (1U << 9)
 #define LLDB_OPT_SET_FROM_TO(A, B)      (((1U << (B)) - 1) ^ (((1U << (A))-1) >> 1))
+
+#if defined (_WIN32) && !defined (MAX_PATH)
+#define MAX_PATH 260
+#endif
+
+#ifdef _MSC_VER
+// ignore GCC function attributes
+#define __attribute__(X)
+#endif
 
 #if defined(__cplusplus)
 

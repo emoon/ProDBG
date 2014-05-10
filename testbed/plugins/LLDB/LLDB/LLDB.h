@@ -33,14 +33,16 @@
 #include <LLDB/SBFrame.h>
 #include <LLDB/SBFunction.h>
 #include <LLDB/SBHostOS.h>
-#include <LLDB/SBInputReader.h>
 #include <LLDB/SBInstruction.h>
 #include <LLDB/SBInstructionList.h>
 #include <LLDB/SBLineEntry.h>
 #include <LLDB/SBListener.h>
 #include <LLDB/SBModule.h>
 #include <LLDB/SBProcess.h>
+#include <LLDB/SBQueue.h>
+#include <LLDB/SBQueueItem.h>
 #include <LLDB/SBSourceManager.h>
+#include <LLDB/SBStream.h>
 #include <LLDB/SBStringList.h>
 #include <LLDB/SBSymbol.h>
 #include <LLDB/SBSymbolContext.h>

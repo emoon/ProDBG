@@ -12,9 +12,7 @@
 
 #include <LLDB/SBDefines.h>
 
-namespace {
-    class ValueListImpl;
-}
+class ValueListImpl;
 
 namespace lldb {
 
