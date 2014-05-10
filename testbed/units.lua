@@ -152,8 +152,7 @@ SharedLibrary {
             -- "plugins/LLDB/Frameworks/LLDB.Framework/Headers",
         },
 
-        CXXOPTS = {
-            { 
+        CXXOPTS = { { 
             "-std=c++11", 
             "-Wno-padded",
             "-Wno-documentation",
@@ -198,7 +197,9 @@ Program {
             "$(QT5)/include/QtWidgets",
             "$(QT5)/include/QtGui",
             "$(QT5)/include/QtCore", 
-            "$(QT5)/include", 
+            "$(QT5)/lib/QtWidgets.framework/Headers", 
+            "$(QT5)/lib/QtCore.framework/Headers", 
+            "$(QT5)/lib/QtGui.framework/Headers", 
         },
 
         LIBPATH = {
@@ -215,26 +216,9 @@ Program {
         },
 
         CXXOPTS = { { 
+            "-F$(QT5)/lib",
             "-std=gnu0x",
-            "-std=c++11",
-            "-stdlib=libc++",
-            "-Wno-padded",
-            "-Wno-c++98-compat",
-            "-Wno-c++98-compat-pedantic",
-            "-Wno-global-constructors",
-            "-Wno-long-long",
-            "-Wno-unreachable-code",
-            "-Wno-float-equal",
-            "-Wno-disabled-macro-expansion",
-            "-Wno-conversion",
-            "-Wno-weak-vtables",
-            "-Wno-extra-semi",
-            "-Wno-switch-enum",
-            "-Wno-nested-anon-types",
-            "-Wno-duplicate-enum",
-            "-Wno-undefined-reinterpret-cast", -- needed for Qt signals :(
-            "-Wno-documentation", -- seems like clang doesn't like some valid syntax :/
-            "-Wno-sign-conversion" ; Config = "macosx-clang-*" },
+            "-std=c++11" ; Config = "macosx-clang-*" },
         },
 
         PROGCOM = { 
