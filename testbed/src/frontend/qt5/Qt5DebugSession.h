@@ -29,7 +29,7 @@ class Qt5Registers;
 
 class Qt5DebugSession : public QObject
 {
-    Q_OBJECT;
+    Q_OBJECT
 public:
 
     static void createSession();

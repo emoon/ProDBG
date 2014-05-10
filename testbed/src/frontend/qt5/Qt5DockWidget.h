@@ -18,7 +18,7 @@ class Qt5BaseView;
 
 class Qt5DockWidget : public QDockWidget
 {
-    Q_OBJECT;
+    Q_OBJECT
 
 public:
     Qt5DockWidget(const QString&  title,

@@ -15,7 +15,7 @@ namespace prodbg
 
 class Qt5DebugOutputViewContextMenu : public Qt5DynamicViewContextMenu
 {
-    Q_OBJECT;
+    Q_OBJECT
 
 public:
     Qt5DebugOutputViewContextMenu(Qt5MainWindow* mainWindow, Qt5BaseView* parent = nullptr);
@@ -26,7 +26,7 @@ public:
 
 class Qt5DebugOutputView : public Qt5BaseView
 {
-    Q_OBJECT;
+    Q_OBJECT
 
 public:
     Qt5DebugOutputView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5DynamicView* parent = nullptr);

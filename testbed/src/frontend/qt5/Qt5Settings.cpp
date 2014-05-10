@@ -130,7 +130,7 @@ void Qt5Settings::saveSettings()
         sprintf(idString, "Setting%i/ArgumentCount", index);
         settings.setValue(idString, static_cast<uint32>(m_settings[index].argumentCount));
 
-        saveArguments(&m_settings[index], index);
+        saveArguments(&m_settings[index], (uint32_t)index);
     }
 }
 
@@ -159,7 +159,7 @@ void Qt5Settings::loadSettings()
         sprintf(idString, "Setting%i/ArgumentCount", index);
         m_settings[index].argumentCount = static_cast<uint32>(settings.value(idString).toUInt());
 
-        loadArguments(&m_settings[index], index);
+        loadArguments(&m_settings[index], (uint32_t)index);
     }
 
     m_mainWindow->triggerSignalSettings();
@@ -371,7 +371,7 @@ void Qt5Settings::addArgument(Qt5Setting* setting, Qt5SettingArgumentType type, 
         {
             if (dataPointer)
             {
-                const uint32 stringLength = strlen(static_cast<char8*>(dataPointer));
+                const uint32 stringLength = (uint32)strlen(static_cast<char8*>(dataPointer));
                 setting->arguments[argumentId].dataPointer = calloc(stringLength + 1, 1);
                 memcpy(setting->arguments[argumentId].dataPointer, dataPointer, stringLength + 1);
             }
@@ -441,7 +441,7 @@ void Qt5Settings::copyArgument(Qt5SettingArgument* dst, const Qt5SettingArgument
         {
             if (src.dataPointer)
             {
-                const uint32 stringLength = strlen(static_cast<char8*>(src.dataPointer));
+                const uint32 stringLength = (uint32)strlen(static_cast<char8*>(src.dataPointer));
                 dst->dataPointer = calloc(stringLength + 1, 1);
                 memcpy(dst->dataPointer, src.dataPointer, stringLength + 1);
             }
@@ -599,7 +599,7 @@ void Qt5Settings::saveArgument(Qt5Setting* setting, const uint32 settingIndex, c
             {
                 settings.setValue(idString,
                                   QByteArray(static_cast<char8*>(setting->arguments[argumentIndex].dataPointer),
-                                             setting->arguments[argumentIndex].dataSize));
+                                             (int)setting->arguments[argumentIndex].dataSize));
             }
 
             break;
@@ -630,7 +630,7 @@ void Qt5Settings::loadArgument(Qt5Setting* setting, const uint32 settingIndex, c
     setting->arguments[argumentIndex].type = static_cast<Qt5SettingArgumentType>(settings.value(idString).toInt());
 
     sprintf(idString, "Setting%i/Argument%i/Size", settingIndex, argumentIndex);
-    setting->arguments[argumentIndex].dataSize = settings.value(idString).toInt();
+    setting->arguments[argumentIndex].dataSize = (uint64)settings.value(idString).toInt();
 
     sprintf(idString, "Setting%i/Argument%i/Data", settingIndex, argumentIndex);
 
@@ -855,7 +855,7 @@ void Qt5Settings::loadLayout(Qt5Layout* layout)
     char8 idString[256];
 
     layout->entryCount = settings.value("Layout/EntryCount").toInt();
-    layout->entries = static_cast<Qt5LayoutEntry*>(malloc(sizeof(Qt5LayoutEntry) * layout->entryCount));
+    layout->entries = static_cast<Qt5LayoutEntry*>(malloc(sizeof(Qt5LayoutEntry) * (uint32_t)layout->entryCount));
 
     for (int32 index = 0; index < layout->entryCount; ++index)
     {
@@ -894,9 +894,9 @@ void Qt5Settings::loadLayout(Qt5Layout* layout)
                 layout->entries[index].extendedData.dataPointer = nullptr;
             }
 
-            layout->entries[index].extendedData.dataPointer = calloc(value.size() + 1, sizeof(char8));
+            layout->entries[index].extendedData.dataPointer = calloc((size_t)value.size() + 1, sizeof(char8));
             strcpy(static_cast<char8*>(layout->entries[index].extendedData.dataPointer), value.data());
-            layout->entries[index].extendedData.dataSize = value.size();
+            layout->entries[index].extendedData.dataSize = (uint64)value.size();
             layout->entries[index].extendedData.type = Qt5SettingArgumentType_String;
         }
 

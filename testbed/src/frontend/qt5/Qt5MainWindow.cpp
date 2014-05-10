@@ -11,6 +11,7 @@
 #include <QStatusBar>
 #include <QLabel>
 
+
 #include <core/PluginHandler.h>
 #include <core/Core.h>
 #include <ProDBGAPI.h>
@@ -1024,7 +1025,7 @@ void Qt5MainWindow::saveLayout()
 {
     Qt5Layout layout;
 
-    m_layoutEntries = m_viewCount > 0 ? static_cast<Qt5LayoutEntry*>(malloc(sizeof(Qt5LayoutEntry) * m_viewCount)) : nullptr;
+    m_layoutEntries = m_viewCount > 0 ? static_cast<Qt5LayoutEntry*>(malloc(sizeof(Qt5LayoutEntry) * (uint32_t)m_viewCount)) : nullptr;
     for (int32 entryIndex = 0; entryIndex < m_viewCount; ++entryIndex)
         g_settings->resetEntry(&m_layoutEntries[entryIndex]);
 

@@ -15,7 +15,7 @@ local macosx = {
 
         CXXOPTS = {
             "-I.", "-DMACOSX", 
-            -- "-Weverything", 
+            "-Weverything", "-Werror",
             { "-O0", "-g"; Config = "*-*-debug" },
             { "-O3", "-g"; Config = "*-*-release" },
         },

@@ -217,8 +217,20 @@ Program {
         },
 
         CXXOPTS = { { 
+        	-- Mark Qt headers as system to silence all the warnings from them
+            "-isystem $(QT5)/lib/QtWidgets.framework/Headers", 
+            "-isystem $(QT5)/lib/QtCore.framework/Headers", 
+            "-isystem $(QT5)/lib/QtGui.framework/Headers", 
+            "-isystem $(QT5)/lib/QtWidgets.framework/Versions/5/Headers", 
+            "-isystem $(QT5)/lib/QtCore.framework/Versions/5/Headers", 
+            "-isystem $(QT5)/lib/QtGui.framework/Versions/5/Headers", 
             "-F$(QT5)/lib",
             "-std=gnu0x",
+            "-Wno-c++98-compat-pedantic",
+            "-Wno-padded",
+            "-Wno-switch-enum",
+            "-Wno-undefined-reinterpret-cast", -- Because of crap Qt code gen
+            "-Wno-documentation",	-- Because clang warnings in a bad manner even if the doc is correct
             "-std=c++11" ; Config = "macosx-clang-*" },
         },
 

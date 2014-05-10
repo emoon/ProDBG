@@ -33,9 +33,11 @@ public:
     virtual ~Qt5DynamicViewContextMenu();
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 class Qt5DynamicView : public Qt5BaseView
 {
-    Q_OBJECT;
+    Q_OBJECT
 
     friend class Qt5BaseView;
     friend class Qt5MainWindow;

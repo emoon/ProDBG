@@ -21,7 +21,7 @@ class Qt5ContextMenu : public QMenu
     Q_OBJECT
 
 public:
-    Qt5ContextMenu(Qt5MainWindow* mainWindow, Qt5BaseView* parent = nullptr);
+    Qt5ContextMenu(Qt5MainWindow* mainWindow, Qt5BaseView* parent = 0);
     virtual ~Qt5ContextMenu();
 
     void display(QPoint position);

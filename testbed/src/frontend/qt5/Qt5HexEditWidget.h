@@ -17,16 +17,16 @@ class Qt5HexEditInternal;
 
 class Qt5HexEditWidget : public QScrollArea
 {
-    Q_OBJECT;
-    Q_PROPERTY(QByteArray data READ getData WRITE setData);
-    Q_PROPERTY(int addressOffset READ getAddressOffset WRITE setAddressOffset);
-    Q_PROPERTY(QColor addressAreaColor READ getAddressAreaColor WRITE setAddressAreaColor);
-    Q_PROPERTY(int cursorPosition READ getCursorPosition WRITE setCursorPosition);
-    Q_PROPERTY(QColor highlightingColor READ getHighlightingColor WRITE setHighlightingColor);
-    Q_PROPERTY(QColor selectionColor READ getSelectionColor WRITE setSelectionColor);
-    Q_PROPERTY(bool overwriteMode READ getOverwriteMode WRITE setOverwriteMode);
-    Q_PROPERTY(bool readOnly READ getReadOnly WRITE setReadOnly);
-    Q_PROPERTY(QFont font READ getFont WRITE setFont);
+    Q_OBJECT
+    Q_PROPERTY(QByteArray data READ getData WRITE setData)
+    Q_PROPERTY(int addressOffset READ getAddressOffset WRITE setAddressOffset)
+    Q_PROPERTY(QColor addressAreaColor READ getAddressAreaColor WRITE setAddressAreaColor)
+    Q_PROPERTY(int cursorPosition READ getCursorPosition WRITE setCursorPosition)
+    Q_PROPERTY(QColor highlightingColor READ getHighlightingColor WRITE setHighlightingColor)
+    Q_PROPERTY(QColor selectionColor READ getSelectionColor WRITE setSelectionColor)
+    Q_PROPERTY(bool overwriteMode READ getOverwriteMode WRITE setOverwriteMode)
+    Q_PROPERTY(bool readOnly READ getReadOnly WRITE setReadOnly)
+    Q_PROPERTY(QFont font READ getFont WRITE setFont)
 
 public:
     Qt5HexEditWidget(QWidget* parent = nullptr);

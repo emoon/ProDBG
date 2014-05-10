@@ -18,14 +18,6 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static inline int32_t getS32(const uint8_t* ptr)
-{
-    int32_t v = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3];
-    return v;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 Qt5DebuggerThread::Qt5DebuggerThread(Qt5DebuggerThread::TargetType type)
     : m_debugState(PDDebugState_noTarget),
     m_debuggerPlugin(nullptr),
@@ -86,7 +78,7 @@ void Qt5DebuggerThread::start()
 
 void Qt5DebuggerThread::updateLocal(void* serializeData, int serSize, int action)
 {
-    PDBinaryReader_initStream(&m_reader, (uint8_t*)serializeData, serSize);
+    PDBinaryReader_initStream(&m_reader, (uint8_t*)serializeData, (unsigned int)serSize);
 
     // \todo This will alloc memory all the time but we may not use it. better to use some prealloced chunks?
 
@@ -107,7 +99,7 @@ void Qt5DebuggerThread::updateLocal(void* serializeData, int serSize, int action
     void* data = PDBinaryWriter_getData(&m_writer);
 
     if (size > 0)
-        emit sendData((uint8_t*)data, size);
+        emit sendData((uint8_t*)data, (int)size);
     else
         free(data);
 }

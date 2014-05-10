@@ -157,7 +157,7 @@ void Qt5DebugSession::begin(const char* executable, bool run)
     {
         PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
         PDWrite_string(writer, "filename", m_breakpoints[i].filename);
-        PDWrite_u32(writer, "line", m_breakpoints[i].line);
+        PDWrite_u32(writer, "line", (uint32_t)m_breakpoints[i].line);
         PDWrite_eventEnd(writer);
     }
 
@@ -170,7 +170,7 @@ void Qt5DebugSession::begin(const char* executable, bool run)
 
     PDBinaryWriter_finalize(writer);
 
-    emit sendData((uint8_t*)PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
+    emit sendData((uint8_t*)PDBinaryWriter_getData(writer), (int)PDBinaryWriter_getSize(writer));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -209,13 +209,13 @@ void Qt5DebugSession::beginRemote(const char* address, int port)
     {
         PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
         PDWrite_string(writer, "filename", m_breakpoints[i].filename);
-        PDWrite_u32(writer, "line", m_breakpoints[i].line);
+        PDWrite_u32(writer, "line", (uint32_t)m_breakpoints[i].line);
         PDWrite_eventEnd(writer);
     }
 
     PDBinaryWriter_finalize(writer);
 
-    emit sendData((uint8_t*)PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
+    emit sendData((uint8_t*)PDBinaryWriter_getData(writer), (int)PDBinaryWriter_getSize(writer));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -264,10 +264,10 @@ void Qt5DebugSession::requestDisassembly(uint64_t startAddress, int instructionC
 
     PDWrite_eventBegin(writer, PDEventType_getDisassembly);
     PDWrite_u64(writer, "address_start", startAddress);
-    PDWrite_u32(writer, "instruction_count", instructionCount);
+    PDWrite_u32(writer, "instruction_count", (uint32_t)instructionCount);
     PDWrite_eventEnd(writer);
 
-    emit sendData(PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
+    emit sendData(PDBinaryWriter_getData(writer), (int)PDBinaryWriter_getSize(writer));
 
     PDBinaryWriter_destroy(writer);
 }
@@ -283,12 +283,12 @@ void Qt5DebugSession::sendBreakpoint(const char* filename, int line)
 
     PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
     PDWrite_string(writer, "filename", filename);
-    PDWrite_u32(writer, "line", line);
+    PDWrite_u32(writer, "line", (uint32_t)line);
     PDWrite_eventEnd(writer);
 
     PDBinaryWriter_finalize(writer);
 
-    emit sendData(PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
+    emit sendData(PDBinaryWriter_getData(writer), (int)PDBinaryWriter_getSize(writer));
 
     PDBinaryWriter_destroy(writer);
 }
@@ -302,9 +302,9 @@ void Qt5DebugSession::setState(uint8_t* readerData, int serSize)
     PDReader* reader = &readerD;
 
     PDBinaryReader_init(reader);
-    PDBinaryReader_initStream(reader, readerData, serSize);
+    PDBinaryReader_initStream(reader, readerData, (uint32_t)serSize);
 
-    while ((event = PDRead_getEvent(reader)))
+    while ((event = (int)PDRead_getEvent(reader)))
     {
         switch (event)
         {
@@ -330,7 +330,7 @@ void Qt5DebugSession::setState(uint8_t* readerData, int serSize)
                 if (filename)
                 {
                     if (m_codeEditors.size() > 0)
-                        m_codeEditors[0]->setFileLine(filename, line);
+                        m_codeEditors[0]->setFileLine(filename, (int)line);
                 }
                 else
                 {

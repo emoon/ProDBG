@@ -15,7 +15,7 @@ namespace prodbg
 
 class Qt5HexEditViewContextMenu : public Qt5DynamicViewContextMenu
 {
-    Q_OBJECT;
+    Q_OBJECT
 
 public:
     Qt5HexEditViewContextMenu(Qt5MainWindow* mainWindow, Qt5BaseView* parent = nullptr);
@@ -26,7 +26,7 @@ public:
 
 class Qt5HexEditView : public Qt5BaseView
 {
-    Q_OBJECT;
+    Q_OBJECT
 
 public:
     Qt5HexEditView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5DynamicView* parent = nullptr);

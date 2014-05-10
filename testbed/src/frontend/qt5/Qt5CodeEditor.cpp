@@ -27,23 +27,7 @@ public:
         m_matchRegisters.clear();
     }
 
-    void highlightBlock(const QString& text)
-    {
-        int matchRegCount = m_matchRegisters.count();
-
-        for (int i = 0; i < text.length(); ++i)
-        {
-            for (int p = 0; p < matchRegCount; ++p)
-            {
-                const RegInfo& info = m_matchRegisters[p];
-
-                // \todo Don't use mid. It returns a new QString so we will do malloc/free for each call
-
-                if (text.mid(i, info.length) == info.name)
-                    setFormat(i, info.length, info.color);
-            }
-        }
-    }
+    void highlightBlock(const QString& text);
 
     void addRegister(QString registerName)
     {
@@ -73,6 +57,26 @@ private:
 
     QVector<RegInfo> m_matchRegisters;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void AssemblyHighlighter::highlightBlock(const QString& text)
+{
+	int matchRegCount = m_matchRegisters.count();
+
+	for (int i = 0; i < text.length(); ++i)
+	{
+		for (int p = 0; p < matchRegCount; ++p)
+		{
+			const RegInfo& info = m_matchRegisters[p];
+
+			// \todo Don't use mid. It returns a new QString so we will do malloc/free for each call
+
+			if (text.mid(i, info.length) == info.name)
+				setFormat(i, info.length, info.color);
+		}
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -250,7 +254,7 @@ void Qt5CodeEditor::highlightCurrentLine()
             {
                 const AssemblyRegister* reg = &m_assemblyRegisters[p];
 
-                if (!strncmp(&lineText[i], reg->name, reg->nameLength))
+                if (!strncmp(&lineText[i], reg->name, (size_t)reg->nameLength))
                 {
                     m_assemblyHighlighter->addRegister(string.mid(i, 2));
                     addedReg = true;
@@ -482,6 +486,20 @@ void Qt5CodeEditor::setFileLine(const char* file, int line)
         readSourceFile(file);
 
     setLine(line);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+QSize LineNumberArea::sizeHint() const 
+{ 
+	return QSize(m_codeEditor->lineNumberAreaWidth(), 0); 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void LineNumberArea::paintEvent(QPaintEvent* event) 
+{ 
+	m_codeEditor->lineNumberAreaPaintEvent(event); 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

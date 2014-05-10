@@ -108,10 +108,10 @@ class LineNumberArea : public QWidget
 {
 public:
     LineNumberArea(Qt5CodeEditor* editor) : QWidget(editor), m_codeEditor(editor) {}
-    QSize sizeHint() const { return QSize(m_codeEditor->lineNumberAreaWidth(), 0); }
+    QSize sizeHint() const;
 
 protected:
-    void paintEvent(QPaintEvent* event) { m_codeEditor->lineNumberAreaPaintEvent(event); }
+    void paintEvent(QPaintEvent* event);
 
 private:
     Qt5CodeEditor* m_codeEditor;

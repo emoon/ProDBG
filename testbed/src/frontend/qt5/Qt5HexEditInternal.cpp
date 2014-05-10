@@ -953,11 +953,11 @@ void Qt5HexEditInternal::handleEditCommands(QKeyEvent* event)
 
             if ((characterX % 3) == 0)
             {
-                hexValue[0] = key;
+                hexValue[0] = (char)key;
             }
             else
             {
-                hexValue[1] = key;
+                hexValue[1] = (char)key;
             }
 
             replace(positionValues, QByteArray().fromHex(hexValue)[0]);

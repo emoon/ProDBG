@@ -15,7 +15,7 @@ namespace prodbg
 
 class Qt5SourceCodeViewContextMenu : public Qt5DynamicViewContextMenu
 {
-    Q_OBJECT;
+    Q_OBJECT
 
 public:
     Qt5SourceCodeViewContextMenu(Qt5MainWindow* mainWindow, Qt5BaseView* parent = nullptr);
@@ -26,7 +26,7 @@ public:
 
 class Qt5SourceCodeView : public Qt5BaseView
 {
-    Q_OBJECT;
+    Q_OBJECT
 
 public:
     Qt5SourceCodeView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5DynamicView* parent = nullptr);

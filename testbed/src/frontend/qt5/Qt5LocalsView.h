@@ -15,7 +15,7 @@ namespace prodbg
 
 class Qt5LocalsViewContextMenu : public Qt5DynamicViewContextMenu
 {
-    Q_OBJECT;
+    Q_OBJECT
 
 public:
     Qt5LocalsViewContextMenu(Qt5MainWindow* mainWindow, Qt5BaseView* parent = nullptr);
@@ -26,7 +26,7 @@ public:
 
 class Qt5LocalsView : public Qt5BaseView
 {
-    Q_OBJECT;
+    Q_OBJECT
 
 public:
     Qt5LocalsView(Qt5MainWindow* mainWindow, Qt5DockWidget* dock, Qt5DynamicView* parent = nullptr);
