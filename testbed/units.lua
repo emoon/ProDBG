@@ -194,6 +194,7 @@ Program {
             ".", 
             "API",
             "src/frontend",
+            "$(QT5)/include",
             "$(QT5)/include/QtWidgets",
             "$(QT5)/include/QtGui",
             "$(QT5)/include/QtCore", 
