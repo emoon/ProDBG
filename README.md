@@ -8,7 +8,7 @@ Mac build status <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:P
 Windows Win64 build status <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Win64)/statusIcon"/></a>
 
 ### Status
-=======
+----------
 
 The status of the project currently is that lots of things are moving around so it's very likely everything is very unstable and/or won't work.
 
