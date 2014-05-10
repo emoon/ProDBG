@@ -62,20 +62,20 @@ private:
 
 void AssemblyHighlighter::highlightBlock(const QString& text)
 {
-	int matchRegCount = m_matchRegisters.count();
+    int matchRegCount = m_matchRegisters.count();
 
-	for (int i = 0; i < text.length(); ++i)
-	{
-		for (int p = 0; p < matchRegCount; ++p)
-		{
-			const RegInfo& info = m_matchRegisters[p];
+    for (int i = 0; i < text.length(); ++i)
+    {
+        for (int p = 0; p < matchRegCount; ++p)
+        {
+            const RegInfo& info = m_matchRegisters[p];
 
-			// \todo Don't use mid. It returns a new QString so we will do malloc/free for each call
+            // \todo Don't use mid. It returns a new QString so we will do malloc/free for each call
 
-			if (text.mid(i, info.length) == info.name)
-				setFormat(i, info.length, info.color);
-		}
-	}
+            if (text.mid(i, info.length) == info.name)
+                setFormat(i, info.length, info.color);
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -490,16 +490,16 @@ void Qt5CodeEditor::setFileLine(const char* file, int line)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QSize LineNumberArea::sizeHint() const 
-{ 
-	return QSize(m_codeEditor->lineNumberAreaWidth(), 0); 
+QSize LineNumberArea::sizeHint() const
+{
+    return QSize(m_codeEditor->lineNumberAreaWidth(), 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LineNumberArea::paintEvent(QPaintEvent* event) 
-{ 
-	m_codeEditor->lineNumberAreaPaintEvent(event); 
+void LineNumberArea::paintEvent(QPaintEvent* event)
+{
+    m_codeEditor->lineNumberAreaPaintEvent(event);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

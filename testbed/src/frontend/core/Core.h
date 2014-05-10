@@ -68,7 +68,7 @@
     #if NcFeature(NcProcessorX64)
         #define NcPlatformPointerSize 8
     #else
-        //! \brief The size of a pointer on the target platform.
+//! \brief The size of a pointer on the target platform.
         #define NcPlatformPointerSize 4
     #endif
 #endif
@@ -92,7 +92,7 @@
     #undef NcCompilerGcc
     #define NcCompilerGcc NcOn
 
-    //! \cxx11-todo Temporary until GCC supports this.
+//! \cxx11-todo Temporary until GCC supports this.
     #define alignas(alignmentInBytes) __attribute__((aligned(alignmentInBytes)))
 
 // Microsoft Visual C++
@@ -100,7 +100,7 @@
     #undef NcCompilerMsvc
     #define NcCompilerMsvc NcOn
 
-    //! \cxx11-todo Temporary until MSVC supports these.
+//! \cxx11-todo Temporary until MSVC supports these.
     #ifndef _ALLOW_KEYWORD_MACROS
     #define _ALLOW_KEYWORD_MACROS
     #endif
@@ -138,7 +138,7 @@ template<class T, long size> char(&arrayCountHelper(T (&arr)[size]))[size];
 
 
 #if NcFeature(NcCompilerMsvc)
-    //! \brief Require a type to be packed. This ignores alignment requirements of its members.
+//! \brief Require a type to be packed. This ignores alignment requirements of its members.
     #define NcPacked()
 #elif NcFeature(NcCompilerClang) || NcFeature(NcCompilerGcc)
     #define NcPacked() __attribute__((packed))
@@ -147,9 +147,9 @@ template<class T, long size> char(&arrayCountHelper(T (&arr)[size]))[size];
 #endif
 
 #if NcFeature(NcCompilerMsvc)
-    //! \brief Require types declared between this and the next NcRestorePacked to be packed.
+//! \brief Require types declared between this and the next NcRestorePacked to be packed.
     #define NcRequirePacked() __pragma(pack(push, 1))
-    //! \brief Restores the previous type packing setting.
+//! \brief Restores the previous type packing setting.
     #define NcRestorePacked() __pragma(pack(pop))
 #else
     #define NcRequirePacked()
@@ -158,9 +158,9 @@ template<class T, long size> char(&arrayCountHelper(T (&arr)[size]))[size];
 
 
 #if NcFeature(NcPlatformWindows)
-    //! \brief Mark the symbol as exported from a shared library.
+//! \brief Mark the symbol as exported from a shared library.
     #define NcExport __declspec(dllexport)
-    //! \brief Mark the symbol as imported from a shared library.
+//! \brief Mark the symbol as imported from a shared library.
     #define NcImport __declspec(dllimport)
 #else
     #define NcExport
@@ -169,7 +169,7 @@ template<class T, long size> char(&arrayCountHelper(T (&arr)[size]))[size];
 
 
 #if NcFeature(NcCompilerMsvc)
-    //! \brief Forces the compiler to inline the target function.
+//! \brief Forces the compiler to inline the target function.
     #define NcForceInline __forceinline
 #elif NcFeature(NcCompilerClang) || NcFeature(NcCompilerGcc)
     #define NcForceInline __attribute__((always_inline)) inline
@@ -178,7 +178,7 @@ template<class T, long size> char(&arrayCountHelper(T (&arr)[size]))[size];
 #endif
 
 #if NcFeature(NcCompilerMsvc)
-    //! \brief Forbids the compiler from inlining the target function.
+//! \brief Forbids the compiler from inlining the target function.
     #define NcNeverInline __declspec(noinline)
 #elif NcFeature(NcCompilerClang) || NcFeature(NcCompilerGcc)
     #define NcNeverInline __attribute__((noinline))
@@ -188,7 +188,7 @@ template<class T, long size> char(&arrayCountHelper(T (&arr)[size]))[size];
 
 
 #if NcFeature(NcCompilerMsvc)
-    //! \brief Declares a thread local variable.
+//! \brief Declares a thread local variable.
     #define NcThreadLocal __declspec(thread)
 #elif NcFeature(NcCompilerClang) || NcFeature(NcCompilerGcc)
     #define NcThreadLocal __thread
@@ -199,10 +199,10 @@ template<class T, long size> char(&arrayCountHelper(T (&arr)[size]))[size];
 
 #ifndef NcDisableWarningMsvc
     #if NcFeature(NcCompilerMsvc)
-        //! \brief Disable warning \a number until a matching NcRestoreWarningMsvc.
+//! \brief Disable warning \a number until a matching NcRestoreWarningMsvc.
         #define NcDisableWarningMsvc(number) \
-                __pragma(warning(push)) \
-                __pragma(warning(disable : number))
+    __pragma(warning(push)) \
+    __pragma(warning(disable: number))
     #else
         #define NcDisableWarningMsvc(number)
     #endif
@@ -210,9 +210,9 @@ template<class T, long size> char(&arrayCountHelper(T (&arr)[size]))[size];
 
 #ifndef NcRestoreWarningMsvc
     #if NcFeature(NcCompilerMsvc)
-        //! \brief Restore the warning disabled by the most recent NcDisableWarningMsvc.
+//! \brief Restore the warning disabled by the most recent NcDisableWarningMsvc.
         #define NcRestoreWarningMsvc() \
-                __pragma(warning(pop))
+    __pragma(warning(pop))
     #else
         #define NcRestoreWarningMsvc()
     #endif
