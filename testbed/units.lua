@@ -7,7 +7,7 @@ require "tundra.util"
 DefRule {
     Name = "MocGeneration",
     Pass = "GenerateSources",
-    Command = "$(QT5)/bin/moc $(<) -o $(@)",
+    Command = "$(QT5)/bin/moc --no-notes $(<) -o $(@)",
 
     Blueprint = {
         Source = { Required = true, Type = "string", Help = "Input filename", },
