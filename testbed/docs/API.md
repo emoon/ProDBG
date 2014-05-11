@@ -92,3 +92,33 @@ Here is some example code of how it can look
 
 The plugin is responsible to send back data ProDBG requests. In some cases the back-end may not provide certain information (disassembly in a scripting lang for example) and can the chose just to ignore that. In the example above ProDBG requests Disassembly to be sent back and that usually happens when the user opens a view associated with a certain type.
 A list of of data that ProDBG can request and the expected reply can be found here (TODO: fix link)
+
+TODO: Add more info
+
+    PDBackendPlugin s_debuggerPlugin =
+    {
+        1,
+        "6502 Debugger",
+        createInstance,
+        destroyInstance,
+        update,
+    };
+
+..
+
+Embedded Debugger Plugin
+------------------------
+
+Sometimes it doesn't make sense to have a plugin inside a shared object (.so on *nix, .dll on Windows) Example of this is a scripting language inside a game engine, CPU emulation inside an emulator, etc. What one wants then is to have the abbility to let ProDBG connect to the an embeeded debugger plugin instead. For this purpose there is the Embedded Debugger Plugin API. This API works very similar to the regular plugins except that some extra code is needed to be added to the application hosting the plugin.
+
+When somewhere in your application you need to use the PDRemote (TODO: Rename to PDEmbeeded or something else?) API which will setup a TCP/IP connection to ProDBG. Using the API is quite straightforward. First:
+    
+
+    PDRemote_create(&s_debuggerPlugin, 0);
+
+
+Will setup the connection with the debugger (and can optionally wait for the connection to be setup) Then somewhere in you update code you will need to call
+
+    PDRemote_update(...);   // with optional sleep time
+
+
