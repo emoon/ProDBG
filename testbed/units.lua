@@ -79,6 +79,23 @@ StaticLibrary {
     },
 }
 
+StaticLibrary {
+    Name = "lua",
+
+    Env = { 
+        
+        CPPPATH = { "src/lua" },
+        CCOPTS = { "-Wno-deprecated-declarations", "-Wno-format-nonliteral"; Config = "macosx-*-*" },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "src/lua",
+            Extensions = { ".c" },
+        },
+    },
+}
+
 -- Example 6502 emulator
 
 Program {
@@ -259,7 +276,7 @@ Program {
         },
     },
 
-    Depends = { "core", "RemoteAPI" },
+    Depends = { "lua", "core", "RemoteAPI" },
 
     Libs = { { "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib",
                "Qt5GUi.lib", "Qt5Core.lib", "Qt5Concurrent.lib", "Qt5Widgets.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
