@@ -1,15 +1,28 @@
 #include "PluginHandler.h"
 #include "io/SharedObject.h"
 #include "Log.h"
+#include "Core.h"
 #include <ProDBGAPI.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 namespace prodbg
 {
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct Plugin
+{
+	void* data;
+	int type;
+	int pad[1];
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static Plugin s_plugins[128];
-static int s_pluginCount = 0;
+static unsigned int s_pluginCount = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -32,7 +45,7 @@ static void registerPlugin(int type, void* data)
 bool PluginHandler_addPlugin(const char* plugin)
 {
     Handle handle;
-    void* (* initPlugin)(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin);
+    void* (*initPlugin)(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin);
 
     printf("Trying to load %s\n", plugin);
 
@@ -64,7 +77,7 @@ bool PluginHandler_addPlugin(const char* plugin)
 
 Plugin* PluginHandler_getPlugins(int* count)
 {
-    *count = s_pluginCount;
+    *count = (int)s_pluginCount;
     return &s_plugins[0];
 }
 

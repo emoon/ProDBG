@@ -1,10 +1,10 @@
-#include "../PDReadWrite.h"
+#include <PDReadWrite.h>
 #include "PDReadWrite_private.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-const uint8_t g_debugLogging = 0;
+static uint8_t g_debugLogging = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
