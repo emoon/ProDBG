@@ -1,17 +1,15 @@
 #include "PluginHandler.h"
-#include <core/io/SharedObject.h>
+#include "io/SharedObject.h"
+#include "Log.h"
 #include <ProDBGAPI.h>
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef _WIN32
-#include <vector>
-#endif
 
 namespace prodbg
 {
 
 static Plugin s_plugins[128];
-static int pluginCount = 0;
+static int s_pluginCount = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -22,9 +20,11 @@ static void registerPlugin(int type, void* data)
     plugin.data = data;
     plugin.type = type;
 
-    printf("Register plugin (type %d data %p)\n", type, data);
+    log_debug("Register plugin (type %d data %p)\n", type, data);
 
-    s_plugins[pluginCount++] = plugin;
+    assert(s_pluginCount < sizeof_array(s_plugins));
+
+    s_plugins[s_pluginCount++] = plugin;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,7 +40,7 @@ bool PluginHandler_addPlugin(const char* plugin)
     {
         // TODO: Implment proper logging and output
 
-        printf("Unable to open plugin %s\n", plugin);
+        log_error("Unable to open plugin %s\n", plugin);
         return false;
     }
 
@@ -48,7 +48,7 @@ bool PluginHandler_addPlugin(const char* plugin)
 
     if (!function)
     {
-        printf("Unable to find InitPlugin function in plugin %s\n", plugin);
+        log_error("Unable to find InitPlugin function in plugin %s\n", plugin);
         SharedObject_close(handle);
         return false;
     }
@@ -64,7 +64,7 @@ bool PluginHandler_addPlugin(const char* plugin)
 
 Plugin* PluginHandler_getPlugins(int* count)
 {
-    *count = pluginCount;
+    *count = s_pluginCount;
     return &s_plugins[0];
 }
 
