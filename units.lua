@@ -123,7 +123,7 @@ Program {
 
     Env = {
         CPPPATH = { 
-            ".", 
+            "src/prodbg", 
         	"API/include",
         },
 

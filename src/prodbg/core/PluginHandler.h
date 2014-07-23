@@ -7,7 +7,7 @@ struct Plugin;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool PluginHandler_addPlugin(const char* plugin);
+bool PluginHandler_addPlugin(const char* basePath, const char* plugin);
 Plugin* PluginHandler_getPlugins(int* count);
 
 }

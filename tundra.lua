@@ -5,7 +5,7 @@ local macosx = {
     Env = {
         CCOPTS = {
             "-Wall",
-            "-I.", "-DMACOSX", 
+            "-I.", "-DPRODBG_MAC", 
             "-Weverything", 
             "-Wno-documentation", "-Wno-missing-prototypes", "-Wno-padded",
             { "-O0", "-g"; Config = "*-*-debug" },
@@ -13,7 +13,7 @@ local macosx = {
         },
 
         CXXOPTS = {
-            "-I.", "-DMACOSX", 
+            "-I.", "-DPRODBG_MAC", 
             "-Weverything", "-Werror", 
             "-Wno-documentation", "-Wno-missing-prototypes", "-Wno-padded",
 			"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",

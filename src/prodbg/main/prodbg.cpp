@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <core/Core.h>
+#include <core/PluginHandler.h>
 
 #ifdef PRODBG_WIN
 #define WIN32_LEAN_AND_MEAN
@@ -10,10 +12,25 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static const char* s_plugins[] =
+{
+	"Registers", 
+	// "LLDBPlugin",
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static int main(int argc, char** argv)
 {
 	(void)argc;
 	(void)argv;
+
+	for (uint32_t i = 0; i < sizeof_array(s_plugins); ++i)
+	{
+		PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]);
+	}
+
 	return 0;
 }
 
