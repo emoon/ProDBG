@@ -15,8 +15,7 @@ namespace prodbg
 struct Plugin
 {
 	void* data;
-	int type;
-	int pad[1];
+	const char* type;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -26,14 +25,14 @@ static unsigned int s_pluginCount = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void registerPlugin(int type, void* data)
+static void registerPlugin(const char* type, void* data)
 {
     Plugin plugin;
 
     plugin.data = data;
     plugin.type = type;
 
-    log_debug("Register plugin (type %d data %p)\n", type, data);
+    log_debug("Register plugin (type %s data %p)\n", type, data);
 
     assert(s_pluginCount < sizeof_array(s_plugins));
 
