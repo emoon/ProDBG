@@ -48,7 +48,7 @@ typedef enum PDReadType
     /// Array type
     PDReadType_arrayEntry,
     /// total count of types
-    PDReadType_count,
+    PDReadType_count
 } PDReadType;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ typedef enum PDWriteStatus
     // Returns if a write operation completed ok
     PDWriteStatus_ok,
     // Generic error if write operation failed
-    PDWriteStatus_fail,
+    PDWriteStatus_fail
 
 } PDWriteStatus;
 
