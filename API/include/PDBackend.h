@@ -1,34 +1,14 @@
-/* ********** NOTICE : THIS IS JUST A DRAFT ***********************/
-
 #ifndef _PRODBGAPI_H_
 #define _PRODBGAPI_H_
 
-#include <stdint.h>
+#include "PDCommon.h"
 #include "PDReadWrite.h"
-#include "PDRemote.h"
 
 #ifdef _cplusplus
 extern "C" {
 #endif
 
-/*! \fn void* ServiceFunc(const char* serviceName)
-    Service Function. Provides services for the plugin to use.
-    Example:
-     ProDBGUI* ui = serviceFunc(PRODBG_UI_SERVICE);
-     ProDBServerInfo* serverInfo = serviceFunc(PRODBG_SERVERINFO_SERVICE);
-     It's ok for the plugin to hold a pointer to the requested service during its life time.
-    \param serviceName The name of the requested service. It's *highly* recommended to use the defines for the wanted service.
- */
-
-typedef void* ServiceFunc (const char* serviceName);
-typedef void RegisterPlugin (int type, void* data);
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-enum
-{
-    PD_API_VERSION = 1
-};
+#define PD_BACKEND_API_VERSION "ProDBG Backend 1"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -92,7 +72,7 @@ typedef enum PDEventType
 
 typedef struct PDBackendPlugin
 {
-    int version;
+    const char* version;
     const char* name;
 
     void* (*createInstance)(ServiceFunc* serviceFunc);
@@ -100,13 +80,6 @@ typedef struct PDBackendPlugin
 
     // Updates and Returns the current state of the plugin.
     PDDebugState (*update)(void* userData, PDAction action, PDReader* inEvents, PDWriter* outEvents);
-
-    // Writer functions used for writing data back to the host
-    PDReader reader;
-
-    // Writer functions used for writing data back to the host
-    PDWriter writer;
-    // Create and destroy instance of the plugin
 
 } PDBackendPlugin;
 

@@ -1,6 +1,7 @@
 #include "PDReadWrite_private.h"
 #include "RemoteConnection.h"
-#include <ProDBGAPI.h>
+#include <PDBackend.h>
+#include <PDRemote.h>
 
 #include <stdint.h>
 #include <stdio.h>

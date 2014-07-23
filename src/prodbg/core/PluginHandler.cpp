@@ -2,7 +2,7 @@
 #include "io/SharedObject.h"
 #include "Log.h"
 #include "Core.h"
-#include <ProDBGAPI.h>
+#include <PDCommon.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
