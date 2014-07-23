@@ -43,7 +43,7 @@ void* createInstance(ServiceFunc* serviceFunc)
 
     plugin->debugger = lldb::SBDebugger::Create(false);
     plugin->state = PDDebugState_noTarget;
-     plugin->listener = plugin->debugger.GetListener(); 
+    plugin->listener = plugin->debugger.GetListener(); 
 
     return plugin;
 }
@@ -52,6 +52,8 @@ void* createInstance(ServiceFunc* serviceFunc)
 
 void destroyInstance(void* userData)
 {
+	LLDBPlugin* plugin = (LLDBPlugin*)userData;
+	delete plugin;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -582,7 +584,7 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
 static PDBackendPlugin plugin =
 {
     0,    // version
-    "LLDB Mac OS X",
+    "LLDB Mac",
     createInstance,
     destroyInstance,
     update,
@@ -596,7 +598,7 @@ extern "C"
 PD_EXPORT void InitPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin)
 {
     printf("Starting to register Plugin!\n");
-    registerPlugin(0, &plugin);
+    registerPlugin(PD_BACKEND_VERSION, &plugin);
 }
 
 }
