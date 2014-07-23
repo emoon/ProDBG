@@ -1,6 +1,6 @@
 #ifndef _WIN32
 
-#include <ProDBGAPI.h>
+#include <PDBackend.h>
 #include <stdlib.h> 
 #include <stdio.h> 
 #include <string.h> 
@@ -598,7 +598,7 @@ extern "C"
 PD_EXPORT void InitPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin)
 {
     printf("Starting to register Plugin!\n");
-    registerPlugin(PD_BACKEND_VERSION, &plugin);
+    registerPlugin(PD_BACKEND_API_VERSION, &plugin);
 }
 
 }
