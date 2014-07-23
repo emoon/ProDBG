@@ -103,6 +103,18 @@ SharedLibrary {
     Frameworks = { "LLDB" },
 }
 
+SharedLibrary {
+    Name = "Registers",
+    
+    Env = {
+        CPPPATH = { "API/include", },
+        SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
+        CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
+    },
+
+    Sources = { "src/plugins/registers/RegistersPlugin.cpp" },
+}
+
 ------------------------------------
 
 
