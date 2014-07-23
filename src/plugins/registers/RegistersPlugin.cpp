@@ -54,6 +54,8 @@ extern "C"
 
 PD_EXPORT void InitPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin)
 {
+	(void)version;
+	(void)serviceFunc;
     registerPlugin(PD_VIEW_API_VERSION, &plugin);
 }
 
