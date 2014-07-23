@@ -1,4 +1,7 @@
-//#include <core/PluginHandler.h>
+#ifdef PRODBG_WIN
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
 
 namespace prodbg
 {
@@ -18,7 +21,20 @@ static int main(int argc, char** argv)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef PRODBG_WIN
+
+int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+{
+	return prodbg::main(0, 0);
+}
+
+#else
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main(int argc, char** argv)
 {
 	return prodbg::main(argc, argv);
 }
+
+#endif
