@@ -174,3 +174,4 @@ if native.host_platform == "macosx" then
 end
 
 Default "prodbg"
+Default "Registers"
