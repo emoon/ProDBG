@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #ifdef PRODBG_WIN
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -25,7 +27,7 @@ static int main(int argc, char** argv)
 
 int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-	return prodbg::main(0, 0);
+	return prodbg::main(__argc, __argv);
 }
 
 #else
