@@ -593,7 +593,7 @@ static PDBackendPlugin plugin =
 extern "C"
 {
 
-void InitPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin)
+PD_EXPORT void InitPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin)
 {
     printf("Starting to register Plugin!\n");
     registerPlugin(0, &plugin);
