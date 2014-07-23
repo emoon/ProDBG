@@ -76,6 +76,11 @@ Build {
                 ['debug']      = 'Debug',
             },
         },
+
+		MsvcSolutions = {
+			['ProDBG.sln'] = { } -- will get everything
+		},
+            
     },
     
 }
