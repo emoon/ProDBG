@@ -14,7 +14,8 @@ local macosx = {
 
         CXXOPTS = {
             "-I.", "-DMACOSX", 
-            "-Weverything", "-Werror",
+            "-Weverything", "-Werror", 
+			"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
             { "-O0", "-g"; Config = "*-*-debug" },
             { "-O3", "-g"; Config = "*-*-release" },
         },
@@ -45,6 +46,7 @@ local win64 = {
 
         CXXOPTS = {
             "/FS", "/MT", "/I.", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4152", "/wd4996", "/wd4389",
+			"\"/DOBJECT_DIR=$(OBJECTDIR:#)\"",
             { "/Od"; Config = "*-*-debug" },
             { "/O2"; Config = "*-*-release" },
         },
