@@ -83,7 +83,7 @@ typedef enum PDEventType
     PDEventType_attachToProcess,
     PDEventType_attachToRemoteSession,
 
-    /// Custom events. Here you can have your own events. Note that they must start with PDEventType_custom  and up
+    /// Custom events. Here you can have your own events. Note that they must start with PDEventType_custom and up
     PDEventType_custom = 0x1000
 
 } PDEventType;
@@ -95,7 +95,7 @@ typedef struct PDBackendPlugin
     int version;
     const char* name;
 
-    void* (*createInstance)(ServiceFunc * serviceFunc);
+    void* (*createInstance)(ServiceFunc* serviceFunc);
     void (*destroyInstance)(void* userData);
 
     // Updates and Returns the current state of the plugin.
@@ -109,6 +109,17 @@ typedef struct PDBackendPlugin
     // Create and destroy instance of the plugin
 
 } PDBackendPlugin;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Needed for exporting the entry point on Windows
+
+#ifdef _WIN32
+#define PD_EXPORT __declspec(dllexport)
+#else
+#define PD_EXPORT
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef _cplusplus
 }
