@@ -7,7 +7,7 @@ local macosx = {
             "-Wall",
             "-I.", "-DMACOSX", 
             "-Weverything", 
-            "-Wno-missing-prototypes", "-Wno-padded",
+            "-Wno-documentation", "-Wno-missing-prototypes", "-Wno-padded",
             { "-O0", "-g"; Config = "*-*-debug" },
             { "-O3", "-g"; Config = "*-*-release" },
         },
@@ -15,6 +15,7 @@ local macosx = {
         CXXOPTS = {
             "-I.", "-DMACOSX", 
             "-Weverything", "-Werror", 
+            "-Wno-documentation", "-Wno-missing-prototypes", "-Wno-padded",
 			"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
             { "-O0", "-g"; Config = "*-*-debug" },
             { "-O3", "-g"; Config = "*-*-release" },
