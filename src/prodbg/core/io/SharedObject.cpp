@@ -1,4 +1,5 @@
 #include "SharedObject.h"
+#include <stdio.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -17,9 +18,19 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Handle SharedObject_open(const char* filename)
+Handle SharedObject_open(const char* basePath, const char* file)
 {
+	char filename[4096];
     Handle handle;
+
+#ifdef PRODBG_MAC
+	sprintf(filename, "%s/lib%s.dylib", basePath, file);
+#elif PRODBG_WIN
+	sprintf(filename, "%s\\%s.dll", basePath, file);
+#else
+	sprintf(filename, "%s/%s.so", basePath, file);
+#endif
+
 #if defined(__APPLE__)
     if (!(handle = dlopen(filename, RTLD_LOCAL | RTLD_LAZY)))
         printf("Unable to dlload %s (error %s)\n", filename, dlerror());

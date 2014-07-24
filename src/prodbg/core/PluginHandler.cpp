@@ -44,26 +44,10 @@ static void registerPlugin(const char* type, void* data)
 bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 {
     Handle handle;
-    char filepath[4096];
     void* (*initPlugin)(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin);
 
-#ifdef PRODBG_MAC
-	sprintf(filepath, "%s/lib%s.dylib", basePath, plugin);
-#elif PRODBG_WIN
-	sprintf(filepath, "%s/%s.dll", basePath, plugin);
-#else
-	sprintf(filepath, "%s/%s.so", basePath, plugin);
-#endif
-
-    printf("Trying to load %s\n", filepath);
-
-    if (!(handle = SharedObject_open(filepath)))
-    {
-        // TODO: Implment proper logging and output
-
-        log_error("Unable to open plugin %s\n", filepath);
+    if (!(handle = SharedObject_open(basePath, plugin)))
         return false;
-    }
 
     void* function = SharedObject_getSym(handle, "InitPlugin");
 

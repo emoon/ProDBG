@@ -32,34 +32,6 @@ StaticLibrary {
     },
 }
 
--- Core Lib
-
-StaticLibrary {
-    Name = "core",
-
-    Env = { 
-        CPPPATH = { "API/include" },
-
-        CXXOPTS = {
-            { 
-            "-std=c++11",
-            "-stdlib=libc++",
-            "-Wno-c++98-compat-pedantic",
-            "-Wno-global-constructors", 
-            "-Wno-gnu",
-            "-Wno-documentation",
-            "-Wno-exit-time-destructors" ; Config = "macosx-clang-*" },
-        },
-    },
-
-    Sources = { 
-        Glob {
-            Dir = "src/prodbg/core",
-            Extensions = { ".c", ".cpp", ".m" },
-        },
-    },
-}
-
 ---------- Plugins -----------------
 
 SharedLibrary {
@@ -151,8 +123,8 @@ Program {
 
     Sources = { 
         FGlob {
-            Dir = "src/prodbg/main",
-            Extensions = { ".c", ".cpp", ".m", ".mm" },
+            Dir = "src/prodbg",
+            Extensions = { ".c", ".cpp", ".m", ".mm", ".h" },
             Filters = {
                 { Pattern = "macosx"; Config = "macosx-*-*" },
                 { Pattern = "windows"; Config = "win64-*-*" },
@@ -160,7 +132,7 @@ Program {
         },
     },
 
-    Depends = { "core", "RemoteAPI" },
+    Depends = { "RemoteAPI" },
 
     Libs = { "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib"; Config = "win64-*-*" },
 }

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <core/Core.h>
 #include <core/PluginHandler.h>
+#include <ui/UISystem.h>
 
 #ifdef PRODBG_WIN
 #define WIN32_LEAN_AND_MEAN
@@ -30,6 +31,8 @@ static int main(int argc, char** argv)
 	{
 		PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]);
 	}
+
+	UISystem_initArika(OBJECT_DIR, "arika-qt");
 
 	return 0;
 }
