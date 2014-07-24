@@ -39,7 +39,10 @@ static int main(int argc, char** argv)
 
 	ARFuncs* arika = UISystem_getArFuncs();
 
-	arika->window_create_main();
+	ARWidget* widget = arika->window_create_main();
+	//arika->widget_set_title(widget, "ProDBG 0.1");
+	arika->widget_set_width(widget, 800);
+	arika->widget_set_height(widget, 600);
 
 	for (;;)
 	{
