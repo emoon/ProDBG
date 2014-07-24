@@ -38,7 +38,7 @@ void SharedObject_close(Handle handle)
 #if defined(__APPLE__)
     dlclose(handle);
 #elif defined(_WIN32)
-    //CloseLibrary((HMODULE)handle);
+    FreeLibrary((HMODULE)handle);
 #else
     #error "Unsupported target"
 #endif
@@ -53,7 +53,7 @@ void* SharedObject_getSym(Handle handle, const char* name)
 #elif defined(_WIN32)
     (void)name;
     return 0;
-    //return (void*)GetProcAddress(handle, name);
+    return (void*)GetProcAddress((HMODULE)handle, name);
 #else
     #error "Unsupported target"
 #endif
