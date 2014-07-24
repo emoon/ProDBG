@@ -51,8 +51,6 @@ void* SharedObject_getSym(Handle handle, const char* name)
 #if defined(__APPLE__)
     return dlsym(handle, name);
 #elif defined(_WIN32)
-    (void)name;
-    return 0;
     return (void*)GetProcAddress((HMODULE)handle, name);
 #else
     #error "Unsupported target"
