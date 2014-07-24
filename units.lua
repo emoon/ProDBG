@@ -95,6 +95,7 @@ Program {
 
     Env = {
         CPPPATH = { 
+            "../Arika/include", 
             "src/prodbg", 
         	"API/include",
         },

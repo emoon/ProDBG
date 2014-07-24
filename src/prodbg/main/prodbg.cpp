@@ -2,6 +2,7 @@
 #include <core/Core.h>
 #include <core/PluginHandler.h>
 #include <ui/UISystem.h>
+#include <Arika/Arika.h>
 
 #ifdef PRODBG_WIN
 #define WIN32_LEAN_AND_MEAN
@@ -29,10 +30,22 @@ static int main(int argc, char** argv)
 
 	for (uint32_t i = 0; i < sizeof_array(s_plugins); ++i)
 	{
-		PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]);
+		if (!PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]))
+			return 0;
 	}
 
-	UISystem_initArika(OBJECT_DIR, "arika-qt");
+	if (!UISystem_initArika(OBJECT_DIR, "arika-qt"))
+		return 0;
+
+	ARFuncs* arika = UISystem_getArFuncs();
+
+	arika->window_create_main();
+
+	for (;;)
+	{
+		if (!arika->update())
+			break;
+	}
 
 	return 0;
 }
