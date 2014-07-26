@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <core/Core.h>
 #include <core/PluginHandler.h>
-#include <ui/UISystem.h>
+//#include <ui/UISystem.h>
 #include <Arika/Arika.h>
 
 #ifdef PRODBG_WIN
@@ -34,19 +34,17 @@ static int main(int argc, char** argv)
 			return 0;
 	}
 
-	if (!UISystem_initArika(OBJECT_DIR, "arika-qt"))
-		return 0;
+	//if (!UISystem_initArika(OBJECT_DIR, "arika-qt"))
+	//	return 0;
 
-	ARFuncs* arika = UISystem_getArFuncs();
-
-	ARWidget* widget = arika->window_create_main();
+	//ARWidget* widget = arika->window_create_main();
 	//arika->widget_set_title(widget, "ProDBG 0.1");
-	arika->widget_set_width(widget, 800);
-	arika->widget_set_height(widget, 600);
+	//arika->widget_set_width(widget, 800);
+	//arika->widget_set_height(widget, 600);
 
 	for (;;)
 	{
-		if (!arika->update())
+		//if (!arika->update())
 			break;
 	}
 
