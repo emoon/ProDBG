@@ -7,6 +7,7 @@ local macosx = {
             "-Wall",
             "-I.", "-DPRODBG_MAC", 
             "-Weverything", 
+            "-Wno-c++98-compat-pedantic",
             "-Wno-documentation", "-Wno-missing-prototypes", "-Wno-padded",
             { "-O0", "-g"; Config = "*-*-debug" },
             { "-O3", "-g"; Config = "*-*-release" },
@@ -15,6 +16,7 @@ local macosx = {
         CXXOPTS = {
             "-I.", "-DPRODBG_MAC", 
             "-Weverything", "-Werror", 
+            "-Wno-c++98-compat-pedantic",
             "-Wno-documentation", "-Wno-missing-prototypes", "-Wno-padded",
 			"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
             { "-O0", "-g"; Config = "*-*-debug" },
