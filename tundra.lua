@@ -17,7 +17,9 @@ local macosx = {
         CXXOPTS = {
             "-I.", "-DPRODBG_MAC", 
             "-Weverything", "-Werror", 
+            "-Wno-exit-time-destructors",
             "-Wno-c++98-compat-pedantic",
+            "-Wno-used-but-marked-unused",
             "-Wno-documentation", "-Wno-missing-prototypes", "-Wno-padded",
 			"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
             { "-O0", "-g"; Config = "*-*-debug" },
