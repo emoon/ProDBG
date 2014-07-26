@@ -1,8 +1,7 @@
 #include <stdlib.h>
 #include <core/Core.h>
 #include <core/PluginHandler.h>
-//#include <ui/UISystem.h>
-#include <Arika/Arika.h>
+#include "ui/Application.h"
 
 #ifdef PRODBG_WIN
 #define WIN32_LEAN_AND_MEAN
@@ -23,32 +22,15 @@ static const char* s_plugins[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int main(int argc, char** argv)
+static int main(int argc, const char** argv)
 {
-	(void)argc;
-	(void)argv;
-
 	for (uint32_t i = 0; i < sizeof_array(s_plugins); ++i)
 	{
 		if (!PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]))
 			return 0;
 	}
 
-	//if (!UISystem_initArika(OBJECT_DIR, "arika-qt"))
-	//	return 0;
-
-	//ARWidget* widget = arika->window_create_main();
-	//arika->widget_set_title(widget, "ProDBG 0.1");
-	//arika->widget_set_width(widget, 800);
-	//arika->widget_set_height(widget, 600);
-
-	for (;;)
-	{
-		//if (!arika->update())
-			break;
-	}
-
-	return 0;
+	return Application_init(argc, argv);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,7 +50,7 @@ int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main(int argc, char** argv)
+int main(int argc, const char** argv)
 {
 	return prodbg::main(argc, argv);
 }
