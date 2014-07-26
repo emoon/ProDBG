@@ -6,15 +6,22 @@
 
 struct RegistersData
 {
-	int temp;
+	PDUIListView registerList;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void* createInstance(ServiceFunc* serviceFunc)
+static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 {
 	(void)serviceFunc;
 	RegistersData* userData = (RegistersData*)malloc(sizeof(RegistersData));
+
+	userData->registerList = PDUIListView_create(uiFuncs, "Test", 0);
+
+	PDUIListView_itemAdd(uiFuncs, userData->registerList, "Item 0");
+	PDUIListView_itemAdd(uiFuncs, userData->registerList, "Item 1");
+	PDUIListView_itemAdd(uiFuncs, userData->registerList, "Item 2");
+
 	return userData;
 }
 
@@ -27,11 +34,12 @@ static void destroyInstance(void* userData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int update(void* userData, PDReader* inEvents, PDWriter* outEvents)
+static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents)
 {
 	(void)userData;
 	(void)inEvents;
 	(void)outEvents;
+	(void)uiFuncs;
 
 	return 0;
 }
