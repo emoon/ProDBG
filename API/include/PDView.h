@@ -3,10 +3,13 @@
 
 #include "PDCommon.h"
 #include "PDReadWrite.h"
+#include "PDUI.h"
 
 #ifdef _cplusplus
 extern "C" {
 #endif
+
+struct PDUI;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -19,11 +22,11 @@ typedef struct PDViewPlugin
     const char* version;
     const char* name;
 
-    void* (*createInstance)(ServiceFunc* serviceFunc);
+    void* (*createInstance)(PDUI* uiFuncs, ServiceFunc* serviceFunc);
     void (*destroyInstance)(void* userData);
 
     // Updates and Returns the current state of the plugin.
-    int (*update)(void* userData, PDReader* inEvents, PDWriter* outEvents);
+    int (*update)(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents);
 
 } PDViewPlugin;
 
@@ -32,8 +35,5 @@ typedef struct PDViewPlugin
 #ifdef _cplusplus
 }
 #endif
-
-
-
 
 #endif
