@@ -3,6 +3,7 @@ local native = require('tundra.native')
 
 local macosx = {
     Env = {
+        QT5 = native.getenv("QT5"),
         CCOPTS = {
             "-Wall",
             "-I.", "-DPRODBG_MAC", 
@@ -29,6 +30,7 @@ local macosx = {
 
 local win64 = {
     Env = {
+        QT5 = native.getenv("QT5"),
         GENERATE_PDB = "1",
         CCOPTS = {
 			"/DPRODBG_WIN",
