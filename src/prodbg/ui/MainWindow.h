@@ -8,12 +8,24 @@
 
 QT_BEGIN_NAMESPACE
 class QMenu;
+class QSignalMapper;
 QT_END_NAMESPACE
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace prodbg
 {
+
+struct Plugin;
+
+struct PluginInfo
+{
+	Plugin* plugin;
+	int menuItem;
+};
+
+
+struct MenuDescriptor;
 
 class MainWindow : public QMainWindow
 {
@@ -22,6 +34,22 @@ class MainWindow : public QMainWindow
 public:
     MainWindow();
     virtual ~MainWindow();
+
+private slots:
+    void onMenu(int id);
+
+private:
+
+	void createMenu(MenuDescriptor* desc, QMenu* menu);
+	void createMenuItem(MenuDescriptor* desc, QMenu* menu);
+	void createWindowMenu();
+
+	QMenu* m_pluginMenu;
+
+    QSignalMapper* m_signalMapper;
+
+    PluginInfo* m_pluginInfoArray;
+    int m_pluginCount;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
