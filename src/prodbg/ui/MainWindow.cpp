@@ -172,6 +172,8 @@ void MainWindow::createWindowMenu()
 
 MainWindow::MainWindow()
 {
+	m_pluginInfoArray = nullptr;
+
     QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     sizePolicy.setHorizontalStretch(0);
     sizePolicy.setVerticalStretch(0);

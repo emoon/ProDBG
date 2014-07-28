@@ -43,7 +43,7 @@ static int main(int argc, const char** argv)
 
 int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-	return prodbg::main(__argc, __argv);
+	return prodbg::main(__argc, (const char**)__argv);
 }
 
 #else
