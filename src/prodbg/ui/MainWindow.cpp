@@ -96,6 +96,23 @@ static MenuDescriptor s_debugMenu[] =
 
 void MainWindow::onMenu(int id)
 {
+	if (id >= MENU_PLUGINS)
+	{
+		log_info("here\n");
+
+		for (int i = 0, count = m_pluginCount; i < count; ++i)
+		{
+			log_info("here loop");
+
+			if (m_pluginInfoArray[i].menuItem != id)
+				continue;
+
+			PDViewPlugin* plugin = (PDViewPlugin*)m_pluginInfoArray[i].plugin->data;
+			log_info("Wants to create plugin of type %s\n", plugin->name);
+		}
+	}
+
+
 	log_info("OnMenu %d\n", id);
 }
 
@@ -140,7 +157,6 @@ void MainWindow::createMenu(MenuDescriptor* desc, QMenu* menu)
 void MainWindow::createWindowMenu()
 {
 	int pluginCount;
-	//int viewCount = 0;
 	int menuId = MENU_PLUGINS;
 
     QMenuBar* mainMenuBar = menuBar();
@@ -150,21 +166,27 @@ void MainWindow::createWindowMenu()
 	m_pluginCount = 0;
 	delete [] m_pluginInfoArray;
 
-	Plugin* plugin = PluginHandler_getPlugins(&pluginCount);
+	Plugin* plugins = PluginHandler_getPlugins(&pluginCount);
+
+	m_pluginInfoArray = new PluginInfo[pluginCount];
 
 	// TODO: better detection of plugin type and it's matching API
 
 	for (int i = 0; i < pluginCount; ++i)
 	{
-		if (strstr(plugin->type, "View"))
+		if (strstr(plugins[i].type, "View"))
 		{
-			PDViewPlugin* pluginData = (PDViewPlugin*)plugin->data;
+			int index = MENU_PLUGINS - menuId;
+			PDViewPlugin* pluginData = (PDViewPlugin*)plugins[i].data;
 			MenuDescriptor desc = { pluginData->name, menuId, true, "", 0 };
 			createMenuItem(&desc, pluginMenu);
+			m_pluginInfoArray[index].plugin = &plugins[i];
+			m_pluginInfoArray[index].menuItem = menuId; 
 			menuId++;
 		}
 	}
 
+	m_pluginCount =  menuId - MENU_PLUGINS;
 	m_pluginMenu = pluginMenu; 
 }
 
