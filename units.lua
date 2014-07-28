@@ -144,6 +144,10 @@ Program {
             { "/SUBSYSTEM:WINDOWS", "/DEBUG"; Config = { "win32-*-*", "win64-*-*" } },
         },
 
+		LIBPATH = {
+			{ "$(QT5)/lib"; Config = { "win32-*-*", "win64-*-*" } },
+		},
+
         CPPDEFS = {
             { "PRODBG_MAC", Config = "macosx-*-*" },
             { "PRODBG_WIN", Config = "win64-*-*" },
