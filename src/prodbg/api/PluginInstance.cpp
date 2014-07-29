@@ -1,7 +1,11 @@
 #include "PluginInstance.h"
 #include <PDView.h>
-#include <malloc.h>
 #include <string.h>
+#include <stdlib.h>
+
+#ifdef PRODBG_WIN
+#include <malloc.h>
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -19,6 +19,8 @@ struct PrivateData
 
 static PDUIListView listview_create(void* privateData, const char* name, int id)
 {
+	(void)name;
+	(void)id;
 	PrivateData* data = (PrivateData*)privateData;
 	QListWidget* listWidget = new QListWidget(data->window);
 	return (PDUIListView)listWidget; 
@@ -60,7 +62,10 @@ void PluginUI_init(QWidget* parent, PDUI* uiInstance)
 	PrivateData* privData = new PrivateData;
 	privData->window = new QMdiSubWindow(parent);
 
+	memset(uiInstance, 0, sizeof(PDUI));
+
 	uiInstance->listview_create = listview_create;
+	uiInstance->listview_clear = listview_clear;
 	uiInstance->listview_item_add = listview_item_add;
 	uiInstance->listview_item_remove = listview_item_remove;
 	uiInstance->listview_item_text_get = 0;
