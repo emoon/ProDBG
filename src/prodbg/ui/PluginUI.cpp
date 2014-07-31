@@ -2,6 +2,7 @@
 #include <PDUI.h>
 #include <QListWidget>
 #include <QMdiSubWindow>
+#include "core/Log.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -23,6 +24,9 @@ static PDUIListView listview_create(void* privateData, const char* name, int id)
 	(void)id;
 	PrivateData* data = (PrivateData*)privateData;
 	QListWidget* listWidget = new QListWidget(data->window);
+	listWidget->resize(100, 100);
+	listWidget->show();
+	log_info("creating listview");
 	return (PDUIListView)listWidget; 
 }
 
@@ -61,6 +65,10 @@ void PluginUI_init(QWidget* parent, PDUI* uiInstance)
 {
 	PrivateData* privData = new PrivateData;
 	privData->window = new QMdiSubWindow(parent);
+	privData->window->resize(200, 200);
+	privData->window->show();
+
+	log_info("PluginUI_init\n");
 
 	memset(uiInstance, 0, sizeof(PDUI));
 

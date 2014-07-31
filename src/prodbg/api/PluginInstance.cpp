@@ -27,6 +27,7 @@ ViewPluginInstance* PluginInstance_createViewPlugin()
 bool PluginInstance_init(ViewPluginInstance* instance, PDViewPlugin* plugin)
 {
 	void* userData = plugin->createInstance(&instance->ui, 0);
+	instance->plugin = plugin;
 	instance->userData = userData;
 
 	return true;

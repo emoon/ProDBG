@@ -23,6 +23,6 @@ struct ViewPluginInstance
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ViewPluginInstance* PluginInstance_createViewPlugin();
-bool PluginInstance_init(ViewPluginInstance* instance);
+bool PluginInstance_init(ViewPluginInstance* instance, PDViewPlugin* plugin);
 
 }

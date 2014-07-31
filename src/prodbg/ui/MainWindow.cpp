@@ -1,6 +1,8 @@
 #include "MainWindow.h"
 #include <core/Log.h>
 #include <core/PluginHandler.h>
+#include <api/PluginInstance.h>
+#include <ui/PluginUI.h>
 #include <QMenu>
 #include <QMenuBar>
 #include <QSignalMapper>
@@ -107,8 +109,13 @@ void MainWindow::onMenu(int id)
 			if (m_pluginInfoArray[i].menuItem != id)
 				continue;
 
-			PDViewPlugin* plugin = (PDViewPlugin*)m_pluginInfoArray[i].plugin->data;
-			log_info("Wants to create plugin of type %s\n", plugin->name);
+			ViewPluginInstance* instance = PluginInstance_createViewPlugin();
+			PluginUI_init(this, &instance->ui);
+
+			PluginInstance_init(instance, (PDViewPlugin*)m_pluginInfoArray[i].plugin->data);
+
+			//(PDViewPlugin*)m_pluginInfoArray[i].plugin->data;
+			//log_info("Wants to create plugin of type %s\n", plugin->name);
 		}
 	}
 

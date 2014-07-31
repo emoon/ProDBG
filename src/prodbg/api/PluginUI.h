@@ -7,7 +7,6 @@ struct PDUI;
 namespace prodbg
 {
 
-bool PluginUI_init();
-PDUI* PluginUI_get();
+bool PluginUI_init(PDUI* instance);
 
 }
