@@ -202,7 +202,7 @@ void MainWindow::createWindowMenu()
 MainWindow::MainWindow()
 {
 	m_pluginInfoArray = nullptr;
-
+	setStyleSheet("QMainWindow::separator{ background: rgb(200, 200, 200); width: 2px; height: 2px; }");
     QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     sizePolicy.setHorizontalStretch(0);
     sizePolicy.setVerticalStretch(0);

@@ -16,11 +16,11 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 	(void)serviceFunc;
 	RegistersData* userData = (RegistersData*)malloc(sizeof(RegistersData));
 
-	userData->registerList = PDUIListView_create(uiFuncs, "Test", 0);
+	//userData->registerList = PDUIListView_create(uiFuncs, "Test", 0);
 
-	PDUIListView_itemAdd(uiFuncs, userData->registerList, "Item 0");
-	PDUIListView_itemAdd(uiFuncs, userData->registerList, "Item 1");
-	PDUIListView_itemAdd(uiFuncs, userData->registerList, "Item 2");
+	//PDUIListView_itemAdd(uiFuncs, userData->registerList, "Item 0");
+	//PDUIListView_itemAdd(uiFuncs, userData->registerList, "Item 1");
+	//PDUIListView_itemAdd(uiFuncs, userData->registerList, "Item 2");
 
 	return userData;
 }

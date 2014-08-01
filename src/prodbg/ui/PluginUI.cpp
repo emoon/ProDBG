@@ -1,7 +1,7 @@
 #include "PluginUI.h"
 #include <PDUI.h>
 #include <QListWidget>
-#include <QMdiSubWindow>
+#include <QDockWidget>
 #include "core/Log.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -64,7 +64,7 @@ int listview_item_remove(void*, PDUIListView handle, int index)
 void PluginUI_init(QWidget* parent, PDUI* uiInstance)
 {
 	PrivateData* privData = new PrivateData;
-	privData->window = new QMdiSubWindow(parent);
+	privData->window = new QDockWidget("Test", parent);
 	privData->window->resize(200, 200);
 	privData->window->show();
 
