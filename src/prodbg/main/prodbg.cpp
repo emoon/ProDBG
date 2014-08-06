@@ -16,6 +16,7 @@ namespace prodbg
 static const char* s_plugins[] =
 {
 	"Registers", 
+	"Locals", 
 	// "LLDBPlugin",
 };
 

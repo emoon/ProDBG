@@ -185,7 +185,7 @@ void MainWindow::createWindowMenu()
 	{
 		if (strstr(plugins[i].type, "View"))
 		{
-			int index = MENU_PLUGINS - menuId;
+			int index = menuId - MENU_PLUGINS;
 			PDViewPlugin* pluginData = (PDViewPlugin*)plugins[i].data;
 			MenuDescriptor desc = { pluginData->name, menuId, true, "", 0 };
 			createMenuItem(&desc, pluginMenu);

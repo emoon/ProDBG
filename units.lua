@@ -121,6 +121,20 @@ SharedLibrary {
 
 ------------------------------------
 
+SharedLibrary {
+    Name = "Locals",
+    
+    Env = {
+        CPPPATH = { "API/include", },
+        SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
+        CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
+    },
+
+    Sources = { "src/plugins/locals/LocalsPlugin.cpp" },
+}
+
+------------------------------------
+
 
 Program {
     Name = "prodbg",
@@ -217,3 +231,4 @@ end
 
 Default "prodbg"
 Default "Registers"
+Default "Locals"
