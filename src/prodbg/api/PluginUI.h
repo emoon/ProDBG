@@ -1,12 +1,13 @@
 #pragma once
 
 struct PDUI;
+class QWidget;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace prodbg
 {
 
-bool PluginUI_init(PDUI* instance);
+void PluginUI_init(const char* type, QWidget* parent, PDUI* uiInstance);
 
 }

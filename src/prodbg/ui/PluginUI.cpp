@@ -1,7 +1,9 @@
 #include "PluginUI.h"
 #include <PDUI.h>
-#include <QListWidget>
+#include <QTreeWidget>
 #include <QDockWidget>
+#include <QLayout>
+#include <QVBoxLayout>
 #include "core/Log.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -13,19 +15,28 @@ namespace prodbg
 
 struct PrivateData
 {
-	QWidget* window;
+	QDockWidget* dock;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDUIListView listview_create(void* privateData, const char* name, int id)
+static PDUIListView listview_create(void* privateData, const char** names, int id)
 {
-	(void)name;
+	(void)names;
 	(void)id;
 	PrivateData* data = (PrivateData*)privateData;
-	QListWidget* listWidget = new QListWidget(data->window);
-	listWidget->resize(100, 100);
-	listWidget->show();
+	QTreeWidget* listWidget = new QTreeWidget(data->dock);
+	QStringList headers;
+
+	while (*names)
+	{
+		headers << *names;
+		names++;
+	}
+
+	listWidget->setHeaderLabels(headers);
+	data->dock->setWidget(listWidget);
+
 	log_info("creating listview");
 	return (PDUIListView)listWidget; 
 }
@@ -34,19 +45,28 @@ static PDUIListView listview_create(void* privateData, const char* name, int id)
 
 static int listview_clear(void*, PDUIListView handle)
 {
-	QListWidget* listWidget = (QListWidget*)handle;
+	QTreeWidget* listWidget = (QTreeWidget*)handle;
 	listWidget->clear();
 	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int listview_item_add(void*, PDUIListView handle, const char* item)
+static int listview_item_add(void*, PDUIListView handle, const char** items)
 {
-	QListWidget* listWidget = (QListWidget*)handle;
-    QListWidgetItem* newItem = new QListWidgetItem;
-    newItem->setText(QString(QLatin1String(item)));
-    listWidget->insertItem(0, newItem);
+	QTreeWidget* listWidget = (QTreeWidget*)handle;
+    QTreeWidgetItem* newItem = new QTreeWidgetItem;
+	QStringList list;
+
+	while (*items)
+	{
+		list << *items;
+		items++;
+	}
+
+	QTreeWidgetItem* item = new QTreeWidgetItem((QTreeWidget*)0, list);
+	listWidget->insertTopLevelItem(0, item);
+
 	return 0;
 }
 
@@ -54,19 +74,19 @@ static int listview_item_add(void*, PDUIListView handle, const char* item)
 
 int listview_item_remove(void*, PDUIListView handle, int index)
 {
-	QListWidget* listWidget = (QListWidget*)handle;
-	listWidget->removeItemWidget(listWidget->itemAt(0, index));
+	QTreeWidget* listWidget = (QTreeWidget*)handle;
+	//listWidget->removeItemWidget(listWidget->itemAt(0, index));
 	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PluginUI_init(QWidget* parent, PDUI* uiInstance)
+void PluginUI_init(const char* type, QWidget* parent, PDUI* uiInstance)
 {
 	PrivateData* privData = new PrivateData;
-	privData->window = new QDockWidget("Test", parent);
-	privData->window->resize(200, 200);
-	privData->window->show();
+	privData->dock = new QDockWidget(type, parent);
+	privData->dock->resize(200, 200);
+	privData->dock->show();
 
 	log_info("PluginUI_init\n");
 
@@ -75,8 +95,8 @@ void PluginUI_init(QWidget* parent, PDUI* uiInstance)
 	uiInstance->listview_create = listview_create;
 	uiInstance->listview_clear = listview_clear;
 	uiInstance->listview_item_add = listview_item_add;
-	uiInstance->listview_item_remove = listview_item_remove;
-	uiInstance->listview_item_text_get = 0;
+	//uiInstance->listview_item_remove = listview_item_remove;
+	//uiInstance->listview_item_text_get = 0;
 	uiInstance->privateData = privData;
 }
 

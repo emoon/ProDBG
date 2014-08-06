@@ -14,12 +14,12 @@ typedef void* PDUIListView;
 
 typedef struct PDUI
 {
-	PDUIListView (*listview_create)(void* privateData, const char* name, int id);
+	PDUIListView (*listview_create)(void* privateData, const char** name, int id);
 
 	int (*listview_clear)(void* privateData, PDUIListView handle);
-	int (*listview_item_add)(void* privateData, PDUIListView handle, const char* item);
-	int (*listview_item_remove)(void* privateData, PDUIListView handle, int index);
-	int (*listview_item_text_get)(void* privateData, PDUIListView handle, int index);
+	int (*listview_item_add)(void* privateData, PDUIListView handle, const char** item);
+	//int (*listview_item_remove)(void* privateData, PDUIListView handle, int row, int column);
+	//int (*listview_item_text_get)(void* privateData, PDUIListView handle, int row, int colmun);
 
 	void* privateData;
 
@@ -27,8 +27,8 @@ typedef struct PDUI
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define PDUIListView_create(uiFuncs, name, id) uiFuncs->listview_create(uiFuncs->privateData, name, id)
-#define PDUIListView_itemAdd(uiFuncs, handle, name) uiFuncs->listview_item_add(uiFuncs->privateData, handle, name)
+#define PDUIListView_create(uiFuncs, names, id) uiFuncs->listview_create(uiFuncs->privateData, names, id)
+#define PDUIListView_itemAdd(uiFuncs, handle, names) uiFuncs->listview_item_add(uiFuncs->privateData, handle, names)
 
 #ifdef _cplusplus
 }
