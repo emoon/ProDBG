@@ -109,10 +109,12 @@ void MainWindow::onMenu(int id)
 			if (m_pluginInfoArray[i].menuItem != id)
 				continue;
 
-			ViewPluginInstance* instance = PluginInstance_createViewPlugin();
-			PluginUI_init(this, &instance->ui);
+			PDViewPlugin* viewPlugin = (PDViewPlugin*)m_pluginInfoArray[i].plugin->data;
 
-			PluginInstance_init(instance, (PDViewPlugin*)m_pluginInfoArray[i].plugin->data);
+			ViewPluginInstance* instance = PluginInstance_createViewPlugin();
+			PluginUI_init(viewPlugin->name, this, &instance->ui);
+
+			PluginInstance_init(instance, viewPlugin);
 
 			//(PDViewPlugin*)m_pluginInfoArray[i].plugin->data;
 			//log_info("Wants to create plugin of type %s\n", plugin->name);
