@@ -100,12 +100,8 @@ void MainWindow::onMenu(int id)
 {
 	if (id >= MENU_PLUGINS)
 	{
-		log_info("here\n");
-
 		for (int i = 0, count = m_pluginCount; i < count; ++i)
 		{
-			log_info("here loop");
-
 			if (m_pluginInfoArray[i].menuItem != id)
 				continue;
 
@@ -113,11 +109,7 @@ void MainWindow::onMenu(int id)
 
 			ViewPluginInstance* instance = PluginInstance_createViewPlugin();
 			PluginUI_init(viewPlugin->name, this, &instance->ui);
-
 			PluginInstance_init(instance, viewPlugin);
-
-			//(PDViewPlugin*)m_pluginInfoArray[i].plugin->data;
-			//log_info("Wants to create plugin of type %s\n", plugin->name);
 		}
 	}
 
