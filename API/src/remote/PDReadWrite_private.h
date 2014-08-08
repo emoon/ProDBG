@@ -18,6 +18,7 @@ void PDBinaryReader_destroy(struct PDReader* reader);
 void PDBinaryWriter_init(struct PDWriter* writer);
 void PDBinaryWriter_destroy(struct PDWriter* writer);
 void PDBinaryWriter_finalize(struct PDWriter* writer);
+void PDBinaryWriter_reset(struct PDWriter* writer);
 
 unsigned int PDBinaryWriter_getSize(struct PDWriter* writer);
 unsigned char* PDBinaryWriter_getData(struct PDWriter* writer);
