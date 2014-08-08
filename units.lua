@@ -62,6 +62,39 @@ StaticLibrary {
     },
 }
 
+-- Example 6502 emulator
+
+Program {
+    Name = "Fake6502",
+
+    Env = {
+        CPPPATH = { "API/include" },
+        CCOPTS = {
+            { 
+            "-Wno-conversion", 
+            "-Wno-missing-variable-declarations",
+            "-Werror", 
+            "-Wno-pedantic", 
+            "-Wno-conversion",
+            "-Wno-missing-field-initializers",
+            "-Wno-conversion",
+            "-Wno-switch-enum",
+            "-Wno-format-nonliteral"; Config = "macosx-*-*" },
+        },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "examples/Fake6502",
+            Extensions = { ".c", ".cpp", ".m" },
+        },
+    },
+
+    Libs = { { "wsock32.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
+
+    Depends = { "RemoteAPI" },
+}
+
 ---------- Plugins -----------------
 
 SharedLibrary {
@@ -231,4 +264,5 @@ end
 
 Default "prodbg"
 Default "Registers"
+Default "Fake6502"
 Default "Locals"
