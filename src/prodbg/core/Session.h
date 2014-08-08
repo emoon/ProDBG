@@ -6,15 +6,15 @@ namespace prodbg
 {
 
 struct Session;
-struct Plugin;
+struct ViewPluginInstance;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Session* Session_new();
 
 void Session_update(Session* session);
-void Session_addPlugin(Session* session, Plugin* plugin);
-void Session_removePlugin(Session* session, Plugin* plugin);
+void Session_addViewPlugin(Session* session, ViewPluginInstance* instance);
+void Session_removeViewPlugin(Session* session, ViewPluginInstance* instance);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
