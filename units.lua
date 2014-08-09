@@ -141,6 +141,20 @@ SharedLibrary {
 ------------------------------------
 
 SharedLibrary {
+    Name = "Disassembly",
+    
+    Env = {
+        CPPPATH = { "API/include", },
+        SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
+        CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
+    },
+
+    Sources = { "src/plugins/disassembly/DisassemblyPlugin.cpp" },
+}
+
+------------------------------------
+
+SharedLibrary {
     Name = "Registers",
     
     Env = {
@@ -264,5 +278,6 @@ end
 
 Default "prodbg"
 Default "Registers"
+Default "Disassembly"
 Default "Fake6502"
 Default "Locals"
