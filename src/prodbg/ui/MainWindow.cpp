@@ -112,6 +112,8 @@ void MainWindow::onMenu(int id)
 			ViewPluginInstance* instance = PluginInstance_createViewPlugin();
 			PluginUI_init(viewPlugin->name, this, &instance->ui);
 			PluginInstance_init(instance, viewPlugin);
+
+			Session_addViewPlugin(m_activeSession, instance);
 		}
 
 		return;
