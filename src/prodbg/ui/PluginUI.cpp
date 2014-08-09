@@ -1,4 +1,5 @@
 #include "PluginUI.h"
+#include "CustomView.h"
 #include <PDUI.h>
 #include <QTreeWidget>
 #include <QDockWidget>
@@ -81,6 +82,16 @@ int listview_item_remove(void*, PDUIListView handle, int index)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+PDUICustomView customview_create(void* privateData, void* userData, PDCustomDrawCallback callback)
+{
+	PrivateData* privData = (PrivateData*)privateData; 
+	CustomView* customView = new CustomView(privData->dock, userData, callback);
+	privData->dock->setWidget(customView);
+	return (PDUICustomView)customView; 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void PluginUI_init(const char* type, QWidget* parent, PDUI* uiInstance)
 {
 	PrivateData* privData = new PrivateData;
@@ -95,6 +106,8 @@ void PluginUI_init(const char* type, QWidget* parent, PDUI* uiInstance)
 	uiInstance->listview_create = listview_create;
 	uiInstance->listview_clear = listview_clear;
 	uiInstance->listview_item_add = listview_item_add;
+	uiInstance->customview_create = customview_create;
+
 	//uiInstance->listview_item_remove = listview_item_remove;
 	//uiInstance->listview_item_text_get = 0;
 	uiInstance->privateData = privData;

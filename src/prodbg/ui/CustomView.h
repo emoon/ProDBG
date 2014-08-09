@@ -1,0 +1,27 @@
+#pragma once
+
+#include <QWidget>
+#include <PDUI.h>
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace prodbg
+{
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class CustomView : public QWidget
+{
+    Q_OBJECT
+public:
+    CustomView(QWidget* parent, void* userData, PDCustomDrawCallback);
+
+private:
+
+	void paintEvent(QPaintEvent* event);
+
+	PDCustomDrawCallback m_callback;
+	void* m_userData;
+};
+
+}
