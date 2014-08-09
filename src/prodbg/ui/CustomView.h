@@ -22,6 +22,9 @@ private:
 
 	PDCustomDrawCallback m_callback;
 	void* m_userData;
+
+	int m_fontHeight;
+	int m_fontWidth;
 };
 
 }

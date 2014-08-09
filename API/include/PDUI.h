@@ -46,7 +46,10 @@ typedef struct PDRect
 
 typedef struct PDUIPainter
 {
-	void (*fill_rect)(void* privateData, PDRect* rect, unsigned int color);
+	void (*fillRect)(void* privateData, PDRect* rect, unsigned int color);
+	void (*fontMetrics)(void* privateData, int* width, int* height); 
+	void (*setPen)(void* privateData, unsigned int color);
+	void (*drawText)(void* privateData, int x, int y, const char* text);
 
 	void* privateData;
 
@@ -61,7 +64,9 @@ typedef struct PDUIPainter
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define PDUIPaint_fillRect(pf, rect, color) pf->fill_rect(pf->privateData, rect, color)
+#define PDUIPaint_fillRect(pf, rect, color) pf->fillRect(pf->privateData, rect, color)
+#define PDUIPaint_setPen(pf, color) pf->setPen(pf->privateData, color)
+#define PDUIPaint_drawText(pf, x, y, text) pf->drawText(pf->privateData, x, y, text)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -14,7 +14,9 @@ struct DissassemblyData
 
 static void drawCallback(void* userData, PDRect* viewRect, PDUIPainter* painter)
 {
-	PDUIPaint_fillRect(painter, viewRect, 0);
+	PDUIPaint_fillRect(painter, viewRect, 0x7f7f);
+	PDUIPaint_setPen(painter, 0x1fffffff);
+	PDUIPaint_drawText(painter, viewRect->x, viewRect->y, "test");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
