@@ -1,5 +1,7 @@
 #pragma once
 
+#include <PDBackend.h>
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace prodbg
@@ -10,9 +12,11 @@ struct ViewPluginInstance;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Session* Session_new();
+Session* Session_create(const char* target, int port);
+void Session_destroy(Session* session);
 
 void Session_update(Session* session);
+void Session_action(Session* session, PDAction action);
 void Session_addViewPlugin(Session* session, ViewPluginInstance* instance);
 void Session_removeViewPlugin(Session* session, ViewPluginInstance* instance);
 
