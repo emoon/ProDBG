@@ -224,6 +224,9 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
     }
 
     // not found
+    //
+
+    //printf("not found range\n");
 
     return 0;
 }
@@ -427,7 +430,7 @@ static uint32_t readFindArray(struct PDReader* reader, PDReaderIterator* arrayIt
     const uint8_t* dataPtr = findId(reader, id, it);
     if (!dataPtr)
     {
-        printf("Array %s not found\n", id);
+        //printf("Array %s not found\n", id);
         return PDReadStatus_notFound;
     }
 
@@ -710,6 +713,7 @@ void PDBinaryReader_init(PDReader* reader)
 
 void PDBinaryReader_initStream(PDReader* reader, uint8_t* data, unsigned int size)
 {
+	printf("InitStream %p - size %d\n", data, size);
     ReaderData* readerData = (ReaderData*)reader->data;
     readerData->data = readerData->dataStart = data + 4;    // top 4 bytes for size + 2 bits for info
     readerData->dataEnd = (uint8_t*)data + size;
@@ -722,6 +726,7 @@ void PDBinaryReader_reset(PDReader* reader)
 {
     ReaderData* readerData = (ReaderData*)reader->data;
     readerData->data = readerData->dataStart;
+    readerData->dataEnd = readerData->data;
     readerData->nextEvent = 0;
 }
 
