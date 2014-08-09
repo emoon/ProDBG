@@ -12,8 +12,9 @@ typedef void* PDUIListView;
 typedef void* PDUICustomView;
 
 struct PDUIPainter;
+struct PDRect;
 
-typedef void (*PDCustomDrawCallback)(void* userData, struct PDUIPainter* painter);
+typedef void (*PDCustomDrawCallback)(void* userData, PDRect* rect, struct PDUIPainter* painter);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -34,9 +35,18 @@ typedef struct PDUI
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef struct PDRect
+{
+	int x, y, width, height;
+
+} PDRect;
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef struct PDUIPainter
 {
-	int (*fill_rect)(void* privateData, int x, int y, int w, int h, unsigned int color);
+	void (*fill_rect)(void* privateData, PDRect* rect, unsigned int color);
 
 	void* privateData;
 
@@ -51,7 +61,7 @@ typedef struct PDUIPainter
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define PDUIPaint_fillRect(pf, x, y, w, h, color) pf->fill_rect(pf->privateData, x, y, w, h, color)
+#define PDUIPaint_fillRect(pf, rect, color) pf->fill_rect(pf->privateData, rect, color)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

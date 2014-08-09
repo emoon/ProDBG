@@ -1,6 +1,7 @@
 #include "CustomView.h"
 #include <PDUI.h>
 #include <QPainter>
+#include <QPaintEvent>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -14,18 +15,15 @@ CustomView::CustomView(QWidget* parent, void* userData, PDCustomDrawCallback cal
 	m_userData(userData),
 	m_callback(callback)
 {
-	printf("created customViwe\n");
-	resize(200, 200);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int fill_rect(void* privateData, int x, int y, int w, int h, unsigned int color)
+static void fill_rect(void* privateData, PDRect* rect, unsigned int color)
 {
 	QPainter* painter = (QPainter*)privateData;
-	QRect rect(QPoint(x, y), QPoint(w, h));
-	painter->fillRect(rect, color);
-	return 0;
+	QRect qRect(QPoint(rect->x, rect->y), QPoint(rect->width, rect->height));
+	painter->fillRect(qRect, color);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,11 +40,13 @@ void CustomView::paintEvent(QPaintEvent* event)
 {
 	PDUIPainter pdPainter;
 	QPainter qPainter(this); 
+	QRect qRect = event->rect();
+	PDRect rect = { qRect.x(), qRect.y(), qRect.width(), qRect.height() };
 
 	pdPainter.privateData = &qPainter;
 	pdPainter.fill_rect = fill_rect;
 
-	m_callback(m_userData, &pdPainter);
+	m_callback(m_userData, &rect, &pdPainter);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
