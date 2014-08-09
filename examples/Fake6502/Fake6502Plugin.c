@@ -43,7 +43,10 @@ static void writeRegister(PDWriter* writer, const char* name, uint8_t size, uint
     if (readOnly)
         PDWrite_u8(writer, "read_only", 1);
 
-    PDWrite_u16(writer, "register", reg);
+    if (size == 2)
+    	PDWrite_u16(writer, "register", reg);
+	else
+    	PDWrite_u8(writer, "register", (uint8_t)reg);
 
     PDWrite_arrayEntryEnd(writer);
 }
