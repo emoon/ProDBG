@@ -28,6 +28,7 @@ typedef struct PDUI
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define PDUIListView_create(uiFuncs, names, id) uiFuncs->listview_create(uiFuncs->privateData, names, id)
+#define PDUIListView_clear(uiFuncs, handle) uiFuncs->listview_clear(uiFuncs->privateData, handle)
 #define PDUIListView_itemAdd(uiFuncs, handle, names) uiFuncs->listview_item_add(uiFuncs->privateData, handle, names)
 
 #ifdef _cplusplus
