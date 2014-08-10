@@ -26,7 +26,7 @@ CustomView::CustomView(QWidget* parent, void* userData, PDCustomDrawCallback cal
 	m_userData(userData),
 	m_callback(callback)
 {
-    QFont f("Monospace", 14, QFont::Normal, false);
+    QFont f("Monospace", 18, QFont::Normal, false);
     f.setStyleHint(QFont::Monospace);
     f.setFixedPitch(true);
     setFont(f);
@@ -34,6 +34,8 @@ CustomView::CustomView(QWidget* parent, void* userData, PDCustomDrawCallback cal
     QFontMetrics metrics(font());
     m_fontHeight = metrics.height();
     m_fontWidth = metrics.width(QLatin1Char('0'));
+
+    printf("fmetrics %d %d\n", m_fontWidth, m_fontHeight);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

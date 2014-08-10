@@ -28,6 +28,7 @@ typedef struct PDUI
 	// Custom view
 
 	PDUICustomView (*customview_create)(void* privateData, void* userData, PDCustomDrawCallback callback);
+	void (*customview_repaint)(void* privateData, PDUICustomView view);
 
 	void* privateData;
 
@@ -58,6 +59,8 @@ typedef struct PDUIPainter
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define PDUICustomView_create(uiFuncs, userData, callback) uiFuncs->customview_create(uiFuncs->privateData, userData, callback)
+#define PDUICustomView_repaint(uiFuncs, view) uiFuncs->customview_repaint(uiFuncs->privateData, view)
+
 #define PDUIListView_create(uiFuncs, names, id) uiFuncs->listview_create(uiFuncs->privateData, names, id)
 #define PDUIListView_clear(uiFuncs, handle) uiFuncs->listview_clear(uiFuncs->privateData, handle)
 #define PDUIListView_itemAdd(uiFuncs, handle, names) uiFuncs->listview_item_add(uiFuncs->privateData, handle, names)
@@ -67,6 +70,7 @@ typedef struct PDUIPainter
 #define PDUIPaint_fillRect(pf, rect, color) pf->fillRect(pf->privateData, rect, color)
 #define PDUIPaint_setPen(pf, color) pf->setPen(pf->privateData, color)
 #define PDUIPaint_drawText(pf, x, y, text) pf->drawText(pf->privateData, x, y, text)
+#define PDUIPaint_fontMetrics(pf, x, y) pf->fontMetrics(pf->privateData, x, y)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

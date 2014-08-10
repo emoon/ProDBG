@@ -92,6 +92,14 @@ PDUICustomView customview_create(void* privateData, void* userData, PDCustomDraw
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void customview_repaint(void*, PDUICustomView view)
+{
+	CustomView* customView = (CustomView*)view;
+	customView->update();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void PluginUI_init(const char* type, QWidget* parent, PDUI* uiInstance)
 {
 	PrivateData* privData = new PrivateData;
@@ -107,6 +115,7 @@ void PluginUI_init(const char* type, QWidget* parent, PDUI* uiInstance)
 	uiInstance->listview_clear = listview_clear;
 	uiInstance->listview_item_add = listview_item_add;
 	uiInstance->customview_create = customview_create;
+	uiInstance->customview_repaint = customview_repaint;
 
 	//uiInstance->listview_item_remove = listview_item_remove;
 	//uiInstance->listview_item_text_get = 0;

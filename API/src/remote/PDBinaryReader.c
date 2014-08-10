@@ -713,7 +713,6 @@ void PDBinaryReader_init(PDReader* reader)
 
 void PDBinaryReader_initStream(PDReader* reader, uint8_t* data, unsigned int size)
 {
-	printf("InitStream %p - size %d\n", data, size);
     ReaderData* readerData = (ReaderData*)reader->data;
     readerData->data = readerData->dataStart = data + 4;    // top 4 bytes for size + 2 bits for info
     readerData->dataEnd = (uint8_t*)data + size;
