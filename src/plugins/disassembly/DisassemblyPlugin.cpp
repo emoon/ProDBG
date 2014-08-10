@@ -10,7 +10,23 @@ struct DissassemblyData
 {
 	PDUICustomView view;
 	char* code;
+	uint64_t location;
+	uint8_t locationSize;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void buildAddressString(char* output, uint64_t address, uint8_t size)
+{
+	switch (size)
+	{
+		case 0 : output[0] = 0; break; 
+		case 1 : sprintf(output, "%02x", (uint8_t)address); break;
+		case 2 : sprintf(output, "%04x", (uint16_t)address); break;
+		case 4 : sprintf(output, "%08x", (uint32_t)address); break;
+		case 8 : sprintf(output, "%016llx", (uint64_t)address); break;
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -19,32 +35,37 @@ static void drawCallback(void* userData, PDRect* viewRect, PDUIPainter* painter)
 	int fontX;
 	int fontY;
 
+	char locationAddress[128];
+
 	DissassemblyData* data = (DissassemblyData*)userData; 
 
 	PDUIPaint_fontMetrics(painter, &fontX, &fontY);
 	PDUIPaint_fillRect(painter, viewRect, 0x7f7f);
 	PDUIPaint_setPen(painter, 0x1fffffff);
 
-	printf("beging render\n");
+	buildAddressString(locationAddress, data->location, data->locationSize);
 
 	if (data->code)
 	{
 		int y = 30;
-		char* pch = strtok(data->code,"\n");
-
-		printf("strtok %p\n", pch);
+		char* tempCode = strdup(data->code);
+		char* pch = strtok(tempCode,"\n");
 
 		while (pch != NULL)
 		{
-			printf("tok text %d : %s\n", y, pch);
+			if (strstr(pch, locationAddress) == pch)
+				PDUIPaint_setPen(painter, 0x1f1f1fff);
+			else
+				PDUIPaint_setPen(painter, 0x1fffffff);
+
 			PDUIPaint_drawText(painter, viewRect->x, y, pch);
 
 			pch = strtok(NULL, "\n");
-			y += fontX;
+			y += fontX + 2;
 		}
-	}
 
-	printf("end render\n");
+		free(tempCode);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,8 +121,15 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
         {
             case PDEventType_setDisassembly : 
 			{
-            	setDisassemblyCode(data, inEvents); break; 
+            	setDisassemblyCode(data, inEvents);
             	PDUICustomView_repaint(uiFuncs, data->view);
+            	break;
+			}
+
+            case PDEventType_setExceptionLocation : 
+			{
+    			PDRead_findU64(inEvents, &data->location, "address", 0);
+    			PDRead_findU8(inEvents, &data->locationSize, "address_size", 0);
 			}
         }
     }

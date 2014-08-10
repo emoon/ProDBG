@@ -725,7 +725,6 @@ void PDBinaryReader_reset(PDReader* reader)
 {
     ReaderData* readerData = (ReaderData*)reader->data;
     readerData->data = readerData->dataStart;
-    readerData->dataEnd = readerData->data;
     readerData->nextEvent = 0;
 }
 

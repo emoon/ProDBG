@@ -61,8 +61,6 @@ static void showInUI(RegistersData* data, PDReader* reader, PDUI* uiFuncs)
     if (PDRead_findArray(reader, &it, "registers", 0) == PDReadStatus_notFound)
     	return;
 
-	printf("registers found\n");
-
 	PDUIListView_clear(uiFuncs, data->registerList);
 
     while (PDRead_getNextEntry(reader, &it))

@@ -161,6 +161,7 @@ static void updateRemote(Session* s, PDAction action)
 	for (auto p : s->viewPlugins)
 	{
 		p->plugin->update(p->userData, &p->ui, &s->reader, &s->viewPluginsWriter);
+    	PDBinaryReader_reset(&s->reader);
 	}
 
     PDBinaryWriter_finalize(&s->viewPluginsWriter);

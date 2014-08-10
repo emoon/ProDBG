@@ -26,7 +26,7 @@ CustomView::CustomView(QWidget* parent, void* userData, PDCustomDrawCallback cal
 	m_userData(userData),
 	m_callback(callback)
 {
-    QFont f("Monospace", 18, QFont::Normal, false);
+    QFont f("ProggySquare", 11, QFont::Normal, false);
     f.setStyleHint(QFont::Monospace);
     f.setFixedPitch(true);
     setFont(f);
@@ -62,7 +62,7 @@ static void drawText(void* privateData, int x, int y, const char* text)
 	QPainter* painter = ((PainterData*)privateData)->painter;
 	//painter->setBackground(QColor((int)0));
     //painter->setBackgroundMode(Qt::OpaqueMode);
-	painter->drawText(QPointF(10, 10), QString::fromUtf8(text));
+	painter->drawText(QPointF(x, y), QString::fromUtf8(text));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

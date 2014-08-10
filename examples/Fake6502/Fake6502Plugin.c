@@ -60,10 +60,12 @@ static void setRegisters(PDWriter* writer)
 
     writeRegister(writer, "pc", 2, pc, 1);
     writeRegister(writer, "sp", 1, sp, 0);
-    writeRegister(writer, "a", 1, x, 0);
+    writeRegister(writer, "a", 1, a, 0);
     writeRegister(writer, "x", 1, x, 0);
     writeRegister(writer, "y", 1, y, 0);
-    writeRegister(writer, "status", 1, y, 1);
+    writeRegister(writer, "status", 1, status, 1);
+
+    printf("x: 0x%x\n", x);
 
     PDWrite_arrayEnd(writer);
     PDWrite_eventEnd(writer);
