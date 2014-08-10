@@ -121,7 +121,7 @@ SharedLibrary {
         },
 
         SHLIBOPTS = { 
-            { "-Fsrc/plugins/lldb/Frameworks", "-lstdc++"; Config = "macosx-clang-*" },
+            { "-Fsrc/plugins/lldb/Frameworks", "-rpath src/plugins/lldb/Frameworks", "-lstdc++"; Config = "macosx-clang-*" },
         },
 
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },

@@ -18,7 +18,7 @@ static const char* s_plugins[] =
 	"Registers", 
 	"Locals", 
 	"Disassembly", 
-	// "LLDBPlugin",
+	"LLDBPlugin",
 };
 
 
