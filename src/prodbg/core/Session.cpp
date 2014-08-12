@@ -1,6 +1,7 @@
 #include "Session.h"
 #include "core/Alloc.h"
 #include "core/Log.h"
+#include "ui/StatusBar.h"
 #include "api/PluginInstance.h"
 #include "api/src/remote/PDReadWrite_private.h"
 #include "api/src/remote/RemoteConnection.h"
@@ -68,8 +69,7 @@ Session* Session_create(const char* target, int port)
 
         if (!RemoteConnection_connect(conn, target, port))
         {
-        	// TODO: use statusbar here
-            log_error("Unable to connect to %s:%d\n", target, port);
+            StatusBar_setText(0, "Unable to connect to %s:%d", target, port);
             RemoteConnection_destroy(conn);
         }
 		else
@@ -77,11 +77,11 @@ Session* Session_create(const char* target, int port)
 			s->connection = conn;
 		}
 
-		log_debug("[SESSION] connected to %s:%d\n", target, port);
+        StatusBar_setText(0, "Connect to %s:%d", target, port);
 	}
 	else
 	{
-		log_debug("[SESSION] Setting up local\n");
+        StatusBar_setText(0, "Connected to local target");
 	}
 
 	return s;
@@ -129,6 +129,48 @@ static void updateLocal(Session* s, PDAction action)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+const char* getBackendState(PDReader* reader)
+{
+	uint32_t event;
+	uint32_t state;
+	const char* retState = "Unknown";
+
+    while ((event = PDRead_getEvent(reader)) != 0)
+    {
+        switch (event)
+        {
+			case PDEventType_setStatus :
+			{
+        		PDRead_findU32(reader, &state, "state", 0);
+
+        		if (state < PDDebugState_count)
+				{
+					switch (state)
+					{
+						case PDDebugState_noTarget : retState = "No target"; goto end;
+						case PDDebugState_running : retState = "Running"; goto end;
+						case PDDebugState_stopBreakpoint : retState = "Stop (breakpoint)"; goto end;
+						case PDDebugState_stopException : retState = "Stop (exception)"; goto end;
+						case PDDebugState_trace : retState = "Trace (stepping)"; goto end;
+					}
+				}
+
+				break;
+			}
+		}
+	}
+
+end:;
+
+   	PDBinaryReader_reset(reader);
+
+	return retState;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void updateRemote(Session* s, PDAction action)
 {
 	PDBackendInstance* backend = s->backend;
@@ -155,6 +197,12 @@ static void updateRemote(Session* s, PDAction action)
 			PDBinaryReader_initStream(&s->reader, outputBuffer, totalSize);
         }
 	}
+
+	// Get the current state of the plugin
+
+	const char* backendState = getBackendState(&s->reader);
+
+	StatusBar_setText(1, "Status: %s", backendState);
 
 	PDBinaryWriter_reset(&s->viewPluginsWriter);
 

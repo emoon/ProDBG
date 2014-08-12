@@ -33,6 +33,7 @@ typedef enum PDDebugState
     PDDebugState_stopBreakpoint,
     PDDebugState_stopException,
     PDDebugState_trace,
+    PDDebugState_count,
 } PDDebugState;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,6 +56,8 @@ typedef enum PDEventType
     PDEventType_setExceptionLocation,
     PDEventType_getDisassembly,
     PDEventType_setDisassembly,
+	PDEventType_getStatus,
+	PDEventType_setStatus,
 
     PDEventType_setBreakpoint,
     PDEventType_getBreakpoint,

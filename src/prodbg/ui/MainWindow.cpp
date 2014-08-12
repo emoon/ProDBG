@@ -4,6 +4,7 @@
 #include "core/Session.h"
 #include "api/PluginInstance.h"
 #include "ui/PluginUI.h"
+#include "ui/StatusBar.h"
 #include <QMenu>
 #include <QTimer>
 #include <QMenuBar>
@@ -14,6 +15,8 @@
 
 namespace prodbg
 {
+
+QMainWindow* g_mainWindow;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -244,6 +247,7 @@ void MainWindow::tick()
 
 MainWindow::MainWindow()
 {
+	g_mainWindow = this;
 	m_pluginInfoArray = nullptr;
 	m_remoteSession = nullptr;
 	m_activeSession = nullptr;
@@ -272,6 +276,10 @@ MainWindow::MainWindow()
     resize(1024, 768);
 
 	m_timer->start();
+
+	StatusBar_init();
+	StatusBar_setText(0, "Not Connected");
+	StatusBar_setText(1, "Not Running");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
