@@ -12,7 +12,8 @@ struct ViewPluginInstance;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Session* Session_create(const char* target, int port);
+Session* Session_createRemote(const char* target, int port);
+Session* Session_createLocal(PDBackendPlugin* backend, const char* filename);
 void Session_destroy(Session* session);
 
 void Session_update(Session* session);

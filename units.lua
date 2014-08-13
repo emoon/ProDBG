@@ -95,6 +95,19 @@ Program {
     Depends = { "RemoteAPI" },
 }
 
+-- Crash Example
+
+Program {
+    Name = "crashing_native",
+
+    Sources = { 
+        Glob {
+            Dir = "examples/CrashingNative",
+            Extensions = { ".c" },
+        },
+    },
+}
+
 ---------- Plugins -----------------
 
 SharedLibrary {
@@ -281,3 +294,5 @@ Default "Registers"
 Default "Disassembly"
 Default "Fake6502"
 Default "Locals"
+Default "crashing_native"
+

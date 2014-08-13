@@ -8,6 +8,7 @@
 #include <vector>
 #include <PDView.h>
 #include <PDBackend.h>
+#include <stdlib.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -48,44 +49,97 @@ struct Session
 	std::vector<ViewPluginInstance*> viewPlugins;
 };
 
+static void updateLocal(Session* s, PDAction action);
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Session* Session_create(const char* target, int port)
+static void commonInit(Session* s)
 {
-	Session* s = new Session; 
 	PDBinaryWriter_init(&s->backendWriter);
 	PDBinaryWriter_init(&s->viewPluginsWriter);
     PDBinaryReader_init(&s->reader);
+}
 
-	s->type = Session_Local;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // TODO: DebuggerThread
+Session* Session_createRemote(const char* target, int port)
+{
+	Session* s = new Session; 
 
-	if (strcmp(target, ""))
+	commonInit(s);
+
+	s->type = Session_Remote;
+
+	RemoteConnection* conn = RemoteConnection_create(RemoteConnectionType_Connect, port);
+
+	if (!RemoteConnection_connect(conn, target, port))
 	{
-		s->type = Session_Remote;
-
-        RemoteConnection* conn = RemoteConnection_create(RemoteConnectionType_Connect, port);
-
-        if (!RemoteConnection_connect(conn, target, port))
-        {
-            StatusBar_setText(0, "Unable to connect to %s:%d", target, port);
-            RemoteConnection_destroy(conn);
-        }
-		else
-		{
-			s->connection = conn;
-		}
-
-        StatusBar_setText(0, "Connect to %s:%d", target, port);
+		StatusBar_setText(0, "Unable to connect to %s:%d", target, port);
+		RemoteConnection_destroy(conn);
+		return s;
 	}
 	else
 	{
-        StatusBar_setText(0, "Connected to local target");
+		s->connection = conn;
 	}
+
+	StatusBar_setText(0, "Connect to %s:%d", target, port);
 
 	return s;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Session* Session_createLocal(PDBackendPlugin* backend, const char* filename)
+{
+	Session* s = new Session; 
+
+	// setup temporary writer
+
+	PDWriter* writer = new PDWriter;
+	PDBinaryWriter_init(writer);
+
+	commonInit(s);
+
+	// Create the backend
+
+	s->backend = new PDBackendInstance;
+	s->backend->plugin = backend;
+	s->backend->userData = backend->createInstance(0);
+
+	// TODO: So having a filename for a local session isn't really what is needed but this will get us
+	// going with the local sessions which is the target here
+
+
+	// TODO: This is a good point to add existing breakpoints
+	//
+	//
+
+	PDBinaryWriter_reset(writer);
+    PDWrite_eventBegin(writer, PDEventType_setExecutable);
+    PDWrite_string(writer, "filename", filename); 
+    PDWrite_eventEnd(writer);
+    PDBinaryWriter_finalize(writer);
+
+    // Init the stream for reading and write back the data
+    //
+    log_info("init\n");
+
+    PDBinaryReader_initStream(&s->reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
+	s->backend->plugin->update(s->backend->userData, PDAction_none, &s->reader, &s->backendWriter);
+
+    //log_info("first update\n");
+
+	// TODO: How to deal if plugin writes back data here?
+	// TODO: Not run directly but allow user to select if run, otherwise (ProDG style stop-at-main?) 
+
+	updateLocal(s, PDAction_run);
+
+    //log_info("second update\n");
+
+	return s;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -96,9 +150,30 @@ void Session_destroy(Session* session)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static const char* getStateName(int state)
+{
+	if (state < PDDebugState_count && state >= 0)
+	{
+		switch (state)
+		{
+			case PDDebugState_noTarget : return "No target"; break;
+			case PDDebugState_running : return "Running"; break;
+			case PDDebugState_stopBreakpoint : return "Stop (breakpoint)"; break;
+			case PDDebugState_stopException : return "Stop (exception)"; break;
+			case PDDebugState_trace : return "Trace (stepping)"; break;
+		}
+	}
+
+	return "Unknown";
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void updateLocal(Session* s, PDAction action)
 {
 	PDBackendInstance* backend = s->backend;
+
+	PDBinaryReader_reset(&s->reader);
 
     PDBinaryReader_initStream(
     	&s->reader, 
@@ -108,8 +183,10 @@ static void updateLocal(Session* s, PDAction action)
 	if (backend)
 	{
 		PDBinaryWriter_reset(&s->backendWriter);
-		backend->plugin->update(backend->userData, action, &s->reader, &s->backendWriter);
+		int state = (int)backend->plugin->update(backend->userData, action, &s->reader, &s->backendWriter);
     	PDBinaryWriter_finalize(&s->backendWriter);
+
+		StatusBar_setText(1, "Status: %s", getStateName(state));
 	}
 
     PDBinaryReader_initStream(
@@ -122,6 +199,7 @@ static void updateLocal(Session* s, PDAction action)
 	for (auto p : s->viewPlugins)
 	{
 		p->plugin->update(p->userData, &p->ui, &s->reader, &s->viewPluginsWriter);
+    	PDBinaryReader_reset(&s->reader);
 	}
 
     PDBinaryWriter_finalize(&s->viewPluginsWriter);
@@ -129,7 +207,7 @@ static void updateLocal(Session* s, PDAction action)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const char* getBackendState(PDReader* reader)
+static const char* getBackendState(PDReader* reader)
 {
 	uint32_t event;
 	uint32_t state;
@@ -142,20 +220,8 @@ const char* getBackendState(PDReader* reader)
 			case PDEventType_setStatus :
 			{
         		PDRead_findU32(reader, &state, "state", 0);
-
-        		if (state < PDDebugState_count)
-				{
-					switch (state)
-					{
-						case PDDebugState_noTarget : retState = "No target"; goto end;
-						case PDDebugState_running : retState = "Running"; goto end;
-						case PDDebugState_stopBreakpoint : retState = "Stop (breakpoint)"; goto end;
-						case PDDebugState_stopException : retState = "Stop (exception)"; goto end;
-						case PDDebugState_trace : retState = "Trace (stepping)"; goto end;
-					}
-				}
-
-				break;
+        		retState = getStateName(state);
+        		goto end;
 			}
 		}
 	}

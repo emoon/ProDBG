@@ -10,6 +10,7 @@
 #include <QMenuBar>
 #include <QSignalMapper>
 #include <PDView.h>
+#include <QFileDialog>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -125,6 +126,27 @@ void MainWindow::onMenu(int id)
 
 	switch (id)
 	{
+		case MENU_FILE_LOAD_EXECUTABLE:
+		{
+            QString filename = QFileDialog::getOpenFileName(this, tr("Open File"),
+                                                            "/home",
+                                                            tr("*"));
+
+            if (filename.isNull())
+                return;
+
+            const char* file = strdup(filename.toLatin1().constData());
+
+			m_remoteSession = Session_createLocal(m_backendPlugin, file);
+			m_activeSession = m_remoteSession; 
+
+            printf("Qt5MainWindow::onMenu %s\n", file);
+
+            free((void*)file);
+
+			break;
+		}
+
 		case MENU_DEBUG_ATTACH_TO_REMOTE_PROCESS :
 		{
 			log_info("MENU_DEBUG_ATTACH_TO_REMOTE_PROCESS\n"); 
@@ -155,7 +177,7 @@ void MainWindow::onAttachRemote()
 
 	log_debug("Starting attach to remote..\n");
 
-	m_remoteSession = Session_create("127.0.0.1", 1340);
+	m_remoteSession = Session_createRemote("127.0.0.1", 1340);
 	m_activeSession = m_remoteSession; 
 }
 
@@ -226,6 +248,10 @@ void MainWindow::createWindowMenu()
 			m_pluginInfoArray[index].plugin = &plugins[i];
 			m_pluginInfoArray[index].menuItem = menuId; 
 			menuId++;
+		}
+		else
+		{
+			m_backendPlugin = (PDBackendPlugin*)plugins[i].data;
 		}
 	}
 

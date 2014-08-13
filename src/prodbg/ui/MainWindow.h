@@ -4,6 +4,8 @@
 
 #include <QMainWindow>
 
+struct PDBackendPlugin;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 QT_BEGIN_NAMESPACE
@@ -58,7 +60,13 @@ private:
 
     PluginInfo* m_pluginInfoArray;
     Session* m_remoteSession;
+    Session* m_localSession;
     Session* m_activeSession;
+
+    // TODO: Should not have just one backend plugin here. Temp
+	
+	PDBackendPlugin* m_backendPlugin;
+
     int m_pluginCount;
 };
 
