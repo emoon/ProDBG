@@ -18,7 +18,9 @@ static const char* s_plugins[] =
 	"Registers", 
 	"Locals", 
 	"Disassembly", 
+#ifdef PRODBG_MAC
 	"LLDBPlugin",
+#endif
 };
 
 
