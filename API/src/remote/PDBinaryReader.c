@@ -1,10 +1,9 @@
 #include <PDReadWrite.h>
 #include "PDReadWrite_private.h"
+#include "log.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-static uint8_t g_debugLogging = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -148,7 +147,7 @@ static uint32_t readGetEvent(struct PDReader* reader)
 
     if (type != PDReadType_event)
     {
-        printf("Unable to read event as type is wrong (expected %d but got %d) all read operations will now fail.\n",
+        log_info("Unable to read event as type is wrong (expected %d but got %d) all read operations will now fail.\n",
                PDReadType_event, type);
         return 0;
     }
@@ -192,13 +191,10 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
         uint32_t size;
         uint8_t typeId = getU8(start);
 
-        if (g_debugLogging)
-        {
-            if (typeId <PDReadType_count)
-                printf("typeId %s\n", typeTable[typeId]);
-            else
-                printf("typeId %d (outside valid range)\n", typeId);
-        }
+		if (typeId <PDReadType_count)
+			log_debug("typeId %s\n", typeTable[typeId]);
+		else
+			log_debug("typeId %d (outside valid range)\n", typeId);
 
         // data is a special case as it has 32-bit size instead of 64k
 
@@ -213,8 +209,7 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
         {
             size = getU16(start + 1);
 
-            if (g_debugLogging)
-                printf("current string - %s searching for - %s\n", (char*)start + 3, id);
+            log_debug("current string - %s searching for - %s\n", (char*)start + 3, id);
 
             if (!strcmp((char*)start + 3, id))
                 return start;
@@ -225,8 +220,6 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
 
     // not found
     //
-
-    //printf("not found range\n");
 
     return 0;
 }
@@ -430,7 +423,6 @@ static uint32_t readFindArray(struct PDReader* reader, PDReaderIterator* arrayIt
     const uint8_t* dataPtr = findId(reader, id, it);
     if (!dataPtr)
     {
-        //printf("Array %s not found\n", id);
         return PDReadStatus_notFound;
     }
 
@@ -471,7 +463,7 @@ static int32_t readNextEntry(struct PDReader* reader, PDReaderIterator* arrayIt)
 
     if ((type = *entryStart) != PDReadType_arrayEntry)
     {
-        printf("No arrayEntry found at %p (found %d) but expected %d\n", entryStart, type, PDReadType_arrayEntry);
+        log_info("No arrayEntry found at %p (found %d) but expected %d\n", entryStart, type, PDReadType_arrayEntry);
         return -1;
     }
 
@@ -640,7 +632,7 @@ static void readDumpData(struct PDReader* reader)
 
     while ((eventId = PDRead_getEvent(reader)) != 0)
     {
-        printf("{ = event %d - (start %p end %p)\n", eventId, rData->data, rData->nextEvent);
+        log_info("{ = event %d - (start %p end %p)\n", eventId, rData->data, rData->nextEvent);
 
         while (rData->data < rData->nextEvent)
         {
@@ -658,13 +650,13 @@ static void readDumpData(struct PDReader* reader)
                     idOffset = (const char*)rData->data + 5;
                 }
 
-                printf("  %s : (%s - %d)\n", idOffset, typeTable[type], size);
+                log_info("  %s : (%s - %d)\n", idOffset, typeTable[type], size);
             }
 
             rData->data += size;
         }
 
-        printf("}\n");
+        log_info("}\n");
     }
 
     PDBinaryReader_reset(reader);
