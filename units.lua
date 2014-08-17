@@ -154,6 +154,20 @@ SharedLibrary {
 ------------------------------------
 
 SharedLibrary {
+    Name = "CallStackPlugin",
+    
+    Env = {
+        CPPPATH = { "API/include", },
+        SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
+        CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
+    },
+
+    Sources = { "src/plugins/callstack/CallStackPlugin.cpp" },
+}
+
+------------------------------------
+
+SharedLibrary {
     Name = "Disassembly",
     
     Env = {
@@ -291,6 +305,7 @@ end
 
 Default "prodbg"
 Default "Registers"
+Default "CallStackPlugin"
 Default "Disassembly"
 Default "Fake6502"
 Default "Locals"
