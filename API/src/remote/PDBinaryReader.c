@@ -196,10 +196,10 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
         uint32_t size;
         uint8_t typeId = getU8(start);
 
-		if (typeId <PDReadType_count)
-			log_debug("typeId %s\n", typeTable[typeId]);
-		else
-			log_debug("typeId %d (outside valid range)\n", typeId);
+		///if (typeId <PDReadType_count)
+		//	log_debug("typeId %s\n", typeTable[typeId]);
+		//else
+		//	log_debug("typeId %d (outside valid range)\n", typeId);
 
         // data is a special case as it has 32-bit size instead of 64k
 
@@ -214,7 +214,7 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
         {
             size = getU16(start + 1);
 
-            log_debug("current string - %s searching for - %s\n", (char*)start + 3, id);
+            //log_debug("current string - %s searching for - %s\n", (char*)start + 3, id);
 
             if (!strcmp((char*)start + 3, id))
                 return start;
