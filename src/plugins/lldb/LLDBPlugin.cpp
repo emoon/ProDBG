@@ -567,18 +567,12 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
 {
     LLDBPlugin* plugin = (LLDBPlugin*)userData;
 
-    //printf("LLDBPlugin: update %d %p %p\n", (int)action, reader, writer);
-
     doAction(plugin, action);
 
     if (plugin->state == PDDebugState_running)
         updateLLDBEvent(plugin, writer);
 
-    printf("lldbevents\n");
-
     processEvents(plugin, reader, writer);
-
-    printf("lldbupdate\n");
 
     return plugin->state;
 }
