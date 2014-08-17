@@ -154,6 +154,19 @@ SharedLibrary {
 ------------------------------------
 
 SharedLibrary {
+    Name = "SourceCodePlugin",
+    
+    Env = {
+        CPPPATH = { "API/include", },
+        SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
+        CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
+    },
+
+    Sources = { "src/plugins/sourcecode/SourceCodePlugin.cpp" },
+}
+------------------------------------
+
+SharedLibrary {
     Name = "CallStackPlugin",
     
     Env = {
@@ -306,6 +319,7 @@ end
 Default "prodbg"
 Default "Registers"
 Default "CallStackPlugin"
+Default "SourceCodePlugin"
 Default "Disassembly"
 Default "Fake6502"
 Default "Locals"

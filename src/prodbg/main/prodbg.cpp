@@ -15,6 +15,7 @@ namespace prodbg
 
 static const char* s_plugins[] =
 {
+	"SourceCodePlugin", 
 	"CallStackPlugin", 
 	"Registers", 
 	"Locals", 
