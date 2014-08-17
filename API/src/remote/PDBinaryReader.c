@@ -143,6 +143,11 @@ static uint32_t readGetEvent(struct PDReader* reader)
     else
         data = rData->nextEvent;
 
+    // make sure we actually have some data to process
+
+	if (data >= rData->dataEnd - 4)
+		return 0;
+
     type = *data;
 
     if (type != PDReadType_event)
