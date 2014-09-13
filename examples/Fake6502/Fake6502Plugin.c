@@ -181,7 +181,7 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
 
 PDBackendPlugin s_debuggerPlugin =
 {
-    1,
+    "1",
     "Fake6502",
     createInstance,
     destroyInstance,
