@@ -7,7 +7,7 @@ require "tundra.util"
 DefRule {
     Name = "MocGeneration",
     Pass = "GenerateSources",
-    Command = "$(QT5)/bin/moc $(<) -o $(@)",
+    Command = "$(QT5)$(SEP)bin$(SEP)moc $(<) -o $(@)",
 
     Blueprint = {
         Source = { Required = true, Type = "string", Help = "Input filename", },
@@ -17,7 +17,7 @@ DefRule {
     Setup = function (env, data)
         return {
             InputFiles    = { data.Source },
-            OutputFiles   = { "$(OBJECTDIR)/_generated/" .. data.OutName },
+            OutputFiles   = { "$(OBJECTDIR)$(SEP)_generated$(SEP)" .. data.OutName },
         }
     end,
 }
