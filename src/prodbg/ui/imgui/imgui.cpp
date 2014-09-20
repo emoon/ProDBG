@@ -368,8 +368,6 @@ static inline float  ImLerp(float a, float b, float t)                          
 static inline ImVec2 ImLerp(const ImVec2& a, const ImVec2& b, const ImVec2& t)  { return ImVec2(a.x + (b.x - a.x) * t.x, a.y + (b.y - a.y) * t.y); }
 static inline float  ImLength(const ImVec2& lhs)                                { return (float)sqrt(lhs.x*lhs.x + lhs.y*lhs.y); }
 
-static const float ImEpsilon = 0.00001f;
-
 static int ImStricmp(const char* str1, const char* str2)
 {
     int d;

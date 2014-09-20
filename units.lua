@@ -280,6 +280,7 @@ Program {
         },
 
         CXXOPTS = { { 
+        	"-Wno-global-constructors",
         	"-Wno-float-equal",
         	"-Wno-cast-align",
         	"-Wno-exit-time-destructors",
