@@ -33,7 +33,7 @@ typedef enum PDDebugState
     PDDebugState_stopBreakpoint,
     PDDebugState_stopException,
     PDDebugState_trace,
-    PDDebugState_count,
+    PDDebugState_count
 } PDDebugState;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -123,7 +123,7 @@ static void drawCallback(void* userData, PDRect* viewRect, PDUIPainter* painter)
 
 	int fontX;
 	int fontY;
-	int exceptionLine = data->line - 2;
+	int exceptionLine = (int)data->line - 2;
 
 	char locationAddress[128];
 

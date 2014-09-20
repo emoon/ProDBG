@@ -1,7 +1,6 @@
 #include "Session.h"
 #include "core/Alloc.h"
 #include "core/Log.h"
-#include "ui/StatusBar.h"
 #include "api/PluginInstance.h"
 #include "api/src/remote/PDReadWrite_private.h"
 #include "api/src/remote/RemoteConnection.h"

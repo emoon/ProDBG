@@ -1,38 +1,35 @@
-require "tundra.native"
-local native = require('tundra.native')
+
+-----------------------------------------------------------------------------------------------------------------------
+
+local mac_opts = {
+	"-Wall",
+	"-I.", "-DPRODBG_MAC", 
+	"-Weverything", 
+	"-Wno-c++98-compat-pedantic",
+	"-Wno-old-style-cast",
+	"-Wno-documentation", 
+	"-Wno-missing-prototypes", 
+	"-Wno-padded",
+	"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
+	{ "-O0", "-g"; Config = "*-*-debug" },
+	{ "-O3", "-g"; Config = "*-*-release" },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
 
 local macosx = {
     Env = {
-        QT5 = native.getenv("QT5"),
-        CCOPTS = {
-            "-Wall",
-            "-I.", "-DPRODBG_MAC", 
-            "-Weverything", 
-            "-Wno-c++98-compat-pedantic",
-            "-Wno-documentation", "-Wno-missing-prototypes", "-Wno-padded",
-            { "-O0", "-g"; Config = "*-*-debug" },
-            { "-O3", "-g"; Config = "*-*-release" },
-        },
-
-        CXXOPTS = {
-            "-I.", "-DPRODBG_MAC", 
-            -- "-Weverything", "-Werror", 
-            "-Wno-exit-time-destructors",
-            "-Wno-c++98-compat-pedantic",
-            "-Wno-used-but-marked-unused",
-            "-Wno-documentation", "-Wno-missing-prototypes", "-Wno-padded",
-			"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
-            { "-O0", "-g"; Config = "*-*-debug" },
-            { "-O3", "-g"; Config = "*-*-release" },
-        },
+        CCOPTS = mac_opts,
+        CXXOPTS = mac_opts,
     },
 
     Frameworks = { "Cocoa" },
 }
 
+-----------------------------------------------------------------------------------------------------------------------
+
 local win64 = {
     Env = {
-        QT5 = native.getenv("QT5"),
         GENERATE_PDB = "1",
         CCOPTS = {
 			"/DPRODBG_WIN",
@@ -50,6 +47,8 @@ local win64 = {
         },
     },
 }
+
+-----------------------------------------------------------------------------------------------------------------------
 
 Build {
 

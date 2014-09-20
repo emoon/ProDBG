@@ -11,7 +11,7 @@ namespace prodbg
 
 void* alloc_zero(int size)
 {
-	void* t = malloc(size);
+	void* t = malloc((size_t)size);
 	memset(t, 0, size);
 	return t;
 }

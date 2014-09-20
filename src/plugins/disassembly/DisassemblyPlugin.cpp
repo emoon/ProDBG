@@ -115,6 +115,8 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
 	DissassemblyData* data = (DissassemblyData*)userData; 
 
+	(void)writer;
+
     while ((event = PDRead_getEvent(inEvents)) != 0)
     {
         switch (event)

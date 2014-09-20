@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <core/Core.h>
 #include <core/PluginHandler.h>
-#include "ui/Application.h"
+//#include "ui/Application.h"
 
 #ifdef PRODBG_WIN
 #define WIN32_LEAN_AND_MEAN
@@ -30,13 +30,16 @@ static const char* s_plugins[] =
 
 static int main(int argc, const char** argv)
 {
+	(void)argc;
+	(void)argv;
+
 	for (uint32_t i = 0; i < sizeof_array(s_plugins); ++i)
 	{
 		if (!PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]))
 			return 0;
 	}
 
-	return Application_init(argc, argv);
+	return 0; //Application_init(argc, argv);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

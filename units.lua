@@ -2,35 +2,7 @@ require "tundra.syntax.glob"
 require "tundra.path"
 require "tundra.util"
 
--- Used to generate the moc cpp files as needed for .h that uses Q_OBJECT
-
-DefRule {
-    Name = "MocGeneration",
-    Pass = "GenerateSources",
-    Command = "$(QT5)$(SEP)bin$(SEP)moc $(<) -o $(@)",
-
-    Blueprint = {
-        Source = { Required = true, Type = "string", Help = "Input filename", },
-        OutName = { Required = true, Type = "string", Help = "Output filename", },
-    },
-
-    Setup = function (env, data)
-        return {
-            InputFiles    = { data.Source },
-            OutputFiles   = { "$(OBJECTDIR)$(SEP)_generated$(SEP)" .. data.OutName },
-        }
-    end,
-}
-
--- Used to send a list of header files 
-
-local function MocGenerationMulti(sources)
- local result = {}
- for _, src in ipairs(tundra.util.flatten(sources)) do
-   result[#result + 1] = MocGeneration { Source = src, OutName = tundra.path.get_filename_base(src) .. "_moc.cpp" }
- end
- return result
-end
+-----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
     Name = "RemoteAPI",
@@ -62,6 +34,7 @@ StaticLibrary {
     },
 }
 
+-----------------------------------------------------------------------------------------------------------------------
 -- Example 6502 emulator
 
 Program {
@@ -95,6 +68,7 @@ Program {
     Depends = { "RemoteAPI" },
 }
 
+-----------------------------------------------------------------------------------------------------------------------
 -- Crash Example
 
 Program {
@@ -108,6 +82,7 @@ Program {
     },
 }
 
+-----------------------------------------------------------------------------------------------------------------------
 ---------- Plugins -----------------
 
 SharedLibrary {
@@ -151,7 +126,7 @@ SharedLibrary {
     Frameworks = { "LLDB" },
 }
 
-------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
     Name = "SourceCodePlugin",
@@ -164,7 +139,8 @@ SharedLibrary {
 
     Sources = { "src/plugins/sourcecode/SourceCodePlugin.cpp" },
 }
-------------------------------------
+
+-----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
     Name = "CallStackPlugin",
@@ -178,7 +154,7 @@ SharedLibrary {
     Sources = { "src/plugins/callstack/CallStackPlugin.cpp" },
 }
 
-------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
     Name = "Disassembly",
@@ -192,7 +168,7 @@ SharedLibrary {
     Sources = { "src/plugins/disassembly/DisassemblyPlugin.cpp" },
 }
 
-------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
     Name = "Registers",
@@ -206,7 +182,7 @@ SharedLibrary {
     Sources = { "src/plugins/registers/RegistersPlugin.cpp" },
 }
 
-------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
     Name = "Locals",
@@ -220,8 +196,27 @@ SharedLibrary {
     Sources = { "src/plugins/locals/LocalsPlugin.cpp" },
 }
 
-------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
 
+StaticLibrary {
+    Name = "stb",
+
+    Env = { 
+        
+        -- CCOPTS = {
+        --   "-Wno-format-nonliteral"; Config = "macosx-*-*" 
+        -- },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "External/stb",
+            Extensions = { ".c" },
+        },
+    },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
 
 Program {
     Name = "prodbg",
@@ -232,22 +227,11 @@ Program {
             "src/prodbg", 
         	"API/include",
             "src/frontend",
-            "$(QT5)/include",
-            "$(QT5)/include/QtWidgets",
-            "$(QT5)/include/QtGui",
-            "$(QT5)/include/QtCore", 
-            "$(QT5)/lib/QtWidgets.framework/Headers", 
-            "$(QT5)/lib/QtCore.framework/Headers", 
-            "$(QT5)/lib/QtGui.framework/Headers", 
         },
 
         PROGOPTS = {
             { "/SUBSYSTEM:WINDOWS", "/DEBUG"; Config = { "win32-*-*", "win64-*-*" } },
         },
-
-		LIBPATH = {
-			{ "$(QT5)/lib"; Config = { "win32-*-*", "win64-*-*" } },
-		},
 
         CPPDEFS = {
             { "PRODBG_MAC", Config = "macosx-*-*" },
@@ -255,31 +239,9 @@ Program {
         },
 
         CXXOPTS = { { 
-        	-- Mark Qt headers as system to silence all the warnings from them
-            "-isystem $(QT5)",
-            "-isystem $(QT5)/include/QtCore",
-            -- "-isystem $(QT5)/lib/QtWidgets.framework/Headers", 
-            -- "-isystem $(QT5)/lib/QtCore.framework/Headers", 
-            -- "-isystem $(QT5)/lib/QtGui.framework/Headers", 
-            -- "-isystem $(QT5)/lib/QtWidgets.framework/Versions/5/Headers", 
-            -- "-isystem $(QT5)/lib/QtCore.framework/Versions/5/Headers", 
-            -- "-isystem $(QT5)/lib/QtGui.framework/Versions/5/Headers", 
-            "-F$(QT5)/lib",
-            "-Wno-disabled-macro-expansion", -- meh!
-            "-Wno-sign-conversion", -- meh
-            "-Wno-unreachable-code", -- meh
-            "-Wno-float-equal",
-            "-Wno-nested-anon-types",
-            "-Wno-deprecated",
             "-Wno-documentation",	-- Because clang warnings in a bad manner even if the doc is correct
             "-std=c++11" ; Config = "macosx-clang-*" },
         },
-
-        PROGCOM = { 
-            -- hacky hacky
-            { "-F$(QT5)/lib", "-lstdc++", "-rpath tundra-output$(SEP)macosx-clang-debug-default"; Config = "macosx-clang-*" },
-        },
-
     },
 
     Sources = { 
@@ -291,22 +253,16 @@ Program {
                 { Pattern = "windows"; Config = "win64-*-*" },
             },
         },
-
-        MocGenerationMulti {
-            Glob { 
-                Dir = "src/prodbg/ui", 
-                Extensions = { ".h" } 
-            }, 
-        },
     },
 
-    Depends = { "RemoteAPI" },
+    Depends = { "RemoteAPI", "stb" },
 
-    Libs = { { "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib",
-               "Qt5GUi.lib", "Qt5Core.lib", "Qt5Concurrent.lib", "Qt5Widgets.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
+    Libs = { { "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 
-    Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore", "QtConcurrent"  },
+    Frameworks = { "Cocoa"  },
 }
+
+-----------------------------------------------------------------------------------------------------------------------
 
 local native = require('tundra.native')
 
