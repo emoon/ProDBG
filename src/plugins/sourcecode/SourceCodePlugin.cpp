@@ -210,6 +210,8 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 {
 	uint32_t event;
 
+	(void)uiFuncs;
+
 	SourceCodeData* data = (SourceCodeData*)userData; 
 
     while ((event = PDRead_getEvent(inEvents)) != 0)

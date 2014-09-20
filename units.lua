@@ -7,7 +7,7 @@ require "tundra.util"
 local function get_src(dir, recursive)
 	return FGlob {
 		Dir = dir,
-		Extensions = { ".cpp", ".c", ".h", ".s", ".m" },
+		Extensions = { ".cpp", ".c", ".h", ".s", ".m", ".mm" },
 		Filters = {
 			{ Pattern = "[/\\]windows[/\\]"; Config = "win32-*" },
 			{ Pattern = "[/\\]mac[/\\]"; Config = "mac*-*" },
@@ -234,27 +234,62 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
-    Name = "glfw",
+    Name = "bgfx",
 
     Env = { 
         CPPPATH = { 
-            "src/External/glfw/src",
+            "src/External/bgfx/include",
+            "src/External/bx/include",
+            "src/External/bgfx/3rdparty/khronos",
         },
         
-		CPPDEFS = { 
-			{ "_GLFW_WIN32", "_GLFW_WGL", "WIN32"; Config = "win32-*-*" },
-			{ "MACOSX", "GLFW_INCLUDE_GLCOREARB", "_GLFW_COCOA", "GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED"; Config = "macosx-*-*" }, 
+		CXXDEFS = { 
+			{ "BGFX_CONFIG_DEBUG"; Config = "win64-*-debug" },
+			{ "BGFX_CONFIG_DEBUG", "BX_PLATFORM_OSX"; Config = "macosx-*-debug" },
 		},
 
-        CCOPTS = {
-        	"-Wno-everything"; Config = "macosx-*-*" 
+        CXXOPTS = {
+        	"-Wno-variadic-macros", 
+        	"-Wno-everything" ; Config = "macosx-*-*" 
         },
     },
 
     Sources = { 
-    	get_src("src/External/glfw", true),
+    	get_src("src/External/bgfx/src", true),
     },
 }
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
+    Name = "entry",
+
+    Env = { 
+        CPPPATH = { 
+            "src/External/bgfx/include",
+            "src/External/bx/include",
+        },
+        
+		CXXDEFS = { 
+			{ "BGFX_CONFIG_DEBUG"; Config = "win64-*-debug" },
+			{ "BGFX_CONFIG_DEBUG", "BX_PLATFORM_OSX"; Config = "macosx-*-debug" },
+		},
+
+        CXXOPTS = {
+        	"-Wno-variadic-macros", 
+        	"-Wno-everything" ; Config = "macosx-*-*" 
+        },
+    },
+
+    Sources = { 
+		{ "src/External/bgfx/entry/cmd.cpp",
+		  "src/External/bgfx/entry/entry_osx.mm",
+		  "src/External/bgfx/entry/entry.cpp",
+		  "src/External/bgfx/entry/dbg.cpp",
+		  "src/External/bgfx/entry/input.cpp"; Config = "macosx-*-*" },
+    },
+}
+
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -266,7 +301,10 @@ Program {
             "../Arika/include", 
             "src/External/stb",
             "src/prodbg", 
+            "src/External/bgfx/include", 
         	"API/include",
+            "src/External/bx/include",
+            "src/External/bgfx/entry",
             "src/frontend",
         },
 
@@ -305,7 +343,7 @@ Program {
         },
     },
 
-    Depends = { "RemoteAPI", "stb", "glfw" },
+    Depends = { "RemoteAPI", "stb", "bgfx", "entry" },
 
     Libs = { { "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 
