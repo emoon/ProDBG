@@ -112,8 +112,8 @@ public:
     inline void                 push_back(const value_type& v)  { if (Size == Capacity) reserve(Capacity ? Capacity * 2 : 4); Data[Size++] = v; }
     inline void                 pop_back()                      { IM_ASSERT(Size > 0); Size--; }
 
-    inline iterator             erase(const_iterator it)        { IM_ASSERT(it >= begin() && it < end()); const int off = it - begin(); memmove(Data + off, Data + off + 1, (Size - off - 1) * sizeof(value_type)); Size--; return Data + off; }
-    inline void                 insert(const_iterator it, const value_type& v)  { IM_ASSERT(it >= begin() && it <= end()); const int off = it - begin(); if (Size == Capacity) reserve(Capacity ? Capacity * 2 : 4); if (off < (int)Size) memmove(Data + off + 1, Data + off, (Size - off) * sizeof(value_type)); Data[off] = v; Size++; }
+    inline iterator             erase(const_iterator it)        { IM_ASSERT(it >= begin() && it < end()); const int off = (int)(it - begin()); memmove(Data + off, Data + off + 1, (Size - off - 1) * sizeof(value_type)); Size--; return Data + off; }
+    inline void                 insert(const_iterator it, const value_type& v)  { IM_ASSERT(it >= begin() && it <= end()); const int off = (int)(it - begin()); if (Size == Capacity) reserve(Capacity ? Capacity * 2 : 4); if (off < (int)Size) memmove(Data + off + 1, Data + off, (Size - (size_t)off) * sizeof(value_type)); Data[off] = v; Size++; }
 };
 #endif // #ifndef ImVector
 
@@ -235,6 +235,7 @@ namespace ImGui
     void        TreePush(const void* ptr_id = NULL);                                // "
     void        TreePop();
     void        OpenNextNode(bool open);                                            // force open/close the next TreeNode or CollapsingHeader
+
 
     // Value helper output "name: value"
     // Freely declare your own in the ImGui namespace.
@@ -489,6 +490,8 @@ struct ImGuiTextFilter
     int                 CountGrep;
 
     ImGuiTextFilter();
+    ~ImGuiTextFilter();
+
     void Clear() { InputBuf[0] = 0; Build(); }
     void Draw(const char* label = "Filter (inc,-exc)", float width = -1.0f);    // Helper calling InputText+Build
     bool PassFilter(const char* val) const;

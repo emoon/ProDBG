@@ -280,6 +280,9 @@ Program {
         },
 
         CXXOPTS = { { 
+        	"-Wno-float-equal",
+        	"-Wno-cast-align",
+        	"-Wno-exit-time-destructors",
         	"-Wno-format-nonliteral",
             "-Wno-documentation",	-- Because clang warnings in a bad manner even if the doc is correct
             "-std=c++11" ; Config = "macosx-clang-*" },

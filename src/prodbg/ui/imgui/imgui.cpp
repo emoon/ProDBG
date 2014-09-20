@@ -344,7 +344,7 @@ const float PI = 3.14159265358979323846f;
 // Math bits
 // We are keeping those static in the .cpp file so as not to leak them outside, in the case the user has implicit cast operators between ImVec2 and its own types.
 static inline ImVec2 operator*(const ImVec2& lhs, const float rhs)              { return ImVec2(lhs.x*rhs, lhs.y*rhs); }
-static inline ImVec2 operator/(const ImVec2& lhs, const float rhs)              { return ImVec2(lhs.x/rhs, lhs.y/rhs); }
+//static inline ImVec2 operator/(const ImVec2& lhs, const float rhs)              { return ImVec2(lhs.x/rhs, lhs.y/rhs); }
 static inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x+rhs.x, lhs.y+rhs.y); }
 static inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x-rhs.x, lhs.y-rhs.y); }
 static inline ImVec2 operator*(const ImVec2& lhs, const ImVec2 rhs)             { return ImVec2(lhs.x*rhs.x, lhs.y*rhs.y); }
@@ -352,7 +352,7 @@ static inline ImVec2 operator/(const ImVec2& lhs, const ImVec2 rhs)             
 static inline ImVec2& operator+=(ImVec2& lhs, const ImVec2& rhs)                { lhs.x += rhs.x; lhs.y += rhs.y; return lhs; }
 static inline ImVec2& operator-=(ImVec2& lhs, const ImVec2& rhs)                { lhs.x -= rhs.x; lhs.y -= rhs.y; return lhs; }
 static inline ImVec2& operator*=(ImVec2& lhs, const float rhs)                  { lhs.x *= rhs; lhs.y *= rhs; return lhs; }
-static inline ImVec2& operator/=(ImVec2& lhs, const float rhs)                  { lhs.x /= rhs; lhs.y /= rhs; return lhs; }
+//static inline ImVec2& operator/=(ImVec2& lhs, const float rhs)                  { lhs.x /= rhs; lhs.y /= rhs; return lhs; }
 
 static inline int    ImMin(int lhs, int rhs)                                    { return lhs < rhs ? lhs : rhs; }
 static inline int    ImMax(int lhs, int rhs)                                    { return lhs >= rhs ? lhs : rhs; }
@@ -364,9 +364,11 @@ static inline float  ImClamp(float f, float mn, float mx)                       
 static inline ImVec2 ImClamp(const ImVec2& f, const ImVec2& mn, ImVec2 mx)      { return ImVec2(ImClamp(f.x,mn.x,mx.x), ImClamp(f.y,mn.y,mx.y)); }
 static inline float  ImSaturate(float f)                                        { return (f < 0.0f) ? 0.0f : (f > 1.0f) ? 1.0f : f; }
 static inline float  ImLerp(float a, float b, float t)                          { return a + (b - a) * t; }
-static inline ImVec2 ImLerp(const ImVec2& a, const ImVec2& b, float t)          { return a + (b - a) * t; }
+//static inline ImVec2 ImLerp(const ImVec2& a, const ImVec2& b, float t)          { return a + (b - a) * t; }
 static inline ImVec2 ImLerp(const ImVec2& a, const ImVec2& b, const ImVec2& t)  { return ImVec2(a.x + (b.x - a.x) * t.x, a.y + (b.y - a.y) * t.y); }
 static inline float  ImLength(const ImVec2& lhs)                                { return (float)sqrt(lhs.x*lhs.x + lhs.y*lhs.y); }
+
+static const float ImEpsilon = 0.00001f;
 
 static int ImStricmp(const char* str1, const char* str2)
 {
@@ -691,6 +693,10 @@ struct ImGuiState
         LogAutoExpandMaxDepth = 2;
         LogClipboard = NULL;
     }
+
+    ~ImGuiState()
+	{
+	}
 };
 
 static ImGuiState   GImGui;
@@ -843,6 +849,10 @@ ImGuiTextFilter::ImGuiTextFilter()
 {
     InputBuf[0] = 0;
     CountGrep = 0;
+}
+
+ImGuiTextFilter::~ImGuiTextFilter()
+{
 }
 
 void ImGuiTextFilter::Draw(const char* label, float width)
@@ -2265,8 +2275,8 @@ bool Begin(const char* name, bool* open, ImVec2 size, float fill_alpha, ImGuiWin
     if (flags & ImGuiWindowFlags_ChildWindow)
     {
         IM_ASSERT((flags & ImGuiWindowFlags_NoTitleBar) != 0);
-        const ImVec4 clip_rect = window->ClipRectStack.back();
-        window->Collapsed = (clip_rect.x >= clip_rect.z || clip_rect.y >= clip_rect.w);
+        const ImVec4 clip_rect_back = window->ClipRectStack.back();
+        window->Collapsed = (clip_rect_back.x >= clip_rect_back.z || clip_rect_back.y >= clip_rect_back.w);
 
         // We also hide the window from rendering because we've already added its border to the command list.
         // (we could perform the check earlier in the function but it is simplier at this point)
@@ -3706,6 +3716,8 @@ bool RadioButton(const char* label, int* v, int v_button)
 
 }; // namespace ImGui
 
+extern char STB_TEXTEDIT_NEWLINE;
+
 // Wrapper for stb_textedit.h to edit text (our wrapper is for: statically sized buffer, single-line, ASCII, fixed-width font)
 int     STB_TEXTEDIT_STRINGLEN(const STB_TEXTEDIT_STRING* obj)                                  { return (int)strlen(obj->Text); }
 char    STB_TEXTEDIT_GETCHAR(const STB_TEXTEDIT_STRING* obj, int idx)                           { return (char)obj->Text[idx]; }
@@ -4963,8 +4975,8 @@ void ImDrawList::AddArc(const ImVec2& center, float rad, ImU32 col, int a_min, i
         for (int i = 0; i < IM_ARRAYSIZE(circle_vtx); i++)
         {
             const float a = ((float)i / (float)IM_ARRAYSIZE(circle_vtx)) * 2*PI;
-            circle_vtx[i].x = cos(a + PI);
-            circle_vtx[i].y = sin(a + PI);
+            circle_vtx[i].x = (float)cos(a + PI);
+            circle_vtx[i].y = (float)sin(a + PI);
         }
         circle_vtx_builds = true;
     }
@@ -5102,7 +5114,7 @@ void ImDrawList::AddCircle(const ImVec2& centre, float radius, ImU32 col, int nu
     for (int i = 0; i < num_segments; i++)
     {
         const float a1 = (i + 1) == num_segments ? 0.0f : a0 + a_step;
-        AddVtxLine(centre + offset + ImVec2(cos(a0),sin(a0))*radius, centre + ImVec2(cos(a1),sin(a1))*radius, col);
+        AddVtxLine(centre + offset + ImVec2((float)cos(a0),(float)sin(a0))*radius, centre + ImVec2((float)cos(a1),(float)sin(a1))*radius, col);
         a0 = a1;
     }
 }
@@ -5120,8 +5132,8 @@ void ImDrawList::AddCircleFilled(const ImVec2& centre, float radius, ImU32 col, 
     for (int i = 0; i < num_segments; i++)
     {
         const float a1 = (i + 1) == num_segments ? 0.0f : a0 + a_step;
-        AddVtx(centre + offset + ImVec2(cos(a0),sin(a0))*radius, col);
-        AddVtx(centre + offset + ImVec2(cos(a1),sin(a1))*radius, col);
+        AddVtx(centre + offset + ImVec2((float)cos(a0),(float)sin(a0))*radius, col);
+        AddVtx(centre + offset + ImVec2((float)cos(a1),(float)sin(a1))*radius, col);
         AddVtx(centre + offset, col);
         a0 = a1;
     }
@@ -5333,8 +5345,8 @@ ImVec2 ImBitmapFont::CalcTextSize(float size, float max_width, const char* text_
         }
         else if (c == '\t')
         {
-            if (const FntGlyph* glyph = FindGlyph((unsigned short)' '))
-                line_width += (glyph->XAdvance + Info->SpacingHoriz) * 4 * scale;
+            if (const FntGlyph* g = FindGlyph((unsigned short)' '))
+                line_width += (g->XAdvance + Info->SpacingHoriz) * 4 * scale;
         }
 
         s += 1;
@@ -5437,8 +5449,8 @@ void ImBitmapFont::RenderText(float size, ImVec2 pos, ImU32 col, const ImVec4& c
         }
         else if (c == '\t')
         {
-            if (const FntGlyph* glyph = FindGlyph((unsigned short)' '))
-                x += (glyph->XAdvance + Info->SpacingHoriz) * 4 * scale;
+            if (const FntGlyph* g= FindGlyph((unsigned short)' '))
+                x += (g->XAdvance + Info->SpacingHoriz) * 4 * scale;
         }
     }
 }
@@ -5805,7 +5817,7 @@ void ShowTestWindow(bool* open)
             {
                 refresh_time = ImGui::GetTime();
                 static float phase = 0.0f;
-                values[values_offset] = cos(phase); 
+                values[values_offset] = (float)cos(phase); 
                 values_offset = (values_offset+1)%values.size(); 
                 phase += 0.10f*values_offset; 
             }

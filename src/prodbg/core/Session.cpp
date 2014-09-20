@@ -183,6 +183,7 @@ static void updateLocal(Session* s, PDAction action)
 	{
 		PDBinaryWriter_reset(&s->backendWriter);
 		int state = (int)backend->plugin->update(backend->userData, action, &s->reader, &s->backendWriter);
+		(void)state;
     	PDBinaryWriter_finalize(&s->backendWriter);
 
 		//StatusBar_setText(1, "Status: %s", getStateName(state));
@@ -206,7 +207,7 @@ static void updateLocal(Session* s, PDAction action)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static const char* getBackendState(PDReader* reader)
+const char* getBackendState(PDReader* reader)
 {
 	uint32_t event;
 	uint32_t state;
@@ -219,7 +220,7 @@ static const char* getBackendState(PDReader* reader)
 			case PDEventType_setStatus :
 			{
         		PDRead_findU32(reader, &state, "state", 0);
-        		retState = getStateName(state);
+        		retState = getStateName((int)state);
         		goto end;
 			}
 		}
@@ -238,7 +239,9 @@ end:;
 
 static void updateRemote(Session* s, PDAction action)
 {
-	PDBackendInstance* backend = s->backend;
+	//PDBackendInstance* backend = s->backend;
+	
+	(void)action;
 
 	if (!s->connection)
 		return;
@@ -259,14 +262,14 @@ static void updateRemote(Session* s, PDAction action)
 
             outputBuffer = RemoteConnection_recvStream(s->connection, 0, totalSize);
 
-			PDBinaryReader_initStream(&s->reader, outputBuffer, totalSize);
+			PDBinaryReader_initStream(&s->reader, outputBuffer, (unsigned int)totalSize);
         }
 	}
 
 	// Get the current state of the plugin
 
-	const char* backendState = getBackendState(&s->reader);
-
+	//const char* backendState = getBackendState(&s->reader);
+	//(void)backendState;
 	//StatusBar_setText(1, "Status: %s", backendState);
 
 	PDBinaryWriter_reset(&s->viewPluginsWriter);
@@ -335,6 +338,8 @@ void Session_addViewPlugin(Session* session, ViewPluginInstance* plugin)
 
 void Session_removeViewPlugin(Session* session, ViewPluginInstance* plugin)
 {
+	(void)session;
+	(void)plugin;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
