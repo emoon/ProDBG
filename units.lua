@@ -4,6 +4,21 @@ require "tundra.util"
 
 -----------------------------------------------------------------------------------------------------------------------
 
+local function get_src(dir, recursive)
+	return FGlob {
+		Dir = dir,
+		Extensions = { ".cpp", ".c", ".h", ".s", ".m" },
+		Filters = {
+			{ Pattern = "[/\\]windows[/\\]"; Config = "win32-*" },
+			{ Pattern = "[/\\]mac[/\\]"; Config = "mac*-*" },
+			{ Pattern = "[/\\]linux[/\\]"; Config = "linux*-*" },
+		},
+		Recursive = recursive and true or false,
+	}
+end
+
+-----------------------------------------------------------------------------------------------------------------------
+
 StaticLibrary {
     Name = "RemoteAPI",
 
@@ -203,16 +218,41 @@ StaticLibrary {
 
     Env = { 
         
-        -- CCOPTS = {
-        --   "-Wno-format-nonliteral"; Config = "macosx-*-*" 
-        -- },
+        CCOPTS = {
+        	"-Wno-everything"; Config = "macosx-*-*" 
+        },
     },
 
     Sources = { 
         Glob {
-            Dir = "External/stb",
+            Dir = "src/External/stb",
             Extensions = { ".c" },
         },
+    },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
+    Name = "glfw",
+
+    Env = { 
+        CPPPATH = { 
+            "src/External/glfw/src",
+        },
+        
+		CPPDEFS = { 
+			{ "_GLFW_WIN32", "_GLFW_WGL", "WIN32"; Config = "win32-*-*" },
+			{ "MACOSX", "GLFW_INCLUDE_GLCOREARB", "_GLFW_COCOA", "GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED"; Config = "macosx-*-*" }, 
+		},
+
+        CCOPTS = {
+        	"-Wno-everything"; Config = "macosx-*-*" 
+        },
+    },
+
+    Sources = { 
+    	get_src("src/External/glfw", true),
     },
 }
 
@@ -224,6 +264,7 @@ Program {
     Env = {
         CPPPATH = { 
             "../Arika/include", 
+            "src/External/stb",
             "src/prodbg", 
         	"API/include",
             "src/frontend",
@@ -239,9 +280,14 @@ Program {
         },
 
         CXXOPTS = { { 
+        	"-Wno-format-nonliteral",
             "-Wno-documentation",	-- Because clang warnings in a bad manner even if the doc is correct
             "-std=c++11" ; Config = "macosx-clang-*" },
         },
+
+		PROGCOM = {
+			{ "-lstdc++"; Config = "macosx-clang-*" },
+		},
     },
 
     Sources = { 
@@ -255,7 +301,7 @@ Program {
         },
     },
 
-    Depends = { "RemoteAPI", "stb" },
+    Depends = { "RemoteAPI", "stb", "glfw" },
 
     Libs = { { "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 
