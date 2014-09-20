@@ -73,7 +73,7 @@ Session* Session_createRemote(const char* target, int port)
 
 	if (!RemoteConnection_connect(conn, target, port))
 	{
-		StatusBar_setText(0, "Unable to connect to %s:%d", target, port);
+		//StatusBar_setText(0, "Unable to connect to %s:%d", target, port);
 		RemoteConnection_destroy(conn);
 		return s;
 	}
@@ -82,7 +82,7 @@ Session* Session_createRemote(const char* target, int port)
 		s->connection = conn;
 	}
 
-	StatusBar_setText(0, "Connect to %s:%d", target, port);
+	//StatusBar_setText(0, "Connect to %s:%d", target, port);
 
 	return s;
 }
@@ -155,11 +155,11 @@ static const char* getStateName(int state)
 	{
 		switch (state)
 		{
-			case PDDebugState_noTarget : return "No target"; break;
-			case PDDebugState_running : return "Running"; break;
-			case PDDebugState_stopBreakpoint : return "Stop (breakpoint)"; break;
-			case PDDebugState_stopException : return "Stop (exception)"; break;
-			case PDDebugState_trace : return "Trace (stepping)"; break;
+			case PDDebugState_noTarget : return "No target";
+			case PDDebugState_running : return "Running";
+			case PDDebugState_stopBreakpoint : return "Stop (breakpoint)";
+			case PDDebugState_stopException : return "Stop (exception)";
+			case PDDebugState_trace : return "Trace (stepping)";
 		}
 	}
 
@@ -185,7 +185,7 @@ static void updateLocal(Session* s, PDAction action)
 		int state = (int)backend->plugin->update(backend->userData, action, &s->reader, &s->backendWriter);
     	PDBinaryWriter_finalize(&s->backendWriter);
 
-		StatusBar_setText(1, "Status: %s", getStateName(state));
+		//StatusBar_setText(1, "Status: %s", getStateName(state));
 	}
 
     PDBinaryReader_initStream(
@@ -267,7 +267,7 @@ static void updateRemote(Session* s, PDAction action)
 
 	const char* backendState = getBackendState(&s->reader);
 
-	StatusBar_setText(1, "Status: %s", backendState);
+	//StatusBar_setText(1, "Status: %s", backendState);
 
 	PDBinaryWriter_reset(&s->viewPluginsWriter);
 

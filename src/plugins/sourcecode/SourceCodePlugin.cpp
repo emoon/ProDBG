@@ -125,9 +125,6 @@ static void drawCallback(void* userData, PDRect* viewRect, PDUIPainter* painter)
 	int fontY;
 	int exceptionLine = (int)data->line - 2;
 
-	char locationAddress[128];
-
-
 	PDUIPaint_fontMetrics(painter, &fontX, &fontY);
 	PDUIPaint_fillRect(painter, viewRect, 0xffffff);
 	PDUIPaint_setPen(painter, 0);
