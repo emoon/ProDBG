@@ -6,7 +6,7 @@
 
 struct RegistersData
 {
-	PDUIListView registerList;
+	int dummy;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -15,13 +15,15 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 {
 	(void)serviceFunc;
 	RegistersData* userData = (RegistersData*)malloc(sizeof(RegistersData));
-	
+
+	/*
 	static const char* foo[] = { "Name", "Value", 0 };
 	static const char* meh[] = { "Foobar", "0", 0 };
 
 	userData->registerList = PDUIListView_create(uiFuncs, foo, 0);
 
 	PDUIListView_itemAdd(uiFuncs, userData->registerList, meh);
+	*/
 
 	return userData;
 }

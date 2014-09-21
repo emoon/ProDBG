@@ -7,28 +7,26 @@
 extern "C" {
 #endif
 
-typedef void* PDUIHandle;
-typedef void* PDUIListView;
-typedef void* PDUICustomView;
-
 struct PDUIPainter;
 struct PDRect;
-
-typedef void (*PDCustomDrawCallback)(void* userData, PDRect* rect, struct PDUIPainter* painter);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct PDUI
 {
-	PDUIListView (*listview_create)(void* privateData, const char** name, int id);
+	// Layout
 
-	int (*listview_clear)(void* privateData, PDUIListView handle);
-	int (*listview_item_add)(void* privateData, PDUIListView handle, const char** item);
+	void columns(int count, const char* id, int border);
+	void nextColumn();
 
-	// Custom view
+	// Text
 
-	PDUICustomView (*customview_create)(void* privateData, void* userData, PDCustomDrawCallback callback);
-	void (*customview_repaint)(void* privateData, PDUICustomView view);
+    void text(const char* fmt, ...);
+
+    // Widgets
+
+    int button(const char* label);
+    int buttonSize(const char* label, int width, int height, int repeatWhenHeld);
 
 	void* privateData;
 
@@ -36,41 +34,12 @@ typedef struct PDUI
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDRect
-{
-	int x, y, width, height;
+#define PDUI_collumns(uiFuncs, count, id, border) uiFuncs->columns(count, id, border)
+#define PDUI_nextColumn(uiFuncs) uiFuncs->nextColumn()
+#define PDUI_text(uiFuncs, format, ...) uiFuncs->text(format, __VA_ARGS__)
 
-} PDRect;
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef struct PDUIPainter
-{
-	void (*fillRect)(void* privateData, PDRect* rect, unsigned int color);
-	void (*fontMetrics)(void* privateData, int* width, int* height); 
-	void (*setPen)(void* privateData, unsigned int color);
-	void (*drawText)(void* privateData, int x, int y, const char* text);
-
-	void* privateData;
-
-} PDUIPainter;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#define PDUICustomView_create(uiFuncs, userData, callback) uiFuncs->customview_create(uiFuncs->privateData, userData, callback)
-#define PDUICustomView_repaint(uiFuncs, view) uiFuncs->customview_repaint(uiFuncs->privateData, view)
-
-#define PDUIListView_create(uiFuncs, names, id) uiFuncs->listview_create(uiFuncs->privateData, names, id)
-#define PDUIListView_clear(uiFuncs, handle) uiFuncs->listview_clear(uiFuncs->privateData, handle)
-#define PDUIListView_itemAdd(uiFuncs, handle, names) uiFuncs->listview_item_add(uiFuncs->privateData, handle, names)
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#define PDUIPaint_fillRect(pf, rect, color) pf->fillRect(pf->privateData, rect, color)
-#define PDUIPaint_setPen(pf, color) pf->setPen(pf->privateData, color)
-#define PDUIPaint_drawText(pf, x, y, text) pf->drawText(pf->privateData, x, y, text)
-#define PDUIPaint_fontMetrics(pf, x, y) pf->fontMetrics(pf->privateData, x, y)
+#define PDUI_button(uiFuncs, label) uiFuncs->button(label)
+#define PDUI_buttonSize(uiFuncs, label, w, h, repeat) uiFuncs->button(label, w, h, repeat)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

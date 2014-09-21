@@ -8,13 +8,14 @@
 
 struct DissassemblyData
 {
-	PDUICustomView view;
 	char* code;
 	uint64_t location;
 	uint8_t locationSize;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#if 0
 
 static void buildAddressString(char* output, uint64_t address, uint8_t size)
 {
@@ -29,6 +30,7 @@ static void buildAddressString(char* output, uint64_t address, uint8_t size)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 static void drawCallback(void* userData, PDRect* viewRect, PDUIPainter* painter)
 {
@@ -68,6 +70,8 @@ static void drawCallback(void* userData, PDRect* viewRect, PDUIPainter* painter)
 	}
 }
 
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
@@ -75,8 +79,11 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 	(void)serviceFunc;
 	DissassemblyData* userData = (DissassemblyData*)malloc(sizeof(DissassemblyData));
 	memset(userData, 0, sizeof(DissassemblyData));
+
+	(void)uiFuncs;
+	(void)serviceFunc;
 	
-	userData->view = PDUICustomView_create(uiFuncs, userData, drawCallback);
+	//userData->view = PDUICustomView_create(uiFuncs, userData, drawCallback);
 
 	return userData;
 }
@@ -113,6 +120,8 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 {
 	uint32_t event;
 
+	(void)uiFuncs;
+
 	DissassemblyData* data = (DissassemblyData*)userData; 
 
 	(void)writer;
@@ -124,7 +133,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
             case PDEventType_setDisassembly : 
 			{
             	setDisassemblyCode(data, inEvents);
-            	PDUICustomView_repaint(uiFuncs, data->view);
+            	//PDUICustomView_repaint(uiFuncs, data->view);
             	break;
 			}
 

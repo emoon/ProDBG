@@ -7,7 +7,8 @@
 
 struct CallStackData
 {
-	PDUIListView callStackList;
+	int dummy;
+	
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -16,10 +17,14 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 {
 	(void)serviceFunc;
 	CallStackData* userData = (CallStackData*)malloc(sizeof(CallStackData));
-	
-	static const char* headers[] = { "Address", "Module", "Name", "line", 0 };
 
+	(void)uiFuncs;
+	(void)serviceFunc;
+
+	/*
+	static const char* headers[] = { "Address", "Module", "Name", "line", 0 };
 	userData->callStackList = PDUIListView_create(uiFuncs, headers, 0);
+	*/
 
 	return userData;
 }
@@ -33,7 +38,7 @@ static void destroyInstance(void* userData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Support floats
-
+/*
 static void getAddressString(char* value, PDReader* reader, PDReaderIterator it)
 {
     uint64_t regValue;
@@ -49,6 +54,7 @@ static void getAddressString(char* value, PDReader* reader, PDReaderIterator it)
 		case PDReadType_s32: sprintf(value, "0x%08x", (int32_t)regValue); break;
 	}
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -59,6 +65,10 @@ static void showInUI(CallStackData* data, PDReader* reader, PDUI* uiFuncs)
     if (PDRead_findArray(reader, &it, "callstack", 0) == PDReadStatus_notFound)
     	return;
 
+    (void)data;
+    (void)uiFuncs;
+
+	/*
 	PDUIListView_clear(uiFuncs, data->callStackList);
 
     while (PDRead_getNextEntry(reader, &it))
@@ -81,6 +91,7 @@ static void showInUI(CallStackData* data, PDReader* reader, PDUI* uiFuncs)
 
 		PDUIListView_itemAdd(uiFuncs, data->callStackList, values);
     }
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

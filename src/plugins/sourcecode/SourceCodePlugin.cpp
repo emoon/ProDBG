@@ -18,7 +18,6 @@ struct File
 
 struct SourceCodeData
 {
-	PDUICustomView view;
 	uint32_t line;
 	File file;	// todo: support more files
 };
@@ -116,11 +115,12 @@ void parseFile(File* file, const char* filename)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
+#if 0
 
 static void drawCallback(void* userData, PDRect* viewRect, PDUIPainter* painter)
 {
-	SourceCodeData* data = (SourceCodeData*)userData; 
-
 	int fontX;
 	int fontY;
 	int exceptionLine = (int)data->line - 2;
@@ -161,8 +161,10 @@ static void drawCallback(void* userData, PDRect* viewRect, PDUIPainter* painter)
 	//PDUIPaint_drawText(painter, viewRect->x, y, pch);
 
 	//y += fontX + 2;
-
+	*/
 }
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -172,7 +174,7 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 	SourceCodeData* userData = (SourceCodeData*)malloc(sizeof(SourceCodeData));
 	memset(userData, 0, sizeof(SourceCodeData));
 	
-	userData->view = PDUICustomView_create(uiFuncs, userData, drawCallback);
+	//userData->view = PDUICustomView_create(uiFuncs, userData, drawCallback);
 
 	return userData;
 }

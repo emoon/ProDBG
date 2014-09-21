@@ -7,7 +7,7 @@
 
 struct RegistersData
 {
-	PDUIListView registerList;
+	int dummy;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -16,11 +16,13 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 {
 	(void)serviceFunc;
 	RegistersData* userData = (RegistersData*)malloc(sizeof(RegistersData));
+
+	(void)uiFuncs;
+	(void)serviceFunc;
 	
-	static const char* headers[] = { "Register", "Value", 0 };
+	// static const char* headers[] = { "Register", "Value", 0 };
 
-	userData->registerList = PDUIListView_create(uiFuncs, headers, 0);
-
+	// userData->registerList = PDUIListView_create(uiFuncs, headers, 0);
 	//PDUIListView_itemAdd(uiFuncs, userData->registerList, meh);
 
 	return userData;
@@ -35,7 +37,7 @@ static void destroyInstance(void* userData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Support floats
-
+/*
 static void getRegisterString(char* value, PDReader* reader, PDReaderIterator it)
 {
     uint64_t regValue;
@@ -51,6 +53,7 @@ static void getRegisterString(char* value, PDReader* reader, PDReaderIterator it
 		case PDReadType_s32: sprintf(value, "0x%08x", (int32_t)regValue); break;
 	}
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -61,6 +64,10 @@ static void showInUI(RegistersData* data, PDReader* reader, PDUI* uiFuncs)
     if (PDRead_findArray(reader, &it, "registers", 0) == PDReadStatus_notFound)
     	return;
 
+	(void)data;
+	(void)uiFuncs;
+
+	/*
 	PDUIListView_clear(uiFuncs, data->registerList);
 
     while (PDRead_getNextEntry(reader, &it))
@@ -76,6 +83,7 @@ static void showInUI(RegistersData* data, PDReader* reader, PDUI* uiFuncs)
 
 		PDUIListView_itemAdd(uiFuncs, data->registerList, values);
 	}
+	*/
 }
 
 

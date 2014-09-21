@@ -5,6 +5,7 @@ local mac_opts = {
 	"-Wall",
 	"-I.", "-DPRODBG_MAC", 
 	"-Weverything", 
+	"-Wno-variadic-macros",
 	"-Wno-c++98-compat-pedantic",
 	"-Wno-old-style-cast",
 	"-Wno-documentation", 
