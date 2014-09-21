@@ -10,6 +10,9 @@
 
 #include <bgfx.h>
 #include <entry.h>
+#include "ui/imgui/imgui.h"
+#include "ui/IMGUISetup.h"
+#include <stdio.h>
 
 namespace prodbg
 {
@@ -61,7 +64,13 @@ int realMain(int argc, const char** argv)
 		, 0
 		);
 
-	while (!entry::processEvents(width, height, debug, reset) )
+	bgfx::setViewSeq(0, true);
+
+	entry::MouseState mouseState;
+
+	IMGUI_setup((int)width, (int)height);
+
+	while (!entry::processEvents(width, height, debug, reset, &mouseState))
 	{
 		// Set view 0 default viewport.
 		bgfx::setViewRect(0, 0, 0, (uint16_t)width, (uint16_t)height);
@@ -70,10 +79,19 @@ int realMain(int argc, const char** argv)
 		// if no other draw calls are submitted to view 0.
 		bgfx::submit(0);
 
+		IMGUI_preUpdate(&mouseState);
+
+		if (ImGui::Button("Test0r testing!"))
+		{
+			printf("test\n");
+		}
+
 		// Use debug font to print information about this example.
-		bgfx::dbgTextClear();
-		bgfx::dbgTextPrintf(0, 1, 0x4f, "bgfx/examples/00-helloworld");
-		bgfx::dbgTextPrintf(0, 2, 0x6f, "Description: Initialization and debug text.");
+		//bgfx::dbgTextClear();
+		//bgfx::dbgTextPrintf(0, 1, 0x4f, "bgfx/examples/00-helloworld");
+		//bgfx::dbgTextPrintf(0, 2, 0x6f, "Description: Initialization and debug text.");
+
+		IMGUI_postUpdate();
 
 		// Advance to next frame. Rendering thread will be kicked to 
 		// process submitted rendering primitives.

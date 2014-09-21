@@ -190,6 +190,8 @@
 #include <stdio.h>      // vsnprintf
 #include <string.h>     // memset
 #include <new>          // new (ptr)
+#include <nanovg.h>
+#include "blendish.h"
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4996) // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
@@ -668,6 +670,7 @@ struct ImGuiState
     FILE*                   LogFile;
     ImGuiTextBuffer*        LogClipboard;						// pointer so our GImGui static constructor doesn't call heap allocators.
     int                     LogAutoExpandMaxDepth;
+	NVGcontext*				NVGCtx;
 
     ImGuiState()
     {
@@ -1229,6 +1232,10 @@ void NewFrame()
 
     if (!g.Initialized)
     {
+        g.NVGCtx = nvgCreate(512, 512, 1, 0);
+
+		bndSetFont(nvgCreateFont(g.NVGCtx, "droidsans", "data/font/droidsans.ttf"));
+
         // Initialize on first frame
         g.LogClipboard = (ImGuiTextBuffer*)IM_MALLOC(sizeof(ImGuiTextBuffer));
         new(g.LogClipboard) ImGuiTextBuffer();
@@ -1357,6 +1364,8 @@ void NewFrame()
 
     // Create implicit window - we will only render it if the user has added something to it.
     ImGui::Begin("Debug", NULL, ImVec2(400,400));
+
+	nvgBeginFrame(g.NVGCtx, (int)g.IO.DisplaySize.x, (int)g.IO.DisplaySize.y, 1.0f, NVG_STRAIGHT_ALPHA);
 }
 
 // NB: behaviour of ImGui after Shutdown() is not tested/guaranteed at the moment. This function is merely here to free heap allocations.
@@ -1519,6 +1528,8 @@ void Render()
             g.IO.RenderDrawListsFn(&g.RenderDrawLists[0], (int)g.RenderDrawLists.size());
         g.RenderDrawLists.resize(0);
     }
+
+	nvgEndFrame(g.NVGCtx);
 }
 
 // Find the optional ## from which we stop displaying text.
@@ -2808,14 +2819,20 @@ bool Button(const char* label, ImVec2 size, bool repeat_when_held)
     bool hovered, held;
     bool pressed = ButtonBehaviour(bb, id, &hovered, &held, true, repeat_when_held);
 
+    //printf("%d %d\n", hovered, held);
+
     // Render
-    const ImU32 col = window->Color((hovered && held) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
-    RenderFrame(bb.Min, bb.Max, col);
+    //const ImU32 col = window->Color((hovered && held) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+    //RenderFrame(bb.Min, bb.Max, col);
 
     if (size.x < text_size.x || size.y < text_size.y)
         PushClipRect(ImVec4(bb.Min.x+style.FramePadding.x, bb.Min.y+style.FramePadding.y, bb.Max.x, bb.Max.y-style.FramePadding.y));        // Allow extra to draw over the horizontal padding to make it visible that text doesn't fit
     const ImVec2 off = ImVec2(ImMax(0.0f, size.x - text_size.x) * 0.5f, ImMax(0.0f, size.y - text_size.y) * 0.5f);
-    RenderText(bb.Min + style.FramePadding + off, label);
+    const ImVec2 pos = bb.Min + style.FramePadding + off;
+
+	bndToolButton(g.NVGCtx, pos.x, pos.y, size.x, size.y * 1.5f, BND_CORNER_NONE, BND_DEFAULT, 0, label);
+
+    //RenderText(bb.Min + style.FramePadding + off, label);
     if (size.x < text_size.x || size.y < text_size.y)
         PopClipRect();
 
@@ -5457,7 +5474,7 @@ void ImBitmapFont::RenderText(float size, ImVec2 pos, ImU32 col, const ImVec4& c
 // PLATFORM DEPENDANT HELPERS
 //-----------------------------------------------------------------------------
 
-#if defined(_MSC_VER) && !defined(IMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCS)
+#if defined(_MSC_VER) && !defined(IMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FNCS)
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>

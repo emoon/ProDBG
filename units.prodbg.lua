@@ -68,6 +68,29 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
+    Name = "nanovg",
+
+    Env = { 
+        CPPPATH = { 
+            "src/External/nanovg",
+            "src/External/stb",
+            "src/External/bgfx/include",
+        },
+        
+        CXXOPTS = {
+        	"-Wno-variadic-macros", 
+        	"-Wno-everything" ; Config = "macosx-*-*" 
+        },
+    },
+
+    Sources = { 
+    	get_src("src/External/nanovg", true),
+    },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
     Name = "entry",
 
     Env = { 
@@ -110,6 +133,7 @@ Program {
             "src/External/bgfx/include", 
         	"API/include",
             "src/External/bx/include",
+            "src/External/nanovg",
             "src/External/bgfx/entry",
             "src/frontend",
         },
@@ -124,7 +148,10 @@ Program {
         },
 
         CXXOPTS = { { 
+        	"-Wno-conversion",
+        	"-Wno-gnu-anonymous-struct",
         	"-Wno-global-constructors",
+        	"-Wno-nested-anon-types",
         	"-Wno-float-equal",
         	"-Wno-cast-align",
         	"-Wno-exit-time-destructors",
@@ -149,7 +176,7 @@ Program {
         },
     },
 
-    Depends = { "RemoteAPI", "stb", "bgfx", "entry" },
+    Depends = { "RemoteAPI", "stb", "bgfx", "entry", "nanovg" },
 
     Libs = { { "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 

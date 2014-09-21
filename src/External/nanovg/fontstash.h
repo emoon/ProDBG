@@ -236,11 +236,11 @@ int fons__tt_getGlyphKernAdvance(struct FONSttFontImpl *font, int glyph1, int gl
 static void* fons__tmpalloc(size_t size, void* up);
 static void fons__tmpfree(void* ptr, void* up);
 #else
-#	include <malloc.h>
+//#	include <malloc.h>
 #	include <string.h>
 #endif // 0
 
-#include <stb_truetype/stb_truetype.h>
+#include <stb_truetype.h>
 
 struct FONSttFontImpl {
 	stbtt_fontinfo font;
