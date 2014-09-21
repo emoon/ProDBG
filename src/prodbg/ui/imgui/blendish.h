@@ -569,7 +569,7 @@ BND_INLINE float bnd_clamp(float v, float mn, float mx) {
 // the initial theme
 static BNDtheme bnd_theme = {
     // backgroundColor
-    {{{ 0.447, 0.447, 0.447, 1.0 }}},
+    {{{ 0.477, 0.447, 0.447, 1.0 }}},
     // regularTheme
     {
         {{{ 0.098,0.098,0.098,1 }}}, // color_outline

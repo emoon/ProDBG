@@ -315,6 +315,20 @@ ImGuiIO::ImGuiIO()
     SetClipboardTextFn = SetClipboardTextFn_DefaultImpl;
 }
 
+inline NVGcolor toNVGColor(ImU32 color)
+{
+	NVGcolor col;
+
+	col.r = ((color >> 0) & 0xff) * 1.0f / 255.0f;
+	col.g = ((color >> 8) & 0xff) * 1.0f / 255.0f;
+	col.b = ((color >> 16) & 0xff) * 1.0f / 255.0f;
+	col.a = ((color >> 24) & 0xff) * 1.0f / 255.0f;
+
+	//printf("%08x %f %f %f %f\n", color, col.r, col.g, col.b, col.a);
+
+	return col;
+}
+
 // Pass in translated ASCII characters for text input.
 // - with glfw you can get those from the callback set in glfwSetCharCallback()
 // - on Windows you can get those using ToAscii+keyboard state, or via the VM_CHAR message
@@ -2148,10 +2162,16 @@ bool Begin(const char* name, bool* open, ImVec2 size, float fill_alpha, ImGuiWin
             if (window->Flags & ImGuiWindowFlags_ShowBorders)
             {
                 const float rounding = (window->Flags & ImGuiWindowFlags_ComboBox) ? 0.0f : g.Style.WindowRounding;
+                (void)rounding;
+
+                //printf("%f %f %f %f\n", window->Pos.x, window->Pos.y, window->Size.x, window->Size.y);
+
+                //bndBackground(g.NVGCtx, window->Pos.x, window->Pos.y, window->Size.x, window->Size.y);
+
                 window->DrawList->AddRect(window->Pos+ImVec2(1,1), window->Pos+window->Size+ImVec2(1,1), window->Color(ImGuiCol_BorderShadow), rounding);
                 window->DrawList->AddRect(window->Pos, window->Pos+window->Size, window->Color(ImGuiCol_Border), rounding);
                 if (!(window->Flags & ImGuiWindowFlags_NoTitleBar))
-                    window->DrawList->AddLine(title_bar_aabb.GetBL(), title_bar_aabb.GetBR(), window->Color(ImGuiCol_Border));
+                	window->DrawList->AddLine(title_bar_aabb.GetBL(), title_bar_aabb.GetBR(), window->Color(ImGuiCol_Border));
             }
 
             // Scrollbar
@@ -5019,6 +5039,12 @@ void ImDrawList::AddRect(const ImVec2& a, const ImVec2& b, ImU32 col, float roun
     if ((col >> 24) == 0)
         return;
 
+    ImGuiState& g = GImGui;
+    nvgBeginPath(g.NVGCtx);
+    nvgRect(g.NVGCtx, a.x, a.y, b.x - a.x, b.y - a.y);
+    nvgFillColor(g.NVGCtx, toNVGColor(col)); 
+    nvgFill(g.NVGCtx);
+
     //const float r = ImMin(rounding, ImMin(fabsf(b.x-a.x), fabsf(b.y-a.y))*0.5f);
     float r = rounding;
     r = ImMin(r, fabsf(b.x-a.x) * ( ((rounding_corners&(1|2))==(1|2)) || ((rounding_corners&(4|8))==(4|8)) ? 0.5f : 1.0f ));
@@ -5051,6 +5077,15 @@ void ImDrawList::AddRectFilled(const ImVec2& a, const ImVec2& b, ImU32 col, floa
 {
     if ((col >> 24) == 0)
         return;
+
+
+	/*
+    ImGuiState& g = GImGui;
+    nvgBeginPath(g.NVGCtx);
+    nvgRect(g.NVGCtx, a.x, a.y, b.x - a.x, b.y - a.y);
+    nvgFillColor(g.NVGCtx, toNVGColor(col)); 
+    nvgFill(g.NVGCtx);
+    */
 
     //const float r = ImMin(rounding, ImMin(fabsf(b.x-a.x), fabsf(b.y-a.y))*0.5f);
     float r = rounding;

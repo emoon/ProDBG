@@ -81,10 +81,16 @@ int realMain(int argc, const char** argv)
 
 		IMGUI_preUpdate(&mouseState);
 
+		bool show = true;
+
+    	ImGui::Begin("ImGui Test", &show, ImVec2(550,480), true, ImGuiWindowFlags_ShowBorders);
+
 		if (ImGui::Button("Test0r testing!"))
 		{
 			printf("test\n");
 		}
+
+    	ImGui::End();
 
 		// Use debug font to print information about this example.
 		//bgfx::dbgTextClear();
