@@ -56,7 +56,11 @@ Build {
         GenerateSources = { Name="Generate sources", BuildOrder = 1 },
     },
 
-    Units = "units.lua",
+    Units = { 
+    	"units.misc.lua",
+    	"units.plugins.lua",
+    	"units.prodbg.lua",
+	},
 
     Configs = {
         Config { Name = "macosx-clang", DefaultOnHost = "macosx", Inherit = macosx, Tools = { "clang-osx" } },
