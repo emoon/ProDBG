@@ -116,6 +116,12 @@ StaticLibrary {
 		  "src/External/bgfx/entry/entry.cpp",
 		  "src/External/bgfx/entry/dbg.cpp",
 		  "src/External/bgfx/entry/input.cpp"; Config = "macosx-*-*" },
+
+		{ "src/External/bgfx/entry/cmd.cpp",
+		  "src/External/bgfx/entry/entry_windows.cpp",
+		  "src/External/bgfx/entry/entry.cpp",
+		  "src/External/bgfx/entry/dbg.cpp",
+		  "src/External/bgfx/entry/input.cpp"; Config = "win64-*-*" },
     },
 }
 

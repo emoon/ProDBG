@@ -33,6 +33,7 @@ THE SOFTWARE.
 extern "C" {
 #endif
 
+
 /*
 
 Revision 3 (2014-07-08)
@@ -222,7 +223,7 @@ void bndSetFont(int font);
 
 // Draw a label with its lower left origin at (x,y) and size of (w,h).
 // if iconid >= 0, an icon will be added to the widget
-// if label is not NULL, a label will be added to the widget
+// if label is not 0, a label will be added to the widget
 // widget looks best when height is BND_WIDGET_HEIGHT
 void bndLabel(NVGcontext *ctx,
     float x, float y, float w, float h, int iconid, const char *label);
@@ -231,7 +232,7 @@ void bndLabel(NVGcontext *ctx,
 // where flags is one or multiple flags from BNDcornerFlags and state denotes
 // the widgets current UI state.
 // if iconid >= 0, an icon will be added to the widget
-// if label is not NULL, a label will be added to the widget
+// if label is not 0, a label will be added to the widget
 // widget looks best when height is BND_WIDGET_HEIGHT
 void bndToolButton(NVGcontext *ctx,
     float x, float y, float w, float h, int flags, BNDwidgetState state,
@@ -241,7 +242,7 @@ void bndToolButton(NVGcontext *ctx,
 // where flags is one or multiple flags from BNDcornerFlags and state denotes
 // the widgets current UI state.
 // if iconid >= 0, an icon will be added to the widget
-// if label is not NULL, a label will be added to the widget
+// if label is not 0, a label will be added to the widget
 // widget looks best when height is BND_WIDGET_HEIGHT
 void bndRadioButton(NVGcontext *ctx,
     float x, float y, float w, float h, int flags, BNDwidgetState state,
@@ -251,7 +252,7 @@ void bndRadioButton(NVGcontext *ctx,
 // where flags is one or multiple flags from BNDcornerFlags and state denotes
 // the widgets current UI state.
 // if iconid >= 0, an icon will be added to the widget
-// if text is not NULL, text will be printed to the widget
+// if text is not 0, text will be printed to the widget
 // cbegin must be >= 0 and <= strlen(text) and denotes the beginning of the caret
 // cend must be >= cbegin and <= strlen(text) and denotes the end of the caret
 // if cend < cbegin, then no caret will be drawn
@@ -263,7 +264,7 @@ void bndTextField(NVGcontext *ctx,
 // Draw an option button with its lower left origin at (x,y) and size of (w,h),
 // where flags is one or multiple flags from BNDcornerFlags and state denotes
 // the widgets current UI state.
-// if label is not NULL, a label will be added to the widget
+// if label is not 0, a label will be added to the widget
 // widget looks best when height is BND_WIDGET_HEIGHT
 void bndOptionButton(NVGcontext *ctx,
     float x, float y, float w, float h, BNDwidgetState state,
@@ -273,7 +274,7 @@ void bndOptionButton(NVGcontext *ctx,
 // where flags is one or multiple flags from BNDcornerFlags and state denotes
 // the widgets current UI state.
 // if iconid >= 0, an icon will be added to the widget
-// if label is not NULL, a label will be added to the widget
+// if label is not 0, a label will be added to the widget
 // widget looks best when height is BND_WIDGET_HEIGHT
 void bndChoiceButton(NVGcontext *ctx,
     float x, float y, float w, float h, int flags, BNDwidgetState state,
@@ -282,8 +283,8 @@ void bndChoiceButton(NVGcontext *ctx,
 // Draw a number field with its lower left origin at (x,y) and size of (w,h),
 // where flags is one or multiple flags from BNDcornerFlags and state denotes
 // the widgets current UI state.
-// if label is not NULL, a label will be added to the widget
-// if value is not NULL, a value will be added to the widget, along with
+// if label is not 0, a label will be added to the widget
+// if value is not 0, a value will be added to the widget, along with
 // a ":" separator
 // widget looks best when height is BND_WIDGET_HEIGHT
 void bndNumberField(NVGcontext *ctx,
@@ -294,8 +295,8 @@ void bndNumberField(NVGcontext *ctx,
 // where flags is one or multiple flags from BNDcornerFlags and state denotes
 // the widgets current UI state.
 // progress must be in the range 0..1 and controls the size of the slider bar
-// if label is not NULL, a label will be added to the widget
-// if value is not NULL, a value will be added to the widget, along with
+// if label is not 0, a label will be added to the widget
+// if value is not 0, a value will be added to the widget, along with
 // a ":" separator
 // widget looks best when height is BND_WIDGET_HEIGHT
 void bndSlider(NVGcontext *ctx,
@@ -319,7 +320,7 @@ void bndMenuBackground(NVGcontext *ctx,
 
 // Draw a menu label with its lower left origin at (x,y) and size of (w,h).
 // if iconid >= 0, an icon will be added to the widget
-// if label is not NULL, a label will be added to the widget
+// if label is not 0, a label will be added to the widget
 // widget looks best when height is BND_WIDGET_HEIGHT
 void bndMenuLabel(NVGcontext *ctx,
     float x, float y, float w, float h, int iconid, const char *label);
@@ -327,7 +328,7 @@ void bndMenuLabel(NVGcontext *ctx,
 // Draw a menu item with its lower left origin at (x,y) and size of (w,h),
 // where state denotes the widgets current UI state.
 // if iconid >= 0, an icon will be added to the widget
-// if label is not NULL, a label will be added to the widget
+// if label is not 0, a label will be added to the widget
 // widget looks best when height is BND_WIDGET_HEIGHT
 void bndMenuItem(NVGcontext *ctx,
     float x, float y, float w, float h, BNDwidgetState state,
@@ -415,9 +416,9 @@ void bndOutlineBox(NVGcontext *ctx, float x, float y, float w, float h,
 // given alignment (BNDtextAlignment), fontsize and color within a widget box.
 // if iconid is >= 0, an icon will be drawn and the labels remaining space
 // will be adjusted.
-// if label is not NULL, it will be drawn with the specified alignment, fontsize
+// if label is not 0, it will be drawn with the specified alignment, fontsize
 // and color.
-// if value is not NULL, label and value will be drawn with a ":" separator
+// if value is not 0, label and value will be drawn with a ":" separator
 // inbetween.
 void bndIconLabelValue(NVGcontext *ctx, float x, float y, float w, float h,
     int iconid, NVGcolor color, int align, float fontsize, const char *label,
@@ -427,7 +428,7 @@ void bndIconLabelValue(NVGcontext *ctx, float x, float y, float w, float h,
 // a caret with given fontsize and color within a widget box.
 // if iconid is >= 0, an icon will be drawn and the labels remaining space
 // will be adjusted.
-// if label is not NULL, it will be drawn with the specified alignment, fontsize
+// if label is not 0, it will be drawn with the specified alignment, fontsize
 // and color.
 // cbegin must be >= 0 and <= strlen(text) and denotes the beginning of the caret
 // cend must be >= cbegin and <= strlen(text) and denotes the end of the caret
@@ -734,7 +735,7 @@ void bndLabel(NVGcontext *ctx,
     float x, float y, float w, float h, int iconid, const char *label) {
     bndIconLabelValue(ctx,x,y,w,h,iconid,
         bnd_theme.regularTheme.textColor, BND_LEFT,
-        BND_LABEL_FONT_SIZE, label, NULL);
+        BND_LABEL_FONT_SIZE, label, 0);
 }
 
 void bndToolButton(NVGcontext *ctx,
@@ -751,7 +752,7 @@ void bndToolButton(NVGcontext *ctx,
         bndTransparent(bnd_theme.toolTheme.outlineColor));
     bndIconLabelValue(ctx,x,y,w,h,iconid,
         bndTextColor(&bnd_theme.toolTheme, state), BND_CENTER,
-        BND_LABEL_FONT_SIZE, label, NULL);
+        BND_LABEL_FONT_SIZE, label, 0);
 }
 
 void bndRadioButton(NVGcontext *ctx,
@@ -768,7 +769,7 @@ void bndRadioButton(NVGcontext *ctx,
         bndTransparent(bnd_theme.radioTheme.outlineColor));
     bndIconLabelValue(ctx,x,y,w,h,iconid,
         bndTextColor(&bnd_theme.radioTheme, state), BND_CENTER,
-        BND_LABEL_FONT_SIZE, label, NULL);
+        BND_LABEL_FONT_SIZE, label, 0);
 }
 
 void bndTextField(NVGcontext *ctx,
@@ -817,7 +818,7 @@ void bndOptionButton(NVGcontext *ctx,
     }
     bndIconLabelValue(ctx,x+12,y,w-12,h,-1,
         bndTextColor(&bnd_theme.optionTheme, state), BND_LEFT,
-        BND_LABEL_FONT_SIZE, label, NULL);
+        BND_LABEL_FONT_SIZE, label, 0);
 }
 
 void bndChoiceButton(NVGcontext *ctx,
@@ -834,7 +835,7 @@ void bndChoiceButton(NVGcontext *ctx,
         bndTransparent(bnd_theme.choiceTheme.outlineColor));
     bndIconLabelValue(ctx,x,y,w,h,iconid,
         bndTextColor(&bnd_theme.choiceTheme, state), BND_LEFT,
-        BND_LABEL_FONT_SIZE, label, NULL);
+        BND_LABEL_FONT_SIZE, label, 0);
     bndUpDownArrow(ctx,x+w-10,y+10,5,
         bndTransparent(bnd_theme.choiceTheme.itemColor));
 }
@@ -964,7 +965,7 @@ void bndMenuLabel(NVGcontext *ctx,
     float x, float y, float w, float h, int iconid, const char *label) {
     bndIconLabelValue(ctx,x,y,w,h,iconid,
         bnd_theme.menuTheme.textColor, BND_LEFT,
-        BND_LABEL_FONT_SIZE, label, NULL);
+        BND_LABEL_FONT_SIZE, label, 0);
 }
 
 void bndMenuItem(NVGcontext *ctx,
@@ -980,7 +981,7 @@ void bndMenuItem(NVGcontext *ctx,
     }
     bndIconLabelValue(ctx,x,y,w,h,iconid,
         bndTextColor(&bnd_theme.menuItemTheme, state), BND_LEFT,
-        BND_LABEL_FONT_SIZE, label, NULL);
+        BND_LABEL_FONT_SIZE, label, 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1169,28 +1170,28 @@ void bndIconLabelValue(NVGcontext *ctx, float x, float y, float w, float h,
         nvgBeginPath(ctx);
         nvgFillColor(ctx, color);
         if (value) {
-            float label_width = nvgTextBounds(ctx, 1, 1, label, NULL, NULL);
+            float label_width = nvgTextBounds(ctx, 1, 1, label, 0, 0);
             float sep_width = nvgTextBounds(ctx, 1, 1,
-                BND_LABEL_SEPARATOR, NULL, NULL);
+                BND_LABEL_SEPARATOR, 0, 0);
 
             nvgTextAlign(ctx, NVG_ALIGN_LEFT|NVG_ALIGN_BASELINE);
             x += pleft;
             if (align == BND_CENTER) {
                 float width = label_width + sep_width
-                    + nvgTextBounds(ctx, 1, 1, value, NULL, NULL);
+                    + nvgTextBounds(ctx, 1, 1, value, 0, 0);
                 x += ((w-BND_PAD_RIGHT-pleft)-width)*0.5f;
             }
             y += h-6;
-            nvgText(ctx, x, y, label, NULL);
+            nvgText(ctx, x, y, label, 0);
             x += label_width;
-            nvgText(ctx, x, y, BND_LABEL_SEPARATOR, NULL);
+            nvgText(ctx, x, y, BND_LABEL_SEPARATOR, 0);
             x += sep_width;
-            nvgText(ctx, x, y, value, NULL);
+            nvgText(ctx, x, y, value, 0);
         } else {
             nvgTextAlign(ctx,
                 (align==BND_LEFT)?(NVG_ALIGN_LEFT|NVG_ALIGN_BASELINE):
                 (NVG_ALIGN_CENTER|NVG_ALIGN_BASELINE));
-            nvgTextBox(ctx,x+pleft,y+h-6,w-BND_PAD_RIGHT-pleft,label, NULL);
+            nvgTextBox(ctx,x+pleft,y+h-6,w-BND_PAD_RIGHT-pleft,label, 0);
         }
     } else if (iconid >= 0) {
         bndIcon(ctx,x+2,y+2,iconid);
@@ -1234,7 +1235,7 @@ void bndIconLabelCaret(NVGcontext *ctx, float x, float y, float w, float h,
                 c1 = glyphs[i].x;
         }
 
-        nvgTextBounds(ctx,x,y,label,NULL, bounds);
+        nvgTextBounds(ctx,x,y,label,0, bounds);
         nvgBeginPath(ctx);
         if (cbegin == cend) {
             nvgFillColor(ctx, nvgRGBf(0.337,0.502,0.761));
@@ -1248,7 +1249,7 @@ void bndIconLabelCaret(NVGcontext *ctx, float x, float y, float w, float h,
 
     nvgBeginPath(ctx);
     nvgFillColor(ctx, color);
-    nvgTextBox(ctx,x,y,w-BND_TEXT_RADIUS-pleft,label, NULL);
+    nvgTextBox(ctx,x,y,w-BND_TEXT_RADIUS-pleft,label, 0);
 }
 
 void bndCheck(NVGcontext *ctx, float ox, float oy, NVGcolor color) {

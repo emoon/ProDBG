@@ -1,2 +1,4 @@
 #define STB_DEFINE
-#include "stb.h"
+//#include "stb.h"
+
+void dummy() { }

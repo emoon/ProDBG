@@ -125,23 +125,17 @@ int _main_(int argc, char** argv)
 
 }
 
-/*
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifdef PRODBG_WIN
+#ifdef WIN32
+
+extern "C" int main(int _argc, char** _argv);
 
 int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-	return prodbg::main(__argc, (const char**)__argv);
+	char* temp[] = { "foo" };
+	main(1, temp);
 }
 
-#else
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int main(int argc, const char** argv)
-{
-	return prodbg::main(argc, argv);
-}
-*/
+#endif
 
