@@ -27,6 +27,7 @@ namespace bgfx
 		void destroy();
 		void resize(uint32_t _width, uint32_t _height, bool _vsync);
 
+		static bool isSwapChainSupported();
 		SwapChainGL* createSwapChain(void* _nwh);
 		void destorySwapChain(SwapChainGL*  _swapChain);
 		void swap(SwapChainGL* _swapChain = NULL);
@@ -40,6 +41,7 @@ namespace bgfx
 		}
 
 		void* m_eglLibrary;
+		EGLConfig  m_config;
 		EGLContext m_context;
 		EGLDisplay m_display;
 		EGLSurface m_surface;

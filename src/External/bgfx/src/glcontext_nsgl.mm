@@ -3,24 +3,18 @@
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
-#include "../bgfx_p.h"
-
-
-
+#include "bgfx_p.h"
 
 #if BX_PLATFORM_OSX && (BGFX_CONFIG_RENDERER_OPENGLES || BGFX_CONFIG_RENDERER_OPENGL)
-#	include "../renderer_gl.h"
+#	include "renderer_gl.h"
 #	include <Cocoa/Cocoa.h>
 #	include <bx/os.h>
-
-
-
 
 namespace bgfx
 {
 
 #	define GL_IMPORT(_optional, _proto, _func, _import) _proto _func
-#	include "../glimports.h"
+#	include "glimports.h"
 	
 	static void* s_opengl = NULL;
 
@@ -94,6 +88,11 @@ namespace bgfx
 		[glContext setValues:&interval forParameter:NSOpenGLCPSwapInterval];
 	}
 
+	bool GlContext::isSwapChainSupported()
+	{
+		return false;
+	}
+
 	SwapChainGL* GlContext::createSwapChain(void* /*_nwh*/)
 	{
 		BX_CHECK(false, "Shouldn't be called!");
@@ -129,7 +128,7 @@ namespace bgfx
 					} \
 					BGFX_FATAL(_optional || NULL != _func, Fatal::UnableToInitialize, "Failed to create OpenGL context. NSGLGetProcAddress(\"%s\")", #_import); \
 				}
-#	include "../glimports.h"
+#	include "glimports.h"
 	}
 
 } // namespace bgfx

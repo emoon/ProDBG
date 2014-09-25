@@ -61,7 +61,14 @@ StaticLibrary {
     },
 
     Sources = { 
-    	get_src("src/External/bgfx/src", true),
+		{ "src/External/bgfx/src/bgfx.cpp",
+		  "src/External/bgfx/src/image.cpp",
+		  "src/External/bgfx/src/vertexdecl.cpp" },
+
+		{ "src/External/bgfx/src/renderer_gl.cpp",
+		  "src/External/bgfx/src/glcontext_nsgl.mm" ; Config = "macosx-*-*" },
+
+		{ "src/External/bgfx/entry/renderer_d3d11.cpp"; Config = "win64-*-*" },
     },
 }
 

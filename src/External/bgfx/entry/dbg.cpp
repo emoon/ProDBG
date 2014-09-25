@@ -12,10 +12,6 @@
 #include <bx/string.h>
 #include <bx/debug.h>
 
-//#ifdef _WIN32
-//#include <alloca.h>
-//#endif
-
 void dbgPrintfVargs(const char* _format, va_list _argList)
 {
 	char temp[8192];
@@ -23,8 +19,7 @@ void dbgPrintfVargs(const char* _format, va_list _argList)
 	int32_t len = bx::vsnprintf(out, sizeof(temp), _format, _argList);
 	if ( (int32_t)sizeof(temp) < len)
 	{
-		char temp2[8192];
-		out = temp2;
+		out = (char*)alloca(len+1);
 		len = bx::vsnprintf(out, len, _format, _argList);
 	}
 	out[len] = '\0';

@@ -3,7 +3,7 @@
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
-#include "../bgfx_p.h"
+#include "bgfx_p.h"
 
 #if BX_PLATFORM_IOS && (BGFX_CONFIG_RENDERER_OPENGLES|BGFX_CONFIG_RENDERER_OPENGL)
 #	include <UIKit/UIKit.h>
@@ -89,6 +89,11 @@ namespace bgfx
 	{
 		BX_UNUSED(_width, _height, _vsync);
 		BX_TRACE("resize context");
+	}
+
+	bool GlContext::isSwapChainSupported()
+	{
+		return false;
 	}
 
 	SwapChainGL* GlContext::createSwapChain(void* /*_nwh*/)

@@ -499,7 +499,7 @@ typedef uint64_t GLuint64;
 #elif BX_PLATFORM_LINUX
 #	include "glcontext_glx.h"
 #elif BX_PLATFORM_OSX
-#	include "mac/glcontext_nsgl.h"
+#	include "glcontext_nsgl.h"
 #elif BX_PLATFORM_IOS
 #	include "glcontext_eagl.h"
 #endif // BX_PLATFORM_
