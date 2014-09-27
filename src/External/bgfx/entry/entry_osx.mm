@@ -355,13 +355,14 @@ namespace entry
 						break;
 					}
 
+					case NSLeftMouseDragged:
 					case NSLeftMouseDown:
 					{
 						int x, y;
 
 						getMousePos(&x, &y);
 
-						m_eventQueue.postMouseEvent(s_defaultWindow, x, y, 0, MouseButton::Left, true);
+						m_eventQueue.postMouseEventMove(s_defaultWindow, x, y, 0, MouseButton::Left, true);
 
 						break;
 					}

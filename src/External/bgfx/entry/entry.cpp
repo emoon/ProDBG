@@ -300,10 +300,8 @@ namespace entry
 								_mouse->m_my = mouse->m_my;
 								_mouse->m_mz = mouse->m_mz;
 							}
-							else
-							{
-								_mouse->m_buttons[mouse->m_button] = mouse->m_down;
-							}
+
+							_mouse->m_buttons[mouse->m_button] = mouse->m_down;
 						}
 					}
 					break;

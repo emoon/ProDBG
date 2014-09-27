@@ -148,6 +148,18 @@ namespace entry
 			m_queue.push(ev);
 		}
 
+		void postMouseEventMove(WindowHandle _handle, int32_t _mx, int32_t _my, int32_t _mz, MouseButton::Enum _button, bool _down)
+		{
+			MouseEvent* ev = new MouseEvent(_handle);
+			ev->m_mx     = _mx;
+			ev->m_my     = _my;
+			ev->m_mz     = _mz;
+			ev->m_button = _button;
+			ev->m_down   = _down;
+			ev->m_move   = true;
+			m_queue.push(ev);
+		}
+
 		void postSizeEvent(WindowHandle _handle, uint32_t _width, uint32_t _height)
 		{
 			SizeEvent* ev = new SizeEvent(_handle);
