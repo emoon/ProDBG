@@ -66,6 +66,9 @@ StaticLibrary {
 		  "src/External/bgfx/src/vertexdecl.cpp" },
 
 		{ "src/External/bgfx/src/renderer_gl.cpp",
+		  "src/External/bgfx/src/renderer_null.cpp"; 
+		  "src/External/bgfx/src/renderer_d3d9.cpp"; 
+		  "src/External/bgfx/src/renderer_d3d11.cpp"; 
 		  "src/External/bgfx/src/glcontext_nsgl.mm" ; Config = "macosx-*-*" },
 
 		{ "src/External/bgfx/entry/renderer_d3d11.cpp"; Config = "win64-*-*" },
