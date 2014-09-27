@@ -249,7 +249,7 @@ ImGuiStyle::ImGuiStyle()
     TouchExtraPadding       = ImVec2(0,0);      // Expand bounding box for touch-based system where touch position is not accurate enough (unnecessary for mouse inputs). Unfortunately we don't sort widgets so priority on overlap will always be given to the first widget running. So dont grow this too much!
     AutoFitPadding          = ImVec2(8,8);      // Extra space after auto-fit (double-clicking on resize grip)
     WindowFillAlphaDefault  = 0.70f;            // Default alpha of window background, if not specified in ImGui::Begin()
-    WindowRounding          = 10.0f;            // Radius of window corners rounding. Set to 0.0f to have rectangular windows
+    WindowRounding          = 0.0f;             // Radius of window corners rounding. Set to 0.0f to have rectangular windows
     TreeNodeSpacing         = 22.0f;            // Horizontal spacing when entering a tree node
     ColumnsMinSpacing       = 6.0f;             // Minimum horizontal spacing between two columns
     ScrollBarWidth          = 16.0f;            // Width of the vertical scroll bar
@@ -2149,10 +2149,14 @@ bool Begin(const char* name, bool* open, ImVec2 size, float fill_alpha, ImGuiWin
             // Title bar + Window box
             if (fill_alpha > 0.0f)
             {
+            	/*
                 if ((window->Flags & ImGuiWindowFlags_ComboBox) != 0)
                     window->DrawList->AddRectFilled(window->Pos, window->Pos+window->Size, window->Color(ImGuiCol_ComboBg, fill_alpha), 0);
                 else
-                    window->DrawList->AddRectFilled(window->Pos, window->Pos+window->Size, window->Color(ImGuiCol_WindowBg, fill_alpha), g.Style.WindowRounding);
+                */
+                 //   window->DrawList->AddRectFilled(window->Pos, window->Pos+window->Size, window->Color(ImGuiCol_WindowBg, fill_alpha), g.Style.WindowRounding);
+
+                bndBackground(g.NVGCtx, window->Pos.x, window->Pos.y, window->Size.x, window->Size.y);
             }
 
             if (!(window->Flags & ImGuiWindowFlags_NoTitleBar))
@@ -2850,7 +2854,9 @@ bool Button(const char* label, ImVec2 size, bool repeat_when_held)
     const ImVec2 off = ImVec2(ImMax(0.0f, size.x - text_size.x) * 0.5f, ImMax(0.0f, size.y - text_size.y) * 0.5f);
     const ImVec2 pos = bb.Min + style.FramePadding + off;
 
-	bndToolButton(g.NVGCtx, pos.x, pos.y, size.x, size.y * 1.5f, BND_CORNER_NONE, BND_DEFAULT, 0, label);
+	BNDwidgetState state = (hovered && held) ? BND_ACTIVE : hovered ? BND_HOVER : BND_DEFAULT;
+
+	bndToolButton(g.NVGCtx, pos.x, pos.y, size.x, size.y * 1.5f, BND_CORNER_NONE, state, 0, label);
 
     //RenderText(bb.Min + style.FramePadding + off, label);
     if (size.x < text_size.x || size.y < text_size.y)
@@ -5039,11 +5045,13 @@ void ImDrawList::AddRect(const ImVec2& a, const ImVec2& b, ImU32 col, float roun
     if ((col >> 24) == 0)
         return;
 
+	/*
     ImGuiState& g = GImGui;
     nvgBeginPath(g.NVGCtx);
     nvgRect(g.NVGCtx, a.x, a.y, b.x - a.x, b.y - a.y);
     nvgFillColor(g.NVGCtx, toNVGColor(col)); 
     nvgFill(g.NVGCtx);
+    */
 
     //const float r = ImMin(rounding, ImMin(fabsf(b.x-a.x), fabsf(b.y-a.y))*0.5f);
     float r = rounding;
