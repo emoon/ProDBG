@@ -1498,6 +1498,11 @@ namespace bgfx
 		{
 		}
 
+		virtual void* nativeContext()
+		{
+			return m_glctx.m_context;
+		}
+
 		void destroyTexture(TextureHandle _handle) BX_OVERRIDE
 		{
 			m_textures[_handle.idx].destroy();
@@ -2090,6 +2095,7 @@ namespace bgfx
 				numMrt = bx::uint32_max(1, fb.m_num);
 			}
 
+
 			if (1 == numMrt)
 			{
 				GLuint flags = 0;
@@ -2130,12 +2136,15 @@ namespace bgfx
 					flags |= GL_STENCIL_BUFFER_BIT;
 					GL_CHECK(glClearStencil(_clear.m_stencil) );
 				}
+			
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				glViewport(0, 0, 1280, 720);
 
 				if (0 != flags)
 				{
 					GL_CHECK(glEnable(GL_SCISSOR_TEST) );
 					GL_CHECK(glScissor(_rect.m_x, _height-_rect.m_height-_rect.m_y, _rect.m_width, _rect.m_height) );
-					GL_CHECK(glClear(flags) );
+					GL_CHECK(glClear(GL_COLOR_BUFFER_BIT) );
 					GL_CHECK(glDisable(GL_SCISSOR_TEST) );
 				}
 			}

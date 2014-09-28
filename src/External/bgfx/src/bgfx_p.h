@@ -7,8 +7,14 @@
 #define BGFX_P_H_HEADER_GUARD
 
 #ifndef BGFX_CONFIG_DEBUG
-#	define BGFX_CONFIG_DEBUG 0
+#define BGFX_CONFIG_DEBUG
+#endif
+
+#ifndef BGFX_CONFIG_DEBUG
+#define BGFX_CONFIG_DEBUG 1
 #endif // BGFX_CONFIG_DEBUG
+
+#define BGFX_CONFIG_DEBUG 0
 
 #if BGFX_CONFIG_DEBUG
 #	define BX_TRACE _BX_TRACE
@@ -1678,6 +1684,7 @@ namespace bgfx
 		virtual ~RendererContextI() = 0;
 		virtual RendererType::Enum getRendererType() const = 0;
 		virtual const char* getRendererName() const = 0;
+		virtual void* nativeContext() = 0;
 		virtual void flip() = 0;
 		virtual void createIndexBuffer(IndexBufferHandle _handle, Memory* _mem) = 0;
 		virtual void destroyIndexBuffer(IndexBufferHandle _handle) = 0;
@@ -2932,6 +2939,12 @@ namespace bgfx
 		{
 			m_submit->discard();
 		}
+
+		BGFX_API_FUNC(void* nativeContext())
+		{
+			return m_renderCtx->nativeContext();
+		}
+
 
 		BGFX_API_FUNC(uint32_t frame() );
 

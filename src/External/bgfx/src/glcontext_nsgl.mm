@@ -50,31 +50,33 @@ namespace bgfx
 		NSOpenGLPixelFormat* pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttributes];
 		BGFX_FATAL(NULL != pixelFormat, Fatal::UnableToInitialize, "Failed to initialize pixel format.");
 
-		NSRect glViewRect = [[nsWindow contentView] bounds];
-		NSOpenGLView* glView = [[NSOpenGLView alloc] initWithFrame:glViewRect pixelFormat:pixelFormat];
-		
+		NSOpenGLContext* glContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:nil];
 		[pixelFormat release];
-		[nsWindow setContentView:glView];
 		
-		NSOpenGLContext* glContext = [glView openGLContext];
 		BGFX_FATAL(NULL != glContext, Fatal::UnableToInitialize, "Failed to initialize GL context.");
 
 		[glContext makeCurrentContext];
 		GLint interval = 0;
 		[glContext setValues:&interval forParameter:NSOpenGLCPSwapInterval];
 		
-		m_view    = glView;
+		m_view    = 0;
 		m_context = glContext;
 
 		import();
-	}
+        
+		[glContext makeCurrentContext];
+        glClear(GL_COLOR_BUFFER_BIT);
+        [glContext flushBuffer];
+        glClear(GL_COLOR_BUFFER_BIT);
+        [glContext flushBuffer];
+    }
 
 	void GlContext::destroy()
 	{
-		NSOpenGLView* glView = (NSOpenGLView*)m_view;
-		m_view = 0;
+		//NSOpenGLView* glView = (NSOpenGLView*)m_view;
+		//m_view = 0;
 		m_context = 0;
-		[glView release];
+		//[glView release];
 
 		bx::dlclose(s_opengl);
 	}

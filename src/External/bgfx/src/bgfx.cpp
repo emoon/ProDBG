@@ -2464,6 +2464,11 @@ again:
 		}
 	}
 
+	void* nativeContext()
+	{
+		return s_ctx->nativeContext();
+	}
+
 	void updateTextureCube(TextureHandle _handle, uint8_t _side, uint8_t _mip, uint16_t _x, uint16_t _y, uint16_t _width, uint16_t _height, const Memory* _mem, uint16_t _pitch)
 	{
 		BGFX_CHECK_MAIN_THREAD();
@@ -2810,6 +2815,7 @@ again:
 		BGFX_CHECK_MAIN_THREAD();
 		s_ctx->saveScreenShot(_filePath);
 	}
+
 } // namespace bgfx
 
 #include <bgfx.c99.h>
