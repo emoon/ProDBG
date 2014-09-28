@@ -191,30 +191,35 @@
 			<object class="NSWindowTemplate" id="972006081">
 				<int key="NSWindowStyleMask">13</int>
 				<int key="NSWindowBacking">2</int>
-				<string key="NSWindowRect">{{335, 390}, {800, 600}}</string>
+				<string key="NSWindowRect">{{335, 390}, {1280, 720}}</string>
 				<int key="NSWTFlags">1954021376</int>
 				<string key="NSWindowTitle">ProDBGEditor</string>
 				<string key="NSWindowClass">NSWindow</string>
 				<nil key="NSViewClass"/>
 				<nil key="NSUserInterfaceItemIdentifier"/>
-				<string key="NSWindowContentMinSize">{800, 600}</string>
+				<string key="NSWindowContentMaxSize">{1280, 720}</string>
+				<string key="NSWindowContentMinSize">{1280, 720}</string>
 				<object class="NSView" key="NSWindowView" id="439893737">
-					<nil key="NSNextResponder"/>
+					<reference key="NSNextResponder"/>
 					<int key="NSvFlags">256</int>
 					<array class="NSMutableArray" key="NSSubviews">
 						<object class="NSCustomView" id="933730602">
 							<reference key="NSNextResponder" ref="439893737"/>
 							<int key="NSvFlags">319</int>
-							<string key="NSFrameSize">{800, 600}</string>
+							<string key="NSFrameSize">{1280, 720}</string>
 							<reference key="NSSuperview" ref="439893737"/>
+							<reference key="NSWindow"/>
+							<reference key="NSNextKeyView"/>
 							<string key="NSReuseIdentifierKey">_NS:9</string>
 							<string key="NSClassName">ProDBGView</string>
 						</object>
 					</array>
-					<string key="NSFrameSize">{800, 600}</string>
+					<string key="NSFrameSize">{1280, 720}</string>
+					<reference key="NSSuperview"/>
+					<reference key="NSWindow"/>
 					<reference key="NSNextKeyView" ref="933730602"/>
 				</object>
-				<string key="NSScreenRect">{{0, 0}, {1920, 1178}}</string>
+				<string key="NSScreenRect">{{0, 0}, {2560, 1418}}</string>
 				<string key="NSMinSize">{800, 622}</string>
 				<string key="NSMaxSize">{10000000000000, 10000000000000}</string>
 				<int key="NSWindowCollectionBehavior">128</int>

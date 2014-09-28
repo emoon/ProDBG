@@ -2,7 +2,6 @@
 
 @interface ProDBGView : NSView 
 {
-    NSOpenGLContext* oglContext;
 }
 
 @end

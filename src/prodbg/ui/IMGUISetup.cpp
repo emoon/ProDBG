@@ -29,20 +29,15 @@ void IMGUI_setup(int width, int height)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-/*
-void IMGUI_preUpdate(entry::MouseState* mouseState)
+void IMGUI_preUpdate(float x, float y, int mouseLmb)
 {
 	ImGuiIO& io = ImGui::GetIO();
 	io.DeltaTime = 1.0f / 60.0f;	// TODO: Fix me 
-	io.MousePos = ImVec2(mouseState->m_mx, mouseState->m_my);
-	io.MouseDown[0] = mouseState->m_buttons[1];
-	io.MouseDown[1] = mouseState->m_buttons[0];
-
-	//printf("mousePos %f %f - %d %d\n", io.MousePos.x, io.MousePos.y, io.MouseDown[0], io.MouseDown[1]);
+	io.MousePos = ImVec2(x, y);
+	io.MouseDown[0] = mouseLmb;
 
 	ImGui::NewFrame();
 }
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

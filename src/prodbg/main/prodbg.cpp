@@ -8,13 +8,152 @@
 #include <windows.h>
 #endif
 
+#include <bgfxplatform.h>
 #include <bgfx.h>
-//#include <entry.h>
 #include "ui/imgui/imgui.h"
 #include "ui/IMGUISetup.h"
 #include <stdio.h>
 
-void dummy() { }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace prodbg
+{
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct Context
+{
+	int width;
+	int height;
+	float mouseX;
+	float mouseY;
+	int mouseLmb;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static Context s_context;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_create(void* window, int width, int height)
+{
+	Context* context = &s_context;
+
+	(void)window;
+	(void)width;
+	(void)height;
+
+#ifdef BX_PLATFORM_OSX 
+	bgfx::osxSetNSWindow(window);
+#elif BX_PLATFORM_WINDOWS 
+	bgfx::winSetHwnd(window);
+#else
+	#error "Unsupported platform"
+#endif
+
+	bgfx::init();
+	bgfx::reset(width, height, BGFX_RESET_VSYNC);
+	bgfx::setViewSeq(0, true);
+
+	context->width = width;
+	context->height = height;
+
+	IMGUI_setup(width, height);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_setWindowSize(int width, int height)
+{
+	Context* context = &s_context;
+
+	context->width = width;
+	context->height = height;
+
+	bgfx::reset(width, height, BGFX_RESET_VSYNC);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_destroy()
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_update()
+{
+	Context* context = &s_context;
+
+	bgfx::setViewRect(0, 0, 0, (uint16_t)context->width, (uint16_t)context->height);
+	bgfx::setViewClear(0 , BGFX_CLEAR_COLOR_BIT|BGFX_CLEAR_DEPTH_BIT, 0x303030ff, 1.0f, 0);
+	bgfx::submit(0);
+
+	IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb);
+
+	bool show = true;
+
+	ImGui::Begin("ImGui Test", &show, ImVec2(550,480), true, ImGuiWindowFlags_ShowBorders);
+
+	if (ImGui::Button("Test0r testing!"))
+	{
+		printf("test\n");
+	}
+
+	ImGui::End();
+
+	IMGUI_postUpdate();
+
+	bgfx::frame();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_timedUpdate()
+{
+	ProDBG_update();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Events
+
+void ProDBG_event(int eventId)
+{
+	(void)eventId;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_scroll(float deltaX, float deltaY, int flags)
+{
+	(void)deltaX;
+	(void)deltaY;
+	(void)flags;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_setMousePos(float x, float y)
+{
+	Context* context = &s_context;
+
+	context->mouseX = x;
+	context->mouseY = y;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_setMouseState(int button, int state)
+{
+	Context* context = &s_context;
+	(void)button;
+
+	context->mouseLmb = state;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 /*
 
@@ -144,4 +283,6 @@ int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif
 
 */
+
+}
 

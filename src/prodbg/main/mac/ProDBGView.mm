@@ -1,19 +1,20 @@
 #import "ProDBGView.h"
+#include "../ProDBG.h"
+#include <bgfx.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <Carbon/Carbon.h>
 
-NSOpenGLContext* g_context = 0;
-NSWindow* g_window = 0;
+//NSWindow* g_window = 0;
 
 void Window_setTitle(const char* title);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Scan codes on Mac taken from http://boredzo.org/blog/archives/2007-05-22/virtual-key-codes
 
-#define KEY_RETURN 36
-#define KEY_TAB 48
-#define KEY_DELETE 51
-#define KEY_ESCAPE 53
+//#define KEY_RETURN 36
+//#define KEY_TAB 48
+//#define KEY_DELETE 51
+//#define KEY_ESCAPE 53
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -32,11 +33,12 @@ void Window_setTitle(const char* title);
 
 @implementation ProDBGView
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
--(void) updateEditor
+-(void) updateMain
 {
-	///
+	prodbg::ProDBG_timedUpdate();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -47,23 +49,10 @@ void Window_setTitle(const char* title);
 	if (self == nil)
 		return nil;
 
-	NSOpenGLPixelFormatAttribute attributes[4];
-
-	attributes[0] = NSOpenGLPFADoubleBuffer;
-	attributes[1] = 0;
-
-	NSOpenGLPixelFormat* format = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes];
-	oglContext = [[NSOpenGLContext alloc] initWithFormat:format shareContext:nil];
-	[oglContext makeCurrentContext];
-
-	g_context = oglContext;
-	g_window = [self window];
-
+	prodbg::ProDBG_create(0, (int)frame.size.width, (int)frame.size.height);
 	const float framerate = 60;
 	const float frequency = 1.0f/framerate;
-	[NSTimer scheduledTimerWithTimeInterval:frequency
-									 target:self selector:@selector(updateEditor)
-								   userInfo:nil repeats:YES];
+	[NSTimer scheduledTimerWithTimeInterval:frequency target:self selector:@selector(updateMain) userInfo:nil repeats:YES];
 
 	return self;
 }
@@ -72,7 +61,7 @@ void Window_setTitle(const char* title);
 
 - (void)lockFocus
 {
-	NSOpenGLContext* context = oglContext;
+	NSOpenGLContext* context = (NSOpenGLContext*)bgfx::nativeContext();
 
 	[super lockFocus];
 
@@ -84,21 +73,31 @@ void Window_setTitle(const char* title);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-- (void)drawRect:(NSRect)frameRect 
+- (void)windowDidResize:(NSNotification *)notification
 {
-	[oglContext update];
-	g_window = [self window];
+	(void)notification;
+	printf("resize\n");
+}
 
-	//EMGFXBackend_updateViewPort((int)frameRect.size.width, (int)frameRect.size.height);
-	//Editor_setWindowSize((int)frameRect.size.width, (int)frameRect.size.height);
-	//Editor_update();
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+- (void)drawRect:(NSRect)frame 
+{
+	(void)frame;
+
+	prodbg::ProDBG_setWindowSize((int)frame.size.width, (int)frame.size.height);
+	prodbg::ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int getModifierFlags(int flags)
+int getModifierFlags(int flags)
 {
 	int specialKeys = 0;
+
+	(void)flags;
+
 	/*
 	if (flags & NSShiftKeyMask)
 		specialKeys |= EMGUI_KEY_SHIFT;
@@ -120,15 +119,16 @@ static int getModifierFlags(int flags)
 
 - (void)keyDown:(NSEvent *)theEvent 
 {
-	NSString* key = [theEvent charactersIgnoringModifiers];
-	unichar keyChar = 0;
-	if ([key length] == 0)
-		return;
+	(void)theEvent;
+	//NSString* key = [theEvent charactersIgnoringModifiers];
+	//unichar keyChar = 0;
+	//if ([key length] == 0)
+	//	return;
 
-	keyChar = [key characterAtIndex:0];
+	//keyChar = [key characterAtIndex:0];
 
-	int keyCode = keyChar;
-	int specialKeys = getModifierFlags([theEvent modifierFlags]);
+	//int keyCode = keyChar;
+	//int specialKeys = getModifierFlags([theEvent modifierFlags]);
 
 	/*
 
@@ -162,6 +162,8 @@ static int getModifierFlags(int flags)
 
 	Editor_update();
 	*/
+
+   	[super keyDown:theEvent];
 }
  
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -178,6 +180,7 @@ static int getModifierFlags(int flags)
     NSTrackingArea* trackingArea = [[NSTrackingArea alloc] initWithRect:[self frame] 
     	options: (NSTrackingMouseMoved | NSTrackingActiveAlways) owner:self userInfo:nil];
     [self addTrackingArea:trackingArea];
+    (void)newWindow;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -189,6 +192,13 @@ static int getModifierFlags(int flags)
 	NSPoint location = [window mouseLocationOutsideOfEventStream];
 	NSRect adjustFrame = [NSWindow contentRectForFrameRect: originalFrame styleMask: NSTitledWindowMask];
 
+	prodbg::ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
+
+	(void)event;
+
+	prodbg::ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
+	prodbg::ProDBG_update();
+	
 	//Emgui_setMousePos((int)location.x, (int)adjustFrame.size.height - (int)location.y);
 	//Editor_update();
 }
@@ -202,17 +212,20 @@ static int getModifierFlags(int flags)
 	NSPoint location = [window mouseLocationOutsideOfEventStream];
 	NSRect adjustFrame = [NSWindow contentRectForFrameRect: originalFrame styleMask: NSTitledWindowMask];
 
-	//Emgui_setMousePos((int)location.x, (int)adjustFrame.size.height - (int)location.y);
-	//Editor_update();
+	(void)event;
+
+	prodbg::ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
+	prodbg::ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)scrollWheel:(NSEvent *)theEvent
 {
-	float x = (float)[theEvent deltaX];
-	float y = (float)[theEvent deltaY];
-	int flags = getModifierFlags([theEvent modifierFlags]);
+	(void)theEvent;
+	//float x = (float)[theEvent deltaX];
+	//float y = (float)[theEvent deltaY];
+	//int flags = getModifierFlags([theEvent modifierFlags]);
 
 	//printf("%f %f %d\n", x, y, flags);
 	//Editor_scroll(-x, -y, flags);
@@ -222,8 +235,8 @@ static int getModifierFlags(int flags)
 
 - (void)mouseUp:(NSEvent *)event
 {
-	//Emgui_setMouseLmb(0);
-	//Editor_update();
+	(void)event;
+	prodbg::ProDBG_setMouseState(0, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -235,9 +248,11 @@ static int getModifierFlags(int flags)
 	NSPoint location = [window mouseLocationOutsideOfEventStream];
 	NSRect adjustFrame = [NSWindow contentRectForFrameRect: originalFrame styleMask: NSTitledWindowMask];
 
-	//Emgui_setMousePos((int)location.x, (int)adjustFrame.size.height - (int)location.y);
-	//Emgui_setMouseLmb(1);
-	//Editor_update();
+	(void)event;
+
+	prodbg::ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
+	prodbg::ProDBG_setMouseState(0, 1);
+	prodbg::ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -260,55 +275,18 @@ static int getModifierFlags(int flags)
 
 void Window_buildMenu()
 {
-	Window_setTitle("ProDBG" "0.1");
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Window_populateRecentList(const char** files)
-{
-	/*
- 	NSMenu* fileMenu = [[[NSApp mainMenu] itemWithTitle:@"File"] submenu];
-	NSMenu* recentItems = [[fileMenu itemWithTitle:@"Recent Files"] submenu];
-
-	[recentItems removeAllItems];
-
-	for (int i = 0; i < 4; ++i)
-	{
-		const char* filename = files[i];
-
-		if (!strcmp(filename, ""))
-			continue;
-
-		NSString* name = [NSString stringWithUTF8String: filename];
-
-		NSMenuItem* newItem = [[NSMenuItem alloc] initWithTitle:name action:@selector(onMenuPress:) keyEquivalent:@""];
-		[newItem setTag:EDITOR_MENU_RECENT_FILE_0 + i];
-		[newItem setRepresentedObject:[NSString stringWithFormat:@"%d",i]];
-		[newItem setKeyEquivalentModifierMask: NSCommandKeyMask];
-		[newItem setKeyEquivalent:[NSString stringWithFormat:@"%d",i + 1]];
-
-		[recentItems addItem:newItem];
-
-		[newItem release];
-	}
-	*/
+	//Window_setTitle("ProDBG" "0.1");
 }
 
 @end
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void swapBuffers()
-{
-	[g_context flushBuffer];
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 void Window_setTitle(const char* title)
 {
 	[g_window setTitle:[NSString stringWithUTF8String:title]];
 }
+*/
 
 
