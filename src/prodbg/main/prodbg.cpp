@@ -9,10 +9,14 @@
 #endif
 
 #include <bgfx.h>
-#include <entry.h>
+//#include <entry.h>
 #include "ui/imgui/imgui.h"
 #include "ui/IMGUISetup.h"
 #include <stdio.h>
+
+void dummy() { }
+
+/*
 
 namespace prodbg
 {
@@ -138,4 +142,6 @@ int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 }
 
 #endif
+
+*/
 

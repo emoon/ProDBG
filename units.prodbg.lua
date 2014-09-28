@@ -1,6 +1,9 @@
 require "tundra.syntax.glob"
+require "tundra.syntax.osx-bundle"
 require "tundra.path"
 require "tundra.util"
+
+local native = require('tundra.native')
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -100,44 +103,6 @@ StaticLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
-StaticLibrary {
-    Name = "entry",
-
-    Env = { 
-        CPPPATH = { 
-            "src/External/bgfx/include",
-            "src/External/bx/include",
-        },
-        
-		CXXDEFS = { 
-			{ "BGFX_CONFIG_DEBUG"; Config = "win64-*-debug" },
-			{ "BGFX_CONFIG_DEBUG", "BX_PLATFORM_OSX"; Config = "macosx-*-debug" },
-		},
-
-        CXXOPTS = {
-        	"-Wno-variadic-macros", 
-        	"-Wno-everything" ; Config = "macosx-*-*" 
-        },
-    },
-
-    Sources = { 
-		{ "src/External/bgfx/entry/cmd.cpp",
-		  "src/External/bgfx/entry/entry_osx.mm",
-		  "src/External/bgfx/entry/entry.cpp",
-		  "src/External/bgfx/entry/dbg.cpp",
-		  "src/External/bgfx/entry/input.cpp"; Config = "macosx-*-*" },
-
-		{ "src/External/bgfx/entry/cmd.cpp",
-		  "src/External/bgfx/entry/entry_windows.cpp",
-		  "src/External/bgfx/entry/entry.cpp",
-		  "src/External/bgfx/entry/dbg.cpp",
-		  "src/External/bgfx/entry/input.cpp"; Config = "win64-*-*" },
-    },
-}
-
-
------------------------------------------------------------------------------------------------------------------------
-
 Program {
     Name = "prodbg",
 
@@ -150,7 +115,7 @@ Program {
         	"API/include",
             "src/External/bx/include",
             "src/External/nanovg",
-            "src/External/bgfx/entry",
+            -- "src/External/bgfx/entry",
             "src/frontend",
         },
 
@@ -186,13 +151,13 @@ Program {
             Dir = "src/prodbg",
             Extensions = { ".c", ".cpp", ".m", ".mm", ".h" },
             Filters = {
-                { Pattern = "macosx"; Config = "macosx-*-*" },
-                { Pattern = "windows"; Config = "win64-*-*" },
+                { Pattern = "Mac"; Config = "macosx-*-*" },
+                { Pattern = "Windows"; Config = "win64-*-*" },
             },
         },
     },
 
-    Depends = { "RemoteAPI", "stb", "bgfx", "entry", "nanovg" },
+    Depends = { "RemoteAPI", "stb", "bgfx", "nanovg" },
 
     Libs = { { "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 
@@ -201,5 +166,24 @@ Program {
 
 -----------------------------------------------------------------------------------------------------------------------
 
-Default "prodbg"
+local prodbgBundle = OsxBundle 
+{
+	Depends = { "prodbg" },
+	Target = "$(OBJECTDIR)/ProDBG.app",
+	InfoPList = "Data/Mac/Info.plist",
+	Executable = "$(OBJECTDIR)/prodbg",
+	Resources = {
+		CompileNib { Source = "Data/Mac/appnib.xib", Target = "appnib.nib" },
+		"Data/Mac/icon.icns",
+	},
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+if native.host_platform == "macosx" then
+	Default(prodbgBundle)
+else
+	Default "prodbg"
+end
+
 

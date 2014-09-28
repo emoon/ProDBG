@@ -1,6 +1,6 @@
 #include "IMGUISetup.h"
 #include "imgui/imgui.h"
-#include <entry.h>
+//#include <entry.h>
 #include <stdio.h>
 
 namespace prodbg
@@ -28,6 +28,8 @@ void IMGUI_setup(int width, int height)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+/*
 void IMGUI_preUpdate(entry::MouseState* mouseState)
 {
 	ImGuiIO& io = ImGui::GetIO();
@@ -40,6 +42,7 @@ void IMGUI_preUpdate(entry::MouseState* mouseState)
 
 	ImGui::NewFrame();
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
