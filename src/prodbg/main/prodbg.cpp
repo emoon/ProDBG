@@ -44,10 +44,10 @@ void ProDBG_create(void* window, int width, int height)
 	(void)width;
 	(void)height;
 
-#ifdef BX_PLATFORM_OSX 
+#if BX_PLATFORM_OSX 
 	bgfx::osxSetNSWindow(window);
 #elif BX_PLATFORM_WINDOWS 
-	bgfx::winSetHwnd(window);
+	bgfx::winSetHwnd((HWND)window);
 #else
 	#error "Unsupported platform"
 #endif

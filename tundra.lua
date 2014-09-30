@@ -46,6 +46,8 @@ local win64 = {
             { "/Od"; Config = "*-*-debug" },
             { "/O2"; Config = "*-*-release" },
         },
+
+		OBJCCOM = "meh",
     },
 }
 
