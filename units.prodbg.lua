@@ -43,6 +43,37 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
+    Name = "uv",
+
+    Env = { 
+		CPPPATH = { 
+			"src/external/libuv/include",
+		},
+
+        CCOPTS = {
+        	{ "-Wno-everything"; Config = "macosx-*-*" },
+        	{ "/wd4201", "/wd4127", "/wd4244", "/wd4100", 
+			  "/wd4245", "/wd4204", "/wd4701", "/wd4703", "/wd4054",
+			  "/wd4702", "/wd4267"; Config = "win64-*-*" },
+        },
+    },
+
+    Sources = { 
+        FGlob {
+            Dir = "src/external/libuv/src",
+            Extensions = { ".c", ".h" },
+            Filters = {
+                { Pattern = "unix"; Config = "macosx-*-*" },
+                { Pattern = "win"; Config = "win64-*-*" },
+            },
+        },
+    },
+}
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
     Name = "bgfx",
 
     Env = { 
@@ -52,29 +83,22 @@ StaticLibrary {
             "src/External/bgfx/3rdparty/khronos",
         },
         
-		CXXDEFS = { 
-			{ "BGFX_CONFIG_DEBUG"; Config = "win64-*-debug" },
-			{ "BGFX_CONFIG_DEBUG", "BX_PLATFORM_OSX"; Config = "macosx-*-debug" },
-		},
-
         CXXOPTS = {
-        	"-Wno-variadic-macros", 
-        	"-Wno-everything" ; Config = "macosx-*-*" 
+			{ "-Wno-variadic-macros", "-Wno-everything" ; Config = "macosx-*-*" },
+			{ "/EHsc"; Config = "win64-*-*" },
         },
     },
 
     Sources = { 
 		{ "src/External/bgfx/src/bgfx.cpp",
 		  "src/External/bgfx/src/image.cpp",
-		  "src/External/bgfx/src/vertexdecl.cpp" },
-
-		{ "src/External/bgfx/src/renderer_gl.cpp",
-		  "src/External/bgfx/src/renderer_null.cpp"; 
-		  "src/External/bgfx/src/renderer_d3d9.cpp"; 
-		  "src/External/bgfx/src/renderer_d3d11.cpp"; 
-		  "src/External/bgfx/src/glcontext_nsgl.mm" ; Config = "macosx-*-*" },
-
-		{ "src/External/bgfx/entry/renderer_d3d11.cpp"; Config = "win64-*-*" },
+		  "src/External/bgfx/src/vertexdecl.cpp",
+		  "src/External/bgfx/src/renderer_gl.cpp",
+		  "src/External/bgfx/src/renderer_null.cpp",
+		  "src/External/bgfx/src/renderer_d3d9.cpp", 
+		  "src/External/bgfx/src/renderer_d3d11.cpp" }, 
+	    { "src/External/bgfx/src/glcontext_wgl.cpp" ; Config = "win64-*-*" },
+	    { "src/External/bgfx/src/glcontext_nsgl.mm" ; Config = "macosx-*-*" },
     },
 }
 
@@ -123,22 +147,18 @@ Program {
             { "/SUBSYSTEM:WINDOWS", "/DEBUG"; Config = { "win32-*-*", "win64-*-*" } },
         },
 
-        CPPDEFS = {
-            { "PRODBG_MAC", Config = "macosx-*-*" },
-            { "PRODBG_WIN", Config = "win64-*-*" },
-        },
-
-        CXXOPTS = { { 
-        	"-Wno-conversion",
-        	"-Wno-gnu-anonymous-struct",
-        	"-Wno-global-constructors",
-        	"-Wno-nested-anon-types",
-        	"-Wno-float-equal",
-        	"-Wno-cast-align",
-        	"-Wno-exit-time-destructors",
-        	"-Wno-format-nonliteral",
-            "-Wno-documentation",	-- Because clang warnings in a bad manner even if the doc is correct
-            "-std=c++11" ; Config = "macosx-clang-*" },
+        CXXOPTS = { 
+			{ "-Wno-conversion",
+			  "-Wno-gnu-anonymous-struct",
+			  "-Wno-global-constructors",
+			  "-Wno-nested-anon-types",
+			  "-Wno-float-equal",
+			  "-Wno-cast-align",
+			  "-Wno-exit-time-destructors",
+			  "-Wno-format-nonliteral",
+			  "-Wno-documentation",	-- Because clang warnings in a bad manner even if the doc is correct
+			  "-std=c++11" ; Config = "macosx-clang-*" },
+			{ "/EHsc"; Config = "win64-*-*" },
         },
 
 		PROGCOM = {
@@ -151,13 +171,13 @@ Program {
             Dir = "src/prodbg",
             Extensions = { ".c", ".cpp", ".m", ".mm", ".h" },
             Filters = {
-                { Pattern = "Mac"; Config = "macosx-*-*" },
+                { Pattern = "mac"; Config = "macosx-*-*" },
                 { Pattern = "Windows"; Config = "win64-*-*" },
             },
         },
     },
 
-    Depends = { "RemoteAPI", "stb", "bgfx", "nanovg" },
+    Depends = { "RemoteAPI", "stb", "bgfx", "nanovg", "uv" },
 
     Libs = { { "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 

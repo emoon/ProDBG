@@ -1580,6 +1580,11 @@ namespace bgfx
 			}
 		}
 
+		void* nativeContext()
+		{
+			return (void*)m_device;
+		}
+
 #if BX_PLATFORM_WINDOWS
 		D3DCAPS9 m_caps;
 

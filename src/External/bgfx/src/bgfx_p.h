@@ -6,14 +6,6 @@
 #ifndef BGFX_P_H_HEADER_GUARD
 #define BGFX_P_H_HEADER_GUARD
 
-#ifndef BGFX_CONFIG_DEBUG
-#define BGFX_CONFIG_DEBUG
-#endif
-
-#ifndef BGFX_CONFIG_DEBUG
-#define BGFX_CONFIG_DEBUG 1
-#endif // BGFX_CONFIG_DEBUG
-
 #define BGFX_CONFIG_DEBUG 0
 
 #if BGFX_CONFIG_DEBUG
@@ -31,7 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <alloca.h>
+//#include <alloca.h>
 
 namespace bgfx
 {

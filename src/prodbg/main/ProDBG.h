@@ -8,7 +8,7 @@ namespace prodbg
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Setup/update
 
-int ProDBG_create(void* window, int width, int height);
+void ProDBG_create(void* window, int width, int height);
 void ProDBG_setWindowSize(int width, int height);
 
 void ProDBG_destroy();
