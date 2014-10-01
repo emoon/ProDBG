@@ -40,10 +40,6 @@ void ProDBG_create(void* window, int width, int height)
 {
 	Context* context = &s_context;
 
-	(void)window;
-	(void)width;
-	(void)height;
-
 #ifdef BX_PLATFORM_OSX 
 	bgfx::osxSetNSWindow(window);
 #elif BX_PLATFORM_WINDOWS 
@@ -72,6 +68,7 @@ void ProDBG_setWindowSize(int width, int height)
 	context->height = height;
 
 	bgfx::reset(width, height, BGFX_RESET_VSYNC);
+	IMGUI_setup(width, height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
