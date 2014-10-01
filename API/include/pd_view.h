@@ -1,9 +1,9 @@
 #ifndef _PDVIEW_H_
 #define _PDVIEW_H_
 
-#include "PDCommon.h"
-#include "PDReadWrite.h"
-#include "PDUI.h"
+#include "pd_common.h"
+#include "pd_readwrite.h"
+#include "pd_ui.h"
 
 #ifdef _cplusplus
 extern "C" {

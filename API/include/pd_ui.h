@@ -1,7 +1,7 @@
 #ifndef _PDUI_H_
 #define _PDUI_H_
 
-#include "PDCommon.h"
+#include "pd_common.h"
 
 #ifdef _cplusplus
 extern "C" {

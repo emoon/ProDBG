@@ -7,7 +7,7 @@ local native = require('tundra.native')
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
-    Name = "LLDBPlugin",
+    Name = "lldb_plugin",
     
     Env = {
         CPPPATH = { 
@@ -49,7 +49,7 @@ SharedLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
-    Name = "SourceCodePlugin",
+    Name = "sourcecode_plugin",
     
     Env = {
         CPPPATH = { "API/include", },
@@ -57,13 +57,13 @@ SharedLibrary {
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
 
-    Sources = { "src/plugins/sourcecode/SourceCodePlugin.cpp" },
+    Sources = { "src/plugins/sourcecode/sourcecode_plugin.cpp" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
-    Name = "CallStackPlugin",
+    Name = "callstack_plugin",
     
     Env = {
         CPPPATH = { "API/include", },
@@ -71,13 +71,13 @@ SharedLibrary {
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
 
-    Sources = { "src/plugins/callstack/CallStackPlugin.cpp" },
+    Sources = { "src/plugins/callstack/callstack_plugin.cpp" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
-    Name = "Disassembly",
+    Name = "disassembly_plugin",
     
     Env = {
         CPPPATH = { "API/include", },
@@ -85,13 +85,13 @@ SharedLibrary {
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
 
-    Sources = { "src/plugins/disassembly/DisassemblyPlugin.cpp" },
+    Sources = { "src/plugins/disassembly/disassembly_plugin.cpp" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
-    Name = "Registers",
+    Name = "registers_plugin",
     
     Env = {
         CPPPATH = { "API/include", },
@@ -99,13 +99,13 @@ SharedLibrary {
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
 
-    Sources = { "src/plugins/registers/RegistersPlugin.cpp" },
+    Sources = { "src/plugins/registers/registers_plugin.cpp" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
-    Name = "Locals",
+    Name = "locals_plugin",
     
     Env = {
         CPPPATH = { "API/include", },
@@ -113,18 +113,18 @@ SharedLibrary {
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
 
-    Sources = { "src/plugins/locals/LocalsPlugin.cpp" },
+    Sources = { "src/plugins/locals/locals_plugin.cpp" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
 
 if native.host_platform == "macosx" then
-   Default "LLDBPlugin"
+   Default "lldb_plugin"
 end
 
-Default "Registers"
-Default "CallStackPlugin"
-Default "SourceCodePlugin"
-Default "Disassembly"
-Default "Locals"
+Default "registers_plugin"
+Default "callstack_plugin"
+Default "sourcecode_plugin"
+Default "disassembly_plugin"
+Default "locals_plugin"
 

@@ -5,8 +5,8 @@
 #include "api/src/remote/PDReadWrite_private.h"
 #include "api/src/remote/RemoteConnection.h"
 #include <vector>
-#include <PDView.h>
-#include <PDBackend.h>
+#include <pd_view.h>
+#include <pd_backend.h>
 #include <stdlib.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

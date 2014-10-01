@@ -1,6 +1,6 @@
 #pragma once
 
-#include <PDUI.h>
+#include <pd_ui.h>
 
 struct PDReader;
 struct PDWriter;

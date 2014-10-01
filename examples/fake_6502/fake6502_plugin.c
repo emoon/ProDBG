@@ -1,5 +1,5 @@
-#include <PDBackend.h> 
-#include "Debugger6502.h"
+#include <pd_backend.h> 
+#include "debugger6502.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

@@ -1,4 +1,4 @@
-#include <PDView.h>
+#include <pd_view.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -14,6 +14,7 @@ struct RegistersData
 static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 {
 	(void)serviceFunc;
+	(void)uiFuncs;
 	RegistersData* userData = (RegistersData*)malloc(sizeof(RegistersData));
 
 	/*

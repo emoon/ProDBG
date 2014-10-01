@@ -1,5 +1,5 @@
-#import "ProDBGView.h"
-#include "../ProDBG.h"
+#import "prodbg_view.h"
+#include "../prodbg.h"
 #include <bgfx.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <Carbon/Carbon.h>

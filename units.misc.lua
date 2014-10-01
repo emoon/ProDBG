@@ -38,7 +38,7 @@ StaticLibrary {
 -- Example 6502 emulator
 
 Program {
-    Name = "Fake6502",
+    Name = "fake6502",
 
     Env = {
         CPPPATH = { "API/include" },
@@ -58,7 +58,7 @@ Program {
 
     Sources = { 
         Glob {
-            Dir = "examples/Fake6502",
+            Dir = "examples/fake_6502",
             Extensions = { ".c", ".cpp", ".m" },
         },
     },
@@ -76,7 +76,7 @@ Program {
 
     Sources = { 
         Glob {
-            Dir = "examples/CrashingNative",
+            Dir = "examples/crashing_native",
             Extensions = { ".c" },
         },
     },
@@ -84,6 +84,6 @@ Program {
 
 -----------------------------------------------------------------------------------------------------------------------
 
-Default "Fake6502"
+Default "fake6502"
 Default "crashing_native"
 

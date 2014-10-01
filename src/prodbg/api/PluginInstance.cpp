@@ -1,5 +1,5 @@
 #include "PluginInstance.h"
-#include <PDView.h>
+#include <pd_view.h>
 #include <string.h>
 #include <stdlib.h>
 

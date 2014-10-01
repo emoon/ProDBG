@@ -1,6 +1,6 @@
 #include <stdlib.h>
-#include <core/Core.h>
-#include <core/PluginHandler.h>
+#include <core/core.h>
+#include <core/plugin_handler.h>
 //#include "ui/Application.h"
 
 #ifdef PRODBG_WIN
@@ -11,7 +11,7 @@
 #include <bgfxplatform.h>
 #include <bgfx.h>
 #include "ui/imgui/imgui.h"
-#include "ui/IMGUISetup.h"
+#include "ui/imgui_setup.h"
 #include <stdio.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

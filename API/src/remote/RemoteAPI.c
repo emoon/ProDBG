@@ -1,7 +1,7 @@
 #include "PDReadWrite_private.h"
 #include "RemoteConnection.h"
-#include <PDBackend.h>
-#include <PDRemote.h>
+#include <pd_backend.h>
+#include <pd_remote.h>
 
 #include <stdint.h>
 #include <stdio.h>

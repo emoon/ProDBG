@@ -6,8 +6,8 @@
 #include <unistd.h>
 #endif
 #include "Debugger6502.h"
-#include <PDBackend.h>
-#include <PDRemote.h>
+#include <pd_backend.h>
+#include <pd_remote.h>
 
 uint8_t* s_memory6502; //[65536];
 

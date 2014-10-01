@@ -1,8 +1,8 @@
-#include "PluginHandler.h"
-#include "io/SharedObject.h"
-#include "Log.h"
-#include "Core.h"
-#include <PDCommon.h>
+#include "plugin_handler.h"
+#include "io/shared_object.h"
+#include "log.h"
+#include "core.h"
+#include <pd_common.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>

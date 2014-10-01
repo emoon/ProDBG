@@ -109,9 +109,9 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <PDBackend.h>
-#include <PDRemote.h>
-#include "Debugger6502.h"
+#include <pd_backend.h>
+#include <pd_remote.h>
+#include "debugger6502.h"
 
 //6502 defines
 #define UNDOCUMENTED //when this is defined, undocumented opcodes are handled.

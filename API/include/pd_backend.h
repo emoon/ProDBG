@@ -1,8 +1,8 @@
 #ifndef _PRODBGAPI_H_
 #define _PRODBGAPI_H_
 
-#include "PDCommon.h"
-#include "PDReadWrite.h"
+#include "pd_common.h"
+#include "pd_readwrite.h"
 
 #ifdef _cplusplus
 extern "C" {
