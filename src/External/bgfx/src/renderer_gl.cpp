@@ -2137,13 +2137,11 @@ namespace bgfx
 					GL_CHECK(glClearStencil(_clear.m_stencil) );
 				}
 			
-				glBindFramebuffer(GL_FRAMEBUFFER, 0);
-				glViewport(0, 0, 1280, 720);
-
 				if (0 != flags)
 				{
 					GL_CHECK(glEnable(GL_SCISSOR_TEST) );
 					GL_CHECK(glScissor(_rect.m_x, _height-_rect.m_height-_rect.m_y, _rect.m_width, _rect.m_height) );
+					//printf("viewPort %d %d %d %d\n", _rect.m_x, _rect.m_y, _rect.m_width, _rect.m_height);
 					GL_CHECK(glClear(GL_COLOR_BUFFER_BIT) );
 					GL_CHECK(glDisable(GL_SCISSOR_TEST) );
 				}
