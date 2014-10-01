@@ -43,6 +43,37 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
+    Name = "uv",
+
+    Env = { 
+		CPPPATH = { 
+			"src/external/libuv/include",
+		},
+
+        CCOPTS = {
+        	{ "-Wno-everything"; Config = "macosx-*-*" },
+        	{ "/wd4201", "/wd4127", "/wd4244", "/wd4100", 
+			  "/wd4245", "/wd4204", "/wd4701", "/wd4703", "/wd4054",
+			  "/wd4702", "/wd4267"; Config = "win64-*-*" },
+        },
+    },
+
+    Sources = { 
+        FGlob {
+            Dir = "src/external/libuv/src",
+            Extensions = { ".c", ".h" },
+            Filters = {
+                { Pattern = "unix"; Config = "macosx-*-*" },
+                { Pattern = "win"; Config = "win64-*-*" },
+            },
+        },
+    },
+}
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
     Name = "bgfx",
 
     Env = { 
@@ -146,7 +177,7 @@ Program {
         },
     },
 
-    Depends = { "RemoteAPI", "stb", "bgfx", "nanovg" },
+    Depends = { "RemoteAPI", "stb", "bgfx", "nanovg", "uv" },
 
     Libs = { { "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 

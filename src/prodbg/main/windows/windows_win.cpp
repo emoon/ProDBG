@@ -46,6 +46,11 @@ bool createWindow(const wchar_t* title, int width, int height)
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	//wc.lpszMenuName  = MAKEINTRESOURCE(IDR_MENU);
 
+	rect.left = 0;
+	rect.right = width;
+	rect.top = 0;
+	rect.bottom = height;
+
 	if (!RegisterClass(&wc))
 	{
 		MessageBox(0, L"Failed To Register Window Class", L"ERROR", MB_OK | MB_ICONEXCLAMATION);
