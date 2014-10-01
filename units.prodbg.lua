@@ -48,6 +48,7 @@ StaticLibrary {
     Env = { 
 		CPPPATH = { 
 			"src/external/libuv/include",
+			"src/external/libuv/src",
 		},
 
         CCOPTS = {
@@ -172,7 +173,7 @@ Program {
             Extensions = { ".c", ".cpp", ".m", ".mm", ".h" },
             Filters = {
                 { Pattern = "mac"; Config = "macosx-*-*" },
-                { Pattern = "Windows"; Config = "win64-*-*" },
+                { Pattern = "windows"; Config = "win64-*-*" },
             },
         },
     },
