@@ -87,6 +87,7 @@ namespace bgfx
 
 		GLint interval = _vsync ? 1 : 0;
 		NSOpenGLContext* glContext = (NSOpenGLContext*)m_context;
+        [glContext update];
 		[glContext setValues:&interval forParameter:NSOpenGLCPSwapInterval];
 	}
 
