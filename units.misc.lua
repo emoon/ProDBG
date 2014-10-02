@@ -5,11 +5,11 @@ require "tundra.util"
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
-    Name = "RemoteAPI",
+    Name = "remote_api",
 
     Env = { 
         
-        CPPPATH = { "API/include" },
+        CPPPATH = { "api/include" },
         CCOPTS = {
             "-Wno-visibility",
             "-Wno-conversion", 
@@ -28,7 +28,7 @@ StaticLibrary {
 
     Sources = { 
         Glob {
-            Dir = "API/src/remote",
+            Dir = "api/src/remote",
             Extensions = { ".c" },
         },
     },
@@ -41,7 +41,7 @@ Program {
     Name = "fake6502",
 
     Env = {
-        CPPPATH = { "API/include" },
+        CPPPATH = { "api/include" },
         CCOPTS = {
             { 
             "-Wno-conversion", 
@@ -65,7 +65,7 @@ Program {
 
     Libs = { { "wsock32.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 
-    Depends = { "RemoteAPI" },
+    Depends = { "remote_api" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------

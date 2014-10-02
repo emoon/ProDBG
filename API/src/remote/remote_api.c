@@ -1,5 +1,5 @@
-#include "PDReadWrite_private.h"
-#include "RemoteConnection.h"
+#include "pd_readwrite_private.h"
+#include "remote_connection.h"
 #include <pd_backend.h>
 #include <pd_remote.h>
 

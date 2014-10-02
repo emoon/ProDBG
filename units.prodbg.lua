@@ -178,7 +178,7 @@ Program {
         },
     },
 
-    Depends = { "RemoteAPI", "stb", "bgfx", "nanovg", "uv" },
+    Depends = { "remote_api", "stb", "bgfx", "nanovg", "uv" },
 
     Libs = { { "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 
@@ -194,8 +194,8 @@ local prodbgBundle = OsxBundle
 	InfoPList = "Data/Mac/Info.plist",
 	Executable = "$(OBJECTDIR)/prodbg",
 	Resources = {
-		CompileNib { Source = "Data/Mac/appnib.xib", Target = "appnib.nib" },
-		"Data/Mac/icon.icns",
+		CompileNib { Source = "data/mac/appnib.xib", Target = "appnib.nib" },
+		"data/mac/icon.icns",
 	},
 }
 

@@ -1,5 +1,5 @@
 #include <pd_readwrite.h>
-#include "PDReadWrite_private.h"
+#include "pd_readwrite_private.h"
 #include "log.h"
 #include <stdlib.h>
 #include <stdio.h>
