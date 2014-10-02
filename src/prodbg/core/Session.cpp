@@ -1,9 +1,9 @@
-#include "Session.h"
-#include "core/Alloc.h"
-#include "core/Log.h"
-#include "api/PluginInstance.h"
-#include "api/src/remote/PDReadWrite_private.h"
-#include "api/src/remote/RemoteConnection.h"
+#include "session.h"
+#include "core/alloc.h"
+#include "core/log.h"
+#include "api/plugin_instance.h"
+#include "api/src/remote/pd_readwrite_private.h"
+#include "api/src/remote/remote_connection.h"
 #include <vector>
 #include <pd_view.h>
 #include <pd_backend.h>

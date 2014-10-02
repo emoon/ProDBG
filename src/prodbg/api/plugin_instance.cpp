@@ -1,4 +1,4 @@
-#include "PluginInstance.h"
+#include "plugin_instance.h"
 #include <pd_view.h>
 #include <string.h>
 #include <stdlib.h>
