@@ -171,6 +171,7 @@ static void drawCallback(void* userData, PDRect* viewRect, PDUIPainter* painter)
 static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 {
 	(void)serviceFunc;
+	(void)uiFuncs;
 	SourceCodeData* userData = (SourceCodeData*)malloc(sizeof(SourceCodeData));
 	memset(userData, 0, sizeof(SourceCodeData));
 	
