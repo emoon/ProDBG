@@ -1,11 +1,11 @@
 #include "plugin_handler.h"
-#include "io/shared_object.h"
 #include "log.h"
 #include "core.h"
 #include <pd_common.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <uv.h>
 
 namespace prodbg
 {
@@ -33,22 +33,42 @@ static void registerPlugin(const char* type, void* data)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static int openPlugin(const char* basePath, const char* plugin, uv_lib_t* lib)
+{
+	char filename[8192];
+
+#ifdef PRODBG_MAC
+	sprintf(filename, "%s/lib%s.dylib", basePath, plugin);
+#elif PRODBG_WIN
+	sprintf(filename, "%s\\%s.dll", basePath, plugin);
+#else
+	sprintf(filename, "%s/%s.so", basePath, plugin);
+#endif
+
+	return uv_dlopen(filename, lib);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 {
-    Handle handle;
+	uv_lib_t lib;
+	void* function;
+
     void* (*initPlugin)(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin);
 
-    if (!(handle = SharedObject_open(basePath, plugin)))
+	if (openPlugin(basePath, plugin, &lib) == -1)
+	{
+		log_error("Unable to open %s error:", uv_dlerror(&lib))
         return false;
+	}
 
-    void* function = SharedObject_getSym(handle, "InitPlugin");
-
-    if (!function)
-    {
+	if (uv_dlsym(&lib, "InitPlugin", &function) == -1)
+	{
         log_error("Unable to find InitPlugin function in plugin %s\n", plugin);
-        SharedObject_close(handle);
-        return false;
-    }
+		uv_dlclose(&lib);
+		return false;
+	}
 
     *(void**)(&initPlugin) = function;
 

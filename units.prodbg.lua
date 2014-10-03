@@ -133,14 +133,13 @@ Program {
 
     Env = {
         CPPPATH = { 
-            "../Arika/include", 
-            "src/External/stb",
+			"src/external/libuv/include",
+            "src/external/bgfx/include", 
+            "src/external/bx/include",
+            "src/external/nanovg",
+            "src/external/stb",
             "src/prodbg", 
-            "src/External/bgfx/include", 
         	"API/include",
-            "src/External/bx/include",
-            "src/External/nanovg",
-            -- "src/External/bgfx/entry",
             "src/frontend",
         },
 
@@ -180,7 +179,7 @@ Program {
 
     Depends = { "remote_api", "stb", "bgfx", "nanovg", "uv" },
 
-    Libs = { { "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
+    Libs = { { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 
     Frameworks = { "Cocoa"  },
 }
