@@ -6,14 +6,14 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <uv.h>
+#include <stb.h>
 
 namespace prodbg
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static Plugin s_plugins[128];
-static unsigned int s_pluginCount = 0;
+static Plugin* s_plugins;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -26,9 +26,7 @@ static void registerPlugin(const char* type, void* data)
 
     log_debug("Register plugin (type %s data %p)\n", type, data);
 
-    assert(s_pluginCount < sizeof_array(s_plugins));
-
-    s_plugins[s_pluginCount++] = plugin;
+	stb_arr_push(s_plugins, plugin);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,8 +79,8 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 
 Plugin* PluginHandler_getPlugins(int* count)
 {
-    *count = (int)s_pluginCount;
-    return &s_plugins[0];
+	*count = stb_arr_len(s_plugins);
+    return s_plugins;
 }
 
 }
