@@ -8,9 +8,6 @@
 #include <uv.h>
 #include <stb.h>
 
-namespace prodbg
-{
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static Plugin* s_plugins;
@@ -81,7 +78,5 @@ Plugin* PluginHandler_getPlugins(int* count)
 {
 	*count = stb_arr_len(s_plugins);
     return s_plugins;
-}
-
 }
 

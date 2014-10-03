@@ -1,16 +1,16 @@
 #pragma once
 
 #include <pd_ui.h>
+#include <stdbool.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct PDReader;
 struct PDWriter;
 struct PDViewPlugin;
 struct PDBackendPlugin;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-namespace prodbg
-{
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -25,13 +25,17 @@ struct PDBackendInstance
 struct ViewPluginInstance
 {
 	PDUI ui;
-	PDViewPlugin* plugin;
+	struct PDViewPlugin* plugin;
 	void* userData;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ViewPluginInstance* PluginInstance_createViewPlugin();
-bool PluginInstance_init(ViewPluginInstance* instance, PDViewPlugin* plugin);
+struct ViewPluginInstance* PluginInstance_createViewPlugin();
+bool PluginInstance_init(struct ViewPluginInstance* instance, struct PDViewPlugin* plugin);
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef __cplusplus
 }
+#endif

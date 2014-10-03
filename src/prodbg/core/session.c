@@ -4,15 +4,10 @@
 #include "api/plugin_instance.h"
 #include "api/src/remote/pd_readwrite_private.h"
 #include "api/src/remote/remote_connection.h"
-#include <vector>
 #include <pd_view.h>
 #include <pd_backend.h>
 #include <stdlib.h>
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-namespace prodbg
-{
+#include <stb.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -31,22 +26,16 @@ enum SessionType
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct Session
+typedef struct Session
 {
-	Session() : 
-		backend(nullptr), 
-		connection(nullptr)
-	{
-	}
-
-	SessionType type;
+	enum SessionType type;
     PDReader reader;
 	PDWriter backendWriter;
 	PDWriter viewPluginsWriter;
-	PDBackendInstance* backend;
-	RemoteConnection* connection;
-	std::vector<ViewPluginInstance*> viewPlugins;
-};
+	struct PDBackendInstance* backend;
+	struct RemoteConnection* connection;
+	struct ViewPluginInstance** viewPlugins;
+} Session;
 
 static void updateLocal(Session* s, PDAction action);
 
@@ -63,13 +52,13 @@ static void commonInit(Session* s)
 
 Session* Session_createRemote(const char* target, int port)
 {
-	Session* s = new Session; 
+	Session* s = alloc_zero(sizeof(Session));
 
 	commonInit(s);
 
 	s->type = Session_Remote;
 
-	RemoteConnection* conn = RemoteConnection_create(RemoteConnectionType_Connect, port);
+	struct RemoteConnection* conn = RemoteConnection_create(RemoteConnectionType_Connect, port);
 
 	if (!RemoteConnection_connect(conn, target, port))
 	{
@@ -91,18 +80,18 @@ Session* Session_createRemote(const char* target, int port)
 
 Session* Session_createLocal(PDBackendPlugin* backend, const char* filename)
 {
-	Session* s = new Session; 
+	Session* s = alloc_zero(sizeof(Session));
 
 	// setup temporary writer
 
-	PDWriter* writer = new PDWriter;
+	PDWriter* writer = alloc_zero(sizeof(PDWriter));
 	PDBinaryWriter_init(writer);
 
 	commonInit(s);
 
 	// Create the backend
 
-	s->backend = new PDBackendInstance;
+	s->backend = alloc_zero(sizeof(struct PDBackendInstance));
 	s->backend->plugin = backend;
 	s->backend->userData = backend->createInstance(0);
 
@@ -144,7 +133,7 @@ Session* Session_createLocal(PDBackendPlugin* backend, const char* filename)
 
 void Session_destroy(Session* session)
 {
-	delete session;
+	free(session);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -170,7 +159,7 @@ static const char* getStateName(int state)
 
 static void updateLocal(Session* s, PDAction action)
 {
-	PDBackendInstance* backend = s->backend;
+	struct PDBackendInstance* backend = s->backend;
 
 	PDBinaryReader_reset(&s->reader);
 
@@ -196,8 +185,11 @@ static void updateLocal(Session* s, PDAction action)
 
 	PDBinaryWriter_reset(&s->viewPluginsWriter);
 
-	for (auto p : s->viewPlugins)
+	int len = stb_arr_len(s->viewPlugins);
+
+	for (int i = 0; i < len; ++i)
 	{
+		struct ViewPluginInstance* p = s->viewPlugins[i];
 		p->plugin->update(p->userData, &p->ui, &s->reader, &s->viewPluginsWriter);
     	PDBinaryReader_reset(&s->reader);
 	}
@@ -274,8 +266,11 @@ static void updateRemote(Session* s, PDAction action)
 
 	PDBinaryWriter_reset(&s->viewPluginsWriter);
 
-	for (auto p : s->viewPlugins)
+	int len = stb_arr_len(s->viewPlugins);
+
+	for (int i = 0; i < len; ++i)
 	{
+		struct ViewPluginInstance* p = s->viewPlugins[i];
 		p->plugin->update(p->userData, &p->ui, &s->reader, &s->viewPluginsWriter);
     	PDBinaryReader_reset(&s->reader);
 	}
@@ -329,20 +324,18 @@ void Session_action(Session* s, PDAction action)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Session_addViewPlugin(Session* session, ViewPluginInstance* plugin)
+void Session_addViewPlugin(Session* session, struct ViewPluginInstance* plugin)
 {
-	session->viewPlugins.push_back(plugin);
+	stb_arr_push(session->viewPlugins, plugin);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Session_removeViewPlugin(Session* session, ViewPluginInstance* plugin)
+void Session_removeViewPlugin(Session* session, struct ViewPluginInstance* plugin)
 {
 	(void)session;
 	(void)plugin;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-}
 

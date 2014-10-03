@@ -164,6 +164,12 @@ Program {
 			{ "/EHsc"; Config = "win64-*-*" },
         },
 
+        CCOPTS = {
+        	{ 
+			  "/wd4201" -- namless struct/union
+			  ; Config = "win64-*-*" },
+        },
+
 		PROGCOM = {
 			{ "-lstdc++"; Config = "macosx-clang-*" },
 		},

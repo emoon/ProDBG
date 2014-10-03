@@ -36,6 +36,20 @@ static Context s_context;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static const char* s_plugins[] =
+{
+	"sourcecode_plugin", 
+	"callstack_plugin", 
+	"registers_plugin", 
+	"locals_plugin", 
+	"disassembly_plugin", 
+#ifdef PRODBG_MAC
+	"lldb_plugin",
+#endif
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ProDBG_create(void* window, int width, int height)
 {
 	Context* context = &s_context;
@@ -43,6 +57,12 @@ void ProDBG_create(void* window, int width, int height)
     (void)window;
     (void)width;
     (void)height;
+
+	for (uint32_t i = 0; i < sizeof_array(s_plugins); ++i)
+	{
+		if (!PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]))
+			return;
+	}
 
 #if BX_PLATFORM_OSX
 	bgfx::osxSetNSWindow(window);

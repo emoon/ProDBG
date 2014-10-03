@@ -16,17 +16,17 @@ typedef struct PDUI
 {
 	// Layout
 
-	void columns(int count, const char* id, int border);
-	void nextColumn();
+	void (*columns)(int count, const char* id, int border);
+	void (*nextColumn)();
 
 	// Text
 
-    void text(const char* fmt, ...);
+    void (*text)(const char* fmt, ...);
 
     // Widgets
 
-    int button(const char* label);
-    int buttonSize(const char* label, int width, int height, int repeatWhenHeld);
+    int (*button)(const char* label);
+    int (*buttonSize)(const char* label, int width, int height, int repeatWhenHeld);
 
 	void* privateData;
 
