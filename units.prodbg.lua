@@ -36,8 +36,8 @@ StaticLibrary {
 
     Sources = { 
         Glob {
-            Dir = "src/External/stb",
-            Extensions = { ".c" },
+            Dir = "src/external/stb",
+            Extensions = { ".c", ".h" },
         },
     },
 }
@@ -60,7 +60,7 @@ StaticLibrary {
     Sources = { 
         Glob {
             Dir = "src/external/jansson/src",
-            Extensions = { ".c" },
+            Extensions = { ".c", ".h" },
         },
     },
 }
@@ -104,9 +104,9 @@ StaticLibrary {
 
     Env = { 
         CPPPATH = { 
-            "src/External/bgfx/include",
-            "src/External/bx/include",
-            "src/External/bgfx/3rdparty/khronos",
+            "src/external/bgfx/include",
+            "src/external/bx/include",
+            "src/external/bgfx/3rdparty/khronos",
         },
         
         CXXOPTS = {
@@ -116,15 +116,15 @@ StaticLibrary {
     },
 
     Sources = { 
-		{ "src/External/bgfx/src/bgfx.cpp",
-		  "src/External/bgfx/src/image.cpp",
-		  "src/External/bgfx/src/vertexdecl.cpp",
-		  "src/External/bgfx/src/renderer_gl.cpp",
-		  "src/External/bgfx/src/renderer_null.cpp",
-		  "src/External/bgfx/src/renderer_d3d9.cpp", 
-		  "src/External/bgfx/src/renderer_d3d11.cpp" }, 
-	    { "src/External/bgfx/src/glcontext_wgl.cpp" ; Config = "win64-*-*" },
-	    { "src/External/bgfx/src/glcontext_nsgl.mm" ; Config = "macosx-*-*" },
+		{ "src/external/bgfx/src/bgfx.cpp",
+		  "src/external/bgfx/src/image.cpp",
+		  "src/external/bgfx/src/vertexdecl.cpp",
+		  "src/external/bgfx/src/renderer_gl.cpp",
+		  "src/external/bgfx/src/renderer_null.cpp",
+		  "src/external/bgfx/src/renderer_d3d9.cpp", 
+		  "src/external/bgfx/src/renderer_d3d11.cpp" }, 
+	    { "src/external/bgfx/src/glcontext_wgl.cpp" ; Config = "win64-*-*" },
+	    { "src/external/bgfx/src/glcontext_nsgl.mm" ; Config = "macosx-*-*" },
     },
 }
 
@@ -135,9 +135,9 @@ StaticLibrary {
 
     Env = { 
         CPPPATH = { 
-            "src/External/nanovg",
-            "src/External/stb",
-            "src/External/bgfx/include",
+            "src/external/nanovg",
+            "src/external/stb",
+            "src/external/bgfx/include",
         },
         
         CXXOPTS = {
@@ -147,7 +147,7 @@ StaticLibrary {
     },
 
     Sources = { 
-    	get_src("src/External/nanovg", true),
+    	get_src("src/external/nanovg", true),
     },
 }
 
@@ -158,13 +158,14 @@ Program {
 
     Env = {
         CPPPATH = { 
+			"src/external/jansson/include",
 			"src/external/libuv/include",
             "src/external/bgfx/include", 
             "src/external/bx/include",
             "src/external/nanovg",
             "src/external/stb",
             "src/prodbg", 
-        	"API/include",
+        	"api/include",
             "src/frontend",
         },
 

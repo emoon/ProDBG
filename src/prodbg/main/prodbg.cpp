@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <core/core.h>
 #include <core/plugin_handler.h>
+#include <core/math.h>
+#include "settings.h"
 //#include "ui/Application.h"
 
 #ifdef PRODBG_WIN
@@ -53,10 +55,14 @@ static const char* s_plugins[] =
 void ProDBG_create(void* window, int width, int height)
 {
 	Context* context = &s_context;
+	Rect settingsRect;
+
+	Settings_getWindowRect(&settingsRect);
+
+	width = settingsRect.width;
+	height = settingsRect.height;
 
     (void)window;
-    (void)width;
-    (void)height;
 
 	for (uint32_t i = 0; i < sizeof_array(s_plugins); ++i)
 	{
@@ -99,6 +105,7 @@ void ProDBG_setWindowSize(int width, int height)
 
 void ProDBG_destroy()
 {
+	Settings_save();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

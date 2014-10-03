@@ -2,7 +2,9 @@
 #include <windowsx.h>
 #include "resource.h"
 #include "../prodbg.h"
+#include "../settings.h"
 #include <string.h>
+#include <core/math.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -33,6 +35,7 @@ bool createWindow(const wchar_t* title, int width, int height)
 	DWORD exStyle;
 	DWORD style;
 	RECT rect;
+	Rect settingsRect;
 
 	HINSTANCE instance = GetModuleHandle(0);
 	memset(&wc, 0, sizeof(wc));
@@ -46,10 +49,12 @@ bool createWindow(const wchar_t* title, int width, int height)
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	//wc.lpszMenuName  = MAKEINTRESOURCE(IDR_MENU);
 
-	rect.left = 0;
-	rect.right = width;
-	rect.top = 0;
-	rect.bottom = height;
+	Settings_getWindowRect(&settingsRect);
+
+	rect.left = settingsRect.x;
+	rect.top = settingsRect.y;
+	rect.right = settingsRect.width;
+	rect.bottom = settingsRect.height;
 
 	if (!RegisterClass(&wc))
 	{
@@ -263,24 +268,19 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 
 		case WM_CLOSE:
 		{
-			/*
-			int res;
-			
-			if (!Editor_needsSave())
-			{
-				PostQuitMessage(0);
-				return 0;
-			}
+			RECT rect;
+			Rect settingsRect;
 
-			res = MessageBox(window, L"Do you want to save the work?", L"Save before exit?", MB_YESNOCANCEL | MB_ICONQUESTION); 
+			GetWindowRect(window, &rect);
 
-			if (res == IDCANCEL)
-				return 0;
+			settingsRect.x = rect.left;
+			settingsRect.y = rect.top;
+			settingsRect.width = rect.right;
+			settingsRect.height = rect.bottom;
 
-			if (res == IDYES)
-				Editor_saveBeforeExit();
-			*/
+			Settings_setWindowRect(&settingsRect);
 
+			prodbg::ProDBG_destroy();
 			PostQuitMessage(0);
 			return 0;
 		}
@@ -313,6 +313,8 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmndLine, i
 	bool done = false;	
 
 	memset(&msg, 0, sizeof(MSG));
+
+	Settings_load();
 
 	if (!createWindow(L"ProDBG", 1280, 720))
 		return 0;
