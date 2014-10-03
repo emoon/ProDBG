@@ -12,9 +12,9 @@
 #include <jansson_private_config.h>
 #endif
 
-#ifdef HAVE_STDINT_H
+//#ifdef HAVE_STDINT_H
 #include <stdint.h>
-#endif
+//#endif
 
 int utf8_encode(int32_t codepoint, char *buffer, size_t *size);
 

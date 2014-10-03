@@ -26,7 +26,6 @@ StaticLibrary {
     Name = "stb",
 
     Env = { 
-        
         CCOPTS = {
         	{ "-Wno-everything"; Config = "macosx-*-*" },
         	{ "/wd4244", "/wd4267", "/wd4133", "/wd4047", "/wd4204", "/wd4201", "/wd4701", "/wd4703",
@@ -38,6 +37,29 @@ StaticLibrary {
     Sources = { 
         Glob {
             Dir = "src/External/stb",
+            Extensions = { ".c" },
+        },
+    },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
+    Name = "jansson",
+
+    Env = { 
+		CPPPATH = { 
+			"src/external/jansson/include",
+		},
+
+        CCOPTS = {
+        	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
+        },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "src/external/jansson/src",
             Extensions = { ".c" },
         },
     },
@@ -186,7 +208,7 @@ Program {
         },
     },
 
-    Depends = { "remote_api", "stb", "bgfx", "nanovg", "uv" },
+    Depends = { "remote_api", "stb", "bgfx", "nanovg", "uv", "jansson" },
 
     Libs = { { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 

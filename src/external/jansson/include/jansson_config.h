@@ -47,7 +47,11 @@
 #ifdef __cplusplus
 #define JSON_INLINE inline
 #else
+#ifdef _WIN32
+#define JSON_INLINE __forceinline
+#else
 #define JSON_INLINE inline
+#endif
 #endif
 
 
