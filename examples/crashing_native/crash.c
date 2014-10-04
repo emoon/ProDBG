@@ -6,13 +6,13 @@ extern void callMe();
 
 int main()
 {
-	int i;
+    int i;
 
-	for (i = 0; i < 20; ++i)
-		printf("%d\n", i);
+    for (i = 0; i < 20; ++i)
+        printf("%d\n", i);
 
-	callMe();
+    callMe();
 
-	for (i = 0; i < 20; ++i)
-		printf("%d\n", i);
+    for (i = 0; i < 20; ++i)
+        printf("%d\n", i);
 }

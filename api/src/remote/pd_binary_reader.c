@@ -25,8 +25,8 @@ typedef struct ReaderData
 
 union Convert
 {
-    double   dv;
-    float    fv;
+    double dv;
+    float fv;
     uint64_t u32;
     uint64_t u64;
 };
@@ -145,15 +145,15 @@ static uint32_t readGetEvent(struct PDReader* reader)
 
     // make sure we actually have some data to process
 
-	if (data >= rData->dataEnd - 4)
-		return 0;
+    if (data >= rData->dataEnd - 4)
+        return 0;
 
     type = *data;
 
     if (type != PDReadType_event)
     {
         log_info("Unable to read event as type is wrong (expected %d but got %d) all read operations will now fail.\n",
-               PDReadType_event, type);
+                 PDReadType_event, type);
         return 0;
     }
 
@@ -196,10 +196,10 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
         uint32_t size;
         uint8_t typeId = getU8(start);
 
-		///if (typeId <PDReadType_count)
-		//	log_debug("typeId %s\n", typeTable[typeId]);
-		//else
-		//	log_debug("typeId %d (outside valid range)\n", typeId);
+        ///if (typeId <PDReadType_count)
+        //	log_debug("typeId %s\n", typeTable[typeId]);
+        //else
+        //	log_debug("typeId %d (outside valid range)\n", typeId);
 
         // data is a special case as it has 32-bit size instead of 64k
 

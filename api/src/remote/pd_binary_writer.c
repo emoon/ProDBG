@@ -193,8 +193,8 @@ static PDWriteStatus writeU64(struct PDWriter* writer, const char* id, uint64_t 
 
 union Convert
 {
-    double   dv;
-    float    fv;
+    double dv;
+    float fv;
     uint32_t u32;
     uint64_t u64;
 };

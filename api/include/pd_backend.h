@@ -56,8 +56,8 @@ typedef enum PDEventType
     PDEventType_setExceptionLocation,
     PDEventType_getDisassembly,
     PDEventType_setDisassembly,
-	PDEventType_getStatus,
-	PDEventType_setStatus,
+    PDEventType_getStatus,
+    PDEventType_setStatus,
 
     PDEventType_setBreakpoint,
     PDEventType_getBreakpoint,
@@ -78,11 +78,11 @@ typedef struct PDBackendPlugin
     const char* version;
     const char* name;
 
-    void* (*createInstance)(ServiceFunc* serviceFunc);
-    void (*destroyInstance)(void* userData);
+    void* (*createInstance)(ServiceFunc * serviceFunc);
+    void (* destroyInstance)(void* userData);
 
     // Updates and Returns the current state of the plugin.
-    PDDebugState (*update)(void* userData, PDAction action, PDReader* inEvents, PDWriter* outEvents);
+    PDDebugState (* update)(void* userData, PDAction action, PDReader* inEvents, PDWriter* outEvents);
 
 } PDBackendPlugin;
 

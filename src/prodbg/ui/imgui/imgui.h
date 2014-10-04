@@ -67,43 +67,43 @@ struct ImVec4
 #endif
 };
 
-// std::vector<> like class to avoid dragging dependencies (also: windows implementation of STL with debug enabled is absurdly slow, so let's bypass it so our code runs fast in debug). 
+// std::vector<> like class to avoid dragging dependencies (also: windows implementation of STL with debug enabled is absurdly slow, so let's bypass it so our code runs fast in debug).
 // this implementation does NOT call c++ constructors! we don't need them! also only provide the minimum functionalities we need.
 #ifndef ImVector
 template<typename T>
 class ImVector
 {
 private:
-    size_t                      Size;
-    size_t                      Capacity;
+    size_t Size;
+    size_t Capacity;
     T*                          Data;
 
 public:
-    typedef T                   value_type;
+    typedef T value_type;
     typedef value_type*         iterator;
     typedef const value_type*   const_iterator;
 
     ImVector()                  { Size = Capacity = 0; Data = NULL; }
     ~ImVector()                 { if (Data) IM_FREE(Data); }
 
-    inline bool                 empty() const                   { return Size == 0; }
-    inline size_t               size() const                    { return Size; }
-    inline size_t               capacity() const                { return Capacity; }
+    inline bool                 empty() const { return Size == 0; }
+    inline size_t               size() const { return Size; }
+    inline size_t               capacity() const { return Capacity; }
 
     inline value_type&          at(size_t i)                    { IM_ASSERT(i < Size); return Data[i]; }
-    inline const value_type&    at(size_t i) const              { IM_ASSERT(i < Size); return Data[i]; }
+    inline const value_type&    at(size_t i) const { IM_ASSERT(i < Size); return Data[i]; }
     inline value_type&          operator[](size_t i)            { IM_ASSERT(i < Size); return Data[i]; }
-    inline const value_type&    operator[](size_t i) const      { IM_ASSERT(i < Size); return Data[i]; }
+    inline const value_type&    operator[](size_t i) const { IM_ASSERT(i < Size); return Data[i]; }
 
     inline void                 clear()                         { if (Data) { Size = Capacity = 0; IM_FREE(Data); Data = NULL; } }
     inline iterator             begin()                         { return Data; }
-    inline const_iterator       begin() const                   { return Data; }
+    inline const_iterator       begin() const { return Data; }
     inline iterator             end()                           { return Data + Size; }
-    inline const_iterator       end() const                     { return Data + Size; }
+    inline const_iterator       end() const { return Data + Size; }
     inline value_type&          front()                         { return at(0); }
-    inline const value_type&    front() const                   { return at(0); }
-    inline value_type&          back()                          { IM_ASSERT(Size > 0); return at(Size-1); }
-    inline const value_type&    back() const                    { IM_ASSERT(Size > 0); return at(Size-1); }
+    inline const value_type&    front() const { return at(0); }
+    inline value_type&          back()                          { IM_ASSERT(Size > 0); return at(Size - 1); }
+    inline const value_type&    back() const { IM_ASSERT(Size > 0); return at(Size - 1); }
     inline void                 swap(ImVector<T>& rhs)          { const size_t rhs_size = rhs.Size; rhs.Size = Size; Size = rhs_size; const size_t rhs_cap = rhs.Capacity; rhs.Capacity = Capacity; Capacity = rhs_cap; value_type* rhs_data = rhs.Data; rhs.Data = Data; Data = rhs_data; }
 
     inline void                 reserve(size_t new_capacity)    { Data = (value_type*)IM_REALLOC(Data, new_capacity * sizeof(value_type)); Capacity = new_capacity; }
@@ -129,147 +129,147 @@ public:
 // In a namespace so that user can add extra functions (e.g. Value() helpers for your vector or common types)
 namespace ImGui
 {
-    // Main
-    ImGuiIO&    GetIO();
-    ImGuiStyle& GetStyle();
-    void        NewFrame();
-    void        Render();
-    void        Shutdown();
-    void        ShowUserGuide();
-    void        ShowStyleEditor(ImGuiStyle* ref = NULL);
-    void        ShowTestWindow(bool* open = NULL);
+// Main
+ImGuiIO&    GetIO();
+ImGuiStyle& GetStyle();
+void        NewFrame();
+void        Render();
+void        Shutdown();
+void        ShowUserGuide();
+void        ShowStyleEditor(ImGuiStyle* ref = NULL);
+void        ShowTestWindow(bool* open = NULL);
 
-    // Window
-    bool        Begin(const char* name = "Debug", bool* open = NULL, ImVec2 size = ImVec2(0,0), float fill_alpha = -1.0f, ImGuiWindowFlags flags = 0);
-    void        End();
-    void        BeginChild(const char* str_id, ImVec2 size = ImVec2(0,0), bool border = false, ImGuiWindowFlags extra_flags = 0);
-    void        EndChild();
-    bool        GetWindowIsFocused();
-    ImVec2      GetWindowSize();
-    float       GetWindowWidth();
-    ImVec2      GetWindowPos();                                                     // you should rarely need/care about the window position, but it can be useful if you want to use your own drawing.
-    void        SetWindowPos(const ImVec2& pos);                                    // set current window pos.
-    ImVec2      GetWindowContentRegionMin();
-    ImVec2      GetWindowContentRegionMax();
-    ImDrawList* GetWindowDrawList();                                                // get rendering command-list if you want to append your own draw primitives.
-    void        SetFontScale(float scale);
-    void        SetScrollPosHere();                                                 // adjust scrolling position to center into the current cursor position.
-    void        SetTreeStateStorage(ImGuiStorage* tree);                            // replace tree state storage with our own (if you want to manipulate it yourself, typically clear subsection of it).
-    ImGuiStorage* GetTreeStateStorage();
-    void        PushItemWidth(float item_width);
-    void        PopItemWidth();
-    float       GetItemWidth();
-    void        PushAllowKeyboardFocus(bool v);
-    void        PopAllowKeyboardFocus();
-    void        PushStyleColor(ImGuiCol idx, const ImVec4& col);
-    void        PopStyleColor();
+// Window
+bool        Begin(const char* name = "Debug", bool* open = NULL, ImVec2 size = ImVec2(0, 0), float fill_alpha = -1.0f, ImGuiWindowFlags flags = 0);
+void        End();
+void        BeginChild(const char* str_id, ImVec2 size = ImVec2(0, 0), bool border = false, ImGuiWindowFlags extra_flags = 0);
+void        EndChild();
+bool        GetWindowIsFocused();
+ImVec2      GetWindowSize();
+float       GetWindowWidth();
+ImVec2      GetWindowPos();                                                         // you should rarely need/care about the window position, but it can be useful if you want to use your own drawing.
+void        SetWindowPos(const ImVec2& pos);                                        // set current window pos.
+ImVec2      GetWindowContentRegionMin();
+ImVec2      GetWindowContentRegionMax();
+ImDrawList* GetWindowDrawList();                                                    // get rendering command-list if you want to append your own draw primitives.
+void        SetFontScale(float scale);
+void        SetScrollPosHere();                                                     // adjust scrolling position to center into the current cursor position.
+void        SetTreeStateStorage(ImGuiStorage* tree);                                // replace tree state storage with our own (if you want to manipulate it yourself, typically clear subsection of it).
+ImGuiStorage* GetTreeStateStorage();
+void        PushItemWidth(float item_width);
+void        PopItemWidth();
+float       GetItemWidth();
+void        PushAllowKeyboardFocus(bool v);
+void        PopAllowKeyboardFocus();
+void        PushStyleColor(ImGuiCol idx, const ImVec4& col);
+void        PopStyleColor();
 
-    // Tooltip
-    void        SetTooltip(const char* fmt, ...);                                   // set tooltip under mouse-cursor, typically use with ImGui::IsHovered(). last call wins.
-    void        BeginTooltip();                                                     // use to create full-featured tooltip windows that aren't just text.
-    void        EndTooltip();
+// Tooltip
+void        SetTooltip(const char* fmt, ...);                                       // set tooltip under mouse-cursor, typically use with ImGui::IsHovered(). last call wins.
+void        BeginTooltip();                                                         // use to create full-featured tooltip windows that aren't just text.
+void        EndTooltip();
 
-    // Layout
-    void        Separator();                                                        // horizontal line
-    void        SameLine(int column_x = 0, int spacing_w = -1);                     // call between widgets to layout them horizontally
-    void        Spacing();
-    void        Columns(int count = 1, const char* id = NULL, bool border=true);    // setup number of columns
-    void        NextColumn();                                                       // next column
-    float       GetColumnOffset(int column_index = -1);
-    void        SetColumnOffset(int column_index, float offset);
-    float       GetColumnWidth(int column_index = -1);
-    ImVec2      GetCursorPos();                                                     // cursor position relative to window position
-    void        SetCursorPos(const ImVec2& pos);                                    // "
-    void        SetCursorPosX(float x);                                             // "
-    void        SetCursorPosY(float y);                                             // "
-    ImVec2      GetCursorScreenPos();												// cursor position in screen space
-    void        AlignFirstTextHeightToWidgets();                                    // call once if the first item on the line is a Text() item and you want to vertically lower it to match subsequent (bigger) widgets.
-    float       GetTextLineSpacing();
-    float       GetTextLineHeight();
+// Layout
+void        Separator();                                                            // horizontal line
+void        SameLine(int column_x = 0, int spacing_w = -1);                         // call between widgets to layout them horizontally
+void        Spacing();
+void        Columns(int count = 1, const char* id = NULL, bool border = true);      // setup number of columns
+void        NextColumn();                                                           // next column
+float       GetColumnOffset(int column_index = -1);
+void        SetColumnOffset(int column_index, float offset);
+float       GetColumnWidth(int column_index = -1);
+ImVec2      GetCursorPos();                                                         // cursor position relative to window position
+void        SetCursorPos(const ImVec2& pos);                                        // "
+void        SetCursorPosX(float x);                                                 // "
+void        SetCursorPosY(float y);                                                 // "
+ImVec2      GetCursorScreenPos();                                                   // cursor position in screen space
+void        AlignFirstTextHeightToWidgets();                                        // call once if the first item on the line is a Text() item and you want to vertically lower it to match subsequent (bigger) widgets.
+float       GetTextLineSpacing();
+float       GetTextLineHeight();
 
-    // ID scopes
-    void        PushID(const char* str_id);
-    void        PushID(const void* ptr_id);
-    void        PushID(const int int_id);
-    void        PopID();
+// ID scopes
+void        PushID(const char* str_id);
+void        PushID(const void* ptr_id);
+void        PushID(const int int_id);
+void        PopID();
 
-    // Widgets
-    void        Text(const char* fmt, ...);
-    void        TextV(const char* fmt, va_list args);
-    void        TextColored(const ImVec4& col, const char* fmt, ...);               // shortcut to doing PushStyleColor(ImGuiCol_Text, col); Text(fmt, ...); PopStyleColor();
-    void        TextUnformatted(const char* text, const char* text_end = NULL);     // doesn't require null terminated string if 'text_end' is specified. no copy done to any bounded stack buffer, better for long chunks of text.
-    void        LabelText(const char* label, const char* fmt, ...);
-    void        BulletText(const char* fmt, ...);
-    bool        Button(const char* label, ImVec2 size = ImVec2(0,0), bool repeat_when_held = false);
-    bool        SmallButton(const char* label);
-    bool        CollapsingHeader(const char* label, const char* str_id = NULL, const bool display_frame = true, const bool default_open = false);
-    bool        SliderFloat(const char* label, float* v, float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);     // adjust display_format to decorate the value with a prefix or a suffix. Use power!=1.0 for logarithmic sliders.
-    bool        SliderFloat2(const char* label, float v[2], float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);
-    bool        SliderFloat3(const char* label, float v[3], float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);
-    bool        SliderFloat4(const char* label, float v[4], float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);
-    bool        SliderAngle(const char* label, float* v, float v_degrees_min = -360.0f, float v_degrees_max = +360.0f);     // *v in radians
-    bool        SliderInt(const char* label, int* v, int v_min, int v_max, const char* display_format = "%.0f");
-    void        PlotLines(const char* label, const float* values, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0,0), size_t stride = sizeof(float));
-    void        PlotHistogram(const char* label, const float* values, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0,0), size_t stride = sizeof(float));
-    bool        Checkbox(const char* label, bool* v);
-    bool        CheckboxFlags(const char* label, unsigned int* flags, unsigned int flags_value);
-    bool        RadioButton(const char* label, bool active);
-    bool        RadioButton(const char* label, int* v, int v_button);
-    bool        InputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags = 0);
-    bool        InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, int decimal_precision = -1, ImGuiInputTextFlags extra_flags = 0);
-    bool        InputFloat2(const char* label, float v[2], int decimal_precision = -1);
-    bool        InputFloat3(const char* label, float v[3], int decimal_precision = -1);
-    bool        InputFloat4(const char* label, float v[4], int decimal_precision = -1);
-    bool        InputInt(const char* label, int* v, int step = 1, int step_fast = 100, ImGuiInputTextFlags extra_flags = 0);
-    bool        Combo(const char* label, int* current_item, const char** items, int items_count, int popup_height_items = 7);
-    bool        Combo(const char* label, int* current_item, const char* items_separated_by_zeros, int popup_height_items = 7);      // Separate items with \0, end item-list with \0\0
-    bool        Combo(const char* label, int* current_item, bool (*items_getter)(void* data, int idx, const char** out_text), void* data, int items_count, int popup_height_items = 7);
-    bool        ColorButton(const ImVec4& col, bool small_height = false, bool outline_border = true);
-    bool        ColorEdit3(const char* label, float col[3]);
-    bool        ColorEdit4(const char* label, float col[4], bool show_alpha = true);
-    void        ColorEditMode(ImGuiColorEditMode mode);
-    bool        TreeNode(const char* str_label_id);                                 // if returning 'true' the node is open and the user is responsible for calling TreePop
-    bool        TreeNode(const char* str_id, const char* fmt, ...);                 // "
-    bool        TreeNode(const void* ptr_id, const char* fmt, ...);                 // "
-    void        TreePush(const char* str_id = NULL);                                // already called by TreeNode(), but you can call Push/Pop yourself for layouting purpose
-    void        TreePush(const void* ptr_id = NULL);                                // "
-    void        TreePop();
-    void        OpenNextNode(bool open);                                            // force open/close the next TreeNode or CollapsingHeader
+// Widgets
+void        Text(const char* fmt, ...);
+void        TextV(const char* fmt, va_list args);
+void        TextColored(const ImVec4& col, const char* fmt, ...);                   // shortcut to doing PushStyleColor(ImGuiCol_Text, col); Text(fmt, ...); PopStyleColor();
+void        TextUnformatted(const char* text, const char* text_end = NULL);         // doesn't require null terminated string if 'text_end' is specified. no copy done to any bounded stack buffer, better for long chunks of text.
+void        LabelText(const char* label, const char* fmt, ...);
+void        BulletText(const char* fmt, ...);
+bool        Button(const char* label, ImVec2 size = ImVec2(0, 0), bool repeat_when_held = false);
+bool        SmallButton(const char* label);
+bool        CollapsingHeader(const char* label, const char* str_id = NULL, const bool display_frame = true, const bool default_open = false);
+bool        SliderFloat(const char* label, float* v, float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);         // adjust display_format to decorate the value with a prefix or a suffix. Use power!=1.0 for logarithmic sliders.
+bool SliderFloat2(const char* label, float v[2], float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);
+bool SliderFloat3(const char* label, float v[3], float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);
+bool SliderFloat4(const char* label, float v[4], float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);
+bool        SliderAngle(const char* label, float* v, float v_degrees_min = -360.0f, float v_degrees_max = +360.0f);         // *v in radians
+bool        SliderInt(const char* label, int* v, int v_min, int v_max, const char* display_format = "%.0f");
+void        PlotLines(const char* label, const float* values, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0), size_t stride = sizeof(float));
+void        PlotHistogram(const char* label, const float* values, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0), size_t stride = sizeof(float));
+bool        Checkbox(const char* label, bool* v);
+bool        CheckboxFlags(const char* label, unsigned int* flags, unsigned int flags_value);
+bool        RadioButton(const char* label, bool active);
+bool        RadioButton(const char* label, int* v, int v_button);
+bool        InputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags = 0);
+bool        InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, int decimal_precision = -1, ImGuiInputTextFlags extra_flags = 0);
+bool InputFloat2(const char* label, float v[2], int decimal_precision = -1);
+bool InputFloat3(const char* label, float v[3], int decimal_precision = -1);
+bool InputFloat4(const char* label, float v[4], int decimal_precision = -1);
+bool        InputInt(const char* label, int* v, int step = 1, int step_fast = 100, ImGuiInputTextFlags extra_flags = 0);
+bool        Combo(const char* label, int* current_item, const char** items, int items_count, int popup_height_items = 7);
+bool        Combo(const char* label, int* current_item, const char* items_separated_by_zeros, int popup_height_items = 7);          // Separate items with \0, end item-list with \0\0
+bool        Combo(const char* label, int* current_item, bool (* items_getter)(void* data, int idx, const char** out_text), void* data, int items_count, int popup_height_items = 7);
+bool        ColorButton(const ImVec4& col, bool small_height = false, bool outline_border = true);
+bool ColorEdit3(const char* label, float col[3]);
+bool ColorEdit4(const char* label, float col[4], bool show_alpha = true);
+void        ColorEditMode(ImGuiColorEditMode mode);
+bool        TreeNode(const char* str_label_id);                                     // if returning 'true' the node is open and the user is responsible for calling TreePop
+bool        TreeNode(const char* str_id, const char* fmt, ...);                     // "
+bool        TreeNode(const void* ptr_id, const char* fmt, ...);                     // "
+void        TreePush(const char* str_id = NULL);                                    // already called by TreeNode(), but you can call Push/Pop yourself for layouting purpose
+void        TreePush(const void* ptr_id = NULL);                                    // "
+void        TreePop();
+void        OpenNextNode(bool open);                                                // force open/close the next TreeNode or CollapsingHeader
 
 
-    // Value helper output "name: value"
-    // Freely declare your own in the ImGui namespace.
-    void        Value(const char* prefix, bool b);
-    void        Value(const char* prefix, int v);
-    void        Value(const char* prefix, unsigned int v);
-    void        Value(const char* prefix, float v, const char* float_format = NULL);
-    void        Color(const char* prefix, const ImVec4& v);
-    void        Color(const char* prefix, unsigned int v);
+// Value helper output "name: value"
+// Freely declare your own in the ImGui namespace.
+void        Value(const char* prefix, bool b);
+void        Value(const char* prefix, int v);
+void        Value(const char* prefix, unsigned int v);
+void        Value(const char* prefix, float v, const char* float_format = NULL);
+void        Color(const char* prefix, const ImVec4& v);
+void        Color(const char* prefix, unsigned int v);
 
-    // Logging
-    void        LogButtons();
-    void        LogToTTY(int max_depth = -1);
-    void        LogToFile(int max_depth = -1, const char* filename = NULL);
-    void        LogToClipboard(int max_depth = -1);
+// Logging
+void        LogButtons();
+void        LogToTTY(int max_depth = -1);
+void        LogToFile(int max_depth = -1, const char* filename = NULL);
+void        LogToClipboard(int max_depth = -1);
 
-    // Utilities
-    void        SetNewWindowDefaultPos(const ImVec2& pos);                          // set position of window that do
-    bool        IsHovered();                                                        // was the last item active area hovered by mouse?
-    ImVec2      GetItemBoxMin();                                                    // get bounding box of last item
-    ImVec2      GetItemBoxMax();                                                    // get bounding box of last item
-    bool        IsClipped(const ImVec2& item_size);                                 // to perform coarse clipping on user's side (as an optimisation)
-    bool        IsKeyPressed(int key_index, bool repeat = true);                    // key_index into the keys_down[512] array, imgui doesn't know the semantic of each entry
-    bool        IsMouseClicked(int button, bool repeat = false);
-    bool        IsMouseDoubleClicked(int button);
-    bool        IsMouseHoveringBox(const ImVec2& box_min, const ImVec2& box_max);
-    ImVec2      GetMousePos();
-    float       GetTime();
-    int         GetFrameCount();
-    const char* GetStyleColorName(ImGuiCol idx);
-    void        GetDefaultFontData(const void** fnt_data, unsigned int* fnt_size, const void** png_data, unsigned int* png_size);
-    ImVec2      CalcTextSize(const char* text, const char* text_end = NULL, const bool hide_text_after_hash = true);
+// Utilities
+void        SetNewWindowDefaultPos(const ImVec2& pos);                              // set position of window that do
+bool        IsHovered();                                                            // was the last item active area hovered by mouse?
+ImVec2      GetItemBoxMin();                                                        // get bounding box of last item
+ImVec2      GetItemBoxMax();                                                        // get bounding box of last item
+bool        IsClipped(const ImVec2& item_size);                                     // to perform coarse clipping on user's side (as an optimisation)
+bool        IsKeyPressed(int key_index, bool repeat = true);                        // key_index into the keys_down[512] array, imgui doesn't know the semantic of each entry
+bool        IsMouseClicked(int button, bool repeat = false);
+bool        IsMouseDoubleClicked(int button);
+bool        IsMouseHoveringBox(const ImVec2& box_min, const ImVec2& box_max);
+ImVec2      GetMousePos();
+float       GetTime();
+int         GetFrameCount();
+const char* GetStyleColorName(ImGuiCol idx);
+void        GetDefaultFontData(const void** fnt_data, unsigned int* fnt_size, const void** png_data, unsigned int* png_size);
+ImVec2      CalcTextSize(const char* text, const char* text_end = NULL, const bool hide_text_after_hash = true);
 
-}; // namespace ImGui
+}  // namespace ImGui
 
 // Flags for ImGui::Begin()
 enum ImGuiWindowFlags_
@@ -373,20 +373,20 @@ enum ImGuiColorEditMode_
 
 struct ImGuiStyle
 {
-    float       Alpha;                      // Global alpha applies to everything in ImGui
-    ImVec2      WindowPadding;              // Padding within a window
-    ImVec2      WindowMinSize;              // Minimum window size
-    ImVec2      FramePadding;               // Padding within a framed rectangle (used by most widgets)
-    ImVec2      ItemSpacing;                // Horizontal and vertical spacing between widgets/lines
-    ImVec2      ItemInnerSpacing;           // Horizontal and vertical spacing between within elements of a composed widget (e.g. a slider and its label)
-    ImVec2      TouchExtraPadding;          // Expand bounding box for touch-based system where touch position is not accurate enough (unnecessary for mouse inputs). Unfortunately we don't sort widgets so priority on overlap will always be given to the first widget running. So dont grow this too much!
-    ImVec2      AutoFitPadding;             // Extra space after auto-fit (double-clicking on resize grip)
-    float       WindowFillAlphaDefault;     // Default alpha of window background, if not specified in ImGui::Begin()
-    float       WindowRounding;             // Radius of window corners rounding. Set to 0.0f to have rectangular windows
-    float       TreeNodeSpacing;            // Horizontal spacing when entering a tree node
-    float       ColumnsMinSpacing;          // Minimum horizontal spacing between two columns
-    float       ScrollBarWidth;             // Width of the vertical scroll bar
-    ImVec4      Colors[ImGuiCol_COUNT];
+    float Alpha;                            // Global alpha applies to everything in ImGui
+    ImVec2 WindowPadding;                   // Padding within a window
+    ImVec2 WindowMinSize;                   // Minimum window size
+    ImVec2 FramePadding;                    // Padding within a framed rectangle (used by most widgets)
+    ImVec2 ItemSpacing;                     // Horizontal and vertical spacing between widgets/lines
+    ImVec2 ItemInnerSpacing;                // Horizontal and vertical spacing between within elements of a composed widget (e.g. a slider and its label)
+    ImVec2 TouchExtraPadding;               // Expand bounding box for touch-based system where touch position is not accurate enough (unnecessary for mouse inputs). Unfortunately we don't sort widgets so priority on overlap will always be given to the first widget running. So dont grow this too much!
+    ImVec2 AutoFitPadding;                  // Extra space after auto-fit (double-clicking on resize grip)
+    float WindowFillAlphaDefault;           // Default alpha of window background, if not specified in ImGui::Begin()
+    float WindowRounding;                   // Radius of window corners rounding. Set to 0.0f to have rectangular windows
+    float TreeNodeSpacing;                  // Horizontal spacing when entering a tree node
+    float ColumnsMinSpacing;                // Minimum horizontal spacing between two columns
+    float ScrollBarWidth;                   // Width of the vertical scroll bar
+    ImVec4 Colors[ImGuiCol_COUNT];
 
     ImGuiStyle();
 };
@@ -396,56 +396,56 @@ struct ImGuiStyle
 struct ImGuiIO
 {
     // Settings (fill once)                 // Default value:
-    ImVec2      DisplaySize;                // <unset>                  // Display size, in pixels. For clamping windows positions.
-    float       DeltaTime;                  // = 1.0f/60.0f             // Time elapsed since last frame, in seconds.
-    float       IniSavingRate;              // = 5.0f                   // Maximum time between saving .ini file, in seconds. Set to a negative value to disable .ini saving.
+    ImVec2 DisplaySize;                     // <unset>                  // Display size, in pixels. For clamping windows positions.
+    float DeltaTime;                        // = 1.0f/60.0f             // Time elapsed since last frame, in seconds.
+    float IniSavingRate;                    // = 5.0f                   // Maximum time between saving .ini file, in seconds. Set to a negative value to disable .ini saving.
     const char* IniFilename;                // = "imgui.ini"            // Absolute path to .ini file.
     const char* LogFilename;                // = "imgui_log.txt"        // Absolute path to .log file.
-    float       MouseDoubleClickTime;       // = 0.30f                  // Time for a double-click, in seconds.
-    float       MouseDoubleClickMaxDist;    // = 6.0f                   // Distance threshold to stay in to validate a double-click, in pixels.
-    int         KeyMap[ImGuiKey_COUNT];     // <unset>                  // Map of indices into the KeysDown[512] entries array
-    ImFont      Font;                       // <auto>                   // Gets passed to text functions. Typedef ImFont to the type you want (ImBitmapFont* or your own font).
-	float		FontYOffset;				// = 0.0f					// Offset font rendering by xx pixels in Y axis.
-    ImVec2      FontTexUvForWhite;          // = (0.0f,0.0f)            // Font texture must have a white pixel at this UV coordinate. Adjust if you are using custom texture.
-    bool        FontAllowScaling;           // = false                  // Set to allow scaling text with CTRL+Wheel.
-    float       PixelCenterOffset;          // = 0.0f                   // Try to set to 0.5f or 0.375f if rendering is blurry
+    float MouseDoubleClickTime;             // = 0.30f                  // Time for a double-click, in seconds.
+    float MouseDoubleClickMaxDist;          // = 6.0f                   // Distance threshold to stay in to validate a double-click, in pixels.
+    int KeyMap[ImGuiKey_COUNT];             // <unset>                  // Map of indices into the KeysDown[512] entries array
+    ImFont Font;                            // <auto>                   // Gets passed to text functions. Typedef ImFont to the type you want (ImBitmapFont* or your own font).
+    float FontYOffset;                      // = 0.0f					// Offset font rendering by xx pixels in Y axis.
+    ImVec2 FontTexUvForWhite;               // = (0.0f,0.0f)            // Font texture must have a white pixel at this UV coordinate. Adjust if you are using custom texture.
+    bool FontAllowScaling;                  // = false                  // Set to allow scaling text with CTRL+Wheel.
+    float PixelCenterOffset;                // = 0.0f                   // Try to set to 0.5f or 0.375f if rendering is blurry
 
     // Settings - Rendering function (REQUIRED)
     // See example code if you are unsure of how to implement this.
-    void        (*RenderDrawListsFn)(ImDrawList** const draw_lists, int count);
+    void (* RenderDrawListsFn)(ImDrawList** const draw_lists, int count);
 
     // Settings - Clipboard Support
     // Override to provide your clipboard handlers.
-    // On Windows architecture, defaults to use the native Win32 clipboard, otherwise default to use a ImGui private clipboard. 
+    // On Windows architecture, defaults to use the native Win32 clipboard, otherwise default to use a ImGui private clipboard.
     // NB- for SetClipboardTextFn, the string is *NOT* zero-terminated at 'text_end'
-    const char* (*GetClipboardTextFn)();                                        
-    void        (*SetClipboardTextFn)(const char* text, const char* text_end);
+    const char* (* GetClipboardTextFn)();
+    void (* SetClipboardTextFn)(const char* text, const char* text_end);
 
     // Input - Fill before calling NewFrame()
-    ImVec2      MousePos;                   // Mouse position, in pixels (set to -1,-1 if no mouse / on another screen, etc.)
-    bool        MouseDown[5];               // Mouse buttons. ImGui itself only uses button 0 (left button) but you can use others as storage for convenience.
-    int         MouseWheel;                 // Mouse wheel: -1,0,+1
-    bool        KeyCtrl;                    // Keyboard modifier pressed: Control
-    bool        KeyShift;                   // Keyboard modifier pressed: Shift
-    bool        KeysDown[512];              // Keyboard keys that are pressed (in whatever order user naturally has access to keyboard data)
-    char        InputCharacters[16];        // List of characters input (translated by user from keypress+keyboard state). Fill using AddInputCharacter() helper.
+    ImVec2 MousePos;                        // Mouse position, in pixels (set to -1,-1 if no mouse / on another screen, etc.)
+    bool MouseDown[5];                      // Mouse buttons. ImGui itself only uses button 0 (left button) but you can use others as storage for convenience.
+    int MouseWheel;                         // Mouse wheel: -1,0,+1
+    bool KeyCtrl;                           // Keyboard modifier pressed: Control
+    bool KeyShift;                          // Keyboard modifier pressed: Shift
+    bool KeysDown[512];                     // Keyboard keys that are pressed (in whatever order user naturally has access to keyboard data)
+    char InputCharacters[16];               // List of characters input (translated by user from keypress+keyboard state). Fill using AddInputCharacter() helper.
 
     // Output - Retrieve after calling NewFrame(), you can use them to discard inputs or hide them from the rest of your application
-    bool        WantCaptureMouse;           // ImGui is using your mouse input (= window is being hovered or widget is active).
-    bool        WantCaptureKeyboard;        // imGui is using your keyboard input (= widget is active).
+    bool WantCaptureMouse;                  // ImGui is using your mouse input (= window is being hovered or widget is active).
+    bool WantCaptureKeyboard;               // imGui is using your keyboard input (= widget is active).
 
     // Function
     void        AddInputCharacter(char c);  // Helper to add a new character into InputCharacters[]
 
     // [Internal] ImGui will maintain those fields for you
-    ImVec2      MousePosPrev;
-    ImVec2      MouseDelta;
-    bool        MouseClicked[5];
-    ImVec2      MouseClickedPos[5];
-    float       MouseClickedTime[5];
-    bool        MouseDoubleClicked[5];
-    float       MouseDownTime[5];
-    float       KeysDownTime[512];
+    ImVec2 MousePosPrev;
+    ImVec2 MouseDelta;
+    bool MouseClicked[5];
+    ImVec2 MouseClickedPos[5];
+    float MouseClickedTime[5];
+    bool MouseDoubleClicked[5];
+    float MouseDownTime[5];
+    float KeysDownTime[512];
 
     ImGuiIO();
 };
@@ -463,15 +463,15 @@ struct ImGuiOncePerFrame
     operator bool() const { return TryIsNewFrame(); }
 private:
     mutable int LastFrame;
-    bool        TryIsNewFrame() const   { const int current_frame = ImGui::GetFrameCount(); if (LastFrame == current_frame) return false; LastFrame = current_frame; return true; }
+    bool        TryIsNewFrame() const { const int current_frame = ImGui::GetFrameCount(); if (LastFrame == current_frame) return false; LastFrame = current_frame; return true; }
 };
 
 // Helper: Parse and apply text filters. In format "aaaaa[,bbbb][,ccccc]"
 struct ImGuiTextFilter
 {
-    struct TextRange 
-    { 
-        const char* b; 
+    struct TextRange
+    {
+        const char* b;
         const char* e;
 
         TextRange() { b = e = NULL; }
@@ -480,14 +480,19 @@ struct ImGuiTextFilter
         const char* end() const { return e; }
         bool empty() const { return b == e; }
         char front() const { return *b; }
-        static bool isblank(char c) { return c == ' ' || c == '\t'; } 
-        void trim_blanks() { while (b < e && isblank(*b)) b++; while (e > b && isblank(*(e-1))) e--; }
+        static bool isblank(char c) { return c == ' ' || c == '\t'; }
+        void trim_blanks() {
+            while (b < e && isblank(*b))
+                b++;
+            while (e > b && isblank(*(e - 1)))
+                e--;
+        }
         void split(char separator, ImVector<TextRange>& out);
     };
 
-    char                InputBuf[256];
+    char InputBuf[256];
     ImVector<TextRange> Filters;
-    int                 CountGrep;
+    int CountGrep;
 
     ImGuiTextFilter();
     ~ImGuiTextFilter();
@@ -506,8 +511,8 @@ struct ImGuiTextBuffer
 
     ImGuiTextBuffer()   { Buf.push_back(0); }
     const char*         begin() const { return Buf.begin(); }
-    const char*         end() const { return Buf.end()-1; }
-    size_t              size() const { return Buf.size()-1; }
+    const char*         end() const { return Buf.end() - 1; }
+    size_t              size() const { return Buf.size() - 1; }
     bool                empty() { return Buf.empty(); }
     void                clear() { Buf.clear(); Buf.push_back(0); }
     void                append(const char* fmt, ...);
@@ -539,16 +544,16 @@ struct ImGuiStorage
 
 struct ImDrawCmd
 {
-    unsigned int    vtx_count;
-    ImVec4          clip_rect;
+    unsigned int vtx_count;
+    ImVec4 clip_rect;
 };
 
 // sizeof() == 20
 struct ImDrawVert
 {
-    ImVec2  pos;
-    ImVec2  uv;
-    ImU32   col;
+    ImVec2 pos;
+    ImVec2 uv;
+    ImU32 col;
 };
 
 // Draw command list
@@ -574,12 +579,12 @@ struct ImDrawList
 
     // Primitives
     void AddLine(const ImVec2& a, const ImVec2& b, ImU32 col);
-    void AddRect(const ImVec2& a, const ImVec2& b, ImU32 col, float rounding = 0.0f, int rounding_corners=0x0F);
-    void AddRectFilled(const ImVec2& a, const ImVec2& b, ImU32 col, float rounding = 0.0f, int rounding_corners=0x0F);
+    void AddRect(const ImVec2& a, const ImVec2& b, ImU32 col, float rounding = 0.0f, int rounding_corners = 0x0F);
+    void AddRectFilled(const ImVec2& a, const ImVec2& b, ImU32 col, float rounding = 0.0f, int rounding_corners = 0x0F);
     void AddTriangleFilled(const ImVec2& a, const ImVec2& b, const ImVec2& c, ImU32 col);
     void AddCircle(const ImVec2& centre, float radius, ImU32 col, int num_segments = 12);
     void AddCircleFilled(const ImVec2& centre, float radius, ImU32 col, int num_segments = 12);
-    void AddArc(const ImVec2& center, float rad, ImU32 col, int a_min, int a_max, bool tris=false, const ImVec2& third_point_offset = ImVec2(0,0));
+    void AddArc(const ImVec2& center, float rad, ImU32 col, int a_min, int a_max, bool tris = false, const ImVec2& third_point_offset = ImVec2(0, 0));
     void AddText(ImFont font, float font_size, const ImVec2& pos, ImU32 col, const char* text_begin, const char* text_end);
 };
 
@@ -596,56 +601,56 @@ struct ImBitmapFont
 #pragma pack(push, 1)
     struct FntInfo
     {
-        signed short    FontSize;
-        unsigned char   BitField;       // bit 0: smooth, bit 1: unicode, bit 2: italic, bit 3: bold, bit 4: fixedHeight, bits 5-7: reserved
-        unsigned char   CharSet;
-        unsigned short  StretchH;
-        unsigned char   AA;
-        unsigned char   PaddingUp, PaddingRight, PaddingDown, PaddingLeft;
-        unsigned char   SpacingHoriz, SpacingVert;
-        unsigned char   Outline;
+        signed short FontSize;
+        unsigned char BitField;         // bit 0: smooth, bit 1: unicode, bit 2: italic, bit 3: bold, bit 4: fixedHeight, bits 5-7: reserved
+        unsigned char CharSet;
+        unsigned short StretchH;
+        unsigned char AA;
+        unsigned char PaddingUp, PaddingRight, PaddingDown, PaddingLeft;
+        unsigned char SpacingHoriz, SpacingVert;
+        unsigned char Outline;
         //char          FontName[];
     };
 
     struct FntCommon
     {
-        unsigned short  LineHeight;
-        unsigned short  Base;
-        unsigned short  ScaleW, ScaleH;
-        unsigned short  Pages;
-        unsigned char   BitField;
-        unsigned char   Channels[4];
+        unsigned short LineHeight;
+        unsigned short Base;
+        unsigned short ScaleW, ScaleH;
+        unsigned short Pages;
+        unsigned char BitField;
+        unsigned char Channels[4];
     };
 
     struct FntGlyph
     {
-        unsigned int    Id;
-        unsigned short  X, Y;
-        unsigned short  Width, Height;
-        signed short    XOffset, YOffset;
-        signed short    XAdvance;
-        unsigned char   Page;
-        unsigned char   Channel;
+        unsigned int Id;
+        unsigned short X, Y;
+        unsigned short Width, Height;
+        signed short XOffset, YOffset;
+        signed short XAdvance;
+        unsigned char Page;
+        unsigned char Channel;
     };
 
     struct FntKerning
     {
-        unsigned int    IdFirst;
-        unsigned int    IdSecond;
-        signed short    Amount;
+        unsigned int IdFirst;
+        unsigned int IdSecond;
+        signed short Amount;
     };
 #pragma pack(pop)
 
     unsigned char*          Data;               // Raw data, content of .fnt file
-    size_t                  DataSize;           //
-    bool                    DataOwned;          // 
+    size_t DataSize;                            //
+    bool DataOwned;                             //
     const FntInfo*          Info;               // (point into raw data)
     const FntCommon*        Common;             // (point into raw data)
     const FntGlyph*         Glyphs;             // (point into raw data)
-    size_t                  GlyphsCount;        //
+    size_t GlyphsCount;                         //
     const FntKerning*       Kerning;            // (point into raw data)
-    size_t                  KerningCount;       //
-    int                     TabCount;           // FIXME: mishandled (add fixed amount instead of aligning to column)
+    size_t KerningCount;                        //
+    int TabCount;                               // FIXME: mishandled (add fixed amount instead of aligning to column)
     ImVector<const char*>   Filenames;          // (point into raw data)
     ImVector<int>           IndexLookup;        // (built)
 
@@ -656,9 +661,9 @@ struct ImBitmapFont
     bool                    LoadFromFile(const char* filename);
     void                    Clear();
     void                    BuildLookupTable();
-    const FntGlyph *        FindGlyph(unsigned short c) const;
+    const FntGlyph*        FindGlyph(unsigned short c) const;
     float                   GetFontSize() const { return (float)Info->FontSize; }
-	bool					IsLoaded() const { return Info != NULL && Common != NULL && Glyphs != NULL; }
+    bool                    IsLoaded() const { return Info != NULL && Common != NULL && Glyphs != NULL; }
 
     ImVec2                  CalcTextSize(float size, float max_width, const char* text_begin, const char* text_end, const char** remaining = NULL) const;
     void                    RenderText(float size, ImVec2 pos, ImU32 col, const ImVec4& clip_rect, const char* text_begin, const char* text_end, ImDrawVert*& out_vertices) const;

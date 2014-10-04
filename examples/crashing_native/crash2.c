@@ -1,6 +1,6 @@
 void callMe2()
 {
-	// meh meh!
+    // meh meh!
 
-	*((volatile int*)0) = 0xdead;
+    *((volatile int*)0) = 0xdead;
 }

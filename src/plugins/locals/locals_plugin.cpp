@@ -6,46 +6,46 @@
 
 struct RegistersData
 {
-	int dummy;
+    int dummy;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 {
-	(void)serviceFunc;
-	(void)uiFuncs;
-	RegistersData* userData = (RegistersData*)malloc(sizeof(RegistersData));
+    (void)serviceFunc;
+    (void)uiFuncs;
+    RegistersData* userData = (RegistersData*)malloc(sizeof(RegistersData));
 
-	/*
-	static const char* foo[] = { "Name", "Value", 0 };
-	static const char* meh[] = { "Foobar", "0", 0 };
+    /*
+       static const char* foo[] = { "Name", "Value", 0 };
+       static const char* meh[] = { "Foobar", "0", 0 };
 
-	userData->registerList = PDUIListView_create(uiFuncs, foo, 0);
+       userData->registerList = PDUIListView_create(uiFuncs, foo, 0);
 
-	PDUIListView_itemAdd(uiFuncs, userData->registerList, meh);
-	*/
+       PDUIListView_itemAdd(uiFuncs, userData->registerList, meh);
+     */
 
-	return userData;
+    return userData;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void destroyInstance(void* userData)
 {
-	free(userData);
+    free(userData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents)
 {
-	(void)userData;
-	(void)inEvents;
-	(void)outEvents;
-	(void)uiFuncs;
+    (void)userData;
+    (void)inEvents;
+    (void)outEvents;
+    (void)uiFuncs;
 
-	return 0;
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -64,12 +64,12 @@ static PDViewPlugin plugin =
 extern "C"
 {
 
-PD_EXPORT void InitPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin)
-{
-	(void)version;
-	(void)serviceFunc;
-    registerPlugin(PD_VIEW_API_VERSION, &plugin);
-}
+    PD_EXPORT void InitPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin)
+    {
+        (void)version;
+        (void)serviceFunc;
+        registerPlugin(PD_VIEW_API_VERSION, &plugin);
+    }
 
 }
 

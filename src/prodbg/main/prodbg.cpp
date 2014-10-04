@@ -25,11 +25,11 @@ namespace prodbg
 
 struct Context
 {
-	int width;
-	int height;
-	float mouseX;
-	float mouseY;
-	int mouseLmb;
+    int width;
+    int height;
+    float mouseX;
+    float mouseY;
+    int mouseLmb;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,13 +40,13 @@ static Context s_context;
 
 static const char* s_plugins[] =
 {
-	"sourcecode_plugin", 
-	"callstack_plugin", 
-	"registers_plugin", 
-	"locals_plugin", 
-	"disassembly_plugin", 
+    "sourcecode_plugin",
+    "callstack_plugin",
+    "registers_plugin",
+    "locals_plugin",
+    "disassembly_plugin",
 #ifdef PRODBG_MAC
-	"lldb_plugin",
+    "lldb_plugin",
 #endif
 };
 
@@ -54,93 +54,93 @@ static const char* s_plugins[] =
 
 void ProDBG_create(void* window, int width, int height)
 {
-	Context* context = &s_context;
-	Rect settingsRect;
+    Context* context = &s_context;
+    Rect settingsRect;
 
-	Settings_getWindowRect(&settingsRect);
+    Settings_getWindowRect(&settingsRect);
 
-	width = settingsRect.width;
-	height = settingsRect.height;
+    width = settingsRect.width;
+    height = settingsRect.height;
 
     (void)window;
 
-	for (uint32_t i = 0; i < sizeof_array(s_plugins); ++i)
-	{
-		if (!PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]))
-			return;
-	}
+    for (uint32_t i = 0; i < sizeof_array(s_plugins); ++i)
+    {
+        if (!PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]))
+            return;
+    }
 
 #if BX_PLATFORM_OSX
-	bgfx::osxSetNSWindow(window);
-#elif BX_PLATFORM_WINDOWS 
-	bgfx::winSetHwnd((HWND)window);
+    bgfx::osxSetNSWindow(window);
+#elif BX_PLATFORM_WINDOWS
+    bgfx::winSetHwnd((HWND)window);
 #else
-	#error "Unsupported platform"
+    #error "Unsupported platform"
 #endif
 
-	bgfx::init();
-	bgfx::reset(width, height);
-	bgfx::setViewSeq(0, true);
+    bgfx::init();
+    bgfx::reset(width, height);
+    bgfx::setViewSeq(0, true);
 
-	context->width = width;
-	context->height = height;
+    context->width = width;
+    context->height = height;
 
-	IMGUI_setup(width, height);
+    IMGUI_setup(width, height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ProDBG_setWindowSize(int width, int height)
 {
-	Context* context = &s_context;
+    Context* context = &s_context;
 
-	context->width = width;
-	context->height = height;
+    context->width = width;
+    context->height = height;
 
-	bgfx::reset(width, height);
-	IMGUI_setup(width, height);
+    bgfx::reset(width, height);
+    IMGUI_setup(width, height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ProDBG_destroy()
 {
-	Settings_save();
+    Settings_save();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ProDBG_update()
 {
-	Context* context = &s_context;
+    Context* context = &s_context;
 
-	bgfx::setViewRect(0, 0, 0, (uint16_t)context->width, (uint16_t)context->height);
-	bgfx::setViewClear(0 , BGFX_CLEAR_COLOR_BIT|BGFX_CLEAR_DEPTH_BIT, 0x303030ff, 1.0f, 0);
-	bgfx::submit(0);
+    bgfx::setViewRect(0, 0, 0, (uint16_t)context->width, (uint16_t)context->height);
+    bgfx::setViewClear(0, BGFX_CLEAR_COLOR_BIT | BGFX_CLEAR_DEPTH_BIT, 0x303030ff, 1.0f, 0);
+    bgfx::submit(0);
 
-	IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb);
+    IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb);
 
-	bool show = true;
+    bool show = true;
 
-	ImGui::Begin("ImGui Test", &show, ImVec2(550,480), true, ImGuiWindowFlags_ShowBorders);
+    ImGui::Begin("ImGui Test", &show, ImVec2(550, 480), true, ImGuiWindowFlags_ShowBorders);
 
-	if (ImGui::Button("Test0r testing!"))
-	{
-		printf("test\n");
-	}
+    if (ImGui::Button("Test0r testing!"))
+    {
+        printf("test\n");
+    }
 
-	ImGui::End();
+    ImGui::End();
 
-	IMGUI_postUpdate();
+    IMGUI_postUpdate();
 
-	bgfx::frame();
+    bgfx::frame();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ProDBG_timedUpdate()
 {
-	ProDBG_update();
+    ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -148,36 +148,36 @@ void ProDBG_timedUpdate()
 
 void ProDBG_event(int eventId)
 {
-	(void)eventId;
+    (void)eventId;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ProDBG_scroll(float deltaX, float deltaY, int flags)
 {
-	(void)deltaX;
-	(void)deltaY;
-	(void)flags;
+    (void)deltaX;
+    (void)deltaY;
+    (void)flags;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ProDBG_setMousePos(float x, float y)
 {
-	Context* context = &s_context;
+    Context* context = &s_context;
 
-	context->mouseX = x;
-	context->mouseY = y;
+    context->mouseX = x;
+    context->mouseY = y;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ProDBG_setMouseState(int button, int state)
 {
-	Context* context = &s_context;
-	(void)button;
+    Context* context = &s_context;
+    (void)button;
 
-	context->mouseLmb = state;
+    context->mouseLmb = state;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -185,132 +185,132 @@ void ProDBG_setMouseState(int button, int state)
 
 /*
 
-namespace prodbg
-{
+   namespace prodbg
+   {
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static const char* s_plugins[] =
-{
-	"SourceCodePlugin", 
-	"CallStackPlugin", 
-	"Registers", 
-	"Locals", 
-	"Disassembly", 
-#ifdef PRODBG_MAC
-	"LLDBPlugin",
-#endif
-};
+   static const char* s_plugins[] =
+   {
+    "SourceCodePlugin",
+    "CallStackPlugin",
+    "Registers",
+    "Locals",
+    "Disassembly",
+   #ifdef PRODBG_MAC
+    "LLDBPlugin",
+   #endif
+   };
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int realMain(int argc, const char** argv)
-{
-	(void)argc;
-	(void)argv;
+   int realMain(int argc, const char** argv)
+   {
+    (void)argc;
+    (void)argv;
 
-	for (uint32_t i = 0; i < sizeof_array(s_plugins); ++i)
-	{
-		if (!PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]))
-			return 0;
-	}
+    for (uint32_t i = 0; i < sizeof_array(s_plugins); ++i)
+    {
+        if (!PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]))
+            return 0;
+    }
 
-	uint32_t width = 1280;
-	uint32_t height = 720;
-	uint32_t debug = BGFX_DEBUG_TEXT;
-	uint32_t reset = BGFX_RESET_VSYNC;
+    uint32_t width = 1280;
+    uint32_t height = 720;
+    uint32_t debug = BGFX_DEBUG_TEXT;
+    uint32_t reset = BGFX_RESET_VSYNC;
 
-	bgfx::init();
-	bgfx::reset(width, height, reset);
+    bgfx::init();
+    bgfx::reset(width, height, reset);
 
-	// Enable debug text.
-	bgfx::setDebug(debug);
+    // Enable debug text.
+    bgfx::setDebug(debug);
 
-	// Set view 0 clear state.
-	bgfx::setViewClear(0
-		, BGFX_CLEAR_COLOR_BIT|BGFX_CLEAR_DEPTH_BIT
-		, 0x303030ff
-		, 1.0f
-		, 0
-		);
+    // Set view 0 clear state.
+    bgfx::setViewClear(0
+        , BGFX_CLEAR_COLOR_BIT|BGFX_CLEAR_DEPTH_BIT
+        , 0x303030ff
+        , 1.0f
+        , 0
+        );
 
-	bgfx::setViewSeq(0, true);
+    bgfx::setViewSeq(0, true);
 
-	entry::MouseState mouseState;
+    entry::MouseState mouseState;
 
-	IMGUI_setup((int)width, (int)height);
+    IMGUI_setup((int)width, (int)height);
 
-	while (!entry::processEvents(width, height, debug, reset, &mouseState))
-	{
-		// Set view 0 default viewport.
-		bgfx::setViewRect(0, 0, 0, (uint16_t)width, (uint16_t)height);
+    while (!entry::processEvents(width, height, debug, reset, &mouseState))
+    {
+        // Set view 0 default viewport.
+        bgfx::setViewRect(0, 0, 0, (uint16_t)width, (uint16_t)height);
 
-		// This dummy draw call is here to make sure that view 0 is cleared
-		// if no other draw calls are submitted to view 0.
-		bgfx::submit(0);
+        // This dummy draw call is here to make sure that view 0 is cleared
+        // if no other draw calls are submitted to view 0.
+        bgfx::submit(0);
 
-		IMGUI_preUpdate(&mouseState);
+        IMGUI_preUpdate(&mouseState);
 
-		bool show = true;
+        bool show = true;
 
-    	ImGui::Begin("ImGui Test", &show, ImVec2(550,480), true, ImGuiWindowFlags_ShowBorders);
+        ImGui::Begin("ImGui Test", &show, ImVec2(550,480), true, ImGuiWindowFlags_ShowBorders);
 
-		if (ImGui::Button("Test0r testing!"))
-		{
-			printf("test\n");
-		}
+        if (ImGui::Button("Test0r testing!"))
+        {
+            printf("test\n");
+        }
 
-    	ImGui::End();
+        ImGui::End();
 
-		// Use debug font to print information about this example.
-		//bgfx::dbgTextClear();
-		//bgfx::dbgTextPrintf(0, 1, 0x4f, "bgfx/examples/00-helloworld");
-		//bgfx::dbgTextPrintf(0, 2, 0x6f, "Description: Initialization and debug text.");
+        // Use debug font to print information about this example.
+        //bgfx::dbgTextClear();
+        //bgfx::dbgTextPrintf(0, 1, 0x4f, "bgfx/examples/00-helloworld");
+        //bgfx::dbgTextPrintf(0, 2, 0x6f, "Description: Initialization and debug text.");
 
-		IMGUI_postUpdate();
+        IMGUI_postUpdate();
 
-		// Advance to next frame. Rendering thread will be kicked to 
-		// process submitted rendering primitives.
-		bgfx::frame();
-	}
+        // Advance to next frame. Rendering thread will be kicked to
+        // process submitted rendering primitives.
+        bgfx::frame();
+    }
 
-	// Shutdown bgfx.
-	bgfx::shutdown();
-	
+    // Shutdown bgfx.
+    bgfx::shutdown();
 
-	return 0; //Application_init(argc, argv);
-}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    return 0; //Application_init(argc, argv);
+   }
 
-}
+   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C"
-{
+   }
 
-int _main_(int argc, char** argv)
-{
-	return prodbg::realMain(argc, (const char**)argv);
-}
+   extern "C"
+   {
 
-}
+   int _main_(int argc, char** argv)
+   {
+    return prodbg::realMain(argc, (const char**)argv);
+   }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   }
 
-#ifdef WIN32
+   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C" int main(int _argc, char** _argv);
+   #ifdef WIN32
 
-int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
-{
-	char* temp[] = { "foo" };
-	main(1, temp);
-}
+   extern "C" int main(int _argc, char** _argv);
 
-#endif
+   int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+   {
+    char* temp[] = { "foo" };
+    main(1, temp);
+   }
 
-*/
+   #endif
+
+ */
 
 }
 

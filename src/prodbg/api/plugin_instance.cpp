@@ -16,21 +16,21 @@ namespace prodbg
 
 ViewPluginInstance* PluginInstance_createViewPlugin()
 {
-	ViewPluginInstance* instance = (ViewPluginInstance*)malloc(sizeof(ViewPluginInstance));
-	memset(instance, 0, sizeof(ViewPluginInstance)); 
+    ViewPluginInstance* instance = (ViewPluginInstance*)malloc(sizeof(ViewPluginInstance));
+    memset(instance, 0, sizeof(ViewPluginInstance));
 
-	return instance;
+    return instance;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool PluginInstance_init(ViewPluginInstance* instance, PDViewPlugin* plugin)
 {
-	void* userData = plugin->createInstance(&instance->ui, 0);
-	instance->plugin = plugin;
-	instance->userData = userData;
+    void* userData = plugin->createInstance(&instance->ui, 0);
+    instance->plugin = plugin;
+    instance->userData = userData;
 
-	return true;
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
