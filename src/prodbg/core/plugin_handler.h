@@ -26,3 +26,4 @@ Plugin* PluginHandler_getPlugins(int* count);
 #ifdef __cplusplus
 }
 #endif
+

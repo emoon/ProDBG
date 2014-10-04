@@ -69,3 +69,4 @@ void Settings_save()
 
     json_dump_file(a, "settings.json", 0);
 }
+

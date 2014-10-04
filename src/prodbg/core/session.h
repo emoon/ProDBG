@@ -27,3 +27,4 @@ void Session_removeViewPlugin(struct Session* session, struct ViewPluginInstance
 #ifdef __cplusplus
 }
 #endif
+

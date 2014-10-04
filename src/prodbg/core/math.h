@@ -9,3 +9,4 @@ typedef struct Rect
     int width;
     int height;
 } Rect;
+

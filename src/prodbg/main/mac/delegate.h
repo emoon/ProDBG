@@ -1,6 +1,8 @@
 
 #import <Cocoa/Cocoa.h>
 
+/*
+
 @interface ProDBGAppDelegate : NSObject <NSApplicationDelegate> {
     NSWindow* window;
     NSButton* button;
@@ -12,3 +14,6 @@
 @property (assign) IBOutlet NSButton* button;
 
 @end
+
+*/
+

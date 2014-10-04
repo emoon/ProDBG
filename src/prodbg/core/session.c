@@ -176,8 +176,7 @@ static void updateLocal(Session* s, PDAction action)
     if (backend)
     {
         PDBinaryWriter_reset(&s->backendWriter);
-        int state = (int)backend->plugin->update(backend->userData, action, &s->reader, &s->backendWriter);
-        (void)state;
+        backend->plugin->update(backend->userData, action, &s->reader, &s->backendWriter);
         PDBinaryWriter_finalize(&s->backendWriter);
 
         //StatusBar_setText(1, "Status: %s", getStateName(state));

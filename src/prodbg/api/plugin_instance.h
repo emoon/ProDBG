@@ -39,3 +39,4 @@ bool PluginInstance_init(struct ViewPluginInstance* instance, struct PDViewPlugi
 #ifdef __cplusplus
 }
 #endif
+

@@ -14,7 +14,7 @@ static int s_old_level = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void log(int logLevel, const char* filename, int line, const char* format, ...)
+void pd_log(int logLevel, const char* filename, int line, const char* format, ...)
 {
     va_list ap;
 
