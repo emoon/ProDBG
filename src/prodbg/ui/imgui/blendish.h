@@ -469,6 +469,8 @@ inline float fminf(float _a, float _b)
     return _a < _b ? _a : _b;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 inline float fmaxf(float _a, float _b)
 {
     return _a > _b ? _a : _b;
@@ -716,6 +718,8 @@ void bndSetTheme(BNDtheme theme) {
     bnd_theme = theme;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 const BNDtheme* bndGetTheme() {
     return &bnd_theme;
 }
@@ -723,12 +727,16 @@ const BNDtheme* bndGetTheme() {
 // the handle to the image containing the icon sheet
 static int bnd_icon_image = -1;
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void bndSetIconImage(int image) {
     bnd_icon_image = image;
 }
 
 // the handle to the UI font
 static int bnd_font = -1;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndSetFont(int font) {
     bnd_font = font;
@@ -742,6 +750,8 @@ void bndLabel(NVGcontext* ctx,
                       bnd_theme.regularTheme.textColor, BND_LEFT,
                       BND_LABEL_FONT_SIZE, label, 0);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndToolButton(NVGcontext* ctx,
                    float x, float y, float w, float h, int flags, BNDwidgetState state,
@@ -760,6 +770,8 @@ void bndToolButton(NVGcontext* ctx,
                       BND_LABEL_FONT_SIZE, label, 0);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void bndRadioButton(NVGcontext* ctx,
                     float x, float y, float w, float h, int flags, BNDwidgetState state,
                     int iconid, const char* label) {
@@ -776,6 +788,8 @@ void bndRadioButton(NVGcontext* ctx,
                       bndTextColor(&bnd_theme.radioTheme, state), BND_CENTER,
                       BND_LABEL_FONT_SIZE, label, 0);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndTextField(NVGcontext* ctx,
                   float x, float y, float w, float h, int flags, BNDwidgetState state,
@@ -797,6 +811,8 @@ void bndTextField(NVGcontext* ctx,
                       bndTextColor(&bnd_theme.textFieldTheme, state), BND_LABEL_FONT_SIZE,
                       text, bnd_theme.textFieldTheme.itemColor, cbegin, cend);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndOptionButton(NVGcontext* ctx,
                      float x, float y, float w, float h, BNDwidgetState state,
@@ -828,6 +844,8 @@ void bndOptionButton(NVGcontext* ctx,
                       BND_LABEL_FONT_SIZE, label, 0);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void bndChoiceButton(NVGcontext* ctx,
                      float x, float y, float w, float h, int flags, BNDwidgetState state,
                      int iconid, const char* label) {
@@ -846,6 +864,8 @@ void bndChoiceButton(NVGcontext* ctx,
     bndUpDownArrow(ctx, x + w - 10, y + 10, 5,
                    bndTransparent(bnd_theme.choiceTheme.itemColor));
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndNumberField(NVGcontext* ctx,
                     float x, float y, float w, float h, int flags, BNDwidgetState state,
@@ -867,6 +887,8 @@ void bndNumberField(NVGcontext* ctx,
     bndArrow(ctx, x + w - 8, y + 10, BND_NUMBER_ARROW_SIZE,
              bndTransparent(bnd_theme.numberFieldTheme.itemColor));
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndSlider(NVGcontext* ctx,
                float x, float y, float w, float h, int flags, BNDwidgetState state,
@@ -903,6 +925,8 @@ void bndSlider(NVGcontext* ctx,
                       bndTextColor(&bnd_theme.sliderTheme, state), BND_CENTER,
                       BND_LABEL_FONT_SIZE, label, value);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndScrollBar(NVGcontext* ctx,
                   float x, float y, float w, float h, BNDwidgetState state,
@@ -941,6 +965,8 @@ void bndScrollBar(NVGcontext* ctx,
                   bndTransparent(bnd_theme.scrollBarTheme.outlineColor));
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void bndMenuBackground(NVGcontext* ctx,
                        float x, float y, float w, float h, int flags) {
     float cr[4];
@@ -955,6 +981,8 @@ void bndMenuBackground(NVGcontext* ctx,
     bndDropShadow(ctx, x, y, w, h, BND_MENU_RADIUS,
                   BND_SHADOW_FEATHER, BND_SHADOW_ALPHA);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndTooltipBackground(NVGcontext* ctx, float x, float y, float w, float h) {
     NVGcolor shade_top, shade_down;
@@ -971,12 +999,16 @@ void bndTooltipBackground(NVGcontext* ctx, float x, float y, float w, float h) {
                   BND_SHADOW_FEATHER, BND_SHADOW_ALPHA);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void bndMenuLabel(NVGcontext* ctx,
                   float x, float y, float w, float h, int iconid, const char* label) {
     bndIconLabelValue(ctx, x, y, w, h, iconid,
                       bnd_theme.menuTheme.textColor, BND_LEFT,
                       BND_LABEL_FONT_SIZE, label, 0);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndMenuItem(NVGcontext* ctx,
                  float x, float y, float w, float h, BNDwidgetState state,
@@ -1013,10 +1045,14 @@ void bndRoundedBox(NVGcontext* ctx, float x, float y, float w, float h,
     nvgClosePath(ctx);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 NVGcolor bndTransparent(NVGcolor color) {
     color.a *= BND_TRANSPARENT_ALPHA;
     return color;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 NVGcolor bndOffsetColor(NVGcolor color, int delta) {
     float offset = (float)delta / 255.0f;
@@ -1028,6 +1064,8 @@ NVGcolor bndOffsetColor(NVGcolor color, int delta) {
             color.a)
         ) : color;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndBevelInset(NVGcontext* ctx, float x, float y, float w, float h,
                    float cr2, float cr3) {
@@ -1056,12 +1094,16 @@ void bndBevelInset(NVGcontext* ctx, float x, float y, float w, float h,
     nvgStroke(ctx);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void bndBackground(NVGcontext* ctx, float x, float y, float w, float h) {
     nvgBeginPath(ctx);
     nvgRect(ctx, x, y, w, h);
     nvgFillColor(ctx, bnd_theme.backgroundColor);
     nvgFill(ctx);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndIcon(NVGcontext* ctx, float x, float y, int iconid) {
     int ix, iy, u, v;
@@ -1081,6 +1123,8 @@ void bndIcon(NVGcontext* ctx, float x, float y, int iconid) {
                                  0, bnd_icon_image, 0));
     nvgFill(ctx);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndDropShadow(NVGcontext* ctx, float x, float y, float w, float h,
                    float r, float feather, float alpha) {
@@ -1110,6 +1154,8 @@ void bndDropShadow(NVGcontext* ctx, float x, float y, float w, float h,
     nvgFill(ctx);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void bndInnerBox(NVGcontext* ctx, float x, float y, float w, float h,
                  float cr0, float cr1, float cr2, float cr3,
                  NVGcolor shade_top, NVGcolor shade_down) {
@@ -1122,6 +1168,8 @@ void bndInnerBox(NVGcontext* ctx, float x, float y, float w, float h,
     nvgFill(ctx);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void bndOutlineBox(NVGcontext* ctx, float x, float y, float w, float h,
                    float cr0, float cr1, float cr2, float cr3, NVGcolor color) {
     nvgBeginPath(ctx);
@@ -1131,12 +1179,16 @@ void bndOutlineBox(NVGcontext* ctx, float x, float y, float w, float h,
     nvgStroke(ctx);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void bndSelectCorners(float* radiuses, float r, int flags) {
     radiuses[0] = (flags & BND_CORNER_TOP_LEFT) ? 0 : r;
     radiuses[1] = (flags & BND_CORNER_TOP_RIGHT) ? 0 : r;
     radiuses[2] = (flags & BND_CORNER_DOWN_RIGHT) ? 0 : r;
     radiuses[3] = (flags & BND_CORNER_DOWN_LEFT) ? 0 : r;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndInnerColors(
     NVGcolor* shade_top, NVGcolor* shade_down,
@@ -1165,9 +1217,13 @@ void bndInnerColors(
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 NVGcolor bndTextColor(const BNDwidgetTheme* theme, BNDwidgetState state) {
     return (state == BND_ACTIVE) ? theme->textSelectedColor : theme->textColor;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndIconLabelValue(NVGcontext* ctx, float x, float y, float w, float h,
                        int iconid, NVGcolor color, int align, float fontsize, const char* label,
@@ -1220,6 +1276,8 @@ void bndIconLabelValue(NVGcontext* ctx, float x, float y, float w, float h,
         bndIcon(ctx, x + 2, y + 2, iconid);
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndIconLabelCaret(NVGcontext* ctx, float x, float y, float w, float h,
                        int iconid, NVGcolor color, float fontsize, const char* label,
@@ -1281,6 +1339,8 @@ void bndIconLabelCaret(NVGcontext* ctx, float x, float y, float w, float h,
     nvgTextBox(ctx, x, y, w - BND_TEXT_RADIUS - pleft, label, 0);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void bndCheck(NVGcontext* ctx, float ox, float oy, NVGcolor color) {
     nvgBeginPath(ctx);
     nvgStrokeWidth(ctx, 2);
@@ -1293,6 +1353,8 @@ void bndCheck(NVGcontext* ctx, float ox, float oy, NVGcolor color) {
     nvgStroke(ctx);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void bndArrow(NVGcontext* ctx, float x, float y, float s, NVGcolor color) {
     nvgBeginPath(ctx);
     nvgMoveTo(ctx, x, y);
@@ -1302,6 +1364,8 @@ void bndArrow(NVGcontext* ctx, float x, float y, float s, NVGcolor color) {
     nvgFillColor(ctx, color);
     nvgFill(ctx);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndUpDownArrow(NVGcontext* ctx, float x, float y, float s, NVGcolor color) {
     float w;
@@ -1319,6 +1383,8 @@ void bndUpDownArrow(NVGcontext* ctx, float x, float y, float s, NVGcolor color) 
     nvgFillColor(ctx, color);
     nvgFill(ctx);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void bndScrollHandleRect(float* x, float* y, float* w, float* h,
                          float offset, float size) {

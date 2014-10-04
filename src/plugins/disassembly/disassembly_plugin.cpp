@@ -177,6 +177,8 @@ static PDViewPlugin plugin =
 extern "C"
 {
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     PD_EXPORT void InitPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin)
     {
         (void)version;

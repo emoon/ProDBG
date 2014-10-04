@@ -315,6 +315,8 @@ ImGuiIO::ImGuiIO()
     SetClipboardTextFn = SetClipboardTextFn_DefaultImpl;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 inline NVGcolor toNVGColor(ImU32 color)
 {
     NVGcolor col;
@@ -362,27 +364,61 @@ const float PI = 3.14159265358979323846f;
 static inline ImVec2 operator*(const ImVec2& lhs, const float rhs)              { return ImVec2(lhs.x * rhs, lhs.y * rhs); }
 //static inline ImVec2 operator/(const ImVec2& lhs, const float rhs)              { return ImVec2(lhs.x/rhs, lhs.y/rhs); }
 static inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y); }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y); }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline ImVec2 operator*(const ImVec2& lhs, const ImVec2 rhs)             { return ImVec2(lhs.x * rhs.x, lhs.y * rhs.y); }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline ImVec2 operator/(const ImVec2& lhs, const ImVec2 rhs)             { return ImVec2(lhs.x / rhs.x, lhs.y / rhs.y); }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline ImVec2& operator+=(ImVec2& lhs, const ImVec2& rhs)                { lhs.x += rhs.x; lhs.y += rhs.y; return lhs; }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline ImVec2& operator-=(ImVec2& lhs, const ImVec2& rhs)                { lhs.x -= rhs.x; lhs.y -= rhs.y; return lhs; }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline ImVec2& operator*=(ImVec2& lhs, const float rhs)                  { lhs.x *= rhs; lhs.y *= rhs; return lhs; }
 //static inline ImVec2& operator/=(ImVec2& lhs, const float rhs)                  { lhs.x /= rhs; lhs.y /= rhs; return lhs; }
 
 static inline int    ImMin(int lhs, int rhs)                                    { return lhs < rhs ? lhs : rhs; }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline int    ImMax(int lhs, int rhs)                                    { return lhs >= rhs ? lhs : rhs; }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline float  ImMin(float lhs, float rhs)                                { return lhs < rhs ? lhs : rhs; }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline float  ImMax(float lhs, float rhs)                                { return lhs >= rhs ? lhs : rhs; }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline ImVec2 ImMin(const ImVec2& lhs, const ImVec2& rhs)                { return ImVec2(ImMin(lhs.x, rhs.x), ImMin(lhs.y, rhs.y)); }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline ImVec2 ImMax(const ImVec2& lhs, const ImVec2& rhs)                { return ImVec2(ImMax(lhs.x, rhs.x), ImMax(lhs.y, rhs.y)); }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline float  ImClamp(float f, float mn, float mx)                       { return (f < mn) ? mn : (f > mx) ? mx : f; }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline ImVec2 ImClamp(const ImVec2& f, const ImVec2& mn, ImVec2 mx)      { return ImVec2(ImClamp(f.x, mn.x, mx.x), ImClamp(f.y, mn.y, mx.y)); }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline float  ImSaturate(float f)                                        { return (f < 0.0f) ? 0.0f : (f > 1.0f) ? 1.0f : f; }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline float  ImLerp(float a, float b, float t)                          { return a + (b - a) * t; }
 //static inline ImVec2 ImLerp(const ImVec2& a, const ImVec2& b, float t)          { return a + (b - a) * t; }
 static inline ImVec2 ImLerp(const ImVec2& a, const ImVec2& b, const ImVec2& t)  { return ImVec2(a.x + (b.x - a.x) * t.x, a.y + (b.y - a.y) * t.y); }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static inline float  ImLength(const ImVec2& lhs)                                { return (float)sqrt(lhs.x * lhs.x + lhs.y * lhs.y); }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int ImStricmp(const char* str1, const char* str2)
 {
@@ -394,6 +430,8 @@ static int ImStricmp(const char* str1, const char* str2)
     return d;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static char* ImStrdup(const char* str)
 {
     char* buff = (char*)IM_MALLOC(strlen(str) + 1);
@@ -401,6 +439,8 @@ static char* ImStrdup(const char* str)
     strcpy(buff, str);
     return buff;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static const char* ImStristr(const char* haystack, const char* needle, const char* needle_end)
 {
@@ -417,6 +457,7 @@ static const char* ImStristr(const char* haystack, const char* needle, const cha
                 if (toupper(*a) != toupper(*b))
                     break;
 
+
             if (b == needle_end)
                 return haystack;
         }
@@ -424,6 +465,8 @@ static const char* ImStristr(const char* haystack, const char* needle, const cha
     }
     return NULL;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static ImU32 crc32(const void* data, size_t data_size, ImU32 seed = 0)
 {
@@ -446,6 +489,8 @@ static ImU32 crc32(const void* data, size_t data_size, ImU32 seed = 0)
     return ~crc;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static size_t ImFormatString(char* buf, size_t buf_size, const char* fmt, ...)
 {
     va_list args;
@@ -456,12 +501,16 @@ static size_t ImFormatString(char* buf, size_t buf_size, const char* fmt, ...)
     return (w == -1) ? buf_size : (size_t)w;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static size_t ImFormatStringV(char* buf, size_t buf_size, const char* fmt, va_list args)
 {
     int w = vsnprintf(buf, buf_size, fmt, args);
     buf[buf_size - 1] = 0;
     return (w == -1) ? buf_size : (size_t)w;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static ImU32 ImConvertColorFloat4ToU32(const ImVec4& in)
 {
@@ -548,18 +597,44 @@ struct ImGuiAabb    // 2D axis aligned bounding-box
     ImGuiAabb(const ImVec4& v)                          { Min.x = v.x; Min.y = v.y; Max.x = v.z; Max.y = v.w; }
     ImGuiAabb(float x1, float y1, float x2, float y2)   { Min.x = x1; Min.y = y1; Max.x = x2; Max.y = y2; }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     ImVec2      GetCenter() const { return Min + (Max - Min) * 0.5f; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     ImVec2      GetSize() const { return Max - Min; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     float       GetWidth() const { return (Max - Min).x; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     float       GetHeight() const { return (Max - Min).y; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     ImVec2      GetTL() const { return Min; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     ImVec2      GetTR() const { return ImVec2(Max.x, Min.y); }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     ImVec2      GetBL() const { return ImVec2(Min.x, Max.y); }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     ImVec2      GetBR() const { return Max; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     bool        Contains(ImVec2 p) const { return p.x >= Min.x && p.y >= Min.y && p.x <= Max.x && p.y <= Max.y; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     bool        Contains(const ImGuiAabb& r) const { return r.Min.x >= Min.x && r.Min.y >= Min.y && r.Max.x <= Max.x && r.Max.y <= Max.y; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     bool        Overlaps(const ImGuiAabb& r) const { return r.Min.y <= Max.y && r.Max.y >= Min.y && r.Min.x <= Max.x && r.Max.x >= Min.x; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     void        Expand(ImVec2 sz)                       { Min -= sz; Max += sz; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     void        Clip(const ImGuiAabb& clip)             { Min.x = ImMax(Min.x, clip.Min.x); Min.y = ImMax(Min.y, clip.Min.y); Max.x = ImMin(Max.x, clip.Max.x); Max.y = ImMin(Max.y, clip.Max.y); }
 };
 
@@ -630,9 +705,17 @@ struct ImGuiTextEditState
 
     ImGuiTextEditState()                                { memset(this, 0, sizeof(*this)); }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     void                CursorAnimReset()               { CursorAnim = -0.30f; }                                                // After a user-input the cursor stays on for a while without blinking
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     bool                CursorIsVisible() const { return CursorAnim <= 0.0f || fmodf(CursorAnim, 1.20f) <= 0.80f; }             // Blinking
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     bool                HasSelection() const { return StbState.select_start != StbState.select_end; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     void                SelectAll()                     { StbState.select_start = 0; StbState.select_end = (int)strlen(Text); StbState.cursor = StbState.select_end; StbState.has_preferred_x = false; }
 
     void                OnKeyboardPressed(int key);
@@ -771,16 +854,36 @@ public:
     bool        FocusItemRegister(bool is_active, int* out_idx = NULL); // Return TRUE if focus is requested
     void        FocusItemUnregister();
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     ImGuiAabb   Aabb() const { return ImGuiAabb(Pos, Pos + Size); }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     ImFont      Font() const { return GImGui.IO.Font; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     float       FontSize() const { return GImGui.FontSize * FontScale; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     ImVec2      CursorPos() const { return DC.CursorPos; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     float       TitleBarHeight() const { return (Flags & ImGuiWindowFlags_NoTitleBar) ? 0 : FontSize() + GImGui.Style.FramePadding.y * 2.0f; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     ImGuiAabb   TitleBarAabb() const { return ImGuiAabb(Pos, Pos + ImVec2(SizeFull.x, TitleBarHeight())); }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     ImVec2      WindowPadding() const { return ((Flags & ImGuiWindowFlags_ChildWindow) && !(Flags & ImGuiWindowFlags_ShowBorders)) ? ImVec2(1, 1) : GImGui.Style.WindowPadding; }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     ImU32       Color(ImGuiCol idx, float a = 1.f) const { ImVec4 c = GImGui.Style.Colors[idx]; c.w *= GImGui.Style.Alpha * a; return ImConvertColorFloat4ToU32(c); }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     ImU32       Color(const ImVec4& col) const { ImVec4 c = col; c.w *= GImGui.Style.Alpha; return ImConvertColorFloat4ToU32(c); }
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static ImGuiWindow* GetCurrentWindow()
 {
@@ -788,6 +891,8 @@ static ImGuiWindow* GetCurrentWindow()
     GImGui.CurrentWindow->Accessed = true;
     return GImGui.CurrentWindow;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void RegisterAliveId(const ImGuiID& id)
 {
@@ -826,6 +931,8 @@ static ImVector<ImGuiStorage::Pair>::iterator LowerBound(ImVector<ImGuiStorage::
     return first;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int* ImGuiStorage::Find(ImU32 key)
 {
     ImVector<Pair>::iterator it = LowerBound(Data, key);
@@ -835,6 +942,8 @@ int* ImGuiStorage::Find(ImU32 key)
         return NULL;
     return &it->val;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int ImGuiStorage::GetInt(ImU32 key, int default_val)
 {
@@ -862,6 +971,8 @@ void ImGuiStorage::SetInt(ImU32 key, int val)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ImGuiStorage::SetAllInt(int v)
 {
     for (size_t i = 0; i < Data.size(); i++)
@@ -881,6 +992,8 @@ ImGuiTextFilter::~ImGuiTextFilter()
 {
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ImGuiTextFilter::Draw(const char* label, float width)
 {
     ImGuiWindow* window = GetCurrentWindow();
@@ -894,6 +1007,8 @@ void ImGuiTextFilter::Draw(const char* label, float width)
     ImGui::PopItemWidth();
     Build();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ImGuiTextFilter::TextRange::split(char separator, ImVector<TextRange>& out)
 {
@@ -913,6 +1028,8 @@ void ImGuiTextFilter::TextRange::split(char separator, ImVector<TextRange>& out)
         out.push_back(TextRange(wb, we));
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ImGuiTextFilter::Build()
 {
     Filters.resize(0);
@@ -929,6 +1046,8 @@ void ImGuiTextFilter::Build()
             CountGrep += 1;
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ImGuiTextFilter::PassFilter(const char* val) const
 {
@@ -1031,6 +1150,8 @@ ImGuiWindow::~ImGuiWindow()
     Name = NULL;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ImGuiID ImGuiWindow::GetID(const char* str)
 {
     const ImGuiID seed = IDStack.empty() ? 0 : IDStack.back();
@@ -1039,6 +1160,8 @@ ImGuiID ImGuiWindow::GetID(const char* str)
     return id;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ImGuiID ImGuiWindow::GetID(const void* ptr)
 {
     const ImGuiID seed = IDStack.empty() ? 0 : IDStack.back();
@@ -1046,6 +1169,8 @@ ImGuiID ImGuiWindow::GetID(const void* ptr)
     RegisterAliveId(id);
     return id;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ImGuiWindow::FocusItemRegister(bool is_active, int* out_idx)
 {
@@ -1069,10 +1194,14 @@ bool ImGuiWindow::FocusItemRegister(bool is_active, int* out_idx)
     return focus_requested;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ImGuiWindow::FocusItemUnregister()
 {
     FocusIdxCounter--;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ImGuiWindow::AddToRenderList()
 {
@@ -1096,6 +1225,8 @@ void ImGuiWindow::AddToRenderList()
 
 namespace ImGui
 {
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static ImGuiIniData* FindWindowSettings(const char* name)
 {
@@ -1189,6 +1320,8 @@ static void LoadSettings()
     IM_FREE(f_data);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void SaveSettings()
 {
     ImGuiState& g = GImGui;
@@ -1228,6 +1361,8 @@ static void SaveSettings()
     fclose(f);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void MarkSettingsDirty()
 {
     ImGuiState& g = GImGui;
@@ -1236,15 +1371,21 @@ static void MarkSettingsDirty()
         g.SettingsDirtyTimer = g.IO.IniSavingRate;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ImGuiIO& GetIO()
 {
     return GImGui.IO;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ImGuiStyle& GetStyle()
 {
     return GImGui.Style;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void NewFrame()
 {
@@ -1447,6 +1588,8 @@ void Shutdown()
     g.Initialized = false;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void AddWindowToSortedBuffer(ImGuiWindow* window, ImVector<ImGuiWindow*>& sorted_windows)
 {
     sorted_windows.push_back(window);
@@ -1460,6 +1603,8 @@ static void AddWindowToSortedBuffer(ImGuiWindow* window, ImVector<ImGuiWindow*>&
         }
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void PushClipRect(const ImVec4& clip_rect, bool clipped = true)
 {
@@ -1477,12 +1622,16 @@ static void PushClipRect(const ImVec4& clip_rect, bool clipped = true)
     window->DrawList->PushClipRect(cr);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void PopClipRect()
 {
     ImGuiWindow* window = GetCurrentWindow();
     window->ClipRectStack.pop_back();
     window->DrawList->PopClipRect();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Render()
 {
@@ -1510,6 +1659,7 @@ void Render()
             if (window->Flags & ImGuiWindowFlags_ChildWindow)           // if a child is visible its parent will add it
                 if (window->Visible)
                     continue;
+
 
             AddWindowToSortedBuffer(window, sorted_windows);
         }
@@ -1589,6 +1739,7 @@ static void LogText(const ImVec2& ref_pos, const char* text, const char* text_en
                 break;
             else
                 line_end++;
+
 
         if (line_end >= text_end)
             line_end = NULL;
@@ -1756,10 +1907,14 @@ static bool IsMouseHoveringBox(const ImGuiAabb& box)
     return box_for_touch.Contains(g.IO.MousePos);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool IsMouseHoveringBox(const ImVec2& box_min, const ImVec2& box_max)
 {
     return IsMouseHoveringBox(ImGuiAabb(box_min, box_max));
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static bool IsKeyPressedMap(ImGuiKey key, bool repeat)
 {
@@ -1767,6 +1922,8 @@ static bool IsKeyPressedMap(ImGuiKey key, bool repeat)
     const int key_index = g.IO.KeyMap[key];
     return IsKeyPressed(key_index, repeat);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool IsKeyPressed(int key_index, bool repeat)
 {
@@ -1784,8 +1941,11 @@ bool IsKeyPressed(int key_index, bool repeat)
             return true;
 
 
+
     return false;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool IsMouseClicked(int button, bool repeat)
 {
@@ -1803,8 +1963,11 @@ bool IsMouseClicked(int button, bool repeat)
             return true;
 
 
+
     return false;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool IsMouseDoubleClicked(int button)
 {
@@ -1813,10 +1976,14 @@ bool IsMouseDoubleClicked(int button)
     return g.IO.MouseDoubleClicked[button];
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ImVec2 GetMousePos()
 {
     return GImGui.IO.MousePos;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool IsHovered()
 {
@@ -1824,11 +1991,15 @@ bool IsHovered()
     return window->DC.LastItemHovered;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ImVec2 GetItemBoxMin()
 {
     ImGuiWindow* window = GetCurrentWindow();
     return window->DC.LastItemAabb.Min;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ImVec2 GetItemBoxMax()
 {
@@ -1853,15 +2024,21 @@ void SetNewWindowDefaultPos(const ImVec2& pos)
     g.NewWindowDefaultPos = pos;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float GetTime()
 {
     return GImGui.Time;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int GetFrameCount()
 {
     return GImGui.FrameCount;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static ImGuiWindow* FindWindow(const char* name)
 {
@@ -1870,19 +2047,26 @@ static ImGuiWindow* FindWindow(const char* name)
         if (strcmp(g.Windows[i]->Name, name) == 0)
             return g.Windows[i];
 
+
     return NULL;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BeginTooltip()
 {
     ImGui::Begin("##Tooltip", NULL, ImVec2(0, 0), 0.9f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_Tooltip);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void EndTooltip()
 {
     IM_ASSERT(GetCurrentWindow()->Flags & ImGuiWindowFlags_Tooltip);
     ImGui::End();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BeginChild(const char* str_id, ImVec2 size, bool border, ImGuiWindowFlags extra_flags)
 {
@@ -1916,6 +2100,8 @@ void BeginChild(const char* str_id, ImVec2 size, bool border, ImGuiWindowFlags e
     if (!(window->Flags & ImGuiWindowFlags_ShowBorders))
         g.CurrentWindow->Flags &= ~ImGuiWindowFlags_ShowBorders;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void EndChild()
 {
@@ -2340,6 +2526,8 @@ bool Begin(const char* name, bool* open, ImVec2 size, float fill_alpha, ImGuiWin
     return !window->SkipItems;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void End()
 {
     ImGuiState& g = GImGui;
@@ -2396,6 +2584,8 @@ static void FocusWindow(ImGuiWindow* window)
     g.Windows.push_back(window);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void PushItemWidth(float item_width)
 {
     ImGuiWindow* window = GetCurrentWindow();
@@ -2403,11 +2593,15 @@ void PushItemWidth(float item_width)
     window->DC.ItemWidth.push_back(item_width > 0.0f ? item_width : window->ItemWidthDefault);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void PopItemWidth()
 {
     ImGuiWindow* window = GetCurrentWindow();
     window->DC.ItemWidth.pop_back();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float GetItemWidth()
 {
@@ -2415,17 +2609,23 @@ float GetItemWidth()
     return window->DC.ItemWidth.back();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void PushAllowKeyboardFocus(bool allow_keyboard_focus)
 {
     ImGuiWindow* window = GetCurrentWindow();
     window->DC.AllowKeyboardFocus.push_back(allow_keyboard_focus);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void PopAllowKeyboardFocus()
 {
     ImGuiWindow* window = GetCurrentWindow();
     window->DC.AllowKeyboardFocus.pop_back();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PushStyleColor(ImGuiCol idx, const ImVec4& col)
 {
@@ -2439,6 +2639,8 @@ void PushStyleColor(ImGuiCol idx, const ImVec4& col)
     g.Style.Colors[idx] = col;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void PopStyleColor()
 {
     ImGuiState& g = GImGui;
@@ -2448,6 +2650,8 @@ void PopStyleColor()
     g.Style.Colors[backup.Col] = backup.PreviousValue;
     window->DC.ColorModifiers.pop_back();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const char* GetStyleColorName(ImGuiCol idx)
 {
@@ -2533,6 +2737,8 @@ const char* GetStyleColorName(ImGuiCol idx)
     return "Unknown";
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool GetWindowIsFocused()
 {
     ImGuiState& g = GImGui;
@@ -2540,17 +2746,23 @@ bool GetWindowIsFocused()
     return g.FocusedWindow == window;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float GetWindowWidth()
 {
     ImGuiWindow* window = GetCurrentWindow();
     return window->Size.x;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ImVec2 GetWindowPos()
 {
     ImGuiWindow* window = GetCurrentWindow();
     return window->Pos;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SetWindowPos(const ImVec2& pos)
 {
@@ -2563,17 +2775,23 @@ void SetWindowPos(const ImVec2& pos)
     window->DC.CursorPos += (window->Pos - old_pos);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ImVec2 GetWindowSize()
 {
     ImGuiWindow* window = GetCurrentWindow();
     return window->Size;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ImVec2 GetWindowContentRegionMin()
 {
     ImGuiWindow* window = GetCurrentWindow();
     return ImVec2(0, window->TitleBarHeight()) + window->WindowPadding();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ImVec2 GetWindowContentRegionMax()
 {
@@ -2584,11 +2802,15 @@ ImVec2 GetWindowContentRegionMax()
     return m;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float GetTextLineHeight()
 {
     ImGuiWindow* window = GetCurrentWindow();
     return window->FontSize();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float GetTextLineSpacing()
 {
@@ -2597,11 +2819,15 @@ float GetTextLineSpacing()
     return window->FontSize() + g.Style.ItemSpacing.y;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ImDrawList* GetWindowDrawList()
 {
     ImGuiWindow* window = GetCurrentWindow();
     return window->DrawList;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SetFontScale(float scale)
 {
@@ -2609,11 +2835,15 @@ void SetFontScale(float scale)
     window->FontScale = scale;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ImVec2 GetCursorPos()
 {
     ImGuiWindow* window = GetCurrentWindow();
     return window->DC.CursorPos - window->Pos;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SetCursorPos(const ImVec2& pos)
 {
@@ -2621,11 +2851,15 @@ void SetCursorPos(const ImVec2& pos)
     window->DC.CursorPos = window->Pos + pos;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void SetCursorPosX(float x)
 {
     ImGuiWindow* window = GetCurrentWindow();
     window->DC.CursorPos.x = window->Pos.x + x;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SetCursorPosY(float y)
 {
@@ -2633,11 +2867,15 @@ void SetCursorPosY(float y)
     window->DC.CursorPos.y = window->Pos.y + y;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ImVec2 GetCursorScreenPos()
 {
     ImGuiWindow* window = GetCurrentWindow();
     return window->DC.CursorPos;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SetScrollPosHere()
 {
@@ -2645,17 +2883,23 @@ void SetScrollPosHere()
     window->NextScrollY = (window->DC.CursorPos.y + window->ScrollY) - (window->Pos.y + window->SizeFull.y * 0.5f) - (window->TitleBarHeight() + window->WindowPadding().y);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void SetTreeStateStorage(ImGuiStorage* tree)
 {
     ImGuiWindow* window = GetCurrentWindow();
     window->DC.StateStorage = tree ? tree : &window->StateStorage;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ImGuiStorage* GetTreeStateStorage()
 {
     ImGuiWindow* window = GetCurrentWindow();
     return window->DC.StateStorage;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TextV(const char* fmt, va_list args)
 {
@@ -2668,6 +2912,8 @@ void TextV(const char* fmt, va_list args)
     TextUnformatted(buf, text_end);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Text(const char* fmt, ...)
 {
     va_list args;
@@ -2675,6 +2921,8 @@ void Text(const char* fmt, ...)
     TextV(fmt, args);
     va_end(args);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TextColored(const ImVec4& col, const char* fmt, ...)
 {
@@ -2685,6 +2933,8 @@ void TextColored(const ImVec4& col, const char* fmt, ...)
     va_end(args);
     ImGui::PopStyleColor();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TextUnformatted(const char* text, const char* text_end)
 {
@@ -2785,6 +3035,8 @@ void TextUnformatted(const char* text, const char* text_end)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void AlignFirstTextHeightToWidgets()
 {
     ImGuiState& g = GImGui;
@@ -2826,6 +3078,8 @@ void LabelText(const char* label, const char* fmt, ...)
     RenderText(value_bb.Min, text_begin, text_end);
     RenderText(ImVec2(value_bb.Max.x + style.ItemInnerSpacing.x, value_bb.Min.y), label);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static bool ButtonBehaviour(const ImGuiAabb& bb, const ImGuiID& id, bool* out_hovered, bool* out_held, bool allow_key_modifiers, bool repeat)
 {
@@ -2870,6 +3124,8 @@ static bool ButtonBehaviour(const ImGuiAabb& bb, const ImGuiID& id, bool* out_ho
 
     return pressed;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Button(const char* label, ImVec2 size, bool repeat_when_held)
 {
@@ -3043,6 +3299,8 @@ void LogButtons()
         LogToClipboard(g.LogAutoExpandMaxDepth);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool CollapsingHeader(const char* label, const char* str_id, const bool display_frame, const bool default_open)
 {
     ImGuiState& g = GImGui;
@@ -3094,6 +3352,7 @@ bool CollapsingHeader(const char* label, const char* str_id, const bool display_
     if (!display_frame)
         if (g.LogEnabled && window->DC.TreeDepth < g.LogAutoExpandMaxDepth)
             opened = true;
+
 
 
     if (ClipAdvance(bb))
@@ -3201,10 +3460,14 @@ bool TreeNode(const void* ptr_id, const char* fmt, ...)
     return opened;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool TreeNode(const char* str_label_id)
 {
     return TreeNode(str_label_id, "%s", str_label_id);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void OpenNextNode(bool open)
 {
@@ -3212,11 +3475,15 @@ void OpenNextNode(bool open)
     window->DC.OpenNextNode = open ? 1 : 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void PushID(const char* str_id)
 {
     ImGuiWindow* window = GetCurrentWindow();
     window->IDStack.push_back(window->GetID(str_id));
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PushID(const void* ptr_id)
 {
@@ -3224,12 +3491,16 @@ void PushID(const void* ptr_id)
     window->IDStack.push_back(window->GetID(ptr_id));
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void PushID(const int int_id)
 {
     const void* ptr_id = (void*)(intptr_t)int_id;
     ImGuiWindow* window = GetCurrentWindow();
     window->IDStack.push_back(window->GetID(ptr_id));
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PopID()
 {
@@ -3264,6 +3535,7 @@ static void ApplyNumericalTextInput(const char* buf, float* v)
     if (op)
         if (sscanf(GImGui.InputTextState.InitialText, "%f", &ref_v) < 1)
             return;
+
 
 
     float op_v = 0.0f;
@@ -3505,6 +3777,8 @@ bool SliderFloat(const char* label, float* v, float v_min, float v_max, const ch
     return value_changed;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool SliderAngle(const char* label, float* v, float v_degrees_min, float v_degrees_max)
 {
     float v_deg = *v * 360.0f / (2 * PI);
@@ -3512,6 +3786,8 @@ bool SliderAngle(const char* label, float* v, float v_degrees_min, float v_degre
     *v = v_deg * (2 * PI) / 360.0f;
     return changed;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SliderInt(const char* label, int* v, int v_min, int v_max, const char* display_format)
 {
@@ -3522,6 +3798,8 @@ bool SliderInt(const char* label, int* v, int v_min, int v_max, const char* disp
     *v = (int)v_f;
     return changed;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static bool SliderFloatN(const char* label, float v[3], int components, float v_min, float v_max, const char* display_format, float power)
 {
@@ -3558,15 +3836,21 @@ static bool SliderFloatN(const char* label, float v[3], int components, float v_
     return value_changed;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool SliderFloat2(const char* label, float v[2], float v_min, float v_max, const char* display_format, float power)
 {
     return SliderFloatN(label, v, 2, v_min, v_max, display_format, power);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool SliderFloat3(const char* label, float v[3], float v_min, float v_max, const char* display_format, float power)
 {
     return SliderFloatN(label, v, 3, v_min, v_max, display_format, power);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SliderFloat4(const char* label, float v[4], float v_min, float v_max, const char* display_format, float power)
 {
@@ -3580,11 +3864,15 @@ enum ImGuiPlotType
     ImGuiPlotType_Histogram,
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static float PlotGetValue(const float* values, size_t stride, int idx)
 {
     const float v = *(float*)((unsigned char*)values + (size_t)idx * stride);
     return v;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void Plot(ImGuiPlotType plot_type, const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, size_t stride)
 {
@@ -3683,15 +3971,21 @@ static void Plot(ImGuiPlotType plot_type, const char* label, const float* values
     RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, graph_bb.Min.y), label);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void PlotLines(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, size_t stride)
 {
     ImGui::Plot(ImGuiPlotType_Lines, label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void PlotHistogram(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, size_t stride)
 {
     ImGui::Plot(ImGuiPlotType_Histogram, label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Checkbox(const char* label, bool* v)
 {
@@ -3739,6 +4033,8 @@ bool Checkbox(const char* label, bool* v)
     return pressed;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool CheckboxFlags(const char* label, unsigned int* flags, unsigned int flags_value)
 {
     bool v = (*flags & flags_value) ? true : false;
@@ -3749,6 +4045,8 @@ bool CheckboxFlags(const char* label, unsigned int* flags, unsigned int flags_va
         *flags &= ~flags_value;
     return pressed;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool RadioButton(const char* label, bool active)
 {
@@ -3800,6 +4098,8 @@ bool RadioButton(const char* label, bool active)
     return pressed;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool RadioButton(const char* label, int* v, int v_button)
 {
     const bool pressed = ImGui::RadioButton(label, *v == v_button);
@@ -3816,10 +4116,18 @@ extern char STB_TEXTEDIT_NEWLINE;
 
 // Wrapper for stb_textedit.h to edit text (our wrapper is for: statically sized buffer, single-line, ASCII, fixed-width font)
 int     STB_TEXTEDIT_STRINGLEN(const STB_TEXTEDIT_STRING* obj)                                  { return (int)strlen(obj->Text); }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 char    STB_TEXTEDIT_GETCHAR(const STB_TEXTEDIT_STRING* obj, int idx)                           { return (char)obj->Text[idx]; }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float   STB_TEXTEDIT_GETWIDTH(STB_TEXTEDIT_STRING* obj, int line_start_idx, int char_idx)       { (void)line_start_idx; return obj->Font->CalcTextSize(obj->FontSize, 0, &obj->Text[char_idx], &obj->Text[char_idx] + 1, NULL).x; }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 char    STB_TEXTEDIT_KEYTOTEXT(int key)                                                         { return key >= 0x10000 ? 0 : (char)key; }
 char STB_TEXTEDIT_NEWLINE = '\n';
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void    STB_TEXTEDIT_LAYOUTROW(StbTexteditRow* r, STB_TEXTEDIT_STRING* obj, int line_start_idx)
 {
     const char* text_remaining = NULL;
@@ -3832,15 +4140,23 @@ void    STB_TEXTEDIT_LAYOUTROW(StbTexteditRow* r, STB_TEXTEDIT_STRING* obj, int 
     r->num_chars = (int)(text_remaining - (obj->Text + line_start_idx));
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static bool is_white(char c)        { return c==0 || c==' ' || c=='\t' || c=='\r' || c=='\n'; }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static bool is_separator(char c)    { return c==',' || c==';' || c=='(' || c==')' || c=='{' || c=='}' || c=='[' || c==']' || c=='|'; }
 
 #define STB_TEXTEDIT_IS_SPACE(c)                                                                (is_white(c) || is_separator(c))
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void    STB_TEXTEDIT_DELETECHARS(STB_TEXTEDIT_STRING* obj, int idx, int n)                      {
     char* dst = obj->Text + idx; const char* src = obj->Text + idx + n; while (char c = *src++)
         *dst++ = c;
     *dst = '\0';
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool    STB_TEXTEDIT_INSERTCHARS(STB_TEXTEDIT_STRING* obj, int idx, const char* new_text, int new_text_len)
 {
@@ -3879,11 +4195,15 @@ enum
 #define STB_TEXTEDIT_IMPLEMENTATION
 #include "stb_textedit.h"
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ImGuiTextEditState::OnKeyboardPressed(int key)
 {
     stb_textedit_key(this, &StbState, key);
     CursorAnimReset();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ImGuiTextEditState::UpdateScrollOffset()
 {
@@ -3895,6 +4215,8 @@ void ImGuiTextEditState::UpdateScrollOffset()
     else if (ScrollX < cursor_offset_x - Width)
         ScrollX = cursor_offset_x - Width + scroll_x_increment;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ImVec2 ImGuiTextEditState::CalcDisplayOffsetFromCharIdx(int i) const
 {
@@ -3946,6 +4268,8 @@ void ImGuiTextEditState::RenderTextScrolledClipped(ImFont font, float font_size,
 
 namespace ImGui
 {
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool InputFloat(const char* label, float* v, float step, float step_fast, int decimal_precision, ImGuiInputTextFlags extra_flags)
 {
@@ -4005,6 +4329,8 @@ bool InputFloat(const char* label, float* v, float step, float step_fast, int de
     return value_changed;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool InputInt(const char* label, int* v, int step, int step_fast, ImGuiInputTextFlags extra_flags)
 {
     float f = (float)*v;
@@ -4012,6 +4338,8 @@ bool InputInt(const char* label, int* v, int step, int step_fast, ImGuiInputText
     *v = (int)f;
     return value_changed;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool InputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags)
 {
@@ -4190,9 +4518,11 @@ bool InputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlag
                         if (!(c >= '0' && c <= '9') && (c != '.') && (c != '-') && (c != '+') && (c != '*') && (c != '/'))
                             continue;
 
+
                     if (flags & ImGuiInputTextFlags_CharsHexadecimal)
                         if (!(c >= '0' && c <= '9') && !(c >= 'a' && c <= 'f') && !(c >= 'A' && c <= 'F'))
                             continue;
+
 
 
                     // Insert character!
@@ -4260,6 +4590,8 @@ bool InputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlag
         return value_changed;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static bool InputFloatN(const char* label, float* v, int components, int decimal_precision)
 {
     ImGuiState& g = GImGui;
@@ -4295,20 +4627,28 @@ static bool InputFloatN(const char* label, float* v, int components, int decimal
     return value_changed;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool InputFloat2(const char* label, float v[2], int decimal_precision)
 {
     return InputFloatN(label, v, 2, decimal_precision);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool InputFloat3(const char* label, float v[3], int decimal_precision)
 {
     return InputFloatN(label, v, 3, decimal_precision);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool InputFloat4(const char* label, float v[4], int decimal_precision)
 {
     return InputFloatN(label, v, 4, decimal_precision);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static bool Combo_ArrayGetter(void* data, int idx, const char** out_text)
 {
@@ -4324,6 +4664,8 @@ bool Combo(const char* label, int* current_item, const char** items, int items_c
     const bool value_changed = Combo(label, current_item, Combo_ArrayGetter, (void*)items, items_count, popup_height_items);
     return value_changed;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static bool Combo_StringListGetter(void* data, int idx, const char** out_text)
 {
@@ -4506,6 +4848,8 @@ bool ColorButton(const ImVec4& col, bool small_height, bool outline_border)
     return pressed;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool ColorEdit3(const char* label, float col[3])
 {
     float col4[4];
@@ -4653,6 +4997,8 @@ bool ColorEdit4(const char* label, float col[4], bool alpha)
     return value_changed;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ColorEditMode(ImGuiColorEditMode mode)
 {
     ImGuiWindow* window = GetCurrentWindow();
@@ -4695,6 +5041,8 @@ void Spacing()
     ItemSize(ImVec2(0, 0));
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void ItemSize(ImVec2 size, ImVec2* adjust_start_offset)
 {
     ImGuiState& g = GImGui;
@@ -4716,10 +5064,14 @@ static void ItemSize(ImVec2 size, ImVec2* adjust_start_offset)
     window->DC.CurrentLineHeight = 0.0f;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void ItemSize(const ImGuiAabb& aabb, ImVec2* adjust_start_offset)
 {
     ItemSize(aabb.GetSize(), adjust_start_offset);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void NextColumn()
 {
@@ -4741,6 +5093,8 @@ void NextColumn()
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool IsClipped(const ImGuiAabb& bb)
 {
     ImGuiState& g = GImGui;
@@ -4751,11 +5105,15 @@ bool IsClipped(const ImGuiAabb& bb)
     return false;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool IsClipped(const ImVec2& item_size)
 {
     ImGuiWindow* window = GetCurrentWindow();
     return IsClipped(ImGuiAabb(window->DC.CursorPos, window->DC.CursorPos + item_size));
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static bool ClipAdvance(const ImGuiAabb& bb)
 {
@@ -4799,6 +5157,8 @@ void SameLine(int column_x, int spacing_w)
     window->DC.CursorPos = ImVec2(x, y);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float GetColumnOffset(int column_index)
 {
     ImGuiState& g = GImGui;
@@ -4815,6 +5175,8 @@ float GetColumnOffset(int column_index)
     return offset;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void SetColumnOffset(int column_index, float offset)
 {
     ImGuiState& g = GImGui;
@@ -4827,6 +5189,8 @@ void SetColumnOffset(int column_index, float offset)
     window->StateStorage.SetInt(column_id, (int)(t * 8096));
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float GetColumnWidth(int column_index)
 {
     ImGuiWindow* window = GetCurrentWindow();
@@ -4836,6 +5200,8 @@ float GetColumnWidth(int column_index)
     const float w = GetColumnOffset(column_index + 1) - GetColumnOffset(column_index);
     return w;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void PushColumnClipRect(int column_index)
 {
@@ -4847,6 +5213,8 @@ static void PushColumnClipRect(int column_index)
     const float x2 = window->Pos.x + ImGui::GetColumnOffset(column_index + 1) - 1;
     ImGui::PushClipRect(ImVec4(x1, -FLT_MAX, x2, +FLT_MAX));
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Columns(int columns_count, const char* id, bool border)
 {
@@ -4909,6 +5277,8 @@ void Columns(int columns_count, const char* id, bool border)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void TreePush(const char* str_id)
 {
     ImGuiState& g = GImGui;
@@ -4918,6 +5288,8 @@ void TreePush(const char* str_id)
     window->DC.TreeDepth++;
     PushID(str_id ? str_id : "#TreePush");
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TreePush(const void* ptr_id)
 {
@@ -4929,6 +5301,8 @@ void TreePush(const void* ptr_id)
     PushID(ptr_id ? ptr_id : (const void*)"#TreePush");
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void TreePop()
 {
     ImGuiState& g = GImGui;
@@ -4939,20 +5313,28 @@ void TreePop()
     PopID();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Value(const char* prefix, bool b)
 {
     ImGui::Text("%s: %s", prefix, (b ? "true" : "false"));
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Value(const char* prefix, int v)
 {
     ImGui::Text("%s: %d", prefix, v);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Value(const char* prefix, unsigned int v)
 {
     ImGui::Text("%s: %d", prefix, v);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Value(const char* prefix, float v, const char* float_format)
 {
@@ -4968,12 +5350,16 @@ void Value(const char* prefix, float v, const char* float_format)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Color(const char* prefix, const ImVec4& v)
 {
     ImGui::Text("%s: (%.2f,%.2f,%.2f,%.2f)", prefix, v.x, v.y, v.z, v.w);
     ImGui::SameLine();
     ImGui::ColorButton(v, true);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Color(const char* prefix, unsigned int v)
 {
@@ -5002,6 +5388,8 @@ void ImDrawList::Clear()
     clip_rect_stack.resize(0);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ImDrawList::PushClipRect(const ImVec4& clip_rect)
 {
     if (!commands.empty() && commands.back().vtx_count == 0)
@@ -5018,6 +5406,8 @@ void ImDrawList::PushClipRect(const ImVec4& clip_rect)
     }
     clip_rect_stack.push_back(clip_rect);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ImDrawList::PopClipRect()
 {
@@ -5037,6 +5427,8 @@ void ImDrawList::PopClipRect()
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ImDrawList::ReserveVertices(unsigned int vtx_count)
 {
     if (vtx_count > 0)
@@ -5048,6 +5440,8 @@ void ImDrawList::ReserveVertices(unsigned int vtx_count)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ImDrawList::AddVtx(const ImVec2& pos, ImU32 col)
 {
     vtx_write->pos = pos;
@@ -5055,6 +5449,8 @@ void ImDrawList::AddVtx(const ImVec2& pos, ImU32 col)
     vtx_write->uv = GImGui.IO.FontTexUvForWhite;
     vtx_write++;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ImDrawList::AddVtxLine(const ImVec2& a, const ImVec2& b, ImU32 col)
 {
@@ -5072,6 +5468,8 @@ void ImDrawList::AddVtxLine(const ImVec2& a, const ImVec2& b, ImU32 col)
     AddVtx(a + hp1, col);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ImDrawList::AddLine(const ImVec2& a, const ImVec2& b, ImU32 col)
 {
     if ((col >> 24) == 0)
@@ -5080,6 +5478,8 @@ void ImDrawList::AddLine(const ImVec2& a, const ImVec2& b, ImU32 col)
     ReserveVertices(6);
     AddVtxLine(a, b, col);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ImDrawList::AddArc(const ImVec2& center, float rad, ImU32 col, int a_min, int a_max, bool tris, const ImVec2& third_point_offset)
 {
@@ -5116,6 +5516,8 @@ void ImDrawList::AddArc(const ImVec2& center, float rad, ImU32 col, int a_min, i
             AddVtxLine(center + circle_vtx[a % IM_ARRAYSIZE(circle_vtx)] * rad, center + circle_vtx[(a + 1) % IM_ARRAYSIZE(circle_vtx)] * rad, col);
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ImDrawList::AddRect(const ImVec2& a, const ImVec2& b, ImU32 col, float rounding, int rounding_corners)
 {
@@ -5157,6 +5559,8 @@ void ImDrawList::AddRect(const ImVec2& a, const ImVec2& b, ImU32 col, float roun
         if (rounding_corners & 8) AddArc(ImVec2(a.x + r, b.y - r), r, col, 9, 12);
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ImDrawList::AddRectFilled(const ImVec2& a, const ImVec2& b, ImU32 col, float rounding, int rounding_corners)
 {
@@ -5223,6 +5627,8 @@ void ImDrawList::AddRectFilled(const ImVec2& a, const ImVec2& b, ImU32 col, floa
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ImDrawList::AddTriangleFilled(const ImVec2& a, const ImVec2& b, const ImVec2& c, ImU32 col)
 {
     if ((col >> 24) == 0)
@@ -5235,6 +5641,8 @@ void ImDrawList::AddTriangleFilled(const ImVec2& a, const ImVec2& b, const ImVec
     AddVtx(b + offset, col);
     AddVtx(c + offset, col);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ImDrawList::AddCircle(const ImVec2& centre, float radius, ImU32 col, int num_segments)
 {
@@ -5253,6 +5661,8 @@ void ImDrawList::AddCircle(const ImVec2& centre, float radius, ImU32 col, int nu
         a0 = a1;
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ImDrawList::AddCircleFilled(const ImVec2& centre, float radius, ImU32 col, int num_segments)
 {
@@ -5273,6 +5683,8 @@ void ImDrawList::AddCircleFilled(const ImVec2& centre, float radius, ImU32 col, 
         a0 = a1;
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ImDrawList::AddText(ImFont font, float font_size, const ImVec2& pos, ImU32 col, const char* text_begin, const char* text_end)
 {
@@ -5315,6 +5727,8 @@ ImBitmapFont::ImBitmapFont()
     TabCount = 4;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ImBitmapFont::Clear()
 {
     if (Data && DataOwned)
@@ -5328,6 +5742,8 @@ void ImBitmapFont::Clear()
     Filenames.clear();
     IndexLookup.clear();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ImBitmapFont::LoadFromFile(const char* filename)
 {
@@ -5369,6 +5785,8 @@ bool ImBitmapFont::LoadFromFile(const char* filename)
     DataOwned = true;
     return LoadFromMemory(Data, DataSize);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ImBitmapFont::LoadFromMemory(const void* data, size_t data_size)
 {
@@ -5419,12 +5837,15 @@ bool ImBitmapFont::LoadFromMemory(const void* data, size_t data_size)
     return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ImBitmapFont::BuildLookupTable()
 {
     ImU32 max_c = 0;
     for (size_t i = 0; i != GlyphsCount; i++)
         if (max_c < Glyphs[i].Id)
             max_c = Glyphs[i].Id;
+
 
 
     IndexLookup.clear();
@@ -5434,6 +5855,8 @@ void ImBitmapFont::BuildLookupTable()
     for (size_t i = 0; i < GlyphsCount; i++)
         IndexLookup[Glyphs[i].Id] = (int)i;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const ImBitmapFont::FntGlyph* ImBitmapFont::FindGlyph(unsigned short c) const
 {
@@ -5445,6 +5868,8 @@ const ImBitmapFont::FntGlyph* ImBitmapFont::FindGlyph(unsigned short c) const
     }
     return NULL;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ImVec2 ImBitmapFont::CalcTextSize(float size, float max_width, const char* text_begin, const char* text_end, const char** remaining) const
 {
@@ -5500,6 +5925,8 @@ ImVec2 ImBitmapFont::CalcTextSize(float size, float max_width, const char* text_
 
     return text_size;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ImBitmapFont::RenderText(float size, ImVec2 pos, ImU32 col, const ImVec4& clip_rect_ref, const char* text_begin, const char* text_end, ImDrawVert*& out_vertices) const
 {
@@ -5673,6 +6100,8 @@ static void SetClipboardTextFn_DefaultImpl(const char* text, const char* text_en
 namespace ImGui
 {
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ShowUserGuide()
 {
     ImGuiState& g = GImGui;
@@ -5696,6 +6125,8 @@ void ShowUserGuide()
         "- You can apply arithmetic operators +,*,/ on numerical values.\n"
         "  Use +- to subtract.\n");
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ShowStyleEditor(ImGuiStyle* ref)
 {
@@ -6159,6 +6590,7 @@ void ShowTestWindow(bool* open)
             if (filter.PassFilter(lines[i]))
                 ImGui::BulletText("%s", lines[i]);
 
+
     }
 
     if (ImGui::CollapsingHeader("Long text"))
@@ -6384,6 +6816,8 @@ static const unsigned int proggy_clean_13_fnt_data[4648 / 4] =
 
 namespace ImGui
 {
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GetDefaultFontData(const void** fnt_data, unsigned int* fnt_size, const void** png_data, unsigned int* png_size)
 {
