@@ -3,38 +3,6 @@ require "tundra.path"
 require "tundra.util"
 
 -----------------------------------------------------------------------------------------------------------------------
-
-StaticLibrary {
-    Name = "remote_api",
-
-    Env = { 
-        
-        CPPPATH = { "api/include" },
-        CCOPTS = {
-            "-Wno-visibility",
-            "-Wno-conversion", 
-            "-Wno-pedantic", 
-            "-Wno-conversion",
-            "-Wno-covered-switch-default",
-            "-Wno-unreachable-code",
-            "-Wno-bad-function-cast",
-            "-Wno-missing-field-initializers",
-            "-Wno-float-equal",
-            "-Wno-conversion",
-            "-Wno-switch-enum",
-            "-Wno-format-nonliteral"; Config = "macosx-*-*" 
-        },
-    },
-
-    Sources = { 
-        Glob {
-            Dir = "api/src/remote",
-            Extensions = { ".c" },
-        },
-    },
-}
-
------------------------------------------------------------------------------------------------------------------------
 -- Example 6502 emulator
 
 Program {
@@ -84,6 +52,26 @@ Program {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+Program {
+    Name = "core_tests",
+
+    Env = { 
+        CPPPATH = { 
+            "src/external/cmocka/include",
+            "src/prodbg",
+        },
+    },
+
+    Sources = { 
+    	"src/prodbg/tests/core_tests.c",
+    },
+
+    Depends = { "core", "cmocka" },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
 Default "fake6502"
 Default "crashing_native"
+Default "core_tests"
 

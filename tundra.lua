@@ -63,8 +63,8 @@ Build {
     },
 
     Units = { 
-    	"units.misc.lua",
     	"units.libs.lua",
+    	"units.misc.lua",
     	"units.plugins.lua",
     	"units.prodbg.lua",
 	},

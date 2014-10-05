@@ -141,6 +141,62 @@ StaticLibrary {
 }
 
 -----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
+    Name = "cmocka",
+
+    Env = { 
+        CPPPATH = { 
+            "src/external/cmocka/include",
+        },
+        
+        CCOPTS = {
+       	"-Wno-everything" ; Config = "macosx-*-*" 
+       },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "src/external/cmocka/src",
+            Extensions = { ".c", ".h" },
+        },
+    },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
+    Name = "remote_api",
+
+    Env = { 
+        
+        CPPPATH = { "api/include" },
+        CCOPTS = {
+            "-Wno-visibility",
+            "-Wno-conversion", 
+            "-Wno-pedantic", 
+            "-Wno-conversion",
+            "-Wno-covered-switch-default",
+            "-Wno-unreachable-code",
+            "-Wno-bad-function-cast",
+            "-Wno-missing-field-initializers",
+            "-Wno-float-equal",
+            "-Wno-conversion",
+            "-Wno-switch-enum",
+            "-Wno-format-nonliteral"; Config = "macosx-*-*" 
+        },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "api/src/remote",
+            Extensions = { ".c" },
+        },
+    },
+}
+
+
+-----------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------- INTERNAL LIBS --------------------------------------------------------- 
 -----------------------------------------------------------------------------------------------------------------------
 
