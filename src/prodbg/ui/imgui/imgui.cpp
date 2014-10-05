@@ -458,6 +458,7 @@ static const char* ImStristr(const char* haystack, const char* needle, const cha
                     break;
 
 
+
             if (b == needle_end)
                 return haystack;
         }
@@ -1661,6 +1662,7 @@ void Render()
                     continue;
 
 
+
             AddWindowToSortedBuffer(window, sorted_windows);
         }
         IM_ASSERT(g.Windows.size() == sorted_windows.size());           // We done something wrong
@@ -1739,6 +1741,7 @@ static void LogText(const ImVec2& ref_pos, const char* text, const char* text_en
                 break;
             else
                 line_end++;
+
 
 
         if (line_end >= text_end)
@@ -1942,6 +1945,7 @@ bool IsKeyPressed(int key_index, bool repeat)
 
 
 
+
     return false;
 }
 
@@ -1961,6 +1965,7 @@ bool IsMouseClicked(int button, bool repeat)
     if (repeat && t > MOUSE_REPEAT_DELAY)
         if ((fmodf(t - MOUSE_REPEAT_DELAY, MOUSE_REPEAT_RATE) > MOUSE_REPEAT_RATE * 0.5f) != (fmodf(t - MOUSE_REPEAT_DELAY - g.IO.DeltaTime, MOUSE_REPEAT_RATE) > MOUSE_REPEAT_RATE * 0.5f))
             return true;
+
 
 
 
@@ -2046,6 +2051,7 @@ static ImGuiWindow* FindWindow(const char* name)
     for (size_t i = 0; i != g.Windows.size(); i++)
         if (strcmp(g.Windows[i]->Name, name) == 0)
             return g.Windows[i];
+
 
 
     return NULL;
@@ -3355,6 +3361,7 @@ bool CollapsingHeader(const char* label, const char* str_id, const bool display_
 
 
 
+
     if (ClipAdvance(bb))
         return opened;
 
@@ -3535,6 +3542,7 @@ static void ApplyNumericalTextInput(const char* buf, float* v)
     if (op)
         if (sscanf(GImGui.InputTextState.InitialText, "%f", &ref_v) < 1)
             return;
+
 
 
 
@@ -4519,9 +4527,11 @@ bool InputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlag
                             continue;
 
 
+
                     if (flags & ImGuiInputTextFlags_CharsHexadecimal)
                         if (!(c >= '0' && c <= '9') && !(c >= 'a' && c <= 'f') && !(c >= 'A' && c <= 'F'))
                             continue;
+
 
 
 
@@ -5848,6 +5858,7 @@ void ImBitmapFont::BuildLookupTable()
 
 
 
+
     IndexLookup.clear();
     IndexLookup.resize(max_c + 1);
     for (size_t i = 0; i < IndexLookup.size(); i++)
@@ -6589,6 +6600,7 @@ void ShowTestWindow(bool* open)
         for (size_t i = 0; i < IM_ARRAYSIZE(lines); i++)
             if (filter.PassFilter(lines[i]))
                 ImGui::BulletText("%s", lines[i]);
+
 
 
     }

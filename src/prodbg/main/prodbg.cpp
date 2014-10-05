@@ -1,20 +1,23 @@
 #include <stdlib.h>
-#include <core/core.h>
-#include <core/plugin_handler.h>
-#include <core/math.h>
+#include "core/core.h"
+#include "core/plugin_handler.h"
+#include "core/math.h"
+#include "core/log.h"
 #include "settings.h"
 //#include "ui/Application.h"
+
+#include <bgfxplatform.h>
+#include <bgfx.h>
+#include "ui/menu.h"
+#include "ui/imgui/imgui.h"
+#include "ui/imgui_setup.h"
+#include <stdio.h>
 
 #ifdef PRODBG_WIN
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
 
-#include <bgfxplatform.h>
-#include <bgfx.h>
-#include "ui/imgui/imgui.h"
-#include "ui/imgui_setup.h"
-#include <stdio.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -41,10 +44,10 @@ static Context s_context;
 static const char* s_plugins[] =
 {
     "sourcecode_plugin",
+    "disassembly_plugin",
+    "locals_plugin",
     "callstack_plugin",
     "registers_plugin",
-    "locals_plugin",
-    "disassembly_plugin",
 #ifdef PRODBG_MAC
     "lldb_plugin",
 #endif
@@ -79,33 +82,13 @@ void ProDBG_create(void* window, int width, int height)
 #endif
 
     bgfx::init();
-    bgfx::reset(width, height);
+    bgfx::reset(width, height, BGFX_RESET_VSYNC);
     bgfx::setViewSeq(0, true);
 
     context->width = width;
     context->height = height;
 
     IMGUI_setup(width, height);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void ProDBG_setWindowSize(int width, int height)
-{
-    Context* context = &s_context;
-
-    context->width = width;
-    context->height = height;
-
-    bgfx::reset(width, height);
-    IMGUI_setup(width, height);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void ProDBG_destroy()
-{
-    Settings_save();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -138,6 +121,27 @@ void ProDBG_update()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void ProDBG_setWindowSize(int width, int height)
+{
+    Context* context = &s_context;
+
+    context->width = width;
+    context->height = height;
+
+    bgfx::reset(width, height);
+    IMGUI_setup(width, height);
+    ProDBG_update();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_destroy()
+{
+    Settings_save();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ProDBG_timedUpdate()
 {
     ProDBG_update();
@@ -148,7 +152,44 @@ void ProDBG_timedUpdate()
 
 void ProDBG_event(int eventId)
 {
-    (void)eventId;
+    switch (eventId)
+    {
+        case PRODBG_MENU_SOURCECODE:
+        {
+            log_info("source code view\n");
+            break;
+        }
+
+        case PRODBG_MENU_DISASSEMBLY:
+        {
+            log_info("disassembly view\n");
+            break;
+        }
+
+        case PRODBG_MENU_LOCALS:
+        {
+            log_info("disassembly view\n");
+            break;
+        }
+
+        case PRODBG_MENU_CALLSTACK:
+        {
+            log_info("callstack view\n");
+            break;
+        }
+
+        case PRODBG_MENU_REGISTERS:
+        {
+            log_info("registers view\n");
+            break;
+        }
+
+        case PRODBG_MENU_WATCH:
+        {
+            log_info("watch view\n");
+            break;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -168,6 +209,8 @@ void ProDBG_setMousePos(float x, float y)
 
     context->mouseX = x;
     context->mouseY = y;
+
+    ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -178,6 +221,8 @@ void ProDBG_setMouseState(int button, int state)
     (void)button;
 
     context->mouseLmb = state;
+
+    ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
