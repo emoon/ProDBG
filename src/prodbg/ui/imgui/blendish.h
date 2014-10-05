@@ -143,7 +143,7 @@ typedef struct BNDtheme
 typedef enum BNDtextAlignment
 {
     BND_LEFT = 0,
-    BND_CENTER,
+    BND_CENTER
 } BNDtextAlignment;
 
 // states altering the styling of a widget
@@ -454,7 +454,7 @@ void bndArrow(NVGcontext* ctx, float x, float y, float s, NVGcolor color);
 void bndUpDownArrow(NVGcontext* ctx, float x, float y, float s, NVGcolor color);
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif // BLENDISH_H
@@ -577,13 +577,13 @@ BND_INLINE float bnd_clamp(float v, float mn, float mx) {
 // the initial theme
 static BNDtheme bnd_theme = {
     // backgroundColor
-    {{{ 0.477, 0.447, 0.447, 1.0 }}},
+    {{{ 0.477f, 0.447f, 0.447f, 1.0f }}},
     // regularTheme
     {
-        {{{ 0.098, 0.098, 0.098, 1 }}}, // color_outline
-        {{{ 0.098, 0.098, 0.098, 1 }}}, // color_item
-        {{{ 0.6, 0.6, 0.6, 1 }}}, // color_inner
-        {{{ 0.392, 0.392, 0.392, 1 }}}, // color_inner_selected
+        {{{ 0.098f, 0.098f, 0.098f, 1.0f }}}, // color_outline
+        {{{ 0.098f, 0.098f, 0.098f, 1.0f }}}, // color_item
+        {{{ 0.6f, 0.6f, 0.6f, 1.0f }}}, // color_inner
+        {{{ 0.392f, 0.392f, 0.392f, 1.0f }}}, // color_inner_selected
         BND_COLOR_TEXT, // color_text
         BND_COLOR_TEXT_SELECTED, // color_text_selected
         0, // shade_top
@@ -591,10 +591,10 @@ static BNDtheme bnd_theme = {
     },
     // toolTheme
     {
-        {{{ 0.098, 0.098, 0.098, 1 }}}, // color_outline
-        {{{ 0.098, 0.098, 0.098, 1 }}}, // color_item
-        {{{ 0.6, 0.6, 0.6, 1 }}}, // color_inner
-        {{{ 0.392, 0.392, 0.392, 1 }}}, // color_inner_selected
+        {{{ 0.098f, 0.098f, 0.098f, 1.0f }}}, // color_outline
+        {{{ 0.098f, 0.098f, 0.098f, 1.0f }}}, // color_item
+        {{{ 0.6f, 0.6f, 0.6f, 1.0f }}}, // color_inner
+        {{{ 0.392f, 0.392f, 0.392f, 1.0f }}}, // color_inner_selected
         BND_COLOR_TEXT, // color_text
         BND_COLOR_TEXT_SELECTED, // color_text_selected
         15, // shade_top
@@ -602,10 +602,10 @@ static BNDtheme bnd_theme = {
     },
     // radioTheme
     {
-        {{{ 0, 0, 0, 1 }}}, // color_outline
-        {{{ 1, 1, 1, 1 }}}, // color_item
-        {{{ 0.275, 0.275, 0.275, 1 }}}, // color_inner
-        {{{ 0.337, 0.502, 0.761, 1 }}}, // color_inner_selected
+        {{{ 0.0f, 0.0f, 0.0f, 1.0f }}}, // color_outline
+        {{{ 1.0f, 1.0f, 1.0f, 1.0f }}}, // color_item
+        {{{ 0.275f, 0.275f, 0.275f, 1.0f }}}, // color_inner
+        {{{ 0.337f, 0.502f, 0.761f, 1.0f }}}, // color_inner_selected
         BND_COLOR_TEXT_SELECTED, // color_text
         BND_COLOR_TEXT, // color_text_selected
         15, // shade_top
@@ -613,10 +613,10 @@ static BNDtheme bnd_theme = {
     },
     // textFieldTheme
     {
-        {{{ 0.098, 0.098, 0.098, 1 }}}, // color_outline
-        {{{ 0.353, 0.353, 0.353, 1 }}}, // color_item
-        {{{ 0.6, 0.6, 0.6, 1 }}}, // color_inner
-        {{{ 0.6, 0.6, 0.6, 1 }}}, // color_inner_selected
+        {{{ 0.098f, 0.098f, 0.098f, 1.0f }}}, // color_outline
+        {{{ 0.353f, 0.353f, 0.353f, 1.0f }}}, // color_item
+        {{{ 0.6f, 0.6f, 0.6f, 1.0f }}}, // color_inner
+        {{{ 0.6f, 0.6f, 0.6f, 1.0f }}}, // color_inner_selected
         BND_COLOR_TEXT, // color_text
         BND_COLOR_TEXT_SELECTED, // color_text_selected
         0, // shade_top
@@ -624,10 +624,10 @@ static BNDtheme bnd_theme = {
     },
     // optionTheme
     {
-        {{{ 0, 0, 0, 1 }}}, // color_outline
-        {{{ 1, 1, 1, 1 }}}, // color_item
-        {{{ 0.275, 0.275, 0.275, 1 }}}, // color_inner
-        {{{ 0.275, 0.275, 0.275, 1 }}}, // color_inner_selected
+        {{{ 0.0f, 0.0f, 0.0f, 1.0f }}}, // color_outline
+        {{{ 1.0f, 1.0f, 1.0f, 1.0f }}}, // color_item
+        {{{ 0.275f, 0.275f, 0.275f, 1.0f }}}, // color_inner
+        {{{ 0.275f, 0.275f, 0.275f, 1.0f }}}, // color_inner_selected
         BND_COLOR_TEXT, // color_text
         BND_COLOR_TEXT_SELECTED, // color_text_selected
         15, // shade_top
@@ -635,21 +635,21 @@ static BNDtheme bnd_theme = {
     },
     // choiceTheme
     {
-        {{{ 0, 0, 0, 1 }}}, // color_outline
-        {{{ 1, 1, 1, 1 }}}, // color_item
-        {{{ 0.275, 0.275, 0.275, 1 }}}, // color_inner
-        {{{ 0.275, 0.275, 0.275, 1 }}}, // color_inner_selected
+        {{{ 0.0f, 0.0f, 0.0f, 1.0f }}}, // color_outline
+        {{{ 1.0f, 1.0f, 1.0f, 1.0f }}}, // color_item
+        {{{ 0.275f, 0.275f, 0.275f, 1.0f }}}, // color_inner
+        {{{ 0.275f, 0.275f, 0.275f, 1.0f }}}, // color_inner_selected
         BND_COLOR_TEXT_SELECTED, // color_text
-        {{{ 0.8, 0.8, 0.8, 1 }}}, // color_text_selected
+        {{{ 0.8f, 0.8f, 0.8f, 1 }}}, // color_text_selected
         15, // shade_top
         -15, // shade_down
     },
     // numberFieldTheme
     {
-        {{{ 0.098, 0.098, 0.098, 1 }}}, // color_outline
-        {{{ 0.353, 0.353, 0.353, 1 }}}, // color_item
-        {{{ 0.706, 0.706, 0.706, 1 }}}, // color_inner
-        {{{ 0.6, 0.6, 0.6, 1 }}}, // color_inner_selected
+        {{{ 0.098f, 0.098f, 0.098f, 1.0f }}}, // color_outline
+        {{{ 0.353f, 0.353f, 0.353f, 1.0f }}}, // color_item
+        {{{ 0.706f, 0.706f, 0.706f, 1.0f }}}, // color_inner
+        {{{ 0.6f, 0.6f, 0.6f, 1.0f }}}, // color_inner_selected
         BND_COLOR_TEXT, // color_text
         BND_COLOR_TEXT_SELECTED, // color_text_selected
         -20, // shade_top
@@ -657,10 +657,10 @@ static BNDtheme bnd_theme = {
     },
     // sliderTheme
     {
-        {{{ 0.098, 0.098, 0.098, 1 }}}, // color_outline
-        {{{ 0.502, 0.502, 0.502, 1 }}}, // color_item
-        {{{ 0.706, 0.706, 0.706, 1 }}}, // color_inner
-        {{{ 0.6, 0.6, 0.6, 1 }}}, // color_inner_selected
+        {{{ 0.098f, 0.098f, 0.098f, 1.0f }}}, // color_outline
+        {{{ 0.502f, 0.502f, 0.502f, 1.0f }}}, // color_item
+        {{{ 0.706f, 0.706f, 0.706f, 1.0f }}}, // color_inner
+        {{{ 0.6f, 0.6f, 0.6f, 1.0f }}}, // color_inner_selected
         BND_COLOR_TEXT, // color_text
         BND_COLOR_TEXT_SELECTED, // color_text_selected
         -20, // shade_top
@@ -668,10 +668,10 @@ static BNDtheme bnd_theme = {
     },
     // scrollBarTheme
     {
-        {{{ 0.196, 0.196, 0.196, 1 }}}, // color_outline
-        {{{ 0.502, 0.502, 0.502, 1 }}}, // color_item
-        {{{ 0.314, 0.314, 0.314, 0.706 }}}, // color_inner
-        {{{ 0.392, 0.392, 0.392, 0.706 }}}, // color_inner_selected
+        {{{ 0.196f, 0.196f, 0.196f, 1.0f }}}, // color_outline
+        {{{ 0.502f, 0.502f, 0.502f, 1.0f }}}, // color_item
+        {{{ 0.314f, 0.314f, 0.314f, 0.706f }}}, // color_inner
+        {{{ 0.392f, 0.392f, 0.392f, 0.706f }}}, // color_inner_selected
         BND_COLOR_TEXT, // color_text
         BND_COLOR_TEXT_SELECTED, // color_text_selected
         5, // shade_top
@@ -679,32 +679,32 @@ static BNDtheme bnd_theme = {
     },
     // tooltipTheme
     {
-        {{{ 0, 0, 0, 1 }}}, // color_outline
-        {{{ 0.392, 0.392, 0.392, 1 }}}, // color_item
-        {{{ 0.098, 0.098, 0.098, 0.902 }}}, // color_inner
-        {{{ 0.176, 0.176, 0.176, 0.902 }}}, // color_inner_selected
-        {{{ 0.627, 0.627, 0.627, 1 }}}, // color_text
+        {{{ 0.0f, 0.0f, 0.0f, 1.0f }}}, // color_outline
+        {{{ 0.392f, 0.392f, 0.392f, 1.0f }}}, // color_item
+        {{{ 0.098f, 0.098f, 0.098f, 0.902f }}}, // color_inner
+        {{{ 0.176f, 0.176f, 0.176f, 0.902f }}}, // color_inner_selected
+        {{{ 0.627f, 0.627f, 0.627f, 1.0f }}}, // color_text
         BND_COLOR_TEXT_SELECTED, // color_text_selected
         0, // shade_top
         0, // shade_down
     },
     // menuTheme
     {
-        {{{ 0, 0, 0, 1 }}}, // color_outline
-        {{{ 0.392, 0.392, 0.392, 1 }}}, // color_item
-        {{{ 0.098, 0.098, 0.098, 0.902 }}}, // color_inner
-        {{{ 0.176, 0.176, 0.176, 0.902 }}}, // color_inner_selected
-        {{{ 0.627, 0.627, 0.627, 1 }}}, // color_text
+        {{{ 0.0f, 0.0f, 0.0f, 1.0f }}}, // color_outline
+        {{{ 0.392f, 0.392f, 0.392f, 1.0f }}}, // color_item
+        {{{ 0.098f, 0.098f, 0.098f, 0.902f }}}, // color_inner
+        {{{ 0.176f, 0.176f, 0.176f, 0.902f }}}, // color_inner_selected
+        {{{ 0.627f, 0.627f, 0.627f, 1.0f }}}, // color_text
         BND_COLOR_TEXT_SELECTED, // color_text_selected
         0, // shade_top
         0, // shade_down
     },
     // menuItemTheme
     {
-        {{{ 0, 0, 0, 1 }}}, // color_outline
-        {{{ 0.675, 0.675, 0.675, 0.502 }}}, // color_item
-        {{{ 0, 0, 0, 0 }}}, // color_inner
-        {{{ 0.337, 0.502, 0.761, 1 }}}, // color_inner_selected
+        {{{ 0.0f, 0.0f, 0.0f, 1.0f }}}, // color_outline
+        {{{ 0.675f, 0.675f, 0.675f, 0.502f }}}, // color_item
+        {{{ 0.0f, 0.0f, 0.0f, 0.0f }}}, // color_inner
+        {{{ 0.337f, 0.502f, 0.761f, 1.0f }}}, // color_inner_selected
         BND_COLOR_TEXT_SELECTED, // color_text
         BND_COLOR_TEXT, // color_text_selected
         38, // shade_top
@@ -1323,7 +1323,7 @@ void bndIconLabelCaret(NVGcontext* ctx, float x, float y, float w, float h,
         nvgBeginPath(ctx);
         if (cbegin == cend)
         {
-            nvgFillColor(ctx, nvgRGBf(0.337, 0.502, 0.761));
+            nvgFillColor(ctx, nvgRGBf(0.337f, 0.502f, 0.761f));
             nvgRect(ctx, c0 - 1, bounds[1], 2, bounds[3] - bounds[1]);
         }
         else
@@ -1373,11 +1373,11 @@ void bndUpDownArrow(NVGcontext* ctx, float x, float y, float s, NVGcolor color) 
     nvgBeginPath(ctx);
     w = 1.1f * s;
     nvgMoveTo(ctx, x, y - 1);
-    nvgLineTo(ctx, x + 0.5 * w, y - s - 1);
+    nvgLineTo(ctx, x + 0.5f * w, y - s - 1);
     nvgLineTo(ctx, x + w, y - 1);
     nvgClosePath(ctx);
     nvgMoveTo(ctx, x, y + 1);
-    nvgLineTo(ctx, x + 0.5 * w, y + s + 1);
+    nvgLineTo(ctx, x + 0.5f * w, y + s + 1);
     nvgLineTo(ctx, x + w, y + 1);
     nvgClosePath(ctx);
     nvgFillColor(ctx, color);
