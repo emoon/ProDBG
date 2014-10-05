@@ -1348,7 +1348,7 @@ void _assert_return_code(const LargestIntegralType result,
     if (result > valmax - 1) {
         if (error > 0) {
             print_error("%s < 0, errno(%" PRIu64 "): %s\n",
-                        expression, error, strerror(error));
+                        expression, error, strerror((int)error));
         } else {
             print_error("%s < 0\n", expression);
         }
@@ -1670,7 +1670,7 @@ void vprint_message(const char* const format, va_list args) {
     printf("%s", buffer);
     fflush(stdout);
 #ifdef _WIN32
-    OutputDebugString(buffer);
+    OutputDebugStringA(buffer);
 #endif /* _WIN32 */
 }
 
@@ -1681,7 +1681,7 @@ void vprint_error(const char* const format, va_list args) {
     fprintf(stderr, "%s", buffer);
     fflush(stderr);
 #ifdef _WIN32
-    OutputDebugString(buffer);
+    OutputDebugStringA(buffer);
 #endif /* _WIN32 */
 }
 
