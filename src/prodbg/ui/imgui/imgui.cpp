@@ -2049,10 +2049,10 @@ static ImGuiWindow* FindWindow(const char* name)
 {
     ImGuiState& g = GImGui;
     for (size_t i = 0; i != g.Windows.size(); i++)
-	{
+    {
         if (strcmp(g.Windows[i]->Name, name) == 0)
             return g.Windows[i];
-	}
+    }
 
     return NULL;
 }
@@ -3539,10 +3539,10 @@ static void ApplyNumericalTextInput(const char* buf, float* v)
 
     float ref_v = *v;
     if (op)
-	{
+    {
         if (sscanf(GImGui.InputTextState.InitialText, "%f", &ref_v) < 1)
             return;
-	}
+    }
 
     float op_v = 0.0f;
     if (sscanf(buf, "%f", &op_v) < 1)
@@ -6594,16 +6594,10 @@ void ShowTestWindow(bool* open)
         filter.Draw();
         const char* lines[] = { "aaa1.c", "bbb1.c", "ccc1.c", "aaa2.cpp", "bbb2.cpp", "ccc2.cpp", "abc.h", "hello, world" };
         for (size_t i = 0; i < IM_ARRAYSIZE(lines); i++)
+        {
             if (filter.PassFilter(lines[i]))
                 ImGui::BulletText("%s", lines[i]);
-
-
-
-
-
-
-
-
+        }
     }
 
     if (ImGui::CollapsingHeader("Long text"))
