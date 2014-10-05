@@ -1739,12 +1739,12 @@ static void LogText(const ImVec2& ref_pos, const char* text, const char* text_en
     {
         const char* line_end = text_remaining;
         while (line_end < text_end)
-		{
+        {
             if (*line_end == '\n')
                 break;
             else
                 line_end++;
-		}
+        }
 
         if (line_end >= text_end)
             line_end = NULL;
@@ -1942,10 +1942,10 @@ bool IsKeyPressed(int key_index, bool repeat)
     const float KEY_REPEAT_DELAY = 0.250f;
     const float KEY_REPEAT_RATE = 0.020f;
     if (repeat && t > KEY_REPEAT_DELAY)
-	{
+    {
         if ((fmodf(t - KEY_REPEAT_DELAY, KEY_REPEAT_RATE) > KEY_REPEAT_RATE * 0.5f) != (fmodf(t - KEY_REPEAT_DELAY - g.IO.DeltaTime, KEY_REPEAT_RATE) > KEY_REPEAT_RATE * 0.5f))
             return true;
-	}
+    }
 
     return false;
 }
@@ -1964,10 +1964,10 @@ bool IsMouseClicked(int button, bool repeat)
     const float MOUSE_REPEAT_DELAY = 0.250f;
     const float MOUSE_REPEAT_RATE = 0.020f;
     if (repeat && t > MOUSE_REPEAT_DELAY)
-	{
+    {
         if ((fmodf(t - MOUSE_REPEAT_DELAY, MOUSE_REPEAT_RATE) > MOUSE_REPEAT_RATE * 0.5f) != (fmodf(t - MOUSE_REPEAT_DELAY - g.IO.DeltaTime, MOUSE_REPEAT_RATE) > MOUSE_REPEAT_RATE * 0.5f))
             return true;
-	}
+    }
 
     return false;
 }
@@ -2049,14 +2049,10 @@ static ImGuiWindow* FindWindow(const char* name)
 {
     ImGuiState& g = GImGui;
     for (size_t i = 0; i != g.Windows.size(); i++)
+	{
         if (strcmp(g.Windows[i]->Name, name) == 0)
             return g.Windows[i];
-
-
-
-
-
-
+	}
 
     return NULL;
 }
@@ -3360,10 +3356,10 @@ bool CollapsingHeader(const char* label, const char* str_id, const bool display_
     // When logging is enabled, if automatically expand tree nodes (but *NOT* collapsing headers.. seems like sensible behaviour).
     // NB- If we are above max depth we still allow manually opened nodes to be logged.
     if (!display_frame)
-	{
+    {
         if (g.LogEnabled && window->DC.TreeDepth < g.LogAutoExpandMaxDepth)
             opened = true;
-	}
+    }
 
     if (ClipAdvance(bb))
         return opened;
@@ -3543,15 +3539,10 @@ static void ApplyNumericalTextInput(const char* buf, float* v)
 
     float ref_v = *v;
     if (op)
+	{
         if (sscanf(GImGui.InputTextState.InitialText, "%f", &ref_v) < 1)
             return;
-
-
-
-
-
-
-
+	}
 
     float op_v = 0.0f;
     if (sscanf(buf, "%f", &op_v) < 1)
@@ -4530,16 +4521,16 @@ bool InputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlag
                     if (!isprint(c) && c != ' ')
                         continue;
                     if (flags & ImGuiInputTextFlags_CharsDecimal)
-					{
+                    {
                         if (!(c >= '0' && c <= '9') && (c != '.') && (c != '-') && (c != '+') && (c != '*') && (c != '/'))
                             continue;
-					}
+                    }
 
                     if (flags & ImGuiInputTextFlags_CharsHexadecimal)
-					{
+                    {
                         if (!(c >= '0' && c <= '9') && !(c >= 'a' && c <= 'f') && !(c >= 'A' && c <= 'F'))
                             continue;
-					}
+                    }
 
                     // Insert character!
                     edit_state.OnKeyboardPressed(c);
@@ -5859,10 +5850,10 @@ void ImBitmapFont::BuildLookupTable()
 {
     ImU32 max_c = 0;
     for (size_t i = 0; i != GlyphsCount; i++)
-	{
+    {
         if (max_c < Glyphs[i].Id)
             max_c = Glyphs[i].Id;
-	}
+    }
 
     IndexLookup.clear();
     IndexLookup.resize(max_c + 1);
@@ -6605,6 +6596,7 @@ void ShowTestWindow(bool* open)
         for (size_t i = 0; i < IM_ARRAYSIZE(lines); i++)
             if (filter.PassFilter(lines[i]))
                 ImGui::BulletText("%s", lines[i]);
+
 
 
 
