@@ -341,7 +341,7 @@ enum ImGuiInputTextFlags_
     ImGuiInputTextFlags_CharsHexadecimal    = 1 << 1,   // Allow 0123456789ABCDEFabcdef
     ImGuiInputTextFlags_AutoSelectAll       = 1 << 2,   // Select entire text when first taking focus
     ImGuiInputTextFlags_EnterReturnsTrue    = 1 << 3   // Return 'true' when Enter is pressed (as opposed to when the value was modified)
-    //ImGuiInputTextFlags_AlignCenter       = 1 << 3,
+                                              //ImGuiInputTextFlags_AlignCenter       = 1 << 3,
 };
 
 // User fill ImGuiIO.KeyMap[] array with indices into the ImGuiIO.KeysDown[512] array
