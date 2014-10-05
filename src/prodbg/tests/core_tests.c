@@ -7,7 +7,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void null_test_success(void** state) 
+static void null_test_success(void** state)
 {
     (void)state;  /* unused */
     assert_false(0);
@@ -15,7 +15,7 @@ static void null_test_success(void** state)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void test_allocator(void** state) 
+static void test_allocator(void** state)
 {
     (void)state;  /* unused */
     assert_false(0);
@@ -23,9 +23,9 @@ static void test_allocator(void** state)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main() 
+int main()
 {
-    const UnitTest tests[] = 
+    const UnitTest tests[] =
     {
         unit_test(null_test_success),
         unit_test(test_allocator),
