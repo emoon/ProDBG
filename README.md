@@ -19,7 +19,7 @@ After doing that open a terminal and run scripts/mac_build_debug.sh and you shou
 
 ## How to compile and run on Windows
 
-On Windows Visual Studio 2013 is required (2012 or earlier will not work as ports of the code uses C99) With VS 2013 installed do this:
+On Windows Visual Studio 2013 is required (2012 or earlier will not work as parts of the code uses C99) With VS 2013 installed do this:
 
 Open a cmd window and first run scripts\vcvarsx86_amd64.bat and then scripts\win64_build_debug.cmd and you will have an executable in t2-output\win64-msvc-debug-default\prodbg.exe
 
