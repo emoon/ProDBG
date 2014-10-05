@@ -20,6 +20,7 @@ enum
 
 enum SessionType
 {
+    Session_Null,
     Session_Local,
     Session_Remote,
 };
@@ -46,6 +47,17 @@ static void commonInit(Session* s)
     PDBinaryWriter_init(&s->backendWriter);
     PDBinaryWriter_init(&s->viewPluginsWriter);
     PDBinaryReader_init(&s->reader);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct Session* Session_createNullSession()
+{
+    Session* s = alloc_zero(sizeof(Session));
+
+    commonInit(s);
+
+    return s;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -342,4 +354,10 @@ void Session_removeViewPlugin(Session* session, struct ViewPluginInstance* plugi
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct ViewPluginInstance** Session_getViewPlugins(struct Session* session, int* count)
+{
+    *count = stb_arr_len(session->viewPlugins);
+    return session->viewPlugins;
+}
 
