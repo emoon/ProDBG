@@ -5,11 +5,14 @@ local mac_opts = {
 	"-Wall",
 	"-I.", "-DPRODBG_MAC", 
 	"-Weverything", "-Werror", 
+	"-Wno-c11-extensions",
 	"-Wno-variadic-macros",
 	"-Wno-c++98-compat-pedantic",
 	"-Wno-old-style-cast",
 	"-Wno-documentation", 
 	"-Wno-missing-prototypes", 
+	"-Wno-gnu-anonymous-struct",
+	"-Wno-nested-anon-types",
 	"-Wno-padded",
 	"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
 	{ "-O0", "-g"; Config = "*-*-debug" },
@@ -61,6 +64,7 @@ Build {
 
     Units = { 
     	"units.misc.lua",
+    	"units.libs.lua",
     	"units.plugins.lua",
     	"units.prodbg.lua",
 	},
