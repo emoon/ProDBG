@@ -330,7 +330,7 @@ enum ImGuiWindowFlags_
     ImGuiWindowFlags_ChildWindowAutoFitX    = 1 << 6,   // For internal use by BeginChild()
     ImGuiWindowFlags_ChildWindowAutoFitY    = 1 << 7,   // For internal use by BeginChild()
     ImGuiWindowFlags_ComboBox               = 1 << 8,   // For internal use by ComboBox()
-    ImGuiWindowFlags_Tooltip                = 1 << 9,   // For internal use by Render() when using Tooltip
+    ImGuiWindowFlags_Tooltip                = 1 << 9   // For internal use by Render() when using Tooltip
 };
 
 // Flags for ImGui::InputText()
@@ -340,7 +340,7 @@ enum ImGuiInputTextFlags_
     ImGuiInputTextFlags_CharsDecimal        = 1 << 0,   // Allow 0123456789.+-*/
     ImGuiInputTextFlags_CharsHexadecimal    = 1 << 1,   // Allow 0123456789ABCDEFabcdef
     ImGuiInputTextFlags_AutoSelectAll       = 1 << 2,   // Select entire text when first taking focus
-    ImGuiInputTextFlags_EnterReturnsTrue    = 1 << 3,   // Return 'true' when Enter is pressed (as opposed to when the value was modified)
+    ImGuiInputTextFlags_EnterReturnsTrue    = 1 << 3   // Return 'true' when Enter is pressed (as opposed to when the value was modified)
     //ImGuiInputTextFlags_AlignCenter       = 1 << 3,
 };
 
@@ -364,7 +364,7 @@ enum ImGuiKey_
     ImGuiKey_X,         // for CTRL+X: cut
     ImGuiKey_Y,         // for CTRL+Y: redo
     ImGuiKey_Z,         // for CTRL+Z: undo
-    ImGuiKey_COUNT,
+    ImGuiKey_COUNT
 };
 
 enum ImGuiCol_
@@ -406,7 +406,7 @@ enum ImGuiCol_
     ImGuiCol_PlotHistogramHovered,
     ImGuiCol_TextSelectedBg,
     ImGuiCol_TooltipBg,
-    ImGuiCol_COUNT,
+    ImGuiCol_COUNT
 };
 
 enum ImGuiColorEditMode_
@@ -414,7 +414,7 @@ enum ImGuiColorEditMode_
     ImGuiColorEditMode_UserSelect = -1,
     ImGuiColorEditMode_RGB = 0,
     ImGuiColorEditMode_HSV = 1,
-    ImGuiColorEditMode_HEX = 2,
+    ImGuiColorEditMode_HEX = 2
 };
 
 struct ImGuiStyle

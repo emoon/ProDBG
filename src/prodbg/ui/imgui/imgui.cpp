@@ -3869,7 +3869,7 @@ bool SliderFloat4(const char* label, float v[4], float v_min, float v_max, const
 enum ImGuiPlotType
 {
     ImGuiPlotType_Lines,
-    ImGuiPlotType_Histogram,
+    ImGuiPlotType_Histogram
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4197,7 +4197,7 @@ enum
     STB_TEXTEDIT_K_REDO,            // keyboard input to perform redo
     STB_TEXTEDIT_K_WORDLEFT,        // keyboard input to move cursor left one word
     STB_TEXTEDIT_K_WORDRIGHT,       // keyboard input to move cursor right one word
-    STB_TEXTEDIT_K_SHIFT = 1 << 17,
+    STB_TEXTEDIT_K_SHIFT = 1 << 17
 };
 
 #define STB_TEXTEDIT_IMPLEMENTATION
