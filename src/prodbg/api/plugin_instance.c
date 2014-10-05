@@ -1,30 +1,20 @@
 #include "plugin_instance.h"
+#include "core/alloc.h"
 #include <pd_view.h>
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef PRODBG_WIN
-#include <malloc.h>
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace prodbg
+struct ViewPluginInstance* PluginInstance_createViewPlugin()
 {
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-ViewPluginInstance* PluginInstance_createViewPlugin()
-{
-    ViewPluginInstance* instance = (ViewPluginInstance*)malloc(sizeof(ViewPluginInstance));
-    memset(instance, 0, sizeof(ViewPluginInstance));
-
+    struct ViewPluginInstance* instance = alloc_zero(sizeof(struct ViewPluginInstance));
     return instance;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool PluginInstance_init(ViewPluginInstance* instance, PDViewPlugin* plugin)
+bool PluginInstance_init(struct ViewPluginInstance* instance, PDViewPlugin* plugin)
 {
     void* userData = plugin->createInstance(&instance->ui, 0);
     instance->plugin = plugin;
@@ -34,6 +24,4 @@ bool PluginInstance_init(ViewPluginInstance* instance, PDViewPlugin* plugin)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-}
 
