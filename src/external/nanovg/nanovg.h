@@ -49,12 +49,12 @@ struct NVGpaint {
 
 enum NVGwinding {
 	NVG_CCW = 1,			// Winding for solid shapes
-	NVG_CW = 2,				// Winding for holes
+	NVG_CW = 2				// Winding for holes
 };
 
 enum NVGsolidity {
 	NVG_SOLID = 1,			// CCW
-	NVG_HOLE = 2,			// CW
+	NVG_HOLE = 2			// CW
 };
 
 enum NVGlineCap {
@@ -62,12 +62,12 @@ enum NVGlineCap {
 	NVG_ROUND,
 	NVG_SQUARE,
 	NVG_BEVEL,
-	NVG_MITER,
+	NVG_MITER
 };
 
 enum NVGpatternRepeat {
 	NVG_REPEATX = 0x01,		// Repeat image pattern in X direction
-	NVG_REPEATY = 0x02,		// Repeat image pattern in Y direction
+	NVG_REPEATY = 0x02		// Repeat image pattern in Y direction
 };
 
 enum NVGalign {
@@ -79,12 +79,12 @@ enum NVGalign {
 	NVG_ALIGN_TOP 		= 1<<3,	// Align text vertically to top.
 	NVG_ALIGN_MIDDLE	= 1<<4,	// Align text vertically to middle.
 	NVG_ALIGN_BOTTOM	= 1<<5,	// Align text vertically to bottom. 
-	NVG_ALIGN_BASELINE	= 1<<6, // Default, align text vertically to baseline. 
+	NVG_ALIGN_BASELINE	= 1<<6 // Default, align text vertically to baseline. 
 };
 
 enum NVGalpha {
 	NVG_STRAIGHT_ALPHA,
-	NVG_PREMULTIPLIED_ALPHA,
+	NVG_PREMULTIPLIED_ALPHA
 };
 
 struct NVGglyphPosition {
@@ -481,7 +481,7 @@ int nvgTextBreakLines(struct NVGcontext* ctx, const char* string, const char* en
 //
 enum NVGtexture {
 	NVG_TEXTURE_ALPHA = 0x01,
-	NVG_TEXTURE_RGBA = 0x02,
+	NVG_TEXTURE_RGBA = 0x02
 };
 
 struct NVGscissor
