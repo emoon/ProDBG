@@ -57,6 +57,7 @@ Program {
 
     Env = { 
         CPPPATH = { 
+            "api/include",
             "src/external/cmocka/include",
             "src/prodbg",
         },
@@ -66,7 +67,7 @@ Program {
     	"src/prodbg/tests/core_tests.c",
     },
 
-    Depends = { "core", "cmocka" },
+    Depends = { "stb", "remote_api", "api", "core", "cmocka" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
