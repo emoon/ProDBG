@@ -1,17 +1,17 @@
-#include <stdlib.h>
 #include "core/core.h"
-#include "core/plugin_handler.h"
-#include "core/math.h"
 #include "core/log.h"
+#include "core/math.h"
+#include "core/plugin_handler.h"
+#include "core/session.h"
 #include "settings.h"
-//#include "ui/Application.h"
-
-#include <bgfxplatform.h>
-#include <bgfx.h>
-#include "ui/menu.h"
 #include "ui/imgui/imgui.h"
 #include "ui/imgui_setup.h"
+#include "ui/menu.h"
+
+#include <bgfx.h>
+#include <bgfxplatform.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifdef PRODBG_WIN
 #define WIN32_LEAN_AND_MEAN
@@ -82,7 +82,7 @@ void ProDBG_create(void* window, int width, int height)
 #endif
 
     bgfx::init();
-    bgfx::reset(width, height, BGFX_RESET_VSYNC);
+    bgfx::reset(width, height);
     bgfx::setViewSeq(0, true);
 
     context->width = width;
