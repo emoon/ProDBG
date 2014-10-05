@@ -1,41 +1,42 @@
-#import "Delegate.h"
+#import "delegate.h"
 
-/*
+void Window_buildMenu();
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @implementation ProDBGAppDelegate
 
-@synthesize window;
-@synthesize button;
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication*)sender
 {
-	return NSTerminateNow;
+    (void)sender;
+    return NSTerminateNow;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification 
+- (void)applicationDidFinishLaunching:(NSNotification*)aNotification
 {
+    Window_buildMenu();
+
+    (void)aNotification;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-- (IBAction) buttonClicked:(id)sender 
+- (IBAction) buttonClicked:(id)sender
 {
+    (void)sender;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-- (void)applicationWillTerminate:(NSNotification *)aNotification
+- (void)applicationWillTerminate:(NSNotification*)aNotification
 {
+    (void)aNotification;
 
 }
 
 @end
-
-*/
 
