@@ -1,5 +1,5 @@
-#include <stdlib.h>
-#include <stdio.h>
+#include <stdarg.h>
+#include <stddef.h>
 #include <setjmp.h>
 #include <cmocka.h>
 
@@ -7,7 +7,29 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main()
+static void null_test_success(void** state) 
 {
-	return 0;
+    (void)state;  /* unused */
+    assert_false(0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void test_allocator(void** state) 
+{
+    (void)state;  /* unused */
+    assert_false(0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int main() 
+{
+    const UnitTest tests[] = 
+    {
+        unit_test(null_test_success),
+        unit_test(test_allocator),
+    };
+
+    return run_tests(tests);
 }
