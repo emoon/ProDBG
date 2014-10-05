@@ -815,7 +815,7 @@ static ImGuiState GImGui;
 
 struct ImGuiWindow
 {
-    char*                   Name;
+    char* Name;
     ImGuiID ID;
     ImGuiWindowFlags Flags;
     ImVec2 PosFloat;
@@ -833,8 +833,8 @@ struct ImGuiWindow
     int AutoFitFrames;
 
     ImGuiDrawContext DC;
-    ImVector<ImGuiID>       IDStack;
-    ImVector<ImVec4>        ClipRectStack;
+    ImVector<ImGuiID> IDStack;
+    ImVector<ImVec4> ClipRectStack;
     int LastFrameDrawn;
     float ItemWidthDefault;
     ImGuiStorage StateStorage;
@@ -844,7 +844,7 @@ struct ImGuiWindow
     int FocusIdxRequestCurrent;                                 // Item being requested for focus, rely on layout to be stable between the frame pressing TAB and the next frame
     int FocusIdxRequestNext;                                    // Item being requested for focus, for next update
 
-    ImDrawList*             DrawList;
+    ImDrawList* DrawList;
 
 public:
     ImGuiWindow(const char* name, ImVec2 default_pos, ImVec2 default_size);
@@ -2131,11 +2131,11 @@ void EndChild()
     }
 }
 
-// Push a new ImGui window to add widgets to. This can be called multiple times with the same window to append contents
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool Begin(const char* name, bool* open, ImVec2 size, float fill_alpha, ImGuiWindowFlags flags)
 {
     ImGuiState& g = GImGui;
-    const ImGuiStyle& style = g.Style;
 
     ImGuiWindow* window = FindWindow(name);
     if (!window)
@@ -2165,6 +2165,17 @@ bool Begin(const char* name, bool* open, ImVec2 size, float fill_alpha, ImGuiWin
         }
         g.Windows.push_back(window);
     }
+
+	return BeginWithWindow(window, name, open, size, fill_alpha, flags);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool BeginWithWindow(ImGuiWindow* window, const char* name, bool* open, ImVec2 size, float fill_alpha, ImGuiWindowFlags flags)
+{
+    ImGuiState& g = GImGui;
+    const ImGuiStyle& style = g.Style;
+
     window->Flags = (ImGuiWindowFlags)flags;
 
     g.CurrentWindowStack.push_back(window);
