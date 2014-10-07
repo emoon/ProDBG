@@ -51,7 +51,7 @@ static void commonInit(Session* s)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct Session* Session_createNullSession()
+struct Session* Session_create()
 {
     Session* s = alloc_zero(sizeof(Session));
 
@@ -307,10 +307,12 @@ static void updateRemote(Session* s, PDAction action)
 
 void Session_update(Session* s)
 {
-    if (s->type == Session_Local)
-        updateLocal(s, PDAction_none);
-    else
-        updateRemote(s, PDAction_none);
+	switch (s->type)
+	{
+		case Session_Local: updateLocal(s, PDAction_none); break;
+		case Session_Remote: updateRemote(s, PDAction_none); break;
+		case Session_Null: break;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -16,7 +16,7 @@ static void test_null_session(void** state)
 
     int pluginCount = 0;
 
-    struct Session* session = Session_createNullSession();
+    struct Session* session = Session_create();
 
     assert_non_null(session);
 
