@@ -19,8 +19,6 @@ local mac_opts = {
 	{ "-O3", "-g"; Config = "*-*-release" },
 }
 
------------------------------------------------------------------------------------------------------------------------
-
 local macosx = {
     Env = {
         CCOPTS = mac_opts,
@@ -28,6 +26,24 @@ local macosx = {
     },
 
     Frameworks = { "Cocoa" },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+local unix_gcc_opts = {
+	"-I.",
+	"-Wno-unused-value",
+	"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
+	"-Wall", "-DPRODBG_UNIX", "-std=gnu99",
+	{ "-O0", "-g"; Config = "*-*-debug" },
+	{ "-O3", "-g"; Config = "*-*-release" },
+}
+
+local unix_gcc = {
+    Env = {
+        CCOPTS = unix_gcc_opts,
+        CXXOPTS = unix_gcc_opts,
+    },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -72,6 +88,7 @@ Build {
     Configs = {
         Config { Name = "macosx-clang", DefaultOnHost = "macosx", Inherit = macosx, Tools = { "clang-osx" } },
         Config { Name = "win64-msvc", DefaultOnHost = { "windows" }, Inherit = win64, Tools = { "msvc" } },
+        Config { Name = "unix-gcc", DefaultOnHost = { "linux" }, Inherit = unix_gcc, Tools = { "gcc" } },
     },
 
     IdeGenerationHints = {

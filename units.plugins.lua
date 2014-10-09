@@ -11,7 +11,7 @@ SharedLibrary {
     
     Env = {
         CPPPATH = { 
-        	"API/include",
+        	"api/include",
             "src/plugins/lldb",
         },
 
@@ -52,7 +52,8 @@ SharedLibrary {
     Name = "sourcecode_plugin",
     
     Env = {
-        CPPPATH = { "API/include", },
+        CPPPATH = { "api/include", },
+    	CXXOPTS = { { "-fPIC"; Config = "unix-gcc"; }, },
         SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
@@ -66,7 +67,8 @@ SharedLibrary {
     Name = "callstack_plugin",
     
     Env = {
-        CPPPATH = { "API/include", },
+        CPPPATH = { "api/include", },
+    	CXXOPTS = { { "-fPIC"; Config = "unix-gcc"; }, },
         SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
@@ -80,7 +82,8 @@ SharedLibrary {
     Name = "disassembly_plugin",
     
     Env = {
-        CPPPATH = { "API/include", },
+        CPPPATH = { "api/include", },
+    	CXXOPTS = { { "-fPIC"; Config = "unix-gcc"; }, },
         SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
@@ -94,7 +97,8 @@ SharedLibrary {
     Name = "registers_plugin",
     
     Env = {
-        CPPPATH = { "API/include", },
+        CPPPATH = { "api/include", },
+    	CXXOPTS = { { "-fPIC"; Config = "unix-gcc"; }, },
         SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
@@ -108,7 +112,8 @@ SharedLibrary {
     Name = "locals_plugin",
     
     Env = {
-        CPPPATH = { "API/include", },
+        CPPPATH = { "api/include", },
+    	CXXOPTS = { { "-fPIC"; Config = "unix-gcc"; }, },
         SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },

@@ -81,7 +81,7 @@ void ProDBG_create(void* window, int width, int height)
 #elif BX_PLATFORM_WINDOWS
     bgfx::winSetHwnd((HWND)window);
 #else
-    #error "Unsupported platform"
+    //bgfx::winSetHwnd(0);
 #endif
 
     bgfx::init();

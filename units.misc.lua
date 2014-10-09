@@ -61,13 +61,17 @@ Program {
             "src/external/cmocka/include",
             "src/prodbg",
         },
+
+		PROGCOM = {
+			{ "-lm"; Config = "unix-gcc-*" },
+		},
     },
 
     Sources = { 
     	"src/prodbg/tests/core_tests.c",
     },
 
-    Depends = { "stb", "remote_api", "api", "core", "cmocka" },
+    Depends = { "api", "core", "stb", "remote_api", "cmocka" },
 
     Libs = { { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 }

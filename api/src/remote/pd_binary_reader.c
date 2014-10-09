@@ -479,7 +479,7 @@ static int32_t readNextEntry(struct PDReader* reader, PDReaderIterator* arrayIt)
 
     // at the first entry this is the same as arrayStar
 
-    *arrayIt = getOffsetUpper(rData, entryStart + 7) | size - 7;
+    *arrayIt = getOffsetUpper(rData, entryStart + 7) | (size - 7);
 
     return entries;
 }

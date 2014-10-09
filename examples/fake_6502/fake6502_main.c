@@ -5,7 +5,7 @@
 #ifndef _WIN32
 #include <unistd.h>
 #endif
-#include "Debugger6502.h"
+#include "debugger6502.h"
 #include <pd_backend.h>
 #include <pd_remote.h>
 

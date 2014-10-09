@@ -20,6 +20,10 @@
 #include <arpa/inet.h>
 #endif
 
+#if defined(__linux__)
+#include <sys/time.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 
