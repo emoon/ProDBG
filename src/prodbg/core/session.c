@@ -349,10 +349,29 @@ void Session_addViewPlugin(Session* session, struct ViewPluginInstance* plugin)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Session_removeViewPlugin(Session* session, struct ViewPluginInstance* plugin)
+bool Session_removeViewPlugin(Session* session, struct ViewPluginInstance* plugin)
 {
-    (void)session;
-    (void)plugin;
+    int count = stb_arr_len(session->viewPlugins);
+
+	if (count == 0)
+		return true;
+
+	if (count == 1)
+	{
+		stb_arr_pop(session->viewPlugins);
+		return true;
+	}
+
+	for (int i = 0; i < count; ++i)
+	{
+		if (session->viewPlugins[i] == plugin)
+		{
+			stb_arr_fastdelete(session->viewPlugins, i);
+			return true;
+		}
+	}
+	
+	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

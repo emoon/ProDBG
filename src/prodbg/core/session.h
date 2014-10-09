@@ -1,6 +1,7 @@
 #pragma once
 
 #include <pd_backend.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,7 +22,7 @@ void Session_destroy(struct Session* session);
 void Session_update(struct Session* session);
 void Session_action(struct Session* session, PDAction action);
 void Session_addViewPlugin(struct Session* session, struct ViewPluginInstance* instance);
-void Session_removeViewPlugin(struct Session* session, struct ViewPluginInstance* instance);
+bool Session_removeViewPlugin(struct Session* session, struct ViewPluginInstance* instance);
 
 struct ViewPluginInstance** Session_getViewPlugins(struct Session* session, int* count);
 
