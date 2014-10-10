@@ -1,3 +1,3 @@
 #!/bin/bash 
 
-tundra2 -v unix-gcc-debug
+tundra2 -v linux-gcc-debug

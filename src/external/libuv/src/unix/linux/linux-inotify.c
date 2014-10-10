@@ -20,7 +20,7 @@
 
 #include "uv.h"
 #include "tree.h"
-#include "internal.h"
+#include "../internal.h"
 
 #include <stdint.h>
 #include <stdio.h>

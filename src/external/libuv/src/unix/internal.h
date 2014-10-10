@@ -34,7 +34,7 @@
 #endif
 
 #if defined(__linux__)
-# include "linux-syscalls.h"
+# include "linux/linux-syscalls.h"
 #endif /* __linux__ */
 
 #if defined(__sun)

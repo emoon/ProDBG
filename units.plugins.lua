@@ -53,7 +53,7 @@ SharedLibrary {
     
     Env = {
         CPPPATH = { "api/include", },
-    	CXXOPTS = { { "-fPIC"; Config = "unix-gcc"; }, },
+    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
         SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
@@ -68,7 +68,7 @@ SharedLibrary {
     
     Env = {
         CPPPATH = { "api/include", },
-    	CXXOPTS = { { "-fPIC"; Config = "unix-gcc"; }, },
+    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
         SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
@@ -83,7 +83,7 @@ SharedLibrary {
     
     Env = {
         CPPPATH = { "api/include", },
-    	CXXOPTS = { { "-fPIC"; Config = "unix-gcc"; }, },
+    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
         SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
@@ -98,7 +98,7 @@ SharedLibrary {
     
     Env = {
         CPPPATH = { "api/include", },
-    	CXXOPTS = { { "-fPIC"; Config = "unix-gcc"; }, },
+    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
         SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
@@ -113,7 +113,7 @@ SharedLibrary {
     
     Env = {
         CPPPATH = { "api/include", },
-    	CXXOPTS = { { "-fPIC"; Config = "unix-gcc"; }, },
+    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
         SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },

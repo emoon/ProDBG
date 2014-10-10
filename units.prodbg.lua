@@ -49,7 +49,8 @@ Program {
         },
 
 		PROGCOM = {
-			{ "-lstdc++"; Config = "macosx-clang-*" },
+			{ "-lstdc++"; Config = { "macosx-clang-*", "linux-gcc-*" } },
+			{ "-lm -lpthread -ldl -lX11"; Config = "linux-gcc-*" },
 		},
     },
 
@@ -60,6 +61,7 @@ Program {
             Filters = {
                 { Pattern = "mac"; Config = "macosx-*-*" },
                 { Pattern = "windows"; Config = "win64-*-*" },
+                { Pattern = "linux"; Config = "linux-*-*" },
             },
 
             Recursive = true,

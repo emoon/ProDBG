@@ -44,6 +44,10 @@ local gcc_env = {
         CCOPTS = gcc_opts,
         CXXOPTS = gcc_opts,
     },
+
+	ReplaceEnv = {
+		PROGCOM = "$(LD) $(PROGOPTS) $(LIBPATH:p-L) -o $(@) -Wl,--start-group $(LIBS:p-l) $(<) -Wl,--end-group"
+	},
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -88,7 +92,7 @@ Build {
     Configs = {
         Config { Name = "macosx-clang", DefaultOnHost = "macosx", Inherit = macosx, Tools = { "clang-osx" } },
         Config { Name = "win64-msvc", DefaultOnHost = { "windows" }, Inherit = win64, Tools = { "msvc" } },
-        Config { Name = "linux-gcc", DefaultOnHost = { "linux" }, Inherit = gcc_opts, Tools = { "gcc" } },
+        Config { Name = "linux-gcc", DefaultOnHost = { "linux" }, Inherit = gcc_env, Tools = { "gcc" } },
     },
 
     IdeGenerationHints = {
