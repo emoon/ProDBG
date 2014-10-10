@@ -53,7 +53,7 @@ static void commonInit(Session* s)
 
 struct Session* Session_create()
 {
-    Session* s = alloc_zero(sizeof(Session));
+    Session* s = (Session*)alloc_zero(sizeof(Session));
 
     commonInit(s);
 
@@ -64,7 +64,7 @@ struct Session* Session_create()
 
 Session* Session_createRemote(const char* target, int port)
 {
-    Session* s = alloc_zero(sizeof(Session));
+    Session* s = (Session*)alloc_zero(sizeof(Session));
 
     commonInit(s);
 
@@ -92,18 +92,18 @@ Session* Session_createRemote(const char* target, int port)
 
 Session* Session_createLocal(PDBackendPlugin* backend, const char* filename)
 {
-    Session* s = alloc_zero(sizeof(Session));
+    Session* s = (Session*)alloc_zero(sizeof(Session));
 
     // setup temporary writer
 
-    PDWriter* writer = alloc_zero(sizeof(PDWriter));
+    PDWriter* writer = (PDWriter*)alloc_zero(sizeof(PDWriter));
     PDBinaryWriter_init(writer);
 
     commonInit(s);
 
     // Create the backend
 
-    s->backend = alloc_zero(sizeof(struct PDBackendInstance));
+    s->backend = (PDBackendInstance*)alloc_zero(sizeof(struct PDBackendInstance));
     s->backend->plugin = backend;
     s->backend->userData = backend->createInstance(0);
 

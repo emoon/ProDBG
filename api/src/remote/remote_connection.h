@@ -12,7 +12,7 @@ struct RemoteConnection;
 enum RemoteConnectionType
 {
     RemoteConnectionType_Listener,
-    RemoteConnectionType_Connect,
+    RemoteConnectionType_Connect
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

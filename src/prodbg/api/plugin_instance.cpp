@@ -8,7 +8,7 @@
 
 struct ViewPluginInstance* PluginInstance_createViewPlugin()
 {
-    struct ViewPluginInstance* instance = alloc_zero(sizeof(struct ViewPluginInstance));
+    struct ViewPluginInstance* instance = (ViewPluginInstance*)alloc_zero(sizeof(struct ViewPluginInstance));
     return instance;
 }
 

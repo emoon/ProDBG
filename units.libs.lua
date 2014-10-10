@@ -250,7 +250,7 @@ StaticLibrary {
     Sources = { 
         Glob {
             Dir = "src/prodbg/core",
-            Extensions = { ".c", ".h" },
+            Extensions = { ".cpp", ".h" },
         },
     },
 }
