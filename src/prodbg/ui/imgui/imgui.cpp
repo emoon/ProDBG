@@ -2166,7 +2166,7 @@ bool Begin(const char* name, bool* open, ImVec2 size, float fill_alpha, ImGuiWin
         g.Windows.push_back(window);
     }
 
-	return BeginWithWindow(window, name, open, size, fill_alpha, flags);
+    return BeginWithWindow(window, name, open, size, fill_alpha, flags);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

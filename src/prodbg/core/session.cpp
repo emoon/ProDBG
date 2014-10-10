@@ -307,12 +307,15 @@ static void updateRemote(Session* s, PDAction action)
 
 void Session_update(Session* s)
 {
-	switch (s->type)
-	{
-		case Session_Local: updateLocal(s, PDAction_none); break;
-		case Session_Remote: updateRemote(s, PDAction_none); break;
-		case Session_Null: break;
-	}
+    switch (s->type)
+    {
+        case Session_Local:
+            updateLocal(s, PDAction_none); break;
+        case Session_Remote:
+            updateRemote(s, PDAction_none); break;
+        case Session_Null:
+            break;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -353,25 +356,25 @@ bool Session_removeViewPlugin(Session* session, struct ViewPluginInstance* plugi
 {
     int count = stb_arr_len(session->viewPlugins);
 
-	if (count == 0)
-		return true;
+    if (count == 0)
+        return true;
 
-	if (count == 1)
-	{
-		stb_arr_pop(session->viewPlugins);
-		return true;
-	}
+    if (count == 1)
+    {
+        stb_arr_pop(session->viewPlugins);
+        return true;
+    }
 
-	for (int i = 0; i < count; ++i)
-	{
-		if (session->viewPlugins[i] == plugin)
-		{
-			stb_arr_fastdelete(session->viewPlugins, i);
-			return true;
-		}
-	}
-	
-	return false;
+    for (int i = 0; i < count; ++i)
+    {
+        if (session->viewPlugins[i] == plugin)
+        {
+            stb_arr_fastdelete(session->viewPlugins, i);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

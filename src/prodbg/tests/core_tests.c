@@ -34,7 +34,7 @@ static void create_null_session(void** state)
 
 static void session_add_plugins(void** state)
 {
-	(void)state;
+    (void)state;
     int pluginCount = 0;
 
     struct Session* session = createSession();
@@ -75,10 +75,10 @@ static void session_delete_plugins(void** state)
     Session_addViewPlugin(session, i1);
     Session_addViewPlugin(session, i2);
 
-	// Delete one of the plugins
+    // Delete one of the plugins
 
-	assert_true(Session_removeViewPlugin(session, i1) == true);
-	assert_true(Session_removeViewPlugin(session, i1) == false);
+    assert_true(Session_removeViewPlugin(session, i1) == true);
+    assert_true(Session_removeViewPlugin(session, i1) == false);
 
     struct ViewPluginInstance** instances = Session_getViewPlugins(session, &pluginCount);
 

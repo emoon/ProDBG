@@ -33,7 +33,7 @@ struct Context
     float mouseX;
     float mouseY;
     int mouseLmb;
-	Session* session;	// one session right now
+    Session* session;   // one session right now
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,7 +61,7 @@ void ProDBG_create(void* window, int width, int height)
     Context* context = &s_context;
     Rect settingsRect;
 
-	context->session = Session_create();
+    context->session = Session_create();
 
     Settings_getWindowRect(&settingsRect);
 
