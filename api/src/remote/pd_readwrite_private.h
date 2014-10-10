@@ -15,7 +15,7 @@ void PDBinaryReader_initStream(struct PDReader* reader, unsigned char* data, uns
 void PDBinaryReader_reset(struct PDReader* reader);
 void PDBinaryReader_destroy(struct PDReader* reader);
 
- __attribute__((__visibility__("default"))) void PDBinaryWriter_init(struct PDWriter* writer);
+void PDBinaryWriter_init(struct PDWriter* writer);
 void PDBinaryWriter_destroy(struct PDWriter* writer);
 void PDBinaryWriter_finalize(struct PDWriter* writer);
 void PDBinaryWriter_reset(struct PDWriter* writer);
