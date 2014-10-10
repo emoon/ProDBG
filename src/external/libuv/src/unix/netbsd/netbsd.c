@@ -22,91 +22,105 @@
 #include "internal.h"
 
 #include <assert.h>
-#include <stdint.h>
+#include <string.h>
 #include <errno.h>
 
+#include <kvm.h>
+#include <paths.h>
 #include <ifaddrs.h>
+#include <unistd.h>
+#include <time.h>
+#include <stdlib.h>
+#include <fcntl.h>
+
 #include <net/if.h>
 #include <net/if_dl.h>
-
-#include <mach/mach.h>
-#include <mach/mach_time.h>
-#include <mach-o/dyld.h> /* _NSGetExecutablePath */
 #include <sys/resource.h>
+#include <sys/types.h>
 #include <sys/sysctl.h>
-#include <unistd.h>  /* sysconf */
+#include <uvm/uvm_extern.h>
+
+#include <unistd.h>
+#include <time.h>
+
+#undef NANOSEC
+#define NANOSEC ((uint64_t) 1e9)
+
+static char *process_title;
 
 
 int uv__platform_loop_init(uv_loop_t* loop, int default_loop) {
-  loop->cf_state = NULL;
-
-  if (uv__kqueue_init(loop))
-    return -errno;
-
-  return 0;
+  return uv__kqueue_init(loop);
 }
 
 
 void uv__platform_loop_delete(uv_loop_t* loop) {
-  uv__fsevents_loop_delete(loop);
 }
 
 
 uint64_t uv__hrtime(uv_clocktype_t type) {
-  static mach_timebase_info_data_t info;
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return (((uint64_t) ts.tv_sec) * NANOSEC + ts.tv_nsec);
+}
 
-  if ((ACCESS_ONCE(uint32_t, info.numer) == 0 ||
-       ACCESS_ONCE(uint32_t, info.denom) == 0) &&
-      mach_timebase_info(&info) != KERN_SUCCESS)
-    abort();
 
-  return mach_absolute_time() * info.numer / info.denom;
+void uv_loadavg(double avg[3]) {
+  struct loadavg info;
+  size_t size = sizeof(info);
+  int which[] = {CTL_VM, VM_LOADAVG};
+
+  if (sysctl(which, 2, &info, &size, NULL, 0) == -1) return;
+
+  avg[0] = (double) info.ldavg[0] / info.fscale;
+  avg[1] = (double) info.ldavg[1] / info.fscale;
+  avg[2] = (double) info.ldavg[2] / info.fscale;
 }
 
 
 int uv_exepath(char* buffer, size_t* size) {
-  uint32_t usize;
-  int result;
-  char* path;
-  char* fullpath;
+  int mib[4];
+  size_t cb;
+  pid_t mypid;
 
   if (buffer == NULL || size == NULL)
     return -EINVAL;
 
-  usize = *size;
-  result = _NSGetExecutablePath(buffer, &usize);
-  if (result) return result;
+  mypid = getpid();
+  mib[0] = CTL_KERN;
+  mib[1] = KERN_PROC_ARGS;
+  mib[2] = mypid;
+  mib[3] = KERN_PROC_ARGV;
 
-  path = malloc(2 * PATH_MAX);
-  fullpath = realpath(buffer, path);
-  if (fullpath == NULL) {
-    SAVE_ERRNO(free(path));
+  cb = *size;
+  if (sysctl(mib, 4, buffer, &cb, NULL, 0))
     return -errno;
-  }
-
-  strncpy(buffer, fullpath, *size);
-  free(fullpath);
   *size = strlen(buffer);
+
   return 0;
 }
 
 
 uint64_t uv_get_free_memory(void) {
-  vm_statistics_data_t info;
-  mach_msg_type_number_t count = sizeof(info) / sizeof(integer_t);
+  struct uvmexp info;
+  size_t size = sizeof(info);
+  int which[] = {CTL_VM, VM_UVMEXP};
 
-  if (host_statistics(mach_host_self(), HOST_VM_INFO,
-                      (host_info_t)&info, &count) != KERN_SUCCESS) {
-    return -EINVAL;  /* FIXME(bnoordhuis) Translate error. */
-  }
+  if (sysctl(which, 2, &info, &size, NULL, 0))
+    return -errno;
 
-  return (uint64_t) info.free_count * sysconf(_SC_PAGESIZE);
+  return (uint64_t) info.free * sysconf(_SC_PAGESIZE);
 }
 
 
 uint64_t uv_get_total_memory(void) {
+#if defined(HW_PHYSMEM64)
   uint64_t info;
-  int which[] = {CTL_HW, HW_MEMSIZE};
+  int which[] = {CTL_HW, HW_PHYSMEM64};
+#else
+  unsigned int info;
+  int which[] = {CTL_HW, HW_PHYSMEM};
+#endif
   size_t size = sizeof(info);
 
   if (sysctl(which, 2, &info, &size, NULL, 0))
@@ -116,37 +130,62 @@ uint64_t uv_get_total_memory(void) {
 }
 
 
-void uv_loadavg(double avg[3]) {
-  struct loadavg info;
-  size_t size = sizeof(info);
-  int which[] = {CTL_VM, VM_LOADAVG};
+char** uv_setup_args(int argc, char** argv) {
+  process_title = argc ? strdup(argv[0]) : NULL;
+  return argv;
+}
 
-  if (sysctl(which, 2, &info, &size, NULL, 0) < 0) return;
 
-  avg[0] = (double) info.ldavg[0] / info.fscale;
-  avg[1] = (double) info.ldavg[1] / info.fscale;
-  avg[2] = (double) info.ldavg[2] / info.fscale;
+int uv_set_process_title(const char* title) {
+  if (process_title) free(process_title);
+
+  process_title = strdup(title);
+  setproctitle("%s", title);
+
+  return 0;
+}
+
+
+int uv_get_process_title(char* buffer, size_t size) {
+  if (process_title) {
+    strncpy(buffer, process_title, size);
+  } else {
+    if (size > 0) {
+      buffer[0] = '\0';
+    }
+  }
+
+  return 0;
 }
 
 
 int uv_resident_set_memory(size_t* rss) {
-  mach_msg_type_number_t count;
-  task_basic_info_data_t info;
-  kern_return_t err;
+  kvm_t *kd = NULL;
+  struct kinfo_proc2 *kinfo = NULL;
+  pid_t pid;
+  int nprocs;
+  int max_size = sizeof(struct kinfo_proc2);
+  int page_size;
 
-  count = TASK_BASIC_INFO_COUNT;
-  err = task_info(mach_task_self(),
-                  TASK_BASIC_INFO,
-                  (task_info_t) &info,
-                  &count);
-  (void) &err;
-  /* task_info(TASK_BASIC_INFO) cannot really fail. Anything other than
-   * KERN_SUCCESS implies a libuv bug.
-   */
-  assert(err == KERN_SUCCESS);
-  *rss = info.resident_size;
+  page_size = getpagesize();
+  pid = getpid();
+
+  kd = kvm_open(NULL, NULL, NULL, KVM_NO_FILES, "kvm_open");
+
+  if (kd == NULL) goto error;
+
+  kinfo = kvm_getproc2(kd, KERN_PROC_PID, pid, max_size, &nprocs);
+  if (kinfo == NULL) goto error;
+
+  *rss = kinfo->p_vm_rssize * page_size;
+
+  kvm_close(kd);
 
   return 0;
+
+error:
+  if (kd) kvm_close(kd);
+  return -EPERM;
 }
 
 
@@ -160,59 +199,67 @@ int uv_uptime(double* uptime) {
     return -errno;
 
   now = time(NULL);
-  *uptime = now - info.tv_sec;
 
+  *uptime = (double)(now - info.tv_sec);
   return 0;
 }
 
+
 int uv_cpu_info(uv_cpu_info_t** cpu_infos, int* count) {
-  unsigned int ticks = (unsigned int)sysconf(_SC_CLK_TCK),
-               multiplier = ((uint64_t)1000L / ticks);
-  char model[512];
-  uint64_t cpuspeed;
-  size_t size;
-  unsigned int i;
-  natural_t numcpus;
-  mach_msg_type_number_t msg_type;
-  processor_cpu_load_info_data_t *info;
+  unsigned int ticks = (unsigned int)sysconf(_SC_CLK_TCK);
+  unsigned int multiplier = ((uint64_t)1000L / ticks);
+  unsigned int cur = 0;
   uv_cpu_info_t* cpu_info;
+  u_int64_t* cp_times;
+  char model[512];
+  u_int64_t cpuspeed;
+  int numcpus;
+  size_t size;
+  int i;
 
   size = sizeof(model);
-  if (sysctlbyname("machdep.cpu.brand_string", &model, &size, NULL, 0) &&
+  if (sysctlbyname("machdep.cpu_brand", &model, &size, NULL, 0) &&
       sysctlbyname("hw.model", &model, &size, NULL, 0)) {
     return -errno;
   }
 
+  size = sizeof(numcpus);
+  if (sysctlbyname("hw.ncpu", &numcpus, &size, NULL, 0))
+    return -errno;
+  *count = numcpus;
+
+  /* Only i386 and amd64 have machdep.tsc_freq */
   size = sizeof(cpuspeed);
-  if (sysctlbyname("hw.cpufrequency", &cpuspeed, &size, NULL, 0))
+  if (sysctlbyname("machdep.tsc_freq", &cpuspeed, &size, NULL, 0))
+    cpuspeed = 0;
+
+  size = numcpus * CPUSTATES * sizeof(*cp_times);
+  cp_times = malloc(size);
+  if (cp_times == NULL)
+    return -ENOMEM;
+
+  if (sysctlbyname("kern.cp_time", cp_times, &size, NULL, 0))
     return -errno;
 
-  if (host_processor_info(mach_host_self(), PROCESSOR_CPU_LOAD_INFO, &numcpus,
-                          (processor_info_array_t*)&info,
-                          &msg_type) != KERN_SUCCESS) {
-    return -EINVAL;  /* FIXME(bnoordhuis) Translate error. */
-  }
-
   *cpu_infos = malloc(numcpus * sizeof(**cpu_infos));
-  if (!(*cpu_infos))
-    return -ENOMEM;  /* FIXME(bnoordhuis) Deallocate info? */
-
-  *count = numcpus;
+  if (!(*cpu_infos)) {
+    free(cp_times);
+    free(*cpu_infos);
+    return -ENOMEM;
+  }
 
   for (i = 0; i < numcpus; i++) {
     cpu_info = &(*cpu_infos)[i];
-
-    cpu_info->cpu_times.user = (uint64_t)(info[i].cpu_ticks[0]) * multiplier;
-    cpu_info->cpu_times.nice = (uint64_t)(info[i].cpu_ticks[3]) * multiplier;
-    cpu_info->cpu_times.sys = (uint64_t)(info[i].cpu_ticks[1]) * multiplier;
-    cpu_info->cpu_times.idle = (uint64_t)(info[i].cpu_ticks[2]) * multiplier;
-    cpu_info->cpu_times.irq = 0;
-
+    cpu_info->cpu_times.user = (uint64_t)(cp_times[CP_USER+cur]) * multiplier;
+    cpu_info->cpu_times.nice = (uint64_t)(cp_times[CP_NICE+cur]) * multiplier;
+    cpu_info->cpu_times.sys = (uint64_t)(cp_times[CP_SYS+cur]) * multiplier;
+    cpu_info->cpu_times.idle = (uint64_t)(cp_times[CP_IDLE+cur]) * multiplier;
+    cpu_info->cpu_times.irq = (uint64_t)(cp_times[CP_INTR+cur]) * multiplier;
     cpu_info->model = strdup(model);
-    cpu_info->speed = cpuspeed/1000000;
+    cpu_info->speed = (int)(cpuspeed/(uint64_t) 1e6);
+    cur += CPUSTATES;
   }
-  vm_deallocate(mach_task_self(), (vm_address_t)info, msg_type);
-
+  free(cp_times);
   return 0;
 }
 
@@ -243,14 +290,14 @@ int uv_interface_addresses(uv_interface_address_t** addresses, int* count) {
   for (ent = addrs; ent != NULL; ent = ent->ifa_next) {
     if (!((ent->ifa_flags & IFF_UP) && (ent->ifa_flags & IFF_RUNNING)) ||
         (ent->ifa_addr == NULL) ||
-        (ent->ifa_addr->sa_family == AF_LINK)) {
+        (ent->ifa_addr->sa_family != PF_INET)) {
       continue;
     }
-
     (*count)++;
   }
 
   *addresses = malloc(*count * sizeof(**addresses));
+
   if (!(*addresses))
     return -ENOMEM;
 
@@ -263,11 +310,7 @@ int uv_interface_addresses(uv_interface_address_t** addresses, int* count) {
     if (ent->ifa_addr == NULL)
       continue;
 
-    /*
-     * On Mac OS X getifaddrs returns information related to Mac Addresses for
-     * various devices, such as firewire, etc. These are not relevant here.
-     */
-    if (ent->ifa_addr->sa_family == AF_LINK)
+    if (ent->ifa_addr->sa_family != PF_INET)
       continue;
 
     address->name = strdup(ent->ifa_name);
@@ -314,8 +357,7 @@ int uv_interface_addresses(uv_interface_address_t** addresses, int* count) {
 }
 
 
-void uv_free_interface_addresses(uv_interface_address_t* addresses,
-  int count) {
+void uv_free_interface_addresses(uv_interface_address_t* addresses, int count) {
   int i;
 
   for (i = 0; i < count; i++) {

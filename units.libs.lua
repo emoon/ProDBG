@@ -71,15 +71,42 @@ StaticLibrary {
     },
 
     Sources = { 
-        FGlob {
-            Dir = "src/external/libuv/src",
-            Extensions = { ".c", ".h" },
-            Filters = {
-                { Pattern = "unix"; Config = "macosx-*-*" },
-                { Pattern = "win"; Config = "win64-*-*" },
-            },
-        },
-    },
+    	
+    	-- general 
+    	
+    	{ Glob { 
+    		Dir = "src/external/libuv/src", 
+    		Extensions = { ".c", ".h" },
+    		Recursive = false },
+    	},
+
+    	-- Windows
+
+    	{ Glob { 
+    		Dir = "src/external/libuv/src/win", 
+    		Extensions = { ".c", ".h" },
+    		Recursive = false } ; Config = "win64-*-*" 
+    	},
+
+    	-- Unix
+    	
+    	{ Glob { 
+    		Dir = "src/external/libuv/src/unix", 
+    		Extensions = { ".c", ".h" },
+    		Recursive = false } ; Config = { "macosx-*-*", "linux-*-*" }
+    	},
+
+    	-- Mac
+
+		{ "src/external/libuv/src/unix/darwin/darwin-proctitle.c",
+		  "src/external/libuv/src/unix/darwin/darwin.c" ; Config = "macosx-*-*" },
+
+		-- Linux
+
+		{ "src/external/libuv/src/unix/linux/linux-core.c",
+		  "src/external/libuv/src/unix/linux/linux-inotify.c",
+		  "src/external/libuv/src/unix/linux/linux-syscalls.c" ; Config = "linux-*-*" },
+	},
 }
 
 

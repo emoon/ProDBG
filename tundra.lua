@@ -30,7 +30,7 @@ local macosx = {
 
 -----------------------------------------------------------------------------------------------------------------------
 
-local unix_gcc_opts = {
+local gcc_opts = {
 	"-I.",
 	"-Wno-unused-value",
 	"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
@@ -39,10 +39,10 @@ local unix_gcc_opts = {
 	{ "-O3", "-g"; Config = "*-*-release" },
 }
 
-local unix_gcc = {
+local gcc_env = {
     Env = {
-        CCOPTS = unix_gcc_opts,
-        CXXOPTS = unix_gcc_opts,
+        CCOPTS = gcc_opts,
+        CXXOPTS = gcc_opts,
     },
 }
 
@@ -88,7 +88,7 @@ Build {
     Configs = {
         Config { Name = "macosx-clang", DefaultOnHost = "macosx", Inherit = macosx, Tools = { "clang-osx" } },
         Config { Name = "win64-msvc", DefaultOnHost = { "windows" }, Inherit = win64, Tools = { "msvc" } },
-        Config { Name = "unix-gcc", DefaultOnHost = { "linux" }, Inherit = unix_gcc, Tools = { "gcc" } },
+        Config { Name = "linux-gcc", DefaultOnHost = { "linux" }, Inherit = gcc_opts, Tools = { "gcc" } },
     },
 
     IdeGenerationHints = {
