@@ -1,3 +1,4 @@
+#include "api/plugin_instance.h"
 #include "core/core.h"
 #include "core/log.h"
 #include "core/math.h"
@@ -101,6 +102,12 @@ void ProDBG_update()
 
     IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb);
 
+    // TODO: Support multiple sessions
+
+    Session_update(context->session);
+
+    /*
+
     bool show = true;
 
     ImGui::Begin("ImGui Test", &show, ImVec2(550, 480), true, ImGuiWindowFlags_ShowBorders);
@@ -111,6 +118,7 @@ void ProDBG_update()
     }
 
     ImGui::End();
+    */
 
     IMGUI_postUpdate();
 
@@ -150,11 +158,21 @@ void ProDBG_timedUpdate()
 
 void ProDBG_event(int eventId)
 {
+	Context* context = &s_context;
+
+	int count;
+
+	Plugin* plugins = PluginHandler_getPlugins(&count);
+
+	printf("%d pluginCount\n", count);
+
     switch (eventId)
     {
         case PRODBG_MENU_SOURCECODE:
         {
-            log_info("source code view\n");
+        	ViewPluginInstance* instance = PluginInstance_createViewPlugin((PDViewPlugin*)plugins[0].data);
+        	Session_addViewPlugin(context->session, instance);
+            log_info("create source code\n");
             break;
         }
 

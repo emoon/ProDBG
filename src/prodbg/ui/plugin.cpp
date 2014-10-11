@@ -1,8 +1,9 @@
 #include "plugin.h"
 #include "api/include/pd_ui.h"
+#include "api/include/pd_view.h"
 #include "api/plugin_instance.h"
-#include "core/log.h"
 #include "core/alloc.h"
+#include "core/log.h"
 #include "imgui/imgui.h"
 #include <string.h>
 #include <stdio.h>
@@ -72,5 +73,20 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer)
+{
+	PDUI* uiInstance = &instance->ui;
+	PrivateData* data = (PrivateData*)uiInstance->privateData;
+
+	static bool show = true;
+
+	ImGui::BeginWithWindow(data->window, data->name, &show, ImVec2(0, 0), true, 0);
+
+	instance->plugin->update(instance->userData, uiInstance, reader, writer);
+
+	ImGui::End();
+}
+
 
 

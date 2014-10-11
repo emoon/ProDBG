@@ -50,7 +50,7 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
     uv_lib_t lib;
     void* function;
 
-    void* (* initPlugin)(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin);
+    void* (*initPlugin)(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin);
 
     if (openPlugin(basePath, plugin, &lib) == -1)
     {

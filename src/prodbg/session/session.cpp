@@ -208,7 +208,7 @@ static void updateLocal(Session* s, PDAction action)
     for (int i = 0; i < len; ++i)
     {
         struct ViewPluginInstance* p = s->viewPlugins[i];
-        p->plugin->update(p->userData, &p->ui, &s->reader, &s->viewPluginsWriter);
+		PluginUI_updateInstance(p, &s->reader, &s->viewPluginsWriter);
         PDBinaryReader_reset(&s->reader);
     }
 
@@ -311,12 +311,18 @@ void Session_update(Session* s)
 {
     switch (s->type)
     {
-        case Session_Local:
-            updateLocal(s, PDAction_none); break;
-        case Session_Remote:
-            updateRemote(s, PDAction_none); break;
         case Session_Null:
+        case Session_Local:
+		{
+            updateLocal(s, PDAction_none); 
             break;
+		}
+
+        case Session_Remote:
+		{
+            updateRemote(s, PDAction_none); 
+            break;
+		}
     }
 }
 

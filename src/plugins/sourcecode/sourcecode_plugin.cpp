@@ -231,6 +231,8 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
     PDWrite_eventBegin(writer, PDEventType_getExceptionLocation);
     PDWrite_eventEnd(writer);
 
+    uiFuncs->button("test test");
+
     return 0;
 }
 
