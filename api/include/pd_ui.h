@@ -21,7 +21,7 @@ typedef struct PDUI
 
     // Text
 
-    void (*text)(const char* fmt, ...);
+    // void (*text)(const char* fmt, ...);
 
     // Widgets
 

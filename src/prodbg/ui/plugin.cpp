@@ -4,6 +4,8 @@
 #include "imgui/imgui.h"
 #include <string.h>
 
+struct ImGuiWindow;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace prodbg
@@ -11,7 +13,7 @@ namespace prodbg
 
 struct PrivateData
 {
-	int dummy;
+	ImGuiWindow* window;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -21,6 +23,26 @@ static void columns(int count, const char* id, int border)
 	ImGui::Columns(count, id, !!border);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void nextColumn()
+{
+	ImGui::NextColumn();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int button(const char* label)
+{
+	return ImGui::Button(label);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int buttonSize(const char* label, int width, int height, int repeatWhenHeld)
+{
+	return ImGui::Button(label, ImVec2(width, height), !!repeatWhenHeld);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -33,9 +55,10 @@ void PluginUI_init(const char* type, PDUI* uiInstance)
     memset(uiInstance, 0, sizeof(PDUI));
 
     uiInstance->columns = columns;
+    uiInstance->nextColumn = nextColumn;
+    uiInstance->button = button;
+    uiInstance->buttonSize = buttonSize;
 
-    //uiInstance->listview_item_remove = listview_item_remove;
-    //uiInstance->listview_item_text_get = 0;
     uiInstance->privateData = 0;
 }
 

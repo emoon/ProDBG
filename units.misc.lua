@@ -78,7 +78,37 @@ Program {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+Program {
+    Name = "ui_tests",
+
+    Env = { 
+        CPPPATH = { 
+            "api/include",
+            "src/external/cmocka/include",
+            "src/prodbg",
+        },
+
+		PROGCOM = {
+			{ "-lstdc++"; Config = { "macosx-clang-*", "linux-gcc-*" } },
+			{ "-lm"; Config = "unix-gcc-*" },
+		},
+    },
+
+    Sources = { 
+    	"src/prodbg/tests/ui_tests.cpp",
+    },
+
+    Depends = { "api", "core", "stb", "ui", "cmocka", "nanovg", "bgfx" },
+
+    Libs = { { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
+
+    Frameworks = { "Cocoa"  },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
 Default "fake6502"
 Default "crashing_native"
 Default "core_tests"
+Default "ui_tests"
 
