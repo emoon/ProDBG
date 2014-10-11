@@ -40,7 +40,7 @@ void Window_setTitle(const char* title);
 
 -(void) updateMain
 {
-    prodbg::ProDBG_timedUpdate();
+    ProDBG_timedUpdate();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,7 +51,7 @@ void Window_setTitle(const char* title);
     if (self == nil)
         return nil;
 
-    prodbg::ProDBG_create(0, (int)frame.size.width, (int)frame.size.height);
+    ProDBG_create(0, (int)frame.size.width, (int)frame.size.height);
     const float framerate = 60;
     const float frequency = 1.0f / framerate;
     [NSTimer scheduledTimerWithTimeInterval:frequency target:self selector:@selector(updateMain) userInfo:nil repeats:YES];
@@ -88,8 +88,8 @@ void Window_setTitle(const char* title);
 {
     (void)frame;
 
-    prodbg::ProDBG_setWindowSize((int)frame.size.width, (int)frame.size.height);
-    prodbg::ProDBG_update();
+    ProDBG_setWindowSize((int)frame.size.width, (int)frame.size.height);
+    ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -194,12 +194,12 @@ int getModifierFlags(int flags)
     NSPoint location = [window mouseLocationOutsideOfEventStream];
     NSRect adjustFrame = [NSWindow contentRectForFrameRect: originalFrame styleMask: NSTitledWindowMask];
 
-    prodbg::ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
+    ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
 
     (void)event;
 
-    prodbg::ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
-    prodbg::ProDBG_update();
+    ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
+    ProDBG_update();
 
     //Emgui_setMousePos((int)location.x, (int)adjustFrame.size.height - (int)location.y);
     //Editor_update();
@@ -216,8 +216,8 @@ int getModifierFlags(int flags)
 
     (void)event;
 
-    prodbg::ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
-    prodbg::ProDBG_update();
+    ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
+    ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -238,7 +238,7 @@ int getModifierFlags(int flags)
 - (void)mouseUp:(NSEvent*)event
 {
     (void)event;
-    prodbg::ProDBG_setMouseState(0, 0);
+    ProDBG_setMouseState(0, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -252,9 +252,9 @@ int getModifierFlags(int flags)
 
     (void)event;
 
-    prodbg::ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
-    prodbg::ProDBG_setMouseState(0, 1);
-    prodbg::ProDBG_update();
+    ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
+    ProDBG_setMouseState(0, 1);
+    ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -269,7 +269,7 @@ int getModifierFlags(int flags)
 - (void)onMenuPress:(id)sender
 {
     int id = (int)((NSButton*)sender).tag;
-    prodbg::ProDBG_event(id);
+    ProDBG_event(id);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

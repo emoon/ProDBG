@@ -75,7 +75,7 @@ bool createWindow(const wchar_t* title, int width, int height)
         return FALSE;                               // Return FALSE
     }
 
-    prodbg::ProDBG_create((void*)s_window, width, height);
+    ProDBG_create((void*)s_window, width, height);
 
     ShowWindow(s_window, SW_SHOW);
     SetForegroundWindow(s_window);
@@ -109,15 +109,15 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 
         case WM_LBUTTONDOWN:
         {
-            prodbg::ProDBG_setMouseState(0, 1);
-            prodbg::ProDBG_update();
+            ProDBG_setMouseState(0, 1);
+            ProDBG_update();
             break;
         }
 
         case WM_LBUTTONUP:
         {
-            prodbg::ProDBG_setMouseState(0, 0);
-            prodbg::ProDBG_update();
+            ProDBG_setMouseState(0, 0);
+            ProDBG_update();
             break;
         }
 
@@ -132,12 +132,12 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
             const short pos_y = GET_Y_LPARAM(lParam);
 
             if (wParam & MK_LBUTTON)
-                prodbg::ProDBG_setMouseState(0, 1);
+                ProDBG_setMouseState(0, 1);
             else
-                prodbg::ProDBG_setMouseState(0, 0);
+                ProDBG_setMouseState(0, 0);
 
-            prodbg::ProDBG_setMousePos((float)pos_x, (float)pos_y);
-            prodbg::ProDBG_update();
+            ProDBG_setMousePos((float)pos_x, (float)pos_y);
+            ProDBG_update();
 
             return 0;
         }
@@ -280,7 +280,7 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 
             Settings_setWindowRect(&settingsRect);
 
-            prodbg::ProDBG_destroy();
+            ProDBG_destroy();
             PostQuitMessage(0);
             return 0;
         }
@@ -301,7 +301,7 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 
 static void CALLBACK timedCallback(HWND hwnd, UINT id, UINT_PTR ptr, DWORD meh)
 {
-    prodbg::ProDBG_timedUpdate();
+    ProDBG_timedUpdate();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

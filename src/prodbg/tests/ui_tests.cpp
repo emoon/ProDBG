@@ -18,7 +18,7 @@ static void verify_plugin_interface(void** state)
 
     (void)state;
 
-    prodbg::PluginUI_init("", &ui);
+    PluginUI_init("", &ui);
 
     assert_non_null(ui.columns);
     assert_non_null(ui.nextColumn);
