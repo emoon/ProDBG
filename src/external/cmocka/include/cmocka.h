@@ -16,6 +16,10 @@
 #ifndef CMOCKA_H_
 #define CMOCKA_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef _WIN32
 # ifdef _MSC_VER
 
@@ -1806,4 +1810,10 @@ void vprint_error(const char* const format, va_list args) CMOCKA_PRINTF_ATTRIBUT
 
 /** @} */
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* CMOCKA_H_ */
+
+
