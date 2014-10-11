@@ -68,7 +68,7 @@ Program {
     },
 
     Sources = { 
-    	"src/prodbg/tests/core_tests.c",
+    	"src/prodbg/tests/core_tests.cpp",
     },
 
     Depends = { "api", "core", "stb", "remote_api", "cmocka" },
