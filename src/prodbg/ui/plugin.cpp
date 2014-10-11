@@ -48,8 +48,6 @@ static int buttonSize(const char* label, int width, int height, int repeatWhenHe
 
 void PluginUI_init(const char* type, PDUI* uiInstance)
 {
-    log_info("PluginUI_init\n");
-
     (void)type;
 
     memset(uiInstance, 0, sizeof(PDUI));
