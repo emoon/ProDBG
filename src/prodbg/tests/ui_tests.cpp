@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 #include "core/core.h"
-#include "core/session.h"
+#include "session/session.h"
 #include "api/plugin_instance.h"
 #include "ui/plugin.h"
 #include <pd_ui.h>

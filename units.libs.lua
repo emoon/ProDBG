@@ -258,6 +258,28 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
+    Name = "session",
+
+    Env = { 
+        CPPPATH = { 
+            "src/external/stb",
+			"src/external/libuv/include",
+        	"api/include",
+            "src/prodbg",
+        },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "src/prodbg/session",
+            Extensions = { ".cpp", ".h" },
+        },
+    },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
     Name = "ui",
 
     Env = { 

@@ -2,7 +2,7 @@
 #include "core/log.h"
 #include "core/math.h"
 #include "core/plugin_handler.h"
-#include "core/session.h"
+#include "session/session.h"
 #include "settings.h"
 #include "ui/imgui/imgui.h"
 #include "ui/imgui_setup.h"
