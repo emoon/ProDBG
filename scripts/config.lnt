@@ -1,0 +1,13 @@
+-DOBJECT_DIR=""
+-i"src\prodbg"
+-i"api\include"
+-i"src\external\libuv\include"
+-i"src\external\stb"
+-i"src\external\bgfx\include"
+-i"src\external\bx\include"
+-i"src\external\bgfx\3rdparty\khronos"
+-i"src\external\jansson\include"
+-i"src\external\cmocka\include"
+-i"src\external\nanovg"
++libdir("src\external\*.*")
+
