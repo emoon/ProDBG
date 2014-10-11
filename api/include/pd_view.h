@@ -24,10 +24,10 @@ typedef struct PDViewPlugin
     const char* name;
 
     void* (*createInstance)(PDUI * uiFuncs, ServiceFunc * serviceFunc);
-    void (* destroyInstance)(void* userData);
+    void (*destroyInstance)(void* userData);
 
     // Updates and Returns the current state of the plugin.
-    int (* update)(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents);
+    int (*update)(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents);
 
 } PDViewPlugin;
 

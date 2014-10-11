@@ -1,16 +1,21 @@
 #include "plugin.h"
 #include "api/include/pd_ui.h"
-#include "core/Log.h"
+#include "api/plugin_instance.h"
+#include "core/log.h"
+#include "core/alloc.h"
 #include "imgui/imgui.h"
 #include <string.h>
+#include <stdio.h>
 
 struct ImGuiWindow;
+static int windowIdCount = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct PrivateData
 {
     ImGuiWindow* window;
+    const char name[16];
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,9 +48,10 @@ static int buttonSize(const char* label, int width, int height, int repeatWhenHe
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PluginUI_init(const char* type, PDUI* uiInstance)
+void PluginUI_init(ViewPluginInstance* pluginInstance)
 {
-    (void)type;
+	PrivateData* data = (PrivateData*)alloc_zero(sizeof(PrivateData));
+	PDUI* uiInstance = &pluginInstance->ui;
 
     memset(uiInstance, 0, sizeof(PDUI));
 
@@ -54,7 +60,15 @@ void PluginUI_init(const char* type, PDUI* uiInstance)
     uiInstance->button = button;
     uiInstance->buttonSize = buttonSize;
 
-    uiInstance->privateData = 0;
+    uiInstance->privateData = alloc_zero(sizeof(PrivateData));
+
+    // TODO: Must have in data here if user splited window or just created a new one
+	// TODO: Do something better here when assigning names to windows
+	sprintf((char*)data->name, "%d\n", windowIdCount++);
+
+    data->window = ImGui::FindOrCreateWindow(data->name, ImVec2(0, 0), 0);
+
+	uiInstance->privateData = data;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

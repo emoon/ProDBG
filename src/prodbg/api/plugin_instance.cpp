@@ -1,4 +1,5 @@
 #include "plugin_instance.h"
+#include "ui/plugin.h"
 #include "core/alloc.h"
 #include <pd_view.h>
 #include <string.h>
@@ -6,21 +7,17 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct ViewPluginInstance* PluginInstance_createViewPlugin()
+ViewPluginInstance* PluginInstance_createViewPlugin(PDViewPlugin* plugin)
 {
     struct ViewPluginInstance* instance = (ViewPluginInstance*)alloc_zero(sizeof(struct ViewPluginInstance));
-    return instance;
-}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool PluginInstance_init(struct ViewPluginInstance* instance, PDViewPlugin* plugin)
-{
     void* userData = plugin->createInstance(&instance->ui, 0);
     instance->plugin = plugin;
     instance->userData = userData;
 
-    return true;
+    PluginUI_init(instance);
+
+    return instance;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

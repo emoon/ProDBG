@@ -53,7 +53,7 @@ Program {
 -----------------------------------------------------------------------------------------------------------------------
 
 Program {
-    Name = "core_tests",
+    Name = "session_tests",
 
     Env = { 
         CPPPATH = { 
@@ -63,17 +63,20 @@ Program {
         },
 
 		PROGCOM = {
+			{ "-lstdc++"; Config = { "macosx-clang-*", "linux-gcc-*" } },
 			{ "-lm"; Config = "unix-gcc-*" },
 		},
     },
 
     Sources = { 
-    	"src/prodbg/tests/core_tests.cpp",
+    	"src/prodbg/tests/session_tests.cpp",
     },
 
-    Depends = { "api", "core", "stb", "remote_api", "cmocka", "session" },
+    Depends = { "api", "core", "stb", "remote_api", "cmocka", "session", "ui", "nanovg", "bgfx" },
 
     Libs = { { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
+
+    Frameworks = { "Cocoa"  },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -109,6 +112,6 @@ Program {
 
 Default "fake6502"
 Default "crashing_native"
-Default "core_tests"
+Default "session_tests"
 Default "ui_tests"
 

@@ -1,6 +1,8 @@
 #pragma once
 
-struct PDUI;
+struct ViewPluginInstance;
 
-void PluginUI_init(const char* type, PDUI* uiInstance);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PluginUI_init(ViewPluginInstance* instance);
 

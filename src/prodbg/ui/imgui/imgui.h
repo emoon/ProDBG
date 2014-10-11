@@ -210,6 +210,7 @@ void        PushAllowKeyboardFocus(bool v);
 void        PopAllowKeyboardFocus();
 void        PushStyleColor(ImGuiCol idx, const ImVec4& col);
 void        PopStyleColor();
+ImGuiWindow* FindOrCreateWindow(const char* name, ImVec2 size, ImGuiWindowFlags flags);
 
 // Tooltip
 void        SetTooltip(const char* fmt, ...);                                       // set tooltip under mouse-cursor, typically use with ImGui::IsHovered(). last call wins.

@@ -3,10 +3,6 @@
 #include <pd_backend.h>
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct Session;
@@ -27,8 +23,4 @@ bool Session_removeViewPlugin(struct Session* session, struct ViewPluginInstance
 struct ViewPluginInstance** Session_getViewPlugins(struct Session* session, int* count);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif
 

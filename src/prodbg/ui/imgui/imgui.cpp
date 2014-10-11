@@ -2133,11 +2133,11 @@ void EndChild()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Begin(const char* name, bool* open, ImVec2 size, float fill_alpha, ImGuiWindowFlags flags)
+struct ImGuiWindow* FindOrCreateWindow(const char* name, ImVec2 size, ImGuiWindowFlags flags)
 {
     ImGuiState& g = GImGui;
-
     ImGuiWindow* window = FindWindow(name);
+
     if (!window)
     {
         // Create window the first time, and load settings
@@ -2165,6 +2165,15 @@ bool Begin(const char* name, bool* open, ImVec2 size, float fill_alpha, ImGuiWin
         }
         g.Windows.push_back(window);
     }
+
+    return window;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Begin(const char* name, bool* open, ImVec2 size, float fill_alpha, ImGuiWindowFlags flags)
+{
+    ImGuiWindow* window = FindOrCreateWindow(name, size, flags);
 
     return BeginWithWindow(window, name, open, size, fill_alpha, flags);
 }

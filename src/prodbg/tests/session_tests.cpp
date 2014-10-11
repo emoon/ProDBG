@@ -3,10 +3,51 @@
 #include <setjmp.h>
 #include <cmocka.h>
 #include <stdio.h>
+#include <pd_view.h>
 
 #include "core/core.h"
 #include "session/session.h"
 #include "api/plugin_instance.h"
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void* dummyCreateInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
+{
+	(void)uiFuncs;
+	(void)serviceFunc;
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void dummyDestroyInstance(void* userData)
+{
+	(void)userData;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int dummyUpdate(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents)
+{
+	(void)userData;
+	(void)uiFuncs;
+	(void)inEvents;
+	(void)outEvents;
+
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PDViewPlugin s_dummyPlugin =
+{
+    0,    // version
+    "DummyPlugin",
+    dummyCreateInstance,
+    dummyDestroyInstance,
+    dummyUpdate,
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -39,9 +80,9 @@ static void session_add_plugins(void** state)
 
     struct Session* session = createSession();
 
-    struct ViewPluginInstance* i0 = PluginInstance_createViewPlugin();
-    struct ViewPluginInstance* i1 = PluginInstance_createViewPlugin();
-    struct ViewPluginInstance* i2 = PluginInstance_createViewPlugin();
+    struct ViewPluginInstance* i0 = PluginInstance_createViewPlugin(&s_dummyPlugin);
+    struct ViewPluginInstance* i1 = PluginInstance_createViewPlugin(&s_dummyPlugin);
+    struct ViewPluginInstance* i2 = PluginInstance_createViewPlugin(&s_dummyPlugin);
 
     Session_addViewPlugin(session, i0);
     Session_addViewPlugin(session, i1);
@@ -67,9 +108,9 @@ static void session_delete_plugins(void** state)
 
     struct Session* session = createSession();
 
-    struct ViewPluginInstance* i0 = PluginInstance_createViewPlugin();
-    struct ViewPluginInstance* i1 = PluginInstance_createViewPlugin();
-    struct ViewPluginInstance* i2 = PluginInstance_createViewPlugin();
+    struct ViewPluginInstance* i0 = PluginInstance_createViewPlugin(&s_dummyPlugin);
+    struct ViewPluginInstance* i1 = PluginInstance_createViewPlugin(&s_dummyPlugin);
+    struct ViewPluginInstance* i2 = PluginInstance_createViewPlugin(&s_dummyPlugin);
 
     Session_addViewPlugin(session, i0);
     Session_addViewPlugin(session, i1);

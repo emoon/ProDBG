@@ -1,9 +1,10 @@
 #include "session.h"
 #include "core/alloc.h"
-#include "core/log.h"
 #include "api/plugin_instance.h"
 #include "api/src/remote/pd_readwrite_private.h"
 #include "api/src/remote/remote_connection.h"
+#include "core/log.h"
+#include "ui/plugin.h"
 #include <pd_view.h>
 #include <pd_backend.h>
 #include <stdlib.h>
@@ -60,13 +61,14 @@ struct Session* Session_create()
     return s;
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Session* Session_createRemote(const char* target, int port)
 {
     Session* s = (Session*)alloc_zero(sizeof(Session));
 
-    commonInit(s);
+	commonInit(s);
 
     s->type = Session_Remote;
 
@@ -345,9 +347,9 @@ void Session_action(Session* s, PDAction action)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Session_addViewPlugin(Session* session, struct ViewPluginInstance* plugin)
+void Session_addViewPlugin(struct Session* session, struct ViewPluginInstance* instance)
 {
-    stb_arr_push(session->viewPlugins, plugin);
+    stb_arr_push(session->viewPlugins, instance);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
