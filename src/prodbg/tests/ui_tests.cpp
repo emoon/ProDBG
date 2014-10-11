@@ -14,11 +14,11 @@
 
 static void verify_plugin_interface(void** state)
 {
-	PDUI ui;
+    PDUI ui;
 
-	(void)state;
+    (void)state;
 
-	prodbg::PluginUI_init("", &ui); 
+    prodbg::PluginUI_init("", &ui);
 
     assert_non_null(ui.columns);
     assert_non_null(ui.nextColumn);
