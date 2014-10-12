@@ -8,6 +8,7 @@
 #include "core/core.h"
 #include "session/session.h"
 #include "api/plugin_instance.h"
+#include "core/plugin_handler.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -49,6 +50,10 @@ static PDViewPlugin s_dummyPlugin =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static PluginData s_pluginData = { &s_dummyPlugin , PD_VIEW_API_VERSION, "", 0 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct Session* createSession()
 {
     struct Session* session = Session_create();
@@ -78,9 +83,9 @@ static void session_add_plugins(void** state)
 
     struct Session* session = createSession();
 
-    struct ViewPluginInstance* i0 = PluginInstance_createViewPlugin(&s_dummyPlugin);
-    struct ViewPluginInstance* i1 = PluginInstance_createViewPlugin(&s_dummyPlugin);
-    struct ViewPluginInstance* i2 = PluginInstance_createViewPlugin(&s_dummyPlugin);
+    struct ViewPluginInstance* i0 = PluginInstance_createViewPlugin(&s_pluginData);
+    struct ViewPluginInstance* i1 = PluginInstance_createViewPlugin(&s_pluginData);
+    struct ViewPluginInstance* i2 = PluginInstance_createViewPlugin(&s_pluginData);
 
     Session_addViewPlugin(session, i0);
     Session_addViewPlugin(session, i1);
@@ -106,9 +111,9 @@ static void session_delete_plugins(void** state)
 
     struct Session* session = createSession();
 
-    struct ViewPluginInstance* i0 = PluginInstance_createViewPlugin(&s_dummyPlugin);
-    struct ViewPluginInstance* i1 = PluginInstance_createViewPlugin(&s_dummyPlugin);
-    struct ViewPluginInstance* i2 = PluginInstance_createViewPlugin(&s_dummyPlugin);
+    struct ViewPluginInstance* i0 = PluginInstance_createViewPlugin(&s_pluginData);
+    struct ViewPluginInstance* i1 = PluginInstance_createViewPlugin(&s_pluginData);
+    struct ViewPluginInstance* i2 = PluginInstance_createViewPlugin(&s_pluginData);
 
     Session_addViewPlugin(session, i0);
     Session_addViewPlugin(session, i1);

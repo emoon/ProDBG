@@ -1,6 +1,7 @@
 #include "plugin_handler.h"
 #include "log.h"
 #include "core.h"
+#include "core/alloc.h"
 #include <pd_common.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,39 +11,46 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static Plugin* s_plugins;
+static PluginData** s_plugins;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void registerPlugin(const char* type, void* data, void* privateData)
+static void registerPlugin(const char* type, void* plugin, void* privateData)
 {
-    Plugin plugin;
+    PluginData* pluginData = (PluginData*)alloc_zero(sizeof(PluginData));
 
-    (void)privateData;
+    // TODO: Verify that we don't add a plugin with the same plugin name in the same plugin
 
-    plugin.data = data;
-    plugin.type = type;
+    pluginData->plugin = plugin;
+    pluginData->type = type;
+    pluginData->filename = (const char*)privateData; 
 
-    log_debug("Register plugin (type %s data %p)\n", type, data);
+    log_debug("Register plugin (type %s plugin %p filename %s)\n", pluginData->type, pluginData->plugin, pluginData->filename);
 
-    stb_arr_push(s_plugins, plugin);
+    stb_arr_push(s_plugins, pluginData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int openPlugin(const char* basePath, const char* plugin, uv_lib_t* lib)
+static char* buildLoadingPath(const char* basePath, const char* plugin)
 {
-    char filename[8192];
+	char* output = 0; 
+
+	size_t baseLen = strlen(basePath);
+	size_t pluginLen = strlen(plugin); 
 
 #ifdef PRODBG_MAC
-    sprintf(filename, "%s/lib%s.dylib", basePath, plugin);
+	output = (char*)malloc(baseLen + pluginLen + 12); // + 12 for separator /lib.dylib + terminator
+    sprintf(output, "%s/lib%s.dylib", basePath, plugin);
 #elif PRODBG_WIN
-    sprintf(filename, "%s\\%s.dll", basePath, plugin);
+	output = (char*)malloc(baseLen + pluginLen + 6); // + 5 for separator /.dll + terminator
+    sprintf(output, "%s/lib%s.dylib", basePath, plugin);
 #else
+	output = (char*)malloc(baseLen + pluginLen + 5); // + 4 for separator \.so + terminator
     sprintf(filename, "%s/%s.so", basePath, plugin);
 #endif
 
-    return uv_dlopen(filename, lib);
+	return output;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,32 +59,37 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 {
     uv_lib_t lib;
     void* function;
-
     void* (*initPlugin)(RegisterPlugin* registerPlugin, void* privateData);
 
-    if (openPlugin(basePath, plugin, &lib) == -1)
+    const char* filename = buildLoadingPath(basePath, plugin);
+
+    if (uv_dlopen(filename, &lib) == -1)
     {
+    	// TODO: Show error message
         log_error("Unable to open %s error:", uv_dlerror(&lib))
+        free((void*)filename);
         return false;
     }
 
     if (uv_dlsym(&lib, "InitPlugin", &function) == -1)
     {
+    	// TODO: Show error message
         log_error("Unable to find InitPlugin function in plugin %s\n", plugin);
         uv_dlclose(&lib);
+        free((void*)filename);
         return false;
     }
 
     *(void**)(&initPlugin) = function;
 
-    initPlugin(registerPlugin, 0);
+    initPlugin(registerPlugin, (void*)filename);
 
     return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Plugin* PluginHandler_getPlugins(int* count)
+PluginData** PluginHandler_getPlugins(int* count)
 {
     *count = stb_arr_len(s_plugins);
     return s_plugins;

@@ -2518,7 +2518,7 @@ bool BeginWithWindow(ImGuiWindow* window, const char* name, bool* open, ImVec2 s
             const bool clip_title = text_size.x > (text_max.x - text_min.x);    // only push a clip rectangle if we need to, because it may turn into a separate draw call
             if (clip_title)
                ImGui::PushClipRect(ImVec4(text_min.x, text_min.y, text_max.x, text_max.y));
-            bndText(g.NVGCtx, text_min.x - 16, text_min.y + 10, "Source code");
+            bndText(g.NVGCtx, text_min.x - 16, text_min.y + 10, name);
             if (clip_title)
                 ImGui::PopClipRect();
         }

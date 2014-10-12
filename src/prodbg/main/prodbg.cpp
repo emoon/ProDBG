@@ -162,7 +162,7 @@ void ProDBG_event(int eventId)
 
 	int count;
 
-	Plugin* plugins = PluginHandler_getPlugins(&count);
+	PluginData** pluginsData = PluginHandler_getPlugins(&count);
 
 	printf("%d pluginCount\n", count);
 
@@ -170,7 +170,7 @@ void ProDBG_event(int eventId)
     {
         case PRODBG_MENU_SOURCECODE:
         {
-        	ViewPluginInstance* instance = PluginInstance_createViewPlugin((PDViewPlugin*)plugins[0].data);
+        	ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[0]);
         	Session_addViewPlugin(context->session, instance);
             log_info("create source code\n");
             break;
