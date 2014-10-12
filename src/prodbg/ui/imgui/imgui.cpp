@@ -1797,7 +1797,7 @@ static void LogText(const ImVec2& ref_pos, const char* text, const char* text_en
 static void RenderText(ImVec2 pos, const char* text, const char* text_end, const bool hide_text_after_hash)
 {
     ImGuiState& g = GImGui;
-    ImGuiWindow* window = GetCurrentWindow();
+    //ImGuiWindow* window = GetCurrentWindow();
 
     // Hide anything after a '##' string
     const char* text_display_end;
@@ -1817,7 +1817,9 @@ static void RenderText(ImVec2 pos, const char* text, const char* text_end, const
     if (text_len > 0)
     {
         // Render
-        window->DrawList->AddText(window->Font(), window->FontSize(), pos, window->Color(ImGuiCol_Text), text, text + text_len);
+        //window->DrawList->AddText(window->Font(), window->FontSize(), pos, window->Color(ImGuiCol_Text), text, text + text_len);
+
+        bndText(g.NVGCtx, pos.x, pos.y, text);
 
         // Log as text. We split text into individual lines to add the tree level padding
         if (g.LogEnabled)
@@ -2815,6 +2817,24 @@ void SetWindowPos(const ImVec2& pos)
 
     // If we happen to move the window while it is being appended to (which is a bad idea - will smear) let's at least offset the cursor
     window->DC.CursorPos += (window->Pos - old_pos);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GetWindowRect(ImGuiWindow* window, ImVec2* pos, ImVec2* size)
+{
+	*pos = window->Pos;
+	*size = window->Size;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SetWindowRect(ImGuiWindow* window, const ImVec2 pos, const ImVec2 size)
+{
+    window->PosFloat = pos;
+    window->Pos = ImVec2((float)(int)window->PosFloat.x, (float)(int)window->PosFloat.y);
+	window->Size = size;
+	window->SizeFull = size;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
