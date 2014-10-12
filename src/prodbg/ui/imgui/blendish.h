@@ -389,6 +389,9 @@ void bndRoundedBox(NVGcontext* ctx, float x, float y, float w, float h,
 // and fills it with backgroundColor
 void bndBackground(NVGcontext* ctx, float x, float y, float w, float h);
 
+// Background with a brighten frame
+void bndFrame(NVGcontext* ctx, float x, float y, float w, float h);
+
 // Draw a lower inset for a rounded box at position (x,y) with size (w,h)
 // that gives the impression the surface has been pushed in.
 // cr2 and cr3 contain the radiuses of the bottom right and bottom left
@@ -452,6 +455,9 @@ void bndArrow(NVGcontext* ctx, float x, float y, float s, NVGcolor color);
 
 // Draw an up/down arrow for a choice box with its center at (x,y) and size s
 void bndUpDownArrow(NVGcontext* ctx, float x, float y, float s, NVGcolor color);
+
+// Draw text
+void bndText(NVGcontext* ctx, float x, float y, const char* text);
 
 #ifdef __cplusplus
 }
@@ -577,7 +583,7 @@ BND_INLINE float bnd_clamp(float v, float mn, float mx) {
 // the initial theme
 static BNDtheme bnd_theme = {
     // backgroundColor
-    {{{ 0.477f, 0.447f, 0.447f, 1.0f }}},
+    {{{ 0.12f, 0.12f, 0.12f, 1.0f }}},
     // regularTheme
     {
         {{{ 0.098f, 0.098f, 0.098f, 1.0f }}}, // color_outline
@@ -1105,6 +1111,25 @@ void bndBackground(NVGcontext* ctx, float x, float y, float w, float h) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void bndFrame(NVGcontext* ctx, float x, float y, float w, float h) {
+
+    nvgBeginPath(ctx);
+    nvgRect(ctx, x - 2, y - 2, w + 4, h + 4);
+    nvgFillColor(ctx, nvgRGBA(50, 50, 50, 255));
+    nvgFill(ctx);
+
+    const int borderSize = 20;
+
+    nvgBeginPath(ctx);
+    nvgRect(ctx, x, y, w, borderSize);
+    nvgFillColor(ctx, nvgRGBA(60, 60, 60, 255));
+    nvgFill(ctx);
+
+	bndBackground(ctx, x, y + borderSize, w, h - borderSize);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void bndIcon(NVGcontext* ctx, float x, float y, int iconid) {
     int ix, iy, u, v;
     if (bnd_icon_image < 0) return; // no icons loaded
@@ -1275,6 +1300,17 @@ void bndIconLabelValue(NVGcontext* ctx, float x, float y, float w, float h,
     {
         bndIcon(ctx, x + 2, y + 2, iconid);
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void bndText(NVGcontext* ctx, float x, float y, const char* text)
+{
+	nvgFontSize(ctx, 16.0f);
+	nvgFontBlur(ctx, 0);
+	nvgFillColor(ctx, nvgRGBA(220, 220, 220, 255)); 
+	nvgTextAlign(ctx, NVG_ALIGN_LEFT);
+	nvgText(ctx, x, y, text, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
