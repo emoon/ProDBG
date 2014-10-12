@@ -246,7 +246,7 @@ ImGuiStyle::ImGuiStyle()
     WindowMinSize           = ImVec2(48, 48);    // Minimum window size
     FramePadding            = ImVec2(5, 4);      // Padding within a framed rectangle (used by most widgets)
     ItemSpacing             = ImVec2(10, 5);     // Horizontal and vertical spacing between widgets/lines
-    ItemInnerSpacing        = ImVec2(5, 5);      // Horizontal and vertical spacing between within elements of a composed widget (e.g. a slider and its label)
+    ItemInnerSpacing        = ImVec2(2, 5);      // Horizontal and vertical spacing between within elements of a composed widget (e.g. a slider and its label)
     TouchExtraPadding       = ImVec2(0, 0);      // Expand bounding box for touch-based system where touch position is not accurate enough (unnecessary for mouse inputs). Unfortunately we don't sort widgets so priority on overlap will always be given to the first widget running. So dont grow this too much!
     AutoFitPadding          = ImVec2(8, 8);      // Extra space after auto-fit (double-clicking on resize grip)
     WindowFillAlphaDefault  = 0.70f;            // Default alpha of window background, if not specified in ImGui::Begin()
@@ -2306,7 +2306,8 @@ bool BeginWithWindow(ImGuiWindow* window, const char* name, bool* open, ImVec2 s
 
         // At this point we don't have a clipping rectangle setup yet, so we can test and draw in title bar
         // Collapse window by double-clicking on title bar
-        if (!(window->Flags & ImGuiWindowFlags_NoTitleBar))
+		/*
+		if (!(window->Flags & ImGuiWindowFlags_NoTitleBar))
         {
             if (g.HoveredWindow == window && IsMouseHoveringBox(title_bar_aabb) && g.IO.MouseDoubleClicked[0])
             {
@@ -2332,6 +2333,7 @@ bool BeginWithWindow(ImGuiWindow* window, const char* name, bool* open, ImVec2 s
             }
         }
         else
+        */
         {
             window->Size = window->SizeFull;
 
@@ -2389,7 +2391,9 @@ bool BeginWithWindow(ImGuiWindow* window, const char* name, bool* open, ImVec2 s
                  */
                 //   window->DrawList->AddRectFilled(window->Pos, window->Pos+window->Size, window->Color(ImGuiCol_WindowBg, fill_alpha), g.Style.WindowRounding);
 
-                bndBackground(g.NVGCtx, window->Pos.x, window->Pos.y, window->Size.x, window->Size.y);
+
+
+                bndFrame(g.NVGCtx, window->Pos.x, window->Pos.y, window->Size.x, window->Size.y);
             }
 
             if (!(window->Flags & ImGuiWindowFlags_NoTitleBar))
@@ -2504,8 +2508,8 @@ bool BeginWithWindow(ImGuiWindow* window, const char* name, bool* open, ImVec2 s
             const ImVec2 text_max = window->Pos + ImVec2(window->Size.x - (open ? (title_bar_aabb.GetHeight() - 3) : style.FramePadding.x), style.FramePadding.y + text_size.y);
             const bool clip_title = text_size.x > (text_max.x - text_min.x);    // only push a clip rectangle if we need to, because it may turn into a separate draw call
             if (clip_title)
-                ImGui::PushClipRect(ImVec4(text_min.x, text_min.y, text_max.x, text_max.y));
-            RenderText(text_min, name);
+               ImGui::PushClipRect(ImVec4(text_min.x, text_min.y, text_max.x, text_max.y));
+            bndText(g.NVGCtx, text_min.x - 16, text_min.y + 10, "Source code");
             if (clip_title)
                 ImGui::PopClipRect();
         }
