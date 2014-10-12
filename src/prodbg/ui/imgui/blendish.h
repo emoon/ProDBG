@@ -1306,6 +1306,7 @@ void bndIconLabelValue(NVGcontext* ctx, float x, float y, float w, float h,
 
 void bndText(NVGcontext* ctx, float x, float y, const char* text)
 {
+    nvgFontFaceId(ctx, bnd_font);
 	nvgFontSize(ctx, 16.0f);
 	nvgFontBlur(ctx, 0);
 	nvgFillColor(ctx, nvgRGBA(220, 220, 220, 255)); 

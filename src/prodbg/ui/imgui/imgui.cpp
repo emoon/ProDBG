@@ -283,8 +283,8 @@ ImGuiStyle::ImGuiStyle()
     Colors[ImGuiCol_ResizeGrip]             = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
     Colors[ImGuiCol_ResizeGripHovered]      = ImVec4(1.00f, 1.00f, 1.00f, 0.60f);
     Colors[ImGuiCol_ResizeGripActive]       = ImVec4(1.00f, 1.00f, 1.00f, 0.90f);
-    Colors[ImGuiCol_CloseButton]            = ImVec4(0.50f, 0.50f, 0.90f, 0.50f);
-    Colors[ImGuiCol_CloseButtonHovered]     = ImVec4(0.70f, 0.70f, 0.90f, 0.60f);
+    Colors[ImGuiCol_CloseButton]            = ImVec4(0.80f, 0.80f, 0.80f, 0.50f);
+    Colors[ImGuiCol_CloseButtonHovered]     = ImVec4(0.90f, 0.90f, 0.90f, 0.60f);
     Colors[ImGuiCol_CloseButtonActive]      = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
     Colors[ImGuiCol_PlotLines]              = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     Colors[ImGuiCol_PlotLinesHovered]       = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
@@ -331,6 +331,9 @@ inline NVGcolor toNVGColor(ImU32 color)
 
     return col;
 }
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Pass in translated ASCII characters for text input.
 // - with glfw you can get those from the callback set in glfwSetCharCallback()
@@ -782,6 +785,7 @@ struct ImGuiState
     FILE*                   LogFile;
     ImGuiTextBuffer*        LogClipboard;                       // pointer so our GImGui static constructor doesn't call heap allocators.
     int LogAutoExpandMaxDepth;
+    int iconsFont;
     NVGcontext*             NVGCtx;
 
     ImGuiState()
@@ -805,6 +809,7 @@ struct ImGuiState
         LogFile = NULL;
         LogAutoExpandMaxDepth = 2;
         LogClipboard = NULL;
+        iconsFont = -1;
     }
 
     ~ImGuiState()
@@ -1405,6 +1410,8 @@ void NewFrame()
         g.NVGCtx = nvgCreate(512, 512, 1, 0);
 
         bndSetFont(nvgCreateFont(g.NVGCtx, "droidsans", "data/font/droidsans.ttf"));
+        g.iconsFont = nvgCreateFont(g.NVGCtx, "icons", "data/font/entypo.ttf");
+		IM_ASSERT(g.iconsFont >= 0);
 
         // Initialize on first frame
         g.LogClipboard = (ImGuiTextBuffer*)IM_MALLOC(sizeof(ImGuiTextBuffer));
@@ -3237,9 +3244,14 @@ bool SmallButton(const char* label)
     return pressed;
 }
 
+#define ICON_CIRCLED_CROSS 0x2716
+
 // Upper-right button to close a window.
 static bool CloseWindowButton(bool* open)
 {
+    ImGuiState& g = GImGui;
+    char icon[8];
+
     ImGuiWindow* window = GetCurrentWindow();
 
     const ImGuiID id = window->GetID("##CLOSE");
@@ -3252,6 +3264,14 @@ static bool CloseWindowButton(bool* open)
     // Render
     const ImU32 col = window->Color((held && hovered) ? ImGuiCol_CloseButtonActive : hovered ? ImGuiCol_CloseButtonHovered : ImGuiCol_CloseButton);
     const ImVec2 center = bb.GetCenter();
+
+	nvgFontFaceId(g.NVGCtx, g.iconsFont); 
+	nvgFontSize(g.NVGCtx, 24.0f); 
+	nvgFillColor(g.NVGCtx, toNVGColor(col));
+	nvgTextAlign(g.NVGCtx,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
+	nvgText(g.NVGCtx, center.x, center.y, nvgCPToUTF8(ICON_CIRCLED_CROSS, icon), NULL);
+
+	/*
     window->DrawList->AddCircleFilled(center, ImMax(2.0f, size * 0.5f), col, 16);
 
     const float cross_extent = (size * 0.5f * 0.7071f) - 1.0f;
@@ -3260,6 +3280,7 @@ static bool CloseWindowButton(bool* open)
         window->DrawList->AddLine(center + ImVec2(+cross_extent, +cross_extent), center + ImVec2(-cross_extent, -cross_extent), window->Color(ImGuiCol_Text));
         window->DrawList->AddLine(center + ImVec2(+cross_extent, -cross_extent), center + ImVec2(-cross_extent, +cross_extent), window->Color(ImGuiCol_Text));
     }
+    */
 
     if (open != NULL && pressed)
         *open = !*open;

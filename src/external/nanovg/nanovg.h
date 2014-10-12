@@ -537,6 +537,9 @@ struct NVGcontext* nvgCreate(int atlasw, int atlash, int edgeaa, unsigned char v
 //
 void nvgDelete(struct NVGcontext* ctx);
 
+//
+char* nvgCPToUTF8(int cp, char* str);
+
 #define NVG_NOTUSED(v) for (;;) { (void)(true ? (void)0 : ( (void)(v) ) ); break; }
 
 #ifdef __cplusplus
