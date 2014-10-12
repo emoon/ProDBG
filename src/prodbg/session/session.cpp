@@ -208,7 +208,11 @@ static void updateLocal(Session* s, PDAction action)
     for (int i = 0; i < len; ++i)
     {
         struct ViewPluginInstance* p = s->viewPlugins[i];
-		PluginUI_updateInstance(p, &s->reader, &s->viewPluginsWriter);
+		PluginUIState state = PluginUI_updateInstance(p, &s->reader, &s->viewPluginsWriter);
+
+		if (state == PluginUIState_CloseView)
+			p->markDeleted = true;
+
         PDBinaryReader_reset(&s->reader);
     }
 
@@ -306,6 +310,25 @@ static void updateRemote(Session* s, PDAction action)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Remove vewies that has been marked deleted
+
+static void updateMarkedDelete(Session* s)
+{
+    int count = stb_arr_len(s->viewPlugins);
+
+    for (int i = 0; i < count; ++i)
+	{
+        struct ViewPluginInstance* p = s->viewPlugins[i];
+
+        if (p->markDeleted)
+		{
+			Session_removeViewPlugin(s, p);
+    		count = stb_arr_len(s->viewPlugins);
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Session_update(Session* s)
 {
@@ -324,6 +347,8 @@ void Session_update(Session* s)
             break;
 		}
     }
+
+	updateMarkedDelete(s);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,13 @@ struct ViewPluginInstance;
 struct PDReader;
 struct PDWriter;
 
+enum PluginUIState
+{
+	PluginUIState_None,
+	PluginUIState_CloseView,
+};
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PluginUI_init(ViewPluginInstance* instance);
-void PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer);
+PluginUIState PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer);

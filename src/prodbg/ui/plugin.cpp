@@ -17,6 +17,7 @@ struct PrivateData
 {
     ImGuiWindow* window;
     const char name[16];
+    bool showWindow;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,6 +55,8 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
 	PrivateData* data = (PrivateData*)alloc_zero(sizeof(PrivateData));
 	PDUI* uiInstance = &pluginInstance->ui;
 
+	data->showWindow = true;
+
     memset(uiInstance, 0, sizeof(PDUI));
 
     uiInstance->columns = columns;
@@ -67,25 +70,28 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
 	// TODO: Do something better here when assigning names to windows
 	sprintf((char*)data->name, "%d\n", windowIdCount++);
 
-    data->window = ImGui::FindOrCreateWindow(data->name, ImVec2(0, 0), 0);
+    data->window = ImGui::FindOrCreateWindow(data->name, ImVec2(400, 400), 0);
 
 	uiInstance->privateData = data;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer)
+PluginUIState PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer)
 {
 	PDUI* uiInstance = &instance->ui;
 	PrivateData* data = (PrivateData*)uiInstance->privateData;
 
-	static bool show = true;
-
-	ImGui::BeginWithWindow(data->window, data->name, &show, ImVec2(0, 0), true, 0);
+	ImGui::BeginWithWindow(data->window, data->name, &data->showWindow, ImVec2(0, 0), true, 0);
 
 	instance->plugin->update(instance->userData, uiInstance, reader, writer);
 
 	ImGui::End();
+
+	if (!data->showWindow)
+		return PluginUIState_CloseView;
+
+	return PluginUIState_None;
 }
 
 
