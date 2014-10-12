@@ -43,6 +43,18 @@ static int button(const char* label)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void text(const char* format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+
+    ImGui::TextV(format, ap);
+
+    va_end(ap);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static int buttonSize(const char* label, int width, int height, int repeatWhenHeld)
 {
     return ImGui::Button(label, ImVec2(width, height), !!repeatWhenHeld);
@@ -61,6 +73,7 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
 
     uiInstance->columns = columns;
     uiInstance->nextColumn = nextColumn;
+    uiInstance->text = text;
     uiInstance->button = button;
     uiInstance->buttonSize = buttonSize;
 
@@ -71,6 +84,8 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
 	sprintf((char*)data->name, "%d\n", windowIdCount++);
 
     data->window = ImGui::FindOrCreateWindow(data->name, ImVec2(400, 400), 0);
+
+	ImGui::SetWindowRect(data->window, ImVec2(10, 20), ImVec2(100, 100));
 
 	uiInstance->privateData = data;
 }
