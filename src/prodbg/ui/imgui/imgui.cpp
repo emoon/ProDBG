@@ -192,6 +192,7 @@
 #include <new>          // new (ptr)
 #include <nanovg.h>
 #include "blendish.h"
+#include "core/log.h"
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4996) // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
@@ -1532,7 +1533,7 @@ void NewFrame()
     g.CurrentWindowStack.clear();
 
     // Create implicit window - we will only render it if the user has added something to it.
-    ImGui::Begin("Debug", NULL, ImVec2(400, 400));
+    //ImGui::Begin("Debug", NULL, ImVec2(400, 400));
 
     nvgBeginFrame(g.NVGCtx, (int)g.IO.DisplaySize.x, (int)g.IO.DisplaySize.y, 1.0f, NVG_STRAIGHT_ALPHA);
 }
@@ -1646,11 +1647,15 @@ void Render()
 
     if (first_render_of_the_frame)
     {
+    	size_t stackSize = g.CurrentWindowStack.size();
+
         // Hide implicit window if it hasn't been used
-        IM_ASSERT(g.CurrentWindowStack.size() == 1);    // Mismatched Begin/End
+        //IM_ASSERT(g.CurrentWindowStack.size() == 1);    // Mismatched Begin/End
         if (g.CurrentWindow && !g.CurrentWindow->Accessed)
             g.CurrentWindow->Visible = false;
-        ImGui::End();
+
+        if (stackSize != 0)
+        	ImGui::End();
 
         // Sort the window list so that all child windows are after their parent
         // We cannot do that on FocusWindow() because childs may not exist yet
