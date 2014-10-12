@@ -20,10 +20,9 @@ struct PDUIPainter;
 
 typedef struct PDViewPlugin
 {
-    const char* version;
     const char* name;
 
-    void* (*createInstance)(PDUI * uiFuncs, ServiceFunc * serviceFunc);
+    void* (*createInstance)(PDUI* uiFuncs, ServiceFunc* serviceFunc);
     void (*destroyInstance)(void* userData);
 
     // Updates and Returns the current state of the plugin.

@@ -165,7 +165,6 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
 static PDViewPlugin plugin =
 {
-    0,    // version
     "Disassembly",
     createInstance,
     destroyInstance,
@@ -177,14 +176,14 @@ static PDViewPlugin plugin =
 extern "C"
 {
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    PD_EXPORT void InitPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin)
-    {
-        (void)version;
-        (void)serviceFunc;
-        registerPlugin(PD_VIEW_API_VERSION, &plugin);
-    }
+PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+{
+	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
 

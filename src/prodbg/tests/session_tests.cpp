@@ -41,13 +41,11 @@ static int dummyUpdate(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWrit
 
 static PDViewPlugin s_dummyPlugin =
 {
-    0,    // version
     "DummyPlugin",
     dummyCreateInstance,
     dummyDestroyInstance,
     dummyUpdate,
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

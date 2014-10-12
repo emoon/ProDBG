@@ -13,8 +13,8 @@ extern "C" {
      It's ok for the plugin to hold a pointer to the requested service during its life time.
     \param serviceName The name of the requested service. It's *highly* recommended to use the defines for the wanted service.
  */
-typedef void* ServiceFunc (const char* serviceName);
-typedef void RegisterPlugin (const char* type, void* data);
+typedef void* ServiceFunc(const char* serviceName);
+typedef void RegisterPlugin(const char* type, void* data, void* privateData);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Needed for exporting the entry point on Windows

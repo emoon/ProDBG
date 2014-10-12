@@ -232,6 +232,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
     PDWrite_eventEnd(writer);
 
     uiFuncs->button("test test");
+    uiFuncs->text("funy text %f", 12.02f);
 
     return 0;
 }
@@ -240,8 +241,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
 static PDViewPlugin plugin =
 {
-    0,    // version
-    "SourceCode",
+    "Source Code View",
     createInstance,
     destroyInstance,
     update,
@@ -252,14 +252,14 @@ static PDViewPlugin plugin =
 extern "C"
 {
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    PD_EXPORT void InitPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin)
-    {
-        (void)version;
-        (void)serviceFunc;
-        registerPlugin(PD_VIEW_API_VERSION, &plugin);
-    }
+PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+{
+	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
 

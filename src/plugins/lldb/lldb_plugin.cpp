@@ -581,7 +581,6 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
 
 static PDBackendPlugin plugin =
 {
-    0,    // version
     "LLDB Mac",
     createInstance,
     destroyInstance,
@@ -593,11 +592,14 @@ static PDBackendPlugin plugin =
 extern "C"
 {
 
-PD_EXPORT void InitPlugin(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
 {
-    printf("Starting to register Plugin!\n");
-    registerPlugin(PD_BACKEND_API_VERSION, &plugin);
+    registerPlugin(PD_BACKEND_API_VERSION, &plugin, privateData);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
 

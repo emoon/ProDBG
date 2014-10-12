@@ -85,8 +85,6 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
 
     data->window = ImGui::FindOrCreateWindow(data->name, ImVec2(400, 400), 0);
 
-	ImGui::SetWindowRect(data->window, ImVec2(10, 20), ImVec2(100, 100));
-
 	uiInstance->privateData = data;
 }
 

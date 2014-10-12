@@ -14,9 +14,11 @@ static Plugin* s_plugins;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void registerPlugin(const char* type, void* data)
+static void registerPlugin(const char* type, void* data, void* privateData)
 {
     Plugin plugin;
+
+    (void)privateData;
 
     plugin.data = data;
     plugin.type = type;
@@ -50,7 +52,7 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
     uv_lib_t lib;
     void* function;
 
-    void* (*initPlugin)(int version, ServiceFunc* serviceFunc, RegisterPlugin* registerPlugin);
+    void* (*initPlugin)(RegisterPlugin* registerPlugin, void* privateData);
 
     if (openPlugin(basePath, plugin, &lib) == -1)
     {
@@ -67,7 +69,7 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 
     *(void**)(&initPlugin) = function;
 
-    initPlugin(1, 0, registerPlugin);
+    initPlugin(registerPlugin, 0);
 
     return true;
 }
