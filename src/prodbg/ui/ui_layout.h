@@ -4,20 +4,20 @@
 
 struct LayoutItem
 {
-	const char* pluginFile;
-	const char* pluginName;
-	float x, y, width, height;
+    const char* pluginFile;
+    const char* pluginName;
+    float x, y, width, height;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct UILayout
 {
-	const char** pluginBasePaths;
-	LayoutItem* layoutItems;
+    const char** pluginBasePaths;
+    LayoutItem* layoutItems;
 
-	int basePathCount;
-	int layoutItemCount;
+    int basePathCount;
+    int layoutItemCount;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
