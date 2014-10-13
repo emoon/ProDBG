@@ -72,7 +72,7 @@ Program {
     	"src/prodbg/tests/session_tests.cpp",
     },
 
-    Depends = { "api", "core", "stb", "remote_api", "cmocka", "session", "ui", "nanovg", "bgfx" },
+    Depends = { "api", "core", "stb", "remote_api", "cmocka", "session", "ui", "nanovg", "bgfx", "yaml" },
 
     Libs = { { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 
@@ -101,7 +101,7 @@ Program {
     	"src/prodbg/tests/ui_tests.cpp",
     },
 
-    Depends = { "api", "core", "stb", "ui", "cmocka", "nanovg", "bgfx" },
+    Depends = { "api", "core", "stb", "ui", "cmocka", "nanovg", "bgfx", "yaml" },
 
     Libs = { { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 

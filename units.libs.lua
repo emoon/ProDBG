@@ -311,6 +311,7 @@ StaticLibrary {
         CXXOPTS = {
         	{ "-Wno-gnu-anonymous-struct",
 			  "-Wno-global-constructors",
+			  "-Wno-switch-enum",
 			  "-Wno-nested-anon-types",
 			  "-Wno-float-equal",
 			  "-Wno-cast-align",
@@ -321,7 +322,7 @@ StaticLibrary {
         CPPPATH = { 
             "src/external/nanovg",
             "src/external/stb",
-            -- "src/external/bgfx/include",
+			"src/external/libyaml/include",
             "src/prodbg",
         },
     },
