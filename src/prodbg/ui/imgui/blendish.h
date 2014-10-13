@@ -1125,7 +1125,7 @@ void bndFrame(NVGcontext* ctx, float x, float y, float w, float h) {
     nvgFillColor(ctx, nvgRGBA(60, 60, 60, 255));
     nvgFill(ctx);
 
-	bndBackground(ctx, x, y + borderSize, w, h - borderSize);
+    bndBackground(ctx, x, y + borderSize, w, h - borderSize);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1307,11 +1307,11 @@ void bndIconLabelValue(NVGcontext* ctx, float x, float y, float w, float h,
 void bndText(NVGcontext* ctx, float x, float y, const char* text)
 {
     nvgFontFaceId(ctx, bnd_font);
-	nvgFontSize(ctx, 16.0f);
-	nvgFontBlur(ctx, 0);
-	nvgFillColor(ctx, nvgRGBA(220, 220, 220, 255)); 
-	nvgTextAlign(ctx, NVG_ALIGN_LEFT);
-	nvgText(ctx, x, y, text, 0);
+    nvgFontSize(ctx, 16.0f);
+    nvgFontBlur(ctx, 0);
+    nvgFillColor(ctx, nvgRGBA(220, 220, 220, 255));
+    nvgTextAlign(ctx, NVG_ALIGN_LEFT);
+    nvgText(ctx, x, y, text, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

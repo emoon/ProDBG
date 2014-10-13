@@ -63,26 +63,26 @@ static int buttonSize(const char* label, int width, int height, int repeatWhenHe
 
 char* buildName(const char* pluginName, int id)
 {
-	char idBuffer[32];
-	int nameLen = (int)strlen(pluginName);
+    char idBuffer[32];
+    int nameLen = (int)strlen(pluginName);
 
-	sprintf(idBuffer, "%d", id);
+    sprintf(idBuffer, "%d", id);
 
-	char* name = (char*)alloc_zero(nameLen + (int)strlen(idBuffer) + 2); // + 2 for space and end marker
+    char* name = (char*)alloc_zero(nameLen + (int)strlen(idBuffer) + 2); // + 2 for space and end marker
 
-	sprintf(name, "%s %s", pluginName, idBuffer);
+    sprintf(name, "%s %s", pluginName, idBuffer);
 
-	return name;
+    return name;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PluginUI_init(ViewPluginInstance* pluginInstance)
 {
-	PrivateData* data = (PrivateData*)alloc_zero(sizeof(PrivateData));
-	PDUI* uiInstance = &pluginInstance->ui;
+    PrivateData* data = (PrivateData*)alloc_zero(sizeof(PrivateData));
+    PDUI* uiInstance = &pluginInstance->ui;
 
-	data->showWindow = true;
+    data->showWindow = true;
 
     memset(uiInstance, 0, sizeof(PDUI));
 
@@ -97,26 +97,26 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
 
     data->window = ImGui::FindOrCreateWindow(data->name, ImVec2(400, 400), 0);
 
-	uiInstance->privateData = data;
+    uiInstance->privateData = data;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 PluginUIState PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer)
 {
-	PDUI* uiInstance = &instance->ui;
-	PrivateData* data = (PrivateData*)uiInstance->privateData;
+    PDUI* uiInstance = &instance->ui;
+    PrivateData* data = (PrivateData*)uiInstance->privateData;
 
-	ImGui::BeginWithWindow(data->window, data->name, &data->showWindow, ImVec2(0, 0), true, 0);
+    ImGui::BeginWithWindow(data->window, data->name, &data->showWindow, ImVec2(0, 0), true, 0);
 
-	instance->plugin->update(instance->userData, uiInstance, reader, writer);
+    instance->plugin->update(instance->userData, uiInstance, reader, writer);
 
-	ImGui::End();
+    ImGui::End();
 
-	if (!data->showWindow)
-		return PluginUIState_CloseView;
+    if (!data->showWindow)
+        return PluginUIState_CloseView;
 
-	return PluginUIState_None;
+    return PluginUIState_None;
 }
 
 

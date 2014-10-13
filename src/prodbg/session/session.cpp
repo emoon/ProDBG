@@ -68,7 +68,7 @@ Session* Session_createRemote(const char* target, int port)
 {
     Session* s = (Session*)alloc_zero(sizeof(Session));
 
-	commonInit(s);
+    commonInit(s);
 
     s->type = Session_Remote;
 
@@ -208,10 +208,10 @@ static void updateLocal(Session* s, PDAction action)
     for (int i = 0; i < len; ++i)
     {
         struct ViewPluginInstance* p = s->viewPlugins[i];
-		PluginUIState state = PluginUI_updateInstance(p, &s->reader, &s->viewPluginsWriter);
+        PluginUIState state = PluginUI_updateInstance(p, &s->reader, &s->viewPluginsWriter);
 
-		if (state == PluginUIState_CloseView)
-			p->markDeleted = true;
+        if (state == PluginUIState_CloseView)
+            p->markDeleted = true;
 
         PDBinaryReader_reset(&s->reader);
     }
@@ -317,15 +317,15 @@ static void updateMarkedDelete(Session* s)
     int count = stb_arr_len(s->viewPlugins);
 
     for (int i = 0; i < count; ++i)
-	{
+    {
         struct ViewPluginInstance* p = s->viewPlugins[i];
 
         if (p->markDeleted)
-		{
-			Session_removeViewPlugin(s, p);
-    		count = stb_arr_len(s->viewPlugins);
-		}
-	}
+        {
+            Session_removeViewPlugin(s, p);
+            count = stb_arr_len(s->viewPlugins);
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -336,19 +336,19 @@ void Session_update(Session* s)
     {
         case Session_Null:
         case Session_Local:
-		{
-            updateLocal(s, PDAction_none); 
+        {
+            updateLocal(s, PDAction_none);
             break;
-		}
+        }
 
         case Session_Remote:
-		{
-            updateRemote(s, PDAction_none); 
+        {
+            updateRemote(s, PDAction_none);
             break;
-		}
+        }
     }
 
-	updateMarkedDelete(s);
+    updateMarkedDelete(s);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

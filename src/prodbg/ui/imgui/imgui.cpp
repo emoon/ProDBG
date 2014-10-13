@@ -1411,7 +1411,7 @@ void NewFrame()
 
         bndSetFont(nvgCreateFont(g.NVGCtx, "droidsans", "data/font/droidsans.ttf"));
         g.iconsFont = nvgCreateFont(g.NVGCtx, "icons", "data/font/entypo.ttf");
-		IM_ASSERT(g.iconsFont >= 0);
+        IM_ASSERT(g.iconsFont >= 0);
 
         // Initialize on first frame
         g.LogClipboard = (ImGuiTextBuffer*)IM_MALLOC(sizeof(ImGuiTextBuffer));
@@ -1654,7 +1654,7 @@ void Render()
 
     if (first_render_of_the_frame)
     {
-    	size_t stackSize = g.CurrentWindowStack.size();
+        size_t stackSize = g.CurrentWindowStack.size();
 
         // Hide implicit window if it hasn't been used
         //IM_ASSERT(g.CurrentWindowStack.size() == 1);    // Mismatched Begin/End
@@ -1662,7 +1662,7 @@ void Render()
             g.CurrentWindow->Visible = false;
 
         if (stackSize != 0)
-        	ImGui::End();
+            ImGui::End();
 
         // Sort the window list so that all child windows are after their parent
         // We cannot do that on FocusWindow() because childs may not exist yet
@@ -2315,23 +2315,23 @@ bool BeginWithWindow(ImGuiWindow* window, const char* name, bool* open, ImVec2 s
 
         // At this point we don't have a clipping rectangle setup yet, so we can test and draw in title bar
         // Collapse window by double-clicking on title bar
-		/*
-		if (!(window->Flags & ImGuiWindowFlags_NoTitleBar))
-        {
+        /*
+           if (!(window->Flags & ImGuiWindowFlags_NoTitleBar))
+           {
             if (g.HoveredWindow == window && IsMouseHoveringBox(title_bar_aabb) && g.IO.MouseDoubleClicked[0])
             {
                 window->Collapsed = !window->Collapsed;
                 MarkSettingsDirty();
                 ImGui::FocusWindow(window);
             }
-        }
-        else
-        {
+           }
+           else
+           {
             window->Collapsed = false;
-        }
+           }
 
-        if (window->Collapsed)
-        {
+           if (window->Collapsed)
+           {
             // Draw title bar only
             window->Size = title_bar_aabb.GetSize();
             window->DrawList->AddRectFilled(title_bar_aabb.GetTL(), title_bar_aabb.GetBR(), window->Color(ImGuiCol_TitleBgCollapsed), g.Style.WindowRounding);
@@ -2340,9 +2340,9 @@ bool BeginWithWindow(ImGuiWindow* window, const char* name, bool* open, ImVec2 s
                 window->DrawList->AddRect(title_bar_aabb.GetTL() + ImVec2(1, 1), title_bar_aabb.GetBR() + ImVec2(1, 1), window->Color(ImGuiCol_BorderShadow), g.Style.WindowRounding);
                 window->DrawList->AddRect(title_bar_aabb.GetTL(), title_bar_aabb.GetBR(), window->Color(ImGuiCol_Border), g.Style.WindowRounding);
             }
-        }
-        else
-        */
+           }
+           else
+         */
         {
             window->Size = window->SizeFull;
 
@@ -2517,7 +2517,7 @@ bool BeginWithWindow(ImGuiWindow* window, const char* name, bool* open, ImVec2 s
             const ImVec2 text_max = window->Pos + ImVec2(window->Size.x - (open ? (title_bar_aabb.GetHeight() - 3) : style.FramePadding.x), style.FramePadding.y + text_size.y);
             const bool clip_title = text_size.x > (text_max.x - text_min.x);    // only push a clip rectangle if we need to, because it may turn into a separate draw call
             if (clip_title)
-               ImGui::PushClipRect(ImVec4(text_min.x, text_min.y, text_max.x, text_max.y));
+                ImGui::PushClipRect(ImVec4(text_min.x, text_min.y, text_max.x, text_max.y));
             bndText(g.NVGCtx, text_min.x - 16, text_min.y + 10, name);
             if (clip_title)
                 ImGui::PopClipRect();
@@ -2823,8 +2823,8 @@ void SetWindowPos(const ImVec2& pos)
 
 void GetWindowRect(ImGuiWindow* window, ImVec2* pos, ImVec2* size)
 {
-	*pos = window->Pos;
-	*size = window->Size;
+    *pos = window->Pos;
+    *size = window->Size;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2833,8 +2833,8 @@ void SetWindowRect(ImGuiWindow* window, const ImVec2 pos, const ImVec2 size)
 {
     window->PosFloat = pos;
     window->Pos = ImVec2((float)(int)window->PosFloat.x, (float)(int)window->PosFloat.y);
-	window->Size = size;
-	window->SizeFull = size;
+    window->Size = size;
+    window->SizeFull = size;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3285,22 +3285,22 @@ static bool CloseWindowButton(bool* open)
     const ImU32 col = window->Color((held && hovered) ? ImGuiCol_CloseButtonActive : hovered ? ImGuiCol_CloseButtonHovered : ImGuiCol_CloseButton);
     const ImVec2 center = bb.GetCenter();
 
-	nvgFontFaceId(g.NVGCtx, g.iconsFont); 
-	nvgFontSize(g.NVGCtx, 24.0f); 
-	nvgFillColor(g.NVGCtx, toNVGColor(col));
-	nvgTextAlign(g.NVGCtx,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
-	nvgText(g.NVGCtx, center.x, center.y, nvgCPToUTF8(ICON_CIRCLED_CROSS, icon), NULL);
+    nvgFontFaceId(g.NVGCtx, g.iconsFont);
+    nvgFontSize(g.NVGCtx, 24.0f);
+    nvgFillColor(g.NVGCtx, toNVGColor(col));
+    nvgTextAlign(g.NVGCtx, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+    nvgText(g.NVGCtx, center.x, center.y, nvgCPToUTF8(ICON_CIRCLED_CROSS, icon), NULL);
 
-	/*
-    window->DrawList->AddCircleFilled(center, ImMax(2.0f, size * 0.5f), col, 16);
+    /*
+       window->DrawList->AddCircleFilled(center, ImMax(2.0f, size * 0.5f), col, 16);
 
-    const float cross_extent = (size * 0.5f * 0.7071f) - 1.0f;
-    if (hovered)
-    {
+       const float cross_extent = (size * 0.5f * 0.7071f) - 1.0f;
+       if (hovered)
+       {
         window->DrawList->AddLine(center + ImVec2(+cross_extent, +cross_extent), center + ImVec2(-cross_extent, -cross_extent), window->Color(ImGuiCol_Text));
         window->DrawList->AddLine(center + ImVec2(+cross_extent, -cross_extent), center + ImVec2(-cross_extent, +cross_extent), window->Color(ImGuiCol_Text));
-    }
-    */
+       }
+     */
 
     if (open != NULL && pressed)
         *open = !*open;

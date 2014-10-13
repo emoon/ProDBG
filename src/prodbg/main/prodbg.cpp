@@ -108,17 +108,17 @@ void ProDBG_update()
 
     /*
 
-    bool show = true;
+       bool show = true;
 
-    ImGui::Begin("ImGui Test", &show, ImVec2(550, 480), true, ImGuiWindowFlags_ShowBorders);
+       ImGui::Begin("ImGui Test", &show, ImVec2(550, 480), true, ImGuiWindowFlags_ShowBorders);
 
-    if (ImGui::Button("Test0r testing!"))
-    {
+       if (ImGui::Button("Test0r testing!"))
+       {
         printf("test\n");
-    }
+       }
 
-    ImGui::End();
-    */
+       ImGui::End();
+     */
 
     IMGUI_postUpdate();
 
@@ -158,20 +158,20 @@ void ProDBG_timedUpdate()
 
 void ProDBG_event(int eventId)
 {
-	Context* context = &s_context;
+    Context* context = &s_context;
 
-	int count;
+    int count;
 
-	PluginData** pluginsData = PluginHandler_getPlugins(&count);
+    PluginData** pluginsData = PluginHandler_getPlugins(&count);
 
-	printf("%d pluginCount\n", count);
+    printf("%d pluginCount\n", count);
 
     switch (eventId)
     {
         case PRODBG_MENU_SOURCECODE:
         {
-        	ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[0]);
-        	Session_addViewPlugin(context->session, instance);
+            ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[0]);
+            Session_addViewPlugin(context->session, instance);
             log_info("create source code\n");
             break;
         }
