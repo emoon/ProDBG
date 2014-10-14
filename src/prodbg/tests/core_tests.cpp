@@ -41,8 +41,19 @@ static void plugin_handler_add_plugin(void** state)
 
 static void plugin_handler_add_plugin_true(void** state)
 {
+	int count = 0;
+
 	(void)state;
+
 	assert_true(PluginHandler_addPlugin(OBJECT_DIR, "sourcecode_plugin"));
+	assert_true(PluginHandler_addPlugin(OBJECT_DIR, "registers_plugin"));
+
+	PluginData** plugins = PluginHandler_getPlugins(&count);
+
+	assert_int_equal(count, 2);
+
+	assert_true(PluginHandler_getPluginData(plugins[0]->plugin) == plugins[0]);
+	assert_true(PluginHandler_getPluginData(plugins[1]->plugin) == plugins[1]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

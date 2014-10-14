@@ -13,8 +13,11 @@ struct PluginData
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool PluginHandler_addPlugin(const char* basePath, const char* plugin);
-PluginData* PluginHandler_getPluginData(void* plugin);
+//bool PluginHandler_unloadPlugin(PluginData* plugin);
+//bool PluginHandler_unloadAllPlugins();
 
+
+PluginData* PluginHandler_getPluginData(void* plugin);
 PluginData** PluginHandler_getPlugins(int* count);
 
 
