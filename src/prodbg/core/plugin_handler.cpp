@@ -25,8 +25,6 @@ static void registerPlugin(const char* type, void* plugin, void* privateData)
     pluginData->type = type;
     pluginData->filename = (const char*)privateData;
 
-    log_debug("Register plugin (type %s plugin %p filename %s)\n", pluginData->type, pluginData->plugin, pluginData->filename);
-
     stb_arr_push(s_plugins, pluginData);
 }
 
@@ -61,12 +59,15 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
     void* function;
     void* (* initPlugin)(RegisterPlugin* registerPlugin, void* privateData);
 
+    if (!basePath || !plugin)
+    	return false;
+
     const char* filename = buildLoadingPath(basePath, plugin);
 
     if (uv_dlopen(filename, &lib) == -1)
     {
         // TODO: Show error message
-        log_error("Unable to open %s error:", uv_dlerror(&lib))
+        log_error("Unable to open %s error:\n", uv_dlerror(&lib))
         free((void*)filename);
         return false;
     }
