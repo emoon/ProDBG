@@ -4,13 +4,16 @@
 #include <cmocka.h>
 #include <stdio.h>
 #include <math.h>
+#include <pd_view.h>
+#include <pd_ui.h>
 
+#include "api/plugin_instance.h"
+#include "core/plugin_handler.h"
 #include "core/core.h"
 #include "session/session.h"
-#include "api/plugin_instance.h"
+#include "ui/imgui/imgui.h"
 #include "ui/plugin.h"
 #include "ui/ui_layout.h"
-#include <pd_ui.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -92,12 +95,99 @@ static void ui_layout_load(void** state)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void* dummyCreateInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
+{
+    (void)uiFuncs;
+    (void)serviceFunc;
+    return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void dummyDestroyInstance(void* userData)
+{
+    (void)userData;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int dummyUpdate(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents)
+{
+    (void)userData;
+    (void)uiFuncs;
+    (void)inEvents;
+    (void)outEvents;
+
+    return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PDViewPlugin s_dummyPlugin =
+{
+    "DummyPlugin",
+    dummyCreateInstance,
+    dummyDestroyInstance,
+    dummyUpdate,
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PluginData s_pluginData = { &s_dummyPlugin, PD_VIEW_API_VERSION, "", 0 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void imguiDummyRender(ImDrawList** const cmd_lists, int cmd_lists_count)
+{
+    (void)cmd_lists;
+    (void)cmd_lists_count;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void imguiSetup(int width, int height)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2((float)width, (float)height);
+    io.DeltaTime = 1.0f / 60.0f;
+    io.PixelCenterOffset = 0.5f;
+    io.RenderDrawListsFn = imguiDummyRender;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void ui_session_get_layout(void** state)
+{
+	UILayout layout;
+	(void)state;
+
+	PluginHandler_addStaticPlugin(&s_pluginData);
+	imguiSetup(1024, 768);
+
+    ImGuiIO& io = ImGui::GetIO();
+
+    struct Session* session = Session_create();
+
+    struct ViewPluginInstance* i0 = PluginInstance_createViewPlugin(&s_pluginData);
+    struct ViewPluginInstance* i1 = PluginInstance_createViewPlugin(&s_pluginData);
+    struct ViewPluginInstance* i2 = PluginInstance_createViewPlugin(&s_pluginData);
+
+    Session_addViewPlugin(session, i0);
+    Session_addViewPlugin(session, i1);
+    Session_addViewPlugin(session, i2);
+
+    Session_getLayout(session, &layout, io.DisplaySize.x, io.DisplaySize.y);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main()
 {
     const UnitTest tests[] =
     {
         unit_test(ui_layout_save),
         unit_test(ui_layout_load),
+        unit_test(ui_session_get_layout),
     };
 
     return run_tests(tests);

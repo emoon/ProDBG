@@ -10,3 +10,14 @@ typedef struct Rect
     int height;
 } Rect;
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct FloatRect
+{
+    float x;
+    float y;
+    float width;
+    float height;
+} FloatRect;
+
+

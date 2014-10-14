@@ -3,6 +3,7 @@
 struct ViewPluginInstance;
 struct PDReader;
 struct PDWriter;
+struct FloatRect;
 
 enum PluginUIState
 {
@@ -13,4 +14,6 @@ enum PluginUIState
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PluginUI_init(ViewPluginInstance* instance);
+void PluginUI_getWindowRect(ViewPluginInstance* instance, FloatRect* rect);
+
 PluginUIState PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer);

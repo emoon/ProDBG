@@ -424,12 +424,11 @@ struct ViewPluginInstance** Session_getViewPlugins(struct Session* session, int*
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Session_getLayout(Session* session, UILayout* layout)
+void Session_getLayout(Session* session, UILayout* layout, float width, float height)
 {
 	assert(session);
 	assert(layout);
 
-	//Rect windowRect;
     int count = stb_arr_len(session->viewPlugins);
 
 	memset(layout, 0, sizeof(UILayout));
@@ -440,11 +439,7 @@ void Session_getLayout(Session* session, UILayout* layout)
 	layout->basePathCount = 0;
 	layout->layoutItemCount = count;
 	
-	//ImGui::GetMainWindowRect(&rect);
-
 	layout->layoutItems = (LayoutItem*)alloc_zero((int)sizeof(LayoutItem) * (int)count);
-
-	// Traverse the viewPlugins
 
 	for (int i = 0; i < count; ++i)
 	{
@@ -456,19 +451,28 @@ void Session_getLayout(Session* session, UILayout* layout)
 		if (!pluginData)
 			continue;
 
+		FloatRect rect;
+
 		item->pluginFile = strdup(pluginData->filename);
 		item->pluginName = strdup(plugin->name);
 
-		log_info("%d %s %s\n", i, item->pluginFile, item->pluginName);
+		PluginUI_getWindowRect(instance, &rect);
+
+		item->x = rect.x / width;
+		item->y = rect.y / height;
+		item->width = rect.width / width;
+		item->height = rect.height / height;
 	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Session_setLayout(Session* session, UILayout* layout)
+void Session_setLayout(Session* session, UILayout* layout, float width, float height)
 {
-	assert(session);
-	assert(layout);
+	(void)session;
+	(void)layout;
+	(void)width;
+	(void)height;
 
 }
 
