@@ -4,8 +4,10 @@
 #include "api/src/remote/pd_readwrite_private.h"
 #include "api/src/remote/remote_connection.h"
 #include "core/log.h"
+#include "core/plugin_handler.h"
 #include "ui/plugin.h"
 #include "ui/ui_layout.h"
+#include "core/math.h"
 #include <pd_view.h>
 #include <pd_backend.h>
 #include <stdlib.h>
@@ -426,8 +428,8 @@ void Session_getLayout(Session* session, UILayout* layout)
 {
 	assert(session);
 	assert(layout);
-	/*
-	Rect windowRect;
+
+	//Rect windowRect;
     int count = stb_arr_len(session->viewPlugins);
 
 	memset(layout, 0, sizeof(UILayout));
@@ -438,19 +440,27 @@ void Session_getLayout(Session* session, UILayout* layout)
 	layout->basePathCount = 0;
 	layout->layoutItemCount = count;
 	
-	ImGui::GetMainWindowRect(&rect);
+	//ImGui::GetMainWindowRect(&rect);
 
-	layout->layoutItems = alloc_zero(sizeof(LayoutItem) * count);
+	layout->layoutItems = (LayoutItem*)alloc_zero((int)sizeof(LayoutItem) * (int)count);
 
 	// Traverse the viewPlugins
 
 	for (int i = 0; i < count; ++i)
 	{
-		ViewPluginInstance* instance = session->viewPlugins;
+		ViewPluginInstance* instance = session->viewPlugins[i];
+		PDViewPlugin* plugin = (PDViewPlugin*)instance->plugin;
 		LayoutItem* item = &layout->layoutItems[i];
+		PluginData* pluginData = PluginHandler_getPluginData(instance->plugin);
 
+		if (!pluginData)
+			continue;
+
+		item->pluginFile = strdup(pluginData->filename);
+		item->pluginName = strdup(plugin->name);
+
+		log_info("%d %s %s\n", i, item->pluginFile, item->pluginName);
 	}
-	*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

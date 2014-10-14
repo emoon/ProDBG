@@ -57,7 +57,7 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 {
     uv_lib_t lib;
     void* function;
-    void* (* initPlugin)(RegisterPlugin* registerPlugin, void* privateData);
+    void* (*initPlugin)(RegisterPlugin* registerPlugin, void* privateData);
 
     if (!basePath || !plugin)
     	return false;
