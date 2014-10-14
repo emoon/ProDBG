@@ -95,3 +95,19 @@ PluginData** PluginHandler_getPlugins(int* count)
     return s_plugins;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+PluginData* PluginHandler_getPluginData(void* plugin)
+{
+    int count = stb_arr_len(s_plugins);
+
+    for (int i = 0; i < count; ++i)
+	{
+		if (s_plugins[i]->plugin == plugin)
+			return s_plugins[i];
+	}
+
+	return 0;
+}
+
+

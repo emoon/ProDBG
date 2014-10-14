@@ -5,10 +5,12 @@
 #include "api/src/remote/remote_connection.h"
 #include "core/log.h"
 #include "ui/plugin.h"
+#include "ui/ui_layout.h"
 #include <pd_view.h>
 #include <pd_backend.h>
 #include <stdlib.h>
 #include <stb.h>
+#include <assert.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -417,4 +419,47 @@ struct ViewPluginInstance** Session_getViewPlugins(struct Session* session, int*
     *count = stb_arr_len(session->viewPlugins);
     return session->viewPlugins;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Session_getLayout(Session* session, UILayout* layout)
+{
+	assert(session);
+	assert(layout);
+	/*
+	Rect windowRect;
+    int count = stb_arr_len(session->viewPlugins);
+
+	memset(layout, 0, sizeof(UILayout));
+
+	// No base paths (will use the default which depends on the build configuration when
+	// trying to load the plugins
+
+	layout->basePathCount = 0;
+	layout->layoutItemCount = count;
+	
+	ImGui::GetMainWindowRect(&rect);
+
+	layout->layoutItems = alloc_zero(sizeof(LayoutItem) * count);
+
+	// Traverse the viewPlugins
+
+	for (int i = 0; i < count; ++i)
+	{
+		ViewPluginInstance* instance = session->viewPlugins;
+		LayoutItem* item = &layout->layoutItems[i];
+
+	}
+	*/
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Session_setLayout(Session* session, UILayout* layout)
+{
+	assert(session);
+	assert(layout);
+
+}
+
 
