@@ -17,15 +17,6 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     (void)uiFuncs;
     RegistersData* userData = (RegistersData*)malloc(sizeof(RegistersData));
 
-    /*
-       static const char* foo[] = { "Name", "Value", 0 };
-       static const char* meh[] = { "Foobar", "0", 0 };
-
-       userData->registerList = PDUIListView_create(uiFuncs, foo, 0);
-
-       PDUIListView_itemAdd(uiFuncs, userData->registerList, meh);
-     */
-
     return userData;
 }
 
@@ -43,7 +34,29 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
     (void)userData;
     (void)inEvents;
     (void)outEvents;
-    (void)uiFuncs;
+
+	uiFuncs->text("");
+
+	uiFuncs->columns(4, "data", true);
+	uiFuncs->text("ID"); uiFuncs->nextColumn();
+	uiFuncs->text("Name"); uiFuncs->nextColumn();
+	uiFuncs->text("Path"); uiFuncs->nextColumn();
+	uiFuncs->text("Flags"); uiFuncs->nextColumn();
+
+	uiFuncs->text("0000"); uiFuncs->nextColumn();
+	uiFuncs->text("Robert"); uiFuncs->nextColumn();
+	uiFuncs->text("/path/robert"); uiFuncs->nextColumn();
+	uiFuncs->text("...."); uiFuncs->nextColumn();
+
+	uiFuncs->text("0001"); uiFuncs->nextColumn();
+	uiFuncs->text("Stephanie"); uiFuncs->nextColumn();
+	uiFuncs->text("/path/stephanie"); uiFuncs->nextColumn();
+	uiFuncs->text("...."); uiFuncs->nextColumn();
+
+	uiFuncs->text("0002"); uiFuncs->nextColumn();
+	uiFuncs->text("C64"); uiFuncs->nextColumn();
+	uiFuncs->text("/path/computer"); uiFuncs->nextColumn();
+	uiFuncs->text("...."); uiFuncs->nextColumn();
 
     return 0;
 }
