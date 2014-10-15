@@ -27,7 +27,7 @@ Open a cmd window and first run scripts\vcvarsx86_amd64.bat and then scripts\win
 
 ## How to compile and run on Linux
 
-Currently the Linux build isn't supported but the code complies and all unit-tests should be working correctly. To build us scripts/unix_gcc_build_debug.sh 
+Currently the Linux build isn't supported but the code complies and all unit-tests should be working correctly. To build use scripts/unix_gcc_build_debug.sh 
 
 ## Misc
 
