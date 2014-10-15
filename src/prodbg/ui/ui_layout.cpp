@@ -32,7 +32,7 @@ int addMapping(yaml_document_t* document, int mapping, const char* key, const ch
 int addFloatMapping(yaml_document_t* document, int mapping, const char* key, float value)
 {
     char tempBuffer[64];
-    sprintf(tempBuffer, "%2.4f", value);
+    sprintf(tempBuffer, "%2.8f", value);
     return addMapping(document, mapping, key, tempBuffer);
 }
 
@@ -95,10 +95,10 @@ static void addLayoutItems(UILayout* layout, yaml_document_t* document, int root
 
         addMapping(document, lay, "plugin_file", item->pluginFile);
         addMapping(document, lay, "plugin_name", item->pluginName);
-        addFloatMapping(document, lay, "x", item->x);
-        addFloatMapping(document, lay, "y", item->y);
-        addFloatMapping(document, lay, "width", item->width);
-        addFloatMapping(document, lay, "height", item->height);
+        addFloatMapping(document, lay, "x", item->rect.x);
+        addFloatMapping(document, lay, "y", item->rect.y);
+        addFloatMapping(document, lay, "width", item->rect.width);
+        addFloatMapping(document, lay, "height", item->rect.height);
 
         yaml_document_append_sequence_item(document, info, lay);
     }
@@ -317,14 +317,14 @@ bool UILayout_loadLayout(UILayout* layout, const char* filename)
 						else if (!strcmp((const char*)event.data.scalar.value, "plugin_name"))
                         	item->pluginName = getString(&parser, &event);
 						else if (!strcmp((const char*)event.data.scalar.value, "x"))
-                        	item->x = getFloat(&parser, &event);
+                        	item->rect.x = getFloat(&parser, &event);
 						else if (!strcmp((const char*)event.data.scalar.value, "y"))
-                        	item->y = getFloat(&parser, &event);
+                        	item->rect.y = getFloat(&parser, &event);
 						else if (!strcmp((const char*)event.data.scalar.value, "width"))
-                        	item->width = getFloat(&parser, &event);
+                        	item->rect.width = getFloat(&parser, &event);
 						else if (!strcmp((const char*)event.data.scalar.value, "height"))
 						{
-                        	item->height = getFloat(&parser, &event);
+                        	item->rect.height = getFloat(&parser, &event);
                         	layoutIter++;
 						}
 

@@ -138,6 +138,17 @@ void PluginUI_getWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 	rect->height = size.y;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void PluginUI_setWindowRect(ViewPluginInstance* instance, FloatRect* rect)
+{
+    PDUI* uiInstance = &instance->ui;
+    PrivateData* data = (PrivateData*)uiInstance->privateData;
+
+    ImVec2 pos(rect->x, rect->y);
+    ImVec2 size(rect->width, rect->height);
+
+	ImGui::SetWindowRect(data->window, pos, size);
+}
 
 

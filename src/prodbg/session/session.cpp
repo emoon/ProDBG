@@ -451,17 +451,15 @@ void Session_getLayout(Session* session, UILayout* layout, float width, float he
 		if (!pluginData)
 			continue;
 
-		FloatRect rect;
-
 		item->pluginFile = strdup(pluginData->filename);
 		item->pluginName = strdup(plugin->name);
 
-		PluginUI_getWindowRect(instance, &rect);
+		PluginUI_getWindowRect(instance, &item->rect);
 
-		item->x = rect.x / width;
-		item->y = rect.y / height;
-		item->width = rect.width / width;
-		item->height = rect.height / height;
+		item->rect.x /= width;
+		item->rect.y /= height;
+		item->rect.width /= width;
+		item->rect.height /= height;
 	}
 }
 
@@ -469,11 +467,42 @@ void Session_getLayout(Session* session, UILayout* layout, float width, float he
 
 void Session_setLayout(Session* session, UILayout* layout, float width, float height)
 {
-	(void)session;
-	(void)layout;
-	(void)width;
-	(void)height;
+	int count = layout->layoutItemCount;
 
+	// TODO: Close all existing windows when loading layout?
+	// TODO: Support base paths for plugins
+
+	for (int i = 0; i < count; ++i)
+	{
+		LayoutItem* item = &layout->layoutItems[i];
+
+		PluginData* pluginData = PluginHandler_findPlugin(0, item->pluginFile, item->pluginName, true);
+
+		if (!pluginData)
+		{
+			log_error("Unable to find plugin %s %s\n", item->pluginFile, item->pluginName);
+			continue;
+		}
+
+		FloatRect rect = item->rect;
+
+		rect.x *= width;
+		rect.y *= height;
+		rect.width *= width;
+		rect.height *= height;
+
+		ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginData);
+
+		if (!instance)
+		{
+			log_error("Unable to create instance for plugin %s %s\n", item->pluginFile, item->pluginName);
+			continue;
+		}
+
+		PluginUI_setWindowRect(instance, &rect);
+
+		Session_addViewPlugin(session, instance);
+	}
 }
 
 

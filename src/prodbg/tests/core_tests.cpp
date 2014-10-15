@@ -77,6 +77,8 @@ static void plugin_handler_find_plugin(void** state)
 	assert_true(PluginHandler_addPlugin(OBJECT_DIR, "registers_plugin"));
 
 	assert_non_null(PluginHandler_findPlugin(0, "registers_plugin", "Registers View", true));
+
+	PluginHandler_unloadAllPlugins();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
