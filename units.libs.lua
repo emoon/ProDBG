@@ -13,8 +13,12 @@ StaticLibrary {
     Env = { 
         CCOPTS = {
         	{ 
+		"-Werror",
+		"-Wno-parentheses",
         	"-Wno-unused-variable",
         	"-Wno-pointer-to-int-cast",
+        	"-Wno-int-to-pointer-cast",
+        	"-Wno-unused-but-set-variable",
         	"-Wno-return-type",
         	"-Wno-unused-function"
         	; Config = "linux-*-*" },

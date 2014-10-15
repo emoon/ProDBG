@@ -65,19 +65,25 @@ local macosx = {
 
 -----------------------------------------------------------------------------------------------------------------------
 
-local gcc_opts = {
-	"-I.",
-	"-Wno-unused-value",
-	"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
-	"-Wall", "-DPRODBG_UNIX", "-std=gnu99",
-	{ "-O0", "-g"; Config = "*-*-debug" },
-	{ "-O3", "-g"; Config = "*-*-release" },
-}
-
 local gcc_env = {
     Env = {
-        CCOPTS = gcc_opts,
-        CXXOPTS = gcc_opts,
+        CCOPTS = {
+		"-I.",
+		"-Wno-unused-value",
+		"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
+		"-Wall", "-DPRODBG_UNIX",
+		{ "-O0", "-g"; Config = "*-*-debug" },
+		{ "-O3", "-g"; Config = "*-*-release" },
+	},
+
+        CXXOPTS = {
+		"-I.",
+		"-Wno-unused-value",
+		"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
+		"-Wall", "-DPRODBG_UNIX", "-std=c++11",
+		{ "-O0", "-g"; Config = "*-*-debug" },
+		{ "-O3", "-g"; Config = "*-*-release" },
+	},
     },
 
 	ReplaceEnv = {

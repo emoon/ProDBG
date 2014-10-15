@@ -50,7 +50,7 @@ Program {
 
 		PROGCOM = {
 			{ "-lstdc++"; Config = { "macosx-clang-*", "linux-gcc-*" } },
-			{ "-lm -lpthread -ldl -lX11"; Config = "linux-gcc-*" },
+			{ "-lm -lpthread -ldl -lX11"; Config = "linux-*-*" },
 		},
     },
 

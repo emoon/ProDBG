@@ -18,7 +18,7 @@ local function Test(params)
 
 			PROGCOM = {
 				{ "-lstdc++"; Config = { "macosx-clang-*", "linux-gcc-*" } },
-				{ "-lm"; Config = "unix-gcc-*" },
+				{ "-lm -lpthread -ldl"; Config = "linux-*-*" },
 			},
 		},
 

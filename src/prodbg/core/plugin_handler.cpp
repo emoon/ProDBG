@@ -45,7 +45,7 @@ static char* buildLoadingPath(const char* basePath, const char* plugin)
     sprintf(output, "%s/lib%s.dylib", basePath, plugin);
 #else
     output = (char*)malloc(baseLen + pluginLen + 5); // + 4 for separator \.so + terminator
-    sprintf(filename, "%s/%s.so", basePath, plugin);
+    sprintf(output, "%s/%s.so", basePath, plugin);
 #endif
 
     return output;

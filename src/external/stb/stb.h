@@ -1244,7 +1244,7 @@ void stb_newell_normal(float *normal, int num_vert, float **vert, int normalize)
 
 int stb_box_face_vertex_axis_side(int face_number, int vertex_number, int axis)
 {
-   static box_vertices[6][4][3] =
+   static int box_vertices[6][4][3] =
    {
       { { 1,1,1 }, { 1,0,1 }, { 1,0,0 }, { 1,1,0 } },
       { { 0,0,0 }, { 0,0,1 }, { 0,1,1 }, { 0,1,0 } },
@@ -6496,6 +6496,7 @@ STB_EXTERN void stb_cfg_set_directory(char *dir)
 STB_EXTERN stb_cfg * stb_cfg_open(char *config, char *mode)
 {
    unsigned int len;
+   size_t len2;
    stb_cfg *z;
    char file[512];
    if (mode[0] != 'r' && mode[0] != 'w') return NULL;
@@ -6523,7 +6524,8 @@ STB_EXTERN stb_cfg * stb_cfg_open(char *config, char *mode)
    z = (stb_cfg *) stb_malloc(0, sizeof(*z));
    z->data = NULL;
 
-   z->loaded_file = stb_filec(file, &len);
+   z->loaded_file = stb_filec(file, &len2);
+   len = (unsigned int)len2;
    if (z->loaded_file) {
       char *s = z->loaded_file;
       if (!memcmp(s, stb__cfg_sig, 12)) {
@@ -11049,7 +11051,7 @@ stb_arith_symstate *stb_arith_state_create(int num_sym)
    return s;
 }
 
-static stb_arith_state_rescale(stb_arith_symstate *s)
+static int stb_arith_state_rescale(stb_arith_symstate *s)
 {
    if (s->pow2 < POW2_LIMIT) {
       int pcf, cf, cf_next, next, i;
