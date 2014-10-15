@@ -1,0 +1,32 @@
+---
+info:
+- base_path_count: 0
+  layout_items_count: 4
+base_paths:
+- {}
+layout_items:
+- plugin_file: sourcecode_plugin
+  plugin_name: Source Code View
+  x: 0.00195312
+  y: 0.00390625
+  width: 0.99454868
+  height: 0.70747757
+- plugin_file: locals_plugin
+  plugin_name: Locals
+  x: 0.00195312
+  y: 0.71744794
+  width: 0.43044662
+  height: 0.28013611
+- plugin_file: callstack_plugin
+  plugin_name: CallStack
+  x: 0.43652344
+  y: 0.71614581
+  width: 0.33096313
+  height: 0.27981567
+- plugin_file: registers_plugin
+  plugin_name: Registers View
+  x: 0.77148438
+  y: 0.71614581
+  width: 0.22717667
+  height: 0.28023276
+...

@@ -247,10 +247,7 @@ bool UILayout_loadLayout(UILayout* layout, const char* filename)
     }
 
     if (!fh)
-    {
-        log_error("Failed to open file!\n");
         return false;
-    }
 
     yaml_parser_set_input_file(&parser, fh);
 

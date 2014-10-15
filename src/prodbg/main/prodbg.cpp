@@ -77,7 +77,7 @@ static void loadLayout()
 		return;
 	}
 
-    if (UILayout_loadLayout(&layout, "data/default.yaml"))
+    if (UILayout_loadLayout(&layout, "data/default_layout.yaml"))
 		setLayout(&layout);
 }
 
