@@ -56,8 +56,6 @@ static void compareLayouts(UILayout* v0, UILayout* v1)
     assert_int_equal(v0->layoutItemCount, v1->layoutItemCount);
     assert_int_equal(v0->basePathCount, v1->basePathCount);
 
-    printf("%d %d\n", v0->basePathCount, v1->basePathCount);
-
     for (int i = 0; i < v0->basePathCount; ++i)
 	{
 		assert_non_null(v0->pluginBasePaths[i]);
