@@ -1,4 +1,5 @@
 #include "session.h"
+#include "session_private.h"
 #include "core/alloc.h"
 #include "api/plugin_instance.h"
 #include "api/src/remote/pd_readwrite_private.h"
@@ -8,8 +9,6 @@
 #include "ui/plugin.h"
 #include "ui/ui_layout.h"
 #include "core/math.h"
-#include <pd_view.h>
-#include <pd_backend.h>
 #include <stdlib.h>
 #include <stb.h>
 #include <assert.h>
@@ -20,28 +19,6 @@ enum
 {
     ReadWriteBufferSize = 2 * 1024 * 1024,
 };
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-enum SessionType
-{
-    Session_Null,
-    Session_Local,
-    Session_Remote,
-};
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef struct Session
-{
-    enum SessionType type;
-    PDReader reader;
-    PDWriter backendWriter;
-    PDWriter viewPluginsWriter;
-    struct PDBackendInstance* backend;
-    struct RemoteConnection* connection;
-    struct ViewPluginInstance** viewPlugins;
-} Session;
 
 static void updateLocal(Session* s, PDAction action);
 
@@ -194,10 +171,8 @@ static void updateLocal(Session* s, PDAction action)
     if (backend)
     {
         PDBinaryWriter_reset(&s->backendWriter);
-        backend->plugin->update(backend->userData, action, &s->reader, &s->backendWriter);
+        s->state = backend->plugin->update(backend->userData, action, &s->reader, &s->backendWriter);
         PDBinaryWriter_finalize(&s->backendWriter);
-
-        //StatusBar_setText(1, "Status: %s", getStateName(state));
     }
 
     PDBinaryReader_initStream(
