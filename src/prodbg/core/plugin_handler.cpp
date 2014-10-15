@@ -83,34 +83,61 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 
     *(void**)(&initPlugin) = function;
 
-    initPlugin(registerPlugin, (void*)filename);
+    initPlugin(registerPlugin, (void*)plugin);
 
     return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
+
 static PluginData* findPlugin(const char* pluginFile, const char* pluginName)
 {
     int count = stb_arr_len(s_plugins);
 
     for (int i = 0; i < count; ++i)
 	{
+		PluginData* pluginData = s_plugins[i];
+		PDPluginBase* base = (PDPluginBase*)pluginData->plugin;
 
+		if (!strcmp(base->name, pluginName) && !strcmp(pluginData->filename, pluginFile))
+			return pluginData;
 	}
+
+	return 0;
 }
-*/
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PluginHandler_unloadAllPlugins()
+{
+	// TODO: Actually unload everything
+	stb_arr_setlen(s_plugins, 0);	
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 PluginData* PluginHandler_findPlugin(const char** paths, const char* pluginFile, const char* pluginName, bool load)
 {
+	PluginData* pluginData;
+
 	// TODO: Support paths
 	(void)paths;
-	(void)pluginFile;
-	(void)pluginName;
-	(void)load;
 
+	// If not found and not !load (that is we will not try to load it)
+
+	if ((pluginData = findPlugin(pluginFile, pluginName)))
+		return pluginData;
+
+	if (!load)
+		return 0;
+
+	// TODO: Support base paths
+
+	if (!PluginHandler_addPlugin(OBJECT_DIR, pluginFile))
+		return 0;
+
+	if ((pluginData = findPlugin(pluginFile, pluginName)))
+		return pluginData;
 
 	return 0;
 }

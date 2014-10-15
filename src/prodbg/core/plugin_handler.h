@@ -14,6 +14,7 @@ struct PluginData
 
 bool PluginHandler_addPlugin(const char* basePath, const char* plugin);
 void PluginHandler_addStaticPlugin(PluginData* pluginData);
+void PluginHandler_unloadAllPlugins();
 
 //bool PluginHandler_unloadPlugin(PluginData* plugin);
 //bool PluginHandler_unloadAllPlugins();

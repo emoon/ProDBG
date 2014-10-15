@@ -54,6 +54,29 @@ static void plugin_handler_add_plugin_true(void** state)
 
 	assert_true(PluginHandler_getPluginData(plugins[0]->plugin) == plugins[0]);
 	assert_true(PluginHandler_getPluginData(plugins[1]->plugin) == plugins[1]);
+
+	PluginHandler_unloadAllPlugins();
+
+	plugins = PluginHandler_getPlugins(&count);
+
+	assert_int_equal(count, 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void plugin_handler_find_plugin(void** state)
+{
+	(void)state;
+
+	assert_null(PluginHandler_findPlugin(0, "dummyFile", "dummyName", false));
+	assert_null(PluginHandler_findPlugin(0, "dummyFile", "dummyName", true));
+	assert_null(PluginHandler_findPlugin(0, "sourcecode_plugin", "Source Code View", false));
+	assert_non_null(PluginHandler_findPlugin(0, "sourcecode_plugin", "Source Code View", true));
+	assert_non_null(PluginHandler_findPlugin(0, "sourcecode_plugin", "Source Code View", false));
+
+	assert_true(PluginHandler_addPlugin(OBJECT_DIR, "registers_plugin"));
+
+	assert_non_null(PluginHandler_findPlugin(0, "registers_plugin", "Registers View", true));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,6 +92,7 @@ int main()
 		unit_test(plugin_handler_dummy_paths),
 		unit_test(plugin_handler_add_plugin),
 		unit_test(plugin_handler_add_plugin_true),
+		unit_test(plugin_handler_find_plugin),
 	};
 
     return run_tests(tests);
