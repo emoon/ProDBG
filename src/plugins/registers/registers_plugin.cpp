@@ -118,7 +118,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
 
 static PDViewPlugin plugin =
 {
-    "Registers",
+    "Registers View",
     createInstance,
     destroyInstance,
     update,
