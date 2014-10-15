@@ -7,6 +7,8 @@ Mac build status <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:P
 
 Windows Win64 build status <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Win64)/statusIcon"/></a>
 
+Linux build status <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Linux)/statusIcon"/></a>
+
 ### Status
 
 Major redesign of the ProDBG is currently happening so be aware that not much is currently working.
