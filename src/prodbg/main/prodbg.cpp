@@ -7,6 +7,7 @@
 #include "settings.h"
 #include "ui/imgui/imgui.h"
 #include "ui/imgui_setup.h"
+#include "ui/ui_layout.h"
 #include "ui/menu.h"
 
 #include <bgfx.h>
@@ -19,6 +20,9 @@
 #include <windows.h>
 #endif
 
+// TODO: Fix me
+
+int Window_buildPluginMenu(PluginData** plugins, int count);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -52,17 +56,43 @@ static const char* s_plugins[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void setLayout(UILayout* layout)
+{
+    Context* context = &s_context;
+	IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb);
+	Session_setLayout(context->session, layout, context->width, context->height);
+	IMGUI_postUpdate();
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void loadLayout()
+{
+	UILayout layout;
+
+    if (UILayout_loadLayout(&layout, "data/current_layout.yaml"))
+	{
+		setLayout(&layout);
+		return;
+	}
+
+    if (UILayout_loadLayout(&layout, "data/default.yaml"))
+		setLayout(&layout);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ProDBG_create(void* window, int width, int height)
 {
     Context* context = &s_context;
-    Rect settingsRect;
+    //Rect settingsRect;
 
     context->session = Session_create();
 
-    Settings_getWindowRect(&settingsRect);
-
-    width = settingsRect.width;
-    height = settingsRect.height;
+    //Settings_getWindowRect(&settingsRect);
+    //width = settingsRect.width;
+    //height = settingsRect.height;
 
     (void)window;
 
@@ -88,6 +118,9 @@ void ProDBG_create(void* window, int width, int height)
     context->height = height;
 
     IMGUI_setup(width, height);
+
+	loadLayout();
+	
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,8 +174,25 @@ void ProDBG_setWindowSize(int width, int height)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void ProDBG_applicationLaunched()
+{
+#ifdef PRODBG_MAC 
+	int pluginCount = 0;
+	printf("building menu!\n");
+	Window_buildPluginMenu(PluginHandler_getPlugins(&pluginCount), pluginCount);
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ProDBG_destroy()
 {
+	UILayout layout;
+    Context* context = &s_context;
+
+    Session_getLayout(context->session, &layout, context->width, context->height);
+    UILayout_saveLayout(&layout, "data/current_layout.yaml");
+
     Settings_save();
 }
 
@@ -164,48 +214,14 @@ void ProDBG_event(int eventId)
 
     PluginData** pluginsData = PluginHandler_getPlugins(&count);
 
-    printf("%d pluginCount\n", count);
+	// TODO: This code really needs to be made more robust.
 
-    switch (eventId)
-    {
-        case PRODBG_MENU_SOURCECODE:
-        {
-            ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[0]);
-            Session_addViewPlugin(context->session, instance);
-            log_info("create source code\n");
-            break;
-        }
-
-        case PRODBG_MENU_DISASSEMBLY:
-        {
-            log_info("disassembly view\n");
-            break;
-        }
-
-        case PRODBG_MENU_LOCALS:
-        {
-            log_info("disassembly view\n");
-            break;
-        }
-
-        case PRODBG_MENU_CALLSTACK:
-        {
-            log_info("callstack view\n");
-            break;
-        }
-
-        case PRODBG_MENU_REGISTERS:
-        {
-            log_info("registers view\n");
-            break;
-        }
-
-        case PRODBG_MENU_WATCH:
-        {
-            log_info("watch view\n");
-            break;
-        }
-    }
+    if (eventId >= PRODBG_MENU_PLUGIN_START && eventId < PRODBG_MENU_PLUGIN_START + 9)
+	{
+		ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[eventId - PRODBG_MENU_PLUGIN_START]);
+		Session_addViewPlugin(context->session, instance);
+		return;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

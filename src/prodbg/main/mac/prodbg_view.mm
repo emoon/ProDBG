@@ -1,10 +1,13 @@
 #import "prodbg_view.h"
 #include "../prodbg.h"
-#include "../../ui/menu.h"
+#include "ui/menu.h"
+#include "core/alloc.h"
+#include "core/plugin_handler.h"
 #include <core/log.h>
 #include <bgfx.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <Carbon/Carbon.h>
+#include <pd_common.h>
 
 //NSWindow* g_window = 0;
 
@@ -274,7 +277,7 @@ int getModifierFlags(int flags)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void buildSubMenu(NSMenu* menu, MenuDescriptor menuDesc[])
+void buildSubMenu(NSMenu* menu, MenuDescriptor menuDesc[])
 {
     MenuDescriptor* desc = &menuDesc[0];
     [menu removeAllItems];
@@ -340,13 +343,49 @@ void Window_buildMenu()
 {
     NSMenu* mainMenu = [NSApp mainMenu];
     NSMenu* fileMenu = [[mainMenu itemWithTitle:@"File"] submenu];
-    NSMenu* pluginsMenu = [[mainMenu itemWithTitle:@"Plugins"] submenu];
 
     (void)fileMenu;
 
-    buildSubMenu(pluginsMenu, g_pluginsMenu);
+    //buildSubMenu(pluginsMenu, g_pluginsMenu);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int Window_buildPluginMenu(PluginData** plugins, int count)
+{
+    NSMenu* mainMenu = [NSApp mainMenu];
+    NSMenu* pluginsMenu = [[mainMenu itemWithTitle:@"Plugins"] submenu];
+
+	// TODO: Right now we only support up to 1 - 9 for keyboard shortcuts of the plugins but should be good
+	// enough for now.
+
+	if (count >= 10) 
+		count = 9;
+
+	MenuDescriptor* menu = (MenuDescriptor*)alloc_zero(sizeof(MenuDescriptor) * (count + 1)); // + 1 as array needs to end with zeros
+
+	for (int i = 0; i < count; ++i)
+	{
+		PluginData* pluginData = plugins[i];
+		PDPluginBase* pluginBase = (PDPluginBase*)pluginData->plugin;
+		MenuDescriptor* entry = &menu[i];
+
+		// TODO: Hack hack! 
+
+		if (!strstr(pluginData->type, "View"))
+			continue;
+
+		entry->name = pluginBase->name;
+		entry->id = PRODBG_MENU_PLUGIN_START + i;
+		entry->key = '1' + i;
+		entry->macMod = PRODBG_KEY_COMMAND;
+		entry->winMod = PRODBG_KEY_CTRL;
+    }
+
+    buildSubMenu(pluginsMenu, menu);
+
+	return PRODBG_MENU_PLUGIN_START;
+}
 
 @end
 

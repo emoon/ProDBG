@@ -16,12 +16,7 @@ enum
 
     // Plugins
 
-    PRODBG_MENU_SOURCECODE,
-    PRODBG_MENU_DISASSEMBLY,
-    PRODBG_MENU_LOCALS,
-    PRODBG_MENU_WATCH,
-    PRODBG_MENU_CALLSTACK,
-    PRODBG_MENU_REGISTERS
+    PRODBG_MENU_PLUGIN_START,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

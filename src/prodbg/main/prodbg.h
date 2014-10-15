@@ -6,6 +6,7 @@
 void ProDBG_create(void* window, int width, int height);
 void ProDBG_setWindowSize(int width, int height);
 
+void ProDBG_applicationLaunched();
 void ProDBG_destroy();
 void ProDBG_update();
 void ProDBG_timedUpdate();
