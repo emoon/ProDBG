@@ -7,6 +7,8 @@ Mac build status <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:P
 
 Windows Win64 build status <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Win64)/statusIcon"/></a>
 
+Linux build status <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Linux)/statusIcon"/></a>
+
 ### Status
 
 Major redesign of the ProDBG is currently happening so be aware that not much is currently working.
@@ -22,6 +24,10 @@ After doing that open a terminal and run scripts/mac_build_debug.sh and you shou
 On Windows Visual Studio 2013 is required (2012 or earlier will not work as parts of the code uses C99) With VS 2013 installed do this:
 
 Open a cmd window and first run scripts\vcvarsx86_amd64.bat and then scripts\win64_build_debug.cmd and you will have an executable in t2-output\win64-msvc-debug-default\prodbg.exe
+
+## How to compile and run on Linux
+
+Currently the Linux build isn't supported but the code complies and all unit-tests should be working correctly. To build use scripts/unix_gcc_build_debug.sh 
 
 ## Misc
 
