@@ -295,8 +295,6 @@ bool UILayout_loadLayout(UILayout* layout, const char* filename)
                         {
                             layout->layoutItemCount = getInt(&parser, &event); 
                             layout->layoutItems = (LayoutItem*)malloc((sizeof(LayoutItem) * (size_t)layout->layoutItemCount));
-
-                            state = State_Paths;
                         }
 
                         break;
@@ -305,12 +303,7 @@ bool UILayout_loadLayout(UILayout* layout, const char* filename)
                     case State_Paths:
                     {
                         if (!strcmp((const char*)event.data.scalar.value, "path"))
-                        {
                             layout->pluginBasePaths[pathIter++] = getString(&parser, &event); 
-
-                            if (pathIter == layout->basePathCount)
-                                state = State_Layouts;
-                        }
 
                         break;
                     }
@@ -338,6 +331,18 @@ bool UILayout_loadLayout(UILayout* layout, const char* filename)
                         break;
                     }
                 }
+
+                // Switch the state of the loading
+
+				if (!strcmp((const char*)event.data.scalar.value, "base_paths"))
+				{
+					state = State_Paths;
+				}
+				else if (!strcmp((const char*)event.data.scalar.value, "layout_items"))
+				{
+					state = State_Layouts;
+				}
+
                 break;
             }
         }
