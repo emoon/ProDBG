@@ -13,6 +13,13 @@ enum
     PRODBG_MENU_NEW = 0x1000,
     PRODBG_MENU_SUB_MENU,
     PRODBG_MENU_SEPARATOR,
+	PRODBG_MENU_FILE_OPEN_AND_RUN_EXE,
+
+	// Debug
+	
+	PRODBG_MENU_DEBUG_STEP_INTO,
+	PRODBG_MENU_DEBUG_STEP_OVER,
+	PRODBG_MENU_DEBUG_STEP_OUT,
 
     // Plugins
 
@@ -42,7 +49,8 @@ typedef struct MenuDescriptor
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern MenuDescriptor g_pluginsMenu[];
+extern MenuDescriptor g_debugMenu[];
+extern MenuDescriptor g_fileMenu[];
 
 #ifdef __cplusplus
 }

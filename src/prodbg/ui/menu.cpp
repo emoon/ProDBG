@@ -2,18 +2,21 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-MenuDescriptor g_pluginsMenu[] =
+MenuDescriptor g_fileMenu[] =
 {
-    { "Source Code View", PRODBG_MENU_SOURCECODE, '1', PRODBG_KEY_COMMAND, PRODBG_KEY_CTRL },
-    { "Disassembly View", PRODBG_MENU_DISASSEMBLY, '2', PRODBG_KEY_COMMAND, PRODBG_KEY_CTRL },
-    { "Locals View", PRODBG_MENU_LOCALS, '3', PRODBG_KEY_COMMAND, PRODBG_KEY_CTRL },
-    { "Watch View", PRODBG_MENU_WATCH, '4', PRODBG_KEY_COMMAND, PRODBG_KEY_CTRL },
-    { "Callstack View", PRODBG_MENU_CALLSTACK, '5', PRODBG_KEY_COMMAND, PRODBG_KEY_CTRL },
-    { "Registers View", PRODBG_MENU_REGISTERS, '6', PRODBG_KEY_COMMAND, PRODBG_KEY_CTRL },
+    { "Open and run executable...", PRODBG_MENU_FILE_OPEN_AND_RUN_EXE, 'o', PRODBG_KEY_COMMAND, PRODBG_KEY_CTRL },
     { 0, 0, 0, 0, 0 },
 };
-*/
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+MenuDescriptor g_debugMenu[] =
+{
+    { "Step Into", PRODBG_MENU_DEBUG_STEP_INTO, '8', PRODBG_KEY_COMMAND, PRODBG_KEY_CTRL },
+    { "Step Over", PRODBG_MENU_DEBUG_STEP_OVER, '9', PRODBG_KEY_COMMAND, PRODBG_KEY_CTRL },
+    { "Step Out", PRODBG_MENU_DEBUG_STEP_OUT, '0', PRODBG_KEY_COMMAND, PRODBG_KEY_CTRL },
+    { 0, 0, 0, 0, 0 },
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

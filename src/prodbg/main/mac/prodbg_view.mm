@@ -343,10 +343,10 @@ void Window_buildMenu()
 {
     NSMenu* mainMenu = [NSApp mainMenu];
     NSMenu* fileMenu = [[mainMenu itemWithTitle:@"File"] submenu];
+    NSMenu* debugMenu = [[mainMenu itemWithTitle:@"Debug"] submenu];
 
-    (void)fileMenu;
-
-    //buildSubMenu(pluginsMenu, g_pluginsMenu);
+    buildSubMenu(fileMenu, g_fileMenu);
+    buildSubMenu(debugMenu, g_debugMenu);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
