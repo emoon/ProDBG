@@ -104,6 +104,21 @@
 							<array class="NSMutableArray" key="NSMenuItems"/>
 						</object>
 					</object>
+					<object class="NSMenuItem" id="758937675">
+						<reference key="NSMenu" ref="649796088"/>
+						<string key="NSTitle">Debug</string>
+						<string key="NSKeyEquiv"/>
+						<int key="NSKeyEquivModMask">1048576</int>
+						<int key="NSMnemonicLoc">2147483647</int>
+						<reference key="NSOnImage" ref="35465992"/>
+						<reference key="NSMixedImage" ref="502551668"/>
+						<string key="NSAction">submenuAction:</string>
+						<reference key="NSTarget" ref="411675274"/>
+						<object class="NSMenu" key="NSSubmenu" id="411675274">
+							<string key="NSTitle">Debug</string>
+							<array class="NSMutableArray" key="NSMenuItems"/>
+						</object>
+					</object>
 					<object class="NSMenuItem" id="689884244">
 						<reference key="NSMenu" ref="649796088"/>
 						<string key="NSTitle">Plugins</string>
@@ -267,6 +282,7 @@
 							<reference ref="379814623"/>
 							<reference ref="448692316"/>
 							<reference ref="689884244"/>
+							<reference ref="758937675"/>
 						</array>
 						<reference key="parent" ref="0"/>
 					</object>
@@ -381,6 +397,21 @@
 						<reference key="object" ref="843937413"/>
 						<reference key="parent" ref="689884244"/>
 					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">725</int>
+						<reference key="object" ref="758937675"/>
+						<array class="NSMutableArray" key="children">
+							<reference ref="411675274"/>
+						</array>
+						<reference key="parent" ref="649796088"/>
+						<string key="objectName">Debug</string>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">726</int>
+						<reference key="object" ref="411675274"/>
+						<reference key="parent" ref="758937675"/>
+						<string key="objectName">Debug</string>
+					</object>
 				</array>
 			</object>
 			<dictionary class="NSMutableDictionary" key="flattenedProperties">
@@ -405,6 +436,8 @@
 				<string key="58.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="723.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="724.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+				<string key="725.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+				<string key="726.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="81.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="83.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 			</dictionary>
@@ -412,7 +445,7 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">724</int>
+			<int key="maxID">726</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
