@@ -274,8 +274,6 @@ static void setLocals(LLDBPlugin* plugin, PDWriter* writer)
     
     lldb::SBValueList variables = frame.GetVariables(true, true, true, false);
 
-    printf("setting locals\n");
-    
     uint32_t count = variables.GetSize();
 
     if (count <= 0)
