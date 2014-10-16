@@ -36,6 +36,13 @@ static void nextColumn()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void sameLine()
+{
+    ImGui::SameLine();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static int button(const char* label)
 {
     return ImGui::Button(label);
@@ -89,6 +96,7 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
 
     uiInstance->columns = columns;
     uiInstance->nextColumn = nextColumn;
+    uiInstance->sameLine = sameLine;
     uiInstance->text = text;
     uiInstance->button = button;
     uiInstance->buttonSize = buttonSize;
