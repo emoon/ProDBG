@@ -273,6 +273,8 @@ static void setLocals(LLDBPlugin* plugin, PDWriter* writer)
     lldb::SBFrame frame = thread.GetSelectedFrame();
     
     lldb::SBValueList variables = frame.GetVariables(true, true, true, false);
+
+    printf("setting locals\n");
     
     uint32_t count = variables.GetSize();
 
@@ -412,9 +414,9 @@ static void processEvents(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer
 
 static void sendExceptionState(LLDBPlugin* plugin, PDWriter* writer)
 {
-    setCallstack(plugin, writer);
+    //setCallstack(plugin, writer);
     setExceptionLocation(plugin, writer);
-    setLocals(plugin, writer);
+    //setLocals(plugin, writer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
