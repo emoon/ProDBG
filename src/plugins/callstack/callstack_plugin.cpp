@@ -60,7 +60,7 @@ static void getAddressString(char* value, PDReader* reader, PDReaderIterator it)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int findSeparator(const char* str)
+static int findSeparator(const char* str)
 {
 	size_t len = strlen(str);
 
