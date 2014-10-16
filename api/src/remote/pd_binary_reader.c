@@ -131,10 +131,16 @@ static uint32_t readGetEvent(struct PDReader* reader)
     uint8_t* data;
 
     if (!rData->data)
+	{
+		log_debug("no data");
         return 0;
+	}
 
     if (rData->nextEvent >= rData->dataEnd)
+	{
+		log_debug("rData->nextEvent %p >= rData->dataEnd %p\n", rData->nextEvent, rData->dataEnd);
         return 0;
+	}
 
     // if this is not set we expect this to be the first event and just read from data
 
@@ -146,7 +152,10 @@ static uint32_t readGetEvent(struct PDReader* reader)
     // make sure we actually have some data to process
 
     if (data >= rData->dataEnd - 4)
+	{
+		log_debug("data %p >= rData->dataEnd - 4 %p\n", data, rData->dataEnd - 4);
         return 0;
+	}
 
     type = *data;
 
@@ -160,6 +169,8 @@ static uint32_t readGetEvent(struct PDReader* reader)
     event = getU16(data + 1);
     rData->nextEvent = data + getU32(data + 3);
     rData->data = data + 7; // points to the next of data in the stream
+
+    log_debug("returing with event %d\n", event);
 
     return event;
 }
@@ -714,6 +725,8 @@ void PDBinaryReader_initStream(PDReader* reader, uint8_t* data, unsigned int siz
     readerData->data = readerData->dataStart = data + 4;    // top 4 bytes for size + 2 bits for info
     readerData->dataEnd = (uint8_t*)data + size;
     readerData->nextEvent = 0;
+    pda_log_set_level(LOG_INFO);
+    log_debug("InitStream %p - size %d\n", data, size);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
