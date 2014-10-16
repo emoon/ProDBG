@@ -1,10 +1,12 @@
 #include <pd_view.h>
+#include <pd_view.h>
+#include <pd_backend.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct RegistersData
+struct LocalsData
 {
     int dummy;
 };
@@ -15,7 +17,7 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 {
     (void)serviceFunc;
     (void)uiFuncs;
-    RegistersData* userData = (RegistersData*)malloc(sizeof(RegistersData));
+    LocalsData* userData = (LocalsData*)malloc(sizeof(LocalsData));
 
     return userData;
 }
@@ -29,34 +31,61 @@ static void destroyInstance(void* userData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents)
+static void showInUI(LocalsData* data, PDReader* reader, PDUI* uiFuncs)
 {
-    (void)userData;
-    (void)inEvents;
-    (void)outEvents;
+    PDReaderIterator it;
+    (void)data;
+
+    if (PDRead_findArray(reader, &it, "locals", 0) == PDReadStatus_notFound)
+        return;
 
 	uiFuncs->text("");
 
-	uiFuncs->columns(4, "data", true);
-	uiFuncs->text("ID"); uiFuncs->nextColumn();
+	uiFuncs->columns(3, "callstack", true);
 	uiFuncs->text("Name"); uiFuncs->nextColumn();
-	uiFuncs->text("Path"); uiFuncs->nextColumn();
-	uiFuncs->text("Flags"); uiFuncs->nextColumn();
+	uiFuncs->text("Value"); uiFuncs->nextColumn();
+	uiFuncs->text("Type"); uiFuncs->nextColumn();
 
-	uiFuncs->text("0000"); uiFuncs->nextColumn();
-	uiFuncs->text("Robert"); uiFuncs->nextColumn();
-	uiFuncs->text("/path/robert"); uiFuncs->nextColumn();
-	uiFuncs->text("...."); uiFuncs->nextColumn();
+    while (PDRead_getNextEntry(reader, &it))
+    {
+        const char* name = "";
+        const char* value = "";
+        const char* type = "";
 
-	uiFuncs->text("0001"); uiFuncs->nextColumn();
-	uiFuncs->text("Stephanie"); uiFuncs->nextColumn();
-	uiFuncs->text("/path/stephanie"); uiFuncs->nextColumn();
-	uiFuncs->text("...."); uiFuncs->nextColumn();
+        PDRead_findString(reader, &name, "name", it);
+        PDRead_findString(reader, &value, "value", it);
+        PDRead_findString(reader, &type, "type", it);
 
-	uiFuncs->text("0002"); uiFuncs->nextColumn();
-	uiFuncs->text("C64"); uiFuncs->nextColumn();
-	uiFuncs->text("/path/computer"); uiFuncs->nextColumn();
-	uiFuncs->text("...."); uiFuncs->nextColumn();
+		uiFuncs->text(name); uiFuncs->nextColumn();
+		uiFuncs->text(value); uiFuncs->nextColumn();
+		uiFuncs->text(type); uiFuncs->nextColumn();
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents)
+{
+    uint32_t event = 0;
+
+    while ((event = PDRead_getEvent(inEvents)) != 0)
+    {
+        switch (event)
+        {
+            case PDEventType_setLocals:
+			{
+				printf("got set locals\n");
+                showInUI((LocalsData*)userData, inEvents, uiFuncs); 
+                break;
+			}
+        }
+    }
+
+    // Request callstack data
+
+    PDWrite_eventBegin(outEvents, PDEventType_getLocals);
+    PDWrite_u8(outEvents, "dummy_remove", 0);	// TODO: Remove me
+    PDWrite_eventEnd(outEvents);
 
     return 0;
 }
