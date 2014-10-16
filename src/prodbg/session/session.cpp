@@ -106,7 +106,6 @@ Session* Session_createLocal(PDBackendPlugin* backend, const char* filename)
 
     // Init the stream for reading and write back the data
     //
-    log_info("init\n");
 
     PDBinaryReader_initStream(&s->reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
     s->backend->plugin->update(s->backend->userData, PDAction_none, &s->reader, &s->backendWriter);
