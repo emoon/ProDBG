@@ -214,7 +214,7 @@ static void setExceptionLocation(LLDBPlugin* plugin, PDWriter* writer)
         fileSpec.GetPath(filename, sizeof(filename));
     }
 
-    lldb::SBSymbolContext context(frame.GetSymbolContext(0x0000006e));
+    lldb::SBSymbolContext context(frame.GetSymbolContext(lldb::eSymbolContextEverything));
     lldb::SBLineEntry entry(context.GetLineEntry());
     uint32_t line = entry.GetLine();
     
