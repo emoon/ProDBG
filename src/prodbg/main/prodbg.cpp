@@ -204,6 +204,24 @@ void ProDBG_timedUpdate()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void onLoadRunExec()
+{
+    Context* context = &s_context;
+	PluginData* pluginData = PluginHandler_findPlugin(0, "lldb_plugin", "LLDB Mac", true);
+
+	if (!pluginData)
+	{
+		log_error("Unable to find LLDB Mac backend\n");
+		return;
+	}
+
+	// Hacky hack
+
+	Session_startLocal(context->session, (PDBackendPlugin*)pluginData->plugin, OBJECT_DIR "/crashing_native");
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Events
 
 void ProDBG_event(int eventId)
@@ -221,6 +239,15 @@ void ProDBG_event(int eventId)
 		ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[eventId - PRODBG_MENU_PLUGIN_START]);
 		Session_addViewPlugin(context->session, instance);
 		return;
+	}
+
+	switch (eventId)
+	{
+		case PRODBG_MENU_FILE_OPEN_AND_RUN_EXE :
+		{
+			onLoadRunExec();
+			break;
+		}
 	}
 }
 
