@@ -3,6 +3,8 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
+#include "api/include/pd_readwrite.h"
+#include "api/src/remote/pd_readwrite_private.h"
 #include "session/session.h"
 #include "session/session_private.h"
 #include "core/plugin_handler.h"
@@ -38,6 +40,38 @@ static void test_lldb(void** state)
 	// Expect that we have a crash here and thus are in PDDebugState_stopException state
 
 	assert_int_equal(session->state, PDDebugState_stopException);
+
+	// Request locals location.
+
+	PDWriter* writer = &session->viewPluginsWriter;
+	PDReader* reader = &session->reader;
+
+    PDBinaryWriter_reset(writer);
+    PDWrite_eventBegin(writer, PDEventType_getCallstack);
+    PDWrite_u8(writer, "dummy", 0);
+    PDWrite_eventEnd(writer);
+    PDBinaryWriter_finalize(writer);
+
+	Session_update(session);
+
+    PDBinaryReader_reset(reader);
+
+    uint32_t event;
+    bool foundCallstack = false;
+
+    while ((event = PDRead_getEvent(reader)) != 0)
+    {
+        switch (event)
+        {
+            case PDEventType_setCallstack:
+            {
+            	foundCallstack = true;
+            	break;
+            }
+        }
+    }
+
+    assert_true(foundCallstack);
 
 #endif
 
