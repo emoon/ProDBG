@@ -130,12 +130,12 @@ void PluginUI_getWindowRect(ViewPluginInstance* instance, FloatRect* rect)
     ImVec2 pos;
     ImVec2 size;
 
-	ImGui::GetWindowRect(data->window, &pos, &size);
+    ImGui::GetWindowRect(data->window, &pos, &size);
 
-	rect->x = pos.x;
-	rect->y = pos.y;
-	rect->width = size.x;
-	rect->height = size.y;
+    rect->x = pos.x;
+    rect->y = pos.y;
+    rect->width = size.x;
+    rect->height = size.y;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -148,7 +148,7 @@ void PluginUI_setWindowRect(ViewPluginInstance* instance, FloatRect* rect)
     ImVec2 pos(rect->x, rect->y);
     ImVec2 size(rect->width, rect->height);
 
-	ImGui::SetWindowRect(data->window, pos, size);
+    ImGui::SetWindowRect(data->window, pos, size);
 }
 
 

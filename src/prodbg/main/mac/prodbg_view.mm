@@ -356,35 +356,35 @@ int Window_buildPluginMenu(PluginData** plugins, int count)
     NSMenu* mainMenu = [NSApp mainMenu];
     NSMenu* pluginsMenu = [[mainMenu itemWithTitle:@"Plugins"] submenu];
 
-	// TODO: Right now we only support up to 1 - 9 for keyboard shortcuts of the plugins but should be good
-	// enough for now.
+    // TODO: Right now we only support up to 1 - 9 for keyboard shortcuts of the plugins but should be good
+    // enough for now.
 
-	if (count >= 10) 
-		count = 9;
+    if (count >= 10)
+        count = 9;
 
-	MenuDescriptor* menu = (MenuDescriptor*)alloc_zero(sizeof(MenuDescriptor) * (count + 1)); // + 1 as array needs to end with zeros
+    MenuDescriptor* menu = (MenuDescriptor*)alloc_zero(sizeof(MenuDescriptor) * (count + 1)); // + 1 as array needs to end with zeros
 
-	for (int i = 0; i < count; ++i)
-	{
-		PluginData* pluginData = plugins[i];
-		PDPluginBase* pluginBase = (PDPluginBase*)pluginData->plugin;
-		MenuDescriptor* entry = &menu[i];
+    for (int i = 0; i < count; ++i)
+    {
+        PluginData* pluginData = plugins[i];
+        PDPluginBase* pluginBase = (PDPluginBase*)pluginData->plugin;
+        MenuDescriptor* entry = &menu[i];
 
-		// TODO: Hack hack! 
+        // TODO: Hack hack!
 
-		if (!strstr(pluginData->type, "View"))
-			continue;
+        if (!strstr(pluginData->type, "View"))
+            continue;
 
-		entry->name = pluginBase->name;
-		entry->id = PRODBG_MENU_PLUGIN_START + i;
-		entry->key = '1' + i;
-		entry->macMod = PRODBG_KEY_COMMAND;
-		entry->winMod = PRODBG_KEY_CTRL;
+        entry->name = pluginBase->name;
+        entry->id = PRODBG_MENU_PLUGIN_START + i;
+        entry->key = '1' + i;
+        entry->macMod = PRODBG_KEY_COMMAND;
+        entry->winMod = PRODBG_KEY_CTRL;
     }
 
     buildSubMenu(pluginsMenu, menu);
 
-	return PRODBG_MENU_PLUGIN_START;
+    return PRODBG_MENU_PLUGIN_START;
 }
 
 @end

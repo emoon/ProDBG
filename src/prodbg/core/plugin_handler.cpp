@@ -57,10 +57,10 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 {
     uv_lib_t lib;
     void* function;
-    void* (*initPlugin)(RegisterPlugin* registerPlugin, void* privateData);
+    void* (* initPlugin)(RegisterPlugin* registerPlugin, void* privateData);
 
     if (!basePath || !plugin)
-    	return false;
+        return false;
 
     const char* filename = buildLoadingPath(basePath, plugin);
 
@@ -95,51 +95,51 @@ static PluginData* findPlugin(const char* pluginFile, const char* pluginName)
     int count = stb_arr_len(s_plugins);
 
     for (int i = 0; i < count; ++i)
-	{
-		PluginData* pluginData = s_plugins[i];
-		PDPluginBase* base = (PDPluginBase*)pluginData->plugin;
+    {
+        PluginData* pluginData = s_plugins[i];
+        PDPluginBase* base = (PDPluginBase*)pluginData->plugin;
 
-		if (!strcmp(base->name, pluginName) && !strcmp(pluginData->filename, pluginFile))
-			return pluginData;
-	}
+        if (!strcmp(base->name, pluginName) && !strcmp(pluginData->filename, pluginFile))
+            return pluginData;
+    }
 
-	return 0;
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PluginHandler_unloadAllPlugins()
 {
-	// TODO: Actually unload everything
-	stb_arr_setlen(s_plugins, 0);	
+    // TODO: Actually unload everything
+    stb_arr_setlen(s_plugins, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 PluginData* PluginHandler_findPlugin(const char** paths, const char* pluginFile, const char* pluginName, bool load)
 {
-	PluginData* pluginData;
+    PluginData* pluginData;
 
-	// TODO: Support paths
-	(void)paths;
+    // TODO: Support paths
+    (void)paths;
 
-	// If not found and not !load (that is we will not try to load it)
+    // If not found and not !load (that is we will not try to load it)
 
-	if ((pluginData = findPlugin(pluginFile, pluginName)))
-		return pluginData;
+    if ((pluginData = findPlugin(pluginFile, pluginName)))
+        return pluginData;
 
-	if (!load)
-		return 0;
+    if (!load)
+        return 0;
 
-	// TODO: Support base paths
+    // TODO: Support base paths
 
-	if (!PluginHandler_addPlugin(OBJECT_DIR, pluginFile))
-		return 0;
+    if (!PluginHandler_addPlugin(OBJECT_DIR, pluginFile))
+        return 0;
 
-	if ((pluginData = findPlugin(pluginFile, pluginName)))
-		return pluginData;
+    if ((pluginData = findPlugin(pluginFile, pluginName)))
+        return pluginData;
 
-	return 0;
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -164,12 +164,12 @@ PluginData* PluginHandler_getPluginData(void* plugin)
     int count = stb_arr_len(s_plugins);
 
     for (int i = 0; i < count; ++i)
-	{
-		if (s_plugins[i]->plugin == plugin)
-			return s_plugins[i];
-	}
+    {
+        if (s_plugins[i]->plugin == plugin)
+            return s_plugins[i];
+    }
 
-	return 0;
+    return 0;
 }
 
 

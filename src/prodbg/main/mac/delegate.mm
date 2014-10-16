@@ -21,7 +21,7 @@ void ProDBG_applicationLaunched();
 - (void)applicationDidFinishLaunching:(NSNotification*)aNotification
 {
     Window_buildMenu();
-	ProDBG_applicationLaunched();
+    ProDBG_applicationLaunched();
 
     (void)aNotification;
 }
@@ -38,7 +38,7 @@ void ProDBG_applicationLaunched();
 - (void)applicationWillTerminate:(NSNotification*)aNotification
 {
     (void)aNotification;
-	ProDBG_destroy();
+    ProDBG_destroy();
 }
 
 @end

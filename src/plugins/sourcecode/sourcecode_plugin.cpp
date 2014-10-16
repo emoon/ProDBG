@@ -204,9 +204,29 @@ static void setExceptionLocation(SourceCodeData* data, PDReader* inEvents)
     if (PDRead_findU32(inEvents, &line, "line", 0) == PDReadStatus_notFound)
         return;
 
+    printf("filename %s\n", filename);
+
     parseFile(&data->file, filename);
 
     data->line = line;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
+{
+    uiFuncs->columns(1, "sourceview", true);
+
+    // TODO: Will be really bad with big files, need to handle proper range and such here
+
+    const char** lines = (const char**)data->file.lines;
+    int lineCount = data->file.lineCount;
+
+    for (int i = 0; i < lineCount; ++i)
+    {
+        uiFuncs->text(*lines);
+        lines++;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -224,11 +244,16 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
         switch (event)
         {
             case PDEventType_setExceptionLocation:
-                setExceptionLocation(data, inEvents); break;
+            {
+                setExceptionLocation(data, inEvents);
+                showInUI(data, uiFuncs);
+                break;
+            }
         }
     }
 
     PDWrite_eventBegin(writer, PDEventType_getExceptionLocation);
+    PDWrite_u8(writer, "dummy", 0); // TODO: Remove me
     PDWrite_eventEnd(writer);
 
     //uiFuncs->button("test test");
@@ -254,10 +279,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-{
-	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-}
+    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+    {
+        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+    }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

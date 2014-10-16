@@ -59,9 +59,9 @@ static const char* s_plugins[] =
 static void setLayout(UILayout* layout)
 {
     Context* context = &s_context;
-	IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb);
-	Session_setLayout(context->session, layout, context->width, context->height);
-	IMGUI_postUpdate();
+    IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb);
+    Session_setLayout(context->session, layout, context->width, context->height);
+    IMGUI_postUpdate();
 }
 
 
@@ -69,16 +69,16 @@ static void setLayout(UILayout* layout)
 
 static void loadLayout()
 {
-	UILayout layout;
+    UILayout layout;
 
     if (UILayout_loadLayout(&layout, "data/current_layout.yaml"))
-	{
-		setLayout(&layout);
-		return;
-	}
+    {
+        setLayout(&layout);
+        return;
+    }
 
     if (UILayout_loadLayout(&layout, "data/default_layout.yaml"))
-		setLayout(&layout);
+        setLayout(&layout);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,8 +119,8 @@ void ProDBG_create(void* window, int width, int height)
 
     IMGUI_setup(width, height);
 
-	loadLayout();
-	
+    loadLayout();
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -176,10 +176,10 @@ void ProDBG_setWindowSize(int width, int height)
 
 void ProDBG_applicationLaunched()
 {
-#ifdef PRODBG_MAC 
-	int pluginCount = 0;
-	printf("building menu!\n");
-	Window_buildPluginMenu(PluginHandler_getPlugins(&pluginCount), pluginCount);
+#ifdef PRODBG_MAC
+    int pluginCount = 0;
+    printf("building menu!\n");
+    Window_buildPluginMenu(PluginHandler_getPlugins(&pluginCount), pluginCount);
 #endif
 }
 
@@ -187,7 +187,7 @@ void ProDBG_applicationLaunched()
 
 void ProDBG_destroy()
 {
-	UILayout layout;
+    UILayout layout;
     Context* context = &s_context;
 
     Session_getLayout(context->session, &layout, context->width, context->height);
@@ -208,17 +208,17 @@ void ProDBG_timedUpdate()
 static void onLoadRunExec()
 {
     Context* context = &s_context;
-	PluginData* pluginData = PluginHandler_findPlugin(0, "lldb_plugin", "LLDB Mac", true);
+    PluginData* pluginData = PluginHandler_findPlugin(0, "lldb_plugin", "LLDB Mac", true);
 
-	if (!pluginData)
-	{
-		log_error("Unable to find LLDB Mac backend\n");
-		return;
-	}
+    if (!pluginData)
+    {
+        log_error("Unable to find LLDB Mac backend\n");
+        return;
+    }
 
-	// Hacky hack
+    // Hacky hack
 
-	Session_startLocal(context->session, (PDBackendPlugin*)pluginData->plugin, OBJECT_DIR "/crashing_native");
+    Session_startLocal(context->session, (PDBackendPlugin*)pluginData->plugin, OBJECT_DIR "/crashing_native");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -232,23 +232,23 @@ void ProDBG_event(int eventId)
 
     PluginData** pluginsData = PluginHandler_getPlugins(&count);
 
-	// TODO: This code really needs to be made more robust.
+    // TODO: This code really needs to be made more robust.
 
     if (eventId >= PRODBG_MENU_PLUGIN_START && eventId < PRODBG_MENU_PLUGIN_START + 9)
-	{
-		ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[eventId - PRODBG_MENU_PLUGIN_START]);
-		Session_addViewPlugin(context->session, instance);
-		return;
-	}
+    {
+        ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[eventId - PRODBG_MENU_PLUGIN_START]);
+        Session_addViewPlugin(context->session, instance);
+        return;
+    }
 
-	switch (eventId)
-	{
-		case PRODBG_MENU_FILE_OPEN_AND_RUN_EXE :
-		{
-			onLoadRunExec();
-			break;
-		}
-	}
+    switch (eventId)
+    {
+        case PRODBG_MENU_FILE_OPEN_AND_RUN_EXE:
+        {
+            onLoadRunExec();
+            break;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -163,7 +163,7 @@ static const char* getStateName(int state)
 
 static void updateLocal(Session* s, PDAction action)
 {
-	unsigned int reqDataSize = PDBinaryWriter_getSize(&s->viewPluginsWriter);
+    unsigned int reqDataSize = PDBinaryWriter_getSize(&s->viewPluginsWriter);
 
     struct PDBackendInstance* backend = s->backend;
 
@@ -171,8 +171,8 @@ static void updateLocal(Session* s, PDAction action)
 
     // TODO: Temporary hack, send no request data if we are running.
 
-	if (s->state == PDDebugState_running)
-		reqDataSize = 0;
+    if (s->state == PDDebugState_running)
+        reqDataSize = 0;
 
     PDBinaryReader_initStream(
         &s->reader,
@@ -194,16 +194,16 @@ static void updateLocal(Session* s, PDAction action)
 
     int len = stb_arr_len(s->viewPlugins);
 
-	for (int i = 0; i < len; ++i)
-	{
-		struct ViewPluginInstance* p = s->viewPlugins[i];
-		PluginUIState state = PluginUI_updateInstance(p, &s->reader, &s->viewPluginsWriter);
+    for (int i = 0; i < len; ++i)
+    {
+        struct ViewPluginInstance* p = s->viewPlugins[i];
+        PluginUIState state = PluginUI_updateInstance(p, &s->reader, &s->viewPluginsWriter);
 
-		if (state == PluginUIState_CloseView)
-			p->markDeleted = true;
+        if (state == PluginUIState_CloseView)
+            p->markDeleted = true;
 
-		PDBinaryReader_reset(&s->reader);
-	}
+        PDBinaryReader_reset(&s->reader);
+    }
 
     PDBinaryWriter_finalize(&s->viewPluginsWriter);
 }
@@ -411,83 +411,83 @@ struct ViewPluginInstance** Session_getViewPlugins(struct Session* session, int*
 
 void Session_getLayout(Session* session, UILayout* layout, float width, float height)
 {
-	assert(session);
-	assert(layout);
+    assert(session);
+    assert(layout);
 
     int count = stb_arr_len(session->viewPlugins);
 
-	memset(layout, 0, sizeof(UILayout));
+    memset(layout, 0, sizeof(UILayout));
 
-	// No base paths (will use the default which depends on the build configuration when
-	// trying to load the plugins
+    // No base paths (will use the default which depends on the build configuration when
+    // trying to load the plugins
 
-	layout->basePathCount = 0;
-	layout->layoutItemCount = count;
-	
-	layout->layoutItems = (LayoutItem*)alloc_zero((int)sizeof(LayoutItem) * (int)count);
+    layout->basePathCount = 0;
+    layout->layoutItemCount = count;
 
-	for (int i = 0; i < count; ++i)
-	{
-		ViewPluginInstance* instance = session->viewPlugins[i];
-		PDViewPlugin* plugin = (PDViewPlugin*)instance->plugin;
-		LayoutItem* item = &layout->layoutItems[i];
-		PluginData* pluginData = PluginHandler_getPluginData(instance->plugin);
+    layout->layoutItems = (LayoutItem*)alloc_zero((int)sizeof(LayoutItem) * (int)count);
 
-		if (!pluginData)
-			continue;
+    for (int i = 0; i < count; ++i)
+    {
+        ViewPluginInstance* instance = session->viewPlugins[i];
+        PDViewPlugin* plugin = (PDViewPlugin*)instance->plugin;
+        LayoutItem* item = &layout->layoutItems[i];
+        PluginData* pluginData = PluginHandler_getPluginData(instance->plugin);
 
-		item->pluginFile = strdup(pluginData->filename);
-		item->pluginName = strdup(plugin->name);
+        if (!pluginData)
+            continue;
 
-		PluginUI_getWindowRect(instance, &item->rect);
+        item->pluginFile = strdup(pluginData->filename);
+        item->pluginName = strdup(plugin->name);
 
-		item->rect.x /= width;
-		item->rect.y /= height;
-		item->rect.width /= width;
-		item->rect.height /= height;
-	}
+        PluginUI_getWindowRect(instance, &item->rect);
+
+        item->rect.x /= width;
+        item->rect.y /= height;
+        item->rect.width /= width;
+        item->rect.height /= height;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Session_setLayout(Session* session, UILayout* layout, float width, float height)
 {
-	int count = layout->layoutItemCount;
+    int count = layout->layoutItemCount;
 
-	// TODO: Close all existing windows when loading layout?
-	// TODO: Support base paths for plugins
+    // TODO: Close all existing windows when loading layout?
+    // TODO: Support base paths for plugins
 
-	for (int i = 0; i < count; ++i)
-	{
-		LayoutItem* item = &layout->layoutItems[i];
+    for (int i = 0; i < count; ++i)
+    {
+        LayoutItem* item = &layout->layoutItems[i];
 
-		PluginData* pluginData = PluginHandler_findPlugin(0, item->pluginFile, item->pluginName, true);
+        PluginData* pluginData = PluginHandler_findPlugin(0, item->pluginFile, item->pluginName, true);
 
-		if (!pluginData)
-		{
-			log_error("Unable to find plugin %s %s\n", item->pluginFile, item->pluginName);
-			continue;
-		}
+        if (!pluginData)
+        {
+            log_error("Unable to find plugin %s %s\n", item->pluginFile, item->pluginName);
+            continue;
+        }
 
-		FloatRect rect = item->rect;
+        FloatRect rect = item->rect;
 
-		rect.x *= width;
-		rect.y *= height;
-		rect.width *= width;
-		rect.height *= height;
+        rect.x *= width;
+        rect.y *= height;
+        rect.width *= width;
+        rect.height *= height;
 
-		ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginData);
+        ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginData);
 
-		if (!instance)
-		{
-			log_error("Unable to create instance for plugin %s %s\n", item->pluginFile, item->pluginName);
-			continue;
-		}
+        if (!instance)
+        {
+            log_error("Unable to create instance for plugin %s %s\n", item->pluginFile, item->pluginName);
+            continue;
+        }
 
-		PluginUI_setWindowRect(instance, &rect);
+        PluginUI_setWindowRect(instance, &rect);
 
-		Session_addViewPlugin(session, instance);
-	}
+        Session_addViewPlugin(session, instance);
+    }
 }
 
 

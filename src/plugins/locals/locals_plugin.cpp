@@ -39,12 +39,12 @@ static void showInUI(LocalsData* data, PDReader* reader, PDUI* uiFuncs)
     if (PDRead_findArray(reader, &it, "locals", 0) == PDReadStatus_notFound)
         return;
 
-	uiFuncs->text("");
+    uiFuncs->text("");
 
-	uiFuncs->columns(3, "callstack", true);
-	uiFuncs->text("Name"); uiFuncs->nextColumn();
-	uiFuncs->text("Value"); uiFuncs->nextColumn();
-	uiFuncs->text("Type"); uiFuncs->nextColumn();
+    uiFuncs->columns(3, "callstack", true);
+    uiFuncs->text("Name"); uiFuncs->nextColumn();
+    uiFuncs->text("Value"); uiFuncs->nextColumn();
+    uiFuncs->text("Type"); uiFuncs->nextColumn();
 
     while (PDRead_getNextEntry(reader, &it))
     {
@@ -56,10 +56,10 @@ static void showInUI(LocalsData* data, PDReader* reader, PDUI* uiFuncs)
         PDRead_findString(reader, &value, "value", it);
         PDRead_findString(reader, &type, "type", it);
 
-		uiFuncs->text(name); uiFuncs->nextColumn();
-		uiFuncs->text(value); uiFuncs->nextColumn();
-		uiFuncs->text(type); uiFuncs->nextColumn();
-	}
+        uiFuncs->text(name); uiFuncs->nextColumn();
+        uiFuncs->text(value); uiFuncs->nextColumn();
+        uiFuncs->text(type); uiFuncs->nextColumn();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,18 +73,18 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
         switch (event)
         {
             case PDEventType_setLocals:
-			{
-				printf("got set locals\n");
-                showInUI((LocalsData*)userData, inEvents, uiFuncs); 
+            {
+                printf("got set locals\n");
+                showInUI((LocalsData*)userData, inEvents, uiFuncs);
                 break;
-			}
+            }
         }
     }
 
     // Request callstack data
 
     PDWrite_eventBegin(outEvents, PDEventType_getLocals);
-    PDWrite_u8(outEvents, "dummy_remove", 0);	// TODO: Remove me
+    PDWrite_u8(outEvents, "dummy_remove", 0);   // TODO: Remove me
     PDWrite_eventEnd(outEvents);
 
     return 0;
@@ -107,10 +107,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-{
-	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-}
+    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+    {
+        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+    }
 
 }
 

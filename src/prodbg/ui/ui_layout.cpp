@@ -206,27 +206,27 @@ enum State
 
 static const char* getString(yaml_parser_t* parser, yaml_event_t* event)
 {
-	yaml_parser_parse(parser, event);
-	assert(event->type == YAML_SCALAR_EVENT);
-	return strdup((const char*)event->data.scalar.value);
+    yaml_parser_parse(parser, event);
+    assert(event->type == YAML_SCALAR_EVENT);
+    return strdup((const char*)event->data.scalar.value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int getInt(yaml_parser_t* parser, yaml_event_t* event)
 {
-	yaml_parser_parse(parser, event);
-	assert(event->type == YAML_SCALAR_EVENT);
-	return atoi((const char*)event->data.scalar.value);
+    yaml_parser_parse(parser, event);
+    assert(event->type == YAML_SCALAR_EVENT);
+    return atoi((const char*)event->data.scalar.value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static float getFloat(yaml_parser_t* parser, yaml_event_t* event)
 {
-	yaml_parser_parse(parser, event);
-	assert(event->type == YAML_SCALAR_EVENT);
-	return (float)atof((const char*)event->data.scalar.value);
+    yaml_parser_parse(parser, event);
+    assert(event->type == YAML_SCALAR_EVENT);
+    return (float)atof((const char*)event->data.scalar.value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -266,7 +266,7 @@ bool UILayout_loadLayout(UILayout* layout, const char* filename)
         switch (event.type)
         {
             case YAML_NO_EVENT:
-			case YAML_ALIAS_EVENT:
+            case YAML_ALIAS_EVENT:
             case YAML_STREAM_START_EVENT:
             case YAML_STREAM_END_EVENT:
             case YAML_DOCUMENT_START_EVENT:
@@ -285,12 +285,12 @@ bool UILayout_loadLayout(UILayout* layout, const char* filename)
                     {
                         if (!strcmp((const char*)event.data.scalar.value, "base_path_count"))
                         {
-                            layout->basePathCount = getInt(&parser, &event); 
+                            layout->basePathCount = getInt(&parser, &event);
                             layout->pluginBasePaths = (const char**)malloc((sizeof(void*) * (size_t)layout->basePathCount));
                         }
                         else if (!strcmp((const char*)event.data.scalar.value, "layout_items_count"))
                         {
-                            layout->layoutItemCount = getInt(&parser, &event); 
+                            layout->layoutItemCount = getInt(&parser, &event);
                             layout->layoutItems = (LayoutItem*)malloc((sizeof(LayoutItem) * (size_t)layout->layoutItemCount));
                         }
 
@@ -300,30 +300,30 @@ bool UILayout_loadLayout(UILayout* layout, const char* filename)
                     case State_Paths:
                     {
                         if (!strcmp((const char*)event.data.scalar.value, "path"))
-                            layout->pluginBasePaths[pathIter++] = getString(&parser, &event); 
+                            layout->pluginBasePaths[pathIter++] = getString(&parser, &event);
 
                         break;
                     }
 
                     case State_Layouts:
                     {
-                    	LayoutItem* item = &layout->layoutItems[layoutIter];
+                        LayoutItem* item = &layout->layoutItems[layoutIter];
 
                         if (!strcmp((const char*)event.data.scalar.value, "plugin_file"))
-                        	item->pluginFile = getString(&parser, &event);
-						else if (!strcmp((const char*)event.data.scalar.value, "plugin_name"))
-                        	item->pluginName = getString(&parser, &event);
-						else if (!strcmp((const char*)event.data.scalar.value, "x"))
-                        	item->rect.x = getFloat(&parser, &event);
-						else if (!strcmp((const char*)event.data.scalar.value, "y"))
-                        	item->rect.y = getFloat(&parser, &event);
-						else if (!strcmp((const char*)event.data.scalar.value, "width"))
-                        	item->rect.width = getFloat(&parser, &event);
-						else if (!strcmp((const char*)event.data.scalar.value, "height"))
-						{
-                        	item->rect.height = getFloat(&parser, &event);
-                        	layoutIter++;
-						}
+                            item->pluginFile = getString(&parser, &event);
+                        else if (!strcmp((const char*)event.data.scalar.value, "plugin_name"))
+                            item->pluginName = getString(&parser, &event);
+                        else if (!strcmp((const char*)event.data.scalar.value, "x"))
+                            item->rect.x = getFloat(&parser, &event);
+                        else if (!strcmp((const char*)event.data.scalar.value, "y"))
+                            item->rect.y = getFloat(&parser, &event);
+                        else if (!strcmp((const char*)event.data.scalar.value, "width"))
+                            item->rect.width = getFloat(&parser, &event);
+                        else if (!strcmp((const char*)event.data.scalar.value, "height"))
+                        {
+                            item->rect.height = getFloat(&parser, &event);
+                            layoutIter++;
+                        }
 
                         break;
                     }
@@ -331,14 +331,14 @@ bool UILayout_loadLayout(UILayout* layout, const char* filename)
 
                 // Switch the state of the loading
 
-				if (!strcmp((const char*)event.data.scalar.value, "base_paths"))
-				{
-					state = State_Paths;
-				}
-				else if (!strcmp((const char*)event.data.scalar.value, "layout_items"))
-				{
-					state = State_Layouts;
-				}
+                if (!strcmp((const char*)event.data.scalar.value, "base_paths"))
+                {
+                    state = State_Paths;
+                }
+                else if (!strcmp((const char*)event.data.scalar.value, "layout_items"))
+                {
+                    state = State_Layouts;
+                }
 
                 break;
             }

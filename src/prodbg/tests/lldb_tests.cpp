@@ -15,36 +15,36 @@
 
 static void test_lldb(void** state)
 {
-	(void)state;
+    (void)state;
 
-	// we only do the LLDB test on Mac for now
+    // we only do the LLDB test on Mac for now
 
 #ifdef __APPLE__
 
-	PluginData* pluginData;
-	Session* session;
-	int count = 0;
+    PluginData* pluginData;
+    Session* session;
+    int count = 0;
 
-	assert_true(PluginHandler_addPlugin(OBJECT_DIR, "lldb_plugin"));
-	assert_non_null(pluginData = PluginHandler_getPlugins(&count)[0]);
+    assert_true(PluginHandler_addPlugin(OBJECT_DIR, "lldb_plugin"));
+    assert_non_null(pluginData = PluginHandler_getPlugins(&count)[0]);
 
-	session = Session_createLocal((PDBackendPlugin*)pluginData->plugin, OBJECT_DIR "/crashing_native");
-	assert_non_null(session);
+    session = Session_createLocal((PDBackendPlugin*)pluginData->plugin, OBJECT_DIR "/crashing_native");
+    assert_non_null(session);
 
-	// I hate to do this but there is really no good way to deal with this otherwise (at least currently)
-	Time_sleepMs(800);
+    // I hate to do this but there is really no good way to deal with this otherwise (at least currently)
+    Time_sleepMs(800);
 
-	Session_update(session);
-	Session_update(session);
+    Session_update(session);
+    Session_update(session);
 
-	// Expect that we have a crash here and thus are in PDDebugState_stopException state
+    // Expect that we have a crash here and thus are in PDDebugState_stopException state
 
-	assert_int_equal(session->state, PDDebugState_stopException);
+    assert_int_equal(session->state, PDDebugState_stopException);
 
-	// Request locals location.
+    // Request locals location.
 
-	PDWriter* writer = &session->viewPluginsWriter;
-	PDReader* reader = &session->reader;
+    PDWriter* writer = &session->viewPluginsWriter;
+    PDReader* reader = &session->reader;
 
     PDBinaryWriter_reset(writer);
     PDWrite_eventBegin(writer, PDEventType_getCallstack);
@@ -52,7 +52,7 @@ static void test_lldb(void** state)
     PDWrite_eventEnd(writer);
     PDBinaryWriter_finalize(writer);
 
-	Session_update(session);
+    Session_update(session);
 
     PDBinaryReader_reset(reader);
 
@@ -65,8 +65,8 @@ static void test_lldb(void** state)
         {
             case PDEventType_setCallstack:
             {
-            	foundCallstack = true;
-            	break;
+                foundCallstack = true;
+                break;
             }
         }
     }
