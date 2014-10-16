@@ -40,6 +40,7 @@ typedef enum PDDebugState
 
 typedef enum PDEventType
 {
+    PDEventType_none,
     PDEventType_getLocals,
     PDEventType_setLocals,
     PDEventType_getCallstack,
