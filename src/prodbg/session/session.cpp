@@ -73,10 +73,8 @@ Session* Session_createRemote(const char* target, int port)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Session* Session_createLocal(PDBackendPlugin* backend, const char* filename)
+Session* Session_startLocal(Session* s, PDBackendPlugin* backend, const char* filename)
 {
-    Session* s = (Session*)alloc_zero(sizeof(Session));
-
     // setup temporary writer
 
     PDWriter* writer = (PDWriter*)alloc_zero(sizeof(PDWriter));
@@ -122,6 +120,13 @@ Session* Session_createLocal(PDBackendPlugin* backend, const char* filename)
     return s;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Session* Session_createLocal(PDBackendPlugin* backend, const char* filename)
+{
+    Session* s = (Session*)alloc_zero(sizeof(Session));
+    return Session_startLocal(s, backend, filename);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -158,14 +163,20 @@ static const char* getStateName(int state)
 
 static void updateLocal(Session* s, PDAction action)
 {
+	unsigned int reqDataSize = PDBinaryWriter_getSize(&s->viewPluginsWriter);
+
     struct PDBackendInstance* backend = s->backend;
 
     PDBinaryReader_reset(&s->reader);
 
+    // TODO: Temporary hack, send no request data if we are running.
+
+	if (s->state == PDDebugState_running)
+		reqDataSize = 0;
+
     PDBinaryReader_initStream(
         &s->reader,
-        PDBinaryWriter_getData(&s->viewPluginsWriter),
-        PDBinaryWriter_getSize(&s->viewPluginsWriter));
+        PDBinaryWriter_getData(&s->viewPluginsWriter), reqDataSize);
 
     if (backend)
     {
@@ -183,16 +194,16 @@ static void updateLocal(Session* s, PDAction action)
 
     int len = stb_arr_len(s->viewPlugins);
 
-    for (int i = 0; i < len; ++i)
-    {
-        struct ViewPluginInstance* p = s->viewPlugins[i];
-        PluginUIState state = PluginUI_updateInstance(p, &s->reader, &s->viewPluginsWriter);
+	for (int i = 0; i < len; ++i)
+	{
+		struct ViewPluginInstance* p = s->viewPlugins[i];
+		PluginUIState state = PluginUI_updateInstance(p, &s->reader, &s->viewPluginsWriter);
 
-        if (state == PluginUIState_CloseView)
-            p->markDeleted = true;
+		if (state == PluginUIState_CloseView)
+			p->markDeleted = true;
 
-        PDBinaryReader_reset(&s->reader);
-    }
+		PDBinaryReader_reset(&s->reader);
+	}
 
     PDBinaryWriter_finalize(&s->viewPluginsWriter);
 }
