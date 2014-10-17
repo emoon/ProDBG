@@ -19,7 +19,7 @@ struct File
 struct SourceCodeData
 {
     uint32_t line;
-    File file;  // todo: support more files
+    File file;  // TODO: support more files
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@ static void* readFileFromDisk(const char* file, size_t* size)
 
     if (!f)
     {
-        printf("SICO: Unable to open file %s\n", file);
+        printf("sourcecode_plugin: Unable to open file %s\n", file);
         return 0;
     }
 
@@ -48,7 +48,7 @@ static void* readFileFromDisk(const char* file, size_t* size)
     {
         free(data);
         fclose(f);
-        printf("SICO: Unable to read the whole file %s to memory\n", file);
+        printf("sourcecode_plugin: Unable to read the whole file %s to memory\n", file);
         return 0;
     }
 
