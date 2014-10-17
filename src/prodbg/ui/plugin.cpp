@@ -164,6 +164,13 @@ static int buttonSize(const char* label, int width, int height, int repeatWhenHe
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void fillRect(PDRect rect, unsigned int color)
+{
+	ImGui::FillRect(ImVec2(rect.x, rect.y), ImVec2(rect.width, rect.height), color);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 char* buildName(const char* pluginName, int id)
 {
     char idBuffer[32];
@@ -212,6 +219,7 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
 	uiInstance->alignFirstTextHeightToWidgets = alignFirstTextHeightToWidgets;
 	uiInstance->getTextLineSpacing = getTextLineSpacing;
 	uiInstance->getTextLineHeight = getTextLineHeight;
+	uiInstance->fillRect = fillRect;
 
     uiInstance->privateData = alloc_zero(sizeof(PrivateData));
     data->name = buildName(pluginInstance->plugin->name, pluginInstance->count);
