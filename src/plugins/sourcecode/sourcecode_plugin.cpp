@@ -117,58 +117,6 @@ void parseFile(File* file, const char* filename)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
-#if 0
-
-static void drawCallback(void* userData, PDRect* viewRect, PDUIPainter* painter)
-{
-    int fontX;
-    int fontY;
-    int exceptionLine = (int)data->line - 2;
-
-    PDUIPaint_fontMetrics(painter, &fontX, &fontY);
-    PDUIPaint_fillRect(painter, viewRect, 0xffffff);
-    PDUIPaint_setPen(painter, 0);
-
-    // calc how many lines we can render
-
-    int maxLineCount = (viewRect->height - viewRect->y) / fontY;
-
-    // in case file has less lines than we can display we render the whole file
-
-    if (data->file.lineCount < maxLineCount)
-    {
-        int y = 20;
-
-        for (int i = 0, end = data->file.lineCount; i < end; ++i)
-        {
-            PDUIPaint_drawText(painter, viewRect->x, y, data->file.lines[i]);
-
-            if (i == exceptionLine)
-            {
-                printf("crash at %d -  %s\n", i, data->file.lines[i]);
-                PDRect rect = { viewRect->x, y, viewRect->width, y + fontY };
-                PDUIPaint_fillRect(painter, &rect, 0xf9afafaf);
-            }
-
-            y += fontX + 2;
-        }
-    }
-
-
-    // figure out which line to start at so we can keep the exception line in the center
-
-    //PDUIPaint_setPen(painter, 0x1fffffff);
-    //PDUIPaint_drawText(painter, viewRect->x, y, pch);
-
-    //y += fontX + 2;
-    * /
-}
-
-#endif
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 {
@@ -176,8 +124,6 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     (void)uiFuncs;
     SourceCodeData* userData = (SourceCodeData*)malloc(sizeof(SourceCodeData));
     memset(userData, 0, sizeof(SourceCodeData));
-
-    //userData->view = PDUICustomView_create(uiFuncs, userData, drawCallback);
 
     return userData;
 }
@@ -222,9 +168,26 @@ static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
     const char** lines = (const char**)data->file.lines;
     int lineCount = data->file.lineCount;
 
+    uiFuncs->text("");
+
     for (int i = 0; i < lineCount; ++i)
     {
+        if ((i + 1) == (int)data->line)
+		{
+			PDRect rect;
+			PDVec2 pos = uiFuncs->getCursorPos();
+        	rect.x = pos.x;
+        	rect.y = pos.y - 11;
+        	rect.width = -1;
+        	rect.height = 20;
+        	uiFuncs->fillRect(rect, PD_COLOR_32(255, 0, 0, 127));
+        	//uiFuncs->text(*lines);
+			//uiFuncs->setCursorPos(pos);
+        	//uiFuncs->text(">"); 
+        } 
+
         uiFuncs->text(*lines);
+
         lines++;
     }
 }
