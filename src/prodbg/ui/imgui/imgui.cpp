@@ -1910,7 +1910,7 @@ void FillRect(ImVec2 pos, ImVec2 size, unsigned int color)
 	if (size.x == -1)
 		size.x = window->Size.x - 10; 
 	if (size.y == -1)
-		size.y = window->Size.y - 10; 
+		size.y = window->Size.y - 24; 
 
 	nvgRect(g.NVGCtx, pos.x + windowPos.x, pos.y + windowPos.y, size.x, size.y);
 	nvgFillColor(g.NVGCtx, toNVGColor(color));
