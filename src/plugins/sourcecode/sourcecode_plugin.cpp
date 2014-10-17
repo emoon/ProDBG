@@ -125,6 +125,10 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     SourceCodeData* userData = (SourceCodeData*)malloc(sizeof(SourceCodeData));
     memset(userData, 0, sizeof(SourceCodeData));
 
+    // TODO: Temp testing code
+
+    parseFile(&userData->file, "examples/crashing_native/crash2.c");
+
     return userData;
 }
 
@@ -158,20 +162,92 @@ static void setExceptionLocation(SourceCodeData* data, PDReader* inEvents)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Count how many numbers we have in lineCount
+
+int countNumbers(int maxLineCount)
+{
+	int count = 0;
+
+	while (maxLineCount != 0)
+	{
+		maxLineCount /= 10;
+		count++;
+	}
+
+	return count;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// This code will calculate the width of the max line count in the file and use that as the width
+// for the line area
+
+static float calcLineAreaWidth(PDUI* uiFuncs, int lineCount)
+{
+	char lineBuffer[128];
+	sprintf(lineBuffer, "%d", lineCount);
+	return uiFuncs->getTextWidth(lineBuffer, 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void drawLineAreaBG(PDUI* uiFuncs, float areaWidth)
+{
+	PDVec2 pos = uiFuncs->getCursorPos();
+	PDRect rect = { pos.x - 4, pos.y - 14, areaWidth + 4, -1 };
+	uiFuncs->fillRect(rect, PD_COLOR_32(100, 100, 100, 127));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void drawLineArea(PDUI* uiFuncs, int lineCount, int maxLineCount)
+{
+	char formatString[64];
+	int numCount = countNumbers(maxLineCount);
+	sprintf(formatString, "%%%dd", numCount); 
+
+    for (int i = 0; i < lineCount; ++i)
+    {
+    	uiFuncs->text(formatString, i + 1);
+	}	
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
 {
     uiFuncs->columns(1, "sourceview", true);
+
+	// calculate the range we can show 
+
+	PDVec2 windowSize = uiFuncs->getWindowSize();
+	PDVec2 textStart = uiFuncs->getCursorPos();
+	windowSize.y -= textStart.y;
+
+	const float fontHeight = uiFuncs->getFontHeight();
+
+
+	printf("total number of lines %d\n", (int)(windowSize.y / fontHeight));
 
     // TODO: Will be really bad with big files, need to handle proper range and such here
 
     const char** lines = (const char**)data->file.lines;
     int lineCount = data->file.lineCount;
 
-    uiFuncs->text("");
+	(void)textStart;
+
+	// Draw line column
+	
+	float areaWidth = calcLineAreaWidth(uiFuncs, lineCount) + 4;
+
+	drawLineAreaBG(uiFuncs, areaWidth);
+	drawLineArea(uiFuncs, lineCount, lineCount);
+
+	uiFuncs->setCursorPos(textStart);	
 
     for (int i = 0; i < lineCount; ++i)
     {
+		uiFuncs->setCursorPosX(areaWidth + 14.0f);
+
         if ((i + 1) == (int)data->line)
 		{
 			PDRect rect;
@@ -202,6 +278,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     SourceCodeData* data = (SourceCodeData*)userData;
 
+
     while ((event = PDRead_getEvent(inEvents)) != 0)
     {
         switch (event)
@@ -209,11 +286,12 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
             case PDEventType_setExceptionLocation:
             {
                 setExceptionLocation(data, inEvents);
-                showInUI(data, uiFuncs);
                 break;
             }
         }
     }
+
+    showInUI(data, uiFuncs);
 
     PDWrite_eventBegin(writer, PDEventType_getExceptionLocation);
     PDWrite_u8(writer, "dummy", 0); // TODO: Remove me

@@ -38,7 +38,6 @@ void* createInstance(ServiceFunc* serviceFunc)
 {
     lldb::SBDebugger::Initialize();
 
-    printf("Create instance\n");
     LLDBPlugin* plugin = new LLDBPlugin; 
 
     plugin->debugger = lldb::SBDebugger::Create(false);
@@ -358,8 +357,10 @@ static void eventAction(LLDBPlugin* plugin, PDReader* reader)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 static const char* eventTypes[] =
 {
+    "PDEventType_none",
     "PDEventType_getLocals",
     "PDEventType_setLocals",
     "PDEventType_getCallstack",
@@ -383,6 +384,7 @@ static const char* eventTypes[] =
     "PDEventType_attachToRemoteSession",
     "PDEventType_action",
 };
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -392,7 +394,7 @@ static void processEvents(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer
 
     while ((event = PDRead_getEvent(reader)))
     {
-        printf("LLDBPlugin: %d Got event %s\n", event, eventTypes[event]);
+        //printf("LLDBPlugin: %d Got event %s\n", event, eventTypes[event]);
 
         switch (event)
         {
