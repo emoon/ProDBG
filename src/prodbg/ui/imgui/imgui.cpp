@@ -1893,7 +1893,7 @@ void FillRect(ImVec2 pos, ImVec2 size, unsigned int color)
 	ImGuiState& g = GImGui;
     ImGuiWindow* window = GetCurrentWindow();
 
-	//ImVec2 windowPos = GetWindowPos();
+	ImVec2 windowPos = GetWindowPos();
 	nvgBeginPath(g.NVGCtx);
 
 	if (size.x == -1)
@@ -1901,7 +1901,7 @@ void FillRect(ImVec2 pos, ImVec2 size, unsigned int color)
 	if (size.y == -1)
 		size.y = window->Size.y - 10; 
 
-	nvgRect(g.NVGCtx, pos.x, pos.y, size.x, size.y);
+	nvgRect(g.NVGCtx, pos.x + windowPos.x, pos.y + windowPos.y, size.x, size.y);
 	nvgFillColor(g.NVGCtx, toNVGColor(color));
 	nvgFill(g.NVGCtx);
 }
