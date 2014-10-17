@@ -218,15 +218,17 @@ static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
     uiFuncs->columns(1, "sourceview", true);
 
 	// calculate the range we can show 
-
-	PDVec2 windowSize = uiFuncs->getWindowSize();
+	
 	PDVec2 textStart = uiFuncs->getCursorPos();
+
+	/*
+	PDVec2 windowSize = uiFuncs->getWindowSize();
 	windowSize.y -= textStart.y;
 
 	const float fontHeight = uiFuncs->getFontHeight();
 
-
 	printf("total number of lines %d\n", (int)(windowSize.y / fontHeight));
+	*/
 
     // TODO: Will be really bad with big files, need to handle proper range and such here
 
