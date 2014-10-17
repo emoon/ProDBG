@@ -171,6 +171,29 @@ static void fillRect(PDRect rect, unsigned int color)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static float getTextWidth(const char* text, const char* textEnd)
+{
+	return ImGui::GetTextWidth(text, textEnd);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PDVec2 getWindowSize()
+{
+	ImVec2 size = ImGui::GetWindowSize();
+	PDVec2 r = { size.x, size.y };
+	return r;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static float getFontHeight()
+{
+	return 16.0f;	// TODO: Fix me
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 char* buildName(const char* pluginName, int id)
 {
     char idBuffer[32];
@@ -219,7 +242,10 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
 	uiInstance->alignFirstTextHeightToWidgets = alignFirstTextHeightToWidgets;
 	uiInstance->getTextLineSpacing = getTextLineSpacing;
 	uiInstance->getTextLineHeight = getTextLineHeight;
-	uiInstance->fillRect = fillRect;
+ 	uiInstance->fillRect = fillRect;
+ 	uiInstance->getTextWidth = getTextWidth;
+	uiInstance->getWindowSize = getWindowSize; 
+	uiInstance->getFontHeight = getFontHeight; 
 
     uiInstance->privateData = alloc_zero(sizeof(PrivateData));
     data->name = buildName(pluginInstance->plugin->name, pluginInstance->count);

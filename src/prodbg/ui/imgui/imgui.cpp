@@ -877,7 +877,7 @@ public:
     ImVec2      CursorPos() const { return DC.CursorPos; }
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    float       TitleBarHeight() const { return (Flags & ImGuiWindowFlags_NoTitleBar) ? 0 : FontSize() + GImGui.Style.FramePadding.y * 2.0f; }
+    float       TitleBarHeight() const { return (Flags & ImGuiWindowFlags_NoTitleBar) ? 0 : FontSize() + GImGui.Style.FramePadding.y * 4.0f; }
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ImGuiAabb   TitleBarAabb() const { return ImGuiAabb(Pos, Pos + ImVec2(SizeFull.x, TitleBarHeight())); }
@@ -1409,7 +1409,7 @@ void NewFrame()
     {
         g.NVGCtx = nvgCreate(512, 512, 1, 0);
 
-        bndSetFont(nvgCreateFont(g.NVGCtx, "droidsans", "data/font/droidsans.ttf"));
+        bndSetFont(nvgCreateFont(g.NVGCtx, "droidsans", "data/font/source_code_pro/SourceCodePro-Regular.ttf"));
         g.iconsFont = nvgCreateFont(g.NVGCtx, "icons", "data/font/entypo.ttf");
         IM_ASSERT(g.iconsFont >= 0);
 
@@ -1885,6 +1885,17 @@ ImVec2 CalcTextSize(const char* text, const char* text_end, const bool hide_text
 
     const ImVec2 size = window->Font()->CalcTextSize(window->FontSize(), 0, text, text_display_end, NULL);
     return size;
+}
+
+float GetTextWidth(const char* text, const char* textEnd)
+{
+	float bounds[4];
+    ImGuiState& g = GImGui;
+
+    if (!textEnd)
+    	textEnd = text + strlen(text);
+
+	return nvgTextBounds(g.NVGCtx, 0.0f, 0.0f, text, textEnd, bounds);
 }
 
 // Rendering
@@ -3103,7 +3114,8 @@ void TextUnformatted(const char* text, const char* text_end)
     }
     else
     {
-        const ImVec2 text_size = CalcTextSize(text_begin, text_end, false);
+        ImVec2 text_size = CalcTextSize(text_begin, text_end, false);
+        text_size.y = 7.0f;
         ImGuiAabb bb(window->DC.CursorPos, window->DC.CursorPos + text_size);
         ItemSize(bb.GetSize(), &bb.Min);
 

@@ -50,6 +50,12 @@ typedef struct PDUI
 	void (*alignFirstTextHeightToWidgets)();                     // call once if the first item on the line is a Text() item and you want to vertically lower it to match subsequent (bigger) widgets.
 	float (*getTextLineSpacing)();
 	float (*getTextLineHeight)();
+	float (*getTextWidth)(const char* text, const char* textEnd);
+
+	// Window
+	
+	PDVec2 (*getWindowSize)();
+	float (*getFontHeight)();
 
     // Text
 
