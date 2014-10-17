@@ -19,6 +19,18 @@ typedef struct PDVec2
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef struct PDRect
+{
+	float x, y;
+	float width, height;
+} PDRect;
+
+// TODO: use uint32_t?
+
+#define PD_COLOR_32(r, g, b, a) (((unsigned int)r << 24) | ((unsigned int)g << 16) | ((unsigned int)b << 8) | (a))
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef struct PDUI
 {
     // Layout
@@ -47,6 +59,10 @@ typedef struct PDUI
 
     int (*button)(const char* label);
     int (*buttonSize)(const char* label, int width, int height, int repeatWhenHeld);
+
+    // Rendering
+
+	void (*fillRect)(PDRect rect, unsigned int color); 
 
     void* privateData;
 

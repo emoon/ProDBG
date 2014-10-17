@@ -319,6 +319,9 @@ const char* GetStyleColorName(ImGuiCol idx);
 void        GetDefaultFontData(const void** fnt_data, unsigned int* fnt_size, const void** png_data, unsigned int* png_size);
 ImVec2      CalcTextSize(const char* text, const char* text_end = NULL, const bool hide_text_after_hash = true);
 
+//Rendering
+void		FillRect(ImVec2 pos, ImVec2 size, unsigned int color);
+
 }  // namespace ImGui
 
 // Flags for ImGui::Begin()

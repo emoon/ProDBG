@@ -1887,6 +1887,25 @@ ImVec2 CalcTextSize(const char* text, const char* text_end, const bool hide_text
     return size;
 }
 
+// Rendering
+void FillRect(ImVec2 pos, ImVec2 size, unsigned int color)
+{
+	ImGuiState& g = GImGui;
+    ImGuiWindow* window = GetCurrentWindow();
+
+	//ImVec2 windowPos = GetWindowPos();
+	nvgBeginPath(g.NVGCtx);
+
+	if (size.x == -1)
+		size.x = window->Size.x - 10; 
+	if (size.y == -1)
+		size.y = window->Size.y - 10; 
+
+	nvgRect(g.NVGCtx, pos.x, pos.y, size.x, size.y);
+	nvgFillColor(g.NVGCtx, toNVGColor(color));
+	nvgFill(g.NVGCtx);
+}
+
 // Find window given position, search front-to-back
 static ImGuiWindow* FindHoveredWindow(ImVec2 pos, bool excluding_childs)
 {
