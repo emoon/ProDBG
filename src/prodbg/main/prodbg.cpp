@@ -88,6 +88,8 @@ void ProDBG_create(void* window, int width, int height)
     Context* context = &s_context;
     //Rect settingsRect;
 
+	log_info("create\n");
+
     context->session = Session_create();
 
     //Settings_getWindowRect(&settingsRect);
@@ -98,8 +100,7 @@ void ProDBG_create(void* window, int width, int height)
 
     for (uint32_t i = 0; i < sizeof_array(s_plugins); ++i)
     {
-        if (!PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]))
-            return;
+        PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]);
     }
 
 #if BX_PLATFORM_OSX
@@ -120,7 +121,6 @@ void ProDBG_create(void* window, int width, int height)
     IMGUI_setup(width, height);
 
     loadLayout();
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
