@@ -332,9 +332,15 @@ StaticLibrary {
     },
 
     Sources = { 
-        Glob {
+        FGlob {
             Dir = "src/prodbg/ui",
-            Extensions = { ".c", ".cpp", ".h" },
+            Extensions = { ".c", ".cpp", ".m", ".mm", ".h" },
+            Filters = {
+                { Pattern = "mac"; Config = "macosx-*-*" },
+                { Pattern = "windows"; Config = "win64-*-*" },
+                { Pattern = "linux"; Config = "linux-*-*" },
+            },
+
             Recursive = true,
         },
     },
