@@ -1,7 +1,6 @@
 #pragma once
 
 #include <pd_backend.h>
-#include <stdbool.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -31,4 +30,6 @@ void Session_getLayout(Session* session, UILayout* layout, float width, float he
 void Session_setLayout(Session* session, UILayout* layout, float width, float height);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TODO: TEMP
 
+void Session_loadSourceFile(Session* session, const char* filename);

@@ -490,4 +490,31 @@ void Session_setLayout(Session* session, UILayout* layout, float width, float he
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Session_loadSourceFile(Session* s, const char* filename)
+{
+	PDBinaryWriter_reset(&s->backendWriter);
+	PDWriter* writer = &s->backendWriter;
+
+    PDWrite_eventBegin(writer, PDEventType_setExceptionLocation);
+    PDWrite_string(writer, "filename", filename);
+    PDWrite_u32(writer, "line", 0);
+    PDWrite_eventEnd(writer);
+
+	PDBinaryWriter_finalize(writer);
+    PDBinaryWriter_reset(&s->viewPluginsWriter);
+
+    int len = stb_arr_len(s->viewPlugins);
+
+    for (int i = 0; i < len; ++i)
+    {
+        struct ViewPluginInstance* p = s->viewPlugins[i];
+        PluginUI_updateInstance(p, &s->reader, &s->viewPluginsWriter);
+        PDBinaryReader_reset(&s->reader);
+    }
+
+    PDBinaryWriter_finalize(&s->viewPluginsWriter);
+}
+
 
