@@ -236,7 +236,7 @@ ImVec2      GetCursorScreenPos();                                               
 void        AlignFirstTextHeightToWidgets();                                        // call once if the first item on the line is a Text() item and you want to vertically lower it to match subsequent (bigger) widgets.
 float       GetTextLineSpacing();
 float       GetTextLineHeight();
-float		GetTextWidth(const char* text, const char* textEnd);
+float       GetTextWidth(const char* text, const char* textEnd);
 
 // ID scopes
 void        PushID(const char* str_id);
@@ -321,7 +321,7 @@ void        GetDefaultFontData(const void** fnt_data, unsigned int* fnt_size, co
 ImVec2      CalcTextSize(const char* text, const char* text_end = NULL, const bool hide_text_after_hash = true);
 
 //Rendering
-void		FillRect(ImVec2 pos, ImVec2 size, unsigned int color);
+void        FillRect(ImVec2 pos, ImVec2 size, unsigned int color);
 
 }  // namespace ImGui
 

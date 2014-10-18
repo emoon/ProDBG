@@ -166,15 +166,15 @@ static void setExceptionLocation(SourceCodeData* data, PDReader* inEvents)
 
 int countNumbers(int maxLineCount)
 {
-	int count = 0;
+    int count = 0;
 
-	while (maxLineCount != 0)
-	{
-		maxLineCount /= 10;
-		count++;
-	}
+    while (maxLineCount != 0)
+    {
+        maxLineCount /= 10;
+        count++;
+    }
 
-	return count;
+    return count;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -183,32 +183,58 @@ int countNumbers(int maxLineCount)
 
 static float calcLineAreaWidth(PDUI* uiFuncs, int lineCount)
 {
-	char lineBuffer[128];
-	sprintf(lineBuffer, "%d", lineCount);
-	return uiFuncs->getTextWidth(lineBuffer, 0);
+    char lineBuffer[128];
+    sprintf(lineBuffer, "%d", lineCount);
+    return uiFuncs->getTextWidth(lineBuffer, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void drawLineAreaBG(PDUI* uiFuncs, float areaWidth)
 {
-	PDVec2 pos = uiFuncs->getCursorPos();
-	PDRect rect = { pos.x - 4, pos.y - 14, areaWidth + 4, -1 };
-	uiFuncs->fillRect(rect, PD_COLOR_32(100, 100, 100, 127));
+    PDVec2 pos = uiFuncs->getCursorPos();
+    PDRect rect = { pos.x - 4, pos.y - 14, areaWidth + 4, -1 };
+    uiFuncs->fillRect(rect, PD_COLOR_32(100, 100, 100, 127));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void drawLineArea(PDUI* uiFuncs, int lineCount, int maxLineCount)
+static void drawLineArea(PDUI* uiFuncs, int offset, int lineCount, int maxLineCount)
 {
-	char formatString[64];
-	int numCount = countNumbers(maxLineCount);
-	sprintf(formatString, "%%%dd", numCount); 
+    char formatString[64];
+    int numCount = countNumbers(maxLineCount);
+    sprintf(formatString, "%%%dd", numCount);
 
     for (int i = 0; i < lineCount; ++i)
     {
-    	uiFuncs->text(formatString, i + 1);
-	}	
+        uiFuncs->text(formatString, offset + i + 1);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void drawLines(PDUI* uiFuncs, SourceCodeData* data, float lineStart, int offset, int lineCount)
+{
+    const char** lines = (const char**)data->file.lines;
+
+    for (int i = offset; i < (offset + lineCount); ++i)
+    {
+        uiFuncs->setCursorPosX(lineStart);
+
+        if ((i + 1) == (int)data->line)
+        {
+            PDRect rect;
+            PDVec2 pos = uiFuncs->getCursorPos();
+            rect.x = pos.x;
+            rect.y = pos.y - 11;
+            rect.width = -1;
+            rect.height = 14;
+            uiFuncs->fillRect(rect, PD_COLOR_32(200, 0, 0, 127));
+        }
+
+        uiFuncs->text(lines[i]);
+    }
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -217,57 +243,52 @@ static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
 {
     uiFuncs->columns(1, "sourceview", true);
 
-	// calculate the range we can show 
-	
-	PDVec2 textStart = uiFuncs->getCursorPos();
+    // calculate the range we can show
 
-	/*
-	PDVec2 windowSize = uiFuncs->getWindowSize();
-	windowSize.y -= textStart.y;
+    PDVec2 textStart = uiFuncs->getCursorPos();
+    PDVec2 windowSize = uiFuncs->getWindowSize();
+    windowSize.y -= textStart.y;
 
-	const float fontHeight = uiFuncs->getFontHeight();
+    const float fontHeight = uiFuncs->getFontHeight();
+    int drawableLineCount = (int)(windowSize.y / fontHeight);
 
-	printf("total number of lines %d\n", (int)(windowSize.y / fontHeight));
-	*/
-
-    // TODO: Will be really bad with big files, need to handle proper range and such here
-
-    const char** lines = (const char**)data->file.lines;
     int lineCount = data->file.lineCount;
 
-	(void)textStart;
+    // Draw the line
 
-	// Draw line column
-	
-	float areaWidth = calcLineAreaWidth(uiFuncs, lineCount) + 4;
+    float areaWidth = calcLineAreaWidth(uiFuncs, lineCount) + 4;
 
-	drawLineAreaBG(uiFuncs, areaWidth);
-	drawLineArea(uiFuncs, lineCount, lineCount);
+    // if we are fully with in the drawing range we just render as is
 
-	uiFuncs->setCursorPos(textStart);	
-
-    for (int i = 0; i < lineCount; ++i)
+    if (lineCount < drawableLineCount)
     {
-		uiFuncs->setCursorPosX(areaWidth + 14.0f);
+        drawLineAreaBG(uiFuncs, areaWidth);
+        drawLineArea(uiFuncs, 0, lineCount, lineCount);
 
-        if ((i + 1) == (int)data->line)
-		{
-			PDRect rect;
-			PDVec2 pos = uiFuncs->getCursorPos();
-        	rect.x = pos.x;
-        	rect.y = pos.y - 11;
-        	rect.width = -1;
-        	rect.height = 20;
-        	uiFuncs->fillRect(rect, PD_COLOR_32(255, 0, 0, 127));
-        	//uiFuncs->text(*lines);
-			//uiFuncs->setCursorPos(pos);
-        	//uiFuncs->text(">"); 
-        } 
+        uiFuncs->setCursorPos(textStart);
 
-        uiFuncs->text(*lines);
-
-        lines++;
+        drawLines(uiFuncs, data, areaWidth + 10, 0, lineCount);
     }
+    else
+    {
+        // Here we need to find the starting point of the
+
+        drawLineAreaBG(uiFuncs, areaWidth);
+        drawLineArea(uiFuncs, 0, drawableLineCount, lineCount);
+
+        uiFuncs->setCursorPos(textStart);
+
+        drawLines(uiFuncs, data, areaWidth + 10, 0, drawableLineCount);
+    }
+
+    (void)textStart;
+
+    // Draw line column
+
+
+
+    uiFuncs->setCursorPos(textStart);
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

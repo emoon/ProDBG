@@ -88,7 +88,7 @@ void ProDBG_create(void* window, int width, int height)
     Context* context = &s_context;
     //Rect settingsRect;
 
-	log_info("create\n");
+    log_info("create\n");
 
     context->session = Session_create();
 

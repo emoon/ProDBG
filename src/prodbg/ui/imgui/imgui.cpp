@@ -1887,34 +1887,36 @@ ImVec2 CalcTextSize(const char* text, const char* text_end, const bool hide_text
     return size;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float GetTextWidth(const char* text, const char* textEnd)
 {
-	float bounds[4];
+    float bounds[4];
     ImGuiState& g = GImGui;
 
     if (!textEnd)
-    	textEnd = text + strlen(text);
+        textEnd = text + strlen(text);
 
-	return nvgTextBounds(g.NVGCtx, 0.0f, 0.0f, text, textEnd, bounds);
+    return nvgTextBounds(g.NVGCtx, 0.0f, 0.0f, text, textEnd, bounds);
 }
 
 // Rendering
 void FillRect(ImVec2 pos, ImVec2 size, unsigned int color)
 {
-	ImGuiState& g = GImGui;
+    ImGuiState& g = GImGui;
     ImGuiWindow* window = GetCurrentWindow();
 
-	ImVec2 windowPos = GetWindowPos();
-	nvgBeginPath(g.NVGCtx);
+    ImVec2 windowPos = GetWindowPos();
+    nvgBeginPath(g.NVGCtx);
 
-	if (size.x == -1)
-		size.x = window->Size.x - 10; 
-	if (size.y == -1)
-		size.y = window->Size.y - 24; 
+    if (size.x == -1)
+        size.x = window->Size.x - 32;
+    if (size.y == -1)
+        size.y = window->Size.y - 28;
 
-	nvgRect(g.NVGCtx, pos.x + windowPos.x, pos.y + windowPos.y, size.x, size.y);
-	nvgFillColor(g.NVGCtx, toNVGColor(color));
-	nvgFill(g.NVGCtx);
+    nvgRect(g.NVGCtx, pos.x + windowPos.x, pos.y + windowPos.y, size.x, size.y);
+    nvgFillColor(g.NVGCtx, toNVGColor(color));
+    nvgFill(g.NVGCtx);
 }
 
 // Find window given position, search front-to-back
@@ -3320,7 +3322,7 @@ static bool CloseWindowButton(bool* open)
     nvgFontSize(g.NVGCtx, 24.0f);
     nvgFillColor(g.NVGCtx, toNVGColor(col));
     nvgTextAlign(g.NVGCtx, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-    nvgText(g.NVGCtx, center.x, center.y, nvgCPToUTF8(ICON_CIRCLED_CROSS, icon), NULL);
+    nvgText(g.NVGCtx, center.x, center.y - 5.0f, nvgCPToUTF8(ICON_CIRCLED_CROSS, icon), NULL);
 
     /*
        window->DrawList->AddCircleFilled(center, ImMax(2.0f, size * 0.5f), col, 16);

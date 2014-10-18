@@ -24,7 +24,7 @@ struct PrivateData
 
 static void separator()
 {
-	ImGui::Separator();
+    ImGui::Separator();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,7 +38,7 @@ static void sameLine(int columnX, int spacingW)
 
 static void spacing()
 {
-	ImGui::Spacing();
+    ImGui::Spacing();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,83 +59,83 @@ static void nextColumn()
 
 static float getColumnOffset(int columnIndex)
 {
-	return ImGui::GetColumnOffset(columnIndex);
+    return ImGui::GetColumnOffset(columnIndex);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void setColumnOffset(int columnIndex, float offset)
 {
-	return ImGui::SetColumnOffset(columnIndex, offset);
+    return ImGui::SetColumnOffset(columnIndex, offset);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static float getColumnWidth(int columnIndex)
 {
-	return ImGui::GetColumnWidth(columnIndex);
+    return ImGui::GetColumnWidth(columnIndex);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static PDVec2 getCursorPos()
 {
-	ImVec2 t = ImGui::GetCursorPos();
-	PDVec2 r = { t.x, t.y };
-	return r; 
+    ImVec2 t = ImGui::GetCursorPos();
+    PDVec2 r = { t.x, t.y };
+    return r;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void setCursorPos(PDVec2 pos)
 {
-	ImGui::SetCursorPos(ImVec2(pos.x, pos.y));
+    ImGui::SetCursorPos(ImVec2(pos.x, pos.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void setCursorPosX(float x)
 {
-	ImGui::SetCursorPosX(x);
+    ImGui::SetCursorPosX(x);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void setCursorPosY(float y)
 {
-	ImGui::SetCursorPosY(y);
+    ImGui::SetCursorPosY(y);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static PDVec2 getCursorScreenPos()
 {
-	ImVec2 t = ImGui::GetCursorScreenPos();
-	PDVec2 r = { t.x, t.y };
-	return r; 
+    ImVec2 t = ImGui::GetCursorScreenPos();
+    PDVec2 r = { t.x, t.y };
+    return r;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void alignFirstTextHeightToWidgets()
 {
-	ImGui::AlignFirstTextHeightToWidgets();
+    ImGui::AlignFirstTextHeightToWidgets();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static float getTextLineSpacing()
 {
-	return ImGui::GetTextLineSpacing();
+    return ImGui::GetTextLineSpacing();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static float getTextLineHeight()
 {
-	return ImGui::GetTextLineHeight();
+    return ImGui::GetTextLineHeight();
 }
-  
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int button(const char* label)
@@ -166,30 +166,30 @@ static int buttonSize(const char* label, int width, int height, int repeatWhenHe
 
 static void fillRect(PDRect rect, unsigned int color)
 {
-	ImGui::FillRect(ImVec2(rect.x, rect.y), ImVec2(rect.width, rect.height), color);
+    ImGui::FillRect(ImVec2(rect.x, rect.y), ImVec2(rect.width, rect.height), color);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static float getTextWidth(const char* text, const char* textEnd)
 {
-	return ImGui::GetTextWidth(text, textEnd);
+    return ImGui::GetTextWidth(text, textEnd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static PDVec2 getWindowSize()
 {
-	ImVec2 size = ImGui::GetWindowSize();
-	PDVec2 r = { size.x, size.y };
-	return r;
+    ImVec2 size = ImGui::GetWindowSize();
+    PDVec2 r = { size.x, size.y };
+    return r;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static float getFontHeight()
 {
-	return 12.0f;	// TODO: Fix me
+    return 12.0f;   // TODO: Fix me
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -226,26 +226,26 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     uiInstance->button = button;
     uiInstance->buttonSize = buttonSize;
 
-	uiInstance->separator = separator;
-	uiInstance->sameLine = sameLine;
-	uiInstance->spacing = spacing;
+    uiInstance->separator = separator;
+    uiInstance->sameLine = sameLine;
+    uiInstance->spacing = spacing;
     uiInstance->columns = columns;
     uiInstance->nextColumn = nextColumn;
-	uiInstance->getColumnOffset = getColumnOffset;
-	uiInstance->setColumnOffset = setColumnOffset;
-	uiInstance->getColumnWidth = getColumnWidth;
-	uiInstance->getCursorPos = getCursorPos;
-	uiInstance->setCursorPos = setCursorPos;
-	uiInstance->setCursorPosX = setCursorPosX;
-	uiInstance->setCursorPosY = setCursorPosY;
-	uiInstance->getCursorScreenPos = getCursorScreenPos;
-	uiInstance->alignFirstTextHeightToWidgets = alignFirstTextHeightToWidgets;
-	uiInstance->getTextLineSpacing = getTextLineSpacing;
-	uiInstance->getTextLineHeight = getTextLineHeight;
- 	uiInstance->fillRect = fillRect;
- 	uiInstance->getTextWidth = getTextWidth;
-	uiInstance->getWindowSize = getWindowSize; 
-	uiInstance->getFontHeight = getFontHeight; 
+    uiInstance->getColumnOffset = getColumnOffset;
+    uiInstance->setColumnOffset = setColumnOffset;
+    uiInstance->getColumnWidth = getColumnWidth;
+    uiInstance->getCursorPos = getCursorPos;
+    uiInstance->setCursorPos = setCursorPos;
+    uiInstance->setCursorPosX = setCursorPosX;
+    uiInstance->setCursorPosY = setCursorPosY;
+    uiInstance->getCursorScreenPos = getCursorScreenPos;
+    uiInstance->alignFirstTextHeightToWidgets = alignFirstTextHeightToWidgets;
+    uiInstance->getTextLineSpacing = getTextLineSpacing;
+    uiInstance->getTextLineHeight = getTextLineHeight;
+    uiInstance->fillRect = fillRect;
+    uiInstance->getTextWidth = getTextWidth;
+    uiInstance->getWindowSize = getWindowSize;
+    uiInstance->getFontHeight = getFontHeight;
 
     uiInstance->privateData = alloc_zero(sizeof(PrivateData));
     data->name = buildName(pluginInstance->plugin->name, pluginInstance->count);
