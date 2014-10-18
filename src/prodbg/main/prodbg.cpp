@@ -9,6 +9,7 @@
 #include "ui/imgui_setup.h"
 #include "ui/ui_layout.h"
 #include "ui/menu.h"
+#include "ui/dialogs.h"
 
 #include <bgfx.h>
 #include <bgfxplatform.h>
@@ -248,6 +249,18 @@ void ProDBG_event(int eventId)
             onLoadRunExec();
             break;
         }
+
+		case PRODBG_MENU_FILE_OPEN_SOURCE:
+		{
+			char filename[4096];
+
+			if (Dialog_open(filename))
+			{
+				Session_loadSourceFile(context->session, filename);	
+			}
+
+			break;
+		}
 
         case PRODBG_MENU_DEBUG_STEP_INTO:
         {

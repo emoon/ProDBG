@@ -4,7 +4,8 @@
 
 MenuDescriptor g_fileMenu[] =
 {
-    { "Open and run executable...", PRODBG_MENU_FILE_OPEN_AND_RUN_EXE, 'o', PRODBG_KEY_COMMAND, PRODBG_KEY_CTRL },
+    { "Open and run executable...", PRODBG_MENU_FILE_OPEN_AND_RUN_EXE, 'd', PRODBG_KEY_COMMAND, PRODBG_KEY_CTRL },
+    { "Open source...", PRODBG_MENU_FILE_OPEN_SOURCE, 'o', PRODBG_KEY_COMMAND, PRODBG_KEY_CTRL },
     { 0, 0, 0, 0, 0 },
 };
 
