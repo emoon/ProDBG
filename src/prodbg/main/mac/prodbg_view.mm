@@ -23,21 +23,7 @@ void Window_setTitle(const char* title);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-@interface MyMenuItem : NSMenuItem
-{
-}
-- (BOOL)isHighlighted;
-@end
-
-@implementation MyMenuItem
-- (BOOL)isHighlighted
-{
-    return NO;
-}
-@end
-
 @implementation ProDBGView
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -292,7 +278,7 @@ void buildSubMenu(NSMenu* menu, MenuDescriptor menuDesc[])
         }
         else if (desc->id == PRODBG_MENU_SUB_MENU)
         {
-            MyMenuItem* newItem = [[MyMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:name action:NULL keyEquivalent:@""];
+            NSMenuItem* newItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:name action:NULL keyEquivalent:@""];
             NSMenu* newMenu = [[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:name];
             [newItem setSubmenu:newMenu];
             [newMenu release];
@@ -302,7 +288,7 @@ void buildSubMenu(NSMenu* menu, MenuDescriptor menuDesc[])
         else
         {
             int mask = 0;
-            MyMenuItem* newItem = [[MyMenuItem alloc] initWithTitle:name action:@selector(onMenuPress:) keyEquivalent:@""];
+            NSMenuItem* newItem = [[NSMenuItem alloc] initWithTitle:name action:@selector(onMenuPress:) keyEquivalent:@""];
             [newItem setTag:desc->id];
 
             if (desc->macMod & PRODBG_KEY_COMMAND)
@@ -314,9 +300,36 @@ void buildSubMenu(NSMenu* menu, MenuDescriptor menuDesc[])
             if (desc->macMod & PRODBG_KEY_ALT)
                 mask |= NSAlternateKeyMask;
 
-            // TODO: Support special keys
+            NSString* key = 0;
 
-            NSString* key = [NSString stringWithFormat:@"%c", desc->key];
+            if (desc->key >= 256)
+            {
+            	unichar c = 0;
+
+            	switch (desc->key)
+            	{
+					case PRODBG_KEY_F1 : c = NSF1FunctionKey; break;
+					case PRODBG_KEY_F2 : c = NSF2FunctionKey; break;
+					case PRODBG_KEY_F3 : c = NSF3FunctionKey; break;
+					case PRODBG_KEY_F4 : c = NSF4FunctionKey; break;
+					case PRODBG_KEY_F5 : c = NSF5FunctionKey; break;
+					case PRODBG_KEY_F6 : c = NSF6FunctionKey; break;
+					case PRODBG_KEY_F7 : c = NSF7FunctionKey; break;
+					case PRODBG_KEY_F8 : c = NSF8FunctionKey; break;
+					case PRODBG_KEY_F9 : c = NSF9FunctionKey; break;
+					case PRODBG_KEY_F10 : c = NSF10FunctionKey; break;
+					case PRODBG_KEY_F11 : c = NSF11FunctionKey; break;
+					case PRODBG_KEY_F12 : c = NSF12FunctionKey; break;
+            	}
+
+            	key = [NSString stringWithCharacters:&c length:1];
+            }
+            else
+            {
+            	key = [NSString stringWithFormat:@"%c", desc->key];
+            }
+
+            assert(key);
 
             if (key)
             {

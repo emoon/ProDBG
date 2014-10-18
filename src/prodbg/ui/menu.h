@@ -38,6 +38,28 @@ enum
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+enum
+{
+	PRODBG_KEY_F1 = 256,
+	PRODBG_KEY_F2,
+	PRODBG_KEY_F3,
+	PRODBG_KEY_F4,
+	PRODBG_KEY_F5,
+	PRODBG_KEY_F6,
+	PRODBG_KEY_F7,
+	PRODBG_KEY_F8,
+	PRODBG_KEY_F9,
+	PRODBG_KEY_F10,
+	PRODBG_KEY_F11,
+	PRODBG_KEY_F12,
+	PRODBG_KEY_ARROW_DOWN,
+	PRODBG_KEY_ARROW_UP,
+	PRODBG_KEY_ARROW_LEFT,
+	PRODBG_KEY_ARROW_RIGHT,
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef struct MenuDescriptor
 {
     const char* name;

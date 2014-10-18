@@ -248,6 +248,24 @@ void ProDBG_event(int eventId)
             onLoadRunExec();
             break;
         }
+
+        case PRODBG_MENU_DEBUG_STEP_INTO:
+        {
+        	log_info("stepInto\n");
+            break;
+        }
+
+        case PRODBG_MENU_DEBUG_STEP_OVER:
+        {
+        	log_info("stepOver\n");
+            break;
+        }
+
+        case PRODBG_MENU_DEBUG_STEP_OUT:
+        {
+        	log_info("stepOut\n");
+            break;
+        }
     }
 }
 
