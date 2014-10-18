@@ -314,6 +314,7 @@ bool        IsMouseClicked(int button, bool repeat = false);
 bool        IsMouseDoubleClicked(int button);
 bool        IsMouseHoveringBox(const ImVec2& box_min, const ImVec2& box_max);
 ImVec2      GetMousePos();
+ImVec2 		GetRelativeMousePos();
 float       GetTime();
 int         GetFrameCount();
 const char* GetStyleColorName(ImGuiCol idx);

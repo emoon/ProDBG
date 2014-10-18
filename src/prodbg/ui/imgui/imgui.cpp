@@ -2052,6 +2052,17 @@ ImVec2 GetItemBoxMin()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+ImVec2 GetRelativeMousePos()
+{
+    ImGuiState& g = GImGui;
+    ImGuiWindow* window = GetCurrentWindow();
+    ImVec2 pos = g.IO.MousePos - window->Pos;
+    ImVec2 zero = ImVec2(0.0f, 0.0f);
+    return ImClamp(pos, zero, window->Size); 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ImVec2 GetItemBoxMax()
 {
     ImGuiWindow* window = GetCurrentWindow();

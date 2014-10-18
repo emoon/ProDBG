@@ -194,6 +194,45 @@ static float getFontHeight()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static PDVec2 getMousePos()
+{
+	ImVec2 pos = ImGui::GetRelativeMousePos();
+	PDVec2 r = { pos.x, pos.y };
+	return r;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PDVec2 getMouseScreenPos()
+{
+	ImVec2 pos = ImGui::GetMousePos();
+	PDVec2 r = { pos.x, pos.y };
+	return r;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int isMouseClicked(int button, int repeat)
+{
+	return ImGui::IsMouseClicked(button, !!repeat);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int isMouseDoubleClicked(int button)
+{
+	return ImGui::IsMouseDoubleClicked(button);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int isMouseHoveringBox(PDVec2 boxMin, PDVec2 boxMax)
+{
+	return ImGui::IsMouseHoveringBox(ImVec2(boxMin.x, boxMin.y), ImVec2(boxMax.x, boxMax.y));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 char* buildName(const char* pluginName, int id)
 {
     char idBuffer[32];
@@ -246,6 +285,11 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     uiInstance->getTextWidth = getTextWidth;
     uiInstance->getWindowSize = getWindowSize;
     uiInstance->getFontHeight = getFontHeight;
+	uiInstance->getMousePos = getMousePos;
+	uiInstance->getMouseScreenPos = getMouseScreenPos;
+	uiInstance->isMouseClicked = isMouseClicked;
+	uiInstance->isMouseDoubleClicked = isMouseDoubleClicked; 
+	uiInstance->isMouseHoveringBox = isMouseHoveringBox; 
 
     uiInstance->privateData = alloc_zero(sizeof(PrivateData));
     data->name = buildName(pluginInstance->plugin->name, pluginInstance->count);

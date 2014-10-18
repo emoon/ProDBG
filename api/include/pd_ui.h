@@ -66,6 +66,14 @@ typedef struct PDUI
     int (*button)(const char* label);
     int (*buttonSize)(const char* label, int width, int height, int repeatWhenHeld);
 
+    // Keyboard and mouse
+
+	PDVec2 (*getMousePos)();
+	PDVec2 (*getMouseScreenPos)();
+	int (*isMouseClicked)(int button, int repeat);
+	int (*isMouseDoubleClicked)(int button);
+	int (*isMouseHoveringBox)(PDVec2 boxMin, PDVec2 boxMax);
+
     // Rendering
 
 	void (*fillRect)(PDRect rect, unsigned int color); 
