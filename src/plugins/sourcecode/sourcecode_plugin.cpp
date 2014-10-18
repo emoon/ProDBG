@@ -156,8 +156,6 @@ static void setExceptionLocation(SourceCodeData* data, PDReader* inEvents)
     if (PDRead_findU32(inEvents, &line, "line", 0) == PDReadStatus_notFound)
         return;
 
-    printf("filename %s\n", filename);
-
     parseFile(&data->file, filename);
 
     data->line = line;
