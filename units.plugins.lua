@@ -123,6 +123,21 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+SharedLibrary {
+    Name = "breakpoints_plugin",
+    
+    Env = {
+        CPPPATH = { "api/include", },
+    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
+        SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
+        CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
+    },
+
+    Sources = { "src/plugins/breakpoints/breakpoints_plugin.cpp" },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
 if native.host_platform == "macosx" then
    Default "lldb_plugin"
 end
@@ -132,4 +147,5 @@ Default "callstack_plugin"
 Default "sourcecode_plugin"
 Default "disassembly_plugin"
 Default "locals_plugin"
+Default "breakpoints_plugin"
 
