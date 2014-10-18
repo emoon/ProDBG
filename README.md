@@ -1,7 +1,12 @@
 ProDBG
 ======
 
-Debugging the way it's meant to be done
+ProDBG is a new debugger under development that will support a varaity of targets and operating systems. Currently it's in very early development and primary focusing on Mac as primary target. This is how it currently looks.
+
+![mac_screenshot](https://raw.githubusercontent.com/emoon/ProDBG/master/data/screens/mac_screenshot.png)
+
+
+## Build status
 
 Mac build status <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Mac)/statusIcon"/></a>
 
