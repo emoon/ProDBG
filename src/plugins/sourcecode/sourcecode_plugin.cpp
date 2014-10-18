@@ -110,6 +110,8 @@ void parseFile(File* file, const char* filename)
         target++;
     }
 
+	*target++ = 0;
+
     file->filename = strdup(filename);
     file->lineCount = lineCount;
 
@@ -217,7 +219,7 @@ static void drawLines(PDUI* uiFuncs, SourceCodeData* data, float lineStart, int 
 {
     const char** lines = (const char**)data->file.lines;
 
-    for (int i = offset; i < (offset + lineCount); ++i)
+    for (int i = offset; i < lineCount; ++i)
     {
         uiFuncs->setCursorPosX(lineStart);
 
@@ -234,7 +236,6 @@ static void drawLines(PDUI* uiFuncs, SourceCodeData* data, float lineStart, int 
 
         uiFuncs->text(lines[i]);
     }
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -271,14 +272,24 @@ static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
     }
     else
     {
-        // Here we need to find the starting point of the
+        // We want the breakline to be in the center of the screen so calculate the pos as such
+		
+		int lineStart = (int)data->line - drawableLineCount / 2;
+
+		if (lineStart < 0)
+			lineStart = 0;
+
+		// Make sure we don't draw too many lines
+
+		if (lineStart + drawableLineCount > lineCount)
+			drawableLineCount = lineCount;
 
         drawLineAreaBG(uiFuncs, areaWidth);
-        drawLineArea(uiFuncs, 0, drawableLineCount, lineCount);
+        drawLineArea(uiFuncs, lineStart, drawableLineCount, lineCount);
 
         uiFuncs->setCursorPos(textStart);
 
-        drawLines(uiFuncs, data, areaWidth + 10, 0, drawableLineCount);
+        drawLines(uiFuncs, data, areaWidth + 10, lineStart, drawableLineCount);
     }
 
     (void)textStart;
