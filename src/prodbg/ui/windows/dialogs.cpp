@@ -3,16 +3,16 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Dialog_open(char_t* path)
+int Dialog_open(char* path)
 {
 	OPENFILENAME ofn;
 
 	ZeroMemory(&ofn, sizeof(ofn));
 	ofn.lStructSize = sizeof(ofn);
-	ofn.lpstrFile = path;
+	ofn.lpstrFile = (wchar_t*)path;
 	ofn.lpstrFile[0] = '\0';
 	ofn.nMaxFile = MAX_PATH;
-	ofn.lpstrFilter = "All Files (*.*)\0*.*\0";
+	ofn.lpstrFilter = L"All Files (*.*)\0*.*\0";
 	ofn.nFilterIndex = 1;
 	ofn.lpstrFileTitle = NULL;
 	ofn.nMaxFileTitle = 0;
@@ -29,8 +29,8 @@ int Dialog_save(char* path)
 	OPENFILENAME dialog;
 	ZeroMemory(&dialog, sizeof(dialog));
 	dialog.lStructSize = sizeof(dialog);
-	dialog.lpstrFilter = "All Files (*.*)\0*.*\0";
-	dialog.lpstrFile = path;
+	dialog.lpstrFilter = L"All Files (*.*)\0*.*\0";
+	dialog.lpstrFile = (wchar_t*)path;	// hack hack
 	dialog.nMaxFile = MAX_PATH;
 	dialog.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
 	dialog.lpstrDefExt = "*";
