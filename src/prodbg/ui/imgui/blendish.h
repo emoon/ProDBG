@@ -390,7 +390,7 @@ void bndRoundedBox(NVGcontext* ctx, float x, float y, float w, float h,
 void bndBackground(NVGcontext* ctx, float x, float y, float w, float h);
 
 // Background with a brighten frame
-void bndFrame(NVGcontext* ctx, float x, float y, float w, float h);
+void bndFrame(NVGcontext* ctx, float x, float y, float w, float h, bool selected);
 
 // Draw a lower inset for a rounded box at position (x,y) with size (w,h)
 // that gives the impression the surface has been pushed in.
@@ -1111,7 +1111,7 @@ void bndBackground(NVGcontext* ctx, float x, float y, float w, float h) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void bndFrame(NVGcontext* ctx, float x, float y, float w, float h) {
+void bndFrame(NVGcontext* ctx, float x, float y, float w, float h, bool selected) {
 
     nvgBeginPath(ctx);
     nvgRect(ctx, x - 2, y - 2, w + 4, h + 4);
@@ -1122,7 +1122,11 @@ void bndFrame(NVGcontext* ctx, float x, float y, float w, float h) {
 
     nvgBeginPath(ctx);
     nvgRect(ctx, x, y, w, borderSize);
-    nvgFillColor(ctx, nvgRGBA(60, 60, 60, 255));
+	if (selected)
+    	nvgFillColor(ctx, nvgRGBA(60, 60, 60, 255));
+	else
+    	nvgFillColor(ctx, nvgRGBA(90, 90, 90, 255));
+
     nvgFill(ctx);
 
     bndBackground(ctx, x, y + borderSize, w, h - borderSize);

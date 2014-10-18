@@ -50,6 +50,7 @@ static const char* s_plugins[] =
     "locals_plugin",
     "callstack_plugin",
     "registers_plugin",
+    "breakpoints_plugin",
 #ifdef PRODBG_MAC
     "lldb_plugin",
 #endif
@@ -64,7 +65,6 @@ static void setLayout(UILayout* layout)
     Session_setLayout(context->session, layout, context->width, context->height);
     IMGUI_postUpdate();
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

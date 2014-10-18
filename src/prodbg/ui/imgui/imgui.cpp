@@ -2433,8 +2433,9 @@ bool BeginWithWindow(ImGuiWindow* window, const char* name, bool* open, ImVec2 s
                 //   window->DrawList->AddRectFilled(window->Pos, window->Pos+window->Size, window->Color(ImGuiCol_WindowBg, fill_alpha), g.Style.WindowRounding);
 
 
+				bool selected = g.FocusedWindow != window;
 
-                bndFrame(g.NVGCtx, window->Pos.x, window->Pos.y, window->Size.x, window->Size.y);
+                bndFrame(g.NVGCtx, window->Pos.x, window->Pos.y, window->Size.x, window->Size.y, selected);
             }
 
             if (!(window->Flags & ImGuiWindowFlags_NoTitleBar))
