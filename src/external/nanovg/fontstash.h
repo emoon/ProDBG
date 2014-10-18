@@ -1320,7 +1320,9 @@ int fonsTextIterNext(struct FONScontext* stash, struct FONStextIter* iter, struc
 		return 0;
 
 	for (; str != iter->end; str++) {
-		if (fons__decutf8(&iter->utf8state, &iter->codepoint, *(const unsigned char*)str))
+		unsigned char s = *(const unsigned char*)str;
+		if (s == '\t') s = ' ';
+		if (fons__decutf8(&iter->utf8state, &iter->codepoint, s))
 			continue;
 		str++;
 		// Get glyph and quad
