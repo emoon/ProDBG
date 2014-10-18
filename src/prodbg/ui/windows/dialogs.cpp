@@ -33,7 +33,7 @@ int Dialog_save(char* path)
 	dialog.lpstrFile = (wchar_t*)path;	// hack hack
 	dialog.nMaxFile = MAX_PATH;
 	dialog.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-	dialog.lpstrDefExt = "*";
+	dialog.lpstrDefExt = L"*";
 	return GetSaveFileName(&dialog);
 }
 
@@ -41,6 +41,6 @@ int Dialog_save(char* path)
 
 void Dialog_showError(const char* text)
 {
-	MessageBox(NULL, text, "Error", MB_ICONERROR | MB_OK);
+	MessageBox(NULL, (wchar_t*)text, L"Error", MB_ICONERROR | MB_OK);
 }
 
