@@ -18,6 +18,7 @@ struct File
 
 struct SourceCodeData
 {
+	int cursorPos;
     uint32_t line;
     File file;  // TODO: support more files
 };
@@ -58,7 +59,6 @@ static void* readFileFromDisk(const char* file, size_t* size)
     return data;
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Do not read whole file to memory?
 // TODO: Have a cache of files
@@ -90,6 +90,9 @@ void parseFile(File* file, const char* filename)
     file->startData = target;
     targetEnd = target + size;
 
+    char* oldTarget = (char*)malloc(size);
+    memcpy(oldTarget, target, size); 
+
     // so this is really waste of memory but will do for now
 
     file->lines = lines = (char**)malloc(sizeof(char*) * size);
@@ -103,19 +106,19 @@ void parseFile(File* file, const char* filename)
 
         if (*target == '\n')
         {
-            *target++ = 0;
-            lines[lineCount++] = target;
+            *target = 0;
+            lines[lineCount++] = target + 1; 
         }
 
         target++;
     }
 
+    target = lines[0];
+
 	*target++ = 0;
 
     file->filename = strdup(filename);
     file->lineCount = lineCount;
-
-    printf("found %d lines in %s\n", lineCount, filename);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -199,6 +202,19 @@ static void drawLineAreaBG(PDUI* uiFuncs, float areaWidth)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void drawCursor(PDUI* uiFuncs)
+{
+	PDRect rect;
+	PDVec2 pos = uiFuncs->getCursorPos();
+	rect.x = pos.x;
+	rect.y = pos.y - 11;
+	rect.width = 10;
+	rect.height = 14;
+	uiFuncs->fillRect(rect, PD_COLOR_32(200, 0, 0, 127));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void drawLineArea(PDUI* uiFuncs, int offset, int lineCount, int maxLineCount)
 {
     char formatString[64];
@@ -221,6 +237,9 @@ static void drawLines(PDUI* uiFuncs, SourceCodeData* data, float lineStart, int 
     {
         uiFuncs->setCursorPosX(lineStart);
 
+        if (i == data->cursorPos)
+			drawCursor(uiFuncs);
+
         if ((i + 1) == (int)data->line)
         {
             PDRect rect;
@@ -231,6 +250,8 @@ static void drawLines(PDUI* uiFuncs, SourceCodeData* data, float lineStart, int 
             rect.height = 14;
             uiFuncs->fillRect(rect, PD_COLOR_32(200, 0, 0, 127));
         }
+
+        //printf("%d - %d %d\n", i, lines[i][0], lines[i][1]);
 
         uiFuncs->text(lines[i]);
     }
@@ -294,10 +315,34 @@ static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
 
     // Draw line column
 
+	uiFuncs->setCursorPos(textStart);
+}
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    uiFuncs->setCursorPos(textStart);
+static void updateKeyboard(SourceCodeData* data, PDUI* uiFuncs)
+{
+	int cursorPos = data->cursorPos;
 
+	if (uiFuncs->isKeyDown(PDKEY_UP, 1))
+	{
+		cursorPos--;
+
+		if (cursorPos < 0)
+			cursorPos = 0;
+	}
+
+	if (uiFuncs->isKeyDown(PDKEY_DOWN, 1))
+	{
+		cursorPos++;
+
+		const int lineCount = data->file.lineCount - 1;
+
+		if (cursorPos > lineCount)
+			cursorPos = lineCount;
+	}
+
+	data->cursorPos = cursorPos;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -310,7 +355,6 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     SourceCodeData* data = (SourceCodeData*)userData;
 
-
     while ((event = PDRead_getEvent(inEvents)) != 0)
     {
         switch (event)
@@ -322,6 +366,8 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
             }
         }
     }
+
+    updateKeyboard(data, uiFuncs);
 
     showInUI(data, uiFuncs);
 
