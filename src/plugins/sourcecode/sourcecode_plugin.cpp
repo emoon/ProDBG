@@ -90,9 +90,6 @@ void parseFile(File* file, const char* filename)
     file->startData = target;
     targetEnd = target + size;
 
-    char* oldTarget = (char*)malloc(size);
-    memcpy(oldTarget, target, size); 
-
     // so this is really waste of memory but will do for now
 
     file->lines = lines = (char**)malloc(sizeof(char*) * size);
