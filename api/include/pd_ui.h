@@ -77,7 +77,8 @@ typedef struct PDUI
 
 	// Keyboard
 	
-	int (*getKeyDown)(int* mod);
+	int (*isKeyDown)(int key, int repeat);
+	int (*getKeyModifier)();
 	
     // Rendering
 

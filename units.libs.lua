@@ -324,6 +324,7 @@ StaticLibrary {
         },
 
         CPPPATH = { 
+        	"api/include",
             "src/external/nanovg",
             "src/external/stb",
 			"src/external/libyaml/include",

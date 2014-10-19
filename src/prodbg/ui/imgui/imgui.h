@@ -315,7 +315,7 @@ bool        IsMouseDoubleClicked(int button);
 bool        IsMouseHoveringBox(const ImVec2& box_min, const ImVec2& box_max);
 ImVec2      GetMousePos();
 ImVec2 		GetRelativeMousePos();
-int			GetKeyDown(int* modifier);
+bool        IsFocusWindowKeyDown(int key_index, bool repeat);                        // key_index into the keys_down[512] array, imgui doesn't know the semantic of each entry
 float       GetTime();
 int         GetFrameCount();
 const char* GetStyleColorName(ImGuiCol idx);
@@ -355,6 +355,7 @@ enum ImGuiInputTextFlags_
 };
 
 // User fill ImGuiIO.KeyMap[] array with indices into the ImGuiIO.KeysDown[512] array
+/*
 enum ImGuiKey_
 {
     ImGuiKey_Tab,
@@ -376,6 +377,7 @@ enum ImGuiKey_
     ImGuiKey_Z,         // for CTRL+Z: undo
     ImGuiKey_COUNT
 };
+*/
 
 enum ImGuiCol_
 {
@@ -459,7 +461,7 @@ struct ImGuiIO
     const char* LogFilename;                // = "imgui_log.txt"        // Absolute path to .log file.
     float MouseDoubleClickTime;             // = 0.30f                  // Time for a double-click, in seconds.
     float MouseDoubleClickMaxDist;          // = 6.0f                   // Distance threshold to stay in to validate a double-click, in pixels.
-    int KeyMap[ImGuiKey_COUNT];             // <unset>                  // Map of indices into the KeysDown[512] entries array
+    //int KeyMap[ImGuiKey_COUNT];             // <unset>                  // Map of indices into the KeysDown[512] entries array
     ImFont Font;                            // <auto>                   // Gets passed to text functions. Typedef ImFont to the type you want (ImBitmapFont* or your own font).
     float FontYOffset;                      // = 0.0f					// Offset font rendering by xx pixels in Y axis.
     ImVec2 FontTexUvForWhite;               // = (0.0f,0.0f)            // Font texture must have a white pixel at this UV coordinate. Adjust if you are using custom texture.

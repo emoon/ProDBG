@@ -193,6 +193,7 @@
 #include <nanovg.h>
 #include "blendish.h"
 #include "core/log.h"
+#include <pd_keys.h>
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4996) // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
@@ -1193,7 +1194,7 @@ bool ImGuiWindow::FocusItemRegister(bool is_active, int* out_idx)
         return false;
 
     // Process input at this point: TAB, Shift-TAB switch focus
-    if (FocusIdxRequestNext == IM_INT_MAX && is_active && ImGui::IsKeyPressedMap(ImGuiKey_Tab))
+    if (FocusIdxRequestNext == IM_INT_MAX && is_active && ImGui::IsKeyPressedMap(PDKEY_TAB))
     {
         // Modulo on index will be applied at the end of frame once we've got the total counter of items.
         FocusIdxRequestNext = FocusIdxCounter + (g.IO.KeyShift ? -1 : +1);
@@ -1522,7 +1523,7 @@ void NewFrame()
 
     // Pressing TAB activate widget focus
     // NB: Don't discard FocusedWindow if it isn't active, so that a window that go on/off programatically won't lose its keyboard focus.
-    if (g.ActiveId == 0 && g.FocusedWindow != NULL && g.FocusedWindow->Visible && IsKeyPressedMap(ImGuiKey_Tab, false))
+    if (g.ActiveId == 0 && g.FocusedWindow != NULL && g.FocusedWindow->Visible && IsKeyPressedMap(PDKEY_TAB, false))
     {
         g.FocusedWindow->FocusIdxRequestNext = 0;
     }
@@ -1967,11 +1968,9 @@ bool IsMouseHoveringBox(const ImVec2& box_min, const ImVec2& box_max)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool IsKeyPressedMap(ImGuiKey key, bool repeat)
+static bool IsKeyPressedMap(int key, bool repeat)
 {
-    ImGuiState& g = GImGui;
-    const int key_index = g.IO.KeyMap[key];
-    return IsKeyPressed(key_index, repeat);
+    return IsKeyPressed(key, repeat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2036,23 +2035,17 @@ ImVec2 GetMousePos()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int	GetKeyDown(int* modifier)
+bool IsFocusWindowKeyDown(int key, bool repeat)
 {
     ImGuiState& g = GImGui;
-
     ImGuiWindow* window = GetCurrentWindow();
 
     // Only send keyboard events to selected window
 
 	if (g.FocusedWindow != window)
-	{
-		*modifier = 0;
-		return 0;
-	}
+		return false;
 
-    *modifier = g.IO.keyMod;
-
-    return g.IO.keyDown;
+	 return IsKeyPressed(key, repeat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4577,36 +4570,36 @@ bool InputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlag
             edit_state.SelectedAllMouseLock = false;
 
         const int k_mask = (is_shift_down ? STB_TEXTEDIT_K_SHIFT : 0);
-        if (IsKeyPressedMap(ImGuiKey_LeftArrow))           edit_state.OnKeyboardPressed(is_ctrl_down ? STB_TEXTEDIT_K_WORDLEFT | k_mask : STB_TEXTEDIT_K_LEFT | k_mask);
-        else if (IsKeyPressedMap(ImGuiKey_RightArrow))
+        if (IsKeyPressedMap(PDKEY_LEFT))           edit_state.OnKeyboardPressed(is_ctrl_down ? STB_TEXTEDIT_K_WORDLEFT | k_mask : STB_TEXTEDIT_K_LEFT | k_mask);
+        else if (IsKeyPressedMap(PDKEY_RIGHT))
             edit_state.OnKeyboardPressed(is_ctrl_down ? STB_TEXTEDIT_K_WORDRIGHT | k_mask  : STB_TEXTEDIT_K_RIGHT | k_mask);
-        else if (IsKeyPressedMap(ImGuiKey_UpArrow))
+        else if (IsKeyPressedMap(PDKEY_UP))
             edit_state.OnKeyboardPressed(STB_TEXTEDIT_K_UP | k_mask);
-        else if (IsKeyPressedMap(ImGuiKey_DownArrow))
+        else if (IsKeyPressedMap(PDKEY_DOWN))
             edit_state.OnKeyboardPressed(STB_TEXTEDIT_K_DOWN | k_mask);
-        else if (IsKeyPressedMap(ImGuiKey_Home))
+        else if (IsKeyPressedMap(PDKEY_HOME))
             edit_state.OnKeyboardPressed(is_ctrl_down ? STB_TEXTEDIT_K_TEXTSTART | k_mask : STB_TEXTEDIT_K_LINESTART | k_mask);
-        else if (IsKeyPressedMap(ImGuiKey_End))
+        else if (IsKeyPressedMap(PDKEY_END))
             edit_state.OnKeyboardPressed(is_ctrl_down ? STB_TEXTEDIT_K_TEXTEND | k_mask : STB_TEXTEDIT_K_LINEEND | k_mask);
-        else if (IsKeyPressedMap(ImGuiKey_Delete))
+        else if (IsKeyPressedMap(PDKEY_DELETE))
             edit_state.OnKeyboardPressed(STB_TEXTEDIT_K_DELETE | k_mask);
-        else if (IsKeyPressedMap(ImGuiKey_Backspace))
+        else if (IsKeyPressedMap(PDKEY_BACKSPACE))
             edit_state.OnKeyboardPressed(STB_TEXTEDIT_K_BACKSPACE | k_mask);
-        else if (IsKeyPressedMap(ImGuiKey_Enter))
+        else if (IsKeyPressedMap(PDKEY_ENTER))
         {
             g.ActiveId = 0; enter_pressed = true;
         }
-        else if (IsKeyPressedMap(ImGuiKey_Escape))
+        else if (IsKeyPressedMap(PDKEY_ESCAPE))
         {
             g.ActiveId = 0; cancel_edit = true;
         }
-        else if (is_ctrl_down && IsKeyPressedMap(ImGuiKey_Z))
+        else if (is_ctrl_down && IsKeyPressedMap(PDKEY_Z))
             edit_state.OnKeyboardPressed(STB_TEXTEDIT_K_UNDO);                                                          // I don't want to use shortcuts but we should probably have an Input-catch stack
-        else if (is_ctrl_down && IsKeyPressedMap(ImGuiKey_Y))
+        else if (is_ctrl_down && IsKeyPressedMap(PDKEY_Y))
             edit_state.OnKeyboardPressed(STB_TEXTEDIT_K_REDO);
-        else if (is_ctrl_down && IsKeyPressedMap(ImGuiKey_A))
+        else if (is_ctrl_down && IsKeyPressedMap(PDKEY_A))
             edit_state.SelectAll();
-        else if (is_ctrl_down && IsKeyPressedMap(ImGuiKey_X))
+        else if (is_ctrl_down && IsKeyPressedMap(PDKEY_X))
         {
             if (!edit_state.HasSelection())
                 edit_state.SelectAll();
@@ -4617,14 +4610,14 @@ bool InputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlag
                 g.IO.SetClipboardTextFn(edit_state.Text + ib, edit_state.Text + ie);
             stb_textedit_cut(&edit_state, &edit_state.StbState);
         }
-        else if (is_ctrl_down && IsKeyPressedMap(ImGuiKey_C))
+        else if (is_ctrl_down && IsKeyPressedMap(PDKEY_C))
         {
             const int ib = edit_state.HasSelection() ? ImMin(edit_state.StbState.select_start, edit_state.StbState.select_end) : 0;
             const int ie = edit_state.HasSelection() ? ImMax(edit_state.StbState.select_start, edit_state.StbState.select_end) : (int)strlen(edit_state.Text);
             if (g.IO.SetClipboardTextFn)
                 g.IO.SetClipboardTextFn(edit_state.Text + ib, edit_state.Text + ie);
         }
-        else if (is_ctrl_down && IsKeyPressedMap(ImGuiKey_V))
+        else if (is_ctrl_down && IsKeyPressedMap(PDKEY_V))
         {
             if (g.IO.GetClipboardTextFn)
                 if (const char* clipboard = g.IO.GetClipboardTextFn())

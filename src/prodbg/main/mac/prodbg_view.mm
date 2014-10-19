@@ -254,8 +254,6 @@ static int translateKey(unsigned int key)
     const int key = translateKey([event keyCode]);
     const int mods = getModifierFlags([event modifierFlags]);
 
-    printf("keyDown %d\n", key);
-
     ProDBG_keyDown(key, mods);
 }
 
@@ -265,8 +263,6 @@ static int translateKey(unsigned int key)
 {
     const int key = translateKey([event keyCode]);
     const int mods = getModifierFlags([event modifierFlags]);
-
-    printf("keyUp %d\n", key);
 
     ProDBG_keyUp(key, mods);
 }

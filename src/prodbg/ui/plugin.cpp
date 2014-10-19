@@ -233,14 +233,16 @@ static int isMouseHoveringBox(PDVec2 boxMin, PDVec2 boxMax)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int getKeyDown(int* mod)
+static int isKeyDown(int key, int repeat)
 {
-	int tempMod;
+	return ImGui::IsFocusWindowKeyDown(key, !!repeat);
+}
 
-	if (!mod)
-		mod = &tempMod;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	return ImGui::GetKeyDown(mod);
+static int getKeyModifier()
+{
+	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -304,7 +306,8 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
 	uiInstance->isMouseClicked = isMouseClicked;
 	uiInstance->isMouseDoubleClicked = isMouseDoubleClicked; 
 	uiInstance->isMouseHoveringBox = isMouseHoveringBox; 
-	uiInstance->getKeyDown = getKeyDown; 
+	uiInstance->isKeyDown = isKeyDown; 
+	uiInstance->getKeyModifier = getKeyModifier; 
 
     uiInstance->privateData = alloc_zero(sizeof(PrivateData));
     data->name = buildName(pluginInstance->plugin->name, pluginInstance->count);

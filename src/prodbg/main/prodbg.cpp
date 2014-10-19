@@ -302,6 +302,8 @@ void ProDBG_setMousePos(float x, float y)
     context->mouseX = x;
     context->mouseY = y;
 
+	IMGUI_setMouse(x, y, context->mouseLmb);
+
     ProDBG_update();
 }
 
@@ -314,6 +316,8 @@ void ProDBG_setMouseState(int button, int state)
 
     context->mouseLmb = state;
 
+	IMGUI_setMouse(context->mouseX, context->mouseY, state);
+
     ProDBG_update();
 }
 
@@ -321,23 +325,14 @@ void ProDBG_setMouseState(int button, int state)
 
 void ProDBG_keyDown(int key, int modifier)
 {
-    Context* context = &s_context;
-    context->keyDown = key;
-    context->keyMod = modifier;
+	IMGUI_setKeyDown(key, modifier);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ProDBG_keyUp(int key, int modifier)
 {
-	(void)key;
-	(void)modifier;
-
-	// TODO: Verify that this is really the correct way to do it.
-
-    Context* context = &s_context;
-    context->keyDown = PDKEY_UNKNOWN;
-    context->keyMod = 0;
+	IMGUI_setKeyUp(key, modifier);
 }
 
 
