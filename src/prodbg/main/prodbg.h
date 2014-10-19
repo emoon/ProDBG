@@ -14,6 +14,8 @@ void ProDBG_timedUpdate();
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Events
 
+void ProDBG_keyDown(int key, int modifier);
+void ProDBG_keyUp(int key, int modifier);
 void ProDBG_event(int eventId);
 void ProDBG_scroll(float deltaX, float deltaY, int flags);
 void ProDBG_setMousePos(float x, float y);

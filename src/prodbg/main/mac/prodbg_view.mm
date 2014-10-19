@@ -8,6 +8,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <Carbon/Carbon.h>
 #include <pd_common.h>
+#include <pd_keys.h>
 
 //NSWindow* g_window = 0;
 
@@ -87,74 +88,187 @@ int getModifierFlags(int flags)
 {
     int specialKeys = 0;
 
-    (void)flags;
+	if (flags & NSShiftKeyMask)
+		specialKeys |= PDKEY_SHIFT;
 
-    /*
-       if (flags & NSShiftKeyMask)
-        specialKeys |= PRODBG_KEY_SHIFT;
+	if (flags & NSAlternateKeyMask)
+		specialKeys |= PDKEY_ALT;
 
-       if (flags & NSAlternateKeyMask)
-        specialKeys |= PRODBG_KEY_ALT;
+	if (flags & NSControlKeyMask)
+		specialKeys |= PDKEY_CTRL;
 
-       if (flags & NSControlKeyMask)
-        specialKeys |= PRODBG_KEY_CTRL;
-
-       if (flags & NSCommandKeyMask)
-        specialKeys |= PRODBG_KEY_COMMAND;
-     */
+	if (flags & NSCommandKeyMask)
+		specialKeys |= PDKEY_SUPER;
 
     return specialKeys;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-- (void)keyDown:(NSEvent*)theEvent
+static int translateKey(unsigned int key)
 {
-    (void)theEvent;
-    //NSString* key = [theEvent charactersIgnoringModifiers];
-    //unichar keyChar = 0;
-    //if ([key length] == 0)
-    //	return;
+    // Keyboard symbol translation table
 
-    //keyChar = [key characterAtIndex:0];
+    static const unsigned int table[128] =
+    {
+        /* 00 */ PDKEY_A,
+        /* 01 */ PDKEY_S,
+        /* 02 */ PDKEY_D,
+        /* 03 */ PDKEY_F,
+        /* 04 */ PDKEY_H,
+        /* 05 */ PDKEY_G,
+        /* 06 */ PDKEY_Z,
+        /* 07 */ PDKEY_X,
+        /* 08 */ PDKEY_C,
+        /* 09 */ PDKEY_V,
+        /* 0a */ PDKEY_GRAVE_ACCENT,
+        /* 0b */ PDKEY_B,
+        /* 0c */ PDKEY_Q,
+        /* 0d */ PDKEY_W,
+        /* 0e */ PDKEY_E,
+        /* 0f */ PDKEY_R,
+        /* 10 */ PDKEY_Y,
+        /* 11 */ PDKEY_T,
+        /* 12 */ PDKEY_1,
+        /* 13 */ PDKEY_2,
+        /* 14 */ PDKEY_3,
+        /* 15 */ PDKEY_4,
+        /* 16 */ PDKEY_6,
+        /* 17 */ PDKEY_5,
+        /* 18 */ PDKEY_EQUAL,
+        /* 19 */ PDKEY_9,
+        /* 1a */ PDKEY_7,
+        /* 1b */ PDKEY_MINUS,
+        /* 1c */ PDKEY_8,
+        /* 1d */ PDKEY_0,
+        /* 1e */ PDKEY_RIGHT_BRACKET,
+        /* 1f */ PDKEY_O,
+        /* 20 */ PDKEY_U,
+        /* 21 */ PDKEY_LEFT_BRACKET,
+        /* 22 */ PDKEY_I,
+        /* 23 */ PDKEY_P,
+        /* 24 */ PDKEY_ENTER,
+        /* 25 */ PDKEY_L,
+        /* 26 */ PDKEY_J,
+        /* 27 */ PDKEY_APOSTROPHE,
+        /* 28 */ PDKEY_K,
+        /* 29 */ PDKEY_SEMICOLON,
+        /* 2a */ PDKEY_BACKSLASH,
+        /* 2b */ PDKEY_COMMA,
+        /* 2c */ PDKEY_SLASH,
+        /* 2d */ PDKEY_N,
+        /* 2e */ PDKEY_M,
+        /* 2f */ PDKEY_PERIOD,
+        /* 30 */ PDKEY_TAB,
+        /* 31 */ PDKEY_SPACE,
+        /* 32 */ PDKEY_UNKNOWN,
+        /* 33 */ PDKEY_BACKSPACE,
+        /* 34 */ PDKEY_UNKNOWN,
+        /* 35 */ PDKEY_ESCAPE,
+        /* 36 */ PDKEY_RIGHT_SUPER,
+        /* 37 */ PDKEY_LEFT_SUPER,
+        /* 38 */ PDKEY_LEFT_SHIFT,
+        /* 39 */ PDKEY_CAPS_LOCK,
+        /* 3a */ PDKEY_LEFT_ALT,
+        /* 3b */ PDKEY_LEFT_CONTROL,
+        /* 3c */ PDKEY_RIGHT_SHIFT,
+        /* 3d */ PDKEY_RIGHT_ALT,
+        /* 3e */ PDKEY_RIGHT_CONTROL,
+        /* 3f */ PDKEY_UNKNOWN,
+        /* 40 */ PDKEY_F17,
+        /* 41 */ PDKEY_KP_DECIMAL,
+        /* 42 */ PDKEY_UNKNOWN,
+        /* 43 */ PDKEY_KP_MULTIPLY,
+        /* 44 */ PDKEY_UNKNOWN,
+        /* 45 */ PDKEY_KP_ADD,
+        /* 46 */ PDKEY_UNKNOWN,
+        /* 47 */ PDKEY_NUM_LOCK,
+        /* 48 */ PDKEY_UNKNOWN,
+        /* 49 */ PDKEY_UNKNOWN,
+        /* 4a */ PDKEY_UNKNOWN,
+        /* 4b */ PDKEY_KP_DIVIDE,
+        /* 4c */ PDKEY_KP_ENTER,
+        /* 4d */ PDKEY_UNKNOWN,
+        /* 4e */ PDKEY_KP_SUBTRACT,
+        /* 4f */ PDKEY_F18,
+        /* 50 */ PDKEY_F19,
+        /* 51 */ PDKEY_KP_EQUAL,
+        /* 52 */ PDKEY_KP_0,
+        /* 53 */ PDKEY_KP_1,
+        /* 54 */ PDKEY_KP_2,
+        /* 55 */ PDKEY_KP_3,
+        /* 56 */ PDKEY_KP_4,
+        /* 57 */ PDKEY_KP_5,
+        /* 58 */ PDKEY_KP_6,
+        /* 59 */ PDKEY_KP_7,
+        /* 5a */ PDKEY_F20,
+        /* 5b */ PDKEY_KP_8,
+        /* 5c */ PDKEY_KP_9,
+        /* 5d */ PDKEY_UNKNOWN,
+        /* 5e */ PDKEY_UNKNOWN,
+        /* 5f */ PDKEY_UNKNOWN,
+        /* 60 */ PDKEY_F5,
+        /* 61 */ PDKEY_F6,
+        /* 62 */ PDKEY_F7,
+        /* 63 */ PDKEY_F3,
+        /* 64 */ PDKEY_F8,
+        /* 65 */ PDKEY_F9,
+        /* 66 */ PDKEY_UNKNOWN,
+        /* 67 */ PDKEY_F11,
+        /* 68 */ PDKEY_UNKNOWN,
+        /* 69 */ PDKEY_PRINT_SCREEN,
+        /* 6a */ PDKEY_F16,
+        /* 6b */ PDKEY_F14,
+        /* 6c */ PDKEY_UNKNOWN,
+        /* 6d */ PDKEY_F10,
+        /* 6e */ PDKEY_UNKNOWN,
+        /* 6f */ PDKEY_F12,
+        /* 70 */ PDKEY_UNKNOWN,
+        /* 71 */ PDKEY_F15,
+        /* 72 */ PDKEY_INSERT,
+        /* 73 */ PDKEY_HOME,
+        /* 74 */ PDKEY_PAGE_UP,
+        /* 75 */ PDKEY_DELETE,
+        /* 76 */ PDKEY_F4,
+        /* 77 */ PDKEY_END,
+        /* 78 */ PDKEY_F2,
+        /* 79 */ PDKEY_PAGE_DOWN,
+        /* 7a */ PDKEY_F1,
+        /* 7b */ PDKEY_LEFT,
+        /* 7c */ PDKEY_RIGHT,
+        /* 7d */ PDKEY_DOWN,
+        /* 7e */ PDKEY_UP,
+        /* 7f */ PDKEY_UNKNOWN,
+    };
 
-    //int keyCode = keyChar;
-    //int specialKeys = getModifierFlags([theEvent modifierFlags]);
+    if (key >= 128)
+        return PDKEY_UNKNOWN;
 
-    /*
+    return table[key];
+}
 
-       if ([theEvent modifierFlags] & NSNumericPadKeyMask)
-       {
-        switch (keyChar)
-        {
-            case NSLeftArrowFunctionKey: keyCode = PRODBG_KEY_ARROW_LEFT; break;
-            case NSRightArrowFunctionKey: keyCode = PRODBG_KEY_ARROW_RIGHT; break;
-            case NSUpArrowFunctionKey: keyCode = PRODBG_KEY_ARROW_UP; break;
-            case NSDownArrowFunctionKey: keyCode = PRODBG_KEY_ARROW_DOWN; break;
-        }
-       }
-       else
-       {
-        switch ([theEvent keyCode])
-        {
-            case KEY_TAB : keyCode = PRODBG_KEY_TAB; break;
-            case KEY_DELETE : keyCode = PRODBG_KEY_BACKSPACE; break;
-            case KEY_RETURN : keyCode = PRODBG_KEY_ENTER; break;
-            case KEY_ESCAPE : keyCode = PRODBG_KEY_ESC; break;
-            case NSPageDownFunctionKey: keyCode = PRODBG_KEY_PAGE_DOWN; break;
-            case NSPageUpFunctionKey: keyCode = PRODBG_KEY_PAGE_UP; break;
-        }
-       }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-       Emgui_sendKeyinput(keyCode, specialKeys);
+- (void)keyDown:(NSEvent*)event
+{
+    const int key = translateKey([event keyCode]);
+    const int mods = getModifierFlags([event modifierFlags]);
 
-       if (!Editor_keyDown(keyCode, [theEvent keyCode], specialKeys))
-        [super keyDown:theEvent];
+    printf("keyDown %d\n", key);
 
-       Editor_update();
-     */
+    ProDBG_keyDown(key, mods);
+}
 
-    [super keyDown:theEvent];
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+- (void)keyUp:(NSEvent*)event
+{
+    const int key = translateKey([event keyCode]);
+    const int mods = getModifierFlags([event modifierFlags]);
+
+    printf("keyUp %d\n", key);
+
+    ProDBG_keyUp(key, mods);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

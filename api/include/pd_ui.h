@@ -2,6 +2,7 @@
 #define _PDUI_H_
 
 #include "pd_common.h"
+#include "pd_keys.h"
 
 #ifdef _cplusplus
 extern "C" {
@@ -66,7 +67,7 @@ typedef struct PDUI
     int (*button)(const char* label);
     int (*buttonSize)(const char* label, int width, int height, int repeatWhenHeld);
 
-    // Keyboard and mouse
+    // Mouse
 
 	PDVec2 (*getMousePos)();
 	PDVec2 (*getMouseScreenPos)();
@@ -74,6 +75,10 @@ typedef struct PDUI
 	int (*isMouseDoubleClicked)(int button);
 	int (*isMouseHoveringBox)(PDVec2 boxMin, PDVec2 boxMax);
 
+	// Keyboard
+	
+	int (*getKeyDown)(int* mod);
+	
     // Rendering
 
 	void (*fillRect)(PDRect rect, unsigned int color); 

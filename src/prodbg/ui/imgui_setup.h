@@ -3,6 +3,6 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void IMGUI_setup(int width, int height);
-void IMGUI_preUpdate(float x, float y, int mouseLmb);
+void IMGUI_preUpdate(float x, float y, int mouseLmb, int keyDown, int keyMod);
 void IMGUI_postUpdate();
 

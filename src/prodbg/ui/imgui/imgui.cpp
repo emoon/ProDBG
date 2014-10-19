@@ -2036,6 +2036,27 @@ ImVec2 GetMousePos()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+int	GetKeyDown(int* modifier)
+{
+    ImGuiState& g = GImGui;
+
+    ImGuiWindow* window = GetCurrentWindow();
+
+    // Only send keyboard events to selected window
+
+	if (g.FocusedWindow != window)
+	{
+		*modifier = 0;
+		return 0;
+	}
+
+    *modifier = g.IO.keyMod;
+
+    return g.IO.keyDown;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool IsHovered()
 {
     ImGuiWindow* window = GetCurrentWindow();

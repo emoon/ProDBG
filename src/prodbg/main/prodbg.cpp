@@ -34,6 +34,8 @@ struct Context
     float mouseX;
     float mouseY;
     int mouseLmb;
+    int keyDown;
+    int keyMod;
     Session* session;   // one session right now
 };
 
@@ -61,7 +63,7 @@ static const char* s_plugins[] =
 static void setLayout(UILayout* layout)
 {
     Context* context = &s_context;
-    IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb);
+    IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
     Session_setLayout(context->session, layout, context->width, context->height);
     IMGUI_postUpdate();
 }
@@ -134,7 +136,7 @@ void ProDBG_update()
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR_BIT | BGFX_CLEAR_DEPTH_BIT, 0x101010ff, 1.0f, 0);
     bgfx::submit(0);
 
-    IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb);
+    IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
 
     // TODO: Support multiple sessions
 
@@ -314,4 +316,29 @@ void ProDBG_setMouseState(int button, int state)
 
     ProDBG_update();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_keyDown(int key, int modifier)
+{
+    Context* context = &s_context;
+    context->keyDown = key;
+    context->keyMod = modifier;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_keyUp(int key, int modifier)
+{
+	(void)key;
+	(void)modifier;
+
+	// TODO: Verify that this is really the correct way to do it.
+
+    Context* context = &s_context;
+    context->keyDown = PDKEY_UNKNOWN;
+    context->keyMod = 0;
+}
+
+
 

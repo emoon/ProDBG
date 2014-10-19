@@ -233,6 +233,18 @@ static int isMouseHoveringBox(PDVec2 boxMin, PDVec2 boxMax)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static int getKeyDown(int* mod)
+{
+	int tempMod;
+
+	if (!mod)
+		mod = &tempMod;
+
+	return ImGui::GetKeyDown(mod);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 char* buildName(const char* pluginName, int id)
 {
     char idBuffer[32];
@@ -257,6 +269,8 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     data->showWindow = true;
 
     memset(uiInstance, 0, sizeof(PDUI));
+
+    // TODO: These functions are static, we shouldn't need to do it like this
 
     uiInstance->columns = columns;
     uiInstance->nextColumn = nextColumn;
@@ -290,6 +304,7 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
 	uiInstance->isMouseClicked = isMouseClicked;
 	uiInstance->isMouseDoubleClicked = isMouseDoubleClicked; 
 	uiInstance->isMouseHoveringBox = isMouseHoveringBox; 
+	uiInstance->getKeyDown = getKeyDown; 
 
     uiInstance->privateData = alloc_zero(sizeof(PrivateData));
     data->name = buildName(pluginInstance->plugin->name, pluginInstance->count);
