@@ -141,6 +141,7 @@
 #define PDKEY_RIGHT_ALT          346
 #define PDKEY_RIGHT_SUPER        347
 #define PDKEY_MENU               348
+#define PDKEY_MAX                349
 
 #define PDKEY_SHIFT				 1
 #define PDKEY_ALT				 2
