@@ -315,12 +315,12 @@ static void setBreakpoint(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer
     PDRead_findString(reader, &filename, "filename", 0);
     PDRead_findU32(reader, &line, "line", 0);
 
-    // \todo Handle failure here
+    // TODO: Handle failure here
 
     lldb::SBBreakpoint breakpoint = plugin->target.BreakpointCreateByLocation(filename, line);
     if (!breakpoint.IsValid())
     {
-        // \todo send back if breakpoint couldn't be set
+        // TODO: send back if breakpoint couldn't be set
         printf("Unable to set breakpoint at %s:%d\n", filename, line);
         return;
     }
