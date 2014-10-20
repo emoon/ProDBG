@@ -13,7 +13,7 @@ MenuDescriptor g_fileMenu[] =
 
 MenuDescriptor g_debugMenu[] =
 {
-    { "Step Into", PRODBG_MENU_DEBUG_STEP_INTO, PRODBG_KEY_F9, 0, 0 },
+    { "Toggle Breakpoint", PRODBG_MENU_DEBUG_TOGGLE_BREAKPOINT, PRODBG_KEY_F9, 0, 0 },
     { "Step Over", PRODBG_MENU_DEBUG_STEP_OVER, PRODBG_KEY_F10, 0, 0 },
     { "Step Out", PRODBG_MENU_DEBUG_STEP_OUT, PRODBG_KEY_F11, 0, 0 },
     { 0, 0, 0, 0, 0 },
