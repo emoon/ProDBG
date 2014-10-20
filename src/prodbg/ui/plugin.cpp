@@ -367,4 +367,13 @@ void PluginUI_setWindowRect(ViewPluginInstance* instance, FloatRect* rect)
     ImGui::SetWindowRect(data->window, pos, size);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool PluginUI_isActiveWindow(ViewPluginInstance* instance)
+{
+    PDUI* uiInstance = &instance->ui;
+    PrivateData* data = (PrivateData*)uiInstance->privateData;
+
+    return ImGui::IsActiveWindow(data->window);
+}
 
