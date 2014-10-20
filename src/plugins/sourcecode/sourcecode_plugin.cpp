@@ -5,10 +5,24 @@
 #include <string.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// constants, margins, etc
+
+const float s_markerMargin = 22.0f;	// Area on left-side reserved for breakpoints, markers, etc
+const float s_areaLinesToText = 10.0f;	// Area between line numbers and the text 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct Line
+{
+	const char* text;
+	bool breakpoint;		// TODO: Flags
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct File
 {
-    char** lines;
+	Line* lines;
     int lineCount;
     char* startData;
     char* filename;
@@ -67,7 +81,7 @@ void parseFile(File* file, const char* filename)
 {
     char* target;
     char* targetEnd;
-    char** lines;
+    Line* lines;
     size_t size;
     int lineCount = 0;
 
@@ -92,25 +106,30 @@ void parseFile(File* file, const char* filename)
 
     // so this is really waste of memory but will do for now
 
-    file->lines = lines = (char**)malloc(sizeof(char*) * size);
-    lines[0] = target;
+    file->lines = lines = (Line*)malloc(sizeof(Line) * size);
+    memset(lines, 0, sizeof(Line) * size);
+
+    lines[0].text = target;
     lineCount++;
 
     while (target < targetEnd)
     {
+		char c = *target; 
+
         if (*target == '\r')
+		{
             *target++ = 0;
+            c = *target;
+		}
 
         if (*target == '\n')
         {
             *target = 0;
-            lines[lineCount++] = target + 1; 
+            lines[lineCount++].text = target + 1; 
         }
 
         target++;
     }
-
-    target = lines[0];
 
 	*target++ = 0;
 
@@ -192,14 +211,19 @@ static float calcLineAreaWidth(PDUI* uiFuncs, int lineCount)
 
 static void drawLineAreaBG(PDUI* uiFuncs, float areaWidth)
 {
+	(void)uiFuncs;
+	(void)areaWidth;
+
+	/*
     PDVec2 pos = uiFuncs->getCursorPos();
     PDRect rect = { pos.x - 4, pos.y - 14, areaWidth + 4, -1 };
     uiFuncs->fillRect(rect, PD_COLOR_32(100, 100, 100, 127));
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void drawCursor(PDUI* uiFuncs)
+static void drawCursor(PDUI* uiFuncs, float lineAreaSize)
 {
 	PDRect rect;
 	PDVec2 pos = uiFuncs->getCursorPos();
@@ -207,7 +231,19 @@ static void drawCursor(PDUI* uiFuncs)
 	rect.y = pos.y - 11;
 	rect.width = 10;
 	rect.height = 14;
+
+	// Cursor
+
 	uiFuncs->fillRect(rect, PD_COLOR_32(200, 0, 0, 127));
+
+	// Mark in line area
+
+	rect.x = s_markerMargin;
+	rect.y = pos.y - 11;
+	rect.width = lineAreaSize;
+	rect.height = 14;
+
+	uiFuncs->fillRect(rect, PD_COLOR_32(120, 120, 120, 127));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -218,24 +254,25 @@ static void drawLineArea(PDUI* uiFuncs, int offset, int lineCount, int maxLineCo
     int numCount = countNumbers(maxLineCount);
     sprintf(formatString, "%%%dd", numCount);
 
-    for (int i = 0; i < lineCount; ++i)
+    for (int i = offset + 1; i < (offset + 1 + lineCount); ++i)
     {
-        uiFuncs->text(formatString, offset + i + 1);
+        uiFuncs->setCursorPosX(s_markerMargin);
+        uiFuncs->text(formatString, i);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void drawLines(PDUI* uiFuncs, SourceCodeData* data, float lineStart, int offset, int lineCount)
+static void drawLines(PDUI* uiFuncs, SourceCodeData* data, float lineStart, float lineAreaSize, int offset, int lineCount)
 {
-    const char** lines = (const char**)data->file.lines;
+    Line* lines = data->file.lines;
 
     for (int i = offset; i < lineCount; ++i)
     {
         uiFuncs->setCursorPosX(lineStart);
 
         if (i == data->cursorPos)
-			drawCursor(uiFuncs);
+			drawCursor(uiFuncs, lineAreaSize);
 
         if ((i + 1) == (int)data->line)
         {
@@ -250,7 +287,7 @@ static void drawLines(PDUI* uiFuncs, SourceCodeData* data, float lineStart, int 
 
         //printf("%d - %d %d\n", i, lines[i][0], lines[i][1]);
 
-        uiFuncs->text(lines[i]);
+        uiFuncs->text(lines[i].text);
     }
 }
 
@@ -275,16 +312,21 @@ static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
 
     float areaWidth = calcLineAreaWidth(uiFuncs, lineCount) + 4;
 
+    // Start position of the text
+
+	float textStartX = s_markerMargin + s_areaLinesToText + areaWidth;
+
+
     // if we are fully with in the drawing range we just render as is
 
     if (lineCount < drawableLineCount)
     {
-        drawLineAreaBG(uiFuncs, areaWidth);
+        uiFuncs->setCursorPos(textStart);
         drawLineArea(uiFuncs, 0, lineCount, lineCount);
 
         uiFuncs->setCursorPos(textStart);
 
-        drawLines(uiFuncs, data, areaWidth + 10, 0, lineCount);
+        drawLines(uiFuncs, data, textStartX, areaWidth, 0, lineCount);
     }
     else
     {
@@ -305,7 +347,7 @@ static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
 
         uiFuncs->setCursorPos(textStart);
 
-        drawLines(uiFuncs, data, areaWidth + 10, lineStart, drawableLineCount);
+        drawLines(uiFuncs, data, textStartX, areaWidth, lineStart, drawableLineCount);
     }
 
     (void)textStart;
@@ -333,6 +375,8 @@ static void updateKeyboard(SourceCodeData* data, PDUI* uiFuncs)
 	{
 		cursorPos++;
 
+		printf("key down\n");
+
 		const int lineCount = data->file.lineCount - 1;
 
 		if (cursorPos > lineCount)
@@ -340,6 +384,22 @@ static void updateKeyboard(SourceCodeData* data, PDUI* uiFuncs)
 	}
 
 	data->cursorPos = cursorPos;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void toggleBreakpointCurrentLine(SourceCodeData* data, PDWriter* writer)
+{
+	// TODO: Currenty we don't handly if we set breakpoints on a line we can't
+
+    PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
+    PDWrite_string(writer, "filename", data->file.filename);
+    PDWrite_u32(writer, "line", (unsigned int)data->cursorPos + 1);
+    PDWrite_eventEnd(writer);
+
+    printf("toogle breakpoint at %s : %d\n", data->file.filename, data->cursorPos + 1);
+
+    data->file.lines[data->cursorPos].breakpoint = !data->file.lines[data->cursorPos].breakpoint;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -359,6 +419,12 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
             case PDEventType_setExceptionLocation:
             {
                 setExceptionLocation(data, inEvents);
+                break;
+            }
+
+            case PDEventType_toggleBreakpointCurrentLine:
+            {
+                toggleBreakpointCurrentLine(data, writer);
                 break;
             }
         }
