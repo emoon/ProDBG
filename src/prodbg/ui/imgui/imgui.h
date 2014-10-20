@@ -316,6 +316,7 @@ bool        IsMouseHoveringBox(const ImVec2& box_min, const ImVec2& box_max);
 ImVec2      GetMousePos();
 ImVec2 		GetRelativeMousePos();
 bool        IsFocusWindowKeyDown(int key_index, bool repeat);                        // key_index into the keys_down[512] array, imgui doesn't know the semantic of each entry
+bool		IsActiveWindow(ImGuiWindow* window);
 float       GetTime();
 int         GetFrameCount();
 const char* GetStyleColorName(ImGuiCol idx);

@@ -18,3 +18,5 @@ void PluginUI_getWindowRect(ViewPluginInstance* instance, FloatRect* rect);
 void PluginUI_setWindowRect(ViewPluginInstance* instance, FloatRect* rect);
 
 PluginUIState PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer);
+bool PluginUI_isActiveWindow(ViewPluginInstance* instance);
+

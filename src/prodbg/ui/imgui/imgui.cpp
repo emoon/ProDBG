@@ -333,6 +333,21 @@ inline NVGcolor toNVGColor(ImU32 color)
     return col;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline NVGcolor toNVGColorRGBA(ImU32 color)
+{
+    NVGcolor col;
+
+    col.r = ((color >> 24) & 0xff) * 1.0f / 255.0f;
+    col.g = ((color >> 16) & 0xff) * 1.0f / 255.0f;
+    col.b = ((color >> 8) & 0xff) * 1.0f / 255.0f;
+    col.a = ((color >> 0) & 0xff) * 1.0f / 255.0f;
+
+    //printf("%08x %f %f %f %f\n", color, col.r, col.g, col.b, col.a);
+
+    return col;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1916,7 +1931,7 @@ void FillRect(ImVec2 pos, ImVec2 size, unsigned int color)
         size.y = window->Size.y - 28;
 
     nvgRect(g.NVGCtx, pos.x + windowPos.x, pos.y + windowPos.y, size.x, size.y);
-    nvgFillColor(g.NVGCtx, toNVGColor(color));
+    nvgFillColor(g.NVGCtx, toNVGColorRGBA(color));
     nvgFill(g.NVGCtx);
 }
 
@@ -1937,6 +1952,15 @@ static ImGuiWindow* FindHoveredWindow(ImVec2 pos, bool excluding_childs)
     }
     return NULL;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool IsActiveWindow(ImGuiWindow* window)
+{
+    ImGuiState& g = GImGui;
+	return g.FocusedWindow == window;
+}
+
 
 // Test if mouse cursor is hovering given aabb
 // NB- Box is clipped by our current clip setting
@@ -1985,7 +2009,7 @@ bool IsKeyPressed(int key_index, bool repeat)
 
     // FIXME: Repeat rate should be provided elsewhere?
     const float KEY_REPEAT_DELAY = 0.250f;
-    const float KEY_REPEAT_RATE = 0.010f;
+    const float KEY_REPEAT_RATE = 0.020f;
     if (repeat && t > KEY_REPEAT_DELAY)
     {
         if ((fmodf(t - KEY_REPEAT_DELAY, KEY_REPEAT_RATE) > KEY_REPEAT_RATE * 0.5f) != (fmodf(t - KEY_REPEAT_DELAY - g.IO.DeltaTime, KEY_REPEAT_RATE) > KEY_REPEAT_RATE * 0.5f))
