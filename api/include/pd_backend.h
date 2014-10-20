@@ -67,6 +67,14 @@ typedef enum PDEventType
     PDEventType_attachToProcess,
     PDEventType_attachToRemoteSession,
 
+    // TODO: Somewhat temporary, need to figure this out
+
+    PDEventType_toggleBreakpointCurrentLine,
+
+    // End of events
+
+    PDEventType_end,
+
     /// Custom events. Here you can have your own events. Note that they must start with PDEventType_custom and up
     PDEventType_custom = 0x1000
 
