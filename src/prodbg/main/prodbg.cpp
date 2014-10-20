@@ -264,9 +264,9 @@ void ProDBG_event(int eventId)
 			break;
 		}
 
-        case PRODBG_MENU_DEBUG_STEP_INTO:
+        case PRODBG_MENU_DEBUG_TOGGLE_BREAKPOINT:
         {
-        	log_info("stepInto\n");
+        	Session_toggleBreakpointCurrentLine(context->session);
             break;
         }
 
