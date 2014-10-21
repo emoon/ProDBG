@@ -33,3 +33,5 @@ void Session_setLayout(Session* session, UILayout* layout, float width, float he
 // TODO: TEMP
 
 void Session_loadSourceFile(Session* session, const char* filename);
+void Session_toggleBreakpointCurrentLine(Session* s);
+

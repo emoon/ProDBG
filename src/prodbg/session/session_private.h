@@ -1,7 +1,8 @@
 #pragma once
 
-#include <pd_view.h>
-#include <pd_backend.h>
+struct PDBackendInstance;
+struct RemoteConnection;
+struct ViewPluginInstance;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -17,13 +18,19 @@ enum SessionType
 typedef struct Session
 {
     enum SessionType type;
-    PDReader reader;
-    PDWriter backendWriter;
-    PDWriter viewPluginsWriter;
+    PDReader* reader;
+    PDWriter* writer0;
+    PDWriter* writer1;
+    PDWriter* tempWriter0;
+    PDWriter* tempWriter1;
+
+    PDWriter* currentWriter;
+    PDWriter* prevWriter;
+
     PDDebugState state;
-    struct PDBackendInstance* backend;
-    struct RemoteConnection* connection;
-    struct ViewPluginInstance** viewPlugins;
+    PDBackendInstance* backend;
+    RemoteConnection* connection;
+    ViewPluginInstance** viewPlugins;
 } Session;
 
 

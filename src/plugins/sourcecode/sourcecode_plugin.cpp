@@ -397,8 +397,6 @@ static void toggleBreakpointCurrentLine(SourceCodeData* data, PDWriter* writer)
     PDWrite_u32(writer, "line", (unsigned int)data->cursorPos + 1);
     PDWrite_eventEnd(writer);
 
-    printf("toogle breakpoint at %s : %d\n", data->file.filename, data->cursorPos + 1);
-
     data->file.lines[data->cursorPos].breakpoint = !data->file.lines[data->cursorPos].breakpoint;
 }
 
@@ -435,11 +433,8 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
     showInUI(data, uiFuncs);
 
     PDWrite_eventBegin(writer, PDEventType_getExceptionLocation);
-    PDWrite_u8(writer, "dummy", 0); // TODO: Remove me
+    PDWrite_u8(writer, "dummy_get_location", 0); // TODO: Remove me
     PDWrite_eventEnd(writer);
-
-    //uiFuncs->button("test test");
-    //uiFuncs->text("funy text %f", 12.02f);
 
     return 0;
 }

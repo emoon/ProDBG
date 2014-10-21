@@ -43,8 +43,8 @@ static void test_lldb(void** state)
 
     // Request locals location.
 
-    PDWriter* writer = &session->viewPluginsWriter;
-    PDReader* reader = &session->reader;
+    PDWriter* writer = session->currentWriter;
+    PDReader* reader = session->reader;
 
     PDBinaryWriter_reset(writer);
     PDWrite_eventBegin(writer, PDEventType_getCallstack);

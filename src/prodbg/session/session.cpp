@@ -1,17 +1,22 @@
 #include "session.h"
 #include "session_private.h"
-#include "core/alloc.h"
+
 #include "api/plugin_instance.h"
 #include "api/src/remote/pd_readwrite_private.h"
 #include "api/src/remote/remote_connection.h"
+#include "core/alloc.h"
 #include "core/log.h"
+#include "core/math.h"
 #include "core/plugin_handler.h"
 #include "ui/plugin.h"
 #include "ui/ui_layout.h"
-#include "core/math.h"
+
 #include <stdlib.h>
 #include <stb.h>
 #include <assert.h>
+
+#include <pd_view.h>
+#include <pd_backend.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -26,9 +31,20 @@ static void updateLocal(Session* s, PDAction action);
 
 static void commonInit(Session* s)
 {
-    PDBinaryWriter_init(&s->backendWriter);
-    PDBinaryWriter_init(&s->viewPluginsWriter);
-    PDBinaryReader_init(&s->reader);
+	s->writer0 = (PDWriter*)alloc_zero(sizeof(PDWriter));
+	s->writer1 = (PDWriter*)alloc_zero(sizeof(PDWriter));
+	s->tempWriter0 = (PDWriter*)alloc_zero(sizeof(PDWriter));
+	s->tempWriter1 = (PDWriter*)alloc_zero(sizeof(PDWriter));
+	s->reader = (PDReader*)alloc_zero(sizeof(PDReader));
+
+    PDBinaryWriter_init(s->writer0);
+    PDBinaryWriter_init(s->writer1);
+    PDBinaryWriter_init(s->tempWriter0);
+    PDBinaryWriter_init(s->tempWriter1);
+    PDBinaryReader_init(s->reader);
+
+    s->currentWriter = s->writer0;
+    s->prevWriter = s->writer1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -102,15 +118,13 @@ Session* Session_startLocal(Session* s, PDBackendPlugin* backend, const char* fi
     PDWrite_eventEnd(writer);
     PDBinaryWriter_finalize(writer);
 
-    // Init the stream for reading and write back the data
-    //
+    PDBinaryWriter_reset(s->prevWriter);
 
-    PDBinaryReader_initStream(&s->reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
-    s->backend->plugin->update(s->backend->userData, PDAction_none, &s->reader, &s->backendWriter);
+    PDBinaryReader_initStream(s->reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
+    s->backend->plugin->update(s->backend->userData, PDAction_none, s->reader, s->prevWriter);
 
-    //log_info("first update\n");
+    PDBinaryWriter_finalize(s->prevWriter);
 
-    // TODO: How to deal if plugin writes back data here?
     // TODO: Not run directly but allow user to select if run, otherwise (ProDG style stop-at-main?)
 
     updateLocal(s, PDAction_run);
@@ -163,49 +177,45 @@ static const char* getStateName(int state)
 
 static void updateLocal(Session* s, PDAction action)
 {
-    unsigned int reqDataSize = PDBinaryWriter_getSize(&s->viewPluginsWriter);
+    unsigned int reqDataSize = PDBinaryWriter_getSize(s->prevWriter);
+    PDBackendInstance* backend = s->backend;
 
-    struct PDBackendInstance* backend = s->backend;
+    PDBinaryReader_reset(s->reader);
 
-    PDBinaryReader_reset(&s->reader);
-
-    // TODO: Temporary hack, send no request data if we are running.
+    // TODO: Temporary hack, send no request data to backend if we are running.
 
     if (s->state == PDDebugState_running)
         reqDataSize = 0;
 
-    PDBinaryReader_initStream(
-        &s->reader,
-        PDBinaryWriter_getData(&s->viewPluginsWriter), reqDataSize);
+    PDBinaryReader_initStream(s->reader, PDBinaryWriter_getData(s->prevWriter), reqDataSize);
+    PDBinaryWriter_reset(s->currentWriter);
 
     if (backend)
-    {
-        PDBinaryWriter_reset(&s->backendWriter);
-        s->state = backend->plugin->update(backend->userData, action, &s->reader, &s->backendWriter);
-        PDBinaryWriter_finalize(&s->backendWriter);
-    }
-
-    PDBinaryReader_initStream(
-        &s->reader,
-        PDBinaryWriter_getData(&s->backendWriter),
-        PDBinaryWriter_getSize(&s->backendWriter));
-
-    PDBinaryWriter_reset(&s->viewPluginsWriter);
+        s->state = backend->plugin->update(backend->userData, action, s->reader, s->currentWriter);
 
     int len = stb_arr_len(s->viewPlugins);
+
+    PDBinaryReader_initStream(s->reader, PDBinaryWriter_getData(s->prevWriter), PDBinaryWriter_getSize(s->prevWriter));
+    PDBinaryReader_reset(s->reader);
 
     for (int i = 0; i < len; ++i)
     {
         struct ViewPluginInstance* p = s->viewPlugins[i];
-        PluginUIState state = PluginUI_updateInstance(p, &s->reader, &s->viewPluginsWriter);
+        PluginUIState state = PluginUI_updateInstance(p, s->reader, s->currentWriter);
 
         if (state == PluginUIState_CloseView)
             p->markDeleted = true;
 
-        PDBinaryReader_reset(&s->reader);
+        PDBinaryReader_reset(s->reader);
     }
 
-    PDBinaryWriter_finalize(&s->viewPluginsWriter);
+    PDBinaryWriter_finalize(s->currentWriter);
+
+    // Swap the write buffers
+
+	PDWriter* temp = s->currentWriter;
+	s->currentWriter = s->prevWriter;
+	s->prevWriter = temp;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -245,9 +255,12 @@ static void updateRemote(Session* s, PDAction action)
     //PDBackendInstance* backend = s->backend;
 
     (void)action;
+    (void)s;
 
     if (!s->connection)
         return;
+
+    /*
 
     PDBinaryReader_reset(&s->reader);
 
@@ -296,6 +309,8 @@ static void updateRemote(Session* s, PDAction action)
             RemoteConnection_sendStream(s->connection, PDBinaryWriter_getData(&s->viewPluginsWriter));
         }
     }
+
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -491,11 +506,12 @@ void Session_setLayout(Session* session, UILayout* layout, float width, float he
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TODO: Somewhat temporay functions
 
 void Session_loadSourceFile(Session* s, const char* filename)
 {
-	PDBinaryWriter_reset(&s->backendWriter);
-	PDWriter* writer = &s->backendWriter;
+	PDBinaryWriter_reset(s->tempWriter0);
+	PDWriter* writer = s->tempWriter0;
 
     PDWrite_eventBegin(writer, PDEventType_setExceptionLocation);
     PDWrite_string(writer, "filename", filename);
@@ -503,18 +519,66 @@ void Session_loadSourceFile(Session* s, const char* filename)
     PDWrite_eventEnd(writer);
 
 	PDBinaryWriter_finalize(writer);
-    PDBinaryWriter_reset(&s->viewPluginsWriter);
+    PDBinaryWriter_reset(s->tempWriter1);
+
+    int len = stb_arr_len(s->viewPlugins);
+
+    PDBinaryReader_initStream(s->reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
+
+    for (int i = 0; i < len; ++i)
+    {
+        struct ViewPluginInstance* p = s->viewPlugins[i];
+        // TODO: This may cause UI to be render twice during that frame
+        PluginUI_updateInstance(p, s->reader, s->tempWriter1);
+        PDBinaryReader_reset(s->reader);
+    }
+
+    PDBinaryWriter_finalize(s->tempWriter1);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Session_toggleBreakpointCurrentLine(Session* s)
+{
+	PDBinaryWriter_reset(s->tempWriter0);
+	PDWriter* writer = s->tempWriter0;
+
+    PDWrite_eventBegin(writer, PDEventType_toggleBreakpointCurrentLine);
+    PDWrite_u8(writer, "dummy", 0);
+    PDWrite_eventEnd(writer);
+
+	PDBinaryWriter_finalize(writer);
+    PDBinaryWriter_reset(s->tempWriter1);
+
+    PDBinaryReader_initStream(s->reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
 
     int len = stb_arr_len(s->viewPlugins);
 
     for (int i = 0; i < len; ++i)
     {
         struct ViewPluginInstance* p = s->viewPlugins[i];
-        PluginUI_updateInstance(p, &s->reader, &s->viewPluginsWriter);
-        PDBinaryReader_reset(&s->reader);
+
+        if (!PluginUI_isActiveWindow(p))
+			continue;
+
+        PluginUI_updateInstance(p, s->reader, s->tempWriter1);
+        PDBinaryReader_reset(s->reader);
     }
 
-    PDBinaryWriter_finalize(&s->viewPluginsWriter);
-}
+    PDBinaryWriter_finalize(writer);
 
+    // TODO: Temporary and will cause UI to be updated twice that frame
+
+    PDBinaryReader_initStream(s->reader, PDBinaryWriter_getData(s->tempWriter1), PDBinaryWriter_getSize(s->tempWriter1));
+	PDBinaryWriter_reset(s->tempWriter0);
+
+    for (int i = 0; i < len; ++i)
+    {
+        struct ViewPluginInstance* p = s->viewPlugins[i];
+        PluginUI_updateInstance(p, s->reader, s->tempWriter0);
+        PDBinaryReader_reset(s->reader);
+    }
+
+	PDBinaryWriter_reset(s->tempWriter0);
+}
 
