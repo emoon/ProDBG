@@ -565,3 +565,14 @@ void Session_toggleBreakpointCurrentLine(Session* s)
     PDWrite_eventEnd(s->currentWriter);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Session_stepIn(Session* s)
+{
+	PDBackendInstance* backend = s->backend;	
+
+    if (backend)
+        s->state = backend->plugin->update(backend->userData, PDAction_step, s->reader, s->currentWriter);
+}
+
+

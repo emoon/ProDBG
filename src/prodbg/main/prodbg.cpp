@@ -221,7 +221,8 @@ static void onLoadRunExec()
 
     // Hacky hack
 
-    Session_startLocal(context->session, (PDBackendPlugin*)pluginData->plugin, OBJECT_DIR "/crashing_native");
+    Session_startLocal(context->session, (PDBackendPlugin*)pluginData->plugin, "t2-output/macosx-clang-debug-default/ProDBG.app/Contents/MacOS/prodbg");
+    //Session_startLocal(context->session, (PDBackendPlugin*)pluginData->plugin, OBJECT_DIR "/crashing_native");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -276,9 +277,9 @@ void ProDBG_event(int eventId)
             break;
         }
 
-        case PRODBG_MENU_DEBUG_STEP_OUT:
+        case PRODBG_MENU_DEBUG_STEP_IN:
         {
-        	log_info("stepOut\n");
+        	Session_stepIn(context->session);
             break;
         }
     }
