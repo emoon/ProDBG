@@ -206,9 +206,8 @@ void ProDBG_timedUpdate()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void onLoadRunExec()
+static void onLoadRunExec(Session* session, const char* filename)
 {
-    Context* context = &s_context;
     PluginData* pluginData = PluginHandler_findPlugin(0, "lldb_plugin", "LLDB Mac", true);
 
     if (!pluginData)
@@ -217,10 +216,11 @@ static void onLoadRunExec()
         return;
     }
 
-    // Hacky hack
+    Session_startLocal(session, (PDBackendPlugin*)pluginData->plugin, filename); 
 
-    Session_startLocal(context->session, (PDBackendPlugin*)pluginData->plugin, "t2-output/macosx-clang-debug-default/ProDBG.app/Contents/MacOS/prodbg");
-    //Session_startLocal(context->session, (PDBackendPlugin*)pluginData->plugin, OBJECT_DIR "/crashing_native");
+    // Temp test 
+    // Session_startLocal(context->session, (PDBackendPlugin*)pluginData->plugin, "t2-output/macosx-clang-debug-default/ProDBG.app/Contents/MacOS/prodbg");
+    // Session_startLocal(context->session, (PDBackendPlugin*)pluginData->plugin, OBJECT_DIR "/crashing_native");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -247,7 +247,13 @@ void ProDBG_event(int eventId)
     {
         case PRODBG_MENU_FILE_OPEN_AND_RUN_EXE:
         {
-            onLoadRunExec();
+			char filename[4096];
+
+			if (Dialog_open(filename))
+			{
+				onLoadRunExec(context->session, filename);	
+			}
+
             break;
         }
 
