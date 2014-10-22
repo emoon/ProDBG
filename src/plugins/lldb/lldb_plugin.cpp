@@ -27,6 +27,7 @@ typedef struct LLDBPlugin
     lldb::SBListener listener;
     lldb::SBProcess process;
     PDDebugState state;
+    bool hasValidTarget;
 
     const char* targetName;
 
@@ -43,6 +44,7 @@ void* createInstance(ServiceFunc* serviceFunc)
     plugin->debugger = lldb::SBDebugger::Create(false);
     plugin->state = PDDebugState_noTarget;
     plugin->listener = plugin->debugger.GetListener(); 
+    plugin->hasValidTarget = false;
 
     return plugin;
 }
@@ -109,6 +111,8 @@ void onRun(LLDBPlugin* plugin)
         lldb::SBError error;
 
         plugin->process = plugin->target.Launch(launchInfo, error);
+
+        printf("try start\n");
 
         if (!error.Success())
         {
@@ -259,7 +263,9 @@ static void setExecutable(LLDBPlugin* plugin, PDReader* reader)
     plugin->target = plugin->debugger.CreateTarget(filename);
 
     if (!plugin->target.IsValid())
+	{
         printf("Unable to create valid target (%s)\n", filename);
+	}
 
     printf("Valid target %s\n", filename); 
 }
@@ -569,12 +575,12 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
 {
     LLDBPlugin* plugin = (LLDBPlugin*)userData;
 
+    processEvents(plugin, reader, writer);
+
     doAction(plugin, action);
 
     if (plugin->state == PDDebugState_running)
         updateLLDBEvent(plugin, writer);
-
-    processEvents(plugin, reader, writer);
 
     return plugin->state;
 }

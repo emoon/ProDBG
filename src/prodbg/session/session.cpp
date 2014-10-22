@@ -91,39 +91,27 @@ Session* Session_createRemote(const char* target, int port)
 
 Session* Session_startLocal(Session* s, PDBackendPlugin* backend, const char* filename)
 {
-    // setup temporary writer
-
-    PDWriter* writer = (PDWriter*)alloc_zero(sizeof(PDWriter));
-    PDBinaryWriter_init(writer);
-
-    commonInit(s);
-
     // Create the backend
 
     s->backend = (PDBackendInstance*)alloc_zero(sizeof(struct PDBackendInstance));
     s->backend->plugin = backend;
     s->backend->userData = backend->createInstance(0);
 
-    // TODO: So having a filename for a local session isn't really what is needed but this will get us
-    // going with the local sessions which is the target here
+	// Set the executable
 
+    PDWrite_eventBegin(s->currentWriter, PDEventType_setExecutable);
+    PDWrite_string(s->currentWriter, "filename", filename);
+    PDWrite_eventEnd(s->currentWriter);
 
-    // TODO: This is a good point to add existing breakpoints
-    //
-    //
+	// Add existing breakpoints
 
-    PDBinaryWriter_reset(writer);
-    PDWrite_eventBegin(writer, PDEventType_setExecutable);
-    PDWrite_string(writer, "filename", filename);
-    PDWrite_eventEnd(writer);
-    PDBinaryWriter_finalize(writer);
-
-    PDBinaryWriter_reset(s->prevWriter);
-
-    PDBinaryReader_initStream(s->reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
-    s->backend->plugin->update(s->backend->userData, PDAction_none, s->reader, s->prevWriter);
-
-    PDBinaryWriter_finalize(s->prevWriter);
+    for (auto i = s->breakpoints.begin(), end = s->breakpoints.end(); i != end; ++i)
+	{
+		PDWrite_eventBegin(s->currentWriter, PDEventType_setBreakpoint);
+		PDWrite_string(s->currentWriter, "filename", (*i)->filename);
+		PDWrite_u32(s->currentWriter, "line", (unsigned int)(*i)->line);
+		PDWrite_eventEnd(s->currentWriter);
+	}
 
     // TODO: Not run directly but allow user to select if run, otherwise (ProDG style stop-at-main?)
 
@@ -139,6 +127,9 @@ Session* Session_startLocal(Session* s, PDBackendPlugin* backend, const char* fi
 Session* Session_createLocal(PDBackendPlugin* backend, const char* filename)
 {
     Session* s = (Session*)alloc_zero(sizeof(Session));
+
+    commonInit(s);
+
     return Session_startLocal(s, backend, filename);
 }
 

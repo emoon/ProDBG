@@ -74,7 +74,6 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
         {
             case PDEventType_setLocals:
             {
-                printf("got set locals\n");
                 showInUI((LocalsData*)userData, inEvents, uiFuncs);
                 break;
             }
