@@ -23,9 +23,9 @@ extern "C" {
 #ifdef _WIN32
 # ifdef _MSC_VER
 
-# ifndef inline
-#define inline __inline
-# endif /* inline */
+//# ifndef inline
+//#define inline __inline
+//# endif /* inline */
 
 #  if _MSC_VER < 1500
 #   ifdef __cplusplus
@@ -1341,9 +1341,19 @@ int run_test(#function);
 #define run_test(f) _run_test(#f, f, NULL, UNIT_TEST_FUNCTION_TYPE_TEST, NULL)
 #endif
 
+#ifdef _MSC_VER 
+
+static __forceinline void _unit_test_dummy(void **state) {
+    (void)state;
+}
+
+#else
+
 static inline void _unit_test_dummy(void **state) {
     (void)state;
 }
+
+#endif
 
 /** Initializes a UnitTest structure. */
 #define unit_test(f) { #f, f, UNIT_TEST_FUNCTION_TYPE_TEST }
