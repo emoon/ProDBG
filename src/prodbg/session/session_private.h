@@ -1,5 +1,7 @@
 #pragma once
 
+#include <list>
+
 struct PDBackendInstance;
 struct RemoteConnection;
 struct ViewPluginInstance;
@@ -11,6 +13,14 @@ enum SessionType
     Session_Null,
     Session_Local,
     Session_Remote,
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct Breakpoint
+{
+	const char* filename;
+	int line;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,6 +41,9 @@ typedef struct Session
     PDBackendInstance* backend;
     RemoteConnection* connection;
     ViewPluginInstance** viewPlugins;
+
+	std::list<Breakpoint*> breakpoints;
+
 } Session;
 
 

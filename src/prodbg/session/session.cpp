@@ -51,7 +51,7 @@ static void commonInit(Session* s)
 
 struct Session* Session_create()
 {
-    Session* s = (Session*)alloc_zero(sizeof(Session));
+    Session* s = new Session; 
 
     commonInit(s);
 
@@ -175,8 +175,63 @@ static const char* getStateName(int state)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void doToggleBreakpoint(Session* s, PDReader* reader)
+{
+    const char* filename;
+    uint32_t line;
+
+    PDRead_findString(reader, &filename, "filename", 0);
+    PDRead_findU32(reader, &line, "line", 0);
+
+    for (auto i = s->breakpoints.begin(), end = s->breakpoints.end(); i != end; ++i)
+	{
+		if ((*i)->line == (int)line && !strcmp((*i)->filename, filename))
+		{
+			free((void*)(*i)->filename);
+			s->breakpoints.erase(i);
+			return;
+		}
+	}
+
+	Breakpoint* breakpoint = (Breakpoint*)malloc(sizeof(Breakpoint));
+	breakpoint->filename = strdup(filename);
+	breakpoint->line = (int)line; 
+
+	s->breakpoints.push_back(breakpoint);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void toggleBreakpoint(Session* s, PDReader* reader)
+{
+	uint32_t event;
+
+    while ((event = PDRead_getEvent(reader)) != 0)
+    {
+        switch (event)
+        {
+            case PDEventType_setBreakpoint:
+            {
+                doToggleBreakpoint(s, reader);
+                break;
+            }
+        }
+    }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void updateLocal(Session* s, PDAction action)
 {
+    PDBinaryWriter_finalize(s->currentWriter);
+
+    // Swap the write buffers
+
+	PDWriter* temp = s->currentWriter;
+	s->currentWriter = s->prevWriter;
+	s->prevWriter = temp;
+
     unsigned int reqDataSize = PDBinaryWriter_getSize(s->prevWriter);
     PDBackendInstance* backend = s->backend;
 
@@ -209,13 +264,7 @@ static void updateLocal(Session* s, PDAction action)
         PDBinaryReader_reset(s->reader);
     }
 
-    PDBinaryWriter_finalize(s->currentWriter);
-
-    // Swap the write buffers
-
-	PDWriter* temp = s->currentWriter;
-	s->currentWriter = s->prevWriter;
-	s->prevWriter = temp;
+	toggleBreakpoint(s, s->reader);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -510,75 +559,18 @@ void Session_setLayout(Session* session, UILayout* layout, float width, float he
 
 void Session_loadSourceFile(Session* s, const char* filename)
 {
-	PDBinaryWriter_reset(s->tempWriter0);
-	PDWriter* writer = s->tempWriter0;
-
-    PDWrite_eventBegin(writer, PDEventType_setExceptionLocation);
-    PDWrite_string(writer, "filename", filename);
-    PDWrite_u32(writer, "line", 0);
-    PDWrite_eventEnd(writer);
-
-	PDBinaryWriter_finalize(writer);
-    PDBinaryWriter_reset(s->tempWriter1);
-
-    int len = stb_arr_len(s->viewPlugins);
-
-    PDBinaryReader_initStream(s->reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
-
-    for (int i = 0; i < len; ++i)
-    {
-        struct ViewPluginInstance* p = s->viewPlugins[i];
-        // TODO: This may cause UI to be render twice during that frame
-        PluginUI_updateInstance(p, s->reader, s->tempWriter1);
-        PDBinaryReader_reset(s->reader);
-    }
-
-    PDBinaryWriter_finalize(s->tempWriter1);
+    PDWrite_eventBegin(s->currentWriter, PDEventType_setExceptionLocation);
+    PDWrite_string(s->currentWriter, "filename", filename);
+    PDWrite_u32(s->currentWriter, "line", 0);
+    PDWrite_eventEnd(s->currentWriter);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Session_toggleBreakpointCurrentLine(Session* s)
 {
-	PDBinaryWriter_reset(s->tempWriter0);
-	PDWriter* writer = s->tempWriter0;
-
-    PDWrite_eventBegin(writer, PDEventType_toggleBreakpointCurrentLine);
-    PDWrite_u8(writer, "dummy", 0);
-    PDWrite_eventEnd(writer);
-
-	PDBinaryWriter_finalize(writer);
-    PDBinaryWriter_reset(s->tempWriter1);
-
-    PDBinaryReader_initStream(s->reader, PDBinaryWriter_getData(writer), PDBinaryWriter_getSize(writer));
-
-    int len = stb_arr_len(s->viewPlugins);
-
-    for (int i = 0; i < len; ++i)
-    {
-        struct ViewPluginInstance* p = s->viewPlugins[i];
-
-        if (!PluginUI_isActiveWindow(p))
-			continue;
-
-        PluginUI_updateInstance(p, s->reader, s->tempWriter1);
-        PDBinaryReader_reset(s->reader);
-    }
-
-    PDBinaryWriter_finalize(writer);
-
-    // TODO: Temporary and will cause UI to be updated twice that frame
-
-    PDBinaryReader_initStream(s->reader, PDBinaryWriter_getData(s->tempWriter1), PDBinaryWriter_getSize(s->tempWriter1));
-	PDBinaryWriter_reset(s->tempWriter0);
-
-    for (int i = 0; i < len; ++i)
-    {
-        struct ViewPluginInstance* p = s->viewPlugins[i];
-        PluginUI_updateInstance(p, s->reader, s->tempWriter0);
-        PDBinaryReader_reset(s->reader);
-    }
-
-	PDBinaryWriter_reset(s->tempWriter0);
+    PDWrite_eventBegin(s->currentWriter, PDEventType_toggleBreakpointCurrentLine);
+    PDWrite_u8(s->currentWriter, "dummy", 0);
+    PDWrite_eventEnd(s->currentWriter);
 }
 
