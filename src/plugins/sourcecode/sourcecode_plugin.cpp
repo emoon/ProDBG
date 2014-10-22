@@ -267,7 +267,7 @@ static void drawLines(PDUI* uiFuncs, SourceCodeData* data, float lineStart, floa
 {
     Line* lines = data->file.lines;
 
-    for (int i = offset; i < lineCount; ++i)
+    for (int i = offset; i < offset + lineCount; ++i)
     {
         uiFuncs->setCursorPosX(lineStart);
 
@@ -332,7 +332,12 @@ static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
     {
         // We want the breakline to be in the center of the screen so calculate the pos as such
 		
-		int lineStart = (int)data->line - drawableLineCount / 2;
+		int line = (int)data->line;
+
+		if (line == 0)
+			line = data->cursorPos;
+
+		int lineStart = line - drawableLineCount / 2;
 
 		if (lineStart < 0)
 			lineStart = 0;
@@ -374,8 +379,6 @@ static void updateKeyboard(SourceCodeData* data, PDUI* uiFuncs)
 	if (uiFuncs->isKeyDown(PDKEY_DOWN, 1))
 	{
 		cursorPos++;
-
-		printf("key down\n");
 
 		const int lineCount = data->file.lineCount - 1;
 
