@@ -295,6 +295,10 @@ StaticLibrary {
         	"api/include",
             "src/prodbg",
         },
+
+        CXXOPTS = { 
+			{ "/EHsc"; Config = "win64-*-*" },
+		},
     },
 
     Sources = { 
