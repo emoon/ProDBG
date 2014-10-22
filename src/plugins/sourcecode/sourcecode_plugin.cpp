@@ -316,7 +316,6 @@ static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
 
 	float textStartX = s_markerMargin + s_areaLinesToText + areaWidth;
 
-
     // if we are fully with in the drawing range we just render as is
 
     if (lineCount < drawableLineCount)

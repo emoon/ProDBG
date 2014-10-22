@@ -29,7 +29,10 @@ struct ViewPluginInstance** Session_getViewPlugins(struct Session* session, int*
 void Session_getLayout(Session* session, UILayout* layout, float width, float height);
 void Session_setLayout(Session* session, UILayout* layout, float width, float height);
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Session_stepIn(Session* session);
+void Session_stepOver(Session* session);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: TEMP

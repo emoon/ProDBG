@@ -575,4 +575,16 @@ void Session_stepIn(Session* s)
         s->state = backend->plugin->update(backend->userData, PDAction_step, s->reader, s->currentWriter);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Session_stepOver(Session* s)
+{
+	PDBackendInstance* backend = s->backend;	
+
+    if (backend)
+        s->state = backend->plugin->update(backend->userData, PDAction_stepOver, s->reader, s->currentWriter);
+}
+
+
+
 

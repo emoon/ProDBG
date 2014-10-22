@@ -95,8 +95,20 @@ static void onStep(LLDBPlugin* plugin)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void onStepOver(LLDBPlugin* data)
+void onStepOver(LLDBPlugin* plugin)
 {
+    lldb::SBEvent evt;
+
+    // TODO: Handle more than one thread here
+
+    lldb::SBThread thread(plugin->process.GetThreadAtIndex((size_t)0));
+
+    printf("thread stopReason %d\n", thread.GetStopReason());
+    printf("threadValid %d\n", thread.IsValid());
+
+    thread.StepOver();
+
+    plugin->state = PDDebugState_running;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

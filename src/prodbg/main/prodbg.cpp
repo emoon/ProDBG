@@ -91,8 +91,6 @@ void ProDBG_create(void* window, int width, int height)
     Context* context = &s_context;
     //Rect settingsRect;
 
-    log_info("create\n");
-
     context->session = Session_create();
 
     //Settings_getWindowRect(&settingsRect);
@@ -273,7 +271,7 @@ void ProDBG_event(int eventId)
 
         case PRODBG_MENU_DEBUG_STEP_OVER:
         {
-        	log_info("stepOver\n");
+        	Session_stepOver(context->session);
             break;
         }
 
