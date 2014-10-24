@@ -269,6 +269,19 @@ void ProDBG_event(int eventId)
 			break;
 		}
 
+		case PRODBG_MENU_DEBUG_BREAK:
+		{
+			Session_action(context->session, PDAction_break); 
+			log_info("trying to break...\n");
+			break;
+		}
+
+		case PRODBG_MENU_DEBUG_ATTACH_TO_REMOTE:
+		{
+			Session_startRemote(context->session, "127.0.0.1", 1340);
+			break;
+		}
+
         case PRODBG_MENU_DEBUG_TOGGLE_BREAKPOINT:
         {
         	Session_toggleBreakpointCurrentLine(context->session);
