@@ -331,7 +331,7 @@ int RemoteConnection_sendStream(RemoteConnection* conn, const unsigned char* buf
     // stream has the size at the very start and 2 top bits used for other things
     int32_t size = ((buffer[0] & 0x3f) << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
 
-    printf("Going to send stream of size %d\n", size);
+    //printf("Going to send stream of size %d\n", size);
 
     while (size != 0)
     {
@@ -339,7 +339,7 @@ int RemoteConnection_sendStream(RemoteConnection* conn, const unsigned char* buf
 
         int sent = RemoteConnection_send(conn, buffer, sizeLeft, 0);
 
-        printf("sent %d out of %d bytes\n", sent, size);
+        //printf("sent %d out of %d bytes\n", sent, size);
 
         if (sent == 0)
             return sizeCount;
