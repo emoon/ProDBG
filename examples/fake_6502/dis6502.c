@@ -419,7 +419,7 @@ int disassemblyOne(unsigned short addr)
         size = 1;
     }
 
-    printf("%s", disassembled[addr]);
+    //printf("%s", disassembled[addr]);
     
     return size;
 }
@@ -463,7 +463,7 @@ int disassembleToBuffer(char* dest, int* addressIn, int* instCountIn)
 
     dest[totalLength] = 0;
 
-    printf("TotalLength %d\n", totalLength);
+    //printf("TotalLength %d\n", totalLength);
 
     return totalLength;
 }
