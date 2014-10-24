@@ -121,15 +121,22 @@ static void setDisassemblyCode(DissassemblyData* data, PDReader* inEvents)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void renderUI(DissassemblyData* data, PDUI* uiFuncs)
+{
+	if (!data->code)
+		return;
+
+	uiFuncs->text("");	// TODO: Temporary
+	uiFuncs->text(data->code);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* writer)
 {
     uint32_t event;
 
-    (void)uiFuncs;
-
     DissassemblyData* data = (DissassemblyData*)userData;
-
-    (void)writer;
 
     while ((event = PDRead_getEvent(inEvents)) != 0)
     {
@@ -138,7 +145,6 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
             case PDEventType_setDisassembly:
             {
                 setDisassemblyCode(data, inEvents);
-                //PDUICustomView_repaint(uiFuncs, data->view);
                 break;
             }
 
@@ -150,13 +156,14 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
         }
     }
 
-    // TODO: Make sure to only request data if the debugger is in break/exception state
-    /*
-       PDWrite_eventBegin(writer, PDEventType_getDisassembly);
-       PDWrite_u64(writer, "address_start", 0);
-       PDWrite_u32(writer, "instruction_count", (uint32_t)10);
-       PDWrite_eventEnd(writer);
-     */
+    renderUI(data, uiFuncs);
+
+    // Temporary req
+
+	PDWrite_eventBegin(writer, PDEventType_getDisassembly);
+	PDWrite_u64(writer, "address_start", 0);
+	PDWrite_u32(writer, "instruction_count", (uint32_t)10);
+	PDWrite_eventEnd(writer);
 
     return 0;
 }
