@@ -6,76 +6,65 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+struct Line
+{
+	const char* text;
+	bool breakpoint;		// TODO: Flags
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct DissassemblyData
 {
     char* code;
+    Line* lines;
+    int lineCount;
     uint64_t location;
     uint8_t locationSize;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if 0
-
-static void buildAddressString(char* output, uint64_t address, uint8_t size)
+static void splitIntoLines(DissassemblyData* data, char* code, size_t size)
 {
-    switch (size)
+	int lineCount = 0;
+    Line* lines;
+
+	char* target = code;
+	char* targetEnd = code + size;
+
+	free(data->lines);
+
+    // so this is really waste of memory but will do for now
+
+    data->lines = lines = (Line*)malloc(sizeof(Line) * size);
+    memset(lines, 0, sizeof(Line) * size);
+
+    lines[0].text = target;
+    lineCount++;
+
+    while (target < targetEnd)
     {
-        case 0:
-            output[0] = 0; break;
-        case 1:
-            sprintf(output, "%02x", (uint8_t)address); break;
-        case 2:
-            sprintf(output, "%04x", (uint16_t)address); break;
-        case 4:
-            sprintf(output, "%08x", (uint32_t)address); break;
-        case 8:
-            sprintf(output, "%016llx", (uint64_t)address); break;
-    }
-}
+		char c = *target; 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        if (*target == '\r')
+		{
+            *target++ = 0;
+            c = *target;
+		}
 
-
-static void drawCallback(void* userData, PDRect* viewRect, PDUIPainter* painter)
-{
-    int fontX;
-    int fontY;
-
-    char locationAddress[128];
-
-    DissassemblyData* data = (DissassemblyData*)userData;
-
-    PDUIPaint_fontMetrics(painter, &fontX, &fontY);
-    PDUIPaint_fillRect(painter, viewRect, 0x7f7f);
-    PDUIPaint_setPen(painter, 0x1fffffff);
-
-    buildAddressString(locationAddress, data->location, data->locationSize);
-
-    if (data->code)
-    {
-        int y = 30;
-        char* tempCode = strdup(data->code);
-        char* pch = strtok(tempCode, "\n");
-
-        while (pch != NULL)
+        if (*target == '\n')
         {
-            if (strstr(pch, locationAddress) == pch)
-                PDUIPaint_setPen(painter, 0x1f1f1fff);
-            else
-                PDUIPaint_setPen(painter, 0x1fffffff);
-
-            PDUIPaint_drawText(painter, viewRect->x, y, pch);
-
-            pch = strtok(NULL, "\n");
-            y += fontX + 2;
+            *target = 0;
+            lines[lineCount++].text = target + 1; 
         }
 
-        free(tempCode);
+        target++;
     }
-}
 
-#endif
+	*target++ = 0;
+	data->lineCount = lineCount;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -117,6 +106,8 @@ static void setDisassemblyCode(DissassemblyData* data, PDReader* inEvents)
         return;
 
     data->code = strdup(stringBuffer);
+
+	splitIntoLines(data, data->code, strlen(stringBuffer));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -127,7 +118,9 @@ void renderUI(DissassemblyData* data, PDUI* uiFuncs)
 		return;
 
 	uiFuncs->text("");	// TODO: Temporary
-	uiFuncs->text(data->code);
+
+	for (int i = 0; i < data->lineCount; ++i)
+		uiFuncs->text(data->lines[i].text);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
