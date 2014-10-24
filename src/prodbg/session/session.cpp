@@ -58,6 +58,27 @@ struct Session* Session_create()
     return s;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Session* Session_startRemote(Session* s, const char* target, int port)
+{	
+    s->type = Session_Remote;
+
+    struct RemoteConnection* conn = RemoteConnection_create(RemoteConnectionType_Connect, port);
+
+    if (!RemoteConnection_connect(conn, target, port))
+    {
+    	log_info("Unable to connect to %s:%d", target, port);
+        RemoteConnection_destroy(conn);
+        return s;
+    }
+    else
+    {
+        s->connection = conn;
+    }
+
+    return s;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -67,24 +88,9 @@ Session* Session_createRemote(const char* target, int port)
 
     commonInit(s);
 
-    s->type = Session_Remote;
+	Session_startRemote(s, target, port);
 
-    struct RemoteConnection* conn = RemoteConnection_create(RemoteConnectionType_Connect, port);
-
-    if (!RemoteConnection_connect(conn, target, port))
-    {
-        //StatusBar_setText(0, "Unable to connect to %s:%d", target, port);
-        RemoteConnection_destroy(conn);
-        return s;
-    }
-    else
-    {
-        s->connection = conn;
-    }
-
-    //StatusBar_setText(0, "Connect to %s:%d", target, port);
-
-    return s;
+	return s;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -292,17 +298,12 @@ const char* getBackendState(PDReader* reader)
 
 static void updateRemote(Session* s, PDAction action)
 {
-    //PDBackendInstance* backend = s->backend;
-
-    (void)action;
-    (void)s;
-
     if (!s->connection)
         return;
 
-    /*
+    (void)action;
 
-    PDBinaryReader_reset(&s->reader);
+    PDBinaryReader_reset(s->reader);
 
     if (RemoteConnection_pollRead(s->connection))
     {
@@ -318,39 +319,40 @@ static void updateRemote(Session* s, PDAction action)
 
             outputBuffer = RemoteConnection_recvStream(s->connection, 0, totalSize);
 
-            PDBinaryReader_initStream(&s->reader, outputBuffer, (unsigned int)totalSize);
+            PDBinaryReader_initStream(s->reader, outputBuffer, (unsigned int)totalSize);
         }
     }
-
-    // Get the current state of the plugin
-
-    //const char* backendState = getBackendState(&s->reader);
-    //(void)backendState;
-    //StatusBar_setText(1, "Status: %s", backendState);
-
-    PDBinaryWriter_reset(&s->viewPluginsWriter);
 
     int len = stb_arr_len(s->viewPlugins);
 
     for (int i = 0; i < len; ++i)
     {
         struct ViewPluginInstance* p = s->viewPlugins[i];
-        p->plugin->update(p->userData, &p->ui, &s->reader, &s->viewPluginsWriter);
-        PDBinaryReader_reset(&s->reader);
+        PluginUIState state = PluginUI_updateInstance(p, s->reader, s->currentWriter);
+
+        if (state == PluginUIState_CloseView)
+            p->markDeleted = true;
+
+        PDBinaryReader_reset(s->reader);
     }
 
-    PDBinaryWriter_finalize(&s->viewPluginsWriter);
+    PDBinaryWriter_finalize(s->currentWriter);
 
-    if (PDBinaryWriter_getSize(&s->viewPluginsWriter) > 4)
+    // Swap the write buffers
+
+	PDWriter* temp = s->currentWriter;
+	s->currentWriter = s->prevWriter;
+	s->prevWriter = temp;
+
+    if (PDBinaryWriter_getSize(s->prevWriter) > 4)
     {
-        if (PDBinaryWriter_getSize(&s->viewPluginsWriter) > 4 &&
-            RemoteConnection_isConnected(s->connection))
+        if (PDBinaryWriter_getSize(s->prevWriter) > 4 && RemoteConnection_isConnected(s->connection))
         {
-            RemoteConnection_sendStream(s->connection, PDBinaryWriter_getData(&s->viewPluginsWriter));
+            RemoteConnection_sendStream(s->connection, PDBinaryWriter_getData(s->prevWriter));
         }
     }
 
-    */
+    PDBinaryWriter_reset(s->currentWriter);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -573,6 +575,9 @@ void Session_stepIn(Session* s)
 
     if (backend)
         s->state = backend->plugin->update(backend->userData, PDAction_step, s->reader, s->currentWriter);
+	else if (s->type == Session_Remote)
+		Session_action(s, PDAction_step);
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -583,6 +588,8 @@ void Session_stepOver(Session* s)
 
     if (backend)
         s->state = backend->plugin->update(backend->userData, PDAction_stepOver, s->reader, s->currentWriter);
+	else if (s->type == Session_Remote)
+		Session_action(s, PDAction_stepOver);
 }
 
 
