@@ -374,8 +374,8 @@ unsigned char* RemoteConnection_recvStream(RemoteConnection* conn, unsigned char
     outputBuffer += 4;
     size -= 4;
 
-    printf("about to get data (expected size %d)\n", size);
-    printf("filling buffer %p\n", outputBuffer);
+    //printf("about to get data (expected size %d)\n", size);
+    //printf("filling buffer %p\n", outputBuffer);
 
     while (size != 0)
     {
@@ -383,7 +383,7 @@ unsigned char* RemoteConnection_recvStream(RemoteConnection* conn, unsigned char
 
         int ret = RemoteConnection_recv(conn, (char*)outputBuffer, currSize, 0);
 
-        printf("got size %d (%d)\n", ret, currSize);
+        //printf("got size %d (%d)\n", ret, currSize);
 
         if (ret <= 0)
         {
