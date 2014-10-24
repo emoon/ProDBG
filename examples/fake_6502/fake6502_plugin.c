@@ -171,6 +171,7 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
         switch (event)
         {
             case PDEventType_getDisassembly : getDisassembly(reader, writer); break;
+            case PDEventType_getRegisters : setRegisters(writer); break;
         }
     }
 
