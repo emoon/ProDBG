@@ -65,8 +65,6 @@ static void setRegisters(PDWriter* writer)
     writeRegister(writer, "y", 1, y, 0);
     writeRegister(writer, "status", 1, status, 1);
 
-    printf("x: 0x%x\n", x);
-
     PDWrite_arrayEnd(writer);
     PDWrite_eventEnd(writer);
 }
@@ -98,6 +96,7 @@ static void setDisassembly(PDWriter* writer, int start, int instCount)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 static void getDisassembly(PDReader* reader, PDWriter* writer)
 {
     uint16_t start = 0;
@@ -108,6 +107,7 @@ static void getDisassembly(PDReader* reader, PDWriter* writer)
 
     setDisassembly(writer, start, instCount);
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -160,12 +160,15 @@ static void doAction(Debugger6502* debugger, PDAction action, PDWriter* writer)
 
 static PDDebugState update(void* userData, PDAction action, PDReader* reader, PDWriter* writer)
 {
-    int event = 0;
+    //int event = 0;
+
+    (void)reader;
 
     Debugger6502* debugger = (Debugger6502*)userData;
 
     doAction(debugger, action, writer);
 
+	/*
     while ((event = PDRead_getEvent(reader)) != 0)
     {
         switch (event)
@@ -174,6 +177,7 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
             case PDEventType_getRegisters : setRegisters(writer); break;
         }
     }
+    */
 
     return debugger->runState;
 }
