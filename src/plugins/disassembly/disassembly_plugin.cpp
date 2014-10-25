@@ -77,8 +77,6 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     (void)uiFuncs;
     (void)serviceFunc;
 
-    //userData->view = PDUICustomView_create(uiFuncs, userData, drawCallback);
-
     return userData;
 }
 
