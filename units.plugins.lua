@@ -138,6 +138,21 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+SharedLibrary {
+    Name = "hex_memory_plugin",
+    
+    Env = {
+        CPPPATH = { "api/include", },
+    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
+        SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
+        CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
+    },
+
+    Sources = { "src/plugins/hex_memory/hex_memory_plugin.cpp" },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
 if native.host_platform == "macosx" then
    Default "lldb_plugin"
 end
@@ -148,4 +163,6 @@ Default "sourcecode_plugin"
 Default "disassembly_plugin"
 Default "locals_plugin"
 Default "breakpoints_plugin"
+Default "hex_memory_plugin"
+
 
