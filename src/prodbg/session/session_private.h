@@ -27,6 +27,24 @@ struct Breakpoint
 
 typedef struct Session
 {
+	inline Session()
+	{
+		type = Session_Null;
+		reader = 0;
+		writer0 = 0;
+		writer1 = 0;
+		tempWriter0 = 0;
+		tempWriter1 = 0;
+
+		currentWriter = 0;
+		prevWriter = 0;
+
+		state = PDDebugState_noTarget;
+		backend = 0;
+		connection = 0;
+		viewPlugins = 0;
+	}
+
     enum SessionType type;
     PDReader* reader;
     PDWriter* writer0;
