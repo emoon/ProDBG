@@ -19,6 +19,7 @@ struct DissassemblyData
     char* code;
     Line* lines;
     int lineCount;
+    uint64_t pc;
     uint64_t location;
     uint8_t locationSize;
 };
@@ -117,8 +118,46 @@ void renderUI(DissassemblyData* data, PDUI* uiFuncs)
 
 	uiFuncs->text("");	// TODO: Temporary
 
+	char tempBuffer[64];	
+	sprintf(tempBuffer, "%04X", (uint16_t)data->pc);
+
 	for (int i = 0; i < data->lineCount; ++i)
+	{
+		if (strstr(data->lines[i].text, tempBuffer))
+		{
+            PDRect rect;
+            PDVec2 pos = uiFuncs->getCursorPos();
+            rect.x = pos.x;
+            rect.y = pos.y - 11;
+            rect.width = -1;
+            rect.height = 14;
+            uiFuncs->fillRect(rect, PD_COLOR_32(200, 0, 0, 127));
+		}
+
 		uiFuncs->text(data->lines[i].text);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void updateRegisters(DissassemblyData* data, PDReader* reader)
+{
+    PDReaderIterator it;
+
+    if (PDRead_findArray(reader, &it, "registers", 0) == PDReadStatus_notFound)
+        return;
+
+    while (PDRead_getNextEntry(reader, &it))
+    {
+        const char* name = "";
+
+        PDRead_findString(reader, &name, "name", it);
+
+        if (!strcmp(name, "pc"))
+		{
+			PDRead_findU64(reader, &data->pc, "register", it);
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -143,7 +182,12 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
             {
                 PDRead_findU64(inEvents, &data->location, "address", 0);
                 PDRead_findU8(inEvents, &data->locationSize, "address_size", 0);
+                break;
             }
+
+            case PDEventType_setRegisters:
+                updateRegisters(data, inEvents); break;
+
         }
     }
 
