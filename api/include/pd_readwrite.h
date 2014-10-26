@@ -637,7 +637,7 @@ typedef struct PDReader
 #define PDRead_findFloat(r, res, id, it) r->readFindFloat(r, res, id, it)
 #define PDRead_findDouble(r, res, id, it) r->readFindDouble(r, res, id, it)
 #define PDRead_findString(r, res, id, it) r->readFindString(r, res, id, it)
-#define PDRead_findData(r, res, id, it) r->readFindData(r, data, size, id, it)
+#define PDRead_findData(r, res, size, id, it) r->readFindData(r, res, size, id, it)
 #define PDRead_findArray(r, arrayIt, id, it) r->readFindArray(r, arrayIt, id, it)
 #define PDRead_s8(r, res, id, it) r->readS8(r, res, id, it)
 #define PDRead_u8(r, res, id, it) r->readU8(r, res, id, it)
