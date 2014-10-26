@@ -57,6 +57,7 @@ typedef struct PDUI
 	
 	PDVec2 (*getWindowSize)();
 	float (*getFontHeight)();
+	float (*getFontWidth)();
 
     // Text
 
