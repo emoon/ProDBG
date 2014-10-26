@@ -194,6 +194,13 @@ static float getFontHeight()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static float getFontWidth()
+{
+    return 12.0f;   // TODO: Fix me
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDVec2 getMousePos()
 {
 	ImVec2 pos = ImGui::GetRelativeMousePos();
@@ -301,6 +308,7 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     uiInstance->getTextWidth = getTextWidth;
     uiInstance->getWindowSize = getWindowSize;
     uiInstance->getFontHeight = getFontHeight;
+    uiInstance->getFontWidth = getFontWidth;
 	uiInstance->getMousePos = getMousePos;
 	uiInstance->getMouseScreenPos = getMouseScreenPos;
 	uiInstance->isMouseClicked = isMouseClicked;
