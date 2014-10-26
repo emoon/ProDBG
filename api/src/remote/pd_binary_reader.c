@@ -151,9 +151,9 @@ static uint32_t readGetEvent(struct PDReader* reader)
 
     // make sure we actually have some data to process
 
-    if (data >= rData->dataEnd - 4)
+    if (data >= rData->dataEnd)
     {
-        log_debug("data %p >= rData->dataEnd - 4 %p\n", data, rData->dataEnd - 4);
+        log_debug("data %p >= rData->dataEnd %p\n", data, rData->dataEnd);
         return 0;
     }
 
@@ -161,7 +161,7 @@ static uint32_t readGetEvent(struct PDReader* reader)
 
     if (type != PDReadType_event)
     {
-        log_info("Unable to read event as type is wrong (expected %d but got %d) all read operations will now fail.\n",
+        log_debug("Unable to read event as type is wrong (expected %d but got %d) all read operations will now fail.\n",
                  PDReadType_event, type);
         return 0;
     }
@@ -207,6 +207,8 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
         uint32_t size;
         uint8_t typeId = getU8(start);
 
+        printf("typeId %d\n", typeId);
+
         ///if (typeId <PDReadType_count)
         //	log_debug("typeId %s\n", typeTable[typeId]);
         //else
@@ -218,12 +220,16 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
         {
             size = getU32(start + 1);
 
+			printf("%s:%d\n", __FILE__, __LINE__);
+
             if (!strcmp((char*)start + 5, id))
                 return start;
         }
         else
         {
             size = getU16(start + 1);
+
+			printf("%s:%d\n", __FILE__, __LINE__);
 
             //log_debug("current string - %s searching for - %s\n", (char*)start + 3, id);
 
@@ -236,6 +242,8 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
 
     // not found
     //
+
+	printf("%s:%d\n", __FILE__, __LINE__);
 
     return 0;
 }
@@ -411,7 +419,10 @@ static uint32_t readFindData(struct PDReader* reader, void** data, uint64_t* siz
 
     const uint8_t* dataPtr = findId(reader, id, it);
     if (!dataPtr)
+	{
+		printf("%s:%d\n", __FILE__, __LINE__);
         return PDReadStatus_notFound;
+	}
 
     type = *dataPtr;
 

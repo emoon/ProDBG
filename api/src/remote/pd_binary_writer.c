@@ -152,12 +152,12 @@ static PDWriteStatus writeS64(struct PDWriter* writer, const char* id, int64_t v
 
     wData->data[0] = (v >> 56) & 0xff;
     wData->data[1] = (v >> 48) & 0xff;
-    wData->data[1] = (v >> 40) & 0xff;
-    wData->data[2] = (v >> 32) & 0xff;
-    wData->data[3] = (v >> 24) & 0xff;
-    wData->data[4] = (v >> 16) & 0xff;
-    wData->data[5] = (v >> 8) & 0xff;
-    wData->data[6] = (v >> 0) & 0xff;
+    wData->data[2] = (v >> 40) & 0xff;
+    wData->data[3] = (v >> 32) & 0xff;
+    wData->data[4] = (v >> 24) & 0xff;
+    wData->data[5] = (v >> 16) & 0xff;
+    wData->data[6] = (v >> 8) & 0xff;
+    wData->data[7] = (v >> 0) & 0xff;
     wData->data += 8;
 
     if (wData->writingArrayEntry)
@@ -175,12 +175,12 @@ static PDWriteStatus writeU64(struct PDWriter* writer, const char* id, uint64_t 
 
     wData->data[0] = (v >> 56) & 0xff;
     wData->data[1] = (v >> 48) & 0xff;
-    wData->data[1] = (v >> 40) & 0xff;
-    wData->data[2] = (v >> 32) & 0xff;
-    wData->data[3] = (v >> 24) & 0xff;
-    wData->data[4] = (v >> 16) & 0xff;
-    wData->data[5] = (v >> 8) & 0xff;
-    wData->data[6] = (v >> 0) & 0xff;
+    wData->data[2] = (v >> 40) & 0xff;
+    wData->data[3] = (v >> 32) & 0xff;
+    wData->data[4] = (v >> 24) & 0xff;
+    wData->data[5] = (v >> 16) & 0xff;
+    wData->data[6] = (v >> 8) & 0xff;
+    wData->data[7] = (v >> 0) & 0xff;
     wData->data += 8;
 
     if (wData->writingArrayEntry)
@@ -233,12 +233,12 @@ static PDWriteStatus writeDouble(struct PDWriter* writer, const char* id, double
 
     wData->data[0] = (c.u64 >> 56) & 0xff;
     wData->data[1] = (c.u64 >> 48) & 0xff;
-    wData->data[1] = (c.u64 >> 40) & 0xff;
-    wData->data[2] = (c.u64 >> 32) & 0xff;
-    wData->data[3] = (c.u64 >> 24) & 0xff;
-    wData->data[4] = (c.u64 >> 16) & 0xff;
-    wData->data[5] = (c.u64 >> 8) & 0xff;
-    wData->data[6] = (c.u64 >> 0) & 0xff;
+    wData->data[2] = (c.u64 >> 40) & 0xff;
+    wData->data[3] = (c.u64 >> 32) & 0xff;
+    wData->data[4] = (c.u64 >> 24) & 0xff;
+    wData->data[5] = (c.u64 >> 16) & 0xff;
+    wData->data[6] = (c.u64 >> 8) & 0xff;
+    wData->data[7] = (c.u64 >> 0) & 0xff;
     wData->data += 8;
 
     if (wData->writingArrayEntry)
