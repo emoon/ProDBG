@@ -53,6 +53,7 @@ static const char* s_plugins[] =
     "callstack_plugin",
     "registers_plugin",
     "breakpoints_plugin",
+    "hex_memory_plugin",
 #ifdef PRODBG_MAC
     "lldb_plugin",
 #endif
