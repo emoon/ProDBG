@@ -385,14 +385,14 @@ int main()
 
     const UnitTest tests[] =
     {
-		//unit_test(testWriteReadEvent),
+		unit_test(testWriteReadEvent),
 		unit_test(testDataReadWrite),
-		//unit_test(testWriteSingleString),
-		//unit_test(testWriteReadAction),
-		//unit_test(testAllValueTypes),
-		//unit_test(testFind),
-		//unit_test(testArray),
-		//unit_test(testArrayRead),
+		unit_test(testWriteSingleString),
+		unit_test(testWriteReadAction),
+		unit_test(testAllValueTypes),
+		unit_test(testFind),
+		unit_test(testArray),
+		unit_test(testArrayRead),
 	};
 
     reader = &readerData;

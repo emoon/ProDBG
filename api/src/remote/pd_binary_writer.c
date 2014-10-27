@@ -287,7 +287,7 @@ static PDWriteStatus writeData(struct PDWriter* writer, const char* id, void* da
     memcpy(wData->data + 5, id, idLen + 1);
     memcpy(wData->data + 5 + idLen + 1, data, len);
 
-    wData += totalSize;
+    wData->data += totalSize;
 
     if (wData->writingArrayEntry)
         wData->entryCount++;

@@ -433,7 +433,7 @@ static uint32_t readFindData(struct PDReader* reader, void** data, uint64_t* siz
 
     // find the offset to the string
 
-    *size = getU32(dataPtr + 1) - idLength;
+    *size = (getU32(dataPtr + 1) - idLength) - 5;	// fix hard-coded values
     *data = (void*)(dataPtr + 5 + idLength);
 
     return PDReadType_data | PDReadStatus_ok;
