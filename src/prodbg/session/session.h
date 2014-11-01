@@ -15,6 +15,8 @@ struct Session* Session_create();
 struct Session* Session_createRemote(const char* target, int port);
 struct Session* Session_startRemote(Session* session, const char* target, int port);
 
+int Session_isConnected(Session* session);
+
 struct Session* Session_createLocal(PDBackendPlugin* backend, const char* filename);
 struct Session* Session_startLocal(Session* session, PDBackendPlugin* backend, const char* filename);
 

@@ -82,6 +82,16 @@ Session* Session_startRemote(Session* s, const char* target, int port)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+int Session_isConnected(Session* session)
+{
+	if (!session->connection)
+		return 0;
+
+	return RemoteConnection_isConnected(session->connection);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Session* Session_createRemote(const char* target, int port)
 {
     Session* s = (Session*)alloc_zero(sizeof(Session));
