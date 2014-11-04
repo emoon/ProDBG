@@ -51,5 +51,5 @@ Default "session_tests"
 Default "ui_tests"
 Default "lldb_tests"
 Default "readwrite_tests"
--- Default "remote_api_tests"
+Default "remote_api_tests"
 
