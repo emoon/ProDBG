@@ -8,6 +8,10 @@
 #include <windows.h>
 #endif
 
+#if defined(__APPLE__)
+#include <signal.h>
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern char** environ;
@@ -45,7 +49,7 @@ int Process_wait(ProcessHandle handle)
 
 int Process_kill(ProcessHandle handle)
 {
-#ifdef PRODBG_UNIX
+#ifndef _WIN32
 	kill((pid_t)(uintptr_t)handle, 9);
 #endif
 	(void)handle;
