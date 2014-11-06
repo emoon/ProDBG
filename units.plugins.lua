@@ -49,6 +49,23 @@ SharedLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
+    Name = "dbgeng_plugin",
+
+    Env = {
+        CPPPATH = {
+            "api/include",
+            "src/plugins/dbgeng",
+        },
+    },
+
+    Sources = {
+        "src/plugins/dbgeng/dbgeng_plugin.cpp"
+    },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+SharedLibrary {
     Name = "sourcecode_plugin",
     
     Env = {
@@ -155,6 +172,10 @@ SharedLibrary {
 
 if native.host_platform == "macosx" then
    Default "lldb_plugin"
+end
+
+if native.host_platform == "windows" then
+   Default "dbgeng_plugin"
 end
 
 Default "registers_plugin"

@@ -43,6 +43,7 @@ Test({ Name = "ui_tests", Source = "src/prodbg/tests/ui_tests.cpp" })
 Test({ Name = "lldb_tests", Source = "src/prodbg/tests/lldb_tests.cpp" })
 Test({ Name = "readwrite_tests", Source = "src/prodbg/tests/readwrite_tests.cpp" })
 Test({ Name = "remote_api_tests", Source = "src/prodbg/tests/remote_api_tests.cpp" })
+Test({ Name = "dbgeng_tests", Source = "src/prodbg/tests/dbgeng_tests.cpp" })
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -52,4 +53,5 @@ Default "ui_tests"
 Default "lldb_tests"
 Default "readwrite_tests"
 Default "remote_api_tests"
+Default "dbgeng_tests"
 
