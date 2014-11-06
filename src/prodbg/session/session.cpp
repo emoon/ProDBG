@@ -94,7 +94,7 @@ int Session_isConnected(Session* session)
 
 Session* Session_createRemote(const char* target, int port)
 {
-    Session* s = (Session*)alloc_zero(sizeof(Session));
+    Session* s = new Session; 
 
     commonInit(s);
 
@@ -142,7 +142,7 @@ Session* Session_startLocal(Session* s, PDBackendPlugin* backend, const char* fi
 
 Session* Session_createLocal(PDBackendPlugin* backend, const char* filename)
 {
-    Session* s = (Session*)alloc_zero(sizeof(Session));
+    Session* s = new Session; 
 
     commonInit(s);
 
