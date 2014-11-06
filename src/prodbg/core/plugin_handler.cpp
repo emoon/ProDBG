@@ -42,7 +42,7 @@ static char* buildLoadingPath(const char* basePath, const char* plugin)
     sprintf(output, "%s/lib%s.dylib", basePath, plugin);
 #elif PRODBG_WIN
     output = (char*)malloc(baseLen + pluginLen + 6); // + 5 for separator /.dll + terminator
-    sprintf(output, "%s/lib%s.dylib", basePath, plugin);
+    sprintf(output, "%s\\%s.dll", basePath, plugin);
 #else
     output = (char*)malloc(baseLen + pluginLen + 5); // + 4 for separator \.so + terminator
     sprintf(output, "%s/%s.so", basePath, plugin);
