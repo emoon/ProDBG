@@ -159,7 +159,7 @@ static void text(const char* format, ...)
 
 static int buttonSize(const char* label, int width, int height, int repeatWhenHeld)
 {
-    return ImGui::Button(label, ImVec2(width, height), !!repeatWhenHeld);
+    return ImGui::Button(label, ImVec2((float)width, (float)height), !!repeatWhenHeld);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

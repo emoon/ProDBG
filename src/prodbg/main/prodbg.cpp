@@ -65,7 +65,7 @@ static void setLayout(UILayout* layout)
 {
     Context* context = &s_context;
     IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
-    Session_setLayout(context->session, layout, context->width, context->height);
+    Session_setLayout(context->session, layout, (float)context->width, (float)context->height);
     IMGUI_postUpdate();
 }
 
@@ -192,7 +192,7 @@ void ProDBG_destroy()
     UILayout layout;
     Context* context = &s_context;
 
-    Session_getLayout(context->session, &layout, context->width, context->height);
+    Session_getLayout(context->session, &layout, (float)context->width, (float)context->height);
     UILayout_saveLayout(&layout, "data/current_layout.yaml");
 
     Settings_save();

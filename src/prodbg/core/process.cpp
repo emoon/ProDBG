@@ -38,6 +38,7 @@ ProcessHandle Process_spawn(const char* exe, const char** args)
 
 int Process_wait(ProcessHandle handle)
 {
+	(void)handle;
 #ifndef _WIN32
 	int status = 0;
 	waitpid((pid_t)(uintptr_t)handle, &status, 0);

@@ -14,7 +14,6 @@ local mac_opts = {
 	"-Wno-gnu-anonymous-struct",
 	"-Wno-nested-anon-types",
 	"-Wno-padded",
-	"-std=c++11",
 	"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
 	{ "-O0", "-g"; Config = "*-*-debug" },
 	{ "-O3", "-g"; Config = "*-*-release" },
@@ -23,40 +22,12 @@ local mac_opts = {
 local macosx = {
     Env = {
         CCOPTS =  {
-			"-Wall",
-			"-I.", "-DPRODBG_MAC", 
-			"-Weverything", "-Werror", 
-			"-Wno-c11-extensions",
-			"-Wno-variadic-macros",
-			"-Wno-c++98-compat-pedantic",
-			"-Wno-old-style-cast",
-			"-Wno-documentation", 
-			"-Wno-missing-prototypes", 
-			"-Wno-gnu-anonymous-struct",
-			"-Wno-nested-anon-types",
-			"-Wno-padded",
-			"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
-			{ "-O0", "-g"; Config = "*-*-debug" },
-			{ "-O3", "-g"; Config = "*-*-release" },
+			mac_opts,
 		},
         
         CXXOPTS = {
-        	"-Wall",
-			"-I.", "-DPRODBG_MAC", 
-			"-Weverything", "-Werror", 
-			"-Wno-c11-extensions",
-			"-Wno-variadic-macros",
-			"-Wno-c++98-compat-pedantic",
-			"-Wno-old-style-cast",
-			"-Wno-documentation", 
-			"-Wno-missing-prototypes", 
-			"-Wno-gnu-anonymous-struct",
-			"-Wno-nested-anon-types",
-			"-Wno-padded",
+			mac_opts,
 			"-std=c++11",
-			"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
-			{ "-O0", "-g"; Config = "*-*-debug" },
-			{ "-O3", "-g"; Config = "*-*-release" },
 		},
     },
 
@@ -64,26 +35,26 @@ local macosx = {
 }
 
 -----------------------------------------------------------------------------------------------------------------------
+        
+local gcc_opts = {
+	"-I.",
+	"-Wno-unused-value",
+	"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
+	"-Wall", "-DPRODBG_UNIX",
+	{ "-O0", "-g"; Config = "*-*-debug" },
+	{ "-O3", "-g"; Config = "*-*-release" },
+}
 
 local gcc_env = {
     Env = {
         CCOPTS = {
-		"-I.",
-		"-Wno-unused-value",
-		"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
-		"-Wall", "-DPRODBG_UNIX",
-		{ "-O0", "-g"; Config = "*-*-debug" },
-		{ "-O3", "-g"; Config = "*-*-release" },
-	},
+			gcc_opts,
+		},
 
         CXXOPTS = {
-		"-I.",
-		"-Wno-unused-value",
-		"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
-		"-Wall", "-DPRODBG_UNIX", "-std=c++11",
-		{ "-O0", "-g"; Config = "*-*-debug" },
-		{ "-O3", "-g"; Config = "*-*-release" },
-	},
+			gcc_opts,
+			"-std=c++11",
+		},
     },
 
 	ReplaceEnv = {
@@ -93,22 +64,28 @@ local gcc_env = {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+local win64_opts = {
+	"/DPRODBG_WIN",
+	"/EHsc", "/FS", "/MT", "/W3", "/I.", "/WX", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4152", "/wd4996", "/wd4389", "/wd4201", "/wd4152", "/wd4996", "/wd4389",
+	"\"/DOBJECT_DIR=$(OBJECTDIR:#)\"",
+	{ "/Od"; Config = "*-*-debug" },
+	{ "/O2"; Config = "*-*-release" },
+}
+
+			-- "/DPRODBG_WIN",
+            --"/FS", "/MT", "/I.", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4152", "/wd4996", "/wd4389",
+            --{ "/Od"; Config = "*-*-debug" },
+            --{ "/O2"; Config = "*-*-release" },
+
 local win64 = {
     Env = {
         GENERATE_PDB = "1",
         CCOPTS = {
-			"/DPRODBG_WIN",
-            "/FS", "/MT", "/W4", "/I.", "/WX", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4152", "/wd4996", "/wd4389", "/wd4201", 
-            { "/Od"; Config = "*-*-debug" },
-            { "/O2"; Config = "*-*-release" },
+			win64_opts,
         },
 
         CXXOPTS = {
-			"/DPRODBG_WIN",
-            "/FS", "/MT", "/I.", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4152", "/wd4996", "/wd4389",
-			"\"/DOBJECT_DIR=$(OBJECTDIR:#)\"",
-            { "/Od"; Config = "*-*-debug" },
-            { "/O2"; Config = "*-*-release" },
+			win64_opts,
         },
 
 		OBJCCOM = "meh",

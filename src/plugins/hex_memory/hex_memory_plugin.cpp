@@ -134,7 +134,7 @@ void drawUI(HexMemoryData* data, PDUI* uiFuncs)
     const float fontWidth = uiFuncs->getFontWidth();
 
     int drawableLineCount = (int)(windowSize.y / fontHeight);
-    float drawableChars = (int)(windowSize.x / fontWidth);
+    float drawableChars = (float)(int)(windowSize.x / fontWidth);
 
     // margins between the rows
 

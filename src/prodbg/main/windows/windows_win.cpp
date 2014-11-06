@@ -309,7 +309,7 @@ static void CALLBACK timedCallback(HWND hwnd, UINT id, UINT_PTR ptr, DWORD meh)
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmndLine, int show)
 {
     MSG msg;
-    HACCEL accel;
+    //HACCEL accel;
     bool done = false;
 
     memset(&msg, 0, sizeof(MSG));
@@ -342,6 +342,6 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmndLine, i
     }
 
     closeWindow();
-    return msg.wParam;
+    return (int)msg.wParam;
 }
 
