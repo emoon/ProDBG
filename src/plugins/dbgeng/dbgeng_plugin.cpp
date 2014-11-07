@@ -76,6 +76,7 @@ STDMETHODIMP DbgEngPlugin::GetInterestMask(THIS_
 STDMETHODIMP DbgEngPlugin::Breakpoint(THIS_
 	IN PDEBUG_BREAKPOINT Bp)
 {
+	printf("DbgEngPlugin: Breakpoint\n");
 	return S_OK;
 }
 
@@ -83,6 +84,7 @@ STDMETHODIMP DbgEngPlugin::Exception(THIS_
 	IN PEXCEPTION_RECORD64 Exception,
 	IN ULONG FirstChance)
 {
+	printf("DbgEngPlugin: Exception\n");
 	return S_OK;
 }
 
@@ -99,6 +101,7 @@ STDMETHODIMP DbgEngPlugin::CreateProcess(THIS_
 	IN ULONG64 ThreadDataOffset,
 	IN ULONG64 StartOffset)
 {
+	printf("DbgEngPlugin: CreateProcess\n");
 	return S_OK;
 }
 
@@ -111,12 +114,41 @@ STDMETHODIMP DbgEngPlugin::LoadModule(THIS_
 	IN ULONG CheckSum,
 	IN ULONG TimeDateStamp)
 {
+	printf("DbgEngPlugin: LoadModule\n");
 	return S_OK;
 }
 
 STDMETHODIMP DbgEngPlugin::SessionStatus(THIS_
 	IN ULONG Status)
 {
+	switch (Status)
+	{
+		case DEBUG_SESSION_ACTIVE:
+			printf("DbgEngPlugin: SessionStatus DEBUG_SESSION_ACTIVE\n");
+			break;
+		case DEBUG_SESSION_END_SESSION_ACTIVE_TERMINATE:
+			printf("DbgEngPlugin: SessionStatus DEBUG_SESSION_END_SESSION_ACTIVE_TERMINATE\n");
+			break;
+		case DEBUG_SESSION_END_SESSION_ACTIVE_DETACH:
+			printf("DbgEngPlugin: SessionStatus DEBUG_SESSION_END_SESSION_ACTIVE_DETACH\n");
+			break;
+		case DEBUG_SESSION_END_SESSION_PASSIVE:
+			printf("DbgEngPlugin: SessionStatus DEBUG_SESSION_END_SESSION_PASSIVE\n");
+			break;
+		case DEBUG_SESSION_END:
+			printf("DbgEngPlugin: SessionStatus DEBUG_SESSION_END\n");
+			break;
+		case DEBUG_SESSION_REBOOT:
+			printf("DbgEngPlugin: SessionStatus DEBUG_SESSION_REBOOT\n");
+			break;
+		case DEBUG_SESSION_HIBERNATE:
+			printf("DbgEngPlugin: SessionStatus DEBUG_SESSION_HIBERNATE\n");
+			break;
+		case DEBUG_SESSION_FAILURE:
+			printf("DbgEngPlugin: SessionStatus DEBUG_SESSION_FAILURE\n");
+			break;
+	}
+
 	return S_OK;
 }
 
