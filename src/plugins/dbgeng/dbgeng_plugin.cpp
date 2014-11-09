@@ -85,6 +85,7 @@ STDMETHODIMP DbgEngPlugin::Exception(THIS_
 	IN ULONG FirstChance)
 {
 	printf("DbgEngPlugin: Exception\n");
+	state = PDDebugState_stopException;
 	return S_OK;
 }
 
@@ -176,7 +177,7 @@ void onRun(DbgEngPlugin* plugin)
 		HRESULT hr = plugin->debugClient->CreateProcess(0, PSTR(plugin->targetName.c_str()), DEBUG_ONLY_THIS_PROCESS);
 		assert(SUCCEEDED(hr));
 
-		if (SUCCEEDED(hr))
+		if (!SUCCEEDED(hr))
 		{
 			printf("Error: could not create process '%s'\n", plugin->targetName.c_str());
 		}
@@ -236,7 +237,31 @@ static void setExceptionLocation(DbgEngPlugin* plugin, PDWriter* writer)
 
 static void setCallstack(DbgEngPlugin* plugin, PDWriter* writer)
 {
+	const ULONG maxFrames = 1024;
+	DEBUG_STACK_FRAME frames[maxFrames];
+	ULONG frameSize = sizeof(frames[0]);
+	ULONG framesFilled = 0;
+
+	plugin->debugControl->GetStackTrace(0, 0, 0, frames, frameSize, &framesFilled);
 	printf("DbgEngPlugin: setCallstack\n");
+
+	if (framesFilled == 0)
+		return;
+
+	PDWrite_eventBegin(writer, PDEventType_setCallstack);
+	PDWrite_arrayBegin(writer, "callstack");
+
+	for (ULONG i = 0; i < framesFilled; ++i)
+	{
+		const DEBUG_STACK_FRAME& frame = frames[i];
+
+		PDWrite_arrayEntryBegin(writer);
+		PDWrite_u64(writer, "address", frame.InstructionOffset);
+		PDWrite_arrayEntryEnd(writer);
+	}
+
+	PDWrite_arrayEnd(writer);
+	PDWrite_eventEnd(writer);
 }
 
 static void setExecutable(DbgEngPlugin* plugin, PDReader* reader)
