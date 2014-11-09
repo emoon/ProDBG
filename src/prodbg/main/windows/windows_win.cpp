@@ -1,13 +1,23 @@
-#include <windows.h>
-#include <windowsx.h>
+#include "core/core.h"
+#include "core/alloc.h"
+#include "core/math.h"
+#include "core/plugin_handler.h"
 #include "resource.h"
+#include "ui/menu.h"
 #include "../prodbg.h"
 #include "../settings.h"
+#include <uv.h>
 #include <string.h>
-#include <core/math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <windows.h>
+#include <windowsx.h>
+#include <pd_common.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static ACCEL s_accelTable[2048];
+static int s_accelCount = 0;
 static HWND s_window;
 static bool s_active = false;
 
@@ -51,10 +61,10 @@ bool createWindow(const wchar_t* title, int width, int height)
 
     Settings_getWindowRect(&settingsRect);
 
-    rect.left = settingsRect.x;
-    rect.top = settingsRect.y;
-    rect.right = settingsRect.width;
-    rect.bottom = settingsRect.height;
+    rect.left = 0; 
+    rect.top = 0; 
+    rect.right = width; 
+    rect.bottom = height;
 
     if (!RegisterClass(&wc))
     {
@@ -83,6 +93,185 @@ bool createWindow(const wchar_t* title, int width, int height)
 
     return TRUE;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void addAccelarator(const MenuDescriptor* desc)
+{
+	uint8_t virt = 0;
+	uint32_t winMod = desc->winMod;
+	uint32_t key = desc->key;
+	ACCEL* accel = &s_accelTable[s_accelCount++];
+
+	if (winMod & PRODBG_KEY_ALT)
+		virt |= 0x10;
+	if (winMod & PRODBG_KEY_CTRL)
+		virt |= 0x08;
+	if (winMod & PRODBG_KEY_SHIFT)
+		virt |= 0x04;
+
+	if (key < 127)
+	{
+		if (virt != 0)
+		{
+			accel->key = (char)(key);
+			virt |= 1;
+		}
+		else
+		{
+			accel->key = (char)(key);
+		}
+	}
+	else
+	{
+		virt |= 1;
+
+		switch (key)
+		{
+			case PRODBG_KEY_ARROW_DOWN : accel->key = VK_DOWN; break; 
+			case PRODBG_KEY_ARROW_UP:  accel->key = VK_UP; break;
+			case PRODBG_KEY_ARROW_RIGHT: accel->key = VK_RIGHT; break;
+			case PRODBG_KEY_ARROW_LEFT: accel->key = VK_LEFT; break;
+			case PRODBG_KEY_F1: accel->key = VK_F1; break;
+			//case PRODBG_KEY_ESC: accel->key = VK_ESCAPE; break;
+			//case PRODBG_KEY_TAB: accel->key = VK_TAB; break;
+			//case PRODBG_KEY_BACKSPACE: accel->key = VK_BACK; break;
+			//case PRODBG_KEY_ENTER: accel->key = VK_RETURN; break;
+			//case PRODBG_KEY_SPACE: accel->key = VK_SPACE; break;
+			//case PRODBG_KEY_PAGE_DOWN: accel->key = VK_NEXT; break;
+			//case PRODBG_KEY_PAGE_UP: accel->key = VK_PRIOR; break;
+		}
+	}
+
+	accel->fVirt = virt;
+	accel->cmd = (WORD)desc->id;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void formatName(char* outName, int keyMod, int key, const char* name)
+{
+	char modName[64] = { 0 } ;
+	char keyName[64] = { 0 } ;
+
+	if ((keyMod & PRODBG_KEY_COMMAND))
+		strcat(modName, "Win-");
+
+	if ((keyMod & PRODBG_KEY_CTRL))
+		strcat(modName, "Ctrl-");
+
+	if ((keyMod & PRODBG_KEY_ALT))
+		strcat(modName, "Alt-");
+
+	if ((keyMod & PRODBG_KEY_SHIFT))
+		strcat(modName, "Shift-");
+
+	if (key < 127)
+	{
+		keyName[0] = key;
+		keyName[1] = 0;
+	}
+	else
+	{
+		switch (key)
+		{
+			case PRODBG_KEY_ARROW_DOWN : strcpy(keyName, "Down"); break;
+			case PRODBG_KEY_ARROW_UP: strcpy(keyName, "Up"); break;
+			case PRODBG_KEY_ARROW_RIGHT: strcpy(keyName, "Right"); break;
+			case PRODBG_KEY_ARROW_LEFT: strcpy(keyName, "Left"); break;
+		}
+	}
+
+	sprintf(outName, "%s\t%s%s", name, modName, keyName);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void buildSubMenu(HMENU parentMenu, MenuDescriptor menuDesc[], wchar_t* name)
+{
+	wchar_t tempWchar[512];
+
+	MenuDescriptor* desc = &menuDesc[0];
+	HMENU menu = CreatePopupMenu();
+    AppendMenu(parentMenu, MF_STRING | MF_POPUP, (UINT)menu, name);
+
+	while (desc->name)
+	{
+		if (desc->id == PRODBG_MENU_SEPARATOR)
+		{
+			AppendMenu(menu, MF_SEPARATOR, 0, L"-");
+		}
+		else if (desc->id == PRODBG_MENU_SUB_MENU)
+		{
+			HMENU subMenu = CreatePopupMenu();
+
+			uv_utf8_to_utf16(desc->name, tempWchar, sizeof_array(tempWchar));
+
+    		AppendMenu(menu, MF_STRING | MF_POPUP, (UINT)subMenu, tempWchar);
+		}
+		else
+		{
+			char temp[512];
+
+			formatName(temp, desc->winMod, desc->key, desc->name);
+
+			uv_utf8_to_utf16(temp, tempWchar, sizeof_array(tempWchar));
+
+			AppendMenu(menu, MF_STRING, desc->id, tempWchar);
+			addAccelarator(desc);
+		}
+
+		desc++;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Window_buildMenu()
+{
+	HMENU mainMenu = CreateMenu();
+    buildSubMenu(mainMenu, g_fileMenu, L"&File");
+    buildSubMenu(mainMenu, g_debugMenu, L"&Debug");
+	SetMenu(s_window, mainMenu);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int Window_buildPluginMenu(PluginData** plugins, int count)
+{
+	HMENU mainMenu = GetMenu(s_window);
+
+    // TODO: Right now we only support up to 1 - 9 for keyboard shortcuts of the plugins but should be good
+    // enough for now.
+
+    if (count >= 10)
+        count = 9;
+
+    MenuDescriptor* menu = (MenuDescriptor*)alloc_zero(sizeof(MenuDescriptor) * (count + 1)); // + 1 as array needs to end with zeros
+
+    for (int i = 0; i < count; ++i)
+    {
+        PluginData* pluginData = plugins[i];
+        PDPluginBase* pluginBase = (PDPluginBase*)pluginData->plugin;
+        MenuDescriptor* entry = &menu[i];
+
+        // TODO: Hack hack!
+
+        if (!strstr(pluginData->type, "View"))
+            continue;
+
+        entry->name = pluginBase->name;
+        entry->id = PRODBG_MENU_PLUGIN_START + i;
+        entry->key = '1' + i;
+        entry->macMod = PRODBG_KEY_COMMAND;
+        entry->winMod = PRODBG_KEY_CTRL;
+    }
+
+    buildSubMenu(mainMenu, menu, L"&Plugins");
+
+    return PRODBG_MENU_PLUGIN_START;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -142,115 +331,13 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
             return 0;
         }
 
-        /*
-           case WM_KEYDOWN:
-           //case WM_SYSKEYDOWN:
-           {
-            int key = onKeyDown(wParam, lParam);
-
-            if (key != -1)
-            {
-                int modifier = getModifiers();
-                Emgui_sendKeyinput(key, modifier);
-                Editor_keyDown(key, -1, modifier);
-                Editor_update();
-            }
-
-            break;
-           }
-         */
-
         case WM_COMMAND:
         {
-            /*
-               // make sure we send tabs, enters and backspaces down to emgui as well, a bit hacky but well
+        	int loword = LOWORD(wParam);
 
-               if (LOWORD(wParam) == EDITOR_MENU_TAB)
-                Emgui_sendKeyinput(EMGUI_KEY_TAB, getModifiers());
+        	if ((loword >= PRODBG_MENU_START) && (loword < PRODBG_MENU_END))
+        		ProDBG_event(loword);
 
-               if (LOWORD(wParam) == EDITOR_MENU_CANCEL_EDIT)
-                Emgui_sendKeyinput(EMGUI_KEY_ESC, getModifiers());
-
-               if (LOWORD(wParam) == EDITOR_MENU_ENTER_CURRENT_V)
-                Emgui_sendKeyinput(EMGUI_KEY_ENTER, getModifiers());
-
-               if (LOWORD(wParam) == EDITOR_MENU_DELETE_KEY)
-                Emgui_sendKeyinput(EMGUI_KEY_BACKSPACE, getModifiers());
-
-               switch (LOWORD(wParam))
-               {
-                case EDITOR_MENU_OPEN:
-                case EDITOR_MENU_SAVE:
-                case EDITOR_MENU_SAVE_AS:
-                case EDITOR_MENU_REMOTE_EXPORT:
-                case EDITOR_MENU_RECENT_FILE_0:
-                case EDITOR_MENU_RECENT_FILE_1:
-                case EDITOR_MENU_RECENT_FILE_2:
-                case EDITOR_MENU_RECENT_FILE_3:
-                case EDITOR_MENU_UNDO:
-                case EDITOR_MENU_REDO:
-                case EDITOR_MENU_CANCEL_EDIT:
-                case EDITOR_MENU_DELETE_KEY:
-                case EDITOR_MENU_CUT:
-                case EDITOR_MENU_COPY:
-                case EDITOR_MENU_PASTE:
-                case EDITOR_MENU_MOVE_UP:
-                case EDITOR_MENU_MOVE_DOWN:
-                case EDITOR_MENU_SELECT_TRACK:
-                case EDITOR_MENU_BIAS_P_001:
-                case EDITOR_MENU_BIAS_P_01:
-                case EDITOR_MENU_BIAS_P_1:
-                case EDITOR_MENU_BIAS_P_10:
-                case EDITOR_MENU_BIAS_P_100:
-                case EDITOR_MENU_BIAS_P_1000:
-                case EDITOR_MENU_BIAS_N_001:
-                case EDITOR_MENU_BIAS_N_01:
-                case EDITOR_MENU_BIAS_N_1:
-                case EDITOR_MENU_BIAS_N_10:
-                case EDITOR_MENU_BIAS_N_100:
-                case EDITOR_MENU_BIAS_N_1000:
-                case EDITOR_MENU_SCALE_101:
-                case EDITOR_MENU_SCALE_11:
-                case EDITOR_MENU_SCALE_12:
-                case EDITOR_MENU_SCALE_5:
-                case EDITOR_MENU_SCALE_100:
-                case EDITOR_MENU_SCALE_1000:
-                case EDITOR_MENU_SCALE_099:
-                case EDITOR_MENU_SCALE_09:
-                case EDITOR_MENU_SCALE_08:
-                case EDITOR_MENU_SCALE_05:
-                case EDITOR_MENU_SCALE_01:
-                case EDITOR_MENU_INTERPOLATION:
-                case EDITOR_MENU_INVERT_SELECTION:
-                case EDITOR_MENU_MUTE_TRACK:
-                case EDITOR_MENU_ENTER_CURRENT_V:
-                case EDITOR_MENU_TAB:
-                case EDITOR_MENU_PLAY:
-                case EDITOR_MENU_PLAY_LOOP:
-                case EDITOR_MENU_ROWS_UP:
-                case EDITOR_MENU_ROWS_DOWN:
-                case EDITOR_MENU_ROWS_2X_UP:
-                case EDITOR_MENU_ROWS_2X_DOWN:
-                case EDITOR_MENU_PREV_BOOKMARK:
-                case EDITOR_MENU_NEXT_BOOKMARK:
-                case EDITOR_MENU_SCROLL_LEFT:
-                case EDITOR_MENU_SCROLL_RIGHT:
-                case EDITOR_MENU_PREV_KEY:
-                case EDITOR_MENU_NEXT_KEY:
-                case EDITOR_MENU_FOLD_TRACK:
-                case EDITOR_MENU_UNFOLD_TRACK:
-                case EDITOR_MENU_FOLD_GROUP:
-                case EDITOR_MENU_UNFOLD_GROUP:
-                case EDITOR_MENU_TOGGLE_BOOKMARK:
-                case EDITOR_MENU_CLEAR_BOOKMARKS:
-                case EDITOR_MENU_TOGGLE_LOOPMARK:
-                case EDITOR_MENU_CLEAR_LOOPMARKS:
-                {
-                    Editor_menuEvent(LOWORD(wParam));
-                    break;
-                }
-               }
-             */
             break;
         }
 
@@ -287,9 +374,7 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 
         case WM_SIZE:
         {
-            //EMGFXBackend_updateViewPort(LOWORD(lParam), HIWORD(lParam));
-            //Editor_setWindowSize(LOWORD(lParam), HIWORD(lParam));
-            //Editor_update();
+        	//TODO: Update size
             return 0;
         }
     }
@@ -309,7 +394,7 @@ static void CALLBACK timedCallback(HWND hwnd, UINT id, UINT_PTR ptr, DWORD meh)
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmndLine, int show)
 {
     MSG msg;
-    //HACCEL accel;
+    HACCEL accel;
     bool done = false;
 
     memset(&msg, 0, sizeof(MSG));
@@ -319,7 +404,10 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmndLine, i
     if (!createWindow(L"ProDBG", 1280, 720))
         return 0;
 
-    //accel = CreateAcceleratorTable(s_accelTable, s_accelCount);
+	Window_buildMenu();
+	ProDBG_applicationLaunched();
+
+    accel = CreateAcceleratorTable(s_accelTable, s_accelCount);
 
     // Update timed function every 16 ms
 
@@ -329,7 +417,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmndLine, i
     {
         if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
         {
-            //if (!TranslateAccelerator(s_window, accel, &msg))
+            if (!TranslateAccelerator(s_window, accel, &msg))
             {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
