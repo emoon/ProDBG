@@ -10,7 +10,8 @@ enum
 {
     // File
 
-    PRODBG_MENU_NEW = 0x1000,
+    PRODBG_MENU_START = 0x1000,
+    PRODBG_MENU_NEW,
     PRODBG_MENU_SUB_MENU,
     PRODBG_MENU_SEPARATOR,
     PRODBG_MENU_FILE_OPEN_AND_RUN_EXE,
@@ -27,6 +28,10 @@ enum
     // Plugins
 
     PRODBG_MENU_PLUGIN_START,
+
+    // End
+
+	PRODBG_MENU_END = PRODBG_MENU_PLUGIN_START + 0x1000,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,7 +41,7 @@ enum
     PRODBG_KEY_COMMAND = 1 << 1,
     PRODBG_KEY_CTRL = 1 << 2,
     PRODBG_KEY_SHIFT = 1 << 3,
-    PRODBG_KEY_ALT = 1 << 8
+    PRODBG_KEY_ALT = 1 << 4
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

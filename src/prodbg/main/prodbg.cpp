@@ -178,11 +178,9 @@ void ProDBG_setWindowSize(int width, int height)
 
 void ProDBG_applicationLaunched()
 {
-#ifdef PRODBG_MAC
     int pluginCount = 0;
     printf("building menu!\n");
     Window_buildPluginMenu(PluginHandler_getPlugins(&pluginCount), pluginCount);
-#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
