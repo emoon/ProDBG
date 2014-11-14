@@ -220,16 +220,12 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
         {
             size = getU32(start + 1);
 
-			printf("%s:%d\n", __FILE__, __LINE__);
-
             if (!strcmp((char*)start + 5, id))
                 return start;
         }
         else
         {
             size = getU16(start + 1);
-
-			printf("%s:%d\n", __FILE__, __LINE__);
 
             //log_debug("current string - %s searching for - %s\n", (char*)start + 3, id);
 
@@ -242,8 +238,6 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
 
     // not found
     //
-
-	printf("%s:%d\n", __FILE__, __LINE__);
 
     return 0;
 }
