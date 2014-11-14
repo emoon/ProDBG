@@ -207,8 +207,6 @@ static uint8_t* findIdByRange(const char* id, uint8_t* start, uint8_t* end)
         uint32_t size;
         uint8_t typeId = getU8(start);
 
-        printf("typeId %d\n", typeId);
-
         ///if (typeId <PDReadType_count)
         //	log_debug("typeId %s\n", typeTable[typeId]);
         //else
