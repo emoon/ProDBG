@@ -1,4 +1,5 @@
 #include "../dialogs.h"
+#include <uv.h>
 #include <windows.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -6,12 +7,14 @@
 int Dialog_open(char* path)
 {
 	OPENFILENAME ofn;
+	const int size = 4096;
+	wchar_t filename[size];
 
 	ZeroMemory(&ofn, sizeof(ofn));
 	ofn.lStructSize = sizeof(ofn);
-	ofn.lpstrFile = (wchar_t*)path;
+	ofn.lpstrFile = filename;
 	ofn.lpstrFile[0] = '\0';
-	ofn.nMaxFile = MAX_PATH;
+	ofn.nMaxFile = size;
 	ofn.lpstrFilter = L"All Files (*.*)\0*.*\0";
 	ofn.nFilterIndex = 1;
 	ofn.lpstrFileTitle = NULL;
@@ -19,13 +22,20 @@ int Dialog_open(char* path)
 	ofn.lpstrInitialDir = NULL;
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
-	return GetOpenFileName(&ofn);
+	int state = GetOpenFileName(&ofn);
+
+	uv_utf16_to_utf8(filename, size, path, 4096);
+
+	return size;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int Dialog_save(char* path)
 {
+	(void)path;
+	return -1;
+	/*
 	OPENFILENAME dialog;
 	ZeroMemory(&dialog, sizeof(dialog));
 	dialog.lStructSize = sizeof(dialog);
@@ -35,6 +45,7 @@ int Dialog_save(char* path)
 	dialog.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
 	dialog.lpstrDefExt = L"*";
 	return GetSaveFileName(&dialog);
+	*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
