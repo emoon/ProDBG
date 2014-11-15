@@ -263,6 +263,19 @@ static void drawLineArea(PDUI* uiFuncs, int offset, int lineCount, int maxLineCo
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void drawBreakpoint(PDUI* uiFuncs)
+{
+	PDRect rect;
+	PDVec2 pos = uiFuncs->getCursorPos();
+	rect.x = 2;
+	rect.y = pos.y - 11;
+	rect.width = s_markerMargin - 2;
+	rect.height = 14;
+	uiFuncs->fillRect(rect, PD_COLOR_32(100, 100, 200, 127));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void drawLines(PDUI* uiFuncs, SourceCodeData* data, float lineStart, float lineAreaSize, int offset, int lineCount)
 {
     Line* lines = data->file.lines;
@@ -284,6 +297,9 @@ static void drawLines(PDUI* uiFuncs, SourceCodeData* data, float lineStart, floa
             rect.height = 14;
             uiFuncs->fillRect(rect, PD_COLOR_32(200, 0, 0, 127));
         }
+
+		if (lines[i].breakpoint)
+			drawBreakpoint(uiFuncs);
 
         //printf("%d - %d %d\n", i, lines[i][0], lines[i][1]);
 
