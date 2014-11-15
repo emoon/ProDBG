@@ -287,6 +287,9 @@ static void drawLines(PDUI* uiFuncs, SourceCodeData* data, float lineStart, floa
 
         //printf("%d - %d %d\n", i, lines[i][0], lines[i][1]);
 
+		if (!lines[i].text)
+			break;
+
         uiFuncs->text(lines[i].text);
     }
 }

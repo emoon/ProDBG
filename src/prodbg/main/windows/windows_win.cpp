@@ -115,7 +115,7 @@ static void addAccelarator(const MenuDescriptor* desc)
 	{
 		if (virt != 0)
 		{
-			accel->key = (char)(key);
+			accel->key = (char)(toupper(key));
 			virt |= 1;
 		}
 		else
@@ -134,6 +134,17 @@ static void addAccelarator(const MenuDescriptor* desc)
 			case PRODBG_KEY_ARROW_RIGHT: accel->key = VK_RIGHT; break;
 			case PRODBG_KEY_ARROW_LEFT: accel->key = VK_LEFT; break;
 			case PRODBG_KEY_F1: accel->key = VK_F1; break;
+			case PRODBG_KEY_F2: accel->key = VK_F2; break;
+			case PRODBG_KEY_F3: accel->key = VK_F3; break;
+			case PRODBG_KEY_F4: accel->key = VK_F4; break;
+			case PRODBG_KEY_F5: accel->key = VK_F5; break;
+			case PRODBG_KEY_F6: accel->key = VK_F6; break;
+			case PRODBG_KEY_F7: accel->key = VK_F7; break;
+			case PRODBG_KEY_F8: accel->key = VK_F8; break;
+			case PRODBG_KEY_F9: accel->key = VK_F9; break;
+			case PRODBG_KEY_F10: accel->key = VK_F10; break;
+			case PRODBG_KEY_F11: accel->key = VK_F11; break;
+			case PRODBG_KEY_F12: accel->key = VK_F12; break;
 			//case PRODBG_KEY_ESC: accel->key = VK_ESCAPE; break;
 			//case PRODBG_KEY_TAB: accel->key = VK_TAB; break;
 			//case PRODBG_KEY_BACKSPACE: accel->key = VK_BACK; break;
@@ -169,7 +180,7 @@ static void formatName(char* outName, int keyMod, int key, const char* name)
 
 	if (key < 127)
 	{
-		keyName[0] = key;
+		keyName[0] = toupper(key);
 		keyName[1] = 0;
 	}
 	else
