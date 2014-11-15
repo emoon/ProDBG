@@ -64,30 +64,6 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
-    Name = "yaml",
-
-    Env = { 
-		CPPPATH = { 
-			"src/external/libyaml/include",
-		},
-
-        CCOPTS = {
-        	{ "-Wno-everything"; Config = "macosx-*-*" },
-        	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127", "/wd4245", "/wd4100", "/wd4702"; Config = "win64-*-*" },
-        },
-    },
-
-    Sources = { 
-        Glob {
-            Dir = "src/external/libyaml/src",
-            Extensions = { ".c", ".h" },
-        },
-    },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-StaticLibrary {
     Name = "uv",
 
     Env = { 
@@ -333,6 +309,7 @@ StaticLibrary {
             "src/external/nanovg",
             "src/external/stb",
 			"src/external/libyaml/include",
+            "src/external/jansson/include",
             "src/prodbg",
         },
     },

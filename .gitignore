@@ -2,5 +2,5 @@
 t2-output
 tags
 imgui.ini
-data/current_layout.yaml
+data/current_layout.json
 settings.json

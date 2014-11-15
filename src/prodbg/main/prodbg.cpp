@@ -75,13 +75,13 @@ static void loadLayout()
 {
     UILayout layout;
 
-    if (UILayout_loadLayout(&layout, "data/current_layout.yaml"))
+    if (UILayout_loadLayout(&layout, "data/current_layout.json"))
     {
         setLayout(&layout);
         return;
     }
 
-    if (UILayout_loadLayout(&layout, "data/default_layout.yaml"))
+    if (UILayout_loadLayout(&layout, "data/default_layout.json"))
         setLayout(&layout);
 }
 
@@ -191,7 +191,7 @@ void ProDBG_destroy()
     Context* context = &s_context;
 
     Session_getLayout(context->session, &layout, (float)context->width, (float)context->height);
-    UILayout_saveLayout(&layout, "data/current_layout.yaml");
+    UILayout_saveLayout(&layout, "data/current_layout.json");
 
     Settings_save();
 }

@@ -90,8 +90,8 @@ static void ui_layout_save_load(void** state)
     UILayout layout;
     (void)state;
 
-    assert_true(UILayout_saveLayout(&s_layout, "t2-output/temp_layout.yaml"));
-    assert_true(UILayout_loadLayout(&layout, "t2-output/temp_layout.yaml"));
+    assert_true(UILayout_saveLayout(&s_layout, "t2-output/temp_layout.json"));
+    assert_true(UILayout_loadLayout(&layout, "t2-output/temp_layout.json"));
 
     compareLayouts(&layout, &s_layout);
 }
@@ -189,7 +189,7 @@ static void ui_session_layout(void** state)
     PluginUI_setWindowRect(i1, &s_t1);
 
     Session_getLayout(session, &layout, io.DisplaySize.x, io.DisplaySize.y);
-    UILayout_saveLayout(&layout, "t2-output/temp_layout2.yaml");
+    UILayout_saveLayout(&layout, "t2-output/temp_layout2.json");
 
     // Tear down
 
@@ -199,7 +199,7 @@ static void ui_session_layout(void** state)
 
     // Load the layout
 
-    UILayout_loadLayout(&layout2, "t2-output/temp_layout2.yaml");
+    UILayout_loadLayout(&layout2, "t2-output/temp_layout2.json");
     compareLayouts(&layout, &layout2);
 
     int count = 0;
