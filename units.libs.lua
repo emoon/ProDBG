@@ -244,7 +244,12 @@ StaticLibrary {
         },
         
         CXXOPTS = {
-			{ "-Wno-variadic-macros", "-Wno-everything" ; Config = "macosx-*-*" },
+			{ "-Wno-variadic-macros", 
+			  "-Wno-all",
+			  "-Wno-error",
+              "-Wno-extra-semi",
+              "-Wno-unused-parameter",
+			  "-Wno-everything" ; Config = "macosx-*-*" },
 			{ "/EHsc"; Config = "win64-*-*" },
         },
     },
@@ -300,7 +305,9 @@ StaticLibrary {
 			"src/addons/as_debugger",
 			"api/include"
         },
-        CCOPTS = {
+        CXXOPTS = {
+			"-Wno-all",
+			"-Wno-error",
             "-Wno-visibility",
             "-Wno-conversion", 
             "-Wno-pedantic", 
@@ -312,6 +319,9 @@ StaticLibrary {
             "-Wno-float-equal",
             "-Wno-conversion",
             "-Wno-switch-enum",
+            "-Wno-extra-semi",
+            "-Wno-unused-parameter",
+			"-Wno-everything",
             "-Wno-format-nonliteral"; Config = "macosx-*-*" 
         },
     },
