@@ -162,7 +162,7 @@ static uint32_t readGetEvent(struct PDReader* reader)
     if (type != PDReadType_event)
     {
         log_debug("Unable to read event as type is wrong (expected %d but got %d) all read operations will now fail.\n",
-                 PDReadType_event, type);
+                  PDReadType_event, type);
         return 0;
     }
 
@@ -411,10 +411,10 @@ static uint32_t readFindData(struct PDReader* reader, void** data, uint64_t* siz
 
     const uint8_t* dataPtr = findId(reader, id, it);
     if (!dataPtr)
-	{
-		printf("%s:%d\n", __FILE__, __LINE__);
+    {
+        printf("%s:%d\n", __FILE__, __LINE__);
         return PDReadStatus_notFound;
-	}
+    }
 
     type = *dataPtr;
 
@@ -425,7 +425,7 @@ static uint32_t readFindData(struct PDReader* reader, void** data, uint64_t* siz
 
     // find the offset to the string
 
-    *size = (getU32(dataPtr + 1) - idLength) - 5;	// fix hard-coded values
+    *size = (getU32(dataPtr + 1) - idLength) - 5;   // fix hard-coded values
     *data = (void*)(dataPtr + 5 + idLength);
 
     return PDReadType_data | PDReadStatus_ok;

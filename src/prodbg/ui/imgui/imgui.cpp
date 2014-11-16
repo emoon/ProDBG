@@ -1958,7 +1958,7 @@ static ImGuiWindow* FindHoveredWindow(ImVec2 pos, bool excluding_childs)
 bool IsActiveWindow(ImGuiWindow* window)
 {
     ImGuiState& g = GImGui;
-	return g.FocusedWindow == window;
+    return g.FocusedWindow == window;
 }
 
 
@@ -2066,10 +2066,10 @@ bool IsFocusWindowKeyDown(int key, bool repeat)
 
     // Only send keyboard events to selected window
 
-	if (g.FocusedWindow != window)
-		return false;
+    if (g.FocusedWindow != window)
+        return false;
 
-	 return IsKeyPressed(key, repeat);
+    return IsKeyPressed(key, repeat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2096,7 +2096,7 @@ ImVec2 GetRelativeMousePos()
     ImGuiWindow* window = GetCurrentWindow();
     ImVec2 pos = g.IO.MousePos - window->Pos;
     ImVec2 zero = ImVec2(0.0f, 0.0f);
-    return ImClamp(pos, zero, window->Size); 
+    return ImClamp(pos, zero, window->Size);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2482,7 +2482,7 @@ bool BeginWithWindow(ImGuiWindow* window, const char* name, bool* open, ImVec2 s
                 //   window->DrawList->AddRectFilled(window->Pos, window->Pos+window->Size, window->Color(ImGuiCol_WindowBg, fill_alpha), g.Style.WindowRounding);
 
 
-				bool selected = g.FocusedWindow != window;
+                bool selected = g.FocusedWindow != window;
 
                 bndFrame(g.NVGCtx, window->Pos.x, window->Pos.y, window->Size.x, window->Size.y, selected);
             }

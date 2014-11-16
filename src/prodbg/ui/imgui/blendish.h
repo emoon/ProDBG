@@ -1122,10 +1122,10 @@ void bndFrame(NVGcontext* ctx, float x, float y, float w, float h, bool selected
 
     nvgBeginPath(ctx);
     nvgRect(ctx, x, y, w, borderSize);
-	if (selected)
-    	nvgFillColor(ctx, nvgRGBA(60, 60, 60, 255));
-	else
-    	nvgFillColor(ctx, nvgRGBA(90, 90, 90, 255));
+    if (selected)
+        nvgFillColor(ctx, nvgRGBA(60, 60, 60, 255));
+    else
+        nvgFillColor(ctx, nvgRGBA(90, 90, 90, 255));
 
     nvgFill(ctx);
 

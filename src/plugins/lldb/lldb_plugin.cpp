@@ -186,7 +186,7 @@ static void setCallstack(LLDBPlugin* plugin, PDWriter* writer)
         module.GetFileSpec().GetPath(moduleName, sizeof(moduleName));
 
         PDWrite_arrayEntryBegin(writer);
-        
+
         if (compileUnit.GetNumSupportFiles() > 0)
         {
             char filename[2048];

@@ -54,10 +54,10 @@ void IMGUI_setMouse(float x, float y, int mouseLmb)
 void IMGUI_setKeyDown(int key, int modifier)
 {
     ImGuiIO& io = ImGui::GetIO();
-	assert(key >= 0 && key <= (int)sizeof_array(io.KeysDown));
-	io.KeysDown[key] = true;
-	io.KeyCtrl = !!(modifier & PDKEY_CTRL);
-	io.KeyShift = !!(modifier & PDKEY_SHIFT);
+    assert(key >= 0 && key <= (int)sizeof_array(io.KeysDown));
+    io.KeysDown[key] = true;
+    io.KeyCtrl = !!(modifier & PDKEY_CTRL);
+    io.KeyShift = !!(modifier & PDKEY_SHIFT);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -65,10 +65,10 @@ void IMGUI_setKeyDown(int key, int modifier)
 void IMGUI_setKeyUp(int key, int modifier)
 {
     ImGuiIO& io = ImGui::GetIO();
-	assert(key >= 0 && key <= (int)sizeof_array(io.KeysDown));
-	io.KeysDown[key] = false;
-	io.KeyCtrl = !!(modifier & PDKEY_CTRL);
-	io.KeyShift = !!(modifier & PDKEY_SHIFT);
+    assert(key >= 0 && key <= (int)sizeof_array(io.KeysDown));
+    io.KeysDown[key] = false;
+    io.KeyCtrl = !!(modifier & PDKEY_CTRL);
+    io.KeyShift = !!(modifier & PDKEY_SHIFT);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

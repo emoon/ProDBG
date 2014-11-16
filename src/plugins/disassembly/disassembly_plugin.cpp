@@ -8,8 +8,8 @@
 
 struct Line
 {
-	const char* text;
-	bool breakpoint;		// TODO: Flags
+    const char* text;
+    bool breakpoint;        // TODO: Flags
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -28,13 +28,13 @@ struct DissassemblyData
 
 static void splitIntoLines(DissassemblyData* data, char* code, size_t size)
 {
-	int lineCount = 0;
+    int lineCount = 0;
     Line* lines;
 
-	char* target = code;
-	char* targetEnd = code + size;
+    char* target = code;
+    char* targetEnd = code + size;
 
-	free(data->lines);
+    free(data->lines);
 
     // so this is really waste of memory but will do for now
 
@@ -46,25 +46,25 @@ static void splitIntoLines(DissassemblyData* data, char* code, size_t size)
 
     while (target < targetEnd)
     {
-		char c = *target; 
+        char c = *target;
 
         if (*target == '\r')
-		{
+        {
             *target++ = 0;
             c = *target;
-		}
+        }
 
         if (*target == '\n')
         {
             *target = 0;
-            lines[lineCount++].text = target + 1; 
+            lines[lineCount++].text = target + 1;
         }
 
         target++;
     }
 
-	*target++ = 0;
-	data->lineCount = lineCount;
+    *target++ = 0;
+    data->lineCount = lineCount;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -106,25 +106,25 @@ static void setDisassemblyCode(DissassemblyData* data, PDReader* inEvents)
 
     data->code = strdup(stringBuffer);
 
-	splitIntoLines(data, data->code, strlen(stringBuffer));
+    splitIntoLines(data, data->code, strlen(stringBuffer));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void renderUI(DissassemblyData* data, PDUI* uiFuncs)
 {
-	if (!data->code)
-		return;
+    if (!data->code)
+        return;
 
-	uiFuncs->text("");	// TODO: Temporary
+    uiFuncs->text("");  // TODO: Temporary
 
-	char tempBuffer[64];	
-	sprintf(tempBuffer, "%04X", (uint16_t)data->pc);
+    char tempBuffer[64];
+    sprintf(tempBuffer, "%04X", (uint16_t)data->pc);
 
-	for (int i = 0; i < data->lineCount; ++i)
-	{
-		if (strstr(data->lines[i].text, tempBuffer))
-		{
+    for (int i = 0; i < data->lineCount; ++i)
+    {
+        if (strstr(data->lines[i].text, tempBuffer))
+        {
             PDRect rect;
             PDVec2 pos = uiFuncs->getCursorPos();
             rect.x = pos.x;
@@ -132,10 +132,10 @@ void renderUI(DissassemblyData* data, PDUI* uiFuncs)
             rect.width = -1;
             rect.height = 14;
             uiFuncs->fillRect(rect, PD_COLOR_32(200, 0, 0, 127));
-		}
+        }
 
-		uiFuncs->text(data->lines[i].text);
-	}
+        uiFuncs->text(data->lines[i].text);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -154,10 +154,10 @@ static void updateRegisters(DissassemblyData* data, PDReader* reader)
         PDRead_findString(reader, &name, "name", it);
 
         if (!strcmp(name, "pc"))
-		{
-			PDRead_findU64(reader, &data->pc, "register", it);
-		}
-	}
+        {
+            PDRead_findU64(reader, &data->pc, "register", it);
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -195,10 +195,10 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     // Temporary req
 
-	PDWrite_eventBegin(writer, PDEventType_getDisassembly);
-	PDWrite_u64(writer, "address_start", 0);
-	PDWrite_u32(writer, "instruction_count", (uint32_t)10);
-	PDWrite_eventEnd(writer);
+    PDWrite_eventBegin(writer, PDEventType_getDisassembly);
+    PDWrite_u64(writer, "address_start", 0);
+    PDWrite_u32(writer, "instruction_count", (uint32_t)10);
+    PDWrite_eventEnd(writer);
 
     return 0;
 }

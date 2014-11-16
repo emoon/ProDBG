@@ -215,9 +215,9 @@ static void onLoadRunExec(Session* session, const char* filename)
         return;
     }
 
-    Session_startLocal(session, (PDBackendPlugin*)pluginData->plugin, filename); 
+    Session_startLocal(session, (PDBackendPlugin*)pluginData->plugin, filename);
 
-    // Temp test 
+    // Temp test
     // Session_startLocal(context->session, (PDBackendPlugin*)pluginData->plugin, "t2-output/macosx-clang-debug-default/ProDBG.app/Contents/MacOS/prodbg");
     // Session_startLocal(context->session, (PDBackendPlugin*)pluginData->plugin, OBJECT_DIR "/crashing_native");
 }
@@ -246,56 +246,56 @@ void ProDBG_event(int eventId)
     {
         case PRODBG_MENU_FILE_OPEN_AND_RUN_EXE:
         {
-			char filename[4096];
+            char filename[4096];
 
-			if (Dialog_open(filename))
-			{
-				onLoadRunExec(context->session, filename);	
-			}
+            if (Dialog_open(filename))
+            {
+                onLoadRunExec(context->session, filename);
+            }
 
             break;
         }
 
-		case PRODBG_MENU_FILE_OPEN_SOURCE:
-		{
-			char filename[4096];
+        case PRODBG_MENU_FILE_OPEN_SOURCE:
+        {
+            char filename[4096];
 
-			if (Dialog_open(filename))
-			{
-				Session_loadSourceFile(context->session, filename);	
-			}
+            if (Dialog_open(filename))
+            {
+                Session_loadSourceFile(context->session, filename);
+            }
 
-			break;
-		}
+            break;
+        }
 
-		case PRODBG_MENU_DEBUG_BREAK:
-		{
-			Session_action(context->session, PDAction_break); 
-			log_info("trying to break...\n");
-			break;
-		}
+        case PRODBG_MENU_DEBUG_BREAK:
+        {
+            Session_action(context->session, PDAction_break);
+            log_info("trying to break...\n");
+            break;
+        }
 
-		case PRODBG_MENU_DEBUG_ATTACH_TO_REMOTE:
-		{
-			Session_startRemote(context->session, "127.0.0.1", 1340);
-			break;
-		}
+        case PRODBG_MENU_DEBUG_ATTACH_TO_REMOTE:
+        {
+            Session_startRemote(context->session, "127.0.0.1", 1340);
+            break;
+        }
 
         case PRODBG_MENU_DEBUG_TOGGLE_BREAKPOINT:
         {
-        	Session_toggleBreakpointCurrentLine(context->session);
+            Session_toggleBreakpointCurrentLine(context->session);
             break;
         }
 
         case PRODBG_MENU_DEBUG_STEP_OVER:
         {
-        	Session_stepOver(context->session);
+            Session_stepOver(context->session);
             break;
         }
 
         case PRODBG_MENU_DEBUG_STEP_IN:
         {
-        	Session_stepIn(context->session);
+            Session_stepIn(context->session);
             break;
         }
     }
@@ -319,7 +319,7 @@ void ProDBG_setMousePos(float x, float y)
     context->mouseX = x;
     context->mouseY = y;
 
-	IMGUI_setMouse(x, y, context->mouseLmb);
+    IMGUI_setMouse(x, y, context->mouseLmb);
 
     ProDBG_update();
 }
@@ -333,7 +333,7 @@ void ProDBG_setMouseState(int button, int state)
 
     context->mouseLmb = state;
 
-	IMGUI_setMouse(context->mouseX, context->mouseY, state);
+    IMGUI_setMouse(context->mouseX, context->mouseY, state);
 
     ProDBG_update();
 }
@@ -342,14 +342,14 @@ void ProDBG_setMouseState(int button, int state)
 
 void ProDBG_keyDown(int key, int modifier)
 {
-	IMGUI_setKeyDown(key, modifier);
+    IMGUI_setKeyDown(key, modifier);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ProDBG_keyUp(int key, int modifier)
 {
-	IMGUI_setKeyUp(key, modifier);
+    IMGUI_setKeyUp(key, modifier);
 }
 
 

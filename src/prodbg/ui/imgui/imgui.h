@@ -314,9 +314,9 @@ bool        IsMouseClicked(int button, bool repeat = false);
 bool        IsMouseDoubleClicked(int button);
 bool        IsMouseHoveringBox(const ImVec2& box_min, const ImVec2& box_max);
 ImVec2      GetMousePos();
-ImVec2 		GetRelativeMousePos();
+ImVec2      GetRelativeMousePos();
 bool        IsFocusWindowKeyDown(int key_index, bool repeat);                        // key_index into the keys_down[512] array, imgui doesn't know the semantic of each entry
-bool		IsActiveWindow(ImGuiWindow* window);
+bool        IsActiveWindow(ImGuiWindow* window);
 float       GetTime();
 int         GetFrameCount();
 const char* GetStyleColorName(ImGuiCol idx);
@@ -357,8 +357,8 @@ enum ImGuiInputTextFlags_
 
 // User fill ImGuiIO.KeyMap[] array with indices into the ImGuiIO.KeysDown[512] array
 /*
-enum ImGuiKey_
-{
+   enum ImGuiKey_
+   {
     ImGuiKey_Tab,
     ImGuiKey_LeftArrow,
     ImGuiKey_RightArrow,
@@ -377,8 +377,8 @@ enum ImGuiKey_
     ImGuiKey_Y,         // for CTRL+Y: redo
     ImGuiKey_Z,         // for CTRL+Z: undo
     ImGuiKey_COUNT
-};
-*/
+   };
+ */
 
 enum ImGuiCol_
 {
@@ -488,8 +488,8 @@ struct ImGuiIO
     bool KeyShift;                          // Keyboard modifier pressed: Shift
     bool KeysDown[512];                     // Keyboard keys that are pressed (in whatever order user naturally has access to keyboard data)
     char InputCharacters[16];               // List of characters input (translated by user from keypress+keyboard state). Fill using AddInputCharacter() helper.
-    int  keyDown;
-    int  keyMod;
+    int keyDown;
+    int keyMod;
 
     // Output - Retrieve after calling NewFrame(), you can use them to discard inputs or hide them from the rest of your application
     bool WantCaptureMouse;                  // ImGui is using your mouse input (= window is being hovered or widget is active).

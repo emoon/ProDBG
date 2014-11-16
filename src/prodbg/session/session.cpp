@@ -31,11 +31,11 @@ static void updateLocal(Session* s, PDAction action);
 
 static void commonInit(Session* s)
 {
-	s->writer0 = (PDWriter*)alloc_zero(sizeof(PDWriter));
-	s->writer1 = (PDWriter*)alloc_zero(sizeof(PDWriter));
-	s->tempWriter0 = (PDWriter*)alloc_zero(sizeof(PDWriter));
-	s->tempWriter1 = (PDWriter*)alloc_zero(sizeof(PDWriter));
-	s->reader = (PDReader*)alloc_zero(sizeof(PDReader));
+    s->writer0 = (PDWriter*)alloc_zero(sizeof(PDWriter));
+    s->writer1 = (PDWriter*)alloc_zero(sizeof(PDWriter));
+    s->tempWriter0 = (PDWriter*)alloc_zero(sizeof(PDWriter));
+    s->tempWriter1 = (PDWriter*)alloc_zero(sizeof(PDWriter));
+    s->reader = (PDReader*)alloc_zero(sizeof(PDReader));
 
     PDBinaryWriter_init(s->writer0);
     PDBinaryWriter_init(s->writer1);
@@ -51,7 +51,7 @@ static void commonInit(Session* s)
 
 struct Session* Session_create()
 {
-    Session* s = new Session; 
+    Session* s = new Session;
 
     commonInit(s);
 
@@ -61,14 +61,14 @@ struct Session* Session_create()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Session* Session_startRemote(Session* s, const char* target, int port)
-{	
+{
     s->type = Session_Remote;
 
     struct RemoteConnection* conn = RemoteConnection_create(RemoteConnectionType_Connect, port);
 
     if (!RemoteConnection_connect(conn, target, port))
     {
-    	log_info("Unable to connect to %s:%d", target, port);
+        log_info("Unable to connect to %s:%d", target, port);
         RemoteConnection_destroy(conn);
         return s;
     }
@@ -84,23 +84,23 @@ Session* Session_startRemote(Session* s, const char* target, int port)
 
 int Session_isConnected(Session* session)
 {
-	if (!session->connection)
-		return 0;
+    if (!session->connection)
+        return 0;
 
-	return RemoteConnection_isConnected(session->connection);
+    return RemoteConnection_isConnected(session->connection);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Session* Session_createRemote(const char* target, int port)
 {
-    Session* s = new Session; 
+    Session* s = new Session;
 
     commonInit(s);
 
-	Session_startRemote(s, target, port);
+    Session_startRemote(s, target, port);
 
-	return s;
+    return s;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,21 +113,21 @@ Session* Session_startLocal(Session* s, PDBackendPlugin* backend, const char* fi
     s->backend->plugin = backend;
     s->backend->userData = backend->createInstance(0);
 
-	// Set the executable
+    // Set the executable
 
     PDWrite_eventBegin(s->currentWriter, PDEventType_setExecutable);
     PDWrite_string(s->currentWriter, "filename", filename);
     PDWrite_eventEnd(s->currentWriter);
 
-	// Add existing breakpoints
+    // Add existing breakpoints
 
     for (auto i = s->breakpoints.begin(), end = s->breakpoints.end(); i != end; ++i)
-	{
-		PDWrite_eventBegin(s->currentWriter, PDEventType_setBreakpoint);
-		PDWrite_string(s->currentWriter, "filename", (*i)->filename);
-		PDWrite_u32(s->currentWriter, "line", (unsigned int)(*i)->line);
-		PDWrite_eventEnd(s->currentWriter);
-	}
+    {
+        PDWrite_eventBegin(s->currentWriter, PDEventType_setBreakpoint);
+        PDWrite_string(s->currentWriter, "filename", (*i)->filename);
+        PDWrite_u32(s->currentWriter, "line", (unsigned int)(*i)->line);
+        PDWrite_eventEnd(s->currentWriter);
+    }
 
     // TODO: Not run directly but allow user to select if run, otherwise (ProDG style stop-at-main?)
 
@@ -142,7 +142,7 @@ Session* Session_startLocal(Session* s, PDBackendPlugin* backend, const char* fi
 
 Session* Session_createLocal(PDBackendPlugin* backend, const char* filename)
 {
-    Session* s = new Session; 
+    Session* s = new Session;
 
     commonInit(s);
 
@@ -191,27 +191,27 @@ static void doToggleBreakpoint(Session* s, PDReader* reader)
     PDRead_findU32(reader, &line, "line", 0);
 
     for (auto i = s->breakpoints.begin(), end = s->breakpoints.end(); i != end; ++i)
-	{
-		if ((*i)->line == (int)line && !strcmp((*i)->filename, filename))
-		{
-			free((void*)(*i)->filename);
-			s->breakpoints.erase(i);
-			return;
-		}
-	}
+    {
+        if ((*i)->line == (int)line && !strcmp((*i)->filename, filename))
+        {
+            free((void*)(*i)->filename);
+            s->breakpoints.erase(i);
+            return;
+        }
+    }
 
-	Breakpoint* breakpoint = (Breakpoint*)malloc(sizeof(Breakpoint));
-	breakpoint->filename = strdup(filename);
-	breakpoint->line = (int)line; 
+    Breakpoint* breakpoint = (Breakpoint*)malloc(sizeof(Breakpoint));
+    breakpoint->filename = strdup(filename);
+    breakpoint->line = (int)line;
 
-	s->breakpoints.push_back(breakpoint);
+    s->breakpoints.push_back(breakpoint);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void toggleBreakpoint(Session* s, PDReader* reader)
 {
-	uint32_t event;
+    uint32_t event;
 
     while ((event = PDRead_getEvent(reader)) != 0)
     {
@@ -235,9 +235,9 @@ static void updateLocal(Session* s, PDAction action)
 
     // Swap the write buffers
 
-	PDWriter* temp = s->currentWriter;
-	s->currentWriter = s->prevWriter;
-	s->prevWriter = temp;
+    PDWriter* temp = s->currentWriter;
+    s->currentWriter = s->prevWriter;
+    s->prevWriter = temp;
 
     unsigned int reqDataSize = PDBinaryWriter_getSize(s->prevWriter);
     PDBackendInstance* backend = s->backend;
@@ -271,7 +271,7 @@ static void updateLocal(Session* s, PDAction action)
         PDBinaryReader_reset(s->reader);
     }
 
-	toggleBreakpoint(s, s->reader);
+    toggleBreakpoint(s, s->reader);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -350,9 +350,9 @@ static void updateRemote(Session* s, PDAction action)
 
     // Swap the write buffers
 
-	PDWriter* temp = s->currentWriter;
-	s->currentWriter = s->prevWriter;
-	s->prevWriter = temp;
+    PDWriter* temp = s->currentWriter;
+    s->currentWriter = s->prevWriter;
+    s->prevWriter = temp;
 
     if (PDBinaryWriter_getSize(s->prevWriter) > 4)
     {
@@ -581,12 +581,12 @@ void Session_toggleBreakpointCurrentLine(Session* s)
 
 void Session_stepIn(Session* s)
 {
-	PDBackendInstance* backend = s->backend;	
+    PDBackendInstance* backend = s->backend;
 
     if (backend)
         s->state = backend->plugin->update(backend->userData, PDAction_step, s->reader, s->currentWriter);
-	else if (s->type == Session_Remote)
-		Session_action(s, PDAction_step);
+    else if (s->type == Session_Remote)
+        Session_action(s, PDAction_step);
 
 }
 
@@ -594,12 +594,12 @@ void Session_stepIn(Session* s)
 
 void Session_stepOver(Session* s)
 {
-	PDBackendInstance* backend = s->backend;	
+    PDBackendInstance* backend = s->backend;
 
     if (backend)
         s->state = backend->plugin->update(backend->userData, PDAction_stepOver, s->reader, s->currentWriter);
-	else if (s->type == Session_Remote)
-		Session_action(s, PDAction_stepOver);
+    else if (s->type == Session_Remote)
+        Session_action(s, PDAction_stepOver);
 }
 
 

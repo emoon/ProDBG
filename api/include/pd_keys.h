@@ -1,8 +1,8 @@
 
 
-// These are keycodes return by the getKeyPressed function in PDUI 
- 
-/* Taken from glfw and renamed and slightly 
+// These are keycodes return by the getKeyPressed function in PDUI
+
+/* Taken from glfw and renamed and slightly
  * These key codes are inspired by the *USB HID Usage Tables v1.12* (p. 53-60),
  * but re-arranged to map to 7-bit ASCII for printable keys (function keys are
  * put in the 256+ range).
@@ -64,8 +64,8 @@
 #define PDKEY_X                  88
 #define PDKEY_Y                  89
 #define PDKEY_Z                  90
-#define PDKEY_LEFT_BRACKET       91  
-#define PDKEY_BACKSLASH          92  
+#define PDKEY_LEFT_BRACKET       91
+#define PDKEY_BACKSLASH          92
 #define PDKEY_RIGHT_BRACKET      93
 #define PDKEY_GRAVE_ACCENT       96
 
@@ -143,8 +143,8 @@
 #define PDKEY_MENU               348
 #define PDKEY_MAX                349
 
-#define PDKEY_SHIFT				 1
-#define PDKEY_ALT				 2
-#define PDKEY_CTRL				 4
-#define PDKEY_SUPER				 8
+#define PDKEY_SHIFT              1
+#define PDKEY_ALT                2
+#define PDKEY_CTRL               4
+#define PDKEY_SUPER              8
 
