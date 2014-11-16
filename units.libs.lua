@@ -234,6 +234,57 @@ StaticLibrary {
     },
 }
 
+StaticLibrary {
+    Name = "angelscript",
+
+    Env = { 
+		ASMCOM = "ml64.exe /c /Fo$(@) /W3 /Zi /Ta $(<)",
+        CPPPATH = { 
+			"src/external/angelscript/angelscript/include",
+        },
+        
+        CXXOPTS = {
+			{ "-Wno-variadic-macros", "-Wno-everything" ; Config = "macosx-*-*" },
+			{ "/EHsc"; Config = "win64-*-*" },
+        },
+    },
+
+    Sources = { {
+			"src/external/angelscript/angelscript/source/as_atomic.cpp",
+			"src/external/angelscript/angelscript/source/as_builder.cpp",
+			"src/external/angelscript/angelscript/source/as_bytecode.cpp",
+			"src/external/angelscript/angelscript/source/as_callfunc.cpp",
+			"src/external/angelscript/angelscript/source/as_callfunc_x86.cpp",
+			"src/external/angelscript/angelscript/source/as_callfunc_x64_gcc.cpp",
+			"src/external/angelscript/angelscript/source/as_callfunc_x64_msvc.cpp",
+			"src/external/angelscript/angelscript/source/as_callfunc_x64_mingw.cpp",
+			"src/external/angelscript/angelscript/source/as_compiler.cpp",
+			"src/external/angelscript/angelscript/source/as_configgroup.cpp",
+			"src/external/angelscript/angelscript/source/as_context.cpp",
+			"src/external/angelscript/angelscript/source/as_datatype.cpp",
+			"src/external/angelscript/angelscript/source/as_gc.cpp",
+			"src/external/angelscript/angelscript/source/as_generic.cpp",
+			"src/external/angelscript/angelscript/source/as_globalproperty.cpp",
+			"src/external/angelscript/angelscript/source/as_memory.cpp",
+			"src/external/angelscript/angelscript/source/as_module.cpp",
+			"src/external/angelscript/angelscript/source/as_objecttype.cpp",
+			"src/external/angelscript/angelscript/source/as_outputbuffer.cpp",
+			"src/external/angelscript/angelscript/source/as_parser.cpp",
+			"src/external/angelscript/angelscript/source/as_restore.cpp",
+			"src/external/angelscript/angelscript/source/as_scriptcode.cpp",
+			"src/external/angelscript/angelscript/source/as_scriptengine.cpp",
+			"src/external/angelscript/angelscript/source/as_scriptfunction.cpp",
+			"src/external/angelscript/angelscript/source/as_scriptnode.cpp",
+			"src/external/angelscript/angelscript/source/as_scriptobject.cpp",
+			"src/external/angelscript/angelscript/source/as_string.cpp",
+			"src/external/angelscript/angelscript/source/as_string_util.cpp",
+			"src/external/angelscript/angelscript/source/as_thread.cpp",
+			"src/external/angelscript/angelscript/source/as_tokenizer.cpp",
+			"src/external/angelscript/angelscript/source/as_typeinfo.cpp",
+			"src/external/angelscript/angelscript/source/as_variablescope.cpp" },
+	      { "src/external/angelscript/angelscript/source/as_callfunc_x64_msvc_asm.asm" ; Config = "win64-*-*" },
+    },
+}
 
 -----------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------- INTERNAL LIBS --------------------------------------------------------- 
@@ -308,7 +359,6 @@ StaticLibrary {
 			"src/external/libuv/include",
             "src/external/nanovg",
             "src/external/stb",
-			"src/external/libyaml/include",
             "src/external/jansson/include",
             "src/prodbg",
         },

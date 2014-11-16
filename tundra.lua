@@ -110,7 +110,7 @@ Build {
 
     Configs = {
         Config { Name = "macosx-clang", DefaultOnHost = "macosx", Inherit = macosx, Tools = { "clang-osx" } },
-        Config { Name = "win64-msvc", DefaultOnHost = { "windows" }, Inherit = win64, Tools = { "msvc" } },
+        Config { Name = "win64-msvc", DefaultOnHost = { "windows" }, Inherit = win64, Tools = { { "msvc" }, "generic-asm" } },
         Config { Name = "linux-gcc", DefaultOnHost = { "linux" }, Inherit = gcc_env, Tools = { "gcc" } },
     },
 

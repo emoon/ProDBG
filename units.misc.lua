@@ -37,6 +37,43 @@ Program {
 }
 
 -----------------------------------------------------------------------------------------------------------------------
+-- Example 6502 emulator
+
+Program {
+    Name = "angelscript_test",
+
+    Env = {
+        CPPPATH = { 
+			"api/include",
+			"src/external/angelscript/angelscript/include",
+		 },
+        CCOPTS = {
+            { 
+            "-Wno-conversion", 
+            "-Wno-missing-variable-declarations",
+            "-Werror", 
+            "-Wno-pedantic", 
+            "-Wno-conversion",
+            "-Wno-missing-field-initializers",
+            "-Wno-conversion",
+            "-Wno-switch-enum",
+            "-Wno-format-nonliteral"; Config = "macosx-*-*" },
+        },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "examples/angelscript_test",
+            Extensions = { ".c", ".cpp", ".m" },
+        },
+    },
+
+    Libs = { { "wsock32.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
+
+    Depends = { "remote_api", "angelscript" },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
 -- Crash Example
 
 Program {
@@ -54,4 +91,5 @@ Program {
 
 Default "fake6502"
 Default "crashing_native"
+Default "angelscript_test"
 
