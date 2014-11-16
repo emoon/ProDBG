@@ -55,8 +55,11 @@ Program {
 
 Program {
     Name = "as_game",
-
     Env = {
+		CPPPATH = {
+			"src/external/angelscript/angelscript/include",
+			"src/external/angelscript"
+		},
         CCOPTS = {
             { 
             "-Wno-conversion", 
@@ -80,7 +83,7 @@ Program {
 
     Libs = { { "wsock32.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 
-    Depends = { "remote_api" },
+    Depends = { "remote_api", "angelscript", "as_debugger" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------

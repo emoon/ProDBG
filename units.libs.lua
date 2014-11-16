@@ -281,8 +281,44 @@ StaticLibrary {
 			"src/external/angelscript/angelscript/source/as_thread.cpp",
 			"src/external/angelscript/angelscript/source/as_tokenizer.cpp",
 			"src/external/angelscript/angelscript/source/as_typeinfo.cpp",
-			"src/external/angelscript/angelscript/source/as_variablescope.cpp" },
+			"src/external/angelscript/angelscript/source/as_variablescope.cpp",
+			"src/external/angelscript/add_on/scriptbuilder/scriptbuilder.cpp",
+			"src/external/angelscript/add_on/scripthandle/scripthandle.cpp",
+			"src/external/angelscript/add_on/scriptstdstring/scriptstdstring.cpp",
+			"src/external/angelscript/add_on/scriptstdstring/scriptstdstring_utils.cpp",
+			"src/external/angelscript/add_on/weakref/weakref.cpp" },
 	      { "src/external/angelscript/angelscript/source/as_callfunc_x64_msvc_asm.asm" ; Config = "win64-*-*" },
+    },
+}
+
+StaticLibrary {
+    Name = "as_debugger",
+
+    Env = { 
+        CPPPATH = { 
+			"src/external/angelscript/angelscript/include",
+        },
+        CCOPTS = {
+            "-Wno-visibility",
+            "-Wno-conversion", 
+            "-Wno-pedantic", 
+            "-Wno-conversion",
+            "-Wno-covered-switch-default",
+            "-Wno-unreachable-code",
+            "-Wno-bad-function-cast",
+            "-Wno-missing-field-initializers",
+            "-Wno-float-equal",
+            "-Wno-conversion",
+            "-Wno-switch-enum",
+            "-Wno-format-nonliteral"; Config = "macosx-*-*" 
+        },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "src/addons/as_debugger",
+            Extensions = { ".h", ".c", ".cpp" },
+        },
     },
 }
 
