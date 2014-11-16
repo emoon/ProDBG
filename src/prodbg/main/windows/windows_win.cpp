@@ -842,7 +842,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmndLine, i
 
     // Update timed function every 16 ms
 
-    SetTimer(s_window, 1, 16, timedCallback);
+    SetTimer(s_window, 1, 1, timedCallback);
 
     while (!done)
     {
