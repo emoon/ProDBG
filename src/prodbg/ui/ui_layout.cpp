@@ -9,10 +9,11 @@
 
 static void addInfo(UILayout* layout, json_t* root)
 {
-    json_t* infoArray = json_object();
-    json_object_set_new(infoArray, "base_path_count", json_integer(layout->basePathCount));
-    json_object_set_new(infoArray, "layout_items_count", json_integer(layout->layoutItemCount));
-    json_object_set_new(root, "info", infoArray);
+    json_t* info = json_pack("{s:i, s:i}",
+                             "base_path_count",    layout->basePathCount,
+                             "layout_items_count", layout->layoutItemCount);
+    
+    json_object_set_new(root, "info", info);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,17 +36,16 @@ static void addLayoutItems(UILayout* layout, json_t* root)
     
     for (int i = 0; i < layout->layoutItemCount; ++i)
     {
-        json_t* layoutItem = json_object();
-        
         const LayoutItem* item = &layout->layoutItems[i];
         
-        json_object_set_new(layoutItem, "plugin_file", json_string(item->pluginFile));
-        json_object_set_new(layoutItem, "plugin_name", json_string(item->pluginName));
-        json_object_set_new(layoutItem, "x", json_real(item->rect.x));
-        json_object_set_new(layoutItem, "y", json_real(item->rect.y));
-        json_object_set_new(layoutItem, "width", json_real(item->rect.width));
-        json_object_set_new(layoutItem, "height", json_real(item->rect.height));
-        
+        json_t* layoutItem = json_pack("{s:s, s:s, s:f, s:f, s:f, s:f}",
+                                       "plugin_file", item->pluginFile,
+                                       "plugin_name", item->pluginName,
+                                       "x",           item->rect.x,
+                                       "y",           item->rect.y,
+                                       "width",       item->rect.width,
+                                       "height",      item->rect.height);
+
         json_array_append_new(layoutItemsArray, layoutItem);
     }
     
