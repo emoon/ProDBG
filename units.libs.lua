@@ -297,6 +297,8 @@ StaticLibrary {
     Env = { 
         CPPPATH = { 
 			"src/external/angelscript/angelscript/include",
+			"src/addons/as_debugger",
+			"api/include"
         },
         CCOPTS = {
             "-Wno-visibility",

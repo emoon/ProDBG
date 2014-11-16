@@ -20,6 +20,9 @@ public:
 	Engine();
 	~Engine();
 
+	// Processing
+	void tick();
+
 	// User interaction
 	void takeCommands(asIScriptContext* context);
 	void output(const std::string& text);
@@ -28,8 +31,6 @@ public:
 	void lineCallback(asIScriptContext* context);
 
 	// Commands
-	void printHelp();
-
 	void addFileBreakpoint(const std::string& file, int line);
 	void addFuncBreakpoint(const std::string& func);
 
@@ -81,6 +82,8 @@ protected:
 	
 	// Registered callbacks for converting objects to strings
 	std::map<const asIObjectType*, ToStringFunc> m_toStringCallbacks;
+
+	bool m_connected;
 };
 
 }

@@ -58,7 +58,8 @@ Program {
     Env = {
 		CPPPATH = {
 			"src/external/angelscript/angelscript/include",
-			"src/external/angelscript"
+			"src/external/angelscript",
+			"src/addons/as_debugger",
 		},
         CCOPTS = {
             { 
