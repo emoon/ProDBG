@@ -155,32 +155,6 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
-    Name = "nanovg",
-
-    Env = { 
-        CPPPATH = { 
-            "src/external/nanovg",
-            "src/external/stb",
-            "src/external/bgfx/include",
-        },
-        
-        CXXOPTS = {
-        	"-Wno-variadic-macros", 
-        	"-Wno-everything" ; Config = "macosx-*-*" 
-        },
-    },
-
-    Sources = { 
-        Glob {
-            Dir = "src/external/nanovg",
-            Extensions = { ".cpp", ".h" },
-        },
-    },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-StaticLibrary {
     Name = "cmocka",
 
     Env = { 
@@ -405,7 +379,6 @@ StaticLibrary {
         CPPPATH = { 
         	"api/include",
 			"src/external/libuv/include",
-            "src/external/nanovg",
             "src/external/stb",
             "src/external/jansson/include",
             "src/prodbg",

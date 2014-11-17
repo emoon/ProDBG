@@ -30,12 +30,14 @@ void IMGUI_setup(int width, int height)
 
 void IMGUI_preUpdate(float x, float y, int mouseLmb, int keyDown, int keyMod)
 {
+	(void)keyDown;
+	(void)keyMod;
     ImGuiIO& io = ImGui::GetIO();
     io.DeltaTime = 1.0f / 60.0f;    // TODO: Fix me
     io.MousePos = ImVec2(x, y);
     io.MouseDown[0] = !!mouseLmb;
-    io.keyDown = keyDown;
-    io.keyMod = keyMod;
+    //io.keyDown = keyDown;
+    //io.keyMod = keyMod;
 
     ImGui::NewFrame();
 }
