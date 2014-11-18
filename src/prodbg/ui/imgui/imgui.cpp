@@ -218,18 +218,29 @@
  - optimization: specialize for height based clipping first (assume widgets never go up + height tests before width tests?)
 */
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
-#pragma warning (disable: 4996) // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
 #endif
 
 #include "imgui.h"
 #include <ctype.h>      // toupper
-#include <math.h>       // sqrt
+#include <math.h>       // sqrtf
 #include <stdint.h>     // intptr_t
 #include <stdio.h>      // vsnprintf
 #include <string.h>     // memset
 #include <new>          // new (ptr)
+
+#ifdef _MSC_VER
+#pragma warning (disable: 4996) // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
+#endif
+
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wold-style-cast"         // warning : use of old-style cast                              // yes, they are more terse and not scary looking.
+#pragma clang diagnostic ignored "-Wfloat-equal"            // warning : comparing floating point with == or != is unsafe   // storing and comparing against same constants ok.
+#pragma clang diagnostic ignored "-Wformat-nonliteral"      // warning : format string is not a string literal              // passing non-literal to vsnformat(). yes, user passing incorrect format strings can crash the code, thank you.
+#pragma clang diagnostic ignored "-Wexit-time-destructors"  // warning : declaration requires an exit-time destructor       // exit-time destruction order is undefined. if MemFree() leads to users code that has been disabled before exit it might cause problems. ImGui coding style welcomes static/globals.
+#pragma clang diagnostic ignored "-Wglobal-constructors"    // warning : declaration requires a global destructor           // similar to above, not sure what the exact difference it.
+#endif
 
 //-------------------------------------------------------------------------
 // Forward Declarations
@@ -406,7 +417,7 @@ static inline float  ImSaturate(float f)                                        
 static inline float  ImLerp(float a, float b, float t)                          { return a + (b - a) * t; }
 //static inline ImVec2 ImLerp(const ImVec2& a, const ImVec2& b, float t)        { return a + (b - a) * t; }
 static inline ImVec2 ImLerp(const ImVec2& a, const ImVec2& b, const ImVec2& t)  { return ImVec2(a.x + (b.x - a.x) * t.x, a.y + (b.y - a.y) * t.y); }
-static inline float  ImLength(const ImVec2& lhs)                                { return (float)sqrt(lhs.x*lhs.x + lhs.y*lhs.y); }
+static inline float  ImLength(const ImVec2& lhs)                                { return sqrtf(lhs.x*lhs.x + lhs.y*lhs.y); }
 
 static int ImTextCharToUtf8(char* buf, size_t buf_size, unsigned int in_char);                                // return output UTF-8 bytes count
 static ptrdiff_t ImTextStrToUtf8(char* buf, size_t buf_size, const ImWchar* in_text, const ImWchar* in_text_end);   // return output UTF-8 bytes count
@@ -2414,7 +2425,7 @@ bool ImGui::Begin(const char* name, bool* open, ImVec2 size, float fill_alpha, I
         window->Collapsed = (clip_rect_t.x >= clip_rect_t.z || clip_rect_t.y >= clip_rect_t.w);
 
         // We also hide the window from rendering because we've already added its border to the command list.
-        // (we could perform the check earlier in the function but it is simplier at this point)
+        // (we could perform the check earlier in the function but it is simpler at this point)
         if (window->Collapsed)
             window->Visible = false;
     }
@@ -2604,10 +2615,10 @@ void ImGui::PopStyleVar()
     ImGuiWindow* window = GetCurrentWindow();
 
     ImGuiStyleMod& backup = window->DC.StyleModifiers.back();
-    if (float* pvar = GetStyleVarFloatAddr(backup.Var))
-        *pvar = backup.PreviousValue.x;
-    else if (ImVec2* pvar_t = GetStyleVarVec2Addr(backup.Var))
-        *pvar_t = backup.PreviousValue;
+    if (float* pvar_f = GetStyleVarFloatAddr(backup.Var))
+        *pvar_f = backup.PreviousValue.x;
+    else if (ImVec2* pvar_v = GetStyleVarVec2Addr(backup.Var))
+        *pvar_v = backup.PreviousValue;
     window->DC.StyleModifiers.pop_back();
 }
 
@@ -3784,7 +3795,7 @@ bool ImGui::SliderFloat4(const char* label, float v[4], float v_min, float v_max
 enum ImGuiPlotType
 {
     ImGuiPlotType_Lines,
-    ImGuiPlotType_Histogram,
+    ImGuiPlotType_Histogram
 };
 
 static void Plot(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size)
@@ -3797,9 +3808,9 @@ static void Plot(ImGuiPlotType plot_type, const char* label, float (*values_gett
     const ImGuiStyle& style = g.Style;
 
     const ImVec2 text_size = ImGui::CalcTextSize(label);
-    if (graph_size.x == 0)
+    if (graph_size.x == 0.0f)
         graph_size.x = window->DC.ItemWidth.back();
-    if (graph_size.y == 0)
+    if (graph_size.y == 0.0f)
         graph_size.y = text_size.y;
 
     const ImGuiAabb frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(graph_size.x, graph_size.y) + style.FramePadding*2.0f);
@@ -3895,7 +3906,7 @@ struct ImGuiPlotArrayGetterData
 static float Plot_ArrayGetter(void* data, int idx)
 {
     ImGuiPlotArrayGetterData* plot_data = (ImGuiPlotArrayGetterData*)data;
-    const float v = *(float*)((unsigned char*)plot_data->Values + (size_t)idx * plot_data->Stride);
+    const float v = *(float*)(void*)((unsigned char*)plot_data->Values + (size_t)idx * plot_data->Stride);
     return v;
 }
 
@@ -4038,13 +4049,13 @@ bool ImGui::RadioButton(const char* label, int* v, int v_button)
     return pressed;
 }
 
-// Wrapper for stb_textedit.h to edit text (our wrapper is for: statically sized buffer, single-line, ASCII, fixed-width font)
-int     STB_TEXTEDIT_STRINGLEN(const STB_TEXTEDIT_STRING* obj)                                  { return (int)ImStrlenW(obj->Text); }
-ImWchar STB_TEXTEDIT_GETCHAR(const STB_TEXTEDIT_STRING* obj, int idx)                           { return obj->Text[idx]; }
-float   STB_TEXTEDIT_GETWIDTH(STB_TEXTEDIT_STRING* obj, int line_start_idx, int char_idx)       { (void)line_start_idx; return obj->Font->CalcTextSizeW(obj->FontSize, FLT_MAX, &obj->Text[char_idx], &obj->Text[char_idx]+1, NULL).x; }
-int     STB_TEXTEDIT_KEYTOTEXT(int key)                                                         { return key >= 0x10000 ? 0 : key; }
+// Wrapper for stb_textedit.h to edit text (our wrapper is for: statically sized buffer, single-line, UTF-8)
+static int     STB_TEXTEDIT_STRINGLEN(const STB_TEXTEDIT_STRING* obj)                             { return (int)ImStrlenW(obj->Text); }
+static ImWchar STB_TEXTEDIT_GETCHAR(const STB_TEXTEDIT_STRING* obj, int idx)                      { return obj->Text[idx]; }
+static float   STB_TEXTEDIT_GETWIDTH(STB_TEXTEDIT_STRING* obj, int line_start_idx, int char_idx)  { (void)line_start_idx; return obj->Font->CalcTextSizeW(obj->FontSize, FLT_MAX, &obj->Text[char_idx], &obj->Text[char_idx]+1, NULL).x; }
+static int     STB_TEXTEDIT_KEYTOTEXT(int key)                                                    { return key >= 0x10000 ? 0 : key; }
 static ImWchar STB_TEXTEDIT_NEWLINE = '\n';
-void    STB_TEXTEDIT_LAYOUTROW(StbTexteditRow* r, STB_TEXTEDIT_STRING* obj, int line_start_idx)
+static void    STB_TEXTEDIT_LAYOUTROW(StbTexteditRow* r, STB_TEXTEDIT_STRING* obj, int line_start_idx)
 {
     const ImWchar* text_remaining = NULL;
     const ImVec2 size = obj->Font->CalcTextSizeW(obj->FontSize, FLT_MAX, obj->Text + line_start_idx, NULL, &text_remaining);
@@ -4060,9 +4071,9 @@ static bool is_white(unsigned int c)        { return c==0 || c==' ' || c=='\t' |
 static bool is_separator(unsigned int c)    { return c==',' || c==';' || c=='(' || c==')' || c=='{' || c=='}' || c=='[' || c==']' || c=='|'; }
 
 #define STB_TEXTEDIT_IS_SPACE(c)                                                                (is_white((unsigned int)c) || is_separator((unsigned int)c))
-void    STB_TEXTEDIT_DELETECHARS(STB_TEXTEDIT_STRING* obj, int idx, int n)                      { ImWchar* dst = obj->Text+idx; const ImWchar* src = obj->Text+idx+n; while (ImWchar c = *src++) *dst++ = c; *dst = '\0'; }
+static void    STB_TEXTEDIT_DELETECHARS(STB_TEXTEDIT_STRING* obj, int idx, int n)               { ImWchar* dst = obj->Text+idx; const ImWchar* src = obj->Text+idx+n; while (ImWchar c = *src++) *dst++ = c; *dst = '\0'; }
 
-bool    STB_TEXTEDIT_INSERTCHARS(STB_TEXTEDIT_STRING* obj, int idx, const ImWchar* new_text, int new_text_len)
+static bool    STB_TEXTEDIT_INSERTCHARS(STB_TEXTEDIT_STRING* obj, int idx, const ImWchar* new_text, int new_text_len)
 {
     ImWchar* buf_end = obj->Text + obj->BufSize;
     const size_t text_len = ImStrlenW(obj->Text);
@@ -4093,7 +4104,7 @@ enum
     STB_TEXTEDIT_K_REDO,            // keyboard input to perform redo
     STB_TEXTEDIT_K_WORDLEFT,        // keyboard input to move cursor left one word
     STB_TEXTEDIT_K_WORDRIGHT,       // keyboard input to move cursor right one word
-    STB_TEXTEDIT_K_SHIFT = 1 << 17,
+    STB_TEXTEDIT_K_SHIFT = 1 << 17
 };
 
 #define STB_TEXTEDIT_IMPLEMENTATION
@@ -4391,6 +4402,8 @@ bool ImGui::InputText(const char* label, char* buf, size_t buf_size, ImGuiInputT
                         s += bytes_count;
                         if (c == '\n' || c == '\r')
                             continue;
+						if (c >= 0x10000)
+							continue;
                         clipboard_filtered[clipboard_filtered_len++] = (ImWchar)c;
                     }
                     clipboard_filtered[clipboard_filtered_len] = 0;
@@ -5325,8 +5338,8 @@ void ImDrawList::AddArc(const ImVec2& center, float rad, ImU32 col, int a_min, i
         for (int i = 0; i < IM_ARRAYSIZE(circle_vtx); i++)
         {
             const float a = ((float)i / (float)IM_ARRAYSIZE(circle_vtx)) * 2*PI;
-            circle_vtx[i].x = (float)cos(a + PI);
-            circle_vtx[i].y = (float)sin(a + PI);
+            circle_vtx[i].x = cosf(a + PI);
+            circle_vtx[i].y = sinf(a + PI);
         }
         circle_vtx_builds = true;
     }
@@ -5464,7 +5477,7 @@ void ImDrawList::AddCircle(const ImVec2& centre, float radius, ImU32 col, int nu
     for (int i = 0; i < num_segments; i++)
     {
         const float a1 = (i + 1) == num_segments ? 0.0f : a0 + a_step;
-        AddVtxLine(centre + offset + ImVec2((float)cos(a0),(float)sin(a0))*radius, centre + ImVec2((float)cos(a1),(float)sin(a1))*radius, col);
+        AddVtxLine(centre + offset + ImVec2(cosf(a0), sinf(a0))*radius, centre + ImVec2(cosf(a1), sinf(a1))*radius, col);
         a0 = a1;
     }
 }
@@ -5482,8 +5495,8 @@ void ImDrawList::AddCircleFilled(const ImVec2& centre, float radius, ImU32 col, 
     for (int i = 0; i < num_segments; i++)
     {
         const float a1 = (i + 1) == num_segments ? 0.0f : a0 + a_step;
-        AddVtx(centre + offset + ImVec2((float)cos(a0),(float)sin(a0))*radius, col);
-        AddVtx(centre + offset + ImVec2((float)cos(a1),(float)sin(a1))*radius, col);
+        AddVtx(centre + offset + ImVec2(cosf(a0), sinf(a0))*radius, col);
+        AddVtx(centre + offset + ImVec2(cosf(a1), sinf(a1))*radius, col);
         AddVtx(centre + offset, col);
         a0 = a1;
     }
@@ -6202,11 +6215,11 @@ static void SetClipboardTextFn_DefaultImpl(const char* text)
         return;
     const char* text_end = text + strlen(text);
     const int buf_length = (int)(text_end - text) + 1;
-    HGLOBAL buf_handle = GlobalAlloc(GMEM_MOVEABLE, buf_length * sizeof(char)); 
+    HGLOBAL buf_handle = GlobalAlloc(GMEM_MOVEABLE, (SIZE_T)buf_length * sizeof(char)); 
     if (buf_handle == NULL)
         return;
     char* buf_global = (char *)GlobalLock(buf_handle); 
-    memcpy(buf_global, text, text_end - text);
+    memcpy(buf_global, text, (size_t)(text_end - text));
     buf_global[text_end - text] = 0;
     GlobalUnlock(buf_handle); 
     EmptyClipboard();
@@ -6566,7 +6579,7 @@ void ImGui::ShowTestWindow(bool* open)
             {
                 refresh_time = ImGui::GetTime();
                 static float phase = 0.0f;
-                values[values_offset] = (float)cos(phase); 
+                values[values_offset] = cosf(phase); 
                 values_offset = (values_offset+1)%values.size(); 
                 phase += 0.10f*values_offset; 
             }
