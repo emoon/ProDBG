@@ -10,7 +10,7 @@
 
 namespace bgfx
 {
-	static wchar_t s_viewNameW[BGFX_CONFIG_MAX_VIEWS][256];
+	static wchar_t s_viewNameW[BGFX_CONFIG_MAX_VIEWS][BGFX_CONFIG_MAX_VIEW_NAME];
 
 	struct PrimInfo
 	{
@@ -25,6 +25,7 @@ namespace bgfx
 		{ D3DPT_TRIANGLELIST,  3, 3, 0 },
 		{ D3DPT_TRIANGLESTRIP, 3, 1, 2 },
 		{ D3DPT_LINELIST,      2, 2, 0 },
+		{ D3DPT_LINESTRIP,     2, 1, 1 },
 		{ D3DPT_POINTLIST,     1, 1, 0 },
 		{ D3DPRIMITIVETYPE(0), 0, 0, 0 },
 	};
@@ -34,6 +35,7 @@ namespace bgfx
 		"TriList",
 		"TriStrip",
 		"Line",
+		"LineStrip",
 		"Point",
 	};
 	BX_STATIC_ASSERT(BX_COUNTOF(s_primInfo) == BX_COUNTOF(s_primName)+1);
@@ -251,8 +253,18 @@ namespace bgfx
 		{ D3DFMT_RAWZ, D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_SURFACE, false },
 	};
 
+#if BGFX_CONFIG_RENDERER_DIRECT3D9EX
 	static const GUID IID_IDirect3D9         = { 0x81bdcbca, 0x64d4, 0x426d, { 0xae, 0x8d, 0xad, 0x1, 0x47, 0xf4, 0x27, 0x5c } };
 	static const GUID IID_IDirect3DDevice9Ex = { 0xb18b10ce, 0x2649, 0x405a, { 0x87, 0xf, 0x95, 0xf7, 0x77, 0xd4, 0x31, 0x3a } };
+
+	typedef HRESULT (WINAPI *Direct3DCreate9ExFn)(UINT SDKVersion, IDirect3D9Ex**);
+	static Direct3DCreate9ExFn     Direct3DCreate9Ex;
+#endif // BGFX_CONFIG_RENDERER_DIRECT3D9EX
+	typedef IDirect3D9* (WINAPI *Direct3DCreate9Fn)(UINT SDKVersion);
+	static Direct3DCreate9Fn       Direct3DCreate9;
+	static PFN_D3DPERF_SET_MARKER  D3DPERF_SetMarker;
+	static PFN_D3DPERF_BEGIN_EVENT D3DPERF_BeginEvent;
+	static PFN_D3DPERF_END_EVENT   D3DPERF_EndEvent;
 
 	struct RendererContextD3D9 : public RendererContextI
 	{
@@ -268,6 +280,14 @@ namespace bgfx
 			, m_nvidia(false)
 			, m_instancing(false)
 			, m_rtMsaa(false)
+		{
+		}
+
+		~RendererContextD3D9()
+		{
+		}
+
+		void init()
 		{
 			m_fbh.idx = invalidHandle;
 			memset(m_uniforms, 0, sizeof(m_uniforms) );
@@ -301,34 +321,34 @@ namespace bgfx
 			m_d3d9dll = bx::dlopen("d3d9.dll");
 			BGFX_FATAL(NULL != m_d3d9dll, Fatal::UnableToInitialize, "Failed to load d3d9.dll.");
 
-#if BGFX_CONFIG_DEBUG_PIX
-			m_D3DPERF_SetMarker  = (D3DPERF_SetMarkerFunc )bx::dlsym(m_d3d9dll, "D3DPERF_SetMarker");
-			m_D3DPERF_BeginEvent = (D3DPERF_BeginEventFunc)bx::dlsym(m_d3d9dll, "D3DPERF_BeginEvent");
-			m_D3DPERF_EndEvent   = (D3DPERF_EndEventFunc  )bx::dlsym(m_d3d9dll, "D3DPERF_EndEvent");
+			if (BX_ENABLED(BGFX_CONFIG_DEBUG_PIX) )
+			{
+				D3DPERF_SetMarker  = (PFN_D3DPERF_SET_MARKER )bx::dlsym(m_d3d9dll, "D3DPERF_SetMarker");
+				D3DPERF_BeginEvent = (PFN_D3DPERF_BEGIN_EVENT)bx::dlsym(m_d3d9dll, "D3DPERF_BeginEvent");
+				D3DPERF_EndEvent   = (PFN_D3DPERF_END_EVENT  )bx::dlsym(m_d3d9dll, "D3DPERF_EndEvent");
 
-			BX_CHECK(NULL != m_D3DPERF_SetMarker
-				  && NULL != m_D3DPERF_BeginEvent
-				  && NULL != m_D3DPERF_EndEvent
-				  , "Failed to initialize PIX events."
-				  );
-#endif // BGFX_CONFIG_DEBUG_PIX
-
+				BX_CHECK(NULL != D3DPERF_SetMarker
+					  && NULL != D3DPERF_BeginEvent
+					  && NULL != D3DPERF_EndEvent
+					  , "Failed to initialize PIX events."
+					  );
+			}
 #if BGFX_CONFIG_RENDERER_DIRECT3D9EX
 			m_d3d9ex = NULL;
 
-			Direct3DCreate9ExFn direct3DCreate9Ex = (Direct3DCreate9ExFn)bx::dlsym(m_d3d9dll, "Direct3DCreate9Ex");
-			if (NULL != direct3DCreate9Ex)
+			Direct3DCreate9Ex = (Direct3DCreate9ExFn)bx::dlsym(m_d3d9dll, "Direct3DCreate9Ex");
+			if (NULL != Direct3DCreate9Ex)
 			{
-				direct3DCreate9Ex(D3D_SDK_VERSION, &m_d3d9ex);
+				Direct3DCreate9Ex(D3D_SDK_VERSION, &m_d3d9ex);
 				DX_CHECK(m_d3d9ex->QueryInterface(IID_IDirect3D9, (void**)&m_d3d9) );
 				m_pool = D3DPOOL_DEFAULT;
 			}
 			else
 #endif // BGFX_CONFIG_RENDERER_DIRECT3D9EX
 			{
-				Direct3DCreate9Fn direct3DCreate9 = (Direct3DCreate9Fn)bx::dlsym(m_d3d9dll, "Direct3DCreate9");
-				BGFX_FATAL(NULL != direct3DCreate9, Fatal::UnableToInitialize, "Function Direct3DCreate9 not found.");
-				m_d3d9 = direct3DCreate9(D3D_SDK_VERSION);
+				Direct3DCreate9 = (Direct3DCreate9Fn)bx::dlsym(m_d3d9dll, "Direct3DCreate9");
+				BGFX_FATAL(NULL != Direct3DCreate9, Fatal::UnableToInitialize, "Function Direct3DCreate9 not found.");
+				m_d3d9 = Direct3DCreate9(D3D_SDK_VERSION);
 				m_pool = D3DPOOL_MANAGED;
 			}
 
@@ -533,12 +553,33 @@ namespace bgfx
 			m_fmtDepth = D3DFMT_D24FS8;
 #endif // BX_PLATFORM_WINDOWS
 
+			{
+				IDirect3DSwapChain9* swapChain;
+				DX_CHECK(m_device->GetSwapChain(0, &swapChain) );
+
+				// GPA increases swapchain ref count.
+				//
+				// This causes assert in debug. When debugger is present refcount
+				// checks are off.
+				setGraphicsDebuggerPresent(1 != getRefCount(swapChain) );
+
+				DX_RELEASE(swapChain, 0);
+			}
+
+			// Init reserved part of view name.
+			for (uint8_t ii = 0; ii < BGFX_CONFIG_MAX_VIEWS; ++ii)
+			{
+				char name[BGFX_CONFIG_MAX_VIEW_NAME_RESERVED+1];
+				bx::snprintf(name, sizeof(name), "%3d  ", ii);
+				mbstowcs(s_viewNameW[ii], name, BGFX_CONFIG_MAX_VIEW_NAME_RESERVED);
+			}
+
 			postReset();
 
 			m_initialized = true;
 		}
 
-		~RendererContextD3D9()
+		void shutdown()
 		{
 			preReset();
 
@@ -805,7 +846,10 @@ namespace bgfx
 
 		void updateViewName(uint8_t _id, const char* _name) BX_OVERRIDE
 		{
-			mbstowcs(&s_viewNameW[_id][0], _name, BX_COUNTOF(s_viewNameW[0]) );
+			mbstowcs(&s_viewNameW[_id][BGFX_CONFIG_MAX_VIEW_NAME_RESERVED]
+				, _name
+				, BX_COUNTOF(s_viewNameW[0])-BGFX_CONFIG_MAX_VIEW_NAME_RESERVED
+				);
 		}
 
 		void updateUniform(uint16_t _loc, const void* _data, uint32_t _size) BX_OVERRIDE
@@ -1029,7 +1073,7 @@ namespace bgfx
 			postReset();
 		}
 
-		bool isLost(HRESULT _hr) const
+		static bool isLost(HRESULT _hr)
 		{
 			return D3DERR_DEVICELOST == _hr
 				|| D3DERR_DRIVERINTERNALERROR == _hr
@@ -1580,19 +1624,8 @@ namespace bgfx
 			}
 		}
 
-		void* nativeContext()
-		{
-			return (void*)m_device;
-		}
-
 #if BX_PLATFORM_WINDOWS
 		D3DCAPS9 m_caps;
-
-#	if BGFX_CONFIG_DEBUG_PIX
-		D3DPERF_SetMarkerFunc m_D3DPERF_SetMarker;
-		D3DPERF_BeginEventFunc m_D3DPERF_BeginEvent;
-		D3DPERF_EndEventFunc m_D3DPERF_EndEvent;
-#	endif // BGFX_CONFIG_DEBUG_PIX
 #endif // BX_PLATFORM_WINDOWS
 
 #if BGFX_CONFIG_RENDERER_DIRECT3D9EX
@@ -1661,11 +1694,13 @@ namespace bgfx
 	RendererContextI* rendererCreateD3D9()
 	{
 		s_renderD3D9 = BX_NEW(g_allocator, RendererContextD3D9);
+		s_renderD3D9->init();
 		return s_renderD3D9;
 	}
 
 	void rendererDestroyD3D9()
 	{
+		s_renderD3D9->shutdown();
 		BX_DELETE(g_allocator, s_renderD3D9);
 		s_renderD3D9 = NULL;
 	}
@@ -1793,7 +1828,7 @@ namespace bgfx
 	};
 	BX_STATIC_ASSERT(Attrib::Count == BX_COUNTOF(s_attrib)-1);
 
-	static const D3DDECLTYPE s_attribType[AttribType::Count][4][2] =
+	static const D3DDECLTYPE s_attribType[][4][2] =
 	{
 		{
 			{ D3DDECLTYPE_UBYTE4,    D3DDECLTYPE_UBYTE4N   },
@@ -1820,6 +1855,7 @@ namespace bgfx
 			{ D3DDECLTYPE_FLOAT4,    D3DDECLTYPE_FLOAT4    },
 		},
 	};
+	BX_STATIC_ASSERT(AttribType::Count == BX_COUNTOF(s_attribType) );
 
 	static D3DVERTEXELEMENT9* fillVertexDecl(D3DVERTEXELEMENT9* _out, const VertexDecl& _decl)
 	{
@@ -1909,8 +1945,6 @@ namespace bgfx
 
 		if (0 < count)
 		{
-			m_constantBuffer = ConstantBuffer::create(1024);
-
 			for (uint32_t ii = 0; ii < count; ++ii)
 			{
 				uint8_t nameSize;
@@ -1949,6 +1983,11 @@ namespace bgfx
 					BX_CHECK(NULL != info, "User defined uniform '%s' is not found, it won't be set.", name);
 					if (NULL != info)
 					{
+						if (NULL == m_constantBuffer)
+						{
+							m_constantBuffer = ConstantBuffer::create(1024);
+						}
+
 						kind = "user";
 						m_constantBuffer->writeUniformHandle( (UniformType::Enum)(type|fragmentBit), regIndex, info->m_handle, regCount);
 					}
@@ -1965,7 +2004,10 @@ namespace bgfx
 				BX_UNUSED(kind);
 			}
 
-			m_constantBuffer->finish();
+			if (NULL != m_constantBuffer)
+			{
+				m_constantBuffer->finish();
+			}
 		}
 
 		uint16_t shaderSize;
@@ -2773,7 +2815,7 @@ namespace bgfx
 		Matrix4 viewProj[BGFX_CONFIG_MAX_VIEWS];
 		for (uint32_t ii = 0; ii < BGFX_CONFIG_MAX_VIEWS; ++ii)
 		{
-			bx::float4x4_mul(&viewProj[ii].un.f4x4, &_render->m_view[ii].un.f4x4, &_render->m_proj[ii].un.f4x4);
+			bx::float4x4_mul(&viewProj[ii].un.f4x4, &_render->m_view[ii].un.f4x4, &_render->m_proj[0][ii].un.f4x4);
 		}
 
 		Matrix4 invView;
@@ -3170,7 +3212,7 @@ namespace bgfx
 
 						case PredefinedUniform::Proj:
 							{
-								setShaderConstantF(flags, predefined.m_loc, _render->m_proj[view].un.val, bx::uint32_min(4, predefined.m_count) );
+								setShaderConstantF(flags, predefined.m_loc, _render->m_proj[0][view].un.val, bx::uint32_min(4, predefined.m_count) );
 							}
 							break;
 
@@ -3179,7 +3221,7 @@ namespace bgfx
 								if (view != invProjCached)
 								{
 									invProjCached = view;
-									bx::float4x4_inverse(&invProj.un.f4x4, &_render->m_proj[view].un.f4x4);
+									bx::float4x4_inverse(&invProj.un.f4x4, &_render->m_proj[0][view].un.f4x4);
 								}
 
 								setShaderConstantF(flags, predefined.m_loc, invProj.un.val, bx::uint32_min(4, predefined.m_count) );
@@ -3395,8 +3437,6 @@ namespace bgfx
 				}
 			}
 
-			PIX_ENDEVENT();
-
 			if (0 < _render->m_num)
 			{
 				captureElapsed = -bx::getHPCounter();
@@ -3404,6 +3444,8 @@ namespace bgfx
 				captureElapsed += bx::getHPCounter();
 			}
 		}
+
+		PIX_ENDEVENT();
 
 		int64_t now = bx::getHPCounter();
 		elapsed += now;

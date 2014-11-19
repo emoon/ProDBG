@@ -113,11 +113,6 @@ namespace bgfx
 		{
 		}
 
-		virtual void* nativeContext()
-		{
-			return 0;
-		}
-
 		void destroyTexture(TextureHandle /*_handle*/) BX_OVERRIDE
 		{
 		}

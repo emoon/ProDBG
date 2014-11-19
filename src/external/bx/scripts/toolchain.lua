@@ -22,7 +22,8 @@ function toolchain(_buildDir, _libDir)
 			{ "linux-clang",   "Linux (Clang compiler)" },
 			{ "ios-arm",       "iOS - ARM"              },
 			{ "ios-simulator", "iOS - Simulator"        },
-			{ "mingw",         "MinGW"                  },
+			{ "mingw-gcc",     "MinGW"                  },
+			{ "mingw-clang",   "MinGW (clang compiler)" },
 			{ "nacl",          "Native Client"          },
 			{ "nacl-arm",      "Native Client - ARM"    },
 			{ "osx",           "OSX"                    },
@@ -33,13 +34,31 @@ function toolchain(_buildDir, _libDir)
 	}
 
 	newoption {
+		trigger = "vs",
+		value = "toolset",
+		description = "Choose VS toolset",
+		allowed = {
+			{ "vs2012-clang",  "Clang 3.6"         },
+			{ "vs2013-clang",  "Clang 3.6"         },
+			{ "winphone8",     "Windows Phone 8.0" },
+			{ "winphone81",    "Windows Phone 8.1" },
+		},
+	}
+
+	newoption {
 		trigger = "with-android",
 		value   = "#",
-		description = "Set Android platform version.",
+		description = "Set Android platform version (default: android-14).",
+	}
+
+	newoption {
+		trigger = "with-ios",
+		value   = "#",
+		description = "Set iOS target version (default: 8.0).",
 	}
 
 	-- Avoid error when invoking genie --help.
-	if (_ACTION == nil) then return end
+	if (_ACTION == nil) then return false end
 
 	location (_buildDir .. "projects/" .. _ACTION)
 
@@ -50,6 +69,11 @@ function toolchain(_buildDir, _libDir)
 	local androidPlatform = "android-14"
 	if _OPTIONS["with-android"] then
 		androidPlatform = "android-" .. _OPTIONS["with-android"]
+	end
+
+	local iosPlatform = "8.0"
+	if _OPTIONS["with-ios"] then
+		iosPlatform = _OPTIONS["with-ios"]
 	end
 
 	if _ACTION == "gmake" then
@@ -108,6 +132,7 @@ function toolchain(_buildDir, _libDir)
 			premake.gcc.cc = "$(EMSCRIPTEN)/emcc"
 			premake.gcc.cxx = "$(EMSCRIPTEN)/em++"
 			premake.gcc.ar = "ar"
+--			premake.gcc.ar = "$(EMSCRIPTEN)/emar"
 			location (_buildDir .. "projects/" .. _ACTION .. "-asmjs")
 		end
 
@@ -140,11 +165,19 @@ function toolchain(_buildDir, _libDir)
 			location (_buildDir .. "projects/" .. _ACTION .. "-linux-clang")
 		end
 
-		if "mingw" == _OPTIONS["gcc"] then
+		if "mingw-gcc" == _OPTIONS["gcc"] then
 			premake.gcc.cc = "$(MINGW)/bin/x86_64-w64-mingw32-gcc"
 			premake.gcc.cxx = "$(MINGW)/bin/x86_64-w64-mingw32-g++"
 			premake.gcc.ar = "$(MINGW)/bin/ar"
-			location (_buildDir .. "projects/" .. _ACTION .. "-mingw")
+			location (_buildDir .. "projects/" .. _ACTION .. "-mingw-gcc")
+		end
+
+		if "mingw-clang" == _OPTIONS["gcc"] then
+			premake.gcc.cc = "$(CLANG)/bin/clang"
+			premake.gcc.cxx = "$(CLANG)/bin/clang++"
+			premake.gcc.ar = "$(MINGW)/bin/ar"
+--			premake.gcc.ar = "$(CLANG)/bin/llvm-ar"
+			location (_buildDir .. "projects/" .. _ACTION .. "-mingw-clang")
 		end
 
 		if "nacl" == _OPTIONS["gcc"] then
@@ -186,6 +219,12 @@ function toolchain(_buildDir, _libDir)
 		end
 
 		if "osx" == _OPTIONS["gcc"] then
+			if os.is("linux") then
+				local osxToolchain = "x86_64-apple-darwin13-"
+				premake.gcc.cc  = osxToolchain .. "clang"
+				premake.gcc.cxx = osxToolchain .. "clang++"
+				premake.gcc.ar  = osxToolchain .. "ar"
+			end
 			location (_buildDir .. "projects/" .. _ACTION .. "-osx")
 		end
 
@@ -223,11 +262,27 @@ function toolchain(_buildDir, _libDir)
 		if "rpi" == _OPTIONS["gcc"] then
 			location (_buildDir .. "projects/" .. _ACTION .. "-rpi")
 		end
+	elseif _ACTION == "vs2012" or _ACTION == "vs2013" then
+
+		if (_ACTION .. "-clang") == _OPTIONS["vs"] then
+			premake.vstudio.toolset = ("LLVM-" .. _ACTION)
+			location (_buildDir .. "projects/" .. _ACTION .. "-clang")
+		end
+
+		if "winphone8" == _OPTIONS["vs"] then
+			premake.vstudio.toolset = "v110_wp80"
+			location (_buildDir .. "projects/" .. _ACTION .. "-winphone8")
+		end
+
+		if "winphone81" == _OPTIONS["vs"] then
+			premake.vstudio.toolset = "v120_wp81"
+			platforms { "ARM" }
+			location (_buildDir .. "projects/" .. _ACTION .. "-winphone81")
+		end
 	end
 
 	flags {
 		"StaticRuntime",
-		"NoMinimalRebuild",
 		"NoPCH",
 		"NativeWChar",
 		"NoRTTI",
@@ -251,10 +306,12 @@ function toolchain(_buildDir, _libDir)
 		}
 		targetsuffix "Release"
 
-	configuration { "vs*" }
+	configuration { "vs*", "x86" }
 		flags {
 			"EnableSSE2",
 		}
+
+	configuration { "vs*" }
 		includedirs { bxDir .. "include/compat/msvc" }
 		defines {
 			"WIN32",
@@ -295,12 +352,34 @@ function toolchain(_buildDir, _libDir)
 			"$(DXSDK_DIR)/lib/x64",
 		}
 
-	configuration { "mingw" }
+	configuration { "ARM", "vs*" }
+		targetdir (_buildDir .. "arm_" .. _ACTION .. "/bin")
+		objdir (_buildDir .. "arm_" .. _ACTION .. "/obj")
+
+	configuration { "vs*-clang" }
+		buildoptions {
+			"-Qunused-arguments",
+		}
+
+	configuration { "x32", "vs*-clang" }
+		targetdir (_buildDir .. "win32_" .. _ACTION .. "-clang/bin")
+		objdir (_buildDir .. "win32_" .. _ACTION .. "-clang/obj")
+
+	configuration { "x64", "vs*-clang" }
+		targetdir (_buildDir .. "win64_" .. _ACTION .. "-clang/bin")
+		objdir (_buildDir .. "win64_" .. _ACTION .. "-clang/obj")
+
+	configuration { "winphone8*" }
+		removeflags {
+			"StaticRuntime",
+			"NoExceptions",
+		}
+
+	configuration { "mingw-*" }
 		defines { "WIN32" }
 		includedirs { bxDir .. "include/compat/mingw" }
 		buildoptions {
 			"-std=c++11",
-			"-U__STRICT_ANSI__",
 			"-Wunused-value",
 			"-fdata-sections",
 			"-ffunction-sections",
@@ -312,20 +391,50 @@ function toolchain(_buildDir, _libDir)
 			"-Wl,--gc-sections",
 		}
 
-	configuration { "x32", "mingw" }
-		targetdir (_buildDir .. "win32_mingw" .. "/bin")
-		objdir (_buildDir .. "win32_mingw" .. "/obj")
+	configuration { "x32", "mingw-gcc" }
+		targetdir (_buildDir .. "win32_mingw-gcc" .. "/bin")
+		objdir (_buildDir .. "win32_mingw-gcc" .. "/obj")
 		libdirs {
-			_libDir .. "lib/win32_mingw",
+			_libDir .. "lib/win32_mingw-gcc",
 			"$(DXSDK_DIR)/lib/x86",
 		}
 		buildoptions { "-m32" }
 
-	configuration { "x64", "mingw" }
-		targetdir (_buildDir .. "win64_mingw" .. "/bin")
-		objdir (_buildDir .. "win64_mingw" .. "/obj")
+	configuration { "x64", "mingw-gcc" }
+		targetdir (_buildDir .. "win64_mingw-gcc" .. "/bin")
+		objdir (_buildDir .. "win64_mingw-gcc" .. "/obj")
 		libdirs {
-			_libDir .. "lib/win64_mingw",
+			_libDir .. "lib/win64_mingw-gcc",
+			"$(DXSDK_DIR)/lib/x64",
+			"$(GLES_X64_DIR)",
+		}
+		buildoptions { "-m64" }
+
+	configuration { "mingw-clang" }
+		buildoptions {
+			"-isystem$(MINGW)/lib/gcc/x86_64-w64-mingw32/4.8.1/include/c++",
+			"-isystem$(MINGW)/lib/gcc/x86_64-w64-mingw32/4.8.1/include/c++/x86_64-w64-mingw32",
+			"-isystem$(MINGW)/x86_64-w64-mingw32/include",
+		}
+		linkoptions {
+			"-Qunused-arguments",
+			"-Wno-error=unused-command-line-argument-hard-error-in-future",
+		}
+
+	configuration { "x32", "mingw-clang" }
+		targetdir (_buildDir .. "win32_mingw-clang" .. "/bin")
+		objdir (_buildDir .. "win32_mingw-clang" .. "/obj")
+		libdirs {
+			_libDir .. "lib/win32_mingw-clang",
+			"$(DXSDK_DIR)/lib/x86",
+		}
+		buildoptions { "-m32" }
+
+	configuration { "x64", "mingw-clang" }
+		targetdir (_buildDir .. "win64_mingw-clang" .. "/bin")
+		objdir (_buildDir .. "win64_mingw-clang" .. "/obj")
+		libdirs {
+			_libDir .. "lib/win64_mingw-clang",
 			"$(DXSDK_DIR)/lib/x64",
 			"$(GLES_X64_DIR)",
 		}
@@ -337,14 +446,10 @@ function toolchain(_buildDir, _libDir)
 		}
 
 	configuration { "linux-clang" }
-		buildoptions {
-			"--analyze",
-		}
 
 	configuration { "linux-*" }
 		buildoptions {
 			"-std=c++0x",
-			"-U__STRICT_ANSI__",
 			"-msse2",
 			"-Wunused-value",
 			"-Wundef",
@@ -412,7 +517,6 @@ function toolchain(_buildDir, _libDir)
 		buildoptions {
 			"-fPIC",
 			"-std=c++0x",
-			"-U__STRICT_ANSI__",
 			"-no-canonical-prefixes",
 			"-Wa,--noexecstack",
 			"-fstack-protector",
@@ -507,13 +611,9 @@ function toolchain(_buildDir, _libDir)
 		targetdir (_buildDir .. "asmjs" .. "/bin")
 		objdir (_buildDir .. "asmjs" .. "/obj")
 		libdirs { _libDir .. "lib/asmjs" }
-		includedirs {
-			"$(EMSCRIPTEN)/system/include",
-			"$(EMSCRIPTEN)/system/include/libc",
-		}
 		buildoptions {
-			"-Wno-unknown-warning-option", -- Linux Emscripten doesn't know about no-warn-absolute-paths...
-			"-Wno-warn-absolute-paths",
+			"-isystem$(EMSCRIPTEN)/system/include",
+			"-isystem$(EMSCRIPTEN)/system/include/libc",
 			"-Wunused-value",
 			"-Wundef",
 		}
@@ -527,6 +627,16 @@ function toolchain(_buildDir, _libDir)
 		}
 
 	configuration { "nacl or nacl-arm or pnacl" }
+		buildoptions {
+			"-std=c++0x",
+			"-U__STRICT_ANSI__", -- strcasecmp, setenv, unsetenv,...
+			"-fno-stack-protector",
+			"-fdiagnostics-show-option",
+			"-fdata-sections",
+			"-ffunction-sections",
+			"-Wunused-value",
+			"-Wundef",
+		}
 		includedirs {
 			"$(NACL_SDK_ROOT)/include",
 			bxDir .. "include/compat/nacl",
@@ -534,17 +644,9 @@ function toolchain(_buildDir, _libDir)
 
 	configuration { "nacl" }
 		buildoptions {
-			"-std=c++0x",
-			"-U__STRICT_ANSI__",
 			"-pthread",
-			"-fno-stack-protector",
-			"-fdiagnostics-show-option",
-			"-fdata-sections",
-			"-ffunction-sections",
 			"-mfpmath=sse", -- force SSE to get 32-bit and 64-bit builds deterministic.
 			"-msse2",
-			"-Wunused-value",
-			"-Wundef",
 		}
 		linkoptions {
 			"-Wl,--gc-sections",
@@ -576,15 +678,7 @@ function toolchain(_buildDir, _libDir)
 
 	configuration { "nacl-arm" }
 		buildoptions {
-			"-std=c++0x",
-			"-U__STRICT_ANSI__",
-			"-fno-stack-protector",
-			"-fdiagnostics-show-option",
-			"-fdata-sections",
-			"-ffunction-sections",
 			"-Wno-psabi", -- note: the mangling of 'va_list' has changed in GCC 4.4.0
-			"-Wunused-value",
-			"-Wundef",
 		}
 		targetdir (_buildDir .. "nacl-arm" .. "/bin")
 		objdir (_buildDir .. "nacl-arm" .. "/obj")
@@ -597,16 +691,6 @@ function toolchain(_buildDir, _libDir)
 		libdirs { "$(NACL_SDK_ROOT)/lib/newlib_arm/Release" }
 
 	configuration { "pnacl" }
-		buildoptions {
-			"-std=c++0x",
-			"-U__STRICT_ANSI__",
-			"-fno-stack-protector",
-			"-fdiagnostics-show-option",
-			"-fdata-sections",
-			"-ffunction-sections",
-			"-Wunused-value",
-			"-Wundef",
-		}
 		targetdir (_buildDir .. "pnacl" .. "/bin")
 		objdir (_buildDir .. "pnacl" .. "/obj")
 		libdirs { _libDir .. "lib/pnacl" }
@@ -628,24 +712,23 @@ function toolchain(_buildDir, _libDir)
 		}
 
 	configuration { "osx", "x32" }
-		targetdir (_buildDir .. "osx32_gcc" .. "/bin")
-		objdir (_buildDir .. "osx32_gcc" .. "/obj")
-		libdirs { _libDir .. "lib/osx32_gcc" }
+		targetdir (_buildDir .. "osx32_clang" .. "/bin")
+		objdir (_buildDir .. "osx32_clang" .. "/obj")
+		libdirs { _libDir .. "lib/osx32_clang" }
 		buildoptions {
 			"-m32",
 		}
 
 	configuration { "osx", "x64" }
-		targetdir (_buildDir .. "osx64_gcc" .. "/bin")
-		objdir (_buildDir .. "osx64_gcc" .. "/obj")
-		libdirs { _libDir .. "lib/osx64_gcc" }
+		targetdir (_buildDir .. "osx64_clang" .. "/bin")
+		objdir (_buildDir .. "osx64_clang" .. "/obj")
+		libdirs { _libDir .. "lib/osx64_clang" }
 		buildoptions {
 			"-m64",
 		}
 
 	configuration { "osx" }
 		buildoptions {
-			"-U__STRICT_ANSI__",
 			"-Wfatal-errors",
 			"-msse2",
 			"-Wunused-value",
@@ -659,7 +742,6 @@ function toolchain(_buildDir, _libDir)
 		}
 		buildoptions {
 			"-miphoneos-version-min=7.0",
-			"-U__STRICT_ANSI__",
 			"-Wfatal-errors",
 			"-Wunused-value",
 			"-Wundef",
@@ -672,14 +754,14 @@ function toolchain(_buildDir, _libDir)
 		libdirs { _libDir .. "lib/ios-arm" }
 		linkoptions {
 			"-arch armv7",
-			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk",
-			"-L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk/usr/lib/system",
-			"-F/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk/System/Library/Frameworks",
-			"-F/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk/System/Library/PrivateFrameworks",
+			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS" ..iosPlatform .. ".sdk",
+			"-L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS" ..iosPlatform .. ".sdk/usr/lib/system",
+			"-F/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS" ..iosPlatform .. ".sdk/System/Library/Frameworks",
+			"-F/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS" ..iosPlatform .. ".sdk/System/Library/PrivateFrameworks",
 		}
 		buildoptions {
 			"-arch armv7",
-			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk",
+			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS" ..iosPlatform .. ".sdk",
 		}
 
 	configuration { "ios-simulator" }
@@ -688,14 +770,14 @@ function toolchain(_buildDir, _libDir)
 		libdirs { _libDir .. "lib/ios-simulator" }
 		linkoptions {
 			"-arch i386",
-			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator7.1.sdk",
-			"-L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator7.1.sdk/usr/lib/system",
-			"-F/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator7.1.sdk/System/Library/Frameworks",
-			"-F/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator7.1.sdk/System/Library/PrivateFrameworks",
+			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator" ..iosPlatform .. ".sdk",
+			"-L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator" ..iosPlatform .. ".sdk/usr/lib/system",
+			"-F/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator" ..iosPlatform .. ".sdk/System/Library/Frameworks",
+			"-F/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator" ..iosPlatform .. ".sdk/System/Library/PrivateFrameworks",
 		}
 		buildoptions {
 			"-arch i386",
-			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator7.1.sdk",
+			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator" ..iosPlatform .. ".sdk",
 		}
 
 	configuration { "qnx-arm" }
@@ -705,7 +787,6 @@ function toolchain(_buildDir, _libDir)
 --		includedirs { bxDir .. "include/compat/qnx" }
 		buildoptions {
 			"-std=c++0x",
-			"-U__STRICT_ANSI__",
 			"-Wno-psabi", -- note: the mangling of 'va_list' has changed in GCC 4.4.0
 			"-Wunused-value",
 			"-Wundef",
@@ -724,7 +805,6 @@ function toolchain(_buildDir, _libDir)
 		}
 		buildoptions {
 			"-std=c++0x",
-			"-U__STRICT_ANSI__",
 			"-Wunused-value",
 			"-Wundef",
 		}
@@ -741,56 +821,58 @@ function toolchain(_buildDir, _libDir)
 		}
 
 	configuration {} -- reset configuration
+
+	return true
 end
 
 function strip()
 
 	configuration { "android-arm", "Release" }
 		postbuildcommands {
-			"@echo Stripping symbols.",
-			"@$(ANDROID_NDK_ARM)/bin/arm-linux-androideabi-strip -s \"$(TARGET)\""
+			"$(SILENT) echo Stripping symbols.",
+			"$(SILENT) $(ANDROID_NDK_ARM)/bin/arm-linux-androideabi-strip -s \"$(TARGET)\""
 		}
 
 	configuration { "android-mips", "Release" }
 		postbuildcommands {
-			"@echo Stripping symbols.",
-			"@$(ANDROID_NDK_MIPS)/bin/mipsel-linux-android-strip -s \"$(TARGET)\""
+			"$(SILENT) echo Stripping symbols.",
+			"$(SILENT) $(ANDROID_NDK_MIPS)/bin/mipsel-linux-android-strip -s \"$(TARGET)\""
 		}
 
 	configuration { "android-x86", "Release" }
 		postbuildcommands {
-			"@echo Stripping symbols.",
-			"@$(ANDROID_NDK_X86)/bin/i686-linux-android-strip -s \"$(TARGET)\""
+			"$(SILENT) echo Stripping symbols.",
+			"$(SILENT) $(ANDROID_NDK_X86)/bin/i686-linux-android-strip -s \"$(TARGET)\""
 		}
 
 	configuration { "linux-* or rpi", "Release" }
 		postbuildcommands {
-			"@echo Stripping symbols.",
-			"@strip -s \"$(TARGET)\""
+			"$(SILENT) echo Stripping symbols.",
+			"$(SILENT) strip -s \"$(TARGET)\""
 		}
 
-	configuration { "mingw", "Release" }
+	configuration { "mingw*", "Release" }
 		postbuildcommands {
-			"@echo Stripping symbols.",
-			"@$(MINGW)/bin/strip -s \"$(TARGET)\""
+			"$(SILENT) echo Stripping symbols.",
+			"$(SILENT) $(MINGW)/bin/strip -s \"$(TARGET)\""
 		}
 
 	configuration { "pnacl" }
 		postbuildcommands {
-			"@echo Running pnacl-finalize.",
-			"@" .. naclToolchain .. "finalize \"$(TARGET)\""
+			"$(SILENT) echo Running pnacl-finalize.",
+			"$(SILENT) " .. naclToolchain .. "finalize \"$(TARGET)\""
 		}
 
 	configuration { "*nacl*", "Release" }
 		postbuildcommands {
-			"@echo Stripping symbols.",
-			"@" .. naclToolchain .. "strip -s \"$(TARGET)\""
+			"$(SILENT) echo Stripping symbols.",
+			"$(SILENT) " .. naclToolchain .. "strip -s \"$(TARGET)\""
 		}
 
 	configuration { "asmjs" }
 		postbuildcommands {
-			"@echo Running asmjs finalize.",
-			"@$(EMSCRIPTEN)/emcc -O2 -s TOTAL_MEMORY=268435456 \"$(TARGET)\" -o \"$(TARGET)\".html"
+			"$(SILENT) echo Running asmjs finalize.",
+			"$(SILENT) $(EMSCRIPTEN)/emcc -O2 -s TOTAL_MEMORY=268435456 \"$(TARGET)\" -o \"$(TARGET)\".html"
 			-- ALLOW_MEMORY_GROWTH
 		}
 
