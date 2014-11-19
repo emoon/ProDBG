@@ -8,7 +8,6 @@
 #include <sstream>   // stringstream
 #include <stdlib.h>  // atoi
 #include <assert.h>  // assert
-#include <string.h>  // memest
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -72,7 +71,7 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
 		{
 		case PDEventType_getCallstack:
 			OutputDebugStringA("GetCallstack!\n");
-			debugger->engine
+			//debugger->engine
 			//getCallstack(reader, writer);
 			break;
 
@@ -123,6 +122,8 @@ Engine::Engine()
 		output("Unable to setup debugger connection\n");
 		return;
 	}
+
+	//s_asdebuggerPlugin->
 
 	m_connected = true;
 }
