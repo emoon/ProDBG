@@ -61,18 +61,23 @@ Program {
 			"src/external/angelscript",
 			"src/addons/as_debugger",
 		},
-        CCOPTS = {
+        CXXOPTS = {
             { 
             "-Wno-conversion", 
             "-Wno-missing-variable-declarations",
-            "-Werror", 
             "-Wno-pedantic", 
             "-Wno-conversion",
             "-Wno-missing-field-initializers",
             "-Wno-conversion",
             "-Wno-switch-enum",
+            "-Wno-everything",
             "-Wno-format-nonliteral"; Config = "macosx-*-*" },
         },
+
+		PROGCOM = {
+			{ "-lstdc++"; Config = { "macosx-clang-*", "linux-gcc-*" } },
+			{ "-lm -lpthread"; Config = "linux-*-*" },
+		},
     },
 
     Sources = { 
