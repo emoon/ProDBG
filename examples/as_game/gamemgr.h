@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+#include <asdbg.h>
+
 class CGameObj;
 
 class CGameMgr
@@ -32,6 +34,8 @@ protected:
 	bool actionStates[4];
 
 	bool gameOn;
+
+	asdbg::Engine* m_asDebug;
 };
 
 extern CGameMgr *gameMgr;

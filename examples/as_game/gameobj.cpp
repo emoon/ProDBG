@@ -70,6 +70,7 @@ void CGameObj::DestroyAndRelease()
 
 void CGameObj::OnThink()
 {
+	return;
 	// Call the script controller's OnThink method
 	if( controller )
 		scriptMgr->CallOnThink(controller);

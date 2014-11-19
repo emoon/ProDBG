@@ -9,12 +9,16 @@
 using namespace std;
 
 CGameMgr::CGameMgr()
+: m_asDebug(nullptr)
 {
 	gameOn = false;
 }
 
 CGameMgr::~CGameMgr()
 {
+	if (m_asDebug)
+		delete m_asDebug;
+
 	for( unsigned int n = 0; n < gameObjects.size(); n++ )
 		gameObjects[n]->DestroyAndRelease();
 }
@@ -48,6 +52,8 @@ int CGameMgr::StartGame()
 	if( scriptMgr->hasCompileErrors )
 		return -1;
 
+	m_asDebug = new asdbg::Engine;
+
 	return 0;
 }
 
@@ -67,11 +73,14 @@ void CGameMgr::Run()
 	gameOn = true;
 	while( gameOn )
 	{
+		if (m_asDebug)
+			m_asDebug->tick();
+
 		// Render the frame
 		Render();
 
 		// Get input from user
-		GetInput();
+		//GetInput();
 
 		// Call the onThink method on each game object
 		for( unsigned int n = 0; n < gameObjects.size(); n++ )

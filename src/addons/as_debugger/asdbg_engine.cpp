@@ -14,6 +14,7 @@
 typedef struct AngelScriptDebugger
 {
 	asdbg::Engine* engine;
+	asIScriptContext* context;
 	int runState;
 
 } AngelScriptDebugger;
@@ -45,7 +46,7 @@ static void destroyInstance(void* userData)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+#include <Windows.h>
 static PDDebugState update(void* userData, PDAction action, PDReader* reader, PDWriter* writer)
 {
 	//int event = 0;
@@ -54,18 +55,37 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
 
 	AngelScriptDebugger* debugger = (AngelScriptDebugger*)userData;
 
+	/*processEvents(plugin, reader, writer);
+
+	doAction(plugin, action);
+
+	if (plugin->state == PDDebugState_running)
+		updateLLDBEvent(plugin, writer);*/
+
 	//doAction(debugger, action, writer);
 
-	/*
+	uint32_t event;
 	while ((event = PDRead_getEvent(reader)) != 0)
 	{
-	switch (event)
-	{
-	case PDEventType_getDisassembly : getDisassembly(reader, writer); break;
-	case PDEventType_getRegisters : setRegisters(writer); break;
+		switch (event)
+		{
+		case PDEventType_getCallstack:
+			OutputDebugStringA("GetCallstack!\n");
+			debugger->engine
+			//getCallstack(reader, writer);
+			break;
+
+		case PDEventType_getLocals:
+			OutputDebugStringA("GetLocals!\n");
+			//getLocals(reader, writer);
+			break;
+
+		case PDEventType_getBreakpoint:
+			OutputDebugStringA("GetBreakpoint!\n");
+			//getBreakpoint(reader, writer);
+			break;
+		}
 	}
-	}
-	*/
 
 	return PDDebugState(debugger->runState);
 }
