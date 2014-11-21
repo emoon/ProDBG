@@ -151,7 +151,7 @@ namespace ImGui
     IMGUI_API bool          GetWindowIsFocused();
     IMGUI_API ImVec2        GetWindowSize();
     IMGUI_API float         GetWindowWidth();
-    IMGUI_API void		    SetWindowSize(const ImVec2& size);                                  // set to ImVec2(0,0) to force an auto-fit
+    IMGUI_API void          SetWindowSize(const ImVec2& size);                                  // set to ImVec2(0,0) to force an auto-fit
     IMGUI_API ImVec2        GetWindowPos();                                                     // you should rarely need/care about the window position, but it can be useful if you want to use your own drawing.
     IMGUI_API void          SetWindowPos(const ImVec2& pos);                                    // set current window pos.
     IMGUI_API ImVec2        GetContentRegionMax();                                              // window or current column boundaries
@@ -573,8 +573,8 @@ struct ImGuiTextBuffer
 
     ImGuiTextBuffer()   { Buf.push_back(0); }
     ~ImGuiTextBuffer()  { clear(); }
-    const char*         begin() const { return Buf.begin(); }
-    const char*         end() const { return Buf.end()-1; }
+    const char*         begin() const { return &Buf.front(); }
+    const char*         end() const { return &Buf.back(); }      // Buf is zero-terminated, so end() will point on the zero-terminator
     size_t              size() const { return Buf.size()-1; }
     bool                empty() { return Buf.empty(); }
     void                clear() { Buf.clear(); Buf.push_back(0); }
