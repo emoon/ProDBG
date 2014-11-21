@@ -1755,6 +1755,7 @@ namespace bgfx
 		virtual void submit(Frame* _render, ClearQuad& _clearQuad, TextVideoMemBlitter& _textVideoMemBlitter) = 0;
 		virtual void blitSetup(TextVideoMemBlitter& _blitter) = 0;
 		virtual void blitRender(TextVideoMemBlitter& _blitter, uint32_t _numIndices) = 0;
+		virtual void* nativeContext() = 0;
 	};
 
 	inline RendererContextI::~RendererContextI()
@@ -2934,6 +2935,11 @@ namespace bgfx
 		BGFX_API_FUNC(void discard() )
 		{
 			m_submit->discard();
+		}
+
+		BGFX_API_FUNC(void* nativeContext() )
+		{
+			return m_renderCtx->nativeContext();
 		}
 
 		BGFX_API_FUNC(uint32_t frame() );

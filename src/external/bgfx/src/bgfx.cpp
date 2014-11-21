@@ -2750,6 +2750,12 @@ again:
 		BGFX_CHECK_MAIN_THREAD();
 		s_ctx->saveScreenShot(_filePath);
 	}
+
+	void* nativeContext()
+	{
+		return s_ctx->nativeContext();
+	}
+
 } // namespace bgfx
 
 #include <bgfx.c99.h>

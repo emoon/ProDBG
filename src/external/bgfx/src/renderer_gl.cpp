@@ -2380,6 +2380,11 @@ namespace bgfx
 			}
 		}
 
+		void* nativeContext()
+		{
+			return m_glctx.m_context;
+		}
+
 		uint16_t m_numWindows;
 		FrameBufferHandle m_windows[BGFX_CONFIG_MAX_FRAME_BUFFERS];
 

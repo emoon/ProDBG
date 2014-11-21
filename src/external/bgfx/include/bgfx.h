@@ -1238,6 +1238,9 @@ namespace bgfx
 	///
 	void saveScreenShot(const char* _filePath);
 
+	// Get the native context for the current renderer
+	void* nativeContext();
+
 } // namespace bgfx
 
 #endif // BGFX_H_HEADER_GUARD
