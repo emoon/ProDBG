@@ -9,6 +9,29 @@
 #include <stdlib.h>  // atoi
 #include <assert.h>  // assert
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void log_out(const char* format, ...)
+{
+    va_list ap;
+
+    va_start(ap, format);
+#if defined(_WIN32)
+    {
+        char buffer[2048];
+        vsprintf(buffer, format, ap);
+        OutputDebugStringA(buffer);
+    }
+#else
+    vprintf(format, ap);
+#endif
+    va_end(ap);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct AngelScriptDebugger
@@ -46,7 +69,8 @@ static void destroyInstance(void* userData)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#include <Windows.h>
+
+
 static PDDebugState update(void* userData, PDAction action, PDReader* reader, PDWriter* writer)
 {
 	//int event = 0;
@@ -70,18 +94,18 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
 		switch (event)
 		{
 		case PDEventType_getCallstack:
-			OutputDebugStringA("GetCallstack!\n");
+			log_out("GetCallstack!\n");
 			//debugger->engine
 			//getCallstack(reader, writer);
 			break;
 
 		case PDEventType_getLocals:
-			OutputDebugStringA("GetLocals!\n");
+			log_out("GetLocals!\n");
 			//getLocals(reader, writer);
 			break;
 
 		case PDEventType_getBreakpoint:
-			OutputDebugStringA("GetBreakpoint!\n");
+			log_out("GetBreakpoint!\n");
 			//getBreakpoint(reader, writer);
 			break;
 		}
