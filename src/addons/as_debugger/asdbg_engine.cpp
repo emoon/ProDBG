@@ -8,6 +8,8 @@
 #include <sstream>   // stringstream
 #include <stdlib.h>  // atoi
 #include <assert.h>  // assert
+#include <stdarg.h>  // va_arg
+#include <string.h>  // memset
 
 #ifdef _WIN32
 #include <windows.h>
