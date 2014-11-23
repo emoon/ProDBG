@@ -1,11 +1,59 @@
 require "tundra.syntax.glob"
-require "tundra.path"
 require "tundra.util"
+
+local native = require('tundra.native')
+local path = require('tundra.path')
 
 local BX_DIR = "src/external/bx/"
 local BGFX_DIR = "src/external/bgfx/"
 local GLSL_OPTIMIZER = BGFX_DIR  .. "3rdparty/glsl-optimizer/"
 local FCPP_DIR = BGFX_DIR .. "3rdparty/fcpp/"
+
+-- setup target for shader
+
+local shaderc_platform = "windows"
+
+if native.host_platform == "macosx" then
+	shaderc_platform = "osx"
+else
+	shaderc_platform = "linux"
+end
+
+-----------------------------------------------------------------------------------------------------------------------
+
+DefRule {
+	Name = "ShadercFS",
+	Command = "$(BGFX_SHADERC) -f $(<) -o $(@) --type fragment --platform " .. shaderc_platform,
+
+	Blueprint = {
+		Source = { Required = true, Type = "string", Help = "Input filename", },
+		OutName = { Required = false, Type = "string", Help = "Output filename", },
+	},
+
+	Setup = function (env, data)
+		return {
+			InputFiles    = { data.Source },
+			OutputFiles   = { "$(OBJECTDIR)/_generated/" .. path.drop_suffix(data.Source) .. ".fs" },
+		}
+	end,
+}
+
+DefRule {
+	Name = "ShadercVS",
+	Command = "$(BGFX_SHADERC) -f $(<) -o $(@) --type vertex --platform " .. shaderc_platform,
+
+	Blueprint = {
+		Source = { Required = true, Type = "string", Help = "Input filename", },
+		OutName = { Required = false, Type = "string", Help = "Output filename", },
+	},
+
+	Setup = function (env, data)
+		return {
+			InputFiles    = { data.Source },
+			OutputFiles   = { "$(OBJECTDIR)/_generated/" .. path.drop_suffix(data.Source) .. ".vs" },
+		}
+	end,
+}
 
 -----------------------------------------------------------------------------------------------------------------------
 

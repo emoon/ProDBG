@@ -398,6 +398,9 @@ StaticLibrary {
 
             Recursive = true,
         },
+
+        ShadercFS { Source = "data/shaders/imgui/fs_imgui.sc" },
+        ShadercVS { Source = "data/shaders/imgui/vs_imgui.sc" },
     },
 }
 
