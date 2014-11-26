@@ -4,6 +4,7 @@
 #include <cmocka.h>
 #include "core/plugin_handler.h"
 #include "core/log.h"
+#include "core/file.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -83,6 +84,30 @@ static void plugin_handler_find_plugin(void** state)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void test_load_file_ok(void**)
+{
+	size_t size;
+
+	void* ret = File_loadToMemory("examples/fake_6502/test.bin", &size, 0);
+
+	assert_non_null(ret);
+	assert_int_equal(size, 11);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void test_load_file_fail(void**)
+{
+	size_t size;
+
+	void* ret = File_loadToMemory("examples/fake_6502/test_dont_exist.bin", &size, 0);
+
+	assert_null(ret);
+	assert_int_equal(size, 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main()
 {
     log_set_level(LOG_NONE);
@@ -95,6 +120,8 @@ int main()
         unit_test(plugin_handler_add_plugin),
         unit_test(plugin_handler_add_plugin_true),
         unit_test(plugin_handler_find_plugin),
+        unit_test(test_load_file_ok),
+        unit_test(test_load_file_fail),
     };
 
     return run_tests(tests);
