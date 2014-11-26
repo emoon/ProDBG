@@ -378,6 +378,8 @@ StaticLibrary {
         },
 
         CPPPATH = { 
+            "src/external/bx/include",
+            "src/external/bgfx/include",
         	"api/include",
 			"src/external/libuv/include",
             "src/external/stb",
