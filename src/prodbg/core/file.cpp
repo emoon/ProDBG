@@ -17,9 +17,9 @@ void* File_loadToMemory(const char* filename, size_t* size, size_t padAllocSize)
 
 	// TODO: Use fstat here?
 
-	fseek(f, 0, SEEK_END); // seek to end of file
-	s = (size_t)ftell(f); // get current file pointer
-	fseek(f, 0, SEEK_SET); // seek back to beginning of file
+	fseek(f, 0, SEEK_END);
+	s = (size_t)ftell(f);
+	fseek(f, 0, SEEK_SET);
 
 	data = malloc(s + padAllocSize);
 
