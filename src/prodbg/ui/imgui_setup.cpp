@@ -141,6 +141,7 @@ static const uint16_t s_cubeIndices[36] =
 
 static bgfx::VertexBufferHandle vbh;
 static bgfx::IndexBufferHandle ibh;
+static bgfx::UniformHandle u_viewSize;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -157,6 +158,8 @@ void IMGUI_setup(int width, int height)
 		.begin()
 		.add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
 		.end();
+
+	u_viewSize = bgfx::createUniform("viewSize", bgfx::UniformType::Uniform2fv);
 
 	PosColorVertex::init();
 
@@ -221,18 +224,18 @@ void IMGUI_preUpdate(float x, float y, int mouseLmb, int keyDown, int keyMod)
 	{-1.0f, -1.0f,  },
 	*/
 
-	verts[0] = -1.0f; 
-	verts[1] = 1.0f;
+	verts[0] = 0.0f; 
+	verts[1] = 0.0f;
 
-	verts[2] = -1.0f; 
-	verts[3] = -1.0f; 
+	verts[2] = 400.0f; 
+	verts[3] = 0.0f; 
 
-	verts[4] = 1.0f;
-	verts[5] = 1.0f;
+	verts[4] = 401.0f;
+	verts[5] = 401.0f;
 
 	ib[0] = 0;
-	ib[1] = 1;
-	ib[2] = 2;
+	ib[1] = 2;
+	ib[2] = 1;
 
 	//bgfx::setState(BGFX_STATE_DEPTH_TEST_NEVER);
 	bgfx::setState(BGFX_STATE_DEFAULT);
