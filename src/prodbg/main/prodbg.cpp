@@ -169,8 +169,8 @@ void ProDBG_setWindowSize(int width, int height)
     context->width = width;
     context->height = height;
 
-    bgfx::reset(width, height);
-    IMGUI_setup(width, height);
+    //bgfx::reset(width, height);
+    //IMGUI_setup(width, height);
     ProDBG_update();
 }
 
