@@ -1,5 +1,6 @@
 #include "imgui_setup.h"
 #include "imgui/imgui.h"
+#include "stb_image.h"
 #include "core/core.h"
 #include "core/file.h"
 #include "core/log.h"
@@ -10,6 +11,8 @@
 
 static bgfx::VertexDecl s_vertexDecl;
 static bgfx::ProgramHandle s_imguiProgram;
+static bgfx::TextureHandle s_textureId;
+static bgfx::UniformHandle s_tex;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Move this to some shared code or such?
@@ -79,15 +82,17 @@ struct PosColorVertex
 {
 	float m_x;
 	float m_y;
-	//float m_z;
-	//uint32_t m_abgr;
+	float m_u;
+	float m_v;
+	uint32_t m_abgr;
 
 	static void init()
 	{
 		ms_decl
 			.begin()
 			.add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
-			//.add(bgfx::Attrib::Color0,   4, bgfx::AttribType::Uint8, true)
+			.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+			.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
 			.end();
 	}
 
@@ -95,6 +100,8 @@ struct PosColorVertex
 };
 
 bgfx::VertexDecl PosColorVertex::ms_decl;
+
+#if 0
 
 static PosColorVertex s_cubeVertices[8] =
 {
@@ -130,8 +137,10 @@ static const uint16_t s_cubeIndices[36] =
 	//6, 3, 7,
 };
 
-static bgfx::VertexBufferHandle vbh;
-static bgfx::IndexBufferHandle ibh;
+#endif
+
+//static bgfx::VertexBufferHandle vbh;
+//static bgfx::IndexBufferHandle ibh;
 static bgfx::UniformHandle u_viewSize;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -175,7 +184,7 @@ static void imguiDummyRender(ImDrawList** const cmd_lists, int cmd_lists_count)
 
 		bgfx::allocTransientVertexBuffer(&tvb, vtx_size, s_vertexDecl);
 
-		float* verts = (float*)tvb.data;
+		ImDrawVert* verts = (ImDrawVert*)tvb.data;
 
 		// temporary only copy the positos
 
@@ -183,10 +192,12 @@ static void imguiDummyRender(ImDrawList** const cmd_lists, int cmd_lists_count)
 
 		for (uint32_t i = 0; i < vtx_size; ++i)
 		{
-			verts[0] = vtx_buffer[i].pos.x;
-			verts[1] = vtx_buffer[i].pos.y;
-			//printf("%f %f\n", verts[0], verts[1]);
-			verts += 2;
+			uint32_t c = vtx_buffer[i].col; 
+			verts->pos = vtx_buffer[i].pos;
+			verts->uv = vtx_buffer[i].uv;
+			verts->col = c; //(c & 0xff000000) | 0xff0000;
+			//printf("0x%08x\n", verts->col); 
+			verts++;
 		}
 
 		uint32_t vtx_offset = 0;
@@ -201,10 +212,10 @@ static void imguiDummyRender(ImDrawList** const cmd_lists, int cmd_lists_count)
 			bgfx::setState(0
 							| BGFX_STATE_RGB_WRITE
 							| BGFX_STATE_ALPHA_WRITE
-							| BGFX_STATE_DEPTH_TEST_LESS
-							| BGFX_STATE_DEPTH_WRITE
+							| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
 							| BGFX_STATE_MSAA);
-			bgfx::setVertexBuffer(&tvb, vtx_offset, pcmd->vtx_count * 3);
+			bgfx::setTexture(0, s_tex, s_textureId);
+			bgfx::setVertexBuffer(&tvb, vtx_offset, pcmd->vtx_count);
 			bgfx::setProgram(s_imguiProgram);
 			bgfx::setUniform(u_viewSize, viewSize);
 			bgfx::submit(0);
@@ -264,32 +275,40 @@ void IMGUI_setup(int width, int height)
     io.DeltaTime = 1.0f / 60.0f;
     io.PixelCenterOffset = 0.5f;
 
+    printf("imgui setup!\n");
+
 	s_imguiProgram = loadProgram(OBJECT_DIR "/_generated/data/shaders/imgui/vs_imgui.vs", 
 								 OBJECT_DIR "/_generated/data/shaders/imgui/fs_imgui.fs");
 	s_vertexDecl 
 		.begin()
 		.add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
+		.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+		.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
 		.end();
 
 	u_viewSize = bgfx::createUniform("viewSize", bgfx::UniformType::Uniform2fv);
+	s_tex = bgfx::createUniform("s_tex", bgfx::UniformType::Uniform1i);
 
-	PosColorVertex::init();
+	const void* png_data;
+	unsigned int png_size;
 
-	// Create static vertex buffer.
-	vbh = bgfx::createVertexBuffer(
-		  // Static data can be passed with bgfx::makeRef
-		  bgfx::makeRef(s_cubeVertices, sizeof(s_cubeVertices) )
-		, PosColorVertex::ms_decl
-		);
+	ImGui::GetDefaultFontData(NULL, NULL, &png_data, &png_size);
+	int tex_x, tex_y, pitch, tex_comp;
 
-	// Create static index buffer.
-	ibh = bgfx::createIndexBuffer(
-		// Static data can be passed with bgfx::makeRef
-		bgfx::makeRef(s_cubeIndices, sizeof(s_cubeIndices) )
-		);
+	void* tex_data = stbi_load_from_memory((const unsigned char*)png_data, (int)png_size, &tex_x, &tex_y, &tex_comp, 0);
 
-	// Enable debug text.
-	//bgfx::setDebug(BGFX_DEBUG_TEXT);
+	pitch = tex_x * 4;
+
+	const bgfx::Memory* mem = bgfx::alloc((uint32_t)(tex_y * pitch));
+	memcpy(mem->data, tex_data, size_t(pitch * tex_y));
+
+	bgfx::imageSwizzleBgra8((uint32_t)tex_x, (uint32_t)tex_y, (uint32_t)pitch, tex_data, mem->data);
+
+	s_textureId = bgfx::createTexture2D((uint16_t)tex_x, (uint16_t)tex_y, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT, mem);
+
+	printf("textureId %d\n", s_textureId.idx);
+
+	stbi_image_free(tex_data);
 
     io.RenderDrawListsFn = imguiDummyRender;
 }
