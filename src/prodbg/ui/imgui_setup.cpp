@@ -75,15 +75,6 @@ bgfx::ProgramHandle loadProgram(const char* vsName, const char* fsName)
 	return ph;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void imguiDummyRender(ImDrawList** const cmd_lists, int cmd_lists_count)
-{
-    (void)cmd_lists;
-    (void)cmd_lists_count;
-
-}
-
 struct PosColorVertex
 {
 	float m_x;
@@ -145,6 +136,127 @@ static bgfx::UniformHandle u_viewSize;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void imguiDummyRender(ImDrawList** const cmd_lists, int cmd_lists_count)
+{
+    (void)cmd_lists;
+    (void)cmd_lists_count;
+
+	float viewSize[2];
+
+	const float width = ImGui::GetIO().DisplaySize.x;
+	const float height = ImGui::GetIO().DisplaySize.y;
+
+	viewSize[0] = width;
+	viewSize[1] = height;
+
+	//printf("cmd_list_count %d\n", cmd_lists_count);
+	
+	float ortho[16];
+	bx::mtxOrtho(ortho, 0.0f, viewSize[0], viewSize[1], 0.0f, -1.0f, 1.0f);
+
+	bgfx::setViewTransform(0, NULL, ortho);
+
+	// Render command lists
+	
+	for (int n = 0; n < cmd_lists_count; n++)
+	{
+		bgfx::TransientVertexBuffer tvb;
+
+		uint32_t vtx_size = 0;
+
+		const ImDrawList* cmd_list = cmd_lists[n];
+		const ImDrawVert* vtx_buffer = cmd_list->vtx_buffer.begin();
+		(void)vtx_buffer;
+		
+		const ImDrawCmd* pcmd_end_t = cmd_list->commands.end();
+
+		for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end_t; pcmd++)
+			vtx_size += (uint32_t)pcmd->vtx_count;
+
+		bgfx::allocTransientVertexBuffer(&tvb, vtx_size, s_vertexDecl);
+
+		float* verts = (float*)tvb.data;
+
+		// temporary only copy the positos
+
+		//printf("coords----------------------------------------\n");
+
+		for (uint32_t i = 0; i < vtx_size; ++i)
+		{
+			verts[0] = vtx_buffer[i].pos.x;
+			verts[1] = vtx_buffer[i].pos.y;
+			//printf("%f %f\n", verts[0], verts[1]);
+			verts += 2;
+		}
+
+		uint32_t vtx_offset = 0;
+		const ImDrawCmd* pcmd_end = cmd_list->commands.end();
+		for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end; pcmd++)
+		{
+			bgfx::setScissor((uint16_t)pcmd->clip_rect.x, 
+						     (uint16_t)(height - pcmd->clip_rect.w), 
+						     (uint16_t)(pcmd->clip_rect.z - pcmd->clip_rect.x), 
+						     (uint16_t)(pcmd->clip_rect.w - pcmd->clip_rect.y));
+			
+			bgfx::setState(0
+							| BGFX_STATE_RGB_WRITE
+							| BGFX_STATE_ALPHA_WRITE
+							| BGFX_STATE_DEPTH_TEST_LESS
+							| BGFX_STATE_DEPTH_WRITE
+							| BGFX_STATE_MSAA);
+			bgfx::setVertexBuffer(&tvb, vtx_offset, pcmd->vtx_count * 3);
+			bgfx::setProgram(s_imguiProgram);
+			bgfx::setUniform(u_viewSize, viewSize);
+			bgfx::submit(0);
+
+			vtx_offset += pcmd->vtx_count;
+		}
+	}
+
+
+	//bgfx::TransientIndexBuffer tib;
+
+	//bgfx::allocTransientVertexBuffer(&tvb, 3, s_vertexDecl);
+	//bgfx::allocTransientIndexBuffer(&tib, 3);
+
+	//float* verts = (float*)tvb.data;
+	//uint16_t* ib = (uint16_t*)tib.data;
+
+	/*
+	{-1.0f,  1.0f,  },
+	{ 1.0f,  1.0f,  },
+	{-1.0f, -1.0f,  },
+	*/
+
+	/*
+	verts[0] = 0.0f; 
+	verts[1] = 0.0f;
+
+	verts[2] = 401.0f;
+	verts[3] = 401.0f;
+
+	verts[4] = 400.0f; 
+	verts[5] = 0.0f; 
+	*/
+
+	//ib[0] = 0;
+	//ib[1] = 1;
+	//ib[2] = 2;
+
+
+	//bgfx::setState(BGFX_STATE_DEPTH_TEST_NEVER);
+
+	//bgfx::setProgram(s_imguiProgram);
+
+	//bgfx::setVertexBuffer(&tvb);
+	//bgfx::setIndexBuffer(&tib);
+
+	//bgfx::submit(0);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void IMGUI_setup(int width, int height)
 {
     ImGuiIO& io = ImGui::GetIO();
@@ -193,59 +305,22 @@ void IMGUI_preUpdate(float x, float y, int mouseLmb, int keyDown, int keyMod)
     io.DeltaTime = 1.0f / 60.0f;    // TODO: Fix me
     io.MousePos = ImVec2(x, y);
     io.MouseDown[0] = !!mouseLmb;
+
+    ImGui::NewFrame();
+
+	ImGui::Button("Test");
+
     //io.keyDown = keyDown;
     //io.keyMod = keyMod;
 
-    //ImGui::NewFrame();
 
 	//bgfx::dbgTextClear();
 	//bgfx::dbgTextPrintf(0, 1, 0x4f, "bgfx/examples/01-cube");
 	//bgfx::submit(0);
 
 	// Some test rendering
+	//
 	
-	float ortho[16];
-	bx::mtxOrtho(ortho, 0.0f, 1280.0f, 720.0f, 0.0f, 0.0f, 1000.0f);
-
-	bgfx::setViewTransform(0, NULL, ortho);
-
-	bgfx::TransientVertexBuffer tvb;
-	bgfx::TransientIndexBuffer tib;
-
-	bgfx::allocTransientVertexBuffer(&tvb, 3, s_vertexDecl);
-	bgfx::allocTransientIndexBuffer(&tib, 3);
-
-	float* verts = (float*)tvb.data;
-	uint16_t* ib = (uint16_t*)tib.data;
-
-	/*
-	{-1.0f,  1.0f,  },
-	{ 1.0f,  1.0f,  },
-	{-1.0f, -1.0f,  },
-	*/
-
-	verts[0] = 0.0f; 
-	verts[1] = 0.0f;
-
-	verts[2] = 400.0f; 
-	verts[3] = 0.0f; 
-
-	verts[4] = 401.0f;
-	verts[5] = 401.0f;
-
-	ib[0] = 0;
-	ib[1] = 2;
-	ib[2] = 1;
-
-	//bgfx::setState(BGFX_STATE_DEPTH_TEST_NEVER);
-	bgfx::setState(BGFX_STATE_DEFAULT);
-
-	bgfx::setProgram(s_imguiProgram);
-
-	bgfx::setVertexBuffer(&tvb);
-	bgfx::setIndexBuffer(&tib);
-
-	bgfx::submit(0);
 
 	/*
 	//float proj[16];
@@ -309,7 +384,7 @@ void IMGUI_setKeyUp(int key, int modifier)
 
 void IMGUI_postUpdate()
 {
-    //ImGui::Render();
+    ImGui::Render();
 }
 
 
