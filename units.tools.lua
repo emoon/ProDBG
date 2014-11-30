@@ -12,18 +12,24 @@ local FCPP_DIR = BGFX_DIR .. "3rdparty/fcpp/"
 -- setup target for shader
 
 local shaderc_platform = "windows"
+local shaderc_vs_extra_params = " -p vs_5_0" 
+local shaderc_ps_extra_params = " -p ps_5_0" 
 
 if native.host_platform == "macosx" then
 	shaderc_platform = "osx"
+	shaderc_vs_extra_params = ""
+	shaderc_ps_extra_params = ""
 elseif native.host_platform == "linux" then
 	shaderc_platform = "linux"
+	shaderc_vs_extra_params = ""
+	shaderc_ps_extra_params = ""
 end
 
 -----------------------------------------------------------------------------------------------------------------------
 
 DefRule {
 	Name = "ShadercFS",
-	Command = "$(BGFX_SHADERC) -f $(<) -o $(@) -p ps_5_0 --type fragment --platform " .. shaderc_platform,
+	Command = "$(BGFX_SHADERC) -f $(<) -o $(@) --type fragment --platform " .. shaderc_platform .. shaderc_ps_extra_params,
 
 	Blueprint = {
 		Source = { Required = true, Type = "string", Help = "Input filename", },
@@ -40,7 +46,7 @@ DefRule {
 
 DefRule {
 	Name = "ShadercVS",
-	Command = "$(BGFX_SHADERC) -f $(<) -o $(@) -p vs_5_0 --type vertex --platform " .. shaderc_platform,
+	Command = "$(BGFX_SHADERC) -f $(<) -o $(@) --type vertex --platform " .. shaderc_platform .. shaderc_vs_extra_params, 
 
 	Blueprint = {
 		Source = { Required = true, Type = "string", Help = "Input filename", },

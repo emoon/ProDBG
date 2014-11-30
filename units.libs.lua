@@ -129,13 +129,12 @@ StaticLibrary {
         CPPPATH = { 
             "src/external/bgfx/include",
             "src/external/bx/include",
-            "src/external/bx/include/compat/msvc",
             "src/external/bgfx/3rdparty/khronos",
         },
         
         CXXOPTS = {
 			{ "-Wno-variadic-macros", "-Wno-everything" ; Config = "macosx-*-*" },
-			{ "/EHsc"; Config = "win64-*-*" },
+			{ "/Isrc/external/bx/include/compat/msvc", "/EHsc"; Config = "win64-*-*" },
         },
     },
 
