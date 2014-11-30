@@ -97,7 +97,8 @@ local win64 = {
 Build {
 
     Passes = {
-        GenerateSources = { Name="Generate sources", BuildOrder = 1 },
+        BuildTools = { Name="Build Tools", BuildOrder = 1 },
+        GenerateSources = { Name="Generate sources", BuildOrder = 2 },
     },
 
     Units = { 

@@ -15,7 +15,7 @@ local shaderc_platform = "windows"
 
 if native.host_platform == "macosx" then
 	shaderc_platform = "osx"
-else
+elseif native.host_platform == "linux" then
 	shaderc_platform = "linux"
 end
 
@@ -23,7 +23,7 @@ end
 
 DefRule {
 	Name = "ShadercFS",
-	Command = "$(BGFX_SHADERC) -f $(<) -o $(@) --type fragment --platform " .. shaderc_platform,
+	Command = "$(BGFX_SHADERC) -f $(<) -o $(@) -p ps_5_0 --type fragment --platform " .. shaderc_platform,
 
 	Blueprint = {
 		Source = { Required = true, Type = "string", Help = "Input filename", },
@@ -40,7 +40,7 @@ DefRule {
 
 DefRule {
 	Name = "ShadercVS",
-	Command = "$(BGFX_SHADERC) -f $(<) -o $(@) --type vertex --platform " .. shaderc_platform,
+	Command = "$(BGFX_SHADERC) -f $(<) -o $(@) -p vs_5_0 --type vertex --platform " .. shaderc_platform,
 
 	Blueprint = {
 		Source = { Required = true, Type = "string", Help = "Input filename", },
@@ -59,24 +59,27 @@ DefRule {
 
 Program {
 	Name = "bgfx_shaderc",
-	Target = "$(BGFX_SHADERC)";
+	Target = "$(BGFX_SHADERC)",
+	Pass = "BuildTools", 
 
     Env = {
         CCOPTS = {
+			{ "/wd4291", "/W3", "-D__STDC__", "-D__STDC_VERSION__=199901L", "-Dstrdup=_strdup", "-Dalloca=_alloca", "-Disascii=__isascii"; Config = "win64-*-*" },
         	{ "-Wno-everything"; Config = "macosx-*-*" },
         },
 
         CXXOPTS = {
+			{ "/wd4291", "/W3", "-D__STDC__", "-D__STDC_VERSION__=199901L", "-Dstrdup=_strdup", "-Dalloca=_alloca", "-Disascii=__isascii"; Config = "win64-*-*" },
         	{ "-Wno-everything"; Config = "macosx-*-*" },
         },
 
+		CPPDEFS = {
+			{ "NINCLUDE=64", "NWORK=65536", "NBUFF=65536", "OLD_PREPROCESSOR=0" },
+		},
+
 		CPPPATH = { 
-			{ 
-			  GLSL_OPTIMIZER .. "src/glsl/msvc",
-			  GLSL_OPTIMIZER .. "include/c99";
-			  "$(DXSDK_DIR)/include" ; Config = "win64-*-*" },
 			{
-				BX_DIR   .. "include",
+				BX_DIR .. "include",
 				BGFX_DIR .. "include",
 				FCPP_DIR,
 				GLSL_OPTIMIZER .. "src",
@@ -84,12 +87,15 @@ Program {
 				GLSL_OPTIMIZER .. "src/mesa",
 				GLSL_OPTIMIZER .. "src/mapi",
 				GLSL_OPTIMIZER .. "src/glsl",
+				GLSL_OPTIMIZER .. "src/glsl/glcpp",
 			},
-		},
 
-		CPPDEFS = {
-			{ "__STDC__", "__STDC_VERSION__=199901L", "strdup=_strdup", "alloca=_alloca", "isascii=__isascii"; Config = "win64-*-*" },
-			{ "NINCLUDE=64", "NWORK=65536", "NBUFF=65536", "OLD_PREPROCESSOR=0" },
+			{ 
+				-- BX_DIR .. "include/compat/msvc",
+				--GLSL_OPTIMIZER .. "src/glsl/msvc", 
+				--GLSL_OPTIMIZER .. "src/glsl/msvc", 
+				--GLSL_OPTIMIZER .. "include/c99"; Config = "win64-*-*" 
+			},
 		},
 
 		PROGCOM = {
@@ -115,7 +121,7 @@ Program {
 		Glob { Dir = GLSL_OPTIMIZER .. "src/util", Extensions = { ".c", ".h" } },
 	},
 
-    Libs = { { "kernel32.lib", "d3dx9.lib", "d3dcompiler.lib", "dxguid.lib" ; Config = "win64-*-*" } },
+    Libs = { { "kernel32.lib", "d3dcompiler.lib", "dxguid.lib" ; Config = "win64-*-*" } },
 
     Frameworks = { "Cocoa"  },
 }
