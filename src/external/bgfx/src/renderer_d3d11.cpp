@@ -2221,6 +2221,11 @@ RENDERDOC_IMPORT
 			}
 		}
 
+		void* nativeContext()
+		{
+			return 0;
+		}
+
 #if USE_D3D11_DYNAMIC_LIB
 		void* m_d3d9dll;
 		void* m_d3d11dll;
