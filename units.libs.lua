@@ -129,6 +129,7 @@ StaticLibrary {
         CPPPATH = { 
             "src/external/bgfx/include",
             "src/external/bx/include",
+            "src/external/bx/include/compat/msvc",
             "src/external/bgfx/3rdparty/khronos",
         },
         

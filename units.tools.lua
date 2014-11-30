@@ -91,10 +91,7 @@ Program {
 			},
 
 			{ 
-				-- BX_DIR .. "include/compat/msvc",
-				--GLSL_OPTIMIZER .. "src/glsl/msvc", 
-				--GLSL_OPTIMIZER .. "src/glsl/msvc", 
-				--GLSL_OPTIMIZER .. "include/c99"; Config = "win64-*-*" 
+				BX_DIR .. "include/compat/msvc"; Config = "win64-*-*" 
 			},
 		},
 
