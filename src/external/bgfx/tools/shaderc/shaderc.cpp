@@ -38,7 +38,7 @@ bool g_verbose = false;
 #include <bx/debug.h>
 
 #define NOMINMAX
-#include <alloca.h>
+//#include <alloca.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -74,7 +74,7 @@ extern "C"
 #	define __D3DX9MATH_INL__ // not used and MinGW complains about type-punning
 	BX_PRAGMA_DIAGNOSTIC_PUSH();
 	BX_PRAGMA_DIAGNOSTIC_IGNORED_CLANG_GCC("-Wundef");
-#	include <d3dx9.h>
+//#	include <d3dx9.h>
 #	include <d3dcompiler.h>
 	BX_PRAGMA_DIAGNOSTIC_POP();
 #endif // BX_PLATFORM_WINDOWS
@@ -247,6 +247,7 @@ const char* interpolationDx11(const char* _glsl)
 }
 
 #if BX_PLATFORM_WINDOWS
+/*
 struct UniformRemapDx9
 {
 	UniformType::Enum id;
@@ -299,6 +300,7 @@ static uint32_t s_optimizationLevelDx9[4] =
 	D3DXSHADER_OPTIMIZATION_LEVEL2,
 	D3DXSHADER_OPTIMIZATION_LEVEL3,
 };
+*/
 
 struct UniformRemapDx11
 {
@@ -822,7 +824,7 @@ bool compileGLSLShader(bx::CommandLine& _cmdLine, uint32_t _gles, const std::str
 
 	return true;
 }
-
+/*
 bool compileHLSLShaderDx9(bx::CommandLine& _cmdLine, const std::string& _code, bx::WriterI* _writer)
 {
 #if BX_PLATFORM_WINDOWS
@@ -938,7 +940,7 @@ bool compileHLSLShaderDx9(bx::CommandLine& _cmdLine, const std::string& _code, b
 			return false;
 		}
 
-		BX_TRACE("Creator: %s 0x%08x", desc.Creator, (uint32_t /*mingw warning*/)desc.Version);
+		BX_TRACE("Creator: %s 0x%08x", desc.Creator, (uint32_t)desc.Version);
 		BX_TRACE("Num constants: %d", desc.Constants);
 		BX_TRACE("#   cl ty RxC   S  By Name");
 
@@ -1048,6 +1050,7 @@ bool compileHLSLShaderDx9(bx::CommandLine& _cmdLine, const std::string& _code, b
 	return false;
 #endif // BX_PLATFORM_WINDOWS
 }
+*/
 
 bool compileHLSLShaderDx11(bx::CommandLine& _cmdLine, const std::string& _code, bx::WriterI* _writer)
 {
@@ -2109,7 +2112,8 @@ int main(int _argc, const char* _argv[])
 				}
 				else
 				{
-					compiled = compileHLSLShaderDx9(cmdLine, input, writer);
+					printf("compilng for d3d9!!!!!!!!!!!!!!!\n");
+					compiled = false; // compileHLSLShaderDx9(cmdLine, input, writer);
 				}
 			}
 
@@ -2275,7 +2279,8 @@ int main(int _argc, const char* _argv[])
 							}
 							else
 							{
-								compiled = compileHLSLShaderDx9(cmdLine, preprocessor.m_preprocessed, writer);
+								printf("compilng for d3d9!!!!!!!!!!!!!!!\n");
+								compiled = false; // compileHLSLShaderDx9(cmdLine, preprocessor.m_preprocessed, writer);
 							}
 						}
 
@@ -2729,7 +2734,8 @@ int main(int _argc, const char* _argv[])
 							}
 							else
 							{
-								compiled = compileHLSLShaderDx9(cmdLine, preprocessor.m_preprocessed, writer);
+								printf("compilng for d3d9!!!!!!!!!!!!!!!\n");
+								compiled = false; // compileHLSLShaderDx9(cmdLine, preprocessor.m_preprocessed, writer);
 							}
 						}
 
