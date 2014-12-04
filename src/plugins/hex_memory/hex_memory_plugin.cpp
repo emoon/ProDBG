@@ -178,8 +178,8 @@ static void updateMemory(HexMemoryData* userData, PDReader* reader)
 
     free(userData->data);
 
-    userData->data = (unsigned char*)malloc(size);
-    memcpy(userData->data, data, size);
+    userData->data = (unsigned char*)malloc((size_t)size);
+    memcpy(userData->data, data, (size_t)size);
 
     printf("updating data %p %d\n", userData->data, (int)size);
 
