@@ -5,7 +5,7 @@
 #include "core/plugin_handler.h"
 #include "session/session.h"
 #include "settings.h"
-#include "ui/imgui/imgui.h"
+//#include <imgui.h>
 #include "ui/imgui_setup.h"
 #include "ui/ui_layout.h"
 #include "ui/menu.h"

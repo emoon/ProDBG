@@ -5,7 +5,7 @@
 #include "core/alloc.h"
 #include "core/log.h"
 #include "core/math.h"
-#include "imgui/imgui.h"
+#include <imgui.h>
 #include <string.h>
 #include <stdio.h>
 

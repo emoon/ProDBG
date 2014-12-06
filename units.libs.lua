@@ -180,6 +180,25 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
+    Name = "imgui",
+
+    Env = { 
+        CPPPATH = { 
+            "src/external/cmocka/include",
+        },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "src/external/imgui",
+            Extensions = { ".cpp", ".h" },
+        },
+    },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
     Name = "remote_api",
 
     Env = { 
@@ -378,6 +397,7 @@ StaticLibrary {
         },
 
         CPPPATH = { 
+            "src/external/imgui",
             "src/external/bx/include",
             "src/external/bgfx/include",
         	"api/include",

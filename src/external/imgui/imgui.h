@@ -1,4 +1,4 @@
-// ImGui library v1.16 wip
+// ImGui library v1.18 wip
 // See .cpp file for commentary.
 // See ImGui::ShowTestWindow() for sample code.
 // Read 'Programmer guide' in .cpp for notes on how to setup ImGui in your codebase.
@@ -7,7 +7,7 @@
 #pragma once
 
 struct ImDrawList;
-struct ImBitmapFont;
+struct ImFont;
 struct ImGuiAabb;
 struct ImGuiIO;
 struct ImGuiStorage;
@@ -30,15 +30,15 @@ struct ImGuiWindow;
 #endif
 
 typedef unsigned int ImU32;
-typedef unsigned short ImWchar;
-typedef ImU32 ImGuiID;
+typedef unsigned short ImWchar;     // hold a character for display
+typedef ImU32 ImGuiID;              // hold widget unique ID
 typedef int ImGuiCol;               // enum ImGuiCol_
 typedef int ImGuiStyleVar;          // enum ImGuiStyleVar_
 typedef int ImGuiKey;               // enum ImGuiKey_
 typedef int ImGuiColorEditMode;     // enum ImGuiColorEditMode_
 typedef int ImGuiWindowFlags;       // enum ImGuiWindowFlags_
 typedef int ImGuiInputTextFlags;    // enum ImGuiInputTextFlags_
-typedef ImBitmapFont* ImFont;
+struct ImGuiTextEditCallbackData;
 
 struct ImVec2
 {
@@ -77,7 +77,7 @@ namespace ImGui
 template<typename T>
 class ImVector
 {
-private:
+protected:
     size_t                      Size;
     size_t                      Capacity;
     T*                          Data;
@@ -122,7 +122,7 @@ public:
 #endif // #ifndef ImVector
 
 // Helpers at bottom of the file:
-// - if (IMGUI_ONCE_UPON_A_FRAME)       // Execute a block of code once per frame only
+// - IMGUI_ONCE_UPON_A_FRAME            // Execute a block of code once per frame only (convenient for creating UI within deep-nested code that runs multiple times)
 // - struct ImGuiTextFilter             // Parse and apply text filters. In format "aaaaa[,bbbb][,ccccc]"
 // - struct ImGuiTextBuffer             // Text buffer for logging/accumulating text
 // - struct ImGuiStorage                // Custom key value storage (if you need to alter open/close states manually)
@@ -158,9 +158,9 @@ namespace ImGui
     IMGUI_API ImVec2        GetWindowContentRegionMin();                                        // window boundaries
     IMGUI_API ImVec2        GetWindowContentRegionMax();
     IMGUI_API ImDrawList*   GetWindowDrawList();                                                // get rendering command-list if you want to append your own draw primitives.
-    IMGUI_API ImFont        GetWindowFont();
+    IMGUI_API ImFont*       GetWindowFont();
     IMGUI_API float         GetWindowFontSize();
-    IMGUI_API void          SetWindowFontScale(float scale);                                    // per-window font scale. Adjust IO.FontBaseScale if you want to scale all windows together.
+    IMGUI_API void          SetWindowFontScale(float scale);                                    // per-window font scale. Adjust IO.FontGlobalScale if you want to scale all windows.
     IMGUI_API void          SetScrollPosHere();                                                 // adjust scrolling position to center into the current cursor position.
     IMGUI_API void          SetKeyboardFocusHere(int offset = 0);                               // focus keyboard on the next widget. Use 'offset' to access sub components of a multiple component widget.
     IMGUI_API void          SetTreeStateStorage(ImGuiStorage* tree);                            // replace tree state storage with our own (if you want to manipulate it yourself, typically clear subsection of it).
@@ -172,10 +172,10 @@ namespace ImGui
     IMGUI_API void          PushAllowKeyboardFocus(bool v);                                     // allow focusing using TAB/Shift-TAB, enabled by default but you can disable it for certain widgets.
     IMGUI_API void          PopAllowKeyboardFocus();
     IMGUI_API void          PushStyleColor(ImGuiCol idx, const ImVec4& col);
-    IMGUI_API void          PopStyleColor();
+    IMGUI_API void          PopStyleColor(int count = 1);
     IMGUI_API void          PushStyleVar(ImGuiStyleVar idx, float val);
     IMGUI_API void          PushStyleVar(ImGuiStyleVar idx, const ImVec2& val);
-    IMGUI_API void          PopStyleVar();
+    IMGUI_API void          PopStyleVar(int count = 1);
     IMGUI_API void          PushTextWrapPos(float wrap_pos_x = 0.0f);                           // word-wrapping for Text*() commands. < 0.0f: no wrapping; 0.0f: wrap to end of window (or column); > 0.0f: wrap at 'wrap_pos_x' position in window local space.
     IMGUI_API void          PopTextWrapPos();
 
@@ -238,7 +238,7 @@ namespace ImGui
     IMGUI_API bool          CheckboxFlags(const char* label, unsigned int* flags, unsigned int flags_value);
     IMGUI_API bool          RadioButton(const char* label, bool active);
     IMGUI_API bool          RadioButton(const char* label, int* v, int v_button);
-    IMGUI_API bool          InputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags = 0);
+    IMGUI_API bool          InputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags = 0, void (*callback)(ImGuiTextEditCallbackData*) = NULL, void* user_data = NULL);
     IMGUI_API bool          InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, int decimal_precision = -1, ImGuiInputTextFlags extra_flags = 0);
     IMGUI_API bool          InputFloat2(const char* label, float v[2], int decimal_precision = -1);
     IMGUI_API bool          InputFloat3(const char* label, float v[3], int decimal_precision = -1);
@@ -261,8 +261,7 @@ namespace ImGui
     IMGUI_API void          TreePop();
     IMGUI_API void          OpenNextNode(bool open);                                            // force open/close the next TreeNode or CollapsingHeader
 
-    // Value helper output "name: value"
-    // Freely declare your own in the ImGui namespace.
+    // Value helper output "name: value". tip: freely declare your own within the ImGui namespace!
     IMGUI_API void          Value(const char* prefix, bool b);
     IMGUI_API void          Value(const char* prefix, int v);
     IMGUI_API void          Value(const char* prefix, unsigned int v);
@@ -295,7 +294,7 @@ namespace ImGui
     IMGUI_API int           GetFrameCount();
     IMGUI_API const char*   GetStyleColorName(ImGuiCol idx);
     IMGUI_API void          GetDefaultFontData(const void** fnt_data, unsigned int* fnt_size, const void** png_data, unsigned int* png_size);
-    IMGUI_API ImVec2        CalcTextSize(const char* text, const char* text_end = NULL, bool hide_text_after_hash = true, float wrap_width = -1.0f);
+    IMGUI_API ImVec2        CalcTextSize(const char* text, const char* text_end = NULL, bool hide_text_after_double_hash = true, float wrap_width = -1.0f);
 
 } // namespace ImGui
 
@@ -308,11 +307,13 @@ enum ImGuiWindowFlags_
     ImGuiWindowFlags_NoResize               = 1 << 2,
     ImGuiWindowFlags_NoMove                 = 1 << 3,
     ImGuiWindowFlags_NoScrollbar            = 1 << 4,
-    ImGuiWindowFlags_ChildWindow            = 1 << 5,   // For internal use by BeginChild()
-    ImGuiWindowFlags_ChildWindowAutoFitX    = 1 << 6,   // For internal use by BeginChild()
-    ImGuiWindowFlags_ChildWindowAutoFitY    = 1 << 7,   // For internal use by BeginChild()
-    ImGuiWindowFlags_ComboBox               = 1 << 8,   // For internal use by ComboBox()
-    ImGuiWindowFlags_Tooltip                = 1 << 9    // For internal use by Render() when using Tooltip
+    ImGuiWindowFlags_NoScrollWithMouse      = 1 << 5,
+    ImGuiWindowFlags_AlwaysAutoResize       = 1 << 6,
+    ImGuiWindowFlags_ChildWindow            = 1 << 7,   // For internal use by BeginChild()
+    ImGuiWindowFlags_ChildWindowAutoFitX    = 1 << 8,   // For internal use by BeginChild()
+    ImGuiWindowFlags_ChildWindowAutoFitY    = 1 << 9,   // For internal use by BeginChild()
+    ImGuiWindowFlags_ComboBox               = 1 << 10,  // For internal use by ComboBox()
+    ImGuiWindowFlags_Tooltip                = 1 << 11   // For internal use by Render() when using Tooltip
 };
 
 // Flags for ImGui::InputText()
@@ -322,8 +323,11 @@ enum ImGuiInputTextFlags_
     ImGuiInputTextFlags_CharsDecimal        = 1 << 0,   // Allow 0123456789.+-*/
     ImGuiInputTextFlags_CharsHexadecimal    = 1 << 1,   // Allow 0123456789ABCDEFabcdef
     ImGuiInputTextFlags_AutoSelectAll       = 1 << 2,   // Select entire text when first taking focus
-    ImGuiInputTextFlags_EnterReturnsTrue    = 1 << 3    // Return 'true' when Enter is pressed (as opposed to when the value was modified)
-    //ImGuiInputTextFlags_AlignCenter       = 1 << 3,
+    ImGuiInputTextFlags_EnterReturnsTrue    = 1 << 3,   // Return 'true' when Enter is pressed (as opposed to when the value was modified)
+    ImGuiInputTextFlags_CallbackCompletion  = 1 << 4,   // Call user function on pressing TAB (for completion handling)
+    ImGuiInputTextFlags_CallbackHistory     = 1 << 5,   // Call user function on pressing Up/Down arrows (for history handling)
+    ImGuiInputTextFlags_CallbackAlways      = 1 << 6    // Call user function every time
+    //ImGuiInputTextFlags_AlignCenter       = 1 << 6,
 };
 
 // User fill ImGuiIO.KeyMap[] array with indices into the ImGuiIO.KeysDown[512] array
@@ -445,17 +449,14 @@ struct ImGuiIO
     ImVec2      DisplaySize;                // <unset>                  // Display size, in pixels. For clamping windows positions.
     float       DeltaTime;                  // = 1.0f/60.0f             // Time elapsed since last frame, in seconds.
     float       IniSavingRate;              // = 5.0f                   // Maximum time between saving .ini file, in seconds. Set to a negative value to disable .ini saving.
-    const char* IniFilename;                // = "imgui.ini"            // Absolute path to .ini file.
-    const char* LogFilename;                // = "imgui_log.txt"        // Absolute path to .log file.
+    const char* IniFilename;                // = "imgui.ini"            // Path to .ini file.
+    const char* LogFilename;                // = "imgui_log.txt"        // Path to .log file.
     float       MouseDoubleClickTime;       // = 0.30f                  // Time for a double-click, in seconds.
     float       MouseDoubleClickMaxDist;    // = 6.0f                   // Distance threshold to stay in to validate a double-click, in pixels.
     int         KeyMap[ImGuiKey_COUNT];     // <unset>                  // Map of indices into the KeysDown[512] entries array
-    ImFont      Font;                       // <auto>                   // Gets passed to text functions. Typedef ImFont to the type you want (ImBitmapFont* or your own font).
-    float       FontYOffset;                // = 0.0f                   // Offset font rendering by xx pixels in Y axis.
-    ImVec2      FontTexUvForWhite;          // = (0.0f,0.0f)            // Font texture must have a white pixel at this UV coordinate. Adjust if you are using custom texture.
-    float       FontBaseScale;              // = 1.0f                   // Base font scale, multiplied by the per-window font scale which you can adjust with SetFontScale()
-    bool        FontAllowUserScaling;       // = false                  // Set to allow scaling text with CTRL+Wheel.
-    ImWchar     FontFallbackGlyph;          // = '?'                    // Replacement glyph is one isn't found.
+    ImFont*     Font;                       // <auto>                   // Font (also see 'Settings' fields inside ImFont structure for details)
+    float       FontGlobalScale;            // = 1.0f                   // Global scale all fonts
+    bool        FontAllowUserScaling;       // = false                  // Allow user scaling text of individual window with CTRL+Wheel.
     float       PixelCenterOffset;          // = 0.0f                   // Try to set to 0.5f or 0.375f if rendering is blurry
 
     void*       UserData;                   // = NULL                   // Store your own data for retrieval by callbacks.
@@ -478,7 +479,7 @@ struct ImGuiIO
     void*       (*MemReallocFn)(void* ptr, size_t sz);
     void        (*MemFreeFn)(void* ptr);
 
-    // Optional: notify OS Input Method Editor of text input position (e.g. when using Japanese/Chinese inputs, otherwise this isn't needed)
+    // Optional: notify OS Input Method Editor of the screen position of your cursor for text input position (e.g. when using Japanese/Chinese inputs in Windows)
     void        (*ImeSetInputScreenPosFn)(int x, int y);
 
     //------------------------------------------------------------------
@@ -487,7 +488,7 @@ struct ImGuiIO
 
     ImVec2      MousePos;                   // Mouse position, in pixels (set to -1,-1 if no mouse / on another screen, etc.)
     bool        MouseDown[5];               // Mouse buttons. ImGui itself only uses button 0 (left button) but you can use others as storage for convenience.
-    int         MouseWheel;                 // Mouse wheel: -1,0,+1
+    float       MouseWheel;                 // Mouse wheel: 1 unit scrolls about 5 lines text.  
     bool        KeyCtrl;                    // Keyboard modifier pressed: Control
     bool        KeyShift;                   // Keyboard modifier pressed: Shift
     bool        KeysDown[512];              // Keyboard keys that are pressed (in whatever order user naturally has access to keyboard data)
@@ -524,15 +525,19 @@ struct ImGuiIO
 //-----------------------------------------------------------------------------
 
 // Helper: execute a block of code once a frame only
-// Usage: if (IMGUI_ONCE_UPON_A_FRAME) {/*do something once a frame*/)
-#define IMGUI_ONCE_UPON_A_FRAME         static ImGuiOncePerFrame im = ImGuiOncePerFrame()
-struct ImGuiOncePerFrame
+// Convenient if you want to quickly create an UI within deep-nested code that runs multiple times every frame.
+// Usage:
+//   IMGUI_ONCE_UPON_A_FRAME
+//   {
+//      // code block will be executed one per frame
+//   }
+// Attention! the macro expands into 2 statement so make sure you don't use it within e.g. an if() statement without curly braces.
+#define IMGUI_ONCE_UPON_A_FRAME    static ImGuiOnceUponAFrame imgui_oaf##__LINE__; if (imgui_oaf##__LINE__)
+struct ImGuiOnceUponAFrame
 {
-    ImGuiOncePerFrame() : LastFrame(-1) {}
-    operator bool() const { return TryIsNewFrame(); }
-private:
-    mutable int LastFrame;
-    bool        TryIsNewFrame() const   { const int current_frame = ImGui::GetFrameCount(); if (LastFrame == current_frame) return false; LastFrame = current_frame; return true; }
+    ImGuiOnceUponAFrame() { RefFrame = -1; }
+    mutable int RefFrame;
+    operator bool() const { const int current_frame = ImGui::GetFrameCount(); if (RefFrame == current_frame) return false; RefFrame = current_frame; return true; }
 };
 
 // Helper: Parse and apply text filters. In format "aaaaa[,bbbb][,ccccc]"
@@ -589,7 +594,7 @@ struct ImGuiTextBuffer
 struct ImGuiStorage
 {
     struct Pair { ImU32 key; int val; };
-    ImVector<Pair>  Data;
+    ImVector<Pair>    Data;
 
     IMGUI_API void    Clear();
     IMGUI_API int     GetInt(ImU32 key, int default_val = 0);
@@ -598,6 +603,24 @@ struct ImGuiStorage
 
     IMGUI_API int*    Find(ImU32 key);
     IMGUI_API void    Insert(ImU32 key, int val);
+};
+
+// Shared state of InputText(), passed to callback when a ImGuiInputTextFlags_Callback* flag is used.
+struct ImGuiTextEditCallbackData
+{
+    ImGuiKey            EventKey;       // Key pressed (Up/Down/TAB)        // Read-only    
+    char*               Buf;            // Current text                     // Read-write (pointed data only)
+    size_t              BufSize;        //                                  // Read-only
+    bool                BufDirty;       // Set if you modify Buf directly   // Write
+    ImGuiInputTextFlags Flags;          // What user passed to InputText()  // Read-only
+    int                 CursorPos;      //                                  // Read-write
+    int                 SelectionStart; //                                  // Read-write (== to SelectionEnd when no selection)
+    int                 SelectionEnd;   //                                  // Read-write
+    void*               UserData;       // What user passed to InputText()
+
+    // NB: calling those function loses selection.
+    void DeleteChars(int pos, int bytes_count);
+    void InsertChars(int pos, const char* text, const char* text_end = NULL);
 };
 
 //-----------------------------------------------------------------------------
@@ -627,8 +650,8 @@ IMGUI_OVERRIDE_DRAWVERT_STRUCT_LAYOUT;
 #endif
 
 // Draw command list
-// This is the low-level list of polygon that ImGui:: functions are filling. At the end of the frame, all command lists are passed to your ImGuiIO::RenderDrawListFn function for rendering.
-// Each ImGui window contains its own ImDrawList.
+// This is the low-level list of polygon that ImGui:: functions are creating. At the end of the frame, all command lists are passed to your ImGuiIO::RenderDrawListFn function for rendering.
+// At the moment, each ImGui window contains its own ImDrawList but they could potentially be merged.
 // If you want to add custom rendering within a window, you can use ImGui::GetWindowDrawList() to access the current draw list and add your own primitives.
 // You can interleave normal ImGui:: calls and adding primitives to the current draw list.
 // Note that this only gives you access to rendering polygons. If your intent is to create custom widgets and the publicly exposed functions/data aren't sufficient, you can add code in imgui_user.inl
@@ -659,19 +682,61 @@ struct ImDrawList
     IMGUI_API void  AddCircle(const ImVec2& centre, float radius, ImU32 col, int num_segments = 12);
     IMGUI_API void  AddCircleFilled(const ImVec2& centre, float radius, ImU32 col, int num_segments = 12);
     IMGUI_API void  AddArc(const ImVec2& center, float rad, ImU32 col, int a_min, int a_max, bool tris = false, const ImVec2& third_point_offset = ImVec2(0,0));
-    IMGUI_API void  AddText(ImFont font, float font_size, const ImVec2& pos, ImU32 col, const char* text_begin, const char* text_end = NULL, float wrap_width = 0.0f);
+    IMGUI_API void  AddText(ImFont* font, float font_size, const ImVec2& pos, ImU32 col, const char* text_begin, const char* text_end = NULL, float wrap_width = 0.0f);
 };
 
-// Optional bitmap font data loader & renderer into vertices
-//  #define ImFont to ImBitmapFont to use
+// Bitmap font data loader & renderer into vertices
 // Using the .fnt format exported by BMFont
 //  - tool: http://www.angelcode.com/products/bmfont
 //  - file-format: http://www.angelcode.com/products/bmfont/doc/file_format.html
 // Assume valid file data (won't handle invalid/malicious data)
-// Handle a subset of parameters.
-//  - kerning pair are not supported (because ImGui code does per-character CalcTextSize calls, need to turn it into something more stateful to allow kerning)
-struct ImBitmapFont
+// Handle a subset of the options, namely:
+//  - kerning pair are not supported (because some ImGui code does per-character CalcTextSize calls, need to turn it into something more state-ful to allow for kerning)
+struct ImFont
 {
+    struct FntInfo;
+    struct FntCommon;
+    struct FntGlyph;
+    struct FntKerning;
+
+    // Settings
+    float                       Scale;              // = 1.0f          // Base font scale, multiplied by the per-window font scale which you can adjust with SetFontScale()
+    ImVec2                      DisplayOffset;      // = (0.0f,0.0f    // Offset font rendering by xx pixels
+    ImVec2                      TexUvForWhite;      // = (0.0f,0.0f)   // Font texture must have a white pixel at this UV coordinate. Adjust if you are using custom texture.
+    ImWchar                     FallbackChar;       // = '?'           // Replacement glyph is one isn't found.
+
+    // Data
+    unsigned char*              Data;               // Raw data, content of .fnt file
+    size_t                      DataSize;           //
+    bool                        DataOwned;          // 
+    const FntInfo*              Info;               // (point into raw data)
+    const FntCommon*            Common;             // (point into raw data)
+    const FntGlyph*             Glyphs;             // (point into raw data)
+    size_t                      GlyphsCount;        //
+    const FntKerning*           Kerning;            // (point into raw data) - NB: kerning is unsupported
+    size_t                      KerningCount;       //
+    ImVector<const char*>       Filenames;          // (point into raw data)
+    ImVector<int>               IndexLookup;        // (built)
+    const FntGlyph*             FallbackGlyph;      // == FindGlyph(FontFallbackChar)
+
+    IMGUI_API ImFont();
+    IMGUI_API ~ImFont()         { Clear(); }
+
+    IMGUI_API bool              LoadFromMemory(const void* data, size_t data_size);
+    IMGUI_API bool              LoadFromFile(const char* filename);
+    IMGUI_API void              Clear();
+    IMGUI_API void              BuildLookupTable();
+    IMGUI_API const FntGlyph*   FindGlyph(unsigned short c) const;
+    IMGUI_API bool              IsLoaded() const { return Info != NULL && Common != NULL && Glyphs != NULL; }
+
+    // 'max_width' stops rendering after a certain width (could be turned into a 2d size). FLT_MAX to disable.
+    // 'wrap_width' enable automatic word-wrapping across multiple lines to fit into given width. 0.0f to disable.
+    IMGUI_API ImVec2            CalcTextSizeA(float size, float max_width, float wrap_width, const char* text_begin, const char* text_end = NULL, const char** remaining = NULL) const; // utf8
+    IMGUI_API ImVec2            CalcTextSizeW(float size, float max_width, const ImWchar* text_begin, const ImWchar* text_end, const ImWchar** remaining = NULL) const;                 // wchar
+    IMGUI_API void              RenderText(float size, ImVec2 pos, ImU32 col, const ImVec4& clip_rect, const char* text_begin, const char* text_end, ImDrawVert*& out_vertices, float wrap_width = 0.0f) const;
+
+    IMGUI_API const char*       CalcWordWrapPositionA(float scale, const char* text, const char* text_end, float wrap_width) const;
+
 #pragma pack(push, 1)
     struct FntInfo
     {
@@ -681,15 +746,13 @@ struct ImBitmapFont
         unsigned short  StretchH;
         unsigned char   AA;
         unsigned char   PaddingUp, PaddingRight, PaddingDown, PaddingLeft;
-        unsigned char   SpacingHoriz, SpacingVert;
-        unsigned char   Outline;
+        unsigned char   SpacingHoriz, SpacingVert, Outline;
         //char          FontName[];
     };
 
     struct FntCommon
     {
-        unsigned short  LineHeight;
-        unsigned short  Base;
+        unsigned short  LineHeight, Base;
         unsigned short  ScaleW, ScaleH;
         unsigned short  Pages;
         unsigned char   BitField;
@@ -699,8 +762,7 @@ struct ImBitmapFont
     struct FntGlyph
     {
         unsigned int    Id;
-        unsigned short  X, Y;
-        unsigned short  Width, Height;
+        unsigned short  X, Y, Width, Height;
         signed short    XOffset, YOffset;
         signed short    XAdvance;
         unsigned char   Page;
@@ -714,37 +776,11 @@ struct ImBitmapFont
         signed short    Amount;
     };
 #pragma pack(pop)
-
-    unsigned char*          Data;               // Raw data, content of .fnt file
-    size_t                  DataSize;           //
-    bool                    DataOwned;          // 
-    const FntInfo*          Info;               // (point into raw data)
-    const FntCommon*        Common;             // (point into raw data)
-    const FntGlyph*         Glyphs;             // (point into raw data)
-    size_t                  GlyphsCount;        //
-    const FntKerning*       Kerning;            // (point into raw data)
-    size_t                  KerningCount;       //
-    int                     TabCount;           // FIXME: mishandled (add fixed amount instead of aligning to column)
-    ImVector<const char*>   Filenames;          // (point into raw data)
-    ImVector<int>           IndexLookup;        // (built)
-
-    IMGUI_API ImBitmapFont();
-    IMGUI_API ~ImBitmapFont()      { Clear(); }
-
-    IMGUI_API bool                 LoadFromMemory(const void* data, size_t data_size);
-    IMGUI_API bool                 LoadFromFile(const char* filename);
-    IMGUI_API void                 Clear();
-    IMGUI_API void                 BuildLookupTable();
-    IMGUI_API const FntGlyph *     FindGlyph(unsigned short c, const FntGlyph* fallback = NULL) const;
-    IMGUI_API float                GetFontSize() const { return (float)Info->FontSize; }
-    IMGUI_API bool                 IsLoaded() const { return Info != NULL && Common != NULL && Glyphs != NULL; }
-
-    // 'max_width' stops rendering after a certain width (could be turned into a 2d size). FLT_MAX to disable.
-    // 'wrap_width' enable automatic word-wrapping across multiple lines to fit into given width. 0.0f to disable.
-    IMGUI_API ImVec2               CalcTextSizeA(float size, float max_width, float wrap_width, const char* text_begin, const char* text_end = NULL, const char** remaining = NULL) const; // utf8
-    IMGUI_API ImVec2               CalcTextSizeW(float size, float max_width, const ImWchar* text_begin, const ImWchar* text_end, const ImWchar** remaining = NULL) const;                 // wchar
-    IMGUI_API void                 RenderText(float size, ImVec2 pos, ImU32 col, const ImVec4& clip_rect, const char* text_begin, const char* text_end, ImDrawVert*& out_vertices, float wrap_width = 0.0f) const;
-
-private:
-    IMGUI_API const char*          CalcWordWrapPositionA(float scale, const char* text, const char* text_end, float wrap_width, const FntGlyph* fallback_glyph) const;
 };
+
+//---- Include imgui_user.h at the end of imgui.h
+//---- So you can include code that extends ImGui using any of the types declared above.
+//---- (also convenient for user to only explicitly include vanilla imgui.h)
+#ifdef IMGUI_INCLUDE_IMGUI_USER_H
+#include "imgui_user.h"
+#endif
