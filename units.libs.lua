@@ -186,6 +186,10 @@ StaticLibrary {
         CPPPATH = { 
             "src/external/cmocka/include",
         },
+
+		CPPDEFS = {
+			{ "IMGUI_INCLUDE_IMGUI_USER_H", "IMGUI_INCLUDE_IMGUI_USER_INL" },
+		},
     },
 
     Sources = { 
