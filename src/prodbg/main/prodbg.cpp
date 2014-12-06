@@ -5,7 +5,7 @@
 #include "core/plugin_handler.h"
 #include "session/session.h"
 #include "settings.h"
-#include "ui/imgui/imgui.h"
+//#include <imgui.h>
 #include "ui/imgui_setup.h"
 #include "ui/ui_layout.h"
 #include "ui/menu.h"
@@ -71,7 +71,7 @@ static void setLayout(UILayout* layout)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void loadLayout()
+void loadLayout()
 {
     UILayout layout;
 
@@ -169,8 +169,8 @@ void ProDBG_setWindowSize(int width, int height)
     context->width = width;
     context->height = height;
 
-    bgfx::reset(width, height);
-    IMGUI_setup(width, height);
+    //bgfx::reset(width, height);
+    //IMGUI_setup(width, height);
     ProDBG_update();
 }
 

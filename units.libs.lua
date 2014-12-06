@@ -134,7 +134,7 @@ StaticLibrary {
         
         CXXOPTS = {
 			{ "-Wno-variadic-macros", "-Wno-everything" ; Config = "macosx-*-*" },
-			{ "/EHsc"; Config = "win64-*-*" },
+			{ "/Isrc/external/bx/include/compat/msvc", "/EHsc"; Config = "win64-*-*" },
         },
     },
 
@@ -145,36 +145,11 @@ StaticLibrary {
 		  "src/external/bgfx/src/renderer_gl.cpp",
 		  "src/external/bgfx/src/renderer_null.cpp",
 		  "src/external/bgfx/src/renderer_d3d9.cpp", 
-		  "src/external/bgfx/src/renderer_d3d11.cpp" }, 
+		  "src/external/bgfx/src/renderer_d3d11.cpp", 
+		  "src/external/bgfx/src/renderer_d3d12.cpp" }, 
 	    { "src/external/bgfx/src/glcontext_wgl.cpp" ; Config = "win64-*-*" },
 	    -- { "src/external/bgfx/src/glcontext_glx.cpp" ; Config = "linux-*-*" },
 	    { "src/external/bgfx/src/glcontext_nsgl.mm" ; Config = "macosx-*-*" },
-    },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-StaticLibrary {
-    Name = "nanovg",
-
-    Env = { 
-        CPPPATH = { 
-            "src/external/nanovg",
-            "src/external/stb",
-            "src/external/bgfx/include",
-        },
-        
-        CXXOPTS = {
-        	"-Wno-variadic-macros", 
-        	"-Wno-everything" ; Config = "macosx-*-*" 
-        },
-    },
-
-    Sources = { 
-        Glob {
-            Dir = "src/external/nanovg",
-            Extensions = { ".cpp", ".h" },
-        },
     },
 }
 
@@ -198,6 +173,19 @@ StaticLibrary {
         Glob {
             Dir = "src/external/cmocka/src",
             Extensions = { ".c", ".h" },
+        },
+    },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
+    Name = "imgui",
+
+    Sources = { 
+        Glob {
+            Dir = "src/external/imgui",
+            Extensions = { ".cpp", ".h" },
         },
     },
 }
@@ -403,9 +391,11 @@ StaticLibrary {
         },
 
         CPPPATH = { 
+            "src/external/imgui",
+            "src/external/bx/include",
+            "src/external/bgfx/include",
         	"api/include",
 			"src/external/libuv/include",
-            "src/external/nanovg",
             "src/external/stb",
             "src/external/jansson/include",
             "src/prodbg",
@@ -424,6 +414,9 @@ StaticLibrary {
 
             Recursive = true,
         },
+
+        ShadercFS { Source = "data/shaders/imgui/fs_imgui.sc" },
+        ShadercVS { Source = "data/shaders/imgui/vs_imgui.sc" },
     },
 }
 

@@ -27,6 +27,10 @@ extern "C" void NSLog(CFStringRef _format, ...);
 
 namespace bx
 {
+#if BX_COMPILER_CLANG_ANALYZER
+	inline __attribute__((analyzer_noreturn)) void debugBreak();
+#endif // BX_COMPILER_CLANG_ANALYZER
+
 	inline void debugBreak()
 	{
 #if BX_COMPILER_MSVC

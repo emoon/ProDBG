@@ -16,7 +16,6 @@ Program {
 			"src/external/libuv/include",
             "src/external/bgfx/include", 
             "src/external/bx/include",
-            "src/external/nanovg",
             "src/external/stb",
             "src/prodbg", 
         	"api/include",
@@ -68,8 +67,7 @@ Program {
         },
     },
 
-    Depends = { "core", "ui", "api", "session", "jansson",
-    			"remote_api", "stb", "bgfx", "nanovg", "uv" },
+    Depends = { "core", "ui", "api", "session", "jansson", "remote_api", "stb", "bgfx", "uv", "imgui" },
 
     Libs = { { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 

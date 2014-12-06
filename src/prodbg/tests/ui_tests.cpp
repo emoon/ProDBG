@@ -6,12 +6,12 @@
 #include <math.h>
 #include <pd_view.h>
 #include <pd_ui.h>
+#include <imgui.h> // should try to get rid of this file here.
 
 #include "api/plugin_instance.h"
 #include "core/plugin_handler.h"
 #include "core/core.h"
 #include "session/session.h"
-#include "ui/imgui/imgui.h"
 #include "ui/plugin.h"
 #include "ui/ui_layout.h"
 

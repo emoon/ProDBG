@@ -5,7 +5,7 @@
 #include "core/alloc.h"
 #include "core/log.h"
 #include "core/math.h"
-#include "imgui/imgui.h"
+#include <imgui.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -351,8 +351,8 @@ void PluginUI_getWindowRect(ViewPluginInstance* instance, FloatRect* rect)
     PDUI* uiInstance = &instance->ui;
     PrivateData* data = (PrivateData*)uiInstance->privateData;
 
-    ImVec2 pos;
-    ImVec2 size;
+    ImVec2 pos = {};
+    ImVec2 size = {};
 
     ImGui::GetWindowRect(data->window, &pos, &size);
 
@@ -379,6 +379,7 @@ void PluginUI_setWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 
 bool PluginUI_isActiveWindow(ViewPluginInstance* instance)
 {
+	(void)instance;
     PDUI* uiInstance = &instance->ui;
     PrivateData* data = (PrivateData*)uiInstance->privateData;
 

@@ -12,6 +12,7 @@ local function Test(params)
 		Env = { 
 			CPPPATH = { 
 				"api/include",
+            	"src/external/imgui",
 				"src/external/cmocka/include",
 				"src/prodbg",
 			},
@@ -26,7 +27,7 @@ local function Test(params)
 			params.Source,	
 		},
 
-		Depends = { "api", "core", "stb", "remote_api", "cmocka", "session", "ui", "nanovg", "bgfx", "jansson", "uv" },
+		Depends = { "api", "core", "stb", "remote_api", "cmocka", "session", "ui", "bgfx", "jansson", "uv", "imgui" },
 
 		Libs = { { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 
