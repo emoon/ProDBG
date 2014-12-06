@@ -325,7 +325,7 @@ ImGuiStyle::ImGuiStyle()
     TouchExtraPadding       = ImVec2(0,0);      // Expand bounding box for touch-based system where touch position is not accurate enough (unnecessary for mouse inputs). Unfortunately we don't sort widgets so priority on overlap will always be given to the first widget running. So dont grow this too much!
     AutoFitPadding          = ImVec2(8,8);      // Extra space after auto-fit (double-clicking on resize grip)
     WindowFillAlphaDefault  = 0.70f;            // Default alpha of window background, if not specified in ImGui::Begin()
-    WindowRounding          = 10.0f;            // Radius of window corners rounding. Set to 0.0f to have rectangular windows
+    WindowRounding          = 0.0f;             // Radius of window corners rounding. Set to 0.0f to have rectangular windows
     TreeNodeSpacing         = 22.0f;            // Horizontal spacing when entering a tree node
     ColumnsMinSpacing       = 6.0f;             // Minimum horizontal spacing between two columns
     ScrollBarWidth          = 16.0f;            // Width of the vertical scroll bar
