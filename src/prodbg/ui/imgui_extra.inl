@@ -7,7 +7,8 @@ namespace ImGui
 void FillRect(ImVec2 pos, ImVec2 size, unsigned int color)
 {
 	ImGuiWindow* window = GetCurrentWindow();
-    window->DrawList->AddRectFilled(pos, pos + size, color, 0.0);
+	ImVec2 currentPos = window->Pos + pos;
+    window->DrawList->AddRectFilled(currentPos, currentPos + size, color, 0.0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
