@@ -1512,7 +1512,7 @@ void ImGui::NewFrame()
     g.CurrentWindowStack.clear();
 
     // Create implicit window - we will only render it if the user has added something to it.
-    ImGui::Begin("Debug", NULL, ImVec2(400,400));
+    //ImGui::Begin("Debug", NULL, ImVec2(400,400));
 }
 
 // NB: behaviour of ImGui after Shutdown() is not tested/guaranteed at the moment. This function is merely here to free heap allocations.
@@ -1616,11 +1616,15 @@ void ImGui::Render()
     
     if (first_render_of_the_frame)
     {
+    	size_t stackSize = g.CurrentWindowStack.size();
+
         // Hide implicit window if it hasn't been used
-        IM_ASSERT(g.CurrentWindowStack.size() == 1);    // Mismatched Begin/End 
+        //IM_ASSERT(g.CurrentWindowStack.size() == 1);    // Mismatched Begin/End 
         if (g.CurrentWindow && !g.CurrentWindow->Accessed)
             g.CurrentWindow->Visible = false;
-        ImGui::End();
+
+        if (stackSize != 0)
+        	ImGui::End();
 
         // Sort the window list so that all child windows are after their parent
         // We cannot do that on FocusWindow() because childs may not exist yet
@@ -2100,43 +2104,21 @@ void ImGui::EndChild()
     }
 }
 
-// Push a new ImGui window to add widgets to. This can be called multiple times with the same window to append contents
 bool ImGui::Begin(const char* name, bool* open, ImVec2 size, float fill_alpha, ImGuiWindowFlags flags)
+{
+	ImGuiWindow* window = FindOrCreateWindow(name, size, flags);
+
+	printf("find or create windows %s\n", name);
+
+    return BeginWithWindow(window, name, open, size, fill_alpha, flags);
+}
+
+// Push a new ImGui window to add widgets to. This can be called multiple times with the same window to append contents
+bool ImGui::BeginWithWindow(ImGuiWindow* window, const char* name, bool* open, ImVec2 size, float fill_alpha, ImGuiWindowFlags flags)
 {
     ImGuiState& g = GImGui;
     const ImGuiStyle& style = g.Style;
     IM_ASSERT(g.Initialized);                       // Forgot to call ImGui::NewFrame()
-
-    ImGuiWindow* window = FindWindow(name);
-    if (!window)
-    {
-        // Create window the first time, and load settings
-        if (flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Tooltip))
-        {
-            // Tooltip and child windows don't store settings
-            window = (ImGuiWindow*)ImGui::MemAlloc(sizeof(ImGuiWindow));
-            new(window) ImGuiWindow(name, ImVec2(0,0), size);
-        }
-        else
-        {
-            // Normal windows store settings in .ini file
-            ImGuiIniData* settings = FindWindowSettings(name);
-            if (settings && ImLength(settings->Size) > 0.0f && !(flags & ImGuiWindowFlags_NoResize))// && ImLengthsize) == 0.0f)
-                size = settings->Size;
-
-            window = (ImGuiWindow*)ImGui::MemAlloc(sizeof(ImGuiWindow));
-            new(window) ImGuiWindow(name, g.NewWindowDefaultPos, size);
-
-            if (settings->Pos.x != FLT_MAX)
-            {
-                window->PosFloat = settings->Pos;
-                window->Pos = ImVec2((float)(int)window->PosFloat.x, (float)(int)window->PosFloat.y);
-                window->Collapsed = settings->Collapsed;
-            }
-        }
-        g.Windows.push_back(window);
-    }
-    window->Flags = (ImGuiWindowFlags)flags;
 
     g.CurrentWindowStack.push_back(window);
     g.CurrentWindow = window;

@@ -182,16 +182,6 @@ StaticLibrary {
 StaticLibrary {
     Name = "imgui",
 
-    Env = { 
-        CPPPATH = { 
-            "src/external/cmocka/include",
-        },
-
-		CPPDEFS = {
-			{ "IMGUI_INCLUDE_IMGUI_USER_H", "IMGUI_INCLUDE_IMGUI_USER_INL" },
-		},
-    },
-
     Sources = { 
         Glob {
             Dir = "src/external/imgui",

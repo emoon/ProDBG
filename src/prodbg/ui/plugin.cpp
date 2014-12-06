@@ -166,19 +166,14 @@ static int buttonSize(const char* label, int width, int height, int repeatWhenHe
 
 static void fillRect(PDRect rect, unsigned int color)
 {
-	(void)rect;
-	(void)color;
-    //ImGui::FillRect(ImVec2(rect.x, rect.y), ImVec2(rect.width, rect.height), color);
+    ImGui::FillRect(ImVec2(rect.x, rect.y), ImVec2(rect.width, rect.height), color);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static float getTextWidth(const char* text, const char* textEnd)
 {
-	(void)text;
-	(void)textEnd;
-    //return ImGui::GetTextWidth(text, textEnd);
-    return 0.0f;
+    return ImGui::GetTextWidth(text, textEnd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -208,9 +203,8 @@ static float getFontWidth()
 
 static PDVec2 getMousePos()
 {
-    //ImVec2 pos = ImGui::GetRelativeMousePos();
-    //PDVec2 r = { pos.x, pos.y };
-    PDVec2 r = { 0.0f, 0.0f };
+    ImVec2 pos = ImGui::GetRelativeMousePos();
+    PDVec2 r = { pos.x, pos.y };
     return r;
 }
 
@@ -248,10 +242,7 @@ static int isMouseHoveringBox(PDVec2 boxMin, PDVec2 boxMax)
 
 static int isKeyDown(int key, int repeat)
 {
-	(void)key;
-	(void)repeat;
-	return 0;
-    //return ImGui::IsFocusWindowKeyDown(key, !!repeat);
+    return ImGui::IsFocusWindowKeyDown(key, !!repeat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -329,7 +320,7 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     uiInstance->privateData = alloc_zero(sizeof(PrivateData));
     data->name = buildName(pluginInstance->plugin->name, pluginInstance->count);
 
-    data->window = 0; //ImGui::FindOrCreateWindow(data->name, ImVec2(400, 400), 0);
+    data->window = ImGui::FindOrCreateWindow(data->name, ImVec2(400, 400), 0);
 
     uiInstance->privateData = data;
 }
@@ -341,7 +332,7 @@ PluginUIState PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* re
     PDUI* uiInstance = &instance->ui;
     PrivateData* data = (PrivateData*)uiInstance->privateData;
 
-    //ImGui::BeginWithWindow(data->window, data->name, &data->showWindow, ImVec2(0, 0), true, 0);
+    ImGui::BeginWithWindow(data->window, data->name, &data->showWindow, ImVec2(0, 0), true, 0);
 
     instance->plugin->update(instance->userData, uiInstance, reader, writer);
 
@@ -357,14 +348,13 @@ PluginUIState PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* re
 
 void PluginUI_getWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 {
-	(void)instance;
-    //PDUI* uiInstance = &instance->ui;
-    //PrivateData* data = (PrivateData*)uiInstance->privateData;
+    PDUI* uiInstance = &instance->ui;
+    PrivateData* data = (PrivateData*)uiInstance->privateData;
 
     ImVec2 pos = {};
     ImVec2 size = {};
 
-    //ImGui::GetWindowRect(data->window, &pos, &size);
+    ImGui::GetWindowRect(data->window, &pos, &size);
 
     rect->x = pos.x;
     rect->y = pos.y;
@@ -376,15 +366,13 @@ void PluginUI_getWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 
 void PluginUI_setWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 {
-	(void)instance;
-	(void)rect;
-    //PDUI* uiInstance = &instance->ui;
-    //PrivateData* data = (PrivateData*)uiInstance->privateData;
+    PDUI* uiInstance = &instance->ui;
+    PrivateData* data = (PrivateData*)uiInstance->privateData;
 
-    //ImVec2 pos(rect->x, rect->y);
-    //ImVec2 size(rect->width, rect->height);
+    ImVec2 pos(rect->x, rect->y);
+    ImVec2 size(rect->width, rect->height);
 
-    //ImGui::SetWindowRect(data->window, pos, size);
+    ImGui::SetWindowRect(data->window, pos, size);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -392,10 +380,9 @@ void PluginUI_setWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 bool PluginUI_isActiveWindow(ViewPluginInstance* instance)
 {
 	(void)instance;
-    //PDUI* uiInstance = &instance->ui;
-    //PrivateData* data = (PrivateData*)uiInstance->privateData;
+    PDUI* uiInstance = &instance->ui;
+    PrivateData* data = (PrivateData*)uiInstance->privateData;
 
-    //return ImGui::IsActiveWindow(data->window);
-	return false;
+    return ImGui::IsActiveWindow(data->window);
 }
 

@@ -204,10 +204,12 @@ static void imguiDummyRender(ImDrawList** const cmd_lists, int cmd_lists_count)
 		const ImDrawCmd* pcmd_end = cmd_list->commands.end();
 		for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end; pcmd++)
 		{
+			/*
 			bgfx::setScissor((uint16_t)pcmd->clip_rect.x, 
 						     (uint16_t)(height - pcmd->clip_rect.w), 
 						     (uint16_t)(pcmd->clip_rect.z - pcmd->clip_rect.x), 
 						     (uint16_t)(pcmd->clip_rect.w - pcmd->clip_rect.y));
+			*/
 			
 			bgfx::setState(0
 							| BGFX_STATE_RGB_WRITE
@@ -327,7 +329,7 @@ void IMGUI_preUpdate(float x, float y, int mouseLmb, int keyDown, int keyMod)
 
     ImGui::NewFrame();
 
-	ImGui::Button("Test");
+	//ImGui::Button("Test");
 
     //io.keyDown = keyDown;
     //io.keyMod = keyMod;
