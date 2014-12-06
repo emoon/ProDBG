@@ -228,7 +228,7 @@ static void drawCursor(PDUI* uiFuncs, float lineAreaSize)
     PDRect rect;
     PDVec2 pos = uiFuncs->getCursorPos();
     rect.x = pos.x;
-    rect.y = pos.y - 11;
+    rect.y = pos.y;
     rect.width = 10;
     rect.height = 14;
 
@@ -239,7 +239,7 @@ static void drawCursor(PDUI* uiFuncs, float lineAreaSize)
     // Mark in line area
 
     rect.x = s_markerMargin;
-    rect.y = pos.y - 11;
+    rect.y = pos.y;
     rect.width = lineAreaSize;
     rect.height = 14;
 
@@ -268,7 +268,7 @@ static void drawBreakpoint(PDUI* uiFuncs)
     PDRect rect;
     PDVec2 pos = uiFuncs->getCursorPos();
     rect.x = 2;
-    rect.y = pos.y - 11;
+    rect.y = pos.y;
     rect.width = s_markerMargin - 2;
     rect.height = 14;
     uiFuncs->fillRect(rect, PD_COLOR_32(100, 100, 200, 127));
@@ -292,7 +292,7 @@ static void drawLines(PDUI* uiFuncs, SourceCodeData* data, float lineStart, floa
             PDRect rect;
             PDVec2 pos = uiFuncs->getCursorPos();
             rect.x = pos.x;
-            rect.y = pos.y - 11;
+            rect.y = pos.y;
             rect.width = -1;
             rect.height = 14;
             uiFuncs->fillRect(rect, PD_COLOR_32(200, 0, 0, 127));
