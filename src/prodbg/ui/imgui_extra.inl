@@ -73,10 +73,21 @@ bool IsActiveWindow(ImGuiWindow* window)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static ImGuiWindow* FindWindowTemp(const char* name)
+{
+    ImGuiState& g = GImGui;
+    for (size_t i = 0; i != g.Windows.size(); i++)
+        if (strcmp(g.Windows[i]->Name, name) == 0)
+            return g.Windows[i];
+    return NULL;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct ImGuiWindow* FindOrCreateWindow(const char* name, ImVec2 size, ImGuiWindowFlags flags)
 {
 	ImGuiState& g = GImGui;
-    ImGuiWindow* window = FindWindow(name);
+    ImGuiWindow* window = FindWindowTemp(name);
     if (!window)
     {
         // Create window the first time, and load settings

@@ -300,7 +300,6 @@ static bool         IsKeyPressedMap(ImGuiKey key, bool repeat = true);
 
 static bool         CloseWindowButton(bool* open = NULL);
 static void         FocusWindow(ImGuiWindow* window);
-static ImGuiWindow* FindWindow(const char* name);
 static ImGuiWindow* FindHoveredWindow(ImVec2 pos, bool excluding_childs);
 
 //-----------------------------------------------------------------------------
@@ -2025,15 +2024,6 @@ float ImGui::GetTime()
 int ImGui::GetFrameCount()
 {
     return GImGui.FrameCount;
-}
-
-static ImGuiWindow* FindWindow(const char* name)
-{
-    ImGuiState& g = GImGui;
-    for (size_t i = 0; i != g.Windows.size(); i++)
-        if (strcmp(g.Windows[i]->Name, name) == 0)
-            return g.Windows[i];
-    return NULL;
 }
 
 void ImGui::BeginTooltip()
