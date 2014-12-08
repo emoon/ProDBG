@@ -923,46 +923,66 @@ static ImVector<ImGuiStorage::Pair>::iterator LowerBound(ImVector<ImGuiStorage::
     return first;
 }
 
-int* ImGuiStorage::Find(ImU32 key)
+int ImGuiStorage::GetInt(ImU32 key, int default_val) const
+{
+    ImVector<Pair>::iterator it = LowerBound(const_cast<ImVector<ImGuiStorage::Pair>&>(Data), key);
+    if (it == Data.end() || it->key != key)
+        return default_val;
+    return it->val_i;
+}
+
+float ImGuiStorage::GetFloat(ImU32 key, float default_val) const
+{
+    ImVector<Pair>::iterator it = LowerBound(const_cast<ImVector<ImGuiStorage::Pair>&>(Data), key);
+    if (it == Data.end() || it->key != key)
+        return default_val;
+    return it->val_f;
+}
+
+int* ImGuiStorage::GetIntPtr(ImGuiID key, int default_val)
 {
     ImVector<Pair>::iterator it = LowerBound(Data, key);
-    if (it == Data.end())
-        return NULL;
-    if (it->key != key)
-        return NULL;
-    return &it->val;
+    if (it == Data.end() || it->key != key)
+        it = Data.insert(it, Pair(key, default_val));
+    return &it->val_i;
 }
 
-int ImGuiStorage::GetInt(ImU32 key, int default_val)
+float* ImGuiStorage::GetFloatPtr(ImGuiID key, float default_val)
 {
-    int* pval = Find(key);
-    if (!pval)
-        return default_val;
-    return *pval;
+    ImVector<Pair>::iterator it = LowerBound(Data, key);
+    if (it == Data.end() || it->key != key)
+        it = Data.insert(it, Pair(key, default_val));
+    return &it->val_f;
 }
 
-// FIXME-OPT: We are wasting time because all SetInt() are preceeded by GetInt() calls so we should have the result from lower_bound already in place.
+// FIXME-OPT: Wasting CPU because all SetInt() are preceeded by GetInt() calls so we should have the result from lower_bound already in place.
 // However we only use SetInt() on explicit user action (so that's maximum once a frame) so the optimisation isn't much needed.
 void ImGuiStorage::SetInt(ImU32 key, int val)
 {
     ImVector<Pair>::iterator it = LowerBound(Data, key);
-    if (it != Data.end() && it->key == key)
+    if (it == Data.end() || it->key != key)
     {
-        it->val = val;
+        Data.insert(it, Pair(key, val));
+        return;
     }
-    else
+    it->val_i = val;
+}
+
+void ImGuiStorage::SetFloat(ImU32 key, float val)
+{
+    ImVector<Pair>::iterator it = LowerBound(Data, key);
+    if (it == Data.end() || it->key != key)
     {
-        Pair pair_key;
-        pair_key.key = key;
-        pair_key.val = val;
-        Data.insert(it, pair_key);
+        Data.insert(it, Pair(key, val));
+        return;
     }
+    it->val_f = val;
 }
 
 void ImGuiStorage::SetAllInt(int v)
 {
     for (size_t i = 0; i < Data.size(); i++)
-        Data[i].val = v;
+        Data[i].val_i = v;
 }
 
 //-----------------------------------------------------------------------------
@@ -2094,6 +2114,7 @@ void ImGui::EndChild()
     }
 }
 
+// Push a new ImGui window to add widgets to. This can be called multiple times with the same window to append contents
 bool ImGui::Begin(const char* name, bool* open, ImVec2 size, float fill_alpha, ImGuiWindowFlags flags)
 {
 	ImGuiWindow* window = FindOrCreateWindow(name, size, flags);
@@ -2109,6 +2130,36 @@ bool ImGui::BeginWithWindow(ImGuiWindow* window, const char* name, bool* open, I
     ImGuiState& g = GImGui;
     const ImGuiStyle& style = g.Style;
     IM_ASSERT(g.Initialized);                       // Forgot to call ImGui::NewFrame()
+
+    if (!window)
+    {
+        // Create window the first time, and load settings
+        if (flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Tooltip))
+        {
+            // Tooltip and child windows don't store settings
+            window = (ImGuiWindow*)ImGui::MemAlloc(sizeof(ImGuiWindow));
+            new(window) ImGuiWindow(name, ImVec2(0,0), size);
+        }
+        else
+        {
+            // Normal windows store settings in .ini file
+            ImGuiIniData* settings = FindWindowSettings(name);
+            if (settings && ImLength(settings->Size) > 0.0f && !(flags & ImGuiWindowFlags_NoResize))// && ImLengthsize) == 0.0f)
+                size = settings->Size;
+
+            window = (ImGuiWindow*)ImGui::MemAlloc(sizeof(ImGuiWindow));
+            new(window) ImGuiWindow(name, g.NewWindowDefaultPos, size);
+
+            if (settings->Pos.x != FLT_MAX)
+            {
+                window->PosFloat = settings->Pos;
+                window->Pos = ImVec2((float)(int)window->PosFloat.x, (float)(int)window->PosFloat.y);
+                window->Collapsed = settings->Collapsed;
+            }
+        }
+        g.Windows.push_back(window);
+    }
+    window->Flags = (ImGuiWindowFlags)flags;
 
     g.CurrentWindowStack.push_back(window);
     g.CurrentWindow = window;
@@ -3520,6 +3571,18 @@ void ImGui::PopID()
 {
     ImGuiWindow* window = GetCurrentWindow();
     window->IDStack.pop_back();
+}
+
+ImGuiID ImGui::GetID(const char* str_id)
+{
+    ImGuiWindow* window = GetCurrentWindow();
+    return window->GetID(str_id);
+}
+
+ImGuiID ImGui::GetID(const void* ptr_id)
+{
+    ImGuiWindow* window = GetCurrentWindow();
+    return window->GetID(ptr_id);
 }
 
 // User can input math operators (e.g. +100) to edit a numerical values.
