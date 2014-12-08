@@ -79,7 +79,7 @@ void Window_setTitle(const char* title);
     (void)frame;
 
     ProDBG_setWindowSize((int)frame.size.width, (int)frame.size.height);
-    ProDBG_update();
+    //ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -298,10 +298,6 @@ static int translateKey(unsigned int key)
     (void)event;
 
     ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
-    ProDBG_update();
-
-    //Emgui_setMousePos((int)location.x, (int)adjustFrame.size.height - (int)location.y);
-    //Editor_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -316,7 +312,6 @@ static int translateKey(unsigned int key)
     (void)event;
 
     ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
-    ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -353,7 +348,6 @@ static int translateKey(unsigned int key)
 
     ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
     ProDBG_setMouseState(0, 1);
-    ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
