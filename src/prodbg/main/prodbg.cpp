@@ -44,7 +44,7 @@ struct Context
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static Context s_context;
-static Remotery* s_remotery;
+//Remotery* s_remotery;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -97,11 +97,13 @@ void ProDBG_create(void* window, int width, int height)
 
     context->session = Session_create();
 
+	/*
     if (RMT_ERROR_NONE != rmt_CreateGlobalInstance(&s_remotery)) 
     {
     	log_error("Unable to setup Remotery");
         return;
     }
+    */
 
     //Settings_getWindowRect(&settingsRect);
     //width = settingsRect.width;
@@ -146,11 +148,17 @@ void ProDBG_update()
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR_BIT | BGFX_CLEAR_DEPTH_BIT, 0x101010ff, 1.0f, 0);
     bgfx::submit(0);
 
-    IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
+	{
+		rmt_ScopedCPUSample(IMGUI_preUpdate);
+    	IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
+	}
 
     // TODO: Support multiple sessions
 
-    Session_update(context->session);
+	{
+		rmt_ScopedCPUSample(Session_update);
+    	Session_update(context->session);
+	}
 
     /*
 
@@ -166,9 +174,15 @@ void ProDBG_update()
        ImGui::End();
      */
 
-    IMGUI_postUpdate();
+	{
+		rmt_ScopedCPUSample(IMGUI_postUpdate);
+    	IMGUI_postUpdate();
+	}
 
-    bgfx::frame();
+	{
+		rmt_ScopedCPUSample(bgfx_frame);
+    	bgfx::frame();
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,6 +214,8 @@ void ProDBG_destroy()
 {
     UILayout layout;
     Context* context = &s_context;
+
+    //rmt_DestroyGlobalInstance(s_remotery);
 
     Session_getLayout(context->session, &layout, (float)context->width, (float)context->height);
     UILayout_saveLayout(&layout, "data/current_layout.json");
@@ -332,7 +348,7 @@ void ProDBG_setMousePos(float x, float y)
 
     IMGUI_setMouse(x, y, context->mouseLmb);
 
-    ProDBG_update();
+    //ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -346,7 +362,7 @@ void ProDBG_setMouseState(int button, int state)
 
     IMGUI_setMouse(context->mouseX, context->mouseY, state);
 
-    ProDBG_update();
+    //ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
