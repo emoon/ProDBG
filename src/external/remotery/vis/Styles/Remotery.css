@@ -1,0 +1,146 @@
+
+body
+{
+	/* Take up the full page */
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+
+	background-color: #AAA;
+}
+
+
+/* Override default window styles to remove 3D effect */
+.Window
+{
+	background: #555;
+	box-shadow: none;
+	border-radius: 3px;
+}
+/*.WindowTitleBar
+{
+	border-bottom: none;
+	border-radius: 0px;
+}
+.WindowBody
+{
+	border-top: none;
+}*/
+
+
+/* Override default container style to remove 3D effect */
+.Container
+{
+	border: none;
+	box-shadow: none;
+}
+
+
+/* Override default edit box style to remove 3D effect */
+.EditBox
+{
+	border: none;
+	box-shadow: none;
+	width:200;
+}
+
+
+
+.ConsoleText
+{
+	overflow:auto;
+	color: #BBB;
+	font: 9px Verdana;
+	margin: 2px;
+}
+
+
+.PingContainer
+{
+	background-color: #F55;
+	border-radius: 2px;
+
+	/* Transition from green is gradual */
+	transition: background-color 0.25s ease-in;
+}
+
+
+.PingContainerActive
+{
+	background-color: #5F5;
+
+	/* Transition to green is instant */
+	transition: none;
+}
+
+
+.SampleNameCell
+{
+	width:300px;
+}
+
+
+.TimelineRow
+{
+	/* Clear float left from previous rows */
+	clear: both;
+
+	height: 16px;
+	width: 100%;
+}
+.TimelineRowCheckbox
+{
+	width: 12px;
+	height: 12px;
+	margin: 0px;
+}
+.TimelineRowCheck
+{
+	/* Pull .TimelineRowCanvas to the right of the label */
+	float:left;
+
+	width: 12px;
+
+	/* Following style generally copies GridRowCell.GridGroup from BrowserLib */
+
+	font: 9px Verdana;
+	color: #BBB;
+
+	padding: 1px 1px 1px 2px;
+	border: 1px solid;
+	border-radius: 2px;
+	margin: 1px;
+
+	border-top-color:#555;
+	border-left-color:#555;
+	border-bottom-color:#111;
+	border-right-color:#111;
+	background: #222;
+}
+.TimelineRowLabel
+{
+	/* Pull .TimelineRowCanvas to the right of the label */
+	float:left;
+
+	width: 140px;
+
+	/* Following style generally copies GridRowCell.GridGroup from BrowserLib */
+
+	font: 9px Verdana;
+	color: #BBB;
+
+	padding: 1px 1px 1px 2px;
+	border: 1px solid;
+	border-radius: 2px;
+	margin: 1px;
+
+	border-top-color:#555;
+	border-left-color:#555;
+	border-bottom-color:#111;
+	border-right-color:#111;
+	background: #222;
+}
+.TimelineRowCanvas
+{
+	height: 18px;
+}

@@ -12,6 +12,7 @@ Program {
 
     Env = {
         CPPPATH = { 
+			"src/external/remotery/lib",
 			"src/external/jansson/include",
 			"src/external/libuv/include",
             "src/external/bgfx/include", 
@@ -67,7 +68,7 @@ Program {
         },
     },
 
-    Depends = { "core", "ui", "api", "session", "jansson", "remote_api", "stb", "bgfx", "uv", "imgui" },
+    Depends = { "core", "ui", "api", "session", "jansson", "remote_api", "stb", "bgfx", "uv", "imgui", "remotery" },
 
     Libs = { { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 

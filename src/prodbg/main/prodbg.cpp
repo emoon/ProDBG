@@ -21,6 +21,8 @@
 #include <windows.h>
 #endif
 
+#include <remotery.h>
+
 // TODO: Fix me
 
 int Window_buildPluginMenu(PluginData** plugins, int count);
@@ -42,6 +44,7 @@ struct Context
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static Context s_context;
+static Remotery* s_remotery;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -94,6 +97,12 @@ void ProDBG_create(void* window, int width, int height)
 
     context->session = Session_create();
 
+    if (RMT_ERROR_NONE != rmt_CreateGlobalInstance(&s_remotery)) 
+    {
+    	log_error("Unable to setup Remotery");
+        return;
+    }
+
     //Settings_getWindowRect(&settingsRect);
     //width = settingsRect.width;
     //height = settingsRect.height;
@@ -130,6 +139,8 @@ void ProDBG_create(void* window, int width, int height)
 void ProDBG_update()
 {
     Context* context = &s_context;
+
+	rmt_ScopedCPUSample(ProDBG_update);
 
     bgfx::setViewRect(0, 0, 0, (uint16_t)context->width, (uint16_t)context->height);
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR_BIT | BGFX_CLEAR_DEPTH_BIT, 0x101010ff, 1.0f, 0);
