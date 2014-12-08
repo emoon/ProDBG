@@ -148,6 +148,7 @@ StaticLibrary {
 
     Env = { 
         CPPPATH = { 
+            "src/external/remotery/lib",
             "src/external/bgfx/include",
             "src/external/bx/include",
             "src/external/bgfx/3rdparty/khronos",
