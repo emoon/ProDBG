@@ -64,6 +64,30 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
+    Name = "foundation_lib",
+
+    Env = { 
+		CPPPATH = { 
+			"src/external/foundation_lib",
+		},
+
+        CCOPTS = {
+        	{ "-Wno-everything", "-Wno-missing-braces", "-std=c99"; Config = { "macosx-*-*", "linux-*-*" } },
+        	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
+        },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "src/external/foundation_lib/foundation",
+            Extensions = { ".c", ".h" },
+        },
+    },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
     Name = "uv",
 
     Env = { 
