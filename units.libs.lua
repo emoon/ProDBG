@@ -85,6 +85,30 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
+    Name = "foundation_lib",
+
+    Env = { 
+		CPPPATH = { 
+			"src/external/foundation_lib",
+		},
+
+        CCOPTS = {
+        	{ "-Wno-everything", "-Wno-missing-braces", "-std=c99"; Config = { "macosx-*-*", "linux-*-*" } },
+        	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
+        },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "src/external/foundation_lib/foundation",
+            Extensions = { ".c", ".h" },
+        },
+    },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
     Name = "uv",
 
     Env = { 
@@ -170,7 +194,7 @@ StaticLibrary {
 		  "src/external/bgfx/src/renderer_d3d11.cpp", 
 		  "src/external/bgfx/src/renderer_d3d12.cpp" }, 
 	    { "src/external/bgfx/src/glcontext_wgl.cpp" ; Config = "win64-*-*" },
-	    -- { "src/external/bgfx/src/glcontext_glx.cpp" ; Config = "linux-*-*" },
+	    { "src/external/bgfx/src/glcontext_glx.cpp" ; Config = "linux-*-*" },
 	    { "src/external/bgfx/src/glcontext_nsgl.mm" ; Config = "macosx-*-*" },
     },
 }

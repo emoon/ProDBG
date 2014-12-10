@@ -164,6 +164,11 @@ namespace bgfx
 		void blitRender(TextVideoMemBlitter& /*_blitter*/, uint32_t /*_numIndices*/) BX_OVERRIDE
 		{
 		}
+
+		void* nativeContext()
+		{
+			return 0;
+		}
 	};
 
 	static RendererContextNULL* s_renderNULL;
