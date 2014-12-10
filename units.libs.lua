@@ -172,7 +172,7 @@ StaticLibrary {
 		  "src/external/bgfx/src/renderer_d3d11.cpp", 
 		  "src/external/bgfx/src/renderer_d3d12.cpp" }, 
 	    { "src/external/bgfx/src/glcontext_wgl.cpp" ; Config = "win64-*-*" },
-	    -- { "src/external/bgfx/src/glcontext_glx.cpp" ; Config = "linux-*-*" },
+	    { "src/external/bgfx/src/glcontext_glx.cpp" ; Config = "linux-*-*" },
 	    { "src/external/bgfx/src/glcontext_nsgl.mm" ; Config = "macosx-*-*" },
     },
 }
