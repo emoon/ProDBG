@@ -3,6 +3,9 @@
 #include <X11/keysymdef.h>
 #include <X11/Xlib.h>
 #include <bgfx.h>
+#include <bgfxplatform.h> // will include X11 which #defines None... Don't mess with order of includes.
+#include "../prodbg.h"
+#include "core/log.h"
 
 struct PluginData;
 
@@ -41,53 +44,43 @@ void processEvents()
 
 				case ClientMessage:
 				{
-					if ( (Atom)event.xclient.data.l[0] == wmDeleteWindow)
+					if ((Atom)event.xclient.data.l[0] == wmDeleteWindow)
 						exit = true;
 
 					break;
 				}
 
 				case ButtonPress:
+				{
+					const XButtonEvent& xbutton = event.xbutton;
+
+					ProDBG_setMouseState(0, 1);
+					ProDBG_setMousePos(xbutton.x, xbutton.y);
+
+            		ProDBG_update();
+					break;
+				}
+
 				case ButtonRelease:
 				{
-					//const XButtonEvent& xbutton = event.xbutton;
-					/*
-					MouseButton::Enum mb;
-					switch (xbutton.button)
-					{
-						case Button1: mb = MouseButton::Left;   break;
-						case Button2: mb = MouseButton::Middle; break;
-						case Button3: mb = MouseButton::Right;  break;
-						default:      mb = MouseButton::None;   break;
-					}
-					*/
+					const XButtonEvent& xbutton = event.xbutton;
 
-					//if (MouseButton::None != mb)
-					//{
-						/*
-						m_eventQueue.postMouseEvent(defaultWindow
-							, xbutton.x
-							, xbutton.y
-							, 0
-							, mb
-							, event.type == ButtonPress
-							);
-						*/
-					//}
-				
+					ProDBG_setMouseState(0, 0);
+					ProDBG_setMousePos(xbutton.x, xbutton.y);
+
+            		ProDBG_update();
+
 					break;
 				}
 
 				case MotionNotify:
 				{
-					//const XMotionEvent& xmotion = event.xmotion;
-					/*
-					m_eventQueue.postMouseEvent(defaultWindow
-							, xmotion.x
-							, xmotion.y
-							, 0
-							);
-					*/
+					const XMotionEvent& xmotion = event.xmotion;
+
+					ProDBG_setMousePos(xmotion.x, xmotion.y);
+
+            		ProDBG_update();
+
 					break;
 				}
 
@@ -164,10 +157,13 @@ int main(int argc, const char** argv)
 			| StructureNotifyMask
 			;
 
+	int width = 800;
+	int height = 600;
+
 	s_window = XCreateWindow(s_display
 							, root
 							, 0, 0
-							, 800, 600, 0, depth
+							, width, height, 0, depth
 							, InputOutput
 							, visual
 							, CWBorderPixel|CWEventMask
@@ -185,8 +181,9 @@ int main(int argc, const char** argv)
 	XMapWindow(s_display, s_window);
 	XStoreName(s_display, s_window, "ProDBG");
 
-	//
-	//bgfx::x11SetDisplayWindow(s_display, s_window);
+	bgfx::x11SetDisplayWindow(s_display, s_window);
+    
+    ProDBG_create((void*)s_window, width, height);
 
 	processEvents();
 
