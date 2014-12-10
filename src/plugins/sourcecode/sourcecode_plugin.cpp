@@ -114,13 +114,8 @@ void parseFile(File* file, const char* filename)
 
     while (target < targetEnd)
     {
-        char c = *target;
-
         if (*target == '\r')
-        {
             *target++ = 0;
-            c = *target;
-        }
 
         if (*target == '\n')
         {

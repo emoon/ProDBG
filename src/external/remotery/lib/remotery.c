@@ -42,7 +42,7 @@
     @D3D11:         Direct3D 11 event sampling
 */
 
-#include "Remotery.h"
+#include "remotery.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
