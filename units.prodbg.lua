@@ -59,7 +59,7 @@ Program {
             Dir = "src/prodbg/main",
             Extensions = { ".c", ".cpp", ".m", ".mm", ".h" },
             Filters = {
-                { Pattern = "mac"; Config = "macosx-*-*" },
+                { Pattern = "mac"; Config = { "macosx-*-*", "macosx_test-*-*" } },
                 { Pattern = "windows"; Config = "win64-*-*" },
                 { Pattern = "linux"; Config = "linux-*-*" },
             },

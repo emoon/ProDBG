@@ -93,7 +93,7 @@ StaticLibrary {
 		},
 
         CCOPTS = {
-        	{ "-Wno-everything", "-Wno-missing-braces", "-std=c99"; Config = { "macosx-*-*", "linux-*-*" } },
+        	{ "-Wno-everything", "-Wno-missing-braces", "-std=c99"; Config = { "macosx-*-*", "macosx_test-*", "linux-*-*" } },
         	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
         },
     },
@@ -453,7 +453,7 @@ StaticLibrary {
             Dir = "src/prodbg/ui",
             Extensions = { ".c", ".cpp", ".m", ".mm", ".h" },
             Filters = {
-                { Pattern = "mac"; Config = "macosx-*-*" },
+                { Pattern = "mac"; Config = { "macosx-*-*", "macosx_test-*" } },
                 { Pattern = "windows"; Config = "win64-*-*" },
                 { Pattern = "linux"; Config = "linux-*-*" },
             },
