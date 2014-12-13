@@ -148,13 +148,13 @@ StaticLibrary {
     	{ Glob { 
     		Dir = "src/external/libuv/src/unix", 
     		Extensions = { ".c", ".h" },
-    		Recursive = false } ; Config = { "macosx-*-*", "linux-*-*" }
+    		Recursive = false } ; Config = { "macosx-*-*", "macosx_test-*", "linux-*-*" }
     	},
 
     	-- Mac
 
 		{ "src/external/libuv/src/unix/darwin/darwin-proctitle.c",
-		  "src/external/libuv/src/unix/darwin/darwin.c" ; Config = "macosx-*-*" },
+		  "src/external/libuv/src/unix/darwin/darwin.c" ; Config = { "macosx-*-*", "macosx_test-*" } },
 
 		-- Linux
 
@@ -195,7 +195,7 @@ StaticLibrary {
 		  "src/external/bgfx/src/renderer_d3d12.cpp" }, 
 	    { "src/external/bgfx/src/glcontext_wgl.cpp" ; Config = "win64-*-*" },
 	    { "src/external/bgfx/src/glcontext_glx.cpp" ; Config = "linux-*-*" },
-	    { "src/external/bgfx/src/glcontext_nsgl.mm" ; Config = "macosx-*-*" },
+	    { "src/external/bgfx/src/glcontext_nsgl.mm" ; Config = { "macosx-*-*", "macosx_test-*" } },
     },
 }
 

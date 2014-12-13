@@ -18,6 +18,7 @@ local function Test(params)
 			},
 
 			PROGCOM = {
+				{ "-lstdc++", "-coverage"; Config = "macosx_test-clang-*" },
 				{ "-lstdc++"; Config = { "macosx-clang-*", "linux-gcc-*" } },
 				{ "-lm -lpthread -ldl"; Config = "linux-*-*" },
 			},
@@ -27,7 +28,7 @@ local function Test(params)
 			params.Source,	
 		},
 
-		Depends = { "api", "core", "stb", "remote_api", "cmocka", "session", "ui", "bgfx", "jansson", "uv", "imgui", "foundation_lib" },
+		Depends = { "uv", "api", "core", "stb", "remote_api", "cmocka", "session", "ui", "bgfx", "jansson", "imgui", "foundation_lib" },
 
 		Libs = { { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 

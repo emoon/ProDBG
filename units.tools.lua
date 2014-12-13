@@ -102,6 +102,7 @@ Program {
 		},
 
 		PROGCOM = {
+			{ "-lstdc++", "-coverage"; Config = "macosx_test-*" },
 			{ "-lstdc++"; Config = { "macosx-clang-*", "linux-gcc-*" } },
 			{ "-lm -lpthread -ldl -lX11"; Config = "linux-*-*" },
 		},

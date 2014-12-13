@@ -49,7 +49,7 @@ Program {
         },
 
 		PROGCOM = {
-			{ "-lstdc++"; Config = { "macosx-clang-*", "linux-gcc-*" } },
+			{ "-lstdc++"; Config = "linux-gcc-*" },
 			{ "-lm -lpthread -ldl -lX11 -lGL"; Config = "linux-*-*" },
 		},
     },
