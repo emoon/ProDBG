@@ -1,0 +1,27 @@
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
+#include <cmocka.h>
+#include "ui/ui_dock.h"
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void create_docking(void**)
+{
+	UIDockingGrid* grid = UIDockingGrid_create();
+	assert_non_null(grid);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+int main()
+{
+    const UnitTest tests[] =
+    {
+        unit_test(create_docking),
+    };
+
+    return run_tests(tests);
+}
+

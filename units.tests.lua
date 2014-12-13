@@ -39,18 +39,20 @@ end
 -----------------------------------------------------------------------------------------------------------------------
 
 Test({ Name = "core_tests", Source = "src/prodbg/tests/core_tests.cpp" })
-Test({ Name = "session_tests", Source = "src/prodbg/tests/session_tests.cpp" })
-Test({ Name = "ui_tests", Source = "src/prodbg/tests/ui_tests.cpp" })
 Test({ Name = "lldb_tests", Source = "src/prodbg/tests/lldb_tests.cpp" })
 Test({ Name = "readwrite_tests", Source = "src/prodbg/tests/readwrite_tests.cpp" })
 Test({ Name = "remote_api_tests", Source = "src/prodbg/tests/remote_api_tests.cpp" })
+Test({ Name = "session_tests", Source = "src/prodbg/tests/session_tests.cpp" })
+Test({ Name = "ui_docking_tests", Source = "src/prodbg/tests/ui_docking_tests.cpp" })
+Test({ Name = "ui_tests", Source = "src/prodbg/tests/ui_tests.cpp" })
 
 -----------------------------------------------------------------------------------------------------------------------
 
 Default "core_tests"
-Default "session_tests"
-Default "ui_tests"
 Default "lldb_tests"
 Default "readwrite_tests"
 Default "remote_api_tests"
+Default "session_tests"
+Default "ui_docking_tests"
+Default "ui_tests"
 
