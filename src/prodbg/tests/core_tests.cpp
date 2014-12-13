@@ -136,14 +136,12 @@ static void doAdd(int value)
 			IntAddData* data = (IntAddData*)userData;
 			data->oldValue = g_intValue;
 			g_intValue += data->newValue;
-			printf("exec %d\n", g_intValue); 
 		},
 
 		[](void* userData) 
 		{ 
 			IntAddData* data = (IntAddData*)userData;
 			g_intValue = data->oldValue;
-			printf("undo %d\n", g_intValue); 
 		}
 	});
 }
