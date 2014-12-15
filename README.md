@@ -9,11 +9,8 @@ ProDBG is a new debugger under development that will support a variety of target
 
 ## Build status
 
-Mac build status <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Mac)/statusIcon"/></a>
+Mac <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Mac)/statusIcon"/></a> Win64 <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Win64)/statusIcon"/></a> Linux <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Linux)/statusIcon"/></a> Coverage [![Coverage Status](https://img.shields.io/coveralls/emoon/ProDBG.svg)](https://coveralls.io/r/emoon/ProDBG)
 
-Windows Win64 build status <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Win64)/statusIcon"/></a>
-
-Linux build status <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Linux)/statusIcon"/></a>
 
 ### Status
 
