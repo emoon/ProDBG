@@ -79,7 +79,7 @@ void Window_setTitle(const char* title);
     (void)frame;
 
     ProDBG_setWindowSize((int)frame.size.width, (int)frame.size.height);
-    ProDBG_update();
+    //ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -88,17 +88,17 @@ int getModifierFlags(int flags)
 {
     int specialKeys = 0;
 
-	if (flags & NSShiftKeyMask)
-		specialKeys |= PDKEY_SHIFT;
+    if (flags & NSShiftKeyMask)
+        specialKeys |= PDKEY_SHIFT;
 
-	if (flags & NSAlternateKeyMask)
-		specialKeys |= PDKEY_ALT;
+    if (flags & NSAlternateKeyMask)
+        specialKeys |= PDKEY_ALT;
 
-	if (flags & NSControlKeyMask)
-		specialKeys |= PDKEY_CTRL;
+    if (flags & NSControlKeyMask)
+        specialKeys |= PDKEY_CTRL;
 
-	if (flags & NSCommandKeyMask)
-		specialKeys |= PDKEY_SUPER;
+    if (flags & NSCommandKeyMask)
+        specialKeys |= PDKEY_SUPER;
 
     return specialKeys;
 }
@@ -298,10 +298,6 @@ static int translateKey(unsigned int key)
     (void)event;
 
     ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
-    ProDBG_update();
-
-    //Emgui_setMousePos((int)location.x, (int)adjustFrame.size.height - (int)location.y);
-    //Editor_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -316,7 +312,6 @@ static int translateKey(unsigned int key)
     (void)event;
 
     ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
-    ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -353,7 +348,6 @@ static int translateKey(unsigned int key)
 
     ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
     ProDBG_setMouseState(0, 1);
-    ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -414,29 +408,41 @@ void buildSubMenu(NSMenu* menu, MenuDescriptor menuDesc[])
 
             if (desc->key >= 256)
             {
-            	unichar c = 0;
+                unichar c = 0;
 
-            	switch (desc->key)
-            	{
-					case PRODBG_KEY_F1 : c = NSF1FunctionKey; break;
-					case PRODBG_KEY_F2 : c = NSF2FunctionKey; break;
-					case PRODBG_KEY_F3 : c = NSF3FunctionKey; break;
-					case PRODBG_KEY_F4 : c = NSF4FunctionKey; break;
-					case PRODBG_KEY_F5 : c = NSF5FunctionKey; break;
-					case PRODBG_KEY_F6 : c = NSF6FunctionKey; break;
-					case PRODBG_KEY_F7 : c = NSF7FunctionKey; break;
-					case PRODBG_KEY_F8 : c = NSF8FunctionKey; break;
-					case PRODBG_KEY_F9 : c = NSF9FunctionKey; break;
-					case PRODBG_KEY_F10 : c = NSF10FunctionKey; break;
-					case PRODBG_KEY_F11 : c = NSF11FunctionKey; break;
-					case PRODBG_KEY_F12 : c = NSF12FunctionKey; break;
-            	}
+                switch (desc->key)
+                {
+                    case PRODBG_KEY_F1:
+                        c = NSF1FunctionKey; break;
+                    case PRODBG_KEY_F2:
+                        c = NSF2FunctionKey; break;
+                    case PRODBG_KEY_F3:
+                        c = NSF3FunctionKey; break;
+                    case PRODBG_KEY_F4:
+                        c = NSF4FunctionKey; break;
+                    case PRODBG_KEY_F5:
+                        c = NSF5FunctionKey; break;
+                    case PRODBG_KEY_F6:
+                        c = NSF6FunctionKey; break;
+                    case PRODBG_KEY_F7:
+                        c = NSF7FunctionKey; break;
+                    case PRODBG_KEY_F8:
+                        c = NSF8FunctionKey; break;
+                    case PRODBG_KEY_F9:
+                        c = NSF9FunctionKey; break;
+                    case PRODBG_KEY_F10:
+                        c = NSF10FunctionKey; break;
+                    case PRODBG_KEY_F11:
+                        c = NSF11FunctionKey; break;
+                    case PRODBG_KEY_F12:
+                        c = NSF12FunctionKey; break;
+                }
 
-            	key = [NSString stringWithCharacters:&c length:1];
+                key = [NSString stringWithCharacters:&c length:1];
             }
             else
             {
-            	key = [NSString stringWithFormat:@"%c", desc->key];
+                key = [NSString stringWithFormat:@"%c", desc->key];
             }
 
             assert(key);

@@ -46,15 +46,14 @@ static void test_lldb(void** state)
     PDWriter* writer = session->currentWriter;
     PDReader* reader = session->reader;
 
-    PDBinaryWriter_reset(writer);
     PDWrite_eventBegin(writer, PDEventType_getCallstack);
     PDWrite_u8(writer, "dummy", 0);
     PDWrite_eventEnd(writer);
-    PDBinaryWriter_finalize(writer);
 
     Session_update(session);
 
-    PDBinaryReader_reset(reader);
+    PDBinaryWriter_finalize(session->currentWriter);
+    PDBinaryReader_initStream(reader, PDBinaryWriter_getData(session->currentWriter), PDBinaryWriter_getSize(session->currentWriter));
 
     uint32_t event;
     bool foundCallstack = false;

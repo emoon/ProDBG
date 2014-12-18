@@ -1,46 +1,57 @@
 #include "../dialogs.h"
+#include <uv.h>
 #include <windows.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int Dialog_open(char* path)
 {
-	OPENFILENAME ofn;
+    OPENFILENAME ofn;
+    const int size = 4096;
+    wchar_t filename[size];
 
-	ZeroMemory(&ofn, sizeof(ofn));
-	ofn.lStructSize = sizeof(ofn);
-	ofn.lpstrFile = (wchar_t*)path;
-	ofn.lpstrFile[0] = '\0';
-	ofn.nMaxFile = MAX_PATH;
-	ofn.lpstrFilter = L"All Files (*.*)\0*.*\0";
-	ofn.nFilterIndex = 1;
-	ofn.lpstrFileTitle = NULL;
-	ofn.nMaxFileTitle = 0;
-	ofn.lpstrInitialDir = NULL;
-	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.lpstrFile = filename;
+    ofn.lpstrFile[0] = '\0';
+    ofn.nMaxFile = size;
+    ofn.lpstrFilter = L"All Files (*.*)\0*.*\0";
+    ofn.nFilterIndex = 1;
+    ofn.lpstrFileTitle = NULL;
+    ofn.nMaxFileTitle = 0;
+    ofn.lpstrInitialDir = NULL;
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
-	return GetOpenFileName(&ofn);
+    int state = GetOpenFileName(&ofn);
+
+    uv_utf16_to_utf8(filename, size, path, 4096);
+
+    return size;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int Dialog_save(char* path)
 {
-	OPENFILENAME dialog;
-	ZeroMemory(&dialog, sizeof(dialog));
-	dialog.lStructSize = sizeof(dialog);
-	dialog.lpstrFilter = L"All Files (*.*)\0*.*\0";
-	dialog.lpstrFile = (wchar_t*)path;	// hack hack
-	dialog.nMaxFile = MAX_PATH;
-	dialog.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-	dialog.lpstrDefExt = L"*";
-	return GetSaveFileName(&dialog);
+    (void)path;
+    return -1;
+    /*
+       OPENFILENAME dialog;
+       ZeroMemory(&dialog, sizeof(dialog));
+       dialog.lStructSize = sizeof(dialog);
+       dialog.lpstrFilter = L"All Files (*.*)\0*.*\0";
+       dialog.lpstrFile = (wchar_t*)path;	// hack hack
+       dialog.nMaxFile = MAX_PATH;
+       dialog.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+       dialog.lpstrDefExt = L"*";
+       return GetSaveFileName(&dialog);
+     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Dialog_showError(const char* text)
 {
-	MessageBox(NULL, (wchar_t*)text, L"Error", MB_ICONERROR | MB_OK);
+    MessageBox(NULL, (wchar_t*)text, L"Error", MB_ICONERROR | MB_OK);
 }
 

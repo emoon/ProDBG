@@ -4,7 +4,7 @@
 #include <cmocka.h>
 #include <stdio.h>
 #include <pd_readwrite.h>
-#include <pd_backend.h>	// For eventTypes
+#include <pd_backend.h> // For eventTypes
 #include "api/src/remote/pd_readwrite_private.h"
 #include "core/log.h"
 
@@ -31,7 +31,7 @@ void testWriteReadEvent(void**)
     assert_true(PDWrite_eventBegin(writer, 10) == PDWriteStatus_ok);
     assert_true(PDWrite_eventEnd(writer) == PDWriteStatus_ok);
 
-	PDBinaryWriter_finalize(writer);
+    PDBinaryWriter_finalize(writer);
 
     assert_true((data = PDBinaryWriter_getData(writer)) != 0);
     assert_true((size = PDBinaryWriter_getSize(writer)) != 0);
@@ -56,7 +56,7 @@ void testDataReadWrite(void**)
     assert_true(PDWrite_data(writer, "my_data", s_data, sizeof(s_data)) == PDWriteStatus_ok);
     assert_true(PDWrite_eventEnd(writer) == PDWriteStatus_ok);
 
-	PDBinaryWriter_finalize(writer);
+    PDBinaryWriter_finalize(writer);
 
     assert_true((data = PDBinaryWriter_getData(writer)) != 0);
     assert_true((size = PDBinaryWriter_getSize(writer)) != 0);
@@ -78,12 +78,12 @@ void testDataReadWrite(void**)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-static void testNullReader(void**)
-{
+   static void testNullReader(void**)
+   {
     PDReader* t = 0;
     assert_true(PDRead_getEvent(t) == 0);    // if null ptr for getEvent this should always return 0
-}
-*/
+   }
+ */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -127,8 +127,8 @@ void testWriteSingleString(void**)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-static void testReadSingleString(void**)
-{
+   static void testReadSingleString(void**)
+   {
     unsigned char* data;
     const char* keyName;
     const char* stringVal;
@@ -146,8 +146,8 @@ static void testReadSingleString(void**)
     assert_string_equal(keyName, "my_id");
 
     assert_true(PDRead_getEvent(reader) == 0);
-}
-*/
+   }
+ */
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -168,7 +168,7 @@ void testAllValueTypes(void**)
     uint8_t* data;
     uint64_t size;
 
-	// Write 
+    // Write
 
     PDBinaryWriter_reset(writer);
 
@@ -381,19 +381,19 @@ void testArrayRead(void**)
 
 int main()
 {
-	log_set_level(LOG_ERROR);
+    log_set_level(LOG_ERROR);
 
     const UnitTest tests[] =
     {
-		unit_test(testWriteReadEvent),
-		unit_test(testDataReadWrite),
-		unit_test(testWriteSingleString),
-		unit_test(testWriteReadAction),
-		unit_test(testAllValueTypes),
-		unit_test(testFind),
-		unit_test(testArray),
-		unit_test(testArrayRead),
-	};
+        unit_test(testWriteReadEvent),
+        unit_test(testDataReadWrite),
+        unit_test(testWriteSingleString),
+        unit_test(testWriteReadAction),
+        unit_test(testAllValueTypes),
+        unit_test(testFind),
+        unit_test(testArray),
+        unit_test(testArrayRead),
+    };
 
     reader = &readerData;
     writer = &writerData;

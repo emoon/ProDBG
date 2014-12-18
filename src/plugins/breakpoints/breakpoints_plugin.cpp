@@ -9,16 +9,16 @@
 
 struct Breakpoint
 {
-	char* filename;
-	int line;
+    char* filename;
+    int line;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct BreakpointsData
 {
-	std::list<Breakpoint*> breakpoints;
-	int temp;
+    std::list<Breakpoint*> breakpoints;
+    int temp;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,7 +38,7 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 
 static void destroyInstance(void* userData)
 {
-	BreakpointsData* data = (BreakpointsData*)userData;
+    BreakpointsData* data = (BreakpointsData*)userData;
     delete data;
 }
 
@@ -53,20 +53,20 @@ void toogleBreakpoint(BreakpointsData* data, PDReader* reader)
     PDRead_findU32(reader, &line, "line", 0);
 
     for (auto i = data->breakpoints.begin(), end = data->breakpoints.end(); i != end; ++i)
-	{
-		if ((*i)->line == (int)line && !strcmp((*i)->filename, filename))
-		{
-			free((*i)->filename);
-			data->breakpoints.erase(i);
-			return;
-		}
-	}
+    {
+        if ((*i)->line == (int)line && !strcmp((*i)->filename, filename))
+        {
+            free((*i)->filename);
+            data->breakpoints.erase(i);
+            return;
+        }
+    }
 
-	Breakpoint* breakpoint = (Breakpoint*)malloc(sizeof(Breakpoint));
-	breakpoint->filename = strdup(filename);
-	breakpoint->line = (int)line; 
+    Breakpoint* breakpoint = (Breakpoint*)malloc(sizeof(Breakpoint));
+    breakpoint->filename = strdup(filename);
+    breakpoint->line = (int)line;
 
-	data->breakpoints.push_back(breakpoint);
+    data->breakpoints.push_back(breakpoint);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -74,10 +74,10 @@ void toogleBreakpoint(BreakpointsData* data, PDReader* reader)
 static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* writer)
 {
     uint32_t event;
-	(void)uiFuncs;
-	(void)writer;
+    (void)uiFuncs;
+    (void)writer;
 
-	BreakpointsData* data = (BreakpointsData*)userData;
+    BreakpointsData* data = (BreakpointsData*)userData;
 
     while ((event = PDRead_getEvent(inEvents)) != 0)
     {
@@ -98,10 +98,10 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
     uiFuncs->text("Line"); uiFuncs->nextColumn();
 
     for (auto& i : data->breakpoints)
-	{
-		uiFuncs->text(i->filename); uiFuncs->nextColumn();
-		uiFuncs->text("%d", i->line); uiFuncs->nextColumn();
-	}
+    {
+        uiFuncs->text(i->filename); uiFuncs->nextColumn();
+        uiFuncs->text("%d", i->line); uiFuncs->nextColumn();
+    }
 
     return 0;
 }
@@ -123,10 +123,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-{
-	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-}
+    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+    {
+        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+    }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -19,31 +19,31 @@ enum SessionType
 
 struct Breakpoint
 {
-	const char* filename;
-	int line;
+    const char* filename;
+    int line;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct Session
 {
-	inline Session()
-	{
-		type = Session_Null;
-		reader = 0;
-		writer0 = 0;
-		writer1 = 0;
-		tempWriter0 = 0;
-		tempWriter1 = 0;
+    inline Session()
+    {
+        type = Session_Null;
+        reader = 0;
+        writer0 = 0;
+        writer1 = 0;
+        tempWriter0 = 0;
+        tempWriter1 = 0;
 
-		currentWriter = 0;
-		prevWriter = 0;
+        currentWriter = 0;
+        prevWriter = 0;
 
-		state = PDDebugState_noTarget;
-		backend = 0;
-		connection = 0;
-		viewPlugins = 0;
-	}
+        state = PDDebugState_noTarget;
+        backend = 0;
+        connection = 0;
+        viewPlugins = 0;
+    }
 
     enum SessionType type;
     PDReader* reader;
@@ -60,7 +60,7 @@ typedef struct Session
     RemoteConnection* connection;
     ViewPluginInstance** viewPlugins;
 
-	std::list<Breakpoint*> breakpoints;
+    std::list<Breakpoint*> breakpoints;
 
 } Session;
 

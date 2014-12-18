@@ -7,6 +7,7 @@
 #define BX_OS_H_HEADER_GUARD
 
 #include "bx.h"
+#include "debug.h"
 
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_WINRT
 #	include <windows.h>
@@ -41,7 +42,7 @@
 #	endif // BX_PLATFORM_ANDROID
 #endif // BX_PLATFORM_
 
-#if BX_COMPILER_MSVC
+#if BX_COMPILER_MSVC_COMPATIBLE
 #	include <direct.h> // _getcwd
 #else
 #	include <unistd.h> // getcwd
@@ -155,7 +156,7 @@ namespace bx
 	{
 #if BX_PLATFORM_WINRT
 		BX_UNUSED(_path);
-#elif BX_COMPILER_MSVC
+#elif BX_COMPILER_MSVC_COMPATIBLE
 		return ::_chdir(_path);
 #else
 		return ::chdir(_path);
@@ -166,7 +167,7 @@ namespace bx
 	{
 #if BX_PLATFORM_WINRT
 		BX_UNUSED(_buffer, _size);
-#elif BX_COMPILER_MSVC
+#elif BX_COMPILER_MSVC_COMPATIBLE
 		return ::_getcwd(_buffer, (int)_size);
 #else
 		return ::getcwd(_buffer, _size);

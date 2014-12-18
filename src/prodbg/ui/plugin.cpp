@@ -5,7 +5,7 @@
 #include "core/alloc.h"
 #include "core/log.h"
 #include "core/math.h"
-#include "imgui/imgui.h"
+#include <imgui.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -203,53 +203,53 @@ static float getFontWidth()
 
 static PDVec2 getMousePos()
 {
-	ImVec2 pos = ImGui::GetRelativeMousePos();
-	PDVec2 r = { pos.x, pos.y };
-	return r;
+    ImVec2 pos = ImGui::GetRelativeMousePos();
+    PDVec2 r = { pos.x, pos.y };
+    return r;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static PDVec2 getMouseScreenPos()
 {
-	ImVec2 pos = ImGui::GetMousePos();
-	PDVec2 r = { pos.x, pos.y };
-	return r;
+    ImVec2 pos = ImGui::GetMousePos();
+    PDVec2 r = { pos.x, pos.y };
+    return r;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int isMouseClicked(int button, int repeat)
 {
-	return ImGui::IsMouseClicked(button, !!repeat);
+    return ImGui::IsMouseClicked(button, !!repeat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int isMouseDoubleClicked(int button)
 {
-	return ImGui::IsMouseDoubleClicked(button);
+    return ImGui::IsMouseDoubleClicked(button);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int isMouseHoveringBox(PDVec2 boxMin, PDVec2 boxMax)
 {
-	return ImGui::IsMouseHoveringBox(ImVec2(boxMin.x, boxMin.y), ImVec2(boxMax.x, boxMax.y));
+    return ImGui::IsMouseHoveringBox(ImVec2(boxMin.x, boxMin.y), ImVec2(boxMax.x, boxMax.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int isKeyDown(int key, int repeat)
 {
-	return ImGui::IsFocusWindowKeyDown(key, !!repeat);
+    return ImGui::IsFocusWindowKeyDown(key, !!repeat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int getKeyModifier()
 {
-	return 0;
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -309,13 +309,13 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     uiInstance->getWindowSize = getWindowSize;
     uiInstance->getFontHeight = getFontHeight;
     uiInstance->getFontWidth = getFontWidth;
-	uiInstance->getMousePos = getMousePos;
-	uiInstance->getMouseScreenPos = getMouseScreenPos;
-	uiInstance->isMouseClicked = isMouseClicked;
-	uiInstance->isMouseDoubleClicked = isMouseDoubleClicked; 
-	uiInstance->isMouseHoveringBox = isMouseHoveringBox; 
-	uiInstance->isKeyDown = isKeyDown; 
-	uiInstance->getKeyModifier = getKeyModifier; 
+    uiInstance->getMousePos = getMousePos;
+    uiInstance->getMouseScreenPos = getMouseScreenPos;
+    uiInstance->isMouseClicked = isMouseClicked;
+    uiInstance->isMouseDoubleClicked = isMouseDoubleClicked;
+    uiInstance->isMouseHoveringBox = isMouseHoveringBox;
+    uiInstance->isKeyDown = isKeyDown;
+    uiInstance->getKeyModifier = getKeyModifier;
 
     uiInstance->privateData = alloc_zero(sizeof(PrivateData));
     data->name = buildName(pluginInstance->plugin->name, pluginInstance->count);
@@ -351,8 +351,8 @@ void PluginUI_getWindowRect(ViewPluginInstance* instance, FloatRect* rect)
     PDUI* uiInstance = &instance->ui;
     PrivateData* data = (PrivateData*)uiInstance->privateData;
 
-    ImVec2 pos;
-    ImVec2 size;
+    ImVec2 pos = {};
+    ImVec2 size = {};
 
     ImGui::GetWindowRect(data->window, &pos, &size);
 
@@ -379,6 +379,7 @@ void PluginUI_setWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 
 bool PluginUI_isActiveWindow(ViewPluginInstance* instance)
 {
+	(void)instance;
     PDUI* uiInstance = &instance->ui;
     PrivateData* data = (PrivateData*)uiInstance->privateData;
 

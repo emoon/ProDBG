@@ -1,7 +1,7 @@
 #ifndef _PRODBG_REMOTEAPI_H_
 #define _PRODBG_REMOTEAPI_H_
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -63,7 +63,7 @@ int PDRemote_isConnected();
 
 void PDRemote_destroy();
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

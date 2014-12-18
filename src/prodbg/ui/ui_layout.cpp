@@ -1,356 +1,241 @@
 #include "ui_layout.h"
 #include "core/log.h"
-#include <yaml.h>
+#include <jansson.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int yaml_add_scalar(yaml_document_t* document, const char* key)
+static void addInfo(UILayout* layout, json_t* root)
 {
-    return yaml_document_add_scalar(document, (yaml_char_t*)YAML_STR_TAG, (yaml_char_t*)key, (int)strlen(key), YAML_ANY_SCALAR_STYLE);
+    json_t* info = json_pack("{s:i, s:i}",
+                             "base_path_count",    layout->basePathCount,
+                             "layout_items_count", layout->layoutItemCount);
+
+    json_object_set_new(root, "info", info);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int addMapping(yaml_document_t* document, int mapping, const char* key, const char* value)
+static void addBasePaths(UILayout* layout, json_t* root)
 {
-    int keyId;
-    int valueId;
-
-    keyId = yaml_add_scalar(document, key);
-    valueId = yaml_add_scalar(document, value);
-
-    if (!keyId || !valueId)
-        return -1;
-
-    return yaml_document_append_mapping_pair(document, mapping, keyId, valueId);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int addFloatMapping(yaml_document_t* document, int mapping, const char* key, float value)
-{
-    char tempBuffer[64];
-    sprintf(tempBuffer, "%2.8f", value);
-    return addMapping(document, mapping, key, tempBuffer);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int addIntMapping(yaml_document_t* document, int mapping, const char* key, int value)
-{
-    char tempBuffer[64];
-    sprintf(tempBuffer, "%d", value);
-    return addMapping(document, mapping, key, tempBuffer);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void addInfo(UILayout* layout, yaml_document_t* document, int root)
-{
-    int name = yaml_add_scalar(document, "info");
-    int info = yaml_document_add_sequence(document, NULL, YAML_BLOCK_SEQUENCE_STYLE);
-    int infoMap = yaml_document_add_mapping(document, NULL, YAML_BLOCK_MAPPING_STYLE);
-
-    yaml_document_append_mapping_pair(document, root, name, info);
-
-    addIntMapping(document, infoMap, "base_path_count", layout->basePathCount);
-    addIntMapping(document, infoMap, "layout_items_count", layout->layoutItemCount);
-
-    yaml_document_append_sequence_item(document, info, infoMap);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void addBasePaths(UILayout* layout, yaml_document_t* document, int root)
-{
-    int name = yaml_add_scalar(document, "base_paths");
-    int info = yaml_document_add_sequence(document, NULL, YAML_BLOCK_SEQUENCE_STYLE);
-
-    yaml_document_append_mapping_pair(document, root, name, info);
-
-    int basePaths = yaml_document_add_mapping(document, NULL, YAML_BLOCK_MAPPING_STYLE);
+    json_t* basePathsArray = json_array();
 
     for (int i = 0; i < layout->basePathCount; ++i)
-        addMapping(document, basePaths, "path", layout->pluginBasePaths[i]);
+        json_array_append_new(basePathsArray, json_string(layout->pluginBasePaths[i]));
 
-    yaml_document_append_sequence_item(document, info, basePaths);
+    json_object_set_new(root, "base_paths", basePathsArray);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void addLayoutItems(UILayout* layout, yaml_document_t* document, int root)
+static void addLayoutItems(UILayout* layout, json_t* root)
 {
-    int name = yaml_add_scalar(document, "layout_items");
-    int info = yaml_document_add_sequence(document, NULL, YAML_BLOCK_SEQUENCE_STYLE);
-
-    yaml_document_append_mapping_pair(document, root, name, info);
+    json_t* layoutItemsArray = json_array();
 
     for (int i = 0; i < layout->layoutItemCount; ++i)
     {
         const LayoutItem* item = &layout->layoutItems[i];
 
-        int lay = yaml_document_add_mapping(document, NULL, YAML_BLOCK_MAPPING_STYLE);
+        json_t* layoutItem = json_pack("{s:s, s:s, s:f, s:f, s:f, s:f}",
+                                       "plugin_file", item->pluginFile,
+                                       "plugin_name", item->pluginName,
+                                       "x",           item->rect.x,
+                                       "y",           item->rect.y,
+                                       "width",       item->rect.width,
+                                       "height",      item->rect.height);
 
-        addMapping(document, lay, "plugin_file", item->pluginFile);
-        addMapping(document, lay, "plugin_name", item->pluginName);
-        addFloatMapping(document, lay, "x", item->rect.x);
-        addFloatMapping(document, lay, "y", item->rect.y);
-        addFloatMapping(document, lay, "width", item->rect.width);
-        addFloatMapping(document, lay, "height", item->rect.height);
-
-        yaml_document_append_sequence_item(document, info, lay);
+        json_array_append_new(layoutItemsArray, layoutItem);
     }
+
+    json_object_set_new(root, "layout_items", layoutItemsArray);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool UILayout_saveLayout(UILayout* layout, const char* filename)
 {
-    yaml_emitter_t emitter;
-    yaml_document_t document;
-    FILE* f;
-    int root, info;
+    json_t* root = json_object();
 
-    (void)layout;
+    addInfo(layout, root);
+    addBasePaths(layout, root);
+    addLayoutItems(layout, root);
 
-    if (!(f = fopen(filename, "wt")))
+    if (json_dump_file(root, filename, JSON_INDENT(4)) != 0)
     {
-        log_error("YAML: Unable to open %s for write\n", filename);
+        log_error("JSON: Unable to open %s for write\n", filename);
         return false;
     }
-
-    if (!yaml_emitter_initialize(&emitter))
-    {
-        log_error("YAML: Could not inialize the emitter object\n");
-        return false;
-    }
-
-    yaml_emitter_set_output_file(&emitter, f);
-    yaml_emitter_set_canonical(&emitter, 0);
-    yaml_emitter_set_unicode(&emitter, 0);
-
-    if (!yaml_emitter_open(&emitter))
-        goto emitter_error;
-
-    if (!yaml_document_initialize(&document, NULL, NULL, NULL, 0, 0))
-        goto document_error;
-
-    if (!(root = yaml_document_add_mapping(&document, NULL, YAML_BLOCK_MAPPING_STYLE)))
-        goto document_error;
-
-    if (!(info = yaml_document_add_sequence(&document, NULL, YAML_BLOCK_SEQUENCE_STYLE)))
-        goto document_error;
-
-    addInfo(layout, &document, root);
-    addBasePaths(layout, &document, root);
-    addLayoutItems(layout, &document, root);
-
-    yaml_emitter_dump(&emitter, &document);
-
-    fclose(f);
 
     return true;
-
-    /// Error handling
-
-    emitter_error:
-
-    switch (emitter.error)
-    {
-        case YAML_MEMORY_ERROR:
-            log_error("YAML: Memory error: Not enough memory for emitting\n");
-            break;
-
-        case YAML_WRITER_ERROR:
-            log_error("YAML: Writer error: %s\n", emitter.problem);
-            break;
-
-        case YAML_EMITTER_ERROR:
-            log_error("YAML: Emitter error: %s\n", emitter.problem);
-            break;
-
-        default:
-            log_error("YAML: Internal error\n");
-            break;
-    }
-
-    fclose(f);
-    yaml_document_delete(&document);
-    yaml_emitter_delete(&emitter);
-
-    return false;
-
-    document_error:
-
-    fprintf(stderr, "Memory error: Not enough memory for creating a document\n");
-
-    fclose(f);
-    yaml_document_delete(&document);
-    yaml_emitter_delete(&emitter);
-
-    return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum State
+bool loadObjectInt(json_t* object, const char* key, int& result)
 {
-    State_Info,
-    State_Paths,
-    State_Layouts,
-};
+    void* iter = json_object_iter_at(object, key);
+    if (!iter)
+        return false;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    json_t* value = json_object_iter_value(iter);
+    if (!value || !json_is_integer(value))
+        return false;
 
-static const char* getString(yaml_parser_t* parser, yaml_event_t* event)
-{
-    yaml_parser_parse(parser, event);
-    assert(event->type == YAML_SCALAR_EVENT);
-    return strdup((const char*)event->data.scalar.value);
+    result = (int)json_integer_value(value);
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int getInt(yaml_parser_t* parser, yaml_event_t* event)
+bool loadObjectFloat(json_t* object, const char* key, float& result)
 {
-    yaml_parser_parse(parser, event);
-    assert(event->type == YAML_SCALAR_EVENT);
-    return atoi((const char*)event->data.scalar.value);
+    void* iter = json_object_iter_at(object, key);
+    if (!iter)
+        return false;
+
+    json_t* value = json_object_iter_value(iter);
+    if (!value || !json_is_real(value))
+        return false;
+
+    result = (float)json_real_value(value);
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static float getFloat(yaml_parser_t* parser, yaml_event_t* event)
+bool loadObjectString(json_t* object, const char* key, char** result)
 {
-    yaml_parser_parse(parser, event);
-    assert(event->type == YAML_SCALAR_EVENT);
-    return (float)atof((const char*)event->data.scalar.value);
+    void* iter = json_object_iter_at(object, key);
+    if (!iter)
+        return false;
+
+    json_t* value = json_object_iter_value(iter);
+    if (!value || !json_is_string(value))
+        return false;
+
+    *result = strdup(json_string_value(value));
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool UILayout_loadLayout(UILayout* layout, const char* filename)
 {
-    yaml_parser_t parser;
-    yaml_event_t event;
-
     memset(layout, 0, sizeof(UILayout));
 
-    FILE* fh = fopen(filename, "rt");
+    json_error_t error;
 
-    if (!yaml_parser_initialize(&parser))
+    json_t* root = json_load_file(filename, 0, &error);
+    if (!root || !json_is_object(root))
     {
-        log_error("Failed to initialize parser!\n");
+        log_error("JSON: Unable to open %s for read\n", filename);
         return false;
     }
 
-    if (!fh)
-        return false;
+    // Load info
 
-    yaml_parser_set_input_file(&parser, fh);
-
-    enum State state = State_Info;
-    int pathIter = 0;
-    int layoutIter = 0;
-
-    do
+    json_t* info = json_object_get(root, "info");
+    if (!info || !json_is_object(info))
     {
-        if (!yaml_parser_parse(&parser, &event))
+        log_error("JSON: Unable to load info object\n");
+        return false;
+    }
+
+    if (!loadObjectInt(info, "base_path_count", layout->basePathCount))
+    {
+        log_error("JSON: Unable to load info object : base_path_count\n");
+        return false;
+    }
+
+    layout->pluginBasePaths = (const char**)malloc((sizeof(void*) * (size_t)layout->basePathCount));
+
+    if (!loadObjectInt(info, "layout_items_count", layout->layoutItemCount))
+    {
+        log_error("JSON: Unable to load info object : layout_items_count\n");
+        return false;
+    }
+
+    layout->layoutItems = (LayoutItem*)malloc((sizeof(LayoutItem) * (size_t)layout->layoutItemCount));
+
+    // Load base paths
+
+    json_t* basePaths = json_object_get(root, "base_paths");
+    if (!basePaths || !json_is_array(basePaths))
+    {
+        log_error("JSON: Unable to load base paths object\n");
+        return false;
+    }
+
+    for (int i = 0; i < layout->basePathCount; ++i)
+    {
+        json_t* basePath = json_array_get(basePaths, (size_t)i);
+        if (!basePath || !json_is_string(basePath))
         {
-            log_error("YAML: Parser error %d\n", parser.error);
+            log_error("JSON: Unable to load base path entry\n");
             return false;
         }
 
-        switch (event.type)
+        layout->pluginBasePaths[i] = strdup(json_string_value(basePath));
+    }
+
+    // Load layout items
+
+    json_t* layoutItems = json_object_get(root, "layout_items");
+    if (!layoutItems || !json_is_array(layoutItems))
+    {
+        log_error("JSON: Unable to load layout items object\n");
+        return false;
+    }
+
+    for (int i = 0; i < layout->layoutItemCount; ++i)
+    {
+        json_t* layoutItem = json_array_get(layoutItems, (size_t)i);
+        if (!layoutItem || !json_is_object(layoutItem))
         {
-            case YAML_NO_EVENT:
-            case YAML_ALIAS_EVENT:
-            case YAML_STREAM_START_EVENT:
-            case YAML_STREAM_END_EVENT:
-            case YAML_DOCUMENT_START_EVENT:
-            case YAML_DOCUMENT_END_EVENT:
-            case YAML_SEQUENCE_START_EVENT:
-            case YAML_MAPPING_START_EVENT:
-            case YAML_MAPPING_END_EVENT:
-            case YAML_SEQUENCE_END_EVENT:
-                break;
-
-            case YAML_SCALAR_EVENT:
-            {
-                switch (state)
-                {
-                    case State_Info:
-                    {
-                        if (!strcmp((const char*)event.data.scalar.value, "base_path_count"))
-                        {
-                            layout->basePathCount = getInt(&parser, &event);
-                            layout->pluginBasePaths = (const char**)malloc((sizeof(void*) * (size_t)layout->basePathCount));
-                        }
-                        else if (!strcmp((const char*)event.data.scalar.value, "layout_items_count"))
-                        {
-                            layout->layoutItemCount = getInt(&parser, &event);
-                            layout->layoutItems = (LayoutItem*)malloc((sizeof(LayoutItem) * (size_t)layout->layoutItemCount));
-                        }
-
-                        break;
-                    }
-
-                    case State_Paths:
-                    {
-                        if (!strcmp((const char*)event.data.scalar.value, "path"))
-                            layout->pluginBasePaths[pathIter++] = getString(&parser, &event);
-
-                        break;
-                    }
-
-                    case State_Layouts:
-                    {
-                        LayoutItem* item = &layout->layoutItems[layoutIter];
-
-                        if (!strcmp((const char*)event.data.scalar.value, "plugin_file"))
-                            item->pluginFile = getString(&parser, &event);
-                        else if (!strcmp((const char*)event.data.scalar.value, "plugin_name"))
-                            item->pluginName = getString(&parser, &event);
-                        else if (!strcmp((const char*)event.data.scalar.value, "x"))
-                            item->rect.x = getFloat(&parser, &event);
-                        else if (!strcmp((const char*)event.data.scalar.value, "y"))
-                            item->rect.y = getFloat(&parser, &event);
-                        else if (!strcmp((const char*)event.data.scalar.value, "width"))
-                            item->rect.width = getFloat(&parser, &event);
-                        else if (!strcmp((const char*)event.data.scalar.value, "height"))
-                        {
-                            item->rect.height = getFloat(&parser, &event);
-                            layoutIter++;
-                        }
-
-                        break;
-                    }
-                }
-
-                // Switch the state of the loading
-
-                if (!strcmp((const char*)event.data.scalar.value, "base_paths"))
-                {
-                    state = State_Paths;
-                }
-                else if (!strcmp((const char*)event.data.scalar.value, "layout_items"))
-                {
-                    state = State_Layouts;
-                }
-
-                break;
-            }
+            log_error("JSON: Unable to load layout item entry\n");
+            return false;
         }
-        if (event.type != YAML_STREAM_END_EVENT)
-            yaml_event_delete(&event);
-    } while (event.type != YAML_STREAM_END_EVENT);
 
-    yaml_event_delete(&event);
-    yaml_parser_delete(&parser);
+        LayoutItem* item = &layout->layoutItems[i];
 
-    fclose(fh);
+        if (!loadObjectString(layoutItem, "plugin_file", (char**)&item->pluginFile))
+        {
+            log_error("JSON: Unable to load layout item : plugin_file\n");
+            return false;
+        }
+
+        if (!loadObjectString(layoutItem, "plugin_name", (char**)&item->pluginName))
+        {
+            log_error("JSON: Unable to load layout item : plugin_name\n");
+            return false;
+        }
+
+        if (!loadObjectFloat(layoutItem, "x", item->rect.x))
+        {
+            log_error("JSON: Unable to load layout item : x\n");
+            return false;
+        }
+
+        if (!loadObjectFloat(layoutItem, "y", item->rect.y))
+        {
+            log_error("JSON: Unable to load layout item : y\n");
+            return false;
+        }
+
+        if (!loadObjectFloat(layoutItem, "width", item->rect.width))
+        {
+            log_error("JSON: Unable to load layout item : width\n");
+            return false;
+        }
+
+        if (!loadObjectFloat(layoutItem, "height", item->rect.height))
+        {
+            log_error("JSON: Unable to load layout item : height\n");
+            return false;
+        }
+    }
 
     return true;
 }

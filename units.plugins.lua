@@ -30,6 +30,7 @@ SharedLibrary {
 
         SHLIBOPTS = { 
             { "-Fsrc/plugins/lldb/Frameworks", "-rpath src/plugins/lldb/Frameworks", "-lstdc++"; Config = "macosx-clang-*" },
+            { "-Fsrc/plugins/lldb/Frameworks", "-rpath src/plugins/lldb/Frameworks", "-lstdc++", "-coverage"; Config = "macosx_test-clang-*" },
         },
 
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
@@ -73,8 +74,6 @@ SharedLibrary {
     Env = {
         CPPPATH = { "api/include", },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-        SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
-        CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
 
     Sources = { "src/plugins/sourcecode/sourcecode_plugin.cpp" },
@@ -88,8 +87,6 @@ SharedLibrary {
     Env = {
         CPPPATH = { "api/include", },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-        SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
-        CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
 
     Sources = { "src/plugins/callstack/callstack_plugin.cpp" },
@@ -103,8 +100,6 @@ SharedLibrary {
     Env = {
         CPPPATH = { "api/include", },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-        SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
-        CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
 
     Sources = { "src/plugins/disassembly/disassembly_plugin.cpp" },
@@ -118,8 +113,6 @@ SharedLibrary {
     Env = {
         CPPPATH = { "api/include", },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-        SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
-        CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
 
     Sources = { "src/plugins/registers/registers_plugin.cpp" },
@@ -133,8 +126,6 @@ SharedLibrary {
     Env = {
         CPPPATH = { "api/include", },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-        SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
-        CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
 
     Sources = { "src/plugins/locals/locals_plugin.cpp" },
@@ -148,8 +139,6 @@ SharedLibrary {
     Env = {
         CPPPATH = { "api/include", },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-        SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
-        CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
 
     Sources = { "src/plugins/breakpoints/breakpoints_plugin.cpp" },
@@ -163,8 +152,6 @@ SharedLibrary {
     Env = {
         CPPPATH = { "api/include", },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-        SHLIBOPTS = { "-lstdc++"; Config = "macosx-clang-*" },
-        CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
 
     Sources = { "src/plugins/hex_memory/hex_memory_plugin.cpp" },

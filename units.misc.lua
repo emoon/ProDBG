@@ -51,7 +51,50 @@ Program {
 }
 
 -----------------------------------------------------------------------------------------------------------------------
+-- Example AngelScript game
+
+Program {
+    Name = "as_game",
+    Env = {
+		CPPPATH = {
+			"src/external/angelscript/angelscript/include",
+			"src/external/angelscript",
+			"src/addons/as_debugger",
+		},
+        CXXOPTS = {
+            { 
+            "-Wno-conversion", 
+            "-Wno-missing-variable-declarations",
+            "-Wno-pedantic", 
+            "-Wno-conversion",
+            "-Wno-missing-field-initializers",
+            "-Wno-conversion",
+            "-Wno-switch-enum",
+            "-Wno-everything",
+            "-Wno-format-nonliteral"; Config = "macosx-*-*" },
+        },
+
+		PROGCOM = {
+			{ "-lstdc++"; Config = { "macosx-clang-*", "linux-gcc-*" } },
+			{ "-lm -lpthread"; Config = "linux-*-*" },
+		},
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "examples/as_game",
+            Extensions = { ".h", ".cpp" },
+        },
+    },
+
+    Libs = { { "wsock32.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
+
+    Depends = { "remote_api", "angelscript", "as_debugger" },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
 
 Default "fake6502"
 Default "crashing_native"
+Default "as_game"
 

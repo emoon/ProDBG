@@ -5,7 +5,7 @@
 #include "core/plugin_handler.h"
 #include "session/session.h"
 #include "settings.h"
-#include "ui/imgui/imgui.h"
+//#include <imgui.h>
 #include "ui/imgui_setup.h"
 #include "ui/ui_layout.h"
 #include "ui/menu.h"
@@ -20,6 +20,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
+
+#include <remotery.h>
 
 // TODO: Fix me
 
@@ -42,6 +44,7 @@ struct Context
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static Context s_context;
+//Remotery* s_remotery;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -71,17 +74,17 @@ static void setLayout(UILayout* layout)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void loadLayout()
+void loadLayout()
 {
     UILayout layout;
 
-    if (UILayout_loadLayout(&layout, "data/current_layout.yaml"))
+    if (UILayout_loadLayout(&layout, "data/current_layout.json"))
     {
         setLayout(&layout);
         return;
     }
 
-    if (UILayout_loadLayout(&layout, "data/default_layout.yaml"))
+    if (UILayout_loadLayout(&layout, "data/default_layout.json"))
         setLayout(&layout);
 }
 
@@ -93,6 +96,14 @@ void ProDBG_create(void* window, int width, int height)
     //Rect settingsRect;
 
     context->session = Session_create();
+
+	/*
+    if (RMT_ERROR_NONE != rmt_CreateGlobalInstance(&s_remotery)) 
+    {
+    	log_error("Unable to setup Remotery");
+        return;
+    }
+    */
 
     //Settings_getWindowRect(&settingsRect);
     //width = settingsRect.width;
@@ -131,15 +142,23 @@ void ProDBG_update()
 {
     Context* context = &s_context;
 
+	rmt_ScopedCPUSample(ProDBG_update);
+
     bgfx::setViewRect(0, 0, 0, (uint16_t)context->width, (uint16_t)context->height);
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR_BIT | BGFX_CLEAR_DEPTH_BIT, 0x101010ff, 1.0f, 0);
     bgfx::submit(0);
 
-    IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
+	{
+		rmt_ScopedCPUSample(IMGUI_preUpdate);
+    	IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
+	}
 
     // TODO: Support multiple sessions
 
-    Session_update(context->session);
+	{
+		rmt_ScopedCPUSample(Session_update);
+    	Session_update(context->session);
+	}
 
     /*
 
@@ -155,10 +174,18 @@ void ProDBG_update()
        ImGui::End();
      */
 
-    IMGUI_postUpdate();
+	{
+		rmt_ScopedCPUSample(IMGUI_postUpdate);
+    	IMGUI_postUpdate();
+	}
 
-    bgfx::frame();
+	{
+		rmt_ScopedCPUSample(bgfx_frame);
+    	bgfx::frame();
+	}
 }
+
+// Temprory test for monkey
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -169,8 +196,8 @@ void ProDBG_setWindowSize(int width, int height)
     context->width = width;
     context->height = height;
 
-    bgfx::reset(width, height);
-    IMGUI_setup(width, height);
+    //bgfx::reset(width, height);
+    //IMGUI_setup(width, height);
     ProDBG_update();
 }
 
@@ -190,8 +217,10 @@ void ProDBG_destroy()
     UILayout layout;
     Context* context = &s_context;
 
+    //rmt_DestroyGlobalInstance(s_remotery);
+
     Session_getLayout(context->session, &layout, (float)context->width, (float)context->height);
-    UILayout_saveLayout(&layout, "data/current_layout.yaml");
+    UILayout_saveLayout(&layout, "data/current_layout.json");
 
     Settings_save();
 }
@@ -215,9 +244,9 @@ static void onLoadRunExec(Session* session, const char* filename)
         return;
     }
 
-    Session_startLocal(session, (PDBackendPlugin*)pluginData->plugin, filename); 
+    Session_startLocal(session, (PDBackendPlugin*)pluginData->plugin, filename);
 
-    // Temp test 
+    // Temp test
     // Session_startLocal(context->session, (PDBackendPlugin*)pluginData->plugin, "t2-output/macosx-clang-debug-default/ProDBG.app/Contents/MacOS/prodbg");
     // Session_startLocal(context->session, (PDBackendPlugin*)pluginData->plugin, OBJECT_DIR "/crashing_native");
 }
@@ -246,56 +275,56 @@ void ProDBG_event(int eventId)
     {
         case PRODBG_MENU_FILE_OPEN_AND_RUN_EXE:
         {
-			char filename[4096];
+            char filename[4096];
 
-			if (Dialog_open(filename))
-			{
-				onLoadRunExec(context->session, filename);	
-			}
+            if (Dialog_open(filename))
+            {
+                onLoadRunExec(context->session, filename);
+            }
 
             break;
         }
 
-		case PRODBG_MENU_FILE_OPEN_SOURCE:
-		{
-			char filename[4096];
+        case PRODBG_MENU_FILE_OPEN_SOURCE:
+        {
+            char filename[4096];
 
-			if (Dialog_open(filename))
-			{
-				Session_loadSourceFile(context->session, filename);	
-			}
+            if (Dialog_open(filename))
+            {
+                Session_loadSourceFile(context->session, filename);
+            }
 
-			break;
-		}
+            break;
+        }
 
-		case PRODBG_MENU_DEBUG_BREAK:
-		{
-			Session_action(context->session, PDAction_break); 
-			log_info("trying to break...\n");
-			break;
-		}
+        case PRODBG_MENU_DEBUG_BREAK:
+        {
+            Session_action(context->session, PDAction_break);
+            log_info("trying to break...\n");
+            break;
+        }
 
-		case PRODBG_MENU_DEBUG_ATTACH_TO_REMOTE:
-		{
-			Session_startRemote(context->session, "127.0.0.1", 1340);
-			break;
-		}
+        case PRODBG_MENU_DEBUG_ATTACH_TO_REMOTE:
+        {
+            Session_startRemote(context->session, "127.0.0.1", 1340);
+            break;
+        }
 
         case PRODBG_MENU_DEBUG_TOGGLE_BREAKPOINT:
         {
-        	Session_toggleBreakpointCurrentLine(context->session);
+            Session_toggleBreakpointCurrentLine(context->session);
             break;
         }
 
         case PRODBG_MENU_DEBUG_STEP_OVER:
         {
-        	Session_stepOver(context->session);
+            Session_stepOver(context->session);
             break;
         }
 
         case PRODBG_MENU_DEBUG_STEP_IN:
         {
-        	Session_stepIn(context->session);
+            Session_stepIn(context->session);
             break;
         }
     }
@@ -319,9 +348,9 @@ void ProDBG_setMousePos(float x, float y)
     context->mouseX = x;
     context->mouseY = y;
 
-	IMGUI_setMouse(x, y, context->mouseLmb);
+    IMGUI_setMouse(x, y, context->mouseLmb);
 
-    ProDBG_update();
+    //ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -333,23 +362,23 @@ void ProDBG_setMouseState(int button, int state)
 
     context->mouseLmb = state;
 
-	IMGUI_setMouse(context->mouseX, context->mouseY, state);
+    IMGUI_setMouse(context->mouseX, context->mouseY, state);
 
-    ProDBG_update();
+    //ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ProDBG_keyDown(int key, int modifier)
 {
-	IMGUI_setKeyDown(key, modifier);
+    IMGUI_setKeyDown(key, modifier);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ProDBG_keyUp(int key, int modifier)
 {
-	IMGUI_setKeyUp(key, modifier);
+    IMGUI_setKeyUp(key, modifier);
 }
 
 

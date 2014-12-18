@@ -29,6 +29,35 @@ local macosx = {
 			mac_opts,
 			"-std=c++11",
 		},
+
+        SHLIBOPTS = { "-lstdc++" },
+		PROGCOM = { "-lstdc++" },
+
+        BGFX_SHADERC = "$(OBJECTDIR)$(SEP)bgfx_shaderc$(PROGSUFFIX)",
+    },
+
+    Frameworks = { "Cocoa" },
+}
+
+local macosx_test = {
+    Env = {
+        CCOPTS =  {
+			mac_opts,
+			"-Wno-everything",
+			"-coverage",
+		},
+        
+        CXXOPTS = {
+			mac_opts,
+			"-Wno-everything",
+			"-coverage",
+			"-std=c++11",
+		},
+
+        SHLIBOPTS = { "-lstdc++", "-coverage" },
+		PROGCOM = { "-lstdc++", "-coverage" },
+
+        BGFX_SHADERC = "$(OBJECTDIR)$(SEP)bgfx_shaderc$(PROGSUFFIX)",
     },
 
     Frameworks = { "Cocoa" },
@@ -55,6 +84,8 @@ local gcc_env = {
 			gcc_opts,
 			"-std=c++11",
 		},
+
+        BGFX_SHADERC = "$(OBJECTDIR)$(SEP)bgfx_shaderc$(PROGSUFFIX)",
     },
 
 	ReplaceEnv = {
@@ -72,11 +103,6 @@ local win64_opts = {
 	{ "/O2"; Config = "*-*-release" },
 }
 
-			-- "/DPRODBG_WIN",
-            --"/FS", "/MT", "/I.", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4152", "/wd4996", "/wd4389",
-            --{ "/Od"; Config = "*-*-debug" },
-            --{ "/O2"; Config = "*-*-release" },
-
 local win64 = {
     Env = {
         GENERATE_PDB = "1",
@@ -88,6 +114,7 @@ local win64 = {
 			win64_opts,
         },
 
+        BGFX_SHADERC = "$(OBJECTDIR)$(SEP)bgfx_shaderc$(PROGSUFFIX)",
 		OBJCCOM = "meh",
     },
 }
@@ -97,10 +124,12 @@ local win64 = {
 Build {
 
     Passes = {
-        GenerateSources = { Name="Generate sources", BuildOrder = 1 },
+        BuildTools = { Name="Build Tools", BuildOrder = 1 },
+        GenerateSources = { Name="Generate sources", BuildOrder = 2 },
     },
 
     Units = { 
+    	"units.tools.lua",
     	"units.libs.lua",
     	"units.misc.lua",
     	"units.plugins.lua",
@@ -110,7 +139,8 @@ Build {
 
     Configs = {
         Config { Name = "macosx-clang", DefaultOnHost = "macosx", Inherit = macosx, Tools = { "clang-osx" } },
-        Config { Name = "win64-msvc", DefaultOnHost = { "windows" }, Inherit = win64, Tools = { "msvc" } },
+        Config { Name = "macosx_test-clang", SupportedHosts = { "macosx" }, Inherit = macosx_test, Tools = { "clang-osx" } },
+        Config { Name = "win64-msvc", DefaultOnHost = { "windows" }, Inherit = win64, Tools = { { "msvc" }, "generic-asm" } },
         Config { Name = "linux-gcc", DefaultOnHost = { "linux" }, Inherit = gcc_env, Tools = { "gcc" } },
     },
 

@@ -113,11 +113,6 @@ namespace bgfx
 		{
 		}
 
-		virtual void* nativeContext()
-		{
-			return 0;
-		}
-
 		void destroyTexture(TextureHandle /*_handle*/) BX_OVERRIDE
 		{
 		}
@@ -168,6 +163,11 @@ namespace bgfx
 
 		void blitRender(TextVideoMemBlitter& /*_blitter*/, uint32_t /*_numIndices*/) BX_OVERRIDE
 		{
+		}
+
+		void* nativeContext()
+		{
+			return 0;
 		}
 	};
 

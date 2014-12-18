@@ -12,11 +12,11 @@ Program {
 
     Env = {
         CPPPATH = { 
+			"src/external/remotery/lib",
 			"src/external/jansson/include",
 			"src/external/libuv/include",
             "src/external/bgfx/include", 
             "src/external/bx/include",
-            "src/external/nanovg",
             "src/external/stb",
             "src/prodbg", 
         	"api/include",
@@ -49,8 +49,8 @@ Program {
         },
 
 		PROGCOM = {
-			{ "-lstdc++"; Config = { "macosx-clang-*", "linux-gcc-*" } },
-			{ "-lm -lpthread -ldl -lX11"; Config = "linux-*-*" },
+			{ "-lstdc++"; Config = "linux-gcc-*" },
+			{ "-lm -lpthread -ldl -lX11 -lGL"; Config = "linux-*-*" },
 		},
     },
 
@@ -59,7 +59,7 @@ Program {
             Dir = "src/prodbg/main",
             Extensions = { ".c", ".cpp", ".m", ".mm", ".h" },
             Filters = {
-                { Pattern = "mac"; Config = "macosx-*-*" },
+                { Pattern = "mac"; Config = { "macosx-*-*", "macosx_test-*-*" } },
                 { Pattern = "windows"; Config = "win64-*-*" },
                 { Pattern = "linux"; Config = "linux-*-*" },
             },
@@ -68,10 +68,14 @@ Program {
         },
     },
 
-    Depends = { "core", "ui", "api", "session", "yaml",
-    			"remote_api", "stb", "bgfx", "nanovg", "uv", "jansson" },
+    Depends = { "core", "ui", "api", "session", "jansson", "remote_api", "stb", "bgfx", "uv", "imgui", "remotery", "foundation_lib" },
 
-    Libs = { { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
+    Libs = { 
+      { 
+    	"Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", 
+        "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } 
+      },
+    },
 
     Frameworks = { "Cocoa"  },
 }
