@@ -285,6 +285,42 @@ void testAllValueTypes(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void testHeaderArray(void**)
+{
+    PDBinaryWriter_reset(writer);
+
+    // Not implemented so expect it to always fail
+
+	assert_true(PDWrite_headerArrayBegin(writer, 0) == PDWriteStatus_fail);
+	assert_true(PDWrite_headerArrayEnd(writer) == PDWriteStatus_fail);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void testArrayWriteBreakage(void**)
+{
+    PDBinaryWriter_reset(writer);
+
+    assert_true(PDWrite_arrayBegin(writer, "test") == PDWriteStatus_ok);
+    assert_true(PDWrite_arrayBegin(writer, "test") == PDWriteStatus_fail); // Should fail here as we are already writing an array
+
+    assert_true(PDWrite_arrayEnd(writer) == PDWriteStatus_ok); 
+    assert_true(PDWrite_arrayEnd(writer) == PDWriteStatus_fail); // Should fail here as we are ended the array
+
+    PDBinaryWriter_reset(writer);
+
+    assert_true(PDWrite_arrayBegin(writer, "test") == PDWriteStatus_ok);
+    assert_true(PDWrite_arrayEntryBegin(writer) == PDWriteStatus_ok); 
+    assert_true(PDWrite_arrayEntryBegin(writer) == PDWriteStatus_fail); // Must call end before new Begin
+
+    assert_true(PDWrite_arrayEntryEnd(writer) == PDWriteStatus_ok); 
+    assert_true(PDWrite_arrayEntryEnd(writer) == PDWriteStatus_fail); // must call begin before new End
+
+    assert_true(PDWrite_arrayEnd(writer) == PDWriteStatus_ok); 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void testFind(void**)
 {
     uint8_t u8;
@@ -491,10 +527,12 @@ int main()
         unit_test(testDataReadWrite),
         unit_test(testWriteSingleString),
         unit_test(testWriteReadAction),
+        unit_test(testArrayWriteBreakage),
         unit_test(testAllValueTypes),
         unit_test(testFind),
         unit_test(testArray),
         unit_test(testArrayRead),
+		unit_test(testHeaderArray),
     };
 
     reader = &readerData;
@@ -503,6 +541,10 @@ int main()
     PDBinaryReader_init(reader);
     PDBinaryWriter_init(writer);
 
-    return run_tests(tests);
+    int test = run_tests(tests);
+
+    PDBinaryWriter_destroy(writer);
+
+   	return test;
 }
 
