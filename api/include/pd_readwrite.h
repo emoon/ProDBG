@@ -121,6 +121,8 @@ typedef struct PDWriter
 
     /**
      *
+     * NOTICE THAT THIS IS NOT IMPLEMENTED YET.
+     *
      * Begins an table with a predefined structure. This is useful when writing
      * a table where all the entries are the same all the time. So in order to save both
      * CPU time and bandwith it's possible to begin an array with a fixed number of slots for
