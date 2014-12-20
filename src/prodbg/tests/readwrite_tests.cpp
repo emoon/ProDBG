@@ -317,6 +317,15 @@ void testArrayWriteBreakage(void**)
     assert_true(PDWrite_arrayEntryEnd(writer) == PDWriteStatus_fail); // must call begin before new End
 
     assert_true(PDWrite_arrayEnd(writer) == PDWriteStatus_ok); 
+
+    PDBinaryWriter_reset(writer);
+
+	assert_true(PDWrite_eventBegin(writer, 10) == PDWriteStatus_ok);
+	assert_true(PDWrite_eventBegin(writer, 10) == PDWriteStatus_fail);	// Must end even before new event
+
+	assert_true(PDWrite_eventEnd(writer) == PDWriteStatus_ok);
+	assert_true(PDWrite_eventEnd(writer) == PDWriteStatus_fail);	// Can't end event wtire 
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
