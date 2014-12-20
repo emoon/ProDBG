@@ -325,7 +325,6 @@ void testArrayWriteBreakage(void**)
 
 	assert_true(PDWrite_eventEnd(writer) == PDWriteStatus_ok);
 	assert_true(PDWrite_eventEnd(writer) == PDWriteStatus_fail);	// Can't end event wtire 
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
