@@ -3,12 +3,14 @@
 #include <setjmp.h>
 #include <cmocka.h>
 #include "ui/ui_dock.h"
+#include "core/math.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void create_docking(void**)
 {
-	UIDockingGrid* grid = UIDockingGrid_create();
+	Rect rect = { 0, 0, 0, 0 }; 
+	UIDockingGrid* grid = UIDock_createGrid(rect);
 	assert_non_null(grid);
 }
 

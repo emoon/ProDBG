@@ -9,28 +9,67 @@ struct ViewPluginInstance;
 struct UIDockView
 {
 	ViewPluginInstance* viewInstance;
-	Rect windowRect; 
+	Rect rect; 
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum UIDockSizerDir
+{
+	UIDockSizerDir_Horz,
+	UIDockSizerDir_Vert,
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct UIDockSizer
+{
+	UIDockView* side0;	// up/left
+	UIDockView* side1;	// down/right
+	UIDockSizerDir dir;
+	Rect rect; 
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct UIDock
 {
-	struct UIDock* topViews;
-	struct UIDock* bottomViews;
-	struct UIDock* rightViews;
-	struct UIDock* leftViews;
+	struct UIDockSizer* topSizer;
+	struct UIDockSizer* bottomSizer;
+	struct UIDockSizer* rightSizer;
+	struct UIDockSizer* leftSizer;
+	struct UIDockView currentView;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum UIDockStatus
+{
+	UIDockStatus_ok,
+	UIDockStatus_fail,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct UIDockingGrid
 {
-	UIDock* topDock;
+	UIDock* docks;
+	UIDockSizer* sizers;
+	Rect rect;
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-UIDockingGrid* UIDockingGrid_create();
+UIDockingGrid* UIDock_createGrid(Rect rect);
+
+//void UIDock_dockLeft(UIDock* dock, ViewPluginInstance* instance);
+//UIDockStatus UIDock_dockRight(UIDock* dock, ViewPluginInstance* instance);
+//UIDockStatus UIDock_dockBottom(UIDock* dock, ViewPluginInstance* instance);
+//UIDockStatus UIDock_dockTop(UIDock* dock, ViewPluginInstance* instance);
+
+//void UIDock_splitHorzUp(UIDock* dock, ViewPluginInstance* instance);
+//UIDockStatus UIDock_splitHorzDow(UIDock* dock, ViewPluginInstance* instance);
+//UIDockStatus UIDock_splitVertRight(UIDock* dock, ViewPluginInstance* instance);
+//UIDockStatus UIDock_splitVertLeft(UIDock* dock, ViewPluginInstance* instance);
+
 
