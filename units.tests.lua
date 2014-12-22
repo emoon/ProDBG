@@ -11,6 +11,7 @@ local function Test(params)
 
 		Env = { 
 			CPPPATH = { 
+				"src/external/foundation_lib",
 				"api/include",
             	"src/external/imgui",
 				"src/external/cmocka/include",
@@ -30,7 +31,7 @@ local function Test(params)
 
 		Depends = { "uv", "api", "core", "stb", "remote_api", "cmocka", "session", "ui", "bgfx", "jansson", "imgui", "foundation_lib" },
 
-		Libs = { { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
+		Libs = { { "Ws2_32.lib", "shell32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 
 		Frameworks = { "Cocoa"  },
 	}
