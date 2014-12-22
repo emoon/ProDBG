@@ -1,10 +1,10 @@
 #include "ui_dock.h"
 #include "core/alloc.h"
-//#include <foundation/array.h>
+#include "api/plugin_instance.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//const float g_sizerSize = 4.0f; // TODO: Move to settings
+const int g_sizerSize = 4; // TODO: Move to settings
 //const float g_splitPercentage = 0.5;	// TODO: Move to settings. Default split in middle (50/50)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -17,8 +17,6 @@ UIDockingGrid* UIDock_createGrid(Rect rect)
 	return grid;
 }
 
-/*
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This will check if we haven't attached any view to the dock we just set it
 
@@ -28,9 +26,19 @@ static bool checkFirstAttach(UIDock* dock, ViewPluginInstance* instance)
 		return false;
 
 	dock->currentView.viewInstance = instance;
-	dock->currentView.rect = dock->rect;
+	dock->currentView.rect = instance->rect;
 
 	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+UIDock* UIDock_addView(UIDockingGrid* grid, ViewPluginInstance* view)
+{
+
+
+
+	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,14 +53,17 @@ void UIDock_dockLeft(UIDock* dock, ViewPluginInstance* instance)
 	// TODO: Support non-even split 
 	//
 
-	rect.width /= 2;
-
 	// Push current window forward 
 
-	dock->currentView.y += rect.w;
-	dock->currentView.width = rect.width;
+	dock->currentView.rect.y += rect.width;
+	dock->currentView.rect.width = rect.width;
+
+	rect.width = int_min(rect.width - g_sizerSize, 0);
+
+
 	                                
 }
+/*
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

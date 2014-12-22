@@ -62,6 +62,10 @@ struct UIDockingGrid
 
 UIDockingGrid* UIDock_createGrid(Rect rect);
 
+UIDock* UIDock_addView(UIDockingGrid* grid, ViewPluginInstance* view);
+
+void UIDock_dockLeft(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* view);
+
 //void UIDock_dockLeft(UIDock* dock, ViewPluginInstance* instance);
 //UIDockStatus UIDock_dockRight(UIDock* dock, ViewPluginInstance* instance);
 //UIDockStatus UIDock_dockBottom(UIDock* dock, ViewPluginInstance* instance);
