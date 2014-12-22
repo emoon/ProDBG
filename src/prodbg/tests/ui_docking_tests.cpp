@@ -11,7 +11,7 @@
 static void create_docking(void**)
 {
 	Rect rect = { 0, 0, 0, 0 }; 
-	UIDockingGrid* grid = UIDock_createGrid(rect);
+	UIDockingGrid* grid = UIDock_createGrid(&rect);
 	assert_non_null(grid);
 }
 
