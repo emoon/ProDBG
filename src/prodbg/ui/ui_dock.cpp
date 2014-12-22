@@ -35,6 +35,8 @@ static bool checkFirstAttach(UIDock* dock, ViewPluginInstance* instance)
 
 UIDock* UIDock_addView(UIDockingGrid* grid, ViewPluginInstance* view)
 {
+	(void)grid;
+	(void)view;
 
 
 
