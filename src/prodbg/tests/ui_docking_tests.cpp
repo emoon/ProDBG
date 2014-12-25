@@ -55,8 +55,12 @@ static void test_left_attach(void**)
 
 	UIDock_dockLeft(grid, dock, &view1);
 
+	// at this point we should have two views/docks split in the middle
+	// with one sizer so lets verify that
+
 	assert_int_equal((int)grid->sizers.size(), 1);
 	assert_int_equal((int)grid->docks.size(), 2);
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
