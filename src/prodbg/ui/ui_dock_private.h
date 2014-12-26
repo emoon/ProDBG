@@ -3,6 +3,8 @@
 #include "api/plugin_instance.h"
 #include <vector> // TODO: replace with custom arrays
 
+const int g_sizerSize = 4; // TODO: Move to settings
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 enum UIDockSizerDir
@@ -19,12 +21,14 @@ enum UIDockType
 	UIDockType_Floating,
 };
 
+struct UIDock;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct UIDockSizer
 {
-	ViewPluginInstance* side0;	// up/left
-	ViewPluginInstance* side1;	// down/right
+	struct UIDock* side0;	// up/left
+	struct UIDock* side1;	// down/right
 	UIDockSizerDir dir;
 	Rect rect; 
 };

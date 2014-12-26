@@ -69,19 +69,17 @@ static void test_left_attach(void**)
 	assert_null(dock0->topSizer);	
 	assert_null(dock0->bottomSizer);	
 	assert_null(dock0->leftSizer);	
-
 	assert_true(dock0->rightSizer == s0);	
 
 	assert_null(dock1->topSizer);	
 	assert_null(dock1->bottomSizer);	
 	assert_null(dock1->rightSizer);	
-
 	assert_true(dock1->leftSizer == s0);	
 
-	assert_true(s0->side0 = &view0);
-	assert_true(s0->side1 = &view1);
+	assert_true(s0->side0->view = &view0);
+	assert_true(s0->side1->view = &view1);
 
-	UIDock_dockLeft(grid, dock0, &view2);
+	UIDock_dockLeft(grid, dock1, &view2);
 
 	// at this point we should have tree views looking like this:
 	//  ______s0___s1__
@@ -93,6 +91,37 @@ static void test_left_attach(void**)
 	assert_int_equal((int)grid->sizers.size(), 2);
 	assert_int_equal((int)grid->docks.size(), 3);
 
+	UIDock* dock2 = grid->docks[2];
+	UIDockSizer* s1 = grid->sizers[1]; 
+
+	// Make sure sizers are assigned correct
+
+	assert_null(dock0->topSizer);	
+	assert_null(dock0->bottomSizer);	
+	assert_null(dock0->leftSizer);	
+	assert_true(dock0->rightSizer == s0);	
+
+	assert_null(dock2->topSizer);	
+	assert_null(dock2->bottomSizer);	
+	assert_true(dock2->leftSizer == s0);	
+	assert_true(dock2->rightSizer == s1);	
+
+	assert_null(dock1->topSizer);	
+	assert_null(dock1->bottomSizer);	
+	assert_true(dock1->leftSizer == s1);	
+	assert_null(dock1->rightSizer);	
+
+	// Validate the size of views (they should not go above the inital size)
+	// with the sizer size taken into account
+
+	int width = 0;
+
+	for (int i = 0; i < 3; ++i)
+		width += grid->docks[i]->view->rect.width;
+
+	width += g_sizerSize * 2;
+
+	assert_int_equal(width, rect.width);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

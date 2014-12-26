@@ -4,7 +4,6 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const int g_sizerSize = 4; // TODO: Move to settings
 //const float g_splitPercentage = 0.5;	// TODO: Move to settings. Default split in middle (50/50)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,6 +59,10 @@ void UIDock_dockLeft(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* inst
 	newDock->view = instance;
 	Rect rect = dock->view->rect;
 
+	// TODO: Support non 50/50 split
+
+	rect.width /= 2;
+
 	// Push current window forward 
 
 	dock->view->rect.y += rect.width;
@@ -77,8 +80,8 @@ void UIDock_dockLeft(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* inst
 	UIDockSizer* sizer = (UIDockSizer*)alloc_zero(sizeof(UIDockSizer));
 	Rect sizerRect = calcVerticalSizerSize(&rect);
 
-	sizer->side0 = newDock->view; 
-	sizer->side1 = dock->view; 
+	sizer->side0 = newDock; 
+	sizer->side1 = dock; 
 	sizer->dir = UIDockSizerDir_Vert;
 	sizer->rect = sizerRect;
 
@@ -107,8 +110,10 @@ void UIDock_dockLeft(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* inst
 		// |------|-------|------|
 		//
 		// Is what the result should be and the old view is what gets split
-
-		dock->leftSizer->side1 = instance;
+		
+		newDock->leftSizer = dock->leftSizer;
+		newDock->rightSizer = sizer;
+		dock->leftSizer = sizer;
 	}
 
 	grid->sizers.push_back(sizer);
