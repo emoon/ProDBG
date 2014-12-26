@@ -117,7 +117,7 @@ static void test_left_attach(void**)
 	int width = 0;
 
 	for (int i = 0; i < 3; ++i)
-		width += grid->docks[i]->view->rect.width;
+		width += (int)grid->docks[i]->view->rect.width;
 
 	width += g_sizerSize * 2;
 
