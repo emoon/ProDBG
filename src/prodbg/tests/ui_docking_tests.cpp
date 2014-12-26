@@ -33,16 +33,15 @@ static void test_left_attach(void**)
 	Rect rect = { 0, 0, 1000, 1000 }; 
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
 
+	ViewPluginInstance view0 = {};
+	ViewPluginInstance view1 = {};
+	ViewPluginInstance view2 = {};
 
 	// Validate grid
 
 	validateRect(grid->rect, rect);
 	assert_int_equal(grid->sizers.size(), 0);
 	assert_int_equal(grid->docks.size(), 0);
-
-/*
-	ViewPluginInstance view0 = {};
-	ViewPluginInstance view1 = {};
 
 	UIDock* dock = UIDock_addView(grid, &view0);
 
@@ -65,24 +64,35 @@ static void test_left_attach(void**)
 
 	UIDock* dock0 = grid->docks[0];
 	UIDock* dock1 = grid->docks[1];
-
-	UIDockSizer* sizer = grid->sizers[0]; 
+	UIDockSizer* s0 = grid->sizers[0]; 
 
 	assert_null(dock0->topSizer);	
 	assert_null(dock0->bottomSizer);	
 	assert_null(dock0->leftSizer);	
 
-	assert_true(dock0->rightSizer == sizer);	
+	assert_true(dock0->rightSizer == s0);	
 
 	assert_null(dock1->topSizer);	
 	assert_null(dock1->bottomSizer);	
 	assert_null(dock1->rightSizer);	
 
-	assert_true(dock1->leftSizer == sizer);	
+	assert_true(dock1->leftSizer == s0);	
 
-	assert_true(sizer->side0 = &view0);
-	assert_true(sizer->side1 = &view1);
-*/
+	assert_true(s0->side0 = &view0);
+	assert_true(s0->side1 = &view1);
+
+	UIDock_dockLeft(grid, dock0, &view2);
+
+	// at this point we should have tree views looking like this:
+	//  ______s0___s1__
+	// |       |   |   |
+	// |   d0  |d2 |d1 |
+	// |       |   |   |
+	// -----------------
+
+	assert_int_equal((int)grid->sizers.size(), 2);
+	assert_int_equal((int)grid->docks.size(), 3);
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

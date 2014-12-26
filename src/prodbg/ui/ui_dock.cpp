@@ -86,8 +86,8 @@ void UIDock_dockLeft(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* inst
 	{
 		// Attach the sizer
 
-		dock->leftSizer = sizer;
-		newDock->rightSizer = sizer;
+		dock->rightSizer = sizer;
+		newDock->leftSizer = sizer;
 	}
 	else
 	{
