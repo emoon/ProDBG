@@ -40,10 +40,8 @@ UIDock* UIDock_addView(UIDockingGrid* grid, ViewPluginInstance* view)
 
 static Rect calcVerticalSizerSize(const Rect* rect)
 {
-	Rect sizerRect;
+	Rect sizerRect = *rect;
 
-	sizerRect.x = rect->x; 
-	sizerRect.y = rect->y; 
 	sizerRect.width = g_sizerSize;
 	sizerRect.height = rect->height;
 
@@ -52,11 +50,22 @@ static Rect calcVerticalSizerSize(const Rect* rect)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static Rect calcHorizontalSizerSize(const Rect* rect)
+{
+	Rect sizerRect = *rect;
+
+	sizerRect.width = rect->width;
+	sizerRect.height = g_sizerSize;
+
+	return sizerRect;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void UIDock_dockLeft(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* instance)
 {
-	UIDock* newDock = (UIDock*)alloc_zero(sizeof(UIDock));
+	UIDock* newDock = new UIDock(instance); 
 
-	newDock->view = instance;
 	Rect rect = dock->view->rect;
 
 	// TODO: Support non 50/50 split
@@ -120,6 +129,75 @@ void UIDock_dockLeft(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* inst
 	grid->docks.push_back(newDock);
 	                                
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIDock_dockBottom(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* instance)
+{
+	UIDock* newDock = new UIDock(instance); 
+
+	Rect rect = dock->view->rect;
+
+	// TODO: Support non 50/50 split
+
+	rect.height /= 2;
+
+	// Set the currect rect height to half 
+
+	dock->view->rect.height = rect.height;
+
+	// Setup the rect for the new dock
+
+	rect.height = int_min(rect.height - g_sizerSize, 0);
+	newDock->view->rect = rect;
+	
+	// Check if the window that we dock to has any sizer of the left size
+	// and if it doesn't (already on the left edge of the grid) we need
+	// to create a new one
+
+	UIDockSizer* sizer = new UIDockSizer; 
+	Rect sizerRect = calcHorizontalSizerSize(&rect);
+
+	sizer->side0.push_back(newDock); 
+	sizer->side1.push_back(dock); 
+	sizer->dir = UIDockSizerDir_Horz;
+	sizer->rect = sizerRect;
+
+	if (!dock->bottomSizer)
+	{
+		// Attach the sizer
+
+		dock->bottomSizer = sizer;
+		newDock->topSizer = sizer;
+	}
+	else
+	{
+		// If there already is a sizer we are getting connected between two windows
+		//
+		// |------|------|
+		// | Left | Old  |
+		// | View | View |
+		// |------|------|
+		//
+		// -->
+		// -->
+		//        os      ns
+		// |------|-------|------|
+		// | Left | New   | Old  |
+		// | View | View  | View |
+		// |------|-------|------|
+		//
+		// Is what the result should be and the old view is what gets split
+		
+		newDock->bottomSizer = dock->bottomSizer;
+		newDock->topSizer = sizer;
+		dock->bottomSizer = sizer;
+	}
+
+	grid->sizers.push_back(sizer);
+	grid->docks.push_back(newDock);
+}
+
 /*
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

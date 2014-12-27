@@ -39,6 +39,11 @@ struct UIDockSizer
 
 struct UIDock
 {
+	inline UIDock(ViewPluginInstance* inView) : 
+		topSizer(0), bottomSizer(0), rightSizer(0), leftSizer(0), view(inView), type(UIDockType_Docked) 
+	{ 
+	}
+
 	UIDockSizer* topSizer;
 	UIDockSizer* bottomSizer;
 	UIDockSizer* rightSizer;
