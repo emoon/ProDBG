@@ -77,7 +77,7 @@ void UIDock_dockLeft(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* inst
 	// and if it doesn't (already on the left edge of the grid) we need
 	// to create a new one
 
-	UIDockSizer* sizer = (UIDockSizer*)alloc_zero(sizeof(UIDockSizer));
+	UIDockSizer* sizer = new UIDockSizer; 
 	Rect sizerRect = calcVerticalSizerSize(&rect);
 
 	sizer->side0 = newDock; 
