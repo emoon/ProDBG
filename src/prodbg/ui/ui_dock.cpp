@@ -80,8 +80,8 @@ void UIDock_dockLeft(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* inst
 	UIDockSizer* sizer = new UIDockSizer; 
 	Rect sizerRect = calcVerticalSizerSize(&rect);
 
-	sizer->side0 = newDock; 
-	sizer->side1 = dock; 
+	sizer->side0.push_back(newDock); 
+	sizer->side1.push_back(dock); 
 	sizer->dir = UIDockSizerDir_Vert;
 	sizer->rect = sizerRect;
 

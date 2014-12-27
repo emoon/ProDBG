@@ -76,8 +76,8 @@ static void test_left_attach(void**)
 	assert_null(dock1->rightSizer);	
 	assert_true(dock1->leftSizer == s0);	
 
-	assert_true(s0->side0->view = &view0);
-	assert_true(s0->side1->view = &view1);
+	assert_true(s0->side0[0]->view = &view0);
+	assert_true(s0->side1[0]->view = &view1);
 
 	UIDock_dockLeft(grid, dock1, &view2);
 
