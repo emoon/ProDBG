@@ -330,8 +330,8 @@ int main()
 {
     const UnitTest tests[] =
     {
-        // unit_test(create_docking),
-        //unit_test(test_left_attach),
+        unit_test(create_docking),
+        unit_test(test_left_attach),
         unit_test(test_misc),
     };
 
