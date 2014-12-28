@@ -45,10 +45,10 @@ static void test_left_attach(void**)
 
 	UIDock* dock = UIDock_addView(grid, &view0);
 
-	assert_null(dock->topSizer);
-	assert_null(dock->bottomSizer);
-	assert_null(dock->rightSizer);
-	assert_null(dock->leftSizer);
+	assert_true(dock->topSizer == &grid->topSizer);
+	assert_true(dock->bottomSizer == &grid->bottomSizer);
+	assert_true(dock->rightSizer == &grid->rightSizer);
+	assert_true(dock->leftSizer == &grid->leftSizer);
 	assert_true(dock->view == &view0);
 
 	assert_int_equal((int)grid->sizers.size(), 0);
@@ -67,29 +67,32 @@ static void test_left_attach(void**)
 	UIDockSizer* s0 = grid->sizers[0]; 
 
 	assert_true(s0->dir == UIDockSizerDir_Vert); 
-	assert_null(dock0->topSizer);	
-	assert_null(dock0->bottomSizer);	
-	assert_null(dock0->leftSizer);	
-	assert_true(dock0->rightSizer == s0);	
 
-	assert_null(dock1->topSizer);	
-	assert_null(dock1->bottomSizer);	
-	assert_null(dock1->rightSizer);	
-	assert_true(dock1->leftSizer == s0);	
+	assert_true(dock0->topSizer == &grid->topSizer);	
+	assert_true(dock0->bottomSizer == &grid->bottomSizer);	
+	assert_true(dock0->leftSizer == s0); 
+	assert_true(dock0->rightSizer == &grid->rightSizer);	
 
-	assert_int_equal((int)s0->side0.size(), 1);
-	assert_int_equal((int)s0->side1.size(), 1);
+	assert_true(dock1->topSizer == &grid->topSizer);	
+	assert_true(dock1->bottomSizer == &grid->bottomSizer);	
+	assert_true(dock1->leftSizer == &grid->leftSizer);	
+	assert_true(dock1->rightSizer == s0);
+
+	// The top and bottom sizers should now be connected to the two views
+
+	assert_int_equal((int)grid->topSizer.side1.size(), 2);
+	assert_int_equal((int)grid->bottomSizer.side0.size(), 2);
 
 	assert_true(s0->side0[0]->view = &view0);
 	assert_true(s0->side1[0]->view = &view1);
 
-	UIDock_dockLeft(grid, dock1, &view2);
+	UIDock_dockLeft(grid, dock0, &view2);
 
 	// at this point we should have tree views looking like this:
 	//  ______s0___s1__
-	// |       |   |   |
-	// |   d0  |d2 |d1 |
-	// |       |   |   |
+	// |    |   |      |
+	// | d1 |d2 |  d0  |
+	// |    |   |      |
 	// -----------------
 
 	assert_int_equal((int)grid->sizers.size(), 2);
@@ -104,20 +107,20 @@ static void test_left_attach(void**)
 
 	// Make sure sizers are assigned correct
 
-	assert_null(dock0->topSizer);	
-	assert_null(dock0->bottomSizer);	
-	assert_null(dock0->leftSizer);	
-	assert_true(dock0->rightSizer == s0);	
+	assert_true(dock0->topSizer == &grid->topSizer);	
+	assert_true(dock0->bottomSizer == &grid->bottomSizer);	
+	assert_true(dock0->leftSizer == s1);	
+	assert_true(dock0->rightSizer == &grid->rightSizer);	
 
-	assert_null(dock2->topSizer);	
-	assert_null(dock2->bottomSizer);	
+	assert_true(dock1->topSizer == &grid->topSizer);	
+	assert_true(dock1->bottomSizer == &grid->bottomSizer);	
+	assert_true(dock1->leftSizer == &grid->leftSizer);	
+	assert_true(dock1->rightSizer == s0);	
+
+	assert_true(dock2->topSizer == &grid->topSizer);	
+	assert_true(dock2->bottomSizer == &grid->bottomSizer);	
 	assert_true(dock2->leftSizer == s0);	
 	assert_true(dock2->rightSizer == s1);	
-
-	assert_null(dock1->topSizer);	
-	assert_null(dock1->bottomSizer);	
-	assert_true(dock1->leftSizer == s1);	
-	assert_null(dock1->rightSizer);	
 
 	// Validate the size of views (they should not go above the inital size)
 	// with the sizer size taken into account
@@ -135,6 +138,7 @@ static void test_left_attach(void**)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 
 static void test_bottom_attach(void**)
 {
@@ -194,11 +198,16 @@ static void test_bottom_attach(void**)
 	UIDock_dockBottom(grid, dock1, &view2);
 
 	// at this point we should have tree views looking like this:
-	//  ______s0___s1__
-	// |       |   |   |
-	// |   d0  |d1 |d2 |
-	// |       |   |   |
-	// -----------------
+	//  _______
+	// |       |
+	// |   d0  |
+	// |       |
+	// ---------
+	// |   d1  |
+	// |-------|
+	// |   d2  |
+	// |-------|
+	//
 
 	assert_int_equal((int)grid->sizers.size(), 2);
 	assert_int_equal((int)grid->docks.size(), 3);
@@ -242,6 +251,7 @@ static void test_bottom_attach(void**)
 	// TODO: currently leaks here, will be fixed once added delete of views
 
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -252,7 +262,7 @@ int main()
     {
         unit_test(create_docking),
         unit_test(test_left_attach),
-        unit_test(test_bottom_attach),
+        // unit_test(test_bottom_attach),
     };
 
     return run_tests(tests);
