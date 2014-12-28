@@ -1,5 +1,6 @@
 #include "ui_dock.h"
 #include "core/alloc.h"
+#include "core/math.h"
 #include "ui_dock_private.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -181,6 +182,36 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static inline UIDockSizerDir isHoveringSizer(UIDockSizer* sizer, Vec2* size)
+{
+	UIDockSizerDir dir = sizer->dir;
+
+	float x = sizer->rect.x;
+	float y = sizer->rect.y;
+	float w = x + sizer->rect.width;
+	float h = y + sizer->rect.height;
+
+	// resize the sizes with the snap area
+
+	if (dir == UIDockSizerDir_Horz)
+	{
+		y -= g_sizerSnapSize; 
+		h += g_sizerSnapSize; 
+	}
+	else
+	{
+		x -= g_sizerSnapSize; 
+		w += g_sizerSnapSize; 
+	}
+
+	if ((size->x >= x && size->x < w) && (size->y >= y && size->y < h))
+		return dir;
+
+	return UIDockSizerDir_None;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void UIDock_dockTop(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* instance)
 {
 	dockSide(UIDockSide_Top, grid, dock, instance);
@@ -207,6 +238,20 @@ void UIDock_dockRight(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* ins
 	dockSide(UIDockSide_Right, grid, dock, instance);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+UIDockSizerDir UIDock_isHoveringSizer(UIDockingGrid* grid, Vec2* pos)
+{
+	for (UIDockSizer* sizer : grid->sizers)
+	{
+		UIDockSizerDir dir = isHoveringSizer(sizer, pos);
+
+		if (dir != UIDockSizerDir_None)
+			return dir;
+	}
+
+	return UIDockSizerDir_None;
+}
 
 
 /*
