@@ -98,14 +98,21 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 
 			if (side == UIDockSide_Top)
 			{
-				dock->bottomSizer = sizer;
-				newDock->topSizer = sizer;
+				newDock->topSizer = dock->topSizer;
+				newDock->bottomSizer = sizer;
+				dock->topSizer = sizer;
+
+				sizer->side0.push_back(newDock); 
+				sizer->side1.push_back(dock); 
 			}
 			else
 			{
 				newDock->bottomSizer = dock->bottomSizer;
-				newDock->topSizer = dock->topSizer;
+				newDock->topSizer = sizer;
 				dock->bottomSizer = sizer;
+
+				sizer->side0.push_back(dock); 
+				sizer->side1.push_back(newDock); 
 			}
 
 			break;
@@ -119,14 +126,20 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 			// if we connect on the left side we need to move the current view to the right
 			// otherwise we move the new view to the side
 
-			if (side == UIDockSide_Left)
-				dock->view->rect.x += rect.width;
-			else
-				rect.x += rect.width;
-
 			dock->view->rect.width = rect.width;
 
-			rect.width = int_min(rect.width - g_sizerSize, 0);
+			if (side == UIDockSide_Left)
+			{
+				dock->view->rect.x += rect.width;
+				rect.width = int_min(rect.width - g_sizerSize, 0);
+			}
+			else
+			{
+				rect.x += rect.width;
+				dock->view->rect.x = int_min(dock->view->rect.x - g_sizerSize, 0);
+				rect.width = int_min(rect.width - g_sizerSize, 0);
+			}
+
 			calcVerticalSizerSize(sizer, &rect);
 
 			newDock->topSizer = dock->topSizer;
@@ -143,6 +156,7 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 			}
 			else
 			{
+				newDock->rightSizer = dock->rightSizer;
 				newDock->leftSizer = sizer;
 				dock->rightSizer = sizer;
 
@@ -167,9 +181,9 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UIDock_dockLeft(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* instance)
+void UIDock_dockTop(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* instance)
 {
-	dockSide(UIDockSide_Left, grid, dock, instance);
+	dockSide(UIDockSide_Top, grid, dock, instance);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -178,6 +192,22 @@ void UIDock_dockBottom(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* in
 {
 	dockSide(UIDockSide_Bottom, grid, dock, instance);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIDock_dockLeft(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* instance)
+{
+	dockSide(UIDockSide_Left, grid, dock, instance);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIDock_dockRight(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* instance)
+{
+	dockSide(UIDockSide_Right, grid, dock, instance);
+}
+
+
 
 /*
 

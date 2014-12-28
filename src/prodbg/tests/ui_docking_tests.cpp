@@ -9,7 +9,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void create_docking(void**)
+void create_docking(void**)
 {
 	Rect rect = { 0, 0, 0, 0 }; 
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
@@ -28,7 +28,17 @@ void validateRect(Rect r0, Rect r1)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void test_left_attach(void**)
+void validateSize(Rect r, int x, int y, int w, int h)
+{
+	assert_int_equal(r.x, x);
+	assert_int_equal(r.y, y);
+	assert_int_equal(r.width, w);
+	assert_int_equal(r.height, h);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void test_left_attach(void**)
 {
 	Rect rect = { 0, 0, 1000, 500 }; 
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
@@ -44,6 +54,8 @@ static void test_left_attach(void**)
 	assert_int_equal(grid->docks.size(), 0);
 
 	UIDock* dock = UIDock_addView(grid, &view0);
+
+	validateSize(dock->view->rect, 0, 0, 1000, 500);
 
 	assert_true(dock->topSizer == &grid->topSizer);
 	assert_true(dock->bottomSizer == &grid->bottomSizer);
@@ -65,6 +77,9 @@ static void test_left_attach(void**)
 	UIDock* dock0 = grid->docks[0];
 	UIDock* dock1 = grid->docks[1];
 	UIDockSizer* s0 = grid->sizers[0]; 
+
+	validateSize(dock0->view->rect, 500, 0, 500, 500);
+	validateSize(dock1->view->rect, 0, 0, 500 - g_sizerSize, 500);
 
 	assert_true(s0->dir == UIDockSizerDir_Vert); 
 
@@ -97,6 +112,9 @@ static void test_left_attach(void**)
 
 	assert_int_equal((int)grid->sizers.size(), 2);
 	assert_int_equal((int)grid->docks.size(), 3);
+
+	assert_int_equal((int)grid->topSizer.side1.size(), 3);
+	assert_int_equal((int)grid->bottomSizer.side0.size(), 3);
 
 	UIDock* dock2 = grid->docks[2];
 	UIDockSizer* s1 = grid->sizers[1]; 
@@ -249,20 +267,72 @@ static void test_bottom_attach(void**)
 	assert_int_equal(height, rect.height);
 
 	// TODO: currently leaks here, will be fixed once added delete of views
-
 }
 */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void test_misc(void**)
+{
+	Rect rect = { 0, 0, 1000, 500 }; 
+	UIDockingGrid* grid = UIDock_createGrid(&rect);
+
+	ViewPluginInstance view0 = {};
+	ViewPluginInstance view1 = {};
+	ViewPluginInstance view2 = {};
+
+	UIDock* dock = UIDock_addView(grid, &view0);
+	UIDock_dockRight(grid, dock, &view1);
+	UIDock_dockBottom(grid, dock, &view2);
+
+	// Expected layout:
+	//
+	//     _____s0_______
+	//    |      |      |
+	//    |  d0  |      |
+	//    |      |      |
+	// s1 |------|  d1  |
+	//    |      |      |
+	//    |  d2  |      |
+	//    |      |      |
+	//    ---------------
+	//
+	
+	assert_int_equal((int)grid->sizers.size(), 2);
+	assert_int_equal((int)grid->docks.size(), 3);
+
+	UIDockSizer* s0 = grid->sizers[0];
+	UIDockSizer* s1 = grid->sizers[1];
+
+	UIDock* d0 = grid->docks[0];
+	UIDock* d1 = grid->docks[1];
+	UIDock* d2 = grid->docks[2];
+
+	assert_true(d0->topSizer == &grid->topSizer);
+	assert_true(d0->bottomSizer == s1);
+	assert_true(d0->rightSizer == s0); 
+	assert_true(d0->leftSizer == &grid->leftSizer); 
+
+	assert_true(d1->topSizer == &grid->topSizer);
+	assert_true(d1->bottomSizer == &grid->bottomSizer);
+	assert_true(d1->rightSizer == &grid->rightSizer); 
+	assert_true(d1->leftSizer == s0); 
+
+	assert_true(d2->topSizer == s1); 
+	assert_true(d2->bottomSizer == &grid->bottomSizer);
+	assert_true(d2->rightSizer == s0); 
+	assert_true(d2->leftSizer == &grid->leftSizer); 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main()
 {
     const UnitTest tests[] =
     {
-        unit_test(create_docking),
-        unit_test(test_left_attach),
-        // unit_test(test_bottom_attach),
+        // unit_test(create_docking),
+        //unit_test(test_left_attach),
+        unit_test(test_misc),
     };
 
     return run_tests(tests);
