@@ -186,10 +186,10 @@ static inline UIDockSizerDir isHoveringSizer(UIDockSizer* sizer, Vec2* size)
 {
 	UIDockSizerDir dir = sizer->dir;
 
-	float x = sizer->rect.x;
-	float y = sizer->rect.y;
-	float w = x + sizer->rect.width;
-	float h = y + sizer->rect.height;
+	float x = (float)sizer->rect.x;
+	float y = (float)sizer->rect.y;
+	float w = x + (float)sizer->rect.width;
+	float h = y + (float)sizer->rect.height;
 
 	// resize the sizes with the snap area
 
