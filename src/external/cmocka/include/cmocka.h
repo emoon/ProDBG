@@ -83,9 +83,9 @@ int __stdcall IsDebuggerPresent();
 /* Printf format used to display LargestIntegralType. */
 #ifndef LargestIntegralTypePrintfFormat
 #ifdef _WIN32
-#define LargestIntegralTypePrintfFormat "0x%I64x"
+#define LargestIntegralTypePrintfFormat "0x%I64d"
 #else
-#define LargestIntegralTypePrintfFormat "%#llx"
+#define LargestIntegralTypePrintfFormat "%#lld"
 #endif /* _WIN32 */
 #endif /* LargestIntegralTypePrintfFormat */
 
