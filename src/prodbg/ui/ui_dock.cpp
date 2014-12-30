@@ -23,7 +23,6 @@ UIDock* UIDock_addView(UIDockingGrid* grid, ViewPluginInstance* view)
 {
 	UIDock* dock = new UIDock(view); 
 
-	dock->view = view;
 	dock->topSizer = &grid->topSizer;
 	dock->bottomSizer = &grid->bottomSizer;
 	dock->rightSizer = &grid->rightSizer;
@@ -31,10 +30,10 @@ UIDock* UIDock_addView(UIDockingGrid* grid, ViewPluginInstance* view)
 
 	// Add the dock to the sizers
 
-	grid->topSizer.side1.push_back(dock); 
-	grid->bottomSizer.side0.push_back(dock); 
-	grid->rightSizer.side0.push_back(dock); 
-	grid->leftSizer.side1.push_back(dock); 
+	grid->topSizer.addDock(dock); 
+	grid->bottomSizer.addDock(dock); 
+	grid->rightSizer.addDock(dock); 
+	grid->leftSizer.addDock(dock); 
 
 	// If this is the first we we just set it as maximized
 
@@ -72,6 +71,22 @@ static void calcHorizonalSizerSize(UIDockSizer* sizer, const Rect* rect)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static bool removeDockSide(UIDockSizer* sizer, UIDock* dock)
+{
+	for (auto i = sizer->cons.begin(), end = sizer->cons.end(); i != end; ++i)
+	{
+		if (*i == dock)
+		{
+			sizer->cons.erase(i);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* instance)
 {
 	UIDock* newDock = new UIDock(instance); 
@@ -97,24 +112,34 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 			newDock->leftSizer = dock->leftSizer;
 			newDock->rightSizer = dock->rightSizer;
 
+			newDock->leftSizer->addDock(newDock);
+			newDock->rightSizer->addDock(newDock);
+
 			if (side == UIDockSide_Top)
 			{
+				bool r = removeDockSide(dock->topSizer, dock);
+				printf("removed %d\n", r);
+
 				newDock->topSizer = dock->topSizer;
 				newDock->bottomSizer = sizer;
 				dock->topSizer = sizer;
 
-				sizer->side0.push_back(newDock); 
-				sizer->side1.push_back(dock); 
+				newDock->topSizer->addDock(newDock);
 			}
 			else
 			{
+				bool r = removeDockSide(dock->bottomSizer, dock);
+				printf("removed %d\n", r);
+
 				newDock->bottomSizer = dock->bottomSizer;
 				newDock->topSizer = sizer;
 				dock->bottomSizer = sizer;
 
-				sizer->side0.push_back(dock); 
-				sizer->side1.push_back(newDock); 
+				newDock->bottomSizer->addDock(newDock);
 			}
+
+			sizer->addDock(dock); 
+			sizer->addDock(newDock); 
 
 			break;
 		}
@@ -146,29 +171,34 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 			newDock->topSizer = dock->topSizer;
 			newDock->bottomSizer = dock->bottomSizer;
 
+			newDock->topSizer->addDock(newDock);
+			newDock->bottomSizer->addDock(newDock);
+
 			if (side == UIDockSide_Left)
 			{
+				bool r = removeDockSide(dock->leftSizer, dock);
+				printf("removed %d\n", r);
+
 				newDock->leftSizer = dock->leftSizer;
 				newDock->rightSizer = sizer;
 				dock->leftSizer = sizer;
 
-				sizer->side0.push_back(newDock); 
-				sizer->side1.push_back(dock); 
+				newDock->leftSizer->addDock(newDock);
 			}
 			else
 			{
+				bool r = removeDockSide(dock->rightSizer, dock);
+				printf("removed %d\n", r);
+
 				newDock->rightSizer = dock->rightSizer;
 				newDock->leftSizer = sizer;
 				dock->rightSizer = sizer;
 
-				sizer->side0.push_back(dock); 
-				sizer->side1.push_back(newDock); 
+				newDock->rightSizer->addDock(newDock);
 			}
 
-			// Add new dock to top/bottom sizer as both views now share it.
-
-			dock->bottomSizer->side0.push_back(newDock);
-			dock->topSizer->side1.push_back(newDock);
+			sizer->addDock(dock); 
+			sizer->addDock(newDock); 
 
 			break;
 		}
@@ -251,6 +281,40 @@ UIDockSizerDir UIDock_isHoveringSizer(UIDockingGrid* grid, Vec2* pos)
 	}
 
 	return UIDockSizerDir_None;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void deleteDock(UIDockingGrid* grid, UIDock* dock)
+{
+	// We prefer to split the whole horizontal
+
+	const size_t topCount = dock->topSizer->cons.size();
+	const size_t bottomCount = dock->bottomSizer->cons.size();
+	const size_t rightCount = dock->rightSizer->cons.size();
+	const size_t leftCount = dock->leftSizer->cons.size();
+
+	(void)topCount;
+	(void)bottomCount;
+	(void)rightCount;
+	(void)leftCount;
+
+	(void)grid;
+	(void)dock;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIDock_deleteView(UIDockingGrid* grid, ViewPluginInstance* view)
+{
+	for (UIDock* dock : grid->docks)
+	{
+		if (dock->view != view)
+		{
+			deleteDock(grid, dock);
+			return;
+		}
+	}
 }
 
 

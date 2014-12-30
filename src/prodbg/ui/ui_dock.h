@@ -20,11 +20,13 @@ enum UIDockSizerDir
 UIDockingGrid* UIDock_createGrid(Rect* rect);
 
 UIDock* UIDock_addView(UIDockingGrid* grid, ViewPluginInstance* view);
+void UIDock_deleteView(UIDockingGrid* grid, ViewPluginInstance* view);
 
 void UIDock_dockTop(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* view);
 void UIDock_dockBottom(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* view);
 void UIDock_dockLeft(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* view);
 void UIDock_dockRight(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* view);
+
 
 UIDockSizerDir UIDock_isHoveringSizer(UIDockingGrid* grid, Vec2* pos);
 

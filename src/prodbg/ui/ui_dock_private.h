@@ -32,8 +32,12 @@ struct UIDock;
 
 struct UIDockSizer
 {
-	std::vector<UIDock*> side0;	// docks connected to up/left 
-	std::vector<UIDock*> side1;	// docks connected to down/right 
+	inline void addDock(UIDock* dock)
+	{
+		cons.push_back(dock);
+	}
+
+	std::vector<UIDock*> cons;	// connected docks 
 	UIDockSizerDir dir;
 	Rect rect; 
 };
