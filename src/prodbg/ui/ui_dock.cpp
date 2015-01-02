@@ -76,18 +76,16 @@ static void calcHorizonalSizerSize(UIDockSizer* sizer, const Rect* rect)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool removeDockSide(UIDockSizer* sizer, UIDock* dock)
+static void removeDockSide(UIDockSizer* sizer, UIDock* dock)
 {
 	for (auto i = sizer->cons.begin(), end = sizer->cons.end(); i != end; ++i)
 	{
 		if (*i == dock)
 		{
 			sizer->cons.erase(i);
-			return true;
+			return;
 		}
 	}
-
-	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -390,16 +388,7 @@ static void replaceSizer(UIDock* dock, UIDockSizer* oldSizer, UIDockSizer* newSi
 		newSizer->addDock(dock);
 	}
 
-	// Remove the dock from the sizer
-
-	for (auto i = oldSizer->cons.begin(), end = oldSizer->cons.end(); i != end; ++i)
-	{
-		if (*i == dock)
-		{
-			oldSizer->cons.erase(i);
-			return;
-		}
-	}
+	removeDockSide(oldSizer, dock);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
