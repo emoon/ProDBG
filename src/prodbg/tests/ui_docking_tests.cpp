@@ -11,7 +11,7 @@
 
 void create_docking(void**)
 {
-	Rect rect = { 0, 0, 0, 0 }; 
+	Rect rect = {}; 
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
 	assert_non_null(grid);
 }
@@ -40,7 +40,12 @@ void validateSize(Rect r, int x, int y, int w, int h)
 
 void test_left_attach(void**)
 {
-	Rect rect = { 0, 0, 1000, 500 }; 
+	Rect rect;
+	rect.x = 0;
+	rect.y = 0;
+	rect.width = 1000;
+	rect.height = 500;
+
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
 
 	ViewPluginInstance view0Inst = {};
@@ -51,7 +56,6 @@ void test_left_attach(void**)
 	ViewPluginInstance* view1 = &view1Inst;
 	ViewPluginInstance* view2 = &view2Inst;
 
-
 	// Validate grid
 
 	validateRect(grid->rect, rect);
@@ -60,7 +64,7 @@ void test_left_attach(void**)
 
 	UIDock* dock = UIDock_addView(grid, view0);
 
-	validateSize(dock->view->rect, 0, 0, 1000, 500);
+	//validateSize(dock->view->rect, 0, 0, 1000, 500);
 
 	assert_true(dock->topSizer == &grid->topSizer);
 	assert_true(dock->bottomSizer == &grid->bottomSizer);
@@ -83,8 +87,15 @@ void test_left_attach(void**)
 	UIDock* dock1 = grid->docks[1];
 	UIDockSizer* s0 = grid->sizers[0]; 
 
-	validateSize(dock0->view->rect, 500, 0, 500, 500);
-	validateSize(dock1->view->rect, 0, 0, 500 - g_sizerSize, 500);
+	assert_int_equal(dock0->view->rect.x, rect.width / 2);
+	assert_int_equal(dock0->view->rect.y, 0);
+	assert_int_equal(dock0->view->rect.width, rect.width / 2);
+	assert_int_equal(dock0->view->rect.height, rect.height);
+
+	assert_int_equal(dock1->view->rect.x, 0);
+	assert_int_equal(dock1->view->rect.y, 0);
+	assert_int_equal(dock1->view->rect.width, rect.width / 2);
+	assert_int_equal(dock1->view->rect.height, rect.height);
 
 	assert_true(s0->dir == UIDockSizerDir_Vert); 
 
@@ -152,8 +163,6 @@ void test_left_attach(void**)
 	for (int i = 0; i < 3; ++i)
 		width += (int)grid->docks[(size_t)i]->view->rect.width;
 
-	width += g_sizerSize * 2;
-
 	assert_int_equal(width, rect.width);
 
 	// TODO: currently leaks here, will be fixed once added delete of views
@@ -163,7 +172,11 @@ void test_left_attach(void**)
 
 void test_misc(void**)
 {
-	Rect rect = { 0, 0, 1000, 500 }; 
+	Rect rect;
+	rect.x = 0;
+	rect.y = 0;
+	rect.width = 1000;
+	rect.height = 500;
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
 
 	ViewPluginInstance view0 = {};
@@ -197,6 +210,21 @@ void test_misc(void**)
 	UIDock* d1 = grid->docks[1];
 	UIDock* d2 = grid->docks[2];
 
+	assert_int_equal(d0->view->rect.x, 0);
+	assert_int_equal(d0->view->rect.y, 0);
+	assert_int_equal(d0->view->rect.width, rect.width / 2);
+	assert_int_equal(d0->view->rect.height, rect.height / 2);
+
+	assert_int_equal(d1->view->rect.x, rect.width / 2);
+	assert_int_equal(d1->view->rect.y, 0);
+	assert_int_equal(d1->view->rect.width, rect.width / 2);
+	assert_int_equal(d1->view->rect.height, rect.height);
+
+	assert_int_equal(d2->view->rect.x, 0);
+	assert_int_equal(d2->view->rect.y, rect.height / 2);
+	assert_int_equal(d2->view->rect.width, rect.width / 2);
+	assert_int_equal(d2->view->rect.height, rect.height / 2);
+
 	assert_true(d0->topSizer == &grid->topSizer);
 	assert_true(d0->bottomSizer == s1);
 	assert_true(d0->rightSizer == s0); 
@@ -218,7 +246,13 @@ void test_misc(void**)
 void test_sizer_hovering(void**)
 {
 	Vec2 pos;
-	Rect rect = { 0, 0, 1000, 500 }; 
+	Rect rect;
+
+	rect.x = 0;
+	rect.y = 0;
+	rect.width = 1000;
+	rect.height = 500;
+
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
 
 	UIDockSizer* s0 = new UIDockSizer;
@@ -271,9 +305,109 @@ void test_sizer_hovering(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void test_dock_split_merge(void**)
+{
+	Rect rect;
+
+	rect.x = 0;
+	rect.y = 0;
+	rect.width = 1000;
+	rect.height = 500;
+
+	UIDockingGrid* grid = UIDock_createGrid(&rect);
+
+	ViewPluginInstance view0 = {};
+	ViewPluginInstance view1 = {};
+	ViewPluginInstance view2 = {};
+	ViewPluginInstance view3 = {};
+
+	UIDock* dock = UIDock_addView(grid, &view0);
+	UIDock_dockRight(grid, dock, &view1);
+	UIDock_dockBottom(grid, dock, &view2);
+	UIDock_dockBottom(grid, grid->docks[1], &view3);
+
+	// Expected layout:
+	//
+	//     _____s0_______
+	//    |      |      |
+	//    |  d0  |  d1  |
+	//    |      |      |
+	// s1 |------|------| s2
+	//    |      |      |
+	//    |  d2  |  d3  |
+	//    |      |      |
+	//    ---------------
+	//
+	
+	assert_int_equal((int)grid->sizers.size(), 3);
+	assert_int_equal((int)grid->docks.size(), 4);
+
+	UIDockSizer* s0 = grid->sizers[0];
+	UIDockSizer* s1 = grid->sizers[1];
+	UIDockSizer* s2 = grid->sizers[2];
+
+	UIDock* d0 = grid->docks[0];
+	UIDock* d1 = grid->docks[1];
+	UIDock* d2 = grid->docks[2];
+	UIDock* d3 = grid->docks[3];
+
+	assert_true(d0->topSizer == &grid->topSizer);
+	assert_true(d0->bottomSizer == s1);
+	assert_true(d0->rightSizer == s0); 
+	assert_true(d0->leftSizer == &grid->leftSizer); 
+
+	assert_true(d1->topSizer == &grid->topSizer);
+	assert_true(d1->bottomSizer == s2); 
+	assert_true(d1->rightSizer == &grid->rightSizer); 
+	assert_true(d1->leftSizer == s0); 
+
+	assert_true(d2->topSizer == s1); 
+	assert_true(d2->bottomSizer == &grid->bottomSizer);
+	assert_true(d2->rightSizer == s0); 
+	assert_true(d2->leftSizer == &grid->leftSizer); 
+
+	assert_true(d3->topSizer == s2); 
+	assert_true(d3->bottomSizer == &grid->bottomSizer);
+	assert_true(d3->rightSizer == &grid->rightSizer);
+	assert_true(d3->leftSizer == s0); 
+
+	UIDock_splitSizer(grid, s0, rect.x / 2, rect.height - 10);
+
+	assert_int_equal((int)grid->sizers.size(), 4);
+	assert_int_equal((int)s0->cons.size(), 2);
+
+	UIDockSizer* s3 = grid->sizers[3];
+	assert_int_equal((int)s3->cons.size(), 2);
+
+	// Verify that the sizers has change to correct sizes
+
+	assert_int_equal(s0->rect.x, rect.width / 2);
+	assert_int_equal(s0->rect.y, rect.y);
+	assert_int_equal(s0->rect.width, g_sizerSize); 
+	assert_int_equal(s0->rect.height, rect.height / 2); 
+
+	assert_int_equal(s3->rect.x, rect.width / 2);
+	assert_int_equal(s3->rect.y, (rect.height / 2) + 1);
+	assert_int_equal(s3->rect.width, g_sizerSize); 
+	assert_int_equal(s3->rect.height, (rect.height / 2) - 1); 
+
+	// Verify that the docks has got the new sizers assigned
+
+	assert_true(d2->rightSizer == s3); 
+	assert_true(d2->leftSizer == s3); 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void test_delete_docks(void**)
 {
-	Rect rect = { 0, 0, 1000, 500 }; 
+	Rect rect;
+
+	rect.x = 0;
+	rect.y = 0;
+	rect.width = 1000;
+	rect.height = 500;
+
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
 
 	ViewPluginInstance view0 = {};
@@ -403,7 +537,8 @@ int main()
         unit_test(test_left_attach),
         unit_test(test_misc),
         unit_test(test_sizer_hovering),
-        unit_test(test_delete_docks),
+        //unit_test(test_dock_split_merge),
+        //unit_test(test_delete_docks),
     };
 
     return run_tests(tests);

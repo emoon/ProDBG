@@ -4,10 +4,29 @@
 
 typedef struct Rect
 {
-    int x;
-    int y;
-    int width;
-    int height;
+	//inline Rect(int inX, int inY, int inW, int inH) : x(inX), y(inY), width(inW), height(inH) { }
+
+	enum
+	{
+		X,
+		Y,
+		W,
+		H,
+		Compontent_Count,
+	};
+
+	union
+	{
+		struct 
+		{
+			int x;
+			int y;
+			int width;
+			int height;
+		};
+
+		int data[Compontent_Count];
+	};
 } Rect;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

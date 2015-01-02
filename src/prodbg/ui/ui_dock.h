@@ -1,6 +1,7 @@
 #pragma once
 
 struct ViewPluginInstance;
+struct UIDockSizer;
 struct UIDockingGrid;
 struct UIDock;
 struct Rect;
@@ -30,6 +31,8 @@ void UIDock_dockRight(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* vie
 
 UIDockSizerDir UIDock_isHoveringSizer(UIDockingGrid* grid, Vec2* pos);
 
+void UIDock_splitSizer(UIDockingGrid* grid, UIDockSizer* sizer, int x, int y);
+void UIDock_mergeSizers(UIDockingGrid* grid, UIDockSizer* sizer);
 
 
 //void UIDock_dockLeft(UIDock* dock, ViewPluginInstance* instance);

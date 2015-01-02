@@ -51,10 +51,28 @@ struct UIDock
 	{ 
 	}
 
-	UIDockSizer* topSizer;
-	UIDockSizer* bottomSizer;
-	UIDockSizer* rightSizer;
-	UIDockSizer* leftSizer;
+	enum
+	{
+		Top,
+		Bottom,
+		Right,
+		Left,
+		Sizers_Count,
+	};
+
+	union
+	{
+		struct
+		{
+			UIDockSizer* topSizer;
+			UIDockSizer* bottomSizer;
+			UIDockSizer* rightSizer;
+			UIDockSizer* leftSizer;
+		};
+
+		UIDockSizer* sizers[Sizers_Count];
+	};
+
 	ViewPluginInstance* view;
 
 	UIDockType type;

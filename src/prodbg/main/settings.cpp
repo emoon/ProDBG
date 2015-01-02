@@ -15,7 +15,10 @@ static Settings s_settings;
 
 static void initDefaultSettings(Settings* settings)
 {
-    settings->windowRect = {0, 0, 800, 600 };
+    settings->windowRect.x = 0;
+    settings->windowRect.y = 0;
+    settings->windowRect.width = 800;
+    settings->windowRect.height = 600;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
