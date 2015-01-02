@@ -90,11 +90,72 @@ static bool removeDockSide(UIDockSizer* sizer, UIDock* dock)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// This code will look for a sizer that can be resized if adjacent sizer is present
+
+static UIDockSizer* createOrResizeSizer(UIDockingGrid* grid, Rect rect, UIDockSizerDir dir)
+{
+	// TODO: Doing this for all sizers is a bit wasteful perf wise but really shouldn't be much of an issue
+	// but something to think about.
+	//
+
+	const int sx0 = rect.x;
+	const int sy0 = rect.y;
+	const int sx1 = sx0 + rect.width; 
+	const int sy1 = sy0 + rect.height; 
+
+	for (UIDockSizer* sizer : grid->sizers)
+	{
+		// Can only resize a sizer with the same direction
+		// TODO: Have a separate array for sizers depending on direction?
+
+		if (sizer->dir != dir)
+			continue;
+
+		const int cx0 = sizer->rect.x;
+		const int cy0 = sizer->rect.y;
+		const int cx1 = cx0 + sizer->rect.width; 
+		const int cy1 = cy0 + sizer->rect.height; 
+
+		// Check if the new sizer is connected so we can resize the current sizer
+
+		if (cx1 == sx0 && cy1 == sy0)
+		{
+			// we can resize it. Just calculate the new size
+
+			sizer->rect.width += rect.width;
+			sizer->rect.height += rect.height;
+
+			return sizer;
+		}
+		else if (cx0 == sx1 && cy0 == sy1)
+		{
+			// move the position of the sizer to where the new sizer was supposed to start
+
+			sizer->rect.x = rect.x;
+			sizer->rect.y = rect.y;
+
+			return sizer;
+		}
+	}
+
+	// Need to create a new sizer as we didn't find any to resize
+
+	UIDockSizer* sizer = new UIDockSizer;
+	sizer->rect = rect;
+	sizer->dir = dir;
+
+	grid->sizers.push_back(sizer);
+
+	return sizer; 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* instance)
 {
 	UIDock* newDock = new UIDock(instance); 
 	UIDockSizer* sizer = new UIDockSizer; 
+	UIDockSizerDir sizerDir = UIDockSizerDir_Vert;
 
 	Rect rect = dock->view->rect;
 
@@ -113,6 +174,7 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 		side1 = UIDock::Bottom;
 		side2 = UIDock::Left;
 		side3 = UIDock::Right;
+		sizerDir = UIDockSizerDir_Horz;
 	}
 
 	rect.data[widthOrHeight] /= 2;
@@ -125,20 +187,19 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 		rect.data[xOry] += rect.data[widthOrHeight];
 
 	Rect sizerRect = rect;
-	sizer->rect = sizerRect;
 
 	if (side == UIDockSide_Top || side == UIDockSide_Bottom)
 	{
-		sizer->rect.width = rect.width;
-		sizer->rect.height = g_sizerSize;
-		sizer->dir = UIDockSizerDir_Horz;
+		sizerRect.width = rect.width;
+		sizerRect.height = 0;
 	}
 	else
 	{
-		sizer->rect.height = rect.width;
-		sizer->rect.width = g_sizerSize;
-		sizer->dir = UIDockSizerDir_Vert;
+		sizerRect.height = rect.width;
+		sizerRect.width = 0;
 	}
+
+	sizer = createOrResizeSizer(grid, sizerRect, sizerDir);
 
 	newDock->sizers[side2] = dock->sizers[side2];	// left or top 
 	newDock->sizers[side3] = dock->sizers[side3];	// right or bottom 
@@ -170,159 +231,8 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 
 	newDock->view->rect = rect;
 
-	grid->sizers.push_back(sizer);
 	grid->docks.push_back(newDock);
 }
-
-
-/*
-
-
-	calcHorizonalSizerSize(sizer, &rect);
-
-	newDock->leftSizer = dock->leftSizer;
-	newDock->rightSizer = dock->rightSizer;
-
-	newDock->leftSizer->addDock(newDock);
-	newDock->rightSizer->addDock(newDock);
-
-	if (side == UIDockSide_Top)
-	{
-		removeDockSide(dock->topSizer, dock);
-		newDock->topSizer = dock->topSizer;
-		newDock->bottomSizer = sizer;
-		dock->topSizer = sizer;
-
-		newDock->topSizer->addDock(newDock);
-	}
-	else
-	{
-		removeDockSide(dock->bottomSizer, dock);
-		newDock->bottomSizer = dock->bottomSizer;
-		newDock->topSizer = sizer;
-		dock->bottomSizer = sizer;
-
-		newDock->bottomSizer->addDock(newDock);
-	}
-
-	sizer->addDock(dock); 
-	sizer->addDock(newDock); 
-
-
-	switch (side)
-	{
-		case UIDockSide_Top:
-		case UIDockSide_Bottom:
-		{
-			rect.height /= 2;
-
-			if (side == UIDockSide_Top)
-			{
-				dock->view->rect.y += rect.height;
-			}
-			else
-			{
-				dock->view->rect.height /= 2; 
-				rect.y += rect.height;
-			}
-
-			rect.height = int_min(rect.height - g_sizerSize, 0);
-			calcHorizonalSizerSize(sizer, &rect);
-
-			newDock->leftSizer = dock->leftSizer;
-			newDock->rightSizer = dock->rightSizer;
-
-			newDock->leftSizer->addDock(newDock);
-			newDock->rightSizer->addDock(newDock);
-
-			if (side == UIDockSide_Top)
-			{
-				removeDockSide(dock->topSizer, dock);
-				newDock->topSizer = dock->topSizer;
-				newDock->bottomSizer = sizer;
-				dock->topSizer = sizer;
-
-				newDock->topSizer->addDock(newDock);
-			}
-			else
-			{
-				removeDockSide(dock->bottomSizer, dock);
-				newDock->bottomSizer = dock->bottomSizer;
-				newDock->topSizer = sizer;
-				dock->bottomSizer = sizer;
-
-				newDock->bottomSizer->addDock(newDock);
-			}
-
-			sizer->addDock(dock); 
-			sizer->addDock(newDock); 
-
-			break;
-		}
-
-		case UIDockSide_Right:
-		case UIDockSide_Left:
-		{
-			rect.width /= 2;
-
-			// if we connect on the left side we need to move the current view to the right
-			// otherwise we move the new view to the side
-
-			dock->view->rect.width = rect.width;
-
-			if (side == UIDockSide_Left)
-			{
-				dock->view->rect.x += rect.width;
-				rect.width = int_min(rect.width - g_sizerSize, 0);
-			}
-			else
-			{
-				rect.x += rect.width;
-				dock->view->rect.x = int_min(dock->view->rect.x - g_sizerSize, 0);
-			}
-
-			rect.width = int_min(rect.width - g_sizerSize, 0);
-
-			calcVerticalSizerSize(sizer, &rect);
-
-			newDock->topSizer = dock->topSizer;
-			newDock->bottomSizer = dock->bottomSizer;
-
-			newDock->topSizer->addDock(newDock);
-			newDock->bottomSizer->addDock(newDock);
-
-			if (side == UIDockSide_Left)
-			{
-				removeDockSide(dock->leftSizer, dock);
-				newDock->leftSizer = dock->leftSizer;
-				newDock->rightSizer = sizer;
-				dock->leftSizer = sizer;
-
-				newDock->leftSizer->addDock(newDock);
-			}
-			else
-			{
-				removeDockSide(dock->rightSizer, dock);
-				newDock->rightSizer = dock->rightSizer;
-				newDock->leftSizer = sizer;
-				dock->rightSizer = sizer;
-
-				newDock->rightSizer->addDock(newDock);
-			}
-
-			sizer->addDock(dock); 
-			sizer->addDock(newDock); 
-
-			break;
-		}
-	}
-
-	newDock->view->rect = rect;
-
-	grid->sizers.push_back(sizer);
-	grid->docks.push_back(newDock);
-}
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -467,6 +377,39 @@ UIDock* findDock(const UIDockSizer* sizer, int x, int y)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void replaceSizer(UIDock* dock, UIDockSizer* oldSizer, UIDockSizer* newSizer)
+{
+	for (int i = 0; i < UIDock::Sizers_Count; ++i)
+	{
+		if (dock->sizers[i] != oldSizer)
+			continue;
+
+		dock->sizers[i] = newSizer;
+		newSizer->addDock(dock);
+	}
+
+	// Remove the dock from the sizer
+
+	for (auto i = oldSizer->cons.begin(), end = oldSizer->cons.end(); i != end; ++i)
+	{
+		if (*i == dock)
+		{
+			oldSizer->cons.erase(i);
+			return;
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void replaceSizers(std::vector<UIDock*>& docks, UIDockSizer* oldSizer, UIDockSizer* newSizer)
+{
+	for (UIDock* dock : docks)
+		replaceSizer(dock, oldSizer, newSizer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // In order for the splitting to work (in vertical size) there has to be a horizontal top slider and bottom slider
 // that the new split can move along. Otherwise there will be no split as it would move over and this code
 // will return without doing any split.
@@ -547,10 +490,54 @@ void UIDock_splitSizer(UIDockingGrid* grid, UIDockSizer* sizer, int x, int y)
 			return;
 
 		findSurroundingViewsY(&closeDocks, sizer, dock);
+
+		// The new sizer should be the same height (and y start) as the dock we are splitting it for
+
+		UIDockSizer* newSizer = new UIDockSizer;
+		newSizer->rect = sizer->rect;
+		newSizer->rect.y = dock->view->rect.y;
+		newSizer->rect.height = dock->view->rect.height;
+		newSizer->dir = sizer->dir;
+		
+		// Replace the old sizer with the new sizer for the split
+
+		replaceSizers(closeDocks.insideDocks, sizer, newSizer); 
+		replaceSizer(dock, sizer, newSizer); 
+
+		// if topDocks or bottomDocks has no entries it means that we only need to create one 
+		// new sizer and just resize the old one. If that is not the case it means that the split
+		// was done in the middle of some views and another split is required
+
+		const size_t topDocksCount = closeDocks.topLeft.size(); 
+		const size_t bottomDocksCount = closeDocks.bottomRight.size(); 
+
+		if (topDocksCount == 0 || bottomDocksCount == 0)
+		{
+			if (topDocksCount == 0)
+			{
+				// If no top docks it mean that the split was made at the top and we need to move the sizer down 
+				// of the old sizer and we are done
+				
+				sizer->rect.y += newSizer->rect.height;
+				sizer->rect.height -= newSizer->rect.height;
+			}
+			else
+			{
+				// If no bottom docks it mean that the split was made at the bottom and we only need to set a new height
+				// of the old sizer and we are done
+				
+				sizer->rect.height -= newSizer->rect.height;
+			}
+		}
+		else
+		{
+			// TODO: Implement
+		}
+
+		grid->sizers.push_back(newSizer);
 	}
 	else
 	{
-
 	}
 }
 

@@ -332,19 +332,20 @@ void test_dock_split_merge(void**)
 	//    |      |      |
 	//    |  d0  |  d1  |
 	//    |      |      |
-	// s1 |------|------| s2
+	// s1 |------|------| s1
 	//    |      |      |
 	//    |  d2  |  d3  |
 	//    |      |      |
 	//    ---------------
 	//
+	// Notice: as we merge sizers there will be no s2 sizer here because
+	// s1 will be resized to include the the sizing on the other size
 	
-	assert_int_equal((int)grid->sizers.size(), 3);
+	assert_int_equal((int)grid->sizers.size(), 2);
 	assert_int_equal((int)grid->docks.size(), 4);
 
 	UIDockSizer* s0 = grid->sizers[0];
 	UIDockSizer* s1 = grid->sizers[1];
-	UIDockSizer* s2 = grid->sizers[2];
 
 	UIDock* d0 = grid->docks[0];
 	UIDock* d1 = grid->docks[1];
@@ -357,7 +358,7 @@ void test_dock_split_merge(void**)
 	assert_true(d0->leftSizer == &grid->leftSizer); 
 
 	assert_true(d1->topSizer == &grid->topSizer);
-	assert_true(d1->bottomSizer == s2); 
+	assert_true(d1->bottomSizer == s1); 
 	assert_true(d1->rightSizer == &grid->rightSizer); 
 	assert_true(d1->leftSizer == s0); 
 
@@ -366,35 +367,35 @@ void test_dock_split_merge(void**)
 	assert_true(d2->rightSizer == s0); 
 	assert_true(d2->leftSizer == &grid->leftSizer); 
 
-	assert_true(d3->topSizer == s2); 
+	assert_true(d3->topSizer == s1); 
 	assert_true(d3->bottomSizer == &grid->bottomSizer);
 	assert_true(d3->rightSizer == &grid->rightSizer);
 	assert_true(d3->leftSizer == s0); 
 
 	UIDock_splitSizer(grid, s0, rect.x / 2, rect.height - 10);
 
-	assert_int_equal((int)grid->sizers.size(), 4);
+	assert_int_equal((int)grid->sizers.size(), 3);
 	assert_int_equal((int)s0->cons.size(), 2);
 
-	UIDockSizer* s3 = grid->sizers[3];
-	assert_int_equal((int)s3->cons.size(), 2);
+	UIDockSizer* s2 = grid->sizers[2];
+	assert_int_equal((int)s2->cons.size(), 2);
 
 	// Verify that the sizers has change to correct sizes
 
 	assert_int_equal(s0->rect.x, rect.width / 2);
 	assert_int_equal(s0->rect.y, rect.y);
-	assert_int_equal(s0->rect.width, g_sizerSize); 
+	assert_int_equal(s0->rect.width, 0); 
 	assert_int_equal(s0->rect.height, rect.height / 2); 
 
-	assert_int_equal(s3->rect.x, rect.width / 2);
-	assert_int_equal(s3->rect.y, (rect.height / 2) + 1);
-	assert_int_equal(s3->rect.width, g_sizerSize); 
-	assert_int_equal(s3->rect.height, (rect.height / 2) - 1); 
+	assert_int_equal(s2->rect.x, rect.width / 2);
+	assert_int_equal(s2->rect.y, (rect.height / 2));
+	assert_int_equal(s2->rect.width, 0); 
+	assert_int_equal(s2->rect.height, (rect.height / 2)); 
 
 	// Verify that the docks has got the new sizers assigned
 
-	assert_true(d2->rightSizer == s3); 
-	assert_true(d2->leftSizer == s3); 
+	assert_true(d2->rightSizer == s2); 
+	assert_true(d3->leftSizer == s2); 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -537,7 +538,7 @@ int main()
         unit_test(test_left_attach),
         unit_test(test_misc),
         unit_test(test_sizer_hovering),
-        //unit_test(test_dock_split_merge),
+        unit_test(test_dock_split_merge),
         //unit_test(test_delete_docks),
     };
 
