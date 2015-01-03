@@ -40,11 +40,7 @@ void validateSize(Rect r, int x, int y, int w, int h)
 
 void test_left_attach(void**)
 {
-	Rect rect;
-	rect.x = 0;
-	rect.y = 0;
-	rect.width = 1000;
-	rect.height = 500;
+	Rect rect = {{{ 0, 0, 1000, 500 }}};
 
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
 
@@ -172,11 +168,8 @@ void test_left_attach(void**)
 
 void test_misc(void**)
 {
-	Rect rect;
-	rect.x = 0;
-	rect.y = 0;
-	rect.width = 1000;
-	rect.height = 500;
+	Rect rect = {{{ 0, 0, 1000, 500 }}};
+
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
 
 	ViewPluginInstance view0 = {};
@@ -245,13 +238,8 @@ void test_misc(void**)
 
 void test_sizer_hovering(void**)
 {
+	Rect rect = {{{ 0, 0, 1000, 500 }}};
 	Vec2 pos;
-	Rect rect;
-
-	rect.x = 0;
-	rect.y = 0;
-	rect.width = 1000;
-	rect.height = 500;
 
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
 
@@ -305,26 +293,14 @@ void test_sizer_hovering(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
 static UIDockingGrid* createFourViews(Rect rect)
 {
-
-}
-*/
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void test_dock_split_merge(void**)
-{
-	Rect rect = {{{ 0, 0, 1000, 500 }}};
-
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
 
-	ViewPluginInstance view0 = {};
-	ViewPluginInstance view1 = {};
-	ViewPluginInstance view2 = {};
-	ViewPluginInstance view3 = {};
+	static ViewPluginInstance view0 = {};
+	static ViewPluginInstance view1 = {};
+	static ViewPluginInstance view2 = {};
+	static ViewPluginInstance view3 = {};
 
 	UIDock* dock = UIDock_addView(grid, &view0);
 	UIDock_dockRight(grid, dock, &view1);
@@ -377,6 +353,70 @@ void test_dock_split_merge(void**)
 	assert_true(d3->rightSizer == &grid->rightSizer);
 	assert_true(d3->leftSizer == s0); 
 
+	return grid;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void test_dock_split_horizontal(void**)
+{
+	Rect rect = {{{ 0, 0, 1000, 500 }}};
+
+	UIDockingGrid* grid = createFourViews(rect);
+
+	UIDockSizer* s1 = grid->sizers[1];
+
+	UIDock_splitSizer(grid, s1, 10, rect.height / 2);
+
+	//     _____s0_______
+	//    |      |      |
+	//    |  d0  |  d1  |
+	//    |      |      |
+	// s2 |------|------| s1
+	//    |      |      |
+	//    |  d2  |  d3  |
+	//    |      |      |
+	//    ---------------
+
+	// s2 should be the new split added
+
+	assert_int_equal((int)grid->sizers.size(), 3);
+	assert_int_equal((int)s1->cons.size(), 2);
+
+	UIDockSizer* s2 = grid->sizers[2];
+	assert_int_equal((int)s2->cons.size(), 2);
+
+	UIDock* d0 = grid->docks[0];
+	UIDock* d2 = grid->docks[2];
+
+	// Verify that the sizers has change to correct sizes
+
+	assert_int_equal(s1->rect.x, rect.width / 2);
+	assert_int_equal(s1->rect.y, rect.height / 2);
+	assert_int_equal(s1->rect.width, rect.width / 2); 
+	assert_int_equal(s1->rect.height, 0); 
+
+	assert_int_equal(s2->rect.x, 0);
+	assert_int_equal(s2->rect.y, rect.height / 2);
+	assert_int_equal(s2->rect.width, rect.width / 2); 
+	assert_int_equal(s2->rect.height, 0); 
+
+	// Verify that the docks has got the new sizers assigned
+
+	assert_true(d0->bottomSizer == s2); 
+	assert_true(d2->topSizer == s2); 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void test_dock_split_vertical(void**)
+{
+	Rect rect = {{{ 0, 0, 1000, 500 }}};
+
+	UIDockingGrid* grid = createFourViews(rect);
+
+	UIDockSizer* s0 = grid->sizers[0];
+
 	UIDock_splitSizer(grid, s0, rect.x / 2, rect.height - 10);
 
 	assert_int_equal((int)grid->sizers.size(), 3);
@@ -384,6 +424,9 @@ void test_dock_split_merge(void**)
 
 	UIDockSizer* s2 = grid->sizers[2];
 	assert_int_equal((int)s2->cons.size(), 2);
+
+	UIDock* d2 = grid->docks[2];
+	UIDock* d3 = grid->docks[3];
 
 	// Verify that the sizers has change to correct sizes
 
@@ -407,12 +450,7 @@ void test_dock_split_merge(void**)
 
 void test_delete_docks(void**)
 {
-	Rect rect;
-
-	rect.x = 0;
-	rect.y = 0;
-	rect.width = 1000;
-	rect.height = 500;
+	Rect rect = {{{ 0, 0, 1000, 500 }}};
 
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
 
@@ -543,7 +581,8 @@ int main()
         unit_test(test_left_attach),
         unit_test(test_misc),
         unit_test(test_sizer_hovering),
-        unit_test(test_dock_split_merge),
+        unit_test(test_dock_split_horizontal),
+        unit_test(test_dock_split_vertical),
         //unit_test(test_delete_docks),
     };
 
