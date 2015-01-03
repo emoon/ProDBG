@@ -28,11 +28,12 @@ void UIDock_dockBottom(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* vi
 void UIDock_dockLeft(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* view);
 void UIDock_dockRight(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* view);
 
-
 UIDockSizerDir UIDock_isHoveringSizer(UIDockingGrid* grid, Vec2* pos);
 
 void UIDock_splitSizer(UIDockingGrid* grid, UIDockSizer* sizer, int x, int y);
 void UIDock_mergeSizers(UIDockingGrid* grid, UIDockSizer* sizer);
+
+void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove);
 
 
 //void UIDock_dockLeft(UIDock* dock, ViewPluginInstance* instance);

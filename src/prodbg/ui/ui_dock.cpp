@@ -587,8 +587,47 @@ static void deleteDock(UIDockingGrid* grid, UIDock* dock)
 
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 */
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
+{
+	UIDockSizer* sizer = (UIDockSizer*)handle;
+
+	(void)grid;
+
+	if (sizer->dir == UIDockSizerDir_Vert)
+	{
+		std::vector<UIDock*> leftDocks;
+		std::vector<UIDock*> rightDocks;
+
+		int move = (int)deltaMove->x;
+
+		for (UIDock* dock : sizer->cons)
+		{
+			if (dock->rightSizer == sizer)
+				rightDocks.push_back(dock);
+			if (dock->leftSizer == sizer)
+				leftDocks.push_back(dock);
+		}
+
+		// TODO: Add limits of the resizing
+
+		sizer->rect.x += deltaMove->x;
+
+		for (UIDock* dock : leftDocks) 
+		{
+			dock->view->rect.x += move; 
+			dock->view->rect.width -= move; 
+		}
+
+		for (UIDock* dock : rightDocks) 
+			dock->view->rect.width += move; 
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UIDock_deleteView(UIDockingGrid* grid, ViewPluginInstance* view)
 {

@@ -596,6 +596,63 @@ void test_delete_docks(void**)
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void test_drag_vertical(void**)
+{
+	Vec2 dragDelta = { 10.0f, 10.f };
+	Rect rect = {{{ 0, 0, 1000, 400 }}};
+
+	UIDockingGrid* grid = UIDock_createGrid(&rect);
+
+	ViewPluginInstance view0Inst = {};
+	ViewPluginInstance view1Inst = {};
+
+	ViewPluginInstance* view0 = &view0Inst; 
+	ViewPluginInstance* view1 = &view1Inst;
+
+	UIDock* dock = UIDock_addView(grid, view0);
+	UIDock_dockLeft(grid, dock, view1);
+
+	assert_int_equal((int)grid->sizers.size(), 1);
+	assert_int_equal((int)grid->docks.size(), 2);
+
+	UIDockSizer* s0 = grid->sizers[0];
+	UIDock* d0 = grid->docks[0];
+	UIDock* d1 = grid->docks[1];
+
+	assert_int_equal(s0->rect.x, rect.width / 2);
+	assert_int_equal(s0->rect.y, 0);
+	assert_int_equal(s0->rect.width, 0);
+	assert_int_equal(s0->rect.height, rect.height);
+
+	assert_int_equal(d0->view->rect.x, rect.width / 2);
+	assert_int_equal(d0->view->rect.y, 0);
+	assert_int_equal(d0->view->rect.width, rect.width / 2);
+	assert_int_equal(d0->view->rect.height, rect.height);
+
+	assert_int_equal(d1->view->rect.x, 0);
+	assert_int_equal(d1->view->rect.y, 0);
+	assert_int_equal(d1->view->rect.width, rect.width / 2);
+	assert_int_equal(d1->view->rect.height, rect.height);
+
+	UIDock_dragSizer(grid, s0, &dragDelta);
+
+	assert_int_equal(s0->rect.x, (rect.width / 2) + (int)dragDelta.x);
+	assert_int_equal(s0->rect.y, 0);
+	assert_int_equal(s0->rect.width, 0);
+	assert_int_equal(s0->rect.height, rect.height);
+
+	assert_int_equal(d0->view->rect.x, (rect.width / 2) + (int)dragDelta.x);
+	assert_int_equal(d0->view->rect.y, 0);
+	assert_int_equal(d0->view->rect.width, (rect.width / 2) - (int)dragDelta.x);
+	assert_int_equal(d0->view->rect.height, rect.height);
+
+	assert_int_equal(d1->view->rect.x, 0);
+	assert_int_equal(d1->view->rect.y, 0);
+	assert_int_equal(d1->view->rect.width, (rect.width / 2) + (int)dragDelta.x);
+	assert_int_equal(d1->view->rect.height, rect.height);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -609,6 +666,8 @@ int main()
         unit_test(test_sizer_hovering),
         unit_test(test_dock_split_horizontal),
         unit_test(test_dock_split_vertical),
+        unit_test(test_drag_vertical),
+
         //unit_test(test_delete_docks),
     };
 
