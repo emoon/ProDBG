@@ -11,8 +11,29 @@
 
 void create_docking(void**)
 {
-	Rect rect = {}; 
+	Rect rect = {{{ 0, 0, 1000, 500 }}};
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
+
+	assert_int_equal(grid->topSizer.rect.x, rect.x);
+	assert_int_equal(grid->topSizer.rect.y, rect.y);
+	assert_int_equal(grid->topSizer.rect.width, rect.width);
+	assert_int_equal(grid->topSizer.rect.height, 0); 
+
+	assert_int_equal(grid->bottomSizer.rect.x, rect.x);
+	assert_int_equal(grid->bottomSizer.rect.y, rect.height);
+	assert_int_equal(grid->bottomSizer.rect.width, rect.width);
+	assert_int_equal(grid->bottomSizer.rect.height, 0); 
+
+	assert_int_equal(grid->leftSizer.rect.x, rect.x);
+	assert_int_equal(grid->leftSizer.rect.y, rect.y);
+	assert_int_equal(grid->leftSizer.rect.width, 0);
+	assert_int_equal(grid->leftSizer.rect.height, rect.height); 
+
+	assert_int_equal(grid->rightSizer.rect.x, rect.width);
+	assert_int_equal(grid->rightSizer.rect.y, rect.y);
+	assert_int_equal(grid->rightSizer.rect.width, 0);
+	assert_int_equal(grid->rightSizer.rect.height, rect.height); 
+
 	assert_non_null(grid);
 }
 
@@ -581,7 +602,7 @@ int main()
         unit_test(test_left_attach),
         unit_test(test_misc),
         unit_test(test_sizer_hovering),
-        //unit_test(test_dock_split_horizontal),
+        unit_test(test_dock_split_horizontal),
         unit_test(test_dock_split_vertical),
         //unit_test(test_delete_docks),
     };

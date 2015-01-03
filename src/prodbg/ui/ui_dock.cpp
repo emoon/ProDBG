@@ -15,6 +15,11 @@ UIDockingGrid* UIDock_createGrid(Rect* rect)
 	UIDockingGrid* grid = new UIDockingGrid; 
 	grid->rect = *rect;
 
+	grid->topSizer.rect = {{{ rect->x, rect->y, rect->width, 0 }}}; 
+	grid->bottomSizer.rect = {{{ rect->x, rect->height, rect->width, 0 }}}; 
+	grid->leftSizer.rect = {{{ rect->x, rect->y, 0, rect->height }}}; 
+	grid->rightSizer.rect = {{{ rect->width, rect->y, 0, rect->height }}}; 
+
 	return grid;
 }
 
@@ -317,24 +322,24 @@ struct NeighborDocks
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void findSurroundingViewsY(NeighborDocks* docks, UIDockSizer* sizer, const UIDock* currentDock) 
+void findSurroundingViews(NeighborDocks* docks, UIDockSizer* sizer, const UIDock* currentDock, int widthOrHeight, int xOry) 
 {
-	const int ty = currentDock->view->rect.y;
-	const int tb = ty + currentDock->view->rect.height;
+	const int txy = currentDock->view->rect.data[xOry];
+	const int thw = txy + currentDock->view->rect.data[widthOrHeight];
 
 	for (UIDock* dock : sizer->cons)
 	{
 		if (dock == currentDock)
 			continue;
 
-		// Y bounds for the view
+		// bounds for the view
 
-		const int cty = dock->view->rect.y;
-		const int ctb = cty + dock->view->rect.height;
+		const int ctxy = dock->view->rect.data[xOry];
+		const int cthw = ctxy + dock->view->rect.data[widthOrHeight];
 
-		if (cty >= ty && ctb <= tb)
+		if (ctxy >= txy && cthw <= thw)
 			docks->insideDocks.push_back(dock);
-		else if (tb < cty)
+		else if (thw < cthw)
 			docks->bottomRight.push_back(dock);
 		else
 			docks->topLeft.push_back(dock);
@@ -409,16 +414,17 @@ static void replaceSizers(std::vector<UIDock*>& docks, UIDockSizer* oldSizer, UI
 // We check this looking at the top sizer and see if it's larger than the windown in both x and y directions.
 // if that is the case we can do the split
 //
+// Notice that this code handes both vertical/horizontal checks given widthOrHeight/xOry params
 
-bool canSplitSizerY(const UIDock* dock)
+bool canSplitSizer(const UIDock* dock, int sideSizer, int widthOrHeight, int xOry)
 {
-	const int sx = dock->topSizer->rect.x;
-	const int sw = dock->topSizer->rect.width;
+	const int sxy = dock->sizers[sideSizer]->rect.data[xOry];
+	const int swh = dock->sizers[sideSizer]->rect.data[widthOrHeight];
 
-	const int dx = dock->view->rect.x;
-	const int dw = dock->view->rect.width; 
+	const int dxy = dock->view->rect.data[xOry];
+	const int dwh = dock->view->rect.data[widthOrHeight]; 
 
-	if (sx < dx || sw > dw)
+	if (sxy < dxy || swh > dwh)
 		return true;
 
 	return false;
@@ -467,74 +473,85 @@ void UIDock_splitSizer(UIDockingGrid* grid, UIDockSizer* sizer, int x, int y)
 {
 	UIDock* dock = nullptr;
 
-	(void)grid;
-
 	if (!(dock = findDock(sizer, x, y)))
 		return;
 
-	if (sizer->dir == UIDockSizerDir_Vert)
+	int canSplitPos = Rect::X;
+	int canSplitSize = Rect::W;
+
+	int xOry = Rect::Y;
+	int widthOrHeight  = Rect::H;
+
+	int sideSizer = UIDock::Top;
+
+	if (sizer->dir == UIDockSizerDir_Horz)
 	{
-		NeighborDocks closeDocks;
+		canSplitPos = Rect::Y;
+		canSplitSize = Rect::H;
 
-		if (!canSplitSizerY(dock))
-			return;
+		sideSizer = UIDock::Left;
 
-		findSurroundingViewsY(&closeDocks, sizer, dock);
+		xOry = Rect::X;
+		widthOrHeight = Rect::W;
+	}
 
-		// The new sizer should be the same height (and y start) as the dock we are splitting it for
+	NeighborDocks closeDocks;
 
-		UIDockSizer* newSizer = new UIDockSizer;
-		newSizer->rect = sizer->rect;
-		newSizer->rect.y = dock->view->rect.y;
-		newSizer->rect.height = dock->view->rect.height;
-		newSizer->dir = sizer->dir;
-		
-		// Replace the old sizer with the new sizer for the split
+	if (!canSplitSizer(dock, sideSizer, canSplitSize, canSplitPos))
+		return;
 
-		replaceSizers(closeDocks.insideDocks, sizer, newSizer); 
-		replaceSizer(dock, sizer, newSizer); 
+	findSurroundingViews(&closeDocks, sizer, dock, widthOrHeight, xOry);
 
-		// if topDocks or bottomDocks has no entries it means that we only need to create one 
-		// new sizer and just resize the old one. If that is not the case it means that the split
-		// was done in the middle of some views and another split is required
+	// The new sizer should be the same height (and y start) as the dock we are splitting it for
 
-		const size_t topDocksCount = closeDocks.topLeft.size(); 
-		const size_t bottomDocksCount = closeDocks.bottomRight.size(); 
+	UIDockSizer* newSizer = new UIDockSizer;
+	newSizer->rect = sizer->rect;
+	newSizer->rect.data[xOry] = dock->view->rect.data[xOry];
+	newSizer->rect.data[widthOrHeight] = dock->view->rect.data[widthOrHeight];
+	newSizer->dir = sizer->dir;
+	
+	// Replace the old sizer with the new sizer for the split
 
-		if (topDocksCount == 0 || bottomDocksCount == 0)
+	replaceSizers(closeDocks.insideDocks, sizer, newSizer); 
+	replaceSizer(dock, sizer, newSizer); 
+
+	// if topLeftDocks or bottomRightDocks has no entries it means that we only need to create one 
+	// new sizer and just resize the old one. If that is not the case it means that the split
+	// was done in the middle of some views and another split is required
+
+	const size_t topLeftDocksCount = closeDocks.topLeft.size(); 
+	const size_t bottomRightDocksCount = closeDocks.bottomRight.size(); 
+
+	if (topLeftDocksCount  == 0 || bottomRightDocksCount  == 0)
+	{
+		const int resizeValue = newSizer->rect.data[widthOrHeight];
+
+		if (topLeftDocksCount  == 0)
 		{
-			if (topDocksCount == 0)
-			{
-				// If no top docks it mean that the split was made at the top and we need to move the sizer down 
-				// of the old sizer and we are done
-				
-				sizer->rect.y += newSizer->rect.height;
-				sizer->rect.height -= newSizer->rect.height;
-			}
-			else
-			{
-				// If no bottom docks it mean that the split was made at the bottom and we only need to set a new height
-				// of the old sizer and we are done
-				
-				sizer->rect.height -= newSizer->rect.height;
-			}
+			// If no top docks it mean that the split was made at the top and we need to move the sizer down 
+			// of the old sizer and we are done
+			
+			sizer->rect.data[xOry] += resizeValue; 
+			sizer->rect.data[widthOrHeight] -= resizeValue;
 		}
 		else
 		{
-			// TODO: Implement
+			// If no bottom docks it mean that the split was made at the bottom and we only need to set a new height
+			// of the old sizer and we are done
+			
+			sizer->rect.data[widthOrHeight] -= resizeValue; 
 		}
-
-		grid->sizers.push_back(newSizer);
 	}
 	else
 	{
+		// TODO: Implement
 	}
+
+	grid->sizers.push_back(newSizer);
 }
 
 
 /*
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
