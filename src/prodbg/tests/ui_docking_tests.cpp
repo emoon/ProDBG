@@ -581,7 +581,7 @@ int main()
         unit_test(test_left_attach),
         unit_test(test_misc),
         unit_test(test_sizer_hovering),
-        unit_test(test_dock_split_horizontal),
+        //unit_test(test_dock_split_horizontal),
         unit_test(test_dock_split_vertical),
         //unit_test(test_delete_docks),
     };
