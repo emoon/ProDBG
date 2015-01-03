@@ -6,10 +6,6 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//const float g_splitPercentage = 0.5;	// TODO: Move to settings. Default split in middle (50/50)
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 UIDockingGrid* UIDock_createGrid(Rect* rect)
 {
 	UIDockingGrid* grid = new UIDockingGrid; 
@@ -52,32 +48,6 @@ UIDock* UIDock_addView(UIDockingGrid* grid, ViewPluginInstance* view)
 
 	return dock;
 }
-
-/*
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void calcVerticalSizerSize(UIDockSizer* sizer, const Rect* rect)
-{
-	sizer->rect = *rect;
-
-	sizer->rect.width = g_sizerSize;
-	sizer->rect.height = rect->height;
-	sizer->dir = UIDockSizerDir_Vert;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void calcHorizonalSizerSize(UIDockSizer* sizer, const Rect* rect)
-{
-	sizer->rect = *rect;
-
-	sizer->rect.width = rect->width;
-	sizer->rect.height = g_sizerSize;
-	sizer->dir = UIDockSizerDir_Horz;
-}
-
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -163,6 +133,7 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 
 	Rect rect = dock->view->rect;
 
+	int sizerWidthOrHeight = Rect::H;
 	int widthOrHeight = Rect::W;
 	int xOry = Rect::X;
 	int side0 = UIDock::Left;
@@ -172,6 +143,7 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 
 	if (side == UIDockSide_Top || side == UIDockSide_Bottom)
 	{
+		sizerWidthOrHeight = Rect::W;
 		widthOrHeight = Rect::H;
 		xOry = Rect::Y;
 		side0 = UIDock::Top;
@@ -181,25 +153,28 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 		sizerDir = UIDockSizerDir_Horz;
 	}
 
+	const int startWidthOrRect = rect.data[sizerWidthOrHeight];
+
 	rect.data[widthOrHeight] /= 2;
 
 	dock->view->rect.data[widthOrHeight] = rect.data[widthOrHeight];
+	Rect sizerRect = rect;
 
 	if (side == UIDockSide_Top || side == UIDockSide_Left)
 		dock->view->rect.data[xOry] += rect.data[widthOrHeight];
 	else
 		rect.data[xOry] += rect.data[widthOrHeight];
 
-	Rect sizerRect = rect;
+	sizerRect.data[xOry] += rect.data[widthOrHeight];
 
 	if (side == UIDockSide_Top || side == UIDockSide_Bottom)
 	{
-		sizerRect.width = rect.width;
+		sizerRect.width = startWidthOrRect;
 		sizerRect.height = 0;
 	}
 	else
 	{
-		sizerRect.height = rect.width;
+		sizerRect.height = startWidthOrRect;
 		sizerRect.width = 0;
 	}
 
@@ -522,11 +497,11 @@ void UIDock_splitSizer(UIDockingGrid* grid, UIDockSizer* sizer, int x, int y)
 	const size_t topLeftDocksCount = closeDocks.topLeft.size(); 
 	const size_t bottomRightDocksCount = closeDocks.bottomRight.size(); 
 
-	if (topLeftDocksCount  == 0 || bottomRightDocksCount  == 0)
+	if (topLeftDocksCount == 0 || bottomRightDocksCount == 0)
 	{
 		const int resizeValue = newSizer->rect.data[widthOrHeight];
 
-		if (topLeftDocksCount  == 0)
+		if (topLeftDocksCount == 0)
 		{
 			// If no top docks it mean that the split was made at the top and we need to move the sizer down 
 			// of the old sizer and we are done

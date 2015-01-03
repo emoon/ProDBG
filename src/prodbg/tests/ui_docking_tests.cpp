@@ -11,7 +11,7 @@
 
 void create_docking(void**)
 {
-	Rect rect = {{{ 0, 0, 1000, 500 }}};
+	Rect rect = {{{ 0, 0, 800, 200 }}};
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
 
 	assert_int_equal(grid->topSizer.rect.x, rect.x);
@@ -61,7 +61,7 @@ void validateSize(Rect r, int x, int y, int w, int h)
 
 void test_left_attach(void**)
 {
-	Rect rect = {{{ 0, 0, 1000, 500 }}};
+	Rect rect = {{{ 0, 0, 1000, 400 }}};
 
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
 
@@ -103,6 +103,11 @@ void test_left_attach(void**)
 	UIDock* dock0 = grid->docks[0];
 	UIDock* dock1 = grid->docks[1];
 	UIDockSizer* s0 = grid->sizers[0]; 
+
+	assert_int_equal(s0->rect.x, rect.width / 2);
+	assert_int_equal(s0->rect.y, 0);
+	assert_int_equal(s0->rect.width, 0);
+	assert_int_equal(s0->rect.height, rect.height);
 
 	assert_int_equal(dock0->view->rect.x, rect.width / 2);
 	assert_int_equal(dock0->view->rect.y, 0);
@@ -432,7 +437,7 @@ void test_dock_split_horizontal(void**)
 
 void test_dock_split_vertical(void**)
 {
-	Rect rect = {{{ 0, 0, 1000, 500 }}};
+	Rect rect = {{{ 0, 0, 800, 200 }}};
 
 	UIDockingGrid* grid = createFourViews(rect);
 
