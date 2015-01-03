@@ -614,7 +614,7 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
 
 		// TODO: Add limits of the resizing
 
-		sizer->rect.x += deltaMove->x;
+		sizer->rect.x += move; 
 
 		for (UIDock* dock : leftDocks) 
 		{
