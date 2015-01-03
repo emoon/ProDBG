@@ -305,14 +305,19 @@ void test_sizer_hovering(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
+static UIDockingGrid* createFourViews(Rect rect)
+{
+
+}
+*/
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void test_dock_split_merge(void**)
 {
-	Rect rect;
-
-	rect.x = 0;
-	rect.y = 0;
-	rect.width = 1000;
-	rect.height = 500;
+	Rect rect = {{{ 0, 0, 1000, 500 }}};
 
 	UIDockingGrid* grid = UIDock_createGrid(&rect);
 
