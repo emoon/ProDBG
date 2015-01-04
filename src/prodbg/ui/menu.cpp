@@ -23,3 +23,11 @@ MenuDescriptor g_debugMenu[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+MenuDescriptor g_popupMenu[] =
+{
+    { "Change View", PRODBG_MENU_SUB_MENU, 0, 0, 0 },
+    { "Split Horizontally", PRODBG_MENU_SUB_MENU, 0, 0, 0 },
+    { "Split Vertically", PRODBG_MENU_SUB_MENU, 0, 0, 0 },
+    // { "New Tab (not implemented)", PRODBG_MENU_SUB_MENU, 0, 0, 0 },
+    { 0, 0, 0, 0, 0 },
+};

@@ -2,6 +2,8 @@
 #include "core/alloc.h"
 #include "core/math.h"
 #include "ui_dock_private.h"
+#include "plugin.h"
+
 #include <stddef.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -127,6 +129,12 @@ static UIDockSizer* createOrResizeSizer(UIDockingGrid* grid, Rect rect, UIDockSi
 
 static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* instance)
 {
+	if (grid->docks.size() == 0)
+	{
+		UIDock_addView(grid, instance);
+		return;
+	}
+
 	UIDock* newDock = new UIDock(instance); 
 	UIDockSizer* sizer = new UIDockSizer; 
 	UIDockSizerDir sizerDir = UIDockSizerDir_Vert;
@@ -269,6 +277,20 @@ void UIDock_dockLeft(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* inst
 void UIDock_dockRight(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* instance)
 {
 	dockSide(UIDockSide_Right, grid, dock, instance);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIDock_splitHorizontal(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* newInstance)
+{
+	UIDock_dockBottom(grid, dock, newInstance);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIDock_splitVertical(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* newInstance)
+{
+	UIDock_dockLeft(grid, dock, newInstance);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -643,6 +665,46 @@ void UIDock_deleteView(UIDockingGrid* grid, ViewPluginInstance* view)
 		}
 	}
 	*/
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIDock_update(UIDockingGrid* grid)
+{
+	// TODO: Force the stuff in place! Not very nice but will do for now
+
+	for (UIDock* dock : grid->docks)
+	{
+		FloatRect rect = 
+		{ 
+			float(dock->view->rect.x + 2), 
+			float(dock->view->rect.y + 2), 
+			float(dock->view->rect.width - 2), 
+			float(dock->view->rect.height - 2), 
+		};
+
+		PluginUI_setWindowRect(dock->view, &rect);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+UIDock* UIDock_getDockAt(UIDockingGrid* grid, int x, int y)
+{
+	for (UIDock* dock : grid->docks)
+	{
+		Rect rect = dock->view->rect;
+
+		const int x0 = rect.x;
+		const int y0 = rect.y;
+		const int x1 = x0 + rect.width; 
+		const int y1 = y0 + rect.height; 
+
+		if ((x >= x0 && x < x1) && (y >= y0 && y < y1))
+			return dock;
+	}
+
+	return nullptr;
 }
 
 

@@ -97,6 +97,10 @@ void ProDBG_create(void* window, int width, int height)
 
     context->session = Session_create();
 
+#if PRODBG_USING_DOCKING
+	Session_createDockingGrid(context->session, width, height);
+#endif
+
 	/*
     if (RMT_ERROR_NONE != rmt_CreateGlobalInstance(&s_remotery)) 
     {
@@ -159,6 +163,10 @@ void ProDBG_update()
 		rmt_ScopedCPUSample(Session_update);
     	Session_update(context->session);
 	}
+
+#if PRODBG_USING_DOCKING
+	UIDock_update(Session_getDockingGrid(context->session));
+#endif
 
     /*
 
@@ -262,6 +270,39 @@ void ProDBG_event(int eventId)
 
     PluginData** pluginsData = PluginHandler_getPlugins(&count);
 
+    log_info("eventId 0x%x\n", eventId);
+
+#if PRODBG_USING_DOCKING
+    if (eventId & PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT)
+	{
+		UIDockingGrid* grid = Session_getDockingGrid(context->session);
+		UIDock* dockAtMouse = UIDock_getDockAt(grid, (int)context->mouseX, (int)context->mouseY); 
+
+		eventId &= (PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT - 1);
+
+        ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[eventId]);
+		UIDock_splitHorizontal(Session_getDockingGrid(context->session), dockAtMouse, instance);
+
+        Session_addViewPlugin(context->session, instance);
+		return;
+	}
+
+    if (eventId & PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT)
+	{
+		UIDockingGrid* grid = Session_getDockingGrid(context->session);
+		UIDock* dockAtMouse = UIDock_getDockAt(grid, (int)context->mouseX, (int)context->mouseY); 
+
+		eventId &= (PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT - 1);
+
+        ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[eventId]);
+		UIDock_splitVertical(Session_getDockingGrid(context->session), dockAtMouse, instance);
+
+        Session_addViewPlugin(context->session, instance);
+		return;
+	}
+
+#endif
+
     // TODO: This code really needs to be made more robust.
 
     if (eventId >= PRODBG_MENU_PLUGIN_START && eventId < PRODBG_MENU_PLUGIN_START + 9)
@@ -270,6 +311,7 @@ void ProDBG_event(int eventId)
         Session_addViewPlugin(context->session, instance);
         return;
     }
+
 
     switch (eventId)
     {

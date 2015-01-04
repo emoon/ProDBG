@@ -25,13 +25,27 @@ enum
     PRODBG_MENU_DEBUG_STEP_OVER,
     PRODBG_MENU_DEBUG_TOGGLE_BREAKPOINT,
 
+    // Popup
+
+	PRODBG_MENU_POPUP_SPLIT_HORZ,
+	PRODBG_MENU_POPUP_SPLIT_VERT,
+
     // Plugins
 
     PRODBG_MENU_PLUGIN_START,
 
     // End
 
-    PRODBG_MENU_END = PRODBG_MENU_PLUGIN_START + 0x1000,
+    PRODBG_MENU_END = PRODBG_MENU_PLUGIN_START + 0x1000000,
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum
+{
+	PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT = 1 << 16,
+	PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT = 1 << 17,
+	PRODBG_MENU_POPUP_SPLIT_TAB_SHIFT = 1 << 18,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,6 +95,7 @@ typedef struct MenuDescriptor
 
 extern MenuDescriptor g_debugMenu[];
 extern MenuDescriptor g_fileMenu[];
+extern MenuDescriptor g_popupMenu[];
 
 #ifdef __cplusplus
 }

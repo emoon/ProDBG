@@ -1,5 +1,15 @@
 #pragma once
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#if defined(PRODBG_MAC)
+#define PRODBG_USING_DOCKING 1
+#else
+#define PRODBG_USING_DOCKING 0
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct ViewPluginInstance;
 struct UIDockSizer;
 struct UIDockingGrid;
@@ -35,6 +45,14 @@ void UIDock_mergeSizers(UIDockingGrid* grid, UIDockSizer* sizer);
 
 void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove);
 
+void UIDock_update(UIDockingGrid* grid);
+
+UIDock* UIDock_getDockAt(UIDockingGrid* grid, int x, int y);
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIDock_splitHorizontal(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* newInstance);
+void UIDock_splitVertical(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* newInstance);
 
 //void UIDock_dockLeft(UIDock* dock, ViewPluginInstance* instance);
 //UIDockStatus UIDock_dockRight(UIDock* dock, ViewPluginInstance* instance);

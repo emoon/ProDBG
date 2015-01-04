@@ -60,6 +60,19 @@ struct Session* Session_create()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#if PRODBG_USING_DOCKING
+
+void Session_createDockingGrid(Session* session, int width, int height)
+{
+	Rect rect = {{{ 0, 0, width, height }}};
+
+	session->uiDockingGrid = UIDock_createGrid(&rect);
+}
+
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Session* Session_startRemote(Session* s, const char* target, int port)
 {
     s->type = Session_Remote;
@@ -601,6 +614,17 @@ void Session_stepOver(Session* s)
     else if (s->type == Session_Remote)
         Session_action(s, PDAction_stepOver);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#if PRODBG_USING_DOCKING
+
+struct UIDockingGrid* Session_getDockingGrid(struct Session* session)
+{
+	return session->uiDockingGrid;
+}
+
+#endif
 
 
 
