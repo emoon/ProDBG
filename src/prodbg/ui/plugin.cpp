@@ -332,10 +332,10 @@ PluginUIState PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* re
     PDUI* uiInstance = &instance->ui;
     PrivateData* data = (PrivateData*)uiInstance->privateData;
 
-    ImGui::Begin(data->name, &data->showWindow, ImVec2(0, 0), true, 0);
+	ImGui::SetNextWindowPos(ImVec2((float)instance->rect.x, (float)instance->rect.y));
+	ImGui::SetNextWindowSize(ImVec2((float)instance->rect.width, (float)instance->rect.height));
 
-	ImGui::SetWindowPos(ImVec2((float)instance->rect.x, (float)instance->rect.y));
-	ImGui::SetWindowSize(ImVec2((float)instance->rect.width, (float)instance->rect.height));
+    ImGui::Begin(data->name, &data->showWindow, ImVec2(0, 0), true, 0);
 
     instance->plugin->update(instance->userData, uiInstance, reader, writer);
 
