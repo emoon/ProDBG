@@ -351,39 +351,20 @@ PluginUIState PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* re
 
 void PluginUI_getWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 {
-	(void)instance;
-	(void)rect;
-/*
-
-    PDUI* uiInstance = &instance->ui;
-    PrivateData* data = (PrivateData*)uiInstance->privateData;
-
-    ImVec2 pos = {};
-    ImVec2 size = {};
-
-    //ImGui::GetWindowRect(data->window, &pos, &size);
-
-    rect->x = pos.x;
-    rect->y = pos.y;
-    rect->width = size.x;
-    rect->height = size.y;
-*/
+    rect->x = (float)instance->rect.x; 
+    rect->y = (float)instance->rect.y; 
+    rect->width = (float)instance->rect.width; 
+    rect->height = (float)instance->rect.height; 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PluginUI_setWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 {
-	(void)instance;
-	(void)rect;
-	/*
-    PDUI* uiInstance = &instance->ui;
-    PrivateData* data = (PrivateData*)uiInstance->privateData;
-
-    ImVec2 pos(rect->x, rect->y);
-    ImVec2 size(rect->width, rect->height);
-    */
-
+	instance->rect.x = (int)rect->x;
+	instance->rect.y = (int)rect->y;
+	instance->rect.width = (int)rect->width;
+	instance->rect.height = (int)rect->height;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
