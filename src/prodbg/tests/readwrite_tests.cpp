@@ -291,8 +291,8 @@ void testHeaderArray(void**)
 
     // Not implemented so expect it to always fail
 
-	assert_true(PDWrite_headerArrayBegin(writer, 0) == PDWriteStatus_fail);
-	assert_true(PDWrite_headerArrayEnd(writer) == PDWriteStatus_fail);
+    assert_true(PDWrite_headerArrayBegin(writer, 0) == PDWriteStatus_fail);
+    assert_true(PDWrite_headerArrayEnd(writer) == PDWriteStatus_fail);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -304,27 +304,27 @@ void testArrayWriteBreakage(void**)
     assert_true(PDWrite_arrayBegin(writer, "test") == PDWriteStatus_ok);
     assert_true(PDWrite_arrayBegin(writer, "test") == PDWriteStatus_fail); // Should fail here as we are already writing an array
 
-    assert_true(PDWrite_arrayEnd(writer) == PDWriteStatus_ok); 
+    assert_true(PDWrite_arrayEnd(writer) == PDWriteStatus_ok);
     assert_true(PDWrite_arrayEnd(writer) == PDWriteStatus_fail); // Should fail here as we are ended the array
 
     PDBinaryWriter_reset(writer);
 
     assert_true(PDWrite_arrayBegin(writer, "test") == PDWriteStatus_ok);
-    assert_true(PDWrite_arrayEntryBegin(writer) == PDWriteStatus_ok); 
+    assert_true(PDWrite_arrayEntryBegin(writer) == PDWriteStatus_ok);
     assert_true(PDWrite_arrayEntryBegin(writer) == PDWriteStatus_fail); // Must call end before new Begin
 
-    assert_true(PDWrite_arrayEntryEnd(writer) == PDWriteStatus_ok); 
+    assert_true(PDWrite_arrayEntryEnd(writer) == PDWriteStatus_ok);
     assert_true(PDWrite_arrayEntryEnd(writer) == PDWriteStatus_fail); // must call begin before new End
 
-    assert_true(PDWrite_arrayEnd(writer) == PDWriteStatus_ok); 
+    assert_true(PDWrite_arrayEnd(writer) == PDWriteStatus_ok);
 
     PDBinaryWriter_reset(writer);
 
-	assert_true(PDWrite_eventBegin(writer, 10) == PDWriteStatus_ok);
-	assert_true(PDWrite_eventBegin(writer, 10) == PDWriteStatus_fail);	// Must end even before new event
+    assert_true(PDWrite_eventBegin(writer, 10) == PDWriteStatus_ok);
+    assert_true(PDWrite_eventBegin(writer, 10) == PDWriteStatus_fail);  // Must end even before new event
 
-	assert_true(PDWrite_eventEnd(writer) == PDWriteStatus_ok);
-	assert_true(PDWrite_eventEnd(writer) == PDWriteStatus_fail);	// Can't end event wtire 
+    assert_true(PDWrite_eventEnd(writer) == PDWriteStatus_ok);
+    assert_true(PDWrite_eventEnd(writer) == PDWriteStatus_fail);    // Can't end event wtire
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -423,20 +423,20 @@ void testArrayRead(void**)
 
     if (arrayIter)
     {
-		int8_t s8;
-		uint8_t u8;
-		int16_t s16;
-		uint16_t u16;
-		int32_t s32;
-		uint32_t u32;
-		int64_t s64;
-		uint64_t u64;
-		float fvalue = 0.0f;
-		double dvalue = 0.0;
-		const char* string;
+        int8_t s8;
+        uint8_t u8;
+        int16_t s16;
+        uint16_t u16;
+        int32_t s32;
+        uint32_t u32;
+        int64_t s64;
+        uint64_t u64;
+        float fvalue = 0.0f;
+        double dvalue = 0.0;
+        const char* string;
         const char* string1;
-		uint8_t* data;
-		uint64_t size;
+        uint8_t* data;
+        uint64_t size;
 
         assert_true(PDRead_getNextEntry(reader, &arrayIter) == 3);
 
@@ -447,77 +447,77 @@ void testArrayRead(void**)
 
         assert_int_equal(PDRead_getNextEntry(reader, &arrayIter), 14);
 
-		// s8
+        // s8
 
-		assert_true((PDRead_findS8(reader, &s8, "my_s8", arrayIter) & PDReadStatus_typeMask) == PDReadType_s8);
-		assert_true(s8 == -2);
+        assert_true((PDRead_findS8(reader, &s8, "my_s8", arrayIter) & PDReadStatus_typeMask) == PDReadType_s8);
+        assert_true(s8 == -2);
 
-		// u8
+        // u8
 
-		assert_true((PDRead_findU8(reader, &u8, "my_u8", arrayIter) & PDReadStatus_typeMask) == PDReadType_u8);
-		assert_true(u8 == 3);
+        assert_true((PDRead_findU8(reader, &u8, "my_u8", arrayIter) & PDReadStatus_typeMask) == PDReadType_u8);
+        assert_true(u8 == 3);
 
-		// s16
+        // s16
 
-		assert_true((PDRead_findS16(reader, &s16, "my_s16", arrayIter) & PDReadStatus_typeMask) == PDReadType_s16);
-		assert_true(s16 == -2000);
+        assert_true((PDRead_findS16(reader, &s16, "my_s16", arrayIter) & PDReadStatus_typeMask) == PDReadType_s16);
+        assert_true(s16 == -2000);
 
-		// u16
+        // u16
 
-		assert_true((PDRead_findU16(reader, &u16, "my_u16", arrayIter) & PDReadStatus_typeMask) == PDReadType_u16);
-		assert_true(u16 == 56);
+        assert_true((PDRead_findU16(reader, &u16, "my_u16", arrayIter) & PDReadStatus_typeMask) == PDReadType_u16);
+        assert_true(u16 == 56);
 
-		// s32
+        // s32
 
-		assert_true((PDRead_findS32(reader, &s32, "my_s32", arrayIter) & PDReadStatus_typeMask) == PDReadType_s32);
-		assert_true(s32 == -300000);
+        assert_true((PDRead_findS32(reader, &s32, "my_s32", arrayIter) & PDReadStatus_typeMask) == PDReadType_s32);
+        assert_true(s32 == -300000);
 
-		// u32
+        // u32
 
-		assert_true((PDRead_findU32(reader, &u32, "my_u32", arrayIter) & PDReadStatus_typeMask) == PDReadType_u32);
-		assert_true(u32 == 4000000);
+        assert_true((PDRead_findU32(reader, &u32, "my_u32", arrayIter) & PDReadStatus_typeMask) == PDReadType_u32);
+        assert_true(u32 == 4000000);
 
-		// s64
+        // s64
 
-		assert_true((PDRead_findS64(reader, &s64, "my_s64", arrayIter) & PDReadStatus_typeMask) == PDReadType_s64);
-		assert_true(s64 == -1400000L);
+        assert_true((PDRead_findS64(reader, &s64, "my_s64", arrayIter) & PDReadStatus_typeMask) == PDReadType_s64);
+        assert_true(s64 == -1400000L);
 
-		// u64
+        // u64
 
-		assert_true((PDRead_findU64(reader, &u64, "my_u64", arrayIter) & PDReadStatus_typeMask) == PDReadType_u64);
-		assert_true(u64 == 6000000L);
+        assert_true((PDRead_findU64(reader, &u64, "my_u64", arrayIter) & PDReadStatus_typeMask) == PDReadType_u64);
+        assert_true(u64 == 6000000L);
 
-		// float
+        // float
 
-		assert_true((PDRead_findFloat(reader, &fvalue, "my_float", arrayIter) & PDReadStatus_typeMask) == PDReadType_float);
-		assert_true(fvalue == 14.0f);
+        assert_true((PDRead_findFloat(reader, &fvalue, "my_float", arrayIter) & PDReadStatus_typeMask) == PDReadType_float);
+        assert_true(fvalue == 14.0f);
 
-		// float 2
+        // float 2
 
-		assert_true((PDRead_findFloat(reader, &fvalue, "my_float2", arrayIter) & PDReadStatus_typeMask) == PDReadType_float);
-		assert_true(((fvalue > (-24.0f - 0.001f)) && fvalue < ((-24.0f + 0.0001f))));
+        assert_true((PDRead_findFloat(reader, &fvalue, "my_float2", arrayIter) & PDReadStatus_typeMask) == PDReadType_float);
+        assert_true(((fvalue > (-24.0f - 0.001f)) && fvalue < ((-24.0f + 0.0001f))));
 
-		// double
+        // double
 
-		assert_true((PDRead_findDouble(reader, &dvalue, "my_double", arrayIter) & PDReadStatus_typeMask) == PDReadType_double);
-		assert_true(dvalue == 23.0);
+        assert_true((PDRead_findDouble(reader, &dvalue, "my_double", arrayIter) & PDReadStatus_typeMask) == PDReadType_double);
+        assert_true(dvalue == 23.0);
 
-		// double 2
+        // double 2
 
-		assert_true((PDRead_findDouble(reader, &dvalue, "my_double2", arrayIter) & PDReadStatus_typeMask) == PDReadType_double);
-		assert_true(dvalue == 63.0);
+        assert_true((PDRead_findDouble(reader, &dvalue, "my_double2", arrayIter) & PDReadStatus_typeMask) == PDReadType_double);
+        assert_true(dvalue == 63.0);
 
-		// string
+        // string
 
-		assert_true((PDRead_findString(reader, &string, "my_string", arrayIter) & PDReadStatus_typeMask) == PDReadType_string);
-		assert_string_equal(string, "foobar1337");
+        assert_true((PDRead_findString(reader, &string, "my_string", arrayIter) & PDReadStatus_typeMask) == PDReadType_string);
+        assert_string_equal(string, "foobar1337");
 
-		assert_true((PDRead_findData(reader, (void**)&data, &size, "my_data", arrayIter) & PDReadStatus_typeMask) == PDReadType_data);
-		assert_true(size == sizeof(s_data));
-		assert_true(data[0] == s_data[0]);
-		assert_true(data[1] == s_data[1]);
-		assert_true(data[2] == s_data[2]);
-		assert_true(data[5] == s_data[5]);
+        assert_true((PDRead_findData(reader, (void**)&data, &size, "my_data", arrayIter) & PDReadStatus_typeMask) == PDReadType_data);
+        assert_true(size == sizeof(s_data));
+        assert_true(data[0] == s_data[0]);
+        assert_true(data[1] == s_data[1]);
+        assert_true(data[2] == s_data[2]);
+        assert_true(data[5] == s_data[5]);
 
         assert_true(PDRead_getNextEntry(reader, &arrayIter) == 0);
     }
@@ -540,7 +540,7 @@ int main()
         unit_test(testFind),
         unit_test(testArray),
         unit_test(testArrayRead),
-		unit_test(testHeaderArray),
+        unit_test(testHeaderArray),
     };
 
     reader = &readerData;
@@ -553,6 +553,6 @@ int main()
 
     PDBinaryWriter_destroy(writer);
 
-   	return test;
+    return test;
 }
 

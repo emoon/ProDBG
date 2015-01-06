@@ -27,8 +27,8 @@ enum
 
     // Popup
 
-	PRODBG_MENU_POPUP_SPLIT_HORZ,
-	PRODBG_MENU_POPUP_SPLIT_VERT,
+    PRODBG_MENU_POPUP_SPLIT_HORZ,
+    PRODBG_MENU_POPUP_SPLIT_VERT,
 
     // Plugins
 
@@ -43,9 +43,9 @@ enum
 
 enum
 {
-	PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT = 1 << 16,
-	PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT = 1 << 17,
-	PRODBG_MENU_POPUP_SPLIT_TAB_SHIFT = 1 << 18,
+    PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT = 1 << 16,
+    PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT = 1 << 17,
+    PRODBG_MENU_POPUP_SPLIT_TAB_SHIFT = 1 << 18,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

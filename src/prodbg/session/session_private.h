@@ -61,7 +61,7 @@ typedef struct Session
     PDBackendInstance* backend;
     RemoteConnection* connection;
     ViewPluginInstance** viewPlugins;
-	UIDockingGrid* uiDockingGrid;
+    UIDockingGrid* uiDockingGrid;
 
     std::list<Breakpoint*> breakpoints;
 

@@ -64,9 +64,9 @@ struct Session* Session_create()
 
 void Session_createDockingGrid(Session* session, int width, int height)
 {
-	Rect rect = {{{ 0, 0, width, height }}};
+    Rect rect = {{{ 0, 0, width, height }}};
 
-	session->uiDockingGrid = UIDock_createGrid(&rect);
+    session->uiDockingGrid = UIDock_createGrid(&rect);
 }
 
 #endif
@@ -621,7 +621,7 @@ void Session_stepOver(Session* s)
 
 struct UIDockingGrid* Session_getDockingGrid(struct Session* session)
 {
-	return session->uiDockingGrid;
+    return session->uiDockingGrid;
 }
 
 #endif

@@ -4,29 +4,29 @@
 
 typedef struct Rect
 {
-	//inline Rect(int inX, int inY, int inW, int inH) : x(inX), y(inY), width(inW), height(inH) { }
+    //inline Rect(int inX, int inY, int inW, int inH) : x(inX), y(inY), width(inW), height(inH) { }
 
-	enum
-	{
-		X,
-		Y,
-		W,
-		H,
-		Compontent_Count,
-	};
+    enum
+    {
+        X,
+        Y,
+        W,
+        H,
+        Compontent_Count,
+    };
 
-	union
-	{
-		struct 
-		{
-			int x;
-			int y;
-			int width;
-			int height;
-		};
+    union
+    {
+        struct
+        {
+            int x;
+            int y;
+            int width;
+            int height;
+        };
 
-		int data[Compontent_Count];
-	};
+        int data[Compontent_Count];
+    };
 } Rect;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +43,7 @@ typedef struct FloatRect
 
 typedef struct Vec2
 {
-	float x, y;
+    float x, y;
 } Vec2;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

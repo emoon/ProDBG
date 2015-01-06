@@ -22,63 +22,63 @@ static bgfx::UniformHandle u_viewSize;
 
 static const bgfx::Memory* loadShader(const char* filename)
 {
-	size_t size;
-	uint8_t* data = (uint8_t*)File_loadToMemory(filename, &size, 1);
+    size_t size;
+    uint8_t* data = (uint8_t*)File_loadToMemory(filename, &size, 1);
 
-	if (!data)
-	{
-		log_error("Unable to load shader %s\n", filename)
-		return 0;
-	}
+    if (!data)
+    {
+        log_error("Unable to load shader %s\n", filename)
+        return 0;
+    }
 
-	bgfx::Memory* mem = (bgfx::Memory*)bgfx::alloc(sizeof(bgfx::Memory));
+    bgfx::Memory* mem = (bgfx::Memory*)bgfx::alloc(sizeof(bgfx::Memory));
 
-	// terminate strings
+    // terminate strings
 
-	data[size] = 0;
+    data[size] = 0;
 
-	mem->data = data;
-	mem->size = (uint32_t)size;
+    mem->data = data;
+    mem->size = (uint32_t)size;
 
-	return mem;
+    return mem;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bgfx::ProgramHandle loadProgram(const char* vsName, const char* fsName)
 {
-	bgfx::ProgramHandle ph = { bgfx::invalidHandle };
+    bgfx::ProgramHandle ph = { bgfx::invalidHandle };
 
-	const bgfx::Memory* vsShader = loadShader(vsName); 
-	const bgfx::Memory* fsShader = loadShader(fsName); 
+    const bgfx::Memory* vsShader = loadShader(vsName);
+    const bgfx::Memory* fsShader = loadShader(fsName);
 
-	if (!vsShader)
-		return ph;
+    if (!vsShader)
+        return ph;
 
-	if (!fsShader)
-		return ph;
+    if (!fsShader)
+        return ph;
 
-	bgfx::ShaderHandle vsHandle = bgfx::createShader(vsShader);
-	bgfx::ShaderHandle fsHandle = bgfx::createShader(fsShader);
+    bgfx::ShaderHandle vsHandle = bgfx::createShader(vsShader);
+    bgfx::ShaderHandle fsHandle = bgfx::createShader(fsShader);
 
-	if (!isValid(vsHandle))
-	{
-		log_error("Unable to load vsShader %s\n", vsName)
-		return ph;
-	}
+    if (!isValid(vsHandle))
+    {
+        log_error("Unable to load vsShader %s\n", vsName)
+        return ph;
+    }
 
-	if (!isValid(fsHandle))
-	{
-		log_error("Unable to load fsShader %s\n", fsName)
-		return ph;
-	}
+    if (!isValid(fsHandle))
+    {
+        log_error("Unable to load fsShader %s\n", fsName)
+        return ph;
+    }
 
-	ph = bgfx::createProgram(vsHandle, fsHandle, true);
+    ph = bgfx::createProgram(vsHandle, fsHandle, true);
 
-	if (!isValid(ph))
-		log_error("Unable to create shader program for %s %s\n", vsName, fsName);
+    if (!isValid(ph))
+        log_error("Unable to create shader program for %s %s\n", vsName, fsName);
 
-	return ph;
+    return ph;
 }
 
 
@@ -89,67 +89,67 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
     (void)cmd_lists;
     (void)cmd_lists_count;
 
-	float viewSize[2];
+    float viewSize[2];
 
-	const float width = ImGui::GetIO().DisplaySize.x;
-	const float height = ImGui::GetIO().DisplaySize.y;
+    const float width = ImGui::GetIO().DisplaySize.x;
+    const float height = ImGui::GetIO().DisplaySize.y;
 
-	viewSize[0] = width;
-	viewSize[1] = height;
+    viewSize[0] = width;
+    viewSize[1] = height;
 
-	float ortho[16];
-	bx::mtxOrtho(ortho, 0.0f, viewSize[0], viewSize[1], 0.0f, -1.0f, 1.0f);
+    float ortho[16];
+    bx::mtxOrtho(ortho, 0.0f, viewSize[0], viewSize[1], 0.0f, -1.0f, 1.0f);
 
-	bgfx::setViewTransform(0, NULL, ortho);
+    bgfx::setViewTransform(0, NULL, ortho);
 
-	// Render command lists
-	
-	for (int n = 0; n < cmd_lists_count; n++)
-	{
-		bgfx::TransientVertexBuffer tvb;
+    // Render command lists
 
-		uint32_t vtx_size = 0;
+    for (int n = 0; n < cmd_lists_count; n++)
+    {
+        bgfx::TransientVertexBuffer tvb;
 
-		const ImDrawList* cmd_list = cmd_lists[n];
-		const ImDrawVert* vtx_buffer = cmd_list->vtx_buffer.begin();
-		(void)vtx_buffer;
-		
-		const ImDrawCmd* pcmd_end_t = cmd_list->commands.end();
+        uint32_t vtx_size = 0;
 
-		for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end_t; pcmd++)
-			vtx_size += (uint32_t)pcmd->vtx_count;
+        const ImDrawList* cmd_list = cmd_lists[n];
+        const ImDrawVert* vtx_buffer = cmd_list->vtx_buffer.begin();
+        (void)vtx_buffer;
 
-		bgfx::allocTransientVertexBuffer(&tvb, vtx_size, s_vertexDecl);
+        const ImDrawCmd* pcmd_end_t = cmd_list->commands.end();
 
-		ImDrawVert* verts = (ImDrawVert*)tvb.data;
+        for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end_t; pcmd++)
+            vtx_size += (uint32_t)pcmd->vtx_count;
 
-		memcpy(verts, vtx_buffer, vtx_size * sizeof(ImDrawVert));
+        bgfx::allocTransientVertexBuffer(&tvb, vtx_size, s_vertexDecl);
 
-		uint32_t vtx_offset = 0;
-		const ImDrawCmd* pcmd_end = cmd_list->commands.end();
-		for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end; pcmd++)
-		{
-			/*
-			bgfx::setScissor((uint16_t)pcmd->clip_rect.x, 
-						     (uint16_t)(height - pcmd->clip_rect.w), 
-						     (uint16_t)(pcmd->clip_rect.z - pcmd->clip_rect.x), 
-						     (uint16_t)(pcmd->clip_rect.w - pcmd->clip_rect.y));
-			*/
+        ImDrawVert* verts = (ImDrawVert*)tvb.data;
 
-			bgfx::setState(0
-							| BGFX_STATE_RGB_WRITE
-							| BGFX_STATE_ALPHA_WRITE
-							| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
-							| BGFX_STATE_MSAA);
-			bgfx::setTexture(0, s_tex, s_textureId);
-			bgfx::setVertexBuffer(&tvb, vtx_offset, pcmd->vtx_count);
-			bgfx::setProgram(s_imguiProgram);
-			bgfx::setUniform(u_viewSize, viewSize);
-			bgfx::submit(0);
+        memcpy(verts, vtx_buffer, vtx_size * sizeof(ImDrawVert));
 
-			vtx_offset += pcmd->vtx_count;
-		}
-	}
+        uint32_t vtx_offset = 0;
+        const ImDrawCmd* pcmd_end = cmd_list->commands.end();
+        for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end; pcmd++)
+        {
+            /*
+               bgfx::setScissor((uint16_t)pcmd->clip_rect.x,
+                             (uint16_t)(height - pcmd->clip_rect.w),
+                             (uint16_t)(pcmd->clip_rect.z - pcmd->clip_rect.x),
+                             (uint16_t)(pcmd->clip_rect.w - pcmd->clip_rect.y));
+             */
+
+            bgfx::setState(0
+                           | BGFX_STATE_RGB_WRITE
+                           | BGFX_STATE_ALPHA_WRITE
+                           | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+                           | BGFX_STATE_MSAA);
+            bgfx::setTexture(0, s_tex, s_textureId);
+            bgfx::setVertexBuffer(&tvb, vtx_offset, pcmd->vtx_count);
+            bgfx::setProgram(s_imguiProgram);
+            bgfx::setUniform(u_viewSize, viewSize);
+            bgfx::submit(0);
+
+            vtx_offset += pcmd->vtx_count;
+        }
+    }
 }
 
 
@@ -157,39 +157,39 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
 
 void IMGUI_setup(int width, int height)
 {
-	const void* png_data;
-	unsigned int png_size;
+    const void* png_data;
+    unsigned int png_size;
     ImGuiIO& io = ImGui::GetIO();
 
     io.DisplaySize = ImVec2((float)width, (float)height);
     io.DeltaTime = 1.0f / 60.0f;
     io.PixelCenterOffset = 0.0f;
 
-	s_imguiProgram = loadProgram(OBJECT_DIR "/_generated/data/shaders/imgui/vs_imgui.vs", 
-								 OBJECT_DIR "/_generated/data/shaders/imgui/fs_imgui.fs");
-	s_vertexDecl 
-		.begin()
-		.add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-		.end();
+    s_imguiProgram = loadProgram(OBJECT_DIR "/_generated/data/shaders/imgui/vs_imgui.vs",
+                                 OBJECT_DIR "/_generated/data/shaders/imgui/fs_imgui.fs");
+    s_vertexDecl
+    .begin()
+    .add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
+    .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+    .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
+    .end();
 
-	u_viewSize = bgfx::createUniform("viewSize", bgfx::UniformType::Uniform2fv);
-	s_tex = bgfx::createUniform("s_tex", bgfx::UniformType::Uniform1i);
+    u_viewSize = bgfx::createUniform("viewSize", bgfx::UniformType::Uniform2fv);
+    s_tex = bgfx::createUniform("s_tex", bgfx::UniformType::Uniform1i);
 
-	ImGui::GetDefaultFontData(NULL, NULL, &png_data, &png_size);
-	int tex_x, tex_y, pitch, tex_comp;
+    ImGui::GetDefaultFontData(NULL, NULL, &png_data, &png_size);
+    int tex_x, tex_y, pitch, tex_comp;
 
-	void* tex_data = stbi_load_from_memory((const unsigned char*)png_data, (int)png_size, &tex_x, &tex_y, &tex_comp, 0);
-	
-	pitch = tex_x * 4;
+    void* tex_data = stbi_load_from_memory((const unsigned char*)png_data, (int)png_size, &tex_x, &tex_y, &tex_comp, 0);
 
-	const bgfx::Memory* mem = bgfx::alloc((uint32_t)(tex_y * pitch));
-	memcpy(mem->data, tex_data, size_t(pitch * tex_y));
+    pitch = tex_x * 4;
 
-	s_textureId = bgfx::createTexture2D((uint16_t)tex_x, (uint16_t)tex_y, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT, mem);
+    const bgfx::Memory* mem = bgfx::alloc((uint32_t)(tex_y * pitch));
+    memcpy(mem->data, tex_data, size_t(pitch * tex_y));
 
-	stbi_image_free(tex_data);
+    s_textureId = bgfx::createTexture2D((uint16_t)tex_x, (uint16_t)tex_y, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT, mem);
+
+    stbi_image_free(tex_data);
 
     io.RenderDrawListsFn = imguiRender;
 }
@@ -199,8 +199,8 @@ void IMGUI_setup(int width, int height)
 
 void IMGUI_preUpdate(float x, float y, int mouseLmb, int keyDown, int keyMod)
 {
-	(void)keyDown;
-	(void)keyMod;
+    (void)keyDown;
+    (void)keyMod;
     ImGuiIO& io = ImGui::GetIO();
     io.DeltaTime = 1.0f / 120.0f;    // TODO: Fix me
     io.MousePos = ImVec2(x, y);

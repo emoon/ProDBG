@@ -474,10 +474,10 @@ static NSMenu* s_popupMenu;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-- (void)rightMouseDown:(NSEvent *)event
+- (void)rightMouseDown:(NSEvent*)event
 {
-	if (!s_popupMenu)
-		return;
+    if (!s_popupMenu)
+        return;
 
     [NSMenu popUpContextMenu:s_popupMenu withEvent:event forView:self];
 }
@@ -515,64 +515,64 @@ MenuDescriptor* buildPluginsMenu(PluginData** plugins, int count)
 
         // TODO: Only shortcuts for the first range but we should really have this in a config instead.
 
-		if (i < 10)
-		{
-			entry->id = PRODBG_MENU_PLUGIN_START + i;
-			entry->key = '1' + i;
-		}
+        if (i < 10)
+        {
+            entry->id = PRODBG_MENU_PLUGIN_START + i;
+            entry->key = '1' + i;
+        }
 
         entry->macMod = PRODBG_KEY_COMMAND;
         entry->winMod = PRODBG_KEY_CTRL;
     }
 
-	return menu;
+    return menu;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void buildPopupSubmenu(NSMenu* popupMenu, const char* inName, MenuDescriptor* pluginsMenu, int count, uint32_t startId, uint32_t idMask)
 {
-	NSString* name = [NSString stringWithUTF8String: inName];
+    NSString* name = [NSString stringWithUTF8String: inName];
 
-	NSMenuItem* newItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:name action:NULL keyEquivalent:@""];
-	NSMenu* newMenu = [[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:name];
+    NSMenuItem* newItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:name action:NULL keyEquivalent:@""];
+    NSMenu* newMenu = [[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:name];
 
     NSMenuItem* startItem = [[NSMenuItem alloc] initWithTitle:name action:@selector(onMenuPress:) keyEquivalent:@""];
     [startItem setTag:startId];
 
-	[newMenu addItem:startItem];
+    [newMenu addItem:startItem];
     [newMenu addItem:[NSMenuItem separatorItem]];
 
-	for (int i = 0; i < count; ++i)
-	{
-		pluginsMenu[i].key = 0;
-		pluginsMenu[i].id = (uint32_t)i | idMask;
-	}
+    for (int i = 0; i < count; ++i)
+    {
+        pluginsMenu[i].key = 0;
+        pluginsMenu[i].id = (uint32_t)i | idMask;
+    }
 
     buildSubMenu(newMenu, pluginsMenu);
 
-	[newItem setSubmenu:newMenu];
-	[popupMenu addItem:newItem];
+    [newItem setSubmenu:newMenu];
+    [popupMenu addItem:newItem];
 
-	[name release];
+    [name release];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void buildPopupMenu(MenuDescriptor* pluginsMenu, int count)
 {
-	// TODO: Support rebuild of this menu
+    // TODO: Support rebuild of this menu
 
-	if (s_popupMenu)
-		return;
+    if (s_popupMenu)
+        return;
 
-	s_popupMenu = [[NSMenu alloc] initWithTitle:@"Contextual Menu"];
+    s_popupMenu = [[NSMenu alloc] initWithTitle:@"Contextual Menu"];
 
-	buildPopupSubmenu(s_popupMenu, "Split Horizontally", pluginsMenu, count, 
-		PRODBG_MENU_POPUP_SPLIT_HORZ, PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT);
+    buildPopupSubmenu(s_popupMenu, "Split Horizontally", pluginsMenu, count,
+                      PRODBG_MENU_POPUP_SPLIT_HORZ, PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT);
 
-	buildPopupSubmenu(s_popupMenu, "Split Vertically", pluginsMenu, count, 
-		PRODBG_MENU_POPUP_SPLIT_VERT, PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT);
+    buildPopupSubmenu(s_popupMenu, "Split Vertically", pluginsMenu, count,
+                      PRODBG_MENU_POPUP_SPLIT_VERT, PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -582,11 +582,11 @@ int Window_buildPluginMenu(PluginData** plugins, int count)
     NSMenu* mainMenu = [NSApp mainMenu];
     NSMenu* pluginsMenu = [[mainMenu itemWithTitle:@"Plugins"] submenu];
 
-	MenuDescriptor* menu = buildPluginsMenu(plugins, count);
+    MenuDescriptor* menu = buildPluginsMenu(plugins, count);
 
     buildSubMenu(pluginsMenu, menu);
 
-	buildPopupMenu(menu, count);
+    buildPopupMenu(menu, count);
 
     return PRODBG_MENU_PLUGIN_START;
 }

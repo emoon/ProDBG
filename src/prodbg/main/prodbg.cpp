@@ -64,7 +64,7 @@ static const char* s_plugins[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setLayout(UILayout* layout)
+void setLayout(UILayout* layout)
 {
     Context* context = &s_context;
     IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
@@ -76,16 +76,18 @@ static void setLayout(UILayout* layout)
 
 void loadLayout()
 {
-    UILayout layout;
+    /*
+       UILayout layout;
 
-    if (UILayout_loadLayout(&layout, "data/current_layout.json"))
-    {
+       if (UILayout_loadLayout(&layout, "data/current_layout.json"))
+       {
         setLayout(&layout);
         return;
-    }
+       }
 
-    if (UILayout_loadLayout(&layout, "data/default_layout.json"))
+       if (UILayout_loadLayout(&layout, "data/default_layout.json"))
         setLayout(&layout);
+     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -98,16 +100,16 @@ void ProDBG_create(void* window, int width, int height)
     context->session = Session_create();
 
 #if PRODBG_USING_DOCKING
-	Session_createDockingGrid(context->session, width, height);
+    Session_createDockingGrid(context->session, width, height);
 #endif
 
-	/*
-    if (RMT_ERROR_NONE != rmt_CreateGlobalInstance(&s_remotery)) 
-    {
-    	log_error("Unable to setup Remotery");
+    /*
+       if (RMT_ERROR_NONE != rmt_CreateGlobalInstance(&s_remotery))
+       {
+        log_error("Unable to setup Remotery");
         return;
-    }
-    */
+       }
+     */
 
     //Settings_getWindowRect(&settingsRect);
     //width = settingsRect.width;
@@ -146,26 +148,26 @@ void ProDBG_update()
 {
     Context* context = &s_context;
 
-	rmt_ScopedCPUSample(ProDBG_update);
+    rmt_ScopedCPUSample(ProDBG_update);
 
     bgfx::setViewRect(0, 0, 0, (uint16_t)context->width, (uint16_t)context->height);
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR_BIT | BGFX_CLEAR_DEPTH_BIT, 0x101010ff, 1.0f, 0);
     bgfx::submit(0);
 
-	{
-		rmt_ScopedCPUSample(IMGUI_preUpdate);
-    	IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
-	}
+    {
+        rmt_ScopedCPUSample(IMGUI_preUpdate);
+        IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
+    }
 
     // TODO: Support multiple sessions
 
-	{
-		rmt_ScopedCPUSample(Session_update);
-    	Session_update(context->session);
-	}
+    {
+        rmt_ScopedCPUSample(Session_update);
+        Session_update(context->session);
+    }
 
 #if PRODBG_USING_DOCKING
-	UIDock_update(Session_getDockingGrid(context->session));
+    UIDock_update(Session_getDockingGrid(context->session));
 #endif
 
     /*
@@ -182,15 +184,15 @@ void ProDBG_update()
        ImGui::End();
      */
 
-	{
-		rmt_ScopedCPUSample(IMGUI_postUpdate);
-    	IMGUI_postUpdate();
-	}
+    {
+        rmt_ScopedCPUSample(IMGUI_postUpdate);
+        IMGUI_postUpdate();
+    }
 
-	{
-		rmt_ScopedCPUSample(bgfx_frame);
-    	bgfx::frame();
-	}
+    {
+        rmt_ScopedCPUSample(bgfx_frame);
+        bgfx::frame();
+    }
 }
 
 // Temprory test for monkey
@@ -274,32 +276,32 @@ void ProDBG_event(int eventId)
 
 #if PRODBG_USING_DOCKING
     if (eventId & PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT)
-	{
-		UIDockingGrid* grid = Session_getDockingGrid(context->session);
-		UIDock* dockAtMouse = UIDock_getDockAt(grid, (int)context->mouseX, (int)context->mouseY); 
+    {
+        UIDockingGrid* grid = Session_getDockingGrid(context->session);
+        UIDock* dockAtMouse = UIDock_getDockAt(grid, (int)context->mouseX, (int)context->mouseY);
 
-		eventId &= (PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT - 1);
+        eventId &= (PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT - 1);
 
         ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[eventId]);
-		UIDock_splitHorizontal(Session_getDockingGrid(context->session), dockAtMouse, instance);
+        UIDock_splitHorizontal(Session_getDockingGrid(context->session), dockAtMouse, instance);
 
         Session_addViewPlugin(context->session, instance);
-		return;
-	}
+        return;
+    }
 
     if (eventId & PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT)
-	{
-		UIDockingGrid* grid = Session_getDockingGrid(context->session);
-		UIDock* dockAtMouse = UIDock_getDockAt(grid, (int)context->mouseX, (int)context->mouseY); 
+    {
+        UIDockingGrid* grid = Session_getDockingGrid(context->session);
+        UIDock* dockAtMouse = UIDock_getDockAt(grid, (int)context->mouseX, (int)context->mouseY);
 
-		eventId &= (PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT - 1);
+        eventId &= (PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT - 1);
 
         ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[eventId]);
-		UIDock_splitVertical(Session_getDockingGrid(context->session), dockAtMouse, instance);
+        UIDock_splitVertical(Session_getDockingGrid(context->session), dockAtMouse, instance);
 
         Session_addViewPlugin(context->session, instance);
-		return;
-	}
+        return;
+    }
 
 #endif
 

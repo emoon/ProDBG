@@ -21,9 +21,9 @@ struct Vec2;
 
 enum UIDockSizerDir
 {
-	UIDockSizerDir_None,
-	UIDockSizerDir_Horz,
-	UIDockSizerDir_Vert,
+    UIDockSizerDir_None,
+    UIDockSizerDir_Horz,
+    UIDockSizerDir_Vert,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
