@@ -34,13 +34,16 @@ ImVec2 GetRelativeMousePos()
 
 bool IsFocusWindowKeyDown(int key, bool repeat)
 {
-    ImGuiState& g = GImGui;
-    ImGuiWindow* window = GetCurrentWindow();
+	if (!GetWindowIsFocused())
+		return false;
+
+    //ImGuiState& g = GImGui;
+    //ImGuiWindow* window = GetCurrentWindow();
 
     // Only send keyboard events to selected window
 
-    if (g.FocusedWindow != window)
-        return false;
+    //if (g.FocusedWindow != window)
+     //   return false;
 
     return IsKeyPressed(key, repeat);
 }
@@ -70,58 +73,6 @@ bool IsActiveWindow(ImGuiWindow* window)
     ImGuiState& g = GImGui;
     return g.FocusedWindow == window;
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static ImGuiWindow* FindWindowTemp(const char* name)
-{
-    ImGuiState& g = GImGui;
-    for (size_t i = 0; i != g.Windows.size(); i++)
-        if (strcmp(g.Windows[i]->Name, name) == 0)
-            return g.Windows[i];
-    return NULL;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-struct ImGuiWindow* FindOrCreateWindow(const char* name, ImVec2 size, ImGuiWindowFlags flags)
-{
-	ImGuiState& g = GImGui;
-    ImGuiWindow* window = FindWindowTemp(name);
-    if (!window)
-    {
-        // Create window the first time, and load settings
-        if (flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Tooltip))
-        {
-            // Tooltip and child windows don't store settings
-            window = (ImGuiWindow*)ImGui::MemAlloc(sizeof(ImGuiWindow));
-            new(window) ImGuiWindow(name, ImVec2(0,0), size);
-        }
-        else
-        {
-            // Normal windows store settings in .ini file
-            ImGuiIniData* settings = FindWindowSettings(name);
-            if (settings && ImLength(settings->Size) > 0.0f && !(flags & ImGuiWindowFlags_NoResize))// && ImLengthsize) == 0.0f)
-                size = settings->Size;
-
-            window = (ImGuiWindow*)ImGui::MemAlloc(sizeof(ImGuiWindow));
-            new(window) ImGuiWindow(name, g.NewWindowDefaultPos, size);
-
-            if (settings->Pos.x != FLT_MAX)
-            {
-                window->PosFloat = settings->Pos;
-                window->Pos = ImVec2((float)(int)window->PosFloat.x, (float)(int)window->PosFloat.y);
-                window->Collapsed = settings->Collapsed;
-            }
-        }
-        g.Windows.push_back(window);
-    }
-
-	window->Flags = (ImGuiWindowFlags)flags;
-
-    return window;
-}
-
 
 }
 
