@@ -320,7 +320,7 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     uiInstance->privateData = alloc_zero(sizeof(PrivateData));
     data->name = buildName(pluginInstance->plugin->name, pluginInstance->count);
 
-    data->window = ImGui::FindOrCreateWindow(data->name, ImVec2(400, 400), 0);
+    data->window = 0; //ImGui::FindOrCreateWindow(data->name, ImVec2(400, 400), 0);
 
     uiInstance->privateData = data;
 }
@@ -332,7 +332,10 @@ PluginUIState PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* re
     PDUI* uiInstance = &instance->ui;
     PrivateData* data = (PrivateData*)uiInstance->privateData;
 
-    ImGui::BeginWithWindow(data->window, data->name, &data->showWindow, ImVec2(0, 0), true, 0);
+    ImGui::Begin(data->name, &data->showWindow, ImVec2(0, 0), true, 0);
+
+	ImGui::SetWindowPos(ImVec2((float)instance->rect.x, (float)instance->rect.y));
+	ImGui::SetWindowSize(ImVec2((float)instance->rect.width, (float)instance->rect.height));
 
     instance->plugin->update(instance->userData, uiInstance, reader, writer);
 
@@ -348,35 +351,44 @@ PluginUIState PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* re
 
 void PluginUI_getWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 {
+	(void)instance;
+	(void)rect;
+/*
+
     PDUI* uiInstance = &instance->ui;
     PrivateData* data = (PrivateData*)uiInstance->privateData;
 
     ImVec2 pos = {};
     ImVec2 size = {};
 
-    ImGui::GetWindowRect(data->window, &pos, &size);
+    //ImGui::GetWindowRect(data->window, &pos, &size);
 
     rect->x = pos.x;
     rect->y = pos.y;
     rect->width = size.x;
     rect->height = size.y;
+*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PluginUI_setWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 {
+	(void)instance;
+	(void)rect;
+	/*
     PDUI* uiInstance = &instance->ui;
     PrivateData* data = (PrivateData*)uiInstance->privateData;
 
     ImVec2 pos(rect->x, rect->y);
     ImVec2 size(rect->width, rect->height);
+    */
 
-    ImGui::SetWindowRect(data->window, pos, size);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 bool PluginUI_isActiveWindow(ViewPluginInstance* instance)
 {
 	(void)instance;
@@ -385,4 +397,5 @@ bool PluginUI_isActiveWindow(ViewPluginInstance* instance)
 
     return ImGui::IsActiveWindow(data->window);
 }
+*/
 
