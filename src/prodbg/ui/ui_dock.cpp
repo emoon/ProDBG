@@ -5,6 +5,7 @@
 #include "plugin.h"
 
 #include <stddef.h>
+#include <assert.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -402,6 +403,50 @@ static void replaceSizers(std::vector<UIDock*>& docks, UIDockSizer* oldSizer, UI
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void refitDocks(std::vector<UIDock*>& docks)
+{
+    for (UIDock* dock : docks)
+	{
+		dock->view->rect.x = dock->leftSizer->rect.x;
+		dock->view->rect.y = dock->topSizer->rect.y;
+		dock->view->rect.width = dock->rightSizer->rect.x - dock->leftSizer->rect.x;
+		dock->view->rect.height = dock->bottomSizer->rect.y - dock->topSizer->rect.y;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void deleteSizer(UIDockingGrid* grid, UIDockSizer* sizer)
+{
+    for (auto i = grid->sizers.begin(), end = grid->sizers.end(); i != end; ++i)
+	{
+		if (*i != sizer)
+			continue;
+
+		grid->sizers.erase(i);
+		delete sizer;
+		return;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void deleteDockMem(UIDockingGrid* grid, UIDock* dock)
+{
+    for (auto i = grid->docks.begin(), end = grid->docks.end(); i != end; ++i)
+	{
+		if (*i != dock)
+			continue;
+
+		grid->docks.erase(i);
+		delete dock;
+		return;
+	}
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // In order for the splitting to work (in vertical size) there has to be a horizontal top slider and bottom slider
 // that the new split can move along. Otherwise there will be no split as it would move over and this code
 // will return without doing any split.
@@ -548,68 +593,95 @@ void UIDock_splitSizer(UIDockingGrid* grid, UIDockSizer* sizer, int x, int y)
 }
 
 
-/*
 
-   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-   //
-   // The way the delting of a view works is that the code first needs to try to figure out how the surronding views
-   // should be resized to close the hole the deleted view will casuse.
-   //
-   // The priority is this: (Using the same as ProDG)
-   //
-   // 1. Try to resize the connecting views left -> right to fill the gap
-   // 2. Try to resize the connecting views right -> left to fill the gap
-   // 3. Try to resize the connecting views from top -> down to fill the gap
-   // 4. Try to resize the connecting views from down -> up to fill the gap
-   //
-   // In order to resize to the left -> right the bottom and top sizers on the left of the window
-   // the top and bottom sizers *must* stretch to the left of the current view size
-   //
-   // ts _________
-   //   |   |     |    This is a case where the above delete will work
-   //   |---| dv  |
-   //   |---|     |
-   // bs|___|_____|
-   //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// The way the deleting of a view works is that the code first needs to try to figure out how the surrounding views
+// should be resized to close the hole the deleted view will cause.
+//
+// The priority is this: (Using the same as ProDG)
+//
+// 0. Try to resize the connecting views left -> right to fill the gap
+// 1. Try to resize the connecting views right -> left to fill the gap
+// 2. Try to resize the connecting views from top -> down to fill the gap
+// 3. Try to resize the connecting views from down -> up to fill the gap
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   
+static void deleteDock(UIDockingGrid* grid, UIDock* dock)
+{
+	Rect viewRect = dock->view->rect;
 
-   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// TODO: Special case if we only have one dock left
 
-   static void deleteDock(UIDockingGrid* grid, UIDock* dock)
-   {
-    std::vector<UIDocks*> connectedDocks;
+	// Case 0 (preferred direction)
+	// In order to resize to the left -> right the bottom and top sizers on the left of the window
+	// the top and bottom sizers *must* stretch to the left of the current view size
+	//
+	// ts _________
+	//   |   |     |  
+	//   |---| dv  |
+	//   |---|     |
+	// bs|___|_____|
 
-    Rect viewRect = dock->view->rect;
+	// We prefer to split resize left -> right (as described above we start with detecting that
 
-    // We prefer to split resize left -> right (as described above we start with detecting that
+	const int tx = dock->topSizer->rect.x;
+	const int bx = dock->bottomSizer->rect.x;
+	const int ly = dock->leftSizer->rect.y;
+	const int ry = dock->rightSizer->rect.y;
 
-    int tx = dock->topSizer.rect.x;
-    int bx = dock->bottomRect.rect.x;
+	if (tx < viewRect.x && bx < viewRect.x)
+	{
+    	NeighborDocks closeDocks;
 
-    if (tx < viewRect.x && bx < bx)
-    {
-        // ok we can delete and resize to the left. This means that the views that are connected to the left sizer
-        // needs to be set to use the right sizer of the current view
+		// We can delete and resize to the left. This means that the views that are connected to the left sizer
+		// needs to be set to use the right sizer of the current view
 
-        findViewsWithinYLimits(connectedDocks, dock, dock->topSizer.rect.y, dock->bottomSizer.rect.y);
+    	findSurroundingViews(&closeDocks, dock->leftSizer, dock, Rect::H, Rect::Y);
 
-        // Loop over the docks and set the
+		// Replace the old sizer with the right sizer of the dock  
 
-        for (UIDock* dock : connectedDocks)
-        {
+		replaceSizers(closeDocks.insideDocks, dock->leftSizer, dock->rightSizer);
 
+		assert(dock->leftSizer != &grid->leftSizer);
 
-        }
+		// Make sure to move the docks into their new places
 
+		refitDocks(closeDocks.insideDocks);
 
-        return;
-    }
+		deleteSizer(grid, dock->leftSizer);
+		deleteDockMem(grid, dock);
 
+		// TODO: Create splits here if needed for upper and lower docks
 
+		return;
+	}
+	else if (tx > viewRect.x && bx > viewRect.x)
+	{
+		// Case 1 this will do resize left <- right
 
+		return;
 
-   }
+	}
+	else if (ly < viewRect.y && ry < viewRect.y)
+	{
+		// Case 2 resize top -> down
 
- */
+		return;
+	}
+	else if (ly > viewRect.y && ry > viewRect.y)
+	{
+		// Case 3 size down -> top
+
+		return;
+	}
+
+	// Should never get here.
+	// TODO: Proper error message
+
+	assert(false);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -653,41 +725,14 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
 
 void UIDock_deleteView(UIDockingGrid* grid, ViewPluginInstance* view)
 {
-    (void)grid;
-    (void)view;
-    /*
-       for (UIDock* dock : grid->docks)
-       {
-        if (dock->view != view)
-        {
-            deleteDock(grid, dock);
-            return;
-        }
-       }
-     */
-}
+	for (UIDock* dock : grid->docks)
+	{
+		if (dock->view != view)
+			continue;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void UIDock_update(UIDockingGrid* grid)
-{
-    (void)grid;
-    // TODO: Force the stuff in place! Not very nice but will do for now
-    /*
-
-       for (UIDock* dock : grid->docks)
-       {
-        FloatRect rect =
-        {
-            float(dock->view->rect.x + 2),
-            float(dock->view->rect.y + 2),
-            float(dock->view->rect.width - 2),
-            float(dock->view->rect.height - 2),
-        };
-
-        PluginUI_setWindowRect(dock->view, &rect);
-       }
-     */
+		deleteDock(grid, dock);
+		return;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -710,65 +755,4 @@ UIDock* UIDock_getDockAt(UIDockingGrid* grid, int x, int y)
     return nullptr;
 }
 
-
-/*
-
-   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-   UIDockStatus UIDock_dockRight(UIDock* dock, ViewPluginInstance* instance)
-   {
-
-    return UIDockStatus_ok;
-   }
-
-   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-   UIDockStatus UIDock_dockBottom(UIDock* dock, ViewPluginInstance* instance)
-   {
-
-    return UIDockStatus_ok;
-   }
-
-   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-   UIDockStatus UIDock_dockTop(UIDock* dock, ViewPluginInstance* instance)
-   {
-
-    return UIDockStatus_ok;
-   }
-
-   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-   void UIDock_splitHorzUp(UIDock* dock, ViewPluginInstance* instance)
-   {
-
-
-
-   }
-
-   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-   UIDockStatus UIDock_splitHorzDow(UIDock* dock, ViewPluginInstance* instance)
-   {
-
-    return UIDockStatus_ok;
-   }
-
-   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-   UIDockStatus UIDock_splitVertRight(UIDock* dock, ViewPluginInstance* instance)
-   {
-
-    return UIDockStatus_ok;
-   }
-
-   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-   UIDockStatus UIDock_splitVertLeft(UIDock* dock, ViewPluginInstance* instance)
-   {
-
-    return UIDockStatus_ok;
-   }
-
- */
 

@@ -166,10 +166,6 @@ void ProDBG_update()
         Session_update(context->session);
     }
 
-#if PRODBG_USING_DOCKING
-    UIDock_update(Session_getDockingGrid(context->session));
-#endif
-
     /*
 
        bool show = true;

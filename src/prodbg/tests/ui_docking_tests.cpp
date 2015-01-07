@@ -667,8 +667,7 @@ int main()
         unit_test(test_dock_split_horizontal),
         unit_test(test_dock_split_vertical),
         unit_test(test_drag_vertical),
-
-        //unit_test(test_delete_docks),
+        unit_test(test_delete_docks),
     };
 
     return run_tests(tests);
