@@ -627,11 +627,12 @@ static void deleteDock(UIDockingGrid* grid, UIDock* dock)
 	// We prefer to split resize left -> right (as described above we start with detecting that
 
 	const int tx = dock->topSizer->rect.x;
-	const int bx = dock->bottomSizer->rect.x;
-	const int ly = dock->leftSizer->rect.y;
-	const int ry = dock->rightSizer->rect.y;
+	const int tw = dock->topSizer->rect.width;
 
-	if (tx < viewRect.x && bx < viewRect.x)
+	const int ty = dock->leftSizer->rect.y;
+	const int th = dock->leftSizer->rect.height;
+
+	if (tx < viewRect.x)
 	{
     	NeighborDocks closeDocks;
 
@@ -657,20 +658,40 @@ static void deleteDock(UIDockingGrid* grid, UIDock* dock)
 
 		return;
 	}
-	else if (tx > viewRect.x && bx > viewRect.x)
+	else if (tw > viewRect.width)
 	{
 		// Case 1 this will do resize left <- right
+
+    	NeighborDocks closeDocks;
+
+		// We can delete and resize to the left. This means that the views that are connected to the left sizer
+		// needs to be set to use the right sizer of the current view
+
+    	findSurroundingViews(&closeDocks, dock->rightSizer, dock, Rect::H, Rect::Y);
+
+		// Replace the old sizer with the right sizer of the dock  
+
+		replaceSizers(closeDocks.insideDocks, dock->rightSizer, dock->leftSizer);
+
+		assert(dock->rightSizer != &grid->rightSizer);
+
+		// Make sure to move the docks into their new places
+
+		refitDocks(closeDocks.insideDocks);
+
+		deleteSizer(grid, dock->rightSizer);
+		deleteDockMem(grid, dock);
 
 		return;
 
 	}
-	else if (ly < viewRect.y && ry < viewRect.y)
+	else if (ty < viewRect.y)
 	{
 		// Case 2 resize top -> down
 
 		return;
 	}
-	else if (ly > viewRect.y && ry > viewRect.y)
+	else if (tw > viewRect.height)
 	{
 		// Case 3 size down -> top
 
