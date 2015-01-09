@@ -715,6 +715,8 @@ void test_delete_docks_up_down(void**)
 	assert_true(d1->bottomSizer == &grid->bottomSizer);
 	assert_true(d1->rightSizer == &grid->rightSizer);
 	assert_true(d1->leftSizer == s0);
+
+	UIDock_deleteView(grid, grid->docks[0]->view);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -782,7 +784,7 @@ void test_delete_docks_down_up(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void test_drag_vertical(void**)
+void test_drag_vertical(void**)
 {
     Vec2 dragDelta = { 10.0f, 10.f };
     Rect rect = {{{ 0, 0, 1000, 400 }}};
@@ -844,6 +846,7 @@ int main()
 {
     const UnitTest tests[] =
     {
+    	/*
         unit_test(create_docking),
         unit_test(test_left_attach),
         unit_test(test_misc),
@@ -853,8 +856,9 @@ int main()
         unit_test(test_drag_vertical),
         unit_test(test_delete_docks_right_left),
         unit_test(test_delete_docks_left_right),
+        */
 		unit_test(test_delete_docks_up_down),
-		unit_test(test_delete_docks_down_up),
+		//unit_test(test_delete_docks_down_up),
     };
 
     return run_tests(tests);

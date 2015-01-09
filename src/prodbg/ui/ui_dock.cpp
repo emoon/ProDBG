@@ -419,6 +419,7 @@ static void refitDocks(std::vector<UIDock*>& docks)
 
 static void deleteSizer(UIDockingGrid* grid, UIDockSizer* sizer)
 {
+
     for (auto i = grid->sizers.begin(), end = grid->sizers.end(); i != end; ++i)
 	{
 		if (*i != sizer)
@@ -434,6 +435,20 @@ static void deleteSizer(UIDockingGrid* grid, UIDockSizer* sizer)
 
 static void deleteDockMem(UIDockingGrid* grid, UIDock* dock)
 {
+	// remove the dock from all the sizers
+
+	for (UIDockSizer* sizer : grid->sizers)
+	{
+		for (auto i = sizer->cons.begin(), end = sizer->cons.end(); i != end; ++i)
+		{
+			if (*i == dock)
+			{
+				sizer->cons.erase(i);
+				break;
+			}
+		}
+	}
+
     for (auto i = grid->docks.begin(), end = grid->docks.end(); i != end; ++i)
 	{
 		if (*i != dock)
@@ -603,15 +618,55 @@ static void deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSi
 
 	findSurroundingViews(&closeDocks, remSizer, dock, wOrh, xOry);
 
+    const size_t topLeftDocksCount = closeDocks.topLeft.size();
+    const size_t bottomRightDocksCount = closeDocks.bottomRight.size();
+    const int resizeValue = dock->view->rect.data[wOrh];
+
 	// Replace the old sizer with the right sizer of the dock  
 
 	replaceSizers(closeDocks.insideDocks, remSizer, repSizer);
 
-	// Make sure to move the docks into their new places
+    // if we have no surrounding sizers we can just go ahead and delete and replace the sizer
 
-	refitDocks(closeDocks.insideDocks);
+    if (topLeftDocksCount == 0 && bottomRightDocksCount == 0)
+	{
+		// Safe to delete the sizer here
 
-	deleteSizer(grid, remSizer);
+		deleteSizer(grid, remSizer);
+	}
+	else if (topLeftDocksCount == 0 || bottomRightDocksCount == 0)
+	{
+		// if one of the surrounding docks is zero when can just keep the sizers but change the size of it
+
+		if (topLeftDocksCount == 0)
+		{
+			remSizer->rect.data[wOrh] -= resizeValue;
+		}
+		else
+		{
+            remSizer->rect.data[xOry] += resizeValue;
+            remSizer->rect.data[wOrh] -= resizeValue;
+		}
+	}
+	else
+	{
+		// if we have a sizers on both sizes we:
+		// 1. keep the upper one but change the size of it 
+		// 2. create a new sizer and move it according to width/height of the dock
+		// 3. reassign all the bottom/right docks with the new sizer 
+
+		UIDockSizer* newSizer = new UIDockSizer;
+		newSizer->rect = repSizer->rect;
+		newSizer->rect.data[xOry] += resizeValue;
+		newSizer->rect.data[wOrh] -= resizeValue;
+		newSizer->dir = repSizer->dir;
+
+    	replaceSizers(closeDocks.bottomRight, remSizer, newSizer);
+
+		grid->sizers.push_back(newSizer);
+	}
+
+    refitDocks(closeDocks.insideDocks);
 	deleteDockMem(grid, dock);
 }
 
@@ -633,7 +688,12 @@ static void deleteDock(UIDockingGrid* grid, UIDock* dock)
 {
 	Rect viewRect = dock->view->rect;
 
-	// TODO: Special case if we only have one dock left
+	// This is a special case if we only have one dock left we just delete it without testing anything
+
+	if (grid->docks.size() == 0)
+	{
+		return deleteDockMem(grid, dock);
+	}
 
 	// Case 0 (preferred direction)
 	// In order to resize to the left -> right the bottom and top sizers on the left of the window
