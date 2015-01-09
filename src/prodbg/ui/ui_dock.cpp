@@ -592,7 +592,28 @@ void UIDock_splitSizer(UIDockingGrid* grid, UIDockSizer* sizer, int x, int y)
     grid->sizers.push_back(newSizer);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSizer, UIDockSizer* repSizer, int wOrh, int xOry)
+{
+	NeighborDocks closeDocks;
+
+	// We can delete and resize to the left. This means that the views that are connected to the left sizer
+	// needs to be set to use the right sizer of the current view
+
+	findSurroundingViews(&closeDocks, remSizer, dock, wOrh, xOry);
+
+	// Replace the old sizer with the right sizer of the dock  
+
+	replaceSizers(closeDocks.insideDocks, remSizer, repSizer);
+
+	// Make sure to move the docks into their new places
+
+	refitDocks(closeDocks.insideDocks);
+
+	deleteSizer(grid, remSizer);
+	deleteDockMem(grid, dock);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -638,108 +659,27 @@ static void deleteDock(UIDockingGrid* grid, UIDock* dock)
 
 	if (tx < viewRect.x && bx < viewRect.x)
 	{
-    	NeighborDocks closeDocks;
+		// Case 0 this will do resize right -> left
 
-		// We can delete and resize to the left. This means that the views that are connected to the left sizer
-		// needs to be set to use the right sizer of the current view
-
-    	findSurroundingViews(&closeDocks, dock->leftSizer, dock, Rect::H, Rect::Y);
-
-		// Replace the old sizer with the right sizer of the dock  
-
-		replaceSizers(closeDocks.insideDocks, dock->leftSizer, dock->rightSizer);
-
-		assert(dock->leftSizer != &grid->leftSizer);
-
-		// Make sure to move the docks into their new places
-
-		refitDocks(closeDocks.insideDocks);
-
-		deleteSizer(grid, dock->leftSizer);
-		deleteDockMem(grid, dock);
-
-		// TODO: Create splits here if needed for upper and lower docks
-
-		return;
+		return deleteDockSide(grid, dock, dock->leftSizer, dock->rightSizer, Rect::H, Rect::Y);
 	}
 	else if (tw > viewRect.width && bw > viewRect.width)
 	{
 		// Case 1 this will do resize left <- right
 
-    	NeighborDocks closeDocks;
-
-		// We can delete and resize to the left. This means that the views that are connected to the left sizer
-		// needs to be set to use the right sizer of the current view
-
-    	findSurroundingViews(&closeDocks, dock->rightSizer, dock, Rect::H, Rect::Y);
-
-		// Replace the old sizer with the right sizer of the dock  
-
-		replaceSizers(closeDocks.insideDocks, dock->rightSizer, dock->leftSizer);
-
-		assert(dock->rightSizer != &grid->rightSizer);
-
-		// Make sure to move the docks into their new places
-
-		refitDocks(closeDocks.insideDocks);
-
-		deleteSizer(grid, dock->rightSizer);
-		deleteDockMem(grid, dock);
-
-		return;
-
+		return deleteDockSide(grid, dock, dock->rightSizer, dock->leftSizer, Rect::H, Rect::Y);
 	}
 	else if (ly < viewRect.y && ry < viewRect.y)
 	{
 		// Case 2 resize top -> down
 
-    	NeighborDocks closeDocks;
-
-		// We can delete and resize to the left. This means that the views that are connected to the left sizer
-		// needs to be set to use the right sizer of the current view
-
-    	findSurroundingViews(&closeDocks, dock->topSizer, dock, Rect::W, Rect::X);
-
-		// Replace the old sizer with the right sizer of the dock  
-
-		replaceSizers(closeDocks.insideDocks, dock->topSizer, dock->bottomSizer);
-
-		assert(dock->topSizer != &grid->topSizer);
-
-		// Make sure to move the docks into their new places
-
-		refitDocks(closeDocks.insideDocks);
-
-		deleteSizer(grid, dock->topSizer);
-		deleteDockMem(grid, dock);
-
-		return;
+		return deleteDockSide(grid, dock, dock->topSizer, dock->bottomSizer, Rect::W, Rect::X);
 	}
 	else if (lh > viewRect.height && rh > viewRect.height)
 	{
 		// Case 3 size down -> top
-    	
-		NeighborDocks closeDocks;
 
-		// We can delete and resize to the left. This means that the views that are connected to the left sizer
-		// needs to be set to use the right sizer of the current view
-
-    	findSurroundingViews(&closeDocks, dock->bottomSizer, dock, Rect::W, Rect::X);
-
-		// Replace the old sizer with the right sizer of the dock  
-
-		replaceSizers(closeDocks.insideDocks, dock->bottomSizer, dock->topSizer);
-
-		assert(dock->bottomSizer != &grid->bottomSizer);
-
-		// Make sure to move the docks into their new places
-
-		refitDocks(closeDocks.insideDocks);
-
-		deleteSizer(grid, dock->bottomSizer);
-		deleteDockMem(grid, dock);
-
-		return;
+		return deleteDockSide(grid, dock, dock->bottomSizer, dock->topSizer, Rect::W, Rect::X);
 	}
 
 	// Should never get here.
