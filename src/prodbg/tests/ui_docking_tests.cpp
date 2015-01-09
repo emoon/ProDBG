@@ -136,9 +136,6 @@ void test_left_attach(void**)
     assert_int_equal((int)grid->topSizer.cons.size(), 2);
     assert_int_equal((int)grid->bottomSizer.cons.size(), 2);
 
-    //assert_true(s0->cons.at(0)->view = view0);
-    //assert_true(s0->cons.at(0)->view = view1);
-
     UIDock_dockLeft(grid, dock0, view2);
 
     // at this point we should have tree views looking like this:
@@ -660,6 +657,131 @@ void test_delete_docks_left_right(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void test_delete_docks_up_down(void**)
+{
+    Rect rect = {{{ 0, 0, 1000, 500 }}};
+
+    UIDockingGrid* grid = UIDock_createGrid(&rect);
+
+    ViewPluginInstance view0 = {};
+    ViewPluginInstance view1 = {};
+    ViewPluginInstance view2 = {};
+
+    UIDock* dock = UIDock_addView(grid, &view0);
+    UIDock_dockRight(grid, dock, &view1);
+    UIDock_dockBottom(grid, grid->docks[1], &view2);
+
+	// Expected layout:
+	//
+	//     _____s0_______
+	//    |      |      |
+	//    |      |  d1  |
+	//    |      |      |
+	// s1 |  d0  |------|
+	//    |      |      |
+	//    |      |  d2  |
+	//    |      |      |
+	//    ---------------
+	//
+
+	UIDock_deleteView(grid, grid->docks[2]->view);
+
+	// Expected layout:
+	//
+	//     _____s0_______
+	//    |      |      | 
+	//    |      |      |
+	//    |      |      |
+	//    | d0   |  d1  |
+	//    |      |      |
+	//    |      |      |
+	//    |      |      |
+	//    ---------------
+	//
+
+	assert_int_equal((int)grid->sizers.size(), 1);
+	assert_int_equal((int)grid->docks.size(), 2);
+
+	UIDockSizer* s0 = grid->sizers[0];
+	UIDock* d0 = grid->docks[0];
+	UIDock* d1 = grid->docks[1];
+
+	assert_true(d0->topSizer == &grid->topSizer);
+	assert_true(d0->bottomSizer == &grid->bottomSizer);
+	assert_true(d0->rightSizer == s0);
+	assert_true(d0->leftSizer == &grid->leftSizer);
+
+	assert_true(d1->topSizer == &grid->topSizer);
+	assert_true(d1->bottomSizer == &grid->bottomSizer);
+	assert_true(d1->rightSizer == &grid->rightSizer);
+	assert_true(d1->leftSizer == s0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void test_delete_docks_down_up(void**)
+{
+    Rect rect = {{{ 0, 0, 1000, 500 }}};
+
+    UIDockingGrid* grid = UIDock_createGrid(&rect);
+
+    ViewPluginInstance view0 = {};
+    ViewPluginInstance view1 = {};
+    ViewPluginInstance view2 = {};
+
+    UIDock* dock = UIDock_addView(grid, &view0);
+    UIDock_dockRight(grid, dock, &view1);
+    UIDock_dockBottom(grid, grid->docks[1], &view2);
+
+	// Expected layout:
+	//
+	//     _____s0_______
+	//    |      |      |
+	//    |      |  d1  |
+	//    |      |      |
+	// s1 |  d0  |------|
+	//    |      |      |
+	//    |      |  d2  |
+	//    |      |      |
+	//    ---------------
+	//
+
+	UIDock_deleteView(grid, grid->docks[1]->view);
+
+	// Expected layout:
+	//
+	//     _____s0_______
+	//    |      |      | 
+	//    |      |      |
+	//    |      |      |
+	//    | d0   |  d2  |
+	//    |      |      |
+	//    |      |      |
+	//    |      |      |
+	//    ---------------
+	//
+
+	assert_int_equal((int)grid->sizers.size(), 1);
+	assert_int_equal((int)grid->docks.size(), 2);
+
+	UIDockSizer* s0 = grid->sizers[0];
+	UIDock* d0 = grid->docks[0];
+	UIDock* d1 = grid->docks[1];
+
+	assert_true(d0->topSizer == &grid->topSizer);
+	assert_true(d0->bottomSizer == &grid->bottomSizer);
+	assert_true(d0->rightSizer == s0);
+	assert_true(d0->leftSizer == &grid->leftSizer);
+
+	assert_true(d1->topSizer == &grid->topSizer);
+	assert_true(d1->bottomSizer == &grid->bottomSizer);
+	assert_true(d1->rightSizer == &grid->rightSizer);
+	assert_true(d1->leftSizer == s0);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void test_drag_vertical(void**)
 {
     Vec2 dragDelta = { 10.0f, 10.f };
@@ -729,8 +851,10 @@ int main()
         unit_test(test_dock_split_horizontal),
         unit_test(test_dock_split_vertical),
         unit_test(test_drag_vertical),
-        // unit_test(test_delete_docks_right_left),
+        unit_test(test_delete_docks_right_left),
         unit_test(test_delete_docks_left_right),
+		unit_test(test_delete_docks_up_down),
+		unit_test(test_delete_docks_down_up),
     };
 
     return run_tests(tests);
