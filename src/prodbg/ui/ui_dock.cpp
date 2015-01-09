@@ -691,7 +691,7 @@ static void deleteDock(UIDockingGrid* grid, UIDock* dock)
 
 		return;
 	}
-	else if (tw > viewRect.height)
+	else if (th > viewRect.height)
 	{
 		// Case 3 size down -> top
 
