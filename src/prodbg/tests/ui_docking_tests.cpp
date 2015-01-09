@@ -846,7 +846,6 @@ int main()
 {
     const UnitTest tests[] =
     {
-    	/*
         unit_test(create_docking),
         unit_test(test_left_attach),
         unit_test(test_misc),
@@ -856,9 +855,8 @@ int main()
         unit_test(test_drag_vertical),
         unit_test(test_delete_docks_right_left),
         unit_test(test_delete_docks_left_right),
-        */
 		unit_test(test_delete_docks_up_down),
-		//unit_test(test_delete_docks_down_up),
+		unit_test(test_delete_docks_down_up),
     };
 
     return run_tests(tests);
