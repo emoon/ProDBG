@@ -8,9 +8,15 @@
 #include "core/alloc.h"
 #include "api/plugin_instance.h"
 #include <stdlib.h>
-//#include <MiniFB.h>
 #include <assert.h>
 #include <stdio.h>
+
+//#define SUPPORT_DISPLAY
+
+
+#ifdef SUPPORT_DISPLAY
+#include <MiniFB.h>
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -917,8 +923,10 @@ void test_auto_resize_sizer(void**)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 
-/*
+#ifdef SUPPORT_DISPLAY
+
 static uint32_t s_colors[] =
 {
 	0xffb27474,
@@ -1014,7 +1022,8 @@ void displayGrid(UIDockingGrid* grid, Rect rect)
 		mfb_update(drawBuffer);
 	}
 }
-*/
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1047,17 +1056,17 @@ void test_randomize_create_delete(void**)
 
     srand(0xc0cac01a);
 
-	const int numSplits = 4;
+	const int numSplits = 7;
 
     UIDock_addView(grid, newViewInstance());
 
-    int p = 1;
+    int p = 62;
 
-    for (p = 0; p < 100; ++p)
+    //for (p = 0; p < 100; ++p)
 	{
     	srand((unsigned int)p);
 
-    	//printf("p %d\n", p);
+    	printf("p %d\n", p);
 
 		for (int i = 0; i < numSplits; ++i)
 		{
@@ -1079,17 +1088,60 @@ void test_randomize_create_delete(void**)
 			}
 		}
 
+		/*
+		if (p == 1)
+		{
+			for (int i = 0; i < 3; ++i)
+				UIDock_deleteView(grid, grid->docks[0]->view);
+
+			UIDock_deleteView(grid, grid->docks[0]->view);
+
+			displayGrid(grid, rect);
+		}
+
+		*/
+		
+		/*
+
+		displayGrid(grid, rect);
+
+		UIDock_deleteView(grid, grid->docks[0]->view);
+
+
+		displayGrid(grid, rect);
+		*/
+		
+		//UIDock_deleteView(grid, grid->docks[0]->view);
+		//UIDock_deleteView(grid, grid->docks[0]->view);
+		UIDock_deleteView(grid, grid->docks[0]->view);
+
+
 		for (int i = 0; i < numSplits; ++i)
 			UIDock_deleteView(grid, grid->docks[0]->view);
 
-		/*
+		//if (p == 1)
+
+		UIDock* dock = grid->docks[0];
+
+		assert_true(dock->topSizer == &grid->topSizer);
+		assert_true(dock->bottomSizer == &grid->bottomSizer);
+		assert_true(dock->rightSizer == &grid->rightSizer);
+		assert_true(dock->leftSizer == &grid->leftSizer);
+
+		assert_int_equal(dock->view->rect.x, 0); 
+		assert_int_equal(dock->view->rect.y, 0);
+		assert_int_equal(dock->view->rect.width, rect.width);
+		assert_int_equal(dock->view->rect.height, rect.height);
+
+		//printf("dock count %d\n", (int)grid->docks.size());
+		//printf("sizer count %d\n", (int)grid->sizers.size());
+
 		if (grid->sizers.size() != 0)
 		{
 			printf("dock count %d\n", (int)grid->docks.size());
 			printf("sizer count %d\n", (int)grid->sizers.size());
 			exit(-1);
 		}
-		*/
 	}
 }
 
