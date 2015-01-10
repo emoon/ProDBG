@@ -1046,25 +1046,25 @@ void test_randomize_create_delete(void**)
 
     srand(0xc0cac01a);
 
-	const uint32_t numSplits = 4;
+	const int numSplits = 4;
 
     UIDock_addView(grid, newViewInstance());
 
-    uint32_t p = 1;
+    int p = 1;
 
     for (p = 0; p < 100; ++p)
 	{
-    	srand(p);
+    	srand((unsigned int)p);
 
     	//printf("p %d\n", p);
 
-		for (uint32_t i = 0; i < numSplits; ++i)
+		for (int i = 0; i < numSplits; ++i)
 		{
-			uint32_t dockIndex = i == 0 ? 0 : (uint32_t) rand() % i;
+			int dockIndex = i == 0 ? 0 : (int) rand() % i;
 
-			UIDock* dock = grid->docks[dockIndex];
+			UIDock* dock = grid->docks[(unsigned int)dockIndex];
 
-			const uint32_t dockDir = rand() & 0x3; 
+			const int dockDir = rand() & 0x3; 
 
 			//printf("dockIndex %d\n", dockIndex);
 			//printf("dockDir %d\n", dockDir);
@@ -1078,7 +1078,7 @@ void test_randomize_create_delete(void**)
 			}
 		}
 
-		for (uint32_t i = 0; i < numSplits; ++i)
+		for (int i = 0; i < numSplits; ++i)
 			UIDock_deleteView(grid, grid->docks[0]->view);
 
 		/*
