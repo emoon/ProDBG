@@ -108,6 +108,9 @@ static UIDockSizer* createOrResizeSizer(UIDockingGrid* grid, Rect rect, UIDockSi
         {
             // move the position of the sizer to where the new sizer was supposed to start
 
+            sizer->rect.width += sizer->rect.x - rect.x;
+            sizer->rect.height += sizer->rect.y - rect.y;
+
             sizer->rect.x = rect.x;
             sizer->rect.y = rect.y;
 
@@ -640,12 +643,12 @@ static void deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSi
 
 		if (topLeftDocksCount == 0)
 		{
-			remSizer->rect.data[wOrh] -= resizeValue;
+            remSizer->rect.data[xOry] += resizeValue;
+            remSizer->rect.data[wOrh] -= resizeValue;
 		}
 		else
 		{
-            remSizer->rect.data[xOry] += resizeValue;
-            remSizer->rect.data[wOrh] -= resizeValue;
+			remSizer->rect.data[wOrh] -= resizeValue;
 		}
 	}
 	else
@@ -667,6 +670,44 @@ static void deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSi
 	}
 
     refitDocks(closeDocks.insideDocks);
+
+    // Here is what this code needs to handle: When a dock (in this example) d0 need to be deleted s1 needs 
+    // to be resized as it follows 'along' with dock d1/d2 dock
+    //
+    //
+	//     _____s0_______
+	//    |      |      |
+	//    |      |  d1  |
+	//    |  <-  |      |
+	// s1 |  d0  |------|
+	//    |  <-  |      |
+	//    |      |  d2  |
+	//    |      |      |
+	//    ---------------
+
+    // TODO: Can like do this better
+	
+	if (wOrh == Rect::H)
+	{
+		for (UIDock* cDock : closeDocks.insideDocks)
+		{
+			cDock->topSizer->rect.x = int_min(cDock->topSizer->rect.x, cDock->view->rect.x);
+			cDock->topSizer->rect.width = int_max(dock->topSizer->rect.width, cDock->view->rect.width);
+			cDock->bottomSizer->rect.x = int_min(cDock->bottomSizer->rect.x, cDock->view->rect.x);
+			cDock->bottomSizer->rect.width = int_max(cDock->bottomSizer->rect.width, cDock->view->rect.width);
+		}
+	}
+	else
+	{
+		for (UIDock* cDock : closeDocks.insideDocks)
+		{
+			cDock->leftSizer->rect.y = int_min(cDock->leftSizer->rect.y, cDock->view->rect.y);
+			cDock->leftSizer->rect.height = int_max(dock->leftSizer->rect.height, cDock->view->rect.height);
+			cDock->rightSizer->rect.y = int_min(cDock->rightSizer->rect.y, cDock->view->rect.y);
+			cDock->rightSizer->rect.height = int_max(cDock->rightSizer->rect.x, cDock->view->rect.height);
+		}
+	}
+
 	deleteDockMem(grid, dock);
 }
 
@@ -717,25 +758,30 @@ static void deleteDock(UIDockingGrid* grid, UIDock* dock)
 	const int ry = dock->rightSizer->rect.y;
 	const int rh = dock->rightSizer->rect.height;
 
-	if (tx < viewRect.x && bx < viewRect.x)
+	const int vx = viewRect.x;
+	const int vy = viewRect.y;
+	const int vw = viewRect.width;
+	const int vh = viewRect.height;
+
+	if (tx < vx && bx < vx)
 	{
 		// Case 0 this will do resize right -> left
 
 		return deleteDockSide(grid, dock, dock->leftSizer, dock->rightSizer, Rect::H, Rect::Y);
 	}
-	else if (tw > viewRect.width && bw > viewRect.width)
+	else if (tw > vw && bw > vw)
 	{
 		// Case 1 this will do resize left <- right
 
 		return deleteDockSide(grid, dock, dock->rightSizer, dock->leftSizer, Rect::H, Rect::Y);
 	}
-	else if (ly < viewRect.y && ry < viewRect.y)
+	else if (ly < vy && ry < vy)
 	{
 		// Case 2 resize top -> down
 
 		return deleteDockSide(grid, dock, dock->topSizer, dock->bottomSizer, Rect::W, Rect::X);
 	}
-	else if (lh > viewRect.height && rh > viewRect.height)
+	else if (lh > vh && rh > vh)
 	{
 		// Case 3 size down -> top
 
