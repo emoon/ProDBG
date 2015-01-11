@@ -68,7 +68,7 @@ Program {
         },
     },
 
-    Depends = { "core", "ui", "api", "session", "jansson", "remote_api", "stb", "bgfx", "uv", "imgui", "remotery", "foundation_lib" },
+    Depends = { "core", "ui", "api", "session", "jansson", "remote_api", "stb", "bgfx", "uv", "imgui", "remotery", "foundation_lib", "scintilla" },
 
     Libs = { 
       { 

@@ -138,6 +138,33 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
+    Name = "scintilla",
+
+    Env = { 
+		CPPPATH = { 
+			"src/external/scintilla/include",
+			"src/external/scintilla/src/lexlib",
+		},
+
+        CXXOPTS = {
+        	{ "-Wno-everything", "-Wno-missing-braces" ; Config = { "macosx-*-*", "macosx_test-*", "linux-*-*" } },
+        	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
+        },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "src/external/scintilla/src",
+            Extensions = { ".cxx", ".h" },
+        },
+
+		Recursive = true,
+    },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
     Name = "uv",
 
     Env = { 
