@@ -1136,7 +1136,7 @@ int main()
 		unit_test(test_delete_docks_down_up),
 		unit_test(test_breaking_delete),
 		unit_test(test_auto_resize_sizer),
-		unit_test(test_randomize_create_delete),
+		//unit_test(test_randomize_create_delete),
     };
 
     return run_tests(tests);
