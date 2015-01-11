@@ -1059,7 +1059,7 @@ void test_randomize_create_delete(void**)
 
     UIDock_addView(grid, newViewInstance());
 
-    int p = 954;
+    int p = 1086;
 
     for (p = 0; p < 1000; ++p)
 	{
@@ -1087,10 +1087,11 @@ void test_randomize_create_delete(void**)
 			}
 		}
 
-		//displayGrid(grid, rect);
 		
 		for (int i = 0; i < numSplits; ++i)
 			UIDock_deleteView(grid, grid->docks[0]->view);
+
+		//displayGrid(grid, rect);
 
 		UIDock* dock = grid->docks[0];
 

@@ -806,7 +806,7 @@ static void deleteDock(UIDockingGrid* grid, UIDock* dock)
 
 	// This is a special case if we only have one dock left we just delete it without testing anything
 
-	if (grid->docks.size() == 0)
+	if (grid->docks.size() == 1)
 	{
 		return deleteDockMem(grid, dock);
 	}
