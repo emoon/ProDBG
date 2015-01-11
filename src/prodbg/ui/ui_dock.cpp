@@ -725,48 +725,61 @@ static void deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSi
 	{
 		for (UIDock* cDock : closeDocks.insideDocks)
 		{
-			int dx = cDock->view->rect.x;
-			int dw = cDock->view->rect.width;
-			int tx = cDock->topSizer->rect.x;
-			int tw = cDock->topSizer->rect.width;
-			int bx = cDock->bottomSizer->rect.x;
-			int bw = cDock->bottomSizer->rect.width;
+			const int dx0 = cDock->view->rect.x;
+			const int dx1 = cDock->view->rect.width + dx0;
 
-			if (dx < tx)
-				cDock->topSizer->rect.x = dx;
+			const int tx0 = cDock->topSizer->rect.x;
+			const int tx1 = cDock->topSizer->rect.width + tx0;
 
-			if (dw > tw)
-				cDock->topSizer->rect.width = dw;
+			const int bx0 = cDock->bottomSizer->rect.x;
+			const int bx1 = cDock->bottomSizer->rect.width + bx0;
 
-			if (dx < bx)
-				cDock->bottomSizer->rect.x = dx;
+			if (dx0 < tx0)
+				cDock->topSizer->rect.x = dx0;
 
-			if (dw > bw)
-				cDock->bottomSizer->rect.width = dw;
+			if (dx1 > tx1)
+				cDock->topSizer->rect.width = dx1 - cDock->topSizer->rect.x;
+			else
+				cDock->topSizer->rect.width = tx1 - cDock->topSizer->rect.x;
+
+			if (dx0 < bx0)
+				cDock->bottomSizer->rect.x = dx0;
+
+			if (dx1 > bx1)
+				cDock->bottomSizer->rect.width = dx1 - cDock->bottomSizer->rect.x;
+			else
+				cDock->bottomSizer->rect.width = bx1 - cDock->bottomSizer->rect.x;
 		}
 	}
 	else
 	{
 		for (UIDock* cDock : closeDocks.insideDocks)
 		{
-			int dx = cDock->view->rect.y;
-			int dw = cDock->view->rect.height;
-			int tx = cDock->leftSizer->rect.y;
-			int tw = cDock->leftSizer->rect.height;
-			int bx = cDock->rightSizer->rect.y;
-			int bw = cDock->rightSizer->rect.height;
+			const int dy0 = cDock->view->rect.y;
+			const int dy1 = cDock->view->rect.height + dy0;
 
-			if (dx < tx)
-				cDock->leftSizer->rect.y = dx;
+			const int ty0 = cDock->leftSizer->rect.y;
+			const int ty1 = cDock->leftSizer->rect.height + ty0;
 
-			if (dw > tw)
-				cDock->leftSizer->rect.height = dw;
+			const int by0 = cDock->rightSizer->rect.y;
+			const int by1 = cDock->rightSizer->rect.height + by0;
 
-			if (dx < bx)
-				cDock->rightSizer->rect.y = dx;
+			if (dy0 < ty0)
+				cDock->leftSizer->rect.y = dy0;
 
-			if (dw > bw)
-				cDock->rightSizer->rect.height = dw;
+			if (dy1 > ty1)
+				cDock->leftSizer->rect.height = dy1 - cDock->leftSizer->rect.y;
+			else
+				cDock->leftSizer->rect.height = ty1 - cDock->leftSizer->rect.y;
+
+			if (dy0 < by0)
+				cDock->rightSizer->rect.y = dy0;
+
+			if (dy1 > by1)
+				cDock->rightSizer->rect.height = dy1 - cDock->rightSizer->rect.y;
+			else
+				cDock->rightSizer->rect.height = by1 - cDock->rightSizer->rect.y;
+
 		}
 	}
 
@@ -810,40 +823,40 @@ static void deleteDock(UIDockingGrid* grid, UIDock* dock)
 
 	// We prefer to split resize left -> right (as described above we start with detecting that
 
-	const int tx = dock->topSizer->rect.x;
-	const int tw = dock->topSizer->rect.width;
-	const int bx = dock->bottomSizer->rect.x;
-	const int bw = dock->bottomSizer->rect.width;
+	const int tx0 = dock->topSizer->rect.x;
+	const int tx1 = dock->topSizer->rect.width + tx0;
+	const int bx0 = dock->bottomSizer->rect.x;
+	const int bx1 = dock->bottomSizer->rect.width + bx0;
 
-	const int ly = dock->leftSizer->rect.y;
-	const int lh = dock->leftSizer->rect.height;
-	const int ry = dock->rightSizer->rect.y;
-	const int rh = dock->rightSizer->rect.height;
+	const int ly0 = dock->leftSizer->rect.y;
+	const int ly1 = dock->leftSizer->rect.height + ly0;
+	const int ry0 = dock->rightSizer->rect.y;
+	const int ry1 = dock->rightSizer->rect.height + ry0;
 
-	const int vx = viewRect.x;
-	const int vy = viewRect.y;
-	const int vw = viewRect.width;
-	const int vh = viewRect.height;
+	const int vx0 = viewRect.x;
+	const int vy0 = viewRect.y;
+	const int vx1 = viewRect.width + vx0;
+	const int vy1 = viewRect.height + vy0;
 
-	if (tx < vx && bx < vx)
+	if (tx0 < vx0 && bx0 < vx0)
 	{
 		// Case 0 this will do resize right -> left
 
 		return deleteDockSide(grid, dock, dock->leftSizer, dock->rightSizer, Rect::H, Rect::Y);
 	}
-	else if (tw > vw && bw > vw)
+	else if (tx1 > vx1 && bx1 > vx1)
 	{
 		// Case 1 this will do resize left <- right
 
 		return deleteDockSide(grid, dock, dock->rightSizer, dock->leftSizer, Rect::H, Rect::Y);
 	}
-	else if (ly < vy && ry < vy)
+	else if (ly0 < vy0 && ry0 < vy0)
 	{
 		// Case 2 resize top -> down
 
 		return deleteDockSide(grid, dock, dock->topSizer, dock->bottomSizer, Rect::W, Rect::X);
 	}
-	else if (lh > vh && rh > vh)
+	else if (ly1 > vy1 && ry1 > vy1)
 	{
 		// Case 3 size down -> top
 

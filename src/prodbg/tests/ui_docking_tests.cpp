@@ -13,7 +13,6 @@
 
 //#define SUPPORT_DISPLAY
 
-
 #ifdef SUPPORT_DISPLAY
 #include <MiniFB.h>
 #endif
@@ -1056,17 +1055,17 @@ void test_randomize_create_delete(void**)
 
     srand(0xc0cac01a);
 
-	const int numSplits = 7;
+	const int numSplits = 8;
 
     UIDock_addView(grid, newViewInstance());
 
-    int p = 62;
+    int p = 954;
 
-    //for (p = 0; p < 100; ++p)
+    for (p = 0; p < 1000; ++p)
 	{
     	srand((unsigned int)p);
 
-    	printf("p %d\n", p);
+    	//printf("p %d\n", p);
 
 		for (int i = 0; i < numSplits; ++i)
 		{
@@ -1088,38 +1087,10 @@ void test_randomize_create_delete(void**)
 			}
 		}
 
-		/*
-		if (p == 1)
-		{
-			for (int i = 0; i < 3; ++i)
-				UIDock_deleteView(grid, grid->docks[0]->view);
-
-			UIDock_deleteView(grid, grid->docks[0]->view);
-
-			displayGrid(grid, rect);
-		}
-
-		*/
+		//displayGrid(grid, rect);
 		
-		/*
-
-		displayGrid(grid, rect);
-
-		UIDock_deleteView(grid, grid->docks[0]->view);
-
-
-		displayGrid(grid, rect);
-		*/
-		
-		//UIDock_deleteView(grid, grid->docks[0]->view);
-		//UIDock_deleteView(grid, grid->docks[0]->view);
-		UIDock_deleteView(grid, grid->docks[0]->view);
-
-
 		for (int i = 0; i < numSplits; ++i)
 			UIDock_deleteView(grid, grid->docks[0]->view);
-
-		//if (p == 1)
 
 		UIDock* dock = grid->docks[0];
 
@@ -1162,9 +1133,9 @@ int main()
         unit_test(test_delete_docks_left_right),
 		unit_test(test_delete_docks_up_down),
 		unit_test(test_delete_docks_down_up),
-		//unit_test(test_randomize_create_delete),
 		unit_test(test_breaking_delete),
 		unit_test(test_auto_resize_sizer),
+		unit_test(test_randomize_create_delete),
     };
 
     return run_tests(tests);
