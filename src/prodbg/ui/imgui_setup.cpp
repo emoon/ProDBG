@@ -196,6 +196,17 @@ void IMGUI_setup(int width, int height)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void IMGUI_updateSize(int width, int height)
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    io.DisplaySize = ImVec2((float)width, (float)height);
+    io.DeltaTime = 1.0f / 60.0f;
+    io.PixelCenterOffset = 0.0f;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 void IMGUI_preUpdate(float x, float y, int mouseLmb, int keyDown, int keyMod)
 {

@@ -202,8 +202,13 @@ void ProDBG_setWindowSize(int width, int height)
     context->width = width;
     context->height = height;
 
-    //bgfx::reset(width, height);
-    //IMGUI_setup(width, height);
+    bgfx::reset(width, height);
+    IMGUI_updateSize(width, height);
+
+#if PRODBG_USING_DOCKING
+	UIDock_updateSize(Session_getDockingGrid(context->session), width, height);
+#endif
+
     ProDBG_update();
 }
 

@@ -905,6 +905,34 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
         for (UIDock* dock : rightDocks)
             dock->view->rect.width += move;
     }
+	else if (sizer->dir == UIDockSizerDir_Horz)
+	{
+        std::vector<UIDock*> topDocks;
+        std::vector<UIDock*> bottomDocks;
+
+        int move = (int)deltaMove->y;
+
+        for (UIDock* dock : sizer->cons)
+        {
+            if (dock->topSizer == sizer)
+                topDocks.push_back(dock);
+            if (dock->bottomSizer == sizer)
+                bottomDocks.push_back(dock);
+        }
+
+        // TODO: Add limits of the resizing
+
+        sizer->rect.y += move;
+
+        for (UIDock* dock : topDocks)
+        {
+            dock->view->rect.y += move;
+            dock->view->rect.height -= move;
+        }
+
+        for (UIDock* dock : bottomDocks)
+            dock->view->rect.height += move;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -940,5 +968,23 @@ UIDock* UIDock_getDockAt(UIDockingGrid* grid, int x, int y)
 
     return nullptr;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIDock_updateSize(UIDockingGrid* grid, int width, int height)
+{
+	Vec2 deltaMove; 
+
+	deltaMove.x = width - grid->rect.width;
+	deltaMove.y = height - grid->rect.height;
+
+	grid->rect.width = width;
+	grid->rect.height = height;
+
+	UIDock_dragSizer(grid, &grid->rightSizer, &deltaMove);
+	UIDock_dragSizer(grid, &grid->bottomSizer, &deltaMove);
+}
+
+
 
 
