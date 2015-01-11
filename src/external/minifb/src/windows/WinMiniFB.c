@@ -67,7 +67,7 @@ int mfb_open(const char* title, int width, int height)
 	s_wc.style = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
 	s_wc.lpfnWndProc = WndProc;
 	s_wc.hCursor = LoadCursor(0, IDC_ARROW);
-	s_wc.lpszClassName = title;
+	s_wc.lpszClassName = L"Dummy Window";
 	RegisterClass(&s_wc);
 
 	rect.right = width;
@@ -82,7 +82,7 @@ int mfb_open(const char* title, int width, int height)
 	s_height = height;
 
 	s_wnd = CreateWindowEx(0, 
-		title, title,
+		L"Dummy Window", L"DummyWindow", 
 		WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME,
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		rect.right, rect.bottom,
