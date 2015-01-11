@@ -109,6 +109,35 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
+    Name = "minifb",
+
+    Env = { 
+		CPPPATH = { 
+			"src/external/minifb/include",
+		},
+
+        CCOPTS = {
+        	{ "-Wno-everything", "-Wno-missing-braces", "-std=c99"; Config = { "macosx-*-*", "macosx_test-*", "linux-*-*" } },
+        	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
+        },
+    },
+
+   Sources = FGlob {
+		Dir = "src/external/minifb/src",
+		Extensions = { ".cpp", ".c", ".h", ".s", ".m" },
+		Filters = {
+			{ Pattern = "[/\\]windows[/\\]"; Config = { "win32-*", "win64-*" } },
+			{ Pattern = "[/\\]macosx[/\\]"; Config = "mac*-*" },
+			{ Pattern = "[/\\]x11[/\\]"; Config = { "x11-*" } },
+		},
+
+		Recursive = true,
+	},
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
     Name = "uv",
 
     Env = { 
