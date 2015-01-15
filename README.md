@@ -5,7 +5,7 @@ ProDBG is a new debugger under development that will support a variety of target
 
 ![mac_screenshot](https://raw.githubusercontent.com/emoon/ProDBG/master/data/screens/mac_screenshot.png)
 
-I did a presentation on 2014-11 aboit the project for the awesome rendering team at Frostbite/EA and it can be viewed here: https://dl.dropboxusercontent.com/u/5205843/ProDBG-Presentation.pdf 
+I did a presentation on 2014-11 about the project for the awesome rendering team at Frostbite/EA and it can be viewed here: https://dl.dropboxusercontent.com/u/5205843/ProDBG-Presentation.pdf 
 
 ## Build status
 
