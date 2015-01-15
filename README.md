@@ -5,6 +5,8 @@ ProDBG is a new debugger under development that will support a variety of target
 
 ![mac_screenshot](https://raw.githubusercontent.com/emoon/ProDBG/master/data/screens/mac_screenshot.png)
 
+I did a presentation on 2014-11 on the project for the awesome rendering team at Frostbite/EA and it can be viewed here: https://dl.dropboxusercontent.com/u/5205843/ProDBG-Presentation.pdf 
+
 ## Build status
 
 Mac <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Mac)/statusIcon"/></a> Win64 <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Win64)/statusIcon"/></a> Linux <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Linux)/statusIcon"/></a> Coverage [![Coverage Status](https://img.shields.io/coveralls/emoon/ProDBG.svg)](https://coveralls.io/r/emoon/ProDBG)
