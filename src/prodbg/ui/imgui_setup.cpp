@@ -4,6 +4,7 @@
 #include "core/core.h"
 #include "core/file.h"
 #include "core/log.h"
+#include "ui_render.h"
 #include <stdio.h>
 #include <pd_keys.h>
 #include <bgfx.h>
@@ -11,76 +12,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bgfx::VertexDecl s_vertexDecl;
-static bgfx::ProgramHandle s_imguiProgram;
 static bgfx::TextureHandle s_textureId;
-static bgfx::UniformHandle s_tex;
-static bgfx::UniformHandle u_viewSize;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// TODO: Move this to some shared code or such?
-
-static const bgfx::Memory* loadShader(const char* filename)
-{
-    size_t size;
-    uint8_t* data = (uint8_t*)File_loadToMemory(filename, &size, 1);
-
-    if (!data)
-    {
-        log_error("Unable to load shader %s\n", filename)
-        return 0;
-    }
-
-    bgfx::Memory* mem = (bgfx::Memory*)bgfx::alloc(sizeof(bgfx::Memory));
-
-    // terminate strings
-
-    data[size] = 0;
-
-    mem->data = data;
-    mem->size = (uint32_t)size;
-
-    return mem;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bgfx::ProgramHandle loadProgram(const char* vsName, const char* fsName)
-{
-    bgfx::ProgramHandle ph = { bgfx::invalidHandle };
-
-    const bgfx::Memory* vsShader = loadShader(vsName);
-    const bgfx::Memory* fsShader = loadShader(fsName);
-
-    if (!vsShader)
-        return ph;
-
-    if (!fsShader)
-        return ph;
-
-    bgfx::ShaderHandle vsHandle = bgfx::createShader(vsShader);
-    bgfx::ShaderHandle fsHandle = bgfx::createShader(fsShader);
-
-    if (!isValid(vsHandle))
-    {
-        log_error("Unable to load vsShader %s\n", vsName)
-        return ph;
-    }
-
-    if (!isValid(fsHandle))
-    {
-        log_error("Unable to load fsShader %s\n", fsName)
-        return ph;
-    }
-
-    ph = bgfx::createProgram(vsHandle, fsHandle, true);
-
-    if (!isValid(ph))
-        log_error("Unable to create shader program for %s %s\n", vsName, fsName);
-
-    return ph;
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -119,7 +51,7 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
         for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end_t; pcmd++)
             vtx_size += (uint32_t)pcmd->vtx_count;
 
-        bgfx::allocTransientVertexBuffer(&tvb, vtx_size, s_vertexDecl);
+		UIRender_allocPosTexColorTb(&tvb, vtx_size);
 
         ImDrawVert* verts = (ImDrawVert*)tvb.data;
 
@@ -135,17 +67,13 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
                              (uint16_t)(pcmd->clip_rect.z - pcmd->clip_rect.x),
                              (uint16_t)(pcmd->clip_rect.w - pcmd->clip_rect.y));
              */
-
             bgfx::setState(0
                            | BGFX_STATE_RGB_WRITE
                            | BGFX_STATE_ALPHA_WRITE
                            | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
                            | BGFX_STATE_MSAA);
-            bgfx::setTexture(0, s_tex, s_textureId);
-            bgfx::setVertexBuffer(&tvb, vtx_offset, pcmd->vtx_count);
-            bgfx::setProgram(s_imguiProgram);
-            bgfx::setUniform(u_viewSize, viewSize);
-            bgfx::submit(0);
+
+			UIRender_posTexColor(&tvb, vtx_offset, pcmd->vtx_count, s_textureId, width, height);
 
             vtx_offset += pcmd->vtx_count;
         }
@@ -165,17 +93,7 @@ void IMGUI_setup(int width, int height)
     io.DeltaTime = 1.0f / 60.0f;
     io.PixelCenterOffset = 0.0f;
 
-    s_imguiProgram = loadProgram(OBJECT_DIR "/_generated/data/shaders/imgui/vs_imgui.vs",
-                                 OBJECT_DIR "/_generated/data/shaders/imgui/fs_imgui.fs");
-    s_vertexDecl
-    .begin()
-    .add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
-    .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-    .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-    .end();
-
-    u_viewSize = bgfx::createUniform("viewSize", bgfx::UniformType::Uniform2fv);
-    s_tex = bgfx::createUniform("s_tex", bgfx::UniformType::Uniform1i);
+	UIRender_init();
 
     ImGui::GetDefaultFontData(NULL, NULL, &png_data, &png_size);
     int tex_x, tex_y, pitch, tex_comp;
