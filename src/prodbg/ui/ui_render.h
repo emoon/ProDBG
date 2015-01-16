@@ -6,11 +6,14 @@
 
 bool UIRender_init();
 
-void UIRender_allocPosTexColorTb(bgfx::TransientVertexBuffer* buffer, int count);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UIRender_posTexColor(
-	bgfx::TransientVertexBuffer* vertexBuffer,
-	int offset,
-	int count,
-	bgfx::TextureHandle texHandle,
-	float width, float height);
+void UIRender_allocPosTexColorTb(bgfx::TransientVertexBuffer* buffer, uint32_t count);
+void UIRender_allocPosColorTb(bgfx::TransientVertexBuffer* buffer, uint32_t count);
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIRender_posTexColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle);
+void UIRender_posColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count);
+
+
