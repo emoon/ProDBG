@@ -280,12 +280,12 @@ static void updateLocal(Session* s, PDAction action)
 
         if (state == PluginUIState_CloseView)
         {
-		#if PRODBG_USING_DOCKING
+        #if PRODBG_USING_DOCKING
             UIDock_deleteView(s->uiDockingGrid, p);
-		#endif
+        #endif
             p->markDeleted = true;
         }
-        
+
         PDBinaryReader_reset(s->reader);
     }
 
@@ -359,12 +359,12 @@ static void updateRemote(Session* s, PDAction action)
         PluginUIState state = PluginUI_updateInstance(p, s->reader, s->currentWriter);
 
         if (state == PluginUIState_CloseView)
-		{
-		#if PRODBG_USING_DOCKING
-			UIDock_deleteView(s->uiDockingGrid, p);
-		#endif
+        {
+        #if PRODBG_USING_DOCKING
+            UIDock_deleteView(s->uiDockingGrid, p);
+        #endif
             p->markDeleted = true;
-		}
+        }
 
         PDBinaryReader_reset(s->reader);
     }

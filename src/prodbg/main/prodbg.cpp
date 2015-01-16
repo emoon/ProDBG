@@ -206,7 +206,7 @@ void ProDBG_setWindowSize(int width, int height)
     IMGUI_updateSize(width, height);
 
 #if PRODBG_USING_DOCKING
-	UIDock_updateSize(Session_getDockingGrid(context->session), width, height);
+    UIDock_updateSize(Session_getDockingGrid(context->session), width, height);
 #endif
 
     ProDBG_update();

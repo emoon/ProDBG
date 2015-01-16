@@ -46,7 +46,7 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
         for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end_t; pcmd++)
             vtx_size += (uint32_t)pcmd->vtx_count;
 
-		UIRender_allocPosTexColorTb(&tvb, (uint32_t)vtx_size);
+        UIRender_allocPosTexColorTb(&tvb, (uint32_t)vtx_size);
 
         ImDrawVert* verts = (ImDrawVert*)tvb.data;
 
@@ -68,7 +68,7 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
                            | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
                            | BGFX_STATE_MSAA);
 
-			UIRender_posTexColor(&tvb, vtx_offset, pcmd->vtx_count, s_textureId);
+            UIRender_posTexColor(&tvb, vtx_offset, pcmd->vtx_count, s_textureId);
 
             vtx_offset += pcmd->vtx_count;
         }
@@ -88,7 +88,7 @@ void IMGUI_setup(int width, int height)
     io.DeltaTime = 1.0f / 60.0f;
     io.PixelCenterOffset = 0.0f;
 
-	UIRender_init();
+    UIRender_init();
 
     ImGui::GetDefaultFontData(NULL, NULL, &png_data, &png_size);
     int tex_x, tex_y, pitch, tex_comp;
