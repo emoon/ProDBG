@@ -99,7 +99,16 @@ static ProgramAttribs posTexColorAttribs[] =
 	{ bgfx::Attrib::Position, 2, bgfx::AttribType::Float, false },
 	{ bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float, false },
 	{ bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true },
-	{ bgfx::Attrib::Count, 0, bgfx::AttribType::Uint8 },
+	{ bgfx::Attrib::Count, 0, bgfx::AttribType::Uint8, false },
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static ProgramAttribs posColorAttribs[] =
+{
+	{ bgfx::Attrib::Position, 2, bgfx::AttribType::Float, false },
+	{ bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true },
+	{ bgfx::Attrib::Count, 0, bgfx::AttribType::Uint8, false },
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,6 +120,12 @@ static ProgramInfo s_programs[] =
 		OBJECT_DIR "/_generated/data/shaders/imgui/vs_imgui.vs",
 		OBJECT_DIR "/_generated/data/shaders/imgui/fs_imgui.fs",
 	},
+
+	{
+		(ProgramAttribs*)&posColorAttribs,
+		OBJECT_DIR "/_generated/data/shaders/imgui/vs_pos_color.vs",
+		OBJECT_DIR "/_generated/data/shaders/imgui/fs_pos_color.fs",
+	},
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,6 +133,7 @@ static ProgramInfo s_programs[] =
 enum
 {
 	Program_PosTexColor,
+	Program_PosColor,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,23 +171,34 @@ bool UIRender_init()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UIRender_allocPosTexColorTb(bgfx::TransientVertexBuffer* buffer, int count)
+void UIRender_allocPosTexColorTb(bgfx::TransientVertexBuffer* buffer, uint32_t count)
 {
 	bgfx::allocTransientVertexBuffer(buffer, count, s_programs[Program_PosTexColor].vertexDecl);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UIRender_posTexColor(
-	bgfx::TransientVertexBuffer* vertexBuffer, int offset, int count, bgfx::TextureHandle texHandle, float width, float height)
+void UIRender_allocPosColorTb(bgfx::TransientVertexBuffer* buffer, uint32_t count)
 {
-	// TODO: We likely don't need this one.
-	float viewSize[2] = { width, height };
+	bgfx::allocTransientVertexBuffer(buffer, count, s_programs[Program_PosColor].vertexDecl);
+}
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIRender_posTexColor( bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle)
+{
 	bgfx::setTexture(0, s_tex, texHandle);
 	bgfx::setVertexBuffer(vertexBuffer, offset, count);
 	bgfx::setProgram(s_programs[Program_PosTexColor].handle);
-	bgfx::setUniform(u_viewSize, viewSize);
+	bgfx::submit(0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIRender_posTexColor( bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count)
+{
+	bgfx::setVertexBuffer(vertexBuffer, offset, count);
+	bgfx::setProgram(s_programs[Program_PosColor].handle);
 	bgfx::submit(0);
 }
 

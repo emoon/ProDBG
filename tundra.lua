@@ -14,6 +14,7 @@ local mac_opts = {
 	"-Wno-gnu-anonymous-struct",
 	"-Wno-nested-anon-types",
 	"-Wno-padded",
+	"-Wno-missing-field-initializers",
 	"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
 	{ "-O0", "-g"; Config = "*-*-debug" },
 	{ "-O3", "-g"; Config = "*-*-release" },

@@ -21,16 +21,11 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
     (void)cmd_lists;
     (void)cmd_lists_count;
 
-    float viewSize[2];
-
     const float width = ImGui::GetIO().DisplaySize.x;
     const float height = ImGui::GetIO().DisplaySize.y;
 
-    viewSize[0] = width;
-    viewSize[1] = height;
-
     float ortho[16];
-    bx::mtxOrtho(ortho, 0.0f, viewSize[0], viewSize[1], 0.0f, -1.0f, 1.0f);
+    bx::mtxOrtho(ortho, 0.0f, width, height, 0.0f, -1.0f, 1.0f);
 
     bgfx::setViewTransform(0, NULL, ortho);
 
@@ -51,7 +46,7 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
         for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end_t; pcmd++)
             vtx_size += (uint32_t)pcmd->vtx_count;
 
-		UIRender_allocPosTexColorTb(&tvb, vtx_size);
+		UIRender_allocPosTexColorTb(&tvb, (uint32_t)vtx_size);
 
         ImDrawVert* verts = (ImDrawVert*)tvb.data;
 
@@ -73,7 +68,7 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
                            | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
                            | BGFX_STATE_MSAA);
 
-			UIRender_posTexColor(&tvb, vtx_offset, pcmd->vtx_count, s_textureId, width, height);
+			UIRender_posTexColor(&tvb, vtx_offset, pcmd->vtx_count, s_textureId);
 
             vtx_offset += pcmd->vtx_count;
         }
