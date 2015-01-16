@@ -519,6 +519,8 @@ StaticLibrary {
 
         ShadercFS { Source = "data/shaders/imgui/fs_imgui.sc" },
         ShadercVS { Source = "data/shaders/imgui/vs_imgui.sc" },
+        ShadercFS { Source = "data/shaders/imgui/fs_pos_color.sc" },
+        ShadercVS { Source = "data/shaders/imgui/vs_pos_color.sc" },
     },
 }
 
