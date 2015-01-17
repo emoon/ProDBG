@@ -493,6 +493,7 @@ StaticLibrary {
         },
 
         CPPPATH = { 
+			"src/external",
             "src/external/imgui",
             "src/external/bx/include",
             "src/external/bgfx/include",

@@ -6,7 +6,6 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static bgfx::UniformHandle s_tex;
-static bgfx::UniformHandle u_viewSize;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -140,7 +139,6 @@ enum
 
 bool UIRender_init()
 {
-    u_viewSize = bgfx::createUniform("viewSize", bgfx::UniformType::Uniform2fv);
     s_tex = bgfx::createUniform("s_tex", bgfx::UniformType::Uniform1i);
 
     for (int i = 0; i < (int)sizeof_array(s_programs); ++i)
@@ -185,7 +183,7 @@ void UIRender_allocPosColorTb(bgfx::TransientVertexBuffer* buffer, uint32_t coun
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UIRender_posTexColor( bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle)
+void UIRender_posTexColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle)
 {
     bgfx::setTexture(0, s_tex, texHandle);
     bgfx::setVertexBuffer(vertexBuffer, offset, count);
@@ -195,7 +193,7 @@ void UIRender_posTexColor( bgfx::TransientVertexBuffer* vertexBuffer, uint32_t o
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UIRender_posTexColor( bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count)
+void UIRender_posTexColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count)
 {
     bgfx::setVertexBuffer(vertexBuffer, offset, count);
     bgfx::setProgram(s_programs[Program_PosColor].handle);

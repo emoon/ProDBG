@@ -6,139 +6,163 @@
 #include <stddef.h>
 #include <math.h>
 #include <assert.h>
+#include <stb_truetype.h>
+#include "core/file.h"
+#include "ui_render.h"
 
 #include "scintilla/include/Platform.h"
 
-#ifdef SCI_NAMESPACE
-namespace Scintilla
+//#ifdef SCI_NAMESPACE
+//namespace Scintilla
+//{
+//#endif
+//
+//
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline uint32_t MakeRGBA(uint32_t r, uint32_t g, uint32_t b, uint32_t a=0xFF)
 {
+	return a<<24|b<<16|g<<8|r;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ColourDesired Platform::Chrome()
+{
+    return MakeRGBA(0xe0, 0xe0, 0xe0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ColourDesired Platform::ChromeHighlight()
+{
+    return MakeRGBA(0xff, 0xff, 0xff);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const char* Platform::DefaultFont()
+{
+    return "Lucida Console";
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int Platform::DefaultFontSize()
+{
+    return 10;
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+unsigned int Platform::DoubleClickTime()
+{
+    return 500;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Platform::MouseButtonBounce()
+{
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#if defined(__clang__)
+__attribute__((noreturn)) void Platform::Assert(const char* error, const char* filename, int line)
+#else
+void Platform::Assert(const char* error, const char* filename, int line)
 #endif
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-ColourDesired Platform::Chrome() 
 {
-	return MakeRGBA(0xe0, 0xe0, 0xe0);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-Colour Platform::ChromeHighlight() 
-{
-	return MakeRGBA(0xff, 0xff, 0xff);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-const char* Platform::DefaultFont() 
-{
-	return "Lucida Console";
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int Platform::DefaultFontSize() 
-{
-	return 10;
-}
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-unsigned int Platform::DoubleClickTime() 
-{
-	return 500;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool Platform::MouseButtonBounce() 
-{
-	return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Platform::Assert(const char* error, const char* filename, int line) 
-{
-	printf("Assertion [%s] failed at %s %d\n", error, filename, line);
-	assert(false);
+    printf("Assertion [%s] failed at %s %d\n", error, filename, line);
+    assert(false);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SetClipboardTextUTF8(const char* text, size_t len, int additionalFormat)
 {
-	(void)text;
-	(void)len;
-	(void)additionalFormat;
+    (void)text;
+    (void)len;
+    (void)additionalFormat;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int GetClipboardTextUTF8(char* text, size_t len)
 {
-	(void)text;
-	(void)len;
+    (void)text;
+    (void)len;
 
-	return 0;
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class SurfaceImpl : public Surface 
+class SurfaceImpl : public Surface
 {
 public:
-	SurfaceImpl();
-	virtual ~SurfaceImpl();
+    SurfaceImpl();
+    virtual ~SurfaceImpl();
 
-	void Release();
-	void PenColour(Colour fore);
-	int LogPixelsY();
-	float DeviceHeightFont(float points);
-	void MoveTo(float x_, float y_);
-	void LineTo(float x_, float y_);
-	void Polygon(Point *pts, int npts, Colour fore, Colour back);
-	void RectangleDraw(PRectangle rc, Colour fore, Colour back);
-	void FillRectangle(PRectangle rc, Colour back);
-	void FillRectangle(PRectangle rc, Surface &surfacePattern);
-	void RoundedRectangle(PRectangle rc, Colour fore, Colour back);
-	void AlphaRectangle(PRectangle rc, int cornerSize, Colour fill, int alphaFill, Colour outline, int alphaOutline, int flags);
-	void Ellipse(PRectangle rc, Colour fore, Colour back);
+    bool InitBgfx();
 
-	void DrawPixmap(PRectangle rc, Point from, Pixmap pixmap);
-	void DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char *pixelsImage);
+	void Init(WindowID wid);
+	void Init(SurfaceID sid, WindowID wid);
+	void InitPixMap(int width, int height, Surface *surface_, WindowID wid);
 
-	void DrawTextBase(PRectangle rc, Font& font_, float ybase, const char* s, int len, Colour fore);
-	void DrawTextNoClip(PRectangle rc, Font& font_, float ybase, const char* s, int len, Colour fore, Colour back);
-	void DrawTextClipped(PRectangle rc, Font& font_, float ybase, const char* s, int len, Colour fore, Colour back);
-	void DrawTextTransparent(PRectangle rc, Font& font_, float ybase, const char* s, int len, Colour fore);
-	void MeasureWidths(Font &font_, const char* s, int len, float *positions);
-	float WidthText(Font &font_, const char* s, int len);
-	float WidthChar(Font &font_, char ch);
-	float Ascent(Font &font_);
-	float Descent(Font &font_);
-	float InternalLeading(Font &font_);
-	float ExternalLeading(Font &font_);
-	float Height(Font &font_);
-	float AverageCharWidth(Font &font_);
+	bool Initialised();
 
-	void SetClip(PRectangle rc);
-	void FlushCachedState();
+    void Release();
+    void PenColour(ColourDesired fore);
+    int LogPixelsY();
+    int DeviceHeightFont(int points);
+    void MoveTo(int x_, int y_);
+    void LineTo(int x_, int y_);
+    void Polygon(Point* pts, int npts, ColourDesired fore, ColourDesired back);
+    void RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired back);
+    void FillRectangle(PRectangle rc, ColourDesired back);
+    void FillRectangle(PRectangle rc, Surface& surfacePattern);
+    void RoundedRectangle(PRectangle rc, ColourDesired fore, ColourDesired back);
+    void AlphaRectangle(PRectangle rc, int cornerSize, ColourDesired fill, int alphaFill, ColourDesired outline, int alphaOutline, int flags);
+    void Ellipse(PRectangle rc, ColourDesired fore, ColourDesired back);
+
+    //void DrawPixmap(PRectangle rc, Point from, Pixmap pixmap);
+    void DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char* pixelsImage);
+
+    void DrawTextBase(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired fore);
+    void DrawTextNoClip(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired fore, ColourDesired back);
+    void DrawTextClipped(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired  fore, ColourDesired back);
+    void DrawTextTransparent(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired fore);
+    void MeasureWidths(Font& font_, const char* s, int len, float* positions);
+    float WidthText(Font& font_, const char* s, int len);
+    float WidthChar(Font& font_, char ch);
+    float Ascent(Font& font_);
+    float Descent(Font& font_);
+    float InternalLeading(Font& font_);
+    float ExternalLeading(Font& font_);
+    float Height(Font& font_);
+    float AverageCharWidth(Font& font_);
+
+    void SetClip(PRectangle rc);
+    void FlushCachedState();
 
 private:
 
-	Colour m_penColour;
-	float m_x;
-	float m_y;
+    ColourDesired m_penColour;
+    float m_x;
+    float m_y;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct stbtt_Font
 {
-	stbtt_fontinfo	fontinfo;
-	stbtt_bakedchar cdata[96]; // ASCII 32..126 is 95 glyphs
-	GLuint ftex;
-	float scale;
+    stbtt_fontinfo fontinfo;
+    stbtt_bakedchar cdata[96]; // ASCII 32..126 is 95 glyphs
+	bgfx::TextureHandle ftex;
+    float scale;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,446 +179,489 @@ Font::~Font()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-stbtt_Font defaultFont;
-
-namespace platform
+void Font::Create(const FontParameters& fp)
 {
-
-void InitializeFontSubsytem()
-{
-	unsigned char* bmp = (unsigned char*)malloc(512*512);
-
-	stbtt_BakeFontBitmap(anonymousProRTTF, 0, 12.0*2, bmp, 512, 512, 32, 96, defaultFont.cdata); // no guarantee this fits!
-
-	glGenTextures(1, &defaultFont.ftex);
-	glBindTexture(GL_TEXTURE_2D, defaultFont.ftex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, bmp);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	//TODO: Crash if uncomment previous line - need further investigation
-	free(bmp);
-}
-
-void ShutdownFontSubsytem()
-{
-	glDeleteTextures(1, &defaultFont.ftex);
-}
-
-}
-
-void Font::Create(const FontParameters &fp)
-{
-	/*
 	stbtt_Font* newFont = new stbtt_Font;
+
 	size_t len;
 
-	FILE* f = fopen(fp.faceName, "rb");
+	// TODO: Remove hard-coded value
 
-	assert(f);
+    unsigned char* bmp = new unsigned char[512*512];
+	void* data = File_loadToMemory(fp.faceName, &len, 0);
 
-	fseek(f, 0, SEEK_END);
-	len = ftell(f);
-	fseek(f, 0, SEEK_SET);
+	stbtt_BakeFontBitmap((unsigned char*)data, 0, fp.size, bmp, 512, 512, 32, 96, newFont->cdata); // no guarantee this fits!
 
-	unsigned char* buf = (unsigned char*)malloc(len);
-	unsigned char* bmp = new unsigned char[512*512];
-	fread(buf, 1, len, f);
-	stbtt_BakeFontBitmap(buf, 0, fp.size, bmp, 512, 512, 32, 96, newFont->cdata); // no guarantee this fits!
-	// can free ttf_buffer at this point
-	glGenTextures(1, &newFont->ftex);
-	glBindTexture(GL_TEXTURE_2D, newFont->ftex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 512, 512, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bmp);
-	// can free temp_bitmap at this point
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	fclose(f);
+    const bgfx::Memory* mem = bgfx::alloc(512 * 512);
+    memcpy(mem->data, bmp, 512 * 512); 
 
-	stbtt_InitFont(&newFont->fontinfo, buf, 0);
+    newFont->ftex = bgfx::createTexture2D(512, 512, 1, bgfx::TextureFormat::R8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT, mem);
+
+	stbtt_InitFont(&newFont->fontinfo, (unsigned char*)data, 0);
 
 	newFont->scale = stbtt_ScaleForPixelHeight(&newFont->fontinfo, fp.size);
 
+    delete [] bmp;
 
-	delete [] bmp;
-	*/
-
-	fid = newFont;
+    fid = newFont;
 }
 
-
+/*
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct pixmap_t
 {
-	GLuint tex;
-	float scalex, scaley;
-	bool initialised;
+	bgfx::TextureHandle tex;
+    float scalex, scaley;
+    bool initialised;
 };
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Pixmap CreatePixmap()
 {
-	Pixmap pm = new pixmap_t;
-	pm->scalex = 0;
-	pm->scaley = 0;
-	pm->initialised = false;
+    Pixmap pm = new pixmap_t;
+    pm->scalex = 0;
+    pm->scaley = 0;
+    pm->initialised = false;
 
-	return pm;
+    return pm;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool IsPixmapInitialised(Pixmap pixmap)
 {
-	return pixmap->initialised;
+    return pixmap->initialised;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void DestroyPixmap(Pixmap pixmap)
 {
-	glDeleteTextures(1, &pixmap->tex);
-	delete pixmap;
+    glDeleteTextures(1, &pixmap->tex);
+    delete pixmap;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UpdatePixmap(Pixmap pixmap, int w, int h, int* data)
 {
-	/*
-	if (!pixmap->initialised)
-	{
-		glGenTextures(1, &pixmap->tex);
-		glBindTexture(GL_TEXTURE_2D, pixmap->tex);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	}
-	else
-	{
-		glBindTexture(GL_TEXTURE_2D, pixmap->tex);
-	}
+	const size_t byteSize = w * h * sizeof(uint32_t);
+
+	if (!pixmap->initilised)
+    	pixmap->tex = bgfx::createTexture2D((uint16_t)w, (uint16_t)h, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_PONT, 0);
+
+    const bgfx::Memory* mem = bgfx::alloc(byteSize);
+    memcpy(mem->data, data, byteSize); 
 
 	pixmap->initialised = true;
-	pixmap->scalex = 1.0f/w;
-	pixmap->scaley = 1.0f/h;
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	*/
+	pixmap->scalex = 1.0f / (float)w;
+	pixmap->scaley = 1.0f / (float)h;
 
+	bgfx::updateTexture2D(pixmap->tex, 0, 0, 0, (uint16_t)w, (uint16_t)h, mem);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SurfaceImpl::DrawPixmap(PRectangle rc, Point offset, Pixmap pixmap)
 {
-	float w = (rc.right-rc.left)*pixmap->scalex, h=(rc.bottom-rc.top)*pixmap->scaley;
-	float u1 = offset.x*pixmap->scalex, v1 = offset.y*pixmap->scaley, u2 = u1+w, v2 = v1+h;
+	bgfx::TransientVertexBuffer tvb;
 
-/*
-	for (int i=0; i<8; i++)
-	{
-		glActiveTexture( GL_TEXTURE0 + i );
-		glBindTexture(GL_TEXTURE_2D, NULL);
-	}
+    float w = (rc.right - rc.left) * pixmap->scalex, h = (rc.bottom - rc.top) * pixmap->scaley;
+    float u1 = offset.x * pixmap->scalex, v1 = offset.y * pixmap->scaley, u2 = u1 + w, v2 = v1 + h;
 
-	glActiveTexture( GL_TEXTURE0 );
+    // TODO: Use program that doesn't set color 
 
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, pixmap->tex);
-	glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
-	glBegin(GL_QUADS);
-	glTexCoord2f(u1, v1);
-	glVertex2f(rc.left,  rc.top);
-	glTexCoord2f(u2, v1);
-	glVertex2f(rc.right, rc.top);
-	glTexCoord2f(u2, v2);
-	glVertex2f(rc.right, rc.bottom);
-	glTexCoord2f(u1, v2);
-	glVertex2f(rc.left,  rc.bottom);
-	glEnd();
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glDisable(GL_TEXTURE_2D);
+	UIRender_allocPosTexColorTb(&tvb, 6);
+
+	PosTexColorVertex* vb = (PosTexColorVertex*)tbv.data;
+
+	// First triangle
+
+	vb[0].x = rc.left;
+	vb[0].y = rc.top;
+	vb[0].u = u1;
+	vb[0].v = v1;
+	vb[0].color = 0xffffffff;
+
+	vb[1].x = rc.right;
+	vb[1].y = rc.top;
+	vb[1].u = u2;
+	vb[1].v = v1;
+	vb[1].color = 0xffffffff;
+
+	vb[2].x = rc.right;
+	vb[2].y = rc.bottom;
+	vb[2].u = u2;
+	vb[2].v = v2;
+	vb[2].color = 0xffffffff;
+
+	// Second triangle
+
+	vb[3].x = rc.left;
+	vb[3].y = rc.top;
+	vb[3].u = u1;
+	vb[3].v = v1;
+	vb[3].color = 0xffffffff;
+
+	vb[4].x = rc.right;
+	vb[4].y = rc.bottom;
+	vb[4].u = u2;
+	vb[4].v = v2;
+	vb[4].color = 0xffffffff;
+
+	vb[5].x = rc.left;
+	vb[5].y = rc.bottom;
+	vb[5].u = u1;
+	vb[5].v = v2;
+	vb[5].color = 0xffffffff;
+
+	UIRender_posTexColor(&tvb, 0, 6, pixmap->tex);
+}
 */
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool SurfaceImpl::Initialised()
+{
+	return true;
+}	
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SurfaceImpl::Init(WindowID wid)
+{
+	(void)wid;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char *pixelsImage)
+void SurfaceImpl::Init(SurfaceID sid, WindowID wid)
 {
-    assert(!"Implemented");
+	(void)wid;
+	(void)sid;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::FillRectangle(PRectangle rc, Colour back) 
+void SurfaceImpl::InitPixMap(int width, int height, Surface *surface_, WindowID wid)
 {
-/*
-	for (int i=0; i<8; i++)
-	{
-		glActiveTexture( GL_TEXTURE0 + i );
-		glBindTexture(GL_TEXTURE_2D, NULL);
-	}
-
-	glActiveTexture( GL_TEXTURE0 );
-
-	glColor4ubv((GLubyte*)&back);
-	glDisable(GL_TEXTURE_2D);
-	glBegin(GL_QUADS);
-	glVertex2f(rc.left,  rc.top);
-	glVertex2f(rc.right, rc.top);
-	glVertex2f(rc.right, rc.bottom);
-	glVertex2f(rc.left,  rc.bottom);
-	glEnd();
-*/
+	(void)width;
+	(void)height;
+	(void)surface_;
+	(void)wid;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::FillRectangle(PRectangle, Surface&) 
+void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char* pixelsImage)
 {
-	assert(false);
+	(void)rc;
+	(void)width;
+	(void)height;
+	(void)pixelsImage;
+
+    assert(0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::RoundedRectangle(PRectangle, Colour, Colour) 
+void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
 {
-	assert(false);
+	bgfx::TransientVertexBuffer tvb;
+
+	const uint32_t back = (uint32_t)b.AsLong();
+
+	UIRender_allocPosColorTb(&tvb, 6);
+
+	PosColorVertex* vb = (PosColorVertex*)tvb.data;
+
+	// First triangle
+
+	vb[0].x = rc.left;
+	vb[0].y = rc.top;
+	vb[0].color = back;
+
+	vb[1].x = rc.right;
+	vb[1].y = rc.top;
+	vb[1].color = back;
+
+	vb[2].x = rc.right;
+	vb[2].y = rc.bottom;
+	vb[2].color = back;
+
+	// Second triangle
+
+	vb[3].x = rc.left;
+	vb[3].y = rc.top;
+	vb[3].color = back;
+
+	vb[4].x = rc.right;
+	vb[4].y = rc.bottom;
+	vb[4].color = back;
+
+	vb[5].x = rc.left;
+	vb[5].y = rc.bottom;
+	vb[5].color = back;
+
+	UIRender_posColor(&tvb, 0, 6);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SurfaceImpl::FillRectangle(PRectangle, Surface&)
+{
+    assert(false);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SurfaceImpl::RoundedRectangle(PRectangle, ColourDesired, ColourDesired)
+{
+    assert(false);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SurfaceImpl::AlphaRectangle(
-	PRectangle rc, int cornerSize, Colour fill, int alphaFill, 
-	Colour outline, int alphaOutline, int flags) 
+    PRectangle rc, int cornerSize, ColourDesired fill, int alphaFill,
+    ColourDesired outline, int alphaOutline, int flags)
 {
-	unsigned int back = fill & 0xffffff | ((alphaFill & 0xff) << 24);
-	(void)outline;
-	(void)alphaOutline;
-	(void)flags;
-	/*
-	glDisable(GL_TEXTURE_2D);
-	glColor4ubv((GLubyte*)&back);
-	glBegin(GL_QUADS);
-	glVertex2f(rc.left,  rc.top);
-	glVertex2f(rc.right, rc.top);
-	glVertex2f(rc.right, rc.bottom);
-	glVertex2f(rc.left,  rc.bottom);
-	glEnd();
-	*/
+    unsigned int back = (uint32_t)((fill.AsLong() & 0xffffff) | ((alphaFill & 0xff) << 24));
+
+    (void)cornerSize;
+    (void)outline;
+    (void)alphaOutline;
+    (void)flags;
+
+	FillRectangle(rc, ColourDesired(back));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::Ellipse(PRectangle, Colour, Colour) 
+void SurfaceImpl::Ellipse(PRectangle, ColourDesired, ColourDesired)
 {
-	assert(0);
+    assert(0);
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-const int maxLengthTextRun = 10000;
-
-struct stbtt_Font
-{
-	stbtt_fontinfo	fontinfo;
-	stbtt_bakedchar cdata[96]; // ASCII 32..126 is 95 glyphs
-	GLuint ftex;
-	float scale;
-};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Font::Release()
 {
-	if (fid)
-	{
-		free(((stbtt_Font*)fid)->fontinfo.data);
-		glDeleteTextures(1, &((stbtt_Font*)fid)->ftex);
-		delete (stbtt_Font*)fid;
-	}
+    if (fid)
+    {
+        free(((stbtt_Font*)fid)->fontinfo.data);
+        delete (stbtt_Font*)fid;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font_, float ybase, const char *s, int len, Colour fore) 
+void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired f)
 {
-	stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+	uint32_t realLength = 0;
+    float x = rc.left;
+	float y = ybase;
 
-//   GLint prevActiveTexUnit;
-//   glGetIntegerv(GL_ACTIVE_TEXTURE, &prevActiveTexUnit
-  for (int i=0; i<8; i++)
-  {
-    glActiveTexture( GL_TEXTURE0 + i );
-    glBindTexture(GL_TEXTURE_2D, NULL);
-  }
-  glActiveTexture( GL_TEXTURE0 );
+	uint32_t fore = (uint32_t)f.AsLong();
 
-  glEnable(GL_TEXTURE_2D);
+	bgfx::TransientVertexBuffer tvb;
 
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	// assume orthographic projection with units = screen pixels, origin at top left
-	glBindTexture(GL_TEXTURE_2D, realFont->ftex);
-	glColor3ubv((GLubyte*)&fore);
-	glBegin(GL_QUADS);
-	float x = rc.left, y=ybase;
-	while (len--) {
-		if (*s >= 32 && *s < 128) {
-			stbtt_aligned_quad q;
-			stbtt_GetBakedQuad(realFont->cdata, 512,512, *s-32, &x,&y,&q,1);//1=opengl,0=old d3d
-			//x = floor(x);
-			glTexCoord2f(q.s0,q.t0); glVertex2f(q.x0,q.y0);
-			glTexCoord2f(q.s1,q.t0); glVertex2f(q.x1,q.y0);
-			glTexCoord2f(q.s1,q.t1); glVertex2f(q.x1,q.y1);
-			glTexCoord2f(q.s0,q.t1); glVertex2f(q.x0,q.y1);
-		}
-		++s;
-	}
-	glEnd();
-	glDisable(GL_TEXTURE_2D);
-	//glDisable(GL_BLEND);
+    stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+
+	UIRender_allocPosColorTb(&tvb, (uint32_t)(len * 2)); // * 2 as triangles
+
+	PosTexColorVertex* vb = (PosTexColorVertex*)tvb.data;
+
+    while (len--)
+    {
+        if (*s >= 32 && *s < 127)
+        {
+            stbtt_aligned_quad q;
+            stbtt_GetBakedQuad(realFont->cdata, 512, 512, *s - 32, &x, &y, &q, 1);
+			
+			// First triangle
+
+			vb[0].x = q.x0; 
+			vb[0].y = q.y0; 
+			vb[0].u = q.s0; 
+			vb[0].v = q.s0; 
+			vb[0].color = fore;
+
+			vb[1].x = q.x1; 
+			vb[1].y = q.y0; 
+			vb[1].u = q.s1; 
+			vb[1].v = q.s0; 
+			vb[1].color = fore;
+
+			vb[2].x = q.x1; 
+			vb[2].y = q.y1; 
+			vb[2].u = q.s1; 
+			vb[2].v = q.s1; 
+			vb[2].color = fore;
+
+			// Second triangle
+			
+			vb[3].x = q.x0; 
+			vb[3].y = q.y0; 
+			vb[3].u = q.s0; 
+			vb[3].v = q.s0; 
+			vb[3].color = fore;
+
+			vb[4].x = q.x1; 
+			vb[4].y = q.y0; 
+			vb[4].u = q.s1; 
+			vb[4].v = q.s0; 
+			vb[4].color = fore;
+
+			vb[5].x = q.x0; 
+			vb[5].y = q.y1; 
+			vb[5].u = q.s0; 
+			vb[5].v = q.s1; 
+			vb[5].color = fore;
+
+			vb += 6;
+			realLength++;
+        }
+
+        ++s;
+    }
+
+	UIRender_posTexColor(&tvb, 0, realLength, realFont->ftex);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::DrawTextNoClip(PRectangle rc, Font &font_, float ybase, const char* s, int len,
-                                 Colour fore, Colour /*back*/) 
+void SurfaceImpl::DrawTextNoClip(PRectangle rc, Font& font_, float ybase, const char* s, int len,
+                                 ColourDesired fore, ColourDesired /*back*/)
 {
-	DrawTextBase(rc, font_, ybase, s, len, fore);
+    DrawTextBase(rc, font_, ybase, s, len, fore);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::DrawTextClipped(PRectangle rc, Font &font_, float ybase, const char* s, int len, Colour fore, Colour /*back*/) 
+void SurfaceImpl::DrawTextClipped(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired fore, ColourDesired /*back*/)
 {
-	DrawTextBase(rc, font_, ybase, s, len, fore);
+    DrawTextBase(rc, font_, ybase, s, len, fore);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::DrawTextTransparent(PRectangle rc, Font &font_, float ybase, const char* s, int len, Colour fore) 
+void SurfaceImpl::DrawTextTransparent(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired fore)
 {
-	DrawTextBase(rc, font_, ybase, s, len, fore);
+    DrawTextBase(rc, font_, ybase, s, len, fore);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::MeasureWidths(Font& font_, const char* s, int len, float* positions) 
+void SurfaceImpl::MeasureWidths(Font& font_, const char* s, int len, float* positions)
 {
-	stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+    stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
 
-	//TODO: implement proper UTF-8 handling
+    //TODO: implement proper UTF-8 handling
 
-	float position = 0;
-	while (len--) 
-	{
-		int advance, leftBearing;
-		
-		stbtt_GetCodepointHMetrics(&realFont->fontinfo, *s++, &advance, &leftBearing);
-		
-		position += advance;//TODO: +Kerning
-		*positions++ = position*realFont->scale;
-	}
+    float position = 0;
+    while (len--)
+    {
+        int advance, leftBearing;
+
+        stbtt_GetCodepointHMetrics(&realFont->fontinfo, *s++, &advance, &leftBearing);
+
+        position += advance;//TODO: +Kerning
+        *positions++ = position * realFont->scale;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float SurfaceImpl::WidthText(Font &font_, const char *s, int len) 
+float SurfaceImpl::WidthText(Font& font_, const char* s, int len)
 {
-	stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+    stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
 
-	//TODO: implement proper UTF-8 handling
+    //TODO: implement proper UTF-8 handling
 
-	float position = 0;
-	while (len--) 
-	{
-		int advance, leftBearing;
-		stbtt_GetCodepointHMetrics(&realFont->fontinfo, *s++, &advance, &leftBearing);
-		position += advance*realFont->scale;//TODO: +Kerning
-	}
-	return position;
+    float position = 0;
+    while (len--)
+    {
+        int advance, leftBearing;
+        stbtt_GetCodepointHMetrics(&realFont->fontinfo, *s++, &advance, &leftBearing);
+        position += advance * realFont->scale;//TODO: +Kerning
+    }
+
+    return position;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float SurfaceImpl::WidthChar(Font &font_, char ch) 
+float SurfaceImpl::WidthChar(Font& font_, char ch)
 {
-	stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
-	int advance, leftBearing;
-	stbtt_GetCodepointHMetrics(&realFont->fontinfo, ch, &advance, &leftBearing);
-	return advance*realFont->scale;
+    int advance, leftBearing;
+    stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+    stbtt_GetCodepointHMetrics(&realFont->fontinfo, ch, &advance, &leftBearing);
+
+    return advance * realFont->scale;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float SurfaceImpl::Ascent(Font &font_) 
+float SurfaceImpl::Ascent(Font& font_)
 {
-	stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
-	int ascent, descent, lineGap;
-	stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
-	return ascent*realFont->scale;
+    int ascent, descent, lineGap;
+    stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+    stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
+
+    return ascent * realFont->scale;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float SurfaceImpl::Descent(Font &font_) {
-	stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
-	int ascent, descent, lineGap;
-	stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
-	return -descent*realFont->scale;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-float SurfaceImpl::InternalLeading(Font &) 
+float SurfaceImpl::Descent(Font& font_)
 {
-	return 0;
+    int ascent, descent, lineGap;
+    stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+    stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
+
+    return -descent * realFont->scale;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float SurfaceImpl::ExternalLeading(Font& font_) 
+float SurfaceImpl::InternalLeading(Font&)
 {
-	stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
-	int ascent, descent, lineGap;
-	stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
-	return lineGap * realFont->scale;
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float SurfaceImpl::Height(Font &font_) 
+float SurfaceImpl::ExternalLeading(Font& font_)
 {
-	return Ascent(font_) + Descent(font_);
+    stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+    int ascent, descent, lineGap;
+    stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
+    return lineGap * realFont->scale;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float SurfaceImpl::AverageCharWidth(Font &font_) 
+float SurfaceImpl::Height(Font& font_)
 {
-	return WidthChar(font_, 'n');
+    return Ascent(font_) + Descent(font_);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::SetClip(PRectangle rc) 
+float SurfaceImpl::AverageCharWidth(Font& font_)
 {
-	double plane[][4] = 
-	{
-		{ 1,  0, 0, -rc.left  },
-		{-1,  0, 0,  rc.right },
-		{ 0,  1, 0, -rc.top   },
-		{ 0, -1, 0,  rc.bottom},
-	};
+    return WidthChar(font_, 'n');
+}
 
-	glClipPlane(GL_CLIP_PLANE0, plane[0]);
-	glClipPlane(GL_CLIP_PLANE1, plane[1]);
-	glClipPlane(GL_CLIP_PLANE2, plane[2]);
-	glClipPlane(GL_CLIP_PLANE3, plane[3]);
-	//assert(0);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SurfaceImpl::SetClip(PRectangle rc)
+{
+	bgfx::setScissor((uint16_t)rc.left, (uint16_t)rc.right, (uint16_t)rc.top, (uint16_t)rc.bottom);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -605,19 +672,12 @@ void SurfaceImpl::FlushCachedState()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Surface* Surface::Allocate() 
+Surface* Surface::Allocate(int technology)
 {
-	return new SurfaceImpl;
+	(void)technology;
+    return new SurfaceImpl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifdef SCI_NAMESPACE
-}
 #endif
-
-#endif
-
-void dummy1137()
-{
-}
