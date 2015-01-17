@@ -15,6 +15,7 @@ local mac_opts = {
 	"-Wno-nested-anon-types",
 	"-Wno-padded",
 	"-Wno-missing-field-initializers",
+	"-Wno-weak-vtables",
 	"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
 	{ "-O0", "-g"; Config = "*-*-debug" },
 	{ "-O3", "-g"; Config = "*-*-release" },

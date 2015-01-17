@@ -1,5 +1,3 @@
-#if 0
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,13 +9,6 @@
 #include "ui_render.h"
 
 #include "scintilla/include/Platform.h"
-
-//#ifdef SCI_NAMESPACE
-//namespace Scintilla
-//{
-//#endif
-//
-//
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -109,45 +100,46 @@ public:
     bool InitBgfx();
 
 	void Init(WindowID wid);
-	void Init(SurfaceID sid, WindowID wid);
+virtual void Init(SurfaceID sid, WindowID wid);
 	void InitPixMap(int width, int height, Surface *surface_, WindowID wid);
 
+	void Release();
 	bool Initialised();
+	void PenColour(ColourDesired fore);
+	int LogPixelsY();
+	int DeviceHeightFont(int points);
+	void MoveTo(int x_, int y_);
+	void LineTo(int x_, int y_);
+	void Polygon(Point *pts, int npts, ColourDesired fore, ColourDesired back);
+	void RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired back);
+	void FillRectangle(PRectangle rc, ColourDesired back);
+	void FillRectangle(PRectangle rc, Surface &surfacePattern);
+	void RoundedRectangle(PRectangle rc, ColourDesired fore, ColourDesired back);
+	void AlphaRectangle(PRectangle rc, int cornerSize, ColourDesired fill, int alphaFill, ColourDesired outline, int alphaOutline, int flags);
+	void DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char *pixelsImage);
+	void Ellipse(PRectangle rc, ColourDesired fore, ColourDesired back);
+	void Copy(PRectangle rc, Point from, Surface &surfaceSource);
 
-    void Release();
-    void PenColour(ColourDesired fore);
-    int LogPixelsY();
-    int DeviceHeightFont(int points);
-    void MoveTo(int x_, int y_);
-    void LineTo(int x_, int y_);
-    void Polygon(Point* pts, int npts, ColourDesired fore, ColourDesired back);
-    void RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired back);
-    void FillRectangle(PRectangle rc, ColourDesired back);
-    void FillRectangle(PRectangle rc, Surface& surfacePattern);
-    void RoundedRectangle(PRectangle rc, ColourDesired fore, ColourDesired back);
-    void AlphaRectangle(PRectangle rc, int cornerSize, ColourDesired fill, int alphaFill, ColourDesired outline, int alphaOutline, int flags);
-    void Ellipse(PRectangle rc, ColourDesired fore, ColourDesired back);
+	void DrawTextNoClip(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len, ColourDesired fore, ColourDesired back);
+	void DrawTextClipped(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len, ColourDesired fore, ColourDesired back);
+	void DrawTextTransparent(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len, ColourDesired fore);
+	void MeasureWidths(Font &font_, const char *s, int len, XYPOSITION *positions);
+	void DrawTextBase(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired f);
 
-    //void DrawPixmap(PRectangle rc, Point from, Pixmap pixmap);
-    void DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char* pixelsImage);
+	XYPOSITION WidthText(Font &font_, const char *s, int len);
+	XYPOSITION WidthChar(Font &font_, char ch);
+	XYPOSITION Ascent(Font &font_);
+	XYPOSITION Descent(Font &font_);
+	XYPOSITION InternalLeading(Font &font_);
+	XYPOSITION ExternalLeading(Font &font_);
+	XYPOSITION Height(Font &font_);
+	XYPOSITION AverageCharWidth(Font &font_);
 
-    void DrawTextBase(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired fore);
-    void DrawTextNoClip(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired fore, ColourDesired back);
-    void DrawTextClipped(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired  fore, ColourDesired back);
-    void DrawTextTransparent(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired fore);
-    void MeasureWidths(Font& font_, const char* s, int len, float* positions);
-    float WidthText(Font& font_, const char* s, int len);
-    float WidthChar(Font& font_, char ch);
-    float Ascent(Font& font_);
-    float Descent(Font& font_);
-    float InternalLeading(Font& font_);
-    float ExternalLeading(Font& font_);
-    float Height(Font& font_);
-    float AverageCharWidth(Font& font_);
+	void SetClip(PRectangle rc);
+	void FlushCachedState();
 
-    void SetClip(PRectangle rc);
-    void FlushCachedState();
-
+	void SetUnicodeMode(bool unicodeMode_);
+	void SetDBCSMode(int codePage);
 private:
 
     ColourDesired m_penColour;
@@ -679,5 +671,3 @@ Surface* Surface::Allocate(int technology)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#endif
