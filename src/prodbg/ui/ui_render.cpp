@@ -193,7 +193,7 @@ void UIRender_posTexColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t of
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UIRender_posTexColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count)
+void UIRender_posColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count)
 {
     bgfx::setVertexBuffer(vertexBuffer, offset, count);
     bgfx::setProgram(s_programs[Program_PosColor].handle);
