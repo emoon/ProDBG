@@ -32,12 +32,12 @@ protected:
 				memmove(
 					body + position + gapLength,
 					body + position,
-					sizeof(T) * (part1Length - position));
+					int(sizeof(T)) * (size_t)(part1Length - position));
 			} else {	// position > part1Length
 				memmove(
 					body + part1Length,
 					body + part1Length + gapLength,
-					sizeof(T) * (position - part1Length));
+					sizeof(T) * (size_t)(position - part1Length));
 			}
 			part1Length = position;
 		}
@@ -90,7 +90,7 @@ public:
 			GapTo(lengthBody);
 			T *newBody = new T[newSize];
 			if ((size != 0) && (body != 0)) {
-				memmove(newBody, body, sizeof(T) * lengthBody);
+				memmove(newBody, body, sizeof(T) * (size_t)lengthBody);
 				delete []body;
 			}
 			body = newBody;

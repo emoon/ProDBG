@@ -8,6 +8,8 @@
 #ifndef DOCUMENT_H
 #define DOCUMENT_H
 
+#include <stdexcept>
+
 #ifdef SCI_NAMESPACE
 namespace Scintilla {
 #endif
@@ -114,7 +116,7 @@ struct StyledText {
 	size_t style;
 	const unsigned char *styles;
 	StyledText(size_t length_, const char *text_, bool multipleStyles_, int style_, const unsigned char *styles_) :
-		length(length_), text(text_), multipleStyles(multipleStyles_), style(style_), styles(styles_) {
+		length(length_), text(text_), multipleStyles(multipleStyles_), style((size_t)style_), styles(styles_) {
 	}
 	// Return number of bytes from start to before '\n' or end of text.
 	// Return 1 when start is outside text
@@ -170,6 +172,7 @@ public:
 };
 
 class Document;
+class ILexer;
 
 class LexInterface {
 protected:
