@@ -1,5 +1,6 @@
 #include <imgui.h>
 #include "imgui_setup.h"
+#include "ui_sc_editor.h"
 #include "stb_image.h"
 #include "core/core.h"
 #include "core/file.h"
@@ -13,6 +14,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static bgfx::TextureHandle s_textureId;
+static ScEditor* s_editor;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -87,6 +89,8 @@ void IMGUI_setup(int width, int height)
     io.DisplaySize = ImVec2((float)width, (float)height);
     io.DeltaTime = 1.0f / 60.0f;
     io.PixelCenterOffset = 0.0f;
+
+	s_editor = ScEditor_create();
 
     UIRender_init();
 
