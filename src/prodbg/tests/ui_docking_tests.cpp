@@ -377,7 +377,7 @@ void test_dock_split_horizontal(void**)
 
     UIDockSizer* s1 = grid->sizers[1];
 
-    UIDock_splitSizer(grid, s1, 10, rect.height / 2);
+    UIDock_splitSizer(grid, s1, 10, (int)(rect.height / 2));
 
     //     _____s0_______
     //    |      |      |
@@ -422,13 +422,13 @@ void test_dock_split_horizontal(void**)
 
 void test_dock_split_vertical(void**)
 {
-    Rect rect = {{{ 0, 0, 800, 200 }}};
+    FloatRect rect = {{{ 0.0f, 0.0f, 800.0f, 200.0f }}};
 
     UIDockingGrid* grid = createFourViews(rect);
 
     UIDockSizer* s0 = grid->sizers[0];
 
-    UIDock_splitSizer(grid, s0, rect.x / 2, rect.height - 10);
+    UIDock_splitSizer(grid, s0, (int)(rect.x / 2), (int)(rect.height) - 10);
 
     assert_int_equal((int)grid->sizers.size(), 3);
     assert_int_equal((int)s0->cons.size(), 2);
@@ -461,7 +461,7 @@ void test_dock_split_vertical(void**)
 
 void test_delete_docks_right_left(void**)
 {
-    Rect rect = {{{ 0, 0, 1000, 500 }}};
+    FloatRect rect = {{{ 0.0f, 0.0f, 1000.0f, 500.0f }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
@@ -585,7 +585,7 @@ void test_delete_docks_right_left(void**)
 
 void test_delete_docks_left_right(void**)
 {
-    Rect rect = {{{ 0, 0, 1000, 500 }}};
+    FloatRect rect = {{{ 0.0f, 0.0f, 1000.0f, 500.0f }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
@@ -652,7 +652,7 @@ void test_delete_docks_left_right(void**)
 
 void test_delete_docks_up_down(void**)
 {
-    Rect rect = {{{ 0, 0, 1000, 500 }}};
+    FloatRect rect = {{{ 0.0f, 0.0f, 1000.0f, 500.0f }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
@@ -716,7 +716,7 @@ void test_delete_docks_up_down(void**)
 
 void test_delete_docks_down_up(void**)
 {
-    Rect rect = {{{ 0, 0, 1000, 500 }}};
+    FloatRect rect = {{{ 0.0f, 0.0f, 1000.0f, 500.0f }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
@@ -780,7 +780,7 @@ void test_delete_docks_down_up(void**)
 void test_drag_vertical(void**)
 {
     Vec2 dragDelta = { 10.0f, 10.f };
-    Rect rect = {{{ 0, 0, 1000, 400 }}};
+    FloatRect rect = {{{ 0.0f, 0.0f, 1000.0f, 400.0f }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
@@ -852,7 +852,7 @@ void printRect(const char* name, const Rect rect)
 
 void test_auto_resize_sizer(void**)
 {
-    Rect rect = {{{ 0, 0, 1000, 400 }}};
+    FloatRect rect = {{{ 0.0f, 0.0f, 1000.0f, 400.0f }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
@@ -1006,7 +1006,7 @@ void displayGrid(UIDockingGrid* grid, Rect rect)
 
 void test_breaking_delete(void**)
 {
-    Rect rect = {{{ 0, 0, 500, 500 }}};
+    FloatRect rect = {{{ 0.0f, 0.0f, 500.0f, 500.0f }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
     UIDock_addView(grid, newViewInstance());
@@ -1027,7 +1027,7 @@ void test_breaking_delete(void**)
 
 void test_randomize_create_delete(void**)
 {
-    Rect rect = {{{ 0, 0, 1000, 400 }}};
+    FloatRect rect = {{{ 0.0f, 0.0f, 1000.0f, 400.0f }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
