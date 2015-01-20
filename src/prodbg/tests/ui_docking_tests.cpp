@@ -11,7 +11,7 @@
 #include <assert.h>
 #include <stdio.h>
 
-//#define SUPPORT_DISPLAY
+#define SUPPORT_DISPLAY
 
 #ifdef SUPPORT_DISPLAY
 #include <MiniFB.h>
@@ -934,6 +934,21 @@ void fillRect(uint32_t* buffer, Rect rect, int width, uint32_t color)
 
 //const int g_sizerSize = 4;
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void fillDockFloat(uint32_t* buffer, FloatRect r, int width, uint32_t color)
+{
+	Rect rect;
+
+	rect.x = (int)(r.x + g_sizerSize / 2);
+	rect.y = (int)(r.y + g_sizerSize / 2);
+	rect.width = (int)(r.width - g_sizerSize / 2);
+	rect.height = (int)(r.height - g_sizerSize / 2);
+
+	fillRect(buffer, rect, width, color);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void fillDock(uint32_t* buffer, Rect rect, int width, uint32_t color)
@@ -950,7 +965,12 @@ void fillDock(uint32_t* buffer, Rect rect, int width, uint32_t color)
 
 void fillSizer(uint32_t* buffer, UIDockSizer* sizer, int width)
 {
-	Rect rect = sizer->rect;
+	Rect rect;
+	
+	rect.x = (int)sizer->rect.x;
+	rect.y = (int)sizer->rect.y;
+	rect.width = (int)sizer->rect.width;
+	rect.height = (int)sizer->rect.height;
 
 	if (sizer->dir == UIDockSizerDir_Horz)
 	{
@@ -974,16 +994,16 @@ void fillSizer(uint32_t* buffer, UIDockSizer* sizer, int width)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void displayGrid(UIDockingGrid* grid, Rect rect)
+void displayGrid(UIDockingGrid* grid, FloatRect rect)
 {
-    uint32_t* drawBuffer = (uint32_t*)alloc_zero((rect.width + 40) * (rect.height + 100) * (int)sizeof(uint32_t));
+    uint32_t* drawBuffer = (uint32_t*)alloc_zero(((int)rect.width + 40) * ((int)rect.height + 100) * (int)sizeof(uint32_t));
 
     //for (int i = 0; i < rect.width * (rect.height + 24); ++i)
     //	drawBuffer[i] = 0x00ff00;
 
     //drawBuffer += 20 * rect.height;
 
-	if (!mfb_open("test_breaking_delete", rect.width, rect.height + 24))
+	if (!mfb_open("test_breaking_delete", (int)rect.width, (int)rect.height + 24))
 		return;
 
 	for (;;)
@@ -991,10 +1011,10 @@ void displayGrid(UIDockingGrid* grid, Rect rect)
 		int i = 0;
 
 		for (UIDock* dock : grid->docks)
-			fillDock(drawBuffer + (22 * rect.width), dock->view->rect, rect.width, s_colors[i++ & 0x7]);
+			fillDockFloat(drawBuffer + (22 * (int)rect.width), dock->view->rect, (int)rect.width, s_colors[i++ & 0x7]);
 
 		for (UIDockSizer* sizer : grid->sizers)
-			fillSizer(drawBuffer + (22 * rect.width), sizer, rect.width);
+			fillSizer(drawBuffer + (22 * (int)rect.width), sizer, (int)rect.width);
 
 		mfb_update(drawBuffer);
 	}
@@ -1024,7 +1044,7 @@ void test_breaking_delete(void**)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/*
 void test_randomize_create_delete(void**)
 {
     FloatRect rect = {{{ 0.0f, 0.0f, 1000.0f, 400.0f }}};
@@ -1033,17 +1053,17 @@ void test_randomize_create_delete(void**)
 
     srand(0xc0cac01a);
 
-	const int numSplits = 8;
+	const int numSplits = 12;
 
     UIDock_addView(grid, newViewInstance());
 
-    int p = 1086;
+    int p = 814;
 
-    for (p = 0; p < 1000; ++p)
+    //for (p = 0; p < 4000; ++p)
 	{
     	srand((unsigned int)p);
 
-    	//printf("p %d\n", p);
+    	printf("%d\n", p);
 
 		for (int i = 0; i < numSplits; ++i)
 		{
@@ -1065,11 +1085,11 @@ void test_randomize_create_delete(void**)
 			}
 		}
 
-		
-		for (int i = 0; i < numSplits; ++i)
+
+		for (int i = 0; i < 7; ++i)
 			UIDock_deleteView(grid, grid->docks[0]->view);
 
-		//displayGrid(grid, rect);
+		displayGrid(grid, rect);
 
 		UIDock* dock = grid->docks[0];
 
@@ -1094,6 +1114,7 @@ void test_randomize_create_delete(void**)
 		}
 	}
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

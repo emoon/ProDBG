@@ -6,6 +6,7 @@
 
 #include <stddef.h>
 #include <assert.h>
+#include <math.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -461,7 +462,7 @@ static void removeDockFromSizer(UIDockSizer* sizer, UIDock* dock)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void deleteDockMem(UIDockingGrid* grid, UIDock* dock)
+static bool deleteDockMem(UIDockingGrid* grid, UIDock* dock)
 {
 	// remove the dock from all the sizers
 
@@ -482,6 +483,8 @@ static void deleteDockMem(UIDockingGrid* grid, UIDock* dock)
 			break;
 		}
 	}
+
+	return true;
 }
 
 
@@ -633,7 +636,7 @@ void UIDock_splitSizer(UIDockingGrid* grid, UIDockSizer* sizer, int x, int y)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSizer, UIDockSizer* repSizer, int wOrh, int xOry)
+static bool deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSizer, UIDockSizer* repSizer, int wOrh, int xOry)
 {
 	NeighborDocks closeDocks;
 
@@ -688,10 +691,14 @@ static void deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSi
 		// 2. create a new sizer and move it according to width/height of the dock
 		// 3. reassign all the bottom/right docks with the new sizer 
 
+		const float dxy0 = dock->sizers[bottomRight]->rect.data[xOry];
+		const float rmxy0 = remSizer->rect.data[xOry]; 
+		const float rmxy1 = rmxy0 + remSizer->rect.data[wOrh]; 
+
 		UIDockSizer* newSizer = new UIDockSizer;
 		newSizer->rect = remSizer->rect;
 		newSizer->rect.data[xOry] = dock->sizers[bottomRight]->rect.data[xOry];
-		newSizer->rect.data[wOrh] = remSizer->rect.data[wOrh] - newSizer->rect.data[xOry];
+		newSizer->rect.data[wOrh] = rmxy1 - dxy0;
 		newSizer->dir = repSizer->dir;
 
 		// Adjust the size of the old sizer
@@ -783,7 +790,7 @@ static void deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSi
 		}
 	}
 
-	deleteDockMem(grid, dock);
+	return deleteDockMem(grid, dock);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -800,7 +807,7 @@ static void deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSi
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
    
-static void deleteDock(UIDockingGrid* grid, UIDock* dock)
+static bool deleteDock(UIDockingGrid* grid, UIDock* dock)
 {
 	FloatRect viewRect = dock->view->rect;
 
@@ -863,10 +870,18 @@ static void deleteDock(UIDockingGrid* grid, UIDock* dock)
 		return deleteDockSide(grid, dock, dock->bottomSizer, dock->topSizer, Rect::W, Rect::X);
 	}
 
-	// Should never get here.
-	// TODO: Proper error message
+	// this case may actually happen if we try to delete something that looks like this
+	//
+	// _______________
+	// |_________|   |
+	// |    |    |___|
+	// |    |  x |   |
+	// |    |____|___| 
+	// |____|________|
+	//
+	// X in this case has no way split and thus we can't delete this view (Same behavior as ProDG)
 
-	assert(false);
+	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -937,16 +952,17 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UIDock_deleteView(UIDockingGrid* grid, ViewPluginInstance* view)
+bool UIDock_deleteView(UIDockingGrid* grid, ViewPluginInstance* view)
 {
 	for (UIDock* dock : grid->docks)
 	{
 		if (dock->view != view)
 			continue;
 
-		deleteDock(grid, dock);
-		return;
+		return deleteDock(grid, dock);
 	}
+
+	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
