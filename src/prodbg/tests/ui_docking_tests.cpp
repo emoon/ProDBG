@@ -49,26 +49,6 @@ void create_docking(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void validateRect(Rect r0, Rect r1)
-{
-    assert_int_equal(r0.x, r1.x);
-    assert_int_equal(r0.y, r1.x);
-    assert_int_equal(r0.width, r1.width);
-    assert_int_equal(r0.height, r1.height);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void validateSize(Rect r, int x, int y, int w, int h)
-{
-    assert_int_equal(r.x, x);
-    assert_int_equal(r.y, y);
-    assert_int_equal(r.width, w);
-    assert_int_equal(r.height, h);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void test_left_attach(void**)
 {
     FloatRect rect = {{{ 0.0f, 0.0f, 1000.0f, 400.0f }}};
@@ -85,13 +65,11 @@ void test_left_attach(void**)
 
     // Validate grid
 
-    validateRect(grid->rect, rect);
+    //validateRect(grid->rect, rect);
     assert_int_equal(grid->sizers.size(), 0);
     assert_int_equal(grid->docks.size(), 0);
 
     UIDock* dock = UIDock_addView(grid, view0);
-
-    //validateSize(dock->view->rect, 0, 0, 1000, 500);
 
     assert_true(dock->topSizer == &grid->topSizer);
     assert_true(dock->bottomSizer == &grid->bottomSizer);
@@ -201,7 +179,7 @@ void test_left_attach(void**)
 
 void test_misc(void**)
 {
-    Rect rect = {{{ 0, 0, 1000, 500 }}};
+    FloatRect rect = {{{ 0.0f, 0.0f, 1000.0f, 500.0f }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
@@ -271,7 +249,7 @@ void test_misc(void**)
 
 void test_sizer_hovering(void**)
 {
-    Rect rect = {{{ 0, 0, 1000, 500 }}};
+    FloatRect rect = {{{ 0.0f, 0.0f, 100.0f, 500.0f }}};
     Vec2 pos;
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
@@ -326,7 +304,7 @@ void test_sizer_hovering(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static UIDockingGrid* createFourViews(Rect rect)
+static UIDockingGrid* createFourViews(FloatRect rect)
 {
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
@@ -393,7 +371,7 @@ static UIDockingGrid* createFourViews(Rect rect)
 
 void test_dock_split_horizontal(void**)
 {
-    Rect rect = {{{ 0, 0, 1000, 500 }}};
+    FloatRect rect = {{{ 0.0f, 0.0f, 1000.0f, 500.0f }}};
 
     UIDockingGrid* grid = createFourViews(rect);
 
