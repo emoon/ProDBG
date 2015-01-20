@@ -14,7 +14,7 @@ struct ViewPluginInstance;
 struct UIDockSizer;
 struct UIDockingGrid;
 struct UIDock;
-struct Rect;
+struct FloatRect;
 struct Vec2;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ enum UIDockSizerDir
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-UIDockingGrid* UIDock_createGrid(Rect* rect);
+UIDockingGrid* UIDock_createGrid(FloatRect* rect);
 
 UIDock* UIDock_addView(UIDockingGrid* grid, ViewPluginInstance* view);
 void UIDock_deleteView(UIDockingGrid* grid, ViewPluginInstance* view);

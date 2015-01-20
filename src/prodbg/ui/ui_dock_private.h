@@ -1,6 +1,7 @@
 #pragma once
 
 #include "api/plugin_instance.h"
+
 #include <vector> // TODO: replace with custom arrays
 
 const int g_sizerSize = 4; // TODO: Move to settings
@@ -32,8 +33,6 @@ struct UIDock;
 
 struct UIDockSizer
 {
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
     inline void addDock(UIDock* dock)
     {
         cons.push_back(dock);
@@ -41,7 +40,7 @@ struct UIDockSizer
 
     std::vector<UIDock*> cons;  // connected docks
     UIDockSizerDir dir;
-    Rect rect;
+    FloatRect rect;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -98,7 +97,7 @@ struct UIDockingGrid
     UIDockSizer bottomSizer;
     UIDockSizer rightSizer;
     UIDockSizer leftSizer;
-    Rect rect;
+    FloatRect rect;
 };
 
 

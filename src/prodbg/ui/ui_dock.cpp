@@ -9,7 +9,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-UIDockingGrid* UIDock_createGrid(Rect* rect)
+UIDockingGrid* UIDock_createGrid(FloatRect* rect)
 {
     UIDockingGrid* grid = new UIDockingGrid;
     grid->rect = *rect;
@@ -71,16 +71,16 @@ static void removeDockSide(UIDockSizer* sizer, UIDock* dock)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This code will look for a sizer that can be resized if adjacent sizer is present
 
-static UIDockSizer* createOrResizeSizer(UIDockingGrid* grid, Rect rect, UIDockSizerDir dir)
+static UIDockSizer* createOrResizeSizer(UIDockingGrid* grid, FloatRect rect, UIDockSizerDir dir)
 {
     // TODO: Doing this for all sizers is a bit wasteful perf wise but really shouldn't be much of an issue
     // but something to think about.
     //
 
-    const int sx0 = rect.x;
-    const int sy0 = rect.y;
-    const int sx1 = sx0 + rect.width;
-    const int sy1 = sy0 + rect.height;
+    const int sx0 = (int)rect.x;
+    const int sy0 = (int)rect.y;
+    const int sx1 = sx0 + (int)rect.width;
+    const int sy1 = sy0 + (int)rect.height;
 
     for (UIDockSizer* sizer : grid->sizers)
     {
@@ -90,10 +90,10 @@ static UIDockSizer* createOrResizeSizer(UIDockingGrid* grid, Rect rect, UIDockSi
         if (sizer->dir != dir)
             continue;
 
-        const int cx0 = sizer->rect.x;
-        const int cy0 = sizer->rect.y;
-        const int cx1 = cx0 + sizer->rect.width;
-        const int cy1 = cy0 + sizer->rect.height;
+        const int cx0 = (int)sizer->rect.x;
+        const int cy0 = (int)sizer->rect.y;
+        const int cx1 = cx0 + (int)sizer->rect.width;
+        const int cy1 = cy0 + (int)sizer->rect.height;
 
         // Check if the new sizer is connected so we can resize the current sizer
 
@@ -145,7 +145,7 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
     UIDockSizer* sizer = new UIDockSizer;
     UIDockSizerDir sizerDir = UIDockSizerDir_Vert;
 
-    Rect rect = dock->view->rect;
+    FleatRect rect = dock->view->rect;
 
     int sizerWidthOrHeight = Rect::H;
     int widthOrHeight = Rect::W;

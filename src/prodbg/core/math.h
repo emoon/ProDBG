@@ -4,8 +4,6 @@
 
 typedef struct Rect
 {
-    //inline Rect(int inX, int inY, int inW, int inH) : x(inX), y(inY), width(inW), height(inH) { }
-
     enum
     {
         X,
@@ -33,10 +31,27 @@ typedef struct Rect
 
 typedef struct FloatRect
 {
-    float x;
-    float y;
-    float width;
-    float height;
+    enum
+    {
+        X,
+        Y,
+        W,
+        H,
+        Compontent_Count,
+    };
+    union
+    {
+        struct
+        {
+			float x;
+			float y;
+			float width;
+			float height;
+        };
+
+        float data[Compontent_Count];
+    };
+
 } FloatRect;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

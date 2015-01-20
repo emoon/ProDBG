@@ -23,7 +23,7 @@ struct ViewPluginInstance
 {
     PDUI ui;
     PDViewPlugin* plugin;
-    Rect rect;
+    FloatRect rect;
     void* userData;
     int count;
     bool markDeleted;

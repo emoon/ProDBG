@@ -21,7 +21,7 @@
 
 void create_docking(void**)
 {
-    Rect rect = {{{ 0, 0, 800, 200 }}};
+    FloatRect rect = {{{ 0.0f, 0.0f, 800.0f, 200.0f }}};
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
     assert_int_equal(grid->topSizer.rect.x, rect.x);
@@ -71,7 +71,7 @@ void validateSize(Rect r, int x, int y, int w, int h)
 
 void test_left_attach(void**)
 {
-    Rect rect = {{{ 0, 0, 1000, 400 }}};
+    FloatRect rect = {{{ 0.0f, 0.0f, 1000.0f, 400.0f }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
