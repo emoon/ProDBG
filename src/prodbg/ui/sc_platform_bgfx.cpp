@@ -552,7 +552,7 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
 
     stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
 
-	UIRender_allocPosColorTb(&tvb, (uint32_t)(len * 2)); // * 2 as triangles
+	UIRender_allocPosColorTb(&tvb, (uint32_t)(len * 6)); // * 6 vertices per character (2 triangles)
 
 	PosTexColorVertex* vb = (PosTexColorVertex*)tvb.data;
 
@@ -610,7 +610,7 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
         ++s;
     }
 
-	UIRender_posTexColor(&tvb, 0, realLength, realFont->ftex);
+	UIRender_posTexColor(&tvb, 0, realLength * 6, realFont->ftex);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
