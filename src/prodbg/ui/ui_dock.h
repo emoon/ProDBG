@@ -54,6 +54,7 @@ UIDock* UIDock_getDockAt(UIDockingGrid* grid, int x, int y);
 
 void UIDock_splitHorizontal(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* newInstance);
 void UIDock_splitVertical(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* newInstance);
+void UIDock_renderSizers(UIDockingGrid* grid);
 
 //void UIDock_dockLeft(UIDock* dock, ViewPluginInstance* instance);
 //UIDockStatus UIDock_dockRight(UIDock* dock, ViewPluginInstance* instance);

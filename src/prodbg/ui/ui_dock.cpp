@@ -2,11 +2,12 @@
 #include "core/alloc.h"
 #include "core/math.h"
 #include "ui_dock_private.h"
+#include "ui_render.h"
 #include "plugin.h"
-
 #include <stddef.h>
 #include <assert.h>
 #include <math.h>
+#include <bgfx.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1000,6 +1001,85 @@ void UIDock_updateSize(UIDockingGrid* grid, int width, int height)
 	UIDock_dragSizer(grid, &grid->rightSizer, &deltaMove);
 	UIDock_dragSizer(grid, &grid->bottomSizer, &deltaMove);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIDock_renderSizers(UIDockingGrid* grid)
+{
+	bgfx::TransientVertexBuffer tvb;
+
+	const uint32_t vertexCount = (uint32_t)grid->sizers.size() * 6;
+
+	UIRender_allocPosColorTb(&tvb, vertexCount); 
+	PosColorVertex* verts = (PosColorVertex*)tvb.data;
+
+	// TODO: Use settings for colors
+
+	const uint32_t color = (0x40 << 16) | (0x40 << 8) | 0x40;
+
+	for (UIDockSizer* sizer : grid->sizers)
+	{
+		FloatRect rect = sizer->rect;
+
+		if (sizer->dir == UIDockSizerDir_Horz)
+		{
+			rect.y -= g_sizerSize / 2;
+			rect.height = g_sizerSize;
+		}
+		else if (sizer->dir == UIDockSizerDir_Vert)
+		{
+			rect.x -= g_sizerSize / 2;
+			rect.width = g_sizerSize;
+		}
+		else
+		{
+			assert(false);
+		}
+
+		const float x0 = rect.x;
+		const float y0 = rect.y;
+		const float x1 = rect.width + x0;
+		const float y1 = rect.height + y0;
+
+		// First triangle
+
+		verts[0].x = x0;
+		verts[0].y = y0;
+		verts[0].color = color;
+
+		verts[1].x = x1;
+		verts[1].y = y0;
+		verts[1].color = color;
+
+		verts[2].x = x1;
+		verts[2].y = y1;
+		verts[2].color = color;
+
+		// Second triangle
+
+		verts[3].x = x0;
+		verts[3].y = y0;
+		verts[3].color = color;
+
+		verts[4].x = x1;
+		verts[4].y = y1;
+		verts[4].color = color;
+
+		verts[5].x = x0;
+		verts[5].y = y1;
+		verts[5].color = color;
+
+		verts += 6;
+	}
+
+	bgfx::setState(0
+					| BGFX_STATE_RGB_WRITE
+					| BGFX_STATE_ALPHA_WRITE
+					| BGFX_STATE_MSAA);
+
+	UIRender_posColor(&tvb, 0, vertexCount);
+}
+
 
 
 

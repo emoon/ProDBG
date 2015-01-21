@@ -115,15 +115,15 @@ static ProgramAttribs posColorAttribs[] =
 static ProgramInfo s_programs[] =
 {
 	{
-		(ProgramAttribs*)&posTexColorAttribs,
-		OBJECT_DIR "/_generated/data/shaders/imgui/vs_imgui.vs",
-		OBJECT_DIR "/_generated/data/shaders/imgui/fs_imgui.fs",
+		(ProgramAttribs*)&posColorAttribs,
+		OBJECT_DIR "/_generated/data/shaders/ui_pos_color/vs_pos_color.vs",
+		OBJECT_DIR "/_generated/data/shaders/ui_pos_color/fs_pos_color.fs",
 	},
 
 	{
-		(ProgramAttribs*)&posColorAttribs,
-		OBJECT_DIR "/_generated/data/shaders/imgui/vs_pos_color.vs",
-		OBJECT_DIR "/_generated/data/shaders/imgui/fs_pos_color.fs",
+		(ProgramAttribs*)&posTexColorAttribs,
+		OBJECT_DIR "/_generated/data/shaders/imgui/vs_imgui.vs",
+		OBJECT_DIR "/_generated/data/shaders/imgui/fs_imgui.fs",
 	},
 };
 
@@ -131,8 +131,8 @@ static ProgramInfo s_programs[] =
 
 enum
 {
-	Program_PosTexColor,
 	Program_PosColor,
+	Program_PosTexColor,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -193,7 +193,7 @@ void UIRender_posTexColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t of
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UIRender_posTexColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count)
+void UIRender_posColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count)
 {
 	bgfx::setVertexBuffer(vertexBuffer, offset, count);
 	bgfx::setProgram(s_programs[Program_PosColor].handle);

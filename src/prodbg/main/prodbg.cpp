@@ -154,6 +154,11 @@ void ProDBG_update()
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR_BIT | BGFX_CLEAR_DEPTH_BIT, 0x101010ff, 1.0f, 0);
     bgfx::submit(0);
 
+#if PRODBG_USING_DOCKING
+	UIDock_renderSizers(Session_getDockingGrid(context->session));
+#endif
+
+
     {
         rmt_ScopedCPUSample(IMGUI_preUpdate);
         IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
@@ -184,6 +189,7 @@ void ProDBG_update()
         rmt_ScopedCPUSample(IMGUI_postUpdate);
         IMGUI_postUpdate();
     }
+
 
     {
         rmt_ScopedCPUSample(bgfx_frame);
