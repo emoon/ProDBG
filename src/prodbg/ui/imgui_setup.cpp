@@ -125,12 +125,12 @@ void IMGUI_updateSize(int width, int height)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void IMGUI_preUpdate(float x, float y, int mouseLmb, int keyDown, int keyMod)
+void IMGUI_preUpdate(float x, float y, int mouseLmb, int keyDown, int keyMod, float deltaTime)
 {
     (void)keyDown;
     (void)keyMod;
     ImGuiIO& io = ImGui::GetIO();
-    io.DeltaTime = 1.0f / 120.0f;    // TODO: Fix me
+    io.DeltaTime = deltaTime; 
     io.MousePos = ImVec2(x, y);
     io.MouseDown[0] = !!mouseLmb;
 
