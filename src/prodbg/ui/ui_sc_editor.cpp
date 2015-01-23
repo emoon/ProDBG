@@ -39,6 +39,97 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static char * breakpoint_xpm[] = {
+    "16 16 72 1",
+    " 	c None",
+    ".	c #772B1A",
+    "+	c #903B2D",
+    "@	c #F17A78",
+    "#	c #C65C55",
+    "$	c #F17876",
+    "%	c #FF7E7E",
+    "&	c #FF7B7B",
+    "*	c #C65750",
+    "=	c #8F3A2C",
+    "-	c #EF7573",
+    ";	c #FD7B7B",
+    ">	c #FD7878",
+    ",	c #FD7575",
+    "'	c #FD7272",
+    ")	c #C5524B",
+    "!	c #8E392C",
+    "~	c #E7716F",
+    "{	c #F47676",
+    "]	c #F47373",
+    "^	c #F47070",
+    "/	c #F46D6D",
+    "(	c #F46A6A",
+    "_	c #F46767",
+    ":	c #C04C45",
+    "<	c #8B382A",
+    "[	c #DB6B69",
+    "}	c #E77070",
+    "|	c #E76D6D",
+    "1	c #E76A6A",
+    "2	c #E76868",
+    "3	c #E76565",
+    "4	c #E76161",
+    "5	c #E75F5F",
+    "6	c #E75D5D",
+    "7	c #B8453E",
+    "8	c #8D392B",
+    "9	c #DB6867",
+    "0	c #E56C6C",
+    "a	c #E56A6A",
+    "b	c #E56767",
+    "c	c #E56363",
+    "d	c #E56161",
+    "e	c #E55E5E",
+    "f	c #E55C5C",
+    "g	c #E55959",
+    "h	c #B8443D",
+    "i	c #8A3729",
+    "j	c #CD5D5B",
+    "k	c #D66060",
+    "l	c #D65E5E",
+    "m	c #D65A5A",
+    "n	c #D65858",
+    "o	c #D65656",
+    "p	c #D65353",
+    "q	c #AF413A",
+    "r	c #863326",
+    "s	c #BB514F",
+    "t	c #C25252",
+    "u	c #C25050",
+    "v	c #C24E4E",
+    "w	c #C24C4C",
+    "x	c #A33C36",
+    "y	c #813023",
+    "z	c #A54241",
+    "A	c #AA4444",
+    "B	c #AA4242",
+    "C	c #953730",
+    "D	c #7B2D1F",
+    "E	c #893432",
+    "F	c #822F28",
+    "G	c #772B1D",
+    "       .        ",
+    "      ...       ",
+    "     ..+..      ",
+    "    ..+@#..     ",
+    "   ..+$%&*..    ",
+    "  ..=-;>,')..   ",
+    " ..!~{]^/(_:..  ",
+    "..<[}|1234567.. ",
+    "..890abcdefgh.. ",
+    " ..ijklmnopq..  ",
+    "  ..rstuvwx..   ",
+    "   ..yzABC..    ",
+    "    ..DEF..     ",
+    "     ..G..      ",
+    "      ...       ",
+    "       .        " };
+
 const char glslKeyword[] =
 "discard struct if else switch case default break goto return for while do continue";
 
@@ -390,17 +481,6 @@ const char* LexState::GetSubStyleBases()
     return "";
 }
 
-const size_t NB_FOLDER_STATE = 7;
-const size_t FOLDER_TYPE = 0;
-const uptr_t markersArray[][NB_FOLDER_STATE] =
-{
-    { SC_MARKNUM_FOLDEROPEN, SC_MARKNUM_FOLDER, SC_MARKNUM_FOLDERSUB, SC_MARKNUM_FOLDERTAIL, SC_MARKNUM_FOLDEREND, SC_MARKNUM_FOLDEROPENMID, SC_MARKNUM_FOLDERMIDTAIL },
-    { SC_MARK_MINUS, SC_MARK_PLUS, SC_MARK_EMPTY, SC_MARK_EMPTY, SC_MARK_EMPTY, SC_MARK_EMPTY, SC_MARK_EMPTY },
-    { SC_MARK_ARROWDOWN, SC_MARK_ARROW, SC_MARK_EMPTY, SC_MARK_EMPTY, SC_MARK_EMPTY, SC_MARK_EMPTY, SC_MARK_EMPTY },
-    { SC_MARK_CIRCLEMINUS, SC_MARK_CIRCLEPLUS, SC_MARK_VLINE, SC_MARK_LCORNERCURVE, SC_MARK_CIRCLEPLUSCONNECTED, SC_MARK_CIRCLEMINUSCONNECTED, SC_MARK_TCORNERCURVE },
-    { SC_MARK_BOXMINUS, SC_MARK_BOXPLUS, SC_MARK_VLINE, SC_MARK_LCORNER, SC_MARK_BOXPLUSCONNECTED, SC_MARK_BOXMINUSCONNECTED, SC_MARK_TCORNER }
-};
-
 struct ScEditor : public Editor
 {
 private:
@@ -472,14 +552,26 @@ public:
         SetAStyle(STYLE_LINENUMBER, 0xFFC0C0C0, 0xD0333333, fontSize, fontName1);
 
         SetAStyle(SCE_C_DEFAULT, 0xFFFFFFFF, 0xD0000000, fontSize, fontName1);
+        SetAStyle(SCE_C_STRING, 0xFF00FF00, 0xD0000000);// GW-TODO: Pick a good color
+        SetAStyle(SCE_C_IDENTIFIER, 0xFF0066FF, 0xD0000000);
+        SetAStyle(SCE_C_CHARACTER, 0xFF0066FF, 0xD0000000); // GW-TODO: Pick a good color
         SetAStyle(SCE_C_WORD, 0xFF0066FF, 0xD0000000);
         SetAStyle(SCE_C_WORD2, 0xFFFFFF00, 0xD0000000);
-        SetAStyle(SCE_C_GLOBALCLASS, 0xFF0000FF, 0xFF000000);
+        SetAStyle(SCE_C_GLOBALCLASS, 0xFF0000FF, 0xD0000000);
         SetAStyle(SCE_C_PREPROCESSOR, 0xFFC0C0C0, 0xD0000000);
         SetAStyle(SCE_C_NUMBER, 0xFF0080FF, 0xD0000000);
         SetAStyle(SCE_C_OPERATOR, 0xFF00CCFF, 0xD0000000);
         SetAStyle(SCE_C_COMMENT, 0xFF00FF00, 0xD0000000);
         SetAStyle(SCE_C_COMMENTLINE, 0xFF00FF00, 0xD0000000);
+        SetAStyle(SCE_C_COMMENTDOC, 0xFF00FF00, 0xD0000000);
+        //SCE_C_COMMENTDOCKEYWORD
+        //SCE_C_COMMENTDOCKEYWORDERROR
+
+       // text->StyleSetBold(wxSTC_C_WORD, true);
+       // text->StyleSetBold(wxSTC_C_WORD2, true);
+        //text->StyleSetBold(wxSTC_C_COMMENTDOCKEYWORD, true);
+
+
 
         SendCommand(SCI_SETSELBACK, 1, 0xD0CC9966);
         SendCommand(SCI_SETCARETFORE, 0xFFFFFFFF, 0);
@@ -491,15 +583,51 @@ public:
         SendCommand(SCI_SETTABWIDTH, 4);
         SendCommand(SCI_SETINDENTATIONGUIDES, SC_IV_REAL);
 
+        
+
         SendCommand(SCI_SETMARGINWIDTHN, 0, 44);//Calculate correct width
-        SendCommand(SCI_SETMARGINWIDTHN, 1, 16);
-        //SendCommand(SCI_SETMARGINTYPEN, 1, SC_MARGIN_TEXT);
         SendCommand(SCI_SETMARGINTYPEN, 1, SC_MARGIN_SYMBOL);
         SendCommand(SCI_SETMARGINMASKN, 1, ~SC_MASK_FOLDERS); // allow everything except for the folding symbols
 
+        SendCommand(SCI_RGBAIMAGESETSCALE, 100);
+
+        XPM xpm(breakpoint_xpm);
+        RGBAImage bpImage(xpm);
+
+        SendCommand(SCI_SETMARGINWIDTHN, 1, bpImage.GetWidth());
+        SendCommand(SCI_RGBAIMAGESETWIDTH, bpImage.GetWidth());
+        SendCommand(SCI_RGBAIMAGESETHEIGHT, bpImage.GetHeight());
+
+        SendCommand(SCI_MARKERDEFINERGBAIMAGE, 0, sptr_t(bpImage.Pixels()));
+
+        /*
+        
+        const int imgWidth = 16;
+        const int imgHeight = 16;
+
+        SendCommand(SCI_SETMARGINWIDTHN, 1, imgWidth);
+        SendCommand(SCI_RGBAIMAGESETWIDTH, imgWidth);
+        SendCommand(SCI_RGBAIMAGESETHEIGHT, imgHeight);
+        
+        
+        unsigned char* imgData = static_cast<unsigned char*>(malloc(sizeof(unsigned char) * 4 * imgWidth * imgHeight));
+        for (int y = 0; y < imgHeight; ++y)
+        {
+            unsigned char* rowData = &imgData[imgWidth * 4 * y];
+            for (int x = 0; x < imgWidth; ++x, rowData += 4)
+            {
+                rowData[0] = 0;
+                rowData[1] = 255;
+                rowData[2] = 0;
+                rowData[3] = 255;
+            }
+        }
+
+        SendCommand(SCI_MARKERDEFINERGBAIMAGE, 0, sptr_t(imgData));
+        free(imgData);*/
+
         //SCI_MARKERDEFINEPIXMAP
-        SendCommand(SCI_MARKERDEFINE, 0, SC_MARK_CIRCLE);
-        //SendCommand(SCI_MARKERDEFINE, 0, SC_MARK_CHARACTER + 120);
+        SendCommand(SCI_MARKERDEFINE, 0, SC_MARK_RGBAIMAGE);
         SendCommand(SCI_MARKERSETBACK, 0, 0xFF6A6A6A);
         SendCommand(SCI_MARKERSETFORE, 0, 0xFF0000FF);
 

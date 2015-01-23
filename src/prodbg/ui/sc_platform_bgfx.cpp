@@ -199,122 +199,33 @@ void Font::Create(const FontParameters& fp)
     fid = newFont;
 }
 
-/*
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct pixmap_t
+struct ImageData
 {
-bgfx::TextureHandle tex;
-float scalex, scaley;
-bool initialised;
+    bgfx::TextureHandle tex;
+    float scalex, scaley;
+    bool initialised;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Pixmap CreatePixmap()
+void UpdateImageData(ImageData& image, int w, int h, const unsigned char* data)
 {
-Pixmap pm = new pixmap_t;
-pm->scalex = 0;
-pm->scaley = 0;
-pm->initialised = false;
+    const uint32_t byteSize = w * h * sizeof(unsigned char) * 4; // RGBA image
 
-return pm;
+    if (!image.initialised)
+        image.tex = bgfx::createTexture2D((uint16_t)w, (uint16_t)h, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT, 0);
+
+    const bgfx::Memory* mem = bgfx::alloc(byteSize);
+    memcpy(mem->data, data, byteSize);
+
+    image.initialised = true;
+    image.scalex = 1.0f / (float)w;
+    image.scaley = 1.0f / (float)h;
+
+    bgfx::updateTexture2D(image.tex, 0, 0, 0, (uint16_t)w, (uint16_t)h, mem);
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool IsPixmapInitialised(Pixmap pixmap)
-{
-return pixmap->initialised;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void DestroyPixmap(Pixmap pixmap)
-{
-glDeleteTextures(1, &pixmap->tex);
-delete pixmap;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void UpdatePixmap(Pixmap pixmap, int w, int h, int* data)
-{
-const size_t byteSize = w * h * sizeof(uint32_t);
-
-if (!pixmap->initilised)
-pixmap->tex = bgfx::createTexture2D((uint16_t)w, (uint16_t)h, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_PONT, 0);
-
-const bgfx::Memory* mem = bgfx::alloc(byteSize);
-memcpy(mem->data, data, byteSize);
-
-pixmap->initialised = true;
-pixmap->scalex = 1.0f / (float)w;
-pixmap->scaley = 1.0f / (float)h;
-
-bgfx::updateTexture2D(pixmap->tex, 0, 0, 0, (uint16_t)w, (uint16_t)h, mem);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void SurfaceImpl::DrawPixmap(PRectangle rc, Point offset, Pixmap pixmap)
-{
-bgfx::TransientVertexBuffer tvb;
-
-float w = (rc.right - rc.left) * pixmap->scalex, h = (rc.bottom - rc.top) * pixmap->scaley;
-float u1 = offset.x * pixmap->scalex, v1 = offset.y * pixmap->scaley, u2 = u1 + w, v2 = v1 + h;
-
-// TODO: Use program that doesn't set color
-
-UIRender_allocPosTexColorTb(&tvb, 6);
-
-PosTexColorVertex* vb = (PosTexColorVertex*)tbv.data;
-
-// First triangle
-
-vb[0].x = rc.left;
-vb[0].y = rc.top;
-vb[0].u = u1;
-vb[0].v = v1;
-vb[0].color = 0xffffffff;
-
-vb[1].x = rc.right;
-vb[1].y = rc.top;
-vb[1].u = u2;
-vb[1].v = v1;
-vb[1].color = 0xffffffff;
-
-vb[2].x = rc.right;
-vb[2].y = rc.bottom;
-vb[2].u = u2;
-vb[2].v = v2;
-vb[2].color = 0xffffffff;
-
-// Second triangle
-
-vb[3].x = rc.left;
-vb[3].y = rc.top;
-vb[3].u = u1;
-vb[3].v = v1;
-vb[3].color = 0xffffffff;
-
-vb[4].x = rc.right;
-vb[4].y = rc.bottom;
-vb[4].u = u2;
-vb[4].v = v2;
-vb[4].color = 0xffffffff;
-
-vb[5].x = rc.left;
-vb[5].y = rc.bottom;
-vb[5].u = u1;
-vb[5].v = v2;
-vb[5].color = 0xffffffff;
-
-UIRender_posTexColor(&tvb, 0, 6, pixmap->tex);
-}
-*/
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -439,12 +350,75 @@ void SurfaceImpl::InitPixMap(int width, int height, Surface *surface_, WindowID 
 
 void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char* pixelsImage)
 {
-    (void)rc;
-    (void)width;
-    (void)height;
-    (void)pixelsImage;
+    ImageData image;
+    memset(&image, 0x0, sizeof(image));
 
-    assert(0);
+    // GW-TODO: Cache this!
+    UpdateImageData(image, width, height, pixelsImage);
+
+    bgfx::TransientVertexBuffer tvb;
+
+    float offsetx = 0.0f;
+    float offsety = 0.0f;
+
+    float w = (rc.right - rc.left) * image.scalex, h = (rc.bottom - rc.top) * image.scaley;
+    float u1 = offsetx * image.scalex, v1 = offsety * image.scaley, u2 = u1 + w, v2 = v1 + h;
+
+    // TODO: Use program that doesn't set color
+
+    UIRender_allocPosTexColorTb(&tvb, 6);
+
+    PosTexColorVertex* vb = (PosTexColorVertex*)tvb.data;
+
+    // First triangle
+
+    vb[0].x = rc.left;
+    vb[0].y = rc.top;
+    vb[0].u = u1;
+    vb[0].v = v1;
+    vb[0].color = 0xffffffff;
+
+    vb[1].x = rc.right;
+    vb[1].y = rc.top;
+    vb[1].u = u2;
+    vb[1].v = v1;
+    vb[1].color = 0xffffffff;
+
+    vb[2].x = rc.right;
+    vb[2].y = rc.bottom;
+    vb[2].u = u2;
+    vb[2].v = v2;
+    vb[2].color = 0xffffffff;
+
+    // Second triangle
+
+    vb[3].x = rc.left;
+    vb[3].y = rc.top;
+    vb[3].u = u1;
+    vb[3].v = v1;
+    vb[3].color = 0xffffffff;
+
+    vb[4].x = rc.right;
+    vb[4].y = rc.bottom;
+    vb[4].u = u2;
+    vb[4].v = v2;
+    vb[4].color = 0xffffffff;
+
+    vb[5].x = rc.left;
+    vb[5].y = rc.bottom;
+    vb[5].u = u1;
+    vb[5].v = v2;
+    vb[5].color = 0xffffffff;
+
+    bgfx::setState(0
+                   | BGFX_STATE_RGB_WRITE
+                   | BGFX_STATE_ALPHA_WRITE
+                   | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+                   | BGFX_STATE_MSAA);
+
+    UIRender_posTexColor(&tvb, 0, 6, image.tex);
+
+    bgfx::destroyTexture(image.tex); // GW-TODO: Lol
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
