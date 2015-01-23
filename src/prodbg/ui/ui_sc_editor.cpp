@@ -453,59 +453,55 @@ public:
         SendCommand(SCI_SETLEXER, SCLEX_CPP);
         SendCommand(SCI_SETSTYLEBITS, 7);
 
-        SendCommand(SCI_SETKEYWORDS, 0,
-                    reinterpret_cast<sptr_t>(glslKeyword));
-        SendCommand(SCI_SETKEYWORDS, 1,
-                    reinterpret_cast<sptr_t>(glslType));
-        SendCommand(SCI_SETKEYWORDS, 2,
-                    reinterpret_cast<sptr_t>(glslBuiltin));
+        SendCommand(SCI_SETKEYWORDS, 0, reinterpret_cast<sptr_t>(glslKeyword));
+        SendCommand(SCI_SETKEYWORDS, 1, reinterpret_cast<sptr_t>(glslType));
+        SendCommand(SCI_SETKEYWORDS, 2, reinterpret_cast<sptr_t>(glslBuiltin));
         SendCommand(SCI_SETSTYLEBITS, 7);
-
-        SendCommand(SCI_SETPROPERTY, reinterpret_cast<uptr_t>("fold"), reinterpret_cast<sptr_t>("1"));
 
         int fontSize = 24;
 
-        const char* fontName = "data/font/source_code_pro/SourceCodePro-Medium.ttf";
+        const char* fontName1 = "data/font/source_code_pro/SourceCodePro-Medium.ttf";
+        const char* fontName2 = "data/font/entypo.ttf";
 
         // Set up the global default style. These attributes are used wherever no explicit choices are made.
-        SetAStyle(STYLE_DEFAULT, 0xFFFFFFFF, 0xD0000000, fontSize, fontName);
+        SetAStyle(STYLE_DEFAULT, 0xFFFFFFFF, 0xD0000000, fontSize, fontName1);
         SendCommand(SCI_STYLECLEARALL);	// Copies global style to all others
-        SetAStyle(STYLE_INDENTGUIDE, 0xFFC0C0C0, 0xD0000000, fontSize, fontName);
-        SetAStyle(STYLE_BRACELIGHT, 0xFF00FF00, 0xD0000000, fontSize, fontName);
-        SetAStyle(STYLE_BRACEBAD, 0xFF0000FF, 0xD0000000, fontSize, fontName);
-        SetAStyle(STYLE_LINENUMBER, 0xFFC0C0C0, 0xD0333333, fontSize, fontName);
-        SendCommand(SCI_SETFOLDMARGINCOLOUR, 1, 0xD01A1A1A);
-        SendCommand(SCI_SETFOLDMARGINHICOLOUR, 1, 0xD01A1A1A);
+        SetAStyle(STYLE_INDENTGUIDE, 0xFFC0C0C0, 0xD0000000, fontSize, fontName1);
+        SetAStyle(STYLE_BRACELIGHT, 0xFF00FF00, 0xD0000000, fontSize, fontName2);
+        SetAStyle(STYLE_BRACEBAD, 0xFF0000FF, 0xD0000000, fontSize, fontName1);
+        SetAStyle(STYLE_LINENUMBER, 0xFFC0C0C0, 0xD0333333, fontSize, fontName1);
+
+        SetAStyle(SCE_C_DEFAULT, 0xFFFFFFFF, 0xD0000000, fontSize, fontName1);
+        SetAStyle(SCE_C_WORD, 0xFF0066FF, 0xD0000000);
+        SetAStyle(SCE_C_WORD2, 0xFFFFFF00, 0xD0000000);
+        SetAStyle(SCE_C_GLOBALCLASS, 0xFF0000FF, 0xFF000000);
+        SetAStyle(SCE_C_PREPROCESSOR, 0xFFC0C0C0, 0xD0000000);
+        SetAStyle(SCE_C_NUMBER, 0xFF0080FF, 0xD0000000);
+        SetAStyle(SCE_C_OPERATOR, 0xFF00CCFF, 0xD0000000);
+        SetAStyle(SCE_C_COMMENT, 0xFF00FF00, 0xD0000000);
+        SetAStyle(SCE_C_COMMENTLINE, 0xFF00FF00, 0xD0000000);
+
         SendCommand(SCI_SETSELBACK, 1, 0xD0CC9966);
         SendCommand(SCI_SETCARETFORE, 0xFFFFFFFF, 0);
         SendCommand(SCI_SETCARETLINEVISIBLE, 1);
         SendCommand(SCI_SETCARETLINEBACK, 0xFFFFFFFF);
         SendCommand(SCI_SETCARETLINEBACKALPHA, 0x20);
 
-        SendCommand(SCI_SETMARGINWIDTHN, 0, 44);//Calculate correct width
-        SendCommand(SCI_SETMARGINWIDTHN, 1, 20);//Calculate correct width
-        SendCommand(SCI_SETMARGINMASKN, 1, SC_MASK_FOLDERS);//Calculate correct width
-
-        for (unsigned int i = 0; i < NB_FOLDER_STATE; i++)
-        {
-            SendCommand(SCI_MARKERDEFINE, markersArray[FOLDER_TYPE][i], sptr_t(markersArray[4][i]));
-            SendCommand(SCI_MARKERSETBACK, markersArray[FOLDER_TYPE][i], 0xFF6A6A6A);
-            SendCommand(SCI_MARKERSETFORE, markersArray[FOLDER_TYPE][i], 0xFF333333);
-        }
-
         SendCommand(SCI_SETUSETABS, 1);
         SendCommand(SCI_SETTABWIDTH, 4);
         SendCommand(SCI_SETINDENTATIONGUIDES, SC_IV_REAL);
 
-        SetAStyle(SCE_C_DEFAULT, 0xFFFFFFFF, 0xD0000000, fontSize, fontName);
-        SetAStyle(SCE_C_WORD, 0xFF0066FF, 0xD0000000);
-        SetAStyle(SCE_C_WORD2, 0xFFFFFF00, 0xD0000000);
-        //WTF??? SetAStyle(SCE_C_GLOBALCLASS, 0xFF0000FF, 0xFF000000);
-        SetAStyle(SCE_C_PREPROCESSOR, 0xFFC0C0C0, 0xD0000000);
-        SetAStyle(SCE_C_NUMBER, 0xFF0080FF, 0xD0000000);
-        SetAStyle(SCE_C_OPERATOR, 0xFF00CCFF, 0xD0000000);
-        SetAStyle(SCE_C_COMMENT, 0xFF00FF00, 0xD0000000);
-        SetAStyle(SCE_C_COMMENTLINE, 0xFF00FF00, 0xD0000000);
+        SendCommand(SCI_SETMARGINWIDTHN, 0, 44);//Calculate correct width
+        SendCommand(SCI_SETMARGINWIDTHN, 1, 16);
+        //SendCommand(SCI_SETMARGINTYPEN, 1, SC_MARGIN_TEXT);
+        SendCommand(SCI_SETMARGINTYPEN, 1, SC_MARGIN_SYMBOL);
+        SendCommand(SCI_SETMARGINMASKN, 1, ~SC_MASK_FOLDERS); // allow everything except for the folding symbols
+
+        //SCI_MARKERDEFINEPIXMAP
+        SendCommand(SCI_MARKERDEFINE, 0, SC_MARK_CIRCLE);
+        //SendCommand(SCI_MARKERDEFINE, 0, SC_MARK_CHARACTER + 120);
+        SendCommand(SCI_MARKERSETBACK, 0, 0xFF6A6A6A);
+        SendCommand(SCI_MARKERSETFORE, 0, 0xFF0000FF);
 
         const char* text = "precision highp float;\n"
             "\n"
@@ -529,9 +525,10 @@ public:
             "\tgl_FragColor = vec4(texture2D(tex,uv).xyz*diffuse,1.0);\n"
             "}";
 
-
         SendCommand(SCI_ADDTEXT, strlen(text),
                     reinterpret_cast<sptr_t>(static_cast<const char *>(text)));
+
+        SendCommand(SCI_MARKERADD, 18 /* line number */, 0 /* marker id */);
     }
 
     void Resize(int width, int height)
