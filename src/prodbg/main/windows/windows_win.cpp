@@ -805,6 +805,11 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 
         case WM_SIZE:
         {
+			int width = LOWORD(lParam);
+			int height = HIWORD(lParam);
+
+			ProDBG_setWindowSize(width, height);
+
             //TODO: Update size
             return 0;
         }
