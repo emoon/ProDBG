@@ -278,7 +278,7 @@ public:
         m_lexer->SetWordList(4, glslBuiltin);
         m_lexer->PropSet("fold", "1");
         
-        int fontSize = 32;
+        int fontSize = 24;
         
         const char* fontName = "data/font/source_code_pro/SourceCodePro-Medium.ttf";
         

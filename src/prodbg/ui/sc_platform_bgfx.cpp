@@ -618,19 +618,19 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
 			vb[0].x = q.x0;
 			vb[0].y = q.y0;
             vb[0].u = q.s0;
-			vb[0].v = q.s0;
+			vb[0].v = q.t0;
 			vb[0].color = fore;
 
 			vb[1].x = q.x1;
 			vb[1].y = q.y0;
 			vb[1].u = q.s1;
-			vb[1].v = q.s0;
+			vb[1].v = q.t0;
 			vb[1].color = fore;
 
 			vb[2].x = q.x1;
 			vb[2].y = q.y1;
             vb[2].u = q.s1;
-            vb[2].v = q.s1;
+            vb[2].v = q.t1;
 			vb[2].color = fore;
 
 			// Second triangle
@@ -638,19 +638,19 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
 			vb[3].x = q.x0;
 			vb[3].y = q.y0;
 			vb[3].u = q.s0;
-			vb[3].v = q.s0;
+			vb[3].v = q.t0;
 			vb[3].color = fore;
 
 			vb[4].x = q.x1;
 			vb[4].y = q.y1;
 			vb[4].u = q.s1;
-			vb[4].v = q.s0;
+			vb[4].v = q.t1;
 			vb[4].color = fore;
 
 			vb[5].x = q.x0;
 			vb[5].y = q.y1;
 			vb[5].u = q.s0;
-			vb[5].v = q.s1;
+			vb[5].v = q.t1;
 			vb[5].color = fore;
 
 			vb += 6;
