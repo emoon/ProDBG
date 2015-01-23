@@ -90,7 +90,7 @@ void IMGUI_setup(int width, int height)
     io.DeltaTime = 1.0f / 60.0f;
     io.PixelCenterOffset = 0.0f;
 
-	s_editor = ScEditor_create();
+	s_editor = ScEditor_create(width, height);
 
     UIRender_init();
 
@@ -120,6 +120,8 @@ void IMGUI_updateSize(int width, int height)
     io.DisplaySize = ImVec2((float)width, (float)height);
     io.DeltaTime = 1.0f / 60.0f;
     io.PixelCenterOffset = 0.0f;
+    
+    ScEditor_resize(s_editor, width, height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,6 +137,8 @@ void IMGUI_preUpdate(float x, float y, int mouseLmb, int keyDown, int keyMod, fl
     io.MouseDown[0] = !!mouseLmb;
 
     ImGui::NewFrame();
+    
+    ScEditor_tick(s_editor);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -173,6 +177,7 @@ void IMGUI_setKeyUp(int key, int modifier)
 void IMGUI_postUpdate()
 {
     ImGui::Render();
+    ScEditor_render(s_editor);
 }
 
 

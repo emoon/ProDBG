@@ -486,15 +486,65 @@ void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
 	vb[5].x = rc.left;
 	vb[5].y = rc.bottom;
 	vb[5].color = back;
+    
+    bgfx::setState(0
+                   | BGFX_STATE_RGB_WRITE
+                   | BGFX_STATE_ALPHA_WRITE
+                   | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+                   | BGFX_STATE_MSAA);
 
 	UIRender_posColor(&tvb, 0, 6);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::FillRectangle(PRectangle, Surface&)
+void SurfaceImpl::FillRectangle(PRectangle rc, Surface&)
 {
-    assert(false);
+    //assert(false);
+    
+    bgfx::TransientVertexBuffer tvb;
+    
+    const uint32_t back = 0xFFFFFF; // GW-TODO: Likely need to track the current fore\back color as per style
+    
+    UIRender_allocPosColorTb(&tvb, 6);
+    
+    PosColorVertex* vb = (PosColorVertex*)tvb.data;
+    
+    // First triangle
+    
+    vb[0].x = rc.left;
+    vb[0].y = rc.top;
+    vb[0].color = back;
+    
+    vb[1].x = rc.right;
+    vb[1].y = rc.top;
+    vb[1].color = back;
+    
+    vb[2].x = rc.right;
+    vb[2].y = rc.bottom;
+    vb[2].color = back;
+    
+    // Second triangle
+    
+    vb[3].x = rc.left;
+    vb[3].y = rc.top;
+    vb[3].color = back;
+    
+    vb[4].x = rc.right;
+    vb[4].y = rc.bottom;
+    vb[4].color = back;
+    
+    vb[5].x = rc.left;
+    vb[5].y = rc.bottom;
+    vb[5].color = back;
+    
+    bgfx::setState(0
+                   | BGFX_STATE_RGB_WRITE
+                   | BGFX_STATE_ALPHA_WRITE
+                   | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+                   | BGFX_STATE_MSAA);
+    
+    UIRender_posColor(&tvb, 0, 6);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -565,42 +615,42 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
 			
 			// First triangle
 
-			vb[0].x = q.x0; 
-			vb[0].y = q.y0; 
-			vb[0].u = q.s0; 
-			vb[0].v = q.s0; 
+			vb[0].x = q.x0;
+			vb[0].y = q.y0;
+            vb[0].u = q.s0;
+			vb[0].v = q.s0;
 			vb[0].color = fore;
 
-			vb[1].x = q.x1; 
-			vb[1].y = q.y0; 
-			vb[1].u = q.s1; 
-			vb[1].v = q.s0; 
+			vb[1].x = q.x1;
+			vb[1].y = q.y0;
+			vb[1].u = q.s1;
+			vb[1].v = q.s0;
 			vb[1].color = fore;
 
-			vb[2].x = q.x1; 
-			vb[2].y = q.y1; 
-			vb[2].u = q.s1; 
-			vb[2].v = q.s1; 
+			vb[2].x = q.x1;
+			vb[2].y = q.y1;
+            vb[2].u = q.s1;
+            vb[2].v = q.s1;
 			vb[2].color = fore;
 
 			// Second triangle
 			
-			vb[3].x = q.x0; 
-			vb[3].y = q.y0; 
-			vb[3].u = q.s0; 
-			vb[3].v = q.s0; 
+			vb[3].x = q.x0;
+			vb[3].y = q.y0;
+			vb[3].u = q.s0;
+			vb[3].v = q.s0;
 			vb[3].color = fore;
 
-			vb[4].x = q.x1; 
-			vb[4].y = q.y0; 
-			vb[4].u = q.s1; 
-			vb[4].v = q.s0; 
+			vb[4].x = q.x1;
+			vb[4].y = q.y1;
+			vb[4].u = q.s1;
+			vb[4].v = q.s0;
 			vb[4].color = fore;
 
-			vb[5].x = q.x0; 
-			vb[5].y = q.y1; 
-			vb[5].u = q.s0; 
-			vb[5].v = q.s1; 
+			vb[5].x = q.x0;
+			vb[5].y = q.y1;
+			vb[5].u = q.s0;
+			vb[5].v = q.s1;
 			vb[5].color = fore;
 
 			vb += 6;
@@ -609,6 +659,12 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
 
         ++s;
     }
+    
+    bgfx::setState(0
+                   | BGFX_STATE_RGB_WRITE
+                   | BGFX_STATE_ALPHA_WRITE
+                   | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+                   | BGFX_STATE_MSAA);
 
 	UIRender_posTexColor(&tvb, 0, realLength * 6, realFont->ftex);
 }
@@ -806,7 +862,7 @@ bool Window::HasFocus()
 
 PRectangle Window::GetPosition() 
 {
-	return PRectangle::FromInts(0, 0, 800, 600);
+	return PRectangle::FromInts(0, 0, 1280, 720);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -828,7 +884,7 @@ void Window::SetPositionRelative(PRectangle rc, Window w)
 
 PRectangle Window::GetClientPosition() 
 {
-	return PRectangle::FromInts(0, 0, 800, 600);
+	return PRectangle::FromInts(0, 0, 1280, 768);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
