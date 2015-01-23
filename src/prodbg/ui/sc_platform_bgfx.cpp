@@ -500,6 +500,8 @@ void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
 
 void SurfaceImpl::FillRectangle(PRectangle rc, Surface&)
 {
+    // GW: This probably needs to be a blit from incoming surface?
+
     //assert(false);
 
     bgfx::TransientVertexBuffer tvb;
@@ -572,9 +574,13 @@ void SurfaceImpl::AlphaRectangle(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::Ellipse(PRectangle, ColourDesired, ColourDesired)
+void SurfaceImpl::Ellipse(PRectangle rc, ColourDesired fore, ColourDesired back)
 {
-    assert(0);
+    (void)fore;
+    (void)back;
+    //assert(0);
+
+    FillRectangle(rc, fore);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
