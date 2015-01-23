@@ -13,9 +13,9 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-inline uint32_t MakeRGBA(uint32_t r, uint32_t g, uint32_t b, uint32_t a=0xFF)
+inline uint32_t MakeRGBA(uint32_t r, uint32_t g, uint32_t b, uint32_t a = 0xFF)
 {
-	return a<<24|b<<16|g<<8|r;
+    return a << 24 | b << 16 | g << 8 | r;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,47 +100,47 @@ public:
 
     bool InitBgfx();
 
-	void Init(WindowID wid);
-virtual void Init(SurfaceID sid, WindowID wid);
-	void InitPixMap(int width, int height, Surface *surface_, WindowID wid);
+    void Init(WindowID wid);
+    virtual void Init(SurfaceID sid, WindowID wid);
+    void InitPixMap(int width, int height, Surface *surface_, WindowID wid);
 
-	void Release();
-	bool Initialised();
-	void PenColour(ColourDesired fore);
-	int LogPixelsY();
-	int DeviceHeightFont(int points);
-	void MoveTo(int x_, int y_);
-	void LineTo(int x_, int y_);
-	void Polygon(Point *pts, int npts, ColourDesired fore, ColourDesired back);
-	void RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired back);
-	void FillRectangle(PRectangle rc, ColourDesired back);
-	void FillRectangle(PRectangle rc, Surface &surfacePattern);
-	void RoundedRectangle(PRectangle rc, ColourDesired fore, ColourDesired back);
-	void AlphaRectangle(PRectangle rc, int cornerSize, ColourDesired fill, int alphaFill, ColourDesired outline, int alphaOutline, int flags);
-	void DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char *pixelsImage);
-	void Ellipse(PRectangle rc, ColourDesired fore, ColourDesired back);
-	void Copy(PRectangle rc, Point from, Surface &surfaceSource);
+    void Release();
+    bool Initialised();
+    void PenColour(ColourDesired fore);
+    int LogPixelsY();
+    int DeviceHeightFont(int points);
+    void MoveTo(int x_, int y_);
+    void LineTo(int x_, int y_);
+    void Polygon(Point *pts, int npts, ColourDesired fore, ColourDesired back);
+    void RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired back);
+    void FillRectangle(PRectangle rc, ColourDesired back);
+    void FillRectangle(PRectangle rc, Surface &surfacePattern);
+    void RoundedRectangle(PRectangle rc, ColourDesired fore, ColourDesired back);
+    void AlphaRectangle(PRectangle rc, int cornerSize, ColourDesired fill, int alphaFill, ColourDesired outline, int alphaOutline, int flags);
+    void DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char *pixelsImage);
+    void Ellipse(PRectangle rc, ColourDesired fore, ColourDesired back);
+    void Copy(PRectangle rc, Point from, Surface &surfaceSource);
 
-	void DrawTextNoClip(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len, ColourDesired fore, ColourDesired back);
-	void DrawTextClipped(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len, ColourDesired fore, ColourDesired back);
-	void DrawTextTransparent(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len, ColourDesired fore);
-	void MeasureWidths(Font &font_, const char *s, int len, XYPOSITION *positions);
-	void DrawTextBase(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired f);
+    void DrawTextNoClip(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len, ColourDesired fore, ColourDesired back);
+    void DrawTextClipped(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len, ColourDesired fore, ColourDesired back);
+    void DrawTextTransparent(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len, ColourDesired fore);
+    void MeasureWidths(Font &font_, const char *s, int len, XYPOSITION *positions);
+    void DrawTextBase(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired f);
 
-	XYPOSITION WidthText(Font &font_, const char *s, int len);
-	XYPOSITION WidthChar(Font &font_, char ch);
-	XYPOSITION Ascent(Font &font_);
-	XYPOSITION Descent(Font &font_);
-	XYPOSITION InternalLeading(Font &font_);
-	XYPOSITION ExternalLeading(Font &font_);
-	XYPOSITION Height(Font &font_);
-	XYPOSITION AverageCharWidth(Font &font_);
+    XYPOSITION WidthText(Font &font_, const char *s, int len);
+    XYPOSITION WidthChar(Font &font_, char ch);
+    XYPOSITION Ascent(Font &font_);
+    XYPOSITION Descent(Font &font_);
+    XYPOSITION InternalLeading(Font &font_);
+    XYPOSITION ExternalLeading(Font &font_);
+    XYPOSITION Height(Font &font_);
+    XYPOSITION AverageCharWidth(Font &font_);
 
-	void SetClip(PRectangle rc);
-	void FlushCachedState();
+    void SetClip(PRectangle rc);
+    void FlushCachedState();
 
-	void SetUnicodeMode(bool unicodeMode_);
-	void SetDBCSMode(int codePage);
+    void SetUnicodeMode(bool unicodeMode_);
+    void SetDBCSMode(int codePage);
 private:
 
     ColourDesired m_penColour;
@@ -154,7 +154,7 @@ struct stbtt_Font
 {
     stbtt_fontinfo fontinfo;
     stbtt_bakedchar cdata[96]; // ASCII 32..126 is 95 glyphs
-	bgfx::TextureHandle ftex;
+    bgfx::TextureHandle ftex;
     float scale;
 };
 
@@ -174,27 +174,27 @@ Font::~Font()
 
 void Font::Create(const FontParameters& fp)
 {
-	stbtt_Font* newFont = new stbtt_Font;
+    stbtt_Font* newFont = new stbtt_Font;
 
-	size_t len;
+    size_t len;
 
-	// TODO: Remove hard-coded value
+    // TODO: Remove hard-coded value
 
-    unsigned char* bmp = new unsigned char[512*512];
-	void* data = File_loadToMemory(fp.faceName, &len, 0);
+    unsigned char* bmp = new unsigned char[512 * 512];
+    void* data = File_loadToMemory(fp.faceName, &len, 0);
 
-	stbtt_BakeFontBitmap((unsigned char*)data, 0, fp.size, bmp, 512, 512, 32, 96, newFont->cdata); // no guarantee this fits!
+    stbtt_BakeFontBitmap((unsigned char*)data, 0, fp.size, bmp, 512, 512, 32, 96, newFont->cdata); // no guarantee this fits!
 
     const bgfx::Memory* mem = bgfx::alloc(512 * 512);
-    memcpy(mem->data, bmp, 512 * 512); 
+    memcpy(mem->data, bmp, 512 * 512);
 
     newFont->ftex = bgfx::createTexture2D(512, 512, 1, bgfx::TextureFormat::R8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT, mem);
 
-	stbtt_InitFont(&newFont->fontinfo, (unsigned char*)data, 0);
+    stbtt_InitFont(&newFont->fontinfo, (unsigned char*)data, 0);
 
-	newFont->scale = stbtt_ScaleForPixelHeight(&newFont->fontinfo, fp.size);
+    newFont->scale = stbtt_ScaleForPixelHeight(&newFont->fontinfo, fp.size);
 
-    delete [] bmp;
+    delete[] bmp;
 
     fid = newFont;
 }
@@ -205,244 +205,244 @@ void Font::Create(const FontParameters& fp)
 
 struct pixmap_t
 {
-	bgfx::TextureHandle tex;
-    float scalex, scaley;
-    bool initialised;
+bgfx::TextureHandle tex;
+float scalex, scaley;
+bool initialised;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Pixmap CreatePixmap()
 {
-    Pixmap pm = new pixmap_t;
-    pm->scalex = 0;
-    pm->scaley = 0;
-    pm->initialised = false;
+Pixmap pm = new pixmap_t;
+pm->scalex = 0;
+pm->scaley = 0;
+pm->initialised = false;
 
-    return pm;
+return pm;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool IsPixmapInitialised(Pixmap pixmap)
 {
-    return pixmap->initialised;
+return pixmap->initialised;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void DestroyPixmap(Pixmap pixmap)
 {
-    glDeleteTextures(1, &pixmap->tex);
-    delete pixmap;
+glDeleteTextures(1, &pixmap->tex);
+delete pixmap;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UpdatePixmap(Pixmap pixmap, int w, int h, int* data)
 {
-	const size_t byteSize = w * h * sizeof(uint32_t);
+const size_t byteSize = w * h * sizeof(uint32_t);
 
-	if (!pixmap->initilised)
-    	pixmap->tex = bgfx::createTexture2D((uint16_t)w, (uint16_t)h, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_PONT, 0);
+if (!pixmap->initilised)
+pixmap->tex = bgfx::createTexture2D((uint16_t)w, (uint16_t)h, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_PONT, 0);
 
-    const bgfx::Memory* mem = bgfx::alloc(byteSize);
-    memcpy(mem->data, data, byteSize); 
+const bgfx::Memory* mem = bgfx::alloc(byteSize);
+memcpy(mem->data, data, byteSize);
 
-	pixmap->initialised = true;
-	pixmap->scalex = 1.0f / (float)w;
-	pixmap->scaley = 1.0f / (float)h;
+pixmap->initialised = true;
+pixmap->scalex = 1.0f / (float)w;
+pixmap->scaley = 1.0f / (float)h;
 
-	bgfx::updateTexture2D(pixmap->tex, 0, 0, 0, (uint16_t)w, (uint16_t)h, mem);
+bgfx::updateTexture2D(pixmap->tex, 0, 0, 0, (uint16_t)w, (uint16_t)h, mem);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SurfaceImpl::DrawPixmap(PRectangle rc, Point offset, Pixmap pixmap)
 {
-	bgfx::TransientVertexBuffer tvb;
+bgfx::TransientVertexBuffer tvb;
 
-    float w = (rc.right - rc.left) * pixmap->scalex, h = (rc.bottom - rc.top) * pixmap->scaley;
-    float u1 = offset.x * pixmap->scalex, v1 = offset.y * pixmap->scaley, u2 = u1 + w, v2 = v1 + h;
+float w = (rc.right - rc.left) * pixmap->scalex, h = (rc.bottom - rc.top) * pixmap->scaley;
+float u1 = offset.x * pixmap->scalex, v1 = offset.y * pixmap->scaley, u2 = u1 + w, v2 = v1 + h;
 
-    // TODO: Use program that doesn't set color 
+// TODO: Use program that doesn't set color
 
-	UIRender_allocPosTexColorTb(&tvb, 6);
+UIRender_allocPosTexColorTb(&tvb, 6);
 
-	PosTexColorVertex* vb = (PosTexColorVertex*)tbv.data;
+PosTexColorVertex* vb = (PosTexColorVertex*)tbv.data;
 
-	// First triangle
+// First triangle
 
-	vb[0].x = rc.left;
-	vb[0].y = rc.top;
-	vb[0].u = u1;
-	vb[0].v = v1;
-	vb[0].color = 0xffffffff;
+vb[0].x = rc.left;
+vb[0].y = rc.top;
+vb[0].u = u1;
+vb[0].v = v1;
+vb[0].color = 0xffffffff;
 
-	vb[1].x = rc.right;
-	vb[1].y = rc.top;
-	vb[1].u = u2;
-	vb[1].v = v1;
-	vb[1].color = 0xffffffff;
+vb[1].x = rc.right;
+vb[1].y = rc.top;
+vb[1].u = u2;
+vb[1].v = v1;
+vb[1].color = 0xffffffff;
 
-	vb[2].x = rc.right;
-	vb[2].y = rc.bottom;
-	vb[2].u = u2;
-	vb[2].v = v2;
-	vb[2].color = 0xffffffff;
+vb[2].x = rc.right;
+vb[2].y = rc.bottom;
+vb[2].u = u2;
+vb[2].v = v2;
+vb[2].color = 0xffffffff;
 
-	// Second triangle
+// Second triangle
 
-	vb[3].x = rc.left;
-	vb[3].y = rc.top;
-	vb[3].u = u1;
-	vb[3].v = v1;
-	vb[3].color = 0xffffffff;
+vb[3].x = rc.left;
+vb[3].y = rc.top;
+vb[3].u = u1;
+vb[3].v = v1;
+vb[3].color = 0xffffffff;
 
-	vb[4].x = rc.right;
-	vb[4].y = rc.bottom;
-	vb[4].u = u2;
-	vb[4].v = v2;
-	vb[4].color = 0xffffffff;
+vb[4].x = rc.right;
+vb[4].y = rc.bottom;
+vb[4].u = u2;
+vb[4].v = v2;
+vb[4].color = 0xffffffff;
 
-	vb[5].x = rc.left;
-	vb[5].y = rc.bottom;
-	vb[5].u = u1;
-	vb[5].v = v2;
-	vb[5].color = 0xffffffff;
+vb[5].x = rc.left;
+vb[5].y = rc.bottom;
+vb[5].u = u1;
+vb[5].v = v2;
+vb[5].color = 0xffffffff;
 
-	UIRender_posTexColor(&tvb, 0, 6, pixmap->tex);
+UIRender_posTexColor(&tvb, 0, 6, pixmap->tex);
 }
 */
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SurfaceImpl::SurfaceImpl() : x(0), y(0) 
+SurfaceImpl::SurfaceImpl() : x(0), y(0)
 {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SurfaceImpl::~SurfaceImpl() 
+SurfaceImpl::~SurfaceImpl()
 {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::Release() 
+void SurfaceImpl::Release()
 {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::PenColour(ColourDesired fore) 
+void SurfaceImpl::PenColour(ColourDesired fore)
 {
-	(void)fore;
+    (void)fore;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int SurfaceImpl::LogPixelsY() 
+int SurfaceImpl::LogPixelsY()
 {
-	return 72;
+    return 72;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int SurfaceImpl::DeviceHeightFont(int points) 
+int SurfaceImpl::DeviceHeightFont(int points)
 {
-	int logPix = LogPixelsY();
-	return (int)((points * logPix + logPix / 2) / 72.0f);
+    int logPix = LogPixelsY();
+    return (int)((points * logPix + logPix / 2) / 72.0f);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::MoveTo(int x_, int y_) 
+void SurfaceImpl::MoveTo(int x_, int y_)
 {
-	x = x_;
-	y = y_;
+    x = x_;
+    y = y_;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::LineTo(int x_, int y_) 
+void SurfaceImpl::LineTo(int x_, int y_)
 {
-	// TODO: implement
-	x = x_;
-	y = y_;
+    // TODO: implement
+    x = x_;
+    y = y_;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SurfaceImpl::Polygon(Point *pts, int npts, ColourDesired fore, ColourDesired back)
 {
-	(void)pts;
-	(void)fore;
-	(void)back;
-	(void)npts;
+    (void)pts;
+    (void)fore;
+    (void)back;
+    (void)npts;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
+
 void SurfaceImpl::RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired back)
 {
-	(void)fore;
+    (void)fore;
 
-	FillRectangle(rc, back);
-	/*
-	glColor4ubv((GLubyte*)&fore);
-  glDisable(GL_TEXTURE_2D);
-	glBegin(GL_LINE_STRIP);
-	glVertex2f(rc.left+0.5f,  rc.top+0.5f);
-	glVertex2f(rc.right-0.5f, rc.top+0.5f);
-	glVertex2f(rc.right-0.5f, rc.bottom-0.5f);
-	glVertex2f(rc.left+0.5f,  rc.bottom-0.5f);
-	glVertex2f(rc.left+0.5f,  rc.top+0.5f);
-	glEnd();
-	*/
+    FillRectangle(rc, back);
+    /*
+    glColor4ubv((GLubyte*)&fore);
+    glDisable(GL_TEXTURE_2D);
+    glBegin(GL_LINE_STRIP);
+    glVertex2f(rc.left+0.5f,  rc.top+0.5f);
+    glVertex2f(rc.right-0.5f, rc.top+0.5f);
+    glVertex2f(rc.right-0.5f, rc.bottom-0.5f);
+    glVertex2f(rc.left+0.5f,  rc.bottom-0.5f);
+    glVertex2f(rc.left+0.5f,  rc.top+0.5f);
+    glEnd();
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SurfaceImpl::Initialised()
 {
-	return true;
-}	
+    return true;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SurfaceImpl::Init(WindowID wid)
 {
-	(void)wid;
+    (void)wid;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SurfaceImpl::Init(SurfaceID sid, WindowID wid)
 {
-	(void)wid;
-	(void)sid;
+    (void)wid;
+    (void)sid;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SurfaceImpl::InitPixMap(int width, int height, Surface *surface_, WindowID wid)
 {
-	(void)width;
-	(void)height;
-	(void)surface_;
-	(void)wid;
+    (void)width;
+    (void)height;
+    (void)surface_;
+    (void)wid;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char* pixelsImage)
 {
-	(void)rc;
-	(void)width;
-	(void)height;
-	(void)pixelsImage;
+    (void)rc;
+    (void)width;
+    (void)height;
+    (void)pixelsImage;
 
     assert(0);
 }
@@ -451,49 +451,49 @@ void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsi
 
 void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
 {
-	bgfx::TransientVertexBuffer tvb;
+    bgfx::TransientVertexBuffer tvb;
 
-	const uint32_t back = (uint32_t)b.AsLong();
+    const uint32_t back = (uint32_t)b.AsLong();
 
-	UIRender_allocPosColorTb(&tvb, 6);
+    UIRender_allocPosColorTb(&tvb, 6);
 
-	PosColorVertex* vb = (PosColorVertex*)tvb.data;
+    PosColorVertex* vb = (PosColorVertex*)tvb.data;
 
-	// First triangle
+    // First triangle
 
-	vb[0].x = rc.left;
-	vb[0].y = rc.top;
-	vb[0].color = back;
+    vb[0].x = rc.left;
+    vb[0].y = rc.top;
+    vb[0].color = back;
 
-	vb[1].x = rc.right;
-	vb[1].y = rc.top;
-	vb[1].color = back;
+    vb[1].x = rc.right;
+    vb[1].y = rc.top;
+    vb[1].color = back;
 
-	vb[2].x = rc.right;
-	vb[2].y = rc.bottom;
-	vb[2].color = back;
+    vb[2].x = rc.right;
+    vb[2].y = rc.bottom;
+    vb[2].color = back;
 
-	// Second triangle
+    // Second triangle
 
-	vb[3].x = rc.left;
-	vb[3].y = rc.top;
-	vb[3].color = back;
+    vb[3].x = rc.left;
+    vb[3].y = rc.top;
+    vb[3].color = back;
 
-	vb[4].x = rc.right;
-	vb[4].y = rc.bottom;
-	vb[4].color = back;
+    vb[4].x = rc.right;
+    vb[4].y = rc.bottom;
+    vb[4].color = back;
 
-	vb[5].x = rc.left;
-	vb[5].y = rc.bottom;
-	vb[5].color = back;
-    
+    vb[5].x = rc.left;
+    vb[5].y = rc.bottom;
+    vb[5].color = back;
+
     bgfx::setState(0
                    | BGFX_STATE_RGB_WRITE
                    | BGFX_STATE_ALPHA_WRITE
                    | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
                    | BGFX_STATE_MSAA);
 
-	UIRender_posColor(&tvb, 0, 6);
+    UIRender_posColor(&tvb, 0, 6);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -501,49 +501,49 @@ void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
 void SurfaceImpl::FillRectangle(PRectangle rc, Surface&)
 {
     //assert(false);
-    
+
     bgfx::TransientVertexBuffer tvb;
-    
+
     const uint32_t back = 0xFFFFFF; // GW-TODO: Likely need to track the current fore\back color as per style
-    
+
     UIRender_allocPosColorTb(&tvb, 6);
-    
+
     PosColorVertex* vb = (PosColorVertex*)tvb.data;
-    
+
     // First triangle
-    
+
     vb[0].x = rc.left;
     vb[0].y = rc.top;
     vb[0].color = back;
-    
+
     vb[1].x = rc.right;
     vb[1].y = rc.top;
     vb[1].color = back;
-    
+
     vb[2].x = rc.right;
     vb[2].y = rc.bottom;
     vb[2].color = back;
-    
+
     // Second triangle
-    
+
     vb[3].x = rc.left;
     vb[3].y = rc.top;
     vb[3].color = back;
-    
+
     vb[4].x = rc.right;
     vb[4].y = rc.bottom;
     vb[4].color = back;
-    
+
     vb[5].x = rc.left;
     vb[5].y = rc.bottom;
     vb[5].color = back;
-    
+
     bgfx::setState(0
                    | BGFX_STATE_RGB_WRITE
                    | BGFX_STATE_ALPHA_WRITE
                    | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
                    | BGFX_STATE_MSAA);
-    
+
     UIRender_posColor(&tvb, 0, 6);
 }
 
@@ -567,7 +567,7 @@ void SurfaceImpl::AlphaRectangle(
     (void)alphaOutline;
     (void)flags;
 
-	FillRectangle(rc, ColourDesired(back));
+    FillRectangle(rc, ColourDesired(back));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -592,81 +592,81 @@ void Font::Release()
 
 void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired f)
 {
-	uint32_t realLength = 0;
+    uint32_t realLength = 0;
     float xt = rc.left;
-	float yt = ybase;
+    float yt = ybase;
 
-	uint32_t fore = (uint32_t)f.AsLong();
+    uint32_t fore = (uint32_t)f.AsLong();
 
-	bgfx::TransientVertexBuffer tvb;
+    bgfx::TransientVertexBuffer tvb;
 
     stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
 
-	UIRender_allocPosTexColorTb(&tvb, (uint32_t)(len * 6)); // * 6 vertices per character (2 triangles)
+    UIRender_allocPosTexColorTb(&tvb, (uint32_t)(len * 6)); // * 6 vertices per character (2 triangles)
 
-	PosTexColorVertex* vb = (PosTexColorVertex*)tvb.data;
+    PosTexColorVertex* vb = (PosTexColorVertex*)tvb.data;
 
     while (len--)
     {
         if (*s >= 32 && *s < 127)
         {
             stbtt_aligned_quad q;
-            stbtt_GetBakedQuad(realFont->cdata, 512, 512, *s - 32, &xt, &yt, &q, 1);
-			
-			// First triangle
+            stbtt_GetBakedQuad(realFont->cdata, 512, 512, *s - 32, &xt, &yt, &q, 0);
 
-			vb[0].x = q.x0;
-			vb[0].y = q.y0;
+            // First triangle
+
+            vb[0].x = q.x0;
+            vb[0].y = q.y0;
             vb[0].u = q.s0;
-			vb[0].v = q.t0;
-			vb[0].color = fore;
+            vb[0].v = q.t0;
+            vb[0].color = fore;
 
-			vb[1].x = q.x1;
-			vb[1].y = q.y0;
-			vb[1].u = q.s1;
-			vb[1].v = q.t0;
-			vb[1].color = fore;
+            vb[1].x = q.x1;
+            vb[1].y = q.y0;
+            vb[1].u = q.s1;
+            vb[1].v = q.t0;
+            vb[1].color = fore;
 
-			vb[2].x = q.x1;
-			vb[2].y = q.y1;
+            vb[2].x = q.x1;
+            vb[2].y = q.y1;
             vb[2].u = q.s1;
             vb[2].v = q.t1;
-			vb[2].color = fore;
+            vb[2].color = fore;
 
-			// Second triangle
-			
-			vb[3].x = q.x0;
-			vb[3].y = q.y0;
-			vb[3].u = q.s0;
-			vb[3].v = q.t0;
-			vb[3].color = fore;
+            // Second triangle
 
-			vb[4].x = q.x1;
-			vb[4].y = q.y1;
-			vb[4].u = q.s1;
-			vb[4].v = q.t1;
-			vb[4].color = fore;
+            vb[3].x = q.x0;
+            vb[3].y = q.y0;
+            vb[3].u = q.s0;
+            vb[3].v = q.t0;
+            vb[3].color = fore;
 
-			vb[5].x = q.x0;
-			vb[5].y = q.y1;
-			vb[5].u = q.s0;
-			vb[5].v = q.t1;
-			vb[5].color = fore;
+            vb[4].x = q.x1;
+            vb[4].y = q.y1;
+            vb[4].u = q.s1;
+            vb[4].v = q.t1;
+            vb[4].color = fore;
 
-			vb += 6;
-			realLength++;
+            vb[5].x = q.x0;
+            vb[5].y = q.y1;
+            vb[5].u = q.s0;
+            vb[5].v = q.t1;
+            vb[5].color = fore;
+
+            vb += 6;
+            realLength++;
         }
 
         ++s;
     }
-    
+
     bgfx::setState(0
                    | BGFX_STATE_RGB_WRITE
                    | BGFX_STATE_ALPHA_WRITE
                    | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
                    | BGFX_STATE_MSAA);
 
-	UIRender_posTexRColor(&tvb, 0, realLength * 6, realFont->ftex);
+    UIRender_posTexRColor(&tvb, 0, realLength * 6, realFont->ftex);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -798,7 +798,7 @@ float SurfaceImpl::AverageCharWidth(Font& font_)
 
 void SurfaceImpl::SetClip(PRectangle rc)
 {
-	bgfx::setScissor((uint16_t)rc.left, (uint16_t)rc.right, (uint16_t)rc.top, (uint16_t)rc.bottom);
+    bgfx::setScissor((uint16_t)rc.left, (uint16_t)rc.right, (uint16_t)rc.top, (uint16_t)rc.bottom);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -809,174 +809,174 @@ void SurfaceImpl::FlushCachedState()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::SetDBCSMode(int codePage) 
+void SurfaceImpl::SetDBCSMode(int codePage)
 {
-	(void)codePage;
+    (void)codePage;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SurfaceImpl::SetUnicodeMode(bool unicodeMode)
 {
-	(void)unicodeMode;
+    (void)unicodeMode;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SurfaceImpl::Copy(PRectangle rc, Point from, Surface &surfaceSource)
 {
-	(void)rc;
-	(void)from;
-	(void)surfaceSource;
+    (void)rc;
+    (void)from;
+    (void)surfaceSource;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Surface* Surface::Allocate(int technology)
 {
-	(void)technology;
+    (void)technology;
     return new SurfaceImpl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Window::~Window() 
+Window::~Window()
 {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window::Destroy() 
+void Window::Destroy()
 {
-	wid = 0;
+    wid = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Window::HasFocus() 
+bool Window::HasFocus()
 {
-	return true;
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PRectangle Window::GetPosition() 
+PRectangle Window::GetPosition()
 {
-	return PRectangle::FromInts(0, 0, 1280, 720);
+    return PRectangle::FromInts(0, 0, 1280, 720);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window::SetPosition(PRectangle rc) 
+void Window::SetPosition(PRectangle rc)
 {
-	(void)rc;
+    (void)rc;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window::SetPositionRelative(PRectangle rc, Window w) 
+void Window::SetPositionRelative(PRectangle rc, Window w)
 {
-	(void)rc;
-	(void)w;
+    (void)rc;
+    (void)w;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PRectangle Window::GetClientPosition() 
+PRectangle Window::GetClientPosition()
 {
-	return PRectangle::FromInts(0, 0, 1280, 768);
+    return PRectangle::FromInts(0, 0, 1280, 768);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window::Show(bool show) 
+void Window::Show(bool show)
 {
-	(void)show;
+    (void)show;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window::InvalidateAll() 
+void Window::InvalidateAll()
 {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window::InvalidateRectangle(PRectangle rc) 
+void Window::InvalidateRectangle(PRectangle rc)
 {
-	(void)rc;
+    (void)rc;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window::SetFont(Font& font) 
+void Window::SetFont(Font& font)
 {
-	(void)font;
+    (void)font;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window::SetCursor(Cursor curs) 
+void Window::SetCursor(Cursor curs)
 {
-	cursorLast = cursorText;
-	(void)curs;
+    cursorLast = cursorText;
+    (void)curs;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window::SetTitle(const char *s) 
+void Window::SetTitle(const char *s)
 {
-	(void)s;
+    (void)s;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PRectangle Window::GetMonitorRect(Point pt) 
+PRectangle Window::GetMonitorRect(Point pt)
 {
-	(void)pt;
-	return PRectangle();
+    (void)pt;
+    return PRectangle();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Platform::Minimum(int a, int b) 
+int Platform::Minimum(int a, int b)
 {
-	if (a < b)
-		return a;
-	else
-		return b;
+    if (a < b)
+        return a;
+    else
+        return b;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Platform::Maximum(int a, int b) 
+int Platform::Maximum(int a, int b)
 {
-	if (a > b)
-		return a;
-	else
-		return b;
+    if (a > b)
+        return a;
+    else
+        return b;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Platform::Clamp(int val, int minVal, int maxVal) 
+int Platform::Clamp(int val, int minVal, int maxVal)
 {
-	if (val > maxVal)
-		val = maxVal;
-	if (val < minVal)
-		val = minVal;
-	return val;
+    if (val > maxVal)
+        val = maxVal;
+    if (val < minVal)
+        val = minVal;
+    return val;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Platform::DebugPrintf(const char *format, ...) 
+void Platform::DebugPrintf(const char *format, ...)
 {
-	char buffer[2000];
-	va_list args;
-	va_start(args, format);
-	vsprintf(buffer, format, args);
-	va_end(args);
-	printf(buffer);
+    char buffer[2000];
+    va_list args;
+    va_start(args, format);
+    vsprintf(buffer, format, args);
+    va_end(args);
+    printf(buffer);
 }
 

@@ -131,13 +131,13 @@ class LexState : public LexInterface
     const LexerModule* m_lexCurrent;
     PropSetSimple m_propSet;
     int m_interfaceVersion;
-    
+
 public:
     int m_lexLanguage;
-    
+
     explicit LexState(Document* pdoc_);
     virtual ~LexState();
-    
+
     void SetLexer(uptr_t wParam);
     void SetLexerLanguage(const char* languageName);
     const char* DescribeWordListSets();
@@ -151,7 +151,7 @@ public:
     const char* PropGet(const char* key) const;
     int PropGetInt(const char* key, int defaultValue = 0) const;
     int PropGetExpanded(const char* key, char* result) const;
-    
+
     int LineEndTypesSupported();
     int AllocateSubStyles(int styleBase, int numberStyles);
     int SubStylesStart(int styleBase);
@@ -162,7 +162,7 @@ public:
     void SetIdentifiers(int style, const char* identifiers);
     int DistanceToSecondaryStyles();
     const char* GetSubStyleBases();
-    
+
 private:
     void SetLexerModule(const LexerModule* lex);
 };
@@ -193,7 +193,7 @@ void LexState::SetLexerModule(const LexerModule* lex)
             instance->Release();
             instance = nullptr;
         }
-        
+
         m_interfaceVersion = lvOriginal;
         m_lexCurrent = lex;
         if (m_lexCurrent)
@@ -201,7 +201,7 @@ void LexState::SetLexerModule(const LexerModule* lex)
             instance = m_lexCurrent->Create();
             m_interfaceVersion = instance->Version();
         }
-        
+
         pdoc->LexerChanged();
     }
 }
@@ -216,7 +216,7 @@ void LexState::SetLexer(uptr_t wParam)
         const LexerModule* lex = Catalogue::Find(m_lexLanguage);
         if (!lex)
             lex = Catalogue::Find(SCLEX_NULL);
-        
+
         SetLexerModule(lex);
     }
 }
@@ -226,10 +226,10 @@ void LexState::SetLexerLanguage(const char* languageName)
     const LexerModule* lex = Catalogue::Find(languageName);
     if (!lex)
         lex = Catalogue::Find(SCLEX_NULL);
-    
+
     if (lex)
         m_lexLanguage = lex->GetLanguage();
-    
+
     SetLexerModule(lex);
 }
 
@@ -394,11 +394,11 @@ const size_t NB_FOLDER_STATE = 7;
 const size_t FOLDER_TYPE = 0;
 const uptr_t markersArray[][NB_FOLDER_STATE] =
 {
-    {SC_MARKNUM_FOLDEROPEN, SC_MARKNUM_FOLDER, SC_MARKNUM_FOLDERSUB, SC_MARKNUM_FOLDERTAIL, SC_MARKNUM_FOLDEREND,        SC_MARKNUM_FOLDEROPENMID,     SC_MARKNUM_FOLDERMIDTAIL},
-    {SC_MARK_MINUS,         SC_MARK_PLUS,      SC_MARK_EMPTY,        SC_MARK_EMPTY,         SC_MARK_EMPTY,               SC_MARK_EMPTY,                SC_MARK_EMPTY},
-    {SC_MARK_ARROWDOWN,     SC_MARK_ARROW,     SC_MARK_EMPTY,        SC_MARK_EMPTY,         SC_MARK_EMPTY,               SC_MARK_EMPTY,                SC_MARK_EMPTY},
-    {SC_MARK_CIRCLEMINUS,   SC_MARK_CIRCLEPLUS,SC_MARK_VLINE,        SC_MARK_LCORNERCURVE,  SC_MARK_CIRCLEPLUSCONNECTED, SC_MARK_CIRCLEMINUSCONNECTED, SC_MARK_TCORNERCURVE},
-    {SC_MARK_BOXMINUS,      SC_MARK_BOXPLUS,   SC_MARK_VLINE,        SC_MARK_LCORNER,       SC_MARK_BOXPLUSCONNECTED,    SC_MARK_BOXMINUSCONNECTED,    SC_MARK_TCORNER}
+    { SC_MARKNUM_FOLDEROPEN, SC_MARKNUM_FOLDER, SC_MARKNUM_FOLDERSUB, SC_MARKNUM_FOLDERTAIL, SC_MARKNUM_FOLDEREND, SC_MARKNUM_FOLDEROPENMID, SC_MARKNUM_FOLDERMIDTAIL },
+    { SC_MARK_MINUS, SC_MARK_PLUS, SC_MARK_EMPTY, SC_MARK_EMPTY, SC_MARK_EMPTY, SC_MARK_EMPTY, SC_MARK_EMPTY },
+    { SC_MARK_ARROWDOWN, SC_MARK_ARROW, SC_MARK_EMPTY, SC_MARK_EMPTY, SC_MARK_EMPTY, SC_MARK_EMPTY, SC_MARK_EMPTY },
+    { SC_MARK_CIRCLEMINUS, SC_MARK_CIRCLEPLUS, SC_MARK_VLINE, SC_MARK_LCORNERCURVE, SC_MARK_CIRCLEPLUSCONNECTED, SC_MARK_CIRCLEMINUSCONNECTED, SC_MARK_TCORNERCURVE },
+    { SC_MARK_BOXMINUS, SC_MARK_BOXPLUS, SC_MARK_VLINE, SC_MARK_LCORNER, SC_MARK_BOXPLUSCONNECTED, SC_MARK_BOXMINUSCONNECTED, SC_MARK_TCORNER }
 };
 
 struct ScEditor : public Editor
@@ -406,22 +406,22 @@ struct ScEditor : public Editor
 private:
     int m_width;
     int m_height;
-    
+
 public:
-    
+
     virtual ~ScEditor()
     {
     }
-    
+
     void Update()
     {
         Tick();
     }
-    
+
     void Render()
     {
         PRectangle rcPaint = GetClientRectangle();
-        
+
         AutoSurface surfaceWindow(this);
         if (surfaceWindow)
         {
@@ -429,8 +429,8 @@ public:
             surfaceWindow->Release();
         }
     }
-    
-    void SetAStyle(int style, ColourDesired fore, ColourDesired back=0xFFFFFFFF, int size=-1, const char *face=0)
+
+    void SetAStyle(int style, ColourDesired fore, ColourDesired back = 0xFFFFFFFF, int size = -1, const char *face = 0)
     {
         SendCommand(SCI_STYLESETFORE, uptr_t(style), fore.AsLong());
         SendCommand(SCI_STYLESETBACK, uptr_t(style), back.AsLong());
@@ -439,279 +439,279 @@ public:
         if (face)
             SendCommand(SCI_STYLESETFONT, uptr_t(style), reinterpret_cast<sptr_t>(face));
     }
-    
-	void Initialise()
-	{
+
+    void Initialise()
+    {
         wMain = WindowID(1);
         wMargin = WindowID(2);
-        
+
         // We need to disable buffered draw so Scintilla doesn't keep a yoffset of 0
         // when rendering text, thinking we are blitting through a pixmap. We want a
         // single draw list for efficiency.
         view.bufferedDraw = false;
-        
+
         SendCommand(SCI_SETLEXER, SCLEX_CPP);
         SendCommand(SCI_SETSTYLEBITS, 7);
-        
+
         SendCommand(SCI_SETKEYWORDS, 0,
-                   reinterpret_cast<sptr_t>(glslKeyword));
+                    reinterpret_cast<sptr_t>(glslKeyword));
         SendCommand(SCI_SETKEYWORDS, 1,
-                   reinterpret_cast<sptr_t>(glslType));
+                    reinterpret_cast<sptr_t>(glslType));
         SendCommand(SCI_SETKEYWORDS, 2,
-                   reinterpret_cast<sptr_t>(glslBuiltin));
+                    reinterpret_cast<sptr_t>(glslBuiltin));
         SendCommand(SCI_SETSTYLEBITS, 7);
-        
+
         SendCommand(SCI_SETPROPERTY, reinterpret_cast<uptr_t>("fold"), reinterpret_cast<sptr_t>("1"));
-        
+
         int fontSize = 24;
-        
+
         const char* fontName = "data/font/source_code_pro/SourceCodePro-Medium.ttf";
-        
+
         // Set up the global default style. These attributes are used wherever no explicit choices are made.
-        SetAStyle(STYLE_DEFAULT,     0xFFFFFFFF, 0xD0000000, fontSize, fontName);
+        SetAStyle(STYLE_DEFAULT, 0xFFFFFFFF, 0xD0000000, fontSize, fontName);
         SendCommand(SCI_STYLECLEARALL);	// Copies global style to all others
         SetAStyle(STYLE_INDENTGUIDE, 0xFFC0C0C0, 0xD0000000, fontSize, fontName);
-        SetAStyle(STYLE_BRACELIGHT,  0xFF00FF00, 0xD0000000, fontSize, fontName);
-        SetAStyle(STYLE_BRACEBAD,    0xFF0000FF, 0xD0000000, fontSize, fontName);
-        SetAStyle(STYLE_LINENUMBER,  0xFFC0C0C0, 0xD0333333, fontSize, fontName);
-        SendCommand(SCI_SETFOLDMARGINCOLOUR,   1, 0xD01A1A1A);
+        SetAStyle(STYLE_BRACELIGHT, 0xFF00FF00, 0xD0000000, fontSize, fontName);
+        SetAStyle(STYLE_BRACEBAD, 0xFF0000FF, 0xD0000000, fontSize, fontName);
+        SetAStyle(STYLE_LINENUMBER, 0xFFC0C0C0, 0xD0333333, fontSize, fontName);
+        SendCommand(SCI_SETFOLDMARGINCOLOUR, 1, 0xD01A1A1A);
         SendCommand(SCI_SETFOLDMARGINHICOLOUR, 1, 0xD01A1A1A);
-        SendCommand(SCI_SETSELBACK,            1, 0xD0CC9966);
-        SendCommand(SCI_SETCARETFORE,          0xFFFFFFFF, 0);
-        SendCommand(SCI_SETCARETLINEVISIBLE,   1);
-        SendCommand(SCI_SETCARETLINEBACK,      0xFFFFFFFF);
+        SendCommand(SCI_SETSELBACK, 1, 0xD0CC9966);
+        SendCommand(SCI_SETCARETFORE, 0xFFFFFFFF, 0);
+        SendCommand(SCI_SETCARETLINEVISIBLE, 1);
+        SendCommand(SCI_SETCARETLINEBACK, 0xFFFFFFFF);
         SendCommand(SCI_SETCARETLINEBACKALPHA, 0x20);
-        
+
         SendCommand(SCI_SETMARGINWIDTHN, 0, 44);//Calculate correct width
         SendCommand(SCI_SETMARGINWIDTHN, 1, 20);//Calculate correct width
         SendCommand(SCI_SETMARGINMASKN, 1, SC_MASK_FOLDERS);//Calculate correct width
-        
-        for (unsigned int i = 0 ; i < NB_FOLDER_STATE ; i++)
+
+        for (unsigned int i = 0; i < NB_FOLDER_STATE; i++)
         {
             SendCommand(SCI_MARKERDEFINE, markersArray[FOLDER_TYPE][i], sptr_t(markersArray[4][i]));
             SendCommand(SCI_MARKERSETBACK, markersArray[FOLDER_TYPE][i], 0xFF6A6A6A);
             SendCommand(SCI_MARKERSETFORE, markersArray[FOLDER_TYPE][i], 0xFF333333);
         }
-        
+
         SendCommand(SCI_SETUSETABS, 1);
         SendCommand(SCI_SETTABWIDTH, 4);
         SendCommand(SCI_SETINDENTATIONGUIDES, SC_IV_REAL);
-        
-        SetAStyle(SCE_C_DEFAULT,      0xFFFFFFFF, 0xD0000000, fontSize, fontName);
-        SetAStyle(SCE_C_WORD,         0xFF0066FF, 0xD0000000);
-        SetAStyle(SCE_C_WORD2,        0xFFFFFF00, 0xD0000000);
+
+        SetAStyle(SCE_C_DEFAULT, 0xFFFFFFFF, 0xD0000000, fontSize, fontName);
+        SetAStyle(SCE_C_WORD, 0xFF0066FF, 0xD0000000);
+        SetAStyle(SCE_C_WORD2, 0xFFFFFF00, 0xD0000000);
         //WTF??? SetAStyle(SCE_C_GLOBALCLASS, 0xFF0000FF, 0xFF000000);
         SetAStyle(SCE_C_PREPROCESSOR, 0xFFC0C0C0, 0xD0000000);
-        SetAStyle(SCE_C_NUMBER,       0xFF0080FF, 0xD0000000);
-        SetAStyle(SCE_C_OPERATOR,     0xFF00CCFF, 0xD0000000);
-        SetAStyle(SCE_C_COMMENT,      0xFF00FF00, 0xD0000000);
-        SetAStyle(SCE_C_COMMENTLINE,  0xFF00FF00, 0xD0000000);
-        
-        const char* text = "precision highp float;\n"
-        "\n"
-        "varying vec3 n;\n"
-        "varying vec2 uv;\n"
-        "\n"
-        "uniform sampler2D tex;\n"
-        "\n"
-        "#pragma include \"noise2D.glsl\" // for snoise(vec2 v)\n"
-        "#pragma include \"noise3D.glsl\" //  for snoise(vec3 v)\n"
-        "#pragma include \"noise4D.glsl\" //  for snoise(vec4 v)\n"
-        "#pragma include \"cellular2D.glsl\" //  for cellular(vec2 P)\n"
-        "#pragma include \"cellular2x2.glsl\" //  for cellular2x2(vec2 P)\n"
-        "#pragma include \"cellular2x2x2.glsl\" //  for cellular2x2x2(vec3 P)\n"
-        "#pragma include \"cellular3D.glsl\" //  cellular(vec3 P)\n"
-        "\n"
-        "void main(void)\n"
-        "{\n"
-        "\tvec3 eyeSpaceLightDirection = vec3(0.0,0.0,1.0);\n"
-        "\tfloat diffuse = max(0.0,dot(normalize(n),eyeSpaceLightDirection));\n"
-        "\tgl_FragColor = vec4(texture2D(tex,uv).xyz*diffuse,1.0);\n"
-        "}";
+        SetAStyle(SCE_C_NUMBER, 0xFF0080FF, 0xD0000000);
+        SetAStyle(SCE_C_OPERATOR, 0xFF00CCFF, 0xD0000000);
+        SetAStyle(SCE_C_COMMENT, 0xFF00FF00, 0xD0000000);
+        SetAStyle(SCE_C_COMMENTLINE, 0xFF00FF00, 0xD0000000);
 
-        
+        const char* text = "precision highp float;\n"
+            "\n"
+            "varying vec3 n;\n"
+            "varying vec2 uv;\n"
+            "\n"
+            "uniform sampler2D tex;\n"
+            "\n"
+            "#pragma include \"noise2D.glsl\" // for snoise(vec2 v)\n"
+            "#pragma include \"noise3D.glsl\" //  for snoise(vec3 v)\n"
+            "#pragma include \"noise4D.glsl\" //  for snoise(vec4 v)\n"
+            "#pragma include \"cellular2D.glsl\" //  for cellular(vec2 P)\n"
+            "#pragma include \"cellular2x2.glsl\" //  for cellular2x2(vec2 P)\n"
+            "#pragma include \"cellular2x2x2.glsl\" //  for cellular2x2x2(vec3 P)\n"
+            "#pragma include \"cellular3D.glsl\" //  cellular(vec3 P)\n"
+            "\n"
+            "void main(void)\n"
+            "{\n"
+            "\tvec3 eyeSpaceLightDirection = vec3(0.0,0.0,1.0);\n"
+            "\tfloat diffuse = max(0.0,dot(normalize(n),eyeSpaceLightDirection));\n"
+            "\tgl_FragColor = vec4(texture2D(tex,uv).xyz*diffuse,1.0);\n"
+            "}";
+
+
         SendCommand(SCI_ADDTEXT, strlen(text),
-                   reinterpret_cast<sptr_t>(static_cast<const char *>(text)));
-	}
-    
+                    reinterpret_cast<sptr_t>(static_cast<const char *>(text)));
+    }
+
     void Resize(int width, int height)
     {
-        m_width  = width;
+        m_width = width;
         m_height = height;
-        
+
         // GW-TODO: Likely need to adjust a member var on wMain and make
         // GetClientRectangle return that value.
-        
+
         //float w1 = m_width  - 80.0f;
         //float h1 = m_height - 80.0f;/*80=30+20+30*/
-        
+
         //SetSize(w1 * 0.7f, h1 * 0.7f);
     }
 
-	void SetVerticalScrollPos()
-	{
-	}
+    void SetVerticalScrollPos()
+    {
+    }
 
-	void SetHorizontalScrollPos()
-	{
-	}
+    void SetHorizontalScrollPos()
+    {
+    }
 
-	bool ModifyScrollBars(int nMax, int nPage)
-	{
-		(void)nMax;
-		(void)nPage;
-		return false;
-	}
+    bool ModifyScrollBars(int nMax, int nPage)
+    {
+        (void)nMax;
+        (void)nPage;
+        return false;
+    }
 
-	void ClaimSelection()
-	{
-	}
+    void ClaimSelection()
+    {
+    }
 
-	void Copy()
-	{
-	}
+    void Copy()
+    {
+    }
 
-	void Paste()
-	{
-	}
+    void Paste()
+    {
+    }
 
-	void NotifyChange()
-	{
-	}
+    void NotifyChange()
+    {
+    }
 
-	void NotifyParent(SCNotification scn)
-	{
-		(void)scn;
-	}
+    void NotifyParent(SCNotification scn)
+    {
+        (void)scn;
+    }
 
-	void CopyToClipboard(const SelectionText& selectedText)
-	{
-		(void)selectedText;
-	}
+    void CopyToClipboard(const SelectionText& selectedText)
+    {
+        (void)selectedText;
+    }
 
-	void SetMouseCapture(bool on)
-	{
-		(void)on;
-	}
+    void SetMouseCapture(bool on)
+    {
+        (void)on;
+    }
 
-	bool HaveMouseCapture()
-	{
-		return false;
-	}
+    bool HaveMouseCapture()
+    {
+        return false;
+    }
 
-	sptr_t DefWndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam)
-	{
+    sptr_t DefWndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam)
+    {
         switch (iMessage)
         {
-            default:
-                break;
+        default:
+            break;
 
-            case SCI_SETLEXER:
-                DocumentLexState()->SetLexer(static_cast<uptr_t>(wParam));
-                break;
-                
-            case SCI_GETLEXER:
-                return DocumentLexState()->m_lexLanguage;
-                
-            case SCI_COLOURISE:
-                if (DocumentLexState()->m_lexLanguage == SCLEX_CONTAINER)
-                {
-                    pdoc->ModifiedAt(static_cast<int>(wParam));
-                    NotifyStyleToNeeded((lParam == -1) ? pdoc->Length() : static_cast<int>(lParam));
-                }
-                else
-                    DocumentLexState()->Colourise(static_cast<int>(wParam), static_cast<int>(lParam));
+        case SCI_SETLEXER:
+            DocumentLexState()->SetLexer(static_cast<uptr_t>(wParam));
+            break;
 
-                Redraw();
-                break;
-                
-            case SCI_SETPROPERTY:
-                DocumentLexState()->PropSet(reinterpret_cast<const char*>(wParam),
-                                            reinterpret_cast<const char*>(lParam));
-                break;
-                
-            case SCI_GETPROPERTY:
-                return StringResult(lParam, DocumentLexState()->PropGet(reinterpret_cast<const char*>(wParam)));
-                
-            case SCI_GETPROPERTYEXPANDED:
-                return DocumentLexState()->PropGetExpanded(reinterpret_cast<const char*>(wParam),
-                                                           reinterpret_cast<char*>(lParam));
-                
-            case SCI_GETPROPERTYINT:
-                return DocumentLexState()->PropGetInt(reinterpret_cast<const char*>(wParam), static_cast<int>(lParam));
-                
-            case SCI_SETKEYWORDS:
-                DocumentLexState()->SetWordList(int(wParam), reinterpret_cast<const char*>(lParam));
-                break;
-                
-            case SCI_SETLEXERLANGUAGE:
-                DocumentLexState()->SetLexerLanguage(reinterpret_cast<const char*>(lParam));
-                break;
-                
-            case SCI_GETLEXERLANGUAGE:
-                return StringResult(lParam, DocumentLexState()->GetName());
-                
-            case SCI_PRIVATELEXERCALL:
-                return reinterpret_cast<sptr_t>(DocumentLexState()->PrivateCall(int(wParam), reinterpret_cast<void*>(lParam)));
-                
-            case SCI_GETSTYLEBITSNEEDED:
-                return 8;
-                
-            case SCI_PROPERTYNAMES:
-                return StringResult(lParam, DocumentLexState()->PropertyNames());
-                
-            case SCI_PROPERTYTYPE:
-                return DocumentLexState()->PropertyType(reinterpret_cast<const char*>(wParam));
-                
-            case SCI_DESCRIBEPROPERTY:
-                return StringResult(lParam, DocumentLexState()->DescribeProperty(reinterpret_cast<const char*>(wParam)));
-                
-            case SCI_DESCRIBEKEYWORDSETS:
-                return StringResult(lParam, DocumentLexState()->DescribeWordListSets());
-                
-            case SCI_GETLINEENDTYPESSUPPORTED:
-                return DocumentLexState()->LineEndTypesSupported();
-                
-            case SCI_ALLOCATESUBSTYLES:
-                return DocumentLexState()->AllocateSubStyles(int(wParam), int(lParam));
-                
-            case SCI_GETSUBSTYLESSTART:
-                return DocumentLexState()->SubStylesStart(int(wParam));
-                
-            case SCI_GETSUBSTYLESLENGTH:
-                return DocumentLexState()->SubStylesLength(int(wParam));
-                
-            case SCI_GETSTYLEFROMSUBSTYLE:
-                return DocumentLexState()->StyleFromSubStyle(int(wParam));
-                
-            case SCI_GETPRIMARYSTYLEFROMSTYLE:
-                return DocumentLexState()->PrimaryStyleFromStyle(int(wParam));
-                
-            case SCI_FREESUBSTYLES:
-                DocumentLexState()->FreeSubStyles();
-                break;
-                
-            case SCI_SETIDENTIFIERS:
-                DocumentLexState()->SetIdentifiers(int(wParam), reinterpret_cast<const char*>(lParam));
-                break;
-                
-            case SCI_DISTANCETOSECONDARYSTYLES:
-                return DocumentLexState()->DistanceToSecondaryStyles();
-                
-            case SCI_GETSUBSTYLEBASES:
-                return StringResult(lParam, DocumentLexState()->GetSubStyleBases());
+        case SCI_GETLEXER:
+            return DocumentLexState()->m_lexLanguage;
+
+        case SCI_COLOURISE:
+            if (DocumentLexState()->m_lexLanguage == SCLEX_CONTAINER)
+            {
+                pdoc->ModifiedAt(static_cast<int>(wParam));
+                NotifyStyleToNeeded((lParam == -1) ? pdoc->Length() : static_cast<int>(lParam));
+            }
+            else
+                DocumentLexState()->Colourise(static_cast<int>(wParam), static_cast<int>(lParam));
+
+            Redraw();
+            break;
+
+        case SCI_SETPROPERTY:
+            DocumentLexState()->PropSet(reinterpret_cast<const char*>(wParam),
+                                        reinterpret_cast<const char*>(lParam));
+            break;
+
+        case SCI_GETPROPERTY:
+            return StringResult(lParam, DocumentLexState()->PropGet(reinterpret_cast<const char*>(wParam)));
+
+        case SCI_GETPROPERTYEXPANDED:
+            return DocumentLexState()->PropGetExpanded(reinterpret_cast<const char*>(wParam),
+                                                       reinterpret_cast<char*>(lParam));
+
+        case SCI_GETPROPERTYINT:
+            return DocumentLexState()->PropGetInt(reinterpret_cast<const char*>(wParam), static_cast<int>(lParam));
+
+        case SCI_SETKEYWORDS:
+            DocumentLexState()->SetWordList(int(wParam), reinterpret_cast<const char*>(lParam));
+            break;
+
+        case SCI_SETLEXERLANGUAGE:
+            DocumentLexState()->SetLexerLanguage(reinterpret_cast<const char*>(lParam));
+            break;
+
+        case SCI_GETLEXERLANGUAGE:
+            return StringResult(lParam, DocumentLexState()->GetName());
+
+        case SCI_PRIVATELEXERCALL:
+            return reinterpret_cast<sptr_t>(DocumentLexState()->PrivateCall(int(wParam), reinterpret_cast<void*>(lParam)));
+
+        case SCI_GETSTYLEBITSNEEDED:
+            return 8;
+
+        case SCI_PROPERTYNAMES:
+            return StringResult(lParam, DocumentLexState()->PropertyNames());
+
+        case SCI_PROPERTYTYPE:
+            return DocumentLexState()->PropertyType(reinterpret_cast<const char*>(wParam));
+
+        case SCI_DESCRIBEPROPERTY:
+            return StringResult(lParam, DocumentLexState()->DescribeProperty(reinterpret_cast<const char*>(wParam)));
+
+        case SCI_DESCRIBEKEYWORDSETS:
+            return StringResult(lParam, DocumentLexState()->DescribeWordListSets());
+
+        case SCI_GETLINEENDTYPESSUPPORTED:
+            return DocumentLexState()->LineEndTypesSupported();
+
+        case SCI_ALLOCATESUBSTYLES:
+            return DocumentLexState()->AllocateSubStyles(int(wParam), int(lParam));
+
+        case SCI_GETSUBSTYLESSTART:
+            return DocumentLexState()->SubStylesStart(int(wParam));
+
+        case SCI_GETSUBSTYLESLENGTH:
+            return DocumentLexState()->SubStylesLength(int(wParam));
+
+        case SCI_GETSTYLEFROMSUBSTYLE:
+            return DocumentLexState()->StyleFromSubStyle(int(wParam));
+
+        case SCI_GETPRIMARYSTYLEFROMSTYLE:
+            return DocumentLexState()->PrimaryStyleFromStyle(int(wParam));
+
+        case SCI_FREESUBSTYLES:
+            DocumentLexState()->FreeSubStyles();
+            break;
+
+        case SCI_SETIDENTIFIERS:
+            DocumentLexState()->SetIdentifiers(int(wParam), reinterpret_cast<const char*>(lParam));
+            break;
+
+        case SCI_DISTANCETOSECONDARYSTYLES:
+            return DocumentLexState()->DistanceToSecondaryStyles();
+
+        case SCI_GETSUBSTYLEBASES:
+            return StringResult(lParam, DocumentLexState()->GetSubStyleBases());
         }
-        
+
         // GW: These are commands\events not handled by Scintilla Editor
         // Do not call into WndProc or it'll be recursive overflow.
         return 0;//WndProc(iMessage, wParam, lParam);
-	}
-    
+    }
+
     sptr_t SendCommand(unsigned int iMessage, uptr_t wParam = 0, sptr_t lParam = 0)
     {
         return WndProc(iMessage, wParam, lParam);
     }
-    
+
     LexState* DocumentLexState()
     {
         if (!pdoc->pli)
@@ -725,12 +725,12 @@ public:
 
 ScEditor* ScEditor_create(int width, int height)
 {
-	ScEditor* ed = new ScEditor;
-    
+    ScEditor* ed = new ScEditor;
+
     ed->Initialise();
     ScEditor_resize(ed, width, height);
 
-	return ed;
+    return ed;
 }
 
 void ScEditor_resize(ScEditor* editor, int width, int height)
