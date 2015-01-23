@@ -507,9 +507,30 @@ public:
         SetAStyle(SCE_C_COMMENT,      0xFF00FF00, 0xD0000000);
         SetAStyle(SCE_C_COMMENTLINE,  0xFF00FF00, 0xD0000000);
         
-        const char* text = "Hello World! inout \nstruct gl_MaxTessControlTotalOutputComponents testing!";
+        const char* text = "precision highp float;\n"
+        "\n"
+        "varying vec3 n;\n"
+        "varying vec2 uv;\n"
+        "\n"
+        "uniform sampler2D tex;\n"
+        "\n"
+        "#pragma include \"noise2D.glsl\" // for snoise(vec2 v)\n"
+        "#pragma include \"noise3D.glsl\" //  for snoise(vec3 v)\n"
+        "#pragma include \"noise4D.glsl\" //  for snoise(vec4 v)\n"
+        "#pragma include \"cellular2D.glsl\" //  for cellular(vec2 P)\n"
+        "#pragma include \"cellular2x2.glsl\" //  for cellular2x2(vec2 P)\n"
+        "#pragma include \"cellular2x2x2.glsl\" //  for cellular2x2x2(vec3 P)\n"
+        "#pragma include \"cellular3D.glsl\" //  cellular(vec3 P)\n"
+        "\n"
+        "void main(void)\n"
+        "{\n"
+        "\tvec3 eyeSpaceLightDirection = vec3(0.0,0.0,1.0);\n"
+        "\tfloat diffuse = max(0.0,dot(normalize(n),eyeSpaceLightDirection));\n"
+        "\tgl_FragColor = vec4(texture2D(tex,uv).xyz*diffuse,1.0);\n"
+        "}";
+
         
-        SendCommand(SCI_INSERTTEXT, 0,
+        SendCommand(SCI_ADDTEXT, strlen(text),
                    reinterpret_cast<sptr_t>(static_cast<const char *>(text)));
 	}
     
