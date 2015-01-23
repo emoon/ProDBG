@@ -122,9 +122,16 @@ static ProgramInfo s_programs[] =
 
 	{
 		(ProgramAttribs*)&posTexColorAttribs,
+		OBJECT_DIR "/_generated/data/shaders/ui_pos_tex_r_color/vs_pos_tex_r_color.vs",
+		OBJECT_DIR "/_generated/data/shaders/ui_pos_tex_r_color/fs_pos_tex_r_color.fs",
+	},
+
+	{
+		(ProgramAttribs*)&posTexColorAttribs,
 		OBJECT_DIR "/_generated/data/shaders/imgui/vs_imgui.vs",
 		OBJECT_DIR "/_generated/data/shaders/imgui/fs_imgui.fs",
 	},
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -132,6 +139,7 @@ static ProgramInfo s_programs[] =
 enum
 {
 	Program_PosColor,
+	Program_PosTexRColor,
 	Program_PosTexColor,
 };
 
@@ -188,6 +196,16 @@ void UIRender_posTexColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t of
 	bgfx::setTexture(0, s_tex, texHandle);
 	bgfx::setVertexBuffer(vertexBuffer, offset, count);
 	bgfx::setProgram(s_programs[Program_PosTexColor].handle);
+	bgfx::submit(0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIRender_posTexRColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle)
+{
+	bgfx::setTexture(0, s_tex, texHandle);
+	bgfx::setVertexBuffer(vertexBuffer, offset, count);
+	bgfx::setProgram(s_programs[Program_PosTexRColor].handle);
 	bgfx::submit(0);
 }
 

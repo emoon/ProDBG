@@ -666,7 +666,7 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
                    | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
                    | BGFX_STATE_MSAA);
 
-	UIRender_posTexColor(&tvb, 0, realLength * 6, realFont->ftex);
+	UIRender_posTexRColor(&tvb, 0, realLength * 6, realFont->ftex);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
