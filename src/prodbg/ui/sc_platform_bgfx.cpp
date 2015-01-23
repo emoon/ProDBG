@@ -212,13 +212,13 @@ struct ImageData
 
 void UpdateImageData(ImageData& image, int w, int h, const unsigned char* data)
 {
-    const uint32_t byteSize = w * h * sizeof(unsigned char) * 4; // RGBA image
+    const int byteSize = w * h * (int)sizeof(unsigned char) * 4; // RGBA image
 
     if (!image.initialised)
         image.tex = bgfx::createTexture2D((uint16_t)w, (uint16_t)h, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT, 0);
 
-    const bgfx::Memory* mem = bgfx::alloc(byteSize);
-    memcpy(mem->data, data, byteSize);
+    const bgfx::Memory* mem = bgfx::alloc((uint32_t)byteSize);
+    memcpy(mem->data, data, (uint32_t)byteSize);
 
     image.initialised = true;
     image.scalex = 1.0f / (float)w;

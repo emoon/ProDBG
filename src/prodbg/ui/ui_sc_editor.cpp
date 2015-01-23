@@ -39,7 +39,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static char * breakpoint_xpm[] = {
+static const char* breakpoint_xpm[] = {
     "16 16 72 1",
     " 	c None",
     ".	c #772B1A",
@@ -595,8 +595,8 @@ public:
         RGBAImage bpImage(xpm);
 
         SendCommand(SCI_SETMARGINWIDTHN, 1, bpImage.GetWidth());
-        SendCommand(SCI_RGBAIMAGESETWIDTH, bpImage.GetWidth());
-        SendCommand(SCI_RGBAIMAGESETHEIGHT, bpImage.GetHeight());
+        SendCommand(SCI_RGBAIMAGESETWIDTH, (uptr_t)bpImage.GetWidth());
+        SendCommand(SCI_RGBAIMAGESETHEIGHT, (uptr_t)bpImage.GetHeight());
 
         SendCommand(SCI_MARKERDEFINERGBAIMAGE, 0, sptr_t(bpImage.Pixels()));
 
