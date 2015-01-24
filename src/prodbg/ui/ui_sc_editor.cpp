@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <assert.h>
 
 #include "scintilla/include/Platform.h"
 #include "scintilla/include/Scintilla.h"
@@ -36,6 +37,81 @@
 #include "scintilla/src/MarginView.h"
 #include "scintilla/src/EditView.h"
 #include "scintilla/src/Editor.h"
+
+#include "tinyxml2/tinyxml2.h"
+
+bool htmlToColour(ColourDesired& colour, const char* html)
+{
+#if 1 // Built In
+    colour.Set(html);
+    colour.Set(colour.AsLong() | (0xFF << 24)); // ColourDesired is lame in that it never sets the alpha channel..
+    return true;
+#else
+    const char* start = html;
+    if (*start == '#')
+        ++start;
+
+    const size_t size = strlen(start);
+    if (size == 6)
+    {
+        // 8 bits per channel
+        char* end;
+        char parse[3];
+        parse[2] = '\0';
+
+        // Red
+        parse[0] = start[0];
+        parse[1] = start[1];
+        unsigned int r = strtol(parse, &end, 16);
+
+        // Green
+        parse[0] = start[2];
+        parse[1] = start[3];
+        unsigned int g = strtol(parse, &end, 16);
+
+        // Blue
+        parse[0] = start[4];
+        parse[1] = start[5];
+        unsigned int b = strtol(parse, &end, 16);
+
+        // ColourDesired is lame in that it never sets the alpha channel..
+        long result = r | (g << 8) | (b << 16) | (0xFF << 24);
+        colour.Set(result);
+        return true;
+    }
+    else if (size == 3)
+    {
+        // 4 bits per channel
+        char* end;
+        char parse[2];
+        parse[2] = '\0';
+
+        // Red
+        parse[0] = start[0];
+
+        unsigned int r = strtol(parse, &end, 16);
+        r = r * 16 + r;
+
+        // Green
+        parse[0] = start[1];
+        unsigned int g = strtol(parse, &end, 16);
+        g = g * 16 + g;
+
+        // Blue
+        parse[0] = start[2];
+        unsigned int b = strtol(parse, &end, 16);
+        b = b * 16 + b;
+
+        // ColourDesired is lame in that it never sets the alpha channel..
+        long result = r | (g << 8) | (b << 16) | (0xFF << 24);
+        colour.Set(result);
+        return true;
+    }
+    
+    // Invalid color
+    return false;
+#endif
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -481,6 +557,63 @@ const char* LexState::GetSubStyleBases()
     return "";
 }
 
+// GW-WIP: For now we directly parse and translate from Eclipse color themes.
+class ScEclipseTheme
+{
+public:
+    ScEclipseTheme();
+    ~ScEclipseTheme();
+
+    bool Load(const char* themeName);
+    void Apply(ScEditor* editor, int fontSize = -1, const char* fontName = nullptr);
+
+private:
+    bool LoadColour(ColourDesired& colour, const char* name, tinyxml2::XMLElement* element);
+
+private:
+    char m_themeName[64];
+    unsigned int m_themeId;
+
+    ColourDesired m_searchResultIndication;
+    ColourDesired m_filteredSearchResultIndication;
+    ColourDesired m_occurrenceIndication;
+    ColourDesired m_writeOccurrenceIndication;
+    ColourDesired m_findScope;
+    ColourDesired m_sourceHoverBackground;
+    ColourDesired m_singleLineComment;
+    ColourDesired m_multiLineComment;
+    ColourDesired m_commentTaskTag;
+    ColourDesired m_javadoc;
+    ColourDesired m_javadocLink;
+    ColourDesired m_javadocTag;
+    ColourDesired m_javadocKeyword;
+    ColourDesired m_class;
+    ColourDesired m_interface;
+    ColourDesired m_method;
+    ColourDesired m_methodDeclaration;
+    ColourDesired m_bracket;
+    ColourDesired m_number;
+    ColourDesired m_string;
+    ColourDesired m_operator;
+    ColourDesired m_keyword;
+    ColourDesired m_annotation;
+    ColourDesired m_staticMethod;
+    ColourDesired m_localVariable;
+    ColourDesired m_localVariableDeclaration;
+    ColourDesired m_field;
+    ColourDesired m_staticField;
+    ColourDesired m_staticFinalField;
+    ColourDesired m_deprecatedMember;
+    ColourDesired m_background;
+    ColourDesired m_currentLine;
+    ColourDesired m_foreground;
+    ColourDesired m_lineNumber;
+    ColourDesired m_selectionBackground;
+    ColourDesired m_selectionForeground;
+};
+
+
+
 struct ScEditor : public Editor
 {
 private:
@@ -510,7 +643,7 @@ public:
         }
     }
 
-    void SetAStyle(int style, ColourDesired fore, ColourDesired back = 0xFFFFFFFF, int size = -1, const char *face = 0)
+    void SetAStyle(int style, ColourDesired fore, ColourDesired back = 0xFFFFFFFF, int size = -1, const char* face = nullptr)
     {
         SendCommand(SCI_STYLESETFORE, uptr_t(style), fore.AsLong());
         SendCommand(SCI_STYLESETBACK, uptr_t(style), back.AsLong());
@@ -538,66 +671,28 @@ public:
         SendCommand(SCI_SETKEYWORDS, 2, reinterpret_cast<sptr_t>(glslBuiltin));
         SendCommand(SCI_SETSTYLEBITS, 7);
 
-        int fontSize = 24;
+        ScEclipseTheme scTheme;
+        //bool result = scTheme.Load("data/themes/theme-1.xml");    // Oblivion
+        //bool result = scTheme.Load("data/themes/theme-118.xml");  // Wombat
+        bool result = scTheme.Load("data/themes/theme-383.xml");  // Sunburst
+        //bool result = scTheme.Load("data/themes/theme-3796.xml"); // Ambients
+        assert(result);
 
-        const char* fontName1 = "data/font/source_code_pro/SourceCodePro-Medium.ttf";
-        const char* fontName2 = "data/font/entypo.ttf";
+        const int fontSize = 24;
+        const char* fontName = "data/font/source_code_pro/SourceCodePro-Medium.ttf";
 
-        // Set up the global default style. These attributes are used wherever no explicit choices are made.
-        SetAStyle(STYLE_DEFAULT, 0xFFFFFFFF, 0xD0000000, fontSize, fontName1);
-        SendCommand(SCI_STYLECLEARALL);	// Copies global style to all others
-        SetAStyle(STYLE_INDENTGUIDE, 0xFFC0C0C0, 0xD0000000, fontSize, fontName1);
-        SetAStyle(STYLE_BRACELIGHT, 0xFF00FF00, 0xD0000000, fontSize, fontName2);
-        SetAStyle(STYLE_BRACEBAD, 0xFF0000FF, 0xD0000000, fontSize, fontName1);
-        SetAStyle(STYLE_LINENUMBER, 0xFFC0C0C0, 0xD0333333, fontSize, fontName1);
-
-        SetAStyle(SCE_C_DEFAULT, 0xFFFFFFFF, 0xD0000000, fontSize, fontName1);
-        SetAStyle(SCE_C_STRING, 0xFF00FF00, 0xD0000000);// GW-TODO: Pick a good color
-        SetAStyle(SCE_C_IDENTIFIER, 0xFF0066FF, 0xD0000000);
-        SetAStyle(SCE_C_CHARACTER, 0xFF0066FF, 0xD0000000); // GW-TODO: Pick a good color
-        SetAStyle(SCE_C_WORD, 0xFF0066FF, 0xD0000000);
-        SetAStyle(SCE_C_WORD2, 0xFFFFFF00, 0xD0000000);
-        SetAStyle(SCE_C_GLOBALCLASS, 0xFF0000FF, 0xD0000000);
-        SetAStyle(SCE_C_PREPROCESSOR, 0xFFC0C0C0, 0xD0000000);
-        SetAStyle(SCE_C_NUMBER, 0xFF0080FF, 0xD0000000);
-        SetAStyle(SCE_C_OPERATOR, 0xFF00CCFF, 0xD0000000);
-        SetAStyle(SCE_C_COMMENT, 0xFF00FF00, 0xD0000000);
-        SetAStyle(SCE_C_COMMENTLINE, 0xFF00FF00, 0xD0000000);
-        SetAStyle(SCE_C_COMMENTDOC, 0xFF00FF00, 0xD0000000);
-        //SCE_C_COMMENTDOCKEYWORD
-        //SCE_C_COMMENTDOCKEYWORDERROR
-
-       // text->StyleSetBold(wxSTC_C_WORD, true);
-       // text->StyleSetBold(wxSTC_C_WORD2, true);
-        //text->StyleSetBold(wxSTC_C_COMMENTDOCKEYWORD, true);
-
-
-
-        SendCommand(SCI_SETSELBACK, 1, 0xD0CC9966);
-        SendCommand(SCI_SETCARETFORE, 0xFFFFFFFF, 0);
-        SendCommand(SCI_SETCARETLINEVISIBLE, 1);
-        SendCommand(SCI_SETCARETLINEBACK, 0xFFFFFFFF);
-        SendCommand(SCI_SETCARETLINEBACKALPHA, 0x20);
-
-        SendCommand(SCI_SETUSETABS, 1);
-        SendCommand(SCI_SETTABWIDTH, 4);
-        SendCommand(SCI_SETINDENTATIONGUIDES, SC_IV_REAL);
-
-        
-
-        SendCommand(SCI_SETMARGINWIDTHN, 0, 44);//Calculate correct width
-        SendCommand(SCI_SETMARGINTYPEN, 1, SC_MARGIN_SYMBOL);
-        SendCommand(SCI_SETMARGINMASKN, 1, ~SC_MASK_FOLDERS); // allow everything except for the folding symbols
-
-        SendCommand(SCI_RGBAIMAGESETSCALE, 100);
+        scTheme.Apply(this, fontSize, fontName);
 
         XPM xpm(breakpoint_xpm);
         RGBAImage bpImage(xpm);
 
+        SendCommand(SCI_SETMARGINWIDTHN, 0, 44);//Calculate correct width
+        SendCommand(SCI_SETMARGINTYPEN, 1, SC_MARGIN_SYMBOL);
+        SendCommand(SCI_SETMARGINMASKN, 1, ~SC_MASK_FOLDERS); // allow everything except for the folding symbols
+        SendCommand(SCI_RGBAIMAGESETSCALE, 100);
         SendCommand(SCI_SETMARGINWIDTHN, 1, bpImage.GetWidth());
         SendCommand(SCI_RGBAIMAGESETWIDTH, (uptr_t)bpImage.GetWidth());
         SendCommand(SCI_RGBAIMAGESETHEIGHT, (uptr_t)bpImage.GetHeight());
-
         SendCommand(SCI_MARKERDEFINERGBAIMAGE, 0, sptr_t(bpImage.Pixels()));
 
         /*
@@ -628,8 +723,7 @@ public:
 
         //SCI_MARKERDEFINEPIXMAP
         SendCommand(SCI_MARKERDEFINE, 0, SC_MARK_RGBAIMAGE);
-        SendCommand(SCI_MARKERSETBACK, 0, 0xFF6A6A6A);
-        SendCommand(SCI_MARKERSETFORE, 0, 0xFF0000FF);
+        
 
         const char* text = "precision highp float;\n"
             "\n"
@@ -845,6 +939,145 @@ public:
         return static_cast<LexState *>(pdoc->pli);
     }
 };
+
+ScEclipseTheme::ScEclipseTheme()
+: m_themeId(0)
+{
+    m_themeName[0] = '\0';
+}
+
+ScEclipseTheme::~ScEclipseTheme()
+{
+
+}
+extern "C" __declspec(dllimport) void __stdcall OutputDebugStringA(const char* _str);
+bool ScEclipseTheme::Load(const char* themeName)
+{
+    using namespace tinyxml2;
+
+    XMLDocument xmlDocument;
+    XMLError result = xmlDocument.LoadFile(themeName);
+    if (result != XML_SUCCESS)
+        return false;
+
+    XMLElement* rootElement = xmlDocument.RootElement();
+    if (!rootElement)
+        return false;
+
+    XMLElement* colorTheme = xmlDocument.FirstChildElement("colorTheme");
+
+    const char* name = colorTheme->Attribute("name");
+    if (name == nullptr)
+        return false;
+    strcpy(m_themeName, name);
+
+    m_themeId = colorTheme->IntAttribute("id");
+    if (m_themeId == 0)
+        return false;
+
+    bool success = true;
+    success &= LoadColour(m_searchResultIndication, "searchResultIndication", colorTheme);
+    success &= LoadColour(m_filteredSearchResultIndication, "filteredSearchResultIndication", colorTheme);
+    success &= LoadColour(m_occurrenceIndication, "occurrenceIndication", colorTheme);
+    success &= LoadColour(m_writeOccurrenceIndication, "writeOccurrenceIndication", colorTheme);
+    success &= LoadColour(m_findScope, "findScope", colorTheme);
+    success &= LoadColour(m_sourceHoverBackground, "sourceHoverBackground", colorTheme);
+    success &= LoadColour(m_singleLineComment, "singleLineComment", colorTheme);
+    success &= LoadColour(m_multiLineComment, "multiLineComment", colorTheme);
+    success &= LoadColour(m_commentTaskTag, "commentTaskTag", colorTheme);
+    success &= LoadColour(m_javadoc, "javadoc", colorTheme);
+    success &= LoadColour(m_javadocLink, "javadocLink", colorTheme);
+    success &= LoadColour(m_javadocTag, "javadocTag", colorTheme);
+    success &= LoadColour(m_javadocKeyword, "javadocKeyword", colorTheme);
+    success &= LoadColour(m_class, "class", colorTheme);
+    success &= LoadColour(m_interface, "interface", colorTheme);
+    success &= LoadColour(m_method, "method", colorTheme);
+    success &= LoadColour(m_methodDeclaration, "methodDeclaration", colorTheme);
+    success &= LoadColour(m_bracket, "bracket", colorTheme);
+    success &= LoadColour(m_number, "number", colorTheme);
+    success &= LoadColour(m_string, "string", colorTheme);
+    success &= LoadColour(m_operator, "operator", colorTheme);
+    success &= LoadColour(m_keyword, "keyword", colorTheme);
+    success &= LoadColour(m_annotation, "annotation", colorTheme);
+    success &= LoadColour(m_staticMethod, "staticMethod", colorTheme);
+    success &= LoadColour(m_localVariable, "localVariable", colorTheme);
+    success &= LoadColour(m_localVariableDeclaration, "localVariableDeclaration", colorTheme);
+    success &= LoadColour(m_field, "field", colorTheme);
+    success &= LoadColour(m_staticField, "staticField", colorTheme);
+    success &= LoadColour(m_staticFinalField, "staticFinalField", colorTheme);
+    success &= LoadColour(m_deprecatedMember, "deprecatedMember", colorTheme);
+    success &= LoadColour(m_background, "background", colorTheme);
+    success &= LoadColour(m_currentLine, "currentLine", colorTheme);
+    success &= LoadColour(m_foreground, "foreground", colorTheme);
+    success &= LoadColour(m_lineNumber, "lineNumber", colorTheme);
+    success &= LoadColour(m_selectionBackground, "selectionBackground", colorTheme);
+    success &= LoadColour(m_selectionForeground, "selectionForeground", colorTheme);
+    return success;
+}
+
+bool ScEclipseTheme::LoadColour(ColourDesired& colour, const char* name, tinyxml2::XMLElement* element)
+{
+    using namespace tinyxml2;
+
+    XMLElement* colourElement = element->FirstChildElement(name);
+    if (colourElement == nullptr)
+        return false;
+
+    const char* colourHtml = colourElement->Attribute("color");
+    if (colourHtml == nullptr)
+        return false;
+
+    htmlToColour(colour, colourHtml);
+    return true;
+}
+
+void ScEclipseTheme::Apply(struct ScEditor* editor, int fontSize, const char* fontName)
+{
+    // Set up the global default style. These attributes are used wherever no explicit choices are made.
+    editor->SetAStyle(STYLE_DEFAULT, m_foreground, m_background, fontSize, fontName);
+    editor->SendCommand(SCI_STYLECLEARALL);	// Copies global style to all others
+    editor->SetAStyle(STYLE_INDENTGUIDE, 0xFFC0C0C0, m_background, fontSize, fontName);
+    editor->SetAStyle(STYLE_BRACELIGHT, m_bracket, m_background, fontSize, fontName);
+    editor->SetAStyle(STYLE_BRACEBAD, m_bracket, m_background, fontSize, fontName);
+    editor->SetAStyle(STYLE_LINENUMBER, m_lineNumber, 0xD0333333, fontSize, fontName);
+
+    editor->SetAStyle(SCE_C_DEFAULT, m_foreground, m_background, fontSize, fontName);
+    editor->SetAStyle(SCE_C_STRING, m_string, m_background);// GW-TODO: Pick a good color
+    editor->SetAStyle(SCE_C_IDENTIFIER, m_method, m_background);
+    editor->SetAStyle(SCE_C_CHARACTER, m_string, m_background); // GW-TODO: Pick a good color
+    editor->SetAStyle(SCE_C_WORD, m_keyword, m_background);
+    editor->SetAStyle(SCE_C_WORD2, m_keyword, m_background);
+    editor->SetAStyle(SCE_C_GLOBALCLASS, m_class, m_background);
+    editor->SetAStyle(SCE_C_PREPROCESSOR, m_annotation, m_background);
+    editor->SetAStyle(SCE_C_NUMBER, m_number, m_background);
+    editor->SetAStyle(SCE_C_OPERATOR, m_operator, m_background);
+    editor->SetAStyle(SCE_C_COMMENT, m_multiLineComment, m_background);
+    editor->SetAStyle(SCE_C_COMMENTLINE, m_singleLineComment, m_background);
+    editor->SetAStyle(SCE_C_COMMENTDOC, m_multiLineComment, m_background);
+
+    //SCE_C_COMMENTDOCKEYWORD
+    //SCE_C_COMMENTDOCKEYWORDERROR
+
+    // text->StyleSetBold(wxSTC_C_WORD, true);
+    // text->StyleSetBold(wxSTC_C_WORD2, true);
+    //text->StyleSetBold(wxSTC_C_COMMENTDOCKEYWORD, true);
+
+    editor->SendCommand(SCI_SETSELBACK, 1, m_background.AsLong());
+   // editor->SendCommand(SCI_SETSELBACK, 1, 0xD0CC9966);
+    editor->SendCommand(SCI_SETCARETFORE, 0xFFFFFFFF, 0);
+    editor->SendCommand(SCI_SETCARETLINEVISIBLE, 1);
+    editor->SendCommand(SCI_SETCARETLINEBACK, 0xFFFFFFFF);
+    editor->SendCommand(SCI_SETCARETLINEBACKALPHA, 0x20);
+
+    editor->SendCommand(SCI_SETUSETABS, 1);
+    editor->SendCommand(SCI_SETTABWIDTH, 4);
+    editor->SendCommand(SCI_SETINDENTATIONGUIDES, SC_IV_REAL);
+
+
+
+    editor->SendCommand(SCI_MARKERSETBACK, 0, 0xFF6A6A6A);
+    editor->SendCommand(SCI_MARKERSETFORE, 0, 0xFF0000FF);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
