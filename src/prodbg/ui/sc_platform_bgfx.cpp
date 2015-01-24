@@ -66,6 +66,8 @@ bool Platform::MouseButtonBounce()
 #if defined(__clang__)
 __attribute__((noreturn)///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
               ) void Platform::Assert(const char* error, const char* filename, int line)
 #else
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -184,17 +186,19 @@ void Font::Create(const FontParameters& fp)
 
     size_t len;
 
+    unsigned int textureSize = 512;
+
     // TODO: Remove hard-coded value
 
-    unsigned char* bmp = new unsigned char[512 * 512];
+    unsigned char* bmp = new unsigned char[textureSize * textureSize];
     void* data = File_loadToMemory(fp.faceName, &len, 0);
 
-    stbtt_BakeFontBitmap((unsigned char*)data, 0, fp.size, bmp, 512, 512, 32, 96, newFont->cdata); // no guarantee this fits!
+    stbtt_BakeFontBitmap((unsigned char*)data, 0, fp.size, bmp, (int)textureSize, (int)textureSize, 32, 96, newFont->cdata); // no guarantee this fits!
 
-    const bgfx::Memory* mem = bgfx::alloc(512 * 512);
-    memcpy(mem->data, bmp, 512 * 512);
+    const bgfx::Memory* mem = bgfx::alloc(textureSize * textureSize);
+    memcpy(mem->data, bmp, textureSize * textureSize);
 
-    newFont->ftex = bgfx::createTexture2D(512, 512, 1, bgfx::TextureFormat::R8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT, mem);
+    newFont->ftex = bgfx::createTexture2D((uint16_t)textureSize, (uint16_t)textureSize, 1, bgfx::TextureFormat::R8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT, mem);
 
     stbtt_InitFont(&newFont->fontinfo, (unsigned char*)data, 0);
 
@@ -305,8 +309,10 @@ void SurfaceImpl::Polygon(Point* pts, int npts, ColourDesired fore, ColourDesire
 void SurfaceImpl::RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired back)
 {
     (void)fore;
+    (void)rc;
+    (void)back;
 
-    FillRectangle(rc, back);
+    //FillRectangle(rc, back);
     /*
        glColor4ubv((GLubyte*)&fore);
        glDisable(GL_TEXTURE_2D);
@@ -356,6 +362,11 @@ void SurfaceImpl::InitPixMap(int width, int height, Surface* surface_, WindowID 
 
 void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char* pixelsImage)
 {
+	(void)rc;
+	(void)width;
+	(void)height;
+	(void)pixelsImage;
+#if 0
     ImageData image;
     memset(&image, 0x0, sizeof(image));
 
@@ -425,6 +436,7 @@ void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsi
     UIRender_posTexColor(&tvb, 0, 6, image.tex);
 
     bgfx::destroyTexture(image.tex); // GW-TODO: Lol
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -433,7 +445,9 @@ void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
 {
     bgfx::TransientVertexBuffer tvb;
 
-    const uint32_t back = (uint32_t)b.AsLong();
+    (void)b;
+
+    const uint32_t back = 0x000000ff; //(uint32_t)b.AsLong();
 
     UIRender_allocPosColorTb(&tvb, 6);
 
@@ -457,20 +471,20 @@ void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
 
     vb[3].x = rc.left;
     vb[3].y = rc.top;
-    vb[3].color = back;
+    vb[3].color = 0x00ff00;
 
     vb[4].x = rc.right;
     vb[4].y = rc.bottom;
-    vb[4].color = back;
+    vb[4].color = 0x00ff00;
 
     vb[5].x = rc.left;
     vb[5].y = rc.bottom;
-    vb[5].color = back;
+    vb[5].color = 0x00ff00;
 
     bgfx::setState(0
                    | BGFX_STATE_RGB_WRITE
-                   | BGFX_STATE_ALPHA_WRITE
-                   | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+                  // | BGFX_STATE_ALPHA_WRITE
+                  //  | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
                    | BGFX_STATE_MSAA);
 
     UIRender_posColor(&tvb, 0, 6);
@@ -480,13 +494,15 @@ void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
 
 void SurfaceImpl::FillRectangle(PRectangle rc, Surface&)
 {
+	(void)rc;
+#if 0
     // GW: This probably needs to be a blit from incoming surface?
 
     //assert(false);
 
     bgfx::TransientVertexBuffer tvb;
 
-    const uint32_t back = 0xFFFFFF; // GW-TODO: Likely need to track the current fore\back color as per style
+    const uint32_t back = 0xff; // GW-TODO: Likely need to track the current fore\back color as per style
 
     UIRender_allocPosColorTb(&tvb, 6);
 
@@ -523,10 +539,11 @@ void SurfaceImpl::FillRectangle(PRectangle rc, Surface&)
     bgfx::setState(0
                    | BGFX_STATE_RGB_WRITE
                    | BGFX_STATE_ALPHA_WRITE
-                   | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+                   //| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
                    | BGFX_STATE_MSAA);
 
     UIRender_posColor(&tvb, 0, 6);
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -544,23 +561,27 @@ void SurfaceImpl::AlphaRectangle(
 {
     unsigned int back = (uint32_t)((fill.AsLong() & 0xffffff) | ((alphaFill & 0xff) << 24));
 
+    back |= (uint32_t)0xff << 24;
+
     (void)cornerSize;
     (void)outline;
     (void)alphaOutline;
     (void)flags;
+    (void)rc;
 
-    FillRectangle(rc, ColourDesired(back));
+    //FillRectangle(rc, ColourDesired(back));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SurfaceImpl::Ellipse(PRectangle rc, ColourDesired fore, ColourDesired back)
 {
+    (void)rc;
     (void)fore;
     (void)back;
     //assert(0);
 
-    FillRectangle(rc, fore);
+    //FillRectangle(rc, fore);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -578,11 +599,20 @@ void Font::Release()
 
 void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired f)
 {
+	(void)rc;
+	(void)font_;
+	(void)ybase;
+	(void)s;
+	(void)f;
+	(void)len;
+#if 0
     uint32_t realLength = 0;
     float xt = rc.left;
     float yt = ybase;
 
     uint32_t fore = (uint32_t)f.AsLong();
+
+    //fore &= (uint32_t)0x00ffffff;
 
     bgfx::TransientVertexBuffer tvb;
 
@@ -653,6 +683,7 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
                    | BGFX_STATE_MSAA);
 
     UIRender_posTexRColor(&tvb, 0, realLength * 6, realFont->ftex);
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
