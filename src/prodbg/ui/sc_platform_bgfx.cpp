@@ -64,8 +64,12 @@ bool Platform::MouseButtonBounce()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #if defined(__clang__)
-__attribute__((noreturn)) void Platform::Assert(const char* error, const char* filename, int line)
+__attribute__((noreturn)///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+              ) void Platform::Assert(const char* error, const char* filename, int line)
 #else
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Platform::Assert(const char* error, const char* filename, int line)
 #endif
 {
@@ -104,7 +108,7 @@ public:
 
     void Init(WindowID wid);
     virtual void Init(SurfaceID sid, WindowID wid);
-    void InitPixMap(int width, int height, Surface *surface_, WindowID wid);
+    void InitPixMap(int width, int height, Surface* surface_, WindowID wid);
 
     void Release();
     bool Initialised();
@@ -113,30 +117,30 @@ public:
     int DeviceHeightFont(int points);
     void MoveTo(int x_, int y_);
     void LineTo(int x_, int y_);
-    void Polygon(Point *pts, int npts, ColourDesired fore, ColourDesired back);
+    void Polygon(Point* pts, int npts, ColourDesired fore, ColourDesired back);
     void RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired back);
     void FillRectangle(PRectangle rc, ColourDesired back);
-    void FillRectangle(PRectangle rc, Surface &surfacePattern);
+    void FillRectangle(PRectangle rc, Surface& surfacePattern);
     void RoundedRectangle(PRectangle rc, ColourDesired fore, ColourDesired back);
     void AlphaRectangle(PRectangle rc, int cornerSize, ColourDesired fill, int alphaFill, ColourDesired outline, int alphaOutline, int flags);
-    void DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char *pixelsImage);
+    void DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char* pixelsImage);
     void Ellipse(PRectangle rc, ColourDesired fore, ColourDesired back);
-    void Copy(PRectangle rc, Point from, Surface &surfaceSource);
+    void Copy(PRectangle rc, Point from, Surface& surfaceSource);
 
-    void DrawTextNoClip(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len, ColourDesired fore, ColourDesired back);
-    void DrawTextClipped(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len, ColourDesired fore, ColourDesired back);
-    void DrawTextTransparent(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len, ColourDesired fore);
-    void MeasureWidths(Font &font_, const char *s, int len, XYPOSITION *positions);
+    void DrawTextNoClip(PRectangle rc, Font& font_, XYPOSITION ybase, const char* s, int len, ColourDesired fore, ColourDesired back);
+    void DrawTextClipped(PRectangle rc, Font& font_, XYPOSITION ybase, const char* s, int len, ColourDesired fore, ColourDesired back);
+    void DrawTextTransparent(PRectangle rc, Font& font_, XYPOSITION ybase, const char* s, int len, ColourDesired fore);
+    void MeasureWidths(Font& font_, const char* s, int len, XYPOSITION* positions);
     void DrawTextBase(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired f);
 
-    XYPOSITION WidthText(Font &font_, const char *s, int len);
-    XYPOSITION WidthChar(Font &font_, char ch);
-    XYPOSITION Ascent(Font &font_);
-    XYPOSITION Descent(Font &font_);
-    XYPOSITION InternalLeading(Font &font_);
-    XYPOSITION ExternalLeading(Font &font_);
-    XYPOSITION Height(Font &font_);
-    XYPOSITION AverageCharWidth(Font &font_);
+    XYPOSITION WidthText(Font& font_, const char* s, int len);
+    XYPOSITION WidthChar(Font& font_, char ch);
+    XYPOSITION Ascent(Font& font_);
+    XYPOSITION Descent(Font& font_);
+    XYPOSITION InternalLeading(Font& font_);
+    XYPOSITION ExternalLeading(Font& font_);
+    XYPOSITION Height(Font& font_);
+    XYPOSITION AverageCharWidth(Font& font_);
 
     void SetClip(PRectangle rc);
     void FlushCachedState();
@@ -288,7 +292,7 @@ void SurfaceImpl::LineTo(int x_, int y_)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::Polygon(Point *pts, int npts, ColourDesired fore, ColourDesired back)
+void SurfaceImpl::Polygon(Point* pts, int npts, ColourDesired fore, ColourDesired back)
 {
     (void)pts;
     (void)fore;
@@ -304,16 +308,16 @@ void SurfaceImpl::RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired
 
     FillRectangle(rc, back);
     /*
-    glColor4ubv((GLubyte*)&fore);
-    glDisable(GL_TEXTURE_2D);
-    glBegin(GL_LINE_STRIP);
-    glVertex2f(rc.left+0.5f,  rc.top+0.5f);
-    glVertex2f(rc.right-0.5f, rc.top+0.5f);
-    glVertex2f(rc.right-0.5f, rc.bottom-0.5f);
-    glVertex2f(rc.left+0.5f,  rc.bottom-0.5f);
-    glVertex2f(rc.left+0.5f,  rc.top+0.5f);
-    glEnd();
-    */
+       glColor4ubv((GLubyte*)&fore);
+       glDisable(GL_TEXTURE_2D);
+       glBegin(GL_LINE_STRIP);
+       glVertex2f(rc.left+0.5f,  rc.top+0.5f);
+       glVertex2f(rc.right-0.5f, rc.top+0.5f);
+       glVertex2f(rc.right-0.5f, rc.bottom-0.5f);
+       glVertex2f(rc.left+0.5f,  rc.bottom-0.5f);
+       glVertex2f(rc.left+0.5f,  rc.top+0.5f);
+       glEnd();
+     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -340,7 +344,7 @@ void SurfaceImpl::Init(SurfaceID sid, WindowID wid)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::InitPixMap(int width, int height, Surface *surface_, WindowID wid)
+void SurfaceImpl::InitPixMap(int width, int height, Surface* surface_, WindowID wid)
 {
     (void)width;
     (void)height;
@@ -805,7 +809,7 @@ void SurfaceImpl::SetUnicodeMode(bool unicodeMode)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::Copy(PRectangle rc, Point from, Surface &surfaceSource)
+void SurfaceImpl::Copy(PRectangle rc, Point from, Surface& surfaceSource)
 {
     (void)rc;
     (void)from;
@@ -910,7 +914,7 @@ void Window::SetCursor(Cursor curs)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window::SetTitle(const char *s)
+void Window::SetTitle(const char* s)
 {
     (void)s;
 }
@@ -956,7 +960,7 @@ int Platform::Clamp(int val, int minVal, int maxVal)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Platform::DebugPrintf(const char *format, ...)
+void Platform::DebugPrintf(const char* format, ...)
 {
     char buffer[2000];
     va_list args;

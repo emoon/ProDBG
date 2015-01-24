@@ -159,7 +159,7 @@ void ProDBG_update()
 
     uint64_t currentTime = bx::getHPCounter();
     uint64_t deltaTick = currentTime - context->time;
-    context->time = currentTime; 
+    context->time = currentTime;
 
     float deltaTimeMs = (float)(((double)deltaTick) / (double)bx::getHPFrequency());
 
