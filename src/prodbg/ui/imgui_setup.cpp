@@ -23,9 +23,6 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
     (void)cmd_lists;
     (void)cmd_lists_count;
 
-    return;
-#if 0
-
     const float width = ImGui::GetIO().DisplaySize.x;
     const float height = ImGui::GetIO().DisplaySize.y;
 
@@ -78,7 +75,6 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
             vtx_offset += pcmd->vtx_count;
         }
     }
-#endif
 }
 
 
