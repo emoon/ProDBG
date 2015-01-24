@@ -46,7 +46,7 @@ bool htmlToColour(ColourDesired& colour, const char* html)
 {
 #if 1 // Built In
     colour.Set(html);
-    colour.Set(colour.AsLong() | ((uint32_t)0xFF << 24)); // ColourDesired is lame in that it never sets the alpha channel..
+    colour.Set(colour.AsLong() | ((unsigned int)0xFF << 24)); // ColourDesired is lame in that it never sets the alpha channel..
     return true;
 #else
     const char* start = html;
