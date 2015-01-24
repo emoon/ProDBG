@@ -11,6 +11,8 @@
 
 #include "scintilla/include/Platform.h"
 
+#include <imgui.h> // TODO: TEMP! Hook up properly to ImGui
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 inline uint32_t MakeRGBA(uint32_t r, uint32_t g, uint32_t b, uint32_t a = 0xFF)
@@ -842,7 +844,9 @@ bool Window::HasFocus()
 
 PRectangle Window::GetPosition()
 {
-    return PRectangle::FromInts(0, 0, 1280, 720);
+    // TODO: TEMP! Hook up properly to ImGui
+    ImGuiIO& io = ImGui::GetIO();
+    return PRectangle::FromInts(0, 0, int(io.DisplaySize.x), int(io.DisplaySize.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -864,7 +868,9 @@ void Window::SetPositionRelative(PRectangle rc, Window w)
 
 PRectangle Window::GetClientPosition()
 {
-    return PRectangle::FromInts(0, 0, 1280, 768);
+    // TODO: TEMP! Hook up properly to ImGui
+    ImGuiIO& io = ImGui::GetIO();
+    return PRectangle::FromInts(0, 0, int(io.DisplaySize.x), int(io.DisplaySize.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
