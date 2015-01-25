@@ -10,6 +10,7 @@
 #include "ui/ui_layout.h"
 #include "ui/menu.h"
 #include "ui/dialogs.h"
+#include "input/input_state.h"
 
 #include <bgfx.h>
 #include <bgfxplatform.h>
@@ -31,11 +32,9 @@ int Window_buildPluginMenu(PluginData** plugins, int count);
 
 struct Context
 {
+	InputState inputState;
     int width;
     int height;
-    float mouseX;
-    float mouseY;
-    int mouseLmb;
     int keyDown;
     int keyMod;
     Session* session;   // one session right now
@@ -67,7 +66,7 @@ static const char* s_plugins[] =
 void setLayout(UILayout* layout)
 {
     Context* context = &s_context;
-    IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
+    IMGUI_preUpdate(&context->inputState);
     Session_setLayout(context->session, layout, (float)context->width, (float)context->height);
     IMGUI_postUpdate();
 }
@@ -161,7 +160,7 @@ void ProDBG_update()
 
     {
         rmt_ScopedCPUSample(IMGUI_preUpdate);
-        IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
+        IMGUI_preUpdate(&context->inputState);
     }
 
     // TODO: Support multiple sessions
@@ -285,7 +284,7 @@ void ProDBG_event(int eventId)
     if (eventId & PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT)
     {
         UIDockingGrid* grid = Session_getDockingGrid(context->session);
-        UIDock* dockAtMouse = UIDock_getDockAt(grid, (int)context->mouseX, (int)context->mouseY);
+        UIDock* dockAtMouse = UIDock_getDockAt(grid, (int)context->inputState.mousePos.x, (int)context->inputState.mousePos.y);
 
         eventId &= (PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT - 1);
 
@@ -299,7 +298,7 @@ void ProDBG_event(int eventId)
     if (eventId & PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT)
     {
         UIDockingGrid* grid = Session_getDockingGrid(context->session);
-        UIDock* dockAtMouse = UIDock_getDockAt(grid, (int)context->mouseX, (int)context->mouseY);
+        UIDock* dockAtMouse = UIDock_getDockAt(grid, (int)context->inputState.mousePos.x, (int)context->inputState.mousePos.y);
 
         eventId &= (PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT - 1);
 
@@ -396,10 +395,10 @@ void ProDBG_setMousePos(float x, float y)
 {
     Context* context = &s_context;
 
-    context->mouseX = x;
-    context->mouseY = y;
+    context->inputState.mousePos.x = x;
+    context->inputState.mousePos.y = y;
 
-    IMGUI_setMouse(x, y, context->mouseLmb);
+    IMGUI_setInputState(&context->inputState);
 
     //ProDBG_update();
 }
@@ -411,9 +410,13 @@ void ProDBG_setMouseState(int button, int state)
     Context* context = &s_context;
     (void)button;
 
-    context->mouseLmb = state;
+	InputState* inputState = &context->inputState; 
 
-    IMGUI_setMouse(context->mouseX, context->mouseY, state);
+    // TODO: Implement proper mouse support here
+
+	inputState->mouseDown[0] = !!state;
+
+    IMGUI_setInputState(inputState);
 
     //ProDBG_update();
 }

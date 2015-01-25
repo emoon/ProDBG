@@ -81,6 +81,17 @@ struct UIDock
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+enum UIDockState
+{
+	UIDockState_None,
+	UIDockState_DragSizer,
+	UIDockState_BeginDragView,
+	UIDockState_DraggingView,
+	UIDockState_EndDragView,
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 enum UIDockStatus
 {
     UIDockStatus_ok,
@@ -91,6 +102,8 @@ enum UIDockStatus
 
 struct UIDockingGrid
 {
+	UIDockingGrid() : state(UIDockState_None) {} 
+
     std::vector<UIDock*> docks;
     std::vector<UIDockSizer*> sizers;
     UIDockSizer topSizer;
@@ -98,6 +111,7 @@ struct UIDockingGrid
     UIDockSizer rightSizer;
     UIDockSizer leftSizer;
     FloatRect rect;
+    UIDockState state;
 };
 
 

@@ -1004,6 +1004,42 @@ void UIDock_updateSize(UIDockingGrid* grid, int width, int height)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void UIDock_update(UIDockingGrid* grid, const InputState* inputState)
+{
+	(void)inputState;
+
+	switch (grid->state)
+	{
+		case UIDockState_None:
+		{
+			break;
+		}
+
+		case UIDockState_DragSizer:
+		{
+			break;
+		}
+
+		case UIDockState_BeginDragView:
+		{
+			break;
+		}
+
+		case UIDockState_DraggingView:
+		{
+
+			break;
+		}
+
+		case UIDockState_EndDragView:
+	 	{
+			break;
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void UIDock_renderSizers(UIDockingGrid* grid)
 {
 	bgfx::TransientVertexBuffer tvb;

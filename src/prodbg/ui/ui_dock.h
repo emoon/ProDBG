@@ -16,6 +16,7 @@ struct UIDockingGrid;
 struct UIDock;
 struct FloatRect;
 struct Vec2;
+struct InputState;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -45,7 +46,7 @@ void UIDock_mergeSizers(UIDockingGrid* grid, UIDockSizer* sizer);
 
 void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove);
 
-void UIDock_update(UIDockingGrid* grid);
+void UIDock_update(UIDockingGrid* grid, const InputState* state);
 void UIDock_updateSize(UIDockingGrid* grid, int width, int height);
 
 UIDock* UIDock_getDockAt(UIDockingGrid* grid, int x, int y);
