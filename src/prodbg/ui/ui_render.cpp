@@ -2,6 +2,7 @@
 #include "core/log.h"
 #include "core/file.h"
 #include "core/core.h"
+#include <assert.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -179,6 +180,7 @@ bool UIRender_init()
 
 void UIRender_allocPosTexColorTb(bgfx::TransientVertexBuffer* buffer, uint32_t count)
 {
+	assert(bgfx::checkAvailTransientVertexBuffer(count, s_programs[Program_PosTexColor].vertexDecl));
     bgfx::allocTransientVertexBuffer(buffer, count, s_programs[Program_PosTexColor].vertexDecl);
 }
 
@@ -186,6 +188,7 @@ void UIRender_allocPosTexColorTb(bgfx::TransientVertexBuffer* buffer, uint32_t c
 
 void UIRender_allocPosColorTb(bgfx::TransientVertexBuffer* buffer, uint32_t count)
 {
+	assert(bgfx::checkAvailTransientVertexBuffer(count, s_programs[Program_PosColor].vertexDecl));
     bgfx::allocTransientVertexBuffer(buffer, count, s_programs[Program_PosColor].vertexDecl);
 }
 
