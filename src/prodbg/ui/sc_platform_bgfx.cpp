@@ -429,7 +429,7 @@ void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsi
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
+static void fillRectangle(PRectangle rc, ColourDesired b)
 {
     bgfx::TransientVertexBuffer tvb;
 
@@ -478,12 +478,22 @@ void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
+{
+	// TODO: Figure out why we need to do this.
+	fillRectangle(rc, b);
+	fillRectangle(rc, b);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void SurfaceImpl::FillRectangle(PRectangle rc, Surface&)
 {
     // GW: This probably needs to be a blit from incoming surface?
 
-    //assert(false);
-
+	(void)rc;
+    assert(false);
+/*
     bgfx::TransientVertexBuffer tvb;
 
     const uint32_t back = 0xFFFFFF; // GW-TODO: Likely need to track the current fore\back color as per style
@@ -527,6 +537,7 @@ void SurfaceImpl::FillRectangle(PRectangle rc, Surface&)
                    | BGFX_STATE_MSAA);
 
     UIRender_posColor(&tvb, 0, 6);
+*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -646,7 +657,7 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
         ++s;
     }
 
-    bgfx::setState(0
+    bgfx::setState(0 
                    | BGFX_STATE_RGB_WRITE
                    | BGFX_STATE_ALPHA_WRITE
                    | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
