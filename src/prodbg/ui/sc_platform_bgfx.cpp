@@ -194,7 +194,7 @@ void Font::Create(const FontParameters& fp)
     const bgfx::Memory* mem = bgfx::alloc(512 * 512);
     memcpy(mem->data, bmp, 512 * 512);
 
-    newFont->ftex = bgfx::createTexture2D(512, 512, 1, bgfx::TextureFormat::R8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT, mem);
+    newFont->ftex = bgfx::createTexture2D(512, 512, 1, bgfx::TextureFormat::R8, BGFX_TEXTURE_NONE, mem);
 
     stbtt_InitFont(&newFont->fontinfo, (unsigned char*)data, 0);
 
@@ -221,7 +221,7 @@ void UpdateImageData(ImageData& image, int w, int h, const unsigned char* data)
     const int byteSize = w * h * (int)sizeof(unsigned char) * 4; // RGBA image
 
     if (!image.initialised)
-        image.tex = bgfx::createTexture2D((uint16_t)w, (uint16_t)h, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT, 0);
+        image.tex = bgfx::createTexture2D((uint16_t)w, (uint16_t)h, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_NONE, 0);
 
     const bgfx::Memory* mem = bgfx::alloc((uint32_t)byteSize);
     memcpy(mem->data, data, (uint32_t)byteSize);
