@@ -608,7 +608,7 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
         if (*s >= 32 && *s < 127)
         {
             stbtt_aligned_quad q;
-            stbtt_GetBakedQuad(realFont->cdata, 512, 512, *s - 32, &xt, &yt, &q, 0);
+            stbtt_GetBakedQuad(realFont->cdata, 512, 512, *s - 32, &xt, &yt, &q, 1);
 
             // First triangle
 
