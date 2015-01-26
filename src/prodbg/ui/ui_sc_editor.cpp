@@ -737,8 +737,8 @@ public:
 
         ScEclipseTheme scTheme;
         //bool result = scTheme.Load("data/themes/theme-1.xml");    // Oblivion
-        //bool result = scTheme.Load("data/themes/theme-118.xml");  // Wombat
-        bool result = scTheme.Load("data/themes/theme-383.xml");  // Sunburst
+        bool result = scTheme.Load("data/themes/theme-118.xml");  // Wombat
+        //bool result = scTheme.Load("data/themes/theme-383.xml");  // Sunburst
         //bool result = scTheme.Load("data/themes/theme-3796.xml"); // Ambients
         assert(result);
 
@@ -789,7 +789,9 @@ public:
         SendCommand(SCI_MARKERDEFINE, 0, SC_MARK_RGBAIMAGE);
 
 
-        const char* text = "precision highp float;\n"
+        const char* text = "test";
+        /*
+        	"precision highp float;\n"
                            "\n"
                            "varying vec3 n;\n"
                            "varying vec2 uv;\n"
@@ -810,6 +812,7 @@ public:
                            "\tfloat diffuse = max(0.0,dot(normalize(n),eyeSpaceLightDirection));\n"
                            "\tgl_FragColor = vec4(texture2D(tex,uv).xyz*diffuse,1.0);\n"
                            "}";
+        */
 
         SendCommand(SCI_ADDTEXT, strlen(text),
                     reinterpret_cast<sptr_t>(static_cast<const char*>(text)));
@@ -1181,8 +1184,6 @@ void ScEclipseTheme::Apply(struct ScEditor* editor, int fontSize, const char* fo
     editor->SendCommand(SCI_SETUSETABS, 1);
     editor->SendCommand(SCI_SETTABWIDTH, 4);
     editor->SendCommand(SCI_SETINDENTATIONGUIDES, SC_IV_REAL);
-
-
 
     editor->SendCommand(SCI_MARKERSETBACK, 0, 0xFF6A6A6A);
     editor->SendCommand(SCI_MARKERSETFORE, 0, 0xFF0000FF);

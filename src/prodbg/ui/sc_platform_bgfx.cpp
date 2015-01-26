@@ -795,7 +795,17 @@ float SurfaceImpl::AverageCharWidth(Font& font_)
 
 void SurfaceImpl::SetClip(PRectangle rc)
 {
-    bgfx::setScissor((uint16_t)rc.left, (uint16_t)rc.right, (uint16_t)rc.top, (uint16_t)rc.bottom);
+	float x = rc.left;
+	float y = rc.top;
+	float width = rc.right - rc.left;
+	float height = rc.bottom - rc.top;
+
+	(void)x;
+	(void)y;
+	(void)width;
+	(void)height;
+
+	//bgfx::setScissor((uint16_t)x, (uint16_t)y, (uint16_t)width, (uint16_t)height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
