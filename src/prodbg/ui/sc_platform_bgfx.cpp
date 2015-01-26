@@ -795,13 +795,13 @@ float SurfaceImpl::AverageCharWidth(Font& font_)
 
 void SurfaceImpl::SetClip(PRectangle rc)
 {
-	float x = rc.left;
-	float y = rc.top;
+	float xt = rc.left;
+	float yt = rc.top;
 	float width = rc.right - rc.left;
 	float height = rc.bottom - rc.top;
 
-	(void)x;
-	(void)y;
+	(void)xt;
+	(void)yt;
 	(void)width;
 	(void)height;
 
