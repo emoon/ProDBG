@@ -619,55 +619,55 @@ void test_delete_docks_left_right(void**)
     UIDock_dockRight(grid, dock, &view1);
     UIDock_dockBottom(grid, grid->docks[1], &view2);
 
-	// Expected layout:
-	//
-	//     _____s0_______
-	//    |      |      |
-	//    |      |  d1  |
-	//    |      |      |
-	// s1 |  d0  |------|
-	//    |      |      |
-	//    |      |  d2  |
-	//    |      |      |
-	//    ---------------
-	//
+    // Expected layout:
+    //
+    //     _____s0_______
+    //    |      |      |
+    //    |      |  d1  |
+    //    |      |      |
+    // s1 |  d0  |------|
+    //    |      |      |
+    //    |      |  d2  |
+    //    |      |      |
+    //    ---------------
+    //
 
-	UIDock_deleteView(grid, grid->docks[0]->view);
+    UIDock_deleteView(grid, grid->docks[0]->view);
 
-	// Expected layout:
-	//
-	//     _____s0_______
-	//    |             |
-	//    |     d0      |
-	//    |             |
-	// s1 |-------------|
-	//    |             |
-	//    |     d1      |
-	//    |             |
-	//    ---------------
-	//
+    // Expected layout:
+    //
+    //     _____s0_______
+    //    |             |
+    //    |     d0      |
+    //    |             |
+    // s1 |-------------|
+    //    |             |
+    //    |     d1      |
+    //    |             |
+    //    ---------------
+    //
 
-	assert_int_equal((int)grid->sizers.size(), 1);
-	assert_int_equal((int)grid->docks.size(), 2);
+    assert_int_equal((int)grid->sizers.size(), 1);
+    assert_int_equal((int)grid->docks.size(), 2);
 
-	UIDockSizer* s0 = grid->sizers[0];
-	UIDock* d0 = grid->docks[0];
-	UIDock* d1 = grid->docks[1];
+    UIDockSizer* s0 = grid->sizers[0];
+    UIDock* d0 = grid->docks[0];
+    UIDock* d1 = grid->docks[1];
 
-	assert_true(d0->topSizer == &grid->topSizer);
-	assert_true(d0->bottomSizer == s0);
-	assert_true(d0->rightSizer == &grid->rightSizer);
-	assert_true(d0->leftSizer == &grid->leftSizer);
+    assert_true(d0->topSizer == &grid->topSizer);
+    assert_true(d0->bottomSizer == s0);
+    assert_true(d0->rightSizer == &grid->rightSizer);
+    assert_true(d0->leftSizer == &grid->leftSizer);
 
-	assert_int_equal(s0->rect.x, rect.x);
-	assert_int_equal(s0->rect.y, rect.height / 2);
-	assert_int_equal(s0->rect.width, rect.width);
-	assert_int_equal(s0->rect.height, 0); 
+    assert_int_equal(s0->rect.x, rect.x);
+    assert_int_equal(s0->rect.y, rect.height / 2);
+    assert_int_equal(s0->rect.width, rect.width);
+    assert_int_equal(s0->rect.height, 0);
 
-	assert_true(d1->topSizer == s0);
-	assert_true(d1->bottomSizer == &grid->bottomSizer);
-	assert_true(d1->rightSizer == &grid->rightSizer);
-	assert_true(d1->leftSizer == &grid->leftSizer);
+    assert_true(d1->topSizer == s0);
+    assert_true(d1->bottomSizer == &grid->bottomSizer);
+    assert_true(d1->rightSizer == &grid->rightSizer);
+    assert_true(d1->leftSizer == &grid->leftSizer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -686,52 +686,52 @@ void test_delete_docks_up_down(void**)
     UIDock_dockRight(grid, dock, &view1);
     UIDock_dockBottom(grid, grid->docks[1], &view2);
 
-	// Expected layout:
-	//
-	//     _____s0_______
-	//    |      |      |
-	//    |      |  d1  |
-	//    |      |      |
-	// s1 |  d0  |------|
-	//    |      |      |
-	//    |      |  d2  |
-	//    |      |      |
-	//    ---------------
-	//
+    // Expected layout:
+    //
+    //     _____s0_______
+    //    |      |      |
+    //    |      |  d1  |
+    //    |      |      |
+    // s1 |  d0  |------|
+    //    |      |      |
+    //    |      |  d2  |
+    //    |      |      |
+    //    ---------------
+    //
 
-	UIDock_deleteView(grid, grid->docks[2]->view);
+    UIDock_deleteView(grid, grid->docks[2]->view);
 
-	// Expected layout:
-	//
-	//     _____s0_______
-	//    |      |      | 
-	//    |      |      |
-	//    |      |      |
-	//    | d0   |  d1  |
-	//    |      |      |
-	//    |      |      |
-	//    |      |      |
-	//    ---------------
-	//
+    // Expected layout:
+    //
+    //     _____s0_______
+    //    |      |      |
+    //    |      |      |
+    //    |      |      |
+    //    | d0   |  d1  |
+    //    |      |      |
+    //    |      |      |
+    //    |      |      |
+    //    ---------------
+    //
 
-	assert_int_equal((int)grid->sizers.size(), 1);
-	assert_int_equal((int)grid->docks.size(), 2);
+    assert_int_equal((int)grid->sizers.size(), 1);
+    assert_int_equal((int)grid->docks.size(), 2);
 
-	UIDockSizer* s0 = grid->sizers[0];
-	UIDock* d0 = grid->docks[0];
-	UIDock* d1 = grid->docks[1];
+    UIDockSizer* s0 = grid->sizers[0];
+    UIDock* d0 = grid->docks[0];
+    UIDock* d1 = grid->docks[1];
 
-	assert_true(d0->topSizer == &grid->topSizer);
-	assert_true(d0->bottomSizer == &grid->bottomSizer);
-	assert_true(d0->rightSizer == s0);
-	assert_true(d0->leftSizer == &grid->leftSizer);
+    assert_true(d0->topSizer == &grid->topSizer);
+    assert_true(d0->bottomSizer == &grid->bottomSizer);
+    assert_true(d0->rightSizer == s0);
+    assert_true(d0->leftSizer == &grid->leftSizer);
 
-	assert_true(d1->topSizer == &grid->topSizer);
-	assert_true(d1->bottomSizer == &grid->bottomSizer);
-	assert_true(d1->rightSizer == &grid->rightSizer);
-	assert_true(d1->leftSizer == s0);
+    assert_true(d1->topSizer == &grid->topSizer);
+    assert_true(d1->bottomSizer == &grid->bottomSizer);
+    assert_true(d1->rightSizer == &grid->rightSizer);
+    assert_true(d1->leftSizer == s0);
 
-	UIDock_deleteView(grid, grid->docks[0]->view);
+    UIDock_deleteView(grid, grid->docks[0]->view);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -750,50 +750,50 @@ void test_delete_docks_down_up(void**)
     UIDock_dockRight(grid, dock, &view1);
     UIDock_dockBottom(grid, grid->docks[1], &view2);
 
-	// Expected layout:
-	//
-	//     _____s0_______
-	//    |      |      |
-	//    |      |  d1  |
-	//    |      |      |
-	// s1 |  d0  |------|
-	//    |      |      |
-	//    |      |  d2  |
-	//    |      |      |
-	//    ---------------
-	//
+    // Expected layout:
+    //
+    //     _____s0_______
+    //    |      |      |
+    //    |      |  d1  |
+    //    |      |      |
+    // s1 |  d0  |------|
+    //    |      |      |
+    //    |      |  d2  |
+    //    |      |      |
+    //    ---------------
+    //
 
-	UIDock_deleteView(grid, grid->docks[1]->view);
+    UIDock_deleteView(grid, grid->docks[1]->view);
 
-	// Expected layout:
-	//
-	//     _____s0_______
-	//    |      |      | 
-	//    |      |      |
-	//    |      |      |
-	//    | d0   |  d2  |
-	//    |      |      |
-	//    |      |      |
-	//    |      |      |
-	//    ---------------
-	//
+    // Expected layout:
+    //
+    //     _____s0_______
+    //    |      |      |
+    //    |      |      |
+    //    |      |      |
+    //    | d0   |  d2  |
+    //    |      |      |
+    //    |      |      |
+    //    |      |      |
+    //    ---------------
+    //
 
-	assert_int_equal((int)grid->sizers.size(), 1);
-	assert_int_equal((int)grid->docks.size(), 2);
+    assert_int_equal((int)grid->sizers.size(), 1);
+    assert_int_equal((int)grid->docks.size(), 2);
 
-	UIDockSizer* s0 = grid->sizers[0];
-	UIDock* d0 = grid->docks[0];
-	UIDock* d1 = grid->docks[1];
+    UIDockSizer* s0 = grid->sizers[0];
+    UIDock* d0 = grid->docks[0];
+    UIDock* d1 = grid->docks[1];
 
-	assert_true(d0->topSizer == &grid->topSizer);
-	assert_true(d0->bottomSizer == &grid->bottomSizer);
-	assert_true(d0->rightSizer == s0);
-	assert_true(d0->leftSizer == &grid->leftSizer);
+    assert_true(d0->topSizer == &grid->topSizer);
+    assert_true(d0->bottomSizer == &grid->bottomSizer);
+    assert_true(d0->rightSizer == s0);
+    assert_true(d0->leftSizer == &grid->leftSizer);
 
-	assert_true(d1->topSizer == &grid->topSizer);
-	assert_true(d1->bottomSizer == &grid->bottomSizer);
-	assert_true(d1->rightSizer == &grid->rightSizer);
-	assert_true(d1->leftSizer == s0);
+    assert_true(d1->topSizer == &grid->topSizer);
+    assert_true(d1->bottomSizer == &grid->bottomSizer);
+    assert_true(d1->rightSizer == &grid->rightSizer);
+    assert_true(d1->leftSizer == s0);
 }
 
 
@@ -859,15 +859,15 @@ void test_drag_vertical(void**)
 
 static ViewPluginInstance* newViewInstance()
 {
-	ViewPluginInstance* instance = (ViewPluginInstance*)alloc_zero(sizeof(ViewPluginInstance));
-	return instance;
+    ViewPluginInstance* instance = (ViewPluginInstance*)alloc_zero(sizeof(ViewPluginInstance));
+    return instance;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void printRect(const char* name, const Rect rect)
 {
-	printf("%s %04d %04d %04d %04d\n", name, rect.x, rect.y, rect.width, rect.height);
+    printf("%s %04d %04d %04d %04d\n", name, rect.x, rect.y, rect.width, rect.height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -879,46 +879,46 @@ void test_auto_resize_sizer(void**)
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
     UIDock_addView(grid, newViewInstance());
-	UIDock_dockLeft(grid, grid->docks[0], newViewInstance());
-	UIDock_dockTop(grid, grid->docks[0], newViewInstance());
+    UIDock_dockLeft(grid, grid->docks[0], newViewInstance());
+    UIDock_dockTop(grid, grid->docks[0], newViewInstance());
 
-	// Current layout
-	// 
-	//   _____s0_______
-	//  |      |      |
-	//  |      |  d2  |
-	//  |      |      |
-	//  |  d1  |------| s1
-	//  |      |      |
-	//  |      |  d0  |
-	//  |      |      |
-	//  ---------------
+    // Current layout
+    //
+    //   _____s0_______
+    //  |      |      |
+    //  |      |  d2  |
+    //  |      |      |
+    //  |  d1  |------| s1
+    //  |      |      |
+    //  |      |  d0  |
+    //  |      |      |
+    //  ---------------
 
-	assert_int_equal((int)grid->sizers.size(), 2);
-	assert_int_equal((int)grid->sizers[1]->rect.x, rect.width / 2);
-	assert_int_equal((int)grid->sizers[1]->rect.y, rect.height / 2);
-	assert_int_equal((int)grid->sizers[1]->rect.width, rect.width / 2);
-	assert_int_equal((int)grid->sizers[1]->rect.height, 0); 
+    assert_int_equal((int)grid->sizers.size(), 2);
+    assert_int_equal((int)grid->sizers[1]->rect.x, rect.width / 2);
+    assert_int_equal((int)grid->sizers[1]->rect.y, rect.height / 2);
+    assert_int_equal((int)grid->sizers[1]->rect.width, rect.width / 2);
+    assert_int_equal((int)grid->sizers[1]->rect.height, 0);
 
-	UIDock_dockBottom(grid, grid->docks[1], newViewInstance());
+    UIDock_dockBottom(grid, grid->docks[1], newViewInstance());
 
-	// Current layout
-	// 
-	//   _____s0_______
-	//  |      |      |
-	//  |  d1  |  d2  |
-	//  |      |      |
-	//  |------|------| s1
-	//  |      |      |
-	//  |  d3  |  d0  |
-	//  |      |      |
-	//  ---------------
+    // Current layout
+    //
+    //   _____s0_______
+    //  |      |      |
+    //  |  d1  |  d2  |
+    //  |      |      |
+    //  |------|------| s1
+    //  |      |      |
+    //  |  d3  |  d0  |
+    //  |      |      |
+    //  ---------------
 
-	assert_int_equal((int)grid->sizers.size(), 2);
-	assert_int_equal((int)grid->sizers[1]->rect.x, rect.x);
-	assert_int_equal((int)grid->sizers[1]->rect.y, rect.height / 2);
-	assert_int_equal((int)grid->sizers[1]->rect.width, rect.width);
-	assert_int_equal((int)grid->sizers[1]->rect.height, 0); 
+    assert_int_equal((int)grid->sizers.size(), 2);
+    assert_int_equal((int)grid->sizers[1]->rect.x, rect.x);
+    assert_int_equal((int)grid->sizers[1]->rect.y, rect.height / 2);
+    assert_int_equal((int)grid->sizers[1]->rect.width, rect.width);
+    assert_int_equal((int)grid->sizers[1]->rect.height, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -928,30 +928,30 @@ void test_auto_resize_sizer(void**)
 
 static uint32_t s_colors[] =
 {
-	0xffb27474,
-	0xffb28050,
-	0xffa9b250,
-	0xff60b250,
+    0xffb27474,
+    0xffb28050,
+    0xffa9b250,
+    0xff60b250,
 
-	0xff4fb292,
-	0xff4f71b2,
-	0xff8850b2,
-	0xffb25091,
+    0xff4fb292,
+    0xff4f71b2,
+    0xff8850b2,
+    0xffb25091,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void fillRect(uint32_t* buffer, Rect rect, int width, uint32_t color)
 {
-	buffer += (rect.y * width) + rect.x;
+    buffer += (rect.y * width) + rect.x;
 
-	for (int y = 0; y < rect.height; ++y)
-	{
-		for (int x = 0; x < rect.width; ++x)
-			buffer[x] = color;
-	
-		buffer += width;	
-	}
+    for (int y = 0; y < rect.height; ++y)
+    {
+        for (int x = 0; x < rect.width; ++x)
+            buffer[x] = color;
+
+        buffer += width;
+    }
 }
 
 //const int g_sizerSize = 4;
@@ -960,38 +960,38 @@ void fillRect(uint32_t* buffer, Rect rect, int width, uint32_t color)
 
 void fillDock(uint32_t* buffer, Rect rect, int width, uint32_t color)
 {
-	rect.x += g_sizerSize / 2;
-	rect.y += g_sizerSize / 2;
-	rect.width -= g_sizerSize / 2;
-	rect.height -= g_sizerSize / 2;
+    rect.x += g_sizerSize / 2;
+    rect.y += g_sizerSize / 2;
+    rect.width -= g_sizerSize / 2;
+    rect.height -= g_sizerSize / 2;
 
-	fillRect(buffer, rect, width, color);
+    fillRect(buffer, rect, width, color);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void fillSizer(uint32_t* buffer, UIDockSizer* sizer, int width)
 {
-	Rect rect = sizer->rect;
+    Rect rect = sizer->rect;
 
-	if (sizer->dir == UIDockSizerDir_Horz)
-	{
-		rect.y -= g_sizerSize / 2;
-		rect.height = g_sizerSize;
+    if (sizer->dir == UIDockSizerDir_Horz)
+    {
+        rect.y -= g_sizerSize / 2;
+        rect.height = g_sizerSize;
 
-		fillRect(buffer, rect, width, MFB_RGB(255, 0, 0));
-	}
-	else if (sizer->dir == UIDockSizerDir_Vert)
-	{
-		rect.x -= g_sizerSize / 2;
-		rect.width = g_sizerSize;
+        fillRect(buffer, rect, width, MFB_RGB(255, 0, 0));
+    }
+    else if (sizer->dir == UIDockSizerDir_Vert)
+    {
+        rect.x -= g_sizerSize / 2;
+        rect.width = g_sizerSize;
 
-		fillRect(buffer, rect, width, MFB_RGB(0, 255, 0));
-	}
-	else
-	{
-		assert(false);
-	}
+        fillRect(buffer, rect, width, MFB_RGB(0, 255, 0));
+    }
+    else
+    {
+        assert(false);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1005,21 +1005,21 @@ void displayGrid(UIDockingGrid* grid, Rect rect)
 
     //drawBuffer += 20 * rect.height;
 
-	if (!mfb_open("test_breaking_delete", rect.width, rect.height + 24))
-		return;
+    if (!mfb_open("test_breaking_delete", rect.width, rect.height + 24))
+        return;
 
-	for (;;)
-	{
-		int i = 0;
+    for (;;)
+    {
+        int i = 0;
 
-		for (UIDock* dock : grid->docks)
-			fillDock(drawBuffer + (22 * rect.width), dock->view->rect, rect.width, s_colors[i++ & 0x7]);
+        for (UIDock* dock : grid->docks)
+            fillDock(drawBuffer + (22 * rect.width), dock->view->rect, rect.width, s_colors[i++ & 0x7]);
 
-		for (UIDockSizer* sizer : grid->sizers)
-			fillSizer(drawBuffer + (22 * rect.width), sizer, rect.width);
+        for (UIDockSizer* sizer : grid->sizers)
+            fillSizer(drawBuffer + (22 * rect.width), sizer, rect.width);
 
-		mfb_update(drawBuffer);
-	}
+        mfb_update(drawBuffer);
+    }
 }
 
 #endif
@@ -1033,15 +1033,15 @@ void test_breaking_delete(void**)
     UIDockingGrid* grid = UIDock_createGrid(&rect);
     UIDock_addView(grid, newViewInstance());
 
-	UIDock_dockLeft(grid, grid->docks[0], newViewInstance());
-	UIDock_dockBottom(grid, grid->docks[0], newViewInstance());
-	UIDock_dockBottom(grid, grid->docks[1], newViewInstance());
-	UIDock_dockBottom(grid, grid->docks[2], newViewInstance());
+    UIDock_dockLeft(grid, grid->docks[0], newViewInstance());
+    UIDock_dockBottom(grid, grid->docks[0], newViewInstance());
+    UIDock_dockBottom(grid, grid->docks[1], newViewInstance());
+    UIDock_dockBottom(grid, grid->docks[2], newViewInstance());
 
-	UIDock_deleteView(grid, grid->docks[0]->view);
-	UIDock_deleteView(grid, grid->docks[0]->view);
-	UIDock_deleteView(grid, grid->docks[0]->view);
-	UIDock_deleteView(grid, grid->docks[0]->view);
+    UIDock_deleteView(grid, grid->docks[0]->view);
+    UIDock_deleteView(grid, grid->docks[0]->view);
+    UIDock_deleteView(grid, grid->docks[0]->view);
+    UIDock_deleteView(grid, grid->docks[0]->view);
 }
 
 
@@ -1055,66 +1055,70 @@ void test_randomize_create_delete(void**)
 
     srand(0xc0cac01a);
 
-	const int numSplits = 8;
+    const int numSplits = 8;
 
     UIDock_addView(grid, newViewInstance());
 
     int p = 1086;
 
     for (p = 0; p < 1000; ++p)
-	{
-    	srand((unsigned int)p);
+    {
+        srand((unsigned int)p);
 
-    	//printf("p %d\n", p);
+        //printf("p %d\n", p);
 
-		for (int i = 0; i < numSplits; ++i)
-		{
-			int dockIndex = i == 0 ? 0 : (int) rand() % i;
+        for (int i = 0; i < numSplits; ++i)
+        {
+            int dockIndex = i == 0 ? 0 : (int)rand() % i;
 
-			UIDock* dock = grid->docks[(unsigned int)dockIndex];
+            UIDock* dock = grid->docks[(unsigned int)dockIndex];
 
-			const int dockDir = rand() & 0x3; 
+            const int dockDir = rand() & 0x3;
 
-			//printf("dockIndex %d\n", dockIndex);
-			//printf("dockDir %d\n", dockDir);
+            //printf("dockIndex %d\n", dockIndex);
+            //printf("dockDir %d\n", dockDir);
 
-			switch (dockDir)
-			{
-				case 0 : UIDock_dockTop(grid, dock, newViewInstance()); break;
-				case 1 : UIDock_dockBottom(grid, dock, newViewInstance()); break;
-				case 2 : UIDock_dockLeft(grid, dock, newViewInstance()); break;
-				case 3 : UIDock_dockRight(grid, dock, newViewInstance()); break;
-			}
-		}
+            switch (dockDir)
+            {
+                case 0:
+                    UIDock_dockTop(grid, dock, newViewInstance()); break;
+                case 1:
+                    UIDock_dockBottom(grid, dock, newViewInstance()); break;
+                case 2:
+                    UIDock_dockLeft(grid, dock, newViewInstance()); break;
+                case 3:
+                    UIDock_dockRight(grid, dock, newViewInstance()); break;
+            }
+        }
 
-		
-		for (int i = 0; i < numSplits; ++i)
-			UIDock_deleteView(grid, grid->docks[0]->view);
 
-		//displayGrid(grid, rect);
+        for (int i = 0; i < numSplits; ++i)
+            UIDock_deleteView(grid, grid->docks[0]->view);
 
-		UIDock* dock = grid->docks[0];
+        //displayGrid(grid, rect);
 
-		assert_true(dock->topSizer == &grid->topSizer);
-		assert_true(dock->bottomSizer == &grid->bottomSizer);
-		assert_true(dock->rightSizer == &grid->rightSizer);
-		assert_true(dock->leftSizer == &grid->leftSizer);
+        UIDock* dock = grid->docks[0];
 
-		assert_int_equal(dock->view->rect.x, 0); 
-		assert_int_equal(dock->view->rect.y, 0);
-		assert_int_equal(dock->view->rect.width, rect.width);
-		assert_int_equal(dock->view->rect.height, rect.height);
+        assert_true(dock->topSizer == &grid->topSizer);
+        assert_true(dock->bottomSizer == &grid->bottomSizer);
+        assert_true(dock->rightSizer == &grid->rightSizer);
+        assert_true(dock->leftSizer == &grid->leftSizer);
 
-		//printf("dock count %d\n", (int)grid->docks.size());
-		//printf("sizer count %d\n", (int)grid->sizers.size());
+        assert_int_equal(dock->view->rect.x, 0);
+        assert_int_equal(dock->view->rect.y, 0);
+        assert_int_equal(dock->view->rect.width, rect.width);
+        assert_int_equal(dock->view->rect.height, rect.height);
 
-		if (grid->sizers.size() != 0)
-		{
-			printf("dock count %d\n", (int)grid->docks.size());
-			printf("sizer count %d\n", (int)grid->sizers.size());
-			exit(-1);
-		}
-	}
+        //printf("dock count %d\n", (int)grid->docks.size());
+        //printf("sizer count %d\n", (int)grid->sizers.size());
+
+        if (grid->sizers.size() != 0)
+        {
+            printf("dock count %d\n", (int)grid->docks.size());
+            printf("sizer count %d\n", (int)grid->sizers.size());
+            exit(-1);
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1132,11 +1136,11 @@ int main()
         unit_test(test_drag_vertical),
         unit_test(test_delete_docks_right_left),
         unit_test(test_delete_docks_left_right),
-		unit_test(test_delete_docks_up_down),
-		unit_test(test_delete_docks_down_up),
-		unit_test(test_breaking_delete),
-		unit_test(test_auto_resize_sizer),
-		//unit_test(test_randomize_create_delete),
+        unit_test(test_delete_docks_up_down),
+        unit_test(test_delete_docks_down_up),
+        unit_test(test_breaking_delete),
+        unit_test(test_auto_resize_sizer),
+        //unit_test(test_randomize_create_delete),
     };
 
     return run_tests(tests);
