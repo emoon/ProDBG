@@ -302,7 +302,7 @@ private:
             TIXMLASSERT( cap <= INT_MAX / 2 );
             int newAllocated = cap * 2;
             T* newMem = new T[newAllocated];
-            memcpy( newMem, _mem, sizeof(T)*_size );	// warning: not using constructors, only works for PODs
+            memcpy( newMem, _mem, sizeof(T)*(size_t)_size );	// warning: not using constructors, only works for PODs
             if ( _mem != _pool ) {
                 delete [] _mem;
             }

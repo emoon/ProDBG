@@ -64,8 +64,12 @@ bool Platform::MouseButtonBounce()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #if defined(__clang__)
-__attribute__((noreturn)) void Platform::Assert(const char* error, const char* filename, int line)
+__attribute__((noreturn)///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+              ) void Platform::Assert(const char* error, const char* filename, int line)
 #else
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Platform::Assert(const char* error, const char* filename, int line)
 #endif
 {
@@ -104,7 +108,7 @@ public:
 
     void Init(WindowID wid);
     virtual void Init(SurfaceID sid, WindowID wid);
-    void InitPixMap(int width, int height, Surface *surface_, WindowID wid);
+    void InitPixMap(int width, int height, Surface* surface_, WindowID wid);
 
     void Release();
     bool Initialised();
@@ -113,30 +117,30 @@ public:
     int DeviceHeightFont(int points);
     void MoveTo(int x_, int y_);
     void LineTo(int x_, int y_);
-    void Polygon(Point *pts, int npts, ColourDesired fore, ColourDesired back);
+    void Polygon(Point* pts, int npts, ColourDesired fore, ColourDesired back);
     void RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired back);
     void FillRectangle(PRectangle rc, ColourDesired back);
-    void FillRectangle(PRectangle rc, Surface &surfacePattern);
+    void FillRectangle(PRectangle rc, Surface& surfacePattern);
     void RoundedRectangle(PRectangle rc, ColourDesired fore, ColourDesired back);
     void AlphaRectangle(PRectangle rc, int cornerSize, ColourDesired fill, int alphaFill, ColourDesired outline, int alphaOutline, int flags);
-    void DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char *pixelsImage);
+    void DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char* pixelsImage);
     void Ellipse(PRectangle rc, ColourDesired fore, ColourDesired back);
-    void Copy(PRectangle rc, Point from, Surface &surfaceSource);
+    void Copy(PRectangle rc, Point from, Surface& surfaceSource);
 
-    void DrawTextNoClip(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len, ColourDesired fore, ColourDesired back);
-    void DrawTextClipped(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len, ColourDesired fore, ColourDesired back);
-    void DrawTextTransparent(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len, ColourDesired fore);
-    void MeasureWidths(Font &font_, const char *s, int len, XYPOSITION *positions);
+    void DrawTextNoClip(PRectangle rc, Font& font_, XYPOSITION ybase, const char* s, int len, ColourDesired fore, ColourDesired back);
+    void DrawTextClipped(PRectangle rc, Font& font_, XYPOSITION ybase, const char* s, int len, ColourDesired fore, ColourDesired back);
+    void DrawTextTransparent(PRectangle rc, Font& font_, XYPOSITION ybase, const char* s, int len, ColourDesired fore);
+    void MeasureWidths(Font& font_, const char* s, int len, XYPOSITION* positions);
     void DrawTextBase(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired f);
 
-    XYPOSITION WidthText(Font &font_, const char *s, int len);
-    XYPOSITION WidthChar(Font &font_, char ch);
-    XYPOSITION Ascent(Font &font_);
-    XYPOSITION Descent(Font &font_);
-    XYPOSITION InternalLeading(Font &font_);
-    XYPOSITION ExternalLeading(Font &font_);
-    XYPOSITION Height(Font &font_);
-    XYPOSITION AverageCharWidth(Font &font_);
+    XYPOSITION WidthText(Font& font_, const char* s, int len);
+    XYPOSITION WidthChar(Font& font_, char ch);
+    XYPOSITION Ascent(Font& font_);
+    XYPOSITION Descent(Font& font_);
+    XYPOSITION InternalLeading(Font& font_);
+    XYPOSITION ExternalLeading(Font& font_);
+    XYPOSITION Height(Font& font_);
+    XYPOSITION AverageCharWidth(Font& font_);
 
     void SetClip(PRectangle rc);
     void FlushCachedState();
@@ -190,7 +194,7 @@ void Font::Create(const FontParameters& fp)
     const bgfx::Memory* mem = bgfx::alloc(512 * 512);
     memcpy(mem->data, bmp, 512 * 512);
 
-    newFont->ftex = bgfx::createTexture2D(512, 512, 1, bgfx::TextureFormat::R8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT, mem);
+    newFont->ftex = bgfx::createTexture2D(512, 512, 1, bgfx::TextureFormat::R8, BGFX_TEXTURE_NONE, mem);
 
     stbtt_InitFont(&newFont->fontinfo, (unsigned char*)data, 0);
 
@@ -217,7 +221,7 @@ void UpdateImageData(ImageData& image, int w, int h, const unsigned char* data)
     const int byteSize = w * h * (int)sizeof(unsigned char) * 4; // RGBA image
 
     if (!image.initialised)
-        image.tex = bgfx::createTexture2D((uint16_t)w, (uint16_t)h, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT, 0);
+        image.tex = bgfx::createTexture2D((uint16_t)w, (uint16_t)h, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_NONE, 0);
 
     const bgfx::Memory* mem = bgfx::alloc((uint32_t)byteSize);
     memcpy(mem->data, data, (uint32_t)byteSize);
@@ -288,7 +292,7 @@ void SurfaceImpl::LineTo(int x_, int y_)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::Polygon(Point *pts, int npts, ColourDesired fore, ColourDesired back)
+void SurfaceImpl::Polygon(Point* pts, int npts, ColourDesired fore, ColourDesired back)
 {
     (void)pts;
     (void)fore;
@@ -304,16 +308,16 @@ void SurfaceImpl::RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired
 
     FillRectangle(rc, back);
     /*
-    glColor4ubv((GLubyte*)&fore);
-    glDisable(GL_TEXTURE_2D);
-    glBegin(GL_LINE_STRIP);
-    glVertex2f(rc.left+0.5f,  rc.top+0.5f);
-    glVertex2f(rc.right-0.5f, rc.top+0.5f);
-    glVertex2f(rc.right-0.5f, rc.bottom-0.5f);
-    glVertex2f(rc.left+0.5f,  rc.bottom-0.5f);
-    glVertex2f(rc.left+0.5f,  rc.top+0.5f);
-    glEnd();
-    */
+       glColor4ubv((GLubyte*)&fore);
+       glDisable(GL_TEXTURE_2D);
+       glBegin(GL_LINE_STRIP);
+       glVertex2f(rc.left+0.5f,  rc.top+0.5f);
+       glVertex2f(rc.right-0.5f, rc.top+0.5f);
+       glVertex2f(rc.right-0.5f, rc.bottom-0.5f);
+       glVertex2f(rc.left+0.5f,  rc.bottom-0.5f);
+       glVertex2f(rc.left+0.5f,  rc.top+0.5f);
+       glEnd();
+     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -340,7 +344,7 @@ void SurfaceImpl::Init(SurfaceID sid, WindowID wid)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::InitPixMap(int width, int height, Surface *surface_, WindowID wid)
+void SurfaceImpl::InitPixMap(int width, int height, Surface* surface_, WindowID wid)
 {
     (void)width;
     (void)height;
@@ -425,7 +429,7 @@ void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsi
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
+static void fillRectangle(PRectangle rc, ColourDesired b)
 {
     bgfx::TransientVertexBuffer tvb;
 
@@ -474,12 +478,22 @@ void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
+{
+	// TODO: Figure out why we need to do this.
+	fillRectangle(rc, b);
+	fillRectangle(rc, b);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void SurfaceImpl::FillRectangle(PRectangle rc, Surface&)
 {
     // GW: This probably needs to be a blit from incoming surface?
 
-    //assert(false);
-
+	(void)rc;
+    assert(false);
+/*
     bgfx::TransientVertexBuffer tvb;
 
     const uint32_t back = 0xFFFFFF; // GW-TODO: Likely need to track the current fore\back color as per style
@@ -523,6 +537,7 @@ void SurfaceImpl::FillRectangle(PRectangle rc, Surface&)
                    | BGFX_STATE_MSAA);
 
     UIRender_posColor(&tvb, 0, 6);
+*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -593,7 +608,7 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
         if (*s >= 32 && *s < 127)
         {
             stbtt_aligned_quad q;
-            stbtt_GetBakedQuad(realFont->cdata, 512, 512, *s - 32, &xt, &yt, &q, 0);
+            stbtt_GetBakedQuad(realFont->cdata, 512, 512, *s - 32, &xt, &yt, &q, 1);
 
             // First triangle
 
@@ -642,7 +657,7 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
         ++s;
     }
 
-    bgfx::setState(0
+    bgfx::setState(0 
                    | BGFX_STATE_RGB_WRITE
                    | BGFX_STATE_ALPHA_WRITE
                    | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
@@ -780,7 +795,17 @@ float SurfaceImpl::AverageCharWidth(Font& font_)
 
 void SurfaceImpl::SetClip(PRectangle rc)
 {
-    bgfx::setScissor((uint16_t)rc.left, (uint16_t)rc.right, (uint16_t)rc.top, (uint16_t)rc.bottom);
+	float xt = rc.left;
+	float yt = rc.top;
+	float width = rc.right - rc.left;
+	float height = rc.bottom - rc.top;
+
+	(void)xt;
+	(void)yt;
+	(void)width;
+	(void)height;
+
+	//bgfx::setScissor((uint16_t)x, (uint16_t)y, (uint16_t)width, (uint16_t)height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -805,7 +830,7 @@ void SurfaceImpl::SetUnicodeMode(bool unicodeMode)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SurfaceImpl::Copy(PRectangle rc, Point from, Surface &surfaceSource)
+void SurfaceImpl::Copy(PRectangle rc, Point from, Surface& surfaceSource)
 {
     (void)rc;
     (void)from;
@@ -910,7 +935,7 @@ void Window::SetCursor(Cursor curs)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window::SetTitle(const char *s)
+void Window::SetTitle(const char* s)
 {
     (void)s;
 }
@@ -956,7 +981,7 @@ int Platform::Clamp(int val, int minVal, int maxVal)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Platform::DebugPrintf(const char *format, ...)
+void Platform::DebugPrintf(const char* format, ...)
 {
     char buffer[2000];
     va_list args;
