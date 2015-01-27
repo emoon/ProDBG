@@ -144,6 +144,11 @@ public:
 		return (pt.x >= left) && (pt.x <= right) &&
 			(pt.y >= top) && (pt.y <= bottom);
 	}
+	bool ContainsWholePixel(Point pt) const {
+		// Does the rectangle contain all of the pixel to left/below the point 
+		return (pt.x >= left) && ((pt.x+1) <= right) &&
+			(pt.y >= top) && ((pt.y+1) <= bottom);
+	}
 	bool Contains(PRectangle rc) const {
 		return (rc.left >= left) && (rc.right <= right) &&
 			(rc.top >= top) && (rc.bottom <= bottom);
@@ -193,11 +198,11 @@ public:
 
 	static inline unsigned int ValueOfHex(const char ch) {
 		if (ch >= '0' && ch <= '9')
-			return (unsigned int)(ch - '0');
+			return ch - '0';
 		else if (ch >= 'A' && ch <= 'F')
-			return (unsigned int)(ch - 'A' + 10);
+			return ch - 'A' + 10;
 		else if (ch >= 'a' && ch <= 'f')
-			return (unsigned int)(ch - 'a' + 10);
+			return ch - 'a' + 10;
 		else
 			return 0;
 	}
