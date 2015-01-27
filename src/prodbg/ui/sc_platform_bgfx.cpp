@@ -481,7 +481,7 @@ static void fillRectangle(PRectangle rc, ColourDesired b)
 void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
 {
 	// TODO: Figure out why we need to do this.
-	fillRectangle(rc, b);
+	//fillRectangle(rc, b);
 	fillRectangle(rc, b);
 }
 
