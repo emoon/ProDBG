@@ -8,8 +8,6 @@
 #ifndef DOCUMENT_H
 #define DOCUMENT_H
 
-#include <stdexcept>
-
 #ifdef SCI_NAMESPACE
 namespace Scintilla {
 #endif
@@ -172,7 +170,6 @@ public:
 };
 
 class Document;
-class ILexer;
 
 class LexInterface {
 protected:

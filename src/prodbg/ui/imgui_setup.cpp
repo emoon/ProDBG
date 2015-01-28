@@ -82,32 +82,27 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
 
 void IMGUI_setup(int width, int height)
 {
-    const void* png_data;
-    unsigned int png_size;
+	unsigned char* fontData;
+	int fWidth;
+	int fHeight;
+	int outBytes;
+
     ImGuiIO& io = ImGui::GetIO();
 
     io.DisplaySize = ImVec2((float)width, (float)height);
     io.DeltaTime = 1.0f / 60.0f;
-    io.PixelCenterOffset = 0.0f;
 
     //s_editor = 0;
     s_editor = ScEditor_create(width, height);
 
     UIRender_init();
 
-    ImGui::GetDefaultFontData(NULL, NULL, &png_data, &png_size);
-    int tex_x, tex_y, pitch, tex_comp;
+	ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&fontData, &fWidth, &fHeight, &outBytes); 
 
-    void* tex_data = stbi_load_from_memory((const unsigned char*)png_data, (int)png_size, &tex_x, &tex_y, &tex_comp, 0);
+    const bgfx::Memory* mem = bgfx::alloc((uint32_t)(fWidth * fHeight * outBytes));
+    memcpy(mem->data, fontData, size_t(fWidth * fHeight  * outBytes));
 
-    pitch = tex_x * 4;
-
-    const bgfx::Memory* mem = bgfx::alloc((uint32_t)(tex_y * pitch));
-    memcpy(mem->data, tex_data, size_t(pitch * tex_y));
-
-    s_textureId = bgfx::createTexture2D((uint16_t)tex_x, (uint16_t)tex_y, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT, mem);
-
-    stbi_image_free(tex_data);
+    s_textureId = bgfx::createTexture2D((uint16_t)fWidth, (uint16_t)fHeight , 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_NONE, mem);
 
     io.RenderDrawListsFn = imguiRender;
 }
@@ -120,7 +115,6 @@ void IMGUI_updateSize(int width, int height)
 
     io.DisplaySize = ImVec2((float)width, (float)height);
     io.DeltaTime = 1.0f / 60.0f;
-    io.PixelCenterOffset = 0.0f;
 
 	if (s_editor)
     	ScEditor_resize(s_editor, width, height);

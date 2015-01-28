@@ -5,7 +5,7 @@
 #include <stdarg.h>
 #include <math.h>
 #include <assert.h>
-#include <stb_truetype.h>
+#include <stb/stb_truetype.h>
 #include "core/file.h"
 #include "ui_render.h"
 
@@ -481,7 +481,7 @@ static void fillRectangle(PRectangle rc, ColourDesired b)
 void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
 {
 	// TODO: Figure out why we need to do this.
-	fillRectangle(rc, b);
+	//fillRectangle(rc, b);
 	fillRectangle(rc, b);
 }
 

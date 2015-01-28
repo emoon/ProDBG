@@ -35,6 +35,8 @@ local function Test(params)
 		Libs = { { "Ws2_32.lib", "shell32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 
 		Frameworks = { "Cocoa"  },
+
+		IdeGenerationHints = { Msvc = { SolutionFolder = "Tests" } },
 	}
 
 end

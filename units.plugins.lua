@@ -45,6 +45,8 @@ SharedLibrary {
     },
 
     Frameworks = { "LLDB" },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -58,6 +60,8 @@ SharedLibrary {
     },
 
     Sources = { "src/plugins/sourcecode/sourcecode_plugin.cpp" },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -71,6 +75,8 @@ SharedLibrary {
     },
 
     Sources = { "src/plugins/callstack/callstack_plugin.cpp" },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -84,6 +90,8 @@ SharedLibrary {
     },
 
     Sources = { "src/plugins/disassembly/disassembly_plugin.cpp" },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -97,6 +105,8 @@ SharedLibrary {
     },
 
     Sources = { "src/plugins/registers/registers_plugin.cpp" },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -110,6 +120,8 @@ SharedLibrary {
     },
 
     Sources = { "src/plugins/locals/locals_plugin.cpp" },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -123,6 +135,8 @@ SharedLibrary {
     },
 
     Sources = { "src/plugins/breakpoints/breakpoints_plugin.cpp" },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -136,6 +150,8 @@ SharedLibrary {
     },
 
     Sources = { "src/plugins/hex_memory/hex_memory_plugin.cpp" },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
