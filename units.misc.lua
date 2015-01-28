@@ -34,6 +34,8 @@ Program {
     Libs = { { "wsock32.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 
     Depends = { "remote_api" },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Misc" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -48,6 +50,8 @@ Program {
             Extensions = { ".c" },
         },
     },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Misc" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -90,6 +94,8 @@ Program {
     Libs = { { "wsock32.lib", "kernel32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
 
     Depends = { "remote_api", "angelscript", "as_debugger" },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Addons" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
