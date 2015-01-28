@@ -1,4 +1,5 @@
 #include "ui_sc_editor.h"
+#include "core/file.h"
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -791,8 +792,12 @@ public:
         SendCommand(SCI_MARKERDEFINE, 0, SC_MARK_RGBAIMAGE);
 
 
-        const char* text = "test";
-        /*
+        void* File_loadToMemory(const char* filename, size_t* size, size_t padAllocSize);
+
+        size_t textSize = 0;
+        const char* text = static_cast<const char*>(File_loadToMemory("examples/fake_6502/fake6502_main.c", &textSize, 0));
+        assert(text);
+#if 0
         	"precision highp float;\n"
                            "\n"
                            "varying vec3 n;\n"
@@ -814,10 +819,12 @@ public:
                            "\tfloat diffuse = max(0.0,dot(normalize(n),eyeSpaceLightDirection));\n"
                            "\tgl_FragColor = vec4(texture2D(tex,uv).xyz*diffuse,1.0);\n"
                            "}";
-        */
+#endif
 
         SendCommand(SCI_ADDTEXT, strlen(text),
                     reinterpret_cast<sptr_t>(static_cast<const char*>(text)));
+
+        free((void*)text);
 
         SendCommand(SCI_MARKERADD, 18 /* line number */, 0 /* marker id */);
     }
