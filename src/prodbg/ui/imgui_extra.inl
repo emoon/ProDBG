@@ -74,5 +74,66 @@ bool IsActiveWindow(ImGuiWindow* window)
     return g.FocusedWindow == window;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*
+bool ScInputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags, void (*callback)(ImGuiTextEditCallbackData*), void* user_data)
+{
+    ImGuiState& g = GImGui;
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    const ImGuiIO& io = g.IO;
+    const ImGuiStyle& style = g.Style;
+
+    const ImGuiID id = window->GetID(label);
+    const float w = window->DC.ItemWidth.back();
+
+    const ImVec2 text_size = CalcTextSize(label, NULL, true);
+    const ImGuiAabb frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, text_size.y) + style.FramePadding*2.0f);
+    const ImGuiAabb bb(frame_bb.Min, frame_bb.Max + ImVec2(text_size.x > 0.0f ? (style.ItemInnerSpacing.x + text_size.x) : 0.0f, 0.0f));
+
+    ItemSize(bb);
+
+    if (ClipAdvance(frame_bb))
+        return false;
+
+
+
+    // NB: we are only allowed to access 'edit_state' if we are the active widget.
+    ImGuiTextEditState& edit_state = g.InputTextState;
+
+    const bool hovered = IsHovered(frame_bb, id);
+
+    if (hovered)
+        g.HoveredId = id;
+
+    if (hovered && io.MouseClicked[0])
+    {
+        if (g.ActiveId != id)
+        {
+            // Start edition
+
+        }
+
+        g.ActiveId = id;
+        FocusWindow(window);
+    }
+    else if (io.MouseClicked[0])
+    {
+        // Release focus when we click outside
+        if (g.ActiveId == id)
+        {
+            g.ActiveId = 0;
+        }
+    }
+
+}
+*/
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 }
 

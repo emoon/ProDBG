@@ -5,7 +5,7 @@
 #include <stdarg.h>
 #include <math.h>
 #include <assert.h>
-#include <stb_truetype.h>
+#include <stb/stb_truetype.h>
 #include "core/file.h"
 #include "ui_render.h"
 
