@@ -1,5 +1,6 @@
 #include "ui_sc_editor.h"
 #include "core/file.h"
+#include "api/include/pd_keys.h"
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -678,8 +679,18 @@ struct ScEditor : public Editor
 private:
     int m_width;
     int m_height;
+    int m_wheelVRotation;
+    int m_wheelHRotation;
 
 public:
+
+    ScEditor()
+    : m_width(0)
+    , m_height(0)
+    , m_wheelVRotation(0)
+    , m_wheelHRotation(0)
+    {
+    }
 
     virtual ~ScEditor()
     {
@@ -741,6 +752,55 @@ public:
         }
     }
 
+    void HandleMouseWheel(const PDMouseWheelEvent& wheelEvent)
+    {
+        int topLineNew = topLine;
+        int lines;
+        int xPos = xOffset;
+        int pixels;
+
+        if (wheelEvent.wheelAxis == PDWHEEL_AXIS_HORIZONTAL)
+        {
+            m_wheelHRotation += wheelEvent.rotation * (wheelEvent.columnsPerRotation * vs.spaceWidth);
+            pixels = m_wheelHRotation / wheelEvent.wheelDelta;
+            m_wheelHRotation -= pixels * wheelEvent.wheelDelta;
+            if (pixels != 0)
+            {
+                xPos += pixels;
+                PRectangle rcText = GetTextRectangle();
+                if (xPos > scrollWidth - rcText.Width())
+                    xPos = scrollWidth - rcText.Width();
+                HorizontalScrollTo(xPos);
+            }
+        }
+        else if (wheelEvent.keyFlags & PDKEY_CTRL)
+        {
+            if (wheelEvent.rotation > 0)
+                KeyCommand(SCI_ZOOMIN);
+            else
+                KeyCommand(SCI_ZOOMOUT);
+        }
+        else
+        {
+            short delta = wheelEvent.wheelDelta;
+            if (!delta)
+                delta = 120;
+            m_wheelVRotation += wheelEvent.rotation;
+            lines = m_wheelVRotation / delta;
+            m_wheelVRotation -= lines * delta;
+            if (lines != 0)
+            {
+                bool isPageScroll = (wheelEvent.keyFlags & PDKEY_SHIFT);
+                if (isPageScroll)
+                    lines = lines * LinesOnScreen();  // lines is either +1 or -1
+                else
+                    lines *= wheelEvent.linesPerRotation;
+                topLineNew -= lines;
+                ScrollTo(topLineNew);
+            }
+        }
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     void Render()
@@ -772,7 +832,7 @@ public:
     void Initialise()
     {
         wMain = WindowID(1);
-        wMargin = WindowID(2);
+        //wMargin = WindowID(2);
 
         // We need to disable buffered draw so Scintilla doesn't keep a yoffset of 0
         // when rendering text, thinking we are blitting through a pixmap. We want a
@@ -846,36 +906,11 @@ public:
         SetFocusState(true);
 
 
-        void* File_loadToMemory(const char* filename, size_t* size, size_t padAllocSize);
-
         size_t textSize = 0;
         const char* text = static_cast<const char*>(File_loadToMemory("examples/fake_6502/fake6502_main.c", &textSize, 0));
         assert(text);
-#if 0
-        	"precision highp float;\n"
-                           "\n"
-                           "varying vec3 n;\n"
-                           "varying vec2 uv;\n"
-                           "\n"
-                           "uniform sampler2D tex;\n"
-                           "\n"
-                           "#pragma include \"noise2D.glsl\" // for snoise(vec2 v)\n"
-                           "#pragma include \"noise3D.glsl\" //  for snoise(vec3 v)\n"
-                           "#pragma include \"noise4D.glsl\" //  for snoise(vec4 v)\n"
-                           "#pragma include \"cellular2D.glsl\" //  for cellular(vec2 P)\n"
-                           "#pragma include \"cellular2x2.glsl\" //  for cellular2x2(vec2 P)\n"
-                           "#pragma include \"cellular2x2x2.glsl\" //  for cellular2x2x2(vec3 P)\n"
-                           "#pragma include \"cellular3D.glsl\" //  cellular(vec3 P)\n"
-                           "\n"
-                           "void main(void)\n"
-                           "{\n"
-                           "\tvec3 eyeSpaceLightDirection = vec3(0.0,0.0,1.0);\n"
-                           "\tfloat diffuse = max(0.0,dot(normalize(n),eyeSpaceLightDirection));\n"
-                           "\tgl_FragColor = vec4(texture2D(tex,uv).xyz*diffuse,1.0);\n"
-                           "}";
-#endif
 
-        SendCommand(SCI_ADDTEXT, strlen(text),
+        SendCommand(SCI_ADDTEXT, textSize,
                     reinterpret_cast<sptr_t>(static_cast<const char*>(text)));
 
         free((void*)text);
@@ -1296,8 +1331,11 @@ void ScEditor_tick(ScEditor* editor)
 void ScEditor_render(ScEditor* editor)
 {
     if (editor)
-    {
-        //editor->BraceMatch();
         editor->Render();
-    }
+}
+
+void ScEditor_scrollMouse(ScEditor* editor, const PDMouseWheelEvent& wheelEvent)
+{
+    if (editor)
+        editor->HandleMouseWheel(wheelEvent);
 }

@@ -168,6 +168,18 @@ void IMGUI_setMouse(float x, float y, int mouseLmb)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void IMGUI_scrollMouse(const PDMouseWheelEvent& wheelEvent)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    const float unitScale = 1.0f; // 1 unit = scrolling about 5 lines of text
+    //io.MouseWheel = deltaY; TODO: Might not be scaled right for ImGui
+
+    if (s_editor)
+        ScEditor_scrollMouse(s_editor, wheelEvent);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void IMGUI_setKeyDown(int key, int modifier)
 {
     ImGuiIO& io = ImGui::GetIO();
