@@ -92,6 +92,25 @@ void IMGUI_setup(int width, int height)
     io.DisplaySize = ImVec2((float)width, (float)height);
     io.DeltaTime = 1.0f / 60.0f;
 
+    // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
+    io.KeyMap[ImGuiKey_Tab]        = PDKEY_TAB;
+    io.KeyMap[ImGuiKey_LeftArrow]  = PDKEY_LEFT;
+    io.KeyMap[ImGuiKey_RightArrow] = PDKEY_RIGHT;
+    io.KeyMap[ImGuiKey_UpArrow]    = PDKEY_UP;
+    io.KeyMap[ImGuiKey_DownArrow]  = PDKEY_DOWN;
+    io.KeyMap[ImGuiKey_Home]       = PDKEY_HOME;
+    io.KeyMap[ImGuiKey_End]        = PDKEY_END;
+    io.KeyMap[ImGuiKey_Delete]     = PDKEY_DELETE;
+    io.KeyMap[ImGuiKey_Backspace]  = PDKEY_BACKSPACE;
+    io.KeyMap[ImGuiKey_Enter]      = PDKEY_ENTER;
+    io.KeyMap[ImGuiKey_Escape]     = PDKEY_ESCAPE;
+    io.KeyMap[ImGuiKey_A]          = PDKEY_A;
+    io.KeyMap[ImGuiKey_C]          = PDKEY_C;
+    io.KeyMap[ImGuiKey_V]          = PDKEY_V;
+    io.KeyMap[ImGuiKey_X]          = PDKEY_X;
+    io.KeyMap[ImGuiKey_Y]          = PDKEY_Y;
+    io.KeyMap[ImGuiKey_Z]          = PDKEY_Z;
+
     //s_editor = 0;
     s_editor = ScEditor_create(width, height);
 

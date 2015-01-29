@@ -41,6 +41,8 @@
 
 #include "tinyxml2/tinyxml2.h"
 
+#include <imgui.h>
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool htmlToColour(ColourDesired& colour, const char* html)
@@ -687,7 +689,30 @@ public:
 
     void Update()
     {
+        HandleInput();
         Tick();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    static bool IsKeyPressedMap(ImGuiKey key, bool repeat = false)
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        const int key_index = io.KeyMap[key];
+        return ImGui::IsKeyPressed(key_index, repeat);
+    }
+
+    void HandleInput()
+    {
+        // TODO: Would be better to decouple ImGui key values here and abstract it into a prodbg api instead
+        if (IsKeyPressedMap(ImGuiKey_DownArrow, true))
+        {
+            Editor::KeyDown(SCK_NEXT, false, false, false);
+        }
+        else if (IsKeyPressedMap(ImGuiKey_UpArrow, true))
+        {
+            Editor::KeyDown(SCK_PRIOR, false, false, false);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
