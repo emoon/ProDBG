@@ -47,6 +47,12 @@
 
 #include <imgui.h>
 
+#define TESTING_TOOLTIP_LOGIC 0
+// TODO: Temp testing code
+#if TESTING_TOOLTIP_LOGIC && !BX_PLATFORM_OSX
+extern "C" __declspec(dllimport) void __stdcall OutputDebugStringA(const char* _str);
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool htmlToColour(ColourDesired& colour, const char* html)
@@ -362,7 +368,6 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 struct ScEditor : public ScintillaBase
 {
 private:
@@ -416,6 +421,60 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    bool IsComment(int position)
+    {
+        //position = max(0, position - 1);
+        sptr_t style = SendCommand(SCI_GETSTYLEAT, position);
+
+        // TODO: How to map this cleanly?
+        return style == 2;
+    }
+
+    int GetWordStartPosition(int position, bool onlyWordCharacters)
+    {
+        return SendCommand(SCI_WORDSTARTPOSITION, uptr_t(position), sptr_t(onlyWordCharacters));
+    }
+
+    int GetWordEndPosition(int position, bool onlyWordCharacters)
+    {
+        return SendCommand(SCI_WORDENDPOSITION, uptr_t(position), sptr_t(onlyWordCharacters));
+    }
+
+    char* GetTextRange(int startPosition, int endPosition)
+    {
+        if (endPosition < startPosition)
+        {
+            int temp = startPosition;
+            startPosition = endPosition;
+            endPosition = temp;
+        }
+
+        int length = endPosition - startPosition;
+        if (!length)
+            return nullptr;
+
+        char* result = static_cast<char*>(malloc(sizeof(char) * length + 1));
+
+        Sci_TextRange textRange;
+        textRange.lpstrText = result;
+        textRange.chrg.cpMin = startPosition;
+        textRange.chrg.cpMax = endPosition;
+
+        SendCommand(SCI_GETTEXTRANGE, 0, sptr_t(&textRange));
+        result[length] = '\0';
+
+        return result;
+    }
+
+    char* GetWordFromPosition(int position, int& start, int& end)
+    {
+        end   = GetWordEndPosition(position, true);
+        start = GetWordStartPosition(position, true);
+        return GetTextRange(start, end);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     static bool IsKeyPressedMap(ImGuiKey key, bool repeat = false)
     {
@@ -445,7 +504,26 @@ public:
         {
             // Left mouse button click
             Point pt = Point::FromInts(io.MouseClickedPos[0].x, io.MouseClickedPos[0].y);
+
+        #if TESTING_TOOLTIP_LOGIC
+            int position = PositionFromLocation(pt, false, true);
+
+            int wordStart;
+            int wordEnd;
+            if (char* result = GetWordFromPosition(position, wordStart, wordEnd))
+            {
+                char resultText[256];
+                sprintf(resultText, "Word [%s] is %s\n", IsComment(position) ? "comment" : "normal", result);
+            #if BX_PLATFORM_OSX
+                printf(resultText);
+            #else
+                OutputDebugStringA(resultText);
+            #endif
+                free(result);
+            }
+        #else
             ButtonDown(pt, (unsigned int)io.MouseDownTime[0], false, false, false);
+        #endif
         }
     }
 
