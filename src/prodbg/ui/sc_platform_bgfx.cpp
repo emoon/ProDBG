@@ -847,6 +847,24 @@ Surface* Surface::Allocate(int technology)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+struct WindowImpl
+{
+    WindowImpl()
+    {
+        show = false;
+    }
+
+    PRectangle position;
+    bool show;
+};
+
+WindowImpl* AllocateWindowImpl()
+{
+    return new WindowImpl;
+}
+
+inline WindowImpl* GetWindow(WindowID id) { return (WindowImpl*)id; }
+
 Window::~Window()
 {
 }
@@ -855,6 +873,12 @@ Window::~Window()
 
 void Window::Destroy()
 {
+    if (wid)
+    {
+        Show(false);
+        delete GetWindow(wid);
+    }
+
     wid = 0;
 }
 
@@ -869,40 +893,43 @@ bool Window::HasFocus()
 
 PRectangle Window::GetPosition()
 {
-    // TODO: TEMP! Hook up properly to ImGui
-    ImGuiIO& io = ImGui::GetIO();
-    return PRectangle::FromInts(0, 0, int(io.DisplaySize.x), int(io.DisplaySize.y));
+    if (!wid)
+        return PRectangle();
+
+    return GetWindow(wid)->position;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Window::SetPosition(PRectangle rc)
 {
-    (void)rc;
+    GetWindow(wid)->position = rc;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Window::SetPositionRelative(PRectangle rc, Window w)
 {
-    (void)rc;
-    (void)w;
+    SetPosition(rc);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 PRectangle Window::GetClientPosition()
 {
-    // TODO: TEMP! Hook up properly to ImGui
-    ImGuiIO& io = ImGui::GetIO();
-    return PRectangle::FromInts(0, 0, int(io.DisplaySize.x), int(io.DisplaySize.y));
+    if (!wid)
+        return PRectangle();
+
+    //PRectangle(0, 0, sz.x, sz.y);
+    return GetWindow(wid)->position;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Window::Show(bool show)
 {
-    (void)show;
+    if (wid)
+        GetWindow(wid)->show = show;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -53,6 +53,8 @@
 extern "C" __declspec(dllimport) void __stdcall OutputDebugStringA(const char* _str);
 #endif
 
+extern struct WindowImpl* AllocateWindowImpl();
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool htmlToColour(ColourDesired& colour, const char* html)
@@ -519,6 +521,8 @@ public:
             #else
                 OutputDebugStringA(resultText);
             #endif
+                CallTipShow(pt, result);
+
                 free(result);
             }
         #else
@@ -606,8 +610,13 @@ public:
 
     void Initialise()
     {
-        wMain = WindowID(1);
-        //wMargin = WindowID(2);
+        
+
+        wMain = AllocateWindowImpl();
+
+        // TODO: TEMP! Hook up properly to ImGui
+        ImGuiIO& io = ImGui::GetIO();
+        wMain.SetPosition(PRectangle::FromInts(0, 0, int(io.DisplaySize.x), int(io.DisplaySize.y)));
 
         // We need to disable buffered draw so Scintilla doesn't keep a yoffset of 0
         // when rendering text, thinking we are blitting through a pixmap. We want a
@@ -679,6 +688,7 @@ public:
         
         
         SetFocusState(true);
+        CaretSetPeriod(0);
 
         size_t textSize = 0;
         const char* text = static_cast<const char*>(File_loadToMemory("examples/fake_6502/fake6502_main.c", &textSize, 0));
@@ -699,6 +709,8 @@ public:
     {
         m_width = width;
         m_height = height;
+
+        wMain.SetPosition(PRectangle::FromInts(0, 0, m_width, m_height));
 
         // GW-TODO: Likely need to adjust a member var on wMain and make
         // GetClientRectangle return that value.
@@ -734,7 +746,12 @@ public:
 
     virtual void CreateCallTipWindow(PRectangle rc) override
     {
-
+        if (!ct.wCallTip.Created())
+        {
+            //ct.wCallTip = new CallTip(stc, &ct, this);
+            ct.wCallTip = AllocateWindowImpl();
+            ct.wDraw = ct.wCallTip;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
