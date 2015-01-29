@@ -364,9 +364,11 @@ protected:
 public:
 	Window() : wid(0), cursorLast(cursorInvalid) {
 	}
+	/*
 	Window(const Window &source) : wid(source.wid), cursorLast(cursorInvalid) {
 	}
-	virtual ~Window();
+	*/
+	//virtual ~Window();
 	Window &operator=(WindowID wid_) {
 		wid = wid_;
 		return *this;

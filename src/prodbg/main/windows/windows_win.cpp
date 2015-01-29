@@ -701,7 +701,7 @@ void HandleMouseWheel(HWND window, int axis, WPARAM wParam, LPARAM lParam)
     if (linesPerRotation == -1)
     {
         if (!::SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0,
-            &linesPerRotation, 0))
+                                    &linesPerRotation, 0))
         {
             // The default is 3, so use it if SystemParametersInfo() failed
             linesPerRotation = 3;
@@ -712,7 +712,7 @@ void HandleMouseWheel(HWND window, int axis, WPARAM wParam, LPARAM lParam)
     if (columnsPerRotation == -1)
     {
         if (!::SystemParametersInfo(SPI_GETWHEELSCROLLCHARS, 0,
-            &columnsPerRotation, 0))
+                                    &columnsPerRotation, 0))
         {
             // This setting is not supported on Windows 2000/XP, so use the value of 1
             // http://msdn.microsoft.com/en-us/library/ms997498.aspx

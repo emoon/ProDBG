@@ -162,3 +162,4 @@ struct PDMouseWheelEvent
     int linesPerRotation;
     int columnsPerRotation;
 };
+

@@ -381,10 +381,10 @@ private:
 public:
 
     ScEditor()
-    : m_width(0)
-    , m_height(0)
-    , m_wheelVRotation(0)
-    , m_wheelHRotation(0)
+        : m_width(0)
+        , m_height(0)
+        , m_wheelVRotation(0)
+        , m_wheelHRotation(0)
     {
     }
 
@@ -401,13 +401,13 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     void ToggleBreakpoint()
     {
         Point caretPosition = PointMainCaret();
         unsigned int lineNumber = (unsigned int)LineFromLocation(caretPosition);
         std::vector<unsigned int>::iterator iter = find(m_breakpointLines.begin(), m_breakpointLines.end(), lineNumber);
-        
+
         if (iter != m_breakpointLines.end())
         {
             // Breakpoint already exists
@@ -427,21 +427,27 @@ public:
     bool IsComment(int position)
     {
         //position = max(0, position - 1);
-        sptr_t style = SendCommand(SCI_GETSTYLEAT, position);
+        sptr_t style = SendCommand(SCI_GETSTYLEAT, (uptr_t)position);
 
         // TODO: How to map this cleanly?
         return style == 2;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     int GetWordStartPosition(int position, bool onlyWordCharacters)
     {
-        return SendCommand(SCI_WORDSTARTPOSITION, uptr_t(position), sptr_t(onlyWordCharacters));
+        return (int)SendCommand(SCI_WORDSTARTPOSITION, (uptr_t)position, (sptr_t)onlyWordCharacters);
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     int GetWordEndPosition(int position, bool onlyWordCharacters)
     {
-        return SendCommand(SCI_WORDENDPOSITION, uptr_t(position), sptr_t(onlyWordCharacters));
+        return (int)SendCommand(SCI_WORDENDPOSITION, uptr_t(position), sptr_t(onlyWordCharacters));
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     char* GetTextRange(int startPosition, int endPosition)
     {
@@ -456,7 +462,7 @@ public:
         if (!length)
             return nullptr;
 
-        char* result = static_cast<char*>(malloc(sizeof(char) * length + 1));
+        char* result = static_cast<char*>(malloc(sizeof(char) * (size_t)length + 1));
 
         Sci_TextRange textRange;
         textRange.lpstrText = result;
@@ -469,6 +475,8 @@ public:
         return result;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     char* GetWordFromPosition(int position, int& start, int& end)
     {
         end   = GetWordEndPosition(position, true);
@@ -477,13 +485,15 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     static bool IsKeyPressedMap(ImGuiKey key, bool repeat = false)
     {
         ImGuiIO& io = ImGui::GetIO();
         const int key_index = io.KeyMap[key];
         return ImGui::IsKeyPressed(key_index, repeat);
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     void HandleInput()
     {
@@ -505,7 +515,7 @@ public:
         if (ImGui::IsMouseClicked(0))
         {
             // Left mouse button click
-            Point pt = Point::FromInts(io.MouseClickedPos[0].x, io.MouseClickedPos[0].y);
+            Point pt = Point::FromInts((int)io.MouseClickedPos[0].x, (int)io.MouseClickedPos[0].y);
 
         #if TESTING_TOOLTIP_LOGIC
             int position = PositionFromLocation(pt, false, true);
@@ -531,6 +541,8 @@ public:
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     void HandleMouseWheel(const PDMouseWheelEvent& wheelEvent)
     {
         int topLineNew = topLine;
@@ -547,8 +559,8 @@ public:
             {
                 xPos += pixels;
                 PRectangle rcText = GetTextRectangle();
-                if (xPos > scrollWidth - rcText.Width())
-                    xPos = scrollWidth - rcText.Width();
+                if (xPos > scrollWidth - (int)rcText.Width())
+                    xPos = scrollWidth - (int)rcText.Width();
                 HorizontalScrollTo(xPos);
             }
         }
@@ -610,7 +622,7 @@ public:
 
     void Initialise()
     {
-        
+
 
         wMain = AllocateWindowImpl();
 
@@ -685,8 +697,8 @@ public:
 
         //SCI_MARKERDEFINEPIXMAP
         SendCommand(SCI_MARKERDEFINE, 0, SC_MARK_RGBAIMAGE);
-        
-        
+
+
         SetFocusState(true);
         CaretSetPeriod(0);
 
@@ -698,7 +710,7 @@ public:
                     reinterpret_cast<sptr_t>(static_cast<const char*>(text)));
 
         free((void*)text);
-        
+
         // Need to do this after setting the text
         SendCommand(SCI_SETREADONLY, 1);
     }
@@ -746,6 +758,7 @@ public:
 
     virtual void CreateCallTipWindow(PRectangle rc) override
     {
+        (void)rc;
         if (!ct.wCallTip.Created())
         {
             //ct.wCallTip = new CallTip(stc, &ct, this);
@@ -756,8 +769,11 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    virtual void AddToPopUp(const char *label, int cmd = 0, bool enabled = true) override
+    virtual void AddToPopUp(const char* label, int cmd = 0, bool enabled = true) override
     {
+        (void)label;
+        (void)cmd;
+        (void)enabled;
 
     }
 
@@ -817,6 +833,9 @@ public:
 
     sptr_t DefWndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam)
     {
+        (void)iMessage;
+        (void)wParam;
+        (void)lParam;
         // GW: These are commands\events not handled by Scintilla Editor
         // Do not call into WndProc or it'll be recursive overflow.
         return 0;//WndProc(iMessage, wParam, lParam);
@@ -1021,6 +1040,8 @@ void ScEditor_render(ScEditor* editor)
     if (editor)
         editor->Render();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ScEditor_scrollMouse(ScEditor* editor, const PDMouseWheelEvent& wheelEvent)
 {

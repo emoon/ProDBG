@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <stb/stb_truetype.h>
 #include "core/file.h"
+#include "core/core.h"
 #include "ui_render.h"
 
 #include "scintilla/include/Platform.h"
@@ -63,15 +64,7 @@ bool Platform::MouseButtonBounce()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if defined(__clang__)
-__attribute__((noreturn)///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-              ) void Platform::Assert(const char* error, const char* filename, int line)
-#else
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Platform::Assert(const char* error, const char* filename, int line)
-#endif
+PD_NO_RETURN void Platform::Assert(const char* error, const char* filename, int line)
 {
     printf("Assertion [%s] failed at %s %d\n", error, filename, line);
     assert(false);
@@ -480,9 +473,9 @@ static void fillRectangle(PRectangle rc, ColourDesired b)
 
 void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b)
 {
-	// TODO: Figure out why we need to do this.
-	//fillRectangle(rc, b);
-	fillRectangle(rc, b);
+    // TODO: Figure out why we need to do this.
+    //fillRectangle(rc, b);
+    fillRectangle(rc, b);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -491,7 +484,7 @@ void SurfaceImpl::FillRectangle(PRectangle rc, Surface&)
 {
     // GW: This probably needs to be a blit from incoming surface?
 
-	(void)rc;
+    (void)rc;
     assert(false);
 /*
     bgfx::TransientVertexBuffer tvb;
@@ -531,13 +524,13 @@ void SurfaceImpl::FillRectangle(PRectangle rc, Surface&)
     vb[5].color = back;
 
     bgfx::setState(0
-                   | BGFX_STATE_RGB_WRITE
-                   | BGFX_STATE_ALPHA_WRITE
-                   | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
-                   | BGFX_STATE_MSAA);
+ | BGFX_STATE_RGB_WRITE
+ | BGFX_STATE_ALPHA_WRITE
+ | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+ | BGFX_STATE_MSAA);
 
     UIRender_posColor(&tvb, 0, 6);
-*/
+ */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -657,7 +650,7 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
         ++s;
     }
 
-    bgfx::setState(0 
+    bgfx::setState(0
                    | BGFX_STATE_RGB_WRITE
                    | BGFX_STATE_ALPHA_WRITE
                    | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
@@ -795,17 +788,17 @@ float SurfaceImpl::AverageCharWidth(Font& font_)
 
 void SurfaceImpl::SetClip(PRectangle rc)
 {
-	float xt = rc.left;
-	float yt = rc.top;
-	float width = rc.right - rc.left;
-	float height = rc.bottom - rc.top;
+    float xt = rc.left;
+    float yt = rc.top;
+    float width = rc.right - rc.left;
+    float height = rc.bottom - rc.top;
 
-	(void)xt;
-	(void)yt;
-	(void)width;
-	(void)height;
+    (void)xt;
+    (void)yt;
+    (void)width;
+    (void)height;
 
-	//bgfx::setScissor((uint16_t)x, (uint16_t)y, (uint16_t)width, (uint16_t)height);
+    //bgfx::setScissor((uint16_t)x, (uint16_t)y, (uint16_t)width, (uint16_t)height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -858,16 +851,22 @@ struct WindowImpl
     bool show;
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 WindowImpl* AllocateWindowImpl()
 {
     return new WindowImpl;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 inline WindowImpl* GetWindow(WindowID id) { return (WindowImpl*)id; }
 
-Window::~Window()
-{
-}
+/*
+   Window::~Window()
+   {
+   }
+ */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -910,6 +909,7 @@ void Window::SetPosition(PRectangle rc)
 
 void Window::SetPositionRelative(PRectangle rc, Window w)
 {
+    (void)w;
     SetPosition(rc);
 }
 
@@ -978,7 +978,7 @@ PRectangle Window::GetMonitorRect(Point pt)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Menu::Menu()
-: mid(0)
+    : mid(0)
 {
 }
 
@@ -1011,12 +1011,12 @@ void Menu::Show(Point pt, Window& w)
 class ListBoxImpl : public ListBox
 {
 private:
-    int                 lineHeight;
-    bool                unicodeMode;
-    int                 desiredVisibleRows;
-    int                 aveCharWidth;
-    size_t              maxStrWidth;
-    Point               location;       // Caret location at which the list is opened
+    int lineHeight;
+    bool unicodeMode;
+    int desiredVisibleRows;
+    int aveCharWidth;
+    size_t maxStrWidth;
+    Point location;                     // Caret location at which the list is opened
 
 public:
     ListBoxImpl();
@@ -1024,36 +1024,36 @@ public:
 
     //static ListBox* Allocate();
 
-    virtual void SetFont(Font &font) override;
-    virtual void Create(Window &parent, int ctrlID, Point location_, int lineHeight_, bool unicodeMode_, int technology_) override;
+    virtual void SetFont(Font& font) override;
+    virtual void Create(Window& parent, int ctrlID, Point location_, int lineHeight_, bool unicodeMode_, int technology_) override;
     virtual void SetAverageCharWidth(int width) override;
     virtual void SetVisibleRows(int rows) override;
     virtual int GetVisibleRows() const override;
     virtual PRectangle GetDesiredRect() override;
     virtual int CaretFromEdge() override;
     virtual void Clear() override;
-    virtual void Append(char *s, int type = -1) override;
+    virtual void Append(char* s, int type = -1) override;
 
     virtual int Length() override;
     virtual void Select(int n) override;
     virtual int GetSelection() override;
-    virtual int Find(const char *prefix) override;
-    virtual void GetValue(int n, char *value, int len) override;
-    virtual void RegisterImage(int type, const char *xpm_data) override;
-    virtual void RegisterRGBAImage(int type, int width, int height, const unsigned char *pixelsImage) override;
+    virtual int Find(const char* prefix) override;
+    virtual void GetValue(int n, char* value, int len) override;
+    virtual void RegisterImage(int type, const char* xpm_data) override;
+    virtual void RegisterRGBAImage(int type, int width, int height, const unsigned char* pixelsImage) override;
     virtual void ClearRegisteredImages() override;
-    virtual void SetDoubleClickAction(CallBackAction, void *) override;
+    virtual void SetDoubleClickAction(CallBackAction, void*) override;
     virtual void SetList(const char* list, char separator, char typesep) override;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ListBoxImpl::ListBoxImpl()
-: lineHeight(10)
-, unicodeMode(false)
-, desiredVisibleRows(5)
-, aveCharWidth(8)
-, maxStrWidth(0)
+    : lineHeight(10)
+    , unicodeMode(false)
+    , desiredVisibleRows(5)
+    , aveCharWidth(8)
+    , maxStrWidth(0)
 {
 }
 
@@ -1074,6 +1074,9 @@ void ListBoxImpl::SetFont(Font& font)
 
 void ListBoxImpl::Create(Window& parent, int ctrlID, Point location_, int lineHeight_, bool unicodeMode_, int technology_)
 {
+    (void)parent;
+    (void)ctrlID;
+    (void)technology_;
     location = location_;
     lineHeight = lineHeight_;
     unicodeMode = unicodeMode_;

@@ -82,10 +82,10 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
 
 void IMGUI_setup(int width, int height)
 {
-	unsigned char* fontData;
-	int fWidth;
-	int fHeight;
-	int outBytes;
+    unsigned char* fontData;
+    int fWidth;
+    int fHeight;
+    int outBytes;
 
     ImGuiIO& io = ImGui::GetIO();
 
@@ -116,12 +116,12 @@ void IMGUI_setup(int width, int height)
 
     UIRender_init();
 
-	ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&fontData, &fWidth, &fHeight, &outBytes); 
+    ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&fontData, &fWidth, &fHeight, &outBytes);
 
     const bgfx::Memory* mem = bgfx::alloc((uint32_t)(fWidth * fHeight * outBytes));
     memcpy(mem->data, fontData, size_t(fWidth * fHeight  * outBytes));
 
-    s_textureId = bgfx::createTexture2D((uint16_t)fWidth, (uint16_t)fHeight , 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_NONE, mem);
+    s_textureId = bgfx::createTexture2D((uint16_t)fWidth, (uint16_t)fHeight, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_NONE, mem);
 
     io.RenderDrawListsFn = imguiRender;
 }
@@ -135,8 +135,8 @@ void IMGUI_updateSize(int width, int height)
     io.DisplaySize = ImVec2((float)width, (float)height);
     io.DeltaTime = 1.0f / 60.0f;
 
-	if (s_editor)
-    	ScEditor_resize(s_editor, width, height);
+    if (s_editor)
+        ScEditor_resize(s_editor, width, height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -154,7 +154,7 @@ void IMGUI_preUpdate(float x, float y, int mouseLmb, int keyDown, int keyMod, fl
     ImGui::NewFrame();
 
     if (s_editor)
-    	ScEditor_tick(s_editor);
+        ScEditor_tick(s_editor);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -171,7 +171,8 @@ void IMGUI_setMouse(float x, float y, int mouseLmb)
 void IMGUI_scrollMouse(const PDMouseWheelEvent& wheelEvent)
 {
     ImGuiIO& io = ImGui::GetIO();
-    const float unitScale = 1.0f; // 1 unit = scrolling about 5 lines of text
+    (void)io;
+    //const float unitScale = 1.0f; // 1 unit = scrolling about 5 lines of text
     //io.MouseWheel = deltaY; TODO: Might not be scaled right for ImGui
 
     if (s_editor)
@@ -207,7 +208,7 @@ void IMGUI_postUpdate()
     ImGui::Render();
 
     if (s_editor)
-    	ScEditor_render(s_editor);
+        ScEditor_render(s_editor);
 }
 
 
