@@ -694,7 +694,29 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    void ToggleBreakpoint()
+    {
+        Point caretPosition = PointMainCaret();
+        unsigned int lineNumber = (unsigned int)LineFromLocation(caretPosition);
+        std::vector<unsigned int>::iterator iter = find(m_breakpointLines.begin(), m_breakpointLines.end(), lineNumber);
+        
+        if (iter != m_breakpointLines.end())
+        {
+            // Breakpoint already exists
+            m_breakpointLines.erase(iter);
+            SendCommand(SCI_MARKERDELETE, lineNumber /* line number */, 0 /* marker id */);
+        }
+        else
+        {
+            // Breakpoint added
+            m_breakpointLines.push_back(lineNumber);
+            SendCommand(SCI_MARKERADD, lineNumber /* line number */, 0 /* marker id */);
+        }
+    }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
     static bool IsKeyPressedMap(ImGuiKey key, bool repeat = false)
     {
         ImGuiIO& io = ImGui::GetIO();
@@ -705,13 +727,17 @@ public:
     void HandleInput()
     {
         // TODO: Would be better to decouple ImGui key values here and abstract it into a prodbg api instead
-        if (IsKeyPressedMap(ImGuiKey_DownArrow, true))
+        if (IsKeyPressedMap(ImGuiKey_DownArrow, false))
         {
-            Editor::KeyDown(SCK_NEXT, false, false, false);
+            Editor::KeyDown(SCK_DOWN /*SCK_NEXT*/, false, false, false);
         }
-        else if (IsKeyPressedMap(ImGuiKey_UpArrow, true))
+        else if (IsKeyPressedMap(ImGuiKey_UpArrow, false))
         {
-            Editor::KeyDown(SCK_PRIOR, false, false, false);
+            Editor::KeyDown(SCK_UP /*SCK_PRIOR*/, false, false, false);
+        }
+        else if (IsKeyPressedMap(ImGuiKey_V, false))
+        {
+            ToggleBreakpoint();
         }
     }
 
@@ -850,8 +876,8 @@ public:
                     reinterpret_cast<sptr_t>(static_cast<const char*>(text)));
 
         free((void*)text);
-
-        SendCommand(SCI_MARKERADD, 18 /* line number */, 0 /* marker id */);
+        
+        SetFocusState(true);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -872,15 +898,24 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void SetVerticalScrollPos()
+    virtual void SetVerticalScrollPos() override
     {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void SetHorizontalScrollPos()
+    virtual void SetHorizontalScrollPos() override
     {
     }
+    
+    virtual void ScrollText(int linesToMove) override
+    {
+        int dy = vs.lineHeight * (linesToMove);
+        (void)dy;
+        //sci->ScrollWindow(0, dy);
+    }
+    
+    
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1069,6 +1104,8 @@ public:
 
         return static_cast<LexState*>(pdoc->pli);
     }
+    
+    std::vector<unsigned int> m_breakpointLines;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
