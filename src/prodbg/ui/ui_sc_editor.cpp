@@ -727,11 +727,11 @@ public:
     void HandleInput()
     {
         // TODO: Would be better to decouple ImGui key values here and abstract it into a prodbg api instead
-        if (IsKeyPressedMap(ImGuiKey_DownArrow, false))
+        if (IsKeyPressedMap(ImGuiKey_DownArrow, true))
         {
             Editor::KeyDown(SCK_DOWN /*SCK_NEXT*/, false, false, false);
         }
-        else if (IsKeyPressedMap(ImGuiKey_UpArrow, false))
+        else if (IsKeyPressedMap(ImGuiKey_UpArrow, true))
         {
             Editor::KeyDown(SCK_UP /*SCK_PRIOR*/, false, false, false);
         }
@@ -841,6 +841,9 @@ public:
 
         //SCI_MARKERDEFINEPIXMAP
         SendCommand(SCI_MARKERDEFINE, 0, SC_MARK_RGBAIMAGE);
+        
+        
+        SetFocusState(true);
 
 
         void* File_loadToMemory(const char* filename, size_t* size, size_t padAllocSize);
@@ -877,7 +880,7 @@ public:
 
         free((void*)text);
         
-        SetFocusState(true);
+        
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
