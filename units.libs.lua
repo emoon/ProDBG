@@ -561,7 +561,7 @@ StaticLibrary {
     Sources = { 
         FGlob {
             Dir = "src/prodbg/ui",
-            Extensions = { ".c", ".cpp", ".m", ".mm", ".h" },
+            Extensions = { ".c", ".cpp", ".m", ".mm", ".h", "*.inl" },
             Filters = {
                 { Pattern = "mac"; Config = { "macosx-*-*", "macosx_test-*" } },
                 { Pattern = "windows"; Config = "win64-*-*" },
