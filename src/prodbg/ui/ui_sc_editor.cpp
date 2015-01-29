@@ -750,6 +750,14 @@ public:
         {
             ToggleBreakpoint();
         }
+
+        ImGuiIO& io = ImGui::GetIO();
+        if (ImGui::IsMouseClicked(0))
+        {
+            // Left mouse button click
+            Point pt = Point::FromInts(io.MouseClickedPos[0].x, io.MouseClickedPos[0].y);
+            ButtonDown(pt, (unsigned int)io.MouseDownTime[0], false, false, false);
+        }
     }
 
     void HandleMouseWheel(const PDMouseWheelEvent& wheelEvent)
@@ -905,7 +913,6 @@ public:
         
         SetFocusState(true);
 
-
         size_t textSize = 0;
         const char* text = static_cast<const char*>(File_loadToMemory("examples/fake_6502/fake6502_main.c", &textSize, 0));
         assert(text);
@@ -915,7 +922,8 @@ public:
 
         free((void*)text);
         
-        
+        // Need to do this after setting the text
+        SendCommand(SCI_SETREADONLY, 1);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
