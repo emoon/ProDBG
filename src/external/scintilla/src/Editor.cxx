@@ -4620,7 +4620,7 @@ void Editor::SetTicking(bool) {
 	// SetTicking is deprecated. In the past it was pure virtual and was overridden in each
 	// derived platform class but fine grained timers should now be implemented.
 	// Either way, execution should not arrive here so assert failure.
-	assert(false);
+	//assert(false);
 }
 
 void Editor::TickFor(TickReason reason) {
