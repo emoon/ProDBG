@@ -39,6 +39,9 @@
 #include "scintilla/src/MarginView.h"
 #include "scintilla/src/EditView.h"
 #include "scintilla/src/Editor.h"
+#include "scintilla/src/AutoComplete.h"
+#include "scintilla/src/CallTip.h"
+#include "scintilla/src/ScintillaBase.h"
 
 #include "tinyxml2/tinyxml2.h"
 
@@ -301,320 +304,6 @@ const char glslBuiltin[] =
     "gl_Fog";
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-class LexState : public LexInterface
-{
-    const LexerModule* m_lexCurrent;
-    PropSetSimple m_propSet;
-    int m_interfaceVersion;
-
-public:
-    int m_lexLanguage;
-
-    explicit LexState(Document* pdoc_);
-    virtual ~LexState();
-
-    void SetLexer(uptr_t wParam);
-    void SetLexerLanguage(const char* languageName);
-    const char* DescribeWordListSets();
-    void SetWordList(int n, const char* wl);
-    const char* GetName() const;
-    void* PrivateCall(int operation, void* pointer);
-    const char* PropertyNames();
-    int PropertyType(const char* name);
-    const char* DescribeProperty(const char* name);
-    void PropSet(const char* key, const char* val);
-    const char* PropGet(const char* key) const;
-    int PropGetInt(const char* key, int defaultValue = 0) const;
-    int PropGetExpanded(const char* key, char* result) const;
-
-    int LineEndTypesSupported();
-    int AllocateSubStyles(int styleBase, int numberStyles);
-    int SubStylesStart(int styleBase);
-    int SubStylesLength(int styleBase);
-    int StyleFromSubStyle(int subStyle);
-    int PrimaryStyleFromStyle(int style);
-    void FreeSubStyles();
-    void SetIdentifiers(int style, const char* identifiers);
-    int DistanceToSecondaryStyles();
-    const char* GetSubStyleBases();
-
-private:
-    void SetLexerModule(const LexerModule* lex);
-};
-
-LexState::LexState(Document* pdoc_)
-    : LexInterface(pdoc_)
-    , m_lexCurrent(nullptr)
-    , m_interfaceVersion(lvOriginal)
-    , m_lexLanguage(SCLEX_CONTAINER)
-{
-}
-
-LexState::~LexState()
-{
-    if (instance)
-    {
-        instance->Release();
-        instance = nullptr;
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LexState::SetLexerModule(const LexerModule* lex)
-{
-    if (lex != m_lexCurrent)
-    {
-        if (instance)
-        {
-            instance->Release();
-            instance = nullptr;
-        }
-
-        m_interfaceVersion = lvOriginal;
-        m_lexCurrent = lex;
-        if (m_lexCurrent)
-        {
-            instance = m_lexCurrent->Create();
-            m_interfaceVersion = instance->Version();
-        }
-
-        pdoc->LexerChanged();
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LexState::SetLexer(uptr_t wParam)
-{
-    m_lexLanguage = int(wParam);
-    if (m_lexLanguage == SCLEX_CONTAINER)
-        SetLexerModule(0);
-    else
-    {
-        const LexerModule* lex = Catalogue::Find(m_lexLanguage);
-        if (!lex)
-            lex = Catalogue::Find(SCLEX_NULL);
-
-        SetLexerModule(lex);
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LexState::SetLexerLanguage(const char* languageName)
-{
-    const LexerModule* lex = Catalogue::Find(languageName);
-    if (!lex)
-        lex = Catalogue::Find(SCLEX_NULL);
-
-    if (lex)
-        m_lexLanguage = lex->GetLanguage();
-
-    SetLexerModule(lex);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-const char* LexState::DescribeWordListSets()
-{
-    if (instance)
-        return instance->DescribeWordListSets();
-    else
-        return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LexState::SetWordList(int n, const char* wl)
-{
-    if (instance)
-    {
-        int firstModification = instance->WordListSet(n, wl);
-        if (firstModification >= 0)
-            pdoc->ModifiedAt(firstModification);
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-const char* LexState::GetName() const
-{
-    return m_lexCurrent ? m_lexCurrent->languageName : "";
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void* LexState::PrivateCall(int operation, void* pointer)
-{
-    if (pdoc && instance)
-        return instance->PrivateCall(operation, pointer);
-    else
-        return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-const char* LexState::PropertyNames()
-{
-    if (instance)
-        return instance->PropertyNames();
-    else
-        return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int LexState::PropertyType(const char* name)
-{
-    if (instance)
-        return instance->PropertyType(name);
-    else
-        return SC_TYPE_BOOLEAN;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-const char* LexState::DescribeProperty(const char* name)
-{
-    if (instance)
-        return instance->DescribeProperty(name);
-    else
-        return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LexState::PropSet(const char* key, const char* val)
-{
-    m_propSet.Set(key, val);
-    if (instance)
-    {
-        int firstModification = instance->PropertySet(key, val);
-        if (firstModification >= 0)
-            pdoc->ModifiedAt(firstModification);
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-const char* LexState::PropGet(const char* key) const
-{
-    return m_propSet.Get(key);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int LexState::PropGetInt(const char* key, int defaultValue) const
-{
-    return m_propSet.GetInt(key, defaultValue);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int LexState::PropGetExpanded(const char* key, char* result) const
-{
-    return m_propSet.GetExpanded(key, result);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int LexState::LineEndTypesSupported()
-{
-    if (instance && (m_interfaceVersion >= lvSubStyles))
-        return static_cast<ILexerWithSubStyles*>(instance)->LineEndTypesSupported();
-
-    return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int LexState::AllocateSubStyles(int styleBase, int numberStyles)
-{
-    if (instance && (m_interfaceVersion >= lvSubStyles))
-        return static_cast<ILexerWithSubStyles*>(instance)->AllocateSubStyles(styleBase, numberStyles);
-
-    return -1;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int LexState::SubStylesStart(int styleBase)
-{
-    if (instance && (m_interfaceVersion >= lvSubStyles))
-        return static_cast<ILexerWithSubStyles*>(instance)->SubStylesStart(styleBase);
-
-    return -1;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int LexState::SubStylesLength(int styleBase)
-{
-    if (instance && (m_interfaceVersion >= lvSubStyles))
-        return static_cast<ILexerWithSubStyles*>(instance)->SubStylesLength(styleBase);
-
-    return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int LexState::StyleFromSubStyle(int subStyle)
-{
-    if (instance && (m_interfaceVersion >= lvSubStyles))
-        return static_cast<ILexerWithSubStyles*>(instance)->StyleFromSubStyle(subStyle);
-
-    return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int LexState::PrimaryStyleFromStyle(int style)
-{
-    if (instance && (m_interfaceVersion >= lvSubStyles))
-        return static_cast<ILexerWithSubStyles*>(instance)->PrimaryStyleFromStyle(style);
-
-    return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LexState::FreeSubStyles()
-{
-    if (instance && (m_interfaceVersion >= lvSubStyles))
-        static_cast<ILexerWithSubStyles*>(instance)->FreeSubStyles();
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LexState::SetIdentifiers(int style, const char* identifiers)
-{
-    if (instance && (m_interfaceVersion >= lvSubStyles))
-        static_cast<ILexerWithSubStyles*>(instance)->SetIdentifiers(style, identifiers);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int LexState::DistanceToSecondaryStyles()
-{
-    if (instance && (m_interfaceVersion >= lvSubStyles))
-        return static_cast<ILexerWithSubStyles*>(instance)->DistanceToSecondaryStyles();
-
-    return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-const char* LexState::GetSubStyleBases()
-{
-    if (instance && (m_interfaceVersion >= lvSubStyles))
-        return static_cast<ILexerWithSubStyles*>(instance)->GetSubStyleBases();
-
-    return "";
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // GW-WIP: For now we directly parse and translate from Eclipse color themes.
 
 class ScEclipseTheme
@@ -674,7 +363,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-struct ScEditor : public Editor
+struct ScEditor : public ScintillaBase
 {
 private:
     int m_width;
@@ -953,15 +642,6 @@ public:
     virtual void SetHorizontalScrollPos() override
     {
     }
-    
-    virtual void ScrollText(int linesToMove) override
-    {
-        int dy = vs.lineHeight * (linesToMove);
-        (void)dy;
-        //sci->ScrollWindow(0, dy);
-    }
-    
-    
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -970,6 +650,20 @@ public:
         (void)nMax;
         (void)nPage;
         return false;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    virtual void CreateCallTipWindow(PRectangle rc) override
+    {
+
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    virtual void AddToPopUp(const char *label, int cmd = 0, bool enabled = true) override
+    {
+
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1028,107 +722,6 @@ public:
 
     sptr_t DefWndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam)
     {
-        switch (iMessage)
-        {
-            default:
-                break;
-
-            case SCI_SETLEXER:
-                DocumentLexState()->SetLexer(static_cast<uptr_t>(wParam));
-                break;
-
-            case SCI_GETLEXER:
-                return DocumentLexState()->m_lexLanguage;
-
-            case SCI_COLOURISE:
-                if (DocumentLexState()->m_lexLanguage == SCLEX_CONTAINER)
-                {
-                    pdoc->ModifiedAt(static_cast<int>(wParam));
-                    NotifyStyleToNeeded((lParam == -1) ? pdoc->Length() : static_cast<int>(lParam));
-                }
-                else
-                    DocumentLexState()->Colourise(static_cast<int>(wParam), static_cast<int>(lParam));
-
-                Redraw();
-                break;
-
-            case SCI_SETPROPERTY:
-                DocumentLexState()->PropSet(reinterpret_cast<const char*>(wParam),
-                                            reinterpret_cast<const char*>(lParam));
-                break;
-
-            case SCI_GETPROPERTY:
-                return StringResult(lParam, DocumentLexState()->PropGet(reinterpret_cast<const char*>(wParam)));
-
-            case SCI_GETPROPERTYEXPANDED:
-                return DocumentLexState()->PropGetExpanded(reinterpret_cast<const char*>(wParam),
-                                                           reinterpret_cast<char*>(lParam));
-
-            case SCI_GETPROPERTYINT:
-                return DocumentLexState()->PropGetInt(reinterpret_cast<const char*>(wParam), static_cast<int>(lParam));
-
-            case SCI_SETKEYWORDS:
-                DocumentLexState()->SetWordList(int(wParam), reinterpret_cast<const char*>(lParam));
-                break;
-
-            case SCI_SETLEXERLANGUAGE:
-                DocumentLexState()->SetLexerLanguage(reinterpret_cast<const char*>(lParam));
-                break;
-
-            case SCI_GETLEXERLANGUAGE:
-                return StringResult(lParam, DocumentLexState()->GetName());
-
-            case SCI_PRIVATELEXERCALL:
-                return reinterpret_cast<sptr_t>(DocumentLexState()->PrivateCall(int(wParam), reinterpret_cast<void*>(lParam)));
-
-            case SCI_GETSTYLEBITSNEEDED:
-                return 8;
-
-            case SCI_PROPERTYNAMES:
-                return StringResult(lParam, DocumentLexState()->PropertyNames());
-
-            case SCI_PROPERTYTYPE:
-                return DocumentLexState()->PropertyType(reinterpret_cast<const char*>(wParam));
-
-            case SCI_DESCRIBEPROPERTY:
-                return StringResult(lParam, DocumentLexState()->DescribeProperty(reinterpret_cast<const char*>(wParam)));
-
-            case SCI_DESCRIBEKEYWORDSETS:
-                return StringResult(lParam, DocumentLexState()->DescribeWordListSets());
-
-            case SCI_GETLINEENDTYPESSUPPORTED:
-                return DocumentLexState()->LineEndTypesSupported();
-
-            case SCI_ALLOCATESUBSTYLES:
-                return DocumentLexState()->AllocateSubStyles(int(wParam), int(lParam));
-
-            case SCI_GETSUBSTYLESSTART:
-                return DocumentLexState()->SubStylesStart(int(wParam));
-
-            case SCI_GETSUBSTYLESLENGTH:
-                return DocumentLexState()->SubStylesLength(int(wParam));
-
-            case SCI_GETSTYLEFROMSUBSTYLE:
-                return DocumentLexState()->StyleFromSubStyle(int(wParam));
-
-            case SCI_GETPRIMARYSTYLEFROMSTYLE:
-                return DocumentLexState()->PrimaryStyleFromStyle(int(wParam));
-
-            case SCI_FREESUBSTYLES:
-                DocumentLexState()->FreeSubStyles();
-                break;
-
-            case SCI_SETIDENTIFIERS:
-                DocumentLexState()->SetIdentifiers(int(wParam), reinterpret_cast<const char*>(lParam));
-                break;
-
-            case SCI_DISTANCETOSECONDARYSTYLES:
-                return DocumentLexState()->DistanceToSecondaryStyles();
-
-            case SCI_GETSUBSTYLEBASES:
-                return StringResult(lParam, DocumentLexState()->GetSubStyleBases());
-        }
-
         // GW: These are commands\events not handled by Scintilla Editor
         // Do not call into WndProc or it'll be recursive overflow.
         return 0;//WndProc(iMessage, wParam, lParam);
@@ -1143,14 +736,6 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    LexState* DocumentLexState()
-    {
-        if (!pdoc->pli)
-            pdoc->pli = new LexState(pdoc);
-
-        return static_cast<LexState*>(pdoc->pli);
-    }
-    
     std::vector<unsigned int> m_breakpointLines;
 };
 
