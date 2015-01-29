@@ -501,6 +501,8 @@ struct ImGuiIO
     ImFontAtlas*  Fonts;                    // <auto>               // Load and assemble one or more fonts into a single tightly packed texture. Output to Fonts array.
     float         FontGlobalScale;          // = 1.0f               // Global scale all fonts
     bool          FontAllowUserScaling;     // = false              // Allow user scaling text of individual window with CTRL+Wheel.
+    ImVec2        DisplayVisibleMin;        // <unset> (0.0f,0.0f)  // If you use DisplaySize as a virtual space larger than your screen, set DisplayVisibleMin/Max to the visible area.
+    ImVec2        DisplayVisibleMax;        // <unset> (0.0f,0.0f)  // If the values are the same, we defaults to Min=(0.0f) and Max=DisplaySize
 
     //------------------------------------------------------------------
     // User Functions
@@ -660,10 +662,19 @@ struct ImGuiStorage
     IMGUI_API int*    GetIntPtr(ImGuiID key, int default_val = 0);
     IMGUI_API float   GetFloat(ImGuiID key, float default_val = 0.0f) const;
     IMGUI_API void    SetFloat(ImGuiID key, float val);
-    IMGUI_API float*  GetFloatPtr(ImGuiID key, float default_val = 0);
+    IMGUI_API void*   GetVoidPtr(ImGuiID key) const; // default_val is NULL
     IMGUI_API void    SetVoidPtr(ImGuiID key, void* val);
-    IMGUI_API void*   GetVoidPtr(ImGuiID key);
-    IMGUI_API void    SetAllInt(int val);    // Use on your own storage if you know only integer are being stored.
+
+    // - Get***Ref() functions finds pair, insert on demand if missing, return pointer. Useful if you intend to do Get+Set. 
+    // - References are only valid until a new value is added to the storage. Calling a Set***() function or a Get***Ref() function invalidates the pointer.
+    // - A typical use case where this is convenient:
+    //      float* pvar = ImGui::GetFloatRef(key); ImGui::SliderFloat("var", pvar, 0, 100.0f); some_var += *pvar;
+    // - You can also use this to quickly create temporary editable values during a session of using Edit&Continue, without restarting your application.
+    IMGUI_API int*    GetIntRef(ImGuiID key, int default_val = 0);
+    IMGUI_API float*  GetFloatRef(ImGuiID key, float default_val = 0);
+
+    // Use on your own storage if you know only integer are being stored (open/close all tree nodes)
+    IMGUI_API void    SetAllInt(int val);
 };
 
 // Shared state of InputText(), passed to callback when a ImGuiInputTextFlags_Callback* flag is used.
@@ -751,7 +762,7 @@ struct ImDrawList
     IMGUI_API void  AddCircleFilled(const ImVec2& centre, float radius, ImU32 col, int num_segments = 12);
     IMGUI_API void  AddArc(const ImVec2& center, float rad, ImU32 col, int a_min, int a_max, bool tris = false, const ImVec2& third_point_offset = ImVec2(0,0));
     IMGUI_API void  AddText(ImFont* font, float font_size, const ImVec2& pos, ImU32 col, const char* text_begin, const char* text_end = NULL, float wrap_width = 0.0f);
-    IMGUI_API void  AddImage(ImTextureID user_texture_id, const ImVec2& a, const ImVec2& b, const ImVec2& uv0, const ImVec2& uv1, ImU32 col);
+    IMGUI_API void  AddImage(ImTextureID user_texture_id, const ImVec2& a, const ImVec2& b, const ImVec2& uv0, const ImVec2& uv1, ImU32 col = 0xFFFFFFFF);
 };
 
 // Load and rasterize multiple TTF fonts into a same texture.

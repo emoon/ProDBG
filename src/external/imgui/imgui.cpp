@@ -127,7 +127,8 @@
 
  Occasionally introducing changes that are breaking the API. The breakage are generally minor and easy to fix.
  Here is a change-log of API breaking changes, if you are using one of the functions listed, expect to have to fix some code.
-
+ 
+ - 2015/01/19 (1.30) - renamed ImGuiStorage::GetIntPtr()/GetFloatPtr() to GetIntRef()/GetIntRef() because Ptr was conflicting with actual pointer storage functions.
  - 2015/01/11 (1.30) - big font/image API change! now loads TTF file. allow for multiple fonts. no need for a PNG loader.
               (1.30) - removed GetDefaultFontData(). uses io.Fonts->GetTextureData*() API to retrieve uncompressed pixels.
                        this sequence:
@@ -526,6 +527,7 @@ ImGuiIO::ImGuiIO()
     MousePosPrev = ImVec2(-1,-1);
     MouseDoubleClickTime = 0.30f;
     MouseDoubleClickMaxDist = 6.0f;
+    DisplayVisibleMin = DisplayVisibleMax = ImVec2(0.0f, 0.0f);
     UserData = NULL;
 
     // User functions
@@ -1149,7 +1151,16 @@ float ImGuiStorage::GetFloat(ImU32 key, float default_val) const
     return it->val_f;
 }
 
-int* ImGuiStorage::GetIntPtr(ImGuiID key, int default_val)
+void* ImGuiStorage::GetVoidPtr(ImGuiID key) const
+{
+    ImVector<Pair>::iterator it = LowerBound(const_cast<ImVector<ImGuiStorage::Pair>&>(Data), key);
+    if (it == Data.end() || it->key != key)
+        return NULL;
+    return it->val_p;
+}
+
+// References are only valid until a new value is added to the storage. Calling a Set***() function or a Get***Ref() function invalidates the pointer.
+int* ImGuiStorage::GetIntRef(ImGuiID key, int default_val)
 {
     ImVector<Pair>::iterator it = LowerBound(Data, key);
     if (it == Data.end() || it->key != key)
@@ -1157,20 +1168,12 @@ int* ImGuiStorage::GetIntPtr(ImGuiID key, int default_val)
     return &it->val_i;
 }
 
-float* ImGuiStorage::GetFloatPtr(ImGuiID key, float default_val)
+float* ImGuiStorage::GetFloatRef(ImGuiID key, float default_val)
 {
     ImVector<Pair>::iterator it = LowerBound(Data, key);
     if (it == Data.end() || it->key != key)
         it = Data.insert(it, Pair(key, default_val));
     return &it->val_f;
-}
-
-void* ImGuiStorage::GetVoidPtr(ImGuiID key)
-{
-    ImVector<Pair>::iterator it = LowerBound(Data, key);
-    if (it == Data.end() || it->key != key)
-        it = Data.insert(it, Pair(key, (void*)0));
-    return it->val_p;
 }
 
 // FIXME-OPT: Wasting CPU because all SetInt() are preceeded by GetInt() calls so we should have the result from lower_bound already in place.
@@ -2451,6 +2454,9 @@ bool ImGui::Begin(const char* name, bool* p_opened, ImVec2 size, float fill_alph
         g.SetNextWindowCollapsedCond = 0;
     }
 
+    // Find parent
+    ImGuiWindow* parent_window = (flags & ImGuiWindowFlags_ChildWindow) != 0 ? g.CurrentWindowStack[g.CurrentWindowStack.size()-2] : NULL;
+
     // Find root (if we are a child window)
     size_t root_idx = g.CurrentWindowStack.size() - 1;
     while (root_idx > 0)
@@ -2471,7 +2477,6 @@ bool ImGui::Begin(const char* name, bool* p_opened, ImVec2 size, float fill_alph
     if (first_begin_of_the_frame)
     {
         window->DrawList->Clear();
-        window->DrawList->PushTextureID(g.Font->ContainerAtlas->TexID);
         window->Visible = true;
 
         // New windows appears in front
@@ -2483,18 +2488,26 @@ bool ImGui::Begin(const char* name, bool* p_opened, ImVec2 size, float fill_alph
 
         if (flags & ImGuiWindowFlags_ChildWindow)
         {
-            ImGuiWindow* parent_window = g.CurrentWindowStack[g.CurrentWindowStack.size()-2];
             parent_window->DC.ChildWindows.push_back(window);
             window->Pos = window->PosFloat = parent_window->DC.CursorPos;
             window->SizeFull = size;
         }
+    }
 
-        // Outer clipping rectangle
-        if ((flags & ImGuiWindowFlags_ChildWindow) && !(flags & ImGuiWindowFlags_ComboBox))
-            PushClipRect(g.CurrentWindowStack[g.CurrentWindowStack.size()-2]->ClipRectStack.back());
-        else
-            PushClipRect(ImVec4(0.0f, 0.0f, g.IO.DisplaySize.x, g.IO.DisplaySize.y));
+    // Setup texture
+    window->DrawList->PushTextureID(g.Font->ContainerAtlas->TexID);
 
+    // Setup outer clipping rectangle
+    if ((flags & ImGuiWindowFlags_ChildWindow) && !(flags & ImGuiWindowFlags_ComboBox))
+        PushClipRect(parent_window->ClipRectStack.back());
+    else if (g.IO.DisplayVisibleMin.x != g.IO.DisplayVisibleMax.x && g.IO.DisplayVisibleMin.y != g.IO.DisplayVisibleMax.y)
+        PushClipRect(ImVec4(g.IO.DisplayVisibleMin.x, g.IO.DisplayVisibleMin.y, g.IO.DisplayVisibleMax.x, g.IO.DisplayVisibleMax.y));
+    else
+        PushClipRect(ImVec4(0.0f, 0.0f, g.IO.DisplaySize.x, g.IO.DisplaySize.y));
+
+    // Setup and draw window
+    if (first_begin_of_the_frame)
+    {
         // Seed ID stack with our window pointer
         window->IDStack.resize(0);
         ImGui::PushID(window);
@@ -2529,11 +2542,14 @@ bool ImGui::Begin(const char* name, bool* p_opened, ImVec2 size, float fill_alph
         // Clamp into view
         if (!(window->Flags & ImGuiWindowFlags_ChildWindow) && !(window->Flags & ImGuiWindowFlags_Tooltip))
         {
+            // FIXME: Parameterize padding.
             const ImVec2 pad = ImVec2(window->FontSize()*2.0f, window->FontSize()*2.0f); // FIXME: Parametrize of clarify this behavior.
             if (g.IO.DisplaySize.x > 0.0f && g.IO.DisplaySize.y > 0.0f) // Ignore zero-sized display explicitly to avoid losing positions if a window manager reports zero-sized window when initializing or minimizing.
             {
-                window->PosFloat = ImMax(window->PosFloat + window->Size, pad) - window->Size;
-                window->PosFloat = ImMin(window->PosFloat, ImVec2(g.IO.DisplaySize.x, g.IO.DisplaySize.y) - pad);
+                ImVec2 clip_min = pad;
+                ImVec2 clip_max = g.IO.DisplaySize - pad;
+                window->PosFloat = ImMax(window->PosFloat + window->Size, clip_min) - window->Size;
+                window->PosFloat = ImMin(window->PosFloat, clip_max);
             }
             window->SizeFull = ImMax(window->SizeFull, style.WindowMinSize);
         }
@@ -2789,8 +2805,8 @@ bool ImGui::Begin(const char* name, bool* p_opened, ImVec2 size, float fill_alph
         // Outer clipping rectangle
         if ((flags & ImGuiWindowFlags_ChildWindow) && !(flags & ImGuiWindowFlags_ComboBox))
         {
-            ImGuiWindow* parent_window = g.CurrentWindowStack[g.CurrentWindowStack.size()-2];
-            PushClipRect(parent_window->ClipRectStack.back());
+            ImGuiWindow* parent_window_temp = g.CurrentWindowStack[g.CurrentWindowStack.size()-2];
+            PushClipRect(parent_window_temp->ClipRectStack.back());
         }
         else
         {
@@ -3650,7 +3666,7 @@ bool ImGui::InvisibleButton(const char* str_id, const ImVec2& size)
     if (!ItemAdd(bb, &id))
         return false;
 
-	bool hovered, held;
+    bool hovered, held;
     bool pressed = ButtonBehaviour(bb, id, &hovered, &held, true);
 
     return pressed;
@@ -6068,6 +6084,7 @@ void ImDrawList::PushClipRect(const ImVec4& clip_rect)
 
 void ImDrawList::PopClipRect()
 {
+    IM_ASSERT(clip_rect_stack.size() > 0);
     clip_rect_stack.pop_back();
     const ImVec4 clip_rect = clip_rect_stack.empty() ? GNullClipRect : clip_rect_stack.back();
     SetClipRect(clip_rect);
@@ -6100,6 +6117,7 @@ void ImDrawList::PushTextureID(const ImTextureID& texture_id)
 
 void ImDrawList::PopTextureID()
 {
+    IM_ASSERT(texture_id_stack.size() > 0);
     texture_id_stack.pop_back();
     const ImTextureID texture_id = texture_id_stack.empty() ? NULL : texture_id_stack.back();
     SetTextureID(texture_id);
@@ -6602,6 +6620,7 @@ bool    ImFontAtlas::Build()
     stbrp_rect* buf_rects = (stbrp_rect*)ImGui::MemAlloc(total_glyph_count * sizeof(stbrp_rect));
     stbtt_pack_range* buf_ranges = (stbtt_pack_range*)ImGui::MemAlloc(total_glyph_range_count * sizeof(stbtt_pack_range));
     memset(buf_packedchars, 0, total_glyph_count * sizeof(stbtt_packedchar));
+    memset(buf_rects, 0, total_glyph_count * sizeof(stbrp_rect));              // Unnessary but let's clear this for the sake of sanity.
     memset(buf_ranges, 0, total_glyph_range_count * sizeof(stbtt_pack_range));
 
     // First pass: pack all glyphs (no rendering at this point, we are working with glyph sizes only)
@@ -8174,7 +8193,7 @@ static void ShowExampleAppCustomRendering(bool* opened)
     // However you can draw directly and poll mouse/keyboard by yourself. You can manipulate the cursor using GetCursorPos() and SetCursorPos().
     // If you only use the ImDrawList API, you can notify the owner window of its extends by using SetCursorPos(max) followed by an empty Text("") statement.
     ImVec2 canvas_pos = ImGui::GetCursorScreenPos();            // ImDrawList API uses screen coordinates!
-    ImVec2 canvas_size = ImVec2(ImMin(50.0f,ImGui::GetWindowContentRegionMax().x-ImGui::GetCursorPos().x), ImMin(50.0f,ImGui::GetWindowContentRegionMax().y-ImGui::GetCursorPos().y));    // Resize canvas what's available
+    ImVec2 canvas_size = ImVec2(ImMax(50.0f,ImGui::GetWindowContentRegionMax().x-ImGui::GetCursorPos().x), ImMax(50.0f,ImGui::GetWindowContentRegionMax().y-ImGui::GetCursorPos().y));    // Resize canvas what's available
     draw_list->AddRect(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), 0xFFFFFFFF);
     bool adding_preview = false;
     ImGui::InvisibleButton("canvas", canvas_size);
