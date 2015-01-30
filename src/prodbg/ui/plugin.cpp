@@ -157,6 +157,14 @@ static void text(const char* format, ...)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static bool scEditText(const char* label, char* buf, int buf_size, float xSize, float ySize, int flags, 
+		                void (*callback)(void*), void* userData)
+{
+	return ImGui::ScInputText(label, buf, (size_t)buf_size, xSize, ySize, flags, callback, userData); 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static int buttonSize(const char* label, int width, int height, int repeatWhenHeld)
 {
     return ImGui::Button(label, ImVec2((float)width, (float)height), !!repeatWhenHeld);
@@ -285,6 +293,7 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     uiInstance->nextColumn = nextColumn;
     uiInstance->sameLine = sameLine;
     uiInstance->text = text;
+    uiInstance->scInputText = scEditText;
     uiInstance->button = button;
     uiInstance->buttonSize = buttonSize;
 

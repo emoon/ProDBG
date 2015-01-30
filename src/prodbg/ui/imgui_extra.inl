@@ -1,4 +1,6 @@
 
+#include "ui_sc_editor.h"
+
 namespace ImGui
 {
 
@@ -76,13 +78,18 @@ bool IsActiveWindow(ImGuiWindow* window)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-bool ScInputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags, void (*callback)(ImGuiTextEditCallbackData*), void* user_data)
+bool ScInputText(const char* label, char* buf, size_t buf_size, float xSize, float ySize, ImGuiInputTextFlags flags, void (*callback)(void*), void* user_data)
 {
     ImGuiState& g = GImGui;
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
         return false;
+
+    (void)buf;
+    (void)buf_size;
+    (void)flags;
+    (void)callback;
+    (void)user_data;
 
     const ImGuiIO& io = g.IO;
     const ImGuiStyle& style = g.Style;
@@ -91,18 +98,25 @@ bool ScInputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFl
     const float w = window->DC.ItemWidth.back();
 
     const ImVec2 text_size = CalcTextSize(label, NULL, true);
-    const ImGuiAabb frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, text_size.y) + style.FramePadding*2.0f);
+    const ImGuiAabb frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w + xSize, text_size.y + ySize) + style.FramePadding*2.0f);
     const ImGuiAabb bb(frame_bb.Min, frame_bb.Max + ImVec2(text_size.x > 0.0f ? (style.ItemInnerSpacing.x + text_size.x) : 0.0f, 0.0f));
 
     ItemSize(bb);
 
-    if (ClipAdvance(frame_bb))
+    if (!ItemAdd(frame_bb, &id))
         return false;
 
+	ImGuiStorage* storage = GetStateStorage();
+	ScEditor* editor = (ScEditor*)storage->GetVoidPtr(id);
 
+	if (!editor)
+	{
+		editor = ScEditor_create((int)xSize, (int)ySize);
+		storage->SetVoidPtr(id, (void*)editor);
+	}
 
     // NB: we are only allowed to access 'edit_state' if we are the active widget.
-    ImGuiTextEditState& edit_state = g.InputTextState;
+    //ImGuiTextEditState& edit_state = g.InputTextState;
 
     const bool hovered = IsHovered(frame_bb, id);
 
@@ -129,8 +143,11 @@ bool ScInputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFl
         }
     }
 
+	ScEditor_tick(editor);
+	ScEditor_render(editor);
+
+	return true;
 }
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
