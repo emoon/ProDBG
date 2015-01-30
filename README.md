@@ -34,6 +34,6 @@ Currently the Linux build isn't supported but the code complies and all unit-tes
 
 ## Misc
 
-The current misc work is being tracked on a trello borad which you can find here https://trello.com/b/blg2yGPv/prodbg
+The tasks/issues tracking is being done here https://prodbg.phoreplay.com
 
 
