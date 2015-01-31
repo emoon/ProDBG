@@ -1654,12 +1654,15 @@ void EditView::DrawLine(Surface *surface, const EditModel &model, const ViewStyl
 		xStart += static_cast<int>(ll->wrapIndent);
 	}
 
+	/*
+	PRODBG: Removed this as we just do one clear instead of many small ones
 	if ((phasesDraw != phasesOne) && (phase & drawBack)) {
 		DrawBackground(surface, model, vsDraw, ll, rcLine, lineRange, posLineStart, xStart,
 			subLine, background);
 		DrawEOL(surface, model, vsDraw, ll, rcLine, line, lineRange.end,
 			xStart, subLine, subLineStart, background);
 	}
+	*/
 
 	if (phase & drawIndicatorsBack) {
 		DrawIndicators(surface, model, vsDraw, ll, line, xStart, rcLine, subLine, lineRange.end, true);

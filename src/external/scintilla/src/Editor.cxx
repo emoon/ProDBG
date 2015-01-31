@@ -1645,6 +1645,12 @@ void Editor::Paint(Surface *surfaceWindow, PRectangle rcArea) {
 	if (!view.bufferedDraw)
 		surfaceWindow->SetClip(rcArea);
 
+	// ProDBG: Clear the whole text area,
+	PRectangle t = rcArea;
+	t.left = vs.fixedColumnWidth;
+	surfaceWindow->FillRectangle(t, vs.styles[STYLE_DEFAULT].back);
+	// End ProDBG
+
 	if (paintState != paintAbandoned) {
 		if (vs.marginInside) {
 			PaintSelMargin(surfaceWindow, rcArea);
@@ -1677,6 +1683,7 @@ void Editor::Paint(Surface *surfaceWindow, PRectangle rcArea) {
 		return;
 	}
 
+	
 	view.PaintText(surfaceWindow, *this, rcArea, rcClient, vs);
 
 	if (horizontalScrollBarVisible && trackLineWidth && (view.lineWidthMaxSeen > scrollWidth)) {
