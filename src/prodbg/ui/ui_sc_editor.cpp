@@ -645,14 +645,14 @@ public:
 
         ScEclipseTheme scTheme;
         //bool result = scTheme.Load("data/themes/theme-1.xml");    // Oblivion
-        //bool result = scTheme.Load("data/themes/theme-118.xml");  // Wombat
+        bool result = scTheme.Load("data/themes/theme-118.xml");  // Wombat
         //bool result = scTheme.Load("data/themes/theme-383.xml");  // Sunburst
         //bool result = scTheme.Load("data/themes/theme-3796.xml"); // Ambients
         //bool result = scTheme.Load("data/themes/theme-4967.xml"); // Sublime Monokai
-        bool result = scTheme.Load("data/themes/theme-6563.xml"); // Monokai 2 Dark
+        //bool result = scTheme.Load("data/themes/theme-6563.xml"); // Monokai 2 Dark
         assert(result);
 
-        const int fontSize = 24;
+        const int fontSize = 13;
         const char* fontName = "data/font/source_code_pro/SourceCodePro-Medium.ttf";
 
         scTheme.Apply(this, fontSize, fontName);

@@ -16,6 +16,25 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static struct ImFont* s_imFont; 
+static struct ImDrawList* s_drawList; 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ScEditor_setDrawList(ImDrawList* drawList)
+{
+	s_drawList = drawList;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ScEditor_setFont(ImFont* font)
+{
+	s_imFont = font;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 inline uint32_t MakeRGBA(uint32_t r, uint32_t g, uint32_t b, uint32_t a = 0xFF)
 {
     return a << 24 | b << 16 | g << 8 | r;
@@ -155,6 +174,7 @@ struct stbtt_Font
     stbtt_bakedchar cdata[96]; // ASCII 32..126 is 95 glyphs
     bgfx::TextureHandle ftex;
     float scale;
+    float fontSize;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -192,6 +212,7 @@ void Font::Create(const FontParameters& fp)
     stbtt_InitFont(&newFont->fontinfo, (unsigned char*)data, 0);
 
     newFont->scale = stbtt_ScaleForPixelHeight(&newFont->fontinfo, fp.size);
+    newFont->fontSize = fp.size;
 
     delete[] bmp;
 
@@ -424,9 +445,15 @@ void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsi
 
 static void fillRectangle(PRectangle rc, ColourDesired b)
 {
+	(void)rc;
+	(void)b;
+    const uint32_t back = (uint32_t)b.AsLong();
+
+	s_drawList->AddRectFilled(ImVec2(rc.left, rc.top), ImVec2(rc.right, rc.bottom), back);
+	s_drawList->SplitDrawCmd();
+	/*
     bgfx::TransientVertexBuffer tvb;
 
-    const uint32_t back = (uint32_t)b.AsLong();
 
     UIRender_allocPosColorTb(&tvb, 6);
 
@@ -467,6 +494,7 @@ static void fillRectangle(PRectangle rc, ColourDesired b)
                    | BGFX_STATE_MSAA);
 
     UIRender_posColor(&tvb, 0, 6);
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -582,15 +610,24 @@ void Font::Release()
 
 void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired f)
 {
-    uint32_t realLength = 0;
+    //uint32_t realLength = 0;
     float xt = rc.left;
     float yt = ybase;
 
     uint32_t fore = (uint32_t)f.AsLong();
+    stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+
+    assert(s_drawList);
+    assert(s_imFont);
+
+    s_drawList->AddText(s_imFont, realFont->fontSize, ImVec2(xt, yt), fore, s, s + len);
+	s_drawList->SplitDrawCmd();
+
+
+	/*
 
     bgfx::TransientVertexBuffer tvb;
 
-    stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
 
     UIRender_allocPosTexColorTb(&tvb, (uint32_t)(len * 6)); // * 6 vertices per character (2 triangles)
 
@@ -657,6 +694,7 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
                    | BGFX_STATE_MSAA);
 
     UIRender_posTexRColor(&tvb, 0, realLength * 6, realFont->ftex);
+*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -685,6 +723,27 @@ void SurfaceImpl::DrawTextTransparent(PRectangle rc, Font& font_, float ybase, c
 
 void SurfaceImpl::MeasureWidths(Font& font_, const char* s, int len, float* positions)
 {
+    float position = 0;
+	(void)font_;
+    //stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+
+    while (len--)
+    {
+        int advance;
+
+    	const ImFont::Glyph* glyph = s_imFont->FindGlyph((unsigned short)*s++);
+    	assert(glyph);
+
+        advance = glyph->XAdvance;
+
+        position += advance;//TODO: +Kerning
+        *positions++ = position;// * realFont->scale;
+    }
+
+
+	//assert(false);
+
+	/*
     stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
 
     //TODO: implement proper UTF-8 handling
@@ -699,12 +758,18 @@ void SurfaceImpl::MeasureWidths(Font& font_, const char* s, int len, float* posi
         position += advance;//TODO: +Kerning
         *positions++ = position * realFont->scale;
     }
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SurfaceImpl::WidthText(Font& font_, const char* s, int len)
 {
+	(void)font_;
+	ImVec2 t = ImGui::CalcTextSize(s, s + len);
+	return t.x;
+
+	/*
     stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
 
     //TODO: implement proper UTF-8 handling
@@ -718,6 +783,7 @@ float SurfaceImpl::WidthText(Font& font_, const char* s, int len)
     }
 
     return position;
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -143,6 +143,9 @@ bool ScInputText(const char* label, char* buf, size_t buf_size, float xSize, flo
         }
     }
 
+    ScEditor_setDrawList(GetWindowDrawList());
+    ScEditor_setFont(GetWindowFont());
+
 	ScEditor_tick(editor);
 	ScEditor_render(editor);
 

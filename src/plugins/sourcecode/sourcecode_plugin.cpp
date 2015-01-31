@@ -99,7 +99,7 @@ static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
 {
 	(void)data;
     //uiFuncs->columns(1, "sourceview", true);
-    uiFuncs->scInputText("test", 0, 0, 100, 100, 0, 0, 0);
+    uiFuncs->scInputText("test", 0, 0, 800, 700, 0, 0, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

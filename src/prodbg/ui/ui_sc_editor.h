@@ -2,6 +2,11 @@
 
 struct ScEditor;
 struct PDMouseWheelEvent;
+struct ImDrawList;
+struct ImFont;
+
+void ScEditor_setDrawList(ImDrawList* drawList);
+void ScEditor_setFont(ImFont* drawList);
 
 ScEditor* ScEditor_create(int width, int height);
 
