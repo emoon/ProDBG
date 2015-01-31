@@ -449,8 +449,8 @@ static void fillRectangle(PRectangle rc, ColourDesired b)
 	(void)b;
     const uint32_t back = (uint32_t)b.AsLong();
 
-	s_drawList->AddRectFilled(ImVec2(rc.left, rc.top), ImVec2(rc.right, rc.bottom), back);
 	s_drawList->SplitDrawCmd();
+	s_drawList->AddRectFilled(ImVec2(rc.left, rc.top), ImVec2(rc.right, rc.bottom), back);
 	/*
     bgfx::TransientVertexBuffer tvb;
 
@@ -620,8 +620,8 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
     assert(s_drawList);
     assert(s_imFont);
 
+	//s_drawList->SplitDrawCmd();
     s_drawList->AddText(s_imFont, realFont->fontSize, ImVec2(xt, yt), fore, s, s + len);
-	s_drawList->SplitDrawCmd();
 
 
 	/*
