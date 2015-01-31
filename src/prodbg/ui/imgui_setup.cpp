@@ -16,7 +16,7 @@
 static bgfx::TextureHandle s_textureId;
 static ScEditor* s_editor;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
 {
@@ -35,7 +35,9 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
 
     for (int n = 0; n < cmd_lists_count; n++)
     {
-        uint32_t cmdCount = 0;
+        bgfx::TransientVertexBuffer tvb;
+
+        uint32_t vtx_size = 0;
 
         const ImDrawList* cmd_list = cmd_lists[n];
         const ImDrawVert* vtx_buffer = cmd_list->vtx_buffer.begin();
@@ -44,32 +46,10 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
         const ImDrawCmd* pcmd_end_t = cmd_list->commands.end();
 
         for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end_t; pcmd++)
-		{
-        	bgfx::TransientVertexBuffer tvb;
+            vtx_size += (uint32_t)pcmd->vtx_count;
 
-            uint32_t vtx_size = (uint32_t)pcmd->vtx_count;
+        UIRender_allocPosTexColorTb(&tvb, (uint32_t)vtx_size);
 
-        	UIRender_allocPosTexColorTb(&tvb, vtx_size);
-
-			ImDrawVert* verts = (ImDrawVert*)tvb.data;
-
-			memcpy(verts, vtx_buffer, vtx_size * sizeof(ImDrawVert));
-
-            bgfx::setState(0
-                           | BGFX_STATE_RGB_WRITE
-                           | BGFX_STATE_ALPHA_WRITE
-                           | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
-                           | BGFX_STATE_MSAA);
-
-            UIRender_posTexColor(&tvb, 0, pcmd->vtx_count, s_textureId);
-
-            vtx_buffer += vtx_size; 
-
-            cmdCount++;
-		}
-
-
-		/*
         ImDrawVert* verts = (ImDrawVert*)tvb.data;
 
         memcpy(verts, vtx_buffer, vtx_size * sizeof(ImDrawVert));
@@ -88,10 +68,8 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
 
             vtx_offset += pcmd->vtx_count;
         }
-        */
     }
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
