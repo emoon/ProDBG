@@ -129,7 +129,7 @@ void IMGUI_updateSize(int width, int height)
     io.DeltaTime = 1.0f / 60.0f;
 
     if (s_editor)
-        ScEditor_resize(s_editor, width, height);
+        ScEditor_resize(s_editor, 0, 0, width, height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

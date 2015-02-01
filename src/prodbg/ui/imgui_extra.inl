@@ -101,6 +101,13 @@ bool ScInputText(const char* label, char* buf, size_t buf_size, float xSize, flo
     const ImGuiAabb frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w + xSize, text_size.y + ySize) + style.FramePadding*2.0f);
     const ImGuiAabb bb(frame_bb.Min, frame_bb.Max + ImVec2(text_size.x > 0.0f ? (style.ItemInnerSpacing.x + text_size.x) : 0.0f, 0.0f));
 
+	/*
+    printf("frame bb %f %f %f %f\n", 
+    		frame_bb.Min.x, 
+    		frame_bb.Min.y, 
+    		frame_bb.Max.x, 
+    		frame_bb.Max.y);
+    */
     ItemSize(bb);
 
     if (!ItemAdd(frame_bb, &id))
@@ -111,7 +118,9 @@ bool ScInputText(const char* label, char* buf, size_t buf_size, float xSize, flo
 
 	if (!editor)
 	{
-		editor = ScEditor_create((int)xSize, (int)ySize);
+		(void)xSize;
+		(void)ySize;
+		editor = ScEditor_create((int)frame_bb.Max.x, (int)frame_bb.Max.y);
 		storage->SetVoidPtr(id, (void*)editor);
 	}
 
@@ -146,6 +155,7 @@ bool ScInputText(const char* label, char* buf, size_t buf_size, float xSize, flo
     ScEditor_setDrawList(GetWindowDrawList());
     ScEditor_setFont(GetWindowFont());
 
+	ScEditor_resize(editor, (int)frame_bb.Min.x, (int)frame_bb.Min.y, (int)frame_bb.Max.x, (int)frame_bb.Max.y);
 	ScEditor_tick(editor);
 	ScEditor_render(editor);
 

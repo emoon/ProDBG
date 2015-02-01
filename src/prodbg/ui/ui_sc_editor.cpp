@@ -650,12 +650,12 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void Resize(int width, int height)
+    void Resize(int x, int y, int width, int height)
     {
         m_width = width;
         m_height = height;
 
-        wMain.SetPosition(PRectangle::FromInts(0, 0, m_width, m_height));
+        wMain.SetPosition(PRectangle::FromInts(x, y, m_width, m_height));
 
         // GW-TODO: Likely need to adjust a member var on wMain and make
         // GetClientRectangle return that value.
@@ -945,17 +945,17 @@ ScEditor* ScEditor_create(int width, int height)
     ScEditor* ed = new ScEditor;
 
     ed->Initialise();
-    ScEditor_resize(ed, width, height);
+    ScEditor_resize(ed, 0, 0, width, height);
 
     return ed;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ScEditor_resize(ScEditor* editor, int width, int height)
+void ScEditor_resize(ScEditor* editor, int x, int y, int width, int height)
 {
     if (editor)
-        editor->Resize(width, height);
+        editor->Resize(x, y, width, height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
