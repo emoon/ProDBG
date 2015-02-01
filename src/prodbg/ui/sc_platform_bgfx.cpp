@@ -8,6 +8,7 @@
 #include <stb/stb_truetype.h>
 #include "core/file.h"
 #include "core/core.h"
+#include "core/math.h"
 #include "ui_render.h"
 
 #include "scintilla/include/Platform.h"
@@ -16,6 +17,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static Vec2 s_pos;
 static struct ImFont* s_imFont; 
 static struct ImDrawList* s_drawList; 
 
@@ -31,6 +33,14 @@ void ScEditor_setDrawList(ImDrawList* drawList)
 void ScEditor_setFont(ImFont* font)
 {
 	s_imFont = font;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ScEditor_setPos(float x, float y)
+{
+	s_pos.x = x;
+	s_pos.y = y;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -447,7 +457,8 @@ static void fillRectangle(PRectangle rc, ColourDesired b)
     const uint32_t back = (uint32_t)b.AsLong();
 
 	s_drawList->SplitDrawCmd();
-	s_drawList->AddRectFilled(ImVec2(rc.left, rc.top), ImVec2(rc.right, rc.bottom), back);
+	s_drawList->AddRectFilled(ImVec2(rc.left + s_pos.x, rc.top + s_pos.y), 
+			                  ImVec2(rc.right + s_pos.x, rc.bottom + s_pos.y), back);
 	/*
     bgfx::TransientVertexBuffer tvb;
 
@@ -618,7 +629,7 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
     assert(s_imFont);
 
 	//s_drawList->SplitDrawCmd();
-    s_drawList->AddText(s_imFont, realFont->fontSize, ImVec2(xt, yt), fore, s, s + len);
+    s_drawList->AddText(s_imFont, realFont->fontSize, ImVec2(xt + s_pos.x, yt + s_pos.y), fore, s, s + len);
 
 
 	/*

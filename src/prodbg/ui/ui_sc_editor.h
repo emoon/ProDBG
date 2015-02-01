@@ -10,6 +10,7 @@ void ScEditor_setFont(ImFont* drawList);
 
 ScEditor* ScEditor_create(int width, int height);
 
+void ScEditor_setPos(float x, float y);
 void ScEditor_resize(ScEditor* editor, int x, int y, int width, int height);
 
 void ScEditor_tick(ScEditor* editor);
