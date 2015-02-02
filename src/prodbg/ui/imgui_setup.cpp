@@ -1,9 +1,11 @@
 #include <imgui.h>
 #include "imgui_setup.h"
+#include "ui_sc_editor.h"
 #include "stb_image.h"
 #include "core/core.h"
 #include "core/file.h"
 #include "core/log.h"
+#include "ui_render.h"
 #include <stdio.h>
 #include <pd_keys.h>
 #include <bgfx.h>
@@ -11,94 +13,20 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bgfx::VertexDecl s_vertexDecl;
-static bgfx::ProgramHandle s_imguiProgram;
 static bgfx::TextureHandle s_textureId;
-static bgfx::UniformHandle s_tex;
-static bgfx::UniformHandle u_viewSize;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// TODO: Move this to some shared code or such?
-
-static const bgfx::Memory* loadShader(const char* filename)
-{
-    size_t size;
-    uint8_t* data = (uint8_t*)File_loadToMemory(filename, &size, 1);
-
-    if (!data)
-    {
-        log_error("Unable to load shader %s\n", filename)
-        return 0;
-    }
-
-    bgfx::Memory* mem = (bgfx::Memory*)bgfx::alloc(sizeof(bgfx::Memory));
-
-    // terminate strings
-
-    data[size] = 0;
-
-    mem->data = data;
-    mem->size = (uint32_t)size;
-
-    return mem;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bgfx::ProgramHandle loadProgram(const char* vsName, const char* fsName)
-{
-    bgfx::ProgramHandle ph = { bgfx::invalidHandle };
-
-    const bgfx::Memory* vsShader = loadShader(vsName);
-    const bgfx::Memory* fsShader = loadShader(fsName);
-
-    if (!vsShader)
-        return ph;
-
-    if (!fsShader)
-        return ph;
-
-    bgfx::ShaderHandle vsHandle = bgfx::createShader(vsShader);
-    bgfx::ShaderHandle fsHandle = bgfx::createShader(fsShader);
-
-    if (!isValid(vsHandle))
-    {
-        log_error("Unable to load vsShader %s\n", vsName)
-        return ph;
-    }
-
-    if (!isValid(fsHandle))
-    {
-        log_error("Unable to load fsShader %s\n", fsName)
-        return ph;
-    }
-
-    ph = bgfx::createProgram(vsHandle, fsHandle, true);
-
-    if (!isValid(ph))
-        log_error("Unable to create shader program for %s %s\n", vsName, fsName);
-
-    return ph;
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
 {
     (void)cmd_lists;
     (void)cmd_lists_count;
 
-    float viewSize[2];
-
     const float width = ImGui::GetIO().DisplaySize.x;
     const float height = ImGui::GetIO().DisplaySize.y;
 
-    viewSize[0] = width;
-    viewSize[1] = height;
-
     float ortho[16];
-    bx::mtxOrtho(ortho, 0.0f, viewSize[0], viewSize[1], 0.0f, -1.0f, 1.0f);
+    bx::mtxOrtho(ortho, 0.0f, width, height, 0.0f, -1.0f, 1.0f);
 
     bgfx::setViewTransform(0, NULL, ortho);
 
@@ -119,7 +47,7 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
         for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end_t; pcmd++)
             vtx_size += (uint32_t)pcmd->vtx_count;
 
-        bgfx::allocTransientVertexBuffer(&tvb, vtx_size, s_vertexDecl);
+        UIRender_allocPosTexColorTb(&tvb, (uint32_t)vtx_size);
 
         ImDrawVert* verts = (ImDrawVert*)tvb.data;
 
@@ -129,67 +57,74 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
         const ImDrawCmd* pcmd_end = cmd_list->commands.end();
         for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end; pcmd++)
         {
-            /*
-               bgfx::setScissor((uint16_t)pcmd->clip_rect.x,
-                             (uint16_t)(height - pcmd->clip_rect.w),
-                             (uint16_t)(pcmd->clip_rect.z - pcmd->clip_rect.x),
-                             (uint16_t)(pcmd->clip_rect.w - pcmd->clip_rect.y));
-             */
-
             bgfx::setState(0
                            | BGFX_STATE_RGB_WRITE
                            | BGFX_STATE_ALPHA_WRITE
                            | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
                            | BGFX_STATE_MSAA);
-            bgfx::setTexture(0, s_tex, s_textureId);
-            bgfx::setVertexBuffer(&tvb, vtx_offset, pcmd->vtx_count);
-            bgfx::setProgram(s_imguiProgram);
-            bgfx::setUniform(u_viewSize, viewSize);
-            bgfx::submit(0);
+
+            UIRender_posTexColor(&tvb, vtx_offset, pcmd->vtx_count, s_textureId);
 
             vtx_offset += pcmd->vtx_count;
         }
     }
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void IMGUI_setup(int width, int height)
 {
-    const void* png_data;
-    unsigned int png_size;
+    unsigned char* fontData;
+    int fWidth;
+    int fHeight;
+    int outBytes;
+
     ImGuiIO& io = ImGui::GetIO();
 
     io.DisplaySize = ImVec2((float)width, (float)height);
     io.DeltaTime = 1.0f / 60.0f;
-    io.PixelCenterOffset = 0.0f;
 
-    s_imguiProgram = loadProgram(OBJECT_DIR "/_generated/data/shaders/imgui/vs_imgui.vs",
-                                 OBJECT_DIR "/_generated/data/shaders/imgui/fs_imgui.fs");
-    s_vertexDecl
-    .begin()
-    .add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
-    .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-    .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-    .end();
+    // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
+    io.KeyMap[ImGuiKey_Tab]        = PDKEY_TAB;
+    io.KeyMap[ImGuiKey_LeftArrow]  = PDKEY_LEFT;
+    io.KeyMap[ImGuiKey_RightArrow] = PDKEY_RIGHT;
+    io.KeyMap[ImGuiKey_UpArrow]    = PDKEY_UP;
+    io.KeyMap[ImGuiKey_DownArrow]  = PDKEY_DOWN;
+    io.KeyMap[ImGuiKey_Home]       = PDKEY_HOME;
+    io.KeyMap[ImGuiKey_End]        = PDKEY_END;
+    io.KeyMap[ImGuiKey_Delete]     = PDKEY_DELETE;
+    io.KeyMap[ImGuiKey_Backspace]  = PDKEY_BACKSPACE;
+    io.KeyMap[ImGuiKey_Enter]      = PDKEY_ENTER;
+    io.KeyMap[ImGuiKey_Escape]     = PDKEY_ESCAPE;
+    io.KeyMap[ImGuiKey_A]          = PDKEY_A;
+    io.KeyMap[ImGuiKey_C]          = PDKEY_C;
+    io.KeyMap[ImGuiKey_V]          = PDKEY_V;
+    io.KeyMap[ImGuiKey_X]          = PDKEY_X;
+    io.KeyMap[ImGuiKey_Y]          = PDKEY_Y;
+    io.KeyMap[ImGuiKey_Z]          = PDKEY_Z;
 
-    u_viewSize = bgfx::createUniform("viewSize", bgfx::UniformType::Uniform2fv);
-    s_tex = bgfx::createUniform("s_tex", bgfx::UniformType::Uniform1i);
+	// TODO: Add this as config?
+    // Update the style
 
-    ImGui::GetDefaultFontData(NULL, NULL, &png_data, &png_size);
-    int tex_x, tex_y, pitch, tex_comp;
+	ImGuiStyle& style = ImGui::GetStyle();
 
-    void* tex_data = stbi_load_from_memory((const unsigned char*)png_data, (int)png_size, &tex_x, &tex_y, &tex_comp, 0);
+    style.Colors[ImGuiCol_TitleBg] = ImVec4(0.50f, 0.50f, 0.50f, 0.45f);
+    style.Colors[ImGuiCol_CloseButton] = ImVec4(0.60f, 0.60f, 0.60f, 0.50f);
+    style.Colors[ImGuiCol_CloseButtonHovered] = ImVec4(0.70f, 0.70f, 0.70f, 0.60f);
+    style.Colors[ImGuiCol_CloseButtonActive] = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
+    style.Colors[ImGuiCol_TitleBgCollapsed] = style.Colors[ImGuiCol_TitleBg];
+    style.WindowPadding = ImVec2(0, 0);
 
-    pitch = tex_x * 4;
+    style.WindowRounding = 0.0f;
 
-    const bgfx::Memory* mem = bgfx::alloc((uint32_t)(tex_y * pitch));
-    memcpy(mem->data, tex_data, size_t(pitch * tex_y));
+    UIRender_init();
 
-    s_textureId = bgfx::createTexture2D((uint16_t)tex_x, (uint16_t)tex_y, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT, mem);
+    ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&fontData, &fWidth, &fHeight, &outBytes);
 
-    stbi_image_free(tex_data);
+    const bgfx::Memory* mem = bgfx::alloc((uint32_t)(fWidth * fHeight * outBytes));
+    memcpy(mem->data, fontData, size_t(fWidth * fHeight  * outBytes));
+
+    s_textureId = bgfx::createTexture2D((uint16_t)fWidth, (uint16_t)fHeight, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_NONE, mem);
 
     io.RenderDrawListsFn = imguiRender;
 }
@@ -202,18 +137,17 @@ void IMGUI_updateSize(int width, int height)
 
     io.DisplaySize = ImVec2((float)width, (float)height);
     io.DeltaTime = 1.0f / 60.0f;
-    io.PixelCenterOffset = 0.0f;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void IMGUI_preUpdate(float x, float y, int mouseLmb, int keyDown, int keyMod)
+void IMGUI_preUpdate(float x, float y, int mouseLmb, int keyDown, int keyMod, float deltaTime)
 {
     (void)keyDown;
     (void)keyMod;
     ImGuiIO& io = ImGui::GetIO();
-    io.DeltaTime = 1.0f / 120.0f;    // TODO: Fix me
+    io.DeltaTime = deltaTime;
     io.MousePos = ImVec2(x, y);
     io.MouseDown[0] = !!mouseLmb;
 
@@ -227,6 +161,19 @@ void IMGUI_setMouse(float x, float y, int mouseLmb)
     ImGuiIO& io = ImGui::GetIO();
     io.MousePos = ImVec2(x, y);
     io.MouseDown[0] = !!mouseLmb;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void IMGUI_scrollMouse(const PDMouseWheelEvent& wheelEvent)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    (void)wheelEvent;
+    (void)io;
+    //const float unitScale = 1.0f; // 1 unit = scrolling about 5 lines of text
+    //io.MouseWheel = deltaY; TODO: Might not be scaled right for ImGui
+
+    //ScEditor_scrollMouse(s_editor, wheelEvent);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

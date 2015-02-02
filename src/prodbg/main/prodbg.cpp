@@ -10,11 +10,13 @@
 #include "ui/ui_layout.h"
 #include "ui/menu.h"
 #include "ui/dialogs.h"
+#include "ui/ui_render.h"
 
 #include <bgfx.h>
 #include <bgfxplatform.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <bx/timer.h>
 
 #ifdef PRODBG_WIN
 #define WIN32_LEAN_AND_MEAN
@@ -38,6 +40,7 @@ struct Context
     int mouseLmb;
     int keyDown;
     int keyMod;
+    uint64_t time;
     Session* session;   // one session right now
 };
 
@@ -57,6 +60,7 @@ static const char* s_plugins[] =
     "registers_plugin",
     "breakpoints_plugin",
     "hex_memory_plugin",
+    "console_plugin",
 #ifdef PRODBG_MAC
     "lldb_plugin",
 #endif
@@ -67,7 +71,7 @@ static const char* s_plugins[] =
 void setLayout(UILayout* layout)
 {
     Context* context = &s_context;
-    IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
+    IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod, 1.0f / 60.0f);
     Session_setLayout(context->session, layout, (float)context->width, (float)context->height);
     IMGUI_postUpdate();
 }
@@ -98,6 +102,7 @@ void ProDBG_create(void* window, int width, int height)
     //Rect settingsRect;
 
     context->session = Session_create();
+    context->time = bx::getHPCounter();
 
 #if PRODBG_USING_DOCKING
     Session_createDockingGrid(context->session, width, height);
@@ -154,9 +159,16 @@ void ProDBG_update()
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR_BIT | BGFX_CLEAR_DEPTH_BIT, 0x101010ff, 1.0f, 0);
     bgfx::submit(0);
 
+    uint64_t currentTime = bx::getHPCounter();
+    uint64_t deltaTick = currentTime - context->time;
+    context->time = currentTime;
+
+    float deltaTimeMs = (float)(((double)deltaTick) / (double)bx::getHPFrequency());
+
+
     {
         rmt_ScopedCPUSample(IMGUI_preUpdate);
-        IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
+        IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod, deltaTimeMs);
     }
 
     // TODO: Support multiple sessions
@@ -165,6 +177,8 @@ void ProDBG_update()
         rmt_ScopedCPUSample(Session_update);
         Session_update(context->session);
     }
+
+    //renderTest();
 
     /*
 
@@ -311,6 +325,11 @@ void ProDBG_event(int eventId)
     if (eventId >= PRODBG_MENU_PLUGIN_START && eventId < PRODBG_MENU_PLUGIN_START + 9)
     {
         ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[eventId - PRODBG_MENU_PLUGIN_START]);
+
+        UIDockingGrid* grid = Session_getDockingGrid(context->session);
+        UIDock* dockAtMouse = UIDock_getDockAt(grid, 0, 0); 
+        UIDock_splitVertical(Session_getDockingGrid(context->session), dockAtMouse, instance);
+
         Session_addViewPlugin(context->session, instance);
         return;
     }
@@ -377,11 +396,9 @@ void ProDBG_event(int eventId)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProDBG_scroll(float deltaX, float deltaY, int flags)
+void ProDBG_scroll(const PDMouseWheelEvent& wheelEvent)
 {
-    (void)deltaX;
-    (void)deltaY;
-    (void)flags;
+    IMGUI_scrollMouse(wheelEvent);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

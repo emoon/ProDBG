@@ -35,6 +35,8 @@ StaticLibrary {
             Extensions = { ".c", ".h" },
         },
     },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -55,8 +57,31 @@ StaticLibrary {
             Extensions = { ".c", ".h" },
         },
     },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
 }
 
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
+    Name = "tinyxml2",
+
+    Env = { 
+        CXXOPTS = {
+        	{ "-Wno-everything"; Config = "macosx-*-*" },
+        	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
+        },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "src/external/tinyxml2",
+            Extensions = { ".cpp", ".h" },
+        },
+    },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
+}
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -80,6 +105,8 @@ StaticLibrary {
             Extensions = { ".c", ".h" },
         },
     },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -104,6 +131,8 @@ StaticLibrary {
             Extensions = { ".c", ".h" },
         },
     },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -133,6 +162,37 @@ StaticLibrary {
 
 		Recursive = true,
 	},
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
+    Name = "scintilla",
+
+    Env = { 
+		CPPPATH = { 
+			"src/external/scintilla/include",
+			"src/external/scintilla/src/lexlib",
+		},
+
+        CXXOPTS = {
+        	{ "-DSCI_LEXER", "-Wno-everything", "-Wno-missing-braces" ; Config = { "macosx-*-*", "macosx_test-*", "linux-*-*" } },
+        	{ "/DSCI_LEXER", "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
+        },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "src/external/scintilla/src",
+            Extensions = { ".cxx", ".h" },
+        },
+
+		Recursive = true,
+    },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -191,6 +251,8 @@ StaticLibrary {
 		  "src/external/libuv/src/unix/linux/linux-inotify.c",
 		  "src/external/libuv/src/unix/linux/linux-syscalls.c" ; Config = "linux-*-*" },
 	},
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
 }
 
 
@@ -226,6 +288,8 @@ StaticLibrary {
 	    { "src/external/bgfx/src/glcontext_glx.cpp" ; Config = "linux-*-*" },
 	    { "src/external/bgfx/src/glcontext_nsgl.mm" ; Config = { "macosx-*-*", "macosx_test-*" } },
     },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -250,6 +314,8 @@ StaticLibrary {
             Extensions = { ".c", ".h" },
         },
     },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -263,6 +329,8 @@ StaticLibrary {
             Extensions = { ".cpp", ".h" },
         },
     },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -295,6 +363,8 @@ StaticLibrary {
             Extensions = { ".c" },
         },
     },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
 }
 
 StaticLibrary {
@@ -357,7 +427,11 @@ StaticLibrary {
 			"src/external/angelscript/add_on/weakref/weakref.cpp" },
 	      { "src/external/angelscript/angelscript/source/as_callfunc_x64_msvc_asm.asm" ; Config = "win64-*-*" },
     },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
 }
+
+-----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
     Name = "as_debugger",
@@ -395,6 +469,8 @@ StaticLibrary {
             Extensions = { ".h", ".c", ".cpp" },
         },
     },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Addons" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -419,6 +495,8 @@ StaticLibrary {
             Extensions = { ".cpp", ".h" },
         },
     },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -445,6 +523,8 @@ StaticLibrary {
             Extensions = { ".cpp", ".h" },
         },
     },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -466,6 +546,7 @@ StaticLibrary {
         },
 
         CPPPATH = { 
+			"src/external",
             "src/external/imgui",
             "src/external/bx/include",
             "src/external/bgfx/include",
@@ -480,7 +561,7 @@ StaticLibrary {
     Sources = { 
         FGlob {
             Dir = "src/prodbg/ui",
-            Extensions = { ".c", ".cpp", ".m", ".mm", ".h" },
+            Extensions = { ".c", ".cpp", ".m", ".mm", ".h", "*.inl" },
             Filters = {
                 { Pattern = "mac"; Config = { "macosx-*-*", "macosx_test-*" } },
                 { Pattern = "windows"; Config = "win64-*-*" },
@@ -492,7 +573,13 @@ StaticLibrary {
 
         ShadercFS { Source = "data/shaders/imgui/fs_imgui.sc" },
         ShadercVS { Source = "data/shaders/imgui/vs_imgui.sc" },
+        ShadercFS { Source = "data/shaders/ui_pos_color/fs_pos_color.sc" },
+        ShadercVS { Source = "data/shaders/ui_pos_color/vs_pos_color.sc" },
+        ShadercFS { Source = "data/shaders/ui_pos_tex_r_color/fs_pos_tex_r_color.sc" },
+        ShadercVS { Source = "data/shaders/ui_pos_tex_r_color/vs_pos_tex_r_color.sc" },
     },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -513,6 +600,8 @@ StaticLibrary {
             Extensions = { ".c", ".cpp", ".h" },
         },
     },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
 }
 
 

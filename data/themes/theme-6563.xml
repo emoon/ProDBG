@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<colorTheme id="6563" name="Monokai2 Dark" modified="2012-03-06 20:55:36" author="Ben Brooks">
+    <searchResultIndication color="#A63A62" />
+    <filteredSearchResultIndication color="#A63A62" />
+    <occurrenceIndication color="#000000" />
+    <writeOccurrenceIndication color="#000000" />
+    <findScope color="#111111" />
+    <deletionIndication color="#D25252" underline="false" strikethrough="false" />
+    <sourceHoverBackground color="#000000" />
+    <singleLineComment color="#8C8C8C" italic="false" underline="false" strikethrough="false" />
+    <multiLineComment color="#8C8C8C" italic="false" underline="false" strikethrough="false" />
+    <commentTaskTag color="#8C8C8C" italic="false" underline="false" strikethrough="false" />
+    <javadoc color="#8C8C8C" italic="false" underline="false" strikethrough="false" />
+    <javadocLink color="#F92672" italic="false" underline="false" strikethrough="false" />
+    <javadocTag color="#F92672" italic="false" underline="false" strikethrough="false" />
+    <javadocKeyword color="#F92672" italic="false" underline="false" strikethrough="false" />
+    <class color="#66D9EF" bold="false" italic="true" underline="false" strikethrough="false" />
+    <interface color="#A6E22E" underline="false" strikethrough="false" />
+    <method color="#A6E22E" underline="false" strikethrough="false" />
+    <methodDeclaration color="#BED6FF" underline="false" strikethrough="false" />
+    <bracket color="#D8D8D8" underline="false" strikethrough="false" />
+    <number color="#FF80F4" underline="false" strikethrough="false" />
+    <string color="#FFEE99" underline="false" strikethrough="false" />
+    <operator color="#F92672" underline="false" strikethrough="false" />
+    <keyword color="#F92672" bold="false" underline="false" strikethrough="false" />
+    <annotation color="#FFFFFF" underline="false" strikethrough="false" />
+    <staticMethod color="#BED6FF" underline="false" strikethrough="false" />
+    <localVariable color="#F8F8F2" underline="false" strikethrough="false" />
+    <localVariableDeclaration color="#F8F8F2" underline="false" strikethrough="false" />
+    <field color="#A6E22E" underline="false" strikethrough="false" />
+    <staticField color="#FF80F4" underline="false" strikethrough="false" />
+    <staticFinalField color="#FF80F4" underline="false" strikethrough="false" />
+    <deprecatedMember color="#D25252" underline="false" strikethrough="true" />
+    <enum color="#7FB347" underline="false" strikethrough="false" />
+    <inheritedMethod color="#BED6FF" underline="false" strikethrough="false" />
+    <abstractMethod color="#BED6FF" underline="false" strikethrough="false" />
+    <parameterVariable color="#FD971F" underline="false" strikethrough="false" />
+    <typeArgument color="#BFA4A4" underline="false" strikethrough="false" />
+    <typeParameter color="#BFA4A4" underline="false" strikethrough="false" />
+    <constant color="#FF80F4" underline="false" strikethrough="false" />
+    <background color="#0D0D0D" />
+    <currentLine color="#1D1D1D" />
+    <foreground color="#F8F8F2" />
+    <lineNumber color="#D0D0D0" />
+    <selectionBackground color="#A63A62" />
+    <selectionForeground color="#D0D0D0" />
+</colorTheme>

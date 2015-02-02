@@ -68,7 +68,7 @@ Program {
         },
     },
 
-    Depends = { "core", "ui", "api", "session", "jansson", "remote_api", "stb", "bgfx", "uv", "imgui", "remotery", "foundation_lib" },
+    Depends = { "core", "ui", "api", "session", "jansson", "remote_api", "stb", "bgfx", "uv", "imgui", "remotery", "foundation_lib", "scintilla", "tinyxml2" },
 
     Libs = { 
       { 
@@ -78,6 +78,8 @@ Program {
     },
 
     Frameworks = { "Cocoa"  },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "ProDBG" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------

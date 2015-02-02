@@ -12,8 +12,17 @@
 #include <stdio.h>
 #include <windows.h>
 #include <windowsx.h>
+#include <winuser.h>
 #include <pd_common.h>
 #include <pd_keys.h>
+
+// TODO: Why doesn't winuser.h define this properly?
+#ifndef WM_MOUSEHWHEEL
+#define WM_MOUSEHWHEEL 0x020E
+#endif
+#ifndef SPI_GETWHEELSCROLLCHARS
+#define SPI_GETWHEELSCROLLCHARS 0x006C
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -686,6 +695,61 @@ static int translateKey(WPARAM wParam, LPARAM lParam)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void HandleMouseWheel(HWND window, int axis, WPARAM wParam, LPARAM lParam)
+{
+    static int linesPerRotation = -1;
+    if (linesPerRotation == -1)
+    {
+        if (!::SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0,
+                                    &linesPerRotation, 0))
+        {
+            // The default is 3, so use it if SystemParametersInfo() failed
+            linesPerRotation = 3;
+        }
+    }
+
+    static int columnsPerRotation = -1;
+    if (columnsPerRotation == -1)
+    {
+        if (!::SystemParametersInfo(SPI_GETWHEELSCROLLCHARS, 0,
+                                    &columnsPerRotation, 0))
+        {
+            // This setting is not supported on Windows 2000/XP, so use the value of 1
+            // http://msdn.microsoft.com/en-us/library/ms997498.aspx
+            columnsPerRotation = 1;
+        }
+    }
+
+    PDMouseWheelEvent wheelEvent;
+
+    POINT pt;
+    pt.x = GET_X_LPARAM(lParam);
+    pt.y = GET_Y_LPARAM(lParam);
+    ::ScreenToClient(window, &pt);
+
+    //wheelEvent.wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+    wheelEvent.wheelDelta = WHEEL_DELTA;
+    wheelEvent.rotation = short(HIWORD(wParam));
+
+    wheelEvent.keyFlags = 0;
+
+    if ((LOWORD(wParam) & MK_CONTROL) != 0)
+        wheelEvent.keyFlags |= PDKEY_CTRL;
+
+    if ((LOWORD(wParam) & MK_SHIFT) != 0)
+        wheelEvent.keyFlags |= PDKEY_SHIFT;
+
+    wheelEvent.linesPerRotation   = linesPerRotation;
+    wheelEvent.columnsPerRotation = columnsPerRotation;
+    wheelEvent.wheelAxis = axis;
+    wheelEvent.deltaX = float(pt.x);
+    wheelEvent.deltaY = float(pt.y);
+
+    ProDBG_scroll(wheelEvent);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
@@ -716,6 +780,13 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 
         case WM_MOUSEWHEEL:
         {
+            HandleMouseWheel(window, PDWHEEL_AXIS_VERTICAL, wParam, lParam);
+            break;
+        }
+
+        case WM_MOUSEHWHEEL:
+        {
+            HandleMouseWheel(window, PDWHEEL_AXIS_HORIZONTAL, wParam, lParam);
             break;
         }
 
@@ -805,6 +876,11 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 
         case WM_SIZE:
         {
+            int width = LOWORD(lParam);
+            int height = HIWORD(lParam);
+
+            ProDBG_setWindowSize(width, height);
+
             //TODO: Update size
             return 0;
         }

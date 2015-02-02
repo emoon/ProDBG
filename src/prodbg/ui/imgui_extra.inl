@@ -1,4 +1,6 @@
 
+#include "ui_sc_editor.h"
+
 namespace ImGui
 {
 
@@ -73,6 +75,95 @@ bool IsActiveWindow(ImGuiWindow* window)
     ImGuiState& g = GImGui;
     return g.FocusedWindow == window;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool ScInputText(const char* label, char* buf, size_t buf_size, float xSize, float ySize, ImGuiInputTextFlags flags, void (*callback)(void*), void* user_data)
+{
+    ImGuiState& g = GImGui;
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    (void)buf;
+    (void)buf_size;
+    (void)flags;
+    (void)callback;
+    (void)user_data;
+
+    const ImGuiIO& io = g.IO;
+    const ImGuiStyle& style = g.Style;
+
+    const ImGuiID id = window->GetID(label);
+    //const float w = window->DC.ItemWidth.back();
+
+    const ImVec2 text_size = CalcTextSize(label, NULL, true);
+
+    const ImGuiAabb frame_bb(window->DC.CursorPos, window->DC.CursorPos + window->Size); 
+    const ImGuiAabb bb(frame_bb.Min, frame_bb.Max + ImVec2(text_size.x > 0.0f ? (style.ItemInnerSpacing.x + text_size.x) : 0.0f, 0.0f));
+
+    printf("frame bb %f %f %f %f\n", 
+    		frame_bb.Min.x, 
+    		frame_bb.Min.y, 
+    		frame_bb.Max.x, 
+    		frame_bb.Max.y);
+    ItemSize(bb);
+
+    if (!ItemAdd(frame_bb, &id))
+        return false;
+
+	ImGuiStorage* storage = GetStateStorage();
+	ScEditor* editor = (ScEditor*)storage->GetVoidPtr(id);
+
+	if (!editor)
+	{
+		(void)xSize;
+		(void)ySize;
+		editor = ScEditor_create((int)frame_bb.Max.x, (int)frame_bb.Max.y);
+		storage->SetVoidPtr(id, (void*)editor);
+	}
+
+    // NB: we are only allowed to access 'edit_state' if we are the active widget.
+    //ImGuiTextEditState& edit_state = g.InputTextState;
+
+    const bool hovered = IsHovered(frame_bb, id);
+
+    if (hovered)
+        g.HoveredId = id;
+
+    if (hovered && io.MouseClicked[0])
+    {
+        if (g.ActiveId != id)
+        {
+            // Start edition
+
+        }
+
+        g.ActiveId = id;
+        FocusWindow(window);
+    }
+    else if (io.MouseClicked[0])
+    {
+        // Release focus when we click outside
+        if (g.ActiveId == id)
+        {
+            g.ActiveId = 0;
+        }
+    }
+
+    ScEditor_setDrawList(GetWindowDrawList());
+    ScEditor_setFont(GetWindowFont());
+	ScEditor_setPos(frame_bb.Min.x, frame_bb.Min.y);
+
+	ScEditor_resize(editor, 0, 0, (int)(frame_bb.Max.x - frame_bb.Min.x) , (int)(frame_bb.Max.y - frame_bb.Min.y));
+	ScEditor_tick(editor);
+	ScEditor_render(editor);
+
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 }
 

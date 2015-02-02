@@ -62,6 +62,7 @@ typedef struct PDUI
     // Text
 
     void (*text)(const char* fmt, ...);
+	bool (*scInputText)(const char* label, char* buf, int buf_size, float xSize, float ySize, int flags, void (*callback)(void*), void* userData);
 
     // Widgets
 

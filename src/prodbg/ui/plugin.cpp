@@ -157,6 +157,14 @@ static void text(const char* format, ...)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static bool scEditText(const char* label, char* buf, int buf_size, float xSize, float ySize, int flags, 
+		                void (*callback)(void*), void* userData)
+{
+	return ImGui::ScInputText(label, buf, (size_t)buf_size, xSize, ySize, flags, callback, userData); 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static int buttonSize(const char* label, int width, int height, int repeatWhenHeld)
 {
     return ImGui::Button(label, ImVec2((float)width, (float)height), !!repeatWhenHeld);
@@ -285,6 +293,7 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     uiInstance->nextColumn = nextColumn;
     uiInstance->sameLine = sameLine;
     uiInstance->text = text;
+    uiInstance->scInputText = scEditText;
     uiInstance->button = button;
     uiInstance->buttonSize = buttonSize;
 
@@ -333,9 +342,9 @@ PluginUIState PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* re
     PrivateData* data = (PrivateData*)uiInstance->privateData;
 
     ImGui::SetNextWindowPos(ImVec2((float)instance->rect.x, (float)instance->rect.y));
-    ImGui::SetNextWindowSize(ImVec2((float)instance->rect.width, (float)instance->rect.height));
+    ImGui::SetNextWindowSize(ImVec2((float)instance->rect.width - 4, (float)instance->rect.height - 4));
 
-    ImGui::Begin(data->name, &data->showWindow, ImVec2(0, 0), true, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::Begin(data->name, &data->showWindow, ImVec2(0, 0), true, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
     instance->plugin->update(instance->userData, uiInstance, reader, writer);
 

@@ -148,3 +148,18 @@
 #define PDKEY_CTRL               4
 #define PDKEY_SUPER              8
 
+#define PDWHEEL_AXIS_VERTICAL    0
+#define PDWHEEL_AXIS_HORIZONTAL  1
+
+struct PDMouseWheelEvent
+{
+    float deltaX;
+    float deltaY;
+    short wheelDelta;
+    short rotation;
+    int wheelAxis;
+    int keyFlags;
+    int linesPerRotation;
+    int columnsPerRotation;
+};
+
