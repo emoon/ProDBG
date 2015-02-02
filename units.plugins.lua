@@ -156,6 +156,21 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+SharedLibrary {
+    Name = "console_plugin",
+    
+    Env = {
+        CPPPATH = { "api/include", },
+        CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
+    },
+
+    Sources = { "src/plugins/console/console_plugin.cpp" },
+
+    IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
 if native.host_platform == "macosx" then
    Default "lldb_plugin"
 end
@@ -167,5 +182,5 @@ Default "disassembly_plugin"
 Default "locals_plugin"
 Default "breakpoints_plugin"
 Default "hex_memory_plugin"
-
+Default "console_plugin"
 
