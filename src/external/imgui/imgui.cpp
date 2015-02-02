@@ -1,4 +1,4 @@
-// ImGui library v1.30 wip
+// ImGui library v1.31 wip
 // See ImGui::ShowTestWindow() for sample code.
 // Read 'Programmer guide' below for notes on how to setup ImGui in your codebase.
 // Get latest version at https://github.com/ocornut/imgui
@@ -128,6 +128,7 @@
  Occasionally introducing changes that are breaking the API. The breakage are generally minor and easy to fix.
  Here is a change-log of API breaking changes, if you are using one of the functions listed, expect to have to fix some code.
  
+ - 2015/02/01 (1.31) - removed IO.MemReallocFn (unused)
  - 2015/01/19 (1.30) - renamed ImGuiStorage::GetIntPtr()/GetFloatPtr() to GetIntRef()/GetIntRef() because Ptr was conflicting with actual pointer storage functions.
  - 2015/01/11 (1.30) - big font/image API change! now loads TTF file. allow for multiple fonts. no need for a PNG loader.
               (1.30) - removed GetDefaultFontData(). uses io.Fonts->GetTextureData*() API to retrieve uncompressed pixels.
@@ -331,7 +332,7 @@
 #pragma clang diagnostic ignored "-Wexit-time-destructors"  // warning : declaration requires an exit-time destructor       // exit-time destruction order is undefined. if MemFree() leads to users code that has been disabled before exit it might cause problems. ImGui coding style welcomes static/globals.
 #pragma clang diagnostic ignored "-Wglobal-constructors"    // warning : declaration requires a global destructor           // similar to above, not sure what the exact difference it.
 #pragma clang diagnostic ignored "-Wsign-conversion"        // warning : implicit conversion changes signedness             // 
-#pragma clang diagnostic ignored "-Wmissing-noreturn"       // warning : GetDefaultFontData could be declared with attribute 'noreturn'  
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
 #endif
 #ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Wunused-function"          // warning: 'xxxx' defined but not used
@@ -426,11 +427,6 @@ static ImU32        ImCrc32(const void* data, size_t data_size, ImU32 seed);
 static bool         ImLoadFileToMemory(const char* filename, const char* file_open_mode, void** out_file_data, size_t* out_file_size, size_t padding_bytes = 0);
 static int          ImUpperPowerOfTwo(int v) { v--; v |= v >> 1; v |= v >> 2; v |= v >> 4; v |= v >> 8; v |= v >> 16; v++; return v; }
 
-// Helpers: Color Conversion
-static ImU32        ImConvertColorFloat4ToU32(const ImVec4& in);
-static void         ImConvertColorRGBtoHSV(float r, float g, float b, float& out_h, float& out_s, float& out_v);
-static void         ImConvertColorHSVtoRGB(float h, float s, float v, float& out_r, float& out_g, float& out_b);
-
 // Helpers: UTF-8 <> wchar
 static int          ImTextCharToUtf8(char* buf, size_t buf_size, unsigned int in_char);                                // return output UTF-8 bytes count
 static ptrdiff_t    ImTextStrToUtf8(char* buf, size_t buf_size, const ImWchar* in_text, const ImWchar* in_text_end);   // return output UTF-8 bytes count
@@ -447,6 +443,17 @@ static const char*  GetClipboardTextFn_DefaultImpl();
 static void         SetClipboardTextFn_DefaultImpl(const char* text);
 
 //-----------------------------------------------------------------------------
+// Texture Atlas data
+//-----------------------------------------------------------------------------
+
+// Technically we should use the rect pack API for that, but it's just simpler to hard-core the positions for now.
+// As we start using more of the texture atlas (for rounded corners) we can change that.
+static const ImVec2 TEX_ATLAS_SIZE(32, 32);
+static const ImVec2 TEX_ATLAS_POS_MOUSE_CURSOR_BLACK(1, 3);
+static const ImVec2 TEX_ATLAS_POS_MOUSE_CURSOR_WHITE(14, 3);
+static const ImVec2 TEX_ATLAS_SIZE_MOUSE_CURSOR(12, 19);
+
+//-----------------------------------------------------------------------------
 // User facing structures
 //-----------------------------------------------------------------------------
 
@@ -455,7 +462,7 @@ ImGuiStyle::ImGuiStyle()
     Alpha                   = 1.0f;             // Global alpha applies to everything in ImGui
     WindowPadding           = ImVec2(8,8);      // Padding within a window
     WindowMinSize           = ImVec2(32,32);    // Minimum window size
-    WindowRounding          = 0.0f;             // Radius of window corners rounding. Set to 0.0f to have rectangular windows
+    WindowRounding          = 9.0f;             // Radius of window corners rounding. Set to 0.0f to have rectangular windows
     FramePadding            = ImVec2(4,3);      // Padding within a framed rectangle (used by most widgets)
     FrameRounding           = 0.0f;             // Radius of frame corners rounding. Set to 0.0f to have rectangular frames (used by most widgets).
     ItemSpacing             = ImVec2(8,4);      // Horizontal and vertical spacing between widgets/lines
@@ -472,7 +479,7 @@ ImGuiStyle::ImGuiStyle()
     Colors[ImGuiCol_Border]                 = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     Colors[ImGuiCol_BorderShadow]           = ImVec4(0.00f, 0.00f, 0.00f, 0.60f);
     Colors[ImGuiCol_FrameBg]                = ImVec4(0.80f, 0.80f, 0.80f, 0.30f);   // Background of checkbox, radio button, plot, slider, text input
-    Colors[ImGuiCol_TitleBg]                = ImVec4(0.30f, 0.30f, 0.30f, 0.45f);
+    Colors[ImGuiCol_TitleBg]                = ImVec4(0.50f, 0.50f, 1.00f, 0.45f);
     Colors[ImGuiCol_TitleBgCollapsed]       = ImVec4(0.40f, 0.40f, 0.80f, 0.20f);
     Colors[ImGuiCol_ScrollbarBg]            = ImVec4(0.40f, 0.40f, 0.80f, 0.15f);
     Colors[ImGuiCol_ScrollbarGrab]          = ImVec4(0.40f, 0.40f, 0.80f, 0.30f);
@@ -480,9 +487,8 @@ ImGuiStyle::ImGuiStyle()
     Colors[ImGuiCol_ScrollbarGrabActive]    = ImVec4(0.80f, 0.50f, 0.50f, 0.40f);
     Colors[ImGuiCol_ComboBg]                = ImVec4(0.20f, 0.20f, 0.20f, 0.99f);
     Colors[ImGuiCol_CheckHovered]           = ImVec4(0.60f, 0.40f, 0.40f, 0.45f);
-    Colors[ImGuiCol_CheckActive]            = ImVec4(0.90f, 0.90f, 0.90f, 0.50f);
+    Colors[ImGuiCol_CheckActive]            = ImVec4(0.65f, 0.50f, 0.50f, 0.55f);
     Colors[ImGuiCol_CheckMark]              = ImVec4(0.90f, 0.90f, 0.90f, 0.50f);
-    Colors[ImGuiCol_CheckActive]            = ImVec4(0.90f, 0.90f, 0.90f, 0.50f);
     Colors[ImGuiCol_SliderGrab]             = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
     Colors[ImGuiCol_SliderGrabActive]       = ImVec4(0.80f, 0.50f, 0.50f, 1.00f);
     Colors[ImGuiCol_Button]                 = ImVec4(0.67f, 0.40f, 0.40f, 0.60f);
@@ -497,7 +503,7 @@ ImGuiStyle::ImGuiStyle()
     Colors[ImGuiCol_ResizeGrip]             = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
     Colors[ImGuiCol_ResizeGripHovered]      = ImVec4(1.00f, 1.00f, 1.00f, 0.60f);
     Colors[ImGuiCol_ResizeGripActive]       = ImVec4(1.00f, 1.00f, 1.00f, 0.90f);
-    Colors[ImGuiCol_CloseButton]            = ImVec4(0.50f, 0.50f, 0.50f, 0.50f);
+    Colors[ImGuiCol_CloseButton]            = ImVec4(0.50f, 0.50f, 0.90f, 0.50f);
     Colors[ImGuiCol_CloseButtonHovered]     = ImVec4(0.70f, 0.70f, 0.90f, 0.60f);
     Colors[ImGuiCol_CloseButtonActive]      = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
     Colors[ImGuiCol_PlotLines]              = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
@@ -514,7 +520,9 @@ static ImFontAtlas GDefaultFontAtlas;
 
 ImGuiIO::ImGuiIO()
 {
+    // Most fields are initialized with zero
     memset(this, 0, sizeof(*this));
+
     DisplaySize = ImVec2(-1.0f, -1.0f);
     DeltaTime = 1.0f/60.0f;
     IniSavingRate = 5.0f;
@@ -522,18 +530,15 @@ ImGuiIO::ImGuiIO()
     LogFilename = "imgui_log.txt";
     Fonts = &GDefaultFontAtlas;
     FontGlobalScale = 1.0f;
-    FontAllowUserScaling = false;
     MousePos = ImVec2(-1,-1);
     MousePosPrev = ImVec2(-1,-1);
     MouseDoubleClickTime = 0.30f;
     MouseDoubleClickMaxDist = 6.0f;
-    DisplayVisibleMin = DisplayVisibleMax = ImVec2(0.0f, 0.0f);
     UserData = NULL;
 
     // User functions
     RenderDrawListsFn = NULL;
     MemAllocFn = malloc;
-    MemReallocFn = realloc;
     MemFreeFn = free;
     GetClipboardTextFn = GetClipboardTextFn_DefaultImpl;   // Platform dependent default implementations
     SetClipboardTextFn = SetClipboardTextFn_DefaultImpl;
@@ -703,7 +708,7 @@ static size_t ImFormatStringV(char* buf, size_t buf_size, const char* fmt, va_li
     return (w == -1) ? buf_size : (size_t)w;
 }
 
-static ImU32 ImConvertColorFloat4ToU32(const ImVec4& in)
+ImU32 ImGui::ColorConvertFloat4ToU32(const ImVec4& in)
 {
     ImU32 out  = ((ImU32)(ImSaturate(in.x)*255.f));
     out |= ((ImU32)(ImSaturate(in.y)*255.f) << 8);
@@ -714,7 +719,7 @@ static ImU32 ImConvertColorFloat4ToU32(const ImVec4& in)
 
 // Convert rgb floats ([0-1],[0-1],[0-1]) to hsv floats ([0-1],[0-1],[0-1]), from Foley & van Dam p592
 // Optimized http://lolengine.net/blog/2013/01/13/fast-rgb-to-hsv
-static void ImConvertColorRGBtoHSV(float r, float g, float b, float& out_h, float& out_s, float& out_v)
+void ImGui::ColorConvertRGBtoHSV(float r, float g, float b, float& out_h, float& out_s, float& out_v)
 {
     float K = 0.f;
     if (g < b)
@@ -736,7 +741,7 @@ static void ImConvertColorRGBtoHSV(float r, float g, float b, float& out_h, floa
 
 // Convert hsv floats ([0-1],[0-1],[0-1]) to rgb floats ([0-1],[0-1],[0-1]), from Foley & van Dam p593
 // also http://en.wikipedia.org/wiki/HSL_and_HSV
-static void ImConvertColorHSVtoRGB(float h, float s, float v, float& out_r, float& out_g, float& out_b)
+void ImGui::ColorConvertHSVtoRGB(float h, float s, float v, float& out_r, float& out_g, float& out_b)
 {   
     if (s == 0.0f)
     {
@@ -980,6 +985,7 @@ struct ImGuiState
 
     // Render
     ImVector<ImDrawList*>   RenderDrawLists;
+    ImVector<ImGuiWindow*>  RenderSortedWindows;
 
     // Widget state
     ImGuiTextEditState      InputTextState;
@@ -1087,8 +1093,8 @@ public:
     float       TitleBarHeight() const                  { return (Flags & ImGuiWindowFlags_NoTitleBar) ? 0 : FontSize() + GImGui.Style.FramePadding.y * 2.0f; }
     ImGuiAabb   TitleBarAabb() const                    { return ImGuiAabb(Pos, Pos + ImVec2(SizeFull.x, TitleBarHeight())); }
     ImVec2      WindowPadding() const                   { return ((Flags & ImGuiWindowFlags_ChildWindow) && !(Flags & ImGuiWindowFlags_ShowBorders)) ? ImVec2(1,1) : GImGui.Style.WindowPadding; }
-    ImU32       Color(ImGuiCol idx, float a=1.f) const  { ImVec4 c = GImGui.Style.Colors[idx]; c.w *= GImGui.Style.Alpha * a; return ImConvertColorFloat4ToU32(c); }
-    ImU32       Color(const ImVec4& col) const          { ImVec4 c = col; c.w *= GImGui.Style.Alpha; return ImConvertColorFloat4ToU32(c); }
+    ImU32       Color(ImGuiCol idx, float a=1.f) const  { ImVec4 c = GImGui.Style.Colors[idx]; c.w *= GImGui.Style.Alpha * a; return ImGui::ColorConvertFloat4ToU32(c); }
+    ImU32       Color(const ImVec4& col) const          { ImVec4 c = col; c.w *= GImGui.Style.Alpha; return ImGui::ColorConvertFloat4ToU32(c); }
 };
 
 static ImGuiWindow* GetCurrentWindow()
@@ -1096,6 +1102,11 @@ static ImGuiWindow* GetCurrentWindow()
     IM_ASSERT(GImGui.CurrentWindow != NULL);    // ImGui::NewFrame() hasn't been called yet?
     GImGui.CurrentWindow->Accessed = true;
     return GImGui.CurrentWindow;
+}
+
+static void SetActiveId(ImGuiID id) 
+{
+    GImGui.ActiveId = id; 
 }
 
 static void RegisterAliveId(const ImGuiID& id)
@@ -1475,11 +1486,6 @@ void ImGui::MemFree(void* ptr)
 {
     return GImGui.IO.MemFreeFn(ptr);
 }
-
-void* ImGui::MemRealloc(void* ptr, size_t sz)
-{
-    return GImGui.IO.MemReallocFn(ptr, sz);
-}
     
 static ImGuiIniData* FindWindowSettings(const char* name)
 {
@@ -1672,7 +1678,7 @@ void ImGui::NewFrame()
     // Clear reference to active widget if the widget isn't alive anymore
     g.HoveredId = 0;
     if (!g.ActiveIdIsAlive && g.ActiveIdPreviousFrame == g.ActiveId && g.ActiveId != 0)
-        g.ActiveId = 0;
+        SetActiveId(0);
     g.ActiveIdPreviousFrame = g.ActiveId;
     g.ActiveIdIsAlive = false;
 
@@ -1745,7 +1751,7 @@ void ImGui::NewFrame()
 
     // No window should be open at the beginning of the frame.
     // But in order to allow the user to call NewFrame() multiple times without calling Render(), we are doing an explicit clear.
-    g.CurrentWindowStack.clear();
+    g.CurrentWindowStack.resize(0);
 
     // Create implicit window - we will only render it if the user has added something to it.
     ImGui::Begin("Debug", NULL, ImVec2(400,400));
@@ -1858,22 +1864,22 @@ void ImGui::Render()
 
         // Select window for move/focus when we're done with all our widgets (we only consider non-childs windows here)
         if (g.ActiveId == 0 && g.HoveredId == 0 && g.HoveredRootWindow != NULL && g.IO.MouseClicked[0])
-            g.ActiveId = g.HoveredRootWindow->GetID("#MOVE");
+            SetActiveId(g.HoveredRootWindow->GetID("#MOVE"));
 
         // Sort the window list so that all child windows are after their parent
         // We cannot do that on FocusWindow() because childs may not exist yet
-        ImVector<ImGuiWindow*> sorted_windows;
-        sorted_windows.reserve(g.Windows.size());
+        g.RenderSortedWindows.resize(0);
+        g.RenderSortedWindows.reserve(g.Windows.size());
         for (size_t i = 0; i != g.Windows.size(); i++)
         {
             ImGuiWindow* window = g.Windows[i];
-            if (window->Flags & ImGuiWindowFlags_ChildWindow)           // if a child is visible its parent will add it
+            if (window->Flags & ImGuiWindowFlags_ChildWindow)               // if a child is visible its parent will add it
                 if (window->Visible)
                     continue;
-            AddWindowToSortedBuffer(window, sorted_windows);
+            AddWindowToSortedBuffer(window, g.RenderSortedWindows);
         }
-        IM_ASSERT(g.Windows.size() == sorted_windows.size());           // We done something wrong
-        g.Windows.swap(sorted_windows);
+        IM_ASSERT(g.Windows.size() == g.RenderSortedWindows.size());    // We done something wrong
+        g.Windows.swap(g.RenderSortedWindows);
 
         // Clear data for next frame
         g.IO.MouseWheel = 0.0f;
@@ -1906,6 +1912,21 @@ void ImGui::Render()
             ImGuiWindow* window = g.Windows[i];
             if (window->Visible && (window->Flags & ImGuiWindowFlags_Tooltip))
                 window->AddToRenderList();
+        }
+
+        if (g.IO.MouseDrawCursor)
+        {
+            const ImVec2 pos = g.IO.MousePos;
+            const ImVec2 size = TEX_ATLAS_SIZE_MOUSE_CURSOR;
+            const ImTextureID tex_id = g.IO.Fonts->TexID;
+            const ImVec2 tex_uv_scale(1.0f/g.IO.Fonts->TexWidth, 1.0f/g.IO.Fonts->TexHeight);
+            static ImDrawList draw_list;
+            draw_list.Clear();
+            draw_list.AddImage(tex_id, pos+ImVec2(1,0), pos+ImVec2(1,0) + size, TEX_ATLAS_POS_MOUSE_CURSOR_BLACK * tex_uv_scale, (TEX_ATLAS_POS_MOUSE_CURSOR_BLACK + size) * tex_uv_scale, 0x30000000); // Shadow
+            draw_list.AddImage(tex_id, pos+ImVec2(2,0), pos+ImVec2(2,0) + size, TEX_ATLAS_POS_MOUSE_CURSOR_BLACK * tex_uv_scale, (TEX_ATLAS_POS_MOUSE_CURSOR_BLACK + size) * tex_uv_scale, 0x30000000); // Shadow
+            draw_list.AddImage(tex_id, pos,             pos + size,             TEX_ATLAS_POS_MOUSE_CURSOR_BLACK * tex_uv_scale, (TEX_ATLAS_POS_MOUSE_CURSOR_BLACK + size) * tex_uv_scale, 0xFF000000); // Black border
+            draw_list.AddImage(tex_id, pos,             pos + size,             TEX_ATLAS_POS_MOUSE_CURSOR_WHITE * tex_uv_scale, (TEX_ATLAS_POS_MOUSE_CURSOR_WHITE + size) * tex_uv_scale, 0xFFFFFFFF); // White fill
+            g.RenderDrawLists.push_back(&draw_list);
         }
 
         // Render
@@ -2529,7 +2550,7 @@ bool ImGui::Begin(const char* name, bool* p_opened, ImVec2 size, float fill_alph
             }
             else
             {
-                g.ActiveId = 0;
+                SetActiveId(0);
             }
         }
 
@@ -2795,22 +2816,6 @@ bool ImGui::Begin(const char* name, bool* p_opened, ImVec2 size, float fill_alph
             RenderText(text_min, name);
             if (clip_title)
                 PopClipRect();
-        }
-    }
-    else
-    {
-        // Short path when we do multiple Begin in the same frame.
-        window->DrawList->PushTextureID(g.Font->ContainerAtlas->TexID);
-
-        // Outer clipping rectangle
-        if ((flags & ImGuiWindowFlags_ChildWindow) && !(flags & ImGuiWindowFlags_ComboBox))
-        {
-            ImGuiWindow* parent_window_temp = g.CurrentWindowStack[g.CurrentWindowStack.size()-2];
-            PushClipRect(parent_window_temp->ClipRectStack.back());
-        }
-        else
-        {
-            PushClipRect(ImVec4(0.0f, 0.0f, g.IO.DisplaySize.x, g.IO.DisplaySize.y));
         }
     }
 
@@ -3558,7 +3563,7 @@ static bool ButtonBehaviour(const ImGuiAabb& bb, const ImGuiID& id, bool* out_ho
         {
             if (g.IO.MouseClicked[0])
             {
-                g.ActiveId = id;
+                SetActiveId(id);
                 FocusWindow(window);
             }
             else if (repeat && g.ActiveId && ImGui::IsMouseClicked(0, true))
@@ -3579,7 +3584,7 @@ static bool ButtonBehaviour(const ImGuiAabb& bb, const ImGuiID& id, bool* out_ho
         {
             if (hovered)
                 pressed = true;
-            g.ActiveId = 0;
+            SetActiveId(0);
         }
     }
 
@@ -3702,28 +3707,68 @@ static bool CloseWindowButton(bool* p_opened)
     return pressed;
 }
 
-void ImGui::Image(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, ImU32 tint_col, ImU32 border_col)
+void ImGui::Image(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col)
 {
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
         return;
 
     ImGuiAabb bb(window->DC.CursorPos, window->DC.CursorPos + size);
-    if (border_col != 0)
+    if (border_col.w > 0.0f)
         bb.Max += ImVec2(2,2);
-    ItemSize(bb.GetSize(), &bb.Min);
+    ItemSize(bb);
     if (!ItemAdd(bb, NULL))
         return;
 
-    if (border_col != 0)
+    if (border_col.w > 0.0f)
     {
-        window->DrawList->AddRect(bb.Min, bb.Max, border_col, 0.0f);
-        window->DrawList->AddImage(user_texture_id, bb.Min+ImVec2(1,1), bb.Max-ImVec2(1,1), uv0, uv1, tint_col);
+        window->DrawList->AddRect(bb.Min, bb.Max, window->Color(border_col), 0.0f);
+        window->DrawList->AddImage(user_texture_id, bb.Min+ImVec2(1,1), bb.Max-ImVec2(1,1), uv0, uv1, window->Color(tint_col));
     }
     else
     {
-        window->DrawList->AddImage(user_texture_id, bb.Min, bb.Max, uv0, uv1, tint_col);
+        window->DrawList->AddImage(user_texture_id, bb.Min, bb.Max, uv0, uv1, window->Color(tint_col));
     }
+}
+
+// frame_padding < 0: uses FramePadding from style (default)
+// frame_padding = 0: no framing
+// frame_padding > 0: set framing size
+// The color used are the button colors.
+bool ImGui::ImageButton(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col)
+{
+    ImGuiState& g = GImGui;
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    const ImGuiStyle& style = g.Style;
+
+    // Default to using texture ID as ID. User can still push string/integer prefixes.
+    // We could hash the size/uv to create a unique ID but that would prevent the user from animating buttons.
+    ImGui::PushID((void *)user_texture_id);
+    const ImGuiID id = window->GetID("#image");
+    ImGui::PopID();
+
+    const ImVec2 padding = (frame_padding >= 0) ? ImVec2((float)frame_padding, (float)frame_padding) : style.FramePadding;
+    const ImGuiAabb bb(window->DC.CursorPos, window->DC.CursorPos + size + padding*2);
+    const ImGuiAabb image_bb(window->DC.CursorPos + padding, window->DC.CursorPos + padding + size); 
+    ItemSize(bb);
+    if (!ItemAdd(bb, &id))
+        return false;
+
+    bool hovered, held;
+    bool pressed = ButtonBehaviour(bb, id, &hovered, &held, true);
+
+    // Render
+    const ImU32 col = window->Color((hovered && held) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+    if (padding.x > 0.0f || padding.y > 0.0f)
+        RenderFrame(bb.Min, bb.Max, col);
+    if (bg_col.w > 0.0f)
+        window->DrawList->AddRectFilled(image_bb.Min, image_bb.Max, window->Color(bg_col));
+    window->DrawList->AddImage(user_texture_id, image_bb.Min, image_bb.Max, uv0, uv1);
+
+    return pressed;
 }
 
 // Start logging ImGui output to TTY
@@ -4195,7 +4240,7 @@ bool ImGui::SliderFloat(const char* label, float* v, float v_min, float v_max, c
     bool start_text_input = false;
     if (tab_focus_requested || (hovered && g.IO.MouseClicked[0]))
     {
-        g.ActiveId = id;
+        SetActiveId(id);
         FocusWindow(window);
 
         const bool is_ctrl_down = g.IO.KeyCtrl;
@@ -4213,7 +4258,7 @@ bool ImGui::SliderFloat(const char* label, float* v, float v_min, float v_max, c
         char text_buf[64];
         ImFormatString(text_buf, IM_ARRAYSIZE(text_buf), "%.*f", decimal_precision, *v);
 
-        g.ActiveId = g.SliderAsInputTextId;
+        SetActiveId(g.SliderAsInputTextId);
         g.HoveredId = 0;
         window->FocusItemUnregister();      // Our replacement slider will override the focus ID (registered previously to allow for a TAB focus to happen)
         value_changed = ImGui::InputText(label, text_buf, IM_ARRAYSIZE(text_buf), ImGuiInputTextFlags_CharsDecimal | ImGuiInputTextFlags_AutoSelectAll);
@@ -4222,15 +4267,18 @@ bool ImGui::SliderFloat(const char* label, float* v, float v_min, float v_max, c
             // First frame
             IM_ASSERT(g.ActiveId == id);    // InputText ID should match the Slider ID (else we'd need to store them both which is also possible)
             g.SliderAsInputTextId = g.ActiveId;
-            g.ActiveId = id;
+            SetActiveId(id);
             g.HoveredId = id;
         }
         else
         {
             if (g.ActiveId == g.SliderAsInputTextId)
-                g.ActiveId = id;
+                SetActiveId(id);
             else
-                g.ActiveId = g.SliderAsInputTextId = 0;
+            {
+                SetActiveId(0);
+                g.SliderAsInputTextId = 0;
+            }
         }
         if (value_changed)
         {
@@ -4294,7 +4342,7 @@ bool ImGui::SliderFloat(const char* label, float* v, float v_min, float v_max, c
         }
         else
         {
-            g.ActiveId = 0;
+            SetActiveId(0);
         }
     }
 
@@ -4973,6 +5021,9 @@ static bool InputTextFilterCharacter(ImWchar c, ImGuiInputTextFlags flags)
     if (c < 128 && c != ' ' && !isprint((int)(c & 0xFF)))
         return true;
 
+    if (c >= 0xE000 && c <= 0xF8FF) // Filter private Unicode range. I don't imagine anybody would want to input them. GLFW on OSX seems to send private characters for special keys like arrow keys.
+        return true;
+
     if (flags & ImGuiInputTextFlags_CharsDecimal)
         if (!(c >= '0' && c <= '9') && (c != '.') && (c != '-') && (c != '+') && (c != '*') && (c != '/'))
             return true;
@@ -5035,7 +5086,7 @@ bool ImGui::InputText(const char* label, char* buf, size_t buf_size, ImGuiInputT
             if (tab_focus_requested || is_ctrl_down)
                 select_all = true;
         }
-        g.ActiveId = id;
+        SetActiveId(id);
         FocusWindow(window);
     }
     else if (io.MouseClicked[0])
@@ -5043,7 +5094,7 @@ bool ImGui::InputText(const char* label, char* buf, size_t buf_size, ImGuiInputT
         // Release focus when we click outside
         if (g.ActiveId == id)
         {
-            g.ActiveId = 0;
+            SetActiveId(0);
         }
     }
 
@@ -5081,6 +5132,25 @@ bool ImGui::InputText(const char* label, char* buf, size_t buf_size, ImGuiInputT
         if (edit_state.SelectedAllMouseLock && !io.MouseDown[0])
              edit_state.SelectedAllMouseLock = false;
 
+        if (g.IO.InputCharacters[0])
+        {
+            // Process text input (before we check for Return because using some IME will effectively send a Return?)
+            for (int n = 0; n < IM_ARRAYSIZE(g.IO.InputCharacters) && g.IO.InputCharacters[n]; n++)
+            {
+                const ImWchar c = g.IO.InputCharacters[n];
+                if (c)
+                {
+                    // Insert character if they pass filtering
+                    if (InputTextFilterCharacter(c, flags))
+                        continue;
+                    edit_state.OnKeyPressed(c);
+                }
+            }
+
+            // Consume characters
+            memset(g.IO.InputCharacters, 0, sizeof(g.IO.InputCharacters));
+        }
+
         const int k_mask = (is_shift_down ? STB_TEXTEDIT_K_SHIFT : 0);
         if (IsKeyPressedMap(ImGuiKey_LeftArrow))                { edit_state.OnKeyPressed(is_ctrl_down ? STB_TEXTEDIT_K_WORDLEFT | k_mask : STB_TEXTEDIT_K_LEFT | k_mask); }
         else if (IsKeyPressedMap(ImGuiKey_RightArrow))          { edit_state.OnKeyPressed(is_ctrl_down ? STB_TEXTEDIT_K_WORDRIGHT | k_mask  : STB_TEXTEDIT_K_RIGHT | k_mask); }
@@ -5088,8 +5158,8 @@ bool ImGui::InputText(const char* label, char* buf, size_t buf_size, ImGuiInputT
         else if (IsKeyPressedMap(ImGuiKey_End))                 { edit_state.OnKeyPressed(is_ctrl_down ? STB_TEXTEDIT_K_TEXTEND | k_mask : STB_TEXTEDIT_K_LINEEND | k_mask); }
         else if (IsKeyPressedMap(ImGuiKey_Delete))              { edit_state.OnKeyPressed(STB_TEXTEDIT_K_DELETE | k_mask); }
         else if (IsKeyPressedMap(ImGuiKey_Backspace))           { edit_state.OnKeyPressed(STB_TEXTEDIT_K_BACKSPACE | k_mask); }
-        else if (IsKeyPressedMap(ImGuiKey_Enter))               { g.ActiveId = 0; enter_pressed = true; }
-        else if (IsKeyPressedMap(ImGuiKey_Escape))              { g.ActiveId = 0; cancel_edit = true; }
+        else if (IsKeyPressedMap(ImGuiKey_Enter))               { SetActiveId(0); enter_pressed = true; }
+        else if (IsKeyPressedMap(ImGuiKey_Escape))              { SetActiveId(0); cancel_edit = true; }
         else if (is_ctrl_down && IsKeyPressedMap(ImGuiKey_Z))   { edit_state.OnKeyPressed(STB_TEXTEDIT_K_UNDO); }
         else if (is_ctrl_down && IsKeyPressedMap(ImGuiKey_Y))   { edit_state.OnKeyPressed(STB_TEXTEDIT_K_REDO); }
         else if (is_ctrl_down && IsKeyPressedMap(ImGuiKey_A))   { edit_state.SelectAll(); }
@@ -5141,24 +5211,6 @@ bool ImGui::InputText(const char* label, char* buf, size_t buf_size, ImGuiInputT
                     ImGui::MemFree(clipboard_filtered);
                 }
             }
-        }
-        else if (g.IO.InputCharacters[0])
-        {
-            // Text input
-            for (int n = 0; n < IM_ARRAYSIZE(g.IO.InputCharacters) && g.IO.InputCharacters[n]; n++)
-            {
-                const ImWchar c = g.IO.InputCharacters[n];
-                if (c)
-                {
-                    // Insert character if they pass filtering
-                    if (InputTextFilterCharacter(c, flags))
-                        continue;
-                    edit_state.OnKeyPressed(c);
-                }
-            }
-
-            // Consume characters
-            memset(g.IO.InputCharacters, 0, sizeof(g.IO.InputCharacters));
         }
 
         edit_state.CursorAnim += g.IO.DeltaTime;
@@ -5478,7 +5530,7 @@ bool ImGui::Combo(const char* label, int* current_item, bool (*items_getter)(voi
             }
             if (item_pressed)
             {
-                g.ActiveId = 0;
+                SetActiveId(0);
                 g.ActiveComboID = 0;
                 value_changed = true;
                 *current_item = item_idx;
@@ -5569,7 +5621,7 @@ bool ImGui::ColorEdit4(const char* label, float col[4], bool alpha)
     const ImVec4 col_display(fx, fy, fz, 1.0f);
 
     if (edit_mode == ImGuiColorEditMode_HSV)
-        ImConvertColorRGBtoHSV(fx, fy, fz, fx, fy, fz);
+        ImGui::ColorConvertRGBtoHSV(fx, fy, fz, fx, fy, fz);
 
     int ix = (int)(fx * 255.0f + 0.5f);
     int iy = (int)(fy * 255.0f + 0.5f);
@@ -5671,7 +5723,7 @@ bool ImGui::ColorEdit4(const char* label, float col[4], bool alpha)
     fz = iz / 255.0f;
     fw = iw / 255.0f;
     if (edit_mode == 1)
-        ImConvertColorHSVtoRGB(fx, fy, fz, fx, fy, fz);
+        ImGui::ColorConvertHSVtoRGB(fx, fy, fz, fx, fy, fz);
 
     if (value_changed)
     {
@@ -5729,7 +5781,7 @@ void ImGui::Spacing()
 }
 
 // Advance cursor given item size.
-static void ItemSize(ImVec2 size, ImVec2* adjust_start_offset)
+static void ItemSize(ImVec2 size, ImVec2* adjust_vertical_offset)
 {
     ImGuiState& g = GImGui;
     ImGuiWindow* window = GetCurrentWindow();
@@ -5737,8 +5789,8 @@ static void ItemSize(ImVec2 size, ImVec2* adjust_start_offset)
         return;
 
     const float line_height = ImMax(window->DC.CurrentLineHeight, size.y);
-    if (adjust_start_offset)
-        adjust_start_offset->y = adjust_start_offset->y + (line_height - size.y) * 0.5f;
+    if (adjust_vertical_offset)
+        adjust_vertical_offset->y = adjust_vertical_offset->y + (line_height - size.y) * 0.5f;
 
     // Always align ourselves on pixel boundaries
     window->DC.CursorPosPrevLine = ImVec2(window->DC.CursorPos.x + size.x, window->DC.CursorPos.y);
@@ -6057,81 +6109,84 @@ void ImDrawList::Clear()
     texture_id_stack.resize(0);
 }
 
-// This is useful if you need to force-create a new draw call (to allow for depending rendering / blending).
-// Otherwise primitives are merged into the same draw-call as much as possible.
-void ImDrawList::SplitDrawCmd()
+void ImDrawList::AddDrawCmd()
 {
     ImDrawCmd draw_cmd;
     draw_cmd.vtx_count = 0;
-    draw_cmd.clip_rect = clip_rect_stack.back();
-    draw_cmd.texture_id = texture_id_stack.back();
+    draw_cmd.clip_rect = clip_rect_stack.empty() ? GNullClipRect : clip_rect_stack.back();
+    draw_cmd.texture_id = texture_id_stack.empty() ? NULL : texture_id_stack.back();
+    draw_cmd.user_callback = NULL;
+    draw_cmd.user_callback_data = NULL;
     commands.push_back(draw_cmd);
 }
 
-void ImDrawList::SetClipRect(const ImVec4& clip_rect)
+void ImDrawList::AddCallback(ImDrawCallback callback, void* callback_data)
 {
     ImDrawCmd* current_cmd = commands.empty() ? NULL : &commands.back();
-    if (current_cmd && current_cmd->vtx_count == 0)
+    if (!current_cmd || current_cmd->vtx_count != 0 || current_cmd->user_callback != NULL)
     {
-        // Reuse existing command (high-level clipping may have discarded vertices submitted earlier)
-        // FIXME-OPT: Possibly even reuse previous command.
-        current_cmd->clip_rect = clip_rect;
+        AddDrawCmd();
+        current_cmd = &commands.back();
+    }
+    current_cmd->user_callback = callback;
+    current_cmd->user_callback_data = callback_data;
+
+    // Force a new command after us
+    // We function this way so that the most common calls (AddLine, AddRect..) always have a command to add to without doing any check.
+    AddDrawCmd();
+}
+
+void ImDrawList::UpdateClipRect()
+{
+    ImDrawCmd* current_cmd = commands.empty() ? NULL : &commands.back();
+    if (!current_cmd || (current_cmd->vtx_count != 0) || current_cmd->user_callback != NULL)
+    {
+        AddDrawCmd();
     }
     else
     {
-        ImDrawCmd draw_cmd;
-        draw_cmd.vtx_count = 0;
-        draw_cmd.clip_rect = clip_rect;
-        draw_cmd.texture_id = texture_id_stack.back();
-        commands.push_back(draw_cmd);
+        current_cmd->clip_rect = clip_rect_stack.empty() ? GNullClipRect : clip_rect_stack.back();
     }
 }
 
 void ImDrawList::PushClipRect(const ImVec4& clip_rect)
 {
     clip_rect_stack.push_back(clip_rect);
-    SetClipRect(clip_rect);
+    UpdateClipRect();
 }
 
 void ImDrawList::PopClipRect()
 {
     IM_ASSERT(clip_rect_stack.size() > 0);
     clip_rect_stack.pop_back();
-    const ImVec4 clip_rect = clip_rect_stack.empty() ? GNullClipRect : clip_rect_stack.back();
-    SetClipRect(clip_rect);
+    UpdateClipRect();
 }
 
-void ImDrawList::SetTextureID(const ImTextureID& texture_id)
+void ImDrawList::UpdateTextureID()
 {
     ImDrawCmd* current_cmd = commands.empty() ? NULL : &commands.back();
-    if (current_cmd && (current_cmd->vtx_count == 0 || current_cmd->texture_id == texture_id))
+    const ImTextureID texture_id = texture_id_stack.empty() ? NULL : texture_id_stack.back();
+    if (!current_cmd || (current_cmd->vtx_count != 0 && current_cmd->texture_id != texture_id) || current_cmd->user_callback != NULL)
     {
-        // Reuse existing command
-        // FIXME-OPT: Possibly even reuse previous command.
-        current_cmd->texture_id = texture_id;
+        AddDrawCmd();
     }
     else
     {
-        ImDrawCmd draw_cmd;
-        draw_cmd.vtx_count = 0;
-        draw_cmd.clip_rect = clip_rect_stack.empty() ? GNullClipRect: clip_rect_stack.back();
-        draw_cmd.texture_id = texture_id;
-        commands.push_back(draw_cmd);
+        current_cmd->texture_id = texture_id;
     }
 }
 
 void ImDrawList::PushTextureID(const ImTextureID& texture_id)
 {
     texture_id_stack.push_back(texture_id);
-    SetTextureID(texture_id);
+    UpdateTextureID();
 }
 
 void ImDrawList::PopTextureID()
 {
     IM_ASSERT(texture_id_stack.size() > 0);
     texture_id_stack.pop_back();
-    const ImTextureID texture_id = texture_id_stack.empty() ? NULL : texture_id_stack.back();
-    SetTextureID(texture_id);
+    UpdateTextureID();
 }
 
 void ImDrawList::ReserveVertices(unsigned int vtx_count)
@@ -6161,6 +6216,7 @@ void ImDrawList::AddVtxUV(const ImVec2& pos, ImU32 col, const ImVec2& uv)
     vtx_write++;
 }
 
+// NB: memory should be reserved for 6 vertices by the caller.
 void ImDrawList::AddVtxLine(const ImVec2& a, const ImVec2& b, ImU32 col)
 {
     const float length = sqrtf(ImLengthSqr(b - a));
@@ -6384,7 +6440,7 @@ void ImDrawList::AddImage(ImTextureID user_texture_id, const ImVec2& a, const Im
     if ((col >> 24) == 0)
         return;
 
-    const bool push_texture_id = user_texture_id != texture_id_stack.back();
+    const bool push_texture_id = texture_id_stack.empty() || user_texture_id != texture_id_stack.back();
     if (push_texture_id)
         PushTextureID(user_texture_id);
 
@@ -6620,8 +6676,8 @@ bool    ImFontAtlas::Build()
 
     // Pack our extra data rectangle first, so it will be on the upper-left corner of our texture (UV will have small values).
     stbrp_rect extra_rect;
-    extra_rect.w = 16;
-    extra_rect.h = 16;
+    extra_rect.w = (stbrp_coord)TEX_ATLAS_SIZE.x;
+    extra_rect.h = (stbrp_coord)TEX_ATLAS_SIZE.y;
     stbrp_pack_rects((stbrp_context*)spc.pack_info, &extra_rect, 1);
     TexExtraDataPos = ImVec2(extra_rect.x, extra_rect.y);
 
@@ -6746,11 +6802,51 @@ bool    ImFontAtlas::Build()
     buf_ranges = NULL;
     ClearInputData();
 
+    // Render into our custom data block
+    RenderCustomTexData();
+
+    return true;
+}
+
+void ImFontAtlas::RenderCustomTexData()
+{
+    IM_ASSERT(TexExtraDataPos.x == 0.0f && TexExtraDataPos.y == 0.0f);
+
     // Draw white pixel into texture and make UV points to it
     TexPixelsAlpha8[0] = TexPixelsAlpha8[1] = TexPixelsAlpha8[TexWidth+0] = TexPixelsAlpha8[TexWidth+1] = 0xFF;
     TexUvWhitePixel = ImVec2((TexExtraDataPos.x + 0.5f) / TexWidth, (TexExtraDataPos.y + 0.5f) / TexHeight);
 
-    return true;
+    // Draw a mouse cursor into texture
+    // Because our font uses an alpha texture, we have to spread the cursor in 2 parts (black/white) which will be rendered separately.
+    const char cursor_pixels[] =
+    {
+        "X           "
+        "XX          "
+        "X.X         "
+        "X..X        "
+        "X...X       "
+        "X....X      "
+        "X.....X     "
+        "X......X    "
+        "X.......X   "
+        "X........X  "
+        "X.........X "
+        "X..........X"
+        "X......XXXXX"
+        "X...X..X    "
+        "X..X X..X   "
+        "X.X  X..X   "
+        "XX    X..X  "
+        "      X..X  "
+        "       XX   "
+    };
+    IM_ASSERT(sizeof(cursor_pixels)-1 == (int)TEX_ATLAS_SIZE_MOUSE_CURSOR.x * (int)TEX_ATLAS_SIZE_MOUSE_CURSOR.y);
+    for (int y = 0, n = 0; y < 19; y++)
+        for (int x = 0; x < 12; x++, n++)
+        {
+            TexPixelsAlpha8[((int)TEX_ATLAS_POS_MOUSE_CURSOR_BLACK.x + x) + ((int)TEX_ATLAS_POS_MOUSE_CURSOR_BLACK.y + y) * TexWidth] = (cursor_pixels[n] == 'X') ? 0xFF : 0x00;
+            TexPixelsAlpha8[((int)TEX_ATLAS_POS_MOUSE_CURSOR_WHITE.x + x) + ((int)TEX_ATLAS_POS_MOUSE_CURSOR_WHITE.y + y) * TexWidth] = (cursor_pixels[n] == '.') ? 0xFF : 0x00;
+        }
 }
 
 //-----------------------------------------------------------------------------
@@ -7592,7 +7688,12 @@ void ImGui::ShowTestWindow(bool* opened)
     static float fill_alpha = 0.65f;
 
     const ImGuiWindowFlags layout_flags = (no_titlebar ? ImGuiWindowFlags_NoTitleBar : 0) | (no_border ? 0 : ImGuiWindowFlags_ShowBorders) | (no_resize ? ImGuiWindowFlags_NoResize : 0) | (no_move ? ImGuiWindowFlags_NoMove : 0) | (no_scrollbar ? ImGuiWindowFlags_NoScrollbar : 0);
-    ImGui::Begin("ImGui Test", opened, ImVec2(550,680), fill_alpha, layout_flags);
+    if (!ImGui::Begin("ImGui Test", opened, ImVec2(550,680), fill_alpha, layout_flags))
+    {
+        // Early out if the window is collapsed, as an optimization.
+        ImGui::End();
+        return;
+    }
     ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.65f);
 
     ImGui::Text("ImGui says hello.");
@@ -7729,7 +7830,8 @@ void ImGui::ShowTestWindow(bool* opened)
             // Most compiler appears to support UTF-8 in source code (with Visual Studio you need to save your file as 'UTF-8 without signature')
             // However for the sake for maximum portability here we are *not* including raw UTF-8 character in this source file, instead we encode the string with hexadecimal constants.
             // In your own application be reasonable and use UTF-8 in source or retrieve the data from file system!
-            ImGui::TextWrapped("CJK text will only appears if the font was loaded with the appropriate CJK character ranges. Call io.Font->LoadFromFileTTF() manually to specify extra character ranges. Note that characters values are preserved even if the font cannot be displayed, so you can safely copy & paste garbled characters into another application.");
+            // Note that characters values are preserved even if the font cannot be displayed, so you can safely copy & paste garbled characters into another application.
+            ImGui::TextWrapped("CJK text will only appears if the font was loaded with the appropriate CJK character ranges. Call io.Font->LoadFromFileTTF() manually to load extra character ranges.");
             ImGui::Text("Hiragana: \xe3\x81\x8b\xe3\x81\x8d\xe3\x81\x8f\xe3\x81\x91\xe3\x81\x93 (kakikukeko)");
             ImGui::Text("Kanjis: \xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e (nihongo)");
             static char buf[32] = "\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e";
@@ -7744,7 +7846,7 @@ void ImGui::ShowTestWindow(bool* opened)
             float tex_w = (float)ImGui::GetIO().Fonts->TexWidth;
             float tex_h = (float)ImGui::GetIO().Fonts->TexHeight;
             ImTextureID tex_id = ImGui::GetIO().Fonts->TexID;
-            ImGui::Image(tex_id, ImVec2(tex_w, tex_h), ImVec2(0,0), ImVec2(1,1), 0xFFFFFFFF, 0x999999FF);
+            ImGui::Image(tex_id, ImVec2(tex_w, tex_h), ImVec2(0,0), ImVec2(1,1), ImColor(255,255,255,255), ImColor(255,255,255,128));
             if (ImGui::IsItemHovered())
             {
                 ImGui::BeginTooltip();
@@ -7755,9 +7857,22 @@ void ImGui::ShowTestWindow(bool* opened)
                 ImGui::Text("Max: (%.2f, %.2f)", focus_x + focus_sz, focus_y + focus_sz);
                 ImVec2 uv0 = ImVec2((focus_x) / tex_w, (focus_y) / tex_h);
                 ImVec2 uv1 = ImVec2((focus_x + focus_sz) / tex_w, (focus_y + focus_sz) / tex_h);
-                ImGui::Image(tex_id, ImVec2(128,128), uv0, uv1, 0xFFFFFFFF, 0x999999FF);
+                ImGui::Image(tex_id, ImVec2(128,128), uv0, uv1, ImColor(255,255,255,255), ImColor(255,255,255,128));
                 ImGui::EndTooltip();
             }
+            ImGui::TextWrapped("And now some textured buttons..");
+            static int pressed_count = 0;
+            for (int i = 0; i < 8; i++)
+            {
+                if (i > 0)
+                    ImGui::SameLine();
+                ImGui::PushID(i);
+                int frame_padding = -1 + i;     // -1 padding uses default padding
+                if (ImGui::ImageButton(tex_id, ImVec2(32,32), ImVec2(0,0), ImVec2(32.0f/tex_w,32/tex_h), frame_padding))
+                    pressed_count += 1;
+                ImGui::PopID();
+            }
+            ImGui::Text("Pressed %d times.", pressed_count);
             ImGui::TreePop();
         }
 
@@ -7769,7 +7884,20 @@ void ImGui::ShowTestWindow(bool* opened)
         ImGui::RadioButton("radio b", &e, 1); ImGui::SameLine();
         ImGui::RadioButton("radio c", &e, 2);
 
-        ImGui::Text("Hover me");
+        // Color buttons, demonstrate using PushID() to add unique identifier in the ID stack, and changing style.
+        for (int i = 0; i < 7; i++)
+        {
+            if (i > 0) ImGui::SameLine();
+            ImGui::PushID(i);
+            ImGui::PushStyleColor(ImGuiCol_Button, ImColor::HSV(i/7.0f, 0.6f, 0.6f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor::HSV(i/7.0f, 0.7f, 0.7f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor::HSV(i/7.0f, 0.8f, 0.8f));
+            ImGui::Button("Click");
+            ImGui::PopStyleColor(3);
+            ImGui::PopID();
+        }
+
+        ImGui::Text("Hover over me");
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("I am a tooltip");
 
@@ -7941,10 +8069,11 @@ void ImGui::ShowTestWindow(bool* opened)
         ImGui::Columns(2);
         for (int i = 0; i < 100; i++)
         {
+            if (i == 50)
+                ImGui::NextColumn();
             char buf[32];
             ImFormatString(buf, IM_ARRAYSIZE(buf), "%08x", i*5731);
             ImGui::Button(buf);
-            ImGui::NextColumn();
         }
         ImGui::EndChild();
     }
