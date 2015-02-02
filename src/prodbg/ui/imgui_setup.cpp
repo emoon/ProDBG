@@ -14,7 +14,6 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static bgfx::TextureHandle s_textureId;
-static ScEditor* s_editor;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -104,8 +103,18 @@ void IMGUI_setup(int width, int height)
     io.KeyMap[ImGuiKey_Y]          = PDKEY_Y;
     io.KeyMap[ImGuiKey_Z]          = PDKEY_Z;
 
-    s_editor = 0;
-    //s_editor = ScEditor_create(width, height);
+	// TODO: Add this as config?
+    // Update the style
+
+	ImGuiStyle& style = ImGui::GetStyle();
+
+    style.Colors[ImGuiCol_TitleBg] = ImVec4(0.50f, 0.50f, 0.50f, 0.45f);
+    style.Colors[ImGuiCol_CloseButton] = ImVec4(0.60f, 0.60f, 0.60f, 0.50f);
+    style.Colors[ImGuiCol_CloseButtonHovered] = ImVec4(0.70f, 0.70f, 0.70f, 0.60f);
+    style.Colors[ImGuiCol_CloseButtonActive] = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
+    style.Colors[ImGuiCol_TitleBgCollapsed] = style.Colors[ImGuiCol_TitleBg];
+
+    style.WindowRounding = 0.0f;
 
     UIRender_init();
 
@@ -127,9 +136,6 @@ void IMGUI_updateSize(int width, int height)
 
     io.DisplaySize = ImVec2((float)width, (float)height);
     io.DeltaTime = 1.0f / 60.0f;
-
-    if (s_editor)
-        ScEditor_resize(s_editor, 0, 0, width, height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,9 +151,6 @@ void IMGUI_preUpdate(float x, float y, int mouseLmb, int keyDown, int keyMod, fl
     io.MouseDown[0] = !!mouseLmb;
 
     ImGui::NewFrame();
-
-    if (s_editor)
-        ScEditor_tick(s_editor);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -164,12 +167,12 @@ void IMGUI_setMouse(float x, float y, int mouseLmb)
 void IMGUI_scrollMouse(const PDMouseWheelEvent& wheelEvent)
 {
     ImGuiIO& io = ImGui::GetIO();
+    (void)wheelEvent;
     (void)io;
     //const float unitScale = 1.0f; // 1 unit = scrolling about 5 lines of text
     //io.MouseWheel = deltaY; TODO: Might not be scaled right for ImGui
 
-    if (s_editor)
-        ScEditor_scrollMouse(s_editor, wheelEvent);
+    //ScEditor_scrollMouse(s_editor, wheelEvent);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -199,9 +202,6 @@ void IMGUI_setKeyUp(int key, int modifier)
 void IMGUI_postUpdate()
 {
     ImGui::Render();
-
-    if (s_editor)
-        ScEditor_render(s_editor);
 }
 
 
