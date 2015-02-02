@@ -456,7 +456,7 @@ static void fillRectangle(PRectangle rc, ColourDesired b)
 	(void)b;
     const uint32_t back = (uint32_t)b.AsLong();
 
-	s_drawList->SplitDrawCmd();
+	s_drawList->AddDrawCmd();
 	s_drawList->AddRectFilled(ImVec2(rc.left + s_pos.x, rc.top + s_pos.y), 
 			                  ImVec2(rc.right + s_pos.x, rc.bottom + s_pos.y), back);
 	/*
