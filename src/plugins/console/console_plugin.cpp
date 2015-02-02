@@ -37,6 +37,7 @@ static void destroyInstance(void* userData)
 static void showInUI(ConsoleData* data, PDReader* reader, PDUI* uiFuncs)
 {
     (void)data;
+    (void)reader;
 
     uiFuncs->text("Console Testing!");
 }
