@@ -1,4 +1,6 @@
 #include <imgui.h>
+#include <stdio.h>
+#include <ctype.h>
 #include "imgui_setup.h"
 #include "ui_sc_editor.h"
 #include "stb_image.h"
@@ -178,6 +180,16 @@ void IMGUI_scrollMouse(const PDMouseWheelEvent& wheelEvent)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+inline bool isAscii(int ch)
+{
+    return (ch >= 0) && (ch < 0x80);
+}
+
+bool isAlphaNumeric(char ch)
+{
+    return isAscii(ch) && isalnum(ch);
+}
+
 void IMGUI_setKeyDown(int key, int modifier)
 {
     ImGuiIO& io = ImGui::GetIO();
@@ -185,6 +197,9 @@ void IMGUI_setKeyDown(int key, int modifier)
     io.KeysDown[key] = true;
     io.KeyCtrl = !!(modifier & PDKEY_CTRL);
     io.KeyShift = !!(modifier & PDKEY_SHIFT);
+
+    if (isAlphaNumeric(key) || key == ' ')
+        io.AddInputCharacter((unsigned short)key);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
