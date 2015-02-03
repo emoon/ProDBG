@@ -528,6 +528,32 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
+    Name = "script",
+
+    Env = { 
+        CPPPATH = { 
+            "src/external/stb",
+            "src/external/libuv/include",
+            "src/external/lua/src",
+            "api/include",
+            "src/prodbg",
+        },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "src/prodbg/script",
+            Extensions = { ".cpp", ".h" },
+        },
+    },
+
+    IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+
+StaticLibrary {
     Name = "session",
 
     Env = { 
