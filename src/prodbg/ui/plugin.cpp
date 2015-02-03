@@ -6,8 +6,7 @@
 #include "core/log.h"
 #include "core/math.h"
 #include <imgui.h>
-#include <string.h>
-#include <stdio.h>
+#include <assert.h>
 
 struct ImGuiWindow;
 
@@ -145,6 +144,13 @@ static int button(const char* label)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static int buttonSmall(const char* label)
+{
+    return ImGui::SmallButton(label);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void text(const char* format, ...)
 {
     va_list ap;
@@ -157,10 +163,85 @@ static void text(const char* format, ...)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void textColored(PDVec4 col, const char* format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+
+    ImGui::TextColoredV(ImVec4(col.x, col.y, col.z, col.w), format, ap);
+
+    va_end(ap);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void textWrapped(const char* format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+
+    ImGui::TextWrappedV(format, ap);
+
+    va_end(ap);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static bool scEditText(const char* label, char* buf, int buf_size, float xSize, float ySize, int flags, 
 		                void (*callback)(void*), void* userData)
 {
 	return ImGui::ScInputText(label, buf, (size_t)buf_size, xSize, ySize, flags, callback, userData); 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef void(*InputCallback)(PDInputTextCallbackData*);
+struct PDInputTextUserData
+{
+    InputCallback callback;
+    void* userData;
+};
+
+static void TextEditCallbackStub(ImGuiTextEditCallbackData* data)
+{
+    PDInputTextUserData* wrappedUserData = (PDInputTextUserData*)data->UserData;
+    PDInputTextCallbackData callbackData;
+    memset(&callbackData, 0x0, sizeof(PDInputTextCallbackData));
+
+    // Transfer over ImGui callback data into our generic wrapper version
+    callbackData.userData       = wrappedUserData->userData;
+    callbackData.buffer         = data->Buf;
+    callbackData.bufferSize     = int(data->BufSize);
+    callbackData.bufferDirty    = data->BufDirty;
+    callbackData.flags          = PDInputTextFlags(data->Flags);
+    callbackData.cursorPos      = data->CursorPos;
+    callbackData.selectionStart = data->SelectionStart;
+    callbackData.selectionEnd   = data->SelectionEnd;
+
+    // Translate ImGui event key into our own PDKey mapping
+    ImGuiIO& io = ImGui::GetIO();
+    callbackData.eventKey = io.KeyMap[data->EventKey];
+
+    // Invoke the callback (synchronous)
+    wrappedUserData->callback(&callbackData);
+
+    // We need to mirror any changes to the callback wrapper into the actual ImGui version
+    data->UserData       = callbackData.userData;
+    data->Buf            = callbackData.buffer;
+    data->BufSize        = callbackData.bufferSize;
+    data->BufDirty       = callbackData.bufferDirty;
+    data->Flags          = ImGuiInputTextFlags(callbackData.flags);
+    data->CursorPos      = callbackData.cursorPos;
+    data->SelectionStart = callbackData.selectionStart;
+    data->SelectionEnd   = callbackData.selectionEnd;
+}
+
+static bool inputText(const char* label, char* buf, int buf_size, int flags, void(*callback)(PDInputTextCallbackData*), void* userData)
+{
+    PDInputTextUserData wrappedUserData;
+    wrappedUserData.callback = callback;
+    wrappedUserData.userData = userData;
+    return ImGui::InputText(label, buf, buf_size, ImGuiInputTextFlags(flags), &TextEditCallbackStub, &wrappedUserData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -186,6 +267,13 @@ static float getTextWidth(const char* text, const char* textEnd)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void setScrollHere()
+{
+    ImGui::SetScrollPosHere();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDVec2 getWindowSize()
 {
     ImVec2 size = ImGui::GetWindowSize();
@@ -205,6 +293,20 @@ static float getFontHeight()
 static float getFontWidth()
 {
     return 12.0f;   // TODO: Fix me
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void beginChild(const char* stringId, PDVec2 size, bool border, PDWindowFlags extraFlags)
+{
+    ImGui::BeginChild(stringId, ImVec2(size.x, size.y), border, ImGuiWindowFlags(extraFlags));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void endChild()
+{
+    ImGui::EndChild();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -248,6 +350,14 @@ static int isMouseHoveringBox(PDVec2 boxMin, PDVec2 boxMax)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static int isItemHovered()
+{
+    return ImGui::IsItemHovered();
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static int isKeyDown(int key, int repeat)
 {
     return ImGui::IsFocusWindowKeyDown(key, !!repeat);
@@ -258,6 +368,46 @@ static int isKeyDown(int key, int repeat)
 static int getKeyModifier()
 {
     return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void setKeyboardFocusHere(int offset)
+{
+    ImGui::SetKeyboardFocusHere(offset);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static ImGuiStyleVar_ styleLookup[PDStyleVar_Count] =
+{
+    ImGuiStyleVar_Alpha,            // PDStyleVar_Invalid
+    ImGuiStyleVar_Alpha,            // PDStyleVar_Alpha,             // float
+    ImGuiStyleVar_WindowPadding,    // PDStyleVar_WindowPadding,     // PDVec2
+    ImGuiStyleVar_WindowRounding,   // PDStyleVar_WindowRounding,    // float
+    ImGuiStyleVar_FramePadding,     // PDStyleVar_FramePadding,      // PDVec2
+    ImGuiStyleVar_FrameRounding,    // PDStyleVar_FrameRounding,     // float
+    ImGuiStyleVar_ItemSpacing,      // PDStyleVar_ItemSpacing,       // PDVec2
+    ImGuiStyleVar_ItemInnerSpacing, // PDStyleVar_ItemInnerSpacing,  // PDVec2
+    ImGuiStyleVar_TreeNodeSpacing,  // PDStyleVar_TreeNodeSpacing,   // float
+};
+
+static void pushStyleVarV(PDStyleVar styleVar, PDVec2 value)
+{
+    assert(styleVar >= 0 && styleVar < PDStyleVar_Count);
+    ImVec2 vecValue(value.x, value.y);
+    ImGui::PushStyleVar(styleLookup[styleVar], vecValue);
+}
+
+static void pushStyleVarF(PDStyleVar styleVar, float value)
+{
+    assert(styleVar >= 0 && styleVar < PDStyleVar_Count);
+    ImGui::PushStyleVar(styleLookup[styleVar], value);
+}
+
+static void popStyleVar(int count)
+{
+    ImGui::PopStyleVar(count);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -293,8 +443,12 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     uiInstance->nextColumn = nextColumn;
     uiInstance->sameLine = sameLine;
     uiInstance->text = text;
+    uiInstance->textColored = textColored;
+    uiInstance->textWrapped = textWrapped;
     uiInstance->scInputText = scEditText;
+    uiInstance->inputText = inputText;
     uiInstance->button = button;
+    uiInstance->buttonSmall = buttonSmall;
     uiInstance->buttonSize = buttonSize;
 
     uiInstance->separator = separator;
@@ -323,8 +477,18 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     uiInstance->isMouseClicked = isMouseClicked;
     uiInstance->isMouseDoubleClicked = isMouseDoubleClicked;
     uiInstance->isMouseHoveringBox = isMouseHoveringBox;
+    uiInstance->isItemHovered = isItemHovered;
     uiInstance->isKeyDown = isKeyDown;
     uiInstance->getKeyModifier = getKeyModifier;
+    uiInstance->setKeyboardFocusHere = setKeyboardFocusHere;
+    uiInstance->setScrollHere = setScrollHere;
+
+    uiInstance->beginChild = beginChild;
+    uiInstance->endChild = endChild;
+
+    uiInstance->pushStyleVarV = pushStyleVarV;
+    uiInstance->pushStyleVarF = pushStyleVarF;
+    uiInstance->popStyleVar = popStyleVar;
 
     uiInstance->privateData = alloc_zero(sizeof(PrivateData));
     data->name = buildName(pluginInstance->plugin->name, pluginInstance->count);
