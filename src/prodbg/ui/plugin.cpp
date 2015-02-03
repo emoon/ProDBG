@@ -297,7 +297,7 @@ static float getFontWidth()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void beginChild(const char* stringId, PDVec2 size, bool border, PDWindowFlags extraFlags)
+static void beginChild(const char* stringId, PDVec2 size, bool border, int extraFlags)
 {
     ImGui::BeginChild(stringId, ImVec2(size.x, size.y), border, ImGuiWindowFlags(extraFlags));
 }
@@ -392,14 +392,14 @@ static ImGuiStyleVar_ styleLookup[PDStyleVar_Count] =
     ImGuiStyleVar_TreeNodeSpacing,  // PDStyleVar_TreeNodeSpacing,   // float
 };
 
-static void pushStyleVarV(PDStyleVar styleVar, PDVec2 value)
+static void pushStyleVarV(int styleVar, PDVec2 value)
 {
     assert(styleVar >= 0 && styleVar < PDStyleVar_Count);
     ImVec2 vecValue(value.x, value.y);
     ImGui::PushStyleVar(styleLookup[styleVar], vecValue);
 }
 
-static void pushStyleVarF(PDStyleVar styleVar, float value)
+static void pushStyleVarF(int styleVar, float value)
 {
     assert(styleVar >= 0 && styleVar < PDStyleVar_Count);
     ImGui::PushStyleVar(styleLookup[styleVar], value);
