@@ -44,7 +44,7 @@ typedef struct PDRect
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum PDStyleVar : int
+enum PDStyleVar
 {
     PDStyleVar_Invalid = 0,
     PDStyleVar_Alpha,             // float
@@ -62,7 +62,7 @@ enum PDStyleVar : int
 
 // TODO: Abstract this more
 
-enum PDWindowFlags : int
+enum PDWindowFlags
 {
     // Default: 0
     PDWindowFlags_NoTitleBar          = 1 << 0,   // Disable title-bar
@@ -87,7 +87,7 @@ enum PDWindowFlags : int
 
 // TODO: Abstract this more
 
-enum PDInputTextFlags : int
+enum PDInputTextFlags
 {
     // Default: 0
     PDInputTextFlags_CharsDecimal       = 1 << 0,   // Allow 0123456789.+-*/
@@ -107,57 +107,53 @@ struct PDInputTextCallbackData
     char* buffer;            // Current text                        // Read-write (pointed data only)
     int bufferSize;          // Read-only
     bool bufferDirty;        // Set if you modify buffer directly   // Write
-    PDInputTextFlags flags;  // What user passed to inputText()     // Read-only
+    int flags;               // What user passed to inputText()     // Read-only   // PDInputTextFlags
     int cursorPos;           //                                     // Read-write
     int selectionStart;      //                                     // Read-write (== to selectionEnd when no selection)
     int selectionEnd;        //                                     // Read-write
     void* userData;          // What user passed to InputText()
-
-    // Calling these functions loses selection.
-    void deleteChars(int pos, int byteCount);
-    void insertChars(int pos, const char* text, const char* textEnd = nullptr);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-inline void PDInputTextCallbackData::deleteChars(int pos, int byteCount)
+inline void PDInputTextDeleteChars(PDInputTextCallbackData* data, int pos, int byteCount)
 {
-    char* dst = buffer + pos;
-    const char* src = buffer + pos + byteCount;
+    char* dst = data->buffer + pos;
+    const char* src = data->buffer + pos + byteCount;
     while (char c = *src++)
         *dst++ = c;
     *dst = '\0';
 
-    bufferDirty = true;
-    if (cursorPos + byteCount >= pos)
-        cursorPos -= byteCount;
-    else if (cursorPos >= pos)
-        cursorPos = pos;
-    selectionStart = selectionEnd = cursorPos;
+    data->bufferDirty = true;
+    if (data->cursorPos + byteCount >= pos)
+        data->cursorPos -= byteCount;
+    else if (data->cursorPos >= pos)
+        data->cursorPos = pos;
+    data->selectionStart = data->selectionEnd = data->cursorPos;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-inline void PDInputTextCallbackData::insertChars(int pos, const char* text, const char* textEnd)
+inline void PDInputTextInsertChars(PDInputTextCallbackData* data, int pos, const char* text, const char* textEnd = NULL)
 {
-    const int textLen = int(strlen(buffer));
+    const int textLen = int(strlen(data->buffer));
     if (!textEnd)
         textEnd = text + strlen(text);
     const int newTextLen = (int)(textEnd - text);
 
-    if (newTextLen + textLen + 1 >= bufferSize)
+    if (newTextLen + textLen + 1 >= data->bufferSize)
         return;
 
     size_t upos = (size_t)pos;
     if (textLen != upos)
-        memmove(buffer + upos + newTextLen, buffer + upos, textLen - upos);
-    memcpy(buffer + upos, text, newTextLen * sizeof(char));
-    buffer[textLen + newTextLen] = '\0';
+        memmove(data->buffer + upos + newTextLen, data->buffer + upos, textLen - upos);
+    memcpy(data->buffer + upos, text, newTextLen * sizeof(char));
+    data->buffer[textLen + newTextLen] = '\0';
 
-    bufferDirty = true;
-    if (cursorPos >= pos)
-        cursorPos += (int)newTextLen;
-    selectionStart = selectionEnd = cursorPos;
+    data->bufferDirty = true;
+    if (data->cursorPos >= pos)
+        data->cursorPos += (int)newTextLen;
+    data->selectionStart = data->selectionEnd = data->cursorPos;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -190,7 +186,7 @@ typedef struct PDUI
 	float (*getFontHeight)();
 	float (*getFontWidth)();
 
-    void (*beginChild)(const char* stringId, PDVec2 size, bool border, PDWindowFlags extraFlags);
+    void (*beginChild)(const char* stringId, PDVec2 size, bool border, int extraFlags /* PDWindowFlags */);
     void (*endChild)();
 
     // Text
@@ -224,8 +220,8 @@ typedef struct PDUI
 
     // Styles
 
-    void (*pushStyleVarV)(PDStyleVar styleVar, PDVec2 value);
-    void (*pushStyleVarF)(PDStyleVar styleVar, float value);
+    void (*pushStyleVarV)(int styleVar /* PDStyleVar */, PDVec2 value);
+    void (*pushStyleVarF)(int styleVar /* PDStyleVar */, float value);
     void (*popStyleVar)(int count);
 	
     // Rendering
