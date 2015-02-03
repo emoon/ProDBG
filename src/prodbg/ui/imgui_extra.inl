@@ -98,8 +98,8 @@ bool ScInputText(const char* label, char* buf, size_t buf_size, float xSize, flo
     //const float w = window->DC.ItemWidth.back();
 
     const ImVec2 text_size = CalcTextSize(label, NULL, true);
-    //const ImGuiAabb frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, text_size.y) + style.FramePadding*2.0f);
-    const ImGuiAabb frame_bb(window->DC.CursorPos, window->DC.CursorPos + (window->Size - style.FramePadding)); 
+
+    const ImGuiAabb frame_bb(window->DC.CursorPos, window->DC.CursorPos + window->Size); 
     const ImGuiAabb bb(frame_bb.Min, frame_bb.Max + ImVec2(text_size.x > 0.0f ? (style.ItemInnerSpacing.x + text_size.x) : 0.0f, 0.0f));
 
     printf("frame bb %f %f %f %f\n", 

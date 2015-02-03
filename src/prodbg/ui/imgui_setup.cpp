@@ -115,6 +115,7 @@ void IMGUI_setup(int width, int height)
     style.Colors[ImGuiCol_CloseButtonHovered] = ImVec4(0.70f, 0.70f, 0.70f, 0.60f);
     style.Colors[ImGuiCol_CloseButtonActive] = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
     style.Colors[ImGuiCol_TitleBgCollapsed] = style.Colors[ImGuiCol_TitleBg];
+    style.WindowPadding = ImVec2(0, 0);
 
     style.WindowRounding = 0.0f;
 
