@@ -14,6 +14,7 @@ Program {
         CPPPATH = { 
 			"src/external/remotery/lib",
 			"src/external/jansson/include",
+            "src/external/lua/src",
 			"src/external/libuv/include",
             "src/external/bgfx/include", 
             "src/external/bx/include",
@@ -68,7 +69,7 @@ Program {
         },
     },
 
-    Depends = { "core", "ui", "api", "session", "jansson", "remote_api", "stb", "bgfx", "uv", "imgui", "remotery", "foundation_lib", "scintilla", "tinyxml2" },
+    Depends = { "core", "ui", "api", "session", "jansson", "lua", "remote_api", "stb", "bgfx", "uv", "imgui", "remotery", "foundation_lib", "scintilla", "tinyxml2" },
 
     Libs = { 
       { 

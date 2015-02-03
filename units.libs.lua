@@ -112,6 +112,32 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
+    Name = "lua",
+
+    Env = { 
+        CPPPATH = { 
+            "src/external/lua/src",
+        },
+
+        CCOPTS = {
+            { "-Wno-everything"; Config = "macosx-*-*" },
+            { "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
+        },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "src/external/lua/src",
+            Extensions = { ".c", ".h", ".hpp" },
+        },
+    },
+
+    IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
     Name = "foundation_lib",
 
     Env = { 
