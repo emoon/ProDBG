@@ -145,9 +145,9 @@ inline void PDInputTextInsertChars(PDInputTextCallbackData* data, int pos, const
         return;
 
     size_t upos = (size_t)pos;
-    if (textLen != upos)
-        memmove(data->buffer + upos + newTextLen, data->buffer + upos, textLen - upos);
-    memcpy(data->buffer + upos, text, newTextLen * sizeof(char));
+    if ((size_t)textLen != upos)
+        memmove(data->buffer + upos + newTextLen, data->buffer + upos, (size_t)textLen - upos);
+    memcpy(data->buffer + upos, text, (size_t)newTextLen * sizeof(char));
     data->buffer[textLen + newTextLen] = '\0';
 
     data->bufferDirty = true;
