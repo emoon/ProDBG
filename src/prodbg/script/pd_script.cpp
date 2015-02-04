@@ -92,3 +92,4 @@ StkId stack_last;  /* last free slot in the stack */
 StkId stack;  /* stack base */
 
 #endif
+
