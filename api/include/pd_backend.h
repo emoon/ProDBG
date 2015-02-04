@@ -67,7 +67,7 @@ typedef enum PDEventType
     PDEventType_attachToProcess,
     PDEventType_attachToRemoteSession,
 
-    PDEventType_setConsole,
+    PDEventType_executeConsole,
     PDEventType_getConsole,
 
     // TODO: Somewhat temporary, need to figure this out

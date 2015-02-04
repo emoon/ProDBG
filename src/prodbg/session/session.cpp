@@ -2,6 +2,7 @@
 #include "session_private.h"
 
 #include "api/plugin_instance.h"
+#include "api/include/pd_script.h"
 #include "api/src/remote/pd_readwrite_private.h"
 #include "api/src/remote/remote_connection.h"
 #include "core/alloc.h"
@@ -239,6 +240,48 @@ static void toggleBreakpoint(Session* s, PDReader* reader)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void executeCommand(Session* s, PDReader* reader)
+{
+    const char* command;
+    PDRead_findString(reader, &command, "command", 0);
+    PDScriptState* scriptState;
+    PDScript_createState(&scriptState);
+    if (PDScript_loadString(scriptState, command))
+        goto cleanup;
+
+    /*PDScriptCallState callState;
+    callState.inputCount = 0;
+    callState.outputCount = 0;
+
+    if (PDScript_primeCall(scriptState, &callState))
+        goto cleanup;
+
+    int result = PDScript_executeCall(scriptState, &callState);
+    (void)result;*/
+
+cleanup:
+    //free(callState.funcName);
+    PDScript_destroyState(&scriptState);
+}
+
+static void updateScript(Session* s, PDReader* reader)
+{
+    uint32_t event;
+    
+    while ((event = PDRead_getEvent(reader)) != 0)
+    {
+        switch (event)
+        {
+            case PDEventType_executeConsole:
+            {
+                executeCommand(s, reader);
+                break;
+            }
+        }
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -288,6 +331,8 @@ static void updateLocal(Session* s, PDAction action)
 
         PDBinaryReader_reset(s->reader);
     }
+
+    updateScript(s, s->reader);
 
     toggleBreakpoint(s, s->reader);
 }

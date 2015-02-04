@@ -16,6 +16,7 @@ struct ConsoleData
     std::vector<char*> items;
     std::vector<char*> commands;
     std::vector<char*> history;
+    std::vector<char*> scripts; // TODO: Temp, for testing
     int historyPos; // -1: New Line, 0...history.size()-1 Browsing History
     bool scrollToBottom;
 };
@@ -90,6 +91,10 @@ static void execCommand(ConsoleData* consoleData, const char* commandLine)
     else if (stricmp(commandLine, "testError") == 0) // TODO: Temp for testing
     {
         addLog(consoleData, "[Error] Something went wrong!\n");
+    }
+    else if (stricmp(commandLine, "testScript") == 0) // TODO: Temp for testing
+    {
+        consoleData->scripts.push_back("print(\"Hello ProDBG Lua World!\")");
     }
     else
     {
@@ -227,6 +232,7 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     consoleData->commands.push_back("CLASSIFY");  // TODO: "classify" is here to provide an example of "C"+[tab] completing to "CL" and displaying matches.
     consoleData->commands.push_back("TESTTEXT");  // TODO: Temp, for testing
     consoleData->commands.push_back("TESTERROR"); // TODO: Temp, for testing
+    consoleData->commands.push_back("TESTLUA"); // TODO: Temp, for testing
     return consoleData;
 }
 
@@ -319,9 +325,11 @@ static void showInUI(ConsoleData* consoleData, PDReader* reader, PDUI* uiFuncs)
 
 static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents)
 {
+    ConsoleData* consoleData = (ConsoleData*)userData;
+
     uint32_t event = 0;
 
-    while ((event = PDRead_getEvent(inEvents)) != 0)
+    /*while ((event = PDRead_getEvent(inEvents)) != 0)
     {
         switch (event)
         {
@@ -331,9 +339,20 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
                 break;
             }
         }
+    }*/
+
+    showInUI(consoleData, inEvents, uiFuncs);
+
+
+    for (size_t i = 0; i < consoleData->scripts.size(); ++i)
+    {
+        PDWrite_eventBegin(outEvents, PDEventType_executeConsole);
+        PDWrite_string(outEvents, "command", consoleData->scripts[i]);   // TODO: Remove me
+        PDWrite_eventEnd(outEvents);
+        //free(consoleData->scripts[i]);
     }
 
-    showInUI((ConsoleData*)userData, inEvents, uiFuncs);
+    consoleData->scripts.clear();
 
     // Request console data
 
