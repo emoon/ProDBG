@@ -1,1 +1,4 @@
-int blah = 0;
+void dummyFunc()
+{
+}
+

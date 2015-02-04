@@ -7,6 +7,14 @@
 #include <ctype.h>
 #include <string.h>
 #include <vector>
+#include <strings.h>
+
+#define sizeof_array(t) (sizeof(t) / sizeof(t[0]))
+
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wformat-nonliteral" //error: format string is not a string literal [-Werror,-Wformat-nonliteral]
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -38,6 +46,7 @@ static void addLog(ConsoleData* consoleData, const char* fmt, ...)
     va_list args;
     va_start(args, fmt);
     int w = vsnprintf(buffer, 1024, fmt, args);
+    (void)w;
     buffer[1024 - 1] = 0;
     va_end(args);
     consoleData->items.push_back(strdup(buffer));
@@ -56,9 +65,9 @@ static void execCommand(ConsoleData* consoleData, const char* commandLine)
     consoleData->historyPos = -1;
     for (int i = int(consoleData->history.size()) - 1; i >= 0; --i)
     {
-        if (stricmp(consoleData->history[i], commandLine) == 0)
+        if (strcasecmp(consoleData->history[(size_t)i], commandLine) == 0)
         {
-            free(consoleData->history[i]);
+            free(consoleData->history[(size_t)i]);
             consoleData->history.erase(consoleData->history.begin() + i);
             break;
         }
@@ -68,26 +77,26 @@ static void execCommand(ConsoleData* consoleData, const char* commandLine)
 
     // Process the command
 
-    if (stricmp(commandLine, "clear") == 0)
+    if (strcasecmp(commandLine, "clear") == 0)
     {
         clearLog(consoleData);
     }
-    else if (stricmp(commandLine, "help") == 0)
+    else if (strcasecmp(commandLine, "help") == 0)
     {
         addLog(consoleData, "Commands:");
         for (size_t i = 0; i < consoleData->commands.size(); i++)
             addLog(consoleData, "- %s", consoleData->commands[i]);
     }
-    else if (stricmp(commandLine, "history") == 0)
+    else if (strcasecmp(commandLine, "history") == 0)
     {
         for (size_t i = consoleData->history.size() >= 10 ? consoleData->history.size() - 10 : 0; i < consoleData->history.size(); i++)
             addLog(consoleData, "%3d: %s\n", i, consoleData->history[i]);
     }
-    else if (stricmp(commandLine, "testText") == 0) // TODO: Temp for testing
+    else if (strcasecmp(commandLine, "testText") == 0) // TODO: Temp for testing
     {
         addLog(consoleData, "Some text\nSome more text\nDisplay very important message here!\n");
     }
-    else if (stricmp(commandLine, "testError") == 0) // TODO: Temp for testing
+    else if (strcasecmp(commandLine, "testError") == 0) // TODO: Temp for testing
     {
         addLog(consoleData, "[Error] Something went wrong!\n");
     }
@@ -128,7 +137,7 @@ static void textEditCallbackStub(PDInputTextCallbackData* data)
         // Build a list of candidates
         
         for (size_t i = 0; i < consoleData->commands.size(); ++i)
-            if (strnicmp(consoleData->commands[i], wordStart, int(wordEnd - wordStart)) == 0)
+            if (strncasecmp(consoleData->commands[i], wordStart, (size_t)(int(wordEnd - wordStart))) == 0)
                 candidates.push_back(consoleData->commands[i]);
 
         if (candidates.size() == 0)
@@ -202,7 +211,7 @@ static void textEditCallbackStub(PDInputTextCallbackData* data)
         // TODO: A better implementation would preserve the data on the current input line along with cursor position
         if (prevHistoryPos != consoleData->historyPos)
         {
-            strcpy(data->buffer, (consoleData->historyPos >= 0) ? consoleData->history[consoleData->historyPos] : "");
+            strcpy(data->buffer, (consoleData->historyPos >= 0) ? consoleData->history[(size_t)consoleData->historyPos] : "");
             data->bufferDirty = true;
             data->cursorPos = data->selectionStart = data->selectionEnd = int(strlen(data->buffer));
         }
@@ -221,12 +230,20 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     memset(consoleData, 0, sizeof(ConsoleData));
     clearLog(consoleData);
     consoleData->historyPos = -1;
-    consoleData->commands.push_back("HELP");
-    consoleData->commands.push_back("HISTORY");
-    consoleData->commands.push_back("CLEAR");
-    consoleData->commands.push_back("CLASSIFY");  // TODO: "classify" is here to provide an example of "C"+[tab] completing to "CL" and displaying matches.
-    consoleData->commands.push_back("TESTTEXT");  // TODO: Temp, for testing
-    consoleData->commands.push_back("TESTERROR"); // TODO: Temp, for testing
+
+    static const char* testData[] =
+	{
+		"HELP",
+		"HISTORY",
+		"CLEAR",
+		"CLASSIFY",  // TODO: "classify" is here to provide an example of "C"+[tab] completing to "CL" and displaying matches.
+		"TESTTEXT",  // TODO: Temp, for testing
+		"TESTERROR", // TODO: Temp, for testing
+	};
+
+	for (size_t i = 0; i < sizeof_array(testData); ++i)
+    	consoleData->commands.push_back((char*)testData[i]);
+
     return consoleData;
 }
 
@@ -244,6 +261,7 @@ static void destroyInstance(void* userData)
 static void showInUI(ConsoleData* consoleData, PDReader* reader, PDUI* uiFuncs)
 {
     (void)consoleData;
+    (void)reader;
 
     uiFuncs->textWrapped("ProDBG Scripting Console");
     uiFuncs->textWrapped("Enter 'HELP' for help. Press TAB to use text completion.");

@@ -198,7 +198,7 @@ void IMGUI_setKeyDown(int key, int modifier)
     io.KeyCtrl = !!(modifier & PDKEY_CTRL);
     io.KeyShift = !!(modifier & PDKEY_SHIFT);
 
-    if (isAlphaNumeric(key) || key == ' ')
+    if (isAlphaNumeric((char)key) || key == ' ')
         io.AddInputCharacter((unsigned short)key);
 }
 

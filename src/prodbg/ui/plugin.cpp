@@ -228,7 +228,7 @@ static void TextEditCallbackStub(ImGuiTextEditCallbackData* data)
     // We need to mirror any changes to the callback wrapper into the actual ImGui version
     data->UserData       = callbackData.userData;
     data->Buf            = callbackData.buffer;
-    data->BufSize        = callbackData.bufferSize;
+    data->BufSize        = (size_t)callbackData.bufferSize;
     data->BufDirty       = callbackData.bufferDirty;
     data->Flags          = ImGuiInputTextFlags(callbackData.flags);
     data->CursorPos      = callbackData.cursorPos;
@@ -241,7 +241,7 @@ static bool inputText(const char* label, char* buf, int buf_size, int flags, voi
     PDInputTextUserData wrappedUserData;
     wrappedUserData.callback = callback;
     wrappedUserData.userData = userData;
-    return ImGui::InputText(label, buf, buf_size, ImGuiInputTextFlags(flags), &TextEditCallbackStub, &wrappedUserData);
+    return ImGui::InputText(label, buf, (size_t)buf_size, ImGuiInputTextFlags(flags), &TextEditCallbackStub, &wrappedUserData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
