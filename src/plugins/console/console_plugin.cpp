@@ -289,7 +289,9 @@ static void showInUI(ConsoleData* consoleData, PDReader* reader, PDUI* uiFuncs)
     uiFuncs->sameLine(0, -1);
     uiFuncs->separator();
 
-    uiFuncs->pushStyleVarV(PDStyleVar_FramePadding, PDVec2(0, 0));
+    PDVec2 pad = { 0.0f, 0.0f };
+
+    uiFuncs->pushStyleVarV(PDStyleVar_FramePadding, pad); 
 
     //static ImGuiTextFilter filter;
     //filter.Draw("Filter (\"incl,-excl\") (\"error\")", 180);
@@ -301,19 +303,22 @@ static void showInUI(ConsoleData* consoleData, PDReader* reader, PDUI* uiFuncs)
 
     uiFuncs->separator();
 
-    uiFuncs->beginChild("ScrollingRegion", PDVec2(0, -uiFuncs->getTextLineSpacing() * 2), false, PDWindowFlags(0));
-    uiFuncs->pushStyleVarV(PDStyleVar_ItemSpacing, PDVec2(4, 1)); // Tighten spacing
+    PDVec2 spacing = { 0, -uiFuncs->getTextLineSpacing() * 2 };
+    PDVec2 itemSpacing = { 4.0f, 1.0f };
+
+    uiFuncs->beginChild("ScrollingRegion", spacing, false, PDWindowFlags(0));
+    uiFuncs->pushStyleVarV(PDStyleVar_ItemSpacing, itemSpacing); // Tighten spacing
 
     for (size_t i = 0; i < consoleData->items.size(); i++)
     {
         const char* item = consoleData->items[i];
         //if (!filter.PassFilter(item))
         //    continue;
-        PDVec4 col(1, 1, 1, 1); // A better implementation may store a type per-item. For now let's just parse the text.
+        PDVec4 col = { 1.0f, 1.0f, 1.0f, 1.0f }; // A better implementation may store a type per-item. For now let's just parse the text.
         if (strstr(item, "[Error]"))
-            col = PDVec4(1.0f, 0.4f, 0.4f, 1.0f);
+            col = { 1.0f, 0.4f, 0.4f, 1.0f };
         else if (strncmp(item, "# ", 2) == 0)
-            col = PDVec4(1.0f, 0.8f, 0.6f, 1.0f);
+            col = { 1.0f, 0.8f, 0.6f, 1.0f };
         uiFuncs->textColored(col, item);
     }
 

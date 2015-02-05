@@ -19,10 +19,6 @@ struct PDRect;
 typedef struct PDVec2
 {
     float x, y;
-// TODO: Remove, keep API headers clean
-#ifdef __cplusplus
-    PDVec2(float _x, float _y) : x(_x), y(_y) {}
-#endif
 } PDVec2;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,10 +26,6 @@ typedef struct PDVec2
 typedef struct PDVec4
 {
     float x, y, z, w;
-// TODO: Remove, keep API headers clean
-#ifdef __cplusplus
-    PDVec4(float _x, float _y, float _z, float _w) : x(_x), y(_y), z(_z), w(_w) {}
-#endif
 } PDVec4;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
