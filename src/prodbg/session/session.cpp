@@ -244,7 +244,7 @@ static void toggleBreakpoint(Session* s, PDReader* reader)
 
 static void executeCommand(Session* s, PDReader* reader)
 {
-	(void)s;
+    (void)s;
 
     const char* command;
     PDRead_findString(reader, &command, "command", 0);
@@ -254,24 +254,26 @@ static void executeCommand(Session* s, PDReader* reader)
         goto cleanup;
 
     /*PDScriptCallState callState;
-    callState.inputCount = 0;
-    callState.outputCount = 0;
+       callState.inputCount = 0;
+       callState.outputCount = 0;
 
-    if (PDScript_primeCall(scriptState, &callState))
+       if (PDScript_primeCall(scriptState, &callState))
         goto cleanup;
 
-    int result = PDScript_executeCall(scriptState, &callState);
-    (void)result;*/
+       int result = PDScript_executeCall(scriptState, &callState);
+       (void)result;*/
 
-cleanup:
+    cleanup:
     //free(callState.funcName);
     PDScript_destroyState(&scriptState);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void updateScript(Session* s, PDReader* reader)
 {
     uint32_t event;
-    
+
     while ((event = PDRead_getEvent(reader)) != 0)
     {
         switch (event)

@@ -187,20 +187,22 @@ static void textWrapped(const char* format, ...)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool scEditText(const char* label, char* buf, int buf_size, float xSize, float ySize, int flags, 
-		                void (*callback)(void*), void* userData)
+static bool scEditText(const char* label, char* buf, int buf_size, float xSize, float ySize, int flags,
+                       void (* callback)(void*), void* userData)
 {
-	return ImGui::ScInputText(label, buf, (size_t)buf_size, xSize, ySize, flags, callback, userData); 
+    return ImGui::ScInputText(label, buf, (size_t)buf_size, xSize, ySize, flags, callback, userData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef void(*InputCallback)(PDInputTextCallbackData*);
+typedef void (* InputCallback)(PDInputTextCallbackData*);
 struct PDInputTextUserData
 {
     InputCallback callback;
     void* userData;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void TextEditCallbackStub(ImGuiTextEditCallbackData* data)
 {
@@ -236,7 +238,9 @@ static void TextEditCallbackStub(ImGuiTextEditCallbackData* data)
     data->SelectionEnd   = callbackData.selectionEnd;
 }
 
-static bool inputText(const char* label, char* buf, int buf_size, int flags, void(*callback)(PDInputTextCallbackData*), void* userData)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static bool inputText(const char* label, char* buf, int buf_size, int flags, void (* callback)(PDInputTextCallbackData*), void* userData)
 {
     PDInputTextUserData wrappedUserData;
     wrappedUserData.callback = callback;
@@ -392,6 +396,8 @@ static ImGuiStyleVar_ styleLookup[PDStyleVar_Count] =
     ImGuiStyleVar_TreeNodeSpacing,  // PDStyleVar_TreeNodeSpacing,   // float
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void pushStyleVarV(int styleVar, PDVec2 value)
 {
     assert(styleVar >= 0 && styleVar < PDStyleVar_Count);
@@ -399,11 +405,15 @@ static void pushStyleVarV(int styleVar, PDVec2 value)
     ImGui::PushStyleVar(styleLookup[styleVar], vecValue);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void pushStyleVarF(int styleVar, float value)
 {
     assert(styleVar >= 0 && styleVar < PDStyleVar_Count);
     ImGui::PushStyleVar(styleLookup[styleVar], value);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void popStyleVar(int count)
 {

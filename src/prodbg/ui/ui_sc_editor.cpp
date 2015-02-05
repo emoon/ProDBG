@@ -227,7 +227,7 @@ static const char* breakpoint_xpm[] = {
 // C++ keywords
 static const char cppKeyWords[] =
 
-    // Standard
+// Standard
     "asm auto bool break case catch char class const "
     "const_cast continue default delete do double "
     "dynamic_cast else enum explicit extern false finally "
@@ -239,7 +239,7 @@ static const char cppKeyWords[] =
     "union unsigned using virtual void volatile "
     "wchar_t while "
 
-    // Extended
+// Extended
     "__asm __asume __based __box __cdecl __declspec "
     "__delegate delegate depreciated dllexport dllimport "
     "event __event __except __fastcall __finally __forceinline "
@@ -655,8 +655,8 @@ public:
         m_width = width;
         m_height = height;
 
-		(void)x;
-		(void)y;
+        (void)x;
+        (void)y;
 
         wMain.SetPosition(PRectangle::FromInts(0, 0, m_width, m_height));
 
@@ -679,7 +679,7 @@ public:
 
     virtual void SetHorizontalScrollPos() override
     {
-    	xOffset = 0;
+        xOffset = 0;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -958,8 +958,8 @@ ScEditor* ScEditor_create(int width, int height)
 
 void ScEditor_resize(ScEditor* editor, int x, int y, int width, int height)
 {
-	(void)x;
-	(void)y;
+    (void)x;
+    (void)y;
 
     if (editor)
         editor->Resize(0, 0, width, height);

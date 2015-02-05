@@ -113,6 +113,8 @@ static void execCommand(ConsoleData* consoleData, const char* commandLine)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void textEditCallbackStub(PDInputTextCallbackData* data)
 {
     ConsoleData* consoleData = (ConsoleData*)data->userData;
@@ -124,106 +126,110 @@ static void textEditCallbackStub(PDInputTextCallbackData* data)
     const char* wordStart = nullptr;
     switch (data->eventKey)
     {
-    default:
-        break;
+        default:
+            break;
 
-    // Tab Completion
-    case PDKEY_TAB:
-
-        // Locate beginning of current word
-        wordEnd   = data->buffer + data->cursorPos;
-        wordStart = wordEnd;
-        while (wordStart > data->buffer)
-        {
-            const char c = wordStart[-1];
-            if (c == ' ' || c == '\t' || c == ',' || c == ';')
-                break;
-            wordStart--;
-        }
-
-        // Build a list of candidates
-        
-        for (size_t i = 0; i < consoleData->commands.size(); ++i)
-            if (strncasecmp(consoleData->commands[i], wordStart, (size_t)(int(wordEnd - wordStart))) == 0)
-                candidates.push_back(consoleData->commands[i]);
-
-        if (candidates.size() == 0)
-        {
-            // No match
-            addLog(consoleData, "No match for \"%.*s\"!\n", wordEnd - wordStart, wordStart);
-        }
-        else if (candidates.size() == 1)
-        {
-            // Single match. Delete the beginning of the word and replace it entirely so we've got nice casing
-            PDInputTextDeleteChars(data, int(wordStart - data->buffer), int(wordEnd - wordStart));
-            PDInputTextInsertChars(data, data->cursorPos, candidates[0]);
-            PDInputTextInsertChars(data, data->cursorPos, " ");
-        }
-        else
-        {
-            // Multiple matches. Complete as much as we can, so inputing "C" will complete to "CL" and display "CLEAR" and "CLASSIFY"
-            int matchLen = int(wordEnd - wordStart);
-            while (true)
+        // Tab Completion
+        case PDKEY_TAB:
+		{
+            // Locate beginning of current word
+            wordEnd   = data->buffer + data->cursorPos;
+            wordStart = wordEnd;
+            while (wordStart > data->buffer)
             {
-                int c = 0;
-                bool allCandidatesMatches = true;
-                for (size_t i = 0; i < candidates.size() && allCandidatesMatches; i++)
-                {
-                    if (i == 0)
-                        c = toupper(candidates[i][matchLen]);
-                    else if (c != toupper(candidates[i][matchLen]))
-                        allCandidatesMatches = false;
-                }
-               
-                if (!allCandidatesMatches)
+                const char c = wordStart[-1];
+                if (c == ' ' || c == '\t' || c == ',' || c == ';')
                     break;
-
-                matchLen++;
+                wordStart--;
             }
 
-            if (matchLen > 0)
+            // Build a list of candidates
+
+            for (size_t i = 0; i < consoleData->commands.size(); ++i)
+                if (strncasecmp(consoleData->commands[i], wordStart, (size_t)(int(wordEnd - wordStart))) == 0)
+                    candidates.push_back(consoleData->commands[i]);
+
+
+            if (candidates.size() == 0)
             {
+                // No match
+                addLog(consoleData, "No match for \"%.*s\"!\n", wordEnd - wordStart, wordStart);
+            }
+            else if (candidates.size() == 1)
+            {
+                // Single match. Delete the beginning of the word and replace it entirely so we've got nice casing
                 PDInputTextDeleteChars(data, int(wordStart - data->buffer), int(wordEnd - wordStart));
-                PDInputTextInsertChars(data, data->cursorPos, candidates[0], candidates[0] + matchLen);
+                PDInputTextInsertChars(data, data->cursorPos, candidates[0]);
+                PDInputTextInsertChars(data, data->cursorPos, " ");
             }
-
-            // List matches
-            addLog(consoleData, "Possible matches:\n");
-            for (size_t i = 0; i < candidates.size(); i++)
-                addLog(consoleData, "- %s\n", candidates[i]);
-        }
-
-        break;
-
-    // Command History
-    case PDKEY_UP:
-    case PDKEY_DOWN:
-        const int prevHistoryPos = consoleData->historyPos;
-        if (data->eventKey == PDKEY_UP)
-        {
-            if (consoleData->historyPos == -1)
-                consoleData->historyPos = int(consoleData->history.size()) - 1;
-            else if (consoleData->historyPos > 0)
-                consoleData->historyPos--;
-        }
-        else if (data->eventKey == PDKEY_DOWN)
-        {
-            if (consoleData->historyPos != -1)
+            else
             {
-                if (++consoleData->historyPos >= int(consoleData->history.size()))
-                    consoleData->historyPos = -1;
+                // Multiple matches. Complete as much as we can, so inputing "C" will complete to "CL" and display "CLEAR" and "CLASSIFY"
+                int matchLen = int(wordEnd - wordStart);
+                while (true)
+                {
+                    int c = 0;
+                    bool allCandidatesMatches = true;
+                    for (size_t i = 0; i < candidates.size() && allCandidatesMatches; i++)
+                    {
+                        if (i == 0)
+                            c = toupper(candidates[i][matchLen]);
+                        else if (c != toupper(candidates[i][matchLen]))
+                            allCandidatesMatches = false;
+                    }
+
+                    if (!allCandidatesMatches)
+                        break;
+
+                    matchLen++;
+                }
+
+                if (matchLen > 0)
+                {
+                    PDInputTextDeleteChars(data, int(wordStart - data->buffer), int(wordEnd - wordStart));
+                    PDInputTextInsertChars(data, data->cursorPos, candidates[0], candidates[0] + matchLen);
+                }
+
+                // List matches
+                addLog(consoleData, "Possible matches:\n");
+                for (size_t i = 0; i < candidates.size(); i++)
+                    addLog(consoleData, "- %s\n", candidates[i]);
             }
+
+            break;
         }
 
-        // TODO: A better implementation would preserve the data on the current input line along with cursor position
-        if (prevHistoryPos != consoleData->historyPos)
-        {
-            strcpy(data->buffer, (consoleData->historyPos >= 0) ? consoleData->history[(size_t)consoleData->historyPos] : "");
-            data->bufferDirty = true;
-            data->cursorPos = data->selectionStart = data->selectionEnd = int(strlen(data->buffer));
-        }
+        // Command History
+        case PDKEY_UP:
+        case PDKEY_DOWN:
+		{
+            const int prevHistoryPos = consoleData->historyPos;
+            if (data->eventKey == PDKEY_UP)
+            {
+                if (consoleData->historyPos == -1)
+                    consoleData->historyPos = int(consoleData->history.size()) - 1;
+                else if (consoleData->historyPos > 0)
+                    consoleData->historyPos--;
+            }
+            else if (data->eventKey == PDKEY_DOWN)
+            {
+                if (consoleData->historyPos != -1)
+                {
+                    if (++consoleData->historyPos >= int(consoleData->history.size()))
+                        consoleData->historyPos = -1;
+                }
+            }
 
-        break;
+            // TODO: A better implementation would preserve the data on the current input line along with cursor position
+            if (prevHistoryPos != consoleData->historyPos)
+            {
+                strcpy(data->buffer, (consoleData->historyPos >= 0) ? consoleData->history[(size_t)consoleData->historyPos] : "");
+                data->bufferDirty = true;
+                data->cursorPos = data->selectionStart = data->selectionEnd = int(strlen(data->buffer));
+            }
+
+            break;
+        }
     }
 }
 
@@ -271,7 +277,7 @@ static void showInUI(ConsoleData* consoleData, PDReader* reader, PDUI* uiFuncs)
 
     if (PDUI_buttonSmall(uiFuncs, "Clear"))
         clearLog(consoleData);
-    
+
     uiFuncs->sameLine(0, -1);
     uiFuncs->separator();
 
@@ -282,7 +288,7 @@ static void showInUI(ConsoleData* consoleData, PDReader* reader, PDUI* uiFuncs)
 
     if (uiFuncs->isItemHovered())
         uiFuncs->setKeyboardFocusHere(-1); // Auto focus on hover
-    
+
     uiFuncs->popStyleVar(1);
 
     uiFuncs->separator();
@@ -317,10 +323,10 @@ static void showInUI(ConsoleData* consoleData, PDReader* reader, PDUI* uiFuncs)
     if (uiFuncs->inputText("Input", consoleData->inputBuffer, sizeof(consoleData->inputBuffer), PDInputTextFlags_EnterReturnsTrue | PDInputTextFlags_CallbackCompletion | PDInputTextFlags_CallbackHistory, &textEditCallbackStub, (void*)consoleData))
     {
         char* inputEnd = consoleData->inputBuffer + strlen(consoleData->inputBuffer);
-       
+
         while (inputEnd > consoleData->inputBuffer && inputEnd[-1] == ' ')
             inputEnd--;
-        
+
         *inputEnd = 0;
 
         if (consoleData->inputBuffer[0])
@@ -343,7 +349,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
     (void)event;
 
     /*while ((event = PDRead_getEvent(inEvents)) != 0)
-    {
+       {
         switch (event)
         {
             case PDEventType_setConsole:
@@ -352,7 +358,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
                 break;
             }
         }
-    }*/
+       }*/
 
     showInUI(consoleData, inEvents, uiFuncs);
 

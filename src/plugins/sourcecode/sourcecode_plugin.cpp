@@ -6,14 +6,14 @@
 
 struct SourceCodeData
 {
-	int dummy;
+    int dummy;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-static void* readFileFromDisk(const char* file, size_t* size)
-{
+   static void* readFileFromDisk(const char* file, size_t* size)
+   {
     size_t fileSize;
     char* data;
     FILE* f = fopen(file, "rb");
@@ -40,12 +40,12 @@ static void* readFileFromDisk(const char* file, size_t* size)
         return 0;
     }
 
-    *size = fileSize;
+ * size = fileSize;
     fclose(f);
 
     return data;
-}
-*/
+   }
+ */
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,7 +97,7 @@ static void setExceptionLocation(SourceCodeData* data, PDReader* inEvents)
 
 static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
 {
-	(void)data;
+    (void)data;
     //uiFuncs->columns(1, "sourceview", true);
     uiFuncs->scInputText("test", 0, 0, 800, 700, 0, 0, 0);
 }
@@ -106,26 +106,26 @@ static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
 
 static void updateKeyboard(SourceCodeData* data, PDUI* uiFuncs)
 {
-	(void)data;
-	(void)uiFuncs;
+    (void)data;
+    (void)uiFuncs;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void toggleBreakpointCurrentLine(SourceCodeData* data, PDWriter* writer)
 {
-	(void)data;
-	(void)writer;
-	/*
-    // TODO: Currenty we don't handly if we set breakpoints on a line we can't
+    (void)data;
+    (void)writer;
+    /*
+       // TODO: Currenty we don't handly if we set breakpoints on a line we can't
 
-    PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
-    PDWrite_string(writer, "filename", data->file.filename);
-    PDWrite_u32(writer, "line", (unsigned int)data->cursorPos + 1);
-    PDWrite_eventEnd(writer);
+       PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
+       PDWrite_string(writer, "filename", data->file.filename);
+       PDWrite_u32(writer, "line", (unsigned int)data->cursorPos + 1);
+       PDWrite_eventEnd(writer);
 
-    data->file.lines[data->cursorPos].breakpoint = !data->file.lines[data->cursorPos].breakpoint;
-    */
+       data->file.lines[data->cursorPos].breakpoint = !data->file.lines[data->cursorPos].breakpoint;
+     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -184,10 +184,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-{
-	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-}
+    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+    {
+        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+    }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

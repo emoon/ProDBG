@@ -105,10 +105,10 @@ void IMGUI_setup(int width, int height)
     io.KeyMap[ImGuiKey_Y]          = PDKEY_Y;
     io.KeyMap[ImGuiKey_Z]          = PDKEY_Z;
 
-	// TODO: Add this as config?
+    // TODO: Add this as config?
     // Update the style
 
-	ImGuiStyle& style = ImGui::GetStyle();
+    ImGuiStyle& style = ImGui::GetStyle();
 
     style.Colors[ImGuiCol_TitleBg] = ImVec4(0.50f, 0.50f, 0.50f, 0.45f);
     style.Colors[ImGuiCol_CloseButton] = ImVec4(0.60f, 0.60f, 0.60f, 0.50f);
@@ -185,10 +185,14 @@ inline bool isAscii(int ch)
     return (ch >= 0) && (ch < 0x80);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool isAlphaNumeric(char ch)
 {
     return isAscii(ch) && isalnum(ch);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void IMGUI_setKeyDown(int key, int modifier)
 {

@@ -18,29 +18,29 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static Vec2 s_pos;
-static struct ImFont* s_imFont; 
-static struct ImDrawList* s_drawList; 
+static struct ImFont* s_imFont;
+static struct ImDrawList* s_drawList;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ScEditor_setDrawList(ImDrawList* drawList)
 {
-	s_drawList = drawList;
+    s_drawList = drawList;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ScEditor_setFont(ImFont* font)
 {
-	s_imFont = font;
+    s_imFont = font;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ScEditor_setPos(float x, float y)
 {
-	s_pos.x = x;
-	s_pos.y = y;
+    s_pos.x = x;
+    s_pos.y = y;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -299,8 +299,8 @@ int SurfaceImpl::DeviceHeightFont(int points)
 
 void SurfaceImpl::MoveTo(int x, int y)
 {
-	(void)x;
-	(void)y;
+    (void)x;
+    (void)y;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -452,57 +452,57 @@ void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsi
 
 static void fillRectangle(PRectangle rc, ColourDesired b)
 {
-	(void)rc;
-	(void)b;
+    (void)rc;
+    (void)b;
     const uint32_t back = (uint32_t)b.AsLong();
 
-	s_drawList->AddDrawCmd();
-	s_drawList->AddRectFilled(ImVec2(rc.left + s_pos.x, rc.top + s_pos.y), 
-			                  ImVec2(rc.right + s_pos.x, rc.bottom + s_pos.y), back);
-	/*
-    bgfx::TransientVertexBuffer tvb;
+    s_drawList->AddDrawCmd();
+    s_drawList->AddRectFilled(ImVec2(rc.left + s_pos.x, rc.top + s_pos.y),
+                              ImVec2(rc.right + s_pos.x, rc.bottom + s_pos.y), back);
+    /*
+       bgfx::TransientVertexBuffer tvb;
 
 
-    UIRender_allocPosColorTb(&tvb, 6);
+       UIRender_allocPosColorTb(&tvb, 6);
 
-    PosColorVertex* vb = (PosColorVertex*)tvb.data;
+       PosColorVertex* vb = (PosColorVertex*)tvb.data;
 
-    // First triangle
+       // First triangle
 
-    vb[0].x = rc.left;
-    vb[0].y = rc.top;
-    vb[0].color = back;
+       vb[0].x = rc.left;
+       vb[0].y = rc.top;
+       vb[0].color = back;
 
-    vb[1].x = rc.right;
-    vb[1].y = rc.top;
-    vb[1].color = back;
+       vb[1].x = rc.right;
+       vb[1].y = rc.top;
+       vb[1].color = back;
 
-    vb[2].x = rc.right;
-    vb[2].y = rc.bottom;
-    vb[2].color = back;
+       vb[2].x = rc.right;
+       vb[2].y = rc.bottom;
+       vb[2].color = back;
 
-    // Second triangle
+       // Second triangle
 
-    vb[3].x = rc.left;
-    vb[3].y = rc.top;
-    vb[3].color = back;
+       vb[3].x = rc.left;
+       vb[3].y = rc.top;
+       vb[3].color = back;
 
-    vb[4].x = rc.right;
-    vb[4].y = rc.bottom;
-    vb[4].color = back;
+       vb[4].x = rc.right;
+       vb[4].y = rc.bottom;
+       vb[4].color = back;
 
-    vb[5].x = rc.left;
-    vb[5].y = rc.bottom;
-    vb[5].color = back;
+       vb[5].x = rc.left;
+       vb[5].y = rc.bottom;
+       vb[5].color = back;
 
-    bgfx::setState(0
-                   | BGFX_STATE_RGB_WRITE
-                   | BGFX_STATE_ALPHA_WRITE
-                   | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
-                   | BGFX_STATE_MSAA);
+       bgfx::setState(0
+     | BGFX_STATE_RGB_WRITE
+     | BGFX_STATE_ALPHA_WRITE
+     | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+     | BGFX_STATE_MSAA);
 
-    UIRender_posColor(&tvb, 0, 6);
-    */
+       UIRender_posColor(&tvb, 0, 6);
+     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -628,21 +628,21 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
     assert(s_drawList);
     assert(s_imFont);
 
-	//s_drawList->SplitDrawCmd();
+    //s_drawList->SplitDrawCmd();
     s_drawList->AddText(s_imFont, realFont->fontSize, ImVec2(xt + s_pos.x, yt + s_pos.y), fore, s, s + len);
 
 
-	/*
+    /*
 
-    bgfx::TransientVertexBuffer tvb;
+       bgfx::TransientVertexBuffer tvb;
 
 
-    UIRender_allocPosTexColorTb(&tvb, (uint32_t)(len * 6)); // * 6 vertices per character (2 triangles)
+       UIRender_allocPosTexColorTb(&tvb, (uint32_t)(len * 6)); // * 6 vertices per character (2 triangles)
 
-    PosTexColorVertex* vb = (PosTexColorVertex*)tvb.data;
+       PosTexColorVertex* vb = (PosTexColorVertex*)tvb.data;
 
-    while (len--)
-    {
+       while (len--)
+       {
         if (*s >= 32 && *s < 127)
         {
             stbtt_aligned_quad q;
@@ -692,17 +692,17 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
             realLength++;
         }
 
-        ++s;
-    }
+       ++s;
+       }
 
-    bgfx::setState(0
-                   | BGFX_STATE_RGB_WRITE
-                   | BGFX_STATE_ALPHA_WRITE
-                   | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
-                   | BGFX_STATE_MSAA);
+       bgfx::setState(0
+     | BGFX_STATE_RGB_WRITE
+     | BGFX_STATE_ALPHA_WRITE
+     | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+     | BGFX_STATE_MSAA);
 
-    UIRender_posTexRColor(&tvb, 0, realLength * 6, realFont->ftex);
-*/
+       UIRender_posTexRColor(&tvb, 0, realLength * 6, realFont->ftex);
+     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -732,15 +732,15 @@ void SurfaceImpl::DrawTextTransparent(PRectangle rc, Font& font_, float ybase, c
 void SurfaceImpl::MeasureWidths(Font& font_, const char* s, int len, float* positions)
 {
     float position = 0;
-	(void)font_;
+    (void)font_;
     //stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
 
     while (len--)
     {
         int advance;
 
-    	const ImFont::Glyph* glyph = s_imFont->FindGlyph((unsigned short)*s++);
-    	assert(glyph);
+        const ImFont::Glyph* glyph = s_imFont->FindGlyph((unsigned short)*s++);
+        assert(glyph);
 
         advance = glyph->XAdvance;
 
@@ -749,49 +749,49 @@ void SurfaceImpl::MeasureWidths(Font& font_, const char* s, int len, float* posi
     }
 
 
-	//assert(false);
+    //assert(false);
 
-	/*
-    stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+    /*
+       stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
 
-    //TODO: implement proper UTF-8 handling
+       //TODO: implement proper UTF-8 handling
 
-    float position = 0;
-    while (len--)
-    {
+       float position = 0;
+       while (len--)
+       {
         int advance, leftBearing;
 
         stbtt_GetCodepointHMetrics(&realFont->fontinfo, *s++, &advance, &leftBearing);
 
         position += advance;//TODO: +Kerning
-        *positions++ = position * realFont->scale;
-    }
-    */
+     * positions++ = position * realFont->scale;
+       }
+     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SurfaceImpl::WidthText(Font& font_, const char* s, int len)
 {
-	(void)font_;
-	ImVec2 t = ImGui::CalcTextSize(s, s + len);
-	return t.x;
+    (void)font_;
+    ImVec2 t = ImGui::CalcTextSize(s, s + len);
+    return t.x;
 
-	/*
-    stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+    /*
+       stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
 
-    //TODO: implement proper UTF-8 handling
+       //TODO: implement proper UTF-8 handling
 
-    float position = 0;
-    while (len--)
-    {
+       float position = 0;
+       while (len--)
+       {
         int advance, leftBearing;
         stbtt_GetCodepointHMetrics(&realFont->fontinfo, *s++, &advance, &leftBearing);
         position += advance * realFont->scale;//TODO: +Kerning
-    }
+       }
 
-    return position;
-    */
+       return position;
+     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

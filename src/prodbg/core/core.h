@@ -5,7 +5,7 @@
 #if defined(__clang__) || defined(__gcc__)
 #define PD_NO_RETURN __attribute__((noreturn))
 #else
-#define PD_NO_RETURN 
+#define PD_NO_RETURN
 #endif
 
 

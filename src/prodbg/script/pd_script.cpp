@@ -10,6 +10,8 @@ extern "C"
 #include <lauxlib.h>
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int PDScript_createState(PDScriptState** scriptState)
 {
     assert(scriptState);
@@ -18,12 +20,16 @@ int PDScript_createState(PDScriptState** scriptState)
     return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void PDScript_destroyState(PDScriptState** scriptState)
 {
     assert(scriptState);
     lua_close(reinterpret_cast<lua_State*>(*scriptState));
     *scriptState = nullptr;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int PDScript_loadFile(PDScriptState* scriptState, const char* scriptFile)
 {
@@ -34,6 +40,8 @@ int PDScript_loadFile(PDScriptState* scriptState, const char* scriptFile)
     return lua_pcall(scriptState, 0, 0, 0);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int PDScript_loadString(PDScriptState* scriptState, const char* scriptString)
 {
     int result = luaL_loadstring(scriptState, scriptString);
@@ -43,6 +51,8 @@ int PDScript_loadString(PDScriptState* scriptState, const char* scriptString)
     return lua_pcall(scriptState, 0, 0, 0);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int PDScript_loadBuffer(PDScriptState* scriptState, const char* scriptBuffer, size_t size, const char* name, const char* mode)
 {
     int result = luaL_loadbufferx(scriptState, scriptBuffer, size, name, mode);
@@ -51,6 +61,8 @@ int PDScript_loadBuffer(PDScriptState* scriptState, const char* scriptBuffer, si
 
     return lua_pcall(scriptState, 0, 0, 0);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int PDScript_primeCall(PDScriptState* scriptState, PDScriptCallState* callState, const char* funcName)
 {
@@ -65,6 +77,8 @@ int PDScript_primeCall(PDScriptState* scriptState, PDScriptCallState* callState,
     else
         return 0;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int PDScript_executeCall(PDScriptState* scriptState, PDScriptCallState* callState)
 {
@@ -85,9 +99,9 @@ int PDScript_executeCall(PDScriptState* scriptState, PDScriptCallState* callStat
 #if 0
 
 StkId top;  /* first free slot in the stack */
-global_State *l_G;
-CallInfo *ci;  /* call info for current function */
-const Instruction *oldpc;  /* last pc traced */
+global_State* l_G;
+CallInfo* ci;  /* call info for current function */
+const Instruction* oldpc;  /* last pc traced */
 StkId stack_last;  /* last free slot in the stack */
 StkId stack;  /* stack base */
 

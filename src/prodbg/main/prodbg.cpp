@@ -327,7 +327,7 @@ void ProDBG_event(int eventId)
         ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[eventId - PRODBG_MENU_PLUGIN_START]);
 
         UIDockingGrid* grid = Session_getDockingGrid(context->session);
-        UIDock* dockAtMouse = UIDock_getDockAt(grid, 0, 0); 
+        UIDock* dockAtMouse = UIDock_getDockAt(grid, 0, 0);
         UIDock_splitVertical(Session_getDockingGrid(context->session), dockAtMouse, instance);
 
         Session_addViewPlugin(context->session, instance);
