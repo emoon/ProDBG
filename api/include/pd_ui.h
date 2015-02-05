@@ -118,49 +118,10 @@ struct PDInputTextCallbackData
     int selectionStart;      //                                     // Read-write (== to selectionEnd when no selection)
     int selectionEnd;        //                                     // Read-write
     void* userData;          // What user passed to InputText()
+
+	void (*deleteChars)(struct PDInputTextCallbackData* data, int pos, int byteCount);
+	void (*insertChars)(struct PDInputTextCallbackData* data, int pos, const char* text, const char* textEnd);
 };
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-inline void PDInputTextDeleteChars(PDInputTextCallbackData* data, int pos, int byteCount)
-{
-    char* dst = data->buffer + pos;
-    const char* src = data->buffer + pos + byteCount;
-    while (char c = *src++)
-        *dst++ = c;
-    *dst = '\0';
-
-    data->bufferDirty = true;
-    if (data->cursorPos + byteCount >= pos)
-        data->cursorPos -= byteCount;
-    else if (data->cursorPos >= pos)
-        data->cursorPos = pos;
-    data->selectionStart = data->selectionEnd = data->cursorPos;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-inline void PDInputTextInsertChars(PDInputTextCallbackData* data, int pos, const char* text, const char* textEnd = NULL)
-{
-    const int textLen = int(strlen(data->buffer));
-    if (!textEnd)
-        textEnd = text + strlen(text);
-    const int newTextLen = (int)(textEnd - text);
-
-    if (newTextLen + textLen + 1 >= data->bufferSize)
-        return;
-
-    size_t upos = (size_t)pos;
-    if ((size_t)textLen != upos)
-        memmove(data->buffer + upos + newTextLen, data->buffer + upos, (size_t)textLen - upos);
-    memcpy(data->buffer + upos, text, (size_t)newTextLen * sizeof(char));
-    data->buffer[textLen + newTextLen] = '\0';
-
-    data->bufferDirty = true;
-    if (data->cursorPos >= pos)
-        data->cursorPos += (int)newTextLen;
-    data->selectionStart = data->selectionEnd = data->cursorPos;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

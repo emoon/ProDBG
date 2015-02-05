@@ -204,11 +204,52 @@ struct PDInputTextUserData
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void TextEditCallbackStub(ImGuiTextEditCallbackData* data)
+static void inputTextDeleteChars(PDInputTextCallbackData* data, int pos, int byteCount)
+{
+    char* dst = data->buffer + pos;
+    const char* src = data->buffer + pos + byteCount;
+    while (char c = *src++)
+        *dst++ = c;
+    *dst = '\0';
+
+    data->bufferDirty = true;
+    if (data->cursorPos + byteCount >= pos)
+        data->cursorPos -= byteCount;
+    else if (data->cursorPos >= pos)
+        data->cursorPos = pos;
+    data->selectionStart = data->selectionEnd = data->cursorPos;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void inputTextInsertChars(PDInputTextCallbackData* data, int pos, const char* text, const char* textEnd = NULL)
+{
+    const int textLen = int(strlen(data->buffer));
+    if (!textEnd)
+        textEnd = text + strlen(text);
+    const int newTextLen = (int)(textEnd - text);
+
+    if (newTextLen + textLen + 1 >= data->bufferSize)
+        return;
+
+    size_t upos = (size_t)pos;
+    if ((size_t)textLen != upos)
+        memmove(data->buffer + upos + newTextLen, data->buffer + upos, (size_t)textLen - upos);
+    memcpy(data->buffer + upos, text, (size_t)newTextLen * sizeof(char));
+    data->buffer[textLen + newTextLen] = '\0';
+
+    data->bufferDirty = true;
+    if (data->cursorPos >= pos)
+        data->cursorPos += (int)newTextLen;
+    data->selectionStart = data->selectionEnd = data->cursorPos;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void textEditCallbackStub(ImGuiTextEditCallbackData* data)
 {
     PDInputTextUserData* wrappedUserData = (PDInputTextUserData*)data->UserData;
-    PDInputTextCallbackData callbackData;
-    memset(&callbackData, 0x0, sizeof(PDInputTextCallbackData));
+    PDInputTextCallbackData callbackData = { 0 };
 
     // Transfer over ImGui callback data into our generic wrapper version
     callbackData.userData       = wrappedUserData->userData;
@@ -219,6 +260,8 @@ static void TextEditCallbackStub(ImGuiTextEditCallbackData* data)
     callbackData.cursorPos      = data->CursorPos;
     callbackData.selectionStart = data->SelectionStart;
     callbackData.selectionEnd   = data->SelectionEnd;
+    callbackData.deleteChars 	= inputTextDeleteChars;
+    callbackData.insertChars 	= inputTextInsertChars;
 
     // Translate ImGui event key into our own PDKey mapping
     ImGuiIO& io = ImGui::GetIO();
@@ -245,7 +288,7 @@ static bool inputText(const char* label, char* buf, int buf_size, int flags, voi
     PDInputTextUserData wrappedUserData;
     wrappedUserData.callback = callback;
     wrappedUserData.userData = userData;
-    return ImGui::InputText(label, buf, (size_t)buf_size, ImGuiInputTextFlags(flags), &TextEditCallbackStub, &wrappedUserData);
+    return ImGui::InputText(label, buf, (size_t)buf_size, ImGuiInputTextFlags(flags), &textEditCallbackStub, &wrappedUserData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

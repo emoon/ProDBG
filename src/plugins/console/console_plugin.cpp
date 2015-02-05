@@ -158,9 +158,10 @@ static void textEditCallbackStub(PDInputTextCallbackData* data)
             else if (candidates.size() == 1)
             {
                 // Single match. Delete the beginning of the word and replace it entirely so we've got nice casing
-                PDInputTextDeleteChars(data, int(wordStart - data->buffer), int(wordEnd - wordStart));
-                PDInputTextInsertChars(data, data->cursorPos, candidates[0]);
-                PDInputTextInsertChars(data, data->cursorPos, " ");
+
+                data->deleteChars(data, int(wordStart - data->buffer), int(wordEnd - wordStart));
+                data->insertChars(data, data->cursorPos, candidates[0], 0);
+                data->insertChars(data, data->cursorPos, " ", 0);
             }
             else
             {
@@ -186,8 +187,8 @@ static void textEditCallbackStub(PDInputTextCallbackData* data)
 
                 if (matchLen > 0)
                 {
-                    PDInputTextDeleteChars(data, int(wordStart - data->buffer), int(wordEnd - wordStart));
-                    PDInputTextInsertChars(data, data->cursorPos, candidates[0], candidates[0] + matchLen);
+                    data->deleteChars(data, int(wordStart - data->buffer), int(wordEnd - wordStart));
+                    data->insertChars(data, data->cursorPos, candidates[0], candidates[0] + matchLen);
                 }
 
                 // List matches
