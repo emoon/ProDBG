@@ -12,6 +12,8 @@ extern "C" {
 struct lua_State;
 typedef lua_State PDScriptState;
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct PDScriptCallState
 {
     char* funcName;
@@ -19,10 +21,14 @@ struct PDScriptCallState
     int outputCount;
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 enum PDScriptVariantType
 {
     
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct PDScriptCallVariant
 {
@@ -43,6 +49,8 @@ struct PDScriptCallVariant
     };
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct PDScriptCallSignature
 {
     char function[64];
@@ -51,7 +59,7 @@ struct PDScriptCallSignature
     int returnCount;
 
     PDScriptCallVariant* argumentData;
-    PDScriptCallVariant* returnData;
+    struct PDScriptCallVariant* returnData;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,10 +69,10 @@ void PDScript_destroyState(PDScriptState** state);
 
 int PDScript_loadFile(PDScriptState* state, const char* scriptFile);
 int PDScript_loadString(PDScriptState* state, const char* scriptString);
-int PDScript_loadBuffer(PDScriptState* state, const char* scriptBuffer, size_t size, const char* name, const char* mode);
+int PDScript_loadBuffer(PDScriptState* state, const char* scriptBuffer, int size, const char* name, const char* mode);
 
-int PDScript_primeCall(PDScriptState* scriptState, PDScriptCallState* callState, const char* funcName = 0);
-int PDScript_executeCall(PDScriptState* scriptState, PDScriptCallState* callState);
+int PDScript_primeCall(PDScriptState* scriptState, struct PDScriptCallState* callState, const char* funcName);
+int PDScript_executeCall(PDScriptState* scriptState, struct PDScriptCallState* callState);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -73,3 +81,4 @@ int PDScript_executeCall(PDScriptState* scriptState, PDScriptCallState* callStat
 #endif
 
 #endif
+

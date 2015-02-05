@@ -8,15 +8,10 @@
 #include <string.h>
 #include <vector>
 
-#ifndef strcasecmp
+#if defined(_WIN32)
 #define strcasecmp _stricmp
-#endif
-
-#ifndef strncasecmp
 #define strncasecmp _strnicmp
 #endif
-
-#define sizeof_array(t) (sizeof(t) / sizeof(t[0]))
 
 #ifdef __clang__
 #pragma clang diagnostic ignored "-Wformat-nonliteral" //error: format string is not a string literal [-Werror,-Wformat-nonliteral]
@@ -110,7 +105,7 @@ static void execCommand(ConsoleData* consoleData, const char* commandLine)
     }
     else if (strcasecmp(commandLine, "testScript") == 0) // TODO: Temp for testing
     {
-        consoleData->scripts.push_back("print(\"Hello ProDBG Lua World!\")");
+        consoleData->scripts.push_back((char*)"print(\"Hello ProDBG Lua World!\")");
     }
     else
     {
@@ -242,13 +237,13 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     memset(consoleData, 0, sizeof(ConsoleData));
     clearLog(consoleData);
     consoleData->historyPos = -1;
-    consoleData->commands.push_back("HELP");
-    consoleData->commands.push_back("HISTORY");
-    consoleData->commands.push_back("CLEAR");
-    consoleData->commands.push_back("CLASSIFY");   // TODO: "classify" is here to provide an example of "C"+[tab] completing to "CL" and displaying matches.
-    consoleData->commands.push_back("TESTTEXT");   // TODO: Temp, for testing
-    consoleData->commands.push_back("TESTERROR");  // TODO: Temp, for testing
-    consoleData->commands.push_back("TESTSCRIPT"); // TODO: Temp, for testing
+    consoleData->commands.push_back((char*)"HELP");
+    consoleData->commands.push_back((char*)"HISTORY");
+    consoleData->commands.push_back((char*)"CLEAR");
+    consoleData->commands.push_back((char*)"CLASSIFY");   // TODO: "classify" is here to provide an example of "C"+[tab] completing to "CL" and displaying matches.
+    consoleData->commands.push_back((char*)"TESTTEXT");   // TODO: Temp, for testing
+    consoleData->commands.push_back((char*)"TESTERROR");  // TODO: Temp, for testing
+    consoleData->commands.push_back((char*)"TESTSCRIPT"); // TODO: Temp, for testing
     return consoleData;
 }
 
@@ -345,6 +340,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
     ConsoleData* consoleData = (ConsoleData*)userData;
 
     uint32_t event = 0;
+    (void)event;
 
     /*while ((event = PDRead_getEvent(inEvents)) != 0)
     {

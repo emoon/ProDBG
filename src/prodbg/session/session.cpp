@@ -244,6 +244,8 @@ static void toggleBreakpoint(Session* s, PDReader* reader)
 
 static void executeCommand(Session* s, PDReader* reader)
 {
+	(void)s;
+
     const char* command;
     PDRead_findString(reader, &command, "command", 0);
     PDScriptState* scriptState;
