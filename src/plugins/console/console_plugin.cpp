@@ -246,7 +246,7 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     (void)serviceFunc;
     (void)uiFuncs;
 
-    ConsoleData* consoleData = new consoleData  
+    ConsoleData* consoleData = new ConsoleData;
     clearLog(consoleData);
 
     consoleData->historyPos = -1;
