@@ -22,6 +22,11 @@
 
 struct ConsoleData
 {
+	ConsoleData() : historyPos(0), scrollToBottom(0)
+	{
+		memset(inputBuffer, 0, sizeof(inputBuffer));
+	}
+
     char inputBuffer[256];
     std::vector<char*> items;
     std::vector<char*> commands;
@@ -240,9 +245,10 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 {
     (void)serviceFunc;
     (void)uiFuncs;
-    ConsoleData* consoleData = (ConsoleData*)malloc(sizeof(ConsoleData));
-    memset(consoleData, 0, sizeof(ConsoleData));
+
+    ConsoleData* consoleData = new consoleData  
     clearLog(consoleData);
+
     consoleData->historyPos = -1;
     consoleData->commands.push_back((char*)"HELP");
     consoleData->commands.push_back((char*)"HISTORY");
@@ -251,6 +257,7 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     consoleData->commands.push_back((char*)"TESTTEXT");   // TODO: Temp, for testing
     consoleData->commands.push_back((char*)"TESTERROR");  // TODO: Temp, for testing
     consoleData->commands.push_back((char*)"TESTSCRIPT"); // TODO: Temp, for testing
+
     return consoleData;
 }
 
@@ -400,10 +407,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-    {
-        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-    }
+PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+{
+	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+}
 
 }
 
