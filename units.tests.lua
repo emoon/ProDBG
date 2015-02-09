@@ -55,7 +55,7 @@ Test({ Name = "session_tests", Source = "src/prodbg/tests/session_tests.cpp", De
 Test({ Name = "script_tests", Source = "src/prodbg/tests/script_tests.cpp", Depends = { "core", "script", "lua", "cmocka" }})
 Test({ Name = "ui_docking_tests", Source = "src/prodbg/tests/ui_docking_tests.cpp", Depends = all_depends})
 Test({ Name = "ui_tests", Source = "src/prodbg/tests/ui_tests.cpp", Depends = all_depends})
-Test({ Name = "dbgeng_tests", Source = "src/prodbg/tests/dbgeng_tests.cpp" })
+Test({ Name = "dbgeng_tests", Source = "src/prodbg/tests/dbgeng_tests.cpp", Depends = all_depends })
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -63,9 +63,9 @@ Default "core_tests"
 Default "lldb_tests"
 Default "readwrite_tests"
 Default "remote_api_tests"
-Default "dbgeng_tests"
 Default "session_tests"
 Default "script_tests"
 Default "ui_docking_tests"
 Default "ui_tests"
+Default "dbgeng_tests"
 
