@@ -66,6 +66,8 @@ SharedLibrary {
     },
 
     Libs = { "dbgeng.lib" },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
