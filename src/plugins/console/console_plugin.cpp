@@ -358,8 +358,6 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
 {
     ConsoleData* consoleData = (ConsoleData*)userData;
 
-    nthoesuht
-
     uint32_t event = 0;
     (void)event;
 
