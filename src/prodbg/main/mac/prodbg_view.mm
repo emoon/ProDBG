@@ -344,6 +344,10 @@ static int translateKey(unsigned int key)
     NSPoint location = [window mouseLocationOutsideOfEventStream];
     NSRect adjustFrame = [NSWindow contentRectForFrameRect: originalFrame styleMask: NSTitledWindowMask];
 
+    //[theMenu insertItemWithTitle:@"Beep" action:@selector(beep:) keyEquivalent:@"" atIndex:0];
+    //[theMenu insertItemWithTitle:@"Honk" action:@selector(honk:) keyEquivalent:@"" atIndex:1];
+
+
     (void)event;
 
     ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
@@ -370,7 +374,7 @@ static int translateKey(unsigned int key)
 void buildSubMenu(NSMenu* menu, MenuDescriptor menuDesc[])
 {
     MenuDescriptor* desc = &menuDesc[0];
-    [menu removeAllItems];
+    //[menu removeAllItems];
 
     while (desc->name)
     {
@@ -466,6 +470,18 @@ void buildSubMenu(NSMenu* menu, MenuDescriptor menuDesc[])
     }
 }
 
+static NSMenu* s_popupMenu;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+- (void)rightMouseDown:(NSEvent*)event
+{
+    if (!s_popupMenu)
+        return;
+
+    [NSMenu popUpContextMenu:s_popupMenu withEvent:event forView:self];
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Window_buildMenu()
@@ -480,17 +496,8 @@ void Window_buildMenu()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Window_buildPluginMenu(PluginData** plugins, int count)
+MenuDescriptor* buildPluginsMenu(PluginData** plugins, int count)
 {
-    NSMenu* mainMenu = [NSApp mainMenu];
-    NSMenu* pluginsMenu = [[mainMenu itemWithTitle:@"Plugins"] submenu];
-
-    // TODO: Right now we only support up to 1 - 9 for keyboard shortcuts of the plugins but should be good
-    // enough for now.
-
-    if (count >= 10)
-        count = 9;
-
     MenuDescriptor* menu = (MenuDescriptor*)alloc_zero(sizeof(MenuDescriptor) * (count + 1)); // + 1 as array needs to end with zeros
 
     for (int i = 0; i < count; ++i)
@@ -505,13 +512,81 @@ int Window_buildPluginMenu(PluginData** plugins, int count)
             continue;
 
         entry->name = pluginBase->name;
-        entry->id = PRODBG_MENU_PLUGIN_START + i;
-        entry->key = '1' + i;
+
+        // TODO: Only shortcuts for the first range but we should really have this in a config instead.
+
+        if (i < 10)
+        {
+            entry->id = PRODBG_MENU_PLUGIN_START + i;
+            entry->key = '1' + i;
+        }
+
         entry->macMod = PRODBG_KEY_COMMAND;
         entry->winMod = PRODBG_KEY_CTRL;
     }
 
+    return menu;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void buildPopupSubmenu(NSMenu* popupMenu, const char* inName, MenuDescriptor* pluginsMenu, int count, uint32_t startId, uint32_t idMask)
+{
+    NSString* name = [NSString stringWithUTF8String: inName];
+
+    NSMenuItem* newItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:name action:NULL keyEquivalent:@""];
+    NSMenu* newMenu = [[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:name];
+
+    NSMenuItem* startItem = [[NSMenuItem alloc] initWithTitle:name action:@selector(onMenuPress:) keyEquivalent:@""];
+    [startItem setTag:startId];
+
+    [newMenu addItem:startItem];
+    [newMenu addItem:[NSMenuItem separatorItem]];
+
+    for (int i = 0; i < count; ++i)
+    {
+        pluginsMenu[i].key = 0;
+        pluginsMenu[i].id = (uint32_t)i | idMask;
+    }
+
+    buildSubMenu(newMenu, pluginsMenu);
+
+    [newItem setSubmenu:newMenu];
+    [popupMenu addItem:newItem];
+
+    [name release];
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void buildPopupMenu(MenuDescriptor* pluginsMenu, int count)
+{
+    // TODO: Support rebuild of this menu
+
+    if (s_popupMenu)
+        return;
+
+    s_popupMenu = [[NSMenu alloc] initWithTitle:@"Contextual Menu"];
+
+    buildPopupSubmenu(s_popupMenu, "Split Horizontally", pluginsMenu, count,
+                      PRODBG_MENU_POPUP_SPLIT_HORZ, PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT);
+
+    buildPopupSubmenu(s_popupMenu, "Split Vertically", pluginsMenu, count,
+                      PRODBG_MENU_POPUP_SPLIT_VERT, PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int Window_buildPluginMenu(PluginData** plugins, int count)
+{
+    NSMenu* mainMenu = [NSApp mainMenu];
+    NSMenu* pluginsMenu = [[mainMenu itemWithTitle:@"Plugins"] submenu];
+
+    MenuDescriptor* menu = buildPluginsMenu(plugins, count);
+
     buildSubMenu(pluginsMenu, menu);
+
+    buildPopupMenu(menu, count);
 
     return PRODBG_MENU_PLUGIN_START;
 }

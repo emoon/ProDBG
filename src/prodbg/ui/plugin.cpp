@@ -6,8 +6,7 @@
 #include "core/log.h"
 #include "core/math.h"
 #include <imgui.h>
-#include <string.h>
-#include <stdio.h>
+#include <assert.h>
 
 struct ImGuiWindow;
 
@@ -145,6 +144,13 @@ static int button(const char* label)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static int buttonSmall(const char* label)
+{
+    return ImGui::SmallButton(label);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void text(const char* format, ...)
 {
     va_list ap;
@@ -153,6 +159,136 @@ static void text(const char* format, ...)
     ImGui::TextV(format, ap);
 
     va_end(ap);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void textColored(PDVec4 col, const char* format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+
+    ImGui::TextColoredV(ImVec4(col.x, col.y, col.z, col.w), format, ap);
+
+    va_end(ap);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void textWrapped(const char* format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+
+    ImGui::TextWrappedV(format, ap);
+
+    va_end(ap);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static bool scEditText(const char* label, char* buf, int buf_size, float xSize, float ySize, int flags,
+                       void (* callback)(void*), void* userData)
+{
+    return ImGui::ScInputText(label, buf, (size_t)buf_size, xSize, ySize, flags, callback, userData);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef void (* InputCallback)(PDInputTextCallbackData*);
+struct PDInputTextUserData
+{
+    InputCallback callback;
+    void* userData;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void inputTextDeleteChars(PDInputTextCallbackData* data, int pos, int byteCount)
+{
+    char* dst = data->buffer + pos;
+    const char* src = data->buffer + pos + byteCount;
+    while (char c = *src++)
+        *dst++ = c;
+    *dst = '\0';
+
+    data->bufferDirty = true;
+    if (data->cursorPos + byteCount >= pos)
+        data->cursorPos -= byteCount;
+    else if (data->cursorPos >= pos)
+        data->cursorPos = pos;
+    data->selectionStart = data->selectionEnd = data->cursorPos;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void inputTextInsertChars(PDInputTextCallbackData* data, int pos, const char* text, const char* textEnd = NULL)
+{
+    const int textLen = int(strlen(data->buffer));
+    if (!textEnd)
+        textEnd = text + strlen(text);
+    const int newTextLen = (int)(textEnd - text);
+
+    if (newTextLen + textLen + 1 >= data->bufferSize)
+        return;
+
+    size_t upos = (size_t)pos;
+    if ((size_t)textLen != upos)
+        memmove(data->buffer + upos + newTextLen, data->buffer + upos, (size_t)textLen - upos);
+    memcpy(data->buffer + upos, text, (size_t)newTextLen * sizeof(char));
+    data->buffer[textLen + newTextLen] = '\0';
+
+    data->bufferDirty = true;
+    if (data->cursorPos >= pos)
+        data->cursorPos += (int)newTextLen;
+    data->selectionStart = data->selectionEnd = data->cursorPos;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void textEditCallbackStub(ImGuiTextEditCallbackData* data)
+{
+    PDInputTextUserData* wrappedUserData = (PDInputTextUserData*)data->UserData;
+    PDInputTextCallbackData callbackData = { 0 };
+
+    // Transfer over ImGui callback data into our generic wrapper version
+    callbackData.userData       = wrappedUserData->userData;
+    callbackData.buffer         = data->Buf;
+    callbackData.bufferSize     = int(data->BufSize);
+    callbackData.bufferDirty    = data->BufDirty;
+    callbackData.flags          = PDInputTextFlags(data->Flags);
+    callbackData.cursorPos      = data->CursorPos;
+    callbackData.selectionStart = data->SelectionStart;
+    callbackData.selectionEnd   = data->SelectionEnd;
+    callbackData.deleteChars 	= inputTextDeleteChars;
+    callbackData.insertChars 	= inputTextInsertChars;
+
+    // Translate ImGui event key into our own PDKey mapping
+    ImGuiIO& io = ImGui::GetIO();
+    callbackData.eventKey = io.KeyMap[data->EventKey];
+
+    // Invoke the callback (synchronous)
+    wrappedUserData->callback(&callbackData);
+
+    // We need to mirror any changes to the callback wrapper into the actual ImGui version
+    data->UserData       = callbackData.userData;
+    data->Buf            = callbackData.buffer;
+    data->BufSize        = (size_t)callbackData.bufferSize;
+    data->BufDirty       = callbackData.bufferDirty;
+    data->Flags          = ImGuiInputTextFlags(callbackData.flags);
+    data->CursorPos      = callbackData.cursorPos;
+    data->SelectionStart = callbackData.selectionStart;
+    data->SelectionEnd   = callbackData.selectionEnd;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static bool inputText(const char* label, char* buf, int buf_size, int flags, void (* callback)(PDInputTextCallbackData*), void* userData)
+{
+    PDInputTextUserData wrappedUserData;
+    wrappedUserData.callback = callback;
+    wrappedUserData.userData = userData;
+    return ImGui::InputText(label, buf, (size_t)buf_size, ImGuiInputTextFlags(flags), &textEditCallbackStub, &wrappedUserData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -178,6 +314,13 @@ static float getTextWidth(const char* text, const char* textEnd)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void setScrollHere()
+{
+    ImGui::SetScrollPosHere();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDVec2 getWindowSize()
 {
     ImVec2 size = ImGui::GetWindowSize();
@@ -197,6 +340,20 @@ static float getFontHeight()
 static float getFontWidth()
 {
     return 12.0f;   // TODO: Fix me
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void beginChild(const char* stringId, PDVec2 size, bool border, int extraFlags)
+{
+    ImGui::BeginChild(stringId, ImVec2(size.x, size.y), border, ImGuiWindowFlags(extraFlags));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void endChild()
+{
+    ImGui::EndChild();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -240,6 +397,14 @@ static int isMouseHoveringBox(PDVec2 boxMin, PDVec2 boxMax)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static int isItemHovered()
+{
+    return ImGui::IsItemHovered();
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static int isKeyDown(int key, int repeat)
 {
     return ImGui::IsFocusWindowKeyDown(key, !!repeat);
@@ -250,6 +415,52 @@ static int isKeyDown(int key, int repeat)
 static int getKeyModifier()
 {
     return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void setKeyboardFocusHere(int offset)
+{
+    ImGui::SetKeyboardFocusHere(offset);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static ImGuiStyleVar_ styleLookup[PDStyleVar_Count] =
+{
+    ImGuiStyleVar_Alpha,            // PDStyleVar_Invalid
+    ImGuiStyleVar_Alpha,            // PDStyleVar_Alpha,             // float
+    ImGuiStyleVar_WindowPadding,    // PDStyleVar_WindowPadding,     // PDVec2
+    ImGuiStyleVar_WindowRounding,   // PDStyleVar_WindowRounding,    // float
+    ImGuiStyleVar_FramePadding,     // PDStyleVar_FramePadding,      // PDVec2
+    ImGuiStyleVar_FrameRounding,    // PDStyleVar_FrameRounding,     // float
+    ImGuiStyleVar_ItemSpacing,      // PDStyleVar_ItemSpacing,       // PDVec2
+    ImGuiStyleVar_ItemInnerSpacing, // PDStyleVar_ItemInnerSpacing,  // PDVec2
+    ImGuiStyleVar_TreeNodeSpacing,  // PDStyleVar_TreeNodeSpacing,   // float
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void pushStyleVarV(int styleVar, PDVec2 value)
+{
+    assert(styleVar >= 0 && styleVar < PDStyleVar_Count);
+    ImVec2 vecValue(value.x, value.y);
+    ImGui::PushStyleVar(styleLookup[styleVar], vecValue);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void pushStyleVarF(int styleVar, float value)
+{
+    assert(styleVar >= 0 && styleVar < PDStyleVar_Count);
+    ImGui::PushStyleVar(styleLookup[styleVar], value);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void popStyleVar(int count)
+{
+    ImGui::PopStyleVar(count);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -285,7 +496,12 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     uiInstance->nextColumn = nextColumn;
     uiInstance->sameLine = sameLine;
     uiInstance->text = text;
+    uiInstance->textColored = textColored;
+    uiInstance->textWrapped = textWrapped;
+    uiInstance->scInputText = scEditText;
+    uiInstance->inputText = inputText;
     uiInstance->button = button;
+    uiInstance->buttonSmall = buttonSmall;
     uiInstance->buttonSize = buttonSize;
 
     uiInstance->separator = separator;
@@ -314,13 +530,23 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     uiInstance->isMouseClicked = isMouseClicked;
     uiInstance->isMouseDoubleClicked = isMouseDoubleClicked;
     uiInstance->isMouseHoveringBox = isMouseHoveringBox;
+    uiInstance->isItemHovered = isItemHovered;
     uiInstance->isKeyDown = isKeyDown;
     uiInstance->getKeyModifier = getKeyModifier;
+    uiInstance->setKeyboardFocusHere = setKeyboardFocusHere;
+    uiInstance->setScrollHere = setScrollHere;
+
+    uiInstance->beginChild = beginChild;
+    uiInstance->endChild = endChild;
+
+    uiInstance->pushStyleVarV = pushStyleVarV;
+    uiInstance->pushStyleVarF = pushStyleVarF;
+    uiInstance->popStyleVar = popStyleVar;
 
     uiInstance->privateData = alloc_zero(sizeof(PrivateData));
     data->name = buildName(pluginInstance->plugin->name, pluginInstance->count);
 
-    data->window = ImGui::FindOrCreateWindow(data->name, ImVec2(400, 400), 0);
+    data->window = 0; //ImGui::FindOrCreateWindow(data->name, ImVec2(400, 400), 0);
 
     uiInstance->privateData = data;
 }
@@ -332,7 +558,10 @@ PluginUIState PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* re
     PDUI* uiInstance = &instance->ui;
     PrivateData* data = (PrivateData*)uiInstance->privateData;
 
-    ImGui::BeginWithWindow(data->window, data->name, &data->showWindow, ImVec2(0, 0), true, 0);
+    ImGui::SetNextWindowPos(ImVec2((float)instance->rect.x, (float)instance->rect.y));
+    ImGui::SetNextWindowSize(ImVec2((float)instance->rect.width - 4, (float)instance->rect.height - 4));
+
+    ImGui::Begin(data->name, &data->showWindow, ImVec2(0, 0), true, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
     instance->plugin->update(instance->userData, uiInstance, reader, writer);
 
@@ -348,41 +577,32 @@ PluginUIState PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* re
 
 void PluginUI_getWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 {
-    PDUI* uiInstance = &instance->ui;
-    PrivateData* data = (PrivateData*)uiInstance->privateData;
-
-    ImVec2 pos = {};
-    ImVec2 size = {};
-
-    ImGui::GetWindowRect(data->window, &pos, &size);
-
-    rect->x = pos.x;
-    rect->y = pos.y;
-    rect->width = size.x;
-    rect->height = size.y;
+    rect->x = (float)instance->rect.x;
+    rect->y = (float)instance->rect.y;
+    rect->width = (float)instance->rect.width;
+    rect->height = (float)instance->rect.height;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PluginUI_setWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 {
-    PDUI* uiInstance = &instance->ui;
-    PrivateData* data = (PrivateData*)uiInstance->privateData;
-
-    ImVec2 pos(rect->x, rect->y);
-    ImVec2 size(rect->width, rect->height);
-
-    ImGui::SetWindowRect(data->window, pos, size);
+    instance->rect.x = (int)rect->x;
+    instance->rect.y = (int)rect->y;
+    instance->rect.width = (int)rect->width;
+    instance->rect.height = (int)rect->height;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool PluginUI_isActiveWindow(ViewPluginInstance* instance)
-{
-	(void)instance;
+/*
+   bool PluginUI_isActiveWindow(ViewPluginInstance* instance)
+   {
+    (void)instance;
     PDUI* uiInstance = &instance->ui;
     PrivateData* data = (PrivateData*)uiInstance->privateData;
 
     return ImGui::IsActiveWindow(data->window);
-}
+   }
+ */
 

@@ -104,7 +104,7 @@ typedef struct PDWriter
      * PDWrite_eventEnd();
      * \endcode
      */
-    PDWriteStatus (* writeEventBegin)(struct PDWriter* writer, uint16_t event);
+    PDWriteStatus (*writeEventBegin)(struct PDWriter* writer, uint16_t event);
 
     /**
      * This ends an event. Notice that PDWrite_beginEvent needs to be started first
@@ -117,9 +117,11 @@ typedef struct PDWriter
      * PDWrite_eventEnd();
      * \endcode
      */
-    PDWriteStatus (* writeEventEnd)(struct PDWriter* writer);
+    PDWriteStatus (*writeEventEnd)(struct PDWriter* writer);
 
     /**
+     *
+     * NOTICE THAT THIS IS NOT IMPLEMENTED YET.
      *
      * Begins an table with a predefined structure. This is useful when writing
      * a table where all the entries are the same all the time. So in order to save both
@@ -161,7 +163,7 @@ typedef struct PDWriter
      * \endcode
      *
      */
-    PDWriteStatus (* writeHeaderArrayBegin)(struct PDWriter* writer, const char** ids);
+    PDWriteStatus (*writeHeaderArrayBegin)(struct PDWriter* writer, const char** ids);
 
     /**
      *
@@ -170,7 +172,7 @@ typedef struct PDWriter
      * @param write writer object.
      *
      */
-    PDWriteStatus (* writeHeaderArrayEnd)(struct PDWriter* writer);
+    PDWriteStatus (*writeHeaderArrayEnd)(struct PDWriter* writer);
 
     /**
      *
@@ -218,7 +220,7 @@ typedef struct PDWriter
      * \endcode
      *
      */
-    PDWriteStatus (* writeArrayBegin)(struct PDWriter* writer, const char* name);
+    PDWriteStatus (*writeArrayBegin)(struct PDWriter* writer, const char* name);
 
     /**
      *
@@ -227,7 +229,7 @@ typedef struct PDWriter
      * @param writer writer object.
      *
      */
-    PDWriteStatus (* writeArrayEnd)(struct PDWriter* writer);
+    PDWriteStatus (*writeArrayEnd)(struct PDWriter* writer);
 
     /**
      *
@@ -236,7 +238,7 @@ typedef struct PDWriter
      * @param writer writer object.
      *
      */
-    PDWriteStatus (* writeArrayEntryBegin)(struct PDWriter* writer);
+    PDWriteStatus (*writeArrayEntryBegin)(struct PDWriter* writer);
 
     /**
      *
@@ -245,7 +247,7 @@ typedef struct PDWriter
      * @param writer writer object.
      *
      */
-    PDWriteStatus (* writeArrayEntryEnd)(struct PDWriter* writer);
+    PDWriteStatus (*writeArrayEntryEnd)(struct PDWriter* writer);
 
     /**
      *
@@ -256,7 +258,7 @@ typedef struct PDWriter
      * @param v value to write
      *
      */
-    PDWriteStatus (* writeS8)(struct PDWriter* writer, const char* id, int8_t v);
+    PDWriteStatus (*writeS8)(struct PDWriter* writer, const char* id, int8_t v);
 
     /**
      *
@@ -267,7 +269,7 @@ typedef struct PDWriter
      * @param v value to write
      *
      */
-    PDWriteStatus (* writeU8)(struct PDWriter* writer, const char* id, uint8_t v);
+    PDWriteStatus (*writeU8)(struct PDWriter* writer, const char* id, uint8_t v);
 
     /**
      *
@@ -278,7 +280,7 @@ typedef struct PDWriter
      * @param v value to write
      *
      */
-    PDWriteStatus (* writeS16)(struct PDWriter* writer, const char* id, int16_t v);
+    PDWriteStatus (*writeS16)(struct PDWriter* writer, const char* id, int16_t v);
 
     /**
      *
@@ -289,7 +291,7 @@ typedef struct PDWriter
      * @param v value to write
      *
      */
-    PDWriteStatus (* writeU16)(struct PDWriter* writer, const char* id, uint16_t v);
+    PDWriteStatus (*writeU16)(struct PDWriter* writer, const char* id, uint16_t v);
 
     /**
      *
@@ -300,7 +302,7 @@ typedef struct PDWriter
      * @param v value to write
      *
      */
-    PDWriteStatus (* writeS32)(struct PDWriter* writer, const char* id, int32_t v);
+    PDWriteStatus (*writeS32)(struct PDWriter* writer, const char* id, int32_t v);
 
     /**
      *
@@ -311,7 +313,7 @@ typedef struct PDWriter
      * @param v value to write
      *
      */
-    PDWriteStatus (* writeU32)(struct PDWriter* writer, const char* id, uint32_t v);
+    PDWriteStatus (*writeU32)(struct PDWriter* writer, const char* id, uint32_t v);
 
     /**
      *
@@ -322,7 +324,7 @@ typedef struct PDWriter
      * @param v value to write
      *
      */
-    PDWriteStatus (* writeS64)(struct PDWriter* writer, const char* id, int64_t v);
+    PDWriteStatus (*writeS64)(struct PDWriter* writer, const char* id, int64_t v);
 
     /**
      *
@@ -333,7 +335,7 @@ typedef struct PDWriter
      * @param v value to write
      *
      */
-    PDWriteStatus (* writeU64)(struct PDWriter* writer, const char* id, uint64_t v);
+    PDWriteStatus (*writeU64)(struct PDWriter* writer, const char* id, uint64_t v);
 
     /**
      *
@@ -344,7 +346,7 @@ typedef struct PDWriter
      * @param v value to write
      *
      */
-    PDWriteStatus (* writeFloat)(struct PDWriter* writer, const char* id, float v);
+    PDWriteStatus (*writeFloat)(struct PDWriter* writer, const char* id, float v);
 
     /**
      *
@@ -355,7 +357,7 @@ typedef struct PDWriter
      * @param v value to write
      *
      */
-    PDWriteStatus (* writeDouble)(struct PDWriter* writer, const char* id, double v);
+    PDWriteStatus (*writeDouble)(struct PDWriter* writer, const char* id, double v);
 
     /**
      *
@@ -366,7 +368,7 @@ typedef struct PDWriter
      * @param v value to write
      *
      */
-    PDWriteStatus (* writeString)(struct PDWriter* writer, const char* id, const char* v);
+    PDWriteStatus (*writeString)(struct PDWriter* writer, const char* id, const char* v);
 
     /**
      *
@@ -378,7 +380,7 @@ typedef struct PDWriter
      * @param len size in bytes of how much to write
      *
      */
-    PDWriteStatus (* writeData)(struct PDWriter* writer, const char* id, void* data, unsigned int len);
+    PDWriteStatus (*writeData)(struct PDWriter* writer, const char* id, void* data, unsigned int len);
 
 } PDWriter;
 
@@ -415,7 +417,7 @@ typedef struct PDReader
      * }
      * \endcode
      */
-    uint32_t (* readGetEvent)(struct PDReader* reader);
+    uint32_t (*readGetEvent)(struct PDReader* reader);
 
     /**
      *
@@ -426,7 +428,7 @@ typedef struct PDReader
      * @return The event type and is usually a PDEventType but pluins can use custom events as well
      *
      */
-    uint32_t (* readIteratorNextEvent)(struct PDReader* reader, PDReaderIterator* it);
+    uint32_t (*readIteratorNextEvent)(struct PDReader* reader, PDReaderIterator* it);
 
     /**
      *
@@ -464,7 +466,7 @@ typedef struct PDReader
      * \endcode
      *
      */
-    uint32_t (* readIteratorBegin)(struct PDReader* reader, PDReaderIterator* it, const char** keyName, PDReaderIterator parentIt);
+    uint32_t (*readIteratorBegin)(struct PDReader* reader, PDReaderIterator* it, const char** keyName, PDReaderIterator parentIt);
 
     /**
      *
@@ -476,7 +478,7 @@ typedef struct PDReader
      * @return the type of the next value and returns PDReadType_none if no more values
      *
      */
-    uint32_t (* readIteratorNext)(struct PDReader* reader, const char** keyName, PDReaderIterator* it);
+    uint32_t (*readIteratorNext)(struct PDReader* reader, const char** keyName, PDReaderIterator* it);
 
     /**
      *
@@ -485,7 +487,7 @@ typedef struct PDReader
      *
      *
      */
-    int32_t (* readNextEntry)(struct PDReader* reader, PDReaderIterator* arrayIt);
+    int32_t (*readNextEntry)(struct PDReader* reader, PDReaderIterator* arrayIt);
 
     /** @name Find functions
      *
@@ -498,7 +500,7 @@ typedef struct PDReader
      * @param reader The reader object.
      * @param res Result in the given type (s8/u16/etc) if the function completed successfully.
      * @param id string of the identifier to search for
-     * @return Lower 8-bit is the type of the the value in the struture (meaning that if you do a readS8 the value
+     * @return Lower 8-bit is the type of the the value in the struture (meaning that if you do a readFindS8 the value
      *         in the reader may be of a different type) the upper 8-bit describes if the read operator was successful or not
      *         See PDReadStatus for a complete list of codes
      *
@@ -519,63 +521,19 @@ typedef struct PDReader
      *
      */
     ///@{
-    uint32_t (* readFindS8)(struct PDReader* reader, int8_t* res, const char* id, PDReaderIterator it);
-    uint32_t (* readFindU8)(struct PDReader* reader, uint8_t* res, const char* id, PDReaderIterator it);
-    uint32_t (* readFindS16)(struct PDReader* reader, int16_t* res, const char* id, PDReaderIterator it);
-    uint32_t (* readFindU16)(struct PDReader* reader, uint16_t* res, const char* id, PDReaderIterator it);
-    uint32_t (* readFindS32)(struct PDReader* reader, int32_t* res, const char* id, PDReaderIterator it);
-    uint32_t (* readFindU32)(struct PDReader* reader, uint32_t* res, const char* id, PDReaderIterator it);
-    uint32_t (* readFindS64)(struct PDReader* reader, int64_t* res, const char* id, PDReaderIterator it);
-    uint32_t (* readFindU64)(struct PDReader* reader, uint64_t* res, const char* id, PDReaderIterator it);
-    uint32_t (* readFindFloat)(struct PDReader* reader, float* res, const char* id, PDReaderIterator it);
-    uint32_t (* readFindDouble)(struct PDReader* reader, double* res, const char* id, PDReaderIterator it);
-    uint32_t (* readFindString)(struct PDReader* reader, const char** res, const char* id, PDReaderIterator it);
-    uint32_t (* readFindData)(struct PDReader* reader, void** data, uint64_t* size, const char* id, PDReaderIterator it);
-    uint32_t (* readFindArray)(struct PDReader* reader, PDReaderIterator* arrayIt, const char* id, PDReaderIterator it);
-    ///@}
-
-    /** @name Read functions
-     *
-     * These functions will read the data at the iterator to the res and id varibles. Just as in the finder functions
-     * the code will try to convert the value if it can but will otherwise return an error code
-     *
-     * @param reader The reader object.
-     * @param res Result in the given type (s8/u16/etc) if the function completed successfully.
-     * @param id string of the identifier to search for the current iterator postion (can be NULL if output is ignored)
-     * @return Lower 8-bit is the type of the the value in the struture (meaning that if you do a readS8 the value
-     *         in the reader may be of a different type) the upper 8-bit describes if the read operator was successful or not
-     *         See PDReadStatus for a complete list of codes
-     *
-     * \code
-     * cons char* key;
-     * This code shows what happens when trying to read s8 value but the value is actually a
-     * string and how you can handle the case be simply doing a readString instead
-     *
-     * if ((status = PDRead_s8(reader, &value, &key, it) >> 8) == PDReadStatus_illegalType)
-     * {
-     *     type = status & PDReadWrite_TypeMask;
-     *
-     *        if (type == PDReadWiteType_string)
-     *        {
-     *          PDRead_string(reader, &stringVal, 0, it);
-     *     }
-     * }
-     * \endcode
-     */
-    ///@{
-    uint32_t (* readS8)(struct PDReader* reader, int8_t* res, const char** id, PDReaderIterator* it);
-    uint32_t (* readU8)(struct PDReader* reader, uint8_t* res, const char** id, PDReaderIterator* it);
-    uint32_t (* readS16)(struct PDReader* reader, int16_t* res, const char** id, PDReaderIterator* it);
-    uint32_t (* readU16)(struct PDReader* reader, uint16_t* res, const char** id, PDReaderIterator* it);
-    uint32_t (* readS32)(struct PDReader* reader, int32_t* res, const char** id, PDReaderIterator* it);
-    uint32_t (* readU32)(struct PDReader* reader, uint32_t* res, const char** id, PDReaderIterator* it);
-    uint32_t (* readS64)(struct PDReader* reader, int64_t* res, const char** id, PDReaderIterator* it);
-    uint32_t (* readU64)(struct PDReader* reader, uint64_t* res, const char** id, PDReaderIterator* it);
-    uint32_t (* readFloat)(struct PDReader* reader, float* res, const char** id, PDReaderIterator* it);
-    uint32_t (* readDouble)(struct PDReader* reader, double* res, const char** id, PDReaderIterator* it);
-    uint32_t (* readString)(struct PDReader* reader, const char** res, const char** id, PDReaderIterator* it);
-    uint32_t (* readData)(struct PDReader* reader, void** res, unsigned int* size, const char** id, PDReaderIterator* it);
-    uint32_t (* readArray)(struct PDReader* reader, PDReaderIterator* arrayIt, const char* id, PDReaderIterator* it);
+    uint32_t (*readFindS8)(struct PDReader* reader, int8_t* res, const char* id, PDReaderIterator it);
+    uint32_t (*readFindU8)(struct PDReader* reader, uint8_t* res, const char* id, PDReaderIterator it);
+    uint32_t (*readFindS16)(struct PDReader* reader, int16_t* res, const char* id, PDReaderIterator it);
+    uint32_t (*readFindU16)(struct PDReader* reader, uint16_t* res, const char* id, PDReaderIterator it);
+    uint32_t (*readFindS32)(struct PDReader* reader, int32_t* res, const char* id, PDReaderIterator it);
+    uint32_t (*readFindU32)(struct PDReader* reader, uint32_t* res, const char* id, PDReaderIterator it);
+    uint32_t (*readFindS64)(struct PDReader* reader, int64_t* res, const char* id, PDReaderIterator it);
+    uint32_t (*readFindU64)(struct PDReader* reader, uint64_t* res, const char* id, PDReaderIterator it);
+    uint32_t (*readFindFloat)(struct PDReader* reader, float* res, const char* id, PDReaderIterator it);
+    uint32_t (*readFindDouble)(struct PDReader* reader, double* res, const char* id, PDReaderIterator it);
+    uint32_t (*readFindString)(struct PDReader* reader, const char** res, const char* id, PDReaderIterator it);
+    uint32_t (*readFindData)(struct PDReader* reader, void** data, uint64_t* size, const char* id, PDReaderIterator it);
+    uint32_t (*readFindArray)(struct PDReader* reader, PDReaderIterator* arrayIt, const char* id, PDReaderIterator it);
     ///@}
 
     /**
@@ -584,7 +542,7 @@ typedef struct PDReader
      *
      *
      */
-    void (* readDumpData)(struct PDReader* reader);
+    void (*readDumpData)(struct PDReader* reader);
 
 } PDReader;
 
@@ -639,19 +597,6 @@ typedef struct PDReader
 #define PDRead_findString(r, res, id, it) r->readFindString(r, res, id, it)
 #define PDRead_findData(r, res, size, id, it) r->readFindData(r, res, size, id, it)
 #define PDRead_findArray(r, arrayIt, id, it) r->readFindArray(r, arrayIt, id, it)
-#define PDRead_s8(r, res, id, it) r->readS8(r, res, id, it)
-#define PDRead_u8(r, res, id, it) r->readU8(r, res, id, it)
-#define PDRead_s16(r, res, id, it) r->readS16(r, res, id, it)
-#define PDRead_u16(r, res, id, it) r->readU16(r, res, id, it)
-#define PDRead_s32(r, res, id, it) r->readS32(r, res, id, it)
-#define PDRead_u32(r, res, id, it) r->readU32(r, res, id, it)
-#define PDRead_s64(r, res, id, it) r->readS64(r, res, id, it)
-#define PDRead_u64(r, res, id, it) r->readU64(r, res, id, it)
-#define PDRead_float(r, res, id, it) r->readFloat(r, res, id, it)
-#define PDRead_double(r, res, id, it) r->readDouble(r, res, id, it)
-#define PDRead_string(r, res, id, it) r->readString(r, res, id, it)
-#define PDRead_data(r, res, size, id, it) r->readData(r, res, size, id, it)
-#define PDRead_array(r, arrayIt, id, it) r->readArray(r, arrayIt, id, it)
 #define PDRead_dumpData(r) r->readDumpData(r)
 
 #ifdef __cplusplus

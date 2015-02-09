@@ -153,7 +153,6 @@ void imguiSetup(int width, int height)
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2((float)width, (float)height);
     io.DeltaTime = 1.0f / 60.0f;
-    io.PixelCenterOffset = 0.5f;
     io.RenderDrawListsFn = imguiDummyRender;
 }
 

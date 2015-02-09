@@ -1,1 +1,4 @@
-*.h hooks.style *.hpp hooks.style *.c hooks.style *.cpp hooks.style
+*.h hooks.style
+*.hpp hooks.style
+*.c hooks.style
+*.cpp hooks.style

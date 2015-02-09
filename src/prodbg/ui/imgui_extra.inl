@@ -1,4 +1,6 @@
 
+#include "ui_sc_editor.h"
+
 namespace ImGui
 {
 
@@ -34,13 +36,16 @@ ImVec2 GetRelativeMousePos()
 
 bool IsFocusWindowKeyDown(int key, bool repeat)
 {
-    ImGuiState& g = GImGui;
-    ImGuiWindow* window = GetCurrentWindow();
+	if (!GetWindowIsFocused())
+		return false;
+
+    //ImGuiState& g = GImGui;
+    //ImGuiWindow* window = GetCurrentWindow();
 
     // Only send keyboard events to selected window
 
-    if (g.FocusedWindow != window)
-        return false;
+    //if (g.FocusedWindow != window)
+     //   return false;
 
     return IsKeyPressed(key, repeat);
 }
@@ -73,54 +78,91 @@ bool IsActiveWindow(ImGuiWindow* window)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static ImGuiWindow* FindWindowTemp(const char* name)
+bool ScInputText(const char* label, char* buf, size_t buf_size, float xSize, float ySize, ImGuiInputTextFlags flags, void (*callback)(void*), void* user_data)
 {
     ImGuiState& g = GImGui;
-    for (size_t i = 0; i != g.Windows.size(); i++)
-        if (strcmp(g.Windows[i]->Name, name) == 0)
-            return g.Windows[i];
-    return NULL;
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    (void)buf;
+    (void)buf_size;
+    (void)flags;
+    (void)callback;
+    (void)user_data;
+
+    const ImGuiIO& io = g.IO;
+    const ImGuiStyle& style = g.Style;
+
+    const ImGuiID id = window->GetID(label);
+    //const float w = window->DC.ItemWidth.back();
+
+    const ImVec2 text_size = CalcTextSize(label, NULL, true);
+
+    const ImGuiAabb frame_bb(window->DC.CursorPos, window->DC.CursorPos + window->Size); 
+    const ImGuiAabb bb(frame_bb.Min, frame_bb.Max + ImVec2(text_size.x > 0.0f ? (style.ItemInnerSpacing.x + text_size.x) : 0.0f, 0.0f));
+
+    printf("frame bb %f %f %f %f\n", 
+    		frame_bb.Min.x, 
+    		frame_bb.Min.y, 
+    		frame_bb.Max.x, 
+    		frame_bb.Max.y);
+    ItemSize(bb);
+
+    if (!ItemAdd(frame_bb, &id))
+        return false;
+
+	ImGuiStorage* storage = GetStateStorage();
+	ScEditor* editor = (ScEditor*)storage->GetVoidPtr(id);
+
+	if (!editor)
+	{
+		(void)xSize;
+		(void)ySize;
+		editor = ScEditor_create((int)frame_bb.Max.x, (int)frame_bb.Max.y);
+		storage->SetVoidPtr(id, (void*)editor);
+	}
+
+    // NB: we are only allowed to access 'edit_state' if we are the active widget.
+    //ImGuiTextEditState& edit_state = g.InputTextState;
+
+    const bool hovered = IsHovered(frame_bb, id);
+
+    if (hovered)
+        g.HoveredId = id;
+
+    if (hovered && io.MouseClicked[0])
+    {
+        if (g.ActiveId != id)
+        {
+            // Start edition
+
+        }
+
+        g.ActiveId = id;
+        FocusWindow(window);
+    }
+    else if (io.MouseClicked[0])
+    {
+        // Release focus when we click outside
+        if (g.ActiveId == id)
+        {
+            g.ActiveId = 0;
+        }
+    }
+
+    ScEditor_setDrawList(GetWindowDrawList());
+    ScEditor_setFont(GetWindowFont());
+	ScEditor_setPos(frame_bb.Min.x, frame_bb.Min.y);
+
+	ScEditor_resize(editor, 0, 0, (int)(frame_bb.Max.x - frame_bb.Min.x) , (int)(frame_bb.Max.y - frame_bb.Min.y));
+	ScEditor_tick(editor);
+	ScEditor_render(editor);
+
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-struct ImGuiWindow* FindOrCreateWindow(const char* name, ImVec2 size, ImGuiWindowFlags flags)
-{
-	ImGuiState& g = GImGui;
-    ImGuiWindow* window = FindWindowTemp(name);
-    if (!window)
-    {
-        // Create window the first time, and load settings
-        if (flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Tooltip))
-        {
-            // Tooltip and child windows don't store settings
-            window = (ImGuiWindow*)ImGui::MemAlloc(sizeof(ImGuiWindow));
-            new(window) ImGuiWindow(name, ImVec2(0,0), size);
-        }
-        else
-        {
-            // Normal windows store settings in .ini file
-            ImGuiIniData* settings = FindWindowSettings(name);
-            if (settings && ImLength(settings->Size) > 0.0f && !(flags & ImGuiWindowFlags_NoResize))// && ImLengthsize) == 0.0f)
-                size = settings->Size;
-
-            window = (ImGuiWindow*)ImGui::MemAlloc(sizeof(ImGuiWindow));
-            new(window) ImGuiWindow(name, g.NewWindowDefaultPos, size);
-
-            if (settings->Pos.x != FLT_MAX)
-            {
-                window->PosFloat = settings->Pos;
-                window->Pos = ImVec2((float)(int)window->PosFloat.x, (float)(int)window->PosFloat.y);
-                window->Collapsed = settings->Collapsed;
-            }
-        }
-        g.Windows.push_back(window);
-    }
-
-	window->Flags = (ImGuiWindowFlags)flags;
-
-    return window;
-}
 
 
 }

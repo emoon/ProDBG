@@ -10,11 +10,13 @@
 #include "ui/ui_layout.h"
 #include "ui/menu.h"
 #include "ui/dialogs.h"
+#include "ui/ui_render.h"
 
 #include <bgfx.h>
 #include <bgfxplatform.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <bx/timer.h>
 
 #ifdef PRODBG_WIN
 #define WIN32_LEAN_AND_MEAN
@@ -38,6 +40,7 @@ struct Context
     int mouseLmb;
     int keyDown;
     int keyMod;
+    uint64_t time;
     Session* session;   // one session right now
 };
 
@@ -57,6 +60,7 @@ static const char* s_plugins[] =
     "registers_plugin",
     "breakpoints_plugin",
     "hex_memory_plugin",
+    "console_plugin",
 #ifdef PRODBG_MAC
     "lldb_plugin",
 #endif
@@ -67,10 +71,10 @@ static const char* s_plugins[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setLayout(UILayout* layout)
+void setLayout(UILayout* layout)
 {
     Context* context = &s_context;
-    IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
+    IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod, 1.0f / 60.0f);
     Session_setLayout(context->session, layout, (float)context->width, (float)context->height);
     IMGUI_postUpdate();
 }
@@ -79,16 +83,18 @@ static void setLayout(UILayout* layout)
 
 void loadLayout()
 {
-    UILayout layout;
+    /*
+       UILayout layout;
 
-    if (UILayout_loadLayout(&layout, "data/current_layout.json"))
-    {
+       if (UILayout_loadLayout(&layout, "data/current_layout.json"))
+       {
         setLayout(&layout);
         return;
-    }
+       }
 
-    if (UILayout_loadLayout(&layout, "data/default_layout.json"))
+       if (UILayout_loadLayout(&layout, "data/default_layout.json"))
         setLayout(&layout);
+     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,14 +105,19 @@ void ProDBG_create(void* window, int width, int height)
     //Rect settingsRect;
 
     context->session = Session_create();
+    context->time = bx::getHPCounter();
 
-	/*
-    if (RMT_ERROR_NONE != rmt_CreateGlobalInstance(&s_remotery)) 
-    {
-    	log_error("Unable to setup Remotery");
+#if PRODBG_USING_DOCKING
+    Session_createDockingGrid(context->session, width, height);
+#endif
+
+    /*
+       if (RMT_ERROR_NONE != rmt_CreateGlobalInstance(&s_remotery))
+       {
+        log_error("Unable to setup Remotery");
         return;
-    }
-    */
+       }
+     */
 
     //Settings_getWindowRect(&settingsRect);
     //width = settingsRect.width;
@@ -145,23 +156,32 @@ void ProDBG_update()
 {
     Context* context = &s_context;
 
-	rmt_ScopedCPUSample(ProDBG_update);
+    rmt_ScopedCPUSample(ProDBG_update);
 
     bgfx::setViewRect(0, 0, 0, (uint16_t)context->width, (uint16_t)context->height);
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR_BIT | BGFX_CLEAR_DEPTH_BIT, 0x101010ff, 1.0f, 0);
     bgfx::submit(0);
 
-	{
-		rmt_ScopedCPUSample(IMGUI_preUpdate);
-    	IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod);
-	}
+    uint64_t currentTime = bx::getHPCounter();
+    uint64_t deltaTick = currentTime - context->time;
+    context->time = currentTime;
+
+    float deltaTimeMs = (float)(((double)deltaTick) / (double)bx::getHPFrequency());
+
+
+    {
+        rmt_ScopedCPUSample(IMGUI_preUpdate);
+        IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod, deltaTimeMs);
+    }
 
     // TODO: Support multiple sessions
 
-	{
-		rmt_ScopedCPUSample(Session_update);
-    	Session_update(context->session);
-	}
+    {
+        rmt_ScopedCPUSample(Session_update);
+        Session_update(context->session);
+    }
+
+    //renderTest();
 
     /*
 
@@ -177,15 +197,15 @@ void ProDBG_update()
        ImGui::End();
      */
 
-	{
-		rmt_ScopedCPUSample(IMGUI_postUpdate);
-    	IMGUI_postUpdate();
-	}
+    {
+        rmt_ScopedCPUSample(IMGUI_postUpdate);
+        IMGUI_postUpdate();
+    }
 
-	{
-		rmt_ScopedCPUSample(bgfx_frame);
-    	bgfx::frame();
-	}
+    {
+        rmt_ScopedCPUSample(bgfx_frame);
+        bgfx::frame();
+    }
 }
 
 // Temprory test for monkey
@@ -199,8 +219,13 @@ void ProDBG_setWindowSize(int width, int height)
     context->width = width;
     context->height = height;
 
-    //bgfx::reset(width, height);
-    //IMGUI_setup(width, height);
+    bgfx::reset(width, height);
+    IMGUI_updateSize(width, height);
+
+#if PRODBG_USING_DOCKING
+    UIDock_updateSize(Session_getDockingGrid(context->session), width, height);
+#endif
+
     ProDBG_update();
 }
 
@@ -265,14 +290,53 @@ void ProDBG_event(int eventId)
 
     PluginData** pluginsData = PluginHandler_getPlugins(&count);
 
+    log_info("eventId 0x%x\n", eventId);
+
+#if PRODBG_USING_DOCKING
+    if (eventId & PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT)
+    {
+        UIDockingGrid* grid = Session_getDockingGrid(context->session);
+        UIDock* dockAtMouse = UIDock_getDockAt(grid, (int)context->mouseX, (int)context->mouseY);
+
+        eventId &= (PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT - 1);
+
+        ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[eventId]);
+        UIDock_splitHorizontal(Session_getDockingGrid(context->session), dockAtMouse, instance);
+
+        Session_addViewPlugin(context->session, instance);
+        return;
+    }
+
+    if (eventId & PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT)
+    {
+        UIDockingGrid* grid = Session_getDockingGrid(context->session);
+        UIDock* dockAtMouse = UIDock_getDockAt(grid, (int)context->mouseX, (int)context->mouseY);
+
+        eventId &= (PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT - 1);
+
+        ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[eventId]);
+        UIDock_splitVertical(Session_getDockingGrid(context->session), dockAtMouse, instance);
+
+        Session_addViewPlugin(context->session, instance);
+        return;
+    }
+
+#endif
+
     // TODO: This code really needs to be made more robust.
 
     if (eventId >= PRODBG_MENU_PLUGIN_START && eventId < PRODBG_MENU_PLUGIN_START + 9)
     {
         ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[eventId - PRODBG_MENU_PLUGIN_START]);
+
+        UIDockingGrid* grid = Session_getDockingGrid(context->session);
+        UIDock* dockAtMouse = UIDock_getDockAt(grid, 0, 0);
+        UIDock_splitVertical(Session_getDockingGrid(context->session), dockAtMouse, instance);
+
         Session_addViewPlugin(context->session, instance);
         return;
     }
+
 
     switch (eventId)
     {
@@ -335,11 +399,9 @@ void ProDBG_event(int eventId)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProDBG_scroll(float deltaX, float deltaY, int flags)
+void ProDBG_scroll(const PDMouseWheelEvent& wheelEvent)
 {
-    (void)deltaX;
-    (void)deltaY;
-    (void)flags;
+    IMGUI_scrollMouse(wheelEvent);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

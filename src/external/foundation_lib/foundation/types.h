@@ -19,6 +19,9 @@
 #  define ALIGNED_STRUCT( name, alignment ) struct name
 #endif
 
+#ifdef _WIN32
+#pragma warning(disable : 4200)
+#endif
 
 // PRIMITIVE TYPES
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "api/include/pd_ui.h"
+#include "core/math.h"
 
 struct PDReader;
 struct PDWriter;
@@ -22,6 +23,7 @@ struct ViewPluginInstance
 {
     PDUI ui;
     PDViewPlugin* plugin;
+    Rect rect;
     void* userData;
     int count;
     bool markDeleted;

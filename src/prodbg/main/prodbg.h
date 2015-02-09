@@ -17,7 +17,7 @@ void ProDBG_timedUpdate();
 void ProDBG_keyDown(int key, int modifier);
 void ProDBG_keyUp(int key, int modifier);
 void ProDBG_event(int eventId);
-void ProDBG_scroll(float deltaX, float deltaY, int flags);
+void ProDBG_scroll(const struct PDMouseWheelEvent& wheelEvent);
 void ProDBG_setMousePos(float x, float y);
 void ProDBG_setMouseState(int button, int state);
 

@@ -2,6 +2,7 @@
 #include "session_private.h"
 
 #include "api/plugin_instance.h"
+#include "api/include/pd_script.h"
 #include "api/src/remote/pd_readwrite_private.h"
 #include "api/src/remote/remote_connection.h"
 #include "core/alloc.h"
@@ -57,6 +58,19 @@ struct Session* Session_create()
 
     return s;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#if PRODBG_USING_DOCKING
+
+void Session_createDockingGrid(Session* session, int width, int height)
+{
+    Rect rect = {{{ 0, 0, width, height }}};
+
+    session->uiDockingGrid = UIDock_createGrid(&rect);
+}
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -226,6 +240,52 @@ static void toggleBreakpoint(Session* s, PDReader* reader)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void executeCommand(Session* s, PDReader* reader)
+{
+    (void)s;
+
+    const char* command;
+    PDRead_findString(reader, &command, "command", 0);
+    PDScriptState* scriptState;
+    PDScript_createState(&scriptState);
+    if (PDScript_loadString(scriptState, command))
+        goto cleanup;
+
+    /*PDScriptCallState callState;
+       callState.inputCount = 0;
+       callState.outputCount = 0;
+
+       if (PDScript_primeCall(scriptState, &callState))
+        goto cleanup;
+
+       int result = PDScript_executeCall(scriptState, &callState);
+       (void)result;*/
+
+    cleanup:
+    //free(callState.funcName);
+    PDScript_destroyState(&scriptState);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void updateScript(Session* s, PDReader* reader)
+{
+    uint32_t event;
+
+    while ((event = PDRead_getEvent(reader)) != 0)
+    {
+        switch (event)
+        {
+            case PDEventType_executeConsole:
+            {
+                executeCommand(s, reader);
+                break;
+            }
+        }
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -266,10 +326,17 @@ static void updateLocal(Session* s, PDAction action)
         PluginUIState state = PluginUI_updateInstance(p, s->reader, s->currentWriter);
 
         if (state == PluginUIState_CloseView)
+        {
+        #if PRODBG_USING_DOCKING
+            UIDock_deleteView(s->uiDockingGrid, p);
+        #endif
             p->markDeleted = true;
+        }
 
         PDBinaryReader_reset(s->reader);
     }
+
+    updateScript(s, s->reader);
 
     toggleBreakpoint(s, s->reader);
 }
@@ -341,7 +408,12 @@ static void updateRemote(Session* s, PDAction action)
         PluginUIState state = PluginUI_updateInstance(p, s->reader, s->currentWriter);
 
         if (state == PluginUIState_CloseView)
+        {
+        #if PRODBG_USING_DOCKING
+            UIDock_deleteView(s->uiDockingGrid, p);
+        #endif
             p->markDeleted = true;
+        }
 
         PDBinaryReader_reset(s->reader);
     }
@@ -601,6 +673,17 @@ void Session_stepOver(Session* s)
     else if (s->type == Session_Remote)
         Session_action(s, PDAction_stepOver);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#if PRODBG_USING_DOCKING
+
+struct UIDockingGrid* Session_getDockingGrid(struct Session* session)
+{
+    return session->uiDockingGrid;
+}
+
+#endif
 
 
 

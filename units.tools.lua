@@ -128,6 +128,8 @@ Program {
     Libs = { { "kernel32.lib", "d3dcompiler.lib", "dxguid.lib" ; Config = "win64-*-*" } },
 
     Frameworks = { "Cocoa"  },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Tools" } },
 }
 
 Default "bgfx_shaderc"
