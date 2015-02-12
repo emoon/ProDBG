@@ -361,9 +361,6 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
     uint32_t event = 0;
     (void)event;
 
-    oeuhsteoh
-    	stoehus
-
 	// testing
 	//oe oesuth
 	// dummy
