@@ -361,10 +361,6 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
     uint32_t event = 0;
     (void)event;
 
-    sbuseouo
-
-    // testing mail
-
     /*while ((event = PDRead_getEvent(inEvents)) != 0)
        {
         switch (event)
