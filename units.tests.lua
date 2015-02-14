@@ -32,7 +32,10 @@ local function Test(params)
 
 		Depends = params.Depends, 
 
-		Libs = { { "Ws2_32.lib", "shell32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } } },
+		Libs = {
+			{ "Ws2_32.lib", "shell32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } },
+			{ "X11", "GL" ; Config = { "linux-*-*" } },
+		},
 
 		Frameworks = { "Cocoa"  },
 

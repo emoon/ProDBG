@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <algorithm>
+#include <cstring>
 #include <map>
 #include <vector>
 #include <string>
