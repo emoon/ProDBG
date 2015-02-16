@@ -30,6 +30,7 @@ static ACCEL s_accelTable[2048];
 static int s_accelCount = 0;
 static HWND s_window;
 static bool s_active = false;
+static HMENU s_popupMenu = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -268,6 +269,19 @@ static void buildSubMenu(HMENU parentMenu, MenuDescriptor menuDesc[], wchar_t* n
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void buildPopupSubmenu(HMENU parentMenu, wchar_t* inName, MenuDescriptor* pluginsMenu, int count, uint32_t startId, uint32_t idMask)
+{
+    for (int i = 0; i < count; ++i)
+    {
+        pluginsMenu[i].key = 0;
+        pluginsMenu[i].id = (uint32_t)i | idMask;
+    }
+
+    buildSubMenu(parentMenu, pluginsMenu, inName);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Window_buildMenu()
 {
     HMENU mainMenu = CreateMenu();
@@ -277,17 +291,10 @@ void Window_buildMenu()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TODO: Remove platform duplication
 
-int Window_buildPluginMenu(PluginData** plugins, int count)
+static MenuDescriptor* buildPluginsMenu(PluginData** plugins, int count)
 {
-    HMENU mainMenu = GetMenu(s_window);
-
-    // TODO: Right now we only support up to 1 - 9 for keyboard shortcuts of the plugins but should be good
-    // enough for now.
-
-    if (count >= 10)
-        count = 9;
-
     MenuDescriptor* menu = (MenuDescriptor*)alloc_zero(sizeof(MenuDescriptor) * (count + 1)); // + 1 as array needs to end with zeros
 
     for (int i = 0; i < count; ++i)
@@ -308,11 +315,46 @@ int Window_buildPluginMenu(PluginData** plugins, int count)
         entry->winMod = PRODBG_KEY_CTRL;
     }
 
+    return menu;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void buildPopupMenu(MenuDescriptor* pluginsMenu, int count)
+{
+    // TODO: Support rebuild of this menu
+
+    if (s_popupMenu)
+        return;
+
+	s_popupMenu = CreatePopupMenu();
+
+    buildPopupSubmenu(s_popupMenu, L"Split Horizontally", pluginsMenu, count,
+                      PRODBG_MENU_POPUP_SPLIT_HORZ, PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT);
+
+    buildPopupSubmenu(s_popupMenu, L"Split Vertically", pluginsMenu, count,
+                      PRODBG_MENU_POPUP_SPLIT_VERT, PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int Window_buildPluginMenu(PluginData** plugins, int count)
+{
+    HMENU mainMenu = GetMenu(s_window);
+
+    // TODO: Right now we only support up to 1 - 9 for keyboard shortcuts of the plugins but should be good
+    // enough for now.
+
+    if (count >= 10)
+        count = 9;
+
+	MenuDescriptor* menu = buildPluginsMenu(plugins, count);
+
     buildSubMenu(mainMenu, menu, L"&Plugins");
+	buildPopupMenu(menu, count);
 
     return PRODBG_MENU_PLUGIN_START;
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -790,6 +832,21 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
             break;
         }
 
+		case WM_RBUTTONDOWN:
+		{
+		   if (s_popupMenu)
+		   {
+			   int xPos = GET_X_LPARAM(lParam);
+			   int yPos = GET_Y_LPARAM(lParam);
+
+			   ProDBG_setMousePos((float)xPos, (float)yPos);
+
+			   TrackPopupMenuEx(s_popupMenu, TPM_TOPALIGN | TPM_LEFTALIGN, xPos, yPos, window, NULL);
+		   }
+
+		   break;
+		}
+
         case WM_MOUSEMOVE:
         {
             const short pos_x = GET_X_LPARAM(lParam);
@@ -808,10 +865,10 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 
         case WM_COMMAND:
         {
-            int loword = LOWORD(wParam);
+            //int loword = LOWORD(wParam);
 
-            if ((loword >= PRODBG_MENU_START) && (loword < PRODBG_MENU_END))
-                ProDBG_event(loword);
+            //if ((loword >= PRODBG_MENU_START) && (loword < PRODBG_MENU_END))
+            ProDBG_event((int)wParam);
 
             break;
         }
