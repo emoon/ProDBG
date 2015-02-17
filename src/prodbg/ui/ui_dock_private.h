@@ -5,7 +5,7 @@
 #include <vector> // TODO: replace with custom arrays
 
 const int g_sizerSize = 4; // TODO: Move to settings
-const int g_sizerSnapSize = 4; // TODO: Move to settings
+const int g_sizerSnapSize = 16; // TODO: Move to settings
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -84,6 +84,7 @@ struct UIDock
 enum UIDockState
 {
 	UIDockState_None,
+	UIDockState_HoverSizer,
 	UIDockState_DragSizer,
 	UIDockState_BeginDragView,
 	UIDockState_DraggingView,
@@ -111,7 +112,10 @@ struct UIDockingGrid
     UIDockSizer rightSizer;
     UIDockSizer leftSizer;
     FloatRect rect;
+
     UIDockState state;
+    Vec2 prevDragPos;
+    std::vector<UIDockSizer*> hoverSizers;
 };
 
 

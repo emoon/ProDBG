@@ -1,6 +1,7 @@
 #include "ui_dock.h"
 #include "core/alloc.h"
 #include "core/math.h"
+#include "input/input_state.h"
 #include "ui_dock_private.h"
 #include "ui_render.h"
 #include "plugin.h"
@@ -25,6 +26,8 @@ UIDockingGrid* UIDock_createGrid(FloatRect* rect)
     grid->bottomSizer.dir = UIDockSizerDir_Horz;
     grid->leftSizer.dir = UIDockSizerDir_Vert;
     grid->rightSizer.dir = UIDockSizerDir_Vert;
+
+    grid->state = UIDockState_None;
 
     return grid;
 }
@@ -231,7 +234,7 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static inline UIDockSizerDir isHoveringSizer(UIDockSizer* sizer, Vec2* size)
+static inline UIDockSizerDir isHoveringSizer(UIDockSizer* sizer, const Vec2* size)
 {
     UIDockSizerDir dir = sizer->dir;
 
@@ -303,7 +306,7 @@ void UIDock_splitVertical(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance*
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-UIDockSizerDir UIDock_isHoveringSizer(UIDockingGrid* grid, Vec2* pos)
+UIDockSizerDir UIDock_isHoveringSizer(UIDockingGrid* grid, const Vec2* pos)
 {
     for (UIDockSizer* sizer : grid->sizers)
     {
@@ -1004,6 +1007,81 @@ void UIDock_updateSize(UIDockingGrid* grid, int width, int height)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void updateDefault(UIDockingGrid* grid, const InputState* inputState)
+{
+	// Check if we are hovering any sizer and we haven't pressed LMB
+
+	if ((UIDock_isHoveringSizer(grid, &inputState->mousePos) != UIDockSizerDir_None) &&
+		!Input_isLmbDown(inputState))
+	{
+		grid->state = UIDockState_HoverSizer;  
+		return;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void updateHoverSizer(UIDockingGrid* grid, const InputState* inputState)
+{
+	Vec2 pos = inputState->mousePos;
+
+	// Find the sizers that are being hovered 
+
+	grid->hoverSizers.clear();
+
+	for (UIDockSizer* sizer : grid->sizers)
+	{
+		UIDockSizerDir dir = isHoveringSizer(sizer, &pos);
+
+		if (dir != UIDockSizerDir_None)
+			grid->hoverSizers.push_back(sizer);
+	}
+
+	size_t hoverCount = grid->hoverSizers.size();
+
+	// If left mouse button is down and we have some sizers we switch to 
+	// drag sizer mode otherwise we go back to default
+
+	if (Input_isLmbDown(inputState) && hoverCount > 0)
+	{
+		grid->state = UIDockState_DragSizer;
+		grid->prevDragPos = inputState->mousePos;
+	}
+	else
+	{
+		grid->state = UIDockState_None;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void updateDragSizer(UIDockingGrid* grid, const InputState* inputState)
+{
+	Vec2 deltaDrag;
+
+	// if mouse button is released we go back to default state
+
+	if (!Input_isLmbDown(inputState))
+	{
+		grid->state = UIDockState_None;
+		grid->hoverSizers.clear();
+
+		return;
+	}
+
+	// Caclulate delta drag
+
+	deltaDrag.x = inputState->mousePos.x - grid->prevDragPos.x;
+	deltaDrag.y = inputState->mousePos.y - grid->prevDragPos.y;
+
+	grid->prevDragPos = inputState->mousePos;
+
+	for (UIDockSizer* sizer : grid->hoverSizers)
+		UIDock_dragSizer(grid, sizer, &deltaDrag);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void UIDock_update(UIDockingGrid* grid, const InputState* inputState)
 {
 	(void)inputState;
@@ -1012,11 +1090,19 @@ void UIDock_update(UIDockingGrid* grid, const InputState* inputState)
 	{
 		case UIDockState_None:
 		{
+			updateDefault(grid, inputState);
+			break;
+		}
+
+		case UIDockState_HoverSizer:
+		{
+			updateHoverSizer(grid, inputState);
 			break;
 		}
 
 		case UIDockState_DragSizer:
 		{
+			updateDragSizer(grid, inputState);
 			break;
 		}
 
