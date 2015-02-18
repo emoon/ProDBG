@@ -995,8 +995,8 @@ void UIDock_updateSize(UIDockingGrid* grid, int width, int height)
 	deltaMove.x = (float)(width - grid->rect.width);
 	deltaMove.y = (float)(height - grid->rect.height);
 
-	grid->rect.width = width;
-	grid->rect.height = height;
+	grid->rect.width = (float)width;
+	grid->rect.height = (float)height;
 
 	UIDock_dragSizer(grid, &grid->rightSizer, &deltaMove);
 	UIDock_dragSizer(grid, &grid->bottomSizer, &deltaMove);

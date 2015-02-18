@@ -587,10 +587,7 @@ void PluginUI_getWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 
 void PluginUI_setWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 {
-    instance->rect.x = (int)rect->x;
-    instance->rect.y = (int)rect->y;
-    instance->rect.width = (int)rect->width;
-    instance->rect.height = (int)rect->height;
+    instance->rect = *rect;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
