@@ -14,7 +14,7 @@ struct ViewPluginInstance;
 struct UIDockSizer;
 struct UIDockingGrid;
 struct UIDock;
-struct Rect;
+struct FloatRect;
 struct Vec2;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -28,10 +28,10 @@ enum UIDockSizerDir
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-UIDockingGrid* UIDock_createGrid(Rect* rect);
+UIDockingGrid* UIDock_createGrid(FloatRect* rect);
 
 UIDock* UIDock_addView(UIDockingGrid* grid, ViewPluginInstance* view);
-void UIDock_deleteView(UIDockingGrid* grid, ViewPluginInstance* view);
+bool UIDock_deleteView(UIDockingGrid* grid, ViewPluginInstance* view);
 
 void UIDock_dockTop(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* view);
 void UIDock_dockBottom(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* view);
@@ -54,6 +54,7 @@ UIDock* UIDock_getDockAt(UIDockingGrid* grid, int x, int y);
 
 void UIDock_splitHorizontal(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* newInstance);
 void UIDock_splitVertical(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* newInstance);
+void UIDock_renderSizers(UIDockingGrid* grid);
 
 //void UIDock_dockLeft(UIDock* dock, ViewPluginInstance* instance);
 //UIDockStatus UIDock_dockRight(UIDock* dock, ViewPluginInstance* instance);

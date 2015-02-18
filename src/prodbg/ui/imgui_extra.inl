@@ -102,11 +102,6 @@ bool ScInputText(const char* label, char* buf, size_t buf_size, float xSize, flo
     const ImGuiAabb frame_bb(window->DC.CursorPos, window->DC.CursorPos + window->Size); 
     const ImGuiAabb bb(frame_bb.Min, frame_bb.Max + ImVec2(text_size.x > 0.0f ? (style.ItemInnerSpacing.x + text_size.x) : 0.0f, 0.0f));
 
-    printf("frame bb %f %f %f %f\n", 
-    		frame_bb.Min.x, 
-    		frame_bb.Min.y, 
-    		frame_bb.Max.x, 
-    		frame_bb.Max.y);
     ItemSize(bb);
 
     if (!ItemAdd(frame_bb, &id))

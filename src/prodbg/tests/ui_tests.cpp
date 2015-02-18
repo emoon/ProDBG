@@ -19,10 +19,10 @@
 
 static LayoutItem s_layoutItems[] =
 {
-    { "disassembly.so", "disassembly0", { 0.1f, 0.1f, 0.2f, 0.2f } },
-    { "disassembly.so", "disassembly1", { 0.2f, 0.2f, 0.3f, 0.4f } },
-    { "locals.so", "locals", { 0.4f, 0.4f, 0.5f, 0.5f } },
-    { "registers.so", "registers", { 0.7f, 0.7f, 0.1f, 0.1f } },
+    { "disassembly.so", "disassembly0", {{{ 0.1f, 0.1f, 0.2f, 0.2f }}} },
+    { "disassembly.so", "disassembly1", {{{ 0.2f, 0.2f, 0.3f, 0.4f }}} },
+    { "locals.so", "locals", {{{ 0.4f, 0.4f, 0.5f, 0.5f }}} },
+    { "registers.so", "registers", {{{ 0.7f, 0.7f, 0.1f, 0.1f }}} },
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -156,8 +156,8 @@ void imguiSetup(int width, int height)
     io.RenderDrawListsFn = imguiDummyRender;
 }
 
-static FloatRect s_t0 = { 80.0f, 80.0f, 120.0f, 120.0f };
-static FloatRect s_t1 = { 180.0f, 120.0f, 220.0f, 240.0f };
+static FloatRect s_t0 = {{{ 80.0f, 80.0f, 120.0f, 120.0f }}};
+static FloatRect s_t1 = {{{ 180.0f, 120.0f, 220.0f, 240.0f }}};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

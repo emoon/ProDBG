@@ -168,7 +168,9 @@ void ProDBG_update()
 
     float deltaTimeMs = (float)(((double)deltaTick) / (double)bx::getHPFrequency());
 
-
+#if PRODBG_USING_DOCKING
+	UIDock_renderSizers(Session_getDockingGrid(context->session));
+#endif
     {
         rmt_ScopedCPUSample(IMGUI_preUpdate);
         IMGUI_preUpdate(context->mouseX, context->mouseY, context->mouseLmb, context->keyDown, context->keyMod, deltaTimeMs);
@@ -202,6 +204,7 @@ void ProDBG_update()
         IMGUI_postUpdate();
     }
 
+
     {
         rmt_ScopedCPUSample(bgfx_frame);
         bgfx::frame();
@@ -223,7 +226,7 @@ void ProDBG_setWindowSize(int width, int height)
     IMGUI_updateSize(width, height);
 
 #if PRODBG_USING_DOCKING
-    UIDock_updateSize(Session_getDockingGrid(context->session), width, height);
+	UIDock_updateSize(Session_getDockingGrid(context->session), width, height);
 #endif
 
     ProDBG_update();
