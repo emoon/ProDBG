@@ -10,6 +10,7 @@
 #include "ui/ui_layout.h"
 #include "ui/menu.h"
 #include "ui/dialogs.h"
+#include "ui/cursor.h"
 #include "ui/ui_render.h"
 
 #include <bgfx.h>
@@ -146,6 +147,8 @@ void ProDBG_create(void* window, int width, int height)
     context->height = height;
 
     IMGUI_setup(width, height);
+
+	Cursor_init();
 
     loadLayout();
 }
