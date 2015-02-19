@@ -836,12 +836,10 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 		{
 		   if (s_popupMenu)
 		   {
-			   int xPos = GET_X_LPARAM(lParam);
-			   int yPos = GET_Y_LPARAM(lParam);
+			   POINT p;
+			   GetCursorPos(&p);
 
-			   ProDBG_setMousePos((float)xPos, (float)yPos);
-
-			   TrackPopupMenuEx(s_popupMenu, TPM_TOPALIGN | TPM_LEFTALIGN, xPos, yPos, window, NULL);
+			   TrackPopupMenuEx(s_popupMenu, TPM_TOPALIGN | TPM_LEFTALIGN, p.x, p.y, window, NULL);
 		   }
 
 		   break;
