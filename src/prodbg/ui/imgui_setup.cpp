@@ -8,6 +8,7 @@
 #include "core/file.h"
 #include "core/log.h"
 #include "ui_render.h"
+#include "input/input_state.h"
 #include <stdio.h>
 #include <pd_keys.h>
 #include <bgfx.h>
@@ -143,15 +144,21 @@ void IMGUI_updateSize(int width, int height)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-void IMGUI_preUpdate(float x, float y, int mouseLmb, int keyDown, int keyMod, float deltaTime)
+void IMGUI_setInputState(const InputState* inputState)
 {
-    (void)keyDown;
-    (void)keyMod;
     ImGuiIO& io = ImGui::GetIO();
-    io.DeltaTime = deltaTime;
-    io.MousePos = ImVec2(x, y);
-    io.MouseDown[0] = !!mouseLmb;
+    io.MousePos = ImVec2(inputState->mousePos.x, inputState->mousePos.y);
+    io.MouseDown[0] = inputState->mouseDown[MouseButton_Left];
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void IMGUI_preUpdate(const InputState* inputState, float deltaTime)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    io.DeltaTime = deltaTime; 
+    io.MousePos = ImVec2(inputState->mousePos.x, inputState->mousePos.y);
+    io.MouseDown[0] = inputState->mouseDown[MouseButton_Left];
 
     ImGui::NewFrame();
 }
@@ -167,16 +174,11 @@ void IMGUI_setMouse(float x, float y, int mouseLmb)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 void IMGUI_scrollMouse(const PDMouseWheelEvent& wheelEvent)
 {
-    ImGuiIO& io = ImGui::GetIO();
-    (void)wheelEvent;
-    (void)io;
-    //const float unitScale = 1.0f; // 1 unit = scrolling about 5 lines of text
-    //io.MouseWheel = deltaY; TODO: Might not be scaled right for ImGui
-
-    //ScEditor_scrollMouse(s_editor, wheelEvent);
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -223,6 +225,5 @@ void IMGUI_postUpdate()
 {
     ImGui::Render();
 }
-
 
 

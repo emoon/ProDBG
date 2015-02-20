@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/math.h"
+#include "api/include/pd_keys.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -15,6 +16,8 @@ enum MouseButton
 
 struct InputState
 {
+	PDMouseWheelEvent scrollEvent; // scrollEvent / gesture
+
 	Vec2 mousePos;// position within the window
 	Vec2 mouseScreenPos; // position on the screen
 

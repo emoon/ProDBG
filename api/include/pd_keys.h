@@ -19,6 +19,9 @@
  *    "BACKSPACE", etc.)
  */
 
+#ifndef PD_KEYS_H_
+#define PD_KEYS_H_
+
 #define PDKEY_UNKNOWN            0
 #define PDKEY_SPACE              32
 #define PDKEY_APOSTROPHE         39
@@ -151,6 +154,9 @@
 #define PDWHEEL_AXIS_VERTICAL    0
 #define PDWHEEL_AXIS_HORIZONTAL  1
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TODO: Refactor this?
+
 struct PDMouseWheelEvent
 {
     float deltaX;
@@ -163,3 +169,4 @@ struct PDMouseWheelEvent
     int columnsPerRotation;
 };
 
+#endif
