@@ -41,6 +41,7 @@ struct UIDockSizer
     std::vector<UIDock*> cons;  // connected docks
     UIDockSizerDir dir;
     FloatRect rect;
+    int id;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,7 +49,7 @@ struct UIDockSizer
 struct UIDock
 {
     inline UIDock(ViewPluginInstance* inView) :
-        topSizer(0), bottomSizer(0), rightSizer(0), leftSizer(0), view(inView), type(UIDockType_Docked)
+        topSizer(0), bottomSizer(0), rightSizer(0), leftSizer(0), view(inView), type(UIDockType_Docked), id(-1)
     {
     }
 
@@ -77,6 +78,7 @@ struct UIDock
     ViewPluginInstance* view;
 
     UIDockType type;
+    int id;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

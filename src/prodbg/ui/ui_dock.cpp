@@ -17,7 +17,9 @@ UIDockingGrid* UIDock_createGrid(FloatRect* rect)
     UIDockingGrid* grid = new UIDockingGrid;
     grid->rect = *rect;
 
-    grid->topSizer.rect = {{{ rect->x, rect->y, rect->width, 0 }}};
+    grid->topSizer.rect = {{{ rect->x, rect->y, rect->width, 0.0f }}};
+    grid->topSizer.rect = {{{ rect->x, rect->y, rect->width, 0.0f }}};
+    grid->topSizer.rect = {{{ rect->x, rect->y, rect->width, 0.0f }}};
     grid->bottomSizer.rect = {{{ rect->x, rect->height, rect->width, 0 }}};
     grid->leftSizer.rect = {{{ rect->x, rect->y, 0, rect->height }}};
     grid->rightSizer.rect = {{{ rect->width, rect->y, 0, rect->height }}};

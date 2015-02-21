@@ -7,7 +7,7 @@
 #include "settings.h"
 //#include <imgui.h>
 #include "ui/imgui_setup.h"
-#include "ui/ui_layout.h"
+#include "ui/ui_dock_layout.h"
 #include "ui/menu.h"
 #include "ui/dialogs.h"
 #include "ui/cursor.h"

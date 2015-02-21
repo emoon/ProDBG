@@ -1,5 +1,9 @@
 #include "ui_dock_layout.h"
+#include "ui_dock.h"
+#include "ui_dock_private.h"
+#include "api/include/pd_view.h"
 #include "core/log.h"
+#include "core/plugin_handler.h"
 #include <jansson.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -235,6 +239,126 @@ bool UILayout_loadLayout(UILayout* layout, const char* filename)
             log_error("JSON: Unable to load layout item : height\n");
             return false;
         }
+    }
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void assignIds(UIDockingGrid* grid)
+{
+	int index = 4;
+
+	grid->topSizer.id = 0;
+	grid->bottomSizer.id = 1;
+	grid->rightSizer.id = 2; 
+	grid->leftSizer.id = 3;
+
+	for (UIDockSizer* sizer : grid->sizers)
+		sizer->id = index++;
+
+	index = 0;
+
+	for (UIDock* dock : grid->docks)
+		dock->id = index++;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void writeSizer(UIDockSizer* sizer, json_t* root, float xScale, float yScale)
+{
+	json_t* sizerItem = json_pack("{s:i, s:i, s:f, s:f, s:f, s:f}",
+									"dir", (int)sizer->dir,
+									"id", (int)sizer->id,
+									"x",  sizer->rect.x * xScale,
+									"y", sizer->rect.y * yScale,
+									"width", sizer->rect.width * xScale,
+									"height", sizer->rect.height * yScale);
+
+	json_t* consArray = json_array();
+
+	for (UIDock* dock : sizer->cons)
+	{
+		json_t* consItem = json_pack("{s:i}", "id", dock->id);
+		json_array_append_new(consArray, consItem );
+	}
+
+	json_object_set_new(sizerItem, "cons", consArray );
+
+	json_array_append_new(root, sizerItem);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void writeSizers(UIDockingGrid* grid, json_t* root, float xScale, float yScale)
+{
+    json_t* sizersArray = json_array();
+
+    for (UIDockSizer* sizer : grid->sizers)
+		writeSizer(sizer, sizersArray, xScale, yScale);
+
+    for (size_t i = 0; i < UIDock::Sizers_Count; ++i)
+    	writeSizer(grid->sizers[i], sizersArray, xScale, yScale);
+
+    json_object_set_new(root, "sizers", sizersArray);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void writeDocks(UIDockingGrid* grid, json_t* root, float xScale, float yScale)
+{
+    json_t* docksArray = json_array();
+
+    for (UIDock* dock : grid->docks)
+	{
+		const char* pluginName = "";
+		const char* filename = "";
+
+		if (dock->view->plugin)
+		{
+        	PluginData* pluginData = PluginHandler_getPluginData(dock->view->plugin);
+
+			pluginName = dock->view->plugin->name;
+			filename = pluginData->filename;
+		}
+
+        json_t* dockItem = json_pack("{s:s, s:s, s:i, s:i, s:i, s:i, s:f, s:f, s:f, s:f}",
+                                       "plugin_name", pluginName, 
+                                       "plugin_file", filename, 
+                                       "s0", dock->sizers[0]->id,
+                                       "s1", dock->sizers[1]->id,
+                                       "s2", dock->sizers[2]->id,
+                                       "s3", dock->sizers[3]->id,
+                                       "x",  dock->view->rect.x * xScale,
+                                       "y", dock->view->rect.y * yScale,
+                                       "width", dock->view->rect.width * xScale,
+                                       "height", dock->view->rect.height * yScale);
+        
+        json_array_append_new(docksArray, dockItem);
+	}
+
+    json_object_set_new(root, "docks", docksArray);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool UIDock_saveLayout(UIDockingGrid* grid, const char* filename, float xScale, float yScale)
+{
+	xScale = 1.0f / xScale;
+	yScale = 1.0f / yScale;
+
+	assignIds(grid);
+
+    json_t* root = json_object();
+
+	writeSizers(grid, root, xScale, yScale);
+	writeDocks(grid, root, xScale, yScale);
+
+    if (json_dump_file(root, filename, JSON_INDENT(4)) != 0)
+    {
+        log_error("JSON: Unable to open %s for write\n", filename);
+        return false;
     }
 
     return true;

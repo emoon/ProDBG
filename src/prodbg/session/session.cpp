@@ -10,7 +10,7 @@
 #include "core/math.h"
 #include "core/plugin_handler.h"
 #include "ui/plugin.h"
-#include "ui/ui_layout.h"
+#include "ui/ui_dock_layout.h"
 
 #include <stdlib.h>
 #include <stb.h>
