@@ -914,7 +914,7 @@ static bool checkXCollusion(UIDockingGrid* grid, UIDockSizer* sizer, int move)
 			if (newSizeX >= x0)
 			{
 				int y = (int)gridSizer->rect.y;
-				if (sizery0 >= y < sizery1)
+				if (sizery0 >= y && y < sizery1)
 					return true;
 			}
 		}
@@ -923,7 +923,7 @@ static bool checkXCollusion(UIDockingGrid* grid, UIDockSizer* sizer, int move)
 			if (newSizeX <= x1)
 			{
 				int y = (int)gridSizer->rect.y;
-				if (sizery0 >= y < sizery1)
+				if (sizery0 >= y && y < sizery1)
 					return true;
 			}
 		}
@@ -960,7 +960,7 @@ static bool checkYCollusion(UIDockingGrid* grid, UIDockSizer* sizer, int move)
 			if (newSizeY >= y0)
 			{
 				int x = (int)gridSizer->rect.x;
-				if (sizerx0 >= x < sizerx1)
+				if (sizerx0 >= x && x < sizerx1)
 					return true;
 			}
 		}
@@ -971,7 +971,7 @@ static bool checkYCollusion(UIDockingGrid* grid, UIDockSizer* sizer, int move)
 			if (newSizeY <= y1)
 			{
 				int x = (int)gridSizer->rect.x;
-				if (sizerx0 >= x < sizerx1)
+				if (sizerx0 >= x && x < sizerx1)
 					return true;
 			}
 		}
