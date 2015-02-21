@@ -890,6 +890,98 @@ static bool deleteDock(UIDockingGrid* grid, UIDock* dock)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static bool checkXCollusion(UIDockingGrid* grid, UIDockSizer* sizer, int move)
+{
+	const int sizerX = (int)sizer->rect.x;
+	int newSizeX = sizerX + move;
+
+	int sizery0 = (int)sizer->rect.y;
+	int sizery1 = sizery0 + (int)sizer->rect.height;
+
+	for (UIDockSizer* gridSizer : grid->sizers)
+	{
+		if (gridSizer == sizer)
+			continue;
+
+		if (gridSizer->dir != UIDockSizerDir_Vert)
+			continue;
+
+		const int x0 = (int)(gridSizer->rect.x - g_sizerSnapSize * 4); 
+		const int x1 = (int)(gridSizer->rect.x + g_sizerSnapSize * 4); 
+
+		if (sizerX < x0)
+		{
+			if (newSizeX >= x0)
+			{
+				int y = (int)gridSizer->rect.y;
+				if (sizery0 >= y < sizery1)
+					return true;
+			}
+		}
+		else if (sizerX > x1)
+		{
+			if (newSizeX <= x1)
+			{
+				int y = (int)gridSizer->rect.y;
+				if (sizery0 >= y < sizery1)
+					return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static bool checkYCollusion(UIDockingGrid* grid, UIDockSizer* sizer, int move)
+{
+	const int sizerY = (int)sizer->rect.y;
+	int newSizeY = sizerY + move;
+
+	int sizerx0 = (int)sizer->rect.x;
+	int sizerx1 = sizerx0 + (int)sizer->rect.width;
+
+	for (UIDockSizer* gridSizer : grid->sizers)
+	{
+		if (gridSizer == sizer)
+			continue;
+
+		if (gridSizer->dir != UIDockSizerDir_Horz)
+			continue;
+
+		const int y0 = (int)(gridSizer->rect.y - g_sizerSnapSize * 4); 
+		const int y1 = (int)(gridSizer->rect.y + g_sizerSnapSize * 4); 
+
+		if (sizerY < y0)
+		{
+			// on the leftSize
+
+			if (newSizeY >= y0)
+			{
+				int x = (int)gridSizer->rect.x;
+				if (sizerx0 >= x < sizerx1)
+					return true;
+			}
+		}
+		else if (sizerY > y1)
+		{
+			// on the right size
+
+			if (newSizeY <= y1)
+			{
+				int x = (int)gridSizer->rect.x;
+				if (sizerx0 >= x < sizerx1)
+					return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
 {
     UIDockSizer* sizer = (UIDockSizer*)handle;
@@ -913,7 +1005,8 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
 
         const int sizerX = (int)sizer->rect.x;
 
-        // TODO: Add limits of the resizing
+        if (checkXCollusion(grid, sizer, move))
+        	move = 0;
 
         for (UIDock* dock : leftDocks)
         {
@@ -972,6 +1065,9 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
         }
 
         const int sizerY = (int)sizer->rect.y;
+
+        if (checkYCollusion(grid, sizer, move))
+        	move = 0;
 
         // TODO: Add limits of the resizing
 

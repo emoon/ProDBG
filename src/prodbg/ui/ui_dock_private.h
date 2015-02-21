@@ -5,7 +5,7 @@
 #include <vector> // TODO: replace with custom arrays
 
 const int g_sizerSize = 4; // TODO: Move to settings
-const int g_sizerSnapSize = 16; // TODO: Move to settings
+const int g_sizerSnapSize = 8; // TODO: Move to settings
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
