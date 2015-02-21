@@ -152,6 +152,44 @@ void ProDBG_create(void* window, int width, int height)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void updateDock(Context* context)
+{
+	UIDockingGrid* grid = Session_getDockingGrid(context->session);
+	const InputState* inputState = &context->inputState;
+
+	switch (UIDock_getSizingState(grid))
+	{
+		case UIDockSizerDir_None: 
+		{
+			Cunsor_setType(CursorType_Default);
+			break;
+		}
+
+		case UIDockSizerDir_Horz: 
+		{
+			Cunsor_setType(CursorType_SizeHorizontal);
+			break;
+		}
+
+		case UIDockSizerDir_Vert:
+		{
+			Cunsor_setType(CursorType_SizeVertical);
+			break;
+		}
+
+		case UIDockSizerDir_Both:
+		{
+			Cunsor_setType(CursorType_SizeAll);
+			break;
+		}
+	}
+
+	UIDock_update(grid, inputState); 
+	UIDock_renderSizers(grid);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ProDBG_update()
 {
     Context* context = &s_context;
@@ -169,7 +207,7 @@ void ProDBG_update()
     float deltaTimeMs = (float)(((double)deltaTick) / (double)bx::getHPFrequency());
 
 #if PRODBG_USING_DOCKING
-	UIDock_renderSizers(Session_getDockingGrid(context->session));
+	updateDock(context);
 #endif
     {
         rmt_ScopedCPUSample(IMGUI_preUpdate);

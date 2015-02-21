@@ -1047,7 +1047,7 @@ static void updateHoverSizer(UIDockingGrid* grid, const InputState* inputState)
 		grid->state = UIDockState_DragSizer;
 		grid->prevDragPos = inputState->mousePos;
 	}
-	else
+	else if (hoverCount == 0)
 	{
 		grid->state = UIDockState_None;
 	}
@@ -1122,6 +1122,21 @@ void UIDock_update(UIDockingGrid* grid, const InputState* inputState)
 			break;
 		}
 	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+UIDockSizerDir UIDock_getSizingState(UIDockingGrid* grid)
+{
+	int dirMask = 0;
+
+	for (UIDockSizer* sizer : grid->hoverSizers)
+	{
+		UIDockSizerDir dir = sizer->dir; 
+		dirMask |= (int)dir;
+	}
+
+	return (UIDockSizerDir)dirMask;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

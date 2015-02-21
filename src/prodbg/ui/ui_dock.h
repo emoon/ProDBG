@@ -22,9 +22,10 @@ struct InputState;
 
 enum UIDockSizerDir
 {
-    UIDockSizerDir_None,
-    UIDockSizerDir_Horz,
-    UIDockSizerDir_Vert,
+    UIDockSizerDir_None = 0,
+    UIDockSizerDir_Horz = 1 << 0,
+    UIDockSizerDir_Vert = 1 << 1,
+    UIDockSizerDir_Both = UIDockSizerDir_Horz | UIDockSizerDir_Vert,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,6 +49,9 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove);
 
 void UIDock_update(UIDockingGrid* grid, const InputState* state);
 void UIDock_updateSize(UIDockingGrid* grid, int width, int height);
+
+UIDockSizerDir UIDock_getSizingState(UIDockingGrid* grid);
+
 
 UIDock* UIDock_getDockAt(UIDockingGrid* grid, int x, int y);
 
