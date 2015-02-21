@@ -911,18 +911,50 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
                 leftDocks.push_back(dock);
         }
 
-        // TODO: Add limits of the resizing
+        const int sizerX = (int)sizer->rect.x;
 
-        sizer->rect.x += move;
+        // TODO: Add limits of the resizing
 
         for (UIDock* dock : leftDocks)
         {
+        	const int topSizerX = (int)dock->topSizer->rect.x; 
+        	const int bottomSizerX = (int)dock->bottomSizer->rect.x; 
+
+        	// if these are at the same location we need to resize the sizer laso
+
+        	if (topSizerX == sizerX)
+			{
+				dock->topSizer->rect.x += move;
+				dock->topSizer->rect.width -= move;
+			}
+
+        	if (bottomSizerX == sizerX)
+			{
+				dock->bottomSizer->rect.x += move;
+				dock->bottomSizer->rect.width -= move;
+			}
+
             dock->view->rect.x += move;
             dock->view->rect.width -= move;
         }
 
         for (UIDock* dock : rightDocks)
+		{
+        	const int topSizerX = (int)(dock->topSizer->rect.x + dock->topSizer->rect.width); 
+        	const int bottomSizerX = (int)(dock->bottomSizer->rect.x + dock->bottomSizer->rect.width); 
+
+        	// if these are at the same location we need to resize the sizer laso
+
+        	if (topSizerX == sizerX)
+				dock->topSizer->rect.width += move;
+
+        	if (bottomSizerX == sizerX)
+				dock->bottomSizer->rect.width += move;
+
             dock->view->rect.width += move;
+		}
+
+        sizer->rect.x += move;
     }
 	else if (sizer->dir == UIDockSizerDir_Horz)
 	{
@@ -939,18 +971,46 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
                 bottomDocks.push_back(dock);
         }
 
-        // TODO: Add limits of the resizing
+        const int sizerY = (int)sizer->rect.y;
 
-        sizer->rect.y += move;
+        // TODO: Add limits of the resizing
 
         for (UIDock* dock : topDocks)
         {
+        	const int sizer0 = (int)dock->rightSizer->rect.y; 
+        	const int sizer1 = (int)dock->leftSizer->rect.y; 
+
+        	if (sizerY == sizer0)
+			{
+				dock->rightSizer->rect.y += move;
+				dock->rightSizer->rect.height -= move;
+			}
+
+        	if (sizerY == sizer1)
+			{
+				dock->leftSizer->rect.y += move;
+				dock->leftSizer->rect.height -= move;
+			}
+
             dock->view->rect.y += move;
             dock->view->rect.height -= move;
         }
 
         for (UIDock* dock : bottomDocks)
+		{
+        	const int sizer0 = (int)(dock->rightSizer->rect.y + dock->rightSizer->rect.height); 
+        	const int sizer1 = (int)(dock->leftSizer->rect.y + dock->leftSizer->rect.height); 
+
+        	if (sizerY == sizer0)
+            	dock->rightSizer->rect.height += move;
+
+        	if (sizerY == sizer1)
+            	dock->leftSizer->rect.height += move;
+
             dock->view->rect.height += move;
+		}
+
+        sizer->rect.y += move;
 	}
 }
 
