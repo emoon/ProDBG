@@ -79,7 +79,7 @@ void loadLayout(Session* session, float width, float height)
 	if (Session_loadLayout(session, "data/default_layout.json", (int)width, (int)height))
 		return;
 
-    Session_createDockingGrid(session, width, height);
+    Session_createDockingGrid(session, (int)width, (int)height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +93,7 @@ void ProDBG_create(void* window, int width, int height)
     context->time = bx::getHPCounter();
 
 #if PRODBG_USING_DOCKING
-    loadLayout(context->session, width, height);
+    loadLayout(context->session, (float)width, (float)height);
 #endif
 
     /*
@@ -275,7 +275,7 @@ void ProDBG_destroy()
 
     Session_getLayout(context->session, &layout, (float)context->width, (float)context->height);
     UIDock_saveLayout(Session_getDockingGrid(context->session), 
-    		"data/current_layout.json", context->width, context->height);
+    		"data/current_layout.json", (float)context->width, (float)context->height);
 
     Settings_save();
 }
