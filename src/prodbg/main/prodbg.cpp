@@ -71,10 +71,12 @@ static const char* s_plugins[] =
 
 void loadLayout(Session* session, float width, float height)
 {
-	if (Session_loadLayout(session, "data/current_layout.json", width, height))
+	// TODO: Fix convesion
+
+	if (Session_loadLayout(session, "data/current_layout.json", (int)width, (int)height))
 		return;
 
-	if (Session_loadLayout(session, "data/default_layout.json", width, height))
+	if (Session_loadLayout(session, "data/default_layout.json", (int)width, (int)height))
 		return;
 
     Session_createDockingGrid(session, width, height);
