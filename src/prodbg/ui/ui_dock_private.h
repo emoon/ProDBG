@@ -39,6 +39,7 @@ struct UIDockSizer
     }
 
     std::vector<UIDock*> cons;  // connected docks
+	std::vector<int> dockIds; // TODO: used during loading, move?
     UIDockSizerDir dir;
     FloatRect rect;
     int id;
