@@ -428,7 +428,7 @@ static void loadDocks(UIDockingGrid* grid, json_t* root, float xScale, float ySc
 							"s2", &ids[2],
 							"s3", &ids[3]);
 
-		FloatRect rect = {{{ (float)x, (float)y, (float)width * xScale, (float)height * yScale }}};
+		FloatRect rect = {{{ (float)x * xScale, (float)y * yScale, (float)width * xScale, (float)height * yScale }}};
 
     	ViewPluginInstance* view = 0;
 
@@ -484,7 +484,7 @@ static void loadSizers(UIDockingGrid* grid, json_t* root, float xScale, float yS
 									"width", &width, 
 									"height", &height);
 
-		FloatRect rect = {{{ (float)x, (float)y, (float)width * xScale, (float)height * yScale }}};
+		FloatRect rect = {{{ (float)x * xScale, (float)y * yScale, (float)width * xScale, (float)height * yScale }}};
 
 		printf("s %d - %d %d - %f %f %f %f\n", s, dir, id, rect.x, rect.y, rect.width, rect.height);
 

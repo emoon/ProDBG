@@ -11,6 +11,7 @@
 #include "core/plugin_handler.h"
 #include "ui/plugin.h"
 #include "ui/ui_dock_layout.h"
+#include "ui/ui_dock_private.h"	// TODO: Fix me
 
 #include <stdlib.h>
 #include <stb.h>
@@ -68,6 +69,25 @@ void Session_createDockingGrid(Session* session, int width, int height)
     FloatRect rect = {{{ 0.0f, 0.0f, (float)width, (float)height }}};
 
     session->uiDockingGrid = UIDock_createGrid(&rect);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Session_loadLayout(Session* session, const char* filename, int width, int height)
+{
+	UIDockingGrid* grid = UIDock_loadLayout(filename, width, height);
+
+	if (!grid)
+		return false;
+
+    session->uiDockingGrid = grid;
+
+    // TODO: Fix me
+
+    for (UIDock* dock : grid->docks)
+		Session_addViewPlugin(session, dock->view);
+
+    return true;
 }
 
 #endif

@@ -244,9 +244,6 @@ void test_misc(void**)
     assert_true(d2->bottomSizer == &grid->bottomSizer);
     assert_true(d2->rightSizer == s0);
     assert_true(d2->leftSizer == &grid->leftSizer);
-
-    UIDock_saveLayout(grid, "t2-output/test_layout.json", 1.0f, 1.0f);
-    UIDock_loadLayout("t2-output/test_layout.json", 1.0f, 1.0f);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

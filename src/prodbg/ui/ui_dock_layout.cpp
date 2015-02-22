@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+/*
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void addInfo(UILayout* layout, json_t* root)
@@ -239,4 +241,5 @@ bool UILayout_loadLayout(UILayout* layout, const char* filename)
 
     return true;
 }
+*/
 

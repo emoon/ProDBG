@@ -37,6 +37,7 @@ struct ViewPluginInstance** Session_getViewPlugins(struct Session* session, int*
 
 void Session_getLayout(Session* session, UILayout* layout, float width, float height);
 void Session_setLayout(Session* session, UILayout* layout, float width, float height);
+bool Session_loadLayout(Session* session, const char* filename, int width, int height);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -69,30 +69,15 @@ static const char* s_plugins[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void setLayout(UILayout* layout)
+void loadLayout(Session* session, float width, float height)
 {
-    Context* context = &s_context;
-    IMGUI_preUpdate(&context->inputState, 1.0f / 60.0f);
-    Session_setLayout(context->session, layout, (float)context->width, (float)context->height);
-    IMGUI_postUpdate();
-}
+	if (Session_loadLayout(session, "data/current_layout.json", width, height))
+		return;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	if (Session_loadLayout(session, "data/default_layout.json", width, height))
+		return;
 
-void loadLayout()
-{
-    /*
-       UILayout layout;
-
-       if (UILayout_loadLayout(&layout, "data/current_layout.json"))
-       {
-        setLayout(&layout);
-        return;
-       }
-
-       if (UILayout_loadLayout(&layout, "data/default_layout.json"))
-        setLayout(&layout);
-     */
+    Session_createDockingGrid(session, width, height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +91,7 @@ void ProDBG_create(void* window, int width, int height)
     context->time = bx::getHPCounter();
 
 #if PRODBG_USING_DOCKING
-    Session_createDockingGrid(context->session, width, height);
+    loadLayout(context->session, width, height);
 #endif
 
     /*
@@ -146,8 +131,6 @@ void ProDBG_create(void* window, int width, int height)
     IMGUI_setup(width, height);
 
 	Cursor_init();
-
-    loadLayout();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -289,7 +272,8 @@ void ProDBG_destroy()
     //rmt_DestroyGlobalInstance(s_remotery);
 
     Session_getLayout(context->session, &layout, (float)context->width, (float)context->height);
-    UILayout_saveLayout(&layout, "data/current_layout.json");
+    UIDock_saveLayout(Session_getDockingGrid(context->session), 
+    		"data/current_layout.json", context->width, context->height);
 
     Settings_save();
 }
