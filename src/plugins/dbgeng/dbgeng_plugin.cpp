@@ -410,8 +410,8 @@ static PDBackendPlugin plugin =
 	"Microsoft Debugger Engine",
 	createInstance,
 	destroyInstance,
-	update,
 	0,
+	update,
 };
 
 extern "C" PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
