@@ -107,7 +107,7 @@ bool createWindow(const wchar_t* title, int width, int height)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void addAccelarator(const MenuDescriptor* desc)
+static void addAccelarator(const PDMenuItem* desc)
 {
     uint8_t virt = 0;
     uint32_t winMod = desc->winMod;
@@ -229,11 +229,11 @@ static void formatName(char* outName, int keyMod, int key, const char* name)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void buildSubMenu(HMENU parentMenu, MenuDescriptor menuDesc[], wchar_t* name)
+static void buildSubMenu(HMENU parentMenu, PDMenuItem menuDesc[], wchar_t* name)
 {
     wchar_t tempWchar[512];
 
-    MenuDescriptor* desc = &menuDesc[0];
+    PDMenuItem* desc = &menuDesc[0];
     HMENU menu = CreatePopupMenu();
     AppendMenu(parentMenu, MF_STRING | MF_POPUP, (UINT)menu, name);
 
@@ -269,7 +269,7 @@ static void buildSubMenu(HMENU parentMenu, MenuDescriptor menuDesc[], wchar_t* n
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void buildPopupSubmenu(HMENU parentMenu, wchar_t* inName, MenuDescriptor* pluginsMenu, int count, uint32_t startId, uint32_t idMask)
+static void buildPopupSubmenu(HMENU parentMenu, wchar_t* inName, PDMenuItem* pluginsMenu, int count, uint32_t startId, uint32_t idMask)
 {
     for (int i = 0; i < count; ++i)
     {
@@ -293,15 +293,15 @@ void Window_buildMenu()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Remove platform duplication
 
-static MenuDescriptor* buildPluginsMenu(PluginData** plugins, int count)
+static PDMenuItem* buildPluginsMenu(PluginData** plugins, int count)
 {
-    MenuDescriptor* menu = (MenuDescriptor*)alloc_zero(sizeof(MenuDescriptor) * (count + 1)); // + 1 as array needs to end with zeros
+    PDMenuItem* menu = (PDMenuItem*)alloc_zero(sizeof(PDMenuItem) * (count + 1)); // + 1 as array needs to end with zeros
 
     for (int i = 0; i < count; ++i)
     {
         PluginData* pluginData = plugins[i];
         PDPluginBase* pluginBase = (PDPluginBase*)pluginData->plugin;
-        MenuDescriptor* entry = &menu[i];
+        PDMenuItem* entry = &menu[i];
 
         // TODO: Hack hack!
 
@@ -320,7 +320,7 @@ static MenuDescriptor* buildPluginsMenu(PluginData** plugins, int count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void buildPopupMenu(MenuDescriptor* pluginsMenu, int count)
+void buildPopupMenu(PDMenuItem* pluginsMenu, int count)
 {
     // TODO: Support rebuild of this menu
 
@@ -356,7 +356,7 @@ int Window_buildPluginMenu(PluginData** plugins, int count)
     if (count >= 10)
         count = 9;
 
-	MenuDescriptor* menu = buildPluginsMenu(plugins, count);
+	PDMenuItem* menu = buildPluginsMenu(plugins, count);
 
     buildSubMenu(mainMenu, menu, L"&Plugins");
 	buildPopupMenu(menu, count);
