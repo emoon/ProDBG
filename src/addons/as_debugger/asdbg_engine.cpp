@@ -123,6 +123,7 @@ PDBackendPlugin s_asdebuggerPlugin =
 	"AngelScript",
 	createInstance,
 	destroyInstance,
+	0,
 	update,
 };
 

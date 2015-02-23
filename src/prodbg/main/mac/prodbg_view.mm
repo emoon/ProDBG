@@ -371,9 +371,9 @@ static int translateKey(unsigned int key)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void buildSubMenu(NSMenu* menu, MenuDescriptor menuDesc[])
+void buildSubMenu(NSMenu* menu, PDMenuItem menuDesc[])
 {
-    MenuDescriptor* desc = &menuDesc[0];
+    PDMenuItem* desc = &menuDesc[0];
     //[menu removeAllItems];
 
     while (desc->name)
@@ -496,15 +496,37 @@ void Window_buildMenu()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MenuDescriptor* buildPluginsMenu(PluginData** plugins, int count)
+void Window_addMenu(const char* inName, PDMenuItem* items)
 {
-    MenuDescriptor* menu = (MenuDescriptor*)alloc_zero(sizeof(MenuDescriptor) * (count + 1)); // + 1 as array needs to end with zeros
+    //NSMenu* mainMenu = [NSApp mainMenu];
+    NSString* name = [NSString stringWithUTF8String: inName];
+
+    NSMenu *newMenu;
+    NSMenuItem *newItem;
+
+       // Add the submenu
+    newItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:name action:NULL keyEquivalent:@""];
+    newMenu = [[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:name];
+
+    buildSubMenu(newMenu, items);
+
+    [newItem setSubmenu:newMenu];
+    [newMenu release];
+    [[NSApp mainMenu] insertItem:newItem atIndex:4];
+    [newItem release];
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+PDMenuItem* buildPluginsMenu(PluginData** plugins, int count)
+{
+    PDMenuItem* menu = (PDMenuItem*)alloc_zero(sizeof(PDMenuItem) * (count + 1)); // + 1 as array needs to end with zeros
 
     for (int i = 0; i < count; ++i)
     {
         PluginData* pluginData = plugins[i];
         PDPluginBase* pluginBase = (PDPluginBase*)pluginData->plugin;
-        MenuDescriptor* entry = &menu[i];
+        PDMenuItem* entry = &menu[i];
 
         // TODO: Hack hack!
 
@@ -530,7 +552,7 @@ MenuDescriptor* buildPluginsMenu(PluginData** plugins, int count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void buildPopupSubmenu(NSMenu* popupMenu, const char* inName, MenuDescriptor* pluginsMenu, int count, uint32_t startId, uint32_t idMask)
+static void buildPopupSubmenu(NSMenu* popupMenu, const char* inName, PDMenuItem* pluginsMenu, int count, uint32_t startId, uint32_t idMask)
 {
     NSString* name = [NSString stringWithUTF8String: inName];
 
@@ -559,7 +581,7 @@ static void buildPopupSubmenu(NSMenu* popupMenu, const char* inName, MenuDescrip
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void buildPopupMenu(MenuDescriptor* pluginsMenu, int count)
+void buildPopupMenu(PDMenuItem* pluginsMenu, int count)
 {
     // TODO: Support rebuild of this menu
 
@@ -582,7 +604,7 @@ int Window_buildPluginMenu(PluginData** plugins, int count)
     NSMenu* mainMenu = [NSApp mainMenu];
     NSMenu* pluginsMenu = [[mainMenu itemWithTitle:@"Plugins"] submenu];
 
-    MenuDescriptor* menu = buildPluginsMenu(plugins, count);
+    PDMenuItem* menu = buildPluginsMenu(plugins, count);
 
     buildSubMenu(pluginsMenu, menu);
 

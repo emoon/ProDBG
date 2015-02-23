@@ -30,6 +30,7 @@
 // TODO: Fix me
 
 int Window_buildPluginMenu(PluginData** plugins, int count);
+void Window_addMenu(const char* name, PDMenuItem* items);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -59,6 +60,7 @@ static const char* s_plugins[] =
     "breakpoints_plugin",
     "hex_memory_plugin",
     "console_plugin",
+    "c64_vice_plugin",
 #ifdef PRODBG_MAC
     "lldb_plugin",
 #endif
@@ -80,6 +82,39 @@ void loadLayout(Session* session, float width, float height)
 		return;
 
     Session_createDockingGrid(session, (int)width, (int)height);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void createMenusForPlugins()
+{
+	int count = 0;
+
+	PluginData** plugins = PluginHandler_getPlugins(&count);
+
+	for (int i = 0; i < count; ++i)
+	{
+		PluginData* pluginData = plugins[i];
+
+		if (!strstr(pluginData->type, PD_BACKEND_API_VERSION))
+			continue;
+
+		PDBackendPlugin* plugin = (PDBackendPlugin*)pluginData->plugin;
+
+		if (!plugin)
+			continue;
+
+		if (!plugin->registerMenu)
+			continue;
+
+		PDMenu* menus = plugin->registerMenu();
+
+		while (menus->name)
+		{
+			Window_addMenu(menus->name, menus->items);
+			menus++;
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,6 +157,7 @@ void ProDBG_create(void* window, int width, int height)
 #else
     //bgfx::winSetHwnd(0);
 #endif
+	
 
     bgfx::init();
     bgfx::reset(width, height);
@@ -260,8 +296,8 @@ void ProDBG_setWindowSize(int width, int height)
 void ProDBG_applicationLaunched()
 {
     int pluginCount = 0;
-    printf("building menu!\n");
     Window_buildPluginMenu(PluginHandler_getPlugins(&pluginCount), pluginCount);
+	createMenusForPlugins();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MenuDescriptor g_fileMenu[] =
+PDMenuItem g_fileMenu[] =
 {
     { "Open and run executable...", PRODBG_MENU_FILE_OPEN_AND_RUN_EXE, 'd', PRODBG_KEY_COMMAND, PRODBG_KEY_CTRL },
     { "Open source...", PRODBG_MENU_FILE_OPEN_SOURCE, 'o', PRODBG_KEY_COMMAND, PRODBG_KEY_CTRL },
@@ -11,7 +11,7 @@ MenuDescriptor g_fileMenu[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MenuDescriptor g_debugMenu[] =
+PDMenuItem g_debugMenu[] =
 {
     { "Attach to Remote...", PRODBG_MENU_DEBUG_ATTACH_TO_REMOTE, PRODBG_KEY_F6, 0, 0 },
     { "Break", PRODBG_MENU_DEBUG_BREAK, PRODBG_KEY_F5, 0, 0 },
@@ -23,7 +23,7 @@ MenuDescriptor g_debugMenu[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MenuDescriptor g_popupMenu[] =
+PDMenuItem g_popupMenu[] =
 {
     { "Change View", PRODBG_MENU_SUB_MENU, 0, 0, 0 },
     { "Split Horizontally", PRODBG_MENU_SUB_MENU, 0, 0, 0 },

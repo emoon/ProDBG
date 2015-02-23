@@ -604,6 +604,7 @@ static PDBackendPlugin plugin =
     "LLDB Mac",
     createInstance,
     destroyInstance,
+    0,
     update,
 };
 

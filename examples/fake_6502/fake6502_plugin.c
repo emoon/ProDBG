@@ -189,6 +189,7 @@ PDBackendPlugin s_debuggerPlugin =
     "Fake6502",
     createInstance,
     destroyInstance,
+    0,
     update,
 };
 

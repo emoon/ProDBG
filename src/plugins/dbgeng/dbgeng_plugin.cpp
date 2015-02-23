@@ -411,6 +411,7 @@ static PDBackendPlugin plugin =
 	createInstance,
 	destroyInstance,
 	update,
+	0,
 };
 
 extern "C" PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)

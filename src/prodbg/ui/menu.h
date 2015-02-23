@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pd_menu.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -82,20 +84,9 @@ enum
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct MenuDescriptor
-{
-    const char* name;
-    int id;
-    int key;
-    int macMod;
-    int winMod;
-} MenuDescriptor;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-extern MenuDescriptor g_debugMenu[];
-extern MenuDescriptor g_fileMenu[];
-extern MenuDescriptor g_popupMenu[];
+extern PDMenuItem g_debugMenu[];
+extern PDMenuItem g_fileMenu[];
+extern PDMenuItem g_popupMenu[];
 
 #ifdef __cplusplus
 }

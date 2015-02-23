@@ -1,12 +1,14 @@
-#ifndef _PRODBGAPI_H_
-#define _PRODBGAPI_H_
+#ifndef _PRODBGAPI_BACKEND_H_
+#define _PRODBGAPI_BACKEND_H_ 
 
 #include "pd_common.h"
 #include "pd_readwrite.h"
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
+
+struct PDMenu;
 
 #define PD_BACKEND_API_VERSION "ProDBG Backend 1"
 
@@ -89,11 +91,10 @@ typedef struct PDBackendPlugin
 {
     const char* name;
 
-    void* (*createInstance)(ServiceFunc * serviceFunc);
-    void (* destroyInstance)(void* userData);
-
-    // Updates and Returns the current state of the plugin.
-    PDDebugState (* update)(void* userData, PDAction action, PDReader* inEvents, PDWriter* outEvents);
+    void* (*createInstance)(ServiceFunc* serviceFunc);
+    void (*destroyInstance)(void* userData);
+    struct PDMenu* (*registerMenu)();
+    PDDebugState (*update)(void* userData, PDAction action, PDReader* inEvents, PDWriter* outEvents);
 
 } PDBackendPlugin;
 
@@ -108,7 +109,7 @@ typedef struct PDBackendPlugin
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 
