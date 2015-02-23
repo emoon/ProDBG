@@ -486,8 +486,6 @@ static void loadSizers(UIDockingGrid* grid, json_t* root, float xScale, float yS
 
 		FloatRect rect = {{{ (float)x * xScale, (float)y * yScale, (float)width * xScale, (float)height * yScale }}};
 
-		printf("s %d - %d %d - %f %f %f %f\n", s, dir, id, rect.x, rect.y, rect.width, rect.height);
-
 		UIDockSizer* sizer = 0;
 
 		// ID range 0 - 3 = border sizers
