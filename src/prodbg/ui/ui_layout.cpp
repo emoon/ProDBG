@@ -476,13 +476,13 @@ static void loadSizers(UIDockingGrid* grid, json_t* root, float xScale, float yS
 
         json_t* item = json_array_get(root, i);
 
-		int s = json_unpack(item, "{s:i, s:i, s:f, s:f, s:f, s:f}",
-									"dir", &dir, 
-									"id", &id,
-									"x", &x,
-									"y", &y,
-									"width", &width, 
-									"height", &height);
+		json_unpack(item, "{s:i, s:i, s:f, s:f, s:f, s:f}",
+							"dir", &dir, 
+							"id", &id,
+							"x", &x,
+							"y", &y,
+							"width", &width, 
+							"height", &height);
 
 		FloatRect rect = {{{ (float)x * xScale, (float)y * yScale, (float)width * xScale, (float)height * yScale }}};
 
