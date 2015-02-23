@@ -192,6 +192,22 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+SharedLibrary {
+    Name = "c64_vice_plugin",
+    
+    Env = {
+        CPPPATH = { "api/include", },
+        COPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
+    },
+
+    Sources = { "src/addons/c64_vice_debugger/c64_vice_debugger.c" },
+
+    IdeGenerationHints = { Msvc = { SolutionFolder = "Addons" } },
+}
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
 if native.host_platform == "macosx" then
    Default "lldb_plugin"
 end
@@ -208,4 +224,5 @@ Default "locals_plugin"
 Default "breakpoints_plugin"
 Default "hex_memory_plugin"
 Default "console_plugin"
+Default "c64_vice_plugin"
 
