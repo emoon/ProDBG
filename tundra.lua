@@ -73,6 +73,7 @@ local gcc_opts = {
 	"-Wno-unused-value",
 	"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
 	"-Wall", "-DPRODBG_UNIX",
+	"-fPIC",
 	{ "-O0", "-g"; Config = "*-*-debug" },
 	{ "-O3", "-g"; Config = "*-*-release" },
 }

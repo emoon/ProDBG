@@ -22,7 +22,7 @@ local function Test(params)
 			PROGCOM = {
 				{ "-lstdc++", "-coverage"; Config = "macosx_test-clang-*" },
 				{ "-lstdc++"; Config = { "macosx-clang-*", "linux-gcc-*" } },
-				{ "-lm -lpthread -ldl"; Config = "linux-*-*" },
+				{ "-lm -lpthread -ldl -lGL -lX11"; Config = "linux-*-*" },
 			},
 		},
 
