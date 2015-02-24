@@ -183,7 +183,7 @@ StaticLibrary {
 		Filters = {
 			{ Pattern = "[/\\]windows[/\\]"; Config = { "win32-*", "win64-*" } },
 			{ Pattern = "[/\\]macosx[/\\]"; Config = "mac*-*" },
-			{ Pattern = "[/\\]X11[/\\]"; Config = { "x11-*" } },
+			{ Pattern = "[/\\]x11[/\\]"; Config = { "linux-*" } },
 		},
 
 		Recursive = true,
