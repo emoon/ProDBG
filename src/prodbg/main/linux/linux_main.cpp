@@ -6,6 +6,7 @@
 #include <bgfxplatform.h> // will include X11 which #defines None... Don't mess with order of includes.
 #include "../prodbg.h"
 #include "core/log.h"
+#include <pd_menu.h>
 
 struct PluginData;
 
