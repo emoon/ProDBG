@@ -340,8 +340,14 @@ void buildPopupMenu(PDMenuItem* pluginsMenu, int count)
 
 void Window_addMenu(const char* name, PDMenuItem* items)
 {
-	(void)name;
-	(void)items;
+    wchar_t tempWchar[512];
+    HMENU mainMenu = GetMenu(s_window);
+
+    uv_utf8_to_utf16(name, tempWchar, sizeof_array(tempWchar));
+
+    buildSubMenu(mainMenu, items, tempWchar);
+
+	DrawMenuBar(s_window);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -360,6 +366,8 @@ int Window_buildPluginMenu(PluginData** plugins, int count)
 
     buildSubMenu(mainMenu, menu, L"&Plugins");
 	buildPopupMenu(menu, count);
+
+	DrawMenuBar(s_window);
 
     return PRODBG_MENU_PLUGIN_START;
 }
