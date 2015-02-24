@@ -47,6 +47,7 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
 enum 
 {
 	C64_VICE_MENU_ATTACH_TO_VICE,
+	C64_VICE_MENU_DETACH_FROM_VICE,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,6 +55,7 @@ enum
 static PDMenuItem s_menu0[] = 
 {
     { "Attach to VICE", C64_VICE_MENU_ATTACH_TO_VICE, 0, 0, 0 },
+    { "Detach from VICE", C64_VICE_MENU_DETACH_FROM_VICE, 0, 0, 0 },
     { 0, 0, 0, 0, 0 },
 };
 

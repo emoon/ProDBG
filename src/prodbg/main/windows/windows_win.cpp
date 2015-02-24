@@ -229,7 +229,7 @@ static void formatName(char* outName, int keyMod, int key, const char* name)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void buildSubMenu(HMENU parentMenu, PDMenuItem menuDesc[], wchar_t* name)
+static void buildSubMenu(HMENU parentMenu, PDMenuItem menuDesc[], wchar_t* name, uint32_t idOffset)
 {
     wchar_t tempWchar[512];
 
@@ -259,7 +259,7 @@ static void buildSubMenu(HMENU parentMenu, PDMenuItem menuDesc[], wchar_t* name)
 
             uv_utf8_to_utf16(temp, tempWchar, sizeof_array(tempWchar));
 
-            AppendMenu(menu, MF_STRING, desc->id, tempWchar);
+            AppendMenu(menu, MF_STRING, desc->id + idOffset, tempWchar);
             addAccelarator(desc);
         }
 
@@ -277,7 +277,7 @@ static void buildPopupSubmenu(HMENU parentMenu, wchar_t* inName, PDMenuItem* plu
         pluginsMenu[i].id = (uint32_t)i | idMask;
     }
 
-    buildSubMenu(parentMenu, pluginsMenu, inName);
+    buildSubMenu(parentMenu, pluginsMenu, inName, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -285,8 +285,8 @@ static void buildPopupSubmenu(HMENU parentMenu, wchar_t* inName, PDMenuItem* plu
 void Window_buildMenu()
 {
     HMENU mainMenu = CreateMenu();
-    buildSubMenu(mainMenu, g_fileMenu, L"&File");
-    buildSubMenu(mainMenu, g_debugMenu, L"&Debug");
+    buildSubMenu(mainMenu, g_fileMenu, L"&File", 0);
+    buildSubMenu(mainMenu, g_debugMenu, L"&Debug", 0);
     SetMenu(s_window, mainMenu);
 }
 
@@ -338,14 +338,14 @@ void buildPopupMenu(PDMenuItem* pluginsMenu, int count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window_addMenu(const char* name, PDMenuItem* items)
+void Window_addMenu(const char* name, PDMenuItem* items, uint32_t idOffset)
 {
     wchar_t tempWchar[512];
     HMENU mainMenu = GetMenu(s_window);
 
     uv_utf8_to_utf16(name, tempWchar, sizeof_array(tempWchar));
 
-    buildSubMenu(mainMenu, items, tempWchar);
+    buildSubMenu(mainMenu, items, tempWchar, idOffset);
 
 	DrawMenuBar(s_window);
 }
@@ -364,7 +364,7 @@ int Window_buildPluginMenu(PluginData** plugins, int count)
 
 	PDMenuItem* menu = buildPluginsMenu(plugins, count);
 
-    buildSubMenu(mainMenu, menu, L"&Plugins");
+    buildSubMenu(mainMenu, menu, L"&Plugins", 0);
 	buildPopupMenu(menu, count);
 
 	DrawMenuBar(s_window);

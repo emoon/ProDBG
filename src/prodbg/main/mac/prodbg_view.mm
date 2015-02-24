@@ -496,8 +496,9 @@ void Window_buildMenu()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window_addMenu(const char* inName, PDMenuItem* items)
+void Window_addMenu(const char* inName, PDMenuItem* items, uint32_t idOffset)
 {
+	(void)idOffset;
     //NSMenu* mainMenu = [NSApp mainMenu];
     NSString* name = [NSString stringWithUTF8String: inName];
 

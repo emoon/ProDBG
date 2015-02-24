@@ -26,11 +26,12 @@
 #endif
 
 #include <remotery.h>
+#include <assert.h>
 
 // TODO: Fix me
 
 int Window_buildPluginMenu(PluginData** plugins, int count);
-void Window_addMenu(const char* name, PDMenuItem* items);
+void Window_addMenu(const char* name, PDMenuItem* items, uint32_t idOffset);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -86,11 +87,43 @@ void loadLayout(Session* session, float width, float height)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+uint32_t findMenuIdRange(PDMenu* menu)
+{
+	uint32_t idStart = uint32_t(~0);
+	uint32_t idEnd = 0;
+
+	while (menu->name)
+	{
+		PDMenuItem* menuItems = menu->items;
+
+		while (menuItems->name)
+		{
+			const uint16_t id = menuItems->id;
+
+			if (id > idEnd)
+				idEnd = id;
+
+			if (id < idStart)
+				idStart = id;
+
+			menuItems++;
+		}
+
+		menu++;
+	}
+
+	return (idEnd << 16) | idStart;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void createMenusForPlugins()
 {
 	int count = 0;
 
 	PluginData** plugins = PluginHandler_getPlugins(&count);
+
+	uint32_t menuIdStart = PRODBG_MENU_PLUGIN_START;
 
 	for (int i = 0; i < count; ++i)
 	{
@@ -108,12 +141,18 @@ void createMenusForPlugins()
 			continue;
 
 		PDMenu* menus = plugin->registerMenu();
+		uint32_t menuRange = findMenuIdRange(menus);
 
 		while (menus->name)
 		{
-			Window_addMenu(menus->name, menus->items);
+			Window_addMenu(menus->name, menus->items, menuIdStart);
 			menus++;
 		}
+
+		pluginData->menuStart = menuIdStart;
+		pluginData->menuStartEnd = menuIdStart + (menuRange >> 16);
+
+		menuIdStart += (menuRange >> 16);
 	}
 }
 

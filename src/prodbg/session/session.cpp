@@ -679,7 +679,6 @@ void Session_stepIn(Session* s)
         s->state = backend->plugin->update(backend->userData, PDAction_step, s->reader, s->currentWriter);
     else if (s->type == Session_Remote)
         Session_action(s, PDAction_step);
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

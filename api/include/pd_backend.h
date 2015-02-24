@@ -72,6 +72,8 @@ typedef enum PDEventType
     PDEventType_executeConsole,
     PDEventType_getConsole,
 
+	PDEventType_menuEvent,
+
     // TODO: Somewhat temporary, need to figure this out
 
     PDEventType_toggleBreakpointCurrentLine,

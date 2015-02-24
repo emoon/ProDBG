@@ -24,7 +24,7 @@ void Window_buildPluginMenu(struct PluginData**, int)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window_addMenu(const char*, PDMenuItem*)
+void Window_addMenu(const char*, PDMenuItem*, uint32_t)
 {
 }
 
