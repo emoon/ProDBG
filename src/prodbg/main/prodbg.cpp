@@ -7,7 +7,6 @@
 #include "settings.h"
 //#include <imgui.h>
 #include "ui/imgui_setup.h"
-#include "ui/ui_dock_layout.h"
 #include "ui/menu.h"
 #include "ui/dialogs.h"
 #include "ui/cursor.h"
@@ -343,12 +342,10 @@ void ProDBG_applicationLaunched()
 
 void ProDBG_destroy()
 {
-    UILayout layout;
     Context* context = &s_context;
 
     //rmt_DestroyGlobalInstance(s_remotery);
 
-    Session_getLayout(context->session, &layout, (float)context->width, (float)context->height);
     UIDock_saveLayout(Session_getDockingGrid(context->session), 
     		"data/current_layout.json", (float)context->width, (float)context->height);
 

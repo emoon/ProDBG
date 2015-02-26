@@ -1,6 +1,5 @@
 #include "session.h"
 #include "session_private.h"
-
 #include "api/plugin_instance.h"
 #include "api/include/pd_script.h"
 #include "api/src/remote/pd_readwrite_private.h"
@@ -10,7 +9,6 @@
 #include "core/math.h"
 #include "core/plugin_handler.h"
 #include "ui/plugin.h"
-#include "ui/ui_dock_layout.h"
 #include "ui/ui_dock_private.h"	// TODO: Fix me
 
 #include <stdlib.h>
@@ -564,89 +562,6 @@ struct ViewPluginInstance** Session_getViewPlugins(struct Session* session, int*
 {
     *count = stb_arr_len(session->viewPlugins);
     return session->viewPlugins;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Session_getLayout(Session* session, UILayout* layout, float width, float height)
-{
-    assert(session);
-    assert(layout);
-
-    int count = stb_arr_len(session->viewPlugins);
-
-    memset(layout, 0, sizeof(UILayout));
-
-    // No base paths (will use the default which depends on the build configuration when
-    // trying to load the plugins
-
-    layout->basePathCount = 0;
-    layout->layoutItemCount = count;
-
-    layout->layoutItems = (LayoutItem*)alloc_zero((int)sizeof(LayoutItem) * (int)count);
-
-    for (int i = 0; i < count; ++i)
-    {
-        ViewPluginInstance* instance = session->viewPlugins[i];
-        PDViewPlugin* plugin = (PDViewPlugin*)instance->plugin;
-        LayoutItem* item = &layout->layoutItems[i];
-        PluginData* pluginData = PluginHandler_getPluginData(instance->plugin);
-
-        if (!pluginData)
-            continue;
-
-        item->pluginFile = strdup(pluginData->filename);
-        item->pluginName = strdup(plugin->name);
-
-        PluginUI_getWindowRect(instance, &item->rect);
-
-        item->rect.x /= width;
-        item->rect.y /= height;
-        item->rect.width /= width;
-        item->rect.height /= height;
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Session_setLayout(Session* session, UILayout* layout, float width, float height)
-{
-    int count = layout->layoutItemCount;
-
-    // TODO: Close all existing windows when loading layout?
-    // TODO: Support base paths for plugins
-
-    for (int i = 0; i < count; ++i)
-    {
-        LayoutItem* item = &layout->layoutItems[i];
-
-        PluginData* pluginData = PluginHandler_findPlugin(0, item->pluginFile, item->pluginName, true);
-
-        if (!pluginData)
-        {
-            log_error("Unable to find plugin %s %s\n", item->pluginFile, item->pluginName);
-            continue;
-        }
-
-        FloatRect rect = item->rect;
-
-        rect.x *= width;
-        rect.y *= height;
-        rect.width *= width;
-        rect.height *= height;
-
-        ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginData);
-
-        if (!instance)
-        {
-            log_error("Unable to create instance for plugin %s %s\n", item->pluginFile, item->pluginName);
-            continue;
-        }
-
-        PluginUI_setWindowRect(instance, &rect);
-
-        Session_addViewPlugin(session, instance);
-    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
