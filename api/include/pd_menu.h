@@ -12,7 +12,7 @@ extern "C" {
 typedef struct PDMenuItem
 {
     const char* name;
-    unsigned short id;
+    unsigned int id;
     int key;
     int macMod;
     int winMod;
