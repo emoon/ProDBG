@@ -32,6 +32,8 @@
 int Window_buildPluginMenu(PluginData** plugins, int count);
 void Window_addMenu(const char* name, PDMenuItem* items, uint32_t idOffset);
 
+static int g_statusBarSize = 20;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct Context
@@ -166,7 +168,7 @@ void ProDBG_create(void* window, int width, int height)
     context->time = bx::getHPCounter();
 
 #if PRODBG_USING_DOCKING
-    loadLayout(context->session, (float)width, (float)height);
+    loadLayout(context->session, (float)width, (float)(height - g_statusBarSize));
 #endif
 
     /*
@@ -256,7 +258,7 @@ void ProDBG_update()
     rmt_ScopedCPUSample(ProDBG_update);
 
     bgfx::setViewRect(0, 0, 0, (uint16_t)context->width, (uint16_t)context->height);
-    bgfx::setViewClear(0, BGFX_CLEAR_COLOR_BIT | BGFX_CLEAR_DEPTH_BIT, 0x101010ff, 1.0f, 0);
+    bgfx::setViewClear(0, BGFX_CLEAR_COLOR_BIT | BGFX_CLEAR_DEPTH_BIT, 0x701010ff, 1.0f, 0);
     bgfx::submit(0);
 
     uint64_t currentTime = bx::getHPCounter();
@@ -323,7 +325,7 @@ void ProDBG_setWindowSize(int width, int height)
     IMGUI_updateSize(width, height);
 
 #if PRODBG_USING_DOCKING
-	UIDock_updateSize(Session_getDockingGrid(context->session), width, height);
+	UIDock_updateSize(Session_getDockingGrid(context->session), width, height - g_statusBarSize);
 #endif
 
     ProDBG_update();
@@ -347,7 +349,7 @@ void ProDBG_destroy()
     //rmt_DestroyGlobalInstance(s_remotery);
 
     UIDock_saveLayout(Session_getDockingGrid(context->session), 
-    		"data/current_layout.json", (float)context->width, (float)context->height);
+    		"data/current_layout.json", (float)context->width, (float)(context->height - g_statusBarSize));
 
     Settings_save();
 }
