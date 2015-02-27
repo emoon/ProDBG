@@ -613,6 +613,66 @@ void Session_stepOver(Session* s)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+SessionStatus Session_onMenu(Session* session, int eventId)
+{
+	int count = 0;
+
+	if (session->backend)
+	{
+		PluginData* pluginData = session->backend->pluginData;
+
+		if (pluginData->menuStart >= eventId && eventId < pluginData->menuEnd)
+		{
+			return SessionStatus_ok;
+		}
+	}
+
+	PluginData** plugins = PluginHandler_getPlugins(&count);
+
+	for (int i = 0; i < count; ++i)
+	{
+		PluginData* pluginData = plugins[i];
+
+		if (!strstr(pluginData->type, PD_BACKEND_API_VERSION))
+			continue;
+
+		PDBackendPlugin* plugin = (PDBackendPlugin*)pluginData->plugin;
+
+		if (!plugin)
+			continue;
+
+		if (!plugin->registerMenu)
+			continue;
+
+		// See if this event is own by this plugin
+
+		if (pluginData->menuStart >= eventId && eventId < pluginData->menuEnd)
+		{
+			PDBackendInstance* backend = session->backend;
+
+			// Create a backend of this type if we don't have a backend already for the session
+
+			if (!backend)
+			{
+				backend = (PDBackendInstance*)alloc_zero(sizeof(struct PDBackendInstance));
+				backend->plugin = plugin;
+				backend->pluginData = pluginData;
+				backend->userData = backend->plugin->createInstance(0);
+			}
+
+			session->backend = backend;
+
+			UIStatusBar_setText("%s Backend active", plugin->name);
+
+			// Write down 
+		}
+	}
+
+	return SessionStatus_ok;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #if PRODBG_USING_DOCKING
 
 struct UIDockingGrid* Session_getDockingGrid(struct Session* session)

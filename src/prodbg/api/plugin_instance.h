@@ -14,6 +14,7 @@ struct PluginData;
 struct PDBackendInstance
 {
     struct PDBackendPlugin* plugin;
+	struct PluginData* pluginData;
     void* userData;
 };
 

@@ -8,8 +8,8 @@ struct PluginData
     const char* type;
     const char* filename;
     int count;
-    unsigned int menuStart;
-    unsigned int menuStartEnd;
+    int menuStart;
+    int menuEnd;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

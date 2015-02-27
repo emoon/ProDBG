@@ -36,9 +36,11 @@ enum
 
     PRODBG_MENU_PLUGIN_START,
 
+    PRODBG_MENU_PLUGINS_START = PRODBG_MENU_PLUGIN_START + 512,
+
     // End
 
-    PRODBG_MENU_END = PRODBG_MENU_PLUGIN_START + 0x1000000,
+    PRODBG_MENU_END = PRODBG_MENU_PLUGINS_START + 0x1000000,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

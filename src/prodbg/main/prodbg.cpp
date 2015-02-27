@@ -123,7 +123,7 @@ void createMenusForPlugins()
 
 	PluginData** plugins = PluginHandler_getPlugins(&count);
 
-	uint32_t menuIdStart = PRODBG_MENU_PLUGIN_START;
+	uint32_t menuIdStart = PRODBG_MENU_PLUGINS_START;
 
 	for (int i = 0; i < count; ++i)
 	{
@@ -150,7 +150,7 @@ void createMenusForPlugins()
 		}
 
 		pluginData->menuStart = menuIdStart;
-		pluginData->menuStartEnd = menuIdStart + (menuRange >> 16);
+		pluginData->menuEnd = menuIdStart + (menuRange >> 16);
 
 		menuIdStart += (menuRange >> 16);
 	}
@@ -500,6 +500,11 @@ void ProDBG_event(int eventId)
             break;
         }
     }
+
+	if (eventId >= PRODBG_MENU_PLUGINS_START)
+	{
+		Session_onMenu(context->session, eventId);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

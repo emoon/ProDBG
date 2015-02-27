@@ -5,6 +5,15 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+enum SessionStatus
+{
+	SessionStatus_ok,
+	SessionStatus_MenuBackendReserved,
+	SessionStatus_MenuBackendCreated,
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct Session;
 struct ViewPluginInstance;
 struct UILayout;
@@ -38,6 +47,8 @@ struct ViewPluginInstance** Session_getViewPlugins(struct Session* session, int*
 void Session_getLayout(Session* session, UILayout* layout, float width, float height);
 void Session_setLayout(Session* session, UILayout* layout, float width, float height);
 bool Session_loadLayout(Session* session, const char* filename, int width, int height);
+
+SessionStatus Session_onMenu(Session* session, int eventId);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
