@@ -9,6 +9,7 @@
 #include "core/math.h"
 #include "core/plugin_handler.h"
 #include "ui/plugin.h"
+#include "ui/ui_statusbar.h"
 #include "ui/ui_dock_private.h"	// TODO: Fix me
 
 #include <stdlib.h>
@@ -52,6 +53,8 @@ static void commonInit(Session* s)
 struct Session* Session_create()
 {
     Session* s = new Session;
+
+	UIStatusBar_setText("Not running");
 
     commonInit(s);
 

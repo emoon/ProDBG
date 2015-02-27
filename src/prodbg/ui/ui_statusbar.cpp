@@ -3,6 +3,8 @@
 #include <stdarg.h>
 #include <imgui.h>
 
+float g_statusBarSize = 18.0f;
+
 static char s_statusText[4096];
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -19,13 +21,22 @@ void UIStatusBar_setText(const char* format, ...)
 
 void UIStatusBar_render()
 {
-	/*
-    ImGui::SetNextWindowPos(ImVec2(instance->rect.x, instance->rect.y));
-    ImGui::SetNextWindowSize(ImVec2(instance->rect.width - 4, instance->rect.height - 4));
+	const ImGuiIO& io = ImGui::GetIO();
+	ImVec2 size = io.DisplaySize;
+	float yPos = size.y - g_statusBarSize;
 
-    ImGui::Begin(data->name, &data->showWindow, ImVec2(0, 0), true, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+	ImGui::SetNextWindowPos(ImVec2(0.0f, yPos));
+	ImGui::SetNextWindowSize(ImVec2(size.x, g_statusBarSize));
 
+	bool show = true;
+
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImColor(40, 40, 40));
+
+    ImGui::Begin("", &show, ImVec2(0, 0), true, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+	ImGui::SetCursorPos(ImVec2(2.0f, 4.0f));
+	ImGui::Text("Status: %s", s_statusText);
     ImGui::End();
-    */
+
+	ImGui::PopStyleColor();
 }
 

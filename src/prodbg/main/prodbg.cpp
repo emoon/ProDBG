@@ -11,6 +11,7 @@
 #include "ui/dialogs.h"
 #include "ui/cursor.h"
 #include "ui/ui_render.h"
+#include "ui/ui_statusbar.h"
 #include "input/input_state.h"
 
 #include <bgfx.h>
@@ -31,8 +32,6 @@
 
 int Window_buildPluginMenu(PluginData** plugins, int count);
 void Window_addMenu(const char* name, PDMenuItem* items, uint32_t idOffset);
-
-static int g_statusBarSize = 20;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -282,6 +281,8 @@ void ProDBG_update()
         Session_update(context->session);
     }
 
+	UIStatusBar_render();
+
     //renderTest();
 
     /*
@@ -325,7 +326,7 @@ void ProDBG_setWindowSize(int width, int height)
     IMGUI_updateSize(width, height);
 
 #if PRODBG_USING_DOCKING
-	UIDock_updateSize(Session_getDockingGrid(context->session), width, height - g_statusBarSize);
+	UIDock_updateSize(Session_getDockingGrid(context->session), width, height - (int)g_statusBarSize);
 #endif
 
     ProDBG_update();
