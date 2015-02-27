@@ -200,11 +200,21 @@ SharedLibrary {
         COPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
     },
 
-    Sources = { "src/addons/c64_vice_debugger/c64_vice_debugger.c" },
+    Sources = { 
+		Glob {
+			Dir = "src/addons/c64_vice_debugger",
+			Extensions = { ".c", ".h" },
+		},
+	},
+
+    Libs = { 
+      { 
+    	"Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } 
+      },
+    },
 
     IdeGenerationHints = { Msvc = { SolutionFolder = "Addons" } },
 }
-
 
 -----------------------------------------------------------------------------------------------------------------------
 
