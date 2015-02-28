@@ -335,9 +335,9 @@ int VICEConnection_sendStream(VICEConnection* conn, const unsigned char* buffer)
 
     while (size != 0)
     {
-        uint32_t sizeLeft = size > 1024 ? 1024 : size;
+        uint32_t sizeLeft = size > 1024 ? 1024 : (uint32_t)size;
 
-        int sent = VICEConnection_send(conn, buffer, sizeLeft, 0);
+        int sent = VICEConnection_send(conn, buffer, (int)sizeLeft, 0);
 
         //printf("sent %d out of %d bytes\n", sent, size);
 
@@ -361,7 +361,7 @@ unsigned char* VICEConnection_recvStream(VICEConnection* conn, unsigned char* ou
 
     if (!outputBuffer)
     {
-        outputBuffer = retBuffer = malloc(size);
+        outputBuffer = retBuffer = malloc((size_t)size);
         memset(outputBuffer, 0xcd, size);
         ownBuffer = 1;
     }
@@ -379,9 +379,9 @@ unsigned char* VICEConnection_recvStream(VICEConnection* conn, unsigned char* ou
 
     while (size != 0)
     {
-        uint32_t currSize = size > 1024 ? 1024 : size;
+        uint32_t currSize = size > 1024 ? 1024 : (uint32_t)size;
 
-        int ret = VICEConnection_recv(conn, (char*)outputBuffer, currSize, 0);
+        int ret = VICEConnection_recv(conn, (char*)outputBuffer, (int)currSize, 0);
 
         //printf("got size %d (%d)\n", ret, currSize);
 

@@ -10,3 +10,4 @@ void UIStatusBar_setText(const char* format, ...);
 #endif
 
 void UIStatusBar_render();
+
