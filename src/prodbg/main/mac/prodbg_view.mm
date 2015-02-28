@@ -371,7 +371,7 @@ static int translateKey(unsigned int key)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void buildSubMenu(NSMenu* menu, PDMenuItem menuDesc[])
+void buildSubMenu(NSMenu* menu, PDMenuItem menuDesc[], int idOffset)
 {
     PDMenuItem* desc = &menuDesc[0];
     //[menu removeAllItems];
@@ -397,7 +397,7 @@ void buildSubMenu(NSMenu* menu, PDMenuItem menuDesc[])
         {
             int mask = 0;
             NSMenuItem* newItem = [[NSMenuItem alloc] initWithTitle:name action:@selector(onMenuPress:) keyEquivalent:@""];
-            [newItem setTag:desc->id];
+            [newItem setTag:(desc->id + idOffset)];
 
             if (desc->macMod & PRODBG_KEY_COMMAND)
                 mask |= NSCommandKeyMask;
@@ -490,8 +490,8 @@ void Window_buildMenu()
     NSMenu* fileMenu = [[mainMenu itemWithTitle:@"File"] submenu];
     NSMenu* debugMenu = [[mainMenu itemWithTitle:@"Debug"] submenu];
 
-    buildSubMenu(fileMenu, g_fileMenu);
-    buildSubMenu(debugMenu, g_debugMenu);
+    buildSubMenu(fileMenu, g_fileMenu, 0);
+    buildSubMenu(debugMenu, g_debugMenu, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -509,7 +509,7 @@ void Window_addMenu(const char* inName, PDMenuItem* items, uint32_t idOffset)
     newItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:name action:NULL keyEquivalent:@""];
     newMenu = [[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:name];
 
-    buildSubMenu(newMenu, items);
+    buildSubMenu(newMenu, items, idOffset);
 
     [newItem setSubmenu:newMenu];
     [newMenu release];
@@ -572,7 +572,7 @@ static void buildPopupSubmenu(NSMenu* popupMenu, const char* inName, PDMenuItem*
         pluginsMenu[i].id = (uint32_t)i | idMask;
     }
 
-    buildSubMenu(newMenu, pluginsMenu);
+    buildSubMenu(newMenu, pluginsMenu, 0);
 
     [newItem setSubmenu:newMenu];
     [popupMenu addItem:newItem];
@@ -607,7 +607,7 @@ int Window_buildPluginMenu(PluginData** plugins, int count)
 
     PDMenuItem* menu = buildPluginsMenu(plugins, count);
 
-    buildSubMenu(pluginsMenu, menu);
+    buildSubMenu(pluginsMenu, menu, 0);
 
     buildPopupMenu(menu, count);
 
