@@ -23,7 +23,7 @@ static ProcessHandle s_viceHandle;
 
 static void test_c64_vice_init(void**)
 {
-	int count = 0;
+    int count = 0;
 
     assert_true(PluginHandler_addPlugin(OBJECT_DIR, "c64_vice_plugin"));
     assert_non_null(PluginHandler_getPlugins(&count)[0]);
@@ -33,30 +33,30 @@ static void test_c64_vice_init(void**)
 
 static void test_c64_vice_fail_connect(void**)
 {
-	int count = 0;
+    int count = 0;
 
     PluginData* pluginData;
 
     pluginData = PluginHandler_getPlugins(&count)[0];
 
-    s_session = Session_createLocal((PDBackendPlugin*)pluginData->plugin, 0); 
+    s_session = Session_createLocal((PDBackendPlugin*)pluginData->plugin, 0);
 
     Session_update(s_session);
 
     // We haven't setup vice at this point so no connect
 
-	assert_int_equal(s_session->state, PDDebugState_noTarget);
+    assert_int_equal(s_session->state, PDDebugState_noTarget);
 
-	Session_destroy(s_session);
+    Session_destroy(s_session);
 
-	s_session = 0;
+    s_session = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void test_c64_vice_connect(void**)
 {
-	int count = 0;
+    int count = 0;
 
     PluginData* pluginData;
 
@@ -66,14 +66,14 @@ static void test_c64_vice_connect(void**)
     // TODO: Fix hardcoded path
 
 #ifdef PRODBG_MAC
-	const char* viceLaunchPath = "../../vice/x64.app/Contents/MacOS/x64";
+    const char* viceLaunchPath = "../../vice/x64.app/Contents/MacOS/x64";
 #elif PRODBG_WIN
-	const char* viceLaunchPath = "..\\..\\vice\\x64.exe";
+    const char* viceLaunchPath = "..\\..\\vice\\x64.exe";
 #else
-	// Not supported on Linux yet
-	const char* viceLaunchPath = 0; 
+    // Not supported on Linux yet
+    const char* viceLaunchPath = 0;
 #endif
-	assert_non_null(viceLaunchPath);
+    assert_non_null(viceLaunchPath);
 
     const char* argv[] = { viceLaunchPath, "-remotemonitor", 0};
 
@@ -85,15 +85,15 @@ static void test_c64_vice_connect(void**)
 
     Time_sleepMs(4000);
 
-	// TODO: Non hard-coded path
+    // TODO: Non hard-coded path
 
-    s_session = Session_createLocal((PDBackendPlugin*)pluginData->plugin, 0); 
+    s_session = Session_createLocal((PDBackendPlugin*)pluginData->plugin, 0);
 
     Session_update(s_session);
 
     // We haven't setup vice at this point so no connect
 
-	assert_int_not_equal(s_session->state, PDDebugState_noTarget);
+    assert_int_not_equal(s_session->state, PDDebugState_noTarget);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -124,7 +124,7 @@ int main()
     int test = run_tests(tests);
 
     if (s_viceHandle)
-    	Process_kill(s_viceHandle);
+        Process_kill(s_viceHandle);
 
     return test;
 }

@@ -7,21 +7,21 @@
 
 enum MouseButton
 {
-	MouseButton_Left,
-	MouseButton_Middle,
-	MouseButton_Right,
+    MouseButton_Left,
+    MouseButton_Middle,
+    MouseButton_Right,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct InputState
 {
-	PDMouseWheelEvent scrollEvent; // scrollEvent / gesture
+    PDMouseWheelEvent scrollEvent; // scrollEvent / gesture
 
-	Vec2 mousePos;// position within the window
-	Vec2 mouseScreenPos; // position on the screen
+    Vec2 mousePos;// position within the window
+    Vec2 mouseScreenPos; // position on the screen
 
-	bool mouseDown[16]; // mouse button states
+    bool mouseDown[16]; // mouse button states
     bool keysDown[512]; // Keyboard keys that are pressed
 };
 
@@ -33,5 +33,5 @@ bool Input_isKeyDown(int key);
 
 inline bool Input_isLmbDown(const InputState* state)
 {
-	return state->mouseDown[MouseButton_Left];
+    return state->mouseDown[MouseButton_Left];
 }

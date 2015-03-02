@@ -22,10 +22,10 @@
 
 struct ConsoleData
 {
-	ConsoleData() : historyPos(0), scrollToBottom(0)
-	{
-		memset(inputBuffer, 0, sizeof(inputBuffer));
-	}
+    ConsoleData() : historyPos(0), scrollToBottom(0)
+    {
+        memset(inputBuffer, 0, sizeof(inputBuffer));
+    }
 
     char inputBuffer[256];
     std::vector<char*> items;
@@ -136,7 +136,7 @@ static void textEditCallbackStub(PDInputTextCallbackData* data)
 
         // Tab Completion
         case PDKEY_TAB:
-		{
+        {
             // Locate beginning of current word
             wordEnd   = data->buffer + data->cursorPos;
             wordStart = wordEnd;
@@ -153,6 +153,7 @@ static void textEditCallbackStub(PDInputTextCallbackData* data)
             for (size_t i = 0; i < consoleData->commands.size(); ++i)
                 if (strncasecmp(consoleData->commands[i], wordStart, (size_t)(int(wordEnd - wordStart))) == 0)
                     candidates.push_back(consoleData->commands[i]);
+
 
 
             if (candidates.size() == 0)
@@ -208,7 +209,7 @@ static void textEditCallbackStub(PDInputTextCallbackData* data)
         // Command History
         case PDKEY_UP:
         case PDKEY_DOWN:
-		{
+        {
             const int prevHistoryPos = consoleData->historyPos;
             if (data->eventKey == PDKEY_UP)
             {
@@ -291,7 +292,7 @@ static void showInUI(ConsoleData* consoleData, PDReader* reader, PDUI* uiFuncs)
 
     PDVec2 pad = { 0.0f, 0.0f };
 
-    uiFuncs->pushStyleVarV(PDStyleVar_FramePadding, pad); 
+    uiFuncs->pushStyleVarV(PDStyleVar_FramePadding, pad);
 
     //static ImGuiTextFilter filter;
     //filter.Draw("Filter (\"incl,-excl\") (\"error\")", 180);
@@ -414,10 +415,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-{
-	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-}
+    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+    {
+        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+    }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -37,7 +37,7 @@ void Window_addMenu(const char* name, PDMenuItem* items, uint32_t idOffset);
 
 struct Context
 {
-	InputState inputState;
+    InputState inputState;
     int width;
     int height;
     uint64_t time;
@@ -66,7 +66,7 @@ static const char* s_plugins[] =
     "lldb_plugin",
 #endif
 #ifdef PRODBG_WIN
-	"dbgeng_plugin",
+    "dbgeng_plugin",
 #endif
 };
 
@@ -74,13 +74,13 @@ static const char* s_plugins[] =
 
 void loadLayout(Session* session, float width, float height)
 {
-	// TODO: Fix convesion
+    // TODO: Fix convesion
 
-	if (Session_loadLayout(session, "data/current_layout.json", (int)width, (int)height))
-		return;
+    if (Session_loadLayout(session, "data/current_layout.json", (int)width, (int)height))
+        return;
 
-	if (Session_loadLayout(session, "data/default_layout.json", (int)width, (int)height))
-		return;
+    if (Session_loadLayout(session, "data/default_layout.json", (int)width, (int)height))
+        return;
 
     Session_createDockingGrid(session, (int)width, (int)height);
 }
@@ -89,71 +89,71 @@ void loadLayout(Session* session, float width, float height)
 
 uint32_t findMenuIdRange(PDMenu* menu)
 {
-	uint32_t idStart = uint32_t(~0);
-	uint32_t idEnd = 0;
+    uint32_t idStart = uint32_t(~0);
+    uint32_t idEnd = 0;
 
-	while (menu->name)
-	{
-		PDMenuItem* menuItems = menu->items;
+    while (menu->name)
+    {
+        PDMenuItem* menuItems = menu->items;
 
-		while (menuItems->name)
-		{
-			const uint16_t id = menuItems->id;
+        while (menuItems->name)
+        {
+            const uint16_t id = menuItems->id;
 
-			if (id > idEnd)
-				idEnd = id;
+            if (id > idEnd)
+                idEnd = id;
 
-			if (id < idStart)
-				idStart = id;
+            if (id < idStart)
+                idStart = id;
 
-			menuItems++;
-		}
+            menuItems++;
+        }
 
-		menu++;
-	}
+        menu++;
+    }
 
-	return (idEnd << 16) | idStart;
+    return (idEnd << 16) | idStart;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void createMenusForPlugins()
 {
-	int count = 0;
+    int count = 0;
 
-	PluginData** plugins = PluginHandler_getPlugins(&count);
+    PluginData** plugins = PluginHandler_getPlugins(&count);
 
-	uint32_t menuIdStart = PRODBG_MENU_PLUGINS_START;
+    uint32_t menuIdStart = PRODBG_MENU_PLUGINS_START;
 
-	for (int i = 0; i < count; ++i)
-	{
-		PluginData* pluginData = plugins[i];
+    for (int i = 0; i < count; ++i)
+    {
+        PluginData* pluginData = plugins[i];
 
-		if (!strstr(pluginData->type, PD_BACKEND_API_VERSION))
-			continue;
+        if (!strstr(pluginData->type, PD_BACKEND_API_VERSION))
+            continue;
 
-		PDBackendPlugin* plugin = (PDBackendPlugin*)pluginData->plugin;
+        PDBackendPlugin* plugin = (PDBackendPlugin*)pluginData->plugin;
 
-		if (!plugin)
-			continue;
+        if (!plugin)
+            continue;
 
-		if (!plugin->registerMenu)
-			continue;
+        if (!plugin->registerMenu)
+            continue;
 
-		PDMenu* menus = plugin->registerMenu();
-		uint32_t menuRange = findMenuIdRange(menus);
+        PDMenu* menus = plugin->registerMenu();
+        uint32_t menuRange = findMenuIdRange(menus);
 
-		while (menus->name)
-		{
-			Window_addMenu(menus->name, menus->items, menuIdStart);
-			menus++;
-		}
+        while (menus->name)
+        {
+            Window_addMenu(menus->name, menus->items, menuIdStart);
+            menus++;
+        }
 
-		pluginData->menuStart = menuIdStart;
-		pluginData->menuEnd = menuIdStart + (menuRange >> 16);
+        pluginData->menuStart = menuIdStart;
+        pluginData->menuEnd = menuIdStart + (menuRange >> 16);
 
-		menuIdStart += (menuRange >> 16);
-	}
+        menuIdStart += (menuRange >> 16);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -196,7 +196,7 @@ void ProDBG_create(void* window, int width, int height)
 #else
     //bgfx::winSetHwnd(0);
 #endif
-	
+
 
     bgfx::init();
     bgfx::reset(width, height);
@@ -207,45 +207,45 @@ void ProDBG_create(void* window, int width, int height)
 
     IMGUI_setup(width, height);
 
-	Cursor_init();
+    Cursor_init();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void updateDock(Context* context)
 {
-	UIDockingGrid* grid = Session_getDockingGrid(context->session);
-	const InputState* inputState = &context->inputState;
+    UIDockingGrid* grid = Session_getDockingGrid(context->session);
+    const InputState* inputState = &context->inputState;
 
-	switch (UIDock_getSizingState(grid))
-	{
-		case UIDockSizerDir_None: 
-		{
-			Cunsor_setType(CursorType_Default);
-			break;
-		}
+    switch (UIDock_getSizingState(grid))
+    {
+        case UIDockSizerDir_None:
+        {
+            Cunsor_setType(CursorType_Default);
+            break;
+        }
 
-		case UIDockSizerDir_Horz: 
-		{
-			Cunsor_setType(CursorType_SizeHorizontal);
-			break;
-		}
+        case UIDockSizerDir_Horz:
+        {
+            Cunsor_setType(CursorType_SizeHorizontal);
+            break;
+        }
 
-		case UIDockSizerDir_Vert:
-		{
-			Cunsor_setType(CursorType_SizeVertical);
-			break;
-		}
+        case UIDockSizerDir_Vert:
+        {
+            Cunsor_setType(CursorType_SizeVertical);
+            break;
+        }
 
-		case UIDockSizerDir_Both:
-		{
-			Cunsor_setType(CursorType_SizeAll);
-			break;
-		}
-	}
+        case UIDockSizerDir_Both:
+        {
+            Cunsor_setType(CursorType_SizeAll);
+            break;
+        }
+    }
 
-	UIDock_update(grid, inputState); 
-	UIDock_renderSizers(grid);
+    UIDock_update(grid, inputState);
+    UIDock_renderSizers(grid);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -267,7 +267,7 @@ void ProDBG_update()
     float deltaTimeMs = (float)(((double)deltaTick) / (double)bx::getHPFrequency());
 
 #if PRODBG_USING_DOCKING
-	updateDock(context);
+    updateDock(context);
 #endif
     {
         rmt_ScopedCPUSample(IMGUI_preUpdate);
@@ -281,7 +281,7 @@ void ProDBG_update()
         Session_update(context->session);
     }
 
-	UIStatusBar_render();
+    UIStatusBar_render();
 
     //renderTest();
 
@@ -326,7 +326,7 @@ void ProDBG_setWindowSize(int width, int height)
     IMGUI_updateSize(width, height);
 
 #if PRODBG_USING_DOCKING
-	UIDock_updateSize(Session_getDockingGrid(context->session), width, height - (int)g_statusBarSize);
+    UIDock_updateSize(Session_getDockingGrid(context->session), width, height - (int)g_statusBarSize);
 #endif
 
     ProDBG_update();
@@ -338,7 +338,7 @@ void ProDBG_applicationLaunched()
 {
     int pluginCount = 0;
     Window_buildPluginMenu(PluginHandler_getPlugins(&pluginCount), pluginCount);
-	createMenusForPlugins();
+    createMenusForPlugins();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -349,8 +349,8 @@ void ProDBG_destroy()
 
     //rmt_DestroyGlobalInstance(s_remotery);
 
-    UIDock_saveLayout(Session_getDockingGrid(context->session), 
-    		"data/current_layout.json", (float)context->width, (float)(context->height - g_statusBarSize));
+    UIDock_saveLayout(Session_getDockingGrid(context->session),
+                      "data/current_layout.json", (float)context->width, (float)(context->height - g_statusBarSize));
 
     Settings_save();
 }
@@ -394,7 +394,7 @@ void ProDBG_event(int eventId)
 
     log_info("eventId 0x%x\n", eventId);
 
-	Vec2 mousePos = context->inputState.mousePos;
+    Vec2 mousePos = context->inputState.mousePos;
 
 #if PRODBG_USING_DOCKING
     if (eventId & PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT)
@@ -501,10 +501,10 @@ void ProDBG_event(int eventId)
         }
     }
 
-	if (eventId >= PRODBG_MENU_PLUGINS_START)
-	{
-		Session_onMenu(context->session, eventId);
-	}
+    if (eventId >= PRODBG_MENU_PLUGINS_START)
+    {
+        Session_onMenu(context->session, eventId);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -534,9 +534,9 @@ void ProDBG_setMouseState(int button, int state)
     Context* context = &s_context;
     (void)button;
 
-	InputState* inputState = &context->inputState;
+    InputState* inputState = &context->inputState;
 
-	// TODO: Proper mouse support
+    // TODO: Proper mouse support
 
     inputState->mouseDown[0] = !!state;
 

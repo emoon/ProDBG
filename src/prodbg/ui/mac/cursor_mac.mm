@@ -8,24 +8,24 @@ static CursorType s_lastCursor = CursorType_Default;
 
 void Cursor_init()
 {
-	s_cursors[CursorType_Default] = [[NSCursor arrowCursor] retain];
-	s_cursors[CursorType_SizeHorizontal] = [[NSCursor resizeUpDownCursor] retain];
-	s_cursors[CursorType_SizeVertical] = [[NSCursor resizeLeftRightCursor] retain];
-	s_cursors[CursorType_SizeAll] = [[NSCursor closedHandCursor] retain];
+    s_cursors[CursorType_Default] = [[NSCursor arrowCursor] retain];
+    s_cursors[CursorType_SizeHorizontal] = [[NSCursor resizeUpDownCursor] retain];
+    s_cursors[CursorType_SizeVertical] = [[NSCursor resizeLeftRightCursor] retain];
+    s_cursors[CursorType_SizeAll] = [[NSCursor closedHandCursor] retain];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Cunsor_setType(enum CursorType type)
 {
-	if (type == s_lastCursor)
-		return;
+    if (type == s_lastCursor)
+        return;
 
-	s_lastCursor = type;
+    s_lastCursor = type;
 
-	NSCursor* cursor = s_cursors[(size_t)type];
+    NSCursor* cursor = s_cursors[(size_t)type];
 
-	assert(cursor);
+    assert(cursor);
 
-	[cursor set];
+    [cursor set];
 }

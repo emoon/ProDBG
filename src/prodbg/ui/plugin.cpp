@@ -260,8 +260,8 @@ static void textEditCallbackStub(ImGuiTextEditCallbackData* data)
     callbackData.cursorPos      = data->CursorPos;
     callbackData.selectionStart = data->SelectionStart;
     callbackData.selectionEnd   = data->SelectionEnd;
-    callbackData.deleteChars 	= inputTextDeleteChars;
-    callbackData.insertChars 	= inputTextInsertChars;
+    callbackData.deleteChars    = inputTextDeleteChars;
+    callbackData.insertChars    = inputTextInsertChars;
 
     // Translate ImGui event key into our own PDKey mapping
     ImGuiIO& io = ImGui::GetIO();

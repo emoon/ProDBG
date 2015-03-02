@@ -498,14 +498,14 @@ void Window_buildMenu()
 
 void Window_addMenu(const char* inName, PDMenuItem* items, uint32_t idOffset)
 {
-	(void)idOffset;
+    (void)idOffset;
     //NSMenu* mainMenu = [NSApp mainMenu];
     NSString* name = [NSString stringWithUTF8String: inName];
 
-    NSMenu *newMenu;
-    NSMenuItem *newItem;
+    NSMenu* newMenu;
+    NSMenuItem* newItem;
 
-       // Add the submenu
+    // Add the submenu
     newItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:name action:NULL keyEquivalent:@""];
     newMenu = [[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:name];
 

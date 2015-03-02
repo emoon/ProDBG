@@ -48,7 +48,7 @@ void debug_log(const char* fmt, ...)
     vfprintf(stderr, fmt, args);
     va_end(args);
 #else
-	(void)fmt;
+    (void)fmt;
 #endif
 }
 

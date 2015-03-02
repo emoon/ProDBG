@@ -156,7 +156,7 @@ void IMGUI_setInputState(const InputState* inputState)
 void IMGUI_preUpdate(const InputState* inputState, float deltaTime)
 {
     ImGuiIO& io = ImGui::GetIO();
-    io.DeltaTime = deltaTime; 
+    io.DeltaTime = deltaTime;
     io.MousePos = ImVec2(inputState->mousePos.x, inputState->mousePos.y);
     io.MouseDown[0] = inputState->mouseDown[MouseButton_Left];
 
@@ -175,10 +175,10 @@ void IMGUI_setMouse(float x, float y, int mouseLmb)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-void IMGUI_scrollMouse(const PDMouseWheelEvent& wheelEvent)
-{
-}
-*/
+   void IMGUI_scrollMouse(const PDMouseWheelEvent& wheelEvent)
+   {
+   }
+ */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -327,7 +327,7 @@ void buildPopupMenu(PDMenuItem* pluginsMenu, int count)
     if (s_popupMenu)
         return;
 
-	s_popupMenu = CreatePopupMenu();
+    s_popupMenu = CreatePopupMenu();
 
     buildPopupSubmenu(s_popupMenu, L"Split Horizontally", pluginsMenu, count,
                       PRODBG_MENU_POPUP_SPLIT_HORZ, PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT);
@@ -347,7 +347,7 @@ void Window_addMenu(const char* name, PDMenuItem* items, uint32_t idOffset)
 
     buildSubMenu(mainMenu, items, tempWchar, idOffset);
 
-	DrawMenuBar(s_window);
+    DrawMenuBar(s_window);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -362,12 +362,12 @@ int Window_buildPluginMenu(PluginData** plugins, int count)
     if (count >= 10)
         count = 9;
 
-	PDMenuItem* menu = buildPluginsMenu(plugins, count);
+    PDMenuItem* menu = buildPluginsMenu(plugins, count);
 
     buildSubMenu(mainMenu, menu, L"&Plugins", 0);
-	buildPopupMenu(menu, count);
+    buildPopupMenu(menu, count);
 
-	DrawMenuBar(s_window);
+    DrawMenuBar(s_window);
 
     return PRODBG_MENU_PLUGIN_START;
 }
@@ -848,18 +848,18 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
             break;
         }
 
-		case WM_RBUTTONDOWN:
-		{
-		   if (s_popupMenu)
-		   {
-			   POINT p;
-			   GetCursorPos(&p);
+        case WM_RBUTTONDOWN:
+        {
+            if (s_popupMenu)
+            {
+                POINT p;
+                GetCursorPos(&p);
 
-			   TrackPopupMenuEx(s_popupMenu, TPM_TOPALIGN | TPM_LEFTALIGN, p.x, p.y, window, NULL);
-		   }
+                TrackPopupMenuEx(s_popupMenu, TPM_TOPALIGN | TPM_LEFTALIGN, p.x, p.y, window, NULL);
+            }
 
-		   break;
-		}
+            break;
+        }
 
         case WM_MOUSEMOVE:
         {

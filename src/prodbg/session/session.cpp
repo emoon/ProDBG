@@ -10,7 +10,7 @@
 #include "core/plugin_handler.h"
 #include "ui/plugin.h"
 #include "ui/ui_statusbar.h"
-#include "ui/ui_dock_private.h"	// TODO: Fix me
+#include "ui/ui_dock_private.h" // TODO: Fix me
 
 #include <stdlib.h>
 #include <stb.h>
@@ -54,7 +54,7 @@ struct Session* Session_create()
 {
     Session* s = new Session;
 
-	UIStatusBar_setText("Not running");
+    UIStatusBar_setText("Not running");
 
     commonInit(s);
 
@@ -76,17 +76,17 @@ void Session_createDockingGrid(Session* session, int width, int height)
 
 bool Session_loadLayout(Session* session, const char* filename, int width, int height)
 {
-	UIDockingGrid* grid = UIDock_loadLayout(filename, (float)width, (float)height);
+    UIDockingGrid* grid = UIDock_loadLayout(filename, (float)width, (float)height);
 
-	if (!grid)
-		return false;
+    if (!grid)
+        return false;
 
     session->uiDockingGrid = grid;
 
     // TODO: Fix me
 
     for (UIDock* dock : grid->docks)
-		Session_addViewPlugin(session, dock->view);
+        Session_addViewPlugin(session, dock->view);
 
     return true;
 }
@@ -150,22 +150,22 @@ Session* Session_startLocal(Session* s, PDBackendPlugin* backend, const char* fi
 
     // Set the executable if we have any
 
-	if (filename)
-	{
-		PDWrite_eventBegin(s->currentWriter, PDEventType_setExecutable);
-		PDWrite_string(s->currentWriter, "filename", filename);
-		PDWrite_eventEnd(s->currentWriter);
+    if (filename)
+    {
+        PDWrite_eventBegin(s->currentWriter, PDEventType_setExecutable);
+        PDWrite_string(s->currentWriter, "filename", filename);
+        PDWrite_eventEnd(s->currentWriter);
 
-		// Add existing breakpoints
+        // Add existing breakpoints
 
-		for (auto i = s->breakpoints.begin(), end = s->breakpoints.end(); i != end; ++i)
-		{
-			PDWrite_eventBegin(s->currentWriter, PDEventType_setBreakpoint);
-			PDWrite_string(s->currentWriter, "filename", (*i)->filename);
-			PDWrite_u32(s->currentWriter, "line", (unsigned int)(*i)->line);
-			PDWrite_eventEnd(s->currentWriter);
-		}
-	}
+        for (auto i = s->breakpoints.begin(), end = s->breakpoints.end(); i != end; ++i)
+        {
+            PDWrite_eventBegin(s->currentWriter, PDEventType_setBreakpoint);
+            PDWrite_string(s->currentWriter, "filename", (*i)->filename);
+            PDWrite_u32(s->currentWriter, "line", (unsigned int)(*i)->line);
+            PDWrite_eventEnd(s->currentWriter);
+        }
+    }
 
     // TODO: Not run directly but allow user to select if run, otherwise (ProDG style stop-at-main?)
 
@@ -191,10 +191,10 @@ Session* Session_createLocal(PDBackendPlugin* backend, const char* filename)
 
 void Session_destroy(Session* session)
 {
-	if (session->backend)
-		session->backend->plugin->destroyInstance(session->backend->userData);
+    if (session->backend)
+        session->backend->plugin->destroyInstance(session->backend->userData);
 
-	session->backend = 0;
+    session->backend = 0;
 
     free(session);
 }
@@ -623,60 +623,60 @@ void Session_stepOver(Session* s)
 
 SessionStatus Session_onMenu(Session* session, int eventId)
 {
-	int count = 0;
+    int count = 0;
 
-	if (session->backend)
-	{
-		PluginData* pluginData = session->backend->pluginData;
+    if (session->backend)
+    {
+        PluginData* pluginData = session->backend->pluginData;
 
-		if (pluginData->menuStart >= eventId && eventId < pluginData->menuEnd)
-		{
-			return SessionStatus_ok;
-		}
-	}
+        if (pluginData->menuStart >= eventId && eventId < pluginData->menuEnd)
+        {
+            return SessionStatus_ok;
+        }
+    }
 
-	PluginData** plugins = PluginHandler_getPlugins(&count);
+    PluginData** plugins = PluginHandler_getPlugins(&count);
 
-	for (int i = 0; i < count; ++i)
-	{
-		PluginData* pluginData = plugins[i];
+    for (int i = 0; i < count; ++i)
+    {
+        PluginData* pluginData = plugins[i];
 
-		if (!strstr(pluginData->type, PD_BACKEND_API_VERSION))
-			continue;
+        if (!strstr(pluginData->type, PD_BACKEND_API_VERSION))
+            continue;
 
-		PDBackendPlugin* plugin = (PDBackendPlugin*)pluginData->plugin;
+        PDBackendPlugin* plugin = (PDBackendPlugin*)pluginData->plugin;
 
-		if (!plugin)
-			continue;
+        if (!plugin)
+            continue;
 
-		if (!plugin->registerMenu)
-			continue;
+        if (!plugin->registerMenu)
+            continue;
 
-		// See if this event is own by this plugin
+        // See if this event is own by this plugin
 
-		if (pluginData->menuStart >= eventId && eventId < pluginData->menuEnd)
-		{
-			PDBackendInstance* backend = session->backend;
+        if (pluginData->menuStart >= eventId && eventId < pluginData->menuEnd)
+        {
+            PDBackendInstance* backend = session->backend;
 
-			// Create a backend of this type if we don't have a backend already for the session
+            // Create a backend of this type if we don't have a backend already for the session
 
-			if (!backend)
-			{
-				backend = (PDBackendInstance*)alloc_zero(sizeof(struct PDBackendInstance));
-				backend->plugin = plugin;
-				backend->pluginData = pluginData;
-				backend->userData = backend->plugin->createInstance(0);
-			}
+            if (!backend)
+            {
+                backend = (PDBackendInstance*)alloc_zero(sizeof(struct PDBackendInstance));
+                backend->plugin = plugin;
+                backend->pluginData = pluginData;
+                backend->userData = backend->plugin->createInstance(0);
+            }
 
-			session->backend = backend;
+            session->backend = backend;
 
-			UIStatusBar_setText("%s Backend active", plugin->name);
+            UIStatusBar_setText("%s Backend active", plugin->name);
 
-			// Write down 
-		}
-	}
+            // Write down
+        }
+    }
 
-	return SessionStatus_ok;
+    return SessionStatus_ok;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

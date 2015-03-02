@@ -33,13 +33,15 @@ struct UIDock;
 
 struct UIDockSizer
 {
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     inline void addDock(UIDock* dock)
     {
         cons.push_back(dock);
     }
 
     std::vector<UIDock*> cons;  // connected docks
-	std::vector<int> dockIds; // TODO: used during loading, move?
+    std::vector<int> dockIds; // TODO: used during loading, move?
     UIDockSizerDir dir;
     FloatRect rect;
     int id;
@@ -86,12 +88,12 @@ struct UIDock
 
 enum UIDockState
 {
-	UIDockState_None,
-	UIDockState_HoverSizer,
-	UIDockState_DragSizer,
-	UIDockState_BeginDragView,
-	UIDockState_DraggingView,
-	UIDockState_EndDragView,
+    UIDockState_None,
+    UIDockState_HoverSizer,
+    UIDockState_DragSizer,
+    UIDockState_BeginDragView,
+    UIDockState_DraggingView,
+    UIDockState_EndDragView,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +108,7 @@ enum UIDockStatus
 
 struct UIDockingGrid
 {
-	UIDockingGrid() : state(UIDockState_None) {} 
+    UIDockingGrid() : state(UIDockState_None) {}
 
     std::vector<UIDock*> docks;
     std::vector<UIDockSizer*> sizers;

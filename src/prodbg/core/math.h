@@ -43,10 +43,10 @@ typedef struct FloatRect
     {
         struct
         {
-			float x;
-			float y;
-			float width;
-			float height;
+            float x;
+            float y;
+            float width;
+            float height;
         };
 
         float data[Compontent_Count];

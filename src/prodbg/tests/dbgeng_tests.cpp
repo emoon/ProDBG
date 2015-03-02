@@ -17,7 +17,7 @@ static void test_dbgeng(void** state)
 {
     (void)state;
 
-	// Debugger Engine plugin is only valid on Windows
+    // Debugger Engine plugin is only valid on Windows
 
 #if defined(_WIN32)
 

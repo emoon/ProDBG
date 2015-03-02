@@ -12,21 +12,21 @@ static bgfx::UniformHandle s_tex;
 
 struct ProgramAttribs
 {
-	bgfx::Attrib::Enum attrib;
-	uint8_t num;
-	bgfx::AttribType::Enum type;
-	bool norm;
+    bgfx::Attrib::Enum attrib;
+    uint8_t num;
+    bgfx::AttribType::Enum type;
+    bool norm;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct ProgramInfo
 {
-	ProgramAttribs* attribs;
-	const char* vsName;
-	const char* fsName;
-	bgfx::VertexDecl vertexDecl;
-	bgfx::ProgramHandle handle;
+    ProgramAttribs* attribs;
+    const char* vsName;
+    const char* fsName;
+    bgfx::VertexDecl vertexDecl;
+    bgfx::ProgramHandle handle;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,19 +96,19 @@ bgfx::ProgramHandle loadProgram(const char* vsName, const char* fsName)
 
 static ProgramAttribs posTexColorAttribs[] =
 {
-	{ bgfx::Attrib::Position, 2, bgfx::AttribType::Float, false },
-	{ bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float, false },
-	{ bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true },
-	{ bgfx::Attrib::Count, 0, bgfx::AttribType::Uint8, false },
+    { bgfx::Attrib::Position, 2, bgfx::AttribType::Float, false },
+    { bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float, false },
+    { bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true },
+    { bgfx::Attrib::Count, 0, bgfx::AttribType::Uint8, false },
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static ProgramAttribs posColorAttribs[] =
 {
-	{ bgfx::Attrib::Position, 2, bgfx::AttribType::Float, false },
-	{ bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true },
-	{ bgfx::Attrib::Count, 0, bgfx::AttribType::Uint8, false },
+    { bgfx::Attrib::Position, 2, bgfx::AttribType::Float, false },
+    { bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true },
+    { bgfx::Attrib::Count, 0, bgfx::AttribType::Uint8, false },
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

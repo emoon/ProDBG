@@ -7,9 +7,9 @@
 
 enum SessionStatus
 {
-	SessionStatus_ok,
-	SessionStatus_MenuBackendReserved,
-	SessionStatus_MenuBackendCreated,
+    SessionStatus_ok,
+    SessionStatus_MenuBackendReserved,
+    SessionStatus_MenuBackendCreated,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
