@@ -59,6 +59,7 @@ Test({ Name = "script_tests", Source = "src/prodbg/tests/script_tests.cpp", Depe
 Test({ Name = "ui_docking_tests", Source = "src/prodbg/tests/ui_docking_tests.cpp", Depends = all_depends})
 Test({ Name = "ui_tests", Source = "src/prodbg/tests/ui_tests.cpp", Depends = all_depends})
 Test({ Name = "dbgeng_tests", Source = "src/prodbg/tests/dbgeng_tests.cpp", Depends = all_depends })
+Test({ Name = "c64_vice_tests", Source = "src/prodbg/tests/c64_vice_tests.cpp", Depends = all_depends })
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -71,4 +72,5 @@ Default "script_tests"
 Default "ui_docking_tests"
 Default "ui_tests"
 Default "dbgeng_tests"
+Default "c64_vice_tests"
 

@@ -16,6 +16,7 @@ local mac_opts = {
 	"-Wno-padded",
 	"-Wno-missing-field-initializers",
 	"-Wno-weak-vtables",
+	"-Wno-format-nonliteral",
 	"-Wno-non-virtual-dtor",
 	"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
 	{ "-O0", "-g"; Config = "*-*-debug" },
