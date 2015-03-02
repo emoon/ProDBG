@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET -1
@@ -34,6 +35,22 @@
 #if !defined(_WIN32)
 #define closesocket close
 #endif
+
+#define DEBUG_LOG
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void debug_log(const char* fmt, ...)
+{
+#ifdef DEBUG_LOG
+    va_list args;
+    va_start(args, fmt);
+    vfprintf(stderr, fmt, args);
+    va_end(args);
+#else
+	(void)fmt;
+#endif
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -100,7 +117,7 @@ static int createListner(VICEConnection* conn, int port)
     while (listen(conn->serverSocket, SOMAXCONN) == -1)
         ;
 
-    printf("Created listener\n");
+    debug_log("Created listener\n");
 
     return 1;
 }
@@ -145,13 +162,13 @@ int VICEConnection_connect(VICEConnection* conn, const char* address, int port)
     char** ap;
     int sock = INVALID_SOCKET;
 
-    printf("Trying to connect\n");
+    debug_log("Trying to connect\n");
 
     he = gethostbyname(address);
 
     if (!he)
     {
-        printf("Failed to get hostname\n");
+        debug_log("Failed to get hostname\n");
         return 0;
     }
 
@@ -179,13 +196,13 @@ int VICEConnection_connect(VICEConnection* conn, const char* address, int port)
 
     if (sock == INVALID_SOCKET)
     {
-        printf("No socket to connect to\n");
+        debug_log("No socket to connect to\n");
         return 0;
     }
 
     conn->socket = sock;
 
-    printf("Connected!\n");
+    debug_log("Connected!\n");
 
     return 1;
 }
@@ -217,21 +234,21 @@ static int clientConnect(VICEConnection* conn, struct sockaddr_in* host)
     struct sockaddr_in hostTemp;
     unsigned int hostSize = sizeof(struct sockaddr_in);
 
-    printf("Trying to accept\n");
+    debug_log("Trying to accept\n");
 
     conn->socket = (int)accept(conn->serverSocket, (struct sockaddr*)&hostTemp, (socklen_t*)&hostSize);
 
     if (INVALID_SOCKET == conn->socket)
     {
         perror("accept");
-        printf("Unable to accept connection..\n");
+        debug_log("Unable to accept connection..\n");
         return 0;
     }
 
     if (NULL != host)
         *host = hostTemp;
 
-    printf("Accept done\n");
+    debug_log("Accept done\n");
 
     return 1;
 }
@@ -266,7 +283,7 @@ void VICEConnection_updateListner(VICEConnection* conn)
     if (select(conn->serverSocket + 1, &fds, NULL, NULL, &timeout) > 0)
     {
         if (clientConnect(conn, &client))
-            printf("Connected to %s\n", inet_ntoa(client.sin_addr));
+            debug_log("Connected to %s\n", inet_ntoa(client.sin_addr));
     }
 }
 
@@ -274,7 +291,7 @@ void VICEConnection_updateListner(VICEConnection* conn)
 
 int VICEConnection_disconnect(VICEConnection* conn)
 {
-    printf("Disconnected\n");
+    debug_log("Disconnected\n");
 
     if (conn->socket != INVALID_SOCKET)
         closesocket(conn->socket);
@@ -297,7 +314,7 @@ int VICEConnection_recv(VICEConnection* conn, char* buffer, int length, int flag
 
     if (ret <= 0)
     {
-        printf("recv %d %d\n", ret, length);
+        debug_log("recv %d %d\n", ret, length);
         VICEConnection_disconnect(conn);
         return 0;
     }
@@ -331,7 +348,7 @@ int VICEConnection_sendStream(VICEConnection* conn, const unsigned char* buffer)
     // stream has the size at the very start and 2 top bits used for other things
     int32_t size = ((buffer[0] & 0x3f) << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
 
-    //printf("Going to send stream of size %d\n", size);
+    //debug_log("Going to send stream of size %d\n", size);
 
     while (size != 0)
     {
@@ -339,7 +356,7 @@ int VICEConnection_sendStream(VICEConnection* conn, const unsigned char* buffer)
 
         int sent = VICEConnection_send(conn, buffer, (int)sizeLeft, 0);
 
-        //printf("sent %d out of %d bytes\n", sent, size);
+        //debug_log("sent %d out of %d bytes\n", sent, size);
 
         if (sent == 0)
             return sizeCount;
@@ -374,8 +391,8 @@ unsigned char* VICEConnection_recvStream(VICEConnection* conn, unsigned char* ou
     outputBuffer += 4;
     size -= 4;
 
-    //printf("about to get data (expected size %d)\n", size);
-    //printf("filling buffer %p\n", outputBuffer);
+    //debug_log("about to get data (expected size %d)\n", size);
+    //debug_log("filling buffer %p\n", outputBuffer);
 
     while (size != 0)
     {
@@ -383,11 +400,11 @@ unsigned char* VICEConnection_recvStream(VICEConnection* conn, unsigned char* ou
 
         int ret = VICEConnection_recv(conn, (char*)outputBuffer, (int)currSize, 0);
 
-        //printf("got size %d (%d)\n", ret, currSize);
+        //debug_log("got size %d (%d)\n", ret, currSize);
 
         if (ret <= 0)
         {
-            printf("Lost connection or error :(\n");
+            debug_log("Lost connection or error :(\n");
 
             if (ownBuffer)
                 free(outputBuffer);
