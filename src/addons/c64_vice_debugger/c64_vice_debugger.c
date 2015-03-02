@@ -14,6 +14,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <stdbool.h>
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static char s_recvBuffer[512 * 1024];
@@ -31,10 +33,10 @@ enum
 struct Regs6510
 {
     uint16_t pc;
-    uint16_t a;
-    uint16_t x;
-    uint16_t y;
-    uint16_t sp;
+    uint8_t a;
+    uint8_t x;
+    uint8_t y;
+    uint8_t sp;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,6 +55,9 @@ static void sleepMs(int ms)
 typedef struct PluginData
 {
     struct VICEConnection* conn;
+	struct Regs6510 regs;
+	bool hasUpdatedRegistes;
+	bool hasUpdatedExceptionLocation;
     PDDebugState state;
 } PluginData;
 
@@ -137,7 +142,10 @@ static void onMenu(PluginData* data, PDReader* reader)
 static void sendCommand(PluginData* data, const char* command)
 {
     int len = (int)strlen(command);
-    printf("sending command: %s\n", command);
+
+	if (!data->conn)
+		return;
+
     VICEConnection_send(data->conn, command, len, 0);
 }
 
@@ -147,6 +155,9 @@ static int getData(PluginData* data, char** resBuffer, int* len)
 {
     const int maxTry = 100;
     int res = 0;
+
+	if (!data->conn)
+		return 0;
 
     for (int i = 0; i < maxTry; ++i)
     {
@@ -220,82 +231,177 @@ static void parseRegisters(struct Regs6510* regs, char* str)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setRegisters(PluginData* data, PDWriter* writer)
+static void getRegisters(PluginData* data)
 {
-    struct Regs6510 regs;
     char* res = 0;
     int len = 0;
 
-    (void)writer;
-
     sendCommand(data, "registers\n");
 
-    printf("waiting to get data back\n");
-
-    // Try to get some data back
-
     if (!getData(data, &res, &len))
-    {
-        printf("No data back!\n");
         return;
-    }
-
-    // Always stop on command
 
     data->state = PDDebugState_stopException;
 
-    parseRegisters(&regs, res);
+    parseRegisters(&data->regs, res);
 
-    PDWrite_eventBegin(writer, PDEventType_setRegisters);
-    PDWrite_arrayBegin(writer, "registers");
-
-    writeRegister(writer, "pc", 2, regs.pc, 1);
-    writeRegister(writer, "sp", 1, regs.sp, 0);
-    writeRegister(writer, "a", 1, regs.a, 0);
-    writeRegister(writer, "x", 1, regs.x, 0);
-    writeRegister(writer, "y", 1, regs.y, 0);
-    //writeRegister(writer, "status", 1, status, 1);
-
-    PDWrite_arrayEnd(writer);
-    PDWrite_eventEnd(writer);
+    data->hasUpdatedRegistes = true;
+    data->hasUpdatedExceptionLocation = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
+static void processEvents(PluginData* data, PDReader* reader)
 {
     uint32_t event;
 
     while ((event = PDRead_getEvent(reader)))
     {
-        printf("C64VICE: event %d\n", event);
-
         switch (event)
         {
             //case PDEventType_getExceptionLocation : setExceptionLocation(plugin, writer); break;
             //case PDEventType_getCallstack : setCallstack(plugin, writer); break;
-            case PDEventType_getRegisters:
-                setRegisters(data, writer); break;
+
+			case PDEventType_getRegisters:
+			{
+                if (!data->hasUpdatedRegistes)
+                    getRegisters(data);
+
+                break;
+			}
+
             case PDEventType_menuEvent:
+			{
                 onMenu(data, reader);
+                break;
+			}
         }
     }
-
-    //setTty(plugin, writer);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static uint16_t findRegisterInString(const char* str, const char* needle)
+{
+	const char* offset = strstr(str, needle);
+
+	size_t needleLength = strlen(needle);
+
+	if (!offset)
+	{
+		printf("findRegisterInString: Unable to find %s in %s\n", needle, str);
+		return 0;
+	}
+
+	offset += needleLength;
+
+	return (uint16_t)strtol(offset, 0, 16);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void onStep(PluginData* plugin)
+{
+    char* res = 0;
+    int len = 0;
+
+    sendCommand(plugin, "n\n");
+
+    if (!getData(plugin, &res, &len))
+        return;
+
+    // return data from VICE is of the follwing format:
+    // .C:0811  EE 20 D0    INC $D020      - A:00 X:17 Y:17 SP:f6 ..-.....   19262882
+
+    plugin->regs.pc = (uint16_t)strtol(&res[3], 0, 16);
+    plugin->regs.a = (uint8_t)findRegisterInString(res, "A:");
+    plugin->regs.x = (uint8_t)findRegisterInString(res, "X:");
+    plugin->regs.y = (uint8_t)findRegisterInString(res, "Y:");
+    plugin->regs.sp = (uint8_t)findRegisterInString(res, "SP:");
+
+    plugin->hasUpdatedRegistes = true;
+    plugin->hasUpdatedExceptionLocation = true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void onAction(PluginData* plugin, PDAction action)
+{
+	switch (action)
+	{
+		case PDAction_none:
+			break;
+		
+		case PDAction_stop:
+		{
+			sendCommand(plugin, "break\n");
+			break;
+		}
+
+		case PDAction_break:
+		{
+			sendCommand(plugin, "break\n");
+			break;
+		}
+
+		case PDAction_run:
+		{
+			if (plugin->state != PDDebugState_running)
+				sendCommand(plugin, "ret\n");
+
+			break;
+		}
+
+		case PDAction_step:
+		{
+			onStep(plugin);
+			break;
+		}
+
+		case PDAction_stepOver:
+		case PDAction_stepOut:
+		case PDAction_custom:
+		{
+			break;
+		}
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static PDDebugState update(void* userData, PDAction action, PDReader* reader, PDWriter* writer)
 {
-    (void)action;
-
-    printf("c64_vice_update\n");
-
     PluginData* plugin = (PluginData*)userData;
 
-    processEvents(plugin, reader, writer);
+    plugin->hasUpdatedRegistes = false;
+    plugin->hasUpdatedExceptionLocation = false;
+
+	onAction(plugin, action);
+
+    processEvents(plugin, reader);
+
+    if (plugin->hasUpdatedRegistes)
+	{
+		PDWrite_eventBegin(writer, PDEventType_setRegisters);
+		PDWrite_arrayBegin(writer, "registers");
+
+		writeRegister(writer, "pc", 2, plugin->regs.pc, 1);
+		writeRegister(writer, "sp", 1, plugin->regs.sp, 0);
+		writeRegister(writer, "a", 1, plugin->regs.a, 0);
+		writeRegister(writer, "x", 1, plugin->regs.x, 0);
+		writeRegister(writer, "y", 1, plugin->regs.y, 0);
+
+		PDWrite_arrayEnd(writer);
+		PDWrite_eventEnd(writer);
+	}
+
+	if (plugin->hasUpdatedExceptionLocation)
+	{
+		PDWrite_eventBegin(writer,PDEventType_setExceptionLocation); 
+		PDWrite_u16(writer, "address", plugin->regs.pc);
+		PDWrite_u8(writer, "address_size", 2);
+		PDWrite_eventEnd(writer);
+	}
 
     return plugin->state;
 }
