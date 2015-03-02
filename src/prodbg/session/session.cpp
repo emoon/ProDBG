@@ -144,6 +144,7 @@ Session* Session_startLocal(Session* s, PDBackendPlugin* backend, const char* fi
 {
     // Create the backend
 
+    s->type = Session_Local;
     s->backend = (PDBackendInstance*)alloc_zero(sizeof(struct PDBackendInstance));
     s->backend->plugin = backend;
     s->backend->userData = backend->createInstance(0);
