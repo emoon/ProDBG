@@ -148,21 +148,24 @@ Session* Session_startLocal(Session* s, PDBackendPlugin* backend, const char* fi
     s->backend->plugin = backend;
     s->backend->userData = backend->createInstance(0);
 
-    // Set the executable
+    // Set the executable if we have any
 
-    PDWrite_eventBegin(s->currentWriter, PDEventType_setExecutable);
-    PDWrite_string(s->currentWriter, "filename", filename);
-    PDWrite_eventEnd(s->currentWriter);
+	if (filename)
+	{
+		PDWrite_eventBegin(s->currentWriter, PDEventType_setExecutable);
+		PDWrite_string(s->currentWriter, "filename", filename);
+		PDWrite_eventEnd(s->currentWriter);
 
-    // Add existing breakpoints
+		// Add existing breakpoints
 
-    for (auto i = s->breakpoints.begin(), end = s->breakpoints.end(); i != end; ++i)
-    {
-        PDWrite_eventBegin(s->currentWriter, PDEventType_setBreakpoint);
-        PDWrite_string(s->currentWriter, "filename", (*i)->filename);
-        PDWrite_u32(s->currentWriter, "line", (unsigned int)(*i)->line);
-        PDWrite_eventEnd(s->currentWriter);
-    }
+		for (auto i = s->breakpoints.begin(), end = s->breakpoints.end(); i != end; ++i)
+		{
+			PDWrite_eventBegin(s->currentWriter, PDEventType_setBreakpoint);
+			PDWrite_string(s->currentWriter, "filename", (*i)->filename);
+			PDWrite_u32(s->currentWriter, "line", (unsigned int)(*i)->line);
+			PDWrite_eventEnd(s->currentWriter);
+		}
+	}
 
     // TODO: Not run directly but allow user to select if run, otherwise (ProDG style stop-at-main?)
 
@@ -188,6 +191,11 @@ Session* Session_createLocal(PDBackendPlugin* backend, const char* filename)
 
 void Session_destroy(Session* session)
 {
+	if (session->backend)
+		session->backend->plugin->destroyInstance(session->backend->userData);
+
+	session->backend = 0;
+
     free(session);
 }
 
@@ -327,8 +335,8 @@ static void updateLocal(Session* s, PDAction action)
 
     // TODO: Temporary hack, send no request data to backend if we are running.
 
-    if (s->state == PDDebugState_running)
-        reqDataSize = 0;
+    //if (s->state == PDDebugState_running)
+    //   reqDataSize = 0;
 
     PDBinaryReader_initStream(s->reader, PDBinaryWriter_getData(s->prevWriter), reqDataSize);
     PDBinaryWriter_reset(s->currentWriter);
