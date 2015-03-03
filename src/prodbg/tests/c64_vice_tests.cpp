@@ -178,6 +178,8 @@ static void test_c64_vice_connect(void**)
 
 void test_c64_vice_get_registers(void**)
 {
+	CPUState state;
+
     PDWriter* writer = s_session->currentWriter;
 
     PDWrite_eventBegin(writer, PDEventType_getRegisters);
@@ -185,6 +187,9 @@ void test_c64_vice_get_registers(void**)
     PDBinaryWriter_finalize(writer);
 
     Session_update(s_session);
+	handleEvents(&state, s_session);
+
+	assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -207,6 +212,30 @@ void test_c64_vice_step_cpu(void**)
 	assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
 
     Session_action(s_session, PDAction_step);
+	handleEvents(&state, s_session);
+
+	assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
+
+	// Get registers after some stepping
+
+    PDWriter* writer = s_session->currentWriter;
+
+    PDWrite_eventBegin(writer, PDEventType_getRegisters);
+    PDWrite_eventEnd(writer);
+    PDBinaryWriter_finalize(writer);
+
+    Session_update(s_session);
+	handleEvents(&state, s_session);
+
+	assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
+
+    writer = s_session->currentWriter;
+
+    PDWrite_eventBegin(writer, PDEventType_getRegisters);
+    PDWrite_eventEnd(writer);
+    PDBinaryWriter_finalize(writer);
+
+    Session_update(s_session);
 	handleEvents(&state, s_session);
 
 	assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
