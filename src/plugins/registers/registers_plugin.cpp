@@ -150,7 +150,6 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
     showUI(data, uiFuncs);
 
     PDWrite_eventBegin(outEvents, PDEventType_getRegisters);
-    PDWrite_u8(outEvents, "dummy_get_registers", 0); // TODO: Remove me
     PDWrite_eventEnd(outEvents);
 
     return 0;
