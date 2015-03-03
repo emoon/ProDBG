@@ -146,7 +146,7 @@ static void sendCommand(PluginData* data, const char* command)
 	if (!data->conn)
 		return;
 
-	printf("send command %s\n", command);
+	//printf("send command %s\n", command);
 
     VICEConnection_send(data->conn, command, len, 0);
 }
@@ -229,13 +229,12 @@ static void parseRegisters(struct Regs6510* regs, char* str)
     //           .;e5cf 00 00 0a f3 2f 37 00100010 000 001    3400489
     //
 
+	str = strstr(str, ".;");
+
+	if (!str)
+		return;
+
     const char* pch = strtok(str, " \t\n");
-
-    // Skip the layout (hard-coded and ugly but as registers are fixed this should be fine
-    // but needs to be fixed if VICE changes the layout
-
-    for (int i = 0; i < 12; ++i)
-        pch = strtok(0, " \t\n");
 
     regs->pc = (uint16_t)strtol(&pch[2], 0, 16); pch = strtok(0, " \t");
     regs->a = (uint8_t)strtol(pch, 0, 16); pch = strtok(0, " \t");
@@ -293,8 +292,8 @@ static void getDisassembly(PluginData* data, PDReader* reader, PDWriter* writer)
 
 	char* pch = strtok(res, "\n");
 
-	PDWrite_eventBegin(writer, PDEventType_setRegisters);
-	PDWrite_arrayBegin(writer, "registers");
+	PDWrite_eventBegin(writer, PDEventType_setDisassembly);
+	PDWrite_arrayBegin(writer, "disassembly");
 
 	while (pch)
 	{
@@ -317,9 +316,6 @@ static void getDisassembly(PluginData* data, PDReader* reader, PDWriter* writer)
 
 	PDWrite_arrayEnd(writer);
 	PDWrite_eventEnd(writer);
-
-    printf("dis data\n");
-    printf("%s\n", res);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
