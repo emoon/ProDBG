@@ -146,6 +146,8 @@ static void sendCommand(PluginData* data, const char* command)
 	if (!data->conn)
 		return;
 
+	printf("send command %s\n", command);
+
     VICEConnection_send(data->conn, command, len, 0);
 }
 
@@ -159,22 +161,35 @@ static int getData(PluginData* data, char** resBuffer, int* len)
 	if (!data->conn)
 		return 0;
 
+	char* resData = (char*)&s_recvBuffer;
+	int lenCount = 0;
+
     for (int i = 0; i < maxTry; ++i)
     {
-        // TODO: Do we need to look for more data here (after the first pool)
+		bool gotData = false;
 
-        if (VICEConnection_pollRead(data->conn))
+        while (VICEConnection_pollRead(data->conn))
         {
-            res = VICEConnection_recv(data->conn, s_recvBuffer, sizeof(s_recvBuffer), 0);
+            res = VICEConnection_recv(data->conn, resData, ((int)sizeof(s_recvBuffer)) - lenCount, 0);
 
             if (res == 0)
-                return 0;
+            	break;
 
-            *len = res;
+			gotData = true;
+
+			resData += res;
+			lenCount += res;
+
+			sleepMs(1);
+        }
+
+        if (gotData)
+		{
+            *len = lenCount;
             *resBuffer = (char*)&s_recvBuffer;
 
             return 1;
-        }
+		}
 
         // Got some data so read it back
 
@@ -251,7 +266,65 @@ static void getRegisters(PluginData* data)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void processEvents(PluginData* data, PDReader* reader)
+static void getDisassembly(PluginData* data, PDReader* reader, PDWriter* writer)
+{
+    char* res = 0;
+    int len = 0;
+
+	char gitDisAsmCommand[512];
+
+	uint64_t addressStart = 0;
+	uint32_t instructionCount = 0; 	
+
+    PDRead_findU64(reader, &addressStart, "address_start", 0);
+    PDRead_findU32(reader, &instructionCount, "instruction_count", 0);
+
+	// assume that one instruction is 3 bytes which is high but that gives us more data back than we need which is
+	// better than too little
+
+	sprintf(gitDisAsmCommand, "disass $%04x $%04x\n", (uint16_t)addressStart, (uint16_t)(addressStart + instructionCount * 3));
+
+    sendCommand(data, gitDisAsmCommand);
+
+    if (!getData(data, &res, &len))
+        return;
+
+    // parse the buffer
+
+	char* pch = strtok(res, "\n");
+
+	PDWrite_eventBegin(writer, PDEventType_setRegisters);
+	PDWrite_arrayBegin(writer, "registers");
+
+	while (pch)
+	{
+		// expected format of each line:
+		// .C:080e  A9 22       LDA #$22
+
+		if (pch[0] != '.')
+			break;
+
+		uint16_t address = (uint16_t)strtol(&pch[3], 0, 16);
+
+		PDWrite_arrayEntryBegin(writer);
+		PDWrite_u16(writer, "address", address);
+		PDWrite_string(writer, "line", &pch[9]);
+
+		PDWrite_arrayEntryEnd(writer);
+
+		pch = strtok(0, "\n");
+	}
+
+	PDWrite_arrayEnd(writer);
+	PDWrite_eventEnd(writer);
+
+    printf("dis data\n");
+    printf("%s\n", res);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 {
     uint32_t event;
 
@@ -268,6 +341,12 @@ static void processEvents(PluginData* data, PDReader* reader)
                     getRegisters(data);
 
                 break;
+			}
+
+			case PDEventType_getDisassembly:
+			{
+				getDisassembly(data, reader, writer);
+				break;
 			}
 
             case PDEventType_menuEvent:
@@ -378,7 +457,7 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
 
 	onAction(plugin, action);
 
-    processEvents(plugin, reader);
+    processEvents(plugin, reader, writer);
 
     if (plugin->hasUpdatedRegistes)
 	{

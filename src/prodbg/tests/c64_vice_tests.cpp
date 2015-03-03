@@ -214,6 +214,21 @@ void test_c64_vice_step_cpu(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void test_c64_vice_get_disassembly(void**)
+{
+    PDWriter* writer = s_session->currentWriter;
+
+    PDWrite_eventBegin(writer, PDEventType_getDisassembly);
+    PDWrite_u64(writer, "address_start", 0x80e);
+    PDWrite_u32(writer, "instruction_count", (uint32_t)10);
+    PDWrite_eventEnd(writer);
+    PDBinaryWriter_finalize(writer);
+
+    Session_update(s_session);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main()
 {
     const UnitTest tests[] =
@@ -223,6 +238,7 @@ int main()
         unit_test(test_c64_vice_connect),
         unit_test(test_c64_vice_get_registers),
 		unit_test(test_c64_vice_step_cpu),
+		unit_test(test_c64_vice_get_disassembly),
     };
 
     int test = run_tests(tests);
