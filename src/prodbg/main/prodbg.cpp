@@ -257,7 +257,7 @@ void ProDBG_update()
     rmt_ScopedCPUSample(ProDBG_update);
 
     bgfx::setViewRect(0, 0, 0, (uint16_t)context->width, (uint16_t)context->height);
-    bgfx::setViewClear(0, BGFX_CLEAR_COLOR_BIT | BGFX_CLEAR_DEPTH_BIT, 0x701010ff, 1.0f, 0);
+    bgfx::setViewClear(0, BGFX_CLEAR_COLOR_BIT | BGFX_CLEAR_DEPTH_BIT, 0x101010ff, 1.0f, 0);
     bgfx::submit(0);
 
     uint64_t currentTime = bx::getHPCounter();
