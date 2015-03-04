@@ -241,19 +241,74 @@ void test_c64_vice_step_cpu(void**)
 	assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
 }
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct Assembly
+{
+	uint16_t address;
+	const char* text;
+};
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void test_c64_vice_get_disassembly(void**)
 {
+	static Assembly assembly[] =
+	{
+		{ 0x080e, "A9 22       LDA #$22" },
+		{ 0x0810, "A2 32       LDX #$32" },
+		{ 0x0812, "A0 42       LDY #$42" },
+		{ 0x0814, "EE 20 D0    INC $D020" },
+		{ 0x0817, "EE 21 D0    INC $D021" },
+		{ 0x081a, "4C 0E 08    JMP $080E" },
+		{ 0, 0 },
+	};
+
     PDWriter* writer = s_session->currentWriter;
 
     PDWrite_eventBegin(writer, PDEventType_getDisassembly);
     PDWrite_u64(writer, "address_start", 0x80e);
-    PDWrite_u32(writer, "instruction_count", (uint32_t)10);
+    PDWrite_u32(writer, "instruction_count", (uint32_t)4);
     PDWrite_eventEnd(writer);
     PDBinaryWriter_finalize(writer);
 
     Session_update(s_session);
+
+    PDReader* reader = s_session->reader;
+
+    PDBinaryReader_initStream(reader, PDBinaryWriter_getData(s_session->currentWriter), PDBinaryWriter_getSize(s_session->currentWriter));
+
+    uint32_t event;
+
+    while ((event = PDRead_getEvent(reader)) != 0)
+    {
+    	if (event != PDEventType_setDisassembly)
+    		continue;
+
+		PDReaderIterator it;
+
+		assert_false(PDRead_findArray(reader, &it, "disassembly", 0) == PDReadStatus_notFound);
+
+		int i = 0;
+
+		while (PDRead_getNextEntry(reader, &it))
+		{
+			uint64_t address;
+			const char* text;
+
+			PDRead_findU64(reader, &address, "address", it);
+			PDRead_findString(reader, &text, "line", it);
+
+			assert_non_null(assembly[i].text);
+			assert_int_equal((int)assembly[i].address, (int)address);
+			assert_string_equal(assembly[i].text, text); 
+
+			i++;
+		}
+
+		return;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
