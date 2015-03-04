@@ -6,17 +6,16 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const float margins = 5.0f;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 struct HexMemoryData
 {
     unsigned char* data;
     int dataSize;
     int addressSize;
-    uint64_t startAddress;
-    uint64_t endAddress;
+    char startAddress[64];
+    char endAddress[64];
+    bool requestData;
+    uint64_t sa;
+    uint64_t ea;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,8 +26,15 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     (void)uiFuncs;
 
     HexMemoryData* userData = (HexMemoryData*)malloc(sizeof(HexMemoryData));
+    memset(userData, 0, sizeof(sizeof(HexMemoryData)));
+
+    strcpy(userData->startAddress, "0x00000000");
+    strcpy(userData->endAddress, "0x00001000");
+
+    userData->sa = 0;
+    userData->ea = 0x00000fff;
+
     userData->data = (unsigned char*)malloc(1024 * 1024);
-    userData->startAddress = 0x6000;
     userData->addressSize = 2;
 
     for (int i = 0; i < 1024 * 1024; ++i)
@@ -46,80 +52,68 @@ static void destroyInstance(void* userData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void printAddressLine(PDUI* uiFuncs, uint64_t address, int adressSize)
+static void getAddressLine(char* adressText, uint64_t address, int adressSize)
 {
-    char tempBuffer[128] = { 0 };
-
     switch (adressSize)
     {
         case 1:
-            sprintf(tempBuffer, "0x%02x", (uint8_t)address); break;
+            sprintf(adressText, "0x%02x", (uint8_t)address); break;
         case 2:
-            sprintf(tempBuffer, "0x%04x", (uint16_t)address); break;
+            sprintf(adressText, "0x%04x", (uint16_t)address); break;
         case 4:
-            sprintf(tempBuffer, "0x%08x", (uint32_t)address); break;
+            sprintf(adressText, "0x%08x", (uint32_t)address); break;
         case 8:
-            sprintf(tempBuffer, "0x%16llx", (int64_t)address); break;
+            sprintf(adressText, "0x%16llx", (int64_t)address); break;
     }
-
-    uiFuncs->text(tempBuffer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void drawAddresses(HexMemoryData* data, PDUI* uiFuncs, int lineCount, unsigned int charsPerLine)
+static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int charsPerLine)
 {
-    uint64_t address = data->startAddress;
+    uint64_t address = (uint64_t)strtol(data->startAddress, 0, 16);
     int adressSize = data->addressSize;
+    uint8_t* memoryData = data->data;
+
+    if (charsPerLine > 1024)
+    	charsPerLine = 1024;
 
     for (int i = 0; i < lineCount; ++i)
     {
-        printAddressLine(uiFuncs, address, adressSize);
-        address += charsPerLine;
-    }
-}
+    	char addressText[64] = { 0 };
+    	char hexData[1024];
+    	char charData[1024];
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    	char* hexText = hexData;
+    	char* charText = charData;
 
-static void drawNumbers(HexMemoryData* userData, PDUI* uiFuncs, int lineCount, unsigned int charsPerLine, float margin)
-{
-    const unsigned char* data = userData->data;
+    	// Get Address
 
-    for (int i = 0; i < lineCount; ++i)
-    {
-        PDVec2 textStart = uiFuncs->getCursorPos();
-        textStart.x = margin;
+		getAddressLine(addressText, address, adressSize);
 
-        for (unsigned int p = 0; p < charsPerLine; ++p)
-        {
-            uiFuncs->setCursorPos(textStart);
-            uiFuncs->text("%02x ", *data++);
-            textStart.x += 26.0f;
-        }
-    }
-}
+		// Get Hex and chars
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    	for (int p = 0; p < charsPerLine; ++p)
+		{
+			uint8_t c = memoryData[p];
 
-static void drawChars(HexMemoryData* userData, PDUI* uiFuncs, int lineCount, unsigned int charsPerLine, float margin)
-{
-    const unsigned char* data = userData->data;
+			sprintf(hexText, "%02x ", c); 
 
-    for (int i = 0; i < lineCount; ++i)
-    {
-        PDVec2 textStart = uiFuncs->getCursorPos();
-        textStart.x = margin;
-
-        for (unsigned int p = 0; p < charsPerLine; ++p)
-        {
-            unsigned char c = *data++;
-            uiFuncs->setCursorPos(textStart);
             if (c >= 32 && c < 128)
-                uiFuncs->text("%c", c);
+            	*charText++ = (char)c;
             else
-                uiFuncs->text(".", c);
-            textStart.x += 10.0f;
-        }
+            	*charText++ = '.';
+
+			hexText += 3;
+		}
+
+		*hexText = 0; 
+		*charText = 0; 
+
+		uiFuncs->text("%s: %s %s", addressText, hexData, charData);
+
+        address += (uint32_t)charsPerLine;
+        memoryData += charsPerLine;
     }
 }
 
@@ -127,22 +121,45 @@ static void drawChars(HexMemoryData* userData, PDUI* uiFuncs, int lineCount, uns
 
 void drawUI(HexMemoryData* data, PDUI* uiFuncs)
 {
-    PDVec2 textStart = uiFuncs->getCursorPos();
+	uiFuncs->pushItemWidth(100);
+    uiFuncs->inputText("Start Address", data->startAddress, sizeof(data->startAddress), PDInputTextFlags_CharsHexadecimal, 0, 0);
+    uiFuncs->sameLine(0, -1);
+    uiFuncs->inputText("End Address", data->endAddress, sizeof(data->endAddress), 0, 0, 0);
+    uiFuncs->popItemWidth();
+
+    PDVec2 size = { 0.0f, 0.0f };
+
+    long startAddress = strtol(data->startAddress, 0, 16);
+    long endAddress = strtol(data->endAddress, 0, 16);
+
+    if ((endAddress >= startAddress) && !data->data)
+    	return;
+
+	if (data->sa != (uint64_t)startAddress)
+	{
+		data->requestData = true;
+		data->sa = (uint64_t)startAddress;
+	}
+
+	if (data->ea != (uint64_t)endAddress)
+	{
+		data->requestData = true;
+		data->ea = (uint64_t)endAddress;
+	}
+
+    //PDVec2 textStart = uiFuncs->getCursorPos();
     PDVec2 windowSize = uiFuncs->getWindowSize();
-    windowSize.y -= textStart.y;
 
-    if (!data->data)
-        return;
+    uiFuncs->beginChild("child", size, false, 0);
 
-    const float fontHeight = uiFuncs->getFontHeight();
     const float fontWidth = uiFuncs->getFontWidth();
 
-    int drawableLineCount = (int)(windowSize.y / fontHeight);
-    float drawableChars = (float)(int)(windowSize.x / fontWidth);
+    float drawableChars = (float)(int)(windowSize.x / (fontWidth + 23));
+
+    printf("%f\n", drawableChars);
 
     // margins between the rows
 
-    drawableChars -= margins * 3.0f;
     //int addressTextSize = ((int)fontWidth) * (data->addressSize * 2) + 2;
 
     //printf("%d %d\n", addressTextSize, (int)drawableChars);
@@ -150,15 +167,25 @@ void drawUI(HexMemoryData* data, PDUI* uiFuncs)
     //if (addressTextSize > drawableChars)
     //	return;
 
-    drawAddresses(data, uiFuncs, drawableLineCount, 8);
+    int drawableLineCount = (int)((endAddress - startAddress) / (int)drawableChars); 
+
+    //printf("%d %d %d %d\n", drawableLineCount, (int)endAddress, (int)startAddress, (int)drawableChars);
+
+    drawData(data, uiFuncs, drawableLineCount, (int)drawableChars);
+
+/*
+    uiFuncs->setCursorPos(textStart);
+
+    drawNumbers(data, uiFuncs, drawableLineCount, (uint32_t)drawableChars, 76.0f);
+
+    float offset = drawableChars * (fontWidth + 20);
 
     uiFuncs->setCursorPos(textStart);
 
-    drawNumbers(data, uiFuncs, drawableLineCount, 8, 76.0f);
+    drawChars(data, uiFuncs, drawableLineCount, (uint32_t)drawableChars, offset);
 
-    uiFuncs->setCursorPos(textStart);
-
-    drawChars(data, uiFuncs, drawableLineCount, 8, 300.0f);
+*/
+    uiFuncs->endChild();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
