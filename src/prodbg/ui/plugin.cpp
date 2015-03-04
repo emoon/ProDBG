@@ -321,6 +321,20 @@ static void setScrollHere()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void pushItemWidth(float itemWidth)
+{
+	ImGui::PushItemWidth(itemWidth);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void popItemWidth()
+{
+	ImGui::PopItemWidth();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDVec2 getWindowSize()
 {
     ImVec2 size = ImGui::GetWindowSize();
@@ -535,6 +549,8 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     uiInstance->getKeyModifier = getKeyModifier;
     uiInstance->setKeyboardFocusHere = setKeyboardFocusHere;
     uiInstance->setScrollHere = setScrollHere;
+    uiInstance->pushItemWidth = pushItemWidth;
+    uiInstance->popItemWidth = popItemWidth;
 
     uiInstance->beginChild = beginChild;
     uiInstance->endChild = endChild;

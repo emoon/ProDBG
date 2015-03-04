@@ -138,6 +138,8 @@ typedef struct PDUI
 	float (*getTextLineHeight)();
 	float (*getTextWidth)(const char* text, const char* textEnd);
     void (*setScrollHere)();
+    void (*pushItemWidth)(float item_width);                     // width of items for the common item+label case. default to ~2/3 of windows width.
+    void (*popItemWidth)();
 
 	// Window
 	
@@ -161,6 +163,10 @@ typedef struct PDUI
     int (*button)(const char* label);
     int (*buttonSmall)(const char* label);
     int (*buttonSize)(const char* label, int width, int height, int repeatWhenHeld);
+
+    // Misc
+
+
 
     // Mouse
 
