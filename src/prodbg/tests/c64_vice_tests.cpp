@@ -7,10 +7,11 @@
 
 #include "api/include/pd_readwrite.h"
 #include "api/src/remote/pd_readwrite_private.h"
-#include "core/log.h"
+#include "core/core.h"
 #include "core/plugin_handler.h"
 #include "core/process.h"
 #include "core/time.h"
+#include "core/math.h"
 #include "session/session.h"
 #include "session/session_private.h"
 
@@ -308,7 +309,55 @@ void test_c64_vice_get_disassembly(void**)
 		}
 
 		return;
+
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void test_c64_vice_get_memory(void**)
+{
+	const uint8_t read_memory[] = { 0xa9, 0x22, 0xa2, 0x32, 0xa0, 0x42, 0xee, 0x20, 0xd0, 0xee, 0x21, 0xd0, 0x4c, 0x0e, 0x08 };
+
+    PDWriter* writer = s_session->currentWriter;
+
+    PDWrite_eventBegin(writer, PDEventType_getMemory);
+    PDWrite_u64(writer, "address_start", 0x080e);
+    PDWrite_u64(writer, "size", (uint32_t)15);
+    PDWrite_eventEnd(writer);
+    PDBinaryWriter_finalize(writer);
+
+    Session_update(s_session);
+
+    PDReader* reader = s_session->reader;
+
+    PDBinaryReader_initStream(reader, PDBinaryWriter_getData(s_session->currentWriter), PDBinaryWriter_getSize(s_session->currentWriter));
+
+    uint32_t event;
+
+    while ((event = PDRead_getEvent(reader)) != 0)
+    {
+		uint8_t* data;
+		uint64_t dataSize;
+		uint64_t address;
+
+    	if (event != PDEventType_setMemory)
+    		continue;
+
+    	assert_true(PDRead_findU64(reader, &address, "address", 0) & PDReadStatus_ok);
+    	assert_true((PDRead_findData(reader, (void**)&data, &dataSize, "data", 0) & PDReadStatus_typeMask) == PDReadType_data);
+
+    	assert_true(address == 0x080e);
+    	assert_true(dataSize >= 15);
+
+		assert_memory_equal(data, read_memory, sizeof_array(read_memory));
+
+		return;
+    }
+
+    // no memory found
+
+	fail();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -323,6 +372,7 @@ int main()
         unit_test(test_c64_vice_get_registers),
 		unit_test(test_c64_vice_step_cpu),
 		unit_test(test_c64_vice_get_disassembly),
+		unit_test(test_c64_vice_get_memory),
     };
 
     int test = run_tests(tests);
