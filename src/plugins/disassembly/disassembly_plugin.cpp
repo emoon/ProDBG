@@ -195,7 +195,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     PDWrite_eventBegin(writer, PDEventType_getDisassembly);
     PDWrite_u64(writer, "address_start", (uint64_t)pc); 
-    PDWrite_u32(writer, "instruction_count", (uint32_t)20);
+    PDWrite_u32(writer, "instruction_count", (uint32_t)40);
     PDWrite_eventEnd(writer);
 
     return 0;

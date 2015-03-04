@@ -5,6 +5,7 @@
 
 #ifndef _WIN32
 #include <unistd.h>
+#include <limits.h>
 #else
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -40,6 +41,7 @@ struct Regs6510
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TODO: Add to services
 
 static void sleepMs(int ms)
 {
@@ -52,6 +54,57 @@ static void sleepMs(int ms)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool getFullName(char* fullName, const char* name)
+{
+#ifdef _MSC_VER
+	if (GetFullPathName(name, PATH_MAX, fullName, 0) == 0)
+	{
+		strdup(fullName, name);
+		return true;
+	}
+#else
+	realpath(name, fullName);
+
+	return true;
+#endif
+
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void* loadToMemory(const char* filename, size_t* size)
+{
+    FILE* f = fopen(filename, "rb");
+    void* data;
+    size_t s;
+
+    *size = 0;
+
+    if (!f)
+        return 0;
+
+    // TODO: Use fstat here?
+
+    fseek(f, 0, SEEK_END);
+    s = (size_t)ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    data = malloc(s);
+
+    if (!data)
+        return 0;
+
+    fread(data, s, 1, f);
+
+    *size = s;
+
+    fclose(f);
+
+    return data;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef struct PluginData
 {
     struct VICEConnection* conn;
@@ -59,6 +112,7 @@ typedef struct PluginData
 	bool hasUpdatedRegistes;
 	bool hasUpdatedExceptionLocation;
     PDDebugState state;
+    char tempFileFull[PATH_MAX];
 } PluginData;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,6 +153,8 @@ static void* createInstance(ServiceFunc* serviceFunc)
 
     PluginData* data = malloc(sizeof(PluginData));
     memset(data, 0, sizeof(PluginData));
+
+    getFullName((char*)&data->tempFileFull, "temp/vice_mem_dump");
 
     data->state = PDDebugState_noTarget;
 
@@ -320,6 +376,55 @@ static void getDisassembly(PluginData* data, PDReader* reader, PDWriter* writer)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void getMemory(PluginData* data, PDReader* reader, PDWriter* writer)
+{
+	uint64_t address;
+	uint64_t size;
+
+    PDRead_findU64(reader, &address, "address_start", 0);
+    PDRead_findU64(reader, &size, "size", 0);
+
+	char command[512];
+
+	sprintf(command, "save \"%s\" 0 %04x %04x\n", data->tempFileFull, (uint16_t)(address), (uint16_t)(address + size));
+
+	sendCommand(data,  command); 
+
+	// Wait 10 ms for operation to complete and if we can't open the file we try for a few times and if we still can't
+	// we bail
+
+	sleepMs(10);
+
+	for (int i = 0; i < 10; ++i)
+	{
+		size_t readSize = 0;
+
+		uint8_t* mem = loadToMemory(data->tempFileFull, &readSize);
+
+		if (!mem)
+		{
+			sleepMs(1);
+			continue;
+		}
+
+		// Lets do this!
+		// + 2 is because VICE writes address at the start of the block and at the end
+
+		PDWrite_eventBegin(writer,PDEventType_setMemory); 
+		PDWrite_u64(writer, "address", address); 
+		PDWrite_data(writer, "data", mem + 2, (uint32_t)(readSize - 3));
+		PDWrite_eventEnd(writer);
+
+		// writer takes a copy
+
+		free(mem);
+
+		return;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 {
     uint32_t event;
@@ -345,11 +450,18 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 				break;
 			}
 
+			case PDEventType_getMemory:
+			{
+				getMemory(data, reader, writer);
+				break;
+			}
+
             case PDEventType_menuEvent:
 			{
                 onMenu(data, reader);
                 break;
 			}
+
         }
     }
 }
