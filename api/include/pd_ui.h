@@ -144,6 +144,7 @@ typedef struct PDUI
 	// Window
 	
 	PDVec2 (*getWindowSize)();
+	PDVec2 (*getWindowPos)();
 	float (*getFontHeight)();
 	float (*getFontWidth)();
 
@@ -166,7 +167,7 @@ typedef struct PDUI
 
     // Misc
 
-
+	PDRect (*getCurrentClipRect)();
 
     // Mouse
 
