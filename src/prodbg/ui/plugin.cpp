@@ -344,6 +344,15 @@ static PDVec2 getWindowSize()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static PDVec2 getWindowPos()
+{
+    ImVec2 pos = ImGui::GetWindowPos();
+    PDVec2 r = { pos.x, pos.y };
+    return r;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static float getFontHeight()
 {
     return 12.0f;   // TODO: Fix me
@@ -416,6 +425,16 @@ static int isItemHovered()
     return ImGui::IsItemHovered();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+PDRect getCurrentClipRect()
+{
+	ImVec4 t = ImGui::GetWindowDrawList()->clip_rect_stack.back();
+
+	PDRect v = { t.x, t.y, t.z, t.w };
+
+	return v; 
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -537,6 +556,8 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     uiInstance->fillRect = fillRect;
     uiInstance->getTextWidth = getTextWidth;
     uiInstance->getWindowSize = getWindowSize;
+    uiInstance->getWindowPos = getWindowPos;
+
     uiInstance->getFontHeight = getFontHeight;
     uiInstance->getFontWidth = getFontWidth;
     uiInstance->getMousePos = getMousePos;
@@ -554,6 +575,7 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
 
     uiInstance->beginChild = beginChild;
     uiInstance->endChild = endChild;
+    uiInstance->getCurrentClipRect = getCurrentClipRect; 
 
     uiInstance->pushStyleVarV = pushStyleVarV;
     uiInstance->pushStyleVarF = pushStyleVarF;
