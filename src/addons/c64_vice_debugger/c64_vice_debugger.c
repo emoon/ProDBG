@@ -57,9 +57,9 @@ static void sleepMs(int ms)
 bool getFullName(char* fullName, const char* name)
 {
 #ifdef _MSC_VER
-	if (GetFullPathName(name, PATH_MAX, fullName, 0) == 0)
+	if (GetFullPathNameA(name, MAX_PATH, fullName, 0) == 0)
 	{
-		strdup(fullName, name);
+		strcpy(fullName, name);
 		return true;
 	}
 #else
@@ -67,7 +67,7 @@ bool getFullName(char* fullName, const char* name)
 
 	return true;
 #endif
-
+	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -112,7 +112,7 @@ typedef struct PluginData
 	bool hasUpdatedRegistes;
 	bool hasUpdatedExceptionLocation;
     PDDebugState state;
-    char tempFileFull[PATH_MAX];
+    char tempFileFull[1024];
 } PluginData;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
