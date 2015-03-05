@@ -188,7 +188,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     // Temporary req
 
-	int pc = (int)(data->pc) - 0x20;
+	int pc = (int)(data->pc) - 0x40;
 
 	if (pc < 0)
 		pc = 0;
