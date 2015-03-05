@@ -37,8 +37,9 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     userData->data = (unsigned char*)malloc(1024 * 1024);
     userData->addressSize = 2;
 
-    for (int i = 0; i < 1024 * 1024; ++i)
-        userData->data[i] = rand() & 0xff;
+    // clear
+
+	memset(userData->data, 0xff, 1024 * 1024);
 
     return userData;
 }
@@ -73,7 +74,7 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
 {
     uint64_t address = (uint64_t)strtol(data->startAddress, 0, 16);
     int adressSize = data->addressSize;
-    uint8_t* memoryData = data->data;
+    uint8_t* memoryData = data->data + address;
 
     if (charsPerLine > 1024)
     	charsPerLine = 1024;
@@ -152,20 +153,15 @@ void drawUI(HexMemoryData* data, PDUI* uiFuncs)
 
     uiFuncs->beginChild("child", size, false, 0);
 
+    //PDRect rect = uiFuncs->getCurrentClipRect();
+    //PDVec2 pos = uiFuncs->getWindowPos();
+
+    //printf("pos %f %f\n", pos.x, pos.y);
+    //printf("rect %f %f %f %f\n", rect.x, rect.y, rect.width, rect.height);
+
     const float fontWidth = uiFuncs->getFontWidth();
 
     float drawableChars = (float)(int)(windowSize.x / (fontWidth + 23));
-
-    printf("%f\n", drawableChars);
-
-    // margins between the rows
-
-    //int addressTextSize = ((int)fontWidth) * (data->addressSize * 2) + 2;
-
-    //printf("%d %d\n", addressTextSize, (int)drawableChars);
-
-    //if (addressTextSize > drawableChars)
-    //	return;
 
     int drawableLineCount = (int)((endAddress - startAddress) / (int)drawableChars); 
 
@@ -173,18 +169,6 @@ void drawUI(HexMemoryData* data, PDUI* uiFuncs)
 
     drawData(data, uiFuncs, drawableLineCount, (int)drawableChars);
 
-/*
-    uiFuncs->setCursorPos(textStart);
-
-    drawNumbers(data, uiFuncs, drawableLineCount, (uint32_t)drawableChars, 76.0f);
-
-    float offset = drawableChars * (fontWidth + 20);
-
-    uiFuncs->setCursorPos(textStart);
-
-    drawChars(data, uiFuncs, drawableLineCount, (uint32_t)drawableChars, offset);
-
-*/
     uiFuncs->endChild();
 }
 
@@ -193,45 +177,39 @@ void drawUI(HexMemoryData* data, PDUI* uiFuncs)
 static void updateMemory(HexMemoryData* userData, PDReader* reader)
 {
     void* data;
+    uint64_t address = 0;
     uint64_t size = 0;
 
-    //printf("%s(%d) update memory\n", __FILE__, __LINE__);
-
+   	PDRead_findU64(reader, &address, "address", 0);
 
     if (PDRead_findData(reader, &data, &size, "data", 0) == PDReadStatus_notFound)
         return;
 
     printf("%s(%d) update memory\n", __FILE__, __LINE__);
 
-    free(userData->data);
+    // TODO: Currently we just copy the memory into a predefined memory range. This needs to really be fixed
+    // We need some overlapping memory ranges and such here to handle this correctly
 
-    userData->data = (unsigned char*)malloc((size_t)size);
-    memcpy(userData->data, data, (size_t)size);
+	if (address + size >= 1024 * 1024)
+	{
+    	printf("%s(%d) address (0x%16llx %x) + size larger than 1 mb which isn't supported right now\n", __FILE__, __LINE__, address, (int)size);
+    	return;
+	}
+
+    memcpy(userData->data + address, data, (size_t)size);
 
     printf("updating data %p %d\n", userData->data, (int)size);
-
-    userData->dataSize = (int)size;
-    userData->data = (unsigned char*)data;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents)
+static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* writer)
 {
     uint32_t event;
 
-    (void)outEvents;
-
     HexMemoryData* data = (HexMemoryData*)userData;
 
-    /*
-       PDVec2 windowSize = uiFuncs->getWindowSize();
-       const float fontHeight = uiFuncs->getFontHeight();
-       const float fontWidth = uiFuncs->getFontWidth();
-
-       int drawableLineCount = (int)(windowSize.y / fontHeight);
-       int drawableChars = (int)(windowSize.x / fontWidth);
-     */
+	data->requestData = false;
 
     // Loop over all the in events
 
@@ -249,12 +227,15 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
 
     drawUI(data, uiFuncs);
 
-    /*
-       PDWrite_eventBegin(outEvents, PDEventType_getMemory);
-       PDWrite_u16(outEvents, "address", 0x6000);
-       PDWrite_u16(outEvents, "size", (uint16_t)(drawableLineCount * drawableChars));
-       PDWrite_eventEnd(outEvents);
-     */
+    if (data->requestData)
+	{
+		printf("requesting memory range %04x - %04x\n", (uint16_t)data->sa, (uint16_t)data->ea);
+		
+		PDWrite_eventBegin(writer, PDEventType_getMemory);
+		PDWrite_u64(writer, "address_start", data->sa);
+		PDWrite_u64(writer, "size", data->ea - data->sa);
+		PDWrite_eventEnd(writer);
+	}
 
     return 0;
 }
@@ -276,10 +257,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-    {
-        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-    }
+PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+{
+	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
