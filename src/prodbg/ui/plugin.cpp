@@ -323,14 +323,14 @@ static void setScrollHere()
 
 static void pushItemWidth(float itemWidth)
 {
-	ImGui::PushItemWidth(itemWidth);
+    ImGui::PushItemWidth(itemWidth);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void popItemWidth()
 {
-	ImGui::PopItemWidth();
+    ImGui::PopItemWidth();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -429,11 +429,11 @@ static int isItemHovered()
 
 PDRect getCurrentClipRect()
 {
-	ImVec4 t = ImGui::GetWindowDrawList()->clip_rect_stack.back();
+    ImVec4 t = ImGui::GetWindowDrawList()->clip_rect_stack.back();
 
-	PDRect v = { t.x, t.y, t.z, t.w };
+    PDRect v = { t.x, t.y, t.z, t.w };
 
-	return v; 
+    return v;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -575,7 +575,7 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
 
     uiInstance->beginChild = beginChild;
     uiInstance->endChild = endChild;
-    uiInstance->getCurrentClipRect = getCurrentClipRect; 
+    uiInstance->getCurrentClipRect = getCurrentClipRect;
 
     uiInstance->pushStyleVarV = pushStyleVarV;
     uiInstance->pushStyleVarF = pushStyleVarF;

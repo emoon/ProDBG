@@ -57,15 +57,15 @@ static void sleepMs(int ms)
 bool getFullName(char* fullName, const char* name)
 {
 #ifdef _MSC_VER
-	if (GetFullPathName(name, PATH_MAX, fullName, 0) == 0)
-	{
-		strdup(fullName, name);
-		return true;
-	}
+    if (GetFullPathName(name, PATH_MAX, fullName, 0) == 0)
+    {
+        strdup(fullName, name);
+        return true;
+    }
 #else
-	realpath(name, fullName);
+    realpath(name, fullName);
 
-	return true;
+    return true;
 #endif
 
 }
@@ -108,9 +108,9 @@ void* loadToMemory(const char* filename, size_t* size)
 typedef struct PluginData
 {
     struct VICEConnection* conn;
-	struct Regs6510 regs;
-	bool hasUpdatedRegistes;
-	bool hasUpdatedExceptionLocation;
+    struct Regs6510 regs;
+    bool hasUpdatedRegistes;
+    bool hasUpdatedExceptionLocation;
     PDDebugState state;
     char tempFileFull[PATH_MAX];
 } PluginData;
@@ -199,10 +199,10 @@ static void sendCommand(PluginData* data, const char* command)
 {
     int len = (int)strlen(command);
 
-	if (!data->conn)
-		return;
+    if (!data->conn)
+        return;
 
-	//printf("send command %s\n", command);
+    //printf("send command %s\n", command);
 
     VICEConnection_send(data->conn, command, len, 0);
 }
@@ -214,38 +214,38 @@ static int getData(PluginData* data, char** resBuffer, int* len)
     const int maxTry = 100;
     int res = 0;
 
-	if (!data->conn)
-		return 0;
+    if (!data->conn)
+        return 0;
 
-	char* resData = (char*)&s_recvBuffer;
-	int lenCount = 0;
+    char* resData = (char*)&s_recvBuffer;
+    int lenCount = 0;
 
     for (int i = 0; i < maxTry; ++i)
     {
-		bool gotData = false;
+        bool gotData = false;
 
         while (VICEConnection_pollRead(data->conn))
         {
             res = VICEConnection_recv(data->conn, resData, ((int)sizeof(s_recvBuffer)) - lenCount, 0);
 
             if (res == 0)
-            	break;
+                break;
 
-			gotData = true;
+            gotData = true;
 
-			resData += res;
-			lenCount += res;
+            resData += res;
+            lenCount += res;
 
-			sleepMs(1);
+            sleepMs(1);
         }
 
         if (gotData)
-		{
+        {
             *len = lenCount;
             *resBuffer = (char*)&s_recvBuffer;
 
             return 1;
-		}
+        }
 
         // Got some data so read it back
 
@@ -285,10 +285,10 @@ static void parseRegisters(struct Regs6510* regs, char* str)
     //           .;e5cf 00 00 0a f3 2f 37 00100010 000 001    3400489
     //
 
-	str = strstr(str, ".;");
+    str = strstr(str, ".;");
 
-	if (!str)
-		return;
+    if (!str)
+        return;
 
     const char* pch = strtok(str, " \t\n");
 
@@ -326,18 +326,18 @@ static void getDisassembly(PluginData* data, PDReader* reader, PDWriter* writer)
     char* res = 0;
     int len = 0;
 
-	char gitDisAsmCommand[512];
+    char gitDisAsmCommand[512];
 
-	uint64_t addressStart = 0;
-	uint32_t instructionCount = 0; 	
+    uint64_t addressStart = 0;
+    uint32_t instructionCount = 0;
 
     PDRead_findU64(reader, &addressStart, "address_start", 0);
     PDRead_findU32(reader, &instructionCount, "instruction_count", 0);
 
-	// assume that one instruction is 3 bytes which is high but that gives us more data back than we need which is
-	// better than too little
+    // assume that one instruction is 3 bytes which is high but that gives us more data back than we need which is
+    // better than too little
 
-	sprintf(gitDisAsmCommand, "disass $%04x $%04x\n", (uint16_t)addressStart, (uint16_t)(addressStart + instructionCount * 3));
+    sprintf(gitDisAsmCommand, "disass $%04x $%04x\n", (uint16_t)addressStart, (uint16_t)(addressStart + instructionCount * 3));
 
     sendCommand(data, gitDisAsmCommand);
 
@@ -346,81 +346,81 @@ static void getDisassembly(PluginData* data, PDReader* reader, PDWriter* writer)
 
     // parse the buffer
 
-	char* pch = strtok(res, "\n");
+    char* pch = strtok(res, "\n");
 
-	PDWrite_eventBegin(writer, PDEventType_setDisassembly);
-	PDWrite_arrayBegin(writer, "disassembly");
+    PDWrite_eventBegin(writer, PDEventType_setDisassembly);
+    PDWrite_arrayBegin(writer, "disassembly");
 
-	while (pch)
-	{
-		// expected format of each line:
-		// .C:080e  A9 22       LDA #$22
+    while (pch)
+    {
+        // expected format of each line:
+        // .C:080e  A9 22       LDA #$22
 
-		if (pch[0] != '.')
-			break;
+        if (pch[0] != '.')
+            break;
 
-		uint16_t address = (uint16_t)strtol(&pch[3], 0, 16);
+        uint16_t address = (uint16_t)strtol(&pch[3], 0, 16);
 
-		PDWrite_arrayEntryBegin(writer);
-		PDWrite_u16(writer, "address", address);
-		PDWrite_string(writer, "line", &pch[9]);
+        PDWrite_arrayEntryBegin(writer);
+        PDWrite_u16(writer, "address", address);
+        PDWrite_string(writer, "line", &pch[9]);
 
-		PDWrite_arrayEntryEnd(writer);
+        PDWrite_arrayEntryEnd(writer);
 
-		pch = strtok(0, "\n");
-	}
+        pch = strtok(0, "\n");
+    }
 
-	PDWrite_arrayEnd(writer);
-	PDWrite_eventEnd(writer);
+    PDWrite_arrayEnd(writer);
+    PDWrite_eventEnd(writer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void getMemory(PluginData* data, PDReader* reader, PDWriter* writer)
 {
-	uint64_t address;
-	uint64_t size;
+    uint64_t address;
+    uint64_t size;
 
     PDRead_findU64(reader, &address, "address_start", 0);
     PDRead_findU64(reader, &size, "size", 0);
 
-	char command[512];
+    char command[512];
 
-	sprintf(command, "save \"%s\" 0 %04x %04x\n", data->tempFileFull, (uint16_t)(address), (uint16_t)(address + size));
+    sprintf(command, "save \"%s\" 0 %04x %04x\n", data->tempFileFull, (uint16_t)(address), (uint16_t)(address + size));
 
-	sendCommand(data,  command); 
+    sendCommand(data,  command);
 
-	// Wait 10 ms for operation to complete and if we can't open the file we try for a few times and if we still can't
-	// we bail
+    // Wait 10 ms for operation to complete and if we can't open the file we try for a few times and if we still can't
+    // we bail
 
-	sleepMs(10);
+    sleepMs(10);
 
-	for (int i = 0; i < 10; ++i)
-	{
-		size_t readSize = 0;
+    for (int i = 0; i < 10; ++i)
+    {
+        size_t readSize = 0;
 
-		uint8_t* mem = loadToMemory(data->tempFileFull, &readSize);
+        uint8_t* mem = loadToMemory(data->tempFileFull, &readSize);
 
-		if (!mem)
-		{
-			sleepMs(1);
-			continue;
-		}
+        if (!mem)
+        {
+            sleepMs(1);
+            continue;
+        }
 
-		// Lets do this!
-		// + 2 is because VICE writes address at the start of the block and at the end
+        // Lets do this!
+        // + 2 is because VICE writes address at the start of the block and at the end
 
-		PDWrite_eventBegin(writer,PDEventType_setMemory); 
-		PDWrite_u64(writer, "address", address); 
-		PDWrite_data(writer, "data", mem + 2, (uint32_t)(readSize - 3));
-		PDWrite_eventEnd(writer);
+        PDWrite_eventBegin(writer, PDEventType_setMemory);
+        PDWrite_u64(writer, "address", address);
+        PDWrite_data(writer, "data", mem + 2, (uint32_t)(readSize - 3));
+        PDWrite_eventEnd(writer);
 
-		// writer takes a copy
+        // writer takes a copy
 
-		free(mem);
+        free(mem);
 
-		return;
-	}
+        return;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -436,31 +436,31 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
             //case PDEventType_getExceptionLocation : setExceptionLocation(plugin, writer); break;
             //case PDEventType_getCallstack : setCallstack(plugin, writer); break;
 
-			case PDEventType_getRegisters:
-			{
+            case PDEventType_getRegisters:
+            {
                 if (!data->hasUpdatedRegistes)
                     getRegisters(data);
 
                 break;
-			}
+            }
 
-			case PDEventType_getDisassembly:
-			{
-				getDisassembly(data, reader, writer);
-				break;
-			}
+            case PDEventType_getDisassembly:
+            {
+                getDisassembly(data, reader, writer);
+                break;
+            }
 
-			case PDEventType_getMemory:
-			{
-				getMemory(data, reader, writer);
-				break;
-			}
+            case PDEventType_getMemory:
+            {
+                getMemory(data, reader, writer);
+                break;
+            }
 
             case PDEventType_menuEvent:
-			{
+            {
                 onMenu(data, reader);
                 break;
-			}
+            }
 
         }
     }
@@ -470,19 +470,19 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 
 static uint16_t findRegisterInString(const char* str, const char* needle)
 {
-	const char* offset = strstr(str, needle);
+    const char* offset = strstr(str, needle);
 
-	size_t needleLength = strlen(needle);
+    size_t needleLength = strlen(needle);
 
-	if (!offset)
-	{
-		printf("findRegisterInString: Unable to find %s in %s\n", needle, str);
-		return 0;
-	}
+    if (!offset)
+    {
+        printf("findRegisterInString: Unable to find %s in %s\n", needle, str);
+        return 0;
+    }
 
-	offset += needleLength;
+    offset += needleLength;
 
-	return (uint16_t)strtol(offset, 0, 16);
+    return (uint16_t)strtol(offset, 0, 16);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -514,44 +514,44 @@ void onStep(PluginData* plugin)
 
 static void onAction(PluginData* plugin, PDAction action)
 {
-	switch (action)
-	{
-		case PDAction_none:
-			break;
-		
-		case PDAction_stop:
-		{
-			sendCommand(plugin, "break\n");
-			break;
-		}
+    switch (action)
+    {
+        case PDAction_none:
+            break;
 
-		case PDAction_break:
-		{
-			sendCommand(plugin, "break\n");
-			break;
-		}
+        case PDAction_stop:
+        {
+            sendCommand(plugin, "break\n");
+            break;
+        }
 
-		case PDAction_run:
-		{
-			if (plugin->state != PDDebugState_running)
-				sendCommand(plugin, "ret\n");
+        case PDAction_break:
+        {
+            sendCommand(plugin, "break\n");
+            break;
+        }
 
-			break;
-		}
+        case PDAction_run:
+        {
+            if (plugin->state != PDDebugState_running)
+                sendCommand(plugin, "ret\n");
 
-		case PDAction_step:
-		{
-			onStep(plugin);
-			break;
-		}
+            break;
+        }
 
-		case PDAction_stepOver:
-		case PDAction_stepOut:
-		case PDAction_custom:
-		{
-			break;
-		}
-	}
+        case PDAction_step:
+        {
+            onStep(plugin);
+            break;
+        }
+
+        case PDAction_stepOver:
+        case PDAction_stepOut:
+        case PDAction_custom:
+        {
+            break;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -563,32 +563,32 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
     plugin->hasUpdatedRegistes = false;
     plugin->hasUpdatedExceptionLocation = false;
 
-	onAction(plugin, action);
+    onAction(plugin, action);
 
     processEvents(plugin, reader, writer);
 
     if (plugin->hasUpdatedRegistes)
-	{
-		PDWrite_eventBegin(writer, PDEventType_setRegisters);
-		PDWrite_arrayBegin(writer, "registers");
+    {
+        PDWrite_eventBegin(writer, PDEventType_setRegisters);
+        PDWrite_arrayBegin(writer, "registers");
 
-		writeRegister(writer, "pc", 2, plugin->regs.pc, 1);
-		writeRegister(writer, "sp", 1, plugin->regs.sp, 0);
-		writeRegister(writer, "a", 1, plugin->regs.a, 0);
-		writeRegister(writer, "x", 1, plugin->regs.x, 0);
-		writeRegister(writer, "y", 1, plugin->regs.y, 0);
+        writeRegister(writer, "pc", 2, plugin->regs.pc, 1);
+        writeRegister(writer, "sp", 1, plugin->regs.sp, 0);
+        writeRegister(writer, "a", 1, plugin->regs.a, 0);
+        writeRegister(writer, "x", 1, plugin->regs.x, 0);
+        writeRegister(writer, "y", 1, plugin->regs.y, 0);
 
-		PDWrite_arrayEnd(writer);
-		PDWrite_eventEnd(writer);
-	}
+        PDWrite_arrayEnd(writer);
+        PDWrite_eventEnd(writer);
+    }
 
-	if (plugin->hasUpdatedExceptionLocation)
-	{
-		PDWrite_eventBegin(writer,PDEventType_setExceptionLocation); 
-		PDWrite_u16(writer, "address", plugin->regs.pc);
-		PDWrite_u8(writer, "address_size", 2);
-		PDWrite_eventEnd(writer);
-	}
+    if (plugin->hasUpdatedExceptionLocation)
+    {
+        PDWrite_eventBegin(writer, PDEventType_setExceptionLocation);
+        PDWrite_u16(writer, "address", plugin->regs.pc);
+        PDWrite_u8(writer, "address_size", 2);
+        PDWrite_eventEnd(writer);
+    }
 
     return plugin->state;
 }

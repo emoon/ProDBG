@@ -67,10 +67,10 @@ static void imguiRender(ImDrawList** const cmd_lists, int cmd_lists_count)
                            | BGFX_STATE_MSAA);
 
             bgfx::setScissor(uint16_t(pcmd->clip_rect.x)
-						, uint16_t(pcmd->clip_rect.y)
-						, uint16_t(pcmd->clip_rect.z-pcmd->clip_rect.x)
-						, uint16_t(pcmd->clip_rect.w-pcmd->clip_rect.y)
-						);
+                             , uint16_t(pcmd->clip_rect.y)
+                             , uint16_t(pcmd->clip_rect.z - pcmd->clip_rect.x)
+                             , uint16_t(pcmd->clip_rect.w - pcmd->clip_rect.y)
+                             );
 
             UIRender_posTexColor(&tvb, vtx_offset, pcmd->vtx_count, s_textureId);
 
