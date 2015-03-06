@@ -76,21 +76,21 @@ static void updateRegisters(CPUState* cpuState, PDReader* reader)
     while (PDRead_getNextEntry(reader, &it))
     {
         const char* name = "";
-    	uint16_t regValue;
+        uint16_t regValue;
 
         PDRead_findString(reader, &name, "name", it);
-    	PDRead_findU16(reader, &regValue, "register", it);
+        PDRead_findU16(reader, &regValue, "register", it);
 
-		if (!strcmp(name, "pc"))
-			cpuState->pc = (uint16_t)regValue;
-		else if (!strcmp(name, "sp"))
-			cpuState->sp = (uint8_t)regValue;
-		else if (!strcmp(name, "a"))
-			cpuState->a = (uint8_t)regValue;
-		else if (!strcmp(name, "x"))
-			cpuState->x = (uint8_t)regValue;
-		else if (!strcmp(name, "y"))
-			cpuState->y = (uint8_t)regValue;
+        if (!strcmp(name, "pc"))
+            cpuState->pc = (uint16_t)regValue;
+        else if (!strcmp(name, "sp"))
+            cpuState->sp = (uint8_t)regValue;
+        else if (!strcmp(name, "a"))
+            cpuState->a = (uint8_t)regValue;
+        else if (!strcmp(name, "x"))
+            cpuState->x = (uint8_t)regValue;
+        else if (!strcmp(name, "y"))
+            cpuState->y = (uint8_t)regValue;
 
     }
 }
@@ -112,7 +112,7 @@ void handleEvents(CPUState* cpuState, Session* session)
         {
             case PDEventType_setRegisters:
             {
-				updateRegisters(cpuState, reader);
+                updateRegisters(cpuState, reader);
                 foundRegisters = true;
                 break;
             }
@@ -128,7 +128,7 @@ void handleEvents(CPUState* cpuState, Session* session)
 
 void printCPUState(CPUState* state)
 {
-	printf("pc %04x - a %02x - x - %02x - y %02x - sp %02x\n", state->pc, state->a, state->x, state->y, state->sp);
+    printf("pc %04x - a %02x - x - %02x - y %02x - sp %02x\n", state->pc, state->a, state->x, state->y, state->sp);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -179,7 +179,7 @@ static void test_c64_vice_connect(void**)
 
 void test_c64_vice_get_registers(void**)
 {
-	CPUState state;
+    CPUState state;
 
     PDWriter* writer = s_session->currentWriter;
 
@@ -188,36 +188,36 @@ void test_c64_vice_get_registers(void**)
     PDBinaryWriter_finalize(writer);
 
     Session_update(s_session);
-	handleEvents(&state, s_session);
+    handleEvents(&state, s_session);
 
-	assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
+    assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void test_c64_vice_step_cpu(void**)
 {
-	CPUState state;
+    CPUState state;
 
     Session_action(s_session, PDAction_step);
-	handleEvents(&state, s_session);
+    handleEvents(&state, s_session);
 
-	assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
-	assert_true(state.a == 0x22);
-	assert_true(state.x == 0x32);
-	assert_true(state.y == 0x42);
-
-    Session_action(s_session, PDAction_step);
-	handleEvents(&state, s_session);
-
-	assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
+    assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
+    assert_true(state.a == 0x22);
+    assert_true(state.x == 0x32);
+    assert_true(state.y == 0x42);
 
     Session_action(s_session, PDAction_step);
-	handleEvents(&state, s_session);
+    handleEvents(&state, s_session);
 
-	assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
+    assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
 
-	// Get registers after some stepping
+    Session_action(s_session, PDAction_step);
+    handleEvents(&state, s_session);
+
+    assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
+
+    // Get registers after some stepping
 
     PDWriter* writer = s_session->currentWriter;
 
@@ -226,9 +226,9 @@ void test_c64_vice_step_cpu(void**)
     PDBinaryWriter_finalize(writer);
 
     Session_update(s_session);
-	handleEvents(&state, s_session);
+    handleEvents(&state, s_session);
 
-	assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
+    assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
 
     writer = s_session->currentWriter;
 
@@ -237,9 +237,9 @@ void test_c64_vice_step_cpu(void**)
     PDBinaryWriter_finalize(writer);
 
     Session_update(s_session);
-	handleEvents(&state, s_session);
+    handleEvents(&state, s_session);
 
-	assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
+    assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
 }
 
 
@@ -247,24 +247,24 @@ void test_c64_vice_step_cpu(void**)
 
 struct Assembly
 {
-	uint16_t address;
-	const char* text;
+    uint16_t address;
+    const char* text;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void test_c64_vice_get_disassembly(void**)
 {
-	static Assembly assembly[] =
-	{
-		{ 0x080e, "A9 22       LDA #$22" },
-		{ 0x0810, "A2 32       LDX #$32" },
-		{ 0x0812, "A0 42       LDY #$42" },
-		{ 0x0814, "EE 20 D0    INC $D020" },
-		{ 0x0817, "EE 21 D0    INC $D021" },
-		{ 0x081a, "4C 0E 08    JMP $080E" },
-		{ 0, 0 },
-	};
+    static Assembly assembly[] =
+    {
+        { 0x080e, "A9 22       LDA #$22" },
+        { 0x0810, "A2 32       LDX #$32" },
+        { 0x0812, "A0 42       LDY #$42" },
+        { 0x0814, "EE 20 D0    INC $D020" },
+        { 0x0817, "EE 21 D0    INC $D021" },
+        { 0x081a, "4C 0E 08    JMP $080E" },
+        { 0, 0 },
+    };
 
     PDWriter* writer = s_session->currentWriter;
 
@@ -284,31 +284,31 @@ void test_c64_vice_get_disassembly(void**)
 
     while ((event = PDRead_getEvent(reader)) != 0)
     {
-    	if (event != PDEventType_setDisassembly)
-    		continue;
+        if (event != PDEventType_setDisassembly)
+            continue;
 
-		PDReaderIterator it;
+        PDReaderIterator it;
 
-		assert_false(PDRead_findArray(reader, &it, "disassembly", 0) == PDReadStatus_notFound);
+        assert_false(PDRead_findArray(reader, &it, "disassembly", 0) == PDReadStatus_notFound);
 
-		int i = 0;
+        int i = 0;
 
-		while (PDRead_getNextEntry(reader, &it))
-		{
-			uint64_t address;
-			const char* text;
+        while (PDRead_getNextEntry(reader, &it))
+        {
+            uint64_t address;
+            const char* text;
 
-			PDRead_findU64(reader, &address, "address", it);
-			PDRead_findString(reader, &text, "line", it);
+            PDRead_findU64(reader, &address, "address", it);
+            PDRead_findString(reader, &text, "line", it);
 
-			assert_non_null(assembly[i].text);
-			assert_int_equal((int)assembly[i].address, (int)address);
-			assert_string_equal(assembly[i].text, text); 
+            assert_non_null(assembly[i].text);
+            assert_int_equal((int)assembly[i].address, (int)address);
+            assert_string_equal(assembly[i].text, text);
 
-			i++;
-		}
+            i++;
+        }
 
-		return;
+        return;
 
     }
 }
@@ -317,7 +317,7 @@ void test_c64_vice_get_disassembly(void**)
 
 void test_c64_vice_get_memory(void**)
 {
-	const uint8_t read_memory[] = { 0xa9, 0x22, 0xa2, 0x32, 0xa0, 0x42, 0xee, 0x20, 0xd0, 0xee, 0x21, 0xd0, 0x4c, 0x0e, 0x08 };
+    const uint8_t read_memory[] = { 0xa9, 0x22, 0xa2, 0x32, 0xa0, 0x42, 0xee, 0x20, 0xd0, 0xee, 0x21, 0xd0, 0x4c, 0x0e, 0x08 };
 
     PDWriter* writer = s_session->currentWriter;
 
@@ -337,27 +337,27 @@ void test_c64_vice_get_memory(void**)
 
     while ((event = PDRead_getEvent(reader)) != 0)
     {
-		uint8_t* data;
-		uint64_t dataSize;
-		uint64_t address;
+        uint8_t* data;
+        uint64_t dataSize;
+        uint64_t address;
 
-    	if (event != PDEventType_setMemory)
-    		continue;
+        if (event != PDEventType_setMemory)
+            continue;
 
-    	assert_true(PDRead_findU64(reader, &address, "address", 0) & PDReadStatus_ok);
-    	assert_true((PDRead_findData(reader, (void**)&data, &dataSize, "data", 0) & PDReadStatus_typeMask) == PDReadType_data);
+        assert_true(PDRead_findU64(reader, &address, "address", 0) & PDReadStatus_ok);
+        assert_true((PDRead_findData(reader, (void**)&data, &dataSize, "data", 0) & PDReadStatus_typeMask) == PDReadType_data);
 
-    	assert_true(address == 0x080e);
-    	assert_true(dataSize >= 15);
+        assert_true(address == 0x080e);
+        assert_true(dataSize >= 15);
 
-		assert_memory_equal(data, read_memory, sizeof_array(read_memory));
+        assert_memory_equal(data, read_memory, sizeof_array(read_memory));
 
-		return;
+        return;
     }
 
     // no memory found
 
-	fail();
+    fail();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -370,9 +370,9 @@ int main()
         unit_test(test_c64_vice_fail_connect),
         unit_test(test_c64_vice_connect),
         unit_test(test_c64_vice_get_registers),
-		unit_test(test_c64_vice_step_cpu),
-		unit_test(test_c64_vice_get_disassembly),
-		unit_test(test_c64_vice_get_memory),
+        unit_test(test_c64_vice_step_cpu),
+        unit_test(test_c64_vice_get_disassembly),
+        unit_test(test_c64_vice_get_memory),
     };
 
     int test = run_tests(tests);
