@@ -145,7 +145,8 @@ static void test_c64_vice_connect(void**)
     // TODO: Fix hardcoded path
 
 #ifdef PRODBG_MAC
-    const char* viceLaunchPath = "../../vice/x64.app/Contents/MacOS/x64";
+    //const char* viceLaunchPath = "../../vice/x64.app/Contents/MacOS/x64";
+    const char* viceLaunchPath = "/Applications/VICE/x64.app/Contents/MacOS/x64";
 #elif PRODBG_WIN
     const char* viceLaunchPath = "..\\..\\vice\\x64.exe";
 #else
@@ -154,7 +155,7 @@ static void test_c64_vice_connect(void**)
 #endif
     assert_non_null(viceLaunchPath);
 
-    const char* argv[] = { viceLaunchPath, "-remotemonitor", "/Users/danielcollin/code/temp/test.prg", 0};
+    const char* argv[] = { viceLaunchPath, "-remotemonitor", "examples/c64_vice/test.prg", 0};
 
     s_viceHandle = Process_spawn(viceLaunchPath, argv);
 
@@ -351,6 +352,8 @@ void test_c64_vice_get_memory(void**)
         assert_true(dataSize >= 15);
 
         assert_memory_equal(data, read_memory, sizeof_array(read_memory));
+    
+    	Session_update(s_session);
 
         return;
     }
@@ -358,6 +361,88 @@ void test_c64_vice_get_memory(void**)
     // no memory found
 
     fail();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static bool getExceptionLocation(PDReader* reader, uint64_t* address)
+{
+	uint32_t event;
+
+	while ((event = PDRead_getEvent(reader)) != 0)
+	{
+		if (event != PDEventType_setExceptionLocation)
+			continue;
+
+		assert_true(PDRead_findU64(reader, address, "address", 0) & PDReadStatus_ok);
+
+		return true;
+	}
+
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void test_c64_vice_breakpoints(void**)
+{
+	Session_action(s_session, PDAction_step);
+
+	// first we step the CPU se we have the PC at known position, we try to step 10 times
+	// and if we don't get the correct PC with in that time we fail the test
+	
+	for (int i = 0; i < 10; ++i)
+	{
+		CPUState state;
+
+		Session_action(s_session, PDAction_step);
+		handleEvents(&state, s_session);
+
+		if (state.pc == 0x80e)
+			break;
+
+		if (i == 9)
+			fail();
+	}
+	
+	// Add a breakpoint at 0x0814
+
+    PDWriter* writer = s_session->currentWriter;
+
+    const uint64_t breakAddress = 0x0814;
+
+    PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
+    PDWrite_u64(writer, "address", breakAddress);
+    PDWrite_eventEnd(writer);
+
+    PDBinaryWriter_finalize(writer);
+
+   	Session_update(s_session);
+	Session_action(s_session, PDAction_run);
+
+    // Give VICE some time to actually hit the breakpoint so we loop here and do
+    // some sleeping and expect this to hit within 10 ms
+
+	for (int i = 0; i < 10; ++i)
+	{
+		uint64_t address = 0;
+
+    	Session_update(s_session);
+
+		PDReader* reader = s_session->reader;
+
+		PDBinaryReader_initStream(reader, PDBinaryWriter_getData(s_session->currentWriter), PDBinaryWriter_getSize(s_session->currentWriter));
+
+		if (getExceptionLocation(reader, &address))
+		{
+			assert_true(address == breakAddress);
+			return;
+		}
+
+		Time_sleepMs(1);
+	}
+
+	fail();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -373,6 +458,7 @@ int main()
         unit_test(test_c64_vice_step_cpu),
         unit_test(test_c64_vice_get_disassembly),
         unit_test(test_c64_vice_get_memory),
+        unit_test(test_c64_vice_breakpoints),
     };
 
     int test = run_tests(tests);

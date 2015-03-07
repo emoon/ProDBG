@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <stdarg.h>
 #include <stdbool.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -195,16 +196,23 @@ static void onMenu(PluginData* data, PDReader* reader)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void sendCommand(PluginData* data, const char* command)
+static void sendCommand(PluginData* data, const char* format, ...)
 {
-    int len = (int)strlen(command);
+    va_list ap;
+	char buffer[2048];
+
+    va_start(ap, format);
+	vsprintf(buffer, format, ap);
+    va_end(ap);
+
+    int len = (int)strlen(buffer);
 
     if (!data->conn)
         return;
 
     //printf("send command %s\n", command);
 
-    VICEConnection_send(data->conn, command, len, 0);
+    VICEConnection_send(data->conn, buffer, len, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -326,8 +334,6 @@ static void getDisassembly(PluginData* data, PDReader* reader, PDWriter* writer)
     char* res = 0;
     int len = 0;
 
-    char gitDisAsmCommand[512];
-
     uint64_t addressStart = 0;
     uint32_t instructionCount = 0;
 
@@ -337,9 +343,7 @@ static void getDisassembly(PluginData* data, PDReader* reader, PDWriter* writer)
     // assume that one instruction is 3 bytes which is high but that gives us more data back than we need which is
     // better than too little
 
-    sprintf(gitDisAsmCommand, "disass $%04x $%04x\n", (uint16_t)addressStart, (uint16_t)(addressStart + instructionCount * 3));
-
-    sendCommand(data, gitDisAsmCommand);
+    sendCommand(data, "disass $%04x $%04x\n", (uint16_t)addressStart, (uint16_t)(addressStart + instructionCount * 3));
 
     if (!getData(data, &res, &len))
         return;
@@ -384,14 +388,9 @@ static void getMemory(PluginData* data, PDReader* reader, PDWriter* writer)
     PDRead_findU64(reader, &address, "address_start", 0);
     PDRead_findU64(reader, &size, "size", 0);
 
-    char command[512];
+    sendCommand(data, "save \"%s\" 0 %04x %04x\n", data->tempFileFull, (uint16_t)(address), (uint16_t)(address + size));
 
-    sprintf(command, "save \"%s\" 0 %04x %04x\n", data->tempFileFull, (uint16_t)(address), (uint16_t)(address + size));
-
-    sendCommand(data,  command);
-
-    // Wait 10 ms for operation to complete and if we can't open the file we try for a few times and if we still can't
-    // we bail
+    // Wait 10 ms for operation to complete and if we can't open the file we try for a few times and if we still can't we bail
 
     sleepMs(10);
 
@@ -421,6 +420,25 @@ static void getMemory(PluginData* data, PDReader* reader, PDWriter* writer)
 
         return;
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void setBreakpoint(PluginData* data, PDReader* reader)
+{
+    char* res = 0;
+    int len = 0;
+
+	uint64_t address;
+
+    if (PDRead_findU64(reader, &address, "address", 0) & PDReadStatus_ok)
+	{
+		sendCommand(data, "break $%04x\n", (uint16_t)address);
+
+		getData(data, &res, &len);
+
+		// TODO: Handle if breakpoint wasn't able to be set
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -462,6 +480,11 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
                 break;
             }
 
+			case PDEventType_setBreakpoint:
+			{
+				setBreakpoint(data, reader);
+				break;
+			}
         }
     }
 }
@@ -499,7 +522,7 @@ void onStep(PluginData* plugin)
 
     // return data from VICE is of the follwing format:
     // .C:0811  EE 20 D0    INC $D020      - A:00 X:17 Y:17 SP:f6 ..-.....   19262882
-
+    
     plugin->regs.pc = (uint16_t)strtol(&res[3], 0, 16);
     plugin->regs.a = (uint8_t)findRegisterInString(res, "A:");
     plugin->regs.x = (uint8_t)findRegisterInString(res, "X:");
@@ -556,12 +579,49 @@ static void onAction(PluginData* plugin, PDAction action)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void updateEvents(PluginData* data)
+{
+    char* res = 0;
+    int len = 0;
+
+	if (!data->conn || !VICEConnection_pollRead(data->conn))
+		return;
+
+	// Fetch the data that has been sent from VICE
+
+    if (!getData(data, &res, &len))
+        return;
+
+	const char* stopOnExec = "Stop on  exec";
+	char* found = 0;
+
+    if ((found = strstr(res, stopOnExec)))
+	{
+    	size_t execLen = strlen(stopOnExec);
+    	found += execLen;
+
+		data->regs.pc = (uint16_t)strtol(found, 0, 16);
+		data->regs.a = (uint8_t)findRegisterInString(found, "A:");
+		data->regs.x = (uint8_t)findRegisterInString(found, "X:");
+		data->regs.y = (uint8_t)findRegisterInString(found, "Y:");
+		data->regs.sp = (uint8_t)findRegisterInString(found, "SP:");
+
+		data->hasUpdatedRegistes = true;
+		data->hasUpdatedExceptionLocation = true;
+		data->state = PDDebugState_stopBreakpoint;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDDebugState update(void* userData, PDAction action, PDReader* reader, PDWriter* writer)
 {
     PluginData* plugin = (PluginData*)userData;
 
     plugin->hasUpdatedRegistes = false;
     plugin->hasUpdatedExceptionLocation = false;
+
+	updateEvents(plugin);
 
     onAction(plugin, action);
 
@@ -585,7 +645,7 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
     if (plugin->hasUpdatedExceptionLocation)
     {
         PDWrite_eventBegin(writer, PDEventType_setExceptionLocation);
-        PDWrite_u16(writer, "address", plugin->regs.pc);
+        PDWrite_u64(writer, "address", plugin->regs.pc);
         PDWrite_u8(writer, "address_size", 2);
         PDWrite_eventEnd(writer);
     }
