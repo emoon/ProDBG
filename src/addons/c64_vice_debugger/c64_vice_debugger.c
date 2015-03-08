@@ -21,6 +21,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static char s_recvBuffer[512 * 1024];
+static const int maxBreakpointCount = 8192;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -40,6 +41,48 @@ struct Regs6510
     uint8_t y;
     uint8_t sp;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef enum BreakpoinType
+{
+	BreakpointType_Normal,
+	BreakpointType_Data,
+} BreakpoinType;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct
+{
+	char* condition;
+	uint16_t address;
+	BreakpoinType type;
+	uint32_t id;
+	int32_t internalId;
+
+} Breakpoint;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct Breakpoints
+{
+	Breakpoint** data;
+	int count;
+} Breakpoints;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct PluginData
+{
+    struct VICEConnection* conn;
+    struct Regs6510 regs;
+    bool hasUpdatedRegistes;
+    bool hasUpdatedExceptionLocation;
+    PDDebugState state;
+    char tempFileFull[PATH_MAX];
+    Breakpoints breakpoints;
+} PluginData;
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Add to services
@@ -102,96 +145,6 @@ void* loadToMemory(const char* filename, size_t* size)
     fclose(f);
 
     return data;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef struct PluginData
-{
-    struct VICEConnection* conn;
-    struct Regs6510 regs;
-    bool hasUpdatedRegistes;
-    bool hasUpdatedExceptionLocation;
-    PDDebugState state;
-    char tempFileFull[PATH_MAX];
-} PluginData;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void connectToLocalHost(PluginData* data)
-{
-    struct VICEConnection* conn = 0;
-
-    // Kill the current connection if we have one
-
-    if (data->conn)
-    {
-        VICEConnection_destroy(data->conn);
-        data->conn = 0;
-    }
-
-    conn = VICEConnection_create(VICEConnectionType_Connect, 6510);
-
-    if (!VICEConnection_connect(conn, "localhost", 6510))
-    {
-        VICEConnection_destroy(conn);
-
-        data->conn = 0;
-        data->state = PDDebugState_noTarget;
-
-        return;
-    }
-
-    data->conn = conn;
-    data->state = PDDebugState_running;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void* createInstance(ServiceFunc* serviceFunc)
-{
-    (void)serviceFunc;
-
-    PluginData* data = malloc(sizeof(PluginData));
-    memset(data, 0, sizeof(PluginData));
-
-    getFullName((char*)&data->tempFileFull, "temp/vice_mem_dump");
-
-    data->state = PDDebugState_noTarget;
-
-    connectToLocalHost(data);
-
-    return data;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void destroyInstance(void* userData)
-{
-    PluginData* plugin = (PluginData*)userData;
-
-    if (plugin->conn)
-        VICEConnection_destroy(plugin->conn);
-
-    free(plugin);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void onMenu(PluginData* data, PDReader* reader)
-{
-    uint32_t menuId;
-
-    PDRead_findU32(reader, &menuId, "menu_id", 0);
-
-    switch (menuId)
-    {
-        case C64_VICE_MENU_ATTACH_TO_VICE:
-        {
-            connectToLocalHost(data);
-            break;
-        }
-    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -263,6 +216,243 @@ static int getData(PluginData* data, char** resBuffer, int* len)
     // got no data
 
     return 0;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static Breakpoint* createBreakpoint()
+{
+	Breakpoint* bp = (Breakpoint*)malloc(sizeof(Breakpoint));
+	memset(bp, 0, sizeof(Breakpoint));
+	return bp;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static bool findBreakpointById(PluginData* data, Breakpoint** breakpoint, uint32_t id) 
+{
+	for (int i = 0, end = data->breakpoints.count; i < end; ++i)
+	{
+		Breakpoint* bp = data->breakpoints.data[i];
+
+		if (bp->id == id)
+		{
+			*breakpoint = data->breakpoints.data[i];
+			return true;
+		}
+	}
+
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static Breakpoint* getBreakpoint(PluginData* data, uint64_t* address, PDReader* reader, PDWriter* writer)
+{
+	uint32_t id;
+	Breakpoint* bp;
+
+    if (PDRead_findU32(reader, &id, "id", 0) == PDReadStatus_notFound)
+	{
+    	PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
+		PDWrite_string(writer, "error", "No ID being sent for breakpoint");
+		PDWrite_eventEnd(writer);
+		return 0;
+	}
+
+    if (PDRead_findU64(reader, address, "address", 0) == PDReadStatus_notFound)
+	{
+    	PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
+		PDWrite_string(writer, "error", "No address is being sent for breakpoint");
+		PDWrite_eventEnd(writer);
+		return 0;
+	}
+
+	if (!findBreakpointById(data, &bp, id))
+	{
+		bp = createBreakpoint();
+		bp->id = id;
+		bp->internalId = -1;
+	}
+
+	return bp;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void setBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
+{
+	uint64_t address;
+    char* res = 0;
+    int len = 0;
+    int internalId = 0;
+    const char* condition;
+
+	Breakpoint* bp = getBreakpoint(data, &address, reader, writer);
+
+    PDRead_findString(reader, &condition, "condition", 0);
+
+    // if the bp already exists we delete it first
+
+	if (bp->internalId != -1)
+	{
+		sendCommand(data, "del %d\n", bp->internalId);
+		getData(data, &res, &len);	// TODO: Handle the data?
+	}
+
+    if (condition)
+		sendCommand(data, "break $%04x if %s\n", (uint16_t)address, condition);
+	else
+		sendCommand(data, "break $%04x\n", (uint16_t)address);
+
+	getData(data, &res, &len);
+
+	if (strncmp(res, "Break: ", 6) == 0)
+	{
+		internalId = atoi(res + 7);
+	}
+	else
+	{
+    	PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
+		PDWrite_string(writer, "error", res); 
+		PDWrite_eventEnd(writer);
+		return;
+	}
+
+	// add data or update existing
+
+	bp->address = (uint16_t)address;
+
+	if (bp->condition)
+		free(bp->condition);
+
+	bp->condition = strdup(condition);
+
+	if (bp->internalId == -1)
+	{
+		bp->internalId = internalId;
+		//addBreakpoint(data, bp);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+static bool delBreakpointById(PluginData* data, PDReader* reader, PDWriter* writer)
+{
+    char* res = 0;
+    int len = 0;
+	uint32_t id;
+
+    if (PDRead_findU32(reader, &id, "id", 0) == PDReadStatus_notFound)
+	{
+    	PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
+		PDWrite_string(writer, "error", "No ID being sent for breakpoint");
+		PDWrite_eventEnd(writer);
+		return false;
+	}
+
+	for (int i = 0, end = data->breakpoints.count; i < end; ++i)
+	{
+		Breakpoint* bp = data->breakpoints.data[i];
+
+		if (bp->id == id)
+		{
+			sendCommand(data, "del %d\n", bp->internalId);
+			getData(data, &res, &len);	// TODO: Handle the data?
+
+			// swap with the last and dec count
+
+			return true;
+		}
+	}
+	
+	return false;
+}
+*/
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void connectToLocalHost(PluginData* data)
+{
+    struct VICEConnection* conn = 0;
+
+    // Kill the current connection if we have one
+
+    if (data->conn)
+    {
+        VICEConnection_destroy(data->conn);
+        data->conn = 0;
+    }
+
+    conn = VICEConnection_create(VICEConnectionType_Connect, 6510);
+
+    if (!VICEConnection_connect(conn, "localhost", 6510))
+    {
+        VICEConnection_destroy(conn);
+
+        data->conn = 0;
+        data->state = PDDebugState_noTarget;
+
+        return;
+    }
+
+    data->conn = conn;
+    data->state = PDDebugState_running;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void* createInstance(ServiceFunc* serviceFunc)
+{
+    (void)serviceFunc;
+
+    PluginData* data = malloc(sizeof(PluginData));
+    memset(data, 0, sizeof(PluginData));
+
+    getFullName((char*)&data->tempFileFull, "temp/vice_mem_dump");
+
+    data->state = PDDebugState_noTarget;
+
+    //TODO: non fixed size?
+    
+    data->breakpoints.data = (Breakpoint**)malloc(sizeof(Breakpoint**) * maxBreakpointCount);
+    data->breakpoints.count = 0;
+
+
+    connectToLocalHost(data);
+
+    return data;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void destroyInstance(void* userData)
+{
+    PluginData* plugin = (PluginData*)userData;
+
+    if (plugin->conn)
+        VICEConnection_destroy(plugin->conn);
+
+    free(plugin);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void onMenu(PluginData* data, PDReader* reader)
+{
+    uint32_t menuId;
+
+    PDRead_findU32(reader, &menuId, "menu_id", 0);
+
+    switch (menuId)
+    {
+        case C64_VICE_MENU_ATTACH_TO_VICE:
+        {
+            connectToLocalHost(data);
+            break;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -423,23 +613,13 @@ static void getMemory(PluginData* data, PDReader* reader, PDWriter* writer)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void setBreakpoint(PluginData* data, PDReader* reader)
+/*
+static void addBreakpoint(PluginData* data, PDReader* reader)
 {
-    char* res = 0;
-    int len = 0;
-
-	uint64_t address;
-
-    if (PDRead_findU64(reader, &address, "address", 0) & PDReadStatus_ok)
-	{
-		sendCommand(data, "break $%04x\n", (uint16_t)address);
-
-		getData(data, &res, &len);
-
-		// TODO: Handle if breakpoint wasn't able to be set
-	}
+	(void)data;
+	(void)reader;
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -482,7 +662,7 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 
 			case PDEventType_setBreakpoint:
 			{
-				setBreakpoint(data, reader);
+				setBreakpoint(data, reader, writer);
 				break;
 			}
         }

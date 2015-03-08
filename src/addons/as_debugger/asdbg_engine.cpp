@@ -105,11 +105,6 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
 			log_out("GetLocals!\n");
 			//getLocals(reader, writer);
 			break;
-
-		case PDEventType_getBreakpoint:
-			log_out("GetBreakpoint!\n");
-			//getBreakpoint(reader, writer);
-			break;
 		}
 	}
 
