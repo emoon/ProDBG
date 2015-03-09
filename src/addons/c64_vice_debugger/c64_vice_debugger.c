@@ -17,6 +17,7 @@
 
 #include <stdarg.h>
 #include <stdbool.h>
+#include <assert.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -79,7 +80,7 @@ typedef struct PluginData
     bool hasUpdatedRegistes;
     bool hasUpdatedExceptionLocation;
     PDDebugState state;
-    char tempFileFull[PATH_MAX];
+    char tempFileFull[8192];
     Breakpoints breakpoints;
 } PluginData;
 
@@ -101,10 +102,10 @@ static void sleepMs(int ms)
 bool getFullName(char* fullName, const char* name)
 {
 #ifdef _MSC_VER
-    if (GetFullPathName(name, PATH_MAX, fullName, 0) == 0)
+    if (GetFullPathNameA(name, 8192, fullName, 0) == 0)
     {
-        strdup(fullName, name);
-        return true;
+        strcpy(fullName, name);
+        return false;
     }
 #else
     realpath(name, fullName);
@@ -112,6 +113,7 @@ bool getFullName(char* fullName, const char* name)
     return true;
 #endif
 
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -230,6 +232,14 @@ static Breakpoint* createBreakpoint()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void addBreakpoint(PluginData* data, Breakpoint* bp)
+{
+	assert(data->breakpoints.count < maxBreakpointCount);
+	data->breakpoints.data[data->breakpoints.count++] = bp;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static bool findBreakpointById(PluginData* data, Breakpoint** breakpoint, uint32_t id) 
 {
 	for (int i = 0, end = data->breakpoints.count; i < end; ++i)
@@ -332,13 +342,13 @@ static void setBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
 	if (bp->internalId == -1)
 	{
 		bp->internalId = internalId;
-		//addBreakpoint(data, bp);
+		addBreakpoint(data, bp);
 	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-static bool delBreakpointById(PluginData* data, PDReader* reader, PDWriter* writer)
+
+static bool delBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
 {
     char* res = 0;
     int len = 0;
@@ -352,6 +362,8 @@ static bool delBreakpointById(PluginData* data, PDReader* reader, PDWriter* writ
 		return false;
 	}
 
+	const int breakpointCount = data->breakpoints.count;
+
 	for (int i = 0, end = data->breakpoints.count; i < end; ++i)
 	{
 		Breakpoint* bp = data->breakpoints.data[i];
@@ -361,6 +373,12 @@ static bool delBreakpointById(PluginData* data, PDReader* reader, PDWriter* writ
 			sendCommand(data, "del %d\n", bp->internalId);
 			getData(data, &res, &len);	// TODO: Handle the data?
 
+			// Swap with the last bp and decrese the count
+
+			Breakpoint* lastBp = data->breakpoints.data[breakpointCount - 1];
+			data->breakpoints.data[i] = lastBp;
+			data->breakpoints.count--;
+
 			// swap with the last and dec count
 
 			return true;
@@ -369,7 +387,6 @@ static bool delBreakpointById(PluginData* data, PDReader* reader, PDWriter* writ
 	
 	return false;
 }
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -418,7 +435,6 @@ static void* createInstance(ServiceFunc* serviceFunc)
     
     data->breakpoints.data = (Breakpoint**)malloc(sizeof(Breakpoint**) * maxBreakpointCount);
     data->breakpoints.count = 0;
-
 
     connectToLocalHost(data);
 
@@ -478,6 +494,8 @@ static void writeRegister(PDWriter* writer, const char* name, uint8_t size, uint
 
 static void parseRegisters(struct Regs6510* regs, char* str)
 {
+	const char* pch;
+
     // Format from VICE looks like this:
     // (C:$e5cf)   ADDR AC XR YR SP 00 01 NV-BDIZC LIN CYC  STOPWATCH
     //           .;e5cf 00 00 0a f3 2f 37 00100010 000 001    3400489
@@ -488,7 +506,7 @@ static void parseRegisters(struct Regs6510* regs, char* str)
     if (!str)
         return;
 
-    const char* pch = strtok(str, " \t\n");
+    pch = strtok(str, " \t\n");
 
     regs->pc = (uint16_t)strtol(&pch[2], 0, 16); pch = strtok(0, " \t");
     regs->a = (uint8_t)strtol(pch, 0, 16); pch = strtok(0, " \t");
@@ -613,15 +631,6 @@ static void getMemory(PluginData* data, PDReader* reader, PDWriter* writer)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-static void addBreakpoint(PluginData* data, PDReader* reader)
-{
-	(void)data;
-	(void)reader;
-}
-*/
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 {
@@ -663,6 +672,12 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 			case PDEventType_setBreakpoint:
 			{
 				setBreakpoint(data, reader, writer);
+				break;
+			}
+
+			case PDEventType_deleteBreakpoint:
+			{
+				delBreakpoint(data, reader, writer);
 				break;
 			}
         }
@@ -761,6 +776,8 @@ static void onAction(PluginData* plugin, PDAction action)
 
 static void updateEvents(PluginData* data)
 {
+	const char* stopOnExec = "Stop on  exec";
+	char* found = 0;
     char* res = 0;
     int len = 0;
 
@@ -771,9 +788,6 @@ static void updateEvents(PluginData* data)
 
     if (!getData(data, &res, &len))
         return;
-
-	const char* stopOnExec = "Stop on  exec";
-	char* found = 0;
 
     if ((found = strstr(res, stopOnExec)))
 	{
