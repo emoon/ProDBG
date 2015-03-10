@@ -14,12 +14,12 @@
 #include <foundation/internal.h>
 
 
-#if FOUNDATION_COMPILER_MSVC
-#  pragma intrinsic(_rotl)
-#  pragma intrinsic(_rotl64)
-#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+//#if FOUNDATION_COMPILER_MSVC
+//#  pragma intrinsic(_rotl)
+//#  pragma intrinsic(_rotl64)
+//#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 #  define _rotl64(a, bits) (((a) << (bits)) | ((a) >> (64 - (bits))))
-#endif
+//#endif
 
 #define HASH_SEED 0xbaadf00d
 
