@@ -422,6 +422,8 @@ static void stepToPC(uint64_t pc)
 
 		if (i == 9)
 			fail();
+
+		Time_sleepMs(1);
 	}
 }
 
@@ -430,6 +432,8 @@ static void stepToPC(uint64_t pc)
 static void waitForBreak(uint64_t breakAddress, const CPUState* cpuState, uint64_t checkMask)
 {
 	CPUState outState;
+
+	printf("checkMask %x\n", (int)checkMask);
 
     // Give VICE some time to actually hit the breakpoint so we loop here and do
     // some sleeping and expect this to hit within 10 ms
@@ -451,7 +455,8 @@ static void waitForBreak(uint64_t breakAddress, const CPUState* cpuState, uint64
 			if (checkMask & CPUState_maskX)  
 				assert_true(cpuState->x == outState.x);
 			if (checkMask & CPUState_maskY)  
-				assert_true(cpuState->y == outState.y);
+				assert_int_equal(cpuState->y, outState.y);
+
 
 			printf("%x %x\n", (uint32_t)address, (uint32_t)breakAddress);
 
@@ -462,6 +467,8 @@ static void waitForBreak(uint64_t breakAddress, const CPUState* cpuState, uint64
 
 		Time_sleepMs(1);
 	}
+
+	fail();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -493,6 +500,8 @@ static void test_c64_vice_basic_breakpoint(void**)
 	// Update the breakpoint to different address
 
     breakAddress = 0x0816;
+
+    writer = s_session->currentWriter;
 
     PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
     PDWrite_u64(writer, "address", breakAddress);
@@ -527,6 +536,8 @@ static void test_c64_vice_basic_breakpoint(void**)
 
 		PDReader* reader = s_session->reader;
 
+		PDBinaryReader_initStream(reader, PDBinaryWriter_getData(s_session->currentWriter), PDBinaryWriter_getSize(s_session->currentWriter));
+
 		uint32_t event;
 
 		while ((event = PDRead_getEvent(reader)) != 0)
@@ -534,6 +545,8 @@ static void test_c64_vice_basic_breakpoint(void**)
 			if (event == PDEventType_setExceptionLocation)
 				fail();
 		}
+
+		Time_sleepMs(1);
 	}
 
 	Session_action(s_session, PDAction_break);
@@ -556,6 +569,7 @@ static void test_c64_vice_breakpoint_cond(void**)
     PDWriter* writer = s_session->currentWriter;
 
     PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
+    PDWrite_u32(writer, "id", 2);
     PDWrite_u64(writer, "address", breakAddress);
     PDWrite_string(writer, "condition", ".y == 0");
     PDWrite_eventEnd(writer);
