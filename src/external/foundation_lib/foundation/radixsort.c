@@ -1,11 +1,11 @@
 /* radixsort.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -461,7 +461,7 @@ static const radixsort_index_t* radixsort_float( radixsort_t* sort, const void* 
 		unsigned int byteofs = ( data_size - ipass - 1 );
 #endif
 		const unsigned char* input_bytes = pointer_offset_const( input, byteofs );
-		
+
 		radixsort_index_t* count = &sort->histogram[ ipass << 8 ];
 		if( ipass != ( data_size - 1 ) )
 		{
@@ -615,7 +615,7 @@ const radixsort_index_t* radixsort( radixsort_t* sort, const void* input, radixs
 radixsort_t* radixsort_allocate( radixsort_data_t type, radixsort_index_t num )
 {
 	radixsort_t* sort = memory_allocate( 0,
-		sizeof( radixsort_t ) + 
+		sizeof( radixsort_t ) +
 		/* 2 index tables */ ( 2 * sizeof( radixsort_index_t ) * num ) +
 		/* histograms */     ( 256 * _radixsort_data_size[ type ] * sizeof( radixsort_index_t ) ) +
 		/* offset table */   ( 256 * sizeof( radixsort_index_t ) ),
@@ -625,9 +625,9 @@ radixsort_t* radixsort_allocate( radixsort_data_t type, radixsort_index_t num )
 	sort->indices[1] = pointer_offset( sort->indices[0], sizeof( radixsort_index_t ) * num );
 	sort->histogram  = pointer_offset( sort->indices[1], sizeof( radixsort_index_t ) * num );
 	sort->offset     = pointer_offset( sort->histogram,  sizeof( radixsort_index_t ) * 256 * _radixsort_data_size[ type ] );
-	
+
 	radixsort_initialize( sort, type, num );
-	
+
 	return sort;
 }
 
@@ -635,7 +635,7 @@ radixsort_t* radixsort_allocate( radixsort_data_t type, radixsort_index_t num )
 void radixsort_initialize( radixsort_t* sort, radixsort_data_t type, radixsort_index_t num )
 {
 	radixsort_index_t i;
-	
+
 	sort->type       = type;
 	sort->size       = num;
 	sort->lastused   = num;
@@ -657,4 +657,5 @@ void radixsort_deallocate( radixsort_t* sort )
 
 void radixsort_finalize( radixsort_t* sort )
 {
+	FOUNDATION_UNUSED( sort );
 }

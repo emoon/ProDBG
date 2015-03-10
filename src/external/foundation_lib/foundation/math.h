@@ -1,11 +1,11 @@
 /* math.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -127,7 +127,7 @@ static FORCEINLINE CONSTCALL type math_inc_wrap_##suffix( const type val, const 
 	const type max_diff_eqz = ~max_diff_nz; \
 	const type result       = ( increased & max_diff_nz ) | ( min & max_diff_eqz ); \
 	return result; }
- 
+
 FOUNDATION_DECLARE_INCREMENT_AND_WRAP( uint8,  uint8_t,  int8_t,  7  )
 FOUNDATION_DECLARE_INCREMENT_AND_WRAP( uint16, uint16_t, int16_t, 15 )
 FOUNDATION_DECLARE_INCREMENT_AND_WRAP( uint32, uint32_t, int32_t, 31 )
@@ -137,7 +137,7 @@ FOUNDATION_DECLARE_INCREMENT_AND_WRAP( int16,  int16_t,  int16_t, 15 )
 FOUNDATION_DECLARE_INCREMENT_AND_WRAP( int32,  int32_t,  int32_t, 31 )
 FOUNDATION_DECLARE_INCREMENT_AND_WRAP( int64,  int64_t,  int64_t, 63ULL )
 #undef FOUNDATION_DECLARE_INCREMENT_AND_WRAP
- 
+
 #define FOUNDATION_DECLARE_DECREMENT_AND_WRAP( suffix, type, signed_type, bit_mask ) \
 static FORCEINLINE CONSTCALL type math_dec_wrap_##suffix( const type val, const type min, const type max ); \
 static FORCEINLINE CONSTCALL type math_dec_wrap_##suffix( const type val, const type min, const type max ) { \
@@ -147,7 +147,7 @@ static FORCEINLINE CONSTCALL type math_dec_wrap_##suffix( const type val, const 
 	const type min_diff_eqz = ~min_diff_nz; \
 	const type result       = ( decreased & min_diff_nz ) | ( max & min_diff_eqz ); \
 	return result; }
- 
+
 FOUNDATION_DECLARE_DECREMENT_AND_WRAP( uint8,  uint8_t,  int8_t,  7  )
 FOUNDATION_DECLARE_DECREMENT_AND_WRAP( uint16, uint16_t, int16_t, 15 )
 FOUNDATION_DECLARE_DECREMENT_AND_WRAP( uint32, uint32_t, int32_t, 31 )
@@ -160,7 +160,7 @@ FOUNDATION_DECLARE_DECREMENT_AND_WRAP( int64, int64_t,  int64_t, 63ULL )
 
 
 #ifndef FOUNDATION_PLATFORM_DOXYGEN
-// IMPLEMENTATIONS	
+// IMPLEMENTATIONS
 
 static FORCEINLINE CONSTCALL unsigned int math_align_poweroftwo( unsigned int x )
 {
@@ -488,7 +488,7 @@ static FORCEINLINE CONSTCALL bool math_realeqns( real a, real b, int32_t ulps )
 	__real_convert ca;
 	__real_convert cb;
 	int64_t diff;
-	
+
 	ca.rval = a;
 	cb.rval = b;
 
@@ -518,7 +518,7 @@ static FORCEINLINE CONSTCALL bool math_realzero( real val )
 #else
 
 	return math_abs( val ) < REAL_EPSILON;
-	
+
 #endif
 }
 
@@ -548,9 +548,9 @@ static FORCEINLINE CONSTCALL bool math_realone( real val )
 static FORCEINLINE CONSTCALL real math_realdec( real val, int units )
 {
 	__real_convert ca; ca.rval = val;
-	
+
 	ca.ival -= ( ca.ival < 0 ? -units : units );
-	
+
 	return ca.rval;
 }
 
@@ -558,9 +558,9 @@ static FORCEINLINE CONSTCALL real math_realdec( real val, int units )
 static FORCEINLINE CONSTCALL real math_realinc( real val, int units )
 {
 	__real_convert ca; ca.rval = val;
-	
+
 	ca.ival += ( ca.ival < 0 ? -units : units );
-	
+
 	return ca.rval;
 }
 
@@ -719,9 +719,9 @@ static FORCEINLINE CONSTCALL bool math_realone( real val )
 static FORCEINLINE CONSTCALL real math_realdec( real val, int units )
 {
 	__real_convert ca; ca.rval = val;
-	
+
 	ca.ival -= ( ca.ival < 0 ? -units : units );
-	
+
 	return ca.rval;
 }
 
@@ -729,9 +729,9 @@ static FORCEINLINE CONSTCALL real math_realdec( real val, int units )
 static FORCEINLINE CONSTCALL real math_realinc( real val, int units )
 {
 	__real_convert ca; ca.rval = val;
-	
+
 	ca.ival += ( ca.ival < 0 ? -units : units );
-	
+
 	return ca.rval;
 }
 

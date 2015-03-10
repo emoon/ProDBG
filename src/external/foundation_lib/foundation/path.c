@@ -1,11 +1,11 @@
 /* path.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -118,7 +118,7 @@ char* path_clean( char* path, bool absolute )
 		else if( ( length >= 2 ) && ( path[1] == ':' ) )
 		{
 			driveofs = 2;
-			
+
 			//Make sure first character is upper case
 			if( ( path[0] >= 'a' ) && ( path[0] <= 'z' ) )
 				path[0] = ( path[0] - (char)( (int)'a' - (int)'A' ) );
@@ -160,7 +160,7 @@ char* path_clean( char* path, bool absolute )
 				inlength = length + 1;
 				path = inpath + protocollen;
 			}
-			
+
 			memmove( path + 1, path, length + 1 );
 			path[0] = '/';
 			++length;
@@ -206,7 +206,7 @@ char* path_clean( char* path, bool absolute )
 			{
 				memmove( path, path + up + 4, length - up - 3 );
 				length -= ( up + 4 );
-			}				
+			}
 		}
 		else if( prev_up >= last_up )
 		{
@@ -322,8 +322,8 @@ char* path_subpath_name( const char* path, const char* root )
 	char* testpath;
 	char* testroot;
 	char* pathofpath;
-	unsigned int pathprotocol, rootprotocol;	
-	char* cpath = string_clone( path );	
+	unsigned int pathprotocol, rootprotocol;
+	char* cpath = string_clone( path );
 	char* croot = string_clone( root );
 
 	cpath = path_clean( cpath, path_is_absolute( cpath ) );
@@ -340,7 +340,7 @@ char* path_subpath_name( const char* path, const char* root )
 	rootprotocol = string_find_string( testroot, "://", 0 );
 	if( rootprotocol != STRING_NPOS )
 		testroot += rootprotocol + 2;
-	
+
 	if( ( rootprotocol != STRING_NPOS ) && ( ( pathprotocol == STRING_NPOS ) || ( pathprotocol != rootprotocol ) || !string_equal_substr( cpath, croot, rootprotocol ) ) )
 		subpath = string_allocate( 0 );
 	else if( !string_equal_substr( testpath, testroot, string_length( testroot ) ) )
@@ -348,7 +348,7 @@ char* path_subpath_name( const char* path, const char* root )
 	else
 	{
 		char* filename = path_file_name( cpath );
-		
+
 		subpath = string_substr( testpath, string_length( testroot ), STRING_NPOS );
 		subpath = path_clean( path_append( subpath, filename ), false );
 
@@ -444,7 +444,7 @@ char* path_make_absolute( const char* path )
 		protocollen += 3; //Also skip the "://" separator
 	else
 		protocollen = 0;
-	
+
 	//Deal with .. references
 	while( ( up = string_find_string( abspath, "/../", 0 ) ) != STRING_NPOS )
 	{

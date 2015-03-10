@@ -1,11 +1,11 @@
 /* hashtable.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -41,7 +41,7 @@ hashtable32_t* hashtable32_allocate( unsigned int buckets )
 	hashtable32_t* table = (hashtable32_t*)memory_allocate( 0, sizeof( hashtable32_t ) + sizeof( hashtable32_entry_t ) * buckets, 8, MEMORY_PERSISTENT );
 
 	hashtable32_initialize( table, buckets );
-	
+
 	return table;
 }
 
@@ -62,6 +62,7 @@ void hashtable32_deallocate( hashtable32_t* table )
 
 void hashtable32_finalize( hashtable32_t* table )
 {
+	FOUNDATION_UNUSED( table );
 }
 
 
@@ -105,7 +106,7 @@ void hashtable32_erase( hashtable32_t* table, uint32_t key )
 
 	FOUNDATION_ASSERT( table );
 	FOUNDATION_ASSERT( key );
-	
+
 	ie = eend = _hashtable32_hash( key ) % table->capacity;
 	do
 	{
@@ -133,7 +134,7 @@ uint32_t hashtable32_get( hashtable32_t* table, uint32_t key )
 
 	FOUNDATION_ASSERT( table );
 	FOUNDATION_ASSERT( key );
-	
+
 	ie = eend = _hashtable32_hash( key ) % table->capacity;
 	do
 	{
@@ -188,7 +189,7 @@ hashtable64_t* hashtable64_allocate( unsigned int buckets )
 	hashtable64_t* table = (hashtable64_t*)memory_allocate( 0, sizeof( hashtable64_t ) + sizeof( hashtable64_entry_t ) * buckets, 8, MEMORY_PERSISTENT );
 
 	hashtable64_initialize( table, buckets );
-	
+
 	return table;
 }
 
@@ -209,6 +210,7 @@ void hashtable64_deallocate( hashtable64_t* table )
 
 void hashtable64_finalize( hashtable64_t* table )
 {
+	FOUNDATION_UNUSED( table );
 }
 
 
@@ -252,7 +254,7 @@ void hashtable64_erase( hashtable64_t* table, uint64_t key )
 
 	FOUNDATION_ASSERT( table );
 	FOUNDATION_ASSERT( key );
-	
+
 	ie = eend = _hashtable64_hash( key ) % table->capacity;
 	do
 	{
@@ -280,7 +282,7 @@ uint64_t hashtable64_get( hashtable64_t* table, uint64_t key )
 
 	FOUNDATION_ASSERT( table );
 	FOUNDATION_ASSERT( key );
-	
+
 	ie = eend = _hashtable64_hash( key ) % table->capacity;
 	do
 	{

@@ -1,11 +1,11 @@
 /* stream.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -19,6 +19,7 @@
 FOUNDATION_API stream_t*         stream_open( const char* path, unsigned int mode );
 FOUNDATION_API stream_t*         stream_clone( stream_t* stream );
 FOUNDATION_API void              stream_deallocate( stream_t* stream );
+FOUNDATION_API void              stream_initialize( stream_t* stream, byteorder_t order );
 FOUNDATION_API void              stream_finalize( stream_t* stream );
 
 FOUNDATION_API int64_t           stream_tell( stream_t* stream );
@@ -35,7 +36,7 @@ FOUNDATION_API bool              stream_is_sequential( const stream_t* stream );
 FOUNDATION_API bool              stream_is_reliable( const stream_t* stream );
 FOUNDATION_API bool              stream_is_inorder( const stream_t* stream );
 FOUNDATION_API bool              stream_is_swapped( const stream_t* stream );
-	
+
 FOUNDATION_API byteorder_t       stream_byteorder( const stream_t* stream );
 FOUNDATION_API const char*       stream_path( const stream_t* stream );
 FOUNDATION_API uint64_t          stream_last_modified( const stream_t* stream );
@@ -84,3 +85,6 @@ FOUNDATION_API void              stream_flush( stream_t* stream );
 FOUNDATION_API stream_t*         stream_open_stdout( void );
 FOUNDATION_API stream_t*         stream_open_stderr( void );
 FOUNDATION_API stream_t*         stream_open_stdin( void );
+
+FOUNDATION_API void              stream_set_protocol_handler( const char* protocol, stream_open_fn fn );
+FOUNDATION_API stream_open_fn    stream_protocol_handler( const char* protocol, unsigned int length );

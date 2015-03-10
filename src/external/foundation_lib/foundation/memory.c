@@ -1,11 +1,11 @@
 /* memory.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -25,11 +25,15 @@
 #  include <malloc.h>
 #endif
 
+#if FOUNDATION_PLATFORM_PNACL
+#  include <stdlib.h>
+#endif
+
 #define MEMORY_GUARD_VALUE 0xDEADBEEF
 
 
-static memory_system_t _memsys = {0};
-
+static memory_system_t _memory_system;
+static memory_tracker_t _memory_no_tracker;
 
 typedef ALIGN(8) struct
 {
@@ -41,11 +45,11 @@ typedef ALIGN(8) struct
 	uint64_t            maxchunk;
 } atomic_linear_memory_t;
 
-static atomic_linear_memory_t _memory_temporary = {0};
+static atomic_linear_memory_t _memory_temporary;
 
 
 #if BUILD_ENABLE_MEMORY_TRACKER
-static memory_tracker_t _memory_tracker = {0};
+static memory_tracker_t _memory_tracker;
 static void _memory_track( void* addr, uint64_t size );
 static void _memory_untrack( void* addr );
 #else
@@ -100,7 +104,7 @@ static void* _atomic_allocate_linear( uint64_t chunksize )
 			return_pointer = _memory_temporary.storage;
 		}
 	} while( !atomic_cas_ptr( &_memory_temporary.head, new_head, old_head ) );
-	
+
 	return return_pointer;
 }
 
@@ -140,20 +144,20 @@ static CONSTCALL void* _memory_align_pointer( void* p, unsigned int align )
 	}
 
 	return p;
-}	
+}
 
 
 int _memory_initialize( const memory_system_t memory )
 {
-	_memsys = memory;
-	return _memsys.initialize();
+	_memory_system = memory;
+	return _memory_system.initialize();
 }
 
 
 void _memory_preallocate( void )
 {
 	hash_t tracker;
-	
+
 	if( !_memory_temporary.storage )
 		_atomic_allocate_initialize( config_int( HASH_FOUNDATION, HASH_TEMPORARY_MEMORY ) );
 
@@ -165,11 +169,10 @@ void _memory_preallocate( void )
 
 void _memory_shutdown( void )
 {
-	memory_tracker_t no_tracker = {0};
-	memory_set_tracker( no_tracker );
-	
+	memory_set_tracker( _memory_no_tracker );
+
 	_atomic_allocate_shutdown();
-	_memsys.shutdown();
+	_memory_system.shutdown();
 }
 
 
@@ -222,7 +225,7 @@ void* memory_allocate( uint64_t context, uint64_t size, unsigned int align, int 
 	}
 	else
 	{
-		p = _memsys.allocate( context ? context : memory_context(), size, align, hint );
+		p = _memory_system.allocate( context ? context : memory_context(), size, align, hint );
 	}
 	_memory_track( p, size );
 	return p;
@@ -233,7 +236,7 @@ void* memory_reallocate( void* p, uint64_t size, unsigned int align, uint64_t ol
 {
 	FOUNDATION_ASSERT_MSG( ( p < _memory_temporary.storage ) || ( p >= _memory_temporary.end ), "Trying to reallocate temporary memory" );
 	_memory_untrack( p );
-	p = _memsys.reallocate( p, size, align, oldsize );
+	p = _memory_system.reallocate( p, size, align, oldsize );
 	_memory_track( p, size );
 	return p;
 }
@@ -242,7 +245,7 @@ void* memory_reallocate( void* p, uint64_t size, unsigned int align, uint64_t ol
 void memory_deallocate( void* p )
 {
 	if( ( p < _memory_temporary.storage ) || ( p >=_memory_temporary.end ) )
-		_memsys.deallocate( p );
+		_memory_system.deallocate( p );
 	_memory_untrack( p );
 }
 
@@ -307,6 +310,8 @@ static NtAllocateVirtualMemoryFn NtAllocateVirtualMemory = 0;
 
 static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int hint )
 {
+	FOUNDATION_UNUSED( hint );
+
 	//If we align manually, we must be able to retrieve the original pointer for passing to free()
 	//Thus all allocations need to go through that path
 
@@ -473,6 +478,7 @@ static void* _memory_allocate_malloc_raw( uint64_t size, unsigned int align, int
 static void* _memory_allocate_malloc( uint64_t context, uint64_t size, unsigned int align, int hint )
 {
 	void* block;
+	FOUNDATION_UNUSED( context );
 	align = _memory_get_align( align );
 	block = _memory_allocate_malloc_raw( size, align, hint );
 	if( block && ( hint & MEMORY_ZERO_INITIALIZED ) )
@@ -550,7 +556,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 #  endif
 #else
 	void* memory;
-	void* raw_p;
+	void* raw_p ATTRIBUTE(unused);
 
 	align = _memory_get_align( align );
 
@@ -622,7 +628,7 @@ static void* _memory_reallocate_malloc( void* p, uint64_t size, unsigned int ali
 			memcpy( memory, p, ( size < oldsize ) ? (size_t)size : (size_t)oldsize );
 		_memory_deallocate_malloc( p );
 	}
-	
+
 #endif
 
 	if( !memory )
@@ -665,17 +671,16 @@ memory_system_t memory_system_malloc( void )
 
 void memory_set_tracker( memory_tracker_t tracker )
 {
-	memory_tracker_t no_tracker = {0};
 	memory_tracker_t old_tracker = _memory_tracker;
 
 	if( ( old_tracker.track == tracker.track ) && ( old_tracker.untrack == tracker.untrack ) )
 		return;
-	
-	_memory_tracker = no_tracker;
-	
+
+	_memory_tracker = _memory_no_tracker;
+
 	if( old_tracker.shutdown )
 		old_tracker.shutdown();
-	
+
 	if( tracker.initialize )
 		tracker.initialize();
 
@@ -710,9 +715,9 @@ struct memory_tag_t
 typedef ALIGN(8) struct memory_tag_t memory_tag_t;
 
 
-hashtable_t*       _memory_table = 0;
-memory_tag_t*      _memory_tags = 0;
-atomic32_t         _memory_tag_next = {0};
+static hashtable_t*       _memory_table;
+static memory_tag_t*      _memory_tags;
+static atomic32_t         _memory_tag_next;
 
 
 static int _memory_tracker_initialize( void )
@@ -795,7 +800,7 @@ static void _memory_tracker_untrack( void* addr )
 
 memory_tracker_t memory_tracker_local( void )
 {
-	memory_tracker_t tracker = {0};
+	memory_tracker_t tracker = _memory_no_tracker;
 #if BUILD_ENABLE_MEMORY_TRACKER
 	tracker.track = _memory_tracker_track;
 	tracker.untrack = _memory_tracker_untrack;

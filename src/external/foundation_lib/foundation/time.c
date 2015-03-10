@@ -1,11 +1,11 @@
 /* time.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -20,7 +20,7 @@
 #  include <mach/mach_time.h>
 static mach_timebase_info_data_t _time_info;
 static void absolutetime_to_nanoseconds (uint64_t mach_time, uint64_t* clock ) { *clock = mach_time * _time_info.numer / _time_info.denom; }
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 #  include <unistd.h>
 #  include <time.h>
 #  include <string.h>
@@ -28,9 +28,9 @@ static void absolutetime_to_nanoseconds (uint64_t mach_time, uint64_t* clock ) {
 #  error Not implemented on this platform!
 #endif
 
-static tick_t _time_freq    = 0;
-static double _time_oofreq  = 0;
-static tick_t _time_startup = 0;
+static tick_t _time_freq;
+static double _time_oofreq;
+static tick_t _time_startup;
 
 
 int _time_initialize( void )
@@ -44,7 +44,7 @@ int _time_initialize( void )
 	if( mach_timebase_info( &_time_info ) )
 		return -1;
 	_time_freq = 1000000000ULL;
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
 	if( clock_gettime( CLOCK_MONOTONIC, &ts ) )
 		return -1;
@@ -77,12 +77,14 @@ tick_t time_current( void )
 	absolutetime_to_nanoseconds( mach_absolute_time(), &curclock );
 	return curclock;
 
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
 	clock_gettime( CLOCK_MONOTONIC, &ts );
 	return ( (uint64_t)ts.tv_sec * 1000000000ULL ) + ts.tv_nsec;
 
+#else
+#  error Not implemented
 #endif
 }
 
@@ -105,7 +107,7 @@ tick_t time_diff( const tick_t from, const tick_t to )
 		return 0;
 	return ( to - from );
 }
-	
+
 
 deltatime_t time_elapsed( const tick_t t )
 {
@@ -129,7 +131,7 @@ tick_t time_elapsed_ticks( const tick_t t )
 	absolutetime_to_nanoseconds( mach_absolute_time(), &curclock );
 	dt = curclock - t;
 
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 	tick_t curclock;
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
@@ -138,6 +140,8 @@ tick_t time_elapsed_ticks( const tick_t t )
 	curclock = ( (tick_t)ts.tv_sec * 1000000000ULL ) + ts.tv_nsec;
 	dt = curclock - t;
 
+#else
+#  error Not implemented
 #endif
 
 	return dt;
@@ -174,11 +178,13 @@ tick_t time_system( void )
 	absolutetime_to_nanoseconds( mach_absolute_time(), &curclock );
 	return ( curclock / 1000000ULL );
 
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
 	clock_gettime( CLOCK_REALTIME, &ts );
 	return ( (uint64_t)ts.tv_sec * 1000ULL ) + ( ts.tv_nsec / 1000000ULL );
 
+#else
+#  error Not implemented
 #endif
 }

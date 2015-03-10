@@ -36,3 +36,6 @@
 #define HASH_HOME_DIRECTORY static_hash_string( "home_directory", 0xbb5cb0f40e9f0f3aULL )
 #define HASH_TEMPORARY_DIRECTORY static_hash_string( "temporary_directory", 0xb75730bc0dd1d067ULL )
 #define HASH_SYSTEM static_hash_string( "system", 0xb72020e83e0eb654ULL )
+#define HASH_DEBUG static_hash_string( "debug", 0x71626bc355dbf213ULL )
+#define HASH_PNACL static_hash_string( "pnacl", 0xb361b58ae8fffba3ULL )
+#define HASH_FS static_hash_string( "fs", 0x4692a53ac19eddeeULL )

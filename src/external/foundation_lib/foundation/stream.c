@@ -1,11 +1,11 @@
 /* stream.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,7 +16,69 @@
 #include <stdarg.h>
 
 
-void _stream_initialize( stream_t* stream, byteorder_t order )
+static hashtable64_t* _stream_protocol_table;
+
+
+static stream_t* _stream_open_stdout( const char* path, unsigned int mode )
+{
+	FOUNDATION_UNUSED( path );
+	FOUNDATION_UNUSED( mode );
+	return stream_open_stdout();
+}
+
+
+static stream_t* _stream_open_stderr( const char* path, unsigned int mode )
+{
+	FOUNDATION_UNUSED( path );
+	FOUNDATION_UNUSED( mode );
+	return stream_open_stderr();
+}
+
+
+static stream_t* _stream_open_stdin( const char* path, unsigned int mode )
+{
+	FOUNDATION_UNUSED( path );
+	FOUNDATION_UNUSED( mode );
+	return stream_open_stdin();
+}
+
+
+int _stream_initialize( void )
+{
+	_stream_protocol_table = hashtable64_allocate( 32 );
+
+	stream_set_protocol_handler( "", fs_open_file );
+#if FOUNDATION_PLATFORM_ANDROID
+	stream_set_protocol_handler( "asset", asset_stream_open );
+#endif
+	stream_set_protocol_handler( "file", fs_open_file );
+	stream_set_protocol_handler( "stdout", _stream_open_stdout );
+	stream_set_protocol_handler( "stderr", _stream_open_stderr );
+	stream_set_protocol_handler( "stdin", _stream_open_stdin );
+	return 0;
+}
+
+
+void _stream_shutdown( void )
+{
+	hashtable64_deallocate( _stream_protocol_table );
+	_stream_protocol_table = 0;
+}
+
+
+void stream_set_protocol_handler( const char* protocol, stream_open_fn fn )
+{
+	hashtable64_set( _stream_protocol_table, hash( protocol, string_length( protocol ) ), (uint64_t)(uintptr_t)fn );
+}
+
+
+stream_open_fn stream_protocol_handler( const char* protocol, unsigned int length )
+{
+	return (stream_open_fn)(uintptr_t)hashtable64_get( _stream_protocol_table, hash( protocol, length ? length : string_length( protocol ) ) );
+}
+
+
+void stream_initialize( stream_t* stream, byteorder_t order )
 {
 	stream->byteorder = order;
 	stream->sequential = 0;
@@ -31,36 +93,13 @@ void _stream_initialize( stream_t* stream, byteorder_t order )
 stream_t* stream_open( const char* path, unsigned int mode )
 {
 	unsigned int protocol_end;
+	stream_open_fn open_fn = 0;
 
 	//Check if protocol was given
 	protocol_end = string_find_string( path, "://", 0 );
-	if( protocol_end != STRING_NPOS )
-	{
-		//TODO: Proper pluggable protocol handling
-#if FOUNDATION_PLATFORM_ANDROID
-		if( ( protocol_end == 5 ) && string_equal_substr( path, "asset", 5 ) )
-			return asset_stream_open( path, mode );
-		else
-#endif
-		if( ( protocol_end == 4 ) && string_equal_substr( path, "file", 4 ) )
-			return fs_open_file( path, mode );
-		else if( ( protocol_end == 4 ) && string_equal_substr( path, "stdout", 4 ) )
-			return stream_open_stdout();
-		else if( ( protocol_end == 4 ) && string_equal_substr( path, "stderr", 4 ) )
-			return stream_open_stderr();
-		else if( ( protocol_end == 4 ) && string_equal_substr( path, "stdin", 4 ) )
-			return stream_open_stdin();
-		else if( ( protocol_end != 3 ) || !string_equal_substr( path, "vfs", protocol_end ) )
-		{
-			log_errorf( 0, ERROR_INVALID_VALUE, "Invalid protocol: %s", path );
-			return 0;
-		}
-	}
+	open_fn = stream_protocol_handler( ( protocol_end != STRING_NPOS ) ? path : "", ( protocol_end != STRING_NPOS ) ? protocol_end : 0 );
 
-	//No protocol, assume virtual file system path
-	//TODO: Virtual file system
-
-	return fs_open_file( path, mode );
+	return open_fn ? open_fn( path, mode ) : 0;
 }
 
 
@@ -77,7 +116,7 @@ void stream_finalize( stream_t* stream )
 {
 	if( stream->vtable && stream->vtable->finalize )
 		stream->vtable->finalize( stream );
-	
+
 	string_deallocate( stream->path );
 
 	stream->path = 0;
@@ -329,13 +368,13 @@ void stream_determine_binary_mode( stream_t* stream, unsigned int num )
 
 	buf = memory_allocate( 0, num, 0, MEMORY_TEMPORARY );
 	memset( buf, 32, num );
-	
+
 	cur = stream_tell( stream );
 	actual_read = stream_read( stream, buf, num );
 	stream_seek( stream, cur, STREAM_SEEK_BEGIN );
 
 	stream->mode &= ~STREAM_BINARY;
-	
+
 	for( i = 0; i < actual_read; ++i )
 	{
 		//TODO: What about UTF-8?
@@ -353,7 +392,7 @@ void stream_determine_binary_mode( stream_t* stream, unsigned int num )
 bool stream_read_bool( stream_t* stream )
 {
 	bool value = false;
-	
+
 	FOUNDATION_ASSERT( stream );
 	if( stream_is_binary( stream ) )
 	{
@@ -600,7 +639,7 @@ char* stream_read_string( stream_t* stream )
 			}
 			outbuffer[cursize++] = c;
 		}
-	
+
 		outbuffer[cursize] = 0;
 	}
 	else
@@ -657,7 +696,7 @@ char* stream_read_string( stream_t* stream )
 				break;
 			}
 		}
-	
+
 		outbuffer[cursize] = 0;
 	}
 	return outbuffer;
@@ -676,7 +715,7 @@ uint64_t stream_read_string_buffer( stream_t* stream, char* outbuffer, uint64_t 
 		return 0;
 
 	FOUNDATION_ASSERT( stream->vtable->read );
-	
+
 	--size;
 
 	//TODO: Implement per-byte reading for sequential streams
@@ -728,7 +767,7 @@ uint64_t stream_read_string_buffer( stream_t* stream, char* outbuffer, uint64_t 
 			break;
 		}
 	}
-	
+
 	outbuffer[cursize] = 0;
 
 	return cursize;
@@ -756,7 +795,7 @@ uint128_t stream_md5( stream_t* stream )
 {
 	int64_t cur, ic, lastc, num;
 	md5_t md5;
-	uint128_t ret = {0};
+	uint128_t ret = uint128_null();
 	unsigned char buf[1025];
 	bool ignore_lf = false;
 
@@ -813,7 +852,7 @@ uint128_t stream_md5( stream_t* stream )
 				md5_digest_raw( &md5, buf + lastc, (size_t)( num - lastc ) );
 		}
 	}
-	
+
 	stream_seek( stream, cur, STREAM_SEEK_BEGIN );
 
 	md5_digest_finalize( &md5 );
@@ -1078,7 +1117,7 @@ static stream_vtable_t _stream_stdin_vtable = {
 stream_t* stream_open_stdout( void )
 {
 	stream_std_t* stream = memory_allocate( HASH_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-	_stream_initialize( (stream_t*)stream, system_byteorder() );
+	stream_initialize( (stream_t*)stream, system_byteorder() );
 	stream->sequential = 1;
 	stream->mode = STREAM_OUT;
 	stream->type = STREAMTYPE_STDSTREAM;
@@ -1092,7 +1131,7 @@ stream_t* stream_open_stdout( void )
 stream_t* stream_open_stderr( void )
 {
 	stream_std_t* stream = memory_allocate( HASH_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-	_stream_initialize( (stream_t*)stream, system_byteorder() );
+	stream_initialize( (stream_t*)stream, system_byteorder() );
 	stream->sequential = 1;
 	stream->mode = STREAM_OUT;
 	stream->type = STREAMTYPE_STDSTREAM;
@@ -1106,7 +1145,7 @@ stream_t* stream_open_stderr( void )
 stream_t* stream_open_stdin( void )
 {
 	stream_std_t* stream = memory_allocate( HASH_STREAM, sizeof( stream_std_t ), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-	_stream_initialize( (stream_t*)stream, system_byteorder() );
+	stream_initialize( (stream_t*)stream, system_byteorder() );
 	stream->sequential = 1;
 	stream->mode = STREAM_IN;
 	stream->type = STREAMTYPE_STDSTREAM;

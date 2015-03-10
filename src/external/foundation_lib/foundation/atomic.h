@@ -1,11 +1,11 @@
 /* atomic.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -68,7 +68,7 @@ static FORCEINLINE void         atomic_thread_fence_sequentially_consistent( voi
 static FORCEINLINE int32_t atomic_load32( atomic32_t* val )
 {
 	return val->nonatomic;
-}	
+}
 
 
 static FORCEINLINE int64_t atomic_load64( atomic64_t* val )
@@ -170,7 +170,7 @@ static FORCEINLINE int atomic_add32( atomic32_t* val, int32_t add )
 	return OSAtomicAdd32( add, (int*)&val->nonatomic );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_add_and_fetch( &val->nonatomic, add );
-#else 
+#else
 #  error Not implemented
 #endif
 }
@@ -194,10 +194,10 @@ static FORCEINLINE int64_t atomic_exchange_and_add64( atomic64_t* val, int64_t a
 	do { ref = (int64_t)val->nonatomic; } while( !OSAtomicCompareAndSwap64( ref, ref + add, (int64_t*)&val->nonatomic ) );
 	return ref;
 #elif FOUNDATION_MUTEX_64BIT_ATOMIC
-	return __foundation_sync_fetch_and_add_8( &val->nonatomic, add );	
+	return __foundation_sync_fetch_and_add_8( &val->nonatomic, add );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_fetch_and_add( &val->nonatomic, add );
-#else 
+#else
 #  error Not implemented
 #endif
 }
@@ -214,10 +214,10 @@ static FORCEINLINE int64_t atomic_add64( atomic64_t* val, int64_t add )
 #elif FOUNDATION_PLATFORM_APPLE
 	return OSAtomicAdd64( add, (int64_t*)&val->nonatomic );
 #elif FOUNDATION_MUTEX_64BIT_ATOMIC
-	return __foundation_sync_add_and_fetch_8( &val->nonatomic, add );	
+	return __foundation_sync_add_and_fetch_8( &val->nonatomic, add );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_add_and_fetch( &val->nonatomic, add );
-#else 
+#else
 #  error Not implemented
 #endif
 }
@@ -234,7 +234,7 @@ static FORCEINLINE bool atomic_cas32( atomic32_t* dst, int32_t val, int32_t ref 
 	return OSAtomicCompareAndSwap32( ref, val, (int32_t*)&dst->nonatomic );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_bool_compare_and_swap( &dst->nonatomic, ref, val );
-#else 
+#else
 #  error Not implemented
 #endif
 }
@@ -250,7 +250,7 @@ static FORCEINLINE bool atomic_cas64( atomic64_t* dst, int64_t val, int64_t ref 
 	return __foundation_sync_bool_compare_and_swap_8( &dst->nonatomic, ref, val );
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __sync_bool_compare_and_swap( &dst->nonatomic, ref, val );
-#else 
+#else
 #  error Not implemented
 #endif
 }
@@ -315,6 +315,8 @@ static FORCEINLINE void atomic_thread_fence_sequentially_consistent( void ) {}
 #define atomic_thread_fence_sequentially_consistent() __asm volatile("lock; orl $0, (%%rsp)" ::: "memory")
 #    elif FOUNDATION_ARCH_X86
 #define atomic_thread_fence_sequentially_consistent() __asm volatile("lock; orl $0, (%%esp)" ::: "memory")
+#    elif FOUNDATION_PLATFORM_PNACL
+#define atomic_thread_fence_sequentially_consistent() __asm volatile("sync" ::: "memory")
 #    else
 #error atomic_thread_fence_sequentially_consistent not implemented for architecture
 #    endif

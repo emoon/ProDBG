@@ -1,11 +1,11 @@
 /* config.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -52,7 +52,7 @@ FOUNDATION_STATIC_ASSERT( ALIGNOF( config_key_t ) == 8, "config_key_t alignment"
 FOUNDATION_STATIC_ASSERT( ALIGNOF( config_section_t ) == 8, "config_section_t alignment" );
 
 //Global config store
-static config_section_t* _config_section[CONFIG_SECTION_BUCKETS] = {0};
+static config_section_t* _config_section[CONFIG_SECTION_BUCKETS];
 
 
 static int64_t _config_string_to_int( const char* str )
@@ -282,14 +282,14 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 	char* cmdline_path = 0;
 	char* cwd_config_path = 0;
 	const char* paths[NUM_SEARCH_PATHS];
-#if !FOUNDATION_PLATFORM_FAMILY_MOBILE
+#if !FOUNDATION_PLATFORM_FAMILY_MOBILE && !FOUNDATION_PLATFORM_PNACL
 	const char* const* cmd_line;
 	int icl, clsize;
 #endif
 	int start_path, i, j;
 
 	const char buildsuffix[4][9] = { "/debug", "/release", "/profile", "/deploy" };
-	const char platformsuffix[7][14] = { "/win32", "/win64", "/osx", "/ios", "/android", "/raspberrypi", "/unknown" };
+	const char platformsuffix[PLATFORM_INVALID+1][14] = { "/win32", "/win64", "/osx", "/ios", "/android", "/raspberrypi", "/pnacl", "/bsd", "/unknown" };
 	const char binsuffix[1][5] = { "/bin" };
 
 	FOUNDATION_ASSERT( name );
@@ -325,10 +325,15 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 	}
 	exe_processed_path = path_append( exe_processed_path, "config" );
 	abs_exe_processed_path = path_make_absolute( exe_processed_path );
-	
+
 	paths[0] = environment_executable_directory();
+#if FOUNDATION_PLATFORM_PNACL
+	paths[1] = 0;
+	paths[2] = 0;
+#else
 	paths[1] = sub_exe_path;
 	paths[2] = abs_exe_parent_path;
+#endif
 	paths[3] = abs_exe_processed_path;
 
 #if FOUNDATION_PLATFORM_FAMILY_DESKTOP && !BUILD_DEPLOY
@@ -337,8 +342,11 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 	paths[4] = 0;
 #endif
 
-#if FOUNDATION_PLATFORM_APPLE
+#if FOUNDATION_PLATFORM_MACOSX
 	bundle_path = path_merge( environment_executable_directory(), "../Resources/config" );
+	paths[5] = bundle_path;
+#elif FOUNDATION_PLATFORM_IOS
+	bundle_path = path_merge( environment_executable_directory(), "config" );
 	paths[5] = bundle_path;
 #elif FOUNDATION_PLATFORM_ANDROID
 	paths[5] = "/config";
@@ -380,22 +388,20 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 		}
 	}
 #endif
-	
+
 	start_path = 0;
+
+	paths[9] = 0;
 	if( !built_in )
 	{
 #if FOUNDATION_PLATFORM_WINDOWS
 		home_dir = path_merge( environment_home_directory(), environment_application()->config_dir );
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_BSD
 		home_dir = path_prepend( string_concat( ".", environment_application()->config_dir ), environment_home_directory() );
 #endif
 		if( home_dir )
 			paths[9] = home_dir;
 		start_path = 9;
-	}
-	else
-	{
-		paths[9] = 0;
 	}
 
 	for( i = start_path; i < NUM_SEARCH_PATHS; ++i )
@@ -417,7 +423,7 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 		}
 		if( path_already_searched )
 			continue;
-		
+
 		//TODO: Support loading configs from virtual file system (i.e in zip/other packages)
 		filename = string_append( path_merge( paths[i], name ), ".ini" );
 		istream = 0;
@@ -449,6 +455,10 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 				"ios";
 #elif FOUNDATION_PLATFORM_ANDROID
 				"android";
+#elif FOUNDATION_PLATFORM_PNACL
+				"pnacl";
+#elif FOUNDATION_PLATFORM_BSD
+				"bsd";
 #else
 #  error Insert platform name
 				"unknown";
@@ -497,7 +507,8 @@ static NOINLINE config_section_t* config_section( hash_t section, bool create )
 
 	//TODO: Thread safeness
 	{
-		config_section_t new_section = {0};
+		config_section_t new_section;
+		memset( &new_section, 0, sizeof( new_section ) );
 		new_section.name = section;
 
 		array_push_memcpy( bucket, &new_section );
@@ -510,7 +521,7 @@ static NOINLINE config_section_t* config_section( hash_t section, bool create )
 
 static NOINLINE config_key_t* config_key( hash_t section, hash_t key, bool create )
 {
-	config_key_t new_key = {0};
+	config_key_t new_key;
 	config_section_t* csection;
 	config_key_t* bucket;
 	int ib, bsize;
@@ -532,6 +543,7 @@ static NOINLINE config_key_t* config_key( hash_t section, hash_t key, bool creat
 	if( !create )
 		return 0;
 
+	memset( &new_key, 0, sizeof( new_key ) );
 	new_key.name = key;
 
 	//TODO: Thread safeness
@@ -744,7 +756,7 @@ void config_parse( stream_t* stream, hash_t filter_section, bool overwrite )
 				log_warnf( HASH_CONFIG, WARNING_BAD_DATA, "Invalid value declaration on line %d in config stream '%s', missing assignment operator '=': %s", line, stream_path( stream ), buffer );
 				continue;
 			}
-			
+
 			name = string_strip_substr( buffer, " \t", separator );
 			value = string_strip( buffer + separator + 1, " \t" );
 			if( !string_length( name ) )
@@ -798,15 +810,15 @@ void config_parse_commandline( const char* const* cmdline, unsigned int num )
 
 				const char* section_str = cmdline[arg] + 2;
 				const char* key_str = pointer_offset_const( cmdline[arg], end_pos );
-				
+
 				hash_t section = hash( section_str, section_length );
 				hash_t key = hash( key_str, key_length );
-				
+
 				char* value = string_substr( cmdline[arg], second_sep + 1, STRING_NPOS );
 				char* set_value = value;
-				
+
 				unsigned int value_length = string_length( value );
-				
+
 				if( !value_length )
 					config_set_string( section, key, "" );
 				else if( string_equal( value, "false" ) )
@@ -832,9 +844,9 @@ void config_parse_commandline( const char* const* cmdline, unsigned int num )
 				}
 
 				log_infof( HASH_CONFIG, "Config value from command line: %.*s:%.*s = %s", section_length, section_str, key_length, key_str, set_value );
-				
+
 				string_deallocate( value );
-			}	
+			}
 		}
 	}
 }

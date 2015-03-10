@@ -1,11 +1,11 @@
 /* md5.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -127,7 +127,7 @@ static void md5_transform( md5_t* digest, const unsigned char* buffer )
 md5_t* md5_allocate( void )
 {
 	md5_t* digest = memory_allocate( 0, sizeof( md5_t ), 0, MEMORY_PERSISTENT );
-	
+
 	md5_initialize( digest );
 
 	return digest;
@@ -157,6 +157,7 @@ void md5_initialize( md5_t* digest )
 
 void md5_finalize( md5_t* md5 )
 {
+	FOUNDATION_UNUSED( md5 );
 }
 
 
@@ -223,7 +224,7 @@ void md5_digest_finalize( md5_t* digest )
 
 	idx      = ( ( digest->count[0] >> 3 ) & 0x3f );
 	size_pad = ( idx < 56 ) ? ( 56 - idx ) : ( 120 - idx );
-  
+
 	md5_digest_raw( digest, padding, size_pad );
 	md5_digest_raw( digest, bits, 8 );
 
@@ -249,7 +250,7 @@ char* md5_get_digest( const md5_t* digest )
 	const char trn[17] = "0123456789ABCDEF";
 	int i, j;
 	char* str;
-	
+
 	if( !digest )
 		return 0;
 

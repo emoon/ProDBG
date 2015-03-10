@@ -1,11 +1,11 @@
 /* types.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -19,9 +19,6 @@
 #  define ALIGNED_STRUCT( name, alignment ) struct name
 #endif
 
-#ifdef _WIN32
-#pragma warning(disable : 4200)
-#endif
 
 // PRIMITIVE TYPES
 
@@ -67,6 +64,7 @@ typedef enum
 	WARNING_SYSTEM_CALL_FAIL,
 	WARNING_DEADLOCK,
 	WARNING_SCRIPT,
+	WARNING_RESOURCE,
 	WARNING_LAST_BUILTIN  = 0x0fff
 } warning_t;
 
@@ -81,12 +79,16 @@ typedef enum
 
 typedef enum
 {
-	PLATFORM_WINDOWS   = 1,
+	PLATFORM_WINDOWS   = 0,
 	PLATFORM_LINUX,
 	PLATFORM_MACOSX,
 	PLATFORM_IOS,
 	PLATFORM_ANDROID,
-	PLATFORM_RASPBERRYPI
+	PLATFORM_RASPBERRYPI,
+	PLATFORM_PNACL,
+	PLATFORM_BSD,
+
+	PLATFORM_INVALID
 } platform_t;
 
 typedef enum
@@ -101,7 +103,8 @@ typedef enum
 	ARCHITECTURE_ARM8,
 	ARCHITECTURE_ARM8_64,
 	ARCHITECTURE_MIPS,
-	ARCHITECTURE_MIPS_64
+	ARCHITECTURE_MIPS_64,
+	ARCHITECTURE_GENERIC
 } architecture_t;
 
 typedef enum
@@ -121,7 +124,8 @@ typedef enum
 	STREAM_IN                  = 0x0001,
 	STREAM_OUT                 = 0x0002,
 	STREAM_TRUNCATE            = 0x0010,
-	STREAM_ATEND               = 0x0020,
+	STREAM_CREATE              = 0x0020,
+	STREAM_ATEND               = 0x0040,
 	STREAM_BINARY              = 0x0100,
 	STREAM_SYNC                = 0x0200
 } stream_mode_t;
@@ -239,7 +243,7 @@ typedef struct event_block_t                       event_block_t;
 typedef ALIGNED_STRUCT( event_stream_t, 16 )       event_stream_t;
 typedef struct hashmap_node_t                      hashmap_node_t;
 typedef struct hashmap_t                           hashmap_t;
-typedef ALIGNED_STRUCT( hashtable32_entry_t, 8 )  hashtable32_entry_t;
+typedef ALIGNED_STRUCT( hashtable32_entry_t, 8 )   hashtable32_entry_t;
 typedef ALIGNED_STRUCT( hashtable64_entry_t, 8 )   hashtable64_entry_t;
 typedef ALIGNED_STRUCT( hashtable32_t, 8 )         hashtable32_t;
 typedef ALIGNED_STRUCT( hashtable64_t, 8 )         hashtable64_t;
@@ -269,7 +273,7 @@ typedef struct OpaqueMPSemaphoreID*          MPSemaphoreID;
 typedef struct semaphore_t                   semaphore_t;
 #elif FOUNDATION_PLATFORM_IOS
 typedef struct dispatch_semaphore_s*         semaphore_t;
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 typedef union semaphore_native_t             semaphore_native_t;
 typedef struct semaphore_t                   semaphore_t;
 #endif
@@ -290,6 +294,7 @@ typedef void*         (* thread_fn )( object_t thread, void* arg );
 typedef int           (* crash_guard_fn )( void* arg );
 typedef void          (* crash_dump_callback_fn )( const char* file );
 typedef void          (* object_deallocate_fn )( object_t id, void* object );
+typedef stream_t*     (* stream_open_fn )( const char* path, unsigned int mode );
 typedef uint64_t      (* stream_read_fn )( stream_t* stream, void* dst, uint64_t size );
 typedef uint64_t      (* stream_write_fn )( stream_t* stream, const void* src, uint64_t size );
 typedef bool          (* stream_eos_fn )( stream_t* stream );
@@ -519,7 +524,7 @@ struct process_t
 	int                             code;
 	stream_t*                       pipeout;
 	stream_t*                       pipein;
-	
+
 #if FOUNDATION_PLATFORM_WINDOWS
 	char*                           verb;
 	void*                           hp;
@@ -528,7 +533,7 @@ struct process_t
 #if FOUNDATION_PLATFORM_POSIX
 	int                             pid;
 #endif
-	
+
 #if FOUNDATION_PLATFORM_MACOSX
 	int                             kq;
 #endif
@@ -584,12 +589,15 @@ struct semaphore_t
 };
 
 #elif FOUNDATION_PLATFORM_IOS
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 union semaphore_native_t
 {
 #  if FOUNDATION_PLATFORM_ANDROID
 	volatile unsigned int           count;
+#  elif FOUNDATION_PLATFORM_PNACL
+	volatile int                    count;
+	volatile int                    nwaiters;
 #else
 #  if FOUNDATION_ARCH_X86_64
 	char                            __size[64];
@@ -640,12 +648,12 @@ ALIGNED_STRUCT( stream_buffer_t, 8 )
 ALIGNED_STRUCT( stream_pipe_t, 8 )
 {
 	FOUNDATION_DECLARE_STREAM;
-	
+
 #if FOUNDATION_PLATFORM_WINDOWS
 	void*                           handle_read;
 	void*                           handle_write;
 #endif
-#if FOUNDATION_PLATFORM_POSIX
+#if FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	int                             fd_read;
 	int                             fd_write;
 #endif
@@ -654,13 +662,13 @@ ALIGNED_STRUCT( stream_pipe_t, 8 )
 ALIGNED_STRUCT( stream_ringbuffer_t, 8 )
 {
 	FOUNDATION_DECLARE_STREAM;
-	
+
 	semaphore_t                     signal_read;
 	semaphore_t                     signal_write;
 	volatile int32_t                pending_read;
 	volatile int32_t                pending_write;
 	uint64_t                        total_size;
-	
+
 	FOUNDATION_DECLARE_RINGBUFFER;
 };
 

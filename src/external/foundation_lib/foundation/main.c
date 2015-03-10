@@ -1,17 +1,22 @@
 /* main.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
 
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
+
+#if FOUNDATION_PLATFORM_PNACL
+#  include <foundation/pnacl.h>
+#  include <ppapi/c/ppp_instance.h>
+#endif
 
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -40,7 +45,7 @@ BOOL STDCALL _main_console_handler( DWORD control_type )
 		unsigned long level = 0, flags = 0;
 
 		system_post_event( FOUNDATIONEVENT_TERMINATE );
-		
+
 		GetProcessShutdownParameters( &level, &flags );
 		SetProcessShutdownParameters( level, SHUTDOWN_NORETRY );
 
@@ -69,7 +74,7 @@ int STDCALL WinMain( HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cm
 	foundation_startup();
 
 	system_post_event( FOUNDATIONEVENT_START );
-    
+
 #if BUILD_DEBUG
 	ret = main_run( 0 );
 #else
@@ -128,16 +133,20 @@ static void sighandler( int sig )
 		default: break;
 	}
 	log_infof( 0, "Caught signal: %s (%d)", signame, sig );
+#else
+	FOUNDATION_UNUSED( sig );
 #endif
 	system_post_event( FOUNDATIONEVENT_TERMINATE );
 }
 
 #endif
 
-
 #if FOUNDATION_PLATFORM_ANDROID
 /*! Aliased entry point */
 int real_main( void )
+#elif FOUNDATION_PLATFORM_PNACL
+/*! Aliased entry point */
+int real_main( PP_Instance instance )
 #else
 /*! Normal entry point for all platforms, including Windows console applications */
 int main( int argc, char** argv )
@@ -145,15 +154,17 @@ int main( int argc, char** argv )
 {
 	int ret = -1;
 
-#if !FOUNDATION_PLATFORM_ANDROID
+#if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 	_environment_main_args( argc, (const char* const*)argv );
+#elif FOUNDATION_PLATFORM_PNACL
+	FOUNDATION_UNUSED( instance );
 #endif
-	
+
 	if( ( ret = main_initialize() ) < 0 )
 		return ret;
 
 #if FOUNDATION_PLATFORM_POSIX
-	
+
 	//Set signal handlers
 	{
 		struct sigaction action;
@@ -187,8 +198,8 @@ int main( int argc, char** argv )
 	thread_set_main();
 
 	foundation_startup();
-    
-#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX
+
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_PNACL
 	system_post_event( FOUNDATIONEVENT_START );
 #endif
 
@@ -197,7 +208,7 @@ int main( int argc, char** argv )
 	if( !( environment_application()->flags & APPLICATION_UTILITY ) )
 	{
 		delegate_start_main_ns_thread();
-		
+
 		extern int NSApplicationMain( int argc, const char *argv[] );
 		ret = NSApplicationMain( argc, (const char**)argv );
 
@@ -214,9 +225,6 @@ int main( int argc, char** argv )
 	}
 #endif
 
-//#if BUILD_DEBUG
-//	ret = main_run( 0 );
-//#else
 	{
 		char* name = 0;
 		const application_t* app = environment_application();
@@ -255,6 +263,30 @@ void android_main( struct android_app* app )
 		return;
 	android_entry( app );
 	real_main();
+}
+
+#endif
+
+
+#if FOUNDATION_PLATFORM_PNACL
+
+/*! PNaCl glue entry points */
+
+PP_EXPORT int32_t PPP_InitializeModule( PP_Module module_id, PPB_GetInterface get_browser )
+{
+	return pnacl_module_initialize( module_id, get_browser );
+}
+
+
+PP_EXPORT const void* PPP_GetInterface( const char* interface_name )
+{
+	return pnacl_module_interface( interface_name );
+}
+
+
+PP_EXPORT void PPP_ShutdownModule()
+{
+	pnacl_module_shutdown();
 }
 
 #endif

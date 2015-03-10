@@ -1,11 +1,11 @@
 /* log.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -31,13 +31,17 @@ __declspec(dllimport) void STDCALL OutputDebugStringA(LPCSTR);
 #  include <foundation/posix.h>
 #endif
 
+#if FOUNDATION_PLATFORM_PNACL
+#  include <foundation/pnacl.h>
+#endif
+
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
 
 static bool             _log_stdout           = true;
 static bool             _log_prefix           = true;
-static log_callback_fn  _log_callback         = 0;
-static hashtable64_t*   _log_suppress         = 0;
-static error_level_t    _log_suppress_default = ERRORLEVEL_NONE;
+static log_callback_fn  _log_callback;
+static hashtable64_t*   _log_suppress;
+static error_level_t    _log_suppress_default;
 
 static char _log_warning_name[WARNING_LAST_BUILTIN][18] = {
 	"performance",
@@ -88,12 +92,15 @@ static log_timestamp_t _log_make_timestamp( void )
 	uint64_t seconds;
 	uint64_t minutes;
 
-	log_timestamp_t timestamp = {0};
-	
+	log_timestamp_t timestamp;
+
 	ticks_per_sec = time_ticks_per_second();
 	if( !ticks_per_sec )
+	{
+		memset( &timestamp, 0, sizeof( timestamp ) );
 		return timestamp;
-	
+	}
+
 	elapsed = time_current() - time_startup();
 	milliseconds = ( ( elapsed % ticks_per_sec ) * 1000ULL ) / ticks_per_sec;
 	seconds = elapsed / ticks_per_sec;
@@ -134,7 +141,7 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 			more = vsnprintf( buffer + need, remain, format, clist );
 			va_end( clist );
 		}
-			
+
 		if( ( more > -1 ) && ( more < remain ) )
 		{
 			buffer[need+more] = '\n';
@@ -143,8 +150,11 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 #if FOUNDATION_PLATFORM_WINDOWS
 			OutputDebugStringA( buffer );
 #endif
-
+#if FOUNDATION_PLATFORM_PNACL
+			pnacl_post_log( context, severity, buffer, need + more + 1 );
+#endif
 #if FOUNDATION_PLATFORM_ANDROID
+			FOUNDATION_UNUSED( std );
 			if( _log_stdout )
 				__android_log_write( ANDROID_LOG_DEBUG + severity - 1, environment_application()->short_name, buffer );
 #else
@@ -217,7 +227,7 @@ void log_warnf( uint64_t context, warning_t warn, const char* format, ... )
 		string_format_buffer( prefix, 32, "WARNING [%s]: ", _log_warning_name[warn] );
 	else
 		string_format_buffer( prefix, 32, "WARNING [%d]: ", warn );
-	
+
 	va_start( list, format );
 	_log_outputf( context, ERRORLEVEL_WARNING, prefix, format, list, stdout );
 	va_end( list );
@@ -238,7 +248,7 @@ void log_errorf( uint64_t context, error_t err, const char* format, ... )
 		string_format_buffer( prefix, 32, "ERROR [%s]: ", _log_error_name[err] );
 	else
 		string_format_buffer( prefix, 32, "ERROR [%d]: ", err );
-	
+
 	va_start( list, format );
 	_log_outputf( context, ERRORLEVEL_ERROR, prefix, format, list, stderr );
 	va_end( list );
@@ -258,7 +268,7 @@ void log_panicf( uint64_t context, error_t err, const char* format, ... )
 		string_format_buffer( prefix, 32, "PANIC [%s]: ", _log_error_name[err] );
 	else
 		string_format_buffer( prefix, 32, "PANIC [%d]: ", err );
-	
+
 	va_start( list, format );
 	_log_outputf( context, ERRORLEVEL_PANIC, prefix, format, list, stderr );
 	va_end( list );

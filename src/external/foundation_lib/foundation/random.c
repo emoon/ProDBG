@@ -1,11 +1,11 @@
 /* random.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -40,9 +40,9 @@
 
 FOUNDATION_DECLARE_THREAD_LOCAL( unsigned int*, state, 0 )
 
-static mutex_t*       _random_mutex = 0;
-static unsigned int** _random_state = 0;
-static unsigned int** _random_available_state = 0;
+static mutex_t*       _random_mutex;
+static unsigned int** _random_state;
+static unsigned int** _random_available_state;
 
 
 static void _random_seed_buffer( unsigned int* buffer )
@@ -126,7 +126,7 @@ static unsigned int* _random_thread_allocate( void )
 	}
 
 	mutex_unlock( _random_mutex );
-	
+
 	set_thread_state( buffer );
 
 	return buffer;
@@ -168,7 +168,7 @@ static FORCEINLINE unsigned int random_from_state( unsigned int* RESTRICT state 
 		state[ state_index ] = bits1 ^ bits2;
 		state[ state_index - 1 ] = bits0 ^ RANDOM_XOR_AND_RIGHTSHIFT( 20, bits1 ) ^ RANDOM_TRANSFORM( 9, 0xb729fcecU, 0xfbffffffU, 0x00020000U, bits2 ) ^ state[ state_index ];
 		state[ RANDOM_STATE_SIZE ] = state_index = 0;
-		return ( state[ state_index ] ^ ( state[ state_index + RANDOM_HIGH_LIMIT + 1 ] & RANDOM_BITMASK ) ); 
+		return ( state[ state_index ] ^ ( state[ state_index + RANDOM_HIGH_LIMIT + 1 ] & RANDOM_BITMASK ) );
 	}
 	else if( state_index + RANDOM_LOW_LIMIT >= RANDOM_STATE_SIZE )
 	{
@@ -244,7 +244,7 @@ uint64_t random64( void )
 	unsigned int* state = get_thread_state();
 	if( !state )
 		state = _random_thread_allocate();
-	
+
 	low = random_from_state( state );
 	high = random_from_state( state );
 
@@ -322,7 +322,7 @@ real random_gaussian_range( real low, real high )
 
 int32_t random32_triangle_range( int32_t low, int32_t high )
 {
-	const uint32_t t0 = random32(); 
+	const uint32_t t0 = random32();
 	const uint32_t t1  = random32();
 	const uint64_t tri = ( t0 >> 1 ) + ( t1 >> 1 ) + ( t0 & t1 & 1 );
 

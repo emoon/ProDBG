@@ -1,11 +1,11 @@
 /* android.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -19,9 +19,9 @@
 
 #include <android/sensor.h>
 
-static struct android_app*       _android_app = 0;
-static struct ASensorEventQueue* _android_sensor_queue = 0;
-static bool                      _android_sensor_enabled[16] = {0};
+static struct android_app*       _android_app;
+static struct ASensorEventQueue* _android_sensor_queue;
+static bool                      _android_sensor_enabled[16];
 
 static void _android_enable_sensor( int sensor_type );
 static void _android_disable_sensor( int sensor_type );
@@ -34,19 +34,19 @@ void android_entry( struct android_app* app )
 
 	//Avoid glue code getting stripped
 	app_dummy();
-	
+
 	_android_app = app;
-	
+
 	_android_app->onAppCmd = android_handle_cmd;
 	_android_app->onInputEvent = 0;//android_handle_input;
 	_android_app->userData = 0;
 }
 
-	
+
 int android_initialize( void )
 {
 	//log_debug( 0, "Force window fullscreen" );
-	//ANativeActivity_setWindowFlags( app->activity, AWINDOW_FLAG_FULLSCREEN, AWINDOW_FLAG_FORCE_NOT_FULLSCREEN );	
+	//ANativeActivity_setWindowFlags( app->activity, AWINDOW_FLAG_FULLSCREEN, AWINDOW_FLAG_FORCE_NOT_FULLSCREEN );
 
 	log_debugf( 0, "Waiting for application window to be set" );
 	{
@@ -132,6 +132,7 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 
 		case APP_CMD_INIT_WINDOW:
 		{
+#if BUILD_ENABLE_LOG
 			if( app->window )
 			{
 				int w = 0, h = 0;
@@ -139,9 +140,10 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 				h = ANativeWindow_getHeight( app->window );
 				log_infof( HASH_SYSTEM, "System command: APP_CMD_INIT_WINDOW dimensions %dx%d", w, h );
 			}
+#endif
             break;
 		}
-        
+
 		case APP_CMD_TERM_WINDOW:
 		{
 			log_info( HASH_SYSTEM, "System command: APP_CMD_TERM_WINDOW" );
@@ -150,10 +152,15 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 
     	case APP_CMD_WINDOW_RESIZED:
 		{
-			int w = 0, h = 0;
-			w = ANativeWindow_getWidth( app->window );
-			h = ANativeWindow_getHeight( app->window );
-			log_infof( HASH_SYSTEM, "System command: APP_CMD_WINDOW_RESIZED dimensions %dx%d", w, h );
+#if BUILD_ENABLE_LOG
+			if( app->window )
+			{
+				int w = 0, h = 0;
+				w = ANativeWindow_getWidth( app->window );
+				h = ANativeWindow_getHeight( app->window );
+				log_infof( HASH_SYSTEM, "System command: APP_CMD_WINDOW_RESIZED dimensions %dx%d", w, h );
+			}
+#endif
             break;
 		}
 
@@ -168,7 +175,7 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 			log_info( HASH_SYSTEM, "System command: APP_CMD_CONTENT_RECT_CHANGED" );
             break;
 		}
-        
+
 		case APP_CMD_GAINED_FOCUS:
 		{
 			log_info( HASH_SYSTEM, "System command: APP_CMD_GAINED_FOCUS" );
@@ -227,7 +234,7 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 			log_info( HASH_SYSTEM, "System command: APP_CMD_STOP" );
             break;
 		}
-		
+
 		case APP_CMD_DESTROY:
 		{
 			log_info( HASH_SYSTEM, "System command: APP_CMD_DESTROY" );
@@ -243,6 +250,9 @@ void android_handle_cmd( struct android_app* app, int32_t cmd )
 
 int android_sensor_callback( int fd, int events, void* data )
 {
+	FOUNDATION_UNUSED( fd );
+	FOUNDATION_UNUSED( events );
+	FOUNDATION_UNUSED( data );
 	return 1;
 }
 
