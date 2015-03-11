@@ -196,7 +196,11 @@ SharedLibrary {
     Name = "c64_vice_plugin",
     
     Env = {
-        CPPPATH = { "api/include", },
+        CPPPATH = { 
+			"src/external/jansson/include",
+			"api/include", 
+		},
+
         COPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
     },
 
@@ -214,6 +218,8 @@ SharedLibrary {
     },
 
     IdeGenerationHints = { Msvc = { SolutionFolder = "Addons" } },
+
+    Depends = { "jansson", "foundation_lib" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
