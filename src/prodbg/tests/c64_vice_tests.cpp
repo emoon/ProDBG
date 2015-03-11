@@ -433,8 +433,6 @@ static void waitForBreak(uint64_t breakAddress, const CPUState* cpuState, uint64
 {
 	CPUState outState;
 
-	printf("checkMask %x\n", (int)checkMask);
-
     // Give VICE some time to actually hit the breakpoint so we loop here and do
     // some sleeping and expect this to hit within 10 ms
 
@@ -456,9 +454,6 @@ static void waitForBreak(uint64_t breakAddress, const CPUState* cpuState, uint64
 				assert_true(cpuState->x == outState.x);
 			if (checkMask & CPUState_maskY)  
 				assert_int_equal(cpuState->y, outState.y);
-
-
-			printf("%x %x\n", (uint32_t)address, (uint32_t)breakAddress);
 
 			assert_int_equal((int)address, (int)breakAddress);
 
@@ -548,8 +543,6 @@ static void test_c64_vice_basic_breakpoint(void**)
 
 		Time_sleepMs(1);
 	}
-
-	Session_action(s_session, PDAction_break);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

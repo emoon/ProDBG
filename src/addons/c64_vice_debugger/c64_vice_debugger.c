@@ -220,8 +220,6 @@ static void sendCommand(PluginData* data, const char* format, ...)
     if (!data->conn)
         return;
 
-    printf("send command %s", buffer);
-
     VICEConnection_send(data->conn, buffer, len, 0);
 
 	sleepMs(1);
@@ -257,6 +255,8 @@ static int getData(PluginData* data, char** resBuffer, int* len)
 
             resData += res;
             lenCount += res;
+	
+			sleepMs(1);
         }
 
         if (gotData)
@@ -377,12 +377,9 @@ static void setBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
 
 	getData(data, &res, &len);
 
-	printf("setBreakpoint %s\n", res);
-	
 	if (strncmp(res, "BREAK: ", 6) == 0)
 	{
 		internalId = atoi(res + 7);
-		printf("Interanl bp id %d\n", internalId);
 	}
 	else
 	{
@@ -427,8 +424,6 @@ static bool delBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
 	}
 
 	const int breakpointCount = data->breakpoints.count;
-
-	printf("breakpointCount %d\n", breakpointCount);
 
 	for (int i = 0, end = data->breakpoints.count; i < end; ++i)
 	{
@@ -783,8 +778,6 @@ void onStep(PluginData* plugin)
     if (!getData(plugin, &res, &len))
         return;
 
-    printf("getRegistes %s\n.................................\n", res);
-
     // return data from VICE is of the follwing format:
     // .C:0811  EE 20 D0    INC $D020      - A:00 X:17 Y:17 SP:f6 ..-.....   19262882
     
@@ -861,8 +854,6 @@ static void updateEvents(PluginData* data)
 
     if ((found = strstr(res, stopOnExec)))
 	{
-		printf("stop on exec %s\n", res);
-
     	size_t execLen = strlen(stopOnExec);
     	found += execLen;
 
