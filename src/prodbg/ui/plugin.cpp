@@ -125,7 +125,7 @@ static void alignFirstTextHeightToWidgets()
 
 static float getTextLineSpacing()
 {
-    return ImGui::GetTextLineSpacing();
+    return ImGui::GetTextLineHeightWithSpacing();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -246,7 +246,7 @@ static void inputTextInsertChars(PDInputTextCallbackData* data, int pos, const c
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void textEditCallbackStub(ImGuiTextEditCallbackData* data)
+static int textEditCallbackStub(ImGuiTextEditCallbackData* data)
 {
     PDInputTextUserData* wrappedUserData = (PDInputTextUserData*)data->UserData;
     PDInputTextCallbackData callbackData = { 0 };
@@ -279,11 +279,13 @@ static void textEditCallbackStub(ImGuiTextEditCallbackData* data)
     data->CursorPos      = callbackData.cursorPos;
     data->SelectionStart = callbackData.selectionStart;
     data->SelectionEnd   = callbackData.selectionEnd;
+
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool inputText(const char* label, char* buf, int buf_size, int flags, void (* callback)(PDInputTextCallbackData*), void* userData)
+static bool inputText(const char* label, char* buf, int buf_size, int flags, void (*callback)(PDInputTextCallbackData*), void* userData)
 {
     PDInputTextUserData wrappedUserData;
     wrappedUserData.callback = callback;

@@ -25,9 +25,9 @@ float GetTextWidth(const char* textStart, const char* textEnd)
 
 ImVec2 GetRelativeMousePos()
 {
-    ImGuiState& g = GImGui;
+    const ImGuiState* g = GImGui;
     ImGuiWindow* window = GetCurrentWindow();
-    ImVec2 pos = g.IO.MousePos - window->Pos;
+    ImVec2 pos = g->IO.MousePos - window->Pos;
     ImVec2 zero = ImVec2(0.0f, 0.0f);
     return ImClamp(pos, zero, window->Size);
 }
@@ -72,15 +72,15 @@ void SetWindowRect(ImGuiWindow* window, const ImVec2 pos, const ImVec2 size)
 
 bool IsActiveWindow(ImGuiWindow* window)
 {
-    ImGuiState& g = GImGui;
-    return g.FocusedWindow == window;
+    const ImGuiState* g = GImGui;
+    return g->FocusedWindow == window;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ScInputText(const char* label, char* buf, size_t buf_size, float xSize, float ySize, ImGuiInputTextFlags flags, void (*callback)(void*), void* user_data)
 {
-    ImGuiState& g = GImGui;
+    ImGuiState& g = *GImGui;
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
         return false;
