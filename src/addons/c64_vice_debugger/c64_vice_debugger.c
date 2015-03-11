@@ -11,6 +11,7 @@
 #include <windows.h>
 #endif
 
+#include <jansson.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -73,6 +74,16 @@ typedef struct Breakpoints
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef struct Config
+{
+	const char* viceExe;
+	const char* progFile;
+	const char* kickAssSymbols;
+	const char* breakpointFile;
+} Config;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef struct PluginData
 {
     struct VICEConnection* conn;
@@ -82,6 +93,7 @@ typedef struct PluginData
     PDDebugState state;
     char tempFileFull[8192];
     Breakpoints breakpoints;
+	Config config;
 } PluginData;
 
 
@@ -147,6 +159,49 @@ void* loadToMemory(const char* filename, size_t* size)
     fclose(f);
 
     return data;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void setupDefaultConfig(PluginData* data)
+{
+#ifdef PRODBG_MAC
+    data->config.viceExe = strdup("/Applications/VICE/x64.app/Contents/MacOS/x64");
+#elif PRODBG_WIN
+    data->config.viceExe = strdup("x64.exe");
+#else
+    data->config.viceExe = strdup("x64");
+#endif
+
+	data->config.progFile = strdup("examples/c64_vice/test.prg");
+	data->config.kickAssSymbols = strdup("examples/c64_vice/test.sym");
+	data->config.breakpointFile = strdup("examples/c64_vice/breakpoints.txt");
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void loadConfig(PluginData* data, const char* filename)
+{
+	const char* viceExe = 0;
+	const char* progFile = 0;
+	const char* kickAssSymbols = 0;
+	const char* breakpointFile = 0;
+    json_error_t error;
+
+	setupDefaultConfig(data);
+
+    json_t* root = json_load_file(filename, 0, &error);
+
+    if (!root || !json_is_object(root))
+        return;
+
+	json_unpack(root, "{s:s, s:s, s:s, s:s}",
+		"vice_exe", &viceExe,
+		"prg_file", &progFile,
+		"kickass_symbols", &kickAssSymbols,
+		"breakpoints_file", &breakpointFile);
+
+	json_decref(root);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -441,6 +496,8 @@ static void* createInstance(ServiceFunc* serviceFunc)
     getFullName((char*)&data->tempFileFull, "temp/vice_mem_dump");
 
     data->state = PDDebugState_noTarget;
+
+	loadConfig(data, "data/c64_vice.cfg");
 
     //TODO: non fixed size?
     
