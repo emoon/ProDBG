@@ -143,6 +143,13 @@ static int button(const char* label)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+static int checkbox(const char* label, bool* v)
+{
+	return ImGui::Checkbox(label, v);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int buttonSmall(const char* label)
 {
@@ -280,7 +287,7 @@ static int textEditCallbackStub(ImGuiTextEditCallbackData* data)
     data->SelectionStart = callbackData.selectionStart;
     data->SelectionEnd   = callbackData.selectionEnd;
 
-    return 0;
+    return 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -536,6 +543,7 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     uiInstance->scInputText = scEditText;
     uiInstance->inputText = inputText;
     uiInstance->button = button;
+    uiInstance->checkbox = checkbox;
     uiInstance->buttonSmall = buttonSmall;
     uiInstance->buttonSize = buttonSize;
 

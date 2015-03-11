@@ -161,6 +161,8 @@ typedef struct PDUI
 
     // Widgets
 
+    int (*checkbox)(const char* label, bool* v);
+
     int (*button)(const char* label);
     int (*buttonSmall)(const char* label);
     int (*buttonSize)(const char* label, int width, int height, int repeatWhenHeld);

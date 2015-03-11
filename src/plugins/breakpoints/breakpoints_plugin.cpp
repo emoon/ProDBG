@@ -62,6 +62,18 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     (void)serviceFunc;
     BreakpointsData* userData = new BreakpointsData;
 
+/*
+	Breakpoint* test = (Breakpoint*)malloc(sizeof(Breakpoint));
+	memset(test, 0, sizeof(Breakpoint));
+
+	test->location.address = (char*)malloc(userData->maxPath);
+	test->condition = (char*)malloc(userData->maxPath);
+	memset(test->location.address, 0, userData->maxPath);
+	memset(test->condition, 0, userData->maxPath);
+
+	userData->breakpoints.push_back(test);
+*/
+
     (void)uiFuncs;
     (void)serviceFunc;
 
@@ -180,15 +192,22 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
         }
     }
 
+    uiFuncs->button("New"); uiFuncs->sameLine(0, -1);
+    uiFuncs->button("Delete"); uiFuncs->sameLine(0, -1);
+
     uiFuncs->text("");
 
-    uiFuncs->columns(3, "", true);
+    uiFuncs->columns(4, "", true);
+    uiFuncs->text(""); uiFuncs->nextColumn();
     uiFuncs->text("Name"); uiFuncs->nextColumn();
+    uiFuncs->text("Label"); uiFuncs->nextColumn();
     uiFuncs->text("Condition"); uiFuncs->nextColumn();
 
     for (auto& i : data->breakpoints)
     {
     	Breakpoint* bp = i;
+
+    	uiFuncs->checkbox("", &bp->enabled); uiFuncs->nextColumn();
 
     	if (bp->location.filename)
 		{
@@ -200,6 +219,8 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 		}
 
 		uiFuncs->nextColumn();
+
+		uiFuncs->text("");
 
         uiFuncs->text(bp->condition); uiFuncs->nextColumn();
     }
