@@ -1,11 +1,11 @@
 /* objectmap.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -54,7 +54,7 @@ object_t _object_unref( object_base_t* obj )
 objectmap_t* objectmap_allocate( unsigned int size )
 {
 	objectmap_t* map;
-	
+
 	FOUNDATION_ASSERT_MSG( size > 2, "Invalid objectmap size" );
 	if( size <= 2 )
 		size = 2;
@@ -62,7 +62,7 @@ objectmap_t* objectmap_allocate( unsigned int size )
 	map = memory_allocate( 0, sizeof( objectmap_t ) + ( sizeof( void* ) * size ), 16, MEMORY_PERSISTENT );
 
 	objectmap_initialize( map, size );
-	
+
 	return map;
 }
 
@@ -77,9 +77,9 @@ void objectmap_initialize( objectmap_t* map, unsigned int size )
 	FOUNDATION_ASSERT_MSG( size > 2, "Invalid objectmap size" );
 	bits = math_round( math_log2( (real)size ) ); //Number of bits needed
 	FOUNDATION_ASSERT_MSGFORMAT( bits < 50, "Invalid objectmap size %d", size );
-	
+
 	memset( map, 0, sizeof( objectmap_t ) + ( sizeof( void* ) * size ) );
-	
+
 	//Top two bits unused for Lua compatibility
 	map->size_bits   = bits;
 	map->id_max      = ((1ULL<<(62ULL-bits))-1);
@@ -106,10 +106,10 @@ void objectmap_deallocate( objectmap_t* map )
 void objectmap_finalize( objectmap_t* map )
 {
 	uint64_t i;
-	
+
 	if( !map )
 		return;
-	
+
 	for( i = 0; i < map->size; ++i )
 	{
 		bool is_object = !( (uintptr_t)map->map[i] & 1 );
@@ -146,7 +146,7 @@ object_t objectmap_reserve( objectmap_t* map )
 	uint64_t idx, next, id;
 
 	FOUNDATION_ASSERT( map ); /*lint -esym(613,pool) */
-	
+
 	//Reserve spot in array
 	//TODO: Look into double-ended implementation with allocation from tail and free push to head
 	do
@@ -159,11 +159,11 @@ object_t objectmap_reserve( objectmap_t* map )
 		}
 		next = ((uintptr_t)map->map[idx]) >> 1;
 	} while( !atomic_cas64( &map->free, next, idx ) );
-	
+
 	//Sanity check that slot isn't taken
 	FOUNDATION_ASSERT_MSG( (intptr_t)(map->map[idx]) & 1, "Map failed sanity check, slot taken after reserve" );
 	map->map[idx] = 0;
-	
+
 	//Allocate ID
 	id = 0;
 	do
@@ -173,7 +173,7 @@ object_t objectmap_reserve( objectmap_t* map )
 
 	//Make sure id stays within correct bits (if fails, check objectmap allocation and the mask setup there)
 	FOUNDATION_ASSERT( ( ( id << map->size_bits ) & map->mask_id ) == ( id << map->size_bits ) );
-	
+
 	return ( id << map->size_bits ) | idx; /*lint +esym(613,pool) */
 }
 
@@ -183,7 +183,7 @@ void objectmap_free( objectmap_t* map, object_t id )
 	uint64_t idx, last;
 
 	FOUNDATION_ASSERT( map ); /*lint -esym(613,pool) */
-	
+
 	idx = (intptr_t)( id & map->mask_index );
 	if( (uintptr_t)map->map[idx] & 1 )
 		return; //Already free
@@ -201,7 +201,7 @@ void objectmap_set( objectmap_t* map, object_t id, void* object )
 	uint64_t idx;
 
 	FOUNDATION_ASSERT( map ); /*lint -esym(613,pool) */
-	
+
 	idx = (int)( id & map->mask_index );
 	//Sanity check, can't set free slot, and non-free slot should be initialized to 0 in reserve function
 	FOUNDATION_ASSERT( !(((uintptr_t)map->map[idx]) & 1 ) );

@@ -27,31 +27,33 @@ unsigned int _system_process_info_processor_count( void )
 
 int _system_show_alert( const char* title, const char* message, int cancel_button )
 {
+	//TODO: Use cancel_button control
+	FOUNDATION_UNUSED( cancel_button );
 	@autoreleasepool
-	{	
+	{
 #if FOUNDATION_PLATFORM_MACOSX
-	
+
 	NSAlert* alert = [NSAlert alertWithMessageText:[NSString stringWithCString:title encoding:NSUTF8StringEncoding]
 									 defaultButton:[NSString stringWithCString:"OK" encoding:NSASCIIStringEncoding]
 								   alternateButton:[NSString stringWithCString:"Cancel" encoding:NSASCIIStringEncoding]
 									   otherButton:nil
 						 informativeTextWithFormat:@"%@", [NSString stringWithCString:message encoding:NSUTF8StringEncoding]];
-	
+
 	NSInteger button = [alert runModal];
-	
+
 	return ( button == 1/*NSAlertDefaultReturn*/ ) ? 1 : 0;
-	
+
 #elif FOUNDATION_PLATFORM_IOS
-	
+
 	UIAlertView* alert = [[UIAlertView alloc]
 						  initWithTitle:[NSString stringWithCString:title encoding:NSASCIIStringEncoding]
 						  message:[NSString stringWithCString:message encoding:NSASCIIStringEncoding]
 						  delegate:nil cancelButtonTitle:[NSString stringWithCString:"Cancel" encoding:NSASCIIStringEncoding] otherButtonTitles:nil];
-	
+
 	[alert show];
-	
+
 	return 1;
-	
+
 #endif
 	}
 }

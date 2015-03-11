@@ -1,11 +1,11 @@
 /* library.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -36,7 +36,7 @@ struct library_t
 typedef ALIGN(8) struct library_t library_t;
 
 
-static objectmap_t* _library_map = 0;
+static objectmap_t* _library_map;
 
 
 int _library_initialize( void )
@@ -96,7 +96,7 @@ object_t library_load( const char* name )
 			return library->id;
 		}
 	}
-	
+
 	error_context_push( "loading library", name );
 
 	//Try loading library
@@ -149,7 +149,7 @@ object_t library_load( const char* name )
 	}
 
 #else
-	
+
 	log_errorf( 0, ERROR_NOT_IMPLEMENTED, "Dynamic library loading not implemented for this platform: %s", name );
 	error_context_pop();
 	return 0;
@@ -164,7 +164,7 @@ object_t library_load( const char* name )
 #elif FOUNDATION_PLATFORM_POSIX
 		dlclose( lib );
 #endif
-		log_errorf( 0, ERROR_OUT_OF_MEMORY, "Unable to allocate new library '%s', map full", name );	
+		log_errorf( 0, ERROR_OUT_OF_MEMORY, "Unable to allocate new library '%s', map full", name );
 		error_context_pop();
 		return 0;
 	}
@@ -180,7 +180,7 @@ object_t library_load( const char* name )
 	objectmap_set( _library_map, id, library );
 
 	error_context_pop();
-	
+
 	return library->id;
 }
 
@@ -209,6 +209,7 @@ void* library_symbol( object_t id, const char* name )
 #elif FOUNDATION_PLATFORM_POSIX
 		return dlsym( library->lib, name );
 #else
+		FOUNDATION_UNUSED( name );
 		log_errorf( 0, ERROR_NOT_IMPLEMENTED, "Dynamic library symbol lookup implemented for this platform: %s not found", name );
 #endif
 	}

@@ -1,11 +1,11 @@
 /* delegate.m  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -17,7 +17,7 @@
 
 extern int app_main( void* arg );
 
-volatile int _delegate_dummy = 0;
+volatile int _delegate_dummy;
 
 NOINLINE void delegate_reference_classes( void )
 {
@@ -40,13 +40,14 @@ static volatile bool _delegate_received_terminate = false;
 
 + (void)startMainThread:(void*)arg
 {
+	FOUNDATION_UNUSED( arg );
 	if( _delegate_main_thread_running )
 		return;
 
 	_delegate_main_thread_running = true;
 
 	log_debug( 0, "Started main thread" );
-	
+
     if( !_delegate_received_start )
     {
 		log_debug( 0, "Waiting for application init" );
@@ -54,14 +55,14 @@ static volatile bool _delegate_received_terminate = false;
             thread_sleep( 50 );
         thread_sleep( 1 );
     }
-    
+
 	@autoreleasepool
 	{
 		log_debug( 0, "Application init done, launching main" );
 		if( ![NSThread isMultiThreaded] )
 			log_warn( 0, WARNING_SUSPICIOUS, "Application is STILL not multithreaded!" );
     }
-	
+
 	{
 		char* name = 0;
 		const application_t* app = environment_application();
@@ -71,17 +72,17 @@ static volatile bool _delegate_received_terminate = false;
 			name = string_append( name, "-" );
 			name = string_append( name, string_from_version_static( app->version ) );
 		}
-		
+
 		if( app->dump_callback )
 			crash_guard_set( app->dump_callback, name );
-		
+
 		crash_guard( main_run, 0, app->dump_callback, name );
-		
+
 		string_deallocate( name );
 	}
-	
+
 	main_shutdown();
-    
+
 	@autoreleasepool
 	{
 #if FOUNDATION_PLATFORM_MACOSX
@@ -91,7 +92,7 @@ static volatile bool _delegate_received_terminate = false;
 		log_debug( 0, "Main thread exiting" );
 
 		_delegate_main_thread_running = false;
-		
+
 #if FOUNDATION_PLATFORM_IOS
 		if( !_delegate_received_terminate )
 		{
@@ -107,7 +108,7 @@ static volatile bool _delegate_received_terminate = false;
 void delegate_start_main_ns_thread( void )
 {
 	delegate_reference_classes();
-	
+
 	log_debug( 0, "Starting main thread" );
 	@autoreleasepool { [NSThread detachNewThreadSelector:@selector(startMainThread:) toTarget:[FoundationMainThread class] withObject:nil]; }
 }
@@ -116,8 +117,8 @@ void delegate_start_main_ns_thread( void )
 #if FOUNDATION_PLATFORM_MACOSX
 
 
-static __weak NSApplication*           _delegate_app = 0;
-static __weak FoundationAppDelegate*   _delegate     = 0;
+static __weak NSApplication*           _delegate_app;
+static __weak FoundationAppDelegate*   _delegate;
 
 
 void* delegate_nswindow( void )
@@ -139,6 +140,7 @@ void* delegate_nswindow( void )
 
 - (void)applicationDidFinishLaunching:(NSApplication*)application
 {
+	FOUNDATION_UNUSED( application );
 	_delegate = self;
     _delegate_received_start = true;
 
@@ -148,12 +150,14 @@ void* delegate_nswindow( void )
 
 - (void)applicationWillResignActive:(NSApplication*)application
 {
+	FOUNDATION_UNUSED( application );
 	log_debug( 0, "Application will resign active" );
 	system_post_event( FOUNDATIONEVENT_PAUSE );
 }
 
 - (void)applicationDidBecomeActive:(NSApplication*)application
 {
+	FOUNDATION_UNUSED( application );
 	log_debug( 0, "Application became active" );
 	_delegate_app = application;
 	system_post_event( FOUNDATIONEVENT_RESUME );
@@ -161,6 +165,7 @@ void* delegate_nswindow( void )
 
 - (void)applicationWillTerminate:(NSApplication*)application
 {
+	FOUNDATION_UNUSED( application );
 	_delegate_received_terminate = true;
 
 	if( foundation_is_initialized() )
@@ -173,7 +178,7 @@ void* delegate_nswindow( void )
 - (void) dealloc
 {
 	log_debug( 0, "Application dealloc" );
-	
+
 	_delegate_app = 0;
 	_delegate = 0;
 }
@@ -188,8 +193,8 @@ void* delegate_nswindow( void )
 
 FOUNDATION_EXTERN void _system_set_device_orientation( device_orientation_t orientation );
 
-static __weak UIApplication*          _delegate_app = 0;
-static __weak FoundationAppDelegate*  _delegate     = 0;
+static __weak UIApplication*          _delegate_app;
+static __weak FoundationAppDelegate*  _delegate;
 
 
 void* delegate_uiwindow( void )
@@ -211,12 +216,13 @@ void* delegate_uiwindow( void )
 
 - (void)applicationDidFinishLaunching:(UIApplication*)application
 {
+	FOUNDATION_UNUSED( application );
 	_delegate = self;
     _delegate_received_start = true;
 
 	log_debug( HASH_FOUNDATION, "Application finished launching" );
 	system_post_event( FOUNDATIONEVENT_START );
-	
+
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationDidChange:) name:UIDeviceOrientationDidChangeNotification object:nil];
 }
@@ -224,6 +230,7 @@ void* delegate_uiwindow( void )
 
 - (void)applicationWillResignActive:(UIApplication*)application
 {
+	FOUNDATION_UNUSED( application );
 	log_debug( HASH_FOUNDATION, "Application will resign active" );
 	system_post_event( FOUNDATIONEVENT_PAUSE );
 }
@@ -231,6 +238,7 @@ void* delegate_uiwindow( void )
 
 - (void)applicationDidBecomeActive:(UIApplication*)application
 {
+	FOUNDATION_UNUSED( application );
 	log_debug( HASH_FOUNDATION, "Application became active" );
 	_delegate_app = application;
 	system_post_event( FOUNDATIONEVENT_RESUME );
@@ -239,14 +247,15 @@ void* delegate_uiwindow( void )
 
 - (void)applicationWillTerminate:(UIApplication*)application
 {
+	FOUNDATION_UNUSED( application );
 	_delegate_received_terminate = true;
 
 	log_debug( HASH_FOUNDATION, "Application will terminate" );
 	system_post_event( FOUNDATIONEVENT_TERMINATE );
-	
+
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
     [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
-	
+
 	while( _delegate_main_thread_running )
 		thread_sleep( 1 );
 }
@@ -254,44 +263,47 @@ void* delegate_uiwindow( void )
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
+	FOUNDATION_UNUSED( application );
 	log_debug( HASH_FOUNDATION, "Application entered background" );
 }
 
 
 - (void)applicationDidReceiveMemoryWarning:(UIApplication *)application
 {
+	FOUNDATION_UNUSED( application );
 	log_warnf( 0, WARNING_MEMORY, "Application received memory warning" );
 	system_post_event( FOUNDATIONEVENT_LOW_MEMORY_WARNING );
-	
+
 #if BUILD_DEBUG || BUILD_RELEASE
 	@autoreleasepool
 	{
 		CGRect flash_frame = [(__bridge UIWindow*)delegate_uiwindow() frame];
 		flash_frame.size.height = 60;
-	
+
 		float duration = 1.0f;
 		UIView* flash = [[UIView alloc] initWithFrame:flash_frame];
 		flash.backgroundColor = [UIColor redColor];
 		[(__bridge UIWindow*)delegate_uiwindow() addSubview:flash];
-		
+
 		dispatch_after( dispatch_time( DISPATCH_TIME_NOW, (int64_t)( (double)( duration + 0.1 ) * (double)NSEC_PER_SEC ) ), dispatch_get_main_queue(), ^{
 			[flash removeFromSuperview];
 		});
-	
+
 		[UIView beginAnimations:@"FoundationMemoryWarningFlash" context:0];
 		[UIView setAnimationDuration:duration];
 		flash.alpha = 0.0;
 		[UIView commitAnimations];
 	}
 #endif
-	
+
 }
 
 
 - (void)deviceOrientationDidChange:(NSNotification*)notification
 {
+	FOUNDATION_UNUSED( notification );
 	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
-	
+
 	log_debugf( 0, "Device orientation changed to %d", (int)orientation );
 	_system_set_device_orientation( (device_orientation_t)orientation );
 }

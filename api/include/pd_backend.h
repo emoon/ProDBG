@@ -62,8 +62,13 @@ typedef enum PDEventType
     PDEventType_getStatus,
     PDEventType_setStatus,
 
+    // setbreakpoint send a breakpoint to the backend with supplied id
+    // Back end will reply if this worked correct with supplied ID
+
     PDEventType_setBreakpoint,
-    PDEventType_getBreakpoint,
+    PDEventType_replyBreakpoint,
+
+    PDEventType_deleteBreakpoint,
     PDEventType_setExecutable,
     PDEventType_action,
     PDEventType_attachToProcess,

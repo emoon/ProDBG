@@ -125,7 +125,7 @@ static void alignFirstTextHeightToWidgets()
 
 static float getTextLineSpacing()
 {
-    return ImGui::GetTextLineSpacing();
+    return ImGui::GetTextLineHeightWithSpacing();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -246,7 +246,7 @@ static void inputTextInsertChars(PDInputTextCallbackData* data, int pos, const c
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void textEditCallbackStub(ImGuiTextEditCallbackData* data)
+static int textEditCallbackStub(ImGuiTextEditCallbackData* data)
 {
     PDInputTextUserData* wrappedUserData = (PDInputTextUserData*)data->UserData;
     PDInputTextCallbackData callbackData = { 0 };
@@ -279,11 +279,13 @@ static void textEditCallbackStub(ImGuiTextEditCallbackData* data)
     data->CursorPos      = callbackData.cursorPos;
     data->SelectionStart = callbackData.selectionStart;
     data->SelectionEnd   = callbackData.selectionEnd;
+
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool inputText(const char* label, char* buf, int buf_size, int flags, void (* callback)(PDInputTextCallbackData*), void* userData)
+static bool inputText(const char* label, char* buf, int buf_size, int flags, void (*callback)(PDInputTextCallbackData*), void* userData)
 {
     PDInputTextUserData wrappedUserData;
     wrappedUserData.callback = callback;
@@ -323,14 +325,14 @@ static void setScrollHere()
 
 static void pushItemWidth(float itemWidth)
 {
-	ImGui::PushItemWidth(itemWidth);
+    ImGui::PushItemWidth(itemWidth);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void popItemWidth()
 {
-	ImGui::PopItemWidth();
+    ImGui::PopItemWidth();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -429,11 +431,11 @@ static int isItemHovered()
 
 PDRect getCurrentClipRect()
 {
-	ImVec4 t = ImGui::GetWindowDrawList()->clip_rect_stack.back();
+    ImVec4 t = ImGui::GetWindowDrawList()->clip_rect_stack.back();
 
-	PDRect v = { t.x, t.y, t.z, t.w };
+    PDRect v = { t.x, t.y, t.z, t.w };
 
-	return v; 
+    return v;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -575,7 +577,7 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
 
     uiInstance->beginChild = beginChild;
     uiInstance->endChild = endChild;
-    uiInstance->getCurrentClipRect = getCurrentClipRect; 
+    uiInstance->getCurrentClipRect = getCurrentClipRect;
 
     uiInstance->pushStyleVarV = pushStyleVarV;
     uiInstance->pushStyleVarF = pushStyleVarF;

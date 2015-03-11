@@ -1,11 +1,11 @@
 /* hashmap.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -15,7 +15,7 @@
 
 #define HASHMAP_MINBUCKETS                 13
 #define HASHMAP_MINBUCKETSIZE              8
-	
+
 
 hashmap_t* hashmap_allocate( unsigned int buckets, unsigned int bucketsize )
 {
@@ -25,11 +25,11 @@ hashmap_t* hashmap_allocate( unsigned int buckets, unsigned int bucketsize )
 		buckets = HASHMAP_MINBUCKETS;
 	if( bucketsize < HASHMAP_MINBUCKETSIZE )
 		bucketsize = HASHMAP_MINBUCKETSIZE;
-	
+
 	map = memory_allocate( 0, sizeof( hashmap_t ) + sizeof( hashmap_node_t* ) * buckets, 0, MEMORY_PERSISTENT );
 
 	hashmap_initialize( map, buckets, bucketsize );
-	
+
 	return map;
 }
 
@@ -37,15 +37,15 @@ hashmap_t* hashmap_allocate( unsigned int buckets, unsigned int bucketsize )
 void hashmap_initialize( hashmap_t* map, unsigned int buckets, unsigned int bucketsize )
 {
 	unsigned int ibucket;
-	
+
 	if( buckets < HASHMAP_MINBUCKETS )
 		buckets = HASHMAP_MINBUCKETS;
 	if( bucketsize < HASHMAP_MINBUCKETSIZE )
 		bucketsize = HASHMAP_MINBUCKETSIZE;
-	
+
 	map->num_buckets = buckets;
 	map->num_nodes   = 0;
-	
+
 	for( ibucket = 0; ibucket < buckets; ++ibucket )
 	{
 		map->bucket[ibucket] = 0;

@@ -146,8 +146,12 @@ StaticLibrary {
 		},
 
         CCOPTS = {
-        	{ "-Wno-everything", "-Wno-missing-braces", "-std=c99"; Config = { "macosx-*-*", "macosx_test-*", "linux-*-*" } },
-        	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
+        	{ "-DFOUNDATION_COMPILE=1", "-funit-at-a-time", "-fstrict-aliasing", "-fno-math-errno", "-ffinite-math-only", "-funsafe-math-optimizations", "-fno-trapping-math", "-ffast-math", "-Wno-everything", "-Wno-missing-braces", "-std=c11"; Config = { "macosx-*-*", "macosx_test-*", "linux-*-*" } },
+        	{ "/DFOUNDATION_COMPILE=1", "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
+        	{ "-DBUILD_DEBUG=1"; Config = { "macosx-*-debug", "macosx_test-*-debug", "linux-*-debug" } },
+        	{ "-DBUILD_RELEASE=1"; Config = { "macosx-*-release", "macosx_test-*-release", "linux-*-release" } },
+        	{ "/DBUILD_DEBUG=1"; Config = "win64-*-debug" },
+        	{ "/DBUILD_RELEASE=1"; Config = "win64-*-release" },
         },
     },
 

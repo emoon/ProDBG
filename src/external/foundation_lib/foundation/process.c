@@ -1,11 +1,11 @@
 /* process.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -19,6 +19,8 @@
 #  include <sys/types.h>
 #  include <sys/wait.h>
 #  include <sys/time.h>
+#elif FOUNDATION_PLATFORM_PNACL
+#  include <unistd.h>
 #endif
 
 #if FOUNDATION_PLATFORM_MACOSX
@@ -27,15 +29,15 @@
 #endif
 
 
-static int _process_exit_code = 0;
+static int _process_exit_code;
 
 
 process_t* process_allocate()
 {
 	process_t* proc = memory_allocate( 0, sizeof( process_t ), 0, MEMORY_PERSISTENT );
-	
+
 	process_initialize( proc );
-	
+
 	return proc;
 }
 
@@ -60,7 +62,7 @@ void process_finalize( process_t* proc )
 {
 	if( !( proc->flags & PROCESS_DETACHED ) )
 		process_wait( proc );
-	
+
 	stream_deallocate( proc->pipeout );
 	stream_deallocate( proc->pipein );
 	string_deallocate( proc->wd );
@@ -96,7 +98,7 @@ void process_set_executable_path( process_t* proc, const char* path )
 	string_deallocate( proc->path );
 	proc->path = string_clone( path );
 }
-	
+
 
 void process_set_arguments( process_t* proc, const char** args, unsigned int num )
 {
@@ -124,6 +126,8 @@ void process_set_verb( process_t* proc, const char* verb )
 #if FOUNDATION_PLATFORM_WINDOWS
 	string_deallocate( proc->verb );
 	proc->verb = string_clone( verb );
+#else
+	FOUNDATION_UNUSED( verb );
 #endif
 }
 
@@ -141,7 +145,7 @@ int process_spawn( process_t* proc )
 
 	if( !proc )
 		return PROCESS_INVALID_ARGS;
-	
+
 	proc->code = PROCESS_INVALID_ARGS;
 
 	if( !string_length( proc->path ) )
@@ -162,12 +166,12 @@ int process_spawn( process_t* proc )
 	for( i = 0, num_args = 0; i < size; ++i )
 	{
 		char* arg = proc->args[i];
-		
+
 		if( !string_length( arg ) )
 			continue;
-		
+
 		++num_args;
-		
+
 		if( string_find_first_not_of( arg, unescaped, 0 ) != STRING_NPOS )
 		{
 			if( arg[0] != '"' )
@@ -204,12 +208,12 @@ int process_spawn( process_t* proc )
 
 	if( !( proc->flags & PROCESS_WINDOWS_USE_SHELLEXECUTE ) ) //Don't prepend exe path to parameters if using ShellExecute
 		cmdline = string_clone( proc->path );
-	
+
 	//Build command line string
 	for( i = 0; i < size; ++i )
 	{
 		char* arg = proc->args[i];
-		
+
 		if( !string_length( arg ) )
 			continue;
 
@@ -217,13 +221,13 @@ int process_spawn( process_t* proc )
 			cmdline = string_append( cmdline, " " );
 		cmdline = string_append( cmdline, arg );
 	}
-	
+
 	if( !string_length( proc->wd ) )
 		proc->wd = string_clone( environment_current_working_directory() );
 
 	wcmdline = wstring_allocate_from_string( cmdline, 0 );
 	wwd = wstring_allocate_from_string( proc->wd, 0 );
-	
+
 	if( proc->flags & PROCESS_WINDOWS_USE_SHELLEXECUTE )
 	{
 		SHELLEXECUTEINFOW sei;
@@ -321,27 +325,27 @@ int process_spawn( process_t* proc )
 	wstring_deallocate( wcmdline );
 	wstring_deallocate( wwd );
 	string_deallocate( cmdline );
-	
+
 	if( proc->code < 0 )
 		return proc->code; //Error
 
 #endif
 
 #if FOUNDATION_PLATFORM_MACOSX
-	
+
 	if( proc->flags & PROCESS_OSX_USE_OPENAPPLICATION )
 	{
 		proc->pid = 0;
-		
+
 		LSApplicationParameters params;
 		ProcessSerialNumber psn;
 		FSRef* fsref = memory_allocate( 0, sizeof( FSRef ), 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED );
-		
+
 		memset( &params, 0, sizeof( LSApplicationParameters ) );
 		memset( &psn, 0, sizeof( ProcessSerialNumber ) );
-		
+
 		char* pathstripped = string_strip( string_clone( proc->path ), "\"" );
-		
+
 		OSStatus status = 0;
 		status = FSPathMakeRef( (uint8_t*)pathstripped, fsref, 0 );
 		if( status < 0 )
@@ -349,38 +353,38 @@ int process_spawn( process_t* proc )
 			pathstripped = string_append( pathstripped, ".app" );
 			status = FSPathMakeRef( (uint8_t*)pathstripped, fsref, 0 );
 		}
-		
+
 		CFStringRef* args = 0;
 		for( i = 0, size = array_size( proc->args ); i < size; ++i ) //App gets executable path automatically, don't include
 			array_push( args, CFStringCreateWithCString( 0, proc->args[i], kCFStringEncodingUTF8 ) );
-		
+
 		CFArrayRef argvref = CFArrayCreate( 0, (const void**)args, (CFIndex)array_size( args ), 0 );
-		
+
 		params.flags = kLSLaunchDefaults;
 		params.application = fsref;
 		params.argv = argvref;
 
 		log_debugf( 0, "Spawn process (LSOpenApplication): %s", pathstripped );
-		
+
 		status = LSOpenApplication( &params, &psn );
 		if( status != 0 )
 		{
 			proc->code = status;
 			log_warnf( 0, WARNING_BAD_DATA, "Unable to spawn process for executable '%s': %s", proc->path, system_error_message( status ) );
 		}
-		
+
 		CFRelease( argvref );
 		for( i = 0, size = array_size( args ); i < size; ++i )
 			CFRelease( args[i] );
-		
+
 		memory_deallocate( fsref );
 		string_deallocate( pathstripped );
-		
+
 		if( status == 0 )
 		{
 			pid_t pid = 0;
 			GetProcessPID( &psn, &pid );
-			
+
 			proc->pid = pid;
 
 			//Always "detached" with LSOpenApplication, not a child process at all
@@ -404,7 +408,7 @@ int process_spawn( process_t* proc )
 				}
 			}
 		}
-		
+
 		goto exit;
 	}
 #endif
@@ -424,8 +428,8 @@ int process_spawn( process_t* proc )
 		proc->pipeout = pipe_allocate();
 		proc->pipein = pipe_allocate();
 	}
-	
-	proc->pid = 0;	
+
+	proc->pid = 0;
 	pid_t pid = fork();
 
 	if( pid == 0 )
@@ -451,13 +455,13 @@ int process_spawn( process_t* proc )
 		int code = execv( proc->path, proc->args );
 		if( code < 0 ) //Will always be true since this point will never be reached if execve() is successful
 			log_warnf( 0, WARNING_BAD_DATA, "Child process failed execve() : %s : %s", proc->path, system_error_message( errno ) );
-		
+
 		//Error
 		process_exit( -1 );
 	}
 
 	if( pid > 0 )
-	{		
+	{
 		log_debugf( 0, "Child process forked, pid %d", pid );
 
 		proc->pid = pid;
@@ -466,7 +470,7 @@ int process_spawn( process_t* proc )
 			pipe_close_write( proc->pipeout );
 		if( proc->pipein )
 			pipe_close_read( proc->pipein );
-		
+
 		if( proc->flags & PROCESS_DETACHED )
 		{
 			int cstatus = 0;
@@ -499,16 +503,16 @@ int process_spawn( process_t* proc )
 
 		proc->pipeout = 0;
 		proc->pipein = 0;
-		
+
 		return proc->code;
-	}	
+	}
 
 #endif
 
 #if !FOUNDATION_PLATFORM_WINDOWS && !FOUNDATION_PLATFORM_POSIX
 	FOUNDATION_ASSERT_FAIL( "Process spawning not supported on platform" );
 #endif
-	
+
 #if FOUNDATION_PLATFORM_MACOSX
 exit:
 #endif
@@ -537,8 +541,8 @@ int process_wait( process_t* proc )
 #if FOUNDATION_PLATFORM_POSIX
 	int cstatus;
 	pid_t err;
-#endif	
-	
+#endif
+
 	if( !proc )
 		return PROCESS_INVALID_ARGS;
 
@@ -580,7 +584,7 @@ int process_wait( process_t* proc )
 			int ret = kevent( proc->kq, 0, 0, &event, 1, 0 );
 			if( ret != 1 )
 				log_warnf( 0, WARNING_SYSTEM_CALL_FAIL, "Unable to wait on process, failed to read event from kqueue (%d)", ret );
-			
+
 			close( proc->kq );
 			proc->kq = 0;
 		}
@@ -594,7 +598,7 @@ int process_wait( process_t* proc )
 		return proc->code;
 	}
 #  endif
-	
+
 	cstatus = 0;
 	err = waitpid( proc->pid, &cstatus, ( proc->flags & PROCESS_DETACHED ) ? WNOHANG : 0 );
 	if( err > 0 )
@@ -622,7 +626,9 @@ int process_wait( process_t* proc )
 		log_warnf( 0, WARNING_BAD_DATA, "waitpid(%d) failed: %s (%d) (returned %d)", proc->pid, system_error_message( cur_errno ), cur_errno, err );
 		return PROCESS_WAIT_FAILED;
 	}
-	
+
+#elif FOUNDATION_PLATFORM_PNACL
+	//Not supported
 #else
 #error Not implemented
 #endif

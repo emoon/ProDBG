@@ -1,11 +1,11 @@
 /* bits.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -31,8 +31,8 @@ static FORCEINLINE CONSTCALL uint32_t  byteorder_littleendian32( uint32_t arg );
 static FORCEINLINE CONSTCALL uint64_t  byteorder_littleendian64( uint64_t arg );
 static FORCEINLINE PURECALL  void      byteorder_littleendian( void* RESTRICT buffer, const int size );
 
-	
-	
+
+
 static FORCEINLINE CONSTCALL uint16_t byteorder_swap16( uint16_t arg )
 {
 #if FOUNDATION_COMPILER_MSVC
@@ -144,6 +144,9 @@ static FORCEINLINE PURECALL void byteorder_bigendian( void* RESTRICT buffer, con
 {
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
 	byteorder_swap( buffer, size );
+#else
+	FOUNDATION_UNUSED( buffer );
+	FOUNDATION_UNUSED( size );
 #endif
 }
 
@@ -182,5 +185,8 @@ static FORCEINLINE PURECALL void byteorder_littleendian( void* RESTRICT buffer, 
 {
 #if FOUNDATION_ARCH_ENDIAN_BIG
 	byteorder_swap( buffer, size );
+#else
+	FOUNDATION_UNUSED( buffer );
+	FOUNDATION_UNUSED( size );
 #endif
 }

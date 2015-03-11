@@ -7,19 +7,53 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct Breakpoint
+struct Location
 {
     char* filename;
+    char* address;
     int line;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct Breakpoint
+{
+    Location location;
+    char* condition;
+    bool enabled;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct BreakpointsData
 {
+	BreakpointsData() : maxPath(8192) {}
+
     std::list<Breakpoint*> breakpoints;
-    int temp;
+    int addressSize;
+    size_t maxPath;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static Breakpoint* createBreakpoint()
+{
+	Breakpoint* bp = (Breakpoint*)malloc(sizeof(Breakpoint));
+	memset(bp, 0, sizeof(Breakpoint));
+    bp->enabled = true;
+
+	return bp;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void destroyBreakpoint(Breakpoint* bp)
+{
+	free(bp->location.filename);
+	free(bp->location.address);
+	free(bp->condition);
+	free(bp);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -44,27 +78,82 @@ static void destroyInstance(void* userData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void toogleBreakpoint(BreakpointsData* data, PDReader* reader)
+static void updateCondition(Breakpoint* bp, PDReader* reader)
+{
+    const char* condition;
+
+    bp->condition = 0;
+
+    PDRead_findString(reader, &condition, "condition", 0);
+
+    if (condition)
+        bp->condition = strdup(condition);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void toogleBreakpointFileLine(BreakpointsData* data, PDReader* reader)
 {
     const char* filename;
     uint32_t line;
 
+    char fileLine[8192];
+
     PDRead_findString(reader, &filename, "filename", 0);
     PDRead_findU32(reader, &line, "line", 0);
 
-    for (auto i = data->breakpoints.begin(), end = data->breakpoints.end(); i != end; ++i)
+    if (!filename)
+        return;
+
+    for (auto i = data->breakpoints.begin(); i != data->breakpoints.end(); ++i)
     {
-        if ((*i)->line == (int)line && !strcmp((*i)->filename, filename))
+        if ((*i)->location.line == (int)line && !strcmp((*i)->location.filename, filename))
         {
-            free((*i)->filename);
+        	destroyBreakpoint(*i);
             data->breakpoints.erase(i);
             return;
         }
     }
 
-    Breakpoint* breakpoint = (Breakpoint*)malloc(sizeof(Breakpoint));
-    breakpoint->filename = strdup(filename);
-    breakpoint->line = (int)line;
+    Breakpoint* breakpoint = createBreakpoint(); 
+
+    sprintf(fileLine, "%s:%d\n", filename, line);
+
+    breakpoint->location.filename = (char*)malloc(data->maxPath); 
+    breakpoint->location.line = (int)line;
+
+    strcpy(breakpoint->location.filename, fileLine);
+
+    updateCondition(breakpoint, reader);
+
+    data->breakpoints.push_back(breakpoint);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void toggleBreakpointAddress(BreakpointsData* data, PDReader* reader)
+{
+    const char* address;
+
+    if (PDRead_findString(reader, &address, "address", 0) == PDReadStatus_notFound)
+        return;
+
+    for (auto i = data->breakpoints.begin(); i != data->breakpoints.end(); ++i)
+    {
+        if (!strcmp((*i)->location.address, address))
+        {
+            destroyBreakpoint(*i);
+            data->breakpoints.erase(i);
+            return;
+        }
+    }
+
+    Breakpoint* breakpoint = createBreakpoint(); 
+    breakpoint->location.address = (char*)malloc(data->maxPath); 
+
+	strcpy(breakpoint->location.address, address);
+
+    updateCondition(breakpoint, reader);
 
     data->breakpoints.push_back(breakpoint);
 }
@@ -85,7 +174,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
         {
             case PDEventType_setBreakpoint:
             {
-                toogleBreakpoint(data, inEvents);
+                toogleBreakpointFileLine(data, inEvents);
                 break;
             }
         }
@@ -93,14 +182,26 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     uiFuncs->text("");
 
-    uiFuncs->columns(2, "callstack", true);
-    uiFuncs->text("File"); uiFuncs->nextColumn();
-    uiFuncs->text("Line"); uiFuncs->nextColumn();
+    uiFuncs->columns(3, "", true);
+    uiFuncs->text("Name"); uiFuncs->nextColumn();
+    uiFuncs->text("Condition"); uiFuncs->nextColumn();
 
     for (auto& i : data->breakpoints)
     {
-        uiFuncs->text(i->filename); uiFuncs->nextColumn();
-        uiFuncs->text("%d", i->line); uiFuncs->nextColumn();
+    	Breakpoint* bp = i;
+
+    	if (bp->location.filename)
+		{
+        	uiFuncs->inputText("", bp->location.filename, (int)data->maxPath, 0, 0, 0);
+		}
+		else
+		{
+        	uiFuncs->inputText("", bp->location.address, (int)data->maxPath, 0, 0, 0);
+		}
+
+		uiFuncs->nextColumn();
+
+        uiFuncs->text(bp->condition); uiFuncs->nextColumn();
     }
 
     return 0;

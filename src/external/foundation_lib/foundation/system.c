@@ -1,11 +1,11 @@
 /* system.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -26,13 +26,22 @@
 #  include <cpu-features.h>
 #endif
 
+#if FOUNDATION_PLATFORM_PNACL
+#  include <foundation/pnacl.h>
+#endif
+
+#if FOUNDATION_PLATFORM_BSD
+#  include <sys/types.h>
+#  include <sys/sysctl.h>
+#endif
+
 #if FOUNDATION_PLATFORM_APPLE
 extern unsigned int _system_process_info_processor_count( void );
 extern int _system_show_alert( const char*, const char*, int );
 #endif
 
 static device_orientation_t _system_device_orientation = DEVICEORIENTATION_UNKNOWN;
-static event_stream_t* _system_event_stream = 0;
+static event_stream_t* _system_event_stream;
 
 struct platform_info_t
 {
@@ -56,6 +65,10 @@ static platform_info_t _platform_info = {
 	PLATFORM_MACOSX,
 #elif FOUNDATION_PLATFORM_IOS
 	PLATFORM_IOS,
+#elif FOUNDATION_PLATFORM_PNACL
+	PLATFORM_PNACL,
+#elif FOUNDATION_PLATFORM_BSD
+	PLATFORM_BSD,
 #else
 #  error Unknown platform
 #endif
@@ -82,6 +95,8 @@ ARCHITECTURE_ARM5,
 ARCHITECTURE_MIPS_64,
 #elif FOUNDATION_ARCH_MIPS
 ARCHITECTURE_MIPS,
+#elif FOUNDATION_ARCH_GENERIC
+ARCHITECTURE_GENERIC,
 #else
 #  error Unknown architecture
 #endif
@@ -117,7 +132,7 @@ byteorder_t system_byteorder()
 
 #include <foundation/windows.h>
 
-object_t _system_library_iphlpapi = 0;
+object_t _system_library_iphlpapi;
 
 
 int _system_initialize( void )
@@ -182,7 +197,7 @@ uint64_t system_hostid( void )
 		fn_get_adapters_info = (DWORD (STDCALL *)( PIP_ADAPTER_INFO, PULONG ))library_symbol( _system_library_iphlpapi, "GetAdaptersInfo" );
 	if( !fn_get_adapters_info )
 		return 0;
-	
+
 	buffer_length = sizeof( adapter_info );  // Save memory size of buffer
 	memset( adapter_info, 0, sizeof( adapter_info ) );
 	status = fn_get_adapters_info( adapter_info, &buffer_length );
@@ -264,14 +279,14 @@ static uint32_t _system_user_locale( void )
 			return *(uint32_t*)locale_string;
 		}
 	}
-	
+
 	return _system_default_locale();
 }
 
 
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
-#  if !FOUNDATION_PLATFORM_ANDROID
+#  if !FOUNDATION_PLATFORM_ANDROID && !FOUNDATION_PLATFORM_PNACL
 #    include <ifaddrs.h>
 #  endif
 
@@ -298,10 +313,14 @@ const char* system_error_message( int code )
 		return "<no error>";
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 	static char buffer[256]; //TODO: Thread safety
-	strerror_r( code, buffer, 256 );
-	return buffer;
 #else
 	static THREADLOCAL char buffer[256];
+#endif
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL || FOUNDATION_PLATFORM_BSD
+	if( strerror_r( code, buffer, 256 ) == 0 )
+		return buffer;
+	return "<no error string>";
+#else
 	return strerror_r( code, buffer, 256 );
 #endif
 }
@@ -325,17 +344,17 @@ const char* system_username( void )
 	if( username[0] )
 		return username;
 	strcpy( username, "<unknown>" );
-#if FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL
 	strncpy( username, getlogin(), 64 );
 #else
 	getlogin_r( username, 64 );
 #endif
 	username[63] = 0;
-	return username;	
+	return username;
 }
 
 
-#if FOUNDATION_PLATFORM_APPLE
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 
 #include <net/if_dl.h>
 
@@ -359,7 +378,7 @@ static uint64_t _system_hostid_lookup( struct ifaddrs* ifaddr )
 			return hostid.id;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -373,14 +392,14 @@ static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 		uint64_t               id;
 		unsigned char ALIGN(8) buffer[8];
 	} hostid;
-	
+
 	if( ioctl( sock, SIOCGIFHWADDR, ifr ) < 0 )
 		return 0;
-	
+
 	hostid.id = 0;
 	for( j = 0; j < 6; ++j )
 		hostid.buffer[5-j] = ifr->ifr_hwaddr.sa_data[j];
-	
+
 	return hostid.id;
 }
 
@@ -392,24 +411,27 @@ uint64_t system_hostid( void )
 #if FOUNDATION_PLATFORM_ANDROID
 	//Not implemented yet, see https://code.google.com/p/libjingle/source/browse/trunk/talk/base/ifaddrs-android.cc
 	return 0;
+#elif FOUNDATION_PLATFORM_PNACL
+	//Not implemented yet, see https://code.google.com/p/libjingle/source/browse/trunk/talk/base/ifaddrs-android.cc
+	return 0;
 #else
 	struct ifaddrs* ifaddr;
 	struct ifaddrs* ifa;
 	uint64_t hostid = 0;
 
-#if !FOUNDATION_PLATFORM_APPLE
+#if !FOUNDATION_PLATFORM_APPLE && !FOUNDATION_PLATFORM_BSD
 	struct ifreq buffer;
 	int sock = socket( PF_INET, SOCK_DGRAM, 0 );
 #endif
-	
+
 	if( getifaddrs( &ifaddr ) == 0 )
 	{
 		for( ifa = ifaddr; ifa && !hostid; ifa = ifa->ifa_next )
 		{
 			if( string_equal_substr( ifa->ifa_name, "lo", 2 ) )
 				continue;
-			
-#if FOUNDATION_PLATFORM_APPLE
+
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD
 			hostid = _system_hostid_lookup( ifa );
 #else
 			memset( &buffer, 0, sizeof( buffer ) );
@@ -420,7 +442,7 @@ uint64_t system_hostid( void )
 		}
 		freeifaddrs( ifaddr );
 	}
-#if !FOUNDATION_PLATFORM_APPLE
+#if !FOUNDATION_PLATFORM_APPLE && !FOUNDATION_PLATFORM_BSD
 	else
 	{
 		memset( &buffer, 0, sizeof( buffer ) );
@@ -431,7 +453,7 @@ uint64_t system_hostid( void )
 
 	close( sock );
 #endif
-	
+
 	return hostid;
 #endif
 }
@@ -443,6 +465,18 @@ unsigned int system_hardware_threads( void )
 	return _system_process_info_processor_count();
 #elif FOUNDATION_PLATFORM_ANDROID
 	return android_getCpuCount();
+#elif FOUNDATION_PLATFORM_PNACL
+	return sysconf( _SC_NPROCESSORS_ONLN );
+#elif FOUNDATION_PLATFORM_BSD
+	int ctlarg[2], ncpu;
+	size_t len;
+
+	ctlarg[0] = CTL_HW;
+	ctlarg[1] = HW_NCPU;
+	len = sizeof( ncpu );
+	if( sysctl( ctlarg, 2, &ncpu, &len, 0, 0 ) == 0 )
+		return ncpu;
+	return 1;
 #else
 	cpu_set_t prevmask, testmask;
 	CPU_ZERO( &prevmask );
@@ -475,7 +509,7 @@ void system_process_events( void )
 			source->process( app, source );
 		++nummsg;
 	}
-	
+
 	profile_end_block();
 #endif
 }
@@ -511,7 +545,7 @@ uint32_t system_locale( void )
 {
 	uint32_t localeval = 0;
 	char localestr[4];
-	
+
 	const char* locale = config_string( HASH_USER, HASH_LOCALE );
 	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
 		locale = config_string( HASH_APPLICATION, HASH_LOCALE );
@@ -519,7 +553,7 @@ uint32_t system_locale( void )
 		locale = config_string( HASH_FOUNDATION, HASH_LOCALE );
 	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
 		return _system_user_locale();
-	
+
 #define _LOCALE_CHAR_TO_LOWERCASE(x)   (((unsigned char)(x) >= 'A') && ((unsigned char)(x) <= 'Z')) ? (((unsigned char)(x)) | (32)) : (x)
 #define _LOCALE_CHAR_TO_UPPERCASE(x)   (((unsigned char)(x) >= 'a') && ((unsigned char)(x) <= 'z')) ? (((unsigned char)(x)) & (~32)) : (x)
 	localestr[0] = _LOCALE_CHAR_TO_LOWERCASE( locale[0] );
@@ -557,7 +591,7 @@ void _system_set_device_orientation( device_orientation_t orientation )
 {
 	if( _system_device_orientation == orientation )
 		return;
-	
+
 	_system_device_orientation = orientation;
 	system_post_event( FOUNDATIONEVENT_DEVICE_ORIENTATION );
 }
@@ -621,6 +655,9 @@ bool system_message_box( const char* title, const char* message, bool cancel_but
 	return false;
 #else
 	//Not implemented
+	FOUNDATION_UNUSED( message );
+	FOUNDATION_UNUSED( title );
+	FOUNDATION_UNUSED( cancel_button );
 	return false;
 #endif
 }

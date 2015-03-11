@@ -1,11 +1,11 @@
 /* bufferstream.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -22,9 +22,9 @@ static stream_vtable_t _buffer_stream_vtable;
 stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size, uint64_t capacity, bool adopt, bool grow )
 {
 	stream_buffer_t* stream = memory_allocate( HASH_STREAM, sizeof( stream_buffer_t ), 8, MEMORY_PERSISTENT );
-	
+
 	buffer_stream_initialize( stream, buffer, mode, size, capacity, adopt, grow );
-	
+
 	return (stream_t*)stream;
 }
 
@@ -32,8 +32,8 @@ stream_t* buffer_stream_allocate( void* buffer, unsigned int mode, uint64_t size
 void buffer_stream_initialize( stream_buffer_t* stream, void* buffer, unsigned int mode, uint64_t size, uint64_t capacity, bool adopt, bool grow )
 {
 	memset( stream, 0, sizeof( stream_buffer_t ) );
-	
-	_stream_initialize( (stream_t*)stream, system_byteorder() );
+
+	stream_initialize( (stream_t*)stream, system_byteorder() );
 
 	if( !FOUNDATION_VALIDATE_MSG( adopt || !grow, "Cannot grow buffer streams that are not adopted" ) )
 		grow = false;
@@ -68,10 +68,10 @@ void buffer_stream_initialize( stream_buffer_t* stream, void* buffer, unsigned i
 static void _buffer_stream_finalize( stream_t* stream )
 {
 	stream_buffer_t* bufferstream = (stream_buffer_t*)stream;
-	
+
 	if( !bufferstream || ( stream->type != STREAMTYPE_MEMORY ) )
 		return;
-	
+
 	if( bufferstream->own )
 		memory_deallocate( bufferstream->buffer );
 	bufferstream->buffer = 0;
@@ -146,6 +146,7 @@ static bool _buffer_stream_eos( stream_t* stream )
 
 static void _buffer_stream_flush( stream_t* stream )
 {	//lint --e{715, 818} stream unused and count be const, but it's really a vtable function
+	FOUNDATION_UNUSED( stream );
 }
 
 
@@ -205,6 +206,7 @@ static int64_t _buffer_stream_tell( stream_t* stream )
 /*lint -e{550, 715} Function prototype must match stream interface */
 static uint64_t _buffer_stream_lastmod( const stream_t* stream )
 {
+	FOUNDATION_UNUSED( stream );
 	return time_current();
 }
 

@@ -39,7 +39,7 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 
     // clear
 
-	memset(userData->data, 0xff, 1024 * 1024);
+    memset(userData->data, 0xff, 1024 * 1024);
 
     return userData;
 }
@@ -77,41 +77,41 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
     uint8_t* memoryData = data->data + address;
 
     if (charsPerLine > 1024)
-    	charsPerLine = 1024;
+        charsPerLine = 1024;
 
     for (int i = 0; i < lineCount; ++i)
     {
-    	char addressText[64] = { 0 };
-    	char hexData[1024];
-    	char charData[1024];
+        char addressText[64] = { 0 };
+        char hexData[1024];
+        char charData[1024];
 
-    	char* hexText = hexData;
-    	char* charText = charData;
+        char* hexText = hexData;
+        char* charText = charData;
 
-    	// Get Address
+        // Get Address
 
-		getAddressLine(addressText, address, adressSize);
+        getAddressLine(addressText, address, adressSize);
 
-		// Get Hex and chars
+        // Get Hex and chars
 
-    	for (int p = 0; p < charsPerLine; ++p)
-		{
-			uint8_t c = memoryData[p];
+        for (int p = 0; p < charsPerLine; ++p)
+        {
+            uint8_t c = memoryData[p];
 
-			sprintf(hexText, "%02x ", c); 
+            sprintf(hexText, "%02x ", c);
 
             if (c >= 32 && c < 128)
-            	*charText++ = (char)c;
+                *charText++ = (char)c;
             else
-            	*charText++ = '.';
+                *charText++ = '.';
 
-			hexText += 3;
-		}
+            hexText += 3;
+        }
 
-		*hexText = 0; 
-		*charText = 0; 
+        *hexText = 0;
+        *charText = 0;
 
-		uiFuncs->text("%s: %s %s", addressText, hexData, charData);
+        uiFuncs->text("%s: %s %s", addressText, hexData, charData);
 
         address += (uint32_t)charsPerLine;
         memoryData += charsPerLine;
@@ -122,7 +122,7 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
 
 void drawUI(HexMemoryData* data, PDUI* uiFuncs)
 {
-	uiFuncs->pushItemWidth(100);
+    uiFuncs->pushItemWidth(100);
     uiFuncs->inputText("Start Address", data->startAddress, sizeof(data->startAddress), PDInputTextFlags_CharsHexadecimal, 0, 0);
     uiFuncs->sameLine(0, -1);
     uiFuncs->inputText("End Address", data->endAddress, sizeof(data->endAddress), 0, 0, 0);
@@ -134,19 +134,19 @@ void drawUI(HexMemoryData* data, PDUI* uiFuncs)
     long endAddress = strtol(data->endAddress, 0, 16);
 
     if ((endAddress >= startAddress) && !data->data)
-    	return;
+        return;
 
-	if (data->sa != (uint64_t)startAddress)
-	{
-		data->requestData = true;
-		data->sa = (uint64_t)startAddress;
-	}
+    if (data->sa != (uint64_t)startAddress)
+    {
+        data->requestData = true;
+        data->sa = (uint64_t)startAddress;
+    }
 
-	if (data->ea != (uint64_t)endAddress)
-	{
-		data->requestData = true;
-		data->ea = (uint64_t)endAddress;
-	}
+    if (data->ea != (uint64_t)endAddress)
+    {
+        data->requestData = true;
+        data->ea = (uint64_t)endAddress;
+    }
 
     //PDVec2 textStart = uiFuncs->getCursorPos();
     PDVec2 windowSize = uiFuncs->getWindowSize();
@@ -163,7 +163,7 @@ void drawUI(HexMemoryData* data, PDUI* uiFuncs)
 
     float drawableChars = (float)(int)(windowSize.x / (fontWidth + 23));
 
-    int drawableLineCount = (int)((endAddress - startAddress) / (int)drawableChars); 
+    int drawableLineCount = (int)((endAddress - startAddress) / (int)drawableChars);
 
     //printf("%d %d %d %d\n", drawableLineCount, (int)endAddress, (int)startAddress, (int)drawableChars);
 
@@ -180,7 +180,7 @@ static void updateMemory(HexMemoryData* userData, PDReader* reader)
     uint64_t address = 0;
     uint64_t size = 0;
 
-   	PDRead_findU64(reader, &address, "address", 0);
+    PDRead_findU64(reader, &address, "address", 0);
 
     if (PDRead_findData(reader, &data, &size, "data", 0) == PDReadStatus_notFound)
         return;
@@ -190,11 +190,11 @@ static void updateMemory(HexMemoryData* userData, PDReader* reader)
     // TODO: Currently we just copy the memory into a predefined memory range. This needs to really be fixed
     // We need some overlapping memory ranges and such here to handle this correctly
 
-	if (address + size >= 1024 * 1024)
-	{
-    	printf("%s(%d) address (0x%16llx %x) + size larger than 1 mb which isn't supported right now\n", __FILE__, __LINE__, address, (int)size);
-    	return;
-	}
+    if (address + size >= 1024 * 1024)
+    {
+        printf("%s(%d) address (0x%16llx %x) + size larger than 1 mb which isn't supported right now\n", __FILE__, __LINE__, address, (int)size);
+        return;
+    }
 
     memcpy(userData->data + address, data, (size_t)size);
 
@@ -209,7 +209,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     HexMemoryData* data = (HexMemoryData*)userData;
 
-	data->requestData = false;
+    data->requestData = false;
 
     // Loop over all the in events
 
@@ -228,14 +228,14 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
     drawUI(data, uiFuncs);
 
     if (data->requestData)
-	{
-		printf("requesting memory range %04x - %04x\n", (uint16_t)data->sa, (uint16_t)data->ea);
-		
-		PDWrite_eventBegin(writer, PDEventType_getMemory);
-		PDWrite_u64(writer, "address_start", data->sa);
-		PDWrite_u64(writer, "size", data->ea - data->sa);
-		PDWrite_eventEnd(writer);
-	}
+    {
+        printf("requesting memory range %04x - %04x\n", (uint16_t)data->sa, (uint16_t)data->ea);
+
+        PDWrite_eventBegin(writer, PDEventType_getMemory);
+        PDWrite_u64(writer, "address_start", data->sa);
+        PDWrite_u64(writer, "size", data->ea - data->sa);
+        PDWrite_eventEnd(writer);
+    }
 
     return 0;
 }
@@ -257,10 +257,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-{
-	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-}
+    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+    {
+        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+    }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

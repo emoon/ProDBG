@@ -1,5 +1,5 @@
 #ifndef _PRODBGAPI_MENU_H_
-#define _PRODBGAPI_MENU_H_ 
+#define _PRODBGAPI_MENU_H_
 
 #include "pd_keys.h"
 
@@ -23,8 +23,8 @@ typedef struct PDMenuItem
 
 typedef struct PDMenu
 {
-	const char* name;
-	PDMenuItem* items;
+    const char* name;
+    PDMenuItem* items;
 } PDMenu;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

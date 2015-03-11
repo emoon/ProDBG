@@ -1,11 +1,11 @@
 /* mutex.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -16,6 +16,8 @@
 #  include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
+#elif FOUNDATION_PLATFORM_PNACL
+#  include <foundation/pnacl.h>
 #endif
 
 
@@ -31,11 +33,11 @@ struct ALIGN(16) mutex_t
 
 	//! Event handle
 	void*                  event;
-	
+
 	//! Wait count
 	atomic32_t             waiting;
 
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 	//! Mutex object
 	pthread_mutex_t        mutex;
@@ -47,11 +49,11 @@ struct ALIGN(16) mutex_t
 	volatile bool          pending;
 
 #else
-#  error Not implemented	
-#endif		
-	
+#  error Not implemented
+#endif
+
 	//! Enter count
-	volatile int           lockcount;	
+	volatile int           lockcount;
 
 	//! Owner thread
 	uint64_t               lockedthread;
@@ -66,16 +68,16 @@ static void _mutex_initialize( mutex_t* mutex, const char* name )
 	InitializeCriticalSectionAndSpinCount( (CRITICAL_SECTION*)mutex->csection, 4000 );
 	mutex->event = CreateEvent( 0, TRUE, FALSE, 0 );
 	atomic_store32( &mutex->waiting, 0 );
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	mutex->pending = false;
-	
+
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init( &attr );
 	pthread_mutexattr_settype( &attr, PTHREAD_MUTEX_RECURSIVE );
-	
+
 	pthread_cond_init( &mutex->cond, 0 );
 	pthread_mutex_init( &mutex->mutex, &attr );
-	
+
 	pthread_mutexattr_destroy( &attr );
 #else
 #  error _mutex_initialize not implemented
@@ -92,7 +94,7 @@ static void _mutex_shutdown( mutex_t* mutex )
 #if FOUNDATION_PLATFORM_WINDOWS
 	CloseHandle( mutex->event );
 	DeleteCriticalSection( (CRITICAL_SECTION*)mutex->csection );
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	pthread_mutex_destroy( &mutex->mutex );
 	pthread_cond_destroy( &mutex->cond );
 #else
@@ -137,10 +139,10 @@ bool mutex_try_lock( mutex_t* mutex )
 #if !BUILD_DEPLOY
 	profile_trylock( mutex->name );
 #endif
-	
+
 #if FOUNDATION_PLATFORM_WINDOWS
 	was_locked = TryEnterCriticalSection( (CRITICAL_SECTION*)mutex->csection );
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	was_locked = ( pthread_mutex_trylock( &mutex->mutex ) == 0 );
 #else
 #  error mutex_try_lock not implemented
@@ -170,7 +172,7 @@ bool mutex_lock( mutex_t* mutex )
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	EnterCriticalSection( (CRITICAL_SECTION*)mutex->csection );
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if( pthread_mutex_lock( &mutex->mutex ) != 0 )
 	{
 		FOUNDATION_ASSERT_FAILFORMAT( "unable to lock mutex %s", mutex->name );
@@ -201,7 +203,7 @@ bool mutex_unlock( mutex_t* mutex )
 		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to unlock unlocked mutex %s", mutex->name );
 		return false;
 	}
-	
+
 	FOUNDATION_ASSERT( mutex->lockedthread == thread_id() );
 	--mutex->lockcount;
 
@@ -211,7 +213,7 @@ bool mutex_unlock( mutex_t* mutex )
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	LeaveCriticalSection( (CRITICAL_SECTION*)mutex->csection );
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	if( pthread_mutex_unlock( &mutex->mutex ) != 0 )
 	{
 		FOUNDATION_ASSERT_FAILFORMAT( "unable to unlock mutex %s", mutex->name );
@@ -228,10 +230,10 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 	DWORD ret;
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 	struct timeval now;
 	struct timespec then;
-#endif	
+#endif
 	FOUNDATION_ASSERT( mutex );
 #if FOUNDATION_PLATFORM_WINDOWS
 
@@ -245,16 +247,16 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 
 	if( ret == WAIT_OBJECT_0 )
 		mutex_lock( mutex );
-	
+
 	if( atomic_decr32( &mutex->waiting ) == 0 )
 		ResetEvent( mutex->event );
 
 	return ret == WAIT_OBJECT_0;
 
-#elif FOUNDATION_PLATFORM_POSIX
-	
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
+
 	mutex_lock( mutex );
-	
+
 	if( mutex->pending )
 	{
 		mutex->pending = false;
@@ -262,7 +264,7 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 	}
 
 	--mutex->lockcount;
-	
+
 	bool was_signal = false;
 	if( !timeout )
 	{
@@ -300,12 +302,12 @@ bool mutex_wait( mutex_t* mutex, unsigned int timeout )
 
 	++mutex->lockcount;
 	mutex->lockedthread = thread_id();
-	
+
 	if( was_signal )
 		mutex->pending = false;
 	else
 		mutex_unlock( mutex );
-	
+
 	return was_signal;
 
 #else
@@ -326,7 +328,7 @@ void mutex_signal( mutex_t* mutex )
 
 	SetEvent( mutex->event );
 
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 
 	mutex_lock( mutex );
 	mutex->pending = true;

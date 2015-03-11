@@ -29,10 +29,10 @@ struct DisassemblyRange
 
 struct DissassemblyData
 {
-	DisassemblyRange range;
-	uint64_t location;
-	uint64_t pc;
-	uint8_t locationSize;
+    DisassemblyRange range;
+    uint64_t location;
+    uint64_t pc;
+    uint8_t locationSize;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,26 +60,26 @@ static void destroyInstance(void* userData)
 
 static void freeRange(DisassemblyRange* range)
 {
-	for (int i = 0, end = range->lineCount; i < end; ++i)
-		free((void*)range->lines[i].text);
+    for (int i = 0, end = range->lineCount; i < end; ++i)
+        free((void*)range->lines[i].text);
 
-	free(range->lines);
+    free(range->lines);
 
-	range->lineCount = 0;
+    range->lineCount = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void setDisassemblyCode(DissassemblyData* data, PDReader* reader)
 {
-	Line* line;
+    Line* line;
 
     PDReaderIterator it;
 
     if (PDRead_findArray(reader, &it, "disassembly", 0) == PDReadStatus_notFound)
         return;
 
-	freeRange(&data->range);
+    freeRange(&data->range);
 
     int linesCount = 0;
 
@@ -87,7 +87,7 @@ static void setDisassemblyCode(DissassemblyData* data, PDReader* reader)
 
     while (PDRead_getNextEntry(reader, &t))
     {
-    	linesCount++;
+        linesCount++;
     }
 
     data->range.lines = line = (Line*)malloc((size_t)linesCount * sizeof(Line));
@@ -95,16 +95,16 @@ static void setDisassemblyCode(DissassemblyData* data, PDReader* reader)
 
     while (PDRead_getNextEntry(reader, &it))
     {
-    	const char* text;
-    	line->breakpoint = false;
+        const char* text;
+        line->breakpoint = false;
 
-		line->addressSize = (uint8_t)PDRead_findU64(reader, &line->address, "address", it);
+        line->addressSize = (uint8_t)PDRead_findU64(reader, &line->address, "address", it);
 
-		PDRead_findString(reader, &text, "line", it);
+        PDRead_findString(reader, &text, "line", it);
 
-		line->text = strdup(text);
+        line->text = strdup(text);
 
-		line++;
+        line++;
     }
 }
 
@@ -116,7 +116,7 @@ void renderUI(DissassemblyData* data, PDUI* uiFuncs)
 
     for (int i = 0; i < data->range.lineCount; ++i)
     {
-        if (data->range.lines[i].address == data->pc) 
+        if (data->range.lines[i].address == data->pc)
         {
             PDRect rect;
             PDVec2 pos = uiFuncs->getCursorPos();
@@ -188,13 +188,13 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     // Temporary req
 
-	int pc = (int)(data->pc) - 0x40;
+    int pc = (int)(data->pc) - 0x40;
 
-	if (pc < 0)
-		pc = 0;
+    if (pc < 0)
+        pc = 0;
 
     PDWrite_eventBegin(writer, PDEventType_getDisassembly);
-    PDWrite_u64(writer, "address_start", (uint64_t)pc); 
+    PDWrite_u64(writer, "address_start", (uint64_t)pc);
     PDWrite_u32(writer, "instruction_count", (uint32_t)40);
     PDWrite_eventEnd(writer);
 
@@ -218,10 +218,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-{
-	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-}
+    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+    {
+        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+    }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -1,11 +1,11 @@
 /* platform.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -46,6 +46,7 @@
 #define FOUNDATION_PLATFORM_LINUX_RASPBERRYPI 0
 #define FOUNDATION_PLATFORM_MACOSX 0
 #define FOUNDATION_PLATFORM_WINDOWS 0
+#define FOUNDATION_PLATFORM_PNACL 0
 
 //Platform traits and groups
 #define FOUNDATION_PLATFORM_APPLE 0
@@ -70,6 +71,7 @@
 #define FOUNDATION_ARCH_IA64 0
 #define FOUNDATION_ARCH_MIPS 0
 #define FOUNDATION_ARCH_MIPS_64 0
+#define FOUNDATION_ARCH_GENERIC 0
 
 //Architecture details
 #define FOUNDATION_ARCH_SSE2 0
@@ -91,8 +93,26 @@
 
 //First, platforms and architectures
 
+#if defined( __pnacl__ )
+
+#  undef  FOUNDATION_PLATFORM_PNACL
+#  define FOUNDATION_PLATFORM_PNACL 1
+
+#  define FOUNDATION_PLATFORM_NAME "PNaCl"
+#  define FOUNDATION_PLATFORM_DESCRIPTION "PNaCl"
+
+#  undef  FOUNDATION_ARCH_GENERIC
+#  define FOUNDATION_ARCH_GENERIC 1
+
+#  undef  FOUNDATION_ARCH_ENDIAN_LITTLE
+#  define FOUNDATION_ARCH_ENDIAN_LITTLE 1
+
+#  ifdef __STRICT_ANSI__
+#    undef __STRICT_ANSI__
+#  endif
+
 // Android
-#if defined( __ANDROID__ )
+#elif defined( __ANDROID__ )
 
 #  undef  FOUNDATION_PLATFORM_ANDROID
 #  define FOUNDATION_PLATFORM_ANDROID 1
@@ -152,7 +172,6 @@
 #    undef  FOUNDATION_ARCH_MIPS
 #    define FOUNDATION_ARCH_MIPS 1
 #    define FOUNDATION_PLATFORM_DESCRIPTION "Android MIPS"
-#    include <asm/asm.h>
 #    ifndef _MIPS_ISA
 #      define _MIPS_ISA 6 /*_MIPS_ISA_MIPS32*/
 #    endif
@@ -174,12 +193,6 @@
 
 #  undef  FOUNDATION_PLATFORM_FAMILY_CONSOLE
 #  define FOUNDATION_PLATFORM_FAMILY_CONSOLE 1
-
-// Workarounds for weird include dependencies in NDK headers
-#  if !defined(__LP64__)
-#    define __LP64__ 0
-#    define FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND
-#  endif
 
 // MacOS X and iOS
 #elif ( defined( __APPLE__ ) && __APPLE__ )
@@ -514,7 +527,7 @@
 #  define FOUNDATION_COMPILER_CLANG 1
 
 #  define FOUNDATION_COMPILER_NAME "clang"
-#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " __clang_version__
+#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING( __clang_major__ ) "." FOUNDATION_PREPROCESSOR_TOSTRING( __clang_minor__ )
 
 #  define RESTRICT restrict
 #  if FOUNDATION_PLATFORM_WINDOWS
@@ -534,7 +547,7 @@
 #  define CONSTCALL ATTRIBUTE( const )
 #  define ALIGN( alignment ) ATTRIBUTE2( aligned, alignment )
 #  define ALIGNOF( type ) __alignof__( type )
-#  define ALIGNED_STRUCT( name, alignment ) struct ALIGN( alignment ) name
+#  define ALIGNED_STRUCT( name, alignment ) struct __attribute__((__aligned__(alignment))) name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL
@@ -565,7 +578,7 @@
 #  define FOUNDATION_COMPILER_GCC 1
 
 #  define FOUNDATION_COMPILER_NAME "gcc"
-#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " v" FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC__ ) "." FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC_MINOR__ )
+#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC__ ) "." FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC_MINOR__ )
 
 #  define RESTRICT __restrict
 #  define THREADLOCAL __thread
@@ -612,9 +625,9 @@
 
 #  define FOUNDATION_COMPILER_NAME "intel"
 #  if defined( __ICL )
-#    define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " v" FOUNDATION_PREPROCESSOR_TOSTRING( __ICL )
+#    define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING( __ICL )
 #  elif defined( __ICC )
-#    define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " v" FOUNDATION_PREPROCESSOR_TOSTRING( __ICC )
+#    define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING( __ICC )
 #  endif
 
 #  define RESTRICT __restrict
@@ -624,10 +637,10 @@
 #  define ATTRIBUTE2(x,y)
 #  define ATTRIBUTE3(x,y,z)
 
-#  define DEPRECATED 
+#  define DEPRECATED
 #  define FORCEINLINE __forceinline
 #  define NOINLINE __declspec( noinline )
-#  define PURECALL 
+#  define PURECALL
 #  define CONSTCALL
 #  define ALIGN( alignment ) __declspec( align( alignment ) )
 #  define ALIGNOF( type ) __alignof( type )
@@ -652,7 +665,7 @@
 #  define FOUNDATION_COMPILER_MSVC 1
 
 #  define FOUNDATION_COMPILER_NAME "msvc"
-#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " v" FOUNDATION_PREPROCESSOR_TOSTRING( _MSC_VER )
+#  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING( _MSC_VER )
 
 #  define ATTRIBUTE(x)
 #  define ATTRIBUTE2(x,y)
@@ -803,10 +816,10 @@ typedef ALIGNED_STRUCT( atomicptr_t, FOUNDATION_SIZE_POINTER ) atomicptr_t;
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 
 // Forward declarations of various system APIs
-#  if FOUNDATION_PLATFORM_ANDROID
-typedef int _pthread_key_t;
-#  else
+#if FOUNDATION_PLATFORM_APPLE
 typedef __darwin_pthread_key_t _pthread_key_t;
+#else
+typedef int _pthread_key_t;
 #  endif
 FOUNDATION_EXTERN int pthread_key_create( _pthread_key_t*, void (*)(void*) );
 FOUNDATION_EXTERN int pthread_setspecific( _pthread_key_t, const void* );
@@ -859,12 +872,12 @@ static FORCEINLINE type* get_thread_##name( void ) { return _thread_##name; }
 
 
 //Utility functions for large integer types
-static FORCEINLINE CONSTCALL uint128_t uint128_make( const uint64_t low, const uint64_t high ) { uint128_t u = { low, high }; return u; }
+static FORCEINLINE CONSTCALL uint128_t uint128_make( const uint64_t low, const uint64_t high ) { uint128_t u = { { low, high } }; return u; }
 static FORCEINLINE CONSTCALL uint128_t uint128_null( void ) { return uint128_make( 0, 0 ); }
 static FORCEINLINE CONSTCALL bool      uint128_equal( const uint128_t u0, const uint128_t u1 ) { return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1]; }
 static FORCEINLINE CONSTCALL bool      uint128_is_null( const uint128_t u0 ) { return !u0.word[0] && !u0.word[1]; }
 
-static FORCEINLINE CONSTCALL uint256_t uint256_make( const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3 ) { uint256_t u = { w0, w1, w2, w3 }; return u; }
+static FORCEINLINE CONSTCALL uint256_t uint256_make( const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3 ) { uint256_t u = { { w0, w1, w2, w3 } }; return u; }
 static FORCEINLINE CONSTCALL uint256_t uint256_null( void ) { return uint256_make( 0, 0, 0, 0 ); }
 static FORCEINLINE CONSTCALL bool      uint256_equal( const uint256_t u0, const uint256_t u1 ) { return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1] && u0.word[2] == u1.word[2] && u0.word[3] == u1.word[3]; }
 static FORCEINLINE CONSTCALL bool      uint256_is_null( const uint256_t u0 ) { return !u0.word[0] && !u0.word[1] && !u0.word[2] && !u0.word[3]; }
@@ -912,13 +925,3 @@ static FORCEINLINE CONSTCALL bool      uint256_is_null( const uint256_t u0 ) { r
 #endif
 
 #include <foundation/build.h>
-
-#if FOUNDATION_PLATFORM_ANDROID && defined(FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND)
-#  undef __LP64__
-#  undef FOUNDATION_PLATFORM_ANDROID_LP64_WORKAROUND
-#endif
-
-#if FOUNDATION_PLATFORM_ANDROID
-#  undef __ISO_C_VISIBLE
-#  define __ISO_C_VISIBLE 2011
-#endif

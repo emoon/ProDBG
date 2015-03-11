@@ -1,11 +1,11 @@
 /* string.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -20,7 +20,7 @@
 FOUNDATION_EXTERN errno_t _ctime64_s( char*, size_t, const __time64_t* );;
 #elif FOUNDATION_PLATFORM_APPLE
 FOUNDATION_EXTERN char* ctime_r( const time_t*, char* );
-#elif FOUNDATION_PLATFORM_POSIX
+#elif FOUNDATION_PLATFORM_POSIX || FOUNDATION_PLATFORM_PNACL
 #include <time.h>
 #endif
 
@@ -73,12 +73,12 @@ char* string_format( const char* format, ... )
 
 		if( ( n > -1 ) && ( n < (int)capacity ) )
 			break;
-	
+
 		if( n > -1 )
 			capacity = n + 1;
 		else
 			capacity *= 2;
-			
+
 		buffer = memory_reallocate( buffer, capacity + 1, 0, 0 );
 	}
 
@@ -127,12 +127,12 @@ char* string_vformat( const char* format, va_list list )
 
 		if( ( n > -1 ) && ( n < (int)capacity ) )
 			break;
-	
+
 		if( n > -1 )
 			capacity = n + 1;
 		else
 			capacity *= 2;
-			
+
 		buffer = memory_reallocate( buffer, capacity + 1, 0, 0 );
 	}
 
@@ -206,7 +206,7 @@ char* string_strip( char* str, const char* delimiters )
 
 	if( !str )
 		return 0;
-	
+
 	length = string_length( str );
 	start = string_find_first_not_of( str, delimiters, 0 );
 	end   = string_rfind_first_not_of( str, delimiters, length - 1 );
@@ -235,7 +235,7 @@ char* string_strip_substr( char* str, const char* delimiters, unsigned int lengt
 
 	if( !str || !length )
 		return 0;
-	
+
 	start = string_find_first_not_of( str, delimiters, 0 );
 	end   = string_rfind_first_not_of( str, delimiters, length - 1 );
 
@@ -266,13 +266,13 @@ char* string_replace( char* str, const char* key, const char* newkey, bool repea
 	keylen = (unsigned int)string_length( key );
 	if( !slen || !keylen || string_equal( key, newkey ) )
 		return str;
-	
+
 	lastpos = STRING_NPOS;
 	newkeylen = newkey ? (unsigned int)string_length( newkey ) : 0;
 	lendiff = (int)newkeylen - (int)keylen;
 	pos = 0;
 	replaced = 0;
-	
+
 	while( ( pos = string_find_string( str, key, pos ) ) != STRING_NPOS )
 	{
 		if( repeat && ( lastpos != STRING_NPOS ) && ( (int)pos <= ( (int)lastpos + lendiff ) ) )
@@ -281,7 +281,7 @@ char* string_replace( char* str, const char* key, const char* newkey, bool repea
 			pos = lastpos + newkeylen;
 			continue;
 		}
-		
+
 		if( lendiff <= 0 )
 		{
 			//String is reducing or keeping length, just overwrite
@@ -297,9 +297,9 @@ char* string_replace( char* str, const char* key, const char* newkey, bool repea
 
 			slen += lendiff;
 		}
-		
+
 		++replaced;
-		
+
 		lastpos = pos;
 		if( !repeat )
 			pos += newkeylen;
@@ -307,7 +307,7 @@ char* string_replace( char* str, const char* key, const char* newkey, bool repea
 
 	if( replaced )
 		str[ slen ] = 0;
-	
+
 	return str;
 }
 
@@ -363,7 +363,7 @@ char* string_concat( const char* lhs, const char* rhs )
 void string_split( const char* str, const char* separators, char** left, char** right, bool allowempty )
 {
 	unsigned int start, delim;
-	
+
 	start = ( allowempty ? 0 : string_find_first_not_of( str, separators, 0 ) );
 	if( start == STRING_NPOS )
 	{
@@ -373,7 +373,7 @@ void string_split( const char* str, const char* separators, char** left, char** 
 			*right = 0;
 		return;
 	}
-	
+
 	delim = string_find_first_of( str, separators, start );
 	if( delim != STRING_NPOS )
 	{
@@ -452,7 +452,7 @@ unsigned int string_rfind( const char* str, char c, unsigned int offset )
 		if( c == str[ offset ] )
 			return offset;
 		--offset;
-	} 
+	}
 
 	return STRING_NPOS;
 }
@@ -633,7 +633,7 @@ char** string_explode( const char* str, const char* delimiters, bool allow_empty
 	unsigned int delimlen;
 	unsigned int token;
 	unsigned int end;
-	
+
 	slen = string_length( str );
 	if( !slen )
 		return 0;
@@ -648,7 +648,7 @@ char** string_explode( const char* str, const char* delimiters, bool allow_empty
 
 	token = 0;
 	end   = 0;
-	
+
 	while( end < slen )
 	{
 		if( !allow_empty )
@@ -669,17 +669,17 @@ char* string_merge( const char* const* array, unsigned int num, const char* deli
 {
 	char* result;
 	unsigned int i;
-	
+
 	if( !num )
 		return string_allocate( 0 );
-		
+
 	result = string_clone( array[0] );
 	for( i = 1; i < num; ++i )
 	{
 		result = string_append( result, delimiter );
 		result = string_append( result, array[i] );
 	}
-	
+
 	return result;
 }
 
@@ -982,19 +982,19 @@ char* string_allocate_from_utf16( const uint16_t* str, unsigned int length )
 	char* buf;
 	unsigned int i, curlen, inlength, maxlen;
 	uint32_t glyph, lval;
-	
+
 	maxlen = _string_length_utf16( str );
 	if( !length )
 		length = maxlen;
 	else
 		length = ( length < maxlen ) ? length : maxlen;
-	
+
 	inlength = length;
 	curlen = 0;
-	
+
 	swap = false;
 	for( i = 0; i < inlength; ++i )
-	{		
+	{
 		glyph = str[i];
 		if( ( glyph == 0xFFFE ) || ( glyph == 0xFEFF ) )
 		{
@@ -1011,14 +1011,14 @@ char* string_allocate_from_utf16( const uint16_t* str, unsigned int length )
 				lval = byteorder_swap16( (uint16_t)lval );
 			glyph = ( ( ( ( glyph & 0x3FF ) << 10 ) | ( lval & 0x3FF ) ) + 0x10000 );
 		}
-		
+
 		curlen += get_num_bytes_as_utf8( glyph );
 	}
-	
+
 	buf = memory_allocate( HASH_STRING, ( curlen + 1 ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 
 	string_convert_utf16( buf, str, curlen + 1, inlength );
-	
+
 	return buf;
 }
 
@@ -1029,19 +1029,19 @@ char* string_allocate_from_utf32( const uint32_t* str, unsigned int length )
 	char* buf;
 	unsigned int i, curlen, inlength, maxlen;
 	uint32_t glyph;
-	
+
 	maxlen = _string_length_utf32( str );
 	if( !length )
 		length = maxlen;
 	else
 		length = ( length < maxlen ) ? length : maxlen;
-	
+
 	inlength = length;
 	curlen = 0;
 
 	swap = false;
 	for( i = 0; i < inlength; ++i )
-	{		
+	{
 		glyph = str[i];
 		if( ( glyph == 0x0000FEFF ) || ( glyph == 0xFFFE0000 ) )
 		{
@@ -1052,11 +1052,11 @@ char* string_allocate_from_utf32( const uint32_t* str, unsigned int length )
 			glyph = byteorder_swap32( glyph );
 		curlen += get_num_bytes_as_utf8( glyph );
 	}
-	
+
 	buf = memory_allocate( HASH_STRING, ( curlen + 1 ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 
 	string_convert_utf32( buf, str, curlen + 1, inlength );
-	
+
 	return buf;
 }
 
@@ -1069,7 +1069,7 @@ void string_convert_utf16( char* dst, const uint16_t* src, unsigned int dstsize,
 	unsigned int i;
 
 	for( i = 0; ( i < srclength ) && ( curlen < dstsize ); ++i )
-	{		
+	{
 		//Convert through full UTF-32
 		glyph = src[i];
 		if( ( glyph == 0xFFFE ) || ( glyph == 0xFEFF ) )
@@ -1087,12 +1087,12 @@ void string_convert_utf16( char* dst, const uint16_t* src, unsigned int dstsize,
 				lval = byteorder_swap16( (uint16_t)lval );
 			glyph = ( ( ( ( glyph & 0x3FF ) << 10 ) | ( lval & 0x3FF ) ) + 0x10000 );
 		}
-		
+
 		numbytes = get_num_bytes_as_utf8( glyph );
 		if( ( curlen + numbytes ) < dstsize )
 			curlen += encode_utf8( dst + curlen, glyph );
 	}
-	
+
 	dst[curlen] = 0;
 }
 
@@ -1106,7 +1106,7 @@ void string_convert_utf32( char* dst, const uint32_t* src, unsigned int dstsize,
 
 	swap = false;
 	for( i = 0; ( i < srclength ) && ( curlen < dstsize ); ++i )
-	{		
+	{
 		glyph = src[i];
 		if( ( glyph == 0x0000FEFF ) || ( glyph == 0xFFFE0000 ) )
 		{
@@ -1120,7 +1120,7 @@ void string_convert_utf32( char* dst, const uint32_t* src, unsigned int dstsize,
 		if( ( curlen + numbytes ) < dstsize )
 			curlen += encode_utf8( dst + curlen, glyph );
 	}
-	
+
 	dst[curlen] = 0;
 }
 
@@ -1240,7 +1240,7 @@ char* string_from_real_buffer( char* buffer, real val, unsigned int precision, u
 		memmove( buffer + ( width - len ), buffer, len + 1 );
 		memset( buffer, fill, width - len );
 	}
-	
+
 	//Some cleanups
 	if( string_equal( buffer, "-0" ) )
 	{
@@ -1272,7 +1272,7 @@ char* string_from_time_buffer( char* buffer, uint64_t t )
 	buffer[0] = 0;
 	_ctime64_s( buffer, 64, &timet );
 	return string_strip( buffer, STRING_WHITESPACE );
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_APPLE
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_PNACL || FOUNDATION_PLATFORM_BSD
 	buffer[0] = 0;
 	time_t ts = (time_t)( t / 1000ULL );
 	ctime_r( &ts, buffer );
@@ -1316,7 +1316,7 @@ char* string_from_version( const version_t version )
 char* string_from_version_buffer( char* buffer, const version_t version )
 {
 	if( version.sub.control )
-		sprintf( buffer, "%u.%u.%u-%u.%u", (uint32_t)version.sub.major, (uint32_t)version.sub.minor, version.sub.revision, version.sub.build, version.sub.control );
+		sprintf( buffer, "%u.%u.%u-%u-%x", (uint32_t)version.sub.major, (uint32_t)version.sub.minor, version.sub.revision, version.sub.build, version.sub.control );
 	else if( version.sub.build )
 		sprintf( buffer, "%u.%u.%u-%u", (uint32_t)version.sub.major, (uint32_t)version.sub.minor, version.sub.revision, version.sub.build );
 	else
@@ -1370,7 +1370,7 @@ uint64_t string_to_uint64( const char* val, bool hex )
 
 uint128_t string_to_uint128( const char* val )
 {
-	uint128_t ret = {0};
+	uint128_t ret = uint128_null();
 	if( val )
 		sscanf( val, "%016" PRIx64 "%016" PRIx64, &ret.word[0], &ret.word[1] );
 	return ret;
@@ -1385,7 +1385,7 @@ real string_to_real( const char* val )
 	real ret = 0.0f;
 #endif
 	if( val )
-		sscanf( val, "%" PRIREAL, &ret );		
+		sscanf( val, "%" PRIREAL, &ret );
 	return ret;
 }
 
@@ -1400,12 +1400,12 @@ version_t string_to_version( const char* val )
 		num[i] = 0;
 		if( val && *val )
 		{
-			sscanf( val, "%u", num + i );
+			sscanf( val, i < 4 ? "%u" : "%x", num + i );
 			while( *val && ( ( *val >= '0' ) && ( *val < '9' ) ) ) val++;
 			while( *val && ( ( *val  < '0' ) || ( *val > '9' ) ) ) val++;
 		}
 	}
-	return version_make( num[0], num[1], num[2], num[3], num[4] );	
+	return version_make( num[0], num[1], num[2], num[3], num[4] );
 }
 
 

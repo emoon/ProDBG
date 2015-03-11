@@ -1,11 +1,11 @@
 /* event.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
- * 
+ *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
  * always available at
- * 
+ *
  * https://github.com/rampantpixels/foundation_lib
- * 
+ *
  * This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
  *
  */
@@ -20,7 +20,7 @@
 static atomic32_t _event_serial = {1};
 
 
-static void _event_post_delay_with_flag( event_stream_t* stream, uint16_t id, uint16_t size, uint64_t object, const void* payload, uint16_t flags, uint64_t timestamp )
+static void _event_post_delay_with_flags( event_stream_t* stream, uint16_t id, uint16_t size, uint64_t object, const void* payload, uint16_t flags, uint64_t timestamp )
 {
 	event_block_t* block;
 	event_t* event;
@@ -51,7 +51,7 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint16_t id, ui
 		thread_yield();
 		last_write = atomic_load32( &stream->write );
 	}
-	
+
 	//We now have exclusive access to the event block
 	block = stream->block + last_write;
 
@@ -70,7 +70,7 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint16_t id, ui
 			error_report( ERRORLEVEL_ERROR, ERROR_OUT_OF_MEMORY );
 		}
 		if( block->capacity % 16 )
-			block->capacity += 16 - ( basesize % 16 );			
+			block->capacity += 16 - ( basesize % 16 );
 		block->events = block->events ? memory_reallocate( block->events, block->capacity + 2ULL, 16, prev_capacity ) : memory_allocate( 0, block->capacity + 2ULL, 16, MEMORY_PERSISTENT );
 	}
 
@@ -79,7 +79,7 @@ static void _event_post_delay_with_flag( event_stream_t* stream, uint16_t id, ui
 	event->id        = id;
 	event->serial    = (uint16_t)( atomic_exchange_and_add32( &_event_serial, 1 ) & 0xFFFF );
 	event->size      = allocsize;
-	event->flags     = 0;
+	event->flags     = flags;
 	event->object    = object;
 
 	if( size )
@@ -112,7 +112,7 @@ uint16_t event_payload_size( const event_t* event )
 
 void event_post( event_stream_t* stream, uint16_t id, uint16_t size, uint64_t object, const void* payload, tick_t delivery )
 {
-	_event_post_delay_with_flag( stream, id, size, object, payload, 0, delivery );
+	_event_post_delay_with_flags( stream, id, size, object, payload, 0, delivery );
 }
 
 
@@ -139,7 +139,7 @@ event_t* event_next( const event_block_t* block, event_t* event )
 			return event;
 
 		//Re-post to next block
-		_event_post_delay_with_flag( block->stream, event->id, event->size - ( sizeof( event_t ) + 8 ), event->object, event->payload, event->flags, eventtime );
+		_event_post_delay_with_flags( block->stream, event->id, event->size - ( sizeof( event_t ) + 8 ), event->object, event->payload, event->flags, eventtime );
 	} while( true );
 
 	return 0;
@@ -149,9 +149,9 @@ event_t* event_next( const event_block_t* block, event_t* event )
 event_stream_t* event_stream_allocate( unsigned int size )
 {
 	event_stream_t* stream = memory_allocate( 0, sizeof( event_stream_t ), 16, MEMORY_PERSISTENT );
-	
+
 	event_stream_initialize( stream, size );
-	
+
 	return stream;
 }
 
@@ -163,10 +163,10 @@ void event_stream_initialize( event_stream_t* stream, unsigned int size )
 
 	if( size < 256 )
 		size = 256;
-	
+
 	stream->block[0].events = memory_allocate( 0, size, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	stream->block[1].events = memory_allocate( 0, size, 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-	
+
 	stream->block[0].used = 0;
 	stream->block[1].used = 0;
 
@@ -193,7 +193,7 @@ void event_stream_finalize( event_stream_t* stream )
 		memory_deallocate( stream->block[0].events );
 	if( stream->block[1].events )
 		memory_deallocate( stream->block[1].events );
-	
+
 	stream->block[0].events = 0;
 	stream->block[1].events = 0;
 }
