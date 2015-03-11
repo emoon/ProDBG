@@ -879,10 +879,11 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 
         case WM_COMMAND:
         {
-            //int loword = LOWORD(wParam);
+			const int key = translateKey(wParam, lParam);
+            int loword = LOWORD(wParam);
 
             //if ((loword >= PRODBG_MENU_START) && (loword < PRODBG_MENU_END))
-            ProDBG_event((int)wParam);
+            ProDBG_event(loword);
 
             break;
         }
