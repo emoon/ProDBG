@@ -557,5 +557,13 @@ void ProDBG_keyUp(int key, int modifier)
     IMGUI_setKeyUp(key, modifier);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_addChar(unsigned short c)
+{
+    IMGUI_addInputCharacter(c);
+}
+
+
 
 
