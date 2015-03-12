@@ -5,6 +5,8 @@
 #include <string.h>
 #include <list>
 
+static int s_idCounter = 1;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct Location
@@ -20,6 +22,7 @@ struct Breakpoint
 {
     Location location;
     char* condition;
+	int id;
     bool enabled;
 	bool markDelete;
 };
@@ -41,6 +44,8 @@ static Breakpoint* createBreakpoint(BreakpointsData* userData)
 {
 	Breakpoint* bp = (Breakpoint*)malloc(sizeof(Breakpoint));
 	memset(bp, 0, sizeof(Breakpoint));
+
+	bp->id = s_idCounter++;
 
 	bp->location.address = (char*)malloc(userData->maxPath);
 	bp->condition = (char*)malloc(userData->maxPath);
@@ -214,7 +219,11 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
     	if (bp->location.filename)
         	uiFuncs->inputText("##filename", bp->location.filename, (int)data->maxPath, 0, 0, 0);
 		else
-        	uiFuncs->inputText("##address", bp->location.address, (int)data->maxPath, PDInputTextFlags_CharsHexadecimal, 0, 0);
+		{
+			uiFuncs->inputText("##address", bp->location.address, (int)data->maxPath, 
+				PDInputTextFlags_CharsHexadecimal | 
+				PDInputTextFlags_EnterReturnsTrue, 0, 0);
+		}
 
 		uiFuncs->nextColumn();
 
