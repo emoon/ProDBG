@@ -40,16 +40,16 @@ enum
 
     // End
 
-    PRODBG_MENU_END = PRODBG_MENU_PLUGINS_START + 0x1000000,
+    PRODBG_MENU_END = PRODBG_MENU_PLUGINS_START + 0x1000,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 enum
 {
-    PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT = 1 << 16,
-    PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT = 1 << 17,
-    PRODBG_MENU_POPUP_SPLIT_TAB_SHIFT = 1 << 18,
+    PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT = 1 << 12,
+    PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT = 1 << 13,
+    PRODBG_MENU_POPUP_SPLIT_TAB_SHIFT = 1 << 14,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
