@@ -21,6 +21,7 @@ struct Breakpoint
     Location location;
     char* condition;
     bool enabled;
+	bool markDelete;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,11 +37,18 @@ struct BreakpointsData
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static Breakpoint* createBreakpoint()
+static Breakpoint* createBreakpoint(BreakpointsData* userData)
 {
 	Breakpoint* bp = (Breakpoint*)malloc(sizeof(Breakpoint));
 	memset(bp, 0, sizeof(Breakpoint));
-    bp->enabled = true;
+
+	bp->location.address = (char*)malloc(userData->maxPath);
+	bp->condition = (char*)malloc(userData->maxPath);
+
+	memset(bp->location.address, 0, userData->maxPath);
+	memset(bp->condition, 0, userData->maxPath);
+
+	bp->enabled = false;
 
 	return bp;
 }
@@ -61,18 +69,6 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 {
     (void)serviceFunc;
     BreakpointsData* userData = new BreakpointsData;
-
-/*
-	Breakpoint* test = (Breakpoint*)malloc(sizeof(Breakpoint));
-	memset(test, 0, sizeof(Breakpoint));
-
-	test->location.address = (char*)malloc(userData->maxPath);
-	test->condition = (char*)malloc(userData->maxPath);
-	memset(test->location.address, 0, userData->maxPath);
-	memset(test->condition, 0, userData->maxPath);
-
-	userData->breakpoints.push_back(test);
-*/
 
     (void)uiFuncs;
     (void)serviceFunc;
@@ -127,7 +123,7 @@ void toogleBreakpointFileLine(BreakpointsData* data, PDReader* reader)
         }
     }
 
-    Breakpoint* breakpoint = createBreakpoint(); 
+    Breakpoint* breakpoint = createBreakpoint(data); 
 
     sprintf(fileLine, "%s:%d\n", filename, line);
 
@@ -160,7 +156,7 @@ void toggleBreakpointAddress(BreakpointsData* data, PDReader* reader)
         }
     }
 
-    Breakpoint* breakpoint = createBreakpoint(); 
+    Breakpoint* breakpoint = createBreakpoint(data); 
     breakpoint->location.address = (char*)malloc(data->maxPath); 
 
 	strcpy(breakpoint->location.address, address);
@@ -192,38 +188,57 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
         }
     }
 
-    uiFuncs->button("New"); uiFuncs->sameLine(0, -1);
-    uiFuncs->button("Delete"); uiFuncs->sameLine(0, -1);
-
     uiFuncs->text("");
 
-    uiFuncs->columns(4, "", true);
+	if (uiFuncs->button("Add Breakpoint"))
+	{
+		Breakpoint* bp = createBreakpoint(data);
+		data->breakpoints.push_back(bp);
+	}
+
+    uiFuncs->columns(5, "", true);
     uiFuncs->text(""); uiFuncs->nextColumn();
-    uiFuncs->text("Name"); uiFuncs->nextColumn();
+    uiFuncs->text("Name/Address"); uiFuncs->nextColumn();
     uiFuncs->text("Label"); uiFuncs->nextColumn();
     uiFuncs->text("Condition"); uiFuncs->nextColumn();
+    uiFuncs->text(""); uiFuncs->nextColumn();
 
     for (auto& i : data->breakpoints)
     {
     	Breakpoint* bp = i;
 
-    	uiFuncs->checkbox("", &bp->enabled); uiFuncs->nextColumn();
+		uiFuncs->pushIdPtr(bp);
+		
+		uiFuncs->checkbox("Enabled", &bp->enabled); uiFuncs->nextColumn();
 
     	if (bp->location.filename)
-		{
-        	uiFuncs->inputText("", bp->location.filename, (int)data->maxPath, 0, 0, 0);
-		}
+        	uiFuncs->inputText("##filename", bp->location.filename, (int)data->maxPath, 0, 0, 0);
 		else
-		{
-        	uiFuncs->inputText("", bp->location.address, (int)data->maxPath, 0, 0, 0);
-		}
+        	uiFuncs->inputText("##address", bp->location.address, (int)data->maxPath, PDInputTextFlags_CharsHexadecimal, 0, 0);
 
 		uiFuncs->nextColumn();
 
 		uiFuncs->text("");
+		uiFuncs->nextColumn();
 
-        uiFuncs->text(bp->condition); uiFuncs->nextColumn();
+		uiFuncs->inputText("##condition", bp->condition, (int)data->maxPath, 0, 0, 0);
+		uiFuncs->nextColumn();
+
+		if (uiFuncs->button("Delete"))
+			bp->markDelete = true;
+
+		uiFuncs->nextColumn();
+
+		uiFuncs->popId();
     }
+	
+	// Delete breakpoints that have been marked delete
+
+	for (auto& i = data->breakpoints.begin(); i != data->breakpoints.end(); ++i)
+	{
+		if ((*i)->markDelete)
+			i = data->breakpoints.erase(i);
+	}
 
     return 0;
 }
@@ -245,10 +260,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-    {
-        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-    }
+PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+{
+	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
