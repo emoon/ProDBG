@@ -13,4 +13,6 @@ void IMGUI_setInputState(const InputState* inputState);
 void IMGUI_setKeyDown(int key, int modifier);
 void IMGUI_setKeyUp(int key, int modifier);
 
+void IMGUI_addInputCharacter(unsigned short c);
+
 

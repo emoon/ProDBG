@@ -209,9 +209,6 @@ void IMGUI_setKeyDown(int key, int modifier)
     io.KeysDown[key] = true;
     io.KeyCtrl = !!(modifier & PDKEY_CTRL);
     io.KeyShift = !!(modifier & PDKEY_SHIFT);
-
-    if (isAlphaNumeric((char)key) || key == ' ')
-        io.AddInputCharacter((unsigned short)key);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -223,6 +220,14 @@ void IMGUI_setKeyUp(int key, int modifier)
     io.KeysDown[key] = false;
     io.KeyCtrl = !!(modifier & PDKEY_CTRL);
     io.KeyShift = !!(modifier & PDKEY_SHIFT);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void IMGUI_addInputCharacter(unsigned short c)
+{
+	ImGuiIO& io = ImGui::GetIO();
+	io.AddInputCharacter(c);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

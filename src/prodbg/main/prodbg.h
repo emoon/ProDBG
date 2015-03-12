@@ -14,6 +14,7 @@ void ProDBG_timedUpdate();
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Events
 
+void ProDBG_addChar(unsigned short c);
 void ProDBG_keyDown(int key, int modifier);
 void ProDBG_keyUp(int key, int modifier);
 void ProDBG_event(int eventId);
