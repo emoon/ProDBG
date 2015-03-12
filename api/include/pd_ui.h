@@ -196,6 +196,13 @@ typedef struct PDUI
 
 	void (*fillRect)(PDRect rect, unsigned int color); 
 
+	// Id
+
+	void (*pushIdPtr)(void* id);
+	void (*pushIdInt)(int id);
+	void (*popId)();
+
+	//test
     void* privateData;
 
 } PDUI;

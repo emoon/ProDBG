@@ -1,6 +1,6 @@
 #include "plugin.h"
-#include "api/include/pd_ui.h"
-#include "api/include/pd_view.h"
+#include "pd_ui.h"
+#include "pd_view.h"
 #include "api/plugin_instance.h"
 #include "core/alloc.h"
 #include "core/log.h"
@@ -468,6 +468,27 @@ static void setKeyboardFocusHere(int offset)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void pushIdPtr(void* id)
+{
+	ImGui::PushID(id);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void pushIdInt(int id)
+{
+	ImGui::PushID(id);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void popId()
+{
+	ImGui::PopID();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static ImGuiStyleVar_ styleLookup[PDStyleVar_Count] =
 {
     ImGuiStyleVar_Alpha,            // PDStyleVar_Invalid
@@ -590,6 +611,10 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
     uiInstance->pushStyleVarV = pushStyleVarV;
     uiInstance->pushStyleVarF = pushStyleVarF;
     uiInstance->popStyleVar = popStyleVar;
+
+    uiInstance->pushIdPtr = pushIdPtr;
+    uiInstance->pushIdInt = pushIdInt;
+    uiInstance->popId = popId;
 
     uiInstance->privateData = alloc_zero(sizeof(PrivateData));
     data->name = buildName(pluginInstance->plugin->name, pluginInstance->count);
