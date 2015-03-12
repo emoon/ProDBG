@@ -958,9 +958,12 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
         }
 
 		case WM_CHAR:
+		{
 			// You can also use ToAscii()+GetKeyboardState() to retrieve characters.
 			if (wParam > 0 && wParam < 0x10000)
 				ProDBG_addChar((unsigned short)wParam);
+			break;
+		}
     }
 
     return DefWindowProc(window, message, wParam, lParam);
