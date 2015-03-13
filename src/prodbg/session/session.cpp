@@ -670,6 +670,7 @@ SessionStatus Session_onMenu(Session* session, int eventId)
             }
 
             session->backend = backend;
+            session->type = Session_Local;
 
             UIStatusBar_setText("%s Backend active", plugin->name);
 

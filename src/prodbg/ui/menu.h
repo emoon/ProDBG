@@ -12,7 +12,7 @@ enum
 {
     // File
 
-    PRODBG_MENU_START = 0x1000,
+    PRODBG_MENU_START = 0,
     PRODBG_MENU_NEW,
     PRODBG_MENU_SUB_MENU,
     PRODBG_MENU_SEPARATOR,
@@ -22,7 +22,7 @@ enum
     // Debug
 
     PRODBG_MENU_DEBUG_ATTACH_TO_REMOTE,
-    PRODBG_MENU_DEBUG_BREAK,
+    PRODBG_MENU_DEBUG_START,
     PRODBG_MENU_DEBUG_STEP_IN,
     PRODBG_MENU_DEBUG_STEP_OVER,
     PRODBG_MENU_DEBUG_TOGGLE_BREAKPOINT,
@@ -40,16 +40,16 @@ enum
 
     // End
 
-    PRODBG_MENU_END = PRODBG_MENU_PLUGINS_START + 0x1000,
+    PRODBG_MENU_END = PRODBG_MENU_PLUGINS_START + 0x100,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 enum
 {
-    PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT = 1 << 12,
-    PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT = 1 << 13,
-    PRODBG_MENU_POPUP_SPLIT_TAB_SHIFT = 1 << 14,
+    PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT = 1 << 13,
+    PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT = 1 << 14,
+    PRODBG_MENU_POPUP_SPLIT_TAB_SHIFT = 1 << 15,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -5,7 +5,7 @@
 #include <string.h>
 #include <list>
 
-static int s_idCounter = 1;
+static uint32_t s_idCounter = 1;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -22,7 +22,7 @@ struct Breakpoint
 {
     Location location;
     char* condition;
-	int id;
+	uint32_t id;
     bool enabled;
 	bool markDelete;
 };
@@ -107,7 +107,7 @@ static void updateCondition(Breakpoint* bp, PDReader* reader)
 
 void toogleBreakpointFileLine(BreakpointsData* data, PDReader* reader)
 {
-    const char* filename;
+    const char* filename = 0;
     uint32_t line;
 
     char fileLine[8192];
@@ -211,18 +211,24 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
     for (auto& i : data->breakpoints)
     {
     	Breakpoint* bp = i;
+		bool needUpdate = false;
 
 		uiFuncs->pushIdPtr(bp);
 		
-		uiFuncs->checkbox("Enabled", &bp->enabled); uiFuncs->nextColumn();
+		if (uiFuncs->checkbox("Enabled", &bp->enabled))
+			needUpdate = true;
 
+		uiFuncs->nextColumn();
+				
     	if (bp->location.filename)
+		{
         	uiFuncs->inputText("##filename", bp->location.filename, (int)data->maxPath, 0, 0, 0);
+		}
 		else
 		{
-			uiFuncs->inputText("##address", bp->location.address, (int)data->maxPath, 
-				PDInputTextFlags_CharsHexadecimal | 
-				PDInputTextFlags_EnterReturnsTrue, 0, 0);
+			if (uiFuncs->inputText("##address", bp->location.address, (int)data->maxPath, 
+								   PDInputTextFlags_CharsHexadecimal | PDInputTextFlags_EnterReturnsTrue, 0, 0))
+				needUpdate = true;
 		}
 
 		uiFuncs->nextColumn();
@@ -230,11 +236,35 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 		uiFuncs->text("");
 		uiFuncs->nextColumn();
 
-		uiFuncs->inputText("##condition", bp->condition, (int)data->maxPath, 0, 0, 0);
+		if (uiFuncs->inputText("##condition", bp->condition, (int)data->maxPath, PDInputTextFlags_EnterReturnsTrue, 0, 0))
+			needUpdate = true;
+
 		uiFuncs->nextColumn();
 
+		if (needUpdate)
+		{
+			// TODO: Add support for file/line
+
+			PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
+			PDWrite_u64(writer, "address", (uint64_t)strtol(bp->location.address, 0, 16));
+
+			if (bp->condition[0] != 0)
+				PDWrite_string(writer, "condition", bp->condition);
+
+			PDWrite_u32(writer, "id", bp->id);
+			PDWrite_u8(writer, "enable", bp->enabled);
+			PDWrite_eventEnd(writer);
+
+			printf("Sending breakpint\n");
+		}
+
 		if (uiFuncs->button("Delete"))
+		{
+			PDWrite_eventBegin(writer, PDEventType_deleteBreakpoint);
+			PDWrite_u32(writer, "id", bp->id);
+			PDWrite_eventEnd(writer);
 			bp->markDelete = true;
+		}
 
 		uiFuncs->nextColumn();
 

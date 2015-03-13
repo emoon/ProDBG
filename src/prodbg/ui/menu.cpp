@@ -14,7 +14,7 @@ PDMenuItem g_fileMenu[] =
 PDMenuItem g_debugMenu[] =
 {
     { "Attach to Remote...", PRODBG_MENU_DEBUG_ATTACH_TO_REMOTE, PRODBG_KEY_F6, 0, 0 },
-    { "Break", PRODBG_MENU_DEBUG_BREAK, PRODBG_KEY_F5, 0, 0 },
+    { "Start", PRODBG_MENU_DEBUG_START, PRODBG_KEY_F5, 0, 0 },
     { "Step In", PRODBG_MENU_DEBUG_STEP_IN, PRODBG_KEY_F11, 0, 0 },
     { "Step Over", PRODBG_MENU_DEBUG_STEP_OVER, PRODBG_KEY_F10, 0, 0 },
     { "Toggle Breakpoint", PRODBG_MENU_DEBUG_TOGGLE_BREAKPOINT, PRODBG_KEY_F9, 0, 0 },

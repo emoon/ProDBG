@@ -708,7 +708,7 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 
             case PDEventType_getRegisters:
             {
-                if (!data->hasUpdatedRegistes)
+                if (!data->hasUpdatedRegistes && data->state != PDDebugState_running)
                     getRegisters(data);
 
                 break;
@@ -716,13 +716,16 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 
             case PDEventType_getDisassembly:
             {
-                getDisassembly(data, reader, writer);
+				if (data->state != PDDebugState_running)
+                    getDisassembly(data, reader, writer);
+
                 break;
             }
 
             case PDEventType_getMemory:
             {
-                getMemory(data, reader, writer);
+				if (data->state != PDDebugState_running)
+                    getMemory(data, reader, writer);
                 break;
             }
 
@@ -735,6 +738,13 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 			case PDEventType_setBreakpoint:
 			{
 				setBreakpoint(data, reader, writer);
+
+				// if we add a breakpoint to VICE it will always stop but if we are already running when
+				// adding the breakpoint we just force VICE to run again
+
+				if (data->state == PDDebugState_running)
+                	sendCommand(data, "ret\n");
+
 				break;
 			}
 
@@ -815,7 +825,10 @@ static void onAction(PluginData* plugin, PDAction action)
         case PDAction_run:
         {
             if (plugin->state != PDDebugState_running)
+			{
                 sendCommand(plugin, "ret\n");
+				plugin->state = PDDebugState_running;
+			}
 
             break;
         }

@@ -469,10 +469,10 @@ void ProDBG_event(int eventId)
             break;
         }
 
-        case PRODBG_MENU_DEBUG_BREAK:
+        case PRODBG_MENU_DEBUG_START:
         {
-            Session_action(context->session, PDAction_break);
-            log_info("trying to break...\n");
+            Session_action(context->session, PDAction_run);
+            printf("run....\n");
             break;
         }
 
