@@ -255,6 +255,12 @@ static int translateKey(unsigned int key)
     const int mods = getModifierFlags([event modifierFlags]);
 
     ProDBG_keyDown(key, mods);
+
+    NSString* characters = [event characters];
+    NSUInteger i, length = [characters length];
+
+    for (i = 0;  i < length;  i++)
+        ProDBG_addChar(window, [characters characterAtIndex:i]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
