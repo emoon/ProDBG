@@ -243,7 +243,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 	
 	// Delete breakpoints that have been marked delete
 
-	for (auto& i = data->breakpoints.begin(); i != data->breakpoints.end(); ++i)
+	for (auto i = data->breakpoints.begin(); i != data->breakpoints.end(); ++i)
 	{
 		if ((*i)->markDelete)
 			i = data->breakpoints.erase(i);
