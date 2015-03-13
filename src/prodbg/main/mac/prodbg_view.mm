@@ -260,7 +260,7 @@ static int translateKey(unsigned int key)
     NSUInteger i, length = [characters length];
 
     for (i = 0;  i < length;  i++)
-        ProDBG_addChar(window, [characters characterAtIndex:i]);
+        ProDBG_addChar([characters characterAtIndex:i]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
