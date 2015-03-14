@@ -5,6 +5,7 @@
 #include "resource.h"
 #include "ui/menu.h"
 #include "../prodbg.h"
+#include "../prodbg_version.h"
 #include "../settings.h"
 #include <uv.h>
 #include <string.h>
@@ -89,7 +90,7 @@ bool createWindow(const wchar_t* title, int width, int height)
     AdjustWindowRectEx(&rect, style, FALSE, exStyle);
 
     // Create The Window
-    if (!(s_window = CreateWindowEx(exStyle, L"ProDBG", title, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+    if (!(s_window = CreateWindowEx(exStyle, L"ProDBG", PRODBG_VERSION, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
                                     0, 0, rect.right - rect.left, rect.bottom - rect.top, NULL, NULL, instance, NULL)))
     {
         closeWindow();                              // Reset The Display
