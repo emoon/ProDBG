@@ -1,0 +1,35 @@
+#include "ui_host.h"
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef PRODBG_MAC
+
+extern void MacDialog_infoDialog(const char* title, const char* message);
+extern void MacDialog_errorDialog(const char* title, const char* message);
+extern void MecDialog_warningDialog(const char* title, const char* message);
+
+PDMessageFuncs g_serviceMessageFuncs =
+{
+	MacDialog_infoDialog,
+	MacDialog_errorDialog,
+	MecDialog_warningDialog,
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#else
+
+void Dummy_infoDialog(const char*, const char*) {}
+void Dummy_errorDialog(const char*, const char*) {}
+void Dummy_warningDialog(const char*, const char*) {}
+
+PDMessageFuncs g_serviceMessageFuncs =
+{
+	Dummy_infoDialog,
+	Dummy_errorDialog,
+	Dummy_warningDialog,
+};
+
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

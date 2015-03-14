@@ -1,5 +1,6 @@
 #include "pd_backend.h"
 #include "pd_menu.h"
+#include "pd_host.h"
 #include "c64_vice_connection.h"
 #include <stdlib.h>
 
@@ -30,8 +31,11 @@ static const int maxBreakpointCount = 8192;
 enum
 {
     C64_VICE_MENU_ATTACH_TO_VICE,
+    C64_VICE_MENU_START_WITH_CONFIG,
     C64_VICE_MENU_DETACH_FROM_VICE,
 };
+
+static PDMessageFuncs* messageFuncs;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -499,6 +503,8 @@ static void* createInstance(ServiceFunc* serviceFunc)
 
 	loadConfig(data, "data/c64_vice.cfg");
 
+	messageFuncs = serviceFunc(PDMESSAGEFUNCS_GLOBAL);
+
     //TODO: non fixed size?
     
     data->breakpoints.data = (Breakpoint**)malloc(sizeof(Breakpoint**) * maxBreakpointCount);
@@ -536,6 +542,13 @@ static void onMenu(PluginData* data, PDReader* reader)
             connectToLocalHost(data);
             break;
         }
+        /*
+        case C64_VICE_MENU_ATTACH_TO_VICE:
+        {
+            connectToLocalHost(data);
+            break;
+        }
+        */
     }
 }
 
