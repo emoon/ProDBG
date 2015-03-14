@@ -544,14 +544,13 @@ static void lanuchVICEWithConfig(PluginData* data)
 	args[0] = (char*)data->config.viceExe;
 	args[1] = "-remotemonitor";
 
-	/*
-	TODO: Must generate the breakpoint file from the json one
+	// TODO: Must generate the breakpoint file from the json one
+	
 	if (data->config.breakpointFile)
 	{
-		args[cmdIndex++] = "-moncommands" 
-		args[cmdIndex++] = data->breakpointFile;
+		//args[cmdIndex++] = "-moncommands";
+		//args[cmdIndex++] = "examples/c64_vice/test_mon.txt";
 	}
-	*/
 
 	args[cmdIndex++] = (char*)data->config.prgFile; 
 	args[cmdIndex++] = NULL;
@@ -563,10 +562,20 @@ static void lanuchVICEWithConfig(PluginData* data)
     if ((r = uv_spawn(uv_default_loop(), &data->process, &options))) 
     {
     	messageFuncs->error("Unable to launch VICE", uv_strerror(r));
+    	return;
     } 
-    else 
-    {
-    }
+
+	sleepMs(1000);
+
+	for (int i = 0; i < 1000; ++i)
+	{
+		connectToLocalHost(data);
+
+        if (data->state != PDDebugState_noTarget)
+        	return;
+
+		sleepMs(5);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
