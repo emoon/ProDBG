@@ -668,7 +668,7 @@ SessionStatus Session_onMenu(Session* session, int eventId)
 
         // See if this event is own by this plugin
 
-        if (pluginData->menuStart >= eventId && eventId < pluginData->menuEnd)
+        if (pluginData->menuStart <= eventId && eventId < pluginData->menuEnd)
         {
             PDBackendInstance* backend = session->backend;
 
@@ -688,6 +688,10 @@ SessionStatus Session_onMenu(Session* session, int eventId)
             UIStatusBar_setText("%s Backend active", plugin->name);
 
             // Write down
+
+			PDWrite_eventBegin(session->currentWriter, PDEventType_menuEvent);
+			PDWrite_u32(session->currentWriter, "menu_id", (uint32_t)(eventId - pluginData->menuStart));
+			PDWrite_eventEnd(session->currentWriter);
         }
     }
 
