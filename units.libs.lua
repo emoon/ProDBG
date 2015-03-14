@@ -273,12 +273,16 @@ StaticLibrary {
 
     	-- Mac
 
-		{ "src/external/libuv/src/unix/darwin/darwin-proctitle.c",
+		{ 
+		  "src/external/libuv/src/unix/freebsd/kqueue.c",
+		  "src/external/libuv/src/unix/darwin/fsevents.c",
+		  "src/external/libuv/src/unix/darwin/darwin-proctitle.c",
 		  "src/external/libuv/src/unix/darwin/darwin.c" ; Config = { "macosx-*-*", "macosx_test-*" } },
 
 		-- Linux
 
-		{ "src/external/libuv/src/unix/linux/linux-core.c",
+		{ 
+		  "src/external/libuv/src/unix/linux/linux-core.c",
 		  "src/external/libuv/src/unix/linux/linux-inotify.c",
 		  "src/external/libuv/src/unix/linux/linux-syscalls.c" ; Config = "linux-*-*" },
 	},

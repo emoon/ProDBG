@@ -19,7 +19,7 @@
  */
 
 #include "uv.h"
-#include "internal.h"
+#include "../internal.h"
 
 #if TARGET_OS_IPHONE
 
