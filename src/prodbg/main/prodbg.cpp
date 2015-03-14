@@ -352,6 +352,8 @@ void ProDBG_destroy()
     UIDock_saveLayout(Session_getDockingGrid(context->session),
                       "data/current_layout.json", (float)context->width, (float)(context->height - g_statusBarSize));
 
+	Session_destroy(context->session);
+
     Settings_save();
 }
 
