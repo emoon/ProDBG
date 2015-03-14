@@ -34,7 +34,7 @@ def main():
 
             out_file.write("#pragma once\n\n")
             out_file.write("// This file may or may not be auto generated (yes, really)\n\n")
-            out_file.write("#ifdef PRODBG_WIN32\n")
+            out_file.write("#ifdef PRODBG_WIN\n")
             out_file.write('#define PRODBG_VERSION L\"' + version_string + '\"\n')
             out_file.write("#elif PRODBG_MAC\n");
             out_file.write('#define PRODBG_VERSION @\"' + version_string + '\"\n')
