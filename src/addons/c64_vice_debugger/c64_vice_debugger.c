@@ -3,6 +3,7 @@
 #include "pd_host.h"
 #include "c64_vice_connection.h"
 #include <stdlib.h>
+#include <uv.h>
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -81,7 +82,7 @@ typedef struct Breakpoints
 typedef struct Config
 {
 	const char* viceExe;
-	const char* progFile;
+	const char* prgFile;
 	const char* kickAssSymbols;
 	const char* breakpointFile;
 } Config;
@@ -98,6 +99,8 @@ typedef struct PluginData
     char tempFileFull[8192];
     Breakpoints breakpoints;
 	Config config;
+	uv_process_t process;
+
 } PluginData;
 
 
@@ -177,9 +180,9 @@ static void setupDefaultConfig(PluginData* data)
     data->config.viceExe = strdup("x64");
 #endif
 
-	data->config.progFile = strdup("examples/c64_vice/test.prg");
-	data->config.kickAssSymbols = strdup("examples/c64_vice/test.sym");
-	data->config.breakpointFile = strdup("examples/c64_vice/breakpoints.txt");
+	data->config.prgFile = strdup("examples/c64_vice/test.prg");
+	data->config.kickAssSymbols = 0; 
+	data->config.breakpointFile = 0; 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -187,7 +190,7 @@ static void setupDefaultConfig(PluginData* data)
 static void loadConfig(PluginData* data, const char* filename)
 {
 	const char* viceExe = 0;
-	const char* progFile = 0;
+	const char* prgFile = 0;
 	const char* kickAssSymbols = 0;
 	const char* breakpointFile = 0;
     json_error_t error;
@@ -199,11 +202,25 @@ static void loadConfig(PluginData* data, const char* filename)
     if (!root || !json_is_object(root))
         return;
 
+    printf("loaded config\n");
+
 	json_unpack(root, "{s:s, s:s, s:s, s:s}",
 		"vice_exe", &viceExe,
-		"prg_file", &progFile,
+		"prg_file", &prgFile,
 		"kickass_symbols", &kickAssSymbols,
 		"breakpoints_file", &breakpointFile);
+
+	if (viceExe && viceExe[0] != 0)
+		data->config.viceExe = strdup(viceExe);
+
+	if (prgFile && prgFile[0] != 0)
+		data->config.prgFile = strdup(prgFile);
+
+	if (breakpointFile && breakpointFile[0] != 0)
+		data->config.breakpointFile = strdup(breakpointFile);
+
+	if (kickAssSymbols && kickAssSymbols[0] != 0)
+		data->config.kickAssSymbols = strdup(kickAssSymbols);
 
 	json_decref(root);
 }
@@ -337,7 +354,7 @@ static Breakpoint* getBreakpoint(PluginData* data, uint64_t* address, PDReader* 
     if (PDRead_findU64(reader, address, "address", 0) == PDReadStatus_notFound)
 	{
     	PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
-		PDWrite_string(writer, "error", "No address is being sent for breakpoint");
+		PDWrite_string(writer, "error", "prodNo address is being sent for breakpoint");
 		PDWrite_eventEnd(writer);
 		return 0;
 	}
@@ -510,9 +527,46 @@ static void* createInstance(ServiceFunc* serviceFunc)
     data->breakpoints.data = (Breakpoint**)malloc(sizeof(Breakpoint**) * maxBreakpointCount);
     data->breakpoints.count = 0;
 
-    connectToLocalHost(data);
-
     return data;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void lanuchVICEWithConfig(PluginData* data)
+{
+	int r, cmdIndex = 2;
+	uv_process_options_t options = { 0 };
+
+	printf("spawning vice...\n");
+		
+
+	char* args[10];
+	args[0] = (char*)data->config.viceExe;
+	args[1] = "-remotemonitor";
+
+	/*
+	TODO: Must generate the breakpoint file from the json one
+	if (data->config.breakpointFile)
+	{
+		args[cmdIndex++] = "-moncommands" 
+		args[cmdIndex++] = data->breakpointFile;
+	}
+	*/
+
+	args[cmdIndex++] = (char*)data->config.prgFile; 
+	args[cmdIndex++] = NULL;
+
+	options.exit_cb = 0;
+	options.file = data->config.viceExe; 
+	options.args = args;
+	
+    if ((r = uv_spawn(uv_default_loop(), &data->process, &options))) 
+    {
+    	messageFuncs->error("Unable to launch VICE", uv_strerror(r));
+    } 
+    else 
+    {
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -520,6 +574,9 @@ static void* createInstance(ServiceFunc* serviceFunc)
 void destroyInstance(void* userData)
 {
     PluginData* plugin = (PluginData*)userData;
+
+    if (plugin->process.pid > 0)
+		uv_kill(plugin->process.pid, 2);
 
     if (plugin->conn)
         VICEConnection_destroy(plugin->conn);
@@ -542,13 +599,12 @@ static void onMenu(PluginData* data, PDReader* reader)
             connectToLocalHost(data);
             break;
         }
-        /*
-        case C64_VICE_MENU_ATTACH_TO_VICE:
+
+        case C64_VICE_MENU_START_WITH_CONFIG:
         {
-            connectToLocalHost(data);
+            lanuchVICEWithConfig(data);
             break;
         }
-        */
     }
 }
 
@@ -945,8 +1001,9 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
 
 static PDMenuItem s_menu0[] =
 {
-    { "Attach to VICE", C64_VICE_MENU_ATTACH_TO_VICE, 0, 0, 0 },
-    { "Detach from VICE", C64_VICE_MENU_DETACH_FROM_VICE, 0, 0, 0 },
+    { "Attach To VICE", C64_VICE_MENU_ATTACH_TO_VICE, 0, 0, 0 },
+    { "Start With Config", C64_VICE_MENU_START_WITH_CONFIG, 256 + 3, 0, 0 }, // key hack
+    { "Detach From VICE", C64_VICE_MENU_DETACH_FROM_VICE, 0, 0, 0 },
     { 0, 0, 0, 0, 0 },
 };
 
