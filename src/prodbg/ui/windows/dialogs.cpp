@@ -1,4 +1,5 @@
 #include "../dialogs.h"
+#include "core/core.h"
 #include <uv.h>
 #include <windows.h>
 
@@ -53,5 +54,39 @@ int Dialog_save(char* path)
 void Dialog_showError(const char* text)
 {
     MessageBox(NULL, (wchar_t*)text, L"Error", MB_ICONERROR | MB_OK);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void internalPanel(const char* titleText, const char* messageText, unsigned int type)
+{
+    wchar_t title[1024];
+    wchar_t message[4096];
+
+	uv_utf8_to_utf16(titleText, title, sizeof_array(title));
+	uv_utf8_to_utf16(messageText, message, sizeof_array(messageText));
+
+    MessageBox(NULL, message, title, type | MB_OK);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Windows_infoDialog(const char* titleText, const char* message)
+{
+	internalPanel(titleText, message, MB_ICONINFORMATION);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Windows_errorDialog(const char* title, const char* message)
+{
+	internalPanel(title, message, MB_ICONERROR);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Windows_warningDialog(const char* title, const char* message)
+{
+	internalPanel(title, message, MB_ICONWARNING);
 }
 

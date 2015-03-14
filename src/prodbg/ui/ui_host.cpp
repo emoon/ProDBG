@@ -17,6 +17,21 @@ PDMessageFuncs g_serviceMessageFuncs =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#elif PRODBG_WIN
+
+void Windows_infoDialog(const char*, const char*);
+void Windows_errorDialog(const char*, const char*);
+void Windows_warningDialog(const char*, const char*);
+
+PDMessageFuncs g_serviceMessageFuncs =
+{
+	Windows_infoDialog,
+	Windows_errorDialog,
+	Windows_warningDialog,
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #else
 
 void Dummy_infoDialog(const char*, const char*) {}
