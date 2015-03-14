@@ -198,6 +198,7 @@ SharedLibrary {
     Env = {
         CPPPATH = { 
 			"src/external/jansson/include",
+			"src/external/libuv/include",
 			"api/include", 
 		},
 
@@ -219,7 +220,7 @@ SharedLibrary {
 
     IdeGenerationHints = { Msvc = { SolutionFolder = "Addons" } },
 
-    Depends = { "jansson", "foundation_lib" },
+    Depends = { "jansson", "uv" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
