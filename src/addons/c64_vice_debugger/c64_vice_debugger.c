@@ -220,6 +220,8 @@ static void sendCommand(PluginData* data, const char* format, ...)
     if (!data->conn)
         return;
 
+    //printf("sendCommand %s", buffer);
+
     VICEConnection_send(data->conn, buffer, len, 0);
 
 	sleepMs(1);
@@ -352,6 +354,7 @@ static void setBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
 {
 	uint64_t address;
     char* res = 0;
+    char* breakStrOffset;
     int len = 0;
     int internalId = 0;
     const char* condition = 0;
@@ -377,9 +380,11 @@ static void setBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
 
 	getData(data, &res, &len);
 
-	if (strncmp(res, "BREAK: ", 6) == 0)
+    breakStrOffset = strstr(res, "BREAK:");
+
+	if (breakStrOffset) 
 	{
-		internalId = atoi(res + 7);
+		internalId = atoi(breakStrOffset + 7);
 	}
 	else
 	{
