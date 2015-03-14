@@ -1,5 +1,6 @@
 #import "prodbg_view.h"
 #include "../prodbg.h"
+#include "../prodbg_version.h"
 #include "ui/menu.h"
 #include "core/alloc.h"
 #include "core/plugin_handler.h"
@@ -61,6 +62,7 @@ void Window_setTitle(const char* title);
         [context setView:self];
 
     [context makeCurrentContext];
+    [[self window] setTitle:PRODBG_VERSION];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
