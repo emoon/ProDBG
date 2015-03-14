@@ -388,11 +388,13 @@ void buildSubMenu(NSMenu* menu, PDMenuItem menuDesc[], int idOffset)
     {
         NSString* name = [NSString stringWithUTF8String: desc->name];
 
-        if (desc->id == PRODBG_MENU_SEPARATOR)
+        int menuId = desc->id + idOffset;
+
+        if (menuId == PRODBG_MENU_SEPARATOR)
         {
             [menu addItem:[NSMenuItem separatorItem]];
         }
-        else if (desc->id == PRODBG_MENU_SUB_MENU)
+        else if (menuId == PRODBG_MENU_SUB_MENU)
         {
             NSMenuItem* newItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:name action:NULL keyEquivalent:@""];
             NSMenu* newMenu = [[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:name];
@@ -405,7 +407,7 @@ void buildSubMenu(NSMenu* menu, PDMenuItem menuDesc[], int idOffset)
         {
             int mask = 0;
             NSMenuItem* newItem = [[NSMenuItem alloc] initWithTitle:name action:@selector(onMenuPress:) keyEquivalent:@""];
-            [newItem setTag:(desc->id + idOffset)];
+            [newItem setTag:(menuId)];
 
             if (desc->macMod & PRODBG_KEY_COMMAND)
                 mask |= NSCommandKeyMask;
