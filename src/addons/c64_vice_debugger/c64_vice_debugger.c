@@ -241,7 +241,7 @@ static void sendCommand(PluginData* data, const char* format, ...)
     if (!data->conn)
         return;
 
-    //printf("sendCommand %s", buffer);
+    printf("sendCommand %s", buffer);
 
     VICEConnection_send(data->conn, buffer, len, 0);
 
@@ -296,6 +296,8 @@ static int getData(PluginData* data, char** resBuffer, int* len)
     }
 
     // got no data
+
+	printf("getting no data back...\n");
 
     return 0;
 }
@@ -532,20 +534,20 @@ static void* createInstance(ServiceFunc* serviceFunc)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void lanuchVICEWithConfig(PluginData* data)
+static void launchVICEWithConfig(PluginData* data)
 {
-	int r, cmdIndex = 2;
+	int r, cmdIndex = 1;
 	uv_process_options_t options = { 0 };
 
 	printf("spawning vice...\n");
-		
 
 	char* args[10];
 	args[0] = (char*)data->config.viceExe;
-	args[1] = "-remotemonitor";
 
 	// TODO: Must generate the breakpoint file from the json one
 	
+	args[cmdIndex++] = "-remotemonitor";
+
 	if (data->config.breakpointFile)
 	{
 		//args[cmdIndex++] = "-moncommands";
@@ -565,17 +567,9 @@ static void lanuchVICEWithConfig(PluginData* data)
     	return;
     } 
 
-	sleepMs(1000);
+	sleepMs(3000);
 
-	for (int i = 0; i < 1000; ++i)
-	{
-		connectToLocalHost(data);
-
-        if (data->state != PDDebugState_noTarget)
-        	return;
-
-		sleepMs(5);
-	}
+	connectToLocalHost(data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -611,7 +605,7 @@ static void onMenu(PluginData* data, PDReader* reader)
 
         case C64_VICE_MENU_START_WITH_CONFIG:
         {
-            lanuchVICEWithConfig(data);
+            launchVICEWithConfig(data);
             break;
         }
     }
@@ -712,12 +706,14 @@ static void getDisassembly(PluginData* data, PDReader* reader, PDWriter* writer)
     while (pch)
     {
         // expected format of each line:
-        // .C:080e  A9 22       LDA #$22
+        // xxx.. .C:080e  A9 22       LDA #$22
 
-        if (pch[0] != '.')
+		const char* line = strstr(pch, ".C");
+
+        if (!line)
             break;
 
-        uint16_t address = (uint16_t)strtol(&pch[3], 0, 16);
+        uint16_t address = (uint16_t)strtol(&line[3], 0, 16);
 
         PDWrite_arrayEntryBegin(writer);
         PDWrite_u16(writer, "address", address);

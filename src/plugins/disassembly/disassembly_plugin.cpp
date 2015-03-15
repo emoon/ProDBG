@@ -33,6 +33,7 @@ struct DissassemblyData
     uint64_t location;
     uint64_t pc;
     uint8_t locationSize;
+    bool requestDisassembly; 
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -161,6 +162,8 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     DissassemblyData* data = (DissassemblyData*)userData;
 
+	data->requestDisassembly = false;
+
     while ((event = PDRead_getEvent(inEvents)) != 0)
     {
         switch (event)
@@ -173,30 +176,45 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
             case PDEventType_setExceptionLocation:
             {
-                PDRead_findU64(inEvents, &data->location, "address", 0);
+            	uint64_t location = 0;
+
+                PDRead_findU64(inEvents, &location, "address", 0);
+
+            	if (location != data->location)
+				{
+					data->location = location;
+					data->requestDisassembly = true;
+				}
+
                 PDRead_findU8(inEvents, &data->locationSize, "address_size", 0);
                 break;
             }
 
             case PDEventType_setRegisters:
-                updateRegisters(data, inEvents); break;
+			{
+                updateRegisters(data, inEvents); 
+                break;
+			}
 
         }
     }
 
     renderUI(data, uiFuncs);
 
-    // Temporary req
+    if (data->requestDisassembly)
+	{
+		// Temporary req
 
-    int pc = (int)(data->pc) - 0x40;
+		int pc = (int)(data->pc) - 0x40;
 
-    if (pc < 0)
-        pc = 0;
+		if (pc < 0)
+			pc = 0;
 
-    PDWrite_eventBegin(writer, PDEventType_getDisassembly);
-    PDWrite_u64(writer, "address_start", (uint64_t)pc);
-    PDWrite_u32(writer, "instruction_count", (uint32_t)40);
-    PDWrite_eventEnd(writer);
+		PDWrite_eventBegin(writer, PDEventType_getDisassembly);
+		PDWrite_u64(writer, "address_start", (uint64_t)pc);
+		PDWrite_u32(writer, "instruction_count", (uint32_t)40);
+		PDWrite_eventEnd(writer);
+	}
 
     return 0;
 }
