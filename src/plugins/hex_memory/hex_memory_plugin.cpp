@@ -45,6 +45,7 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     // clear
 
     memset(userData->data, 0xff, 1024 * 1024);
+    memset(userData->oldData, 0xff, 1024 * 1024);
 
     return userData;
 }
@@ -88,11 +89,6 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
     for (int i = 0; i < lineCount; ++i)
     {
         char addressText[64] = { 0 };
-        //char hexData[1024];
-        //char charData[1024];
-
-        //char* hexText = hexData;
-        //char* charText = charData;
 
         // Get Address
 
@@ -119,7 +115,7 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
         	uiFuncs->sameLine(0, -1);
         }
 
-        // print charects
+        // print characters
 
         for (int p = 0; p < charsPerLine; ++p)
         {
@@ -141,11 +137,6 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
         }
 
         uiFuncs->text("\n");
-
-		//uiFuncs->sameLine(0, -1);
-
-        //uiFuncs->text("%s" , hexData); uiFuncs->sameLine(0, -1);
-        //uiFuncs->text("%s ", charData);
 
         address += (uint32_t)charsPerLine;
         memoryData += charsPerLine;
@@ -220,7 +211,7 @@ static void updateMemory(HexMemoryData* userData, PDReader* reader)
     if (PDRead_findData(reader, &data, &size, "data", 0) == PDReadStatus_notFound)
         return;
 
-    printf("%s(%d) update memory\n", __FILE__, __LINE__);
+    //printf("%s(%d) update memory\n", __FILE__, __LINE__);
 
     // TODO: Currently we just copy the memory into a predefined memory range. This needs to really be fixed
     // We need some overlapping memory ranges and such here to handle this correctly
@@ -238,8 +229,6 @@ static void updateMemory(HexMemoryData* userData, PDReader* reader)
 
 	// And update with the new data
     memcpy(userData->data + address, data, (size_t)size);
-
-    printf("updating data %p %d\n", userData->data, (int)size);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -291,8 +280,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     if (data->requestData)
     {
-        printf("requesting memory range %04x - %04x\n", (uint16_t)data->sa, (uint16_t)data->ea);
-
+        //printf("requesting memory range %04x - %04x\n", (uint16_t)data->sa, (uint16_t)data->ea);
         PDWrite_eventBegin(writer, PDEventType_getMemory);
         PDWrite_u64(writer, "address_start", data->sa);
         PDWrite_u64(writer, "size", data->ea - data->sa);
