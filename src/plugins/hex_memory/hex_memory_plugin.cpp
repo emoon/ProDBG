@@ -9,6 +9,7 @@
 struct HexMemoryData
 {
     unsigned char* data;
+    unsigned char* oldData;
     int dataSize;
     int addressSize;
     char startAddress[64];
@@ -16,6 +17,7 @@ struct HexMemoryData
     bool requestData;
     uint64_t sa;
     uint64_t ea;
+    uint64_t exceptionLocation;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,6 +37,9 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     userData->ea = 0x00000fff;
 
     userData->data = (unsigned char*)malloc(1024 * 1024);
+    userData->addressSize = 2;
+
+    userData->oldData = (unsigned char*)malloc(1024 * 1024);
     userData->addressSize = 2;
 
     // clear
@@ -75,6 +80,7 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
     uint64_t address = (uint64_t)strtol(data->startAddress, 0, 16);
     int adressSize = data->addressSize;
     uint8_t* memoryData = data->data + address;
+    uint8_t* oldMemoryData = data->oldData + address;
 
     if (charsPerLine > 1024)
         charsPerLine = 1024;
@@ -82,11 +88,11 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
     for (int i = 0; i < lineCount; ++i)
     {
         char addressText[64] = { 0 };
-        char hexData[1024];
-        char charData[1024];
+        //char hexData[1024];
+        //char charData[1024];
 
-        char* hexText = hexData;
-        char* charText = charData;
+        //char* hexText = hexData;
+        //char* charText = charData;
 
         // Get Address
 
@@ -94,27 +100,56 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
 
         // Get Hex and chars
 
+        uiFuncs->text("%s: ", addressText); uiFuncs->sameLine(0, -1);
+
+        PDVec4 color = { 1.0, 0.0f, 0.0f, 1.0f };
+
+        // Print hex values
+
         for (int p = 0; p < charsPerLine; ++p)
         {
             uint8_t c = memoryData[p];
+            uint8_t co = oldMemoryData[p];
 
-            sprintf(hexText, "%02x ", c);
+			if (c == co)
+        		uiFuncs->text("%02x" , c); 
+			else
+        		uiFuncs->textColored(color, "%02x" , c); 
 
-            if (c >= 32 && c < 128)
-                *charText++ = (char)c;
-            else
-                *charText++ = '.';
-
-            hexText += 3;
+        	uiFuncs->sameLine(0, -1);
         }
 
-        *hexText = 0;
-        *charText = 0;
+        // print charects
 
-        uiFuncs->text("%s: %s %s", addressText, hexData, charData);
+        for (int p = 0; p < charsPerLine; ++p)
+        {
+            uint8_t c = memoryData[p];
+            uint8_t co = oldMemoryData[p];
+            char wc = 0; 
+            
+            if (c >= 32 && c < 128)
+            	wc = (char)c;
+			else
+				wc = '.';
+
+			if (c == co)
+        		uiFuncs->text("%c" , wc); 
+			else
+        		uiFuncs->textColored(color, "%c" , wc); 
+		
+			uiFuncs->sameLine(0, 0);
+        }
+
+        uiFuncs->text("\n");
+
+		//uiFuncs->sameLine(0, -1);
+
+        //uiFuncs->text("%s" , hexData); uiFuncs->sameLine(0, -1);
+        //uiFuncs->text("%s ", charData);
 
         address += (uint32_t)charsPerLine;
         memoryData += charsPerLine;
+        oldMemoryData += charsPerLine;
     }
 }
 
@@ -196,9 +231,30 @@ static void updateMemory(HexMemoryData* userData, PDReader* reader)
         return;
     }
 
+    // TODO: VirtualMemory manager that can requestmemory on a per 4k page or something similar instead of this
+
+    // save the old data that is used for showing the changes
+	memcpy(userData->oldData + address, userData->data + address, (size_t)size);
+
+	// And update with the new data
     memcpy(userData->data + address, data, (size_t)size);
 
     printf("updating data %p %d\n", userData->data, (int)size);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void updateExceptionLocation(HexMemoryData* data, PDReader* reader)
+{
+	uint64_t address = 0;
+
+    PDRead_findU64(reader, &address, "address", 0);
+
+    if (data->exceptionLocation == address)
+    	return;
+
+    data->requestData = true;
+	data->exceptionLocation = address;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -222,6 +278,12 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
                 updateMemory(data, inEvents);
                 break;
             }
+
+			case PDEventType_setExceptionLocation:
+			{
+				updateExceptionLocation(data, inEvents);
+				break;
+			}
         }
     }
 
@@ -257,10 +319,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-    {
-        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-    }
+PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+{
+	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -241,7 +241,7 @@ static void sendCommand(PluginData* data, const char* format, ...)
     if (!data->conn)
         return;
 
-    printf("sendCommand %s", buffer);
+    //printf("sendCommand %s", buffer);
 
     VICEConnection_send(data->conn, buffer, len, 0);
 
