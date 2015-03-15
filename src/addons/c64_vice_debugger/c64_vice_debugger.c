@@ -47,6 +47,7 @@ struct Regs6510
     uint8_t x;
     uint8_t y;
     uint8_t sp;
+    uint16_t flags;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -632,6 +633,25 @@ static void writeRegister(PDWriter* writer, const char* name, uint8_t size, uint
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void writeStatusRegister(PDWriter* writer, const char* name, uint16_t reg)
+{
+    PDWrite_arrayEntryBegin(writer);
+    PDWrite_string(writer, "name", name);
+    PDWrite_u8(writer, "read_only", 1);
+
+    char statusString[128] = { 0 };
+
+    sprintf(statusString, "0x$%2x N:%d V:%d -:%d B:%d D:%d I:%d Z:%d C:%d", reg,
+    		(reg >> 7) & 1, (reg >> 6) & 1, (reg >> 5) & 1, (reg >> 4) & 1, 
+    		(reg >> 3) & 1, (reg >> 2) & 1, (reg >> 1) & 1, (reg >> 0) & 1);
+
+    PDWrite_string(writer, "register_string", statusString);
+
+    PDWrite_arrayEntryEnd(writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void parseRegisters(struct Regs6510* regs, char* str)
 {
 	const char* pch;
@@ -653,6 +673,11 @@ static void parseRegisters(struct Regs6510* regs, char* str)
     regs->x = (uint8_t)strtol(pch, 0, 16); pch = strtok(0, " \t");
     regs->y = (uint8_t)strtol(pch, 0, 16); pch = strtok(0, " \t");
     regs->sp = (uint8_t)strtol(pch, 0, 16); pch = strtok(0, " \t");
+   
+   	pch = strtok(0, " \t"); // skip 00
+   	pch = strtok(0, " \t"); // skip 01
+
+    regs->flags = (uint8_t)strtol(pch, 0, 2);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -857,6 +882,33 @@ static uint16_t findRegisterInString(const char* str, const char* needle)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static uint16_t findStatusInString(const char* str)
+{
+    const char* offset = strstr(str, "SP:");
+
+    if (!offset)
+        return 0;
+
+    // Expected string to look like this;
+    // SP:XX ..-...Z. and here we jump so we are at this pos: ..-...Z. 
+
+    offset += 6;
+
+	uint8_t flags = 0;
+
+	for (int i = 7; i > 0; i--)
+	{
+		const char c = *offset++;
+
+		if (c != '.')
+			flags |= 1 << i;
+	}
+
+    return flags; 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void onStep(PluginData* plugin)
 {
     char* res = 0;
@@ -875,6 +927,7 @@ void onStep(PluginData* plugin)
     plugin->regs.x = (uint8_t)findRegisterInString(res, "X:");
     plugin->regs.y = (uint8_t)findRegisterInString(res, "Y:");
     plugin->regs.sp = (uint8_t)findRegisterInString(res, "SP:");
+    plugin->regs.flags = (uint8_t)findStatusInString(res);
 
     plugin->hasUpdatedRegistes = true;
     plugin->hasUpdatedExceptionLocation = true;
@@ -954,6 +1007,7 @@ static void updateEvents(PluginData* data)
 		data->regs.x = (uint8_t)findRegisterInString(found, "X:");
 		data->regs.y = (uint8_t)findRegisterInString(found, "Y:");
 		data->regs.sp = (uint8_t)findRegisterInString(found, "SP:");
+		data->regs.flags = (uint8_t)findStatusInString(found);
 
 		data->hasUpdatedRegistes = true;
 		data->hasUpdatedExceptionLocation = true;
@@ -981,6 +1035,7 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
         PDWrite_eventBegin(writer, PDEventType_setRegisters);
         PDWrite_arrayBegin(writer, "registers");
 
+        writeStatusRegister(writer, "flags", plugin->regs.flags);
         writeRegister(writer, "pc", 2, plugin->regs.pc, 1);
         writeRegister(writer, "sp", 1, plugin->regs.sp, 0);
         writeRegister(writer, "a", 1, plugin->regs.a, 0);

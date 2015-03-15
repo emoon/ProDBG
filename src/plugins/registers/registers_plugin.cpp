@@ -51,7 +51,17 @@ static void destroyInstance(void* userData)
 
 static void getRegisterString(char* value, PDReader* reader, PDReaderIterator it)
 {
-    uint64_t regValue;
+    uint64_t regValue = 0;;
+    const char* regString = 0;
+
+    // Support that backend can write down value in custom format
+
+    if (PDRead_findString(reader, &regString, "register_string", it) & PDReadStatus_ok)
+	{
+		strcpy(value, regString);
+    	return;
+	}
+
     uint32_t type = PDRead_findU64(reader, &regValue, "register", it);
 
     switch (type & PDReadStatus_typeMask)
