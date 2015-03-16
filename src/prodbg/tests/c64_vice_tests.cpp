@@ -574,6 +574,77 @@ static void test_c64_vice_breakpoint_cond(void**)
 
 	waitForBreak(breakAddress, &state, CPUState_maskY); 
 }
+/*
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static bool getMemory(uint8_t* dest, uint64_t readAddress, uint32_t length)
+{
+    PDWrite_eventBegin(writer, PDEventType_getMemory);
+    PDWrite_u64(writer, "address_start", readAddress);
+    PDWrite_u64(writer, "size", (uint32_t)length);
+    PDWrite_eventEnd(writer);
+    PDBinaryWriter_finalize(writer);
+
+    Session_update(s_session);
+
+    PDReader* reader = s_session->reader;
+
+    PDBinaryReader_initStream(reader, PDBinaryWriter_getData(s_session->currentWriter), PDBinaryWriter_getSize(s_session->currentWriter));
+
+    uint32_t event;
+
+    while ((event = PDRead_getEvent(reader)) != 0)
+    {
+        uint8_t* data;
+        uint64_t dataSize;
+        uint64_t address;
+
+        if (event != PDEventType_setMemory)
+            continue;
+
+        assert_true(PDRead_findU64(reader, &address, "address", 0) & PDReadStatus_ok);
+        assert_true((PDRead_findData(reader, (void**)&data, &dataSize, "data", 0) & PDReadStatus_typeMask) == PDReadType_data);
+
+        assert_true(address == readAddress);
+        assert_true(dataSize >= length);
+
+		memcpy(dest, data, dataSize);
+
+    	Session_update(s_session);
+
+        return true;
+    }
+
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void test_c64_vice_set_memory(void**)
+{
+	uint8_t data[16];
+	uint8_t dataWrite[16];
+	bool dataEqual = true;
+
+	assert_true(getMemory(data, 0x1000, sizeof_array(data)));
+
+	for (int i = 0; i < sizeof_array(data); ++i)
+	{
+		dataWrite[i] = (uint8_t)i;
+		if (dataWrite[i] != data[i])
+			dataEqual = false;
+	}
+
+	// make sure the data we read is not the same as the one we are going to write. This is a bit ugly as
+	// we assume the C64 memory at 0x1000 doesn't contain the current pattern but should be fine for our use
+
+	assert_false(dataEqual);
+
+	// write down the data
+
+	assert_true(writeMemory(0x01000, data, sizeof_array(data)));
+}
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -590,6 +661,7 @@ int main()
         unit_test(test_c64_vice_get_memory),
         unit_test(test_c64_vice_basic_breakpoint),
         unit_test(test_c64_vice_breakpoint_cond),
+        //unit_test(test_c64_vice_set_memory),
     };
 
     int test = run_tests(tests);
