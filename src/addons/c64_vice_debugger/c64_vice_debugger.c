@@ -38,6 +38,28 @@ enum
 
 static PDMessageFuncs* messageFuncs;
 
+#ifdef _WIN32
+__declspec(dllimport) void OutputDebugStringA(const char*);
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void log_debug(const char* format, ...)
+{
+    va_list ap;
+	char buffer[2048];
+
+    va_start(ap, format);
+	vsprintf(buffer, format, ap);
+    va_end(ap);
+
+#ifdef _WIN32
+	OutputDebugStringA(buffer);
+#else
+	printf(buffer);
+#endif
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct Regs6510
@@ -203,7 +225,7 @@ static void loadConfig(PluginData* data, const char* filename)
     if (!root || !json_is_object(root))
         return;
 
-    printf("loaded config\n");
+    log_debug("loaded config\n");
 
 	json_unpack(root, "{s:s, s:s, s:s, s:s}",
 		"vice_exe", &viceExe,
@@ -242,7 +264,7 @@ static void sendCommand(PluginData* data, const char* format, ...)
     if (!data->conn)
         return;
 
-    //printf("sendCommand %s", buffer);
+    log_debug("sendCommand %s\n", buffer);
 
     VICEConnection_send(data->conn, buffer, len, 0);
 
@@ -298,7 +320,7 @@ static int getData(PluginData* data, char** resBuffer, int* len)
 
     // got no data
 
-	printf("getting no data back...\n");
+	log_debug("getting no data back...\n");
 
     return 0;
 }
@@ -504,8 +526,10 @@ static void connectToLocalHost(PluginData* data)
         return;
     }
 
+	sendCommand(data, "n\n");
+
     data->conn = conn;
-    data->state = PDDebugState_running;
+	data->state = PDDebugState_stopBreakpoint;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -540,7 +564,7 @@ static void launchVICEWithConfig(PluginData* data)
 	int r, cmdIndex = 1;
 	uv_process_options_t options = { 0 };
 
-	printf("spawning vice...\n");
+	log_debug("spawning vice...\n");
 
 	char* args[10];
 	args[0] = (char*)data->config.viceExe;
@@ -871,7 +895,7 @@ static uint16_t findRegisterInString(const char* str, const char* needle)
 
     if (!offset)
     {
-        printf("findRegisterInString: Unable to find %s in %s\n", needle, str);
+        log_debug("findRegisterInString: Unable to find %s in %s\n", needle, str);
         return 0;
     }
 
