@@ -159,8 +159,8 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
 
     showUI(data, uiFuncs);
 
-    PDWrite_eventBegin(outEvents, PDEventType_getRegisters);
-    PDWrite_eventEnd(outEvents);
+    //PDWrite_eventBegin(outEvents, PDEventType_getRegisters);
+    //PDWrite_eventEnd(outEvents);
 
     return 0;
 }
