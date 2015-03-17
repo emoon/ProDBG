@@ -146,6 +146,8 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
     uint32_t event;
     RegistersData* data = (RegistersData*)userData;
 
+    (void)outEvents;
+
     // Loop over all the in events
 
     while ((event = PDRead_getEvent(inEvents)) != 0)
