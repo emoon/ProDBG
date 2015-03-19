@@ -183,7 +183,7 @@ Session* Session_startLocal(Session* s, PDBackendPlugin* backend, const char* fi
 
     // TODO: Not run directly but allow user to select if run, otherwise (ProDG style stop-at-main?)
 
-    updateLocal(s, PDAction_run);
+    // updateLocal(s, PDAction_run);
 
     //log_info("second update\n");
 

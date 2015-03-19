@@ -178,6 +178,14 @@ static void test_c64_vice_connect(void**)
 
     s_session = Session_createLocal((PDBackendPlugin*)pluginData->plugin, 0);
 
+    // make sure we attach to VICE
+
+    PDWriter* writer = s_session->currentWriter;
+
+	PDWrite_eventBegin(writer, PDEventType_menuEvent);
+	PDWrite_u32(writer, "menu_id", 0); 
+	PDWrite_eventEnd(writer);
+
     Session_update(s_session);
 
     // We haven't setup vice at this point so no connect
@@ -198,6 +206,11 @@ void test_c64_vice_get_registers(void**)
     PDBinaryWriter_finalize(writer);
 
     Session_update(s_session);
+
+	Time_sleepMs(10);
+
+    Session_update(s_session);
+
     handleEvents(&state, s_session);
 
     assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
@@ -217,11 +230,13 @@ void test_c64_vice_step_cpu(void**)
     assert_true(state.x == 0x32);
 
     Session_action(s_session, PDAction_step);
+    Session_update(s_session);
     handleEvents(&state, s_session);
 
     assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
 
     Session_action(s_session, PDAction_step);
+    Session_update(s_session);
     handleEvents(&state, s_session);
 
     assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
@@ -468,7 +483,7 @@ static void waitForBreak(uint64_t breakAddress, const CPUState* cpuState, uint64
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void test_c64_vice_basic_breakpoint(void**)
+void test_c64_vice_basic_breakpoint(void**)
 {
 	Session_action(s_session, PDAction_step);
 
@@ -547,7 +562,7 @@ static void test_c64_vice_basic_breakpoint(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void test_c64_vice_breakpoint_cond(void**)
+void test_c64_vice_breakpoint_cond(void**)
 {
 	CPUState state = { 0 };
 
@@ -657,10 +672,12 @@ int main()
         unit_test(test_c64_vice_connect),
         unit_test(test_c64_vice_get_registers),
         unit_test(test_c64_vice_step_cpu),
+        /*
         unit_test(test_c64_vice_get_disassembly),
         unit_test(test_c64_vice_get_memory),
         unit_test(test_c64_vice_basic_breakpoint),
         unit_test(test_c64_vice_breakpoint_cond),
+        */
         //unit_test(test_c64_vice_set_memory),
     };
 
