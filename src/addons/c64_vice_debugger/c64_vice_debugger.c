@@ -25,6 +25,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static char s_recvBuffer[512 * 1024];
+static char s_tempBuffer[512 * 1024];
 static const int maxBreakpointCount = 8192;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -412,50 +413,12 @@ static void setBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
     // if the bp already exists we delete it first
 
 	if (bp->internalId != -1)
-	{
 		sendCommand(data, "del %d\n", bp->internalId);
-		getData(data, &res, &len);	// TODO: Handle the data?
-	}
-
-	getData(data, &res, &len);
 
     if (condition)
 		sendCommand(data, "break $%04x if %s\n", (uint16_t)address, condition);
 	else
 		sendCommand(data, "break $%04x\n", (uint16_t)address);
-
-	getData(data, &res, &len);
-
-    breakStrOffset = strstr(res, "BREAK:");
-
-	if (breakStrOffset) 
-	{
-		internalId = atoi(breakStrOffset + 7);
-	}
-	else
-	{
-    	PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
-		PDWrite_string(writer, "error", res); 
-		PDWrite_eventEnd(writer);
-		return;
-	}
-
-	// add data or update existing
-
-	bp->address = (uint16_t)address;
-
-	if (bp->condition)
-		free(bp->condition);
-
-	if (condition)
-		bp->condition = strdup(condition);
-	else
-		bp->condition = 0;
-
-	if (bp->internalId == -1)
-		addBreakpoint(data, bp);
-
-	bp->internalId = internalId;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -483,7 +446,6 @@ static bool delBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
 		if (bp->id == id)
 		{
 			sendCommand(data, "del %d\n", bp->internalId);
-			getData(data, &res, &len);	// TODO: Handle the data?
 
 			// Swap with the last bp and decrese the count
 
@@ -706,31 +668,68 @@ static void parseRegisters(struct Regs6510* regs, char* str)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void parseForBreakpoint()
+{
+	Breakpoint* bp = getBreakpoint(data, &address, reader, writer);
+
+    PDRead_findString(reader, &condition, "condition", 0);
+
+    // if the bp already exists we delete it first
+
+	if (bp->internalId != -1)
+		sendCommand(data, "del %d\n", bp->internalId);
+
+    if (condition)
+		sendCommand(data, "break $%04x if %s\n", (uint16_t)address, condition);
+	else
+		sendCommand(data, "break $%04x\n", (uint16_t)address);
+
+    breakStrOffset = strstr(res, "BREAK:");
+
+	if (breakStrOffset) 
+	{
+		internalId = atoi(breakStrOffset + 7);
+	}
+	else
+	{
+    	PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
+		PDWrite_string(writer, "error", res); 
+		PDWrite_eventEnd(writer);
+		return;
+	}
+
+	// add data or update existing
+
+	bp->address = (uint16_t)address;
+
+	if (bp->condition)
+		free(bp->condition);
+
+	if (condition)
+		bp->condition = strdup(condition);
+	else
+		bp->condition = 0;
+
+	if (bp->internalId == -1)
+		addBreakpoint(data, bp);
+
+	bp->internalId = internalId;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void getRegisters(PluginData* data)
 {
     char* res = 0;
     int len = 0;
 
     sendCommand(data, "registers\n");
-
-    if (!getData(data, &res, &len))
-        return;
-
-    data->state = PDDebugState_stopException;
-
-    parseRegisters(&data->regs, res);
-
-    data->hasUpdatedRegistes = true;
-    data->hasUpdatedExceptionLocation = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void getDisassembly(PluginData* data, PDReader* reader, PDWriter* writer)
 {
-    char* res = 0;
-    int len = 0;
-
     uint64_t addressStart = 0;
     uint32_t instructionCount = 0;
 
@@ -741,40 +740,6 @@ static void getDisassembly(PluginData* data, PDReader* reader, PDWriter* writer)
     // better than too little
 
     sendCommand(data, "disass $%04x $%04x\n", (uint16_t)addressStart, (uint16_t)(addressStart + instructionCount * 3));
-
-    if (!getData(data, &res, &len))
-        return;
-
-    // parse the buffer
-
-    char* pch = strtok(res, "\n");
-
-    PDWrite_eventBegin(writer, PDEventType_setDisassembly);
-    PDWrite_arrayBegin(writer, "disassembly");
-
-    while (pch)
-    {
-        // expected format of each line:
-        // xxx.. .C:080e  A9 22       LDA #$22
-
-		const char* line = strstr(pch, ".C");
-
-        if (!line)
-            break;
-
-        uint16_t address = (uint16_t)strtol(&line[3], 0, 16);
-
-        PDWrite_arrayEntryBegin(writer);
-        PDWrite_u16(writer, "address", address);
-        PDWrite_string(writer, "line", &pch[9]);
-
-        PDWrite_arrayEntryEnd(writer);
-
-        pch = strtok(0, "\n");
-    }
-
-    PDWrite_arrayEnd(writer);
-    PDWrite_eventEnd(writer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -837,7 +802,7 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
             case PDEventType_getRegisters:
             {
                 if (!data->hasUpdatedRegistes && data->state != PDDebugState_running)
-                    getRegisters(data);
+                	sendCommand(data, "registers\n");
 
                 break;
             }
@@ -930,19 +895,7 @@ static uint16_t findStatusInString(const char* str)
 
     return flags; 
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void onStep(PluginData* plugin)
-{
-    char* res = 0;
-    int len = 0;
-
-    sendCommand(plugin, "n\n");
-
-    if (!getData(plugin, &res, &len))
-        return;
-
+/*
     // return data from VICE is of the follwing format:
     // .C:0811  EE 20 D0    INC $D020      - A:00 X:17 Y:17 SP:f6 ..-.....   19262882
     
@@ -955,6 +908,13 @@ void onStep(PluginData* plugin)
 
     plugin->hasUpdatedRegistes = true;
     plugin->hasUpdatedExceptionLocation = true;
+*/
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void onStep(PluginData* plugin)
+{
+    sendCommand(plugin, "n\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1006,37 +966,85 @@ static void onAction(PluginData* plugin, PDAction action)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void updateEvents(PluginData* data)
+static bool stopOnExec(PluginData* plugin, const char* data, int length)
 {
 	const char* stopOnExec = "Stop on  exec";
 	char* found = 0;
+
+	if (!(found = strstr(data, stopOnExec)))
+		return false;
+
+	size_t execLen = strlen(stopOnExec);
+	found += execLen;
+
+	plugin->regs.pc = (uint16_t)strtol(found, 0, 16);
+	plugin->regs.a = (uint8_t)findRegisterInString(found, "A:");
+	plugin->regs.x = (uint8_t)findRegisterInString(found, "X:");
+	plugin->regs.y = (uint8_t)findRegisterInString(found, "Y:");
+	plugin->regs.sp = (uint8_t)findRegisterInString(found, "SP:");
+	plugin->regs.flags = (uint8_t)findStatusInString(found);
+
+	plugin->hasUpdatedRegistes = true;
+	plugin->hasUpdatedExceptionLocation = true;
+	plugin->state = PDDebugState_stopBreakpoint;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void parseDisassembly()
+{
+    // parse the buffer
+
+    char* pch = strtok(res, "\n");
+
+    PDWrite_eventBegin(writer, PDEventType_setDisassembly);
+    PDWrite_arrayBegin(writer, "disassembly");
+
+    while (pch)
+    {
+        // expected format of each line:
+        // xxx.. .C:080e  A9 22       LDA #$22
+
+		const char* line = strstr(pch, ".C");
+
+        if (!line)
+            break;
+
+        uint16_t address = (uint16_t)strtol(&line[3], 0, 16);
+
+        PDWrite_arrayEntryBegin(writer);
+        PDWrite_u16(writer, "address", address);
+        PDWrite_string(writer, "line", &pch[9]);
+
+        PDWrite_arrayEntryEnd(writer);
+
+        pch = strtok(0, "\n");
+    }
+
+    PDWrite_arrayEnd(writer);
+    PDWrite_eventEnd(writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void updateEvents(PluginData* plugin)
+{
+	if (!plugin->conn || !VICEConnection_pollRead(plugin->conn))
+		return;
+
     char* res = 0;
     int len = 0;
 
-	if (!data->conn || !VICEConnection_pollRead(data->conn))
-		return;
-
 	// Fetch the data that has been sent from VICE
 
-    if (!getData(data, &res, &len))
+    if (!getData(plugin, &res, &len))
         return;
 
-    if ((found = strstr(res, stopOnExec)))
-	{
-    	size_t execLen = strlen(stopOnExec);
-    	found += execLen;
+	// do data parsing here
 
-		data->regs.pc = (uint16_t)strtol(found, 0, 16);
-		data->regs.a = (uint8_t)findRegisterInString(found, "A:");
-		data->regs.x = (uint8_t)findRegisterInString(found, "X:");
-		data->regs.y = (uint8_t)findRegisterInString(found, "Y:");
-		data->regs.sp = (uint8_t)findRegisterInString(found, "SP:");
-		data->regs.flags = (uint8_t)findStatusInString(found);
+	stopOnExec(plugin, res, len);
 
-		data->hasUpdatedRegistes = true;
-		data->hasUpdatedExceptionLocation = true;
-		data->state = PDDebugState_stopBreakpoint;
-	}
+	// get disassembly needs to be last 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
