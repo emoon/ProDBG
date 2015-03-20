@@ -2,6 +2,7 @@
 #include "pd_menu.h"
 #include "pd_host.h"
 #include "c64_vice_connection.h"
+#include "c64_vice_custom_regs.h"
 #include <stdlib.h>
 #include <uv.h>
 
@@ -972,7 +973,7 @@ static void stopOnExec(PluginData* plugin, const char* data)
 	if (!(found = strstr(data, stopOnExec)))
 		return;
 
-	size_t execLen = strlen(stopOnExec);
+	int execLen = (int)strlen(stopOnExec);
 	found += execLen;
 
 	plugin->regs.pc = (uint16_t)strtol(found, 0, 16);
@@ -1135,6 +1136,7 @@ static PDBackendPlugin plugin =
 PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
 {
     registerPlugin(PD_BACKEND_API_VERSION, &plugin, privateData);
+    registerPlugin(PD_VIEW_API_VERSION, &g_c64CustomViewPlugin, privateData);
 }
 
 
