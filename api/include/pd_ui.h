@@ -6,6 +6,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,7 +103,7 @@ enum PDInputTextFlags
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct PDInputTextCallbackData
+typedef struct PDInputTextCallbackData
 {
     int eventKey;            // Key pressed (Up/Down/TAB)           // Read-only   
     char* buffer;            // Current text                        // Read-write (pointed data only)
@@ -116,7 +117,7 @@ struct PDInputTextCallbackData
 
 	void (*deleteChars)(struct PDInputTextCallbackData* data, int pos, int byteCount);
 	void (*insertChars)(struct PDInputTextCallbackData* data, int pos, const char* text, const char* textEnd);
-};
+} PDInputTextCallbackData;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
