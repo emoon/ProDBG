@@ -26,7 +26,7 @@ static void test_dbgeng(void** state)
     int count = 0;
 
     assert_true(PluginHandler_addPlugin(OBJECT_DIR, "dbgeng_plugin"));
-    assert_non_null(pluginData = PluginHandler_getPlugins(&count)[0]);
+    assert_non_null(pluginData = PluginHandler_getBackendPlugins(&count)[0]);
 
     session = Session_createLocal((PDBackendPlugin*)pluginData->plugin, OBJECT_DIR "/crashing_native");
     assert_non_null(session);

@@ -11,21 +11,73 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PluginData** s_plugins;
+static PluginData** s_backendPlugins;
+static PluginData** s_viewPlugins;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PluginData* findPlugin(PluginData** plugins, const char* pluginFile, const char* pluginName)
+{
+    int count = stb_arr_len(plugins);
+
+    for (int i = 0; i < count; ++i)
+    {
+        PluginData* pluginData = plugins[i];
+        PDPluginBase* base = (PDPluginBase*)pluginData->plugin;
+
+        if (!strcmp(base->name, pluginName) && !strcmp(pluginData->filename, pluginFile))
+            return pluginData;
+    }
+
+    return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PluginData* findPluginAll(const char* pluginFile, const char* pluginName)
+{
+	PluginData* plugin = 0;
+
+	if ((plugin = findPlugin(s_viewPlugins, pluginFile, pluginName)))
+		return plugin;
+
+	if ((plugin = findPlugin(s_backendPlugins, pluginFile, pluginName)))
+		return plugin;
+
+	return 0;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void registerPlugin(const char* type, void* plugin, void* privateData)
 {
     PluginData* pluginData = (PluginData*)alloc_zero(sizeof(PluginData));
+	const char* filename = (const char*)privateData;
 
     // TODO: Verify that we don't add a plugin with the same plugin name in the same plugin
 
     pluginData->plugin = plugin;
     pluginData->type = type;
-    pluginData->filename = (const char*)privateData;
+    pluginData->filename = filename;
 
-    stb_arr_push(s_plugins, pluginData);
+	// TODO: Fix me
+
+	if (strstr(type, "ProDBG View"))
+	{
+		if (findPlugin(s_viewPlugins, filename, ((PDPluginBase*)plugin)->name))
+			return;
+
+		stb_arr_push(s_viewPlugins, pluginData);
+	}
+	else if (strstr(type, "ProDBG Backend"))
+	{
+		if (findPlugin(s_backendPlugins, filename, ((PDPluginBase*)plugin)->name))
+			return;
+
+		stb_arr_push(s_backendPlugins, pluginData);
+	}
+
+	log_error("Unknown pluginType %s - %s", type, ((PDPluginBase*)plugin)->name);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,28 +142,11 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PluginData* findPlugin(const char* pluginFile, const char* pluginName)
-{
-    int count = stb_arr_len(s_plugins);
-
-    for (int i = 0; i < count; ++i)
-    {
-        PluginData* pluginData = s_plugins[i];
-        PDPluginBase* base = (PDPluginBase*)pluginData->plugin;
-
-        if (!strcmp(base->name, pluginName) && !strcmp(pluginData->filename, pluginFile))
-            return pluginData;
-    }
-
-    return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void PluginHandler_unloadAllPlugins()
 {
     // TODO: Actually unload everything
-    stb_arr_setlen(s_plugins, 0);
+    stb_arr_setlen(s_viewPlugins, 0);
+    stb_arr_setlen(s_backendPlugins, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,7 +160,7 @@ PluginData* PluginHandler_findPlugin(const char** paths, const char* pluginFile,
 
     // If not found and not !load (that is we will not try to load it)
 
-    if ((pluginData = findPlugin(pluginFile, pluginName)))
+    if ((pluginData = findPluginAll(pluginFile, pluginName)))
         return pluginData;
 
     if (!load)
@@ -136,7 +171,7 @@ PluginData* PluginHandler_findPlugin(const char** paths, const char* pluginFile,
     if (!PluginHandler_addPlugin(OBJECT_DIR, pluginFile))
         return 0;
 
-    if ((pluginData = findPlugin(pluginFile, pluginName)))
+    if ((pluginData = findPluginAll(pluginFile, pluginName)))
         return pluginData;
 
     return 0;
@@ -144,30 +179,46 @@ PluginData* PluginHandler_findPlugin(const char** paths, const char* pluginFile,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PluginHandler_addStaticPlugin(PluginData* pluginData)
+PluginData** PluginHandler_getBackendPlugins(int* count)
 {
-    stb_arr_push(s_plugins, pluginData);
+    *count = stb_arr_len(s_backendPlugins);
+    return s_backendPlugins;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PluginData** PluginHandler_getPlugins(int* count)
+PluginData** PluginHandler_getViewPlugins(int* count)
 {
-    *count = stb_arr_len(s_plugins);
-    return s_plugins;
+    *count = stb_arr_len(s_viewPlugins);
+    return s_viewPlugins;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PluginData* getPluginData(PluginData** plugins, void* plugin)
+{
+    int count = stb_arr_len(plugins);
+
+    for (int i = 0; i < count; ++i)
+    {
+        if (plugins[i]->plugin == plugin)
+            return plugins[i];
+    }
+
+	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 PluginData* PluginHandler_getPluginData(void* plugin)
 {
-    int count = stb_arr_len(s_plugins);
+	PluginData* data = 0;
 
-    for (int i = 0; i < count; ++i)
-    {
-        if (s_plugins[i]->plugin == plugin)
-            return s_plugins[i];
-    }
+	if ((data = getPluginData(s_viewPlugins, plugin)))
+		return data;
+
+	if ((data = getPluginData(s_backendPlugins, plugin)))
+		return data;
 
     return 0;
 }

@@ -121,16 +121,13 @@ void createMenusForPlugins()
 {
     int count = 0;
 
-    PluginData** plugins = PluginHandler_getPlugins(&count);
+    PluginData** plugins = PluginHandler_getBackendPlugins(&count);
 
     uint32_t menuIdStart = PRODBG_MENU_PLUGINS_START;
 
     for (int i = 0; i < count; ++i)
     {
         PluginData* pluginData = plugins[i];
-
-        if (!strstr(pluginData->type, PD_BACKEND_API_VERSION))
-            continue;
 
         PDBackendPlugin* plugin = (PDBackendPlugin*)pluginData->plugin;
 
@@ -337,7 +334,7 @@ void ProDBG_setWindowSize(int width, int height)
 void ProDBG_applicationLaunched()
 {
     int pluginCount = 0;
-    Window_buildPluginMenu(PluginHandler_getPlugins(&pluginCount), pluginCount);
+    Window_buildPluginMenu(PluginHandler_getViewPlugins(&pluginCount), pluginCount);
     createMenusForPlugins();
 }
 
@@ -392,7 +389,7 @@ void ProDBG_event(int eventId)
 
     int count;
 
-    PluginData** pluginsData = PluginHandler_getPlugins(&count);
+    PluginData** pluginsData = PluginHandler_getViewPlugins(&count);
 
     log_info("eventId 0x%x\n", eventId);
 

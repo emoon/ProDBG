@@ -649,14 +649,11 @@ SessionStatus Session_onMenu(Session* session, int eventId)
         }
     }
 
-    PluginData** plugins = PluginHandler_getPlugins(&count);
+    PluginData** plugins = PluginHandler_getBackendPlugins(&count);
 
     for (int i = 0; i < count; ++i)
     {
         PluginData* pluginData = plugins[i];
-
-        if (!strstr(pluginData->type, PD_BACKEND_API_VERSION))
-            continue;
 
         PDBackendPlugin* plugin = (PDBackendPlugin*)pluginData->plugin;
 

@@ -304,11 +304,6 @@ static PDMenuItem* buildPluginsMenu(PluginData** plugins, int count)
         PDPluginBase* pluginBase = (PDPluginBase*)pluginData->plugin;
         PDMenuItem* entry = &menu[i];
 
-        // TODO: Hack hack!
-
-        if (!strstr(pluginData->type, "View"))
-            continue;
-
         entry->name = pluginBase->name;
         entry->id = PRODBG_MENU_PLUGIN_START + i;
         entry->key = '1' + i;
@@ -356,12 +351,6 @@ void Window_addMenu(const char* name, PDMenuItem* items, uint32_t idOffset)
 int Window_buildPluginMenu(PluginData** plugins, int count)
 {
     HMENU mainMenu = GetMenu(s_window);
-
-    // TODO: Right now we only support up to 1 - 9 for keyboard shortcuts of the plugins but should be good
-    // enough for now.
-
-    if (count >= 10)
-        count = 9;
 
     PDMenuItem* menu = buildPluginsMenu(plugins, count);
 

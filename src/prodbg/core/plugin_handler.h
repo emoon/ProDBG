@@ -15,7 +15,6 @@ struct PluginData
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool PluginHandler_addPlugin(const char* basePath, const char* plugin);
-void PluginHandler_addStaticPlugin(PluginData* pluginData);
 void PluginHandler_unloadAllPlugins();
 
 //bool PluginHandler_unloadPlugin(PluginData* plugin);
@@ -23,7 +22,9 @@ void PluginHandler_unloadAllPlugins();
 
 PluginData* PluginHandler_findPlugin(const char** paths, const char* pluginFile, const char* pluginName, bool load);
 
+PluginData* PluginHandler_getViewPluginData(void* plugin);
+PluginData** PluginHandler_getViewPlugins(int* count);
+PluginData** PluginHandler_getBackendPlugins(int* count);
 PluginData* PluginHandler_getPluginData(void* plugin);
-PluginData** PluginHandler_getPlugins(int* count);
 
 

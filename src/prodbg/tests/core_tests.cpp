@@ -52,7 +52,7 @@ static void plugin_handler_add_plugin_true(void** state)
     assert_true(PluginHandler_addPlugin(OBJECT_DIR, "sourcecode_plugin"));
     assert_true(PluginHandler_addPlugin(OBJECT_DIR, "registers_plugin"));
 
-    PluginData** plugins = PluginHandler_getPlugins(&count);
+    PluginData** plugins = PluginHandler_getViewPlugins(&count);
 
     assert_int_equal(count, 2);
 
@@ -61,7 +61,7 @@ static void plugin_handler_add_plugin_true(void** state)
 
     PluginHandler_unloadAllPlugins();
 
-    plugins = PluginHandler_getPlugins(&count);
+    plugins = PluginHandler_getViewPlugins(&count);
 
     assert_int_equal(count, 0);
 }

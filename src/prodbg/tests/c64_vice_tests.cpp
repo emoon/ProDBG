@@ -47,7 +47,7 @@ static void test_c64_vice_init(void**)
     int count = 0;
 
     assert_true(PluginHandler_addPlugin(OBJECT_DIR, "c64_vice_plugin"));
-    assert_non_null(PluginHandler_getPlugins(&count)[0]);
+    assert_non_null(PluginHandler_getBackendPlugins(&count)[0]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,7 +58,7 @@ static void test_c64_vice_fail_connect(void**)
 
     PluginData* pluginData;
 
-    pluginData = PluginHandler_getPlugins(&count)[0];
+    pluginData = PluginHandler_getBackendPlugins(&count)[0];
 
     s_session = Session_createLocal((PDBackendPlugin*)pluginData->plugin, 0);
 
@@ -148,7 +148,7 @@ static void test_c64_vice_connect(void**)
 
     PluginData* pluginData;
 
-    pluginData = PluginHandler_getPlugins(&count)[0];
+    pluginData = PluginHandler_getBackendPlugins(&count)[0];
 
     // Lanuch C64 VICE
     // TODO: Fix hardcoded path
