@@ -6,95 +6,6 @@
 #include <stdbool.h>
 
 /*
-$D000
-53248
-Sprite #0 X-coordinate (only bits #0-#7).
-
-$D001
-53249
-Sprite #0 Y-coordinate.
-
-$D002
-53250
-Sprite #1 X-coordinate (only bits #0-#7).
-
-$D003
-53251
-Sprite #1 Y-coordinate.
-
-$D004
-53252
-Sprite #2 X-coordinate (only bits #0-#7).
-
-$D005
-53253
-Sprite #2 Y-coordinate.
-
-$D006
-53254
-Sprite #3 X-coordinate (only bits #0-#7).
-
-$D007
-53255
-Sprite #3 Y-coordinate.
-
-$D008
-53256
-Sprite #4 X-coordinate (only bits #0-#7).
-
-$D009
-53257
-Sprite #4 Y-coordinate.
-
-$D00A
-53258
-Sprite #5 X-coordinate (only bits #0-#7).
-
-$D00B
-53259
-Sprite #5 Y-coordinate.
-
-$D00C
-53260
-Sprite #6 X-coordinate (only bits #0-#7).
-
-$D00D
-53261
-Sprite #6 Y-coordinate.
-
-$D00E
-53262
-Sprite #7 X-coordinate (only bits #0-#7).
-
-$D00F
-53263
-Sprite #7 Y-coordinate.
-
-$D010
-53264
-Sprite #0-#7 X-coordinates (bit #8). Bits:
-
-Bit #x: Sprite #x X-coordinate bit #8.
-
-$D011
-53265
-Screen control register #1. Bits:
-
-Bits #0-#2: Vertical raster scroll.
-
-Bit #3: Screen height; 0 = 24 rows; 1 = 25 rows.
-
-Bit #4: 0 = Screen off, complete screen is covered by border; 1 = Screen on, normal screen contents are visible.
-
-Bit #5: 0 = Text mode; 1 = Bitmap mode.
-
-Bit #6: 1 = Extended background mode on.
-
-Bit #7: Read: Current raster line (bit #8).
-Write: Raster line to generate interrupt at (bit #8).
-
-Default: $1B, %00011011.
-
 $D012
 53266
 Read: Current raster line (bits #0-#7).
@@ -337,6 +248,41 @@ typedef struct CustomRegsData
 	bool hasMemory;
 } CustomRegsData;
 
+static PDVec4 s_colorRed = { 1.0, 0.0f, 0.0f, 1.0f };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void printSpriteX(PDUI* uiFuncs, uint16_t v, uint32_t i, uint8_t d010)
+{
+	uiFuncs->text("$d0%02x - Sprite #%d X-coordinate", i * 2, i); 
+	uiFuncs->nextColumn();
+
+	uint16_t v2 = v + (((d010 >> i) & 1) << 8);
+
+	uiFuncs->textColored(s_colorRed, "%04d ($%02x)", v, v);
+	uiFuncs->sameLine(0, -1);
+	uiFuncs->text("(0-7 bits)");
+	uiFuncs->sameLine(0, -1);
+	uiFuncs->textColored(s_colorRed, "%04d ($%02x)", v2, v2);
+	uiFuncs->sameLine(0, -1);
+	uiFuncs->text("(0-8 bits) with bit from $d010");
+	uiFuncs->sameLine(0, -1);
+	uiFuncs->nextColumn();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void printSpriteY(PDUI* uiFuncs, uint16_t v, uint32_t i)
+{
+	uiFuncs->text("$d0%02x - Sprite #%d Y-coordinate", 1 + i * 2, i); 
+	uiFuncs->nextColumn();
+
+	uiFuncs->textColored(s_colorRed, "%04d ($%02x)", v, v);
+	uiFuncs->sameLine(0, -1);
+	uiFuncs->text("(0-7 bits)");
+	uiFuncs->nextColumn();
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
@@ -344,7 +290,19 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     (void)serviceFunc;
     CustomRegsData* userData = (CustomRegsData*)malloc(sizeof(CustomRegsData));
 
-	userData->hasMemory = false;
+	static uint8_t tempData[] =
+	{
+		0x18, 0xda, 0x48, 0xda, 0x78, 0xda, 0xa8, 0xda,
+		0xd8, 0xda, 0x08, 0xda, 0x38, 0xda, 0x00, 0x00,
+		0x60, 0x1b, 0x00, 0x00, 0x00, 0x00, 0xc8, 0x7f,
+		0xaf, 0x70, 0xf1, 0x00, 0x00, 0x7f, 0x00, 0x7f,
+		0xf0, 0xfb, 0xf1, 0xf2, 0xf3, 0xf4, 0xf0, 0xfe,
+		0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfc, 0xff,
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	};
+
+	userData->hasMemory = true;
+	memcpy(userData->regs, tempData, 0x30);
 
     (void)uiFuncs;
     (void)serviceFunc;
@@ -361,12 +319,119 @@ static void destroyInstance(void* userData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void drawText(PDUI* uiFuncs, const char* startText, uint8_t value, uint32_t bitStart, uint32_t mask, const char* endText)
+{
+	uint32_t v = (value >> bitStart) & mask;
+	uiFuncs->text(startText);
+	uiFuncs->sameLine(0, -1);
+	uiFuncs->textColored(s_colorRed, "%02d ($%02x)", v, v);
+	uiFuncs->sameLine(0, -1);
+
+	if (endText)
+		uiFuncs->text(endText);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void showUI(CustomRegsData* data, PDUI* uiFuncs)
 {
     uiFuncs->text("");
     uiFuncs->columns(2, "registers", true);
     uiFuncs->text("Name"); uiFuncs->nextColumn();
     uiFuncs->text("Value"); uiFuncs->nextColumn();
+
+	uint8_t* regs = (uint8_t*)&data->regs;
+
+	for (int i = 0; i < 8; ++i)
+	{
+		printSpriteX(uiFuncs, regs[(i * 2) + i], i, regs[0x10]);
+		printSpriteY(uiFuncs, regs[(i * 2) + i], i);
+		uiFuncs->separator();
+	}
+
+	// d010
+
+	uiFuncs->text("$d010 - Sprite #0-#7 X-coordinates (bit #8)");
+	uiFuncs->nextColumn();
+	uiFuncs->textColored(s_colorRed, "%04d ($%02x)", regs[0x10], regs[0x10]);
+	uiFuncs->sameLine(0, -1);
+	uiFuncs->nextColumn();
+	uiFuncs->separator();
+
+	// d011
+
+	uiFuncs->text("$d011 - Screen control register #1"); uiFuncs->nextColumn();
+	drawText(uiFuncs, "Bits #0-#2:", regs[0x11], 0, 0x7, "(Vertical raster scroll)");
+	drawText(uiFuncs, "Bit     #3:", regs[0x11], 3, 0x1, "(Screen height; 0 = 24 rows; 1 = 25 rows)");
+	drawText(uiFuncs, "Bit     #4:", regs[0x11], 4, 0x1, "(0 = Screen off; 1 = Screen on)");
+	drawText(uiFuncs, "Bit     #5:", regs[0x11], 5, 0x1, "(0 = Text mode; 1 = Bitmap mode)");
+	drawText(uiFuncs, "Bit     #6:", regs[0x11], 6, 0x1, "(1 = Extended background mode on)");
+	drawText(uiFuncs, "Bit     #7:", regs[0x11], 7, 0x1, "(Read: Current raster line (bit #8)");
+	uiFuncs->nextColumn();
+
+	// d012
+
+	/*
+$D012
+53266
+Read: Current raster line (bits #0-#7).
+Write: Raster line to generate interrupt at (bits #0-#7).
+
+$D013
+53267
+Light pen X-coordinate (bits #1-#8).
+Read-only.
+
+$D014
+53268
+Light pen Y-coordinate.
+Read-only.
+
+$D015
+53269
+Sprite enable register. Bits:
+
+Bit #x: 1 = Sprite #x is enabled, drawn onto the screen.
+
+$D016
+53270
+Screen control register #2. Bits:
+
+Bits #0-#2: Horizontal raster scroll.
+
+Bit #3: Screen width; 0 = 38 columns; 1 = 40 columns.
+
+Bit #4: 1 = Multicolor mode on.
+Default: $C8, %11001000.
+*/
+
+
+
+	/*
+
+	uiFuncs->text("Bits #0-#2: "
+	uiFuncs->sameLine(0, -1);
+	uiFuncs->textColored(s_colorRed, "%02d - ($%02x)",  
+		(Vertical raster scroll)
+	Bit     #3: %d (Screen height; 0 = 24 rows; 1 = 25 rows)
+	Bit     #4: %d (0 = Screen off; 1 = Screen on)
+	Bit     #5: %d (0 = Text mode; 1 = Bitmap mode)
+	Bit     #6: %d (1 = Extended background mode on)
+	Bit     #7: %d (Read: Current raster line (bit #8)
+	*/
+
+
+	/*
+	uiFuncs->text("$d000 - Sprite #0 X-coordinate");
+	uiFuncs->nextColumn();
+	uiFuncs->text("0-7 bits ($dd), including $d010\n, some more stuff\neven more!"); 
+	uiFuncs->nextColumn();
+	uiFuncs->separator();
+	uiFuncs->text("$d001 - Sprite #1 X-coordinate");
+	uiFuncs->nextColumn();
+	uiFuncs->text("$dd - 222 (0-7 bits), $1dd (333) including $d010\n, some more stuff\neven more!");
+	uiFuncs->nextColumn();
+	*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
