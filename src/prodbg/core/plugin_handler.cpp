@@ -68,6 +68,7 @@ static void registerPlugin(const char* type, void* plugin, void* privateData)
 			return;
 
 		stb_arr_push(s_viewPlugins, pluginData);
+		return;
 	}
 	else if (strstr(type, "ProDBG Backend"))
 	{
@@ -75,6 +76,7 @@ static void registerPlugin(const char* type, void* plugin, void* privateData)
 			return;
 
 		stb_arr_push(s_backendPlugins, pluginData);
+		return;
 	}
 
 	log_error("Unknown pluginType %s - %s", type, ((PDPluginBase*)plugin)->name);
