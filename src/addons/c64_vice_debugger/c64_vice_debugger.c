@@ -266,7 +266,10 @@ static void sendCommand(PluginData* data, const char* format, ...)
     if (!data->conn)
         return;
 
-    VICEConnection_send(data->conn, buffer, len, 0);
+    int ret = VICEConnection_send(data->conn, buffer, len, 0);
+    (void)ret;
+
+    //printf("sent command %s (%d - %d)\n", buffer, len, ret);
 
     sleepMs(1);
 }
@@ -275,7 +278,7 @@ static void sendCommand(PluginData* data, const char* format, ...)
 
 static int getData(PluginData* data, char** resBuffer, int* len)
 {
-    const int maxTry = 100;
+    const int maxTry = 1;
     int res = 0;
 
     if (!data->conn)
@@ -301,8 +304,6 @@ static int getData(PluginData* data, char** resBuffer, int* len)
 
             resData += res;
             lenCount += res;
-	
-			sleepMs(1);
         }
 
         if (gotData)
@@ -314,8 +315,6 @@ static int getData(PluginData* data, char** resBuffer, int* len)
         }
 
         // Got some data so read it back
-
-        sleepMs(1);
     }
 
     // got no data
@@ -917,7 +916,7 @@ static void onAction(PluginData* plugin, PDAction action)
 
         case PDAction_run:
         {
-            if (plugin->state != PDDebugState_running)
+            //if (plugin->state != PDDebugState_running)
 			{
                 sendCommand(plugin, "ret\n");
 				plugin->state = PDDebugState_running;
@@ -968,6 +967,33 @@ static void stopOnExec(PluginData* plugin, const char* data)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+char* parseDisassemblyLine(char* line)
+{
+	char* start = line;
+
+    // Handle the case if we get a line that looks like this (we want to skip everything after -)
+    // .C:0811  EE 20 D0    INC $D020      - A:00 X:17 Y:17 SP:f6 ..-.....   19262882
+
+	for (;;)
+	{
+		char c = *line++;
+
+		if (c == '\n' || c == 0)
+			break;
+
+		if (c == '-')
+		{
+			line[-1] = 0;
+			break;
+		}
+
+	}
+
+	return start;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void parseDisassembly(PDWriter* writer, const char* data, int length)
 {
 	memcpy(s_tempBuffer, data, length);
@@ -994,7 +1020,7 @@ static void parseDisassembly(PDWriter* writer, const char* data, int length)
 
         PDWrite_arrayEntryBegin(writer);
         PDWrite_u16(writer, "address", address);
-        PDWrite_string(writer, "line", &pch[9]);
+        PDWrite_string(writer, "line", parseDisassemblyLine(&pch[9]));
 
         PDWrite_arrayEntryEnd(writer);
 
@@ -1063,6 +1089,8 @@ static void updateEvents(PluginData* plugin, PDWriter* writer)
 
     if (!getData(plugin, &res, &len))
         return;
+
+	plugin->state = PDDebugState_stopException;
 
 	// do data parsing here
 
