@@ -5,8 +5,6 @@
 #include <string.h>
 #include <list>
 
-static uint32_t s_idCounter = 1;
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct Location
@@ -22,9 +20,10 @@ struct Breakpoint
 {
     Location location;
     char* condition;
-	uint32_t id;
+	int32_t id;
     bool enabled;
 	bool markDelete;
+	int pendingCount;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,8 +44,6 @@ static Breakpoint* createBreakpoint(BreakpointsData* userData)
 	Breakpoint* bp = (Breakpoint*)malloc(sizeof(Breakpoint));
 	memset(bp, 0, sizeof(Breakpoint));
 
-	bp->id = s_idCounter++;
-
 	bp->location.address = (char*)malloc(userData->maxPath);
 	bp->condition = (char*)malloc(userData->maxPath);
 
@@ -54,6 +51,8 @@ static Breakpoint* createBreakpoint(BreakpointsData* userData)
 	memset(bp->condition, 0, userData->maxPath);
 
 	bp->enabled = false;
+	bp->id = -1;
+	bp->pendingCount = 1;	// this is used as the breakpoint isn't valid until we got a reply back that it is
 
 	return bp;
 }
@@ -190,6 +189,28 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
                 toogleBreakpointFileLine(data, inEvents);
                 break;
             }
+
+			case PDEventType_replyBreakpoint:
+			{
+				uint64_t address = 0;
+                uint32_t id = (uint32_t)~0;
+
+				PDRead_findU64(inEvents, &address, "address", 0);
+				PDRead_findU32(inEvents, &id, "id", 0);
+
+				for (Breakpoint* bp : data->breakpoints)
+				{
+					if ((uint64_t)strtol(bp->location.address, 0, 16) == address)
+					{
+						bp->pendingCount = 0;		// breakpoint accepted
+						printf("bp view: updated breakpoint with id %d (was %d)\n", id, bp->id);
+						bp->id = (int)id;
+						break;
+					}
+				}
+
+				break;
+			}
         }
     }
 
@@ -201,8 +222,8 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 		data->breakpoints.push_back(bp);
 	}
 
-    uiFuncs->columns(5, "", true);
-    uiFuncs->text(""); uiFuncs->nextColumn();
+    uiFuncs->columns(4, "", true);
+    //uiFuncs->text(""); uiFuncs->nextColumn();
     uiFuncs->text("Name/Address"); uiFuncs->nextColumn();
     uiFuncs->text("Label"); uiFuncs->nextColumn();
     uiFuncs->text("Condition"); uiFuncs->nextColumn();
@@ -215,8 +236,8 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
 		uiFuncs->pushIdPtr(bp);
 		
-		if (uiFuncs->checkbox("Enabled", &bp->enabled))
-			needUpdate = true;
+		//if (uiFuncs->checkbox("Enabled", &bp->enabled))
+		//	needUpdate = true;
 
 		uiFuncs->nextColumn();
 				
@@ -236,8 +257,10 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 		uiFuncs->text("");
 		uiFuncs->nextColumn();
 
-		if (uiFuncs->inputText("##condition", bp->condition, (int)data->maxPath, PDInputTextFlags_EnterReturnsTrue, 0, 0))
-			needUpdate = true;
+		uiFuncs->text(""); // no condition for now
+
+		//if (uiFuncs->inputText("##condition", bp->condition, (int)data->maxPath, PDInputTextFlags_EnterReturnsTrue, 0, 0))
+		//	needUpdate = true;
 
 		uiFuncs->nextColumn();
 
@@ -248,11 +271,12 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 			PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
 			PDWrite_u64(writer, "address", (uint64_t)strtol(bp->location.address, 0, 16));
 
-			if (bp->condition[0] != 0)
-				PDWrite_string(writer, "condition", bp->condition);
+			//if (bp->condition[0] != 0)
+			//	PDWrite_string(writer, "condition", bp->condition);
 
-			PDWrite_u32(writer, "id", bp->id);
-			PDWrite_u8(writer, "enable", bp->enabled);
+			if (bp->id != -1)
+				PDWrite_u32(writer, "id", (uint32_t)bp->id);
+
 			PDWrite_eventEnd(writer);
 
 			printf("Sending breakpint\n");
@@ -261,7 +285,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 		if (uiFuncs->button("Delete"))
 		{
 			PDWrite_eventBegin(writer, PDEventType_deleteBreakpoint);
-			PDWrite_u32(writer, "id", bp->id);
+			PDWrite_u32(writer, "id", (uint32_t)bp->id);
 			PDWrite_eventEnd(writer);
 			bp->markDelete = true;
 		}
@@ -275,7 +299,12 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
 	for (auto i = data->breakpoints.begin(); i != data->breakpoints.end(); ++i)
 	{
-		if ((*i)->markDelete)
+		Breakpoint* bp = *i;
+
+		if (bp->pendingCount > 1)
+			bp->pendingCount++;
+
+		if (bp->markDelete || bp->pendingCount >= 10)
 			i = data->breakpoints.erase(i);
 	}
 

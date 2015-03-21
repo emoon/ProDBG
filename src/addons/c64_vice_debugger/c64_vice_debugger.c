@@ -436,6 +436,8 @@ static bool delBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
 		return false;
 	}
 
+	printf("deleting breakpoint with id %d\n", id);
+
 	return delBreakpointById(data, id);
 }
 
@@ -674,7 +676,7 @@ static void parseRegisters(PluginData* plugin, char* data, int length)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void parseForBreakpoint(PluginData* data, const char* res)
+static void parseBreakpoint(PluginData* data, const char* res, PDWriter* writer)
 {
 	Breakpoint* bp = 0;
 
@@ -702,6 +704,12 @@ static void parseForBreakpoint(PluginData* data, const char* res)
 
 	// add data or update existing
 
+	PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
+	PDWrite_u64(writer, "address", bp->address);
+	PDWrite_u32(writer, "id", (uint32_t)id);
+	PDWrite_eventEnd(writer);
+
+	printf("sending reply back: breakpoint %x - %d\n", bp->address, id);
 
 	// TODO: Condition
 
@@ -1163,7 +1171,7 @@ static void updateEvents(PluginData* plugin, PDWriter* writer)
 
 	parseStep(plugin, res);
 
-	parseForBreakpoint(plugin, res);
+	parseBreakpoint(plugin, res, writer);
 
 	parseDisassembly(writer, res, len);
 
