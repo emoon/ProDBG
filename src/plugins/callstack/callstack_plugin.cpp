@@ -3,13 +3,25 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct CallStackData
+struct CallstackEntry
 {
-    int dummy;
+	const char* address;
+	const char* module;
+	const char* filename;
+	int line;
+};
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct CallstackData
+{
+	std::vector<CallstackEntry> callstack;
+    uint64_t location;
+    bool request;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -17,15 +29,13 @@ struct CallStackData
 static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 {
     (void)serviceFunc;
-    CallStackData* userData = (CallStackData*)malloc(sizeof(CallStackData));
+    CallstackData* userData = new CallstackData;
+
+    userData->location = 0;
+    userData->request = false;
 
     (void)uiFuncs;
     (void)serviceFunc;
-
-    /*
-       static const char* headers[] = { "Address", "Module", "Name", "line", 0 };
-       userData->callStackList = PDUIListView_create(uiFuncs, headers, 0);
-     */
 
     return userData;
 }
@@ -34,7 +44,7 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 
 static void destroyInstance(void* userData)
 {
-    free(userData);
+	delete (CallstackData*)userData;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,30 +93,32 @@ static int findSeparator(const char* str)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void showInUI(CallStackData* data, PDReader* reader, PDUI* uiFuncs)
+static void updateCallstack(CallstackData* data, PDReader* reader)
 {
-    PDReaderIterator it;
-    (void)data;
+	PDReaderIterator it;
 
     if (PDRead_findArray(reader, &it, "callstack", 0) == PDReadStatus_notFound)
         return;
 
-    uiFuncs->text("");
+    for (CallstackEntry& entry : data->callstack)
+	{
+		free((void*)entry.address);
+		free((void*)entry.module);
+		free((void*)entry.filename);
+	}
+
+    data->callstack.clear();
 
     // TODO: Have a "spec" for the callstack to be used
-
-    uiFuncs->columns(4, "callstack", true);
-    uiFuncs->text("Address"); uiFuncs->nextColumn();
-    uiFuncs->text("Module"); uiFuncs->nextColumn();
-    uiFuncs->text("Name"); uiFuncs->nextColumn();
-    uiFuncs->text("Line"); uiFuncs->nextColumn();
 
     while (PDRead_getNextEntry(reader, &it))
     {
         const char* filename = "";
         const char* module = "";
         char address[64] = { 0 };
-        uint32_t line = 0;
+        uint32_t line = (uint32_t)~0;
+
+        CallstackEntry entry = { 0 };
 
         getAddressString(address, reader, it);
 
@@ -114,37 +126,117 @@ static void showInUI(CallStackData* data, PDReader* reader, PDUI* uiFuncs)
         PDRead_findString(reader, &module, "module_name", it);
         PDRead_findU32(reader, &line, "line", it);
 
-        int fSep = findSeparator(filename);
-        int mSep = findSeparator(module);
+        entry.address = strdup(address);
+        entry.line = -1;
 
-        uiFuncs->text(address); uiFuncs->nextColumn();
-        uiFuncs->text(&module[mSep]); uiFuncs->nextColumn();
-        uiFuncs->text(&filename[fSep]); uiFuncs->nextColumn();
-        uiFuncs->text("%d", line); uiFuncs->nextColumn();
+        if (filename)
+		{
+        	int fSep = findSeparator(filename);
+			entry.filename = strdup(&filename[fSep]);
+		}
+
+		if (module)
+		{
+        	int mSep = findSeparator(module);
+			entry.module = strdup(&module[mSep]);
+		}
+
+		if (line != (uint32_t)~0)
+			entry.line = (int)line;
+
+		data->callstack.push_back(entry);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents)
+static void drawText(PDUI* uiFuncs, const char* text)
 {
-    CallStackData* data = (CallStackData*)userData;
+	if (text)
+        uiFuncs->text(text); 
+	else
+        uiFuncs->text(""); 
+    
+    uiFuncs->nextColumn();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void drawTextInt(PDUI* uiFuncs, int v)
+{
+	if (v >= 0)
+        uiFuncs->text("%d", v); 
+	else
+        uiFuncs->text(""); 
+    
+    uiFuncs->nextColumn();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void showUI(PDUI* uiFuncs, CallstackData* data)
+{
+    uiFuncs->columns(4, "callstack", true);
+    uiFuncs->text("Address"); uiFuncs->nextColumn();
+    uiFuncs->text("Module"); uiFuncs->nextColumn();
+    uiFuncs->text("Name"); uiFuncs->nextColumn();
+    uiFuncs->text("Line"); uiFuncs->nextColumn();
+
+    for (CallstackEntry& entry : data->callstack)
+    {
+    	drawText(uiFuncs, entry.address);
+    	drawText(uiFuncs, entry.module);
+    	drawText(uiFuncs, entry.filename);
+    	drawTextInt(uiFuncs, entry.line);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int update(void* userData, PDUI* uiFuncs, PDReader* reader, PDWriter* writer)
+{
     uint32_t event;
 
-    while ((event = PDRead_getEvent(inEvents)) != 0)
+    CallstackData* data = (CallstackData*)userData;
+
+    data->request = false;
+
+    while ((event = PDRead_getEvent(reader)) != 0)
     {
         switch (event)
         {
             case PDEventType_setCallstack:
-                showInUI(data, inEvents, uiFuncs); break;
+			{
+				updateCallstack(data, reader);
+                break;
+			}
+
+            case PDEventType_setExceptionLocation:
+            {
+            	uint64_t location = 0;
+
+                PDRead_findU64(reader, &location, "address", 0);
+
+            	if (location != data->location)
+				{
+					data->location = location;
+					data->request = true;
+				}
+
+                break;
+            }
         }
     }
 
+    showUI(uiFuncs, data);
+
     // Request callstack data
 
-    PDWrite_eventBegin(outEvents, PDEventType_getCallstack);
-    PDWrite_u8(outEvents, "dummy_remove", 0);   // TODO: Remove me
-    PDWrite_eventEnd(outEvents);
+	if (data->request)
+	{
+		PDWrite_eventBegin(writer, PDEventType_getCallstack);
+		PDWrite_eventEnd(writer);
+	}
 
     return 0;
 }
@@ -166,10 +258,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-    {
-        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-    }
+PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+{
+	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
