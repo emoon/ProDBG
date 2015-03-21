@@ -443,7 +443,7 @@ static void updateMemory(CustomRegsData* userData, PDReader* reader)
     if (PDRead_findData(reader, &data, &size, "data", 0) == PDReadStatus_notFound)
         return;
 
-	if (address != 0xdd00 || size != 0x30)
+	if (address != 0xd000 || size != 0x30)
 		return;
 
 	memcpy(userData->regs, data, 0x30);
@@ -473,7 +473,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* reader, PDWriter* wri
     showUI(data, uiFuncs);
 
 	PDWrite_eventBegin(writer, PDEventType_getMemory);
-	PDWrite_u64(writer, "address_start", 0xdd00);
+	PDWrite_u64(writer, "address_start", 0xd000);
 	PDWrite_u64(writer, "size", 0x30);
 	PDWrite_eventEnd(writer);
 
