@@ -356,7 +356,10 @@ static void updateLocal(Session* s, PDAction action)
     PDBinaryWriter_reset(s->currentWriter);
 
     if (backend)
+	{
         s->state = backend->plugin->update(backend->userData, action, s->reader, s->currentWriter);
+        UIStatusBar_setText("%s Backend: %s", backend->plugin->name, getStateName(s->state));
+	}
 
     int len = stb_arr_len(s->viewPlugins);
 

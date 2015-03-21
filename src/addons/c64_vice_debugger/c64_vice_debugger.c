@@ -489,10 +489,8 @@ static void connectToLocalHost(PluginData* data)
         return;
     }
 
-	sendCommand(data, "n\n");
-
     data->conn = conn;
-	data->state = PDDebugState_stopBreakpoint;
+	data->state = PDDebugState_running;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1073,6 +1071,7 @@ static void parseStep(PluginData* plugin, const char* res)
 
     plugin->hasUpdatedRegistes = true;
     plugin->hasUpdatedExceptionLocation = true;
+	plugin->state = PDDebugState_trace;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
