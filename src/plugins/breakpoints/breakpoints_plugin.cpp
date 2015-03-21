@@ -239,8 +239,6 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 		//if (uiFuncs->checkbox("Enabled", &bp->enabled))
 		//	needUpdate = true;
 
-		uiFuncs->nextColumn();
-				
     	if (bp->location.filename)
 		{
         	uiFuncs->inputText("##filename", bp->location.filename, (int)data->maxPath, 0, 0, 0);
