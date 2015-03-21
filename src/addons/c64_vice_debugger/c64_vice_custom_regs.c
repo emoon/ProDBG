@@ -6,18 +6,14 @@
 #include <stdbool.h>
 #include "c64_vice_custom_regs.h"
 
-/*
-
-
-*/
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct CustomRegsData
 {
 	uint8_t regs[0x30];
 	bool hasMemory;
+	bool requestMemory;
+	uint64_t location;
 } CustomRegsData;
 
 static PDVec4 s_colorRed = { 1.0, 0.0f, 0.0f, 1.0f };
@@ -128,9 +124,6 @@ static void drawSpritBits(PDUI* uiFuncs, const char* registerText, uint8_t reg, 
 
 static void drawd018(PDUI* uiFuncs, uint8_t value, uint8_t bitmapMode)
 {
-	//static PDVec4 grayColor = { 0.5, 0.5f, 0.5f, 0.5f };
-	//static PDVec4 whiteColor = { 1.0, 1.0f, 1.0f, 0.5f };
-
 	uiFuncs->text("$d018 - Memory setup"); uiFuncs->nextColumn();
 
 	if (!bitmapMode)
@@ -168,72 +161,6 @@ static void drawd018(PDUI* uiFuncs, uint8_t value, uint8_t bitmapMode)
 	uiFuncs->nextColumn();
 	uiFuncs->separator();
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-
-$D020
-53280
-Border color (only bits #0-#3).
-
-$D021
-53281
-Background color (only bits #0-#3).
-
-$D022
-53282
-Extra background color #1 (only bits #0-#3).
-
-$D023
-53283
-Extra background color #2 (only bits #0-#3).
-
-$D024
-53284
-Extra background color #3 (only bits #0-#3).
-
-$D025
-53285
-Sprite extra color #1 (only bits #0-#3).
-
-$D026
-53286
-Sprite extra color #1 (only bits #0-#3).
-
-$D027
-53287
-Sprite #0 color (only bits #0-#3).
-
-$D028
-53288
-Sprite #1 color (only bits #0-#3).
-
-$D029
-53289
-Sprite #2 color (only bits #0-#3).
-
-$D02A
-53290
-Sprite #3 color (only bits #0-#3).
-
-$D02B
-53291
-Sprite #4 color (only bits #0-#3).
-
-$D02C
-53292
-Sprite #5 color (only bits #0-#3).
-
-$D02D
-53293
-Sprite #6 color (only bits #0-#3).
-
-$D02E
-53294
-Sprite #7 color (only bits #0-#3).
-
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -457,10 +384,27 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* reader, PDWriter* wri
     uint32_t event;
     CustomRegsData* data = (CustomRegsData*)userData;
 
+    data->requestMemory = false;
+
     while ((event = PDRead_getEvent(reader)) != 0)
     {
         switch (event)
         {
+            case PDEventType_setExceptionLocation:
+            {
+            	uint64_t location = 0;
+
+                PDRead_findU64(reader, &location, "address", 0);
+
+            	if (location != data->location)
+				{
+					data->location = location;
+					data->requestMemory = true;
+				}
+
+                break;
+            }
+
             case PDEventType_setMemory:
             {
                 updateMemory(data, reader);
@@ -472,10 +416,13 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* reader, PDWriter* wri
 
     showUI(data, uiFuncs);
 
-	PDWrite_eventBegin(writer, PDEventType_getMemory);
-	PDWrite_u64(writer, "address_start", 0xd000);
-	PDWrite_u64(writer, "size", 0x30);
-	PDWrite_eventEnd(writer);
+	if (data->requestMemory)
+	{
+		PDWrite_eventBegin(writer, PDEventType_getMemory);
+		PDWrite_u64(writer, "address_start", 0xd000);
+		PDWrite_u64(writer, "size", 0x30);
+		PDWrite_eventEnd(writer);
+	}
 
     return 0;
 }
