@@ -176,6 +176,8 @@ void renderUI(DissassemblyData* data, PDUI* uiFuncs)
     if (data->blocks.size() == 0)
     	return;
 
+	PDVec2 size = uiFuncs->getWindowSize();
+
 	Block* block = data->blocks[0];
 
     for (Line& line : block->lines)
@@ -186,7 +188,7 @@ void renderUI(DissassemblyData* data, PDUI* uiFuncs)
             PDVec2 pos = uiFuncs->getCursorPos();
             rect.x = pos.x;
             rect.y = pos.y;
-            rect.width = 400;
+            rect.width = size.x;
             rect.height = 14;
             uiFuncs->fillRect(rect, PD_COLOR_32(200, 0, 0, 127));
         }
