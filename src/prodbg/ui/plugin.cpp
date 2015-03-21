@@ -499,7 +499,7 @@ static ImGuiStyleVar_ styleLookup[PDStyleVar_Count] =
     ImGuiStyleVar_FrameRounding,    // PDStyleVar_FrameRounding,     // float
     ImGuiStyleVar_ItemSpacing,      // PDStyleVar_ItemSpacing,       // PDVec2
     ImGuiStyleVar_ItemInnerSpacing, // PDStyleVar_ItemInnerSpacing,  // PDVec2
-    ImGuiStyleVar_TreeNodeSpacing,  // PDStyleVar_TreeNodeSpacing,   // float
+    ImGuiStyleVar_IndentSpacing,    // PDStyleVar_TreeNodeSpacing,   // float
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
