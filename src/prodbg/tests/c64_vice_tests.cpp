@@ -223,6 +223,7 @@ void test_c64_vice_step_cpu(void**)
     CPUState state;
 
     Session_action(s_session, PDAction_step);
+    Session_update(s_session);
     handleEvents(&state, s_session);
 
     assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
@@ -250,6 +251,7 @@ void test_c64_vice_step_cpu(void**)
     PDBinaryWriter_finalize(writer);
 
     Session_update(s_session);
+    Session_update(s_session);
     handleEvents(&state, s_session);
 
     assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
@@ -260,6 +262,7 @@ void test_c64_vice_step_cpu(void**)
     PDWrite_eventEnd(writer);
     PDBinaryWriter_finalize(writer);
 
+    Session_update(s_session);
     Session_update(s_session);
     handleEvents(&state, s_session);
 
@@ -430,6 +433,7 @@ static void stepToPC(uint64_t pc)
 		CPUState state;
 
 		Session_action(s_session, PDAction_step);
+		Session_update(s_session);
 		handleEvents(&state, s_session);
 
 		if (state.pc == pc)
@@ -451,7 +455,7 @@ static void waitForBreak(uint64_t breakAddress, const CPUState* cpuState, uint64
     // Give VICE some time to actually hit the breakpoint so we loop here and do
     // some sleeping and expect this to hit within 10 ms
 
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < 12; ++i)
 	{
 		uint64_t address = 0;
 
@@ -497,7 +501,6 @@ void test_c64_vice_basic_breakpoint(void**)
 
     PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
     PDWrite_u64(writer, "address", breakAddress);
-    PDWrite_u32(writer, "id", 1);
     PDWrite_eventEnd(writer);
 
     PDBinaryWriter_finalize(writer);
@@ -507,6 +510,8 @@ void test_c64_vice_basic_breakpoint(void**)
 
 	waitForBreak(breakAddress, 0, 0); 
 
+	stepToPC(0x080e);
+
 	// Update the breakpoint to different address
 
     breakAddress = 0x0816;
@@ -515,11 +520,8 @@ void test_c64_vice_basic_breakpoint(void**)
 
     PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
     PDWrite_u64(writer, "address", breakAddress);
-    PDWrite_u32(writer, "id", 1);
+    PDWrite_u64(writer, "id", 1);
     PDWrite_eventEnd(writer);
-
-	stepToPC(0x080e);
-
     PDBinaryWriter_finalize(writer);
 
    	Session_update(s_session);
@@ -531,9 +533,12 @@ void test_c64_vice_basic_breakpoint(void**)
 
 	stepToPC(0x080e);
 
+    writer = s_session->currentWriter;
+
     PDWrite_eventBegin(writer, PDEventType_deleteBreakpoint);
-    PDWrite_u32(writer, "id", 1);
+    PDWrite_u32(writer, "id", 2);
     PDWrite_eventEnd(writer);
+    PDBinaryWriter_finalize(writer);
 
    	Session_update(s_session);
 	Session_action(s_session, PDAction_run);
@@ -577,7 +582,6 @@ void test_c64_vice_breakpoint_cond(void**)
     PDWriter* writer = s_session->currentWriter;
 
     PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
-    PDWrite_u32(writer, "id", 2);
     PDWrite_u64(writer, "address", breakAddress);
     PDWrite_string(writer, "condition", ".y == 0");
     PDWrite_eventEnd(writer);
@@ -672,12 +676,10 @@ int main()
         unit_test(test_c64_vice_connect),
         unit_test(test_c64_vice_get_registers),
         unit_test(test_c64_vice_step_cpu),
-        /*
         unit_test(test_c64_vice_get_disassembly),
         unit_test(test_c64_vice_get_memory),
         unit_test(test_c64_vice_basic_breakpoint),
         unit_test(test_c64_vice_breakpoint_cond),
-        */
         //unit_test(test_c64_vice_set_memory),
     };
 

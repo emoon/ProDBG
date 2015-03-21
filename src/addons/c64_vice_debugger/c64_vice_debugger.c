@@ -266,9 +266,9 @@ static void sendCommand(PluginData* data, const char* format, ...)
     if (!data->conn)
         return;
 
-    log_debug("sendCommand %s\n", buffer);
-
     VICEConnection_send(data->conn, buffer, len, 0);
+
+    sleepMs(1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -406,7 +406,7 @@ static bool delBreakpointById(PluginData* data, int32_t id)
 
 		if (bp->id == id)
 		{
-			sendCommand(data, "del %d\n", bp->internalId);
+			sendCommand(data, "del %d\n", id);
 
 			// Swap with the last bp and decrese the count
 
@@ -419,7 +419,7 @@ static bool delBreakpointById(PluginData* data, int32_t id)
 			return true;
 		}
 	}
-	
+
 	return false;
 }
 
@@ -448,18 +448,11 @@ static void setBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
 	int32_t id = -1;
 	const char* condition = 0;
 
-    PDRead_findS32(reader, &id, "id", 0);
+	(void)writer;
 
-    if (id == -1)
-	{
-		if (PDRead_findU64(reader, &address, "address", 0) == PDReadStatus_notFound)
-		{
-			PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
-			PDWrite_string(writer, "error", "No address is being sent for breakpoint!");
-			PDWrite_eventEnd(writer);
-			return;
-		}
-	}
+    PDRead_findS32(reader, &id, "id", 0);
+	PDRead_findU64(reader, &address, "address", 0);
+	PDRead_findString(reader, &condition, "condition", 0);
 
 	if (id != -1)
 		delBreakpointById(data, id);
@@ -710,7 +703,6 @@ static void parseForBreakpoint(PluginData* data, const char* res)
 	if (address)
 		bp->address = (uint16_t)strtol(address + 3, 0, 16);
 
-
 	// add data or update existing
 
 
@@ -894,20 +886,6 @@ static uint16_t findStatusInString(const char* str)
 
     return flags; 
 }
-/*
-    // return data from VICE is of the follwing format:
-    // .C:0811  EE 20 D0    INC $D020      - A:00 X:17 Y:17 SP:f6 ..-.....   19262882
-    
-    plugin->regs.pc = (uint16_t)strtol(&res[3], 0, 16);
-    plugin->regs.a = (uint8_t)findRegisterInString(res, "A:");
-    plugin->regs.x = (uint8_t)findRegisterInString(res, "X:");
-    plugin->regs.y = (uint8_t)findRegisterInString(res, "Y:");
-    plugin->regs.sp = (uint8_t)findRegisterInString(res, "SP:");
-    plugin->regs.flags = (uint8_t)findStatusInString(res);
-
-    plugin->hasUpdatedRegistes = true;
-    plugin->hasUpdatedExceptionLocation = true;
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1029,6 +1007,50 @@ static void parseDisassembly(PDWriter* writer, const char* data, int length)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static const char* findRegStart(const char* res)
+{
+	char c = *res++;
+
+	while (c != 0 && c != '\n')
+	{
+		if (c == '-')
+			return res;
+
+		c = *res++;
+	}
+
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void parseStep(PluginData* plugin, const char* res)
+{
+	const char* regStart;
+	const char* step = strstr(res, ".C");
+
+	if (!step)
+		return;
+
+	if (!(regStart = findRegStart(res)))
+		return;
+
+    // return data from VICE is of the follwing format:
+    // .C:0811  EE 20 D0    INC $D020      - A:00 X:17 Y:17 SP:f6 ..-.....   19262882
+    
+    plugin->regs.pc = (uint16_t)strtol(&step[3], 0, 16);
+    plugin->regs.a = (uint8_t)findRegisterInString(regStart, "A:");
+    plugin->regs.x = (uint8_t)findRegisterInString(regStart, "X:");
+    plugin->regs.y = (uint8_t)findRegisterInString(regStart, "Y:");
+    plugin->regs.sp = (uint8_t)findRegisterInString(regStart, "SP:");
+    plugin->regs.flags = (uint8_t)findStatusInString(res);
+
+    plugin->hasUpdatedRegistes = true;
+    plugin->hasUpdatedExceptionLocation = true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void updateEvents(PluginData* plugin, PDWriter* writer)
 {
     char* res = 0;
@@ -1047,6 +1069,8 @@ static void updateEvents(PluginData* plugin, PDWriter* writer)
 	stopOnExec(plugin, res);
 
 	parseRegisters(plugin, res, len);
+
+	parseStep(plugin, res);
 
 	parseForBreakpoint(plugin, res);
 
