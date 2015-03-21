@@ -24,7 +24,7 @@ struct Block
 {
 	uint64_t id;
 	uint64_t address;
-	uint32_t addressEnd;
+	uint64_t addressEnd;
 	std::vector<Line> lines;
 };
 
@@ -82,9 +82,11 @@ Block* createBlock(DissassemblyData* data, uint64_t address, uint64_t blockId)
 {
 	Block* block = new Block;
 
+	(void)address;
+
 	block->id = blockId;
-	block->address = address & (BlockSize - 1);
-	block->addressEnd = (address & (BlockSize - 1)) + BlockSize;
+	block->address = blockId * BlockSize; 
+	block->addressEnd = block->address + (uint64_t)BlockSize;
 
 	data->blocks.push_back(block);
 
@@ -169,16 +171,29 @@ static void setDisassemblyCode(DissassemblyData* data, PDReader* reader)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static Block* findBlockWithPC(DissassemblyData* data, uint64_t pc)
+{
+	for (Block* b : data->blocks)
+	{
+		if (pc >= b->address && pc <= b->addressEnd)
+			return b;
+	}
+
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void renderUI(DissassemblyData* data, PDUI* uiFuncs)
 {
+	Block* block = 0;
+
     uiFuncs->text("");  // TODO: Temporary
 
-    if (data->blocks.size() == 0)
-    	return;
+	if (!(block = findBlockWithPC(data, data->pc)))
+		return;
 
 	PDVec2 size = uiFuncs->getWindowSize();
-
-	Block* block = data->blocks[0];
 
     for (Line& line : block->lines)
     {
@@ -191,6 +206,7 @@ void renderUI(DissassemblyData* data, PDUI* uiFuncs)
             rect.width = size.x;
             rect.height = 14;
             uiFuncs->fillRect(rect, PD_COLOR_32(200, 0, 0, 127));
+            uiFuncs->setScrollHere();
         }
 
         uiFuncs->text("0x%04x %s", (uint64_t)line.address, line.text);
@@ -295,10 +311,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-    {
-        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-    }
+PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+{
+	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
