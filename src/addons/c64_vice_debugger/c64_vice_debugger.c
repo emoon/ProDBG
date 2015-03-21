@@ -795,6 +795,14 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
                 break;
             }
 
+            case PDEventType_getCallstack:
+            {
+                if (data->state != PDDebugState_running)
+                	sendCommand(data, "bt\n");
+
+                break;
+            }
+
             case PDEventType_getDisassembly:
             {
 				if (data->state != PDDebugState_running)
@@ -1031,6 +1039,62 @@ static void parseDisassembly(PDWriter* writer, const char* data, int length)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void parseForCallstack(PDWriter* writer, const char* data, int length)
+{
+	uint16_t callStackEntries[256 * 2];
+	int callStackCount = 0;
+
+	memcpy(s_tempBuffer, data, length);
+	s_tempBuffer[length] = 0;
+
+    char* pch = strtok(s_tempBuffer, "\n");
+
+    while (pch)
+    {
+        // expected format of each line:
+        // xxx.. .C:080e  A9 22       LDA #$22
+
+        if (pch[0] == '(' &&  pch[1] != 'C')
+		{
+			uint32_t offset = (uint32_t)atoi(&pch[2]);
+
+			char* endOffset = strstr(&pch[2], ") ");
+
+			if (endOffset)
+			{
+				endOffset += 2;
+
+				uint16_t address = (uint16_t)strtol(endOffset, 0, 16);
+
+				callStackEntries[(callStackCount * 2) + 0] = address;
+				callStackEntries[(callStackCount * 2) + 1] = (uint16_t)offset;
+
+				callStackCount++;
+			}
+		}
+
+		pch = strtok(0, "\n");
+    }
+	
+	if (callStackCount == 0)
+		return;
+
+    PDWrite_eventBegin(writer, PDEventType_setCallstack);
+    PDWrite_arrayBegin(writer, "callstack");
+
+    for (int i = 0; i < callStackCount; ++i)
+	{
+        PDWrite_arrayEntryBegin(writer);
+        PDWrite_u16(writer, "address", callStackEntries[(i * 2) + 0] + callStackEntries[(i * 2) + 1]);
+        PDWrite_arrayEntryEnd(writer);
+	}
+
+    PDWrite_arrayEnd(writer);
+    PDWrite_eventEnd(writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static const char* findRegStart(const char* res)
 {
 	char c = *res++;
@@ -1102,6 +1166,8 @@ static void updateEvents(PluginData* plugin, PDWriter* writer)
 	parseForBreakpoint(plugin, res);
 
 	parseDisassembly(writer, res, len);
+
+	parseForCallstack(writer, res, len);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
