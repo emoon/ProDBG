@@ -1179,11 +1179,11 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
     plugin->hasUpdatedRegistes = false;
     plugin->hasUpdatedExceptionLocation = false;
 
-	updateEvents(plugin, writer);
-
     onAction(plugin, action);
 
     processEvents(plugin, reader, writer);
+
+	updateEvents(plugin, writer);
 
     if (plugin->hasUpdatedRegistes)
     {
