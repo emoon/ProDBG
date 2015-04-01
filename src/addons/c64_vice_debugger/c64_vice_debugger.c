@@ -941,11 +941,16 @@ static void onAction(PluginData* plugin, PDAction action)
 
         case PDAction_step:
         {
-            onStep(plugin);
+    		sendCommand(plugin, "z\n");
             break;
         }
 
         case PDAction_stepOver:
+		{
+    		sendCommand(plugin, "n\n");
+    		break;
+		}
+
         case PDAction_stepOut:
         case PDAction_custom:
         {
