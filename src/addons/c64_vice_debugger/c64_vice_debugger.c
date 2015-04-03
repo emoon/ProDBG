@@ -748,7 +748,16 @@ static void getMemory(PluginData* data, PDReader* reader, PDWriter* writer)
     PDRead_findU64(reader, &address, "address_start", 0);
     PDRead_findU64(reader, &size, "size", 0);
 
+    // so this is a bit of a hack. If we request memory d000 we switch to io and then back
+    // this isn't really correct but will do for now
+
+	if (address == 0xdd00)
+		sendCommand(data, "bank io\n");
+
     sendCommand(data, "save \"%s\" 0 %04x %04x\n", data->tempFileFull, (uint16_t)(address), (uint16_t)(address + size));
+
+	if (address == 0xdd00)
+		sendCommand(data, "bank ram\n");
 
     // Wait 10 ms for operation to complete and if we can't open the file we try for a few times and if we still can't we bail
 
