@@ -269,7 +269,7 @@ static void sendCommand(PluginData* data, const char* format, ...)
     int ret = VICEConnection_send(data->conn, buffer, len, 0);
     (void)ret;
 
-    printf("sent command %s (%d - %d)\n", buffer, len, ret);
+    //printf("sent command %s (%d - %d)\n", buffer, len, ret);
 
     sleepMs(1);
 }
@@ -1198,7 +1198,7 @@ static void parseDisassembly(PDWriter* writer, const char* data, int length)
         // expected format of each line:
         // xxx.. .C:080e  A9 22       LDA #$22
 
-		const char* line = strstr(pch, ".C");
+		char* line = strstr(pch, ".C");
 
         if (!line)
             break;
@@ -1207,7 +1207,7 @@ static void parseDisassembly(PDWriter* writer, const char* data, int length)
 
         PDWrite_arrayEntryBegin(writer);
         PDWrite_u16(writer, "address", address);
-        PDWrite_string(writer, "line", parseDisassemblyLine(&pch[9]));
+        PDWrite_string(writer, "line", parseDisassemblyLine(&line[9]));
 
         PDWrite_arrayEntryEnd(writer);
 
