@@ -12,6 +12,13 @@
 
 #pragma once
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#pragma clang diagnostic ignored "-Wconversion"
+#pragma clang diagnostic ignored "-Wbad-function-cast"
+#endif
+
 #include <foundation/platform.h>
 
 #include <foundation/build.h>
@@ -67,6 +74,10 @@
 #include <foundation/regex.h>
 
 #include <foundation/main.h>
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 
 FOUNDATION_API int       foundation_initialize( const memory_system_t memory, const application_t application );

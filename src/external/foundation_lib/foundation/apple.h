@@ -60,6 +60,7 @@
 #  import <Foundation/NSTimer.h>
 #  import <Foundation/NSUndoManager.h>
 #  import <Foundation/NSFileManager.h>
+#  import <Foundation/NSLock.h>
 #  if FOUNDATION_PLATFORM_MACOSX
 #    import <Foundation/NSRunLoop.h>
 #    import <Foundation/NSExtensionContext.h>
@@ -67,6 +68,10 @@
 #    import <AppKit/NSAlert.h>
 #    import <AppKit/NSWindow.h>
 #    import <AppKit/NSViewController.h>
+#    import <AppKit/NSOpenGL.h>
+#	 import <AppKit/NSTrackingArea.h>
+#	 import <AppKit/NSButton.h>
+#	 import <AppKit/NSMenu.h>
 #  elif FOUNDATION_PLATFORM_IOS
 #    import <Foundation/NSUUID.h>
 #    import <Foundation/NSCoder.h>

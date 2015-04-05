@@ -113,7 +113,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t byteorder_swap64( ui
 static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void byteorder_swap( void* FOUNDATION_RESTRICT buffer, const int size )
 {
 	int i, num;
-	char* FOUNDATION_RESTRICT src = buffer;
+	char* FOUNDATION_RESTRICT src = (char*)buffer;
 	char* FOUNDATION_RESTRICT dst = src + ( size - 1 );
 	for( i = 0, num = size / 2; i < num; ++i, --dst, ++src )
 	{

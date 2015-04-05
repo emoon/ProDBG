@@ -19,7 +19,7 @@
 FOUNDATION_API const uuid_t           UUID_DNS;
 
 FOUNDATION_API uuid_t                 uuid_generate_time( void );
-FOUNDATION_API uuid_t                 uuid_generate_name( const uuid_t namespace, const char* name );
+FOUNDATION_API uuid_t                 uuid_generate_name( const uuid_t ns, const char* name );
 FOUNDATION_API uuid_t                 uuid_generate_random( void );
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool     uuid_equal( const uuid_t u0, const uuid_t u1 );
