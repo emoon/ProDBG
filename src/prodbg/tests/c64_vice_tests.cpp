@@ -162,7 +162,7 @@ static void test_c64_vice_connect(void**)
 #endif
     assert_non_null(viceLaunchPath);
 
-    const char* argv[] = { viceLaunchPath, "-remotemonitor", "examples/c64_vice/test.prg", 0};
+    const char* argv[] = { viceLaunchPath, "-remotemonitor", "-console", "examples/c64_vice/test.prg", 0 };
 
     s_viceHandle = Process_spawn(viceLaunchPath, argv);
 
@@ -170,7 +170,7 @@ static void test_c64_vice_connect(void**)
 
     // Wait 3 sec for VICE to launch
 
-    Time_sleepMs(4000);
+    Time_sleepMs(3000);
 
     // TODO: Non hard-coded path
 
@@ -254,7 +254,6 @@ void test_c64_vice_step_cpu(void**)
 
     assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -340,17 +339,14 @@ void test_c64_vice_get_memory(void**)
     PDWrite_eventEnd(writer);
     PDBinaryWriter_finalize(writer);
 
+    Session_update(s_session);
+
     PDReader* reader = s_session->reader;
+   	PDBinaryReader_initStream(reader, PDBinaryWriter_getData(s_session->currentWriter), PDBinaryWriter_getSize(s_session->currentWriter));
 
     for (int i = 0; i < 30; ++i)
 	{
-		printf("udate %d\n", i);
-    	Session_update(s_session);
     	Time_sleepMs(10);
-
-    	PDBinaryReader_initStream(reader, PDBinaryWriter_getData(s_session->currentWriter), PDBinaryWriter_getSize(s_session->currentWriter));
-
-    	reader = s_session->reader;
 
 		uint32_t event;
 
@@ -359,8 +355,6 @@ void test_c64_vice_get_memory(void**)
 			uint8_t* data;
 			uint64_t dataSize;
 			uint64_t address;
-
-			printf("event %d\n", event);
 
 			if (event != PDEventType_setMemory)
 				continue;

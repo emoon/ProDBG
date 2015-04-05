@@ -563,6 +563,8 @@ static uint8_t* getMemoryInternal(PluginData* data, const char* tempfile, size_t
             continue;
         }
 
+        printf("returing mem...\n");
+
         return mem;
     }
 
@@ -945,9 +947,6 @@ static bool shouldSendCommand(PluginData* data)
 {
 	bool t0 = data->state != PDDebugState_running;
 	bool t1 = VICEConnection_isConnected(data->conn);
-
-	printf("debugstate %d\n", data->state);
-	printf("should send command %d %d\n", t0, t1);
 
 	return t0 && t1;
 }
