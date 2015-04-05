@@ -269,7 +269,7 @@ static void sendCommand(PluginData* data, const char* format, ...)
     int ret = VICEConnection_send(data->conn, buffer, len, 0);
     (void)ret;
 
-    //printf("sent command %s (%d - %d)\n", buffer, len, ret);
+    printf("sent command %s (%d - %d)\n", buffer, len, ret);
 
     sleepMs(1);
 }
@@ -546,6 +546,23 @@ static void parseMonFile(PluginData* data, const char* filename)
 static uint8_t* getMemoryInternal(PluginData* data, const char* tempfile, size_t* readSize, uint16_t address, uint16_t addressEnd)
 {
 	*readSize = 0;
+
+#ifndef _WIN32
+	if (access(tempfile, F_OK) != -1)
+	{
+		if (unlink(tempfile) < 0)
+		{
+			printf("c64_vice: Unable to delete %s (error %d)\n", tempfile, errno);
+			return 0;
+		}
+	}
+#else
+	if (DeleteFile(tempfile) != 0)
+	{
+		printf("failed to delete %s\n", timepfile); 
+		return 0;
+	}
+#endif
 
     sendCommand(data, "save \"%s\" 0 %04x %04x\n", tempfile, address, addressEnd);
 
