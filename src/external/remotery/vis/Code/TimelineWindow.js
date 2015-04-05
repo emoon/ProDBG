@@ -8,13 +8,15 @@ TimelineWindow = (function()
 {
 	var BORDER = 10;
 
-	var ROW_START_SIZE = 168;
+	var ROW_START_SIZE = 210;
 
 	var box_template = "<div class='TimelineBox'></div>";
 
 
-	function TimelineWindow(wm, server, check_handler)
+	function TimelineWindow(wm, settings, server, check_handler)
 	{
+		this.Settings = settings;
+
 		// Ordered list of thread rows on the timeline
 		this.ThreadRows = [ ];
 
@@ -37,7 +39,7 @@ TimelineWindow = (function()
 		DOM.Event.AddHandler(this.TimelineContainer.Node, "mousemove", Bind(OnMouseMove, this));		
 
 		// Set time range AFTER the window has been created, as it uses the window to determine pixel coverage
-		this.TimeRange = new PixelTimeRange(0, 1 * 1000 * 1000, RowWidth(this));
+		this.TimeRange = new PixelTimeRange(0, 200 * 1000, RowWidth(this));
 
 		this.CheckHandler = check_handler;
 	}
@@ -119,16 +121,17 @@ TimelineWindow = (function()
 	TimelineWindow.prototype.DrawAllRows = function()
 	{
 		var time_range = this.TimeRange;
+		var draw_text = this.Settings.IsPaused;
 		for (var i in this.ThreadRows)
 		{
 			var thread_row = this.ThreadRows[i];
 			thread_row.SetVisibleFrames(time_range);
-			thread_row.Draw(time_range);
+			thread_row.Draw(draw_text);
 		}
 	}
 
 
-	function RowOffset(self)
+	function RowXOffset(self)
 	{
 		// Add sizing of the label
 		// TODO: Use computed size
@@ -152,7 +155,7 @@ TimelineWindow = (function()
 				scale = 1 / scale;
 
 		// What time is the mouse hovering over?
-		var x = mouse_state.Position[0] - RowOffset(self);
+		var x = mouse_state.Position[0] - RowXOffset(self);
 		var time_us = self.TimeRange.Start_us + x / self.TimeRange.usPerPixel;
 
 		// Calculate start time relative to the mouse hover position
@@ -166,6 +169,10 @@ TimelineWindow = (function()
 
 	function OnMouseDown(self, evt)
 	{
+		// Only manipulate the timelime when paused
+		if (!self.Settings.IsPaused)
+			return;
+
 		self.MouseDown = true;
 		self.TimelineMoved = false;
 		DOM.Event.StopDefaultAction(evt);
@@ -174,6 +181,10 @@ TimelineWindow = (function()
 
 	function OnMouseUp(self, evt)
 	{
+		// Only manipulate the timelime when paused
+		if (!self.Settings.IsPaused)
+			return;
+
 		var mouse_state = new Mouse.State(evt);
 
 		self.MouseDown = false;
@@ -187,7 +198,7 @@ TimelineWindow = (function()
 				var thread_row = self.ThreadRows[i];
 				if (thread_row.CanvasNode == row_node)
 				{
-					var select = thread_row.UpdateSelectedSample(mouse_state, self.TimeRange, RowOffset(self));
+					var select = thread_row.UpdateSelectedSample(mouse_state, RowXOffset(self));
 
 					// Call any selection handlers
 					if (self.OnSelectedHandler)
@@ -202,12 +213,16 @@ TimelineWindow = (function()
 
 	function OnMouseMove(self, evt)
 	{
+		// Only manipulate the timelime when paused
+		if (!self.Settings.IsPaused)
+			return;
+
 		var mouse_state = new Mouse.State(evt);
 
 		if (self.MouseDown)
 		{
 			// Get the time the mouse is over
-			var x = mouse_state.Position[0] - RowOffset(self);
+			var x = mouse_state.Position[0] - RowXOffset(self);
 			var time_us = self.TimeRange.Start_us + x / self.TimeRange.usPerPixel;
 
 			// Shift the visible time range with mouse movement
@@ -229,14 +244,14 @@ TimelineWindow = (function()
 				var thread_row = self.ThreadRows[i];
 				if (thread_row.CanvasNode == row_node)
 				{
-					var hover = thread_row.UpdateHoverSample(mouse_state, self.TimeRange, RowOffset(self));
+					var hover = thread_row.UpdateHoverSample(mouse_state, RowXOffset(self));
 
 					if (self.OnHoverHandler)
 						self.OnHoverHandler(thread_row.Name, hover);
 				}
 				else
 				{
-					thread_row.SetHoverSample(null, self.TimeRange);
+					thread_row.SetHoverSample(null, 0);
 					if (self.OnHoverHandler)
 						self.OnHoverHandler(thread_row.Name, null);
 				}

@@ -58,35 +58,49 @@ SampleWindow = (function()
 
 	SampleWindow.prototype.OnSamples = function(nb_samples, sample_digest, samples)
 	{
-		if (this.NbSamples != nb_samples || this.SampleDigest != sample_digest)
-		{
-			// If the sample content changes, rebuild the grid
-			this.NbSamples = nb_samples;
-			this.SampleDigest = sample_digest;
-			this.RootRow.Rows.Clear();
+		if (!this.Visible)
+			return;
 
-			if (this.Visible)
-				AddSamples(this.RootRow, samples, "");
+		// Recreate all the HTML if the number of samples gets bigger
+		if (nb_samples > this.NbSamples)
+		{
+			GrowGrid(this.RootRow, nb_samples);
+			this.NbSamples = nb_samples;
+		}
+
+		// If the content of the samples changes from previous update, update them all
+		if (this.SampleDigest != sample_digest)
+		{
+			this.RootRow.Rows.ClearIndex("_ID");
+			var index = UpdateSamples(this.RootRow, samples, 0, "");
+			this.SampleDigest = sample_digest;
+
+			// Clear out any left-over rows
+			for (var i = index; i < this.RootRow.Rows.Rows.length; i++)
+			{
+				var row = this.RootRow.Rows.Rows[i];
+				DOM.Node.Hide(row.Node);
+			}
 		}
 
 		else if (this.Visible)
 		{
-			// Otherwise just update the existing sample data
-			UpdateSamples(this.RootRow, samples);
+			// Otherwise just update the existing sample times
+			UpdateSampleTimes(this.RootRow, samples);
 		}
 	}
 
 
-	function AddSamples(parent_row, samples, indent)
+	function GrowGrid(parent_row, nb_samples)
 	{
-		for (var i in samples)
-		{
-			var sample = samples[i];
+		parent_row.Rows.Clear();
 
+		for (var i = 0; i < nb_samples; i++)
+		{
 			var cell_data =
 			{
-				_ID: sample.id,
-				Name: indent + sample.name,
+				_ID: i,
+				Name: "",
 				Control: new WM.Label()
 			};
 
@@ -95,15 +109,43 @@ SampleWindow = (function()
 				Name: "SampleNameCell",
 			};
 
-			var row = parent_row.Rows.Add(cell_data, null, cell_classes);
-			row.CellData.Control.SetText(sample.us_length);
-
-			AddSamples(parent_row, sample.children, indent + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+			parent_row.Rows.Add(cell_data, null, cell_classes);
 		}
 	}
 
 
-	function UpdateSamples(parent_row, samples)
+	function UpdateSamples(parent_row, samples, index, indent)
+	{
+		for (var i in samples)
+		{
+			var sample = samples[i];
+
+			// Match row allocation in GrowGrid
+			var row = parent_row.Rows.Rows[index++];
+
+			// Sample row may have been hidden previously
+			DOM.Node.Show(row.Node);
+			
+			// Assign unique ID so that the common fast path of updating sample times only
+			// can lookup target samples in the grid
+			row.CellData._ID = sample.id;
+			parent_row.Rows.AddRowToIndex("_ID", sample.id, row);
+
+			// Set sample name and colour
+			var name_node = row.CellNodes["Name"];
+			name_node.innerHTML = indent + sample.name;
+			DOM.Node.SetColour(name_node, sample.colour);
+
+			row.CellData.Control.SetText(sample.us_length);
+
+			index = UpdateSamples(parent_row, sample.children, index, indent + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+		}
+
+		return index;
+	}
+
+
+	function UpdateSampleTimes(parent_row, samples)
 	{
 		for (var i in samples)
 		{
@@ -113,7 +155,7 @@ SampleWindow = (function()
 			if (row)
 				row.CellData.Control.SetText(sample.us_length);
 
-			UpdateSamples(parent_row, sample.children);
+			UpdateSampleTimes(parent_row, sample.children);
 		}
 	}
 

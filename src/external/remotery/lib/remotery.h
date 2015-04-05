@@ -54,6 +54,9 @@ documented just below this comment.
 // Assuming Direct3D 11 headers/libs are setup, allow D3D11 profiling
 //#define RMT_USE_D3D11
 
+// Allow OpenGL profiling
+//#define RMT_USE_OPENGL
+
 
 /*
 ------------------------------------------------------------------------------------------------------------------------
@@ -87,12 +90,6 @@ documented just below this comment.
 #endif
 
 
-// Generate a unique symbol with the given prefix
-#define RMT_JOIN2(x, y) x ## y
-#define RMT_JOIN(x, y) RMT_JOIN2(x, y)
-#define RMT_UNIQUE(x) RMT_JOIN(x, __COUNTER__)
-
-
 // Allows macros to be written that can work around the inability to do: #define(x) #ifdef x
 // with the C preprocessor.
 #ifdef RMT_ENABLED
@@ -109,6 +106,11 @@ documented just below this comment.
     #define IFDEF_RMT_USE_D3D11(t, f) t
 #else
     #define IFDEF_RMT_USE_D3D11(t, f) f
+#endif
+#if defined(RMT_ENABLED) && defined(RMT_USE_OPENGL)
+#define IFDEF_RMT_USE_OPENGL(t, f) t
+#else
+#define IFDEF_RMT_USE_OPENGL(t, f) f
 #endif
 
 
@@ -157,7 +159,7 @@ typedef struct Remotery Remotery;
 
 
 // All possible error codes
-enum rmtError
+typedef enum rmtError
 {
     RMT_ERROR_NONE,
 
@@ -213,8 +215,11 @@ enum rmtError
     // Direct3D 11 error messages
     RMT_ERROR_D3D11_FAILED_TO_CREATE_QUERY,     // Failed to create query for sample
 
+    // OpenGL error messages
+    RMT_ERROR_OPENGL_ERROR,                     // Generic OpenGL error, no real need to expose more detail since app will probably have an OpenGL error callback registered
+
     RMT_ERROR_CUDA_UNKNOWN,
-};
+} rmtError;
 
 
 
@@ -230,6 +235,9 @@ enum rmtError
 
 // Can call remotery functions on a null pointer
 // TODO: Can embed extern "C" in these macros?
+
+#define rmt_Settings()																\
+    RMT_OPTIONAL_RET(RMT_ENABLED, _rmt_Settings(), NULL )
 
 #define rmt_CreateGlobalInstance(rmt)                                               \
     RMT_OPTIONAL_RET(RMT_ENABLED, _rmt_CreateGlobalInstance(rmt), RMT_ERROR_NONE)
@@ -257,6 +265,47 @@ enum rmtError
 
 #define rmt_EndCPUSample()                                                          \
     RMT_OPTIONAL(RMT_ENABLED, _rmt_EndCPUSample())
+
+
+// Callback function pointer types
+typedef void* (*rmtMallocPtr)(void* mm_context, rmtU32 size);
+typedef void* (*rmtReallocPtr)(void* mm_context, void* ptr, rmtU32 size);
+typedef void (*rmtFreePtr)(void* mm_context, void* ptr);
+typedef void (*rmtInputHandlerPtr)(const char* text, void* context);
+
+
+// Struture to fill in to modify Remotery default settings
+typedef struct rmtSettings
+{
+    rmtU32 port;
+
+    // How long to sleep between server updates, hopefully trying to give
+    // a little CPU back to other threads.
+    rmtU32 msSleepBetweenServerUpdates;
+
+    // Size of the internal message queues Remotery uses
+    // Will be rounded to page granularity of 64k
+    rmtU32 messageQueueSizeInBytes;
+
+    // If the user continuously pushes to the message queue, the server network
+    // code won't get a chance to update unless there's an upper-limit on how
+    // many messages can be consumed per loop.
+    rmtU32 maxNbMessagesPerUpdate;
+
+    // Callback pointers for memory allocation
+    rmtMallocPtr malloc;
+    rmtReallocPtr realloc;
+    rmtFreePtr free;
+    void* mm_context;
+
+    // Callback pointer for receiving input from the Remotery console
+    rmtInputHandlerPtr input_handler;
+
+    // Context pointer that gets sent to Remotery console callback function
+    void* input_handler_context;
+    
+    rmtPStr logFilename;
+} rmtSettings;
 
 
 // Structure to fill in when binding CUDA to Remotery
@@ -312,8 +361,21 @@ typedef struct rmtCUDABind
 #define rmt_EndD3D11Sample()                                                \
     RMT_OPTIONAL(RMT_USE_D3D11, _rmt_EndD3D11Sample())
 
-#define rmt_UpdateD3D11Frame()                                              \
-    RMT_OPTIONAL(RMT_USE_D3D11, _rmt_UpdateD3D11Frame())
+
+#define rmt_BindOpenGL()                                                    \
+    RMT_OPTIONAL(RMT_USE_OPENGL, _rmt_BindOpenGL())
+
+#define rmt_UnbindOpenGL()                                                  \
+    RMT_OPTIONAL(RMT_USE_OPENGL, _rmt_UnbindOpenGL())
+
+#define rmt_BeginOpenGLSample(name)                                         \
+    RMT_OPTIONAL(RMT_USE_OPENGL, {                                          \
+        static rmtU32 rmt_sample_hash_##name = 0;                           \
+        _rmt_BeginOpenGLSample(#name, &rmt_sample_hash_##name);             \
+    })
+
+#define rmt_EndOpenGLSample()                                               \
+    RMT_OPTIONAL(RMT_USE_OPENGL, _rmt_EndOpenGLSample())
 
 
 
@@ -366,6 +428,17 @@ struct rmt_EndD3D11SampleOnScopeExit
 };
 #endif
 
+#ifdef RMT_USE_OPENGL
+extern "C" void _rmt_EndOpenGLSample(void);
+struct rmt_EndOpenGLSampleOnScopeExit
+{
+    ~rmt_EndOpenGLSampleOnScopeExit()
+    {
+        _rmt_EndOpenGLSample();
+    }
+};
+#endif
+
 #endif
 
 
@@ -380,6 +453,9 @@ struct rmt_EndD3D11SampleOnScopeExit
 #define rmt_ScopedD3D11Sample(name)                                                                     \
         RMT_OPTIONAL(RMT_USE_D3D11, rmt_BeginD3D11Sample(name));                                        \
         RMT_OPTIONAL(RMT_USE_D3D11, rmt_EndD3D11SampleOnScopeExit rmt_ScopedD3D11Sample##name);
+#define rmt_ScopedOpenGLSample(name)                                                                    \
+        RMT_OPTIONAL(RMT_USE_OPENGL, rmt_BeginOpenGLSample(name));                                      \
+        RMT_OPTIONAL(RMT_USE_OPENGL, rmt_EndOpenGLSampleOnScopeExit rmt_ScopedOpenGLSample##name);
 
 #endif
 
@@ -401,6 +477,7 @@ struct rmt_EndD3D11SampleOnScopeExit
 extern "C" {
 #endif
 
+rmtSettings* _rmt_Settings( void );
 enum rmtError _rmt_CreateGlobalInstance(Remotery** remotery);
 void _rmt_DestroyGlobalInstance(Remotery* remotery);
 void _rmt_SetGlobalInstance(Remotery* remotery);
@@ -421,7 +498,13 @@ void _rmt_BindD3D11(void* device, void* context);
 void _rmt_UnbindD3D11(void);
 void _rmt_BeginD3D11Sample(rmtPStr name, rmtU32* hash_cache);
 void _rmt_EndD3D11Sample(void);
-void _rmt_UpdateD3D11Frame(void);
+#endif
+
+#ifdef RMT_USE_OPENGL
+void _rmt_BindOpenGL();
+void _rmt_UnbindOpenGL(void);
+void _rmt_BeginOpenGLSample(rmtPStr name, rmtU32* hash_cache);
+void _rmt_EndOpenGLSample(void);
 #endif
 
 #ifdef __cplusplus
