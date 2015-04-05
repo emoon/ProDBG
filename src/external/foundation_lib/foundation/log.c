@@ -305,6 +305,12 @@ void log_enable_stdout( bool enable )
 }
 
 
+log_callback_fn log_callback( void )
+{
+	return _log_callback;
+}
+
+
 void log_set_callback( log_callback_fn callback )
 {
 	_log_callback = callback;

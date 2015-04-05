@@ -74,7 +74,7 @@ void* _allocate_thread_local_block( unsigned int size )
 #endif
 
 
-ALIGNED_STRUCT( thread_t, 16 )
+FOUNDATION_ALIGNED_STRUCT( thread_t, 16 )
 {
 	FOUNDATION_DECLARE_OBJECT;
 
@@ -97,7 +97,7 @@ ALIGNED_STRUCT( thread_t, 16 )
 #  error Not implemented
 #endif
 };
-typedef ALIGNED_STRUCT( thread_t, 16 ) thread_t;
+typedef FOUNDATION_ALIGNED_STRUCT( thread_t, 16 ) thread_t;
 
 static uint64_t     _thread_main_id;
 static objectmap_t* _thread_map;
@@ -163,7 +163,7 @@ static void _thread_destroy( object_t id, void* thread_raw )
 }
 
 
-static FORCEINLINE void _thread_unref( thread_t* thread )
+static FOUNDATION_FORCEINLINE void _thread_unref( thread_t* thread )
 {
 	if( thread )
 		objectmap_lookup_unref( _thread_map, thread->id, _thread_destroy );
@@ -266,7 +266,7 @@ LONG WINAPI _thread_set_name_exception_filter( LPEXCEPTION_POINTERS pointers )
 }
 #endif
 
-static void NOINLINE _set_thread_name( const char* threadname )
+static void FOUNDATION_NOINLINE _set_thread_name( const char* threadname )
 {
 	THREADNAME_INFO info;
 	info.dwType = 0x1000;

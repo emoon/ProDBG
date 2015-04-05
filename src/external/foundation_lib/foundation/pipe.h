@@ -16,21 +16,21 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API stream_t*             pipe_allocate( void );
-FOUNDATION_API void                  pipe_initialize( stream_pipe_t* pipe );
-FOUNDATION_API void                  pipe_close_read( stream_t* pipe );
-FOUNDATION_API void                  pipe_close_write( stream_t* pipe );
+FOUNDATION_API stream_t*   pipe_allocate( void );
+FOUNDATION_API void        pipe_initialize( stream_pipe_t* pipe );
+FOUNDATION_API void        pipe_close_read( stream_t* pipe );
+FOUNDATION_API void        pipe_close_write( stream_t* pipe );
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-FOUNDATION_API void*                 pipe_read_handle( stream_t* pipe );
-FOUNDATION_API void*                 pipe_write_handle( stream_t* pipe );
+FOUNDATION_API void*       pipe_read_handle( stream_t* pipe );
+FOUNDATION_API void*       pipe_write_handle( stream_t* pipe );
 
 #endif
 
 #if FOUNDATION_PLATFORM_POSIX
 
-FOUNDATION_API int                   pipe_read_fd( stream_t* pipe );
-FOUNDATION_API int                   pipe_write_fd( stream_t* pipe );
+FOUNDATION_API int         pipe_read_fd( stream_t* pipe );
+FOUNDATION_API int         pipe_write_fd( stream_t* pipe );
 
 #endif

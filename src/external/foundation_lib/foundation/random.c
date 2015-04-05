@@ -146,7 +146,7 @@ void random_thread_deallocate( void )
 }
 
 
-static FORCEINLINE unsigned int random_from_state( unsigned int* RESTRICT state )
+static FOUNDATION_FORCEINLINE unsigned int random_from_state( unsigned int* FOUNDATION_RESTRICT state )
 {
 	unsigned int state_index = state[ RANDOM_STATE_SIZE ];
 	unsigned int bits0, bits1, bits2;
@@ -225,7 +225,6 @@ uint32_t random32( void )
 
 uint32_t random32_range( uint32_t low, uint32_t high )
 {
-	uint32_t rnum = random32();
 	if( low > high )
 	{
 		uint32_t tmp = low;
@@ -234,7 +233,7 @@ uint32_t random32_range( uint32_t low, uint32_t high )
 	}
 	if( high <= low + 1 )
 		return low;
-	return low + ( rnum % ( high - low ) );
+	return low + ( random32() % ( high - low ) );
 }
 
 
@@ -254,7 +253,6 @@ uint64_t random64( void )
 
 uint64_t random64_range( uint64_t low, uint64_t high )
 {
-	uint64_t rnum = random64();
 	if( low > high )
 	{
 		uint64_t tmp = low;
@@ -263,7 +261,7 @@ uint64_t random64_range( uint64_t low, uint64_t high )
 	}
 	if( high <= low + 1 )
 		return low;
-	return low + ( rnum % ( high - low ) );
+	return low + ( random64() % ( high - low ) );
 }
 
 
@@ -305,13 +303,26 @@ real random_range( real low, real high )
 int32_t random32_gaussian_range( int32_t low, int32_t high )
 {
 	const uint64_t cubic = ( ( ( (uint64_t)random32() + (uint64_t)random32() ) + ( (uint64_t)random32() + (uint64_t)random32() ) + 2ULL ) >> 2ULL );
+	if( low > high )
+	{
+		int32_t tmp = low;
+		low = high;
+		high = tmp;
+	}
 	return low + (int32_t)( ( cubic * (uint64_t)( high - low ) ) >> 32ULL );
 }
 
 
 real random_gaussian_range( real low, real high )
 {
-	const real result = low + ( ( high - low ) * REAL_C( 0.33333333333333333333333333333 ) * ( random_normalized() + random_normalized() + random_normalized() ) );
+	real result;
+	if( low > high )
+	{
+		real tmp = low;
+		low = high;
+		high = tmp;
+	}
+	result = low + ( ( high - low ) * REAL_C( 0.33333333333333333333333333333 ) * ( random_normalized() + random_normalized() + random_normalized() ) );
 	if( result <= low )
 		return low;
 	else if( result >= high )
@@ -325,14 +336,26 @@ int32_t random32_triangle_range( int32_t low, int32_t high )
 	const uint32_t t0 = random32();
 	const uint32_t t1  = random32();
 	const uint64_t tri = ( t0 >> 1 ) + ( t1 >> 1 ) + ( t0 & t1 & 1 );
-
+	if( low > high )
+	{
+		int32_t tmp = low;
+		low = high;
+		high = tmp;
+	}
 	return low + (int32_t)( ( tri * (uint64_t)( high - low ) ) >> 32ULL );
 }
 
 
 real random_triangle_range( real low, real high )
 {
-	const real result = low + ( high - low ) * REAL_C( 0.5 ) * ( random_normalized() + random_normalized() );
+	real result;
+	if( low > high )
+	{
+		real tmp = low;
+		low = high;
+		high = tmp;
+	}
+	result = low + ( high - low ) * REAL_C( 0.5 ) * ( random_normalized() + random_normalized() );
 	if( result <= low )
 		return low;
 	else if( result >= high )

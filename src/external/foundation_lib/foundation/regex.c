@@ -34,7 +34,7 @@
 
 typedef enum
 {
-	REGEXOP_BEGIN_CAPTURE,
+	REGEXOP_BEGIN_CAPTURE = 0,
 	REGEXOP_END_CAPTURE,
 	REGEXOP_BEGINNING_OF_LINE,
 	REGEXOP_END_OF_LINE,
@@ -52,6 +52,24 @@ typedef enum
 	REGEXOP_BRANCH_END
 } regex_op_t;
 
+/*static const char* opname[] = {
+	"BEGIN_CAPTURE",
+	"END_CAPTURE",
+	"BEGINNING_OF_LINE",
+	"END_OF_LINE",
+	"EXACT_MATCH",
+	"META_MATCH",
+	"ANY",
+	"ANY_OF",
+	"ANY_BUT",
+	"ZERO_OR_MORE",
+	"ONE_OR_MORE",
+	"ZERO_OR_MORE_SHORTEST",
+	"ONE_OR_MORE_SHORTEST",
+	"ZERO_OR_ONE",
+	"BRANCH",
+	"BRANCH_END"
+};*/
 
 struct regex_context_t
 {
@@ -68,8 +86,8 @@ static regex_context_t _regex_execute_single( regex_t* regex, int op, const char
 static regex_context_t _regex_execute( regex_t* regex, int op, const char* input, int inoffset, int inlength, regex_capture_t* captures, int maxcaptures );
 
 
-static FORCEINLINE CONSTCALL regex_context_t _regex_context_nomatch( int next_op ) { const regex_context_t context = { next_op, REGEXRES_NOMATCH }; return context; }
-static FORCEINLINE CONSTCALL regex_context_t _regex_context_internal_failure( int next_op ) { const regex_context_t context = { next_op, REGEXRES_INTERNAL_FAILURE }; return context; }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL regex_context_t _regex_context_nomatch( int next_op ) { const regex_context_t context = { next_op, REGEXRES_NOMATCH }; return context; }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL regex_context_t _regex_context_internal_failure( int next_op ) { const regex_context_t context = { next_op, REGEXRES_INTERNAL_FAILURE }; return context; }
 
 
 static int _regex_emit( regex_t** target, bool allow_grow, int ops, ... )
@@ -193,7 +211,7 @@ static int _regex_compile_quantifier( regex_t** target, bool allow_grow, int las
 }
 
 
-static regex_context_t _regex_consume_longest( regex_t* regex, int op, const char* input, int inoffset, int inlength )
+static regex_context_t _regex_consume_longest( regex_t* regex, int op, const char* input, int inoffset, int inlength, regex_capture_t* captures, int maxcaptures )
 {
 	regex_context_t context = { op, inoffset };
 	regex_context_t best_context = { -1, inoffset };
@@ -211,7 +229,11 @@ static regex_context_t _regex_consume_longest( regex_t* regex, int op, const cha
 
 		next_context = _regex_execute( regex, context.op, input, context.inoffset, inlength, 0, 0 );
 		if( next_context.inoffset >= REGEXRES_MATCH )
+		{
+			if( captures )
+				_regex_execute( regex, context.op, input, context.inoffset, inlength, captures, maxcaptures );
 			best_context = next_context;
+		}
 	}
 
 	//Make sure we return the next op (_regex_execute_single returns next op even on failure)
@@ -222,7 +244,7 @@ static regex_context_t _regex_consume_longest( regex_t* regex, int op, const cha
 }
 
 
-static regex_context_t _regex_consume_shortest( regex_t* regex, int op, const char* input, int inoffset, int inlength )
+static regex_context_t _regex_consume_shortest( regex_t* regex, int op, const char* input, int inoffset, int inlength, regex_capture_t* captures, int maxcaptures )
 {
 	regex_context_t context = { op, inoffset };
 	regex_context_t best_context = { -1, inoffset };
@@ -239,6 +261,8 @@ static regex_context_t _regex_consume_shortest( regex_t* regex, int op, const ch
 		next_context = _regex_execute( regex, context.op, input, context.inoffset, inlength, 0, 0 );
 		if( next_context.inoffset >= REGEXRES_MATCH )
 		{
+			if( captures )
+				_regex_execute( regex, context.op, input, context.inoffset, inlength, captures, maxcaptures );
 			best_context = next_context;
 			break;
 		}
@@ -632,7 +656,7 @@ static regex_context_t _regex_execute_single( regex_t* regex, int op, const char
 
 		case REGEXOP_ZERO_OR_MORE:
 		{
-			context = _regex_consume_longest( regex, op, input, inoffset, inlength );
+			context = _regex_consume_longest( regex, op, input, inoffset, inlength, captures, maxcaptures );
 
 			inoffset = context.inoffset;
 			op = context.op;
@@ -642,11 +666,11 @@ static regex_context_t _regex_execute_single( regex_t* regex, int op, const char
 
 		case REGEXOP_ONE_OR_MORE:
 		{
-			context = _regex_execute_single( regex, op, input, inoffset, inlength, 0, 0 );
+			context = _regex_execute_single( regex, op, input, inoffset, inlength, captures, maxcaptures );
 			if( context.inoffset < REGEXRES_MATCH )
 				return context;
 
-			context = _regex_consume_longest( regex, op, input, context.inoffset, inlength );
+			context = _regex_consume_longest( regex, op, input, context.inoffset, inlength, captures, maxcaptures );
 
 			inoffset = context.inoffset;
 			op = context.op;
@@ -656,7 +680,7 @@ static regex_context_t _regex_execute_single( regex_t* regex, int op, const char
 
 		case REGEXOP_ZERO_OR_MORE_SHORTEST:
 		{
-			context = _regex_consume_shortest( regex, op, input, inoffset, inlength );
+			context = _regex_consume_shortest( regex, op, input, inoffset, inlength, captures, maxcaptures );
 
 			inoffset = context.inoffset;
 			op = context.op;
@@ -666,11 +690,11 @@ static regex_context_t _regex_execute_single( regex_t* regex, int op, const char
 
 		case REGEXOP_ONE_OR_MORE_SHORTEST:
 		{
-			context = _regex_execute_single( regex, op, input, inoffset, inlength, 0, 0 );
+			context = _regex_execute_single( regex, op, input, inoffset, inlength, captures, maxcaptures );
 			if( context.inoffset < REGEXRES_MATCH )
 				return context;
 
-			context = _regex_consume_shortest( regex, op, input, context.inoffset, inlength );
+			context = _regex_consume_shortest( regex, op, input, context.inoffset, inlength, captures, maxcaptures );
 
 			inoffset = context.inoffset;
 			op = context.op;
@@ -712,7 +736,7 @@ static regex_context_t _regex_execute_single( regex_t* regex, int op, const char
 		{
 			int skip = regex->code[op++];
 			context = _regex_execute( regex, op, input, inoffset, inlength, captures, maxcaptures );
-			if( context.inoffset >= REGEXRES_MATCH)
+			if( context.inoffset >= REGEXRES_MATCH )
 			{
 				inoffset = context.inoffset;
 				op = context.op;

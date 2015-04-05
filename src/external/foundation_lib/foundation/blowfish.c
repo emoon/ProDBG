@@ -422,8 +422,8 @@ void blowfish_finalize( blowfish_t* blowfish )
 void blowfish_encrypt( const blowfish_t* blowfish, void* data, unsigned int length, const blowfish_mode_t mode, const uint64_t vec )
 {
 	/*lint --e{826} */
-	uint32_t* RESTRICT cur;
-	uint32_t* RESTRICT end;
+	uint32_t* FOUNDATION_RESTRICT cur;
+	uint32_t* FOUNDATION_RESTRICT end;
 	uint32_t chain[2];
 
 	if( length % 8 )
@@ -499,8 +499,8 @@ void blowfish_encrypt( const blowfish_t* blowfish, void* data, unsigned int leng
 
 void blowfish_decrypt( const blowfish_t* blowfish, void* data, unsigned int length, const blowfish_mode_t mode, const uint64_t vec )
 {
-	uint32_t* RESTRICT cur;
-	uint32_t* RESTRICT end;
+	uint32_t* FOUNDATION_RESTRICT cur;
+	uint32_t* FOUNDATION_RESTRICT end;
 	uint32_t chain[2];
 	uint32_t prev_chain[2];
 	uint32_t swap_chain[2];

@@ -39,7 +39,7 @@
 #endif
 
 #if FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
-extern void NOINLINE _gcc_barrier_function( uint32_t fp );
+extern void FOUNDATION_NOINLINE _gcc_barrier_function( uint32_t fp );
 void __attribute__((optimize("O0"))) _gcc_barrier_function( uint32_t fp ) { FOUNDATION_UNUSED( fp ); }
 #endif
 
@@ -378,7 +378,7 @@ static bool _initialize_stackwalker()
 }
 
 
-unsigned int NOINLINE stacktrace_capture( void** trace, unsigned int max_depth, unsigned int skip_frames )
+unsigned int FOUNDATION_NOINLINE stacktrace_capture( void** trace, unsigned int max_depth, unsigned int skip_frames )
 {
 	unsigned int num_frames = 0;
 
@@ -599,7 +599,7 @@ static bool _initialize_symbol_resolve()
 }
 
 
-static NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_frames )
+static FOUNDATION_NOINLINE char** _resolve_stack_frames( void** frames, unsigned int max_frames )
 {
 #if FOUNDATION_PLATFORM_WINDOWS
 	char**              lines = 0;

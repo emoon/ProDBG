@@ -65,7 +65,7 @@ struct fs_monitor_t
 	object_t          thread;
 	mutex_t*          signal;
 };
-typedef ALIGN(16) struct fs_monitor_t fs_monitor_t;
+typedef FOUNDATION_ALIGN(16) struct fs_monitor_t fs_monitor_t;
 
 struct stream_file_t
 {
@@ -78,7 +78,7 @@ struct stream_file_t
 	int64_t                size;
 #endif
 };
-typedef ALIGN(8) struct stream_file_t stream_file_t;
+typedef FOUNDATION_ALIGN(8) struct stream_file_t stream_file_t;
 
 #define GET_FILE( s ) ((stream_file_t*)(s))
 #define GET_FILE_CONST( s ) ((const stream_file_t*)(s))
@@ -396,9 +396,9 @@ char** fs_subdirs( const char* path )
 	if( !ref )
 		return arr;
 
-	pnacl_array_t entries;
+	pnacl_array_t entries = { 0, 0 };
 	struct PP_ArrayOutput output = { &pnacl_array_output, &entries };
-	if ( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
+	if( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
 	{
 		struct PP_DirectoryEntry* entry = entries.data;
 		for( int ient = 0; ient < entries.count; ++ient, ++entry )
@@ -495,9 +495,9 @@ char** fs_files( const char* path )
 	if( !ref )
 		return arr;
 
-	pnacl_array_t entries;
+	pnacl_array_t entries = { 0, 0 };
 	struct PP_ArrayOutput output = { &pnacl_array_output, &entries };
-	if ( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
+	if( _pnacl_file_ref->ReadDirectoryEntries( ref, output, PP_BlockUntilComplete() ) == PP_OK )
 	{
 		struct PP_DirectoryEntry* entry = entries.data;
 		for( int ient = 0; ient < entries.count; ++ient, ++entry )
@@ -516,10 +516,10 @@ char** fs_files( const char* path )
 		}
 	}
 
-	_pnacl_core->ReleaseResource( ref );
-
 	if( entries.data )
 		memory_deallocate( entries.data );
+
+	_pnacl_core->ReleaseResource( ref );
 
 	memory_context_pop();
 
@@ -736,7 +736,7 @@ void fs_copy_file( const char* source, const char* dest )
 	stream_t* outfile;
 	void* buffer;
 
-	char* destpath = path_path_name( dest );
+	char* destpath = path_directory_name( dest );
 	if( string_length( destpath ) )
 		fs_make_directory( destpath );
 	string_deallocate( destpath );
@@ -811,8 +811,8 @@ uint64_t fs_last_modified( const char* path )
 		if( ref )
 		{
 			struct PP_FileInfo info;
-			_pnacl_file_ref->Query( ref, &info, PP_BlockUntilComplete() );
-			tstamp = info.last_modified_time * 1000ULL;
+			if( _pnacl_file_ref->Query( ref, &info, PP_BlockUntilComplete() ) == PP_OK )
+				tstamp = info.last_modified_time * 1000ULL;
 
 			_pnacl_core->ReleaseResource( ref );
 		}
@@ -1438,26 +1438,28 @@ static fs_file_descriptor _fs_file_fopen( const char* path, unsigned int mode, b
 #  define MODESTRING(x) x
 	const char* modestr;
 #endif
+	int retry = 0;
 
 	if( mode & STREAM_IN )
 	{
 		if( mode & STREAM_OUT )
 		{
-			if( mode & STREAM_TRUNCATE )
+			if( mode & STREAM_CREATE )
 			{
-				if( mode & STREAM_CREATE )
+				if( mode & STREAM_TRUNCATE )
 					modestr = MODESTRING("w+b");
 				else
 				{
 					modestr = MODESTRING("r+b");
-					if( dotrunc )
-						*dotrunc = true;
+					retry = 1;
 				}
 			}
-			else if( mode & STREAM_CREATE )
-				modestr = MODESTRING("a+b");
 			else
+			{
 				modestr = MODESTRING("r+b");
+				if( ( mode & STREAM_TRUNCATE ) && dotrunc )
+					*dotrunc = true;
+			}
 		}
 		else
 		{
@@ -1473,7 +1475,10 @@ static fs_file_descriptor _fs_file_fopen( const char* path, unsigned int mode, b
 				}
 			}
 			else if( mode & STREAM_CREATE )
-				modestr = MODESTRING("a+b");
+			{
+				modestr = MODESTRING("r+b");
+				retry = 1;
+			}
 			else
 				modestr = MODESTRING("rb");
 		}
@@ -1487,29 +1492,41 @@ static fs_file_descriptor _fs_file_fopen( const char* path, unsigned int mode, b
 			else
 			{
 				modestr = MODESTRING("r+b");
-				*dotrunc = true;
+				if( dotrunc )
+					*dotrunc = true;
 			}
 		}
-		else if( mode & STREAM_CREATE )
-			modestr = MODESTRING("a+b");
 		else
+		{
 			modestr = MODESTRING("r+b");
+			if( mode & STREAM_CREATE )
+				retry = 1;
+		}
 	}
 	else
 		return 0;
 
+	do
+	{
 #if FOUNDATION_PLATFORM_WINDOWS
-	wpath = wstring_allocate_from_string( path, 0 );
-	fd = _wfsopen( wpath, modestr, ( mode & STREAM_OUT ) ? _SH_DENYWR : _SH_DENYNO );
-	wstring_deallocate( wpath );
+		wpath = wstring_allocate_from_string( path, 0 );
+		fd = _wfsopen( wpath, modestr, ( mode & STREAM_OUT ) ? _SH_DENYWR : _SH_DENYNO );
+		wstring_deallocate( wpath );
 #elif FOUNDATION_PLATFORM_POSIX
-	fd = fopen( path, modestr );
+		fd = fopen( path, modestr );
 #else
 #  error Not implemented
 #endif
+		//In case retry is set, it's because we want to create a file if it does not exist,
+		//but not truncate existing file, while still not using append mode since that fixes
+		//writing to end of file. Try first with r+b to avoid truncation, then if it fails
+		//i.e file does not exist, create it with w+b
+		modestr = MODESTRING("w+b");
+	} while( !fd && ( retry-- > 0 ) );
 
-	if( fd && !( mode & STREAM_ATEND ) && ( modestr[0] == 'a' ) )
-		fseek( fd, 0, SEEK_SET );
+
+	if( fd && ( mode & STREAM_ATEND ) )
+		fseek( fd, 0, SEEK_END );
 
 #endif
 

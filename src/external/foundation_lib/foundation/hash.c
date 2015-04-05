@@ -14,24 +14,23 @@
 #include <foundation/internal.h>
 
 
-//#if FOUNDATION_COMPILER_MSVC
-//#  pragma intrinsic(_rotl)
-//#  pragma intrinsic(_rotl64)
-//#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-#  define _rotl64(a, bits) (((a) << (bits)) | ((a) >> (64 - (bits))))
-//#endif
+#if FOUNDATION_COMPILER_MSVC
+#  include <stdlib.h>
+#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+#  define _rotl64(a, bits) (((a) << (uint64_t)(bits)) | ((a) >> (64ULL - (uint64_t)(bits))))
+#endif
 
 #define HASH_SEED 0xbaadf00d
 
 
-static FORCEINLINE CONSTCALL uint64_t fmix64( uint64_t k );
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t fmix64( uint64_t k );
 
 
 //-----------------------------------------------------------------------------
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
 
-static FORCEINLINE uint64_t getblock( const uint64_t* RESTRICT p, const unsigned int i )
+static FOUNDATION_FORCEINLINE uint64_t getblock( const uint64_t* FOUNDATION_RESTRICT p, const unsigned int i )
 {
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
 	return p[i];
@@ -41,7 +40,7 @@ static FORCEINLINE uint64_t getblock( const uint64_t* RESTRICT p, const unsigned
 }
 
 #if FOUNDATION_ARCH_ARM || FOUNDATION_ARCH_ARM_64
-static FORCEINLINE uint64_t getblock_nonaligned( const char* RESTRICT p, const unsigned int i )
+static FOUNDATION_FORCEINLINE uint64_t getblock_nonaligned( const char* FOUNDATION_RESTRICT p, const unsigned int i )
 {
 	uint64_t ret;
 	memcpy( &ret, p + i*8, 8 );
@@ -75,7 +74,7 @@ static FORCEINLINE uint64_t getblock_nonaligned( const char* RESTRICT p, const u
 
 //----------
 // Finalization mix - avalanches all bits to within 0.05% bias
-static FORCEINLINE uint64_t fmix64( uint64_t k )
+static FOUNDATION_FORCEINLINE uint64_t fmix64( uint64_t k )
 {
 	k ^= k >> 33;
 	k *= 0xff51afd7ed558ccd;

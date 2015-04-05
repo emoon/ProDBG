@@ -16,15 +16,17 @@
 #include <foundation/types.h>
 
 
-FOUNDATION_API error_t    error( void );
-FOUNDATION_API int        error_report( error_level_t level, error_t err );
-FOUNDATION_API void       error_set_callback( error_callback_fn callback );
+FOUNDATION_API error_t            error( void );
+FOUNDATION_API int                error_report( error_level_t level, error_t err );
+FOUNDATION_API error_callback_fn  error_callback( void );
+FOUNDATION_API void               error_set_callback( error_callback_fn callback );
 
 
 #if BUILD_ENABLE_ERROR_CONTEXT
 
 #define error_context_push( name, data )      do { _error_context_push( (name), (data) ); } while(0)
 #define error_context_pop()                   do { _error_context_pop(); } while(0)
+#define error_context_clear()                 do { _error_context_clear(); } while(0)
 #define error_context_buffer( buffer, size )  do { _error_context_buffer( buffer, size ); } while(0)
 #define error_context()                       _error_context()
 #define error_context_declare_local( decl )   decl
@@ -32,7 +34,8 @@ FOUNDATION_API void       error_set_callback( error_callback_fn callback );
 
 FOUNDATION_API void                           _error_context_push( const char* name, const char* data );
 FOUNDATION_API void                           _error_context_pop( void );
-FOUNDATION_API void                           _error_context_buffer( char* buffer, unsigned int size );
+FOUNDATION_API void                           _error_context_clear( void );
+FOUNDATION_API void                           _error_context_buffer( char* buffer, int size );
 FOUNDATION_API error_context_t*               _error_context( void );
 FOUNDATION_API void                           _error_context_thread_deallocate( void );
 
@@ -40,6 +43,7 @@ FOUNDATION_API void                           _error_context_thread_deallocate( 
 
 #define error_context_push( name, data )      /*lint -save -e506 -e751 */ do { (void)sizeof( name ); (void)sizeof( data ); } while(0) /*lint -restore -e506 -e751 */
 #define error_context_pop()                   do { /* */ } while(0)
+#define error_context_clear()                 do { /* */ } while(0)
 #define error_context_buffer( buffer, size )  /*lint -save -e506 -e751 */ do { (void)sizeof( buffer ); (void)sizeof( size ); } while(0) /*lint -restore -e506 -e751 */
 #define error_context()                       0
 #define error_context_declare_local( decl )   do { /* */ } while(0)

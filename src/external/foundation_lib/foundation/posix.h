@@ -34,6 +34,7 @@
 #include <pwd.h>
 #include <time.h>
 #include <pthread.h>
+#include <fcntl.h>
 
 #include <sys/ioctl.h>
 #include <sys/types.h>

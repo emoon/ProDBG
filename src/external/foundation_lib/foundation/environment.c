@@ -21,6 +21,7 @@ static char    _environment_initial_working_dir[FOUNDATION_MAX_PATHLEN];
 static char    _environment_current_working_dir[FOUNDATION_MAX_PATHLEN];
 static char    _environment_home_dir[FOUNDATION_MAX_PATHLEN];
 static char    _environment_temp_dir[FOUNDATION_MAX_PATHLEN];
+static bool    _environment_temp_dir_local;
 #if FOUNDATION_PLATFORM_WINDOWS
 static char*   _environment_var;
 #  include <foundation/windows.h>
@@ -48,6 +49,8 @@ static application_t       _environment_app;
 static char**              _environment_argv;
 static int                 _environment_main_argc;
 static const char* const*  _environment_main_argv;
+
+static void _environment_clean_temporary_directory( bool recreate );
 
 
 void _environment_main_args( int argc, const char* const* argv )
@@ -153,7 +156,7 @@ int _environment_initialize( const application_t application )
 		array_push( _environment_argv, arg );
 	}
 
-	char* exe_path = path_append( path_path_name( android_app()->activity->internalDataPath ), "lib" );
+	char* exe_path = path_append( path_directory_name( android_app()->activity->internalDataPath ), "lib" );
 
 	// This will return something like "app_process" since we're just a dynamic
 	// library that gets invoked by a launcher process
@@ -270,7 +273,7 @@ int _environment_initialize( const application_t application )
 
    	string_copy( _environment_initial_working_dir, environment_current_working_directory(), FOUNDATION_MAX_PATHLEN );
 
-	environment_temporary_directory();
+   	_environment_clean_temporary_directory( true );
 
 	return 0;
 }
@@ -278,6 +281,8 @@ int _environment_initialize( const application_t application )
 
 void _environment_shutdown( void )
 {
+	_environment_clean_temporary_directory( false );
+
 	string_array_deallocate( _environment_argv );
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -443,15 +448,17 @@ const char* environment_temporary_directory( void )
 	}
 #endif
 #if FOUNDATION_PLATFORM_ANDROID
-	//Use application external data path, or if that fails, internal data path
+	//Use application internal data path, or if that fails, external data path
 	struct android_app* app = android_app();
-	const char* test_path[] = { app && app->activity ? app->activity->externalDataPath : 0, app && app->activity ? app->activity->internalDataPath : 0 };
-	for( int itest = 0; itest < 2; ++itest )
+	const char* test_path[] = { app && app->activity ? app->activity->internalDataPath : 0, app && app->activity ? app->activity->externalDataPath : 0 };
+	for( int itest = 0; !_environment_temp_dir[0] && ( itest < 2 ); ++itest )
 	{
 		if( test_path[itest] && string_length( test_path[itest] ) )
 		{
+			fs_make_directory( test_path[itest] );
+
 			char* temp_path = path_prepend( string_format( ".tmp-%s", string_from_uuid_static( uuid_generate_random() ) ), test_path[itest] );
-			stream_t* temp_stream = fs_open_file( temp_path, STREAM_OUT | STREAM_BINARY );
+			stream_t* temp_stream = fs_open_file( temp_path, STREAM_CREATE | STREAM_OUT | STREAM_BINARY );
 			if( temp_stream )
 			{
 				stream_deallocate( temp_stream );
@@ -465,10 +472,11 @@ const char* environment_temporary_directory( void )
 				}
 				string_copy( _environment_temp_dir + len, ".tmp", FOUNDATION_MAX_PATHLEN - len );
 
-				//Clear it from old files
-				fs_remove_file( _environment_temp_dir );
-				fs_remove_directory( _environment_temp_dir );
-				fs_make_directory( _environment_temp_dir );
+				_environment_temp_dir_local = true;
+			}
+			else
+			{
+				_environment_temp_dir[0] = 0;
 			}
 			string_deallocate( temp_path );
 		}
@@ -478,6 +486,9 @@ const char* environment_temporary_directory( void )
 	if( !_environment_temp_dir[0] )
 	{
 		_environment_ns_temporary_directory( _environment_temp_dir );
+#if FOUNDATION_PLATFORM_IOS
+		_environment_temp_dir_local = true;
+#endif
 	}
 #endif
 #if FOUNDATION_PLATFORM_POSIX
@@ -494,11 +505,14 @@ const char* environment_temporary_directory( void )
 	{
 		unsigned int curlen = string_length( _environment_temp_dir );
 		unsigned int cfglen = string_length( _environment_app.config_dir );
-		if( ( curlen + cfglen + 2 ) < FOUNDATION_MAX_PATHLEN )
+		if( ( curlen + cfglen + 39 ) < FOUNDATION_MAX_PATHLEN )
 		{
 			if( _environment_temp_dir[curlen-1] != '/' )
 				_environment_temp_dir[curlen++] = '/';
-			memcpy( _environment_temp_dir + curlen, _environment_app.config_dir, cfglen + 1 );
+			memcpy( _environment_temp_dir + curlen, _environment_app.config_dir, cfglen );
+			_environment_temp_dir[curlen + cfglen] = '-';
+			memcpy( _environment_temp_dir + curlen + cfglen + 1, string_from_uuid_static( _environment_app.instance ), 37 );
+			_environment_temp_dir_local = true;
 		}
 	}
 #endif
@@ -508,6 +522,19 @@ const char* environment_temporary_directory( void )
 			_environment_temp_dir[curlen-1] = 0;
 	}
 	return _environment_temp_dir;
+}
+
+
+static void _environment_clean_temporary_directory( bool recreate )
+{
+	const char* path = environment_temporary_directory();
+
+	if( _environment_temp_dir_local && fs_is_directory( path ) )
+	{
+		fs_remove_directory( path );
+		if( recreate )
+			fs_make_directory( path );
+	}
 }
 
 
