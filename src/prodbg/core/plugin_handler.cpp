@@ -79,7 +79,7 @@ static void registerPlugin(const char* type, void* plugin, void* privateData)
 		return;
 	}
 
-	log_error("Unknown pluginType %s - %s", type, ((PDPluginBase*)plugin)->name);
+	pd_error("Unknown pluginType %s - %s", type, ((PDPluginBase*)plugin)->name);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -121,7 +121,7 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
     if (uv_dlopen(filename, &lib) == -1)
     {
         // TODO: Show error message
-        log_error("Unable to open %s error:\n", uv_dlerror(&lib))
+        pd_error("Unable to open %s error:\n", uv_dlerror(&lib))
         free((void*)filename);
         return false;
     }
@@ -129,7 +129,7 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
     if (uv_dlsym(&lib, "InitPlugin", &function) == -1)
     {
         // TODO: Show error message
-        log_error("Unable to find InitPlugin function in plugin %s\n", plugin);
+        pd_error("Unable to find InitPlugin function in plugin %s\n", plugin);
         uv_dlclose(&lib);
         free((void*)filename);
         return false;

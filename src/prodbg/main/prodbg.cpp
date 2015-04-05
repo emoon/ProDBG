@@ -25,7 +25,7 @@
 #include <windows.h>
 #endif
 
-//#include <foundation/foundation.h>
+#include <foundation/foundation.h>
 #include <remotery.h>
 #include <assert.h>
 
@@ -156,20 +156,19 @@ void createMenusForPlugins()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
 static void foundationInit()
 {
-	application_t application = { 0 };
+	static application_t application;
+
 	application.name = "ProDBG";
 	application.short_name = "ProDBG";
 	application.config_dir = "ProDBG";
 	application.version = foundation_version();
 	application.flags = APPLICATION_UTILITY;
-	application.dump_callback = test_crash_handler;
+	application.dump_callback = 0;
 
-	return foundation_initialize( memory_system_malloc(), application );
+	foundation_initialize(memory_system_malloc(), application);
 }
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -179,7 +178,7 @@ void ProDBG_create(void* window, int width, int height)
     //Rect settingsRect;
     //
 
-	//foundationInit();
+	foundationInit();
 
     context->session = Session_create();
     context->time = bx::getHPCounter();
@@ -191,7 +190,7 @@ void ProDBG_create(void* window, int width, int height)
     /*
        if (RMT_ERROR_NONE != rmt_CreateGlobalInstance(&s_remotery))
        {
-        log_error("Unable to setup Remotery");
+        pd_error("Unable to setup Remotery");
         return;
        }
      */
@@ -390,7 +389,7 @@ static void onLoadRunExec(Session* session, const char* filename)
 
     if (!pluginData)
     {
-        log_error("Unable to find LLDB Mac backend\n");
+        pd_error("Unable to find LLDB Mac backend\n");
         return;
     }
 
@@ -412,7 +411,7 @@ void ProDBG_event(int eventId)
 
     PluginData** pluginsData = PluginHandler_getViewPlugins(&count);
 
-    log_info("eventId 0x%x\n", eventId);
+    pd_info("eventId 0x%x\n", eventId);
 
     Vec2 mousePos = context->inputState.mousePos;
 

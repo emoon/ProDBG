@@ -104,7 +104,7 @@ Session* Session_startRemote(Session* s, const char* target, int port)
 
     if (!RemoteConnection_connect(conn, target, port))
     {
-        log_info("Unable to connect to %s:%d", target, port);
+        pd_info("Unable to connect to %s:%d", target, port);
         RemoteConnection_destroy(conn);
         return s;
     }
@@ -185,7 +185,7 @@ Session* Session_startLocal(Session* s, PDBackendPlugin* backend, const char* fi
 
     // updateLocal(s, PDAction_run);
 
-    //log_info("second update\n");
+    //pd_info("second update\n");
 
     return s;
 }

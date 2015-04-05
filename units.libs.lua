@@ -155,10 +155,17 @@ StaticLibrary {
         },
     },
 
-    Sources = { 
-        Glob {
+    Sources = {
+    	FGlob {
             Dir = "src/external/foundation_lib/foundation",
-            Extensions = { ".c", ".h" },
+			Extensions = { ".cpp", ".c", ".h", ".s", ".m" },
+			Filters = {
+				{ Pattern = "[/\\]windows[/\\]"; Config = { "win32-*", "win64-*" } },
+				{ Pattern = "[/\\]macosx[/\\]"; Config = "mac*-*" },
+				{ Pattern = "[/\\]x11[/\\]"; Config = { "linux-*" } },
+			},
+
+			Recursive = true,
         },
     },
 
