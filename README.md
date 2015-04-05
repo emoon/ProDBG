@@ -9,7 +9,9 @@ I did a presentation on 2014-11 about the project for the awesome rendering team
 
 ## Build status
 
-Mac <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Mac)/statusIcon"/></a> Win64 <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Win64)/statusIcon"/></a> Linux <img src="http://zenic.org:8111/app/rest/builds/buildType:(id:ProDBG_Linux)/statusIcon"/></a> Coverage [![Coverage Status](https://img.shields.io/coveralls/emoon/ProDBG.svg)](https://coveralls.io/r/emoon/ProDBG)
+Buildbot status: http://zenic.org:8020/#/builders
+
+Coverage [![Coverage Status](https://img.shields.io/coveralls/emoon/ProDBG.svg)](https://coveralls.io/r/emoon/ProDBG)
 
 
 ### Status
