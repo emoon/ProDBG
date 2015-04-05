@@ -13,6 +13,7 @@ Program {
     Env = {
         CPPPATH = { 
 			"src/external/remotery/lib",
+			"src/external/foundation_lib",
 			"src/external/jansson/include",
             "src/external/lua/src",
 			"src/external/libuv/include",

@@ -25,6 +25,7 @@
 #include <windows.h>
 #endif
 
+//#include <foundation/foundation.h>
 #include <remotery.h>
 #include <assert.h>
 
@@ -155,10 +156,30 @@ void createMenusForPlugins()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
+static void foundationInit()
+{
+	application_t application = { 0 };
+	application.name = "ProDBG";
+	application.short_name = "ProDBG";
+	application.config_dir = "ProDBG";
+	application.version = foundation_version();
+	application.flags = APPLICATION_UTILITY;
+	application.dump_callback = test_crash_handler;
+
+	return foundation_initialize( memory_system_malloc(), application );
+}
+*/
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ProDBG_create(void* window, int width, int height)
 {
     Context* context = &s_context;
     //Rect settingsRect;
+    //
+
+	//foundationInit();
 
     context->session = Session_create();
     context->time = bx::getHPCounter();
