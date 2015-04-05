@@ -557,11 +557,14 @@ static uint8_t* getMemoryInternal(PluginData* data, const char* tempfile, size_t
 		}
 	}
 #else
+	// TODO: Implement me.
+	/*
 	if (DeleteFile(tempfile) != 0)
 	{
 		printf("failed to delete %s\n", timepfile); 
 		return 0;
 	}
+	*/
 #endif
 
     sendCommand(data, "save \"%s\" 0 %04x %04x\n", tempfile, address, addressEnd);
