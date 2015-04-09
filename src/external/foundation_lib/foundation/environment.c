@@ -53,11 +53,18 @@ static const char* const*  _environment_main_argv;
 static void _environment_clean_temporary_directory( bool recreate );
 
 
+
 void _environment_main_args( int argc, const char* const* argv )
 {
 	_environment_main_argc = argc;
 	_environment_main_argv = argv;
 }
+
+void foundation_hack_environment_main_args( int argc, const char* const* argv )
+{
+	_environment_main_args(argc, argv);
+}
+
 
 #if !FOUNDATION_PLATFORM_PNACL
 
