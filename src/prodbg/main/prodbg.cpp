@@ -25,7 +25,10 @@
 #include <windows.h>
 #endif
 
+#ifndef _WIN32
 #include <foundation/foundation.h>
+#endif
+
 #include <remotery.h>
 #include <assert.h>
 
@@ -158,6 +161,9 @@ void createMenusForPlugins()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+#ifndef _WIN32
+
 static void foundationInit()
 {
 	static application_t application;
@@ -176,6 +182,8 @@ static void foundationInit()
 	foundation_initialize(memory_system_malloc(), application);
 }
 
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ProDBG_create(void* window, int width, int height)
@@ -185,7 +193,9 @@ void ProDBG_create(void* window, int width, int height)
     //
 
 
+#ifndef _WIN32
 	foundationInit();
+#endif
 
     context->session = Session_create();
     context->time = bx::getHPCounter();
