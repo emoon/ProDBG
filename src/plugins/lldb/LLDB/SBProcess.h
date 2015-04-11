@@ -20,13 +20,13 @@ namespace lldb {
 
 class SBEvent;
 
-class SBProcess
+class LLDB_API SBProcess
 {
 public:
     //------------------------------------------------------------------
     /// Broadcaster event bits definitions.
     //------------------------------------------------------------------
-    enum
+    FLAGS_ANONYMOUS_ENUM()
     {
         eBroadcastBitStateChanged   = (1 << 0),
         eBroadcastBitInterrupt      = (1 << 1),
@@ -316,6 +316,12 @@ public:
     //------------------------------------------------------------------
     const char *
     GetExtendedBacktraceTypeAtIndex (uint32_t idx);
+    
+    lldb::SBThreadCollection
+    GetHistoryThreads (addr_t addr);
+    
+    bool
+    IsInstrumentationRuntimePresent(InstrumentationRuntimeType type);
 
 protected:
     friend class SBAddress;
@@ -323,6 +329,7 @@ protected:
     friend class SBBreakpointLocation;
     friend class SBCommandInterpreter;
     friend class SBDebugger;
+    friend class SBExecutionContext;
     friend class SBFunction;
     friend class SBModule;
     friend class SBTarget;

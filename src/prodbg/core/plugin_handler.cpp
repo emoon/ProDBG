@@ -10,9 +10,34 @@
 #include <stb.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TODO: Move this to some general configuration about plugins and types
 
-static PluginData** s_backendPlugins;
-static PluginData** s_viewPlugins;
+static const char* s_pluginTypes[] =
+{
+	"ProDBG View",
+	"ProDBG Backend",
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum
+{
+	PRODBG_VIEW_PLUGIN,
+	PRODBG_BACKEND_PLUGIN,
+	PRODBG_PLUGIN_COUNT,
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PluginData** s_plugins[PRODBG_PLUGIN_COUNT];
+static const char** s_searchPaths;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PluginHandler_addSearchPath(const char* path)
+{
+	stb_arr_push(s_searchPaths, path);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -38,11 +63,11 @@ static PluginData* findPluginAll(const char* pluginFile, const char* pluginName)
 {
 	PluginData* plugin = 0;
 
-	if ((plugin = findPlugin(s_viewPlugins, pluginFile, pluginName)))
-		return plugin;
-
-	if ((plugin = findPlugin(s_backendPlugins, pluginFile, pluginName)))
-		return plugin;
+	for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
+	{
+		if ((plugin = findPlugin(s_plugins[i], pluginFile, pluginName)))
+			return plugin;
+	}
 
 	return 0;
 }
@@ -60,23 +85,15 @@ static void registerPlugin(const char* type, void* plugin, void* privateData)
     pluginData->type = type;
     pluginData->filename = filename;
 
-	// TODO: Fix me
-
-	if (strstr(type, "ProDBG View"))
+    for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
 	{
-		if (findPlugin(s_viewPlugins, filename, ((PDPluginBase*)plugin)->name))
-			return;
+		if (strstr(type, s_pluginTypes[i]))
+		{
+			if (findPlugin(s_plugins[i], filename, ((PDPluginBase*)plugin)->name))
+				return;
 
-		stb_arr_push(s_viewPlugins, pluginData);
-		return;
-	}
-	else if (strstr(type, "ProDBG Backend"))
-	{
-		if (findPlugin(s_backendPlugins, filename, ((PDPluginBase*)plugin)->name))
-			return;
-
-		stb_arr_push(s_backendPlugins, pluginData);
-		return;
+			return (void)stb_arr_push(s_plugins[i], pluginData);
+		}
 	}
 
 	pd_error("Unknown pluginType %s - %s", type, ((PDPluginBase*)plugin)->name);
@@ -147,8 +164,9 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 void PluginHandler_unloadAllPlugins()
 {
     // TODO: Actually unload everything
-    stb_arr_setlen(s_viewPlugins, 0);
-    stb_arr_setlen(s_backendPlugins, 0);
+
+	for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
+    	stb_arr_setlen(s_plugins[i], 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -183,16 +201,16 @@ PluginData* PluginHandler_findPlugin(const char** paths, const char* pluginFile,
 
 PluginData** PluginHandler_getBackendPlugins(int* count)
 {
-    *count = stb_arr_len(s_backendPlugins);
-    return s_backendPlugins;
+    *count = stb_arr_len(s_plugins[PRODBG_BACKEND_PLUGIN]);
+    return s_plugins[PRODBG_BACKEND_PLUGIN];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 PluginData** PluginHandler_getViewPlugins(int* count)
 {
-    *count = stb_arr_len(s_viewPlugins);
-    return s_viewPlugins;
+    *count = stb_arr_len(s_plugins[PRODBG_VIEW_PLUGIN]);
+    return s_plugins[PRODBG_VIEW_PLUGIN];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -216,11 +234,11 @@ PluginData* PluginHandler_getPluginData(void* plugin)
 {
 	PluginData* data = 0;
 
-	if ((data = getPluginData(s_viewPlugins, plugin)))
-		return data;
-
-	if ((data = getPluginData(s_backendPlugins, plugin)))
-		return data;
+	for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
+	{
+		if ((data = getPluginData(s_plugins[i], plugin)))
+			return data;
+	}
 
     return 0;
 }

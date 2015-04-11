@@ -12,7 +12,7 @@
 
 #include <LLDB/lldb-types.h>
 
-#if defined (_WIN32)
+#if defined (_MSC_VER)
     #if defined(EXPORT_LIBLLDB)
         #define  LLDB_API __declspec(dllexport)
     #elif defined(IMPORT_LIBLLDB)
@@ -41,15 +41,14 @@
 //
 // A build script phase can modify this version number if needed.
 //----------------------------------------------------------------------
-#define LLDB_VERSION 320 
+#define LLDB_VERSION 340 
 #define LLDB_REVISION 0 
-#define LLDB_VERSION_STRING "320.99.0" 
+#define LLDB_VERSION_STRING "340.99.0" 
 
 //----------------------------------------------------------------------
 // LLDB defines
 //----------------------------------------------------------------------
 #define LLDB_GENERIC_ERROR              UINT32_MAX
-#define LLDB_DEFAULT_SHELL              "/bin/sh"
 
 //----------------------------------------------------------------------
 // Breakpoints

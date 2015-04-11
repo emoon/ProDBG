@@ -16,7 +16,7 @@
 
 namespace lldb {
 
-class SBFunction
+class LLDB_API SBFunction
 {
 public:
 
@@ -58,6 +58,9 @@ public:
 
     lldb::SBBlock
     GetBlock ();
+    
+    lldb::LanguageType
+    GetLanguage ();
 
     bool
     operator == (const lldb::SBFunction &rhs) const;
