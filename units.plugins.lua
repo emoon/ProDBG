@@ -76,7 +76,10 @@ SharedLibrary {
     Name = "sourcecode_plugin",
     
     Env = {
-        CPPPATH = { "api/include", },
+        CPPPATH = { 
+        	"api/include", 
+        	"src/external", 
+        },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
     },
 

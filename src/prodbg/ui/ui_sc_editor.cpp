@@ -636,6 +636,7 @@ public:
         SetFocusState(true);
         CaretSetPeriod(0);
 
+		/*
         size_t textSize = 0;
         const char* text = static_cast<const char*>(File_loadToMemory("examples/fake_6502/fake6502_main.c", &textSize, 0));
         assert(text);
@@ -644,9 +645,10 @@ public:
                     reinterpret_cast<sptr_t>(static_cast<const char*>(text)));
 
         free((void*)text);
+        */
 
         // Need to do this after setting the text
-        SendCommand(SCI_SETREADONLY, 1);
+        //SendCommand(SCI_SETREADONLY, 1);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -789,7 +791,35 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     std::vector<unsigned int> m_breakpointLines;
+
+    // Interface sent to external code
+
+    ImScEditor interface;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+intptr_t ImScEditor::SendCommand(unsigned int message, uintptr_t p0, intptr_t p1)
+{
+	ScEditor* editor = (ScEditor*)privateData;
+	return (intptr_t)editor->SendCommand(message, (uptr_t)p0, (sptr_t)p1);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ImScEditor::Update()
+{
+	ScEditor* editor = (ScEditor*)privateData;
+	ScEditor_tick(editor);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ImScEditor::Draw()
+{
+	ScEditor* editor = (ScEditor*)privateData;
+	ScEditor_render(editor);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -949,6 +979,9 @@ ScEditor* ScEditor_create(int width, int height)
 {
     ScEditor* ed = new ScEditor;
 
+    ed->interface.userData = 0;
+    ed->interface.privateData = ed;
+
     ed->Initialise();
     ScEditor_resize(ed, 0, 0, width, height);
 
@@ -988,4 +1021,11 @@ void ScEditor_scrollMouse(ScEditor* editor, const PDMouseWheelEvent& wheelEvent)
 {
     if (editor)
         editor->HandleMouseWheel(wheelEvent);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ImScEditor* ScEditor_getInterface(ScEditor* editor)
+{
+	return &editor->interface;
 }

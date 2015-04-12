@@ -78,18 +78,15 @@ bool IsActiveWindow(ImGuiWindow* window)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool ScInputText(const char* label, char* buf, size_t buf_size, float xSize, float ySize, ImGuiInputTextFlags flags, void (*callback)(void*), void* user_data)
+ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*callback)(void*), void* userData)
 {
     ImGuiState& g = *GImGui;
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
-        return false;
+        return 0;
 
-    (void)buf;
-    (void)buf_size;
-    (void)flags;
     (void)callback;
-    (void)user_data;
+    (void)userData;
 
     const ImGuiIO& io = g.IO;
     const ImGuiStyle& style = g.Style;
@@ -105,7 +102,7 @@ bool ScInputText(const char* label, char* buf, size_t buf_size, float xSize, flo
     ItemSize(bb);
 
     if (!ItemAdd(frame_bb, &id))
-        return false;
+        return 0;
 
 	ImGuiStorage* storage = GetStateStorage();
 	ScEditor* editor = (ScEditor*)storage->GetVoidPtr(id);
@@ -151,10 +148,8 @@ bool ScInputText(const char* label, char* buf, size_t buf_size, float xSize, flo
 	ScEditor_setPos(frame_bb.Min.x, frame_bb.Min.y);
 
 	ScEditor_resize(editor, 0, 0, (int)(frame_bb.Max.x - frame_bb.Min.x) , (int)(frame_bb.Max.y - frame_bb.Min.y));
-	ScEditor_tick(editor);
-	ScEditor_render(editor);
-
-	return true;
+	
+	return ScEditor_getInterface(editor);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

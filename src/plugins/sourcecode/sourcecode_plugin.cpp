@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <scintilla/include/Scintilla.h>
 
 struct SourceCodeData
 {
@@ -99,7 +100,20 @@ static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
 {
     (void)data;
     //uiFuncs->columns(1, "sourceview", true);
-    uiFuncs->scInputText("test", 0, 0, 800, 700, 0, 0, 0);
+    PDSCInterface* scFuncs = uiFuncs->scInputText("test", 800, 700, 0, 0);
+
+	const char* testText = "Test\nTest2\nTest3\n\0";
+
+	static bool hasSentText = false;
+
+	if (!hasSentText)
+	{
+		PDUI_SCSendCommand(scFuncs, SCI_ADDTEXT, strlen(testText), (intptr_t)testText);
+		hasSentText = true;
+	}
+
+	PDUI_SCUpdate(scFuncs);
+	PDUI_SCDraw(scFuncs);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -161,7 +175,6 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
     showInUI(data, uiFuncs);
 
     PDWrite_eventBegin(writer, PDEventType_getExceptionLocation);
-    PDWrite_u8(writer, "dummy_get_location", 0); // TODO: Remove me
     PDWrite_eventEnd(writer);
 
     return 0;
@@ -184,10 +197,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-    {
-        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-    }
+PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+{
+	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
