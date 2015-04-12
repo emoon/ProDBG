@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -121,6 +122,16 @@ typedef struct PDInputTextCallbackData
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef struct PDSCInterface
+{
+	intptr_t (*sendCommand)(void* privData, unsigned int message, uintptr_t p0, intptr_t p1);
+	void (*update)(void* privData);
+	void (*draw)(void* privData);
+	void* privateData;
+} PDSCInterface;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef struct PDUI
 {
     // Layout
@@ -160,8 +171,11 @@ typedef struct PDUI
     void (*text)(const char* fmt, ...);
     void (*textColored)(PDVec4 col, const char* fmt, ...);
     void (*textWrapped)(const char* fmt, ...);
-	bool (*scInputText)(const char* label, char* buf, int buf_size, float xSize, float ySize, int flags, void (*callback)(void*), void* userData);
     bool (*inputText)(const char* label, char* buf, int buf_size, int flags, void (*callback)(PDInputTextCallbackData*), void* userData);
+
+    // Scintilla Editor Widget
+	
+	PDSCInterface* (*scInputText)(const char* label, float xSize, float ySize, void (*callback)(void*), void* userData);
 
     // Widgets
 
@@ -221,6 +235,10 @@ typedef struct PDUI
 #define PDUI_button(uiFuncs, label) uiFuncs->button(label)
 #define PDUI_buttonSmall(uiFuncs, label) uiFuncs->buttonSmall(label)
 #define PDUI_buttonSize(uiFuncs, label, w, h, repeat) uiFuncs->button(label, w, h, repeat)
+
+#define PDUI_SCSendCommand(funcs, msg, p0, p1) funcs->sendCommand(funcs->privateData, msg, p0, p1)
+#define PDUI_SCDraw(funcs) funcs->update(funcs->privateData)
+#define PDUI_SCUpdate(funcs) funcs->draw(funcs->privateData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
