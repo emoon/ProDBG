@@ -44,7 +44,7 @@
     @OPENGL:        OpenGL event sampling
 */
 
-#include "Remotery.h"
+#include "remotery.h"
 
 #ifdef RMT_PLATFORM_WINDOWS
   #pragma comment(lib, "ws2_32.lib")
