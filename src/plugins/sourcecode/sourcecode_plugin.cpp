@@ -79,9 +79,6 @@ static void setExceptionLocation(PDSCInterface* sourceFuncs, SourceCodeData* dat
     const char* filename;
     uint32_t line;
 
-    (void)data;
-
-
     // TODO: How to show this? Tell user to switch to disassembly view?
 
     if (PDRead_findString(inEvents, &filename, "filename", 0) == PDReadStatus_notFound)
@@ -90,21 +87,17 @@ static void setExceptionLocation(PDSCInterface* sourceFuncs, SourceCodeData* dat
     if (PDRead_findU32(inEvents, &line, "line", 0) == PDReadStatus_notFound)
         return;
 
-    //printf("Set exception %s %d\n", filename, line); 
-
     if (strcmp(filename, data->filename))
 	{
 		size_t size = 0;
 		void* fileData = readFileFromDisk(filename, &size);
 
-		printf("load file %s %d\n", fileData, (int)size);
-
 		if (fileData)
-		{
 			PDUI_SCSendCommand(sourceFuncs, SCI_ADDTEXT, size, (intptr_t)fileData);
-		}
 		else
 			printf("Sourcecode_plugin: Unable to load %s\n", filename);
+
+		free(fileData);
 
 		strcpy(data->filename, filename);
 	}
@@ -112,10 +105,6 @@ static void setExceptionLocation(PDSCInterface* sourceFuncs, SourceCodeData* dat
 	PDUI_SCSendCommand(sourceFuncs, SCI_GOTOLINE, (uintptr_t)line, 0);
 
 	data->line = (int)line;
-
-    //parseFile(&data->file, filename);
-
-    //data->line = line;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
