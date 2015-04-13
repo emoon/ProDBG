@@ -21,6 +21,8 @@ struct CallstackData
 {
 	std::vector<CallstackEntry> callstack;
     uint64_t location;
+    char filename[4096];
+    int line;
     bool request;
 };
 
@@ -30,6 +32,9 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 {
     (void)serviceFunc;
     CallstackData* userData = new CallstackData;
+
+    memset(userData->filename, 0, sizeof(userData->filename));
+    userData->line = -1;
 
     userData->location = 0;
     userData->request = false;
@@ -213,6 +218,8 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* reader, PDWriter* wri
 
             case PDEventType_setExceptionLocation:
             {
+            	const char* filename = 0;
+            	uint32_t line = 0;
             	uint64_t location = 0;
 
                 PDRead_findU64(reader, &location, "address", 0);
@@ -223,7 +230,18 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* reader, PDWriter* wri
 					data->request = true;
 				}
 
-                break;
+				PDRead_findString(reader, &filename, "filename", 0);
+				PDRead_findU32(reader, &line, "line", 0);
+
+				if (!filename || line == 0)
+                	break;
+
+                if (strcmp(data->filename, filename))
+				{
+					strcpy(data->filename, filename);
+					data->line = (int)line;
+					data->request = true;
+				}
             }
         }
     }
