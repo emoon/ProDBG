@@ -24,9 +24,9 @@ void log_level_pop();
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define log_error(...) pd_log(LOG_ERROR,  __FILE__, __LINE__, __VA_ARGS__);
-#define log_debug(...) pd_log(LOG_DEBUG,  __FILE__, __LINE__, __VA_ARGS__);
-#define log_info(...)  pd_log(LOG_INFO,   __FILE__, __LINE__, __VA_ARGS__);
+#define pd_error(...) pd_log(LOG_ERROR,  __FILE__, __LINE__, __VA_ARGS__);
+#define pd_debug(...) pd_log(LOG_DEBUG,  __FILE__, __LINE__, __VA_ARGS__);
+#define pd_info(...)  pd_log(LOG_INFO,   __FILE__, __LINE__, __VA_ARGS__);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

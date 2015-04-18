@@ -11,43 +11,36 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void plugin_handler_null_base_path(void** state)
+static void plugin_handler_null_base_path(void**)
 {
-    (void)state;
-    assert_false(PluginHandler_addPlugin(0, "dummy"));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void plugin_handler_null_plugin(void** state)
+static void plugin_handler_null_plugin(void**)
 {
-    (void)state;
     assert_false(PluginHandler_addPlugin("dummyPath", 0));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void plugin_handler_dummy_paths(void** state)
+static void plugin_handler_dummy_paths(void**)
 {
-    (void)state;
     assert_false(PluginHandler_addPlugin("dummyPath", "dummy"));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void plugin_handler_add_plugin(void** state)
+static void plugin_handler_add_plugin(void**)
 {
-    (void)state;
     assert_false(PluginHandler_addPlugin("dummyPath", "dummy"));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void plugin_handler_add_plugin_true(void** state)
+static void plugin_handler_add_plugin_true(void**)
 {
     int count = 0;
-
-    (void)state;
 
     assert_true(PluginHandler_addPlugin(OBJECT_DIR, "sourcecode_plugin"));
     assert_true(PluginHandler_addPlugin(OBJECT_DIR, "registers_plugin"));
@@ -68,10 +61,8 @@ static void plugin_handler_add_plugin_true(void** state)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void plugin_handler_find_plugin(void** state)
+static void plugin_handler_find_plugin(void**)
 {
-    (void)state;
-
     assert_null(PluginHandler_findPlugin(0, "dummyFile", "dummyName", false));
     assert_null(PluginHandler_findPlugin(0, "dummyFile", "dummyName", true));
     assert_null(PluginHandler_findPlugin(0, "sourcecode_plugin", "Source Code View", false));

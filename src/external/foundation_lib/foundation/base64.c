@@ -15,7 +15,7 @@
 
 /*lint -e{840}  We use null character in string literal deliberately here*/
 static const char _base64_decode[] = "|\0\0\0}rstuvwxyz{\0\0\0\0\0\0\0>?@ABCDEFGHIJKLMNOPQRSTUVW\0\0\0\0\0\0XYZ[\\]^_`abcdefghijklmnopq";
-static const char _base64_code[]   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char _base64_encode[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 
 unsigned int base64_encode( const void* src, char* dst, unsigned int srcsize, unsigned int dstsize )
@@ -40,24 +40,24 @@ unsigned int base64_encode( const void* src, char* dst, unsigned int srcsize, un
 	ptr = dst;
 	while( srcsize > 2 )
 	{
-		bits = ( *carr >> 2 ) & 0x3F; *ptr++ = _base64_code[bits];
-		bits = (unsigned char)( ( *carr & 0x3 ) << 4 ) | ( ( *( carr + 1 ) >> 4 ) & 0xF ); *ptr++ = _base64_code[bits];
-		bits = (unsigned char)( ( *( carr + 1 ) & 0xF ) << 2 ) | ( ( *( carr + 2 ) >> 6 ) & 0x3 ); *ptr++ = _base64_code[bits];
-		bits = *( carr + 2 ) & 0x3F; *ptr++ = _base64_code[bits];
+		bits = ( *carr >> 2 ) & 0x3F; *ptr++ = _base64_encode[bits];
+		bits = (unsigned char)( ( *carr & 0x3 ) << 4 ) | ( ( *( carr + 1 ) >> 4 ) & 0xF ); *ptr++ = _base64_encode[bits];
+		bits = (unsigned char)( ( *( carr + 1 ) & 0xF ) << 2 ) | ( ( *( carr + 2 ) >> 6 ) & 0x3 ); *ptr++ = _base64_encode[bits];
+		bits = *( carr + 2 ) & 0x3F; *ptr++ = _base64_encode[bits];
 		srcsize -= 3;
 		carr += 3;
 	}
 	if( srcsize == 2 )
 	{
-		bits = ( *carr >> 2 ) & 0x3F; *ptr++ = _base64_code[bits];
-		bits = (unsigned char)( ( *carr & 0x3 ) << 4 ) | ( ( *( carr + 1 ) >> 4 ) & 0xF ); *ptr++ = _base64_code[bits];
-		bits = (unsigned char)( ( *( carr + 1 ) & 0xF ) << 2 ); *ptr++ = _base64_code[bits];
+		bits = ( *carr >> 2 ) & 0x3F; *ptr++ = _base64_encode[bits];
+		bits = (unsigned char)( ( *carr & 0x3 ) << 4 ) | ( ( *( carr + 1 ) >> 4 ) & 0xF ); *ptr++ = _base64_encode[bits];
+		bits = (unsigned char)( ( *( carr + 1 ) & 0xF ) << 2 ); *ptr++ = _base64_encode[bits];
 		*ptr++ = '=';
 	}
 	else if( srcsize == 1 )
 	{
-		bits = ( *carr >> 2 ) & 0x3F; *ptr++ = _base64_code[bits];
-		bits = (unsigned char)( ( *carr & 0x3 ) << 4 ); *ptr++ = _base64_code[bits];
+		bits = ( *carr >> 2 ) & 0x3F; *ptr++ = _base64_encode[bits];
+		bits = (unsigned char)( ( *carr & 0x3 ) << 4 ); *ptr++ = _base64_encode[bits];
 		*ptr++ = '=';
 		*ptr++ = '=';
 	}
@@ -68,7 +68,7 @@ unsigned int base64_encode( const void* src, char* dst, unsigned int srcsize, un
 }
 
 
-#define _decodeblock_base64( in, out ) \
+#define _base64_decodeblock( in, out ) \
     out[ 0 ] = (char)( in[0] << 2 | in[1] >> 4 ); \
     out[ 1 ] = (char)( in[1] << 4 | in[2] >> 2 ); \
     out[ 2 ] = (char)( ( ( in[2] << 6 ) & 0xc0 ) | in[3] );
@@ -101,7 +101,7 @@ unsigned int base64_decode( const char* src, void* dst, unsigned int srcsize, un
 		if( blocksize )
 		{
 			char out[3];
-			_decodeblock_base64( in, out );
+			_base64_decodeblock( in, out );
 			for( i = 0; ( i < blocksize - 1 ) && ( !cdstend || ( cdst < cdstend ) ); ++i )
 				*cdst++ = out[i];
 		}

@@ -21,13 +21,13 @@
 #endif
 
 
-FOUNDATION_API PURECALL hash_t               hash( const void* key, const unsigned int len );
+FOUNDATION_API FOUNDATION_PURECALL hash_t    hash( const void* key, const unsigned int len );
 FOUNDATION_API const char*                   hash_to_string( const hash_t value );
 
 
 #if BUILD_ENABLE_STATIC_HASH_DEBUG
 
-static FORCEINLINE hash_t                    static_hash( const void* key, const unsigned int len, const hash_t value );
+static FOUNDATION_FORCEINLINE hash_t         static_hash( const void* key, const unsigned int len, const hash_t value );
 
 #  define static_hash_string( key, value )   static_hash( key, string_length( key ), value )
 
@@ -44,7 +44,7 @@ static FORCEINLINE hash_t                    static_hash( const void* key, const
 
 FOUNDATION_API void                          _static_hash_store( const void* key, const unsigned int len, const hash_t value );
 
-static FORCEINLINE hash_t                    static_hash( const void* key, const unsigned int len, const hash_t value )
+static FOUNDATION_FORCEINLINE hash_t         static_hash( const void* key, const unsigned int len, const hash_t value )
 {
 	hash_t ref = hash( key, len );
 	FOUNDATION_ASSERT_MSGFORMAT( !value || ( ref == value ), "Static hash fail: %s -> 0x%llx, expected 0x%llx", key, ref, value );

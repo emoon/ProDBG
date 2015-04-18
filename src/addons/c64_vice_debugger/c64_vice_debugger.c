@@ -269,7 +269,7 @@ static void sendCommand(PluginData* data, const char* format, ...)
     int ret = VICEConnection_send(data->conn, buffer, len, 0);
     (void)ret;
 
-    //printf("sent command %s (%d - %d)\n", buffer, len, ret);
+    printf("sent command %s (%d - %d)\n", buffer, len, ret);
 
     sleepMs(1);
 }
@@ -464,7 +464,6 @@ static void setBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
 		sendCommand(data, "break $%04x\n", (uint16_t)address);
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void connectToLocalHost(PluginData* data)
@@ -522,6 +521,151 @@ static void* createInstance(ServiceFunc* serviceFunc)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void parseMonFile(PluginData* data, const char* filename)
+{
+	char textLine[1024];
+
+	FILE* f = fopen(filename, "rt");
+
+	if (!f)
+		return;
+
+	for (;;)
+	{
+		if (!fgets(textLine, sizeof(textLine), f))
+			break;
+
+		sendCommand(data, "%s\n", textLine);
+	}
+
+	fclose(f);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static uint8_t* getMemoryInternal(PluginData* data, const char* tempfile, size_t* readSize, uint16_t address, uint16_t addressEnd)
+{
+	*readSize = 0;
+
+#ifndef _WIN32
+	if (access(tempfile, F_OK) != -1)
+	{
+		if (unlink(tempfile) < 0)
+		{
+			printf("c64_vice: Unable to delete %s (error %d)\n", tempfile, errno);
+			return 0;
+		}
+	}
+#else
+	// TODO: Implement me.
+	/*
+	if (DeleteFile(tempfile) != 0)
+	{
+		printf("failed to delete %s\n", timepfile); 
+		return 0;
+	}
+	*/
+#endif
+
+    sendCommand(data, "save \"%s\" 0 %04x %04x\n", tempfile, address, addressEnd);
+
+    // Wait 10 ms for operation to complete and if we can't open the file we try for a few times and if we still can't we bail
+
+    sleepMs(10);
+
+    for (int i = 0; i < 10; ++i)
+    {
+        uint8_t* mem = loadToMemory(data->tempFileFull, readSize);
+
+        if (!mem)
+        {
+            sleepMs(1);
+            continue;
+        }
+
+        printf("returing mem...\n");
+
+        return mem;
+    }
+
+    printf("Unable to get memory...\n");
+
+    return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static bool loadImage(PluginData* data, const char* filename)
+{
+    char* res = 0;
+    int len = 0;
+
+	sendCommand(data, "load \"%s\" 0\n", filename);
+
+	sleepMs(200);
+
+    if (!getData(data, &res, &len))
+	{
+		printf("failed to get any data back from load...\n");
+    	return false;
+	}
+
+	printf("res %s\n", res);
+
+	// TODO: Parse that we actually manage to load the image
+
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static uint16_t getBasicStart(PluginData* data)
+{
+	size_t readSize = 0;
+
+	uint8_t* memory = getMemoryInternal(data, data->tempFileFull, &readSize, 0x800, 0x810); 
+
+	if (!memory)
+	{
+		printf("falied to get memory :(\n");
+		return 0;
+	}
+
+	printf("size read %d\n", (int)readSize);
+
+	const char* address = (char*)&memory[2 + 6];
+
+	printf("memory\n");
+
+	for (int i = 0; i < 18; ++i)
+	{
+		char c = (char)memory[i];
+		char pc = (c >= 32 && c < 127) ? c : '.';
+		printf("%c ", pc);
+	}
+
+	printf("\n");
+
+	for (int i = 0; i < 18; ++i)
+	{
+		char c = (char)memory[i];
+		printf("%02x ", c);
+	}
+
+	printf("\n");
+
+	uint16_t startAddress = (uint16_t)strtol(address, 0, 10);
+
+	printf("basic: address to start from (text) %s\n", address);
+	printf("start address %d %x\n", startAddress, startAddress);
+
+	free(memory);
+
+	return startAddress;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void launchVICEWithConfig(PluginData* data)
 {
 	int r, cmdIndex = 1;
@@ -542,7 +686,7 @@ static void launchVICEWithConfig(PluginData* data)
 		//args[cmdIndex++] = "examples/c64_vice/test_mon.txt";
 	}
 
-	args[cmdIndex++] = (char*)data->config.prgFile; 
+	//args[cmdIndex++] = (char*)data->config.prgFile; 
 	args[cmdIndex++] = NULL;
 
 	options.exit_cb = 0;
@@ -558,6 +702,42 @@ static void launchVICEWithConfig(PluginData* data)
 	sleepMs(3000);
 
 	connectToLocalHost(data);
+
+	// if connected we load the image and make sure we get a reply back
+
+	if (VICEConnection_isConnected(data->conn))
+	{
+		printf("connected to vice...\n");
+
+		if (!loadImage(data, data->config.prgFile))
+			return;
+
+		printf("image loaded ...\n");
+
+		// parse the 
+
+		parseMonFile(data, data->config.breakpointFile);
+
+		printf("start from basic...\n");
+
+		// start vice!
+		
+		printf("started from basic\n");
+
+		uint16_t address = getBasicStart(data);
+
+		parseMonFile(data, data->config.breakpointFile);
+
+		if (address != 0)
+		{
+			printf("start from %x\n", address);
+			sendCommand(data, "g %x\n", address);
+		}
+
+		return;
+	}
+
+	printf("unable to make connection with vice\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -651,6 +831,7 @@ static void parseRegisters(PluginData* plugin, char* data, int length)
     // (C:$e5cf)   ADDR AC XR YR SP 00 01 NV-BDIZC LIN CYC  STOPWATCH
     //           .;e5cf 00 00 0a f3 2f 37 00100010 000 001    3400489
     //
+    //
 
     char* str = strstr(s_tempBuffer, ".;");
 
@@ -738,48 +919,56 @@ static void getDisassembly(PluginData* data, PDReader* reader)
     sendCommand(data, "disass $%04x $%04x\n", (uint16_t)addressStart, (uint16_t)(addressStart + instructionCount * 3));
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void getMemory(PluginData* data, PDReader* reader, PDWriter* writer)
 {
     uint64_t address;
     uint64_t size;
+    size_t readSize = 0;
 
     PDRead_findU64(reader, &address, "address_start", 0);
     PDRead_findU64(reader, &size, "size", 0);
 
-    sendCommand(data, "save \"%s\" 0 %04x %04x\n", data->tempFileFull, (uint16_t)(address), (uint16_t)(address + size));
+    // so this is a bit of a hack. If we request memory d000 we switch to io and then back
+    // this isn't really correct but will do for now
 
-    // Wait 10 ms for operation to complete and if we can't open the file we try for a few times and if we still can't we bail
+	if (address == 0xdd00)
+		sendCommand(data, "bank io\n");
 
-    sleepMs(10);
+	uint8_t* memory = getMemoryInternal(data, data->tempFileFull, &readSize, (uint16_t)(address), (uint16_t)(address + size));
 
-    for (int i = 0; i < 10; ++i)
-    {
-        size_t readSize = 0;
+	if (address == 0xdd00)
+		sendCommand(data, "bank ram\n");
 
-        uint8_t* mem = loadToMemory(data->tempFileFull, &readSize);
-
-        if (!mem)
-        {
-            sleepMs(1);
-            continue;
-        }
-
+	if (memory)
+	{
         // Lets do this!
         // + 2 is because VICE writes address at the start of the block and at the end
+        //
+
+    	printf("c64_vice: sending memory\n");
 
         PDWrite_eventBegin(writer, PDEventType_setMemory);
         PDWrite_u64(writer, "address", address);
-        PDWrite_data(writer, "data", mem + 2, (uint32_t)(readSize - 3));
+        PDWrite_data(writer, "data", memory + 2, (uint32_t)(readSize - 3));
         PDWrite_eventEnd(writer);
 
         // writer takes a copy
 
-        free(mem);
+        free(memory);
+	}
+}
 
-        return;
-    }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static bool shouldSendCommand(PluginData* data)
+{
+	bool t0 = data->state != PDDebugState_running;
+	bool t1 = VICEConnection_isConnected(data->conn);
+
+	return t0 && t1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -797,15 +986,13 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 
             case PDEventType_getRegisters:
             {
-                if (!data->hasUpdatedRegistes && data->state != PDDebugState_running)
-                	sendCommand(data, "registers\n");
-
+               	sendCommand(data, "registers\n");
                 break;
             }
 
             case PDEventType_getCallstack:
             {
-                if (data->state != PDDebugState_running)
+            	if (shouldSendCommand(data))
                 	sendCommand(data, "bt\n");
 
                 break;
@@ -813,7 +1000,7 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 
             case PDEventType_getDisassembly:
             {
-				if (data->state != PDDebugState_running)
+            	if (shouldSendCommand(data))
                     getDisassembly(data, reader);
 
                 break;
@@ -821,7 +1008,7 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 
             case PDEventType_getMemory:
             {
-				if (data->state != PDDebugState_running)
+            	if (shouldSendCommand(data))
                     getMemory(data, reader, writer);
                 break;
             }
@@ -1030,7 +1217,7 @@ static void parseDisassembly(PDWriter* writer, const char* data, int length)
         // expected format of each line:
         // xxx.. .C:080e  A9 22       LDA #$22
 
-		const char* line = strstr(pch, ".C");
+		char* line = strstr(pch, ".C");
 
         if (!line)
             break;
@@ -1039,7 +1226,7 @@ static void parseDisassembly(PDWriter* writer, const char* data, int length)
 
         PDWrite_arrayEntryBegin(writer);
         PDWrite_u16(writer, "address", address);
-        PDWrite_string(writer, "line", parseDisassemblyLine(&pch[9]));
+        PDWrite_string(writer, "line", parseDisassemblyLine(&line[9]));
 
         PDWrite_arrayEntryEnd(writer);
 

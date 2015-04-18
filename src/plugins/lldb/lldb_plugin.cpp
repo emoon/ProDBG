@@ -49,6 +49,7 @@ void* createInstance(ServiceFunc* serviceFunc)
     return plugin;
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void destroyInstance(void* userData)
@@ -128,7 +129,7 @@ void onRun(LLDBPlugin* plugin)
 
         if (!error.Success())
         {
-            printf("error false\n");
+            printf("LLDB_Plugin: Unable to launch %s\n", error.GetCString());
             return;
         }
 
@@ -159,6 +160,8 @@ void onRun(LLDBPlugin* plugin)
 static void setCallstack(LLDBPlugin* plugin, PDWriter* writer)
 {
     lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
+
+    printf("set callstack\n");
 
     int frameCount = (int)thread.GetNumFrames();
 
@@ -193,6 +196,8 @@ static void setCallstack(LLDBPlugin* plugin, PDWriter* writer)
             lldb::SBFileSpec fileSpec = compileUnit.GetSupportFileAtIndex(0);
             fileSpec.GetPath(filename, sizeof(filename));
             sprintf(fileLine, "%s:%d", filename, entry.GetLine());
+
+            printf("callstack %s:%d\n", fileLine, entry.GetLine());
 
             PDWrite_string(writer, "filename", filename);
             PDWrite_u32(writer, "line", entry.GetLine());
@@ -280,6 +285,8 @@ static void setExecutable(LLDBPlugin* plugin, PDReader* reader)
 	}
 
     printf("Valid target %s\n", filename); 
+
+    onRun(plugin);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -442,7 +449,10 @@ static void sendExceptionState(LLDBPlugin* plugin, PDWriter* writer)
 static void updateLLDBEvent(LLDBPlugin* plugin, PDWriter* writer)
 {
     if (!plugin->process.IsValid())
+	{
+		printf("process invalid\n");
         return;
+	}
 
     lldb::SBEvent evt;
 

@@ -14,8 +14,8 @@
 #include <foundation/internal.h>
 
 
-FOUNDATION_STATIC_ASSERT( ALIGNOF(object_base_t) >= 8, "object_base_t alignment" );
-FOUNDATION_STATIC_ASSERT( ALIGNOF(objectmap_t) >= 8, "objectmap_t alignment" );
+FOUNDATION_STATIC_ASSERT( FOUNDATION_ALIGNOF(object_base_t) >= 8, "object_base_t alignment" );
+FOUNDATION_STATIC_ASSERT( FOUNDATION_ALIGNOF(objectmap_t) >= 8, "objectmap_t alignment" );
 
 
 void _object_initialize( object_base_t* obj, object_t id )

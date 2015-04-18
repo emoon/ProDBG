@@ -6,11 +6,24 @@
 //
 
 
+Settings = (function()
+{
+	function Settings()
+	{
+		this.IsPaused = false;
+	}
+
+	return Settings;
+
+})();
+
+
 Remotery = (function()
 {
 	function Remotery()
 	{
 		this.WindowManager = new WM.WindowManager();
+		this.Settings = new Settings();
 
 		this.ConnectionAddress = LocalStore.Get("App", "Global", "ConnectionAddress", "ws://127.0.0.1:17815/rmt");
 		this.Server = new WebSocketConnection();
@@ -20,9 +33,9 @@ Remotery = (function()
 		this.Console = new Console(this.WindowManager, this.Server);
 
 		// Create required windows
-		this.TitleWindow = new TitleWindow(this.WindowManager, this.Server, this.ConnectionAddress);
+		this.TitleWindow = new TitleWindow(this.WindowManager, this.Settings, this.Server, this.ConnectionAddress);
 		this.TitleWindow.SetConnectionAddressChanged(Bind(OnAddressChanged, this));
-		this.TimelineWindow = new TimelineWindow(this.WindowManager, this.Server, Bind(OnTimelineCheck, this));
+		this.TimelineWindow = new TimelineWindow(this.WindowManager, this.Settings, this.Server, Bind(OnTimelineCheck, this));
 		this.TimelineWindow.SetOnHover(Bind(OnSampleHover, this));
 		this.TimelineWindow.SetOnSelected(Bind(OnSampleSelected, this));
 
@@ -42,6 +55,7 @@ Remotery = (function()
 
 		// Hook up browser-native canvas refresh
 		this.DisplayFrame = 0;
+		this.LastKnownPause = this.Settings.IsPaused;
 		var self = this;
 		(function display_loop()
 		{
@@ -83,6 +97,19 @@ Remotery = (function()
 
 	function DrawTimeline(self)
 	{
+		// Has pause state changed?
+		if (self.Settings.IsPaused != self.LastKnownPaused)
+		{
+			// When switching TO paused, draw one last frame to ensure the sample text gets drawn
+			self.LastKnownPaused = self.Settings.IsPaused;
+			self.TimelineWindow.DrawAllRows();
+			return;
+		}
+
+		// Don't waste time drawing the timeline when paused
+		if (self.Settings.IsPaused)
+			return;
+
 		// requestAnimationFrame can run up to 60hz which is way too much for drawing the timeline
 		// Assume it's running at 60hz and skip frames to achieve 10hz instead
 		// Doing this instead of using setTimeout because it's better for browser rendering (or; will be once WebGL is in use)
@@ -97,14 +124,22 @@ Remotery = (function()
 	{
 		var name = message.thread_name;
 
+		// Discard any new samples while paused
+		if (self.Settings.IsPaused)
+			return;
+
 		// Add to frame history for this thread
 		var thread_frame = new ThreadFrame(message);
 		if (!(name in self.FrameHistory))
 			self.FrameHistory[name] = [ ];
-		self.FrameHistory[name].push(thread_frame);
+		var frame_history = self.FrameHistory[name];
+		frame_history.push(thread_frame);
 
-		if (self.TitleWindow.Paused)
-			return;
+		// Discard old frames to keep memory-use constant
+		var max_nb_frames = 10000;
+		var extra_frames = frame_history.length - max_nb_frames;
+		if (extra_frames > 0)
+			frame_history.splice(0, extra_frames);
 
 		// Create sample windows on-demand
 		if (!(name in self.SampleWindows))
@@ -117,7 +152,7 @@ Remotery = (function()
 
 		// Set on the window and timeline
 		self.SampleWindows[name].OnSamples(message.nb_samples, message.sample_digest, message.samples);
-		self.TimelineWindow.OnSamples(name, self.FrameHistory[name]);
+		self.TimelineWindow.OnSamples(name, frame_history);
 	}
 
 
@@ -147,7 +182,7 @@ Remotery = (function()
 	{
 		// Hover only changes sample window contents when paused
 		var sample_window = self.SampleWindows[thread_name];
-		if (sample_window && self.TitleWindow.Paused)
+		if (sample_window && self.Settings.IsPaused)
 		{
 			if (hover == null)
 			{

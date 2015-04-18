@@ -177,6 +177,8 @@ uuid_t string_to_uuid( const char* str )
 {
 	uuid_convert_t convert;
 	unsigned int data[10];
+	memset( data, 0, sizeof( data ) );
+	convert.raw.data1 = 0;
 	sscanf( str, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", &convert.raw.data1, &data[0], &data[1], &data[2], &data[3], &data[4], &data[5], &data[6], &data[7], &data[8], &data[9] );
 	convert.raw.data2 = data[0];
 	convert.raw.data3 = data[1];

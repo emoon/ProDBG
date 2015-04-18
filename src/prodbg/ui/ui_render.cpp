@@ -38,7 +38,7 @@ static const bgfx::Memory* loadShader(const char* filename)
 
     if (!data)
     {
-        log_error("Unable to load shader %s\n", filename)
+        pd_error("Unable to load shader %s\n", filename)
         return 0;
     }
 
@@ -74,20 +74,20 @@ bgfx::ProgramHandle loadProgram(const char* vsName, const char* fsName)
 
     if (!isValid(vsHandle))
     {
-        log_error("Unable to load vsShader %s\n", vsName)
+        pd_error("Unable to load vsShader %s\n", vsName)
         return ph;
     }
 
     if (!isValid(fsHandle))
     {
-        log_error("Unable to load fsShader %s\n", fsName)
+        pd_error("Unable to load fsShader %s\n", fsName)
         return ph;
     }
 
     ph = bgfx::createProgram(vsHandle, fsHandle, true);
 
     if (!isValid(ph))
-        log_error("Unable to create shader program for %s %s\n", vsName, fsName);
+        pd_error("Unable to create shader program for %s %s\n", vsName, fsName);
 
     return ph;
 }

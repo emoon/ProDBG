@@ -2,6 +2,8 @@
 #include <stddef.h>
 #include <setjmp.h>
 #include <cmocka.h>
+#include <string.h>
+#include <stdio.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -100,37 +102,35 @@ static void updateRegisters(CPUState* cpuState, PDReader* reader)
             cpuState->x = (uint8_t)regValue;
         else if (!strcmp(name, "y"))
             cpuState->y = (uint8_t)regValue;
-
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void handleEvents(CPUState* cpuState, Session* session)
+bool handleEvents(CPUState* cpuState, Session* session)
 {
-    PDReader* reader = session->reader;
+    for (int i = 0; i < 30; ++i)
+	{
+		Session_update(s_session);
+		Time_sleepMs(10);
 
-    PDBinaryReader_initStream(reader, PDBinaryWriter_getData(session->currentWriter), PDBinaryWriter_getSize(session->currentWriter));
+		uint32_t event = 0;
 
-    uint32_t event;
-    bool foundRegisters = false;
+		PDReader* reader = session->reader;
 
-    while ((event = PDRead_getEvent(reader)) != 0)
-    {
-        switch (event)
-        {
-            case PDEventType_setRegisters:
-            {
-                updateRegisters(cpuState, reader);
-                foundRegisters = true;
-                break;
-            }
-        }
-    }
+		PDBinaryReader_initStream(reader, PDBinaryWriter_getData(session->currentWriter), PDBinaryWriter_getSize(session->currentWriter));
 
-    (void)cpuState;
+		while ((event = PDRead_getEvent(reader)) != 0)
+		{
+			if (event != PDEventType_setRegisters)
+				continue;
 
-    assert_true(foundRegisters);
+			updateRegisters(cpuState, reader);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -164,7 +164,7 @@ static void test_c64_vice_connect(void**)
 #endif
     assert_non_null(viceLaunchPath);
 
-    const char* argv[] = { viceLaunchPath, "-remotemonitor", "examples/c64_vice/test.prg", 0};
+    const char* argv[] = { viceLaunchPath, "-remotemonitor", "-console", "examples/c64_vice/test.prg", 0 };
 
     s_viceHandle = Process_spawn(viceLaunchPath, argv);
 
@@ -172,7 +172,7 @@ static void test_c64_vice_connect(void**)
 
     // Wait 3 sec for VICE to launch
 
-    Time_sleepMs(4000);
+    Time_sleepMs(3000);
 
     // TODO: Non hard-coded path
 
@@ -199,21 +199,16 @@ void test_c64_vice_get_registers(void**)
 {
     CPUState state;
 
-    PDWriter* writer = s_session->currentWriter;
+	//Session_action(s_session, PDAction_step);
+    Session_update(s_session);
 
+    PDWriter* writer = s_session->currentWriter;
     PDWrite_eventBegin(writer, PDEventType_getRegisters);
     PDWrite_eventEnd(writer);
     PDBinaryWriter_finalize(writer);
 
-    Session_update(s_session);
-
-	Time_sleepMs(10);
-
-    Session_update(s_session);
-
-    handleEvents(&state, s_session);
-
-    assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
+   	assert_true(handleEvents(&state, s_session));
+	assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -223,22 +218,19 @@ void test_c64_vice_step_cpu(void**)
     CPUState state;
 
     Session_action(s_session, PDAction_step);
-    Session_update(s_session);
-    handleEvents(&state, s_session);
+    assert_true(handleEvents(&state, s_session));
 
     assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
     assert_true(state.a == 0x22);
     assert_true(state.x == 0x32);
 
     Session_action(s_session, PDAction_step);
-    Session_update(s_session);
-    handleEvents(&state, s_session);
+    assert_true(handleEvents(&state, s_session));
 
     assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
 
     Session_action(s_session, PDAction_step);
-    Session_update(s_session);
-    handleEvents(&state, s_session);
+    assert_true(handleEvents(&state, s_session));
 
     assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
 
@@ -250,9 +242,7 @@ void test_c64_vice_step_cpu(void**)
     PDWrite_eventEnd(writer);
     PDBinaryWriter_finalize(writer);
 
-    Session_update(s_session);
-    Session_update(s_session);
-    handleEvents(&state, s_session);
+    assert_true(handleEvents(&state, s_session));
 
     assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
 
@@ -262,13 +252,10 @@ void test_c64_vice_step_cpu(void**)
     PDWrite_eventEnd(writer);
     PDBinaryWriter_finalize(writer);
 
-    Session_update(s_session);
-    Session_update(s_session);
-    handleEvents(&state, s_session);
+    assert_true(handleEvents(&state, s_session));
 
     assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -357,32 +344,34 @@ void test_c64_vice_get_memory(void**)
     Session_update(s_session);
 
     PDReader* reader = s_session->reader;
+   	PDBinaryReader_initStream(reader, PDBinaryWriter_getData(s_session->currentWriter), PDBinaryWriter_getSize(s_session->currentWriter));
 
-    PDBinaryReader_initStream(reader, PDBinaryWriter_getData(s_session->currentWriter), PDBinaryWriter_getSize(s_session->currentWriter));
+    for (int i = 0; i < 30; ++i)
+	{
+    	Time_sleepMs(10);
 
-    uint32_t event;
+		uint32_t event;
 
-    while ((event = PDRead_getEvent(reader)) != 0)
-    {
-        uint8_t* data;
-        uint64_t dataSize;
-        uint64_t address;
+		while ((event = PDRead_getEvent(reader)) != 0)
+		{
+			uint8_t* data;
+			uint64_t dataSize;
+			uint64_t address;
 
-        if (event != PDEventType_setMemory)
-            continue;
+			if (event != PDEventType_setMemory)
+				continue;
 
-        assert_true(PDRead_findU64(reader, &address, "address", 0) & PDReadStatus_ok);
-        assert_true((PDRead_findData(reader, (void**)&data, &dataSize, "data", 0) & PDReadStatus_typeMask) == PDReadType_data);
+			assert_true(PDRead_findU64(reader, &address, "address", 0) & PDReadStatus_ok);
+			assert_true((PDRead_findData(reader, (void**)&data, &dataSize, "data", 0) & PDReadStatus_typeMask) == PDReadType_data);
 
-        assert_true(address == 0x080e);
-        assert_true(dataSize >= 14);
+			assert_true(address == 0x080e);
+			assert_true(dataSize >= 14);
 
-        assert_memory_equal(data, read_memory, sizeof_array(read_memory));
-    
-    	Session_update(s_session);
-
-        return;
-    }
+			assert_memory_equal(data, read_memory, sizeof_array(read_memory));
+		
+			return;
+		}
+	}
 
     // no memory found
 
@@ -434,7 +423,7 @@ static void stepToPC(uint64_t pc)
 
 		Session_action(s_session, PDAction_step);
 		Session_update(s_session);
-		handleEvents(&state, s_session);
+		assert_true(handleEvents(&state, s_session));
 
 		if (state.pc == pc)
 			break;
@@ -678,8 +667,10 @@ int main()
         unit_test(test_c64_vice_step_cpu),
         unit_test(test_c64_vice_get_disassembly),
         unit_test(test_c64_vice_get_memory),
+        /*
         unit_test(test_c64_vice_basic_breakpoint),
         unit_test(test_c64_vice_breakpoint_cond),
+        */
         //unit_test(test_c64_vice_set_memory),
     };
 

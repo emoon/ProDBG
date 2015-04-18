@@ -22,6 +22,7 @@
     @TLS:           Thread-Local Storage
     @ATOMIC:        Atomic Operations
     @VMBUFFER:      Mirror Buffer using Virtual Memory for auto-wrap
+    @NEW:           New/Delete operators with error values for simplifying object create/destroy
     @THREADS:       Threads
     @SAFEC:         Safe C Library excerpts
     @OBJALLOC:      Reusable Object Allocator
@@ -40,16 +41,20 @@
     @REMOTERY:      Remotery
     @CUDA:          CUDA event sampling
     @D3D11:         Direct3D 11 event sampling
+    @OPENGL:        OpenGL event sampling
 */
 
 #include "remotery.h"
 
-#ifdef _WIN32
-#pragma comment(lib, "ws2_32.lib")
+#ifdef RMT_PLATFORM_WINDOWS
+  #pragma comment(lib, "ws2_32.lib")
 #endif
 
 #ifdef RMT_ENABLED
 
+// Global settings
+static rmtSettings g_Settings;
+static rmtBool g_SettingsInitialized = RMT_FALSE;
 
 
 /*
@@ -87,7 +92,9 @@
 
     #ifdef RMT_PLATFORM_WINDOWS
         #include <winsock2.h>
-        #include <intrin.h>
+        #ifndef __MINGW32__
+            #include <intrin.h>
+        #endif
         #undef min
         #undef max
     #endif
@@ -108,56 +115,56 @@
         #include <errno.h>
     #endif
 
+    #ifdef __MINGW32__
+        #include <pthread.h>
+    #endif
+
 #endif
+
+
+#define RMT_UNREFERENCED_PARAMETER(i) (void)(1 ? (void)0 : ((void)i))
+
 
 #ifdef RMT_USE_CUDA
     #include <cuda.h>
 #endif
 
-#ifdef RMT_USE_D3D11
 
-    // As clReflect has no way of disabling C++ compile mode, this forces C interfaces everywhere...
-    #define CINTERFACE
-
-    // ...unfortunately these C++ helpers aren't wrapped by the same macro but they can be disabled individually
-    #define D3D11_NO_HELPERS
-
-    // Allow use of the D3D11 helper macros for accessing the C-style vtable
-    #define COBJMACROS
-
-    #include <d3d11.h>
-#endif
-
-
-rmtU64 min(rmtS64 a, rmtS64 b)
+rmtU8 minU8(rmtU8 a, rmtU8 b)
+{
+    return a < b ? a : b;
+}
+rmtS64 minS64(rmtS64 a, rmtS64 b)
 {
     return a < b ? a : b;
 }
 
 
-rmtU64 max(rmtS64 a, rmtS64 b)
+rmtU8 maxU8(rmtU8 a, rmtU8 b)
+{
+    return a > b ? a : b;
+}
+rmtS64 maxS64(rmtS64 a, rmtS64 b)
 {
     return a > b ? a : b;
 }
 
 
+// Memory management functions
+static void* rmtMalloc( rmtU32 size )
+{
+	return g_Settings.malloc( g_Settings.mm_context, size );
+}
 
-// Config
-// TODO: Expose to user
+static void* rmtRealloc( void* ptr, rmtU32 size)
+{
+    return g_Settings.realloc( g_Settings.mm_context, ptr, size );
+}
 
-// How long to sleep between server updates, hopefully trying to give
-// a little CPU back to other threads.
-static const rmtU32 MS_SLEEP_BETWEEN_SERVER_UPDATES = 10;
-
-// Will be rounded to page granularity of 64k
-static const rmtU32 MESSAGE_QUEUE_SIZE_BYTES = 64 * 1024;
-
-// If the user continuously pushes to the message queue, the server network
-// code won't get a chance to update unless there's an upper-limit on how
-// many messages can be consumed per loop.
-static const rmtU32 MAX_NB_MESSAGES_PER_UPDATE = 100;
-
-
+static void rmtFree( void* ptr )
+{
+	g_Settings.free( g_Settings.mm_context, ptr );
+}
 
 /*
 ------------------------------------------------------------------------------------------------------------------------
@@ -225,7 +232,7 @@ static void usTimer_Init(usTimer* timer)
 
         struct timespec tv;
         clock_gettime(CLOCK_REALTIME, &tv);
-        timer->counter_start = tv.tv_nsec;
+        timer->counter_start = (rmtU64)(tv.tv_sec * 1000000 + tv.tv_nsec * 0.001);
 
     #endif
 }
@@ -251,7 +258,7 @@ static rmtU64 usTimer_Get(usTimer* timer)
 
         struct timespec tv;
         clock_gettime(CLOCK_REALTIME, &tv);
-        return tv.tv_nsec - timer->counter_start;
+        return (rmtU64)(tv.tv_sec * 1000000 + tv.tv_nsec * 0.001) - timer->counter_start;
 
     #endif
 }
@@ -286,7 +293,7 @@ static void msSleep(rmtU32 time_ms)
     typedef pthread_key_t rmtTLS;
 #endif
 
-static enum rmtError tlsAlloc(rmtTLS* handle)
+static rmtError tlsAlloc(rmtTLS* handle)
 {
     assert(handle != NULL);
 
@@ -373,9 +380,9 @@ static void* tlsGet(rmtTLS handle)
 
 static rmtBool AtomicCompareAndSwap(rmtU32 volatile* val, long old_val, long new_val)
 {
-    #if defined(RMT_PLATFORM_WINDOWS)
+    #if defined(RMT_PLATFORM_WINDOWS) && !defined(__MINGW32__)
         return _InterlockedCompareExchange((long volatile*)val, new_val, old_val) == old_val ? RMT_TRUE : RMT_FALSE;
-    #elif defined(RMT_PLATFORM_POSIX)
+    #elif defined(RMT_PLATFORM_POSIX) || defined(__MINGW32__)
         return __sync_bool_compare_and_swap(val, old_val, new_val) ? RMT_TRUE : RMT_FALSE;
     #endif
 }
@@ -383,13 +390,13 @@ static rmtBool AtomicCompareAndSwap(rmtU32 volatile* val, long old_val, long new
 
 static rmtBool AtomicCompareAndSwapPointer(long* volatile* ptr, long* old_ptr, long* new_ptr)
 {
-    #if defined(RMT_PLATFORM_WINDOWS)
+    #if defined(RMT_PLATFORM_WINDOWS) && !defined(__MINGW32__)
         #ifdef _WIN64
             return _InterlockedCompareExchange64((__int64 volatile*)ptr, (__int64)new_ptr, (__int64)old_ptr) == (__int64)old_ptr ? RMT_TRUE : RMT_FALSE;
         #else
             return _InterlockedCompareExchange((long volatile*)ptr, (long)new_ptr, (long)old_ptr) == (long)old_ptr ? RMT_TRUE : RMT_FALSE;
         #endif
-    #elif defined(RMT_PLATFORM_POSIX)
+    #elif defined(RMT_PLATFORM_POSIX) || defined(__MINGW32__)
         return __sync_bool_compare_and_swap(ptr, old_ptr, new_ptr) ? RMT_TRUE : RMT_FALSE;
     #endif
 }
@@ -402,9 +409,9 @@ static rmtBool AtomicCompareAndSwapPointer(long* volatile* ptr, long* old_ptr, l
 //
 static void AtomicAdd(rmtS32 volatile* value, rmtS32 add)
 {
-    #if defined(RMT_PLATFORM_WINDOWS)
+    #if defined(RMT_PLATFORM_WINDOWS) && !defined(__MINGW32__)
         _InterlockedExchangeAdd((long volatile*)value, (long)add);
-    #elif defined(RMT_PLATFORM_POSIX)
+    #elif defined(RMT_PLATFORM_POSIX) || defined(__MINGW32__)
         __sync_fetch_and_add(value, add);
     #endif
 }
@@ -420,7 +427,7 @@ static void AtomicSub(rmtS32 volatile* value, rmtS32 sub)
 // Compiler read/write fences (windows implementation)
 static void ReadFence()
 {
-#ifdef RMT_PLATFORM_WINDOWS
+#if defined(RMT_PLATFORM_WINDOWS)
     _ReadBarrier();
 #else
     asm volatile ("" : : : "memory");
@@ -428,7 +435,7 @@ static void ReadFence()
 }
 static void WriteFence()
 {
-#ifdef RMT_PLATFORM_WINDOWS
+#if defined(RMT_PLATFORM_WINDOWS) && !defined(__MINGW32__)
     _WriteBarrier();
 #else
     asm volatile ("" : : : "memory");
@@ -461,6 +468,62 @@ static void StoreRelease(void* volatile*  addr, void* v)
 /*
 ------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
+   @NEW: New/Delete operators with error values for simplifying object create/destroy
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+*/
+
+
+
+// Ensures the pointer is non-NULL, calls the destructor, frees memory and sets the pointer to NULL
+#define Delete(type, obj)           \
+    if (obj != NULL)                \
+    {                               \
+        type##_Destructor(obj);     \
+        rmtFree(obj);               \
+        obj = NULL;                 \
+    }
+
+
+// New is implemented in terms of two begin/end macros
+// New will allocate enough space for the object and call the constructor
+// If allocation fails the constructor won't be called
+// If the constructor fails, the destructor is called and memory is released
+// NOTE: Use of sizeof() requires that the type be defined at the point of call
+// This is a disadvantage over requiring only a custom Create function
+#define BeginNew(type, obj)                 \
+    {                                       \
+        obj = (type*)rmtMalloc(sizeof(type));  \
+        if (obj == NULL)                    \
+        {                                   \
+            error = RMT_ERROR_MALLOC_FAIL;  \
+        }                                   \
+        else                                \
+        {                                   \
+
+
+#define EndNew(type, obj)                   \
+            if (error != RMT_ERROR_NONE)    \
+                Delete(type, obj);          \
+        }                                   \
+    }
+
+
+// Specialisations for New with varying constructor parameter counts
+#define New_0(type, obj)    \
+    BeginNew(type, obj); error = type##_Constructor(obj); EndNew(type, obj)
+#define New_1(type, obj, a0)    \
+    BeginNew(type, obj); error = type##_Constructor(obj, a0); EndNew(type, obj)
+#define New_2(type, obj, a0, a1)    \
+    BeginNew(type, obj); error = type##_Constructor(obj, a0, a1); EndNew(type, obj)
+#define New_3(type, obj, a0, a1, a2)    \
+    BeginNew(type, obj); error = type##_Constructor(obj, a0, a1, a2); EndNew(type, obj)
+
+
+
+/*
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
    @VMBUFFER: Mirror Buffer using Virtual Memory for auto-wrap
 ------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
@@ -484,35 +547,7 @@ typedef struct VirtualMirrorBuffer
 } VirtualMirrorBuffer;
 
 
-static void VirtualMirrorBuffer_Destroy(VirtualMirrorBuffer* buffer)
-{
-    assert(buffer != 0);
-
-#ifdef RMT_PLATFORM_WINDOWS
-    if (buffer->file_map_handle != NULL)
-    {
-        CloseHandle(buffer->file_map_handle);
-        buffer->file_map_handle = NULL;
-    }
-#endif
-
-#ifdef RMT_PLATFORM_MACOS
-    if (buffer->ptr != NULL)
-        vm_deallocate(mach_task_self(), (vm_address_t)buffer->ptr, buffer->size * 2);
-#endif
-
-#ifdef RMT_PLATFORM_LINUX
-    if (buffer->ptr != NULL)
-        munmap(buffer->ptr, buffer->size * 2);
-#endif
-
-    buffer->ptr = NULL;
-
-    free(buffer);
-}
-
-
-static enum rmtError VirtualMirrorBuffer_Create(VirtualMirrorBuffer** buffer, rmtU32 size, int nb_attempts)
+static rmtError VirtualMirrorBuffer_Constructor(VirtualMirrorBuffer* buffer, rmtU32 size, int nb_attempts)
 {
     static const rmtU32 k_64 = 64 * 1024;
 
@@ -521,21 +556,14 @@ static enum rmtError VirtualMirrorBuffer_Create(VirtualMirrorBuffer** buffer, rm
     int file_descriptor;
 #endif
 
-    assert(buffer != 0);
-
-    // Allocate container
-    *buffer = (VirtualMirrorBuffer*)malloc(sizeof(VirtualMirrorBuffer));
-    if (*buffer == 0)
-        return RMT_ERROR_MALLOC_FAIL;
-
     // Round up to page-granulation; the nearest 64k boundary for now
     size = (size + k_64 - 1) / k_64 * k_64;
 
     // Set defaults
-    (*buffer)->size = size;
-    (*buffer)->ptr = NULL;
+    buffer->size = size;
+    buffer->ptr = NULL;
 #ifdef RMT_PLATFORM_WINDOWS
-    (*buffer)->file_map_handle = INVALID_HANDLE_VALUE;
+    buffer->file_map_handle = INVALID_HANDLE_VALUE;
 #endif
 
 #ifdef RMT_PLATFORM_WINDOWS
@@ -547,14 +575,14 @@ static enum rmtError VirtualMirrorBuffer_Create(VirtualMirrorBuffer** buffer, rm
         rmtU8* desired_addr;
 
         // Create a file mapping for pointing to its physical address with multiple virtual pages
-        (*buffer)->file_map_handle = CreateFileMapping(
+        buffer->file_map_handle = CreateFileMapping(
             INVALID_HANDLE_VALUE,
             0,
             PAGE_READWRITE,
             0,
             size,
             0);
-        if ((*buffer)->file_map_handle == NULL)
+        if (buffer->file_map_handle == NULL)
             break;
 
         // Reserve two contiguous pages of virtual memory
@@ -568,16 +596,16 @@ static enum rmtError VirtualMirrorBuffer_Create(VirtualMirrorBuffer** buffer, rm
         VirtualFree(desired_addr, 0, MEM_RELEASE);
 
         // Immediately try to point both pages at the file mapping
-        if (MapViewOfFileEx((*buffer)->file_map_handle, FILE_MAP_ALL_ACCESS, 0, 0, size, desired_addr) == desired_addr &&
-            MapViewOfFileEx((*buffer)->file_map_handle, FILE_MAP_ALL_ACCESS, 0, 0, size, desired_addr + size) == desired_addr + size)
+        if (MapViewOfFileEx(buffer->file_map_handle, FILE_MAP_ALL_ACCESS, 0, 0, size, desired_addr) == desired_addr &&
+            MapViewOfFileEx(buffer->file_map_handle, FILE_MAP_ALL_ACCESS, 0, 0, size, desired_addr + size) == desired_addr + size)
         {
-            (*buffer)->ptr = desired_addr;
+            buffer->ptr = desired_addr;
             break;
         }
 
         // Failed to map the virtual pages; cleanup and try again
-        CloseHandle((*buffer)->file_map_handle);
-        (*buffer)->file_map_handle = NULL;
+        CloseHandle(buffer->file_map_handle);
+        buffer->file_map_handle = NULL;
     }
 
 #endif
@@ -653,7 +681,7 @@ static enum rmtError VirtualMirrorBuffer_Create(VirtualMirrorBuffer** buffer, rm
         else if (mach_error == KERN_SUCCESS)
         {
             // Leave the loop on success
-            (*buffer)->ptr = ptr;
+            buffer->ptr = ptr;
             break;
         }
 
@@ -674,52 +702,63 @@ static enum rmtError VirtualMirrorBuffer_Create(VirtualMirrorBuffer** buffer, rm
     // Create a unique temporary filename in the shared memory folder
     file_descriptor = mkstemp(path);
     if (file_descriptor < 0)
-    {
-        VirtualMirrorBuffer_Destroy(*buffer);
         return RMT_ERROR_VIRTUAL_MEMORY_BUFFER_FAIL;
-    }
 
     // Delete the name
     if (unlink(path))
-    {
-        VirtualMirrorBuffer_Destroy(*buffer);
         return RMT_ERROR_VIRTUAL_MEMORY_BUFFER_FAIL;
-    }
 
     // Set the file size to twice the buffer size
     // TODO: this 2x behaviour can be avoided with similar solution to Win/Mac
     if (ftruncate (file_descriptor, size * 2))
-    {
-        VirtualMirrorBuffer_Destroy(*buffer);
         return RMT_ERROR_VIRTUAL_MEMORY_BUFFER_FAIL;
-    }
 
     // Map 2 contiguous pages
-    (*buffer)->ptr = mmap(NULL, size * 2, PROT_NONE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-    if ((*buffer)->ptr == MAP_FAILED)
+    buffer->ptr = mmap(NULL, size * 2, PROT_NONE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+    if (buffer->ptr == MAP_FAILED)
     {
-        VirtualMirrorBuffer_Destroy(*buffer);
+        buffer->ptr = NULL;
         return RMT_ERROR_VIRTUAL_MEMORY_BUFFER_FAIL;
     }
 
     // Point both pages to the same memory file
-    if (mmap((*buffer)->ptr, size, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED, file_descriptor, 0) != (*buffer)->ptr ||
-        mmap((*buffer)->ptr + size, size, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED, file_descriptor, 0) != (*buffer)->ptr + size)
-    {
-        VirtualMirrorBuffer_Destroy(*buffer);
+    if (mmap(buffer->ptr, size, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED, file_descriptor, 0) != buffer->ptr ||
+        mmap(buffer->ptr + size, size, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED, file_descriptor, 0) != buffer->ptr + size)
         return RMT_ERROR_VIRTUAL_MEMORY_BUFFER_FAIL;
-    }
 
 #endif
 
     // Cleanup if exceeded number of attempts or failed
-    if ((*buffer)->ptr == NULL)
-    {
-        VirtualMirrorBuffer_Destroy(*buffer);
+    if (buffer->ptr == NULL)
         return RMT_ERROR_VIRTUAL_MEMORY_BUFFER_FAIL;
-    }
 
     return RMT_ERROR_NONE;
+}
+
+
+static void VirtualMirrorBuffer_Destructor(VirtualMirrorBuffer* buffer)
+{
+    assert(buffer != 0);
+
+#ifdef RMT_PLATFORM_WINDOWS
+    if (buffer->file_map_handle != NULL)
+    {
+        CloseHandle(buffer->file_map_handle);
+        buffer->file_map_handle = NULL;
+    }
+#endif
+
+#ifdef RMT_PLATFORM_MACOS
+    if (buffer->ptr != NULL)
+        vm_deallocate(mach_task_self(), (vm_address_t)buffer->ptr, buffer->size * 2);
+#endif
+
+#ifdef RMT_PLATFORM_LINUX
+    if (buffer->ptr != NULL)
+        munmap(buffer->ptr, buffer->size * 2);
+#endif
+
+    buffer->ptr = NULL;
 }
 
 
@@ -733,6 +772,9 @@ static enum rmtError VirtualMirrorBuffer_Create(VirtualMirrorBuffer** buffer, rm
 */
 
 
+// comp.lang.c FAQ 4.13 : http://c-faq.com/ptrs/generic.html
+// Should not store a funcptr in a void*, but any funcptr type will do
+typedef int(*FuncPtr)();
 
 typedef struct
 {
@@ -744,13 +786,13 @@ typedef struct
     #endif
 
     // Callback executed when the thread is created
-    void* callback;
+    FuncPtr callback;
 
     // Caller-specified parameter passed to Thread_Create
     void* param;
 
     // Error state returned from callback
-    enum rmtError error;
+    rmtError error;
 
     // External threads can set this to request an exit
     volatile rmtBool request_exit;
@@ -758,7 +800,7 @@ typedef struct
 } Thread;
 
 
-typedef enum rmtError (*ThreadProc)(Thread* thread);
+typedef rmtError (*ThreadProc)(Thread* thread);
 
 
 #if defined(RMT_PLATFORM_WINDOWS)
@@ -781,8 +823,6 @@ typedef enum rmtError (*ThreadProc)(Thread* thread);
     }
 #endif
 
-static void Thread_Destroy(Thread* thread);
-
 
 static int Thread_Valid(Thread* thread)
 {
@@ -791,55 +831,43 @@ static int Thread_Valid(Thread* thread)
     #if defined(RMT_PLATFORM_WINDOWS)
         return thread->handle != NULL;
     #else
-        return pthread_equal(thread->handle, pthread_self());
+        return !pthread_equal(thread->handle, pthread_self());
     #endif
 }
 
 
-static enum rmtError Thread_Create(Thread** thread, ThreadProc callback, void* param)
+static rmtError Thread_Constructor(Thread* thread, ThreadProc callback, void* param)
 {
     assert(thread != NULL);
 
-    // Allocate space for the thread data
-    *thread = (Thread*)malloc(sizeof(Thread));
-    if (*thread == NULL)
-        return RMT_ERROR_MALLOC_FAIL;
-
-    (*thread)->callback = callback;
-    (*thread)->param = param;
-    (*thread)->error = RMT_ERROR_NONE;
-    (*thread)->request_exit = RMT_FALSE;
+    thread->callback = (FuncPtr)callback;
+    thread->param = param;
+    thread->error = RMT_ERROR_NONE;
+    thread->request_exit = RMT_FALSE;
 
     // OS-specific thread creation
 
     #if defined (RMT_PLATFORM_WINDOWS)
 
-        (*thread)->handle = CreateThread(
+        thread->handle = CreateThread(
             NULL,                               // lpThreadAttributes
             0,                                  // dwStackSize
             ThreadProcWindows,                  // lpStartAddress
-            *thread,                            // lpParameter
+            thread,                            // lpParameter
             0,                                  // dwCreationFlags
             NULL);                              // lpThreadId
 
-        if ((*thread)->handle == NULL)
-        {
-            Thread_Destroy(*thread);
-            *thread = NULL;
+        if (thread->handle == NULL)
             return RMT_ERROR_CREATE_THREAD_FAIL;
-        }
 
     #else
 
-        int32_t error = pthread_create( &(*thread)->handle, NULL, StartFunc, *thread );
+        int32_t error = pthread_create( &thread->handle, NULL, StartFunc, thread );
         if (error)
         {
             // Contents of 'thread' parameter to pthread_create() are undefined after
             // failure call so can't pre-set to invalid value before hand.
-            (*thread)->handle = pthread_self();
-
-            Thread_Destroy(*thread);
-            *thread = NULL;
+            thread->handle = pthread_self();
             return RMT_ERROR_CREATE_THREAD_FAIL;
         }
 
@@ -869,7 +897,7 @@ static void Thread_Join(Thread* thread)
 }
 
 
-static void Thread_Destroy(Thread* thread)
+static void Thread_Destructor(Thread* thread)
 {
     assert(thread != NULL);
 
@@ -886,8 +914,6 @@ static void Thread_Destroy(Thread* thread)
         thread->handle = NULL;
         #endif
     }
-
-    free(thread);
 }
 
 
@@ -957,7 +983,7 @@ static void Thread_Destroy(Thread* thread)
 typedef int errno_t;
 #endif
 
-#if !defined(_WIN64) && !defined(__APPLE__)
+#if !defined(_WIN64) && !defined(__APPLE__) || defined(__MINGW32__)
 typedef unsigned int rsize_t;
 #endif
 
@@ -1218,7 +1244,7 @@ static void ObjectLink_Constructor(ObjectLink* link)
 }
 
 
-typedef enum rmtError (*ObjConstructor)(void*);
+typedef rmtError (*ObjConstructor)(void*);
 typedef void (*ObjDestructor)(void*);
 
 
@@ -1242,24 +1268,34 @@ typedef struct
 } ObjectAllocator;
 
 
-static enum rmtError ObjectAllocator_Create(ObjectAllocator** allocator, rmtU32 object_size, ObjConstructor constructor, ObjDestructor destructor)
+static rmtError ObjectAllocator_Constructor(ObjectAllocator* allocator, rmtU32 object_size, ObjConstructor constructor, ObjDestructor destructor)
 {
-    // Allocate space for the allocator
-    assert(allocator != NULL);
-    *allocator = (ObjectAllocator*)malloc(sizeof(ObjectAllocator));
-    if (*allocator == NULL)
-        return RMT_ERROR_MALLOC_FAIL;
-
-    // Construct it
-    (*allocator)->object_size = object_size;
-    (*allocator)->constructor = constructor;
-    (*allocator)->destructor = destructor;
-    (*allocator)->nb_free = 0;
-    (*allocator)->nb_inuse = 0;
-    (*allocator)->nb_allocated = 0;
-    (*allocator)->first_free = NULL;
-
+    allocator->object_size = object_size;
+    allocator->constructor = constructor;
+    allocator->destructor = destructor;
+    allocator->nb_free = 0;
+    allocator->nb_inuse = 0;
+    allocator->nb_allocated = 0;
+    allocator->first_free = NULL;
     return RMT_ERROR_NONE;
+}
+
+
+static void ObjectAllocator_Destructor(ObjectAllocator* allocator)
+{
+    // Ensure everything has been released to the allocator
+    assert(allocator != NULL);
+    assert(allocator->nb_inuse == 0);
+
+    // Destroy all objects released to the allocator
+    while (allocator->first_free != NULL)
+    {
+        ObjectLink* next = allocator->first_free->next;
+        assert(allocator->destructor != NULL);
+        allocator->destructor(allocator->first_free);
+        rmtFree(allocator->first_free);
+        allocator->first_free = next;
+    }
 }
 
 
@@ -1305,7 +1341,7 @@ static ObjectLink* ObjectAllocator_Pop(ObjectAllocator* allocator)
 }
 
 
-static enum rmtError ObjectAllocator_Alloc(ObjectAllocator* allocator, void** object)
+static rmtError ObjectAllocator_Alloc(ObjectAllocator* allocator, void** object)
 {
     // This function only calls the object constructor on initial malloc of an object
 
@@ -1315,10 +1351,10 @@ static enum rmtError ObjectAllocator_Alloc(ObjectAllocator* allocator, void** ob
     // Has the free list run out?
     if (allocator->first_free == NULL)
     {
-        enum rmtError error;
+        rmtError error;
 
         // Allocate/construct a new object
-        void* free_object = malloc(allocator->object_size);
+        void* free_object = rmtMalloc( allocator->object_size );
         if (free_object == NULL)
             return RMT_ERROR_MALLOC_FAIL;
         assert(allocator->constructor != NULL);
@@ -1328,7 +1364,7 @@ static enum rmtError ObjectAllocator_Alloc(ObjectAllocator* allocator, void** ob
             // Auto-teardown on failure
             assert(allocator->destructor != NULL);
             allocator->destructor(free_object);
-            free(free_object);
+            rmtFree(free_object);
             return error;
         }
 
@@ -1366,26 +1402,6 @@ static void ObjectAllocator_FreeRange(ObjectAllocator* allocator, void* start, v
 }
 
 
-static void ObjectAllocator_Destroy(ObjectAllocator* allocator)
-{
-    // Ensure everything has been released to the allocator
-    assert(allocator != NULL);
-    assert(allocator->nb_inuse == 0);
-
-    // Destroy all objects released to the allocator
-    assert(allocator != NULL);
-    while (allocator->first_free != NULL)
-    {
-        ObjectLink* next = allocator->first_free->next;
-        allocator->destructor(allocator->first_free);
-        free(allocator->first_free);
-        allocator->first_free = next;
-    }
-
-    free(allocator);
-}
-
-
 
 /*
 ------------------------------------------------------------------------------------------------------------------------
@@ -1408,40 +1424,30 @@ typedef struct
 } Buffer;
 
 
-static enum rmtError Buffer_Create(Buffer** buffer, rmtU32 alloc_granularity)
+static rmtError Buffer_Constructor(Buffer* buffer, rmtU32 alloc_granularity)
 {
     assert(buffer != NULL);
-
-    // Allocate and set defaults as nothing allocated
-
-    *buffer = (Buffer*)malloc(sizeof(Buffer));
-    if (*buffer == NULL)
-        return RMT_ERROR_MALLOC_FAIL;
-
-    (*buffer)->alloc_granularity = alloc_granularity;
-    (*buffer)->bytes_allocated = 0;
-    (*buffer)->bytes_used = 0;
-    (*buffer)->data = NULL;
-
+    buffer->alloc_granularity = alloc_granularity;
+    buffer->bytes_allocated = 0;
+    buffer->bytes_used = 0;
+    buffer->data = NULL;
     return RMT_ERROR_NONE;
 }
 
 
-static void Buffer_Destroy(Buffer* buffer)
+static void Buffer_Destructor(Buffer* buffer)
 {
     assert(buffer != NULL);
 
     if (buffer->data != NULL)
     {
-        free(buffer->data);
+        rmtFree(buffer->data);
         buffer->data = NULL;
     }
-
-    free(buffer);
 }
 
 
-static enum rmtError Buffer_Write(Buffer* buffer, void* data, rmtU32 length)
+static rmtError Buffer_Write(Buffer* buffer, void* data, rmtU32 length)
 {
     assert(buffer != NULL);
 
@@ -1453,7 +1459,7 @@ static enum rmtError Buffer_Write(Buffer* buffer, void* data, rmtU32 length)
         rmtU32 a = buffer->bytes_allocated + length;
         a = a + ((g - 1) - ((a - 1) % g));
         buffer->bytes_allocated = a;
-        buffer->data = (rmtU8*)realloc(buffer->data, buffer->bytes_allocated);
+        buffer->data = (rmtU8*)rmtRealloc(buffer->data, buffer->bytes_allocated);
         if (buffer->data == NULL)
             return RMT_ERROR_MALLOC_FAIL;
     }
@@ -1470,10 +1476,10 @@ static enum rmtError Buffer_Write(Buffer* buffer, void* data, rmtU32 length)
 }
 
 
-static enum rmtError Buffer_WriteString(Buffer* buffer, rmtPStr string)
+static rmtError Buffer_WriteString(Buffer* buffer, rmtPStr string)
 {
     assert(string != NULL);
-    return Buffer_Write(buffer, (void*)string, strnlen_s(string, 2048));
+    return Buffer_Write(buffer, (void*)string, (rmtU32)strnlen_s(string, 2048));
 }
 
 
@@ -1503,7 +1509,7 @@ typedef struct
 {
     rmtBool can_read;
     rmtBool can_write;
-    enum rmtError error_state;
+    rmtError error_state;
 } SocketStatus;
 
 
@@ -1511,10 +1517,9 @@ typedef struct
 // Function prototypes
 //
 static void TCPSocket_Close(TCPSocket* tcp_socket);
-static enum rmtError TCPSocket_Destroy(TCPSocket** tcp_socket, enum rmtError error);
 
 
-static enum rmtError InitialiseNetwork()
+static rmtError InitialiseNetwork()
 {
     #ifdef RMT_PLATFORM_WINDOWS
 
@@ -1542,27 +1547,23 @@ static void ShutdownNetwork()
 }
 
 
-static enum rmtError TCPSocket_Create(TCPSocket** tcp_socket)
+static rmtError TCPSocket_Constructor(TCPSocket* tcp_socket)
 {
-    enum rmtError error;
-    
     assert(tcp_socket != NULL);
-
-    // Allocate and initialise
-    *tcp_socket = (TCPSocket*)malloc(sizeof(TCPSocket));
-    if (*tcp_socket == NULL)
-        return RMT_ERROR_MALLOC_FAIL;
-    (*tcp_socket)->socket = INVALID_SOCKET;
-
-    error = InitialiseNetwork();
-    if (error != RMT_ERROR_NONE)
-        return TCPSocket_Destroy(tcp_socket, error);
-
-    return RMT_ERROR_NONE;
+    tcp_socket->socket = INVALID_SOCKET;
+    return InitialiseNetwork();
 }
 
 
-static enum rmtError TCPSocket_CreateServer(rmtU16 port, TCPSocket** tcp_socket)
+static void TCPSocket_Destructor(TCPSocket* tcp_socket)
+{
+    assert(tcp_socket != NULL);
+    TCPSocket_Close(tcp_socket);
+    ShutdownNetwork();
+}
+
+
+static rmtError TCPSocket_RunServer(TCPSocket* tcp_socket, rmtU16 port)
 {
     SOCKET s = INVALID_SOCKET;
     struct sockaddr_in sin = { 0 };
@@ -1570,54 +1571,37 @@ static enum rmtError TCPSocket_CreateServer(rmtU16 port, TCPSocket** tcp_socket)
         u_long nonblock = 1;
     #endif
 
-    // Create socket container
-    enum rmtError error = TCPSocket_Create(tcp_socket);
-    if (error != RMT_ERROR_NONE)
-        return error;
+    assert(tcp_socket != NULL);
 
     // Try to create the socket
     s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (s == SOCKET_ERROR)
-        return TCPSocket_Destroy(tcp_socket, RMT_ERROR_SOCKET_CREATE_FAIL);
+        return RMT_ERROR_SOCKET_CREATE_FAIL;
 
     // Bind the socket to the incoming port
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = INADDR_ANY;
     sin.sin_port = htons(port);
     if (bind(s, (struct sockaddr*)&sin, sizeof(sin)) == SOCKET_ERROR)
-        return TCPSocket_Destroy(tcp_socket, RMT_ERROR_SOCKET_BIND_FAIL);
+        return RMT_ERROR_SOCKET_BIND_FAIL;
 
     // Connection is valid, remaining code is socket state modification
-    (*tcp_socket)->socket = s;
+    tcp_socket->socket = s;
 
     // Enter a listening state with a backlog of 1 connection
     if (listen(s, 1) == SOCKET_ERROR)
-        return TCPSocket_Destroy(tcp_socket, RMT_ERROR_SOCKET_LISTEN_FAIL);
+        return RMT_ERROR_SOCKET_LISTEN_FAIL;
 
     // Set as non-blocking
     #ifdef RMT_PLATFORM_WINDOWS
-        if (ioctlsocket((*tcp_socket)->socket, FIONBIO, &nonblock) == SOCKET_ERROR)
-            return TCPSocket_Destroy(tcp_socket, RMT_ERROR_SOCKET_SET_NON_BLOCKING_FAIL);
+        if (ioctlsocket(tcp_socket->socket, FIONBIO, &nonblock) == SOCKET_ERROR)
+            return RMT_ERROR_SOCKET_SET_NON_BLOCKING_FAIL;
     #else
-        if (fcntl((*tcp_socket)->socket, F_SETFL, O_NONBLOCK) == SOCKET_ERROR)
-            return TCPSocket_Destroy(tcp_socket, RMT_ERROR_SOCKET_SET_NON_BLOCKING_FAIL);
+        if (fcntl(tcp_socket->socket, F_SETFL, O_NONBLOCK) == SOCKET_ERROR)
+            return RMT_ERROR_SOCKET_SET_NON_BLOCKING_FAIL;
     #endif
 
     return RMT_ERROR_NONE;
-}
-
-
-static enum rmtError TCPSocket_Destroy(TCPSocket** tcp_socket, enum rmtError error)
-{
-    assert(tcp_socket != NULL);
-
-    TCPSocket_Close(*tcp_socket);
-    ShutdownNetwork();
-
-    free(*tcp_socket);
-    *tcp_socket = NULL;
-
-    return error;
 }
 
 
@@ -1676,7 +1660,7 @@ static SocketStatus TCPSocket_PollStatus(TCPSocket* tcp_socket)
     // Poll socket status without blocking
     tv.tv_sec = 0;
     tv.tv_usec = 0;
-    if (select(tcp_socket->socket+1, &fd_read, &fd_write, &fd_errors, &tv) == SOCKET_ERROR)
+    if (select(((int)tcp_socket->socket)+1, &fd_read, &fd_write, &fd_errors, &tv) == SOCKET_ERROR)
     {
         status.error_state = RMT_ERROR_SOCKET_SELECT_FAIL;
         return status;
@@ -1689,11 +1673,11 @@ static SocketStatus TCPSocket_PollStatus(TCPSocket* tcp_socket)
 }
 
 
-static enum rmtError TCPSocket_AcceptConnection(TCPSocket* tcp_socket, TCPSocket** client_socket)
+static rmtError TCPSocket_AcceptConnection(TCPSocket* tcp_socket, TCPSocket** client_socket)
 {
     SocketStatus status;
     SOCKET s;
-    enum rmtError error;
+    rmtError error;
 
     // Ensure there is an incoming connection
     assert(tcp_socket != NULL);
@@ -1708,7 +1692,7 @@ static enum rmtError TCPSocket_AcceptConnection(TCPSocket* tcp_socket, TCPSocket
 
     // Create a client socket for the new connection
     assert(client_socket != NULL);
-    error = TCPSocket_Create(client_socket);
+    New_0(TCPSocket, *client_socket);
     if (error != RMT_ERROR_NONE)
         return error;
     (*client_socket)->socket = s;
@@ -1716,7 +1700,8 @@ static enum rmtError TCPSocket_AcceptConnection(TCPSocket* tcp_socket, TCPSocket
     return RMT_ERROR_NONE;
 }
 
-int TCPSocketWouldBlock()
+
+static int TCPSocketWouldBlock()
 {
 #ifdef RMT_PLATFORM_WINDOWS
     DWORD error = WSAGetLastError();
@@ -1728,7 +1713,8 @@ int TCPSocketWouldBlock()
 
 }
 
-static enum rmtError TCPSocket_Send(TCPSocket* tcp_socket, const void* data, rmtU32 length, rmtU32 timeout_ms)
+
+static rmtError TCPSocket_Send(TCPSocket* tcp_socket, const void* data, rmtU32 length, rmtU32 timeout_ms)
 {
     SocketStatus status;
     char* cur_data = NULL;
@@ -1738,21 +1724,28 @@ static enum rmtError TCPSocket_Send(TCPSocket* tcp_socket, const void* data, rmt
 
     assert(tcp_socket != NULL);
 
-    // Can't send if there are socket errors
-    status = TCPSocket_PollStatus(tcp_socket);
-    if (status.error_state != RMT_ERROR_NONE)
-        return status.error_state;
-    if (!status.can_write)
-        return RMT_ERROR_SOCKET_SEND_TIMEOUT;
+    start_ms = msTimer_Get();
+
+    // Loop until timeout checking whether data can be written
+    status.can_write = RMT_FALSE;
+    while (!status.can_write)
+    {
+        status = TCPSocket_PollStatus(tcp_socket);
+        if (status.error_state != RMT_ERROR_NONE)
+            return status.error_state;
+
+        cur_ms = msTimer_Get();
+        if (cur_ms - start_ms > timeout_ms)
+            return RMT_ERROR_SOCKET_SEND_TIMEOUT;
+    }
 
     cur_data = (char*)data;
     end_data = cur_data + length;
 
-    start_ms = msTimer_Get();
     while (cur_data < end_data)
     {
         // Attempt to send the remaining chunk of data
-        int bytes_sent = (int)send(tcp_socket->socket, cur_data, end_data - cur_data, 0);
+        int bytes_sent = (int)send(tcp_socket->socket, cur_data, (int)(end_data - cur_data), 0);
 
         if (bytes_sent == SOCKET_ERROR || bytes_sent == 0)
         {
@@ -1795,7 +1788,7 @@ static enum rmtError TCPSocket_Send(TCPSocket* tcp_socket, const void* data, rmt
 }
 
 
-static enum rmtError TCPSocket_Receive(TCPSocket* tcp_socket, void* data, rmtU32 length, rmtU32 timeout_ms)
+static rmtError TCPSocket_Receive(TCPSocket* tcp_socket, void* data, rmtU32 length, rmtU32 timeout_ms)
 {
     SocketStatus status;
     char* cur_data = NULL;
@@ -1819,7 +1812,7 @@ static enum rmtError TCPSocket_Receive(TCPSocket* tcp_socket, void* data, rmtU32
     start_ms = msTimer_Get();
     while (cur_data < end_data)
     {
-        int bytes_received = (int)recv(tcp_socket->socket, cur_data, end_data - cur_data, 0);
+        int bytes_received = (int)recv(tcp_socket->socket, cur_data, (int)(end_data - cur_data), 0);
 
         if (bytes_received == SOCKET_ERROR || bytes_received == 0)
         {
@@ -2186,13 +2179,13 @@ static rmtU32 MurmurHash3_x86_32(const void* key, int len, rmtU32 seed)
 
     for (i = -nblocks; i; i++)
     {
-        rmtU32 k1 = getblock32(blocks,i);
+        rmtU32 k2 = getblock32(blocks,i);
 
-        k1 *= c1;
-        k1 = rotl32(k1,15);
-        k1 *= c2;
+        k2 *= c1;
+        k2 = rotl32(k2,15);
+        k2 *= c2;
 
-        h1 ^= k1;
+        h1 ^= k2;
         h1 = rotl32(h1,13); 
         h1 = h1*5+0xe6546b64;
     }
@@ -2254,7 +2247,7 @@ typedef struct
 } WebSocket;
 
 
-static void WebSocket_Destroy(WebSocket* web_socket);
+static void WebSocket_Close(WebSocket* web_socket);
 
 
 static char* GetField(char* buffer, rsize_t buffer_length, rmtPStr field_name)
@@ -2293,7 +2286,7 @@ static const char websocket_response[] =
     "Sec-WebSocket-Accept: ";
 
 
-static enum rmtError WebSocketHandshake(TCPSocket* tcp_socket, rmtPStr limit_host)
+static rmtError WebSocketHandshake(TCPSocket* tcp_socket, rmtPStr limit_host)
 {
     rmtU32 start_ms, now_ms;
 
@@ -2320,7 +2313,7 @@ static enum rmtError WebSocketHandshake(TCPSocket* tcp_socket, rmtPStr limit_hos
     // Not really sure how to do this any better, as the termination requirement is \r\n\r\n
     while (buffer_ptr - buffer < buffer_len)
     {
-        enum rmtError error = TCPSocket_Receive(tcp_socket, buffer_ptr, 1, 20);
+        rmtError error = TCPSocket_Receive(tcp_socket, buffer_ptr, 1, 20);
         if (error == RMT_ERROR_SOCKET_RECV_FAILED)
             return error;
 
@@ -2388,7 +2381,7 @@ static enum rmtError WebSocketHandshake(TCPSocket* tcp_socket, rmtPStr limit_hos
         return RMT_ERROR_WEBSOCKET_HANDSHAKE_STRING_FAIL;
     if (strncat_s(buffer, buffer_len, websocket_guid, sizeof(websocket_guid)) != EOK)
         return RMT_ERROR_WEBSOCKET_HANDSHAKE_STRING_FAIL;
-    hash = SHA1_Calculate(buffer, strnlen_s(buffer, buffer_len));
+    hash = SHA1_Calculate(buffer, (rmtU32)strnlen_s(buffer, buffer_len));
     Base64_Encode(hash.data, sizeof(hash.data), (rmtU8*)buffer);
 
     // Send the response back to the server with a longer timeout than usual
@@ -2400,72 +2393,51 @@ static enum rmtError WebSocketHandshake(TCPSocket* tcp_socket, rmtPStr limit_hos
     if (strncat_s(response_buffer, response_buffer_len, "\r\n\r\n", 4) != EOK)
         return RMT_ERROR_WEBSOCKET_HANDSHAKE_STRING_FAIL;
 
-    return TCPSocket_Send(tcp_socket, response_buffer, strnlen_s(response_buffer, response_buffer_len), 1000);
+    return TCPSocket_Send(tcp_socket, response_buffer, (rmtU32)strnlen_s(response_buffer, response_buffer_len), 1000);
 }
 
 
-static enum rmtError WebSocket_Create(WebSocket** web_socket)
+static rmtError WebSocket_Constructor(WebSocket* web_socket, TCPSocket* tcp_socket)
 {
-    *web_socket = (WebSocket*)malloc(sizeof(WebSocket));
-    if (*web_socket == NULL)
-        return RMT_ERROR_MALLOC_FAIL;
-
-    // Set default state
-    (*web_socket)->tcp_socket = NULL;
-    (*web_socket)->mode = WEBSOCKET_NONE;
-    (*web_socket)->frame_bytes_remaining = 0;
-    (*web_socket)->mask_offset = 0;
-    (*web_socket)->data_mask[0] = 0;
-    (*web_socket)->data_mask[1] = 0;
-    (*web_socket)->data_mask[2] = 0;
-    (*web_socket)->data_mask[3] = 0;
-
-    return RMT_ERROR_NONE;
-}
-
-
-static enum rmtError WebSocket_CreateServer(rmtU32 port, enum WebSocketMode mode, WebSocket** web_socket)
-{
-    enum rmtError error;
+    rmtError error = RMT_ERROR_NONE;
 
     assert(web_socket != NULL);
+    web_socket->tcp_socket = tcp_socket;
+    web_socket->mode = WEBSOCKET_NONE;
+    web_socket->frame_bytes_remaining = 0;
+    web_socket->mask_offset = 0;
+    web_socket->data_mask[0] = 0;
+    web_socket->data_mask[1] = 0;
+    web_socket->data_mask[2] = 0;
+    web_socket->data_mask[3] = 0;
 
-    error = WebSocket_Create(web_socket);
-    if (error != RMT_ERROR_NONE)
-        return error;
+    // Caller can optionally specify which TCP socket to use
+    if (web_socket->tcp_socket == NULL)
+        New_0(TCPSocket, web_socket->tcp_socket);
 
-    (*web_socket)->mode = mode;
+    return error;
+}
 
+
+static void WebSocket_Destructor(WebSocket* web_socket)
+{
+    WebSocket_Close(web_socket);
+}
+
+
+static rmtError WebSocket_RunServer(WebSocket* web_socket, rmtU32 port, enum WebSocketMode mode)
+{
     // Create the server's listening socket
-    error = TCPSocket_CreateServer(port, &(*web_socket)->tcp_socket);
-    if (error != RMT_ERROR_NONE)
-    {
-        WebSocket_Destroy(*web_socket);
-        *web_socket = NULL;
-        return error;
-    }
-
-    return RMT_ERROR_NONE;
+    assert(web_socket != NULL);
+    web_socket->mode = mode;
+    return TCPSocket_RunServer(web_socket->tcp_socket, (rmtU16)port);
 }
 
 
 static void WebSocket_Close(WebSocket* web_socket)
 {
     assert(web_socket != NULL);
-
-    if (web_socket->tcp_socket != NULL)
-    {
-        TCPSocket_Destroy(&web_socket->tcp_socket, RMT_ERROR_NONE);
-        web_socket->tcp_socket = NULL;
-    }
-}
-
-
-static void WebSocket_Destroy(WebSocket* web_socket)
-{
-    assert(web_socket != NULL);
-    WebSocket_Close(web_socket);
-    free(web_socket);
+    Delete(TCPSocket, web_socket->tcp_socket);
 }
 
 
@@ -2476,10 +2448,10 @@ static SocketStatus WebSocket_PollStatus(WebSocket* web_socket)
 }
 
 
-static enum rmtError WebSocket_AcceptConnection(WebSocket* web_socket, WebSocket** client_socket)
+static rmtError WebSocket_AcceptConnection(WebSocket* web_socket, WebSocket** client_socket)
 {
     TCPSocket* tcp_socket = NULL;
-    enum rmtError error;
+    rmtError error;
 
     // Is there a waiting connection?
     assert(web_socket != NULL);
@@ -2495,11 +2467,10 @@ static enum rmtError WebSocket_AcceptConnection(WebSocket* web_socket, WebSocket
 
     // Allocate and return a new client socket
     assert(client_socket != NULL);
-    error = WebSocket_Create(client_socket);
+    New_1(WebSocket, *client_socket, tcp_socket);
     if (error != RMT_ERROR_NONE)
         return error;
 
-    (*client_socket)->tcp_socket = tcp_socket;
     (*client_socket)->mode = web_socket->mode;
 
     return RMT_ERROR_NONE;
@@ -2518,9 +2489,9 @@ static void WriteSize(rmtU32 size, rmtU8* dest, rmtU32 dest_size, rmtU32 dest_of
 }
 
 
-static enum rmtError WebSocket_Send(WebSocket* web_socket, const void* data, rmtU32 length, rmtU32 timeout_ms)
+static rmtError WebSocket_Send(WebSocket* web_socket, const void* data, rmtU32 length, rmtU32 timeout_ms)
 {
-    enum rmtError error;
+    rmtError error;
     SocketStatus status;
     rmtU8 final_fragment, frame_type, frame_header[10];
     rmtU32 frame_header_size;
@@ -2531,8 +2502,6 @@ static enum rmtError WebSocket_Send(WebSocket* web_socket, const void* data, rmt
     status = WebSocket_PollStatus(web_socket);
     if (status.error_state != RMT_ERROR_NONE)
         return status.error_state;
-    if (!status.can_write)
-        return RMT_ERROR_SOCKET_SEND_TIMEOUT;
 
     final_fragment = 0x1 << 7;
     frame_type = (rmtU8)web_socket->mode;
@@ -2543,7 +2512,7 @@ static enum rmtError WebSocket_Send(WebSocket* web_socket, const void* data, rmt
     if (length <= 125)
     {
         frame_header_size = 2;
-        frame_header[1] = length;
+        frame_header[1] = (rmtU8)length;
     }
     else if (length <= 65535)
     {
@@ -2558,20 +2527,31 @@ static enum rmtError WebSocket_Send(WebSocket* web_socket, const void* data, rmt
         WriteSize(length, frame_header + 2, 8, 4);
     }
 
-    // Send frame header followed by data
+    // Send frame header
     assert(data != NULL);
     error = TCPSocket_Send(web_socket->tcp_socket, frame_header, frame_header_size, timeout_ms);
     if (error != RMT_ERROR_NONE)
         return error;
-    return TCPSocket_Send(web_socket->tcp_socket, data, length, timeout_ms);
+
+    // Send frame data separately so that we don't have to allocate memory or memcpy it into
+    // the same buffer as the header.
+    // If this step times out then the frame data will be discarded and the browser will receive
+    // an invalid frame without its data, forcing a disconnect error.
+    // Before things get that far, flag this as a send fail and let the server schedule a graceful
+    // disconnect.
+    error = TCPSocket_Send(web_socket->tcp_socket, data, length, timeout_ms);
+    if (error == RMT_ERROR_SOCKET_SEND_TIMEOUT)
+        error = RMT_ERROR_SOCKET_SEND_FAIL;
+
+    return error;
 }
 
 
-static enum rmtError ReceiveFrameHeader(WebSocket* web_socket)
+static rmtError ReceiveFrameHeader(WebSocket* web_socket)
 {
     // TODO: Specify infinite timeout?
 
-    enum rmtError error;
+    rmtError error;
     rmtU8 msg_header[2] = { 0, 0 };
     int msg_length, size_bytes_remaining, i;
     rmtBool mask_present;
@@ -2630,23 +2610,21 @@ static enum rmtError ReceiveFrameHeader(WebSocket* web_socket)
 }
 
 
-static enum rmtError WebSocket_Receive(WebSocket* web_socket, void* data, rmtU32 length, rmtU32 timeout_ms)
+static rmtError WebSocket_Receive(WebSocket* web_socket, void* data, rmtU32* msg_len, rmtU32 length, rmtU32 timeout_ms)
 {
     SocketStatus status;
     char* cur_data;
     char* end_data;
     rmtU32 start_ms, now_ms;
     rmtU32 bytes_to_read;
-    enum rmtError error;
+    rmtError error;
 
     assert(web_socket != NULL);
 
-    // Ensure there is data to receive
+    // Can't read with any socket errors
     status = WebSocket_PollStatus(web_socket);
     if (status.error_state != RMT_ERROR_NONE)
         return status.error_state;
-    if (!status.can_read)
-        return RMT_ERROR_SOCKET_RECV_NO_DATA;
 
     cur_data = (char*)data;
     end_data = cur_data + length;
@@ -2660,6 +2638,10 @@ static enum rmtError WebSocket_Receive(WebSocket* web_socket, void* data, rmtU32
             error = ReceiveFrameHeader(web_socket);
             if (error != RMT_ERROR_NONE)
                 return error;
+
+            // Set output message length only on initial receive
+            if (msg_len != NULL)
+                *msg_len = web_socket->frame_bytes_remaining;
         }
 
         // Read as much required data as possible
@@ -2723,7 +2705,7 @@ typedef struct Message
     // For telling which thread the message came from in the debugger
     struct ThreadSampler* thread_sampler;
 
-    rmtU8 payload[0];
+    rmtU8 payload[1];
 } Message;
 
 
@@ -2746,53 +2728,37 @@ typedef struct MessageQueue
 } MessageQueue;
 
 
-static void MessageQueue_Destroy(MessageQueue* queue)
+static rmtError MessageQueue_Constructor(MessageQueue* queue, rmtU32 size)
 {
-    assert(queue != NULL);
-
-    if (queue->data != NULL)
-    {
-        VirtualMirrorBuffer_Destroy(queue->data);
-        queue->data = NULL;
-    }
-
-    free(queue);
-}
-
-
-static enum rmtError MessageQueue_Create(MessageQueue** queue, rmtU32 size)
-{
-    enum rmtError error;
+    rmtError error;
 
     assert(queue != NULL);
-
-    // Allocate the container
-    *queue = (MessageQueue*)malloc(sizeof(MessageQueue));
-    if (*queue == NULL)
-        return RMT_ERROR_MALLOC_FAIL;
 
     // Set defaults
-    (*queue)->size = 0;
-    (*queue)->data = NULL;
-    (*queue)->read_pos = 0;
-    (*queue)->write_pos = 0;
+    queue->size = 0;
+    queue->data = NULL;
+    queue->read_pos = 0;
+    queue->write_pos = 0;
 
-    error = VirtualMirrorBuffer_Create(&(*queue)->data, size, 10);
+    New_2(VirtualMirrorBuffer, queue->data, size, 10);
     if (error != RMT_ERROR_NONE)
-    {
-        MessageQueue_Destroy(*queue);
-        *queue = NULL;
         return error;
-    }
 
     // The mirror buffer needs to be page-aligned and will change the requested
     // size to match that.
-    (*queue)->size = (*queue)->data->size;
+    queue->size = queue->data->size;
 
     // Set the entire buffer to not ready message
-    memset((*queue)->data->ptr, MsgID_NotReady, (*queue)->size);
+    memset(queue->data->ptr, MsgID_NotReady, queue->size);
 
     return RMT_ERROR_NONE;
+}
+
+
+static void MessageQueue_Destructor(MessageQueue* queue)
+{
+    assert(queue != NULL);
+    Delete(VirtualMirrorBuffer, queue->data);
 }
 
 
@@ -2810,7 +2776,7 @@ static Message* MessageQueue_AllocMessage(MessageQueue* queue, rmtU32 payload_si
         rmtU32 s = queue->size;
         rmtU32 r = queue->read_pos;
         rmtU32 w = queue->write_pos;
-        if ((int)(w - r) > s - write_size)
+        if ((int)(w - r) > ((int)(s - write_size)))
             return NULL;
 
         // Point to the newly allocated space
@@ -2914,47 +2880,36 @@ typedef struct
 } Server;
 
 
-static void Server_Destroy(Server* server);
-
-
-static enum rmtError Server_Create(rmtU16 port, Server** server)
+static rmtError Server_CreateListenSocket(Server* server, rmtU16 port)
 {
-    enum rmtError error;
+    rmtError error = RMT_ERROR_NONE;
 
-    assert(server != NULL);
-    *server = (Server*)malloc(sizeof(Server));
-    if (*server == NULL)
-        return RMT_ERROR_MALLOC_FAIL;
+    New_1(WebSocket, server->listen_socket, NULL);
+    if (error == RMT_ERROR_NONE)
+        error = WebSocket_RunServer(server->listen_socket, port, WEBSOCKET_TEXT);
 
-    // Initialise defaults
-    (*server)->listen_socket = NULL;
-    (*server)->client_socket = NULL;
-    (*server)->last_ping_time = 0;
-    (*server)->port = port;
-
-    // Create the listening WebSocket
-    error = WebSocket_CreateServer(port, WEBSOCKET_TEXT, &(*server)->listen_socket);
-    if (error != RMT_ERROR_NONE)
-    {
-        Server_Destroy(*server);
-        *server = NULL;
-        return error;
-    }
-
-    return RMT_ERROR_NONE;
+    return error;
 }
 
 
-static void Server_Destroy(Server* server)
+static rmtError Server_Constructor(Server* server, rmtU16 port)
 {
     assert(server != NULL);
+    server->listen_socket = NULL;
+    server->client_socket = NULL;
+    server->last_ping_time = 0;
+    server->port = port;
 
-    if (server->client_socket != NULL)
-        WebSocket_Destroy(server->client_socket);
-    if (server->listen_socket != NULL)
-        WebSocket_Destroy(server->listen_socket);
+    // Create the listening WebSocket
+    return Server_CreateListenSocket(server, port);
+}
 
-    free(server);
+
+static void Server_Destructor(Server* server)
+{
+    assert(server != NULL);
+    Delete(WebSocket, server->client_socket);
+    Delete(WebSocket, server->listen_socket);
 }
 
 
@@ -2965,18 +2920,69 @@ static rmtBool Server_IsClientConnected(Server* server)
 }
 
 
-static enum rmtError Server_Send(Server* server, const void* data, rmtU32 length, rmtU32 timeout)
+static void Server_DisconnectClient(Server* server)
+{
+    WebSocket* client_socket;
+
+    assert(server != NULL);
+
+    // NULL the variable before destroying the socket
+    client_socket = server->client_socket;
+    server->client_socket = NULL;
+    WriteFence();
+    Delete(WebSocket, client_socket);
+}
+
+
+static rmtError Server_Send(Server* server, const void* data, rmtU32 length, rmtU32 timeout)
 {
     assert(server != NULL);
     if (Server_IsClientConnected(server))
     {
-        enum rmtError error = WebSocket_Send(server->client_socket, data, length, timeout);
+        rmtError error = WebSocket_Send(server->client_socket, data, length, timeout);
         if (error == RMT_ERROR_SOCKET_SEND_FAIL)
-        {
-            WebSocket_Destroy(server->client_socket);
-            server->client_socket = NULL;
-        }
+            Server_DisconnectClient(server);
+
         return error;
+    }
+
+    return RMT_ERROR_NONE;
+}
+
+
+static rmtError Server_ReceiveMessage(Server* server, char message_first_byte, rmtU32 message_length)
+{
+    char message_data[1024];
+    rmtError error;
+
+    // Check for potential message data overflow
+    if (message_length >= sizeof(message_data) - 1)
+    {
+        rmt_LogText("Ignoring console input bigger than internal receive buffer (1024 bytes)");
+        return RMT_ERROR_NONE;
+    }
+
+    // Receive the rest of the message
+    message_data[0] = message_first_byte;
+    error = WebSocket_Receive(server->client_socket, message_data + 1, NULL, message_length - 1, 100);
+    if (error != RMT_ERROR_NONE)
+        return error;
+    message_data[message_length] = 0;
+
+    // Each message must have a descriptive 4 byte header
+    if (message_length < 4)
+        return RMT_ERROR_NONE;
+
+    // Silly check for console input message ('CONI')
+    // (don't want to add safe strcmp to lib yet)
+    if (message_data[0] == 'C' && message_data[1] == 'O' && message_data[2] == 'N' && message_data[3] == 'I')
+    {
+        // Pass on to any registered handler 
+        if (g_Settings.input_handler != NULL)
+            g_Settings.input_handler(message_data + 4, g_Settings.input_handler_context);
+
+        rmt_LogText("Console message received...");
+        rmt_LogText(message_data + 4);
     }
 
     return RMT_ERROR_NONE;
@@ -2991,13 +2997,13 @@ static void Server_Update(Server* server)
 
     // Recreate the listening socket if it's been destroyed earlier
     if (server->listen_socket == NULL)
-        WebSocket_CreateServer(server->port, WEBSOCKET_TEXT, &server->listen_socket);
+        Server_CreateListenSocket(server, server->port);
 
     if (server->listen_socket != NULL && server->client_socket == NULL)
     {
         // Accept connections as long as there is no client connected
         WebSocket* client_socket = NULL;
-        enum rmtError error = WebSocket_AcceptConnection(server->listen_socket, &client_socket);
+        rmtError error = WebSocket_AcceptConnection(server->listen_socket, &client_socket);
         if (error == RMT_ERROR_NONE)
         {
             server->client_socket = client_socket;
@@ -3006,8 +3012,7 @@ static void Server_Update(Server* server)
         {
             // Destroy the listen socket on failure to accept
             // It will get recreated in another update
-            WebSocket_Destroy(server->listen_socket);
-            server->listen_socket = NULL;
+            Delete(WebSocket, server->listen_socket);
         }
     }
 
@@ -3015,10 +3020,14 @@ static void Server_Update(Server* server)
     {
         // Check for any incoming messages
         char message_first_byte;
-        enum rmtError error = WebSocket_Receive(server->client_socket, &message_first_byte, 1, 0);
+        rmtU32 message_length;
+        rmtError error = WebSocket_Receive(server->client_socket, &message_first_byte, &message_length, 1, 0);
         if (error == RMT_ERROR_NONE)
         {
-            // data available to read
+            // Parse remaining message
+            error = Server_ReceiveMessage(server, message_first_byte, message_length);
+            if (error != RMT_ERROR_NONE)
+                Server_DisconnectClient(server);
         }
         else if (error == RMT_ERROR_SOCKET_RECV_NO_DATA)
         {
@@ -3031,10 +3040,7 @@ static void Server_Update(Server* server)
         else
         {
             // Anything else is an error that may have closed the connection
-            // NULL the variable before destroying the socket
-            WebSocket* client_socket = server->client_socket;
-            server->client_socket = NULL;
-            WebSocket_Destroy(client_socket);
+            Server_DisconnectClient(server);
         }
     }
 
@@ -3043,7 +3049,7 @@ static void Server_Update(Server* server)
     if (cur_time - server->last_ping_time > 1000)
     {
         rmtPStr ping_message = "{ \"id\": \"PING\" }";
-        Server_Send(server, ping_message, strlen(ping_message), 20);
+        Server_Send(server, ping_message, (rmtU32)strlen(ping_message), 20);
         server->last_ping_time = cur_time;
     }
 }
@@ -3067,49 +3073,49 @@ static void Server_Update(Server* server)
 
 
 
-static enum rmtError json_OpenObject(Buffer* buffer)
+static rmtError json_OpenObject(Buffer* buffer)
 {
     return Buffer_Write(buffer, (void*)"{", 1);
 }
 
 
-static enum rmtError json_CloseObject(Buffer* buffer)
+static rmtError json_CloseObject(Buffer* buffer)
 {
     return Buffer_Write(buffer, (void*)"}", 1);
 }
 
 
-static enum rmtError json_Comma(Buffer* buffer)
+static rmtError json_Comma(Buffer* buffer)
 {
     return Buffer_Write(buffer, (void*)",", 1);
 }
 
 
-static enum rmtError json_Colon(Buffer* buffer)
+static rmtError json_Colon(Buffer* buffer)
 {
     return Buffer_Write(buffer, (void*)":", 1);
 }
 
 
-static enum rmtError json_String(Buffer* buffer, rmtPStr string)
+static rmtError json_String(Buffer* buffer, rmtPStr string)
 {
-    enum rmtError error;
+    rmtError error;
     JSON_ERROR_CHECK(Buffer_Write(buffer, (void*)"\"", 1));
     JSON_ERROR_CHECK(Buffer_WriteString(buffer, string));
     return Buffer_Write(buffer, (void*)"\"", 1);
 }
 
 
-static enum rmtError json_FieldStr(Buffer* buffer, rmtPStr name, rmtPStr value)
+static rmtError json_FieldStr(Buffer* buffer, rmtPStr name, rmtPStr value)
 {
-    enum rmtError error;
+    rmtError error;
     JSON_ERROR_CHECK(json_String(buffer, name));
     JSON_ERROR_CHECK(json_Colon(buffer));
     return json_String(buffer, value);
 }
 
 
-static enum rmtError json_FieldU64(Buffer* buffer, rmtPStr name, rmtU64 value)
+static rmtError json_FieldU64(Buffer* buffer, rmtPStr name, rmtU64 value)
 {
     static char temp_buf[32];
 
@@ -3135,20 +3141,20 @@ static enum rmtError json_FieldU64(Buffer* buffer, rmtPStr name, rmtU64 value)
         value = next_value;
     } while (value);
 
-    return Buffer_Write(buffer, tptr, end - tptr);
+    return Buffer_Write(buffer, tptr, (rmtU32)(end - tptr));
 }
 
 
-static enum rmtError json_OpenArray(Buffer* buffer, rmtPStr name)
+static rmtError json_OpenArray(Buffer* buffer, rmtPStr name)
 {
-    enum rmtError error;
+    rmtError error;
     JSON_ERROR_CHECK(json_String(buffer, name));
     JSON_ERROR_CHECK(json_Colon(buffer));
     return Buffer_Write(buffer, (void*)"[", 1);
 }
 
 
-static enum rmtError json_CloseArray(Buffer* buffer)
+static rmtError json_CloseArray(Buffer* buffer)
 {
     return Buffer_Write(buffer, (void*)"]", 1);
 }
@@ -3170,6 +3176,7 @@ enum SampleType
     SampleType_CPU,
     SampleType_CUDA,
     SampleType_D3D11,
+    SampleType_OpenGL,
     SampleType_Count,
 };
 
@@ -3191,6 +3198,9 @@ typedef struct Sample
     // Unique, persistent ID among all samples
     rmtU32 unique_id;
 
+    // Null-terminated string storing the hash-prefixed 6-digit colour
+    rmtU8 unique_id_html_colour[8];
+
     // Links to related samples in the tree
     struct Sample* parent;
     struct Sample* first_child;
@@ -3208,7 +3218,7 @@ typedef struct Sample
 } Sample;
 
 
-static enum rmtError Sample_Constructor(Sample* sample)
+static rmtError Sample_Constructor(Sample* sample)
 {
     assert(sample != NULL);
 
@@ -3219,6 +3229,9 @@ static enum rmtError Sample_Constructor(Sample* sample)
     sample->name = NULL;
     sample->name_hash = 0;
     sample->unique_id = 0;
+    sample->unique_id_html_colour[0] = '#';
+    sample->unique_id_html_colour[1] = 0;
+    sample->unique_id_html_colour[7] = 0;
     sample->parent = NULL;
     sample->first_child = NULL;
     sample->last_child = NULL;
@@ -3233,6 +3246,7 @@ static enum rmtError Sample_Constructor(Sample* sample)
 
 static void Sample_Destructor(Sample* sample)
 {
+    RMT_UNREFERENCED_PARAMETER(sample);
 }
 
 
@@ -3251,12 +3265,12 @@ static void Sample_Prepare(Sample* sample, rmtPStr name, rmtU32 name_hash, Sampl
 }
 
 
-static enum rmtError json_SampleArray(Buffer* buffer, Sample* first_sample, rmtPStr name);
+static rmtError json_SampleArray(Buffer* buffer, Sample* first_sample, rmtPStr name);
 
 
-static enum rmtError json_Sample(Buffer* buffer, Sample* sample)
+static rmtError json_Sample(Buffer* buffer, Sample* sample)
 {
-    enum rmtError error;
+    rmtError error;
 
     assert(sample != NULL);
 
@@ -3266,9 +3280,11 @@ static enum rmtError json_Sample(Buffer* buffer, Sample* sample)
         JSON_ERROR_CHECK(json_Comma(buffer));
         JSON_ERROR_CHECK(json_FieldU64(buffer, "id", sample->unique_id));
         JSON_ERROR_CHECK(json_Comma(buffer));
+        JSON_ERROR_CHECK(json_FieldStr(buffer, "colour", (rmtPStr)sample->unique_id_html_colour));
+        JSON_ERROR_CHECK(json_Comma(buffer));
         JSON_ERROR_CHECK(json_FieldU64(buffer, "us_start", sample->us_start));
         JSON_ERROR_CHECK(json_Comma(buffer));
-        JSON_ERROR_CHECK(json_FieldU64(buffer, "us_length", max(sample->us_end - sample->us_start, 0)));
+        JSON_ERROR_CHECK(json_FieldU64(buffer, "us_length", maxS64(sample->us_end - sample->us_start, 0)));
 
         if (sample->first_child != NULL)
         {
@@ -3280,9 +3296,9 @@ static enum rmtError json_Sample(Buffer* buffer, Sample* sample)
 }
 
 
-static enum rmtError json_SampleArray(Buffer* buffer, Sample* first_sample, rmtPStr name)
+static rmtError json_SampleArray(Buffer* buffer, Sample* first_sample, rmtPStr name)
 {
-    enum rmtError error;
+    rmtError error;
 
     Sample* sample;
 
@@ -3324,48 +3340,33 @@ typedef struct SampleTree
 } SampleTree;
 
 
-static void SampleTree_Destroy(SampleTree* tree);
-
-
-static enum rmtError SampleTree_Create(SampleTree** tree, rmtU32 sample_size, ObjConstructor constructor, ObjDestructor destructor)
+static rmtError SampleTree_Constructor(SampleTree* tree, rmtU32 sample_size, ObjConstructor constructor, ObjDestructor destructor)
 {
-    enum rmtError error;
+    rmtError error;
 
     assert(tree != NULL);
 
-    *tree = (SampleTree*)malloc(sizeof(SampleTree));
-    if (*tree == NULL)
-        return RMT_ERROR_MALLOC_FAIL;
-
-    (*tree)->allocator = NULL;
-    (*tree)->root = NULL;
-    (*tree)->current_parent = NULL;
+    tree->allocator = NULL;
+    tree->root = NULL;
+    tree->current_parent = NULL;
 
     // Create the sample allocator
-    error = ObjectAllocator_Create(&(*tree)->allocator, sample_size, constructor, destructor);
+    New_3(ObjectAllocator, tree->allocator, sample_size, constructor, destructor);
     if (error != RMT_ERROR_NONE)
-    {
-        SampleTree_Destroy(*tree);
-        *tree = NULL;
         return error;
-    }
 
     // Create a root sample that's around for the lifetime of the thread
-    error = ObjectAllocator_Alloc((*tree)->allocator, (void**)&(*tree)->root);
+    error = ObjectAllocator_Alloc(tree->allocator, (void**)&tree->root);
     if (error != RMT_ERROR_NONE)
-    {
-        SampleTree_Destroy(*tree);
-        *tree = NULL;
         return error;
-    }
-    Sample_Prepare((*tree)->root, "<Root Sample>", 0, NULL);
-    (*tree)->current_parent = (*tree)->root;
+    Sample_Prepare(tree->root, "<Root Sample>", 0, NULL);
+    tree->current_parent = tree->root;
 
     return RMT_ERROR_NONE;
 }
 
 
-static void SampleTree_Destroy(SampleTree* tree)
+static void SampleTree_Destructor(SampleTree* tree)
 {
     assert(tree != NULL);
 
@@ -3375,17 +3376,11 @@ static void SampleTree_Destroy(SampleTree* tree)
         tree->root = NULL;
     }
 
-    if (tree->allocator != NULL)
-    {
-        ObjectAllocator_Destroy(tree->allocator);
-        tree->allocator = NULL;
-    }
-
-    free(tree);
+    Delete(ObjectAllocator, tree->allocator);
 }
 
 
-rmtU32 HashCombine(rmtU32 hash_a, rmtU32 hash_b)
+static rmtU32 HashCombine(rmtU32 hash_a, rmtU32 hash_b)
 {
     // A sequence of 32 uniformly random bits so that each bit of the combined hash is changed on application
     // Derived from the golden ratio: UINT_MAX / ((1 + sqrt(5)) / 2)
@@ -3397,10 +3392,10 @@ rmtU32 HashCombine(rmtU32 hash_a, rmtU32 hash_b)
 }
 
 
-static enum rmtError SampleTree_Push(SampleTree* tree, rmtPStr name, rmtU32 name_hash, Sample** sample)
+static rmtError SampleTree_Push(SampleTree* tree, rmtPStr name, rmtU32 name_hash, Sample** sample)
 {
     Sample* parent;
-    enum rmtError error;
+    rmtError error;
     rmtU32 unique_id;
 
     // As each tree has a root sample node allocated, a parent must always be present
@@ -3554,79 +3549,55 @@ typedef struct ThreadSampler
     // Store a unique sample tree for each type
     SampleTree* sample_trees[SampleType_Count];
 
-    // Microsecond accuracy timer for CPU timestamps
-    usTimer timer;
-
     // Next in the global list of active thread samplers
     struct ThreadSampler* volatile next;
 
 } ThreadSampler;
 
 
-static void ThreadSampler_Destroy(ThreadSampler* ts);
-
-
-static enum rmtError ThreadSampler_Create(ThreadSampler** thread_sampler)
+static rmtError ThreadSampler_Constructor(ThreadSampler* thread_sampler)
 {
-    enum rmtError error;
+    rmtError error;
     int i;
 
-    // Allocate space for the thread sampler
-    *thread_sampler = (ThreadSampler*)malloc(sizeof(ThreadSampler));
-    if (*thread_sampler == NULL)
-        return RMT_ERROR_MALLOC_FAIL;
+    assert(thread_sampler != NULL);
 
     // Set defaults
     for (i = 0; i < SampleType_Count; i++)
-        (*thread_sampler)->sample_trees[i] = NULL; 
-    (*thread_sampler)->next = NULL;
+        thread_sampler->sample_trees[i] = NULL; 
+    thread_sampler->next = NULL;
 
     // Set the initial name based on the unique thread sampler address
-    Base64_Encode((rmtU8*)thread_sampler, sizeof(thread_sampler), (rmtU8*)(*thread_sampler)->name);
+    Base64_Encode((rmtU8*)thread_sampler, sizeof(rmtU8*), (rmtU8*)thread_sampler->name);
 
     // Create the CPU sample tree only - the rest are created on-demand as they need
     // extra context information to function correctly.
-    error = SampleTree_Create(&(*thread_sampler)->sample_trees[SampleType_CPU], sizeof(Sample), (ObjConstructor)Sample_Constructor, (ObjDestructor)Sample_Destructor);
+    New_3(SampleTree, thread_sampler->sample_trees[SampleType_CPU], sizeof(Sample), (ObjConstructor)Sample_Constructor, (ObjDestructor)Sample_Destructor);
     if (error != RMT_ERROR_NONE)
-    {
-        ThreadSampler_Destroy(*thread_sampler);
-        *thread_sampler = NULL;
         return error;
-    }
-
-    // Kick-off the timer
-    usTimer_Init(&(*thread_sampler)->timer);
 
     return RMT_ERROR_NONE;
 }
 
 
-static void ThreadSampler_Destroy(ThreadSampler* ts)
+static void ThreadSampler_Destructor(ThreadSampler* ts)
 {
     int i;
 
     assert(ts != NULL);
-
     for (i = 0; i < SampleType_Count; i++)
-    {
-        if (ts->sample_trees[i] != NULL)
-        {
-            SampleTree_Destroy(ts->sample_trees[i]);
-            ts->sample_trees[i] = NULL;
-        }
-    }
-
-    free(ts);
+        Delete(SampleTree, ts->sample_trees[i]);
 }
 
 
-static enum rmtError ThreadSampler_Push(ThreadSampler* ts, SampleTree* tree, rmtPStr name, rmtU32 name_hash, Sample** sample)
+static rmtError ThreadSampler_Push(ThreadSampler* ts, SampleTree* tree, rmtPStr name, rmtU32 name_hash, Sample** sample)
 {
+    RMT_UNREFERENCED_PARAMETER(ts);
     return SampleTree_Push(tree, name, name_hash, sample);
 }
 
 
-static void ThreadSampler_Pop(ThreadSampler* ts, MessageQueue* queue, Sample* sample)
+static rmtBool ThreadSampler_Pop(ThreadSampler* ts, MessageQueue* queue, Sample* sample)
 {
     SampleTree* tree = ts->sample_trees[sample->type];
     SampleTree_Pop(tree, sample);
@@ -3640,7 +3611,11 @@ static void ThreadSampler_Pop(ThreadSampler* ts, MessageQueue* queue, Sample* sa
         root->last_child = NULL;
         root->nb_children = 0;
         AddSampleTreeMessage(queue, sample, tree->allocator, ts->name, ts);
+
+        return RMT_TRUE;
     }
+
+    return RMT_FALSE;
 }
 
 
@@ -3655,9 +3630,26 @@ static void ThreadSampler_Pop(ThreadSampler* ts, MessageQueue* queue, Sample* sa
 
 
 
+#ifdef RMT_USE_D3D11
+typedef struct D3D11 D3D11;
+static rmtError D3D11_Create(D3D11** d3d11);
+static void D3D11_Destructor(D3D11* d3d11);
+#endif
+
+
+#ifdef RMT_USE_OPENGL
+typedef struct OpenGL OpenGL;
+static rmtError OpenGL_Create(OpenGL** opengl);
+static void OpenGL_Destructor(OpenGL* opengl);
+#endif
+
+
 struct Remotery
 {
     Server* server;
+
+    // Microsecond accuracy timer for CPU timestamps
+    usTimer timer;
 
     rmtTLS thread_sampler_tls_handle;
 
@@ -3678,23 +3670,11 @@ struct Remotery
 #endif
 
 #ifdef RMT_USE_D3D11
-    // Context set by user
-    ID3D11Device* d3d11_device;
-    ID3D11DeviceContext* d3d11_context;
+    D3D11* d3d11;
+#endif
 
-    HRESULT d3d11_last_error;
-
-    // An allocator separate to the samples themselves so that D3D resource lifetime can be controlled
-    // outside of the Remotery thread.
-    ObjectAllocator* d3d11_timestamp_allocator;
-
-    // Queue to the D3D 11 main update thread
-    // Given that BeginSample/EndSample need to be called from the same thread that does the update, there
-    // is really no need for this to be a thread-safe queue. I'm using it for its convenience.
-    MessageQueue* mq_to_d3d11_main;
-
-    // Mark the first time so that remaining timestamps are offset from this
-    rmtU64 d3d11_first_timestamp;
+#ifdef RMT_USE_OPENGL
+    OpenGL* opengl;
 #endif
 };
 
@@ -3712,8 +3692,10 @@ static Remotery* g_Remotery = NULL;
 static rmtBool g_RemoteryCreated = RMT_FALSE;
 
 
-static void Remotery_Destroy(Remotery* rmt);
 static void Remotery_DestroyThreadSamplers(Remotery* rmt);
+
+
+static const rmtU8 g_DecimalToHex[17] = "0123456789abcdef";
 
 
 static void GetSampleDigest(Sample* sample, rmtU32* digest_hash, rmtU32* nb_samples)
@@ -3728,13 +3710,43 @@ static void GetSampleDigest(Sample* sample, rmtU32* digest_hash, rmtU32* nb_samp
     (*nb_samples)++;
     *digest_hash = MurmurHash3_x86_32(&sample->unique_id, sizeof(sample->unique_id), *digest_hash);
 
+    {
+        rmtU8 shift = 4;
+
+        // Get 6 nibbles for lower 3 bytes of the unique sample ID
+        rmtU8* sample_id = (rmtU8*)&sample->unique_id;
+        rmtU8 hex_sample_id[6];
+        hex_sample_id[0] = sample_id[0] & 15;
+        hex_sample_id[1] = sample_id[0] >> 4;
+        hex_sample_id[2] = sample_id[1] & 15;
+        hex_sample_id[3] = sample_id[1] >> 4;
+        hex_sample_id[4] = sample_id[2] & 15;
+        hex_sample_id[5] = sample_id[2] >> 4;
+
+        // As the nibbles will be used as hex colour digits, shift them up to make pastel colours
+        hex_sample_id[0] = minU8(hex_sample_id[0] + shift, 15);
+        hex_sample_id[1] = minU8(hex_sample_id[1] + shift, 15);
+        hex_sample_id[2] = minU8(hex_sample_id[2] + shift, 15);
+        hex_sample_id[3] = minU8(hex_sample_id[3] + shift, 15);
+        hex_sample_id[4] = minU8(hex_sample_id[4] + shift, 15);
+        hex_sample_id[5] = minU8(hex_sample_id[5] + shift, 15);
+
+        // Convert the nibbles to hex for the final colour
+        sample->unique_id_html_colour[1] = g_DecimalToHex[hex_sample_id[0]];
+        sample->unique_id_html_colour[2] = g_DecimalToHex[hex_sample_id[1]];
+        sample->unique_id_html_colour[3] = g_DecimalToHex[hex_sample_id[2]];
+        sample->unique_id_html_colour[4] = g_DecimalToHex[hex_sample_id[3]];
+        sample->unique_id_html_colour[5] = g_DecimalToHex[hex_sample_id[4]];
+        sample->unique_id_html_colour[6] = g_DecimalToHex[hex_sample_id[5]];
+    }
+
     // Concatenate children
     for (child = sample->first_child; child != NULL; child = child->next_sibling)
         GetSampleDigest(child, digest_hash, nb_samples);
 }
 
 
-static enum rmtError Remotery_SendLogTextMessage(Remotery* rmt, Message* message)
+static rmtError Remotery_SendLogTextMessage(Remotery* rmt, Message* message)
 {
     assert(rmt != NULL);
     assert(message != NULL);
@@ -3742,12 +3754,12 @@ static enum rmtError Remotery_SendLogTextMessage(Remotery* rmt, Message* message
 }
 
 
-static enum rmtError json_SampleTree(Buffer* buffer, Msg_SampleTree* msg)
+static rmtError json_SampleTree(Buffer* buffer, Msg_SampleTree* msg)
 {
     Sample* root_sample;
     char thread_name[64];
     rmtU32 digest_hash = 0, nb_samples = 0;
-    enum rmtError error;
+    rmtError error;
 
     assert(buffer != NULL);
     assert(msg != NULL);
@@ -3766,6 +3778,8 @@ static enum rmtError json_SampleTree(Buffer* buffer, Msg_SampleTree* msg)
         strncat_s(thread_name, sizeof(thread_name), " (CUDA)", 7);
     if (root_sample->type == SampleType_D3D11)
         strncat_s(thread_name, sizeof(thread_name), " (D3D11)", 8);
+    if (root_sample->type == SampleType_OpenGL)
+        strncat_s(thread_name, sizeof(thread_name), " (OpenGL)", 9);
 
     // Get digest hash of samples so that viewer can efficiently rebuild its tables
     GetSampleDigest(root_sample, &digest_hash, &nb_samples);
@@ -3795,10 +3809,10 @@ static rmtBool GetCUDASampleTimes(Sample* root_sample, Sample* sample);
 #endif
 
 
-static enum rmtError Remotery_SendSampleTreeMessage(Remotery* rmt, Message* message)
+static rmtError Remotery_SendSampleTreeMessage(Remotery* rmt, Message* message)
 {
     Msg_SampleTree* sample_tree;
-    enum rmtError error = RMT_ERROR_NONE;
+    rmtError error = RMT_ERROR_NONE;
     Sample* sample;
 
     assert(rmt != NULL);
@@ -3830,10 +3844,11 @@ static enum rmtError Remotery_SendSampleTreeMessage(Remotery* rmt, Message* mess
     }
     #endif
 
-    // Serialise the sample tree and send to the viewer
+    // Serialise the sample tree and send to the viewer with a reasonably long timeout as the size
+    // of the sample data may be large
     error = json_SampleTree(rmt->json_buf, sample_tree);
     if (error == RMT_ERROR_NONE)
-        error = Server_Send(rmt->server, rmt->json_buf->data, rmt->json_buf->bytes_used, 20);
+        error = Server_Send(rmt->server, rmt->json_buf->data, rmt->json_buf->bytes_used, 5000);
 
     // Release the sample tree back to its allocator
     FreeSampleTree(sample, sample_tree->allocator);
@@ -3842,9 +3857,10 @@ static enum rmtError Remotery_SendSampleTreeMessage(Remotery* rmt, Message* mess
 }
 
 
-static enum rmtError Remotery_ConsumeMessageQueue(Remotery* rmt)
+static rmtError Remotery_ConsumeMessageQueue(Remotery* rmt)
 {
     rmtU32 nb_messages_sent = 0;
+    const rmtU32 maxNbMessagesPerUpdate = g_Settings.maxNbMessagesPerUpdate;
 
     assert(rmt != NULL);
 
@@ -3853,9 +3869,9 @@ static enum rmtError Remotery_ConsumeMessageQueue(Remotery* rmt)
         return RMT_ERROR_NONE;
 
     // Loop reading the max number of messages for this update
-    while (nb_messages_sent++ < MAX_NB_MESSAGES_PER_UPDATE)
+    while( nb_messages_sent++ < maxNbMessagesPerUpdate )
     {
-        enum rmtError error = RMT_ERROR_NONE;
+        rmtError error = RMT_ERROR_NONE;
         Message* message = MessageQueue_PeekNextMessage(rmt->mq_to_rmt_thread);
         if (message == NULL)
             break;
@@ -3918,7 +3934,7 @@ static void Remotery_FlushMessageQueue(Remotery* rmt)
 }
 
 
-static enum rmtError Remotery_ThreadMain(Thread* thread)
+static rmtError Remotery_ThreadMain(Thread* thread)
 {
     Remotery* rmt = (Remotery*)thread->param;
     assert(rmt != NULL);
@@ -3950,7 +3966,7 @@ static enum rmtError Remotery_ThreadMain(Thread* thread)
         // This loop will exit with unrelease samples.
         //
 
-        msSleep(MS_SLEEP_BETWEEN_SERVER_UPDATES);
+        msSleep(g_Settings.msSleepBetweenServerUpdates);
     }
 
     // Release all samples to their allocators as a consequence of [NOTE-A]
@@ -3960,119 +3976,88 @@ static enum rmtError Remotery_ThreadMain(Thread* thread)
 }
 
 
-static enum rmtError Remotery_Create(Remotery** rmt)
+static rmtError Remotery_Constructor(Remotery* rmt)
 {
-    enum rmtError error;
+    rmtError error;
 
     assert(rmt != NULL);
 
-    *rmt = (Remotery*)malloc(sizeof(Remotery));
-    if (*rmt == NULL)
-        return RMT_ERROR_MALLOC_FAIL;
-
     // Set default state
-    (*rmt)->server = NULL;
-    (*rmt)->thread_sampler_tls_handle = TLS_INVALID_HANDLE;
-    (*rmt)->first_thread_sampler = NULL;
-    (*rmt)->mq_to_rmt_thread = NULL;
-    (*rmt)->json_buf = NULL;
-    (*rmt)->thread = NULL;
+    rmt->server = NULL;
+    rmt->thread_sampler_tls_handle = TLS_INVALID_HANDLE;
+    rmt->first_thread_sampler = NULL;
+    rmt->mq_to_rmt_thread = NULL;
+    rmt->json_buf = NULL;
+    rmt->thread = NULL;
+
+    // Kick-off the timer
+    usTimer_Init(&rmt->timer);
 
     // Allocate a TLS handle for the thread sampler
-    error = tlsAlloc(&(*rmt)->thread_sampler_tls_handle);
+    error = tlsAlloc(&rmt->thread_sampler_tls_handle);
     if (error != RMT_ERROR_NONE)
-    {
-        Remotery_Destroy(*rmt);
-        *rmt = NULL;
         return error;
-    }
 
     // Create the server
-    error = Server_Create(0x4597, &(*rmt)->server);
+    New_1( Server, rmt->server, g_Settings.port );
     if (error != RMT_ERROR_NONE)
-    {
-        Remotery_Destroy(*rmt);
-        *rmt = NULL;
         return error;
-    }
 
     // Create the main message thread with only one page
-    error = MessageQueue_Create(&(*rmt)->mq_to_rmt_thread, MESSAGE_QUEUE_SIZE_BYTES);
+    New_1(MessageQueue, rmt->mq_to_rmt_thread, g_Settings.messageQueueSizeInBytes);
     if (error != RMT_ERROR_NONE)
-    {
-        Remotery_Destroy(*rmt);
-        *rmt = NULL;
         return error;
-    }
 
     // Create the JSON serialisation buffer
-    error = Buffer_Create(&(*rmt)->json_buf, 4096);
+    New_1(Buffer, rmt->json_buf, 4096);
     if (error != RMT_ERROR_NONE)
-    {
-        Remotery_Destroy(*rmt);
-        *rmt = NULL;
         return error;
-    }
 
     #ifdef RMT_USE_CUDA
 
-        (*rmt)->cuda.CtxSetCurrent = NULL;
-        (*rmt)->cuda.EventCreate = NULL;
-        (*rmt)->cuda.EventDestroy = NULL;
-        (*rmt)->cuda.EventElapsedTime = NULL;
-        (*rmt)->cuda.EventQuery = NULL;
-        (*rmt)->cuda.EventRecord = NULL;
+        rmt->cuda.CtxSetCurrent = NULL;
+        rmt->cuda.EventCreate = NULL;
+        rmt->cuda.EventDestroy = NULL;
+        rmt->cuda.EventElapsedTime = NULL;
+        rmt->cuda.EventQuery = NULL;
+        rmt->cuda.EventRecord = NULL;
 
     #endif
 
     #ifdef RMT_USE_D3D11
-        (*rmt)->d3d11_device = NULL;
-        (*rmt)->d3d11_context = NULL;
-        (*rmt)->d3d11_last_error = S_OK;
-        (*rmt)->d3d11_timestamp_allocator = NULL;
-        (*rmt)->mq_to_d3d11_main = NULL;
-        (*rmt)->d3d11_first_timestamp = 0;
-
-        error = MessageQueue_Create(&(*rmt)->mq_to_d3d11_main, MESSAGE_QUEUE_SIZE_BYTES);
+        rmt->d3d11 = NULL;
+        error = D3D11_Create(&rmt->d3d11);
         if (error != RMT_ERROR_NONE)
-        {
-            Remotery_Destroy(*rmt);
-            *rmt = NULL;
             return error;
-        }
+    #endif
+
+    #ifdef RMT_USE_OPENGL
+        rmt->opengl = NULL;
+        error = OpenGL_Create(&rmt->opengl);
+        if (error != RMT_ERROR_NONE)
+            return error;
     #endif
 
     // Set as the global instance before creating any threads that uses it for sampling itself
     assert(g_Remotery == NULL);
-    g_Remotery = *rmt;
+    g_Remotery = rmt;
     g_RemoteryCreated = RMT_TRUE;
 
     // Ensure global instance writes complete before other threads get a chance to use it
     WriteFence();
 
     // Create the main update thread once everything has been defined for the global remotery object
-    error = Thread_Create(&(*rmt)->thread, Remotery_ThreadMain, *rmt);
-    if (error != RMT_ERROR_NONE)
-    {
-        Remotery_Destroy(*rmt);
-        *rmt = NULL;
-        return error;
-    }
-
-    return RMT_ERROR_NONE;
+    New_2(Thread, rmt->thread, Remotery_ThreadMain, rmt);
+    return error;
 }
 
 
-static void Remotery_Destroy(Remotery* rmt)
+static void Remotery_Destructor(Remotery* rmt)
 {
     assert(rmt != NULL);
 
     // Join the remotery thread before clearing the global object as the thread is profiling itself
-    if (rmt->thread != NULL)
-    {
-        Thread_Destroy(rmt->thread);
-        rmt->thread = NULL;
-    }
+    Delete(Thread, rmt->thread);
 
     // Ensure this is the module that created it
     assert(g_RemoteryCreated == RMT_TRUE);
@@ -4081,49 +4066,29 @@ static void Remotery_Destroy(Remotery* rmt)
     g_RemoteryCreated = RMT_FALSE;
 
     #ifdef RMT_USE_D3D11
-        if (rmt->d3d11_timestamp_allocator != NULL)
-        {
-            ObjectAllocator_Destroy(rmt->d3d11_timestamp_allocator);
-            rmt->d3d11_timestamp_allocator = NULL;
-        }
-        if (rmt->mq_to_d3d11_main != NULL)
-        {
-            MessageQueue_Destroy(rmt->mq_to_d3d11_main);
-            rmt->mq_to_d3d11_main = NULL;
-        }
+        Delete(D3D11, rmt->d3d11);
     #endif
 
-    if (rmt->json_buf != NULL)
-    {
-        Buffer_Destroy(rmt->json_buf);
-        rmt->json_buf = NULL;
-    }
+    #ifdef RMT_USE_OPENGL
+        Delete(OpenGL, rmt->opengl);
+    #endif
 
-    if (rmt->mq_to_rmt_thread != NULL)
-    {
-        MessageQueue_Destroy(rmt->mq_to_rmt_thread);
-        rmt->mq_to_rmt_thread = NULL;
-    }
+    Delete(Buffer, rmt->json_buf);
+    Delete(MessageQueue, rmt->mq_to_rmt_thread);
 
     Remotery_DestroyThreadSamplers(rmt);
 
-    if (rmt->server != NULL)
-    {
-        Server_Destroy(rmt->server);
-        rmt->server = NULL;
-    }
+    Delete(Server, rmt->server);
 
     if (rmt->thread_sampler_tls_handle != TLS_INVALID_HANDLE)
     {
         tlsFree(rmt->thread_sampler_tls_handle);
         rmt->thread_sampler_tls_handle = 0;
     }
-
-    free(rmt);
 }
 
 
-static enum rmtError Remotery_GetThreadSampler(Remotery* rmt, ThreadSampler** thread_sampler)
+static rmtError Remotery_GetThreadSampler(Remotery* rmt, ThreadSampler** thread_sampler)
 {
     ThreadSampler* ts;
 
@@ -4133,7 +4098,8 @@ static enum rmtError Remotery_GetThreadSampler(Remotery* rmt, ThreadSampler** th
     if (ts == NULL)
     {
         // Allocate on-demand
-        enum rmtError error = ThreadSampler_Create(thread_sampler);
+        rmtError error;
+        New_0(ThreadSampler, *thread_sampler);
         if (error != RMT_ERROR_NONE)
             return error;
         ts = *thread_sampler;
@@ -4188,29 +4154,76 @@ static void Remotery_DestroyThreadSamplers(Remotery* rmt)
             }
         }
 
-        // Release the thread sampler
-        ThreadSampler_Destroy(ts);
+        Delete(ThreadSampler, ts);
     }
 }
 
 
-enum rmtError _rmt_CreateGlobalInstance(Remotery** remotery)
+static void* CRTMalloc(void* mm_context, rmtU32 size)
 {
+    return malloc((size_t)size);
+}
+
+
+static void CRTFree(void* mm_context, void* ptr)
+{
+    free(ptr);
+}
+
+static void* CRTRealloc(void* mm_context, void* ptr, rmtU32 size)
+{
+    return realloc(ptr, size);
+}
+
+
+rmtSettings* _rmt_Settings(void)
+{
+    // Default-initialize on first call
+    if( g_SettingsInitialized == RMT_FALSE )
+    {
+        g_Settings.port = 0x4597;
+        g_Settings.msSleepBetweenServerUpdates = 10;
+        g_Settings.messageQueueSizeInBytes = 64 * 1024;
+        g_Settings.maxNbMessagesPerUpdate = 100;
+        g_Settings.malloc = CRTMalloc;
+        g_Settings.free = CRTFree;
+        g_Settings.realloc = CRTRealloc;
+        g_Settings.input_handler = NULL;
+        g_Settings.input_handler_context = NULL;
+        g_Settings.logFilename = "rmtLog.txt";
+
+        g_SettingsInitialized = RMT_TRUE;
+    }
+
+    return &g_Settings;
+}
+
+
+rmtError _rmt_CreateGlobalInstance(Remotery** remotery)
+{
+    rmtError error;
+
+    // Default-initialise if user has not set values
+    rmt_Settings();
+
     // Creating the Remotery instance also records it as the global instance
     assert(remotery != NULL);
-    return Remotery_Create(remotery);
+    New_0(Remotery, *remotery);
+    return error;
 }
 
 
 void _rmt_DestroyGlobalInstance(Remotery* remotery)
 {
-    if (remotery != NULL)
-        Remotery_Destroy(remotery);
+    Delete(Remotery, remotery);
 }
 
 
 void _rmt_SetGlobalInstance(Remotery* remotery)
 {
+    // Default-initialise if user has not set values
+    rmt_Settings();
+
     g_Remotery = remotery;
 }
 
@@ -4239,9 +4252,10 @@ static void SetDebuggerThreadName(const char* name)
         THREADNAME_INFO info;
         info.dwType = 0x1000;
         info.szName = name;
-        info.dwThreadID = -1;
+        info.dwThreadID = (DWORD)-1;
         info.dwFlags = 0;
 
+        #ifndef __MINGW32__
         __try
         {
             RaiseException(0x406D1388, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info);
@@ -4249,6 +4263,7 @@ static void SetDebuggerThreadName(const char* name)
         __except(1 /* EXCEPTION_EXECUTE_HANDLER */)
         {
         }
+        #endif
     #endif
 }
 
@@ -4315,7 +4330,7 @@ void _rmt_LogText(rmtPStr text)
 
     // Start the line buffer off with the JSON message markup
     strncat_s(line_buffer, sizeof(line_buffer), log_message, sizeof(log_message));
-    start_offset = strnlen_s(line_buffer, sizeof(line_buffer) - 1);
+    start_offset = (int)strnlen_s(line_buffer, sizeof(line_buffer) - 1);
 
     // There might be newlines in the buffer, so split them into multiple network calls
     prev_offset = start_offset;
@@ -4361,7 +4376,7 @@ void _rmt_LogText(rmtPStr text)
     // Send the last line
     if (prev_offset > start_offset)
     {
-        assert(prev_offset < sizeof(line_buffer) - 3);
+        assert(prev_offset < ((int)sizeof(line_buffer) - 3));
         QueueLine(g_Remotery->mq_to_rmt_thread, line_buffer, prev_offset, ts);
     }
 }
@@ -4376,14 +4391,14 @@ static rmtU32 GetNameHash(rmtPStr name, rmtU32* hash_cache)
         if (*hash_cache == 0)
         {
             assert(name != NULL);
-            *hash_cache = MurmurHash3_x86_32(name, strnlen_s(name, 256), 0);
+            *hash_cache = MurmurHash3_x86_32(name, (int)strnlen_s(name, 256), 0);
         }
 
         return *hash_cache;
     }
 
     // Have to recalculate every time when no cache storage exists
-    return MurmurHash3_x86_32(name, strnlen_s(name, 256), 0);
+    return MurmurHash3_x86_32(name, (int)strnlen_s(name, 256), 0);
 }
 
 
@@ -4407,7 +4422,7 @@ void _rmt_BeginCPUSample(rmtPStr name, rmtU32* hash_cache)
         Sample* sample;
         rmtU32 name_hash = GetNameHash(name, hash_cache);
         if (ThreadSampler_Push(ts, ts->sample_trees[SampleType_CPU], name, name_hash, &sample) == RMT_ERROR_NONE)
-            sample->us_start = usTimer_Get(&ts->timer);
+            sample->us_start = usTimer_Get(&g_Remotery->timer);
     }
 }
 
@@ -4422,7 +4437,7 @@ void _rmt_EndCPUSample(void)
     if (Remotery_GetThreadSampler(g_Remotery, &ts) == RMT_ERROR_NONE)
     {
         Sample* sample = ts->sample_trees[SampleType_CPU]->current_parent;
-        sample->us_end = usTimer_Get(&ts->timer);
+        sample->us_end = usTimer_Get(&g_Remotery->timer);
         ThreadSampler_Pop(ts, g_Remotery->mq_to_rmt_thread, sample);
     }
 }
@@ -4454,7 +4469,7 @@ typedef struct CUDASample
 } CUDASample;
 
 
-static enum rmtError MapCUDAResult(CUresult result)
+static rmtError MapCUDAResult(CUresult result)
 {
     switch (result)
     {
@@ -4478,26 +4493,26 @@ static enum rmtError MapCUDAResult(CUresult result)
 
 #define CUDA_GUARD(call)                \
     {                                   \
-        enum rmtError error = call;     \
+        rmtError error = call;     \
         if (error != RMT_ERROR_NONE)    \
             return error;               \
     }
 
 
 // Wrappers around CUDA driver functions that manage the active context.
-static enum rmtError CUDASetContext(void* context)
+static rmtError CUDASetContext(void* context)
 {
     CUDA_MAKE_FUNCTION(CtxSetCurrent, (CUcontext ctx));
     assert(CtxSetCurrent != NULL);
     return MapCUDAResult(CtxSetCurrent((CUcontext)context));
 }
-static enum rmtError CUDAGetContext(void** context)
+static rmtError CUDAGetContext(void** context)
 {
     CUDA_MAKE_FUNCTION(CtxGetCurrent, (CUcontext* ctx));
     assert(CtxGetCurrent != NULL);
     return MapCUDAResult(CtxGetCurrent((CUcontext*)context));
 }
-static enum rmtError CUDAEnsureContext()
+static rmtError CUDAEnsureContext()
 {
     void* current_context;
     CUDA_GUARD(CUDAGetContext(&current_context));
@@ -4511,31 +4526,31 @@ static enum rmtError CUDAEnsureContext()
 
 
 // Wrappers around CUDA driver functions that manage events
-static enum rmtError CUDAEventCreate(CUevent* phEvent, unsigned int Flags)
+static rmtError CUDAEventCreate(CUevent* phEvent, unsigned int Flags)
 {
     CUDA_MAKE_FUNCTION(EventCreate, (CUevent *phEvent, unsigned int Flags));
     CUDA_GUARD(CUDAEnsureContext());
     return MapCUDAResult(EventCreate(phEvent, Flags));
 }
-static enum rmtError CUDAEventDestroy(CUevent hEvent)
+static rmtError CUDAEventDestroy(CUevent hEvent)
 {
     CUDA_MAKE_FUNCTION(EventDestroy, (CUevent hEvent));
     CUDA_GUARD(CUDAEnsureContext());
     return MapCUDAResult(EventDestroy(hEvent));
 }
-static enum rmtError CUDAEventRecord(CUevent hEvent, void* hStream)
+static rmtError CUDAEventRecord(CUevent hEvent, void* hStream)
 {
     CUDA_MAKE_FUNCTION(EventRecord, (CUevent hEvent, CUstream hStream));
     CUDA_GUARD(CUDAEnsureContext());
     return MapCUDAResult(EventRecord(hEvent, (CUstream)hStream));
 }
-static enum rmtError CUDAEventQuery(CUevent hEvent)
+static rmtError CUDAEventQuery(CUevent hEvent)
 {
     CUDA_MAKE_FUNCTION(EventQuery,  (CUevent hEvent));
     CUDA_GUARD(CUDAEnsureContext());
     return MapCUDAResult(EventQuery(hEvent));
 }
-static enum rmtError CUDAEventElapsedTime(float* pMilliseconds, CUevent hStart, CUevent hEnd)
+static rmtError CUDAEventElapsedTime(float* pMilliseconds, CUevent hStart, CUevent hEnd)
 {
     CUDA_MAKE_FUNCTION(EventElapsedTime, (float *pMilliseconds, CUevent hStart, CUevent hEnd));
     CUDA_GUARD(CUDAEnsureContext());
@@ -4543,9 +4558,9 @@ static enum rmtError CUDAEventElapsedTime(float* pMilliseconds, CUevent hStart, 
 }
 
 
-static enum rmtError CUDASample_Constructor(CUDASample* sample)
+static rmtError CUDASample_Constructor(CUDASample* sample)
 {
-    enum rmtError error;
+    rmtError error;
 
     assert(sample != NULL);
 
@@ -4581,7 +4596,7 @@ static void CUDASample_Destructor(CUDASample* sample)
 
 static rmtBool AreCUDASamplesReady(Sample* sample)
 {
-    enum rmtError error;
+    rmtError error;
     Sample* child;
 
     CUDASample* cuda_sample = (CUDASample*)sample;
@@ -4656,6 +4671,7 @@ void _rmt_BeginCUDASample(rmtPStr name, rmtU32* hash_cache, void* stream)
 
     if (Remotery_GetThreadSampler(g_Remotery, &ts) == RMT_ERROR_NONE)
     {
+        rmtError error;
         Sample* sample;
         rmtU32 name_hash = GetNameHash(name, hash_cache);
 
@@ -4666,7 +4682,7 @@ void _rmt_BeginCUDASample(rmtPStr name, rmtU32* hash_cache, void* stream)
         {
             CUDASample* root_sample;
             
-            enum rmtError error = SampleTree_Create(cuda_tree, sizeof(CUDASample), (ObjConstructor)CUDASample_Constructor, (ObjDestructor)CUDASample_Destructor);
+            New_3(SampleTree, *cuda_tree, sizeof(CUDASample), (ObjConstructor)CUDASample_Constructor, (ObjDestructor)CUDASample_Destructor);
             if (error != RMT_ERROR_NONE)
                 return;
 
@@ -4721,6 +4737,79 @@ void _rmt_EndCUDASample(void* stream)
 #ifdef RMT_USE_D3D11
 
 
+// As clReflect has no way of disabling C++ compile mode, this forces C interfaces everywhere...
+#define CINTERFACE
+
+// ...unfortunately these C++ helpers aren't wrapped by the same macro but they can be disabled individually
+#define D3D11_NO_HELPERS
+
+// Allow use of the D3D11 helper macros for accessing the C-style vtable
+#define COBJMACROS
+
+#include <d3d11.h>
+
+
+typedef struct D3D11
+{
+    // Context set by user
+    ID3D11Device* device;
+    ID3D11DeviceContext* context;
+
+    HRESULT last_error;
+
+    // An allocator separate to the samples themselves so that D3D resource lifetime can be controlled
+    // outside of the Remotery thread.
+    ObjectAllocator* timestamp_allocator;
+
+    // Queue to the D3D 11 main update thread
+    // Given that BeginSample/EndSample need to be called from the same thread that does the update, there
+    // is really no need for this to be a thread-safe queue. I'm using it for its convenience.
+    MessageQueue* mq_to_d3d11_main;
+
+    // Mark the first time so that remaining timestamps are offset from this
+    rmtU64 first_timestamp;
+} D3D11;
+
+
+static rmtError D3D11_Create(D3D11** d3d11)
+{
+    rmtError error;
+
+    assert(d3d11 != NULL);
+
+    // Allocate space for the D3D11 data
+    *d3d11 = (D3D11*)rmtMalloc(sizeof(D3D11));
+    if (*d3d11 == NULL)
+        return RMT_ERROR_MALLOC_FAIL;
+
+    // Set defaults
+    (*d3d11)->device = NULL;
+    (*d3d11)->context = NULL;
+    (*d3d11)->last_error = S_OK;
+    (*d3d11)->timestamp_allocator = NULL;
+    (*d3d11)->mq_to_d3d11_main = NULL;
+    (*d3d11)->first_timestamp = 0;
+
+    New_1(MessageQueue, (*d3d11)->mq_to_d3d11_main, g_Settings.messageQueueSizeInBytes);
+    if (error != RMT_ERROR_NONE)
+    {
+        Delete(D3D11, *d3d11);
+        return error;
+    }
+
+    return RMT_ERROR_NONE;
+}
+
+
+static void D3D11_Destructor(D3D11* d3d11)
+{
+    assert(d3d11 != NULL);
+
+    Delete(ObjectAllocator, d3d11->timestamp_allocator);
+    Delete(MessageQueue, d3d11->mq_to_d3d11_main);
+}
+
+
 typedef struct D3D11Timestamp
 {
     // Inherit so that timestamps can be quickly allocated
@@ -4736,10 +4825,12 @@ typedef struct D3D11Timestamp
 } D3D11Timestamp;
 
 
-static enum rmtError D3D11Timestamp_Constructor(D3D11Timestamp* stamp)
+static rmtError D3D11Timestamp_Constructor(D3D11Timestamp* stamp)
 {
     D3D11_QUERY_DESC timestamp_desc;
     D3D11_QUERY_DESC disjoint_desc;
+    ID3D11Device* device;
+    HRESULT* last_error;
 
     assert(stamp != NULL);
 
@@ -4750,22 +4841,26 @@ static enum rmtError D3D11Timestamp_Constructor(D3D11Timestamp* stamp)
     stamp->query_end = NULL;
     stamp->query_disjoint = NULL;
 
-    // Create start/end timestamp queries
     assert(g_Remotery != NULL);
+    assert(g_Remotery->d3d11 != NULL);
+    device = g_Remotery->d3d11->device;
+    last_error = &g_Remotery->d3d11->last_error;
+
+    // Create start/end timestamp queries
     timestamp_desc.Query = D3D11_QUERY_TIMESTAMP;
     timestamp_desc.MiscFlags = 0;
-    g_Remotery->d3d11_last_error = ID3D11Device_CreateQuery(g_Remotery->d3d11_device, &timestamp_desc, &stamp->query_start);
-    if (g_Remotery->d3d11_last_error != S_OK)
+    *last_error = ID3D11Device_CreateQuery(device, &timestamp_desc, &stamp->query_start);
+    if (*last_error != S_OK)
         return RMT_ERROR_D3D11_FAILED_TO_CREATE_QUERY;
-    g_Remotery->d3d11_last_error = ID3D11Device_CreateQuery(g_Remotery->d3d11_device, &timestamp_desc, &stamp->query_end);
-    if (g_Remotery->d3d11_last_error != S_OK)
+    *last_error = ID3D11Device_CreateQuery(device, &timestamp_desc, &stamp->query_end);
+    if (*last_error != S_OK)
         return RMT_ERROR_D3D11_FAILED_TO_CREATE_QUERY;
 
     // Create disjoint query
     disjoint_desc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
     disjoint_desc.MiscFlags = 0;
-    g_Remotery->d3d11_last_error = ID3D11Device_CreateQuery(g_Remotery->d3d11_device, &disjoint_desc, &stamp->query_disjoint);
-    if (g_Remotery->d3d11_last_error != S_OK)
+    *last_error = ID3D11Device_CreateQuery(device, &disjoint_desc, &stamp->query_disjoint);
+    if (*last_error != S_OK)
         return RMT_ERROR_D3D11_FAILED_TO_CREATE_QUERY;
 
     return RMT_ERROR_NONE;
@@ -4786,44 +4881,36 @@ static void D3D11Timestamp_Destructor(D3D11Timestamp* stamp)
 }
 
 
-static void D3D11Timestamp_Begin(D3D11Timestamp* stamp)
+static void D3D11Timestamp_Begin(D3D11Timestamp* stamp, ID3D11DeviceContext* context)
 {
     assert(stamp != NULL);
 
     // Start of disjoint and first query
-    assert(g_Remotery != NULL);
-    assert(g_Remotery->d3d11_context != NULL);
-    ID3D11DeviceContext_Begin(g_Remotery->d3d11_context, (ID3D11Asynchronous*)stamp->query_disjoint);
-    ID3D11DeviceContext_End(g_Remotery->d3d11_context, (ID3D11Asynchronous*)stamp->query_start);
+    ID3D11DeviceContext_Begin(context, (ID3D11Asynchronous*)stamp->query_disjoint);
+    ID3D11DeviceContext_End(context, (ID3D11Asynchronous*)stamp->query_start);
 }
 
 
-static void D3D11Timestamp_End(D3D11Timestamp* stamp)
+static void D3D11Timestamp_End(D3D11Timestamp* stamp, ID3D11DeviceContext* context)
 {
     assert(stamp != NULL);
 
     // End of disjoint and second query
-    assert(g_Remotery != NULL);
-    assert(g_Remotery->d3d11_context != NULL);
-    ID3D11DeviceContext_End(g_Remotery->d3d11_context, (ID3D11Asynchronous*)stamp->query_end);
-    ID3D11DeviceContext_End(g_Remotery->d3d11_context, (ID3D11Asynchronous*)stamp->query_disjoint);
+    ID3D11DeviceContext_End(context, (ID3D11Asynchronous*)stamp->query_end);
+    ID3D11DeviceContext_End(context, (ID3D11Asynchronous*)stamp->query_disjoint);
 }
 
 
-static rmtBool D3D11Timestamp_GetData(D3D11Timestamp* stamp, rmtU64 first_timestamp, rmtU64* out_start, rmtU64* out_end, rmtU64* out_first_timestamp)
+static HRESULT D3D11Timestamp_GetData(D3D11Timestamp* stamp, ID3D11DeviceContext* context, rmtU64* out_start, rmtU64* out_end, rmtU64* out_first_timestamp)
 {
-
-    ID3D11DeviceContext* d3d_context;
     ID3D11Asynchronous* query_start;
     ID3D11Asynchronous* query_end;
     ID3D11Asynchronous* query_disjoint;
+    HRESULT result;
 
     UINT64 start;
     UINT64 end;
     D3D11_QUERY_DATA_TIMESTAMP_DISJOINT disjoint;
-
-    assert(g_Remotery != NULL);
-    d3d_context = g_Remotery->d3d11_context;
 
     assert(stamp != NULL);
     query_start = (ID3D11Asynchronous*)stamp->query_start;
@@ -4832,15 +4919,15 @@ static rmtBool D3D11Timestamp_GetData(D3D11Timestamp* stamp, rmtU64 first_timest
 
     // Check to see if all queries are ready
     // If any fail to arrive, wait until later
-    g_Remotery->d3d11_last_error = ID3D11DeviceContext_GetData(d3d_context, query_start, &start, sizeof(start), D3D11_ASYNC_GETDATA_DONOTFLUSH);
-    if (g_Remotery->d3d11_last_error != S_OK)
-        return RMT_FALSE;
-    g_Remotery->d3d11_last_error = ID3D11DeviceContext_GetData(d3d_context, query_end, &end, sizeof(end), D3D11_ASYNC_GETDATA_DONOTFLUSH);
-    if (g_Remotery->d3d11_last_error != S_OK)
-        return RMT_FALSE;
-    g_Remotery->d3d11_last_error = ID3D11DeviceContext_GetData(d3d_context, query_disjoint, &disjoint, sizeof(disjoint), D3D11_ASYNC_GETDATA_DONOTFLUSH);
-    if (g_Remotery->d3d11_last_error != S_OK)
-        return RMT_FALSE;
+    result = ID3D11DeviceContext_GetData(context, query_start, &start, sizeof(start), D3D11_ASYNC_GETDATA_DONOTFLUSH);
+    if (result != S_OK)
+        return result;
+    result = ID3D11DeviceContext_GetData(context, query_end, &end, sizeof(end), D3D11_ASYNC_GETDATA_DONOTFLUSH);
+    if (result != S_OK)
+        return result;
+    result = ID3D11DeviceContext_GetData(context, query_disjoint, &disjoint, sizeof(disjoint), D3D11_ASYNC_GETDATA_DONOTFLUSH);
+    if (result != S_OK)
+        return result;
 
     if (disjoint.Disjoint == FALSE)
     {
@@ -4852,11 +4939,11 @@ static rmtBool D3D11Timestamp_GetData(D3D11Timestamp* stamp, rmtU64 first_timest
             *out_first_timestamp = start;
 
         // Calculate start and end timestamps from the disjoint info
-        *out_start = (rmtU64)((start - first_timestamp) / frequency);
-        *out_end = (rmtU64)((end - first_timestamp) / frequency);
+        *out_start = (rmtU64)((start - *out_first_timestamp) / frequency);
+        *out_end = (rmtU64)((end - *out_first_timestamp) / frequency);
     }
 
-    return RMT_TRUE;
+    return S_OK;
 }
 
 
@@ -4870,7 +4957,7 @@ typedef struct D3D11Sample
 } D3D11Sample;
 
 
-static enum rmtError D3D11Sample_Constructor(D3D11Sample* sample)
+static rmtError D3D11Sample_Constructor(D3D11Sample* sample)
 {
     assert(sample != NULL);
 
@@ -4894,10 +4981,12 @@ void _rmt_BindD3D11(void* device, void* context)
 {
     if (g_Remotery != NULL)
     {
+        assert(g_Remotery->d3d11 != NULL);
+
         assert(device != NULL);
-        g_Remotery->d3d11_device = (ID3D11Device*)device;
+        g_Remotery->d3d11->device = (ID3D11Device*)device;
         assert(context != NULL);
-        g_Remotery->d3d11_context = (ID3D11DeviceContext*)context;
+        g_Remotery->d3d11->context = (ID3D11DeviceContext*)context;
     }
 }
 
@@ -4908,8 +4997,10 @@ static void FreeD3D11TimeStamps(Sample* sample)
 
     D3D11Sample* d3d_sample = (D3D11Sample*)sample;
 
+    assert(g_Remotery != NULL);
+    assert(g_Remotery->d3d11 != NULL);
     assert(d3d_sample->timestamp != NULL);
-    ObjectAllocator_Free(g_Remotery->d3d11_timestamp_allocator, (void*)d3d_sample->timestamp);
+    ObjectAllocator_Free(g_Remotery->d3d11->timestamp_allocator, (void*)d3d_sample->timestamp);
     d3d_sample->timestamp = NULL;
 
     for (child = sample->first_child; child != NULL; child = child->next_sibling)
@@ -4921,9 +5012,12 @@ void _rmt_UnbindD3D11(void)
 {
     if (g_Remotery != NULL)
     {
+        D3D11* d3d11 = g_Remotery->d3d11;
+        assert(d3d11 != NULL);
+
         // Inform sampler to not add any more samples
-        g_Remotery->d3d11_device = NULL;
-        g_Remotery->d3d11_context = NULL;
+        d3d11->device = NULL;
+        d3d11->context = NULL;
 
         // Flush the main queue of allocated D3D timestamps
         while (1)
@@ -4931,7 +5025,7 @@ void _rmt_UnbindD3D11(void)
             Msg_SampleTree* sample_tree;
             Sample* sample;
 
-            Message* message = MessageQueue_PeekNextMessage(g_Remotery->mq_to_d3d11_main);
+            Message* message = MessageQueue_PeekNextMessage(d3d11->mq_to_d3d11_main);
             if (message == NULL)
                 break;
 
@@ -4943,12 +5037,11 @@ void _rmt_UnbindD3D11(void)
             FreeD3D11TimeStamps(sample);
             FreeSampleTree(sample, sample_tree->allocator);
 
-            MessageQueue_ConsumeNextMessage(g_Remotery->mq_to_d3d11_main, message);
+            MessageQueue_ConsumeNextMessage(d3d11->mq_to_d3d11_main, message);
         }
 
         // Free all allocated D3D resources
-        ObjectAllocator_Destroy(g_Remotery->d3d11_timestamp_allocator);
-        g_Remotery->d3d11_timestamp_allocator = NULL;
+        Delete(ObjectAllocator, d3d11->timestamp_allocator);
     }
 }
 
@@ -4956,17 +5049,20 @@ void _rmt_UnbindD3D11(void)
 void _rmt_BeginD3D11Sample(rmtPStr name, rmtU32* hash_cache)
 {
     ThreadSampler* ts;
+    D3D11* d3d11;
 
     if (g_Remotery == NULL)
         return;
 
     // Has D3D11 been unbound?
-    if (g_Remotery->d3d11_device == NULL || g_Remotery->d3d11_context == NULL)
+    d3d11 = g_Remotery->d3d11;
+    assert(d3d11 != NULL);
+    if (d3d11->device == NULL || d3d11->context == NULL)
         return;
 
     if (Remotery_GetThreadSampler(g_Remotery, &ts) == RMT_ERROR_NONE)
     {
-        enum rmtError error;
+        rmtError error;
         Sample* sample;
         rmtU32 name_hash = GetNameHash(name, hash_cache);
 
@@ -4975,14 +5071,14 @@ void _rmt_BeginD3D11Sample(rmtPStr name, rmtU32* hash_cache)
         SampleTree** d3d_tree = &ts->sample_trees[SampleType_D3D11];
         if (*d3d_tree == NULL)
         {
-            error = SampleTree_Create(d3d_tree, sizeof(D3D11Sample), (ObjConstructor)D3D11Sample_Constructor, (ObjDestructor)D3D11Sample_Destructor);
+            New_3(SampleTree, *d3d_tree, sizeof(D3D11Sample), (ObjConstructor)D3D11Sample_Constructor, (ObjDestructor)D3D11Sample_Destructor);
             if (error != RMT_ERROR_NONE)
                 return;
         }
 
         // Also create the timestamp allocator on-demand to keep the D3D11 code localised to the same file section
-        if (g_Remotery->d3d11_timestamp_allocator == NULL)
-            error = ObjectAllocator_Create(&g_Remotery->d3d11_timestamp_allocator, sizeof(D3D11Timestamp), (ObjConstructor)D3D11Timestamp_Constructor, (ObjDestructor)D3D11Timestamp_Destructor);
+        if (d3d11->timestamp_allocator == NULL)
+            New_3(ObjectAllocator, d3d11->timestamp_allocator, sizeof(D3D11Timestamp), (ObjConstructor)D3D11Timestamp_Constructor, (ObjDestructor)D3D11Timestamp_Destructor);
 
         // Push the sample
         if (ThreadSampler_Push(ts, *d3d_tree, name, name_hash, &sample) == RMT_ERROR_NONE)
@@ -4991,39 +5087,15 @@ void _rmt_BeginD3D11Sample(rmtPStr name, rmtU32* hash_cache)
 
             // Allocate a timestamp for the sample and activate it
             assert(d3d_sample->timestamp == NULL);
-            error = ObjectAllocator_Alloc(g_Remotery->d3d11_timestamp_allocator, (void**)&d3d_sample->timestamp);
+            error = ObjectAllocator_Alloc(d3d11->timestamp_allocator, (void**)&d3d_sample->timestamp);
             if (error == RMT_ERROR_NONE)
-                D3D11Timestamp_Begin(d3d_sample->timestamp);
+                D3D11Timestamp_Begin(d3d_sample->timestamp, d3d11->context);
         }
     }
 }
 
 
-void _rmt_EndD3D11Sample(void)
-{
-    ThreadSampler* ts;
-
-    if (g_Remotery == NULL)
-        return;
-
-    // Has D3D11 been unbound?
-    if (g_Remotery->d3d11_device == NULL || g_Remotery->d3d11_context == NULL)
-        return;
-
-    if (Remotery_GetThreadSampler(g_Remotery, &ts) == RMT_ERROR_NONE)
-    {
-        // Close the timestamp
-        D3D11Sample* d3d_sample = (D3D11Sample*)ts->sample_trees[SampleType_D3D11]->current_parent;
-        if (d3d_sample->timestamp != NULL)
-            D3D11Timestamp_End(d3d_sample->timestamp);
-
-        // Send to the update loop for ready-polling
-        ThreadSampler_Pop(ts, g_Remotery->mq_to_d3d11_main, (Sample*)d3d_sample);
-    }
-}
-
-
-static rmtBool GetD3D11SampleTimes(Sample* sample, rmtU64 first_timestamp, rmtU64* out_first_timestamp)
+static rmtBool GetD3D11SampleTimes(Sample* sample, rmtU64* out_first_timestamp)
 {
     Sample* child;
 
@@ -5032,14 +5104,29 @@ static rmtBool GetD3D11SampleTimes(Sample* sample, rmtU64 first_timestamp, rmtU6
     assert(sample != NULL);
     if (d3d_sample->timestamp != NULL)
     {
-        if (!D3D11Timestamp_GetData(d3d_sample->timestamp, first_timestamp, &sample->us_start, &sample->us_end, out_first_timestamp))
+        HRESULT result;
+
+        D3D11* d3d11 = g_Remotery->d3d11;
+        assert(d3d11 != NULL);
+
+        result = D3D11Timestamp_GetData(
+            d3d_sample->timestamp,
+            d3d11->context,
+            &sample->us_start,
+            &sample->us_end,
+            out_first_timestamp);
+
+        if (result != S_OK)
+        {
+            d3d11->last_error = result;
             return RMT_FALSE;
+        }
     }
 
     // Get child sample times
     for (child = sample->first_child; child != NULL; child = child->next_sibling)
     {
-        if (!GetD3D11SampleTimes(child, first_timestamp, out_first_timestamp))
+        if (!GetD3D11SampleTimes(child, out_first_timestamp))
             return RMT_FALSE;
     }
 
@@ -5047,12 +5134,15 @@ static rmtBool GetD3D11SampleTimes(Sample* sample, rmtU64 first_timestamp, rmtU6
 }
 
 
-void _rmt_UpdateD3D11Frame(void)
+static void UpdateD3D11Frame(void)
 {
-    Message* first_message = NULL;
+    D3D11* d3d11;
 
     if (g_Remotery == NULL)
         return;
+
+    d3d11 = g_Remotery->d3d11;
+    assert(d3d11 != NULL);
 
     rmt_BeginCPUSample(rmt_UpdateD3D11Frame);
 
@@ -5061,19 +5151,9 @@ void _rmt_UpdateD3D11Frame(void)
     {
         Msg_SampleTree* sample_tree;
         Sample* sample;
-        rmtU64 first_timestamp;
-        rmtBool are_samples_ready;
 
-        Message* message = MessageQueue_PeekNextMessage(g_Remotery->mq_to_d3d11_main);
+        Message* message = MessageQueue_PeekNextMessage(d3d11->mq_to_d3d11_main);
         if (message == NULL)
-            break;
-
-        // Keep track of the first message encountered during this loop and leave it's encountered
-        // again. This means the loop as had a good attempt at trying to get timing data for all messages
-        // in the queue.
-        if (first_message == NULL)
-            first_message = message;
-        else if (first_message == message)
             break;
 
         // There's only one valid message type in this queue
@@ -5083,29 +5163,559 @@ void _rmt_UpdateD3D11Frame(void)
         assert(sample->type == SampleType_D3D11);
 
         // Retrieve timing of all D3D11 samples
-        first_timestamp = g_Remotery->d3d11_first_timestamp;
-        are_samples_ready = GetD3D11SampleTimes(sample, first_timestamp, &g_Remotery->d3d11_first_timestamp);
+        // If they aren't ready leave the message unconsumed, holding up later frames and maintaining order
+        if (!GetD3D11SampleTimes(sample, &d3d11->first_timestamp))
+            break;
 
-        // If the samples are ready, pass them onto the remotery thread for sending to the viewer
-        if (are_samples_ready)
-        {
-            FreeD3D11TimeStamps(sample);
-            AddSampleTreeMessage(g_Remotery->mq_to_rmt_thread, sample, sample_tree->allocator, sample_tree->thread_name, message->thread_sampler);
-        }
-        else
-        {
-            // Otherwise just put them to the back of the queue
-            AddSampleTreeMessage(g_Remotery->mq_to_d3d11_main, sample, sample_tree->allocator, sample_tree->thread_name, message->thread_sampler);
-        }
-
-        MessageQueue_ConsumeNextMessage(g_Remotery->mq_to_d3d11_main, message);
+        // Pass samples onto the remotery thread for sending to the viewer
+        FreeD3D11TimeStamps(sample);
+        AddSampleTreeMessage(g_Remotery->mq_to_rmt_thread, sample, sample_tree->allocator, sample_tree->thread_name, message->thread_sampler);
+        MessageQueue_ConsumeNextMessage(d3d11->mq_to_d3d11_main, message);
     }
 
     rmt_EndCPUSample();
 }
 
 
-#endif  // RMT_USE_CUDA
+void _rmt_EndD3D11Sample(void)
+{
+    ThreadSampler* ts;
+    D3D11* d3d11;
+
+    if (g_Remotery == NULL)
+        return;
+
+    // Has D3D11 been unbound?
+    d3d11 = g_Remotery->d3d11;
+    assert(d3d11 != NULL);
+    if (d3d11->device == NULL || d3d11->context == NULL)
+        return;
+
+    if (Remotery_GetThreadSampler(g_Remotery, &ts) == RMT_ERROR_NONE)
+    {
+        // Close the timestamp
+        D3D11Sample* d3d_sample = (D3D11Sample*)ts->sample_trees[SampleType_D3D11]->current_parent;
+        if (d3d_sample->timestamp != NULL)
+            D3D11Timestamp_End(d3d_sample->timestamp, d3d11->context);
+
+        // Send to the update loop for ready-polling
+        if (ThreadSampler_Pop(ts, d3d11->mq_to_d3d11_main, (Sample*)d3d_sample))
+            // Perform ready-polling on popping of the root sample
+            UpdateD3D11Frame();
+    }
+}
+
+
+#endif  // RMT_USE_D3D11
+
+
+
+/*
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+@OpenGL: OpenGL event sampling
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+*/
+
+
+
+#ifdef RMT_USE_OPENGL
+
+
+#ifndef APIENTRY
+#  if defined(__MINGW32__) || defined(__CYGWIN__)
+#    define APIENTRY __stdcall
+#  elif (_MSC_VER >= 800) || defined(_STDCALL_SUPPORTED) || defined(__BORLANDC__)
+#    define APIENTRY __stdcall
+#  else
+#    define APIENTRY
+#  endif
+#endif
+
+#ifndef GLAPI
+#  if defined(__MINGW32__) || defined(__CYGWIN__)
+#    define GLAPI extern
+#  else
+#    define GLAPI WINGDIAPI
+#  endif
+#endif
+
+#ifndef GLAPIENTRY
+#define GLAPIENTRY APIENTRY
+#endif
+
+typedef rmtU32 GLenum;
+typedef rmtU32 GLuint;
+typedef rmtS32 GLint;
+typedef rmtS32 GLsizei;
+typedef rmtU64 GLuint64;
+typedef rmtS64 GLint64;
+typedef unsigned char GLubyte;
+
+typedef void (GLAPIENTRY * PFNGLGENQUERIESPROC) (GLsizei n, GLuint* ids);
+typedef void (GLAPIENTRY * PFNGLDELETEQUERIESPROC) (GLsizei n, const GLuint* ids);
+typedef void (GLAPIENTRY * PFNGLBEGINQUERYPROC) (GLenum target, GLuint id);
+typedef void (GLAPIENTRY * PFNGLENDQUERYPROC) (GLenum target);
+typedef void (GLAPIENTRY * PFNGLGETQUERYOBJECTIVPROC) (GLuint id, GLenum pname, GLint* params);
+typedef void (GLAPIENTRY * PFNGLGETQUERYOBJECTUIVPROC) (GLuint id, GLenum pname, GLuint* params);
+typedef void (GLAPIENTRY * PFNGLGETQUERYOBJECTI64VPROC) (GLuint id, GLenum pname, GLint64* params);
+typedef void (GLAPIENTRY * PFNGLGETQUERYOBJECTUI64VPROC) (GLuint id, GLenum pname, GLuint64* params);
+typedef void (GLAPIENTRY * PFNGLQUERYCOUNTERPROC) (GLuint id, GLenum target);
+
+GLAPI GLenum GLAPIENTRY glGetError(void);
+
+#define GL_NO_ERROR 0
+#define GL_QUERY_RESULT 0x8866
+#define GL_QUERY_RESULT_AVAILABLE 0x8867
+#define GL_TIME_ELAPSED 0x88BF
+#define GL_TIMESTAMP 0x8E28
+
+// Not sure which platforms we need
+#if defined(_WIN32)
+#  define rmtGetProcAddress(name) wglGetProcAddress((LPCSTR)name)
+#elif defined(__APPLE__) && !defined(GLEW_APPLE_GLX)
+#  define rmtGetProcAddress(name) NSGLGetProcAddress(name)
+#elif defined(__sgi) || defined(__sun)
+#  define rmtGetProcAddress(name) dlGetProcAddress(name)
+#elif defined(__ANDROID__)
+#  define rmtGetProcAddress(name) NULL /* TODO */
+#elif defined(__native_client__)
+#  define rmtGetProcAddress(name) NULL /* TODO */
+#else /* __linux */
+#  define rmtGetProcAddress(name) (*glXGetProcAddressARB)(name)
+#endif
+
+#define RMT_GL_GET_FUN(x) assert(g_Remotery->opengl->x != NULL), g_Remotery->opengl->x
+
+#define glGenQueries RMT_GL_GET_FUN(__glGenQueries)
+#define glDeleteQueries RMT_GL_GET_FUN(__glDeleteQueries)
+#define glBeginQuery RMT_GL_GET_FUN(__glBeginQuery)
+#define glEndQuery RMT_GL_GET_FUN(__glEndQuery)
+#define glGetQueryObjectiv RMT_GL_GET_FUN(__glGetQueryObjectiv)
+#define glGetQueryObjectuiv RMT_GL_GET_FUN(__glGetQueryObjectuiv)
+#define glGetQueryObjecti64v RMT_GL_GET_FUN(__glGetQueryObjecti64v)
+#define glGetQueryObjectui64v RMT_GL_GET_FUN(__glGetQueryObjectui64v)
+#define glQueryCounter RMT_GL_GET_FUN(__glQueryCounter)
+
+
+typedef struct OpenGL
+{
+    PFNGLGENQUERIESPROC __glGenQueries;
+    PFNGLDELETEQUERIESPROC __glDeleteQueries;
+    PFNGLBEGINQUERYPROC __glBeginQuery;
+    PFNGLENDQUERYPROC __glEndQuery;
+    PFNGLGETQUERYOBJECTIVPROC __glGetQueryObjectiv;
+    PFNGLGETQUERYOBJECTUIVPROC __glGetQueryObjectuiv;
+    PFNGLGETQUERYOBJECTI64VPROC __glGetQueryObjecti64v;
+    PFNGLGETQUERYOBJECTUI64VPROC __glGetQueryObjectui64v;
+    PFNGLQUERYCOUNTERPROC __glQueryCounter;
+
+    // An allocator separate to the samples themselves so that OpenGL resource lifetime can be controlled
+    // outside of the Remotery thread.
+    ObjectAllocator* timestamp_allocator;
+
+    // Queue to the OpenGL main update thread
+    // Given that BeginSample/EndSample need to be called from the same thread that does the update, there
+    // is really no need for this to be a thread-safe queue. I'm using it for its convenience.
+    MessageQueue* mq_to_opengl_main;
+
+    // Mark the first time so that remaining timestamps are offset from this
+    rmtU64 first_timestamp;
+} OpenGL;
+
+
+static rmtError OpenGL_Create(OpenGL** opengl)
+{
+    rmtError error;
+
+    assert(opengl != NULL);
+
+    *opengl = (OpenGL*)rmtMalloc(sizeof(OpenGL));
+    if (*opengl == NULL)
+        return RMT_ERROR_MALLOC_FAIL;
+
+    (*opengl)->__glGenQueries = NULL;
+    (*opengl)->__glDeleteQueries = NULL;
+    (*opengl)->__glBeginQuery = NULL;
+    (*opengl)->__glEndQuery = NULL;
+    (*opengl)->__glGetQueryObjectiv = NULL;
+    (*opengl)->__glGetQueryObjectuiv = NULL;
+    (*opengl)->__glGetQueryObjecti64v = NULL;
+    (*opengl)->__glGetQueryObjectui64v = NULL;
+    (*opengl)->__glQueryCounter = NULL;
+
+    (*opengl)->timestamp_allocator = NULL;
+    (*opengl)->mq_to_opengl_main = NULL;
+    (*opengl)->first_timestamp = 0;
+
+    New_1(MessageQueue, (*opengl)->mq_to_opengl_main, g_Settings.messageQueueSizeInBytes);
+    return error;
+}
+
+
+static void OpenGL_Destructor(OpenGL* opengl)
+{
+    assert(opengl != NULL);
+    Delete(ObjectAllocator, opengl->timestamp_allocator);
+    Delete(MessageQueue, opengl->mq_to_opengl_main);
+}
+
+
+typedef struct OpenGLTimestamp
+{
+    // Inherit so that timestamps can be quickly allocated
+    ObjectLink ObjectLink;
+
+    // Pair of timestamp queries that wrap the sample
+    GLuint queries[2];
+} OpenGLTimestamp;
+
+
+static rmtError OpenGLTimestamp_Constructor(OpenGLTimestamp* stamp)
+{
+    int error;
+
+    assert(stamp != NULL);
+
+    ObjectLink_Constructor((ObjectLink*)stamp);
+
+    // Set defaults
+    stamp->queries[0] = stamp->queries[1] = 0;
+
+    // Create start/end timestamp queries
+    assert(g_Remotery != NULL);
+    glGenQueries(2, stamp->queries);
+    error = glGetError();
+    if (error != GL_NO_ERROR)
+        return RMT_ERROR_OPENGL_ERROR;
+
+    return RMT_ERROR_NONE;
+}
+
+
+static void OpenGLTimestamp_Destructor(OpenGLTimestamp* stamp)
+{
+    assert(stamp != NULL);
+
+    // Destroy queries
+    if (stamp->queries[0] != 0)
+    {
+        int error;
+        glDeleteQueries(2, stamp->queries);
+        error = glGetError();
+        assert(error == GL_NO_ERROR);
+    }
+}
+
+
+static void OpenGLTimestamp_Begin(OpenGLTimestamp* stamp)
+{
+    int error;
+
+    assert(stamp != NULL);
+
+    // Start of disjoint and first query
+    assert(g_Remotery != NULL);
+    glQueryCounter(stamp->queries[0], GL_TIMESTAMP);
+    error = glGetError();
+    assert(error == GL_NO_ERROR);
+}
+
+
+static void OpenGLTimestamp_End(OpenGLTimestamp* stamp)
+{
+    int error;
+
+    assert(stamp != NULL);
+
+    // End of disjoint and second query
+    assert(g_Remotery != NULL);
+    glQueryCounter(stamp->queries[1], GL_TIMESTAMP);
+    error = glGetError();
+    assert(error == GL_NO_ERROR);
+}
+
+
+static rmtBool OpenGLTimestamp_GetData(OpenGLTimestamp* stamp, rmtU64* out_start, rmtU64* out_end, rmtU64* out_first_timestamp)
+{
+    GLuint64 start = 0, end = 0;
+    GLint startAvailable = 0, endAvailable = 0;
+    int error;
+
+    assert(g_Remotery != NULL);
+
+    assert(stamp != NULL);
+    assert(stamp->queries[0] != 0 && stamp->queries[1] != 0);
+
+    // Check to see if all queries are ready
+    // If any fail to arrive, wait until later
+    glGetQueryObjectiv(stamp->queries[0], GL_QUERY_RESULT_AVAILABLE, &startAvailable);
+    error = glGetError();
+    assert(error == GL_NO_ERROR);
+    if (!startAvailable)
+        return RMT_FALSE;
+    glGetQueryObjectiv(stamp->queries[1], GL_QUERY_RESULT_AVAILABLE, &endAvailable);
+    error = glGetError();
+    assert(error == GL_NO_ERROR);
+    if (!endAvailable)
+        return RMT_FALSE;
+
+    glGetQueryObjectui64v(stamp->queries[0], GL_QUERY_RESULT, &start);
+    error = glGetError();
+    assert(error == GL_NO_ERROR);
+    glGetQueryObjectui64v(stamp->queries[1], GL_QUERY_RESULT, &end);
+    error = glGetError();
+    assert(error == GL_NO_ERROR);
+
+    // Mark the first timestamp
+    assert(out_first_timestamp != NULL);
+    if (*out_first_timestamp == 0)
+        *out_first_timestamp = start;
+
+    // Calculate start and end timestamps (we want us, the queries give us ns)
+    *out_start = (rmtU64)(start - *out_first_timestamp) / 1000ULL;
+    *out_end = (rmtU64)(end - *out_first_timestamp) / 1000ULL;
+
+    return RMT_TRUE;
+}
+
+
+typedef struct OpenGLSample
+{
+    // IS-A inheritance relationship
+    Sample Sample;
+
+    OpenGLTimestamp* timestamp;
+
+} OpenGLSample;
+
+
+static rmtError OpenGLSample_Constructor(OpenGLSample* sample)
+{
+    assert(sample != NULL);
+
+    // Chain to sample constructor
+    Sample_Constructor((Sample*)sample);
+    sample->Sample.type = SampleType_OpenGL;
+    sample->Sample.size_bytes = sizeof(OpenGLSample);
+    sample->timestamp = NULL;
+
+    return RMT_ERROR_NONE;
+}
+
+
+static void OpenGLSample_Destructor(OpenGLSample* sample)
+{
+    Sample_Destructor((Sample*)sample);
+}
+
+
+void _rmt_BindOpenGL()
+{
+    if (g_Remotery != NULL)
+    {
+        OpenGL* opengl = g_Remotery->opengl;
+        assert(opengl != NULL);
+
+        opengl->__glGenQueries = (PFNGLGENQUERIESPROC)rmtGetProcAddress((const GLubyte*)"glGenQueries");
+        opengl->__glDeleteQueries = (PFNGLDELETEQUERIESPROC)rmtGetProcAddress((const GLubyte*)"glDeleteQueries");
+        opengl->__glBeginQuery = (PFNGLBEGINQUERYPROC)rmtGetProcAddress((const GLubyte*)"glBeginQuery");
+        opengl->__glEndQuery = (PFNGLENDQUERYPROC)rmtGetProcAddress((const GLubyte*)"glEndQuery");
+        opengl->__glGetQueryObjectiv = (PFNGLGETQUERYOBJECTIVPROC)rmtGetProcAddress((const GLubyte*)"glGetQueryObjectiv");
+        opengl->__glGetQueryObjectuiv = (PFNGLGETQUERYOBJECTUIVPROC)rmtGetProcAddress((const GLubyte*)"glGetQueryObjectuiv");
+        opengl->__glGetQueryObjecti64v = (PFNGLGETQUERYOBJECTI64VPROC)rmtGetProcAddress((const GLubyte*)"glGetQueryObjecti64v");
+        opengl->__glGetQueryObjectui64v = (PFNGLGETQUERYOBJECTUI64VPROC)rmtGetProcAddress((const GLubyte*)"glGetQueryObjectui64v");
+        opengl->__glQueryCounter = (PFNGLQUERYCOUNTERPROC)rmtGetProcAddress((const GLubyte*)"glQueryCounter");
+    }
+}
+
+
+static void FreeOpenGLTimeStamps(Sample* sample)
+{
+    Sample* child;
+
+    OpenGLSample* ogl_sample = (OpenGLSample*)sample;
+
+    assert(ogl_sample->timestamp != NULL);
+    ObjectAllocator_Free(g_Remotery->opengl->timestamp_allocator, (void*)ogl_sample->timestamp);
+    ogl_sample->timestamp = NULL;
+
+    for (child = sample->first_child; child != NULL; child = child->next_sibling)
+        FreeOpenGLTimeStamps(child);
+}
+
+
+void _rmt_UnbindOpenGL(void)
+{
+    if (g_Remotery != NULL)
+    {
+        OpenGL* opengl = g_Remotery->opengl;
+        assert(opengl != NULL);
+
+        // Flush the main queue of allocated OpenGL timestamps
+        while (1)
+        {
+            Msg_SampleTree* sample_tree;
+            Sample* sample;
+
+            Message* message = MessageQueue_PeekNextMessage(opengl->mq_to_opengl_main);
+            if (message == NULL)
+                break;
+
+            // There's only one valid message type in this queue
+            assert(message->id == MsgID_SampleTree);
+            sample_tree = (Msg_SampleTree*)message->payload;
+            sample = sample_tree->root_sample;
+            assert(sample->type == SampleType_OpenGL);
+            FreeOpenGLTimeStamps(sample);
+            FreeSampleTree(sample, sample_tree->allocator);
+
+            MessageQueue_ConsumeNextMessage(opengl->mq_to_opengl_main, message);
+        }
+
+        // Free all allocated OpenGL resources
+        Delete(ObjectAllocator, opengl->timestamp_allocator);
+    }
+}
+
+
+void _rmt_BeginOpenGLSample(rmtPStr name, rmtU32* hash_cache)
+{
+    ThreadSampler* ts;
+
+    if (g_Remotery == NULL)
+        return;
+
+    if (Remotery_GetThreadSampler(g_Remotery, &ts) == RMT_ERROR_NONE)
+    {
+        rmtError error;
+        Sample* sample;
+        rmtU32 name_hash = GetNameHash(name, hash_cache);
+
+        OpenGL* opengl = g_Remotery->opengl;
+
+        // Create the OpenGL tree on-demand as the tree needs an up-front-created root.
+        // This is not possible to create on initialisation as a OpenGL binding is not yet available.
+        SampleTree** ogl_tree = &ts->sample_trees[SampleType_OpenGL];
+        if (*ogl_tree == NULL)
+        {
+            New_3(SampleTree, *ogl_tree, sizeof(OpenGLSample), (ObjConstructor)OpenGLSample_Constructor, (ObjDestructor)OpenGLSample_Destructor);
+            if (error != RMT_ERROR_NONE)
+                return;
+        }
+
+        // Also create the timestamp allocator on-demand to keep the OpenGL code localised to the same file section
+        assert(opengl != NULL);
+        if (opengl->timestamp_allocator == NULL)
+            New_3(ObjectAllocator, opengl->timestamp_allocator, sizeof(OpenGLTimestamp), (ObjConstructor)OpenGLTimestamp_Constructor, (ObjDestructor)OpenGLTimestamp_Destructor);
+
+        // Push the sample
+        if (ThreadSampler_Push(ts, *ogl_tree, name, name_hash, &sample) == RMT_ERROR_NONE)
+        {
+            OpenGLSample* ogl_sample = (OpenGLSample*)sample;
+
+            // Allocate a timestamp for the sample and activate it
+            assert(ogl_sample->timestamp == NULL);
+            error = ObjectAllocator_Alloc(opengl->timestamp_allocator, (void**)&ogl_sample->timestamp);
+            if (error == RMT_ERROR_NONE)
+                OpenGLTimestamp_Begin(ogl_sample->timestamp);
+        }
+    }
+}
+
+
+static rmtBool GetOpenGLSampleTimes(Sample* sample, rmtU64* out_first_timestamp)
+{
+    Sample* child;
+
+    OpenGLSample* ogl_sample = (OpenGLSample*)sample;
+
+    assert(sample != NULL);
+    if (ogl_sample->timestamp != NULL)
+    {
+        if (!OpenGLTimestamp_GetData(ogl_sample->timestamp, &sample->us_start, &sample->us_end, out_first_timestamp))
+            return RMT_FALSE;
+    }
+
+    // Get child sample times
+    for (child = sample->first_child; child != NULL; child = child->next_sibling)
+    {
+        if (!GetOpenGLSampleTimes(child, out_first_timestamp))
+            return RMT_FALSE;
+    }
+
+    return RMT_TRUE;
+}
+
+
+static void UpdateOpenGLFrame(void)
+{
+    OpenGL* opengl;
+
+    if (g_Remotery == NULL)
+        return;
+
+    opengl = g_Remotery->opengl;
+    assert(opengl != NULL);
+
+    rmt_BeginCPUSample(rmt_UpdateOpenGLFrame);
+
+    // Process all messages in the OpenGL queue
+    while (1)
+    {
+        Msg_SampleTree* sample_tree;
+        Sample* sample;
+
+        Message* message = MessageQueue_PeekNextMessage(opengl->mq_to_opengl_main);
+        if (message == NULL)
+            break;
+
+        // There's only one valid message type in this queue
+        assert(message->id == MsgID_SampleTree);
+        sample_tree = (Msg_SampleTree*)message->payload;
+        sample = sample_tree->root_sample;
+        assert(sample->type == SampleType_OpenGL);
+
+        // Retrieve timing of all OpenGL samples
+        // If they aren't ready leave the message unconsumed, holding up later frames and maintaining order
+        if (!GetOpenGLSampleTimes(sample, &opengl->first_timestamp))
+            break;
+
+        // Pass samples onto the remotery thread for sending to the viewer
+        FreeOpenGLTimeStamps(sample);
+        AddSampleTreeMessage(g_Remotery->mq_to_rmt_thread, sample, sample_tree->allocator, sample_tree->thread_name, message->thread_sampler);
+        MessageQueue_ConsumeNextMessage(opengl->mq_to_opengl_main, message);
+    }
+
+    rmt_EndCPUSample();
+}
+
+
+void _rmt_EndOpenGLSample(void)
+{
+    ThreadSampler* ts;
+
+    if (g_Remotery == NULL)
+        return;
+
+    if (Remotery_GetThreadSampler(g_Remotery, &ts) == RMT_ERROR_NONE)
+    {
+        // Close the timestamp
+        OpenGLSample* ogl_sample = (OpenGLSample*)ts->sample_trees[SampleType_OpenGL]->current_parent;
+        if (ogl_sample->timestamp != NULL)
+            OpenGLTimestamp_End(ogl_sample->timestamp);
+
+        // Send to the update loop for ready-polling
+        if (ThreadSampler_Pop(ts, g_Remotery->opengl->mq_to_opengl_main, (Sample*)ogl_sample))
+            // Perform ready-polling on popping of the root sample
+            UpdateOpenGLFrame();
+    }
+}
+
+
+
+#endif  // RMT_USE_OPENGL
 
 
 #endif // RMT_ENABLED

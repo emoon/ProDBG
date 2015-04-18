@@ -30,6 +30,6 @@ FOUNDATION_API void         config_set_string_constant( hash_t section, hash_t k
 
 FOUNDATION_API void         config_load( const char* name, hash_t filter_section, bool built_in, bool overwrite );
 FOUNDATION_API void         config_parse( stream_t* stream, hash_t filter_section, bool overwrite );
-FOUNDATION_API void         config_write( stream_t* stream, hash_t filter_section );
+FOUNDATION_API void         config_write( stream_t* stream, hash_t filter_section, const char* (*string_mapper)( hash_t ) );
 
 FOUNDATION_API void         config_parse_commandline( const char* const* cmdline, unsigned int num );

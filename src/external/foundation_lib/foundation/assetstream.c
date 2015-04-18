@@ -27,7 +27,7 @@ struct stream_asset_t
 	AAsset*                  asset;
 	int64_t                  position;
 };
-typedef ALIGN(8) struct stream_asset_t stream_asset_t;
+typedef FOUNDATION_ALIGN(8) struct stream_asset_t stream_asset_t;
 
 static stream_vtable_t _asset_stream_vtable;
 

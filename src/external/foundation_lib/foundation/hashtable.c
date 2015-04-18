@@ -14,7 +14,7 @@
 #include <foundation/internal.h>
 
 
-static FORCEINLINE uint32_t _hashtable32_hash( uint32_t key )
+static FOUNDATION_FORCEINLINE uint32_t _hashtable32_hash( uint32_t key )
 {
 	key ^= key >> 16;
 	key *= 0x85ebca6b;
@@ -25,7 +25,7 @@ static FORCEINLINE uint32_t _hashtable32_hash( uint32_t key )
 }
 
 
-static FORCEINLINE uint64_t _hashtable64_hash( uint64_t key )
+static FOUNDATION_FORCEINLINE uint64_t _hashtable64_hash( uint64_t key )
 {
 	key ^= key >> 33;
 	key *= 0xff51afd7ed558ccd;

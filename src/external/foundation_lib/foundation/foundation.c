@@ -56,8 +56,8 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 	if( _random_initialize() < 0 )
 		return -1;
 
-    if( _stream_initialize() < 0 )
-        return -1;
+	if( _stream_initialize() < 0 )
+		return -1;
 
 	if( _fs_initialize() < 0 )
 		return -1;
@@ -120,7 +120,7 @@ void foundation_shutdown( void )
 
 	_config_shutdown();
 	_fs_shutdown();
-    _stream_shutdown();
+	_stream_shutdown();
 	_system_shutdown();
 	_library_shutdown();
 	_environment_shutdown();

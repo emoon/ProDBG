@@ -16,31 +16,37 @@
 #include <foundation/types.h>
 
 
-static FORCEINLINE CONSTCALL uint16_t  byteorder_swap16( uint16_t arg );
-static FORCEINLINE CONSTCALL uint32_t  byteorder_swap32( uint32_t arg );
-static FORCEINLINE CONSTCALL uint64_t  byteorder_swap64( uint64_t arg );
-static FORCEINLINE PURECALL  void      byteorder_swap( void* RESTRICT buffer, const int size );
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint16_t  byteorder_swap16( uint16_t arg );
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint32_t  byteorder_swap32( uint32_t arg );
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t  byteorder_swap64( uint64_t arg );
+static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL  void      byteorder_swap( void* FOUNDATION_RESTRICT buffer, const int size );
 
-static FORCEINLINE CONSTCALL uint16_t  byteorder_bigendian16( uint16_t arg );
-static FORCEINLINE CONSTCALL uint32_t  byteorder_bigendian32( uint32_t arg );
-static FORCEINLINE CONSTCALL uint64_t  byteorder_bigendian64( uint64_t arg );
-static FORCEINLINE PURECALL  void      byteorder_bigendian( void* RESTRICT buffer, const int size );
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint16_t  byteorder_bigendian16( uint16_t arg );
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint32_t  byteorder_bigendian32( uint32_t arg );
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t  byteorder_bigendian64( uint64_t arg );
+static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL  void      byteorder_bigendian( void* FOUNDATION_RESTRICT buffer, const int size );
 
-static FORCEINLINE CONSTCALL uint16_t  byteorder_littleendian16( uint16_t arg );
-static FORCEINLINE CONSTCALL uint32_t  byteorder_littleendian32( uint32_t arg );
-static FORCEINLINE CONSTCALL uint64_t  byteorder_littleendian64( uint64_t arg );
-static FORCEINLINE PURECALL  void      byteorder_littleendian( void* RESTRICT buffer, const int size );
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint16_t  byteorder_littleendian16( uint16_t arg );
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint32_t  byteorder_littleendian32( uint32_t arg );
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t  byteorder_littleendian64( uint64_t arg );
+static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL  void      byteorder_littleendian( void* FOUNDATION_RESTRICT buffer, const int size );
 
 
 
-static FORCEINLINE CONSTCALL uint16_t byteorder_swap16( uint16_t arg )
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint16_t byteorder_swap16( uint16_t arg )
 {
-#if FOUNDATION_COMPILER_MSVC
+#if ( FOUNDATION_COMPILER_GCC && ( ( __GNUC__ > 4 ) || ( __GNUC__ == 4 && __GNUC_MINOR__ >= 8 ) ) ) || FOUNDATION_COMPILER_CLANG
+	return __builtin_bswap16( arg );
+#elif FOUNDATION_COMPILER_MSVC
+#if _MSC_VER >= 1310
+	return _byteswap_ushort( arg );
+#else
 	typedef union { uint16_t u16; uint8_t u8[2]; } u16cast;
 	u16cast in, out;
 	in.u16=arg;
 	out.u8[0]=in.u8[1]; out.u8[1]=in.u8[0];
 	return out.u16;
+#endif
 #else
 	typedef union { uint16_t u16; uint8_t u8[2]; } u16cast;
 	u16cast in = { .u16=arg };
@@ -50,7 +56,7 @@ static FORCEINLINE CONSTCALL uint16_t byteorder_swap16( uint16_t arg )
 }
 
 
-static FORCEINLINE CONSTCALL uint32_t byteorder_swap32( uint32_t arg )
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint32_t byteorder_swap32( uint32_t arg )
 {
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __builtin_bswap32( arg );
@@ -59,11 +65,15 @@ static FORCEINLINE CONSTCALL uint32_t byteorder_swap32( uint32_t arg )
 	return _bswap( arg );
 	/*lint -restore */
 #elif FOUNDATION_COMPILER_MSVC
+#if _MSC_VER >= 1310
+	return _byteswap_ulong( arg );
+#else
 	typedef union { uint32_t u32; uint8_t u8[4]; } u32cast;
 	u32cast in, out;
 	in.u32=arg;
 	out.u8[0]=in.u8[3]; out.u8[1]=in.u8[2]; out.u8[2]=in.u8[1]; out.u8[3]=in.u8[0];
 	return out.u32;
+#endif
 #else
 	typedef union { uint32_t u32; uint8_t u8[4]; } u32cast;
 	u32cast in = { .u32=arg };
@@ -73,7 +83,7 @@ static FORCEINLINE CONSTCALL uint32_t byteorder_swap32( uint32_t arg )
 }
 
 
-static FORCEINLINE CONSTCALL uint64_t byteorder_swap64( uint64_t arg )
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t byteorder_swap64( uint64_t arg )
 {
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	return __builtin_bswap64( arg );
@@ -82,11 +92,15 @@ static FORCEINLINE CONSTCALL uint64_t byteorder_swap64( uint64_t arg )
 	return _bswap64( arg );
 	/*lint -restore */
 #elif FOUNDATION_COMPILER_MSVC
+#if _MSC_VER >= 1310
+	return _byteswap_uint64( arg );
+#else
 	typedef union { uint64_t u64; uint8_t u8[8]; } u64cast;
 	u64cast in, out;
 	in.u64=arg;
 	out.u8[0]=in.u8[7]; out.u8[1]=in.u8[6]; out.u8[2]=in.u8[5]; out.u8[3]=in.u8[4]; out.u8[4]=in.u8[3]; out.u8[5]=in.u8[2]; out.u8[6]=in.u8[1]; out.u8[7]=in.u8[0];
 	return out.u64;
+#endif
 #else
 	typedef union { uint64_t u64; uint8_t u8[8]; } u64cast;
 	u64cast in = { .u64=arg };
@@ -96,11 +110,11 @@ static FORCEINLINE CONSTCALL uint64_t byteorder_swap64( uint64_t arg )
 }
 
 
-static FORCEINLINE PURECALL void byteorder_swap( void* RESTRICT buffer, const int size )
+static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void byteorder_swap( void* FOUNDATION_RESTRICT buffer, const int size )
 {
 	int i, num;
-	char* RESTRICT src = buffer;
-	char* RESTRICT dst = src + ( size - 1 );
+	char* FOUNDATION_RESTRICT src = (char*)buffer;
+	char* FOUNDATION_RESTRICT dst = src + ( size - 1 );
 	for( i = 0, num = size / 2; i < num; ++i, --dst, ++src )
 	{
 		char tmp = *dst;
@@ -110,7 +124,7 @@ static FORCEINLINE PURECALL void byteorder_swap( void* RESTRICT buffer, const in
 }
 
 
-static FORCEINLINE CONSTCALL uint16_t byteorder_bigendian16( uint16_t arg )
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint16_t byteorder_bigendian16( uint16_t arg )
 {
 #if FOUNDATION_ARCH_ENDIAN_BIG
 	return arg;
@@ -120,7 +134,7 @@ static FORCEINLINE CONSTCALL uint16_t byteorder_bigendian16( uint16_t arg )
 }
 
 
-static FORCEINLINE CONSTCALL uint32_t byteorder_bigendian32( uint32_t arg )
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint32_t byteorder_bigendian32( uint32_t arg )
 {
 #if FOUNDATION_ARCH_ENDIAN_BIG
 	return arg;
@@ -130,7 +144,7 @@ static FORCEINLINE CONSTCALL uint32_t byteorder_bigendian32( uint32_t arg )
 }
 
 
-static FORCEINLINE CONSTCALL uint64_t byteorder_bigendian64( uint64_t arg )
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t byteorder_bigendian64( uint64_t arg )
 {
 #if FOUNDATION_ARCH_ENDIAN_BIG
 	return arg;
@@ -140,7 +154,7 @@ static FORCEINLINE CONSTCALL uint64_t byteorder_bigendian64( uint64_t arg )
 }
 
 
-static FORCEINLINE PURECALL void byteorder_bigendian( void* RESTRICT buffer, const int size )
+static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void byteorder_bigendian( void* FOUNDATION_RESTRICT buffer, const int size )
 {
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
 	byteorder_swap( buffer, size );
@@ -151,7 +165,7 @@ static FORCEINLINE PURECALL void byteorder_bigendian( void* RESTRICT buffer, con
 }
 
 
-static FORCEINLINE CONSTCALL uint16_t byteorder_littleendian16( uint16_t arg )
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint16_t byteorder_littleendian16( uint16_t arg )
 {
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
 	return arg;
@@ -161,7 +175,7 @@ static FORCEINLINE CONSTCALL uint16_t byteorder_littleendian16( uint16_t arg )
 }
 
 
-static FORCEINLINE CONSTCALL uint32_t byteorder_littleendian32( uint32_t arg )
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint32_t byteorder_littleendian32( uint32_t arg )
 {
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
 	return arg;
@@ -171,7 +185,7 @@ static FORCEINLINE CONSTCALL uint32_t byteorder_littleendian32( uint32_t arg )
 }
 
 
-static FORCEINLINE CONSTCALL uint64_t byteorder_littleendian64( uint64_t arg )
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t byteorder_littleendian64( uint64_t arg )
 {
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
 	return arg;
@@ -181,7 +195,7 @@ static FORCEINLINE CONSTCALL uint64_t byteorder_littleendian64( uint64_t arg )
 }
 
 
-static FORCEINLINE PURECALL void byteorder_littleendian( void* RESTRICT buffer, const int size )
+static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void byteorder_littleendian( void* FOUNDATION_RESTRICT buffer, const int size )
 {
 #if FOUNDATION_ARCH_ENDIAN_BIG
 	byteorder_swap( buffer, size );

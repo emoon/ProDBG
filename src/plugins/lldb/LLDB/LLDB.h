@@ -29,6 +29,7 @@
 #include <LLDB/SBDeclaration.h>
 #include <LLDB/SBError.h>
 #include <LLDB/SBEvent.h>
+#include <LLDB/SBExecutionContext.h>
 #include <LLDB/SBFileSpec.h>
 #include <LLDB/SBFrame.h>
 #include <LLDB/SBFunction.h>
@@ -51,5 +52,6 @@
 #include <LLDB/SBType.h>
 #include <LLDB/SBValue.h>
 #include <LLDB/SBValueList.h>
+#include <LLDB/SBVariablesOptions.h>
 
 #endif  // LLDB_LLDB_h_

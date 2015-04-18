@@ -16,6 +16,8 @@
 #include <foundation/types.h>
 
 
+FOUNDATION_API int                   system_error( void );
+FOUNDATION_API void                  system_error_reset( void );
 FOUNDATION_API const char*           system_error_message( int code );
 
 FOUNDATION_API platform_t            system_platform( void );
@@ -34,6 +36,7 @@ FOUNDATION_API uint16_t              system_country( void );
 FOUNDATION_API uint32_t              system_locale( void );
 FOUNDATION_API const char*           system_locale_string( void );
 
+FOUNDATION_API void                  system_set_device_orientation( device_orientation_t orientation );
 FOUNDATION_API device_orientation_t  system_device_orientation( void );
 
 FOUNDATION_API void                  system_process_events( void );

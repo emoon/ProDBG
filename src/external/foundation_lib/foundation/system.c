@@ -36,6 +36,7 @@
 #endif
 
 #if FOUNDATION_PLATFORM_APPLE
+#include <sys/sysctl.h>
 extern unsigned int _system_process_info_processor_count( void );
 extern int _system_show_alert( const char*, const char*, int );
 #endif
@@ -153,14 +154,27 @@ void _system_shutdown( void )
 }
 
 
+
+int system_error( void )
+{
+	return GetLastError();
+}
+
+
+void system_error_reset( void )
+{
+	SetLastError( 0 );
+}
+
+
 const char* system_error_message( int code )
 {
-	static THREADLOCAL char errmsg[256];
+	static FOUNDATION_THREADLOCAL char errmsg[256];
 
 	if( !code )
-		code = GetLastError();
+		code = system_error();
 	if( !code )
-		return "";
+		return "<no error>";
 
 	errmsg[0] = 0;
 	FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, code & 0xBFFFFFFF, 0/*LANG_SYSTEM_DEFAULT*//*MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT )*/, errmsg, 255, 0 );
@@ -305,16 +319,28 @@ void _system_shutdown( void )
 }
 
 
+int system_error( void )
+{
+	return errno;
+}
+
+
+void system_error_reset( void )
+{
+	errno = 0;
+}
+
+
 const char* system_error_message( int code )
 {
 	if( !code )
-		code = errno;
+		code = system_error();
 	if( !code )
 		return "<no error>";
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 	static char buffer[256]; //TODO: Thread safety
 #else
-	static THREADLOCAL char buffer[256];
+	static FOUNDATION_THREADLOCAL char buffer[256];
 #endif
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_PNACL || FOUNDATION_PLATFORM_BSD
 	if( strerror_r( code, buffer, 256 ) == 0 )
@@ -364,7 +390,7 @@ static uint64_t _system_hostid_lookup( struct ifaddrs* ifaddr )
 	union
 	{
 		uint64_t               id;
-		unsigned char ALIGN(8) buffer[8];
+		unsigned char FOUNDATION_ALIGN(8) buffer[8];
 	} hostid;
 
 	if( ifaddr->ifa_addr && ( ifaddr->ifa_addr->sa_family == AF_LINK ) )
@@ -390,7 +416,7 @@ static uint64_t _system_hostid_lookup( int sock, struct ifreq* ifr )
 	union
 	{
 		uint64_t               id;
-		unsigned char ALIGN(8) buffer[8];
+		unsigned char FOUNDATION_ALIGN(8) buffer[8];
 	} hostid;
 
 	if( ioctl( sock, SIOCGIFHWADDR, ifr ) < 0 )
@@ -517,7 +543,75 @@ void system_process_events( void )
 
 bool system_debugger_attached( void )
 {
+#if FOUNDATION_PLATFORM_APPLE
+
+	int mib[4];
+	struct kinfo_proc info;
+	size_t size;
+
+	memset( &info, 0, sizeof( info ) );
+	info.kp_proc.p_flag = 0;
+
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_PROC;
+	mib[2] = KERN_PROC_PID;
+	mib[3] = getpid();
+
+	size = sizeof( info );
+	sysctl( mib, sizeof( mib ) / sizeof( *mib ), &info, &size, 0, 0 );
+
+	return ( ( info.kp_proc.p_flag & P_TRACED ) != 0 );
+
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
+
+	int fd, ib, ofs, partial = 0;
+	bool read_pid = false;
+	ssize_t nread;
+	static const char tracer_pid[] = "TracerPid:";
+
+	fd = open( "/proc/self/status", O_RDONLY );
+	if( fd < 0 )
+		return false;
+
+	do
+	{
+		char buffer[128];
+		nread = read( fd, buffer, sizeof( buffer ) );
+		if( nread > 0 )
+		{
+			for( ib = 0; ( ib < nread ); ++ib )
+			{
+				if( read_pid )
+				{
+					if( ( buffer[ib] >= '1' ) && ( buffer[ib] <= '9' ) )
+						return true;
+					if( ( buffer[ib] != ' ' ) && ( buffer[ib] != '\t' ) )
+						return false;
+				}
+				else
+				{
+					for( ofs = 0; ( ib + ofs < nread ) && tracer_pid[partial]; ++partial, ++ofs )
+					{
+						if( buffer[ib+ofs] != tracer_pid[partial] )
+							break;
+					}
+					if( !tracer_pid[partial] )
+					{
+						ib += ofs;
+						read_pid = true;
+					}
+					else if( ib + partial < nread )
+						partial = 0;
+				}
+			}
+		}
+	} while( nread > 0 );
+
 	return false;
+
+#else
+	return false;
+#endif
 }
 
 
@@ -547,11 +641,11 @@ uint32_t system_locale( void )
 	char localestr[4];
 
 	const char* locale = config_string( HASH_USER, HASH_LOCALE );
-	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
+	if( !locale || ( string_length( locale ) != 4 ) )
 		locale = config_string( HASH_APPLICATION, HASH_LOCALE );
-	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
+	if( !locale || ( string_length( locale ) != 4 ) )
 		locale = config_string( HASH_FOUNDATION, HASH_LOCALE );
-	if( ( locale == LOCALE_BLANK ) || ( string_length( locale ) != 4 ) )
+	if( !locale || ( string_length( locale ) != 4 ) )
 		return _system_user_locale();
 
 #define _LOCALE_CHAR_TO_LOWERCASE(x)   (((unsigned char)(x) >= 'A') && ((unsigned char)(x) <= 'Z')) ? (((unsigned char)(x)) | (32)) : (x)
@@ -569,6 +663,7 @@ uint32_t system_locale( void )
 const char* system_locale_string( void )
 {
 	static char localestr[5] = {0};
+	//TODO: Thread safety
 	uint32_t locale = system_locale();
 	memcpy( localestr, &locale, 4 );
 	return localestr;
@@ -577,17 +672,17 @@ const char* system_locale_string( void )
 
 uint16_t system_language( void )
 {
-	return (uint16_t)( ( system_locale() >> 16 ) & 0xFFFF );
+	return (uint16_t)( system_locale() & 0xFFFF );
 }
 
 
 uint16_t system_country( void )
 {
-	return (uint16_t)( system_locale() & 0xFFFF );
+	return (uint16_t)( ( system_locale() >> 16 ) & 0xFFFF );
 }
 
 
-void _system_set_device_orientation( device_orientation_t orientation )
+void system_set_device_orientation( device_orientation_t orientation )
 {
 	if( _system_device_orientation == orientation )
 		return;

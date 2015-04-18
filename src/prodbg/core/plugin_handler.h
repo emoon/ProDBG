@@ -13,6 +13,10 @@ struct PluginData
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Adds a path for that is used for plugin loading. This path is first base first load priority meaning that the
+// path that gets added first has the highest priority
+
+void PluginHandler_addSearchPath(const char* path);
 
 bool PluginHandler_addPlugin(const char* basePath, const char* plugin);
 void PluginHandler_unloadAllPlugins();

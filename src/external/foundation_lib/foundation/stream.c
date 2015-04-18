@@ -15,6 +15,16 @@
 
 #include <stdarg.h>
 
+#if FOUNDATION_PLATFORM_WINDOWS
+#  include <foundation/windows.h>
+#endif
+
+#if FOUNDATION_PLATFORM_POSIX
+#  include <foundation/posix.h>
+#  include <sys/select.h>
+#  include <sys/stat.h>
+#endif
+
 
 static hashtable64_t* _stream_protocol_table;
 
@@ -22,24 +32,27 @@ static hashtable64_t* _stream_protocol_table;
 static stream_t* _stream_open_stdout( const char* path, unsigned int mode )
 {
 	FOUNDATION_UNUSED( path );
-	FOUNDATION_UNUSED( mode );
-	return stream_open_stdout();
+	stream_t* stream = stream_open_stdout();
+	stream->mode = ( mode & STREAM_BINARY ) | STREAM_OUT;
+	return stream;
 }
 
 
 static stream_t* _stream_open_stderr( const char* path, unsigned int mode )
 {
 	FOUNDATION_UNUSED( path );
-	FOUNDATION_UNUSED( mode );
-	return stream_open_stderr();
+	stream_t* stream = stream_open_stderr();
+	stream->mode = ( mode & STREAM_BINARY ) | STREAM_OUT;
+	return stream;
 }
 
 
 static stream_t* _stream_open_stdin( const char* path, unsigned int mode )
 {
 	FOUNDATION_UNUSED( path );
-	FOUNDATION_UNUSED( mode );
-	return stream_open_stdin();
+	stream_t* stream = stream_open_stdin();
+	stream->mode = ( mode & STREAM_BINARY ) | STREAM_IN;
+	return stream;
 }
 
 
@@ -296,8 +309,8 @@ uint64_t stream_read_line_buffer( stream_t* stream, char* dest, unsigned int cou
 char* stream_read_line( stream_t* stream, char delimiter )
 {
 	char buffer[128];
-	char* outbuffer;
-	int outsize = 32;
+	char* outbuffer = 0;
+	int outsize = 0;
 	int cursize = 0;
 	int read, i;
 	int want_read = 128;
@@ -311,7 +324,6 @@ char* stream_read_line( stream_t* stream, char delimiter )
 	if( stream_is_sequential( stream ) ) //Need to read one byte at a time since we can't scan back if overreading
 		want_read = 1;
 
-	outbuffer = memory_allocate( 0, outsize + 1, 0, MEMORY_PERSISTENT );
 	while( !stream_eos( stream ) )
 	{
 		read = (int)stream->vtable->read( stream, buffer, want_read );
@@ -324,11 +336,25 @@ char* stream_read_line( stream_t* stream, char delimiter )
 		}
 		if( cursize + i > outsize )
 		{
-			outsize += 512;
-			outbuffer = memory_reallocate( outbuffer, outsize + 1, 0, cursize );
+			unsigned int nextsize;
+			if( !outbuffer )
+			{
+				nextsize = ( i >= 32 ? i + 1 : ( i > 1 ? i + 1 : 32 ) );
+				outbuffer = memory_allocate( 0, nextsize, 0, MEMORY_PERSISTENT );
+			}
+			else
+			{
+				nextsize = ( outsize < 511 ? 512 : outsize + 513 ); //Always aligns to 512 multiples
+				FOUNDATION_ASSERT( !( nextsize % 512 ) );
+				outbuffer = memory_reallocate( outbuffer, nextsize, 0, outsize + 1 );
+			}
+			outsize = nextsize - 1;
 		}
-		memcpy( outbuffer + cursize, buffer, i );
-		cursize += i;
+		if( i )
+		{
+			memcpy( outbuffer + cursize, buffer, i );
+			cursize += i;
+		}
 		if( i < read )
 		{
 			if( ( i + 1 ) < read )
@@ -340,7 +366,8 @@ char* stream_read_line( stream_t* stream, char delimiter )
 		}
 	}
 
-	outbuffer[cursize] = 0;
+	if( outbuffer )
+		outbuffer[cursize] = 0;
 
 	return outbuffer;
 }
@@ -402,9 +429,9 @@ bool stream_read_bool( stream_t* stream )
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = !( !str || !string_length( str ) || string_equal( str, "false" ) || ( string_equal( str, "0" ) ) );
-		string_deallocate( str );
+		char buffer[6] = {0};
+		stream_read_string_buffer( stream, buffer, 6 );
+		value = !( !string_length( buffer ) || string_equal( buffer, "false" ) || ( string_equal( buffer, "0" ) ) );
 	}
 
 	return value;
@@ -414,7 +441,14 @@ bool stream_read_bool( stream_t* stream )
 int8_t stream_read_int8( stream_t* stream )
 {
 	int8_t value = 0;
-	stream_read( stream, &value, 1 );
+	if( stream_is_binary( stream ) )
+		stream_read( stream, &value, 1 );
+	else
+	{
+		char buffer[6] = {0};
+		stream_read_string_buffer( stream, buffer, 6 );
+		value = (int8_t)string_to_int( buffer );
+	}
 	return value;
 }
 
@@ -426,9 +460,9 @@ uint8_t stream_read_uint8( stream_t* stream )
 		stream_read( stream, &value, 1 );
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = (uint8_t)string_to_uint( str, false );
-		string_deallocate( str );
+		char buffer[6] = {0};
+		stream_read_string_buffer( stream, buffer, 6 );
+		value = (uint8_t)string_to_uint( buffer, false );
 	}
 	return value;
 }
@@ -441,13 +475,13 @@ int16_t stream_read_int16( stream_t* stream )
 	{
 		stream_read( stream, &value, 2 );
 		if( stream && stream->swap )
-			byteorder_swap( &value, 2 );
+			value = byteorder_swap16( value );
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = (int16_t)string_to_int( str );
-		string_deallocate( str );
+		char buffer[8] = {0};
+		stream_read_string_buffer( stream, buffer, 8 );
+		value = (int16_t)string_to_int( buffer );
 	}
 	return value;
 }
@@ -464,9 +498,9 @@ uint16_t stream_read_uint16( stream_t* stream )
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = (uint16_t)string_to_uint( str, false );
-		string_deallocate( str );
+		char buffer[8] = {0};
+		stream_read_string_buffer( stream, buffer, 8 );
+		value = (uint16_t)string_to_uint( buffer, false );
 	}
 	return value;
 }
@@ -479,13 +513,13 @@ int32_t stream_read_int32( stream_t* stream )
 	{
 		stream_read( stream, &value, 4 );
 		if( stream && stream->swap )
-			byteorder_swap( &value, 4 );
+			value = byteorder_swap32( value );
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = (int32_t)string_to_int( str );
-		string_deallocate( str );
+		char buffer[12] = {0};
+		stream_read_string_buffer( stream, buffer, 12 );
+		value = (int32_t)string_to_int( buffer );
 	}
 	return value;
 }
@@ -502,9 +536,9 @@ uint32_t stream_read_uint32( stream_t* stream )
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = string_to_uint( str, false );
-		string_deallocate( str );
+		char buffer[12] = {0};
+		stream_read_string_buffer( stream, buffer, 12 );
+		value = (uint32_t)string_to_uint( buffer, false );
 	}
 	return value;
 }
@@ -517,13 +551,13 @@ int64_t stream_read_int64( stream_t* stream )
 	{
 		stream_read( stream, &value, 8 );
 		if( stream && stream->swap )
-			byteorder_swap( &value, 8 );
+			value = byteorder_swap64( value );
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = string_to_int64( str );
-		string_deallocate( str );
+		char buffer[22] = {0};
+		stream_read_string_buffer( stream, buffer, 22 );
+		value = string_to_int64( buffer );
 	}
 	return value;
 }
@@ -540,9 +574,9 @@ uint64_t stream_read_uint64( stream_t* stream )
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = string_to_uint64( str, false );
-		string_deallocate( str );
+		char buffer[22] = {0};
+		stream_read_string_buffer( stream, buffer, 22 );
+		value = string_to_uint64( buffer, false );
 	}
 	return value;
 }
@@ -555,13 +589,18 @@ float32_t stream_read_float32( stream_t* stream )
 	{
 		stream_read( stream, &value, 4 );
 		if( stream && stream->swap )
-			byteorder_swap( &value, 4 );
+		{
+			float32_cast_t cast;
+			cast.fval = value;
+			cast.ival = byteorder_swap32( cast.ival );
+			value = cast.fval;
+		}
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = (float32_t)string_to_real( str );
-		string_deallocate( str );
+		char buffer[32] = {0};
+		stream_read_string_buffer( stream, buffer, 32 );
+		value = string_to_float32( buffer );
 	}
 	return value;
 }
@@ -574,13 +613,18 @@ float64_t stream_read_float64( stream_t* stream )
 	{
 		stream_read( stream, &value, 8 );
 		if( stream && stream->swap )
-			byteorder_swap( &value, 8 );
+		{
+			float64_cast_t cast;
+			cast.fval = value;
+			cast.ival = byteorder_swap64( cast.ival );
+			value = cast.fval;
+		}
 	}
 	else
 	{
-		char* str = stream_read_string( stream );
-		value = string_to_real( str );
-		string_deallocate( str );
+		char buffer[64] = {0};
+		stream_read_string_buffer( stream, buffer, 64 );
+		value = string_to_float64( buffer );
 	}
 	return value;
 }
@@ -589,8 +633,8 @@ float64_t stream_read_float64( stream_t* stream )
 char* stream_read_string( stream_t* stream )
 {
 	char buffer[128];
-	char* outbuffer;
-	int outsize = 128;
+	char* outbuffer = buffer;
+	int outsize = sizeof( buffer );
 	int cursize = 0;
 	int read, i;
 	bool binary = stream_is_binary( stream );
@@ -600,8 +644,6 @@ char* stream_read_string( stream_t* stream )
 		return 0;
 
 	FOUNDATION_ASSERT( stream->vtable->read );
-
-	outbuffer = memory_allocate( 0, outsize, 0, MEMORY_PERSISTENT );
 
 	if( stream_is_sequential( stream ) )
 	{
@@ -617,30 +659,44 @@ char* stream_read_string( stream_t* stream )
 					break;
 				if( ( c != ' ' ) && ( c != '\n' ) && ( c != '\r' ) && ( c != '\t' ) )
 				{
-					outbuffer[cursize++] = c;
+					buffer[cursize++] = c;
 					break;
 				}
 			}
 		}
 
-		while( !stream_eos( stream ) )
+		if( cursize > 0 )
 		{
-			read = (int)stream->vtable->read( stream, &c, 1 );
-			if( !read )
-				break;
-			if( !c )
-				break;
-			if( !binary && ( ( c == ' ' ) || ( c == '\n' ) || ( c == '\r' ) || ( c == '\t' ) ) )
-				break;
-			if( cursize + 1 > outsize )
+			while( !stream_eos( stream ) )
 			{
-				outsize += 512;
-				outbuffer = memory_reallocate( outbuffer, outsize, 0, cursize );
+				read = (int)stream->vtable->read( stream, &c, 1 );
+				if( !read )
+					break;
+				if( !c )
+					break;
+				if( !binary && ( ( c == ' ' ) || ( c == '\n' ) || ( c == '\r' ) || ( c == '\t' ) ) )
+					break;
+				if( cursize + 1 >= outsize )
+				{
+					if( !outbuffer )
+					{
+						outsize += 512;
+						if( outbuffer != buffer )
+						{
+							outbuffer = memory_reallocate( outbuffer, outsize, 0, cursize );
+						}
+						else
+						{
+							outbuffer = memory_allocate( 0, outsize, 0, MEMORY_PERSISTENT );
+							memcpy( outbuffer, buffer, sizeof( buffer ) );
+						}
+					}
+				}
+				outbuffer[cursize++] = c;
 			}
-			outbuffer[cursize++] = c;
-		}
 
-		outbuffer[cursize] = 0;
+			outbuffer[cursize] = 0;
+		}
 	}
 	else
 	{
@@ -681,10 +737,18 @@ char* stream_read_string( stream_t* stream )
 			}
 			if( i )
 			{
-				if( cursize + i > outsize )
+				if( cursize + i >= outsize )
 				{
 					outsize += 512;
-					outbuffer = memory_reallocate( outbuffer, outsize, 0, cursize );
+					if( outbuffer != buffer )
+					{
+						outbuffer = memory_reallocate( outbuffer, outsize, 0, cursize );
+					}
+					else
+					{
+						FOUNDATION_ASSERT( cursize == 0 ); //Or internal assumptions about code flow is incorrect
+						outbuffer = memory_allocate( 0, outsize, 0, MEMORY_PERSISTENT );
+					}
 				}
 				memcpy( outbuffer + cursize, buffer, i );
 				cursize += i;
@@ -699,6 +763,16 @@ char* stream_read_string( stream_t* stream )
 
 		outbuffer[cursize] = 0;
 	}
+
+	if( outbuffer == buffer )
+	{
+		if( cursize == 0 )
+			return 0;
+		outbuffer = memory_allocate( 0, cursize + 1, 0, MEMORY_PERSISTENT );
+		memcpy( outbuffer, buffer, cursize );
+		outbuffer[cursize] = 0;
+	}
+
 	return outbuffer;
 }
 
@@ -718,57 +792,95 @@ uint64_t stream_read_string_buffer( stream_t* stream, char* outbuffer, uint64_t 
 
 	--size;
 
-	//TODO: Implement per-byte reading for sequential streams
-	if( !binary )
+	if( stream_is_sequential( stream ) )
 	{
-		//Consume whitespace
-		while( !stream_eos( stream ) )
+		//Single byte reading since we can't seek backwards (and don't want to block on network sockets)
+		char c;
+		if( !binary )
 		{
-			read = (int)stream->vtable->read( stream, buffer, 16 );
+			//Consume whitespace
+			while( !stream_eos( stream ) )
+			{
+				read = (int)stream->vtable->read( stream, &c, 1 );
+				if( !read )
+					break;
+				if( ( c != ' ' ) && ( c != '\n' ) && ( c != '\r' ) && ( c != '\t' ) )
+				{
+					outbuffer[cursize++] = c;
+					break;
+				}
+			}
+		}
+
+		if( cursize > 0 )
+		{
+			while( !stream_eos( stream ) && ( cursize < (int)size ) )
+			{
+				read = (int)stream->vtable->read( stream, &c, 1 );
+				if( !read )
+					break;
+				if( !c )
+					break;
+				if( !binary && ( ( c == ' ' ) || ( c == '\n' ) || ( c == '\r' ) || ( c == '\t' ) ) )
+					break;
+				outbuffer[cursize++] = c;
+			}
+		}
+	}
+	else
+	{
+		if( !binary )
+		{
+			//Consume whitespace
+			while( !stream_eos( stream ) )
+			{
+				read = (int)stream->vtable->read( stream, buffer, 16 );
+				if( !read )
+					break;
+				for( i = 0; i < read; ++i )
+				{
+					char c = buffer[i];
+					if( ( c != ' ' ) && ( c != '\n' ) && ( c != '\r' ) && ( c != '\t' ) )
+						break;
+				}
+				if( i < read )
+				{
+					stream_seek( stream, i - read, STREAM_SEEK_CURRENT );
+					break;
+				}
+			}
+		}
+
+		while( !stream_eos( stream ) && ( cursize < (int)size ) )
+		{
+			read = (int)stream->vtable->read( stream, buffer, 128 );
 			if( !read )
 				break;
 			for( i = 0; i < read; ++i )
 			{
 				char c = buffer[i];
-				if( ( c != ' ' ) && ( c != '\n' ) && ( c != '\r' ) && ( c != '\t' ) )
+				if( !c )
+					break;
+				if( !binary && ( ( c == ' ' ) || ( c == '\n' ) || ( c == '\r' ) || ( c == '\t' ) ) )
 					break;
 			}
-			if( i < read )
+			if( !i )
+				break;
+			if( cursize + i > (int)size )
+				i = (int)size - cursize;
+			memcpy( outbuffer + cursize, buffer, i );
+			cursize += i;
+			if( i < 128 )
 			{
-				stream_seek( stream, i - read, STREAM_SEEK_CURRENT );
+				if( ( i + 1 ) < read )
+					stream_seek( stream, 1 + i - read, STREAM_SEEK_CURRENT );
 				break;
 			}
 		}
 	}
 
-	while( !stream_eos( stream ) && ( cursize < (int)size ) )
-	{
-		read = (int)stream->vtable->read( stream, buffer, 128 );
-		if( !read )
-			break;
-		for( i = 0; i < read; ++i )
-		{
-			char c = buffer[i];
-			if( !c )
-				break;
-			if( !binary && ( ( c == ' ' ) || ( c == '\n' ) || ( c == '\r' ) || ( c == '\t' ) ) )
-				break;
-		}
-		if( !i )
-			break;
-		if( cursize + i > (int)size )
-			i = (int)size - cursize;
-		memcpy( outbuffer + cursize, buffer, i );
-		cursize += i;
-		if( i < 128 )
-		{
-			if( ( i + 1 ) < read )
-				stream_seek( stream, 1 + i - read, STREAM_SEEK_CURRENT );
-			break;
-		}
-	}
-
-	outbuffer[cursize] = 0;
+	if( cursize < (int)size )
+		outbuffer[cursize] = 0;
 
 	return cursize;
 }
@@ -895,7 +1007,10 @@ void stream_write_bool( stream_t* stream, bool data )
 
 void stream_write_int8( stream_t* stream, int8_t data )
 {
-	stream_write( stream, &data, 1 );
+	if( stream_is_binary( stream ) )
+		stream_write( stream, &data, 1 );
+	else
+		stream_write_string( stream, string_from_int_static( (int32_t)data, 0, 0 ) );
 }
 
 
@@ -913,7 +1028,7 @@ void stream_write_int16( stream_t* stream, int16_t data )
 	if( stream_is_binary( stream ) )
 	{
 		if( stream && stream->swap )
-			byteorder_swap( &data, 2 );
+			data = byteorder_swap16( data );
 		stream_write( stream, &data, 2 );
 	}
 	else
@@ -939,7 +1054,7 @@ void stream_write_int32( stream_t* stream, int32_t data )
 	if( stream_is_binary( stream ) )
 	{
 		if( stream && stream->swap )
-			byteorder_swap( &data, 4 );
+			data = byteorder_swap32( data );
 		stream_write( stream, &data, 4 );
 	}
 	else
@@ -965,7 +1080,7 @@ void stream_write_int64( stream_t* stream, int64_t data )
 	if( stream_is_binary( stream ) )
 	{
 		if( stream && stream->swap )
-			byteorder_swap( &data, 8 );
+			data = byteorder_swap64( data );
 		stream_write( stream, &data, 8 );
 	}
 	else
@@ -991,8 +1106,16 @@ void stream_write_float32( stream_t* stream, float32_t data )
 	if( stream_is_binary( stream ) )
 	{
 		if( stream && stream->swap )
-			byteorder_swap( &data, 4 );
-		stream_write( stream, &data, 4 );
+		{
+			float32_cast_t cast;
+			cast.fval = data;
+			cast.ival = byteorder_swap32( cast.ival );
+			stream_write( stream, &cast.ival, 4 );
+		}
+		else
+		{
+			stream_write( stream, &data, 4 );
+		}
 	}
 	else
 		stream_write_string( stream, string_from_real_static( data, 0, 0, 0 ) );
@@ -1004,8 +1127,16 @@ void stream_write_float64( stream_t* stream, float64_t data )
 	if( stream_is_binary( stream ) )
 	{
 		if( stream && stream->swap )
-			byteorder_swap( &data, 8 );
-		stream_write( stream, &data, 8 );
+		{
+			float64_cast_t cast;
+			cast.fval = data;
+			cast.ival = byteorder_swap64( cast.ival );
+			stream_write( stream, &cast.ival, 8 );
+		}
+		else
+		{
+			stream_write( stream, &data, 8 );
+		}
 	}
 	else
 		stream_write_string( stream, string_from_real_static( (real)data, 0, 0, 0 ) );
@@ -1069,7 +1200,7 @@ struct stream_std_t
 	void*              std;
 	bool               eos;
 };
-typedef ALIGN(8) struct stream_std_t stream_std_t;
+typedef FOUNDATION_ALIGN(8) struct stream_std_t stream_std_t;
 
 
 static uint64_t  _stream_stdin_read( stream_t*, void*, uint64_t );
@@ -1077,6 +1208,8 @@ static uint64_t  _stream_stdout_write( stream_t*, const void*, uint64_t );
 static void      _stream_stdout_flush( stream_t* );
 static stream_t* _stream_std_clone( stream_t* );
 static bool      _stream_stdin_eos( stream_t* );
+static uint64_t  _stream_stdin_available_read( stream_t* stream );
+static uint64_t  _stream_std_last_modified( const stream_t* stream );
 
 static stream_vtable_t _stream_stdout_vtable = {
 	0,
@@ -1087,7 +1220,7 @@ static stream_vtable_t _stream_stdout_vtable = {
 	0,
 	0,
 	0,
-	0,
+	_stream_std_last_modified,
 	0,
 	0,
 	0,
@@ -1105,10 +1238,10 @@ static stream_vtable_t _stream_stdin_vtable = {
 	0,
 	0,
 	0,
+	_stream_std_last_modified,
 	0,
 	0,
-	0,
-	0,
+	_stream_stdin_available_read,
 	0,
 	_stream_std_clone
 };
@@ -1175,6 +1308,7 @@ static uint64_t _stream_stdin_read( stream_t* stream, void* buffer, uint64_t siz
 		}
 		bytebuffer[read++] = (char)c;
 	}
+
 	return read;
 }
 
@@ -1205,4 +1339,49 @@ static stream_t* _stream_std_clone( stream_t* stream )
 static bool _stream_stdin_eos( stream_t* stream )
 {
 	return ((stream_std_t*)stream)->eos;
+}
+
+
+static uint64_t _stream_stdin_available_read( stream_t* stream )
+{
+#if FOUNDATION_PLATFORM_WINDOWS
+
+	HANDLE in_handle;
+	DWORD size;
+
+	in_handle = GetStdHandle( STD_INPUT_HANDLE );
+	size = GetFileSize( in_handle, 0 );
+	if( size > 0 )
+		return size;
+
+#elif FOUNDATION_PLATFORM_POSIX
+
+	fd_set fds;
+	struct timeval timeout;
+	int res;
+
+	memset( &timeout, 0, sizeof( timeout ) );
+	FD_ZERO( &fds );
+	FD_SET( STDIN_FILENO, &fds );
+
+	res = select( STDIN_FILENO + 1, &fds, 0, 0, &timeout );
+	if( ( res > 0 ) && FD_ISSET( STDIN_FILENO, &fds ) )
+	{
+		struct stat buf;
+		if( fstat( STDIN_FILENO, &buf ) == 0 )
+			return (uint64_t)buf.st_size;
+		return 1;
+	}
+
+#endif
+
+	FOUNDATION_UNUSED( stream );
+	return 0;
+}
+
+
+static uint64_t _stream_std_last_modified( const stream_t* stream )
+{
+	FOUNDATION_ASSERT( stream );
+	return time_system();
 }

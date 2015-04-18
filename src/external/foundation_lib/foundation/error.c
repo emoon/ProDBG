@@ -39,6 +39,12 @@ int error_report( error_level_t level, error_t err )
 }
 
 
+error_callback_fn error_callback( void )
+{
+	return get_thread_error_callback();
+}
+
+
 void error_set_callback( error_callback_fn callback )
 {
 	set_thread_error_callback( callback );
@@ -76,11 +82,8 @@ void _error_context_push( const char* name, const char* data )
 void _error_context_pop( void )
 {
 	error_context_t* context = get_thread_error_context();
-	if( context )
-	{
-		FOUNDATION_ASSERT_MSG( context->depth, "Error context stack underflow" );
+	if( context && context->depth > 0 )
 		--context->depth;
-	}
 }
 
 
@@ -92,23 +95,22 @@ void _error_context_clear( void )
 }
 
 
-void _error_context_buffer( char* buffer, unsigned int size )
+void _error_context_buffer( char* buffer, int size )
 {
 	error_context_t* context = get_thread_error_context();
+	buffer[0] = 0;
 	if( context )
 	{
-		int i, written;
+		int i, len;
 		error_frame_t* frame = context->frame;
-		for( i = 0; size && ( i < context->depth ); ++i, ++frame )
+		for( i = 0; ( size > 1 ) && ( i < context->depth ); ++i, ++frame )
 		{
-			written = snprintf( buffer, size, "When %s: %s\n", frame->name ? frame->name : "<something>", frame->data ? frame->data : "" );
-			if( ( written > 0 ) && ( written <= (int)size ) )
-			{
-				buffer += written;
-				size -= written;
-			}
-			else
-				break;
+			string_format_buffer( buffer, size, "When %s: %s\n", frame->name ? frame->name : "<something>", frame->data ? frame->data : "<something>" );
+			len = string_length( buffer );
+			FOUNDATION_ASSERT( len < size );
+
+			buffer += len;
+			size -= len;
 		}
 	}
 }

@@ -10,6 +10,7 @@
 #include <Carbon/Carbon.h>
 #include <pd_common.h>
 #include <pd_keys.h>
+#include <AppKit/NSOpenGL.h>
 
 //NSWindow* g_window = 0;
 

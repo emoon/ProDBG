@@ -20,7 +20,9 @@ StaticLibrary {
         	"-Wno-int-to-pointer-cast",
         	"-Wno-unused-but-set-variable",
         	"-Wno-return-type",
-        	"-Wno-unused-function"
+        	"-Wno-unused-function",
+			"-Wno-error=strict-aliasing",
+			"-Wno-error=maybe-uninitialized"
         	; Config = "linux-*-*" },
         	{ "-Wno-everything"; Config = "macosx-*-*" },
         	{ "/wd4244", "/wd4267", "/wd4133", "/wd4047", "/wd4204", "/wd4201", "/wd4701", "/wd4703",
@@ -146,7 +148,8 @@ StaticLibrary {
 		},
 
         CCOPTS = {
-        	{ "-DFOUNDATION_COMPILE=1", "-funit-at-a-time", "-fstrict-aliasing", "-fno-math-errno", "-ffinite-math-only", "-funsafe-math-optimizations", "-fno-trapping-math", "-ffast-math", "-Wno-everything", "-Wno-missing-braces", "-std=c11"; Config = { "macosx-*-*", "macosx_test-*", "linux-*-*" } },
+        	{ "-DFOUNDATION_COMPILE=1", "-funit-at-a-time", "-fstrict-aliasing", "-fno-math-errno", "-ffinite-math-only", "-funsafe-math-optimizations", "-fno-trapping-math", "-ffast-math", "-Wno-missing-braces", "-std=c11"; Config = { "macosx-*-*", "macosx_test-*", "linux-*-*" } },
+			{ "-Wno-everything"; Config = { "macosx-*-*", "macosx_test-*" } },
         	{ "/DFOUNDATION_COMPILE=1", "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
         	{ "-DBUILD_DEBUG=1"; Config = { "macosx-*-debug", "macosx_test-*-debug", "linux-*-debug" } },
         	{ "-DBUILD_RELEASE=1"; Config = { "macosx-*-release", "macosx_test-*-release", "linux-*-release" } },
@@ -155,10 +158,17 @@ StaticLibrary {
         },
     },
 
-    Sources = { 
-        Glob {
+    Sources = {
+    	FGlob {
             Dir = "src/external/foundation_lib/foundation",
-            Extensions = { ".c", ".h" },
+			Extensions = { ".cpp", ".c", ".h", ".s", ".m" },
+			Filters = {
+				{ Pattern = "[/\\]windows[/\\]"; Config = { "win32-*", "win64-*" } },
+				{ Pattern = "[/\\]macosx[/\\]"; Config = "mac*-*" },
+				{ Pattern = "[/\\]x11[/\\]"; Config = { "linux-*" } },
+			},
+
+			Recursive = true,
         },
     },
 
@@ -176,7 +186,8 @@ StaticLibrary {
 		},
 
         CCOPTS = {
-        	{ "-Wno-everything", "-Wno-missing-braces", "-std=c99"; Config = { "macosx-*-*", "macosx_test-*", "linux-*-*" } },
+        	{ "-Wno-everything"; Config = { "macosx-*-*", "macosx_test-*" } },
+			{ "-Wno-missing-braces", "-std=c99"; Config = { "macosx-*-*", "macosx_test-*", "linux-*-*" } },
         	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
         },
     },

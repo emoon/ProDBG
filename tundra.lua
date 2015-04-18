@@ -14,6 +14,7 @@ local mac_opts = {
 	"-Wno-gnu-anonymous-struct",
 	"-Wno-nested-anon-types",
 	"-Wno-padded",
+	"-Wno-c99-extensions",
 	"-Wno-missing-field-initializers",
 	"-Wno-weak-vtables",
 	"-Wno-format-nonliteral",

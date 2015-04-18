@@ -33,7 +33,7 @@ struct library_t
 	void*            lib;
 #endif
 };
-typedef ALIGN(8) struct library_t library_t;
+typedef FOUNDATION_ALIGN(8) struct library_t library_t;
 
 
 static objectmap_t* _library_map;

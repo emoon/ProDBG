@@ -194,15 +194,63 @@ static void textWrapped(const char* format, ...)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool scEditText(const char* label, char* buf, int buf_size, float xSize, float ySize, int flags,
-                       void (* callback)(void*), void* userData)
+typedef struct PDSCFuncs
 {
-    return ImGui::ScInputText(label, buf, (size_t)buf_size, xSize, ySize, flags, callback, userData);
+	intptr_t (*sendCommand)(void* privData, unsigned int message, uintptr_t p0, intptr_t p1);
+	void (*update)(void* privData);
+	void (*draw)(void* privData);
+	void* privateData;
+} PDSCFuns;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static intptr_t scSendCommand(void* privData, unsigned int message, uintptr_t p0, intptr_t p1)
+{
+	ImScEditor* editor = (ImScEditor*)privData;
+	return editor->SendCommand(message, p0, p1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef void (* InputCallback)(PDInputTextCallbackData*);
+static void scUpdate(void* privData)
+{
+	ImScEditor* editor = (ImScEditor*)privData;
+	editor->Draw();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void scDraw(void* privData)
+{
+	ImScEditor* editor = (ImScEditor*)privData;
+	return editor->Update();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PDSCInterface* scEditText(const char* label, float xSize, float ySize,
+                       void (*callback)(void*), void* userData)
+{
+	ImScEditor* ed = ImGui::ScInputText(label, xSize, ySize, callback, userData);
+
+	if (!ed->userData)
+	{
+		PDSCInterface* funcs = (PDSCInterface*)malloc(sizeof(PDSCInterface));
+		funcs->sendCommand = scSendCommand;
+		funcs->update = scUpdate;
+		funcs->draw = scDraw;
+		funcs->privateData = ed;
+
+		ed->userData = (void*)funcs;
+	}
+
+	return (PDSCInterface*)ed->userData;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef void (*InputCallback)(PDInputTextCallbackData*);
+
 struct PDInputTextUserData
 {
     InputCallback callback;

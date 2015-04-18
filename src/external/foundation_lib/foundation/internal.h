@@ -82,11 +82,5 @@ FOUNDATION_API void          _object_initialize( object_base_t* obj, object_t id
 FOUNDATION_API object_t      _object_ref( object_base_t* obj );
 FOUNDATION_API object_t      _object_unref( object_base_t* obj );
 
-#if BUILD_ENABLE_ERROR_CONTEXT
-FOUNDATION_API void          _error_context_clear( void );
-#endif
-
 FOUNDATION_API void          _environment_main_args( int argc, const char* const* argv );
-
-FOUNDATION_API void          _system_set_device_orientation( device_orientation_t orientation );
 

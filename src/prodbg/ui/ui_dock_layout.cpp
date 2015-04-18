@@ -132,7 +132,7 @@ bool UIDock_saveLayout(UIDockingGrid* grid, const char* filename, float xScale, 
 
     if (json_dump_file(root, filename, JSON_INDENT(4) | JSON_PRESERVE_ORDER) != 0)
     {
-        log_error("JSON: Unable to open %s for write\n", filename);
+        pd_error("JSON: Unable to open %s for write\n", filename);
         return false;
     }
 
@@ -345,7 +345,7 @@ UIDockingGrid* UIDock_loadLayout(const char* filename, float xSize, float ySize)
 
     if (!root || !json_is_object(root))
     {
-        log_error("JSON: Unable to open %s for read\n", filename);
+        pd_error("JSON: Unable to open %s for read\n", filename);
         return 0;
     }
 
@@ -359,7 +359,7 @@ UIDockingGrid* UIDock_loadLayout(const char* filename, float xSize, float ySize)
 
     if (!sizers || !json_is_array(sizers))
     {
-        log_error("JSON: Unable to load sizers object\n");
+        pd_error("JSON: Unable to load sizers object\n");
         return 0;
     }
 
@@ -369,7 +369,7 @@ UIDockingGrid* UIDock_loadLayout(const char* filename, float xSize, float ySize)
 
     if (!docks || !json_is_array(docks))
     {
-        log_error("JSON: Unable to load docks object\n");
+        pd_error("JSON: Unable to load docks object\n");
         return 0;
     }
 

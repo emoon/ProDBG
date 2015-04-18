@@ -24,6 +24,7 @@ FOUNDATION_API void              log_errorf( uint64_t context, error_t err, cons
 FOUNDATION_API void              log_panicf( uint64_t context, error_t err, const char* format, ... );
 
 FOUNDATION_API void              log_error_context( uint64_t context, error_level_t error_level );
+FOUNDATION_API log_callback_fn   log_callback( void );
 FOUNDATION_API void              log_set_callback( log_callback_fn callback );
 FOUNDATION_API void              log_enable_stdout( bool enable );
 FOUNDATION_API void              log_enable_prefix( bool enable );
@@ -62,7 +63,7 @@ FOUNDATION_API void              log_suppress_clear( void );
 #  define log_panic( context, err, msg ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_PANIC, err ); (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
 #  define log_panicf( context, err, msg, ... ) /*lint -save -e717 */ do { error_report( ERRORLEVEL_PANIC, err ); (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
 #  define log_error_context( context, error_level ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( error_level ); } while(0) /*lint -restore */
-#  define log_set_callback( callback ) /*lint -save -e717 */ do { (void)sizeof( callback ); } while(0) /*lint -restore */
+#  define log_set_callback( callback ) /*lint -save -e717 */ do { (void)sizeof( (void*)callback ); } while(0) /*lint -restore */
 #  define log_enable_stdout( enable ) /*lint -save -e717 */ do { (void)sizeof( enable ); } while(0) /*lint -restore */
 #  define log_enable_prefix( enable ) /*lint -save -e717 */ do { (void)sizeof( enable ); } while(0) /*lint -restore */
 #  define log_set_suppress( context, level ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( level ); } while(0) /*lint -restore */

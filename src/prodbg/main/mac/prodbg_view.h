@@ -1,4 +1,8 @@
-#import <AppKit/AppKit.h>
+#include <foundation/foundation.h>
+#include <foundation/apple.h>
+#import <AppKit/NSView.h>
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @interface ProDBGView : NSView
 {

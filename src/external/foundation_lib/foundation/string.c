@@ -1377,6 +1377,24 @@ uint128_t string_to_uint128( const char* val )
 }
 
 
+float32_t string_to_float32( const char* val )
+{
+	float32_t ret = 0.0f;
+	if( val )
+		sscanf( val, "%f", &ret );
+	return ret;
+}
+
+
+float64_t string_to_float64( const char* val )
+{
+	float64_t ret = 0.0;
+	if( val )
+		sscanf( val, "%lf", &ret );
+	return ret;
+}
+
+
 real string_to_real( const char* val )
 {
 #if ( FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_APPLE ) && ( FOUNDATION_SIZE_REAL == 64 )

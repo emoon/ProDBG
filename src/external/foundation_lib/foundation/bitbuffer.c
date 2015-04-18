@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 
 
-static void _bitbuffer_get( bitbuffer_t* RESTRICT bitbuffer )
+static void _bitbuffer_get( bitbuffer_t* FOUNDATION_RESTRICT bitbuffer )
 {
 	if( bitbuffer->buffer < bitbuffer->end )
 	{
@@ -33,7 +33,7 @@ static void _bitbuffer_get( bitbuffer_t* RESTRICT bitbuffer )
 }
 
 
-static void _bitbuffer_put( bitbuffer_t* RESTRICT bitbuffer )
+static void _bitbuffer_put( bitbuffer_t* FOUNDATION_RESTRICT bitbuffer )
 {
 	if( bitbuffer->buffer < bitbuffer->end )
 	{
@@ -124,7 +124,6 @@ uint128_t bitbuffer_read128( bitbuffer_t* bitbuffer, unsigned int bits )
 	}
 	{
 		uint128_t value;
-		FOUNDATION_ASSERT( bits <= 128 );
 		if( bits > 128 )
 			bits = 128;
 
@@ -142,7 +141,6 @@ uint64_t bitbuffer_read64( bitbuffer_t* bitbuffer, unsigned int bits )
 	if( bits <= 32 )
 		return bitbuffer_read32( bitbuffer, bits );
 
-	FOUNDATION_ASSERT( bits <= 64 );
 	if( bits > 64 )
 		bits = 64;
 
@@ -152,29 +150,25 @@ uint64_t bitbuffer_read64( bitbuffer_t* bitbuffer, unsigned int bits )
 }
 
 
-typedef union { uint64_t ival; float64_t rval; } _bitbuffer_convert64_t;
-typedef union { uint32_t ival; float32_t rval; } _bitbuffer_convert32_t;
-
-
 float64_t bitbuffer_read_float64( bitbuffer_t* bitbuffer )
 {
 #if !FOUNDATION_COMPILER_MSVC
-	const _bitbuffer_convert64_t conv = { .ival = bitbuffer_read64( bitbuffer, 64U ) };
+	const float64_cast_t conv = { .ival = bitbuffer_read64( bitbuffer, 64U ) };
 #else
-	_bitbuffer_convert64_t conv; conv.ival = bitbuffer_read64( bitbuffer, 64U );
+	float64_cast_t conv; conv.ival = bitbuffer_read64( bitbuffer, 64U );
 #endif
-	return conv.rval;
+	return conv.fval;
 }
 
 
 float32_t bitbuffer_read_float32( bitbuffer_t* bitbuffer )
 {
 #if !FOUNDATION_COMPILER_MSVC
-	const _bitbuffer_convert32_t conv = { .ival = bitbuffer_read32( bitbuffer, 32U ) };
+	const float32_cast_t conv = { .ival = bitbuffer_read32( bitbuffer, 32U ) };
 #else
-	_bitbuffer_convert32_t conv; conv.ival = bitbuffer_read32( bitbuffer, 32U );
+	float32_cast_t conv; conv.ival = bitbuffer_read32( bitbuffer, 32U );
 #endif
-	return conv.rval;
+	return conv.fval;
 }
 
 
@@ -186,7 +180,6 @@ uint32_t bitbuffer_read32( bitbuffer_t* bitbuffer, unsigned int bits )
 	if( !bits )
 		return 0;
 
-	FOUNDATION_ASSERT( bits <= 32 );
 	if( bits > 32 )
 		bits = 32;
 
@@ -227,7 +220,6 @@ void bitbuffer_write128( bitbuffer_t* bitbuffer, uint128_t value, unsigned int b
 		return;
 	}
 
-	FOUNDATION_ASSERT( bits <= 128 );
 	if( bits > 128 )
 		bits = 128;
 
@@ -244,7 +236,6 @@ void bitbuffer_write64( bitbuffer_t* bitbuffer, uint64_t value, unsigned int bit
 		return;
 	}
 
-	FOUNDATION_ASSERT( bits <= 64 );
 	if( bits > 64 )
 		bits = 64;
 
@@ -256,9 +247,9 @@ void bitbuffer_write64( bitbuffer_t* bitbuffer, uint64_t value, unsigned int bit
 void bitbuffer_write_float64( bitbuffer_t* bitbuffer, float64_t value )
 {
 #if !FOUNDATION_COMPILER_MSVC
-	_bitbuffer_convert64_t conv = { .rval = value };
+	float64_cast_t conv = { .fval = value };
 #else
-	_bitbuffer_convert64_t conv; conv.rval = value;
+	float64_cast_t conv; conv.fval = value;
 #endif
 	bitbuffer_write64( bitbuffer, conv.ival, 64U );
 }
@@ -267,9 +258,9 @@ void bitbuffer_write_float64( bitbuffer_t* bitbuffer, float64_t value )
 void bitbuffer_write_float32( bitbuffer_t* bitbuffer, float32_t value )
 {
 #if !FOUNDATION_COMPILER_MSVC
-	_bitbuffer_convert32_t conv = { .rval = value };
+	float32_cast_t conv = { .fval = value };
 #else
-	_bitbuffer_convert32_t conv; conv.rval = value;
+	float32_cast_t conv; conv.fval = value;
 #endif
 	bitbuffer_write32( bitbuffer, conv.ival, 32U );
 }
@@ -282,7 +273,6 @@ void bitbuffer_write32( bitbuffer_t* bitbuffer, uint32_t value, unsigned int bit
 	if( !bits )
 		return;
 
-	FOUNDATION_ASSERT( bits <= 32 );
 	if( bits > 32 )
 		bits = 32;
 

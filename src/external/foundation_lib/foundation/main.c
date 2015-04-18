@@ -176,6 +176,7 @@ int main( int argc, char** argv )
 		sigaction( SIGTERM, &action, 0 );
 		sigaction( SIGQUIT, &action, 0 );
 		sigaction( SIGINT,  &action, 0 );
+		sigaction( SIGABRT, &action, 0 );
 
 		//Ignore sigpipe
 		action.sa_handler = SIG_IGN;

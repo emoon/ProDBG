@@ -108,6 +108,8 @@ FOUNDATION_API unsigned int   string_to_uint( const char* val, bool hex );
 FOUNDATION_API int64_t        string_to_int64( const char* val );
 FOUNDATION_API uint64_t       string_to_uint64( const char* val, bool hex );
 FOUNDATION_API uint128_t      string_to_uint128( const char* val );
+FOUNDATION_API float32_t      string_to_float32( const char* val );
+FOUNDATION_API float64_t      string_to_float64( const char* val );
 FOUNDATION_API real           string_to_real( const char* val );
 FOUNDATION_API uuid_t         string_to_uuid( const char* val );
 FOUNDATION_API version_t      string_to_version( const char* val );

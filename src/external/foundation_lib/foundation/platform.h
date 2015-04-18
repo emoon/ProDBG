@@ -529,25 +529,25 @@
 #  define FOUNDATION_COMPILER_NAME "clang"
 #  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING( __clang_major__ ) "." FOUNDATION_PREPROCESSOR_TOSTRING( __clang_minor__ )
 
-#  define RESTRICT restrict
+#  define FOUNDATION_RESTRICT __restrict
 #  if FOUNDATION_PLATFORM_WINDOWS
-#    define THREADLOCAL
+#    define FOUNDATION_THREADLOCAL
 #  else
-#    define THREADLOCAL __thread
+#    define FOUNDATION_THREADLOCAL __thread
 #  endif
 
-#  define ATTRIBUTE(x) __attribute__((__##x##__))
-#  define ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
-#  define ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
+#  define FOUNDATION_ATTRIBUTE(x) __attribute__((__##x##__))
+#  define FOUNDATION_ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
+#  define FOUNDATION_ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
 
-#  define DEPRECATED ATTRIBUTE( deprecated )
-#  define FORCEINLINE inline ATTRIBUTE( always_inline )
-#  define NOINLINE ATTRIBUTE( noinline )
-#  define PURECALL ATTRIBUTE( pure )
-#  define CONSTCALL ATTRIBUTE( const )
-#  define ALIGN( alignment ) ATTRIBUTE2( aligned, alignment )
-#  define ALIGNOF( type ) __alignof__( type )
-#  define ALIGNED_STRUCT( name, alignment ) struct __attribute__((__aligned__(alignment))) name
+#  define FOUNDATION_DEPRECATED FOUNDATION_ATTRIBUTE( deprecated )
+#  define FOUNDATION_FORCEINLINE inline FOUNDATION_ATTRIBUTE( always_inline )
+#  define FOUNDATION_NOINLINE FOUNDATION_ATTRIBUTE( noinline )
+#  define FOUNDATION_PURECALL FOUNDATION_ATTRIBUTE( pure )
+#  define FOUNDATION_CONSTCALL FOUNDATION_ATTRIBUTE( const )
+#  define FOUNDATION_ALIGN( alignment ) FOUNDATION_ATTRIBUTE2( aligned, alignment )
+#  define FOUNDATION_ALIGNOF( type ) __alignof__( type )
+#  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct __attribute__((__aligned__(alignment))) name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL
@@ -580,21 +580,21 @@
 #  define FOUNDATION_COMPILER_NAME "gcc"
 #  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC__ ) "." FOUNDATION_PREPROCESSOR_TOSTRING( __GNUC_MINOR__ )
 
-#  define RESTRICT __restrict
-#  define THREADLOCAL __thread
+#  define FOUNDATION_RESTRICT __restrict
+#  define FOUNDATION_THREADLOCAL __thread
 
-#  define ATTRIBUTE(x) __attribute__((__##x##__))
-#  define ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
-#  define ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
+#  define FOUNDATION_ATTRIBUTE(x) __attribute__((__##x##__))
+#  define FOUNDATION_ATTRIBUTE2(x,y) __attribute__((__##x##__(y)))
+#  define FOUNDATION_ATTRIBUTE3(x,y,z) __attribute__((__##x##__(y,z)))
 
-#  define DEPRECATED ATTRIBUTE( deprecated )
-#  define FORCEINLINE inline ATTRIBUTE( always_inline )
-#  define NOINLINE ATTRIBUTE( noinline )
-#  define PURECALL ATTRIBUTE( pure )
-#  define CONSTCALL ATTRIBUTE( const )
-#  define ALIGN( alignment ) ATTRIBUTE2( aligned, alignment )
-#  define ALIGNOF( type ) __alignof__( type )
-#  define ALIGNED_STRUCT( name, alignment ) struct ALIGN( alignment ) name
+#  define FOUNDATION_DEPRECATED FOUNDATION_ATTRIBUTE( deprecated )
+#  define FOUNDATION_FORCEINLINE inline FOUNDATION_ATTRIBUTE( always_inline )
+#  define FOUNDATION_NOINLINE FOUNDATION_ATTRIBUTE( noinline )
+#  define FOUNDATION_PURECALL FOUNDATION_ATTRIBUTE( pure )
+#  define FOUNDATION_CONSTCALL FOUNDATION_ATTRIBUTE( const )
+#  define FOUNDATION_ALIGN( alignment ) FOUNDATION_ATTRIBUTE2( aligned, alignment )
+#  define FOUNDATION_ALIGNOF( type ) __alignof__( type )
+#  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct FOUNDATION_ALIGN( alignment ) name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL
@@ -630,21 +630,21 @@
 #    define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING( __ICC )
 #  endif
 
-#  define RESTRICT __restrict
-#  define THREADLOCAL __declspec( thread )
+#  define FOUNDATION_RESTRICT __restrict
+#  define FOUNDATION_THREADLOCAL __declspec( thread )
 
-#  define ATTRIBUTE(x)
-#  define ATTRIBUTE2(x,y)
-#  define ATTRIBUTE3(x,y,z)
+#  define FOUNDATION_ATTRIBUTE(x)
+#  define FOUNDATION_ATTRIBUTE2(x,y)
+#  define FOUNDATION_ATTRIBUTE3(x,y,z)
 
-#  define DEPRECATED
-#  define FORCEINLINE __forceinline
-#  define NOINLINE __declspec( noinline )
-#  define PURECALL
-#  define CONSTCALL
-#  define ALIGN( alignment ) __declspec( align( alignment ) )
-#  define ALIGNOF( type ) __alignof( type )
-#  define ALIGNED_STRUCT( name, alignment ) ALIGN( alignment ) struct name
+#  define FOUNDATION_DEPRECATED
+#  define FOUNDATION_FORCEINLINE __forceinline
+#  define FOUNDATION_NOINLINE __declspec( noinline )
+#  define FOUNDATION_PURECALL
+#  define FOUNDATION_CONSTCALL
+#  define FOUNDATION_ALIGN( alignment ) __declspec( align( alignment ) )
+#  define FOUNDATION_ALIGNOF( type ) __alignof( type )
+#  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) FOUNDATION_ALIGN( alignment ) struct name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL __stdcall
@@ -667,21 +667,21 @@
 #  define FOUNDATION_COMPILER_NAME "msvc"
 #  define FOUNDATION_COMPILER_DESCRIPTION FOUNDATION_COMPILER_NAME " " FOUNDATION_PREPROCESSOR_TOSTRING( _MSC_VER )
 
-#  define ATTRIBUTE(x)
-#  define ATTRIBUTE2(x,y)
-#  define ATTRIBUTE3(x,y,z)
+#  define FOUNDATION_ATTRIBUTE(x)
+#  define FOUNDATION_ATTRIBUTE2(x,y)
+#  define FOUNDATION_ATTRIBUTE3(x,y,z)
 
-#  define RESTRICT __restrict
-#  define THREADLOCAL __declspec( thread )
+#  define FOUNDATION_RESTRICT __restrict
+#  define FOUNDATION_THREADLOCAL __declspec( thread )
 
-#  define DEPRECATED __declspec( deprecated )
-#  define FORCEINLINE __forceinline
-#  define NOINLINE __declspec( noinline )
-#  define PURECALL
-#  define CONSTCALL
-#  define ALIGN( alignment ) __declspec( align( alignment ) )
-#  define ALIGNOF( type ) __alignof( type )
-#  define ALIGNED_STRUCT( name, alignment ) ALIGN( alignment ) struct name
+#  define FOUNDATION_DEPRECATED __declspec( deprecated )
+#  define FOUNDATION_FORCEINLINE __forceinline
+#  define FOUNDATION_NOINLINE __declspec( noinline )
+#  define FOUNDATION_PURECALL
+#  define FOUNDATION_CONSTCALL
+#  define FOUNDATION_ALIGN( alignment ) __declspec( align( alignment ) )
+#  define FOUNDATION_ALIGNOF( type ) __alignof( type )
+#  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) FOUNDATION_ALIGN( alignment ) struct name
 
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL __stdcall
@@ -699,6 +699,8 @@ typedef enum
 #  define va_copy(d,s) ((d)=(s))
 #endif
 
+#  include <intrin.h>
+
 #else
 
 #  warning Unknown compiler
@@ -706,17 +708,17 @@ typedef enum
 #  define FOUNDATION_COMPILER_NAME "unknown"
 #  define FOUNDATION_COMPILER_DESCRIPTION "unknown"
 
-#  define RESTRICT
-#  define THREADLOCAL
+#  define FOUNDATION_RESTRICT
+#  define FOUNDATION_THREADLOCAL
 
-#  define DEPRECATED
-#  define FORCEINLINE
-#  define NOINLINE
-#  define PURECALL
-#  define CONSTCALL
-#  define ALIGN
-#  define ALIGNOF
-#  define ALIGNED_STRUCT( name, alignment ) struct name
+#  define FOUNDATION_DEPRECATED
+#  define FOUNDATION_FORCEINLINE
+#  define FOUNDATION_NOINLINE
+#  define FOUNDATION_PURECALL
+#  define FOUNDATION_CONSTCALL
+#  define FOUNDATION_ALIGN
+#  define FOUNDATION_ALIGNOF
+#  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct name
 
 typedef enum
 {
@@ -779,23 +781,23 @@ typedef   float32_t         real;
 #endif
 
 //Atomic types
-ALIGNED_STRUCT( atomic32_t, 4 )
+FOUNDATION_ALIGNED_STRUCT( atomic32_t, 4 )
 {
 	uint32_t nonatomic;
 };
-typedef ALIGNED_STRUCT( atomic32_t, 4 ) atomic32_t;
+typedef FOUNDATION_ALIGNED_STRUCT( atomic32_t, 4 ) atomic32_t;
 
-ALIGNED_STRUCT( atomic64_t, 8 )
+FOUNDATION_ALIGNED_STRUCT( atomic64_t, 8 )
 {
 	uint64_t nonatomic;
 };
-typedef ALIGNED_STRUCT( atomic64_t, 8 ) atomic64_t;
+typedef FOUNDATION_ALIGNED_STRUCT( atomic64_t, 8 ) atomic64_t;
 
-ALIGNED_STRUCT( atomicptr_t, FOUNDATION_SIZE_POINTER )
+FOUNDATION_ALIGNED_STRUCT( atomicptr_t, FOUNDATION_SIZE_POINTER )
 {
 	void* nonatomic;
 };
-typedef ALIGNED_STRUCT( atomicptr_t, FOUNDATION_SIZE_POINTER ) atomicptr_t;
+typedef FOUNDATION_ALIGNED_STRUCT( atomicptr_t, FOUNDATION_SIZE_POINTER ) atomicptr_t;
 
 
 //Pointer arithmetic
@@ -829,14 +831,14 @@ FOUNDATION_API void* _allocate_thread_local_block( unsigned int size );
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
 static _pthread_key_t _##name##_key = 0; \
-static FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) { pthread_key_create( &_##name##_key, 0 ); pthread_setspecific( _##name##_key, (init) ); } return _##name##_key; } \
-static FORCEINLINE type get_thread_##name( void ) { return (type)((uintptr_t)pthread_getspecific( get_##name##_key() )); } \
-static FORCEINLINE void set_thread_##name( type val ) { pthread_setspecific( get_##name##_key(), (const void*)(uintptr_t)val ); }
+static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) { pthread_key_create( &_##name##_key, 0 ); pthread_setspecific( _##name##_key, (init) ); } return _##name##_key; } \
+static FOUNDATION_FORCEINLINE type get_thread_##name( void ) { return (type)((uintptr_t)pthread_getspecific( get_##name##_key() )); } \
+static FOUNDATION_FORCEINLINE void set_thread_##name( type val ) { pthread_setspecific( get_##name##_key(), (const void*)(uintptr_t)val ); }
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
 static _pthread_key_t _##name##_key = 0; \
-static FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) pthread_key_create( &_##name##_key, 0 ); return _##name##_key; } \
-static FORCEINLINE type* get_thread_##name( void ) { _pthread_key_t key = get_##name##_key(); type* arr = (type*)pthread_getspecific( key ); if( !arr ) { arr = _allocate_thread_local_block( sizeof( type ) * arrsize ); pthread_setspecific( key, arr ); } return arr; }
+static FOUNDATION_FORCEINLINE _pthread_key_t get_##name##_key( void ) { if( !_##name##_key ) pthread_key_create( &_##name##_key, 0 ); return _##name##_key; } \
+static FOUNDATION_FORCEINLINE type* get_thread_##name( void ) { _pthread_key_t key = get_##name##_key(); type* arr = (type*)pthread_getspecific( key ); if( !arr ) { arr = _allocate_thread_local_block( sizeof( type ) * arrsize ); pthread_setspecific( key, arr ); } return arr; }
 
 #elif FOUNDATION_PLATFORM_WINDOWS && FOUNDATION_COMPILER_CLANG
 
@@ -848,39 +850,39 @@ FOUNDATION_API void* _allocate_thread_local_block( unsigned int size );
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
 static unsigned long _##name##_key = 0; \
-static FORCEINLINE unsigned long get_##name##_key( void ) { if( !_##name##_key ) { _##name##_key = TlsAlloc(); TlsSetValue( _##name##_key, init ); } return _##name##_key; } \
-static FORCEINLINE type get_thread_##name( void ) { return (type)((uintptr_t)TlsGetValue( get_##name##_key() )); } \
-static FORCEINLINE void set_thread_##name( type val ) { TlsSetValue( get_##name##_key(), (void*)((uintptr_t)val) ); }
+static FOUNDATION_FORCEINLINE unsigned long get_##name##_key( void ) { if( !_##name##_key ) { _##name##_key = TlsAlloc(); TlsSetValue( _##name##_key, init ); } return _##name##_key; } \
+static FOUNDATION_FORCEINLINE type get_thread_##name( void ) { return (type)((uintptr_t)TlsGetValue( get_##name##_key() )); } \
+static FOUNDATION_FORCEINLINE void set_thread_##name( type val ) { TlsSetValue( get_##name##_key(), (void*)((uintptr_t)val) ); }
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
 static unsigned long _##name##_key = 0; \
-static FORCEINLINE unsigned long get_##name##_key( void ) { if( !_##name##_key ) _##name##_key = TlsAlloc(); return _##name##_key; } \
-static FORCEINLINE type* get_thread_##name( void ) { unsigned long key = get_##name##_key(); type* arr = (type*)TlsGetValue( key ); if( !arr ) { arr = _allocate_thread_local_block( sizeof( type ) * arrsize ); TlsSetValue( key, arr ); } return arr; }
+static FOUNDATION_FORCEINLINE unsigned long get_##name##_key( void ) { if( !_##name##_key ) _##name##_key = TlsAlloc(); return _##name##_key; } \
+static FOUNDATION_FORCEINLINE type* get_thread_##name( void ) { unsigned long key = get_##name##_key(); type* arr = (type*)TlsGetValue( key ); if( !arr ) { arr = _allocate_thread_local_block( sizeof( type ) * arrsize ); TlsSetValue( key, arr ); } return arr; }
 
 #else
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL( type, name, init ) \
-static THREADLOCAL type _thread_##name = init; \
-static FORCEINLINE void set_thread_##name( type val ) { _thread_##name = val; } \
-static FORCEINLINE type get_thread_##name( void ) { return _thread_##name; }
+static FOUNDATION_THREADLOCAL type _thread_##name = init; \
+static FOUNDATION_FORCEINLINE void set_thread_##name( type val ) { _thread_##name = val; } \
+static FOUNDATION_FORCEINLINE type get_thread_##name( void ) { return _thread_##name; }
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY( type, name, arrsize ) \
-static THREADLOCAL type _thread_##name [arrsize] = {0}; \
-static FORCEINLINE type* get_thread_##name( void ) { return _thread_##name; }
+static FOUNDATION_THREADLOCAL type _thread_##name [arrsize] = {0}; \
+static FOUNDATION_FORCEINLINE type* get_thread_##name( void ) { return _thread_##name; }
 
 #endif
 
 
 //Utility functions for large integer types
-static FORCEINLINE CONSTCALL uint128_t uint128_make( const uint64_t low, const uint64_t high ) { uint128_t u = { { low, high } }; return u; }
-static FORCEINLINE CONSTCALL uint128_t uint128_null( void ) { return uint128_make( 0, 0 ); }
-static FORCEINLINE CONSTCALL bool      uint128_equal( const uint128_t u0, const uint128_t u1 ) { return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1]; }
-static FORCEINLINE CONSTCALL bool      uint128_is_null( const uint128_t u0 ) { return !u0.word[0] && !u0.word[1]; }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint128_t uint128_make( const uint64_t low, const uint64_t high ) { uint128_t u = { { low, high } }; return u; }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint128_t uint128_null( void ) { return uint128_make( 0, 0 ); }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool      uint128_equal( const uint128_t u0, const uint128_t u1 ) { return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1]; }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool      uint128_is_null( const uint128_t u0 ) { return !u0.word[0] && !u0.word[1]; }
 
-static FORCEINLINE CONSTCALL uint256_t uint256_make( const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3 ) { uint256_t u = { { w0, w1, w2, w3 } }; return u; }
-static FORCEINLINE CONSTCALL uint256_t uint256_null( void ) { return uint256_make( 0, 0, 0, 0 ); }
-static FORCEINLINE CONSTCALL bool      uint256_equal( const uint256_t u0, const uint256_t u1 ) { return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1] && u0.word[2] == u1.word[2] && u0.word[3] == u1.word[3]; }
-static FORCEINLINE CONSTCALL bool      uint256_is_null( const uint256_t u0 ) { return !u0.word[0] && !u0.word[1] && !u0.word[2] && !u0.word[3]; }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint256_t uint256_make( const uint64_t w0, const uint64_t w1, const uint64_t w2, const uint64_t w3 ) { uint256_t u = { { w0, w1, w2, w3 } }; return u; }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint256_t uint256_null( void ) { return uint256_make( 0, 0, 0, 0 ); }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool      uint256_equal( const uint256_t u0, const uint256_t u1 ) { return u0.word[0] == u1.word[0] && u0.word[1] == u1.word[1] && u0.word[2] == u1.word[2] && u0.word[3] == u1.word[3]; }
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL bool      uint256_is_null( const uint256_t u0 ) { return !u0.word[0] && !u0.word[1] && !u0.word[2] && !u0.word[3]; }
 
 
 //Format specifiers for 64bit and pointers

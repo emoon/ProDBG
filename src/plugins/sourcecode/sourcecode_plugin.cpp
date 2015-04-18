@@ -3,50 +3,51 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <scintilla/include/Scintilla.h>
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct SourceCodeData
 {
-    int dummy;
+	char filename[4096];
+	int line;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-   static void* readFileFromDisk(const char* file, size_t* size)
-   {
-    size_t fileSize;
-    char* data;
-    FILE* f = fopen(file, "rb");
+static void* readFileFromDisk(const char* file, size_t* size)
+{
+	size_t fileSize;
+	char* data;
+	FILE* f = fopen(file, "rb");
 
-    if (!f)
-    {
-        printf("sourcecode_plugin: Unable to open file %s\n", file);
-        return 0;
-    }
+	if (!f)
+	{
+		printf("sourcecode_plugin: Unable to open file %s\n", file);
+		return 0;
+	}
 
-    fseek(f, 0, SEEK_END);
-    fileSize = (size_t)ftell(f);
-    fseek(f, 0, SEEK_SET);
+	fseek(f, 0, SEEK_END);
+	fileSize = (size_t)ftell(f);
+	fseek(f, 0, SEEK_SET);
 
-    // pad the size a bit so we make sure to have the data null terminated
-    data = (char*)malloc(fileSize + 16);
-    data[fileSize] = 0;
+	// pad the size a bit so we make sure to have the data null terminated
+	data = (char*)malloc(fileSize + 16);
+	data[fileSize] = 0;
 
-    if ((fread((void*)data, 1, fileSize, f)) != fileSize)
-    {
-        free(data);
-        fclose(f);
-        printf("sourcecode_plugin: Unable to read the whole file %s to memory\n", file);
-        return 0;
-    }
+	if ((fread((void*)data, 1, fileSize, f)) != fileSize)
+	{
+		free(data);
+		fclose(f);
+		printf("sourcecode_plugin: Unable to read the whole file %s to memory\n", file);
+		return 0;
+	}
 
- * size = fileSize;
-    fclose(f);
+	*size = fileSize;
+	fclose(f);
 
-    return data;
-   }
- */
-
+	return data;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -73,12 +74,10 @@ static void destroyInstance(void* userData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setExceptionLocation(SourceCodeData* data, PDReader* inEvents)
+static void setExceptionLocation(PDSCInterface* sourceFuncs, SourceCodeData* data, PDReader* inEvents)
 {
     const char* filename;
     uint32_t line;
-
-    (void)data;
 
     // TODO: How to show this? Tell user to switch to disassembly view?
 
@@ -88,19 +87,46 @@ static void setExceptionLocation(SourceCodeData* data, PDReader* inEvents)
     if (PDRead_findU32(inEvents, &line, "line", 0) == PDReadStatus_notFound)
         return;
 
-    //parseFile(&data->file, filename);
+    if (strcmp(filename, data->filename))
+	{
+		size_t size = 0;
+		void* fileData = readFileFromDisk(filename, &size);
 
-    //data->line = line;
+		if (fileData)
+			PDUI_SCSendCommand(sourceFuncs, SCI_ADDTEXT, size, (intptr_t)fileData);
+		else
+			printf("Sourcecode_plugin: Unable to load %s\n", filename);
+
+		free(fileData);
+
+		strcpy(data->filename, filename);
+	}
+
+	PDUI_SCSendCommand(sourceFuncs, SCI_GOTOLINE, (uintptr_t)line, 0);
+
+	data->line = (int)line;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
 {
     (void)data;
     //uiFuncs->columns(1, "sourceview", true);
-    uiFuncs->scInputText("test", 0, 0, 800, 700, 0, 0, 0);
+    PDSCInterface* scFuncs = uiFuncs->scInputText("test", 800, 700, 0, 0);
+
+	const char* testText = "Test\nTest2\nTest3\n\0";
+
+	static bool hasSentText = false;
+
+	if (!hasSentText)
+	{
+		PDUI_SCSendCommand(scFuncs, SCI_ADDTEXT, strlen(testText), (intptr_t)testText);
+		hasSentText = true;
+	}
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -137,6 +163,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
     (void)uiFuncs;
 
     SourceCodeData* data = (SourceCodeData*)userData;
+    PDSCInterface* sourceFuncs = uiFuncs->scInputText("test", 800, 700, 0, 0);
 
     while ((event = PDRead_getEvent(inEvents)) != 0)
     {
@@ -144,7 +171,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
         {
             case PDEventType_setExceptionLocation:
             {
-                setExceptionLocation(data, inEvents);
+                setExceptionLocation(sourceFuncs, data, inEvents);
                 break;
             }
 
@@ -158,10 +185,12 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     updateKeyboard(data, uiFuncs);
 
-    showInUI(data, uiFuncs);
+	PDUI_SCUpdate(sourceFuncs);
+	PDUI_SCDraw(sourceFuncs);
+
+    //showInUI(data, uiFuncs);
 
     PDWrite_eventBegin(writer, PDEventType_getExceptionLocation);
-    PDWrite_u8(writer, "dummy_get_location", 0); // TODO: Remove me
     PDWrite_eventEnd(writer);
 
     return 0;
@@ -184,10 +213,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-    {
-        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-    }
+PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+{
+	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

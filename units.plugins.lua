@@ -25,7 +25,7 @@ SharedLibrary {
             "-Wno-switch",
             "-Wno-switch-enum",
             "-Wno-c++98-compat-pedantic",
-            "-Wno-missing-field-initializers"; Config = "macosx-clang-*" },
+            "-Wno-missing-field-initializers"; Config = { "macosx-clang-*", "linux-*"} },
         },
 
         SHLIBOPTS = { 
@@ -76,7 +76,10 @@ SharedLibrary {
     Name = "sourcecode_plugin",
     
     Env = {
-        CPPPATH = { "api/include", },
+        CPPPATH = { 
+        	"api/include", 
+        	"src/external", 
+        },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
     },
 
@@ -201,8 +204,16 @@ SharedLibrary {
 			"src/external/libuv/include",
 			"api/include", 
 		},
+		
+		CCOPTS = {
+			{ "-std=c99"; Config = "linux-*"; },
+		},
 
         COPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
+		
+		CPPDEFS = {
+			{ "_XOPEN_SOURCE=600"; Config = "linux-*" },
+		},
     },
 
     Sources = { 
