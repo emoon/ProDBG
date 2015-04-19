@@ -58,7 +58,7 @@ static void log_debug(const char* format, ...)
 #ifdef _WIN32
 	OutputDebugStringA(buffer);
 #else
-	printf(buffer);
+	printf("%s", buffer);
 #endif
 }
 

@@ -1352,6 +1352,6 @@ void Platform::DebugPrintf(const char* format, ...)
     va_start(args, format);
     vsprintf(buffer, format, args);
     va_end(args);
-    printf(buffer);
+    printf("%s", buffer);
 }
 
