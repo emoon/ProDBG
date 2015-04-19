@@ -58,6 +58,10 @@
 ** uses mkstemp.
 */
 
+#ifndef _WIN32
+#define LUA_USE_POSIX
+#endif
+
 #if defined(LUA_USE_POSIX)	/* { */
 
 #include <unistd.h>

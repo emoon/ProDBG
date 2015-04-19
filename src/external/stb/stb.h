@@ -1295,7 +1295,7 @@ float stb_quadratic_controller(float target_pos, float curpos, float maxvel, flo
 int stb_float_eq(float x, float y, float delta, int max_ulps)
 {
    if (fabs(x-y) <= delta) return 1;
-   if (abs(*(int *)&x - *(int *)&y) <= max_ulps) return 1;
+   //if (abs(*(int *)&x - *(int *)&y) <= max_ulps) return 1;
    return 0;
 }
 
@@ -3845,7 +3845,7 @@ PREFIX int STB__(N,get_flag)(TYPE *a, KEY k, VALUE *v)                          
 HASVNULL(                                                                     \
    PREFIX VALUE STB__(N,get)(TYPE *a, KEY k)                                         \
    {                                                                          \
-      VALUE v;                                                                \
+      VALUE v = 0;                                                            \
       if (STB__(N,get_flag)(a,k,&v)) return v;                                \
       else                           return VNULL;                            \
    }                                                                          \
@@ -5252,7 +5252,8 @@ int stb_fullpath(char *abs, int abs_size, char *rel)
       return STB_TRUE;
    } else {
       int n;
-      getcwd(abs, abs_size);
+      void* t = getcwd(abs, abs_size);
+      (void)t;
       n = strlen(abs);
       if (n+(int) strlen(rel)+2 <= abs_size) {
          abs[n] = '/';
@@ -5666,7 +5667,8 @@ char *stb_fget_string(FILE *f, void *p)
    int len = stb_fget_varlenu(f);
    if (len > 4096) return NULL;
    s = p ? stb_malloc_string(p, len+1) : (char *) malloc(len+1);
-   fread(s, 1, len, f);
+   int t = fread(s, 1, len, f);
+   (void)t;
    s[len] = 0;
    return s;
 }
@@ -10048,7 +10050,8 @@ char *stb_decompress_fromfile(char *filename, unsigned int *len)
    n = ftell(f);
    fseek(f, 0, SEEK_SET);
    p = (unsigned char * ) malloc(n); if (p == NULL) return NULL;
-   fread(p, 1, n, f);
+   int t = fread(p, 1, n, f);
+   (void)t;
    fclose(f);
    if (p == NULL) return NULL;
    if (p[0] != 0x57 || p[1] != 0xBc || p[2] || p[3]) { free(p); return NULL; }
