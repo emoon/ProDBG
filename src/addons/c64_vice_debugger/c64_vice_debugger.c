@@ -185,7 +185,7 @@ void* loadToMemory(const char* filename, size_t* size)
     if (!data)
         return 0;
 
-    int t = fread(data, s, 1, f);
+    size_t t = fread(data, s, 1, f);
     (void)t;
 
     *size = s;
