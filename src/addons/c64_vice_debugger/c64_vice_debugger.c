@@ -152,7 +152,8 @@ bool getFullName(char* fullName, const char* name)
         return false;
     }
 #else
-    realpath(name, fullName);
+    void* t = realpath(name, fullName);
+    (void)t;
 
     return true;
 #endif
@@ -184,7 +185,8 @@ void* loadToMemory(const char* filename, size_t* size)
     if (!data)
         return 0;
 
-    fread(data, s, 1, f);
+    int t = fread(data, s, 1, f);
+    (void)t;
 
     *size = s;
 

@@ -85,7 +85,7 @@ static void getRegisterString(char* value, PDReader* reader, PDReaderIterator it
 
 static void addOrUpdate(RegistersData* data, const char* name, const char* value)
 {
-    int count = count = data->registerCount;
+    int count = data->registerCount;
 
     for (int i = 0; i < count; ++i)
     {
