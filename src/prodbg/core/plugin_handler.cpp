@@ -166,7 +166,9 @@ void PluginHandler_unloadAllPlugins()
     // TODO: Actually unload everything
 
 	for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
-    	stb_arr_setlen(s_plugins[i], 0);
+		free(s_plugins[i]);
+
+    stb_arr_setlen(s_plugins, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
