@@ -33,6 +33,7 @@ def run_tests(tests, rp):
             subprocess.check_call(args)
 
     except subprocess.CalledProcessError, e:
+        print("Something went running when running " + p + " error: " + str(e))
         sys.exit(1)
 
     return
