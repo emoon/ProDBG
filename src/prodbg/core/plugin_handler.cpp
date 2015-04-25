@@ -74,16 +74,27 @@ static PluginData* findPluginAll(const char* pluginFile, const char* pluginName)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+struct PluginPrivateData
+{
+	const char* name;
+	uv_lib_t* lib;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void registerPlugin(const char* type, void* plugin, void* privateData)
 {
     PluginData* pluginData = (PluginData*)alloc_zero(sizeof(PluginData));
-	const char* filename = (const char*)privateData;
+	PluginPrivateData* privData = (PluginPrivateData*)privateData;
+
+	const char* filename = privData->name; 
 
     // TODO: Verify that we don't add a plugin with the same plugin name in the same plugin
 
     pluginData->plugin = plugin;
     pluginData->type = type;
     pluginData->filename = filename;
+    pluginData->lib = privData->lib; 
 
     for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
 	{
@@ -97,6 +108,8 @@ static void registerPlugin(const char* type, void* plugin, void* privateData)
 	}
 
 	pd_error("Unknown pluginType %s - %s", type, ((PDPluginBase*)plugin)->name);
+
+	free(pluginData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,37 +139,55 @@ static char* buildLoadingPath(const char* basePath, const char* plugin)
 
 bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 {
-    uv_lib_t lib;
-    void* function;
     void* (*initPlugin)(RegisterPlugin* registerPlugin, void* privateData);
+	struct PluginPrivateData data;
+    uv_lib_t* lib = 0; 
+    const char* filename = 0; 
+    void* function;
 
     if (!basePath || !plugin)
-        return false;
+        goto error;
 
-    const char* filename = buildLoadingPath(basePath, plugin);
+    filename = buildLoadingPath(basePath, plugin);
 
-    if (uv_dlopen(filename, &lib) == -1)
+    lib = (uv_lib_t*)alloc_zero(sizeof(uv_lib_t));
+
+    if (uv_dlopen(filename, lib) == -1)
     {
         // TODO: Show error message
-        pd_error("Unable to open %s error:\n", uv_dlerror(&lib))
-        free((void*)filename);
-        return false;
+        pd_error("Unable to open %s error:\n", uv_dlerror(lib))
+        goto error;
     }
 
-    if (uv_dlsym(&lib, "InitPlugin", &function) == -1)
+    if (uv_dlsym(lib, "InitPlugin", &function) == -1)
     {
         // TODO: Show error message
         pd_error("Unable to find InitPlugin function in plugin %s\n", plugin);
-        uv_dlclose(&lib);
-        free((void*)filename);
-        return false;
+        uv_dlclose(lib);
+        goto error;
     }
 
     *(void**)(&initPlugin) = function;
 
-    initPlugin(registerPlugin, (void*)plugin);
+	data.name = plugin;
+	data.lib = lib; 
+
+    initPlugin(registerPlugin, (void*)&data);
+
+	free((void*)filename);
 
     return true;
+
+error:
+
+	free((void*)filename);
+
+	if (lib)
+	{
+    	uv_dlclose(lib);
+		free((void*)lib);
+	}
+	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -166,9 +197,23 @@ void PluginHandler_unloadAllPlugins()
     // TODO: Actually unload everything
 
 	for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
-		free(s_plugins[i]);
+	{
+    	int count = stb_arr_len(s_plugins[i]);
 
-    stb_arr_setlen(s_plugins, 0);
+	    for (int t = 0; t < count; ++t)
+	    {
+	    	PluginData* plugin = s_plugins[i][t];
+        	uv_dlclose((uv_lib_t*)plugin->lib);
+        	free(plugin->lib);
+        	//free((void*)plugin->filename);
+        	free(plugin);
+ 		}
+
+    	stb_arr_free(s_plugins[i]);
+   	}
+
+	//for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
+	//	free(s_plugins[i]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
