@@ -11,13 +11,12 @@ import argparse
 # lldb_tests       
 # dbgeng_tests     
 
-mac_tests = []
-unix_tests = []
+mac_tests = ["remote_api_tests"]
+unix_tests = ["remote_api_tests"]
 windows_tests = []
 
 all_tests = ["core_tests", 
              "readwrite_tests", 
-             "remote_api_tests", 
              "script_tests", 
              "session_tests", 
              "ui_docking_tests", 
