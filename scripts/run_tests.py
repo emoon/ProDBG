@@ -1,8 +1,9 @@
 import sys
 import os
+import time
 import subprocess
-from sys import platform as _platform
 import argparse
+from sys import platform as _platform
 
 ##############################################################################################################
 # All tests that should be executed on each platform, all_tests will run on all
@@ -49,6 +50,11 @@ def run_all(config):
         run_tests(windows_tests, rp)
     elif _platform == "darwin":
         run_tests(mac_tests, rp)
+        # Start ProDBG on Mac also
+	subprocess.Popen([os.path.join(rp, 'ProDBG.app/Contents/MacOS/prodbg'), '', ''])
+	time.sleep(5)
+	os.system('osascript -e \"tell application \\\"ProDBG\\\" to quit\"')
+	time.sleep(2)
     else:
         run_tests(unix_tests, rp)
 
