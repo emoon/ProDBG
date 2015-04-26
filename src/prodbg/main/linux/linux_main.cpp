@@ -127,10 +127,8 @@ void processEvents()
 
                 case ResizeRequest:
                 {
-                    //const XResizeRequestEvent& xresize = event.xresizerequest;
-                    //XResizeWindow(s_display, m_window, xresize.width, xresize.height);
-                    //m_eventQueue.postSizeEvent(defaultWindow, xresize.width, xresize.height);
-
+                    const XResizeRequestEvent& xresize = event.xresizerequest;
+					ProDBG_setWindowSize(xresize.width, xresize.height);
                     break;
                 }
             }
