@@ -37,8 +37,6 @@
 int Window_buildPluginMenu(PluginData** plugins, int count);
 void Window_addMenu(const char* name, PDMenuItem* items, uint32_t idOffset);
 
-extern "C" void foundation_hack_environment_main_args(int argc, const char* const* argv);
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct Context
@@ -161,41 +159,13 @@ void createMenusForPlugins()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-#ifndef _WIN32
-
-static void foundationInit()
-{
-	static application_t application;
-
-	application.name = "ProDBG";
-	application.short_name = "ProDBG";
-	application.config_dir = "ProDBG";
-	application.version = foundation_version();
-	application.flags = APPLICATION_UTILITY;
-	application.dump_callback = 0;
-
-	static const char* const temp[] = { "temp" };
-
-	foundation_hack_environment_main_args(1, temp);
-
-	foundation_initialize(memory_system_malloc(), application);
-}
-
-#endif
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void ProDBG_create(void* window, int width, int height)
 {
     Context* context = &s_context;
     //Rect settingsRect;
     //
 
-
-#ifndef _WIN32
-	foundationInit();
-#endif
+	Core_init();
 
     context->session = Session_create();
     context->time = bx::getHPCounter();

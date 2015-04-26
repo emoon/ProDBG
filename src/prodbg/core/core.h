@@ -8,4 +8,6 @@
 #define PD_NO_RETURN
 #endif
 
+void Core_init();
+
 
