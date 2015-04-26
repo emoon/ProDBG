@@ -497,6 +497,8 @@ void PDBinaryWriter_init(PDWriter* writer)
     writer->writeString = writeString;
     writer->writeData = writeData;
 
+    //printf("PDBinaryWriter_init\n");
+
     writer->data = malloc(sizeof(WriterData));
     memset(writer->data, 0, sizeof(WriterData));
 
@@ -508,6 +510,8 @@ void PDBinaryWriter_init(PDWriter* writer)
     // reserve 4 bytes at the start (to be used for size and 2 flags at the top)
     data->data += 4;
     data->maxSize = 1024 * 1024;
+
+    //printf("data-start %p\n", data->dataStart);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -556,9 +560,11 @@ void PDBinaryWriter_reset(PDWriter* writer)
 
 void PDBinaryWriter_destroy(PDWriter* writer)
 {
-    WriterData* data = (WriterData*)writer->data;
-    free(data->dataStart);
+    //WriterData* data = (WriterData*)writer->data;
+    // TODO: Skip this free due to bad implementation of reader/writer in fake6502, fix!
+    //free(data->dataStart);
     free(writer->data);
+	//data->dataStart = 0;
     writer->data = 0;
 }
 
