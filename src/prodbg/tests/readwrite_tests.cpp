@@ -551,6 +551,7 @@ int main()
 
     int test = run_tests(tests);
 
+	PDBinaryReader_destroy(reader);
     PDBinaryWriter_destroy(writer);
 
     return test;
