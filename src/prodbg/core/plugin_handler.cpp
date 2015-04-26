@@ -155,7 +155,7 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
     if (uv_dlopen(filename, lib) == -1)
     {
         // TODO: Show error message
-        pd_error("Unable to open %s error:\n", uv_dlerror(lib))
+        pd_error("Unable to open %s error:\n", uv_dlerror(lib));
         goto error;
     }
 

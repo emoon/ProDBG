@@ -173,6 +173,8 @@ void test_commands(void**)
     assert_int_equal(g_intValue, 1);
 
     Commands_redo();
+
+    Commands_clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -191,7 +193,7 @@ int main()
         unit_test(plugin_handler_find_plugin),
         unit_test(test_load_file_ok),
         unit_test(test_load_file_fail),
-        //unit_test(test_commands),
+        unit_test(test_commands),
     };
 
     return run_tests(tests);

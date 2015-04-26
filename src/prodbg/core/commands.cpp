@@ -247,7 +247,7 @@ static void CommandList_delEntry(CommandList* list, CommandEntry* entry)
 {
     CommandList_unlinkEntry(list, entry);
 
-    //free(command->userData);
+    free(entry->command.userData);
     free(entry);
 }
 
@@ -260,6 +260,7 @@ static void CommandList_clear(CommandList* list)
         CommandList_delEntry(list, list->last);
     }
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -275,4 +276,11 @@ static bool CommandList_isEmpty(CommandList* list)
     return (!list->first && !list->last);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Commands_clear()
+{
+	CommandList_clear(&s_undoStack);
+	CommandList_clear(&s_redoStack);
+}
 
