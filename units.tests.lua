@@ -50,7 +50,7 @@ local all_depends = { "uv", "api", "core", "script", "stb", "remote_api", "cmock
 
 -----------------------------------------------------------------------------------------------------------------------
 
-Test({ Name = "core_tests", Source = "src/prodbg/tests/core_tests.cpp", Depends = { "core", "stb", "uv", "cmocka"} })
+Test({ Name = "core_tests", Source = "src/prodbg/tests/core_tests.cpp", Depends = { "core", "stb", "uv", "cmocka", "foundation_lib"} })
 Test({ Name = "lldb_tests", Source = "src/prodbg/tests/lldb_tests.cpp", Depends = all_depends})
 Test({ Name = "readwrite_tests", Source = "src/prodbg/tests/readwrite_tests.cpp", Depends = all_depends})
 Test({ Name = "remote_api_tests", Source = "src/prodbg/tests/remote_api_tests.cpp", Depends = all_depends})

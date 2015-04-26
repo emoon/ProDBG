@@ -6,6 +6,7 @@
 #include "core/alloc.h"
 #include "core/log.h"
 #include "core/file.h"
+#include "core/core.h"
 #include "core/commands.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -182,6 +183,7 @@ void test_commands(void**)
 int main()
 {
     log_set_level(LOG_NONE);
+    Core_init();
 
     const UnitTest tests[] =
     {
