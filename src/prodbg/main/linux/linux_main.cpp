@@ -46,9 +46,6 @@ void processEvents()
                 case Expose:
                     break;
 
-                case ConfigureNotify:
-                    break;
-
                 case ClientMessage:
                 {
                     if ((Atom)event.xclient.data.l[0] == wmDeleteWindow)
@@ -125,10 +122,10 @@ void processEvents()
                     break;
                 }
 
-                case ResizeRequest:
+                case ConfigureNotify:
                 {
-                    const XResizeRequestEvent& xresize = event.xresizerequest;
-					ProDBG_setWindowSize(xresize.width, xresize.height);
+                    const XConfigureEvent& xev = event.xconfigure;
+					ProDBG_setWindowSize(xev.width, xev.height);
                     break;
                 }
             }
@@ -158,7 +155,6 @@ int main(int argc, const char** argv)
                              | KeyPressMask
                              | KeyReleaseMask
                              | PointerMotionMask
-                             | ResizeRedirectMask
                              | StructureNotifyMask
     ;
 
