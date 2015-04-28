@@ -433,7 +433,11 @@ struct error_context_t
 struct event_t
 {
 	FOUNDATION_DECLARE_EVENT;
+#ifdef _WIN32
+	char                            payload[1];
+#else
 	char                            payload[];
+#endif
 };
 
 
