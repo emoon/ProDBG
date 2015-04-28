@@ -189,7 +189,7 @@ static const char* s_filename = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void fileNotifaction(void* userData, const char* file, int type)
+void fileNotifaction(void* userData, const char* file, int type)
 {
 	(void)userData;
 
@@ -240,7 +240,9 @@ int main()
         unit_test(test_load_file_ok),
         unit_test(test_load_file_fail),
         unit_test(test_commands),
+    #ifndef _WIN32
         unit_test(test_file_notification),
+    #endif
     };
 
     return run_tests(tests);
