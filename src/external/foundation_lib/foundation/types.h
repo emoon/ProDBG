@@ -583,7 +583,7 @@ struct regex_capture_t
 	unsigned int                    offset_read;   \
 	unsigned int                    offset_write;  \
 	unsigned int                    buffer_size;   \
-	char                            buffer[]
+	char                            buffer[1]
 
 struct ringbuffer_t
 {
