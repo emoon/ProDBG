@@ -469,7 +469,7 @@ struct hashmap_t
 {
 	unsigned int                    num_buckets;
 	unsigned int                    num_nodes;
-	hashmap_node_t*                 bucket[];
+	hashmap_node_t*                 bucket[1];
 };
 
 
@@ -490,14 +490,14 @@ FOUNDATION_ALIGNED_STRUCT( hashtable64_entry_t, 8 )
 FOUNDATION_ALIGNED_STRUCT( hashtable32_t, 8 )
 {
 	uint32_t                        capacity;
-	hashtable32_entry_t             entries[];
+	hashtable32_entry_t             entries[1];
 };
 
 
 FOUNDATION_ALIGNED_STRUCT( hashtable64_t, 8 )
 {
 	uint64_t                        capacity;
-	hashtable64_entry_t             entries[];
+	hashtable64_entry_t             entries[1];
 };
 
 
@@ -526,7 +526,7 @@ FOUNDATION_ALIGNED_STRUCT( objectmap_t, 16 )
 	uint64_t                        id_max;
 	uint64_t                        mask_index;
 	uint64_t                        mask_id;
-	void*                           map[];
+	void*                           map[1];
 };
 
 struct process_t
@@ -568,7 +568,7 @@ struct regex_t
 	unsigned int                    num_captures;
 	unsigned int                    code_length;
 	unsigned int                    code_allocated;
-	uint8_t                         code[];
+	uint8_t                         code[1];
 };
 
 struct regex_capture_t
