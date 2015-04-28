@@ -1,0 +1,14 @@
+#pragma once
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef void (*FMCallback)(void* userData, const char* file, int type);
+typedef void* FMHandle;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void FileMonitor_addPath(const char* path, const char* fileFilers, FMCallback callback, void* userData);
+void FileMonitor_removePath(const char* path);
+void FileMonitor_update();
+void FileMonitor_close();
+

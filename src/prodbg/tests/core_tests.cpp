@@ -2,14 +2,18 @@
 #include <stddef.h>
 #include <setjmp.h>
 #include <cmocka.h>
-#include "core/plugin_handler.h"
 #include "core/alloc.h"
-#include "core/log.h"
-#include "core/file.h"
-#include "core/core.h"
 #include "core/commands.h"
+#include "core/core.h"
+#include "core/file.h"
+#include "core/file_monitor.h"
+#include "core/log.h"
+#include "core/plugin_handler.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <foundation/types.h>
+#include <foundation/fs.h>
+#include <foundation/thread.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -180,6 +184,46 @@ void test_commands(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static int s_checkPhase = 0;
+static const char* s_filename = 0; 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void fileNotifaction(void* userData, const char* file, int type)
+{
+	(void)userData;
+
+	if (s_checkPhase == 0)
+	{
+		assert_string_equal(file, s_filename); 
+		assert_int_equal(type, FOUNDATIONEVENT_FILE_CREATED); 
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void test_file_notification(void**)
+{
+	const char* test_dir = "t2-output/test_dir"; 
+	s_filename = "t2-output/test_dir/test_file";
+
+	fs_remove_directory(test_dir); 
+	fs_make_directory(test_dir);
+
+	FileMonitor_addPath(test_dir, "*", fileNotifaction, 0);
+
+	thread_sleep(100);
+
+	FILE* t = fopen(s_filename, "wb");
+	fclose(t);
+
+	thread_sleep(500);
+
+	FileMonitor_update();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main()
 {
     log_set_level(LOG_NONE);
@@ -196,6 +240,7 @@ int main()
         unit_test(test_load_file_ok),
         unit_test(test_load_file_fail),
         unit_test(test_commands),
+        unit_test(test_file_notification),
     };
 
     return run_tests(tests);
