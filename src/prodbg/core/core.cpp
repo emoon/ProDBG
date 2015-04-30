@@ -4,9 +4,7 @@
 #include <foundation/apple.h>
 #endif
 
-#ifndef _WIN32
 #include <foundation/foundation.h>
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -16,7 +14,6 @@ extern "C" void foundation_hack_environment_main_args(int argc, const char* cons
 
 void Core_init()
 {
-#ifndef _WIN32
 	static application_t application;
 
 	application.name = "ProDBG";
@@ -31,6 +28,5 @@ void Core_init()
 	foundation_hack_environment_main_args(1, temp);
 
 	foundation_initialize(memory_system_malloc(), application);
-#endif
 }
  
