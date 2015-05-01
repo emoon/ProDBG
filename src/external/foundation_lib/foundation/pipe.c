@@ -150,16 +150,14 @@ void pipe_close_write( stream_t* stream )
 void* pipe_read_handle( stream_t* stream )
 {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
-	FOUNDATION_ASSERT( stream->type == STREAMTYPE_PIPE );
-	return ( stream->type == STREAMTYPE_PIPE ) ? pipestream->handle_read : 0;
+	return stream && ( stream->type == STREAMTYPE_PIPE ) ? pipestream->handle_read : 0;
 }
 
 
 void* pipe_write_handle( stream_t* stream )
 {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
-	FOUNDATION_ASSERT( stream->type == STREAMTYPE_PIPE );
-	return ( stream->type == STREAMTYPE_PIPE ) ? pipestream->handle_write : 0;
+	return stream && ( stream->type == STREAMTYPE_PIPE ) ? pipestream->handle_write : 0;
 }
 
 
@@ -169,14 +167,14 @@ void* pipe_write_handle( stream_t* stream )
 int pipe_read_fd( stream_t* stream )
 {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
-	return ( stream->type == STREAMTYPE_PIPE ) ? pipestream->fd_read : 0;
+	return stream && ( stream->type == STREAMTYPE_PIPE ) ? pipestream->fd_read : 0;
 }
 
 
 int pipe_write_fd( stream_t* stream )
 {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
-	return ( stream->type == STREAMTYPE_PIPE ) ? pipestream->fd_write : 0;
+	return stream && ( stream->type == STREAMTYPE_PIPE ) ? pipestream->fd_write : 0;
 }
 
 

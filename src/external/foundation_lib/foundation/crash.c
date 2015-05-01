@@ -251,6 +251,7 @@ int crash_guard( crash_guard_fn fn, void* data, crash_dump_callback_fn callback,
 	return ret;
 
 #else
+
 	FOUNDATION_UNUSED( callback );
 	FOUNDATION_UNUSED( name );
 

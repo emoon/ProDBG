@@ -27,6 +27,10 @@ __declspec(dllimport) void STDCALL OutputDebugStringA(LPCSTR);
 #  include <android/log.h>
 #endif
 
+#if FOUNDATION_PLATFORM_TIZEN
+#  include <foundation/tizen.h>
+#endif
+
 #if FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
 #endif
@@ -150,13 +154,19 @@ static void _log_outputf( uint64_t context, int severity, const char* prefix, co
 #if FOUNDATION_PLATFORM_WINDOWS
 			OutputDebugStringA( buffer );
 #endif
-#if FOUNDATION_PLATFORM_PNACL
-			pnacl_post_log( context, severity, buffer, need + more + 1 );
-#endif
+
 #if FOUNDATION_PLATFORM_ANDROID
 			FOUNDATION_UNUSED( std );
 			if( _log_stdout )
 				__android_log_write( ANDROID_LOG_DEBUG + severity - 1, environment_application()->short_name, buffer );
+#elif FOUNDATION_PLATFORM_TIZEN
+			FOUNDATION_UNUSED( std );
+			if( _log_stdout )
+				dlog_print( DLOG_DEBUG + severity - 1, environment_application()->short_name, "%s", buffer );
+#elif FOUNDATION_PLATFORM_PNACL
+			FOUNDATION_UNUSED( std );
+			if( _log_stdout )
+				pnacl_post_log( context, severity, buffer, need + more + 1 );
 #else
 			if( _log_stdout && std )
 				fprintf( std, "%s", buffer );

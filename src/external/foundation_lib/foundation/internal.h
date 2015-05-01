@@ -67,7 +67,7 @@ FOUNDATION_API void _config_shutdown( void );
 
 FOUNDATION_API void _profile_thread_finalize( void );
 
-FOUNDATION_API void _static_hash_initialize( void );
+FOUNDATION_API int _static_hash_initialize( void );
 FOUNDATION_API void _static_hash_shutdown( void );
 
 FOUNDATION_API void foundation_startup( void );

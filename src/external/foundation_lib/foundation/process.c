@@ -172,6 +172,7 @@ int process_spawn( process_t* proc )
 
 		++num_args;
 
+#if !FOUNDATION_PLATFORM_POSIX
 		if( string_find_first_not_of( arg, unescaped, 0 ) != STRING_NPOS )
 		{
 			if( arg[0] != '"' )
@@ -198,6 +199,7 @@ int process_spawn( process_t* proc )
 				proc->args[i] = arg;
 			}
 		}
+#endif
 	}
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -376,6 +378,7 @@ int process_spawn( process_t* proc )
 		CFRelease( argvref );
 		for( i = 0, size = array_size( args ); i < size; ++i )
 			CFRelease( args[i] );
+		array_deallocate( args );
 
 		memory_deallocate( fsref );
 		string_deallocate( pathstripped );
@@ -650,7 +653,7 @@ void process_set_exit_code( int code )
 }
 
 
-void process_exit( int code )
+void FOUNDATION_ATTRIBUTE( noreturn ) process_exit( int code )
 {
 	_exit( code );
 }

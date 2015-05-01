@@ -45,3 +45,5 @@ FOUNDATION_API bool                  system_message_box( const char* title, cons
 
 FOUNDATION_API event_stream_t*       system_event_stream( void );
 FOUNDATION_API void                  system_post_event( foundation_event_id event );
+
+FOUNDATION_API void                  system_thread_deallocate( void );

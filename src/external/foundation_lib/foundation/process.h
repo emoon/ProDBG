@@ -37,4 +37,4 @@ FOUNDATION_API stream_t*   process_stdin( process_t* proc );
 FOUNDATION_API int         process_wait( process_t* proc );
 
 FOUNDATION_API int         process_exit_code( void );
-FOUNDATION_API void        process_exit( int code );
+FOUNDATION_API void        process_exit( int code ) FOUNDATION_ATTRIBUTE( noreturn );

@@ -17,6 +17,7 @@
 
 extern int app_main( void* arg );
 
+extern volatile int _delegate_dummy;
 volatile int _delegate_dummy;
 
 FOUNDATION_NOINLINE void delegate_reference_classes( void )
@@ -26,9 +27,6 @@ FOUNDATION_NOINLINE void delegate_reference_classes( void )
 }
 
 @interface FoundationMainThread : NSObject
-{
-    long threadID;
-}
 + (void)startMainThread:(void*)arg;
 @end
 

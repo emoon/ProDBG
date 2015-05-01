@@ -33,9 +33,6 @@ FOUNDATION_API void* delegate_nswindow( void );
 #ifdef __OBJC__
 
 @interface FoundationAppDelegate : NSObject <NSApplicationDelegate>
-{
-    NSWindow* window;
-}
 @property (nonatomic, retain) IBOutlet NSWindow *window;
 + (void)referenceClass;
 @end
@@ -52,9 +49,6 @@ FOUNDATION_API void* delegate_uiwindow( void );
 #ifdef __OBJC__
 
 @interface FoundationAppDelegate : NSObject <UIApplicationDelegate>
-{
-    UIWindow* window;
-}
 @property (nonatomic, retain) IBOutlet UIWindow *window;
 + (void)referenceClass;
 @end

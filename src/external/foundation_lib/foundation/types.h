@@ -19,6 +19,11 @@
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) struct name
 #endif
 
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wpadded"
+#endif
+
 
 // PRIMITIVE TYPES
 
@@ -87,6 +92,7 @@ typedef enum
 	PLATFORM_RASPBERRYPI,
 	PLATFORM_PNACL,
 	PLATFORM_BSD,
+	PLATFORM_TIZEN,
 
 	PLATFORM_INVALID
 } platform_t;
@@ -433,11 +439,7 @@ struct error_context_t
 struct event_t
 {
 	FOUNDATION_DECLARE_EVENT;
-#ifdef _WIN32
-	char                            payload[1];
-#else
 	char                            payload[];
-#endif
 };
 
 
@@ -469,7 +471,7 @@ struct hashmap_t
 {
 	unsigned int                    num_buckets;
 	unsigned int                    num_nodes;
-	hashmap_node_t*                 bucket[1];
+	hashmap_node_t*                 bucket[];
 };
 
 
@@ -490,14 +492,14 @@ FOUNDATION_ALIGNED_STRUCT( hashtable64_entry_t, 8 )
 FOUNDATION_ALIGNED_STRUCT( hashtable32_t, 8 )
 {
 	uint32_t                        capacity;
-	hashtable32_entry_t             entries[1];
+	hashtable32_entry_t             entries[];
 };
 
 
 FOUNDATION_ALIGNED_STRUCT( hashtable64_t, 8 )
 {
 	uint64_t                        capacity;
-	hashtable64_entry_t             entries[1];
+	hashtable64_entry_t             entries[];
 };
 
 
@@ -526,7 +528,7 @@ FOUNDATION_ALIGNED_STRUCT( objectmap_t, 16 )
 	uint64_t                        id_max;
 	uint64_t                        mask_index;
 	uint64_t                        mask_id;
-	void*                           map[1];
+	void*                           map[];
 };
 
 struct process_t
@@ -568,7 +570,7 @@ struct regex_t
 	unsigned int                    num_captures;
 	unsigned int                    code_length;
 	unsigned int                    code_allocated;
-	uint8_t                         code[1];
+	uint8_t                         code[];
 };
 
 struct regex_capture_t
@@ -583,7 +585,7 @@ struct regex_capture_t
 	unsigned int                    offset_read;   \
 	unsigned int                    offset_write;  \
 	unsigned int                    buffer_size;   \
-	char                            buffer[1]
+	char                            buffer[]
 
 struct ringbuffer_t
 {
@@ -710,3 +712,8 @@ struct stream_vtable_t
 // UTILITY FUNCTIONS
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL version_t      version_make( unsigned int major, unsigned int minor, unsigned int revision, unsigned int build, unsigned int control ) { version_t v; v.sub.major = (uint16_t)major; v.sub.minor = (uint16_t)minor; v.sub.revision = revision, v.sub.build = build; v.sub.control = control; return v; }
+
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
+#endif

@@ -1272,14 +1272,14 @@ char* string_from_time_buffer( char* buffer, uint64_t t )
 	buffer[0] = 0;
 	_ctime64_s( buffer, 64, &timet );
 	return string_strip( buffer, STRING_WHITESPACE );
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_PNACL || FOUNDATION_PLATFORM_BSD
-	buffer[0] = 0;
-	time_t ts = (time_t)( t / 1000ULL );
-	ctime_r( &ts, buffer );
-	return string_strip( buffer, STRING_WHITESPACE );
 #elif FOUNDATION_PLATFORM_ANDROID
 	time_t ts = t / 1000ULL;
 	strcpy( buffer, ctime( &ts ) );
+	return string_strip( buffer, STRING_WHITESPACE );
+#elif FOUNDATION_PLATFORM_POSIX
+	buffer[0] = 0;
+	time_t ts = (time_t)( t / 1000ULL );
+	ctime_r( &ts, buffer );
 	return string_strip( buffer, STRING_WHITESPACE );
 #else
 # error Not implemented
@@ -1424,12 +1424,5 @@ version_t string_to_version( const char* val )
 		}
 	}
 	return version_make( num[0], num[1], num[2], num[3], num[4] );
-}
-
-
-bool string_is_valid_email_address( const char* address )
-{
-	//TODO: Regexp '^[a-z0-9]+[a-z0-9_\\.-]*@([a-z0-9]+([\.-][a-z0-9]+)*)\\.[a-z]{2,4}$' or similar
-	return string_match_pattern( address, "*@*.*" );
 }
 

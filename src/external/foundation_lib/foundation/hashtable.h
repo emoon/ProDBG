@@ -47,6 +47,7 @@ FOUNDATION_API void             hashtable64_clear( hashtable64_t* table );
 #define hashtable_t             hashtable32_t
 #define hashtable_allocate      hashtable32_allocate
 #define hashtable_initialize    hashtable32_initialize
+#define hashtable_finalize      hashtable32_finalize
 #define hashtable_deallocate    hashtable32_deallocate
 #define hashtable_set           hashtable32_set
 #define hashtable_erase         hashtable32_erase
@@ -59,6 +60,7 @@ FOUNDATION_API void             hashtable64_clear( hashtable64_t* table );
 #define hashtable_t             hashtable64_t
 #define hashtable_allocate      hashtable64_allocate
 #define hashtable_initialize    hashtable64_initialize
+#define hashtable_finalize      hashtable64_finalize
 #define hashtable_deallocate    hashtable64_deallocate
 #define hashtable_set           hashtable64_set
 #define hashtable_erase         hashtable64_erase

@@ -372,31 +372,15 @@ static thread_return_t FOUNDATION_THREADCALL _thread_entry( thread_arg_t data )
 		return 0;
 	}
 
-#if FOUNDATION_PLATFORM_WINDOWS
-	thread->osid = GetCurrentThreadId();
-#if !BUILD_DEPLOY
+	thread->osid = thread_id();
+
+#if FOUNDATION_PLATFORM_WINDOWS && !BUILD_DEPLOY
 	if( thread->name[0] )
 		_set_thread_name( thread->name );
-#endif
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
-	const pthread_t curid = pthread_self();
-	thread->osid = curid;
-#if !BUILD_DEPLOY
+#elif ( FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID ) && !BUILD_DEPLOY
 	prctl( PR_SET_NAME, thread->name, 0, 0, 0 );
-#endif
-#elif FOUNDATION_PLATFORM_BSD
-	thread->osid = pthread_getthreadid_np();
-#if !BUILD_DEPLOY
+#elif FOUNDATION_PLATFORM_BSD && !BUILD_DEPLOY
 	pthread_set_name_np( pthread_self(), thread->name );
-#endif
-#elif FOUNDATION_PLATFORM_PNACL
-	pthread_t curid = pthread_self();
-	thread->osid = (uintptr_t)curid;
-#elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
-	mach_port_t curid = pthread_mach_thread_np( pthread_self() );
-	thread->osid = curid;
-#else
-	#error Not implemented
 #endif
 	atomic_store32( &thread->terminate, 0 );
 
@@ -546,7 +530,10 @@ uint64_t thread_id( void )
 #elif FOUNDATION_PLATFORM_BSD
 	return pthread_getthreadid_np();
 #elif FOUNDATION_PLATFORM_POSIX
-	return pthread_self();
+	if( sizeof( pthread_t ) < 8 )
+		return (uint64_t)pthread_self() & 0x00000000FFFFFFFFULL;
+	else
+		return pthread_self();
 #elif FOUNDATION_PLATFORM_PNACL
 	return (uintptr_t)pthread_self();
 #else
@@ -591,6 +578,7 @@ void thread_finalize( void )
 {
 	_profile_thread_finalize();
 
+	system_thread_deallocate();
 	random_thread_deallocate();
 
 #if FOUNDATION_PLATFORM_ANDROID

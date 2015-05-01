@@ -74,7 +74,7 @@ static FOUNDATION_FORCEINLINE int32_t atomic_load32( atomic32_t* val )
 static FOUNDATION_FORCEINLINE int64_t atomic_load64( atomic64_t* val )
 {
 #if FOUNDATION_ARCH_X86
-	uint64_t result;
+	int64_t result;
 #  if FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL
     __asm
 	{
@@ -187,7 +187,7 @@ static FOUNDATION_FORCEINLINE int64_t atomic_exchange_and_add64( atomic64_t* val
 	do { ref = val->nonatomic; } while( _InterlockedCompareExchange64( (volatile long long*)&val->nonatomic, ref + add, ref ) != ref );
 	return ref;
 #  else //X86_64
-	return _InterlockedExchangeAdd64( (volatile __int64*)&val->nonatomic, add );
+	return _InterlockedExchangeAdd64( &val->nonatomic, add );
 #  endif
 #elif FOUNDATION_PLATFORM_APPLE
 	int64_t ref;
@@ -209,7 +209,7 @@ static FOUNDATION_FORCEINLINE int64_t atomic_add64( atomic64_t* val, int64_t add
 #  if FOUNDATION_ARCH_X86
 	return atomic_exchange_and_add64( val, add ) + add;
 #  else
-	return _InterlockedExchangeAdd64( (volatile __int64*)&val->nonatomic, add ) + add;
+	return _InterlockedExchangeAdd64( &val->nonatomic, add ) + add;
 #endif
 #elif FOUNDATION_PLATFORM_APPLE
 	return OSAtomicAdd64( add, (int64_t*)&val->nonatomic );

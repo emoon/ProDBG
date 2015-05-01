@@ -1,4 +1,4 @@
-/* posix.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* tizen.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
  *
  * This library provides a cross-platform foundation library in C11 providing basic support data types and
  * functions to write applications and games in a platform-independent fashion. The latest source code is
@@ -13,43 +13,26 @@
 #pragma once
 
 #include <foundation/platform.h>
-#include <foundation/types.h>
 
 
-#if FOUNDATION_PLATFORM_POSIX
+#if FOUNDATION_PLATFORM_TIZEN
 
-#define radixsort __stdlib_radixsort
 #ifndef __error_t_defined
 #define __error_t_defined 1
 #endif
 
-#if FOUNDATION_PLATFORM_APPLE
-#define _UUID_T
-#define _UUID_UUID_H
-#endif
-
+#include <stdarg.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <errno.h>
-#include <sched.h>
-#include <pwd.h>
-#include <time.h>
-#include <pthread.h>
-#include <fcntl.h>
 
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/errno.h>
-#include <sys/time.h>
+#include <appfw/app.h>
+#include <system/system_settings.h>
+#include <dlog/dlog.h>
 
-#undef radixsort
-
-
-#if FOUNDATION_PLATFORM_APPLE
-#undef _UUID_T
-#undef _UUID_UUID_H
-#endif
+FOUNDATION_API int       tizen_initialize( void );
+FOUNDATION_API void      tizen_shutdown( void );
+FOUNDATION_API void      tizen_start_main_thread( void );
+FOUNDATION_API int       tizen_app_main( int argc, char** argv );
 
 #endif

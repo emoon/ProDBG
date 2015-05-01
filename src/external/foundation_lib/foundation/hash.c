@@ -179,12 +179,14 @@ hash_t hash( const void* key, const unsigned int len )
 #if BUILD_ENABLE_STATIC_HASH_DEBUG
 
 
-static hashtable64_t* _hash_lookup = 0;
+static hashtable64_t* _hash_lookup;
 
 
-void _static_hash_initialize( void )
+int _static_hash_initialize( void )
 {
-	_hash_lookup = hashtable64_allocate( BUILD_SIZE_STATIC_HASH_STORE + 1 );
+	if( !_hash_lookup )
+		_hash_lookup = hashtable64_allocate( BUILD_SIZE_STATIC_HASH_STORE + 1 );
+	return 0;
 }
 
 
@@ -238,8 +240,9 @@ const char* hash_to_string( const hash_t value )
 #else
 
 
-void _static_hash_initialize( void )
+int _static_hash_initialize( void )
 {
+	return 0;
 }
 
 

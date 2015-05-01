@@ -35,6 +35,7 @@ static char*   _environment_var;
 
 #if FOUNDATION_PLATFORM_APPLE
 #  include <foundation/apple.h>
+extern void _environment_ns_command_line( char*** argv );
 extern void _environment_ns_home_directory( char* );
 extern void _environment_ns_temporary_directory( char* );
 #endif
@@ -53,18 +54,11 @@ static const char* const*  _environment_main_argv;
 static void _environment_clean_temporary_directory( bool recreate );
 
 
-
 void _environment_main_args( int argc, const char* const* argv )
 {
 	_environment_main_argc = argc;
 	_environment_main_argv = argv;
 }
-
-void foundation_hack_environment_main_args( int argc, const char* const* argv )
-{
-	_environment_main_args(argc, argv);
-}
-
 
 #if !FOUNDATION_PLATFORM_PNACL
 
@@ -131,15 +125,10 @@ int _environment_initialize( const application_t application )
 
 #elif FOUNDATION_PLATFORM_MACOSX || FOUNDATION_PLATFORM_IOS
 
-	for( int ia = 0; ia < _environment_main_argc; ++ia )
-		array_push( _environment_argv, string_clone( _environment_main_argv[ia] ) );
+	_environment_ns_command_line( &_environment_argv );
 
-	//TODO: Use NS api since argv[0] could contain anything
-	FOUNDATION_ASSERT( _environment_main_argc > 0 );
-	char* exe_path = path_make_absolute( _environment_main_argv[0] );
-
+	char* exe_path = path_make_absolute( _environment_argv[0] );
 	_environment_set_executable_paths( exe_path );
-
 	string_deallocate( exe_path );
 
 #elif FOUNDATION_PLATFORM_ANDROID
@@ -404,7 +393,7 @@ const char* environment_home_directory( void )
 		string_deallocate( path );
 		memory_deallocate( wpath );
 	}
-#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD
+#elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_TIZEN
 	const char* env_home = environment_variable( "HOME" );
 	if( !env_home )
 	{

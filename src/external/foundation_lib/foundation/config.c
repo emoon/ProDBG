@@ -459,6 +459,8 @@ void config_load( const char* name, hash_t filter_section, bool built_in, bool o
 				"pnacl";
 #elif FOUNDATION_PLATFORM_BSD
 				"bsd";
+#elif FOUNDATION_PLATFORM_TIZEN
+				"tizen";
 #else
 #  error Insert platform name
 				"unknown";

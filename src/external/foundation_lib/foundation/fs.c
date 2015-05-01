@@ -1720,7 +1720,7 @@ static uint64_t _fs_file_read( stream_t* stream, void* buffer, uint64_t num_byte
 #if FOUNDATION_PLATFORM_PNACL
 
 	int64_t available = file->size - file->position;
-	if( !available )
+	if( !available || !num_bytes )
 		return 0;
 	if( available > 0x7FFFFFFFLL )
 		available = 0x7FFFFFFFLL;

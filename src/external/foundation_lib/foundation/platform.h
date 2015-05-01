@@ -47,6 +47,7 @@
 #define FOUNDATION_PLATFORM_MACOSX 0
 #define FOUNDATION_PLATFORM_WINDOWS 0
 #define FOUNDATION_PLATFORM_PNACL 0
+#define FOUNDATION_PLATFORM_TIZEN 0
 
 //Platform traits and groups
 #define FOUNDATION_PLATFORM_APPLE 0
@@ -180,7 +181,69 @@
 #  endif
 
 // Traits
-#  if defined( __AARCH64EB__ )
+#  if FOUNDATION_ARCH_MIPS
+#    if defined( __MIPSEL__ ) || defined( __MIPSEL ) || defined( _MIPSEL )
+#      undef  FOUNDATION_ARCH_ENDIAN_LITTLE
+#      define FOUNDATION_ARCH_ENDIAN_LITTLE 1
+#    else
+#      undef  FOUNDATION_ARCH_ENDIAN_BIG
+#      define FOUNDATION_ARCH_ENDIAN_BIG 1
+#    endif
+#  elif defined( __AARCH64EB__ ) || defined( __ARMEB__ )
+#    undef  FOUNDATION_ARCH_ENDIAN_BIG
+#    define FOUNDATION_ARCH_ENDIAN_BIG 1
+#  else
+#    undef  FOUNDATION_ARCH_ENDIAN_LITTLE
+#    define FOUNDATION_ARCH_ENDIAN_LITTLE 1
+#  endif
+
+#  undef  FOUNDATION_PLATFORM_FAMILY_MOBILE
+#  define FOUNDATION_PLATFORM_FAMILY_MOBILE 1
+
+#  undef  FOUNDATION_PLATFORM_FAMILY_CONSOLE
+#  define FOUNDATION_PLATFORM_FAMILY_CONSOLE 1
+
+// Tizen
+#elif defined( __TIZEN__ )
+
+#  undef  FOUNDATION_PLATFORM_TIZEN
+#  define FOUNDATION_PLATFORM_TIZEN 1
+
+// Compatibile platforms
+#  undef  FOUNDATION_PLATFORM_POSIX
+#  define FOUNDATION_PLATFORM_POSIX 1
+
+#  define FOUNDATION_PLATFORM_NAME "Tizen"
+
+// Architecture and detailed description
+#  if defined( __arm__ )
+#    undef  FOUNDATION_ARCH_ARM
+#    define FOUNDATION_ARCH_ARM 1
+#    ifdef __ARM_ARCH_7A__
+#      undef  FOUNDATION_ARCH_ARM7
+#      define FOUNDATION_ARCH_ARM7 1
+#      define FOUNDATION_PLATFORM_DESCRIPTION "Tizen ARMv7"
+#    elif defined(__ARM_ARCH_5TE__)
+#      undef  FOUNDATION_ARCH_ARM5
+#      define FOUNDATION_ARCH_ARM5 1
+#      define FOUNDATION_PLATFORM_DESCRIPTION "Tizen ARMv5"
+#    else
+#      error Unsupported ARM architecture
+#    endif
+#  elif defined( __i386__ )
+#    undef  FOUNDATION_ARCH_X86
+#    define FOUNDATION_ARCH_X86 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "Tizen x86"
+#  elif defined( __x86_64__ )
+#    undef  FOUNDATION_ARCH_X86_64
+#    define FOUNDATION_ARCH_X86_64 1
+#    define FOUNDATION_PLATFORM_DESCRIPTION "Tizen x86-64"
+#  else
+#    error Unknown architecture
+#  endif
+
+// Traits
+#  if defined( __AARCH64EB__ ) || defined( __ARMEB__ )
 #    undef  FOUNDATION_ARCH_ENDIAN_BIG
 #    define FOUNDATION_ARCH_ENDIAN_BIG 1
 #  else
@@ -349,8 +412,6 @@
 #  elif defined( __arm__ )
 #    undef  FOUNDATION_ARCH_ARM
 #    define FOUNDATION_ARCH_ARM 1
-#    undef  FOUNDATION_ARCH_ENDIAN_LITTLE
-#    define FOUNDATION_ARCH_ENDIAN_LITTLE 1
 #    if defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7S__)
 #      undef  FOUNDATION_ARCH_ARM7
 #      define FOUNDATION_ARCH_ARM7 1
@@ -365,7 +426,17 @@
 #    else
 #      error Unrecognized ARM architecture
 #    endif
-#  elif defined( __arm64__ )
+
+// Traits
+#    if defined( __ARMEB__ )
+#      undef  FOUNDATION_ARCH_ENDIAN_BIG
+#      define FOUNDATION_ARCH_ENDIAN_BIG 1
+#    else
+#      undef  FOUNDATION_ARCH_ENDIAN_LITTLE
+#      define FOUNDATION_ARCH_ENDIAN_LITTLE 1
+#    endif
+
+#  elif defined( __arm64__ ) || define( __aarch64__ )
 #    undef  FOUNDATION_ARCH_ARM
 #    define FOUNDATION_ARCH_ARM 1
 #    undef  FOUNDATION_ARCH_ARM_64
@@ -379,6 +450,16 @@
 #    else
 #      error Unrecognized ARM architecture
 #    endif
+
+// Traits
+#    if defined( __AARCH64EB__ )
+#      undef  FOUNDATION_ARCH_ENDIAN_BIG
+#      define FOUNDATION_ARCH_ENDIAN_BIG 1
+#    else
+#      undef  FOUNDATION_ARCH_ENDIAN_LITTLE
+#      define FOUNDATION_ARCH_ENDIAN_LITTLE 1
+#    endif
+
 #  else
 #    error Unknown architecture
 #  endif
@@ -683,6 +764,8 @@
 #  define FOUNDATION_ALIGNOF( type ) __alignof( type )
 #  define FOUNDATION_ALIGNED_STRUCT( name, alignment ) FOUNDATION_ALIGN( alignment ) struct name
 
+#  pragma warning( disable : 4200 )
+
 #  if FOUNDATION_PLATFORM_WINDOWS
 #    define STDCALL __stdcall
 #  endif
@@ -783,13 +866,13 @@ typedef   float32_t         real;
 //Atomic types
 FOUNDATION_ALIGNED_STRUCT( atomic32_t, 4 )
 {
-	uint32_t nonatomic;
+	int32_t nonatomic;
 };
 typedef FOUNDATION_ALIGNED_STRUCT( atomic32_t, 4 ) atomic32_t;
 
 FOUNDATION_ALIGNED_STRUCT( atomic64_t, 8 )
 {
-	uint64_t nonatomic;
+	int64_t nonatomic;
 };
 typedef FOUNDATION_ALIGNED_STRUCT( atomic64_t, 8 ) atomic64_t;
 

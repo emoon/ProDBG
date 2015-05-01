@@ -114,8 +114,6 @@ FOUNDATION_API real           string_to_real( const char* val );
 FOUNDATION_API uuid_t         string_to_uuid( const char* val );
 FOUNDATION_API version_t      string_to_version( const char* val );
 
-FOUNDATION_API bool           string_is_valid_email_address( const char* address );
-
 #define STRING_NPOS           0xFFFFFFFFU
 #define STRING_WHITESPACE     " \n\r\t\v\f"
 #define WSTRING_WHITESPACE   L" \n\r\t\v\f"

@@ -23,6 +23,11 @@
 #  include <math.h>
 #endif
 
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wbad-function-cast"
+#endif
+
 
 #if FOUNDATION_SIZE_REAL == 64
 
@@ -729,4 +734,8 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real math_realinc( real val, 
 
 #endif
 
+#endif
+
+#if FOUNDATION_COMPILER_CLANG
+#  pragma clang diagnostic pop
 #endif

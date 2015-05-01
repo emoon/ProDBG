@@ -20,8 +20,10 @@
 #import <Foundation/NSBundle.h>
 #import <Foundation/NSFileManager.h>
 #import <Foundation/NSURL.h>
+#import <Foundation/NSProcessInfo.h>
 
 
+extern void _environment_ns_command_line( char*** argv );
 extern void _environment_ns_home_directory( char* );
 extern void _environment_ns_temporary_directory( char* );
 
@@ -32,6 +34,22 @@ void environment_bundle_identifier( char* target, unsigned int maxlength )
 	{
 		NSString* bundle_identifier = [[NSBundle mainBundle] bundleIdentifier];
 		string_copy( target, [bundle_identifier UTF8String], maxlength );
+	}
+}
+
+
+void _environment_ns_command_line( char*** argv )
+{
+	@autoreleasepool
+	{
+		char buffer[FOUNDATION_MAX_PATHLEN];
+		NSArray* arguments = [[NSProcessInfo processInfo] arguments];
+		for( id arg in arguments )
+		{
+			CFStringRef argref = (__bridge CFStringRef)arg;
+			CFStringGetCString( argref, buffer, FOUNDATION_MAX_PATHLEN, kCFStringEncodingUTF8 );
+			array_push( *argv, string_clone( buffer ) );
+		}
 	}
 }
 

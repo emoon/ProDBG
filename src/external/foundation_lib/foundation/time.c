@@ -49,9 +49,11 @@ int _time_initialize( void )
 	if( clock_gettime( CLOCK_MONOTONIC, &ts ) )
 		return -1;
 	_time_freq = 1000000000ULL;
+#else
+#  error Not implemented
 #endif
 
-	_time_oofreq  = REAL_C(1.0) / (double)_time_freq;
+	_time_oofreq  = 1.0 / (double)_time_freq;
 	_time_startup = time_current();
 
 	return 0;

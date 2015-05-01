@@ -19,17 +19,17 @@
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint16_t  byteorder_swap16( uint16_t arg );
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint32_t  byteorder_swap32( uint32_t arg );
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t  byteorder_swap64( uint64_t arg );
-static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL  void      byteorder_swap( void* FOUNDATION_RESTRICT buffer, const int size );
+static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL  void      byteorder_swap( void* buffer, const int size );
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint16_t  byteorder_bigendian16( uint16_t arg );
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint32_t  byteorder_bigendian32( uint32_t arg );
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t  byteorder_bigendian64( uint64_t arg );
-static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL  void      byteorder_bigendian( void* FOUNDATION_RESTRICT buffer, const int size );
+static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL  void      byteorder_bigendian( void* buffer, const int size );
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint16_t  byteorder_littleendian16( uint16_t arg );
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint32_t  byteorder_littleendian32( uint32_t arg );
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t  byteorder_littleendian64( uint64_t arg );
-static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL  void      byteorder_littleendian( void* FOUNDATION_RESTRICT buffer, const int size );
+static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL  void      byteorder_littleendian( void* buffer, const int size );
 
 
 
@@ -110,11 +110,11 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t byteorder_swap64( ui
 }
 
 
-static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void byteorder_swap( void* FOUNDATION_RESTRICT buffer, const int size )
+static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void byteorder_swap( void* buffer, const int size )
 {
 	int i, num;
-	char* FOUNDATION_RESTRICT src = (char*)buffer;
-	char* FOUNDATION_RESTRICT dst = src + ( size - 1 );
+	char* src = (char*)buffer;
+	char* dst = src + ( size - 1 );
 	for( i = 0, num = size / 2; i < num; ++i, --dst, ++src )
 	{
 		char tmp = *dst;
@@ -154,7 +154,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t byteorder_bigendian6
 }
 
 
-static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void byteorder_bigendian( void* FOUNDATION_RESTRICT buffer, const int size )
+static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void byteorder_bigendian( void* buffer, const int size )
 {
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
 	byteorder_swap( buffer, size );
@@ -195,7 +195,7 @@ static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL uint64_t byteorder_littleendi
 }
 
 
-static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void byteorder_littleendian( void* FOUNDATION_RESTRICT buffer, const int size )
+static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void byteorder_littleendian( void* buffer, const int size )
 {
 #if FOUNDATION_ARCH_ENDIAN_BIG
 	byteorder_swap( buffer, size );
