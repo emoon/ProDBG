@@ -39,6 +39,7 @@ void FileMonitor_removePath(const char* path)
 	{
 		if (!strcmp(s_notficationData[i].path, path))
 		{
+			fs_unmonitor(path);
 			array_erase(s_notficationData, i);
 			break;
 		}
@@ -92,6 +93,14 @@ void FileMonitor_update()
  
 void FileMonitor_close()
 {
+	int size = array_size(s_notficationData);
+
+	for (int i = 0; i < size; ++i)
+	{
+		fs_unmonitor(s_notficationData[i].path);
+		array_erase(s_notficationData, i);
+	}
+
 	array_deallocate(s_notficationData);  
 }
 
