@@ -436,7 +436,7 @@
 #      define FOUNDATION_ARCH_ENDIAN_LITTLE 1
 #    endif
 
-#  elif defined( __arm64__ ) || define( __aarch64__ )
+#  elif defined( __arm64__ ) || defined( __aarch64__ )
 #    undef  FOUNDATION_ARCH_ARM
 #    define FOUNDATION_ARCH_ARM 1
 #    undef  FOUNDATION_ARCH_ARM_64
