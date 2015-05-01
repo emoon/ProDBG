@@ -8,7 +8,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C" void foundation_hack_environment_main_args(int argc, const char* const* argv);
+//extern "C" void foundation_hack_environment_main_args(int argc, const char* const* argv);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -23,9 +23,9 @@ void Core_init()
 	application.flags = APPLICATION_UTILITY;
 	application.dump_callback = 0;
 
-	static const char* const temp[] = { "temp" };
+	// static const char* const temp[] = { "temp" };
 
-	foundation_hack_environment_main_args(1, temp);
+	//foundation_hack_environment_main_args(1, temp);
 
 	foundation_initialize(memory_system_malloc(), application);
 }

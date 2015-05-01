@@ -51,6 +51,11 @@
 #undef thread_create
 #undef thread_terminate
 
+#if FOUNDATION_COMPILER_CLANG
+#pragma clang diagnostic push 
+#pragma clang diagnostic ignored "-Wpedantic"         // error: #include_next is a language extension [-Werror,-Wpedantic]
+#endif
+
 #ifdef __OBJC__
 #  import <CoreFoundation/CoreFoundation.h>
 #  include_next <Foundation/Foundation.h>
@@ -66,6 +71,10 @@
 #    include <Carbon/Carbon.h>
 #    include <ApplicationServices/ApplicationServices.h>
 #  endif
+#endif
+
+#if FOUNDATION_COMPILER_CLANG
+#pragma clang diagnostic pop 
 #endif
 
 #include <unistd.h>
