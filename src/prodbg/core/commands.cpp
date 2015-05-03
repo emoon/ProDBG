@@ -257,7 +257,8 @@ static void CommandList_clear(CommandList* list)
 {
     while (list->last)
     {
-        CommandList_delEntry(list, list->last);
+		CommandEntry* entry = list->last;
+        CommandList_delEntry(list, entry);
     }
 }
 
