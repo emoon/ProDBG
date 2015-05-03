@@ -438,7 +438,7 @@ static void updateRemote(Session* s, PDAction action)
 
         if (RemoteConnection_recv(s->connection, (char*)&cmd, 4, 0))
         {
-            totalSize = (int(cmd[0]) << 24) | (int(cmd[1]) << 16) | (int(cmd[2]) << 8) | int(cmd[3]);
+            totalSize = (((int)(cmd[0])) << 24) | (((int)(cmd[1])) << 16) | (((int)(cmd[2])) << 8) | ((int)(cmd[3]));
 
             outputBuffer = RemoteConnection_recvStream(s->connection, 0, totalSize);
 
