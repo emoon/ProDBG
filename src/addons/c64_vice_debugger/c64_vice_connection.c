@@ -158,7 +158,7 @@ struct VICEConnection* VICEConnection_create(enum VICEConnectionType type, int p
 int VICEConnection_connect(VICEConnection* conn, const char* address, int port)
 {
     struct hostent* he;
-    struct sockaddr_in sa;
+    struct sockaddr_in sa = { 0 };
     char** ap;
     int sock = INVALID_SOCKET;
 
