@@ -295,6 +295,8 @@ static void loadSizers(UIDockingGrid* grid, json_t* root, float xScale, float yS
 
         if (id >= 4)
             grid->sizers.push_back(sizer);
+		else
+			delete sizer;
     }
 }
 
@@ -360,6 +362,7 @@ UIDockingGrid* UIDock_loadLayout(const char* filename, float xSize, float ySize)
     if (!sizers || !json_is_array(sizers))
     {
         pd_error("JSON: Unable to load sizers object\n");
+        UIDock_destroyGrid(grid);
         return 0;
     }
 
@@ -370,6 +373,7 @@ UIDockingGrid* UIDock_loadLayout(const char* filename, float xSize, float ySize)
     if (!docks || !json_is_array(docks))
     {
         pd_error("JSON: Unable to load docks object\n");
+        UIDock_destroyGrid(grid);
         return 0;
     }
 
