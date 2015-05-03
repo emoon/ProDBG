@@ -31,6 +31,7 @@ enum UIDockSizerDir
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 UIDockingGrid* UIDock_createGrid(FloatRect* rect);
+void UIDock_destroyGrid(UIDockingGrid* grid);
 
 UIDock* UIDock_addView(UIDockingGrid* grid, ViewPluginInstance* view);
 bool UIDock_deleteView(UIDockingGrid* grid, ViewPluginInstance* view);

@@ -34,6 +34,19 @@ UIDockingGrid* UIDock_createGrid(FloatRect* rect)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void UIDock_destroyGrid(UIDockingGrid* grid)
+{
+	for (UIDock* dock : grid->docks)
+		delete dock;
+
+	for (UIDockSizer* sizer : grid->sizers)
+		delete sizer;
+
+	delete grid;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 UIDock* UIDock_addView(UIDockingGrid* grid, ViewPluginInstance* view)
 {
     UIDock* dock = new UIDock(view);
@@ -69,7 +82,10 @@ static void removeDockSide(UIDockSizer* sizer, UIDock* dock)
     for (auto i = sizer->cons.begin(), end = sizer->cons.end(); i != end; ++i)
     {
         if (*i == dock)
+        {
             sizer->cons.erase(i);
+            return;
+        }
     }
 }
 
@@ -146,8 +162,8 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
         return;
     }
 
+    UIDockSizer* sizer = 0; 
     UIDock* newDock = new UIDock(instance);
-    UIDockSizer* sizer = new UIDockSizer;
     UIDockSizerDir sizerDir = UIDockSizerDir_Vert;
 
     FloatRect rect = dock->view->rect;

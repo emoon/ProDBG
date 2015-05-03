@@ -46,6 +46,8 @@ void create_docking(void**)
     assert_int_equal(grid->rightSizer.rect.height, rect.height);
 
     assert_non_null(grid);
+
+    UIDock_destroyGrid(grid);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -173,7 +175,7 @@ void test_left_attach(void**)
 
     assert_int_equal(width, rect.width);
 
-    // TODO: currently leaks here, will be fixed once added delete of views
+    UIDock_destroyGrid(grid);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -244,6 +246,8 @@ void test_misc(void**)
     assert_true(d2->bottomSizer == &grid->bottomSizer);
     assert_true(d2->rightSizer == s0);
     assert_true(d2->leftSizer == &grid->leftSizer);
+
+	UIDock_destroyGrid(grid);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -301,6 +305,8 @@ void test_sizer_hovering(void**)
     pos.y = 30.0f;
 
     assert_true(UIDock_isHoveringSizer(grid, &pos) == UIDockSizerDir_Vert);
+
+    UIDock_destroyGrid(grid);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -417,6 +423,8 @@ void test_dock_split_horizontal(void**)
 
     assert_true(d0->bottomSizer == s2);
     assert_true(d2->topSizer == s2);
+
+    UIDock_destroyGrid(grid);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -456,6 +464,8 @@ void test_dock_split_vertical(void**)
 
     assert_true(d2->rightSizer == s2);
     assert_true(d3->leftSizer == s2);
+
+    UIDock_destroyGrid(grid);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -580,6 +590,8 @@ void test_delete_docks_right_left(void**)
         assert_true(d1->rightSizer == &grid->rightSizer);
         assert_true(d1->leftSizer == &grid->leftSizer);
     }
+
+    UIDock_destroyGrid(grid);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -647,6 +659,8 @@ void test_delete_docks_left_right(void**)
     assert_true(d1->bottomSizer == &grid->bottomSizer);
     assert_true(d1->rightSizer == &grid->rightSizer);
     assert_true(d1->leftSizer == &grid->leftSizer);
+
+    UIDock_destroyGrid(grid);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -711,6 +725,8 @@ void test_delete_docks_up_down(void**)
     assert_true(d1->leftSizer == s0);
 
     UIDock_deleteView(grid, grid->docks[0]->view);
+
+	UIDock_destroyGrid(grid);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -773,6 +789,8 @@ void test_delete_docks_down_up(void**)
     assert_true(d1->bottomSizer == &grid->bottomSizer);
     assert_true(d1->rightSizer == &grid->rightSizer);
     assert_true(d1->leftSizer == s0);
+
+    UIDock_destroyGrid(grid);
 }
 
 
@@ -832,14 +850,8 @@ void test_drag_vertical(void**)
     assert_int_equal(d1->view->rect.y, 0);
     assert_int_equal(d1->view->rect.width, (rect.width / 2) + (int)dragDelta.x);
     assert_int_equal(d1->view->rect.height, rect.height);
-}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static ViewPluginInstance* newViewInstance()
-{
-    ViewPluginInstance* instance = (ViewPluginInstance*)alloc_zero(sizeof(ViewPluginInstance));
-    return instance;
+    UIDock_destroyGrid(grid);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -857,9 +869,19 @@ void test_auto_resize_sizer(void**)
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
-    UIDock_addView(grid, newViewInstance());
-    UIDock_dockLeft(grid, grid->docks[0], newViewInstance());
-    UIDock_dockTop(grid, grid->docks[0], newViewInstance());
+    ViewPluginInstance view0Inst = { 0 };
+    ViewPluginInstance view1Inst = { 0 };
+    ViewPluginInstance view2Inst = { 0 };
+    ViewPluginInstance view3Inst = { 0 };
+
+    ViewPluginInstance* view0 = &view0Inst;
+    ViewPluginInstance* view1 = &view1Inst;
+    ViewPluginInstance* view2 = &view2Inst;
+    ViewPluginInstance* view3 = &view3Inst;
+
+    UIDock_addView(grid, view0);
+    UIDock_dockLeft(grid, grid->docks[0], view1);
+    UIDock_dockTop(grid, grid->docks[0], view2);
 
     // Current layout
     //
@@ -879,7 +901,7 @@ void test_auto_resize_sizer(void**)
     assert_int_equal((int)grid->sizers[1]->rect.width, rect.width / 2);
     assert_int_equal((int)grid->sizers[1]->rect.height, 0);
 
-    UIDock_dockBottom(grid, grid->docks[1], newViewInstance());
+    UIDock_dockBottom(grid, grid->docks[1], view3); 
 
     // Current layout
     //
@@ -898,6 +920,8 @@ void test_auto_resize_sizer(void**)
     assert_int_equal((int)grid->sizers[1]->rect.y, rect.height / 2);
     assert_int_equal((int)grid->sizers[1]->rect.width, rect.width);
     assert_int_equal((int)grid->sizers[1]->rect.height, 0);
+
+	UIDock_destroyGrid(grid);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1029,18 +1053,26 @@ void test_breaking_delete(void**)
 {
     FloatRect rect = {{{ 0.0f, 0.0f, 500.0f, 500.0f }}};
 
+    ViewPluginInstance view0Inst = { 0 };
+    ViewPluginInstance view1Inst = { 0 };
+    ViewPluginInstance view2Inst = { 0 };
+    ViewPluginInstance view3Inst = { 0 };
+    ViewPluginInstance view4Inst = { 0 };
+
     UIDockingGrid* grid = UIDock_createGrid(&rect);
-    UIDock_addView(grid, newViewInstance());
+    UIDock_addView(grid, &view0Inst); 
 
-    UIDock_dockLeft(grid, grid->docks[0], newViewInstance());
-    UIDock_dockBottom(grid, grid->docks[0], newViewInstance());
-    UIDock_dockBottom(grid, grid->docks[1], newViewInstance());
-    UIDock_dockBottom(grid, grid->docks[2], newViewInstance());
+    UIDock_dockLeft(grid, grid->docks[0], &view1Inst); 
+    UIDock_dockBottom(grid, grid->docks[0], &view2Inst); 
+    UIDock_dockBottom(grid, grid->docks[1], &view3Inst);
+    UIDock_dockBottom(grid, grid->docks[2], &view4Inst);
 
     UIDock_deleteView(grid, grid->docks[0]->view);
     UIDock_deleteView(grid, grid->docks[0]->view);
     UIDock_deleteView(grid, grid->docks[0]->view);
     UIDock_deleteView(grid, grid->docks[0]->view);
+
+	UIDock_destroyGrid(grid);
 }
 
 

@@ -108,7 +108,10 @@ enum UIDockStatus
 
 struct UIDockingGrid
 {
-    UIDockingGrid() : state(UIDockState_None) {}
+    UIDockingGrid() : state(UIDockState_None)
+    {
+    	prevDragPos = { 0.0f, 0.0f };
+    }
 
     std::vector<UIDock*> docks;
     std::vector<UIDockSizer*> sizers;
