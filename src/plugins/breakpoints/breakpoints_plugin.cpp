@@ -30,7 +30,7 @@ struct Breakpoint
 
 struct BreakpointsData
 {
-	BreakpointsData() : maxPath(8192) {}
+	BreakpointsData() : addressSize(2), maxPath(8192) {}
 
     std::list<Breakpoint*> breakpoints;
     int addressSize;
