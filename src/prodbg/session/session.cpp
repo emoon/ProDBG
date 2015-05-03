@@ -210,7 +210,7 @@ void Session_destroy(Session* session)
 
     session->backend = 0;
 
-    free(session);
+    delete session;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -438,7 +438,7 @@ static void updateRemote(Session* s, PDAction action)
 
         if (RemoteConnection_recv(s->connection, (char*)&cmd, 4, 0))
         {
-            totalSize = (cmd[0] << 24) | (cmd[1] << 16) | (cmd[2] << 8) | cmd[3];
+            totalSize = (int(cmd[0]) << 24) | (int(cmd[1]) << 16) | (int(cmd[2]) << 8) | int(cmd[3]);
 
             outputBuffer = RemoteConnection_recvStream(s->connection, 0, totalSize);
 
@@ -545,7 +545,8 @@ void Session_action(Session* s, PDAction action)
             command[1] = 0;
             command[2] = (action >> 8) & 0xff;
             command[3] = (action >> 0) & 0xff;
-            RemoteConnection_send(s->connection, &command, sizeof(uint32_t), 0);
+            int t = RemoteConnection_send(s->connection, &command, sizeof(uint32_t), 0);
+            (void)t;
         }
     }
 }

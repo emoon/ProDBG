@@ -17,36 +17,44 @@ struct SourceCodeData
 
 static void* readFileFromDisk(const char* file, size_t* size)
 {
-	size_t fileSize;
-	char* data;
-	FILE* f = fopen(file, "rb");
+    FILE* f = fopen(file, "rb");
+    uint8_t* data = 0;
+    size_t s = 0, t = 0;
 
-	if (!f)
-	{
-		printf("sourcecode_plugin: Unable to open file %s\n", file);
-		return 0;
-	}
+    *size = 0;
 
-	fseek(f, 0, SEEK_END);
-	fileSize = (size_t)ftell(f);
-	fseek(f, 0, SEEK_SET);
+    if (!f)
+        return 0;
 
-	// pad the size a bit so we make sure to have the data null terminated
-	data = (char*)malloc(fileSize + 16);
-	data[fileSize] = 0;
+    // TODO: Use fstat here?
 
-	if ((fread((void*)data, 1, fileSize, f)) != fileSize)
-	{
-		free(data);
-		fclose(f);
-		printf("sourcecode_plugin: Unable to read the whole file %s to memory\n", file);
-		return 0;
-	}
+    fseek(f, 0, SEEK_END);
+    long ts = ftell(f);
 
-	*size = fileSize;
-	fclose(f);
+    if (ts < 0)
+    	goto end;
 
-	return data;
+    s = (size_t)ts;
+
+    data = (uint8_t*)malloc(s + 16);
+
+    if (!data)
+    	goto end;
+
+    fseek(f, 0, SEEK_SET);
+
+    t = fread(data, s, 1, f);
+    (void)t;
+
+    data[s] = 0;
+
+    *size = s;
+
+end:
+
+    fclose(f);
+
+    return data;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,7 +107,7 @@ static void setExceptionLocation(PDSCInterface* sourceFuncs, SourceCodeData* dat
 
 		free(fileData);
 
-		strcpy(data->filename, filename);
+		strncpy(data->filename, filename, sizeof(data->filename));
 	}
 
 	PDUI_SCSendCommand(sourceFuncs, SCI_GOTOLINE, (uintptr_t)line, 0);

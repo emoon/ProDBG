@@ -20,6 +20,8 @@ void test_remote_session(void**)
     Session* session = Session_createRemote("127.0.0.1", 1340);
 
     assert_true(Session_isConnected(session));
+
+    Session_destroy(session);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

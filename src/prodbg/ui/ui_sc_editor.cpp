@@ -266,7 +266,7 @@ private:
     bool LoadColour(ColourDesired& colour, const char* name, tinyxml2::XMLElement* element);
 
 private:
-    char m_themeName[64];
+    //char m_themeName[64];
     unsigned int m_themeId;
 
     ColourDesired m_searchResultIndication;
@@ -827,7 +827,7 @@ void ImScEditor::Draw()
 ScEclipseTheme::ScEclipseTheme()
     : m_themeId(0)
 {
-    m_themeName[0] = '\0';
+    //m_themeName[0] = '\0';
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -860,7 +860,8 @@ bool ScEclipseTheme::Load(const char* themeName)
     const char* name = colorTheme->Attribute("name");
     if (name == nullptr)
         return false;
-    strcpy(m_themeName, name);
+
+    //strcpy(m_themeName, name);
 
     m_themeId = (unsigned int)colorTheme->IntAttribute("id");
     if (m_themeId == 0)

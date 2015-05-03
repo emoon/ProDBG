@@ -33,8 +33,11 @@ void testWriteReadEvent(void**)
 
     PDBinaryWriter_finalize(writer);
 
-    assert_true((data = PDBinaryWriter_getData(writer)) != 0);
-    assert_true((size = PDBinaryWriter_getSize(writer)) != 0);
+	data = PDBinaryWriter_getData(writer);
+	size = PDBinaryWriter_getSize(writer);
+
+    assert_true(data != 0);
+    assert_true(size != 0);
 
     PDBinaryReader_initStream(reader, data, size);
     assert_true(PDRead_getEvent(reader) == 10);
@@ -58,8 +61,11 @@ void testDataReadWrite(void**)
 
     PDBinaryWriter_finalize(writer);
 
-    assert_true((data = PDBinaryWriter_getData(writer)) != 0);
-    assert_true((size = PDBinaryWriter_getSize(writer)) != 0);
+    data = PDBinaryWriter_getData(writer);
+    size = PDBinaryWriter_getSize(writer);
+
+    assert_true(data != 0);
+    assert_true(size != 0);
 
     PDBinaryReader_initStream(reader, data, size);
     assert_true(PDRead_getEvent(reader) == 10);

@@ -84,17 +84,9 @@ struct PluginPrivateData
 
 static void registerPlugin(const char* type, void* plugin, void* privateData)
 {
-    PluginData* pluginData = (PluginData*)alloc_zero(sizeof(PluginData));
 	PluginPrivateData* privData = (PluginPrivateData*)privateData;
 
 	const char* filename = privData->name; 
-
-    // TODO: Verify that we don't add a plugin with the same plugin name in the same plugin
-
-    pluginData->plugin = plugin;
-    pluginData->type = type;
-    pluginData->filename = filename;
-    pluginData->lib = privData->lib; 
 
     for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
 	{
@@ -103,13 +95,19 @@ static void registerPlugin(const char* type, void* plugin, void* privateData)
 			if (findPlugin(s_plugins[i], filename, ((PDPluginBase*)plugin)->name))
 				return;
 
+			// TODO: Verify that we don't add a plugin with the same plugin name in the same plugin
+
+    		PluginData* pluginData = (PluginData*)alloc_zero(sizeof(PluginData));
+			pluginData->plugin = plugin;
+			pluginData->type = type;
+			pluginData->filename = filename;
+			pluginData->lib = privData->lib; 
+
 			return (void)stb_arr_push(s_plugins[i], pluginData);
 		}
 	}
 
 	pd_error("Unknown pluginType %s - %s", type, ((PDPluginBase*)plugin)->name);
-
-	free(pluginData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -523,7 +523,7 @@ static void* createInstance(ServiceFunc* serviceFunc)
 
     //TODO: non fixed size?
     
-    data->breakpoints.data = (Breakpoint**)malloc(sizeof(Breakpoint**) * maxBreakpointCount);
+    data->breakpoints.data = (Breakpoint**)malloc(sizeof(Breakpoint*) * maxBreakpointCount);
     data->breakpoints.count = 0;
 
     return data;
@@ -558,13 +558,9 @@ static uint8_t* getMemoryInternal(PluginData* data, const char* tempfile, size_t
 	*readSize = 0;
 
 #ifndef _WIN32
-	if (access(tempfile, F_OK) != -1)
+	if (unlink(tempfile) < 0)
 	{
-		if (unlink(tempfile) < 0)
-		{
-			printf("c64_vice: Unable to delete %s (error %d)\n", tempfile, errno);
-			return 0;
-		}
+		printf("c64_vice: Unable to delete %s (error %d)\n", tempfile, errno);
 	}
 #else
 	// TODO: Implement me.

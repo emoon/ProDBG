@@ -6,10 +6,17 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+enum
+{
+	ValueSize = 1024,
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct Register
 {
     char name[256];
-    char value[1024];
+    char value[ValueSize];
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -91,13 +98,13 @@ static void addOrUpdate(RegistersData* data, const char* name, const char* value
     {
         if (!strcmp(data->registers[i].name, name))
         {
-            strcpy(data->registers[i].value, value);
+            strncpy(data->registers[i].value, value, ValueSize);
             return;
         }
     }
 
-    strcpy(data->registers[count].name, name);
-    strcpy(data->registers[count].value, value);
+    strncpy(data->registers[count].name, name, ValueSize);
+    strncpy(data->registers[count].value, value, ValueSize);
 
     data->registerCount++;
 }
