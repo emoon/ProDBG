@@ -205,12 +205,12 @@ void Font::Create(const FontParameters& fp)
 
     // TODO: Remove hard-coded value
 
-    unsigned char* bmp = new unsigned char[512 * 512];
     void* data = File_loadToMemory(fp.faceName, &len, 0);
 
     if (!data)
     	return;
 
+    unsigned char* bmp = new unsigned char[512 * 512];
     stbtt_Font* newFont = new stbtt_Font;
 
     stbtt_BakeFontBitmap((unsigned char*)data, 0, fp.size, bmp, 512, 512, 32, 96, newFont->cdata); // no guarantee this fits!

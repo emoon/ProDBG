@@ -1029,7 +1029,10 @@ void displayGrid(UIDockingGrid* grid, FloatRect rect)
     //drawBuffer += 20 * rect.height;
 
     if (!mfb_open("test_breaking_delete", (int)rect.width, (int)rect.height + 24))
+	{
+		free(drawBuffer);
         return;
+	}
 
     for (;;)
     {
