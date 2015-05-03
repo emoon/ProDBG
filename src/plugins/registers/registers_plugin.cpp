@@ -15,7 +15,7 @@ enum
 
 struct Register
 {
-    char name[256];
+    char name[ValueSize];
     char value[ValueSize];
 };
 
@@ -65,7 +65,7 @@ static void getRegisterString(char* value, PDReader* reader, PDReaderIterator it
 
     if (PDRead_findString(reader, &regString, "register_string", it) & PDReadStatus_ok)
 	{
-		strcpy(value, regString);
+		strncpy(value, regString, ValueSize);
     	return;
 	}
 
