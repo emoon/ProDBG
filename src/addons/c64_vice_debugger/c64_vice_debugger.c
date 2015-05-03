@@ -166,8 +166,8 @@ bool getFullName(char* fullName, const char* name)
 void* loadToMemory(const char* filename, size_t* size)
 {
     FILE* f = fopen(filename, "rb");
-    void* data;
-    size_t s;
+    void* data = 0;
+    size_t s = 0;
 
     *size = 0;
 
@@ -177,21 +177,26 @@ void* loadToMemory(const char* filename, size_t* size)
     // TODO: Use fstat here?
 
     fseek(f, 0, SEEK_END);
-    s = (size_t)ftell(f);
-    fseek(f, 0, SEEK_SET);
+    long ts = ftell(f);
+
+    if (ts < 0)
+    	goto end;
+
+    s = (size_t)ts;
 
     data = malloc(s);
 
     if (!data)
-    {
-    	fclose(f);
-        return 0;
-	}
+    	goto end;
+
+    fseek(f, 0, SEEK_SET);
 
     size_t t = fread(data, s, 1, f);
     (void)t;
 
     *size = s;
+
+end:
 
     fclose(f);
 
