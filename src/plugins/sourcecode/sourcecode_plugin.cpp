@@ -108,6 +108,7 @@ static void setExceptionLocation(PDSCInterface* sourceFuncs, SourceCodeData* dat
 		free(fileData);
 
 		strncpy(data->filename, filename, sizeof(data->filename));
+		data->filename[sizeof(data->filename) - 1] = 0;
 	}
 
 	PDUI_SCSendCommand(sourceFuncs, SCI_GOTOLINE, (uintptr_t)line, 0);
