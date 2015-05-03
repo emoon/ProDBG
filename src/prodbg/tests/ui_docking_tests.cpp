@@ -869,10 +869,10 @@ void test_auto_resize_sizer(void**)
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
-    ViewPluginInstance view0Inst = { 0 };
-    ViewPluginInstance view1Inst = { 0 };
-    ViewPluginInstance view2Inst = { 0 };
-    ViewPluginInstance view3Inst = { 0 };
+    ViewPluginInstance view0Inst = {};
+    ViewPluginInstance view1Inst = {};
+    ViewPluginInstance view2Inst = {};
+    ViewPluginInstance view3Inst = {};
 
     ViewPluginInstance* view0 = &view0Inst;
     ViewPluginInstance* view1 = &view1Inst;
@@ -1053,11 +1053,11 @@ void test_breaking_delete(void**)
 {
     FloatRect rect = {{{ 0.0f, 0.0f, 500.0f, 500.0f }}};
 
-    ViewPluginInstance view0Inst = { 0 };
-    ViewPluginInstance view1Inst = { 0 };
-    ViewPluginInstance view2Inst = { 0 };
-    ViewPluginInstance view3Inst = { 0 };
-    ViewPluginInstance view4Inst = { 0 };
+    ViewPluginInstance view0Inst = {};
+    ViewPluginInstance view1Inst = {};
+    ViewPluginInstance view2Inst = {};
+    ViewPluginInstance view3Inst = {};
+    ViewPluginInstance view4Inst = {};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
     UIDock_addView(grid, &view0Inst); 
