@@ -325,6 +325,7 @@ public:
         , m_wheelVRotation(0)
         , m_wheelHRotation(0)
     {
+    	memset(&interface, 0, sizeof(interface));
     }
 
     virtual ~ScEditor()
