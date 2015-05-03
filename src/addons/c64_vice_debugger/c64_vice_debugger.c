@@ -183,7 +183,10 @@ void* loadToMemory(const char* filename, size_t* size)
     data = malloc(s);
 
     if (!data)
+    {
+    	fclose(f);
         return 0;
+	}
 
     size_t t = fread(data, s, 1, f);
     (void)t;
