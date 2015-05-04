@@ -99,7 +99,7 @@ static void addOrUpdate(RegistersData* data, const char* name, const char* value
         if (!strcmp(data->registers[i].name, name))
         {
             strncpy(data->registers[i].value, value, ValueSize);
-			data->registers[count].value[ValueSize - 1] = 0;
+			data->registers[i].value[ValueSize - 1] = 0;
 
             return;
         }
