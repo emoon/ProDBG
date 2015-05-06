@@ -295,8 +295,6 @@ static void loadSizers(UIDockingGrid* grid, json_t* root, float xScale, float yS
 
         if (id >= 4)
             grid->sizers.push_back(sizer);
-		else
-			delete sizer;
     }
 }
 
