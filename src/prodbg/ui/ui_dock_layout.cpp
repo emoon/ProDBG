@@ -261,17 +261,35 @@ static void loadSizers(UIDockingGrid* grid, json_t* root, float xScale, float yS
         switch (id)
         {
             case UIDock::Top:
-                sizer = &grid->topSizer; break;
-            case UIDock::Bottom:
-                sizer = &grid->bottomSizer; break;
-            case UIDock::Right:
-                sizer = &grid->rightSizer; break;
-            case UIDock::Left:
-                sizer = &grid->leftSizer; break;
-        }
+			{
+                sizer = &grid->topSizer; 
+                break;
+			}
 
-        if (!sizer)
-            sizer = new UIDockSizer;
+            case UIDock::Bottom:
+			{
+                sizer = &grid->bottomSizer; 
+                break;
+			}
+
+            case UIDock::Right:
+			{
+                sizer = &grid->rightSizer; 
+                break;
+			}
+
+            case UIDock::Left:
+			{
+                sizer = &grid->leftSizer; 
+                break;
+			}
+
+            default:
+			{
+            	sizer = new UIDockSizer;
+            	grid->sizers.push_back(sizer);
+			}
+        }
 
         sizer->dir = (UIDockSizerDir)dir;
         sizer->id = id;
@@ -290,11 +308,6 @@ static void loadSizers(UIDockingGrid* grid, json_t* root, float xScale, float yS
                 sizer->dockIds.push_back(res);
             }
         }
-
-        // if id isn't in range 0 - 3 it's a regular (non-reserved sizer) so we need to add it
-
-        if (id >= 4)
-            grid->sizers.push_back(sizer);
     }
 }
 
