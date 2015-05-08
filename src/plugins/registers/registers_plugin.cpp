@@ -126,7 +126,7 @@ static void updateRegisters(RegistersData* data, PDReader* reader)
     while (PDRead_getNextEntry(reader, &it))
     {
         const char* name = "";
-        char registerValue[128];
+        char registerValue[ValueSize];
 
         PDRead_findString(reader, &name, "name", it);
         getRegisterString(registerValue, reader, it);
