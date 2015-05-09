@@ -137,6 +137,8 @@ static void session_delete_plugins(void** state)
 
 int main()
 {
+	Core_init();
+
     const UnitTest tests[] =
     {
         unit_test(create_null_session),
