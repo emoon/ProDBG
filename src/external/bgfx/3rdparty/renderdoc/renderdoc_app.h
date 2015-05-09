@@ -36,7 +36,7 @@
 #endif
 #define RENDERDOC_CC __cdecl
 
-#elif defined(LINUX)
+#elif defined(__linux__)
 
 #ifdef RENDERDOC_EXPORTS
 #define RENDERDOC_API __attribute__ ((visibility ("default")))
@@ -61,7 +61,7 @@ struct CaptureOptions
 		  CaptureCallstacks(false),
 		  CaptureCallstacksOnlyDraws(false),
 		  DelayForDebugger(0),
-		  CacheStateObjects(false),
+		  VerifyMapWrites(false),
 		  HookIntoChildren(false),
 		  RefAllResources(false),
 		  SaveAllInitials(false),
@@ -95,8 +95,9 @@ struct CaptureOptions
 	// creating or injecting into a process, before continuing to allow it to run.
 	uint32_t DelayForDebugger;
 
-	// Deprecated, ignored.
-	uint32_t CacheStateObjects;
+	// Verify any writes to mapped buffers, to check that they don't overwrite the
+	// bounds of the pointer returned.
+	uint32_t VerifyMapWrites;
 
 	// Hooks any system API events that create child processes, and injects
 	// renderdoc into them recursively with the same options.
@@ -179,7 +180,14 @@ enum InAppOverlay
 	eOverlay_None = 0,
 };
 
-#define RENDERDOC_API_VERSION 1
+// API breaking change history:
+// Version 1 -> 2 - strings changed from wchar_t* to char* (UTF-8)
+// Version 2 -> 3 - StartFrameCapture, EndFrameCapture and SetActiveWindow take
+//                  'device' pointer as well as window handles.
+//                  This is either ID3D11Device* or the GL context (HGLRC/GLXContext)
+//                  You can still pass NULL to both to capture the default, as long as
+//                  there's only one device/window pair alive.
+#define RENDERDOC_API_VERSION 3
 
 //////////////////////////////////////////////////////////////////////////
 // In-program functions
@@ -188,29 +196,32 @@ enum InAppOverlay
 extern "C" RENDERDOC_API int RENDERDOC_CC RENDERDOC_GetAPIVersion();
 typedef int (RENDERDOC_CC *pRENDERDOC_GetAPIVersion)();
 
-extern "C" RENDERDOC_API void RENDERDOC_CC RENDERDOC_SetLogFile(const wchar_t *logfile);
-typedef void (RENDERDOC_CC *pRENDERDOC_SetLogFile)(const wchar_t *logfile);
+extern "C" RENDERDOC_API void RENDERDOC_CC RENDERDOC_Shutdown();
+typedef void (RENDERDOC_CC *pRENDERDOC_Shutdown)();
 
-extern "C" RENDERDOC_API const wchar_t* RENDERDOC_CC RENDERDOC_GetLogFile();
-typedef const wchar_t* (RENDERDOC_CC *pRENDERDOC_GetLogFile)();
+extern "C" RENDERDOC_API void RENDERDOC_CC RENDERDOC_SetLogFile(const char *logfile);
+typedef void (RENDERDOC_CC *pRENDERDOC_SetLogFile)(const char *logfile);
 
-extern "C" RENDERDOC_API uint32_t RENDERDOC_CC RENDERDOC_GetCapture(uint32_t idx, wchar_t *logfile, uint32_t *pathlength, uint64_t *timestamp);
-typedef uint32_t (RENDERDOC_CC *pRENDERDOC_GetCapture)(uint32_t idx, wchar_t *logfile, uint32_t *pathlength, uint64_t *timestamp);
+extern "C" RENDERDOC_API const char* RENDERDOC_CC RENDERDOC_GetLogFile();
+typedef const char* (RENDERDOC_CC *pRENDERDOC_GetLogFile)();
+
+extern "C" RENDERDOC_API uint32_t RENDERDOC_CC RENDERDOC_GetCapture(uint32_t idx, char *logfile, uint32_t *pathlength, uint64_t *timestamp);
+typedef uint32_t (RENDERDOC_CC *pRENDERDOC_GetCapture)(uint32_t idx, char *logfile, uint32_t *pathlength, uint64_t *timestamp);
 
 extern "C" RENDERDOC_API void RENDERDOC_CC RENDERDOC_SetCaptureOptions(const CaptureOptions *opts);
 typedef void (RENDERDOC_CC *pRENDERDOC_SetCaptureOptions)(const CaptureOptions *opts);
 
-extern "C" RENDERDOC_API void RENDERDOC_CC RENDERDOC_SetActiveWindow(void *wndHandle);
-typedef void (RENDERDOC_CC *pRENDERDOC_SetActiveWindow)(void *wndHandle);
+extern "C" RENDERDOC_API void RENDERDOC_CC RENDERDOC_SetActiveWindow(void *device, void *wndHandle);
+typedef void (RENDERDOC_CC *pRENDERDOC_SetActiveWindow)(void *device, void *wndHandle);
 
 extern "C" RENDERDOC_API void RENDERDOC_CC RENDERDOC_TriggerCapture();
 typedef void (RENDERDOC_CC *pRENDERDOC_TriggerCapture)();
 
-extern "C" RENDERDOC_API void RENDERDOC_CC RENDERDOC_StartFrameCapture(void *wndHandle);
-typedef void (RENDERDOC_CC *pRENDERDOC_StartFrameCapture)(void *wndHandle);
+extern "C" RENDERDOC_API void RENDERDOC_CC RENDERDOC_StartFrameCapture(void *device, void *wndHandle);
+typedef void (RENDERDOC_CC *pRENDERDOC_StartFrameCapture)(void *device, void *wndHandle);
 
-extern "C" RENDERDOC_API uint32_t RENDERDOC_CC RENDERDOC_EndFrameCapture(void *wndHandle);
-typedef uint32_t (RENDERDOC_CC *pRENDERDOC_EndFrameCapture)(void *wndHandle);
+extern "C" RENDERDOC_API uint32_t RENDERDOC_CC RENDERDOC_EndFrameCapture(void *device, void *wndHandle);
+typedef uint32_t (RENDERDOC_CC *pRENDERDOC_EndFrameCapture)(void *device, void *wndHandle);
 
 extern "C" RENDERDOC_API uint32_t RENDERDOC_CC RENDERDOC_GetOverlayBits();
 typedef uint32_t (RENDERDOC_CC *pRENDERDOC_GetOverlayBits)();
@@ -227,14 +238,5 @@ typedef void (RENDERDOC_CC *pRENDERDOC_SetCaptureKeys)(KeyButton *keys, int num)
 extern "C" RENDERDOC_API void RENDERDOC_CC RENDERDOC_InitRemoteAccess(uint32_t *ident);
 typedef void (RENDERDOC_CC *pRENDERDOC_InitRemoteAccess)(uint32_t *ident);
 
-//////////////////////////////////////////////////////////////////////////
-// Injection/execution capture functions.
-//////////////////////////////////////////////////////////////////////////
-
-extern "C" RENDERDOC_API uint32_t RENDERDOC_CC RENDERDOC_ExecuteAndInject(const wchar_t *app, const wchar_t *workingDir, const wchar_t *cmdLine,
-																	const wchar_t *logfile, const CaptureOptions *opts, uint32_t waitForExit);
-typedef uint32_t (RENDERDOC_CC *pRENDERDOC_ExecuteAndInject)(const wchar_t *app, const wchar_t *workingDir, const wchar_t *cmdLine,
-														 const wchar_t *logfile, const CaptureOptions *opts, uint32_t waitForExit);
-     
-extern "C" RENDERDOC_API uint32_t RENDERDOC_CC RENDERDOC_InjectIntoProcess(uint32_t pid, const wchar_t *logfile, const CaptureOptions *opts, uint32_t waitForExit);
-typedef uint32_t (RENDERDOC_CC *pRENDERDOC_InjectIntoProcess)(uint32_t pid, const wchar_t *logfile, const CaptureOptions *opts, uint32_t waitForExit);
+extern "C" RENDERDOC_API void RENDERDOC_CC RENDERDOC_UnloadCrashHandler();
+typedef void (RENDERDOC_CC *pRENDERDOC_UnloadCrashHandler)();

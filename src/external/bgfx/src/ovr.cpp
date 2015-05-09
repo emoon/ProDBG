@@ -1,7 +1,7 @@
 /*
-* Copyright 2011-2014 Branimir Karadzic. All rights reserved.
-* License: http://www.opensource.org/licenses/BSD-2-Clause
-*/
+ * Copyright 2011-2015 Branimir Karadzic. All rights reserved.
+ * License: http://www.opensource.org/licenses/BSD-2-Clause
+ */
 
 #include "ovr.h"
 
@@ -35,29 +35,19 @@ namespace bgfx
 
 	bool OVR::postReset(void* _nwh, ovrRenderAPIConfig* _config, bool _debug)
 	{
-		if (!m_initialized)
-		{
-			return false;
-		}
-
 		if (_debug)
 		{
 			switch (_config->Header.API)
 			{
-#if BGFX_CONFIG_RENDERER_DIRECT3D9
-			case ovrRenderAPI_D3D9:
-				{
-					ovrD3D9ConfigData* data = (ovrD3D9ConfigData*)_config;
-					m_rtSize = data->Header.RTSize;
-				}
-				break;
-#endif // BGFX_CONFIG_RENDERER_DIRECT3D9
-
 #if BGFX_CONFIG_RENDERER_DIRECT3D11
 			case ovrRenderAPI_D3D11:
 				{
 					ovrD3D11ConfigData* data = (ovrD3D11ConfigData*)_config;
+#	if OVR_VERSION > OVR_VERSION_043
+					m_rtSize = data->Header.BackBufferSize;
+#	else
 					m_rtSize = data->Header.RTSize;
+#	endif // OVR_VERSION > OVR_VERSION_043
 				}
 				break;
 #endif // BGFX_CONFIG_RENDERER_DIRECT3D11
@@ -66,17 +56,27 @@ namespace bgfx
 			case ovrRenderAPI_OpenGL:
 				{
 					ovrGLConfigData* data = (ovrGLConfigData*)_config;
+#	if OVR_VERSION > OVR_VERSION_043
+					m_rtSize = data->Header.BackBufferSize;
+#	else
 					m_rtSize = data->Header.RTSize;
+#	endif // OVR_VERSION > OVR_VERSION_043
 				}
 				break;
 #endif // BGFX_CONFIG_RENDERER_OPENGL
 
+			case ovrRenderAPI_None:
 			default:
 				BX_CHECK(false, "You should not be here!");
 				break;
 			}
 
 			m_debug = true;
+			return false;
+		}
+
+		if (!m_initialized)
+		{
 			return false;
 		}
 
@@ -96,6 +96,13 @@ namespace bgfx
 			}
 		}
 
+		BX_TRACE("HMD: %s, %s, firmware: %d.%d"
+			, m_hmd->ProductName
+			, m_hmd->Manufacturer
+			, m_hmd->FirmwareMajor
+			, m_hmd->FirmwareMinor
+			);
+
 		ovrBool result;
 		result = ovrHmd_AttachToWindow(m_hmd, _nwh, NULL, NULL);
 		if (!result) { goto ovrError; }
@@ -104,11 +111,14 @@ namespace bgfx
 		result = ovrHmd_ConfigureRendering(m_hmd
 			, _config
 			, 0
-			| ovrDistortionCap_Chromatic
+#if OVR_VERSION < OVR_VERSION_050
+			| ovrDistortionCap_Chromatic // permanently enabled >= v5.0
+#endif
 			| ovrDistortionCap_Vignette
 			| ovrDistortionCap_TimeWarp
 			| ovrDistortionCap_Overdrive
 			| ovrDistortionCap_NoRestore
+			| ovrDistortionCap_HqDistortion
 			, eyeFov
 			, m_erd
 			);
@@ -140,14 +150,14 @@ ovrError:
 		ovrSizei sizeL = ovrHmd_GetFovTextureSize(m_hmd, ovrEye_Left,  m_hmd->DefaultEyeFov[0], 1.0f);
 		ovrSizei sizeR = ovrHmd_GetFovTextureSize(m_hmd, ovrEye_Right, m_hmd->DefaultEyeFov[1], 1.0f);
 		m_rtSize.w = sizeL.w + sizeR.w;
-		m_rtSize.h = max(sizeL.h, sizeR.h);
+		m_rtSize.h = bx::uint32_max(sizeL.h, sizeR.h);
 
 		m_warning = true;
 
 		return true;
 	}
 
-	void OVR::postReset(ovrTexture _texture)
+	void OVR::postReset(const ovrTexture& _texture)
 	{
 		if (NULL != m_hmd)
 		{
@@ -166,6 +176,13 @@ ovrError:
 			m_texture[1].Header.RenderViewport = rect;
 
 			m_timing = ovrHmd_BeginFrame(m_hmd, 0);
+#if OVR_VERSION > OVR_VERSION_042
+			m_pose[0] = ovrHmd_GetHmdPosePerEye(m_hmd, ovrEye_Left);
+			m_pose[1] = ovrHmd_GetHmdPosePerEye(m_hmd, ovrEye_Right);
+#else
+			m_pose[0] = ovrHmd_GetEyePose(m_hmd, ovrEye_Left);
+			m_pose[1] = ovrHmd_GetEyePose(m_hmd, ovrEye_Right);
+#endif // OVR_VERSION > OVR_VERSION_042
 		}
 	}
 
@@ -181,7 +198,7 @@ ovrError:
 		m_debug = false;
 	}
 
-	bool OVR::swap()
+	bool OVR::swap(HMD& _hmd)
 	{
 		if (NULL == m_hmd)
 		{
@@ -197,8 +214,15 @@ ovrError:
 
 		m_timing = ovrHmd_BeginFrame(m_hmd, 0);
 
+#if OVR_VERSION > OVR_VERSION_042
 		m_pose[0] = ovrHmd_GetHmdPosePerEye(m_hmd, ovrEye_Left);
 		m_pose[1] = ovrHmd_GetHmdPosePerEye(m_hmd, ovrEye_Right);
+#else
+		m_pose[0] = ovrHmd_GetEyePose(m_hmd, ovrEye_Left);
+		m_pose[1] = ovrHmd_GetEyePose(m_hmd, ovrEye_Right);
+#endif // OVR_VERSION > OVR_VERSION_042
+
+		getEyePose(_hmd);
 
 		return true;
 	}
@@ -215,12 +239,9 @@ ovrError:
 	{
 		if (NULL != m_hmd)
 		{
-			ovrEyeType eye[2] = { ovrEye_Left, ovrEye_Right };
 			for (int ii = 0; ii < 2; ++ii)
 			{
-				ovrPosef& pose = m_pose[ii];
-				pose = ovrHmd_GetHmdPosePerEye(m_hmd, eye[ii]);
-
+				const ovrPosef& pose = m_pose[ii];
 				HMD::Eye& eye = _hmd.eye[ii];
 				eye.rotation[0] = pose.Orientation.x;
 				eye.rotation[1] = pose.Orientation.y;
@@ -235,9 +256,15 @@ ovrError:
 				eye.fov[1] = erd.Fov.DownTan;
 				eye.fov[2] = erd.Fov.LeftTan;
 				eye.fov[3] = erd.Fov.RightTan;
+#if OVR_VERSION > OVR_VERSION_042
 				eye.viewOffset[0] = erd.HmdToEyeViewOffset.x;
 				eye.viewOffset[1] = erd.HmdToEyeViewOffset.y;
 				eye.viewOffset[2] = erd.HmdToEyeViewOffset.z;
+#else
+				eye.viewOffset[0] = erd.ViewAdjust.x;
+				eye.viewOffset[1] = erd.ViewAdjust.y;
+				eye.viewOffset[2] = erd.ViewAdjust.z;
+#endif // OVR_VERSION > OVR_VERSION_042
 				eye.pixelsPerTanAngle[0] = erd.PixelsPerTanAngleAtCenter.x;
 				eye.pixelsPerTanAngle[1] = erd.PixelsPerTanAngleAtCenter.y;
 			}

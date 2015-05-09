@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -19,11 +19,13 @@
 #define BX_PLATFORM_LINUX      0
 #define BX_PLATFORM_NACL       0
 #define BX_PLATFORM_OSX        0
+#define BX_PLATFORM_PS4        0
 #define BX_PLATFORM_QNX        0
 #define BX_PLATFORM_RPI        0
 #define BX_PLATFORM_WINDOWS    0
 #define BX_PLATFORM_WINRT      0
 #define BX_PLATFORM_XBOX360    0
+#define BX_PLATFORM_XBOXONE    0
 
 #define BX_CPU_ARM  0
 #define BX_CPU_JIT  0
@@ -63,19 +65,28 @@
 #endif //
 
 // http://sourceforge.net/apps/mediawiki/predef/index.php?title=Architectures
-#if defined(__arm__) || defined(_M_ARM)
+#if defined(__arm__)     || \
+	defined(__aarch64__) || \
+	defined(_M_ARM)
 #	undef  BX_CPU_ARM
 #	define BX_CPU_ARM 1
 #	define BX_CACHE_LINE_SIZE 64
-#elif defined(__MIPSEL__) || defined(__mips_isa_rev) // defined(mips)
+#elif defined(__MIPSEL__)     || \
+	  defined(__mips_isa_rev) || \
+	  defined(__mips64)
 #	undef  BX_CPU_MIPS
 #	define BX_CPU_MIPS 1
 #	define BX_CACHE_LINE_SIZE 64
-#elif defined(_M_PPC) || defined(__powerpc__) || defined(__powerpc64__)
+#elif defined(_M_PPC)        || \
+	  defined(__powerpc__)   || \
+	  defined(__powerpc64__)
 #	undef  BX_CPU_PPC
 #	define BX_CPU_PPC 1
 #	define BX_CACHE_LINE_SIZE 128
-#elif defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
+#elif defined(_M_IX86)    || \
+	  defined(_M_X64)     || \
+	  defined(__i386__)   || \
+	  defined(__x86_64__)
 #	undef  BX_CPU_X86
 #	define BX_CPU_X86 1
 #	define BX_CACHE_LINE_SIZE 64
@@ -85,7 +96,13 @@
 #	define BX_CACHE_LINE_SIZE 64
 #endif //
 
-#if defined(__x86_64__) || defined(_M_X64) || defined(__64BIT__) || defined(__powerpc64__) || defined(__ppc64__)
+#if defined(__x86_64__)    || \
+	defined(_M_X64)        || \
+	defined(__aarch64__)   || \
+	defined(__64BIT__)     || \
+	defined(__mips64)      || \
+	defined(__powerpc64__) || \
+	defined(__ppc64__)
 #	undef  BX_ARCH_64BIT
 #	define BX_ARCH_64BIT 64
 #else
@@ -105,9 +122,18 @@
 #if defined(_XBOX_VER)
 #	undef  BX_PLATFORM_XBOX360
 #	define BX_PLATFORM_XBOX360 1
+#elif defined (_DURANGO)
+#	undef  BX_PLATFORM_XBOXONE
+#	define BX_PLATFORM_XBOXONE 1
 #elif defined(_WIN32) || defined(_WIN64)
 // http://msdn.microsoft.com/en-us/library/6sehtctf.aspx
-#   include <windows.h>
+#	ifndef NOMINMAX
+#		define NOMINMAX
+#	endif // NOMINMAX
+//  If _USING_V110_SDK71_ is defined it means we are using the v110_xp or v120_xp toolset.
+#	if defined(_MSC_VER) && (_MSC_VER >= 1700) && (!_USING_V110_SDK71_)
+#		include <winapifamily.h>
+#	endif // defined(_MSC_VER) && (_MSC_VER >= 1700) && (!_USING_V110_SDK71_)
 #	if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
 #		undef  BX_PLATFORM_WINDOWS
 #		if !defined(WINVER) && !defined(_WIN32_WINNT)
@@ -152,6 +178,9 @@
 #elif defined(EMSCRIPTEN)
 #	undef  BX_PLATFORM_EMSCRIPTEN
 #	define BX_PLATFORM_EMSCRIPTEN 1
+#elif defined(__ORBIS__)
+#	undef  BX_PLATFORM_PS4
+#	define BX_PLATFORM_PS4 1
 #elif defined(__QNX__)
 #	undef  BX_PLATFORM_QNX
 #	define BX_PLATFORM_QNX 1
@@ -189,7 +218,9 @@
 				BX_STRINGIZE(__clang_minor__) "." \
 				BX_STRINGIZE(__clang_patchlevel__)
 #elif BX_COMPILER_MSVC
-#	if BX_COMPILER_MSVC >= 1800
+#	if BX_COMPILER_MSVC >= 1900
+#		define BX_COMPILER_NAME "MSVC 14.0"
+#	elif BX_COMPILER_MSVC >= 1800
 #		define BX_COMPILER_NAME "MSVC 12.0"
 #	elif BX_COMPILER_MSVC >= 1700
 #		define BX_COMPILER_NAME "MSVC 11.0"
@@ -221,6 +252,8 @@
 				BX_STRINGIZE(BX_PLATFORM_NACL)
 #elif BX_PLATFORM_OSX
 #	define BX_PLATFORM_NAME "OSX"
+#elif BX_PLATFORM_PS4
+#	define BX_PLATFORM_NAME "PlayStation 4"
 #elif BX_PLATFORM_QNX
 #	define BX_PLATFORM_NAME "QNX"
 #elif BX_PLATFORM_RPI
@@ -229,6 +262,10 @@
 #	define BX_PLATFORM_NAME "Windows"
 #elif BX_PLATFORM_WINRT
 #	define BX_PLATFORM_NAME "WinRT"
+#elif BX_PLATFORM_XBOX360
+#	define BX_PLATFORM_NAME "Xbox 360"
+#elif BX_PLATFORM_XBOXONE
+#	define BX_PLATFORM_NAME "Xbox One"
 #endif // BX_PLATFORM_
 
 #if BX_CPU_ARM

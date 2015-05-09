@@ -111,6 +111,8 @@ Program {
 
 	Sources = {
 		BGFX_DIR .. "tools/shaderc/shaderc.cpp",
+		BGFX_DIR .. "tools/shaderc/shaderc_glsl.cpp",
+		BGFX_DIR .. "tools/shaderc/shaderc_hlsl.cpp",
 		BGFX_DIR .. "src/vertexdecl.cpp",
 		BGFX_DIR .. "src/vertexdecl.h",
 

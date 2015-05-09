@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 Branimir Karadzic. All rights reserved.
+ * Copyright 2011-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -14,8 +14,10 @@
 
 namespace bx
 {
-	const float pi     = 3.14159265358979323846f;
-	const float piHalf = 1.57079632679489661923f;
+	static const float pi     = 3.14159265358979323846f;
+	static const float invPi  = 1.0f/3.14159265358979323846f;
+	static const float piHalf = 1.57079632679489661923f;
+	static const float sqrt2  = 1.41421356237309504880f;
 
 	inline float toRad(float _deg)
 	{

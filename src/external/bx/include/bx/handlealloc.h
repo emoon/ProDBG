@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -64,6 +64,16 @@ namespace bx
 			}
 
 			return invalid;
+		}
+
+		bool isValid(uint16_t _handle)
+		{
+			uint16_t* sparse = &m_handles[MaxHandlesT];
+			uint16_t index = sparse[_handle];
+
+			return index < m_numHandles
+				&& m_handles[index] == _handle
+				;
 		}
 
 		void free(uint16_t _handle)
@@ -137,6 +147,14 @@ namespace bx
 			}
 
 			return invalid;
+		}
+
+		bool isValid(uint16_t _handle)
+		{
+			uint16_t* sparse = &m_handles[m_maxHandles];
+			uint16_t index = sparse[_handle];
+
+			return (index < m_numHandles && m_handles[index] == _handle);
 		}
 
 		void free(uint16_t _handle)

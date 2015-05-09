@@ -1,15 +1,17 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
 #ifndef BX_READERWRITER_H_HEADER_GUARD
 #define BX_READERWRITER_H_HEADER_GUARD
 
+#include <stdarg.h> // va_list
 #include <stdio.h>
 #include <string.h>
 
 #include "bx.h"
+#include "allocator.h"
 #include "uint32_t.h"
 
 #if BX_COMPILER_MSVC_COMPATIBLE
@@ -94,6 +96,26 @@ namespace bx
 		return _writer->write(_data, _size);
 	}
 
+	/// Write repeat the same value.
+	inline int32_t writeRep(WriterI* _writer, uint8_t _byte, int32_t _size)
+	{
+		const uint32_t tmp0      = uint32_sels(64   - _size,   64, _size);
+		const uint32_t tmp1      = uint32_sels(256  - _size,  256, tmp0);
+		const uint32_t blockSize = uint32_sels(1024 - _size, 1024, tmp1);
+		uint8_t* temp = (uint8_t*)alloca(blockSize);
+		memset(temp, _byte, blockSize);
+
+		int32_t size = 0;
+		while (0 < _size)
+		{
+			int32_t bytes = write(_writer, temp, uint32_min(blockSize, _size) );
+			size  += bytes;
+			_size -= bytes;
+		}
+
+		return size;
+	}
+
 	/// Write value.
 	template<typename Ty>
 	inline int32_t write(WriterI* _writer, const Ty& _value)
@@ -120,6 +142,29 @@ namespace bx
 		Ty value = toBigEndian(_value);
 		int32_t result = _writer->write(&value, sizeof(Ty) );
 		return result;
+	}
+
+	/// Write formated string.
+	inline int32_t writePrintf(WriterI* _writer, const char* _format, ...)
+	{
+		va_list argList;
+		va_start(argList, _format);
+
+		char temp[2048];
+		char* out = temp;
+		int32_t max = sizeof(temp);
+		int32_t len = vsnprintf(out, max, _format, argList);
+		if (len > max)
+		{
+			out = (char*)alloca(len);
+			len = vsnprintf(out, len, _format, argList);
+		}
+
+		int32_t size = write(_writer, out, len);
+
+		va_end(argList);
+
+		return size;
 	}
 
 	/// Skip _offset bytes forward.
@@ -213,6 +258,43 @@ namespace bx
 		}
 
 	private:
+		void* m_data;
+		uint32_t m_size;
+	};
+
+	class MemoryBlock : public MemoryBlockI
+	{
+	public:
+		MemoryBlock(ReallocatorI* _allocator)
+			: m_allocator(_allocator)
+			, m_data(NULL)
+			, m_size(0)
+		{
+		}
+
+		virtual ~MemoryBlock()
+		{
+			BX_FREE(m_allocator, m_data);
+		}
+
+		virtual void* more(uint32_t _size = 0) BX_OVERRIDE
+		{
+			if (0 < _size)
+			{
+				m_size += _size;
+				m_data = BX_REALLOC(m_allocator, m_data, m_size);
+			}
+
+			return m_data;
+		}
+
+		virtual uint32_t getSize() BX_OVERRIDE
+		{
+			return m_size;
+		}
+
+	private:
+		ReallocatorI* m_allocator;
 		void* m_data;
 		uint32_t m_size;
 	};

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -47,6 +47,14 @@
 #else
 #	include <unistd.h> // getcwd
 #endif // BX_COMPILER_MSVC
+
+#if BX_PLATFORM_OSX
+#	define BX_DL_EXT "dylib"
+#elif BX_PLATFORM_WINDOWS
+#	define BX_DL_EXT "dll"
+#else
+#	define BX_DL_EXT "so"
+#endif //
 
 namespace bx
 {
@@ -156,6 +164,7 @@ namespace bx
 	{
 #if BX_PLATFORM_WINRT
 		BX_UNUSED(_path);
+		return -1;
 #elif BX_COMPILER_MSVC_COMPATIBLE
 		return ::_chdir(_path);
 #else
@@ -167,6 +176,7 @@ namespace bx
 	{
 #if BX_PLATFORM_WINRT
 		BX_UNUSED(_buffer, _size);
+		return NULL;
 #elif BX_COMPILER_MSVC_COMPATIBLE
 		return ::_getcwd(_buffer, (int)_size);
 #else

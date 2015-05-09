@@ -1,10 +1,10 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
-#ifndef BX_PRINTF_H_HEADER_GUARD
-#define BX_PRINTF_H_HEADER_GUARD
+#ifndef BX_STRING_H_HEADER_GUARD
+#define BX_STRING_H_HEADER_GUARD
 
 #include "bx.h"
 #include <alloca.h>
@@ -71,6 +71,87 @@ namespace bx
 		} while (0 != strncmp(_str, cmp, len) );
 
 		return --_str;
+	}
+
+	/// Find substring in string. Case insensitive.
+	inline const char* stristr(const char* _str, const char* _find)
+	{
+		const char* ptr = _str;
+
+		for (size_t len = strlen(_str), searchLen = strlen(_find)
+		    ; len >= searchLen
+		    ; ++ptr, --len)
+		{
+			// Find start of the string.
+			while (tolower(*ptr) != tolower(*_find) )
+			{
+				++ptr;
+				--len;
+
+				// Search pattern lenght can't be longer than the string.
+				if (searchLen > len)
+				{
+					return NULL;
+				}
+			}
+
+			// Set pointers.
+			const char* string = ptr;
+			const char* search = _find;
+
+			// Start comparing.
+			while (tolower(*string++) == tolower(*search++) )
+			{
+				// If end of the 'search' string is reached, all characters match.
+				if ('\0' == *search)
+				{
+					return ptr;
+				}
+			}
+		}
+
+		return NULL;
+	}
+
+	/// Find substring in string. Case insensitive. Limit search to _size.
+	inline const char* stristr(const char* _str, const char* _find, size_t _max)
+	{
+		const char* ptr = _str;
+
+		const size_t total = strlen(_str);
+		size_t len = _max < total ? _max : total;
+
+		for (const size_t searchLen = strlen(_find); len >= searchLen; ++ptr, --len)
+		{
+			// Find start of the string.
+			while (tolower(*ptr) != tolower(*_find) )
+			{
+				++ptr;
+				--len;
+
+				// Search pattern lenght can't be longer than the string.
+				if (searchLen > len)
+				{
+					return NULL;
+				}
+			}
+
+			// Set pointers.
+			const char* string = ptr;
+			const char* search = _find;
+
+			// Start comparing.
+			while (tolower(*string++) == tolower(*search++) )
+			{
+				// If end of the 'search' string is reached, all characters match.
+				if ('\0' == *search)
+				{
+					return ptr;
+				}
+			}
+		}
+
+		return NULL;
 	}
 
 	/// Find new line. Returns pointer after new line terminator.
@@ -422,4 +503,4 @@ namespace bx
 
 } // namespace bx
 
-#endif // BX_PRINTF_H_HEADER_GUARD
+#endif // BX_STRING_H_HEADER_GUARD
