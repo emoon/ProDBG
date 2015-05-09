@@ -25,7 +25,7 @@ struct library_t
 	FOUNDATION_DECLARE_OBJECT;
 
 	hash_t           namehash;
-	char             name[32];
+	char             name[4096];
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	HANDLE           dll;
@@ -171,7 +171,90 @@ object_t library_load( const char* name )
 	library = memory_allocate( 0, sizeof( library_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	_object_initialize( (object_base_t*)library, id );
 	library->namehash = string_hash( name );
-	string_copy( library->name, name, 32 );
+	string_copy( library->name, name, 4096 );
+#if FOUNDATION_PLATFORM_WINDOWS
+	library->dll = dll;
+#elif FOUNDATION_PLATFORM_POSIX
+	library->lib = lib;
+#endif
+	objectmap_set( _library_map, id, library );
+
+	error_context_pop();
+
+	return library->id;
+}
+
+object_t library_load_fullpath( const char* name )
+{
+	library_t* library;
+	hash_t namehash;
+	unsigned int i, size;
+	uint64_t id;
+#if FOUNDATION_PLATFORM_WINDOWS
+	HANDLE dll;
+#endif
+
+	//Locate already loaded library
+	library = 0;
+	namehash = string_hash( name );
+	for( i = 0, size = objectmap_size( _library_map ); i < size; ++i )
+	{
+		library = objectmap_raw_lookup( _library_map, i );
+		if( library && ( library->namehash == namehash ) )
+		{
+			FOUNDATION_ASSERT( string_equal( library->name, name ) );
+			atomic_incr32( &library->ref );
+			return library->id;
+		}
+	}
+
+	error_context_push( "loading library", name );
+
+	//Try loading library
+#if FOUNDATION_PLATFORM_WINDOWS
+
+	dll = LoadLibraryA( name );
+	if( !dll )
+	{
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to load DLL '%s': %s", name, system_error_message( 0 ) );
+		error_context_pop();
+		return 0;
+	}
+
+#elif FOUNDATION_PLATFORM_POSIX
+
+	void* lib = dlopen( name, RTLD_LAZY );
+	if( !lib )
+	{
+		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to load dynamic library '%s': %s", name, dlerror() );
+		error_context_pop();
+		return 0;
+	}
+
+#else
+
+	log_errorf( 0, ERROR_NOT_IMPLEMENTED, "Dynamic library loading not implemented for this platform: %s", name );
+	error_context_pop();
+	return 0;
+
+#endif
+
+	id = objectmap_reserve( _library_map );
+	if( !id )
+	{
+#if FOUNDATION_PLATFORM_WINDOWS
+		FreeLibrary( dll );
+#elif FOUNDATION_PLATFORM_POSIX
+		dlclose( lib );
+#endif
+		log_errorf( 0, ERROR_OUT_OF_MEMORY, "Unable to allocate new library '%s', map full", name );
+		error_context_pop();
+		return 0;
+	}
+	library = memory_allocate( 0, sizeof( library_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
+	_object_initialize( (object_base_t*)library, id );
+	library->namehash = string_hash( name );
+	string_copy( library->name, name, 4096 );
 #if FOUNDATION_PLATFORM_WINDOWS
 	library->dll = dll;
 #elif FOUNDATION_PLATFORM_POSIX
