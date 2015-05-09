@@ -583,6 +583,7 @@ StaticLibrary {
         CPPPATH = { 
             "src/external/stb",
 			"src/external/libuv/include",
+			"src/external/foundation_lib",
         	"api/include",
             "src/prodbg",
         },

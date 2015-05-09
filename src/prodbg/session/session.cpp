@@ -14,11 +14,13 @@
 #include "ui/ui_dock_private.h" // TODO: Fix me
 
 #include <stdlib.h>
-#include <stb.h>
+//#include <stb.h>
 #include <assert.h>
 
 #include <pd_view.h>
 #include <pd_backend.h>
+
+#include <foundation/array.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -361,7 +363,7 @@ static void updateLocal(Session* s, PDAction action)
         UIStatusBar_setText("%s Backend: %s", backend->plugin->name, getStateName(s->state));
 	}
 
-    int len = stb_arr_len(s->viewPlugins);
+    int len = array_size(s->viewPlugins);
 
     PDBinaryReader_initStream(s->reader, PDBinaryWriter_getData(s->prevWriter), PDBinaryWriter_getSize(s->prevWriter));
     PDBinaryReader_reset(s->reader);
@@ -446,7 +448,7 @@ static void updateRemote(Session* s, PDAction action)
         }
     }
 
-    int len = stb_arr_len(s->viewPlugins);
+    int len = array_size(s->viewPlugins);
 
     for (int i = 0; i < len; ++i)
     {
@@ -488,7 +490,7 @@ static void updateRemote(Session* s, PDAction action)
 
 static void updateMarkedDelete(Session* s)
 {
-    int count = stb_arr_len(s->viewPlugins);
+    int count = array_size(s->viewPlugins);
 
     for (int i = 0; i < count; ++i)
     {
@@ -497,7 +499,7 @@ static void updateMarkedDelete(Session* s)
         if (p->markDeleted)
         {
             Session_removeViewPlugin(s, p);
-            count = stb_arr_len(s->viewPlugins);
+            count = array_size(s->viewPlugins);
         }
     }
 }
@@ -555,21 +557,21 @@ void Session_action(Session* s, PDAction action)
 
 void Session_addViewPlugin(struct Session* session, struct ViewPluginInstance* instance)
 {
-    stb_arr_push(session->viewPlugins, instance);
+    array_push(session->viewPlugins, instance);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Session_removeViewPlugin(Session* session, struct ViewPluginInstance* plugin)
 {
-    int count = stb_arr_len(session->viewPlugins);
+    int count = array_size(session->viewPlugins);
 
     if (count == 0)
         return true;
 
     if (count == 1)
     {
-        stb_arr_pop(session->viewPlugins);
+        array_pop(session->viewPlugins);
         return true;
     }
 
@@ -577,7 +579,7 @@ bool Session_removeViewPlugin(Session* session, struct ViewPluginInstance* plugi
     {
         if (session->viewPlugins[i] == plugin)
         {
-            stb_arr_fastdelete(session->viewPlugins, i);
+            array_erase(session->viewPlugins, i);
             return true;
         }
     }
@@ -589,7 +591,7 @@ bool Session_removeViewPlugin(Session* session, struct ViewPluginInstance* plugi
 
 struct ViewPluginInstance** Session_getViewPlugins(struct Session* session, int* count)
 {
-    *count = stb_arr_len(session->viewPlugins);
+    *count = array_size(session->viewPlugins);
     return session->viewPlugins;
 }
 
