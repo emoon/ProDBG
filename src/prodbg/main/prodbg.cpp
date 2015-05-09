@@ -25,10 +25,6 @@
 #include <windows.h>
 #endif
 
-#ifndef _WIN32
-#include <foundation/foundation.h>
-#endif
-
 #include <remotery.h>
 #include <assert.h>
 
