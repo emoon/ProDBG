@@ -1710,6 +1710,11 @@ namespace bgfx { namespace d3d9
 			}
 		}
 
+		void* nativeContext()
+		{
+			return 0;
+		}
+
 #if BX_PLATFORM_WINDOWS
 		D3DCAPS9 m_caps;
 #endif // BX_PLATFORM_WINDOWS
