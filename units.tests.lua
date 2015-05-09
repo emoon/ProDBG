@@ -46,7 +46,7 @@ end
 
 -----------------------------------------------------------------------------------------------------------------------
 
-local all_depends = { "uv", "api", "core", "script", "stb", "remote_api", "cmocka", "session", "ui", "bgfx", "jansson", "lua", "imgui", "minifb", "scintilla", "tinyxml2" }
+local all_depends = { "uv", "api", "core", "script", "stb", "remote_api", "cmocka", "session", "ui", "bgfx", "jansson", "lua", "imgui", "minifb", "scintilla", "tinyxml2", "foundation_lib" }
 
 -----------------------------------------------------------------------------------------------------------------------
 

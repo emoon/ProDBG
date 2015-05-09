@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct PluginData
@@ -7,7 +9,7 @@ struct PluginData
     void* plugin;
     const char* type;
     const char* filename;
-    void* lib;
+    uint64_t lib;
     int count;
     int menuStart;
     int menuEnd;

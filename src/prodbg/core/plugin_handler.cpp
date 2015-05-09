@@ -6,8 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <uv.h>
-#include <stb.h>
+
+#include <foundation/fs.h>
+#include <foundation/library.h>
+#include <foundation/array.h>
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Move this to some general configuration about plugins and types
@@ -36,14 +39,14 @@ static const char** s_searchPaths;
 
 void PluginHandler_addSearchPath(const char* path)
 {
-	stb_arr_push(s_searchPaths, path);
+	array_push(s_searchPaths, path);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static PluginData* findPlugin(PluginData** plugins, const char* pluginFile, const char* pluginName)
 {
-    int count = stb_arr_len(plugins);
+    int count = array_size(plugins);
 
     for (int i = 0; i < count; ++i)
     {
@@ -77,7 +80,7 @@ static PluginData* findPluginAll(const char* pluginFile, const char* pluginName)
 struct PluginPrivateData
 {
 	const char* name;
-	uv_lib_t* lib;
+	object_t lib;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,7 +106,7 @@ static void registerPlugin(const char* type, void* plugin, void* privateData)
 			pluginData->filename = filename;
 			pluginData->lib = privData->lib; 
 
-			return (void)stb_arr_push(s_plugins[i], pluginData);
+			return (void)array_push(s_plugins[i], pluginData);
 		}
 	}
 
@@ -139,7 +142,8 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 {
     void* (*initPlugin)(RegisterPlugin* registerPlugin, void* privateData);
 	struct PluginPrivateData data;
-    uv_lib_t* lib = 0; 
+    object_t lib = 0; 
+
     const char* filename = 0; 
     void* function;
 
@@ -148,20 +152,19 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 
     filename = buildLoadingPath(basePath, plugin);
 
-    lib = (uv_lib_t*)alloc_zero(sizeof(uv_lib_t));
+	lib = library_load_fullpath(filename);
 
-    if (uv_dlopen(filename, lib) == -1)
+    if (!library_valid(lib))
     {
         // TODO: Show error message
-        pd_error("Unable to open %s error:\n", uv_dlerror(lib));
+        pd_error("Unable to open %s\n", filename);
         goto error;
     }
 
-    if (uv_dlsym(lib, "InitPlugin", &function) == -1)
+	if (!(function = library_symbol(lib, "InitPlugin")))
     {
         // TODO: Show error message
-        pd_error("Unable to find InitPlugin function in plugin %s\n", plugin);
-        uv_dlclose(lib);
+        pd_error("Unable to find InitPlugin function in plugin %s\n", filename);
         goto error;
     }
 
@@ -180,11 +183,9 @@ error:
 
 	free((void*)filename);
 
-	if (lib)
-	{
-    	uv_dlclose(lib);
-		free((void*)lib);
-	}
+	if (library_valid(lib))
+		library_unload(lib);
+
 	return false;
 }
 
@@ -196,18 +197,17 @@ void PluginHandler_unloadAllPlugins()
 
 	for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
 	{
-    	int count = stb_arr_len(s_plugins[i]);
+    	int count = array_size(s_plugins[i]);
 
 	    for (int t = 0; t < count; ++t)
 	    {
 	    	PluginData* plugin = s_plugins[i][t];
-        	uv_dlclose((uv_lib_t*)plugin->lib);
-        	free(plugin->lib);
+	    	library_unload(plugin->lib);
         	//free((void*)plugin->filename);
         	free(plugin);
  		}
 
-    	stb_arr_free(s_plugins[i]);
+    	array_clear(s_plugins[i]);
    	}
 
 	//for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
@@ -246,7 +246,7 @@ PluginData* PluginHandler_findPlugin(const char** paths, const char* pluginFile,
 
 PluginData** PluginHandler_getBackendPlugins(int* count)
 {
-    *count = stb_arr_len(s_plugins[PRODBG_BACKEND_PLUGIN]);
+    *count = array_size(s_plugins[PRODBG_BACKEND_PLUGIN]);
     return s_plugins[PRODBG_BACKEND_PLUGIN];
 }
 
@@ -254,7 +254,7 @@ PluginData** PluginHandler_getBackendPlugins(int* count)
 
 PluginData** PluginHandler_getViewPlugins(int* count)
 {
-    *count = stb_arr_len(s_plugins[PRODBG_VIEW_PLUGIN]);
+    *count = array_size(s_plugins[PRODBG_VIEW_PLUGIN]);
     return s_plugins[PRODBG_VIEW_PLUGIN];
 }
 
@@ -262,7 +262,7 @@ PluginData** PluginHandler_getViewPlugins(int* count)
 
 static PluginData* getPluginData(PluginData** plugins, void* plugin)
 {
-    int count = stb_arr_len(plugins);
+    int count = array_size(plugins);
 
     for (int i = 0; i < count; ++i)
     {
