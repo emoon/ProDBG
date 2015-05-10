@@ -12,6 +12,18 @@
 #include <foundation/array.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*
+#if FOUNDATION_PLATFORM_APPLE
+#define LIB_EXT ".dylib"
+#elif FOUNDATION_PLATFORM_WINDOWS
+#define LIB_EXT ".dll"
+#else
+#define LIB_EXT ".so"
+#endif
+*/
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Move this to some general configuration about plugins and types
 
 static const char* s_pluginTypes[] =
@@ -54,6 +66,10 @@ void PluginHandler_create(bool shadowDirectory)
 		fs_remove_directory(s_shadowDirName);
 
 	fs_make_directory(s_shadowDirName);
+
+	// Listen to changes in the current directry for code
+	// TODO: Add this to settings so we can have more dirs here
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
