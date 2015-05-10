@@ -72,6 +72,7 @@ Program {
         CCOPTS = {
 			{ "/wd4291", "/W3", "-D__STDC__", "-D__STDC_VERSION__=199901L", "-Dstrdup=_strdup", "-Dalloca=_alloca", "-Disascii=__isascii"; Config = "win64-*-*" },
         	{ "-Wno-everything"; Config = "macosx-*-*" },
+			{ "-fno-strict-aliasing"; Config = { "macosx_test-*-*", "macosx-*-*", "linux-*-*" } },
         },
 
         CXXOPTS = {
