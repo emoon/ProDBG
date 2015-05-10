@@ -11,7 +11,6 @@
 #include <foundation/library.h>
 #include <foundation/array.h>
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Move this to some general configuration about plugins and types
 
@@ -34,6 +33,35 @@ enum
 
 static PluginData** s_plugins[PRODBG_PLUGIN_COUNT];
 static const char** s_searchPaths;
+static bool s_useShadowDir = true;
+static const char* s_shadowDirName = "shadow_plugins";
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PluginHandler_create(bool shadowDirectory)
+{
+	s_useShadowDir = shadowDirectory;
+
+	if (!shadowDirectory)
+		return;
+
+	// Cleanup directory first
+
+	if (fs_is_file(s_shadowDirName))
+		fs_remove_file(s_shadowDirName);
+
+	if (fs_is_directory(s_shadowDirName))
+		fs_remove_directory(s_shadowDirName);
+
+	fs_make_directory(s_shadowDirName);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PluginHandler_destroy()
+{
+	PluginHandler_unloadAllPlugins();
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

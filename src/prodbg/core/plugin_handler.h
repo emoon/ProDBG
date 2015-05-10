@@ -16,6 +16,11 @@ struct PluginData
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PluginHandler_create(bool useShadowDir);
+void PluginHandler_destroy(); 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Adds a path for that is used for plugin loading. This path is first base first load priority meaning that the
 // path that gets added first has the highest priority
 
@@ -24,8 +29,7 @@ void PluginHandler_addSearchPath(const char* path);
 bool PluginHandler_addPlugin(const char* basePath, const char* plugin);
 void PluginHandler_unloadAllPlugins();
 
-//bool PluginHandler_unloadPlugin(PluginData* plugin);
-//bool PluginHandler_unloadAllPlugins();
+bool PluginHandler_unloadPlugin(PluginData* plugin);
 
 PluginData* PluginHandler_findPlugin(const char** paths, const char* pluginFile, const char* pluginName, bool load);
 
