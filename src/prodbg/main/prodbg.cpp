@@ -18,7 +18,6 @@
 #include <bgfxplatform.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <bx/timer.h>
 
 #include <remotery.h>
 #include <assert.h>
@@ -27,6 +26,7 @@
 #include <foundation/fs.h>
 #include <foundation/string.h>
 #include <foundation/path.h>
+#include <foundation/time.h>
 
 // TODO: Fix me
 
@@ -199,7 +199,7 @@ void ProDBG_create(void* window, int width, int height)
 	findDataDirectory();
 
     context->session = Session_create();
-    context->time = bx::getHPCounter();
+    context->time = time_current();
 
 #if PRODBG_USING_DOCKING
     loadLayout(context->session, (float)width, (float)(height - g_statusBarSize));
@@ -295,18 +295,18 @@ void ProDBG_update()
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x101010ff, 1.0f, 0);
     bgfx::submit(0);
 
-    uint64_t currentTime = bx::getHPCounter();
-    uint64_t deltaTick = currentTime - context->time;
-    context->time = currentTime;
+    uint64_t currentTime = time_current(); 
 
-    float deltaTimeMs = (float)(((double)deltaTick) / (double)bx::getHPFrequency());
+	float dt = time_elapsed(context->time);
+
+    context->time = currentTime;
 
 #if PRODBG_USING_DOCKING
     updateDock(context);
 #endif
     {
         rmt_ScopedCPUSample(IMGUI_preUpdate);
-        IMGUI_preUpdate(&context->inputState, deltaTimeMs);
+        IMGUI_preUpdate(&context->inputState, dt);
     }
 
     // TODO: Support multiple sessions
