@@ -5,7 +5,6 @@
 #include "core/plugin_handler.h"
 #include "session/session.h"
 #include "settings.h"
-//#include <imgui.h>
 #include "ui/imgui_setup.h"
 #include "ui/menu.h"
 #include "ui/dialogs.h"
@@ -15,7 +14,6 @@
 #include "input/input_state.h"
 
 #include <bgfx.h>
-#include <bgfxplatform.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -223,14 +221,6 @@ void ProDBG_create(void* window, int width, int height)
     {
         PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]);
     }
-
-#if BX_PLATFORM_OSX
-    bgfx::osxSetNSWindow(window);
-#elif BX_PLATFORM_WINDOWS
-    bgfx::winSetHwnd((HWND)window);
-#else
-    //bgfx::winSetHwnd(0);
-#endif
 
 
     bgfx::init();
