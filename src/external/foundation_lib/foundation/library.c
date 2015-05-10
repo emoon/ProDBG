@@ -25,7 +25,7 @@ struct library_t
 	FOUNDATION_DECLARE_OBJECT;
 
 	hash_t           namehash;
-	char             name[4096];
+	char             name[32];
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	HANDLE           dll;
@@ -78,20 +78,41 @@ object_t library_load( const char* name )
 	hash_t namehash;
 	unsigned int i, size;
 	uint64_t id;
+	const char* basename;
+	unsigned int last_slash;
 #if FOUNDATION_PLATFORM_WINDOWS
 	char* dllname;
 	HANDLE dll;
 #endif
 
+#if FOUNDATION_PLATFORM_APPLE
+#  define FOUNDATION_LIB_PRE "lib"
+#  define FOUNDATION_LIB_EXT ".dylib"
+#elif FOUNDATION_PLATFORM_WINDOWS
+#  define FOUNDATION_LIB_EXT ".dll"
+#else
+#  define FOUNDATION_LIB_PRE "lib"
+#  define FOUNDATION_LIB_EXT ".so"
+#endif
+
+	basename = name;
+	last_slash = string_rfind( name, '/', STRING_NPOS );
+#if FOUNDATION_PLATFORM_WINDOWS
+	if( last_slash == STRING_NPOS )
+		last_slash = string_rfind( name, '\\', STRING_NPOS );
+#endif
+	if( last_slash != STRING_NPOS )
+		basename = name + last_slash + 1;
+
 	//Locate already loaded library
 	library = 0;
-	namehash = string_hash( name );
+	namehash = string_hash( basename );
 	for( i = 0, size = objectmap_size( _library_map ); i < size; ++i )
 	{
 		library = objectmap_raw_lookup( _library_map, i );
 		if( library && ( library->namehash == namehash ) )
 		{
-			FOUNDATION_ASSERT( string_equal( library->name, name ) );
+			FOUNDATION_ASSERT( string_equal( library->name, basename ) );
 			atomic_incr32( &library->ref );
 			return library->id;
 		}
@@ -102,21 +123,17 @@ object_t library_load( const char* name )
 	//Try loading library
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	dllname = string_format( "%s.dll", name );
-	dll = LoadLibraryA( dllname );
+	dll = LoadLibraryA( name );
 	if( !dll )
 	{
-#if FOUNDATION_ARCH_X86
-		string_deallocate( dllname );
-		dllname = string_format( "%s32.dll", name );
-		dll = LoadLibraryA( dllname );
-#elif FOUNDATION_ARCH_X86_64
-		string_deallocate( dllname );
-		dllname = string_format( "%s64.dll", name );
-		dll = LoadLibraryA( dllname );
-#endif
+		unsigned int last_dot = string_rfind( name, '/', STRING_NPOS );
+		if( ( last_dot == STRING_NPOS ) || ( last_dot < last_slash ) )
+		{
+			dllname = string_format( "%s" FOUNDATION_LIB_EXT, name );
+			dll = LoadLibraryA( dllname );
+			string_deallocate( dllname );
+		}
 	}
-	string_deallocate( dllname );
 	if( !dll )
 	{
 		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to load DLL '%s': %s", name, system_error_message( 0 ) );
@@ -125,18 +142,34 @@ object_t library_load( const char* name )
 	}
 
 #elif FOUNDATION_PLATFORM_POSIX
-
-#  if FOUNDATION_PLATFORM_APPLE
-	char* libname = string_format( "lib%s.dylib", name );
-#  else
-	char* libname = string_format( "lib%s.so", name );
-#  endif
-	void* lib = dlopen( libname, RTLD_LAZY );
-	string_deallocate( libname );
-#if FOUNDATION_PLATFORM_ANDROID
-	if( !lib )
+	char* libname;
+	void* lib = dlopen( name, RTLD_LAZY );
+	if( !lib && !string_ends_with( name, FOUNDATION_LIB_EXT ) )
 	{
-		libname = string_format( "%s/lib%s.so", environment_executable_directory(), name );
+		if( last_slash == STRING_NPOS )
+		{
+			libname = string_format( FOUNDATION_LIB_PRE "%s" FOUNDATION_LIB_EXT, name );
+		}
+		else
+		{
+			char* path = path_directory_name( name );
+			char* file = path_file_name( name );
+			char* decorated_name = string_format( FOUNDATION_LIB_PRE "%s" FOUNDATION_LIB_EXT, file );
+			libname = path_merge( path, decorated_name );
+			string_deallocate( decorated_name );
+			string_deallocate( path );
+			string_deallocate( file );
+		}
+		lib = dlopen( libname, RTLD_LAZY );
+		string_deallocate( libname );
+	}
+#if FOUNDATION_PLATFORM_ANDROID
+	if( !lib && ( last_slash == STRING_NPOS ) )
+	{
+		if( !string_ends_with( name, FOUNDATION_LIB_EXT ) )
+			libname = string_format( "%s/" FOUNDATION_LIB_PRE "%s" FOUNDATION_LIB_EXT, environment_executable_directory(), name );
+		else
+			libname = string_format( "%s/" FOUNDATION_LIB_PRE "%s", environment_executable_directory(), name );
 		lib = dlopen( libname, RTLD_LAZY );
 		string_deallocate( libname );
 	}
@@ -170,91 +203,8 @@ object_t library_load( const char* name )
 	}
 	library = memory_allocate( 0, sizeof( library_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
 	_object_initialize( (object_base_t*)library, id );
-	library->namehash = string_hash( name );
-	string_copy( library->name, name, 4096 );
-#if FOUNDATION_PLATFORM_WINDOWS
-	library->dll = dll;
-#elif FOUNDATION_PLATFORM_POSIX
-	library->lib = lib;
-#endif
-	objectmap_set( _library_map, id, library );
-
-	error_context_pop();
-
-	return library->id;
-}
-
-object_t library_load_fullpath( const char* name )
-{
-	library_t* library;
-	hash_t namehash;
-	unsigned int i, size;
-	uint64_t id;
-#if FOUNDATION_PLATFORM_WINDOWS
-	HANDLE dll;
-#endif
-
-	//Locate already loaded library
-	library = 0;
-	namehash = string_hash( name );
-	for( i = 0, size = objectmap_size( _library_map ); i < size; ++i )
-	{
-		library = objectmap_raw_lookup( _library_map, i );
-		if( library && ( library->namehash == namehash ) )
-		{
-			FOUNDATION_ASSERT( string_equal( library->name, name ) );
-			atomic_incr32( &library->ref );
-			return library->id;
-		}
-	}
-
-	error_context_push( "loading library", name );
-
-	//Try loading library
-#if FOUNDATION_PLATFORM_WINDOWS
-
-	dll = LoadLibraryA( name );
-	if( !dll )
-	{
-		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to load DLL '%s': %s", name, system_error_message( 0 ) );
-		error_context_pop();
-		return 0;
-	}
-
-#elif FOUNDATION_PLATFORM_POSIX
-
-	void* lib = dlopen( name, RTLD_LAZY );
-	if( !lib )
-	{
-		log_warnf( 0, WARNING_SUSPICIOUS, "Unable to load dynamic library '%s': %s", name, dlerror() );
-		error_context_pop();
-		return 0;
-	}
-
-#else
-
-	log_errorf( 0, ERROR_NOT_IMPLEMENTED, "Dynamic library loading not implemented for this platform: %s", name );
-	error_context_pop();
-	return 0;
-
-#endif
-
-	id = objectmap_reserve( _library_map );
-	if( !id )
-	{
-#if FOUNDATION_PLATFORM_WINDOWS
-		FreeLibrary( dll );
-#elif FOUNDATION_PLATFORM_POSIX
-		dlclose( lib );
-#endif
-		log_errorf( 0, ERROR_OUT_OF_MEMORY, "Unable to allocate new library '%s', map full", name );
-		error_context_pop();
-		return 0;
-	}
-	library = memory_allocate( 0, sizeof( library_t ), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED );
-	_object_initialize( (object_base_t*)library, id );
-	library->namehash = string_hash( name );
-	string_copy( library->name, name, 4096 );
+	library->namehash = namehash;
+	string_copy( library->name, basename, 32 );
 #if FOUNDATION_PLATFORM_WINDOWS
 	library->dll = dll;
 #elif FOUNDATION_PLATFORM_POSIX

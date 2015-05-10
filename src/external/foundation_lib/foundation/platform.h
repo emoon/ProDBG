@@ -868,19 +868,19 @@ FOUNDATION_ALIGNED_STRUCT( atomic32_t, 4 )
 {
 	int32_t nonatomic;
 };
-typedef FOUNDATION_ALIGNED_STRUCT( atomic32_t, 4 ) atomic32_t;
+typedef struct atomic32_t atomic32_t;
 
 FOUNDATION_ALIGNED_STRUCT( atomic64_t, 8 )
 {
 	int64_t nonatomic;
 };
-typedef FOUNDATION_ALIGNED_STRUCT( atomic64_t, 8 ) atomic64_t;
+typedef struct atomic64_t atomic64_t;
 
 FOUNDATION_ALIGNED_STRUCT( atomicptr_t, FOUNDATION_SIZE_POINTER )
 {
 	void* nonatomic;
 };
-typedef FOUNDATION_ALIGNED_STRUCT( atomicptr_t, FOUNDATION_SIZE_POINTER ) atomicptr_t;
+typedef struct atomicptr_t atomicptr_t;
 
 
 //Pointer arithmetic

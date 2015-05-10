@@ -358,12 +358,12 @@ void* _fs_event_stream_create( const char* path )
 			FSEventStreamSetDispatchQueue( stream, dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 ) );
 			if( NO == FSEventStreamStart( stream ) )
 			{
-				log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to start FS event stream" );
+				log_error( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to start FS event stream" );
 			}
 		}
 		else
 		{
-			log_errorf( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to create FS event stream" );
+			log_error( 0, ERROR_SYSTEM_CALL_FAIL, "Unable to create FS event stream" );
 		}
 
 		log_debugf( 0, "Started FS event stream for: %s", path );

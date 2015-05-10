@@ -594,7 +594,7 @@ static const radixsort_index_t* radixsort_float( radixsort_t* sort, const void* 
 }
 
 
-const radixsort_index_t* radixsort( radixsort_t* sort, const void* input, radixsort_index_t num )
+const radixsort_index_t* radixsort_sort( radixsort_t* sort, const void* input, radixsort_index_t num )
 {
 	const radixsort_data_t data_type = sort->type;
 	const radixsort_index_t* result = 0;

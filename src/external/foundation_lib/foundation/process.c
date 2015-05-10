@@ -254,7 +254,7 @@ int process_spawn( process_t* proc )
 			sei.fMask      |= SEE_MASK_NO_CONSOLE;
 
 		if( proc->flags & PROCESS_STDSTREAMS )
-			log_warnf( 0, WARNING_UNSUPPORTED, "Unable to redirect standard in/out through pipes when using ShellExecute for process spawning" );
+			log_warn( 0, WARNING_UNSUPPORTED, "Unable to redirect standard in/out through pipes when using ShellExecute for process spawning" );
 
 		log_debugf( 0, "Spawn process (ShellExecute): %s %s", proc->path, cmdline );
 
@@ -594,7 +594,7 @@ int process_wait( process_t* proc )
 		}
 		else
 		{
-			log_warnf( 0, WARNING_BAD_DATA, "Unable to wait on a process started with PROCESS_MACOSX_USE_OPENAPPLICATION and no kqueue" );
+			log_warn( 0, WARNING_BAD_DATA, "Unable to wait on a process started with PROCESS_MACOSX_USE_OPENAPPLICATION and no kqueue" );
 			return PROCESS_WAIT_FAILED;
 		}
 		proc->pid = 0;

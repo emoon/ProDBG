@@ -393,7 +393,7 @@ void profile_shutdown( void )
 		uint32_t free_block = atomic_load32( &_profile_free ) & 0xffff;
 
 		if( atomic_load32( &_profile_root ) )
-			log_errorf( 0, ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, at least one root block still allocated/active" );
+			log_error( 0, ERROR_INTERNAL_FAILURE, "Profile module state inconsistent on shutdown, at least one root block still allocated/active" );
 
 		while( free_block )
 		{

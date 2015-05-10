@@ -152,7 +152,7 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 
     filename = buildLoadingPath(basePath, plugin);
 
-	lib = library_load_fullpath(filename);
+	lib = library_load(filename);
 
     if (!library_valid(lib))
     {

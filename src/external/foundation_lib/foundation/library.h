@@ -17,7 +17,6 @@
 
 
 FOUNDATION_API object_t      library_load( const char* name );
-FOUNDATION_API object_t      library_load_fullpath( const char* name );
 FOUNDATION_API object_t      library_ref( object_t library );
 FOUNDATION_API void          library_unload( object_t library );
 FOUNDATION_API void*         library_symbol( object_t library, const char* name );

@@ -54,7 +54,7 @@ FOUNDATION_API void              log_suppress_clear( void );
 
 #else
 
-#  define log_info( context, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
+#  define log_info( context, msg ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
 #  define log_infof( context, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( msg ); } while(0) /*lint -restore */
 #  define log_warn( context, warn, msg ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( warn ); (void)sizeof( msg ); } while(0) /*lint -restore */
 #  define log_warnf( context, warn, msg, ... ) /*lint -save -e717 */ do { (void)sizeof( context ); (void)sizeof( warn ); (void)sizeof( msg ); } while(0) /*lint -restore */

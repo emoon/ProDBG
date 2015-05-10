@@ -30,7 +30,8 @@ extern int main( int, char** );
 
 static bool _foundation_initialized;
 
-#define SUBSYSTEM_INIT( system, ... ) if( ret == 0 ) ret = _##system##_initialize( __VA_ARGS__ );
+#define SUBSYSTEM_INIT( system ) if( ret == 0 ) ret = _##system##_initialize()
+#define SUBSYSTEM_INIT_ARGS( system, ... ) if( ret == 0 ) ret = _##system##_initialize( __VA_ARGS__ )
 
 int foundation_initialize( const memory_system_t memory, const application_t application )
 {
@@ -40,7 +41,7 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 		return 0;
 
 	SUBSYSTEM_INIT( atomic );
-	SUBSYSTEM_INIT( memory, memory );
+	SUBSYSTEM_INIT_ARGS( memory, memory );
 	SUBSYSTEM_INIT( static_hash );
 	SUBSYSTEM_INIT( log );
 	SUBSYSTEM_INIT( time );
@@ -48,7 +49,7 @@ int foundation_initialize( const memory_system_t memory, const application_t app
 	SUBSYSTEM_INIT( random );
 	SUBSYSTEM_INIT( stream );
 	SUBSYSTEM_INIT( fs );
-	SUBSYSTEM_INIT( environment, application );
+	SUBSYSTEM_INIT_ARGS( environment, application );
 	SUBSYSTEM_INIT( library );
 	SUBSYSTEM_INIT( system );
 	SUBSYSTEM_INIT( config );
