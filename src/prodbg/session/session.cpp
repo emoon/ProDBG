@@ -7,6 +7,7 @@
 #include "core/alloc.h"
 #include "core/log.h"
 #include "core/math.h"
+#include "core/file_monitor.h"
 #include "core/plugin_handler.h"
 #include "ui/plugin.h"
 #include "ui/ui_statusbar.h"
@@ -21,6 +22,7 @@
 #include <pd_backend.h>
 
 #include <foundation/array.h>
+#include <foundation/path.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -29,21 +31,62 @@ enum
     ReadWriteBufferSize = 2 * 1024 * 1024,
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#if FOUNDATION_PLATFORM_APPLE
+#define LIB_EXT ".dylib"
+#elif FOUNDATION_PLATFORM_WINDOWS
+#define LIB_EXT ".dll"
+#else
+#define LIB_EXT ".so"
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static Session** s_sessions = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
 void fileUpdateCallback(void* userData, const char* file, int type)
 {
+	(void)userData;
+
 	// TODO: Only supporting modified files for now 
 
 	if (type != FOUNDATIONEVENT_FILE_MODIFIED)
 		return;
 
-	PluginData* pluginData = PluginHandler_findPlugin(0, filename, 
+	const char* filename = path_base_file_name(file);
+
+	PluginData* pluginData = PluginHandler_findPluginByFilename(filename);
+
+	if (!pluginData)
+		return;
+
+	void* pluginPtr = pluginData->plugin;
+
+	PluginData* reloadPluginData = PluginHandler_reloadPlugin(pluginData);
+
+	PDViewPlugin* newPluginPtr = (PDViewPlugin*)reloadPluginData->plugin; 
+
+	int sessionCount = array_size(s_sessions);
+
+	for (int i = 0; i < sessionCount; ++i)
+	{
+		Session* session = s_sessions[i];
+
+		int viewPluginCount = array_size(session->viewPlugins);
+
+		for (int p = 0; p < viewPluginCount; ++p)
+		{
+			ViewPluginInstance* instance = session->viewPlugins[p]; 
+			PDViewPlugin* instancePlugin = instance->plugin; 
+
+			if (instancePlugin == pluginPtr)
+				instance->plugin = newPluginPtr; 
+		}
+	}
 }
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -51,6 +94,8 @@ void Session_globalInit(bool reloadPlugins)
 {
 	if (!reloadPlugins)
 		return;
+
+	FileMonitor_addPath(OBJECT_DIR, LIB_EXT, fileUpdateCallback, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

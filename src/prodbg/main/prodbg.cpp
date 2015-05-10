@@ -1,6 +1,7 @@
 #include "api/plugin_instance.h"
 #include "core/core.h"
 #include "core/log.h"
+#include "core/file_monitor.h"
 #include "core/math.h"
 #include "core/plugin_handler.h"
 #include "session/session.h"
@@ -196,6 +197,8 @@ void ProDBG_create(void* window, int width, int height)
 
 	findDataDirectory();
 
+	Session_globalInit(true);
+
     context->session = Session_create();
     context->time = time_current();
 
@@ -219,7 +222,8 @@ void ProDBG_create(void* window, int width, int height)
 
     for (uint32_t i = 0; i < sizeof_array(s_plugins); ++i)
     {
-        PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]);
+    	if (!PluginHandler_findPluginByFilename(s_plugins[i]))
+        	PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]);
     }
 
 
@@ -334,6 +338,8 @@ void ProDBG_update()
         rmt_ScopedCPUSample(bgfx_frame);
         bgfx::frame();
     }
+
+    FileMonitor_update();
 }
 
 // Temprory test for monkey

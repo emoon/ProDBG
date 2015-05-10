@@ -10,18 +10,10 @@
 #include <foundation/fs.h>
 #include <foundation/library.h>
 #include <foundation/array.h>
+#include <foundation/string.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-#if FOUNDATION_PLATFORM_APPLE
-#define LIB_EXT ".dylib"
-#elif FOUNDATION_PLATFORM_WINDOWS
-#define LIB_EXT ".dll"
-#else
-#define LIB_EXT ".so"
-#endif
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Move this to some general configuration about plugins and types
@@ -121,9 +113,85 @@ static PluginData* findPluginAll(const char* pluginFile, const char* pluginName)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+PluginData* PluginHandler_findPluginByFilename(const char* filename)
+{
+	for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
+	{
+		int count = array_size(s_plugins[i]);
+
+		for (int t = 0; t < count; ++t)
+		{
+			PluginData* pluginData = s_plugins[i][t];
+
+			if (string_find_string(pluginData->fullFilename, filename, 0) != STRING_NPOS)
+				return pluginData;
+		}
+	}
+
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void removePlugin(PluginData* pluginData)
+{
+	// Remove the plugin data
+
+	for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
+	{
+    	int count = array_size(s_plugins[i]);
+
+	    for (int t = 0; t < count; ++t)
+	    {
+	    	PluginData* plugin = s_plugins[i][t];
+
+	    	if (pluginData != plugin)
+	    		continue;
+
+	    	printf("removed plugin %s\n", plugin->fullFilename);
+	    	
+			library_unload(plugin->lib);
+			free((void*)plugin->fullFilename);
+			free(plugin);
+			array_erase(s_plugins[i], t);
+
+			return;
+ 		}
+   	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+PluginData* PluginHandler_reloadPlugin(PluginData* pluginData)
+{
+	const char* filename = pluginData->filename;
+	const char* fullName = string_clone(pluginData->fullFilename);;
+
+	printf("removing plugin...\n");
+
+	removePlugin(pluginData);
+
+	printf("adding plugin...%s\n", filename);
+
+	PluginHandler_addPlugin(OBJECT_DIR, filename);
+
+	printf("finding plugin\n");
+
+	printf("trying to find %s\n", fullName);
+
+	PluginData* newPluginData = PluginHandler_findPluginByFilename(fullName);
+
+	printf("found plugin %p\n", newPluginData);
+
+	return newPluginData;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct PluginPrivateData
 {
 	const char* name;
+	const char* fullFilename;
 	object_t lib;
 };
 
@@ -148,6 +216,7 @@ static void registerPlugin(const char* type, void* plugin, void* privateData)
 			pluginData->plugin = plugin;
 			pluginData->type = type;
 			pluginData->filename = filename;
+			pluginData->fullFilename = privData->fullFilename;
 			pluginData->lib = privData->lib; 
 
 			return (void)array_push(s_plugins[i], pluginData);
@@ -216,16 +285,13 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 
 	data.name = plugin;
 	data.lib = lib; 
+	data.fullFilename = filename;
 
     initPlugin(registerPlugin, (void*)&data);
-
-	free((void*)filename);
 
     return true;
 
 error:
-
-	free((void*)filename);
 
 	if (library_valid(lib))
 		library_unload(lib);
@@ -247,7 +313,7 @@ void PluginHandler_unloadAllPlugins()
 	    {
 	    	PluginData* plugin = s_plugins[i][t];
 	    	library_unload(plugin->lib);
-        	//free((void*)plugin->filename);
+        	free((void*)plugin->fullFilename);
         	free(plugin);
  		}
 

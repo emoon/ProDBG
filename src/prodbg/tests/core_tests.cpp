@@ -14,6 +14,7 @@
 #include <foundation/types.h>
 #include <foundation/fs.h>
 #include <foundation/thread.h>
+#include <foundation/path.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -78,6 +79,9 @@ static void plugin_handler_find_plugin(void**)
     assert_true(PluginHandler_addPlugin(OBJECT_DIR, "registers_plugin"));
 
     assert_non_null(PluginHandler_findPlugin(0, "registers_plugin", "Registers View", true));
+
+    assert_non_null(PluginHandler_findPluginByFilename("registers_plugin"));
+    assert_null(PluginHandler_findPluginByFilename("plugin_that_isnt_here"));
 
     PluginHandler_unloadAllPlugins();
 }

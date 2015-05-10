@@ -9,6 +9,7 @@ struct PluginData
     void* plugin;
     const char* type;
     const char* filename;
+    const char* fullFilename;
     uint64_t lib;
     int count;
     int menuStart;
@@ -30,6 +31,8 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin);
 void PluginHandler_unloadAllPlugins();
 
 bool PluginHandler_unloadPlugin(PluginData* plugin);
+
+PluginData* PluginHandler_reloadPlugin(PluginData* pluginData);
 
 PluginData* PluginHandler_findPlugin(const char** paths, const char* pluginFile, const char* pluginName, bool load);
 PluginData* PluginHandler_findPluginByFilename(const char* pluginFile);
