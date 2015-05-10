@@ -72,7 +72,7 @@ local macosx_test = {
         
 local gcc_opts = {
 	"-I.",
-	"-Wno-unused-value",
+	"-Wno-array-bounds", "-Wno-attributes", "-Wno-unused-value",
 	"-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
 	"-Wall", "-DPRODBG_UNIX",
 	"-fPIC",
