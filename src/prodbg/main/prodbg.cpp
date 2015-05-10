@@ -28,6 +28,11 @@
 #include <remotery.h>
 #include <assert.h>
 
+#include <foundation/environment.h>
+#include <foundation/fs.h>
+#include <foundation/string.h>
+#include <foundation/path.h>
+
 // TODO: Fix me
 
 int Window_buildPluginMenu(PluginData** plugins, int count);
@@ -155,6 +160,39 @@ void createMenusForPlugins()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static bool findDataDirectory()
+{
+	// check if the data dir is directly here
+
+	if (fs_is_directory("data"))
+		return true;
+
+	const char* exe_file_path = environment_executable_path();
+	const char* exe_path = path_directory_name(exe_file_path );
+
+	char* path = string_clone(exe_path);
+
+	// search max 10 levels up
+
+	for (int i = 0; i < 10; ++i)
+	{
+	#if defined(PRODBG_WIN)
+		path = string_append(path, "\\..");
+	#else
+		path = string_append(path, "/..");
+	#endif
+
+		environment_set_current_working_directory(path);
+
+		if (fs_is_directory("data"))
+			return true;
+	}
+
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ProDBG_create(void* window, int width, int height)
 {
     Context* context = &s_context;
@@ -162,6 +200,8 @@ void ProDBG_create(void* window, int width, int height)
     //
 
 	Core_init();
+
+	findDataDirectory();
 
     context->session = Session_create();
     context->time = bx::getHPCounter();
