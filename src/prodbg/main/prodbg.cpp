@@ -20,11 +20,6 @@
 #include <stdlib.h>
 #include <bx/timer.h>
 
-#ifdef PRODBG_WIN
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#endif
-
 #include <remotery.h>
 #include <assert.h>
 
