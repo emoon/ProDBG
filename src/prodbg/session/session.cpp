@@ -9,10 +9,10 @@
 #include "core/math.h"
 #include "core/file_monitor.h"
 #include "core/plugin_handler.h"
-#include "ui/plugin.h"
-#include "ui/ui_statusbar.h"
-#include "ui/ui_host.h"
-#include "ui/ui_dock_private.h" // TODO: Fix me
+#include "ui/bgfx/plugin.h"
+#include "ui/bgfx/ui_statusbar.h"
+#include "ui/bgfx/ui_host.h"
+#include "ui/bgfx/ui_dock_private.h" // TODO: Fix me
 
 #include <stdlib.h>
 //#include <stb.h>

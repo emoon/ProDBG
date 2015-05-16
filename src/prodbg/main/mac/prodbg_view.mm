@@ -1,7 +1,7 @@
 #import "prodbg_view.h"
 #include "../prodbg.h"
 #include "../prodbg_version.h"
-#include "ui/menu.h"
+#include "ui/bgfx/menu.h"
 #include "core/alloc.h"
 #include "core/plugin_handler.h"
 #include <core/log.h>

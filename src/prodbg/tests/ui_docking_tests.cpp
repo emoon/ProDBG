@@ -2,8 +2,8 @@
 #include <stddef.h>
 #include <setjmp.h>
 #include <cmocka.h>
-#include "ui/ui_dock.h"
-#include "ui/ui_dock_private.h"
+#include "ui/bgfx/ui_dock.h"
+#include "ui/bgfx/ui_dock_private.h"
 #include "core/math.h"
 #include "core/alloc.h"
 #include "api/plugin_instance.h"

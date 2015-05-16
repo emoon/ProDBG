@@ -1,7 +1,7 @@
 #pragma once
 
 #include <pd_backend.h>
-#include "ui/ui_dock.h" // temporary while having UIDocking toggle
+#include "ui/bgfx/ui_dock.h" // temporary while having UIDocking toggle
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

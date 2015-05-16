@@ -1,6 +1,6 @@
 #include "plugin_instance.h"
 #include "core/plugin_handler.h"
-#include "ui/plugin.h"
+#include "ui/bgfx/plugin.h"
 #include "core/alloc.h"
 #include <pd_view.h>
 #include <string.h>
