@@ -8,11 +8,11 @@
 #include "settings.h"
 #include "ui/bgfx/bgfx_plugin_ui.h"
 #include "ui/bgfx/imgui_setup.h"
-#include "ui/bgfx/menu.h"
 #include "ui/bgfx/dialogs.h"
 #include "ui/bgfx/cursor.h"
 #include "ui/bgfx/ui_render.h"
 #include "ui/bgfx/ui_statusbar.h"
+#include "ui/menu.h"
 #include "input/input_state.h"
 #include "ui/plugin.h"
 
