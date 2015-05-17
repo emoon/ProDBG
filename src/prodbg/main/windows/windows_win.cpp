@@ -57,7 +57,7 @@ bool createWindow(const wchar_t* title, int width, int height)
     DWORD exStyle;
     DWORD style;
     RECT rect;
-    Rect settingsRect;
+    PDGRect settingsRect;
 
     HINSTANCE instance = GetModuleHandle(0);
     memset(&wc, 0, sizeof(wc));
@@ -920,7 +920,7 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
         case WM_CLOSE:
         {
             RECT rect;
-            Rect settingsRect;
+            PDGRect settingsRect;
 
             GetWindowRect(window, &rect);
 
