@@ -9,6 +9,7 @@
 #include "session/session.h"
 #include "api/plugin_instance.h"
 #include "core/plugin_handler.h"
+#include "ui/plugin.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -83,9 +84,9 @@ static void session_add_plugins(void** state)
 
     struct Session* session = createSession();
 
-    struct ViewPluginInstance* i0 = PluginInstance_createViewPlugin(&s_pluginData);
-    struct ViewPluginInstance* i1 = PluginInstance_createViewPlugin(&s_pluginData);
-    struct ViewPluginInstance* i2 = PluginInstance_createViewPlugin(&s_pluginData);
+    struct ViewPluginInstance* i0 = g_pluginUI->createViewPlugin(&s_pluginData);
+    struct ViewPluginInstance* i1 = g_pluginUI->createViewPlugin(&s_pluginData);
+    struct ViewPluginInstance* i2 = g_pluginUI->createViewPlugin(&s_pluginData);
 
     Session_addViewPlugin(session, i0);
     Session_addViewPlugin(session, i1);
@@ -111,9 +112,9 @@ static void session_delete_plugins(void** state)
 
     struct Session* session = createSession();
 
-    struct ViewPluginInstance* i0 = PluginInstance_createViewPlugin(&s_pluginData);
-    struct ViewPluginInstance* i1 = PluginInstance_createViewPlugin(&s_pluginData);
-    struct ViewPluginInstance* i2 = PluginInstance_createViewPlugin(&s_pluginData);
+    struct ViewPluginInstance* i0 = g_pluginUI->createViewPlugin(&s_pluginData);
+    struct ViewPluginInstance* i1 = g_pluginUI->createViewPlugin(&s_pluginData);
+    struct ViewPluginInstance* i2 = g_pluginUI->createViewPlugin(&s_pluginData);
 
     Session_addViewPlugin(session, i0);
     Session_addViewPlugin(session, i1);

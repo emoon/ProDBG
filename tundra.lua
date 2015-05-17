@@ -44,12 +44,26 @@ local macosx = {
     Frameworks = { "Cocoa" },
 }
 
+local macosx_wx = {
+    Env = {
+        CCOPTS =  {
+			mac_opts,
+			"-PRODBG_WX",
+		},
+        
+        CXXOPTS = {
+			mac_opts,
+			"-PRODBG_WX",
+		},
+    },
+
+    Frameworks = { "Cocoa" },
+}
+
 local macosx_test = {
     Env = {
         CCOPTS =  {
 			mac_opts,
-			"-Wno-everything",
-			"-coverage",
 		},
         
         CXXOPTS = {
@@ -146,6 +160,7 @@ Build {
     Configs = {
         Config { Name = "macosx-clang", DefaultOnHost = "macosx", Inherit = macosx, Tools = { "clang-osx" } },
         Config { Name = "macosx_test-clang", SupportedHosts = { "macosx" }, Inherit = macosx_test, Tools = { "clang-osx" } },
+        Config { Name = "macosx_wx-clang", SupportedHosts = { "macosx" }, Inherit = macosx_test, Tools = { "clang-osx" } },
         Config { Name = "win64-msvc", DefaultOnHost = { "windows" }, Inherit = win64, Tools = { { "msvc" }, "generic-asm" } },
         Config { Name = "linux-gcc", DefaultOnHost = { "linux" }, Inherit = gcc_env, Tools = { "gcc" } },
     },

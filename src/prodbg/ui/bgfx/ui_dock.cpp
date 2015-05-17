@@ -4,7 +4,7 @@
 #include "input/input_state.h"
 #include "ui_dock_private.h"
 #include "ui_render.h"
-#include "plugin.h"
+#include "../plugin.h"
 #include <stddef.h>
 #include <assert.h>
 #include <math.h>

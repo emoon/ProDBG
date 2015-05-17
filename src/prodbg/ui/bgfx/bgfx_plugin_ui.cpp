@@ -1,4 +1,4 @@
-#include "plugin.h"
+#include "bgfx_plugin_ui.h"
 #include "pd_ui.h"
 #include "pd_view.h"
 #include "api/plugin_instance.h"
@@ -592,7 +592,7 @@ char* buildName(const char* pluginName, int id)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PluginUI_init(ViewPluginInstance* pluginInstance)
+void BgfxPluginUI::init(ViewPluginInstance* pluginInstance)
 {
     PrivateData* data = (PrivateData*)alloc_zero(sizeof(PrivateData));
     PDUI* uiInstance = &pluginInstance->ui;
@@ -674,7 +674,7 @@ void PluginUI_init(ViewPluginInstance* pluginInstance)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PluginUIState PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer)
+PluginUI::State BgfxPluginUI::updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer)
 {
     PDUI* uiInstance = &instance->ui;
     PrivateData* data = (PrivateData*)uiInstance->privateData;
@@ -689,13 +689,14 @@ PluginUIState PluginUI_updateInstance(ViewPluginInstance* instance, PDReader* re
     ImGui::End();
 
     if (!data->showWindow)
-        return PluginUIState_CloseView;
+        return CloseView;
 
-    return PluginUIState_None;
+    return None;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 void PluginUI_getWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 {
     rect->x = (float)instance->rect.x;
@@ -710,6 +711,7 @@ void PluginUI_setWindowRect(ViewPluginInstance* instance, FloatRect* rect)
 {
     instance->rect = *rect;
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

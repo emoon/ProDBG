@@ -6,6 +6,7 @@
 #include "core/plugin_handler.h"
 #include "session/session.h"
 #include "settings.h"
+#include "ui/bgfx/bgfx_plugin_ui.h"
 #include "ui/bgfx/imgui_setup.h"
 #include "ui/bgfx/menu.h"
 #include "ui/bgfx/dialogs.h"
@@ -13,6 +14,7 @@
 #include "ui/bgfx/ui_render.h"
 #include "ui/bgfx/ui_statusbar.h"
 #include "input/input_state.h"
+#include "ui/plugin.h"
 
 #include <bgfx.h>
 #include <stdio.h>
@@ -196,6 +198,8 @@ void ProDBG_create(void* window, int width, int height)
 	Core_init();
 
 	findDataDirectory();
+
+	g_pluginUI = new BgfxPluginUI;
 
 	Session_globalInit(true);
 
@@ -437,7 +441,7 @@ void ProDBG_event(int eventId)
 
         eventId &= (PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT - 1);
 
-        ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[eventId]);
+        ViewPluginInstance* instance = g_pluginUI->createViewPlugin(pluginsData[eventId]);
         UIDock_splitHorizontal(Session_getDockingGrid(context->session), dockAtMouse, instance);
 
         Session_addViewPlugin(context->session, instance);
@@ -452,7 +456,7 @@ void ProDBG_event(int eventId)
 
         eventId &= (PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT - 1);
 
-        ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[eventId]);
+        ViewPluginInstance* instance = g_pluginUI->createViewPlugin(pluginsData[eventId]);
         UIDock_splitVertical(Session_getDockingGrid(context->session), dockAtMouse, instance);
 
         Session_addViewPlugin(context->session, instance);
@@ -465,7 +469,7 @@ void ProDBG_event(int eventId)
 
     if (eventId >= PRODBG_MENU_PLUGIN_START && eventId < PRODBG_MENU_PLUGIN_START + 9)
     {
-        ViewPluginInstance* instance = PluginInstance_createViewPlugin(pluginsData[eventId - PRODBG_MENU_PLUGIN_START]);
+        ViewPluginInstance* instance = g_pluginUI->createViewPlugin(pluginsData[eventId - PRODBG_MENU_PLUGIN_START]);
 
         UIDockingGrid* grid = Session_getDockingGrid(context->session);
         UIDock* dockAtMouse = UIDock_getDockAt(grid, 0, 0);

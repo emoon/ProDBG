@@ -9,7 +9,7 @@
 #include "core/math.h"
 #include "core/file_monitor.h"
 #include "core/plugin_handler.h"
-#include "ui/bgfx/plugin.h"
+#include "ui/plugin.h"
 #include "ui/bgfx/ui_statusbar.h"
 #include "ui/bgfx/ui_host.h"
 #include "ui/bgfx/ui_dock_private.h" // TODO: Fix me
@@ -450,9 +450,9 @@ static void updateLocal(Session* s, PDAction action)
     for (int i = 0; i < len; ++i)
     {
         struct ViewPluginInstance* p = s->viewPlugins[i];
-        PluginUIState state = PluginUI_updateInstance(p, s->reader, s->currentWriter);
+		PluginUI::State state = g_pluginUI->updateInstance(p, s->reader, s->currentWriter);
 
-        if (state == PluginUIState_CloseView)
+        if (state == PluginUI::CloseView)
         {
         #if PRODBG_USING_DOCKING
             UIDock_deleteView(s->uiDockingGrid, p);
@@ -532,9 +532,9 @@ static void updateRemote(Session* s, PDAction action)
     for (int i = 0; i < len; ++i)
     {
         struct ViewPluginInstance* p = s->viewPlugins[i];
-        PluginUIState state = PluginUI_updateInstance(p, s->reader, s->currentWriter);
+		PluginUI::State state = g_pluginUI->updateInstance(p, s->reader, s->currentWriter);
 
-        if (state == PluginUIState_CloseView)
+        if (state == PluginUI::CloseView)
         {
         #if PRODBG_USING_DOCKING
             UIDock_deleteView(s->uiDockingGrid, p);

@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <setjmp.h>
 #include <cmocka.h>
+#include "ui/plugin.h"
 #include "ui/bgfx/ui_dock.h"
 #include "ui/bgfx/ui_dock_private.h"
 #include "core/math.h"

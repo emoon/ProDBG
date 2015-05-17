@@ -4,6 +4,7 @@
 #include "core/plugin_handler.h"
 #include "core/alloc.h"
 #include "core/log.h"
+#include "../plugin.h"
 #include <jansson.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -213,7 +214,7 @@ static void loadDocks(UIDockingGrid* grid, json_t* root, float xScale, float ySc
             if (!pluginData)
                 view = (ViewPluginInstance*)alloc_zero(sizeof(ViewPluginInstance));
             else
-                view = PluginInstance_createViewPlugin(pluginData);
+                view = g_pluginUI->createViewPlugin(pluginData);
         }
 
         assert(view);
