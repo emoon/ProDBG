@@ -10,6 +10,7 @@
 #include "api/plugin_instance.h"
 #include "core/plugin_handler.h"
 #include "ui/plugin.h"
+#include "ui/bgfx/bgfx_plugin_ui.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -139,6 +140,8 @@ static void session_delete_plugins(void** state)
 int main()
 {
 	Core_init();
+
+	g_pluginUI = new BgfxPluginUI;
 
     const UnitTest tests[] =
     {
