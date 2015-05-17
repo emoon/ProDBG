@@ -857,7 +857,7 @@ void test_drag_vertical(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void printRect(const char* name, const Rect rect)
+void printRect(const char* name, const PDGRect rect)
 {
     printf("%s %04d %04d %04d %04d\n", name, rect.x, rect.y, rect.width, rect.height);
 }
@@ -945,7 +945,7 @@ static uint32_t s_colors[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void fillRect(uint32_t* buffer, Rect rect, int width, uint32_t color)
+void fillRect(uint32_t* buffer, PDGRect rect, int width, uint32_t color)
 {
     buffer += (rect.y * width) + rect.x;
 
@@ -965,7 +965,7 @@ void fillRect(uint32_t* buffer, Rect rect, int width, uint32_t color)
 
 void fillDockFloat(uint32_t* buffer, FloatRect r, int width, uint32_t color)
 {
-    Rect rect;
+    PDGRect rect;
 
     rect.x = (int)(r.x + g_sizerSize / 2);
     rect.y = (int)(r.y + g_sizerSize / 2);
@@ -977,7 +977,7 @@ void fillDockFloat(uint32_t* buffer, FloatRect r, int width, uint32_t color)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void fillDock(uint32_t* buffer, Rect rect, int width, uint32_t color)
+void fillDock(uint32_t* buffer, PDGRect rect, int width, uint32_t color)
 {
     rect.x += g_sizerSize / 2;
     rect.y += g_sizerSize / 2;
@@ -991,7 +991,7 @@ void fillDock(uint32_t* buffer, Rect rect, int width, uint32_t color)
 
 void fillSizer(uint32_t* buffer, UIDockSizer* sizer, int width)
 {
-    Rect rect;
+    PDGRect rect;
 
     rect.x = (int)sizer->rect.x;
     rect.y = (int)sizer->rect.y;

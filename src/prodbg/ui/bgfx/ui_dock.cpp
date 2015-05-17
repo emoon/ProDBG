@@ -12,6 +12,33 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef struct Rect
+{
+    enum
+    {
+        X,
+        Y,
+        W,
+        H,
+        Compontent_Count,
+    };
+
+    union
+    {
+        struct
+        {
+            int x;
+            int y;
+            int width;
+            int height;
+        };
+
+        int data[Compontent_Count];
+    };
+} Rect;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 UIDockingGrid* UIDock_createGrid(FloatRect* rect)
 {
     UIDockingGrid* grid = new UIDockingGrid;

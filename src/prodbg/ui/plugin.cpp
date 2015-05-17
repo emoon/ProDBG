@@ -2,8 +2,12 @@
 #include "core/alloc.h"
 #include "core/plugin_handler.h"
 #include "api/include/pd_view.h"
+#include <stdio.h>
+#include <stdarg.h>
 
 PluginUI* g_pluginUI = 0;
+
+static char s_statusText[4096];
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -24,4 +28,16 @@ ViewPluginInstance* PluginUI::createViewPlugin(PluginData* pluginData)
 
     return instance;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PluginUI::setStatusText(const char* format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    vsprintf(s_statusText, format, ap);
+	setStatusTextNoFormat(s_statusText);
+    va_end(ap);
+}
+
 

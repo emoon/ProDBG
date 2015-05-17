@@ -35,6 +35,14 @@ struct PluginUI
 
 	virtual void init(ViewPluginInstance* instance) = 0;
 	virtual State updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer) = 0;
+
+	// Statusbar functions
+
+	virtual void setStatusText(const char* format, ...);
+
+	virtual void setStatusTextNoFormat(const char* text) = 0;
+	virtual float getStatusBarSize() = 0;
+	virtual void update() = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

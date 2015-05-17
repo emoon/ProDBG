@@ -8,6 +8,9 @@
 #include <imgui.h>
 #include <assert.h>
 
+#include <foundation/apple.h>
+#include <foundation/string.h>
+
 struct ImGuiWindow;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -692,6 +695,50 @@ PluginUI::State BgfxPluginUI::updateInstance(ViewPluginInstance* instance, PDRea
         return CloseView;
 
     return None;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float BgfxPluginUI::getStatusBarSize()
+{
+	return m_statusSize;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void renderStatusBar(const char* text, float statusSize)
+{
+    const ImGuiIO& io = ImGui::GetIO();
+    ImVec2 size = io.DisplaySize;
+    float yPos = size.y - statusSize;
+
+    ImGui::SetNextWindowPos(ImVec2(0.0f, yPos));
+    ImGui::SetNextWindowSize(ImVec2(size.x, statusSize));
+
+    bool show = true;
+
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImColor(40, 40, 40));
+
+    ImGui::Begin("", &show, ImVec2(0, 0), true, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::SetCursorPos(ImVec2(2.0f, 4.0f));
+    ImGui::Text("Status: %s", text);
+    ImGui::End();
+
+    ImGui::PopStyleColor();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BgfxPluginUI::setStatusTextNoFormat(const char* text)
+{
+	string_copy(m_statusText, text, sizeof(m_statusText)); 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BgfxPluginUI::update()
+{
+	renderStatusBar(m_statusText, m_statusSize);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

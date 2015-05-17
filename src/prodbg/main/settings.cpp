@@ -6,7 +6,7 @@
 
 typedef struct Settings
 {
-    Rect windowRect;
+    PDGRect windowRect;
 } Settings;
 
 static Settings s_settings;
@@ -23,7 +23,7 @@ static void initDefaultSettings(Settings* settings)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Settings_getWindowRect(Rect* rect)
+void Settings_getWindowRect(PDGRect* rect)
 {
     Settings* settings = &s_settings;
     *rect = settings->windowRect;
@@ -31,7 +31,7 @@ void Settings_getWindowRect(Rect* rect)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Settings_setWindowRect(Rect* rect)
+void Settings_setWindowRect(PDGRect* rect)
 {
     Settings* settings = &s_settings;
     settings->windowRect = *rect;
@@ -42,7 +42,7 @@ void Settings_setWindowRect(Rect* rect)
 void Settings_load()
 {
     Settings* settings = &s_settings;
-    const Rect* r = &settings->windowRect;
+    const PDGRect* r = &settings->windowRect;
 
     json_error_t error;
 
@@ -63,7 +63,7 @@ void Settings_load()
 void Settings_save()
 {
     Settings* settings = &s_settings;
-    const Rect* r = &settings->windowRect;
+    const PDGRect* r = &settings->windowRect;
 
     json_t* a = json_array();
     json_t* windowRect = json_pack("{s:i, s:i, s:i, s:i}", "x", r->x, "y", r->y, "width", r->width, "height", r->height);

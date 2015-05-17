@@ -4,12 +4,12 @@
 extern "C" {
 #endif
 
-struct Rect;
+struct PDGRect;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Settings_getWindowRect(struct Rect* rect);
-void Settings_setWindowRect(struct Rect* rect);
+void Settings_getWindowRect(struct PDGRect* rect);
+void Settings_setWindowRect(struct PDGRect* rect);
 void Settings_load();
 void Settings_save();
 

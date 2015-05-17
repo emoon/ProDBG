@@ -1,4 +1,5 @@
 #include "../cursor.h"
+#include <foundation/apple.h>
 #import <Cocoa/Cocoa.h>
 
 static NSCursor* s_cursors[CursorType_Count];

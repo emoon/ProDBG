@@ -11,7 +11,7 @@
 #include "ui/bgfx/dialogs.h"
 #include "ui/bgfx/cursor.h"
 #include "ui/bgfx/ui_render.h"
-#include "ui/bgfx/ui_statusbar.h"
+//#include "ui/bgfx/ui_statusbar.h"
 #include "ui/menu.h"
 #include "input/input_state.h"
 #include "ui/plugin.h"
@@ -207,7 +207,7 @@ void ProDBG_create(void* window, int width, int height)
     context->time = time_current();
 
 #if PRODBG_USING_DOCKING
-    loadLayout(context->session, (float)width, (float)(height - g_statusBarSize));
+    loadLayout(context->session, (float)width, (float)(height - g_pluginUI->getStatusBarSize()));
 #endif
 
     /*
@@ -314,7 +314,9 @@ void ProDBG_update()
         Session_update(context->session);
     }
 
-    UIStatusBar_render();
+	g_pluginUI->update();
+
+    //UIStatusBar_render();
 
     //renderTest();
 
@@ -361,7 +363,7 @@ void ProDBG_setWindowSize(int width, int height)
     IMGUI_updateSize(width, height);
 
 #if PRODBG_USING_DOCKING
-    UIDock_updateSize(Session_getDockingGrid(context->session), width, height - (int)g_statusBarSize);
+    UIDock_updateSize(Session_getDockingGrid(context->session), width, height - (int)g_pluginUI->getStatusBarSize());
 #endif
 
     ProDBG_update();
@@ -385,7 +387,7 @@ void ProDBG_destroy()
     //rmt_DestroyGlobalInstance(s_remotery);
 
     UIDock_saveLayout(Session_getDockingGrid(context->session),
-                      "data/current_layout.json", (float)context->width, (float)(context->height - g_statusBarSize));
+                      "data/current_layout.json", (float)context->width, (float)(context->height - g_pluginUI->getStatusBarSize()));
 
 	Session_destroy(context->session);
 

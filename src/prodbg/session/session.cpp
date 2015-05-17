@@ -10,9 +10,9 @@
 #include "core/file_monitor.h"
 #include "core/plugin_handler.h"
 #include "ui/plugin.h"
-#include "ui/bgfx/ui_statusbar.h"
 #include "ui/bgfx/ui_host.h"
 #include "ui/bgfx/ui_dock_private.h" // TODO: Fix me
+#include "ui/plugin.h"
 
 #include <stdlib.h>
 //#include <stb.h>
@@ -134,7 +134,7 @@ struct Session* Session_create()
 {
     Session* s = new Session;
 
-    UIStatusBar_setText("Not running");
+    g_pluginUI->setStatusText("Not running");
 
     commonInit(s);
 
@@ -439,7 +439,7 @@ static void updateLocal(Session* s, PDAction action)
     if (backend)
 	{
         s->state = backend->plugin->update(backend->userData, action, s->reader, s->currentWriter);
-        UIStatusBar_setText("%s Backend: %s", backend->plugin->name, getStateName(s->state));
+        g_pluginUI->setStatusText("%s Backend: %s", backend->plugin->name, getStateName(s->state));
 	}
 
     int len = array_size(s->viewPlugins);
@@ -767,7 +767,7 @@ SessionStatus Session_onMenu(Session* session, int eventId)
             session->backend = backend;
             session->type = Session_Local;
 
-            UIStatusBar_setText("%s Backend active", plugin->name);
+            g_pluginUI->setStatusText("%s Backend active", plugin->name);
 
             // Write down
 
