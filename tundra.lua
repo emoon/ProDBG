@@ -64,6 +64,8 @@ local macosx_test = {
     Env = {
         CCOPTS =  {
 			mac_opts,
+			"-Wno-everything",
+			"-coverage",
 		},
         
         CXXOPTS = {
