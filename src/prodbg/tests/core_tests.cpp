@@ -242,8 +242,8 @@ void test_file_notification(void**)
 	const char* test_dir = "t2-output/test_dir"; 
 	const char* test_dir_2 = "t2-output/2_test_dir"; 
 	const char* filename_2 = "t2-output/test_dir/test_file_2";
-	s_filename = "t2-output/test_dir/test_file";
-	s_filename_2 = "t2-output/2_test_dir/test_file";
+	s_filename = "t2-output/test_dir/test_file.dll";
+	s_filename_2 = "t2-output/2_test_dir/test_file.txt";
 
 	fs_remove_directory(test_dir); 
 	fs_make_directory(test_dir);
@@ -282,7 +282,7 @@ void test_file_notification(void**)
 
 	assert_int_equal(s_checkPhase, 2);
 
-	FileMonitor_addPath(test_dir_2, "*", fileNotifaction2, &s_userData_2);
+	FileMonitor_addPath(test_dir_2, "txt", fileNotifaction2, &s_userData_2);
 
 	thread_sleep(1000);
 
