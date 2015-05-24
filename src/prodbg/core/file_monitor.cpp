@@ -3,6 +3,7 @@
 #include <foundation/array.h>
 #include <foundation/event.h>
 #include <foundation/fs.h>
+#include <foundation/path.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -91,8 +92,9 @@ static void updateCallbacks(event_t* event)
 
 		    bool matching_filter = false;		
 		    for (int filter_index = 0; filter_index < filter_count; ++filter_index)
-		    {		    
-			found = strstr((char *)filename, filter_extensions[filter_index]);
+		    {
+			char *extension = path_file_extension(filename);
+			found = strstr(extension, filter_extensions[filter_index]);
 			if (found)
 			{
 			    matching_filter = true;
