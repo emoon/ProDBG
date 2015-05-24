@@ -81,16 +81,13 @@ static void updateCallbacks(event_t* event)
 			found = strpbrk(found+1, delimiter);
 		    }		    
 
-		    // NOTE(marco): we could probably lower the string length
 		    char **filter_extensions = (char **)alloca((size_t)filter_count * sizeof(char *));
-		    for (int filter_index = 0; filter_index < filter_count; ++filter_index) {
-			filter_extensions[filter_index] = (char *)alloca(256);
-		    }
 		    
 		    found = strtok(file_filters, delimiter);
 		    int current_filter = 0;
 		    while (found != NULL)
-		    {		    
+		    {
+			filter_extensions[current_filter] = (char *)alloca(strlen(found) + 1);
 			strcpy(filter_extensions[current_filter++], found);
 			found = strtok(NULL, delimiter);
 		    }		
