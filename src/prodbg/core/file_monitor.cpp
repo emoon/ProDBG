@@ -1,3 +1,4 @@
+#include <alloca.h>
 #include "file_monitor.h"
 #include <foundation/memory.h>
 #include <foundation/array.h>
@@ -68,7 +69,7 @@ static void updateCallbacks(event_t* event)
 		else
 		{
 		    int filter_count = 1;
-		    char file_filters[strlen(noteData->fileFilters) + 1];
+		    char *file_filters = (char *)alloca(strlen(noteData->fileFilters) + 1);
 		    strcpy(file_filters, noteData->fileFilters);
 		    const char* delimiter = ";"; 
 		    char* found;		
@@ -81,7 +82,11 @@ static void updateCallbacks(event_t* event)
 		    }		    
 
 		    // NOTE(marco): we could probably lower the string length
-		    char filter_extensions[filter_count][256];
+		    char **filter_extensions = (char **)alloca((size_t)filter_count * sizeof(char *));
+		    for (int filter_index = 0; filter_index < filter_count; ++filter_index) {
+			filter_extensions[filter_index] = (char *)alloca(256);
+		    }
+		    
 		    found = strtok(file_filters, delimiter);
 		    int current_filter = 0;
 		    while (found != NULL)
