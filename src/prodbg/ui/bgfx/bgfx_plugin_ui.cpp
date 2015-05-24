@@ -146,10 +146,10 @@ static int button(const char* label)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
 static int checkbox(const char* label, bool* v)
 {
-	return ImGui::Checkbox(label, v);
+    return ImGui::Checkbox(label, v);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -199,60 +199,60 @@ static void textWrapped(const char* format, ...)
 
 typedef struct PDSCFuncs
 {
-	intptr_t (*sendCommand)(void* privData, unsigned int message, uintptr_t p0, intptr_t p1);
-	void (*update)(void* privData);
-	void (*draw)(void* privData);
-	void* privateData;
+    intptr_t (* sendCommand)(void* privData, unsigned int message, uintptr_t p0, intptr_t p1);
+    void (* update)(void* privData);
+    void (* draw)(void* privData);
+    void* privateData;
 } PDSCFuns;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static intptr_t scSendCommand(void* privData, unsigned int message, uintptr_t p0, intptr_t p1)
 {
-	ImScEditor* editor = (ImScEditor*)privData;
-	return editor->SendCommand(message, p0, p1);
+    ImScEditor* editor = (ImScEditor*)privData;
+    return editor->SendCommand(message, p0, p1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void scUpdate(void* privData)
 {
-	ImScEditor* editor = (ImScEditor*)privData;
-	editor->Draw();
+    ImScEditor* editor = (ImScEditor*)privData;
+    editor->Draw();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void scDraw(void* privData)
 {
-	ImScEditor* editor = (ImScEditor*)privData;
-	return editor->Update();
+    ImScEditor* editor = (ImScEditor*)privData;
+    return editor->Update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static PDSCInterface* scEditText(const char* label, float xSize, float ySize,
-                       void (*callback)(void*), void* userData)
+                                 void (* callback)(void*), void* userData)
 {
-	ImScEditor* ed = ImGui::ScInputText(label, xSize, ySize, callback, userData);
+    ImScEditor* ed = ImGui::ScInputText(label, xSize, ySize, callback, userData);
 
-	if (!ed->userData)
-	{
-		PDSCInterface* funcs = (PDSCInterface*)malloc(sizeof(PDSCInterface));
-		funcs->sendCommand = scSendCommand;
-		funcs->update = scUpdate;
-		funcs->draw = scDraw;
-		funcs->privateData = ed;
+    if (!ed->userData)
+    {
+        PDSCInterface* funcs = (PDSCInterface*)malloc(sizeof(PDSCInterface));
+        funcs->sendCommand = scSendCommand;
+        funcs->update = scUpdate;
+        funcs->draw = scDraw;
+        funcs->privateData = ed;
 
-		ed->userData = (void*)funcs;
-	}
+        ed->userData = (void*)funcs;
+    }
 
-	return (PDSCInterface*)ed->userData;
+    return (PDSCInterface*)ed->userData;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef void (*InputCallback)(PDInputTextCallbackData*);
+typedef void (* InputCallback)(PDInputTextCallbackData*);
 
 struct PDInputTextUserData
 {
@@ -343,7 +343,7 @@ static int textEditCallbackStub(ImGuiTextEditCallbackData* data)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool inputText(const char* label, char* buf, int buf_size, int flags, void (*callback)(PDInputTextCallbackData*), void* userData)
+static bool inputText(const char* label, char* buf, int buf_size, int flags, void (* callback)(PDInputTextCallbackData*), void* userData)
 {
     PDInputTextUserData wrappedUserData;
     wrappedUserData.callback = callback;
@@ -521,21 +521,21 @@ static void setKeyboardFocusHere(int offset)
 
 static void pushIdPtr(void* id)
 {
-	ImGui::PushID(id);
+    ImGui::PushID(id);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void pushIdInt(int id)
 {
-	ImGui::PushID(id);
+    ImGui::PushID(id);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void popId()
 {
-	ImGui::PopID();
+    ImGui::PopID();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -701,7 +701,7 @@ PluginUI::State BgfxPluginUI::updateInstance(ViewPluginInstance* instance, PDRea
 
 float BgfxPluginUI::getStatusBarSize()
 {
-	return m_statusSize;
+    return m_statusSize;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -731,34 +731,34 @@ static void renderStatusBar(const char* text, float statusSize)
 
 void BgfxPluginUI::setStatusTextNoFormat(const char* text)
 {
-	string_copy(m_statusText, text, sizeof(m_statusText)); 
+    string_copy(m_statusText, text, sizeof(m_statusText));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BgfxPluginUI::update()
 {
-	renderStatusBar(m_statusText, m_statusSize);
+    renderStatusBar(m_statusText, m_statusSize);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-void PluginUI_getWindowRect(ViewPluginInstance* instance, FloatRect* rect)
-{
+   void PluginUI_getWindowRect(ViewPluginInstance* instance, FloatRect* rect)
+   {
     rect->x = (float)instance->rect.x;
     rect->y = (float)instance->rect.y;
     rect->width = (float)instance->rect.width;
     rect->height = (float)instance->rect.height;
-}
+   }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PluginUI_setWindowRect(ViewPluginInstance* instance, FloatRect* rect)
-{
+   void PluginUI_setWindowRect(ViewPluginInstance* instance, FloatRect* rect)
+   {
     instance->rect = *rect;
-}
-*/
+   }
+ */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

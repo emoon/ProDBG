@@ -57,40 +57,40 @@ int Dialog_save(char* dest)
 
 static void internalPanel(const char* titleText, const char* messageText, int type)
 {
-	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-	NSString* text = [[[NSString alloc] initWithUTF8String:titleText] autorelease];// convert 
-	NSString* message = [[[NSString alloc] initWithUTF8String:messageText] autorelease];// convert 
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSString* text = [[[NSString alloc] initWithUTF8String:titleText] autorelease];// convert
+    NSString* message = [[[NSString alloc] initWithUTF8String:messageText] autorelease];// convert
 
-	NSAlert* alert = [[NSAlert alloc] init];
+    NSAlert* alert = [[NSAlert alloc] init];
 
-	[alert setMessageText:text];
-	[alert setInformativeText:message];
-	[alert setAlertStyle:(NSAlertStyle)type];
-	[alert runModal];
-	[alert release];
+    [alert setMessageText:text];
+    [alert setInformativeText:message];
+    [alert setAlertStyle:(NSAlertStyle)type];
+    [alert runModal];
+    [alert release];
 
-	[pool drain];
+    [pool drain];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MacDialog_errorDialog(const char* title, const char* message)
 {
-	internalPanel(title, message, NSCriticalAlertStyle);
+    internalPanel(title, message, NSCriticalAlertStyle);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MacDialog_infoDialog(const char* title, const char* message)
 {
-	internalPanel(title, message, NSInformationalAlertStyle);
+    internalPanel(title, message, NSInformationalAlertStyle);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MecDialog_warningDialog(const char* title, const char* message)
 {
-	internalPanel(title, message, NSWarningAlertStyle);
+    internalPanel(title, message, NSWarningAlertStyle);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

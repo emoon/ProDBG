@@ -36,7 +36,7 @@ void PluginUI::setStatusText(const char* format, ...)
     va_list ap;
     va_start(ap, format);
     vsprintf(s_statusText, format, ap);
-	setStatusTextNoFormat(s_statusText);
+    setStatusTextNoFormat(s_statusText);
     va_end(ap);
 }
 

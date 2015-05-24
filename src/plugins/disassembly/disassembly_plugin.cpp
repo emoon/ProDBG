@@ -22,21 +22,21 @@ const int BlockSize = 64;
 
 struct Block
 {
-	uint64_t id;
-	uint64_t address;
-	uint64_t addressEnd;
-	std::vector<Line> lines;
+    uint64_t id;
+    uint64_t address;
+    uint64_t addressEnd;
+    std::vector<Line> lines;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct DissassemblyData
 {
-	std::vector<Block*> blocks;
+    std::vector<Block*> blocks;
     uint64_t location;
     uint64_t pc;
     uint8_t locationSize;
-    bool requestDisassembly; 
+    bool requestDisassembly;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -44,7 +44,7 @@ struct DissassemblyData
 static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 {
     (void)serviceFunc;
-    DissassemblyData* userData = new DissassemblyData; 
+    DissassemblyData* userData = new DissassemblyData;
     userData->location = 0;
     userData->pc = 0;
     userData->locationSize = 0;
@@ -67,85 +67,85 @@ static void destroyInstance(void* userData)
 
 Block* findBlock(DissassemblyData* data, uint64_t blockId)
 {
-	for (Block* b : data->blocks)
-	{
-		if (b->id == blockId)
-			return b;
-	}
+    for (Block* b : data->blocks)
+    {
+        if (b->id == blockId)
+            return b;
+    }
 
-	return 0;
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Block* createBlock(DissassemblyData* data, uint64_t address, uint64_t blockId)
 {
-	Block* block = new Block;
+    Block* block = new Block;
 
-	(void)address;
+    (void)address;
 
-	block->id = blockId;
-	block->address = blockId * BlockSize; 
-	block->addressEnd = block->address + (uint64_t)BlockSize;
+    block->id = blockId;
+    block->address = blockId * BlockSize;
+    block->addressEnd = block->address + (uint64_t)BlockSize;
 
-	data->blocks.push_back(block);
+    data->blocks.push_back(block);
 
-	return block;
+    return block;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void insertLineBlock(Block* block, uint64_t address, const char* text)
 {
-	// So this isn't very smart but will do for now
+    // So this isn't very smart but will do for now
 
-	for (auto i = block->lines.begin(); i != block->lines.end(); ++i)
-	{
-		Line& line = *i;
+    for (auto i = block->lines.begin(); i != block->lines.end(); ++i)
+    {
+        Line& line = *i;
 
-		if (address < line.address)
-		{
-			Line newLine = { 0 };
-			newLine.address = address;
-			newLine.text = strdup(text);
-			block->lines.insert(i, newLine);
-			return;
-		}
+        if (address < line.address)
+        {
+            Line newLine = { 0 };
+            newLine.address = address;
+            newLine.text = strdup(text);
+            block->lines.insert(i, newLine);
+            return;
+        }
 
-		// found matching address, update the disassembly
+        // found matching address, update the disassembly
 
-		if (line.address == address)
-		{
-			free((void*)line.text);
-			line.text = (const char*)strdup(text);
-			return;
-		}
+        if (line.address == address)
+        {
+            free((void*)line.text);
+            line.text = (const char*)strdup(text);
+            return;
+        }
 
-		// TODO: Handle the case if a new line is inbetween lines, meaning the code has been modified
-		// so the disasssembly is out of data
-	}
+        // TODO: Handle the case if a new line is inbetween lines, meaning the code has been modified
+        // so the disasssembly is out of data
+    }
 
-	// not find, insert the line
-	Line newLine = { 0 };
-	newLine.address = address;
-	newLine.text = strdup(text);
-	block->lines.push_back(newLine);
+    // not find, insert the line
+    Line newLine = { 0 };
+    newLine.address = address;
+    newLine.text = strdup(text);
+    block->lines.push_back(newLine);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void insertLine(DissassemblyData* data, uint64_t address, const char* text)
 {
-	Block* block = 0;
+    Block* block = 0;
 
-	// first find the block which this address should be in
+    // first find the block which this address should be in
 
-	uint64_t blockId = address / BlockSize; 
+    uint64_t blockId = address / BlockSize;
 
-	if (!(block = findBlock(data, blockId)))
-		block = createBlock(data, address, blockId);
+    if (!(block = findBlock(data, blockId)))
+        block = createBlock(data, address, blockId);
 
-	insertLineBlock(block, address, text);
+    insertLineBlock(block, address, text);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -159,13 +159,13 @@ static void setDisassemblyCode(DissassemblyData* data, PDReader* reader)
 
     while (PDRead_getNextEntry(reader, &it))
     {
-    	uint64_t address;
+        uint64_t address;
         const char* text;
 
         PDRead_findU64(reader, &address, "address", it);
         PDRead_findString(reader, &text, "line", it);
 
-		insertLine(data, address, text);
+        insertLine(data, address, text);
     }
 }
 
@@ -173,27 +173,27 @@ static void setDisassemblyCode(DissassemblyData* data, PDReader* reader)
 
 static Block* findBlockWithPC(DissassemblyData* data, uint64_t pc)
 {
-	for (Block* b : data->blocks)
-	{
-		if (pc >= b->address && pc <= b->addressEnd)
-			return b;
-	}
+    for (Block* b : data->blocks)
+    {
+        if (pc >= b->address && pc <= b->addressEnd)
+            return b;
+    }
 
-	return 0;
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void renderUI(DissassemblyData* data, PDUI* uiFuncs)
 {
-	Block* block = 0;
+    Block* block = 0;
 
     uiFuncs->text("");  // TODO: Temporary
 
-	if (!(block = findBlockWithPC(data, data->pc)))
-		return;
+    if (!(block = findBlockWithPC(data, data->pc)))
+        return;
 
-	PDVec2 size = uiFuncs->getWindowSize();
+    PDVec2 size = uiFuncs->getWindowSize();
 
     for (Line& line : block->lines)
     {
@@ -243,7 +243,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     DissassemblyData* data = (DissassemblyData*)userData;
 
-	data->requestDisassembly = false;
+    data->requestDisassembly = false;
 
     while ((event = PDRead_getEvent(inEvents)) != 0)
     {
@@ -257,25 +257,25 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
             case PDEventType_setExceptionLocation:
             {
-            	uint64_t location = 0;
+                uint64_t location = 0;
 
                 PDRead_findU64(inEvents, &location, "address", 0);
 
-            	if (location != data->location)
-				{
-					data->location = location;
-					data->requestDisassembly = true;
-				}
+                if (location != data->location)
+                {
+                    data->location = location;
+                    data->requestDisassembly = true;
+                }
 
                 PDRead_findU8(inEvents, &data->locationSize, "address_size", 0);
                 break;
             }
 
             case PDEventType_setRegisters:
-			{
-                updateRegisters(data, inEvents); 
+            {
+                updateRegisters(data, inEvents);
                 break;
-			}
+            }
 
         }
     }
@@ -283,13 +283,13 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
     renderUI(data, uiFuncs);
 
     if (data->requestDisassembly)
-	{
-		int pc = (int)(data->pc) & ~(BlockSize - 1);
-		PDWrite_eventBegin(writer, PDEventType_getDisassembly);
-		PDWrite_u64(writer, "address_start", (uint64_t)pc);
-		PDWrite_u32(writer, "instruction_count", (uint32_t)BlockSize / 3);
-		PDWrite_eventEnd(writer);
-	}
+    {
+        int pc = (int)(data->pc) & ~(BlockSize - 1);
+        PDWrite_eventBegin(writer, PDEventType_getDisassembly);
+        PDWrite_u64(writer, "address_start", (uint64_t)pc);
+        PDWrite_u32(writer, "instruction_count", (uint32_t)BlockSize / 3);
+        PDWrite_eventEnd(writer);
+    }
 
     return 0;
 }
@@ -311,10 +311,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-{
-	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-}
+    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+    {
+        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+    }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

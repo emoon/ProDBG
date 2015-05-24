@@ -226,8 +226,8 @@ void IMGUI_setKeyUp(int key, int modifier)
 
 void IMGUI_addInputCharacter(unsigned short c)
 {
-	ImGuiIO& io = ImGui::GetIO();
-	io.AddInputCharacter(c);
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddInputCharacter(c);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

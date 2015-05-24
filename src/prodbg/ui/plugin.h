@@ -25,24 +25,24 @@ struct ViewPluginInstance
 
 struct PluginUI
 {
-	enum State
-	{
-		None,
-		CloseView,
-	};
+    enum State
+    {
+        None,
+        CloseView,
+    };
 
-	ViewPluginInstance* createViewPlugin(PluginData* pluginData);
+    ViewPluginInstance* createViewPlugin(PluginData* pluginData);
 
-	virtual void init(ViewPluginInstance* instance) = 0;
-	virtual State updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer) = 0;
+    virtual void init(ViewPluginInstance* instance) = 0;
+    virtual State updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer) = 0;
 
-	// Statusbar functions
+    // Statusbar functions
 
-	virtual void setStatusText(const char* format, ...);
+    virtual void setStatusText(const char* format, ...);
 
-	virtual void setStatusTextNoFormat(const char* text) = 0;
-	virtual float getStatusBarSize() = 0;
-	virtual void update() = 0;
+    virtual void setStatusTextNoFormat(const char* text) = 0;
+    virtual float getStatusBarSize() = 0;
+    virtual void update() = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -158,33 +158,33 @@ void createMenusForPlugins()
 
 static bool findDataDirectory()
 {
-	// check if the data dir is directly here
+    // check if the data dir is directly here
 
-	if (fs_is_directory("data"))
-		return true;
+    if (fs_is_directory("data"))
+        return true;
 
-	const char* exe_file_path = environment_executable_path();
-	const char* exe_path = path_directory_name(exe_file_path );
+    const char* exe_file_path = environment_executable_path();
+    const char* exe_path = path_directory_name(exe_file_path );
 
-	char* path = string_clone(exe_path);
+    char* path = string_clone(exe_path);
 
-	// search max 10 levels up
+    // search max 10 levels up
 
-	for (int i = 0; i < 10; ++i)
-	{
-	#if defined(PRODBG_WIN)
-		path = string_append(path, "\\..");
-	#else
-		path = string_append(path, "/..");
-	#endif
+    for (int i = 0; i < 10; ++i)
+    {
+    #if defined(PRODBG_WIN)
+        path = string_append(path, "\\..");
+    #else
+        path = string_append(path, "/..");
+    #endif
 
-		environment_set_current_working_directory(path);
+        environment_set_current_working_directory(path);
 
-		if (fs_is_directory("data"))
-			return true;
-	}
+        if (fs_is_directory("data"))
+            return true;
+    }
 
-	return false;
+    return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -195,13 +195,13 @@ void ProDBG_create(void* window, int width, int height)
     //Rect settingsRect;
     //
 
-	Core_init();
+    Core_init();
 
-	findDataDirectory();
+    findDataDirectory();
 
-	g_pluginUI = new BgfxPluginUI;
+    g_pluginUI = new BgfxPluginUI;
 
-	Session_globalInit(true);
+    Session_globalInit(true);
 
     context->session = Session_create();
     context->time = time_current();
@@ -226,8 +226,8 @@ void ProDBG_create(void* window, int width, int height)
 
     for (uint32_t i = 0; i < sizeof_array(s_plugins); ++i)
     {
-    	if (!PluginHandler_findPluginByFilename(s_plugins[i]))
-        	PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]);
+        if (!PluginHandler_findPluginByFilename(s_plugins[i]))
+            PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]);
     }
 
 
@@ -293,9 +293,9 @@ void ProDBG_update()
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x101010ff, 1.0f, 0);
     bgfx::submit(0);
 
-    uint64_t currentTime = time_current(); 
+    uint64_t currentTime = time_current();
 
-	float dt = time_elapsed(context->time);
+    float dt = time_elapsed(context->time);
 
     context->time = currentTime;
 
@@ -314,7 +314,7 @@ void ProDBG_update()
         Session_update(context->session);
     }
 
-	g_pluginUI->update();
+    g_pluginUI->update();
 
     //UIStatusBar_render();
 
@@ -389,7 +389,7 @@ void ProDBG_destroy()
     UIDock_saveLayout(Session_getDockingGrid(context->session),
                       "data/current_layout.json", (float)context->width, (float)(context->height - g_pluginUI->getStatusBarSize()));
 
-	Session_destroy(context->session);
+    Session_destroy(context->session);
 
     Settings_save();
 }

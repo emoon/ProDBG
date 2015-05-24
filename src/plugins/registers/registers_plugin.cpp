@@ -8,7 +8,7 @@
 
 enum
 {
-	ValueSize = 1024,
+    ValueSize = 1024,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,16 +58,16 @@ static void destroyInstance(void* userData)
 
 static void getRegisterString(char* value, PDReader* reader, PDReaderIterator it)
 {
-    uint64_t regValue = 0;;
+    uint64_t regValue = 0;
     const char* regString = 0;
 
     // Support that backend can write down value in custom format
 
     if (PDRead_findString(reader, &regString, "register_string", it) & PDReadStatus_ok)
-	{
-		strncpy(value, regString, ValueSize);
-    	return;
-	}
+    {
+        strncpy(value, regString, ValueSize);
+        return;
+    }
 
     uint32_t type = PDRead_findU64(reader, &regValue, "register", it);
 
@@ -99,7 +99,7 @@ static void addOrUpdate(RegistersData* data, const char* name, const char* value
         if (!strcmp(data->registers[i].name, name))
         {
             strncpy(data->registers[i].value, value, ValueSize);
-			data->registers[i].value[ValueSize - 1] = 0;
+            data->registers[i].value[ValueSize - 1] = 0;
 
             return;
         }
@@ -108,8 +108,8 @@ static void addOrUpdate(RegistersData* data, const char* name, const char* value
     strncpy(data->registers[count].name, name, ValueSize);
     strncpy(data->registers[count].value, value, ValueSize);
 
-	data->registers[count].name[ValueSize - 1] = 0;
-	data->registers[count].value[ValueSize - 1] = 0;
+    data->registers[count].name[ValueSize - 1] = 0;
+    data->registers[count].value[ValueSize - 1] = 0;
 
     data->registerCount++;
 }

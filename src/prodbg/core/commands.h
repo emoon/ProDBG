@@ -15,8 +15,8 @@ void Commands_redo();
 struct Command
 {
     void* userData;
-    void (*exec)(void* userData);
-    void (*undo)(void* userData);
+    void (* exec)(void* userData);
+    void (* undo)(void* userData);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

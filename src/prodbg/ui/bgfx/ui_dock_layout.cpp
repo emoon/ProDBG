@@ -262,34 +262,34 @@ static void loadSizers(UIDockingGrid* grid, json_t* root, float xScale, float yS
         switch (id)
         {
             case UIDock::Top:
-			{
-                sizer = &grid->topSizer; 
+            {
+                sizer = &grid->topSizer;
                 break;
-			}
+            }
 
             case UIDock::Bottom:
-			{
-                sizer = &grid->bottomSizer; 
+            {
+                sizer = &grid->bottomSizer;
                 break;
-			}
+            }
 
             case UIDock::Right:
-			{
-                sizer = &grid->rightSizer; 
+            {
+                sizer = &grid->rightSizer;
                 break;
-			}
+            }
 
             case UIDock::Left:
-			{
-                sizer = &grid->leftSizer; 
+            {
+                sizer = &grid->leftSizer;
                 break;
-			}
+            }
 
             default:
-			{
-            	sizer = new UIDockSizer;
-            	grid->sizers.push_back(sizer);
-			}
+            {
+                sizer = new UIDockSizer;
+                grid->sizers.push_back(sizer);
+            }
         }
 
         sizer->dir = (UIDockSizerDir)dir;

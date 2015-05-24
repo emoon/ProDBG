@@ -107,12 +107,12 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
             uint8_t c = memoryData[p];
             uint8_t co = oldMemoryData[p];
 
-			if (c == co)
-        		uiFuncs->text("%02x" , c); 
-			else
-        		uiFuncs->textColored(color, "%02x" , c); 
+            if (c == co)
+                uiFuncs->text("%02x", c);
+            else
+                uiFuncs->textColored(color, "%02x", c);
 
-        	uiFuncs->sameLine(0, -1);
+            uiFuncs->sameLine(0, -1);
         }
 
         // print characters
@@ -121,19 +121,19 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
         {
             uint8_t c = memoryData[p];
             uint8_t co = oldMemoryData[p];
-            char wc = 0; 
-            
-            if (c >= 32 && c < 128)
-            	wc = (char)c;
-			else
-				wc = '.';
+            char wc = 0;
 
-			if (c == co)
-        		uiFuncs->text("%c" , wc); 
-			else
-        		uiFuncs->textColored(color, "%c" , wc); 
-		
-			uiFuncs->sameLine(0, 0);
+            if (c >= 32 && c < 128)
+                wc = (char)c;
+            else
+                wc = '.';
+
+            if (c == co)
+                uiFuncs->text("%c", wc);
+            else
+                uiFuncs->textColored(color, "%c", wc);
+
+            uiFuncs->sameLine(0, 0);
         }
 
         uiFuncs->text("\n");
@@ -225,9 +225,9 @@ static void updateMemory(HexMemoryData* userData, PDReader* reader)
     // TODO: VirtualMemory manager that can requestmemory on a per 4k page or something similar instead of this
 
     // save the old data that is used for showing the changes
-	memcpy(userData->oldData + address, userData->data + address, (size_t)size);
+    memcpy(userData->oldData + address, userData->data + address, (size_t)size);
 
-	// And update with the new data
+    // And update with the new data
     memcpy(userData->data + address, data, (size_t)size);
 }
 
@@ -235,15 +235,15 @@ static void updateMemory(HexMemoryData* userData, PDReader* reader)
 
 static void updateExceptionLocation(HexMemoryData* data, PDReader* reader)
 {
-	uint64_t address = 0;
+    uint64_t address = 0;
 
     PDRead_findU64(reader, &address, "address", 0);
 
     if (data->exceptionLocation == address)
-    	return;
+        return;
 
     data->requestData = true;
-	data->exceptionLocation = address;
+    data->exceptionLocation = address;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -268,11 +268,11 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
                 break;
             }
 
-			case PDEventType_setExceptionLocation:
-			{
-				updateExceptionLocation(data, inEvents);
-				break;
-			}
+            case PDEventType_setExceptionLocation:
+            {
+                updateExceptionLocation(data, inEvents);
+                break;
+            }
         }
     }
 
@@ -307,10 +307,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-{
-	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-}
+    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+    {
+        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+    }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

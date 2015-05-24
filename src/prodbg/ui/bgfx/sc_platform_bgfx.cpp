@@ -208,7 +208,7 @@ void Font::Create(const FontParameters& fp)
     void* data = File_loadToMemory(fp.faceName, &len, 0);
 
     if (!data)
-    	return;
+        return;
 
     unsigned char* bmp = new unsigned char[512 * 512];
     stbtt_Font* newFont = new stbtt_Font;

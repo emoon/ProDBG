@@ -139,9 +139,9 @@ static void session_delete_plugins(void** state)
 
 int main()
 {
-	Core_init();
+    Core_init();
 
-	g_pluginUI = new BgfxPluginUI;
+    g_pluginUI = new BgfxPluginUI;
 
     const UnitTest tests[] =
     {

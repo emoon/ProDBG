@@ -10,9 +10,9 @@ extern void MecDialog_warningDialog(const char* title, const char* message);
 
 PDMessageFuncs g_serviceMessageFuncs =
 {
-	MacDialog_infoDialog,
-	MacDialog_errorDialog,
-	MecDialog_warningDialog,
+    MacDialog_infoDialog,
+    MacDialog_errorDialog,
+    MecDialog_warningDialog,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -25,24 +25,30 @@ void Windows_warningDialog(const char*, const char*);
 
 PDMessageFuncs g_serviceMessageFuncs =
 {
-	Windows_infoDialog,
-	Windows_errorDialog,
-	Windows_warningDialog,
+    Windows_infoDialog,
+    Windows_errorDialog,
+    Windows_warningDialog,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #else
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Dummy_infoDialog(const char*, const char*) {}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Dummy_errorDialog(const char*, const char*) {}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Dummy_warningDialog(const char*, const char*) {}
 
 PDMessageFuncs g_serviceMessageFuncs =
 {
-	Dummy_infoDialog,
-	Dummy_errorDialog,
-	Dummy_warningDialog,
+    Dummy_infoDialog,
+    Dummy_errorDialog,
+    Dummy_warningDialog,
 };
 
 #endif

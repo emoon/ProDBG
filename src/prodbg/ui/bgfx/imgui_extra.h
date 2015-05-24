@@ -4,11 +4,11 @@ struct ImGuiWindow;
 
 struct ImScEditor
 {
-	intptr_t SendCommand(unsigned int message, uintptr_t p0, intptr_t p1);
-	void Update();
-	void Draw();
-	void* userData;
-	void* privateData;
+    intptr_t SendCommand(unsigned int message, uintptr_t p0, intptr_t p1);
+    void Update();
+    void Draw();
+    void* userData;
+    void* privateData;
 };
 
 namespace ImGui
@@ -21,7 +21,7 @@ bool IsFocusWindowKeyDown(int key, bool repeat);
 bool IsActiveWindow(ImGuiWindow* window);
 
 ImVec2 GetRelativeMousePos();
-ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*callback)(void*), void* userData);
+ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (* callback)(void*), void* userData);
 
 }
 

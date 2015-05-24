@@ -110,7 +110,7 @@ struct UIDockingGrid
 {
     UIDockingGrid() : state(UIDockState_None)
     {
-    	prevDragPos = { 0.0f, 0.0f };
+        prevDragPos = { 0.0f, 0.0f };
     }
 
     std::vector<UIDock*> docks;

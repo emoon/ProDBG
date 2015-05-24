@@ -257,7 +257,7 @@ static void CommandList_clear(CommandList* list)
 {
     while (list->last)
     {
-		CommandEntry* entry = list->last;
+        CommandEntry* entry = list->last;
         CommandList_delEntry(list, entry);
     }
 }
@@ -281,7 +281,7 @@ static bool CommandList_isEmpty(CommandList* list)
 
 void Commands_clear()
 {
-	CommandList_clear(&s_undoStack);
-	CommandList_clear(&s_redoStack);
+    CommandList_clear(&s_undoStack);
+    CommandList_clear(&s_redoStack);
 }
 

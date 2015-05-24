@@ -33,8 +33,8 @@ void testWriteReadEvent(void**)
 
     PDBinaryWriter_finalize(writer);
 
-	data = PDBinaryWriter_getData(writer);
-	size = PDBinaryWriter_getSize(writer);
+    data = PDBinaryWriter_getData(writer);
+    size = PDBinaryWriter_getSize(writer);
 
     assert_true(data != 0);
     assert_true(size != 0);
@@ -557,7 +557,7 @@ int main()
 
     int test = run_tests(tests);
 
-	PDBinaryReader_destroy(reader);
+    PDBinaryReader_destroy(reader);
     PDBinaryWriter_destroy(writer);
 
     return test;

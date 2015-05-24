@@ -564,7 +564,7 @@ void PDBinaryWriter_destroy(PDWriter* writer)
     // TODO: Skip this free due to bad implementation of reader/writer in fake6502, fix!
     //free(data->dataStart);
     free(writer->data);
-	//data->dataStart = 0;
+    //data->dataStart = 0;
     writer->data = 0;
 }
 

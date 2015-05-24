@@ -49,16 +49,16 @@ __declspec(dllimport) void OutputDebugStringA(const char*);
 static void log_debug(const char* format, ...)
 {
     va_list ap;
-	char buffer[2048];
+    char buffer[2048];
 
     va_start(ap, format);
-	vsprintf(buffer, format, ap);
+    vsprintf(buffer, format, ap);
     va_end(ap);
 
 #ifdef _WIN32
-	OutputDebugStringA(buffer);
+    OutputDebugStringA(buffer);
 #else
-	printf("%s", buffer);
+    printf("%s", buffer);
 #endif
 }
 
@@ -78,19 +78,19 @@ struct Regs6510
 
 typedef enum BreakpoinType
 {
-	BreakpointType_Normal,
-	BreakpointType_Data,
+    BreakpointType_Normal,
+    BreakpointType_Data,
 } BreakpoinType;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct
 {
-	char* condition;
-	uint16_t address;
-	BreakpoinType type;
-	int32_t id;
-	int32_t internalId;
+    char* condition;
+    uint16_t address;
+    BreakpoinType type;
+    int32_t id;
+    int32_t internalId;
 
 } Breakpoint;
 
@@ -98,18 +98,18 @@ typedef struct
 
 typedef struct Breakpoints
 {
-	Breakpoint** data;
-	int count;
+    Breakpoint** data;
+    int count;
 } Breakpoints;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct Config
 {
-	const char* viceExe;
-	const char* prgFile;
-	const char* kickAssSymbols;
-	const char* breakpointFile;
+    const char* viceExe;
+    const char* prgFile;
+    const char* kickAssSymbols;
+    const char* breakpointFile;
 } Config;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,8 +123,8 @@ typedef struct PluginData
     PDDebugState state;
     char tempFileFull[8192];
     Breakpoints breakpoints;
-	Config config;
-	uv_process_t process;
+    Config config;
+    uv_process_t process;
 
 } PluginData;
 
@@ -158,7 +158,7 @@ bool getFullName(char* fullName, const char* name)
     return true;
 #endif
 
-	return true;
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -180,14 +180,14 @@ void* loadToMemory(const char* filename, size_t* size)
     long ts = ftell(f);
 
     if (ts < 0)
-    	goto end;
+        goto end;
 
     s = (size_t)ts;
 
     data = malloc(s);
 
     if (!data)
-    	goto end;
+        goto end;
 
     fseek(f, 0, SEEK_SET);
 
@@ -196,7 +196,7 @@ void* loadToMemory(const char* filename, size_t* size)
 
     *size = s;
 
-end:
+    end:
 
     fclose(f);
 
@@ -215,22 +215,22 @@ static void setupDefaultConfig(PluginData* data)
     data->config.viceExe = strdup("x64");
 #endif
 
-	data->config.prgFile = strdup("examples/c64_vice/test.prg");
-	data->config.kickAssSymbols = 0; 
-	data->config.breakpointFile = 0; 
+    data->config.prgFile = strdup("examples/c64_vice/test.prg");
+    data->config.kickAssSymbols = 0;
+    data->config.breakpointFile = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void loadConfig(PluginData* data, const char* filename)
 {
-	const char* viceExe = 0;
-	const char* prgFile = 0;
-	const char* kickAssSymbols = 0;
-	const char* breakpointFile = 0;
+    const char* viceExe = 0;
+    const char* prgFile = 0;
+    const char* kickAssSymbols = 0;
+    const char* breakpointFile = 0;
     json_error_t error;
 
-	setupDefaultConfig(data);
+    setupDefaultConfig(data);
 
     json_t* root = json_load_file(filename, 0, &error);
 
@@ -239,25 +239,25 @@ static void loadConfig(PluginData* data, const char* filename)
 
     log_debug("loaded config\n");
 
-	json_unpack(root, "{s:s, s:s, s:s, s:s}",
-		"vice_exe", &viceExe,
-		"prg_file", &prgFile,
-		"kickass_symbols", &kickAssSymbols,
-		"breakpoints_file", &breakpointFile);
+    json_unpack(root, "{s:s, s:s, s:s, s:s}",
+                "vice_exe", &viceExe,
+                "prg_file", &prgFile,
+                "kickass_symbols", &kickAssSymbols,
+                "breakpoints_file", &breakpointFile);
 
-	if (viceExe && viceExe[0] != 0)
-		data->config.viceExe = strdup(viceExe);
+    if (viceExe && viceExe[0] != 0)
+        data->config.viceExe = strdup(viceExe);
 
-	if (prgFile && prgFile[0] != 0)
-		data->config.prgFile = strdup(prgFile);
+    if (prgFile && prgFile[0] != 0)
+        data->config.prgFile = strdup(prgFile);
 
-	if (breakpointFile && breakpointFile[0] != 0)
-		data->config.breakpointFile = strdup(breakpointFile);
+    if (breakpointFile && breakpointFile[0] != 0)
+        data->config.breakpointFile = strdup(breakpointFile);
 
-	if (kickAssSymbols && kickAssSymbols[0] != 0)
-		data->config.kickAssSymbols = strdup(kickAssSymbols);
+    if (kickAssSymbols && kickAssSymbols[0] != 0)
+        data->config.kickAssSymbols = strdup(kickAssSymbols);
 
-	json_decref(root);
+    json_decref(root);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -265,10 +265,10 @@ static void loadConfig(PluginData* data, const char* filename)
 static void sendCommand(PluginData* data, const char* format, ...)
 {
     va_list ap;
-	char buffer[2048];
+    char buffer[2048];
 
     va_start(ap, format);
-	vsprintf(buffer, format, ap);
+    vsprintf(buffer, format, ap);
     va_end(ap);
 
     int len = (int)strlen(buffer);
@@ -337,141 +337,141 @@ static int getData(PluginData* data, char** resBuffer, int* len)
 
 static Breakpoint* createBreakpoint()
 {
-	Breakpoint* bp = (Breakpoint*)malloc(sizeof(Breakpoint));
-	memset(bp, 0, sizeof(Breakpoint));
-	return bp;
+    Breakpoint* bp = (Breakpoint*)malloc(sizeof(Breakpoint));
+    memset(bp, 0, sizeof(Breakpoint));
+    return bp;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void addBreakpoint(PluginData* data, Breakpoint* bp)
 {
-	assert(data->breakpoints.count < maxBreakpointCount);
-	data->breakpoints.data[data->breakpoints.count++] = bp;
+    assert(data->breakpoints.count < maxBreakpointCount);
+    data->breakpoints.data[data->breakpoints.count++] = bp;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool findBreakpointById(PluginData* data, Breakpoint** breakpoint, int id) 
+static bool findBreakpointById(PluginData* data, Breakpoint** breakpoint, int id)
 {
-	for (int i = 0, end = data->breakpoints.count; i < end; ++i)
-	{
-		Breakpoint* bp = data->breakpoints.data[i];
+    for (int i = 0, end = data->breakpoints.count; i < end; ++i)
+    {
+        Breakpoint* bp = data->breakpoints.data[i];
 
-		if (bp->id == id)
-		{
-			*breakpoint = data->breakpoints.data[i];
-			return true;
-		}
-	}
+        if (bp->id == id)
+        {
+            *breakpoint = data->breakpoints.data[i];
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-static Breakpoint* getBreakpoint(PluginData* data, uint64_t* address, PDReader* reader, PDWriter* writer)
-{
-	int32_t id;
-	Breakpoint* bp;
+   static Breakpoint* getBreakpoint(PluginData* data, uint64_t* address, PDReader* reader, PDWriter* writer)
+   {
+    int32_t id;
+    Breakpoint* bp;
 
     if (PDRead_findU32(reader, &id, "id", 0) == PDReadStatus_notFound)
-	{
-    	PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
-		PDWrite_string(writer, "error", "No ID being sent for breakpoint");
-		PDWrite_eventEnd(writer);
-		return 0;
-	}
+    {
+        PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
+        PDWrite_string(writer, "error", "No ID being sent for breakpoint");
+        PDWrite_eventEnd(writer);
+        return 0;
+    }
 
     if (PDRead_findU64(reader, address, "address", 0) == PDReadStatus_notFound)
-	{
-    	PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
-		PDWrite_string(writer, "error", "prodNo address is being sent for breakpoint");
-		PDWrite_eventEnd(writer);
-		return 0;
-	}
+    {
+        PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
+        PDWrite_string(writer, "error", "prodNo address is being sent for breakpoint");
+        PDWrite_eventEnd(writer);
+        return 0;
+    }
 
-	if (!findBreakpointById(data, &bp, id))
-	{
-		bp = createBreakpoint();
-		bp->id = id;
-		bp->internalId = -1;
-	}
+    if (!findBreakpointById(data, &bp, id))
+    {
+        bp = createBreakpoint();
+        bp->id = id;
+        bp->internalId = -1;
+    }
 
-	return bp;
-}
-*/
+    return bp;
+   }
+ */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static bool delBreakpointById(PluginData* data, int32_t id)
 {
-	const int breakpointCount = data->breakpoints.count;
+    const int breakpointCount = data->breakpoints.count;
 
-	for (int i = 0, end = data->breakpoints.count; i < end; ++i)
-	{
-		Breakpoint* bp = data->breakpoints.data[i];
+    for (int i = 0, end = data->breakpoints.count; i < end; ++i)
+    {
+        Breakpoint* bp = data->breakpoints.data[i];
 
-		if (bp->id == id)
-		{
-			sendCommand(data, "del %d\n", id);
+        if (bp->id == id)
+        {
+            sendCommand(data, "del %d\n", id);
 
-			// Swap with the last bp and decrese the count
+            // Swap with the last bp and decrese the count
 
-			Breakpoint* lastBp = data->breakpoints.data[breakpointCount - 1];
-			data->breakpoints.data[i] = lastBp;
-			data->breakpoints.count--;
+            Breakpoint* lastBp = data->breakpoints.data[breakpointCount - 1];
+            data->breakpoints.data[i] = lastBp;
+            data->breakpoints.count--;
 
-			// swap with the last and dec count
+            // swap with the last and dec count
 
-			return true;
-		}
-	}
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static bool delBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
 {
-	int32_t id;
+    int32_t id;
 
     if (PDRead_findS32(reader, &id, "id", 0) == PDReadStatus_notFound)
-	{
-    	PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
-		PDWrite_string(writer, "error", "No ID being sent for breakpoint");
-		PDWrite_eventEnd(writer);
-		return false;
-	}
+    {
+        PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
+        PDWrite_string(writer, "error", "No ID being sent for breakpoint");
+        PDWrite_eventEnd(writer);
+        return false;
+    }
 
-	printf("deleting breakpoint with id %d\n", id);
+    printf("deleting breakpoint with id %d\n", id);
 
-	return delBreakpointById(data, id);
+    return delBreakpointById(data, id);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void setBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
 {
-	uint64_t address = 0;
-	int32_t id = -1;
-	const char* condition = 0;
+    uint64_t address = 0;
+    int32_t id = -1;
+    const char* condition = 0;
 
-	(void)writer;
+    (void)writer;
 
     PDRead_findS32(reader, &id, "id", 0);
-	PDRead_findU64(reader, &address, "address", 0);
-	PDRead_findString(reader, &condition, "condition", 0);
+    PDRead_findU64(reader, &address, "address", 0);
+    PDRead_findString(reader, &condition, "condition", 0);
 
-	if (id != -1)
-		delBreakpointById(data, id);
+    if (id != -1)
+        delBreakpointById(data, id);
 
     if (condition)
-		sendCommand(data, "break $%04x if %s\n", (uint16_t)address, condition);
-	else
-		sendCommand(data, "break $%04x\n", (uint16_t)address);
+        sendCommand(data, "break $%04x if %s\n", (uint16_t)address, condition);
+    else
+        sendCommand(data, "break $%04x\n", (uint16_t)address);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -501,7 +501,7 @@ static void connectToLocalHost(PluginData* data)
     }
 
     data->conn = conn;
-	data->state = PDDebugState_running;
+    data->state = PDDebugState_running;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -517,12 +517,12 @@ static void* createInstance(ServiceFunc* serviceFunc)
 
     data->state = PDDebugState_noTarget;
 
-	loadConfig(data, "data/c64_vice.cfg");
+    loadConfig(data, "data/c64_vice.cfg");
 
-	messageFuncs = serviceFunc(PDMESSAGEFUNCS_GLOBAL);
+    messageFuncs = serviceFunc(PDMESSAGEFUNCS_GLOBAL);
 
     //TODO: non fixed size?
-    
+
     data->breakpoints.data = (Breakpoint**)malloc(sizeof(Breakpoint*) * maxBreakpointCount);
     data->breakpoints.count = 0;
 
@@ -533,44 +533,44 @@ static void* createInstance(ServiceFunc* serviceFunc)
 
 static void parseMonFile(PluginData* data, const char* filename)
 {
-	char textLine[1024];
+    char textLine[1024];
 
-	FILE* f = fopen(filename, "rt");
+    FILE* f = fopen(filename, "rt");
 
-	if (!f)
-		return;
+    if (!f)
+        return;
 
-	for (;;)
-	{
-		if (!fgets(textLine, sizeof(textLine), f))
-			break;
+    for (;;)
+    {
+        if (!fgets(textLine, sizeof(textLine), f))
+            break;
 
-		sendCommand(data, "%s\n", textLine);
-	}
+        sendCommand(data, "%s\n", textLine);
+    }
 
-	fclose(f);
+    fclose(f);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint8_t* getMemoryInternal(PluginData* data, const char* tempfile, size_t* readSize, uint16_t address, uint16_t addressEnd)
 {
-	*readSize = 0;
+    *readSize = 0;
 
 #ifndef _WIN32
-	if (unlink(tempfile) < 0)
-	{
-		printf("c64_vice: Unable to delete %s (error %d)\n", tempfile, errno);
-	}
+    if (unlink(tempfile) < 0)
+    {
+        printf("c64_vice: Unable to delete %s (error %d)\n", tempfile, errno);
+    }
 #else
-	// TODO: Implement me.
-	/*
-	if (DeleteFile(tempfile) != 0)
-	{
-		printf("failed to delete %s\n", timepfile); 
-		return 0;
-	}
-	*/
+    // TODO: Implement me.
+    /*
+       if (DeleteFile(tempfile) != 0)
+       {
+        printf("failed to delete %s\n", timepfile);
+        return 0;
+       }
+     */
 #endif
 
     sendCommand(data, "save \"%s\" 0 %04x %04x\n", tempfile, address, addressEnd);
@@ -606,144 +606,144 @@ static bool loadImage(PluginData* data, const char* filename)
     char* res = 0;
     int len = 0;
 
-	sendCommand(data, "load \"%s\" 0\n", filename);
+    sendCommand(data, "load \"%s\" 0\n", filename);
 
-	sleepMs(200);
+    sleepMs(200);
 
     if (!getData(data, &res, &len))
-	{
-		printf("failed to get any data back from load...\n");
-    	return false;
-	}
+    {
+        printf("failed to get any data back from load...\n");
+        return false;
+    }
 
-	printf("res %s\n", res);
+    printf("res %s\n", res);
 
-	// TODO: Parse that we actually manage to load the image
+    // TODO: Parse that we actually manage to load the image
 
-	return true;
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint16_t getBasicStart(PluginData* data)
 {
-	size_t readSize = 0;
+    size_t readSize = 0;
 
-	uint8_t* memory = getMemoryInternal(data, data->tempFileFull, &readSize, 0x800, 0x810); 
+    uint8_t* memory = getMemoryInternal(data, data->tempFileFull, &readSize, 0x800, 0x810);
 
-	if (!memory)
-	{
-		printf("falied to get memory :(\n");
-		return 0;
-	}
+    if (!memory)
+    {
+        printf("falied to get memory :(\n");
+        return 0;
+    }
 
-	printf("size read %d\n", (int)readSize);
+    printf("size read %d\n", (int)readSize);
 
-	const char* address = (char*)&memory[2 + 6];
+    const char* address = (char*)&memory[2 + 6];
 
-	printf("memory\n");
+    printf("memory\n");
 
-	for (int i = 0; i < 18; ++i)
-	{
-		char c = (char)memory[i];
-		char pc = (c >= 32 && c < 127) ? c : '.';
-		printf("%c ", pc);
-	}
+    for (int i = 0; i < 18; ++i)
+    {
+        char c = (char)memory[i];
+        char pc = (c >= 32 && c < 127) ? c : '.';
+        printf("%c ", pc);
+    }
 
-	printf("\n");
+    printf("\n");
 
-	for (int i = 0; i < 18; ++i)
-	{
-		char c = (char)memory[i];
-		printf("%02x ", c);
-	}
+    for (int i = 0; i < 18; ++i)
+    {
+        char c = (char)memory[i];
+        printf("%02x ", c);
+    }
 
-	printf("\n");
+    printf("\n");
 
-	uint16_t startAddress = (uint16_t)strtol(address, 0, 10);
+    uint16_t startAddress = (uint16_t)strtol(address, 0, 10);
 
-	printf("basic: address to start from (text) %s\n", address);
-	printf("start address %d %x\n", startAddress, startAddress);
+    printf("basic: address to start from (text) %s\n", address);
+    printf("start address %d %x\n", startAddress, startAddress);
 
-	free(memory);
+    free(memory);
 
-	return startAddress;
+    return startAddress;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void launchVICEWithConfig(PluginData* data)
 {
-	int r, cmdIndex = 1;
-	uv_process_options_t options = { 0 };
+    int r, cmdIndex = 1;
+    uv_process_options_t options = { 0 };
 
-	log_debug("spawning vice...\n");
+    log_debug("spawning vice...\n");
 
-	char* args[10];
-	args[0] = (char*)data->config.viceExe;
+    char* args[10];
+    args[0] = (char*)data->config.viceExe;
 
-	// TODO: Must generate the breakpoint file from the json one
-	
-	args[cmdIndex++] = "-remotemonitor";
+    // TODO: Must generate the breakpoint file from the json one
 
-	if (data->config.breakpointFile)
-	{
-		//args[cmdIndex++] = "-moncommands";
-		//args[cmdIndex++] = "examples/c64_vice/test_mon.txt";
-	}
+    args[cmdIndex++] = "-remotemonitor";
 
-	//args[cmdIndex++] = (char*)data->config.prgFile; 
-	args[cmdIndex++] = NULL;
-
-	options.exit_cb = 0;
-	options.file = data->config.viceExe; 
-	options.args = args;
-	
-    if ((r = uv_spawn(uv_default_loop(), &data->process, &options))) 
+    if (data->config.breakpointFile)
     {
-    	messageFuncs->error("Unable to launch VICE", uv_strerror(r));
-    	return;
-    } 
+        //args[cmdIndex++] = "-moncommands";
+        //args[cmdIndex++] = "examples/c64_vice/test_mon.txt";
+    }
 
-	sleepMs(3000);
+    //args[cmdIndex++] = (char*)data->config.prgFile;
+    args[cmdIndex++] = NULL;
 
-	connectToLocalHost(data);
+    options.exit_cb = 0;
+    options.file = data->config.viceExe;
+    options.args = args;
 
-	// if connected we load the image and make sure we get a reply back
+    if ((r = uv_spawn(uv_default_loop(), &data->process, &options)))
+    {
+        messageFuncs->error("Unable to launch VICE", uv_strerror(r));
+        return;
+    }
 
-	if (VICEConnection_isConnected(data->conn))
-	{
-		printf("connected to vice...\n");
+    sleepMs(3000);
 
-		if (!loadImage(data, data->config.prgFile))
-			return;
+    connectToLocalHost(data);
 
-		printf("image loaded ...\n");
+    // if connected we load the image and make sure we get a reply back
 
-		// parse the 
+    if (VICEConnection_isConnected(data->conn))
+    {
+        printf("connected to vice...\n");
 
-		parseMonFile(data, data->config.breakpointFile);
+        if (!loadImage(data, data->config.prgFile))
+            return;
 
-		printf("start from basic...\n");
+        printf("image loaded ...\n");
 
-		// start vice!
-		
-		printf("started from basic\n");
+        // parse the
 
-		uint16_t address = getBasicStart(data);
+        parseMonFile(data, data->config.breakpointFile);
 
-		parseMonFile(data, data->config.breakpointFile);
+        printf("start from basic...\n");
 
-		if (address != 0)
-		{
-			printf("start from %x\n", address);
-			sendCommand(data, "g %x\n", address);
-		}
+        // start vice!
 
-		return;
-	}
+        printf("started from basic\n");
 
-	printf("unable to make connection with vice\n");
+        uint16_t address = getBasicStart(data);
+
+        parseMonFile(data, data->config.breakpointFile);
+
+        if (address != 0)
+        {
+            printf("start from %x\n", address);
+            sendCommand(data, "g %x\n", address);
+        }
+
+        return;
+    }
+
+    printf("unable to make connection with vice\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -753,7 +753,7 @@ void destroyInstance(void* userData)
     PluginData* plugin = (PluginData*)userData;
 
     if (plugin->process.pid > 0)
-		uv_kill(plugin->process.pid, 2);
+        uv_kill(plugin->process.pid, 2);
 
     if (plugin->conn)
         VICEConnection_destroy(plugin->conn);
@@ -815,8 +815,8 @@ static void writeStatusRegister(PDWriter* writer, const char* name, uint16_t reg
     char statusString[128] = { 0 };
 
     sprintf(statusString, "0x$%2x N:%d V:%d -:%d B:%d D:%d I:%d Z:%d C:%d", reg,
-    		(reg >> 7) & 1, (reg >> 6) & 1, (reg >> 5) & 1, (reg >> 4) & 1, 
-    		(reg >> 3) & 1, (reg >> 2) & 1, (reg >> 1) & 1, (reg >> 0) & 1);
+            (reg >> 7) & 1, (reg >> 6) & 1, (reg >> 5) & 1, (reg >> 4) & 1,
+            (reg >> 3) & 1, (reg >> 2) & 1, (reg >> 1) & 1, (reg >> 0) & 1);
 
     PDWrite_string(writer, "register_string", statusString);
 
@@ -827,11 +827,11 @@ static void writeStatusRegister(PDWriter* writer, const char* name, uint16_t reg
 
 static void parseRegisters(PluginData* plugin, char* data, int length)
 {
-	const char* pch;
-	struct Regs6510* regs = &plugin->regs;
+    const char* pch;
+    struct Regs6510* regs = &plugin->regs;
 
-	memcpy(s_tempBuffer, data, length);
-	s_tempBuffer[length] = 0;
+    memcpy(s_tempBuffer, data, length);
+    s_tempBuffer[length] = 0;
 
     // Format from VICE looks like this:
     // (C:$e5cf)   ADDR AC XR YR SP 00 01 NV-BDIZC LIN CYC  STOPWATCH
@@ -851,9 +851,9 @@ static void parseRegisters(PluginData* plugin, char* data, int length)
     regs->x = (uint8_t)strtol(pch, 0, 16); pch = strtok(0, " \t");
     regs->y = (uint8_t)strtol(pch, 0, 16); pch = strtok(0, " \t");
     regs->sp = (uint8_t)strtol(pch, 0, 16); pch = strtok(0, " \t");
-   
-   	pch = strtok(0, " \t"); // skip 00
-   	pch = strtok(0, " \t"); // skip 01
+
+    pch = strtok(0, " \t"); // skip 00
+    pch = strtok(0, " \t"); // skip 01
 
     regs->flags = (uint8_t)strtol(pch, 0, 2);
 
@@ -865,48 +865,48 @@ static void parseRegisters(PluginData* plugin, char* data, int length)
 
 static void parseBreakpoint(PluginData* data, const char* res, PDWriter* writer)
 {
-	Breakpoint* bp = 0;
+    Breakpoint* bp = 0;
 
-	// TODO: loop, look for more breakpoints
+    // TODO: loop, look for more breakpoints
 
     const char* breakStrOffset = strstr(res, "BREAK:");
 
-	if (!breakStrOffset) 
-		return;
+    if (!breakStrOffset)
+        return;
 
-	int id = atoi(breakStrOffset + 7);
+    int id = atoi(breakStrOffset + 7);
 
     const char* address = strstr(breakStrOffset, "C:$");
 
-	if (!findBreakpointById(data, &bp, id))
-	{
-		bp = createBreakpoint();
-		addBreakpoint(data, bp);
-	}
+    if (!findBreakpointById(data, &bp, id))
+    {
+        bp = createBreakpoint();
+        addBreakpoint(data, bp);
+    }
 
-	bp->id = id;
+    bp->id = id;
 
-	if (address)
-		bp->address = (uint16_t)strtol(address + 3, 0, 16);
+    if (address)
+        bp->address = (uint16_t)strtol(address + 3, 0, 16);
 
-	// add data or update existing
+    // add data or update existing
 
-	PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
-	PDWrite_u64(writer, "address", bp->address);
-	PDWrite_u32(writer, "id", (uint32_t)id);
-	PDWrite_eventEnd(writer);
+    PDWrite_eventBegin(writer, PDEventType_replyBreakpoint);
+    PDWrite_u64(writer, "address", bp->address);
+    PDWrite_u32(writer, "id", (uint32_t)id);
+    PDWrite_eventEnd(writer);
 
-	printf("sending reply back: breakpoint %x - %d\n", bp->address, id);
+    printf("sending reply back: breakpoint %x - %d\n", bp->address, id);
 
-	// TODO: Condition
+    // TODO: Condition
 
-	//if (bp->condition)
-	//	free(bp->condition);
+    //if (bp->condition)
+    //	free(bp->condition);
 
-	//if (condition)
-	//	bp->condition = strdup(condition);
-	// else
-	// bp->condition = 0;
+    //if (condition)
+    //	bp->condition = strdup(condition);
+    // else
+    // bp->condition = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -940,21 +940,21 @@ static void getMemory(PluginData* data, PDReader* reader, PDWriter* writer)
     // so this is a bit of a hack. If we request memory d000 we switch to io and then back
     // this isn't really correct but will do for now
 
-	if (address == 0xdd00)
-		sendCommand(data, "bank io\n");
+    if (address == 0xdd00)
+        sendCommand(data, "bank io\n");
 
-	uint8_t* memory = getMemoryInternal(data, data->tempFileFull, &readSize, (uint16_t)(address), (uint16_t)(address + size));
+    uint8_t* memory = getMemoryInternal(data, data->tempFileFull, &readSize, (uint16_t)(address), (uint16_t)(address + size));
 
-	if (address == 0xdd00)
-		sendCommand(data, "bank ram\n");
+    if (address == 0xdd00)
+        sendCommand(data, "bank ram\n");
 
-	if (memory)
-	{
+    if (memory)
+    {
         // Lets do this!
         // + 2 is because VICE writes address at the start of the block and at the end
         //
 
-    	printf("c64_vice: sending memory\n");
+        printf("c64_vice: sending memory\n");
 
         PDWrite_eventBegin(writer, PDEventType_setMemory);
         PDWrite_u64(writer, "address", address);
@@ -964,17 +964,17 @@ static void getMemory(PluginData* data, PDReader* reader, PDWriter* writer)
         // writer takes a copy
 
         free(memory);
-	}
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static bool shouldSendCommand(PluginData* data)
 {
-	bool t0 = data->state != PDDebugState_running;
-	bool t1 = VICEConnection_isConnected(data->conn);
+    bool t0 = data->state != PDDebugState_running;
+    bool t1 = VICEConnection_isConnected(data->conn);
 
-	return t0 && t1;
+    return t0 && t1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -992,21 +992,21 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 
             case PDEventType_getRegisters:
             {
-               	sendCommand(data, "registers\n");
+                sendCommand(data, "registers\n");
                 break;
             }
 
             case PDEventType_getCallstack:
             {
-            	if (shouldSendCommand(data))
-                	sendCommand(data, "bt\n");
+                if (shouldSendCommand(data))
+                    sendCommand(data, "bt\n");
 
                 break;
             }
 
             case PDEventType_getDisassembly:
             {
-            	if (shouldSendCommand(data))
+                if (shouldSendCommand(data))
                     getDisassembly(data, reader);
 
                 break;
@@ -1014,7 +1014,7 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 
             case PDEventType_getMemory:
             {
-            	if (shouldSendCommand(data))
+                if (shouldSendCommand(data))
                     getMemory(data, reader, writer);
                 break;
             }
@@ -1025,24 +1025,24 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
                 break;
             }
 
-			case PDEventType_setBreakpoint:
-			{
-				setBreakpoint(data, reader, writer);
+            case PDEventType_setBreakpoint:
+            {
+                setBreakpoint(data, reader, writer);
 
-				// if we add a breakpoint to VICE it will always stop but if we are already running when
-				// adding the breakpoint we just force VICE to run again
+                // if we add a breakpoint to VICE it will always stop but if we are already running when
+                // adding the breakpoint we just force VICE to run again
 
-				if (data->state == PDDebugState_running)
-                	sendCommand(data, "ret\n");
+                if (data->state == PDDebugState_running)
+                    sendCommand(data, "ret\n");
 
-				break;
-			}
+                break;
+            }
 
-			case PDEventType_deleteBreakpoint:
-			{
-				delBreakpoint(data, reader, writer);
-				break;
-			}
+            case PDEventType_deleteBreakpoint:
+            {
+                delBreakpoint(data, reader, writer);
+                break;
+            }
         }
     }
 }
@@ -1076,21 +1076,21 @@ static uint16_t findStatusInString(const char* str)
         return 0;
 
     // Expected string to look like this;
-    // SP:XX ..-...Z. and here we jump so we are at this pos: ..-...Z. 
+    // SP:XX ..-...Z. and here we jump so we are at this pos: ..-...Z.
 
     offset += 6;
 
-	uint8_t flags = 0;
+    uint8_t flags = 0;
 
-	for (int i = 7; i > 0; i--)
-	{
-		const char c = *offset++;
+    for (int i = 7; i > 0; i--)
+    {
+        const char c = *offset++;
 
-		if (c != '.')
-			flags |= 1 << i;
-	}
+        if (c != '.')
+            flags |= 1 << i;
+    }
 
-    return flags; 
+    return flags;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1124,25 +1124,25 @@ static void onAction(PluginData* plugin, PDAction action)
         case PDAction_run:
         {
             //if (plugin->state != PDDebugState_running)
-			{
+            {
                 sendCommand(plugin, "ret\n");
-				plugin->state = PDDebugState_running;
-			}
+                plugin->state = PDDebugState_running;
+            }
 
             break;
         }
 
         case PDAction_step:
         {
-    		sendCommand(plugin, "z\n");
+            sendCommand(plugin, "z\n");
             break;
         }
 
         case PDAction_stepOver:
-		{
-    		sendCommand(plugin, "n\n");
-    		break;
-		}
+        {
+            sendCommand(plugin, "n\n");
+            break;
+        }
 
         case PDAction_stepOut:
         case PDAction_custom:
@@ -1156,60 +1156,60 @@ static void onAction(PluginData* plugin, PDAction action)
 
 static void stopOnExec(PluginData* plugin, const char* data)
 {
-	const char* stopOnExec = "Stop on  exec";
-	char* found = 0;
+    const char* stopOnExec = "Stop on  exec";
+    char* found = 0;
 
-	if (!(found = strstr(data, stopOnExec)))
-		return;
+    if (!(found = strstr(data, stopOnExec)))
+        return;
 
-	int execLen = (int)strlen(stopOnExec);
-	found += execLen;
+    int execLen = (int)strlen(stopOnExec);
+    found += execLen;
 
-	plugin->regs.pc = (uint16_t)strtol(found, 0, 16);
-	plugin->regs.a = (uint8_t)findRegisterInString(found, "A:");
-	plugin->regs.x = (uint8_t)findRegisterInString(found, "X:");
-	plugin->regs.y = (uint8_t)findRegisterInString(found, "Y:");
-	plugin->regs.sp = (uint8_t)findRegisterInString(found, "SP:");
-	plugin->regs.flags = (uint8_t)findStatusInString(found);
+    plugin->regs.pc = (uint16_t)strtol(found, 0, 16);
+    plugin->regs.a = (uint8_t)findRegisterInString(found, "A:");
+    plugin->regs.x = (uint8_t)findRegisterInString(found, "X:");
+    plugin->regs.y = (uint8_t)findRegisterInString(found, "Y:");
+    plugin->regs.sp = (uint8_t)findRegisterInString(found, "SP:");
+    plugin->regs.flags = (uint8_t)findStatusInString(found);
 
-	plugin->hasUpdatedRegistes = true;
-	plugin->hasUpdatedExceptionLocation = true;
-	plugin->state = PDDebugState_stopBreakpoint;
+    plugin->hasUpdatedRegistes = true;
+    plugin->hasUpdatedExceptionLocation = true;
+    plugin->state = PDDebugState_stopBreakpoint;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 char* parseDisassemblyLine(char* line)
 {
-	char* start = line;
+    char* start = line;
 
     // Handle the case if we get a line that looks like this (we want to skip everything after -)
     // .C:0811  EE 20 D0    INC $D020      - A:00 X:17 Y:17 SP:f6 ..-.....   19262882
 
-	for (;;)
-	{
-		char c = *line++;
+    for (;;)
+    {
+        char c = *line++;
 
-		if (c == '\n' || c == 0)
-			break;
+        if (c == '\n' || c == 0)
+            break;
 
-		if (c == '-')
-		{
-			line[-1] = 0;
-			break;
-		}
+        if (c == '-')
+        {
+            line[-1] = 0;
+            break;
+        }
 
-	}
+    }
 
-	return start;
+    return start;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void parseDisassembly(PDWriter* writer, const char* data, int length)
 {
-	memcpy(s_tempBuffer, data, length);
-	s_tempBuffer[length] = 0;
+    memcpy(s_tempBuffer, data, length);
+    s_tempBuffer[length] = 0;
 
     // parse the buffer
 
@@ -1223,7 +1223,7 @@ static void parseDisassembly(PDWriter* writer, const char* data, int length)
         // expected format of each line:
         // xxx.. .C:080e  A9 22       LDA #$22
 
-		char* line = strstr(pch, ".C");
+        char* line = strstr(pch, ".C");
 
         if (!line)
             break;
@@ -1247,11 +1247,11 @@ static void parseDisassembly(PDWriter* writer, const char* data, int length)
 
 static void parseForCallstack(PDWriter* writer, const char* data, int length)
 {
-	uint16_t callStackEntries[256 * 2];
-	int callStackCount = 0;
+    uint16_t callStackEntries[256 * 2];
+    int callStackCount = 0;
 
-	memcpy(s_tempBuffer, data, length);
-	s_tempBuffer[length] = 0;
+    memcpy(s_tempBuffer, data, length);
+    s_tempBuffer[length] = 0;
 
     char* pch = strtok(s_tempBuffer, "\n");
 
@@ -1261,39 +1261,39 @@ static void parseForCallstack(PDWriter* writer, const char* data, int length)
         // xxx.. .C:080e  A9 22       LDA #$22
 
         if (pch[0] == '(' &&  pch[1] != 'C')
-		{
-			uint32_t offset = (uint32_t)atoi(&pch[2]);
+        {
+            uint32_t offset = (uint32_t)atoi(&pch[2]);
 
-			char* endOffset = strstr(&pch[2], ") ");
+            char* endOffset = strstr(&pch[2], ") ");
 
-			if (endOffset)
-			{
-				endOffset += 2;
+            if (endOffset)
+            {
+                endOffset += 2;
 
-				uint16_t address = (uint16_t)strtol(endOffset, 0, 16);
+                uint16_t address = (uint16_t)strtol(endOffset, 0, 16);
 
-				callStackEntries[(callStackCount * 2) + 0] = address;
-				callStackEntries[(callStackCount * 2) + 1] = (uint16_t)offset;
+                callStackEntries[(callStackCount * 2) + 0] = address;
+                callStackEntries[(callStackCount * 2) + 1] = (uint16_t)offset;
 
-				callStackCount++;
-			}
-		}
+                callStackCount++;
+            }
+        }
 
-		pch = strtok(0, "\n");
+        pch = strtok(0, "\n");
     }
-	
-	if (callStackCount == 0)
-		return;
+
+    if (callStackCount == 0)
+        return;
 
     PDWrite_eventBegin(writer, PDEventType_setCallstack);
     PDWrite_arrayBegin(writer, "callstack");
 
     for (int i = 0; i < callStackCount; ++i)
-	{
+    {
         PDWrite_arrayEntryBegin(writer);
         PDWrite_u16(writer, "address", callStackEntries[(i * 2) + 0] + callStackEntries[(i * 2) + 1]);
         PDWrite_arrayEntryEnd(writer);
-	}
+    }
 
     PDWrite_arrayEnd(writer);
     PDWrite_eventEnd(writer);
@@ -1303,35 +1303,35 @@ static void parseForCallstack(PDWriter* writer, const char* data, int length)
 
 static const char* findRegStart(const char* res)
 {
-	char c = *res++;
+    char c = *res++;
 
-	while (c != 0 && c != '\n')
-	{
-		if (c == '-')
-			return res;
+    while (c != 0 && c != '\n')
+    {
+        if (c == '-')
+            return res;
 
-		c = *res++;
-	}
+        c = *res++;
+    }
 
-	return 0;
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void parseStep(PluginData* plugin, const char* res)
 {
-	const char* regStart;
-	const char* step = strstr(res, ".C");
+    const char* regStart;
+    const char* step = strstr(res, ".C");
 
-	if (!step)
-		return;
+    if (!step)
+        return;
 
-	if (!(regStart = findRegStart(res)))
-		return;
+    if (!(regStart = findRegStart(res)))
+        return;
 
     // return data from VICE is of the follwing format:
     // .C:0811  EE 20 D0    INC $D020      - A:00 X:17 Y:17 SP:f6 ..-.....   19262882
-    
+
     plugin->regs.pc = (uint16_t)strtol(&step[3], 0, 16);
     plugin->regs.a = (uint8_t)findRegisterInString(regStart, "A:");
     plugin->regs.x = (uint8_t)findRegisterInString(regStart, "X:");
@@ -1341,7 +1341,7 @@ static void parseStep(PluginData* plugin, const char* res)
 
     plugin->hasUpdatedRegistes = true;
     plugin->hasUpdatedExceptionLocation = true;
-	plugin->state = PDDebugState_trace;
+    plugin->state = PDDebugState_trace;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1351,29 +1351,29 @@ static void updateEvents(PluginData* plugin, PDWriter* writer)
     char* res = 0;
     int len = 0;
 
-	if (!plugin->conn)
-		return;
+    if (!plugin->conn)
+        return;
 
-	// Fetch the data that has been sent from VICE
+    // Fetch the data that has been sent from VICE
 
     if (!getData(plugin, &res, &len))
         return;
 
-	plugin->state = PDDebugState_stopException;
+    plugin->state = PDDebugState_stopException;
 
-	// do data parsing here
+    // do data parsing here
 
-	stopOnExec(plugin, res);
+    stopOnExec(plugin, res);
 
-	parseRegisters(plugin, res, len);
+    parseRegisters(plugin, res, len);
 
-	parseStep(plugin, res);
+    parseStep(plugin, res);
 
-	parseBreakpoint(plugin, res, writer);
+    parseBreakpoint(plugin, res, writer);
 
-	parseDisassembly(writer, res, len);
+    parseDisassembly(writer, res, len);
 
-	parseForCallstack(writer, res, len);
+    parseForCallstack(writer, res, len);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1389,7 +1389,7 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
 
     processEvents(plugin, reader, writer);
 
-	updateEvents(plugin, writer);
+    updateEvents(plugin, writer);
 
     if (plugin->hasUpdatedRegistes)
     {

@@ -21,14 +21,14 @@ void* File_loadToMemory(const char* filename, size_t* size, size_t padAllocSize)
     long ts = ftell(f);
 
     if (ts < 0)
-    	goto end;
+        goto end;
 
     s = (size_t)ts;
 
     data = malloc(s + padAllocSize);
 
     if (!data)
-    	goto end;
+        goto end;
 
     fseek(f, 0, SEEK_SET);
 
@@ -37,7 +37,7 @@ void* File_loadToMemory(const char* filename, size_t* size, size_t padAllocSize)
 
     *size = s;
 
-end:
+    end:
 
     fclose(f);
 

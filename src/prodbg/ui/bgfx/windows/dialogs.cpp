@@ -63,8 +63,8 @@ void internalPanel(const char* titleText, const char* messageText, unsigned int 
     wchar_t title[1024];
     wchar_t message[4096];
 
-	uv_utf8_to_utf16(titleText, title, sizeof_array(title));
-	uv_utf8_to_utf16(messageText, message, sizeof_array(messageText));
+    uv_utf8_to_utf16(titleText, title, sizeof_array(title));
+    uv_utf8_to_utf16(messageText, message, sizeof_array(messageText));
 
     MessageBox(NULL, message, title, type | MB_OK);
 }
@@ -73,20 +73,20 @@ void internalPanel(const char* titleText, const char* messageText, unsigned int 
 
 void Windows_infoDialog(const char* titleText, const char* message)
 {
-	internalPanel(titleText, message, MB_ICONINFORMATION);
+    internalPanel(titleText, message, MB_ICONINFORMATION);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Windows_errorDialog(const char* title, const char* message)
 {
-	internalPanel(title, message, MB_ICONERROR);
+    internalPanel(title, message, MB_ICONERROR);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Windows_warningDialog(const char* title, const char* message)
 {
-	internalPanel(title, message, MB_ICONWARNING);
+    internalPanel(title, message, MB_ICONWARNING);
 }
 

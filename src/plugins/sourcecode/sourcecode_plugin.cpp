@@ -9,8 +9,8 @@
 
 struct SourceCodeData
 {
-	char filename[4096];
-	int line;
+    char filename[4096];
+    int line;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,14 +32,14 @@ static void* readFileFromDisk(const char* file, size_t* size)
     long ts = ftell(f);
 
     if (ts < 0)
-    	goto end;
+        goto end;
 
     s = (size_t)ts;
 
     data = (uint8_t*)malloc(s + 16);
 
     if (!data)
-    	goto end;
+        goto end;
 
     fseek(f, 0, SEEK_SET);
 
@@ -50,7 +50,7 @@ static void* readFileFromDisk(const char* file, size_t* size)
 
     *size = s;
 
-end:
+    end:
 
     fclose(f);
 
@@ -96,46 +96,46 @@ static void setExceptionLocation(PDSCInterface* sourceFuncs, SourceCodeData* dat
         return;
 
     if (strcmp(filename, data->filename))
-	{
-		size_t size = 0;
-		void* fileData = readFileFromDisk(filename, &size);
+    {
+        size_t size = 0;
+        void* fileData = readFileFromDisk(filename, &size);
 
-		if (fileData)
-			PDUI_SCSendCommand(sourceFuncs, SCI_ADDTEXT, size, (intptr_t)fileData);
-		else
-			printf("Sourcecode_plugin: Unable to load %s\n", filename);
+        if (fileData)
+            PDUI_SCSendCommand(sourceFuncs, SCI_ADDTEXT, size, (intptr_t)fileData);
+        else
+            printf("Sourcecode_plugin: Unable to load %s\n", filename);
 
-		free(fileData);
+        free(fileData);
 
-		strncpy(data->filename, filename, sizeof(data->filename));
-		data->filename[sizeof(data->filename) - 1] = 0;
-	}
+        strncpy(data->filename, filename, sizeof(data->filename));
+        data->filename[sizeof(data->filename) - 1] = 0;
+    }
 
-	PDUI_SCSendCommand(sourceFuncs, SCI_GOTOLINE, (uintptr_t)line, 0);
+    PDUI_SCSendCommand(sourceFuncs, SCI_GOTOLINE, (uintptr_t)line, 0);
 
-	data->line = (int)line;
+    data->line = (int)line;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
-{
+   static void showInUI(SourceCodeData* data, PDUI* uiFuncs)
+   {
     (void)data;
     //uiFuncs->columns(1, "sourceview", true);
     PDSCInterface* scFuncs = uiFuncs->scInputText("test", 800, 700, 0, 0);
 
-	const char* testText = "Test\nTest2\nTest3\n\0";
+    const char* testText = "Test\nTest2\nTest3\n\0";
 
-	static bool hasSentText = false;
+    static bool hasSentText = false;
 
-	if (!hasSentText)
-	{
-		PDUI_SCSendCommand(scFuncs, SCI_ADDTEXT, strlen(testText), (intptr_t)testText);
-		hasSentText = true;
-	}
-}
-*/
+    if (!hasSentText)
+    {
+        PDUI_SCSendCommand(scFuncs, SCI_ADDTEXT, strlen(testText), (intptr_t)testText);
+        hasSentText = true;
+    }
+   }
+ */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -194,8 +194,8 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     updateKeyboard(data, uiFuncs);
 
-	PDUI_SCUpdate(sourceFuncs);
-	PDUI_SCDraw(sourceFuncs);
+    PDUI_SCUpdate(sourceFuncs);
+    PDUI_SCDraw(sourceFuncs);
 
     //showInUI(data, uiFuncs);
 
@@ -222,10 +222,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-{
-	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-}
+    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+    {
+        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+    }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

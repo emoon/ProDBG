@@ -10,15 +10,15 @@
 
 void Core_init()
 {
-	static application_t application;
+    static application_t application;
 
-	application.name = "ProDBG";
-	application.short_name = "ProDBG";
-	application.config_dir = "ProDBG";
-	application.version = foundation_version();
-	application.flags = APPLICATION_UTILITY;
-	application.dump_callback = 0;
+    application.name = "ProDBG";
+    application.short_name = "ProDBG";
+    application.config_dir = "ProDBG";
+    application.version = foundation_version();
+    application.flags = APPLICATION_UTILITY;
+    application.dump_callback = 0;
 
-	foundation_initialize(memory_system_malloc(), application);
+    foundation_initialize(memory_system_malloc(), application);
 }
- 
+

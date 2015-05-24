@@ -49,53 +49,53 @@ static Session** s_sessions = 0;
 
 void fileUpdateCallback(void* userData, const char* file, int type)
 {
-	(void)userData;
+    (void)userData;
 
-	// TODO: Only supporting modified files for now 
+    // TODO: Only supporting modified files for now
 
-	if (type != FOUNDATIONEVENT_FILE_MODIFIED)
-		return;
+    if (type != FOUNDATIONEVENT_FILE_MODIFIED)
+        return;
 
-	const char* filename = path_base_file_name(file);
+    const char* filename = path_base_file_name(file);
 
-	PluginData* pluginData = PluginHandler_findPluginByFilename(filename);
+    PluginData* pluginData = PluginHandler_findPluginByFilename(filename);
 
-	if (!pluginData)
-		return;
+    if (!pluginData)
+        return;
 
-	void* pluginPtr = pluginData->plugin;
+    void* pluginPtr = pluginData->plugin;
 
-	PluginData* reloadPluginData = PluginHandler_reloadPlugin(pluginData);
+    PluginData* reloadPluginData = PluginHandler_reloadPlugin(pluginData);
 
-	PDViewPlugin* newPluginPtr = (PDViewPlugin*)reloadPluginData->plugin; 
+    PDViewPlugin* newPluginPtr = (PDViewPlugin*)reloadPluginData->plugin;
 
-	int sessionCount = array_size(s_sessions);
+    int sessionCount = array_size(s_sessions);
 
-	for (int i = 0; i < sessionCount; ++i)
-	{
-		Session* session = s_sessions[i];
+    for (int i = 0; i < sessionCount; ++i)
+    {
+        Session* session = s_sessions[i];
 
-		int viewPluginCount = array_size(session->viewPlugins);
+        int viewPluginCount = array_size(session->viewPlugins);
 
-		for (int p = 0; p < viewPluginCount; ++p)
-		{
-			ViewPluginInstance* instance = session->viewPlugins[p]; 
-			PDViewPlugin* instancePlugin = instance->plugin; 
+        for (int p = 0; p < viewPluginCount; ++p)
+        {
+            ViewPluginInstance* instance = session->viewPlugins[p];
+            PDViewPlugin* instancePlugin = instance->plugin;
 
-			if (instancePlugin == pluginPtr)
-				instance->plugin = newPluginPtr; 
-		}
-	}
+            if (instancePlugin == pluginPtr)
+                instance->plugin = newPluginPtr;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Session_globalInit(bool reloadPlugins)
 {
-	if (!reloadPlugins)
-		return;
+    if (!reloadPlugins)
+        return;
 
-	FileMonitor_addPath(OBJECT_DIR, LIB_EXT, fileUpdateCallback, 0);
+    FileMonitor_addPath(OBJECT_DIR, LIB_EXT, fileUpdateCallback, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -224,12 +224,12 @@ Session* Session_createRemote(const char* target, int port)
 
 static void* serviceFunc(const char* service)
 {
-	// TODO: Handle versions
+    // TODO: Handle versions
 
-	if (!strcmp(service, PDMESSAGEFUNCS_GLOBAL))
-		return (void*)&g_serviceMessageFuncs;
+    if (!strcmp(service, PDMESSAGEFUNCS_GLOBAL))
+        return (void*)&g_serviceMessageFuncs;
 
-	return 0;
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -437,10 +437,10 @@ static void updateLocal(Session* s, PDAction action)
     PDBinaryWriter_reset(s->currentWriter);
 
     if (backend)
-	{
+    {
         s->state = backend->plugin->update(backend->userData, action, s->reader, s->currentWriter);
         g_pluginUI->setStatusText("%s Backend: %s", backend->plugin->name, getStateName(s->state));
-	}
+    }
 
     int len = array_size(s->viewPlugins);
 
@@ -450,7 +450,7 @@ static void updateLocal(Session* s, PDAction action)
     for (int i = 0; i < len; ++i)
     {
         struct ViewPluginInstance* p = s->viewPlugins[i];
-		PluginUI::State state = g_pluginUI->updateInstance(p, s->reader, s->currentWriter);
+        PluginUI::State state = g_pluginUI->updateInstance(p, s->reader, s->currentWriter);
 
         if (state == PluginUI::CloseView)
         {
@@ -532,7 +532,7 @@ static void updateRemote(Session* s, PDAction action)
     for (int i = 0; i < len; ++i)
     {
         struct ViewPluginInstance* p = s->viewPlugins[i];
-		PluginUI::State state = g_pluginUI->updateInstance(p, s->reader, s->currentWriter);
+        PluginUI::State state = g_pluginUI->updateInstance(p, s->reader, s->currentWriter);
 
         if (state == PluginUI::CloseView)
         {
@@ -771,9 +771,9 @@ SessionStatus Session_onMenu(Session* session, int eventId)
 
             // Write down
 
-			PDWrite_eventBegin(session->currentWriter, PDEventType_menuEvent);
-			PDWrite_u32(session->currentWriter, "menu_id", (uint32_t)(eventId - pluginData->menuStart));
-			PDWrite_eventEnd(session->currentWriter);
+            PDWrite_eventBegin(session->currentWriter, PDEventType_menuEvent);
+            PDWrite_u32(session->currentWriter, "menu_id", (uint32_t)(eventId - pluginData->menuStart));
+            PDWrite_eventEnd(session->currentWriter);
         }
     }
 

@@ -869,7 +869,7 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 
         case WM_COMMAND:
         {
-			const int key = translateKey(wParam, lParam);
+            const int key = translateKey(wParam, lParam);
             int loword = LOWORD(wParam);
 
             //if ((loword >= PRODBG_MENU_START) && (loword < PRODBG_MENU_END))
@@ -947,13 +947,13 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
             return 0;
         }
 
-		case WM_CHAR:
-		{
-			// You can also use ToAscii()+GetKeyboardState() to retrieve characters.
-			if (wParam > 0 && wParam < 0x10000)
-				ProDBG_addChar((unsigned short)wParam);
-			break;
-		}
+        case WM_CHAR:
+        {
+            // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
+            if (wParam > 0 && wParam < 0x10000)
+                ProDBG_addChar((unsigned short)wParam);
+            break;
+        }
     }
 
     return DefWindowProc(window, message, wParam, lParam);

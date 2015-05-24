@@ -262,7 +262,7 @@ static int translateKey(unsigned int key)
     NSString* characters = [event characters];
     NSUInteger i, length = [characters length];
 
-    for (i = 0;  i < length;  i++)
+    for (i = 0; i < length; i++)
         ProDBG_addChar([characters characterAtIndex:i]);
 }
 

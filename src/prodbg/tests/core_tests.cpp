@@ -189,11 +189,11 @@ void test_commands(void**)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int s_checkPhase = 0;
-static const char* s_filename = 0; 
+static const char* s_filename = 0;
 static const char* s_filename_2 = 0;
-static const char* s_filename_3 = 0; 
+static const char* s_filename_3 = 0;
 static const char* s_filename_4 = 0;
-static const char* s_filename_5 = 0; 
+static const char* s_filename_5 = 0;
 static int s_userData_1 = 0;
 static int s_userData_2 = 1;
 static int s_userData_3 = 2;
@@ -202,68 +202,68 @@ static int s_userData_3 = 2;
 
 void fileNotifaction(void* userData, const char* file, int type)
 {
-	assert_true(userData == &s_userData_1);  
+    assert_true(userData == &s_userData_1);
 
-	if (s_checkPhase == 0)
-	{
-		assert_string_equal(file, s_filename); 
-		assert_int_equal(type, FOUNDATIONEVENT_FILE_CREATED); 
-		s_checkPhase = 1;
-		return;
-	}
+    if (s_checkPhase == 0)
+    {
+        assert_string_equal(file, s_filename);
+        assert_int_equal(type, FOUNDATIONEVENT_FILE_CREATED);
+        s_checkPhase = 1;
+        return;
+    }
 
-	if (s_checkPhase == 1)
-	{
-		assert_string_equal(file, s_filename); 
-		assert_int_equal(type, FOUNDATIONEVENT_FILE_MODIFIED); 
-		s_checkPhase = 2;
-		return;
-	}
+    if (s_checkPhase == 1)
+    {
+        assert_string_equal(file, s_filename);
+        assert_int_equal(type, FOUNDATIONEVENT_FILE_MODIFIED);
+        s_checkPhase = 2;
+        return;
+    }
 
-	s_checkPhase = 7;
+    s_checkPhase = 7;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void fileNotifaction2(void* userData, const char* file, int type)
 {
-	assert_true(userData == &s_userData_2);  
+    assert_true(userData == &s_userData_2);
 
-	if (s_checkPhase == 2)
-	{
-		assert_string_equal(file, s_filename_2); 
-		assert_int_equal(type, FOUNDATIONEVENT_FILE_CREATED); 
-		s_checkPhase = 3;
-		return;
-	}
+    if (s_checkPhase == 2)
+    {
+        assert_string_equal(file, s_filename_2);
+        assert_int_equal(type, FOUNDATIONEVENT_FILE_CREATED);
+        s_checkPhase = 3;
+        return;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void fileNotifaction3(void* userData, const char* file, int type)
 {
-	assert_true(userData == &s_userData_3);  
+    assert_true(userData == &s_userData_3);
 
-	if (s_checkPhase == 3 && strcmp(file, s_filename_3) == 0)
-	{		
-		assert_int_equal(type, FOUNDATIONEVENT_FILE_CREATED); 
-		s_checkPhase = 4;
-		return;
-	}
+    if (s_checkPhase == 3 && strcmp(file, s_filename_3) == 0)
+    {
+        assert_int_equal(type, FOUNDATIONEVENT_FILE_CREATED);
+        s_checkPhase = 4;
+        return;
+    }
 
-	if (s_checkPhase == 4 && strcmp(file, s_filename_4) == 0)
-	{
-		assert_int_equal(type, FOUNDATIONEVENT_FILE_CREATED); 
-		s_checkPhase = 5;
-		return;
-	}
+    if (s_checkPhase == 4 && strcmp(file, s_filename_4) == 0)
+    {
+        assert_int_equal(type, FOUNDATIONEVENT_FILE_CREATED);
+        s_checkPhase = 5;
+        return;
+    }
 
-	if (s_checkPhase == 5  && strcmp(file, s_filename_5) == 0)
-	{
-		assert_int_equal(type, FOUNDATIONEVENT_FILE_CREATED); 
-		s_checkPhase = 6;
-		return;
-	}
+    if (s_checkPhase == 5  && strcmp(file, s_filename_5) == 0)
+    {
+        assert_int_equal(type, FOUNDATIONEVENT_FILE_CREATED);
+        s_checkPhase = 6;
+        return;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -271,122 +271,122 @@ void fileNotifaction3(void* userData, const char* file, int type)
 
 void test_file_notification(void**)
 {
-	int temp = 1;
-	const char* test_dir = "t2-output/test_dir"; 
-	const char* test_dir_2 = "t2-output/2_test_dir";
-	const char* test_dir_3 = "t2-output/3_test_dir"; 
-	const char* filename_2 = "t2-output/test_dir/test_file_2";
-	s_filename = "t2-output/test_dir/test_file.dll";
-	s_filename_2 = "t2-output/2_test_dir/test_file.txt";
-	
-	s_filename_3 = "t2-output/3_test_dir/test_file.bin";
-	s_filename_4 = "t2-output/3_test_dir/test_file.so";
-	s_filename_5 = "t2-output/3_test_dir/test_file.exe";	
+    int temp = 1;
+    const char* test_dir = "t2-output/test_dir";
+    const char* test_dir_2 = "t2-output/2_test_dir";
+    const char* test_dir_3 = "t2-output/3_test_dir";
+    const char* filename_2 = "t2-output/test_dir/test_file_2";
+    s_filename = "t2-output/test_dir/test_file.dll";
+    s_filename_2 = "t2-output/2_test_dir/test_file.txt";
 
-	fs_remove_directory(test_dir); 
-	fs_make_directory(test_dir);
+    s_filename_3 = "t2-output/3_test_dir/test_file.bin";
+    s_filename_4 = "t2-output/3_test_dir/test_file.so";
+    s_filename_5 = "t2-output/3_test_dir/test_file.exe";
 
-	fs_remove_directory(test_dir_2); 
-	fs_make_directory(test_dir_2);
+    fs_remove_directory(test_dir);
+    fs_make_directory(test_dir);
 
-	fs_remove_directory(test_dir_3); 
-	fs_make_directory(test_dir_3);
+    fs_remove_directory(test_dir_2);
+    fs_make_directory(test_dir_2);
 
-	FILE* t = fopen(filename_2, "wb");
-	fwrite(&temp, 4, 1, t);
-	fclose(t);
+    fs_remove_directory(test_dir_3);
+    fs_make_directory(test_dir_3);
 
-	FileMonitor_addPath(test_dir, "*", fileNotifaction, &s_userData_1);
+    FILE* t = fopen(filename_2, "wb");
+    fwrite(&temp, 4, 1, t);
+    fclose(t);
 
-	thread_sleep(200);
+    FileMonitor_addPath(test_dir, "*", fileNotifaction, &s_userData_1);
 
-	// Test notification when writing one file
+    thread_sleep(200);
 
-	t = fopen(s_filename, "wb");
-	fclose(t);
+    // Test notification when writing one file
 
-	thread_sleep(1000);
+    t = fopen(s_filename, "wb");
+    fclose(t);
 
-	FileMonitor_update();
+    thread_sleep(1000);
 
-	thread_sleep(400);
+    FileMonitor_update();
 
-	assert_int_equal(s_checkPhase, 1);
+    thread_sleep(400);
 
-	fs_copy_file(filename_2, s_filename);
+    assert_int_equal(s_checkPhase, 1);
 
-	thread_sleep(1000);
+    fs_copy_file(filename_2, s_filename);
 
-	FileMonitor_update();
+    thread_sleep(1000);
 
-	thread_sleep(400);
+    FileMonitor_update();
 
-	assert_int_equal(s_checkPhase, 2);
+    thread_sleep(400);
 
-	FileMonitor_addPath(test_dir_2, "txt", fileNotifaction2, &s_userData_2);
+    assert_int_equal(s_checkPhase, 2);
 
-	thread_sleep(1000);
+    FileMonitor_addPath(test_dir_2, "txt", fileNotifaction2, &s_userData_2);
 
-	fs_copy_file(filename_2, s_filename_2);
+    thread_sleep(1000);
 
-	thread_sleep(1200);
+    fs_copy_file(filename_2, s_filename_2);
 
-	FileMonitor_update();
+    thread_sleep(1200);
 
-	assert_int_equal(s_checkPhase, 3);
-	
+    FileMonitor_update();
 
-	FileMonitor_removePath(test_dir);
-
-	// Except no notifactions for this
-
-	fs_remove_file(s_filename);
-
-	FileMonitor_update();
-
-	thread_sleep(1000);
-
-	FileMonitor_update();
-
-	thread_sleep(400);
-
-	assert_int_equal(s_checkPhase, 3);
-	
-
-	FileMonitor_addPath(test_dir_3, "bin;so", fileNotifaction3, &s_userData_3);
-
-	thread_sleep(1000);
-
-	fs_copy_file(filename_2, s_filename_3);
-
-	thread_sleep(1200);
-
-	FileMonitor_update();
-
-	assert_int_equal(s_checkPhase, 4);
-
-	thread_sleep(1000);
-
-	fs_copy_file(filename_2, s_filename_4);
-
-	thread_sleep(1200);
-
-	FileMonitor_update();
-
-	assert_int_equal(s_checkPhase, 5);
-
-	thread_sleep(1000);
-
-	fs_copy_file(filename_2, s_filename_5);
-
-	thread_sleep(1200);
-
-	FileMonitor_update();
-
-	assert_int_equal(s_checkPhase, 5);
+    assert_int_equal(s_checkPhase, 3);
 
 
-	FileMonitor_close();
+    FileMonitor_removePath(test_dir);
+
+    // Except no notifactions for this
+
+    fs_remove_file(s_filename);
+
+    FileMonitor_update();
+
+    thread_sleep(1000);
+
+    FileMonitor_update();
+
+    thread_sleep(400);
+
+    assert_int_equal(s_checkPhase, 3);
+
+
+    FileMonitor_addPath(test_dir_3, "bin;so", fileNotifaction3, &s_userData_3);
+
+    thread_sleep(1000);
+
+    fs_copy_file(filename_2, s_filename_3);
+
+    thread_sleep(1200);
+
+    FileMonitor_update();
+
+    assert_int_equal(s_checkPhase, 4);
+
+    thread_sleep(1000);
+
+    fs_copy_file(filename_2, s_filename_4);
+
+    thread_sleep(1200);
+
+    FileMonitor_update();
+
+    assert_int_equal(s_checkPhase, 5);
+
+    thread_sleep(1000);
+
+    fs_copy_file(filename_2, s_filename_5);
+
+    thread_sleep(1200);
+
+    FileMonitor_update();
+
+    assert_int_equal(s_checkPhase, 5);
+
+
+    FileMonitor_close();
 }
 
 

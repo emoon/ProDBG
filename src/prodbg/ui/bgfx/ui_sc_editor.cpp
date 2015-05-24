@@ -325,7 +325,7 @@ public:
         , m_wheelVRotation(0)
         , m_wheelHRotation(0)
     {
-    	memset(&interface, 0, sizeof(interface));
+        memset(&interface, 0, sizeof(interface));
     }
 
     virtual ~ScEditor()
@@ -637,16 +637,16 @@ public:
         SetFocusState(true);
         CaretSetPeriod(0);
 
-		/*
-        size_t textSize = 0;
-        const char* text = static_cast<const char*>(File_loadToMemory("examples/fake_6502/fake6502_main.c", &textSize, 0));
-        assert(text);
+        /*
+           size_t textSize = 0;
+           const char* text = static_cast<const char*>(File_loadToMemory("examples/fake_6502/fake6502_main.c", &textSize, 0));
+           assert(text);
 
-        SendCommand(SCI_ADDTEXT, textSize,
+           SendCommand(SCI_ADDTEXT, textSize,
                     reinterpret_cast<sptr_t>(static_cast<const char*>(text)));
 
-        free((void*)text);
-        */
+           free((void*)text);
+         */
 
         // Need to do this after setting the text
         //SendCommand(SCI_SETREADONLY, 1);
@@ -802,24 +802,24 @@ public:
 
 intptr_t ImScEditor::SendCommand(unsigned int message, uintptr_t p0, intptr_t p1)
 {
-	ScEditor* editor = (ScEditor*)privateData;
-	return (intptr_t)editor->SendCommand(message, (uptr_t)p0, (sptr_t)p1);
+    ScEditor* editor = (ScEditor*)privateData;
+    return (intptr_t)editor->SendCommand(message, (uptr_t)p0, (sptr_t)p1);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ImScEditor::Update()
 {
-	ScEditor* editor = (ScEditor*)privateData;
-	ScEditor_tick(editor);
+    ScEditor* editor = (ScEditor*)privateData;
+    ScEditor_tick(editor);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ImScEditor::Draw()
 {
-	ScEditor* editor = (ScEditor*)privateData;
-	ScEditor_render(editor);
+    ScEditor* editor = (ScEditor*)privateData;
+    ScEditor_render(editor);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1029,5 +1029,5 @@ void ScEditor_scrollMouse(ScEditor* editor, const PDMouseWheelEvent& wheelEvent)
 
 ImScEditor* ScEditor_getInterface(ScEditor* editor)
 {
-	return &editor->interface;
+    return &editor->interface;
 }

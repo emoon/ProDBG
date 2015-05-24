@@ -125,7 +125,7 @@ void processEvents()
                 case ConfigureNotify:
                 {
                     const XConfigureEvent& xev = event.xconfigure;
-					ProDBG_setWindowSize(xev.width, xev.height);
+                    ProDBG_setWindowSize(xev.width, xev.height);
                     break;
                 }
             }
