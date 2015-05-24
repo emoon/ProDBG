@@ -1,4 +1,7 @@
+#ifndef _WIN32
 #include <alloca.h>
+#endif
+
 #include "file_monitor.h"
 #include <foundation/memory.h>
 #include <foundation/array.h>
