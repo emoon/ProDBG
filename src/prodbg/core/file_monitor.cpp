@@ -3,6 +3,7 @@
 #include <foundation/array.h>
 #include <foundation/event.h>
 #include <foundation/fs.h>
+#include <foundation/path.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -57,12 +58,53 @@ static void updateCallbacks(event_t* event)
 	{
 		FileNotificationData* noteData = &s_notficationData[i];
 
-		// TODO: handle file filters
-
 		if (!strstr(filename, noteData->path))
 			continue;
 
-		noteData->callback(noteData->userData, filename, event->id);
+		if (strcmp(noteData->fileFilters, "*") == 0)
+		{
+		    noteData->callback(noteData->userData, filename, event->id);
+		}
+		else
+		{
+		    int filter_count = 1;
+		    char file_filters[strlen(noteData->fileFilters) + 1];
+		    strcpy(file_filters, noteData->fileFilters);
+		    const char* delimiter = ";"; 
+		    char* found;		
+		    found = strpbrk(file_filters, delimiter);
+		
+		    while (found != NULL)
+		    {
+			++filter_count;
+			found = strpbrk(found+1, delimiter);
+		    }		    
+
+		    // NOTE(marco): we could probably lower the string length
+		    char filter_extensions[filter_count][256];
+		    found = strtok(file_filters, delimiter);
+		    int current_filter = 0;
+		    while (found != NULL)
+		    {		    
+			strcpy(filter_extensions[current_filter++], found);
+			found = strtok(NULL, delimiter);
+		    }		
+
+		    bool matching_filter = false;		
+		    for (int filter_index = 0; filter_index < filter_count; ++filter_index)
+		    {
+			char *extension = path_file_extension(filename);
+			found = strstr(extension, filter_extensions[filter_index]);
+			if (found)
+			{
+			    matching_filter = true;
+			    break;
+			}
+		    }
+
+		    if (matching_filter)
+			noteData->callback(noteData->userData, filename, event->id);
+		}
 	}
 }
 
