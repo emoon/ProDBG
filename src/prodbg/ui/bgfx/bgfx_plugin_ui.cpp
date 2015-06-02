@@ -353,9 +353,10 @@ static bool inputText(const char* label, char* buf, int buf_size, int flags, voi
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int buttonSize(const char* label, int width, int height, int repeatWhenHeld)
+static int buttonSize(const char* label, int width, int height)
 {
-    return ImGui::Button(label, ImVec2((float)width, (float)height), !!repeatWhenHeld);
+    // TODO(marco): interface has changed, do we still need repeatWhenHeld?
+    return ImGui::Button(label, ImVec2((float)width, (float)height));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
