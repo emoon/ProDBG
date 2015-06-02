@@ -5,13 +5,32 @@
 #include "core/alloc.h"
 #include "core/log.h"
 #include "core/math.h"
+#include "ui_dock.h"
+#include "imgui_setup.h"
 #include <imgui.h>
 #include <assert.h>
 
+#include <session/session.h>
 #include <foundation/apple.h>
 #include <foundation/string.h>
+#include <bgfx.h>
+#include "core/input_state.h"
+#include "ui/bgfx/cursor.h"
 
 struct ImGuiWindow;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct Context
+{
+    int width;
+    int height;
+    //InputState inputState;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static Context s_context;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -199,9 +218,9 @@ static void textWrapped(const char* format, ...)
 
 typedef struct PDSCFuncs
 {
-    intptr_t (* sendCommand)(void* privData, unsigned int message, uintptr_t p0, intptr_t p1);
-    void (* update)(void* privData);
-    void (* draw)(void* privData);
+    intptr_t (*sendCommand)(void* privData, unsigned int message, uintptr_t p0, intptr_t p1);
+    void (*update)(void* privData);
+    void (*draw)(void* privData);
     void* privateData;
 } PDSCFuns;
 
@@ -252,7 +271,7 @@ static PDSCInterface* scEditText(const char* label, float xSize, float ySize,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef void (* InputCallback)(PDInputTextCallbackData*);
+typedef void (*InputCallback)(PDInputTextCallbackData*);
 
 struct PDInputTextUserData
 {
@@ -736,40 +755,160 @@ void BgfxPluginUI::setStatusTextNoFormat(const char* text)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BgfxPluginUI::update()
+static void updateDock(UIDockingGrid* grid)
 {
-    renderStatusBar(m_statusText, m_statusSize);
+    switch (UIDock_getSizingState(grid))
+    {
+        case UIDockSizerDir_None:
+        {
+            Cunsor_setType(CursorType_Default);
+            break;
+        }
+
+        case UIDockSizerDir_Horz:
+        {
+            Cunsor_setType(CursorType_SizeHorizontal);
+            break;
+        }
+
+        case UIDockSizerDir_Vert:
+        {
+            Cunsor_setType(CursorType_SizeVertical);
+            break;
+        }
+
+        case UIDockSizerDir_Both:
+        {
+            Cunsor_setType(CursorType_SizeAll);
+            break;
+        }
+    }
+
+    UIDock_update(grid, InputState_getState()); 
+    UIDock_renderSizers(grid);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-   void PluginUI_getWindowRect(ViewPluginInstance* instance, FloatRect* rect)
-   {
-    rect->x = (float)instance->rect.x;
-    rect->y = (float)instance->rect.y;
-    rect->width = (float)instance->rect.width;
-    rect->height = (float)instance->rect.height;
-   }
+void BgfxPluginUI::preUpdate()
+{
+    bgfx::setViewRect(0, 0, 0, (uint16_t)s_context.width, (uint16_t)s_context.height);
+    bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x101010ff, 1.0f, 0);
+    bgfx::submit(0);
+    IMGUI_preUpdate(1.0f / 60.0f);
 
-   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    Session** sessions = Session_getSessions();
 
-   void PluginUI_setWindowRect(ViewPluginInstance* instance, FloatRect* rect)
-   {
-    instance->rect = *rect;
-   }
- */
+	for (int i = 0; i < array_size(sessions); ++i)
+	{
+		Session* session = sessions[i];
+    	UIDockingGrid* grid = Session_getDockingGrid(session);
+		updateDock(grid);
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-   bool PluginUI_isActiveWindow(ViewPluginInstance* instance)
-   {
-    (void)instance;
-    PDUI* uiInstance = &instance->ui;
-    PrivateData* data = (PrivateData*)uiInstance->privateData;
+void BgfxPluginUI::postUpdate()
+{
+    renderStatusBar(m_statusText, m_statusSize);
+    IMGUI_postUpdate();
+    bgfx::frame();
+}
 
-    return ImGui::IsActiveWindow(data->window);
-   }
- */
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BgfxPluginUI::create(int width, int height)
+{
+    bgfx::init();
+    bgfx::reset((uint32_t)width, (uint32_t)height);
+    bgfx::setViewSeq(0, true);
+    IMGUI_setup(width, height);
+
+	s_context.width = width;
+	s_context.height = height;
+
+    Cursor_init();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BgfxPluginUI::destroy()
+{
+}
+
+// It's a bit weird to have the code like this here. To be cleaned up
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_setMousePos(float x, float y)
+{
+	InputState* state = InputState_getState();
+
+    state->mousePos.x = x;
+    state->mousePos.y = y;
+
+	IMGUI_setMousePos(x, y);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_setMouseState(int button, int state)
+{
+	InputState* inputState = InputState_getState();
+    inputState->mouseDown[0] = !!state;
+    
+    IMGUI_setMouseState(state);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_keyDown(int key, int modifier)
+{
+    IMGUI_setKeyDown(key, modifier);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_keyUp(int key, int modifier)
+{
+	InputState* state = InputState_getState();
+
+    IMGUI_setKeyUp(key, modifier);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_addChar(unsigned short c)
+{
+    IMGUI_addInputCharacter(c);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_setWindowSize(int width, int height)
+{
+    Context* context = &s_context;
+
+    context->width = width;
+    context->height = height;
+
+    bgfx::reset((uint32_t)width, (uint32_t)height);
+    IMGUI_updateSize(width, height);
+
+    Session** sessions = Session_getSessions();
+
+	for (int i = 0; i < array_size(sessions); ++i)
+	{
+		Session* session = sessions[i];
+    	UIDockingGrid* grid = Session_getDockingGrid(session);
+
+		updateDock(grid);
+    	UIDock_updateSize(grid, width, height - (int)g_pluginUI->getStatusBarSize());
+	}
+}
+
+
+
+
 

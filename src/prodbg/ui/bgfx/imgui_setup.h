@@ -6,12 +6,13 @@ struct InputState;
 
 void IMGUI_setup(int width, int height);
 void IMGUI_updateSize(int width, int height);
-void IMGUI_preUpdate(const InputState* inputState, float deltaTime);
+void IMGUI_preUpdate(float deltaTime);
 void IMGUI_postUpdate();
 
-void IMGUI_setInputState(const InputState* inputState);
 void IMGUI_setKeyDown(int key, int modifier);
 void IMGUI_setKeyUp(int key, int modifier);
+void IMGUI_setMousePos(float x, float y);
+void IMGUI_setMouseState(int state);
 
 void IMGUI_addInputCharacter(unsigned short c);
 

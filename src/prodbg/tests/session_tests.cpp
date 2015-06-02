@@ -11,6 +11,7 @@
 #include "core/plugin_handler.h"
 #include "ui/plugin.h"
 #include "ui/bgfx/bgfx_plugin_ui.h"
+#include <foundation/array.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -67,20 +68,23 @@ struct Session* createSession()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void create_null_session(void** state)
+static void create_null_session(void**)
 {
-    (void)state;
-
     struct Session* session = createSession();
 
+    Session** sessions = Session_getSessions();
+
+    assert_int_equal(array_size(sessions), 1);
+
     Session_destroy(session);
+
+    assert_int_equal(array_size(sessions), 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void session_add_plugins(void** state)
+static void session_add_plugins(void**)
 {
-    (void)state;
     int pluginCount = 0;
 
     struct Session* session = createSession();
@@ -106,9 +110,8 @@ static void session_add_plugins(void** state)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void session_delete_plugins(void** state)
+static void session_delete_plugins(void**)
 {
-    (void)state;
     int pluginCount = 0;
 
     struct Session* session = createSession();
@@ -137,6 +140,33 @@ static void session_delete_plugins(void** state)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void session_test_many(void**)
+{
+    struct Session* s0 = createSession();
+    struct Session* s1 = createSession();
+    struct Session* s2 = createSession();
+
+    Session** sessions = Session_getSessions();
+
+    assert_int_equal(array_size(sessions), 3);
+
+    assert_true(sessions[0] == s0);
+    assert_true(sessions[1] == s1);
+    assert_true(sessions[2] == s2);
+
+    Session_destroy(s1);
+
+    assert_int_equal(array_size(sessions), 2);
+    assert_true(sessions[0] == s0);
+    assert_true(sessions[1] == s2);
+
+	Session_globalDestroy();
+
+    assert_int_equal(array_size(sessions), 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main()
 {
     Core_init();
@@ -148,6 +178,7 @@ int main()
         unit_test(create_null_session),
         unit_test(session_add_plugins),
         unit_test(session_delete_plugins),
+        unit_test(session_test_many),
     };
 
     return run_tests(tests);

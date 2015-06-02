@@ -8,7 +8,7 @@
 #include "core/file.h"
 #include "core/log.h"
 #include "ui_render.h"
-#include "input/input_state.h"
+#include "core/input_state.h"
 #include <stdio.h>
 #include <pd_keys.h>
 #include <bgfx.h>
@@ -150,33 +150,30 @@ void IMGUI_updateSize(int width, int height)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void IMGUI_setInputState(const InputState* inputState)
-{
-    ImGuiIO& io = ImGui::GetIO();
-    io.MousePos = ImVec2(inputState->mousePos.x, inputState->mousePos.y);
-    io.MouseDown[0] = inputState->mouseDown[MouseButton_Left];
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void IMGUI_preUpdate(const InputState* inputState, float deltaTime)
+void IMGUI_preUpdate(float deltaTime)
 {
     ImGuiIO& io = ImGui::GetIO();
     io.DeltaTime = deltaTime;
-    io.MousePos = ImVec2(inputState->mousePos.x, inputState->mousePos.y);
-    io.MouseDown[0] = inputState->mouseDown[MouseButton_Left];
 
     ImGui::NewFrame();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void IMGUI_setMouse(float x, float y, int mouseLmb)
+void IMGUI_setMouseState(int mouseLmb)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    io.MouseDown[0] = !!mouseLmb;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void IMGUI_setMousePos(float x, float y)
 {
     ImGuiIO& io = ImGui::GetIO();
     io.MousePos = ImVec2(x, y);
-    io.MouseDown[0] = !!mouseLmb;
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

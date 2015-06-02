@@ -1,6 +1,7 @@
 #pragma once
 
 #include "api/plugin_instance.h"
+#include "ui_dock.h"
 
 #include <vector> // TODO: replace with custom arrays
 

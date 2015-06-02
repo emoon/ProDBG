@@ -1,10 +1,8 @@
-#pragma once
-
 #include "../plugin.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class BgfxPluginUI : public PluginUI
+class WxPluginUI : public PluginUI
 {
 	void create(int width, int height);
 	void destroy();
@@ -20,6 +18,6 @@ class BgfxPluginUI : public PluginUI
 
 private:
     float m_statusSize = 18.0f;
-    char m_statusText[4096];
+    //char m_statusText[4096];
 };
 

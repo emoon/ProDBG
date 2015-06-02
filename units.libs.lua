@@ -611,12 +611,14 @@ StaticLibrary {
     Env = { 
 
         CXXOPTS = {
-        	{ "-Wno-gnu-anonymous-struct",
+        	{ "-D__WXOSX_COCOA__",
+        	  "-Wno-gnu-anonymous-struct",
 			  "-Wno-global-constructors",
 			  "-Wno-switch-enum",
 			  "-Wno-nested-anon-types",
 			  "-Wno-float-equal",
 			  "-Wno-cast-align",
+			  "-Wno-everything",
 			  "-Wno-exit-time-destructors",
 			  "-Wno-format-nonliteral"; Config = "macosx-*-*" },
         },
@@ -632,6 +634,7 @@ StaticLibrary {
             "src/external/stb",
             "src/external/jansson/include",
             "src/prodbg",
+			"third-party/include",
         },
     },
 

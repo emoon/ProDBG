@@ -1,7 +1,7 @@
 #include "ui_dock.h"
 #include "core/alloc.h"
 #include "core/math.h"
-#include "input/input_state.h"
+#include "core/input_state.h"
 #include "ui_dock_private.h"
 #include "ui_render.h"
 #include "../plugin.h"

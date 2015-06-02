@@ -1,7 +1,6 @@
 #pragma once
 
 #include <pd_backend.h>
-#include "ui/bgfx/ui_dock.h" // temporary while having UIDocking toggle
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -27,6 +26,13 @@ void Session_globalDestroy();
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct Session* Session_create();
+void Session_destroy(Session* session);
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Session** Session_getSessions();
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct Session* Session_createRemote(const char* target, int port);
 struct Session* Session_startRemote(Session* session, const char* target, int port);
@@ -66,11 +72,8 @@ void Session_stepOver(Session* session);
 void Session_loadSourceFile(Session* session, const char* filename);
 void Session_toggleBreakpointCurrentLine(Session* s);
 
-#if PRODBG_USING_DOCKING
-
 struct UIDockingGrid* Session_getDockingGrid(struct Session* session);
 void Session_createDockingGrid(struct Session* session, int width, int height);
 
-#endif
 
 

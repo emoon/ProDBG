@@ -743,6 +743,7 @@ static int translateKey(WPARAM wParam, LPARAM lParam)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 static void handleMouseWheel(HWND window, int axis, WPARAM wParam, LPARAM lParam)
 {
     static int linesPerRotation = -1;
@@ -793,8 +794,9 @@ static void handleMouseWheel(HWND window, int axis, WPARAM wParam, LPARAM lParam
     wheelEvent.deltaX = float(pt.x);
     wheelEvent.deltaY = float(pt.y);
 
-    ProDBG_scroll(wheelEvent);
+    //ProDBG_scroll(wheelEvent);
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -828,13 +830,13 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 
         case WM_MOUSEWHEEL:
         {
-            handleMouseWheel(window, PDWHEEL_AXIS_VERTICAL, wParam, lParam);
+            //handleMouseWheel(window, PDWHEEL_AXIS_VERTICAL, wParam, lParam);
             break;
         }
 
         case WM_MOUSEHWHEEL:
         {
-            handleMouseWheel(window, PDWHEEL_AXIS_HORIZONTAL, wParam, lParam);
+            //handleMouseWheel(window, PDWHEEL_AXIS_HORIZONTAL, wParam, lParam);
             break;
         }
 
