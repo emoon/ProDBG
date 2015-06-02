@@ -1,6 +1,7 @@
 #include "ui_dock.h"
 #include "core/alloc.h"
 #include "core/math.h"
+#include "core/log.h"
 #include "core/input_state.h"
 #include "ui_dock_private.h"
 #include "ui_render.h"
@@ -9,6 +10,14 @@
 #include <assert.h>
 #include <math.h>
 #include <bgfx.h>
+
+#define LOG_ACTIONS
+
+#ifdef LOG_ACTIONS
+#define log_dock(...) pd_log(LOG_INFO, __FILE__, __LINE__, __VA_ARGS__);
+#else
+#define log_dock() while (0} {}
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -939,7 +948,7 @@ static bool checkXCollusion(UIDockingGrid* grid, UIDockSizer* sizer, int move)
     int newSizeX = sizerX + move;
 
     int sizery0 = (int)sizer->rect.y;
-    int sizery1 = sizery0 + (int)sizer->rect.height;
+    int sizery1 = sizery0 + (int)sizer->rect.height - 1;
 
     for (UIDockSizer* gridSizer : grid->sizers)
     {
@@ -951,23 +960,37 @@ static bool checkXCollusion(UIDockingGrid* grid, UIDockSizer* sizer, int move)
 
         const int x0 = (int)(gridSizer->rect.x - g_sizerSnapSize * 4);
         const int x1 = (int)(gridSizer->rect.x + g_sizerSnapSize * 4);
+		const int y0 = (int)(gridSizer->rect.y);
+		const int y1 = (int)(y0 + gridSizer->rect.height) - 1;
 
         if (sizerX < x0)
         {
             if (newSizeX >= x0)
             {
-                int y = (int)gridSizer->rect.y;
-                if (sizery0 >= y && y < sizery1)
+				//log_dock("collision_x : testing sizer (%d %d) against (%d %d)\n", sizery0, sizery1, y0, y1);
+
+                if ((sizery0 > y0 && sizery0 <= y1) ||
+                	(sizery1 > y0 && sizery1 <= y1))
+				{
+					//log_dock("Unable to drag as collision x happen with sizer %p - (y0 %d y1 %d) and %p (y %d)\n",
+					//		sizer, sizery0, sizery1, gridSizer, y0);
                     return true;
+				}
             }
         }
         else if (sizerX > x1)
         {
             if (newSizeX <= x1)
             {
-                int y = (int)gridSizer->rect.y;
-                if (sizery0 >= y && y < sizery1)
+				//log_dock("collision_x : testing sizer (%d %d) against (%d %d)\n", sizery0, sizery1, y0, y1);
+
+                if ((sizery0 > y0 && sizery0 <= y1) ||
+                	(sizery1 > y0 && sizery1 <= y1))
+				{
+					//log_dock("Unable to drag as collision x happen with sizer %p - (y0 %d y1 %d) and %p (y %d)\n",
+					//		sizer, sizery0, sizery1, gridSizer, y0);
                     return true;
+				}
             }
         }
     }
@@ -983,7 +1006,7 @@ static bool checkYCollusion(UIDockingGrid* grid, UIDockSizer* sizer, int move)
     int newSizeY = sizerY + move;
 
     int sizerx0 = (int)sizer->rect.x;
-    int sizerx1 = sizerx0 + (int)sizer->rect.width;
+    int sizerx1 = sizerx0 + (int)sizer->rect.width - 1;
 
     for (UIDockSizer* gridSizer : grid->sizers)
     {
@@ -995,6 +1018,8 @@ static bool checkYCollusion(UIDockingGrid* grid, UIDockSizer* sizer, int move)
 
         const int y0 = (int)(gridSizer->rect.y - g_sizerSnapSize * 4);
         const int y1 = (int)(gridSizer->rect.y + g_sizerSnapSize * 4);
+		const int x0 = (int)(gridSizer->rect.x);
+		const int x1 = (int)(x0 + gridSizer->rect.width) - 1;
 
         if (sizerY < y0)
         {
@@ -1002,8 +1027,8 @@ static bool checkYCollusion(UIDockingGrid* grid, UIDockSizer* sizer, int move)
 
             if (newSizeY >= y0)
             {
-                int x = (int)gridSizer->rect.x;
-                if (sizerx0 >= x && x < sizerx1)
+                if ((sizerx0 > x0 && sizerx0 <= x1) ||
+                	(sizerx1 > x0 && sizerx1 <= x1))
                     return true;
             }
         }
@@ -1013,8 +1038,8 @@ static bool checkYCollusion(UIDockingGrid* grid, UIDockSizer* sizer, int move)
 
             if (newSizeY <= y1)
             {
-                int x = (int)gridSizer->rect.x;
-                if (sizerx0 >= x && x < sizerx1)
+                if ((sizerx0 > x0 && sizerx0 <= x1) ||
+                	(sizerx1 > x0 && sizerx1 <= x1))
                     return true;
             }
         }
