@@ -1279,6 +1279,53 @@ static void updateDragSizer(UIDockingGrid* grid, const InputState* inputState)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void splitAt(UIDockingGrid* grid, int mx, int my, ViewPluginInstance* instance, UIDockSizerDir dir)
+{
+	UIDock* dock = UIDock_getDockAt(grid, mx, my);
+
+    if (!dock)
+    {
+        UIDock_addView(grid, instance);
+        return;
+    }
+
+	const int x = (int)round(dock->view->rect.x);
+	const int y = (int)round(dock->view->rect.y);
+	const int w = (int)round(dock->view->rect.width);
+	const int h = (int)round(dock->view->rect.height);
+
+	if (dir == UIDockSizerDir_Horz)
+	{
+		if (my <= (y + h/2))
+    		return dockSide(UIDockSide_Top, grid, dock, instance);
+		else
+    		return UIDock_dockBottom(grid, dock, instance);
+	}
+	else
+	{
+		if (mx <= (x + w/2))
+    		return dockSide(UIDockSide_Left, grid, dock, instance);
+		else
+    		return dockSide(UIDockSide_Right, grid, dock, instance);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIDock_splitHorizontalAt(UIDockingGrid* grid, int x, int y, ViewPluginInstance* newInstance)
+{
+	splitAt(grid, x, y, newInstance, UIDockSizerDir_Horz);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIDock_splitVerticalAt(UIDockingGrid* grid, int x, int y, ViewPluginInstance* newInstance)
+{
+	splitAt(grid, x, y, newInstance, UIDockSizerDir_Vert);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void UIDock_update(UIDockingGrid* grid, const InputState* inputState)
 {
     (void)inputState;

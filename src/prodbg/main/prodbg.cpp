@@ -315,13 +315,10 @@ void ProDBG_event(int eventId)
 #if PRODBG_USING_DOCKING
     if (eventId & PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT)
     {
-        UIDockingGrid* grid = Session_getDockingGrid(context->session);
-        UIDock* dockAtMouse = UIDock_getDockAt(grid, (int)mousePos.x, (int)mousePos.y);
-
         eventId &= (PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT - 1);
 
         ViewPluginInstance* instance = g_pluginUI->createViewPlugin(pluginsData[eventId]);
-        UIDock_splitHorizontal(Session_getDockingGrid(context->session), dockAtMouse, instance);
+        UIDock_splitHorizontalAt(Session_getDockingGrid(context->session), (int)mousePos.x, (int)mousePos.y, instance);
 
         Session_addViewPlugin(context->session, instance);
         return;
@@ -329,14 +326,10 @@ void ProDBG_event(int eventId)
 
     if (eventId & PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT)
     {
-
-        UIDockingGrid* grid = Session_getDockingGrid(context->session);
-        UIDock* dockAtMouse = UIDock_getDockAt(grid, (int)mousePos.x, (int)mousePos.y);
-
         eventId &= (PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT - 1);
 
         ViewPluginInstance* instance = g_pluginUI->createViewPlugin(pluginsData[eventId]);
-        UIDock_splitVertical(Session_getDockingGrid(context->session), dockAtMouse, instance);
+        UIDock_splitVerticalAt(Session_getDockingGrid(context->session), (int)mousePos.x, (int)mousePos.y, instance);
 
         Session_addViewPlugin(context->session, instance);
         return;

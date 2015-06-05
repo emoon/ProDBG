@@ -1153,6 +1153,156 @@ void test_strange_breakage(void**)
     UIDock_destroyGrid(grid);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void test_split_at_horz_bottom(void**)
+{
+    FloatRect rect = {{{ 0.0f, 0.0f, 1000.0f, 400.0f }}};
+
+    UIDockingGrid* grid = UIDock_createGrid(&rect);
+
+    ViewPluginInstance view0Inst = {};
+    ViewPluginInstance view1Inst = {};
+
+    UIDock_addView(grid, &view0Inst);
+
+	UIDock_splitHorizontalAt(grid, 0, 300, &view1Inst);
+
+    assert_int_equal((int)grid->docks.size(), 2);
+    assert_int_equal((int)grid->sizers.size(), 1);
+
+    // validate the docking position
+
+	UIDockSizer* s0 = grid->sizers[0];
+    UIDock* d0 = grid->docks[0];
+    UIDock* d1 = grid->docks[1];
+
+    assert_true(d0->view == &view0Inst);
+    assert_true(d0->topSizer == &grid->topSizer);
+    assert_true(d0->bottomSizer == s0);
+    assert_true(d0->leftSizer == &grid->leftSizer);
+    assert_true(d0->rightSizer == &grid->rightSizer);
+
+    assert_true(d1->view == &view1Inst);
+    assert_true(d1->topSizer == s0);
+    assert_true(d1->bottomSizer == &grid->bottomSizer);
+    assert_true(d1->leftSizer == &grid->leftSizer);
+    assert_true(d1->rightSizer == &grid->rightSizer);
+
+    UIDock_destroyGrid(grid);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void test_split_at_horz_top(void**)
+{
+    FloatRect rect = {{{ 0.0f, 0.0f, 1000.0f, 400.0f }}};
+
+    UIDockingGrid* grid = UIDock_createGrid(&rect);
+
+    ViewPluginInstance view0Inst = {};
+    ViewPluginInstance view1Inst = {};
+
+    UIDock_addView(grid, &view0Inst);
+
+	UIDock_splitHorizontalAt(grid, 0, 100, &view1Inst);
+
+    assert_int_equal((int)grid->docks.size(), 2);
+    assert_int_equal((int)grid->sizers.size(), 1);
+
+    // validate the docking position
+
+	UIDockSizer* s0 = grid->sizers[0];
+    UIDock* d0 = grid->docks[0];
+    UIDock* d1 = grid->docks[1];
+
+    assert_true(d0->topSizer == s0);
+    assert_true(d0->bottomSizer == &grid->bottomSizer);
+    assert_true(d0->leftSizer == &grid->leftSizer);
+    assert_true(d0->rightSizer == &grid->rightSizer);
+
+    assert_true(d1->topSizer == &grid->topSizer);
+    assert_true(d1->bottomSizer == s0);
+    assert_true(d1->leftSizer == &grid->leftSizer);
+    assert_true(d1->rightSizer == &grid->rightSizer);
+
+    UIDock_destroyGrid(grid);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void test_split_at_vert_left(void**)
+{
+    FloatRect rect = {{{ 0.0f, 0.0f, 1000.0f, 400.0f }}};
+
+    UIDockingGrid* grid = UIDock_createGrid(&rect);
+
+    ViewPluginInstance view0Inst = {};
+    ViewPluginInstance view1Inst = {};
+
+    UIDock_addView(grid, &view0Inst);
+
+	UIDock_splitVerticalAt(grid, 300, 0, &view1Inst);
+
+    assert_int_equal((int)grid->docks.size(), 2);
+    assert_int_equal((int)grid->sizers.size(), 1);
+
+    // validate the docking position
+
+	UIDockSizer* s0 = grid->sizers[0];
+    UIDock* d0 = grid->docks[0];
+    UIDock* d1 = grid->docks[1];
+
+    assert_true(d0->topSizer == &grid->topSizer);
+    assert_true(d0->bottomSizer == &grid->bottomSizer);
+    assert_true(d0->leftSizer == s0);
+    assert_true(d0->rightSizer == &grid->rightSizer);
+
+    assert_true(d1->topSizer == &grid->topSizer);
+    assert_true(d1->bottomSizer == &grid->bottomSizer);
+    assert_true(d1->leftSizer == &grid->leftSizer);
+    assert_true(d1->rightSizer == s0);
+
+    UIDock_destroyGrid(grid);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void test_split_at_vert_right(void**)
+{
+    FloatRect rect = {{{ 0.0f, 0.0f, 1000.0f, 400.0f }}};
+
+    UIDockingGrid* grid = UIDock_createGrid(&rect);
+
+    ViewPluginInstance view0Inst = {};
+    ViewPluginInstance view1Inst = {};
+
+    UIDock_addView(grid, &view0Inst);
+
+	UIDock_splitVerticalAt(grid, 700, 0, &view1Inst);
+
+    assert_int_equal((int)grid->docks.size(), 2);
+    assert_int_equal((int)grid->sizers.size(), 1);
+
+    // validate the docking position
+
+	UIDockSizer* s0 = grid->sizers[0];
+    UIDock* d0 = grid->docks[0];
+    UIDock* d1 = grid->docks[1];
+
+    assert_true(d0->topSizer == &grid->topSizer);
+    assert_true(d0->bottomSizer == &grid->bottomSizer);
+    assert_true(d0->leftSizer == &grid->leftSizer);
+    assert_true(d0->rightSizer == s0);
+
+    assert_true(d1->topSizer == &grid->topSizer);
+    assert_true(d1->bottomSizer == &grid->bottomSizer);
+    assert_true(d1->leftSizer == s0);
+    assert_true(d1->rightSizer == &grid->rightSizer);
+
+
+    UIDock_destroyGrid(grid);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
@@ -1247,6 +1397,10 @@ int main()
         unit_test(test_breaking_delete),
         unit_test(test_auto_resize_sizer),
         unit_test(test_strange_breakage),
+		unit_test(test_split_at_horz_bottom),
+		unit_test(test_split_at_horz_top),
+		unit_test(test_split_at_vert_left),
+		unit_test(test_split_at_vert_right),
 
         //unit_test(test_randomize_create_delete),
     };

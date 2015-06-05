@@ -53,8 +53,12 @@ void UIDock_updateSize(UIDockingGrid* grid, int width, int height);
 
 UIDockSizerDir UIDock_getSizingState(UIDockingGrid* grid);
 
-
 UIDock* UIDock_getDockAt(UIDockingGrid* grid, int x, int y);
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIDock_splitHorizontalAt(UIDockingGrid* grid, int x, int y, ViewPluginInstance* newInstance);
+void UIDock_splitVerticalAt(UIDockingGrid* grid, int x, int y, ViewPluginInstance* newInstance);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
