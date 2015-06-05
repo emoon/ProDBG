@@ -34,8 +34,6 @@ struct UIDock;
 
 struct UIDockSizer
 {
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
     inline void addDock(UIDock* dock)
     {
         cons.push_back(dock);
@@ -112,6 +110,7 @@ struct UIDockingGrid
     UIDockingGrid() : state(UIDockState_None)
     {
         prevDragPos = { 0.0f, 0.0f };
+        idCounter = 0;
     }
 
     std::vector<UIDock*> docks;
@@ -123,6 +122,7 @@ struct UIDockingGrid
     FloatRect rect;
 
     UIDockState state;
+    int idCounter;
     Vec2 prevDragPos;
     std::vector<UIDockSizer*> hoverSizers;
 };

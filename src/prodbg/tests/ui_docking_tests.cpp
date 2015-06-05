@@ -1079,6 +1079,80 @@ void test_breaking_delete(void**)
     UIDock_destroyGrid(grid);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void test_strange_breakage(void**)
+{
+    FloatRect rect = {{{ 0.0f, 0.0f, 1280.0f, 720.0f }}};
+
+	// ui_dock.addView("Disassembly 0")
+	// ui_dock.split(Side.Bottom, "Disassembly 0", "Locals 0")
+	// ui_dock.split(Side.Left, "Locals 0", "CallStack 0")
+	// ui_dock.split(Side.Left, "CallStack 0", "Disassembly 1")
+	// ui_dock.split(Side.Left, "CallStack 0", "Locals 1")
+	//
+	// ui_dock.split(Side.Bottom, "CallStack 0", "Locals 2")
+	// ui_dock.split(Side.Left, "Locals 1", "Disassembly 2")
+	// ui_dock.split(Side.Bottom, "Locals 1", "Source Code View 0")
+	// ui_dock.split(Side.Left, "Disassembly 2", "Locals 3")
+	//
+	// ui_dock.deleteView("Disassembly 2")
+	// ui_dock.deleteView("Locals 3")
+
+	enum
+	{
+		Disassembly0,
+		Locals0,
+		Callstack0,
+		Disassembly1,
+		Locals1,
+		Locals2,
+		Disassembly2,
+		SourceView0,
+		Locals3,
+	};
+
+    ViewPluginInstance disassembly0 = {};
+    ViewPluginInstance disassembly1 = {};
+    ViewPluginInstance disassembly2 = {};
+    ViewPluginInstance locals0 = {};
+    ViewPluginInstance locals1 = {};
+    ViewPluginInstance locals2 = {};
+    ViewPluginInstance locals3 = {};
+    ViewPluginInstance callstack0 = {};
+    ViewPluginInstance sourceView0 = {};
+
+    disassembly0.name = "Disassembly 0";
+    disassembly1.name = "Disassembly 1";
+    disassembly2.name = "Disassembly 2";
+    locals0.name = "Locals 0";
+    locals1.name = "Locals 1";
+    locals2.name = "Locals 2";
+    locals3.name = "Locals 3";
+    callstack0.name = "Callstack 0";
+    sourceView0.name = "SourceView 0";
+
+    UIDockingGrid* grid = UIDock_createGrid(&rect);
+
+    UIDock_dockLeft(grid, 0, &disassembly0); 	// ui_dock.split(Side.Bottom, "Disassembly 0", "Locals 0")
+
+    UIDock_dockBottom(grid, grid->docks[Disassembly0], &locals0); 	// ui_dock.split(Side.Bottom, "Disassembly 0", "Locals 0")
+    UIDock_dockLeft(grid, grid->docks[Locals0], &callstack0); 	  	// ui_dock.split(Side.Left, "Locals 0", "CallStack 0")
+    UIDock_dockLeft(grid, grid->docks[Callstack0], &disassembly1);  // ui_dock.split(Side.Left, "CallStack 0", "Disassembly 1")
+    UIDock_dockLeft(grid, grid->docks[Callstack0], &locals1);    	// ui_dock.split(Side.Left, "CallStack 0", "Locals 1")
+
+    UIDock_dockBottom(grid, grid->docks[Callstack0], &locals2);    	// ui_dock.split(Side.Bottom, "CallStack 0", "Locals 2")
+    UIDock_dockLeft(grid, grid->docks[Locals1], &disassembly2);  	// ui_dock.split(Side.Left, "Locals 1", "Disassembly 2")
+    UIDock_dockBottom(grid, grid->docks[Locals1], &sourceView0);   	// ui_dock.split(Side.Bottom, "CallStack 0", "Locals 2")
+    UIDock_dockLeft(grid, grid->docks[Disassembly2], &locals3);   	// ui_dock.split(Side.Left, "Disassembly 2", "Locals 3")
+
+    UIDock_deleteView(grid, grid->docks[Disassembly2]->view);
+    UIDock_deleteView(grid, grid->docks[Locals3]->view);
+	//displayGrid(grid, rect);
+    
+    UIDock_destroyGrid(grid);
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
@@ -1172,6 +1246,8 @@ int main()
         unit_test(test_delete_docks_down_up),
         unit_test(test_breaking_delete),
         unit_test(test_auto_resize_sizer),
+        unit_test(test_strange_breakage),
+
         //unit_test(test_randomize_create_delete),
     };
 

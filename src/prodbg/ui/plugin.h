@@ -17,6 +17,7 @@ struct ViewPluginInstance
     PDViewPlugin* plugin;
     FloatRect rect;
     void* userData;
+    const char* name;
     int count;
     bool markDeleted;
 };

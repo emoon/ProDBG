@@ -692,6 +692,7 @@ void BgfxPluginUI::init(ViewPluginInstance* pluginInstance)
     data->window = 0; //ImGui::FindOrCreateWindow(data->name, ImVec2(400, 400), 0);
 
     uiInstance->privateData = data;
+    pluginInstance->name = data->name;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

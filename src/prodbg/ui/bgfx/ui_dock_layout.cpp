@@ -167,7 +167,7 @@ static UIDockSizer* findSizer(UIDockingGrid* grid, const int id)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void loadDocks(UIDockingGrid* grid, json_t* root, float xScale, float yScale)
+static void loadDocks(UIDockingGrid* grid, json_t* root, double xScale, double yScale)
 {
     const size_t count = json_array_size(root);
 
@@ -197,7 +197,7 @@ static void loadDocks(UIDockingGrid* grid, json_t* root, float xScale, float ySc
                     "s2", &ids[2],
                     "s3", &ids[3]);
 
-        FloatRect rect = {{{ (float)x * xScale, (float)y * yScale, (float)width * xScale, (float)height * yScale }}};
+        FloatRect rect = {{{ float(x * xScale), float(y * yScale), float(width * xScale), float(height * yScale) }}};
 
         ViewPluginInstance* view = 0;
 
@@ -234,7 +234,7 @@ static void loadDocks(UIDockingGrid* grid, json_t* root, float xScale, float ySc
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void loadSizers(UIDockingGrid* grid, json_t* root, float xScale, float yScale)
+static void loadSizers(UIDockingGrid* grid, json_t* root, double xScale, double yScale)
 {
     const size_t count = json_array_size(root);
 
@@ -253,7 +253,7 @@ static void loadSizers(UIDockingGrid* grid, json_t* root, float xScale, float yS
                     "width", &width,
                     "height", &height);
 
-        FloatRect rect = {{{ (float)x * xScale, (float)y * yScale, (float)width * xScale, (float)height * yScale }}};
+        FloatRect rect = {{{ float(x * xScale), float(y * yScale), float(width * xScale), float(height * yScale) }}};
 
         UIDockSizer* sizer = 0;
 
