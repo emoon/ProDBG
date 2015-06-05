@@ -956,6 +956,40 @@ static bool deleteDock(UIDockingGrid* grid, UIDock* dock)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool checkSizerCollision(UIDockSizer* gridSizer, UIDockSizer* sizer, int sizer0, int sizer1, int sizerDir, int sizerDirNew, int compDir, int wOrh, int xOry, UIDockSizerDir dir)
+{
+	if (gridSizer == sizer)
+		return false;
+
+	if (gridSizer->dir != dir)
+		return false;
+
+	const int v0 = (int)(round(gridSizer->rect.data[compDir]) - g_sizerSnapSize * 4);
+	const int v1 = (int)(round(gridSizer->rect.data[compDir]) + g_sizerSnapSize * 4);
+
+	const int t0 = (int)(round(gridSizer->rect.data[xOry]));
+	const int t1 = (int)(t0 + round(gridSizer->rect.data[wOrh])) - 1;
+
+	if (sizerDir < v0 && sizerDirNew >= v0)
+	{
+		//log_dock("Checking ((%d > %d && %d <= %d) || (%d > %d && %d <= %d))\n", sizer0, t0, sizer0, t1, sizer1, t0, sizer1, t1);
+
+		if ((sizer0 >= t0 && sizer0 <= t1) || (sizer1 >= t0 && sizer1 <= t1))
+			return true;
+	}
+	else if (sizerDir > v1 && sizerDirNew <= v1)
+	{
+		//log_dock("Checking ((%d > %d && %d <= %d) || (%d > %d && %d <= %d))\n", sizer0, t0, sizer0, t1, sizer1, t0, sizer1, t1);
+
+		if ((sizer0 >= t0 && sizer0 <= t1) || (sizer1 >= t0 && sizer1 <= t1))
+			return true;
+	}
+
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static bool checkCollision(UIDockingGrid* grid, UIDockSizer* sizer, int move, int wOrh, int xOry, UIDockSizerDir dir)
 {
     int compDir = xOry == Rect::X ? Rect::Y : Rect::X;
@@ -968,33 +1002,21 @@ static bool checkCollision(UIDockingGrid* grid, UIDockSizer* sizer, int move, in
 
     for (UIDockSizer* gridSizer : grid->sizers)
     {
-        if (gridSizer == sizer)
-            continue;
-
-        if (gridSizer->dir != dir)
-            continue;
-
-        const int v0 = (int)(round(gridSizer->rect.data[compDir]) - g_sizerSnapSize * 4);
-        const int v1 = (int)(round(gridSizer->rect.data[compDir]) + g_sizerSnapSize * 4);
-
-		const int t0 = (int)(round(gridSizer->rect.data[xOry]));
-		const int t1 = (int)(t0 + round(gridSizer->rect.data[wOrh])) - 1;
-
-        if (sizerDir < v0 && sizerDirNew >= v0)
-        {
-        	log_dock("Checking ((%d > %d && %d <= %d) || (%d > %d && %d <= %d))\n", sizer0, t0, sizer0, t1, sizer1, t0, sizer1, t1);
-
-			if ((sizer0 >= t0 && sizer0 <= t1) || (sizer1 >= t0 && sizer1 <= t1))
-				return true;
-        }
-        else if (sizerDir > v1 && sizerDirNew <= v1)
-        {
-        	log_dock("Checking ((%d > %d && %d <= %d) || (%d > %d && %d <= %d))\n", sizer0, t0, sizer0, t1, sizer1, t0, sizer1, t1);
-
-			if ((sizer0 >= t0 && sizer0 <= t1) || (sizer1 >= t0 && sizer1 <= t1))
-				return true;
-		}
+    	if (checkSizerCollision(gridSizer, sizer, sizer0, sizer1, sizerDir, sizerDirNew, compDir, wOrh, xOry, dir))
+    		return true;
     }
+
+	if (checkSizerCollision(&grid->topSizer, sizer, sizer0, sizer1, sizerDir, sizerDirNew, compDir, wOrh, xOry, dir))
+		return true;
+
+	if (checkSizerCollision(&grid->bottomSizer, sizer, sizer0, sizer1, sizerDir, sizerDirNew, compDir, wOrh, xOry, dir))
+		return true;
+
+	if (checkSizerCollision(&grid->leftSizer, sizer, sizer0, sizer1, sizerDir, sizerDirNew, compDir, wOrh, xOry, dir))
+		return true;
+
+	if (checkSizerCollision(&grid->rightSizer, sizer, sizer0, sizer1, sizerDir, sizerDirNew, compDir, wOrh, xOry, dir))
+		return true;
 
     return false;
 }
