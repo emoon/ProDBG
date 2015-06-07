@@ -125,7 +125,7 @@ struct UIDockingGrid
     {
         prevDragPos = { 0.0f, 0.0f };
         idCounter = 0;
-        overlay.enabled = false;
+        memset(&overlay, 0, sizeof(overlay));
     }
 
     std::vector<UIDock*> docks;
