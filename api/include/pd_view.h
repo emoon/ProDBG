@@ -4,6 +4,7 @@
 #include "pd_common.h"
 #include "pd_readwrite.h"
 #include "pd_ui.h"
+#include "pd_io.h"
 
 #ifdef _cplusplus
 extern "C" {
@@ -11,6 +12,8 @@ extern "C" {
 
 struct PDUI;
 struct PDUIPainter;
+struct PDSaveState;
+struct PDLoadState;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -27,6 +30,10 @@ typedef struct PDViewPlugin
 
     // Updates and Returns the current state of the plugin.
     int (*update)(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents);
+
+    // save/load state
+	int (*saveState)(void* userData, struct PDSaveState* saveState);
+	int (*loadState)(void* userData, struct PDLoadState* loadState);
 
 } PDViewPlugin;
 
