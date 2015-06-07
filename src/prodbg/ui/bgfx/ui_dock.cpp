@@ -1228,7 +1228,7 @@ static bool isDragingDock(UIDockingGrid* grid, const InputState* inputState)
 
 	grid->overlay.enabled = true;
 	grid->overlay.dragDock = dock;
-	grid->overlay.rect = dock->view->rect;
+	grid->overlay.rect = {{{ 0, 0, 0, 0 }}}; 
 
 	return true;
 }
@@ -1245,20 +1245,101 @@ static void draggingView(UIDockingGrid* grid, const InputState* inputState)
 
 	UIDock* dock = UIDock_getDockAt(grid, (int)inputState->mousePos.x, (int)inputState->mousePos.y); 
 
-	if (!dock)
+	if (!dock || (dock == grid->overlay.dragDock))
+	{
+		grid->overlay.rect = {{{ 0, 0, 0, 0 }}};
+		grid->overlay.target = 0;
 		return;
+	}
 
-	grid->overlay.rect = dock->view->rect;
+	grid->overlay.target = dock;
+
+	// bring mouse in to local space of the dock
+
+	IntRect rect = dock->view->rect;
+
+	const int imx = ((int)inputState->mousePos.x) - dock->view->rect.x;
+	const int imy = ((int)inputState->mousePos.y) - dock->view->rect.y;
+
+	const int iwidth = dock->view->rect.width;
+	const int iheight = dock->view->rect.height;
+
+	// bring into 0 - 1 range
+
+	float mx = ((float)imx) / (float)iwidth;
+	float my = ((float)imy) / (float)iheight;
+
+	//printf("mx %f\n", mx);
+
+	grid->overlay.targetSide = UIDockSide_Tab;
+
+	if (mx <= 0.25f || my <= 0.25f)
+	{
+		if (my <= 0.25f)
+		{
+			rect.height /= 2; // top docking
+			grid->overlay.targetSide = UIDockSide_Top;
+		}
+		else if (my >= 0.75f)
+		{
+			int h = rect.height / 2; // bottom docking
+			rect.height = h;
+			rect.y += h;
+			grid->overlay.targetSide = UIDockSide_Bottom;
+		}
+		else
+		{
+			rect.width /= 2;
+			grid->overlay.targetSide = UIDockSide_Left;
+		}
+	}
+	else if (mx >= 0.75f || my >= 0.75f)
+	{
+		if (my <= 0.25f)
+		{
+			rect.height /= 2;
+			grid->overlay.targetSide = UIDockSide_Top;
+		}
+		else if (my >= 0.75f)
+		{
+			int h = rect.height / 2;
+			rect.height = h;
+			rect.y += h;
+			grid->overlay.targetSide = UIDockSide_Bottom;
+		}
+		else
+		{
+			int w = rect.width / 2;
+			rect.width = w;
+			rect.x += w;
+			grid->overlay.targetSide = UIDockSide_Right;
+		}
+	}
+
+	// now decide which regind we are in
+
+	grid->overlay.rect = rect;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void endDragView(UIDockingGrid* grid)
 {
-	// TODO: Move the 
+	OverlayData* overlay = &grid->overlay;
 
 	grid->overlay.enabled = false;
 	grid->state = UIDockState_None;
+
+	if (!overlay->target || (overlay->dragDock == overlay->target))
+		return;
+
+	ViewPluginInstance* view = overlay->dragDock->view;
+
+	deleteDock(grid, overlay->dragDock); 
+    dockSide(overlay->targetSide, grid, overlay->target, view);
+
+    overlay->target = 0;
+    overlay->dragDock = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
