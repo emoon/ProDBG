@@ -34,16 +34,13 @@ static void assignIds(UIDockingGrid* grid)
 
 static void writeSizer(UIDockSizer* sizer, json_t* root, float xScale, float yScale)
 {
-    (void)xScale;
-    (void)yScale;
-
     json_t* sizerItem = json_pack("{s:i, s:i, s:f, s:f, s:f, s:f}",
                                   "dir", (int)sizer->dir,
                                   "id", (int)sizer->id,
-                                  "x",  sizer->rect.x * xScale,
-                                  "y", sizer->rect.y * yScale,
-                                  "width", sizer->rect.width * xScale,
-                                  "height", sizer->rect.height * yScale);
+                                  "x",  double(sizer->rect.x) * xScale,
+                                  "y", double(sizer->rect.y) * yScale,
+                                  "width", double(sizer->rect.width) * xScale,
+                                  "height", double(sizer->rect.height) * yScale);
 
     json_t* consArray = json_array();
 
@@ -60,7 +57,7 @@ static void writeSizer(UIDockSizer* sizer, json_t* root, float xScale, float ySc
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void writeSizers(UIDockingGrid* grid, json_t* root, float xScale, float yScale)
+static void writeSizers(UIDockingGrid* grid, json_t* root, double xScale, double yScale)
 {
     json_t* sizersArray = json_array();
 
@@ -79,9 +76,6 @@ static void writeSizers(UIDockingGrid* grid, json_t* root, float xScale, float y
 
 static void writeDocks(UIDockingGrid* grid, json_t* root, float xScale, float yScale)
 {
-    (void)xScale;
-    (void)yScale;
-
     json_t* docksArray = json_array();
 
     for (UIDock* dock : grid->docks)
@@ -102,10 +96,10 @@ static void writeDocks(UIDockingGrid* grid, json_t* root, float xScale, float yS
                                      "plugin_file", filename,
                                      "type", (int)dock->type,
                                      "id", dock->id,
-                                     "x",  dock->view->rect.x * xScale,
-                                     "y", dock->view->rect.y * yScale,
-                                     "width", dock->view->rect.width * xScale,
-                                     "height", dock->view->rect.height * yScale,
+                                     "x",  double(dock->view->rect.x) * xScale,
+                                     "y", double(dock->view->rect.y) * yScale,
+                                     "width", double(dock->view->rect.width) * xScale,
+                                     "height", double(dock->view->rect.height) * yScale,
                                      "s0", dock->sizers[0]->id,
                                      "s1", dock->sizers[1]->id,
                                      "s2", dock->sizers[2]->id,
@@ -121,15 +115,15 @@ static void writeDocks(UIDockingGrid* grid, json_t* root, float xScale, float yS
 
 bool UIDock_saveLayout(UIDockingGrid* grid, const char* filename, float xScale, float yScale)
 {
-    xScale = 1.0f / xScale;
-    yScale = 1.0f / yScale;
+    double invScaleX = 1.0 / xScale;
+    double invScaleY = 1.0 / yScale;
 
     assignIds(grid);
 
     json_t* root = json_object();
 
-    writeSizers(grid, root, xScale, yScale);
-    writeDocks(grid, root, xScale, yScale);
+    writeSizers(grid, root, invScaleX, invScaleY);
+    writeDocks(grid, root, invScaleX, invScaleY);
 
     if (json_dump_file(root, filename, JSON_INDENT(4) | JSON_PRESERVE_ORDER) != 0)
     {
@@ -197,7 +191,7 @@ static void loadDocks(UIDockingGrid* grid, json_t* root, double xScale, double y
                     "s2", &ids[2],
                     "s3", &ids[3]);
 
-        FloatRect rect = {{{ float(x * xScale), float(y * yScale), float(width * xScale), float(height * yScale) }}};
+        IntRect rect = {{{ int(x * xScale), int(y * yScale), int(width * xScale), int(height * yScale) }}};
 
         ViewPluginInstance* view = 0;
 
@@ -253,7 +247,7 @@ static void loadSizers(UIDockingGrid* grid, json_t* root, double xScale, double 
                     "width", &width,
                     "height", &height);
 
-        FloatRect rect = {{{ float(x * xScale), float(y * yScale), float(width * xScale), float(height * yScale) }}};
+        IntRect rect = {{{ int(x * xScale), int(y * yScale), int(width * xScale), int(height * yScale) }}};
 
         UIDockSizer* sizer = 0;
 
@@ -363,7 +357,7 @@ UIDockingGrid* UIDock_loadLayout(const char* filename, float xSize, float ySize)
         return 0;
     }
 
-    FloatRect rect = {{{ 0.0f, 0.0f, xSize, ySize }}};
+    IntRect rect = {{{ 0, 0, xSize, ySize }}};
 
     grid = UIDock_createGrid(&rect);
 

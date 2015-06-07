@@ -29,6 +29,33 @@ typedef struct PDGRect
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef struct IntRect
+{
+    enum
+    {
+        X,
+        Y,
+        W,
+        H,
+        Compontent_Count,
+    };
+
+    union
+    {
+        struct
+        {
+            int x;
+            int y;
+            int width;
+            int height;
+        };
+
+        int data[Compontent_Count];
+    };
+} IntRect;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef struct FloatRect
 {
     enum

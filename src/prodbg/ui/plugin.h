@@ -15,7 +15,7 @@ struct ViewPluginInstance
 {
     PDUI ui;
     PDViewPlugin* plugin;
-    FloatRect rect;
+    IntRect rect;
     void* userData;
     const char* name;
     int count;

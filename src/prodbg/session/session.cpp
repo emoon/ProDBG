@@ -186,7 +186,7 @@ struct Session* Session_create()
 
 void Session_createDockingGrid(Session* session, int width, int height)
 {
-    FloatRect rect = {{{ 0.0f, 0.0f, (float)width, (float)height }}};
+    IntRect rect = {{{ 0, 0, width, height }}};
 
     session->uiDockingGrid = UIDock_createGrid(&rect);
 }
