@@ -1417,10 +1417,10 @@ void UIDock_renderSizers(UIDockingGrid* grid)
             assert(false);
         }
 
-        const int x0 = rect.x;
-        const int y0 = rect.y;
-        const int x1 = rect.width + x0;
-        const int y1 = rect.height + y0;
+        const float x0 = (float)rect.x;
+        const float y0 = (float)rect.y;
+        const float x1 = (float)rect.width + x0;
+        const float y1 = (float)rect.height + y0;
 
         // First triangle
 

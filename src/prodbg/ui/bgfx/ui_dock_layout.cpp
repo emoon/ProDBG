@@ -32,7 +32,7 @@ static void assignIds(UIDockingGrid* grid)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void writeSizer(UIDockSizer* sizer, json_t* root, float xScale, float yScale)
+static void writeSizer(UIDockSizer* sizer, json_t* root, double xScale, double yScale)
 {
     json_t* sizerItem = json_pack("{s:i, s:i, s:f, s:f, s:f, s:f}",
                                   "dir", (int)sizer->dir,
@@ -74,7 +74,7 @@ static void writeSizers(UIDockingGrid* grid, json_t* root, double xScale, double
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void writeDocks(UIDockingGrid* grid, json_t* root, float xScale, float yScale)
+static void writeDocks(UIDockingGrid* grid, json_t* root, double xScale, double yScale)
 {
     json_t* docksArray = json_array();
 
@@ -357,7 +357,7 @@ UIDockingGrid* UIDock_loadLayout(const char* filename, float xSize, float ySize)
         return 0;
     }
 
-    IntRect rect = {{{ 0, 0, xSize, ySize }}};
+    IntRect rect = {{{ 0, 0, (int)xSize, (int)ySize }}};
 
     grid = UIDock_createGrid(&rect);
 
