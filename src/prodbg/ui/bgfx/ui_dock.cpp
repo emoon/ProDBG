@@ -187,6 +187,7 @@ static UIDockSizer* createOrResizeSizer(UIDockingGrid* grid, IntRect rect, UIDoc
     sizer->rect = rect;
     sizer->dir = dir;
     sizer->id = grid->idCounter++;
+    sizer->highlight = false;
 
     grid->sizers.push_back(sizer);
 
@@ -664,6 +665,7 @@ void UIDock_splitSizer(UIDockingGrid* grid, UIDockSizer* sizer, int x, int y)
     newSizer->rect.data[widthOrHeight] = dock->view->rect.data[widthOrHeight];
     newSizer->dir = sizer->dir;
     newSizer->id = grid->idCounter++;
+    newSizer->highlight = false;
 
     // Replace the old sizer with the new sizer for the split
 
@@ -774,6 +776,7 @@ static bool deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSi
         newSizer->rect.data[wOrh] = rmxy1 - dxy0;
         newSizer->dir = repSizer->dir;
         newSizer->id = grid->idCounter++;
+    	newSizer->highlight = false;
 
         // Adjust the size of the old sizer
 
@@ -1582,13 +1585,21 @@ static void renderSizers(UIDockingGrid* grid)
     UIRender_allocPosColorTb(&tvb, vertexCount);
     PosColorVertex* verts = (PosColorVertex*)tvb.data;
 
+    // a bit hacky but should work. This is to mark which sizers that should be high-lightet as they are being dragged
+
+    for (UIDockSizer* sizer : grid->hoverSizers)
+		sizer->highlight = true;
+
     // TODO: Use settings for colors
 
-    const uint32_t color = (0x40 << 16) | (0x40 << 8) | 0x40;
+    const uint32_t colorDefalut = (0x40 << 16) | (0x40 << 8) | 0x40;
+    const uint32_t colorHigh = (0x60 << 16) | (0x60 << 8) | 0x60;
 
     for (UIDockSizer* sizer : grid->sizers)
     {
         IntRect rect = sizer->rect;
+
+        uint32_t color = sizer->highlight ? colorHigh : colorDefalut;
 
         if (sizer->dir == UIDockSizerDir_Horz)
         {
@@ -1614,6 +1625,9 @@ static void renderSizers(UIDockingGrid* grid)
                    | BGFX_STATE_MSAA);
 
     UIRender_posColor(&tvb, 0, vertexCount);
+
+    for (UIDockSizer* sizer : grid->hoverSizers)
+		sizer->highlight = false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
