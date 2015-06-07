@@ -64,7 +64,7 @@ void UIDock_splitVerticalAt(UIDockingGrid* grid, int x, int y, ViewPluginInstanc
 
 void UIDock_splitHorizontal(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* newInstance);
 void UIDock_splitVertical(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* newInstance);
-void UIDock_renderSizers(UIDockingGrid* grid);
+void UIDock_render(UIDockingGrid* grid);
 
 bool UIDock_saveLayout(UIDockingGrid* grid, const char* filename, float xScale, float yScale);
 UIDockingGrid* UIDock_loadLayout(const char* filename, float xSize, float ySize);

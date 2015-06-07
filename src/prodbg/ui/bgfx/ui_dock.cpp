@@ -63,6 +63,10 @@ UIDockingGrid* UIDock_createGrid(IntRect* rect)
     grid->leftSizer.dir = UIDockSizerDir_Vert;
     grid->rightSizer.dir = UIDockSizerDir_Vert;
 
+    memset(&grid->overlay, 0, sizeof(grid->overlay));
+
+    grid->overlay.color = (0x80 << 24) | (0xf0 << 16) | (0x40 << 8) | 0x40;
+
     grid->state = UIDockState_None;
 
     return grid;
@@ -1027,9 +1031,7 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
 {
     UIDockSizer* sizer = (UIDockSizer*)handle;
 
-	log_dock("ui_dock.dragSizer(%d, %f, %f)\n", sizer->id, deltaMove->x, deltaMove->y); 
-
-    (void)grid;
+	//log_dock("ui_dock.dragSizer(%d, %f, %f)\n", sizer->id, deltaMove->x, deltaMove->y); 
 
     if (sizer->dir == UIDockSizerDir_Vert)
     {
@@ -1204,16 +1206,71 @@ void UIDock_updateSize(UIDockingGrid* grid, int width, int height)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static bool isDragingDock(UIDockingGrid* grid, const InputState* inputState)
+{
+	UIDock* dock = UIDock_getDockAt(grid, inputState->mousePos.x, inputState->mousePos.y); 
+
+	if (!dock)
+		return false;
+
+	const int mouseY = inputState->mousePos.y;
+	const int rectY = dock->view->rect.y;
+
+	if (!Input_isLmbDown(inputState))
+		return false;
+
+	// TODO: Proper size for titlebar
+
+	if (!(mouseY >= rectY && mouseY < (rectY + 20)))
+		return false;
+
+	// TODO: Wait a while before we switch to beging drag?
+
+	grid->overlay.enabled = true;
+	grid->overlay.dragDock = dock;
+	grid->overlay.rect = dock->view->rect;
+
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void draggingView(UIDockingGrid* grid, const InputState* inputState)
+{
+	if (!Input_isLmbDown(inputState))
+	{
+		grid->state = UIDockState_EndDragView;
+		return;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void endDragView(UIDockingGrid* grid)
+{
+	// TODO: Move the 
+
+	grid->overlay.enabled = false;
+	grid->state = UIDockState_None;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void updateDefault(UIDockingGrid* grid, const InputState* inputState)
 {
     // Check if we are hovering any sizer and we haven't pressed LMB
 
-    if ((UIDock_isHoveringSizer(grid, &inputState->mousePos) != UIDockSizerDir_None) &&
-        !Input_isLmbDown(inputState))
+    if ((UIDock_isHoveringSizer(grid, &inputState->mousePos) != UIDockSizerDir_None) && !Input_isLmbDown(inputState))
     {
         grid->state = UIDockState_HoverSizer;
         return;
     }
+
+	if (isDragingDock(grid, inputState))
+	{
+		grid->state = UIDockState_DraggingView;
+		return;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1357,12 +1414,13 @@ void UIDock_update(UIDockingGrid* grid, const InputState* inputState)
 
         case UIDockState_DraggingView:
         {
-
+			draggingView(grid, inputState);
             break;
         }
 
         case UIDockState_EndDragView:
         {
+			endDragView(grid);
             break;
         }
     }
@@ -1385,7 +1443,49 @@ UIDockSizerDir UIDock_getSizingState(UIDockingGrid* grid)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UIDock_renderSizers(UIDockingGrid* grid)
+static PosColorVertex* fillRect(PosColorVertex* verts, IntRect* rect, uint32_t color)
+{
+	const float x0 = (float)rect->x;
+	const float y0 = (float)rect->y;
+	const float x1 = (float)rect->width + x0;
+	const float y1 = (float)rect->height + y0;
+
+	// First triangle
+
+	verts[0].x = x0;
+	verts[0].y = y0;
+	verts[0].color = color;
+
+	verts[1].x = x1;
+	verts[1].y = y0;
+	verts[1].color = color;
+
+	verts[2].x = x1;
+	verts[2].y = y1;
+	verts[2].color = color;
+
+	// Second triangle
+
+	verts[3].x = x0;
+	verts[3].y = y0;
+	verts[3].color = color;
+
+	verts[4].x = x1;
+	verts[4].y = y1;
+	verts[4].color = color;
+
+	verts[5].x = x0;
+	verts[5].y = y1;
+	verts[5].color = color;
+
+	verts += 6;
+
+	return verts;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void renderSizers(UIDockingGrid* grid)
 {
     bgfx::TransientVertexBuffer tvb;
 
@@ -1417,40 +1517,7 @@ void UIDock_renderSizers(UIDockingGrid* grid)
             assert(false);
         }
 
-        const float x0 = (float)rect.x;
-        const float y0 = (float)rect.y;
-        const float x1 = (float)rect.width + x0;
-        const float y1 = (float)rect.height + y0;
-
-        // First triangle
-
-        verts[0].x = x0;
-        verts[0].y = y0;
-        verts[0].color = color;
-
-        verts[1].x = x1;
-        verts[1].y = y0;
-        verts[1].color = color;
-
-        verts[2].x = x1;
-        verts[2].y = y1;
-        verts[2].color = color;
-
-        // Second triangle
-
-        verts[3].x = x0;
-        verts[3].y = y0;
-        verts[3].color = color;
-
-        verts[4].x = x1;
-        verts[4].y = y1;
-        verts[4].color = color;
-
-        verts[5].x = x0;
-        verts[5].y = y1;
-        verts[5].color = color;
-
-        verts += 6;
+		verts = fillRect(verts, &rect, color);
     }
 
     bgfx::setState(0
@@ -1460,6 +1527,41 @@ void UIDock_renderSizers(UIDockingGrid* grid)
 
     UIRender_posColor(&tvb, 0, vertexCount);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void drawOverlay(UIDockingGrid* grid)
+{
+    bgfx::TransientVertexBuffer tvb;
+
+    if (!grid->overlay.enabled)
+    	return;
+
+    const uint32_t vertexCount = 1 * 6;	// 2 triangles
+
+    UIRender_allocPosColorTb(&tvb, vertexCount);
+    PosColorVertex* verts = (PosColorVertex*)tvb.data;
+
+	verts = fillRect(verts, &grid->overlay.rect, grid->overlay.color);
+
+	bgfx::setState(0
+					| BGFX_STATE_RGB_WRITE
+					| BGFX_STATE_ALPHA_WRITE
+					| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+					| BGFX_STATE_MSAA);
+
+    UIRender_posColor(&tvb, 0, vertexCount);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UIDock_render(UIDockingGrid* grid)
+{
+	renderSizers(grid);
+	drawOverlay(grid);
+}
+
+
 
 
 

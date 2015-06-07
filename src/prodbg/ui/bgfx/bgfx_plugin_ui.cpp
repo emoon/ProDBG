@@ -786,7 +786,7 @@ static void updateDock(UIDockingGrid* grid)
     }
 
     UIDock_update(grid, InputState_getState()); 
-    UIDock_renderSizers(grid);
+    UIDock_render(grid);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -814,6 +814,16 @@ void BgfxPluginUI::postUpdate()
 {
     renderStatusBar(m_statusText, m_statusSize);
     IMGUI_postUpdate();
+
+    Session** sessions = Session_getSessions();
+
+	for (int i = 0; i < array_size(sessions); ++i)
+	{
+		Session* session = sessions[i];
+    	UIDockingGrid* grid = Session_getDockingGrid(session);
+    	UIDock_render(grid);
+	}
+
     bgfx::frame();
 }
 

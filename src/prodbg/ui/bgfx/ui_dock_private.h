@@ -105,12 +105,23 @@ enum UIDockStatus
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+struct OverlayData
+{
+	IntRect rect;
+	uint32_t color;
+	bool enabled;
+	UIDock* dragDock;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct UIDockingGrid
 {
     UIDockingGrid() : state(UIDockState_None)
     {
         prevDragPos = { 0.0f, 0.0f };
         idCounter = 0;
+        overlay.enabled = false;
     }
 
     std::vector<UIDock*> docks;
@@ -121,6 +132,7 @@ struct UIDockingGrid
     UIDockSizer leftSizer;
     IntRect rect;
 
+	OverlayData overlay;
     UIDockState state;
     int idCounter;
     Vec2 prevDragPos;
