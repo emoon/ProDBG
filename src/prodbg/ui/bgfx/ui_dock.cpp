@@ -1208,12 +1208,12 @@ void UIDock_updateSize(UIDockingGrid* grid, int width, int height)
 
 static bool isDragingDock(UIDockingGrid* grid, const InputState* inputState)
 {
-	UIDock* dock = UIDock_getDockAt(grid, inputState->mousePos.x, inputState->mousePos.y); 
+	UIDock* dock = UIDock_getDockAt(grid, (int)inputState->mousePos.x, (int)inputState->mousePos.y); 
 
 	if (!dock)
 		return false;
 
-	const int mouseY = inputState->mousePos.y;
+	const int mouseY = (int)inputState->mousePos.y;
 	const int rectY = dock->view->rect.y;
 
 	if (!Input_isLmbDown(inputState))
@@ -1242,6 +1242,13 @@ static void draggingView(UIDockingGrid* grid, const InputState* inputState)
 		grid->state = UIDockState_EndDragView;
 		return;
 	}
+
+	UIDock* dock = UIDock_getDockAt(grid, (int)inputState->mousePos.x, (int)inputState->mousePos.y); 
+
+	if (!dock)
+		return;
+
+	grid->overlay.rect = dock->view->rect;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
