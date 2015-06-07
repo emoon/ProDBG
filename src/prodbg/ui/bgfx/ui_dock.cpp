@@ -1192,8 +1192,8 @@ void UIDock_updateSize(UIDockingGrid* grid, int width, int height)
 {
     Vec2 deltaMove;
 
-    deltaMove.x = width - grid->rect.width;
-    deltaMove.y = height - grid->rect.height;
+    deltaMove.x = float(width - grid->rect.width);
+    deltaMove.y = float(height - grid->rect.height);
 
     grid->rect.width = width;
     grid->rect.height = height;
