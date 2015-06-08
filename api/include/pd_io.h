@@ -8,41 +8,54 @@
 typedef struct PDSaveState 
 {
 	void* privData;
-	void (*write)(void* privData, void* data, int len);
 
-	void (*writeI1)(void* privData, const int8_t* data, int n);
-	void (*writeI2)(void* privData, const int16_t* data, int n);
-	void (*writeI4)(void* privData, const int32_t* data, int n);
-	void (*writeI8)(void* privData, const int64_t* data, int n);
+	void (*writeInt)(void* privData, const int64_t v);
+	void (*writeIntArray)(void* privData, const int64_t* data, int n);
 
-	void (*writeU1)(void* privData, const uint8_t* data, int n);
-	void (*writeU2)(void* privData, const uint16_t* data, int n);
-	void (*writeU4)(void* privData, const uint32_t* data, int n);
-	void (*writeU8)(void* privData, const uint64_t* data, int n);
-
-	void (*writeFloat)(void* privdata, const float* data, int n);
-	void (*writeDouble)(void* privData, const double* data, int n);
+	void (*writeReal)(void* privData, const double v);
+	void (*writeRealArray)(void* privData, const double* data, int n);
 
 	void (*writeString)(void* privData, const char* str);
+
 } PDSaveState;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define PDIO_write(pdWriteFuncs, data, len) pdWriteFuncs->write(pdWriteFuncs->privData, data, len)
-#define PDIO_writeI1(pdWriteFuncs, data, len) pdWriteFuncs->writeI1(pdWriteFuncs->privData, data, len)
-#define PDIO_writeI2(pdWriteFuncs, data, len) pdWriteFuncs->writeI2(pdWriteFuncs->privData, data, len)
-#define PDIO_writeI4(pdWriteFuncs, data, len) pdWriteFuncs->writeI4(pdWriteFuncs->privData, data, len)
-#define PDIO_writeI8(pdWriteFuncs, data, len) pdWriteFuncs->writeI8(pdWriteFuncs->privData, data, len)
+typedef struct PDLoadState 
+{
+	void* privData;
 
-#define PDUO_writeU1(pdWriteFuncs, data, len) pdWriteFuncs->writeU1(pdWriteFuncs->privData, data, len)
-#define PDUO_writeU2(pdWriteFuncs, data, len) pdWriteFuncs->writeU2(pdWriteFuncs->privData, data, len)
-#define PDUO_writeU4(pdWriteFuncs, data, len) pdWriteFuncs->writeU4(pdWriteFuncs->privData, data, len)
-#define PDUO_writeU8(pdWriteFuncs, data, len) pdWriteFuncs->writeU8(pdWriteFuncs->privData, data, len)
+	int (*readInt)(void* privData);
+	int* (*readIntArray)(void* privData, int64_t* data, int n);
 
-#define PDUO_writeFloat(pdWriteFuncs, data, len) pdWriteFuncs->writeFloat(pdWriteFuncs->privData, data, len)
-#define PDUO_writeDouble(pdWriteFuncs, data, len) pdWriteFuncs->writeDouble(pdWriteFuncs->privData, data, len)
+	double (*readReal)(void* privData);
+	double* (*readRealArray)(void* privData, double* data, int n);
 
-#define PDUO_writeString(pdWriteFuncs, str) pdWriteFuncs->writeString(pdWriteFuncs->privData, str)
+	char* (*readString)(void* privData, char* str, int len);
+
+} PDLoadState;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define PDIO_writeInt(funcs, v) funcs->writeInt(funcs->privData, v)
+#define PDIO_writeIntArray(funcs, v, len) funcs->writeIntArray(pdWriteFuncs->privData, v, len)
+
+#define PDIO_writeReal(funcs, v) funcs->writeIReal(funcs->privData, v)
+#define PDIO_writeRealArray(funcs, v, len) funcs->writeRealArray(funcs->privData, v, len)
+
+#define PDIO_writeString(funcs, v) funcs->writeString(funcs->privData, v)
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define PDIO_readInt(funcs, data) funcs->readI1(funcs->privData)
+#define PDIO_readIntArray(funcs, data, dest, len) funcs->readI1(funcs->privData, dest, len)
+
+#define PDIO_readReal(funcs, data) pdReadFuncs->readReal(funcs->privData)
+#define PDIO_readRealArray(funcs, data, dest, len) funcs->readRealArray(funcs->privData, dest, len)
+
+#define PDIO_readString(pdReadFuncs, str) pdReadFuncs->readString(pdReadFuncs->privData, str)
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #endif
 
