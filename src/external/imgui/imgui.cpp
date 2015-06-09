@@ -696,7 +696,8 @@ void ImGuiIO::AddInputCharacter(ImWchar c)
 const float PI = 3.14159265358979323846f;
 
 #ifdef INT_MAX
-#define IM_INT_MIN  INT_MIN
+// NOTE(marco): fixed clang compile issue (macro not used)
+//#define IM_INT_MIN  (-2147483647-1)
 #define IM_INT_MAX  INT_MAX
 #else
 // NOTE(marco): fixed clang compile issue (macro not used)
