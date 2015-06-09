@@ -249,6 +249,9 @@ void ProDBG_update()
 void ProDBG_applicationLaunched()
 {
     int pluginCount = 0;
+    // NOTE(marco): this is where the native menu is created. We need to abstract this
+    // so that we can use ImGUI to render the menu, while also being able to allow the
+    // use of the native version (i.e. for Mac)
     Window_buildPluginMenu(PluginHandler_getViewPlugins(&pluginCount), pluginCount);
     createMenusForPlugins();
 }

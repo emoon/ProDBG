@@ -183,7 +183,7 @@ typedef struct PDUI
 
     int (*button)(const char* label);
     int (*buttonSmall)(const char* label);
-    int (*buttonSize)(const char* label, int width, int height, int repeatWhenHeld);
+    int (*buttonSize)(const char* label, int width, int height);
 
     // Misc
 
@@ -234,7 +234,7 @@ typedef struct PDUI
 
 #define PDUI_button(uiFuncs, label) uiFuncs->button(label)
 #define PDUI_buttonSmall(uiFuncs, label) uiFuncs->buttonSmall(label)
-#define PDUI_buttonSize(uiFuncs, label, w, h, repeat) uiFuncs->button(label, w, h, repeat)
+#define PDUI_buttonSize(uiFuncs, label, w, h) uiFuncs->button(label, w, h)
 
 #define PDUI_SCSendCommand(funcs, msg, p0, p1) funcs->sendCommand(funcs->privateData, msg, p0, p1)
 #define PDUI_SCDraw(funcs) funcs->update(funcs->privateData)
