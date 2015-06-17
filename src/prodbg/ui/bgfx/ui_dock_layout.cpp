@@ -374,7 +374,6 @@ UIDockingGrid* UIDock_loadLayout(const char* filename, float xSize, float ySize)
 UIDockingGrid* UIDock_loadLayoutJson(struct json_t* root, float xSize, float ySize)
 {
     UIDockingGrid* grid = 0;
-    json_error_t error;
 
     IntRect rect = {{{ 0, 0, (int)xSize, (int)ySize }}};
 
