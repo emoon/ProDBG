@@ -17,6 +17,7 @@ struct UIDock;
 struct IntRect;
 struct Vec2;
 struct InputState;
+struct json_t;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -67,7 +68,11 @@ void UIDock_splitVertical(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance*
 void UIDock_render(UIDockingGrid* grid);
 
 bool UIDock_saveLayout(UIDockingGrid* grid, const char* filename, float xScale, float yScale);
+bool UIDock_saveLayoutJson(UIDockingGrid* grid, json_t* jsonObject, float xScale, float yScale);
+
 UIDockingGrid* UIDock_loadLayout(const char* filename, float xSize, float ySize);
+UIDockingGrid* UIDock_loadLayoutJson(json_t* jsonObject, float xSize, float ySize);
+
 
 //void UIDock_dockLeft(UIDock* dock, ViewPluginInstance* instance);
 //UIDockStatus UIDock_dockRight(UIDock* dock, ViewPluginInstance* instance);

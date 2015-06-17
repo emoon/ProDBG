@@ -111,19 +111,15 @@ static void writeDocks(UIDockingGrid* grid, json_t* root, double xScale, double 
     json_object_set_new(root, "docks", docksArray);
 }
 
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool UIDock_saveLayout(UIDockingGrid* grid, const char* filename, float xScale, float yScale)
 {
-    double invScaleX = 1.0 / xScale;
-    double invScaleY = 1.0 / yScale;
-
-    assignIds(grid);
-
     json_t* root = json_object();
 
-    writeSizers(grid, root, invScaleX, invScaleY);
-    writeDocks(grid, root, invScaleX, invScaleY);
+	UIDock_saveLayoutJson(grid, root, xScale, yScale);
 
     if (json_dump_file(root, filename, JSON_INDENT(4) | JSON_PRESERVE_ORDER) != 0)
     {
@@ -132,6 +128,19 @@ bool UIDock_saveLayout(UIDockingGrid* grid, const char* filename, float xScale, 
     }
 
     return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool UIDock_saveLayoutJson(UIDockingGrid* grid, json_t* root, float xScale, float yScale)
+{
+    double invScaleX = 1.0 / xScale;
+    double invScaleY = 1.0 / yScale;
+
+    assignIds(grid);
+
+    writeSizers(grid, root, invScaleX, invScaleY);
+    writeDocks(grid, root, invScaleX, invScaleY);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -357,6 +366,16 @@ UIDockingGrid* UIDock_loadLayout(const char* filename, float xSize, float ySize)
         return 0;
     }
 
+	return UIDock_loadLayoutJson(root, xSize, ySize);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+UIDockingGrid* UIDock_loadLayoutJson(struct json_t* root, float xSize, float ySize)
+{
+    UIDockingGrid* grid = 0;
+    json_error_t error;
+
     IntRect rect = {{{ 0, 0, (int)xSize, (int)ySize }}};
 
     grid = UIDock_createGrid(&rect);
@@ -391,3 +410,4 @@ UIDockingGrid* UIDock_loadLayout(const char* filename, float xSize, float ySize)
 
     return grid;
 }
+
