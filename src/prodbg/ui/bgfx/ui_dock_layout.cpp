@@ -141,6 +141,8 @@ bool UIDock_saveLayoutJson(UIDockingGrid* grid, json_t* root, float xScale, floa
 
     writeSizers(grid, root, invScaleX, invScaleY);
     writeDocks(grid, root, invScaleX, invScaleY);
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
