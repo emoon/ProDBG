@@ -1085,32 +1085,32 @@ void test_strange_breakage(void**)
 {
     IntRect rect = {{{ 0, 0, 1280, 720 }}};
 
-	// ui_dock.addView("Disassembly 0")
-	// ui_dock.split(Side.Bottom, "Disassembly 0", "Locals 0")
-	// ui_dock.split(Side.Left, "Locals 0", "CallStack 0")
-	// ui_dock.split(Side.Left, "CallStack 0", "Disassembly 1")
-	// ui_dock.split(Side.Left, "CallStack 0", "Locals 1")
-	//
-	// ui_dock.split(Side.Bottom, "CallStack 0", "Locals 2")
-	// ui_dock.split(Side.Left, "Locals 1", "Disassembly 2")
-	// ui_dock.split(Side.Bottom, "Locals 1", "Source Code View 0")
-	// ui_dock.split(Side.Left, "Disassembly 2", "Locals 3")
-	//
-	// ui_dock.deleteView("Disassembly 2")
-	// ui_dock.deleteView("Locals 3")
+    // ui_dock.addView("Disassembly 0")
+    // ui_dock.split(Side.Bottom, "Disassembly 0", "Locals 0")
+    // ui_dock.split(Side.Left, "Locals 0", "CallStack 0")
+    // ui_dock.split(Side.Left, "CallStack 0", "Disassembly 1")
+    // ui_dock.split(Side.Left, "CallStack 0", "Locals 1")
+    //
+    // ui_dock.split(Side.Bottom, "CallStack 0", "Locals 2")
+    // ui_dock.split(Side.Left, "Locals 1", "Disassembly 2")
+    // ui_dock.split(Side.Bottom, "Locals 1", "Source Code View 0")
+    // ui_dock.split(Side.Left, "Disassembly 2", "Locals 3")
+    //
+    // ui_dock.deleteView("Disassembly 2")
+    // ui_dock.deleteView("Locals 3")
 
-	enum
-	{
-		Disassembly0,
-		Locals0,
-		Callstack0,
-		Disassembly1,
-		Locals1,
-		Locals2,
-		Disassembly2,
-		SourceView0,
-		Locals3,
-	};
+    enum
+    {
+        Disassembly0,
+        Locals0,
+        Callstack0,
+        Disassembly1,
+        Locals1,
+        Locals2,
+        Disassembly2,
+        SourceView0,
+        Locals3,
+    };
 
     ViewPluginInstance disassembly0 = {};
     ViewPluginInstance disassembly1 = {};
@@ -1134,22 +1134,22 @@ void test_strange_breakage(void**)
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
-    UIDock_dockLeft(grid, 0, &disassembly0); 	// ui_dock.split(Side.Bottom, "Disassembly 0", "Locals 0")
+    UIDock_dockLeft(grid, 0, &disassembly0);    // ui_dock.split(Side.Bottom, "Disassembly 0", "Locals 0")
 
-    UIDock_dockBottom(grid, grid->docks[Disassembly0], &locals0); 	// ui_dock.split(Side.Bottom, "Disassembly 0", "Locals 0")
-    UIDock_dockLeft(grid, grid->docks[Locals0], &callstack0); 	  	// ui_dock.split(Side.Left, "Locals 0", "CallStack 0")
+    UIDock_dockBottom(grid, grid->docks[Disassembly0], &locals0);   // ui_dock.split(Side.Bottom, "Disassembly 0", "Locals 0")
+    UIDock_dockLeft(grid, grid->docks[Locals0], &callstack0);       // ui_dock.split(Side.Left, "Locals 0", "CallStack 0")
     UIDock_dockLeft(grid, grid->docks[Callstack0], &disassembly1);  // ui_dock.split(Side.Left, "CallStack 0", "Disassembly 1")
-    UIDock_dockLeft(grid, grid->docks[Callstack0], &locals1);    	// ui_dock.split(Side.Left, "CallStack 0", "Locals 1")
+    UIDock_dockLeft(grid, grid->docks[Callstack0], &locals1);       // ui_dock.split(Side.Left, "CallStack 0", "Locals 1")
 
-    UIDock_dockBottom(grid, grid->docks[Callstack0], &locals2);    	// ui_dock.split(Side.Bottom, "CallStack 0", "Locals 2")
-    UIDock_dockLeft(grid, grid->docks[Locals1], &disassembly2);  	// ui_dock.split(Side.Left, "Locals 1", "Disassembly 2")
-    UIDock_dockBottom(grid, grid->docks[Locals1], &sourceView0);   	// ui_dock.split(Side.Bottom, "CallStack 0", "Locals 2")
-    UIDock_dockLeft(grid, grid->docks[Disassembly2], &locals3);   	// ui_dock.split(Side.Left, "Disassembly 2", "Locals 3")
+    UIDock_dockBottom(grid, grid->docks[Callstack0], &locals2);     // ui_dock.split(Side.Bottom, "CallStack 0", "Locals 2")
+    UIDock_dockLeft(grid, grid->docks[Locals1], &disassembly2);     // ui_dock.split(Side.Left, "Locals 1", "Disassembly 2")
+    UIDock_dockBottom(grid, grid->docks[Locals1], &sourceView0);    // ui_dock.split(Side.Bottom, "CallStack 0", "Locals 2")
+    UIDock_dockLeft(grid, grid->docks[Disassembly2], &locals3);     // ui_dock.split(Side.Left, "Disassembly 2", "Locals 3")
 
     UIDock_deleteView(grid, grid->docks[Disassembly2]->view);
     UIDock_deleteView(grid, grid->docks[Locals3]->view);
-	//displayGrid(grid, rect);
-    
+    //displayGrid(grid, rect);
+
     UIDock_destroyGrid(grid);
 }
 
@@ -1166,14 +1166,14 @@ void test_split_at_horz_bottom(void**)
 
     UIDock_addView(grid, &view0Inst);
 
-	UIDock_splitHorizontalAt(grid, 0, 300, &view1Inst);
+    UIDock_splitHorizontalAt(grid, 0, 300, &view1Inst);
 
     assert_int_equal((int)grid->docks.size(), 2);
     assert_int_equal((int)grid->sizers.size(), 1);
 
     // validate the docking position
 
-	UIDockSizer* s0 = grid->sizers[0];
+    UIDockSizer* s0 = grid->sizers[0];
     UIDock* d0 = grid->docks[0];
     UIDock* d1 = grid->docks[1];
 
@@ -1205,14 +1205,14 @@ void test_split_at_horz_top(void**)
 
     UIDock_addView(grid, &view0Inst);
 
-	UIDock_splitHorizontalAt(grid, 0, 100, &view1Inst);
+    UIDock_splitHorizontalAt(grid, 0, 100, &view1Inst);
 
     assert_int_equal((int)grid->docks.size(), 2);
     assert_int_equal((int)grid->sizers.size(), 1);
 
     // validate the docking position
 
-	UIDockSizer* s0 = grid->sizers[0];
+    UIDockSizer* s0 = grid->sizers[0];
     UIDock* d0 = grid->docks[0];
     UIDock* d1 = grid->docks[1];
 
@@ -1242,14 +1242,14 @@ void test_split_at_vert_left(void**)
 
     UIDock_addView(grid, &view0Inst);
 
-	UIDock_splitVerticalAt(grid, 300, 0, &view1Inst);
+    UIDock_splitVerticalAt(grid, 300, 0, &view1Inst);
 
     assert_int_equal((int)grid->docks.size(), 2);
     assert_int_equal((int)grid->sizers.size(), 1);
 
     // validate the docking position
 
-	UIDockSizer* s0 = grid->sizers[0];
+    UIDockSizer* s0 = grid->sizers[0];
     UIDock* d0 = grid->docks[0];
     UIDock* d1 = grid->docks[1];
 
@@ -1279,14 +1279,14 @@ void test_split_at_vert_right(void**)
 
     UIDock_addView(grid, &view0Inst);
 
-	UIDock_splitVerticalAt(grid, 700, 0, &view1Inst);
+    UIDock_splitVerticalAt(grid, 700, 0, &view1Inst);
 
     assert_int_equal((int)grid->docks.size(), 2);
     assert_int_equal((int)grid->sizers.size(), 1);
 
     // validate the docking position
 
-	UIDockSizer* s0 = grid->sizers[0];
+    UIDockSizer* s0 = grid->sizers[0];
     UIDock* d0 = grid->docks[0];
     UIDock* d1 = grid->docks[1];
 
@@ -1397,10 +1397,10 @@ int main()
         unit_test(test_breaking_delete),
         unit_test(test_auto_resize_sizer),
         unit_test(test_strange_breakage),
-		unit_test(test_split_at_horz_bottom),
-		unit_test(test_split_at_horz_top),
-		unit_test(test_split_at_vert_left),
-		unit_test(test_split_at_vert_right),
+        unit_test(test_split_at_horz_bottom),
+        unit_test(test_split_at_horz_top),
+        unit_test(test_split_at_vert_left),
+        unit_test(test_split_at_vert_right),
 
         //unit_test(test_randomize_create_delete),
     };

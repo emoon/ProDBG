@@ -102,12 +102,12 @@ void Session_globalInit(bool reloadPlugins)
 
 void Session_globalDestroy()
 {
-	int count = array_size(s_sessions);
+    int count = array_size(s_sessions);
 
-	for (int i = 0; i < count; ++i)
-		delete s_sessions[i]; 
+    for (int i = 0; i < count; ++i)
+        delete s_sessions[i];
 
-	array_clear(s_sessions);
+    array_clear(s_sessions);
 
     FileMonitor_removePath(OBJECT_DIR);
 }
@@ -116,29 +116,29 @@ void Session_globalDestroy()
 
 void Session_destroy(Session* session)
 {
-	int count = array_size(s_sessions);
+    int count = array_size(s_sessions);
 
-	for (int i = 0; i < count; ++i)
-	{
-		if (s_sessions[i] != session)
-			continue;
+    for (int i = 0; i < count; ++i)
+    {
+        if (s_sessions[i] != session)
+            continue;
 
-		if (session->backend)
-			session->backend->plugin->destroyInstance(session->backend->userData);
+        if (session->backend)
+            session->backend->plugin->destroyInstance(session->backend->userData);
 
-		delete session;
+        delete session;
 
-		array_erase(s_sessions, i);
+        array_erase(s_sessions, i);
 
-		return;
-	}
+        return;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Session** Session_getSessions()
 {
-	return s_sessions;
+    return s_sessions;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -218,9 +218,9 @@ static void textWrapped(const char* format, ...)
 
 typedef struct PDSCFuncs
 {
-    intptr_t (*sendCommand)(void* privData, unsigned int message, uintptr_t p0, intptr_t p1);
-    void (*update)(void* privData);
-    void (*draw)(void* privData);
+    intptr_t (* sendCommand)(void* privData, unsigned int message, uintptr_t p0, intptr_t p1);
+    void (* update)(void* privData);
+    void (* draw)(void* privData);
     void* privateData;
 } PDSCFuns;
 
@@ -271,7 +271,7 @@ static PDSCInterface* scEditText(const char* label, float xSize, float ySize,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef void (*InputCallback)(PDInputTextCallbackData*);
+typedef void (* InputCallback)(PDInputTextCallbackData*);
 
 struct PDInputTextUserData
 {
@@ -786,7 +786,7 @@ static void updateDock(UIDockingGrid* grid)
         }
     }
 
-    UIDock_update(grid, InputState_getState()); 
+    UIDock_update(grid, InputState_getState());
     UIDock_render(grid);
 }
 
@@ -801,12 +801,12 @@ void BgfxPluginUI::preUpdate()
 
     Session** sessions = Session_getSessions();
 
-	for (int i = 0; i < array_size(sessions); ++i)
-	{
-		Session* session = sessions[i];
-    	UIDockingGrid* grid = Session_getDockingGrid(session);
-		updateDock(grid);
-	}
+    for (int i = 0; i < array_size(sessions); ++i)
+    {
+        Session* session = sessions[i];
+        UIDockingGrid* grid = Session_getDockingGrid(session);
+        updateDock(grid);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -818,12 +818,12 @@ void BgfxPluginUI::postUpdate()
 
     Session** sessions = Session_getSessions();
 
-	for (int i = 0; i < array_size(sessions); ++i)
-	{
-		Session* session = sessions[i];
-    	UIDockingGrid* grid = Session_getDockingGrid(session);
-    	UIDock_render(grid);
-	}
+    for (int i = 0; i < array_size(sessions); ++i)
+    {
+        Session* session = sessions[i];
+        UIDockingGrid* grid = Session_getDockingGrid(session);
+        UIDock_render(grid);
+    }
 
     bgfx::frame();
 }
@@ -837,8 +837,8 @@ void BgfxPluginUI::create(int width, int height)
     bgfx::setViewSeq(0, true);
     IMGUI_setup(width, height);
 
-	s_context.width = width;
-	s_context.height = height;
+    s_context.width = width;
+    s_context.height = height;
 
     Cursor_init();
 }
@@ -855,21 +855,21 @@ void BgfxPluginUI::destroy()
 
 void ProDBG_setMousePos(float x, float y)
 {
-	InputState* state = InputState_getState();
+    InputState* state = InputState_getState();
 
     state->mousePos.x = x;
     state->mousePos.y = y;
 
-	IMGUI_setMousePos(x, y);
+    IMGUI_setMousePos(x, y);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ProDBG_setMouseState(int button, int state)
 {
-	InputState* inputState = InputState_getState();
+    InputState* inputState = InputState_getState();
     inputState->mouseDown[0] = !!state;
-    
+
     IMGUI_setMouseState(state);
 }
 
@@ -884,7 +884,7 @@ void ProDBG_keyDown(int key, int modifier)
 
 void ProDBG_keyUp(int key, int modifier)
 {
-	InputState* state = InputState_getState();
+    InputState* state = InputState_getState();
 
     IMGUI_setKeyUp(key, modifier);
 }
@@ -910,14 +910,14 @@ void ProDBG_setWindowSize(int width, int height)
 
     Session** sessions = Session_getSessions();
 
-	for (int i = 0; i < array_size(sessions); ++i)
-	{
-		Session* session = sessions[i];
-    	UIDockingGrid* grid = Session_getDockingGrid(session);
+    for (int i = 0; i < array_size(sessions); ++i)
+    {
+        Session* session = sessions[i];
+        UIDockingGrid* grid = Session_getDockingGrid(session);
 
-		updateDock(grid);
-    	UIDock_updateSize(grid, width, height - (int)g_pluginUI->getStatusBarSize());
-	}
+        updateDock(grid);
+        UIDock_updateSize(grid, width, height - (int)g_pluginUI->getStatusBarSize());
+    }
 }
 
 

@@ -4,8 +4,8 @@
 
 void Session_save(const Session* session, const char* filename)
 {
-	(void)session;
-	(void)filename;
+    (void)session;
+    (void)filename;
 
 
 }
@@ -14,8 +14,8 @@ void Session_save(const Session* session, const char* filename)
 
 Session* Session_load(const char* filename)
 {
-	(void)filename;
+    (void)filename;
 
-	return 0;
+    return 0;
 }
 

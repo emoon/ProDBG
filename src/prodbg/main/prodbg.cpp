@@ -214,7 +214,7 @@ void ProDBG_create(void* window, int width, int height)
             PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]);
     }
 
-	g_pluginUI->create(width, height);
+    g_pluginUI->create(width, height);
 
     context->width = width;
     context->height = height;
@@ -313,7 +313,7 @@ void ProDBG_event(int eventId)
 
     pd_info("eventId 0x%x\n", eventId);
 
-    Vec2 mousePos = InputState_getState()->mousePos; 
+    Vec2 mousePos = InputState_getState()->mousePos;
 
 #if PRODBG_USING_DOCKING
     if (eventId & PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT)

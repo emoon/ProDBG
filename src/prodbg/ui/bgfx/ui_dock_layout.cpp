@@ -79,12 +79,12 @@ static void writeDocks(UIDockingGrid* grid, json_t* root, double xScale, double 
 {
     json_t* docksArray = json_array();
 
-	PDSaveState saveFuncs;
-	PluginIO_initSaveJson(&saveFuncs);
+    PDSaveState saveFuncs;
+    PluginIO_initSaveJson(&saveFuncs);
 
     for (UIDock* dock : grid->docks)
     {
-		PluginData* pluginData = 0;
+        PluginData* pluginData = 0;
 
         const char* pluginName = "";
         const char* filename = "";
@@ -113,20 +113,20 @@ static void writeDocks(UIDockingGrid* grid, json_t* root, double xScale, double 
         json_array_append_new(docksArray, dockItem);
 
         if (!pluginData)
-        	continue;
+            continue;
 
-		PDViewPlugin* viewPlugin = (PDViewPlugin*)pluginData->plugin;
+        PDViewPlugin* viewPlugin = (PDViewPlugin*)pluginData->plugin;
 
-		if (!viewPlugin->saveState)
-			continue;
+        if (!viewPlugin->saveState)
+            continue;
 
-		json_t* array = json_array();
+        json_t* array = json_array();
 
-		saveFuncs.privData = array;
+        saveFuncs.privData = array;
 
-		viewPlugin->saveState(dock->view->userData, &saveFuncs);
+        viewPlugin->saveState(dock->view->userData, &saveFuncs);
 
-		json_object_set_new(dockItem, "plugin_data", array);
+        json_object_set_new(dockItem, "plugin_data", array);
     }
 
     json_object_set_new(root, "docks", docksArray);
@@ -140,7 +140,7 @@ bool UIDock_saveLayout(UIDockingGrid* grid, const char* filename, float xScale, 
 {
     json_t* root = json_object();
 
-	UIDock_saveLayoutJson(grid, root, xScale, yScale);
+    UIDock_saveLayoutJson(grid, root, xScale, yScale);
 
     if (json_dump_file(root, filename, JSON_INDENT(4) | JSON_PRESERVE_ORDER) != 0)
     {
@@ -199,8 +199,8 @@ static void loadDocks(UIDockingGrid* grid, json_t* root, double xScale, double y
 
     grid->docks.reserve(count);
 
-	PDLoadState loadFuncs;
-	PluginIO_initLoadJson(&loadFuncs);
+    PDLoadState loadFuncs;
+    PluginIO_initLoadJson(&loadFuncs);
 
     for (size_t i = 0; i < count; ++i)
     {
@@ -245,16 +245,16 @@ static void loadDocks(UIDockingGrid* grid, json_t* root, double xScale, double y
             else
                 view = g_pluginUI->createViewPlugin(pluginData);
 
-			PDViewPlugin* viewPlugin = (PDViewPlugin*)pluginData->plugin;
+            PDViewPlugin* viewPlugin = (PDViewPlugin*)pluginData->plugin;
 
             json_t* pluginJsonData = json_object_get(item, "plugin_data");
 
             if (pluginJsonData && viewPlugin && viewPlugin->loadState)
-			{
-    			SessionLoadState loadState = { pluginJsonData, (int)json_array_size(pluginJsonData), 0 };
-				loadFuncs.privData = &loadState;
-				viewPlugin->loadState(view->userData, &loadFuncs);
-			}
+            {
+                SessionLoadState loadState = { pluginJsonData, (int)json_array_size(pluginJsonData), 0 };
+                loadFuncs.privData = &loadState;
+                viewPlugin->loadState(view->userData, &loadFuncs);
+            }
         }
 
         assert(view);
@@ -403,7 +403,7 @@ UIDockingGrid* UIDock_loadLayout(const char* filename, float xSize, float ySize)
         return 0;
     }
 
-	return UIDock_loadLayoutJson(root, xSize, ySize);
+    return UIDock_loadLayoutJson(root, xSize, ySize);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

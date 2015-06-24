@@ -35,6 +35,8 @@ struct UIDock;
 
 struct UIDockSizer
 {
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     inline void addDock(UIDock* dock)
     {
         cons.push_back(dock);
@@ -109,12 +111,12 @@ enum UIDockStatus
 
 struct OverlayData
 {
-	IntRect rect;
-	uint32_t color;
-	bool enabled;
-	UIDock* dragDock;
-	UIDock* target;
-	UIDockSide targetSide;
+    IntRect rect;
+    uint32_t color;
+    bool enabled;
+    UIDock* dragDock;
+    UIDock* target;
+    UIDockSide targetSide;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,7 +138,7 @@ struct UIDockingGrid
     UIDockSizer leftSizer;
     IntRect rect;
 
-	OverlayData overlay;
+    OverlayData overlay;
     UIDockState state;
     int idCounter;
     Vec2 prevDragPos;

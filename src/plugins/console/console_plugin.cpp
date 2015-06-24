@@ -157,6 +157,7 @@ static void textEditCallbackStub(PDInputTextCallbackData* data)
 
 
 
+
             if (candidates.size() == 0)
             {
                 // No match

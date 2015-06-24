@@ -6,9 +6,9 @@ struct json_t;
 
 struct SessionLoadState
 {
-	json_t* root;
-	int arraySize;
-	int arrayIter;
+    json_t* root;
+    int arraySize;
+    int arrayIter;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

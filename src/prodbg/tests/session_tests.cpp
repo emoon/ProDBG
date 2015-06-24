@@ -48,70 +48,70 @@ static int dummyUpdate(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWrit
 
 static int dummySaveState(void* userData, struct PDSaveState* saveState)
 {
-	(void)userData;
+    (void)userData;
 
-	PDIO_writeInt(saveState, -1231);
-	PDIO_writeInt(saveState, 1);
-	PDIO_writeInt(saveState, 1231);
-	PDIO_writeDouble(saveState, 3.1415);
-	PDIO_writeDouble(saveState, 8.0);
-	PDIO_writeString(saveState, "stoehus");
-	PDIO_writeString(saveState, "temp0");
-	PDIO_writeString(saveState, "semp1");
+    PDIO_writeInt(saveState, -1231);
+    PDIO_writeInt(saveState, 1);
+    PDIO_writeInt(saveState, 1231);
+    PDIO_writeDouble(saveState, 3.1415);
+    PDIO_writeDouble(saveState, 8.0);
+    PDIO_writeString(saveState, "stoehus");
+    PDIO_writeString(saveState, "temp0");
+    PDIO_writeString(saveState, "semp1");
 
-	PDIO_writeString(saveState, "longlongseothuseothuseothstuhsntoehusnteohustnoehunstoehusneothusneothsohustoehus");
+    PDIO_writeString(saveState, "longlongseothuseothuseothstuhsntoehusnteohustnoehunstoehusneothusneothsohustoehus");
 
-	return 1;
+    return 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int dummyLoadState(void* userData, struct PDLoadState* loadState)
 {
-	int64_t v0;
-	int64_t v1;
-	double v2;
-	double pi;
-	int64_t v3;
-	int64_t dummy;
-	char buffer0[256];
-	char buffer1[9];
-	char buffer2[1];
-	char buffer3[1];
-	double v4;
+    int64_t v0;
+    int64_t v1;
+    double v2;
+    double pi;
+    int64_t v3;
+    int64_t dummy;
+    char buffer0[256];
+    char buffer1[9];
+    char buffer2[1];
+    char buffer3[1];
+    double v4;
 
-	(void)userData;
+    (void)userData;
 
-	assert_int_equal(loadState->readInt(loadState->privData, &v0), PDLoadStatus_ok);
-	assert_int_equal(v0, -1231);
-	
-	assert_int_equal(loadState->readInt(loadState->privData, &v1), PDLoadStatus_ok);
-	assert_int_equal(v1, 1);
+    assert_int_equal(loadState->readInt(loadState->privData, &v0), PDLoadStatus_ok);
+    assert_int_equal(v0, -1231);
 
-	assert_int_equal(loadState->readDouble(loadState->privData, &v2), PDLoadStatus_converted);
-	assert_int_equal((int)v2, 1231);
+    assert_int_equal(loadState->readInt(loadState->privData, &v1), PDLoadStatus_ok);
+    assert_int_equal(v1, 1);
 
-	assert_int_equal(loadState->readDouble(loadState->privData, &pi), PDLoadStatus_ok);
-	assert_true(fabs(pi - 3.1415) < 0.0001);
+    assert_int_equal(loadState->readDouble(loadState->privData, &v2), PDLoadStatus_converted);
+    assert_int_equal((int)v2, 1231);
 
-	assert_int_equal(loadState->readInt(loadState->privData, &v3), PDLoadStatus_converted);
-	assert_int_equal((int)v3, 8);
+    assert_int_equal(loadState->readDouble(loadState->privData, &pi), PDLoadStatus_ok);
+    assert_true(fabs(pi - 3.1415) < 0.0001);
 
-	assert_int_equal(loadState->readString(loadState->privData, buffer0, sizeof(buffer0)), PDLoadStatus_ok);
-	assert_string_equal(buffer0, "stoehus");
+    assert_int_equal(loadState->readInt(loadState->privData, &v3), PDLoadStatus_converted);
+    assert_int_equal((int)v3, 8);
 
-	assert_int_equal(loadState->readString(loadState->privData, buffer3, 0), PDLoadStatus_fail);
-	assert_int_equal(loadState->readString(loadState->privData, buffer3, 1), PDLoadStatus_truncated);
-	assert_int_equal(buffer3[0], 0);
+    assert_int_equal(loadState->readString(loadState->privData, buffer0, sizeof(buffer0)), PDLoadStatus_ok);
+    assert_string_equal(buffer0, "stoehus");
 
-	assert_int_equal(loadState->readString(loadState->privData, buffer1, sizeof(buffer1)), PDLoadStatus_truncated);
-	assert_string_equal(buffer1, "longlong");
+    assert_int_equal(loadState->readString(loadState->privData, buffer3, 0), PDLoadStatus_fail);
+    assert_int_equal(loadState->readString(loadState->privData, buffer3, 1), PDLoadStatus_truncated);
+    assert_int_equal(buffer3[0], 0);
 
-	assert_int_equal(loadState->readInt(loadState->privData, &dummy), PDLoadStatus_outOfData);
-	assert_int_equal(loadState->readDouble(loadState->privData, &v4), PDLoadStatus_outOfData);
-	assert_int_equal(loadState->readString(loadState->privData, buffer2, sizeof(buffer2)), PDLoadStatus_outOfData);
+    assert_int_equal(loadState->readString(loadState->privData, buffer1, sizeof(buffer1)), PDLoadStatus_truncated);
+    assert_string_equal(buffer1, "longlong");
 
-	return 1;
+    assert_int_equal(loadState->readInt(loadState->privData, &dummy), PDLoadStatus_outOfData);
+    assert_int_equal(loadState->readDouble(loadState->privData, &v4), PDLoadStatus_outOfData);
+    assert_int_equal(loadState->readString(loadState->privData, buffer2, sizeof(buffer2)), PDLoadStatus_outOfData);
+
+    return 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,7 +123,7 @@ static PDViewPlugin s_dummyPlugin =
     dummyDestroyInstance,
     dummyUpdate,
     dummySaveState,
-	dummyLoadState,
+    dummyLoadState,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -235,7 +235,7 @@ static void session_test_many(void**)
     assert_true(sessions[0] == s0);
     assert_true(sessions[1] == s2);
 
-	Session_globalDestroy();
+    Session_globalDestroy();
 
     assert_int_equal(array_size(sessions), 0);
 }
@@ -244,47 +244,47 @@ static void session_test_many(void**)
 
 static void session_save_plugin_state(void**)
 {
-	const char* filename = "t2-output/test.json";
+    const char* filename = "t2-output/test.json";
 
-	{
-		PDSaveState saveFuncs;
+    {
+        PDSaveState saveFuncs;
 
-		json_t* root = json_object();
-		json_t* array = json_array();
-		json_object_set_new(root, "plugin_data", array);
+        json_t* root = json_object();
+        json_t* array = json_array();
+        json_object_set_new(root, "plugin_data", array);
 
-		PluginIO_initSaveJson(&saveFuncs);
+        PluginIO_initSaveJson(&saveFuncs);
 
-		saveFuncs.privData = array;
+        saveFuncs.privData = array;
 
-		s_dummyPlugin.saveState(0, &saveFuncs);
+        s_dummyPlugin.saveState(0, &saveFuncs);
 
-		json_dump_file(root, filename, JSON_COMPACT | JSON_INDENT(4) | JSON_PRESERVE_ORDER);
-	}
+        json_dump_file(root, filename, JSON_COMPACT | JSON_INDENT(4) | JSON_PRESERVE_ORDER);
+    }
 
-	{
-		PDLoadState loadFuncs;
-    
-    	json_error_t error;
+    {
+        PDLoadState loadFuncs;
 
-		json_t* root = json_load_file(filename, 0, &error);
+        json_error_t error;
 
-		if (!root || !json_is_object(root))
-		{
-			printf("JSON: Unable to open %s for read\n", filename);
-			return;
-		}
+        json_t* root = json_load_file(filename, 0, &error);
 
-    	json_t* pluginData = json_object_get(root, "plugin_data");
-    	assert_true(json_typeof(pluginData) == JSON_ARRAY);
+        if (!root || !json_is_object(root))
+        {
+            printf("JSON: Unable to open %s for read\n", filename);
+            return;
+        }
 
-    	SessionLoadState loadState = { pluginData, (int)json_array_size(pluginData), 0 };
+        json_t* pluginData = json_object_get(root, "plugin_data");
+        assert_true(json_typeof(pluginData) == JSON_ARRAY);
 
-		PluginIO_initLoadJson(&loadFuncs);
-		loadFuncs.privData = &loadState;
+        SessionLoadState loadState = { pluginData, (int)json_array_size(pluginData), 0 };
 
-		s_dummyPlugin.loadState(0, &loadFuncs);
-	}
+        PluginIO_initLoadJson(&loadFuncs);
+        loadFuncs.privData = &loadState;
+
+        s_dummyPlugin.loadState(0, &loadFuncs);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

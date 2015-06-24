@@ -6,13 +6,13 @@
 
 class BgfxPluginUI : public PluginUI
 {
-	void create(int width, int height);
-	void destroy();
+    void create(int width, int height);
+    void destroy();
 
     void init(ViewPluginInstance* instance);
     State updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer);
 
-    void preUpdate();	// update before plugin update
+    void preUpdate();   // update before plugin update
     void postUpdate(); // update after plugins
 
     float getStatusBarSize();

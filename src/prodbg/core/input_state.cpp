@@ -8,6 +8,6 @@ static InputState s_inputState;
 
 InputState* InputState_getState()
 {
-	return &s_inputState;
+    return &s_inputState;
 }
 

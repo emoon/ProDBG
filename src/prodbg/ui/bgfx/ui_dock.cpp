@@ -200,18 +200,22 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 {
     if (grid->docks.size() == 0)
     {
-		log_dock("ui_dock.addView(\"%s\")\n", instance->name);
+        log_dock("ui_dock.addView(\"%s\")\n", instance->name);
         UIDock_addView(grid, instance);
         return;
     }
 
     switch (side)
-	{
-		case UIDockSide_Top: log_dock("ui_dock.split(Side.Top, \"%s\", \"%s\")\n", dock->view->name, instance->name); break;
-		case UIDockSide_Bottom: log_dock("ui_dock.split(Side.Bottom, \"%s\", \"%s\")\n", dock->view->name, instance->name); break;
-		case UIDockSide_Right: log_dock("ui_dock.split(Side.Right, \"%s\", \"%s\")\n", dock->view->name, instance->name); break;
-		case UIDockSide_Left: log_dock("ui_dock.split(Side.Left, \"%s\", \"%s\")\n", dock->view->name, instance->name); break;
-	}
+    {
+        case UIDockSide_Top:
+            log_dock("ui_dock.split(Side.Top, \"%s\", \"%s\")\n", dock->view->name, instance->name); break;
+        case UIDockSide_Bottom:
+            log_dock("ui_dock.split(Side.Bottom, \"%s\", \"%s\")\n", dock->view->name, instance->name); break;
+        case UIDockSide_Right:
+            log_dock("ui_dock.split(Side.Right, \"%s\", \"%s\")\n", dock->view->name, instance->name); break;
+        case UIDockSide_Left:
+            log_dock("ui_dock.split(Side.Left, \"%s\", \"%s\")\n", dock->view->name, instance->name); break;
+    }
 
     UIDockSizer* sizer = 0;
     UIDock* newDock = new UIDock(instance);
@@ -713,7 +717,7 @@ static bool deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSi
 {
     NeighborDocks closeDocks;
 
-	log_dock("ui_dock.deleteView(\"%s\")\n", dock->view->name);
+    log_dock("ui_dock.deleteView(\"%s\")\n", dock->view->name);
 
     // We can delete and resize to the left. This means that the views that are connected to the left sizer
     // needs to be set to use the right sizer of the current view
@@ -776,7 +780,7 @@ static bool deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSi
         newSizer->rect.data[wOrh] = rmxy1 - dxy0;
         newSizer->dir = repSizer->dir;
         newSizer->id = grid->idCounter++;
-    	newSizer->highlight = false;
+        newSizer->highlight = false;
 
         // Adjust the size of the old sizer
 
@@ -818,15 +822,15 @@ static bool deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSi
             const int bx0 = cDock->bottomSizer->rect.x;
             const int bx1 = cDock->bottomSizer->rect.width + bx0;
 
-            if (dx0 < tx0) 
+            if (dx0 < tx0)
                 cDock->topSizer->rect.x = dx0;
 
-            if (dx1 > tx1) 
+            if (dx1 > tx1)
                 cDock->topSizer->rect.width = dx1 - cDock->topSizer->rect.x;
             else
                 cDock->topSizer->rect.width = tx1 - cDock->topSizer->rect.x;
 
-            if (dx0 < bx0) 
+            if (dx0 < bx0)
                 cDock->bottomSizer->rect.x = dx0;
 
             if (dx1 > bx1)
@@ -848,18 +852,18 @@ static bool deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSi
             const int by0 = cDock->rightSizer->rect.y;
             const int by1 = cDock->rightSizer->rect.height + by0;
 
-            if (dy0 < ty0) 
+            if (dy0 < ty0)
                 cDock->leftSizer->rect.y = dy0;
 
-            if (dy1 > ty1) 
+            if (dy1 > ty1)
                 cDock->leftSizer->rect.height = dy1 - cDock->leftSizer->rect.y;
             else
                 cDock->leftSizer->rect.height = ty1 - cDock->leftSizer->rect.y;
 
-            if (dy0 < by0) 
+            if (dy0 < by0)
                 cDock->rightSizer->rect.y = dy0;
 
-            if (dy1 > by1) 
+            if (dy1 > by1)
                 cDock->rightSizer->rect.height = dy1 - cDock->rightSizer->rect.y;
             else
                 cDock->rightSizer->rect.height = by1 - cDock->rightSizer->rect.y;
@@ -965,34 +969,34 @@ static bool deleteDock(UIDockingGrid* grid, UIDock* dock)
 
 bool checkSizerCollision(UIDockSizer* gridSizer, UIDockSizer* sizer, int sizer0, int sizer1, int sizerDir, int sizerDirNew, int compDir, int wOrh, int xOry, UIDockSizerDir dir)
 {
-	if (gridSizer == sizer)
-		return false;
+    if (gridSizer == sizer)
+        return false;
 
-	if (gridSizer->dir != dir)
-		return false;
+    if (gridSizer->dir != dir)
+        return false;
 
-	const int v0 = (int)(round(gridSizer->rect.data[compDir]) - g_sizerSnapSize * 4);
-	const int v1 = (int)(round(gridSizer->rect.data[compDir]) + g_sizerSnapSize * 4);
+    const int v0 = (int)(round(gridSizer->rect.data[compDir]) - g_sizerSnapSize * 4);
+    const int v1 = (int)(round(gridSizer->rect.data[compDir]) + g_sizerSnapSize * 4);
 
-	const int t0 = (int)(round(gridSizer->rect.data[xOry]));
-	const int t1 = (int)(t0 + round(gridSizer->rect.data[wOrh])) - 1;
+    const int t0 = (int)(round(gridSizer->rect.data[xOry]));
+    const int t1 = (int)(t0 + round(gridSizer->rect.data[wOrh])) - 1;
 
-	if (sizerDir < v0 && sizerDirNew >= v0)
-	{
-		//log_dock("Checking ((%d > %d && %d <= %d) || (%d > %d && %d <= %d))\n", sizer0, t0, sizer0, t1, sizer1, t0, sizer1, t1);
+    if (sizerDir < v0 && sizerDirNew >= v0)
+    {
+        //log_dock("Checking ((%d > %d && %d <= %d) || (%d > %d && %d <= %d))\n", sizer0, t0, sizer0, t1, sizer1, t0, sizer1, t1);
 
-		if ((sizer0 >= t0 && sizer0 <= t1) || (sizer1 >= t0 && sizer1 <= t1))
-			return true;
-	}
-	else if (sizerDir > v1 && sizerDirNew <= v1)
-	{
-		//log_dock("Checking ((%d > %d && %d <= %d) || (%d > %d && %d <= %d))\n", sizer0, t0, sizer0, t1, sizer1, t0, sizer1, t1);
+        if ((sizer0 >= t0 && sizer0 <= t1) || (sizer1 >= t0 && sizer1 <= t1))
+            return true;
+    }
+    else if (sizerDir > v1 && sizerDirNew <= v1)
+    {
+        //log_dock("Checking ((%d > %d && %d <= %d) || (%d > %d && %d <= %d))\n", sizer0, t0, sizer0, t1, sizer1, t0, sizer1, t1);
 
-		if ((sizer0 >= t0 && sizer0 <= t1) || (sizer1 >= t0 && sizer1 <= t1))
-			return true;
-	}
+        if ((sizer0 >= t0 && sizer0 <= t1) || (sizer1 >= t0 && sizer1 <= t1))
+            return true;
+    }
 
-	return false;
+    return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1009,21 +1013,21 @@ static bool checkCollision(UIDockingGrid* grid, UIDockSizer* sizer, int move, in
 
     for (UIDockSizer* gridSizer : grid->sizers)
     {
-    	if (checkSizerCollision(gridSizer, sizer, sizer0, sizer1, sizerDir, sizerDirNew, compDir, wOrh, xOry, dir))
-    		return true;
+        if (checkSizerCollision(gridSizer, sizer, sizer0, sizer1, sizerDir, sizerDirNew, compDir, wOrh, xOry, dir))
+            return true;
     }
 
-	if (checkSizerCollision(&grid->topSizer, sizer, sizer0, sizer1, sizerDir, sizerDirNew, compDir, wOrh, xOry, dir))
-		return true;
+    if (checkSizerCollision(&grid->topSizer, sizer, sizer0, sizer1, sizerDir, sizerDirNew, compDir, wOrh, xOry, dir))
+        return true;
 
-	if (checkSizerCollision(&grid->bottomSizer, sizer, sizer0, sizer1, sizerDir, sizerDirNew, compDir, wOrh, xOry, dir))
-		return true;
+    if (checkSizerCollision(&grid->bottomSizer, sizer, sizer0, sizer1, sizerDir, sizerDirNew, compDir, wOrh, xOry, dir))
+        return true;
 
-	if (checkSizerCollision(&grid->leftSizer, sizer, sizer0, sizer1, sizerDir, sizerDirNew, compDir, wOrh, xOry, dir))
-		return true;
+    if (checkSizerCollision(&grid->leftSizer, sizer, sizer0, sizer1, sizerDir, sizerDirNew, compDir, wOrh, xOry, dir))
+        return true;
 
-	if (checkSizerCollision(&grid->rightSizer, sizer, sizer0, sizer1, sizerDir, sizerDirNew, compDir, wOrh, xOry, dir))
-		return true;
+    if (checkSizerCollision(&grid->rightSizer, sizer, sizer0, sizer1, sizerDir, sizerDirNew, compDir, wOrh, xOry, dir))
+        return true;
 
     return false;
 }
@@ -1034,7 +1038,7 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
 {
     UIDockSizer* sizer = (UIDockSizer*)handle;
 
-	//log_dock("ui_dock.dragSizer(%d, %f, %f)\n", sizer->id, deltaMove->x, deltaMove->y); 
+    //log_dock("ui_dock.dragSizer(%d, %f, %f)\n", sizer->id, deltaMove->x, deltaMove->y);
 
     if (sizer->dir == UIDockSizerDir_Vert)
     {
@@ -1053,7 +1057,7 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
 
         const int sizerX = (int)sizer->rect.x;
 
-		if (checkCollision(grid, sizer, move, Rect::H, Rect::Y, UIDockSizerDir_Vert))
+        if (checkCollision(grid, sizer, move, Rect::H, Rect::Y, UIDockSizerDir_Vert))
             move = 0;
 
         for (UIDock* dock : leftDocks)
@@ -1114,7 +1118,7 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
 
         const int sizerY = (int)sizer->rect.y;
 
-		if (checkCollision(grid, sizer, move, Rect::W, Rect::X, UIDockSizerDir_Horz))
+        if (checkCollision(grid, sizer, move, Rect::W, Rect::X, UIDockSizerDir_Horz))
             move = 0;
 
         for (UIDock* dock : topDocks)
@@ -1211,134 +1215,134 @@ void UIDock_updateSize(UIDockingGrid* grid, int width, int height)
 
 static bool isDragingDock(UIDockingGrid* grid, const InputState* inputState)
 {
-	UIDock* dock = UIDock_getDockAt(grid, (int)inputState->mousePos.x, (int)inputState->mousePos.y); 
+    UIDock* dock = UIDock_getDockAt(grid, (int)inputState->mousePos.x, (int)inputState->mousePos.y);
 
-	if (!dock)
-		return false;
+    if (!dock)
+        return false;
 
-	const int mouseY = (int)inputState->mousePos.y;
-	const int rectY = dock->view->rect.y;
+    const int mouseY = (int)inputState->mousePos.y;
+    const int rectY = dock->view->rect.y;
 
-	if (!Input_isLmbDown(inputState))
-		return false;
+    if (!Input_isLmbDown(inputState))
+        return false;
 
-	// TODO: Proper size for titlebar
+    // TODO: Proper size for titlebar
 
-	if (!(mouseY >= rectY && mouseY < (rectY + 20)))
-		return false;
+    if (!(mouseY >= rectY && mouseY < (rectY + 20)))
+        return false;
 
-	// TODO: Wait a while before we switch to beging drag?
+    // TODO: Wait a while before we switch to beging drag?
 
-	grid->overlay.enabled = true;
-	grid->overlay.dragDock = dock;
-	grid->overlay.rect = {{{ 0, 0, 0, 0 }}}; 
+    grid->overlay.enabled = true;
+    grid->overlay.dragDock = dock;
+    grid->overlay.rect = {{{ 0, 0, 0, 0 }}};
 
-	return true;
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void draggingView(UIDockingGrid* grid, const InputState* inputState)
 {
-	if (!Input_isLmbDown(inputState))
-	{
-		grid->state = UIDockState_EndDragView;
-		return;
-	}
+    if (!Input_isLmbDown(inputState))
+    {
+        grid->state = UIDockState_EndDragView;
+        return;
+    }
 
-	UIDock* dock = UIDock_getDockAt(grid, (int)inputState->mousePos.x, (int)inputState->mousePos.y); 
+    UIDock* dock = UIDock_getDockAt(grid, (int)inputState->mousePos.x, (int)inputState->mousePos.y);
 
-	if (!dock || (dock == grid->overlay.dragDock))
-	{
-		grid->overlay.rect = {{{ 0, 0, 0, 0 }}};
-		grid->overlay.target = 0;
-		return;
-	}
+    if (!dock || (dock == grid->overlay.dragDock))
+    {
+        grid->overlay.rect = {{{ 0, 0, 0, 0 }}};
+        grid->overlay.target = 0;
+        return;
+    }
 
-	grid->overlay.target = dock;
+    grid->overlay.target = dock;
 
-	// bring mouse in to local space of the dock
+    // bring mouse in to local space of the dock
 
-	IntRect rect = dock->view->rect;
+    IntRect rect = dock->view->rect;
 
-	const int imx = ((int)inputState->mousePos.x) - dock->view->rect.x;
-	const int imy = ((int)inputState->mousePos.y) - dock->view->rect.y;
+    const int imx = ((int)inputState->mousePos.x) - dock->view->rect.x;
+    const int imy = ((int)inputState->mousePos.y) - dock->view->rect.y;
 
-	const int iwidth = dock->view->rect.width;
-	const int iheight = dock->view->rect.height;
+    const int iwidth = dock->view->rect.width;
+    const int iheight = dock->view->rect.height;
 
-	// bring into 0 - 1 range
+    // bring into 0 - 1 range
 
-	float mx = ((float)imx) / (float)iwidth;
-	float my = ((float)imy) / (float)iheight;
+    float mx = ((float)imx) / (float)iwidth;
+    float my = ((float)imy) / (float)iheight;
 
-	//printf("mx %f\n", mx);
+    //printf("mx %f\n", mx);
 
-	grid->overlay.targetSide = UIDockSide_Tab;
+    grid->overlay.targetSide = UIDockSide_Tab;
 
-	if (mx <= 0.25f || my <= 0.25f)
-	{
-		if (my <= 0.25f)
-		{
-			rect.height /= 2; // top docking
-			grid->overlay.targetSide = UIDockSide_Top;
-		}
-		else if (my >= 0.75f)
-		{
-			int h = rect.height / 2; // bottom docking
-			rect.height = h;
-			rect.y += h;
-			grid->overlay.targetSide = UIDockSide_Bottom;
-		}
-		else
-		{
-			rect.width /= 2;
-			grid->overlay.targetSide = UIDockSide_Left;
-		}
-	}
-	else if (mx >= 0.75f || my >= 0.75f)
-	{
-		if (my <= 0.25f)
-		{
-			rect.height /= 2;
-			grid->overlay.targetSide = UIDockSide_Top;
-		}
-		else if (my >= 0.75f)
-		{
-			int h = rect.height / 2;
-			rect.height = h;
-			rect.y += h;
-			grid->overlay.targetSide = UIDockSide_Bottom;
-		}
-		else
-		{
-			int w = rect.width / 2;
-			rect.width = w;
-			rect.x += w;
-			grid->overlay.targetSide = UIDockSide_Right;
-		}
-	}
+    if (mx <= 0.25f || my <= 0.25f)
+    {
+        if (my <= 0.25f)
+        {
+            rect.height /= 2; // top docking
+            grid->overlay.targetSide = UIDockSide_Top;
+        }
+        else if (my >= 0.75f)
+        {
+            int h = rect.height / 2; // bottom docking
+            rect.height = h;
+            rect.y += h;
+            grid->overlay.targetSide = UIDockSide_Bottom;
+        }
+        else
+        {
+            rect.width /= 2;
+            grid->overlay.targetSide = UIDockSide_Left;
+        }
+    }
+    else if (mx >= 0.75f || my >= 0.75f)
+    {
+        if (my <= 0.25f)
+        {
+            rect.height /= 2;
+            grid->overlay.targetSide = UIDockSide_Top;
+        }
+        else if (my >= 0.75f)
+        {
+            int h = rect.height / 2;
+            rect.height = h;
+            rect.y += h;
+            grid->overlay.targetSide = UIDockSide_Bottom;
+        }
+        else
+        {
+            int w = rect.width / 2;
+            rect.width = w;
+            rect.x += w;
+            grid->overlay.targetSide = UIDockSide_Right;
+        }
+    }
 
-	// now decide which regind we are in
+    // now decide which regind we are in
 
-	grid->overlay.rect = rect;
+    grid->overlay.rect = rect;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void endDragView(UIDockingGrid* grid)
 {
-	OverlayData* overlay = &grid->overlay;
+    OverlayData* overlay = &grid->overlay;
 
-	grid->overlay.enabled = false;
-	grid->state = UIDockState_None;
+    grid->overlay.enabled = false;
+    grid->state = UIDockState_None;
 
-	if (!overlay->target || (overlay->dragDock == overlay->target))
-		return;
+    if (!overlay->target || (overlay->dragDock == overlay->target))
+        return;
 
-	ViewPluginInstance* view = overlay->dragDock->view;
+    ViewPluginInstance* view = overlay->dragDock->view;
 
-	deleteDock(grid, overlay->dragDock); 
+    deleteDock(grid, overlay->dragDock);
     dockSide(overlay->targetSide, grid, overlay->target, view);
 
     overlay->target = 0;
@@ -1357,11 +1361,11 @@ static void updateDefault(UIDockingGrid* grid, const InputState* inputState)
         return;
     }
 
-	if (isDragingDock(grid, inputState))
-	{
-		grid->state = UIDockState_DraggingView;
-		return;
-	}
+    if (isDragingDock(grid, inputState))
+    {
+        grid->state = UIDockState_DraggingView;
+        return;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1429,7 +1433,7 @@ static void updateDragSizer(UIDockingGrid* grid, const InputState* inputState)
 
 static void splitAt(UIDockingGrid* grid, int mx, int my, ViewPluginInstance* instance, UIDockSizerDir dir)
 {
-	UIDock* dock = UIDock_getDockAt(grid, mx, my);
+    UIDock* dock = UIDock_getDockAt(grid, mx, my);
 
     if (!dock)
     {
@@ -1437,39 +1441,39 @@ static void splitAt(UIDockingGrid* grid, int mx, int my, ViewPluginInstance* ins
         return;
     }
 
-	const int x = dock->view->rect.x;
-	const int y = dock->view->rect.y;
-	const int w = dock->view->rect.width;
-	const int h = dock->view->rect.height;
+    const int x = dock->view->rect.x;
+    const int y = dock->view->rect.y;
+    const int w = dock->view->rect.width;
+    const int h = dock->view->rect.height;
 
-	if (dir == UIDockSizerDir_Horz)
-	{
-		if (my <= (y + h/2))
-    		return dockSide(UIDockSide_Top, grid, dock, instance);
-		else
-    		return UIDock_dockBottom(grid, dock, instance);
-	}
-	else
-	{
-		if (mx <= (x + w/2))
-    		return dockSide(UIDockSide_Left, grid, dock, instance);
-		else
-    		return dockSide(UIDockSide_Right, grid, dock, instance);
-	}
+    if (dir == UIDockSizerDir_Horz)
+    {
+        if (my <= (y + h / 2))
+            return dockSide(UIDockSide_Top, grid, dock, instance);
+        else
+            return UIDock_dockBottom(grid, dock, instance);
+    }
+    else
+    {
+        if (mx <= (x + w / 2))
+            return dockSide(UIDockSide_Left, grid, dock, instance);
+        else
+            return dockSide(UIDockSide_Right, grid, dock, instance);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UIDock_splitHorizontalAt(UIDockingGrid* grid, int x, int y, ViewPluginInstance* newInstance)
 {
-	splitAt(grid, x, y, newInstance, UIDockSizerDir_Horz);
+    splitAt(grid, x, y, newInstance, UIDockSizerDir_Horz);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UIDock_splitVerticalAt(UIDockingGrid* grid, int x, int y, ViewPluginInstance* newInstance)
 {
-	splitAt(grid, x, y, newInstance, UIDockSizerDir_Vert);
+    splitAt(grid, x, y, newInstance, UIDockSizerDir_Vert);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1505,13 +1509,13 @@ void UIDock_update(UIDockingGrid* grid, const InputState* inputState)
 
         case UIDockState_DraggingView:
         {
-			draggingView(grid, inputState);
+            draggingView(grid, inputState);
             break;
         }
 
         case UIDockState_EndDragView:
         {
-			endDragView(grid);
+            endDragView(grid);
             break;
         }
     }
@@ -1536,42 +1540,42 @@ UIDockSizerDir UIDock_getSizingState(UIDockingGrid* grid)
 
 static PosColorVertex* fillRect(PosColorVertex* verts, IntRect* rect, uint32_t color)
 {
-	const float x0 = (float)rect->x;
-	const float y0 = (float)rect->y;
-	const float x1 = (float)rect->width + x0;
-	const float y1 = (float)rect->height + y0;
+    const float x0 = (float)rect->x;
+    const float y0 = (float)rect->y;
+    const float x1 = (float)rect->width + x0;
+    const float y1 = (float)rect->height + y0;
 
-	// First triangle
+    // First triangle
 
-	verts[0].x = x0;
-	verts[0].y = y0;
-	verts[0].color = color;
+    verts[0].x = x0;
+    verts[0].y = y0;
+    verts[0].color = color;
 
-	verts[1].x = x1;
-	verts[1].y = y0;
-	verts[1].color = color;
+    verts[1].x = x1;
+    verts[1].y = y0;
+    verts[1].color = color;
 
-	verts[2].x = x1;
-	verts[2].y = y1;
-	verts[2].color = color;
+    verts[2].x = x1;
+    verts[2].y = y1;
+    verts[2].color = color;
 
-	// Second triangle
+    // Second triangle
 
-	verts[3].x = x0;
-	verts[3].y = y0;
-	verts[3].color = color;
+    verts[3].x = x0;
+    verts[3].y = y0;
+    verts[3].color = color;
 
-	verts[4].x = x1;
-	verts[4].y = y1;
-	verts[4].color = color;
+    verts[4].x = x1;
+    verts[4].y = y1;
+    verts[4].color = color;
 
-	verts[5].x = x0;
-	verts[5].y = y1;
-	verts[5].color = color;
+    verts[5].x = x0;
+    verts[5].y = y1;
+    verts[5].color = color;
 
-	verts += 6;
+    verts += 6;
 
-	return verts;
+    return verts;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1588,7 +1592,7 @@ static void renderSizers(UIDockingGrid* grid)
     // a bit hacky but should work. This is to mark which sizers that should be high-lightet as they are being dragged
 
     for (UIDockSizer* sizer : grid->hoverSizers)
-		sizer->highlight = true;
+        sizer->highlight = true;
 
     // TODO: Use settings for colors
 
@@ -1616,7 +1620,7 @@ static void renderSizers(UIDockingGrid* grid)
             assert(false);
         }
 
-		verts = fillRect(verts, &rect, color);
+        verts = fillRect(verts, &rect, color);
     }
 
     bgfx::setState(0
@@ -1627,7 +1631,7 @@ static void renderSizers(UIDockingGrid* grid)
     UIRender_posColor(&tvb, 0, vertexCount);
 
     for (UIDockSizer* sizer : grid->hoverSizers)
-		sizer->highlight = false;
+        sizer->highlight = false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1637,20 +1641,20 @@ static void drawOverlay(UIDockingGrid* grid)
     bgfx::TransientVertexBuffer tvb;
 
     if (!grid->overlay.enabled)
-    	return;
+        return;
 
-    const uint32_t vertexCount = 1 * 6;	// 2 triangles
+    const uint32_t vertexCount = 1 * 6; // 2 triangles
 
     UIRender_allocPosColorTb(&tvb, vertexCount);
     PosColorVertex* verts = (PosColorVertex*)tvb.data;
 
-	verts = fillRect(verts, &grid->overlay.rect, grid->overlay.color);
+    verts = fillRect(verts, &grid->overlay.rect, grid->overlay.color);
 
-	bgfx::setState(0
-					| BGFX_STATE_RGB_WRITE
-					| BGFX_STATE_ALPHA_WRITE
-					| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
-					| BGFX_STATE_MSAA);
+    bgfx::setState(0
+                   | BGFX_STATE_RGB_WRITE
+                   | BGFX_STATE_ALPHA_WRITE
+                   | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+                   | BGFX_STATE_MSAA);
 
     UIRender_posColor(&tvb, 0, vertexCount);
 }
@@ -1659,8 +1663,8 @@ static void drawOverlay(UIDockingGrid* grid)
 
 void UIDock_render(UIDockingGrid* grid)
 {
-	renderSizers(grid);
-	drawOverlay(grid);
+    renderSizers(grid);
+    drawOverlay(grid);
 }
 
 
