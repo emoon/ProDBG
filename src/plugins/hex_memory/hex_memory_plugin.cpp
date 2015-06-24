@@ -292,12 +292,38 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static int saveState(void* userData, struct PDSaveState* saveState)
+{
+    HexMemoryData* data = (HexMemoryData*)userData;
+
+	PDIO_writeString(saveState, data->startAddress);
+	PDIO_writeString(saveState, data->endAddress);
+
+	return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int loadState(void* userData, struct PDLoadState* loadState)
+{
+    HexMemoryData* data = (HexMemoryData*)userData;
+
+	PDIO_readString(loadState, data->startAddress, sizeof(data->startAddress));
+	PDIO_readString(loadState, data->endAddress, sizeof(data->endAddress));
+
+	return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDViewPlugin plugin =
 {
     "Hex Memory View",
     createInstance,
     destroyInstance,
     update,
+	saveState,
+	loadState,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -307,10 +333,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-    {
-        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-    }
+PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+{
+	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
