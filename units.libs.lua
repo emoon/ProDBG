@@ -531,6 +531,7 @@ StaticLibrary {
     Env = { 
         CPPPATH = { 
             "src/external/stb",
+			"src/external/jansson/include",
 			"src/external/foundation_lib",
 			"src/external/libuv/include",
         	"api/include",

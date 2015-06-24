@@ -8,12 +8,13 @@
 #include <jansson.h>
 #include "core/core.h"
 #include "session/session.h"
-#include "session/plugin_io.h"
+#include "core/plugin_io.h"
 #include "api/plugin_instance.h"
 #include "core/plugin_handler.h"
 #include "ui/plugin.h"
 #include "ui/bgfx/bgfx_plugin_ui.h"
 #include <foundation/array.h>
+#include <math.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -91,7 +92,7 @@ static int dummyLoadState(void* userData, struct PDLoadState* loadState)
 	assert_int_equal((int)v2, 1231);
 
 	assert_int_equal(loadState->readDouble(loadState->privData, &pi), PDLoadStatus_ok);
-	assert_true((pi - 3.1415) < 0.0001);
+	assert_true(fabs(pi - 3.1415) < 0.0001);
 
 	assert_int_equal(loadState->readInt(loadState->privData, &v3), PDLoadStatus_converted);
 	assert_int_equal((int)v3, 8);
