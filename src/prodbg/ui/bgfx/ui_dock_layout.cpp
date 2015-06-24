@@ -1,10 +1,11 @@
 #include "ui_dock.h"
 #include "ui_dock_private.h"
+#include "../plugin.h"
 #include "api/include/pd_view.h"
-#include "core/plugin_handler.h"
 #include "core/alloc.h"
 #include "core/log.h"
-#include "../plugin.h"
+#include "core/plugin_handler.h"
+#include "core/plugin_io.h"
 #include <jansson.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -78,15 +79,19 @@ static void writeDocks(UIDockingGrid* grid, json_t* root, double xScale, double 
 {
     json_t* docksArray = json_array();
 
+	PDSaveState saveFuncs;
+	PluginIO_initSaveJson(&saveFuncs);
+
     for (UIDock* dock : grid->docks)
     {
+		PluginData* pluginData = 0;
+
         const char* pluginName = "";
         const char* filename = "";
 
         if (dock->view->plugin)
         {
-            PluginData* pluginData = PluginHandler_getPluginData(dock->view->plugin);
-
+            pluginData = PluginHandler_getPluginData(dock->view->plugin);
             pluginName = dock->view->plugin->name;
             filename = pluginData->filename;
         }
@@ -106,6 +111,22 @@ static void writeDocks(UIDockingGrid* grid, json_t* root, double xScale, double 
                                      "s3", dock->sizers[3]->id);
 
         json_array_append_new(docksArray, dockItem);
+
+        if (!pluginData)
+        	continue;
+
+		PDViewPlugin* viewPlugin = (PDViewPlugin*)pluginData->plugin;
+
+		if (!viewPlugin->saveState)
+			continue;
+
+		json_t* array = json_array();
+
+		saveFuncs.privData = array;
+
+		viewPlugin->saveState(dock->view->userData, &saveFuncs);
+
+		json_object_set_new(dockItem, "plugin_data", array);
     }
 
     json_object_set_new(root, "docks", docksArray);
@@ -178,6 +199,9 @@ static void loadDocks(UIDockingGrid* grid, json_t* root, double xScale, double y
 
     grid->docks.reserve(count);
 
+	PDLoadState loadFuncs;
+	PluginIO_initLoadJson(&loadFuncs);
+
     for (size_t i = 0; i < count; ++i)
     {
         double x, y, width, height;
@@ -220,6 +244,17 @@ static void loadDocks(UIDockingGrid* grid, json_t* root, double xScale, double y
                 view = (ViewPluginInstance*)alloc_zero(sizeof(ViewPluginInstance));
             else
                 view = g_pluginUI->createViewPlugin(pluginData);
+
+			PDViewPlugin* viewPlugin = (PDViewPlugin*)pluginData->plugin;
+
+            json_t* pluginJsonData = json_object_get(item, "plugin_data");
+
+            if (pluginJsonData && viewPlugin && viewPlugin->loadState)
+			{
+    			SessionLoadState loadState = { pluginJsonData, (int)json_array_size(pluginJsonData), 0 };
+				loadFuncs.privData = &loadState;
+				viewPlugin->loadState(view->userData, &loadFuncs);
+			}
         }
 
         assert(view);
