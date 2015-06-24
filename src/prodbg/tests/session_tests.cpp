@@ -5,8 +5,10 @@
 #include <stdio.h>
 #include <pd_view.h>
 
+#include <jansson.h>
 #include "core/core.h"
 #include "session/session.h"
+#include "session/plugin_io.h"
 #include "api/plugin_instance.h"
 #include "core/plugin_handler.h"
 #include "ui/plugin.h"
@@ -41,6 +43,68 @@ static int dummyUpdate(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWrit
     return 0;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int dummySaveState(void* userData, struct PDSaveState* saveState)
+{
+	(void)userData;
+
+	PDIO_writeInt(saveState, -1231);
+	PDIO_writeInt(saveState, 1);
+	PDIO_writeInt(saveState, 1231);
+	PDIO_writeDouble(saveState, 3.1415);
+	PDIO_writeDouble(saveState, 8.0);
+	PDIO_writeString(saveState, "stoehus");
+	PDIO_writeString(saveState, "longlongseothuseothuseothstuhsntoehusnteohustnoehunstoehusneothusneothsohustoehus");
+
+	return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int dummyLoadState(void* userData, struct PDLoadState* loadState)
+{
+	int64_t v0;
+	int64_t v1;
+	double v2;
+	double pi;
+	int64_t v3;
+	int64_t dummy;
+	char buffer0[256];
+	char buffer1[9];
+	char buffer2[1];
+	double v4;
+
+	(void)userData;
+
+	assert_int_equal(loadState->readInt(loadState->privData, &v0), PDLoadStatus_ok);
+	assert_int_equal(v0, -1231);
+	
+	assert_int_equal(loadState->readInt(loadState->privData, &v1), PDLoadStatus_ok);
+	assert_int_equal(v1, 1);
+
+	assert_int_equal(loadState->readDouble(loadState->privData, &v2), PDLoadStatus_converted);
+	assert_int_equal((int)v2, 1231);
+
+	assert_int_equal(loadState->readDouble(loadState->privData, &pi), PDLoadStatus_ok);
+	assert_true((pi - 3.1415) < 0.0001);
+
+	assert_int_equal(loadState->readInt(loadState->privData, &v3), PDLoadStatus_converted);
+	assert_int_equal((int)v3, 8);
+
+	assert_int_equal(loadState->readString(loadState->privData, buffer0, sizeof(buffer0)), PDLoadStatus_ok);
+	assert_string_equal(buffer0, "stoehus");
+
+	assert_int_equal(loadState->readString(loadState->privData, buffer1, sizeof(buffer1)), PDLoadStatus_truncated);
+	assert_string_equal(buffer1, "longlong");
+
+	assert_int_equal(loadState->readInt(loadState->privData, &dummy), PDLoadStatus_outOfData);
+	assert_int_equal(loadState->readDouble(loadState->privData, &v4), PDLoadStatus_outOfData);
+	assert_int_equal(loadState->readString(loadState->privData, buffer2, sizeof(buffer2)), PDLoadStatus_outOfData);
+
+	return 1;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static PDViewPlugin s_dummyPlugin =
@@ -49,6 +113,8 @@ static PDViewPlugin s_dummyPlugin =
     dummyCreateInstance,
     dummyDestroyInstance,
     dummyUpdate,
+    dummySaveState,
+	dummyLoadState,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -167,6 +233,53 @@ static void session_test_many(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void session_save_plugin_state(void**)
+{
+	const char* filename = "t2-output/test.json";
+
+	{
+		PDSaveState saveFuncs;
+
+		json_t* root = json_object();
+		json_t* array = json_array();
+		json_object_set_new(root, "plugin_data", array);
+
+		PluginIO_initSaveJson(&saveFuncs);
+
+		saveFuncs.privData = array;
+
+		s_dummyPlugin.saveState(0, &saveFuncs);
+
+		json_dump_file(root, filename, JSON_COMPACT | JSON_INDENT(4) | JSON_PRESERVE_ORDER);
+	}
+
+	{
+		PDLoadState loadFuncs;
+    
+    	json_error_t error;
+
+		json_t* root = json_load_file(filename, 0, &error);
+
+		if (!root || !json_is_object(root))
+		{
+			printf("JSON: Unable to open %s for read\n", filename);
+			return;
+		}
+
+    	json_t* pluginData = json_object_get(root, "plugin_data");
+    	assert_true(json_typeof(pluginData) == JSON_ARRAY);
+
+    	SessionLoadState loadState = { pluginData, (int)json_array_size(pluginData), 0 };
+
+		PluginIO_initLoadJson(&loadFuncs);
+		loadFuncs.privData = &loadState;
+
+		s_dummyPlugin.loadState(0, &loadFuncs);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main()
 {
     Core_init();
@@ -179,6 +292,7 @@ int main()
         unit_test(session_add_plugins),
         unit_test(session_delete_plugins),
         unit_test(session_test_many),
+        unit_test(session_save_plugin_state),
     };
 
     return run_tests(tests);

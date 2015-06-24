@@ -12,6 +12,7 @@ local function Test(params)
 		Env = { 
 			CPPPATH = { 
 				"api/include",
+				"src/external/jansson/include",
 				"src/external/foundation_lib",
 				"src/external/minifb/include",
             	"src/external/imgui",
