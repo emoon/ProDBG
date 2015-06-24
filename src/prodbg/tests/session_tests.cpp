@@ -55,6 +55,9 @@ static int dummySaveState(void* userData, struct PDSaveState* saveState)
 	PDIO_writeDouble(saveState, 3.1415);
 	PDIO_writeDouble(saveState, 8.0);
 	PDIO_writeString(saveState, "stoehus");
+	PDIO_writeString(saveState, "temp0");
+	PDIO_writeString(saveState, "semp1");
+
 	PDIO_writeString(saveState, "longlongseothuseothuseothstuhsntoehusnteohustnoehunstoehusneothusneothsohustoehus");
 
 	return 1;
@@ -73,6 +76,7 @@ static int dummyLoadState(void* userData, struct PDLoadState* loadState)
 	char buffer0[256];
 	char buffer1[9];
 	char buffer2[1];
+	char buffer3[1];
 	double v4;
 
 	(void)userData;
@@ -94,6 +98,10 @@ static int dummyLoadState(void* userData, struct PDLoadState* loadState)
 
 	assert_int_equal(loadState->readString(loadState->privData, buffer0, sizeof(buffer0)), PDLoadStatus_ok);
 	assert_string_equal(buffer0, "stoehus");
+
+	assert_int_equal(loadState->readString(loadState->privData, buffer3, 0), PDLoadStatus_fail);
+	assert_int_equal(loadState->readString(loadState->privData, buffer3, 1), PDLoadStatus_truncated);
+	assert_int_equal(buffer3[0], 0);
 
 	assert_int_equal(loadState->readString(loadState->privData, buffer1, sizeof(buffer1)), PDLoadStatus_truncated);
 	assert_string_equal(buffer1, "longlong");

@@ -97,7 +97,10 @@ static PDLoadStatus readJsonString(void* privData, char* dest, int len)
 		return PDLoadStatus_fail;
 
 	if (len == 1)
+	{
 		*dest = 0;
+		return PDLoadStatus_truncated;
+	}
 
 	if (json_is_number(item))
 		return PDLoadStatus_fail;
