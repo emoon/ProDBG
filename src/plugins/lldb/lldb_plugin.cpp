@@ -611,7 +611,7 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
 
 static PDBackendPlugin plugin =
 {
-    "LLDB Mac",
+    "LLDB",
     createInstance,
     destroyInstance,
     0,
