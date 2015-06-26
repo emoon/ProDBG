@@ -25,7 +25,7 @@ struct Setting
 
 struct Category
 {
-	const char* name;
+	char* name;
 	uint32_t hash;
 	Setting** settings;
 };
@@ -173,6 +173,37 @@ bool Settings_loadSettings(const char* filename)
 	traverseData(root);
 
     return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Settings_destroy()
+{
+	int categoryCount = array_size(s_categories);
+
+	for (int ic = 0; ic < categoryCount; ++ic)
+	{
+		Category* category = s_categories[ic];
+
+		int settingsCount = array_size(category->settings);
+
+		for (int is = 0; is < settingsCount; ++is)
+		{
+			Setting* setting = category->settings[is];
+
+			if (setting->type == JSON_STRING)
+				string_deallocate(setting->svalue);
+
+			string_deallocate(setting->name);
+			free(setting);
+		}
+
+	    array_clear(category->settings);
+	    string_deallocate(category->name);
+	    free(category);
+	}
+
+    array_clear(s_categories);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

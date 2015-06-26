@@ -413,6 +413,8 @@ void test_load_settings(void**)
 	assert_true(Settings_getReal("window_size", "not_existing_tag") < 0.0001f);
 
 	assert_false(Settings_loadSettings("test_data/user_settings_2.json"));
+
+	Settings_destroy();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
