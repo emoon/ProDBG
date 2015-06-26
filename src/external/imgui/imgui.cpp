@@ -1,4 +1,4 @@
-﻿// ImGui library v1.41 WIP
+﻿// ImGui library v1.41
 // See ImGui::ShowTestWindow() for sample code.
 // Read 'Programmer guide' below for notes on how to setup ImGui in your codebase.
 // Get latest version at https://github.com/ocornut/imgui
@@ -1179,7 +1179,7 @@ struct ImGuiDrawContext
         ItemWidth = 0.0f;
         ButtonRepeat = false;
         AllowKeyboardFocus = true;
-        TextWrapPos = 1.0f;
+        TextWrapPos = -1.0f;
         ColorEditMode = ImGuiColorEditMode_RGB;
         memset(StackSizesBackup, 0, sizeof(StackSizesBackup));
 
@@ -1419,7 +1419,7 @@ struct ImGuiWindow
     bool                    SkipItems;                          // == Visible && !Collapsed
     int                     BeginCount;                         // Number of Begin() during the current frame (generally 0 or 1, 1+ if appending via multiple Begin/End pairs)
     ImGuiID                 PopupID;                            // ID in the popup stack when this window is used as a popup/menu (because we use generic Name/ID for recycling) 
-    int                     AutoFitFrames;
+    int                     AutoFitFramesX, AutoFitFramesY;
     bool                    AutoFitOnlyGrows;
     int                     AutoPosLastDirection;
     int                     HiddenFrames;
@@ -1783,7 +1783,7 @@ ImGuiWindow::ImGuiWindow(const char* name)
     SkipItems = false;
     BeginCount = 0;
     PopupID = 0;
-    AutoFitFrames = -1;
+    AutoFitFramesX = AutoFitFramesY = -1;
     AutoFitOnlyGrows = false;
     AutoPosLastDirection = -1;
     HiddenFrames = 0;
@@ -3499,13 +3499,16 @@ static ImGuiWindow* CreateNewWindow(const char* name, ImVec2 size, ImGuiWindowFl
 
     if ((flags & ImGuiWindowFlags_AlwaysAutoResize) != 0)
     {
-        window->AutoFitFrames = 2;
+        window->AutoFitFramesX = window->AutoFitFramesY = 2;
         window->AutoFitOnlyGrows = false;
     }
-    else if (ImLengthSqr(window->Size) < 0.00001f)
+    else
     {
-        window->AutoFitFrames = 2;
-        window->AutoFitOnlyGrows = true;
+        if (window->Size.x <= 0.0f)
+            window->AutoFitFramesX = 2;
+        if (window->Size.y <= 0.0f)
+            window->AutoFitFramesY = 2;
+        window->AutoFitOnlyGrows = (window->AutoFitFramesX > 0) || (window->AutoFitFramesY > 0);
     }
 
     g.Windows.push_back(window);
@@ -3705,8 +3708,10 @@ bool ImGui::Begin(const char* name, bool* p_opened, const ImVec2& size_on_first_
         {
             // We still process initial auto-fit on collapsed windows to get a window width,
             // But otherwise we don't honor ImGuiWindowFlags_AlwaysAutoResize when collapsed.
-            if (window->AutoFitFrames > 0)
-                window->SizeFull = window->AutoFitOnlyGrows ? ImMax(window->SizeFull, size_auto_fit) : size_auto_fit;
+            if (window->AutoFitFramesX > 0)
+                window->SizeFull.x = window->AutoFitOnlyGrows ? ImMax(window->SizeFull.x, size_auto_fit.x) : size_auto_fit.x;
+            if (window->AutoFitFramesY > 0)
+                window->SizeFull.y = window->AutoFitOnlyGrows ? ImMax(window->SizeFull.y, size_auto_fit.y) : size_auto_fit.y;
             window->Size = window->TitleBarRect().GetSize();
         }
         else
@@ -3715,10 +3720,13 @@ bool ImGui::Begin(const char* name, bool* p_opened, const ImVec2& size_on_first_
             {
                 window->SizeFull = size_auto_fit;
             }
-            else if (window->AutoFitFrames > 0 && !window_size_set_by_api)
+            else if ((window->AutoFitFramesX > 0 || window->AutoFitFramesY > 0) && !window_size_set_by_api)
             {
                 // Auto-fit only grows during the first few frames
-                window->SizeFull = window->AutoFitOnlyGrows ? ImMax(window->SizeFull, size_auto_fit) : size_auto_fit;
+                if (window->AutoFitFramesX > 0)
+                    window->SizeFull.x = window->AutoFitOnlyGrows ? ImMax(window->SizeFull.x, size_auto_fit.x) : size_auto_fit.x;
+                if (window->AutoFitFramesY > 0)
+                    window->SizeFull.y = window->AutoFitOnlyGrows ? ImMax(window->SizeFull.y, size_auto_fit.y) : size_auto_fit.y;
                 if (!(flags & ImGuiWindowFlags_NoSavedSettings))
                     MarkSettingsDirty();
             }
@@ -3726,7 +3734,7 @@ bool ImGui::Begin(const char* name, bool* p_opened, const ImVec2& size_on_first_
         }
 
         // Minimum window size
-        if (!(flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Popup | ImGuiWindowFlags_ChildMenu | ImGuiWindowFlags_Tooltip)))
+        if (!(flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize)))
         {
             window->SizeFull = ImMax(window->SizeFull, style.WindowMinSize);
             if (!window->Collapsed)
@@ -3801,7 +3809,7 @@ bool ImGui::Begin(const char* name, bool* p_opened, const ImVec2& size_on_first_
         // Clamp position so it stays visible
         if (!(flags & ImGuiWindowFlags_ChildWindow) && !(flags & ImGuiWindowFlags_Tooltip))
         {
-            if (!window_pos_set_by_api && window->AutoFitFrames <= 0 && g.IO.DisplaySize.x > 0.0f && g.IO.DisplaySize.y > 0.0f) // Ignore zero-sized display explicitly to avoid losing positions if a window manager reports zero-sized window when initializing or minimizing.
+            if (!window_pos_set_by_api && window->AutoFitFramesX <= 0 && window->AutoFitFramesY <= 0 && g.IO.DisplaySize.x > 0.0f && g.IO.DisplaySize.y > 0.0f) // Ignore zero-sized display explicitly to avoid losing positions if a window manager reports zero-sized window when initializing or minimizing.
             {
                 ImVec2 padding = ImMax(style.DisplayWindowPadding, style.DisplaySafeAreaPadding);
                 window->PosFloat = ImMax(window->PosFloat + window->Size, padding) - window->Size;
@@ -3855,7 +3863,7 @@ bool ImGui::Begin(const char* name, bool* p_opened, const ImVec2& size_on_first_
         else
         {
             ImU32 resize_col = 0;
-            if (!(flags & ImGuiWindowFlags_AlwaysAutoResize) && window->AutoFitFrames <= 0 && !(flags & ImGuiWindowFlags_NoResize))
+            if (!(flags & ImGuiWindowFlags_AlwaysAutoResize) && window->AutoFitFramesX <= 0 && window->AutoFitFramesY <= 0 && !(flags & ImGuiWindowFlags_NoResize))
             {
                 // Manual resize
                 const ImRect resize_rect(window->Rect().GetBR()-ImVec2(14,14), window->Rect().GetBR());
@@ -3980,8 +3988,10 @@ bool ImGui::Begin(const char* name, bool* p_opened, const ImVec2& size_on_first_
         window->DC.GroupStack.resize(0);
         window->MenuColumns.Update(3, style.ItemSpacing.x, !window_was_visible);
 
-        if (window->AutoFitFrames > 0)
-            window->AutoFitFrames--;
+        if (window->AutoFitFramesX > 0)
+            window->AutoFitFramesX--;
+        if (window->AutoFitFramesY > 0)
+            window->AutoFitFramesY--;
 
         // Title bar
         if (!(flags & ImGuiWindowFlags_NoTitleBar))
@@ -4039,7 +4049,7 @@ bool ImGui::Begin(const char* name, bool* p_opened, const ImVec2& size_on_first_
         IM_ASSERT((flags & ImGuiWindowFlags_NoTitleBar) != 0);
         window->Collapsed = parent_window && parent_window->Collapsed;
 
-        if (!(flags & ImGuiWindowFlags_AlwaysAutoResize) && window->AutoFitFrames <= 0)
+        if (!(flags & ImGuiWindowFlags_AlwaysAutoResize) && window->AutoFitFramesX <= 0 && window->AutoFitFramesY <= 0)
         {
             const ImVec4 clip_rect_t = window->ClipRectStack.back();
             window->Collapsed |= (clip_rect_t.x >= clip_rect_t.z || clip_rect_t.y >= clip_rect_t.w);
@@ -4054,7 +4064,7 @@ bool ImGui::Begin(const char* name, bool* p_opened, const ImVec2& size_on_first_
         window->Active = false;
 
     // Return false if we don't intend to display anything to allow user to perform an early out optimization
-    window->SkipItems = (window->Collapsed || !window->Active) && window->AutoFitFrames <= 0;
+    window->SkipItems = (window->Collapsed || !window->Active) && window->AutoFitFramesX <= 0 && window->AutoFitFramesY <= 0;
     return !window->SkipItems;
 }
 
@@ -4528,15 +4538,24 @@ static void SetWindowSize(ImGuiWindow* window, const ImVec2& size, ImGuiSetCond 
     window->SetWindowSizeAllowFlags &= ~(ImGuiSetCond_Once | ImGuiSetCond_FirstUseEver | ImGuiSetCond_Appearing);
 
     // Set
-    if (ImLengthSqr(size) > 0.00001f)
+    if (size.x > 0.0f)
     {
-        window->SizeFull = size;
-        window->AutoFitFrames = 0;
+		window->AutoFitFramesX = 0;
+        window->SizeFull.x = size.x;
     }
     else
     {
-        // Autofit
-        window->AutoFitFrames = 2;
+        window->AutoFitFramesX = 2;
+        window->AutoFitOnlyGrows = false;
+    }
+    if (size.y > 0.0f)
+    {
+		window->AutoFitFramesY = 0;
+        window->SizeFull.y = size.y;
+    }
+    else
+    {
+        window->AutoFitFramesY = 2;
         window->AutoFitOnlyGrows = false;
     }
 }
@@ -10956,7 +10975,7 @@ void ImGui::ShowTestWindow(bool* opened)
 
         if (ImGui::TreeNode("Multi-line Text Input"))
         {
-            static char text[1024*4] = "// F00F bug\nlabel:\n\tlock cmpxchg8b eax\n";
+            static char text[1024*16] = "// F00F bug\nlabel:\n\tlock cmpxchg8b eax\n";
             ImGui::PushItemWidth(-1.0f);
             ImGui::InputTextMultiline("##source", text, IM_ARRAYSIZE(text), ImVec2(0.f, ImGui::GetTextLineHeight() * 16), ImGuiInputTextFlags_AllowTabInput);
             ImGui::PopItemWidth();
@@ -11081,7 +11100,7 @@ void ImGui::ShowTestWindow(bool* opened)
         static float col1[3] = { 1.0f,0.0f,0.2f };
         static float col2[4] = { 0.4f,0.7f,0.0f,0.5f };
         ImGui::ColorEdit3("color 1", col1);
-        ImGui::SameLine(); ShowHelpMarker("Click on the colored square to change edit mode. CTRL+click on individual component to input value.\n");
+        ImGui::SameLine(); ShowHelpMarker("Click on the colored square to change edit mode.\nCTRL+click on individual component to input value.\n");
         
         ImGui::ColorEdit4("color 2", col2);
 
