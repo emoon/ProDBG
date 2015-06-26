@@ -1,0 +1,18 @@
+{
+	"default_native_backend": {
+		"mac": "LLDB",
+		"windows": "Microsoft Debugger Engine",
+		"linux": "LLDB Mac",
+		"freebsd": "LLDB Mac"
+	},
+
+	"window_size":{
+		"width": 1024,
+		"height": 768
+	},
+
+	"window_position":{
+		"x": -1,
+		"y": -1
+	}
+}

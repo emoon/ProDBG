@@ -1,0 +1,19 @@
+{
+	"default_native_backend": {
+		"mac": "gdb",
+		"windows": "windbg",
+		"linux": "LLDB Mac",
+		"freebsd": "LLDB Mac"
+	},
+
+	"window_size":{
+		"width": 1280,
+		"height": 768,
+		"scale": 4.4
+	},
+
+	"window_position":{
+		"x": -1,
+		"y": -1
+	}
+}
