@@ -394,27 +394,27 @@ void test_file_notification(void**)
 
 void test_load_settings(void**)
 {
-	assert_true(Settings_loadSettings("test_data/settings.json"));
+    assert_true(Settings_loadSettings("test_data/settings.json"));
 
-	assert_string_equal(Settings_getString("default_native_backend", "mac"), "LLDB");
-	assert_string_equal(Settings_getString("default_native_backend", "windows"), "Microsoft Debugger Engine");
-	assert_int_equal(Settings_getInt("window_size", "width"), 1024);
-	assert_true((Settings_getReal("window_size", "scale") - 2.2) < 0.001f);
+    assert_string_equal(Settings_getString("default_native_backend", "mac"), "LLDB");
+    assert_string_equal(Settings_getString("default_native_backend", "windows"), "Microsoft Debugger Engine");
+    assert_int_equal(Settings_getInt("window_size", "width"), 1024);
+    assert_true((Settings_getReal("window_size", "scale") - 2.2) < 0.001f);
 
-	assert_true(Settings_loadSettings("test_data/user_settings.json"));
+    assert_true(Settings_loadSettings("test_data/user_settings.json"));
 
-	assert_string_equal(Settings_getString("default_native_backend", "mac"), "gdb");
-	assert_string_equal(Settings_getString("default_native_backend", "windows"), "windbg");
-	assert_int_equal(Settings_getInt("window_size", "width"), 1280);
-	assert_true((Settings_getReal("window_size", "scale") - 4.4) < 0.001f);
+    assert_string_equal(Settings_getString("default_native_backend", "mac"), "gdb");
+    assert_string_equal(Settings_getString("default_native_backend", "windows"), "windbg");
+    assert_int_equal(Settings_getInt("window_size", "width"), 1280);
+    assert_true((Settings_getReal("window_size", "scale") - 4.4) < 0.001f);
 
-	assert_int_equal(Settings_getInt("window_size", "not_existing_tag"), 0);
-	assert_null(Settings_getString("window_size", "not_existing_tag"));
-	assert_true(Settings_getReal("window_size", "not_existing_tag") < 0.0001f);
+    assert_int_equal(Settings_getInt("window_size", "not_existing_tag"), 0);
+    assert_null(Settings_getString("window_size", "not_existing_tag"));
+    assert_true(Settings_getReal("window_size", "not_existing_tag") < 0.0001f);
 
-	assert_false(Settings_loadSettings("test_data/user_settings_2.json"));
+    assert_false(Settings_loadSettings("test_data/user_settings_2.json"));
 
-	Settings_destroy();
+    Settings_destroy();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
