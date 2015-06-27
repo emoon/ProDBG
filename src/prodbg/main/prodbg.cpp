@@ -283,11 +283,11 @@ void ProDBG_timedUpdate()
 
 static void onLoadRunExec(Session* session, const char* filename)
 {
-    PluginData* pluginData = PluginHandler_findPlugin(0, "lldb_plugin", "LLDB Mac", true);
+    PluginData* pluginData = PluginHandler_findPlugin(0, "lldb_plugin", "LLDB", true);
 
     if (!pluginData)
     {
-        pd_error("Unable to find LLDB Mac backend\n");
+        pd_error("Unable to find LLDB backend\n");
         return;
     }
 
