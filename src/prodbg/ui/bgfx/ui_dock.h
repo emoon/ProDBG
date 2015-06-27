@@ -67,11 +67,11 @@ void UIDock_splitHorizontal(UIDockingGrid* grid, UIDock* dock, ViewPluginInstanc
 void UIDock_splitVertical(UIDockingGrid* grid, UIDock* dock, ViewPluginInstance* newInstance);
 void UIDock_render(UIDockingGrid* grid);
 
-bool UIDock_saveLayout(UIDockingGrid* grid, const char* filename, float xScale, float yScale);
-bool UIDock_saveLayoutJson(UIDockingGrid* grid, json_t* jsonObject, float xScale, float yScale);
+bool UIDock_saveLayout(UIDockingGrid* grid, const char* filename);
+bool UIDock_saveLayoutJson(UIDockingGrid* grid, json_t* jsonObject);
 
-UIDockingGrid* UIDock_loadLayout(const char* filename, float xSize, float ySize);
-UIDockingGrid* UIDock_loadLayoutJson(json_t* jsonObject, float xSize, float ySize);
+UIDockingGrid* UIDock_loadLayout(const char* filename, int width, int height);
+UIDockingGrid* UIDock_loadLayoutJson(json_t* jsonObject, int width, int height);
 
 
 //void UIDock_dockLeft(UIDock* dock, ViewPluginInstance* instance);

@@ -71,17 +71,15 @@ static const char* s_plugins[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void loadLayout(Session* session, float width, float height)
+void loadLayout(Session* session, int width, int height)
 {
-    // TODO: Fix convesion
-
-    if (Session_loadLayout(session, "data/current_layout.json", (int)width, (int)height))
+    if (Session_loadLayout(session, "data/current_layout.json", width, height))
         return;
 
-    if (Session_loadLayout(session, "data/default_layout.json", (int)width, (int)height))
+    if (Session_loadLayout(session, "data/default_layout.json", width, height))
         return;
 
-    Session_createDockingGrid(session, (int)width, (int)height);
+    Session_createDockingGrid(session, width, height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -205,7 +203,7 @@ void ProDBG_create(void* window, int width, int height)
     context->session = Session_create();
     context->time = time_current();
 
-    loadLayout(context->session, (float)width, (float)(height - g_pluginUI->getStatusBarSize()));
+    loadLayout(context->session, width, height - g_pluginUI->getStatusBarSize());
 
     (void)window;
 
@@ -265,8 +263,7 @@ void ProDBG_destroy()
 
     //rmt_DestroyGlobalInstance(s_remotery);
 
-    UIDock_saveLayout(Session_getDockingGrid(context->session),
-                      "data/current_layout.json", (float)context->width, (float)(context->height - g_pluginUI->getStatusBarSize()));
+    UIDock_saveLayout(Session_getDockingGrid(context->session), "data/current_layout.json");
 
     Session_destroy(context->session);
 

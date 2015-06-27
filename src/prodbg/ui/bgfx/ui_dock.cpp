@@ -21,33 +21,6 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct Rect
-{
-    enum
-    {
-        X,
-        Y,
-        W,
-        H,
-        Compontent_Count,
-    };
-
-    union
-    {
-        struct
-        {
-            int x;
-            int y;
-            int width;
-            int height;
-        };
-
-        int data[Compontent_Count];
-    };
-} Rect;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 UIDockingGrid* UIDock_createGrid(IntRect* rect)
 {
     UIDockingGrid* grid = new UIDockingGrid;
@@ -223,9 +196,9 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 
     IntRect rect = dock->view->rect;
 
-    int sizerWidthOrHeight = Rect::H;
-    int widthOrHeight = Rect::W;
-    int xOry = Rect::X;
+    int sizerWidthOrHeight = IntRect::H;
+    int widthOrHeight = IntRect::W;
+    int xOry = IntRect::X;
     int side0 = UIDock::Left;
     int side1 = UIDock::Right;
     int side2 = UIDock::Top;
@@ -233,9 +206,9 @@ static void dockSide(UIDockSide side, UIDockingGrid* grid, UIDock* dock, ViewPlu
 
     if (side == UIDockSide_Top || side == UIDockSide_Bottom)
     {
-        sizerWidthOrHeight = Rect::W;
-        widthOrHeight = Rect::H;
-        xOry = Rect::Y;
+        sizerWidthOrHeight = IntRect::W;
+        widthOrHeight = IntRect::H;
+        xOry = IntRect::Y;
         side0 = UIDock::Top;
         side1 = UIDock::Bottom;
         side2 = UIDock::Left;
@@ -635,23 +608,23 @@ void UIDock_splitSizer(UIDockingGrid* grid, UIDockSizer* sizer, int x, int y)
     if (!(dock = findDock(sizer, x, y)))
         return;
 
-    int canSplitPos = Rect::X;
-    int canSplitSize = Rect::W;
+    int canSplitPos = IntRect::X;
+    int canSplitSize = IntRect::W;
 
-    int xOry = Rect::Y;
-    int widthOrHeight  = Rect::H;
+    int xOry = IntRect::Y;
+    int widthOrHeight  = IntRect::H;
 
     int sideSizer = UIDock::Top;
 
     if (sizer->dir == UIDockSizerDir_Horz)
     {
-        canSplitPos = Rect::Y;
-        canSplitSize = Rect::H;
+        canSplitPos = IntRect::Y;
+        canSplitSize = IntRect::H;
 
         sideSizer = UIDock::Left;
 
-        xOry = Rect::X;
-        widthOrHeight = Rect::W;
+        xOry = IntRect::X;
+        widthOrHeight = IntRect::W;
     }
 
     NeighborDocks closeDocks;
@@ -759,7 +732,7 @@ static bool deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSi
         int topLeft = UIDock::Top;
         int bottomRight = UIDock::Bottom;
 
-        if (wOrh != Rect::H)
+        if (wOrh != IntRect::H)
         {
             topLeft = UIDock::Left;
             bottomRight = UIDock::Right;
@@ -809,7 +782,7 @@ static bool deleteDockSide(UIDockingGrid* grid, UIDock* dock, UIDockSizer* remSi
 
     // TODO: Can like do this better
 
-    if (wOrh == Rect::H)
+    if (wOrh == IntRect::H)
     {
         for (UIDock* cDock : closeDocks.insideDocks)
         {
@@ -930,25 +903,25 @@ static bool deleteDock(UIDockingGrid* grid, UIDock* dock)
     {
         // Case 0 this will do resize right -> left
 
-        return deleteDockSide(grid, dock, dock->leftSizer, dock->rightSizer, Rect::H, Rect::Y);
+        return deleteDockSide(grid, dock, dock->leftSizer, dock->rightSizer, IntRect::H, IntRect::Y);
     }
     else if (tx1 > vx1 && bx1 > vx1)
     {
         // Case 1 this will do resize left <- right
 
-        return deleteDockSide(grid, dock, dock->rightSizer, dock->leftSizer, Rect::H, Rect::Y);
+        return deleteDockSide(grid, dock, dock->rightSizer, dock->leftSizer, IntRect::H, IntRect::Y);
     }
     else if (ly0 < vy0 && ry0 < vy0)
     {
         // Case 2 resize top -> down
 
-        return deleteDockSide(grid, dock, dock->topSizer, dock->bottomSizer, Rect::W, Rect::X);
+        return deleteDockSide(grid, dock, dock->topSizer, dock->bottomSizer, IntRect::W, IntRect::X);
     }
     else if (ly1 > vy1 && ry1 > vy1)
     {
         // Case 3 size down -> top
 
-        return deleteDockSide(grid, dock, dock->bottomSizer, dock->topSizer, Rect::W, Rect::X);
+        return deleteDockSide(grid, dock, dock->bottomSizer, dock->topSizer, IntRect::W, IntRect::X);
     }
 
     // this case may actually happen if we try to delete something that looks like this
@@ -1003,7 +976,7 @@ bool checkSizerCollision(UIDockSizer* gridSizer, UIDockSizer* sizer, int sizer0,
 
 static bool checkCollision(UIDockingGrid* grid, UIDockSizer* sizer, int move, int wOrh, int xOry, UIDockSizerDir dir)
 {
-    int compDir = xOry == Rect::X ? Rect::Y : Rect::X;
+    int compDir = xOry == IntRect::X ? IntRect::Y : IntRect::X;
 
     const int sizerDir = sizer->rect.data[compDir];
     int sizerDirNew  = sizerDir + move;
@@ -1057,15 +1030,15 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
 
         const int sizerX = (int)sizer->rect.x;
 
-        if (checkCollision(grid, sizer, move, Rect::H, Rect::Y, UIDockSizerDir_Vert))
+        if (checkCollision(grid, sizer, move, IntRect::H, IntRect::Y, UIDockSizerDir_Vert))
             move = 0;
 
         for (UIDock* dock : leftDocks)
         {
-            const int topSizerX = (int)dock->topSizer->rect.x;
-            const int bottomSizerX = (int)dock->bottomSizer->rect.x;
+            const int topSizerX = dock->topSizer->rect.x;
+            const int bottomSizerX = dock->bottomSizer->rect.x;
 
-            // if these are at the same location we need to resize the sizer laso
+            // if these are at the same location we need to resize the sizer also
 
             if (topSizerX == sizerX)
             {
@@ -1085,10 +1058,10 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
 
         for (UIDock* dock : rightDocks)
         {
-            const int topSizerX = (int)(round(dock->topSizer->rect.x) + round(dock->topSizer->rect.width));
-            const int bottomSizerX = (int)(round(dock->bottomSizer->rect.x) + round(dock->bottomSizer->rect.width));
+            const int topSizerX = dock->topSizer->rect.x + dock->topSizer->rect.width;
+            const int bottomSizerX = dock->bottomSizer->rect.x + dock->bottomSizer->rect.width;
 
-            // if these are at the same location we need to resize the sizer laso
+            // if these are at the same location we need to resize the sizer also
 
             if (topSizerX == sizerX)
                 dock->topSizer->rect.width += move;
@@ -1118,7 +1091,7 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
 
         const int sizerY = (int)sizer->rect.y;
 
-        if (checkCollision(grid, sizer, move, Rect::W, Rect::X, UIDockSizerDir_Horz))
+        if (checkCollision(grid, sizer, move, IntRect::W, IntRect::X, UIDockSizerDir_Horz))
             move = 0;
 
         for (UIDock* dock : topDocks)
@@ -1144,8 +1117,8 @@ void UIDock_dragSizer(UIDockingGrid* grid, void* handle, Vec2* deltaMove)
 
         for (UIDock* dock : bottomDocks)
         {
-            const int sizer0 = (int)(round(dock->rightSizer->rect.y) + round(dock->rightSizer->rect.height));
-            const int sizer1 = (int)(round(dock->leftSizer->rect.y) + round(dock->leftSizer->rect.height));
+            const int sizer0 = dock->rightSizer->rect.y + dock->rightSizer->rect.height;
+            const int sizer1 = dock->leftSizer->rect.y + dock->leftSizer->rect.height;
 
             if (sizerY == sizer0)
                 dock->rightSizer->rect.height += move;
@@ -1201,8 +1174,14 @@ void UIDock_updateSize(UIDockingGrid* grid, int width, int height)
 {
     Vec2 deltaMove;
 
-    deltaMove.x = float(width - grid->rect.width);
-    deltaMove.y = float(height - grid->rect.height);
+    int moveX = width - grid->rect.width;
+    int moveY = height - grid->rect.height;
+
+    if (moveX == 0 && moveY == 0)
+    	return;
+
+    deltaMove.x = (float)moveX; 
+    deltaMove.y = (float)moveY; 
 
     grid->rect.width = width;
     grid->rect.height = height;

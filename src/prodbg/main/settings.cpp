@@ -62,6 +62,7 @@ void Settings_load()
 
 void Settings_save()
 {
+	/*
     Settings* settings = &s_settings;
     const PDGRect* r = &settings->windowRect;
 
@@ -71,5 +72,6 @@ void Settings_save()
     json_array_append_new(a, windowRect);
 
     json_dump_file(a, "settings.json", 0);
+    */
 }
 
