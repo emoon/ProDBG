@@ -739,7 +739,7 @@ PluginUI::State BgfxPluginUI::updateInstance(ViewPluginInstance* instance, PDRea
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float BgfxPluginUI::getStatusBarSize()
+int BgfxPluginUI::getStatusBarSize()
 {
     return m_statusSize;
 }

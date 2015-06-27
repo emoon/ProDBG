@@ -15,11 +15,11 @@ class BgfxPluginUI : public PluginUI
     void preUpdate();   // update before plugin update
     void postUpdate(); // update after plugins
 
-    float getStatusBarSize();
+    int getStatusBarSize();
     void setStatusTextNoFormat(const char* text);
 
 private:
-    float m_statusSize = 18.0f;
+    int m_statusSize = 18;
     char m_statusText[4096];
 };
 
