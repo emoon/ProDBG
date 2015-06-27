@@ -151,6 +151,22 @@ SharedLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
+    Name = "threads_plugin",
+    
+    Env = {
+        CPPPATH = { "api/include", },
+    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
+    },
+
+    Sources = { "src/plugins/threads/threads_plugin.cpp" },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
+}
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+SharedLibrary {
     Name = "breakpoints_plugin",
     
     Env = {
@@ -249,6 +265,7 @@ Default "callstack_plugin"
 Default "sourcecode_plugin"
 Default "disassembly_plugin"
 Default "locals_plugin"
+Default "threads_plugin"
 Default "breakpoints_plugin"
 Default "hex_memory_plugin"
 Default "console_plugin"

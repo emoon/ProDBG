@@ -332,6 +332,38 @@ static void setLocals(LLDBPlugin* plugin, PDWriter* writer)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void setThreads(LLDBPlugin* plugin, PDWriter* writer)
+{
+    uint32_t threadCount = plugin->process.GetNumThreads();
+
+    if (threadCount == 0)
+    	return;
+
+    PDWrite_eventBegin(writer, PDEventType_setThreads);
+    PDWrite_arrayBegin(writer, "threads");
+
+    for (uint32_t i = 0; i < threadCount; ++i)
+	{
+    	lldb::SBThread thread = plugin->process.GetThreadAtIndex(i);
+    	lldb::SBFrame frame = thread.GetFrameAtIndex(0);
+
+    	const char* threadName = thread.GetName();
+    	const char* functionName = frame.GetFunctionName();
+
+        PDWrite_arrayEntryBegin(writer);
+
+        PDWrite_string(writer, "name", threadName); 
+        PDWrite_string(writer, "functionName", functionName); 
+
+        PDWrite_arrayEntryEnd(writer);
+	}
+
+    PDWrite_arrayEnd(writer);
+    PDWrite_eventEnd(writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void setBreakpoint(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer)
 {
     const char* filename;
@@ -427,6 +459,7 @@ static void processEvents(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer
             case PDEventType_getCallstack : setCallstack(plugin, writer); break;
             case PDEventType_setExecutable : setExecutable(plugin, reader); break;
             case PDEventType_getLocals : setLocals(plugin, writer); break;
+            case PDEventType_getThreads : setThreads(plugin, writer); break;
             case PDEventType_setBreakpoint : setBreakpoint(plugin, reader, writer); break;
             case PDEventType_action : eventAction(plugin, reader); break;
         }

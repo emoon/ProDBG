@@ -54,6 +54,7 @@ static const char* s_plugins[] =
     "sourcecode_plugin",
     "disassembly_plugin",
     "locals_plugin",
+    "threads_plugin",
     "callstack_plugin",
     "registers_plugin",
     "breakpoints_plugin",
