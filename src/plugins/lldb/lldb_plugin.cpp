@@ -28,6 +28,7 @@ typedef struct LLDBPlugin
     lldb::SBProcess process;
     PDDebugState state;
     bool hasValidTarget;
+    uint32_t selectedThread;
 
     const char* targetName;
 
@@ -45,6 +46,7 @@ void* createInstance(ServiceFunc* serviceFunc)
     plugin->state = PDDebugState_noTarget;
     plugin->listener = plugin->debugger.GetListener(); 
     plugin->hasValidTarget = false;
+    plugin->selectedThread = 0;
 
     return plugin;
 }
@@ -159,7 +161,7 @@ void onRun(LLDBPlugin* plugin)
 
 static void setCallstack(LLDBPlugin* plugin, PDWriter* writer)
 {
-    lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
+    lldb::SBThread thread(plugin->process.GetThreadAtIndex(plugin->selectedThread));
 
     printf("set callstack\n");
 
@@ -223,7 +225,7 @@ static void setExceptionLocation(LLDBPlugin* plugin, PDWriter* writer)
     // Get the filename & line of the exception/breakpoint
     // \todo: Right now we assume that we only got the break/exception at the first thread.
 
-    lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
+    lldb::SBThread thread(plugin->process.GetThreadAtIndex(plugin->selectedThread));
     lldb::SBFrame frame(thread.GetFrameAtIndex(0));
     lldb::SBCompileUnit compileUnit = frame.GetCompileUnit();
     lldb::SBFileSpec filespec(plugin->process.GetTarget().GetExecutable());
@@ -293,7 +295,7 @@ static void setExecutable(LLDBPlugin* plugin, PDReader* reader)
 
 static void setLocals(LLDBPlugin* plugin, PDWriter* writer)
 {
-    lldb::SBThread thread(plugin->process.GetThreadAtIndex(0));
+    lldb::SBThread thread(plugin->process.GetThreadAtIndex(plugin->selectedThread));
     lldb::SBFrame frame = thread.GetSelectedFrame();
     
     lldb::SBValueList variables = frame.GetVariables(true, true, true, false);
@@ -348,12 +350,24 @@ static void setThreads(LLDBPlugin* plugin, PDWriter* writer)
     	lldb::SBFrame frame = thread.GetFrameAtIndex(0);
 
     	const char* threadName = thread.GetName();
+    	const char* queueName = thread.GetQueueName();
     	const char* functionName = frame.GetFunctionName();
 
         PDWrite_arrayEntryBegin(writer);
 
-        PDWrite_string(writer, "name", threadName); 
-        PDWrite_string(writer, "functionName", functionName); 
+        PDWrite_u32(writer, "id", i);
+
+		if (threadName)
+	        PDWrite_string(writer, "name", threadName); 
+		else if (queueName)
+	        PDWrite_string(writer, "name", queueName); 
+		else
+	        PDWrite_string(writer, "name", "unknown_thread"); 
+
+		if (functionName)
+        	PDWrite_string(writer, "function", functionName); 
+		else
+        	PDWrite_string(writer, "function", "unknown_function"); 
 
         PDWrite_arrayEntryEnd(writer);
 	}
@@ -445,6 +459,26 @@ static const char* eventTypes[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void selectThread(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer)
+{
+	uint32_t threadId;
+
+    PDRead_findU32(reader, &threadId, "thread_id", 0);
+
+    printf("trying te set thread %d\n", threadId);
+
+	if (plugin->selectedThread == threadId)
+		return;
+
+	printf("selecting thread %d\n", threadId);
+
+	plugin->selectedThread = threadId;
+
+	setCallstack(plugin, writer); 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void processEvents(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer)
 {
     uint32_t event;
@@ -458,6 +492,7 @@ static void processEvents(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer
             case PDEventType_getExceptionLocation : setExceptionLocation(plugin, writer); break;
             case PDEventType_getCallstack : setCallstack(plugin, writer); break;
             case PDEventType_setExecutable : setExecutable(plugin, reader); break;
+            case PDEventType_selectThread : selectThread(plugin, reader, writer); break;
             case PDEventType_getLocals : setLocals(plugin, writer); break;
             case PDEventType_getThreads : setThreads(plugin, writer); break;
             case PDEventType_setBreakpoint : setBreakpoint(plugin, reader, writer); break;
