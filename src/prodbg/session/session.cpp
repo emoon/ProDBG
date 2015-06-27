@@ -195,7 +195,7 @@ void Session_createDockingGrid(Session* session, int width, int height)
 
 bool Session_loadLayout(Session* session, const char* filename, int width, int height)
 {
-    UIDockingGrid* grid = UIDock_loadLayout(filename, (float)width, (float)height);
+    UIDockingGrid* grid = UIDock_loadLayout(filename, width, height);
 
     if (!grid)
         return false;
