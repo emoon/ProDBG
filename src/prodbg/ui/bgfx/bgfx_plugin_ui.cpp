@@ -599,6 +599,23 @@ static void popStyleVar(int count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static int selectableFixed(const char* label, int selected, int flags, PDVec2 size)
+{
+	return !!ImGui::Selectable(label, !!selected, flags, ImVec2(size.x, size.y));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int selectable(const char* label, int* selected, int flags, PDVec2 size)
+{
+	bool t = !!*selected;
+	bool r = !!ImGui::Selectable(label, &t, flags, ImVec2(size.x, size.y));
+	*selected = !!t;
+	return r;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 char* buildName(const char* pluginName, int id)
 {
     char idBuffer[32];
@@ -638,6 +655,8 @@ void BgfxPluginUI::init(ViewPluginInstance* pluginInstance)
     uiInstance->checkbox = checkbox;
     uiInstance->buttonSmall = buttonSmall;
     uiInstance->buttonSize = buttonSize;
+    uiInstance->selectableFixed = selectableFixed;
+    uiInstance->selectable = selectable;
 
     uiInstance->separator = separator;
     uiInstance->sameLine = sameLine;

@@ -180,10 +180,13 @@ typedef struct PDUI
     // Widgets
 
     int (*checkbox)(const char* label, bool* v);
-
     int (*button)(const char* label);
     int (*buttonSmall)(const char* label);
     int (*buttonSize)(const char* label, int width, int height);
+
+    int (*selectableFixed)(const char* label, int selected, int flags, PDVec2 size); 
+    int (*selectable)(const char* label, int* selected, int flags, PDVec2 size);
+
 
     // Misc
 
