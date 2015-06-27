@@ -832,7 +832,7 @@ void BgfxPluginUI::preUpdate()
 
 void BgfxPluginUI::postUpdate()
 {
-    renderStatusBar(m_statusText, m_statusSize);
+    renderStatusBar(m_statusText, (float)m_statusSize);
     IMGUI_postUpdate();
 
     Session** sessions = Session_getSessions();
