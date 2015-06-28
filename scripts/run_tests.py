@@ -18,7 +18,6 @@ windows_tests = []
 
 all_tests = ["core_tests", 
              "readwrite_tests", 
-             "script_tests", 
              "session_tests", 
              "ui_docking_tests", 
              "ui_tests"] 
