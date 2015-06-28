@@ -63,16 +63,16 @@ static void showInUI(ThreadsData* userData, PDReader* reader, PDUI* uiFuncs)
 
     while (PDRead_getNextEntry(reader, &it))
     {
-    	uint32_t id;
+    	uint64_t id;
         const char* name = "";
         const char* function = "";
 
-        PDRead_findU32(reader, &id, "id", it);
+        PDRead_findU64(reader, &id, "id", it);
         PDRead_findString(reader, &name, "name", it);
         PDRead_findString(reader, &function, "function", it);
 
 		char label[32];
-		sprintf(label, "%04d", id);
+		sprintf(label, "%llx", id);
 
 		if (uiFuncs->selectableFixed(label, data->selectedThread == i, 1 << 1, size))
 		{

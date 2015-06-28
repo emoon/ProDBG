@@ -18,96 +18,96 @@
 
 namespace lldb {
 
-class SBEvent;
+	class SBEvent;
 
-class LLDB_API SBProcess
-{
-public:
-    //------------------------------------------------------------------
-    /// Broadcaster event bits definitions.
-    //------------------------------------------------------------------
-    FLAGS_ANONYMOUS_ENUM()
-    {
-        eBroadcastBitStateChanged   = (1 << 0),
-        eBroadcastBitInterrupt      = (1 << 1),
-        eBroadcastBitSTDOUT         = (1 << 2),
-        eBroadcastBitSTDERR         = (1 << 3),
-        eBroadcastBitProfileData    = (1 << 4)
-    };
+	class LLDB_API SBProcess
+	{
+		public:
+			//------------------------------------------------------------------
+			/// Broadcaster event bits definitions.
+			//------------------------------------------------------------------
+			FLAGS_ANONYMOUS_ENUM()
+			{
+				eBroadcastBitStateChanged   = (1 << 0),
+											eBroadcastBitInterrupt      = (1 << 1),
+											eBroadcastBitSTDOUT         = (1 << 2),
+											eBroadcastBitSTDERR         = (1 << 3),
+											eBroadcastBitProfileData    = (1 << 4)
+			};
 
-    SBProcess ();
+			SBProcess ();
 
-    SBProcess (const lldb::SBProcess& rhs);
+			SBProcess (const lldb::SBProcess& rhs);
 
-    const lldb::SBProcess&
-    operator = (const lldb::SBProcess& rhs);
+			const lldb::SBProcess&
+				operator = (const lldb::SBProcess& rhs);
 
-    SBProcess (const lldb::ProcessSP &process_sp);
-    
-    ~SBProcess();
+			SBProcess (const lldb::ProcessSP &process_sp);
 
-    static const char *
-    GetBroadcasterClassName ();
-    
-    const char *
-    GetPluginName ();
-    
-    // DEPRECATED: use GetPluginName()
-    const char *
-    GetShortPluginName ();
-    
-    void
-    Clear ();
+			~SBProcess();
 
-    bool
-    IsValid() const;
+			static const char *
+				GetBroadcasterClassName ();
 
-    lldb::SBTarget
-    GetTarget() const;
+			const char *
+				GetPluginName ();
 
-    lldb::ByteOrder
-    GetByteOrder() const;
+			// DEPRECATED: use GetPluginName()
+			const char *
+				GetShortPluginName ();
 
-    size_t
-    PutSTDIN (const char *src, size_t src_len);
+			void
+				Clear ();
 
-    size_t
-    GetSTDOUT (char *dst, size_t dst_len) const;
+			bool
+				IsValid() const;
 
-    size_t
-    GetSTDERR (char *dst, size_t dst_len) const;
+			lldb::SBTarget
+				GetTarget() const;
 
-    size_t
-    GetAsyncProfileData(char *dst, size_t dst_len) const;
-    
-    void
-    ReportEventState (const lldb::SBEvent &event, FILE *out) const;
+			lldb::ByteOrder
+				GetByteOrder() const;
 
-    void
-    AppendEventStateReport (const lldb::SBEvent &event, lldb::SBCommandReturnObject &result);
+			size_t
+				PutSTDIN (const char *src, size_t src_len);
 
-    //------------------------------------------------------------------
-    /// Remote connection related functions. These will fail if the
-    /// process is not in eStateConnected. They are intended for use
-    /// when connecting to an externally managed debugserver instance.
-    //------------------------------------------------------------------
-    bool
-    RemoteAttachToProcessWithID (lldb::pid_t pid,
-                                 lldb::SBError& error);
-    
-    bool
-    RemoteLaunch (char const **argv,
-                  char const **envp,
-                  const char *stdin_path,
-                  const char *stdout_path,
-                  const char *stderr_path,
-                  const char *working_directory,
-                  uint32_t launch_flags,
-                  bool stop_at_entry,
-                  lldb::SBError& error);
-    
-    //------------------------------------------------------------------
-    // Thread related functions
+			size_t
+				GetSTDOUT (char *dst, size_t dst_len) const;
+
+			size_t
+				GetSTDERR (char *dst, size_t dst_len) const;
+
+			size_t
+				GetAsyncProfileData(char *dst, size_t dst_len) const;
+
+			void
+				ReportEventState (const lldb::SBEvent &event, FILE *out) const;
+
+			void
+				AppendEventStateReport (const lldb::SBEvent &event, lldb::SBCommandReturnObject &result);
+
+			//------------------------------------------------------------------
+			/// Remote connection related functions. These will fail if the
+			/// process is not in eStateConnected. They are intended for use
+			/// when connecting to an externally managed debugserver instance.
+			//------------------------------------------------------------------
+			bool
+				RemoteAttachToProcessWithID (lldb::pid_t pid,
+						lldb::SBError& error);
+
+			bool
+				RemoteLaunch (char const **argv,
+						char const **envp,
+						const char *stdin_path,
+						const char *stdout_path,
+						const char *stderr_path,
+						const char *working_directory,
+						uint32_t launch_flags,
+						bool stop_at_entry,
+						lldb::SBError& error);
+
+			//------------------------------------------------------------------
+			// Thread related functions
     //------------------------------------------------------------------
     uint32_t
     GetNumThreads ();

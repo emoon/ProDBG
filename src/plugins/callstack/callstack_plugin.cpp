@@ -23,7 +23,9 @@ struct CallstackData
     uint64_t location;
     char filename[4096];
     int line;
+    uint32_t selectedFrame;
     bool request;
+    bool setSelectedFrame;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,6 +40,7 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 
     userData->location = 0;
     userData->request = false;
+    userData->selectedFrame = 0;
 
     (void)uiFuncs;
     (void)serviceFunc;
@@ -187,13 +190,26 @@ static void showUI(PDUI* uiFuncs, CallstackData* data)
     uiFuncs->text("Name"); uiFuncs->nextColumn();
     uiFuncs->text("Line"); uiFuncs->nextColumn();
 
+    uint32_t i = 0;
+    PDVec2 size = { 0.0f, 0.0f };
+
+    const uint32_t oldSelectedFrame = data->selectedFrame;
+
     for (CallstackEntry& entry : data->callstack)
     {
-        drawText(uiFuncs, entry.address);
+		if (uiFuncs->selectableFixed(entry.address, data->selectedFrame == i, 1 << 1, size))
+			data->selectedFrame = i;
+
+    	uiFuncs->nextColumn();
         drawText(uiFuncs, entry.module);
         drawText(uiFuncs, entry.filename);
         drawTextInt(uiFuncs, entry.line);
+
+        i++;
     }
+
+    if (oldSelectedFrame != data->selectedFrame)
+    	data->setSelectedFrame = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -205,6 +221,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* reader, PDWriter* wri
     CallstackData* data = (CallstackData*)userData;
 
     data->request = false;
+    data->setSelectedFrame = false;
 
     while ((event = PDRead_getEvent(reader)) != 0)
     {
@@ -215,6 +232,12 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* reader, PDWriter* wri
                 updateCallstack(data, reader);
                 break;
             }
+
+            case PDEventType_selectFrame : 
+			{
+    			PDRead_findU32(reader, &data->selectedFrame, "frame", 0);
+				break;
+			}
 
             case PDEventType_setExceptionLocation:
             {
@@ -248,7 +271,12 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* reader, PDWriter* wri
 
     showUI(uiFuncs, data);
 
-    // Request callstack data
+    if (data->setSelectedFrame)
+	{
+		PDWrite_eventBegin(writer, PDEventType_selectFrame);
+		PDWrite_u32(writer, "frame", (uint32_t)data->selectedFrame);
+		PDWrite_eventEnd(writer);
+	}
 
     if (data->request)
     {
@@ -276,10 +304,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-    {
-        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-    }
+PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+{
+	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

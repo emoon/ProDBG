@@ -64,6 +64,7 @@ typedef enum PDEventType
     PDEventType_setThreads,
     PDEventType_getThreads,
     PDEventType_selectThread,
+    PDEventType_selectFrame,
 
     // setbreakpoint send a breakpoint to the backend with supplied id
     // Back end will reply if this worked correct with supplied ID
