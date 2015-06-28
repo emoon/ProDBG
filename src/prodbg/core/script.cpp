@@ -1,4 +1,4 @@
-#include "pd_script.h"
+#include "script.h"
 
 #include <assert.h>
 #include <string.h>
@@ -12,17 +12,17 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int PDScript_createState(PDScriptState** scriptState)
+int Script_createState(ScriptState** scriptState)
 {
     assert(scriptState);
-    *scriptState = reinterpret_cast<PDScriptState*>(luaL_newstate());
+    *scriptState = reinterpret_cast<ScriptState*>(luaL_newstate());
     luaL_openlibs(*scriptState);
     return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PDScript_destroyState(PDScriptState** scriptState)
+void Script_destroyState(ScriptState** scriptState)
 {
     assert(scriptState);
     lua_close(reinterpret_cast<lua_State*>(*scriptState));
@@ -31,7 +31,7 @@ void PDScript_destroyState(PDScriptState** scriptState)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int PDScript_loadFile(PDScriptState* scriptState, const char* scriptFile)
+int Script_loadFile(ScriptState* scriptState, const char* scriptFile)
 {
     int result = luaL_loadfile(scriptState, scriptFile);
     if (result != 0)
@@ -42,7 +42,7 @@ int PDScript_loadFile(PDScriptState* scriptState, const char* scriptFile)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int PDScript_loadString(PDScriptState* scriptState, const char* scriptString)
+int Script_loadString(ScriptState* scriptState, const char* scriptString)
 {
     int result = luaL_loadstring(scriptState, scriptString);
     if (result != 0)
@@ -53,7 +53,7 @@ int PDScript_loadString(PDScriptState* scriptState, const char* scriptString)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int PDScript_loadBuffer(PDScriptState* scriptState, const char* scriptBuffer, size_t size, const char* name, const char* mode)
+int Script_loadBuffer(ScriptState* scriptState, const char* scriptBuffer, size_t size, const char* name, const char* mode)
 {
     int result = luaL_loadbufferx(scriptState, scriptBuffer, size, name, mode);
     if (result != 0)
@@ -64,7 +64,7 @@ int PDScript_loadBuffer(PDScriptState* scriptState, const char* scriptBuffer, si
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int PDScript_primeCall(PDScriptState* scriptState, PDScriptCallState* callState, const char* funcName)
+int Script_primeCall(ScriptState* scriptState, ScriptCallState* callState, const char* funcName)
 {
     assert(scriptState);
     assert(callState);
@@ -80,7 +80,7 @@ int PDScript_primeCall(PDScriptState* scriptState, PDScriptCallState* callState,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int PDScript_executeCall(PDScriptState* scriptState, PDScriptCallState* callState)
+int Script_executeCall(ScriptState* scriptState, ScriptCallState* callState)
 {
     assert(scriptState);
     assert(callState);

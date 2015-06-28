@@ -1,20 +1,13 @@
-#ifndef _PRODBGSCRIPT_H_
-#define _PRODBGSCRIPT_H_
-
-#include "pd_common.h"
-
-#ifdef _cplusplus
-extern "C" {
-#endif
+#pragma once
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct lua_State;
-typedef lua_State PDScriptState;
+typedef lua_State ScriptState;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct PDScriptCallState
+struct ScriptCallState
 {
     char* funcName;
     int inputCount;
@@ -23,21 +16,21 @@ struct PDScriptCallState
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum PDScriptVariantType
+enum ScriptVariantType
 {
     
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct PDScriptCallVariant
+struct ScriptCallVariant
 {
     enum
     {
-        PDScriptCallVariantType_Integer,
-        PDScriptCallVariantType_Boolean,
-        PDScriptCallVariantType_Float,
-        PDScriptCallVariantType_StringPtr,
+        ScriptCallVariantType_Integer,
+        ScriptCallVariantType_Boolean,
+        ScriptCallVariantType_Float,
+        ScriptCallVariantType_StringPtr,
     } typeId;
 
     union
@@ -51,34 +44,28 @@ struct PDScriptCallVariant
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct PDScriptCallSignature
+struct ScriptCallSignature
 {
     char function[64];
 
     int argumentCount;
     int returnCount;
 
-    PDScriptCallVariant* argumentData;
-    struct PDScriptCallVariant* returnData;
+    ScriptCallVariant* argumentData;
+    struct ScriptCallVariant* returnData;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int  PDScript_createState(PDScriptState** state);
-void PDScript_destroyState(PDScriptState** state);
+int  Script_createState(ScriptState** state);
+void Script_destroyState(ScriptState** state);
 
-int PDScript_loadFile(PDScriptState* state, const char* scriptFile);
-int PDScript_loadString(PDScriptState* state, const char* scriptString);
-int PDScript_loadBuffer(PDScriptState* state, const char* scriptBuffer, int size, const char* name, const char* mode);
+int Script_loadFile(ScriptState* state, const char* scriptFile);
+int Script_loadString(ScriptState* state, const char* scriptString);
+int Script_loadBuffer(ScriptState* state, const char* scriptBuffer, int size, const char* name, const char* mode);
 
-int PDScript_primeCall(PDScriptState* scriptState, struct PDScriptCallState* callState, const char* funcName);
-int PDScript_executeCall(PDScriptState* scriptState, struct PDScriptCallState* callState);
+int Script_primeCall(ScriptState* scriptState, struct ScriptCallState* callState, const char* funcName);
+int Script_executeCall(ScriptState* scriptState, struct ScriptCallState* callState);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef _cplusplus
-}
-#endif
-
-#endif
 

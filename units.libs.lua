@@ -531,6 +531,7 @@ StaticLibrary {
     Env = { 
         CPPPATH = { 
             "src/external/stb",
+            "src/external/lua/src",
 			"src/external/jansson/include",
 			"src/external/foundation_lib",
 			"src/external/libuv/include",
@@ -547,31 +548,6 @@ StaticLibrary {
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-StaticLibrary {
-    Name = "script",
-
-    Env = { 
-        CPPPATH = { 
-            "src/external/stb",
-            "src/external/libuv/include",
-            "src/external/lua/src",
-            "api/include",
-            "src/prodbg",
-        },
-    },
-
-    Sources = { 
-        Glob {
-            Dir = "src/prodbg/script",
-            Extensions = { ".cpp", ".h" },
-        },
-    },
-
-    IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------

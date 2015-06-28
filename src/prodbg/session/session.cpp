@@ -1,13 +1,13 @@
 #include "session.h"
 #include "session_private.h"
 #include "api/plugin_instance.h"
-#include "api/include/pd_script.h"
 #include "api/src/remote/pd_readwrite_private.h"
 #include "api/src/remote/remote_connection.h"
 #include "core/alloc.h"
 #include "core/log.h"
 #include "core/math.h"
 #include "core/file_monitor.h"
+#include "core/script.h"
 #include "core/plugin_handler.h"
 #include "ui/plugin.h"
 #include "ui/bgfx/ui_host.h"
@@ -397,9 +397,9 @@ static void executeCommand(Session* s, PDReader* reader)
 
     const char* command;
     PDRead_findString(reader, &command, "command", 0);
-    PDScriptState* scriptState;
-    PDScript_createState(&scriptState);
-    if (PDScript_loadString(scriptState, command))
+    ScriptState* scriptState;
+    Script_createState(&scriptState);
+    if (Script_loadString(scriptState, command))
         goto cleanup;
 
     /*PDScriptCallState callState;
@@ -414,7 +414,7 @@ static void executeCommand(Session* s, PDReader* reader)
 
     cleanup:
     //free(callState.funcName);
-    PDScript_destroyState(&scriptState);
+    Script_destroyState(&scriptState);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
