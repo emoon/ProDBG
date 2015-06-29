@@ -158,6 +158,7 @@ typedef struct PDUI
 
 	// Window
 	
+	void (*setTitle)(void* privateData, const char* title);
 	PDVec2 (*getWindowSize)();
 	PDVec2 (*getWindowPos)();
 	float (*getFontHeight)();
@@ -242,6 +243,8 @@ typedef struct PDUI
 #define PDUI_SCSendCommand(funcs, msg, p0, p1) funcs->sendCommand(funcs->privateData, msg, p0, p1)
 #define PDUI_SCDraw(funcs) funcs->update(funcs->privateData)
 #define PDUI_SCUpdate(funcs) funcs->draw(funcs->privateData)
+
+#define PDUI_setTitle(funcs, title) funcs->setTitle(funcs->privateData, title)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

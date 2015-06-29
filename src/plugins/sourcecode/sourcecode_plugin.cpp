@@ -82,7 +82,7 @@ static void destroyInstance(void* userData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setExceptionLocation(PDSCInterface* sourceFuncs, SourceCodeData* data, PDReader* inEvents)
+static void setExceptionLocation(PDUI* uiFuncs, PDSCInterface* sourceFuncs, SourceCodeData* data, PDReader* inEvents)
 {
     const char* filename;
     uint32_t line;
@@ -100,9 +100,15 @@ static void setExceptionLocation(PDSCInterface* sourceFuncs, SourceCodeData* dat
         size_t size = 0;
         void* fileData = readFileFromDisk(filename, &size);
 
+        printf("reading file to buffer %s\n", filename);
+
+        (void)uiFuncs;
+
+        PDUI_setTitle(uiFuncs, filename);
+
         if (fileData)
 		{
-            PDUI_SCSendCommand(sourceFuncs, SCI_CLEARALL , 0, 0);
+            PDUI_SCSendCommand(sourceFuncs, SCI_CLEARALL, 0, 0);
             PDUI_SCSendCommand(sourceFuncs, SCI_ADDTEXT, size, (intptr_t)fileData);
 		}
         else
@@ -119,6 +125,9 @@ static void setExceptionLocation(PDSCInterface* sourceFuncs, SourceCodeData* dat
     PDUI_SCSendCommand(sourceFuncs, SCI_GOTOLINE, (uintptr_t)line, 0);
 
     data->line = (int)line;
+
+    //if (strcmp(filename, data->filename))
+    // PDUI_setTitle(uiFuncs, filename); 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -164,7 +173,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
         {
             case PDEventType_setExceptionLocation:
             {
-                setExceptionLocation(sourceFuncs, data, inEvents);
+                setExceptionLocation(uiFuncs, sourceFuncs, data, inEvents);
                 break;
             }
 

@@ -16,6 +16,7 @@
 #include <bgfx.h>
 #include "core/input_state.h"
 #include "ui/bgfx/cursor.h"
+#include <foundation/string.h>
 
 struct ImGuiWindow;
 
@@ -38,6 +39,9 @@ struct PrivateData
 {
     ImGuiWindow* window;
     const char* name;
+    uint32_t s0;
+    const char* title;
+    uint32_t s1;
     bool showWindow;
 };
 
@@ -415,6 +419,23 @@ static void popItemWidth()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void setTitle(void* privateData, const char* title)
+{
+	PrivateData* data = (PrivateData*)privateData;
+
+	(void)data;
+
+	if (string_equal(data->title, title))
+		return;
+
+	if (data->title)
+		free((void*)data->title);
+
+	data->title = strdup(title); 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDVec2 getWindowSize()
 {
     ImVec2 size = ImGui::GetWindowSize();
@@ -618,27 +639,20 @@ static int selectable(const char* label, int* selected, int flags, PDVec2 size)
 
 char* buildName(const char* pluginName, int id)
 {
-    char idBuffer[32];
-    int nameLen = (int)strlen(pluginName);
+	char name[1024];
 
-    sprintf(idBuffer, "%d", id);
+    sprintf(name, "%s %d ###%s%d", pluginName, id, pluginName, id);
 
-    char* name = (char*)alloc_zero(nameLen + (int)strlen(idBuffer) + 2); // + 2 for space and end marker
-
-    sprintf(name, "%s %s", pluginName, idBuffer);
-
-    return name;
+    return strdup(name);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BgfxPluginUI::init(ViewPluginInstance* pluginInstance)
 {
-    PrivateData* data = (PrivateData*)alloc_zero(sizeof(PrivateData));
+	PrivateData* data = 0;
+
     PDUI* uiInstance = &pluginInstance->ui;
-
-    data->showWindow = true;
-
     memset(uiInstance, 0, sizeof(PDUI));
 
     // TODO: These functions are static, we shouldn't need to do it like this
@@ -676,6 +690,8 @@ void BgfxPluginUI::init(ViewPluginInstance* pluginInstance)
     uiInstance->getTextLineHeight = getTextLineHeight;
     uiInstance->fillRect = fillRect;
     uiInstance->getTextWidth = getTextWidth;
+
+	uiInstance->setTitle = setTitle; 
     uiInstance->getWindowSize = getWindowSize;
     uiInstance->getWindowPos = getWindowPos;
 
@@ -707,11 +723,16 @@ void BgfxPluginUI::init(ViewPluginInstance* pluginInstance)
     uiInstance->popId = popId;
 
     uiInstance->privateData = alloc_zero(sizeof(PrivateData));
+
+    data = (PrivateData*)uiInstance->privateData;
+    data->s0 = 0xfadebabe;
+    data->s1 = 0xfadebabe;
+
     data->name = buildName(pluginInstance->plugin->name, pluginInstance->count);
+    data->window = 0;
+    data->showWindow = true;
+    data->title = 0; 
 
-    data->window = 0; //ImGui::FindOrCreateWindow(data->name, ImVec2(400, 400), 0);
-
-    uiInstance->privateData = data;
     pluginInstance->name = data->name;
 }
 
@@ -725,13 +746,26 @@ PluginUI::State BgfxPluginUI::updateInstance(ViewPluginInstance* instance, PDRea
     ImGui::SetNextWindowPos(ImVec2((float)instance->rect.x, (float)instance->rect.y));
     ImGui::SetNextWindowSize(ImVec2((float)instance->rect.width - 4, (float)instance->rect.height - 4));
 
-    ImGui::Begin(data->name, &data->showWindow, ImVec2(0, 0), true, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    // TODO: Cache this?
+
+    char title[1024];
+
+    if (!data->title)
+   		strcpy(title, data->name);
+	else
+	{
+		sprintf(title, "%s %d - %s###%s%d", 
+				instance->plugin->name, instance->count, 
+				data->title, instance->plugin->name, instance->count);
+	}
+
+    ImGui::Begin(title, &data->showWindow, ImVec2(0, 0), true, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
     instance->plugin->update(instance->userData, uiInstance, reader, writer);
 
     ImGui::End();
 
-    if (!data->showWindow)
+    if  (!data->showWindow)
         return CloseView;
 
     return None;
