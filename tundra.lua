@@ -5,6 +5,7 @@ local mac_opts = {
 	"-Wall",
 	"-I.", "-DPRODBG_MAC", 
 	"-Weverything", "-Werror", 
+	"-Wno-unknown-warning-option",
 	"-Wno-c11-extensions",
 	"-Wno-variadic-macros",
 	"-Wno-c++98-compat-pedantic",
