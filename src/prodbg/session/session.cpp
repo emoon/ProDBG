@@ -1,4 +1,6 @@
+#ifdef PRODBG_MAC
 #include <foundation/apple.h>
+#endif
 #include "session.h"
 #include "session_private.h"
 #include "api/plugin_instance.h"

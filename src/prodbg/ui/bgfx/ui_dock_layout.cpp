@@ -1,4 +1,6 @@
+#ifdef PRODBG_MAC
 #include <foundation/apple.h>
+#endif
 #include "ui_dock.h"
 #include "ui_dock_private.h"
 #include "../plugin.h"
