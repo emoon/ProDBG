@@ -39,9 +39,7 @@ struct PrivateData
 {
     ImGuiWindow* window;
     const char* name;
-    uint32_t s0;
     const char* title;
-    uint32_t s1;
     bool showWindow;
 };
 
@@ -725,8 +723,6 @@ void BgfxPluginUI::init(ViewPluginInstance* pluginInstance)
     uiInstance->privateData = alloc_zero(sizeof(PrivateData));
 
     data = (PrivateData*)uiInstance->privateData;
-    data->s0 = 0xfadebabe;
-    data->s1 = 0xfadebabe;
 
     data->name = buildName(pluginInstance->plugin->name, pluginInstance->count);
     data->window = 0;
