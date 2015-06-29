@@ -1,3 +1,4 @@
+#include <foundation/apple.h>
 #include "session.h"
 #include "session_private.h"
 #include "api/plugin_instance.h"

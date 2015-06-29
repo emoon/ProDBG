@@ -1,5 +1,5 @@
-#ifndef _REMOTECONNECTION_H_
-#define _REMOTECONNECTION_H_
+#ifndef REMOTECONNECTION_H_
+#define REMOTECONNECTION_H_
 
 #ifdef __cplusplus
 extern "C" {

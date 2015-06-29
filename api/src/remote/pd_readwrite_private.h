@@ -1,5 +1,5 @@
-#ifndef _PDREADWRITE_PRIVATE_H_
-#define _PDREADWRITE_PRIVATE_H_
+#ifndef PDREADWRITE_PRIVATE_H_
+#define PDREADWRITE_PRIVATE_H_
 
 #ifdef __cplusplus
 extern "C" {

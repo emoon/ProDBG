@@ -1,3 +1,4 @@
+#include <foundation/apple.h>
 #include "ui_dock.h"
 #include "ui_dock_private.h"
 #include "../plugin.h"
