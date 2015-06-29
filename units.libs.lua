@@ -371,6 +371,12 @@ StaticLibrary {
 StaticLibrary {
     Name = "imgui",
 
+    Env = { 
+        CPPPATH = { 
+			"src/external/scintilla/include",
+        },
+    },
+
     Sources = { 
         Glob {
             Dir = "src/external/imgui",
