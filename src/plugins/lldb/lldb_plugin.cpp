@@ -239,8 +239,6 @@ static void setExceptionLocation(LLDBPlugin* plugin, PDWriter* writer)
 
     uint32_t frameIndex = getThreadFrame(plugin, plugin->selectedThreadId);
 
-    printf("setExceptionLocation: frameIndex %d\n", frameIndex);
-
     lldb::SBFrame frame(thread.GetFrameAtIndex(frameIndex));
     lldb::SBCompileUnit compileUnit = frame.GetCompileUnit();
     lldb::SBFileSpec filespec(plugin->process.GetTarget().GetExecutable());
