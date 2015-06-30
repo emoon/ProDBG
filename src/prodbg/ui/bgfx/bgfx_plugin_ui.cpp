@@ -273,7 +273,7 @@ static PDSCInterface* scEditText(const char* label, float xSize, float ySize,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef void (* InputCallback)(PDInputTextCallbackData*);
+typedef void (*InputCallback)(PDInputTextCallbackData*);
 
 struct PDInputTextUserData
 {
@@ -628,7 +628,7 @@ static int selectableFixed(const char* label, int selected, int flags, PDVec2 si
 static int selectable(const char* label, int* selected, int flags, PDVec2 size)
 {
 	bool t = !!*selected;
-	bool r = !!ImGui::Selectable(label, &t, flags, ImVec2(size.x, size.y));
+	bool r = ImGui::Selectable(label, &t, flags, ImVec2(size.x, size.y));
 	*selected = !!t;
 	return r;
 }
@@ -646,79 +646,170 @@ char* buildName(const char* pluginName, int id)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void openPopup(const char* strId)
+{
+	ImGui::OpenPopup(strId);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int beginPopup(const char* strId)
+{
+	return ImGui::BeginPopup(strId);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int beginPopupModal(const char* name, int* opened, int flags)
+{
+	bool t = !!*opened;
+	bool r = ImGui::BeginPopupModal(name, &t, flags); 
+	*opened = !!t;
+	return r;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int beginPopupContextItem(const char* strId, int mouseButton)
+{
+	return ImGui::BeginPopupContextItem(strId, mouseButton);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int beginPopupContextWindow(int alsoOverItems, const char* strId, int mouseButton)
+{
+	return ImGui::BeginPopupContextWindow(alsoOverItems, strId, mouseButton);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int beginPopupContextVoid(const char* strId, int mouseButton)
+{
+	return ImGui::BeginPopupContextVoid(strId, mouseButton);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void endPopup()
+{
+	return ImGui::EndPopup();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void closeCurrentPopup()
+{
+	return ImGui::CloseCurrentPopup();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PDUI s_uiFuncs[] = 
+{
+	// Layout
+
+    separator,
+    sameLine,
+    spacing,
+    columns,
+    nextColumn,
+    getColumnOffset,
+    setColumnOffset,
+    getColumnWidth,
+    getCursorPos,
+    setCursorPos,
+    setCursorPosX,
+    setCursorPosY,
+    getCursorScreenPos,
+    alignFirstTextHeightToWidgets,
+    getTextLineSpacing,
+    getTextLineHeight,
+    getTextWidth,
+    setScrollHere,
+    pushItemWidth,
+    popItemWidth,
+
+    // Window
+
+	setTitle,
+    getWindowSize,
+    getWindowPos,
+    getFontHeight,
+    getFontWidth,
+    beginChild,
+    endChild,
+
+    // Popups
+
+    openPopup,
+    beginPopup,
+    beginPopupModal,
+    beginPopupContextItem,
+    beginPopupContextWindow,
+    beginPopupContextVoid,
+    endPopup,
+    closeCurrentPopup,
+
+    // Widgets
+
+	text,
+    textColored,
+    textWrapped,
+    inputText,
+    scEditText,
+    checkbox,
+    button,
+    buttonSmall,
+    buttonSize,
+    selectableFixed,
+    selectable,
+
+    // Misc
+    
+    getCurrentClipRect,
+
+    // Mouse
+
+    getMousePos,
+    getMouseScreenPos,
+    isMouseClicked,
+    isMouseDoubleClicked,
+    isMouseHoveringBox,
+    isItemHovered,
+
+    // Keyboard
+
+    isKeyDown,
+    getKeyModifier,
+    setKeyboardFocusHere,
+
+    // Styles
+
+    pushStyleVarV,
+    pushStyleVarF,
+    popStyleVar,
+
+    // Rendering
+
+    fillRect,
+
+    // Id
+
+    pushIdPtr,
+    pushIdInt,
+    popId,
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void BgfxPluginUI::init(ViewPluginInstance* pluginInstance)
 {
 	PrivateData* data = 0;
 
     PDUI* uiInstance = &pluginInstance->ui;
-    memset(uiInstance, 0, sizeof(PDUI));
 
-    // TODO: These functions are static, we shouldn't need to do it like this
-
-    uiInstance->columns = columns;
-    uiInstance->nextColumn = nextColumn;
-    uiInstance->sameLine = sameLine;
-    uiInstance->text = text;
-    uiInstance->textColored = textColored;
-    uiInstance->textWrapped = textWrapped;
-    uiInstance->scInputText = scEditText;
-    uiInstance->inputText = inputText;
-    uiInstance->button = button;
-    uiInstance->checkbox = checkbox;
-    uiInstance->buttonSmall = buttonSmall;
-    uiInstance->buttonSize = buttonSize;
-    uiInstance->selectableFixed = selectableFixed;
-    uiInstance->selectable = selectable;
-
-    uiInstance->separator = separator;
-    uiInstance->sameLine = sameLine;
-    uiInstance->spacing = spacing;
-    uiInstance->columns = columns;
-    uiInstance->nextColumn = nextColumn;
-    uiInstance->getColumnOffset = getColumnOffset;
-    uiInstance->setColumnOffset = setColumnOffset;
-    uiInstance->getColumnWidth = getColumnWidth;
-    uiInstance->getCursorPos = getCursorPos;
-    uiInstance->setCursorPos = setCursorPos;
-    uiInstance->setCursorPosX = setCursorPosX;
-    uiInstance->setCursorPosY = setCursorPosY;
-    uiInstance->getCursorScreenPos = getCursorScreenPos;
-    uiInstance->alignFirstTextHeightToWidgets = alignFirstTextHeightToWidgets;
-    uiInstance->getTextLineSpacing = getTextLineSpacing;
-    uiInstance->getTextLineHeight = getTextLineHeight;
-    uiInstance->fillRect = fillRect;
-    uiInstance->getTextWidth = getTextWidth;
-
-	uiInstance->setTitle = setTitle; 
-    uiInstance->getWindowSize = getWindowSize;
-    uiInstance->getWindowPos = getWindowPos;
-
-    uiInstance->getFontHeight = getFontHeight;
-    uiInstance->getFontWidth = getFontWidth;
-    uiInstance->getMousePos = getMousePos;
-    uiInstance->getMouseScreenPos = getMouseScreenPos;
-    uiInstance->isMouseClicked = isMouseClicked;
-    uiInstance->isMouseDoubleClicked = isMouseDoubleClicked;
-    uiInstance->isMouseHoveringBox = isMouseHoveringBox;
-    uiInstance->isItemHovered = isItemHovered;
-    uiInstance->isKeyDown = isKeyDown;
-    uiInstance->getKeyModifier = getKeyModifier;
-    uiInstance->setKeyboardFocusHere = setKeyboardFocusHere;
-    uiInstance->setScrollHere = setScrollHere;
-    uiInstance->pushItemWidth = pushItemWidth;
-    uiInstance->popItemWidth = popItemWidth;
-
-    uiInstance->beginChild = beginChild;
-    uiInstance->endChild = endChild;
-    uiInstance->getCurrentClipRect = getCurrentClipRect;
-
-    uiInstance->pushStyleVarV = pushStyleVarV;
-    uiInstance->pushStyleVarF = pushStyleVarF;
-    uiInstance->popStyleVar = popStyleVar;
-
-    uiInstance->pushIdPtr = pushIdPtr;
-    uiInstance->pushIdInt = pushIdInt;
-    uiInstance->popId = popId;
+	*uiInstance = *s_uiFuncs;
 
     uiInstance->privateData = alloc_zero(sizeof(PrivateData));
 
