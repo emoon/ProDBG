@@ -21,6 +21,7 @@ void ProDBG_event(int eventId);
 //void ProDBG_scroll(const struct PDMouseWheelEvent& wheelEvent);
 void ProDBG_setMousePos(float x, float y);
 void ProDBG_setMouseState(int button, int state);
+void ProDBG_setScroll(float x, float y);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -323,17 +323,14 @@ static int translateKey(unsigned int key)
     ProDBG_setMousePos(location.x, adjustFrame.size.height - location.y);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-- (void)scrollWheel:(NSEvent*)theEvent
+- (void)scrollWheel:(NSEvent *)event
 {
-    (void)theEvent;
-    //float x = (float)[theEvent deltaX];
-    //float y = (float)[theEvent deltaY];
-    //int flags = getModifierFlags([theEvent modifierFlags]);
-
-    //printf("%f %f %d\n", x, y, flags);
-    //Editor_scroll(-x, -y, flags);
+	float x = (float)[event deltaX];
+	float y = (float)[event deltaY];
+	//int flags = getModifierFlags([theEvent modifierFlags]);
+	ProDBG_setScroll(x, y);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
