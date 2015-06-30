@@ -518,8 +518,6 @@ static void setSourceFiles(LLDBPlugin* plugin, PDWriter* writer)
 	if (!plugin->hasValidTarget)
 		return;
 
-	printf("setting source files\n");
-
     PDWrite_eventBegin(writer, PDEventType_setSourceFiles);
     PDWrite_arrayBegin(writer, "files");
 
@@ -549,8 +547,6 @@ static void setSourceFiles(LLDBPlugin* plugin, PDWriter* writer)
 
         		if (filename[0] == 0)
         			continue;
-
-        		printf("sourcefile %s\n", filename);
 
 				PDWrite_arrayEntryBegin(writer);
 				PDWrite_string(writer, "file", filename);
