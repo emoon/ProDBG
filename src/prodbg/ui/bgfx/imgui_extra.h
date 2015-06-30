@@ -5,6 +5,7 @@ struct ImGuiWindow;
 struct ImScEditor
 {
     intptr_t SendCommand(unsigned int message, uintptr_t p0, intptr_t p1);
+    void ScrollTo(int line, bool moveThumb = true);
     void Update();
     void Draw();
     void* userData;

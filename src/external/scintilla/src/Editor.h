@@ -156,7 +156,7 @@ class Editor : public EditModel, public DocWatcher {
 	Editor(const Editor &);
 	Editor &operator=(const Editor &);
 
-protected:	// ScintillaBase subclass needs access to much of Editor
+public:	// ScintillaBase subclass needs access to much of Editor
 
 	/** On GTK+, Scintilla is a container widget holding two scroll bars
 	 * whereas on Windows there is just one window with both scroll bars turned on. */
