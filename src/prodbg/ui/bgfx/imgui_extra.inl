@@ -38,8 +38,11 @@ ImVec2 GetRelativeMousePos()
 
 bool IsFocusWindowKeyDown(int key, bool repeat)
 {
-	if (!GetWindowIsFocused())
+	if (!IsWindowFocused())
 		return false;
+
+	//if (!GetWindowIsFocused())
+	//	return false;
 
     //ImGuiState& g = GImGui;
     //ImGuiWindow* window = GetCurrentWindow();
@@ -88,7 +91,7 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
     (void)callback;
     (void)userData;
 
-    ImGui::BeginChild("Log");
+    //ImGui::BeginChild("Log");
 
 	ImGuiStorage* storage = GetStateStorage();
 	ScEditor* editor = (ScEditor*)storage->GetVoidPtr(id);
@@ -119,7 +122,7 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
 
     ScEditor_setDrawList(GetWindowDrawList());
     ScEditor_setFont(GetWindowFont());
-	ScEditor_setPos(0.0f, 0.0f);
+	ScEditor_setPos(0.0f, 14.0f);
 
 	//int currentPos = (int)editorInterface->SendCommand(SCN_GETTOPLINE, 0, 0);
 
@@ -136,7 +139,7 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
 
 	clipper.End();
 
-    ImGui::EndChild();
+    //ImGui::EndChild();
 	
 	return editorInterface;
 }
