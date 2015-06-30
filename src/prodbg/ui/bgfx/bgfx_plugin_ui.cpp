@@ -679,7 +679,7 @@ static int beginPopupContextItem(const char* strId, int mouseButton)
 
 static int beginPopupContextWindow(int alsoOverItems, const char* strId, int mouseButton)
 {
-	return ImGui::BeginPopupContextWindow(alsoOverItems, strId, mouseButton);
+	return ImGui::BeginPopupContextWindow(!!alsoOverItems, strId, mouseButton);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
