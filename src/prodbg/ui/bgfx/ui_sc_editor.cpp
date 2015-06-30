@@ -336,7 +336,7 @@ public:
 
     void Update()
     {
-        HandleInput();
+        //HandleInput();
         Tick();
     }
 
@@ -440,11 +440,13 @@ public:
         // TODO: Would be better to decouple ImGui key values here and abstract it into a prodbg api instead
         if (IsKeyPressedMap(ImGuiKey_DownArrow, true))
         {
-            Editor::KeyDown(SCK_DOWN /*SCK_NEXT*/, false, false, false);
+        	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (1 * 23));
+            //Editor::KeyDown(SCK_DOWN /*SCK_NEXT*/, false, false, false);
         }
         else if (IsKeyPressedMap(ImGuiKey_UpArrow, true))
         {
-            Editor::KeyDown(SCK_UP /*SCK_PRIOR*/, false, false, false);
+        	ImGui::SetCursorPosY(ImGui::GetCursorPosY() - (1 * 23));
+            //Editor::KeyDown(SCK_UP /*SCK_PRIOR*/, false, false, false);
         }
         else if (IsKeyPressedMap(ImGuiKey_V, false))
         {
@@ -820,6 +822,15 @@ void ImScEditor::Draw()
 {
     ScEditor* editor = (ScEditor*)privateData;
     ScEditor_render(editor);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ImScEditor::HandleInput()
+{
+    ScEditor* editor = (ScEditor*)privateData;
+    if (editor)
+    	editor->HandleInput();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

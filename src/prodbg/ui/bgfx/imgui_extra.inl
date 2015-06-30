@@ -103,26 +103,36 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
 
 	ImScEditor* editorInterface = ScEditor_getInterface(editor);
 
-	float textSize = ImGui::GetTextLineHeightWithSpacing();
+	//float textSize = ImGui::GetTextLineHeightWithSpacing() - 1;
+	// TODO: Remove hardcoded value, ask scintilla
+	float textSize = 26;
 
 	ScEditor_resize(editor, 0, 0, (int)window->Size.x - 20, (int)window->Size.y); 
 
 	int lineCount = (int)editorInterface->SendCommand(SCI_GETLINECOUNT, 0, 0);
 
-	ImGuiListClipper clipper((int)editorInterface->SendCommand(SCI_GETLINECOUNT, 0, 0), textSize);
+	editorInterface->HandleInput();
+
+	ImGuiListClipper clipper(lineCount, textSize);
 
 	//ImVec2 pos = window->DC.CursorPos;
 
     ScEditor_setDrawList(GetWindowDrawList());
     ScEditor_setFont(GetWindowFont());
 	ScEditor_setPos(0.0f, 0.0f);
+
+	//int currentPos = (int)editorInterface->SendCommand(SCN_GETTOPLINE, 0, 0);
+
+	//float scrollPos = ImGui::GetScrollPosY();
 	
-	int iPos = (int)(ImGui::GetScrollPosY() / (textSize - 1)); 
+	//int iPos = (int)(((int)ImGui::GetScrollPosY()) / (int)(textSize)); 
 
-	if (iPos > lineCount)
-		iPos = lineCount;
+	//if (currentPos != iPos)
+	//{
+	editorInterface->ScrollTo(clipper.DisplayStart);
+	//}
 
-	editorInterface->SendCommand(SCI_GOTOLINE, (uintptr_t)(iPos), 0); 
+	//printf("current pos in scintilla %d - pos sent %d\n", newPos, iPos);
 
 	clipper.End();
 

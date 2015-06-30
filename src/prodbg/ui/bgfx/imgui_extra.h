@@ -8,6 +8,7 @@ struct ImScEditor
     void ScrollTo(int line, bool moveThumb = true);
     void Update();
     void Draw();
+    void HandleInput();
     void* userData;
     void* privateData;
 };

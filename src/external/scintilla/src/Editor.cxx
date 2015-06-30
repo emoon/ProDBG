@@ -7605,6 +7605,9 @@ sptr_t Editor::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) {
 	case SCI_COUNTCHARACTERS:
 		return pdoc->CountCharacters(static_cast<int>(wParam), static_cast<int>(lParam));
 
+	case SCN_GETTOPLINE:
+		return topLine; 
+
 	default:
 		return DefWndProc(iMessage, wParam, lParam);
 	}
