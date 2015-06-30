@@ -159,6 +159,7 @@ void onRun(LLDBPlugin* plugin)
                 lldb::SBProcess::eBroadcastBitInterrupt);
     
         plugin->state = PDDebugState_running;
+        plugin->hasValidTarget = true;
 
         return;
     }
@@ -512,6 +513,58 @@ static void selectFrame(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void setSourceFiles(LLDBPlugin* plugin, PDWriter* writer)
+{
+	if (!plugin->hasValidTarget)
+		return;
+
+	printf("setting source files\n");
+
+    PDWrite_eventBegin(writer, PDEventType_setSourceFiles);
+    PDWrite_arrayBegin(writer, "files");
+
+    const uint32_t moduleCount = plugin->target.GetNumModules();
+
+    for (uint32_t im = 0; im < moduleCount; ++im)
+	{
+		lldb::SBModule module(plugin->target.GetModuleAtIndex(im));
+
+    	const uint32_t compileUnitCount = module.GetNumCompileUnits();
+
+		for (uint32_t ic = 0; ic < compileUnitCount; ++ic)
+		{
+			lldb::SBCompileUnit compileUnit(module.GetCompileUnitAtIndex(ic));
+
+			const uint32_t supportFileCount = compileUnit.GetNumSupportFiles();
+
+			for (uint32_t is = 0; is < supportFileCount; ++is)
+			{
+				char filename[4096];
+
+				lldb::SBFileSpec fileSpec(compileUnit.GetSupportFileAtIndex(is));
+
+				filename[0] = 0;
+
+        		fileSpec.GetPath(filename, sizeof(filename));
+
+        		if (filename[0] == 0)
+        			continue;
+
+        		printf("sourcefile %s\n", filename);
+
+				PDWrite_arrayEntryBegin(writer);
+				PDWrite_string(writer, "file", filename);
+				PDWrite_arrayEntryEnd(writer);
+			}
+		}
+	}
+
+    PDWrite_arrayEnd(writer);
+    PDWrite_eventEnd(writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void processEvents(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer)
 {
     uint32_t event;
@@ -529,6 +582,7 @@ static void processEvents(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer
             case PDEventType_selectFrame : selectFrame(plugin, reader, writer); break;
             case PDEventType_getLocals : setLocals(plugin, writer); break;
             case PDEventType_getThreads : setThreads(plugin, writer); break;
+            case PDEventType_getSourceFiles : setSourceFiles(plugin, writer); break;
             case PDEventType_setBreakpoint : setBreakpoint(plugin, reader, writer); break;
             case PDEventType_action : eventAction(plugin, reader); break;
         }

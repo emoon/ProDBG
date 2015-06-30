@@ -12,6 +12,8 @@ struct SourceCodeData
 {
     char filename[4096];
     int line;
+    bool requestFiles;
+    bool hasFiles;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,6 +68,9 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     (void)uiFuncs;
     SourceCodeData* userData = (SourceCodeData*)malloc(sizeof(SourceCodeData));
     memset(userData, 0, sizeof(SourceCodeData));
+
+    userData->requestFiles = false;
+    userData->hasFiles = false;
 
     // TODO: Temp testing code
 
@@ -175,6 +180,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
             case PDEventType_setExceptionLocation:
             {
                 setExceptionLocation(uiFuncs, sourceFuncs, data, inEvents);
+                data->requestFiles = true;
                 break;
             }
 
@@ -183,6 +189,14 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
                 toggleBreakpointCurrentLine(data, writer);
                 break;
             }
+
+			case PDEventType_setSourceFiles:
+			{
+				// TODO: Store the files
+
+                data->hasFiles = true;
+				break;
+			}
         }
     }
 
@@ -195,6 +209,13 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     PDWrite_eventBegin(writer, PDEventType_getExceptionLocation);
     PDWrite_eventEnd(writer);
+
+    if (!data->hasFiles && data->requestFiles)
+	{
+		printf("requesting files\n");
+		PDWrite_eventBegin(writer, PDEventType_getSourceFiles);
+		PDWrite_eventEnd(writer);
+	}
 
     return 0;
 }
