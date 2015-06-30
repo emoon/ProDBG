@@ -52,6 +52,8 @@ flags = [
 'api/include'
 '-I' 
 'src/external'
+'-I'
+'src/external/imgui'
 ]
 
 
