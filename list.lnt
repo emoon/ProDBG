@@ -1,0 +1,16 @@
+C:\code\ProDBG\src\prodbg\api\plugin_instance.cpp
+C:\code\ProDBG\src\prodbg\core\alloc.cpp
+C:\code\ProDBG\src\prodbg\core\log.cpp
+C:\code\ProDBG\src\prodbg\core\plugin_handler.cpp
+C:\code\ProDBG\src\prodbg\core\session.cpp
+C:\code\ProDBG\src\prodbg\main\prodbg.cpp
+C:\code\ProDBG\src\prodbg\main\settings.cpp
+C:\code\ProDBG\src\prodbg\main\linux\main.cpp
+C:\code\ProDBG\src\prodbg\main\windows\windows_win.cpp
+C:\code\ProDBG\src\prodbg\tests\core_tests.cpp
+C:\code\ProDBG\src\prodbg\tests\ui_tests.cpp
+C:\code\ProDBG\src\prodbg\ui\imgui_setup.cpp
+C:\code\ProDBG\src\prodbg\ui\menu.cpp
+C:\code\ProDBG\src\prodbg\ui\plugin.cpp
+C:\code\ProDBG\src\prodbg\ui\imgui\blendish.cpp
+C:\code\ProDBG\src\prodbg\ui\imgui\imgui.cpp

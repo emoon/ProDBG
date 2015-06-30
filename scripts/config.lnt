@@ -9,5 +9,9 @@
 -i"src\external\jansson\include"
 -i"src\external\cmocka\include"
 -i"src\external\nanovg"
-+libdir("src\external\*.*")
-
+-wlib(0)
++libclass( foreign )
++libdir( "src\external\*.*" )
++libdir( "c:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include" )
++libh( windows.h )
++libh( winioctl.h )
