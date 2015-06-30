@@ -167,6 +167,35 @@ typedef struct PDUI
     void (*beginChild)(const char* stringId, PDVec2 size, bool border, int extraFlags /* PDWindowFlags */);
     void (*endChild)();
 
+    // Popup
+    
+    // mark popup as open. popup identifiers are relative to the current ID-stack (so OpenPopup and BeginPopup needs to be at the same level). 
+    // close childs popups if any. will close popup when user click outside, or activate a pressable item, or 
+    // CloseCurrentPopup() is called within a BeginPopup()/EndPopup() block.
+    void (*openPopup)(const char* strId);
+
+    // return true if popup if opened and start outputting to it. only call EndPopup() if BeginPopup() returned true!
+    int (*beginPopup)(const char* strId);                                    
+
+    // modal dialog (can't close them by clicking outside)
+    int (*beginPopupModal)(const char* name, int* opened, int flags);             
+
+    // helper to open and begin popup when clicked on last item
+    int (*beginPopupContextItem)(const char* strID, int mouseButton);                                        
+
+    // helper to open and begin popup when clicked on current window
+    int (*beginPopupContextWindow)(int alsoOverItems, const char* strId, int mouseButton);  
+
+    // helper to open and begin popup when clicked in void (no window)
+    int (*beginPopupContextVoid)(const char* strId, int mouseButton);                                 
+
+	// End the popup
+    void (*endPopup)();
+
+    // close the popup we have begin-ed into. clicking on a MenuItem or Selectable automatically close the current popup.
+    void (*closeCurrentPopup)();                                                
+
+
     // Text
 
     void (*text)(const char* fmt, ...);
