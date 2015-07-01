@@ -15,5 +15,32 @@
 	"window_position":{
 		"x": -1,
 		"y": -1
+	},
+
+	"Source Code View":{
+		"some_regular_setting": "test",
+		"keys":{
+			"fast_open": { 
+				"Default": "Ctrl+O"
+			},
+
+			"open_file": { 
+				"Default": "Ctrl+Alt+O",
+				"Mac": "Super+Alt+O"
+			},
+
+			"funky": { 
+				"Default": "Ctrl+O",
+				"Win": "Ctrl+w"
+			},
+
+			"multi_combo": { 
+				"Default": "Super+Alt+Ctrl+Shift+Escape"
+			},
+
+			"f_key": { 
+				"Default": "F4"
+			}
+		}
 	}
 }

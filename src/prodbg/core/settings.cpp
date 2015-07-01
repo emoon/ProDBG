@@ -27,11 +27,22 @@ struct Setting
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+struct Key
+{
+	char* name;
+	char* keyCombo;
+	uint32_t key;
+	uint32_t hash;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct Category
 {
     char* name;
     uint32_t hash;
     Setting** settings;
+    Key* keys;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,6 +101,8 @@ static void updateSetting(Setting* setting, json_t* value)
     }
 }
 
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void insertOrUpdateSetting(Category* category, const char* key, json_t* value)
@@ -116,6 +129,86 @@ static void insertOrUpdateSetting(Category* category, const char* key, json_t* v
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static uint32_t decodeKey(const char* keyCombo);
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void updateKey(Key* key, const char* shortcut)
+{
+	if (key->keyCombo)
+		string_deallocate(key->keyCombo);
+
+	key->keyCombo = string_clone(shortcut);
+
+	key->key = decodeKey(shortcut);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void insertOrUpdateKey(Category* category, const char* name, const char* keyCombo)
+{
+	if (!keyCombo)
+		return;
+
+	printf("insterting key %s - %s\n", name, keyCombo);
+
+    uint32_t hash = jenkinsOneHash(name);
+
+    int keyCount = array_size(category->keys);
+
+    for (int i  = 0; i < keyCount; ++i)
+    {
+        Key* key = &category->keys[i];
+
+        if (key->hash == hash && string_equal(key->name, name))
+            return updateKey(key, keyCombo);
+    }
+
+    Key key = { 0 };
+    key.hash = hash; 
+    key.name = string_clone(name);
+
+    updateKey(&key, keyCombo);
+
+    array_push(category->keys, key);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void insertOrUpdateKeys(Category* category, json_t* root)
+{
+	if (!json_is_object(root))
+		return;
+
+	printf("insertOrUpdateKey\n");
+
+	// iterate over keys
+
+    void* iter = json_object_iter(root);
+
+    while (iter)
+    {
+        const char* key = json_object_iter_key(iter);
+        json_t* value = json_object_iter_value(iter);
+
+		const char* shortcut = json_string_value(json_object_get(value, "Default"));
+
+	#ifdef PRODBG_MAC
+		if (json_t* t = json_object_get(value, "Mac"))
+			shortcut = json_string_value(t);
+	#elif PRODBG_WIN
+		if (json_t* t = json_object_get(value, "Windows"))
+			shortcut = json_string_value(t);
+	#endif
+
+		insertOrUpdateKey(category, key, shortcut);
+
+        iter = json_object_iter_next(root, iter);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void insertOrUpdateSettings(Category* category, json_t* root)
 {
     void* iter = json_object_iter(root);
@@ -125,7 +218,10 @@ static void insertOrUpdateSettings(Category* category, json_t* root)
         const char* key = json_object_iter_key(iter);
         json_t* value = json_object_iter_value(iter);
 
-        insertOrUpdateSetting(category, key, value);
+        if (string_equal(key, "keys"))
+        	insertOrUpdateKeys(category, value);
+        else
+        	insertOrUpdateSetting(category, key, value);
 
         iter = json_object_iter_next(root, iter);
     }
@@ -222,7 +318,22 @@ void Settings_destroy()
             free(setting);
         }
 
+        int keyCount = array_size(category->keys);
+
+        for (int ik = 0; ik < keyCount; ++ik)
+        {
+            Key* key = &category->keys[ik];
+
+			if (key->name)
+            	string_deallocate(key->name);
+
+			if (key->keyCombo)
+            	string_deallocate(key->keyCombo);
+        }
+
+        array_clear(category->keys);
         array_clear(category->settings);
+
         string_deallocate(category->name);
         free(category);
     }
@@ -345,44 +456,20 @@ static KeyRemapTable s_remap[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-char* getNextSplit(char* string, int* offset)
-{
-	int o = *offset;
-	int start = o;
-	string += o;
-
-	while (string[o] != 0)
-	{
-		if (string[o] == '+')
-		{
-			string[o] = 0;
-			*offset = o + 1;
-			return string + start;
-		}
-
-		++o;
-	}
-	
-	return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 uint32_t decodeKey(const char* keyCombo)
 {
-	int offset = 0;
 	char temp[1024];
 
 	string_copy(temp, keyCombo, sizeof(temp));
 
-	char* pch = getNextSplit(temp, &offset); 
+	char* pch = strtok(temp, "+"); 
 
 	uint32_t key = 0;
 
 	while (pch != NULL)
 	{	
 		if (string_length(pch) == 1)
-			key |= ((uint32_t)pch[0]) << 4;
+			key |= ((uint32_t)tolower(pch[0])) << 4;
 		else if (string_equal(pch, "Ctrl"))
 			key |= PDKEY_CTRL;
 		else if (string_equal(pch, "Super"))
@@ -405,7 +492,7 @@ uint32_t decodeKey(const char* keyCombo)
 			}
 		}
 
-		pch = getNextSplit(temp, &offset); 
+		pch = strtok(NULL, "+"); 
 	}
 
 	return key;
@@ -413,56 +500,35 @@ uint32_t decodeKey(const char* keyCombo)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-uint32_t Settings_decodeKeyCombo(const char* shortcut)
+uint32_t Settings_getShortcut(const char* categoryName, const char* keyName)
 {
-	char temp[1024];
+    int categoryCount = array_size(s_categories);
 
-	string_copy(temp, shortcut, sizeof(temp));
+    uint32_t hash = jenkinsOneHash(categoryName);
 
-	// TODO: Cache?
+    for (int ic = 0; ic < categoryCount; ++ic)
+    {
+        const Category* category = s_categories[ic];
 
-	char* pch = strtok(temp, " ");
+        if (category->hash != hash)
+            continue;
 
-	uint32_t keyCombo = 0;
-	bool decodeKeyCombo = false;
+        if (!string_equal(category->name, categoryName))
+            continue;
 
-	while (pch != NULL)
-	{	
-		if (decodeKeyCombo)
-		{
-			keyCombo = decodeKey(pch);
-			decodeKeyCombo = false;
-			goto next;
-		}
+        uint32_t keyHash = jenkinsOneHash(keyName);
+        int keysCount = array_size(category->keys);
 
-		if (string_equal(pch, "Default:"))
-			decodeKeyCombo = true;
-	#ifdef PRODBG_MAC
-		else if (string_equal(pch, "Mac:"))
-			decodeKeyCombo = true;
-	#elif PRODBG_WIN
-		else if (string_equal(pch, "Windows:") || string_equal(pch, "Win:"))
-			decodeKeyCombo = true;
-	#endif
+        for (int ik = 0; ik < keysCount; ++ik)
+        {
+            const Key* key = &category->keys[ik];
 
-	next:;
+            if (key->hash == keyHash && string_equal(key->name, keyName))
+                return key->key;
+        }
+    }
 
-		pch = strtok(NULL, " ");
-	}
-
-	return keyCombo;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-uint32_t Settings_getShortcut(const char* pluginId, const char* operation)
-{
-	const char* shortcut = Settings_getString(pluginId, operation);
-
-	if (!shortcut)
-		return 0;
-
-	return Settings_decodeKeyCombo(shortcut);
+    return 0;
 }
 
 
