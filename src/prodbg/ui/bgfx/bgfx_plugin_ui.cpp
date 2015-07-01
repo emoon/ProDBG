@@ -970,8 +970,11 @@ void BgfxPluginUI::postUpdate()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BgfxPluginUI::create(int width, int height)
+void BgfxPluginUI::create(void* windowHandle, int width, int height)
 {
+#ifdef PRODBG_WIN
+	bgfx::winSetHwnd((HWND) window);
+#endif
     bgfx::init();
     bgfx::reset((uint32_t)width, (uint32_t)height);
     bgfx::setViewSeq(0, true);

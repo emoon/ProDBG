@@ -4,7 +4,7 @@
 
 class WxPluginUI : public PluginUI
 {
-    void create(int width, int height);
+    void create(void* windowHandle, int width, int height);
     void destroy();
 
     void init(ViewPluginInstance* instance);

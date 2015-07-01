@@ -213,7 +213,7 @@ void ProDBG_create(void* window, int width, int height)
             PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]);
     }
 
-    g_pluginUI->create(width, height);
+    g_pluginUI->create(window, width, height);
 
     context->width = width;
     context->height = height;

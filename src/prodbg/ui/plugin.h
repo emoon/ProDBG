@@ -34,7 +34,7 @@ struct PluginUI
 
     ViewPluginInstance* createViewPlugin(PluginData* pluginData);
 
-    virtual void create(int width, int height) = 0;
+    virtual void create(void* windowHandle, int width, int height) = 0;
     virtual void destroy() = 0;
 
     virtual void init(ViewPluginInstance* instance) = 0;
