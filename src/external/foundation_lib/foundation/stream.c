@@ -294,7 +294,7 @@ uint64_t stream_read_line_buffer( stream_t* stream, char* dest, unsigned int cou
 			if( ( i + 1 ) < read )
 			{
 				FOUNDATION_ASSERT( !stream_is_sequential( stream ) ); //Sequential should never end up here reading one byte at a time
-				stream_seek( stream, 1 + i - read, STREAM_SEEK_CURRENT );
+				stream_seek( stream, 1 + i - read, FL_STREAM_SEEK_CURRENT );
 			}
 			break;
 		}
@@ -360,7 +360,7 @@ char* stream_read_line( stream_t* stream, char delimiter )
 			if( ( i + 1 ) < read )
 			{
 				FOUNDATION_ASSERT( !stream_is_sequential( stream ) ); //Sequential should never end up here reading one byte at a time
-				stream_seek( stream, 1 + i - read, STREAM_SEEK_CURRENT );
+				stream_seek( stream, 1 + i - read, FL_STREAM_SEEK_CURRENT );
 			}
 			break;
 		}
@@ -398,7 +398,7 @@ void stream_determine_binary_mode( stream_t* stream, unsigned int num )
 
 	cur = stream_tell( stream );
 	actual_read = stream_read( stream, buf, num );
-	stream_seek( stream, cur, STREAM_SEEK_BEGIN );
+	stream_seek( stream, cur, FL_STREAM_SEEK_BEGIN );
 
 	stream->mode &= ~STREAM_BINARY;
 
@@ -716,7 +716,7 @@ char* stream_read_string( stream_t* stream )
 				}
 				if( i < read )
 				{
-					stream_seek( stream, i - read, STREAM_SEEK_CURRENT );
+					stream_seek( stream, i - read, FL_STREAM_SEEK_CURRENT );
 					break;
 				}
 			}
@@ -756,7 +756,7 @@ char* stream_read_string( stream_t* stream )
 			if( i < 128 )
 			{
 				if( ( i + 1 ) < read )
-					stream_seek( stream, 1 + i - read, STREAM_SEEK_CURRENT );
+					stream_seek( stream, 1 + i - read, FL_STREAM_SEEK_CURRENT );
 				break;
 			}
 		}
@@ -845,7 +845,7 @@ uint64_t stream_read_string_buffer( stream_t* stream, char* outbuffer, uint64_t 
 				}
 				if( i < read )
 				{
-					stream_seek( stream, i - read, STREAM_SEEK_CURRENT );
+					stream_seek( stream, i - read, FL_STREAM_SEEK_CURRENT );
 					break;
 				}
 			}
@@ -873,7 +873,7 @@ uint64_t stream_read_string_buffer( stream_t* stream, char* outbuffer, uint64_t 
 			if( i < 128 )
 			{
 				if( ( i + 1 ) < read )
-					stream_seek( stream, 1 + i - read, STREAM_SEEK_CURRENT );
+					stream_seek( stream, 1 + i - read, FL_STREAM_SEEK_CURRENT );
 				break;
 			}
 		}
@@ -921,7 +921,7 @@ uint128_t stream_md5( stream_t* stream )
 	FOUNDATION_ASSERT( stream->vtable->read );
 
 	cur = stream_tell( stream );
-	stream_seek( stream, 0, STREAM_SEEK_BEGIN );
+	stream_seek( stream, 0, FL_STREAM_SEEK_BEGIN );
 
 	md5_initialize( &md5 );
 	buf[1024] = 0;
@@ -965,7 +965,7 @@ uint128_t stream_md5( stream_t* stream )
 		}
 	}
 
-	stream_seek( stream, cur, STREAM_SEEK_BEGIN );
+	stream_seek( stream, cur, FL_STREAM_SEEK_BEGIN );
 
 	md5_digest_finalize( &md5 );
 	ret = md5_get_digest_raw( &md5 );

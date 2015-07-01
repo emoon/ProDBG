@@ -309,6 +309,7 @@ StaticLibrary {
 
     Env = { 
         CPPPATH = { 
+		  { "src/external/bx/include/compat/msvc"; Config = "win64-*-*" },
             "src/external/remotery/lib",
             "src/external/bgfx/include",
             "src/external/bx/include",

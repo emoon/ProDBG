@@ -259,7 +259,7 @@ static uint64_t _ringbuffer_stream_size( stream_t* stream )
 
 static void _ringbuffer_stream_seek( stream_t* stream, int64_t offset, stream_seek_mode_t direction )
 {
-	if( ( direction != STREAM_SEEK_CURRENT ) || ( offset < 0 ) )
+	if( ( direction != FL_STREAM_SEEK_CURRENT ) || ( offset < 0 ) )
 	{
 		log_error( 0, ERROR_UNSUPPORTED, "Invalid call, only forward seeking allowed on ringbuffer streams" );
 		return;

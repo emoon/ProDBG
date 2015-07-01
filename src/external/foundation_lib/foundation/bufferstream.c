@@ -182,11 +182,11 @@ static void _buffer_stream_seek( stream_t* stream, int64_t offset, stream_seek_m
 {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 	int64_t new_current = 0;
-	if( direction == STREAM_SEEK_CURRENT )
+	if( direction == FL_STREAM_SEEK_CURRENT )
 		new_current = (int64_t)buffer_stream->current + offset;
-	else if( direction == STREAM_SEEK_BEGIN )
+	else if( direction == FL_STREAM_SEEK_BEGIN )
 		new_current = offset;
-	else if( direction == STREAM_SEEK_END )
+	else if( direction == FL_STREAM_SEEK_END )
 		new_current = (int64_t)buffer_stream->size + offset;
 
 	if( new_current < 0 )

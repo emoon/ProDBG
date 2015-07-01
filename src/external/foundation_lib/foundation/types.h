@@ -151,9 +151,9 @@ typedef enum
 
 typedef enum
 {
-	STREAM_SEEK_BEGIN          = 0x0000,
-	STREAM_SEEK_CURRENT        = 0x0001,
-	STREAM_SEEK_END            = 0x0002
+	FL_STREAM_SEEK_BEGIN          = 0x0000,
+	FL_STREAM_SEEK_CURRENT        = 0x0001,
+	FL_STREAM_SEEK_END            = 0x0002
 } stream_seek_mode_t;
 
 typedef enum

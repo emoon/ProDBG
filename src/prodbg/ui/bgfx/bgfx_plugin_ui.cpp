@@ -18,6 +18,11 @@
 #include "ui/bgfx/cursor.h"
 #include <foundation/string.h>
 
+#ifdef _WIN32
+#include <Windows.h>
+#include <bgfxplatform.h>
+#endif
+
 struct ImGuiWindow;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -423,7 +428,7 @@ static void setTitle(void* privateData, const char* title)
 
 	(void)data;
 
-	if (string_equal(data->title, title))
+	if (!strcmp(data->title, title))
 		return;
 
 	if (data->title)
@@ -973,7 +978,7 @@ void BgfxPluginUI::postUpdate()
 void BgfxPluginUI::create(void* windowHandle, int width, int height)
 {
 #ifdef PRODBG_WIN
-	bgfx::winSetHwnd((HWND) window);
+	bgfx::winSetHwnd((HWND)windowHandle);
 #endif
     bgfx::init();
     bgfx::reset((uint32_t)width, (uint32_t)height);

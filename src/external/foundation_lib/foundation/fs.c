@@ -1569,7 +1569,7 @@ static void _fs_file_seek( stream_t* stream, int64_t offset, stream_seek_mode_t 
 		}
 	}
 #else
-	fseek( GET_FILE( stream )->fd, (long)offset, ( direction == STREAM_SEEK_BEGIN ) ? SEEK_SET : ( ( direction == STREAM_SEEK_END ) ? SEEK_END : SEEK_CUR ) );
+	fseek( GET_FILE( stream )->fd, (long)offset, ( direction == FL_STREAM_SEEK_BEGIN ) ? SEEK_SET : ( ( direction == FL_STREAM_SEEK_END ) ? SEEK_END : SEEK_CUR ) );
 #endif
 }
 
@@ -1603,9 +1603,9 @@ static uint64_t _fs_file_size( stream_t* stream )
 #else
 
 	cur = _fs_file_tell( stream );
-	_fs_file_seek( stream, 0, STREAM_SEEK_END );
+	_fs_file_seek( stream, 0, FL_STREAM_SEEK_END );
 	size = _fs_file_tell( stream );
-	_fs_file_seek( stream, cur, STREAM_SEEK_BEGIN );
+	_fs_file_seek( stream, cur, FL_STREAM_SEEK_BEGIN );
 
 	return size;
 
@@ -1682,7 +1682,7 @@ static void _fs_file_truncate( stream_t* stream, uint64_t length )
 
 	file->fd = _fs_file_fopen( _fs_path( file->path ), stream->mode, 0 );
 
-	_fs_file_seek( stream, cur, STREAM_SEEK_BEGIN );
+	_fs_file_seek( stream, cur, FL_STREAM_SEEK_BEGIN );
 
 	//FOUNDATION_ASSERT( file_size( file ) == length );
 #endif
@@ -1935,7 +1935,7 @@ stream_t* fs_open_file( const char* path, unsigned int mode )
 	if( dotrunc )
 		_fs_file_truncate( stream, 0 );
 	else if( mode & STREAM_ATEND )
-		stream_seek( stream, 0, STREAM_SEEK_END );
+		stream_seek( stream, 0, FL_STREAM_SEEK_END );
 
 	return stream;
 }
