@@ -31,7 +31,7 @@
 
 			"funky": { 
 				"Default": "Ctrl+O",
-				"Win": "Ctrl+w"
+				"Windows": "Ctrl+w"
 			},
 
 			"multi_combo": { 
