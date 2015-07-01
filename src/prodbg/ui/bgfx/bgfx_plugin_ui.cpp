@@ -5,7 +5,9 @@
 #include "core/alloc.h"
 #include "core/log.h"
 #include "core/math.h"
+#include "core/service.h"
 #include "ui_dock.h"
+#include "ui_host.h"
 #include "imgui_setup.h"
 #include <imgui.h>
 #include <assert.h>
@@ -428,7 +430,7 @@ static void setTitle(void* privateData, const char* title)
 
 	(void)data;
 
-	if (!strcmp(data->title, title))
+	if (string_equal(data->title, title))
 		return;
 
 	if (data->title)
@@ -987,6 +989,8 @@ void BgfxPluginUI::create(void* windowHandle, int width, int height)
 
     s_context.width = width;
     s_context.height = height;
+
+	Service_register(&g_serviceMessageFuncs, PDMESSAGEFUNCS_GLOBAL);
 
     Cursor_init();
 }

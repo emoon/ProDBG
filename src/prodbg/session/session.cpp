@@ -12,6 +12,7 @@
 #include "core/file_monitor.h"
 #include "core/script.h"
 #include "core/plugin_handler.h"
+#include "core/service.h"
 #include "ui/plugin.h"
 #include "ui/bgfx/ui_host.h"
 #include "ui/bgfx/ui_dock_private.h" // TODO: Fix me
@@ -262,18 +263,6 @@ Session* Session_createRemote(const char* target, int port)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void* serviceFunc(const char* service)
-{
-    // TODO: Handle versions
-
-    if (!strcmp(service, PDMESSAGEFUNCS_GLOBAL))
-        return (void*)&g_serviceMessageFuncs;
-
-    return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 Session* Session_startLocal(Session* s, PDBackendPlugin* backend, const char* filename)
 {
     // Create the backend
@@ -281,7 +270,7 @@ Session* Session_startLocal(Session* s, PDBackendPlugin* backend, const char* fi
     s->type = Session_Local;
     s->backend = (PDBackendInstance*)alloc_zero(sizeof(struct PDBackendInstance));
     s->backend->plugin = backend;
-    s->backend->userData = backend->createInstance(serviceFunc);
+    s->backend->userData = backend->createInstance(Service_getService);
 
     // Set the executable if we have any
 
@@ -789,7 +778,7 @@ SessionStatus Session_onMenu(Session* session, int eventId)
                 backend = (PDBackendInstance*)alloc_zero(sizeof(struct PDBackendInstance));
                 backend->plugin = plugin;
                 backend->pluginData = pluginData;
-                backend->userData = backend->plugin->createInstance(serviceFunc);
+                backend->userData = backend->plugin->createInstance(Service_getService);
             }
 
             session->backend = backend;

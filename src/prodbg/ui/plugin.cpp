@@ -1,5 +1,6 @@
 #include "plugin.h"
 #include "core/alloc.h"
+#include "core/service.h"
 #include "core/plugin_handler.h"
 #include "api/include/pd_view.h"
 #include <stdio.h>
@@ -17,7 +18,7 @@ ViewPluginInstance* PluginUI::createViewPlugin(PluginData* pluginData)
 
     PDViewPlugin* plugin = (PDViewPlugin*)pluginData->plugin;
 
-    void* userData = plugin->createInstance(&instance->ui, 0);
+    void* userData = plugin->createInstance(&instance->ui, Service_getService);
     instance->plugin = plugin;
     instance->userData = userData;
     instance->count = pluginData->count;

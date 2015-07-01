@@ -203,6 +203,8 @@ void ProDBG_create(void* window, int width, int height)
     context->session = Session_create();
     context->time = time_current();
 
+    g_pluginUI->create(window, width, height);
+
     loadLayout(context->session, width, height - g_pluginUI->getStatusBarSize());
 
     (void)window;
@@ -213,7 +215,6 @@ void ProDBG_create(void* window, int width, int height)
             PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]);
     }
 
-    g_pluginUI->create(window, width, height);
 
     context->width = width;
     context->height = height;
