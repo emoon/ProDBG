@@ -1,3 +1,4 @@
+#include "pd_host.h"
 #include <foundation/array.h>
 #include <foundation/string.h>
 
@@ -32,6 +33,15 @@ void Service_destroy()
 void Service_register(void* serviceFuncs, const char* ident)
 {
 	ServiceData data = { serviceFuncs, ident };
+
+	int count = array_size(s_serviceData); 
+
+	for (int i = 0; i < count; ++i)
+	{
+		if (string_equal(s_serviceData[i].identifer, ident))
+			return;
+	}
+
 	array_push(s_serviceData, data);
 }
 

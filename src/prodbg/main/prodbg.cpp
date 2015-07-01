@@ -6,6 +6,7 @@
 #include "core/plugin_handler.h"
 #include "session/session.h"
 #include "settings.h"
+#include "core/settings.h"
 #include "ui/wx/wx_plugin_ui.h"
 #include "ui/bgfx/bgfx_plugin_ui.h"
 #include "ui/bgfx/dialogs.h"
@@ -199,6 +200,7 @@ void ProDBG_create(void* window, int width, int height)
     //g_pluginUI = new WxPluginUI;
 
     Session_globalInit(true);
+    Settings_registerService();
 
     context->session = Session_create();
     context->time = time_current();
