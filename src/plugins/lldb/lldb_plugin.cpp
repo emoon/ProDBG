@@ -1,6 +1,7 @@
 #ifndef _WIN32
 
-#include <pd_backend.h>
+#include "pd_backend.h"
+#include "pd_host.h"
 #include <stdlib.h> 
 #include <stdio.h> 
 #include <string.h> 
@@ -19,6 +20,8 @@
 #include <LLDB/SBCommandReturnObject.h> 
 #include <map>
 
+static PDMessageFuncs* s_messageFuncs;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct LLDBPlugin
@@ -35,11 +38,14 @@ typedef struct LLDBPlugin
 
 } LLDBPlugin;
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void* createInstance(ServiceFunc* serviceFunc)
 {
     lldb::SBDebugger::Initialize();
+
+    s_messageFuncs = (PDMessageFuncs*)serviceFunc(PDMESSAGEFUNCS_GLOBAL); 
 
     LLDBPlugin* plugin = new LLDBPlugin; 
 
@@ -141,7 +147,7 @@ void onRun(LLDBPlugin* plugin)
 
         if (!error.Success())
         {
-            printf("LLDB_Plugin: Unable to launch %s\n", error.GetCString());
+			s_messageFuncs->error("Error to start executable", "The LLDB backend was unable to start the selected executable. Currently ProDBG requires the user to run it as sudo due to the fact that debugging on Mac needs that. This will be made a bit more friendly in the future");
             return;
         }
 
