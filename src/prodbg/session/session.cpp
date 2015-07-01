@@ -21,8 +21,8 @@
 //#include <stb.h>
 #include <assert.h>
 
-#include <pd_view.h>
-#include <pd_backend.h>
+#include "pd_view.h"
+#include "pd_backend.h"
 
 #include <foundation/array.h>
 #include <foundation/path.h>

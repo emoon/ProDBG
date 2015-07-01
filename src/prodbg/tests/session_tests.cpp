@@ -3,9 +3,9 @@
 #include <setjmp.h>
 #include <cmocka.h>
 #include <stdio.h>
-#include <pd_view.h>
-
 #include <jansson.h>
+
+#include "pd_view.h"
 #include "core/core.h"
 #include "session/session.h"
 #include "core/plugin_io.h"
