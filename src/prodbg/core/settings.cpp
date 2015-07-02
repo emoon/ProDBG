@@ -102,8 +102,6 @@ static void updateSetting(Setting* setting, json_t* value)
     }
 }
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void insertOrUpdateSetting(Category* category, const char* key, json_t* value)
@@ -151,8 +149,6 @@ static void insertOrUpdateKey(Category* category, const char* name, const char* 
 	if (!keyCombo)
 		return;
 
-	printf("insterting key %s - %s\n", name, keyCombo);
-
     uint32_t hash = jenkinsOneHash(name);
 
     int keyCount = array_size(category->keys);
@@ -180,10 +176,6 @@ static void insertOrUpdateKeys(Category* category, json_t* root)
 {
 	if (!json_is_object(root))
 		return;
-
-	printf("insertOrUpdateKey\n");
-
-	// iterate over keys
 
     void* iter = json_object_iter(root);
 
@@ -470,7 +462,7 @@ uint32_t decodeKey(const char* keyCombo)
 	while (pch != NULL)
 	{	
 		if (string_length(pch) == 1)
-			key |= ((uint32_t)tolower(pch[0])) << 4;
+			key |= ((uint32_t)pch[0]) << 4;
 		else if (string_equal(pch, "Ctrl"))
 			key |= PDKEY_CTRL;
 		else if (string_equal(pch, "Super"))
@@ -528,6 +520,8 @@ uint32_t Settings_getShortcut(const char* categoryName, const char* keyName)
                 return key->key;
         }
     }
+
+    pd_info("Settings: Unable to find category %s\n", categoryName);
 
     return 0;
 }
