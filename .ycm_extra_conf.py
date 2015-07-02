@@ -15,24 +15,24 @@ flags = [
 # For a C project, you would set this to 'c' instead of 'c++'.
 '-x',
 'c++',
-'-I'
-'api/include'
-'-I' 
-'src/external'
-'-I'
-'src/external/imgui'
-'-I'
-'src/external/foundation_lib'
-'-I'
-'src/external/jansson/include'
-'-I'
-'src/external/scintilla/include'
-'-I'
-'src/external/scintilla/src/lexlib'
-'-I'
-'src/external/bgfx/include'
-'-I'
-'src/prodbg'
+'-I',
+'api/include',
+'-I',
+'src/external',
+'-I',
+'src/external/imgui',
+'-I',
+'src/external/foundation_lib',
+'-I',
+'src/external/jansson/include',
+'-I',
+'src/external/scintilla/include',
+'-I',
+'src/external/scintilla/src/lexlib',
+'-I',
+'src/external/bgfx/include',
+'-I',
+'src/prodbg',
 ]
 
 # Set this to the absolute path to the folder (NOT the file!) containing the
