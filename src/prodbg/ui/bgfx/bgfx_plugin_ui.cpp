@@ -5,6 +5,7 @@
 #include "core/alloc.h"
 #include "core/log.h"
 #include "core/math.h"
+#include "core/input_state.h"
 #include "core/service.h"
 #include "ui_dock.h"
 #include "ui_host.h"
@@ -546,7 +547,17 @@ PDRect getCurrentClipRect()
 
 static int isKeyDown(int key, int repeat)
 {
-    return ImGui::IsFocusWindowKeyDown(key, !!repeat);
+	int down = ImGui::IsFocusWindowKeyDown(key, !!repeat);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int isKeyDownId(uint32_t keyId, int repeat)
+{
+	if (!ImGui::IsWindowFocused())
+		return false;
+
+	return InputState_isKeyDown(keyId >> 4, keyId & 0xf, repeat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -787,6 +798,7 @@ static PDUI s_uiFuncs[] =
 
     // Keyboard
 
+    isKeyDownId,
     isKeyDown,
     getKeyModifier,
     setKeyboardFocusHere,
@@ -941,10 +953,14 @@ static void updateDock(UIDockingGrid* grid)
 
 void BgfxPluginUI::preUpdate()
 {
+	const float deltaTime = 1.0f / 60.f; // TODO: Calc correct dt
+
     bgfx::setViewRect(0, 0, 0, (uint16_t)s_context.width, (uint16_t)s_context.height);
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x101010ff, 1.0f, 0);
     bgfx::submit(0);
-    IMGUI_preUpdate(1.0f / 60.0f);
+
+    IMGUI_preUpdate(deltaTime);
+    InputState_update(deltaTime);
 
     Session** sessions = Session_getSessions();
 
@@ -1037,7 +1053,20 @@ void ProDBG_setScroll(float x, float y)
 
 void ProDBG_keyDown(int key, int modifier)
 {
+    InputState* state = InputState_getState();
+
+    state->keysDown[key] = true;
+    state->modifiers = modifier;
+
     IMGUI_setKeyDown(key, modifier);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProDBG_keyDownMods(int modifier)
+{
+    InputState* state = InputState_getState();
+    state->modifiers = modifier;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1045,6 +1074,9 @@ void ProDBG_keyDown(int key, int modifier)
 void ProDBG_keyUp(int key, int modifier)
 {
     InputState* state = InputState_getState();
+
+    state->keysDown[key] = false;
+    state->modifiers = modifier;
 
     IMGUI_setKeyUp(key, modifier);
 }

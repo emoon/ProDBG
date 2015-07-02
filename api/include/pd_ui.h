@@ -233,6 +233,7 @@ typedef struct PDUI
 
 	// Keyboard
 	
+	int (*isKeyDownId)(uint32_t keyId, int repeat);
 	int (*isKeyDown)(int key, int repeat);
 	int (*getKeyModifier)();
     void (*setKeyboardFocusHere)(int offset);

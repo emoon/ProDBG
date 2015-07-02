@@ -3,6 +3,7 @@
 #include "../prodbg_version.h"
 #include "ui/menu.h"
 #include "core/alloc.h"
+#include "core/input_state.h"
 #include "core/plugin_handler.h"
 #include <core/log.h>
 #include <bgfx.h>
@@ -264,6 +265,37 @@ static int translateKey(unsigned int key)
 
     for (i = 0; i < length; i++)
         ProDBG_addChar([characters characterAtIndex:i]);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+- (void)flagsChanged:(NSEvent *)event
+{
+	bool release = false;
+    const unsigned int modifierFlags = [event modifierFlags] & NSDeviceIndependentModifierFlagsMask;
+    const int key = translateKey([event keyCode]);
+    const int mods = getModifierFlags(modifierFlags);
+
+	InputState* state = InputState_getState();
+
+    if (modifierFlags == state->modifierFlags)
+    {
+        if (state->keysDown[key])
+            release = true;
+        else
+            release = false;
+    }
+    else if (modifierFlags > state->modifierFlags)
+        release = false;
+    else
+        release = true;
+
+    state->modifierFlags = modifierFlags;
+
+	if (release)
+    	ProDBG_keyUp(key, mods);
+    else
+    	ProDBG_keyDown(key, mods);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
