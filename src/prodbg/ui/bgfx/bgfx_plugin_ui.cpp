@@ -547,7 +547,7 @@ PDRect getCurrentClipRect()
 
 static int isKeyDown(int key, int repeat)
 {
-	int down = ImGui::IsFocusWindowKeyDown(key, !!repeat);
+	return ImGui::IsFocusWindowKeyDown(key, !!repeat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
