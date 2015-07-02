@@ -199,6 +199,8 @@ void ProDBG_create(void* window, int width, int height)
     g_pluginUI = new BgfxPluginUI;
     //g_pluginUI = new WxPluginUI;
 
+	Settings_loadSettings("data/settings.json");
+
     Session_globalInit(true);
     Settings_registerService();
 
@@ -273,6 +275,8 @@ void ProDBG_destroy()
     Settings_save();
 
     g_pluginUI->destroy();
+
+    Settings_destroy();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
