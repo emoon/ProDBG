@@ -1,5 +1,8 @@
 #pragma once
 
+// leave this includes here (added because of some bad dependencies when these changes)
+#include "pd_view.h"
+#include "pd_backend.h"
 #include <stdint.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
