@@ -1,10 +1,13 @@
 #include "pd_view.h"
 #include "pd_backend.h"
+#include "pd_host.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <scintilla/include/Scintilla.h>
+
+static const char* s_pluginName = "Source Code View";
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -14,7 +17,12 @@ struct SourceCodeData
     int line;
     bool requestFiles;
     bool hasFiles;
+    uint32_t fastOpenKey;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PDSettingsFuncs* s_settings = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -69,12 +77,14 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     SourceCodeData* userData = (SourceCodeData*)malloc(sizeof(SourceCodeData));
     memset(userData, 0, sizeof(SourceCodeData));
 
+	s_settings = (PDSettingsFuncs*)serviceFunc(PDSETTINGS_GLOBAL);
+
+	userData->fastOpenKey = s_settings->getShortcut(s_pluginName, "fast_open");
+
+	printf("fastOpenKey 0x%x\n", userData->fastOpenKey);
+
     userData->requestFiles = false;
     userData->hasFiles = false;
-
-    // TODO: Temp testing code
-
-    //parseFile(&userData->file, "examples/crashing_native/crash2.c");
 
     return userData;
 }
@@ -142,6 +152,11 @@ static void updateKeyboard(SourceCodeData* data, PDUI* uiFuncs)
 {
     (void)data;
     (void)uiFuncs;
+
+    if (uiFuncs->isKeyDownId(data->fastOpenKey, 0))
+	{
+		printf("do fast open\n");
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -224,7 +239,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
 static PDViewPlugin plugin =
 {
-    "Source Code View",
+	"Source Code View",
     createInstance,
     destroyInstance,
     update,
@@ -237,10 +252,10 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-    {
-        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-    }
+PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
+{
+	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
