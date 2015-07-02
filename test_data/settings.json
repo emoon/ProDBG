@@ -21,16 +21,16 @@
 		"some_regular_setting": "test",
 		"keys":{
 			"fast_open": { 
-				"Default": "Ctrl+O"
+				"Default": "Ctrl+o"
 			},
 
 			"open_file": { 
-				"Default": "Ctrl+Alt+O",
-				"Mac": "Super+Alt+O"
+				"Default": "Ctrl+Alt+o",
+				"Mac": "Super+Alt+o"
 			},
 
 			"funky": { 
-				"Default": "Ctrl+O",
+				"Default": "Ctrl+o",
 				"Windows": "Ctrl+w"
 			},
 
