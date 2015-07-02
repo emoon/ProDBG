@@ -20,8 +20,7 @@
 		"some_regular_setting": "test",
 		"keys":{
 			"fast_open": { 
-				"Default": "Ctrl+Shift+O",
-				"Mac": "Super+Shift+O"
+				"Default": "Ctrl+Shift+O"
 			}
 		}
 	}
