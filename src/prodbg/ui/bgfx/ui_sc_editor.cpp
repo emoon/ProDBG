@@ -440,13 +440,13 @@ public:
         // TODO: Would be better to decouple ImGui key values here and abstract it into a prodbg api instead
         if (IsKeyPressedMap(ImGuiKey_DownArrow, true))
         {
-        	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (1 * 23));
-            //Editor::KeyDown(SCK_DOWN /*SCK_NEXT*/, false, false, false);
+        	ImGui::SetScrollY(ImGui::GetScrollY() + 23); 
+            Editor::KeyDown(SCK_DOWN /*SCK_NEXT*/, false, false, false);
         }
         else if (IsKeyPressedMap(ImGuiKey_UpArrow, true))
         {
-        	ImGui::SetCursorPosY(ImGui::GetCursorPosY() - (1 * 23));
-            //Editor::KeyDown(SCK_UP /*SCK_PRIOR*/, false, false, false);
+        	ImGui::SetScrollY(ImGui::GetScrollY() - 23); 
+            Editor::KeyDown(SCK_UP /*SCK_PRIOR*/, false, false, false);
         }
         else if (IsKeyPressedMap(ImGuiKey_V, false))
         {
@@ -478,7 +478,7 @@ public:
                 free(result);
             }
         #else
-            //ButtonDown(pt, (unsigned int)io.MouseDownTime[0], false, false, false);
+            ButtonDown(pt, (unsigned int)io.MouseDownDuration[0], false, false, false);
         #endif
         }
     }
