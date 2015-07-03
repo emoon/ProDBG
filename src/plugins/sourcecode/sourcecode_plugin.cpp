@@ -227,7 +227,6 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     if (!data->hasFiles && data->requestFiles)
 	{
-		printf("requesting files\n");
 		PDWrite_eventBegin(writer, PDEventType_getSourceFiles);
 		PDWrite_eventEnd(writer);
 	}
