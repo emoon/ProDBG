@@ -18,6 +18,7 @@ struct SourceCodeData
     bool requestFiles;
     bool hasFiles;
     uint32_t fastOpenKey;
+    uint32_t toggleBreakpointKey;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,7 +61,6 @@ static void* readFileFromDisk(const char* file, size_t* size)
     data[s] = 0;
 
     *size = s;
-
     end:
 
     fclose(f);
@@ -80,8 +80,10 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
 	s_settings = (PDSettingsFuncs*)serviceFunc(PDSETTINGS_GLOBAL);
 
 	userData->fastOpenKey = s_settings->getShortcut(s_pluginName, "fast_open");
+	userData->toggleBreakpointKey = s_settings->getShortcut(s_pluginName, "toggle_breakpoint");
 
 	printf("fastOpenKey 0x%x\n", userData->fastOpenKey);
+	printf("toggleBreakpointKey  0x%x\n", userData->toggleBreakpointKey);
 
     userData->requestFiles = false;
     userData->hasFiles = false;
@@ -148,7 +150,7 @@ static void setExceptionLocation(PDUI* uiFuncs, PDSCInterface* sourceFuncs, Sour
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void updateKeyboard(SourceCodeData* data, PDUI* uiFuncs)
+static void updateKeyboard(SourceCodeData* data, PDSCInterface* sourceFuncs, PDUI* uiFuncs)
 {
     (void)data;
     (void)uiFuncs;
@@ -156,6 +158,11 @@ static void updateKeyboard(SourceCodeData* data, PDUI* uiFuncs)
     if (uiFuncs->isKeyDownId(data->fastOpenKey, 0))
 	{
 		printf("do fast open\n");
+	}
+
+	if (uiFuncs->isKeyDownId(data->toggleBreakpointKey, 0))
+	{
+    	PDUI_SCSendCommand(sourceFuncs, SCN_TOGGLE_BREAKPOINT, 0, 0);
 	}
 }
 
@@ -215,7 +222,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
         }
     }
 
-    updateKeyboard(data, uiFuncs);
+    updateKeyboard(data, sourceFuncs, uiFuncs);
 
     PDUI_SCUpdate(sourceFuncs);
     PDUI_SCDraw(sourceFuncs);

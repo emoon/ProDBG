@@ -356,6 +356,7 @@ public:
         }
         else
         {
+        	printf("marker add %d\n", lineNumber);
             // Breakpoint added
             m_breakpointLines.push_back(lineNumber);
             SendCommand(SCI_MARKERADD, lineNumber /* line number */, 0 /* marker id */);
@@ -635,11 +636,9 @@ public:
         //SCI_MARKERDEFINEPIXMAP
         SendCommand(SCI_MARKERDEFINE, 0, SC_MARK_RGBAIMAGE);
 
-
         SetFocusState(true);
         CaretSetPeriod(0);
 
-        /*
            size_t textSize = 0;
            const char* text = static_cast<const char*>(File_loadToMemory("examples/fake_6502/fake6502_main.c", &textSize, 0));
            assert(text);
@@ -648,7 +647,10 @@ public:
                     reinterpret_cast<sptr_t>(static_cast<const char*>(text)));
 
            free((void*)text);
-         */
+
+        SendCommand(SCI_MARKERADD, 0, 0);
+        SendCommand(SCI_MARKERADD, 1, 0);
+        SendCommand(SCI_MARKERADD, 2, 0);
 
         // Need to do this after setting the text
         //SendCommand(SCI_SETREADONLY, 1);
@@ -788,6 +790,18 @@ public:
 
     sptr_t SendCommand(unsigned int iMessage, uptr_t wParam = 0, sptr_t lParam = 0)
     {
+		// Handle our messages first and the fallback on default path
+
+    	switch (iMessage)
+		{
+			case SCN_TOGGLE_BREAKPOINT:
+			{
+				printf("toggle breakpoint\n");
+				ToggleBreakpoint();
+				return 0;
+			}
+		}
+
         return WndProc(iMessage, wParam, lParam);
     }
 

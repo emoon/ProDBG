@@ -21,6 +21,9 @@
 		"keys":{
 			"fast_open": { 
 				"Default": "Ctrl+Shift+O"
+			},
+			"toggle_breakpoint": { 
+				"Default": "F8"
 			}
 		}
 	}
