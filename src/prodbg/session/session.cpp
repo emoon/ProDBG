@@ -456,7 +456,8 @@ static void updateLocal(Session* s, PDAction action)
     if (backend)
     {
         s->state = backend->plugin->update(backend->userData, action, s->reader, s->currentWriter);
-        g_pluginUI->setStatusText("%s Backend: %s", backend->plugin->name, getStateName(s->state));
+		if (g_pluginUI)
+			g_pluginUI->setStatusText("%s Backend: %s", backend->plugin->name, getStateName(s->state));
     }
 
     int len = array_size(s->viewPlugins);
