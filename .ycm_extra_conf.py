@@ -15,6 +15,8 @@ flags = [
 # For a C project, you would set this to 'c' instead of 'c++'.
 '-x',
 'c++',
+'-D',
+'OBJECT_DIR',
 '-I',
 'api/include',
 '-I',
@@ -31,6 +33,8 @@ flags = [
 'src/external/scintilla/src/lexlib',
 '-I',
 'src/external/bgfx/include',
+'-I',
+'src/external/cmocka/include',
 '-I',
 'src/prodbg',
 ]
