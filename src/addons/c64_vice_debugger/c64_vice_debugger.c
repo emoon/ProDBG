@@ -128,7 +128,6 @@ typedef struct PluginData
 
 } PluginData;
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Add to services
 
@@ -202,6 +201,38 @@ void* loadToMemory(const char* filename, size_t* size)
 
     return data;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int parsePrg(const char* filename)
+{
+	size_t size = 0;
+
+	const char* data = (const char*)loadToMemory(filename, &size);
+
+	if (!data)
+		return -1;
+
+	if (size < 10)
+	{
+		free((void*)data);
+		printf("Prg file %s it too small (less than 7 bytes)\n", filename);
+		return -1;
+	}
+
+	// Seek to pos 7 in the file where the sys offset is located. The file looks like this
+	//
+	// load offset - 2 bytes
+	// unknown     - 5
+	// text string (null terminated) decimal start adress
+
+	int runAddress = atoi(&data[7]);
+
+	free((void*)data);
+
+	return runAddress; 
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -320,6 +351,8 @@ static int getData(PluginData* data, char** resBuffer, int* len)
         {
             *len = lenCount;
             *resBuffer = (char*)&s_recvBuffer;
+
+            printf("getData %s\n", s_recvBuffer);
 
             return 1;
         }
@@ -513,7 +546,7 @@ static void* createInstance(ServiceFunc* serviceFunc)
     PluginData* data = malloc(sizeof(PluginData));
     memset(data, 0, sizeof(PluginData));
 
-    getFullName((char*)&data->tempFileFull, "temp/vice_mem_dump");
+    getFullName((char*)&data->tempFileFull, "temp/vice_mem_dump_2");
 
     data->state = PDDebugState_noTarget;
 
@@ -979,6 +1012,45 @@ static bool shouldSendCommand(PluginData* data)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void setExecutable(PluginData* data, PDReader* reader)
+{
+    char* res = 0;
+    int len = 0;
+
+    const char* filename = 0;
+
+    printf("set executable\n");
+
+    PDRead_findString(reader, &filename, "filename", 0);
+
+    if (!filename)
+    {
+        log_debug("Unable to find filename %s\n", filename);
+        return;
+    }
+
+    int startAddress = parsePrg(filename);
+
+    if (startAddress == -1)
+    	return;
+
+    printf("loading %s and running from $%x\n", filename, startAddress);
+
+    //TODO: Wait until image is loaded then kick it
+
+	sendCommand(data, "load \"%s\" 0\n", filename);
+
+    // Fetch the data that has been sent from VICE
+
+    getData(data, &res, &len);
+
+	sendCommand(data, "g $%x\n", startAddress);
+
+    getData(data, &res, &len);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 {
     uint32_t event;
@@ -1043,6 +1115,14 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
                 delBreakpoint(data, reader, writer);
                 break;
             }
+
+			case PDEventType_setExecutable:
+			{
+                //if (shouldSendCommand(data))
+                	setExecutable(data, reader);
+
+				break;
+			}
         }
     }
 }
