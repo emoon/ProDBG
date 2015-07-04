@@ -164,7 +164,8 @@ static void test_c64_vice_connect(void**)
 #endif
     assert_non_null(viceLaunchPath);
 
-    const char* argv[] = { viceLaunchPath, "-remotemonitor", "-console", "examples/c64_vice/test.prg", 0 };
+    //const char* argv[] = { viceLaunchPath, "-remotemonitor", "-console", "examples/c64_vice/test.prg", 0 };
+    const char* argv[] = { viceLaunchPath, "-remotemonitor", "-console", 0 };
 
     s_viceHandle = Process_spawn(viceLaunchPath, argv);
 
@@ -195,11 +196,27 @@ static void test_c64_vice_connect(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void test_c64_vice_start_executable(void**)
+{
+	const char* prgFile = "//Users/danielcollin/code/ProDBG/examples/c64_vice/test.prg";
+
+    PDWriter* writer = s_session->currentWriter;
+    PDWrite_eventBegin(writer, PDEventType_setExecutable);
+    PDWrite_string(writer, "filename", prgFile); 
+    PDWrite_eventEnd(writer);
+    PDBinaryWriter_finalize(writer);
+
+    Session_update(s_session);
+
+    Time_sleepMs(800);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void test_c64_vice_get_registers(void**)
 {
     CPUState state;
 
-    //Session_action(s_session, PDAction_step);
     Session_update(s_session);
 
     PDWriter* writer = s_session->currentWriter;
@@ -665,6 +682,7 @@ int main()
         unit_test(test_c64_vice_init),
         unit_test(test_c64_vice_fail_connect),
         unit_test(test_c64_vice_connect),
+        unit_test(test_c64_vice_start_executable),
         unit_test(test_c64_vice_get_registers),
         unit_test(test_c64_vice_step_cpu),
         unit_test(test_c64_vice_get_disassembly),
