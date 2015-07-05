@@ -109,6 +109,8 @@ static void updateRegisters(CPUState* cpuState, PDReader* reader)
 
 bool handleEvents(CPUState* cpuState, Session* session)
 {
+	printf("handleEvents\n");
+
     for (int i = 0; i < 30; ++i)
     {
         Session_update(s_session);
@@ -122,11 +124,11 @@ bool handleEvents(CPUState* cpuState, Session* session)
 
         while ((event = PDRead_getEvent(reader)) != 0)
         {
-            if (event != PDEventType_setRegisters)
-                continue;
-
-            updateRegisters(cpuState, reader);
-            return true;
+            if (event == PDEventType_setRegisters)
+			{
+				updateRegisters(cpuState, reader);
+				return true;
+			}
         }
     }
 
@@ -140,7 +142,7 @@ void printCPUState(CPUState* state)
     printf("pc %04x - a %02x - x - %02x - y %02x - sp %02x\n", state->pc, state->a, state->x, state->y, state->sp);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////hndle////////////////////////////////////////////////////////////////////////
 
 static void test_c64_vice_connect(void**)
 {
@@ -198,7 +200,7 @@ static void test_c64_vice_connect(void**)
 
 void test_c64_vice_start_executable(void**)
 {
-	const char* prgFile = "//Users/danielcollin/code/ProDBG/examples/c64_vice/test.prg";
+	const char* prgFile = "/Users/danielcollin/code/ProDBG/examples/c64_vice/test.prg";
 
     PDWriter* writer = s_session->currentWriter;
     PDWrite_eventBegin(writer, PDEventType_setExecutable);
@@ -208,7 +210,10 @@ void test_c64_vice_start_executable(void**)
 
     Session_update(s_session);
 
-    Time_sleepMs(800);
+    // Annoying to da anything about this as VICE doesn't reply back anything
+    // when doing <g $xxx>
+
+    Time_sleepMs(100);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -238,8 +243,8 @@ void test_c64_vice_step_cpu(void**)
     assert_true(handleEvents(&state, s_session));
 
     assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
-    assert_true(state.a == 0x22);
-    assert_true(state.x == 0x32);
+    assert_int_equal(state.a, 0x22);
+    assert_int_equal(state.x, 0x32);
 
     Session_action(s_session, PDAction_step);
     assert_true(handleEvents(&state, s_session));
@@ -457,6 +462,8 @@ static void stepToPC(uint64_t pc)
 static void waitForBreak(uint64_t breakAddress, const CPUState* cpuState, uint64_t checkMask)
 {
     CPUState outState;
+
+    printf("wait for break $%llx\n", breakAddress);
 
     // Give VICE some time to actually hit the breakpoint so we loop here and do
     // some sleeping and expect this to hit within 10 ms
@@ -687,8 +694,8 @@ int main()
         unit_test(test_c64_vice_step_cpu),
         unit_test(test_c64_vice_get_disassembly),
         unit_test(test_c64_vice_get_memory),
-        /*
         unit_test(test_c64_vice_basic_breakpoint),
+        /*
            unit_test(test_c64_vice_breakpoint_cond),
          */
         //unit_test(test_c64_vice_set_memory),

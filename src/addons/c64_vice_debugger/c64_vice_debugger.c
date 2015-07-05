@@ -365,6 +365,26 @@ static int getData(PluginData* data, char** resBuffer, int* len)
     return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int waitForData(PluginData* data, char** resBuffer, int* len)
+{
+	const int maxTry = 400;
+
+	for (int i = 0; i < maxTry; ++i)
+	{
+		getData(data, resBuffer, len);
+
+		if (*len != 0)
+			return 1;
+
+		sleepMs(1);
+	}
+
+	return 0;
+}
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -498,6 +518,8 @@ static void setBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
     PDRead_findU64(reader, &address, "address", 0);
     PDRead_findString(reader, &condition, "condition", 0);
 
+    printf("got breakpoist %d %llu %s\n", id, address, condition);
+
     if (id != -1)
         delBreakpointById(data, id);
 
@@ -546,7 +568,7 @@ static void* createInstance(ServiceFunc* serviceFunc)
     PluginData* data = malloc(sizeof(PluginData));
     memset(data, 0, sizeof(PluginData));
 
-    getFullName((char*)&data->tempFileFull, "temp/vice_mem_dump_2");
+    getFullName((char*)&data->tempFileFull, "temp/vice_mem_dump");
 
     data->state = PDDebugState_noTarget;
 
@@ -1012,7 +1034,7 @@ static bool shouldSendCommand(PluginData* data)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setExecutable(PluginData* data, PDReader* reader)
+static bool setExecutable(PluginData* data, PDReader* reader)
 {
     char* res = 0;
     int len = 0;
@@ -1026,13 +1048,13 @@ static void setExecutable(PluginData* data, PDReader* reader)
     if (!filename)
     {
         log_debug("Unable to find filename %s\n", filename);
-        return;
+        return false;
     }
 
     int startAddress = parsePrg(filename);
 
     if (startAddress == -1)
-    	return;
+    	return false;
 
     printf("loading %s and running from $%x\n", filename, startAddress);
 
@@ -1040,13 +1062,20 @@ static void setExecutable(PluginData* data, PDReader* reader)
 
 	sendCommand(data, "load \"%s\" 0\n", filename);
 
-    // Fetch the data that has been sent from VICE
+	for (;;)
+	{
+		if (!waitForData(data, &res, &len))
+			return false;
 
-    getData(data, &res, &len);
+		if (strstr(res, filename))
+			break;
+	}
 
 	sendCommand(data, "g $%x\n", startAddress);
 
     getData(data, &res, &len);
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1119,7 +1148,7 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 			case PDEventType_setExecutable:
 			{
                 //if (shouldSendCommand(data))
-                	setExecutable(data, reader);
+              	setExecutable(data, reader);
 
 				break;
 			}
