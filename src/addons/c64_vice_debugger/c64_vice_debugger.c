@@ -316,19 +316,18 @@ static void sendCommand(PluginData* data, const char* format, ...)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Trices to get data from VICE. Has a maxtry count that can be used to actually add some retries in this code
+// as data from VICE can take a while. For each loop we sleep for 1 ms in order to not hammer on the socket and
+// allows VICE some time.
 
-static int getData(PluginData* data, char** resBuffer, int* len)
+static bool getDataToBuffer(PluginData* data, char* resBuffer, int bufferSize, int* len, int maxTry)
 {
-    const int maxTry = 1;
     int res = 0;
-
-    if (!data->conn)
-        return 0;
-
-    char* resData = (char*)&s_recvBuffer;
     int lenCount = 0;
 
-    memset(resData, 0, 1024);
+    if (!data->conn)
+        return false;
 
     for (int i = 0; i < maxTry; ++i)
     {
@@ -336,40 +335,46 @@ static int getData(PluginData* data, char** resBuffer, int* len)
 
         while (VICEConnection_pollRead(data->conn))
         {
-            res = VICEConnection_recv(data->conn, resData, ((int)sizeof(s_recvBuffer)) - lenCount, 0);
+            res = VICEConnection_recv(data->conn, resBuffer, bufferSize - lenCount, 0);
 
             if (res == 0)
                 break;
 
             gotData = true;
 
-            resData += res;
+            resBuffer += res;
             lenCount += res;
         }
 
         if (gotData)
         {
             *len = lenCount;
-            *resBuffer = (char*)&s_recvBuffer;
-
-            printf("getData %s\n", s_recvBuffer);
-
-            return 1;
+            return true;
         }
 
-        // Got some data so read it back
+        sleepMs(1);
     }
 
-    // got no data
+    return false;
+}
 
-    return 0;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int getData(PluginData* data, char** resBuffer, int* len)
+{
+	if (!getDataToBuffer(data, s_recvBuffer, sizeof(s_recvBuffer), len, 1))
+		return false;
+
+	*resBuffer = (char*)&s_recvBuffer;
+
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int waitForData(PluginData* data, char** resBuffer, int* len)
 {
-	const int maxTry = 400;
+	const int maxTry = 1000;
 
 	for (int i = 0; i < maxTry; ++i)
 	{
@@ -383,8 +388,6 @@ static int waitForData(PluginData* data, char** resBuffer, int* len)
 
 	return 0;
 }
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1032,6 +1035,17 @@ static bool shouldSendCommand(PluginData* data)
     return t0 && t1;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Sent to VICE: load "<filename>" 0 (device)
+//
+// Expected VICE reply:
+// 
+// Loading <filename> from xxxx to xxxx (xb bytes)
+// (C:$xxxx) 
+//
+// Returns false if unable to do any of the required steps 
+//
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static bool setExecutable(PluginData* data, PDReader* reader)
