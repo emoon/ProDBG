@@ -681,9 +681,7 @@ int main()
         unit_test(test_c64_vice_get_disassembly),
         unit_test(test_c64_vice_get_memory),
         unit_test(test_c64_vice_basic_breakpoint),
-        /*
-           unit_test(test_c64_vice_breakpoint_cond),
-         */
+        unit_test(test_c64_vice_breakpoint_cond),
         //unit_test(test_c64_vice_set_memory),
     };
 

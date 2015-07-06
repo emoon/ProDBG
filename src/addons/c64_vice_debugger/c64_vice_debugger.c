@@ -97,7 +97,7 @@ typedef enum BreakpoinType
 
 typedef struct
 {
-    char* condition;
+    //char* condition;
     uint16_t address;
     BreakpoinType type;
     int32_t id;
