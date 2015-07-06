@@ -109,28 +109,20 @@ static void updateRegisters(CPUState* cpuState, PDReader* reader)
 
 bool handleEvents(CPUState* cpuState, Session* session)
 {
-	printf("handleEvents\n");
+	uint32_t event = 0;
 
-    for (int i = 0; i < 30; ++i)
-    {
-        Session_update(s_session);
-        Time_sleepMs(10);
+	PDReader* reader = session->reader;
 
-        uint32_t event = 0;
+	PDBinaryReader_initStream(reader, PDBinaryWriter_getData(session->currentWriter), PDBinaryWriter_getSize(session->currentWriter));
 
-        PDReader* reader = session->reader;
-
-        PDBinaryReader_initStream(reader, PDBinaryWriter_getData(session->currentWriter), PDBinaryWriter_getSize(session->currentWriter));
-
-        while ((event = PDRead_getEvent(reader)) != 0)
-        {
-            if (event == PDEventType_setRegisters)
-			{
-				updateRegisters(cpuState, reader);
-				return true;
-			}
-        }
-    }
+	while ((event = PDRead_getEvent(reader)) != 0)
+	{
+		if (event == PDEventType_setRegisters)
+		{
+			updateRegisters(cpuState, reader);
+			return true;
+		}
+	}
 
     return false;
 }
@@ -213,7 +205,7 @@ void test_c64_vice_start_executable(void**)
     // Annoying to da anything about this as VICE doesn't reply back anything
     // when doing <g $xxx>
 
-    Time_sleepMs(100);
+    Time_sleepMs(200);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -222,12 +214,12 @@ void test_c64_vice_get_registers(void**)
 {
     CPUState state;
 
-    Session_update(s_session);
-
     PDWriter* writer = s_session->currentWriter;
     PDWrite_eventBegin(writer, PDEventType_getRegisters);
     PDWrite_eventEnd(writer);
     PDBinaryWriter_finalize(writer);
+
+    Session_update(s_session);
 
     assert_true(handleEvents(&state, s_session));
     assert_true(state.pc >= 0x80e && state.pc <= 0x81a);
@@ -691,10 +683,12 @@ int main()
         unit_test(test_c64_vice_connect),
         unit_test(test_c64_vice_start_executable),
         unit_test(test_c64_vice_get_registers),
+        /*
         unit_test(test_c64_vice_step_cpu),
         unit_test(test_c64_vice_get_disassembly),
         unit_test(test_c64_vice_get_memory),
         unit_test(test_c64_vice_basic_breakpoint),
+        */
         /*
            unit_test(test_c64_vice_breakpoint_cond),
          */

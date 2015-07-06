@@ -44,13 +44,15 @@ static PDMessageFuncs* messageFuncs;
 __declspec(dllimport) void OutputDebugStringA(const char*);
 #endif
 
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void log_debug(const char* format, ...)
+static void log_debug_printf(const char* format, ...)
 {
     va_list ap;
     char buffer[2048];
-
+    
     va_start(ap, format);
     vsprintf(buffer, format, ap);
     va_end(ap);
@@ -61,6 +63,11 @@ static void log_debug(const char* format, ...)
     printf("%s", buffer);
 #endif
 }
+
+#define log_debug(fmt, ...) \
+do { \
+	log_debug_printf("%s:(%d) " fmt , __FILENAME__ , __LINE__, __VA_ARGS__); \
+} while (0)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -268,7 +275,7 @@ static void loadConfig(PluginData* data, const char* filename)
     if (!root || !json_is_object(root))
         return;
 
-    log_debug("loaded config\n");
+    log_debug("loaded config\n", "");
 
     json_unpack(root, "{s:s, s:s, s:s, s:s}",
                 "vice_exe", &viceExe,
@@ -317,7 +324,7 @@ static void sendCommand(PluginData* data, const char* format, ...)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Trices to get data from VICE. Has a maxtry count that can be used to actually add some retries in this code
+// Tries to get data from VICE. Has a maxTry count that can be used to actually add some retries in this code
 // as data from VICE can take a while. For each loop we sleep for 1 ms in order to not hammer on the socket and
 // allows VICE some time.
 
@@ -329,9 +336,13 @@ static bool getDataToBuffer(PluginData* data, char* resBuffer, int bufferSize, i
     if (!data->conn)
         return false;
 
+    memset(resBuffer, 0, bufferSize);
+
     for (int i = 0; i < maxTry; ++i)
     {
         bool gotData = false;
+
+        //log_debug("trying to get data %d\n", i);
 
         while (VICEConnection_pollRead(data->conn))
         {
@@ -348,12 +359,16 @@ static bool getDataToBuffer(PluginData* data, char* resBuffer, int bufferSize, i
 
         if (gotData)
         {
+        	log_debug("got some data, len %d", lenCount);
+
             *len = lenCount;
             return true;
         }
 
         sleepMs(1);
     }
+
+	log_debug("no data from VICE\nn", "");
 
     return false;
 }
@@ -372,7 +387,7 @@ static int getData(PluginData* data, char** resBuffer, int* len)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int waitForData(PluginData* data, char** resBuffer, int* len)
+int waitForData(PluginData* data, char** resBuffer, int* len)
 {
 	const int maxTry = 1000;
 
@@ -735,7 +750,7 @@ static void launchVICEWithConfig(PluginData* data)
     int r, cmdIndex = 1;
     uv_process_options_t options = { 0 };
 
-    log_debug("spawning vice...\n");
+    log_debug("spawning vice...\n", "");
 
     char* args[10];
     args[0] = (char*)data->config.viceExe;
@@ -883,13 +898,15 @@ static void writeStatusRegister(PDWriter* writer, const char* name, uint16_t reg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void parseRegisters(PluginData* plugin, char* data, int length)
+static bool parseRegisters(PluginData* plugin, char* data, int length)
 {
     const char* pch;
     struct Regs6510* regs = &plugin->regs;
 
     memcpy(s_tempBuffer, data, length);
     s_tempBuffer[length] = 0;
+
+    log_debug("parsing registers %s\n", s_tempBuffer);
 
     // Format from VICE looks like this:
     // (C:$e5cf)   ADDR AC XR YR SP 00 01 NV-BDIZC LIN CYC  STOPWATCH
@@ -900,7 +917,10 @@ static void parseRegisters(PluginData* plugin, char* data, int length)
     char* str = strstr(s_tempBuffer, ".;");
 
     if (!str)
-        return;
+	{
+		log_debug("Failed to find .;\n", "");
+        return false;
+	}
 
     pch = strtok(str, " \t\n");
 
@@ -917,6 +937,10 @@ static void parseRegisters(PluginData* plugin, char* data, int length)
 
     plugin->hasUpdatedRegistes = true;
     plugin->hasUpdatedExceptionLocation = true;
+
+    log_debug("parse registers down\n", "");
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1050,12 +1074,11 @@ static bool shouldSendCommand(PluginData* data)
 
 static bool setExecutable(PluginData* data, PDReader* reader)
 {
-    char* res = 0;
+    char* res = s_recvBuffer;
     int len = 0;
 
+	const int maxTry = 20;
     const char* filename = 0;
-
-    printf("set executable\n");
 
     PDRead_findString(reader, &filename, "filename", 0);
 
@@ -1064,6 +1087,8 @@ static bool setExecutable(PluginData* data, PDReader* reader)
         log_debug("Unable to find filename %s\n", filename);
         return false;
     }
+
+    log_debug("setExecutable %s\n", filename);
 
     int startAddress = parsePrg(filename);
 
@@ -1076,20 +1101,87 @@ static bool setExecutable(PluginData* data, PDReader* reader)
 
 	sendCommand(data, "load \"%s\" 0\n", filename);
 
-	for (;;)
-	{
-		if (!waitForData(data, &res, &len))
-			return false;
+	// Here we need to parse for the expected result. which is If
+	// Loading <filename> from xxxx to xxxx (xb bytes)
+	// (C:$xxxx) 
 
-		if (strstr(res, filename))
-			break;
+	for (int i = 0; i < maxTry; ++i)
+	{
+		int tempLen = 0; 
+
+		// We give VICE 1 sek to does this thing. TODO: Lower this value or have it as a config?
+
+		if (!getDataToBuffer(data, res, (int)(sizeof(s_recvBuffer)) - len, &tempLen, 1000))
+		{
+			log_debug("couldn't get any data\n", "");
+			return false;
+		}
+
+		log_debug("got data %s\n", s_recvBuffer);
+
+		// Look for filename and look for (C:$ while this is not the most accurate parsing of
+		// the string it should be good enough
+
+		if (strstr(s_recvBuffer, filename) && strstr(s_recvBuffer, "(C:$"))
+		{
+			sendCommand(data, "g $%x\n", startAddress);
+			return true;
+		}
+
+		len += tempLen;
+		res += tempLen;
 	}
 
-	sendCommand(data, "g $%x\n", startAddress);
+	return false;
+}
 
-    getData(data, &res, &len);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Sent to VICE: registers
+//
+// Format from VICE looks like this:
+// (C:$e5cf)   ADDR AC XR YR SP 00 01 NV-BDIZC LIN CYC  STOPWATCH
+//           .;e5cf 00 00 0a f3 2f 37 00100010 000 001    3400489
 
-    return true;
+static bool getRegisters(PluginData* data)
+{
+	const int maxTry = 20;
+
+    char* res = s_recvBuffer;
+    int len = 0;
+
+	sendCommand(data, "registers\n");
+
+	// Format from VICE looks like this:
+	// (C:$e5cf)   ADDR AC XR YR SP 00 01 NV-BDIZC LIN CYC  STOPWATCH
+	//           .;e5cf 00 00 0a f3 2f 37 00100010 000 001    3400489
+
+	for (int i = 0; i < maxTry; ++i)
+	{
+		int tempLen = 0; 
+
+		// We give VICE 1 sek to does this thing. TODO: Lower this value or have it as a config?
+
+		if (!getDataToBuffer(data, res, (int)(sizeof(s_recvBuffer)) - len, &tempLen, 1000))
+		{
+			log_debug("couldn't get any data\n", "");
+			return false;
+		}
+
+		// Look for filename and look for (C:$ while this is not the most accurate parsing of
+		// the string it should be good enough
+		
+		log_debug("Parsing registers, data %s\n", res);
+
+		len += tempLen;
+
+		if (parseRegisters(data, s_recvBuffer, len))
+			return true;
+
+		res += tempLen;
+	}
+
+	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1107,7 +1199,7 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
 
             case PDEventType_getRegisters:
             {
-                sendCommand(data, "registers\n");
+            	getRegisters(data);
                 break;
             }
 
@@ -1469,7 +1561,7 @@ static void parseStep(PluginData* plugin, const char* res)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void updateEvents(PluginData* plugin, PDWriter* writer)
+void updateEvents(PluginData* plugin, PDWriter* writer)
 {
     char* res = 0;
     int len = 0;
@@ -1512,10 +1604,12 @@ static PDDebugState update(void* userData, PDAction action, PDReader* reader, PD
 
     processEvents(plugin, reader, writer);
 
-    updateEvents(plugin, writer);
+    //updateEvents(plugin, writer);
 
     if (plugin->hasUpdatedRegistes)
     {
+		log_debug("sending registens\n", "");
+
         PDWrite_eventBegin(writer, PDEventType_setRegisters);
         PDWrite_arrayBegin(writer, "registers");
 
