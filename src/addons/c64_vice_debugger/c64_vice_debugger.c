@@ -29,6 +29,7 @@ static char s_recvBuffer[512 * 1024];
 static char s_tempBuffer[512 * 1024];
 static const int maxBreakpointCount = 8192;
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 enum
@@ -44,6 +45,8 @@ static PDMessageFuncs* messageFuncs;
 __declspec(dllimport) void OutputDebugStringA(const char*);
 #endif
 
+static bool doDebug = false;
+
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,7 +54,7 @@ __declspec(dllimport) void OutputDebugStringA(const char*);
 static void log_debug_printf(const char* format, ...)
 {
     va_list ap;
-    char buffer[2048];
+    char buffer[512 * 1024];
     
     va_start(ap, format);
     vsprintf(buffer, format, ap);
@@ -66,7 +69,8 @@ static void log_debug_printf(const char* format, ...)
 
 #define log_debug(fmt, ...) \
 do { \
-	log_debug_printf("%s:(%d) " fmt , __FILENAME__ , __LINE__, __VA_ARGS__); \
+	if (doDebug) \
+		log_debug_printf("%s:(%d) " fmt , __FILENAME__ , __LINE__, __VA_ARGS__); \
 } while (0)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -134,6 +138,10 @@ typedef struct PluginData
     uv_process_t process;
 
 } PluginData;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+typedef bool (*ParseDataFunc)(PluginData* data, const char* res, int len, PDReader* reader, PDWriter* writer);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Add to services
@@ -223,7 +231,7 @@ int parsePrg(const char* filename)
 	if (size < 10)
 	{
 		free((void*)data);
-		printf("Prg file %s it too small (less than 7 bytes)\n", filename);
+		log_debug("Prg file %s it too small (less than 7 bytes)\n", filename);
 		return -1;
 	}
 
@@ -317,7 +325,7 @@ static void sendCommand(PluginData* data, const char* format, ...)
     int ret = VICEConnection_send(data->conn, buffer, len, 0);
     (void)ret;
 
-    printf("sent command %s (%d - %d)\n", buffer, len, ret);
+    log_debug("sent command %s (%d - %d)\n", buffer, len, ret);
 
     sleepMs(1);
 }
@@ -517,7 +525,7 @@ static bool delBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
         return false;
     }
 
-    printf("deleting breakpoint with id %d\n", id);
+    log_debug("deleting breakpoint with id %d\n", id);
 
     return delBreakpointById(data, id);
 }
@@ -536,7 +544,7 @@ static void setBreakpoint(PluginData* data, PDReader* reader, PDWriter* writer)
     PDRead_findU64(reader, &address, "address", 0);
     PDRead_findString(reader, &condition, "condition", 0);
 
-    printf("got breakpoist %d %llu %s\n", id, address, condition);
+    log_debug("got breakpoist %d %llu %s\n", id, address, condition);
 
     if (id != -1)
         delBreakpointById(data, id);
@@ -633,7 +641,7 @@ static uint8_t* getMemoryInternal(PluginData* data, const char* tempfile, size_t
 #ifndef _WIN32
     if (unlink(tempfile) < 0)
     {
-        printf("c64_vice: Unable to delete %s (error %d)\n", tempfile, errno);
+        log_debug("c64_vice: Unable to delete %s (error %d)\n", tempfile, errno);
     }
 #else
     // TODO: Implement me.
@@ -662,12 +670,12 @@ static uint8_t* getMemoryInternal(PluginData* data, const char* tempfile, size_t
             continue;
         }
 
-        printf("returing mem...\n");
+        log_debug("returing mem...\n", "");
 
         return mem;
     }
 
-    printf("Unable to get memory...\n");
+    log_debug("Unable to get memory...\n", "");
 
     return 0;
 }
@@ -685,11 +693,11 @@ static bool loadImage(PluginData* data, const char* filename)
 
     if (!getData(data, &res, &len))
     {
-        printf("failed to get any data back from load...\n");
+        log_debug("failed to get any data back from load...\n", "");
         return false;
     }
 
-    printf("res %s\n", res);
+    log_debug("res %s\n", res);
 
     // TODO: Parse that we actually manage to load the image
 
@@ -698,7 +706,7 @@ static bool loadImage(PluginData* data, const char* filename)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static uint16_t getBasicStart(PluginData* data)
+uint16_t getBasicStart(PluginData* data)
 {
     size_t readSize = 0;
 
@@ -706,24 +714,24 @@ static uint16_t getBasicStart(PluginData* data)
 
     if (!memory)
     {
-        printf("falied to get memory :(\n");
+        log_debug("falied to get memory :(\n", "");
         return 0;
     }
 
-    printf("size read %d\n", (int)readSize);
+    log_debug("size read %d\n", (int)readSize);
 
     const char* address = (char*)&memory[2 + 6];
 
-    printf("memory\n");
+    log_debug("memory\n", "");
 
     for (int i = 0; i < 18; ++i)
     {
         char c = (char)memory[i];
         char pc = (c >= 32 && c < 127) ? c : '.';
-        printf("%c ", pc);
+        log_debug("%c ", pc);
     }
 
-    printf("\n");
+    log_debug("\n", "");
 
     for (int i = 0; i < 18; ++i)
     {
@@ -731,12 +739,12 @@ static uint16_t getBasicStart(PluginData* data)
         printf("%02x ", c);
     }
 
-    printf("\n");
+    log_debug("\n", "");
 
     uint16_t startAddress = (uint16_t)strtol(address, 0, 10);
 
-    printf("basic: address to start from (text) %s\n", address);
-    printf("start address %d %x\n", startAddress, startAddress);
+    log_debug("basic: address to start from (text) %s\n", address);
+    log_debug("start address %d %x\n", startAddress, startAddress);
 
     free(memory);
 
@@ -786,37 +794,37 @@ static void launchVICEWithConfig(PluginData* data)
 
     if (VICEConnection_isConnected(data->conn))
     {
-        printf("connected to vice...\n");
+        log_debug("connected to vice...\n", "");
 
         if (!loadImage(data, data->config.prgFile))
             return;
 
-        printf("image loaded ...\n");
+        log_debug("image loaded ...\n", "");
 
         // parse the
 
         parseMonFile(data, data->config.breakpointFile);
 
-        printf("start from basic...\n");
+        log_debug("start from basic...\n", "");
 
         // start vice!
 
-        printf("started from basic\n");
+        log_debug("started from basic\n", "");
 
-        uint16_t address = getBasicStart(data);
+        uint16_t address = 0; //getBasicStart(data);
 
         parseMonFile(data, data->config.breakpointFile);
 
         if (address != 0)
         {
-            printf("start from %x\n", address);
+            log_debug("start from %x\n", address);
             sendCommand(data, "g %x\n", address);
         }
 
         return;
     }
 
-    printf("unable to make connection with vice\n");
+    log_debug("unable to make connection with vice\n", "");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -993,23 +1001,6 @@ static void parseBreakpoint(PluginData* data, const char* res, PDWriter* writer)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void getDisassembly(PluginData* data, PDReader* reader)
-{
-    uint64_t addressStart = 0;
-    uint32_t instructionCount = 0;
-
-    PDRead_findU64(reader, &addressStart, "address_start", 0);
-    PDRead_findU32(reader, &instructionCount, "instruction_count", 0);
-
-    // assume that one instruction is 3 bytes which is high but that gives us more data back than we need which is
-    // better than too little
-
-    sendCommand(data, "disass $%04x $%04x\n", (uint16_t)addressStart, (uint16_t)(addressStart + instructionCount * 3));
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 static void getMemory(PluginData* data, PDReader* reader, PDWriter* writer)
 {
     uint64_t address;
@@ -1060,6 +1051,53 @@ static bool shouldSendCommand(PluginData* data)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool sendCommandGetData(PluginData* data, const char* sendCmd, ParseDataFunc parseFunc, PDReader* reader, PDWriter* writer, int maxTry)
+{
+    char* res = s_recvBuffer;
+    int len = 0;
+
+    sendCommand(data, sendCmd); 
+
+	for (int i = 0; i < maxTry; ++i)
+	{
+		int tempLen = 0; 
+
+		// We give VICE 1 sek to does this thing. TODO: Lower this value or have it as a config?
+
+		if (!getDataToBuffer(data, res, (int)(sizeof(s_recvBuffer)) - len, &tempLen, 1000))
+		{
+			log_debug("couldn't get any data\n", "");
+			return false;
+		}
+
+		log_debug("Parsing step, data %s\n", res);
+
+		len += tempLen;
+
+		if (parseFunc(data, res, len, reader, writer))
+			return true;
+
+		res += tempLen;
+	}
+
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool parseSetExecutable(PluginData* plugin, const char* res, int len, PDReader* reader, PDWriter* writer)
+{
+	(void)plugin;
+	(void)len;
+	(void)reader;
+	(void)writer;
+	(void)res;
+
+	return strstr(s_recvBuffer, "Loading") && strstr(s_recvBuffer, "(C:$");
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Sent to VICE: load "<filename>" 0 (device)
 //
@@ -1074,10 +1112,6 @@ static bool shouldSendCommand(PluginData* data)
 
 static bool setExecutable(PluginData* data, PDReader* reader)
 {
-    char* res = s_recvBuffer;
-    int len = 0;
-
-	const int maxTry = 20;
     const char* filename = 0;
 
     PDRead_findString(reader, &filename, "filename", 0);
@@ -1097,42 +1131,63 @@ static bool setExecutable(PluginData* data, PDReader* reader)
 
     printf("loading %s and running from $%x\n", filename, startAddress);
 
-    //TODO: Wait until image is loaded then kick it
+	char temp[2048];
+	sprintf(temp, "load \"%s\" 0\n", filename);
 
-	sendCommand(data, "load \"%s\" 0\n", filename);
+	if (!sendCommandGetData(data, temp, parseSetExecutable, reader, 0, 20))
+		return false;
 
-	// Here we need to parse for the expected result. which is If
-	// Loading <filename> from xxxx to xxxx (xb bytes)
-	// (C:$xxxx) 
+	sendCommand(data, "g $%x\n", startAddress);
 
-	for (int i = 0; i < maxTry; ++i)
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static bool parseRegistersCall(PluginData* plugin, const char* data, int length, PDReader* reader, PDWriter* writer)
+{
+    const char* pch;
+    struct Regs6510* regs = &plugin->regs;
+
+    (void)reader;
+    (void)writer;
+
+    memcpy(s_tempBuffer, data, length);
+    s_tempBuffer[length] = 0;
+
+    log_debug("parsing registers %s\n", s_tempBuffer);
+
+    // Format from VICE looks like this:
+    // (C:$e5cf)   ADDR AC XR YR SP 00 01 NV-BDIZC LIN CYC  STOPWATCH
+    //           .;e5cf 00 00 0a f3 2f 37 00100010 000 001    3400489
+
+    char* str = strstr(s_tempBuffer, ".;");
+
+    if (!str)
 	{
-		int tempLen = 0; 
-
-		// We give VICE 1 sek to does this thing. TODO: Lower this value or have it as a config?
-
-		if (!getDataToBuffer(data, res, (int)(sizeof(s_recvBuffer)) - len, &tempLen, 1000))
-		{
-			log_debug("couldn't get any data\n", "");
-			return false;
-		}
-
-		log_debug("got data %s\n", s_recvBuffer);
-
-		// Look for filename and look for (C:$ while this is not the most accurate parsing of
-		// the string it should be good enough
-
-		if (strstr(s_recvBuffer, filename) && strstr(s_recvBuffer, "(C:$"))
-		{
-			sendCommand(data, "g $%x\n", startAddress);
-			return true;
-		}
-
-		len += tempLen;
-		res += tempLen;
+		log_debug("Failed to find .;\n", "");
+        return false;
 	}
 
-	return false;
+    pch = strtok(str, " \t\n");
+
+    regs->pc = (uint16_t)strtol(&pch[2], 0, 16); pch = strtok(0, " \t");
+    regs->a = (uint8_t)strtol(pch, 0, 16); pch = strtok(0, " \t");
+    regs->x = (uint8_t)strtol(pch, 0, 16); pch = strtok(0, " \t");
+    regs->y = (uint8_t)strtol(pch, 0, 16); pch = strtok(0, " \t");
+    regs->sp = (uint8_t)strtol(pch, 0, 16); pch = strtok(0, " \t");
+
+    pch = strtok(0, " \t"); // skip 00
+    pch = strtok(0, " \t"); // skip 01
+
+    regs->flags = (uint8_t)strtol(pch, 0, 2);
+
+    plugin->hasUpdatedRegistes = true;
+    plugin->hasUpdatedExceptionLocation = true;
+
+    log_debug("parse registers down\n", "");
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1145,43 +1200,114 @@ static bool setExecutable(PluginData* data, PDReader* reader)
 
 static bool getRegisters(PluginData* data)
 {
-	const int maxTry = 20;
+	return sendCommandGetData(data, "registers\n", parseRegistersCall, 0, 0, 20); 
+}
 
-    char* res = s_recvBuffer;
-    int len = 0;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	sendCommand(data, "registers\n");
+char* parseDisassemblyLine(char* line)
+{
+    char* start = line;
 
-	// Format from VICE looks like this:
-	// (C:$e5cf)   ADDR AC XR YR SP 00 01 NV-BDIZC LIN CYC  STOPWATCH
-	//           .;e5cf 00 00 0a f3 2f 37 00100010 000 001    3400489
+    // Handle the case if we get a line that looks like this (we want to skip everything after -)
+    // .C:0811  EE 20 D0    INC $D020      - A:00 X:17 Y:17 SP:f6 ..-.....   19262882
 
-	for (int i = 0; i < maxTry; ++i)
-	{
-		int tempLen = 0; 
+    for (;;)
+    {
+        char c = *line++;
 
-		// We give VICE 1 sek to does this thing. TODO: Lower this value or have it as a config?
+        if (c == '\n' || c == 0)
+            break;
 
-		if (!getDataToBuffer(data, res, (int)(sizeof(s_recvBuffer)) - len, &tempLen, 1000))
+        if (c == '-')
+        {
+            line[-1] = 0;
+            break;
+        }
+
+    }
+
+    return start;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool parseDisassemblyCall(PluginData* plugin, const char* res, int len, PDReader* reader, PDWriter* writer)
+{
+    memcpy(s_tempBuffer, res, len);
+    s_tempBuffer[len] = 0;
+
+    (void)plugin;
+    (void)reader;
+
+    // parse the buffer
+
+    char* pch = strtok(s_tempBuffer, "\n");
+
+    PDWrite_eventBegin(writer, PDEventType_setDisassembly);
+    PDWrite_arrayBegin(writer, "disassembly");
+
+    bool hasAllDisasembly = false;
+
+    while (pch)
+    {
+        // expected format of each line:
+        // xxx.. .C:080e  A9 22       LDA #$22
+
+        char* endOfStream = strstr(pch, "(C:");
+        char* line = strstr(pch, ".C");
+
+        if (endOfStream)
 		{
-			log_debug("couldn't get any data\n", "");
-			return false;
+			hasAllDisasembly = true;
+			break;
 		}
 
-		// Look for filename and look for (C:$ while this is not the most accurate parsing of
-		// the string it should be good enough
-		
-		log_debug("Parsing registers, data %s\n", res);
+        if (!line)
+            break;
 
-		len += tempLen;
+        uint16_t address = (uint16_t)strtol(&line[3], 0, 16);
 
-		if (parseRegisters(data, s_recvBuffer, len))
-			return true;
+        PDWrite_arrayEntryBegin(writer);
+        PDWrite_u16(writer, "address", address);
+        PDWrite_string(writer, "line", parseDisassemblyLine(&line[9]));
 
-		res += tempLen;
-	}
+        PDWrite_arrayEntryEnd(writer);
 
-	return false;
+        pch = strtok(0, "\n");
+    }
+
+    PDWrite_arrayEnd(writer);
+    PDWrite_eventEnd(writer);
+
+    return hasAllDisasembly;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Sent to VICE: disass $start $end
+//
+// Format from VICE looks like this:
+// .C:081F  xx          xxxx
+// .C:0820  00          BRK
+// .C:0821  00          BRK
+// (C:$0822)
+
+static bool getDisassembly(PluginData* data, PDReader* reader, PDWriter* writer)
+{
+	char temp[2048];
+
+    uint64_t addressStart = 0;
+    uint32_t instructionCount = 0;
+
+    PDRead_findU64(reader, &addressStart, "address_start", 0);
+    PDRead_findU32(reader, &instructionCount, "instruction_count", 0);
+
+    // assume that one instruction is 3 bytes which is high but that gives us more data back than we need which is better than too little
+
+	sprintf(temp, "disass $%04x $%04x\n", (uint16_t)addressStart, (uint16_t)(addressStart + instructionCount * 3));
+	
+	return sendCommandGetData(data, temp, parseDisassemblyCall, reader, writer, 20); 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1214,7 +1340,7 @@ static void processEvents(PluginData* data, PDReader* reader, PDWriter* writer)
             case PDEventType_getDisassembly:
             {
                 if (shouldSendCommand(data))
-                    getDisassembly(data, reader);
+                    getDisassembly(data, reader, writer);
 
                 break;
             }
@@ -1310,65 +1436,6 @@ static uint16_t findStatusInString(const char* str)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void onStep(PluginData* plugin)
-{
-    sendCommand(plugin, "n\n");
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void onAction(PluginData* plugin, PDAction action)
-{
-    switch (action)
-    {
-        case PDAction_none:
-            break;
-
-        case PDAction_stop:
-        {
-            sendCommand(plugin, "n\n");
-            break;
-        }
-
-        case PDAction_break:
-        {
-            sendCommand(plugin, "n\n");
-            break;
-        }
-
-        case PDAction_run:
-        {
-            //if (plugin->state != PDDebugState_running)
-            {
-                sendCommand(plugin, "ret\n");
-                plugin->state = PDDebugState_running;
-            }
-
-            break;
-        }
-
-        case PDAction_step:
-        {
-            sendCommand(plugin, "z\n");
-            break;
-        }
-
-        case PDAction_stepOver:
-        {
-            sendCommand(plugin, "n\n");
-            break;
-        }
-
-        case PDAction_stepOut:
-        case PDAction_custom:
-        {
-            break;
-        }
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 static void stopOnExec(PluginData* plugin, const char* data)
 {
     const char* stopOnExec = "Stop on  exec";
@@ -1390,33 +1457,6 @@ static void stopOnExec(PluginData* plugin, const char* data)
     plugin->hasUpdatedRegistes = true;
     plugin->hasUpdatedExceptionLocation = true;
     plugin->state = PDDebugState_stopBreakpoint;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-char* parseDisassemblyLine(char* line)
-{
-    char* start = line;
-
-    // Handle the case if we get a line that looks like this (we want to skip everything after -)
-    // .C:0811  EE 20 D0    INC $D020      - A:00 X:17 Y:17 SP:f6 ..-.....   19262882
-
-    for (;;)
-    {
-        char c = *line++;
-
-        if (c == '\n' || c == 0)
-            break;
-
-        if (c == '-')
-        {
-            line[-1] = 0;
-            break;
-        }
-
-    }
-
-    return start;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1533,16 +1573,16 @@ static const char* findRegStart(const char* res)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void parseStep(PluginData* plugin, const char* res)
+static bool parseStep(PluginData* plugin, const char* res)
 {
     const char* regStart;
     const char* step = strstr(res, ".C");
 
     if (!step)
-        return;
+        return false;
 
     if (!(regStart = findRegStart(res)))
-        return;
+        return false;
 
     // return data from VICE is of the follwing format:
     // .C:0811  EE 20 D0    INC $D020      - A:00 X:17 Y:17 SP:f6 ..-.....   19262882
@@ -1557,6 +1597,8 @@ static void parseStep(PluginData* plugin, const char* res)
     plugin->hasUpdatedRegistes = true;
     plugin->hasUpdatedExceptionLocation = true;
     plugin->state = PDDebugState_trace;
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1590,6 +1632,113 @@ void updateEvents(PluginData* plugin, PDWriter* writer)
 
     parseForCallstack(writer, res, len);
 }
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool parseOnStepCall(PluginData* plugin, const char* res, int len, PDReader* reader, PDWriter* writer)
+{
+    const char* regStart;
+    const char* step = strstr(res, ".C");
+
+    (void)reader;
+    (void)writer;
+    (void)len;
+
+    if (!step)
+        return false;
+
+    if (!(regStart = findRegStart(res)))
+        return false;
+
+    // return data from VICE is of the follwing format:
+    // .C:0811  EE 20 D0    INC $D020      - A:00 X:17 Y:17 SP:f6 ..-.....   19262882
+
+    plugin->regs.pc = (uint16_t)strtol(&step[3], 0, 16);
+    plugin->regs.a = (uint8_t)findRegisterInString(regStart, "A:");
+    plugin->regs.x = (uint8_t)findRegisterInString(regStart, "X:");
+    plugin->regs.y = (uint8_t)findRegisterInString(regStart, "Y:");
+    plugin->regs.sp = (uint8_t)findRegisterInString(regStart, "SP:");
+    plugin->regs.flags = (uint8_t)findStatusInString(res);
+
+    plugin->hasUpdatedRegistes = true;
+    plugin->hasUpdatedExceptionLocation = true;
+    plugin->state = PDDebugState_trace;
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Sent to VICE: z
+//
+// Expected result
+//
+// .C:xxxx  xx xx xx    xx xxC6        - A:xx X:xx Y:xx SP:xx ........    xxxxxxx
+//
+// Example
+//
+// .C:e5cd  A5 C6       LDA $C6        - A:00 X:00 Y:0A SP:f3 ..-...Z.    5719913
+// (C:$e5cd) 
+
+bool onStep(PluginData* data, PDReader* reader, PDWriter* writer)
+{
+	return sendCommandGetData(data, "z\n", parseOnStepCall, reader, writer, 20);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void onAction(PluginData* plugin, PDAction action)
+{
+    switch (action)
+    {
+        case PDAction_none:
+            break;
+
+        case PDAction_stop:
+        {
+            sendCommand(plugin, "n\n");
+            break;
+        }
+
+        case PDAction_break:
+        {
+            sendCommand(plugin, "n\n");
+            break;
+        }
+
+        case PDAction_run:
+        {
+            //if (plugin->state != PDDebugState_running)
+            {
+                sendCommand(plugin, "ret\n");
+                plugin->state = PDDebugState_running;
+            }
+
+            break;
+        }
+
+        case PDAction_step:
+        {
+            onStep(plugin, 0, 0);
+            break;
+        }
+
+        case PDAction_stepOver:
+        {
+            sendCommand(plugin, "n\n");
+            break;
+        }
+
+        case PDAction_stepOut:
+        case PDAction_custom:
+        {
+            break;
+        }
+    }
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

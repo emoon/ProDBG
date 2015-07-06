@@ -683,9 +683,9 @@ int main()
         unit_test(test_c64_vice_connect),
         unit_test(test_c64_vice_start_executable),
         unit_test(test_c64_vice_get_registers),
-        /*
         unit_test(test_c64_vice_step_cpu),
         unit_test(test_c64_vice_get_disassembly),
+        /*
         unit_test(test_c64_vice_get_memory),
         unit_test(test_c64_vice_basic_breakpoint),
         */
