@@ -360,32 +360,27 @@ void test_c64_vice_get_memory(void**)
     PDReader* reader = s_session->reader;
     PDBinaryReader_initStream(reader, PDBinaryWriter_getData(s_session->currentWriter), PDBinaryWriter_getSize(s_session->currentWriter));
 
-    for (int i = 0; i < 30; ++i)
-    {
-        Time_sleepMs(10);
+	uint32_t event;
 
-        uint32_t event;
+	while ((event = PDRead_getEvent(reader)) != 0)
+	{
+		uint8_t* data;
+		uint64_t dataSize;
+		uint64_t address;
 
-        while ((event = PDRead_getEvent(reader)) != 0)
-        {
-            uint8_t* data;
-            uint64_t dataSize;
-            uint64_t address;
+		if (event != PDEventType_setMemory)
+			continue;
 
-            if (event != PDEventType_setMemory)
-                continue;
+		assert_true(PDRead_findU64(reader, &address, "address", 0) & PDReadStatus_ok);
+		assert_true((PDRead_findData(reader, (void**)&data, &dataSize, "data", 0) & PDReadStatus_typeMask) == PDReadType_data);
 
-            assert_true(PDRead_findU64(reader, &address, "address", 0) & PDReadStatus_ok);
-            assert_true((PDRead_findData(reader, (void**)&data, &dataSize, "data", 0) & PDReadStatus_typeMask) == PDReadType_data);
+		assert_true(address == 0x080e);
+		assert_true(dataSize >= 14);
 
-            assert_true(address == 0x080e);
-            assert_true(dataSize >= 14);
+		assert_memory_equal(data, read_memory, sizeof_array(read_memory));
 
-            assert_memory_equal(data, read_memory, sizeof_array(read_memory));
-
-            return;
-        }
-    }
+		return;
+	}
 
     // no memory found
 
@@ -436,7 +431,7 @@ static void stepToPC(uint64_t pc)
         CPUState state;
 
         Session_action(s_session, PDAction_step);
-        Session_update(s_session);
+        //Session_update(s_session);
         assert_true(handleEvents(&state, s_session));
 
         if (state.pc == pc)
@@ -455,16 +450,11 @@ static void waitForBreak(uint64_t breakAddress, const CPUState* cpuState, uint64
 {
     CPUState outState;
 
-    printf("wait for break $%llx\n", breakAddress);
-
-    // Give VICE some time to actually hit the breakpoint so we loop here and do
-    // some sleeping and expect this to hit within 10 ms
+    //printf("wait for break $%llx\n", breakAddress);
 
     for (int i = 0; i < 12; ++i)
     {
         uint64_t address = 0;
-
-        Session_update(s_session);
 
         PDReader* reader = s_session->reader;
 
@@ -485,6 +475,8 @@ static void waitForBreak(uint64_t breakAddress, const CPUState* cpuState, uint64
         }
 
         Time_sleepMs(1);
+
+        Session_update(s_session);
     }
 
     fail();
@@ -550,6 +542,7 @@ void test_c64_vice_basic_breakpoint(void**)
 
     // expect that we will run here without any exception events being sent
 
+#if 0
     for (int i = 0; i < 10; ++i)
     {
         Session_update(s_session);
@@ -568,6 +561,7 @@ void test_c64_vice_basic_breakpoint(void**)
 
         Time_sleepMs(1);
     }
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -685,10 +679,8 @@ int main()
         unit_test(test_c64_vice_get_registers),
         unit_test(test_c64_vice_step_cpu),
         unit_test(test_c64_vice_get_disassembly),
-        /*
         unit_test(test_c64_vice_get_memory),
         unit_test(test_c64_vice_basic_breakpoint),
-        */
         /*
            unit_test(test_c64_vice_breakpoint_cond),
          */
