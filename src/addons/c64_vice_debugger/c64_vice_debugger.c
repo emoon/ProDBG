@@ -736,7 +736,7 @@ uint16_t getBasicStart(PluginData* data)
     for (int i = 0; i < 18; ++i)
     {
         char c = (char)memory[i];
-        printf("%02x ", c);
+        log_debug("%02x ", c);
     }
 
     log_debug("\n", "");
@@ -986,7 +986,7 @@ static void parseBreakpoint(PluginData* data, const char* res, PDWriter* writer)
     PDWrite_u32(writer, "id", (uint32_t)id);
     PDWrite_eventEnd(writer);
 
-    printf("sending reply back: breakpoint %x - %d\n", bp->address, id);
+    log_debug("sending reply back: breakpoint %x - %d\n", bp->address, id);
 
     // TODO: Condition
 
@@ -1027,7 +1027,7 @@ static void getMemory(PluginData* data, PDReader* reader, PDWriter* writer)
         // + 2 is because VICE writes address at the start of the block and at the end
         //
 
-        printf("c64_vice: sending memory\n");
+        log_debug("c64_vice: sending memory\n", "");
 
         PDWrite_eventBegin(writer, PDEventType_setMemory);
         PDWrite_u64(writer, "address", address);
@@ -1129,7 +1129,7 @@ static bool setExecutable(PluginData* data, PDReader* reader)
     if (startAddress == -1)
     	return false;
 
-    printf("loading %s and running from $%x\n", filename, startAddress);
+    log_debug("loading %s and running from $%x\n", filename, startAddress);
 
 	char temp[2048];
 	sprintf(temp, "load \"%s\" 0\n", filename);
