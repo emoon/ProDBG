@@ -1296,11 +1296,11 @@ static bool findParentheses(const char* text, const char** start, const char** e
 	for (i = len; i > -1; --i)
 	{
 		if (text[i] == ')')
-			*end = text;
+			*end = &text[i];
 			
 		if (text[i] == '(')
 		{
-			*start = text;
+			*start = &text[i];
 			break;
 		}
 	}

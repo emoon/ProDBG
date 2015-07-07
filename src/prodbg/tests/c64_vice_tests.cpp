@@ -589,9 +589,11 @@ void test_c64_vice_callstack(void**)
 
 	uint16_t refCallstack[] =
 	{
-		0xa7e7 + 2,		// (2) a7e7
-		0xa677 + 5,		// (5) a677
-		0xe89a + 7,		// (7) e39a
+		0xe112 + 2, // (2) e112
+		0xa562 + 4, // (4) a562
+		0xa483 + 6, // (6) a483
+		0xa677 + 8, // (8) a677
+		0xe39a + 10, // (10) e39a
 	};
 
     PDWriter* writer = s_session->currentWriter;
@@ -612,7 +614,7 @@ void test_c64_vice_callstack(void**)
         {
             case PDEventType_setCallstack:
             {
-				if (PDRead_findArray(reader, &it, "registers", 0) == PDReadStatus_notFound)
+				if (PDRead_findArray(reader, &it, "callstack", 0) == PDReadStatus_notFound)
 					return;
 
 				int callstackSize = sizeof_array(refCallstack);
