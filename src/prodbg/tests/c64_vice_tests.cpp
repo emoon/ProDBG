@@ -579,6 +579,65 @@ void test_c64_vice_breakpoint_cond(void**)
 
     waitForBreak(breakAddress, &state, CPUState_maskY);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void test_c64_vice_callstack(void**)
+{
+	uint32_t event;
+    PDReaderIterator it;
+
+	uint16_t refCallstack[] =
+	{
+		0xa7e7 + 2,		// (2) a7e7
+		0xa677 + 5,		// (5) a677
+		0xe89a + 7,		// (7) e39a
+	};
+
+    PDWriter* writer = s_session->currentWriter;
+
+    PDWrite_eventBegin(writer, PDEventType_getCallstack);
+    PDWrite_eventEnd(writer);
+    PDBinaryWriter_finalize(writer);
+
+    Session_update(s_session);
+
+	PDReader* reader = s_session->reader;
+
+	PDBinaryReader_initStream(reader, PDBinaryWriter_getData(s_session->currentWriter), PDBinaryWriter_getSize(s_session->currentWriter));
+
+    while ((event = PDRead_getEvent(reader)) != 0)
+    {
+        switch (event)
+        {
+            case PDEventType_setCallstack:
+            {
+				if (PDRead_findArray(reader, &it, "registers", 0) == PDReadStatus_notFound)
+					return;
+
+				int callstackSize = sizeof_array(refCallstack);
+				int count = 0;
+
+				while (PDRead_getNextEntry(reader, &it))
+				{
+					uint16_t address;
+
+        			PDRead_findU16(reader, &address, "address", it);
+
+        			assert_true(count < callstackSize);
+        			assert_int_equal(refCallstack[count], address);
+
+					count++;
+				}
+
+				return;
+            }
+        }
+    }
+
+    fail();
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
@@ -628,6 +687,7 @@ int main()
         unit_test(test_c64_vice_get_memory),
         unit_test(test_c64_vice_basic_breakpoint),
         unit_test(test_c64_vice_breakpoint_cond),
+        unit_test(test_c64_vice_callstack),
         //unit_test(test_c64_vice_set_memory),
     };
 
