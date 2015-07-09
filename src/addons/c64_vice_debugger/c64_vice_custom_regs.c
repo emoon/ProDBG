@@ -16,7 +16,7 @@ typedef struct CustomRegsData
     uint64_t location;
 } CustomRegsData;
 
-static PDVec4 s_colorRed = { 1.0, 0.0f, 0.0f, 1.0f };
+static PDColor s_colorRed = PDUI_COLOR(255, 0, 0, 0); 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

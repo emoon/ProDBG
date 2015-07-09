@@ -98,7 +98,7 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
 
         uiFuncs->text("%s: ", addressText); uiFuncs->sameLine(0, -1);
 
-        PDVec4 color = { 1.0, 0.0f, 0.0f, 1.0f };
+        PDColor color = PDUI_COLOR(255, 0, 0, 255); 
 
         // Print hex values
 
@@ -149,7 +149,7 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
 void drawUI(HexMemoryData* data, PDUI* uiFuncs)
 {
     uiFuncs->pushItemWidth(100);
-    uiFuncs->inputText("Start Address", data->startAddress, sizeof(data->startAddress), PDInputTextFlags_CharsHexadecimal, 0, 0);
+    uiFuncs->inputText("Start Address", data->startAddress, sizeof(data->startAddress), PDUIInputTextFlags_CharsHexadecimal, 0, 0);
     uiFuncs->sameLine(0, -1);
     uiFuncs->inputText("End Address", data->endAddress, sizeof(data->endAddress), 0, 0, 0);
     uiFuncs->popItemWidth();
@@ -185,7 +185,8 @@ void drawUI(HexMemoryData* data, PDUI* uiFuncs)
     //printf("pos %f %f\n", pos.x, pos.y);
     //printf("rect %f %f %f %f\n", rect.x, rect.y, rect.width, rect.height);
 
-    const float fontWidth = uiFuncs->getFontWidth();
+	// TODO: Fix me
+    const float fontWidth = 13.0f; // uiFuncs->getFontWidth();
 
     float drawableChars = (float)(int)(windowSize.x / (fontWidth + 23));
 

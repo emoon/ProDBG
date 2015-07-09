@@ -197,7 +197,7 @@ static void showUI(PDUI* uiFuncs, CallstackData* data)
 
     for (CallstackEntry& entry : data->callstack)
     {
-		if (uiFuncs->selectableFixed(entry.address, data->selectedFrame == i, 1 << 1, size))
+		if (uiFuncs->selectable(entry.address, data->selectedFrame == i, PDUISelectableFlags_SpanAllColumns, size))
 			data->selectedFrame = i;
 
     	uiFuncs->nextColumn();

@@ -15,7 +15,7 @@ extern "C" {
 
 struct PDUIUIPainter;
 struct PDRect;
-typedef struct PDUITextureID PDUITextureID;
+typedef void* PDUITextureID;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -46,13 +46,14 @@ typedef uint32_t PDUIInputTextFlags;    // enum PDUIInputTextFlags_
 typedef uint32_t PDID;
 typedef uint32_t PDUISetCond; 
 typedef uint32_t PDUIWindowFlags; 
+typedef uint32_t PDUISelectableFlags;
 typedef void* PDUIFont;
 
 #define PDUI_COLOR(r, g, b, a) (((uint32_t)r << 24) | ((uint32_t)g << 16) | ((uint32_t)b << 8) | (a))
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum PDUIStyleVar
+typedef enum PDUIStyleVar
 {
     PDUIStyleVar_Invalid = 0,
     PDUIStyleVar_Alpha,             // float
@@ -64,7 +65,7 @@ enum PDUIStyleVar
     PDUIStyleVar_ItemInnerSpacing,  // PDVec2
     PDUIStyleVar_TreeNodeSpacing,   // float
     PDUIStyleVar_Count
-};
+} PDUIStyleVar;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -105,7 +106,7 @@ enum PDUIInputTextFlags_
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Flags for selectable()
 
-enum PDUISelectableFlags
+enum PDUISelectableFlags_
 {
     // Default: 0
     PDUISelectableFlags_DontClosePopups    = 1 << 0,   // Clicking this don't close parent popup window
@@ -115,7 +116,7 @@ enum PDUISelectableFlags
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Enumeration for pushStyleColor() / popStyleColor()
 
-enum PDUICol
+typedef enum PDUICol
 {
     PDUICol_Text,
     PDUICol_TextDisabled,
@@ -161,24 +162,24 @@ enum PDUICol
     PDUICol_TooltipBg,
     PDUICol_ModalWindowDarkening,  // darken entire screen when a modal window is active
     PDUICol_COUNT
-};
+} PDUICol;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Enumeration for colorEditMode()
 
-enum PDUIColorEditMode
+typedef enum PDUIColorEditMode
 {
     PDUIColorEditMode_UserSelect = -2,
     PDUIColorEditMode_UserSelectShowButton = -1,
     PDUIColorEditMode_RGB = 0,
     PDUIColorEditMode_HSV = 1,
     PDUIColorEditMode_HEX = 2
-};
+} PDUIColorEditMode;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Enumeration for getMouseCursor()
 
-enum PDUIMouseCursor
+typedef enum PDUIMouseCursor
 {
     PDUIMouseCursor_Arrow = 0,
     PDUIMouseCursor_TextInput,         // When hovering over InputText, etc.
@@ -187,7 +188,7 @@ enum PDUIMouseCursor
     PDUIMouseCursor_ResizeEW,          // When hovering over a column
     PDUIMouseCursor_ResizeNESW,        // Unused
     PDUIMouseCursor_ResizeNWSE,        // When hovering over the bottom-right corner of a window
-};
+} PDUIMouseCursor;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Condition flags for setWindow***(), setNextWindow***(), setNextTreeNode***() functions
@@ -289,7 +290,7 @@ typedef struct PDUI
 	void (*unIndent)();
 	void (*columns)(int count, const char* id, bool border);
 	void (*nextColumn)();
-	int  (*getColumnIndex)();
+	int (*getColumnIndex)();
 	float(*getColumnOffset)(int column_index);
 	void (*setColumnOffset)(int column_index, float offset_x);
 	float (*getColumnWidth)(int column_index);
@@ -347,17 +348,17 @@ typedef struct PDUI
 	bool (*combo)(const char* label, int* currentItem, const char** items, int itemsCount, int heightInItems);
 	bool (*combo2)(const char* label, int* currentItem, const char* itemsSeparatedByZeros, int heightInItems);
 	bool (*combo3)(const char* label, int* currentItem, bool(*itemsGetter)(void* data, int idx, const char** out_text), void* data, int itemsCount, int heightInItems);
-	bool (*colorButton)(const PDVec4 col, bool smallHeight, bool outlineBorder);
+	bool (*colorButton)(const PDColor col, bool smallHeight, bool outlineBorder);
 	bool (*colorEdit3)(const char* label, float col[3]);
 	bool (*colorEdit4)(const char* label, float col[4], bool showAlpha);
 	void (*colorEditMode)(PDUIColorEditMode mode);
 	void (*plotLines)(const char* label, const float* values, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize, size_t stride);
-	void (*plotLines2)(const char* label, float(*values_getter)(void* data, int idx), void* data, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize);
+	void (*plotLines2)(const char* label, float(*valuesGetter)(void* data, int idx), void* data, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize);
 	void (*plotHistogram)(const char* label, const float* values, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize, size_t stride);
 	void (*plotHistogram2)(const char* label, float(*valuesGetter)(void* data, int idx), void* data, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize);
 
 	// Widgets: Scintilla text interface
-	PDUISCInterface* (*scInputText)(const char* label, float xSize, float ySize, void (*callback)(void), void* userData);
+	PDUISCInterface* (*scInputText)(const char* label, float xSize, float ySize, void (*callback)(void*), void* userData);
 
 	// Widgets: Sliders (tip: ctrl+click on a slider to input text)
 	bool (*sliderFloat)(const char* label, float* v, float vMin, float vMax, const char* displayFormat, float power);
@@ -383,8 +384,8 @@ typedef struct PDUI
 	bool (*dragInt4)(const char* label, int v[4], float vSpeed, int vMin, int vMax, const char* displayFormat);
 
 	// Widgets: Input
-    bool (*inputText)(const char* label, char* buf, int buf_size, int flags, void (*callback)(PDUIInputTextCallbackData), void* userData);
-	bool (*inputTextMultiline)(const char* label, char* buf, size_t buf_size, const PDVec2 size, PDUIInputTextFlags flags, PDUITextEditCallback callback, void* userData);
+    bool (*inputText)(const char* label, char* buf, int buf_size, int flags, void (*callback)(PDUIInputTextCallbackData*), void* userData);
+	bool (*inputTextMultiline)(const char* label, char* buf, size_t buf_size, const PDVec2 size, PDUIInputTextFlags flags, void (*callback)(PDUIInputTextCallbackData*), void* userData);
 	bool (*inputFloat)(const char* label, float* v, float step, float step_fast, int decimal_precision, PDUIInputTextFlags extraFlags);
 	bool (*inputFloat2)(const char* label, float v[2], int decimal_precision, PDUIInputTextFlags extraFlags);
 	bool (*inputFloat3)(const char* label, float v[3], int decimal_precision, PDUIInputTextFlags extraFlags);
@@ -409,7 +410,7 @@ typedef struct PDUI
 	bool (*selectable)(const char* label, bool selected, PDUISelectableFlags flags, const PDVec2 size);
 	bool (*selectableEx)(const char* label, bool* p_selected, PDUISelectableFlags flags, const PDVec2 size);
 	bool (*listBox)(const char* label, int* currentItem, const char** items, int itemsCount, int heightInItems);
-	bool (*listBox2)(const char* label, int* currentItem, bool(*items_getter)(void* data, int idx, const char** out_text), void* data, int itemsCount, int heightInItems);
+	bool (*listBox2)(const char* label, int* currentItem, bool(*itemsGetter)(void* data, int idx, const char** out_text), void* data, int itemsCount, int heightInItems);
 	bool (*listBoxHeader)(const char* label, const PDVec2 size);
 	bool (*listBoxHeader2)(const char* label, int itemsCount, int heightInItems);
 	void (*listBoxFooter)();
@@ -440,21 +441,20 @@ typedef struct PDUI
 	void (*endPopup)();
 	void (*closeCurrentPopup)();
 
-	// Widgets: Value() Helpers. Output single value in "name: value" format (tip: freely declare your own within the PDUI namespace!)
+	// Widgets: value() Helpers. Output single value in "name: value" format
 	void (*valueBool)(const char* prefix, bool b);
 	void (*valueInt)(const char* prefix, int v);
 	void (*valueUInt)(const char* prefix, unsigned int v);
 	void (*valueFloat)(const char* prefix, float v, const char* float_format);
-	void (*color)(const char* prefix, const PDVec4 v);
-	void (*color2)(const char* prefix, unsigned int v);
+	void (*color)(const char* prefix, const PDColor col);
 
 	// Logging: all text output from interface is redirected to tty/file/clipboard. Tree nodes are automatically opened.
-	void (*logToTTY)(int max_depth);
-	void (*logToFile)(int max_depth, const char* filename);
-	void (*logToClipboard)(int max_depth);
+	void (*logToTTY)(int maxDepth);
+	void (*logToFile)(int maxDepth, const char* filename);
+	void (*logToClipboard)(int maxDepth);
 	void (*logFinish)();
 	void (*logButtons)();
-	void (*logText)(const char* fmt, ...);
+	//void (*logText)(const char* fmt, ...); -- no logTextV which PDUI needs
 	
 	// Utilities
 	bool (*isItemHovered)();
@@ -463,26 +463,25 @@ typedef struct PDUI
 	bool (*isItemVisible)();
 	bool (*isAnyItemHovered)();
 	bool (*isAnyItemActive)();
-	void (*getItemRectMin)(struct PDVec2* pOut);
-	void (*getItemRectMax)(struct PDVec2* pOut);
-	void (*getItemRectSize)(struct PDVec2* pOut);
+	PDVec2 (*getItemRectMin)();
+	PDVec2 (*getItemRectMax)();
+	PDVec2 (*getItemRectSize)();
 	bool (*isWindowHovered)();
 	bool (*isWindowFocused)();
 	bool (*isRootWindowFocused)();
 	bool (*isRootWindowOrAnyChildFocused)();
-	bool (*isRectVisible)(const struct PDVec2 item_size);
-	bool (*isPosHoveringAnyWindow)(const struct PDVec2 pos);
+	bool (*isRectVisible)(const PDVec2 itemSize);
+	bool (*isPosHoveringAnyWindow)(const PDVec2 pos);
 	float (*getTime)();
 	int (*getFrameCount)();
 	const char* (*getStyleColName)(PDUICol idx);
-	void (*calcItemRectClosestPoint)(struct PDVec2* pOut, const struct PDVec2 pos, bool on_edge, float outward);
-	void (*calcTextSize)(struct PDVec2* pOut, const char* text, const char* text_end, bool hide_text_after_double_hash, float wrap_width);
+	PDVec2 (*calcItemRectClosestPoint)(const PDVec2 pos, bool on_edge, float outward);
+	PDVec2 (*calcTextSize)(const char* text, const char* text_end, bool hide_text_after_double_hash, float wrap_width);
 	void (*calcListClipping)(int items_count, float items_height, int* out_items_display_start, int* out_items_display_end);
 
 	bool (*beginChildFrame)(PDID id, const struct PDVec2 size);
 	void (*endChildFrame)();
 
-	uint32_t (*colorConvertFloat4ToU32)(const struct ImVec4 in);
 	void (*colorConvertRGBtoHSV)(float r, float g, float b, float* out_h, float* out_s, float* out_v);
 	void (*colorConvertHSVtoRGB)(float h, float s, float v, float* out_r, float* out_g, float* out_b);
 
@@ -496,10 +495,10 @@ typedef struct PDUI
 	bool (*isMouseReleased)(int button);
 	bool (*isMouseHoveringWindow)();
 	bool (*isMouseHoveringAnyWindow)();
-	bool (*isMouseHoveringRect)(const struct PDVec2 rectMin, const struct PDVec2 rectMax);
+	bool (*isMouseHoveringRect)(const PDVec2 rectMin, const PDVec2 rectMax);
 	bool (*isMouseDragging)(int button, float lockThreshold);
-	void (*getMousePos)(PDVec2* out);
-	void (*getMouseDragDelta)(PDVec2* out, int button, float lockThreshold);
+	PDVec2 (*getMousePos)();
+	PDVec2 (*getMouseDragDelta)(int button, float lockThreshold);
 	void (*resetMouseDragDelta)(int button);
 	PDUIMouseCursor (*getMouseCursor)();
 	void (*setMouseCursor)(PDUIMouseCursor type);
@@ -512,7 +511,7 @@ typedef struct PDUI
 
     void* privateData;
 
-} PDUIUI;
+} PDUI;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -522,7 +521,7 @@ typedef struct PDUI
 #define PDUI_textWrapped(uiFuncs, format, ...) uiFuncs->textWrapped(format, __VA_ARGS__)
 
 #define PDUI_button(uiFuncs, label) uiFuncs->button(label)
-#define PDUI_buttonSmall(uiFuncs, label) uiFuncs->buttonSmall(label)
+//#define PDUI_buttonSmall(uiFuncs, label) uiFuncs->buttonSmall(label)
 #define PDUI_buttonSize(uiFuncs, label, w, h) uiFuncs->button(label, w, h)
 
 #define PDUI_SCSendCommand(funcs, msg, p0, p1) funcs->sendCommand(funcs->privateData, msg, p0, p1)

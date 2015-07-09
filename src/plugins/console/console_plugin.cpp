@@ -120,14 +120,14 @@ static void execCommand(ConsoleData* consoleData, const char* commandLine)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void textEditCallbackStub(PDInputTextCallbackData* data)
+static void textEditCallbackStub(PDUIInputTextCallbackData* data)
 {
     ConsoleData* consoleData = (ConsoleData*)data->userData;
 
     //addLog(consoleData, "Cursor: %d, EventKey: %d, Selection: %d-%d", data->cursorPos, data->eventKey, data->selectionStart, data->selectionEnd);
 
     std::vector<const char*> candidates;
-    const char* wordEnd   = nullptr;
+    const char* wordEnd = nullptr;
     const char* wordStart = nullptr;
     switch (data->eventKey)
     {
@@ -138,9 +138,9 @@ static void textEditCallbackStub(PDInputTextCallbackData* data)
         case PDKEY_TAB:
         {
             // Locate beginning of current word
-            wordEnd   = data->buffer + data->cursorPos;
+            wordEnd = data->buf + data->cursorPos;
             wordStart = wordEnd;
-            while (wordStart > data->buffer)
+            while (wordStart > data->buf)
             {
                 const char c = wordStart[-1];
                 if (c == ' ' || c == '\t' || c == ',' || c == ';')
@@ -151,12 +151,10 @@ static void textEditCallbackStub(PDInputTextCallbackData* data)
             // Build a list of candidates
 
             for (size_t i = 0; i < consoleData->commands.size(); ++i)
+			{
                 if (strncasecmp(consoleData->commands[i], wordStart, (size_t)(int(wordEnd - wordStart))) == 0)
                     candidates.push_back(consoleData->commands[i]);
-
-
-
-
+			}
 
             if (candidates.size() == 0)
             {
@@ -167,7 +165,7 @@ static void textEditCallbackStub(PDInputTextCallbackData* data)
             {
                 // Single match. Delete the beginning of the word and replace it entirely so we've got nice casing
 
-                data->deleteChars(data, int(wordStart - data->buffer), int(wordEnd - wordStart));
+                data->deleteChars(data, int(wordStart - data->buf), int(wordEnd - wordStart));
                 data->insertChars(data, data->cursorPos, candidates[0], 0);
                 data->insertChars(data, data->cursorPos, " ", 0);
             }
@@ -195,7 +193,7 @@ static void textEditCallbackStub(PDInputTextCallbackData* data)
 
                 if (matchLen > 0)
                 {
-                    data->deleteChars(data, int(wordStart - data->buffer), int(wordEnd - wordStart));
+                    data->deleteChars(data, int(wordStart - data->buf), int(wordEnd - wordStart));
                     data->insertChars(data, data->cursorPos, candidates[0], candidates[0] + matchLen);
                 }
 
@@ -232,9 +230,9 @@ static void textEditCallbackStub(PDInputTextCallbackData* data)
             // TODO: A better implementation would preserve the data on the current input line along with cursor position
             if (prevHistoryPos != consoleData->historyPos)
             {
-                strcpy(data->buffer, (consoleData->historyPos >= 0) ? consoleData->history[(size_t)consoleData->historyPos] : "");
-                data->bufferDirty = true;
-                data->cursorPos = data->selectionStart = data->selectionEnd = int(strlen(data->buffer));
+                strcpy(data->buf, (consoleData->historyPos >= 0) ? consoleData->history[(size_t)consoleData->historyPos] : "");
+                data->bufDirty = true;
+                data->cursorPos = data->selectionStart = data->selectionEnd = int(strlen(data->buf));
             }
 
             break;
@@ -286,7 +284,7 @@ static void showInUI(ConsoleData* consoleData, PDReader* reader, PDUI* uiFuncs)
     // TODO: display from bottom
     // TODO: clip manually
 
-    if (PDUI_buttonSmall(uiFuncs, "Clear"))
+    if (uiFuncs->smallButton("Clear"))
         clearLog(consoleData);
 
     uiFuncs->sameLine(0, -1);
@@ -294,7 +292,7 @@ static void showInUI(ConsoleData* consoleData, PDReader* reader, PDUI* uiFuncs)
 
     PDVec2 pad = { 0.0f, 0.0f };
 
-    uiFuncs->pushStyleVarV(PDStyleVar_FramePadding, pad);
+    uiFuncs->pushStyleVarVec(PDUIStyleVar_FramePadding, pad);
 
     //static ImGuiTextFilter filter;
     //filter.Draw("Filter (\"incl,-excl\") (\"error\")", 180);
@@ -306,27 +304,27 @@ static void showInUI(ConsoleData* consoleData, PDReader* reader, PDUI* uiFuncs)
 
     uiFuncs->separator();
 
-    PDVec2 spacing = { 0, -uiFuncs->getTextLineSpacing() * 2 };
+    PDVec2 spacing = { 0, -uiFuncs->getTextLineHeightWithSpacing() * 2 };
     PDVec2 itemSpacing = { 4.0f, 1.0f };
 
-    uiFuncs->beginChild("ScrollingRegion", spacing, false, PDWindowFlags(0));
-    uiFuncs->pushStyleVarV(PDStyleVar_ItemSpacing, itemSpacing); // Tighten spacing
+    uiFuncs->beginChild("ScrollingRegion", spacing, false, PDUIWindowFlags(0));
+    uiFuncs->pushStyleVarVec(PDUIStyleVar_ItemSpacing, itemSpacing); // Tighten spacing
 
     for (size_t i = 0; i < consoleData->items.size(); i++)
     {
         const char* item = consoleData->items[i];
         //if (!filter.PassFilter(item))
         //    continue;
-        PDVec4 col = { 1.0f, 1.0f, 1.0f, 1.0f }; // A better implementation may store a type per-item. For now let's just parse the text.
+        PDColor col = PDUI_COLOR(255, 255, 255, 255); //{ 1.0f, 1.0f, 1.0f, 1.0f }; // A better implementation may store a type per-item. For now let's just parse the text.
         if (strstr(item, "[Error]"))
-            col = { 1.0f, 0.4f, 0.4f, 1.0f };
+            col = PDUI_COLOR(255, 100, 100, 255);
         else if (strncmp(item, "# ", 2) == 0)
-            col = { 1.0f, 0.8f, 0.6f, 1.0f };
+            col = PDUI_COLOR(255, 200, 150, 255);
         uiFuncs->textColored(col, item);
     }
 
     if (consoleData->scrollToBottom)
-        uiFuncs->setScrollHere();
+        uiFuncs->setScrollHere(0.5f);
 
     consoleData->scrollToBottom = false;
 
@@ -336,7 +334,7 @@ static void showInUI(ConsoleData* consoleData, PDReader* reader, PDUI* uiFuncs)
 
     // Command Line
 
-    if (uiFuncs->inputText("Input", consoleData->inputBuffer, sizeof(consoleData->inputBuffer), PDInputTextFlags_EnterReturnsTrue | PDInputTextFlags_CallbackCompletion | PDInputTextFlags_CallbackHistory, &textEditCallbackStub, (void*)consoleData))
+    if (uiFuncs->inputText("Input", consoleData->inputBuffer, sizeof(consoleData->inputBuffer), PDUIInputTextFlags_EnterReturnsTrue | PDUIInputTextFlags_CallbackCompletion | PDUIInputTextFlags_CallbackHistory, &textEditCallbackStub, (void*)consoleData))
     {
         char* inputEnd = consoleData->inputBuffer + strlen(consoleData->inputBuffer);
 

@@ -100,7 +100,7 @@ static void destroyInstance(void* userData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setExceptionLocation(PDUI* uiFuncs, PDSCInterface* sourceFuncs, SourceCodeData* data, PDReader* inEvents)
+static void setExceptionLocation(PDUI* uiFuncs, PDUISCInterface* sourceFuncs, SourceCodeData* data, PDReader* inEvents)
 {
     const char* filename;
     uint32_t line;
@@ -150,7 +150,7 @@ static void setExceptionLocation(PDUI* uiFuncs, PDSCInterface* sourceFuncs, Sour
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void updateKeyboard(SourceCodeData* data, PDSCInterface* sourceFuncs, PDUI* uiFuncs)
+static void updateKeyboard(SourceCodeData* data, PDUISCInterface* sourceFuncs, PDUI* uiFuncs)
 {
     (void)data;
     (void)uiFuncs;
@@ -193,7 +193,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
     (void)uiFuncs;
 
     SourceCodeData* data = (SourceCodeData*)userData;
-    PDSCInterface* sourceFuncs = uiFuncs->scInputText("test", 800, 700, 0, 0);
+    PDUISCInterface* sourceFuncs = uiFuncs->scInputText("test", 800, 700, 0, 0);
 
     while ((event = PDRead_getEvent(inEvents)) != 0)
     {

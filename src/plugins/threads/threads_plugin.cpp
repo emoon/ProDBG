@@ -73,7 +73,7 @@ static void showInUI(ThreadsData* userData, PDReader* reader, PDUI* uiFuncs)
 		char label[32];
 		sprintf(label, "%llx", id);
 
-		if (uiFuncs->selectableFixed(label, data->selectedThread == i, 1 << 1, size))
+		if (uiFuncs->selectable(label, data->selectedThread == i, 1 << 1, size))
 		{
 			data->selectedThread = i;
 			data->threadId = (int)id;

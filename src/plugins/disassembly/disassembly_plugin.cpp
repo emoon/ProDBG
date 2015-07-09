@@ -205,8 +205,8 @@ void renderUI(DissassemblyData* data, PDUI* uiFuncs)
             rect.y = pos.y;
             rect.width = size.x;
             rect.height = 14;
-            uiFuncs->fillRect(rect, PD_COLOR_32(200, 0, 0, 127));
-            uiFuncs->setScrollHere();
+            uiFuncs->fillRect(rect, PDUI_COLOR(200, 0, 0, 127));
+            uiFuncs->setScrollHere(0.5f);
         }
 
         uiFuncs->text("0x%04x %s", (uint64_t)line.address, line.text);

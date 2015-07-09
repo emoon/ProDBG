@@ -216,7 +216,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     uiFuncs->text("");
 
-    if (uiFuncs->button("Add Breakpoint"))
+    if (uiFuncs->button("Add Breakpoint", { 0.0f, 0.0f } ))
     {
         Breakpoint* bp = createBreakpoint(data);
         data->breakpoints.push_back(bp);
@@ -246,7 +246,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
         else
         {
             if (uiFuncs->inputText("##address", bp->location.address, (int)data->maxPath,
-                                   PDInputTextFlags_CharsHexadecimal | PDInputTextFlags_EnterReturnsTrue, 0, 0))
+                                   PDUIInputTextFlags_CharsHexadecimal | PDUIInputTextFlags_EnterReturnsTrue, 0, 0))
                 needUpdate = true;
         }
 
@@ -280,7 +280,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
             printf("Sending breakpint\n");
         }
 
-        if (uiFuncs->button("Delete"))
+        if (uiFuncs->button("Delete", {0.0f, 0.0f}))
         {
             PDWrite_eventBegin(writer, PDEventType_deleteBreakpoint);
             PDWrite_u32(writer, "id", (uint32_t)bp->id);
