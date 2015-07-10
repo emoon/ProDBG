@@ -53,7 +53,7 @@ Program {
 
 		PROGCOM = {
 			{ "-lstdc++"; Config = "linux-gcc-*" },
-			{ "-lm -lpthread -ldl -lX11 -lGL"; Config = "linux-*-*" },
+			{ "-lm -lrt -lpthread -ldl -lX11 -lGL"; Config = "linux-*-*" },
 		},
     },
 

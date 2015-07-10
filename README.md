@@ -13,6 +13,7 @@ Buildbot status: http://zenic.org:8020/#/builders
 
 [![Coverage Status](https://img.shields.io/coveralls/emoon/ProDBG.svg)](https://coveralls.io/r/emoon/ProDBG)
 [![Coverity Status](https://scan.coverity.com/projects/3173/badge.svg)](https://scan.coverity.com/projects/3173)
+[![Travis Status](https://travis-ci.org/emoon/ProDBG.svg?branch=master)](https://travis-ci.org/emoon/ProDBG)
 
 ### Status
 
