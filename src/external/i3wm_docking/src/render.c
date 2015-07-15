@@ -33,9 +33,9 @@ static bool show_debug_borders = false;
  */
 int render_deco_height(void) {
     // int deco_height = config.font.height + 4;
-    int deco_height = 20 + 4;
+    int deco_height = 0; //20 + 4;
     //if (config.font.height & 0x01)
-    if (20 & 0x01)
+    if (0 & 0x01)
         ++deco_height;
     return deco_height;
 }
