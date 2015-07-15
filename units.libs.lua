@@ -86,6 +86,31 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
+    Name = "i3wm_docking",
+
+    Env = { 
+        CPPPATH = { 
+            "src/external/i3wm_docking/include",
+        },
+        CCOPTS = {
+        	{ "-Wno-everything"; Config = "macosx-*-*" },
+        	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
+        },
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "src/external/i3wm_docking/src",
+            Extensions = { ".c", ".h" },
+        },
+    },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
     Name = "jansson",
 
     Env = { 
@@ -540,6 +565,7 @@ StaticLibrary {
 			"src/external/jansson/include",
 			"src/external/foundation_lib",
 			"src/external/libuv/include",
+			"src/external/i3wm_docking/include",
         	"api/include",
             "src/prodbg",
         },
