@@ -11,6 +11,7 @@ extern "C" {
 #include "include/move.h"
 #include "include/log.h"
 #include "include/output.h"
+#include "include/render.h"
 #include "include/workspace.h"
 #include "include/callbacks.h"
 
