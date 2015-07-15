@@ -593,6 +593,7 @@ StaticLibrary {
 			"src/external/libuv/include",
 			"src/external/jansson/include",
 			"src/external/foundation_lib",
+			"src/external/i3wm_docking",
         	"api/include",
             "src/prodbg",
         },
