@@ -25,7 +25,7 @@ extern struct all_cons_head all_cons;
  *
  */
 //void tree_init(xcb_get_geometry_reply_t *geometry);
-void tree_init(I3Rect *geometry);
+void tree_init(I3Rect geometry);
 
 /**
  * Opens an empty container in the current container

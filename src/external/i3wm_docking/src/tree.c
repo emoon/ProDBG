@@ -128,7 +128,7 @@ bool tree_restore(const char *path, xcb_get_geometry_reply_t *geometry) {
  *
  */
 //void tree_init(xcb_get_geometry_reply_t *geometry) {
-void tree_init(I3Rect *geometry) {
+void tree_init(I3Rect geometry) {
     croot = con_new(NULL, NULL);
     FREE(croot->name);
     croot->name = "root";
@@ -141,7 +141,7 @@ void tree_init(I3Rect *geometry) {
         geometry->width,
         geometry->height};
 #else
-    croot->rect = *geometry;
+    croot->rect = geometry;
 #endif
 
     _create___i3();
