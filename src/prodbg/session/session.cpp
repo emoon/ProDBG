@@ -17,6 +17,8 @@
 #include "ui/bgfx/ui_host.h"
 #include "ui/bgfx/ui_dock_private.h" // TODO: Fix me
 #include "ui/plugin.h"
+#include "i3wm_docking.h"
+
 
 #include <stdlib.h>
 //#include <stb.h>
@@ -98,6 +100,8 @@ void Session_globalInit(bool reloadPlugins)
 {
     if (!reloadPlugins)
         return;
+
+	init_logging();
 
     FileMonitor_addPath(OBJECT_DIR, LIB_EXT, fileUpdateCallback, 0);
 }
@@ -186,19 +190,39 @@ struct Session* Session_create()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if PRODBG_USING_DOCKING
-
 void Session_createDockingGrid(Session* session, int width, int height)
 {
+	(void)session;
+	(void)width;
+	(void)height;
+
+	tree_init((I3Rect) { 0, 0, (uint32_t)width, (uint32_t)height });
+
+	fake_outputs_init(0, 0, (uint32_t)width, (uint32_t)height);
+
+	session->i3_dock_grid = workspace_get("test_ws", NULL);
+
+    //tree_open_con(NULL, NULL);
+	//tree_split(focused, HORIZ);
+
+	printf("cerated dock grid %p\n", session->i3_dock_grid);
+
+#if 0
     IntRect rect = {{{ 0, 0, width, height }}};
 
-    session->uiDockingGrid = UIDock_createGrid(&rect);
+    session->uiDockingGrid = 0; UIDock_createGrid(&rect);
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Session_loadLayout(Session* session, const char* filename, int width, int height)
 {
+	(void)session;
+	(void)filename;
+	(void)width;
+	(void)height;
+	/*
     UIDockingGrid* grid = UIDock_loadLayout(filename, width, height);
 
     if (!grid)
@@ -210,11 +234,10 @@ bool Session_loadLayout(Session* session, const char* filename, int width, int h
 
     for (UIDock* dock : grid->docks)
         Session_addViewPlugin(session, dock->view);
+    */
 
     return true;
 }
-
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -470,6 +493,9 @@ static void updateLocal(Session* s, PDAction action)
         struct ViewPluginInstance* p = s->viewPlugins[i];
         PluginUI::State state = g_pluginUI->updateInstance(p, s->reader, s->currentWriter);
 
+        (void)state;
+
+	#if 0
         if (state == PluginUI::CloseView)
         {
         #if PRODBG_USING_DOCKING
@@ -477,6 +503,7 @@ static void updateLocal(Session* s, PDAction action)
         #endif
             p->markDeleted = true;
         }
+    #endif
 
         PDBinaryReader_reset(s->reader);
     }
@@ -552,6 +579,9 @@ static void updateRemote(Session* s, PDAction action)
         struct ViewPluginInstance* p = s->viewPlugins[i];
         PluginUI::State state = g_pluginUI->updateInstance(p, s->reader, s->currentWriter);
 
+        (void)state;
+
+	#if 0
         if (state == PluginUI::CloseView)
         {
         #if PRODBG_USING_DOCKING
@@ -559,6 +589,7 @@ static void updateRemote(Session* s, PDAction action)
         #endif
             p->markDeleted = true;
         }
+    #endif
 
         PDBinaryReader_reset(s->reader);
     }
@@ -802,9 +833,10 @@ SessionStatus Session_onMenu(Session* session, int eventId)
 
 #if PRODBG_USING_DOCKING
 
-struct UIDockingGrid* Session_getDockingGrid(struct Session* session)
+struct Con* Session_getDockingGrid(struct Session* session)
 {
-    return session->uiDockingGrid;
+    //return session->uiDockingGrid;
+    return session->i3_dock_grid;
 }
 
 #endif

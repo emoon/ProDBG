@@ -20,6 +20,7 @@ Program {
             "src/external/bgfx/include", 
             "src/external/bx/include",
             "src/external/stb",
+            "src/external/i3wm_docking",
             "src/prodbg", 
         	"api/include",
             "src/frontend",

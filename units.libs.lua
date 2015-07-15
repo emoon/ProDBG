@@ -639,6 +639,7 @@ StaticLibrary {
             "src/external/bx/include",
             "src/external/bgfx/include",
         	"api/include",
+        	"src/external/i3wm_docking",
 			"src/external/foundation_lib",
 			"src/external/libuv/include",
             "src/external/stb",

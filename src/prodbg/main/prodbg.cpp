@@ -14,6 +14,7 @@
 #include "ui/menu.h"
 #include "core/input_state.h"
 #include "ui/plugin.h"
+#include "i3wm_docking.h"
 
 //#include <bgfx.h>
 #include <stdio.h>
@@ -74,11 +75,13 @@ static const char* s_plugins[] =
 
 void loadLayout(Session* session, int width, int height)
 {
+	/*
     if (Session_loadLayout(session, "data/current_layout.json", width, height))
         return;
 
     if (Session_loadLayout(session, "data/default_layout.json", width, height))
         return;
+    */
 
     Session_createDockingGrid(session, width, height);
 }
@@ -268,7 +271,7 @@ void ProDBG_destroy()
 
     //rmt_DestroyGlobalInstance(s_remotery);
 
-    UIDock_saveLayout(Session_getDockingGrid(context->session), "data/current_layout.json");
+    //UIDock_saveLayout(Session_getDockingGrid(context->session), "data/current_layout.json");
 
     Session_destroy(context->session);
 
@@ -319,6 +322,7 @@ void ProDBG_event(int eventId)
     pd_info("eventId 0x%x\n", eventId);
 
     Vec2 mousePos = InputState_getState()->mousePos;
+    (void)mousePos;
 
 #if PRODBG_USING_DOCKING
     if (eventId & PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT)
@@ -326,7 +330,8 @@ void ProDBG_event(int eventId)
         eventId &= (PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT - 1);
 
         ViewPluginInstance* instance = g_pluginUI->createViewPlugin(pluginsData[eventId]);
-        UIDock_splitHorizontalAt(Session_getDockingGrid(context->session), (int)mousePos.x, (int)mousePos.y, instance);
+        tree_open_con(NULL, instance);
+        //UIDock_splitHorizontalAt(Session_getDockingGrid(context->session), (int)mousePos.x, (int)mousePos.y, instance);
 
         Session_addViewPlugin(context->session, instance);
         return;
@@ -337,7 +342,8 @@ void ProDBG_event(int eventId)
         eventId &= (PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT - 1);
 
         ViewPluginInstance* instance = g_pluginUI->createViewPlugin(pluginsData[eventId]);
-        UIDock_splitVerticalAt(Session_getDockingGrid(context->session), (int)mousePos.x, (int)mousePos.y, instance);
+        //UIDock_splitVerticalAt(Session_getDockingGrid(context->session), (int)mousePos.x, (int)mousePos.y, instance);
+        tree_open_con(NULL, instance);
 
         Session_addViewPlugin(context->session, instance);
         return;
@@ -347,6 +353,7 @@ void ProDBG_event(int eventId)
 
     // TODO: This code really needs to be made more robust.
 
+#if 0
     if (eventId >= PRODBG_MENU_PLUGIN_START && eventId < PRODBG_MENU_PLUGIN_START + 9)
     {
         ViewPluginInstance* instance = g_pluginUI->createViewPlugin(pluginsData[eventId - PRODBG_MENU_PLUGIN_START]);
@@ -358,6 +365,7 @@ void ProDBG_event(int eventId)
         Session_addViewPlugin(context->session, instance);
         return;
     }
+#endif
 
     switch (eventId)
     {

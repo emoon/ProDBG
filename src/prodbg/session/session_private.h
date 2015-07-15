@@ -6,6 +6,7 @@ struct PDBackendInstance;
 struct RemoteConnection;
 struct ViewPluginInstance;
 struct UIDockingGrid;
+struct Con;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -44,7 +45,8 @@ typedef struct Session
         backend = 0;
         connection = 0;
         viewPlugins = 0;
-        uiDockingGrid = 0;
+        //uiDockingGrid = 0;
+        i3_dock_grid = 0;
     }
 
     enum SessionType type;
@@ -61,7 +63,8 @@ typedef struct Session
     PDBackendInstance* backend;
     RemoteConnection* connection;
     ViewPluginInstance** viewPlugins;
-    UIDockingGrid* uiDockingGrid;
+    //UIDockingGrid* uiDockingGrid;
+    Con* i3_dock_grid;
 
     std::list<Breakpoint*> breakpoints;
 

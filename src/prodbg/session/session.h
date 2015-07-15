@@ -16,7 +16,8 @@ enum SessionStatus
 struct Session;
 struct ViewPluginInstance;
 struct UILayout;
-struct UIDockingGrid;
+//struct UIDockingGrid;
+struct Con;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -72,7 +73,7 @@ void Session_stepOver(Session* session);
 void Session_loadSourceFile(Session* session, const char* filename);
 void Session_toggleBreakpointCurrentLine(Session* s);
 
-struct UIDockingGrid* Session_getDockingGrid(struct Session* session);
+struct Con* Session_getDockingGrid(struct Session* session);
 void Session_createDockingGrid(struct Session* session, int width, int height);
 
 

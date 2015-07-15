@@ -20,6 +20,7 @@
 #include "core/input_state.h"
 #include "ui/bgfx/cursor.h"
 #include <foundation/string.h>
+#include "i3wm_docking.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -2168,6 +2169,28 @@ void BgfxPluginUI::init(ViewPluginInstance* pluginInstance)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Callback from the docking system
+
+void updateWindowSize(void* userData, int x, int y, int width, int height)
+{
+	ViewPluginInstance* instance = (ViewPluginInstance*)userData;
+
+	printf("updateSize %d %d - %x %d\n", x, y, width, height);
+
+	instance->rect.x = x;
+	instance->rect.y = y;
+	instance->rect.width = width;
+	instance->rect.height = height;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static DockSysCallbacks s_dockSysCallbacks =
+{
+	updateWindowSize,
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 PluginUI::State BgfxPluginUI::updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer)
 {
@@ -2292,8 +2315,13 @@ void BgfxPluginUI::preUpdate()
     for (int i = 0; i < array_size(sessions); ++i)
     {
         Session* session = sessions[i];
-        UIDockingGrid* grid = Session_getDockingGrid(session);
-        updateDock(grid);
+        //Con* con = Session_getDockingGrid(session);
+		//render_con(con, false);
+		//
+		tree_render();
+
+        //UIDockingGrid* grid = Session_getDockingGrid(session);
+        //updateDock(grid);
     }
 }
 
@@ -2306,12 +2334,14 @@ void BgfxPluginUI::postUpdate()
 
     Session** sessions = Session_getSessions();
 
+#if 0
     for (int i = 0; i < array_size(sessions); ++i)
     {
         Session* session = sessions[i];
         UIDockingGrid* grid = Session_getDockingGrid(session);
         UIDock_render(grid);
     }
+#endif
 
     bgfx::frame();
 }
@@ -2320,6 +2350,8 @@ void BgfxPluginUI::postUpdate()
 
 void BgfxPluginUI::create(void* windowHandle, int width, int height)
 {
+	docksys_set_callbacks(&s_dockSysCallbacks);
+
 #ifdef PRODBG_WIN
 	bgfx::winSetHwnd((HWND)windowHandle);
 #endif
@@ -2430,10 +2462,11 @@ void ProDBG_setWindowSize(int width, int height)
     for (int i = 0; i < array_size(sessions); ++i)
     {
         Session* session = sessions[i];
+    #if 0
         UIDockingGrid* grid = Session_getDockingGrid(session);
-
         updateDock(grid);
         UIDock_updateSize(grid, width, height - (int)g_pluginUI->getStatusBarSize());
+    #endif
     }
 }
 
