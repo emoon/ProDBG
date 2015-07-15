@@ -31,7 +31,7 @@ void tree_init(I3Rect geometry);
  * Opens an empty container in the current container
  *
  */
-Con *tree_open_con(Con *con, i3Window *window);
+Con *tree_open_con(Con *con, void *userData);
 
 /**
  * Splits (horizontally or vertically) the given container by creating a new
