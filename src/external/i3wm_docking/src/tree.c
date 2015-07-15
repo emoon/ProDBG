@@ -88,7 +88,7 @@ bool tree_restore(const char *path, xcb_get_geometry_reply_t *geometry) {
 
     /* TODO: refactor the following */
     croot = con_new(NULL, NULL);
-    croot->rect = (Rect){
+    croot->rect = (I3Rect){
         geometry->x,
         geometry->y,
         geometry->width,
@@ -128,14 +128,14 @@ bool tree_restore(const char *path, xcb_get_geometry_reply_t *geometry) {
  *
  */
 //void tree_init(xcb_get_geometry_reply_t *geometry) {
-void tree_init(Rect *geometry) {
+void tree_init(I3Rect *geometry) {
     croot = con_new(NULL, NULL);
     FREE(croot->name);
     croot->name = "root";
     croot->type = CT_ROOT;
     croot->layout = L_SPLITH;
 #if 0
-    croot->rect = (Rect){
+    croot->rect = (I3Rect){
         geometry->x,
         geometry->y,
         geometry->width,

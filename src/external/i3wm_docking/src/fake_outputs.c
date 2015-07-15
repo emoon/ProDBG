@@ -53,7 +53,7 @@ static Output *get_output_by_id(xcb_randr_output_t id) {
 */
 
 Output *get_output_next(direction_t direction, Output *current, output_close_far_t close_far) {
-    Rect *cur = &(current->rect),
+    I3Rect *cur = &(current->rect),
          *other;
     Output *output,
         *best = NULL;
@@ -319,7 +319,7 @@ void init_ws_for_output(Output *output, Con *content) {
             workspace_show(previous);
         }
 
-        /* Render the output on which the workspace was to get correct Rects.
+        /* Render the output on which the workspace was to get correct I3Rects.
          * Then, we need to work with the "content" container, since we cannot
          * be sure that the workspace itself was rendered at all (in case it’s
          * invisible, it won’t be rendered). */

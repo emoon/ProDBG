@@ -58,9 +58,9 @@
 
 int min(int a, int b);
 int max(int a, int b);
-bool rect_contains(Rect rect, uint32_t x, uint32_t y);
-Rect rect_add(Rect a, Rect b);
-Rect rect_sub(Rect a, Rect b);
+bool rect_contains(I3Rect rect, uint32_t x, uint32_t y);
+I3Rect rect_add(I3Rect a, I3Rect b);
+I3Rect rect_sub(I3Rect a, I3Rect b);
 
 /**
  * Returns true if the name consists of only digits.
@@ -154,11 +154,11 @@ void *memmem(const void *l, size_t l_len, const void *s, size_t s_len);
 int min(int a, int b);
 int max(int a, int b);
 
-bool rect_contains(Rect rect, uint32_t x, uint32_t y);
+bool rect_contains(I3Rect rect, uint32_t x, uint32_t y);
 
-Rect rect_add(Rect a, Rect b);
+I3Rect rect_add(I3Rect a, I3Rect b);
 
-Rect rect_sub(Rect a, Rect b);
+I3Rect rect_sub(I3Rect a, I3Rect b);
 
 
 

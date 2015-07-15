@@ -275,12 +275,12 @@ Con *con_descend_tiling_focused(Con *con);
 Con *con_descend_direction(Con *con, direction_t direction);
 
 /**
- * Returns a "relative" Rect which contains the amount of pixels that need to
- * be added to the original Rect to get the final position (obviously the
+ * Returns a "relative" I3Rect which contains the amount of pixels that need to
+ * be added to the original I3Rect to get the final position (obviously the
  * amount of pixels for normal, 1pixel and borderless are different).
  *
  */
-Rect con_border_style_rect(Con *con);
+I3Rect con_border_style_rect(Con *con);
 
 /**
  * Returns adjacent borders of the window. We need this if hide_edge_borders is
@@ -329,7 +329,7 @@ void con_toggle_layout(Con *con, const char *toggle_mode);
  * split/stacked/tabbed cons). Will be called when resizing floating cons
  *
  */
-Rect con_minimum_size(Con *con);
+I3Rect con_minimum_size(Con *con);
 
 /**
  * Returns true if changing the focus to con would be allowed considering

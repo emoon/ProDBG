@@ -1294,16 +1294,16 @@ Con *con_descend_direction(Con *con, direction_t direction) {
 }
 
 /*
- * Returns a "relative" Rect which contains the amount of pixels that need to
- * be added to the original Rect to get the final position (obviously the
+ * Returns a "relative" I3Rect which contains the amount of pixels that need to
+ * be added to the original I3Rect to get the final position (obviously the
  * amount of pixels for normal, 1pixel and borderless are different).
  *
  */
-Rect con_border_style_rect(Con *con) {
+I3Rect con_border_style_rect(Con *con) {
     adjacent_t borders_to_hide = ADJ_NONE;
     int border_width = con->current_border_width;
     DLOG("The border width for con is set to: %d\n", con->current_border_width);
-    Rect result;
+    I3Rect result;
     if (con->current_border_width < 0) {
         if (con_is_floating(con)) {
             border_width = 3; //config.default_floating_border_width;
@@ -1315,12 +1315,12 @@ Rect con_border_style_rect(Con *con) {
     /* Shortcut to avoid calling con_adjacent_borders() on dock containers. */
     int border_style = con_border_style(con);
     if (border_style == BS_NONE)
-        return (Rect){0, 0, 0, 0};
+        return (I3Rect){0, 0, 0, 0};
     borders_to_hide = con_adjacent_borders(con) & 0; // config.hide_edge_borders;
     if (border_style == BS_NORMAL) {
-        result = (Rect){border_width, 0, -(2 * border_width), -(border_width)};
+        result = (I3Rect){border_width, 0, -(2 * border_width), -(border_width)};
     } else {
-        result = (Rect){border_width, border_width, -(2 * border_width), -(2 * border_width)};
+        result = (I3Rect){border_width, border_width, -(2 * border_width), -(2 * border_width)};
     }
 
     /* Floating windows are never adjacent to any other window, so
@@ -1413,7 +1413,7 @@ void con_set_border_style(Con *con, int border_style, int border_width) {
     DLOG("This is a floating container\n");
 
     Con *parent = con->parent;
-    Rect bsr = con_border_style_rect(con);
+    I3Rect bsr = con_border_style_rect(con);
     int deco_height = (con->border_style == BS_NORMAL ? 10 : 0);
 
     con->rect = rect_add(con->rect, bsr);
@@ -1631,12 +1631,12 @@ static void con_on_remove_child(Con *con) {
  * split/stacked/tabbed cons). Will be called when resizing floating cons
  *
  */
-Rect con_minimum_size(Con *con) {
+I3Rect con_minimum_size(Con *con) {
     DLOG("Determining minimum size for con %p\n", con);
 
     if (con_is_leaf(con)) {
         DLOG("leaf node, returning 75x50\n");
-        return (Rect){0, 0, 75, 50};
+        return (I3Rect){0, 0, 75, 50};
     }
 
     if (con->type == CT_FLOATING_CON) {
@@ -1649,14 +1649,14 @@ Rect con_minimum_size(Con *con) {
         uint32_t max_width = 0, max_height = 0, deco_height = 0;
         Con *child;
         TAILQ_FOREACH(child, &(con->nodes_head), nodes) {
-            Rect min = con_minimum_size(child);
+            I3Rect min = con_minimum_size(child);
             deco_height += child->deco_rect.height;
             max_width = max(max_width, min.width);
             max_height = max(max_height, min.height);
         }
         DLOG("stacked/tabbed now, returning %d x %d + deco_rect = %d\n",
              max_width, max_height, deco_height);
-        return (Rect){0, 0, max_width, max_height + deco_height};
+        return (I3Rect){0, 0, max_width, max_height + deco_height};
     }
 
     /* For horizontal/vertical split containers we sum up the width (h-split)
@@ -1666,7 +1666,7 @@ Rect con_minimum_size(Con *con) {
         uint32_t width = 0, height = 0;
         Con *child;
         TAILQ_FOREACH(child, &(con->nodes_head), nodes) {
-            Rect min = con_minimum_size(child);
+            I3Rect min = con_minimum_size(child);
             if (con->layout == L_SPLITH) {
                 width += min.width;
                 height = max(height, min.height);
@@ -1676,7 +1676,7 @@ Rect con_minimum_size(Con *con) {
             }
         }
         DLOG("split container, returning width = %d x height = %d\n", width, height);
-        return (Rect){0, 0, width, height};
+        return (I3Rect){0, 0, width, height};
     }
 
     ELOG("Unhandled case, type = %d, layout = %d, split = %d\n",

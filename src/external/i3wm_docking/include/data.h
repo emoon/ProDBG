@@ -47,7 +47,7 @@ struct _i3String;
 
 /* Forward definitions */
 typedef struct Binding Binding;
-typedef struct Rect Rect;
+typedef struct I3Rect I3Rect;
 typedef struct xoutput Output;
 typedef struct Con Con;
 typedef struct Match Match;
@@ -136,7 +136,7 @@ typedef enum {
  * typecasts.
  *
  */
-struct Rect {
+struct I3Rect {
     uint32_t x;
     uint32_t y;
     uint32_t width;
@@ -176,7 +176,7 @@ struct deco_render_params {
     int border_style;
     struct width_height con_rect;
     struct width_height con_window_rect;
-    Rect con_deco_rect;
+    I3Rect con_deco_rect;
     uint32_t background;
     layout_t parent_layout;
     bool con_is_leaf;
@@ -347,7 +347,7 @@ struct xoutput {
     Con *con;
 
     /** x, y, width, height */
-    Rect rect;
+    I3Rect rect;
 
     TAILQ_ENTRY(xoutput) outputs;
 };
@@ -429,7 +429,7 @@ struct Window {
 struct Match {
     struct regex *title;
     struct regex *application;
-    struct regex *class;
+    struct regex *class_;
     struct regex *instance;
     struct regex *mark;
     struct regex *window_role;
@@ -560,11 +560,11 @@ struct Con {
 
     struct Con *parent;
 
-    struct Rect rect;
-    struct Rect window_rect;
-    struct Rect deco_rect;
+    struct I3Rect rect;
+    struct I3Rect window_rect;
+    struct I3Rect deco_rect;
     /** the geometry this window requested when getting mapped */
-    struct Rect geometry;
+    struct I3Rect geometry;
 
     char *name;
 

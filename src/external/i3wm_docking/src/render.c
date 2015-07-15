@@ -148,7 +148,7 @@ void render_con(Con *con, bool render_fullscreen) {
 
     /* Copy container rect, subtract container border */
     /* This is the actually usable space inside this container for clients */
-    Rect rect = con->rect;
+    I3Rect rect = con->rect;
 
     /* Display a border if this is a leaf node. For container nodes, we don’t
      * draw borders (except when in debug mode) */
@@ -170,8 +170,8 @@ void render_con(Con *con, bool render_fullscreen) {
     if (con->window) {
         /* depending on the border style, the rect of the child window
          * needs to be smaller */
-        Rect *inset = &(con->window_rect);
-        *inset = (Rect){0, 0, con->rect.width, con->rect.height};
+        I3Rect *inset = &(con->window_rect);
+        *inset = (I3Rect){0, 0, con->rect.width, con->rect.height};
         if (!render_fullscreen)
             *inset = rect_add(*inset, con_border_style_rect(con));
 

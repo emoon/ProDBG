@@ -25,22 +25,22 @@ int max(int a, int b) {
     return (a > b ? a : b);
 }
 
-bool rect_contains(Rect rect, uint32_t x, uint32_t y) {
+bool rect_contains(I3Rect rect, uint32_t x, uint32_t y) {
     return (x >= rect.x &&
             x <= (rect.x + rect.width) &&
             y >= rect.y &&
             y <= (rect.y + rect.height));
 }
 
-Rect rect_add(Rect a, Rect b) {
-    return (Rect){a.x + b.x,
+I3Rect rect_add(I3Rect a, I3Rect b) {
+    return (I3Rect){a.x + b.x,
                   a.y + b.y,
                   a.width + b.width,
                   a.height + b.height};
 }
 
-Rect rect_sub(Rect a, Rect b) {
-    return (Rect){a.x - b.x,
+I3Rect rect_sub(I3Rect a, I3Rect b) {
+    return (I3Rect){a.x - b.x,
                   a.y - b.y,
                   a.width - b.width,
                   a.height - b.height};
