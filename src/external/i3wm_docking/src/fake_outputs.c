@@ -389,41 +389,35 @@ void init_ws_for_output(Output *output, Con *content) {
  *   1900x1200+0+0,1280x1024+1900+0
  *
  */
-void fake_outputs_init(const char *output_spec) {
-    char useless_buffer[1024];
-    const char *walk = output_spec;
-    unsigned int x, y, width, height;
-    while (sscanf(walk, "%ux%u+%u+%u", &width, &height, &x, &y) == 4) {
-        DLOG("Parsed output as width = %u, height = %u at (%u, %u)\n",
-             width, height, x, y);
-        Output *new_output = get_screen_at(x, y);
-        if (new_output != NULL) {
-            DLOG("Re-used old output %p\n", new_output);
-            /* This screen already exists. We use the littlest screen so that the user
-               can always see the complete workspace */
-            new_output->rect.width = min(new_output->rect.width, width);
-            new_output->rect.height = min(new_output->rect.height, height);
-        } else {
-            new_output = malloc(sizeof(Output));
-            sasprintf(&(new_output->name), "fake-%d", num_screens);
-            DLOG("Created new fake output %s (%p)\n", new_output->name, new_output);
-            new_output->active = true;
-            new_output->rect.x = x;
-            new_output->rect.y = y;
-            new_output->rect.width = width;
-            new_output->rect.height = height;
-            /* We always treat the screen at 0x0 as the primary screen */
-            if (new_output->rect.x == 0 && new_output->rect.y == 0)
-                TAILQ_INSERT_HEAD(&outputs, new_output, outputs);
-            else
-                TAILQ_INSERT_TAIL(&outputs, new_output, outputs);
-            output_init_con(new_output);
-            init_ws_for_output(new_output, output_get_content(new_output->con));
-            num_screens++;
-        }
 
-        /* Figure out how long the input was to skip it */
-        walk += sprintf(useless_buffer, "%ux%u+%u+%u", width, height, x, y) + 1;
+void fake_outputs_init(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
+    char useless_buffer[1024];
+    DLOG("Parsed output as width = %u, height = %u at (%u, %u)\n",
+            width, height, x, y);
+    Output *new_output = get_screen_at(x, y);
+    if (new_output != NULL) {
+        DLOG("Re-used old output %p\n", new_output);
+        /* This screen already exists. We use the littlest screen so that the user
+            can always see the complete workspace */
+        new_output->rect.width = min(new_output->rect.width, width);
+        new_output->rect.height = min(new_output->rect.height, height);
+    } else {
+        new_output = malloc(sizeof(Output));
+        sasprintf(&(new_output->name), "fake-%d", num_screens);
+        DLOG("Created new fake output %s (%p)\n", new_output->name, new_output);
+        new_output->active = true;
+        new_output->rect.x = x;
+        new_output->rect.y = y;
+        new_output->rect.width = width;
+        new_output->rect.height = height;
+        /* We always treat the screen at 0x0 as the primary screen */
+        if (new_output->rect.x == 0 && new_output->rect.y == 0)
+            TAILQ_INSERT_HEAD(&outputs, new_output, outputs);
+        else
+            TAILQ_INSERT_TAIL(&outputs, new_output, outputs);
+        output_init_con(new_output);
+        init_ws_for_output(new_output, output_get_content(new_output->con));
+        num_screens++;
     }
 
     if (num_screens == 0) {

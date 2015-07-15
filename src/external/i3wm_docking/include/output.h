@@ -35,4 +35,6 @@ Output *get_output_by_name(const char *name);
 
 Output *get_output_next(direction_t direction, Output *current, output_close_far_t close_far);
 
+void fake_outputs_init(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
+
 
