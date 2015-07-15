@@ -6,7 +6,7 @@ struct Con;
 
 typedef struct DockSysCallbacks
 {
-	void (*render_con)(struct Con* con);
+	void (*updateWindowSize)(void* userData, int x, int y, int width, int height);
 } DockSysCallbacks;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
