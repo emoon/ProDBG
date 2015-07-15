@@ -358,8 +358,12 @@ struct xoutput {
  *
  */
 struct Window {
+    void* userData;
+
     uint32_t id;
     //xcb_window_t id;
+    //
+
 
     /** Holds the xcb_window_t (just an ID) for the leader window (logical
      * parent for toolwindows and similar floating windows) */
