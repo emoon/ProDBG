@@ -40,6 +40,23 @@ int render_deco_height(void) {
     return deco_height;
 }
 
+static void updateRenderCallback(Con* child)
+{
+    void* userData = NULL;
+
+    if (!g_callbacks)
+        return;
+
+    if (!g_callbacks->updateWindowSize)
+        return;
+
+    if (child->window)
+        userData = child->window->userData;
+
+    if (userData)
+        g_callbacks->updateWindowSize(userData, child->rect.x, child->rect.y, child->rect.width, child->rect.height);
+}
+
 /*
  * Renders a container with layout L_OUTPUT. In this layout, all CT_DOCKAREAs
  * get the height of their content and the remaining CT_CON gets the rest.
@@ -122,8 +139,7 @@ static void render_l_output(Con *con) {
 
         y += child->rect.height;
 
-        if (g_callbacks && g_callbacks->render_con)
-            g_callbacks->render_con(child);
+        updateRenderCallback(child);
 
         DLOG("child at (%d, %d) with (%d x %d)\n",
              child->rect.x, child->rect.y, child->rect.width, child->rect.height);
@@ -448,8 +464,7 @@ void render_con(Con *con, bool render_fullscreen) {
                 y += child->rect.height;
             }
 
-            if (g_callbacks && g_callbacks->render_con)
-                g_callbacks->render_con(child);
+            updateRenderCallback(child);
 
             DLOG("child at (%d, %d) with (%d x %d)\n",
                  child->rect.x, child->rect.y, child->rect.width, child->rect.height);

@@ -151,7 +151,16 @@ void tree_init(I3Rect geometry) {
  * Opens an empty container in the current container
  *
  */
-Con *tree_open_con(Con *con, i3Window *window) {
+Con *tree_open_con(Con *con, void *userData) {
+    i3Window* window = NULL; 
+
+    if (userData)
+    {
+        window = malloc(sizeof(i3Window));
+        memset(window, 0, sizeof(i3Window));
+        window->userData = userData;
+    }
+
     if (con == NULL) {
         /* every focusable Con has a parent (outputs have parent root) */
         con = focused->parent;
