@@ -309,6 +309,33 @@ static void onLoadRunExec(Session* session, const char* filename)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// We should mave this place some where better, I really don't like this approach but will have to do for now
+
+Con* getCoveredCon(int x, int y)
+{
+	int count = 0;
+    Context* context = &s_context;
+
+	ViewPluginInstance** instances = Session_getViewPlugins(context->session, &count);
+
+	for (int i = 0; i < count; ++i)
+	{
+        IntRect rect = instances[i]->rect; 
+
+        const int x0 = rect.x;
+        const int y0 = rect.y;
+        const int x1 = rect.width + x0;
+        const int y1 = rect.height + y0;
+
+        if ((x >= x0 && x < x1) && (y >= y0 && y < y1))
+        	return con_by_user_data(instances[i]);
+    }
+
+    return NULL;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Events
 
 void ProDBG_event(int eventId)
@@ -330,7 +357,20 @@ void ProDBG_event(int eventId)
         eventId &= (PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT - 1);
 
         ViewPluginInstance* instance = g_pluginUI->createViewPlugin(pluginsData[eventId]);
-        tree_open_con(NULL, instance);
+		Con* con = getCoveredCon((int)mousePos.x, (int)mousePos.y);
+
+		if (con)
+		{
+			tree_split(con, HORIZ);
+        	tree_open_con(con->parent, instance);
+		}
+		else
+		{
+        	tree_open_con(NULL, instance);
+		}
+
+		printf("con %p\n", con);
+
         //UIDock_splitHorizontalAt(Session_getDockingGrid(context->session), (int)mousePos.x, (int)mousePos.y, instance);
 
         Session_addViewPlugin(context->session, instance);
@@ -342,8 +382,21 @@ void ProDBG_event(int eventId)
         eventId &= (PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT - 1);
 
         ViewPluginInstance* instance = g_pluginUI->createViewPlugin(pluginsData[eventId]);
+		Con* con = getCoveredCon((int)mousePos.x, (int)mousePos.y);
+
+		if (con)
+		{
+			tree_split(con, VERT);
+        	tree_open_con(con->parent, instance);
+		}
+		else
+		{
+        	tree_open_con(NULL, instance);
+		}
+
+		printf("con %p\n", con);
+
         //UIDock_splitVerticalAt(Session_getDockingGrid(context->session), (int)mousePos.x, (int)mousePos.y, instance);
-        tree_open_con(NULL, instance);
 
         Session_addViewPlugin(context->session, instance);
         return;

@@ -534,10 +534,7 @@ Con *con_by_window_id(uint32_t window) {
  * exists.
  *
  */
-// DIVERGENCE
-//Con *con_by_frame_id(xcb_window_t frame) {
 Con *con_by_frame_id(uint32_t frame) {
-// DIVERGENCE
     Con *con;
     TAILQ_FOREACH(con, &all_cons, all_cons)
     if (con->frame == frame)
@@ -614,6 +611,20 @@ int con_num_children(Con *con) {
     children++;
 
     return children;
+}
+/*
+ * Returns the container bellow the x, y coordinates 
+ *
+ */
+Con *con_by_user_data(void* user_data) {
+    Con *con;
+    TAILQ_FOREACH(con, &all_cons, all_cons)
+    {
+        if (con->window && con->window->userData == user_data)
+            return con;
+    }
+
+    return NULL;
 }
 
 /*

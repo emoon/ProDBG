@@ -2175,8 +2175,6 @@ void updateWindowSize(void* userData, int x, int y, int width, int height)
 {
 	ViewPluginInstance* instance = (ViewPluginInstance*)userData;
 
-	printf("updateSize %d %d - %x %d\n", x, y, width, height);
-
 	instance->rect.x = x;
 	instance->rect.y = y;
 	instance->rect.width = width;

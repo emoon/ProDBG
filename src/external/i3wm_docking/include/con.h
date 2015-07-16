@@ -142,6 +142,12 @@ Con *con_by_frame_id(uint32_t frame);
  */
 Con *con_by_mark(const char *mark);
 
+/*
+ * Returns the container which holds the user_data 
+ *
+ */
+Con *con_by_user_data(void *user_data);
+
 /**
  * Returns the first container below 'con' which wants to swallow this window
  * TODO: priority

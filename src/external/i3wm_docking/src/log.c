@@ -32,8 +32,8 @@
 #include <sys/sysctl.h>
 #endif
 
-static bool debug_logging = true;
-static bool verbose = true;
+static bool debug_logging = false;
+static bool verbose = false;
 static FILE *errorfile;
 char *errorfilename;
 
