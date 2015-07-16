@@ -37,6 +37,8 @@ flags = [
 'src/external/cmocka/include',
 '-I',
 'src/prodbg',
+'-I',
+'src/external/i3wm_docking/include'
 ]
 
 # Set this to the absolute path to the folder (NOT the file!) containing the
