@@ -451,6 +451,10 @@ static void updateScript(Session* s, PDReader* reader)
     }
 }
 
+// TOOD: Fix me
+
+Con* getCoveredCon(int x, int y);
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void updateLocal(Session* s, PDAction action)
@@ -493,17 +497,12 @@ static void updateLocal(Session* s, PDAction action)
         struct ViewPluginInstance* p = s->viewPlugins[i];
         PluginUI::State state = g_pluginUI->updateInstance(p, s->reader, s->currentWriter);
 
-        (void)state;
-
-	#if 0
         if (state == PluginUI::CloseView)
         {
-        #if PRODBG_USING_DOCKING
-            UIDock_deleteView(s->uiDockingGrid, p);
-        #endif
+			con_focus(con_by_user_data(p));
+			tree_close_con(DONT_KILL_WINDOW);
             p->markDeleted = true;
         }
-    #endif
 
         PDBinaryReader_reset(s->reader);
     }
@@ -579,17 +578,12 @@ static void updateRemote(Session* s, PDAction action)
         struct ViewPluginInstance* p = s->viewPlugins[i];
         PluginUI::State state = g_pluginUI->updateInstance(p, s->reader, s->currentWriter);
 
-        (void)state;
-
-	#if 0
         if (state == PluginUI::CloseView)
         {
-        #if PRODBG_USING_DOCKING
-            UIDock_deleteView(s->uiDockingGrid, p);
-        #endif
+			con_focus(con_by_user_data(p));
+			tree_close_con(DONT_KILL_WINDOW);
             p->markDeleted = true;
         }
-    #endif
 
         PDBinaryReader_reset(s->reader);
     }
