@@ -101,8 +101,10 @@ void init_logging(void) {
     /* Start SHM logging if shmlog_size is > 0. shmlog_size is SHMLOG_SIZE by
      * default on development versions, and 0 on release versions. If it is
      * not > 0, the user has turned it off, so let's close the logbuffer. */
+    /*
     if (shmlog_size > 0 && logbuffer == NULL)
         open_logbuffer();
+    */
     else if (shmlog_size <= 0 && logbuffer)
         close_logbuffer();
     atexit(purge_zerobyte_logfile);
@@ -112,6 +114,7 @@ void init_logging(void) {
  * Opens the logbuffer.
  *
  */
+#if 0
 void open_logbuffer(void) {
     /* Reserve 1% of the RAM for the logfile, but at max 25 MiB.
          * For 512 MiB of RAM this will lead to a 5 MiB log buffer.
@@ -173,6 +176,7 @@ void open_logbuffer(void) {
     loglastwrap = logbuffer + logbuffer_size;
     store_log_markers();
 }
+#endif
 
 /*
  * Closes the logbuffer.
