@@ -26,6 +26,7 @@ struct Con *docksys_con_by_user_data(void* user_data);
 void docksys_close_con(void* user_data);
 
 void docksys_create(int x, int y, int width, int height);
-void docksys_set_mouse(int x, int y, bool leftDown); 
+void docksys_set_mouse(void* user_data, int x, int y, bool leftDown); 
+void docksys_update_size(int width, int height);
 
 void docksys_update();

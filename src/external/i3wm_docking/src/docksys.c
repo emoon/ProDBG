@@ -11,6 +11,11 @@
 
 DockSysCallbacks* g_callbacks = 0;
 
+static int prev_mouse_x;
+static int prev_mouse_y;
+
+int handle_button_press(void* user_data, int x, int y, int mxd, int myd, bool lmb_down);
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void docksys_set_callbacks(DockSysCallbacks* callbacks)
@@ -40,19 +45,22 @@ void docksys_create(int x, int y, int width, int height)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void docksys_set_mouse(int x, int y, bool leftDown)
+void docksys_set_mouse(void *user_data, int x, int y, bool leftDown)
 {
-	(void)x;
-	(void)y;
-	(void)leftDown;
+	int mxd = x - prev_mouse_x;
+	int myd = y - prev_mouse_y;
 
+	handle_button_press(user_data, x, y, mxd, myd, leftDown);
+
+	prev_mouse_x = x;
+	prev_mouse_y = y;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void docksys_update()
 {
-	tree_update();
+	tree_render();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -98,5 +106,15 @@ void docksys_close_con(void* user_data)
 	con_focus(con_by_user_data(user_data));
 	tree_close_con(DONT_KILL_WINDOW);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void docksys_update_size(int width, int height)
+{
+	(void)width;
+	(void)height;
+
+}
+
 
 

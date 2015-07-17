@@ -29,6 +29,9 @@
 
 struct ImGuiWindow;
 
+// TODO: Move to settings
+const int s_borderSize = 4;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct Context
@@ -2196,7 +2199,7 @@ PluginUI::State BgfxPluginUI::updateInstance(ViewPluginInstance* instance, PDRea
     PrivateData* data = (PrivateData*)uiInstance->privateData;
 
     ImGui::SetNextWindowPos(ImVec2((float)instance->rect.x, (float)instance->rect.y));
-    ImGui::SetNextWindowSize(ImVec2((float)instance->rect.width - 4, (float)instance->rect.height - 4));
+    ImGui::SetNextWindowSize(ImVec2((float)instance->rect.width - s_borderSize, (float)instance->rect.height - s_borderSize));
 
     // TODO: Cache this?
 
@@ -2297,12 +2300,26 @@ static void updateDock(UIDockingGrid* grid)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void updateDocking(Session* session)
+{
+    InputState* state = InputState_getState();
+
+    int mx = (int)state->mousePos.x;
+    int my = (int)state->mousePos.y;
+
+	struct ViewPluginInstance* view = Session_getViewAt(session, mx, my, 0); 
+
+	docksys_set_mouse(view, mx, my, state->mouseDown[0]);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void BgfxPluginUI::preUpdate()
 {
 	const float deltaTime = 1.0f / 60.f; // TODO: Calc correct dt
 
     bgfx::setViewRect(0, 0, 0, (uint16_t)s_context.width, (uint16_t)s_context.height);
-    bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x101010ff, 1.0f, 0);
+    bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xf01010ff, 1.0f, 0);
     bgfx::submit(0);
 
     IMGUI_preUpdate(deltaTime);
@@ -2313,14 +2330,10 @@ void BgfxPluginUI::preUpdate()
     for (int i = 0; i < array_size(sessions); ++i)
     {
         Session* session = sessions[i];
-        //Con* con = Session_getDockingGrid(session);
-		//render_con(con, false);
-		//
-		docksys_update();
-
-        //UIDockingGrid* grid = Session_getDockingGrid(session);
-        //updateDock(grid);
+		updateDocking(session);
     }
+
+	docksys_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2460,11 +2473,7 @@ void ProDBG_setWindowSize(int width, int height)
     for (int i = 0; i < array_size(sessions); ++i)
     {
         Session* session = sessions[i];
-    #if 0
-        UIDockingGrid* grid = Session_getDockingGrid(session);
-        updateDock(grid);
-        UIDock_updateSize(grid, width, height - (int)g_pluginUI->getStatusBarSize());
-    #endif
+        docksys_update_size(width, height - (int)g_pluginUI->getStatusBarSize());
     }
 }
 

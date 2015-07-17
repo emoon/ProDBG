@@ -821,16 +821,34 @@ SessionStatus Session_onMenu(Session* session, int eventId)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if PRODBG_USING_DOCKING
-
 struct Con* Session_getDockingGrid(struct Session* session)
 {
     //return session->uiDockingGrid;
     return session->i3_dock_grid;
 }
 
-#endif
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+struct ViewPluginInstance* Session_getViewAt(struct Session* session, int x, int y, int border)
+{
+	int count = 0;
 
+	ViewPluginInstance** instances = Session_getViewPlugins(session, &count);
+
+	for (int i = 0; i < count; ++i)
+	{
+        IntRect rect = instances[i]->rect; 
+
+        const int x0 = rect.x;
+        const int y0 = rect.y;
+        const int x1 = (rect.width + x0) - border;
+        const int y1 = (rect.height + y0) - border;
+
+        if ((x >= x0 && x < x1) && (y >= y0 && y < y1))
+        	return instances[i]; 
+    }
+
+    return 0;
+}
 
 

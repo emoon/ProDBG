@@ -53,6 +53,7 @@ void Session_addViewPlugin(struct Session* session, struct ViewPluginInstance* i
 bool Session_removeViewPlugin(struct Session* session, struct ViewPluginInstance* instance);
 
 struct ViewPluginInstance** Session_getViewPlugins(struct Session* session, int* count);
+struct ViewPluginInstance* Session_getViewAt(struct Session* session, int x, int y, int border);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

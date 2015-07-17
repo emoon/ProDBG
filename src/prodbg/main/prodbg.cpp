@@ -313,27 +313,8 @@ static void onLoadRunExec(Session* session, const char* filename)
 
 Con* getCoveredCon(int x, int y)
 {
-	int count = 0;
-    Context* context = &s_context;
-
-	ViewPluginInstance** instances = Session_getViewPlugins(context->session, &count);
-
-	for (int i = 0; i < count; ++i)
-	{
-        IntRect rect = instances[i]->rect; 
-
-        const int x0 = rect.x;
-        const int y0 = rect.y;
-        const int x1 = rect.width + x0;
-        const int y1 = rect.height + y0;
-
-        if ((x >= x0 && x < x1) && (y >= y0 && y < y1))
-        	return docksys_con_by_user_data(instances[i]);
-    }
-
-    return NULL;
+	return docksys_con_by_user_data(Session_getViewAt(s_context.session, x, y, 0));
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Events
