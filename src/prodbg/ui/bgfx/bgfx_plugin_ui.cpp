@@ -2316,7 +2316,7 @@ void BgfxPluginUI::preUpdate()
         //Con* con = Session_getDockingGrid(session);
 		//render_con(con, false);
 		//
-		tree_render();
+		docksys_update();
 
         //UIDockingGrid* grid = Session_getDockingGrid(session);
         //updateDock(grid);

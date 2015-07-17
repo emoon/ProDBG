@@ -101,7 +101,7 @@ void Session_globalInit(bool reloadPlugins)
     if (!reloadPlugins)
         return;
 
-	init_logging();
+	//init_logging();
 
     FileMonitor_addPath(OBJECT_DIR, LIB_EXT, fileUpdateCallback, 0);
 }
@@ -196,11 +196,9 @@ void Session_createDockingGrid(Session* session, int width, int height)
 	(void)width;
 	(void)height;
 
-	tree_init((I3Rect) { 0, 0, (uint32_t)width, (uint32_t)height });
+	docksys_create(0, 0, width, height);
 
-	fake_outputs_init(0, 0, (uint32_t)width, (uint32_t)height);
-
-	session->i3_dock_grid = workspace_get("test_ws", NULL);
+	session->i3_dock_grid = docksys_create_workspace("test_ws");
 
     //tree_open_con(NULL, NULL);
 	//tree_split(focused, HORIZ);
@@ -499,8 +497,7 @@ static void updateLocal(Session* s, PDAction action)
 
         if (state == PluginUI::CloseView)
         {
-			con_focus(con_by_user_data(p));
-			tree_close_con(DONT_KILL_WINDOW);
+			docksys_close_con(p);
             p->markDeleted = true;
         }
 
@@ -580,8 +577,7 @@ static void updateRemote(Session* s, PDAction action)
 
         if (state == PluginUI::CloseView)
         {
-			con_focus(con_by_user_data(p));
-			tree_close_con(DONT_KILL_WINDOW);
+			docksys_close_con(p);
             p->markDeleted = true;
         }
 

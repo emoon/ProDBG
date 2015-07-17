@@ -16,13 +16,15 @@
 #include "con.h"
 #include "log.h"
 #include "util.h"
-#include "callbacks.h"
+#include "docksys.h"
 #include "output.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <assert.h>
 #include <math.h>
 #include <string.h>
+
+extern DockSysCallbacks* g_callbacks;
 
 /* change this to 'true' if you want to have additional borders around every
  * container (for debugging purposes) */

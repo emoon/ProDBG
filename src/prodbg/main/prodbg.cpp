@@ -328,7 +328,7 @@ Con* getCoveredCon(int x, int y)
         const int y1 = rect.height + y0;
 
         if ((x >= x0 && x < x1) && (y >= y0 && y < y1))
-        	return con_by_user_data(instances[i]);
+        	return docksys_con_by_user_data(instances[i]);
     }
 
     return NULL;
@@ -359,17 +359,7 @@ void ProDBG_event(int eventId)
         ViewPluginInstance* instance = g_pluginUI->createViewPlugin(pluginsData[eventId]);
 		Con* con = getCoveredCon((int)mousePos.x, (int)mousePos.y);
 
-		if (con)
-		{
-			tree_split(con, HORIZ);
-        	tree_open_con(con->parent, instance);
-		}
-		else
-		{
-        	tree_open_con(NULL, instance);
-		}
-
-		printf("con %p\n", con);
+		docksys_horizontal_split(con, instance);
 
         //UIDock_splitHorizontalAt(Session_getDockingGrid(context->session), (int)mousePos.x, (int)mousePos.y, instance);
 
@@ -384,15 +374,7 @@ void ProDBG_event(int eventId)
         ViewPluginInstance* instance = g_pluginUI->createViewPlugin(pluginsData[eventId]);
 		Con* con = getCoveredCon((int)mousePos.x, (int)mousePos.y);
 
-		if (con)
-		{
-			tree_split(con, VERT);
-        	tree_open_con(con->parent, instance);
-		}
-		else
-		{
-        	tree_open_con(NULL, instance);
-		}
+		docksys_vertical_split(con, instance);
 
 		printf("con %p\n", con);
 
