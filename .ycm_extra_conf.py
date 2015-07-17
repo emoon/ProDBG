@@ -39,6 +39,8 @@ flags = [
 'src/prodbg',
 '-I',
 'src/external/i3wm_docking/include'
+'-I',
+'.'
 ]
 
 # Set this to the absolute path to the folder (NOT the file!) containing the
