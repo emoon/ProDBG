@@ -49,7 +49,7 @@ typedef uint32_t PDUIWindowFlags;
 typedef uint32_t PDUISelectableFlags;
 typedef void* PDUIFont;
 
-#define PDUI_COLOR(r, g, b, a) (((uint32_t)r << 24) | ((uint32_t)g << 16) | ((uint32_t)b << 8) | (a))
+#define PDUI_COLOR(r, g, b, a) (((uint32_t)a << 24) | ((uint32_t)g << 16) | ((uint32_t)b << 8) | (r))
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
