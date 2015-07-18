@@ -526,8 +526,8 @@ done:
  * Then, route_click is called on the appropriate con.
  *
  */
-
-int handle_button_press(void* user_data, int x, int y, int mxd, int myd, bool lmb_down) {
+#if 0
+int handle_button_press(int x, int y, int mxd, int myd, bool lmb_down) {
     Con *con;
 
     MouseEvent event = { user_data, x, y, mxd, myd, lmb_down };
@@ -600,4 +600,139 @@ int handle_button_press(void* user_data, int x, int y, int mxd, int myd, bool lm
 
     return route_click(con, &event, mod_pressed, CLICK_BORDER);
 }
+#endif
+
+typedef enum State
+{
+    State_None,
+    State_HoverBorder,
+    State_DragBorder,
+    State_BeginDragView,
+    State_DraggingView,
+    State_EndDragView,
+} State;
+
+static State s_state = State_None; 
+static int s_borderSize = 4;    // TODO: Use settings for border area
+static Con* s_hoverCon = 0;
+static border_t s_border;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Check if cursor is i the border area of the window
+
+static bool isHoveringBorder(Con* con, int mx, int my)
+{
+    Con *child;
+
+    if (con->window)
+    {
+        // check right border
+
+        int x = con->rect.x + con->rect.width - s_borderSize;
+        int w = con->rect.x + con->rect.width;
+        int y = con->rect.y;
+        int h = y + con->rect.height;
+
+        if ((mx >= x && mx < w) && (my >= y && my < h))
+        {
+            s_border = BORDER_RIGHT;
+            s_hoverCon = con;
+            return true;
+        }
+
+        // check lower border
+
+        y = con->rect.y + con->rect.height - s_borderSize;
+        h = con->rect.y + con->rect.height;
+        x = con->rect.x;
+        w = x + con->rect.width; 
+
+        if ((mx >= x && mx < w) && (my >= y && my < h))
+        {
+            s_border = BORDER_BOTTOM;
+            s_hoverCon = con;
+            return true;
+        }
+    }
+
+    TAILQ_FOREACH(child, &(con->nodes_head), nodes) 
+    {
+        if (isHoveringBorder(child, mx, my))
+            return true;
+    }
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void updateHoverBorder(const MouseEvent* event)
+{
+    s_hoverCon = 0;
+
+    if (isHoveringBorder(croot, event->x, event->y) && event->lmbDown)
+    {
+        s_state = State_DragBorder;
+    }
+    else if (!s_hoverCon)
+    {
+        s_state = State_None;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void updateDragBorder(const MouseEvent* event)
+{
+    if (!event->lmbDown)
+    {
+        s_state = State_None;
+        return;
+    }
+
+    //tiling_resize(s_hoverCon, event, CLICK_BORDER); 
+    return tiling_resize_for_border(s_hoverCon, s_border, event);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void updateDefault(const MouseEvent* mouseEvent)
+{
+    // Check if we are hovering any sizer and we haven't pressed LMB
+
+    if (isHoveringBorder(croot, mouseEvent->x, mouseEvent->y) && !mouseEvent->lmbDown)
+    {
+        s_state = State_HoverBorder;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int handle_button_press(int x, int y, int mxd, int myd, bool lmb_down) 
+{
+    MouseEvent event = { 0, x, y, mxd, myd, lmb_down };
+
+    switch (s_state)
+    {
+        case State_None :
+        {
+            updateDefault(&event);
+            break;
+        }
+
+        case State_HoverBorder:
+        {
+            updateHoverBorder(&event);
+            break;
+        }
+
+        case State_DragBorder:
+        {
+            updateDragBorder(&event);
+            break;
+        }
+    }
+}
+
+
 

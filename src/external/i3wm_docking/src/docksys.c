@@ -14,7 +14,7 @@ DockSysCallbacks* g_callbacks = 0;
 static int prev_mouse_x;
 static int prev_mouse_y;
 
-int handle_button_press(void* user_data, int x, int y, int mxd, int myd, bool lmb_down);
+int handle_button_press(int x, int y, int mxd, int myd, bool lmb_down);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -50,7 +50,7 @@ void docksys_set_mouse(void *user_data, int x, int y, bool leftDown)
 	int mxd = x - prev_mouse_x;
 	int myd = y - prev_mouse_y;
 
-	handle_button_press(user_data, x, y, mxd, myd, leftDown);
+	handle_button_press(x, y, mxd, myd, leftDown);
 
 	prev_mouse_x = x;
 	prev_mouse_y = y;
