@@ -21,6 +21,7 @@
 #include "ui/bgfx/cursor.h"
 #include <foundation/string.h>
 #include "i3wm_docking.h"
+#include "ui_render.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -2211,8 +2212,13 @@ PluginUI::State BgfxPluginUI::updateInstance(ViewPluginInstance* instance, PDRea
     PDUI* uiInstance = &instance->ui;
     PrivateData* data = (PrivateData*)uiInstance->privateData;
 
-    ImGui::SetNextWindowPos(ImVec2((float)instance->rect.x, (float)instance->rect.y));
-    ImGui::SetNextWindowSize(ImVec2((float)instance->rect.width - s_borderSize, (float)instance->rect.height - s_borderSize));
+	float x = (float)instance->rect.x;
+	float y = (float)instance->rect.y;
+	float w = (float)instance->rect.width;
+	float h = (float)instance->rect.height;
+
+    ImGui::SetNextWindowPos(ImVec2(x, y));
+    ImGui::SetNextWindowSize(ImVec2(w - s_borderSize, h - s_borderSize));
 
     // TODO: Cache this?
 
@@ -2232,6 +2238,8 @@ PluginUI::State BgfxPluginUI::updateInstance(ViewPluginInstance* instance, PDRea
     instance->plugin->update(instance->userData, uiInstance, reader, writer);
 
     ImGui::End();
+
+    // Draw border
 
     if  (!data->showWindow)
         return CloseView;
@@ -2351,6 +2359,87 @@ void BgfxPluginUI::preUpdate()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static PosColorVertex* fillRectBorder(PosColorVertex* verts, IntRect* rect, uint32_t color)
+{
+    const float x0 = (float)rect->x;
+    const float y0 = (float)rect->y;
+    const float x1 = (float)rect->width + x0;
+    const float y1 = (float)rect->height + y0;
+
+    // First triangle
+
+    verts[0].x = x0;
+    verts[0].y = y0;
+    verts[0].color = color;
+
+    verts[1].x = x1;
+    verts[1].y = y0;
+    verts[1].color = color;
+
+    verts[2].x = x1;
+    verts[2].y = y1;
+    verts[2].color = color;
+
+    // Second triangle
+
+    verts[3].x = x0;
+    verts[3].y = y0;
+    verts[3].color = color;
+
+    verts[4].x = x1;
+    verts[4].y = y1;
+    verts[4].color = color;
+
+    verts[5].x = x0;
+    verts[5].y = y1;
+    verts[5].color = color;
+
+    verts += 6;
+
+    return verts;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void renderBorders(Session* session)
+{
+	int count = 0;
+	ViewPluginInstance** views = Session_getViewPlugins(session, &count);
+
+    bgfx::TransientVertexBuffer tvb;
+
+    const uint32_t vertexCount = (uint32_t)count * 2 * 6;
+
+    UIRender_allocPosColorTb(&tvb, vertexCount);
+    PosColorVertex* verts = (PosColorVertex*)tvb.data;
+
+    // TODO: Use settings for colors
+
+    const uint32_t colorDefalut = (0x40 << 16) | (0x40 << 8) | 0x40;
+    const uint32_t colorHigh = (0x60 << 16) | (0x60 << 8) | 0x60;
+
+    for (int i = 0; i < count; ++i)
+    {
+    	IntRect t = views[i]->rect; 
+
+    	IntRect t0 = {{{ t.x + t.width - s_borderSize, t.y, s_borderSize, t.height }}}; 
+    	IntRect t1 = {{{ t.x, t.y + t.height - s_borderSize, t.width, s_borderSize }}}; 
+
+        verts = fillRectBorder(verts, &t0, colorDefalut);
+        verts = fillRectBorder(verts, &t1, colorDefalut);
+    }
+
+    bgfx::setState(0
+                   | BGFX_STATE_RGB_WRITE
+                   | BGFX_STATE_ALPHA_WRITE
+                   | BGFX_STATE_MSAA);
+
+    UIRender_posColor(&tvb, 0, vertexCount);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void BgfxPluginUI::postUpdate()
 {
     renderStatusBar(m_statusText, (float)m_statusSize);
@@ -2358,14 +2447,11 @@ void BgfxPluginUI::postUpdate()
 
     Session** sessions = Session_getSessions();
 
-#if 0
     for (int i = 0; i < array_size(sessions); ++i)
     {
         Session* session = sessions[i];
-        UIDockingGrid* grid = Session_getDockingGrid(session);
-        UIDock_render(grid);
+        renderBorders(session);
     }
-#endif
 
     bgfx::frame();
 }
