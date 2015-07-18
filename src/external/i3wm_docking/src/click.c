@@ -18,6 +18,7 @@
 #include "output.h"
 #include "workspace.h"
 #include "render.h"
+#include "docksys.h"
 #include <math.h>
 #include <assert.h>
 
@@ -31,6 +32,8 @@ typedef struct MouseEvent
     bool lmbDown;
 
 } MouseEvent;
+
+extern DockSysCallbacks* g_callbacks;
 
 typedef enum { CLICK_BORDER = 0,
                CLICK_DECORATION = 1,
@@ -163,8 +166,6 @@ int resize_graphical_handler(Con *first, Con *second, orientation_t orientation,
 #endif
 
     const int pixels = orientation == VERT ? event->dy : event->dx;
-
-    printf("pixels delta %d\n", pixels);
 
     // if we got thus far, the containers must have
     // percentages associated with them
@@ -616,6 +617,25 @@ static State s_state = State_None;
 static int s_borderSize = 4;    // TODO: Use settings for border area
 static Con* s_hoverCon = 0;
 static border_t s_border;
+static DockSysCursor s_oldCursor = DockSysCursor_Default;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void setCursorStyle(DockSysCursor cursor)
+{
+    if (!g_callbacks)
+        return;
+
+    if (!g_callbacks->setCursorStyle)
+        return;
+
+    if (s_oldCursor == cursor)
+        return;
+
+    g_callbacks->setCursorStyle(cursor);
+
+    s_oldCursor = cursor;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Check if cursor is i the border area of the window
@@ -635,6 +655,8 @@ static bool isHoveringBorder(Con* con, int mx, int my)
 
         if ((mx >= x && mx < w) && (my >= y && my < h))
         {
+            setCursorStyle(DockSysCursor_SizeVertical);
+
             s_border = BORDER_RIGHT;
             s_hoverCon = con;
             return true;
@@ -649,6 +671,8 @@ static bool isHoveringBorder(Con* con, int mx, int my)
 
         if ((mx >= x && mx < w) && (my >= y && my < h))
         {
+            setCursorStyle(DockSysCursor_SizeHorizontal);
+
             s_border = BORDER_BOTTOM;
             s_hoverCon = con;
             return true;
@@ -676,6 +700,7 @@ static void updateHoverBorder(const MouseEvent* event)
     }
     else if (!s_hoverCon)
     {
+        setCursorStyle(DockSysCursor_Default);
         s_state = State_None;
     }
 }
@@ -686,6 +711,7 @@ static void updateDragBorder(const MouseEvent* event)
 {
     if (!event->lmbDown)
     {
+        setCursorStyle(DockSysCursor_Default);
         s_state = State_None;
         return;
     }

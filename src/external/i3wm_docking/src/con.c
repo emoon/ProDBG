@@ -360,7 +360,6 @@ Con *con_get_output(Con *con) {
     Con *result = con;
     while (result != NULL && result->type != CT_OUTPUT)
     {
-        printf("name %s\n", result->name);
         result = result->parent;
     }
     /* We must be able to get an output because focus can never be set higher

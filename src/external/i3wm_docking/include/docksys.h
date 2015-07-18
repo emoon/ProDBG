@@ -6,10 +6,19 @@ struct Con;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef enum DockSysCursor
+{
+    DockSysCursor_Default = 0,
+    DockSysCursor_SizeHorizontal,
+    DockSysCursor_SizeVertical,
+} DockSysCursor;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef struct DockSysCallbacks
 {
 	void (*updateWindowSize)(void *userData, int x, int y, int width, int height);
-	void (*setCursorStyle)(int style);
+	void (*setCursorStyle)(DockSysCursor cursor);
 } DockSysCallbacks;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,6 +33,8 @@ struct Con *docksys_create_workspace(const char *name);
 struct Con *docksys_con_by_user_data(void* user_data);
 
 void docksys_close_con(void* user_data);
+
+bool docksys_is_hovering_border();
 
 void docksys_create(int x, int y, int width, int height);
 void docksys_set_mouse(void* user_data, int x, int y, bool leftDown); 
