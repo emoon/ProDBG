@@ -226,12 +226,14 @@ Con *create_workspace_on_output(Output *output, Con *content) {
             break;
         }
     }
+#endif
 
     if (exists) {
         /* get the next unused workspace number */
         DLOG("Getting next unused workspace by number\n");
         int c = 0;
-        while (exists) {
+        while (exists) 
+        {
             c++;
 
             ws->num = c;
@@ -245,9 +247,6 @@ Con *create_workspace_on_output(Output *output, Con *content) {
         }
         sasprintf(&(ws->name), "%d", c);
     }
-#endif
-
-    ws->name = "temp_ws_name";
 
     con_attach(ws, content, false);
 

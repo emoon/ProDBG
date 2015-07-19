@@ -198,7 +198,7 @@ void Session_createDockingGrid(Session* session, int width, int height)
 
 	docksys_create(0, 0, width, height);
 
-	session->i3_dock_grid = docksys_create_workspace("test_ws");
+	session->i3_dock_grid = 0; //docksys_create_workspace("test_ws");
 
     //tree_open_con(NULL, NULL);
 	//tree_split(focused, HORIZ);

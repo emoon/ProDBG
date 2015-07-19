@@ -4,6 +4,8 @@
 
 struct Con;
 
+#define DOCKSYS_SUPPORTS_LOAD_SAVE 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef enum DockSysCursor
@@ -39,5 +41,15 @@ bool docksys_is_hovering_border();
 void docksys_create(int x, int y, int width, int height);
 void docksys_set_mouse(void* user_data, int x, int y, bool leftDown); 
 void docksys_update_size(int width, int height);
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#if defined(DOCKSYS_SUPPORTS_LOAD_SAVE) 
+
+void docksys_save_layout(const char* filename);
+void docksys_load_layout(const char* filename);
+
+#endif
+
 
 void docksys_update();

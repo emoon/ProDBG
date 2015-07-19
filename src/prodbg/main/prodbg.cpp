@@ -271,6 +271,7 @@ void ProDBG_destroy()
 
     //rmt_DestroyGlobalInstance(s_remotery);
 
+	docksys_save_layout("data/current_layout.json");
     //UIDock_saveLayout(Session_getDockingGrid(context->session), "data/current_layout.json");
 
     Session_destroy(context->session);

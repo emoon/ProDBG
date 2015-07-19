@@ -90,6 +90,7 @@ StaticLibrary {
 
     Env = { 
         CPPPATH = { 
+			"src/external/jansson/include",
             "src/external/i3wm_docking/include",
         },
         CCOPTS = {
