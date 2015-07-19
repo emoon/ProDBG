@@ -124,14 +124,123 @@ void docksys_update_size(int width, int height)
 
 #if defined(DOCKSYS_SUPPORTS_LOAD_SAVE)
 
+static const char* getType(int type)
+{
+	switch (type)
+	{
+		case CT_ROOT : return "root"; break;
+		case CT_OUTPUT : return "output"; break;
+		case CT_CON : return "con"; break;
+		case CT_FLOATING_CON : return "floating_con"; break;
+		case CT_WORKSPACE : return "workspace"; break;
+		case CT_DOCKAREA : return "dockarea"; break;
+		default : return "Unknown"; break;
+	}
+
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static const char* getLayout(int type)
+{
+	switch (type)
+	{
+		case L_DEFAULT  : return "default"; break;
+		case L_STACKED  : return "stacked"; break;
+		case L_TABBED  : return "tabbed"; break;
+		case L_DOCKAREA   : return "dockarea"; break;
+		case L_OUTPUT  : return "output"; break;
+		case L_SPLITV  : return "splitv"; break;
+		case L_SPLITH  : return "splith"; break;
+		default : return "unknown"; break;
+	}
+
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void printRect(const char* name, I3Rect rect, int level)
+{
+	printf("%*s%s - %d %d - %d %d\n", level, "", name, rect.x, rect.y, rect.width, rect.height);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void printVal(const char* name, int val, int level)
+{
+	printf("%*s%s - %d\n", level, "", name, val);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void printPointer(const char* name, void* val, int level)
+{
+	printf("%*s%s - %p\n", level, "", name, val);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void printString(const char* name, const char* val, int level)
+{
+	printf("%*s%s - %s\n", level, "", name, val);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void printDouble(const char* name, double val, int level)
+{
+	printf("%*s%s - %f\n", level, "", name, val);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define p_val(v) printVal(#v, con->v, level)
+#define p_string(v) printString(#v, con->v, level)
+#define p_rect(v) printRect(#v, con->v, level)
+#define p_pointer(v) printPointer(#v, con->v, level)
+#define p_double(v) printDouble(#v, con->v, level)
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void printTree(Con* con, int level)
 {
 	Con* child = 0;
 
-	for (int i = 0; i < level; ++i)
-		printf(" ");
+	printf("%*s--------------------------------------------------\n", level, "");
+	p_string(name);
+	p_val(mapped);
+	p_val(urgent);
+	p_val(ignore_unmap);
+	p_val(frame);
+	printString("type", getType(con->type), level);
+	p_val(num);
+	p_rect(rect);
+	p_rect(window_rect);
+	p_rect(geometry);
+	p_pointer(parent);
+	p_string(sticky_group);
+	p_string(mark);
+	p_val(mark_changed);
+	p_double(percent);
+	p_double(aspect_ratio);
+	p_val(base_width);
+	p_val(base_height);
+	p_val(border_width);
+	p_val(current_border_width);
+	p_val(width_increment);
+	p_val(height_increment);
+	p_pointer(window);
+	p_val(fullscreen_mode);
 
-	printf("%p - %s\n", con, con->name);
+	printString("layout", getLayout(con->layout), level);
+	printString("last_split_layout", getLayout(con->last_split_layout), level);
+	printString("workspace_layout", getLayout(con->workspace_layout), level);
+	p_val(border_style);
+	p_val(scratchpad_state);
+	p_val(old_id);
+	p_val(depth);
 
     TAILQ_FOREACH(child, &(con->nodes_head), nodes) 
         printTree(child, level + 1);
@@ -163,9 +272,11 @@ void saveTree(Con* con, json_t* item, json_t* parentArray)
 
 void docksys_save_layout(const char* filename)
 {
-	printTree(croot, 0);
+	//printTree(croot, 0);
 
 	Con* con = workspace_get("1", NULL);
+
+	printTree(con, 0);
 
     json_t* root = json_object();
     json_t* children = json_array();
