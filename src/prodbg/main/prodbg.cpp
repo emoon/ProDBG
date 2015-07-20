@@ -77,10 +77,10 @@ void loadLayout(Session* session, int width, int height)
 {
     Session_createDockingGrid(session, width, height);
 
-	if (docksys_load_layout("data/current_layout.json"))
+	if (docksys_load_layout("data/current_layout_2.json"))
 		return;
 
-	docksys_load_layout("data/default_layout.json");
+	docksys_load_layout("data/default_layout_2.json");
 
 	/*
     if (Session_loadLayout(session, "data/current_layout.json", width, height))
@@ -277,8 +277,7 @@ void ProDBG_destroy()
 
     //rmt_DestroyGlobalInstance(s_remotery);
 
-	docksys_save_layout("data/current_layout.json");
-    //UIDock_saveLayout(Session_getDockingGrid(context->session), "data/current_layout.json");
+	docksys_save_layout("data/current_layout_2.json");
 
     Session_destroy(context->session);
 

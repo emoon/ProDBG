@@ -2,6 +2,6 @@
 t2-output
 tags
 imgui.ini
-data/current_layout.json
+data/current_layout_2.json
 temp/vice_mem_dump
 .ycm_extra_conf.pyc

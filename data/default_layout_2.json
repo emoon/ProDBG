@@ -1,0 +1,151 @@
+{
+    "name": "1",
+    "type": "workspace",
+    "layout": "splitv",
+    "percent": 0.0,
+    "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1024,
+        "height": 750
+    },
+    "window_rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+    },
+    "userdata": false,
+    "children": [
+        {
+            "name": "(null)",
+            "type": "con",
+            "layout": "splith",
+            "percent": 0.67064719556074304,
+            "rect": {
+                "x": 0,
+                "y": 0,
+                "width": 1024,
+                "height": 503
+            },
+            "window_rect": {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0
+            },
+            "userdata": false,
+            "children": [
+                {
+                    "name": "(null)",
+                    "type": "con",
+                    "layout": "splith",
+                    "percent": 0.7275390625,
+                    "rect": {
+                        "x": 0,
+                        "y": 0,
+                        "width": 745,
+                        "height": 503
+                    },
+                    "window_rect": {
+                        "x": 3,
+                        "y": 0,
+                        "width": 739,
+                        "height": 500
+                    },
+                    "userdata": true,
+                    "plugin_name": "Source Code View",
+                    "plugin_file": "sourcecode_plugin"
+                },
+                {
+                    "name": "(null)",
+                    "type": "con",
+                    "layout": "splith",
+                    "percent": 0.2724609375,
+                    "rect": {
+                        "x": 745,
+                        "y": 0,
+                        "width": 279,
+                        "height": 503
+                    },
+                    "window_rect": {
+                        "x": 3,
+                        "y": 0,
+                        "width": 273,
+                        "height": 500
+                    },
+                    "userdata": true,
+                    "plugin_name": "CallStack",
+                    "plugin_file": "callstack_plugin"
+                }
+            ]
+        },
+        {
+            "name": "(null)",
+            "type": "con",
+            "layout": "splith",
+            "percent": 0.32935280443925696,
+            "rect": {
+                "x": 0,
+                "y": 503,
+                "width": 1024,
+                "height": 247
+            },
+            "window_rect": {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0
+            },
+            "userdata": false,
+            "children": [
+                {
+                    "name": "(null)",
+                    "type": "con",
+                    "layout": "splith",
+                    "percent": 0.5,
+                    "rect": {
+                        "x": 0,
+                        "y": 503,
+                        "width": 512,
+                        "height": 247
+                    },
+                    "window_rect": {
+                        "x": 3,
+                        "y": 0,
+                        "width": 506,
+                        "height": 244
+                    },
+                    "userdata": true,
+                    "plugin_name": "Locals",
+                    "plugin_file": "locals_plugin"
+                },
+                {
+                    "name": "(null)",
+                    "type": "con",
+                    "layout": "splith",
+                    "percent": 0.5,
+                    "rect": {
+                        "x": 512,
+                        "y": 503,
+                        "width": 512,
+                        "height": 247
+                    },
+                    "window_rect": {
+                        "x": 3,
+                        "y": 0,
+                        "width": 506,
+                        "height": 244
+                    },
+                    "userdata": true,
+                    "plugin_name": "Hex Memory View",
+                    "plugin_file": "hex_memory_plugin",
+                    "plugin_data": [
+                        "0x00000000",
+                        "0x00001000"
+                    ]
+                }
+            ]
+        }
+    ]
+}
