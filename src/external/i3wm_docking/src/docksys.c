@@ -8,6 +8,8 @@
 #include "render.h"
 #include "workspace.h"
 #include <stddef.h>
+#include <string.h>
+#include <assert.h>
 
 #if defined(DOCKSYS_SUPPORTS_LOAD_SAVE)
 #include <jansson.h>
@@ -124,6 +126,7 @@ void docksys_update_size(int width, int height)
 
 #if defined(DOCKSYS_SUPPORTS_LOAD_SAVE)
 
+
 static const char* getType(int type)
 {
 	switch (type)
@@ -158,6 +161,8 @@ static const char* getLayout(int type)
 
 	return 0;
 }
+
+#if 0
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -246,6 +251,8 @@ void printTree(Con* con, int level)
         printTree(child, level + 1);
 }
 
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void saveTree(Con* con, json_t* item, json_t* parentArray)
@@ -256,11 +263,29 @@ void saveTree(Con* con, json_t* item, json_t* parentArray)
 	json_object_set_new(item, "type", json_string(getType(con->type)));
 	json_object_set_new(item, "layout", json_string(getLayout(con->layout)));
 	json_object_set_new(item, "percent", json_real(con->percent));
+	json_object_set_new(item, "rect", 
+			json_pack("{s:i, s:i, s:i, s:i}", 
+				"x",  con->rect.x, 
+				"y", con->rect.y, 
+				"width", con->rect.width, 
+				"height", con->rect.height));
+	json_object_set_new(item, "window_rect", 
+			json_pack("{s:i, s:i, s:i, s:i}", 
+				"x",  con->window_rect.x, 
+				"y", con->window_rect.y, 
+				"width", con->window_rect.width, 
+				"height", con->window_rect.height));
+
+	if (con->window && con->window->userData)
+	{
+		json_object_set_new(item, "userdata", json_true());
+		if (g_callbacks && g_callbacks->saveUserData)
+			g_callbacks->saveUserData(item, con->window->userData);
+	}
+	else
+		json_object_set_new(item, "userdata", json_false());
 
 	// Allows user to add data to the node
-
-	if (con->window && g_callbacks && con->window->userData && g_callbacks->saveUserData)
-		g_callbacks->saveUserData(item, con->window->userData);
 
 	json_array_append_new(parentArray, item);
 
@@ -285,7 +310,7 @@ void docksys_save_layout(const char* filename)
 
 	Con* con = workspace_get("1", NULL);
 
-	printTree(con, 0);
+	// printTree(con, 0);
 
     json_t* root = json_object();
     json_t* children = json_array();
@@ -304,41 +329,132 @@ void docksys_save_layout(const char* filename)
 	printf("Saved layout\n");
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if 0
-
-static void loadData(json_t* item, Con* parent)
+static int getTypeFromString(const char* type)
 {
-	json_t* name = json_object_get(item, "name");
-	json_t* type = json_object_get(item, "type");
-	json_t* layout = json_object_get(item, "layout");
-	json_t* percent = json_object_get(iterm, "percent");
-
-	json_t* hasUserData = json_object_get(iterm, "userdata");
-
-
-//	Con* con = con_new_skeleton(parent,
-
+	if (strcmp(type, "root") == 0)
+		return CT_ROOT;
+	else if (strcmp(type, "output") == 0)
+		return CT_OUTPUT;
+	else if (strcmp(type, "con") == 0)
+		return CT_CON;
+	else if (strcmp(type, "floating_con") == 0)
+		return CT_FLOATING_CON;
+	else if (strcmp(type, "workspace") == 0)
+		return CT_WORKSPACE;
+	else if (strcmp(type, "dockarea") == 0)
+		return CT_DOCKAREA;
+	else
+		return -1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void docksys_load_layout(const char* filename)
+static int getLayoutFromString(const char* type)
+{
+	if (strcmp(type, "default") == 0)
+		return L_DEFAULT;
+	else if (strcmp(type, "stacked") == 0)
+		return L_STACKED;
+	else if (strcmp(type, "tabbed") == 0)
+		return L_TABBED;
+	else if (strcmp(type, "dockarea") == 0)
+		return L_DOCKAREA;
+	else if (strcmp(type, "output") == 0)
+		return L_OUTPUT;
+	else if (strcmp(type, "splith") == 0)
+		return L_SPLITH;
+	else if (strcmp(type, "splitv") == 0)
+		return L_SPLITV;
+	else
+		return -1;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void loadData(json_t* item, Con* con)
+{
+	const char* name = json_string_value(json_object_get(item, "name"));
+	const char* type = json_string_value(json_object_get(item, "type"));
+	const char* layout = json_string_value(json_object_get(item, "layout"));
+
+	json_t* rect = json_object_get(item, "rect");
+	json_t* window_rect = json_object_get(item, "window_rect");
+
+	assert(rect);
+	assert(window_rect);
+
+	json_unpack(rect, "{s:i, s:i, s:i, s:i}",
+				"x", &con->rect.x,
+				"y", &con->rect.y,
+				"width", &con->rect.width,
+				"height", &con->rect.height);
+
+	json_unpack(window_rect, "{s:i, s:i, s:i, s:i}",
+				"x", &con->window_rect.x,
+				"y", &con->window_rect.y,
+				"width", &con->window_rect.width,
+				"height", &con->window_rect.height);
+
+	double percent = json_real_value(json_object_get(item, "percent"));
+
+	bool hasUserData = json_boolean_value(json_object_get(item, "userdata"));
+
+	con->name = strdup(name); 
+	con->type = getTypeFromString(type);
+	con->layout = getLayoutFromString(layout);
+	con->percent = percent;
+
+	if (hasUserData)
+	{
+		if (g_callbacks && g_callbacks->loadUserData)
+		{
+			// TODO: Remove window? Doesn't really look like we need it
+    		i3Window* window = malloc(sizeof(i3Window));
+			memset(window, 0, sizeof(i3Window));
+			window->userData = g_callbacks->loadUserData(item);
+			con->window = window;
+		}
+	}
+
+	json_t* children =json_object_get(item, "children");
+
+	if (!children)
+		return;
+
+	int arrayCount = json_array_size(children );
+
+	for (int i = 0; i < arrayCount; ++i)
+	{
+		json_t* newItem = json_array_get(children, i);
+		Con* newCon = con_new_skeleton(con, NULL);
+		loadData(newItem, newCon);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool docksys_load_layout(const char* filename)
 {
     json_error_t error;
 
     json_t* root = json_load_file(filename, 0, &error);
 
     if (!root)
-    {
-        printf("JSON Error: %s:(%d:%d) - %s\n", filename, error.line, error.column, error.text);
-        return;
-    }
-}
+        return false;
 
-#endif
+    // Right now we just assume one workspace
+
+	Con* con = workspace_get("1", NULL);
+
+	loadData(root, con);
+
+	con_fix_percent(con);
+	tree_render();
+
+	return true;
+}
 
 #endif
 

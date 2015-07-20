@@ -1,92 +1,63 @@
 {
-    "sizers": [
+    "name": "1",
+    "type": "workspace",
+    "layout": "splith",
+    "percent": 0.0,
+    "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1024,
+        "height": 750
+    },
+    "window_rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+    },
+    "userdata": false,
+    "children": [
         {
-            "dir": 1,
-            "id": 0,
-            "x": 0,
-            "y": 0,
-            "width": 1024,
-            "height": 0,
-            "cons": [
-                0,
-                1
-            ]
+            "name": "(null)",
+            "type": "con",
+            "layout": "splith",
+            "percent": 0.2890625,
+            "rect": {
+                "x": 0,
+                "y": 0,
+                "width": 296,
+                "height": 750
+            },
+            "window_rect": {
+                "x": 3,
+                "y": 0,
+                "width": 290,
+                "height": 747
+            },
+            "userdata": true,
+            "plugin_name": "Threads",
+            "plugin_file": "threads_plugin"
         },
         {
-            "dir": 1,
-            "id": 1,
-            "x": 0,
-            "y": 750,
-            "width": 1024,
-            "height": 0,
-            "cons": [
-                0,
-                1
-            ]
-        },
-        {
-            "dir": 2,
-            "id": 2,
-            "x": 1024,
-            "y": 0,
-            "width": 0,
-            "height": 750,
-            "cons": [
-                0
-            ]
-        },
-        {
-            "dir": 2,
-            "id": 3,
-            "x": 0,
-            "y": 0,
-            "width": 0,
-            "height": 750,
-            "cons": [
-                1
-            ]
-        },
-        {
-            "dir": 2,
-            "id": 4,
-            "x": 512,
-            "y": 0,
-            "width": 0,
-            "height": 750,
-            "cons": [
-                0,
-                1
-            ]
-        }
-    ],
-    "docks": [
-        {
-            "plugin_name": "Locals",
-            "plugin_file": "locals_plugin",
-            "type": 0,
-            "id": 0,
-            "x": 512,
-            "y": 0,
-            "width": 512,
-            "height": 750,
-            "s0": 0,
-            "s1": 1,
-            "s2": 2,
-            "s3": 4
-        },
-        {
-            "plugin_name": "CallStack",
-            "plugin_file": "callstack_plugin",
-            "type": 0,
-            "id": 1,
-            "x": 0,
-            "y": 0,
-            "width": 512,
-            "height": 750,
-            "s0": 0,
-            "s1": 1,
-            "s2": 4,
-            "s3": 3
+            "name": "(null)",
+            "type": "con",
+            "layout": "splith",
+            "percent": 0.7109375,
+            "rect": {
+                "x": 296,
+                "y": 0,
+                "width": 728,
+                "height": 750
+            },
+            "window_rect": {
+                "x": 3,
+                "y": 0,
+                "width": 722,
+                "height": 747
+            },
+            "userdata": true,
+            "plugin_name": "Disassembly",
+            "plugin_file": "disassembly_plugin"
         }
     ]
 }

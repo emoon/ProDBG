@@ -75,6 +75,13 @@ static const char* s_plugins[] =
 
 void loadLayout(Session* session, int width, int height)
 {
+    Session_createDockingGrid(session, width, height);
+
+	if (docksys_load_layout("data/current_layout.json"))
+		return;
+
+	docksys_load_layout("data/default_layout.json");
+
 	/*
     if (Session_loadLayout(session, "data/current_layout.json", width, height))
         return;
@@ -83,7 +90,6 @@ void loadLayout(Session* session, int width, int height)
         return;
     */
 
-    Session_createDockingGrid(session, width, height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -50,7 +50,7 @@ void docksys_update_size(int width, int height);
 #if defined(DOCKSYS_SUPPORTS_LOAD_SAVE) 
 
 void docksys_save_layout(const char* filename);
-void docksys_load_layout(const char* filename);
+bool docksys_load_layout(const char* filename);
 
 #endif
 

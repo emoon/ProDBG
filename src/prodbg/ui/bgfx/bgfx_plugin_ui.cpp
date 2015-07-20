@@ -2,10 +2,12 @@
 #include "pd_ui.h"
 #include "pd_view.h"
 #include "api/plugin_instance.h"
+#include "core/plugin_handler.h"
 #include "core/alloc.h"
 #include "core/log.h"
 #include "core/math.h"
 #include "core/input_state.h"
+#include "core/plugin_io.h"
 #include "core/service.h"
 #include "ui_dock.h"
 #include "ui_host.h"
@@ -22,6 +24,7 @@
 #include <foundation/string.h>
 #include "i3wm_docking.h"
 #include "ui_render.h"
+#include <jansson.h>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -2183,6 +2186,9 @@ void updateWindowSize(void* userData, int x, int y, int width, int height)
 	instance->rect.y = y;
 	instance->rect.width = width;
 	instance->rect.height = height;
+
+	assert(width > 0);
+	assert(height > 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2198,11 +2204,101 @@ static void setCursorStyle(DockSysCursor cursor)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TODO: Move this code?
+	
+static void saveUserData(struct json_t* item, void* userData)
+{
+	ViewPluginInstance* view = (ViewPluginInstance*)userData;
+
+	if (!view->plugin)
+		return;
+
+    PDSaveState saveFuncs;
+    PluginIO_initSaveJson(&saveFuncs);
+
+	PluginData* pluginData = PluginHandler_getPluginData(view->plugin);
+
+	assert(pluginData);
+
+	const char* pluginName = view->plugin->name;
+	const char* filename = pluginData->filename;
+
+	json_object_set_new(item, "plugin_name", json_string(pluginName));
+	json_object_set_new(item, "plugin_file", json_string(filename));
+
+	PDViewPlugin* viewPlugin = (PDViewPlugin*)pluginData->plugin;
+
+	if (!viewPlugin->saveState)
+		return;
+
+	json_t* array = json_array();
+
+	saveFuncs.privData = array;
+
+	viewPlugin->saveState(view->userData, &saveFuncs);
+
+	json_object_set_new(item, "plugin_data", array);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void* loadUserData(struct json_t* item)
+{
+	ViewPluginInstance* view = 0;
+
+	const char* pluginName = json_string_value(json_object_get(item, "plugin_name"));
+	const char* filename = json_string_value(json_object_get(item, "plugin_file"));
+
+	// if this is the case we have no plugin created (empty window)
+
+	if (!strcmp(pluginName, "") && !strcmp(filename, ""))
+	{
+		view = (ViewPluginInstance*)alloc_zero(sizeof(ViewPluginInstance));
+	}
+	else
+	{
+		PDLoadState loadFuncs;
+		PluginIO_initLoadJson(&loadFuncs);
+
+		PluginData* pluginData = PluginHandler_findPlugin(0, filename, pluginName, true);
+
+		if (!pluginData)
+			view = (ViewPluginInstance*)alloc_zero(sizeof(ViewPluginInstance));
+		else
+			view = g_pluginUI->createViewPlugin(pluginData);
+
+		PDViewPlugin* viewPlugin = (PDViewPlugin*)pluginData->plugin;
+
+		json_t* pluginJsonData = json_object_get(item, "plugin_data");
+
+		if (pluginJsonData && viewPlugin && viewPlugin->loadState)
+		{
+			SessionLoadState loadState = { pluginJsonData, (int)json_array_size(pluginJsonData), 0 };
+			loadFuncs.privData = &loadState;
+			viewPlugin->loadState(view->userData, &loadFuncs);
+		}
+	}
+
+	// TODO: Fi this: assuming one session
+
+    Session** sessions = Session_getSessions();
+
+    assert(sessions);
+    assert(sessions[0]);
+
+	Session_addViewPlugin(sessions[0], view);
+
+	return view;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static DockSysCallbacks s_dockSysCallbacks =
 {
 	updateWindowSize,
 	setCursorStyle,
+	saveUserData,
+	loadUserData,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
