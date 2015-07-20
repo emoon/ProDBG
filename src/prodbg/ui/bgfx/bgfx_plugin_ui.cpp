@@ -2186,9 +2186,6 @@ void updateWindowSize(void* userData, int x, int y, int width, int height)
 	instance->rect.y = y;
 	instance->rect.width = width;
 	instance->rect.height = height;
-
-	assert(width > 0);
-	assert(height > 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

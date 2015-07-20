@@ -117,9 +117,17 @@ void docksys_close_con(void* user_data)
 
 void docksys_update_size(int width, int height)
 {
-	(void)width;
-	(void)height;
+	// TODO: Hardcoded for fake-0
+	Output* output = get_output_by_name("fake-0");
 
+	output->rect.width = width;
+	output->rect.height = height;
+
+	if (output->con)
+	{
+		output->con->rect.width = width;
+		output->con->rect.height = height;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
