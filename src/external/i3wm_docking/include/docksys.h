@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 struct Con;
+struct json_t;
 
 #define DOCKSYS_SUPPORTS_LOAD_SAVE 
 
@@ -21,6 +22,8 @@ typedef struct DockSysCallbacks
 {
 	void (*updateWindowSize)(void *userData, int x, int y, int width, int height);
 	void (*setCursorStyle)(DockSysCursor cursor);
+	void (*saveUserData)(struct json_t* item, void* userData);
+	void* (*loadUserData)(struct json_t* item);
 } DockSysCallbacks;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

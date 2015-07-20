@@ -253,6 +253,15 @@ void saveTree(Con* con, json_t* item, json_t* parentArray)
 	Con* child = 0;
 
 	json_object_set_new(item, "name", json_string(con->name ? con->name : "(null)"));
+	json_object_set_new(item, "type", json_string(getType(con->type)));
+	json_object_set_new(item, "layout", json_string(getLayout(con->layout)));
+	json_object_set_new(item, "percent", json_real(con->percent));
+
+	// Allows user to add data to the node
+
+	if (con->window && g_callbacks && con->window->userData && g_callbacks->saveUserData)
+		g_callbacks->saveUserData(item, con->window->userData);
+
 	json_array_append_new(parentArray, item);
 
 	if (con_num_children(con) == 0)
@@ -295,13 +304,41 @@ void docksys_save_layout(const char* filename)
 	printf("Saved layout\n");
 }
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#if 0
+
+static void loadData(json_t* item, Con* parent)
+{
+	json_t* name = json_object_get(item, "name");
+	json_t* type = json_object_get(item, "type");
+	json_t* layout = json_object_get(item, "layout");
+	json_t* percent = json_object_get(iterm, "percent");
+
+	json_t* hasUserData = json_object_get(iterm, "userdata");
+
+
+//	Con* con = con_new_skeleton(parent,
+
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void docksys_load_layout(const char* filename)
 {
-	
+    json_error_t error;
 
+    json_t* root = json_load_file(filename, 0, &error);
+
+    if (!root)
+    {
+        printf("JSON Error: %s:(%d:%d) - %s\n", filename, error.line, error.column, error.text);
+        return;
+    }
 }
+
+#endif
 
 #endif
 
