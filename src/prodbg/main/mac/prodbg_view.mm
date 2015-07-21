@@ -320,7 +320,7 @@ static int translateKey(unsigned int key)
 -(void) viewWillMoveToWindow:(NSWindow*)newWindow
 {
     NSTrackingArea* trackingArea = [[NSTrackingArea alloc] initWithRect:[self frame]
-                                    options: (NSTrackingMouseMoved | NSTrackingActiveAlways) owner:self userInfo:nil];
+                                    options: (NSTrackingInVisibleRect |NSTrackingMouseMoved | NSTrackingActiveAlways) owner:self userInfo:nil];
     [self addTrackingArea:trackingArea];
     (void)newWindow;
 }
