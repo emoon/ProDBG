@@ -84,7 +84,7 @@ Con *workspace_get(const char *num, bool *created) {
     Con *output, *workspace = NULL;
 
     TAILQ_FOREACH(output, &(croot->nodes_head), nodes)
-    GREP_FIRST(workspace, output_get_content(output), !strcasecmp(child->name, num));
+    GREP_FIRST(workspace, output_get_content(output), !strcmp(child->name, num));
 
     if (workspace == NULL) {
         LOG("Creating new workspace \"%s\"\n", num);
@@ -153,7 +153,7 @@ Con *workspace_get(const char *num, bool *created) {
 Con *create_workspace_on_output(Output *output, Con *content) {
     /* add a workspace to this output */
     Con *out, *current;
-    char *name;
+    char *name = 0;
     bool exists = true;
     Con *ws = con_new(NULL, NULL);
     ws->type = CT_WORKSPACE;
@@ -979,7 +979,7 @@ bool workspace_move_to_output(Con *ws, char *name) {
             Con *workspace = NULL, *out;
             TAILQ_FOREACH(out, &(croot->nodes_head), nodes)
             GREP_FIRST(workspace, output_get_content(out),
-                       !strcasecmp(child->name, assignment->name));
+                       !strcmp(child->name, assignment->name));
             if (workspace != NULL)
                 continue;
 

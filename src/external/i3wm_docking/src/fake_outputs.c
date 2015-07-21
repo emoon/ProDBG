@@ -138,13 +138,13 @@ Output *get_output_next_wrap(direction_t direction, Output *current) {
 Output *get_output_from_string(Output *current_output, const char *output_str) {
     Output *output;
 
-    if (strcasecmp(output_str, "left") == 0)
+    if (strcmp(output_str, "left") == 0)
         output = get_output_next_wrap(D_LEFT, current_output);
-    else if (strcasecmp(output_str, "right") == 0)
+    else if (strcmp(output_str, "right") == 0)
         output = get_output_next_wrap(D_RIGHT, current_output);
-    else if (strcasecmp(output_str, "up") == 0)
+    else if (strcmp(output_str, "up") == 0)
         output = get_output_next_wrap(D_UP, current_output);
-    else if (strcasecmp(output_str, "down") == 0)
+    else if (strcmp(output_str, "down") == 0)
         output = get_output_next_wrap(D_DOWN, current_output);
     else
         output = get_output_by_name(output_str);
@@ -160,7 +160,7 @@ Output *get_output_by_name(const char *name) {
     Output *output;
     TAILQ_FOREACH(output, &outputs, outputs)
     if (output->active &&
-        strcasecmp(output->name, name) == 0)
+        strcmp(output->name, name) == 0)
         return output;
 
     return NULL;
@@ -289,7 +289,7 @@ void init_ws_for_output(Output *output, Con *content) {
         Con *workspace = NULL, *out;
         TAILQ_FOREACH(out, &(croot->nodes_head), nodes)
         GREP_FIRST(workspace, output_get_content(out),
-                   !strcasecmp(child->name, assignment->name));
+                   !strcmp(child->name, assignment->name));
         if (workspace == NULL)
             continue;
 
@@ -391,7 +391,7 @@ void init_ws_for_output(Output *output, Con *content) {
  */
 
 void fake_outputs_init(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
-    char useless_buffer[1024];
+    //char useless_buffer[1024];
     DLOG("Parsed output as width = %u, height = %u at (%u, %u)\n",
             width, height, x, y);
     Output *new_output = get_screen_at(x, y);

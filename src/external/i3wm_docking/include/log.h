@@ -77,23 +77,20 @@ void set_verbosity(bool _verbose);
  * but only if debug logging was activated.
  *
  */
-void debuglog(char *fmt, ...)
-    __attribute__((format(printf, 1, 2)));
+void debuglog(char *fmt, ...);
 
 /**
  * Logs the given message to stdout while prefixing the current time to it.
  *
  */
-void errorlog(char *fmt, ...)
-    __attribute__((format(printf, 1, 2)));
+void errorlog(char *fmt, ...);
 
 /**
  * Logs the given message to stdout while prefixing the current time to it,
  * but only if verbose mode is activated.
  *
  */
-void verboselog(char *fmt, ...)
-    __attribute__((format(printf, 1, 2)));
+void verboselog(char *fmt, ...);
 
 /**
  * Deletes the unused log files. Useful if i3 exits immediately, eg.

@@ -17,6 +17,9 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#undef min
+#undef max
+
 int min(int a, int b) {
     return (a < b ? a : b);
 }
@@ -50,7 +53,7 @@ I3Rect rect_sub(I3Rect a, I3Rect b) {
  * Returns true if the name consists of only digits.
  *
  */
-__attribute__((pure)) bool name_is_digits(const char *name) {
+bool name_is_digits(const char *name) {
     /* positive integers and zero are interpreted as numbers */
     for (size_t i = 0; i < strlen(name); i++)
         if (!isdigit(name[i]))

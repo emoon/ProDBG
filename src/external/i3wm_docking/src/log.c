@@ -14,19 +14,19 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <sys/time.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include <fcntl.h>
-#include <sys/mman.h>
+//#include <sys/mman.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include <pthread.h>
+//#include <pthread.h>
 
 #include "util.h"
 #include "log.h"
 //#include "i3.h"
 //#include "libi3.h"
 #include "shmlog.h"
+
 
 #if defined(__APPLE__)
 #include <sys/sysctl.h>
@@ -88,6 +88,7 @@ char* get_process_filename(const char* errorlog)
  *
  */
 void init_logging(void) {
+#ifndef _WIN32
     if (!errorfilename) {
         if (!(errorfilename = get_process_filename("errorlog")))
             fprintf(stderr, "Could not initialize errorlog\n");
@@ -108,6 +109,7 @@ void init_logging(void) {
     else if (shmlog_size <= 0 && logbuffer)
         close_logbuffer();
     atexit(purge_zerobyte_logfile);
+#endif
 }
 
 /*
@@ -183,10 +185,12 @@ void open_logbuffer(void) {
  *
  */
 void close_logbuffer(void) {
-    close(logbuffer_shm);
+#ifndef _WIN32
+	close(logbuffer_shm);
     shm_unlink(shmlogname);
     logbuffer = NULL;
     shmlogname = "";
+#endif
 }
 
 /*
@@ -223,7 +227,8 @@ void set_debug_logging(const bool _debug_logging) {
  *
  */
 static void vlog(const bool print, const char *fmt, va_list args) {
-    /* Precisely one page to not consume too much memory but to hold enough
+#ifndef _WIN32
+	/* Precisely one page to not consume too much memory but to hold enough
      * data to be useful. */
     static char message[4096];
     static struct tm result;
@@ -283,6 +288,7 @@ static void vlog(const bool print, const char *fmt, va_list args) {
         if (print)
             fwrite(message, len, 1, stdout);
     }
+#endif
 }
 
 /*
@@ -342,6 +348,7 @@ void debuglog(char *fmt, ...) {
  * failures. This function is invoked automatically when exiting.
  */
 void purge_zerobyte_logfile(void) {
+#ifndef _WIN32
     struct stat st;
     char *slash;
 
@@ -361,4 +368,5 @@ void purge_zerobyte_logfile(void) {
          * sockets) left. */
         rmdir(errorfilename);
     }
+#endif
 }

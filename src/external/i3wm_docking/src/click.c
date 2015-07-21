@@ -93,7 +93,7 @@ bool resize_find_tiling_participants(Con **current, Con **other, direction_t dir
 }
 
 
-int resize_graphical_handler(Con *first, Con *second, orientation_t orientation, MouseEvent* event) {
+int resize_graphical_handler(Con *first, Con *second, orientation_t orientation, const MouseEvent* event) {
     DLOG("resize handler\n");
 
     /* TODO: previously, we were getting a rect containing all screens. why? */
@@ -201,7 +201,7 @@ int resize_graphical_handler(Con *first, Con *second, orientation_t orientation,
  * then calls resize_graphical_handler().
  *
  */
-static bool tiling_resize_for_border(Con *con, border_t border, MouseEvent *event) {
+static bool tiling_resize_for_border(Con *con, border_t border, const MouseEvent *event) {
     DLOG("border = %d, con = %p\n", border, con);
     Con *second = NULL;
     Con *first = con;
@@ -717,7 +717,7 @@ static void updateDragBorder(const MouseEvent* event)
     }
 
     //tiling_resize(s_hoverCon, event, CLICK_BORDER); 
-    return tiling_resize_for_border(s_hoverCon, s_border, event);
+    tiling_resize_for_border(s_hoverCon, s_border, event);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -758,6 +758,8 @@ int handle_button_press(int x, int y, int mxd, int myd, bool lmb_down)
             break;
         }
     }
+
+	return 0;
 }
 
 

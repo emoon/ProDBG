@@ -10,8 +10,6 @@
  */
 #pragma once
 
-#include <err.h>
-
 #include "data.h"
 #include <stddef.h>
 
@@ -56,6 +54,9 @@
 
 #define CALL(obj, member, ...) obj->member(obj, ##__VA_ARGS__)
 
+#undef min
+#undef max
+
 int min(int a, int b);
 int max(int a, int b);
 bool rect_contains(I3Rect rect, uint32_t x, uint32_t y);
@@ -66,7 +67,7 @@ I3Rect rect_sub(I3Rect a, I3Rect b);
  * Returns true if the name consists of only digits.
  *
  */
-__attribute__((pure)) bool name_is_digits(const char *name);
+bool name_is_digits(const char *name);
 
 /**
  * Parses the workspace name as a number. Returns -1 if the workspace should be

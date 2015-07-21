@@ -1089,6 +1089,8 @@ orientation_t con_orientation(Con *con) {
             DLOG("con_orientation() ran into default\n");
             assert(false);
     }
+
+	return -1;
 }
 
 /*
@@ -1642,56 +1644,59 @@ static void con_on_remove_child(Con *con) {
  *
  */
 I3Rect con_minimum_size(Con *con) {
-    DLOG("Determining minimum size for con %p\n", con);
+	DLOG("Determining minimum size for con %p\n", con);
 
-    if (con_is_leaf(con)) {
-        DLOG("leaf node, returning 75x50\n");
-        return (I3Rect){0, 0, 75, 50};
-    }
+	if (con_is_leaf(con)) {
+		DLOG("leaf node, returning 75x50\n");
+		return (I3Rect){ 0, 0, 75, 50 };
+	}
 
-    if (con->type == CT_FLOATING_CON) {
-        DLOG("floating con\n");
-        Con *child = TAILQ_FIRST(&(con->nodes_head));
-        return con_minimum_size(child);
-    }
+	if (con->type == CT_FLOATING_CON) {
+		DLOG("floating con\n");
+		Con *child = TAILQ_FIRST(&(con->nodes_head));
+		return con_minimum_size(child);
+	}
 
-    if (con->layout == L_STACKED || con->layout == L_TABBED) {
-        uint32_t max_width = 0, max_height = 0, deco_height = 0;
-        Con *child;
-        TAILQ_FOREACH(child, &(con->nodes_head), nodes) {
-            I3Rect min = con_minimum_size(child);
-            deco_height += child->deco_rect.height;
-            max_width = max(max_width, min.width);
-            max_height = max(max_height, min.height);
-        }
-        DLOG("stacked/tabbed now, returning %d x %d + deco_rect = %d\n",
-             max_width, max_height, deco_height);
-        return (I3Rect){0, 0, max_width, max_height + deco_height};
-    }
+	if (con->layout == L_STACKED || con->layout == L_TABBED) {
+		uint32_t max_width = 0, max_height = 0, deco_height = 0;
+		Con *child;
+		TAILQ_FOREACH(child, &(con->nodes_head), nodes) {
+			I3Rect min = con_minimum_size(child);
+			deco_height += child->deco_rect.height;
+			max_width = max(max_width, min.width);
+			max_height = max(max_height, min.height);
+		}
+		DLOG("stacked/tabbed now, returning %d x %d + deco_rect = %d\n",
+			max_width, max_height, deco_height);
+		return (I3Rect){ 0, 0, max_width, max_height + deco_height };
+	}
 
-    /* For horizontal/vertical split containers we sum up the width (h-split)
-     * or height (v-split) and use the maximum of the height (h-split) or width
-     * (v-split) as minimum size. */
-    if (con_is_split(con)) {
-        uint32_t width = 0, height = 0;
-        Con *child;
-        TAILQ_FOREACH(child, &(con->nodes_head), nodes) {
-            I3Rect min = con_minimum_size(child);
-            if (con->layout == L_SPLITH) {
-                width += min.width;
-                height = max(height, min.height);
-            } else {
-                height += min.height;
-                width = max(width, min.width);
-            }
-        }
-        DLOG("split container, returning width = %d x height = %d\n", width, height);
-        return (I3Rect){0, 0, width, height};
-    }
+	/* For horizontal/vertical split containers we sum up the width (h-split)
+	 * or height (v-split) and use the maximum of the height (h-split) or width
+	 * (v-split) as minimum size. */
+	if (con_is_split(con)) {
+		uint32_t width = 0, height = 0;
+		Con *child;
+		TAILQ_FOREACH(child, &(con->nodes_head), nodes) {
+			I3Rect min = con_minimum_size(child);
+			if (con->layout == L_SPLITH) {
+				width += min.width;
+				height = max(height, min.height);
+			}
+			else {
+				height += min.height;
+				width = max(width, min.width);
+			}
+		}
+		DLOG("split container, returning width = %d x height = %d\n", width, height);
+		return (I3Rect){ 0, 0, width, height };
+	}
 
-    ELOG("Unhandled case, type = %d, layout = %d, split = %d\n",
-         con->type, con->layout, con_is_split(con));
-    assert(false);
+	ELOG("Unhandled case, type = %d, layout = %d, split = %d\n",
+		con->type, con->layout, con_is_split(con));
+	assert(false);
+
+	return (I3Rect){ 0, 0, 0, 0 };
 }
 
 /*
@@ -1846,11 +1851,19 @@ void con_set_urgency(Con *con, bool urgent) {
 int sasprintf(char **strp, const char *fmt, ...) {
     va_list args;
     int result;
+	char tempBuffer[4096];
+
+	*strp = 0;
 
     va_start(args, fmt);
-    if ((result = vasprintf(strp, fmt, args)) == -1)
-        err(EXIT_FAILURE, "asprintf(%s)", fmt);
+	if ((result = vsprintf(tempBuffer, fmt, args)) == -1)
+	{
+		return -1;
+	}
     va_end(args);
+
+	*strp = strdup(tempBuffer);
+
     return result;
 }
 

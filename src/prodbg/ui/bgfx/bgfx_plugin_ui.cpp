@@ -807,7 +807,7 @@ static void colorEditMode(PDUIColorEditMode mode)
 
 static void plotLines(const char* label, const float* values, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize, size_t stride)
 {
-    ImGui::PlotLines(label, values, valuesCount, valuesOffset, overlayText, scaleMin, scaleMax, ImVec2(graphSize.x, graphSize.y), stride);
+    ImGui::PlotLines(label, values, valuesCount, valuesOffset, overlayText, scaleMin, scaleMax, ImVec2(graphSize.x, graphSize.y), (int)stride);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -821,7 +821,7 @@ static void plotLines2(const char* label, float (*valuesGetter)(void* data, int 
 
 static void plotHistogram(const char* label, const float* values, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize, size_t stride)
 {
-    ImGui::PlotHistogram(label, values, valuesCount, valuesOffset, overlayText, scaleMin, scaleMax, ImVec2(graphSize.x, graphSize.y), stride);
+    ImGui::PlotHistogram(label, values, valuesCount, valuesOffset, overlayText, scaleMin, scaleMax, ImVec2(graphSize.x, graphSize.y), (int)stride);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1066,7 +1066,7 @@ static int textEditCallbackStub(ImGuiTextEditCallbackData* data)
     // We need to mirror any changes to the callback wrapper into the actual ImGui version
     data->UserData = callbackData.userData;
     data->Buf = callbackData.buf;
-    data->BufSize = (size_t)callbackData.bufSize;
+    data->BufSize = (int)callbackData.bufSize;
     data->BufDirty = callbackData.bufDirty;
     data->Flags = ImGuiInputTextFlags(callbackData.flags);
     data->CursorPos = callbackData.cursorPos;
