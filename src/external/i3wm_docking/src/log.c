@@ -14,9 +14,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
-//#include <unistd.h>
 #include <fcntl.h>
-//#include <sys/mman.h>
 #include <sys/stat.h>
 #include <errno.h>
 //#include <pthread.h>
@@ -26,6 +24,11 @@
 //#include "i3.h"
 //#include "libi3.h"
 #include "shmlog.h"
+
+#ifndef _WIN32
+#include <unistd.h>
+#include <sys/mman.h>
+#endif
 
 
 #if defined(__APPLE__)
