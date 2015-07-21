@@ -283,7 +283,7 @@ static void vlog(const bool print, const char *fmt, va_list args) {
         store_log_markers();
 
         /* Wake up all (i3-dump-log) processes waiting for condvar. */
-        pthread_cond_broadcast(&(header->condvar));
+        //pthread_cond_broadcast(&(header->condvar));
 
         if (print)
             fwrite(message, len, 1, stdout);

@@ -263,7 +263,11 @@ void render_con(Con *con, bool render_fullscreen) {
     int deco_height = render_deco_height();
 
     /* precalculate the sizes to be able to correct rounding errors */
+#ifdef _WIN32
     int* sizes = alloca(children);
+#else
+    int sizes[children];
+#endif
     memset(sizes, 0, children * sizeof(int));
     if ((con->layout == L_SPLITH || con->layout == L_SPLITV) && children > 0) {
         assert(!TAILQ_EMPTY(&con->nodes_head));
