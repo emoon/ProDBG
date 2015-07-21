@@ -25,9 +25,8 @@
 //#include "libi3.h"
 #include "shmlog.h"
 
-#include <sys/time.h>
-
 #ifndef _WIN32
+#include <sys/time.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #endif
@@ -232,7 +231,7 @@ void set_debug_logging(const bool _debug_logging) {
  *
  */
 static void vlog(const bool print, const char *fmt, va_list args) {
-#ifndef _WIN32
+#if defined(__APPLE__)
 	/* Precisely one page to not consume too much memory but to hold enough
      * data to be useful. */
     static char message[4096];
