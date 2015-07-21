@@ -25,8 +25,9 @@
 //#include "libi3.h"
 #include "shmlog.h"
 
-#ifndef _WIN32
 #include <sys/time.h>
+
+#ifndef _WIN32
 #include <unistd.h>
 #include <sys/mman.h>
 #endif
