@@ -26,6 +26,7 @@
 #include "shmlog.h"
 
 #ifndef _WIN32
+#include <sys/time.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #endif
