@@ -203,6 +203,17 @@ void UIRender_posTexColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t of
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void UIRender_posIdxTexColor(bgfx::TransientVertexBuffer* vertexBuffer, bgfx::TransientIndexBuffer* indexBuffer, uint32_t vtxSize, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle)
+{
+    bgfx::setTexture(0, s_tex, texHandle);
+    bgfx::setVertexBuffer(vertexBuffer, 0, vtxSize);
+	bgfx::setIndexBuffer(indexBuffer, offset, count);
+    bgfx::setProgram(s_programs[Program_PosTexColor].handle);
+    bgfx::submit(0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void UIRender_posTexRColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle)
 {
     bgfx::setTexture(0, s_tex, texHandle);

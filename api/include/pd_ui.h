@@ -81,7 +81,8 @@ enum PDUIWindowFlags_
     PDUIWindowFlags_AlwaysAutoResize       = 1 << 6,   // Resize every window to its content every frame
     PDUIWindowFlags_ShowBorders            = 1 << 7,   // Show borders around windows and items
     PDUIWindowFlags_NoSavedSettings        = 1 << 8,   // Never load/save settings in .ini file
-    PDUIWindowFlags_MenuBar                = 1 << 9,   // Has a menu-bar
+    PDUIWindowFlags_NoInputs               = 1 << 9,   // Disable catching mouse or keyboard inputs
+    PDUIWindowFlags_MenuBar                = 1 << 10,  // Has a menu-bar
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -101,6 +102,8 @@ enum PDUIInputTextFlags_
     PDUIInputTextFlags_CallbackCharFilter  = 1 << 9,   // Call user function to filter character. Modify data->EventChar to replace/filter input, or return 1 to discard character.
     PDUIInputTextFlags_AllowTabInput       = 1 << 10,  // Pressing TAB input a '\t' character into the text field
     PDUIInputTextFlags_CtrlEnterForNewLine = 1 << 11,  // In multi-line mode, allow exiting edition by pressing Enter. Ctrl+Enter to add new line (by default adds new lines with Enter).
+    PDUIInputTextFlags_NoHorizontalScroll  = 1 << 12,  // Disable following the cursor horizontally
+    PDUIInputTextFlags_AlwaysInsertMode    = 1 << 13,  // Insert mode
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
