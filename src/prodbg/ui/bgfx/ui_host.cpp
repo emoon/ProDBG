@@ -1,4 +1,5 @@
 #include "ui_host.h"
+#include "dialogs.h" 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -6,13 +7,13 @@
 
 extern void MacDialog_infoDialog(const char* title, const char* message);
 extern void MacDialog_errorDialog(const char* title, const char* message);
-extern void MecDialog_warningDialog(const char* title, const char* message);
+extern void MacDialog_warningDialog(const char* title, const char* message);
 
 PDMessageFuncs g_serviceMessageFuncs =
 {
     MacDialog_infoDialog,
     MacDialog_errorDialog,
-    MecDialog_warningDialog,
+    MacDialog_warningDialog,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,5 +55,14 @@ PDMessageFuncs g_serviceMessageFuncs =
 };
 
 #endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+PDDialogFuncs g_dialogFuncs = 
+{
+	Dialog_open,
+	Dialog_save,
+	Dialog_selectDirectory,
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
