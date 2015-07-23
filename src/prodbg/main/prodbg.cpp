@@ -61,6 +61,7 @@ static const char* s_plugins[] =
     "registers_plugin",
     "breakpoints_plugin",
     "hex_memory_plugin",
+    "workspace_plugin",
     "console_plugin",
     "c64_vice_plugin",
 #ifdef PRODBG_MAC

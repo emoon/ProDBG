@@ -212,6 +212,21 @@ SharedLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
+    Name = "workspace_plugin",
+    
+    Env = {
+        CPPPATH = { "api/include", },
+        CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
+    },
+
+    Sources = { "src/plugins/workspace/workspace_plugin.cpp" },
+
+    IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+SharedLibrary {
     Name = "c64_vice_plugin",
     
     Env = {
@@ -268,6 +283,7 @@ Default "locals_plugin"
 Default "threads_plugin"
 Default "breakpoints_plugin"
 Default "hex_memory_plugin"
+Default "workspace_plugin"
 Default "console_plugin"
 Default "c64_vice_plugin"
 
