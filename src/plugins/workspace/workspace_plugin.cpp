@@ -3,6 +3,7 @@
 #include "pd_host.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <foundation/foundation.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -29,6 +30,7 @@ struct TreeEntry
 
 struct WorkspaceData
 {
+    application_t app;
 	int dummy;
 };
 
@@ -43,10 +45,21 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* reader, PDWriter* wri
     (void)reader;
     (void)writer;
 
-    if (uiFuncs->button("OpenDialog", (PDVec2) { 0.0f, 0.0f }))
+    if (uiFuncs->button("...", (PDVec2) { 0.0f, 0.0f }))
 	{
 		char outputPath[4096];
-		s_dialogFuncs->selectDirectory(outputPath);
+		if (s_dialogFuncs->selectDirectory(outputPath))
+		{
+			char** files = fs_matching_files(outputPath, "^.*$", true);
+
+			for (int i = 0; i < array_size(files); ++i)
+			{
+				if (files[i][0] == '.')
+					continue;
+
+				printf("%s\n", files[i]);
+			}
+		}
 	}
 
     while ((event = PDRead_getEvent(reader)) != 0)
@@ -64,6 +77,15 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
     (void)serviceFunc;
     (void)uiFuncs;
     WorkspaceData* userData = (WorkspaceData*)malloc(sizeof(WorkspaceData));
+
+    userData->app.name = "ProDBG_workspace";
+    userData->app.short_name = "ProDBG_workspace";
+    userData->app.config_dir = "ProDBG_workspace";
+    userData->app.version = foundation_version();
+    userData->app.flags = APPLICATION_UTILITY;
+    userData->app.dump_callback = 0;
+
+    foundation_initialize(memory_system_malloc(), userData->app);
 
 	s_dialogFuncs = (PDDialogFuncs*)serviceFunc(PDDIALOGS_GLOBAL);
 
@@ -91,6 +113,11 @@ static PDViewPlugin plugin =
 
 extern "C"
 {
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// workaround for foundation
+
+int main(int, char**) { return 0; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

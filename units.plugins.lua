@@ -215,11 +215,18 @@ SharedLibrary {
     Name = "workspace_plugin",
     
     Env = {
-        CPPPATH = { "api/include", },
+        CPPPATH = { 
+			"src/external/foundation_lib",
+        	"api/include", 
+        },
         CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
     },
 
     Sources = { "src/plugins/workspace/workspace_plugin.cpp" },
+
+    Depends = { "foundation_lib" },
+
+    Frameworks = { "Cocoa"  },
 
     IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
