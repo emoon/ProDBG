@@ -82,6 +82,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
     }
 
     // Request callstack data
+    // TODO: Dont' request locals all the time
 
     PDWrite_eventBegin(outEvents, PDEventType_getLocals);
     PDWrite_u8(outEvents, "dummy_remove", 0);   // TODO: Remove me
