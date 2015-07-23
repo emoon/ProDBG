@@ -47,6 +47,25 @@ int Dialog_save(char* path)
        dialog.lpstrDefExt = L"*";
        return GetSaveFileName(&dialog);
      */
+
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int Dialog_selectDirectory(char* path)
+{
+    (void)path;
+    return -1;
+    /*
+       OPENFILENAME dialog;
+       ZeroMemory(&dialog, sizeof(dialog));
+       dialog.lStructSize = sizeof(dialog);
+       dialog.lpstrFilter = L"All Files (*.*)\0*.*\0";
+       dialog.lpstrFile = (wchar_t*)path;	// hack hack
+       dialog.nMaxFile = MAX_PATH;
+       dialog.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+       dialog.lpstrDefExt = L"*";
+       return GetSaveFileName(&dialog);
+     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

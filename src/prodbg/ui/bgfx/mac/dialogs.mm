@@ -55,6 +55,33 @@ int Dialog_save(char* dest)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+int Dialog_selectDirectory(char* dest)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSOpenPanel* open = [NSOpenPanel openPanel];
+
+    [open setCanChooseDirectories:YES];
+	[open setCanChooseFiles:NO];
+	[open setAllowsMultipleSelection:NO];
+
+    long result = [open runModal];
+
+    if (result != NSModalResponseOK)
+        return false;
+
+    NSArray* selectedFiles = [open URLs];
+    NSURL* url = [selectedFiles objectAtIndex:0];
+    const char* temp = [[url path] UTF8String];
+
+    strcpy(dest, temp);
+
+    [pool drain];
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void internalPanel(const char* titleText, const char* messageText, int type)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -88,7 +115,7 @@ void MacDialog_infoDialog(const char* title, const char* message)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MecDialog_warningDialog(const char* title, const char* message)
+void MacDialog_warningDialog(const char* title, const char* message)
 {
     internalPanel(title, message, NSWarningAlertStyle);
 }
