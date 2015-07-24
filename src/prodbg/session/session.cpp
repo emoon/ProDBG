@@ -380,6 +380,8 @@ static void doToggleBreakpoint(Session* s, PDReader* reader)
     breakpoint->filename = strdup(filename);
     breakpoint->line = (int)line;
 
+    printf("adding new breakpoint to session %s:%d\n", breakpoint->filename, breakpoint->line);
+
     s->breakpoints.push_back(breakpoint);
 }
 
@@ -395,6 +397,7 @@ static void toggleBreakpoint(Session* s, PDReader* reader)
         {
             case PDEventType_setBreakpoint:
             {
+            	printf("session breakpoint\n");
                 doToggleBreakpoint(s, reader);
                 break;
             }
@@ -470,6 +473,8 @@ static void updateLocal(Session* s, PDAction action)
 
     PDBinaryReader_reset(s->reader);
 
+    toggleBreakpoint(s, s->reader);
+
     // TODO: Temporary hack, send no request data to backend if we are running.
 
     //if (s->state == PDDebugState_running)
@@ -505,8 +510,6 @@ static void updateLocal(Session* s, PDAction action)
     }
 
     updateScript(s, s->reader);
-
-    toggleBreakpoint(s, s->reader);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

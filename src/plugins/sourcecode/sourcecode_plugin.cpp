@@ -170,20 +170,23 @@ static void updateKeyboard(SourceCodeData* data, PDUISCInterface* sourceFuncs, P
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void toggleBreakpointCurrentLine(SourceCodeData* data, PDWriter* writer)
+static void toggleBreakpointCurrentLine(PDUISCInterface* sourceFuncs, SourceCodeData* data, PDWriter* writer)
 {
     (void)data;
     (void)writer;
-    /*
-       // TODO: Currenty we don't handly if we set breakpoints on a line we can't
 
-       PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
-       PDWrite_string(writer, "filename", data->file.filename);
-       PDWrite_u32(writer, "line", (unsigned int)data->cursorPos + 1);
-       PDWrite_eventEnd(writer);
+	PDUI_SCSendCommand(sourceFuncs, SCN_TOGGLE_BREAKPOINT, 0, 0);
 
-       data->file.lines[data->cursorPos].breakpoint = !data->file.lines[data->cursorPos].breakpoint;
-     */
+	uint32_t currentLine = (uint32_t)PDUI_SCSendCommand(sourceFuncs, SCN_GETCURRENT_LINE, 0, 0);
+
+	printf("currentLine %d\n", currentLine);
+
+	// TODO: Currenty we don't handly if we set breakpoints on a line we can't
+
+	PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
+	PDWrite_string(writer, "filename", data->filename);
+	PDWrite_u32(writer, "line", currentLine);
+	PDWrite_eventEnd(writer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -222,7 +225,7 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
             case PDEventType_toggleBreakpointCurrentLine:
             {
-                toggleBreakpointCurrentLine(data, writer);
+                toggleBreakpointCurrentLine(sourceFuncs, data, writer);
                 break;
             }
 

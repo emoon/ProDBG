@@ -24,6 +24,14 @@ static PDMessageFuncs* s_messageFuncs;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+struct Breakpoint
+{
+	const char* filename;
+	int line;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef struct LLDBPlugin
 {
     lldb::SBDebugger debugger;
@@ -35,6 +43,7 @@ typedef struct LLDBPlugin
     uint64_t selectedThreadId;
     const char* targetName;
 	std::map<lldb::tid_t, uint32_t> frameSelection;
+	std::vector<Breakpoint> breakpoints;
 
 } LLDBPlugin;
 
@@ -306,6 +315,17 @@ static void setExecutable(LLDBPlugin* plugin, PDReader* reader)
         printf("Unable to create valid target (%s)\n", filename);
 	}
 
+	for (Breakpoint& bp : plugin->breakpoints)
+	{
+		lldb::SBBreakpoint breakpoint = plugin->target.BreakpointCreateByLocation(bp.filename, (uint32_t)bp.line);
+
+		if (!breakpoint.IsValid())
+		{
+			// TODO: Send message back that this breakpoint could't be set
+			printf("Unable to set breakpoint %s:%d\n", bp.filename, bp.line); 
+		}
+	}
+
     printf("Valid target %s\n", filename); 
 
     onRun(plugin);
@@ -412,8 +432,15 @@ static void setBreakpoint(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer
     lldb::SBBreakpoint breakpoint = plugin->target.BreakpointCreateByLocation(filename, line);
     if (!breakpoint.IsValid())
     {
-        // TODO: send back if breakpoint couldn't be set
-        printf("Unable to set breakpoint at %s:%d\n", filename, line);
+		printf("adding breakpoints to breakpoint list %s:%d\n", filename, line);
+
+    	// Unable to set breakpoint as the target doesn't seem to be valid. This is the usual case
+    	// if we haven't actually started an executable yet. So we save them here for later and
+    	// then set them before launching the executable
+
+		Breakpoint bp = { strdup(filename), (int)line };
+		plugin->breakpoints.push_back(bp);
+
         return;
     }
 
