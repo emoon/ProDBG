@@ -332,7 +332,7 @@ static void separator()
 
 static void sameLine(int columnX, int spacingW)
 {
-    ImGui::SameLine(columnX, spacingW);
+    ImGui::SameLine((float)columnX, (float)spacingW);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -758,7 +758,7 @@ void SurfaceImpl::MeasureWidths(Font& font_, const char* s, int len, float* posi
         const ImFont::Glyph* glyph = s_imFont->FindGlyph((unsigned short)*s++);
         assert(glyph);
 
-        advance = glyph->XAdvance;
+        advance = (int)glyph->XAdvance;
 
         position += advance;//TODO: +Kerning
         *positions++ = position;// * realFont->scale;

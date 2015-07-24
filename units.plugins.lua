@@ -228,6 +228,12 @@ SharedLibrary {
 
     Frameworks = { "Cocoa"  },
 
+    Libs = { 
+      { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "Shell32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } },
+	  -- { "third-party/lib/wx/wx_osx_cocoau_core-3.1", "third-party/lib/wx/wwx_baseu-3.1" ; Config = { "macosx-*-*", "macosx_test-*-*" } },
+    },
+
+
     IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
 

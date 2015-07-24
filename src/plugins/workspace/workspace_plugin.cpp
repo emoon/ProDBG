@@ -111,7 +111,9 @@ static void recursiveDrawTree(DirEntry* entry, PDUI* uiFuncs, PDWriter* writer)
 
 	for (int i = 0; i < fileCount; ++i)
 	{
-		if (uiFuncs->selectable(entry->filesBase[i], false, 0, (PDVec2) { 0.0f, 0.0f }))
+		PDVec2 size = { 0.0f, 0.0f };
+
+		if (uiFuncs->selectable(entry->filesBase[i], false, 0, size))
 		{
        		PDWrite_eventBegin(writer, PDEventType_setSourceCodeFile);
        		PDWrite_string(writer, "filename", entry->files[i]);
@@ -134,7 +136,9 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* reader, PDWriter* wri
     (void)reader;
     (void)writer;
 
-    if (uiFuncs->button("...", (PDVec2) { 0.0f, 0.0f }))
+	PDVec2 size = { 0.0f, 0.0f };
+
+    if (uiFuncs->button("...", size))
 	{
 		char outputPath[4096];
 		if (s_dialogFuncs->selectDirectory(outputPath))
