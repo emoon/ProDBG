@@ -796,9 +796,14 @@ public:
 		{
 			case SCN_TOGGLE_BREAKPOINT:
 			{
-				printf("toggle breakpoint\n");
 				ToggleBreakpoint();
 				return 0;
+			}
+
+			case SCN_GETCURRENT_LINE:
+			{
+				Point caretPosition = PointMainCaret();
+				return (sptr_t)LineFromLocation(caretPosition);
 			}
 		}
 
