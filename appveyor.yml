@@ -1,6 +1,5 @@
 version: '{build}'
 skip_tags: true
-os: Windows Server 2012 R2
 environment:
   matrix:
   - GENERATOR: Visual Studio 12 Win64
