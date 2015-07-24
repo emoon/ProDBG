@@ -770,6 +770,7 @@ static void updateLLDBEvent(LLDBPlugin* plugin, PDWriter* writer)
                 if (select_thread && !selected_thread)
                 {
                     selected_thread = plugin->process.SetSelectedThread(thread);
+                    plugin->selectedThreadId = thread.GetThreadID();
                 }
             }
         }
