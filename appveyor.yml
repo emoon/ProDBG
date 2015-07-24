@@ -1,0 +1,15 @@
+version: '{build}'
+skip_tags: true
+os: Windows Server 2012 R2
+environment:
+  matrix:
+  - GENERATOR: Visual Studio 12 Win64
+    DEPS_PATH: deps64
+matrix:
+  # Allow builds to fail
+  allow_failures:
+  - os: Windows Server 2012 R2
+install: []
+build_script:
+- scripts\vcvarsx86_amd64.bat 
+- scripts\win64_build_debug.cmd 
