@@ -380,6 +380,15 @@ void SurfaceImpl::InitPixMap(int width, int height, Surface* surface_, WindowID 
 
 void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char* pixelsImage)
 {
+	// For some reason using bgfx dircetly doesn't work anymore.
+	// This is a temporary work-around to show something at least.
+
+    s_drawList->AddDrawCmd();
+    s_drawList->AddRectFilled(ImVec2(rc.left + s_pos.x, rc.top + s_pos.y),
+                              ImVec2(rc.right + s_pos.x, rc.bottom + s_pos.y - 2), 0xaa889900);
+
+	return;
+/*
     ImageData image;
     memset(&image, 0x0, sizeof(image));
 
@@ -396,59 +405,63 @@ void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsi
 
     // TODO: Use program that doesn't set color
 
-    UIRender_allocPosTexColorTb(&tvb, 6);
+    UIRender_allocPosColorTb(&tvb, 6);
+    PosColorVertex* vb = (PosColorVertex*)tvb.data;
 
-    PosTexColorVertex* vb = (PosTexColorVertex*)tvb.data;
+    //UIRender_allocPosTexColorTb(&tvb, 6);
+    //PosTexColorVertex* vb = (PosTexColorVertex*)tvb.data;
 
     // First triangle
 
     vb[0].x = rc.left;
     vb[0].y = rc.top;
-    vb[0].u = u1;
-    vb[0].v = v1;
-    vb[0].color = 0xffffffff;
+    //vb[0].u = u1;
+    //vb[0].v = v1;
+    vb[0].color = 0x7f7f7f7f;
 
     vb[1].x = rc.right;
     vb[1].y = rc.top;
-    vb[1].u = u2;
-    vb[1].v = v1;
-    vb[1].color = 0xffffffff;
+    //vb[1].u = u2;
+    //vb[1].v = v1;
+    vb[1].color = 0x7f7f7f7f;
 
     vb[2].x = rc.right;
     vb[2].y = rc.bottom;
-    vb[2].u = u2;
-    vb[2].v = v2;
-    vb[2].color = 0xffffffff;
+    //vb[2].u = u2;
+    //vb[2].v = v2;
+    vb[2].color = 0x7f7f7f7f;
 
     // Second triangle
 
     vb[3].x = rc.left;
     vb[3].y = rc.top;
-    vb[3].u = u1;
-    vb[3].v = v1;
+    //vb[3].u = u1;
+    //vb[3].v = v1;
     vb[3].color = 0xffffffff;
 
     vb[4].x = rc.right;
     vb[4].y = rc.bottom;
-    vb[4].u = u2;
-    vb[4].v = v2;
+    //vb[4].u = u2;
+    //vb[4].v = v2;
     vb[4].color = 0xffffffff;
 
     vb[5].x = rc.left;
     vb[5].y = rc.bottom;
-    vb[5].u = u1;
-    vb[5].v = v2;
+    //vb[5].u = u1;
+    //vb[5].v = v2;
     vb[5].color = 0xffffffff;
 
     bgfx::setState(0
                    | BGFX_STATE_RGB_WRITE
                    | BGFX_STATE_ALPHA_WRITE
-                   | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+                   // | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
                    | BGFX_STATE_MSAA);
 
-    UIRender_posTexColor(&tvb, 0, 6, image.tex);
+    //UIRender_posTexColor(&tvb, 0, 6, image.tex);
+    UIRender_posColor(&tvb, 0, 6);
 
     bgfx::destroyTexture(image.tex); // GW-TODO: Lol
+*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -461,7 +474,7 @@ static void fillRectangle(PRectangle rc, ColourDesired b)
 
     s_drawList->AddDrawCmd();
     s_drawList->AddRectFilled(ImVec2(rc.left + s_pos.x, rc.top + s_pos.y),
-                              ImVec2(rc.right + s_pos.x, rc.bottom + s_pos.y), back);
+                             ImVec2(rc.right + s_pos.x, rc.bottom + s_pos.y), back);
     /*
        bgfx::TransientVertexBuffer tvb;
 
