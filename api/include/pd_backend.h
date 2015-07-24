@@ -68,6 +68,8 @@ typedef enum PDEventType
     PDEventType_getSourceFiles,
     PDEventType_setSourceFiles,
 
+    PDEventType_setSourceCodeFile,
+
     // setbreakpoint send a breakpoint to the backend with supplied id
     // Back end will reply if this worked correct with supplied ID
 

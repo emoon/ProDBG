@@ -100,27 +100,14 @@ static void destroyInstance(void* userData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setExceptionLocation(PDUI* uiFuncs, PDUISCInterface* sourceFuncs, SourceCodeData* data, PDReader* inEvents)
+static void setSourceCodeFile(PDUI* uiFuncs, PDUISCInterface* sourceFuncs, SourceCodeData* data, const char* filename, uint32_t line)
 {
-    const char* filename;
-    uint32_t line;
-
-    // TODO: How to show this? Tell user to switch to disassembly view?
-
-    if (PDRead_findString(inEvents, &filename, "filename", 0) == PDReadStatus_notFound)
-        return;
-
-    if (PDRead_findU32(inEvents, &line, "line", 0) == PDReadStatus_notFound)
-        return;
-
     if (strcmp(filename, data->filename))
     {
         size_t size = 0;
         void* fileData = readFileFromDisk(filename, &size);
 
         printf("reading file to buffer %s\n", filename);
-
-        (void)uiFuncs;
 
         PDUI_setTitle(uiFuncs, filename);
 
@@ -143,9 +130,24 @@ static void setExceptionLocation(PDUI* uiFuncs, PDUISCInterface* sourceFuncs, So
     PDUI_SCSendCommand(sourceFuncs, SCI_GOTOLINE, (uintptr_t)line, 0);
 
     data->line = (int)line;
+}
 
-    //if (strcmp(filename, data->filename))
-    // PDUI_setTitle(uiFuncs, filename); 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void setExceptionLocation(PDUI* uiFuncs, PDUISCInterface* sourceFuncs, SourceCodeData* data, PDReader* inEvents)
+{
+    const char* filename;
+    uint32_t line;
+
+    // TODO: How to show this? Tell user to switch to disassembly view?
+
+    if (PDRead_findString(inEvents, &filename, "filename", 0) == PDReadStatus_notFound)
+        return;
+
+    if (PDRead_findU32(inEvents, &line, "line", 0) == PDReadStatus_notFound)
+        return;
+
+	setSourceCodeFile(uiFuncs, sourceFuncs, data, filename, line);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -205,6 +207,18 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
                 data->requestFiles = true;
                 break;
             }
+
+			case PDEventType_setSourceCodeFile:
+			{
+				const char* filename;
+
+    			if (PDRead_findString(inEvents, &filename, "filename", 0) == PDReadStatus_notFound)
+    				break;
+
+				setSourceCodeFile(uiFuncs, sourceFuncs, data, filename, 0);
+
+				break;
+			}
 
             case PDEventType_toggleBreakpointCurrentLine:
             {

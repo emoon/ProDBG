@@ -888,7 +888,7 @@ stream_t* fs_temporary_file( void )
 }
 
 
-static char** _fs_matching_files( const char* path, regex_t* pattern, bool recurse )
+char** fs_matching_files_regex( const char* path, regex_t* pattern, bool recurse )
 {
 	char** names = 0;
 	char** subdirs = 0;
@@ -954,7 +954,7 @@ static char** _fs_matching_files( const char* path, regex_t* pattern, bool recur
 	for( id = 0, dsize = array_size( subdirs ); id < dsize; ++id )
 	{
 		char* subpath = path_merge( path, subdirs[id] );
-		char** subnames = _fs_matching_files( subpath, pattern, true );
+		char** subnames = fs_matching_files_regex( subpath, pattern, true );
 
 		for( in = 0, nsize = array_size( subnames ); in < nsize; ++in )
 			array_push( names, path_merge( subdirs[id], subnames[in] ) );
@@ -974,7 +974,7 @@ static char** _fs_matching_files( const char* path, regex_t* pattern, bool recur
 char** fs_matching_files( const char* path, const char* pattern, bool recurse )
 {
 	regex_t* regex = regex_compile( pattern );
-	char** names = _fs_matching_files( path, regex, recurse );
+	char** names = fs_matching_files_regex( path, regex, recurse );
 	regex_deallocate( regex );
 	return names;
 }

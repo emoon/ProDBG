@@ -15,6 +15,7 @@
 #include <foundation/platform.h>
 #include <foundation/types.h>
 
+struct regex_t;
 
 FOUNDATION_API stream_t*        fs_open_file( const char* path, unsigned int mode );
 FOUNDATION_API void             fs_copy_file( const char* source, const char* dest );
@@ -27,6 +28,7 @@ FOUNDATION_API uint64_t         fs_last_modified( const char* path );
 FOUNDATION_API void             fs_touch( const char* path );
 FOUNDATION_API uint128_t        fs_md5( const char* path );
 FOUNDATION_API char**           fs_matching_files( const char* path, const char* pattern, bool recurse );
+FOUNDATION_API char**           fs_matching_files_regex( const char* path, struct regex_t* pattern, bool recurse );
 FOUNDATION_API char**           fs_files( const char* path );
 FOUNDATION_API char**           fs_subdirs( const char* path );
 FOUNDATION_API void             fs_monitor( const char* path );
