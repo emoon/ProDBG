@@ -460,6 +460,7 @@ int RemoteConnection_sendFormat(struct RemoteConnection* conn, const char* forma
 
 int RemoteConnection_sendFormatRecv(unsigned char* dest, int bufferSize, struct RemoteConnection* conn, int timeOut, const char* format, ...)
 {
+	int i = 0;
     va_list ap;
     char buffer[2048];
 
@@ -480,7 +481,7 @@ int RemoteConnection_sendFormatRecv(unsigned char* dest, int bufferSize, struct 
     int res = 0;
     int lenCount = 0;
 
-    for (int i = 0; i < timeOut; ++i)
+    for (i = 0; i < timeOut; ++i)
     {
         bool gotData = false;
 
