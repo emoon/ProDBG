@@ -288,8 +288,10 @@ SharedLibrary {
 			"api/include", 
 			"api/src/remote", 
 		},
-		
 		CCOPTS = {
+			{ 
+				"-Wno-unused-macros",
+				"-Wno-sign-conversion" ; Config = { "macosx-*-*", "linux-*" } },
 			{ "-std=c99"; Config = "linux-*"; },
 		},
 
