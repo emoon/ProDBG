@@ -29,6 +29,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "m68k.h"
+#include <stdint.h>
+
 //#include <Base/Common/Types.h>
 
 /* ======================================================================== */
