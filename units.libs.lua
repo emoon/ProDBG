@@ -448,6 +448,35 @@ StaticLibrary {
 }
 
 StaticLibrary {
+    Name = "remote_connection",
+
+    Env = { 
+        
+        CPPPATH = { "api/include" },
+        CCOPTS = {
+            "-Wno-visibility",
+            "-Wno-conversion", 
+            "-Wno-pedantic", 
+            "-Wno-conversion",
+            "-Wno-covered-switch-default",
+            "-Wno-unreachable-code",
+            "-Wno-bad-function-cast",
+            "-Wno-missing-field-initializers",
+            "-Wno-float-equal",
+            "-Wno-conversion",
+            "-Wno-switch-enum",
+            "-Wno-format-nonliteral"; Config = "macosx-*-*" 
+        },
+    },
+
+    Sources = { 
+            "api/src/remote/remote_connection.c",
+    },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
+}
+
+StaticLibrary {
     Name = "angelscript",
 
     Env = { 

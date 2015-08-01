@@ -64,6 +64,7 @@ static const char* s_plugins[] =
     "workspace_plugin",
     "console_plugin",
     "c64_vice_plugin",
+    "amiga_uae_plugin",
 #ifdef PRODBG_MAC
     "lldb_plugin",
 #endif
