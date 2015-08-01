@@ -2,6 +2,7 @@
 #include "pd_menu.h"
 #include "pd_host.h"
 #include "remote_connection.h"
+#include "m68k.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -13,6 +14,7 @@
 #endif
 
 extern PDBackendPlugin g_backendPlugin;
+static const char s_hexchars [] = "0123456789abcdef";
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -43,6 +45,7 @@ typedef struct PluginData
     struct RemoteConnection* conn;
 	int dummy;
 	PDDebugState state;
+	uint32_t exceptionLocation;
 } PluginData;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,26 +125,61 @@ static void connectToLocalHost(PluginData* data)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static uint8_t s_disassemblyBuffer[1024];
+static uint32_t s_baseAddress = 0;
+static int s_disBufferLength = 0;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 unsigned int m68k_read_disassembler_8(unsigned int address)
 {
-	(void)address;
-	return 0;
+	address -= s_baseAddress;
+
+	if ((int)address > s_disBufferLength)
+	{
+		printf("trying to read outside disbuffer\n");
+		return 0;
+	}
+
+	return s_disassemblyBuffer[address];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 unsigned int m68k_read_disassembler_16(unsigned int address)
 {
-	(void)address;
-	return 0;
+	address -= s_baseAddress;
+
+	if (((int)address + 1) > s_disBufferLength)
+	{
+		printf("trying to read outside disbuffer\n");
+		return 0;
+	}
+
+	uint16_t v0 = s_disassemblyBuffer[address + 0];
+	uint16_t v1 = s_disassemblyBuffer[address + 1];
+
+	return (v0 << 8) | v1; 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 unsigned int m68k_read_disassembler_32(unsigned int address)
 {
-	(void)address;
-	return 0;
+	address -= s_baseAddress;
+
+	if (((int)address + 3) > s_disBufferLength)
+	{
+		printf("trying to read outside disbuffer\n");
+		return 0;
+	}
+
+	uint16_t v0 = s_disassemblyBuffer[address + 0];
+	uint16_t v1 = s_disassemblyBuffer[address + 1];
+	uint16_t v2 = s_disassemblyBuffer[address + 2];
+	uint16_t v3 = s_disassemblyBuffer[address + 3];
+
+	return (v0 << 24) | (v1 << 16) | (v2 << 8) | v3;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -282,10 +320,122 @@ void getRegisters(PluginData* data, PDWriter* writer)
 		writeRegister(writer, regName, 4, get_u32(&tdata), 0);
 	}
 
-	writeRegister(writer, "sr", 4, get_u32(&tdata), 0);
-	writeRegister(writer, "pc", 4, get_u32(&tdata), 0);
+	uint32_t sr = get_u32(&tdata);
+	uint32_t pc = get_u32(&tdata);
+
+	data->exceptionLocation = pc;
+
+	writeRegister(writer, "sr", 4, sr, 0);
+	writeRegister(writer, "pc", 4, pc, 0);
 
 	PDWrite_arrayEnd(writer);
+	PDWrite_eventEnd(writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+unsigned char checksumString(char* string, bool append)
+{
+	uint8_t cs = 0;
+	size_t len = strlen(string);
+
+	for (size_t i = 0; i < len; ++i)
+		cs += (uint8_t)string[i];
+
+	if (!append)
+		return cs;
+
+	string[len + 0] = '#';
+	string[len + 1] = s_hexchars[cs >> 4]; 
+	string[len + 2] = s_hexchars[cs & 0xf]; 
+	string[len + 3] = 0; 
+
+	return cs;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void getDisassembly(PluginData* data, PDReader* reader, PDWriter* writer)
+{
+	uint8_t reply[1024];
+	char cmdBuffer[512];
+	int disLength = 0;
+
+    uint64_t addressStart = 0;
+    uint32_t instructionCount = 0;
+
+    (void)data;
+    (void)writer;
+
+    PDRead_findU64(reader, &addressStart, "address_start", 0);
+    PDRead_findU32(reader, &instructionCount, "instruction_count", 0);
+
+	s_baseAddress = (uint32_t)addressStart;
+
+	// TODO: We need to clean this up
+
+	cmdBuffer[0] = '$';
+	cmdBuffer[1] = 'm';
+	sprintf(&cmdBuffer[2], "%x,%x", (uint32_t)addressStart, (uint32_t)instructionCount * 4);
+	checksumString(&cmdBuffer[1], true);
+
+	printf("get memory command %s\n", cmdBuffer);
+
+	int length = RemoteConnection_sendFormatRecv(reply, sizeof(reply), data->conn, 100, cmdBuffer);
+
+	if (length == 0)
+		return;
+
+	printf("length %d\n", length);
+
+	for (int i = 1; i < length; i += 2, ++disLength)
+	{
+		if (reply[i] == '#')
+			break;
+
+		s_disassemblyBuffer[disLength] = (uint8_t)(hex((char)reply[i + 0]) << 4) | 
+										 (uint8_t)hex((char)reply[i + 1]);
+
+		printf("got data %d\n", s_disassemblyBuffer[disLength]); 
+	}
+
+	printf("s_disBufferLength %d\n", disLength);
+
+	s_disBufferLength = disLength;
+
+	disLength = 0;
+
+	printf("begin dis........\n");
+
+    PDWrite_eventBegin(writer, PDEventType_setDisassembly);
+    PDWrite_arrayBegin(writer, "disassembly");
+
+	while (disLength < s_disBufferLength - 3)
+	{
+		char tempBuffer[1024];
+		int t = m68k_disassemble(tempBuffer, (uint32_t)addressStart + disLength, M68K_CPU_TYPE_68000);
+
+        PDWrite_arrayEntryBegin(writer);
+        PDWrite_u32(writer, "address", (uint32_t)addressStart + disLength);
+        PDWrite_string(writer, "line", tempBuffer); 
+        PDWrite_arrayEntryEnd(writer);
+
+        disLength += t;
+	}
+
+    PDWrite_arrayEnd(writer);
+    PDWrite_eventEnd(writer);
+
+	printf("end dis........\n");
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void setExceptionLocation(PluginData* data, PDWriter* writer)
+{
+	PDWrite_eventBegin(writer, PDEventType_setExceptionLocation);
+	PDWrite_u64(writer, "address", data->exceptionLocation);
+	PDWrite_u8(writer, "address_size", 4);
 	PDWrite_eventEnd(writer);
 }
 
@@ -303,6 +453,8 @@ static void onStep(PluginData* data, PDWriter* writer)
 	// send the registers once we stepd
 
 	getRegisters(data, writer);
+
+	setExceptionLocation(data, writer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -348,6 +500,12 @@ PDDebugState update(void* userData, PDAction action, PDReader* reader, PDWriter*
 			case PDEventType_getRegisters:
 			{
 				getRegisters(data, writer);
+				break;
+			}
+
+			case PDEventType_getDisassembly:
+			{
+				getDisassembly(data, reader, writer);
 				break;
 			}
 
