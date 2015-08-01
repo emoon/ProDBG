@@ -485,8 +485,6 @@ int RemoteConnection_sendFormatRecv(unsigned char* dest, int bufferSize, struct 
     {
         bool gotData = false;
 
-        //log_debug("trying to get data %d\n", i);
-
         while (RemoteConnection_pollRead(conn))
         {
             res = RemoteConnection_recv(conn, (char*)dest, bufferSize - lenCount, 0);
