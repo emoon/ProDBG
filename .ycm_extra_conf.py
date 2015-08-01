@@ -20,6 +20,8 @@ flags = [
 '-I',
 'api/include',
 '-I',
+'api/src/remote',
+'-I',
 'src/external',
 '-I',
 'src/external/imgui',
