@@ -632,7 +632,7 @@ static void d68000_abcd_rr(void)
 
 static void d68000_abcd_mm(void)
 {
-	sprintf(g_dasm_str, "abcd    -(A%d), -(A%d)", g_cpu_ir&7, (g_cpu_ir>>9)&7);
+	sprintf(g_dasm_str, "abcd    -(A%d),-(A%d)", g_cpu_ir&7, (g_cpu_ir>>9)&7);
 }
 
 static void d68000_add_er_8(void)
@@ -726,17 +726,17 @@ static void d68000_addx_rr_32(void)
 
 static void d68000_addx_mm_8(void)
 {
-	sprintf(g_dasm_str, "addx.b  -(A%d), -(A%d)", g_cpu_ir&7, (g_cpu_ir>>9)&7);
+	sprintf(g_dasm_str, "addx.b  -(A%d),-(A%d)", g_cpu_ir&7, (g_cpu_ir>>9)&7);
 }
 
 static void d68000_addx_mm_16(void)
 {
-	sprintf(g_dasm_str, "addx.w  -(A%d), -(A%d)", g_cpu_ir&7, (g_cpu_ir>>9)&7);
+	sprintf(g_dasm_str, "addx.w  -(A%d),-(A%d)", g_cpu_ir&7, (g_cpu_ir>>9)&7);
 }
 
 static void d68000_addx_mm_32(void)
 {
-	sprintf(g_dasm_str, "addx.l  -(A%d), -(A%d)", g_cpu_ir&7, (g_cpu_ir>>9)&7);
+	sprintf(g_dasm_str, "addx.l  -(A%d),-(A%d)", g_cpu_ir&7, (g_cpu_ir>>9)&7);
 }
 
 static void d68000_and_er_8(void)
@@ -2559,7 +2559,7 @@ static void d68020_pack_rr(void)
 static void d68020_pack_mm(void)
 {
 	LIMIT_CPU_TYPES(M68020_PLUS);
-	sprintf(g_dasm_str, "pack    -(A%d), -(A%d), %s; (2+)", g_cpu_ir&7, (g_cpu_ir>>9)&7, get_imm_str_u16());
+	sprintf(g_dasm_str, "pack    -(A%d),-(A%d), %s; (2+)", g_cpu_ir&7, (g_cpu_ir>>9)&7, get_imm_str_u16());
 }
 
 static void d68000_pea(void)
@@ -2747,7 +2747,7 @@ static void d68000_sbcd_rr(void)
 
 static void d68000_sbcd_mm(void)
 {
-	sprintf(g_dasm_str, "sbcd    -(A%d), -(A%d)", g_cpu_ir&7, (g_cpu_ir>>9)&7);
+	sprintf(g_dasm_str, "sbcd    -(A%d),-(A%d)", g_cpu_ir&7, (g_cpu_ir>>9)&7);
 }
 
 static void d68000_scc(void)
@@ -2850,17 +2850,17 @@ static void d68000_subx_rr_32(void)
 
 static void d68000_subx_mm_8(void)
 {
-	sprintf(g_dasm_str, "subx.b  -(A%d), -(A%d)", g_cpu_ir&7, (g_cpu_ir>>9)&7);
+	sprintf(g_dasm_str, "subx.b  -(A%d),-(A%d)", g_cpu_ir&7, (g_cpu_ir>>9)&7);
 }
 
 static void d68000_subx_mm_16(void)
 {
-	sprintf(g_dasm_str, "subx.w  -(A%d), -(A%d)", g_cpu_ir&7, (g_cpu_ir>>9)&7);
+	sprintf(g_dasm_str, "subx.w  -(A%d),-(A%d)", g_cpu_ir&7, (g_cpu_ir>>9)&7);
 }
 
 static void d68000_subx_mm_32(void)
 {
-	sprintf(g_dasm_str, "subx.l  -(A%d), -(A%d)", g_cpu_ir&7, (g_cpu_ir>>9)&7);
+	sprintf(g_dasm_str, "subx.l  -(A%d),-(A%d)", g_cpu_ir&7, (g_cpu_ir>>9)&7);
 }
 
 static void d68000_swap(void)
@@ -2996,7 +2996,7 @@ static void d68020_unpk_rr(void)
 static void d68020_unpk_mm(void)
 {
 	LIMIT_CPU_TYPES(M68020_PLUS);
-	sprintf(g_dasm_str, "unpk    -(A%d), -(A%d), %s; (2+)", g_cpu_ir&7, (g_cpu_ir>>9)&7, get_imm_str_u16());
+	sprintf(g_dasm_str, "unpk    -(A%d),-(A%d), %s; (2+)", g_cpu_ir&7, (g_cpu_ir>>9)&7, get_imm_str_u16());
 }
 
 
