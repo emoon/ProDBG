@@ -385,7 +385,7 @@ static char* get_ea_mode_str(uint instruction, uint size)
 			break;
 		case 0x28: case 0x29: case 0x2a: case 0x2b: case 0x2c: case 0x2d: case 0x2e: case 0x2f:
 		/* address register indirect with displacement*/
-			sprintf(mode, "(%s,A%d)", make_signed_hex_str_16(read_imm_16()), instruction&7);
+			sprintf(mode, "%s(A%d)", make_signed_hex_str_16(read_imm_16()), instruction&7);
 			break;
 		case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37:
 		/* address register indirect with index */
@@ -460,7 +460,7 @@ static char* get_ea_mode_str(uint instruction, uint size)
 			if(EXT_8BIT_DISPLACEMENT(extension) == 0)
 				sprintf(mode, "(A%d,%c%d.%c", instruction&7, EXT_INDEX_AR(extension) ? 'A' : 'D', EXT_INDEX_REGISTER(extension), EXT_INDEX_LONG(extension) ? 'l' : 'w');
 			else
-				sprintf(mode, "(%s,A%d,%c%d.%c", make_signed_hex_str_8(extension), instruction&7, EXT_INDEX_AR(extension) ? 'A' : 'D', EXT_INDEX_REGISTER(extension), EXT_INDEX_LONG(extension) ? 'l' : 'w');
+				sprintf(mode, "%s(A%d,%c%d.%c", make_signed_hex_str_8(extension), instruction&7, EXT_INDEX_AR(extension) ? 'A' : 'D', EXT_INDEX_REGISTER(extension), EXT_INDEX_LONG(extension) ? 'l' : 'w');
 			if(EXT_INDEX_SCALE(extension))
 				sprintf(mode+strlen(mode), "*%d", 1 << EXT_INDEX_SCALE(extension));
 			strcat(mode, ")");
@@ -476,7 +476,7 @@ static char* get_ea_mode_str(uint instruction, uint size)
 		case 0x3a:
 		/* program counter with displacement */
 			temp_value = read_imm_16();
-			sprintf(mode, "(%s,PC)", make_signed_hex_str_16(temp_value));
+			sprintf(mode, "%s(PC)", make_signed_hex_str_16(temp_value));
 			sprintf(g_helper_str, "; ($%x)", (make_int_16(temp_value) + g_cpu_pc-2) & 0xffffffff);
 			break;
 		case 0x3b:
@@ -552,7 +552,7 @@ static char* get_ea_mode_str(uint instruction, uint size)
 			if(EXT_8BIT_DISPLACEMENT(extension) == 0)
 				sprintf(mode, "(PC,%c%d.%c", EXT_INDEX_AR(extension) ? 'A' : 'D', EXT_INDEX_REGISTER(extension), EXT_INDEX_LONG(extension) ? 'l' : 'w');
 			else
-				sprintf(mode, "(%s,PC,%c%d.%c", make_signed_hex_str_8(extension), EXT_INDEX_AR(extension) ? 'A' : 'D', EXT_INDEX_REGISTER(extension), EXT_INDEX_LONG(extension) ? 'l' : 'w');
+				sprintf(mode, "%s(PC,%c%d.%c", make_signed_hex_str_8(extension), EXT_INDEX_AR(extension) ? 'A' : 'D', EXT_INDEX_REGISTER(extension), EXT_INDEX_LONG(extension) ? 'l' : 'w');
 			if(EXT_INDEX_SCALE(extension))
 				sprintf(mode+strlen(mode), "*%d", 1 << EXT_INDEX_SCALE(extension));
 			strcat(mode, ")");
