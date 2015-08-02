@@ -379,14 +379,10 @@ static void getDisassembly(PluginData* data, PDReader* reader, PDWriter* writer)
 	sprintf(&cmdBuffer[2], "%x,%x", (uint32_t)addressStart, (uint32_t)instructionCount * 4);
 	checksumString(&cmdBuffer[1], true);
 
-	printf("get memory command %s\n", cmdBuffer);
-
 	int length = RemoteConnection_sendFormatRecv(reply, sizeof(reply), data->conn, 100, cmdBuffer);
 
 	if (length == 0)
 		return;
-
-	printf("length %d\n", length);
 
 	for (int i = 1; i < length; i += 2, ++disLength)
 	{
@@ -395,17 +391,11 @@ static void getDisassembly(PluginData* data, PDReader* reader, PDWriter* writer)
 
 		s_disassemblyBuffer[disLength] = (uint8_t)(hex((char)reply[i + 0]) << 4) | 
 										 (uint8_t)hex((char)reply[i + 1]);
-
-		printf("got data %d\n", s_disassemblyBuffer[disLength]); 
 	}
-
-	printf("s_disBufferLength %d\n", disLength);
 
 	s_disBufferLength = disLength;
 
 	disLength = 0;
-
-	printf("begin dis........\n");
 
     PDWrite_eventBegin(writer, PDEventType_setDisassembly);
     PDWrite_arrayBegin(writer, "disassembly");
