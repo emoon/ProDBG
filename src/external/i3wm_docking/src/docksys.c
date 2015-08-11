@@ -95,14 +95,14 @@ static void split(Con *con, void* user_data, orientation_t orientation)
 
 void docksys_horizontal_split(Con *con, void *user_data)
 {
-	split(con, user_data, HORIZ);
+	split(con, user_data, VERT);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void docksys_vertical_split(Con *con, void *user_data)
 {
-	split(con, user_data, VERT);
+	split(con, user_data, HORIZ);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
