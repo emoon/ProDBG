@@ -26,6 +26,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
+#include <stdbool.h>
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET -1
@@ -34,6 +36,17 @@
 #if !defined(_WIN32)
 #define closesocket close
 #endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void sleepMs(int ms)
+{
+#ifdef _MSC_VER
+    Sleep(ms);
+#else
+    usleep((unsigned int)(ms * 1000));
+#endif
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -118,7 +131,7 @@ struct RemoteConnection* RemoteConnection_create(enum RemoteConnectionType type,
         return 0;
 #endif
 
-    conn = malloc(sizeof(RemoteConnection));
+    conn = (RemoteConnection*)malloc(sizeof(RemoteConnection));
 
     conn->type = type;
     conn->serverSocket = INVALID_SOCKET;
@@ -424,4 +437,73 @@ int RemoteConnection_isConnected(RemoteConnection* conn)
     return conn->socket != INVALID_SOCKET;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int RemoteConnection_sendFormat(struct RemoteConnection* conn, const char* format, ...)
+{
+    va_list ap;
+    char buffer[2048];
+
+    va_start(ap, format);
+    vsprintf(buffer, format, ap);
+    va_end(ap);
+
+    int len = (int)strlen(buffer);
+
+    if (!conn)
+        return 0;
+
+    return RemoteConnection_send(conn, buffer, len, 0) == len;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int RemoteConnection_sendFormatRecv(unsigned char* dest, int bufferSize, struct RemoteConnection* conn, int timeOut, const char* format, ...)
+{
+	int i = 0;
+    va_list ap;
+    char buffer[2048];
+
+    memset(dest, 0, bufferSize);
+
+    va_start(ap, format);
+    vsprintf(buffer, format, ap);
+    va_end(ap);
+
+    int len = (int)strlen(buffer);
+
+    if (!conn)
+        return 0;
+
+    if (RemoteConnection_send(conn, buffer, len, 0) != len)
+    	return 0;
+
+    int res = 0;
+    int lenCount = 0;
+
+    for (i = 0; i < timeOut; ++i)
+    {
+        bool gotData = false;
+
+        while (RemoteConnection_pollRead(conn))
+        {
+            res = RemoteConnection_recv(conn, (char*)dest, bufferSize - lenCount, 0);
+
+            if (res == 0)
+                break;
+
+            gotData = true;
+
+            dest += res;
+            lenCount += res;
+        }
+
+        if (gotData)
+            return lenCount;
+
+        sleepMs(1);
+    }
+
+    return 0;
+}
 
