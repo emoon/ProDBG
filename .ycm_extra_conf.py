@@ -42,6 +42,8 @@ flags = [
 '-I',
 'src/external/i3wm_docking/include'
 '-I',
+'api/include/capstore',
+'-I',
 '.'
 ]
 

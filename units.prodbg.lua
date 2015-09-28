@@ -72,7 +72,9 @@ Program {
         },
     },
 
-    Depends = { "core", "ui", "api", "session", "jansson", "lua", "remote_api", "stb", "bgfx", "uv", "imgui", "remotery", "foundation_lib", "scintilla", "tinyxml2", "i3wm_docking" },
+    Depends = { "core", "ui", "api", "session", "jansson", "lua", "remote_api", "stb", 
+    			"bgfx", "uv", "imgui", "remotery", "foundation_lib", "scintilla", 
+    			"tinyxml2", "i3wm_docking", "capstone" },
 
     Libs = { 
       { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "Shell32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } },

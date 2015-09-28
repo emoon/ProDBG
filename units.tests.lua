@@ -51,6 +51,7 @@ local all_depends = { "uv", "api", "core", "stb", "remote_api", "cmocka", "sessi
 
 -----------------------------------------------------------------------------------------------------------------------
 
+Test({ Name = "capstone_tests", Source = "src/prodbg/tests/capstone_tests.cpp", Depends = { "core", "stb", "uv", "cmocka", "foundation_lib", "jansson", "capstone"} })
 Test({ Name = "core_tests", Source = "src/prodbg/tests/core_tests.cpp", Depends = { "core", "stb", "uv", "cmocka", "foundation_lib", "jansson"} })
 Test({ Name = "lldb_tests", Source = "src/prodbg/tests/lldb_tests.cpp", Depends = all_depends})
 Test({ Name = "readwrite_tests", Source = "src/prodbg/tests/readwrite_tests.cpp", Depends = all_depends})
@@ -72,4 +73,5 @@ Default "ui_docking_tests"
 Default "ui_tests"
 Default "dbgeng_tests"
 Default "c64_vice_tests"
+Default "capstone_tests"
 

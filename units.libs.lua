@@ -447,6 +447,8 @@ StaticLibrary {
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
 }
 
+-----------------------------------------------------------------------------------------------------------------------
+
 StaticLibrary {
     Name = "remote_connection",
 
@@ -475,6 +477,8 @@ StaticLibrary {
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
 }
+
+-----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
     Name = "angelscript",
@@ -538,6 +542,41 @@ StaticLibrary {
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
+    Name = "capstone",
+
+
+
+    Env = { 
+        CPPPATH = { 
+			"src/external/capstone/include",
+        },
+
+        CCOPTS = {
+        	{ "-Wno-everything"; Config = "macosx-*-*" },
+        	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
+        },
+
+		CPPDEFS = {
+			{   "CAPSTONE_ARM64_SUPPORT", "CAPSTONE_ARM_SUPPORT", "CAPSTONE_HAS_ARM", "CAPSTONE_HAS_ARM64", "CAPSTONE_HAS_M68K", "CAPSTONE_HAS_MIPS", 
+				"CAPSTONE_HAS_POWERPC", "CAPSTONE_HAS_SPARC", "CAPSTONE_HAS_SYSZ", "CAPSTONE_HAS_X86", "CAPSTONE_HAS_XCORE", "CAPSTONE_M68K_SUPPORT", 
+				"CAPSTONE_MIPS_SUPPORT", "CAPSTONE_PPC_SUPPORT", "CAPSTONE_SPARC_SUPPORT", "CAPSTONE_SYSZ_SUPPORT", "CAPSTONE_USE_SYS_DYN_MEM", 
+				"CAPSTONE_X86_SUPPORT", "CAPSTONE_XCORE_SUPPORT" },
+		},
+    },
+
+    Sources = { 
+        Glob {
+            Dir = "src/external/capstone",
+            Extensions = { ".h", ".c" },
+        },
+    },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
