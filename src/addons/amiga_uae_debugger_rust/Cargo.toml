@@ -1,0 +1,11 @@
+[package]
+name = "amiga_uae_debugger"
+version = "0.1.0"
+authors = ["Daniel Collin <daniel@collin.com>"]
+
+[lib]
+name = "test"
+crate-type = ["dylib"]
+
+[dependencies]
+libc = "0.1.10"
