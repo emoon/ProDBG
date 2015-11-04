@@ -36,8 +36,7 @@ void Window_addMenu(const char* name, PDMenuItem* items, uint32_t idOffset);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct Context
-{
+struct Context {
     int width;
     int height;
     uint64_t time;
@@ -75,39 +74,35 @@ static const char* s_plugins[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void loadLayout(Session* session, int width, int height)
-{
+void loadLayout(Session* session, int width, int height) {
     Session_createDockingGrid(session, width, height);
 
-	if (docksys_load_layout("data/current_layout_2.json"))
-		return;
-
-	docksys_load_layout("data/default_layout_2.json");
-
-	/*
-    if (Session_loadLayout(session, "data/current_layout.json", width, height))
+    if (docksys_load_layout("data/current_layout_2.json"))
         return;
 
-    if (Session_loadLayout(session, "data/default_layout.json", width, height))
+    docksys_load_layout("data/default_layout_2.json");
+
+    /*
+       if (Session_loadLayout(session, "data/current_layout.json", width, height))
         return;
-    */
+
+       if (Session_loadLayout(session, "data/default_layout.json", width, height))
+        return;
+     */
 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-uint32_t findMenuIdRange(PDMenu* menu)
-{
+uint32_t findMenuIdRange(PDMenu* menu) {
     uint32_t idStart = uint32_t(~0);
     uint32_t idEnd = 0;
 
-    while (menu->name)
-    {
-        PDMenuItem* menuItems = menu->items;
+    while (menu->name) {
+        PDMenuItem* menu_items = menu->items;
 
-        while (menuItems->name)
-        {
-            const uint16_t id = menuItems->id;
+        while (menu_items->name) {
+            const uint16_t id = menu_items->id;
 
             if (id > idEnd)
                 idEnd = id;
@@ -115,7 +110,7 @@ uint32_t findMenuIdRange(PDMenu* menu)
             if (id < idStart)
                 idStart = id;
 
-            menuItems++;
+            menu_items++;
         }
 
         menu++;
@@ -126,16 +121,14 @@ uint32_t findMenuIdRange(PDMenu* menu)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void createMenusForPlugins()
-{
+void createMenusForPlugins() {
     int count = 0;
 
     PluginData** plugins = PluginHandler_getBackendPlugins(&count);
 
     uint32_t menuIdStart = PRODBG_MENU_PLUGINS_START;
 
-    for (int i = 0; i < count; ++i)
-    {
+    for (int i = 0; i < count; ++i) {
         PluginData* pluginData = plugins[i];
 
         PDBackendPlugin* plugin = (PDBackendPlugin*)pluginData->plugin;
@@ -143,14 +136,13 @@ void createMenusForPlugins()
         if (!plugin)
             continue;
 
-        if (!plugin->registerMenu)
+        if (!plugin->register_menu)
             continue;
 
-        PDMenu* menus = plugin->registerMenu();
+        PDMenu* menus = plugin->register_menu();
         uint32_t menuRange = findMenuIdRange(menus);
 
-        while (menus->name)
-        {
+        while (menus->name) {
             Window_addMenu(menus->name, menus->items, menuIdStart);
             menus++;
         }
@@ -164,8 +156,7 @@ void createMenusForPlugins()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool findDataDirectory()
-{
+static bool findDataDirectory() {
     // check if the data dir is directly here
 
     if (fs_is_directory("data"))
@@ -178,8 +169,7 @@ static bool findDataDirectory()
 
     // search max 10 levels up
 
-    for (int i = 0; i < 10; ++i)
-    {
+    for (int i = 0; i < 10; ++i) {
     #if defined(PRODBG_WIN)
         path = string_append(path, "\\..");
     #else
@@ -197,8 +187,7 @@ static bool findDataDirectory()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProDBG_create(void* window, int width, int height)
-{
+void ProDBG_create(void* window, int width, int height) {
     Context* context = &s_context;
     //Rect settingsRect;
     //
@@ -210,7 +199,7 @@ void ProDBG_create(void* window, int width, int height)
     g_pluginUI = new BgfxPluginUI;
     //g_pluginUI = new WxPluginUI;
 
-	Settings_loadSettings("data/settings.json");
+    Settings_loadSettings("data/settings.json");
 
     Session_globalInit(true);
     Settings_registerService();
@@ -224,8 +213,7 @@ void ProDBG_create(void* window, int width, int height)
 
     (void)window;
 
-    for (uint32_t i = 0; i < sizeof_array(s_plugins); ++i)
-    {
+    for (uint32_t i = 0; i < sizeof_array(s_plugins); ++i) {
         if (!PluginHandler_findPluginByFilename(s_plugins[i]))
             PluginHandler_addPlugin(OBJECT_DIR, s_plugins[i]);
     }
@@ -238,8 +226,7 @@ void ProDBG_create(void* window, int width, int height)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProDBG_update()
-{
+void ProDBG_update() {
     Context* context = &s_context;
 
     //uint64_t currentTime = time_current();
@@ -261,8 +248,7 @@ void ProDBG_update()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProDBG_applicationLaunched()
-{
+void ProDBG_applicationLaunched() {
     int pluginCount = 0;
     // NOTE(marco): this is where the native menu is created. We need to abstract this
     // so that we can use ImGUI to render the menu, while also being able to allow the
@@ -273,13 +259,12 @@ void ProDBG_applicationLaunched()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProDBG_destroy()
-{
+void ProDBG_destroy() {
     Context* context = &s_context;
 
     //rmt_DestroyGlobalInstance(s_remotery);
 
-	docksys_save_layout("data/current_layout_2.json");
+    docksys_save_layout("data/current_layout_2.json");
 
     Session_destroy(context->session);
 
@@ -292,19 +277,16 @@ void ProDBG_destroy()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProDBG_timedUpdate()
-{
+void ProDBG_timedUpdate() {
     ProDBG_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void onLoadRunExec(Session* session, const char* filename)
-{
+static void onLoadRunExec(Session* session, const char* filename) {
     PluginData* pluginData = PluginHandler_findPlugin(0, "lldb_plugin", "LLDB", true);
 
-    if (!pluginData)
-    {
+    if (!pluginData) {
         pd_error("Unable to find LLDB backend\n");
         return;
     }
@@ -319,16 +301,14 @@ static void onLoadRunExec(Session* session, const char* filename)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // We should mave this place some where better, I really don't like this approach but will have to do for now
 
-Con* getCoveredCon(int x, int y)
-{
-	return docksys_con_by_user_data(Session_getViewAt(s_context.session, x, y, 0));
+Con* getCoveredCon(int x, int y) {
+    return docksys_con_by_user_data(Session_getViewAt(s_context.session, x, y, 0));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Events
 
-void ProDBG_event(int eventId)
-{
+void ProDBG_event(int eventId) {
     Context* context = &s_context;
 
     int count;
@@ -341,14 +321,13 @@ void ProDBG_event(int eventId)
     (void)mousePos;
 
 #if PRODBG_USING_DOCKING
-    if (eventId & PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT)
-    {
+    if (eventId & PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT) {
         eventId &= (PRODBG_MENU_POPUP_SPLIT_HORZ_SHIFT - 1);
 
         ViewPluginInstance* instance = g_pluginUI->createViewPlugin(pluginsData[eventId]);
-		Con* con = getCoveredCon((int)mousePos.x, (int)mousePos.y);
+        Con* con = getCoveredCon((int)mousePos.x, (int)mousePos.y);
 
-		docksys_horizontal_split(con, instance);
+        docksys_horizontal_split(con, instance);
 
         //UIDock_splitHorizontalAt(Session_getDockingGrid(context->session), (int)mousePos.x, (int)mousePos.y, instance);
 
@@ -356,16 +335,15 @@ void ProDBG_event(int eventId)
         return;
     }
 
-    if (eventId & PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT)
-    {
+    if (eventId & PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT) {
         eventId &= (PRODBG_MENU_POPUP_SPLIT_VERT_SHIFT - 1);
 
         ViewPluginInstance* instance = g_pluginUI->createViewPlugin(pluginsData[eventId]);
-		Con* con = getCoveredCon((int)mousePos.x, (int)mousePos.y);
+        Con* con = getCoveredCon((int)mousePos.x, (int)mousePos.y);
 
-		docksys_vertical_split(con, instance);
+        docksys_vertical_split(con, instance);
 
-		printf("con %p\n", con);
+        printf("con %p\n", con);
 
         //UIDock_splitVerticalAt(Session_getDockingGrid(context->session), (int)mousePos.x, (int)mousePos.y, instance);
 
@@ -378,8 +356,7 @@ void ProDBG_event(int eventId)
     // TODO: This code really needs to be made more robust.
 
 #if 0
-    if (eventId >= PRODBG_MENU_PLUGIN_START && eventId < PRODBG_MENU_PLUGIN_START + 9)
-    {
+    if (eventId >= PRODBG_MENU_PLUGIN_START && eventId < PRODBG_MENU_PLUGIN_START + 9) {
         ViewPluginInstance* instance = g_pluginUI->createViewPlugin(pluginsData[eventId - PRODBG_MENU_PLUGIN_START]);
 
         UIDockingGrid* grid = Session_getDockingGrid(context->session);
@@ -391,14 +368,12 @@ void ProDBG_event(int eventId)
     }
 #endif
 
-    switch (eventId)
-    {
+    switch (eventId) {
         case PRODBG_MENU_FILE_OPEN_AND_RUN_EXE:
         {
             char filename[4096];
 
-            if (Dialog_open(filename))
-            {
+            if (Dialog_open(filename)) {
                 onLoadRunExec(context->session, filename);
             }
 
@@ -409,8 +384,7 @@ void ProDBG_event(int eventId)
         {
             char filename[4096];
 
-            if (Dialog_open(filename))
-            {
+            if (Dialog_open(filename)) {
                 Session_loadSourceFile(context->session, filename);
             }
 
@@ -419,7 +393,7 @@ void ProDBG_event(int eventId)
 
         case PRODBG_MENU_DEBUG_START:
         {
-            Session_action(context->session, PDAction_run);
+            Session_action(context->session, PDAction_Run);
             printf("run....\n");
             break;
         }
@@ -449,8 +423,7 @@ void ProDBG_event(int eventId)
         }
     }
 
-    if (eventId >= PRODBG_MENU_PLUGINS_START)
-    {
+    if (eventId >= PRODBG_MENU_PLUGINS_START) {
         Session_onMenu(context->session, eventId);
     }
 }

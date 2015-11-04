@@ -188,11 +188,11 @@ void RegisterScriptFile_Native(asIScriptEngine *engine)
 	r = engine->RegisterObjectMethod("file", "float readFloat()", asMETHOD(CScriptFile,ReadFloat), asCALL_THISCALL); assert( r >= 0 );
 	r = engine->RegisterObjectMethod("file", "double readDouble()", asMETHOD(CScriptFile,ReadDouble), asCALL_THISCALL); assert( r >= 0 );
 #if AS_WRITE_OPS == 1
-	r = engine->RegisterObjectMethod("file", "int writeString(const string &in)", asMETHOD(CScriptFile,WriteString), asCALL_THISCALL); assert( r >= 0 );
+	r = engine->RegisterObjectMethod("file", "int write_string(const string &in)", asMETHOD(CScriptFile,WriteString), asCALL_THISCALL); assert( r >= 0 );
 	r = engine->RegisterObjectMethod("file", "int writeInt(int64, uint)", asMETHOD(CScriptFile,WriteInt), asCALL_THISCALL); assert( r >= 0 );
 	r = engine->RegisterObjectMethod("file", "int writeUInt(uint64, uint)", asMETHOD(CScriptFile,WriteUInt), asCALL_THISCALL); assert( r >= 0 );
-	r = engine->RegisterObjectMethod("file", "int writeFloat(float)", asMETHOD(CScriptFile,WriteFloat), asCALL_THISCALL); assert( r >= 0 );
-	r = engine->RegisterObjectMethod("file", "int writeDouble(double)", asMETHOD(CScriptFile,WriteDouble), asCALL_THISCALL); assert( r >= 0 );
+	r = engine->RegisterObjectMethod("file", "int write_float(float)", asMETHOD(CScriptFile,WriteFloat), asCALL_THISCALL); assert( r >= 0 );
+	r = engine->RegisterObjectMethod("file", "int write_double(double)", asMETHOD(CScriptFile,WriteDouble), asCALL_THISCALL); assert( r >= 0 );
 #endif
 	r = engine->RegisterObjectMethod("file", "int getPos() const", asMETHOD(CScriptFile,GetPos), asCALL_THISCALL); assert( r >= 0 );
 	r = engine->RegisterObjectMethod("file", "int setPos(int)", asMETHOD(CScriptFile,SetPos), asCALL_THISCALL); assert( r >= 0 );
@@ -221,11 +221,11 @@ void RegisterScriptFile_Generic(asIScriptEngine *engine)
 	r = engine->RegisterObjectMethod("file", "float readFloat()", asFUNCTION(ScriptFile_ReadFloat_Generic), asCALL_GENERIC); assert( r >= 0 );
 	r = engine->RegisterObjectMethod("file", "double readDouble()", asFUNCTION(ScriptFile_ReadDouble_Generic), asCALL_GENERIC); assert( r >= 0 );
 #if AS_WRITE_OPS == 1
-	r = engine->RegisterObjectMethod("file", "int writeString(const string &in)", asFUNCTION(ScriptFile_WriteString_Generic), asCALL_GENERIC); assert( r >= 0 );
+	r = engine->RegisterObjectMethod("file", "int write_string(const string &in)", asFUNCTION(ScriptFile_WriteString_Generic), asCALL_GENERIC); assert( r >= 0 );
 	r = engine->RegisterObjectMethod("file", "int writeInt(int64, uint)", asFUNCTION(ScriptFile_WriteInt_Generic), asCALL_GENERIC); assert( r >= 0 );
 	r = engine->RegisterObjectMethod("file", "int writeUInt(uint64, uint)", asFUNCTION(ScriptFile_WriteUInt_Generic), asCALL_GENERIC); assert( r >= 0 );
-	r = engine->RegisterObjectMethod("file", "int writeFloat(float)", asFUNCTION(ScriptFile_WriteFloat_Generic), asCALL_GENERIC); assert( r >= 0 );
-	r = engine->RegisterObjectMethod("file", "int writeDouble(double)", asFUNCTION(ScriptFile_WriteDouble_Generic), asCALL_GENERIC); assert( r >= 0 );
+	r = engine->RegisterObjectMethod("file", "int write_float(float)", asFUNCTION(ScriptFile_WriteFloat_Generic), asCALL_GENERIC); assert( r >= 0 );
+	r = engine->RegisterObjectMethod("file", "int write_double(double)", asFUNCTION(ScriptFile_WriteDouble_Generic), asCALL_GENERIC); assert( r >= 0 );
 #endif
 	r = engine->RegisterObjectMethod("file", "int getPos() const", asFUNCTION(ScriptFile_GetPos_Generic), asCALL_GENERIC); assert( r >= 0 );
 	r = engine->RegisterObjectMethod("file", "int setPos(int)", asFUNCTION(ScriptFile_SetPos_Generic), asCALL_GENERIC); assert( r >= 0 );

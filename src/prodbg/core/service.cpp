@@ -4,10 +4,9 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct ServiceData
-{
-	void* funcs;
-	const char* identifer;
+struct ServiceData {
+    void* funcs;
+    const char* identifer;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -16,47 +15,41 @@ static ServiceData* s_serviceData;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Service_create()
-{
-	array_clear(s_serviceData);
+void Service_create() {
+    array_clear(s_serviceData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Service_destroy()
-{
-	array_clear(s_serviceData);
+void Service_destroy() {
+    array_clear(s_serviceData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Service_register(void* serviceFuncs, const char* ident)
-{
-	ServiceData data = { serviceFuncs, ident };
+void Service_register(void* serviceFuncs, const char* ident) {
+    ServiceData data = { serviceFuncs, ident };
 
-	int count = array_size(s_serviceData); 
+    int count = array_size(s_serviceData);
 
-	for (int i = 0; i < count; ++i)
-	{
-		if (string_equal(s_serviceData[i].identifer, ident))
-			return;
-	}
+    for (int i = 0; i < count; ++i) {
+        if (string_equal(s_serviceData[i].identifer, ident))
+            return;
+    }
 
-	array_push(s_serviceData, data);
+    array_push(s_serviceData, data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void* Service_getService(const char* ident)
-{
-	int count = array_size(s_serviceData); 
+void* Service_getService(const char* ident) {
+    int count = array_size(s_serviceData);
 
-	for (int i = 0; i < count; ++i)
-	{
-		if (string_equal(s_serviceData[i].identifer, ident))
-			return s_serviceData[i].funcs;
-	}
+    for (int i = 0; i < count; ++i) {
+        if (string_equal(s_serviceData[i].identifer, ident))
+            return s_serviceData[i].funcs;
+    }
 
-	return 0;
+    return 0;
 }
 

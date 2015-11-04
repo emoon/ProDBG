@@ -12,8 +12,7 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Script_createState(ScriptState** scriptState)
-{
+int Script_createState(ScriptState** scriptState) {
     assert(scriptState);
     *scriptState = reinterpret_cast<ScriptState*>(luaL_newstate());
     luaL_openlibs(*scriptState);
@@ -22,8 +21,7 @@ int Script_createState(ScriptState** scriptState)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Script_destroyState(ScriptState** scriptState)
-{
+void Script_destroyState(ScriptState** scriptState) {
     assert(scriptState);
     lua_close(reinterpret_cast<lua_State*>(*scriptState));
     *scriptState = nullptr;
@@ -31,8 +29,7 @@ void Script_destroyState(ScriptState** scriptState)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Script_loadFile(ScriptState* scriptState, const char* scriptFile)
-{
+int Script_loadFile(ScriptState* scriptState, const char* scriptFile) {
     int result = luaL_loadfile(scriptState, scriptFile);
     if (result != 0)
         return result;
@@ -42,8 +39,7 @@ int Script_loadFile(ScriptState* scriptState, const char* scriptFile)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Script_loadString(ScriptState* scriptState, const char* scriptString)
-{
+int Script_loadString(ScriptState* scriptState, const char* scriptString) {
     int result = luaL_loadstring(scriptState, scriptString);
     if (result != 0)
         return result;
@@ -53,8 +49,7 @@ int Script_loadString(ScriptState* scriptState, const char* scriptString)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Script_loadBuffer(ScriptState* scriptState, const char* scriptBuffer, size_t size, const char* name, const char* mode)
-{
+int Script_loadBuffer(ScriptState* scriptState, const char* scriptBuffer, size_t size, const char* name, const char* mode) {
     int result = luaL_loadbufferx(scriptState, scriptBuffer, size, name, mode);
     if (result != 0)
         return result;
@@ -64,8 +59,7 @@ int Script_loadBuffer(ScriptState* scriptState, const char* scriptBuffer, size_t
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Script_primeCall(ScriptState* scriptState, ScriptCallState* callState, const char* funcName)
-{
+int Script_primeCall(ScriptState* scriptState, ScriptCallState* callState, const char* funcName) {
     assert(scriptState);
     assert(callState);
 
@@ -80,14 +74,12 @@ int Script_primeCall(ScriptState* scriptState, ScriptCallState* callState, const
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Script_executeCall(ScriptState* scriptState, ScriptCallState* callState)
-{
+int Script_executeCall(ScriptState* scriptState, ScriptCallState* callState) {
     assert(scriptState);
     assert(callState);
 
     int result = lua_pcall(scriptState, callState->inputCount, callState->outputCount, 0);
-    if (result != 0)
-    {
+    if (result != 0) {
         const char* error = lua_tostring(scriptState, -1);
         (void)error;
         return result;

@@ -7,8 +7,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct Location
-{
+struct Location {
     char* filename;
     char* address;
     int line;
@@ -16,8 +15,7 @@ struct Location
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct Breakpoint
-{
+struct Breakpoint {
     Location location;
     char* condition;
     int32_t id;
@@ -28,8 +26,7 @@ struct Breakpoint
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct BreakpointsData
-{
+struct BreakpointsData {
     BreakpointsData() : addressSize(2), maxPath(8192) {}
 
     std::list<Breakpoint*> breakpoints;
@@ -39,16 +36,15 @@ struct BreakpointsData
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static Breakpoint* createBreakpoint(BreakpointsData* userData)
-{
+static Breakpoint* createBreakpoint(BreakpointsData* user_data) {
     Breakpoint* bp = (Breakpoint*)malloc(sizeof(Breakpoint));
     memset(bp, 0, sizeof(Breakpoint));
 
-    bp->location.address = (char*)malloc(userData->maxPath);
-    bp->condition = (char*)malloc(userData->maxPath);
+    bp->location.address = (char*)malloc(user_data->maxPath);
+    bp->condition = (char*)malloc(user_data->maxPath);
 
-    memset(bp->location.address, 0, userData->maxPath);
-    memset(bp->condition, 0, userData->maxPath);
+    memset(bp->location.address, 0, user_data->maxPath);
+    memset(bp->condition, 0, user_data->maxPath);
 
     bp->enabled = false;
     bp->id = -1;
@@ -59,8 +55,7 @@ static Breakpoint* createBreakpoint(BreakpointsData* userData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void destroyBreakpoint(Breakpoint* bp)
-{
+static void destroyBreakpoint(Breakpoint* bp) {
     free(bp->location.filename);
     free(bp->location.address);
     free(bp->condition);
@@ -69,34 +64,31 @@ static void destroyBreakpoint(Breakpoint* bp)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
-{
+static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc) {
     (void)serviceFunc;
-    BreakpointsData* userData = new BreakpointsData;
+    BreakpointsData* user_data = new BreakpointsData;
 
     (void)uiFuncs;
     (void)serviceFunc;
 
-    return userData;
+    return user_data;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void destroyInstance(void* userData)
-{
-    BreakpointsData* data = (BreakpointsData*)userData;
+static void destroyInstance(void* user_data) {
+    BreakpointsData* data = (BreakpointsData*)user_data;
     delete data;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void updateCondition(Breakpoint* bp, PDReader* reader)
-{
+static void updateCondition(Breakpoint* bp, PDReader* reader) {
     const char* condition;
 
     bp->condition = 0;
 
-    PDRead_findString(reader, &condition, "condition", 0);
+    PDRead_find_string(reader, &condition, "condition", 0);
 
     if (condition)
         bp->condition = strdup(condition);
@@ -104,23 +96,21 @@ static void updateCondition(Breakpoint* bp, PDReader* reader)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void toogleBreakpointFileLine(BreakpointsData* data, PDReader* reader)
-{
+void toogleBreakpointFileLine(BreakpointsData* data, PDReader* reader) {
     const char* filename = 0;
     uint32_t line;
 
     char fileLine[8192];
 
-    PDRead_findString(reader, &filename, "filename", 0);
-    PDRead_findU32(reader, &line, "line", 0);
+    PDRead_find_string(reader, &filename, "filename", 0);
+    PDRead_find_u32(reader, &line, "line", 0);
 
-    if (!filename)
+    if (!filename) {
         return;
+    }
 
-    for (auto i = data->breakpoints.begin(); i != data->breakpoints.end(); ++i)
-    {
-        if ((*i)->location.line == (int)line && !strcmp((*i)->location.filename, filename))
-        {
+    for (auto i = data->breakpoints.begin(); i != data->breakpoints.end(); ++i) {
+        if ((*i)->location.line == (int)line && !strcmp((*i)->location.filename, filename)) {
             destroyBreakpoint(*i);
             data->breakpoints.erase(i);
             return;
@@ -143,17 +133,14 @@ void toogleBreakpointFileLine(BreakpointsData* data, PDReader* reader)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void toggleBreakpointAddress(BreakpointsData* data, PDReader* reader)
-{
+void toggleBreakpointAddress(BreakpointsData* data, PDReader* reader) {
     const char* address;
 
-    if (PDRead_findString(reader, &address, "address", 0) == PDReadStatus_notFound)
+    if (PDRead_find_string(reader, &address, "address", 0) == PDReadStatus_NotFound)
         return;
 
-    for (auto i = data->breakpoints.begin(); i != data->breakpoints.end(); ++i)
-    {
-        if (!strcmp((*i)->location.address, address))
-        {
+    for (auto i = data->breakpoints.begin(); i != data->breakpoints.end(); ++i) {
+        if (!strcmp((*i)->location.address, address)) {
             destroyBreakpoint(*i);
             data->breakpoints.erase(i);
             return;
@@ -172,36 +159,31 @@ void toggleBreakpointAddress(BreakpointsData* data, PDReader* reader)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* writer)
-{
+static int update(void* user_data, PDUI* uiFuncs, PDReader* inEvents, PDWriter* writer) {
     uint32_t event;
     (void)uiFuncs;
     (void)writer;
 
-    BreakpointsData* data = (BreakpointsData*)userData;
+    BreakpointsData* data = (BreakpointsData*)user_data;
 
-    while ((event = PDRead_getEvent(inEvents)) != 0)
-    {
-        switch (event)
-        {
-            case PDEventType_setBreakpoint:
+    while ((event = PDRead_get_event(inEvents)) != 0) {
+        switch (event) {
+            case PDEventType_SetBreakpoint:
             {
                 toogleBreakpointFileLine(data, inEvents);
                 break;
             }
 
-            case PDEventType_replyBreakpoint:
+            case PDEventType_ReplyBreakpoint:
             {
                 uint64_t address = 0;
                 uint32_t id = (uint32_t) ~0;
 
-                PDRead_findU64(inEvents, &address, "address", 0);
-                PDRead_findU32(inEvents, &id, "id", 0);
+                PDRead_find_u64(inEvents, &address, "address", 0);
+                PDRead_find_u32(inEvents, &id, "id", 0);
 
-                for (Breakpoint* bp : data->breakpoints)
-                {
-                    if ((uint64_t)strtol(bp->location.address, 0, 16) == address)
-                    {
+                for (Breakpoint* bp : data->breakpoints) {
+                    if ((uint64_t)strtol(bp->location.address, 0, 16) == address) {
                         bp->pendingCount = 0;       // breakpoint accepted
                         printf("bp view: updated breakpoint with id %d (was %d)\n", id, bp->id);
                         bp->id = (int)id;
@@ -216,57 +198,51 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
 
     uiFuncs->text("");
 
-    if (uiFuncs->button("Add Breakpoint", { 0.0f, 0.0f } ))
-    {
+    if (uiFuncs->button("Add Breakpoint", { 0.0f, 0.0f } )) {
         Breakpoint* bp = createBreakpoint(data);
         data->breakpoints.push_back(bp);
     }
 
     uiFuncs->columns(4, "", true);
-    //uiFuncs->text(""); uiFuncs->nextColumn();
-    uiFuncs->text("Name/Address"); uiFuncs->nextColumn();
-    uiFuncs->text("Label"); uiFuncs->nextColumn();
-    uiFuncs->text("Condition"); uiFuncs->nextColumn();
-    uiFuncs->text(""); uiFuncs->nextColumn();
+    //uiFuncs->text(""); uiFuncs->next_column();
+    uiFuncs->text("Name/Address"); uiFuncs->next_column();
+    uiFuncs->text("Label"); uiFuncs->next_column();
+    uiFuncs->text("Condition"); uiFuncs->next_column();
+    uiFuncs->text(""); uiFuncs->next_column();
 
-    for (auto& i : data->breakpoints)
-    {
+    for (auto& i : data->breakpoints) {
         Breakpoint* bp = i;
         bool needUpdate = false;
 
-        uiFuncs->pushIdPtr(bp);
+        uiFuncs->push_id_ptr(bp);
 
         //if (uiFuncs->checkbox("Enabled", &bp->enabled))
         //	needUpdate = true;
 
-        if (bp->location.filename)
-        {
-            uiFuncs->inputText("##filename", bp->location.filename, (int)data->maxPath, 0, 0, 0);
-        }
-        else
-        {
-            if (uiFuncs->inputText("##address", bp->location.address, (int)data->maxPath,
-                                   PDUIInputTextFlags_CharsHexadecimal | PDUIInputTextFlags_EnterReturnsTrue, 0, 0))
+        if (bp->location.filename) {
+            uiFuncs->input_text("##filename", bp->location.filename, (int)data->maxPath, 0, 0, 0);
+        }else {
+            if (uiFuncs->input_text("##address", bp->location.address, (int)data->maxPath,
+                                    PDUIInputTextFlags_CharsHexadecimal | PDUIInputTextFlags_EnterReturnsTrue, 0, 0))
                 needUpdate = true;
         }
 
-        uiFuncs->nextColumn();
+        uiFuncs->next_column();
 
         uiFuncs->text("");
-        uiFuncs->nextColumn();
+        uiFuncs->next_column();
 
         uiFuncs->text(""); // no condition for now
 
-        //if (uiFuncs->inputText("##condition", bp->condition, (int)data->maxPath, PDInputTextFlags_EnterReturnsTrue, 0, 0))
+        //if (uiFuncs->input_text("##condition", bp->condition, (int)data->maxPath, PDInputTextFlags_EnterReturnsTrue, 0, 0))
         //	needUpdate = true;
 
-        uiFuncs->nextColumn();
+        uiFuncs->next_column();
 
-        if (needUpdate)
-        {
+        if (needUpdate) {
             // TODO: Add support for file/line
 
-            PDWrite_eventBegin(writer, PDEventType_setBreakpoint);
+            PDWrite_event_begin(writer, PDEventType_SetBreakpoint);
             PDWrite_u64(writer, "address", (uint64_t)strtol(bp->location.address, 0, 16));
 
             //if (bp->condition[0] != 0)
@@ -275,28 +251,26 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* w
             if (bp->id != -1)
                 PDWrite_u32(writer, "id", (uint32_t)bp->id);
 
-            PDWrite_eventEnd(writer);
+            PDWrite_event_end(writer);
 
             printf("Sending breakpint\n");
         }
 
-        if (uiFuncs->button("Delete", {0.0f, 0.0f}))
-        {
-            PDWrite_eventBegin(writer, PDEventType_deleteBreakpoint);
+        if (uiFuncs->button("Delete", {0.0f, 0.0f})) {
+            PDWrite_event_begin(writer, PDEventType_DeleteBreakpoint);
             PDWrite_u32(writer, "id", (uint32_t)bp->id);
-            PDWrite_eventEnd(writer);
+            PDWrite_event_end(writer);
             bp->markDelete = true;
         }
 
-        uiFuncs->nextColumn();
+        uiFuncs->next_column();
 
-        uiFuncs->popId();
+        uiFuncs->pop_id();
     }
 
     // Delete breakpoints that have been marked delete
 
-    for (auto i = data->breakpoints.begin(); i != data->breakpoints.end(); ++i)
-    {
+    for (auto i = data->breakpoints.begin(); i != data->breakpoints.end(); ++i) {
         Breakpoint* bp = *i;
 
         if (bp->pendingCount > 1)
@@ -326,9 +300,8 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-    {
-        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* private_data) {
+        registerPlugin(PD_VIEW_API_VERSION, &plugin, private_data);
     }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

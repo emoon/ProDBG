@@ -149,7 +149,7 @@
 
 /* If on, the enulation core will use 64-bit integers to speed up some
  * operations.
-*/
+ */
 
 /* Set to your compiler's static inline keyword to enable it, or
  * set it to blank to disable it.
@@ -159,7 +159,7 @@
 
 #ifndef INLINE
 #if defined(_WIN32)
-#define INLINE __forceinline 
+#define INLINE __forceinline
 #else
 #define INLINE static __inline__
 #endif
@@ -176,13 +176,13 @@
 #endif /* M68K_COMPILE_FOR_MAME */
 
 #if defined(_WIN64) || defined(__APPLE__)
-#define M68K_INT_GT_32BIT 0 
+#define M68K_INT_GT_32BIT 0
 #define M68K_USE_32_BIT  0
 #define M68K_USE_64_BIT  1
 #define M68K_INT_GT_32_BIT  0
 #define M68K_INT_GT_64_BIT  1
 #else
-#define M68K_INT_GT_32BIT 1 
+#define M68K_INT_GT_32BIT 1
 #define M68K_USE_32_BIT  1
 #define M68K_USE_64_BIT  0
 #define M68K_INT_GT_32_BIT  1

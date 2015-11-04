@@ -5,8 +5,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct ThreadsData
-{
+struct ThreadsData {
     int selectedThread;
     int threadId;
     bool requestData;
@@ -15,42 +14,39 @@ struct ThreadsData
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
-{
+static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc) {
     (void)serviceFunc;
     (void)uiFuncs;
 
-    ThreadsData* userData = (ThreadsData*)malloc(sizeof(ThreadsData));
+    ThreadsData* user_data = (ThreadsData*)malloc(sizeof(ThreadsData));
 
-	userData->selectedThread = 0;
-	userData->threadId = 0;
+    user_data->selectedThread = 0;
+    user_data->threadId = 0;
 
-    return userData;
+    return user_data;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void destroyInstance(void* userData)
-{
-    free(userData);
+static void destroyInstance(void* user_data) {
+    free(user_data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void showInUI(ThreadsData* userData, PDReader* reader, PDUI* uiFuncs)
-{
+static void showInUI(ThreadsData* user_data, PDReader* reader, PDUI* uiFuncs) {
     PDReaderIterator it;
-    ThreadsData* data = (ThreadsData*)userData;
+    ThreadsData* data = (ThreadsData*)user_data;
 
-    if (PDRead_findArray(reader, &it, "threads", 0) == PDReadStatus_notFound)
+    if (PDRead_find_array(reader, &it, "threads", 0) == PDReadStatus_NotFound)
         return;
 
     uiFuncs->text("");
 
     uiFuncs->columns(3, "threads", true);
-    uiFuncs->text("Id"); uiFuncs->nextColumn();
-    uiFuncs->text("Name"); uiFuncs->nextColumn();
-    uiFuncs->text("Function"); uiFuncs->nextColumn();
+    uiFuncs->text("Id"); uiFuncs->next_column();
+    uiFuncs->text("Name"); uiFuncs->next_column();
+    uiFuncs->text("Function"); uiFuncs->next_column();
 
     int i = 0;
 
@@ -60,82 +56,74 @@ static void showInUI(ThreadsData* userData, PDReader* reader, PDUI* uiFuncs)
 
     int oldSelectedThread = data->selectedThread;
 
-    while (PDRead_getNextEntry(reader, &it))
-    {
-    	uint64_t id;
+    while (PDRead_get_next_entry(reader, &it)) {
+        uint64_t id;
         const char* name = "";
         const char* function = "";
 
-        PDRead_findU64(reader, &id, "id", it);
-        PDRead_findString(reader, &name, "name", it);
-        PDRead_findString(reader, &function, "function", it);
+        PDRead_find_u64(reader, &id, "id", it);
+        PDRead_find_string(reader, &name, "name", it);
+        PDRead_find_string(reader, &function, "function", it);
 
-		char label[32];
-		sprintf(label, "%llx", id);
+        char label[32];
+        sprintf(label, "%llx", id);
 
-		if (uiFuncs->selectable(label, data->selectedThread == i, 1 << 1, size))
-		{
-			data->selectedThread = i;
-			data->threadId = (int)id;
-		}
+        if (uiFuncs->selectable(label, data->selectedThread == i, 1 << 1, size)) {
+            data->selectedThread = i;
+            data->threadId = (int)id;
+        }
 
-        uiFuncs->nextColumn();
-        uiFuncs->text(name); uiFuncs->nextColumn();
-        uiFuncs->text(function); uiFuncs->nextColumn();
+        uiFuncs->next_column();
+        uiFuncs->text(name); uiFuncs->next_column();
+        uiFuncs->text(function); uiFuncs->next_column();
 
         i++;
     }
 
-    if (oldSelectedThread != data->selectedThread)
-	{
-    	data->setSelectedThread = true;
-	}
+    if (oldSelectedThread != data->selectedThread) {
+        data->setSelectedThread = true;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents)
-{
+static int update(void* user_data, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents) {
     uint32_t event = 0;
 
-    ThreadsData* data = (ThreadsData*)userData;
+    ThreadsData* data = (ThreadsData*)user_data;
 
     data->requestData = false;
     data->setSelectedThread = false;
 
-    while ((event = PDRead_getEvent(inEvents)) != 0)
-    {
-        switch (event)
-        {
-            case PDEventType_setThreads:
+    while ((event = PDRead_get_event(inEvents)) != 0) {
+        switch (event) {
+            case PDEventType_SetThreads:
             {
-                showInUI((ThreadsData*)userData, inEvents, uiFuncs);
+                showInUI((ThreadsData*)user_data, inEvents, uiFuncs);
                 break;
             }
 
-            case PDEventType_setExceptionLocation:
+            case PDEventType_SetExceptionLocation:
             {
-            	data->requestData = true;
-				break;
-			}
+                data->requestData = true;
+                break;
+            }
         }
     }
 
     // Request threads data
 
-	if (data->setSelectedThread)
-	{
-		PDWrite_eventBegin(outEvents, PDEventType_selectThread);
-		printf("writing thread id %d\n", data->threadId);
-		PDWrite_u32(outEvents, "thread_id", (uint32_t)data->threadId);
-		PDWrite_eventEnd(outEvents);
-	}
+    if (data->setSelectedThread) {
+        PDWrite_event_begin(outEvents, PDEventType_SelectThread);
+        printf("writing thread id %d\n", data->threadId);
+        PDWrite_u32(outEvents, "thread_id", (uint32_t)data->threadId);
+        PDWrite_event_end(outEvents);
+    }
 
-	if (data->requestData)
-	{
-		PDWrite_eventBegin(outEvents, PDEventType_getThreads);
-		PDWrite_eventEnd(outEvents);
-	}
+    if (data->requestData) {
+        PDWrite_event_begin(outEvents, PDEventType_GetThreads);
+        PDWrite_event_end(outEvents);
+    }
 
     return 0;
 }
@@ -157,10 +145,9 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-{
-	registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
-}
+    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* private_data) {
+        registerPlugin(PD_VIEW_API_VERSION, &plugin, private_data);
+    }
 
 }
 

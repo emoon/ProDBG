@@ -13,8 +13,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void test_lldb(void** state)
-{
+static void test_lldb(void** state) {
     (void)state;
 
     // we only do the LLDB test on Mac for now
@@ -39,16 +38,16 @@ static void test_lldb(void** state)
 
     // Expect that we have a crash here and thus are in PDDebugState_stopException state
 
-    assert_int_equal(session->state, PDDebugState_stopException);
+    assert_int_equal(session->state, PDDebugState_StopException);
 
     // Request locals location.
 
     PDWriter* writer = session->currentWriter;
     PDReader* reader = session->reader;
 
-    PDWrite_eventBegin(writer, PDEventType_getCallstack);
+    PDWrite_event_begin(writer, PDEventType_GetCallstack);
     PDWrite_u8(writer, "dummy", 0);
-    PDWrite_eventEnd(writer);
+    PDWrite_event_end(writer);
 
     Session_update(session);
 
@@ -58,11 +57,9 @@ static void test_lldb(void** state)
     uint32_t event;
     bool foundCallstack = false;
 
-    while ((event = PDRead_getEvent(reader)) != 0)
-    {
-        switch (event)
-        {
-            case PDEventType_setCallstack:
+    while ((event = PDRead_get_event(reader)) != 0) {
+        switch (event) {
+            case PDEventType_SetCallstack:
             {
                 foundCallstack = true;
                 break;
@@ -78,8 +75,7 @@ static void test_lldb(void** state)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main()
-{
+int main() {
     const UnitTest tests[] =
     {
         unit_test(test_lldb),

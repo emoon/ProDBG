@@ -2,8 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Session_save(const Session* session, const char* filename)
-{
+void Session_save(const Session* session, const char* filename) {
     (void)session;
     (void)filename;
 
@@ -12,8 +11,7 @@ void Session_save(const Session* session, const char* filename)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Session* Session_load(const char* filename)
-{
+Session* Session_load(const char* filename) {
     (void)filename;
 
     return 0;

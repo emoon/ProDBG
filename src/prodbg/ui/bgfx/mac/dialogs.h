@@ -4,8 +4,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Dialog_open(char* dest)
-{
+int Dialog_open(char* dest) {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSOpenPanel* open = [NSOpenPanel openPanel];
     [open setAllowsMultipleSelection : NO];
@@ -30,8 +29,7 @@ int Dialog_open(char* dest)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Dialog_save(char* dest)
-{
+int Dialog_save(char* dest) {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSSavePanel* open = [NSSavePanel savePanel];
 
@@ -99,8 +97,7 @@ int Dialog_save(char* dest)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Dialog_showColorPicker(uint32_t* color)
-{
+void Dialog_showColorPicker(uint32_t* color) {
     uint32_t c = *color;
 
     NSAutoreleasePool* thePool;
@@ -120,8 +117,7 @@ void Dialog_showColorPicker(uint32_t* color)
     ColorDelegate* colorDelegate = [[ColorDelegate alloc] init];
     [theColorPanel setDelegate : colorDelegate];
     NSModalSession session = [NSApp beginModalSessionForWindow:theColorPanel];
-    for (;;)
-    {
+    for (;;) {
         [NSApp runModalSession : session];
 
         //If the color panel is closed, return the font panel modal loop
@@ -146,8 +142,7 @@ void Dialog_showColorPicker(uint32_t* color)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Dialog_showError(const text_t* text)
-{
+void Dialog_showError(const text_t* text) {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSString* message = [[[NSString alloc] initWithUTF8String:text] autorelease];// convert
 

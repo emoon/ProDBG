@@ -2,8 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class WxPluginUI : public PluginUI
-{
+class WxPluginUI : public PluginUI {
     void create(void* windowHandle, int width, int height);
     void destroy();
 

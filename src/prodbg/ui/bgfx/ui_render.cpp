@@ -10,8 +10,7 @@ static bgfx::UniformHandle s_tex;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct ProgramAttribs
-{
+struct ProgramAttribs {
     bgfx::Attrib::Enum attrib;
     uint8_t num;
     bgfx::AttribType::Enum type;
@@ -20,8 +19,7 @@ struct ProgramAttribs
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct ProgramInfo
-{
+struct ProgramInfo {
     ProgramAttribs* attribs;
     const char* vsName;
     const char* fsName;
@@ -31,13 +29,11 @@ struct ProgramInfo
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static const bgfx::Memory* loadShader(const char* filename)
-{
+static const bgfx::Memory* loadShader(const char* filename) {
     size_t size;
     uint8_t* data = (uint8_t*)File_loadToMemory(filename, &size, 1);
 
-    if (!data)
-    {
+    if (!data) {
         pd_error("Unable to load shader %s\n", filename)
         return 0;
     }
@@ -56,8 +52,7 @@ static const bgfx::Memory* loadShader(const char* filename)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bgfx::ProgramHandle loadProgram(const char* vsName, const char* fsName)
-{
+bgfx::ProgramHandle loadProgram(const char* vsName, const char* fsName) {
     bgfx::ProgramHandle ph = { bgfx::invalidHandle };
 
     const bgfx::Memory* vsShader = loadShader(vsName);
@@ -72,14 +67,12 @@ bgfx::ProgramHandle loadProgram(const char* vsName, const char* fsName)
     bgfx::ShaderHandle vsHandle = bgfx::createShader(vsShader);
     bgfx::ShaderHandle fsHandle = bgfx::createShader(fsShader);
 
-    if (!isValid(vsHandle))
-    {
+    if (!isValid(vsHandle)) {
         pd_error("Unable to load vsShader %s\n", vsName)
         return ph;
     }
 
-    if (!isValid(fsHandle))
-    {
+    if (!isValid(fsHandle)) {
         pd_error("Unable to load fsShader %s\n", fsName)
         return ph;
     }
@@ -136,8 +129,7 @@ static ProgramInfo s_programs[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum
-{
+enum {
     Program_PosColor,
     Program_PosTexRColor,
     Program_PosTexColor,
@@ -145,12 +137,10 @@ enum
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool UIRender_init()
-{
+bool UIRender_init() {
     s_tex = bgfx::createUniform("s_tex", bgfx::UniformType::Uniform1i);
 
-    for (int i = 0; i < (int)sizeof_array(s_programs); ++i)
-    {
+    for (int i = 0; i < (int)sizeof_array(s_programs); ++i) {
         ProgramInfo* program = &s_programs[i];
 
         program->handle = loadProgram(program->vsName, program->fsName);
@@ -163,8 +153,7 @@ bool UIRender_init()
 
         decl.begin();
 
-        while (attribs->attrib != bgfx::Attrib::Count)
-        {
+        while (attribs->attrib != bgfx::Attrib::Count) {
             decl = decl.add(attribs->attrib, attribs->num, attribs->type, attribs->norm);
             attribs++;
         }
@@ -177,24 +166,21 @@ bool UIRender_init()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UIRender_allocPosTexColorTb(bgfx::TransientVertexBuffer* buffer, uint32_t count)
-{
+void UIRender_allocPosTexColorTb(bgfx::TransientVertexBuffer* buffer, uint32_t count) {
     assert(bgfx::checkAvailTransientVertexBuffer(count, s_programs[Program_PosTexColor].vertexDecl));
     bgfx::allocTransientVertexBuffer(buffer, count, s_programs[Program_PosTexColor].vertexDecl);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UIRender_allocPosColorTb(bgfx::TransientVertexBuffer* buffer, uint32_t count)
-{
+void UIRender_allocPosColorTb(bgfx::TransientVertexBuffer* buffer, uint32_t count) {
     assert(bgfx::checkAvailTransientVertexBuffer(count, s_programs[Program_PosColor].vertexDecl));
     bgfx::allocTransientVertexBuffer(buffer, count, s_programs[Program_PosColor].vertexDecl);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UIRender_posTexColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle)
-{
+void UIRender_posTexColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle) {
     bgfx::setTexture(0, s_tex, texHandle);
     bgfx::setVertexBuffer(vertexBuffer, offset, count);
     bgfx::setProgram(s_programs[Program_PosTexColor].handle);
@@ -203,19 +189,17 @@ void UIRender_posTexColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t of
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UIRender_posIdxTexColor(bgfx::TransientVertexBuffer* vertexBuffer, bgfx::TransientIndexBuffer* indexBuffer, uint32_t vtxSize, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle)
-{
+void UIRender_posIdxTexColor(bgfx::TransientVertexBuffer* vertexBuffer, bgfx::TransientIndexBuffer* indexBuffer, uint32_t vtxSize, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle) {
     bgfx::setTexture(0, s_tex, texHandle);
     bgfx::setVertexBuffer(vertexBuffer, 0, vtxSize);
-	bgfx::setIndexBuffer(indexBuffer, offset, count);
+    bgfx::setIndexBuffer(indexBuffer, offset, count);
     bgfx::setProgram(s_programs[Program_PosTexColor].handle);
     bgfx::submit(0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UIRender_posTexRColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle)
-{
+void UIRender_posTexRColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle) {
     bgfx::setTexture(0, s_tex, texHandle);
     bgfx::setVertexBuffer(vertexBuffer, offset, count);
     bgfx::setProgram(s_programs[Program_PosTexRColor].handle);
@@ -224,8 +208,7 @@ void UIRender_posTexRColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t o
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UIRender_posColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count)
-{
+void UIRender_posColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count) {
     bgfx::setVertexBuffer(vertexBuffer, offset, count);
     bgfx::setProgram(s_programs[Program_PosColor].handle);
     bgfx::submit(0);

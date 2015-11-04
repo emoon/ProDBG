@@ -7,8 +7,7 @@ static CursorType s_lastCursor = CursorType_Default;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Cursor_init()
-{
+void Cursor_init() {
     s_cursors[CursorType_Default] = [[NSCursor arrowCursor] retain];
     s_cursors[CursorType_SizeHorizontal] = [[NSCursor resizeUpDownCursor] retain];
     s_cursors[CursorType_SizeVertical] = [[NSCursor resizeLeftRightCursor] retain];
@@ -17,8 +16,7 @@ void Cursor_init()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Cunsor_setType(enum CursorType type)
-{
+void Cunsor_setType(enum CursorType type) {
     if (type == s_lastCursor)
         return;
 

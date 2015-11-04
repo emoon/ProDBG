@@ -15,8 +15,7 @@ struct Session* Session_createRemote(const char* target, int port);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_remote_session(void**)
-{
+void test_remote_session(void**) {
     Session* session = Session_createRemote("127.0.0.1", 1340);
 
     assert_true(Session_isConnected(session));
@@ -26,8 +25,7 @@ void test_remote_session(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main()
-{
+int main() {
     int ret = 0;
 
     const UnitTest tests[] =

@@ -14,102 +14,98 @@ struct PDMenu;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef enum PDAction
-{
-    PDAction_none,
-    PDAction_stop,
-    PDAction_break,
-    PDAction_run,
-    PDAction_step,
-    PDAction_stepOut,
-    PDAction_stepOver,
-    PDAction_custom = 0x1000
+typedef enum PDAction {
+    PDAction_None,
+    PDAction_Stop,
+    PDAction_Break,
+    PDAction_Run,
+    PDAction_Step,
+    PDAction_StepOut,
+    PDAction_StepOver,
+    PDAction_Custom = 0x1000
 } PDAction;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef enum PDDebugState
-{
-    PDDebugState_noTarget,
-    PDDebugState_running,
-    PDDebugState_stopBreakpoint,
-    PDDebugState_stopException,
-    PDDebugState_trace,
-    PDDebugState_count
+typedef enum PDDebugState {
+    PDDebugState_NoTarget,
+    PDDebugState_Running,
+    PDDebugState_StopBreakpoint,
+    PDDebugState_StopException,
+    PDDebugState_Trace,
+    PDDebugState_Count
 } PDDebugState;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef enum PDEventType
-{
-    PDEventType_none,
-    PDEventType_getLocals,
-    PDEventType_setLocals,
-    PDEventType_getCallstack,
-    PDEventType_setCallstack,
-    PDEventType_getWatch,
-    PDEventType_setWatch,
-    PDEventType_getRegisters,
-    PDEventType_setRegisters,
-    PDEventType_getMemory,
-    PDEventType_setMemory,
-    PDEventType_getTty,
-    PDEventType_setTty,
-    PDEventType_getExceptionLocation,
-    PDEventType_setExceptionLocation,
-    PDEventType_getDisassembly,
-    PDEventType_setDisassembly,
-    PDEventType_getStatus,
-    PDEventType_setStatus,
-    PDEventType_setThreads,
-    PDEventType_getThreads,
-    PDEventType_selectThread,
-    PDEventType_selectFrame,
-    PDEventType_getSourceFiles,
-    PDEventType_setSourceFiles,
+typedef enum PDEventType {
+    PDEventType_None,
+    PDEventType_GetLocals,
+    PDEventType_SetLocals,
+    PDEventType_GetCallstack,
+    PDEventType_SetCallstack,
+    PDEventType_GetWatch,
+    PDEventType_SetWatch,
+    PDEventType_GetRegisters,
+    PDEventType_SetRegisters,
+    PDEventType_GetMemory,
+    PDEventType_SetMemory,
+    PDEventType_GetTty,
+    PDEventType_SetTty,
+    PDEventType_GetExceptionLocation,
+    PDEventType_SetExceptionLocation,
+    PDEventType_GetDisassembly,
+    PDEventType_SetDisassembly,
+    PDEventType_GetStatus,
+    PDEventType_SetStatus,
+    PDEventType_SetThreads,
+    PDEventType_GetThreads,
+    PDEventType_SelectThread,
+    PDEventType_SelectFrame,
+    PDEventType_GetSourceFiles,
+    PDEventType_SetSourceFiles,
 
-    PDEventType_setSourceCodeFile,
+    PDEventType_SetSourceCodeFile,
 
     // setbreakpoint send a breakpoint to the backend with supplied id
     // Back end will reply if this worked correct with supplied ID
 
-    PDEventType_setBreakpoint,
-    PDEventType_replyBreakpoint,
+    PDEventType_SetBreakpoint,
+    PDEventType_ReplyBreakpoint,
 
-    PDEventType_deleteBreakpoint,
-    PDEventType_setExecutable,
-    PDEventType_action,
-    PDEventType_attachToProcess,
-    PDEventType_attachToRemoteSession,
+    PDEventType_DeleteBreakpoint,
+    PDEventType_SetExecutable,
+    PDEventType_Action,
+    PDEventType_AttachToProcess,
+    PDEventType_AttachToRemoteSession,
 
-    PDEventType_executeConsole,
-    PDEventType_getConsole,
+    PDEventType_ExecuteConsole,
+    PDEventType_GetConsole,
 
-	PDEventType_menuEvent,
+	PDEventType_MenuEvent,
 
     // TODO: Somewhat temporary, need to figure this out
 
-    PDEventType_toggleBreakpointCurrentLine,
+    PDEventType_ToggleBreakpointCurrentLine,
 
     // End of events
 
-    PDEventType_end,
+    PDEventType_End,
 
     /// Custom events. Here you can have your own events. Note that they must start with PDEventType_custom and up
-    PDEventType_custom = 0x1000
+    PDEventType_Custom = 0x1000
 
 } PDEventType;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDBackendPlugin
-{
+typedef struct PDBackendPlugin {
     const char* name;
 
-    void* (*createInstance)(ServiceFunc* serviceFunc);
-    void (*destroyInstance)(void* userData);
-    struct PDMenu* (*registerMenu)();
-    PDDebugState (*update)(void* userData, PDAction action, PDReader* inEvents, PDWriter* outEvents);
+    void* (*create_instance)(ServiceFunc* service_func);
+    void (*destroy_instance)(void* user_data);
+    struct PDMenu* (*register_menu)();
+    PDDebugState (*update)(void* user_data, PDAction action, PDReader* reader, PDWriter* writer);
 
 } PDBackendPlugin;
 

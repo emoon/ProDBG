@@ -39,10 +39,8 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void closeWindow()
-{
-    if (s_window)
-    {
+static void closeWindow() {
+    if (s_window) {
         DestroyWindow(s_window);
     }
 
@@ -51,8 +49,7 @@ static void closeWindow()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool createWindow(const wchar_t* title, int width, int height)
-{
+bool createWindow(const wchar_t* title, int width, int height) {
     WNDCLASS wc;
     DWORD exStyle;
     DWORD style;
@@ -78,8 +75,7 @@ bool createWindow(const wchar_t* title, int width, int height)
     rect.right = width;
     rect.bottom = height;
 
-    if (!RegisterClass(&wc))
-    {
+    if (!RegisterClass(&wc)) {
         MessageBox(0, L"Failed To Register Window Class", L"ERROR", MB_OK | MB_ICONEXCLAMATION);
         return FALSE;
     }
@@ -91,8 +87,7 @@ bool createWindow(const wchar_t* title, int width, int height)
 
     // Create The Window
     if (!(s_window = CreateWindowEx(exStyle, L"ProDBG", PRODBG_VERSION, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-                                    0, 0, rect.right - rect.left, rect.bottom - rect.top, NULL, NULL, instance, NULL)))
-    {
+                                    0, 0, rect.right - rect.left, rect.bottom - rect.top, NULL, NULL, instance, NULL))) {
         closeWindow();                              // Reset The Display
         return FALSE;                               // Return FALSE
     }
@@ -108,8 +103,7 @@ bool createWindow(const wchar_t* title, int width, int height)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void addAccelarator(const PDMenuItem* desc)
-{
+static void addAccelarator(const PDMenuItem* desc) {
     uint8_t virt = 0;
     uint32_t winMod = desc->winMod;
     uint32_t key = desc->key;
@@ -122,24 +116,17 @@ static void addAccelarator(const PDMenuItem* desc)
     if (winMod & PRODBG_KEY_SHIFT)
         virt |= 0x04;
 
-    if (key < 127)
-    {
-        if (virt != 0)
-        {
+    if (key < 127) {
+        if (virt != 0) {
             accel->key = (char)(toupper(key));
             virt |= 1;
-        }
-        else
-        {
+        }else {
             accel->key = (char)(key);
         }
-    }
-    else
-    {
+    }else {
         virt |= 1;
 
-        switch (key)
-        {
+        switch (key) {
             case PRODBG_KEY_ARROW_DOWN:
                 accel->key = VK_DOWN; break;
             case PRODBG_KEY_ARROW_UP:
@@ -188,8 +175,7 @@ static void addAccelarator(const PDMenuItem* desc)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void formatName(char* outName, int keyMod, int key, const char* name)
-{
+static void formatName(char* outName, int keyMod, int key, const char* name) {
     char modName[64] = { 0 };
     char keyName[64] = { 0 };
 
@@ -205,15 +191,11 @@ static void formatName(char* outName, int keyMod, int key, const char* name)
     if ((keyMod & PRODBG_KEY_SHIFT))
         strcat(modName, "Shift-");
 
-    if (key < 127)
-    {
+    if (key < 127) {
         keyName[0] = toupper(key);
         keyName[1] = 0;
-    }
-    else
-    {
-        switch (key)
-        {
+    }else {
+        switch (key) {
             case PRODBG_KEY_ARROW_DOWN:
                 strcpy(keyName, "Down"); break;
             case PRODBG_KEY_ARROW_UP:
@@ -230,30 +212,23 @@ static void formatName(char* outName, int keyMod, int key, const char* name)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void buildSubMenu(HMENU parentMenu, PDMenuItem menuDesc[], wchar_t* name, uint32_t idOffset)
-{
+static void buildSubMenu(HMENU parentMenu, PDMenuItem menuDesc[], wchar_t* name, uint32_t idOffset) {
     wchar_t tempWchar[512];
 
     PDMenuItem* desc = &menuDesc[0];
     HMENU menu = CreatePopupMenu();
     AppendMenu(parentMenu, MF_STRING | MF_POPUP, (UINT)menu, name);
 
-    while (desc->name)
-    {
-        if (desc->id == PRODBG_MENU_SEPARATOR)
-        {
+    while (desc->name) {
+        if (desc->id == PRODBG_MENU_SEPARATOR) {
             AppendMenu(menu, MF_SEPARATOR, 0, L"-");
-        }
-        else if (desc->id == PRODBG_MENU_SUB_MENU)
-        {
+        }else if (desc->id == PRODBG_MENU_SUB_MENU) {
             HMENU subMenu = CreatePopupMenu();
 
             uv_utf8_to_utf16(desc->name, tempWchar, sizeof_array(tempWchar));
 
             AppendMenu(menu, MF_STRING | MF_POPUP, (UINT)subMenu, tempWchar);
-        }
-        else
-        {
+        }else {
             char temp[512];
 
             formatName(temp, desc->winMod, desc->key, desc->name);
@@ -270,10 +245,8 @@ static void buildSubMenu(HMENU parentMenu, PDMenuItem menuDesc[], wchar_t* name,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void buildPopupSubmenu(HMENU parentMenu, wchar_t* inName, PDMenuItem* pluginsMenu, int count, uint32_t startId, uint32_t idMask)
-{
-    for (int i = 0; i < count; ++i)
-    {
+static void buildPopupSubmenu(HMENU parentMenu, wchar_t* inName, PDMenuItem* pluginsMenu, int count, uint32_t startId, uint32_t idMask) {
+    for (int i = 0; i < count; ++i) {
         pluginsMenu[i].key = 0;
         pluginsMenu[i].id = (uint32_t)i | idMask;
     }
@@ -283,8 +256,7 @@ static void buildPopupSubmenu(HMENU parentMenu, wchar_t* inName, PDMenuItem* plu
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window_buildMenu()
-{
+void Window_buildMenu() {
     HMENU mainMenu = CreateMenu();
     buildSubMenu(mainMenu, g_fileMenu, L"&File", 0);
     buildSubMenu(mainMenu, g_debugMenu, L"&Debug", 0);
@@ -294,12 +266,10 @@ void Window_buildMenu()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Remove platform duplication
 
-static PDMenuItem* buildPluginsMenu(PluginData** plugins, int count)
-{
+static PDMenuItem* buildPluginsMenu(PluginData** plugins, int count) {
     PDMenuItem* menu = (PDMenuItem*)alloc_zero(sizeof(PDMenuItem) * (count + 1)); // + 1 as array needs to end with zeros
 
-    for (int i = 0; i < count; ++i)
-    {
+    for (int i = 0; i < count; ++i) {
         PluginData* pluginData = plugins[i];
         PDPluginBase* pluginBase = (PDPluginBase*)pluginData->plugin;
         PDMenuItem* entry = &menu[i];
@@ -316,8 +286,7 @@ static PDMenuItem* buildPluginsMenu(PluginData** plugins, int count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void buildPopupMenu(PDMenuItem* pluginsMenu, int count)
-{
+void buildPopupMenu(PDMenuItem* pluginsMenu, int count) {
     // TODO: Support rebuild of this menu
 
     if (s_popupMenu)
@@ -334,8 +303,7 @@ void buildPopupMenu(PDMenuItem* pluginsMenu, int count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window_addMenu(const char* name, PDMenuItem* items, uint32_t idOffset)
-{
+void Window_addMenu(const char* name, PDMenuItem* items, uint32_t idOffset) {
     wchar_t tempWchar[512];
     HMENU mainMenu = GetMenu(s_window);
 
@@ -348,8 +316,7 @@ void Window_addMenu(const char* name, PDMenuItem* items, uint32_t idOffset)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Window_buildPluginMenu(PluginData** plugins, int count)
-{
+int Window_buildPluginMenu(PluginData** plugins, int count) {
     HMENU mainMenu = GetMenu(s_window);
 
     PDMenuItem* menu = buildPluginsMenu(plugins, count);
@@ -364,16 +331,14 @@ int Window_buildPluginMenu(PluginData** plugins, int count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window_setTitle(const wchar_t* title)
-{
+void Window_setTitle(const wchar_t* title) {
     SetWindowText(s_window, title);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Retrieves and translates modifier keys
 
-static int getKeyMods()
-{
+static int getKeyMods() {
     int mods = 0;
 
     if (GetKeyState(VK_SHIFT) & (1 << 31))
@@ -391,16 +356,13 @@ static int getKeyMods()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Translates a Windows key to the corresponding PRODBG key (code taken from GLFW)
 
-static int translateKey(WPARAM wParam, LPARAM lParam)
-{
+static int translateKey(WPARAM wParam, LPARAM lParam) {
     // Check for numeric keypad keys
     // NOTE: This way we always force "NumLock = ON", which is intentional since
     // the returned key code should correspond to a physical location.
 
-    if ((HIWORD(lParam) & 0x100) == 0)
-    {
-        switch (MapVirtualKey(HIWORD(lParam) & 0xFF, 1))
-        {
+    if ((HIWORD(lParam) & 0x100) == 0) {
+        switch (MapVirtualKey(HIWORD(lParam) & 0xFF, 1)) {
             case VK_INSERT:
                 return PDKEY_KP_0;
             case VK_END:
@@ -437,8 +399,7 @@ static int translateKey(WPARAM wParam, LPARAM lParam)
     }
 
     // Check which key was pressed or released
-    switch (wParam)
-    {
+    switch (wParam) {
         // The SHIFT keys require special handling
         case VK_SHIFT:
         {
@@ -467,17 +428,14 @@ static int translateKey(WPARAM wParam, LPARAM lParam)
             // is a RALT message. In that case, this is a false LCTRL!
             time = GetMessageTime();
 
-            if (PeekMessage(&next, NULL, 0, 0, PM_NOREMOVE))
-            {
+            if (PeekMessage(&next, NULL, 0, 0, PM_NOREMOVE)) {
                 if (next.message == WM_KEYDOWN ||
                     next.message == WM_SYSKEYDOWN ||
                     next.message == WM_KEYUP ||
-                    next.message == WM_SYSKEYUP)
-                {
+                    next.message == WM_SYSKEYUP) {
                     if (next.wParam == VK_MENU &&
                         (next.lParam & 0x01000000) &&
-                        next.time == time)
-                    {
+                        next.time == time) {
                         // Next message is a RALT down message, which
                         // means that this is not a proper LCTRL message
                         return PDKEY_UNKNOWN;
@@ -744,8 +702,8 @@ static int translateKey(WPARAM wParam, LPARAM lParam)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-static void handleMouseWheel(HWND window, int axis, WPARAM wParam, LPARAM lParam)
-{
+   static void handleMouseWheel(HWND window, int axis, WPARAM wParam, LPARAM lParam)
+   {
     static int linesPerRotation = -1;
     if (linesPerRotation == -1)
     {
@@ -795,15 +753,13 @@ static void handleMouseWheel(HWND window, int axis, WPARAM wParam, LPARAM lParam
     wheelEvent.deltaY = float(pt.y);
 
     //ProDBG_scroll(wheelEvent);
-}
-*/
+   }
+ */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    switch (message)
-    {
+LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam) {
+    switch (message) {
         case WM_ACTIVATE:
         {
             if (!HIWORD(wParam))
@@ -842,8 +798,7 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 
         case WM_RBUTTONDOWN:
         {
-            if (s_popupMenu)
-            {
+            if (s_popupMenu) {
                 POINT p;
                 GetCursorPos(&p);
 
@@ -882,8 +837,7 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 
         case WM_SYSCOMMAND:
         {
-            switch (wParam)
-            {
+            switch (wParam) {
                 // prevent screensaver and power saving
                 case SC_SCREENSAVE:
                 case SC_MONITORPOWER:
@@ -963,15 +917,13 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void CALLBACK timedCallback(HWND hwnd, UINT id, UINT_PTR ptr, DWORD meh)
-{
+static void CALLBACK timedCallback(HWND hwnd, UINT id, UINT_PTR ptr, DWORD meh) {
     ProDBG_timedUpdate();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmndLine, int show)
-{
+int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmndLine, int show) {
     MSG msg;
     HACCEL accel;
     bool done = false;
@@ -992,12 +944,9 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmndLine, i
 
     SetTimer(s_window, 1, 1, timedCallback);
 
-    while (!done)
-    {
-        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-        {
-            if (!TranslateAccelerator(s_window, accel, &msg))
-            {
+    while (!done) {
+        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+            if (!TranslateAccelerator(s_window, accel, &msg)) {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
                 if (WM_QUIT == msg.message)

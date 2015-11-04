@@ -10,16 +10,14 @@ void ProDBG_applicationLaunched();
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication*)sender
-{
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication*)sender {
     (void)sender;
     return NSTerminateNow;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-- (void)applicationDidFinishLaunching:(NSNotification*)aNotification
-{
+- (void)applicationDidFinishLaunching:(NSNotification*)aNotification {
     Window_buildMenu();
     ProDBG_applicationLaunched();
 
@@ -28,15 +26,13 @@ void ProDBG_applicationLaunched();
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-- (IBAction) buttonClicked:(id)sender
-{
+- (IBAction) buttonClicked:(id)sender {
     (void)sender;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-- (void)applicationWillTerminate:(NSNotification*)aNotification
-{
+- (void)applicationWillTerminate:(NSNotification*)aNotification {
     (void)aNotification;
     ProDBG_destroy();
 }

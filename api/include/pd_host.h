@@ -11,8 +11,7 @@ extern "C" {
 
 #define PDMESSAGEFUNCS_GLOBAL "Info Messages 1"
 
-typedef struct PDMessageFuncs
-{
+typedef struct PDMessageFuncs {
 	void (*info)(const char* title, const char* message);
 	void (*error)(const char* title, const char* message);
 	void (*warning)(const char* title, const char* message);
@@ -22,23 +21,21 @@ typedef struct PDMessageFuncs
 
 #define PDDIALOGS_GLOBAL "Dialogs 1"
 
-typedef struct PDDialogFuncs
-{
+typedef struct PDDialogFuncs {
 	int (*openFile)(char* dest);
 	int (*saveFile)(char* dest);
-	int (*selectDirectory)(char* dest);
+	int (*select_directory)(char* dest);
 } PDDialogFuncs;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define PDSETTINGS_GLOBAL "Settings 1"
 
-typedef struct PDSettingsFuncs
-{
-	int64_t (*getInt)(const char* category, const char* value);
-	double (*getReal)(const char* category, const char* value);
-	const char* (*getString)(const char* category, const char* value);
-	uint32_t (*getShortcut)(const char* pluginId, const char* operation);
+typedef struct PDSettingsFuncs {
+	int64_t (*get_int)(const char* category, const char* value);
+	double (*get_real)(const char* category, const char* value);
+	const char* (*get_string)(const char* category, const char* value);
+	uint32_t (*get_shortcut)(const char* plugin_id, const char* operation);
 } PDSettingsFuncs;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

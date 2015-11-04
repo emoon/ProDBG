@@ -2,8 +2,7 @@
 
 #include <asdbg_engine.h>
 
-namespace asdbg
-{
+namespace asdbg {
 
 
 

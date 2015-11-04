@@ -5,8 +5,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Dialog_open(char* dest)
-{
+int Dialog_open(char* dest) {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSOpenPanel* open = [NSOpenPanel openPanel];
     [open setAllowsMultipleSelection:NO];
@@ -31,8 +30,7 @@ int Dialog_open(char* dest)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Dialog_save(char* dest)
-{
+int Dialog_save(char* dest) {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSSavePanel* open = [NSSavePanel savePanel];
 
@@ -55,14 +53,13 @@ int Dialog_save(char* dest)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Dialog_selectDirectory(char* dest)
-{
+int Dialog_selectDirectory(char* dest) {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSOpenPanel* open = [NSOpenPanel openPanel];
 
     [open setCanChooseDirectories:YES];
-	[open setCanChooseFiles:NO];
-	[open setAllowsMultipleSelection:NO];
+    [open setCanChooseFiles:NO];
+    [open setAllowsMultipleSelection:NO];
 
     long result = [open runModal];
 
@@ -82,8 +79,7 @@ int Dialog_selectDirectory(char* dest)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void internalPanel(const char* titleText, const char* messageText, int type)
-{
+static void internalPanel(const char* titleText, const char* messageText, int type) {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSString* text = [[[NSString alloc] initWithUTF8String:titleText] autorelease];// convert
     NSString* message = [[[NSString alloc] initWithUTF8String:messageText] autorelease];// convert
@@ -101,22 +97,19 @@ static void internalPanel(const char* titleText, const char* messageText, int ty
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MacDialog_errorDialog(const char* title, const char* message)
-{
+void MacDialog_errorDialog(const char* title, const char* message) {
     internalPanel(title, message, NSCriticalAlertStyle);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MacDialog_infoDialog(const char* title, const char* message)
-{
+void MacDialog_infoDialog(const char* title, const char* message) {
     internalPanel(title, message, NSInformationalAlertStyle);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MacDialog_warningDialog(const char* title, const char* message)
-{
+void MacDialog_warningDialog(const char* title, const char* message) {
     internalPanel(title, message, NSWarningAlertStyle);
 }
 

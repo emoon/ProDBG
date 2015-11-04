@@ -38,8 +38,7 @@ const int s_borderSize = 4;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct Context
-{
+struct Context {
     int width;
     int height;
     //InputState inputState;
@@ -51,8 +50,7 @@ static Context s_context;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct PrivateData
-{
+struct PrivateData {
     ImGuiWindow* window;
     const char* name;
     const char* title;
@@ -61,70 +59,63 @@ struct PrivateData
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ImVec4 pdColorToImVec4(uint32_t color)
-{
-	float r = ((color >> 24) & 0xff) * 1.0f / 255.0f;
-	float g = ((color >> 16) & 0xff) * 1.0f / 255.0f;
-	float b = ((color >> 8) & 0xff) * 1.0f / 255.0f;
-	float a = ((color >> 0) & 0xff) * 1.0f / 255.0f;
-	return ImVec4(r, g, b, a);
+ImVec4 pdColorToImVec4(uint32_t color) {
+    float r = ((color >> 24) & 0xff) * 1.0f / 255.0f;
+    float g = ((color >> 16) & 0xff) * 1.0f / 255.0f;
+    float b = ((color >> 8) & 0xff) * 1.0f / 255.0f;
+    float a = ((color >> 0) & 0xff) * 1.0f / 255.0f;
+    return ImVec4(r, g, b, a);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDSCFuncs
-{
-    intptr_t (*sendCommand)(void* privData, unsigned int message, uintptr_t p0, intptr_t p1);
+typedef struct PDSCFuncs {
+    intptr_t (*send_command)(void* privData, unsigned int message, uintptr_t p0, intptr_t p1);
     void (*update)(void* privData);
     void (*draw)(void* privData);
-    void* privateData;
+    void* private_data;
 } PDSCFuns;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static intptr_t scSendCommand(void* privData, unsigned int message, uintptr_t p0, intptr_t p1)
-{
+static intptr_t scSendCommand(void* privData, unsigned int message, uintptr_t p0, intptr_t p1) {
     ImScEditor* editor = (ImScEditor*)privData;
     return editor->SendCommand(message, p0, p1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void scUpdate(void* privData)
-{
+static void scUpdate(void* privData) {
     ImScEditor* editor = (ImScEditor*)privData;
     editor->Draw();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void scDraw(void* privData)
-{
+static void scDraw(void* privData) {
     ImScEditor* editor = (ImScEditor*)privData;
     return editor->Update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setTitle(void* privateData, const char* title)
-{
-	PrivateData* data = (PrivateData*)privateData;
+static void set_title(void* private_data, const char* title) {
+    PrivateData* data = (PrivateData*)private_data;
 
-	(void)data;
+    (void)data;
 
-	if (string_equal(data->title, title))
-		return;
+    if (string_equal(data->title, title))
+        return;
 
-	if (data->title)
-		free((void*)data->title);
+    if (data->title)
+        free((void*)data->title);
 
-	data->title = strdup(title); 
+    data->title = strdup(title);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDVec2 getWindowSize()
-{
+static PDVec2 get_window_size() {
     ImVec2 size = ImGui::GetWindowSize();
     PDVec2 r = { size.x, size.y };
     return r;
@@ -132,8 +123,7 @@ static PDVec2 getWindowSize()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDVec2 getWindowPos()
-{
+static PDVec2 get_window_pos() {
     ImVec2 pos = ImGui::GetWindowPos();
     PDVec2 r = { pos.x, pos.y };
     return r;
@@ -141,281 +131,241 @@ static PDVec2 getWindowPos()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void beginChild(const char* stringId, PDVec2 size, bool border, int extraFlags)
-{
+static void begin_child(const char* stringId, PDVec2 size, bool border, int extraFlags) {
     ImGui::BeginChild(stringId, ImVec2(size.x, size.y), border, ImGuiWindowFlags(extraFlags));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void endChild()
-{
+static void end_child() {
     ImGui::EndChild();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static float getScrollY()
-{
-	return ImGui::GetScrollY();
+static float get_scroll_y() {
+    return ImGui::GetScrollY();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static float getScrollMaxY()
-{
-	return ImGui::GetScrollMaxY();
+static float get_scroll_max_y() {
+    return ImGui::GetScrollMaxY();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setScrollY(float scrollY)
-{
-	ImGui::SetScrollY(scrollY);
+static void set_scroll_y(float scrollY) {
+    ImGui::SetScrollY(scrollY);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setScrollHere(float centerYratio)
-{
-	ImGui::SetScrollHere(centerYratio);
+static void set_scroll_here(float centerYratio) {
+    ImGui::SetScrollHere(centerYratio);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setScrollFromPosY(float posY, float centerYratio)
-{
-	ImGui::SetScrollFromPosY(posY, centerYratio);
+static void set_scroll_from_pos_y(float posY, float centerYratio) {
+    ImGui::SetScrollFromPosY(posY, centerYratio);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setKeyboardFocusHere(int offset)
-{
-	ImGui::SetKeyboardFocusHere(offset);
+static void set_keyboard_focus_here(int offset) {
+    ImGui::SetKeyboardFocusHere(offset);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void pushFont(PDUIFont font)
-{
-	ImGui::PushFont((ImFont*)font);
+static void push_font(PDUIFont font) {
+    ImGui::PushFont((ImFont*)font);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void popFont()
-{
-	ImGui::PopFont();
+static void pop_font() {
+    ImGui::PopFont();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void pushStyleColor(PDUICol idx, PDColor col)
-{
-	ImGui::PushStyleColor(idx, pdColorToImVec4(col));
+static void push_style_color(PDUICol idx, PDColor col) {
+    ImGui::PushStyleColor(idx, pdColorToImVec4(col));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void popStyleColor(int count)
-{
-	ImGui::PopStyleVar(count);
+static void pop_style_color(int count) {
+    ImGui::PopStyleVar(count);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void pushStyleVar(PDUIStyleVar idx, float val)
-{
-	ImGui::PushStyleVar(ImGuiStyleVar(idx), val);
+static void push_style_var(PDUIStyleVar idx, float val) {
+    ImGui::PushStyleVar(ImGuiStyleVar(idx), val);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void pushStyleVarVec(PDUIStyleVar idx, PDVec2 val)
-{
-	ImGui::PushStyleVar(ImGuiStyleVar(idx), ImVec2(val.x, val.y));
+static void push_style_varVec(PDUIStyleVar idx, PDVec2 val) {
+    ImGui::PushStyleVar(ImGuiStyleVar(idx), ImVec2(val.x, val.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void popStyleVar(int count)
-{
-	ImGui::PopStyleVar(count);
+static void pop_style_var(int count) {
+    ImGui::PopStyleVar(count);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void pushItemWidth(float itemWidth)
-{
+static void push_item_width(float itemWidth) {
     ImGui::PushItemWidth(itemWidth);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void popItemWidth()
-{
+static void pop_item_width() {
     ImGui::PopItemWidth();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static float calcItemWidth()
-{
-	return ImGui::CalcItemWidth();
+static float calc_item_width() {
+    return ImGui::CalcItemWidth();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void pushAllowKeyboardFocus(bool v)
-{
-	ImGui::PushAllowKeyboardFocus(v);
+static void push_allow_keyboard_focus(bool v) {
+    ImGui::PushAllowKeyboardFocus(v);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void popAllowKeyboardFocus()
-{
-	ImGui::PopAllowKeyboardFocus();
+static void pop_allow_keyboard_focus() {
+    ImGui::PopAllowKeyboardFocus();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void pushTextWrapPos(float wrapPosX)
-{
-	ImGui::PushTextWrapPos(wrapPosX);
+static void push_text_wrap_pos(float wrapPosX) {
+    ImGui::PushTextWrapPos(wrapPosX);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void popTextWrapPos()
-{
-	ImGui::PopTextWrapPos();
+static void pop_text_wrap_pos() {
+    ImGui::PopTextWrapPos();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void pushButtonRepeat(bool repeat)
-{
-	ImGui::PushButtonRepeat(repeat);
+static void push_button_repeat(bool repeat) {
+    ImGui::PushButtonRepeat(repeat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void popButtonRepeat()
-{
-	ImGui::PopButtonRepeat();
+static void pop_button_repeat() {
+    ImGui::PopButtonRepeat();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void beginGroup()
-{
-	ImGui::BeginGroup();
+static void begin_group() {
+    ImGui::BeginGroup();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void endGroup()
-{
-	ImGui::EndGroup();
+static void end_group() {
+    ImGui::EndGroup();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void separator()
-{
-	ImGui::Separator();
+static void separator() {
+    ImGui::Separator();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void sameLine(int columnX, int spacingW)
-{
+static void same_line(int columnX, int spacingW) {
     ImGui::SameLine((float)columnX, (float)spacingW);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void spacing()
-{
+static void spacing() {
     ImGui::Spacing();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void dummy(PDVec2 size)
-{
-	ImGui::Dummy(ImVec2(size.x, size.y));
+static void dummy(PDVec2 size) {
+    ImGui::Dummy(ImVec2(size.x, size.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void indent()
-{
-	ImGui::Indent();
+static void indent() {
+    ImGui::Indent();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void unIndent()
-{
-	ImGui::Unindent();
+static void un_indent() {
+    ImGui::Unindent();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void columns(int count, const char* id, bool border)
-{
+static void columns(int count, const char* id, bool border) {
     ImGui::Columns(count, id, border);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void nextColumn()
-{
+static void next_column() {
     ImGui::NextColumn();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int getColumnIndex()
-{
-	return ImGui::GetColumnIndex();
+static int get_column_index() {
+    return ImGui::GetColumnIndex();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static float getColumnOffset(int columnIndex)
-{
+static float get_column_offset(int columnIndex) {
     return ImGui::GetColumnOffset(columnIndex);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setColumnOffset(int columnIndex, float offset)
-{
+static void set_column_offset(int columnIndex, float offset) {
     return ImGui::SetColumnOffset(columnIndex, offset);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static float getColumnWidth(int columnIndex)
-{
+static float get_column_width(int columnIndex) {
     return ImGui::GetColumnWidth(columnIndex);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int getColumnsCount()
-{
-	return ImGui::GetColumnsCount();
+static int get_columns_count() {
+    return ImGui::GetColumnsCount();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDVec2 getCursorPos()
-{
+static PDVec2 get_cursor_pos() {
     ImVec2 t = ImGui::GetCursorPos();
     PDVec2 r = { t.x, t.y };
     return r;
@@ -423,43 +373,37 @@ static PDVec2 getCursorPos()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static float getCursorPosX()
-{
-	return ImGui::GetCursorPosX();
+static float get_cursor_pos_x() {
+    return ImGui::GetCursorPosX();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static float getCursorPosY()
-{
-	return ImGui::GetCursorPosY();
+static float get_cursor_pos_y() {
+    return ImGui::GetCursorPosY();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setCursorPos(PDVec2 pos)
-{
+static void set_cursor_pos(PDVec2 pos) {
     ImGui::SetCursorPos(ImVec2(pos.x, pos.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setCursorPosX(float x)
-{
+static void set_cursor_pos_x(float x) {
     ImGui::SetCursorPosX(x);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setCursorPosY(float y)
-{
+static void set_cursor_pos_y(float y) {
     ImGui::SetCursorPosY(y);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDVec2 getCursorScreenPos()
-{
+static PDVec2 get_cursor_screen_pos() {
     ImVec2 t = ImGui::GetCursorScreenPos();
     PDVec2 r = { t.x, t.y };
     return r;
@@ -467,99 +411,85 @@ static PDVec2 getCursorScreenPos()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setCursorScreenPos(PDVec2 pos)
-{
-	ImGui::SetCursorScreenPos(ImVec2(pos.x, pos.y));
+static void set_cursor_screen_pos(PDVec2 pos) {
+    ImGui::SetCursorScreenPos(ImVec2(pos.x, pos.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void alignFirstTextHeightToWidgets()
-{
+static void align_first_text_height_to_widgets() {
     ImGui::AlignFirstTextHeightToWidgets();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static float getTextLineHeight()
-{
-	return ImGui::GetTextLineHeight();
+static float get_text_line_height() {
+    return ImGui::GetTextLineHeight();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static float getTextLineHeightWithSpacing()
-{
+static float get_text_line_height_with_spacing() {
     return ImGui::GetTextLineHeightWithSpacing();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static float getItemsLineHeightWithSpacing()
-{
-	return ImGui::GetItemsLineHeightWithSpacing();
+static float get_items_line_height_with_spacing() {
+    return ImGui::GetItemsLineHeightWithSpacing();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void pushIdStr(const char* strId)
-{
-	ImGui::PushID(strId);
+static void push_id_str(const char* strId) {
+    ImGui::PushID(strId);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void pushIdStrRange(const char* strBegin, const char* strEnd)
-{
-	ImGui::PushID(strBegin, strEnd);
+static void push_id_str_range(const char* strBegin, const char* strEnd) {
+    ImGui::PushID(strBegin, strEnd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void pushIdPtr(const void* ptrId)
-{
-	ImGui::PushID(ptrId);
+static void push_id_ptr(const void* ptrId) {
+    ImGui::PushID(ptrId);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void pushIdInt(const int intId)
-{
-	ImGui::PushID(intId);
+static void push_id_int(const int intId) {
+    ImGui::PushID(intId);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void popId()
-{
-	ImGui::PopID();
+static void pop_id() {
+    ImGui::PopID();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDID getIdStr(const char* strId)
-{
-	return (PDID)ImGui::GetID(strId);
+static PDID get_id_str(const char* strId) {
+    return (PDID)ImGui::GetID(strId);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDID getIdStrRange(const char* strBegin, const char* strEnd)
-{
-	return (PDID)ImGui::GetID(strBegin, strEnd);
+static PDID get_id_str_range(const char* strBegin, const char* strEnd) {
+    return (PDID)ImGui::GetID(strBegin, strEnd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDID getIdPtr(const void* ptrId)
-{
-	return (PDID)ImGui::GetID(ptrId);
+static PDID get_id_ptr(const void* ptrId) {
+    return (PDID)ImGui::GetID(ptrId);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void text(const char* format, ...)
-{
+static void text(const char* format, ...) {
     va_list ap;
     va_start(ap, format);
 
@@ -570,15 +500,13 @@ static void text(const char* format, ...)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void textV(const char* fmt, va_list args)
-{
+static void text_v(const char* fmt, va_list args) {
     ImGui::TextV(fmt, args);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void textColored(const PDColor col, const char* fmt, ...)
-{
+static void text_colored(const PDColor col, const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
 
@@ -589,15 +517,13 @@ static void textColored(const PDColor col, const char* fmt, ...)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void textColoredV(const PDColor col, const char* fmt, va_list args)
-{
+static void text_colored_v(const PDColor col, const char* fmt, va_list args) {
     ImGui::TextColoredV(pdColorToImVec4(col), fmt, args);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void textDisabled(const char* fmt, ...)
-{
+static void text_disabled(const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
 
@@ -608,15 +534,13 @@ static void textDisabled(const char* fmt, ...)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void textDisabledV(const char* fmt, va_list args)
-{
+static void text_disabledV(const char* fmt, va_list args) {
     ImGui::TextDisabledV(fmt, args);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void textWrapped(const char* fmt, ...)
-{
+static void text_wrapped(const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
 
@@ -627,22 +551,19 @@ static void textWrapped(const char* fmt, ...)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void textWrappedV(const char* fmt, va_list args)
-{
+static void text_wrapped_v(const char* fmt, va_list args) {
     ImGui::TextWrappedV(fmt, args);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void textUnformatted(const char* text, const char* text_end)
-{
+static void text_unformatted(const char* text, const char* text_end) {
     ImGui::TextUnformatted(text, text_end);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void labelText(const char* label, const char* fmt, ...)
-{
+static void label_text(const char* label, const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
 
@@ -653,22 +574,19 @@ static void labelText(const char* label, const char* fmt, ...)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void labelTextV(const char* label, const char* fmt, va_list args)
-{
+static void label_textV(const char* label, const char* fmt, va_list args) {
     ImGui::LabelTextV(label, fmt, args);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void bullet()
-{
+static void bullet() {
     ImGui::Bullet();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void bulletText(const char* fmt, ...)
-{
+static void bullet_text(const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
 
@@ -679,171 +597,147 @@ static void bulletText(const char* fmt, ...)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void bulletTextV(const char* fmt, va_list args)
-{
+static void bullet_text_v(const char* fmt, va_list args) {
     ImGui::BulletTextV(fmt, args);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool button(const char* label, const PDVec2 size)
-{
+static bool button(const char* label, const PDVec2 size) {
     return ImGui::Button(label, ImVec2(size.x, size.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool smallButton(const char* label)
-{
+static bool small_button(const char* label) {
     return ImGui::SmallButton(label);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool invisibleButton(const char* strId, const PDVec2 size)
-{
+static bool invisible_button(const char* strId, const PDVec2 size) {
     return ImGui::InvisibleButton(strId, ImVec2(size.x, size.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void image(PDUITextureID user_texture_id, const PDVec2 size, const PDVec2 uv0, const PDVec2 uv1, const PDColor tintColor, const PDColor borderColor)
-{
+static void image(PDUITextureID user_texture_id, const PDVec2 size, const PDVec2 uv0, const PDVec2 uv1, const PDColor tintColor, const PDColor borderColor) {
     ImGui::Image((ImTextureID)user_texture_id, ImVec2(size.x, size.y), ImVec2(uv0.x, uv0.y), ImVec2(uv1.x, uv1.y), pdColorToImVec4(tintColor), pdColorToImVec4(borderColor));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool imageButton(PDUITextureID user_texture_id, const PDVec2 size, const PDVec2 uv0, const PDVec2 uv1, int framePadding, const PDColor bgColor, const PDColor tintCol)
-{
+static bool image_button(PDUITextureID user_texture_id, const PDVec2 size, const PDVec2 uv0, const PDVec2 uv1, int framePadding, const PDColor bgColor, const PDColor tintCol) {
     return ImGui::ImageButton(user_texture_id, ImVec2(size.x, size.y), ImVec2(uv0.x, uv1.y), ImVec2(uv1.x, uv1.y), framePadding, pdColorToImVec4(bgColor), pdColorToImVec4(tintCol));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool collapsingHeader(const char* label, const char* strId, bool displayFrame, bool defaultOpen)
-{
+static bool collapsing_header(const char* label, const char* strId, bool displayFrame, bool defaultOpen) {
     return ImGui::CollapsingHeader(label, strId, displayFrame, defaultOpen);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool checkbox(const char* label, bool* v)
-{
+static bool checkbox(const char* label, bool* v) {
     return ImGui::Checkbox(label, v);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool checkboxFlags(const char* label, unsigned int* flags, unsigned int flagsValue)
-{
+static bool checkbox_flags(const char* label, unsigned int* flags, unsigned int flagsValue) {
     return ImGui::CheckboxFlags(label, flags, flagsValue);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool radioButtonBool(const char* label, bool active)
-{
+static bool radio_buttonBool(const char* label, bool active) {
     return ImGui::RadioButton(label, active);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool radioButton(const char* label, int* v, int v_button)
-{
+static bool radio_button(const char* label, int* v, int v_button) {
     return ImGui::RadioButton(label, v, v_button);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool combo(const char* label, int* currentItem, const char** items, int itemsCount, int heightInItems)
-{
+static bool combo(const char* label, int* currentItem, const char** items, int itemsCount, int heightInItems) {
     return ImGui::Combo(label, currentItem, items, itemsCount, heightInItems);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool combo2(const char* label, int* currentItem, const char* itemsSeparatedByZeros, int heightInItems)
-{
+static bool combo2(const char* label, int* currentItem, const char* itemsSeparatedByZeros, int heightInItems) {
     return ImGui::Combo(label, currentItem, itemsSeparatedByZeros, heightInItems);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool combo3(const char* label, int* currentItem, bool(*itemsGetter)(void* data, int idx, const char** out_text), void* data, int itemsCount, int heightInItems)
-{
+static bool combo3(const char* label, int* currentItem, bool (*itemsGetter)(void* data, int idx, const char** out_text), void* data, int itemsCount, int heightInItems) {
     return ImGui::Combo(label, currentItem, itemsGetter, data, itemsCount, heightInItems);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool colorButton(const PDColor col, bool smallHeight, bool outlineBorder)
-{
+static bool color_button(const PDColor col, bool smallHeight, bool outlineBorder) {
     return ImGui::ColorButton(pdColorToImVec4(col), smallHeight, outlineBorder);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool colorEdit3(const char* label, float col[3])
-{
+static bool color_edit3(const char* label, float col[3]) {
     return ImGui::ColorEdit3(label, col);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool colorEdit4(const char* label, float col[4], bool showAlpha)
-{
+static bool color_edit4(const char* label, float col[4], bool showAlpha) {
     return ImGui::ColorEdit4(label, col, showAlpha);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void colorEditMode(PDUIColorEditMode mode)
-{
+static void color_edit_mode(PDUIColorEditMode mode) {
     ImGui::ColorEditMode(mode);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void plotLines(const char* label, const float* values, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize, size_t stride)
-{
+static void plot_lines(const char* label, const float* values, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize, size_t stride) {
     ImGui::PlotLines(label, values, valuesCount, valuesOffset, overlayText, scaleMin, scaleMax, ImVec2(graphSize.x, graphSize.y), (int)stride);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void plotLines2(const char* label, float (*valuesGetter)(void* data, int idx), void* data, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize)
-{
-	ImGui::PlotLines(label, valuesGetter, data, valuesCount, valuesOffset, overlayText, scaleMin, scaleMax, ImVec2(graphSize.x, graphSize.y)); 
+static void plot_lines2(const char* label, float (*valuesGetter)(void* data, int idx), void* data, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize) {
+    ImGui::PlotLines(label, valuesGetter, data, valuesCount, valuesOffset, overlayText, scaleMin, scaleMax, ImVec2(graphSize.x, graphSize.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void plotHistogram(const char* label, const float* values, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize, size_t stride)
-{
+static void plot_histogram(const char* label, const float* values, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize, size_t stride) {
     ImGui::PlotHistogram(label, values, valuesCount, valuesOffset, overlayText, scaleMin, scaleMax, ImVec2(graphSize.x, graphSize.y), (int)stride);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void plotHistogram2(const char* label, float (*valuesGetter)(void* data, int idx), void* data, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize)
-{
+static void plot_histogram2(const char* label, float (*valuesGetter)(void* data, int idx), void* data, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize) {
     ImGui::PlotHistogram(label, valuesGetter, data, valuesCount, valuesOffset, overlayText, scaleMin, scaleMax, ImVec2(graphSize.x, graphSize.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDUISCInterface* scInputText(const char* label, float xSize, float ySize, void (*callback)(void*), void* userData)
-{
-    ImScEditor* ed = ImGui::ScInputText(label, xSize, ySize, callback, userData);
+static PDUISCInterface* sc_input_text(const char* label, float xSize, float ySize, void (*callback)(void*), void* user_data) {
+    ImScEditor* ed = ImGui::ScInputText(label, xSize, ySize, callback, user_data);
 
-    if (!ed->userData)
-    {
+    if (!ed->userData) {
         PDUISCInterface* funcs = (PDUISCInterface*)malloc(sizeof(PDUISCInterface));
-        funcs->sendCommand = scSendCommand;
+        funcs->send_command = scSendCommand;
         funcs->update = scUpdate;
         funcs->draw = scDraw;
-        funcs->privateData = ed;
+        funcs->private_data = ed;
 
         ed->userData = (void*)funcs;
     }
@@ -853,134 +747,115 @@ static PDUISCInterface* scInputText(const char* label, float xSize, float ySize,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool sliderFloat(const char* label, float* v, float vMin, float vMax, const char* displayFormat, float power)
-{
+static bool slider_float(const char* label, float* v, float vMin, float vMax, const char* displayFormat, float power) {
     return ImGui::SliderFloat(label, v, vMin, vMax, displayFormat, power);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool sliderFloat2(const char* label, float v[2], float vMin, float vMax, const char* displayFormat, float power)
-{
+static bool slider_float2(const char* label, float v[2], float vMin, float vMax, const char* displayFormat, float power) {
     return ImGui::SliderFloat2(label, v, vMin, vMax, displayFormat, power);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool sliderFloat3(const char* label, float v[3], float vMin, float vMax, const char* displayFormat, float power)
-{
+static bool slider_float3(const char* label, float v[3], float vMin, float vMax, const char* displayFormat, float power) {
     return ImGui::SliderFloat3(label, v, vMin, vMax, displayFormat, power);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool sliderFloat4(const char* label, float v[4], float vMin, float vMax, const char* displayFormat, float power)
-{
+static bool slider_float4(const char* label, float v[4], float vMin, float vMax, const char* displayFormat, float power) {
     return ImGui::SliderFloat4(label, v, vMin, vMax, displayFormat, power);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool sliderAngle(const char* label, float* v_rad, float vDegreesMin, float vDegreesMax)
-{
+static bool slider_angle(const char* label, float* v_rad, float vDegreesMin, float vDegreesMax) {
     return ImGui::SliderAngle(label, v_rad, vDegreesMin, vDegreesMax);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool sliderInt(const char* label, int* v, int vMin, int vMax, const char* displayFormat)
-{
+static bool slider_int(const char* label, int* v, int vMin, int vMax, const char* displayFormat) {
     return ImGui::SliderInt(label, v, vMin, vMax, displayFormat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool sliderInt2(const char* label, int v[2], int vMin, int vMax, const char* displayFormat)
-{
+static bool slider_int2(const char* label, int v[2], int vMin, int vMax, const char* displayFormat) {
     return ImGui::SliderInt2(label, v, vMin, vMax, displayFormat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool sliderInt3(const char* label, int v[3], int vMin, int vMax, const char* displayFormat)
-{
+static bool slider_int3(const char* label, int v[3], int vMin, int vMax, const char* displayFormat) {
     return ImGui::SliderInt3(label, v, vMin, vMax, displayFormat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool sliderInt4(const char* label, int v[4], int vMin, int vMax, const char* displayFormat)
-{
+static bool slider_int4(const char* label, int v[4], int vMin, int vMax, const char* displayFormat) {
     return ImGui::SliderInt4(label, v, vMin, vMax, displayFormat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool vsliderFloat(const char* label, const PDVec2 size, float* v, float vMin, float vMax, const char* displayFormat, float power)
-{
+static bool vslider_float(const char* label, const PDVec2 size, float* v, float vMin, float vMax, const char* displayFormat, float power) {
     return ImGui::VSliderFloat(label, ImVec2(size.x, size.y), v, vMin, vMax, displayFormat, power);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool vsliderInt(const char* label, const PDVec2 size, int* v, int vMin, int vMax, const char* displayFormat)
-{
+static bool vslider_int(const char* label, const PDVec2 size, int* v, int vMin, int vMax, const char* displayFormat) {
     return ImGui::VSliderInt(label, ImVec2(size.x, size.y), v, vMin, vMax, displayFormat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool dragFloat(const char* label, float* v, float vSpeed, float vMin, float vMax, const char* displayFormat, float power)
-{
+static bool drag_float(const char* label, float* v, float vSpeed, float vMin, float vMax, const char* displayFormat, float power) {
     return ImGui::DragFloat(label, v, vSpeed, vMin, vMax, displayFormat, power);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool dragFloat2(const char* label, float v[2], float vSpeed, float vMin, float vMax, const char* displayFormat, float power)
-{
+static bool drag_float2(const char* label, float v[2], float vSpeed, float vMin, float vMax, const char* displayFormat, float power) {
     return ImGui::DragFloat2(label, v, vSpeed, vMin, vMax, displayFormat, power);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool dragFloat3(const char* label, float v[3], float vSpeed, float vMin, float vMax, const char* displayFormat, float power)
-{
+static bool drag_float3(const char* label, float v[3], float vSpeed, float vMin, float vMax, const char* displayFormat, float power) {
     return ImGui::DragFloat3(label, v, vSpeed, vMin, vMax, displayFormat, power);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool dragFloat4(const char* label, float v[4], float vSpeed, float vMin, float vMax, const char* displayFormat, float power)
-{
+static bool drag_float4(const char* label, float v[4], float vSpeed, float vMin, float vMax, const char* displayFormat, float power) {
     return ImGui::DragFloat4(label, v, vSpeed, vMin, vMax, displayFormat, power);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool dragInt(const char* label, int* v, float vSpeed, int vMin, int vMax, const char* displayFormat)
-{
+static bool drag_int(const char* label, int* v, float vSpeed, int vMin, int vMax, const char* displayFormat) {
     return ImGui::DragInt(label, v, vSpeed, vMin, vMax, displayFormat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool dragInt2(const char* label, int v[2], float vSpeed, int vMin, int vMax, const char* displayFormat)
-{
+static bool drag_int2(const char* label, int v[2], float vSpeed, int vMin, int vMax, const char* displayFormat) {
     return ImGui::DragInt2(label, v, vSpeed, vMin, vMax, displayFormat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool dragInt3(const char* label, int v[3], float vSpeed, int vMin, int vMax, const char* displayFormat)
-{
+static bool drag_int3(const char* label, int v[3], float vSpeed, int vMin, int vMax, const char* displayFormat) {
     return ImGui::DragInt3(label, v, vSpeed, vMin, vMax, displayFormat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool dragInt4(const char* label, int v[4], float vSpeed, int vMin, int vMax, const char* displayFormat)
-{
+static bool drag_int4(const char* label, int v[4], float vSpeed, int vMin, int vMax, const char* displayFormat) {
     return ImGui::DragInt4(label, v, vSpeed, vMin, vMax, displayFormat);
 }
 
@@ -988,41 +863,38 @@ static bool dragInt4(const char* label, int v[4], float vSpeed, int vMin, int vM
 
 typedef void (*InputCallback)(PDUIInputTextCallbackData*);
 
-struct PDInputTextUserData
-{
+struct PDInputTextUserData {
     InputCallback callback;
-    void* userData;
+    void* user_data;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void inputTextDeleteChars(PDUIInputTextCallbackData* data, int pos, int byteCount)
-{
+static void input_textDeleteChars(PDUIInputTextCallbackData* data, int pos, int byteCount) {
     char* dst = data->buf + pos;
     const char* src = data->buf + pos + byteCount;
     while (char c = *src++)
         *dst++ = c;
     *dst = '\0';
 
-    data->bufDirty = true;
-    if (data->cursorPos + byteCount >= pos)
-        data->cursorPos -= byteCount;
-    else if (data->cursorPos >= pos)
-        data->cursorPos = pos;
-    data->selectionStart = data->selectionEnd = data->cursorPos;
+    data->buf_dirty = true;
+    if (data->cursor_pos + byteCount >= pos)
+        data->cursor_pos -= byteCount;
+    else if (data->cursor_pos >= pos)
+        data->cursor_pos = pos;
+    data->selection_start = data->selection_end = data->cursor_pos;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void inputTextInsertChars(PDUIInputTextCallbackData* data, int pos, const char* text, const char* textEnd = NULL)
-{
+static void input_textInsertChars(PDUIInputTextCallbackData* data, int pos, const char* text, const char* textEnd = NULL) {
     const int textLen = int(strlen(data->buf));
     if (!textEnd)
         textEnd = text + strlen(text);
 
     const int newTextLen = (int)(textEnd - text);
 
-    if (newTextLen + textLen + 1 >= data->bufSize)
+    if (newTextLen + textLen + 1 >= data->buf_size)
         return;
 
     size_t upos = (size_t)pos;
@@ -1031,138 +903,125 @@ static void inputTextInsertChars(PDUIInputTextCallbackData* data, int pos, const
     memcpy(data->buf + upos, text, (size_t)newTextLen * sizeof(char));
     data->buf[textLen + newTextLen] = '\0';
 
-    data->bufDirty = true;
-    if (data->cursorPos >= pos)
-        data->cursorPos += (int)newTextLen;
-    data->selectionStart = data->selectionEnd = data->cursorPos;
+    data->buf_dirty = true;
+    if (data->cursor_pos >= pos)
+        data->cursor_pos += (int)newTextLen;
+    data->selection_start = data->selection_end = data->cursor_pos;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int textEditCallbackStub(ImGuiTextEditCallbackData* data)
-{
+static int textEditCallbackStub(ImGuiTextEditCallbackData* data) {
     PDInputTextUserData* wrappedUserData = (PDInputTextUserData*)data->UserData;
     PDUIInputTextCallbackData callbackData = { 0 };
 
     // Transfer over ImGui callback data into our generic wrapper version
-    callbackData.userData = wrappedUserData->userData;
+    callbackData.user_data = wrappedUserData->user_data;
     callbackData.buf = data->Buf;
-    callbackData.bufSize = int(data->BufSize);
-    callbackData.bufDirty = data->BufDirty;
+    callbackData.buf_size = int(data->BufSize);
+    callbackData.buf_dirty = data->BufDirty;
     callbackData.flags = PDUIInputTextFlags(data->Flags);
-    callbackData.cursorPos = data->CursorPos;
-    callbackData.selectionStart = data->SelectionStart;
-    callbackData.selectionEnd  = data->SelectionEnd;
-    callbackData.deleteChars = inputTextDeleteChars;
-    callbackData.insertChars = inputTextInsertChars;
+    callbackData.cursor_pos = data->CursorPos;
+    callbackData.selection_start = data->SelectionStart;
+    callbackData.selection_end  = data->SelectionEnd;
+    callbackData.delete_chars = input_textDeleteChars;
+    callbackData.insert_chars = input_textInsertChars;
 
     // Translate ImGui event key into our own PDKey mapping
     ImGuiIO& io = ImGui::GetIO();
-    callbackData.eventKey = io.KeyMap[data->EventKey];
+    callbackData.event_key = io.KeyMap[data->EventKey];
 
     // Invoke the callback (synchronous)
     wrappedUserData->callback(&callbackData);
 
     // We need to mirror any changes to the callback wrapper into the actual ImGui version
-    data->UserData = callbackData.userData;
+    data->UserData = callbackData.user_data;
     data->Buf = callbackData.buf;
-    data->BufSize = (int)callbackData.bufSize;
-    data->BufDirty = callbackData.bufDirty;
+    data->BufSize = (int)callbackData.buf_size;
+    data->BufDirty = callbackData.buf_dirty;
     data->Flags = ImGuiInputTextFlags(callbackData.flags);
-    data->CursorPos = callbackData.cursorPos;
-    data->SelectionStart = callbackData.selectionStart;
-    data->SelectionEnd   = callbackData.selectionEnd;
+    data->CursorPos = callbackData.cursor_pos;
+    data->SelectionStart = callbackData.selection_start;
+    data->SelectionEnd   = callbackData.selection_end;
 
     return 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool inputText(const char* label, char* buf, int buf_size, int flags, void (*callback)(PDUIInputTextCallbackData*), void* userData)
-{
+static bool input_text(const char* label, char* buf, int buf_size, int flags, void (*callback)(PDUIInputTextCallbackData*), void* user_data) {
     PDInputTextUserData wrappedUserData;
     wrappedUserData.callback = callback;
-    wrappedUserData.userData = userData;
+    wrappedUserData.user_data = user_data;
     return ImGui::InputText(label, buf, (size_t)buf_size, ImGuiInputTextFlags(flags), &textEditCallbackStub, &wrappedUserData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool inputTextMultiline(const char* label, char* buf, size_t buf_size, const PDVec2 size, PDUIInputTextFlags flags, void (*callback)(PDUIInputTextCallbackData*), void* userData)
-{
+static bool input_text_multiline(const char* label, char* buf, size_t buf_size, const PDVec2 size, PDUIInputTextFlags flags, void (*callback)(PDUIInputTextCallbackData*), void* user_data) {
     PDInputTextUserData wrappedUserData;
     wrappedUserData.callback = callback;
-    wrappedUserData.userData = userData;
+    wrappedUserData.user_data = user_data;
     return ImGui::InputTextMultiline(label, buf, buf_size, ImVec2(size.x, size.y), flags, &textEditCallbackStub, &wrappedUserData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool inputFloat(const char* label, float* v, float step, float step_fast, int decimal_precision, PDUIInputTextFlags extraFlags)
-{
+static bool input_float(const char* label, float* v, float step, float step_fast, int decimal_precision, PDUIInputTextFlags extraFlags) {
     return ImGui::InputFloat(label, v, step, step_fast, decimal_precision, extraFlags);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool inputFloat2(const char* label, float v[2], int decimal_precision, PDUIInputTextFlags extraFlags)
-{
+static bool input_float2(const char* label, float v[2], int decimal_precision, PDUIInputTextFlags extraFlags) {
     return ImGui::InputFloat2(label, v, decimal_precision, extraFlags);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool inputFloat3(const char* label, float v[3], int decimal_precision, PDUIInputTextFlags extraFlags)
-{
+static bool input_float3(const char* label, float v[3], int decimal_precision, PDUIInputTextFlags extraFlags) {
     return ImGui::InputFloat3(label, v, decimal_precision, extraFlags);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool inputFloat4(const char* label, float v[4], int decimal_precision, PDUIInputTextFlags extraFlags)
-{
+static bool input_float4(const char* label, float v[4], int decimal_precision, PDUIInputTextFlags extraFlags) {
     return ImGui::InputFloat4(label, v, decimal_precision, extraFlags);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool inputInt(const char* label, int* v, int step, int step_fast, PDUIInputTextFlags extraFlags)
-{
+static bool input_int(const char* label, int* v, int step, int step_fast, PDUIInputTextFlags extraFlags) {
     return ImGui::InputInt(label, v, step, step_fast, extraFlags);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool inputInt2(const char* label, int v[2], PDUIInputTextFlags extraFlags)
-{
+static bool input_int2(const char* label, int v[2], PDUIInputTextFlags extraFlags) {
     return ImGui::InputInt2(label, v, extraFlags);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool inputInt3(const char* label, int v[3], PDUIInputTextFlags extraFlags)
-{
+static bool input_int3(const char* label, int v[3], PDUIInputTextFlags extraFlags) {
     return ImGui::InputInt3(label, v, extraFlags);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool inputInt4(const char* label, int v[4], PDUIInputTextFlags extraFlags)
-{
+static bool input_int4(const char* label, int v[4], PDUIInputTextFlags extraFlags) {
     return ImGui::InputInt4(label, v, extraFlags);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool treeNode(const char* str_label_id)
-{
+static bool tree_node(const char* str_label_id) {
     return ImGui::TreeNode(str_label_id);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool treeNodeStr(const char* strId, const char* fmt, ...)
-{
+static bool tree_node_str(const char* strId, const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
 
@@ -1175,8 +1034,7 @@ static bool treeNodeStr(const char* strId, const char* fmt, ...)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool treeNodePtr(const void* ptrId, const char* fmt, ...)
-{
+static bool tree_node_ptr(const void* ptrId, const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
 
@@ -1189,99 +1047,85 @@ static bool treeNodePtr(const void* ptrId, const char* fmt, ...)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool treeNodeStrV(const char* strId, const char* fmt, va_list args)
-{
+static bool tree_node_str_v(const char* strId, const char* fmt, va_list args) {
     return ImGui::TreeNodeV(strId, fmt, args);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool treeNodePtrV(const void* ptrId, const char* fmt, va_list args)
-{
+static bool tree_node_ptr_v(const void* ptrId, const char* fmt, va_list args) {
     return ImGui::TreeNodeV(ptrId, fmt, args);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void treePushStr(const char* strId)
-{
+static void tree_push_str(const char* strId) {
     ImGui::TreePush(strId);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void treePushPtr(const void* ptrId)
-{
+static void tree_push_ptr(const void* ptrId) {
     ImGui::TreePush(ptrId);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void treePop()
-{
+static void tree_pop() {
     ImGui::TreePop();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setNextTreeNodeOpened(bool opened, PDUISetCond cond)
-{
+static void set_next_tree_node_opened(bool opened, PDUISetCond cond) {
     ImGui::SetNextTreeNodeOpened(opened, cond);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool selectable(const char* label, bool selected, PDUISelectableFlags flags, const PDVec2 size)
-{
+static bool selectable(const char* label, bool selected, PDUISelectableFlags flags, const PDVec2 size) {
     return ImGui::Selectable(label, selected, flags, ImVec2(size.x, size.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool selectableEx(const char* label, bool* p_selected, PDUISelectableFlags flags, const PDVec2 size)
-{
+static bool selectable_ex(const char* label, bool* p_selected, PDUISelectableFlags flags, const PDVec2 size) {
     return ImGui::Selectable(label, p_selected, flags, ImVec2(size.x, size.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool listBox(const char* label, int* currentItem, const char** items, int itemsCount, int heightInItems)
-{
+static bool list_box(const char* label, int* currentItem, const char** items, int itemsCount, int heightInItems) {
     return ImGui::ListBox(label, currentItem, items, itemsCount, heightInItems);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool listBox2(const char* label, int* currentItem, bool(*itemsGetter)(void* data, int idx, const char** out_text), void* data, int itemsCount, int heightInItems)
-{
-	return ImGui::ListBox(label, currentItem, itemsGetter, data, itemsCount, heightInItems);
+static bool list_box2(const char* label, int* currentItem, bool (*itemsGetter)(void* data, int idx, const char** out_text), void* data, int itemsCount, int heightInItems) {
+    return ImGui::ListBox(label, currentItem, itemsGetter, data, itemsCount, heightInItems);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool listBoxHeader(const char* label, const PDVec2 size)
-{
+static bool list_box_header(const char* label, const PDVec2 size) {
     return ImGui::ListBoxHeader(label, ImVec2(size.x, size.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool listBoxHeader2(const char* label, int itemsCount, int heightInItems)
-{
+static bool list_box_header2(const char* label, int itemsCount, int heightInItems) {
     return ImGui::ListBoxHeader(label, itemsCount, heightInItems);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void listBoxFooter()
-{
+static void list_box_footer() {
     ImGui::ListBoxFooter();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setTooltip(const char* fmt, ...)
-{
+static void set_tooltip(const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
 
@@ -1292,204 +1136,175 @@ static void setTooltip(const char* fmt, ...)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setTooltipV(const char* fmt, va_list args)
-{
+static void set_tooltipV(const char* fmt, va_list args) {
     ImGui::SetTooltipV(fmt, args);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void beginTooltip()
-{
+static void begin_tooltip() {
     ImGui::BeginTooltip();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void endTooltip()
-{
+static void end_tooltip() {
     ImGui::EndTooltip();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool beginMainMenuBar()
-{
+static bool begin_main_menu_bar() {
     return ImGui::BeginMainMenuBar();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void endMainMenuBar()
-{
+static void end_main_menu_bar() {
     ImGui::EndMainMenuBar();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool beginMenuBar()
-{
+static bool begin_menuBar() {
     return ImGui::BeginMenuBar();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void endMenuBar()
-{
+static void end_menu_bar() {
     ImGui::EndMenuBar();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool beginMenu(const char* label, bool enabled)
-{
+static bool begin_menu(const char* label, bool enabled) {
     return ImGui::BeginMenu(label, enabled);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void endMenu()
-{
+static void end_menu() {
     ImGui::EndMenu();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool menuItem(const char* label, const char* shortcut, bool selected, bool enabled)
-{
+static bool menu_item(const char* label, const char* shortcut, bool selected, bool enabled) {
     return ImGui::MenuItem(label, shortcut, selected, enabled);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool menuItemPtr(const char* label, const char* shortcut, bool* p_selected, bool enabled)
-{
+static bool menu_item_ptr(const char* label, const char* shortcut, bool* p_selected, bool enabled) {
     return ImGui::MenuItem(label, shortcut, p_selected, enabled);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void openPopup(const char* strId)
-{
+static void open_popup(const char* strId) {
     ImGui::OpenPopup(strId);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool beginPopup(const char* strId)
-{
+static bool begin_popup(const char* strId) {
     return ImGui::BeginPopup(strId);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool beginPopupModal(const char* name, bool* p_opened, PDUIWindowFlags extraFlags)
-{
+static bool begin_popup_modal(const char* name, bool* p_opened, PDUIWindowFlags extraFlags) {
     return ImGui::BeginPopupModal(name, p_opened, extraFlags);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool beginPopupContextItem(const char* strId, int mouse_button)
-{
+static bool begin_popup_context_item(const char* strId, int mouse_button) {
     return ImGui::BeginPopupContextItem(strId, mouse_button);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool beginPopupContextWindow(bool also_over_items, const char* strId, int mouse_button)
-{
+static bool begin_popup_context_window(bool also_over_items, const char* strId, int mouse_button) {
     return ImGui::BeginPopupContextWindow(also_over_items, strId, mouse_button);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool beginPopupContextVoid(const char* strId, int mouse_button)
-{
+static bool begin_popup_context_void(const char* strId, int mouse_button) {
     return ImGui::BeginPopupContextVoid(strId, mouse_button);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void endPopup()
-{
+static void end_popup() {
     ImGui::EndPopup();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void closeCurrentPopup()
-{
+static void close_current_popup() {
     ImGui::CloseCurrentPopup();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void valueBool(const char* prefix, bool b)
-{
+static void value_bool(const char* prefix, bool b) {
     ImGui::Value(prefix, b);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void valueInt(const char* prefix, int v)
-{
+static void value_int(const char* prefix, int v) {
     ImGui::Value(prefix, v);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void valueUInt(const char* prefix, unsigned int v)
-{
+static void value_u_int(const char* prefix, unsigned int v) {
     ImGui::Value(prefix, v);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void valueFloat(const char* prefix, float v, const char* float_format)
-{
+static void value_float(const char* prefix, float v, const char* float_format) {
     ImGui::Value(prefix, v, float_format);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void color(const char* prefix, const PDColor col)
-{
+static void color(const char* prefix, const PDColor col) {
     ImGui::Color(prefix, pdColorToImVec4(col));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void logToTTY(int maxDepth)
-{
+static void log_to_tty(int maxDepth) {
     ImGui::LogToTTY(maxDepth);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void logToFile(int maxDepth, const char* filename)
-{
+static void log_to_file(int maxDepth, const char* filename) {
     ImGui::LogToFile(maxDepth, filename);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void logToClipboard(int maxDepth)
-{
+static void log_to_clipboard(int maxDepth) {
     ImGui::LogToClipboard(maxDepth);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void logFinish()
-{
+static void log_finish() {
     ImGui::LogFinish();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void logButtons()
-{
+static void log_buttons() {
     ImGui::LogButtons();
 }
 
@@ -1499,8 +1314,7 @@ static void logButtons()
 
 // We need a LogTextV version here.
 
-static void logText(const char* fmt, ...)
-{
+static void logText(const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
 
@@ -1513,59 +1327,51 @@ static void logText(const char* fmt, ...)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isItemHovered()
-{
+static bool is_item_hovered() {
     return ImGui::IsItemHovered();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isItemHoveredRect()
-{
+static bool is_item_hovered_rect() {
     return ImGui::IsItemHoveredRect();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isItemActive()
-{
+static bool is_item_active() {
     return ImGui::IsItemActive();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isItemVisible()
-{
+static bool is_item_visible() {
     return ImGui::IsItemVisible();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isAnyItemHovered()
-{
+static bool is_any_item_hovered() {
     return ImGui::IsAnyItemHovered();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isAnyItemActive()
-{
+static bool is_any_item_active() {
     return ImGui::IsAnyItemActive();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDVec2 getItemRectMin()
-{
-	ImVec2 t = ImGui::GetItemRectMin();
+static PDVec2 get_item_rect_min() {
+    ImVec2 t = ImGui::GetItemRectMin();
     PDVec2 r = { t.x, t.y };
     return r;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDVec2 getItemRectMax()
-{
+static PDVec2 get_item_rect_max() {
     ImVec2 t = ImGui::GetItemRectMax();
     PDVec2 r = { t.x, t.y };
     return r;
@@ -1573,8 +1379,7 @@ static PDVec2 getItemRectMax()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDVec2 getItemRectSize()
-{
+static PDVec2 get_item_rect_size() {
     ImVec2 t = ImGui::GetItemRectSize();
     PDVec2 r = { t.x, t.y };
     return r;
@@ -1582,71 +1387,61 @@ static PDVec2 getItemRectSize()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isWindowHovered()
-{
+static bool is_window_hovered() {
     return ImGui::IsWindowHovered();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isWindowFocused()
-{
+static bool is_window_focused() {
     return ImGui::IsWindowFocused();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isRootWindowFocused()
-{
+static bool is_root_window_focused() {
     return ImGui::IsRootWindowFocused();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isRootWindowOrAnyChildFocused()
-{
+static bool is_root_window_or_any_child_focused() {
     return ImGui::IsRootWindowOrAnyChildFocused();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isRectVisible(const PDVec2 itemSize)
-{
+static bool is_rect_visible(const PDVec2 itemSize) {
     return ImGui::IsRectVisible(ImVec2(itemSize.x, itemSize.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isPosHoveringAnyWindow(const PDVec2 pos)
-{
+static bool is_pos_hovering_any_window(const PDVec2 pos) {
     return ImGui::IsPosHoveringAnyWindow(ImVec2(pos.x, pos.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static float getTime()
-{
+static float get_time() {
     return ImGui::GetTime();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int getFrameCount()
-{
+static int get_frame_count() {
     return ImGui::GetFrameCount();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static const char* getStyleColName(PDUICol idx)
-{
+static const char* get_style_col_name(PDUICol idx) {
     return ImGui::GetStyleColName(ImGuiCol(idx));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDVec2 calcItemRectClosestPoint(const PDVec2 pos, bool onEdge, float outward)
-{
+static PDVec2 calc_item_rect_closest_point(const PDVec2 pos, bool onEdge, float outward) {
     ImVec2 t = ImGui::CalcItemRectClosestPoint(ImVec2(pos.x, pos.y), onEdge, outward);
     PDVec2 r = { t.x, t.y };
     return r;
@@ -1654,8 +1449,7 @@ static PDVec2 calcItemRectClosestPoint(const PDVec2 pos, bool onEdge, float outw
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDVec2 calcTextSize(const char* text, const char* text_end, bool hide_text_after_double_hash, float wrap_width)
-{
+static PDVec2 calc_text_size(const char* text, const char* text_end, bool hide_text_after_double_hash, float wrap_width) {
     ImVec2 t = ImGui::CalcTextSize(text, text_end, hide_text_after_double_hash, wrap_width);
     PDVec2 r = { t.x, t.y };
     return r;
@@ -1663,130 +1457,112 @@ static PDVec2 calcTextSize(const char* text, const char* text_end, bool hide_tex
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void calcListClipping(int items_count, float items_height, int* out_items_display_start, int* out_items_display_end)
-{
+static void calc_list_clipping(int items_count, float items_height, int* out_items_display_start, int* out_items_display_end) {
     ImGui::CalcListClipping(items_count, items_height, out_items_display_start, out_items_display_end);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool beginChildFrame(PDID id, const struct PDVec2 size)
-{
+static bool begin_childFrame(PDID id, const struct PDVec2 size) {
     return ImGui::BeginChildFrame(id, ImVec2(size.x, size.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void endChildFrame()
-{
+static void end_child_frame() {
     ImGui::EndChildFrame();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void colorConvertRGBtoHSV(float r, float g, float b, float* out_h, float* out_s, float* out_v)
-{
+static void color_convert_rg_bto_hsv(float r, float g, float b, float* out_h, float* out_s, float* out_v) {
     ImGui::ColorConvertRGBtoHSV(r, g, b, *out_h, *out_s, *out_v);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void colorConvertHSVtoRGB(float h, float s, float v, float* out_r, float* out_g, float* out_b)
-{
+static void color_convert_hs_vto_rgb(float h, float s, float v, float* out_r, float* out_g, float* out_b) {
     ImGui::ColorConvertHSVtoRGB(h, s, v, *out_r, *out_g, *out_b);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isKeyDown(int key_index)
-{
+static bool is_key_down(int key_index) {
     return ImGui::IsKeyDown(key_index);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isKeyPressed(int key_index, bool repeat)
-{
+static bool is_key_pressed(int key_index, bool repeat) {
     return ImGui::IsKeyPressed(key_index, repeat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isKeyReleased(int key_index)
-{
+static bool is_key_released(int key_index) {
     return ImGui::IsKeyReleased(key_index);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isKeyDownId(uint32_t keyId, int repeat)
-{
-	if (!ImGui::IsWindowFocused())
-		return false;
+static bool is_key_down_id(uint32_t keyId, int repeat) {
+    if (!ImGui::IsWindowFocused())
+        return false;
 
-	return !!InputState_isKeyDown(keyId >> 4, keyId & 0xf, repeat);
+    return !!InputState_isKeyDown(keyId >> 4, keyId & 0xf, repeat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isMouseDown(int button)
-{
+static bool is_mouse_down(int button) {
     return ImGui::IsMouseDown(button);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isMouseClicked(int button, bool repeat)
-{
+static bool is_mouse_clicked(int button, bool repeat) {
     return ImGui::IsMouseClicked(button, repeat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isMouseDoubleClicked(int button)
-{
+static bool is_mouse_double_clicked(int button) {
     return ImGui::IsMouseDoubleClicked(button);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isMouseReleased(int button)
-{
+static bool is_mouse_released(int button) {
     return ImGui::IsMouseReleased(button);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isMouseHoveringWindow()
-{
+static bool is_mouse_hovering_window() {
     return ImGui::IsMouseHoveringWindow();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isMouseHoveringAnyWindow()
-{
+static bool is_mouse_hovering_any_window() {
     return ImGui::IsMouseHoveringAnyWindow();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isMouseHoveringRect(const struct PDVec2 rectMin, const struct PDVec2 rectMax)
-{
+static bool is_mouse_hovering_rect(const struct PDVec2 rectMin, const struct PDVec2 rectMax) {
     return ImGui::IsMouseHoveringRect(ImVec2(rectMin.x, rectMin.y), ImVec2(rectMax.x, rectMax.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool isMouseDragging(int button, float lockThreshold)
-{
+static bool is_mouse_dragging(int button, float lockThreshold) {
     return ImGui::IsMouseDragging(button, lockThreshold);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDVec2 getMousePos()
-{
+static PDVec2 get_mouse_pos() {
     ImVec2 t = ImGui::GetMousePos();
     PDVec2 r = { t.x, t.y };
     return r;
@@ -1794,8 +1570,7 @@ static PDVec2 getMousePos()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDVec2 getMouseDragDelta(int button, float lockThreshold)
-{
+static PDVec2 get_mouse_drag_delta(int button, float lockThreshold) {
     ImVec2 t = ImGui::GetMouseDragDelta(button, lockThreshold);
     PDVec2 r = { t.x, t.y };
     return r;
@@ -1803,37 +1578,32 @@ static PDVec2 getMouseDragDelta(int button, float lockThreshold)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void resetMouseDragDelta(int button)
-{
+static void reset_mouse_drag_delta(int button) {
     ImGui::ResetMouseDragDelta(button);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDUIMouseCursor getMouseCursor()
-{
+static PDUIMouseCursor get_mouse_cursor() {
     return (PDUIMouseCursor)ImGui::GetMouseCursor();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setMouseCursor(PDUIMouseCursor type)
-{
+static void set_mouse_cursor(PDUIMouseCursor type) {
     ImGui::SetMouseCursor(type);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void fillRect(PDRect rect, PDColor color)
-{
+static void fill_rect(PDRect rect, PDColor color) {
     ImGui::FillRect(ImVec2(rect.x, rect.y), ImVec2(rect.width, rect.height), color);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-char* buildName(const char* pluginName, int id)
-{
-	char name[1024];
+char* buildName(const char* pluginName, int id) {
+    char name[1024];
 
     sprintf(name, "%s %d ###%s%d", pluginName, id, pluginName, id);
 
@@ -1842,278 +1612,278 @@ char* buildName(const char* pluginName, int id)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDUI s_uiFuncs[] = 
+static PDUI s_uiFuncs[] =
 {
-	// Windows
+    // Windows
 
-	setTitle,
-    getWindowSize,
-    getWindowPos,
-    beginChild,
-    endChild,
+    set_title,
+    get_window_size,
+    get_window_pos,
+    begin_child,
+    end_child,
 
-	getScrollY,
-	getScrollMaxY,
-	setScrollY,
-	setScrollHere,
-	setScrollFromPosY,
-	setKeyboardFocusHere,
+    get_scroll_y,
+    get_scroll_max_y,
+    set_scroll_y,
+    set_scroll_here,
+    set_scroll_from_pos_y,
+    set_keyboard_focus_here,
 
-	// Parameters stacks (shared)
-	
-	pushFont,
-	popFont,
-	pushStyleColor,
-	popStyleColor,
-	pushStyleVar,
-	pushStyleVarVec,
-	popStyleVar,
+    // Parameters stacks (shared)
 
-	// Parameters stacks (current window)
+    push_font,
+    pop_font,
+    push_style_color,
+    pop_style_color,
+    push_style_var,
+    push_style_varVec,
+    pop_style_var,
 
-    pushItemWidth,
-    popItemWidth,
-	calcItemWidth,
-	pushAllowKeyboardFocus,
-	popAllowKeyboardFocus,
-	pushTextWrapPos,
-	popTextWrapPos,
-	pushButtonRepeat,
-	popButtonRepeat,
+    // Parameters stacks (current window)
 
-	// Layout
+    push_item_width,
+    pop_item_width,
+    calc_item_width,
+    push_allow_keyboard_focus,
+    pop_allow_keyboard_focus,
+    push_text_wrap_pos,
+    pop_text_wrap_pos,
+    push_button_repeat,
+    pop_button_repeat,
 
-	beginGroup,
-	endGroup,
+    // Layout
+
+    begin_group,
+    end_group,
     separator,
-    sameLine,
+    same_line,
     spacing,
     dummy,
     indent,
-    unIndent,
+    un_indent,
     columns,
-    nextColumn,
-    getColumnIndex,
-    getColumnOffset,
-    setColumnOffset,
-    getColumnWidth,
-    getColumnsCount,
-    getCursorPos,
-    getCursorPosX,
-    getCursorPosY,
-    setCursorPos,
-    setCursorPosX,
-    setCursorPosY,
-    getCursorScreenPos,
-	setCursorScreenPos,
-    alignFirstTextHeightToWidgets,
-    getTextLineHeight,
-    getTextLineHeightWithSpacing,
-    getItemsLineHeightWithSpacing,
+    next_column,
+    get_column_index,
+    get_column_offset,
+    set_column_offset,
+    get_column_width,
+    get_columns_count,
+    get_cursor_pos,
+    get_cursor_pos_x,
+    get_cursor_pos_y,
+    set_cursor_pos,
+    set_cursor_pos_x,
+    set_cursor_pos_y,
+    get_cursor_screen_pos,
+    set_cursor_screen_pos,
+    align_first_text_height_to_widgets,
+    get_text_line_height,
+    get_text_line_height_with_spacing,
+    get_items_line_height_with_spacing,
 
-	// ID scopes
-	// If you are creating widgets in a loop you most likely want to push a unique identifier so PDUI can differentiate them
-	// You can also use "##extra" within your widget name to distinguish them from each others (see 'Programmer Guide')
+    // ID scopes
+    // If you are creating widgets in a loop you most likely want to push a unique identifier so PDUI can differentiate them
+    // You can also use "##extra" within your widget name to distinguish them from each others (see 'Programmer Guide')
 
-	pushIdStr,
-	pushIdStrRange,
-    pushIdPtr,
-    pushIdInt,
-    popId,
-	getIdStr,
-	getIdStrRange,
-	getIdPtr,
+    push_id_str,
+    push_id_str_range,
+    push_id_ptr,
+    push_id_int,
+    pop_id,
+    get_id_str,
+    get_id_str_range,
+    get_id_ptr,
 
     // Widgets
 
-	text,
-	textV,
-	textColored,
-	textColoredV,
-	textDisabled,
-	textDisabledV,
-	textWrapped,
-	textWrappedV,
-	textUnformatted,
-	labelText,
-	labelTextV,
-	bullet,
-	bulletText,
-	bulletTextV,
-	button,
-	smallButton,
-	invisibleButton,
-	image,
-	imageButton,
-	collapsingHeader,
-	checkbox,
-	checkboxFlags,
-	radioButtonBool,
-	radioButton,
-	combo,
-	combo2,
-	combo3,
-	colorButton,
-	colorEdit3,
-	colorEdit4,
-	colorEditMode,
-	plotLines,
-	plotLines2,
-	plotHistogram,
-	plotHistogram2,
+    text,
+    text_v,
+    text_colored,
+    text_colored_v,
+    text_disabled,
+    text_disabledV,
+    text_wrapped,
+    text_wrapped_v,
+    text_unformatted,
+    label_text,
+    label_textV,
+    bullet,
+    bullet_text,
+    bullet_text_v,
+    button,
+    small_button,
+    invisible_button,
+    image,
+    image_button,
+    collapsing_header,
+    checkbox,
+    checkbox_flags,
+    radio_buttonBool,
+    radio_button,
+    combo,
+    combo2,
+    combo3,
+    color_button,
+    color_edit3,
+    color_edit4,
+    color_edit_mode,
+    plot_lines,
+    plot_lines2,
+    plot_histogram,
+    plot_histogram2,
 
-	// Widgets: Scintilla text interface
-	scInputText,
+    // Widgets: Scintilla text interface
+    sc_input_text,
 
-	// Widgets: Sliders (tip: ctrl+click on a slider to input text)
-	sliderFloat,
-	sliderFloat2,
-	sliderFloat3,
-	sliderFloat4,
-	sliderAngle,
-	sliderInt,
-	sliderInt2,
-	sliderInt3,
-	sliderInt4,
-	vsliderFloat,
-	vsliderInt,
+    // Widgets: Sliders (tip: ctrl+click on a slider to input text)
+    slider_float,
+    slider_float2,
+    slider_float3,
+    slider_float4,
+    slider_angle,
+    slider_int,
+    slider_int2,
+    slider_int3,
+    slider_int4,
+    vslider_float,
+    vslider_int,
 
-	// Widgets: Drags (tip: ctrl+click on a drag box to input text)
-	dragFloat,
-	dragFloat2,
-	dragFloat3,
-	dragFloat4,
-	dragInt,
-	dragInt2,
-	dragInt3,
-	dragInt4,
+    // Widgets: Drags (tip: ctrl+click on a drag box to input text)
+    drag_float,
+    drag_float2,
+    drag_float3,
+    drag_float4,
+    drag_int,
+    drag_int2,
+    drag_int3,
+    drag_int4,
 
-	// Widgets: Input
-	inputText,
-	inputTextMultiline,
-	inputFloat,
-	inputFloat2,
-	inputFloat3,
-	inputFloat4,
-	inputInt,
-	inputInt2,
-	inputInt3,
-	inputInt4,
+    // Widgets: Input
+    input_text,
+    input_text_multiline,
+    input_float,
+    input_float2,
+    input_float3,
+    input_float4,
+    input_int,
+    input_int2,
+    input_int3,
+    input_int4,
 
-	// Widgets: Trees
-	treeNode,
-	treeNodeStr,
-	treeNodePtr,
-	treeNodeStrV,
-	treeNodePtrV,
-	treePushStr,
-	treePushPtr,
-	treePop,
-	setNextTreeNodeOpened,
+    // Widgets: Trees
+    tree_node,
+    tree_node_str,
+    tree_node_ptr,
+    tree_node_str_v,
+    tree_node_ptr_v,
+    tree_push_str,
+    tree_push_ptr,
+    tree_pop,
+    set_next_tree_node_opened,
 
-	// Widgets: Selectable / Lists
-	selectable,
-	selectableEx,
-	listBox,
-	listBox2,
-	listBoxHeader,
-	listBoxHeader2,
-	listBoxFooter,
+    // Widgets: Selectable / Lists
+    selectable,
+    selectable_ex,
+    list_box,
+    list_box2,
+    list_box_header,
+    list_box_header2,
+    list_box_footer,
 
-	// Tooltip
-	setTooltip,
-	setTooltipV,
-	beginTooltip,
-	endTooltip,
+    // Tooltip
+    set_tooltip,
+    set_tooltipV,
+    begin_tooltip,
+    end_tooltip,
 
-	// Widgets: Menus
-	beginMainMenuBar,
-	endMainMenuBar,
-	beginMenuBar,
-	endMenuBar,
-	beginMenu,
-	endMenu,
-	menuItem,
-	menuItemPtr,
+    // Widgets: Menus
+    begin_main_menu_bar,
+    end_main_menu_bar,
+    begin_menuBar,
+    end_menu_bar,
+    begin_menu,
+    end_menu,
+    menu_item,
+    menu_item_ptr,
 
-	// Popup
-	openPopup,
-	beginPopup,
-	beginPopupModal,
-	beginPopupContextItem,
-	beginPopupContextWindow,
-	beginPopupContextVoid,
-	endPopup,
-	closeCurrentPopup,
+    // Popup
+    open_popup,
+    begin_popup,
+    begin_popup_modal,
+    begin_popup_context_item,
+    begin_popup_context_window,
+    begin_popup_context_void,
+    end_popup,
+    close_current_popup,
 
-	// Widgets: value() Helpers. Output single value in "name: value" format
-	valueBool,
-	valueInt,
-	valueUInt,
-	valueFloat,
-	color,
+    // Widgets: value() Helpers. Output single value in "name: value" format
+    value_bool,
+    value_int,
+    value_u_int,
+    value_float,
+    color,
 
-	// Logging: all text output from interface is redirected to tty/file/clipboard. Tree nodes are automatically opened.
-	logToTTY,
-	logToFile,
-	logToClipboard,
-	logFinish,
-	logButtons,
-	//logText,
+    // Logging: all text output from interface is redirected to tty/file/clipboard. Tree nodes are automatically opened.
+    log_to_tty,
+    log_to_file,
+    log_to_clipboard,
+    log_finish,
+    log_buttons,
+    //logText,
 
-	// Utilities
-	isItemHovered,
-	isItemHoveredRect,
-	isItemActive,
-	isItemVisible,
-	isAnyItemHovered,
-	isAnyItemActive,
-	getItemRectMin,
-	getItemRectMax,
-	getItemRectSize,
-	isWindowHovered,
-	isWindowFocused,
-	isRootWindowFocused,
-	isRootWindowOrAnyChildFocused,
-	isRectVisible,
-	isPosHoveringAnyWindow,
-	getTime,
-	getFrameCount,
-	getStyleColName,
-	calcItemRectClosestPoint,
-	calcTextSize,
-	calcListClipping,
+    // Utilities
+    is_item_hovered,
+    is_item_hovered_rect,
+    is_item_active,
+    is_item_visible,
+    is_any_item_hovered,
+    is_any_item_active,
+    get_item_rect_min,
+    get_item_rect_max,
+    get_item_rect_size,
+    is_window_hovered,
+    is_window_focused,
+    is_root_window_focused,
+    is_root_window_or_any_child_focused,
+    is_rect_visible,
+    is_pos_hovering_any_window,
+    get_time,
+    get_frame_count,
+    get_style_col_name,
+    calc_item_rect_closest_point,
+    calc_text_size,
+    calc_list_clipping,
 
-	beginChildFrame,
-	endChildFrame,
+    begin_childFrame,
+    end_child_frame,
 
-	colorConvertRGBtoHSV,
-	colorConvertHSVtoRGB,
-	isKeyDown,
-	isKeyPressed,
-	isKeyReleased,
+    color_convert_rg_bto_hsv,
+    color_convert_hs_vto_rgb,
+    is_key_down,
+    is_key_pressed,
+    is_key_released,
 
-	isKeyDownId,
-	isMouseDown,
-	isMouseClicked,
-	isMouseDoubleClicked,
-	isMouseReleased,
-	isMouseHoveringWindow,
-	isMouseHoveringAnyWindow,
-	isMouseHoveringRect,
-	isMouseDragging,
-	getMousePos,
-	getMouseDragDelta,
-	resetMouseDragDelta,
-	getMouseCursor,
-	setMouseCursor,
+    is_key_down_id,
+    is_mouse_down,
+    is_mouse_clicked,
+    is_mouse_double_clicked,
+    is_mouse_released,
+    is_mouse_hovering_window,
+    is_mouse_hovering_any_window,
+    is_mouse_hovering_rect,
+    is_mouse_dragging,
+    get_mouse_pos,
+    get_mouse_drag_delta,
+    reset_mouse_drag_delta,
+    get_mouse_cursor,
+    set_mouse_cursor,
 
 /*
 
-	text,
-    textColored,
-    textWrapped,
-    inputText,
+    text,
+    text_colored,
+    text_wrapped,
+    input_text,
     scEditText,
     checkbox,
     button,
@@ -2123,54 +1893,53 @@ static PDUI s_uiFuncs[] =
     selectable,
 
     // Misc
-    
+
     // Mouse
 
-    getMousePos,
+    get_mouse_pos,
     getMouseScreenPos,
-    isMouseClicked,
-    isMouseDoubleClicked,
+    is_mouse_clicked,
+    is_mouse_double_clicked,
     isMouseHoveringBox,
-    isItemHovered,
+    is_item_hovered,
 
     // Keyboard
 
-    isKeyDownId,
-    isKeyDown,
+    is_key_down_id,
+    is_key_down,
     getKeyModifier,
-    setKeyboardFocusHere,
+    set_keyboard_focus_here,
 
     // Styles
 
-    pushStyleVarV,
-    pushStyleVarF,
-    popStyleVar,
-*/
+    push_style_varV,
+    push_style_varF,
+    pop_style_var,
+ */
 
     // Rendering
 
-    fillRect,
+    fill_rect,
 
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BgfxPluginUI::init(ViewPluginInstance* pluginInstance)
-{
-	PrivateData* data = 0;
+void BgfxPluginUI::init(ViewPluginInstance* pluginInstance) {
+    PrivateData* data = 0;
 
     PDUI* uiInstance = &pluginInstance->ui;
 
-	*uiInstance = *s_uiFuncs;
+    *uiInstance = *s_uiFuncs;
 
-    uiInstance->privateData = alloc_zero(sizeof(PrivateData));
+    uiInstance->private_data = alloc_zero(sizeof(PrivateData));
 
-    data = (PrivateData*)uiInstance->privateData;
+    data = (PrivateData*)uiInstance->private_data;
 
     data->name = buildName(pluginInstance->plugin->name, pluginInstance->count);
     data->window = 0;
     data->showWindow = true;
-    data->title = 0; 
+    data->title = 0;
 
     pluginInstance->name = data->name;
 }
@@ -2178,137 +1947,130 @@ void BgfxPluginUI::init(ViewPluginInstance* pluginInstance)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Callback from the docking system
 
-void updateWindowSize(void* userData, int x, int y, int width, int height)
-{
-	ViewPluginInstance* instance = (ViewPluginInstance*)userData;
+void updateWindowSize(void* user_data, int x, int y, int width, int height) {
+    ViewPluginInstance* instance = (ViewPluginInstance*)user_data;
 
-	instance->rect.x = x;
-	instance->rect.y = y;
-	instance->rect.width = width;
-	instance->rect.height = height;
+    instance->rect.x = x;
+    instance->rect.y = y;
+    instance->rect.width = width;
+    instance->rect.height = height;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setCursorStyle(DockSysCursor cursor)
-{
-	switch (cursor)
-	{
-		case DockSysCursor_SizeHorizontal : Cunsor_setType(CursorType_SizeHorizontal); break;
-		case DockSysCursor_SizeVertical : Cunsor_setType(CursorType_SizeVertical); break;
-		default : Cunsor_setType(CursorType_Default); break;
-	}
+static void setCursorStyle(DockSysCursor cursor) {
+    switch (cursor) {
+        case DockSysCursor_SizeHorizontal:
+            Cunsor_setType(CursorType_SizeHorizontal); break;
+        case DockSysCursor_SizeVertical:
+            Cunsor_setType(CursorType_SizeVertical); break;
+        default:
+            Cunsor_setType(CursorType_Default); break;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Move this code?
-	
-static void saveUserData(struct json_t* item, void* userData)
-{
-	ViewPluginInstance* view = (ViewPluginInstance*)userData;
 
-	if (!view->plugin)
-		return;
+static void saveUserData(struct json_t* item, void* user_data) {
+    ViewPluginInstance* view = (ViewPluginInstance*)user_data;
+
+    if (!view->plugin)
+        return;
 
     PDSaveState saveFuncs;
     PluginIO_initSaveJson(&saveFuncs);
 
-	PluginData* pluginData = PluginHandler_getPluginData(view->plugin);
+    PluginData* pluginData = PluginHandler_getPluginData(view->plugin);
 
-	assert(pluginData);
+    assert(pluginData);
 
-	const char* pluginName = view->plugin->name;
-	const char* filename = pluginData->filename;
+    const char* pluginName = view->plugin->name;
+    const char* filename = pluginData->filename;
 
-	json_object_set_new(item, "plugin_name", json_string(pluginName));
-	json_object_set_new(item, "plugin_file", json_string(filename));
+    json_object_set_new(item, "plugin_name", json_string(pluginName));
+    json_object_set_new(item, "plugin_file", json_string(filename));
 
-	PDViewPlugin* viewPlugin = (PDViewPlugin*)pluginData->plugin;
+    PDViewPlugin* viewPlugin = (PDViewPlugin*)pluginData->plugin;
 
-	if (!viewPlugin->saveState)
-		return;
+    if (!viewPlugin->save_state)
+        return;
 
-	json_t* array = json_array();
+    json_t* array = json_array();
 
-	saveFuncs.privData = array;
+    saveFuncs.priv_data = array;
 
-	viewPlugin->saveState(view->userData, &saveFuncs);
+    viewPlugin->save_state(view->userData, &saveFuncs);
 
-	json_object_set_new(item, "plugin_data", array);
+    json_object_set_new(item, "plugin_data", array);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void* loadUserData(struct json_t* item)
-{
-	ViewPluginInstance* view = 0;
+static void* loadUserData(struct json_t* item) {
+    ViewPluginInstance* view = 0;
 
-	const char* pluginName = json_string_value(json_object_get(item, "plugin_name"));
-	const char* filename = json_string_value(json_object_get(item, "plugin_file"));
+    const char* pluginName = json_string_value(json_object_get(item, "plugin_name"));
+    const char* filename = json_string_value(json_object_get(item, "plugin_file"));
 
-	// if this is the case we have no plugin created (empty window)
+    // if this is the case we have no plugin created (empty window)
 
-	if (!strcmp(pluginName, "") && !strcmp(filename, ""))
-	{
-		view = (ViewPluginInstance*)alloc_zero(sizeof(ViewPluginInstance));
-	}
-	else
-	{
-		PDLoadState loadFuncs;
-		PluginIO_initLoadJson(&loadFuncs);
+    if (!strcmp(pluginName, "") && !strcmp(filename, "")) {
+        view = (ViewPluginInstance*)alloc_zero(sizeof(ViewPluginInstance));
+    }else {
+        PDLoadState loadFuncs;
+        PluginIO_initLoadJson(&loadFuncs);
 
-		PluginData* pluginData = PluginHandler_findPlugin(0, filename, pluginName, true);
+        PluginData* pluginData = PluginHandler_findPlugin(0, filename, pluginName, true);
 
-		if (!pluginData)
-			view = (ViewPluginInstance*)alloc_zero(sizeof(ViewPluginInstance));
-		else
-			view = g_pluginUI->createViewPlugin(pluginData);
+        if (!pluginData)
+            view = (ViewPluginInstance*)alloc_zero(sizeof(ViewPluginInstance));
+        else
+            view = g_pluginUI->createViewPlugin(pluginData);
 
-		PDViewPlugin* viewPlugin = (PDViewPlugin*)pluginData->plugin;
+        PDViewPlugin* viewPlugin = (PDViewPlugin*)pluginData->plugin;
 
-		json_t* pluginJsonData = json_object_get(item, "plugin_data");
+        json_t* pluginJsonData = json_object_get(item, "plugin_data");
 
-		if (pluginJsonData && viewPlugin && viewPlugin->loadState)
-		{
-			SessionLoadState loadState = { pluginJsonData, (int)json_array_size(pluginJsonData), 0 };
-			loadFuncs.privData = &loadState;
-			viewPlugin->loadState(view->userData, &loadFuncs);
-		}
-	}
+        if (pluginJsonData && viewPlugin && viewPlugin->load_state) {
+            SessionLoadState load_state = { pluginJsonData, (int)json_array_size(pluginJsonData), 0 };
+            loadFuncs.priv_data = &load_state;
+            viewPlugin->load_state(view->userData, &loadFuncs);
+        }
+    }
 
-	// TODO: Fi this: assuming one session
+    // TODO: Fi this: assuming one session
 
     Session** sessions = Session_getSessions();
 
     assert(sessions);
     assert(sessions[0]);
 
-	Session_addViewPlugin(sessions[0], view);
+    Session_addViewPlugin(sessions[0], view);
 
-	return view;
+    return view;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static DockSysCallbacks s_dockSysCallbacks =
 {
-	updateWindowSize,
-	setCursorStyle,
-	saveUserData,
-	loadUserData,
+    updateWindowSize,
+    setCursorStyle,
+    saveUserData,
+    loadUserData,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PluginUI::State BgfxPluginUI::updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer)
-{
+PluginUI::State BgfxPluginUI::updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer) {
     PDUI* uiInstance = &instance->ui;
-    PrivateData* data = (PrivateData*)uiInstance->privateData;
+    PrivateData* data = (PrivateData*)uiInstance->private_data;
 
-	float x = (float)instance->rect.x;
-	float y = (float)instance->rect.y;
-	float w = (float)instance->rect.width;
-	float h = (float)instance->rect.height;
+    float x = (float)instance->rect.x;
+    float y = (float)instance->rect.y;
+    float w = (float)instance->rect.width;
+    float h = (float)instance->rect.height;
 
     ImGui::SetNextWindowPos(ImVec2(x, y));
     ImGui::SetNextWindowSize(ImVec2(w - s_borderSize, h - s_borderSize));
@@ -2318,13 +2080,12 @@ PluginUI::State BgfxPluginUI::updateInstance(ViewPluginInstance* instance, PDRea
     char title[1024];
 
     if (!data->title)
-   		strcpy(title, data->name);
-	else
-	{
-		sprintf(title, "%s %d - %s###%s%d", 
-				instance->plugin->name, instance->count, 
-				data->title, instance->plugin->name, instance->count);
-	}
+        strcpy(title, data->name);
+    else{
+        sprintf(title, "%s %d - %s###%s%d",
+                instance->plugin->name, instance->count,
+                data->title, instance->plugin->name, instance->count);
+    }
 
     ImGui::Begin(title, &data->showWindow, ImVec2(0, 0), true, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
@@ -2342,15 +2103,13 @@ PluginUI::State BgfxPluginUI::updateInstance(ViewPluginInstance* instance, PDRea
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int BgfxPluginUI::getStatusBarSize()
-{
+int BgfxPluginUI::getStatusBarSize() {
     return m_statusSize;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void renderStatusBar(const char* text, float statusSize)
-{
+static void renderStatusBar(const char* text, float statusSize) {
     const ImGuiIO& io = ImGui::GetIO();
     ImVec2 size = io.DisplaySize;
     float yPos = size.y - statusSize;
@@ -2372,17 +2131,14 @@ static void renderStatusBar(const char* text, float statusSize)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BgfxPluginUI::setStatusTextNoFormat(const char* text)
-{
+void BgfxPluginUI::setStatusTextNoFormat(const char* text) {
     string_copy(m_statusText, text, sizeof(m_statusText));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void updateDock(UIDockingGrid* grid)
-{
-    switch (UIDock_getSizingState(grid))
-    {
+static void updateDock(UIDockingGrid* grid) {
+    switch (UIDock_getSizingState(grid)) {
         case UIDockSizerDir_None:
         {
             Cunsor_setType(CursorType_Default);
@@ -2414,23 +2170,21 @@ static void updateDock(UIDockingGrid* grid)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void updateDocking(Session* session)
-{
+static void updateDocking(Session* session) {
     InputState* state = InputState_getState();
 
     int mx = (int)state->mousePos.x;
     int my = (int)state->mousePos.y;
 
-	struct ViewPluginInstance* view = Session_getViewAt(session, mx, my, 0); 
+    struct ViewPluginInstance* view = Session_getViewAt(session, mx, my, 0);
 
-	docksys_set_mouse(view, mx, my, state->mouseDown[0]);
+    docksys_set_mouse(view, mx, my, state->mouseDown[0]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BgfxPluginUI::preUpdate()
-{
-	const float deltaTime = 1.0f / 60.f; // TODO: Calc correct dt
+void BgfxPluginUI::preUpdate() {
+    const float deltaTime = 1.0f / 60.f; // TODO: Calc correct dt
 
     bgfx::setViewRect(0, 0, 0, (uint16_t)s_context.width, (uint16_t)s_context.height);
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xf01010ff, 1.0f, 0);
@@ -2441,19 +2195,17 @@ void BgfxPluginUI::preUpdate()
 
     Session** sessions = Session_getSessions();
 
-    for (int i = 0; i < array_size(sessions); ++i)
-    {
+    for (int i = 0; i < array_size(sessions); ++i) {
         Session* session = sessions[i];
-		updateDocking(session);
+        updateDocking(session);
     }
 
-	docksys_update();
+    docksys_update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PosColorVertex* fillRectBorder(PosColorVertex* verts, IntRect* rect, uint32_t color)
-{
+static PosColorVertex* fill_rectBorder(PosColorVertex* verts, IntRect* rect, uint32_t color) {
     const float x0 = (float)rect->x;
     const float y0 = (float)rect->y;
     const float x1 = (float)rect->width + x0;
@@ -2495,10 +2247,9 @@ static PosColorVertex* fillRectBorder(PosColorVertex* verts, IntRect* rect, uint
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void renderBorders(Session* session)
-{
-	int count = 0;
-	ViewPluginInstance** views = Session_getViewPlugins(session, &count);
+static void renderBorders(Session* session) {
+    int count = 0;
+    ViewPluginInstance** views = Session_getViewPlugins(session, &count);
 
     bgfx::TransientVertexBuffer tvb;
 
@@ -2512,15 +2263,14 @@ static void renderBorders(Session* session)
     const uint32_t colorDefalut = (0x40 << 16) | (0x40 << 8) | 0x40;
     const uint32_t colorHigh = (0x60 << 16) | (0x60 << 8) | 0x60;
 
-    for (int i = 0; i < count; ++i)
-    {
-    	IntRect t = views[i]->rect; 
+    for (int i = 0; i < count; ++i) {
+        IntRect t = views[i]->rect;
 
-    	IntRect t0 = {{{ t.x + t.width - s_borderSize, t.y, s_borderSize, t.height }}}; 
-    	IntRect t1 = {{{ t.x, t.y + t.height - s_borderSize, t.width, s_borderSize }}}; 
+        IntRect t0 = {{{ t.x + t.width - s_borderSize, t.y, s_borderSize, t.height }}};
+        IntRect t1 = {{{ t.x, t.y + t.height - s_borderSize, t.width, s_borderSize }}};
 
-        verts = fillRectBorder(verts, &t0, colorDefalut);
-        verts = fillRectBorder(verts, &t1, colorDefalut);
+        verts = fill_rectBorder(verts, &t0, colorDefalut);
+        verts = fill_rectBorder(verts, &t1, colorDefalut);
     }
 
     bgfx::setState(0
@@ -2533,15 +2283,13 @@ static void renderBorders(Session* session)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BgfxPluginUI::postUpdate()
-{
+void BgfxPluginUI::postUpdate() {
     renderStatusBar(m_statusText, (float)m_statusSize);
     IMGUI_postUpdate();
 
     Session** sessions = Session_getSessions();
 
-    for (int i = 0; i < array_size(sessions); ++i)
-    {
+    for (int i = 0; i < array_size(sessions); ++i) {
         Session* session = sessions[i];
         renderBorders(session);
     }
@@ -2551,12 +2299,11 @@ void BgfxPluginUI::postUpdate()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BgfxPluginUI::create(void* windowHandle, int width, int height)
-{
-	docksys_set_callbacks(&s_dockSysCallbacks);
+void BgfxPluginUI::create(void* windowHandle, int width, int height) {
+    docksys_set_callbacks(&s_dockSysCallbacks);
 
 #ifdef PRODBG_WIN
-	bgfx::winSetHwnd((HWND)windowHandle);
+    bgfx::winSetHwnd((HWND)windowHandle);
 #endif
     bgfx::init();
     bgfx::reset((uint32_t)width, (uint32_t)height);
@@ -2566,24 +2313,22 @@ void BgfxPluginUI::create(void* windowHandle, int width, int height)
     s_context.width = width;
     s_context.height = height;
 
-	Service_register(&g_serviceMessageFuncs, PDMESSAGEFUNCS_GLOBAL);
-	Service_register(&g_dialogFuncs, PDDIALOGS_GLOBAL);
+    Service_register(&g_serviceMessageFuncs, PDMESSAGEFUNCS_GLOBAL);
+    Service_register(&g_dialogFuncs, PDDIALOGS_GLOBAL);
 
     Cursor_init();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BgfxPluginUI::destroy()
-{
+void BgfxPluginUI::destroy() {
 }
 
 // It's a bit weird to have the code like this here. To be cleaned up
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProDBG_setMousePos(float x, float y)
-{
+void ProDBG_setMousePos(float x, float y) {
     InputState* state = InputState_getState();
 
     state->mousePos.x = x;
@@ -2594,8 +2339,7 @@ void ProDBG_setMousePos(float x, float y)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProDBG_setMouseState(int button, int state)
-{
+void ProDBG_setMouseState(int button, int state) {
     InputState* inputState = InputState_getState();
     inputState->mouseDown[0] = !!state;
 
@@ -2604,16 +2348,14 @@ void ProDBG_setMouseState(int button, int state)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProDBG_setScroll(float x, float y)
-{
-	(void)x;
-	IMGUI_setScroll(y);
+void ProDBG_setScroll(float x, float y) {
+    (void)x;
+    IMGUI_setScroll(y);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProDBG_keyDown(int key, int modifier)
-{
+void ProDBG_keyDown(int key, int modifier) {
     InputState* state = InputState_getState();
 
     state->keysDown[key] = true;
@@ -2624,16 +2366,14 @@ void ProDBG_keyDown(int key, int modifier)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProDBG_keyDownMods(int modifier)
-{
+void ProDBG_keyDownMods(int modifier) {
     InputState* state = InputState_getState();
     state->modifiers = modifier;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProDBG_keyUp(int key, int modifier)
-{
+void ProDBG_keyUp(int key, int modifier) {
     InputState* state = InputState_getState();
 
     state->keysDown[key] = false;
@@ -2644,15 +2384,13 @@ void ProDBG_keyUp(int key, int modifier)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProDBG_addChar(unsigned short c)
-{
+void ProDBG_addChar(unsigned short c) {
     IMGUI_addInputCharacter(c);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProDBG_setWindowSize(int width, int height)
-{
+void ProDBG_setWindowSize(int width, int height) {
     Context* context = &s_context;
 
     context->width = width;
@@ -2663,8 +2401,7 @@ void ProDBG_setWindowSize(int width, int height)
 
     Session** sessions = Session_getSessions();
 
-    for (int i = 0; i < array_size(sessions); ++i)
-    {
+    for (int i = 0; i < array_size(sessions); ++i) {
         Session* session = sessions[i];
         docksys_update_size(width, height - (int)g_pluginUI->getStatusBarSize());
     }

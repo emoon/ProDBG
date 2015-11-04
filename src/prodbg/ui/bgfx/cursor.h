@@ -1,7 +1,6 @@
 #pragma once
 
-enum CursorType
-{
+enum CursorType {
     CursorType_Default,
     CursorType_SizeHorizontal,
     CursorType_SizeVertical,

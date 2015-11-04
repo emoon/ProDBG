@@ -5,8 +5,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Dialog_open(char* path)
-{
+int Dialog_open(char* path) {
     OPENFILENAME ofn;
     const int size = 4096;
     wchar_t filename[size];
@@ -32,8 +31,7 @@ int Dialog_open(char* path)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Dialog_save(char* path)
-{
+int Dialog_save(char* path) {
     (void)path;
     return -1;
     /*
@@ -51,8 +49,7 @@ int Dialog_save(char* path)
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Dialog_selectDirectory(char* path)
-{
+int Dialog_selectDirectory(char* path) {
     (void)path;
     return -1;
     /*
@@ -70,15 +67,13 @@ int Dialog_selectDirectory(char* path)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Dialog_showError(const char* text)
-{
+void Dialog_showError(const char* text) {
     MessageBox(NULL, (wchar_t*)text, L"Error", MB_ICONERROR | MB_OK);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void internalPanel(const char* titleText, const char* messageText, unsigned int type)
-{
+void internalPanel(const char* titleText, const char* messageText, unsigned int type) {
     wchar_t title[1024];
     wchar_t message[4096];
 
@@ -90,22 +85,19 @@ void internalPanel(const char* titleText, const char* messageText, unsigned int 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Windows_infoDialog(const char* titleText, const char* message)
-{
+void Windows_infoDialog(const char* titleText, const char* message) {
     internalPanel(titleText, message, MB_ICONINFORMATION);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Windows_errorDialog(const char* title, const char* message)
-{
+void Windows_errorDialog(const char* title, const char* message) {
     internalPanel(title, message, MB_ICONERROR);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Windows_warningDialog(const char* title, const char* message)
-{
+void Windows_warningDialog(const char* title, const char* message) {
     internalPanel(title, message, MB_ICONWARNING);
 }
 

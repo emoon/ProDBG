@@ -6,8 +6,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum MouseButton
-{
+enum MouseButton {
     MouseButton_Left,
     MouseButton_Middle,
     MouseButton_Right,
@@ -15,14 +14,13 @@ enum MouseButton
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct InputState
-{
+struct InputState {
     PDMouseWheelEvent scrollEvent; // scrollEvent / gesture
 
     Vec2 mousePos;// position within the window
     Vec2 mouseScreenPos; // position on the screen
 
-	uint32_t modifierFlags;
+    uint32_t modifierFlags;
     uint32_t modifiers;
     bool mouseDown[16]; // mouse button states
     bool keysDown[512]; // Keyboard keys that are pressed
@@ -42,7 +40,6 @@ InputState* InputState_getState();
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-inline bool Input_isLmbDown(const InputState* state)
-{
+inline bool Input_isLmbDown(const InputState* state) {
     return state->mouseDown[MouseButton_Left];
 }

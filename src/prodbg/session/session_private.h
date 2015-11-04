@@ -10,8 +10,7 @@ struct Con;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum SessionType
-{
+enum SessionType {
     Session_Null,
     Session_Local,
     Session_Remote,
@@ -19,18 +18,15 @@ enum SessionType
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct Breakpoint
-{
+struct Breakpoint {
     const char* filename;
     int line;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct Session
-{
-    inline Session()
-    {
+typedef struct Session {
+    inline Session() {
         type = Session_Null;
         reader = 0;
         writer0 = 0;
@@ -41,7 +37,7 @@ typedef struct Session
         currentWriter = 0;
         prevWriter = 0;
 
-        state = PDDebugState_noTarget;
+        state = PDDebugState_NoTarget;
         backend = 0;
         connection = 0;
         viewPlugins = 0;

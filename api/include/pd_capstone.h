@@ -23,8 +23,7 @@ extern "C" {
 
 #define PDCAPSTONEFUNCS_GLOBAL "Capstone Service 1"
 
-typedef struct PDCapstoneFuncs
-{
+typedef struct PDCapstoneFuncs {
 	// All of these functions matches the capstone API doc. Refer to that one to look on how to use this API
 
 	unsigned int (*version)(int* major, int* minor);
@@ -37,18 +36,18 @@ typedef struct PDCapstoneFuncs
 	cs_err (*err)(csh handle);
 
 	size_t (*disasm)(csh handle, const uint8_t* code, size_t code_size, uint64_t address, size_t count, cs_insn** insn);
-	bool (*disasmIter)(csh handle, const uint8_t** code, size_t* size, uint64_t* address, cs_insn* insn);
+	bool (*disasm_iter)(csh handle, const uint8_t** code, size_t* size, uint64_t* address, cs_insn* insn);
 
-	const char* (*regName)(csh handle, unsigned int regId);
-	const char* (*insnName)(csh handle, unsigned int insnId);
-	const char* (*groupName)(csh handle, unsigned int groupId);
+	const char* (*reg_name)(csh handle, unsigned int regId);
+	const char* (*insn_name)(csh handle, unsigned int insnId);
+	const char* (*group_name)(csh handle, unsigned int groupId);
 
-	bool (*regRead)(csh handle, const cs_insn* insn, unsigned int regId);
-	int (*opCount)(csh handle, const cs_insn *insn, unsigned int opType);
+	bool (*reg_read)(csh handle, const cs_insn* insn, unsigned int regId);
+	int (*op_count)(csh handle, const cs_insn *insn, unsigned int opType);
 
-	int (*opIndex)(csh handle, const cs_insn* insn, unsigned int opType, unsigned int position);
+	int (*op_index)(csh handle, const cs_insn* insn, unsigned int opType, unsigned int position);
 
-	cs_err (*regsAccess)(csh handle, const cs_insn* insn, cs_regs regsRead, uint8_t* regsReadCount, cs_regs regsWrite, uint8_t* regsWriteCount);
+	cs_err (*regs_access)(csh handle, const cs_insn* insn, cs_regs regsRead, uint8_t* regsReadCount, cs_regs regs_write, uint8_t* regs_write_count);
 
 } PDCapstoneFuncs;
 

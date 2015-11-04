@@ -2,8 +2,7 @@
 
 struct ImGuiWindow;
 
-struct ImScEditor
-{
+struct ImScEditor {
     intptr_t SendCommand(unsigned int message, uintptr_t p0, intptr_t p1);
     void ScrollTo(int line, bool moveThumb = true);
     void Update();
@@ -13,8 +12,7 @@ struct ImScEditor
     void* privateData;
 };
 
-namespace ImGui
-{
+namespace ImGui {
 
 void FillRect(ImVec2 pos, ImVec2 size, unsigned int color);
 float GetTextWidth(const char* textStart, const char* textEnd);

@@ -5,8 +5,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct LocalsData
-{
+struct LocalsData {
     int dummy;
 };
 
@@ -14,68 +13,61 @@ struct LocalsData
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc)
-{
+static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc) {
     (void)serviceFunc;
     (void)uiFuncs;
-    LocalsData* userData = (LocalsData*)malloc(sizeof(LocalsData));
+    LocalsData* user_data = (LocalsData*)malloc(sizeof(LocalsData));
 
-    return userData;
+    return user_data;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void destroyInstance(void* userData)
-{
-    free(userData);
+static void destroyInstance(void* user_data) {
+    free(user_data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void showInUI(LocalsData* data, PDReader* reader, PDUI* uiFuncs)
-{
+static void showInUI(LocalsData* data, PDReader* reader, PDUI* uiFuncs) {
     PDReaderIterator it;
     (void)data;
 
-    if (PDRead_findArray(reader, &it, "locals", 0) == PDReadStatus_notFound)
+    if (PDRead_find_array(reader, &it, "locals", 0) == PDReadStatus_NotFound)
         return;
 
     uiFuncs->text("");
 
     uiFuncs->columns(3, "callstack", true);
-    uiFuncs->text("Name"); uiFuncs->nextColumn();
-    uiFuncs->text("Value"); uiFuncs->nextColumn();
-    uiFuncs->text("Type"); uiFuncs->nextColumn();
+    uiFuncs->text("Name"); uiFuncs->next_column();
+    uiFuncs->text("Value"); uiFuncs->next_column();
+    uiFuncs->text("Type"); uiFuncs->next_column();
 
-    while (PDRead_getNextEntry(reader, &it))
-    {
+    while (PDRead_get_next_entry(reader, &it)) {
         const char* name = "";
         const char* value = "";
         const char* type = "";
 
-        PDRead_findString(reader, &name, "name", it);
-        PDRead_findString(reader, &value, "value", it);
-        PDRead_findString(reader, &type, "type", it);
+        PDRead_find_string(reader, &name, "name", it);
+        PDRead_find_string(reader, &value, "value", it);
+        PDRead_find_string(reader, &type, "type", it);
 
-        uiFuncs->text(name); uiFuncs->nextColumn();
-        uiFuncs->text(value); uiFuncs->nextColumn();
-        uiFuncs->text(type); uiFuncs->nextColumn();
+        uiFuncs->text(name); uiFuncs->next_column();
+        uiFuncs->text(value); uiFuncs->next_column();
+        uiFuncs->text(type); uiFuncs->next_column();
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents)
-{
+static int update(void* user_data, PDUI* uiFuncs, PDReader* inEvents, PDWriter* outEvents) {
     uint32_t event = 0;
 
-    while ((event = PDRead_getEvent(inEvents)) != 0)
-    {
-        switch (event)
-        {
-            case PDEventType_setLocals:
+    while ((event = PDRead_get_event(inEvents)) != 0) {
+        switch (event) {
+            case PDEventType_SetLocals:
             {
-                showInUI((LocalsData*)userData, inEvents, uiFuncs);
+                showInUI((LocalsData*)user_data, inEvents, uiFuncs);
                 break;
             }
         }
@@ -84,9 +76,9 @@ static int update(void* userData, PDUI* uiFuncs, PDReader* inEvents, PDWriter* o
     // Request callstack data
     // TODO: Dont' request locals all the time
 
-    PDWrite_eventBegin(outEvents, PDEventType_getLocals);
+    PDWrite_event_begin(outEvents, PDEventType_GetLocals);
     PDWrite_u8(outEvents, "dummy_remove", 0);   // TODO: Remove me
-    PDWrite_eventEnd(outEvents);
+    PDWrite_event_end(outEvents);
 
     return 0;
 }
@@ -108,9 +100,8 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-    {
-        registerPlugin(PD_VIEW_API_VERSION, &plugin, privateData);
+    PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* private_data) {
+        registerPlugin(PD_VIEW_API_VERSION, &plugin, private_data);
     }
 
 }

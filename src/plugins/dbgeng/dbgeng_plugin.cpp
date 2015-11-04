@@ -6,9 +6,8 @@
 #include <Dbgeng.h>
 #include <string>
 
-struct DbgEngPlugin : public DebugBaseEventCallbacks
-{
-    PDDebugState state = PDDebugState_noTarget;
+struct DbgEngPlugin : public DebugBaseEventCallbacks {
+    PDDebugState state = PDDebugState_NoTarget;
     bool hasValidTarget = false;
 
     std::string targetName;
@@ -64,8 +63,7 @@ STDMETHODIMP_(ULONG) DbgEngPlugin::Release(THIS)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 STDMETHODIMP DbgEngPlugin::GetInterestMask(THIS_
-                                           OUT PULONG Mask)
-{
+                                           OUT PULONG Mask) {
     *Mask =
         DEBUG_EVENT_BREAKPOINT |
         DEBUG_EVENT_EXCEPTION |
@@ -78,8 +76,7 @@ STDMETHODIMP DbgEngPlugin::GetInterestMask(THIS_
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 STDMETHODIMP DbgEngPlugin::Breakpoint(THIS_
-                                      IN PDEBUG_BREAKPOINT Bp)
-{
+                                      IN PDEBUG_BREAKPOINT Bp) {
     printf("DbgEngPlugin: Breakpoint\n");
     return S_OK;
 }
@@ -88,10 +85,9 @@ STDMETHODIMP DbgEngPlugin::Breakpoint(THIS_
 
 STDMETHODIMP DbgEngPlugin::Exception(THIS_
                                      IN PEXCEPTION_RECORD64 Exception,
-                                     IN ULONG               FirstChance)
-{
+                                     IN ULONG               FirstChance) {
     printf("DbgEngPlugin: Exception\n");
-    state = PDDebugState_stopException;
+    state = PDDebugState_StopException;
     return S_OK;
 }
 
@@ -108,8 +104,7 @@ STDMETHODIMP DbgEngPlugin::CreateProcess(THIS_
                                          IN ULONG   TimeDateStamp,
                                          IN ULONG64 InitialThreadHandle,
                                          IN ULONG64 ThreadDataOffset,
-                                         IN ULONG64 StartOffset)
-{
+                                         IN ULONG64 StartOffset) {
     printf("DbgEngPlugin: CreateProcess\n");
     return S_OK;
 }
@@ -123,8 +118,7 @@ STDMETHODIMP DbgEngPlugin::LoadModule(THIS_
                                       IN PCSTR   ModuleName,
                                       IN PCSTR   ImageName,
                                       IN ULONG   CheckSum,
-                                      IN ULONG   TimeDateStamp)
-{
+                                      IN ULONG   TimeDateStamp) {
     printf("DbgEngPlugin: LoadModule\n");
     return S_OK;
 }
@@ -132,10 +126,8 @@ STDMETHODIMP DbgEngPlugin::LoadModule(THIS_
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 STDMETHODIMP DbgEngPlugin::SessionStatus(THIS_
-                                         IN ULONG Status)
-{
-    switch (Status)
-    {
+                                         IN ULONG Status) {
+    switch (Status) {
         case DEBUG_SESSION_ACTIVE:
             printf("DbgEngPlugin: SessionStatus DEBUG_SESSION_ACTIVE\n");
             break;
@@ -167,12 +159,10 @@ STDMETHODIMP DbgEngPlugin::SessionStatus(THIS_
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void updateDbgEngEvent(DbgEngPlugin* plugin, PDWriter* writer)
-{
+static void updateDbgEngEvent(DbgEngPlugin* plugin, PDWriter* writer) {
     HRESULT hr = plugin->debugControl->WaitForEvent(DEBUG_WAIT_DEFAULT, 100);
 
-    if (hr == S_FALSE)
-    {
+    if (hr == S_FALSE) {
         // WaitForEvent timeout occurred
         return;
     }
@@ -182,73 +172,61 @@ static void updateDbgEngEvent(DbgEngPlugin* plugin, PDWriter* writer)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void onRun(DbgEngPlugin* plugin)
-{
+void onRun(DbgEngPlugin* plugin) {
     printf("DbgEngPlugin: onRun\n");
 
-    if (plugin->state == PDDebugState_noTarget)
-    {
+    if (plugin->state == PDDebugState_NoTarget) {
         assert(!plugin->targetName.empty());
 
         HRESULT hr = plugin->debugClient->CreateProcess(0, PSTR(plugin->targetName.c_str()), DEBUG_ONLY_THIS_PROCESS);
         assert(SUCCEEDED(hr));
 
-        if (!SUCCEEDED(hr))
-        {
+        if (!SUCCEEDED(hr)) {
             printf("Error: could not create process '%s'\n", plugin->targetName.c_str());
-        }
-        else
-        {
+        }else {
             printf("Valid target %s\n", plugin->targetName.c_str());
         }
 
-        plugin->state = PDDebugState_running;
+        plugin->state = PDDebugState_Running;
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void onStop(DbgEngPlugin* plugin)
-{
+void onStop(DbgEngPlugin* plugin) {
     printf("DbgEngPlugin: onStop\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void onBreak(DbgEngPlugin* plugin)
-{
+static void onBreak(DbgEngPlugin* plugin) {
     printf("DbgEngPlugin: onBreak\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void onStep(DbgEngPlugin* plugin)
-{
+static void onStep(DbgEngPlugin* plugin) {
     printf("DbgEngPlugin: onStep\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void onStepOver(DbgEngPlugin* plugin)
-{
+static void onStepOver(DbgEngPlugin* plugin) {
     printf("DbgEngPlugin: onStepOver\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void onStepOut(DbgEngPlugin* plugin)
-{
+static void onStepOut(DbgEngPlugin* plugin) {
     printf("DbgEngPlugin: onStepOut\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void doAction(DbgEngPlugin* plugin, PDAction action)
-{
+static void doAction(DbgEngPlugin* plugin, PDAction action) {
     printf("DbgEngPlugin: doAction\n");
 
-    switch (action)
-    {
+    switch (action) {
         case PDAction_stop:
             onStop(plugin); break;
         case PDAction_break:
@@ -266,15 +244,13 @@ static void doAction(DbgEngPlugin* plugin, PDAction action)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setExceptionLocation(DbgEngPlugin* plugin, PDWriter* writer)
-{
+static void setExceptionLocation(DbgEngPlugin* plugin, PDWriter* writer) {
     printf("DbgEngPlugin: setExceptionLocation\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setCallstack(DbgEngPlugin* plugin, PDWriter* writer)
-{
+static void setCallstack(DbgEngPlugin* plugin, PDWriter* writer) {
     const ULONG maxFrames = 1024;
     DEBUG_STACK_FRAME frames[maxFrames];
     ULONG frameSize = sizeof(frames[0]);
@@ -286,34 +262,31 @@ static void setCallstack(DbgEngPlugin* plugin, PDWriter* writer)
     if (framesFilled == 0)
         return;
 
-    PDWrite_eventBegin(writer, PDEventType_setCallstack);
-    PDWrite_arrayBegin(writer, "callstack");
+    PDWrite_event_begin(writer, PDEventType_setCallstack);
+    PDWrite_array_begin(writer, "callstack");
 
-    for (ULONG i = 0; i < framesFilled; ++i)
-    {
+    for (ULONG i = 0; i < framesFilled; ++i) {
         const DEBUG_STACK_FRAME& frame = frames[i];
 
-        PDWrite_arrayEntryBegin(writer);
+        PDWrite_array_entry_begin(writer);
         PDWrite_u64(writer, "address", frame.InstructionOffset);
-        PDWrite_arrayEntryEnd(writer);
+        PDWrite_entry_end(writer);
     }
 
-    PDWrite_arrayEnd(writer);
-    PDWrite_eventEnd(writer);
+    PDWrite_array_end(writer);
+    PDWrite_event_end(writer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setExecutable(DbgEngPlugin* plugin, PDReader* reader)
-{
+static void setExecutable(DbgEngPlugin* plugin, PDReader* reader) {
     printf("DbgEngPlugin: setExecutable\n");
 
     const char* filename = 0;
 
-    PDRead_findString(reader, &filename, "filename", 0);
+    PDRead_find_string(reader, &filename, "filename", 0);
 
-    if (!filename)
-    {
+    if (!filename) {
         printf("Unable to find filename which is required when starting a LLDB debug session\n");
         return;
     }
@@ -325,27 +298,24 @@ static void setExecutable(DbgEngPlugin* plugin, PDReader* reader)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setLocals(DbgEngPlugin* plugin, PDWriter* writer)
-{
+static void setLocals(DbgEngPlugin* plugin, PDWriter* writer) {
     printf("DbgEngPlugin: setLocals\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setBreakpoint(DbgEngPlugin* plugin, PDReader* reader, PDWriter* writer)
-{
+static void setBreakpoint(DbgEngPlugin* plugin, PDReader* reader, PDWriter* writer) {
     printf("DbgEngPlugin: setBreakpoint\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void eventAction(DbgEngPlugin* plugin, PDReader* reader)
-{
+static void eventAction(DbgEngPlugin* plugin, PDReader* reader) {
     printf("DbgEngPlugin: eventAction\n");
 
     uint32_t action = 0;
 
-    printf("DbgEngPlugin; %d\n", (PDRead_findU32(reader, &action, "action", 0) & 0xff) >> 8);
+    printf("DbgEngPlugin; %d\n", (PDRead_find_u32(reader, &action, "action", 0) & 0xff) >> 8);
     printf("DbgEngPlugin: got action (from event) %d\n", action);
 
     doAction(plugin, (PDAction)action);
@@ -380,18 +350,15 @@ static const char* eventTypes[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void processEvents(DbgEngPlugin* plugin, PDReader* reader, PDWriter* writer)
-{
+static void processEvents(DbgEngPlugin* plugin, PDReader* reader, PDWriter* writer) {
     printf("DbgEngPlugin: processEvents\n");
 
     PDEventType event;
 
-    while ((event = (PDEventType)PDRead_getEvent(reader)))
-    {
+    while ((event = (PDEventType)PDRead_get_event(reader))) {
         printf("DbgEngPlugin: %d Got event %s\n", (int)event, eventTypes[event]);
 
-        switch (event)
-        {
+        switch (event) {
             case PDEventType_getExceptionLocation:
                 setExceptionLocation(plugin, writer); break;
             case PDEventType_getCallstack:
@@ -410,8 +377,7 @@ static void processEvents(DbgEngPlugin* plugin, PDReader* reader, PDWriter* writ
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void* createInstance(ServiceFunc* serviceFunc)
-{
+void* createInstance(ServiceFunc* serviceFunc) {
     DbgEngPlugin* plugin = new DbgEngPlugin;
 
     HRESULT hr = DebugCreate(__uuidof(IDebugClient), (void**)&plugin->debugClient);
@@ -428,18 +394,15 @@ void* createInstance(ServiceFunc* serviceFunc)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void destroyInstance(void* userData)
-{
-    DbgEngPlugin* plugin = reinterpret_cast<DbgEngPlugin*>(userData);
+void destroyInstance(void* user_data) {
+    DbgEngPlugin* plugin = reinterpret_cast<DbgEngPlugin*>(user_data);
 
-    if (plugin->debugControl)
-    {
+    if (plugin->debugControl) {
         plugin->debugControl->Release();
         plugin->debugControl = nullptr;
     }
 
-    if (plugin->debugClient)
-    {
+    if (plugin->debugClient) {
         plugin->debugClient->Release();
         plugin->debugClient = nullptr;
     }
@@ -449,24 +412,23 @@ void destroyInstance(void* userData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDDebugState update(void* userData, PDAction action, PDReader* reader, PDWriter* writer)
-{
-    DbgEngPlugin* plugin = reinterpret_cast<DbgEngPlugin*>(userData);
+static PDDebugState update(void* user_data, PDAction action, PDReader* reader, PDWriter* writer) {
+    DbgEngPlugin* plugin = reinterpret_cast<DbgEngPlugin*>(user_data);
 
     processEvents(plugin, reader, writer);
 
     doAction(plugin, action);
 
-    if (plugin->state == PDDebugState_running)
-    {
+    if (plugin->state == PDDebugState_Running) {
         updateDbgEngEvent(plugin, writer);
     }
 
     return plugin->state;
 }
 
-static PDBackendPlugin plugin =
-{
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PDBackendPlugin plugin = {
     "Microsoft Debugger Engine",
     createInstance,
     destroyInstance,
@@ -476,9 +438,8 @@ static PDBackendPlugin plugin =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C" PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* privateData)
-{
-    registerPlugin(PD_BACKEND_API_VERSION, &plugin, privateData);
+extern "C" PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* private_data) {
+    registerPlugin(PD_BACKEND_API_VERSION, &plugin, private_data);
 }
 
 #endif

@@ -21,8 +21,7 @@ struct json_t;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum UIDockSizerDir
-{
+enum UIDockSizerDir {
     UIDockSizerDir_None = 0,
     UIDockSizerDir_Horz = 1 << 0,
     UIDockSizerDir_Vert = 1 << 1,

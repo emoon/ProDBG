@@ -3941,12 +3941,12 @@ namespace bgfx { namespace gl
 		}
 	}
 
-	void writeString(bx::WriterI* _writer, const char* _str)
+	void write_string(bx::WriterI* _writer, const char* _str)
 	{
 		bx::write(_writer, _str, (int32_t)strlen(_str) );
 	}
 
-	void writeStringf(bx::WriterI* _writer, const char* _format, ...)
+	void write_stringf(bx::WriterI* _writer, const char* _format, ...)
 	{
 		char temp[512];
 
@@ -4039,7 +4039,7 @@ namespace bgfx { namespace gl
 				if (BX_ENABLED(BGFX_CONFIG_RENDERER_OPENGLES)
 				&&  BX_ENABLED(BGFX_CONFIG_RENDERER_OPENGLES < 30) )
 				{
-					writeString(&writer
+					write_string(&writer
 						, "#define flat\n"
 						  "#define smooth\n"
 						  "#define noperspective\n"
@@ -4065,7 +4065,7 @@ namespace bgfx { namespace gl
 
 					if (usesDerivatives)
 					{
-						writeString(&writer, "#extension GL_OES_standard_derivatives : enable\n");
+						write_string(&writer, "#extension GL_OES_standard_derivatives : enable\n");
 					}
 
 					if (usesFragData)
@@ -4074,7 +4074,7 @@ namespace bgfx { namespace gl
 							||  s_extension[Extension::WEBGL_draw_buffers].m_supported
 							, "EXT_draw_buffers is used but not supported by GLES2 driver."
 							);
-						writeString(&writer
+						write_string(&writer
 							, "#extension GL_EXT_draw_buffers : enable\n"
 							);
 					}
@@ -4085,7 +4085,7 @@ namespace bgfx { namespace gl
 						BX_WARN(s_extension[Extension::EXT_frag_depth].m_supported, "EXT_frag_depth is used but not supported by GLES2 driver.");
 						if (s_extension[Extension::EXT_frag_depth].m_supported)
 						{
-							writeString(&writer
+							write_string(&writer
 								, "#extension GL_EXT_frag_depth : enable\n"
 								  "#define bgfx_FragDepth gl_FragDepthEXT\n"
 								);
@@ -4094,7 +4094,7 @@ namespace bgfx { namespace gl
 							bx::snprintf(str, BX_COUNTOF(str), "%s float gl_FragDepthEXT;\n"
 								, s_extension[Extension::OES_fragment_precision_high].m_supported ? "highp" : "mediump"
 								);
-							writeString(&writer, str);
+							write_string(&writer, str);
 						}
 						else
 						{
@@ -4106,7 +4106,7 @@ namespace bgfx { namespace gl
 					{
 						if (s_renderGL->m_shadowSamplersSupport)
 						{
-							writeString(&writer
+							write_string(&writer
 								, "#extension GL_EXT_shadow_samplers : enable\n"
 								  "#define shadow2D shadow2DEXT\n"
 								  "#define shadow2DProj shadow2DProjEXT\n"
@@ -4114,7 +4114,7 @@ namespace bgfx { namespace gl
 						}
 						else
 						{
-							writeString(&writer
+							write_string(&writer
 								, "#define sampler2DShadow sampler2D\n"
 								  "#define shadow2D(_sampler, _coord) step(_coord.z, texture2D(_sampler, _coord.xy).x)\n"
 								  "#define shadow2DProj(_sampler, _coord) step(_coord.z/_coord.w, texture2DProj(_sampler, _coord).x)\n"
@@ -4124,7 +4124,7 @@ namespace bgfx { namespace gl
 
 					if (usesTexture3D)
 					{
-						writeString(&writer, "#extension GL_OES_texture_3D : enable\n");
+						write_string(&writer, "#extension GL_OES_texture_3D : enable\n");
 					}
 
 					if (usesTextureLod)
@@ -4132,7 +4132,7 @@ namespace bgfx { namespace gl
 						BX_WARN(s_extension[Extension::EXT_shader_texture_lod].m_supported, "EXT_shader_texture_lod is used but not supported by GLES2 driver.");
 						if (s_extension[Extension::EXT_shader_texture_lod].m_supported)
 						{
-							writeString(&writer
+							write_string(&writer
 								, "#extension GL_EXT_shader_texture_lod : enable\n"
 								  "#define texture2DLod texture2DLodEXT\n"
 								  "#define texture2DProjLod texture2DProjLodEXT\n"
@@ -4141,7 +4141,7 @@ namespace bgfx { namespace gl
 						}
 						else
 						{
-							writeString(&writer
+							write_string(&writer
 								, "#define texture2DLod(_sampler, _coord, _level) texture2D(_sampler, _coord)\n"
 								  "#define texture2DProjLod(_sampler, _coord, _level) texture2DProj(_sampler, _coord)\n"
 								  "#define textureCubeLod(_sampler, _coord, _level) textureCube(_sampler, _coord)\n"
@@ -4153,15 +4153,15 @@ namespace bgfx { namespace gl
 					{
 						if (s_extension[Extension::INTEL_fragment_shader_ordering].m_supported)
 						{
-							writeString(&writer, "#extension GL_INTEL_fragment_shader_ordering : enable\n");
+							write_string(&writer, "#extension GL_INTEL_fragment_shader_ordering : enable\n");
 						}
 						else
 						{
-							writeString(&writer, "#define beginFragmentShaderOrdering()\n");
+							write_string(&writer, "#define beginFragmentShaderOrdering()\n");
 						}
 					}
 
-					writeStringf(&writer, "precision %s float;\n"
+					write_stringf(&writer, "precision %s float;\n"
 							, m_type == GL_FRAGMENT_SHADER ? "mediump" : "highp"
 							);
 
@@ -4207,18 +4207,18 @@ namespace bgfx { namespace gl
 
 					if (0 != version)
 					{
-						writeStringf(&writer, "#version %d\n", version);
+						write_stringf(&writer, "#version %d\n", version);
 					}
 
 					if (usesTextureLod)
 					{
 						if (m_type == GL_FRAGMENT_SHADER)
 						{
-							writeString(&writer, "#extension GL_ARB_shader_texture_lod : enable\n");
+							write_string(&writer, "#extension GL_ARB_shader_texture_lod : enable\n");
 						}
 					}
 
-					writeString(&writer
+					write_string(&writer
 							, "#define lowp\n"
 							  "#define mediump\n"
 							  "#define highp\n"
@@ -4235,39 +4235,39 @@ namespace bgfx { namespace gl
 				{
 					if (BX_ENABLED(BGFX_CONFIG_RENDERER_OPENGLES >= 30) )
 					{
-						writeString(&writer
+						write_string(&writer
 							, "#version 300 es\n"
 							  "precision mediump float;\n"
 							);
 					}
 					else
 					{
-						writeString(&writer, "#version 140\n");
+						write_string(&writer, "#version 140\n");
 					}
 
-					writeString(&writer, "#define texture2DLod textureLod\n");
-					writeString(&writer, "#define texture3DLod textureLod\n");
-					writeString(&writer, "#define textureCubeLod textureLod\n");
+					write_string(&writer, "#define texture2DLod textureLod\n");
+					write_string(&writer, "#define texture3DLod textureLod\n");
+					write_string(&writer, "#define textureCubeLod textureLod\n");
 
 					if (m_type == GL_FRAGMENT_SHADER)
 					{
-						writeString(&writer, "#define varying in\n");
-						writeString(&writer, "#define texture2D texture\n");
-						writeString(&writer, "#define texture2DProj textureProj\n");
+						write_string(&writer, "#define varying in\n");
+						write_string(&writer, "#define texture2D texture\n");
+						write_string(&writer, "#define texture2DProj textureProj\n");
 
 						if (BX_ENABLED(BGFX_CONFIG_RENDERER_OPENGL) )
 						{
-							writeString(&writer, "#define shadow2D(_sampler, _coord) vec2(textureProj(_sampler, vec4(_coord, 1.0) ) )\n");
-							writeString(&writer, "#define shadow2DProj(_sampler, _coord) vec2(textureProj(_sampler, _coord) ) )\n");
+							write_string(&writer, "#define shadow2D(_sampler, _coord) vec2(textureProj(_sampler, vec4(_coord, 1.0) ) )\n");
+							write_string(&writer, "#define shadow2DProj(_sampler, _coord) vec2(textureProj(_sampler, _coord) ) )\n");
 						}
 						else
 						{
-							writeString(&writer, "#define shadow2D(_sampler, _coord) (textureProj(_sampler, vec4(_coord, 1.0) ) )\n");
-							writeString(&writer, "#define shadow2DProj(_sampler, _coord) (textureProj(_sampler, _coord) ) )\n");
+							write_string(&writer, "#define shadow2D(_sampler, _coord) (textureProj(_sampler, vec4(_coord, 1.0) ) )\n");
+							write_string(&writer, "#define shadow2DProj(_sampler, _coord) (textureProj(_sampler, _coord) ) )\n");
 						}
 
-						writeString(&writer, "#define texture3D texture\n");
-						writeString(&writer, "#define textureCube texture\n");
+						write_string(&writer, "#define texture3D texture\n");
+						write_string(&writer, "#define textureCube texture\n");
 
 						uint32_t fragData = 0;
 
@@ -4287,34 +4287,34 @@ namespace bgfx { namespace gl
 						{
 							if (s_extension[Extension::INTEL_fragment_shader_ordering].m_supported)
 							{
-								writeString(&writer, "#extension GL_INTEL_fragment_shader_ordering : enable\n");
+								write_string(&writer, "#extension GL_INTEL_fragment_shader_ordering : enable\n");
 							}
 							else
 							{
-								writeString(&writer, "#define beginFragmentShaderOrdering()\n");
+								write_string(&writer, "#define beginFragmentShaderOrdering()\n");
 							}
 						}
 
 						if (0 != fragData)
 						{
-							writeStringf(&writer, "out vec4 bgfx_FragData[%d];\n", fragData);
-							writeString(&writer, "#define gl_FragData bgfx_FragData\n");
+							write_stringf(&writer, "out vec4 bgfx_FragData[%d];\n", fragData);
+							write_string(&writer, "#define gl_FragData bgfx_FragData\n");
 						}
 						else
 						{
-							writeString(&writer, "out vec4 bgfx_FragColor;\n");
-							writeString(&writer, "#define gl_FragColor bgfx_FragColor\n");
+							write_string(&writer, "out vec4 bgfx_FragColor;\n");
+							write_string(&writer, "#define gl_FragColor bgfx_FragColor\n");
 						}
 					}
 					else
 					{
-						writeString(&writer, "#define attribute in\n");
-						writeString(&writer, "#define varying out\n");
+						write_string(&writer, "#define attribute in\n");
+						write_string(&writer, "#define varying out\n");
 					}
 
 					if (!BX_ENABLED(BGFX_CONFIG_RENDERER_OPENGLES >= 30) )
 					{
-						writeString(&writer
+						write_string(&writer
 								, "#define lowp\n"
 								  "#define mediump\n"
 								  "#define highp\n"

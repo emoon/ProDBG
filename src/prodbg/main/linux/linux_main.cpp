@@ -18,31 +18,25 @@ static Atom wmDeleteWindow;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window_buildPluginMenu(struct PluginData**, int)
-{
+void Window_buildPluginMenu(struct PluginData**, int) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Window_addMenu(const char*, PDMenuItem*, uint32_t)
-{
+void Window_addMenu(const char*, PDMenuItem*, uint32_t) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void processEvents()
-{
+void processEvents() {
     bool exit = false;
 
-    while (!exit)
-    {
-        if (XPending(s_display))
-        {
+    while (!exit) {
+        if (XPending(s_display)) {
             XEvent event;
             XNextEvent(s_display, &event);
 
-            switch (event.type)
-            {
+            switch (event.type) {
                 case Expose:
                     break;
 
@@ -135,8 +129,7 @@ void processEvents()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main(int argc, const char** argv)
-{
+int main(int argc, const char** argv) {
     XInitThreads();
     s_display = XOpenDisplay(0);
 

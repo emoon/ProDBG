@@ -2,10 +2,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDGRect
-{
-    enum
-    {
+typedef struct PDGRect {
+    enum {
         X,
         Y,
         W,
@@ -13,10 +11,8 @@ typedef struct PDGRect
         Compontent_Count,
     };
 
-    union
-    {
-        struct
-        {
+    union {
+        struct {
             int x;
             int y;
             int width;
@@ -29,10 +25,8 @@ typedef struct PDGRect
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct IntRect
-{
-    enum
-    {
+typedef struct IntRect {
+    enum {
         X,
         Y,
         W,
@@ -40,10 +34,8 @@ typedef struct IntRect
         Compontent_Count,
     };
 
-    union
-    {
-        struct
-        {
+    union {
+        struct {
             int x;
             int y;
             int width;
@@ -56,20 +48,16 @@ typedef struct IntRect
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct FloatRect
-{
-    enum
-    {
+typedef struct FloatRect {
+    enum {
         X,
         Y,
         W,
         H,
         Compontent_Count,
     };
-    union
-    {
-        struct
-        {
+    union {
+        struct {
             float x;
             float y;
             float width;
@@ -83,8 +71,7 @@ typedef struct FloatRect
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct Vec2
-{
+typedef struct Vec2 {
     float x, y;
 } Vec2;
 

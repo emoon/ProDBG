@@ -1,5 +1,4 @@
-void callMe2()
-{
+void callMe2() {
     const int foo = 2;
     const int bar = 3;
 

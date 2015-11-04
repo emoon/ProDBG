@@ -21,8 +21,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void create_docking(void**)
-{
+void create_docking(void**) {
     IntRect rect = {{{ 0, 0, 800, 200 }}};
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
@@ -53,8 +52,7 @@ void create_docking(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_left_attach(void**)
-{
+void test_left_attach(void**) {
     IntRect rect = {{{ 0, 0, 1000, 400 }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
@@ -181,8 +179,7 @@ void test_left_attach(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_misc(void**)
-{
+void test_misc(void**) {
     IntRect rect = {{{ 0, 0, 1000, 500 }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
@@ -253,8 +250,7 @@ void test_misc(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_sizer_hovering(void**)
-{
+void test_sizer_hovering(void**) {
     IntRect rect = {{{ 0, 0, 100, 500 }}};
     Vec2 pos;
 
@@ -312,8 +308,7 @@ void test_sizer_hovering(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static UIDockingGrid* createFourViews(IntRect rect)
-{
+static UIDockingGrid* createFourViews(IntRect rect) {
     UIDockingGrid* grid = UIDock_createGrid(&rect);
 
     static ViewPluginInstance view0 = {};
@@ -377,8 +372,7 @@ static UIDockingGrid* createFourViews(IntRect rect)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_dock_split_horizontal(void**)
-{
+void test_dock_split_horizontal(void**) {
     IntRect rect = {{{ 0, 0, 1000, 500 }}};
 
     UIDockingGrid* grid = createFourViews(rect);
@@ -430,8 +424,7 @@ void test_dock_split_horizontal(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_dock_split_vertical(void**)
-{
+void test_dock_split_vertical(void**) {
     IntRect rect = {{{ 0, 0, 800, 200 }}};
 
     UIDockingGrid* grid = createFourViews(rect);
@@ -471,8 +464,7 @@ void test_dock_split_vertical(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_delete_docks_right_left(void**)
-{
+void test_delete_docks_right_left(void**) {
     IntRect rect = {{{ 0, 0, 1000, 500 }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
@@ -597,8 +589,7 @@ void test_delete_docks_right_left(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_delete_docks_left_right(void**)
-{
+void test_delete_docks_left_right(void**) {
     IntRect rect = {{{ 0, 0, 1000, 500 }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
@@ -666,8 +657,7 @@ void test_delete_docks_left_right(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_delete_docks_up_down(void**)
-{
+void test_delete_docks_up_down(void**) {
     IntRect rect = {{{ 0, 0, 1000, 500 }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
@@ -732,8 +722,7 @@ void test_delete_docks_up_down(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_delete_docks_down_up(void**)
-{
+void test_delete_docks_down_up(void**) {
     IntRect rect = {{{ 0, 0, 1000, 500 }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
@@ -797,8 +786,7 @@ void test_delete_docks_down_up(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_drag_vertical(void**)
-{
+void test_drag_vertical(void**) {
     Vec2 dragDelta = { 10, 10.f };
     IntRect rect = {{{ 0, 0, 1000, 400 }}};
 
@@ -857,15 +845,13 @@ void test_drag_vertical(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void printRect(const char* name, const PDGRect rect)
-{
+void printRect(const char* name, const PDGRect rect) {
     printf("%s %04d %04d %04d %04d\n", name, rect.x, rect.y, rect.width, rect.height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_auto_resize_sizer(void**)
-{
+void test_auto_resize_sizer(void**) {
     IntRect rect = {{{ 0, 0, 1000, 400 }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
@@ -945,12 +931,10 @@ static uint32_t s_colors[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void fillRect(uint32_t* buffer, PDGRect rect, int width, uint32_t color)
-{
+void fill_rect(uint32_t* buffer, PDGRect rect, int width, uint32_t color) {
     buffer += (rect.y * width) + rect.x;
 
-    for (int y = 0; y < rect.height; ++y)
-    {
+    for (int y = 0; y < rect.height; ++y) {
         for (int x = 0; x < rect.width; ++x)
             buffer[x] = color;
 
@@ -963,8 +947,7 @@ void fillRect(uint32_t* buffer, PDGRect rect, int width, uint32_t color)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void fillDockFloat(uint32_t* buffer, IntRect r, int width, uint32_t color)
-{
+void fillDockFloat(uint32_t* buffer, IntRect r, int width, uint32_t color) {
     PDGRect rect;
 
     rect.x = (int)(r.x + g_sizerSize / 2);
@@ -972,25 +955,23 @@ void fillDockFloat(uint32_t* buffer, IntRect r, int width, uint32_t color)
     rect.width = (int)(r.width - g_sizerSize / 2);
     rect.height = (int)(r.height - g_sizerSize / 2);
 
-    fillRect(buffer, rect, width, color);
+    fill_rect(buffer, rect, width, color);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void fillDock(uint32_t* buffer, PDGRect rect, int width, uint32_t color)
-{
+void fillDock(uint32_t* buffer, PDGRect rect, int width, uint32_t color) {
     rect.x += g_sizerSize / 2;
     rect.y += g_sizerSize / 2;
     rect.width -= g_sizerSize / 2;
     rect.height -= g_sizerSize / 2;
 
-    fillRect(buffer, rect, width, color);
+    fill_rect(buffer, rect, width, color);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void fillSizer(uint32_t* buffer, UIDockSizer* sizer, int width)
-{
+void fillSizer(uint32_t* buffer, UIDockSizer* sizer, int width) {
     PDGRect rect;
 
     rect.x = (int)sizer->rect.x;
@@ -998,30 +979,24 @@ void fillSizer(uint32_t* buffer, UIDockSizer* sizer, int width)
     rect.width = (int)sizer->rect.width;
     rect.height = (int)sizer->rect.height;
 
-    if (sizer->dir == UIDockSizerDir_Horz)
-    {
+    if (sizer->dir == UIDockSizerDir_Horz) {
         rect.y -= g_sizerSize / 2;
         rect.height = g_sizerSize;
 
-        fillRect(buffer, rect, width, MFB_RGB(255, 0, 0));
-    }
-    else if (sizer->dir == UIDockSizerDir_Vert)
-    {
+        fill_rect(buffer, rect, width, MFB_RGB(255, 0, 0));
+    }else if (sizer->dir == UIDockSizerDir_Vert) {
         rect.x -= g_sizerSize / 2;
         rect.width = g_sizerSize;
 
-        fillRect(buffer, rect, width, MFB_RGB(0, 255, 0));
-    }
-    else
-    {
+        fill_rect(buffer, rect, width, MFB_RGB(0, 255, 0));
+    }else {
         assert(false);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void displayGrid(UIDockingGrid* grid, IntRect rect)
-{
+void displayGrid(UIDockingGrid* grid, IntRect rect) {
     uint32_t* drawBuffer = (uint32_t*)alloc_zero(((int)rect.width + 40) * ((int)rect.height + 100) * (int)sizeof(uint32_t));
 
     //for (int i = 0; i < rect.width * (rect.height + 24); ++i)
@@ -1029,14 +1004,12 @@ void displayGrid(UIDockingGrid* grid, IntRect rect)
 
     //drawBuffer += 20 * rect.height;
 
-    if (!mfb_open("test_breaking_delete", (int)rect.width, (int)rect.height + 24))
-    {
+    if (!mfb_open("test_breaking_delete", (int)rect.width, (int)rect.height + 24)) {
         free(drawBuffer);
         return;
     }
 
-    for (;;)
-    {
+    for (;;) {
         int i = 0;
 
         for (UIDock* dock : grid->docks)
@@ -1053,8 +1026,7 @@ void displayGrid(UIDockingGrid* grid, IntRect rect)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_breaking_delete(void**)
-{
+void test_breaking_delete(void**) {
     IntRect rect = {{{ 0, 0, 500, 500 }}};
 
     ViewPluginInstance view0Inst = {};
@@ -1081,8 +1053,7 @@ void test_breaking_delete(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_strange_breakage(void**)
-{
+void test_strange_breakage(void**) {
     IntRect rect = {{{ 0, 0, 1280, 720 }}};
 
     // ui_dock.addView("Disassembly 0")
@@ -1099,8 +1070,7 @@ void test_strange_breakage(void**)
     // ui_dock.deleteView("Disassembly 2")
     // ui_dock.deleteView("Locals 3")
 
-    enum
-    {
+    enum {
         Disassembly0,
         Locals0,
         Callstack0,
@@ -1155,8 +1125,7 @@ void test_strange_breakage(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_split_at_horz_bottom(void**)
-{
+void test_split_at_horz_bottom(void**) {
     IntRect rect = {{{ 0, 0, 1000, 400 }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
@@ -1194,8 +1163,7 @@ void test_split_at_horz_bottom(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_split_at_horz_top(void**)
-{
+void test_split_at_horz_top(void**) {
     IntRect rect = {{{ 0, 0, 1000, 400 }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
@@ -1231,8 +1199,7 @@ void test_split_at_horz_top(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_split_at_vert_left(void**)
-{
+void test_split_at_vert_left(void**) {
     IntRect rect = {{{ 0, 0, 1000, 400 }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
@@ -1268,8 +1235,7 @@ void test_split_at_vert_left(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_split_at_vert_right(void**)
-{
+void test_split_at_vert_right(void**) {
     IntRect rect = {{{ 0, 0, 1000, 400 }}};
 
     UIDockingGrid* grid = UIDock_createGrid(&rect);
@@ -1379,8 +1345,7 @@ void test_split_at_vert_right(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main()
-{
+int main() {
     const UnitTest tests[] =
     {
         unit_test(create_docking),

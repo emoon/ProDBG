@@ -19,22 +19,19 @@ typedef void* PDUITextureID;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDVec2
-{
+typedef struct PDVec2 {
     float x, y;
 } PDVec2;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDVec4
-{
+typedef struct PDVec4 {
     float x, y, z, w;
 } PDVec4;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDRect
-{
+typedef struct PDRect {
 	float x, y;
 	float width, height;
 } PDRect;
@@ -53,8 +50,7 @@ typedef void* PDUIFont;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef enum PDUIStyleVar
-{
+typedef enum PDUIStyleVar {
     PDUIStyleVar_Invalid = 0,
     PDUIStyleVar_Alpha,             // float
     PDUIStyleVar_WindowPadding,     // PDVec2
@@ -69,8 +65,7 @@ typedef enum PDUIStyleVar
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum PDUIWindowFlags_
-{
+enum PDUIWindowFlags_ {
     // Default: 0
     PDUIWindowFlags_NoTitleBar             = 1 << 0,   // Disable title-bar
     PDUIWindowFlags_NoResize               = 1 << 1,   // Disable user resizing with the lower-right grip
@@ -87,8 +82,7 @@ enum PDUIWindowFlags_
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum PDUIInputTextFlags_
-{
+enum PDUIInputTextFlags_ {
     // Default: 0
     PDUIInputTextFlags_CharsDecimal        = 1 << 0,   // Allow 0123456789.+-*/
     PDUIInputTextFlags_CharsHexadecimal    = 1 << 1,   // Allow 0123456789ABCDEFabcdef
@@ -109,18 +103,16 @@ enum PDUIInputTextFlags_
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Flags for selectable()
 
-enum PDUISelectableFlags_
-{
+enum PDUISelectableFlags_ {
     // Default: 0
     PDUISelectableFlags_DontClosePopups    = 1 << 0,   // Clicking this don't close parent popup window
     PDUISelectableFlags_SpanAllColumns     = 1 << 1    // Selectable frame can span all columns (text will still fit in current column)
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Enumeration for pushStyleColor() / popStyleColor()
+// Enumeration for push_style_color() / pop_style_color()
 
-typedef enum PDUICol
-{
+typedef enum PDUICol {
     PDUICol_Text,
     PDUICol_TextDisabled,
     PDUICol_WindowBg,
@@ -168,10 +160,9 @@ typedef enum PDUICol
 } PDUICol;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Enumeration for colorEditMode()
+// Enumeration for color_edit_mode()
 
-typedef enum PDUIColorEditMode
-{
+typedef enum PDUIColorEditMode {
     PDUIColorEditMode_UserSelect = -2,
     PDUIColorEditMode_UserSelectShowButton = -1,
     PDUIColorEditMode_RGB = 0,
@@ -180,10 +171,9 @@ typedef enum PDUIColorEditMode
 } PDUIColorEditMode;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Enumeration for getMouseCursor()
+// Enumeration for get_mouse_cursor()
 
-typedef enum PDUIMouseCursor
-{
+typedef enum PDUIMouseCursor {
     PDUIMouseCursor_Arrow = 0,
     PDUIMouseCursor_TextInput,         // When hovering over InputText, etc.
     PDUIMouseCursor_Move,              // Unused
@@ -197,8 +187,7 @@ typedef enum PDUIMouseCursor
 // Condition flags for setWindow***(), setNextWindow***(), setNextTreeNode***() functions
 // All those functions treat 0 as a shortcut to PDUISetCond_Always
 
-enum PDUISetCond_
-{
+enum PDUISetCond_ {
     PDUISetCond_Always        = 1 << 0, // Set the variable
     PDUISetCond_Once          = 1 << 1, // Only set the variable on the first call per runtime session
     PDUISetCond_FirstUseEver  = 1 << 2, // Only set the variable if the window doesn't exist in the .ini file
@@ -207,26 +196,25 @@ enum PDUISetCond_
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDUIInputTextCallbackData
-{
-    PDUIInputTextFlags eventFlag;    // One of PDUIInputTextFlags_Callback* // Read-only
+typedef struct PDUIInputTextCallbackData {
+    PDUIInputTextFlags event_flag;    // One of PDUIInputTextFlags_Callback* // Read-only
     PDUIInputTextFlags flags;        // What user passed to InputText()      // Read-only
-    void* userData;      			 // What user passed to InputText()      // Read-only
+    void* user_data;      			 // What user passed to InputText()      // Read-only
 
     // CharFilter event:
-    uint16_t eventChar;    // Character input                       // Read-write (replace character or set to zero)
+    uint16_t event_char;    // Character input                       // Read-write (replace character or set to zero)
 
     // Completion,History,Always events:
-    uint16_t eventKey;      // Key pressed (Up/Down/TAB)            // Read-only
+    uint16_t event_key;      // Key pressed (Up/Down/TAB)            // Read-only
     char* buf;            	// Current text                         // Read-write (pointed data only)
-    size_t bufSize;        	//                                      // Read-only
-    bool bufDirty;       	// Set if you modify Buf directly       // Write
-    int cursorPos;      	//                                      // Read-write
-    int selectionStart; 	//                                      // Read-write (== to SelectionEnd when no selection)
-    int selectionEnd;   	//                                      // Read-write
+    size_t buf_size;        	//                                      // Read-only
+    bool buf_dirty;       	// Set if you modify Buf directly       // Write
+    int cursor_pos;      	//                                      // Read-write
+    int selection_start; 	//                                      // Read-write (== to SelectionEnd when no selection)
+    int selection_end;   	//                                      // Read-write
 
-	void (*deleteChars)(struct PDUIInputTextCallbackData* data, int pos, int byteCount);
-	void (*insertChars)(struct PDUIInputTextCallbackData* data, int pos, const char* text, const char* textEnd);
+	void (*delete_chars)(struct PDUIInputTextCallbackData* data, int pos, int byteCount);
+	void (*insert_chars)(struct PDUIInputTextCallbackData* data, int pos, const char* text, const char* textEnd);
 
 } PDUIInputTextCallbackData;
 
@@ -234,304 +222,301 @@ typedef int (*PDUITextEditCallback)(PDUIInputTextCallbackData* data);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDUISCInterface
-{
-	intptr_t (*sendCommand)(void* privData, unsigned int message, uintptr_t p0, intptr_t p1);
+typedef struct PDUISCInterface {
+	intptr_t (*send_command)(void* privData, unsigned int message, uintptr_t p0, intptr_t p1);
 	void (*update)(void* privData);
 	void (*draw)(void* privData);
-	void* privateData;
+	void* private_data;
 } PDUISCInterface;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDUI
-{
+typedef struct PDUI {
 	// Window
 	
-	void (*setTitle)(void* privateData, const char* title);
-	PDVec2 (*getWindowSize)();
-	PDVec2 (*getWindowPos)();
+	void (*set_title)(void* private_data, const char* title);
+	PDVec2 (*get_window_size)();
+	PDVec2 (*get_window_pos)();
 
-    void (*beginChild)(const char* stringId, PDVec2 size, bool border, int extraFlags /* PDUIWindowFlags */);
-    void (*endChild)();
+    void (*begin_child)(const char* stringId, PDVec2 size, bool border, int extraFlags /* PDUIWindowFlags */);
+    void (*end_child)();
 
-	float (*getScrollY)();
-	float (*getScrollMaxY)();
-	void (*setScrollY)(float scrollY);
-	void (*setScrollHere)(float centerYratio);
-	void (*setScrollFromPosY)(float posY, float centerYratio);
-	void (*setKeyboardFocusHere)(int offset);
+	float (*get_scroll_y)();
+	float (*get_scroll_max_y)();
+	void (*set_scroll_y)(float scrollY);
+	void (*set_scroll_here)(float centerYratio);
+	void (*set_scroll_from_pos_y)(float posY, float centerYratio);
+	void (*set_keyboard_focus_here)(int offset);
 
 	// Parameters stacks (shared)
-	void (*pushFont)(PDUIFont font);
-	void (*popFont)();
-	void (*pushStyleColor)(PDUICol idx, PDColor col);
-	void (*popStyleColor)(int count);
-	void (*pushStyleVar)(PDUIStyleVar idx, float val);
-	void (*pushStyleVarVec)(PDUIStyleVar idx, PDVec2 val);
-	void (*popStyleVar)(int count);
+	void (*push_font)(PDUIFont font);
+	void (*pop_font)();
+	void (*push_style_color)(PDUICol idx, PDColor col);
+	void (*pop_style_color)(int count);
+	void (*push_style_var)(PDUIStyleVar idx, float val);
+	void (*push_style_varVec)(PDUIStyleVar idx, PDVec2 val);
+	void (*pop_style_var)(int count);
 
 	// Parameters stacks (current window)
-	void (*pushItemWidth)(float item_width);
-	void (*popItemWidth)();
-	float (*calcItemWidth)();
-	void (*pushAllowKeyboardFocus)(bool v);
-	void (*popAllowKeyboardFocus)();
-	void (*pushTextWrapPos)(float wrapPosX);
-	void (*popTextWrapPos)();
-	void (*pushButtonRepeat)(bool repeat);
-	void (*popButtonRepeat)();
+	void (*push_item_width)(float item_width);
+	void (*pop_item_width)();
+	float (*calc_item_width)();
+	void (*push_allow_keyboard_focus)(bool v);
+	void (*pop_allow_keyboard_focus)();
+	void (*push_text_wrap_pos)(float wrapPosX);
+	void (*pop_text_wrap_pos)();
+	void (*push_button_repeat)(bool repeat);
+	void (*pop_button_repeat)();
 
 	// Layout
-	void (*beginGroup)();
-	void (*endGroup)();
+	void (*begin_group)();
+	void (*end_group)();
 	void (*separator)();
-	void (*sameLine)(int columnX, int spacingW);
+	void (*same_line)(int columnX, int spacingW);
 	void (*spacing)();
 	void (*dummy)(PDVec2 size);
 	void (*indent)();
-	void (*unIndent)();
+	void (*un_indent)();
 	void (*columns)(int count, const char* id, bool border);
-	void (*nextColumn)();
-	int (*getColumnIndex)();
-	float(*getColumnOffset)(int column_index);
-	void (*setColumnOffset)(int column_index, float offset_x);
-	float (*getColumnWidth)(int column_index);
-	int (*getColumnsCount)();
-	PDVec2 (*getCursorPos)();
-	float (*getCursorPosX)();
-	float (*getCursorPosY)();
-	void (*setCursorPos)(PDVec2 pos);
-	void (*setCursorPosX)(float x);
-	void (*setCursorPosY)(float y);
-	PDVec2 (*getCursorScreenPos)();
-	void (*setCursorScreenPos)(PDVec2 pos);
-	void (*alignFirstTextHeightToWidgets)();
-	float (*getTextLineHeight)();
-	float (*getTextLineHeightWithSpacing)();
-	float (*getItemsLineHeightWithSpacing)();
+	void (*next_column)();
+	int (*get_column_index)();
+	float(*get_column_offset)(int column_index);
+	void (*set_column_offset)(int column_index, float offset_x);
+	float (*get_column_width)(int column_index);
+	int (*get_columns_count)();
+	PDVec2 (*get_cursor_pos)();
+	float (*get_cursor_pos_x)();
+	float (*get_cursor_pos_y)();
+	void (*set_cursor_pos)(PDVec2 pos);
+	void (*set_cursor_pos_x)(float x);
+	void (*set_cursor_pos_y)(float y);
+	PDVec2 (*get_cursor_screen_pos)();
+	void (*set_cursor_screen_pos)(PDVec2 pos);
+	void (*align_first_text_height_to_widgets)();
+	float (*get_text_line_height)();
+	float (*get_text_line_height_with_spacing)();
+	float (*get_items_line_height_with_spacing)();
 
 	// ID scopes
 	// If you are creating widgets in a loop you most likely want to push a unique identifier so PDUI can differentiate them
 	// You can also use "##extra" within your widget name to distinguish them from each others (see 'Programmer Guide')
-	void (*pushIdStr)(const char* strId);
-	void (*pushIdStrRange)(const char* strBegin, const char* strEnd);
-	void (*pushIdPtr)(const void* ptrId);
-	void (*pushIdInt)(const int intId);
-	void (*popId)();
-	PDID (*getIdStr)(const char* strId);
-	PDID (*getIdStrRange)(const char* strBegin, const char* strEnd);
-	PDID (*getIdPtr)(const void* ptrId);
+	void (*push_id_str)(const char* strId);
+	void (*push_id_str_range)(const char* strBegin, const char* strEnd);
+	void (*push_id_ptr)(const void* ptrId);
+	void (*push_id_int)(const int intId);
+	void (*pop_id)();
+	PDID (*get_id_str)(const char* strId);
+	PDID (*get_id_str_range)(const char* strBegin, const char* strEnd);
+	PDID (*get_id_ptr)(const void* ptrId);
 
 	// Widgets
 	void (*text)(const char* fmt, ...);
-	void (*textV)(const char* fmt, va_list args);
-	void (*textColored)(const PDColor col, const char* fmt, ...);
-	void (*textColoredV)(const PDColor col, const char* fmt, va_list args);
-	void (*textDisabled)(const char* fmt, ...);
-	void (*textDisabledV)(const char* fmt, va_list args);
-	void (*textWrapped)(const char* fmt, ...);
-	void (*textWrappedV)(const char* fmt, va_list args);
-	void (*textUnformatted)(const char* text, const char* text_end);
-	void (*labelText)(const char* label, const char* fmt, ...);
-	void (*labelTextV)(const char* label, const char* fmt, va_list args);
+	void (*text_v)(const char* fmt, va_list args);
+	void (*text_colored)(const PDColor col, const char* fmt, ...);
+	void (*text_colored_v)(const PDColor col, const char* fmt, va_list args);
+	void (*text_disabled)(const char* fmt, ...);
+	void (*text_disabled_v)(const char* fmt, va_list args);
+	void (*text_wrapped)(const char* fmt, ...);
+	void (*text_wrapped_v)(const char* fmt, va_list args);
+	void (*text_unformatted)(const char* text, const char* text_end);
+	void (*label_text)(const char* label, const char* fmt, ...);
+	void (*label_text_v)(const char* label, const char* fmt, va_list args);
 	void (*bullet)();
-	void (*bulletText)(const char* fmt, ...);
-	void (*bulletTextV)(const char* fmt, va_list args);
+	void (*bullet_text)(const char* fmt, ...);
+	void (*bullet_text_v)(const char* fmt, va_list args);
 	bool (*button)(const char* label, const PDVec2 size);
-	bool (*smallButton)(const char* label);
-	bool (*invisibleButton)(const char* strId, const PDVec2 size);
+	bool (*small_button)(const char* label);
+	bool (*invisible_button)(const char* strId, const PDVec2 size);
 	void (*image)(PDUITextureID user_texture_id, const PDVec2 size, const PDVec2 uv0, const PDVec2 uv1, const PDColor tintColor, const PDColor borderColor);
-	bool (*imageButton)(PDUITextureID user_texture_id, const PDVec2 size, const PDVec2 uv0, const PDVec2 uv1, int framePadding, const PDColor bgColor, const PDColor tintCol);
-	bool (*collapsingHeader)(const char* label, const char* strId, bool displayFrame, bool defaultOpen);
+	bool (*image_button)(PDUITextureID user_texture_id, const PDVec2 size, const PDVec2 uv0, const PDVec2 uv1, int framePadding, const PDColor bgColor, const PDColor tintCol);
+	bool (*collapsing_header)(const char* label, const char* strId, bool displayFrame, bool defaultOpen);
 	bool (*checkbox)(const char* label, bool* v);
-	bool (*checkboxFlags)(const char* label, unsigned int* flags, unsigned int flagsValue);
-	bool (*radioButtonBool)(const char* label, bool active);
-	bool (*radioButton)(const char* label, int* v, int v_button);
+	bool (*checkbox_flags)(const char* label, unsigned int* flags, unsigned int flagsValue);
+	bool (*radio_buttonBool)(const char* label, bool active);
+	bool (*radio_button)(const char* label, int* v, int v_button);
 	bool (*combo)(const char* label, int* currentItem, const char** items, int itemsCount, int heightInItems);
 	bool (*combo2)(const char* label, int* currentItem, const char* itemsSeparatedByZeros, int heightInItems);
 	bool (*combo3)(const char* label, int* currentItem, bool(*itemsGetter)(void* data, int idx, const char** out_text), void* data, int itemsCount, int heightInItems);
-	bool (*colorButton)(const PDColor col, bool smallHeight, bool outlineBorder);
-	bool (*colorEdit3)(const char* label, float col[3]);
-	bool (*colorEdit4)(const char* label, float col[4], bool showAlpha);
-	void (*colorEditMode)(PDUIColorEditMode mode);
-	void (*plotLines)(const char* label, const float* values, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize, size_t stride);
-	void (*plotLines2)(const char* label, float(*valuesGetter)(void* data, int idx), void* data, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize);
-	void (*plotHistogram)(const char* label, const float* values, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize, size_t stride);
-	void (*plotHistogram2)(const char* label, float(*valuesGetter)(void* data, int idx), void* data, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize);
+	bool (*color_button)(const PDColor col, bool smallHeight, bool outlineBorder);
+	bool (*color_edit3)(const char* label, float col[3]);
+	bool (*color_edit4)(const char* label, float col[4], bool showAlpha);
+	void (*color_edit_mode)(PDUIColorEditMode mode);
+	void (*plot_lines)(const char* label, const float* values, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize, size_t stride);
+	void (*plot_lines2)(const char* label, float(*valuesGetter)(void* data, int idx), void* data, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize);
+	void (*plot_histogram)(const char* label, const float* values, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize, size_t stride);
+	void (*plot_histogram2)(const char* label, float(*valuesGetter)(void* data, int idx), void* data, int valuesCount, int valuesOffset, const char* overlayText, float scaleMin, float scaleMax, PDVec2 graphSize);
 
 	// Widgets: Scintilla text interface
-	PDUISCInterface* (*scInputText)(const char* label, float xSize, float ySize, void (*callback)(void*), void* userData);
+	PDUISCInterface* (*sc_input_text)(const char* label, float xSize, float ySize, void (*callback)(void*), void* user_data);
 
 	// Widgets: Sliders (tip: ctrl+click on a slider to input text)
-	bool (*sliderFloat)(const char* label, float* v, float vMin, float vMax, const char* displayFormat, float power);
-	bool (*sliderFloat2)(const char* label, float v[2], float vMin, float vMax, const char* displayFormat, float power);
-	bool (*sliderFloat3)(const char* label, float v[3], float vMin, float vMax, const char* displayFormat, float power);
-	bool (*sliderFloat4)(const char* label, float v[4], float vMin, float vMax, const char* displayFormat, float power);
-	bool (*sliderAngle)(const char* label, float* v_rad, float vDegreesMin, float vDegreesMax);
-	bool (*sliderInt)(const char* label, int* v, int vMin, int vMax, const char* displayFormat);
-	bool (*sliderInt2)(const char* label, int v[2], int vMin, int vMax, const char* displayFormat);
-	bool (*sliderInt3)(const char* label, int v[3], int vMin, int vMax, const char* displayFormat);
-	bool (*sliderInt4)(const char* label, int v[4], int vMin, int vMax, const char* displayFormat);
-	bool (*vsliderFloat)(const char* label, const PDVec2 size, float* v, float vMin, float vMax, const char* displayFormat, float power);
-	bool (*vsliderInt)(const char* label, const PDVec2 size, int* v, int vMin, int vMax, const char* displayFormat);
+	bool (*slider_float)(const char* label, float* v, float vMin, float vMax, const char* displayFormat, float power);
+	bool (*slider_float2)(const char* label, float v[2], float vMin, float vMax, const char* displayFormat, float power);
+	bool (*slider_float3)(const char* label, float v[3], float vMin, float vMax, const char* displayFormat, float power);
+	bool (*slider_float4)(const char* label, float v[4], float vMin, float vMax, const char* displayFormat, float power);
+	bool (*slider_angle)(const char* label, float* v_rad, float vDegreesMin, float vDegreesMax);
+	bool (*slider_int)(const char* label, int* v, int vMin, int vMax, const char* displayFormat);
+	bool (*slider_int2)(const char* label, int v[2], int vMin, int vMax, const char* displayFormat);
+	bool (*slider_int3)(const char* label, int v[3], int vMin, int vMax, const char* displayFormat);
+	bool (*slider_int4)(const char* label, int v[4], int vMin, int vMax, const char* displayFormat);
+	bool (*vslider_float)(const char* label, const PDVec2 size, float* v, float vMin, float vMax, const char* displayFormat, float power);
+	bool (*vslider_int)(const char* label, const PDVec2 size, int* v, int vMin, int vMax, const char* displayFormat);
 
 	// Widgets: Drags (tip: ctrl+click on a drag box to input text)
-	bool (*dragFloat)(const char* label, float* v, float vSpeed, float vMin, float vMax, const char* displayFormat, float power);     // If vMax >= vMax we have no bound
-	bool (*dragFloat2)(const char* label, float v[2], float vSpeed, float vMin, float vMax, const char* displayFormat, float power);
-	bool (*dragFloat3)(const char* label, float v[3], float vSpeed, float vMin, float vMax, const char* displayFormat, float power);
-	bool (*dragFloat4)(const char* label, float v[4], float vSpeed, float vMin, float vMax, const char* displayFormat, float power);
-	bool (*dragInt)(const char* label, int* v, float vSpeed, int vMin, int vMax, const char* displayFormat);                                       // If vMax >= vMax we have no bound
-	bool (*dragInt2)(const char* label, int v[2], float vSpeed, int vMin, int vMax, const char* displayFormat);
-	bool (*dragInt3)(const char* label, int v[3], float vSpeed, int vMin, int vMax, const char* displayFormat);
-	bool (*dragInt4)(const char* label, int v[4], float vSpeed, int vMin, int vMax, const char* displayFormat);
+	bool (*drag_float)(const char* label, float* v, float vSpeed, float vMin, float vMax, const char* displayFormat, float power);     // If vMax >= vMax we have no bound
+	bool (*drag_float2)(const char* label, float v[2], float vSpeed, float vMin, float vMax, const char* displayFormat, float power);
+	bool (*drag_float3)(const char* label, float v[3], float vSpeed, float vMin, float vMax, const char* displayFormat, float power);
+	bool (*drag_float4)(const char* label, float v[4], float vSpeed, float vMin, float vMax, const char* displayFormat, float power);
+	bool (*drag_int)(const char* label, int* v, float vSpeed, int vMin, int vMax, const char* displayFormat);                                       // If vMax >= vMax we have no bound
+	bool (*drag_int2)(const char* label, int v[2], float vSpeed, int vMin, int vMax, const char* displayFormat);
+	bool (*drag_int3)(const char* label, int v[3], float vSpeed, int vMin, int vMax, const char* displayFormat);
+	bool (*drag_int4)(const char* label, int v[4], float vSpeed, int vMin, int vMax, const char* displayFormat);
 
 	// Widgets: Input
-    bool (*inputText)(const char* label, char* buf, int buf_size, int flags, void (*callback)(PDUIInputTextCallbackData*), void* userData);
-	bool (*inputTextMultiline)(const char* label, char* buf, size_t buf_size, const PDVec2 size, PDUIInputTextFlags flags, void (*callback)(PDUIInputTextCallbackData*), void* userData);
-	bool (*inputFloat)(const char* label, float* v, float step, float step_fast, int decimal_precision, PDUIInputTextFlags extraFlags);
-	bool (*inputFloat2)(const char* label, float v[2], int decimal_precision, PDUIInputTextFlags extraFlags);
-	bool (*inputFloat3)(const char* label, float v[3], int decimal_precision, PDUIInputTextFlags extraFlags);
-	bool (*inputFloat4)(const char* label, float v[4], int decimal_precision, PDUIInputTextFlags extraFlags);
-	bool (*inputInt)(const char* label, int* v, int step, int step_fast, PDUIInputTextFlags extraFlags);
-	bool (*inputInt2)(const char* label, int v[2], PDUIInputTextFlags extraFlags);
-	bool (*inputInt3)(const char* label, int v[3], PDUIInputTextFlags extraFlags);
-	bool (*inputInt4)(const char* label, int v[4], PDUIInputTextFlags extraFlags);
+    bool (*input_text)(const char* label, char* buf, int buf_size, int flags, void (*callback)(PDUIInputTextCallbackData*), void* user_data);
+	bool (*input_text_multiline)(const char* label, char* buf, size_t buf_size, const PDVec2 size, PDUIInputTextFlags flags, void (*callback)(PDUIInputTextCallbackData*), void* user_data);
+	bool (*input_float)(const char* label, float* v, float step, float step_fast, int decimal_precision, PDUIInputTextFlags extraFlags);
+	bool (*input_float2)(const char* label, float v[2], int decimal_precision, PDUIInputTextFlags extraFlags);
+	bool (*input_float3)(const char* label, float v[3], int decimal_precision, PDUIInputTextFlags extraFlags);
+	bool (*input_float4)(const char* label, float v[4], int decimal_precision, PDUIInputTextFlags extraFlags);
+	bool (*input_int)(const char* label, int* v, int step, int step_fast, PDUIInputTextFlags extraFlags);
+	bool (*input_int2)(const char* label, int v[2], PDUIInputTextFlags extraFlags);
+	bool (*input_int3)(const char* label, int v[3], PDUIInputTextFlags extraFlags);
+	bool (*input_int4)(const char* label, int v[4], PDUIInputTextFlags extraFlags);
 
 	// Widgets: Trees
-	bool (*treeNode)(const char* str_label_id);
-	bool (*treeNodeStr)(const char* strId, const char* fmt, ...);
-	bool (*treeNodePtr)(const void* ptrId, const char* fmt, ...);
-	bool (*treeNodeStrV)(const char* strId, const char* fmt, va_list args);
-	bool (*treeNodePtrV)(const void* ptrId, const char* fmt, va_list args);
-	void (*treePushStr)(const char* strId);
-	void (*treePushPtr)(const void* ptrId);
-	void (*treePop)();
-	void (*setNextTreeNodeOpened)(bool opened, PDUISetCond cond);
+	bool (*tree_node)(const char* str_label_id);
+	bool (*tree_node_str)(const char* strId, const char* fmt, ...);
+	bool (*tree_node_ptr)(const void* ptrId, const char* fmt, ...);
+	bool (*tree_node_str_v)(const char* strId, const char* fmt, va_list args);
+	bool (*tree_node_ptr_v)(const void* ptrId, const char* fmt, va_list args);
+	void (*tree_push_str)(const char* strId);
+	void (*tree_push_ptr)(const void* ptrId);
+	void (*tree_pop)();
+	void (*set_next_tree_node_opened)(bool opened, PDUISetCond cond);
 
 	// Widgets: Selectable / Lists
 	bool (*selectable)(const char* label, bool selected, PDUISelectableFlags flags, const PDVec2 size);
-	bool (*selectableEx)(const char* label, bool* p_selected, PDUISelectableFlags flags, const PDVec2 size);
-	bool (*listBox)(const char* label, int* currentItem, const char** items, int itemsCount, int heightInItems);
-	bool (*listBox2)(const char* label, int* currentItem, bool(*itemsGetter)(void* data, int idx, const char** out_text), void* data, int itemsCount, int heightInItems);
-	bool (*listBoxHeader)(const char* label, const PDVec2 size);
-	bool (*listBoxHeader2)(const char* label, int itemsCount, int heightInItems);
-	void (*listBoxFooter)();
+	bool (*selectable_ex)(const char* label, bool* p_selected, PDUISelectableFlags flags, const PDVec2 size);
+	bool (*list_box)(const char* label, int* currentItem, const char** items, int itemsCount, int heightInItems);
+	bool (*list_box2)(const char* label, int* currentItem, bool(*itemsGetter)(void* data, int idx, const char** out_text), void* data, int itemsCount, int heightInItems);
+	bool (*list_box_header)(const char* label, const PDVec2 size);
+	bool (*list_box_header2)(const char* label, int itemsCount, int heightInItems);
+	void (*list_box_footer)();
 
 	// Tooltip
-	void (*setTooltip)(const char* fmt, ...);
-	void (*setTooltipV)(const char* fmt, va_list args);
-	void (*beginTooltip)();
-	void (*endTooltip)();
+	void (*set_tooltip)(const char* fmt, ...);
+	void (*set_tooltip_v)(const char* fmt, va_list args);
+	void (*begin_tooltip)();
+	void (*end_tooltip)();
 
 	// Widgets: Menus
-	bool (*beginMainMenuBar)();
-	void (*endMainMenuBar)();
-	bool (*beginMenuBar)();
-	void (*endMenuBar)();
-	bool (*beginMenu)(const char* label, bool enabled);
-	void (*endMenu)();
-	bool (*menuItem)(const char* label, const char* shortcut, bool selected, bool enabled);
-	bool (*menuItemPtr)(const char* label, const char* shortcut, bool* p_selected, bool enabled);
+	bool (*begin_main_menu_bar)();
+	void (*end_main_menu_bar)();
+	bool (*begin_menuBar)();
+	void (*end_menu_bar)();
+	bool (*begin_menu)(const char* label, bool enabled);
+	void (*end_menu)();
+	bool (*menu_item)(const char* label, const char* shortcut, bool selected, bool enabled);
+	bool (*menu_itemPtr)(const char* label, const char* shortcut, bool* p_selected, bool enabled);
 
 	// Popup
-	void (*openPopup)(const char* strId);
-	bool (*beginPopup)(const char* strId);
-	bool (*beginPopupModal)(const char* name, bool* p_opened, PDUIWindowFlags extraFlags);
-	bool (*beginPopupContextItem)(const char* strId, int mouse_button);
-	bool (*beginPopupContextWindow)(bool also_over_items, const char* strId, int mouse_button);
-	bool (*beginPopupContextVoid)(const char* strId, int mouse_button);
-	void (*endPopup)();
-	void (*closeCurrentPopup)();
+	void (*open_popup)(const char* strId);
+	bool (*begin_popup)(const char* strId);
+	bool (*begin_popup_modal)(const char* name, bool* p_opened, PDUIWindowFlags extraFlags);
+	bool (*begin_popup_context_item)(const char* strId, int mouse_button);
+	bool (*begin_popup_context_window)(bool also_over_items, const char* strId, int mouse_button);
+	bool (*begin_popupContext_void)(const char* strId, int mouse_button);
+	void (*end_popup)();
+	void (*close_current_popup)();
 
 	// Widgets: value() Helpers. Output single value in "name: value" format
-	void (*valueBool)(const char* prefix, bool b);
-	void (*valueInt)(const char* prefix, int v);
-	void (*valueUInt)(const char* prefix, unsigned int v);
-	void (*valueFloat)(const char* prefix, float v, const char* float_format);
+	void (*value_bool)(const char* prefix, bool b);
+	void (*value_int)(const char* prefix, int v);
+	void (*value_u_int)(const char* prefix, unsigned int v);
+	void (*value_float)(const char* prefix, float v, const char* float_format);
 	void (*color)(const char* prefix, const PDColor col);
 
 	// Logging: all text output from interface is redirected to tty/file/clipboard. Tree nodes are automatically opened.
-	void (*logToTTY)(int maxDepth);
-	void (*logToFile)(int maxDepth, const char* filename);
-	void (*logToClipboard)(int maxDepth);
-	void (*logFinish)();
-	void (*logButtons)();
+	void (*log_to_tty)(int maxDepth);
+	void (*log_to_file)(int maxDepth, const char* filename);
+	void (*log_to_clipboard)(int maxDepth);
+	void (*log_finish)();
+	void (*log_buttons)();
 	//void (*logText)(const char* fmt, ...); -- no logTextV which PDUI needs
 	
 	// Utilities
-	bool (*isItemHovered)();
-	bool (*isItemHoveredRect)();
-	bool (*isItemActive)();
-	bool (*isItemVisible)();
-	bool (*isAnyItemHovered)();
-	bool (*isAnyItemActive)();
-	PDVec2 (*getItemRectMin)();
-	PDVec2 (*getItemRectMax)();
-	PDVec2 (*getItemRectSize)();
-	bool (*isWindowHovered)();
-	bool (*isWindowFocused)();
-	bool (*isRootWindowFocused)();
-	bool (*isRootWindowOrAnyChildFocused)();
-	bool (*isRectVisible)(const PDVec2 itemSize);
-	bool (*isPosHoveringAnyWindow)(const PDVec2 pos);
-	float (*getTime)();
-	int (*getFrameCount)();
-	const char* (*getStyleColName)(PDUICol idx);
-	PDVec2 (*calcItemRectClosestPoint)(const PDVec2 pos, bool on_edge, float outward);
-	PDVec2 (*calcTextSize)(const char* text, const char* text_end, bool hide_text_after_double_hash, float wrap_width);
-	void (*calcListClipping)(int items_count, float items_height, int* out_items_display_start, int* out_items_display_end);
+	bool (*is_item_hovered)();
+	bool (*is_item_hovered_rect)();
+	bool (*is_item_active)();
+	bool (*is_item_visible)();
+	bool (*is_any_item_hovered)();
+	bool (*is_any_item_active)();
+	PDVec2 (*get_item_rect_min)();
+	PDVec2 (*get_item_rect_max)();
+	PDVec2 (*get_item_rect_size)();
+	bool (*is_window_hovered)();
+	bool (*is_window_focused)();
+	bool (*is_root_window_focused)();
+	bool (*is_root_window_or_any_child_focused)();
+	bool (*is_rect_visible)(const PDVec2 itemSize);
+	bool (*is_pos_hovering_any_window)(const PDVec2 pos);
+	float (*get_time)();
+	int (*get_frame_count)();
+	const char* (*get_style_col_name)(PDUICol idx);
+	PDVec2 (*calc_item_rect_closest_point)(const PDVec2 pos, bool on_edge, float outward);
+	PDVec2 (*calc_text_size)(const char* text, const char* text_end, bool hide_text_after_double_hash, float wrap_width);
+	void (*calc_list_clipping)(int items_count, float items_height, int* out_items_display_start, int* out_items_display_end);
 
-	bool (*beginChildFrame)(PDID id, const struct PDVec2 size);
-	void (*endChildFrame)();
+	bool (*begin_childFrame)(PDID id, const struct PDVec2 size);
+	void (*end_child_frame)();
 
-	void (*colorConvertRGBtoHSV)(float r, float g, float b, float* out_h, float* out_s, float* out_v);
-	void (*colorConvertHSVtoRGB)(float h, float s, float v, float* out_r, float* out_g, float* out_b);
+	void (*color_convert_rg_bto_hsv)(float r, float g, float b, float* out_h, float* out_s, float* out_v);
+	void (*color_convert_hs_vto_rgb)(float h, float s, float v, float* out_r, float* out_g, float* out_b);
 
-	bool (*isKeyDown)(int key_index);
-	bool (*isKeyPressed)(int key_index, bool repeat);
-	bool (*isKeyReleased)(int key_index);
-	bool (*isKeyDownId)(uint32_t keyId, int repeat);
-	bool (*isMouseDown)(int button);
-	bool (*isMouseClicked)(int button, bool repeat);
-	bool (*isMouseDoubleClicked)(int button);
-	bool (*isMouseReleased)(int button);
-	bool (*isMouseHoveringWindow)();
-	bool (*isMouseHoveringAnyWindow)();
-	bool (*isMouseHoveringRect)(const PDVec2 rectMin, const PDVec2 rectMax);
-	bool (*isMouseDragging)(int button, float lockThreshold);
-	PDVec2 (*getMousePos)();
-	PDVec2 (*getMouseDragDelta)(int button, float lockThreshold);
-	void (*resetMouseDragDelta)(int button);
-	PDUIMouseCursor (*getMouseCursor)();
-	void (*setMouseCursor)(PDUIMouseCursor type);
+	bool (*is_key_down)(int key_index);
+	bool (*is_key_pressed)(int key_index, bool repeat);
+	bool (*is_key_released)(int key_index);
+	bool (*is_key_down_id)(uint32_t keyId, int repeat);
+	bool (*is_mouse_down)(int button);
+	bool (*is_mouse_clicked)(int button, bool repeat);
+	bool (*is_mouse_double_clicked)(int button);
+	bool (*is_mouse_released)(int button);
+	bool (*is_mouse_hovering_window)();
+	bool (*is_mouse_hovering_any_window)();
+	bool (*is_mouse_hovering_rect)(const PDVec2 rectMin, const PDVec2 rectMax);
+	bool (*is_mouse_dragging)(int button, float lockThreshold);
+	PDVec2 (*get_mouse_pos)();
+	PDVec2 (*get_mouse_drag_delta)(int button, float lockThreshold);
+	void (*reset_mouse_drag_delta)(int button);
+	PDUIMouseCursor (*get_mouse_cursor)();
+	void (*set_mouse_cursor)(PDUIMouseCursor type);
 
     // Rendering
 
-	void (*fillRect)(PDRect rect, unsigned int color); 
+	void (*fill_rect)(PDRect rect, unsigned int color); 
 
 	// data
 
-    void* privateData;
+    void* private_data;
 
 } PDUI;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define PDUI_collumns(uiFuncs, count, id, border) uiFuncs->columns(count, id, border)
-#define PDUI_nextColumn(uiFuncs) uiFuncs->nextColumn()
+#define PDUI_next_column(uiFuncs) uiFuncs->next_column()
 #define PDUI_text(uiFuncs, format, ...) uiFuncs->text(format, __VA_ARGS__)
-#define PDUI_textWrapped(uiFuncs, format, ...) uiFuncs->textWrapped(format, __VA_ARGS__)
+#define PDUI_text_wrapped(uiFuncs, format, ...) uiFuncs->text_wrapped(format, __VA_ARGS__)
 
 #define PDUI_button(uiFuncs, label) uiFuncs->button(label)
-//#define PDUI_buttonSmall(uiFuncs, label) uiFuncs->buttonSmall(label)
-#define PDUI_buttonSize(uiFuncs, label, w, h) uiFuncs->button(label, w, h)
+#define PDUI_button_size(uiFuncs, label, w, h) uiFuncs->button(label, w, h)
 
-#define PDUI_SCSendCommand(funcs, msg, p0, p1) funcs->sendCommand(funcs->privateData, msg, p0, p1)
-#define PDUI_SCDraw(funcs) funcs->update(funcs->privateData)
-#define PDUI_SCUpdate(funcs) funcs->draw(funcs->privateData)
+#define PDUI_sc_send_command(funcs, msg, p0, p1) funcs->send_command(funcs->private_data, msg, p0, p1)
+#define PDUI_sc_draw(funcs) funcs->update(funcs->private_data)
+#define PDUI_sc_update(funcs) funcs->draw(funcs->private_data)
 
-#define PDUI_setTitle(funcs, title) funcs->setTitle(funcs->privateData, title)
+#define PDUI_set_title(funcs, title) funcs->set_title(funcs->private_data, title)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -18,8 +18,7 @@ extern char** environ;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ProcessHandle Process_spawn(const char* exe, const char** args)
-{
+ProcessHandle Process_spawn(const char* exe, const char** args) {
 #ifndef _WIN32
     pid_t pid;
     int status = posix_spawn(&pid, exe, 0, 0, (char**)args, environ);
@@ -36,8 +35,7 @@ ProcessHandle Process_spawn(const char* exe, const char** args)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Process_wait(ProcessHandle handle)
-{
+int Process_wait(ProcessHandle handle) {
     (void)handle;
 #ifndef _WIN32
     int status = 0;
@@ -48,8 +46,7 @@ int Process_wait(ProcessHandle handle)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Process_kill(ProcessHandle handle)
-{
+int Process_kill(ProcessHandle handle) {
 #ifndef _WIN32
     kill((pid_t)(uintptr_t)handle, 9);
 #endif

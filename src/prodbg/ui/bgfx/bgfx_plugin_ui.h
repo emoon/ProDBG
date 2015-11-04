@@ -4,8 +4,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class BgfxPluginUI : public PluginUI
-{
+class BgfxPluginUI : public PluginUI {
     void create(void* windowHandle, int width, int height);
     void destroy();
 

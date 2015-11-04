@@ -26,8 +26,7 @@ static const char* s_pluginTypes[] =
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum
-{
+enum {
     PRODBG_VIEW_PLUGIN,
     PRODBG_BACKEND_PLUGIN,
     PRODBG_PLUGIN_COUNT,
@@ -42,8 +41,7 @@ static const char* s_shadowDirName = "shadow_plugins";
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PluginHandler_create(bool shadowDirectory)
-{
+void PluginHandler_create(bool shadowDirectory) {
     s_useShadowDir = shadowDirectory;
 
     if (!shadowDirectory)
@@ -66,26 +64,22 @@ void PluginHandler_create(bool shadowDirectory)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PluginHandler_destroy()
-{
+void PluginHandler_destroy() {
     PluginHandler_unloadAllPlugins();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PluginHandler_addSearchPath(const char* path)
-{
+void PluginHandler_addSearchPath(const char* path) {
     array_push(s_searchPaths, path);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PluginData* findPlugin(PluginData** plugins, const char* pluginFile, const char* pluginName)
-{
+static PluginData* findPlugin(PluginData** plugins, const char* pluginFile, const char* pluginName) {
     int count = array_size(plugins);
 
-    for (int i = 0; i < count; ++i)
-    {
+    for (int i = 0; i < count; ++i) {
         PluginData* pluginData = plugins[i];
         PDPluginBase* base = (PDPluginBase*)pluginData->plugin;
 
@@ -98,12 +92,10 @@ static PluginData* findPlugin(PluginData** plugins, const char* pluginFile, cons
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PluginData* findPluginAll(const char* pluginFile, const char* pluginName)
-{
+static PluginData* findPluginAll(const char* pluginFile, const char* pluginName) {
     PluginData* plugin = 0;
 
-    for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
-    {
+    for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i) {
         if ((plugin = findPlugin(s_plugins[i], pluginFile, pluginName)))
             return plugin;
     }
@@ -113,14 +105,11 @@ static PluginData* findPluginAll(const char* pluginFile, const char* pluginName)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PluginData* PluginHandler_findPluginByFilename(const char* filename)
-{
-    for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
-    {
+PluginData* PluginHandler_findPluginByFilename(const char* filename) {
+    for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i) {
         int count = array_size(s_plugins[i]);
 
-        for (int t = 0; t < count; ++t)
-        {
+        for (int t = 0; t < count; ++t) {
             PluginData* pluginData = s_plugins[i][t];
 
             if (string_find_string(pluginData->fullFilename, filename, 0) != STRING_NPOS)
@@ -133,16 +122,13 @@ PluginData* PluginHandler_findPluginByFilename(const char* filename)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void removePlugin(PluginData* pluginData)
-{
+static void removePlugin(PluginData* pluginData) {
     // Remove the plugin data
 
-    for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
-    {
+    for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i) {
         int count = array_size(s_plugins[i]);
 
-        for (int t = 0; t < count; ++t)
-        {
+        for (int t = 0; t < count; ++t) {
             PluginData* plugin = s_plugins[i][t];
 
             if (pluginData != plugin)
@@ -162,8 +148,7 @@ static void removePlugin(PluginData* pluginData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PluginData* PluginHandler_reloadPlugin(PluginData* pluginData)
-{
+PluginData* PluginHandler_reloadPlugin(PluginData* pluginData) {
     const char* filename = pluginData->filename;
     const char* fullName = string_clone(pluginData->fullFilename);
 
@@ -188,8 +173,7 @@ PluginData* PluginHandler_reloadPlugin(PluginData* pluginData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct PluginPrivateData
-{
+struct PluginPrivateData {
     const char* name;
     const char* fullFilename;
     object_t lib;
@@ -197,16 +181,13 @@ struct PluginPrivateData
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void registerPlugin(const char* type, void* plugin, void* privateData)
-{
-    PluginPrivateData* privData = (PluginPrivateData*)privateData;
+static void registerPlugin(const char* type, void* plugin, void* private_data) {
+    PluginPrivateData* priv_data= (PluginPrivateData*)private_data;
 
-    const char* filename = privData->name;
+    const char* filename = priv_data->name;
 
-    for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
-    {
-        if (strstr(type, s_pluginTypes[i]))
-        {
+    for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i) {
+        if (strstr(type, s_pluginTypes[i])) {
             if (findPlugin(s_plugins[i], filename, ((PDPluginBase*)plugin)->name))
                 return;
 
@@ -216,8 +197,8 @@ static void registerPlugin(const char* type, void* plugin, void* privateData)
             pluginData->plugin = plugin;
             pluginData->type = type;
             pluginData->filename = filename;
-            pluginData->fullFilename = privData->fullFilename;
-            pluginData->lib = privData->lib;
+            pluginData->fullFilename = priv_data->fullFilename;
+            pluginData->lib = priv_data->lib;
 
             return (void)array_push(s_plugins[i], pluginData);
         }
@@ -228,8 +209,7 @@ static void registerPlugin(const char* type, void* plugin, void* privateData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static char* buildLoadingPath(const char* basePath, const char* plugin)
-{
+static char* buildLoadingPath(const char* basePath, const char* plugin) {
     char* output = 0;
 
     size_t baseLen = strlen(basePath);
@@ -251,9 +231,8 @@ static char* buildLoadingPath(const char* basePath, const char* plugin)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
-{
-    void* (* initPlugin)(RegisterPlugin* registerPlugin, void* privateData);
+bool PluginHandler_addPlugin(const char* basePath, const char* plugin) {
+    void* (* initPlugin)(RegisterPlugin* registerPlugin, void* private_data);
     struct PluginPrivateData data;
     object_t lib = 0;
 
@@ -267,15 +246,13 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 
     lib = library_load(filename);
 
-    if (!library_valid(lib))
-    {
+    if (!library_valid(lib)) {
         // TODO: Show error message
         pd_error("Unable to open %s\n", filename);
         goto error;
     }
 
-    if (!(function = library_symbol(lib, "InitPlugin")))
-    {
+    if (!(function = library_symbol(lib, "InitPlugin"))) {
         // TODO: Show error message
         pd_error("Unable to find InitPlugin function in plugin %s\n", filename);
         goto error;
@@ -301,16 +278,13 @@ bool PluginHandler_addPlugin(const char* basePath, const char* plugin)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PluginHandler_unloadAllPlugins()
-{
+void PluginHandler_unloadAllPlugins() {
     // TODO: Actually unload everything
 
-    for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
-    {
+    for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i) {
         int count = array_size(s_plugins[i]);
 
-        for (int t = 0; t < count; ++t)
-        {
+        for (int t = 0; t < count; ++t) {
             PluginData* plugin = s_plugins[i][t];
             library_unload(plugin->lib);
             free((void*)plugin->fullFilename);
@@ -326,8 +300,7 @@ void PluginHandler_unloadAllPlugins()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PluginData* PluginHandler_findPlugin(const char** paths, const char* pluginFile, const char* pluginName, bool load)
-{
+PluginData* PluginHandler_findPlugin(const char** paths, const char* pluginFile, const char* pluginName, bool load) {
     PluginData* pluginData;
 
     // TODO: Support paths
@@ -354,28 +327,24 @@ PluginData* PluginHandler_findPlugin(const char** paths, const char* pluginFile,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PluginData** PluginHandler_getBackendPlugins(int* count)
-{
+PluginData** PluginHandler_getBackendPlugins(int* count) {
     *count = array_size(s_plugins[PRODBG_BACKEND_PLUGIN]);
     return s_plugins[PRODBG_BACKEND_PLUGIN];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PluginData** PluginHandler_getViewPlugins(int* count)
-{
+PluginData** PluginHandler_getViewPlugins(int* count) {
     *count = array_size(s_plugins[PRODBG_VIEW_PLUGIN]);
     return s_plugins[PRODBG_VIEW_PLUGIN];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PluginData* getPluginData(PluginData** plugins, void* plugin)
-{
+static PluginData* getPluginData(PluginData** plugins, void* plugin) {
     int count = array_size(plugins);
 
-    for (int i = 0; i < count; ++i)
-    {
+    for (int i = 0; i < count; ++i) {
         if (plugins[i]->plugin == plugin)
             return plugins[i];
     }
@@ -385,12 +354,10 @@ static PluginData* getPluginData(PluginData** plugins, void* plugin)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PluginData* PluginHandler_getPluginData(void* plugin)
-{
+PluginData* PluginHandler_getPluginData(void* plugin) {
     PluginData* data = 0;
 
-    for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i)
-    {
+    for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i) {
         if ((data = getPluginData(s_plugins[i], plugin)))
             return data;
     }

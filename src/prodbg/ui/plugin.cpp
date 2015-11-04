@@ -12,13 +12,12 @@ static char s_statusText[4096];
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ViewPluginInstance* PluginUI::createViewPlugin(PluginData* pluginData)
-{
+ViewPluginInstance* PluginUI::createViewPlugin(PluginData* pluginData) {
     struct ViewPluginInstance* instance = (ViewPluginInstance*)alloc_zero(sizeof(struct ViewPluginInstance));
 
     PDViewPlugin* plugin = (PDViewPlugin*)pluginData->plugin;
 
-    void* userData = plugin->createInstance(&instance->ui, Service_getService);
+    void* userData = plugin->create_instance(&instance->ui, Service_getService);
     instance->plugin = plugin;
     instance->userData = userData;
     instance->count = pluginData->count;
@@ -32,8 +31,7 @@ ViewPluginInstance* PluginUI::createViewPlugin(PluginData* pluginData)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PluginUI::setStatusText(const char* format, ...)
-{
+void PluginUI::setStatusText(const char* format, ...) {
     va_list ap;
     va_start(ap, format);
     vsprintf(s_statusText, format, ap);

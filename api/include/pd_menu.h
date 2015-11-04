@@ -9,20 +9,17 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDMenuItem
-{
+typedef struct PDMenuItem {
     const char* name;
     unsigned int id;
     int key;
-    int macMod;
-    int winMod;
-
+    int mac_mod;
+    int win_mod;
 } PDMenuItem;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDMenu
-{
+typedef struct PDMenu {
     const char* name;
     PDMenuItem* items;
 } PDMenu;

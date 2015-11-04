@@ -59,60 +59,58 @@
 
 
 /* CPU types for use in m68k_set_cpu_type() */
-enum
-{
-	M68K_CPU_TYPE_INVALID,
-	M68K_CPU_TYPE_68000,
-	M68K_CPU_TYPE_68010,
-	M68K_CPU_TYPE_68EC020,
-	M68K_CPU_TYPE_68020,
-	M68K_CPU_TYPE_68030,	/* Supported by disassembler ONLY */
-	M68K_CPU_TYPE_68040		/* Supported by disassembler ONLY */
+enum {
+    M68K_CPU_TYPE_INVALID,
+    M68K_CPU_TYPE_68000,
+    M68K_CPU_TYPE_68010,
+    M68K_CPU_TYPE_68EC020,
+    M68K_CPU_TYPE_68020,
+    M68K_CPU_TYPE_68030,    /* Supported by disassembler ONLY */
+    M68K_CPU_TYPE_68040     /* Supported by disassembler ONLY */
 };
 
 /* Registers used by m68k_get_reg() and m68k_set_reg() */
-typedef enum
-{
-	/* Real registers */
-	M68K_REG_D0,		/* Data registers */
-	M68K_REG_D1,
-	M68K_REG_D2,
-	M68K_REG_D3,
-	M68K_REG_D4,
-	M68K_REG_D5,
-	M68K_REG_D6,
-	M68K_REG_D7,
-	M68K_REG_A0,		/* Address registers */
-	M68K_REG_A1,
-	M68K_REG_A2,
-	M68K_REG_A3,
-	M68K_REG_A4,
-	M68K_REG_A5,
-	M68K_REG_A6,
-	M68K_REG_A7,
-	M68K_REG_PC,		/* Program Counter */
-	M68K_REG_SR,		/* Status Register */
-	M68K_REG_SP,		/* The current Stack Pointer (located in A7) */
-	M68K_REG_USP,		/* User Stack Pointer */
-	M68K_REG_ISP,		/* Interrupt Stack Pointer */
-	M68K_REG_MSP,		/* Master Stack Pointer */
-	M68K_REG_SFC,		/* Source Function Code */
-	M68K_REG_DFC,		/* Destination Function Code */
-	M68K_REG_VBR,		/* Vector Base Register */
-	M68K_REG_CACR,		/* Cache Control Register */
-	M68K_REG_CAAR,		/* Cache Address Register */
+typedef enum {
+    /* Real registers */
+    M68K_REG_D0,        /* Data registers */
+    M68K_REG_D1,
+    M68K_REG_D2,
+    M68K_REG_D3,
+    M68K_REG_D4,
+    M68K_REG_D5,
+    M68K_REG_D6,
+    M68K_REG_D7,
+    M68K_REG_A0,        /* Address registers */
+    M68K_REG_A1,
+    M68K_REG_A2,
+    M68K_REG_A3,
+    M68K_REG_A4,
+    M68K_REG_A5,
+    M68K_REG_A6,
+    M68K_REG_A7,
+    M68K_REG_PC,        /* Program Counter */
+    M68K_REG_SR,        /* Status Register */
+    M68K_REG_SP,        /* The current Stack Pointer (located in A7) */
+    M68K_REG_USP,       /* User Stack Pointer */
+    M68K_REG_ISP,       /* Interrupt Stack Pointer */
+    M68K_REG_MSP,       /* Master Stack Pointer */
+    M68K_REG_SFC,       /* Source Function Code */
+    M68K_REG_DFC,       /* Destination Function Code */
+    M68K_REG_VBR,       /* Vector Base Register */
+    M68K_REG_CACR,      /* Cache Control Register */
+    M68K_REG_CAAR,      /* Cache Address Register */
 
-	/* Assumed registers */
-	/* These are cheat registers which emulate the 1-longword prefetch
-	 * present in the 68000 and 68010.
-	 */ 
-	M68K_REG_PREF_ADDR,	/* Last prefetch address */
-	M68K_REG_PREF_DATA,	/* Last prefetch data */
+    /* Assumed registers */
+    /* These are cheat registers which emulate the 1-longword prefetch
+     * present in the 68000 and 68010.
+     */
+    M68K_REG_PREF_ADDR, /* Last prefetch address */
+    M68K_REG_PREF_DATA, /* Last prefetch data */
 
-	/* Convenience registers */
-	M68K_REG_PPC,		/* Previous value in the program counter */
-	M68K_REG_IR,		/* Instruction register */
-	M68K_REG_CPU_TYPE	/* Type of CPU being run */
+    /* Convenience registers */
+    M68K_REG_PPC,       /* Previous value in the program counter */
+    M68K_REG_IR,        /* Instruction register */
+    M68K_REG_CPU_TYPE   /* Type of CPU being run */
 } m68k_register_t;
 
 /* ======================================================================== */
@@ -192,7 +190,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value);
  * services the interrupt.
  * Default behavior: return M68K_INT_ACK_AUTOVECTOR.
  */
-void m68k_set_int_ack_callback(int  (*callback)(int int_level));
+void m68k_set_int_ack_callback(int (*callback)(int int_level));
 
 
 /* Set the callback for a breakpoint acknowledge (68010+).
@@ -209,7 +207,7 @@ void m68k_set_bkpt_ack_callback(void (*callback)(unsigned int data));
  * The CPU calls this callback every time it encounters a RESET instruction.
  * Default behavior: do nothing.
  */
-void m68k_set_reset_instr_callback(void  (*callback)(void));
+void m68k_set_reset_instr_callback(void (*callback)(void));
 
 
 /* Set the callback for informing of a large PC change.
@@ -218,7 +216,7 @@ void m68k_set_reset_instr_callback(void  (*callback)(void));
  * by a large value (currently set for changes by longwords).
  * Default behavior: do nothing.
  */
-void m68k_set_pc_changed_callback(void  (*callback)(unsigned int new_pc));
+void m68k_set_pc_changed_callback(void (*callback)(unsigned int new_pc));
 
 
 /* Set the callback for CPU function code changes.
@@ -228,7 +226,7 @@ void m68k_set_pc_changed_callback(void  (*callback)(unsigned int new_pc));
  * access it is (supervisor/user, program/data and such).
  * Default behavior: do nothing.
  */
-void m68k_set_fc_callback(void  (*callback)(unsigned int new_fc));
+void m68k_set_fc_callback(void (*callback)(unsigned int new_fc));
 
 
 /* Set a callback for the instruction cycle of the CPU.
@@ -237,7 +235,7 @@ void m68k_set_fc_callback(void  (*callback)(unsigned int new_fc));
  * instruction cycle.
  * Default behavior: do nothing.
  */
-void m68k_set_instr_hook_callback(void  (*callback)(void));
+void m68k_set_instr_hook_callback(void (*callback)(void));
 
 
 
@@ -299,7 +297,7 @@ void m68k_set_context(void* dst);
  * You must provide a function pointer of the form:
  * void save_value(char* identifier, unsigned int value)
  */
-void m68k_save_context(	void (*save_value)(char* identifier, unsigned int value));
+void m68k_save_context( void (*save_value)(char* identifier, unsigned int value));
 
 /* Load a cpu context from disk.
  * You must provide a function pointer of the form:

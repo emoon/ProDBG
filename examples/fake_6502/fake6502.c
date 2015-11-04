@@ -997,22 +997,22 @@ void execute6502()
 {
     // if we should break we should stop here and just have a loop that waits for the next thing to happen
 
-    if (g_debugger->runState == PDDebugState_stopException)
+    if (g_debugger->runState == PDDebugState_StopException)
     {
         for (;;) 
         {
             switch (g_debugger->runState)
             {
-                case PDDebugState_running : 
+                case PDDebugState_Running : 
 				{
 					printf("6502: start running\n");
    	            	goto go_on;    // start running as usually
 				}
-                case PDDebugState_trace : 
+                case PDDebugState_Trace : 
                 {
 					printf("trace\n");
                     step6502(1); 
-                    g_debugger->runState = PDDebugState_stopException;
+                    g_debugger->runState = PDDebugState_StopException;
                     break;
                 }
                 

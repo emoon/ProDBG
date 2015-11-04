@@ -7,8 +7,7 @@ static HCURSOR s_cursors[CursorType_Count];
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Cursor_init()
-{
+void Cursor_init() {
     s_cursors[CursorType_Default] = LoadCursor(NULL, IDC_ARROW);
     s_cursors[CursorType_SizeHorizontal] = LoadCursor(NULL, IDC_SIZENS);
     s_cursors[CursorType_SizeVertical] = LoadCursor(NULL, IDC_SIZEWE);
@@ -20,7 +19,6 @@ void Cursor_init()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Cunsor_setType(enum CursorType type)
-{
+void Cunsor_setType(enum CursorType type) {
     SetCursor(s_cursors[(int)type]);
 }

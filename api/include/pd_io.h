@@ -5,50 +5,43 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDSaveState 
-{
-	void* privData;
-
-	void (*writeInt)(void* privData, const int64_t v);
-	void (*writeDouble)(void* privData, const double v);
-	void (*writeString)(void* privData, const char* str);
-
+typedef struct PDSaveState {
+	void* priv_data;
+	void (*write_int)(void* priv_data, const int64_t v);
+	void (*write_double)(void* priv_data, const double v);
+	void (*write_string)(void* priv_data, const char* str);
 } PDSaveState;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef enum PDLoadStatus
-{
-	PDLoadStatus_ok,
-	PDLoadStatus_fail,
-	PDLoadStatus_converted,
-	PDLoadStatus_truncated,
-	PDLoadStatus_outOfData,
+typedef enum PDLoadStatus {
+	PDLoadStatus_Ok,
+	PDLoadStatus_Fail,
+	PDLoadStatus_Converted,
+	PDLoadStatus_Truncated,
+	PDLoadStatus_OutOfData,
 } PDLoadStatus;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDLoadState 
-{
-	void* privData;
-
-	PDLoadStatus (*readInt)(void* privData, int64_t* dest);
-	PDLoadStatus (*readDouble)(void* privData, double* dest);
-	PDLoadStatus (*readString)(void* privData, char*, int maxLen);
-
+typedef struct PDLoadState {
+	void* priv_data;
+	PDLoadStatus (*read_int)(void* priv_data, int64_t* dest);
+	PDLoadStatus (*read_double)(void* priv_data, double* dest);
+	PDLoadStatus (*read_string)(void* priv_data, char*, int maxLen);
 } PDLoadState;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define PDIO_writeInt(funcs, v) funcs->writeInt(funcs->privData, v)
-#define PDIO_writeDouble(funcs, v) funcs->writeDouble(funcs->privData, v)
-#define PDIO_writeString(funcs, v) funcs->writeString(funcs->privData, v)
+#define PDIO_write_int(funcs, v) funcs->write_int(funcs->priv_data, v)
+#define PDIO_write_double(funcs, v) funcs->write_double(funcs->priv_data, v)
+#define PDIO_write_string(funcs, v) funcs->write_string(funcs->priv_data, v)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define PDIO_readInt(funcs, dest) funcs->readInt(funcs->privData, dest)
-#define PDIO_readReal(funcs, data) funcs->readDouble(funcs->privData, dest)
-#define PDIO_readString(funcs, str, maxLen) funcs->readString(funcs->privData, str, maxLen)
+#define PDIO_read_int(funcs, dest) funcs->read_int(funcs->priv_data, dest)
+#define PDIO_read_real(funcs, data) funcs->read_double(funcs->priv_data, dest)
+#define PDIO_read_string(funcs, str, maxLen) funcs->read_string(funcs->priv_data, str, maxLen)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -7,8 +7,7 @@ typedef lua_State ScriptState;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct ScriptCallState
-{
+struct ScriptCallState {
     char* funcName;
     int inputCount;
     int outputCount;
@@ -16,25 +15,21 @@ struct ScriptCallState
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum ScriptVariantType
-{
-    
+enum ScriptVariantType {
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct ScriptCallVariant
-{
-    enum
-    {
+struct ScriptCallVariant {
+    enum {
         ScriptCallVariantType_Integer,
         ScriptCallVariantType_Boolean,
         ScriptCallVariantType_Float,
         ScriptCallVariantType_StringPtr,
     } typeId;
 
-    union
-    {
+    union {
         int asInteger;
         bool asBoolean;
         float asFloat;
@@ -44,8 +39,7 @@ struct ScriptCallVariant
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct ScriptCallSignature
-{
+struct ScriptCallSignature {
     char function[64];
 
     int argumentCount;

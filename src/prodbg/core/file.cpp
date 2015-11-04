@@ -4,8 +4,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void* File_loadToMemory(const char* filename, size_t* size, size_t padAllocSize)
-{
+void* File_loadToMemory(const char* filename, size_t* size, size_t padAllocSize) {
     FILE* f = fopen(filename, "rb");
     void* data = 0;
     size_t s = 0, t = 0;

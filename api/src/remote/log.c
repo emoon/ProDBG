@@ -13,15 +13,14 @@ static int s_old_level = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void pda_log_out(int logLevel, const char* filename, int line, const char* format, ...)
-{
+void pda_log_out(int logLevel, const char* filename, int line, const char* format, ...) {
     va_list ap;
 
-    if (logLevel < s_log_level)
+    if (logLevel < s_log_level) {
         return;
+    }
 
-    switch (logLevel)
-    {
+    switch (logLevel) {
         case LOG_DEBUG:
             printf("%s:%d [DEBUG] ", filename, line); break;
         case LOG_INFO:
@@ -45,22 +44,19 @@ void pda_log_out(int logLevel, const char* filename, int line, const char* forma
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void pda_log_set_level(int logLevel)
-{
+void pda_log_set_level(int logLevel) {
     s_log_level = logLevel;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void pda_log_level_push()
-{
+void pda_log_level_push() {
     s_old_level = s_log_level;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void pda_log_level_pop()
-{
+void pda_log_level_pop() {
     s_log_level = s_old_level;
 }
 

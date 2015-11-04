@@ -20,35 +20,30 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void plugin_handler_null_base_path(void**)
-{
+void plugin_handler_null_base_path(void**) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void plugin_handler_null_plugin(void**)
-{
+void plugin_handler_null_plugin(void**) {
     assert_false(PluginHandler_addPlugin("dummyPath", 0));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void plugin_handler_dummy_paths(void**)
-{
+void plugin_handler_dummy_paths(void**) {
     assert_false(PluginHandler_addPlugin("dummyPath", "dummy"));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void plugin_handler_add_plugin(void**)
-{
+void plugin_handler_add_plugin(void**) {
     assert_false(PluginHandler_addPlugin("dummyPath", "dummy"));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void plugin_handler_add_plugin_true(void**)
-{
+void plugin_handler_add_plugin_true(void**) {
     int count = 0;
 
     assert_true(PluginHandler_addPlugin(OBJECT_DIR, "sourcecode_plugin"));
@@ -70,8 +65,7 @@ void plugin_handler_add_plugin_true(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void plugin_handler_find_plugin(void**)
-{
+void plugin_handler_find_plugin(void**) {
     assert_null(PluginHandler_findPlugin(0, "dummyFile", "dummyName", false));
     assert_null(PluginHandler_findPlugin(0, "dummyFile", "dummyName", true));
     assert_null(PluginHandler_findPlugin(0, "sourcecode_plugin", "Source Code View", false));
@@ -90,8 +84,7 @@ void plugin_handler_find_plugin(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_load_file_ok(void**)
-{
+void test_load_file_ok(void**) {
     size_t size;
 
     void* ret = File_loadToMemory("examples/fake_6502/test.bin", &size, 0);
@@ -104,8 +97,7 @@ void test_load_file_ok(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_load_file_fail(void**)
-{
+void test_load_file_fail(void**) {
     size_t size;
 
     void* ret = File_loadToMemory("examples/fake_6502/test_dont_exist.bin", &size, 0);
@@ -118,16 +110,14 @@ static int g_intValue = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct IntAddData
-{
+struct IntAddData {
     int newValue;
     int oldValue;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void doAdd(int value)
-{
+static void doAdd(int value) {
     IntAddData* addData = (IntAddData*)alloc_zero(sizeof(IntAddData));
 
     addData->newValue = value;
@@ -136,16 +126,16 @@ static void doAdd(int value)
     {
         addData,
 
-        [](void* userData)
+        [](void* user_data)
         {
-            IntAddData* data = (IntAddData*)userData;
+            IntAddData* data = (IntAddData*)user_data;
             data->oldValue = g_intValue;
             g_intValue += data->newValue;
         },
 
-        [](void* userData)
+        [](void* user_data)
         {
-            IntAddData* data = (IntAddData*)userData;
+            IntAddData* data = (IntAddData*)user_data;
             g_intValue = data->oldValue;
         }
     });
@@ -153,8 +143,7 @@ static void doAdd(int value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_commands(void**)
-{
+void test_commands(void**) {
     Commands_init();
 
     g_intValue = 0;
@@ -196,26 +185,23 @@ static const char* s_filename_2 = 0;
 static const char* s_filename_3 = 0;
 static const char* s_filename_4 = 0;
 static const char* s_filename_5 = 0;
-static int s_userData_1 = 0;
-static int s_userData_2 = 1;
-static int s_userData_3 = 2;
+static int s_user_data_1 = 0;
+static int s_user_data_2 = 1;
+static int s_user_data_3 = 2;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void fileNotifaction(void* userData, const char* file, int type)
-{
-    assert_true(userData == &s_userData_1);
+void fileNotifaction(void* user_data, const char* file, int type) {
+    assert_true(user_data == &s_user_data_1);
 
-    if (s_checkPhase == 0)
-    {
+    if (s_checkPhase == 0) {
         assert_string_equal(file, s_filename);
         assert_int_equal(type, FOUNDATIONEVENT_FILE_CREATED);
         s_checkPhase = 1;
         return;
     }
 
-    if (s_checkPhase == 1)
-    {
+    if (s_checkPhase == 1) {
         assert_string_equal(file, s_filename);
         assert_int_equal(type, FOUNDATIONEVENT_FILE_MODIFIED);
         s_checkPhase = 2;
@@ -227,12 +213,10 @@ void fileNotifaction(void* userData, const char* file, int type)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void fileNotifaction2(void* userData, const char* file, int type)
-{
-    assert_true(userData == &s_userData_2);
+void fileNotifaction2(void* user_data, const char* file, int type) {
+    assert_true(user_data == &s_user_data_2);
 
-    if (s_checkPhase == 2)
-    {
+    if (s_checkPhase == 2) {
         assert_string_equal(file, s_filename_2);
         assert_int_equal(type, FOUNDATIONEVENT_FILE_CREATED);
         s_checkPhase = 3;
@@ -242,26 +226,22 @@ void fileNotifaction2(void* userData, const char* file, int type)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void fileNotifaction3(void* userData, const char* file, int type)
-{
-    assert_true(userData == &s_userData_3);
+void fileNotifaction3(void* user_data, const char* file, int type) {
+    assert_true(user_data == &s_user_data_3);
 
-    if (s_checkPhase == 3 && strcmp(file, s_filename_3) == 0)
-    {
+    if (s_checkPhase == 3 && strcmp(file, s_filename_3) == 0) {
         assert_int_equal(type, FOUNDATIONEVENT_FILE_CREATED);
         s_checkPhase = 4;
         return;
     }
 
-    if (s_checkPhase == 4 && strcmp(file, s_filename_4) == 0)
-    {
+    if (s_checkPhase == 4 && strcmp(file, s_filename_4) == 0) {
         assert_int_equal(type, FOUNDATIONEVENT_FILE_CREATED);
         s_checkPhase = 5;
         return;
     }
 
-    if (s_checkPhase == 5  && strcmp(file, s_filename_5) == 0)
-    {
+    if (s_checkPhase == 5  && strcmp(file, s_filename_5) == 0) {
         assert_int_equal(type, FOUNDATIONEVENT_FILE_CREATED);
         s_checkPhase = 6;
         return;
@@ -271,8 +251,7 @@ void fileNotifaction3(void* userData, const char* file, int type)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void test_file_notification(void**)
-{
+void test_file_notification(void**) {
     int temp = 1;
     const char* test_dir = "t2-output/test_dir";
     const char* test_dir_2 = "t2-output/2_test_dir";
@@ -298,7 +277,7 @@ void test_file_notification(void**)
     fwrite(&temp, 4, 1, t);
     fclose(t);
 
-    FileMonitor_addPath(test_dir, "*", fileNotifaction, &s_userData_1);
+    FileMonitor_addPath(test_dir, "*", fileNotifaction, &s_user_data_1);
 
     thread_sleep(200);
 
@@ -325,7 +304,7 @@ void test_file_notification(void**)
 
     assert_int_equal(s_checkPhase, 2);
 
-    FileMonitor_addPath(test_dir_2, "txt", fileNotifaction2, &s_userData_2);
+    FileMonitor_addPath(test_dir_2, "txt", fileNotifaction2, &s_user_data_2);
 
     thread_sleep(1000);
 
@@ -355,7 +334,7 @@ void test_file_notification(void**)
     assert_int_equal(s_checkPhase, 3);
 
 
-    FileMonitor_addPath(test_dir_3, "bin;so", fileNotifaction3, &s_userData_3);
+    FileMonitor_addPath(test_dir_3, "bin;so", fileNotifaction3, &s_user_data_3);
 
     thread_sleep(1000);
 
@@ -392,8 +371,7 @@ void test_file_notification(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_settings(void**)
-{
+void test_settings(void**) {
     assert_true(Settings_loadSettings("test_data/settings.json"));
 
     assert_string_equal(Settings_getString("default_native_backend", "mac"), "LLDB");
@@ -440,7 +418,7 @@ void test_settings(void**)
     assert_int_equal((key >> 4), PDKEY_ESCAPE);
 
     key = Settings_getShortcut("Source Code View", "f_key");
-    assert_int_equal((key & 0xf), 0); 
+    assert_int_equal((key & 0xf), 0);
     assert_int_equal((key >> 4), PDKEY_F4);
 
     Settings_destroy();
@@ -448,8 +426,7 @@ void test_settings(void**)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main()
-{
+int main() {
     log_set_level(LOG_NONE);
     Core_init();
 

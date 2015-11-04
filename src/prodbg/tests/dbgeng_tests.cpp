@@ -13,8 +13,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void test_dbgeng(void** state)
-{
+static void test_dbgeng(void** state) {
     (void)state;
 
     // Debugger Engine plugin is only valid on Windows
@@ -47,9 +46,9 @@ static void test_dbgeng(void** state)
     PDReader* reader = session->reader;
 
     PDBinaryWriter_reset(writer);
-    PDWrite_eventBegin(writer, PDEventType_getCallstack);
+    PDWrite_event_begin(writer, PDEventType_getCallstack);
     PDWrite_u8(writer, "dummy", 0);
-    PDWrite_eventEnd(writer);
+    PDWrite_event_end(writer);
     PDBinaryWriter_finalize(writer);
 
     Session_update(session);
@@ -59,10 +58,8 @@ static void test_dbgeng(void** state)
     uint32_t event;
     bool foundCallstack = false;
 
-    while ((event = PDRead_getEvent(reader)) != 0)
-    {
-        switch (event)
-        {
+    while ((event = PDRead_get_event(reader)) != 0) {
+        switch (event) {
             case PDEventType_setCallstack:
             {
                 foundCallstack = true;
@@ -79,8 +76,7 @@ static void test_dbgeng(void** state)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main()
-{
+int main() {
     const UnitTest tests[] =
     {
         unit_test(test_dbgeng),
