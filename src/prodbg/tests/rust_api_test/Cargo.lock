@@ -1,0 +1,19 @@
+[root]
+name = "api_test"
+version = "0.1.0"
+dependencies = [
+ "prodbg 0.1.0",
+]
+
+[[package]]
+name = "libc"
+version = "0.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "prodbg"
+version = "0.1.0"
+dependencies = [
+ "libc 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
