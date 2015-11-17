@@ -11,7 +11,7 @@ pub trait Backend {
 pub struct CBackendCallbacks {
     pub create_instance: fn() -> *mut c_void, 
     pub destroy_instance: fn(*mut c_void), 
-    pub update: fn(*mut c_void), 
+    pub update: fn(ptr: *mut c_void, reader_api: *mut c_void, writer_api: *mut c_void),
 }
 
 pub fn create_backend_instance<T: Backend>() -> *mut c_void {
@@ -35,13 +35,14 @@ pub fn update_backend_instance<T: Backend>(ptr: *mut c_void, reader_api: *mut c_
     backend.update(&reader, &writer);
 }
 
+#[macro_export]
 macro_rules! define_backend_plugin {
     ($x:ty) => {
         {
             let mut plugin = CBackendCallbacks { 
-                create_instance: create_backend_instance::<$x>, 
-                destroy_instance: destroy_backend_instance::<$x>, 
-                update: update_backend_instance::<$x> 
+                create_instance: prodbg::backend::create_backend_instance::<$x>, 
+                destroy_instance: prodbg::backend::destroy_backend_instance::<$x>, 
+                update: prodbg::backend::update_backend_instance::<$x> 
              };
 
             plugin
