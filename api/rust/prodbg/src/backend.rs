@@ -1,17 +1,19 @@
-use read_write::*; 
+use read_write::*;
 use libc::*;
 use std::mem::transmute;
 
 pub trait Backend {
     fn new() -> Self;
-    fn update(&mut self, reader: &Reader, writer: &Writer);
+    fn update(&mut self, reader: &mut Reader, writer: &mut Writer);
 }
 
 #[repr(C)]
 pub struct CBackendCallbacks {
-    pub create_instance: fn() -> *mut c_void, 
-    pub destroy_instance: fn(*mut c_void), 
-    pub update: fn(ptr: *mut c_void, reader_api: *mut c_void, writer_api: *mut c_void),
+    pub name: *const c_uchar,
+    pub create_instance: Option<fn() -> *mut c_void>,
+    pub destroy_instance: Option<fn(*mut c_void)>,
+    pub register_menu: Option<fn() -> *mut c_void>,
+    pub update: Option<fn(ptr: *mut c_void, reader_api: *mut c_void, writer_api: *mut c_void)>,
 }
 
 pub fn create_backend_instance<T: Backend>() -> *mut c_void {
@@ -21,33 +23,39 @@ pub fn create_backend_instance<T: Backend>() -> *mut c_void {
 }
 
 pub fn destroy_backend_instance<T: Backend>(ptr: *mut c_void) {
-    let _: Box<T> = unsafe{ transmute(ptr) };
+    let _: Box<T> = unsafe { transmute(ptr) };
     // implicitly dropped
 }
 
-pub fn update_backend_instance<T: Backend>(ptr: *mut c_void, reader_api: *mut c_void, writer_api: *mut c_void) { 
+pub fn update_backend_instance<T: Backend>(ptr: *mut c_void,
+                                           reader_api: *mut c_void,
+                                           writer_api: *mut c_void) {
     let backend: &mut T = unsafe { &mut *(ptr as *mut T) };
     let c_reader: &mut CPDReaderAPI = unsafe { &mut *(reader_api as *mut CPDReaderAPI) };
-    let c_writer: &mut CPDWriterAPI  = unsafe { &mut *(writer_api  as *mut CPDWriterAPI) };
-    let reader = Reader { api: c_reader, it: 0 }; 
-    let writer = Writer { api: c_writer }; 
+    let c_writer: &mut CPDWriterAPI = unsafe { &mut *(writer_api as *mut CPDWriterAPI) };
+    let mut reader = Reader {
+        api: c_reader,
+        it: 0,
+    };
+    let mut writer = Writer { api: c_writer };
 
-    backend.update(&reader, &writer);
+    backend.update(&mut reader, &mut writer);
 }
 
 #[macro_export]
 macro_rules! define_backend_plugin {
     ($x:ty) => {
         {
-            let mut plugin = CBackendCallbacks { 
-                create_instance: prodbg::backend::create_backend_instance::<$x>, 
-                destroy_instance: prodbg::backend::destroy_backend_instance::<$x>, 
-                update: prodbg::backend::update_backend_instance::<$x> 
+            static S: &'static [u8] = b"Test\0";
+            let mut plugin = CBackendCallbacks {
+                name: S.as_ptr(), 
+                create_instance: Some(prodbg::backend::create_backend_instance::<$x>),
+                destroy_instance: Some(prodbg::backend::destroy_backend_instance::<$x>),
+                register_menu: None,
+                update: Some(prodbg::backend::update_backend_instance::<$x>)
              };
 
             plugin
         }
     }
 }
-
-

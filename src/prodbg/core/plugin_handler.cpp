@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include <foundation/fs.h>
 #include <foundation/library.h>
@@ -188,8 +189,12 @@ static void registerPlugin(const char* type, void* plugin, void* private_data) {
 
     for (int i = 0; i < PRODBG_PLUGIN_COUNT; ++i) {
         if (strstr(type, s_pluginTypes[i])) {
-            if (findPlugin(s_plugins[i], filename, ((PDPluginBase*)plugin)->name))
+        	const char* plugin_name = ((PDPluginBase*)plugin)->name;
+            if (findPlugin(s_plugins[i], filename, plugin_name)) 
                 return;
+
+			// TODO: Fix this memory leak
+			((PDPluginBase*)plugin)->name = strdup(plugin_name);
 
             // TODO: Verify that we don't add a plugin with the same plugin name in the same plugin
 
@@ -232,7 +237,7 @@ static char* buildLoadingPath(const char* basePath, const char* plugin) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool PluginHandler_addPlugin(const char* basePath, const char* plugin) {
-    void* (* initPlugin)(RegisterPlugin* registerPlugin, void* private_data);
+    void* (*initPlugin)(RegisterPlugin* registerPlugin, void* private_data);
     struct PluginPrivateData data;
     object_t lib = 0;
 

@@ -123,12 +123,15 @@ pub enum ReadStatus {
 
 pub struct ReaderIter {
     reader: Reader,
-    curr_iter: u64
+    curr_iter: u64,
 }
 
 impl Clone for Reader {
-   fn clone(&self) -> Self { 
-       return Reader { api: self.api, it: self.it };
+    fn clone(&self) -> Self {
+        return Reader {
+            api: self.api,
+            it: self.it,
+        };
     }
 }
 
@@ -142,7 +145,10 @@ fn status_res<T>(res: T, s: u32) -> Result<T, ReadStatus> {
 
 impl Reader {
     pub fn new(in_api: *mut CPDReaderAPI, iter: u64) -> Self {
-        return Reader { api: in_api, it: iter };
+        return Reader {
+            api: in_api,
+            it: iter,
+        };
     }
 
     pub fn find_u8(&self, id: &str) -> Result<u8, ReadStatus> {
@@ -151,7 +157,10 @@ impl Reader {
         let ret;
 
         unsafe {
-            ret = ((*self.api).read_find_u8)((*self.api).private_data, &mut res, s.as_ptr(), self.it);
+            ret = ((*self.api).read_find_u8)((*self.api).private_data,
+                                             &mut res,
+                                             s.as_ptr(),
+                                             self.it);
         }
 
         return status_res(res, ret);
@@ -165,7 +174,10 @@ impl Reader {
             ((*self.api).read_find_array)((*self.api).private_data, &mut t, s.as_ptr(), 0);
         }
 
-        ReaderIter { reader: self.clone(), curr_iter: t }
+        ReaderIter {
+            reader: self.clone(),
+            curr_iter: t,
+        }
     }
 }
 
@@ -174,12 +186,13 @@ impl Iterator for ReaderIter {
     fn next(&mut self) -> Option<Reader> {
         let ret;
         unsafe {
-            ret = ((*self.reader.api).read_next_entry)((*self.reader.api).private_data, &mut self.curr_iter);
+            ret = ((*self.reader.api).read_next_entry)((*self.reader.api).private_data,
+                                                       &mut self.curr_iter);
         }
 
         match ret {
             0 => None,
-            _ => Some(Reader::new(self.reader.api, self.curr_iter)), 
+            _ => Some(Reader::new(self.reader.api, self.curr_iter)),
         }
     }
 }
@@ -296,9 +309,7 @@ impl Writer {
         let id_s = CString::new(id).unwrap();
         let v_s = CString::new(v).unwrap();
         unsafe {
-            ((*self.api).write_string)((*self.api).private_data,
-                                                id_s.as_ptr(),
-                                                v_s.as_ptr());
+            ((*self.api).write_string)((*self.api).private_data, id_s.as_ptr(), v_s.as_ptr());
         }
     }
 
@@ -306,9 +317,9 @@ impl Writer {
         let s = CString::new(id).unwrap();
         unsafe {
             ((*self.api).write_data)((*self.api).private_data,
-                                              s.as_ptr(),
-                                              data.as_ptr(),
-                                              data.len() as u32);
+                                     s.as_ptr(),
+                                     data.as_ptr(),
+                                     data.len() as u32);
         }
     }
 }
