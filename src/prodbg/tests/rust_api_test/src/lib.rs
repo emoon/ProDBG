@@ -11,7 +11,9 @@ struct MyBackend {
 
 impl MyBackend {
     fn write_all_types(&mut self, writer: &mut Writer) {
-        let data: [u8; 5] = [1, 2, 3, 4, 5];
+        let data: [u8; 6] = [1, 2, 3, 80, 50, 60];
+
+        writer.event_begin(3);
 
         writer.write_s8("my_s8", -2);
         writer.write_u8("my_u8", 3);
@@ -33,6 +35,8 @@ impl MyBackend {
 
         writer.write_string("my_string", "foobar1337");
         writer.write_data("my_data", &data);
+
+        writer.event_end();
     }
 }
 
@@ -43,6 +47,7 @@ impl Backend for MyBackend {
 
     // fn update(&mut self, reader: &prodbg::Reader)
     fn update(&mut self, _: &mut Reader, writer: &mut Writer) {
+        println!("running update");
         match self.current_test {
             0 => Self::write_all_types(self, writer),
             _ => (),
@@ -55,5 +60,5 @@ impl Backend for MyBackend {
 pub fn init_plugin(plugin_handler: &mut PluginHandler) {
     println!("R: init_plugin");
     let mut plugin = define_backend_plugin!(MyBackend);
-    plugin_handler.register(&mut plugin);
+    plugin_handler.register(API_VERSION, &mut plugin);
 }
