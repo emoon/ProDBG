@@ -1,25 +1,27 @@
 use read_write::*;
+use service::*;
 use libc::*;
 use std::mem::transmute;
 
 pub static API_VERSION: &'static str = "ProDBG Backend 1"; 
 
 pub trait Backend {
-    fn new() -> Self;
+    fn new(service: &Service) -> Self;
     fn update(&mut self, reader: &mut Reader, writer: &mut Writer);
 }
 
 #[repr(C)]
 pub struct CBackendCallbacks {
     pub name: *const c_uchar,
-    pub create_instance: Option<fn() -> *mut c_void>,
+    pub create_instance: Option<fn(service_func: extern "C" fn(service: *const c_char)) -> *mut c_void>,
     pub destroy_instance: Option<fn(*mut c_void)>,
     pub register_menu: Option<fn() -> *mut c_void>,
     pub update: Option<fn(ptr: *mut c_void, action: *mut c_int, reader_api: *mut c_void, writer_api: *mut c_void)>,
 }
 
-pub fn create_backend_instance<T: Backend>() -> *mut c_void {
-    let instance = unsafe { transmute(Box::new(T::new())) };
+pub fn create_backend_instance<T: Backend>(service_func: extern "C" fn(service: *const c_char)) -> *mut c_void {
+    let service = Service { service_func: service_func };
+    let instance = unsafe { transmute(Box::new(T::new(&service))) };
     println!("Lets create instance!");
     instance
 }

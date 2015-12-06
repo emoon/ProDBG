@@ -1,9 +1,7 @@
 #[macro_use]
 extern crate prodbg;
 
-use prodbg::backend::*;
-use prodbg::read_write::*;
-use prodbg::plugin_handler::*;
+use prodbg::*;
 
 struct MyBackend {
     current_test: u32,
@@ -41,7 +39,7 @@ impl MyBackend {
 }
 
 impl Backend for MyBackend {
-    fn new() -> Self {
+    fn new(_: &Service) -> Self {
         MyBackend { current_test: 0 }
     }
 
