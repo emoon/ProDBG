@@ -3,7 +3,7 @@ use service::*;
 use libc::*;
 use std::mem::transmute;
 
-pub static API_VERSION: &'static str = "ProDBG Backend 1"; 
+pub static API_VERSION: &'static str = "ProDBG Backend 1";
 
 pub trait Backend {
     fn new(service: &Service) -> Self;
@@ -16,7 +16,7 @@ pub struct CBackendCallbacks {
     pub create_instance: Option<fn(service_func: extern "C" fn(service: *const c_char)) -> *mut c_void>,
     pub destroy_instance: Option<fn(*mut c_void)>,
     pub register_menu: Option<fn() -> *mut c_void>,
-    pub update: Option<fn(ptr: *mut c_void, action: *mut c_int, reader_api: *mut c_void, writer_api: *mut c_void)>,
+    pub update: Option<fn(ptr: *mut c_void, a: *mut c_int, ra: *mut c_void, wa: *mut c_void)>,
 }
 
 pub fn create_backend_instance<T: Backend>(service_func: extern "C" fn(service: *const c_char)) -> *mut c_void {
