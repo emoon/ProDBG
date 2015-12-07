@@ -4,9 +4,6 @@ use std::mem::transmute;
 
 #[repr(C)]
 pub struct CPDReaderAPI {
-    private_data: *mut c_void,
-    read_u8: extern "C" fn(data: *mut c_void),
-
     pub data: *mut c_void,
     pub read_get_event: extern fn(reader: *mut c_void) -> uint32_t,
     pub read_iterator_next_event: extern fn(reader: *mut c_void,
@@ -144,6 +141,24 @@ fn status_res<T>(res: T, s: u32) -> Result<T, ReadStatus> {
     }
 }
 
+macro_rules! find_fun {
+    ($c_name:ident, $name:ident, $data_type:ident) => {
+        pub fn $name(&self, id: &str) -> Result<$data_type, ReadStatus> {
+            let s = CString::new(id).unwrap();
+            let mut res = 0 as $data_type;
+            let ret;
+
+            unsafe {
+                ret = ((*self.api).$c_name)(transmute(self.api), &mut res, s.as_ptr(), self.it);
+            }
+
+            return status_res(res, ret);
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 impl Reader {
     pub fn new(in_api: *mut CPDReaderAPI, iter: u64) -> Self {
         return Reader {
@@ -152,20 +167,16 @@ impl Reader {
         };
     }
 
-    pub fn find_u8(&self, id: &str) -> Result<u8, ReadStatus> {
-        let s = CString::new(id).unwrap();
-        let mut res = 0u8;
-        let ret;
-
-        unsafe {
-            ret = ((*self.api).read_find_u8)(transmute(self.api),
-                                             &mut res,
-                                             s.as_ptr(),
-                                             self.it);
-        }
-
-        return status_res(res, ret);
-    }
+    find_fun!(read_find_s8, find_s8, i8);
+    find_fun!(read_find_u8, find_u8, u8);
+    find_fun!(read_find_s16, find_s16, i16);
+    find_fun!(read_find_u16, find_u16, u16);
+    find_fun!(read_find_s32, find_s32, i32);
+    find_fun!(read_find_u32, find_u32, u32);
+    find_fun!(read_find_s64, find_s64, i64);
+    find_fun!(read_find_u64, find_u64, u64);
+    find_fun!(read_find_float, find_float, f32);
+    find_fun!(read_find_double, find_double, f64);
 
     pub fn find_array(&self, id: &str) -> ReaderIter {
         let s = CString::new(id).unwrap();
@@ -187,13 +198,24 @@ impl Iterator for ReaderIter {
     fn next(&mut self) -> Option<Reader> {
         let ret;
         unsafe {
-            ret = ((*self.reader.api).read_next_entry)((*self.reader.api).private_data,
+            ret = ((*self.reader.api).read_next_entry)(transmute(self.reader.api),
                                                        &mut self.curr_iter);
         }
 
         match ret {
             0 => None,
             _ => Some(Reader::new(self.reader.api, self.curr_iter)),
+        }
+    }
+}
+
+macro_rules! write_fun {
+    ($name:ident, $data_type:ident) => {
+        pub fn $name(&mut self, id: &str, v: $data_type) {
+            let s = CString::new(id).unwrap();
+            unsafe {
+                ((*self.api).$name)(transmute(self.api), s.as_ptr(), v);
+            }
         }
     }
 }
@@ -211,100 +233,41 @@ impl Writer {
         }
     }
 
-    pub fn write_array_begin(&mut self, name: &str) {
+    pub fn array_begin(&mut self, name: &str) {
         let s = CString::new(name).unwrap();
         unsafe {
             ((*self.api).write_array_begin)(transmute(self.api), s.as_ptr());
         }
     }
 
-    pub fn write_array_end(&mut self) {
+    pub fn array_end(&mut self) {
         unsafe {
             ((*self.api).write_array_end)(transmute(self.api));
         }
     }
 
-    pub fn write_array_entry_begin(&mut self) {
+    pub fn array_entry_begin(&mut self) {
         unsafe {
             ((*self.api).write_array_entry_begin)(transmute(self.api));
         }
     }
 
-    pub fn write_array_entry_end(&mut self) {
+    pub fn array_entry_end(&mut self) {
         unsafe {
             ((*self.api).write_array_entry_end)(transmute(self.api));
         }
     }
 
-    pub fn write_s8(&mut self, id: &str, v: i8) {
-        let s = CString::new(id).unwrap();
-        unsafe {
-            ((*self.api).write_s8)(transmute(self.api), s.as_ptr(), v);
-        }
-    }
-
-    pub fn write_u8(&mut self, id: &str, v: u8) {
-        let s = CString::new(id).unwrap();
-        unsafe {
-            ((*self.api).write_u8)(transmute(self.api), s.as_ptr(), v);
-        }
-    }
-
-    pub fn write_s16(&mut self, id: &str, v: i16) {
-        let s = CString::new(id).unwrap();
-        unsafe {
-            ((*self.api).write_s16)(transmute(self.api), s.as_ptr(), v);
-        }
-    }
-
-    pub fn write_u16(&mut self, id: &str, v: u16) {
-        let s = CString::new(id).unwrap();
-        unsafe {
-            ((*self.api).write_u16)(transmute(self.api), s.as_ptr(), v);
-        }
-    }
-
-    pub fn write_s32(&mut self, id: &str, v: i32) {
-        let s = CString::new(id).unwrap();
-        unsafe {
-            ((*self.api).write_s32)(transmute(self.api), s.as_ptr(), v);
-        }
-    }
-
-    pub fn write_u32(&mut self, id: &str, v: u32) {
-        let s = CString::new(id).unwrap();
-        unsafe {
-            ((*self.api).write_u32)(transmute(self.api), s.as_ptr(), v);
-        }
-    }
-
-    pub fn write_s64(&mut self, id: &str, v: i64) {
-        let s = CString::new(id).unwrap();
-        unsafe {
-            ((*self.api).write_s64)(transmute(self.api), s.as_ptr(), v);
-        }
-    }
-
-    pub fn write_u64(&mut self, id: &str, v: u64) {
-        let s = CString::new(id).unwrap();
-        unsafe {
-            ((*self.api).write_u64)(transmute(self.api), s.as_ptr(), v);
-        }
-    }
-
-    pub fn write_float(&mut self, id: &str, v: f32) {
-        let s = CString::new(id).unwrap();
-        unsafe {
-            ((*self.api).write_float)(transmute(self.api), s.as_ptr(), v);
-        }
-    }
-
-    pub fn write_double(&mut self, id: &str, v: f64) {
-        let s = CString::new(id).unwrap();
-        unsafe {
-            ((*self.api).write_double)(transmute(self.api), s.as_ptr(), v);
-        }
-    }
+    write_fun!(write_s8, i8);
+    write_fun!(write_u8, u8);
+    write_fun!(write_s16, i16);
+    write_fun!(write_u16, u16);
+    write_fun!(write_s32, i32);
+    write_fun!(write_u32, u32);
+    write_fun!(write_s64, i64);
+    write_fun!(write_u64, u64);
+    write_fun!(write_float, f32);
+    write_fun!(write_double, f64);
 
     pub fn write_string(&mut self, id: &str, v: &str) {
         let id_s = CString::new(id).unwrap();
