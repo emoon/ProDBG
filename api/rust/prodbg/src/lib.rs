@@ -1,9 +1,14 @@
 extern crate libc;
 
+#[macro_use] 
+extern crate bitflags;
+
 pub mod read_write;
 pub mod backend;
 pub mod plugin_handler;
 pub mod service;
+pub mod message_service;
+pub mod capstone_service;
 
 pub use backend::*;
 pub use read_write::*;

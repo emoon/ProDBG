@@ -1,19 +1,12 @@
 use libc::{c_char, c_void};
 use std::ffi::CString;
-
-pub enum ServiceType {
-    Message1,
-    Capstone1,
-
-    Message = Message1,
-    Capstone = Capstone1,
-}
+use Capstone;
 
 #[repr(C)]
-struct CMessageFuncs1
-	info: extern "C" fn(title: *const c_char, message: *const c_char);
-	error: extern "C" fn(title: *const c_char, message: *const c_char);
-	warning: extern "C" fn(title: *const c_char, message: *const c_char);
+struct CMessageFuncs1 {
+	info: extern "C" fn(title: *const c_char, message: *const c_char),
+	error: extern "C" fn(title: *const c_char, message: *const c_char),
+	warning: extern "C" fn(title: *const c_char, message: *const c_char),
 }
 
 pub struct MessageFunc {
@@ -43,12 +36,21 @@ pub struct Service {
 }
 
 impl Service {
-    // TODO: Handle different versions here
-    get_messages(&self,  _: ServiceType) -> Messages {
+    // TODO: Handle different versions
+
+    pub fn get_messages(&self) -> Message {
         unsafe {
             let api: &mut CMessageFuncs1 = &mut *((*self.service_func)(b"Dialogs 1") 
                                                   as *mut CMessageFuncs1);
             Message { api: CMessageFuncs1 }
+        }
+    }
+
+    pub fn get_capstone(&self) -> Capstone {
+        unsafe {
+            let api: &mut CCapstone1 = &mut *((*self.service_func)(b"Capstone Service 1") 
+                                                  as *mut Capstone1);
+            Capstone { api: CCapstone1 }
         }
     }
 }
