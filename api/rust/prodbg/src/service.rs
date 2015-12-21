@@ -20,28 +20,22 @@ pub struct MessageFunc {
     pub api: *mut CMessageFuncs1,
 }
 
+macro_rules! message_fun {
+    ($name:ident) => {
+        pub fn $name(&mut self, title: &str, message: &str) {
+            let ts = CString::new(title).unwrap();
+            let ms = CString::new(message).unwrap();
+            unsafe {
+                ((*self.api).$name)(ts.as_ptr(), ms.as_ptr());
+            }
+        }
+    }
+}
+
 impl Message {
-    pub fn info(&mut self, title: &str, message: &str) {
-        let ts = CString::new(title).unwrap();
-        let ms = CString::new(message).unwrap();
-        unsafe {
-            ((*self.api).info)(ts.as_ptr(), ms.as_ptr());
-        }
-    }
-    pub fn error(&mut self, title: &str, message: &str) {
-        let ts = CString::new(title).unwrap();
-        let ms = CString::new(message).unwrap();
-        unsafe {
-            ((*self.api).error)(ts.as_ptr(), ms.as_ptr());
-        }
-    }
-    pub fn warning(&mut self, title: &str, message: &str) {
-        let ts = CString::new(title).unwrap();
-        let ms = CString::new(message).unwrap();
-        unsafe {
-            ((*self.warning).error)(ts.as_ptr(), ms.as_ptr());
-        }
-    }
+    message_fun!(info);
+    message_fun!(error);
+    message_fun!(warning);
 }
 
 pub struct Service {
@@ -50,7 +44,7 @@ pub struct Service {
 
 impl Service {
     // TODO: Handle different versions here
-    get_messages(&self _: ServiceType) -> Messages {
+    get_messages(&self,  _: ServiceType) -> Messages {
         unsafe {
             let api: &mut CMessageFuncs1 = &mut *((*self.service_func)(b"Dialogs 1") 
                                                   as *mut CMessageFuncs1);
