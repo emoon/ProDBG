@@ -27,6 +27,7 @@ struct CCapstone1 {
     close: extern "C" fn(handle: *mut csh) -> cs_err,
     option: extern "C" fn(handle: csh, _type: cs_opt_type, value: size_t) -> cs_err,
     err: extern "C" fn(handle: csh) -> cs_err,
+    errno: extern "C" fn(handle: csh) -> cs_err,
     disasm: extern "C" fn(handle: csh, code: *const u8, code_size: size_t, address: u64, count: size_t, insn: *mut *mut cs_insn) -> size_t,
     /*
      To be implemented
@@ -116,18 +117,51 @@ pub struct Capstone {
 
 
 impl Capstone {
-    pub fn open(&mut self, arch: Arch, mode: Mode) -> CsErr {
+    pub fn open(&mut self, arch: Arch, mode: Mode) -> Result<(), Error> {
         let mut handle : *const c_void = 0 as *const c_void;
         unsafe {
-            let err: Error = ((*self.api).open)(arch as c_int, mode.bits as c_int, &mut handle) as Error;
-            self.handle = handle;
-            err
+            match ((*self.api).open)(arch as c_int, mode.bits as c_int, &mut handle) {
+                0 => Ok(),
+                e => Err(e as Error),
+            }
         }
     }
 
+    pub fn set_option(&self, option: Opt, value: usize) -> Result<(), Error> {
+        unsafe {
+            match ((*self.api).option)(self.handle, option as c_int, value as size_t) {
+                0 => Ok(()),
+                e => Err(e as Error),
+            }
+        }
+    }
 
-    
+    // This code has largly been taken from https://github.com/ebfe/rust-capstone/blob/master/src/lib.rs#L104
+    // It does lots of allocations which I don't like
+    // It would be better to just wrap the pointer within a struct and have a iterator
+    // implemented to get the next one which can just point to the data instead
 
-
+    pub fn disasm(&self, code: &[u8], addr: u64, count: usize) -> Result<Vec<Insn>, Error> {
+        unsafe {
+            let mut cinsnptr : *mut ll::cs_insn = 0 as *mut ll::cs_insn;
+            match ((*self.api).disasm)(self.handle, code.as_ptr(), code.len() as size_t, addr, count as size_t, &mut cinsnptr) {
+                0 => Err((*self.api).errno(self.handle) as Error),
+                n => {
+                    let mut v = Vec::new();
+                    let cinsn : &[ll::cs_insn] = std::slice::from_raw_parts(cinsnptr, n as usize);
+                    v.extend(cinsn.iter().map(|ci| {
+                        Insn {
+                            addr: ci.address,
+                            bytes: (0..ci.size as usize).map(|i| ci.bytes[i]).collect(),
+                            mnemonic: from_utf8(CStr::from_ptr(ci.mnemonic.as_ptr() as *const i8).to_bytes()).unwrap_or("<invalid utf8>").to_string(),
+                            op_str: from_utf8(CStr::from_ptr(ci.op_str.as_ptr() as *const i8).to_bytes()).unwrap_or("<invalid utf8>").to_string(),
+                        }
+                    }));
+                    ll::cs_free(cinsnptr, n);
+                    Ok(v)
+                },
+            }
+        }
+    }
 }
 
