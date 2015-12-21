@@ -28,8 +28,9 @@
 
 #ifdef _WIN32
 #include <Windows.h>
-#include <bgfxplatform.h>
 #endif
+
+#include <bgfxplatform.h>
 
 struct ImGuiWindow;
 
@@ -2304,6 +2305,8 @@ void BgfxPluginUI::create(void* windowHandle, int width, int height) {
 
 #ifdef PRODBG_WIN
     bgfx::winSetHwnd((HWND)windowHandle);
+#elif PRODBG_MAC
+    bgfx::osxSetNSWindow(windowHandle);
 #endif
     bgfx::init();
     bgfx::reset((uint32_t)width, (uint32_t)height);
