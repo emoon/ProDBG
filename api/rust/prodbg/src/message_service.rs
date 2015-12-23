@@ -1,11 +1,11 @@
-use libc::{c_char};
+use libc::c_char;
 use std::ffi::CString;
 
 #[repr(C)]
 pub struct CMessageFuncs1 {
-	info: extern "C" fn(title: *const c_char, message: *const c_char),
-	error: extern "C" fn(title: *const c_char, message: *const c_char),
-	warning: extern "C" fn(title: *const c_char, message: *const c_char),
+    info: extern "C" fn(title: *const c_char, message: *const c_char),
+    error: extern "C" fn(title: *const c_char, message: *const c_char),
+    warning: extern "C" fn(title: *const c_char, message: *const c_char),
 }
 
 pub struct Messages {
@@ -29,5 +29,3 @@ impl Messages {
     message_fun!(error);
     message_fun!(warning);
 }
-
-

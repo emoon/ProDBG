@@ -3,9 +3,9 @@ use std::ffi::CString;
 
 #[repr(C)]
 pub struct CDialogFuncs1 {
-	open_file: extern "C" fn(dest: *const c_char) -> c_int,
-	save_file: extern "C" fn(dest: *const c_char) -> c_int,
-	select_directory: extern "C" fn(dest: *const c_char) -> c_int,
+    open_file: extern "C" fn(dest: *const c_char) -> c_int,
+    save_file: extern "C" fn(dest: *const c_char) -> c_int,
+    select_directory: extern "C" fn(dest: *const c_char) -> c_int,
 }
 
 pub struct Dialogs {
@@ -28,6 +28,3 @@ impl Dialogs {
     dialog_fun!(save_file);
     dialog_fun!(select_directory);
 }
-
-
-

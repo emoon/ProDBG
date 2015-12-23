@@ -32,7 +32,6 @@ pub struct CCapstone1 {
                           insn: &mut *const Insn)
                           -> size_t,
     free: extern "C" fn(insn: *const Insn, count: size_t),
-
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -131,7 +130,7 @@ impl Capstone {
                     self.handle = handle;
                     Ok(())
                 }
-                e => { 
+                e => {
                     let err: Error = transmute(e);
                     Err(err)
                 }
@@ -143,7 +142,7 @@ impl Capstone {
         unsafe {
             match ((*self.api).option)(self.handle, option as c_int, value as size_t) {
                 0 => Ok(()),
-                e => { 
+                e => {
                     let err: Error = transmute(e);
                     Err(err)
                 }
@@ -156,11 +155,11 @@ impl Capstone {
         let insn_count;
         unsafe {
             insn_count = ((*self.api).disasm)(self.handle,
-                      code.as_ptr(),
-                      code.len() as size_t,
-                      addr,
-                      count as size_t,
-                      &mut ptr) as isize;
+                                              code.as_ptr(),
+                                              code.len() as size_t,
+                                              addr,
+                                              count as size_t,
+                                              &mut ptr) as isize;
         }
 
         if insn_count == 0 {

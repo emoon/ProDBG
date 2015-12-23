@@ -13,13 +13,21 @@ pub trait Backend {
 #[repr(C)]
 pub struct CBackendCallbacks {
     pub name: *const c_uchar,
-    pub create_instance: Option<fn(service_func: extern "C" fn(service: *const c_uchar) -> *mut c_void) -> *mut c_void>,
+    pub create_instance: Option<fn(service_func: extern "C" fn(service: *const c_uchar)
+                                                               -> *mut c_void)
+                                   -> *mut c_void>,
     pub destroy_instance: Option<fn(*mut c_void)>,
     pub register_menu: Option<fn() -> *mut c_void>,
-    pub update: Option<fn(ptr: *mut c_void, a: *mut c_int, ra: *mut c_void, wa: *mut c_void)>,
+    pub update: Option<fn(ptr: *mut c_void,
+                          a: *mut c_int,
+                          ra: *mut c_void,
+                          wa: *mut c_void)
+                         >,
 }
 
-pub fn create_backend_instance<T: Backend>(service_func: extern "C" fn(service: *const c_uchar) -> *mut c_void) -> *mut c_void {
+pub fn create_backend_instance<T: Backend>(service_func: extern "C" fn(service: *const c_uchar)
+                                                                       -> *mut c_void)
+                                           -> *mut c_void {
     let service = Service { service_func: service_func };
     let instance = unsafe { transmute(Box::new(T::new(&service))) };
     println!("Lets create instance!");
