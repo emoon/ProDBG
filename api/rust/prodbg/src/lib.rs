@@ -14,4 +14,5 @@ pub use backend::*;
 pub use read_write::*;
 pub use plugin_handler::*; 
 pub use service::*; 
+pub use message_service::*;
 

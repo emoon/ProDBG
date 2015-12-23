@@ -1,13 +1,14 @@
-use libc::{c_char, c_void};
+use libc::{c_char};
+use std::ffi::CString;
 
 #[repr(C)]
-struct CMessageFuncs1 {
+pub struct CMessageFuncs1 {
 	info: extern "C" fn(title: *const c_char, message: *const c_char),
 	error: extern "C" fn(title: *const c_char, message: *const c_char),
 	warning: extern "C" fn(title: *const c_char, message: *const c_char),
 }
 
-pub struct Message {
+pub struct Messages {
     pub api: *mut CMessageFuncs1,
 }
 
@@ -23,7 +24,7 @@ macro_rules! message_fun {
     }
 }
 
-impl Message {
+impl Messages {
     message_fun!(info);
     message_fun!(error);
     message_fun!(warning);
