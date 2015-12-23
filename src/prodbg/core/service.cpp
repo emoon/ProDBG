@@ -1,4 +1,5 @@
 #include "pd_host.h"
+#include "log.h"
 #include <foundation/array.h>
 #include <foundation/string.h>
 
@@ -49,6 +50,8 @@ void* Service_getService(const char* ident) {
         if (string_equal(s_serviceData[i].identifer, ident))
             return s_serviceData[i].funcs;
     }
+
+    pd_error("Unable to get service %s\n", ident);
 
     return 0;
 }
