@@ -40,6 +40,36 @@ impl MyBackend {
         writer.event_end();
     }
 
+    fn test_read_data(&mut self, reader: &mut Reader) {
+        while let Some(e) = reader.get_event() {
+            assert!(e == 3);
+
+            // so while unwrapping here might not be very nice
+            // this is actually ok in this case because a painc
+            // will tell us that something is wrong and fail the
+            // test case
+            
+            assert!(reader.find_s8("my_s8").ok().unwrap() == -2i8);
+            assert!(reader.find_s8("my_s8").ok().unwrap() == -2);
+            assert!(reader.find_u8("my_u8").ok().unwrap() == 3);
+
+            assert!(reader.find_s16("my_s16").ok().unwrap() == -2000);
+            assert!(reader.find_u16("my_u16").ok().unwrap() == 56);
+
+            assert!(reader.find_s32("my_s32").ok().unwrap() == -300000);
+            assert!(reader.find_u32("my_u32").ok().unwrap() == 4000000);
+
+            assert!(reader.find_s64("my_s64").ok().unwrap() == -1400000);
+            assert!(reader.find_u64("my_u64").ok().unwrap() == 6000000);
+
+            assert!(reader.find_float("my_float").ok().unwrap() == 14.0);
+            assert!(reader.find_float("my_float2").ok().unwrap() == -24.0);
+
+            assert!(reader.find_double("my_double").ok().unwrap() == 23.0);
+            assert!(reader.find_double("my_double2").ok().unwrap() == 63.0);
+        }
+    }
+
     fn test_capstone(&mut self) {
         match self.capstone.open(Arch::X86, MODE_64) {
             Err(e) => {
@@ -70,11 +100,13 @@ impl Backend for MyBackend {
     }
 
     // fn update(&mut self, reader: &prodbg::Reader)
-    fn update(&mut self, _: &mut Reader, writer: &mut Writer) {
+    // TODO: Something about action action as i32
+    fn update(&mut self, _: i32, reader: &mut Reader, writer: &mut Writer) {
         println!("running update");
         match self.current_test {
             0 => Self::write_all_types(self, writer),
-            1 => Self::test_capstone(self),
+            1 => Self::test_read_data(self, reader),
+            2 => Self::test_capstone(self),
             _ => (),
         }
 
