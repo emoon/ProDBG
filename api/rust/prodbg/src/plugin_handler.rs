@@ -6,14 +6,14 @@ use std::ffi::CString;
 #[repr(C)]
 pub struct PluginHandler {
     pub private_data: *mut c_void,
-    pub c_register_plugin: extern "C" fn(pt: *const c_char, plugin: *mut c_void, priv_data: *mut c_void),
+    pub c_register_plugin: extern "C" fn(pt: *const c_char, plugin: *mut c_void, size: c_int, priv_data: *mut c_void),
 }
 
 impl PluginHandler {
     pub fn register(&self, plugin_type: &str, plugin: &mut CBackendCallbacks) {
         unsafe {
             let s = CString::new(plugin_type).unwrap();
-            (self.c_register_plugin)(s.as_ptr(), transmute(plugin), (self.private_data));
+            (self.c_register_plugin)(s.as_ptr(), transmute(plugin), ::std::mem::size_of::<CBackendCallbacks>() as c_int, (self.private_data));
         }
     }
 }
@@ -26,7 +26,7 @@ extern {
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "C" fn InitPlugin(cb: extern "C" fn(pt: *const c_char, plugin: *mut c_void, data: *mut c_void),
+pub extern "C" fn InitPlugin(cb: extern "C" fn(pt: *const c_char, plugin: *mut c_void, size: c_int, data: *mut c_void),
                              priv_data: *mut c_void) {
     let mut plugin_handler = PluginHandler {
         private_data: priv_data,

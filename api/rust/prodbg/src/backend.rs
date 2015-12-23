@@ -7,7 +7,7 @@ pub static API_VERSION: &'static str = "ProDBG Backend 1";
 
 pub trait Backend {
     fn new(service: &Service) -> Self;
-    fn update(&mut self, reader: &mut Reader, writer: &mut Writer);
+    fn update(&mut self, action: i32, reader: &mut Reader, writer: &mut Writer);
 }
 
 #[repr(C)]
@@ -33,7 +33,7 @@ pub fn destroy_backend_instance<T: Backend>(ptr: *mut c_void) {
 }
 
 pub fn update_backend_instance<T: Backend>(ptr: *mut c_void,
-                                           _: *mut c_int,
+                                           action: *mut c_int,
                                            reader_api: *mut c_void,
                                            writer_api: *mut c_void) {
     let backend: &mut T = unsafe { &mut *(ptr as *mut T) };
@@ -48,7 +48,7 @@ pub fn update_backend_instance<T: Backend>(ptr: *mut c_void,
 
     println!("writer.api {:?}", writer.api);
 
-    backend.update(&mut reader, &mut writer);
+    backend.update(action as i32, &mut reader, &mut writer);
 }
 
 #[macro_export]

@@ -167,6 +167,17 @@ impl Reader {
         };
     }
 
+    pub fn get_event(&self) -> Option<i32> {
+        let event_id = unsafe {
+            ((*self.api).read_get_event)(transmute(self.api)) as i32
+        };
+
+        match event_id {
+            0 => None,
+            e => Some(e),
+        }
+    }
+
     find_fun!(read_find_s8, find_s8, i8);
     find_fun!(read_find_u8, find_u8, u8);
     find_fun!(read_find_s16, find_s16, i16);
