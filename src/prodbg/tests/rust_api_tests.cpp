@@ -9,6 +9,7 @@
 #include "core/file.h"
 #include "core/file_monitor.h"
 #include "core/log.h"
+#include "core/capstone_service.h"
 #include "core/plugin_handler.h"
 #include "core/settings.h"
 #include "api/src/remote/pd_readwrite_private.h"
@@ -141,14 +142,22 @@ void test_rust_write_all(void**) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void test_capstone(void**) {
+	Session_update(s_session);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main() {
     log_set_level(LOG_DEBUG);
     Core_init();
+    CapstoneService_init();
 
     const UnitTest tests[] = {
         unit_test(test_rust_init),
         unit_test(test_rust_init_instance),
         unit_test(test_rust_write_all),
+        unit_test(test_capstone),
     };
 
     return run_tests(tests);

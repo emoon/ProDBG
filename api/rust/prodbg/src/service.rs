@@ -14,14 +14,14 @@ impl Service {
 
     pub fn get_messages(&self) -> Messages {
         unsafe {
-            let api: &mut CMessageFuncs1 = transmute(((*self).service_func)(b"Dialogs 1".as_ptr()));
+            let api: &mut CMessageFuncs1 = transmute(((*self).service_func)(b"Dialogs 1\0".as_ptr()));
             Messages { api: api }
         }
     }
 
     pub fn get_capstone(&self) -> Capstone {
         unsafe {
-            let api: &mut CCapstone1  = transmute(((*self).service_func)(b"Capstone Service 1".as_ptr()));
+            let api: &mut CCapstone1  = transmute(((*self).service_func)(b"Capstone Service 1\0".as_ptr()));
             Capstone {
                 api: api,
                 handle: ::std::ptr::null(),

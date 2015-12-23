@@ -3,7 +3,10 @@ extern crate prodbg;
 
 use prodbg::*;
 
+static CODE: &'static [u8] = b"\x55\x48\x8b\x05\xb8\x13\x00\x00";
+
 struct MyBackend {
+    capstone: Capstone,
     current_test: u32,
 }
 
@@ -36,11 +39,34 @@ impl MyBackend {
 
         writer.event_end();
     }
+
+    fn test_capstone(&mut self) {
+        match self.capstone.open(Arch::X86, MODE_64) {
+            Err(e) => {
+                println!("Unable to open Capstone {}", e as i32);
+                return;
+            }
+            _ => (),
+        }
+
+        if let Ok(insns) = self.capstone.disasm(CODE, 0x1000, 0) {
+            println!("Got {} instructions", insns.len());
+
+            for i in insns.iter() {
+                println!("{:?}", i);
+            }
+        } else {
+            println!("No instructions :(");
+        }
+    }
 }
 
 impl Backend for MyBackend {
-    fn new(_: &Service) -> Self {
-        MyBackend { current_test: 0 }
+    fn new(service: &Service) -> Self {
+        MyBackend { 
+            capstone: service.get_capstone(),
+            current_test: 0 
+        }
     }
 
     // fn update(&mut self, reader: &prodbg::Reader)
@@ -48,8 +74,11 @@ impl Backend for MyBackend {
         println!("running update");
         match self.current_test {
             0 => Self::write_all_types(self, writer),
+            1 => Self::test_capstone(self),
             _ => (),
         }
+
+        self.current_test += 1;
     }
 }
 
