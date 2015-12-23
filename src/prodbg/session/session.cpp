@@ -446,8 +446,12 @@ static void updateLocal(Session* s, PDAction action) {
     PDBinaryReader_initStream(s->reader, PDBinaryWriter_getData(s->prevWriter), reqDataSize);
     PDBinaryWriter_reset(s->currentWriter);
 
+    printf("\nsession update....\n");
+
     if (backend) {
-        s->state = backend->plugin->update(backend->userData, action, s->reader, s->currentWriter);
+    	PDBackendPlugin* plugin = backend->plugin;
+    	printf("backend %p -> plugin -> destroy_backend %p\n", backend, plugin->destroy_instance);
+        s->state = plugin->update(backend->userData, action, s->reader, s->currentWriter);
         if (g_pluginUI)
             g_pluginUI->setStatusText("%s Backend: %s", backend->plugin->name, getStateName(s->state));
     }

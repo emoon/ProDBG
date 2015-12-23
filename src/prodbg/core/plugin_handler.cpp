@@ -182,8 +182,10 @@ struct PluginPrivateData {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void registerPlugin(const char* type, void* plugin, void* private_data) {
+static void registerPlugin(const char* type, void* plugin, int pluginSize, void* private_data) {
     PluginPrivateData* priv_data= (PluginPrivateData*)private_data;
+
+    (void)pluginSize;
 
     const char* filename = priv_data->name;
 
@@ -193,13 +195,19 @@ static void registerPlugin(const char* type, void* plugin, void* private_data) {
             if (findPlugin(s_plugins[i], filename, plugin_name)) 
                 return;
 
+			// In order to support plugins being created in a dynamic fashion we take a copy of the instance
+			// here but the the functions that gets called internally for the plugin is always staic
+
+            void* new_plugin = malloc((size_t)pluginSize);
+            memcpy(new_plugin, plugin, (size_t)pluginSize);
+
 			// TODO: Fix this memory leak
 			((PDPluginBase*)plugin)->name = strdup(plugin_name);
 
             // TODO: Verify that we don't add a plugin with the same plugin name in the same plugin
 
             PluginData* pluginData = (PluginData*)alloc_zero(sizeof(PluginData));
-            pluginData->plugin = plugin;
+            pluginData->plugin = new_plugin;
             pluginData->type = type;
             pluginData->filename = filename;
             pluginData->fullFilename = priv_data->fullFilename;

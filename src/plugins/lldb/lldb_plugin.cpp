@@ -814,9 +814,8 @@ extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* private_data)
-{
-    registerPlugin(PD_BACKEND_API_VERSION, &plugin, private_data);
+PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* private_data) {
+    registerPlugin(PD_BACKEND_API_VERSION, &plugin, sizeof(PDBackendPlugin), private_data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
