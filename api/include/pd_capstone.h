@@ -36,6 +36,8 @@ typedef struct PDCapstoneFuncs {
 	cs_err (*err)(csh handle);
 
 	size_t (*disasm)(csh handle, const uint8_t* code, size_t code_size, uint64_t address, size_t count, cs_insn** insn);
+	void (*free)(cs_insn* insn, size_t count);
+
 	bool (*disasm_iter)(csh handle, const uint8_t** code, size_t* size, uint64_t* address, cs_insn* insn);
 
 	const char* (*reg_name)(csh handle, unsigned int regId);
