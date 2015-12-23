@@ -142,7 +142,20 @@ void test_rust_write_all(void**) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_capstone(void**) {
+void test_rust_read(void**) {
+    PDReader* reader = s_session->reader;
+    PDBinaryReader_initStream(reader, PDBinaryWriter_getData(s_session->currentWriter), PDBinaryWriter_getSize(s_session->currentWriter));
+
+	Session_update(s_session);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void test_rust_capstone(void**) {
+
+	// This depends on the data written in the previous function. Here we validate that we can read back the same
+	// data that was written before (and verified by the C code)
+
 	Session_update(s_session);
 }
 
@@ -157,7 +170,8 @@ int main() {
         unit_test(test_rust_init),
         unit_test(test_rust_init_instance),
         unit_test(test_rust_write_all),
-        unit_test(test_capstone),
+        unit_test(test_rust_read),
+        unit_test(test_rust_capstone),
     };
 
     return run_tests(tests);
