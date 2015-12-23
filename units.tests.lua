@@ -47,7 +47,7 @@ end
 
 -----------------------------------------------------------------------------------------------------------------------
 
-local all_depends = { "uv", "api", "core", "stb", "remote_api", "cmocka", "session", "ui", "bgfx", "jansson", "lua", "imgui", "minifb", "scintilla", "tinyxml2", "foundation_lib", "i3wm_docking" }
+local all_depends = { "uv", "api", "core", "stb", "remote_api", "cmocka", "session", "ui", "bgfx", "jansson", "lua", "imgui", "minifb", "scintilla", "tinyxml2", "foundation_lib", "i3wm_docking", "capstone" }
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -61,6 +61,7 @@ Test({ Name = "ui_docking_tests", Source = "src/prodbg/tests/ui_docking_tests.cp
 Test({ Name = "ui_tests", Source = "src/prodbg/tests/ui_tests.cpp", Depends = all_depends})
 Test({ Name = "dbgeng_tests", Source = "src/prodbg/tests/dbgeng_tests.cpp", Depends = all_depends })
 Test({ Name = "c64_vice_tests", Source = "src/prodbg/tests/c64_vice_tests.cpp", Depends = all_depends })
+Test({ Name = "rust_api_tests", Source = "src/prodbg/tests/rust_api_tests.cpp", Depends = all_depends })
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -74,4 +75,5 @@ Default "ui_tests"
 Default "dbgeng_tests"
 Default "c64_vice_tests"
 Default "capstone_tests"
+Default "rust_api_tests"
 

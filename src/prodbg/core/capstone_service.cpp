@@ -18,6 +18,7 @@ static PDCapstoneFuncs g_capstoneService =
     cs_errno,
 
     cs_disasm,
+    cs_free,
     cs_disasm_iter,
 
     cs_reg_name,

@@ -447,7 +447,8 @@ static void updateLocal(Session* s, PDAction action) {
     PDBinaryWriter_reset(s->currentWriter);
 
     if (backend) {
-        s->state = backend->plugin->update(backend->userData, action, s->reader, s->currentWriter);
+    	PDBackendPlugin* plugin = backend->plugin;
+        s->state = plugin->update(backend->userData, action, s->reader, s->currentWriter);
         if (g_pluginUI)
             g_pluginUI->setStatusText("%s Backend: %s", backend->plugin->name, getStateName(s->state));
     }
