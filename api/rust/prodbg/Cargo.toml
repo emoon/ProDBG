@@ -8,4 +8,5 @@ gcc = "0.3.19"
 
 [dependencies]
 libc = "0.1.10"
+bitflags = "0.3"
 

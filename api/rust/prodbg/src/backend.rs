@@ -19,7 +19,7 @@ pub struct CBackendCallbacks {
     pub update: Option<fn(ptr: *mut c_void, a: *mut c_int, ra: *mut c_void, wa: *mut c_void)>,
 }
 
-pub fn create_backend_instance<T: Backend>(service_func: extern "C" fn(service: *const c_char)) -> *mut c_void {
+pub fn create_backend_instance<T: Backend>(service_func: extern "C" fn(service: *const c_uchar) -> *mut c_void) -> *mut c_void {
     let service = Service { service_func: service_func };
     let instance = unsafe { transmute(Box::new(T::new(&service))) };
     println!("Lets create instance!");

@@ -1,45 +1,38 @@
-use libc::{c_char, c_int, c_uint, c_void, size_t};
+use libc::{c_int, c_uint, c_void, size_t};
+use std::fmt::{Debug, Formatter};
 use std::ffi::CStr;
+use std::mem::transmute;
+use std::ptr;
 use std::str::from_utf8;
 
-pub type c_bool = c_int;
-
-pub type csh = *const c_void;
-pub type cs_err = c_int;
-pub type cs_opt_type = c_int;
-
 #[repr(C)]
-pub struct CsInsn {
+pub struct Insn {
     pub id: c_uint,
     pub address: u64,
     pub size: u16,
     pub bytes: [u8; 16],
-    pub mnemonic: [u8; 32],
-    pub op_str: [u8; 160],
+    pub mnemonic: [i8; 32],
+    pub op_str: [i8; 160],
     pub detail: *const c_void,
 }
 
 #[repr(C)]
-struct CCapstone1 {
-    version: extern "C" fn (major: *mut c_int, minor: *mut c_int) -> c_uint,
-    support: extern "C" fn(query: c_int) -> c_bool,
-    open: extern "C" fn(arch: c_int, mode: c_int, handle: *mut csh) -> cs_err,
-    close: extern "C" fn(handle: *mut csh) -> cs_err,
-    option: extern "C" fn(handle: csh, _type: cs_opt_type, value: size_t) -> cs_err,
-    err: extern "C" fn(handle: csh) -> cs_err,
-    errno: extern "C" fn(handle: csh) -> cs_err,
-    disasm: extern "C" fn(handle: csh, code: *const u8, code_size: size_t, address: u64, count: size_t, insn: *mut *mut cs_insn) -> size_t,
-    /*
-     To be implemented
-    dissam_iter: extern "C" fn(handle: csh, reg_id: c_uint) -> *const c_char;
-    reg_name: extern "C" fn(handle: csh, reg_id: c_uint) -> *const c_char;
-    insn_name: extern "C" fn(handle: csh, insn_id: c_uint) -> *const c_char;
-    insn_group: extern "C" fn(handle: csh, insn: *mut cs_insn, group_id: c_uint) -> c_bool;
-    reg_read: extern "C" fn(handle: csh, insn: *mut cs_insn, reg_id: c_uint) -> c_bool;
-    reg_write: extern "C" fn(handle: csh, insn: *mut cs_insn, reg_id: c_uint) -> c_bool;
-    op_count: extern "C" fn(handle: csh, insn: *mut cs_insn, op_type: c_uint) -> c_int;
-    op_index: extern "C" fn(handle: csh, insn: *mut cs_insn, op_type: c_uint, position: c_uint) -> c_int;
-    */
+pub struct CCapstone1 {
+    version: extern "C" fn(major: *mut c_int, minor: *mut c_int) -> c_uint,
+    support: extern "C" fn(query: c_int) -> c_int,
+    open: extern "C" fn(arch: c_int, mode: c_int, handle: *mut *const c_void) -> c_int,
+    close: extern "C" fn(handle: *mut *const c_void) -> c_int,
+    option: extern "C" fn(handle: *const c_void, _type: c_int, value: size_t) -> c_int,
+    err: extern "C" fn(handle: *const c_void) -> c_int,
+    disasm: extern "C" fn(handle: *const c_void,
+                          code: *const u8,
+                          code_size: size_t,
+                          address: u64,
+                          count: size_t,
+                          insn: &mut *const Insn)
+                          -> size_t,
+    free: extern "C" fn(insn: *const Insn, count: size_t),
+
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -87,42 +80,61 @@ bitflags!(
 pub enum Opt {
     Syntax = 1,
     Detail,
-    Mode,
-    // OptMem
+    Mode, // OptMem
 }
 
-enum Error {
-	Ok, // No error: everything was fine
-	Mem, // Out-Of-Memory error: cs_open(), cs_disasm(), cs_disasm_iter()
-	Arch, // Unsupported architecture: cs_open()
-	Handle, // Invalid handle: cs_op_count(), cs_op_index()
-	Csh, // Invalid csh argument: cs_close(), cs_errno(), cs_option()
-	Mode, // Invalid/unsupported mode: cs_open()
-	InvOption, // Invalid/unsupported option: cs_option()
-	Detail, // Information is unavailable because detail option is OFF
-	MemSetup, // Dynamic memory management uninitialized (see CS_OPT_MEM)
-	Version, // Unsupported version (bindings)
-	Diet, // Access irrelevant data in "diet" engine
-	Skipdata, // Access irrelevant data for "data" instruction in SKIPDATA mode
-	Att, // X86 AT&T syntax is unsupported (opt-out at compile time)
-	Intel, // X86 Intel syntax is unsupported (opt-out at compile time)
-	Mask, // X86 Intel syntax is unsupported (opt-out at compile time)
+#[repr(i32)]
+pub enum Error {
+    /// No error: everything was fine
+    Ok,
+    /// Out-Of-Memory error: cs_open(), cs_disasm(), cs_disasm_iter()
+    Mem,
+    /// Unsupported architecture: cs_open()
+    Arch,
+    /// Invalid handle: cs_op_count(), cs_op_index()
+    Handle,
+    /// Invalid csh argument: cs_close(), cs_errno(), cs_option()
+    Csh,
+    /// Invalid/unsupported mode: cs_open()
+    Mode,
+    /// Invalid/unsupported option: cs_option()
+    InvOption,
+    /// Information is unavailable because detail option is OFF
+    Detail,
+    /// Dynamic memory management uninitialized (see CS_OPT_MEM)
+    MemSetup,
+    /// Unsupported version (bindings)
+    Version,
+    /// Access irrelevant data in "diet" engine
+    Diet,
+    /// Access irrelevant data for "data" instruction in SKIPDATA mode
+    Skipdata,
+    /// X86 AT&T syntax is unsupported (opt-out at compile time)
+    Att,
+    /// X86 Intel syntax is unsupported (opt-out at compile time)
+    Intel,
+    /// X86 Intel syntax is unsupported (opt-out at compile time)
+    Mask,
 }
 
 pub struct Capstone {
     pub api: *mut CCapstone1,
-    handle: *const c_void
+    pub handle: *const c_void,
 }
-
-
 
 impl Capstone {
     pub fn open(&mut self, arch: Arch, mode: Mode) -> Result<(), Error> {
-        let mut handle : *const c_void = 0 as *const c_void;
+        let mut handle: *const c_void = 0 as *const c_void;
         unsafe {
             match ((*self.api).open)(arch as c_int, mode.bits as c_int, &mut handle) {
-                0 => Ok(),
-                e => Err(e as Error),
+                0 => {
+                    self.handle = handle;
+                    Ok(())
+                }
+                e => { 
+                    let err: Error = transmute(e);
+                    Err(err)
+                }
             }
         }
     }
@@ -131,37 +143,115 @@ impl Capstone {
         unsafe {
             match ((*self.api).option)(self.handle, option as c_int, value as size_t) {
                 0 => Ok(()),
-                e => Err(e as Error),
+                e => { 
+                    let err: Error = transmute(e);
+                    Err(err)
+                }
             }
         }
     }
 
-    // This code has largly been taken from https://github.com/ebfe/rust-capstone/blob/master/src/lib.rs#L104
-    // It does lots of allocations which I don't like
-    // It would be better to just wrap the pointer within a struct and have a iterator
-    // implemented to get the next one which can just point to the data instead
-
-    pub fn disasm(&self, code: &[u8], addr: u64, count: usize) -> Result<Vec<Insn>, Error> {
+    pub fn disasm(&self, code: &[u8], addr: u64, count: usize) -> Result<Instructions, Error> {
+        let mut ptr: *const Insn = ptr::null();
+        let insn_count;
         unsafe {
-            let mut cinsnptr : *mut ll::cs_insn = 0 as *mut ll::cs_insn;
-            match ((*self.api).disasm)(self.handle, code.as_ptr(), code.len() as size_t, addr, count as size_t, &mut cinsnptr) {
-                0 => Err((*self.api).errno(self.handle) as Error),
-                n => {
-                    let mut v = Vec::new();
-                    let cinsn : &[ll::cs_insn] = std::slice::from_raw_parts(cinsnptr, n as usize);
-                    v.extend(cinsn.iter().map(|ci| {
-                        Insn {
-                            addr: ci.address,
-                            bytes: (0..ci.size as usize).map(|i| ci.bytes[i]).collect(),
-                            mnemonic: from_utf8(CStr::from_ptr(ci.mnemonic.as_ptr() as *const i8).to_bytes()).unwrap_or("<invalid utf8>").to_string(),
-                            op_str: from_utf8(CStr::from_ptr(ci.op_str.as_ptr() as *const i8).to_bytes()).unwrap_or("<invalid utf8>").to_string(),
-                        }
-                    }));
-                    ll::cs_free(cinsnptr, n);
-                    Ok(v)
-                },
+            insn_count = ((*self.api).disasm)(self.handle,
+                      code.as_ptr(),
+                      code.len() as size_t,
+                      addr,
+                      count as size_t,
+                      &mut ptr) as isize;
+        }
+
+        if insn_count == 0 {
+            unsafe {
+                let num = ((*self.api).err)(self.handle);
+                let err: Error = transmute(num);
+                return Err(err);
             }
+        }
+
+        Ok(Instructions::from_raw_parts(self.api, ptr, insn_count as isize))
+    }
+}
+
+// Using an actual slice is causing issues with auto deref, instead implement a custom iterator and
+// drop trait
+pub struct Instructions {
+    pub api: *mut CCapstone1,
+    ptr: *const Insn,
+    len: isize,
+}
+
+impl Instructions {
+    // This method really shouldn't be public, but it was unclear how to make it visible in lib.rs
+    // but not globally visible.
+    fn from_raw_parts(api: *mut CCapstone1, ptr: *const Insn, len: isize) -> Instructions {
+        Instructions {
+            api: api,
+            ptr: ptr,
+            len: len,
+        }
+    }
+
+    pub fn len(&self) -> isize {
+        self.len
+    }
+
+    pub fn iter(&self) -> InstructionIterator {
+        InstructionIterator {
+            insns: &self,
+            cur: 0,
         }
     }
 }
 
+impl Drop for Instructions {
+    fn drop(&mut self) {
+        unsafe {
+            ((*self.api).free)(self.ptr, self.len as size_t);
+        }
+    }
+}
+
+pub struct InstructionIterator<'a> {
+    insns: &'a Instructions,
+    cur: isize,
+}
+
+impl<'a> Iterator for InstructionIterator<'a> {
+    type Item = Insn;
+
+    fn next(&mut self) -> Option<Insn> {
+        if self.cur == self.insns.len {
+            None
+        } else {
+            let obj = unsafe { self.insns.ptr.offset(self.cur) };
+            self.cur += 1;
+            Some(unsafe { ptr::read(obj) })
+        }
+    }
+}
+
+impl Insn {
+    pub fn mnemonic(&self) -> Option<&str> {
+        let cstr = unsafe { CStr::from_ptr(self.mnemonic.as_ptr()) };
+        from_utf8(cstr.to_bytes()).ok()
+    }
+
+    pub fn op_str(&self) -> Option<&str> {
+        let cstr = unsafe { CStr::from_ptr(self.op_str.as_ptr()) };
+        from_utf8(cstr.to_bytes()).ok()
+    }
+}
+
+impl Debug for Insn {
+    fn fmt(&self, fmt: &mut Formatter) -> Result<(), ::std::fmt::Error> {
+        fmt.debug_struct("Insn")
+           .field("address", &self.address)
+           .field("size", &self.size)
+           .field("mnemonic", &self.mnemonic())
+           .field("op_str", &self.op_str())
+           .finish()
+    }
+}
