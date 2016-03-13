@@ -33,6 +33,6 @@ Open a cmd window and first run ```scripts\vcvarsx86_amd64.bat``` and then ```sc
 
 ## Linux
 
-Currently the Linux build isn't supported but the code complies and all unit-tests should be working correctly. To build use scripts/unix_gcc_build_debug.sh libx11-dev libgl1-mesa-dev is required to be installed in order for ProDBG to compile and link.
+Currently the Linux build isn't supported but this is being worked on. 
 
 
