@@ -3,6 +3,7 @@
 
 local mac_opts = {
 	"-Wall",
+	"-Wno-switch-enum",
 	"-I.", "-DPRODBG_MAC", 
 	"-Weverything", "-Werror", 
 	"-Wno-unknown-warning-option",
@@ -30,10 +31,14 @@ local mac_opts = {
 
 local macosx = {
     Env = {
+    	RUST_CARGO_OPTS = { 
+			{ "test"; Config = "*-*-*-test" },
+		},
+
         CCOPTS =  {
 			mac_opts,
 		},
-        
+
         CXXOPTS = {
 			mac_opts,
 			"-std=c++11",
@@ -48,22 +53,6 @@ local macosx = {
     Frameworks = { "Cocoa" },
 }
 
-local macosx_wx = {
-    Env = {
-        CCOPTS =  {
-			mac_opts,
-			"-PRODBG_WX",
-		},
-        
-        CXXOPTS = {
-			mac_opts,
-			"-PRODBG_WX",
-		},
-    },
-
-    Frameworks = { "Cocoa" },
-}
-
 local macosx_test = {
     Env = {
         CCOPTS =  {
@@ -71,7 +60,7 @@ local macosx_test = {
 			"-Wno-everything",
 			"-coverage",
 		},
-        
+
         CXXOPTS = {
 			mac_opts,
 			"-Wno-everything",
@@ -102,6 +91,10 @@ local gcc_opts = {
 
 local gcc_env = {
     Env = {
+    	RUST_CARGO_OPTS = { 
+			{ "test"; Config = "*-*-*-test" },
+		},
+
         CCOPTS = {
 			gcc_opts,
 		},
@@ -131,6 +124,10 @@ local win64_opts = {
 
 local win64 = {
     Env = {
+    	RUST_CARGO_OPTS = { 
+			{ "test"; Config = "*-*-*-test" },
+		},
+
         GENERATE_PDB = "1",
         CCOPTS = {
 			win64_opts,
@@ -160,15 +157,14 @@ Build {
     	"units.misc.lua",
     	"units.plugins.lua",
     	"units.prodbg.lua",
-    	"units.tests.lua",
+    	-- "units.tests.lua",
 	},
 
     Configs = {
-        Config { Name = "macosx-clang", DefaultOnHost = "macosx", Inherit = macosx, Tools = { "clang-osx" } },
-        Config { Name = "macosx_test-clang", SupportedHosts = { "macosx" }, Inherit = macosx_test, Tools = { "clang-osx" } },
-        Config { Name = "macosx_wx-clang", SupportedHosts = { "macosx" }, Inherit = macosx_test, Tools = { "clang-osx" } },
-        Config { Name = "win64-msvc", DefaultOnHost = { "windows" }, Inherit = win64, Tools = { { "msvc" }, "generic-asm" } },
-        Config { Name = "linux-gcc", DefaultOnHost = { "linux" }, Inherit = gcc_env, Tools = { "gcc" } },
+        Config { Name = "macosx-clang", DefaultOnHost = "macosx", Inherit = macosx, Tools = { "clang-osx", "rust" } },
+        Config { Name = "macosx_test-clang", SupportedHosts = { "macosx" }, Inherit = macosx_test, Tools = { "clang-osx", "rust" } },
+        Config { Name = "win64-msvc", DefaultOnHost = { "windows" }, Inherit = win64, Tools = { { "msvc", "rust" }, "generic-asm" } },
+        Config { Name = "linux-gcc", DefaultOnHost = { "linux" }, Inherit = gcc_env, Tools = { "gcc", "rust" } },
     },
 
     IdeGenerationHints = {
@@ -189,5 +185,7 @@ Build {
 		},
             
     },
-    
+	
+	Variants = { "debug", "release" },
+	SubVariants = { "default", "test" },
 }

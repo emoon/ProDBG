@@ -4,8 +4,8 @@ require "tundra.util"
 local native = require('tundra.native')
 local path = require('tundra.path')
 
-local BX_DIR = "src/external/bx/"
-local BGFX_DIR = "src/external/bgfx/"
+local BX_DIR = "src/native/external/bx/"
+local BGFX_DIR = "src/native/external/bgfx/"
 local GLSL_OPTIMIZER = BGFX_DIR  .. "3rdparty/glsl-optimizer/"
 local FCPP_DIR = BGFX_DIR .. "3rdparty/fcpp/"
 
@@ -135,6 +135,8 @@ Program {
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Tools" } },
 }
+
+-----------------------------------------------------------------------------------------------------------------------
 
 Default "bgfx_shaderc"
 

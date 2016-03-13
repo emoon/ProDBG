@@ -1,5 +1,5 @@
 [package]
-name = "prodbg"
+name = "prodbg_api"
 version = "0.1.0"
 authors = ["Daniel Collin <daniel@collin.com>"]
 
@@ -7,6 +7,6 @@ authors = ["Daniel Collin <daniel@collin.com>"]
 gcc = "0.3.19"
 
 [dependencies]
-libc = "0.1.10"
+libc = "0.2"
 bitflags = "0.3"
 

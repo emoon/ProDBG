@@ -14,7 +14,7 @@ extern "C" {
     \param serviceName The name of the requested service. It's *highly* recommended to use the defines for the wanted service.
  */
 typedef void* ServiceFunc(const char* service_name);
-typedef void RegisterPlugin(const char* type, void* data, int size, void* private_data);
+typedef void RegisterPlugin(const char* type, void* data, void* private_data);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

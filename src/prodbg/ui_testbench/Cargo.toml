@@ -1,0 +1,14 @@
+[package]
+name = "ui_testbench"
+version = "0.1.0"
+authors = ["Daniel Collin <daniel@collin.com>"]
+
+build = "../build.rs"
+
+[dependencies]
+libc = "0.2.0"
+minifb = "0.5.*"
+lazy_static = "0.1.*"
+core = { path = "../core" }
+prodbg_api = { path = "../../../api/rust/prodbg" }
+

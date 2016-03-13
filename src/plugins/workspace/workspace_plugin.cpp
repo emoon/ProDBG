@@ -3,6 +3,7 @@
 #include "pd_host.h"
 #include <stdlib.h>
 #include <stdio.h>
+//#include <foundation/apple.h>
 #include <foundation/foundation.h>
 #include <foundation/string.h>
 #include <assert.h>
@@ -234,7 +235,7 @@ int main(int, char**) { return 0; }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* private_data) {
-	registerPlugin(PD_VIEW_API_VERSION, &plugin, sizeof(PDViewPlugin), private_data);
+	registerPlugin(PD_VIEW_API_VERSION, &plugin, private_data);
 }
 
 }

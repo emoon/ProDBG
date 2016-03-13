@@ -61,8 +61,8 @@ Program {
     Name = "as_game",
     Env = {
 		CPPPATH = {
-			"src/external/angelscript/angelscript/include",
-			"src/external/angelscript",
+			"src/native/external/angelscript/angelscript/include",
+			"src/native/external/angelscript",
 			"src/addons/as_debugger",
 		},
         CXXOPTS = {

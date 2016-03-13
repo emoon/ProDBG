@@ -31,7 +31,7 @@ StaticLibrary {
 
     Sources = { 
         Glob {
-            Dir = "src/external/stb",
+            Dir = "src/native/external/stb",
             Extensions = { ".c", ".h" },
         },
     },
@@ -53,7 +53,7 @@ StaticLibrary {
 
     Sources = { 
         Glob {
-            Dir = "src/external/remotery/lib",
+            Dir = "src/native/external/remotery/lib",
             Extensions = { ".c", ".h" },
         },
     },
@@ -75,35 +75,8 @@ StaticLibrary {
 
     Sources = { 
         Glob {
-            Dir = "src/external/tinyxml2",
+            Dir = "src/native/external/tinyxml2",
             Extensions = { ".cpp", ".h" },
-        },
-    },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-StaticLibrary {
-    Name = "i3wm_docking",
-
-    Env = { 
-        CPPPATH = { 
-			"src/external/jansson/include",
-            "src/external/i3wm_docking/include",
-        },
-        CCOPTS = {
-        	{ "-Wno-everything", "-std=c99"; Config = { "macosx-*-*", "macosx_test-*" } },
-        	{ "-std=c99"; Config = "linux-*-*" },
-        	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
-        },
-    },
-
-    Sources = { 
-        Glob {
-            Dir = "src/external/i3wm_docking/src",
-            Extensions = { ".c", ".h" },
         },
     },
 
@@ -117,7 +90,7 @@ StaticLibrary {
 
     Env = { 
 		CPPPATH = { 
-			"src/external/jansson/include",
+			"src/native/external/jansson/include",
 		},
 
         CCOPTS = {
@@ -128,7 +101,7 @@ StaticLibrary {
 
     Sources = { 
         Glob {
-            Dir = "src/external/jansson/src",
+            Dir = "src/native/external/jansson/src",
             Extensions = { ".c", ".h" },
         },
     },
@@ -143,7 +116,7 @@ StaticLibrary {
 
     Env = { 
         CPPPATH = { 
-            "src/external/lua/src",
+            "src/native/external/lua/src",
         },
 
         CCOPTS = {
@@ -154,7 +127,7 @@ StaticLibrary {
 
     Sources = { 
         Glob {
-            Dir = "src/external/lua/src",
+            Dir = "src/native/external/lua/src",
             Extensions = { ".c", ".h", ".hpp" },
         },
     },
@@ -169,7 +142,7 @@ StaticLibrary {
 
     Env = { 
 		CPPPATH = { 
-			"src/external/foundation_lib",
+			"src/native/external/foundation_lib",
 		},
 
         CCOPTS = {
@@ -185,7 +158,7 @@ StaticLibrary {
 
     Sources = {
     	FGlob {
-            Dir = "src/external/foundation_lib/foundation",
+            Dir = "src/native/external/foundation_lib/foundation",
 			Extensions = { ".cpp", ".c", ".h", ".s", ".m" },
 			Filters = {
 				{ Pattern = "[/\\]windows[/\\]"; Config = { "win32-*", "win64-*" } },
@@ -203,44 +176,12 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
-    Name = "minifb",
-
-    Env = { 
-		CPPPATH = { 
-			"src/external/minifb/include",
-		},
-
-        CCOPTS = {
-        	{ "-Wno-everything"; Config = { "macosx-*-*", "macosx_test-*" } },
-			{ "-Wno-missing-braces", "-std=c99"; Config = { "macosx-*-*", "macosx_test-*", "linux-*-*" } },
-        	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
-        },
-    },
-
-   Sources = FGlob {
-		Dir = "src/external/minifb/src",
-		Extensions = { ".cpp", ".c", ".h", ".s", ".m" },
-		Filters = {
-			{ Pattern = "[/\\]windows[/\\]"; Config = { "win32-*", "win64-*" } },
-			{ Pattern = "[/\\]macosx[/\\]"; Config = "mac*-*" },
-			{ Pattern = "[/\\]x11[/\\]"; Config = { "linux-*" } },
-		},
-
-		Recursive = true,
-	},
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-StaticLibrary {
     Name = "scintilla",
 
     Env = { 
 		CPPPATH = { 
-			"src/external/scintilla/include",
-			"src/external/scintilla/src/lexlib",
+			"src/native/external/scintilla/include",
+			"src/native/external/scintilla/src/lexlib",
 		},
 
         CXXOPTS = {
@@ -252,7 +193,7 @@ StaticLibrary {
 
     Sources = { 
         Glob {
-            Dir = "src/external/scintilla/src",
+            Dir = "src/native/external/scintilla/src",
             Extensions = { ".cxx", ".h" },
         },
 
@@ -269,8 +210,8 @@ StaticLibrary {
 
     Env = { 
 		CPPPATH = { 
-			"src/external/libuv/include",
-			"src/external/libuv/src",
+			"src/native/external/libuv/include",
+			"src/native/external/libuv/src",
 		},
 
         CCOPTS = {
@@ -286,7 +227,7 @@ StaticLibrary {
     	-- general 
     	
     	{ Glob { 
-    		Dir = "src/external/libuv/src", 
+    		Dir = "src/native/external/libuv/src", 
     		Extensions = { ".c", ".h" },
     		Recursive = false },
     	},
@@ -294,7 +235,7 @@ StaticLibrary {
     	-- Windows
 
     	{ Glob { 
-    		Dir = "src/external/libuv/src/win", 
+    		Dir = "src/native/external/libuv/src/win", 
     		Extensions = { ".c", ".h" },
     		Recursive = false } ; Config = "win64-*-*" 
     	},
@@ -302,7 +243,7 @@ StaticLibrary {
     	-- Unix
     	
     	{ Glob { 
-    		Dir = "src/external/libuv/src/unix", 
+    		Dir = "src/native/external/libuv/src/unix", 
     		Extensions = { ".c", ".h" },
     		Recursive = false } ; Config = { "macosx-*-*", "macosx_test-*", "linux-*-*" }
     	},
@@ -310,17 +251,17 @@ StaticLibrary {
     	-- Mac
 
 		{ 
-		  "src/external/libuv/src/unix/freebsd/kqueue.c",
-		  "src/external/libuv/src/unix/darwin/fsevents.c",
-		  "src/external/libuv/src/unix/darwin/darwin-proctitle.c",
-		  "src/external/libuv/src/unix/darwin/darwin.c" ; Config = { "macosx-*-*", "macosx_test-*" } },
+		  "src/native/external/libuv/src/unix/freebsd/kqueue.c",
+		  "src/native/external/libuv/src/unix/darwin/fsevents.c",
+		  "src/native/external/libuv/src/unix/darwin/darwin-proctitle.c",
+		  "src/native/external/libuv/src/unix/darwin/darwin.c" ; Config = { "macosx-*-*", "macosx_test-*" } },
 
 		-- Linux
 
 		{ 
-		  "src/external/libuv/src/unix/linux/linux-core.c",
-		  "src/external/libuv/src/unix/linux/linux-inotify.c",
-		  "src/external/libuv/src/unix/linux/linux-syscalls.c" ; Config = "linux-*-*" },
+		  "src/native/external/libuv/src/unix/linux/linux-core.c",
+		  "src/native/external/libuv/src/unix/linux/linux-inotify.c",
+		  "src/native/external/libuv/src/unix/linux/linux-syscalls.c" ; Config = "linux-*-*" },
 	},
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
@@ -334,33 +275,33 @@ StaticLibrary {
 
     Env = { 
         CPPPATH = { 
-		  { "src/external/bx/include/compat/msvc"; Config = "win64-*-*" },
-            "src/external/remotery/lib",
-            "src/external/bgfx/include",
-            "src/external/bx/include",
-            "src/external/bgfx/3rdparty/khronos",
+		  { "src/native/external/bx/include/compat/msvc"; Config = "win64-*-*" },
+            "src/native/external/remotery/lib",
+            "src/native/external/bgfx/include",
+            "src/native/external/bx/include",
+            "src/native/external/bgfx/3rdparty/khronos",
         },
         
         CXXOPTS = {
 			{ "-Wno-variadic-macros", "-Wno-everything" ; Config = "macosx-*-*" },
-			{ "/Isrc/external/bx/include/compat/msvc", "/EHsc"; Config = "win64-*-*" },
+			{ "/Isrc/native/external/bx/include/compat/msvc", "/EHsc"; Config = "win64-*-*" },
         },
     },
 
     Sources = { 
-		{ "src/external/bgfx/src/bgfx.cpp",
-		  "src/external/bgfx/src/image.cpp",
-		  "src/external/bgfx/src/vertexdecl.cpp",
-		  "src/external/bgfx/src/renderdoc.cpp",
-		  "src/external/bgfx/src/renderer_gl.cpp",
-		  "src/external/bgfx/src/renderer_vk.cpp",
-		  "src/external/bgfx/src/renderer_null.cpp",
-		  "src/external/bgfx/src/renderer_d3d9.cpp", 
-		  "src/external/bgfx/src/renderer_d3d11.cpp", 
-		  "src/external/bgfx/src/renderer_d3d12.cpp" }, 
-	    { "src/external/bgfx/src/glcontext_wgl.cpp" ; Config = "win64-*-*" },
-	    { "src/external/bgfx/src/glcontext_glx.cpp" ; Config = "linux-*-*" },
-	    { "src/external/bgfx/src/glcontext_nsgl.mm" ; Config = { "macosx-*-*", "macosx_test-*" } },
+		{ "src/native/external/bgfx/src/bgfx.cpp",
+		  "src/native/external/bgfx/src/image.cpp",
+		  "src/native/external/bgfx/src/vertexdecl.cpp",
+		  "src/native/external/bgfx/src/renderdoc.cpp",
+		  "src/native/external/bgfx/src/renderer_gl.cpp",
+		  "src/native/external/bgfx/src/renderer_vk.cpp",
+		  "src/native/external/bgfx/src/renderer_null.cpp",
+		  "src/native/external/bgfx/src/renderer_d3d9.cpp", 
+		  "src/native/external/bgfx/src/renderer_d3d11.cpp", 
+		  "src/native/external/bgfx/src/renderer_d3d12.cpp" }, 
+	    { "src/native/external/bgfx/src/glcontext_wgl.cpp" ; Config = "win64-*-*" },
+	    { "src/native/external/bgfx/src/glcontext_glx.cpp" ; Config = "linux-*-*" },
+	    { "src/native/external/bgfx/src/glcontext_nsgl.mm" ; Config = { "macosx-*-*", "macosx_test-*" } },
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
@@ -373,7 +314,7 @@ StaticLibrary {
 
     Env = { 
         CPPPATH = { 
-            "src/external/cmocka/include",
+            "src/native/external/cmocka/include",
         },
         
         CCOPTS = {
@@ -384,7 +325,7 @@ StaticLibrary {
 
     Sources = { 
         Glob {
-            Dir = "src/external/cmocka/src",
+            Dir = "src/native/external/cmocka/src",
             Extensions = { ".c", ".h" },
         },
     },
@@ -398,14 +339,17 @@ StaticLibrary {
     Name = "imgui",
 
     Env = { 
+        CXXOPTS = {
+        	{ "-Wno-everything"; Config = "macosx-*-*" },
+        },
         CPPPATH = { 
-			"src/external/scintilla/include",
+			"src/native/external/scintilla/include",
         },
     },
 
     Sources = { 
         Glob {
-            Dir = "src/external/imgui",
+            Dir = "src/native/external/imgui",
             Extensions = { ".cpp", ".h" },
         },
     },
@@ -486,7 +430,7 @@ StaticLibrary {
     Env = { 
 		ASMCOM = "ml64.exe /c /Fo$(@) /W3 /Zi /Ta $(<)",
         CPPPATH = { 
-			"src/external/angelscript/angelscript/include",
+			"src/native/external/angelscript/angelscript/include",
         },
         
         CXXOPTS = {
@@ -501,44 +445,44 @@ StaticLibrary {
     },
 
     Sources = { {
-			"src/external/angelscript/angelscript/source/as_atomic.cpp",
-			"src/external/angelscript/angelscript/source/as_builder.cpp",
-			"src/external/angelscript/angelscript/source/as_bytecode.cpp",
-			"src/external/angelscript/angelscript/source/as_callfunc.cpp",
-			"src/external/angelscript/angelscript/source/as_callfunc_x86.cpp",
-			"src/external/angelscript/angelscript/source/as_callfunc_x64_gcc.cpp",
-			"src/external/angelscript/angelscript/source/as_callfunc_x64_msvc.cpp",
-			"src/external/angelscript/angelscript/source/as_callfunc_x64_mingw.cpp",
-			"src/external/angelscript/angelscript/source/as_compiler.cpp",
-			"src/external/angelscript/angelscript/source/as_configgroup.cpp",
-			"src/external/angelscript/angelscript/source/as_context.cpp",
-			"src/external/angelscript/angelscript/source/as_datatype.cpp",
-			"src/external/angelscript/angelscript/source/as_gc.cpp",
-			"src/external/angelscript/angelscript/source/as_generic.cpp",
-			"src/external/angelscript/angelscript/source/as_globalproperty.cpp",
-			"src/external/angelscript/angelscript/source/as_memory.cpp",
-			"src/external/angelscript/angelscript/source/as_module.cpp",
-			"src/external/angelscript/angelscript/source/as_objecttype.cpp",
-			"src/external/angelscript/angelscript/source/as_outputbuffer.cpp",
-			"src/external/angelscript/angelscript/source/as_parser.cpp",
-			"src/external/angelscript/angelscript/source/as_restore.cpp",
-			"src/external/angelscript/angelscript/source/as_scriptcode.cpp",
-			"src/external/angelscript/angelscript/source/as_scriptengine.cpp",
-			"src/external/angelscript/angelscript/source/as_scriptfunction.cpp",
-			"src/external/angelscript/angelscript/source/as_scriptnode.cpp",
-			"src/external/angelscript/angelscript/source/as_scriptobject.cpp",
-			"src/external/angelscript/angelscript/source/as_string.cpp",
-			"src/external/angelscript/angelscript/source/as_string_util.cpp",
-			"src/external/angelscript/angelscript/source/as_thread.cpp",
-			"src/external/angelscript/angelscript/source/as_tokenizer.cpp",
-			"src/external/angelscript/angelscript/source/as_typeinfo.cpp",
-			"src/external/angelscript/angelscript/source/as_variablescope.cpp",
-			"src/external/angelscript/add_on/scriptbuilder/scriptbuilder.cpp",
-			"src/external/angelscript/add_on/scripthandle/scripthandle.cpp",
-			"src/external/angelscript/add_on/scriptstdstring/scriptstdstring.cpp",
-			"src/external/angelscript/add_on/scriptstdstring/scriptstdstring_utils.cpp",
-			"src/external/angelscript/add_on/weakref/weakref.cpp" },
-	      { "src/external/angelscript/angelscript/source/as_callfunc_x64_msvc_asm.asm" ; Config = "win64-*-*" },
+			"src/native/external/angelscript/angelscript/source/as_atomic.cpp",
+			"src/native/external/angelscript/angelscript/source/as_builder.cpp",
+			"src/native/external/angelscript/angelscript/source/as_bytecode.cpp",
+			"src/native/external/angelscript/angelscript/source/as_callfunc.cpp",
+			"src/native/external/angelscript/angelscript/source/as_callfunc_x86.cpp",
+			"src/native/external/angelscript/angelscript/source/as_callfunc_x64_gcc.cpp",
+			"src/native/external/angelscript/angelscript/source/as_callfunc_x64_msvc.cpp",
+			"src/native/external/angelscript/angelscript/source/as_callfunc_x64_mingw.cpp",
+			"src/native/external/angelscript/angelscript/source/as_compiler.cpp",
+			"src/native/external/angelscript/angelscript/source/as_configgroup.cpp",
+			"src/native/external/angelscript/angelscript/source/as_context.cpp",
+			"src/native/external/angelscript/angelscript/source/as_datatype.cpp",
+			"src/native/external/angelscript/angelscript/source/as_gc.cpp",
+			"src/native/external/angelscript/angelscript/source/as_generic.cpp",
+			"src/native/external/angelscript/angelscript/source/as_globalproperty.cpp",
+			"src/native/external/angelscript/angelscript/source/as_memory.cpp",
+			"src/native/external/angelscript/angelscript/source/as_module.cpp",
+			"src/native/external/angelscript/angelscript/source/as_objecttype.cpp",
+			"src/native/external/angelscript/angelscript/source/as_outputbuffer.cpp",
+			"src/native/external/angelscript/angelscript/source/as_parser.cpp",
+			"src/native/external/angelscript/angelscript/source/as_restore.cpp",
+			"src/native/external/angelscript/angelscript/source/as_scriptcode.cpp",
+			"src/native/external/angelscript/angelscript/source/as_scriptengine.cpp",
+			"src/native/external/angelscript/angelscript/source/as_scriptfunction.cpp",
+			"src/native/external/angelscript/angelscript/source/as_scriptnode.cpp",
+			"src/native/external/angelscript/angelscript/source/as_scriptobject.cpp",
+			"src/native/external/angelscript/angelscript/source/as_string.cpp",
+			"src/native/external/angelscript/angelscript/source/as_string_util.cpp",
+			"src/native/external/angelscript/angelscript/source/as_thread.cpp",
+			"src/native/external/angelscript/angelscript/source/as_tokenizer.cpp",
+			"src/native/external/angelscript/angelscript/source/as_typeinfo.cpp",
+			"src/native/external/angelscript/angelscript/source/as_variablescope.cpp",
+			"src/native/external/angelscript/add_on/scriptbuilder/scriptbuilder.cpp",
+			"src/native/external/angelscript/add_on/scripthandle/scripthandle.cpp",
+			"src/native/external/angelscript/add_on/scriptstdstring/scriptstdstring.cpp",
+			"src/native/external/angelscript/add_on/scriptstdstring/scriptstdstring_utils.cpp",
+			"src/native/external/angelscript/add_on/weakref/weakref.cpp" },
+	      { "src/native/external/angelscript/angelscript/source/as_callfunc_x64_msvc_asm.asm" ; Config = "win64-*-*" },
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
@@ -553,7 +497,7 @@ StaticLibrary {
 
     Env = { 
         CPPPATH = { 
-			"src/external/capstone/include",
+			"src/native/external/capstone/include",
         },
 
         CCOPTS = {
@@ -571,7 +515,7 @@ StaticLibrary {
 
     Sources = { 
         Glob {
-            Dir = "src/external/capstone",
+            Dir = "src/native/external/capstone",
             Extensions = { ".h", ".c" },
         },
     },
@@ -586,7 +530,7 @@ StaticLibrary {
 
     Env = { 
         CPPPATH = { 
-			"src/external/angelscript/angelscript/include",
+			"src/native/external/angelscript/angelscript/include",
 			"src/addons/as_debugger",
 			"api/include"
         },
@@ -626,72 +570,19 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
-    Name = "core",
-
-    Env = { 
-        CPPPATH = { 
-            "src/external/stb",
-            "src/external/lua/src",
-			"src/external/jansson/include",
-			"src/external/foundation_lib",
-			"src/external/libuv/include",
-			"src/external/i3wm_docking/include",
-        	"api/include",
-            "src/prodbg",
-        },
-    },
-
-    Sources = { 
-        Glob {
-            Dir = "src/prodbg/core",
-            Extensions = { ".cpp", ".h" },
-        },
-    },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-
-StaticLibrary {
-    Name = "session",
-
-    Env = { 
-        CPPPATH = { 
-            "src/external/stb",
-			"src/external/libuv/include",
-			"src/external/jansson/include",
-			"src/external/foundation_lib",
-			"src/external/i3wm_docking",
-        	"api/include",
-            "src/prodbg",
-        },
-
-        CXXOPTS = { 
-			{ "/EHsc"; Config = "win64-*-*" },
-		},
-    },
-
-    Sources = { 
-        Glob {
-            Dir = "src/prodbg/session",
-            Extensions = { ".cpp", ".h" },
-        },
-    },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-StaticLibrary {
     Name = "ui",
 
     Env = { 
+    	CCOPTS = {
+			{ "-Wno-objc-interface-ivars",
+			  "-Wno-direct-ivar-access",
+			  "-Wno-nullable-to-nonnull-conversion",
+			  "-Wno-format-nonliteral"; Config = "macosx-*-*" },
+		},
 
         CXXOPTS = {
-        	{ "-D__WXOSX_COCOA__",
+        	{ 
+
         	  "-Wno-gnu-anonymous-struct",
 			  "-Wno-global-constructors",
 			  "-Wno-switch-enum",
@@ -704,16 +595,16 @@ StaticLibrary {
         },
 
         CPPPATH = { 
-			"src/external",
-            "src/external/imgui",
-            "src/external/bx/include",
-            "src/external/bgfx/include",
+			"src/native/external",
+            "src/native/external/imgui",
+            "src/native/external/bx/include",
+            "src/native/external/bgfx/include",
         	"api/include",
-        	"src/external/i3wm_docking",
-			"src/external/foundation_lib",
-			"src/external/libuv/include",
-            "src/external/stb",
-            "src/external/jansson/include",
+        	"src/native/external/i3wm_docking",
+			-- "src/native/external/foundation_lib",
+			"src/native/external/libuv/include",
+            "src/native/external/stb",
+            "src/native/external/jansson/include",
             "src/prodbg",
 			"third-party/include",
         },
@@ -721,7 +612,7 @@ StaticLibrary {
 
     Sources = { 
         FGlob {
-            Dir = "src/prodbg/ui",
+            Dir = "src/native/ui",
             Extensions = { ".c", ".cpp", ".m", ".mm", ".h", "*.inl" },
             Filters = {
                 { Pattern = "mac"; Config = { "macosx-*-*", "macosx_test-*" } },
@@ -745,24 +636,77 @@ StaticLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
-StaticLibrary {
-    Name = "api",
+--[[
 
-    Env = { 
+StaticLibrary {
+    Name = "main_lib",
+
+    Env = {
         CPPPATH = { 
+			"src/native/external/remotery/lib",
+			"src/native/external/foundation_lib",
+			"src/native/external/jansson/include",
+            "src/native/external/lua/src",
+			"src/native/external/libuv/include",
+            "src/native/external/bgfx/include", 
+            "src/native/external/bx/include",
+            "src/native/external/stb",
+            "src/native/external/i3wm_docking",
+            "src/native", 
         	"api/include",
-            "src/prodbg",
+            "src/frontend",
         },
+
+        PROGOPTS = {
+            { "/SUBSYSTEM:WINDOWS", "/DEBUG"; Config = { "win32-*-*", "win64-*-*" } },
+        },
+
+        CXXOPTS = { 
+			{ 
+			  "-Wno-conversion",
+			  "-Wno-gnu-anonymous-struct",
+			  "-Wno-global-constructors",
+			  "-Wno-nested-anon-types",
+			  "-Wno-float-equal",
+			  "-Wno-cast-align",
+			  "-Wno-exit-time-destructors",
+			  "-Wno-format-nonliteral",
+			  "-Wno-documentation",	-- Because clang warnings in a bad manner even if the doc is correct
+			  "-std=c++11" ; Config = "macosx-clang-*" },
+			{ "/EHsc"; Config = "win64-*-*" },
+        },
+
+        CCOPTS = {
+			{ "-Wno-c11-extensions"; Config = "macosx-clang-*" },
+        	{ 
+        	  "/wd4201" -- namless struct/union
+			  ; Config = "win64-*-*" },
+        },
+
+		PROGCOM = {
+			{ "-lstdc++"; Config = "linux-gcc-*" },
+			{ "-lm -lrt -lpthread -ldl -lX11 -lGL"; Config = "linux-*-*" },
+		},
     },
 
     Sources = { 
-        Glob {
-            Dir = "src/prodbg/api",
-            Extensions = { ".c", ".cpp", ".h" },
+        FGlob {
+            Dir = "src/native/main_lib",
+            Extensions = { ".c", ".cpp", ".m", ".mm", ".h" },
+            Filters = {
+                { Pattern = "mac"; Config = { "macosx-*-*", "macosx_test-*-*" } },
+                { Pattern = "windows"; Config = "win64-*-*" },
+                { Pattern = "linux"; Config = "linux-*-*" },
+            },
+
+            Recursive = true,
         },
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
 }
+
+--]]
+
 
 

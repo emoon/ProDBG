@@ -1,5 +1,5 @@
 require "tundra.syntax.glob"
-require "tundra.syntax.osx-bundle"
+require "tundra.syntax.rust-cargo"
 require "tundra.path"
 require "tundra.util"
 
@@ -7,83 +7,51 @@ local native = require('tundra.native')
 
 -----------------------------------------------------------------------------------------------------------------------
 
-Program {
-    Name = "prodbg",
+local function get_rs_src(dir)
+	return Glob {
+		Dir = dir,
+		Extensions = { ".rs" },
+		Recursive = true,
+	}
+end
 
-    Env = {
-        CPPPATH = { 
-			"src/external/remotery/lib",
-			"src/external/foundation_lib",
-			"src/external/jansson/include",
-            "src/external/lua/src",
-			"src/external/libuv/include",
-            "src/external/bgfx/include", 
-            "src/external/bx/include",
-            "src/external/stb",
-            "src/external/i3wm_docking",
-            "src/prodbg", 
-        	"api/include",
-            "src/frontend",
-        },
+-----------------------------------------------------------------------------------------------------------------------
 
-        PROGOPTS = {
-            { "/SUBSYSTEM:WINDOWS", "/DEBUG"; Config = { "win32-*-*", "win64-*-*" } },
-        },
+local function get_rs_native_src(dir)
+	return Glob {
+		Dir = dir,
+		Extensions = { ".rs", ".c", ".m", ".mm" },
+		Recursive = true,
+	}
+end
 
-        CXXOPTS = { 
-			{ 
-			  "-Wno-conversion",
-			  "-Wno-gnu-anonymous-struct",
-			  "-Wno-global-constructors",
-			  "-Wno-nested-anon-types",
-			  "-Wno-float-equal",
-			  "-Wno-cast-align",
-			  "-Wno-exit-time-destructors",
-			  "-Wno-format-nonliteral",
-			  "-Wno-documentation",	-- Because clang warnings in a bad manner even if the doc is correct
-			  "-std=c++11" ; Config = "macosx-clang-*" },
-			{ "/EHsc"; Config = "win64-*-*" },
-        },
+-----------------------------------------------------------------------------------------------------------------------
 
-        CCOPTS = {
-			{ "-Wno-c11-extensions"; Config = "macosx-clang-*" },
-        	{ 
-        	  "/wd4201" -- namless struct/union
-			  ; Config = "win64-*-*" },
-        },
+RustProgram {
+	Name = "ui_testbench",
+	CargoConfig = "src/prodbg/ui_testbench/Cargo.toml",
+	Sources = { 
+		get_rs_src("src/prodbg/ui_testbench"),
+		get_rs_src("src/prodbg/core"),
+		"src/prodbg/build.rs",
+	},
 
-		PROGCOM = {
-			{ "-lstdc++"; Config = "linux-gcc-*" },
-			{ "-lm -lrt -lpthread -ldl -lX11 -lGL"; Config = "linux-*-*" },
-		},
-    },
+    Depends = { "ui", "lua", "remote_api", "stb", "bgfx", "imgui", "scintilla", "tinyxml2", "capstone" },
+}
 
-    Sources = { 
-        FGlob {
-            Dir = "src/prodbg/main",
-            Extensions = { ".c", ".cpp", ".m", ".mm", ".h" },
-            Filters = {
-                { Pattern = "mac"; Config = { "macosx-*-*", "macosx_test-*-*" } },
-                { Pattern = "windows"; Config = "win64-*-*" },
-                { Pattern = "linux"; Config = "linux-*-*" },
-            },
+-----------------------------------------------------------------------------------------------------------------------
 
-            Recursive = true,
-        },
-    },
+RustProgram {
+	Name = "prodbg",
+	CargoConfig = "src/prodbg/main/Cargo.toml",
+	Sources = { 
+		get_rs_src("src/prodbg/main"),
+		get_rs_src("src/prodbg/core"),
+		get_rs_src("src/ui"),
+		"src/prodbg/build.rs",
+	},
 
-    Depends = { "core", "ui", "api", "session", "jansson", "lua", "remote_api", "stb", 
-    			"bgfx", "uv", "imgui", "remotery", "foundation_lib", "scintilla", 
-    			"tinyxml2", "i3wm_docking", "capstone" },
-
-    Libs = { 
-      { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "Shell32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } },
-	  -- { "third-party/lib/wx/wx_osx_cocoau_core-3.1", "third-party/lib/wx/wwx_baseu-3.1" ; Config = { "macosx-*-*", "macosx_test-*-*" } },
-    },
-
-    Frameworks = { "Cocoa"  },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "ProDBG" } },
+    Depends = { "ui", "lua", "remote_api", "stb", "bgfx", "imgui", "scintilla", "tinyxml2", "capstone" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -98,14 +66,33 @@ local prodbgBundle = OsxBundle
 		CompileNib { Source = "data/mac/appnib.xib", Target = "appnib.nib" },
 		"data/mac/icon.icns",
 	},
+
+	Config = { "macosx-clang-debug-default" ; "macosx-clang-release-default" },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+local uiBundle = OsxBundle 
+{
+	Depends = { "ui_testbench" },
+	Target = "$(OBJECTDIR)/UITestbench.app",
+	InfoPList = "Data/Mac/Info.plist",
+	Executable = "$(OBJECTDIR)/ui_testbench",
+	Resources = {
+		CompileNib { Source = "data/mac/appnib.xib", Target = "appnib2.nib" },
+		"data/mac/icon.icns",
+	},
+
+	Config = { "macosx-clang-debug-default" ; "macosx-clang-release-default" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
 
 if native.host_platform == "macosx" then
 	Default(prodbgBundle)
+	Default(uiBundle)
 else
 	Default "prodbg"
+	Default "ui_testbench"
 end
-
 

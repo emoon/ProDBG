@@ -1668,7 +1668,7 @@ static PDBackendPlugin plugin = {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* private_data) {
-    registerPlugin(PD_BACKEND_API_VERSION, &plugin, sizeof(PDBackendPlugin), private_data);
-    registerPlugin(PD_VIEW_API_VERSION, &g_c64CustomViewPlugin, sizeof(PDViewPlugin), private_data);
+    registerPlugin(PD_BACKEND_API_VERSION, &plugin, private_data);
+    registerPlugin(PD_VIEW_API_VERSION, &g_c64CustomViewPlugin, private_data);
 }
 

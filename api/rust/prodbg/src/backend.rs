@@ -3,7 +3,7 @@ use service::*;
 use libc::*;
 use std::mem::transmute;
 
-pub static API_VERSION: &'static str = "ProDBG Backend 1";
+pub static BACKEND_API_VERSION: &'static [u8] = b"ProDBG Backend 1\0";
 
 pub trait Backend {
     fn new(service: &Service) -> Self;
@@ -21,9 +21,10 @@ pub struct CBackendCallbacks {
     pub update: Option<fn(ptr: *mut c_void,
                           a: *mut c_int,
                           ra: *mut c_void,
-                          wa: *mut c_void)
-                         >,
+                          wa: *mut c_void)>,
 }
+
+unsafe impl Sync for CBackendCallbacks {}
 
 pub fn create_backend_instance<T: Backend>(service_func: extern "C" fn(service: *const c_uchar)
                                                                        -> *mut c_void)
@@ -54,25 +55,18 @@ pub fn update_backend_instance<T: Backend>(ptr: *mut c_void,
 
     let mut writer = Writer { api: c_writer };
 
-    println!("writer.api {:?}", writer.api);
-
     backend.update(action as i32, &mut reader, &mut writer);
 }
 
 #[macro_export]
 macro_rules! define_backend_plugin {
-    ($x:ty) => {
-        {
-            static S: &'static [u8] = b"Test\0";
-            let mut plugin = CBackendCallbacks {
-                name: S.as_ptr(), 
-                create_instance: Some(prodbg::backend::create_backend_instance::<$x>),
-                destroy_instance: Some(prodbg::backend::destroy_backend_instance::<$x>),
-                register_menu: None,
-                update: Some(prodbg::backend::update_backend_instance::<$x>)
-             };
-
-            Box::new(plugin)
-        }
+    ($p_name:ident, $name:expr, $x:ty) => {
+        static $p_name: CBackendCallbacks = CBackendCallbacks {
+            name: $name as *const u8, 
+            create_instance: Some(prodbg::backend::create_backend_instance::<$x>),
+            destroy_instance: Some(prodbg::backend::destroy_backend_instance::<$x>),
+            register_menu: None,
+            update: Some(prodbg::backend::update_backend_instance::<$x>)
+        };
     }
 }

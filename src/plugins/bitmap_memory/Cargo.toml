@@ -1,0 +1,14 @@
+[package]
+name = "bitmap_memory"
+version = "0.1.0"
+authors = ["Daniel Collin <daniel@collin.com>"]
+# build = "build.rs" <- doesn't depend an any native libs
+
+# Type
+[lib]
+name = "bitmap_memory"
+crate-type = ["dylib"]
+
+# Depends
+[dependencies]
+prodbg_api = { path = "../../../api/rust/prodbg" }

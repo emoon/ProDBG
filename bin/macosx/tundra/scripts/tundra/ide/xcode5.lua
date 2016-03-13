@@ -637,7 +637,7 @@ local function write_shellscripts(p, projects, env)
       p:write('\t\t\t);\n')
       p:write('\t\t\trunOnlyForDeploymentPostprocessing = 0;\n')
       p:write('\t\t\tshellPath = /bin/sh;\n')
-      p:write('\t\t\tshellScript = "cd ..\\n', TundraExePath, ' macosx-clang-debug";\n')
+      p:write('\t\t\tshellScript = "cd ..\\n', TundraExePath, ' $(CONFIG)-$(VARIANT)-$(SUBVARIANT)";\n')
       p:write('\t\t};\n')
     end
   end
@@ -819,7 +819,7 @@ local function make_meta_projects(ide_script)
       Sources = source_list,
       Guid = newid(meta_name1 .. 'ProjectId'),
       IsMeta = true,
-      MetaData = { BuildArgs = "-v macosx-clang-debug", BuildTool = TundraExePath },
+      MetaData = { BuildArgs = "-v $(CONFIG)-$(VARIANT)-$(SUBVARIANT)", BuildTool = TundraExePath },
     },
     {
       Decl = { Name = meta_name2, },
@@ -860,7 +860,7 @@ function xcode_generator:generate_files(ngen, config_tuples, raw_nodes, env, def
     Sources = source_list,
     Guid = newid(meta_name .. 'ProjectId'),
     IsMeta = true,
-    MetaData = { BuildArgs = "macosx-clang-debug", BuildTool = TundraExePath },
+    MetaData = { BuildArgs = "$(CONFIG)-$(VARIANT)-$(SUBVARIANT)", BuildTool = TundraExePath },
   }
   local meta_name = "!UpdateWorkspace"
   local generate_project = {

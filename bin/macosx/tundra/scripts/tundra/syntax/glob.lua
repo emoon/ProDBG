@@ -21,7 +21,7 @@ local function glob(directory, recursive, filter_fn)
 
   for _, path in ipairs(dirwalk.walk(directory, dir_filter)) do
     if filter_fn(path) then
-      result[#result + 1] = path
+      result[#result + 1] = string.gsub(path, "\\", "/")
     end
   end
   return result
@@ -52,7 +52,7 @@ function Glob(args)
   end
   if not args.Extensions then
     croak("no 'Extensions' specified in Glob (Dir is '%s')", args.Dir)
-  end  
+  end
   local extensions = assert(args.Extensions)
   local ext_lookup = util.make_lookup_table(extensions)
   return glob(args.Dir, recursive, function (fn)
@@ -119,4 +119,3 @@ end
 
 decl.add_function("Glob", Glob)
 decl.add_function("FGlob", FGlob)
-

@@ -1,0 +1,15 @@
+[package]
+name = "prodbg"
+version = "0.1.0"
+authors = ["Daniel Collin <daniel@collin.com>"]
+
+build = "../build.rs"
+
+[dependencies]
+libc = "0.2.0"
+libloading = "0.2.0"
+lazy_static = "0.1.*"
+minifb = "0.5.*"
+core = { path = "../core" }
+prodbg_api = { path = "../../../api/rust/prodbg" }
+

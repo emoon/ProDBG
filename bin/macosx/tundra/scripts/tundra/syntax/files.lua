@@ -48,3 +48,17 @@ function hardlink_file(env, src, dst, pass, deps)
     Pass = pass,
   }
 end
+
+function copy_file(env, src, dst, pass, deps)
+  return depgraph.make_node {
+    Env = env,
+    Annotation = "CopyFile $(<)",
+    Action = "$(_COPY_FILE)",
+    InputFiles = { src },
+    OutputFiles = { dst },
+    Dependencies = deps,
+    Pass = pass,
+  }
+end
+
+

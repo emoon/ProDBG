@@ -1,8 +1,20 @@
 require "tundra.syntax.glob"
 require "tundra.path"
 require "tundra.util"
+require "tundra.syntax.rust-cargo"
 
 local native = require('tundra.native')
+
+-----------------------------------------------------------------------------------------------------------------------
+
+local function get_rs_src(dir)
+	return Glob {
+		Dir = dir,
+		Extensions = { ".rs" },
+		Recursive = true,
+	}
+end
+
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -78,7 +90,7 @@ SharedLibrary {
     Env = {
         CPPPATH = { 
         	"api/include", 
-        	"src/external", 
+        	"src/native/external", 
         },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
     },
@@ -216,7 +228,7 @@ SharedLibrary {
     
     Env = {
         CPPPATH = { 
-			"src/external/foundation_lib",
+			"src/native/external/foundation_lib",
         	"api/include", 
         },
         CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
@@ -244,8 +256,8 @@ SharedLibrary {
     
     Env = {
         CPPPATH = { 
-			"src/external/jansson/include",
-			"src/external/libuv/include",
+			"src/native/external/jansson/include",
+			"src/native/external/libuv/include",
 			"api/include", 
 		},
 		
@@ -322,6 +334,64 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+RustSharedLibrary {
+	Name = "bitmap_memory",
+	CargoConfig = "src/plugins/bitmap_memory/Cargo.toml",
+	Sources = { 
+		get_rs_src("src/plugins/bitmap_memory"),
+		get_rs_src("api/rust/prodbg"),
+	}
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+SharedLibrary {
+    Name = "i3_docking",
+
+    Env = { 
+        CPPPATH = { 
+			"src/native/external/jansson/include",
+            "src/plugins/i3_docking/include",
+        	"api/include",
+        },
+        CCOPTS = {
+        	{ "-Wno-everything", "-std=c99"; Config = { "macosx-*-*", "macosx_test-*" } },
+        	{ "-std=c99"; Config = "linux-*-*" },
+        	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
+        },
+    },
+
+    Sources = { 
+		Glob {
+			Dir = "src/plugins/i3_docking",
+			Extensions = { ".c", ".h" },
+		},
+	},
+
+    IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+SharedLibrary {
+    Name = "dummy_backend_plugin",
+    
+    Env = {
+        CPPPATH = { 
+        	"api/include", 
+        	"src/native/external", 
+        },
+    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
+    },
+
+    Sources = { "src/plugins/dummy_backend/dummy_backend.c" },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
+}
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
 if native.host_platform == "macosx" then
    Default "lldb_plugin"
 end
@@ -342,4 +412,6 @@ Default "workspace_plugin"
 Default "console_plugin"
 Default "c64_vice_plugin"
 Default "amiga_uae_plugin"
+Default "bitmap_memory"
+Default "i3_docking"
 

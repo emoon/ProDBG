@@ -1,6 +1,6 @@
 use libc::*;
-use std::ffi::CString;
 use std::mem::transmute;
+use CFixedString;
 
 #[repr(C)]
 pub struct CPDReaderAPI {
@@ -144,12 +144,12 @@ fn status_res<T>(res: T, s: u32) -> Result<T, ReadStatus> {
 macro_rules! find_fun {
     ($c_name:ident, $name:ident, $data_type:ident) => {
         pub fn $name(&self, id: &str) -> Result<$data_type, ReadStatus> {
-            let s = CString::new(id).unwrap();
+            let s = CFixedString::from_str(id).as_ptr();
             let mut res = 0 as $data_type;
             let ret;
 
             unsafe {
-                ret = ((*self.api).$c_name)(transmute(self.api), &mut res, s.as_ptr(), self.it);
+                ret = ((*self.api).$c_name)(transmute(self.api), &mut res, s, self.it);
             }
 
             return status_res(res, ret);
@@ -190,11 +190,11 @@ impl Reader {
     find_fun!(read_find_double, find_double, f64);
 
     pub fn find_array(&self, id: &str) -> ReaderIter {
-        let s = CString::new(id).unwrap();
+        let s = CFixedString::from_str(id).as_ptr();
         let mut t = 0u64;
 
         unsafe {
-            ((*self.api).read_find_array)(transmute(self.api), &mut t, s.as_ptr(), 0);
+            ((*self.api).read_find_array)(transmute(self.api), &mut t, s, 0);
         }
 
         ReaderIter {
@@ -223,9 +223,9 @@ impl Iterator for ReaderIter {
 macro_rules! write_fun {
     ($name:ident, $data_type:ident) => {
         pub fn $name(&mut self, id: &str, v: $data_type) {
-            let s = CString::new(id).unwrap();
+            let s = CFixedString::from_str(id).as_ptr();
             unsafe {
-                ((*self.api).$name)(transmute(self.api), s.as_ptr(), v);
+                ((*self.api).$name)(transmute(self.api), s, v);
             }
         }
     }
@@ -245,9 +245,9 @@ impl Writer {
     }
 
     pub fn array_begin(&mut self, name: &str) {
-        let s = CString::new(name).unwrap();
+        let s = CFixedString::from_str(name).as_ptr();
         unsafe {
-            ((*self.api).write_array_begin)(transmute(self.api), s.as_ptr());
+            ((*self.api).write_array_begin)(transmute(self.api), s);
         }
     }
 
@@ -281,18 +281,18 @@ impl Writer {
     write_fun!(write_double, f64);
 
     pub fn write_string(&mut self, id: &str, v: &str) {
-        let id_s = CString::new(id).unwrap();
-        let v_s = CString::new(v).unwrap();
+        let id_s = CFixedString::from_str(id).as_ptr();
+        let v_s = CFixedString::from_str(v).as_ptr();
         unsafe {
-            ((*self.api).write_string)(transmute(self.api), id_s.as_ptr(), v_s.as_ptr());
+            ((*self.api).write_string)(transmute(self.api), id_s, v_s);
         }
     }
 
     pub fn write_data(&mut self, id: &str, data: &[u8]) {
-        let s = CString::new(id).unwrap();
+        let s = CFixedString::from_str(id).as_ptr();
         unsafe {
             ((*self.api).write_data)(transmute(self.api),
-                                     s.as_ptr(),
+                                     s,
                                      data.as_ptr(),
                                      data.len() as u32);
         }
