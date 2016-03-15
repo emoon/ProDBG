@@ -56,6 +56,9 @@ struct PrivateData {
     const char* name;
     const char* title;
     bool showWindow;
+    bool show_popup;
+    bool showed_popup;
+    bool started_menu;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1251,6 +1254,34 @@ static void close_current_popup() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static bool begin_popup_context(void* priv_data) {
+	PrivateData* data = (PrivateData*)priv_data;
+
+	if (data->show_popup) { 
+		ImGui::OpenPopup("_select");
+		data->showed_popup = true;
+	}
+
+	bool showed_menu = ImGui::BeginPopup("_select");
+
+	if (showed_menu)
+	{
+		ImGui::Text("Inside");
+		ImGui::MenuItem("Click me");
+	}
+
+	return showed_menu;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void end_popup_context(void* priv_data) {
+	(void)priv_data;
+	ImGui::EndPopup();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void value_bool(const char* prefix, bool b) {
     ImGui::Value(prefix, b);
 }
@@ -1817,6 +1848,8 @@ static PDUI s_uiFuncs[] =
     begin_popup_context_void,
     end_popup,
     close_current_popup,
+	begin_popup_context,
+	end_popup_context,
 
     // Widgets: value() Helpers. Output single value in "name: value" format
     value_bool,
@@ -1923,6 +1956,7 @@ static PDUI s_uiFuncs[] =
 
     fill_rect,
 
+	0,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2460,6 +2494,39 @@ extern "C" void bgfx_destroy() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+extern "C" void* bgfx_create_ui_funcs() {
+	PDUI* ui = (PDUI*)malloc(sizeof(PDUI));
+	*ui = *s_uiFuncs;
+
+	ui->private_data = malloc(sizeof(PrivateData));
+	memset(ui->private_data, 0, sizeof(PrivateData));
+
+	return ui;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" int bgfx_has_showed_popup(PDUI* ui) {
+	PrivateData* data = (PrivateData*)ui->private_data;
+	return data->showed_popup;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" int bgfx_mark_show_popup(PDUI* ui, int show) {
+	PrivateData* data = (PrivateData*)ui->private_data;
+	data->show_popup = !!show;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void bgfx_init_state(PDUI* ui) {
+	PrivateData* data = (PrivateData*)ui->private_data;
+	data->showed_popup = 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 extern "C" void* bgfx_get_ui_funcs() {
 	return s_uiFuncs;
 }
@@ -2488,6 +2555,26 @@ extern "C" void bgfx_imgui_begin(int show) {
 
 extern "C" void bgfx_imgui_end() {
     ImGui::End();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void bgfx_test_menu(int show) {
+	if (show)
+		ImGui::OpenPopup("select");
+
+	if (ImGui::BeginPopup("select"))
+	{
+		ImGui::Text("Aquarium");
+
+		if (ImGui::BeginMenu("Sub-menu"))
+		{
+			ImGui::MenuItem("Click me");
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndPopup();
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2521,9 +2608,5 @@ extern "C" float bgfx_get_screen_height() {
 extern "C" void* bgfx_get_native_context() {
 	return bgfx::nativeContext();
 }
-
-
-
-
 
 

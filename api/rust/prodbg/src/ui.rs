@@ -3,11 +3,18 @@ use ui_ffi::*;
 
 use CFixedString;
 
+#[derive(Clone, Copy)]
 pub struct Ui {
     pub api: *mut CPdUI,
 }
 
 impl Ui {
+    pub fn new(native_api: *mut CPdUI) -> Ui {
+        Ui {
+            api: native_api,
+        }
+    }
+
     pub fn set_title(&self, title: &str) {
         unsafe {
             let t = CFixedString::from_str(title).as_ptr();

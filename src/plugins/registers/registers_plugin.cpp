@@ -51,7 +51,7 @@ static void destroyInstance(void* user_data) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Support floats
 
-static void getRegisterString(char* value, PDReader* reader, PDReaderIterator it) {
+void getRegisterString(char* value, PDReader* reader, PDReaderIterator it) {
     uint64_t regValue = 0;
     const char* regString = 0;
 
@@ -82,7 +82,7 @@ static void getRegisterString(char* value, PDReader* reader, PDReaderIterator it
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void addOrUpdate(RegistersData* data, const char* name, const char* value) {
+void addOrUpdate(RegistersData* data, const char* name, const char* value) {
     int count = data->registerCount;
 
     for (int i = 0; i < count; ++i) {
@@ -105,6 +105,7 @@ static void addOrUpdate(RegistersData* data, const char* name, const char* value
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 static void updateRegisters(RegistersData* data, PDReader* reader) {
     PDReaderIterator it;
 
@@ -121,6 +122,7 @@ static void updateRegisters(RegistersData* data, PDReader* reader) {
         addOrUpdate(data, name, registerValue);
     }
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -134,6 +136,20 @@ static void showUI(RegistersData* data, PDUI* uiFuncs) {
         uiFuncs->text(data->registers[i].name); uiFuncs->next_column();
         uiFuncs->text(data->registers[i].value); uiFuncs->next_column();
     }
+
+    if (PDUI_begin_popup_context(uiFuncs)) {
+
+		if (uiFuncs->begin_menu("Sub-menu", true))
+		{
+			if (uiFuncs->menu_item("Click me", 0, false, true)) {
+				printf("clicked\n");
+			}
+
+			uiFuncs->end_menu();
+		}
+
+		PDUI_end_popup_context(uiFuncs);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -143,15 +159,19 @@ static int update(void* user_data, PDUI* uiFuncs, PDReader* inEvents, PDWriter* 
     RegistersData* data = (RegistersData*)user_data;
 
     (void)outEvents;
+    (void)inEvents;
+    (void)event;
 
     // Loop over all the in events
 
+	/*
     while ((event = PDRead_get_event(inEvents)) != 0) {
         switch (event) {
             case PDEventType_SetRegisters:
                 updateRegisters(data, inEvents); break;
         }
     }
+    */
 
     showUI(data, uiFuncs);
 

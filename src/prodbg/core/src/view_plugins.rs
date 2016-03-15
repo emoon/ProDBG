@@ -5,12 +5,14 @@ use plugin::Plugin;
 use plugins::PluginHandler;
 use dynamic_reload::Lib;
 use std::ptr;
+use prodbg_api::ui::Ui;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct ViewHandle(pub usize);
 
 pub struct ViewInstance {
-    pub user_data: *mut c_void,
+    pub plugin_data: *mut c_void,
+    pub ui: Ui, 
     pub handle: ViewHandle,
     pub x: f32,
     pub y: f32,
@@ -22,6 +24,7 @@ pub struct ViewInstance {
 #[derive(Clone)]
 struct ReloadState {
     name: String,
+    ui: Ui,
     handle: ViewHandle,
 }
 
@@ -47,6 +50,7 @@ impl PluginHandler for ViewPlugins {
         for i in (0..self.instances.len()).rev() {
             if &self.instances[i].plugin_type.lib == lib {
                 let state = ReloadState {
+                    ui: self.instances[i].ui,
                     name: self.instances[i].plugin_type.name.clone(),
                     handle: self.instances[i].handle,
                 };
@@ -66,7 +70,7 @@ impl PluginHandler for ViewPlugins {
     fn reload_plugin(&mut self) {
         let t = self.reload_state.clone();
         for reload_plugin in &t {
-            Self::create_instance(self, &reload_plugin.name);
+            Self::create_instance(self, reload_plugin.ui, &reload_plugin.name);
         }
     }
 
@@ -99,8 +103,8 @@ impl ViewPlugins {
         None
     }
 
-    pub fn create_instance_from_index(&mut self, index: usize) -> Option<ViewHandle> {
-        let user_data = unsafe {
+    pub fn create_instance_from_index(&mut self, ui: Ui, index: usize) -> Option<ViewHandle> {
+        let plugin_data = unsafe {
             let callbacks = self.plugin_types[index].plugin_funcs as *mut CViewCallbacks;
             (*callbacks).create_instance.unwrap()(ptr::null(), Self::service_fun)
         };
@@ -108,7 +112,8 @@ impl ViewPlugins {
         let handle = self.handle_counter;
 
         let instance = ViewInstance {
-            user_data: user_data,
+            plugin_data: plugin_data,
+            ui: ui,
             handle: handle,
             x: 0.0,
             y: 0.0,
@@ -123,13 +128,13 @@ impl ViewPlugins {
         Some(handle)
     }
 
-    pub fn create_instance(&mut self, plugin_type: &String) -> Option<ViewHandle> {
+    pub fn create_instance(&mut self, ui: Ui, plugin_type: &String) -> Option<ViewHandle> {
         for i in 0..self.plugin_types.len() {
             if self.plugin_types[i].name != *plugin_type {
                 continue;
             }
 
-            return Self::create_instance_from_index(self, i);
+            return Self::create_instance_from_index(self, ui, i);
         }
 
         None

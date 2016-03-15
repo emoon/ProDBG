@@ -430,6 +430,9 @@ typedef struct PDUI {
 	void (*end_popup)();
 	void (*close_current_popup)();
 
+	bool (*begin_popup_context)(void* priv_data);
+	void (*end_popup_context)(void* priv_data);
+
 	// Widgets: value() Helpers. Output single value in "name: value" format
 	void (*value_bool)(const char* prefix, bool b);
 	void (*value_int)(const char* prefix, int v);
@@ -517,6 +520,9 @@ typedef struct PDUI {
 #define PDUI_sc_update(funcs) funcs->draw(funcs->private_data)
 
 #define PDUI_set_title(funcs, title) funcs->set_title(funcs->private_data, title)
+
+#define PDUI_begin_popup_context(funcs) funcs->begin_popup_context(funcs->private_data)
+#define PDUI_end_popup_context(funcs) funcs->end_popup_context(funcs->private_data)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

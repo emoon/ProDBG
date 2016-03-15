@@ -55,7 +55,7 @@ impl Session {
             bgfx_imgui_begin(1);
 
             let plugin_funcs = view.plugin_type.plugin_funcs as *mut CViewCallbacks;
-            ((*plugin_funcs).update.unwrap())(view.user_data,
+            ((*plugin_funcs).update.unwrap())(view.plugin_data,
                                               bgfx_get_ui_funcs(),
                                               // Send in reader/writer
                                               ptr::null_mut(),

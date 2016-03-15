@@ -9,6 +9,8 @@ pub mod session;
 mod backend_plugin;
 
 use docking::DockingPlugin;
+use prodbg_api::ui::Ui;
+use prodbg_api::ui_ffi::CPdUI;
 
 use session::Sessions;
 use windows::Windows;
@@ -33,9 +35,10 @@ use core::plugins::*;
 fn add_view(index: usize, sessions: &mut Sessions, windows: &mut Windows, view_plugins: &mut ViewPlugins) {
     let session = sessions.get_current();
     let window = windows.get_current();
+    let ui = Ui::new(unsafe { bgfx_create_ui_funcs() });
 
     // TODO: Mask out index for plugin
-    view_plugins.create_instance_from_index(index).map(|handle| {
+    view_plugins.create_instance_from_index(ui, index).map(|handle| {
         window.add_view(handle);
         session.add_view(handle);
     });
@@ -117,5 +120,7 @@ extern "C" {
 
     fn bgfx_create();
     fn bgfx_destroy();
+
+    fn bgfx_create_ui_funcs() -> *mut CPdUI;
 }
 

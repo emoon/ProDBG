@@ -13,6 +13,7 @@ use libc::{c_char, c_uchar, c_float, c_int, c_uint, c_ulonglong, c_longlong, c_u
 // (float) y
 //
 #[repr(C)]
+#[derive(Debug)]
 pub struct PDVec2 {
     pub x: c_float,
     pub y: c_float,
@@ -252,6 +253,8 @@ pub struct CPdUI {
 	pub begin_popup_context_void: extern fn(*const c_char, c_int) -> c_int,
 	pub end_popup: *mut extern fn () -> c_void,
 	pub close_current_popup: *mut extern fn () -> c_void,
+	pub begin_popup_context: *mut extern fn () -> c_int,
+	pub end_popup_context: extern fn(),
 	pub value_int: extern fn(*const c_char, c_int),
 	pub value_u_int: extern fn(*const c_char, c_uint),
 	pub value_float: extern fn(*const c_char, c_float, *const c_char),
