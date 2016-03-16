@@ -27,6 +27,18 @@ end
 
 -----------------------------------------------------------------------------------------------------------------------
 
+RustCrate {
+	Name = "bgfx-rs",
+	CargoConfig = "src/prodbg/bgfx/Cargo.toml",
+	Sources = { 
+		get_rs_src("src/prodbg/bgfx"),
+		get_rs_src("api/rust"),
+		"src/prodbg/build.rs",
+	},
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
 RustProgram {
 	Name = "ui_testbench",
 	CargoConfig = "src/prodbg/ui_testbench/Cargo.toml",
@@ -36,7 +48,8 @@ RustProgram {
 		"src/prodbg/build.rs",
 	},
 
-    Depends = { "ui", "lua", "remote_api", "stb", "bgfx", "imgui", "scintilla", "tinyxml2", "capstone" },
+    Depends = { "ui", "lua", "remote_api", "stb", "bgfx", "bgfx-rs",
+    			"imgui", "scintilla", "tinyxml2", "capstone" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -51,7 +64,8 @@ RustProgram {
 		"src/prodbg/build.rs",
 	},
 
-    Depends = { "ui", "lua", "remote_api", "stb", "bgfx", "imgui", "scintilla", "tinyxml2", "capstone" },
+    Depends = { "ui", "lua", "remote_api", "stb", "bgfx", "bgfx-rs",
+    			"imgui", "scintilla", "tinyxml2", "capstone" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
