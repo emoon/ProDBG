@@ -10,6 +10,7 @@ libc = "0.2.0"
 libloading = "0.2.0"
 lazy_static = "0.1.*"
 minifb = "0.5.*"
+bgfx = { path = "../bgfx" }
 core = { path = "../core" }
 prodbg_api = { path = "../../../api/rust/prodbg" }
 

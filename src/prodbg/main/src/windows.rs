@@ -1,5 +1,7 @@
 extern crate minifb;
+extern crate bgfx;
 
+use bgfx::Bgfx;
 use libc::{c_void, c_int};
 use minifb::{Scale, WindowOptions, MouseMode, MouseButton};
 use core::view_plugins::ViewHandle;
@@ -51,7 +53,7 @@ impl Windows {
         let window = Self::create_window(WIDTH, HEIGHT).expect("Unable to create window");
 
         self.windows.push(window)
-    }
+   }
 
     pub fn create_window(width: usize, height: usize) -> minifb::Result<Window> {
         let res = minifb::Window::new("ProDBG",
@@ -64,13 +66,9 @@ impl Windows {
                                       });
         match res {
             Ok(win) => {
-                unsafe {
-                    println!("{:?} {} {}", win.get_window_handle() as *const c_void, 
-                             width, height);
-                    bgfx_create_window(win.get_window_handle() as *const c_void,
-                                       width as c_int,
-                                       height as c_int);
-                }
+                Bgfx::create_window(win.get_window_handle() as *const c_void,
+                                    width as c_int,
+                                    height as c_int);
                 Ok(Window {
                     win: win,
                     views: Vec::new(),
@@ -98,10 +96,8 @@ impl Windows {
         window.update();
 
         window.win.get_mouse_pos(MouseMode::Clamp).map(|mouse| {
-            unsafe {
-                prodbg_set_mouse_pos(mouse.0, mouse.1);
-                prodbg_set_mouse_state(0, window.win.get_mouse_down(MouseButton::Left) as c_int);
-            }
+            Bgfx::set_mouse_pos(mouse);
+            Bgfx::set_mouse_state(0, window.win.get_mouse_down(MouseButton::Left));
         });
     }
 
@@ -151,11 +147,4 @@ impl Window {
     pub fn add_view(&mut self, view: ViewHandle) {
         self.views.push(view);
     }
-}
-
-
-extern "C" {
-     fn prodbg_set_mouse_pos(x: f32, y: f32);
-     fn prodbg_set_mouse_state(mouse: c_int, state: c_int);
-    fn bgfx_create_window(window: *const c_void, width: c_int, height: c_int);
 }

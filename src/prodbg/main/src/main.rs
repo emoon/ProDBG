@@ -2,6 +2,7 @@ extern crate core;
 extern crate libc;
 extern crate minifb;
 extern crate prodbg_api;
+extern crate bgfx;
 
 pub mod windows;
 mod docking;
@@ -10,20 +11,16 @@ mod backend_plugin;
 
 use docking::DockingPlugin;
 use prodbg_api::ui::Ui;
-use prodbg_api::ui_ffi::CPdUI;
+use bgfx::Bgfx;
 
 use session::Sessions;
 use windows::Windows;
 use core::{DynamicReload, Search};
-//use minifb::{Scale, WindowOptions, MouseMode, MouseButton, Menu};
-//use libc::{c_void, c_int, c_float};
-//use prodbg_api::view::CViewCallbacks;
 use core::view_plugins::{ViewPlugins};
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 use core::plugins::*;
-//use std::ptr;
 
 //const WIDTH: usize = 1280;
 //const HEIGHT: usize = 1024;
@@ -35,7 +32,7 @@ use core::plugins::*;
 fn add_view(index: usize, sessions: &mut Sessions, windows: &mut Windows, view_plugins: &mut ViewPlugins) {
     let session = sessions.get_current();
     let window = windows.get_current();
-    let ui = Ui::new(unsafe { bgfx_create_ui_funcs() });
+    let ui = Ui::new(Bgfx::create_ui_funcs());
 
     // TODO: Mask out index for plugin
     view_plugins.create_instance_from_index(ui, index).map(|handle| {
@@ -60,6 +57,7 @@ fn create_menus() -> Vec<MenuInfo> {
 */
 
 fn main() {
+    let bgfx = Bgfx::new();
     let mut sessions = Sessions::new();
     let mut windows = Windows::new();
 
@@ -83,17 +81,14 @@ fn main() {
     plugins.add_plugin(&mut lib_handler, "i3_docking");
     //plugins.add_plugin(&mut lib_handler, "dummy_backend");
 
-
     // TODO: Wrap away this code.
-
-    unsafe { bgfx_create(); }
 
     windows.create_default();
 
     add_view(0, &mut sessions, &mut windows, &mut view_plugins.borrow_mut());
 
     loop {
-        unsafe { bgfx_pre_update(); }
+        bgfx.pre_update();
 
         plugins.update(&mut lib_handler);
         sessions.update(&mut view_plugins.borrow_mut());
@@ -103,24 +98,6 @@ fn main() {
             break;
         }
 
-        unsafe { bgfx_post_update(); }
+        bgfx.post_update();
     }
-
-    unsafe { bgfx_destroy(); }
 }
-
-///
-///
-///
-///
-
-extern "C" {
-    fn bgfx_pre_update();
-    fn bgfx_post_update();
-
-    fn bgfx_create();
-    fn bgfx_destroy();
-
-    fn bgfx_create_ui_funcs() -> *mut CPdUI;
-}
-

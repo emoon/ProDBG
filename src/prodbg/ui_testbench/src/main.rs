@@ -57,11 +57,11 @@ fn main() {
     plugins.add_handler(&view_plugins);
     plugins.add_plugin(&mut lib_handler, "registers_plugin");
 
-    let ui = Ui::new(bgfx.create_ui_funcs());
+    let ui = Ui::new(Bgfx::create_ui_funcs());
 
     view_plugins.borrow_mut().create_instance(ui, &"Registers View".to_owned());
 
-    bgfx.create_window(window.get_window_handle() as *mut c_void,
+    Bgfx::create_window(window.get_window_handle() as *mut c_void,
                            WIDTH as i32,
                            HEIGHT as i32);
 
@@ -73,8 +73,8 @@ fn main() {
         let mouse = window.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
         let mut has_shown_menu = 0u32;
 
-        bgfx.set_mouse_pos(mouse);
-        bgfx.set_mouse_state(0, window.get_mouse_down(MouseButton::Left));
+        Bgfx::set_mouse_pos(mouse);
+        Bgfx::set_mouse_state(0, window.get_mouse_down(MouseButton::Left));
 
         let show_context_menu = window.get_mouse_down(MouseButton::Right);
 

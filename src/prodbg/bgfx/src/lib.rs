@@ -17,15 +17,15 @@ impl Bgfx {
         }
     }
 
-    pub fn create_window(&self, window: *const c_void, width: c_int, height: c_int) {
+    pub fn create_window(window: *const c_void, width: c_int, height: c_int) {
         unsafe { bgfx_create_window(window, width, height); }
     }
 
-    pub fn set_mouse_pos(&self, mouse: (f32, f32)) {
+    pub fn set_mouse_pos(mouse: (f32, f32)) {
         unsafe { prodbg_set_mouse_pos(mouse.0, mouse.1) };
     }
 
-    pub fn set_mouse_state(&self, index: usize, state: bool) {
+    pub fn set_mouse_state(index: usize, state: bool) {
         unsafe { prodbg_set_mouse_state(index as i32, state as c_int); }
     }
 
@@ -37,7 +37,7 @@ impl Bgfx {
         unsafe { bgfx_post_update(); }
     }
 
-    pub fn create_ui_funcs(&self) -> *mut CPdUI {
+    pub fn create_ui_funcs() -> *mut CPdUI {
         unsafe { bgfx_create_ui_funcs() } 
     }
 
