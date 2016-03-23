@@ -8,6 +8,14 @@ pub struct Ui {
     pub api: *mut CPdUI,
 }
 
+macro_rules! true_is_1 {
+    ($e:expr) => (if $e { 1 } else { 0 })
+}
+
+macro_rules! int_to_bool {
+    ($e:expr) => (if $e == 1 { true } else { false })
+}
+
 impl Ui {
     pub fn new(native_api: *mut CPdUI) -> Ui {
         Ui {
@@ -163,7 +171,7 @@ impl Ui {
     pub fn begin_popup(&self, text: &str) -> bool {
         unsafe {
             let t = CFixedString::from_str(text).as_ptr();
-            if ((*self.api).begin_popup)(t) == 1 { true } else { false }
+            int_to_bool!(((*self.api).begin_popup)(t))
         }
     }
 
@@ -179,8 +187,7 @@ impl Ui {
             let name = CFixedString::from_str(text).as_ptr();
             let s = if selected { 1 } else { 0 };
             let e = if enabled { 1 } else { 0 };
-            let t = ((*self.api).menu_item)(name, ptr::null(), s, e);
-            if t == 1 { true } else { false }
+            int_to_bool!(((*self.api).menu_item)(name, ptr::null(), s, e))
         }
     }
 }
