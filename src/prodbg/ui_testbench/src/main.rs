@@ -81,16 +81,16 @@ fn main() {
         let show_context_menu = window.get_mouse_down(MouseButton::Right);
 
         for instance in &view_plugins.borrow_mut().instances {
+            let ui = instance.ui;
+
             //bgfx_imgui_set_window_pos(0.0, 0.0);
             //bgfx_imgui_set_window_size(500.0, 500.0);
 
-            bgfx.imgui_begin(true);
+            Imgui::begin_window("Test", true);
+            Imgui::init_state(ui.api);
 
-            let ui = instance.ui;
             let pos = ui.get_window_pos();
             let size = ui.get_window_size();
-
-            Imgui::init_state(ui.api);
 
             if is_inside(mouse, pos, size) && show_context_menu {
                 Imgui::mark_show_popup(ui.api, true);
@@ -108,7 +108,7 @@ fn main() {
 
             has_shown_menu |= Imgui::has_showed_popup(ui.api);
 
-            bgfx.imgui_end();
+            Imgui::end_window();
         }
 
         // if now plugin has showed a menu we do it here

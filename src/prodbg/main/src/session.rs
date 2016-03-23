@@ -4,11 +4,11 @@ use core::view_plugins::{ViewInstance, ViewPlugins, ViewHandle};
 //use core::view_plugins::ViewInstance;
 use prodbg_api::view::CViewCallbacks;
 use core::plugins::PluginHandler;
-//use imgui_sys::Imgui;
+use imgui_sys::Imgui;
 //use core::plugin::Plugin;
 //use std::rc::Rc;
 use std::ptr;
-use libc::{c_void, c_int};
+use libc::c_void;
 
 ///! Session is a major part of ProDBG. There can be several sessions active at the same time
 ///! and each session has exactly one backend. There are only communication internally in a session
@@ -53,7 +53,7 @@ impl Session {
             //bgfx_imgui_set_window_size(500.0, 500.0);
 
             // TODO: Fix visibility flag
-            bgfx_imgui_begin(1);
+            Imgui::begin_window("Test", true);
 
             let plugin_funcs = view.plugin_type.plugin_funcs as *mut CViewCallbacks;
             ((*plugin_funcs).update.unwrap())(view.plugin_data,
@@ -62,7 +62,7 @@ impl Session {
                                               // Send in reader/writer
                                               ptr::null_mut(),
                                               ptr::null_mut());
-            bgfx_imgui_end();
+            Imgui::end_window();
         }
     }
 
@@ -129,27 +129,6 @@ impl Sessions {
         let current = self.current;
         &mut self.instances[current]
     }
-}
-
-///
-///
-///
-///
-
-extern "C" {
-    //fn bgfx_pre_update();
-    //fn bgfx_post_update();
-
-    // fn bgfx_get_ui_funcs() -> *mut c_void;
-
-    fn bgfx_imgui_begin(show: c_int);
-    fn bgfx_imgui_end();
-
-    //fn bgfx_imgui_set_window_pos(x: c_float, y: c_float);
-    //fn bgfx_imgui_set_window_size(x: c_float, y: c_float);
-
-    //fn bgfx_get_screen_width() -> f32;
-    //fn bgfx_get_screen_height() -> f32;
 }
 
 #[cfg(test)]

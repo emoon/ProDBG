@@ -35,6 +35,10 @@ impl Bgfx {
         unsafe { bgfx_post_update(); }
     }
 
+    pub fn test_menu(&self, show: bool) {
+        unsafe { bgfx_test_menu(show as c_int); }
+    }
+
     /*
 
     pub fn create_ui_funcs() -> *mut CPdUI {
@@ -53,19 +57,15 @@ impl Bgfx {
         unsafe { bgfx_init_state(ui); }
     }
 
-    */
-
     pub fn imgui_begin(&self, show: bool) {
         unsafe { bgfx_imgui_begin(show as c_int); }
-    }
-
-    pub fn test_menu(&self, show: bool) {
-        unsafe { bgfx_test_menu(show as c_int); }
     }
 
     pub fn imgui_end(&self) {
         unsafe { bgfx_imgui_end(); }
     }
+
+    */
 
 }
 
@@ -89,8 +89,8 @@ extern "C" {
     //fn bgfx_mark_show_popup(ui: *mut CPdUI, state: u32);
     //fn bgfx_init_state(ui: *mut CPdUI);
 
-    fn bgfx_imgui_begin(show: c_int);
-    fn bgfx_imgui_end();
+    //fn bgfx_imgui_begin(show: c_int);
+    //fn bgfx_imgui_end();
 
     fn bgfx_test_menu(show: c_int);
     //fn bgfx_create_ui_funcs() -> *mut CPdUI;

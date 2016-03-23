@@ -2,8 +2,10 @@ extern crate prodbg_api;
 
 use prodbg_api::ui::Ui;
 use prodbg_api::ui_ffi::CPdUI;
-use std::os::raw::{c_void, c_int};
+use std::os::raw::{c_char, c_void, c_int, c_uchar};
 use std::mem::transmute;
+use prodbg_api::CFixedString;
+
 
 pub struct Imgui  {
     show_popup: bool,
@@ -49,19 +51,37 @@ impl Imgui {
         if showed_menu { 1 } else { 0 }
     }
 
+
+    /// Returns 1 if UI showed a popup or not
+
     pub fn has_showed_popup(api: *mut CPdUI) -> u32 {
         let data = unsafe { &mut *((*api).private_data as *mut Imgui) };
         data.showed_popup as u32
     }
+
+    /// Marks if this ui instance should show a popup or not
+
+    pub fn mark_show_popup(api: *mut CPdUI, state: bool) {
+        let data = unsafe { &mut *((*api).private_data as *mut Imgui) };
+        data.show_popup = state
+    }
+
+    /// Init the private state of the ui before start
 
     pub fn init_state(api: *mut CPdUI) {
         let data = unsafe { &mut *((*api).private_data as *mut Imgui) };
         data.showed_popup = 0
     }
 
-    pub fn mark_show_popup(api: *mut CPdUI, state: bool) {
-        let data = unsafe { &mut *((*api).private_data as *mut Imgui) };
-        data.show_popup = state
+    pub fn begin_window(name: &str, show: bool) {
+        unsafe {
+            let t = CFixedString::from_str(name).as_ptr();
+            imgui_begin(t, show as c_uchar);
+        }
+    }
+
+    pub fn end_window() {
+        unsafe { imgui_end(); }
     }
 
     fn init_ui_funcs() -> *mut CPdUI {
@@ -77,6 +97,8 @@ impl Imgui {
 }
 
 extern "C" {
+    fn imgui_begin(name: *const c_char, show: c_uchar);
+    fn imgui_end();
     fn imgui_create_ui_funcs() -> *mut CPdUI;
     fn imgui_get_ui_funcs() -> *mut CPdUI;
 }

@@ -638,20 +638,6 @@ extern "C" void bgfx_imgui_set_window_size(float w, float h) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C" void bgfx_imgui_begin(int show) {
-	bool s = !!show;
-    //ImGui::Begin("Test", &s, ImVec2(0, 0), true, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-    ImGui::Begin("Test", &s, ImVec2(500, 500), true, ImGuiWindowFlags_NoCollapse);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-extern "C" void bgfx_imgui_end() {
-    ImGui::End();
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 extern "C" void bgfx_test_menu(int show) {
 	if (show)
 		ImGui::OpenPopup("select");
