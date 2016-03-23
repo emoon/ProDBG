@@ -3,16 +3,18 @@ extern crate libc;
 extern crate minifb;
 extern crate prodbg_api;
 extern crate bgfx;
+extern crate imgui_sys;
 
 use core::{DynamicReload, Search};
 use minifb::{Window, Key, Scale, WindowOptions, MouseMode, MouseButton};
 use libc::{c_void};
 use prodbg_api::view::CViewCallbacks;
-use prodbg_api::ui::Ui;
+//use prodbg_api::ui::Ui;
 use prodbg_api::ui_ffi::{PDVec2};
 use core::view_plugins::{ViewPlugins};
 use std::rc::Rc;
 use std::cell::RefCell;
+use imgui_sys::Imgui;
 
 // use core::plugin_handler::*;
 use core::plugins::*;
@@ -57,7 +59,7 @@ fn main() {
     plugins.add_handler(&view_plugins);
     plugins.add_plugin(&mut lib_handler, "registers_plugin");
 
-    let ui = Ui::new(Bgfx::create_ui_funcs());
+    let ui = Imgui::create_ui_instance();
 
     view_plugins.borrow_mut().create_instance(ui, &"Registers View".to_owned());
 
@@ -80,7 +82,7 @@ fn main() {
 
         for instance in &view_plugins.borrow_mut().instances {
             //bgfx_imgui_set_window_pos(0.0, 0.0);
-            //bgfx_imgui_set_window_size(500.0, 500.0); 
+            //bgfx_imgui_set_window_size(500.0, 500.0);
 
             bgfx.imgui_begin(true);
 
@@ -88,12 +90,12 @@ fn main() {
             let pos = ui.get_window_pos();
             let size = ui.get_window_size();
 
-            bgfx.init_state(ui.api);
+            Imgui::init_state(ui.api);
 
             if is_inside(mouse, pos, size) && show_context_menu {
-                bgfx.mark_show_popup(ui.api, true);
+                Imgui::mark_show_popup(ui.api, true);
             } else {
-                bgfx.mark_show_popup(ui.api, false);
+                Imgui::mark_show_popup(ui.api, false);
             }
 
             unsafe {
@@ -104,7 +106,7 @@ fn main() {
                                                     ptr::null_mut());
             }
 
-            has_shown_menu |= bgfx.has_showed_popup(ui.api);
+            has_shown_menu |= Imgui::has_showed_popup(ui.api);
 
             bgfx.imgui_end();
         }

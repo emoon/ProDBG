@@ -4,6 +4,7 @@ use core::view_plugins::{ViewInstance, ViewPlugins, ViewHandle};
 //use core::view_plugins::ViewInstance;
 use prodbg_api::view::CViewCallbacks;
 use core::plugins::PluginHandler;
+//use imgui_sys::Imgui;
 //use core::plugin::Plugin;
 //use std::rc::Rc;
 use std::ptr;
@@ -48,15 +49,16 @@ impl Session {
     fn update_view_instance(view: &mut ViewInstance) {
         unsafe {
             //bgfx_imgui_set_window_pos(view.x, view.y);
-            //bgfx_imgui_set_window_size(view.width, view.height); 
-            //bgfx_imgui_set_window_size(500.0, 500.0); 
+            //bgfx_imgui_set_window_size(view.width, view.height);
+            //bgfx_imgui_set_window_size(500.0, 500.0);
 
             // TODO: Fix visibility flag
             bgfx_imgui_begin(1);
 
             let plugin_funcs = view.plugin_type.plugin_funcs as *mut CViewCallbacks;
             ((*plugin_funcs).update.unwrap())(view.plugin_data,
-                                              bgfx_get_ui_funcs(),
+                                              view.ui.api as *mut c_void,
+                                              //Imgui::get_ui_funs() as *mut c_void,
                                               // Send in reader/writer
                                               ptr::null_mut(),
                                               ptr::null_mut());
@@ -70,7 +72,7 @@ impl Session {
 
     /*
     pub fn set_backend(&mut self, backend: Option<BackendHandle>) {
-        self.backend = backend 
+        self.backend = backend
     }
     */
 
@@ -79,8 +81,8 @@ impl Session {
         // TODO: Reader/Write setup + backend update
 
         /*
-        unsafe { 
-            bgfx_pre_update(); 
+        unsafe {
+            bgfx_pre_update();
         }
         */
 
@@ -101,7 +103,7 @@ impl Session {
 pub struct Sessions {
     instances: Vec<Session>,
     current: usize,
-    
+
 }
 
 impl Sessions {
@@ -138,7 +140,7 @@ extern "C" {
     //fn bgfx_pre_update();
     //fn bgfx_post_update();
 
-    fn bgfx_get_ui_funcs() -> *mut c_void;
+    // fn bgfx_get_ui_funcs() -> *mut c_void;
 
     fn bgfx_imgui_begin(show: c_int);
     fn bgfx_imgui_end();

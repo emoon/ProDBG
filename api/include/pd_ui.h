@@ -41,8 +41,8 @@ typedef struct PDRect {
 typedef uint32_t PDColor;
 typedef uint32_t PDUIInputTextFlags;    // enum PDUIInputTextFlags_
 typedef uint32_t PDID;
-typedef uint32_t PDUISetCond; 
-typedef uint32_t PDUIWindowFlags; 
+typedef uint32_t PDUISetCond;
+typedef uint32_t PDUIWindowFlags;
 typedef uint32_t PDUISelectableFlags;
 typedef void* PDUIFont;
 
@@ -232,8 +232,11 @@ typedef struct PDUISCInterface {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct PDUI {
+	// data
+    void* private_data;
+
 	// Window
-	
+
 	void (*set_title)(void* private_data, const char* title);
 	PDVec2 (*get_window_size)();
 	PDVec2 (*get_window_pos)();
@@ -447,7 +450,7 @@ typedef struct PDUI {
 	void (*log_finish)();
 	void (*log_buttons)();
 	//void (*logText)(const char* fmt, ...); -- no logTextV which PDUI needs
-	
+
 	// Utilities
 	bool (*is_item_hovered)();
 	bool (*is_item_hovered_rect)();
@@ -497,11 +500,8 @@ typedef struct PDUI {
 
     // Rendering
 
-	void (*fill_rect)(PDRect rect, unsigned int color); 
+	void (*fill_rect)(PDRect rect, unsigned int color);
 
-	// data
-
-    void* private_data;
 
 } PDUI;
 

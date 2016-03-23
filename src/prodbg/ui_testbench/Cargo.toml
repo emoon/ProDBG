@@ -11,5 +11,6 @@ minifb = "0.5.*"
 lazy_static = "0.1.*"
 core = { path = "../core" }
 bgfx = { path = "../bgfx" }
+imgui_sys = { path = "../imgui_sys" }
 prodbg_api = { path = "../../../api/rust/prodbg" }
 

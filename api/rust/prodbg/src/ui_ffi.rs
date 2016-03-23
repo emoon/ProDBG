@@ -5,7 +5,7 @@
 extern crate libc;
 extern crate bitflags;
 
-use libc::{c_char, c_uchar, c_float, c_int, c_uint, c_ulonglong, c_longlong, c_ushort, c_void};
+use std::os::raw::{c_char, c_uchar, c_float, c_int, c_uint, c_ulonglong, c_longlong, c_ushort, c_void};
 
 
 // struct PDVec2
@@ -90,6 +90,7 @@ pub struct PDUIInputTextCallbackData {
 
 #[repr(C)]
 pub struct CPdUI {
+	pub private_data: *mut c_void,
 	pub set_title: extern fn(*mut c_void, *const c_char),
 	pub get_window_size: extern fn () -> PDVec2,
 	pub get_window_pos: extern fn () -> PDVec2,
@@ -253,8 +254,8 @@ pub struct CPdUI {
 	pub begin_popup_context_void: extern fn(*const c_char, c_int) -> c_int,
 	pub end_popup: *mut extern fn () -> c_void,
 	pub close_current_popup: *mut extern fn () -> c_void,
-	pub begin_popup_context: *mut extern fn () -> c_int,
-	pub end_popup_context: extern fn(),
+	pub begin_popup_context: extern fn (*mut c_void) -> c_int,
+	pub end_popup_context: extern fn(*mut c_void),
 	pub value_int: extern fn(*const c_char, c_int),
 	pub value_u_int: extern fn(*const c_char, c_uint),
 	pub value_float: extern fn(*const c_char, c_float, *const c_char),
@@ -307,7 +308,6 @@ pub struct CPdUI {
 	pub get_mouse_cursor: *mut extern fn () -> c_uint,
 	pub set_mouse_cursor: extern fn(c_uint),
 	pub fill_rect: extern fn(PDRect, c_uint),
-	pub private_data: *mut c_void,
 }
 
 #[repr(C)]

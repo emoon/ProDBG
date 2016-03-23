@@ -81,7 +81,7 @@ impl Ui {
     pub fn set_keyboard_focus_here(&self, offset: i32) {
         unsafe { ((*self.api).set_keyboard_focus_here)(offset) }
     }
-    
+
     // TODO: push/pop font
 
     #[inline]
@@ -158,6 +158,29 @@ impl Ui {
                 Some(p) => ((*self.api).button)(t, p) != 0,
                 None => ((*self.api).button)(t, PDVec2 { x: 0.0, y: 0.0 }) != 0,
             }
+        }
+    }
+    pub fn begin_popup(&self, text: &str) -> bool {
+        unsafe {
+            let t = CFixedString::from_str(text).as_ptr();
+            if ((*self.api).begin_popup)(t) == 1 { true } else { false }
+        }
+    }
+
+    pub fn open_popup(&self, text: &str) {
+        unsafe {
+            let t = CFixedString::from_str(text).as_ptr();
+            ((*self.api).open_popup)(t);
+        }
+    }
+
+	pub fn menu_item(&self, text: &str, selected: bool, enabled: bool) -> bool {
+        unsafe {
+            let name = CFixedString::from_str(text).as_ptr();
+            let s = if selected { 1 } else { 0 };
+            let e = if enabled { 1 } else { 0 };
+            let t = ((*self.api).menu_item)(name, ptr::null(), s, e);
+            if t == 1 { true } else { false }
         }
     }
 }

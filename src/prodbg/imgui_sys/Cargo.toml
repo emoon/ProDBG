@@ -1,0 +1,8 @@
+[package]
+name = "imgui_sys"
+version = "0.1.0"
+authors = ["Daniel Collin <daniel@collin.com>"]
+
+[dependencies]
+prodbg_api = { path = "../../../api/rust/prodbg" }
+

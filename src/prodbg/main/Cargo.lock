@@ -4,6 +4,7 @@ version = "0.1.0"
 dependencies = [
  "bgfx 0.1.0",
  "core 0.1.0",
+ "imgui_sys 0.1.0",
  "lazy_static 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "libloading 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -122,6 +123,13 @@ version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "winapi 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "imgui_sys"
+version = "0.1.0"
+dependencies = [
+ "prodbg_api 0.1.0",
 ]
 
 [[package]]

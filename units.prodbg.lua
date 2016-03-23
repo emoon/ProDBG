@@ -30,8 +30,20 @@ end
 RustCrate {
 	Name = "bgfx-rs",
 	CargoConfig = "src/prodbg/bgfx/Cargo.toml",
-	Sources = { 
+	Sources = {
 		get_rs_src("src/prodbg/bgfx"),
+		get_rs_src("api/rust"),
+		"src/prodbg/build.rs",
+	},
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+RustCrate {
+	Name = "imgui-sys",
+	CargoConfig = "src/prodbg/imgui_sys/Cargo.toml",
+	Sources = {
+		get_rs_src("src/prodbg/imgui_sys"),
 		get_rs_src("api/rust"),
 		"src/prodbg/build.rs",
 	},
@@ -42,14 +54,14 @@ RustCrate {
 RustProgram {
 	Name = "ui_testbench",
 	CargoConfig = "src/prodbg/ui_testbench/Cargo.toml",
-	Sources = { 
+	Sources = {
 		get_rs_src("src/prodbg/ui_testbench"),
 		get_rs_src("src/prodbg/core"),
 		"src/prodbg/build.rs",
 	},
 
     Depends = { "ui", "lua", "remote_api", "stb", "bgfx", "bgfx-rs",
-    			"imgui", "scintilla", "tinyxml2", "capstone" },
+    			"imgui", "scintilla", "tinyxml2", "capstone", "imgui-sys" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -57,7 +69,7 @@ RustProgram {
 RustProgram {
 	Name = "prodbg",
 	CargoConfig = "src/prodbg/main/Cargo.toml",
-	Sources = { 
+	Sources = {
 		get_rs_src("src/prodbg/main"),
 		get_rs_src("src/prodbg/core"),
 		get_rs_src("src/ui"),
@@ -65,12 +77,12 @@ RustProgram {
 	},
 
     Depends = { "ui", "lua", "remote_api", "stb", "bgfx", "bgfx-rs",
-    			"imgui", "scintilla", "tinyxml2", "capstone" },
+    			"imgui", "scintilla", "tinyxml2", "capstone", "imgui-sys" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
 
-local prodbgBundle = OsxBundle 
+local prodbgBundle = OsxBundle
 {
 	Depends = { "prodbg" },
 	Target = "$(OBJECTDIR)/ProDBG.app",
@@ -86,7 +98,7 @@ local prodbgBundle = OsxBundle
 
 -----------------------------------------------------------------------------------------------------------------------
 
-local uiBundle = OsxBundle 
+local uiBundle = OsxBundle
 {
 	Depends = { "ui_testbench" },
 	Target = "$(OBJECTDIR)/UITestbench.app",

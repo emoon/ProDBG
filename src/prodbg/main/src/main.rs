@@ -3,6 +3,7 @@ extern crate libc;
 extern crate minifb;
 extern crate prodbg_api;
 extern crate bgfx;
+extern crate imgui_sys;
 
 pub mod windows;
 mod docking;
@@ -10,8 +11,9 @@ pub mod session;
 mod backend_plugin;
 
 use docking::DockingPlugin;
-use prodbg_api::ui::Ui;
+//use prodbg_api::ui::Ui;
 use bgfx::Bgfx;
+use imgui_sys::Imgui;
 
 use session::Sessions;
 use windows::Windows;
@@ -32,7 +34,7 @@ use core::plugins::*;
 fn add_view(index: usize, sessions: &mut Sessions, windows: &mut Windows, view_plugins: &mut ViewPlugins) {
     let session = sessions.get_current();
     let window = windows.get_current();
-    let ui = Ui::new(Bgfx::create_ui_funcs());
+    let ui = Imgui::create_ui_instance();
 
     // TODO: Mask out index for plugin
     view_plugins.create_instance_from_index(ui, index).map(|handle| {
