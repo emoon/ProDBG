@@ -515,6 +515,17 @@ void pd_binary_reader_init(PDReader* reader) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+PDReader* pd_binary_reader_create() {
+    PDReader* reader = malloc(sizeof(PDReader));
+    memset(reader, 0, sizeof(ReaderData));
+
+	pd_binary_reader_init(reader);
+
+	return reader;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void pd_binary_reader_init_stream(PDReader* reader, uint8_t* data, unsigned int size) {
     ReaderData* readerData = (ReaderData*)reader->data;
     readerData->data = readerData->dataStart = data + 4;    // top 4 bytes for size + 2 bits for info

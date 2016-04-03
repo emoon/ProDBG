@@ -486,14 +486,25 @@ void pd_binary_writer_init(PDWriter* writer) {
 
     data = (WriterData*)writer->data;
 
-    // \todo: Make this tweakble/custom allocator 1 meg should be enough most of the time
+    // \todo: Make this tweakble/custom allocator 2 meg should be enough most of the time
 
-    data->data = data->dataStart = malloc(1024 * 1024);
+    data->data = data->dataStart = malloc(1024 * 1024 * 2);
     // reserve 4 bytes at the start (to be used for size and 2 flags at the top)
     data->data += 4;
-    data->maxSize = 1024 * 1024;
+    data->maxSize = 2 * 1024 * 1024;
 
     //printf("data-start %p\n", data->dataStart);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+PDWriter* pd_binary_writer_create() {
+    PDWriter* writer = malloc(sizeof(PDWriter));
+    memset(writer, 0, sizeof(PDWriter));
+
+	pd_binary_writer_init(writer);
+
+	return writer;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
