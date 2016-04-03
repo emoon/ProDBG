@@ -12,7 +12,7 @@ pub struct ViewHandle(pub usize);
 
 pub struct ViewInstance {
     pub plugin_data: *mut c_void,
-    pub ui: Ui, 
+    pub ui: Ui,
     pub handle: ViewHandle,
     pub x: f32,
     pub y: f32,
@@ -145,7 +145,6 @@ impl ViewPlugins {
 mod tests {
     #[test]
     fn test_search_paths_none() {
-        assert_eq!(1);
     }
 }
 
