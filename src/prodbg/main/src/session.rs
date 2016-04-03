@@ -3,10 +3,10 @@ use core::view_plugins::{ViewInstance, ViewPlugins, ViewHandle};
 //use core::backend_plugins::{BackendPlugins, BackendHandle};
 //use core::view_plugins::ViewInstance;
 use prodbg_api::view::CViewCallbacks;
+use prodbg_api::read_write::{Reader, Writer};
 use core::plugins::PluginHandler;
+use core::reader_wrapper::{ReaderWrapper, WriterWrapper};
 use imgui_sys::Imgui;
-//use core::plugin::Plugin;
-//use std::rc::Rc;
 use std::ptr;
 use libc::c_void;
 
@@ -24,8 +24,11 @@ use libc::c_void;
 ///! 3. Backends and views can post messages which anyone can decide to (optionally) act on.
 ///!
 pub struct Session {
-    views: Vec<ViewHandle>,
+    pub views: Vec<ViewHandle>,
     //backend: Option<BackendHandle>,
+
+    pub writers: [Writer; 2],
+    pub reader: Reader,
 }
 
 ///! Connection options for Remote connections. Currently just one Ip adderss
@@ -37,8 +40,13 @@ pub struct ConnectionSettings<'a> {
 impl Session {
     pub fn new() -> Session {
         Session {
-            //backend: None,
             views: Vec::new(),
+            writers: [
+                WriterWrapper::create_writer(),
+                WriterWrapper::create_writer(),
+            ],
+            reader: ReaderWrapper::create_reader(),
+            //backend: None,
         }
     }
 
@@ -115,7 +123,7 @@ impl Sessions {
     }
 
     pub fn create_instance(&mut self) {
-        let s = Session { views: Vec::new() };
+        let s = Session::new();
         self.instances.push(s)
     }
 
@@ -133,9 +141,24 @@ impl Sessions {
 
 #[cfg(test)]
 mod tests {
+    use core::reader_wrapper::{ReaderWrapper};
+    use super::*;
+
     #[test]
-    fn test_search_paths_none() {
-        assert_eq!(1, 1);
+    fn create_session() {
+        let _session = Session::new();
+    }
+
+    #[test]
+    fn write_simple_event() {
+        let mut session = Session::new();
+
+        session.writers[0].event_begin(0x44);
+        session.writers[0].event_end();
+
+        ReaderWrapper::init_from_writer(&mut session.reader, &session.writers[0]);
+
+        assert_eq!(session.reader.get_event().unwrap(), 0x44);
     }
 }
 

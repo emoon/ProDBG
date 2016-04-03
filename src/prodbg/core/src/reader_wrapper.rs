@@ -14,6 +14,8 @@ impl ReaderWrapper {
 
     pub fn init_from_writer(reader: &mut Reader, writer: &Writer) {
         unsafe {
+            pd_binary_writer_finalize(writer.api);
+
             let data = pd_binary_writer_get_data(writer.api);
             let size = pd_binary_writer_get_size(writer.api);
 
@@ -33,6 +35,7 @@ impl WriterWrapper {
 }
 
 extern "C" {
+    fn pd_binary_writer_finalize(api: *mut CPDWriterAPI);
     fn pd_binary_writer_create() -> *mut CPDWriterAPI;
     fn pd_binary_reader_create() -> *mut CPDReaderAPI;
     fn pd_binary_writer_get_data(api: *mut CPDWriterAPI) -> *mut c_void;
