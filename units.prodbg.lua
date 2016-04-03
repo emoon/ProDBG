@@ -51,17 +51,28 @@ RustCrate {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+RustCrate  {
+	Name = "core",
+	CargoConfig = "src/prodbg/core/Cargo.toml",
+	Sources = {
+		get_rs_src("src/prodbg/core"),
+		"src/prodbg/build.rs",
+	},
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
 RustProgram {
 	Name = "ui_testbench",
 	CargoConfig = "src/prodbg/ui_testbench/Cargo.toml",
 	Sources = {
 		get_rs_src("src/prodbg/ui_testbench"),
-		get_rs_src("src/prodbg/core"),
+		-- get_rs_src("src/prodbg/core"),
 		"src/prodbg/build.rs",
 	},
 
     Depends = { "ui", "lua", "remote_api", "stb", "bgfx", "bgfx-rs",
-    			"imgui", "scintilla", "tinyxml2", "capstone", "imgui-sys" },
+    			"imgui", "scintilla", "tinyxml2", "capstone", "imgui-sys", "core" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -71,13 +82,13 @@ RustProgram {
 	CargoConfig = "src/prodbg/main/Cargo.toml",
 	Sources = {
 		get_rs_src("src/prodbg/main"),
-		get_rs_src("src/prodbg/core"),
+		-- get_rs_src("src/prodbg/core"),
 		get_rs_src("src/ui"),
 		"src/prodbg/build.rs",
 	},
 
     Depends = { "ui", "lua", "remote_api", "stb", "bgfx", "bgfx-rs",
-    			"imgui", "scintilla", "tinyxml2", "capstone", "imgui-sys" },
+    			"imgui", "scintilla", "tinyxml2", "capstone", "imgui-sys", "core" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
