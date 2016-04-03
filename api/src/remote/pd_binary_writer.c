@@ -455,7 +455,7 @@ static PDWriteStatus write_array_end(struct PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PDBinaryWriter_init(PDWriter* writer) {
+void pd_binary_writer_init(PDWriter* writer) {
     WriterData* data;
 
     writer->write_event_begin = write_event_begin;
@@ -479,7 +479,7 @@ void PDBinaryWriter_init(PDWriter* writer) {
     writer->write_string = write_string;
     writer->write_data = write_data;
 
-    //printf("PDBinaryWriter_init\n");
+    //printf("pd_binary_writer_init\n");
 
     writer->data = malloc(sizeof(WriterData));
     memset(writer->data, 0, sizeof(WriterData));
@@ -498,7 +498,7 @@ void PDBinaryWriter_init(PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-unsigned char* PDBinaryWriter_getData(PDWriter* writer) {
+unsigned char* pd_binary_writer_get_data(PDWriter* writer) {
     WriterData* data = (WriterData*)writer->data;
     return data->dataStart;
 }
@@ -506,10 +506,10 @@ unsigned char* PDBinaryWriter_getData(PDWriter* writer) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Write size at the very start of the data
 
-void PDBinaryWriter_finalize(PDWriter* writer) {
+void pd_binary_writer_finalize(PDWriter* writer) {
     WriterData* data = (WriterData*)writer->data;
     uint8_t* wData = data->dataStart;
-    uint32_t v = PDBinaryWriter_getSize(writer) + 4;
+    uint32_t v = pd_binary_writer_get_size(writer) + 4;
 
     wData[0] = (v >> 24) & 0xff;
     wData[1] = (v >> 16) & 0xff;
@@ -519,14 +519,14 @@ void PDBinaryWriter_finalize(PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-unsigned int PDBinaryWriter_getSize(PDWriter* writer) {
+unsigned int pd_binary_writer_get_size(PDWriter* writer) {
     WriterData* data = (WriterData*)writer->data;
     return (int)(uintptr_t)(data->data - (data->dataStart + 4));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PDBinaryWriter_reset(PDWriter* writer) {
+void pd_binary_writer_reset(PDWriter* writer) {
     WriterData* data = (WriterData*)writer->data;
     void* tempData = data->dataStart;
     memset(data, 0, sizeof(WriterData));
@@ -536,7 +536,7 @@ void PDBinaryWriter_reset(PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PDBinaryWriter_destroy(PDWriter* writer) {
+void pd_binary_writer_destroy(PDWriter* writer) {
     //WriterData* data = (WriterData*)writer->data;
     // TODO: Skip this free due to bad implementation of reader/writer in fake6502, fix!
     //free(data->dataStart);

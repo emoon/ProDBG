@@ -485,13 +485,13 @@ static void read_dump_data(struct PDReader* reader) {
         log_info("}\n");
     }
 
-    PDBinaryReader_reset(reader);
+    pd_binary_reader_reset(reader);
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PDBinaryReader_init(PDReader* reader) {
+void pd_binary_reader_init(PDReader* reader) {
     reader->read_get_event = read_get_event;
     reader->read_next_entry = read_next_entry;
     reader->read_find_s8 = read_find_s8;
@@ -515,7 +515,7 @@ void PDBinaryReader_init(PDReader* reader) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PDBinaryReader_initStream(PDReader* reader, uint8_t* data, unsigned int size) {
+void pd_binary_reader_init_stream(PDReader* reader, uint8_t* data, unsigned int size) {
     ReaderData* readerData = (ReaderData*)reader->data;
     readerData->data = readerData->dataStart = data + 4;    // top 4 bytes for size + 2 bits for info
     readerData->dataEnd = (uint8_t*)data + size;
@@ -526,7 +526,7 @@ void PDBinaryReader_initStream(PDReader* reader, uint8_t* data, unsigned int siz
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PDBinaryReader_reset(PDReader* reader) {
+void pd_binary_reader_reset(PDReader* reader) {
     ReaderData* readerData = (ReaderData*)reader->data;
     readerData->data = readerData->dataStart;
     readerData->nextEvent = 0;
@@ -534,8 +534,9 @@ void PDBinaryReader_reset(PDReader* reader) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PDBinaryReader_destroy(PDReader* reader) {
+void pd_binary_reader_destroy(PDReader* reader) {
     ReaderData* readerData = (ReaderData*)reader->data;
     free(readerData);
+    free(reader);
 }
 

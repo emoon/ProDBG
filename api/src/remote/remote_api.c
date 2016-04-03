@@ -53,7 +53,7 @@ int PDRemote_create(struct PDBackendPlugin* plugin, int waitForConnection) {
     s_writer = &s_writerData;
     s_reader = &s_readerData;
 
-    PDBinaryReader_init(s_reader);
+    pd_binary_reader_init(s_reader);
 
     // \todo Verify that this plugin is ok
     s_plugin = plugin;
@@ -111,8 +111,8 @@ int PDRemote_update(int sleepTime) {
         }
     }
 
-    PDBinaryWriter_init(s_writer);
-    PDBinaryReader_initStream(s_reader, recvData, recvSize);
+    pd_binary_writer_init(s_writer);
+    pd_binary_reader_init_stream(s_reader, recvData, recvSize);
 
     state = s_plugin->update(s_userData, (PDAction)action, s_reader, s_writer);
 
@@ -120,10 +120,10 @@ int PDRemote_update(int sleepTime) {
     //PDWrite_u32(s_writer, "state", (uint32_t)state);
     //PDWrite_event_end(s_writer);
 
-    PDBinaryWriter_finalize(s_writer);
+    pd_binary_writer_finalize(s_writer);
 
-    size = PDBinaryWriter_getSize(s_writer);
-    data = PDBinaryWriter_getData(s_writer);
+    size = pd_binary_writer_get_size(s_writer);
+    data = pd_binary_writer_get_data(s_writer);
 
     // make sure to only send data if we have something to send (4 is only the size with no data)
 
@@ -134,7 +134,7 @@ int PDRemote_update(int sleepTime) {
     free(recvData);
     free(data);
 
-    PDBinaryWriter_destroy(s_writer);
+    pd_binary_writer_destroy(s_writer);
 
     return PDRemote_isConnected();
 }
