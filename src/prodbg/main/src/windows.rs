@@ -5,7 +5,7 @@ extern crate viewdock;
 use bgfx_rs::Bgfx;
 use libc::{c_void, c_int};
 use minifb::{Scale, WindowOptions, MouseMode, MouseButton};
-use core::view_plugins::ViewHandle;
+use core::view_plugins::{ViewHandle, ViewPlugins};
 use self::viewdock::{Workspace, Rect};
 
 const WIDTH: usize = 1280;
@@ -92,8 +92,8 @@ impl Windows {
         Ok(window)
     }
 
-    fn update_window(window: &mut Window) {
-        window.update();
+    fn update_window(window: &mut Window, view_plugins: &mut ViewPlugins) {
+        window.update(view_plugins);
 
         window.win.get_mouse_pos(MouseMode::Clamp).map(|mouse| {
             Bgfx::set_mouse_pos(mouse);
@@ -101,9 +101,9 @@ impl Windows {
         });
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, view_plugins: &mut ViewPlugins) {
         for i in (0..self.windows.len()).rev() {
-            Self::update_window(&mut self.windows[i]);
+            Self::update_window(&mut self.windows[i], view_plugins);
 
             if !self.windows[i].win.is_open() {
                 self.windows.swap_remove(i);
@@ -140,18 +140,7 @@ impl Windows {
 }
 
 impl Window {
-    // fn update(&mut self, docking_plugins: &DockingPlugin) {
-    // let dock = docking_plugins.get_handle(self.docking);
-    //
-    // let plugin_funcs = view.plugin_type.plugin_funcs as *mut CViewCallbacks;
-    // ((*plugin_funcs).update.unwrap())(instance.user_data,
-    // bgfx_get_ui_funcs(),
-    // Send in reader/writer
-    // ptr::null_mut(),
-    // ptr::null_mut());
-    // }
-    //
-    pub fn update(&mut self) {
+    pub fn update(&mut self, _view_plugins: &mut ViewPlugins) {
         self.win.update();
     }
 
