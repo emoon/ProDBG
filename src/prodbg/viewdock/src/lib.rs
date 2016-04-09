@@ -4,7 +4,7 @@ pub use self::error::Error;
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Clone, Copy)]
-pub struct ViewHandle(pub u64);
+pub struct DockHandle(pub u64);
 
 #[derive(Clone, Copy)]
 pub struct SplitHandle(pub u64);
@@ -29,15 +29,15 @@ impl Rect {
 }
 
 #[derive(Clone)]
-pub struct View {
-    pub handle: ViewHandle,
+pub struct Dock {
+    pub handle: DockHandle,
     pub rect: Rect
 }
 
-impl View {
-    fn new(view_handle: ViewHandle) -> View {
-        View {
-            handle: view_handle,
+impl Dock {
+    fn new(dock_handle: DockHandle) -> Dock {
+        Dock {
+            handle: dock_handle,
             rect: Rect::default(),
         }
     }
@@ -52,14 +52,14 @@ pub enum Direction {
 
 #[derive(Clone)]
 pub struct Container {
-    pub views: Vec<View>,
+    pub docks: Vec<Dock>,
     pub rect: Rect,
 }
 
 impl Container {
     pub fn new() -> Container {
         Container {
-            views: Vec::new(),
+            docks: Vec::new(),
             rect: Rect::default(),
         }
     }
@@ -67,14 +67,14 @@ impl Container {
 }
 
 pub struct Split {
-    /// left/top slipit 
+    /// left/top slipit
     pub left: Option<Box<Split>>,
     /// right/bottom split
     pub right: Option<Box<Split>>,
-    /// left/top views
-    pub left_views: Container,
-    /// right/top views
-    pub right_views: Container,
+    /// left/top docks
+    pub left_docks: Container,
+    /// right/top docks
+    pub right_docks: Container,
     /// ratioage value of how much of each side that is visible. 1.0 = right/bottom fully visible
     pub ratio: f32,
     /// Direction of the split
@@ -90,8 +90,8 @@ impl Split {
         Split {
             left: None,
             right: None,
-            left_views: Container::new(),
-            right_views: Container::new(),
+            left_docks: Container::new(),
+            right_docks: Container::new(),
             ratio: 0.0,
             direction: direction,
             handle: handle,
@@ -99,17 +99,17 @@ impl Split {
         }
     }
 
-    pub fn no_split(&mut self, direction: Direction, view_handle: ViewHandle) -> bool {
+    pub fn no_split(&mut self, direction: Direction, dock_handle: DockHandle) -> bool {
         self.direction = direction;
 
-        if self.left_views.views.len() == 0 {
-            self.left_views.views.push(View::new(view_handle));
+        if self.left_docks.docks.len() == 0 {
+            self.left_docks.docks.push(Dock::new(dock_handle));
             self.ratio = 0.5;
             return true;
         }
 
-        if self.right_views.views.len() == 0 {
-            self.right_views.views.push(View::new(view_handle));
+        if self.right_docks.docks.len() == 0 {
+            self.right_docks.docks.push(Dock::new(dock_handle));
             self.ratio = 0.5;
             return true;
         }
@@ -117,29 +117,29 @@ impl Split {
         false
     }
 
-    pub fn split_left(&mut self, split_handle: SplitHandle, view_handle: ViewHandle, direction: Direction) {
-        if Self::no_split(self, direction, view_handle) { 
-            return; 
+    pub fn split_left(&mut self, split_handle: SplitHandle, dock_handle: DockHandle, direction: Direction) {
+        if Self::no_split(self, direction, dock_handle) {
+            return;
         } else {
             let mut split = Box::new(Split::new(direction, split_handle));
-            split.right_views = self.left_views.clone();
-            split.left_views.views.push(View::new(view_handle));
+            split.right_docks = self.left_docks.clone();
+            split.left_docks.docks.push(Dock::new(dock_handle));
             split.ratio = 0.5;
             self.left = Some(split);
-            self.left_views.views.clear();
+            self.left_docks.docks.clear();
         }
     }
 
-    pub fn split_right(&mut self, split_handle: SplitHandle, view_handle: ViewHandle, direction: Direction) {
-        if Self::no_split(self, direction, view_handle) { 
-            return; 
+    pub fn split_right(&mut self, split_handle: SplitHandle, dock_handle: DockHandle, direction: Direction) {
+        if Self::no_split(self, direction, dock_handle) {
+            return;
         } else {
             let mut split = Box::new(Split::new(direction, split_handle));
-            split.left_views = self.right_views.clone();
-            split.right_views.views.push(View::new(view_handle));
+            split.left_docks = self.right_docks.clone();
+            split.right_docks.docks.push(Dock::new(dock_handle));
             split.ratio = 0.5;
             self.right = Some(split);
-            self.right_views.views.clear();
+            self.right_docks.docks.clear();
         }
     }
 
@@ -182,50 +182,50 @@ impl Split {
             Self::recursive_update(split, rects.1, level + 1);
         }
 
-        self.left_views.rect = rects.0;
-        self.right_views.rect = rects.1;
+        self.left_docks.rect = rects.0;
+        self.right_docks.rect = rects.1;
 
         //println!("level {} left  - x: {} y: {} w: {} h: {}", level, rects.0.x, rects.0.y, rects.0.width, rects.0.height);
         //println!("level {} right - x: {} y: {} w: {} h: {}", level, rects.1.x, rects.1.y, rects.1.width, rects.1.height);
 
         // TODO: Remove these loops, should be propagated to update call only
 
-        for view in &mut self.left_views.views {
+        for dock in &mut self.left_docks.docks {
             //println!("level {} left  - x: {} y: {} w: {} h: {}", level, rects.0.x, rects.0.y, rects.0.width, rects.0.height);
-            view.rect = rects.0;
+            dock.rect = rects.0;
         }
 
-        for view in &mut self.right_views.views {
+        for dock in &mut self.right_docks.docks {
             //println!("level {} right - x: {} y: {} w: {} h: {}", level, rects.1.x, rects.1.y, rects.1.width, rects.1.height);
-            view.rect = rects.1;
+            dock.rect = rects.1;
         }
     }
 
-    pub fn split_by_view_handle(&mut self, direction: Direction, split_handle: SplitHandle, find_handle: ViewHandle, handle: ViewHandle) {
+    pub fn split_by_dock_handle(&mut self, direction: Direction, split_handle: SplitHandle, find_handle: DockHandle, handle: DockHandle) {
         // TODO: Fix me
-        let left_views = self.left_views.views.clone();
-        let right_views = self.right_views.views.clone();
+        let left_docks = self.left_docks.docks.clone();
+        let right_docks = self.right_docks.docks.clone();
 
-        for view in left_views {
-            if view.handle.0 == find_handle.0 {
+        for dock in left_docks {
+            if dock.handle.0 == find_handle.0 {
                 self.split_left(split_handle, handle, direction);
                 return;
             }
         }
 
-        for view in right_views {
-            if view.handle.0 == find_handle.0 {
+        for dock in right_docks {
+            if dock.handle.0 == find_handle.0 {
                 self.split_right(split_handle, handle, direction);
                 return;
             }
         }
 
         if let Some(ref mut split) = self.left {
-            Self::split_by_view_handle(split, direction, split_handle, find_handle, handle); 
+            Self::split_by_dock_handle(split, direction, split_handle, find_handle, handle);
         }
 
         if let Some(ref mut split) = self.right {
-            Self::split_by_view_handle(split, direction, split_handle, find_handle, handle); 
+            Self::split_by_dock_handle(split, direction, split_handle, find_handle, handle);
         }
     }
 
@@ -254,13 +254,13 @@ impl Split {
         match direction {
             Direction::Horizontal => Self::is_inside(pos, Self::get_sizer_from_rect_horizontal(rect, border_size)),
             Direction::Vertical => Self::is_inside(pos, Self::get_sizer_from_rect_vertical(rect, border_size)),
-            Direction::Full => false, 
+            Direction::Full => false,
         }
     }
 
     pub fn is_hovering_sizer(&self, pos: (f32, f32)) -> Option<SplitHandle> {
-        if Self::is_hovering_rect(pos, 8.0, self.left_views.rect, self.direction) {
-            return Some(self.handle) 
+        if Self::is_hovering_rect(pos, 8.0, self.left_docks.rect, self.direction) {
+            return Some(self.handle)
         }
 
         if let Some(ref split) = self.left {
@@ -306,22 +306,22 @@ impl Split {
         }
 
         if let Some(ref mut split) = self.left {
-            Self::drag_sizer(split, handle, delta); 
+            Self::drag_sizer(split, handle, delta);
         }
 
         if let Some(ref mut split) = self.right {
-            Self::drag_sizer(split, handle, delta); 
+            Self::drag_sizer(split, handle, delta);
         }
     }
 
-    pub fn get_rect_by_handle(&self, handle: ViewHandle) -> Option<Rect> {
-        for h in &self.left_views.views {
+    pub fn get_rect_by_handle(&self, handle: DockHandle) -> Option<Rect> {
+        for h in &self.left_docks.docks {
             if h.handle.0 == handle.0 {
                 return Some(h.rect);
             }
         }
 
-        for h in &self.right_views.views {
+        for h in &self.right_docks.docks {
             if h.handle.0 == handle.0 {
                 return Some(h.rect);
             }
@@ -372,28 +372,28 @@ impl Workspace {
 
         Ok(Workspace {
             split: None,
-            rect: rect, 
+            rect: rect,
             window_border: 4.0,
             handle_counter: SplitHandle(1),
         })
     }
 
-    /// This code gets called when the top split is None. This mean that the view will be
+    /// This code gets called when the top split is None. This mean that the dock will be
     /// set to fullscreen as there are no other splits to be done
-    fn split_new(&mut self, split_handle: SplitHandle, view_handle: ViewHandle) {
+    fn split_new(&mut self, split_handle: SplitHandle, dock_handle: DockHandle) {
         let mut split = Box::new(Split::new(Direction::Full, split_handle));
         split.ratio = 1.0;
-        split.left_views.views.push(View::new(view_handle));
+        split.left_docks.docks.push(Dock::new(dock_handle));
         self.split = Some(split);
     }
 
-    pub fn split_top(&mut self, view_handle: ViewHandle, direction: Direction) {
+    pub fn split_top(&mut self, dock_handle: DockHandle, direction: Direction) {
         self.handle_counter.0 += 1;
         let split_handle = self.handle_counter;
         if let Some(ref mut split) = self.split {
-            split.split_left(split_handle, view_handle, direction);
+            split.split_left(split_handle, dock_handle, direction);
         } else {
-            Self::split_new(self, split_handle, view_handle);
+            Self::split_new(self, split_handle, dock_handle);
         }
     }
 
@@ -404,10 +404,10 @@ impl Workspace {
         }
     }
 
-    pub fn split_by_view_handle(&mut self, direction: Direction, find_handle: ViewHandle, handle: ViewHandle) {
+    pub fn split_by_dock_handle(&mut self, direction: Direction, find_handle: DockHandle, handle: DockHandle) {
         if let Some(ref mut split) = self.split {
             self.handle_counter.0 += 1;
-            split.split_by_view_handle(direction, self.handle_counter, find_handle, handle);
+            split.split_by_dock_handle(direction, self.handle_counter, find_handle, handle);
         }
     }
 
@@ -425,7 +425,7 @@ impl Workspace {
         }
     }
 
-    pub fn get_rect_by_handle(&self, handle: ViewHandle) -> Option<Rect> {
+    pub fn get_rect_by_handle(&self, handle: DockHandle) -> Option<Rect> {
         if let Some(ref split) = self.split {
             split.get_rect_by_handle(handle)
         } else {
@@ -436,7 +436,7 @@ impl Workspace {
 
 #[cfg(test)]
 mod test {
-    use {Split, Workspace, Rect, ViewHandle, Direction};
+    use {Split, Workspace, Rect, DockHandle, Direction};
 
     fn check_range(inv: f32, value: f32, delta: f32) -> bool {
         (inv - value).abs() < delta
@@ -480,25 +480,25 @@ mod test {
     #[test]
     fn test_split_top() {
         let mut ws = Workspace::new(Rect::new(0.0, 0.0, 1024.0, 1024.0)).unwrap();
-        ws.split_top(ViewHandle(1), Direction::Vertical);
+        ws.split_top(DockHandle(1), Direction::Vertical);
 
         assert_eq!(ws.split.is_some(), true);
         let split = ws.split.unwrap();
 
-        assert_eq!(split.left_views.views.len(), 1);
+        assert_eq!(split.left_docks.docks.len(), 1);
     }
 
     #[test]
     fn test_split_top_2() {
         let mut ws = Workspace::new(Rect::new(0.0, 0.0, 1024.0, 1024.0)).unwrap();
-        ws.split_top(ViewHandle(1), Direction::Vertical);
-        ws.split_top(ViewHandle(2), Direction::Vertical);
+        ws.split_top(DockHandle(1), Direction::Vertical);
+        ws.split_top(DockHandle(2), Direction::Vertical);
 
         assert_eq!(ws.split.is_some(), true);
         let split = ws.split.unwrap();
 
-        assert_eq!(split.right_views.views.len(), 1);
-        assert_eq!(split.left_views.views.len(), 1);
+        assert_eq!(split.right_docks.docks.len(), 1);
+        assert_eq!(split.left_docks.docks.len(), 1);
         assert_eq!(check_range(split.ratio, 0.5, 0.01), true);
     }
 
