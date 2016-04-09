@@ -115,9 +115,9 @@ fn main() {
         // if now plugin has showed a menu we do it here
 
         if has_shown_menu == 0 && show_context_menu {
-            bgfx.test_menu(true);
+            Bgfx::test_menu(true);
         } else {
-            bgfx.test_menu(false);
+            Bgfx::test_menu(false);
         }
 
         bgfx.post_update();

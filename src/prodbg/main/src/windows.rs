@@ -8,6 +8,9 @@ use minifb::{Scale, WindowOptions, MouseMode, MouseButton};
 use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::session::{Sessions, Session};
 use self::viewdock::{Workspace, Rect};
+use imgui_sys::Imgui;
+use prodbg_api::ui_ffi::{PDVec2};
+use prodbg_api::view::CViewCallbacks;
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 800;
@@ -128,24 +131,79 @@ impl Windows {
 }
 
 impl Window {
-    fn update_view(_view: &mut ViewInstance, _session: &mut Session) {
+    fn is_inside(v: (f32, f32), pos: PDVec2, size: PDVec2) -> bool {
+        let x0 = pos.x;
+        let y0 = pos.y;
+        let x1 = pos.x + size.x;
+        let y1 = pos.y + size.y;
 
+        if (v.0 >= x0 && v.0 < x1) && (v.1 >= y0 && v.1 < y1) {
+            true
+        } else {
+            false
+        }
+    }
+
+    fn update_view(instance: &mut ViewInstance, session: &mut Session, show_context_menu: bool, mouse: (f32, f32)) -> u32 {
+        let ui = instance.ui;
+
+        //bgfx_imgui_set_window_pos(0.0, 0.0);
+        //bgfx_imgui_set_window_size(500.0, 500.0);
+
+        Imgui::begin_window("Test", true);
+        Imgui::init_state(ui.api);
+
+        let pos = ui.get_window_pos();
+        let size = ui.get_window_size();
+
+        if Self::is_inside(mouse, pos, size) && show_context_menu {
+            Imgui::mark_show_popup(ui.api, true);
+        } else {
+            Imgui::mark_show_popup(ui.api, false);
+        }
+
+        unsafe {
+            let plugin_funcs = instance.plugin_type.plugin_funcs as *mut CViewCallbacks;
+            ((*plugin_funcs).update.unwrap())(instance.plugin_data,
+                                                ui.api as *mut c_void,
+                                                session.reader.api as *mut c_void,
+                                                session.get_current_writer().api as *mut c_void);
+        }
+
+        let has_shown_menu = Imgui::has_showed_popup(ui.api);
+
+        Imgui::end_window();
+
+        has_shown_menu
     }
 
     pub fn update(&mut self, sessions: &mut Sessions, view_plugins: &mut ViewPlugins) {
         self.win.update();
 
-        self.win.get_mouse_pos(MouseMode::Clamp).map(|mouse| {
-            Bgfx::set_mouse_pos(mouse);
-            Bgfx::set_mouse_state(0, self.win.get_mouse_down(MouseButton::Left));
-        });
+        let mut has_shown_menu = 0u32;
+
+        let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
+        let mut has_shown_menu = 0u32;
+
+        Bgfx::set_mouse_pos(mouse);
+        Bgfx::set_mouse_state(0, self.win.get_mouse_down(MouseButton::Left));
+
+        let show_context_menu = self.win.get_mouse_down(MouseButton::Right);
 
         for view in &self.views {
             if let Some(ref mut v) = view_plugins.get_view(*view) {
                 if let Some(ref mut s) = sessions.get_session(v.session_handle) {
-                    Self::update_view(v, s);
+                    has_shown_menu |= Self::update_view(v, s, show_context_menu, mouse);
                 }
             }
+        }
+
+        // if now plugin has showed a menu we do it here
+
+        if has_shown_menu == 0 && show_context_menu {
+            Bgfx::test_menu(true);
+        } else {
+            Bgfx::test_menu(false);
         }
     }
 

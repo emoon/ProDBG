@@ -55,7 +55,7 @@ impl Session {
         }
     }
 
-    pub fn current_writer(&mut self) -> &mut Writer {
+    pub fn get_current_writer(&mut self) -> &mut Writer {
         &mut self.writers[self.current_writer]
     }
 

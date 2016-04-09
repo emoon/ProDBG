@@ -35,7 +35,7 @@ impl Bgfx {
         unsafe { bgfx_post_update(); }
     }
 
-    pub fn test_menu(&self, show: bool) {
+    pub fn test_menu(show: bool) {
         unsafe { bgfx_test_menu(show as c_int); }
     }
 
