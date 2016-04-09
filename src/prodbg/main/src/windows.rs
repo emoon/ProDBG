@@ -1,10 +1,12 @@
 extern crate minifb;
 extern crate bgfx;
+extern crate viewdock;
 
 use bgfx::Bgfx;
 use libc::{c_void, c_int};
 use minifb::{Scale, WindowOptions, MouseMode, MouseButton};
 use core::view_plugins::ViewHandle;
+use self::viewdock::{Workspace, Rect};
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 800;
@@ -15,13 +17,10 @@ pub struct Window {
 
     /// Views in this window
     pub views: Vec<ViewHandle>,
-}
 
-// struct MenuInfo<'a> {
-// name: &'a str,
-// menu: Vec<Menu>,
-// }
-//
+    /// 
+    pub ws: Workspace, 
+}
 
 ///! Windows keeps track of all different windows that are present with in the application
 ///! There are several ways windows can be created:
@@ -72,6 +71,7 @@ impl Windows {
                 Ok(Window {
                     win: win,
                     views: Vec::new(),
+                    ws: Workspace::new(Rect::new(0.0, 0.0, WIDTH as f32, HEIGHT as f32)).unwrap(),
                 })
             }
             Err(err) => Err(err),
@@ -115,6 +115,15 @@ impl Windows {
         let current = self.current;
         &mut self.windows[current]
     }
+
+    pub fn apply_view_sizes(&self, view_plugins: &mut ViewPlugins) {
+        for view in &self.views {
+            if let Some(ref mut v) = view_plugins.get_view(*view) {
+
+            }
+        }
+    }
+
        
     /// Checks if application should exit (all window instances closed)
     pub fn should_exit(&self) -> bool {

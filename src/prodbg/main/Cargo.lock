@@ -10,6 +10,7 @@ dependencies = [
  "libloading 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "minifb 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "prodbg_api 0.1.0",
+ "viewdock 0.1.0",
 ]
 
 [[package]]
@@ -324,6 +325,10 @@ dependencies = [
  "winapi 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "viewdock"
+version = "0.1.0"
 
 [[package]]
 name = "walkdir"

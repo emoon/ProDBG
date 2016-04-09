@@ -1,0 +1,9 @@
+[package]
+name = "viewdock"
+version = "0.1.0"
+authors = ["Daniel Collin <daniel@collin.com>"]
+
+[dependencies]
+
+[dev-dependencies]
+minifb = "0.5.0"

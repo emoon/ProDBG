@@ -28,6 +28,17 @@ end
 -----------------------------------------------------------------------------------------------------------------------
 
 RustCrate {
+	Name = "viewdock",
+	CargoConfig = "src/prodbg/viewdock/Cargo.toml",
+	Sources = {
+		get_rs_src("src/prodbg/viewdock"),
+		"src/prodbg/build.rs",
+	},
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+RustCrate {
 	Name = "bgfx-rs",
 	CargoConfig = "src/prodbg/bgfx/Cargo.toml",
 	Sources = {
