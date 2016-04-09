@@ -8,7 +8,7 @@ use std::ptr;
 use prodbg_api::ui::Ui;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
-pub struct ViewHandle(pub usize);
+pub struct ViewHandle(pub u64);
 
 pub struct ViewInstance {
     pub plugin_data: *mut c_void,
