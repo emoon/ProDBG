@@ -43,7 +43,7 @@ RustCrate {
 	CargoConfig = "src/prodbg/bgfx/Cargo.toml",
 	Sources = {
 		get_rs_src("src/prodbg/bgfx"),
-		-- get_rs_src("api/rust"),
+		get_rs_src("api/rust"),
 		"src/prodbg/build.rs",
 	},
 }
@@ -78,7 +78,6 @@ RustProgram {
 	CargoConfig = "src/prodbg/ui_testbench/Cargo.toml",
 	Sources = {
 		get_rs_src("src/prodbg/ui_testbench"),
-		-- get_rs_src("src/prodbg/core"),
 		"src/prodbg/build.rs",
 	},
 

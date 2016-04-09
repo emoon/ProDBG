@@ -2,7 +2,7 @@ extern crate core;
 extern crate libc;
 extern crate minifb;
 extern crate prodbg_api;
-extern crate bgfx;
+extern crate bgfx_rs;
 extern crate imgui_sys;
 
 pub mod windows;
@@ -12,7 +12,7 @@ mod backend_plugin;
 
 use docking::DockingPlugin;
 //use prodbg_api::ui::Ui;
-use bgfx::Bgfx;
+use bgfx_rs::Bgfx;
 use imgui_sys::Imgui;
 
 use session::Sessions;

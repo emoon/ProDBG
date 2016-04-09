@@ -2,7 +2,7 @@ extern crate core;
 extern crate libc;
 extern crate minifb;
 extern crate prodbg_api;
-extern crate bgfx;
+extern crate bgfx_rs;
 extern crate imgui_sys;
 
 use core::{DynamicReload, Search};
@@ -19,7 +19,7 @@ use imgui_sys::Imgui;
 // use core::plugin_handler::*;
 use core::plugins::*;
 use std::ptr;
-use bgfx::Bgfx;
+use bgfx_rs::Bgfx;
 
 const WIDTH: usize = 1024;
 const HEIGHT: usize = 800;

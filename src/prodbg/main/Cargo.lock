@@ -2,7 +2,7 @@
 name = "prodbg"
 version = "0.1.0"
 dependencies = [
- "bgfx 0.1.0",
+ "bgfx_rs 0.1.0",
  "core 0.1.0",
  "imgui_sys 0.1.0",
  "lazy_static 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "bgfx"
+name = "bgfx_rs"
 version = "0.1.0"
 dependencies = [
  "libc 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",

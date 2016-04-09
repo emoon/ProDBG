@@ -11,7 +11,7 @@ libloading = "0.2.0"
 lazy_static = "0.1.*"
 minifb = "0.5.*"
 viewdock = { path = "../viewdock" }
-bgfx = { path = "../bgfx" }
+bgfx_rs = { path = "../bgfx" }
 core = { path = "../core" }
 imgui_sys = { path = "../imgui_sys" }
 prodbg_api = { path = "../../../api/rust/prodbg" }

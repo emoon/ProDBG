@@ -1,8 +1,8 @@
 extern crate minifb;
-extern crate bgfx;
+extern crate bgfx_rs;
 extern crate viewdock;
 
-use bgfx::Bgfx;
+use bgfx_rs::Bgfx;
 use libc::{c_void, c_int};
 use minifb::{Scale, WindowOptions, MouseMode, MouseButton};
 use core::view_plugins::ViewHandle;
@@ -18,8 +18,8 @@ pub struct Window {
     /// Views in this window
     pub views: Vec<ViewHandle>,
 
-    /// 
-    pub ws: Workspace, 
+    ///
+    pub ws: Workspace,
 }
 
 ///! Windows keeps track of all different windows that are present with in the application
@@ -37,7 +37,7 @@ pub struct Windows {
 
 impl Windows {
     pub fn new() -> Windows {
-        Windows { 
+        Windows {
             windows: Vec::new(),
             current: 0,
         }
@@ -104,11 +104,11 @@ impl Windows {
     pub fn update(&mut self) {
         for i in (0..self.windows.len()).rev() {
             Self::update_window(&mut self.windows[i]);
-        
+
             if !self.windows[i].win.is_open() {
                 self.windows.swap_remove(i);
             }
-        }  
+        }
     }
 
     pub fn get_current(&mut self) -> &mut Window {
@@ -126,7 +126,7 @@ impl Windows {
     }
     */
 
-       
+
     /// Checks if application should exit (all window instances closed)
     pub fn should_exit(&self) -> bool {
         self.windows.len() == 0
