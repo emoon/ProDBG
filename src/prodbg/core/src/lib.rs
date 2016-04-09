@@ -8,6 +8,7 @@ pub mod plugin;
 pub mod view_plugins;
 pub mod reader_wrapper;
 pub mod handles;
+pub mod session;
 
 pub use dynamic_reload::*;
 

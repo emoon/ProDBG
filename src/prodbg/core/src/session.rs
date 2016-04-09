@@ -1,14 +1,14 @@
 // use core::view_plugins::ViewPlugins;
-use core::view_plugins::{ViewInstance, ViewPlugins, ViewHandle};
+//use view_plugins::{ViewInstance, ViewPlugins, ViewHandle};
 //use core::backend_plugins::{BackendPlugins, BackendHandle};
 //use core::view_plugins::ViewInstance;
-use prodbg_api::view::CViewCallbacks;
+//use prodbg_api::view::CViewCallbacks;
 use prodbg_api::read_write::{Reader, Writer};
-use core::plugins::PluginHandler;
-use core::reader_wrapper::{ReaderWrapper, WriterWrapper};
-use core::handles::SessionHandle;
-use imgui_sys::Imgui;
-use libc::c_void;
+use plugins::PluginHandler;
+use reader_wrapper::{ReaderWrapper, WriterWrapper};
+use handles::SessionHandle;
+//use imgui_sys::Imgui;
+//use libc::c_void;
 
 ///! Session is a major part of ProDBG. There can be several sessions active at the same time
 ///! and each session has exactly one backend. There are only communication internally in a session
@@ -25,7 +25,7 @@ use libc::c_void;
 ///!
 pub struct Session {
     pub handle: SessionHandle,
-    pub views: Vec<ViewHandle>,
+    //pub views: Vec<ViewHandle>,
     //backend: Option<BackendHandle>,
 
     pub reader: Reader,
@@ -44,7 +44,7 @@ impl Session {
     pub fn new(handle: SessionHandle) -> Session {
         Session {
             handle: handle,
-            views: Vec::new(),
+            //views: Vec::new(),
             writers: [
                 WriterWrapper::create_writer(),
                 WriterWrapper::create_writer(),
@@ -95,15 +95,15 @@ impl Session {
     }
     */
 
-    pub fn update(&mut self, view_plugins: &mut ViewPlugins) {
+    pub fn update(&mut self) {
         // swap the writers
         let p_writer = (self.current_writer + 1) & 1;
-        let c_writer = self.current_writer;
+        //let c_writer = self.current_writer;
         self.current_writer = p_writer;
 
         ReaderWrapper::init_from_writer(&mut self.reader, &self.writers[p_writer]);
 
-        let mut writer = &mut self.writers[c_writer];
+        //let mut writer = &mut self.writers[c_writer];
 
         // TODO: Update backend here
 
@@ -142,9 +142,9 @@ impl Sessions {
         self.session_counter.0 += 1;
     }
 
-    pub fn update(&mut self, view_plugins: &mut ViewPlugins) {
+    pub fn update(&mut self) {
         for session in self.instances.iter_mut() {
-            session.update(view_plugins);
+            session.update();
         }
     }
 

@@ -7,7 +7,6 @@ extern crate imgui_sys;
 
 pub mod windows;
 mod docking;
-pub mod session;
 mod backend_plugin;
 
 use docking::DockingPlugin;
@@ -15,7 +14,7 @@ use docking::DockingPlugin;
 use bgfx_rs::Bgfx;
 //use imgui_sys::Imgui;
 
-use session::Sessions;
+use core::session::Sessions;
 use windows::Windows;
 use core::{DynamicReload, Search};
 use core::view_plugins::{ViewPlugins};
@@ -70,7 +69,7 @@ fn main() {
         bgfx.pre_update();
 
         plugins.update(&mut lib_handler);
-        sessions.update(&mut view_plugins.borrow_mut());
+        sessions.update();
         windows.update(&mut view_plugins.borrow_mut());
 
         if windows.should_exit() {
