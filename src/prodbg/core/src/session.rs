@@ -152,6 +152,16 @@ impl Sessions {
         let current = self.current;
         &mut self.instances[current]
     }
+
+    pub fn get_session(&mut self, handle: SessionHandle) -> Option<&mut Session> {
+        for i in 0..self.instances.len() {
+            if self.instances[i].handle == handle {
+                return Some(&mut self.instances[i]);
+            }
+        }
+
+        None
+    }
 }
 
 #[cfg(test)]

@@ -5,7 +5,8 @@ extern crate viewdock;
 use bgfx_rs::Bgfx;
 use libc::{c_void, c_int};
 use minifb::{Scale, WindowOptions, MouseMode, MouseButton};
-use core::view_plugins::{ViewHandle, ViewPlugins};
+use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
+use core::session::{Sessions, Session};
 use self::viewdock::{Workspace, Rect};
 
 const WIDTH: usize = 1280;
@@ -92,18 +93,16 @@ impl Windows {
         Ok(window)
     }
 
-    fn update_window(window: &mut Window, view_plugins: &mut ViewPlugins) {
-        window.update(view_plugins);
+    /*
+    fn update_window(window: &mut Window, sessions: &mut Sessions, view_plugins: &mut ViewPlugins) {
 
-        window.win.get_mouse_pos(MouseMode::Clamp).map(|mouse| {
-            Bgfx::set_mouse_pos(mouse);
-            Bgfx::set_mouse_state(0, window.win.get_mouse_down(MouseButton::Left));
-        });
+        window.update(sessions, view_plugins);
     }
+    */
 
-    pub fn update(&mut self, view_plugins: &mut ViewPlugins) {
+    pub fn update(&mut self, sessions: &mut Sessions, view_plugins: &mut ViewPlugins) {
         for i in (0..self.windows.len()).rev() {
-            Self::update_window(&mut self.windows[i], view_plugins);
+            self.windows[i].update(sessions, view_plugins);
 
             if !self.windows[i].win.is_open() {
                 self.windows.swap_remove(i);
@@ -129,8 +128,25 @@ impl Windows {
 }
 
 impl Window {
-    pub fn update(&mut self, _view_plugins: &mut ViewPlugins) {
+    fn update_view(_view: &mut ViewInstance, _session: &mut Session) {
+
+    }
+
+    pub fn update(&mut self, sessions: &mut Sessions, view_plugins: &mut ViewPlugins) {
         self.win.update();
+
+        self.win.get_mouse_pos(MouseMode::Clamp).map(|mouse| {
+            Bgfx::set_mouse_pos(mouse);
+            Bgfx::set_mouse_state(0, self.win.get_mouse_down(MouseButton::Left));
+        });
+
+        for view in &self.views {
+            if let Some(ref mut v) = view_plugins.get_view(*view) {
+                if let Some(ref mut s) = sessions.get_session(v.session_handle) {
+                    Self::update_view(v, s);
+                }
+            }
+        }
     }
 
     pub fn add_view(&mut self, view: ViewHandle) {

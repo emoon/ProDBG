@@ -70,7 +70,7 @@ fn main() {
 
         plugins.update(&mut lib_handler);
         sessions.update();
-        windows.update(&mut view_plugins.borrow_mut());
+        windows.update(&mut sessions, &mut view_plugins.borrow_mut());
 
         if windows.should_exit() {
             break;
