@@ -12,6 +12,7 @@ use prodbg_api::view::CViewCallbacks;
 //use prodbg_api::ui::Ui;
 use prodbg_api::ui_ffi::{PDVec2};
 use core::view_plugins::{ViewPlugins};
+use core::handles::SessionHandle;
 use std::rc::Rc;
 use std::cell::RefCell;
 use imgui_sys::Imgui;
@@ -61,7 +62,7 @@ fn main() {
 
     let ui = Imgui::create_ui_instance();
 
-    view_plugins.borrow_mut().create_instance(ui, &"Registers View".to_owned());
+    view_plugins.borrow_mut().create_instance(ui, &"Registers View".to_owned(), SessionHandle(0));
 
     Bgfx::create_window(window.get_window_handle() as *mut c_void,
                            WIDTH as i32,

@@ -6,8 +6,8 @@ use prodbg_api::view::CViewCallbacks;
 use prodbg_api::read_write::{Reader, Writer};
 use core::plugins::PluginHandler;
 use core::reader_wrapper::{ReaderWrapper, WriterWrapper};
+use core::handles::SessionHandle;
 use imgui_sys::Imgui;
-use std::ptr;
 use libc::c_void;
 
 ///! Session is a major part of ProDBG. There can be several sessions active at the same time
@@ -24,12 +24,14 @@ use libc::c_void;
 ///! 3. Backends and views can post messages which anyone can decide to (optionally) act on.
 ///!
 pub struct Session {
+    pub handle: SessionHandle,
     pub views: Vec<ViewHandle>,
     //backend: Option<BackendHandle>,
 
-    pub writers: [Writer; 2],
     pub reader: Reader,
-    pub current_writer: usize,
+
+    current_writer: usize,
+    writers: [Writer; 2],
 }
 
 ///! Connection options for Remote connections. Currently just one Ip adderss
@@ -39,8 +41,9 @@ pub struct ConnectionSettings<'a> {
 }
 
 impl Session {
-    pub fn new() -> Session {
+    pub fn new(handle: SessionHandle) -> Session {
         Session {
+            handle: handle,
             views: Vec::new(),
             writers: [
                 WriterWrapper::create_writer(),
@@ -52,10 +55,15 @@ impl Session {
         }
     }
 
+    pub fn current_writer(&mut self) -> &mut Writer {
+        &mut self.writers[self.current_writer]
+    }
+
     pub fn start_remote(_plugin_handler: &PluginHandler, _settings: &ConnectionSettings) {}
 
     pub fn start_local(_: &str, _: usize) {}
 
+    /*
     fn update_view_instance(reader: &Reader, writer: &mut Writer, view: &mut ViewInstance) {
         unsafe {
             //bgfx_imgui_set_window_pos(view.x, view.y);
@@ -64,6 +72,8 @@ impl Session {
 
             // TODO: Fix visibility flag
             Imgui::begin_window("Test", true);
+            //Imgui::init_state(ui.api);
+
 
             let plugin_funcs = view.plugin_type.plugin_funcs as *mut CViewCallbacks;
             ((*plugin_funcs).update.unwrap())(view.plugin_data,
@@ -77,6 +87,7 @@ impl Session {
     pub fn add_view(&mut self, view: ViewHandle) {
         self.views.push(view);
     }
+    */
 
     /*
     pub fn set_backend(&mut self, backend: Option<BackendHandle>) {
@@ -86,9 +97,9 @@ impl Session {
 
     pub fn update(&mut self, view_plugins: &mut ViewPlugins) {
         // swap the writers
-        self.current_writer = (self.current_writer + 1) & 1;
         let p_writer = (self.current_writer + 1) & 1;
         let c_writer = self.current_writer;
+        self.current_writer = p_writer;
 
         ReaderWrapper::init_from_writer(&mut self.reader, &self.writers[p_writer]);
 
@@ -96,11 +107,13 @@ impl Session {
 
         // TODO: Update backend here
 
+        /*
         for view in &self.views {
             if let Some(ref mut v) = view_plugins.get_view(*view) {
                 Self::update_view_instance(&self.reader, writer, v);
             }
         }
+        */
     }
 }
 
@@ -111,7 +124,7 @@ impl Session {
 pub struct Sessions {
     instances: Vec<Session>,
     current: usize,
-
+    session_counter: SessionHandle,
 }
 
 impl Sessions {
@@ -119,12 +132,14 @@ impl Sessions {
         Sessions {
             instances: Vec::new(),
             current: 0,
+            session_counter: SessionHandle(0),
         }
     }
 
     pub fn create_instance(&mut self) {
-        let s = Session::new();
-        self.instances.push(s)
+        let s = Session::new(self.session_counter);
+        self.instances.push(s);
+        self.session_counter.0 += 1;
     }
 
     pub fn update(&mut self, view_plugins: &mut ViewPlugins) {

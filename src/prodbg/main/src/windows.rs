@@ -116,17 +116,6 @@ impl Windows {
         &mut self.windows[current]
     }
 
-    /*
-    pub fn apply_view_sizes(&self, view_plugins: &mut ViewPlugins) {
-        for view in &self.views {
-            if let Some(ref mut v) = view_plugins.get_view(*view) {
-
-            }
-        }
-    }
-    */
-
-
     /// Checks if application should exit (all window instances closed)
     pub fn should_exit(&self) -> bool {
         self.windows.len() == 0

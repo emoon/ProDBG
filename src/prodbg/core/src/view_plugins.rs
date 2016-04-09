@@ -5,6 +5,7 @@ use plugin::Plugin;
 use plugins::PluginHandler;
 use dynamic_reload::Lib;
 use std::ptr;
+use handles::SessionHandle;
 use prodbg_api::ui::Ui;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -14,6 +15,7 @@ pub struct ViewInstance {
     pub plugin_data: *mut c_void,
     pub ui: Ui,
     pub handle: ViewHandle,
+    pub session_handle: SessionHandle,
     pub x: f32,
     pub y: f32,
     pub width: f32,
@@ -26,6 +28,7 @@ struct ReloadState {
     name: String,
     ui: Ui,
     handle: ViewHandle,
+    session_handle: SessionHandle,
 }
 
 pub struct ViewPlugins {
@@ -53,6 +56,7 @@ impl PluginHandler for ViewPlugins {
                     ui: self.instances[i].ui,
                     name: self.instances[i].plugin_type.name.clone(),
                     handle: self.instances[i].handle,
+                    session_handle: self.instances[i].session_handle,
                 };
 
                 self.reload_state.push(state);
@@ -70,7 +74,7 @@ impl PluginHandler for ViewPlugins {
     fn reload_plugin(&mut self) {
         let t = self.reload_state.clone();
         for reload_plugin in &t {
-            Self::create_instance(self, reload_plugin.ui, &reload_plugin.name);
+            Self::create_instance(self, reload_plugin.ui, &reload_plugin.name, reload_plugin.session_handle);
         }
     }
 
@@ -103,7 +107,7 @@ impl ViewPlugins {
         None
     }
 
-    pub fn create_instance_from_index(&mut self, ui: Ui, index: usize) -> Option<ViewHandle> {
+    pub fn create_instance_from_index(&mut self, ui: Ui, index: usize, session_handle: SessionHandle) -> Option<ViewHandle> {
         let plugin_data = unsafe {
             let callbacks = self.plugin_types[index].plugin_funcs as *mut CViewCallbacks;
             (*callbacks).create_instance.unwrap()(ptr::null(), Self::service_fun)
@@ -115,6 +119,7 @@ impl ViewPlugins {
             plugin_data: plugin_data,
             ui: ui,
             handle: handle,
+            session_handle: session_handle,
             x: 0.0,
             y: 0.0,
             width: 0.0,
@@ -128,13 +133,13 @@ impl ViewPlugins {
         Some(handle)
     }
 
-    pub fn create_instance(&mut self, ui: Ui, plugin_type: &String) -> Option<ViewHandle> {
+    pub fn create_instance(&mut self, ui: Ui, plugin_type: &String, session_handle: SessionHandle) -> Option<ViewHandle> {
         for i in 0..self.plugin_types.len() {
             if self.plugin_types[i].name != *plugin_type {
                 continue;
             }
 
-            return Self::create_instance_from_index(self, ui, i);
+            return Self::create_instance_from_index(self, ui, i, session_handle);
         }
 
         None
