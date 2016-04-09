@@ -1,1 +1,1 @@
-ctags --extra=+f -R *
+/usr/local/bin/ctags --extra=+f -R *
