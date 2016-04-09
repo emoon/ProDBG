@@ -29,6 +29,7 @@ pub struct Session {
 
     pub writers: [Writer; 2],
     pub reader: Reader,
+    pub current_writer: usize,
 }
 
 ///! Connection options for Remote connections. Currently just one Ip adderss
@@ -46,6 +47,7 @@ impl Session {
                 WriterWrapper::create_writer(),
             ],
             reader: ReaderWrapper::create_reader(),
+            current_writer: 0,
             //backend: None,
         }
     }
@@ -54,7 +56,7 @@ impl Session {
 
     pub fn start_local(_: &str, _: usize) {}
 
-    fn update_view_instance(view: &mut ViewInstance) {
+    fn update_view_instance(reader: &Reader, writer: &mut Writer, view: &mut ViewInstance) {
         unsafe {
             //bgfx_imgui_set_window_pos(view.x, view.y);
             //bgfx_imgui_set_window_size(view.width, view.height);
@@ -66,10 +68,8 @@ impl Session {
             let plugin_funcs = view.plugin_type.plugin_funcs as *mut CViewCallbacks;
             ((*plugin_funcs).update.unwrap())(view.plugin_data,
                                               view.ui.api as *mut c_void,
-                                              //Imgui::get_ui_funs() as *mut c_void,
-                                              // Send in reader/writer
-                                              ptr::null_mut(),
-                                              ptr::null_mut());
+                                              reader.api as *mut c_void,
+                                              writer.api as *mut c_void);
             Imgui::end_window();
         }
     }
@@ -85,22 +85,22 @@ impl Session {
     */
 
     pub fn update(&mut self, view_plugins: &mut ViewPlugins) {
+        // swap the writers
+        self.current_writer = (self.current_writer + 1) & 1;
+        let p_writer = (self.current_writer + 1) & 1;
+        let c_writer = self.current_writer;
 
-        // TODO: Reader/Write setup + backend update
+        ReaderWrapper::init_from_writer(&mut self.reader, &self.writers[p_writer]);
 
-        /*
-        unsafe {
-            bgfx_pre_update();
-        }
-        */
+        let mut writer = &mut self.writers[c_writer];
+
+        // TODO: Update backend here
 
         for view in &self.views {
             if let Some(ref mut v) = view_plugins.get_view(*view) {
-                Self::update_view_instance(v);
+                Self::update_view_instance(&self.reader, writer, v);
             }
         }
-
-        //unsafe { bgfx_post_update(); }
     }
 }
 
