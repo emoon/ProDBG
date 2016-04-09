@@ -6,9 +6,11 @@
 use prodbg_api::read_write::{Reader, Writer};
 use plugins::PluginHandler;
 use reader_wrapper::{ReaderWrapper, WriterWrapper};
-use handles::SessionHandle;
 //use imgui_sys::Imgui;
 //use libc::c_void;
+
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+pub struct SessionHandle(pub u64);
 
 ///! Session is a major part of ProDBG. There can be several sessions active at the same time
 ///! and each session has exactly one backend. There are only communication internally in a session

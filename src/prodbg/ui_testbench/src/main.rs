@@ -12,7 +12,7 @@ use prodbg_api::view::CViewCallbacks;
 //use prodbg_api::ui::Ui;
 use prodbg_api::ui_ffi::{PDVec2};
 use core::view_plugins::{ViewPlugins};
-use core::handles::SessionHandle;
+use core::session::SessionHandle;
 use std::rc::Rc;
 use std::cell::RefCell;
 use imgui_sys::Imgui;

@@ -4,8 +4,8 @@ use std::rc::Rc;
 use plugin::Plugin;
 use plugins::PluginHandler;
 use dynamic_reload::Lib;
+use session::SessionHandle;
 use std::ptr;
-use handles::SessionHandle;
 use prodbg_api::ui::Ui;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
