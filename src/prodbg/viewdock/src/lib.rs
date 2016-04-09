@@ -316,28 +316,30 @@ impl Split {
 
     pub fn get_rect_by_handle(&self, handle: ViewHandle) -> Option<Rect> {
         for h in &self.left_views.views {
-            if h.0 == handle.0 {
+            if h.handle.0 == handle.0 {
                 return Some(h.rect);
             }
         }
 
         for h in &self.right_views.views {
-            if h.0 == handle.0 {
+            if h.handle.0 == handle.0 {
                 return Some(h.rect);
             }
         }
 
         if let Some(ref split) = self.left {
-            if let Some(handle) = Self::get_rect_by_handle(handle) {
+            if let Some(handle) = Self::get_rect_by_handle(split, handle) {
                 return Some(handle);
             }
         }
 
         if let Some(ref split) = self.right {
-            if let Some(handle) = Self::get_rect_by_handle(handle) {
+            if let Some(handle) = Self::get_rect_by_handle(split, handle) {
                 return Some(handle);
             }
         }
+
+        None
     }
 }
 
