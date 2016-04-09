@@ -457,25 +457,33 @@ function _nodegen:get_dag(parent_env)
         unit_env:set('UNIT_PREFIX', '__' .. self.Decl.Name)
       end
 
-      -- Before accessing the unit's dependencies, resolve them via filtering.
-      local deps = resolve_dependencies(self.Decl, self.Decl.Depends, unit_env)
+      local function do_it()
+        -- Before accessing the unit's dependencies, resolve them via filtering.
+        local deps = resolve_dependencies(self.Decl, self.Decl.Depends, unit_env)
 
-      self:configure_env(unit_env, deps)
-      self:customize_env(unit_env, self.Decl, deps)
+        self:configure_env(unit_env, deps)
+        self:customize_env(unit_env, self.Decl, deps)
 
-      local input_data, input_deps = self:create_input_data(unit_env, parent_env)
-      -- Copy over dependencies which have been pre-resolved
-      input_data.Depends = deps
+        local input_data, input_deps = self:create_input_data(unit_env, parent_env)
+        -- Copy over dependencies which have been pre-resolved
+        input_data.Depends = deps
 
-      for _, dep in util.nil_ipairs(deps) do
-        input_deps[#input_deps + 1] = dep:get_dag(parent_env)
+        for _, dep in util.nil_ipairs(deps) do
+          input_deps[#input_deps + 1] = dep:get_dag(parent_env)
+        end
+
+        dag = self:create_dag(unit_env, input_data, input_deps, parent_env)
+
+        if not dag then
+          error("create_dag didn't generate a result node")
+        end
       end
 
-      dag = self:create_dag(unit_env, input_data, input_deps, parent_env)
-
-      if not dag then
-        error("create_dag didn't generate a result node")
+      local success, result = xpcall(do_it, debug.traceback)
+      if not success then
+        croak("Error while generating DAG for unit %s:\n%s", self.Decl.Name or "UNNAMED", util.tostring(result))
       end
+
     end
     self.DagCache[build_id] = dag
   end
@@ -844,11 +852,11 @@ function _G.DefRule(ruledef)
     end
   end
 
-  local function make_node(input_files, output_files, env, data, deps, scanner)
+  local function make_node(input_files, output_files, env, data, deps, scanner, action)
     return depgraph.make_node {
       Env            = env,
       Label          = annot,
-      Action         = cmd,
+      Action         = action,
       Pass           = data.Pass or resolve_pass(ruledef.Pass),
       InputFiles     = input_files,
       OutputFiles    = output_files,
@@ -886,7 +894,7 @@ function _G.DefRule(ruledef)
       if cache[key] then
         return cache[key]
       else
-        local node = make_node(input_files, output_files, env, data, deps, setup_data.Scanner)
+        local node = make_node(input_files, output_files, env, data, deps, setup_data.Scanner, setup_data.Command or cmd)
         cache[key] = node
         return node
       end
@@ -896,7 +904,7 @@ function _G.DefRule(ruledef)
       local setup_data = setup_fn(env, data)
       verify_table(setup_data.InputFiles, "InputFiles")
       verify_table(setup_data.OutputFiles, "OutputFiles")
-      return make_node(setup_data.InputFiles, setup_data.OutputFiles, env, data, deps, setup_data.Scanner)
+      return make_node(setup_data.InputFiles, setup_data.OutputFiles, env, data, deps, setup_data.Scanner, setup_data.Command or cmd)
     end
   end
 

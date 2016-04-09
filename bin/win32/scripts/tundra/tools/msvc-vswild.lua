@@ -5,7 +5,7 @@ local vscommon = require "tundra.tools.msvc-vscommon"
 
 function apply(env, options)
 
-  local vsvs = options.VsVersions or { "12.0", "11.0", "10.0", "9.0" }
+  local vsvs = options.VsVersions or { "14.0", "12.0", "11.0", "10.0", "9.0" }
 
   for _, v in ipairs(vsvs) do
   	local v1 = v

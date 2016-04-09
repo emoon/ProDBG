@@ -33,7 +33,11 @@ local function generic_cpp_setup(env)
       label = 'Precompiled header'
       pass = nodegen.resolve_pass(env:get('_PCH_PASS', ''))
       action = "$(PCHCOMPILE)"
-      output_files = { "$(_PCH_FILE)", object_fn }
+      if env:get('_PCH_WRITES_OBJ', '0') == '1' then
+        output_files = { "$(_PCH_FILE)", object_fn }
+      else
+        output_files = { "$(_PCH_FILE)" }
+      end
 
     elseif pch_source ~= '' and fn ~= pch_source then
 
@@ -45,9 +49,11 @@ local function generic_cpp_setup(env)
       
     end
 
+    local custom_label = env:get('_CUSTOM_LABEL', 0)
+
     return depgraph.make_node {
       Env            = env,
-      Label          = label .. ' $(<)',
+      Label          = type(custom_label) == "string" and custom_label or label .. ' $(<)',
       Pass           = pass,
       Action         = action,
       InputFiles     = { fn },

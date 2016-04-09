@@ -473,7 +473,18 @@ function msvc_generator:generate_project(project, all_projects)
   p:write('<?xml version="1.0" encoding="utf-8"?>', LF)
   p:write('<Project')
   p:write(' DefaultTargets="Build"')
-  p:write(' ToolsVersion="4.0"')
+
+  -- This doesn't seem to change any behaviour, but this is the default
+  -- value when creating a makefile project from VS2013 and VS2015
+  -- wizards.
+  if VERSION_YEAR == '2015' then
+    p:write(' ToolsVersion="14.0"')
+  elseif VERSION_YEAR == '2013' then
+    p:write(' ToolsVersion="12.0"')
+  else
+    p:write(' ToolsVersion="4.0"')
+  end
+
   p:write(' xmlns="http://schemas.microsoft.com/developer/msbuild/2003"')
   p:write('>', LF)
 
@@ -516,6 +527,8 @@ function msvc_generator:generate_project(project, all_projects)
       p:write('\t\t<PlatformToolset>v110</PlatformToolset>', LF) -- I have no idea what this setting affects
     elseif VERSION_YEAR == '2013' then
       p:write('\t\t<PlatformToolset>v120</PlatformToolset>', LF) -- I have no idea what this setting affects
+    elseif VERSION_YEAR == '2015' then
+      p:write('\t\t<PlatformToolset>v140</PlatformToolset>', LF) -- I have no idea what this setting affects
     end
     p:write('\t</PropertyGroup>', LF)
   end

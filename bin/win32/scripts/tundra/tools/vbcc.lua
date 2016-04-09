@@ -29,7 +29,7 @@ function apply(env, options)
     ["PROGCOM"] = "$(LD) $(PROGOPTS) $(LIBPATH:p-L) $(LIBS:p-l) -o $(@) $(<)",
     ["PROGPREFIX"] = "",
     ["LIBOPTS"] = "",
-    ["LIBCOM"] = "$(LIB) @RESPONSE|@|-r $(LIBOPTS) -o $(@) $(<)",
+    ["LIBCOM"] = "$(LIB) -r $(LIBOPTS) -o $(@) $(<)",
     ["ASMINC_KEYWORDS"] = { "INCLUDE", "include" },
     ["ASMINC_BINARY_KEYWORDS"] = { "INCBIN", "incbin" },
   }

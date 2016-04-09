@@ -43,9 +43,9 @@ function ConfigureRaw(cmdline, name, constructor)
 end
 
 function Configure(name, ctor)
-  return internal_cfg("pkg-config " .. name .. " --cflags --libs", name, ctor)
+  return ConfigureRaw("pkg-config " .. name .. " --cflags --libs", name, ctor)
 end
 
 function ConfigureWithTool(tool, name, ctor)
-  return internal_cfg(tool .. " --cflags --libs", name, ctor)
+  return ConfigureRaw(tool .. " --cflags --libs", name, ctor)
 end

@@ -32,6 +32,12 @@ function apply(env, options)
   -- We're going to replace the paths to some tools.
   tundra.unitgen.load_toolset('msvc', env)
 
+  -- Override PCH handling for poor MSVC 6. While it supports writing PDB files
+  -- from the compiler, it doesn't handling multiple invocations of the
+  -- compiler wanting to write to the same PDB. So we switch to /Z7 format
+  -- instead and have just the linker write a PDB.
+  env:replace("_USE_PDB_CC_OPT", "/Z7")
+
   options = options or {}
 
   -- We'll find any edition of VS (including Express) here
