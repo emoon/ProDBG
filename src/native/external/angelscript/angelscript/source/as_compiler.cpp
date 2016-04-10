@@ -12500,7 +12500,7 @@ void asCCompiler::CompileMathOperator(asCScriptNode *node, asSExprContext *lctx,
 					v = fmodf(lctx->type.floatValue, rctx->type.floatValue);
 			}
 			else if( op == ttStarStar )
-				v = pow(lctx->type.floatValue, rctx->type.floatValue);
+				v = (float)pow(lctx->type.floatValue, rctx->type.floatValue);
 
 			ctx->type.SetConstantF(lctx->type.dataType, v);
 		}

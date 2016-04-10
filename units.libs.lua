@@ -217,7 +217,7 @@ StaticLibrary {
         CCOPTS = {
         	{ "-Wno-everything"; Config = "macosx-*-*" },
         	{ "/wd4201", "/wd4127", "/wd4244", "/wd4100", 
-			  "/wd4245", "/wd4204", "/wd4701", "/wd4703", "/wd4054",
+			  "/wd4245", "/wd4204", "/wd4701", "/wd4703", "/wd4054", "/wd4477",
 			  "/wd4702", "/wd4267"; Config = "win64-*-*" },
         },
     },

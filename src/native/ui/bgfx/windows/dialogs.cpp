@@ -1,5 +1,5 @@
 #include "../dialogs.h"
-#include "core/core.h"
+//#include "core/core.h"
 #include <uv.h>
 #include <windows.h>
 
@@ -77,8 +77,8 @@ void internalPanel(const char* titleText, const char* messageText, unsigned int 
     wchar_t title[1024];
     wchar_t message[4096];
 
-    uv_utf8_to_utf16(titleText, title, sizeof_array(title));
-    uv_utf8_to_utf16(messageText, message, sizeof_array(messageText));
+	uv_utf8_to_utf16(titleText, title, 1024 * 2);
+	uv_utf8_to_utf16(messageText, message, 4096 * 2);
 
     MessageBox(NULL, message, title, type | MB_OK);
 }

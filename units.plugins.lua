@@ -63,6 +63,7 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+--[[
 SharedLibrary {
     Name = "dbgeng_plugin",
 
@@ -81,6 +82,7 @@ SharedLibrary {
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
+--]]
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -345,6 +347,7 @@ RustSharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+--[[
 SharedLibrary {
     Name = "i3_docking",
 
@@ -370,6 +373,7 @@ SharedLibrary {
 
     IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
+--]]
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -396,9 +400,9 @@ if native.host_platform == "macosx" then
    Default "lldb_plugin"
 end
 
-if native.host_platform == "windows" then
-   Default "dbgeng_plugin"
-end
+--if native.host_platform == "windows" then
+--  Default "dbgeng_plugin"
+--end
 
 Default "registers_plugin"
 Default "callstack_plugin"
@@ -413,5 +417,5 @@ Default "console_plugin"
 Default "c64_vice_plugin"
 Default "amiga_uae_plugin"
 Default "bitmap_memory"
-Default "i3_docking"
+--Default "i3_docking"
 
