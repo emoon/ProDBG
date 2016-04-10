@@ -79,3 +79,8 @@ fn main() {
         bgfx.post_update();
     }
 }
+
+// dummy
+#[no_mangle]
+pub fn init_plugin() {
+}

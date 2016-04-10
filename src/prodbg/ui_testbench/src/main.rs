@@ -130,3 +130,7 @@ fn main() {
     //}
 }
 
+// dummy
+#[no_mangle]
+pub fn init_plugin() {
+}

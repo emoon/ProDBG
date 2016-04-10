@@ -14,12 +14,12 @@ fn main() {
         println!("cargo:rerun-if-changed={}", lib);
     }
 
-    println!("cargo:rustc-flags=-l dylib=stdc++");
-
 	if target.contains("darwin") {
+		println!("cargo:rustc-flags=-l dylib=stdc++");
     	println!("cargo:rustc-flags=-l framework=Cocoa");
     } else if target.contains("windows") {
     } else {
+		println!("cargo:rustc-flags=-l dylib=stdc++");
     	println!("cargo:rustc-flags=-l dylib=X11");
     	println!("cargo:rustc-flags=-l dylib=GL");
     	println!("cargo:rustc-flags=-l dylib=dl");
