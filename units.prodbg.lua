@@ -97,7 +97,7 @@ RustProgram {
 		"src/prodbg/build.rs",
 	},
 
-    Depends = { "lua", "lua", "remote_api", "stb", "bgfx", "bgfx_rs", "ui",
+    Depends = { "lua", "remote_api", "stb", "bgfx", "bgfx_rs", "ui",
     			"imgui", "scintilla", "tinyxml2", "capstone", "imgui_sys", "core", "viewdock" },
 }
 
