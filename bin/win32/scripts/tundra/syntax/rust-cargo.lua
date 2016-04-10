@@ -77,7 +77,7 @@ function build_rust_action_cmd_line(env, data, program)
 	if static_libs ~= "" then
 		-- Remove trailing " "
 		local t = string.sub(static_libs, 1, string.len(static_libs) - 1)
-		static_libs = export .. "TUNDRA_STATIC_LIBS=\"" .. t .. "\"" .. merge 
+		static_libs = export .. "TUNDRA_STATIC_LIBS=" .. t .. merge 
 	end
 
 	local variant = env:get('CURRENT_VARIANT')
