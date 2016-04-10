@@ -96,13 +96,6 @@ impl Windows {
         Ok(window)
     }
 
-    /*
-    fn update_window(window: &mut Window, sessions: &mut Sessions, view_plugins: &mut ViewPlugins) {
-
-        window.update(sessions, view_plugins);
-    }
-    */
-
     pub fn update(&mut self, sessions: &mut Sessions, view_plugins: &mut ViewPlugins) {
         for i in (0..self.windows.len()).rev() {
             self.windows[i].update(sessions, view_plugins);

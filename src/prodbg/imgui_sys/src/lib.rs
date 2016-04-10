@@ -51,7 +51,6 @@ impl Imgui {
         if showed_menu { 1 } else { 0 }
     }
 
-
     /// Returns 1 if UI showed a popup or not
 
     pub fn has_showed_popup(api: *mut CPdUI) -> u32 {

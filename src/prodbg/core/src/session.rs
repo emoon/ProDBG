@@ -1,13 +1,6 @@
-// use core::view_plugins::ViewPlugins;
-//use view_plugins::{ViewInstance, ViewPlugins, ViewHandle};
-//use core::backend_plugins::{BackendPlugins, BackendHandle};
-//use core::view_plugins::ViewInstance;
-//use prodbg_api::view::CViewCallbacks;
 use prodbg_api::read_write::{Reader, Writer};
 use plugins::PluginHandler;
 use reader_wrapper::{ReaderWrapper, WriterWrapper};
-//use imgui_sys::Imgui;
-//use libc::c_void;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct SessionHandle(pub u64);
@@ -27,9 +20,6 @@ pub struct SessionHandle(pub u64);
 ///!
 pub struct Session {
     pub handle: SessionHandle,
-    //pub views: Vec<ViewHandle>,
-    //backend: Option<BackendHandle>,
-
     pub reader: Reader,
 
     current_writer: usize,
@@ -64,32 +54,6 @@ impl Session {
     pub fn start_remote(_plugin_handler: &PluginHandler, _settings: &ConnectionSettings) {}
 
     pub fn start_local(_: &str, _: usize) {}
-
-    /*
-    fn update_view_instance(reader: &Reader, writer: &mut Writer, view: &mut ViewInstance) {
-        unsafe {
-            //bgfx_imgui_set_window_pos(view.x, view.y);
-            //bgfx_imgui_set_window_size(view.width, view.height);
-            //bgfx_imgui_set_window_size(500.0, 500.0);
-
-            // TODO: Fix visibility flag
-            Imgui::begin_window("Test", true);
-            //Imgui::init_state(ui.api);
-
-
-            let plugin_funcs = view.plugin_type.plugin_funcs as *mut CViewCallbacks;
-            ((*plugin_funcs).update.unwrap())(view.plugin_data,
-                                              view.ui.api as *mut c_void,
-                                              reader.api as *mut c_void,
-                                              writer.api as *mut c_void);
-            Imgui::end_window();
-        }
-    }
-
-    pub fn add_view(&mut self, view: ViewHandle) {
-        self.views.push(view);
-    }
-    */
 
     /*
     pub fn set_backend(&mut self, backend: Option<BackendHandle>) {
