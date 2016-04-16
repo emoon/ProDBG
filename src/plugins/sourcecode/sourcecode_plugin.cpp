@@ -7,7 +7,7 @@
 
 #include <scintilla/include/Scintilla.h>
 
-static const char* s_pluginName = "Source Code View";
+//static const char* s_pluginName = "Source Code View";
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -22,7 +22,7 @@ struct SourceCodeData {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDSettingsFuncs* s_settings = 0;
+//static PDSettingsFuncs* s_settings = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -74,6 +74,7 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc) {
     SourceCodeData* user_data = (SourceCodeData*)malloc(sizeof(SourceCodeData));
     memset(user_data, 0, sizeof(SourceCodeData));
 
+	/*
     s_settings = (PDSettingsFuncs*)serviceFunc(PDSETTINGS_GLOBAL);
 
     user_data->fastOpenKey = s_settings->get_shortcut(s_pluginName, "fast_open");
@@ -82,6 +83,7 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc) {
     printf("fastOpenKey 0x%x\n", user_data->fastOpenKey);
     printf("toggleBreakpointKey  0x%x\n", user_data->toggleBreakpointKey);
 
+	*/
     user_data->requestFiles = false;
     user_data->hasFiles = false;
 
@@ -145,7 +147,9 @@ static void setExceptionLocation(PDUI* uiFuncs, PDUISCInterface* sourceFuncs, So
 static void updateKeyboard(SourceCodeData* data, PDUISCInterface* sourceFuncs, PDUI* uiFuncs) {
     (void)data;
     (void)uiFuncs;
+    (void)sourceFuncs;
 
+	/*
     if (uiFuncs->is_key_down_id(data->fastOpenKey, 0)) {
         printf("do fast open\n");
     }
@@ -153,6 +157,7 @@ static void updateKeyboard(SourceCodeData* data, PDUISCInterface* sourceFuncs, P
     if (uiFuncs->is_key_down_id(data->toggleBreakpointKey, 0)) {
         PDUI_sc_send_command(sourceFuncs, SCN_TOGGLE_BREAKPOINT, 0, 0);
     }
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
