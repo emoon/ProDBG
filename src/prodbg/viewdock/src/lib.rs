@@ -106,17 +106,21 @@ impl Split {
             self.direction = direction;
         }
 
-        if self.left_docks.docks.len() == 0 {
+        if self.left_docks.docks.len() == 0 && self.left.is_none() {
             self.left_docks.docks.push(Dock::new(dock_handle));
             self.ratio = 0.5;
+            println!("no left split");
             return true;
         }
 
-        if self.right_docks.docks.len() == 0 {
+        if self.right_docks.docks.len() == 0 && self.right.is_none() {
             self.right_docks.docks.push(Dock::new(dock_handle));
             self.ratio = 0.5;
+            println!("no right split");
             return true;
         }
+
+        println!("split");
 
         false
     }
@@ -143,14 +147,14 @@ impl Split {
             return;
         } else {
             println!("Do right split");
-            println!("old {:?}", self);
+            //println!("old {:?}", self);
             let mut split = Box::new(Split::new(direction, split_handle));
             split.left_docks = self.right_docks.clone();
             split.right_docks.docks.push(Dock::new(dock_handle));
             split.ratio = 0.5;
             self.right = Some(split);
             self.right_docks.docks.clear();
-            println!("new {:?}", self);
+            //println!("new {:?}", self);
         }
     }
 
