@@ -7,7 +7,7 @@ use libc::{c_void, c_int};
 use minifb::{Scale, WindowOptions, MouseMode, MouseButton};
 use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::session::{Sessions, Session, SessionHandle};
-use self::viewdock::{Workspace, Rect};
+use self::viewdock::{Workspace, Rect, Direction, DockHandle};
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::{PDVec2};
 use prodbg_api::view::CViewCallbacks;
@@ -75,7 +75,7 @@ impl Windows {
                 Ok(Window {
                     win: win,
                     views: Vec::new(),
-                    ws: Workspace::new(Rect::new(0.0, 0.0, WIDTH as f32, HEIGHT as f32)).unwrap(),
+                    ws: Workspace::new(Rect::new(0.0, 0.0, width as f32, height as f32)).unwrap(),
                 })
             }
             Err(err) => Err(err),
@@ -83,8 +83,8 @@ impl Windows {
     }
 
     pub fn create_window_with_menus(&mut self) -> minifb::Result<Window> {
-        const WIDTH: usize = 1280;
-        const HEIGHT: usize = 1024;
+        //const WIDTH: usize = 1280;
+        //const HEIGHT: usize = 1024;
 
         let window = try!(Self::create_window(WIDTH, HEIGHT));
 
@@ -137,11 +137,13 @@ impl Window {
         }
     }
 
-    fn update_view(instance: &mut ViewInstance, session: &mut Session, show_context_menu: bool, mouse: (f32, f32)) -> u32 {
+    fn update_view(&self, instance: &mut ViewInstance, session: &mut Session, show_context_menu: bool, mouse: (f32, f32)) -> u32 {
         let ui = instance.ui;
 
-        //bgfx_imgui_set_window_pos(0.0, 0.0);
-        //bgfx_imgui_set_window_size(500.0, 500.0);
+        if let Some(rect) = self.ws.get_rect_by_handle(DockHandle(instance.handle.0)) {
+            Imgui::set_window_pos(rect.x, rect.y);
+            Imgui::set_window_size(rect.width, rect.height);
+        }
 
         Imgui::begin_window(&instance.name, true);
         Imgui::init_state(ui.api);
@@ -175,6 +177,8 @@ impl Window {
 
         let mut has_shown_menu = 0u32;
 
+        self.ws.update();
+
         let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
 
         Bgfx::set_mouse_pos(mouse);
@@ -185,7 +189,7 @@ impl Window {
         for view in &self.views {
             if let Some(ref mut v) = view_plugins.get_view(*view) {
                 if let Some(ref mut s) = sessions.get_session(v.session_handle) {
-                    has_shown_menu |= Self::update_view(v, s, show_context_menu, mouse);
+                    has_shown_menu |= Self::update_view(self, v, s, show_context_menu, mouse);
                 }
             }
         }
@@ -194,20 +198,35 @@ impl Window {
         // TODO: Handle diffrent cases when attach menu on to plugin menu or not
 
         if has_shown_menu == 0 && show_context_menu {
-            Self::show_popup(self, true, view_plugins);
+            Self::show_popup(self, true, mouse, view_plugins);
         } else {
-            Self::show_popup(self, false, view_plugins);
+            Self::show_popup(self, false, mouse, view_plugins);
         }
     }
 
+    /*
     fn add_view(&mut self, name: &String, view_plugins: &mut ViewPlugins) {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
             self.views.push(handle);
         }
     }
+    */
 
-    fn show_popup(&mut self, show: bool, view_plugins: &mut ViewPlugins) {
+    fn split_view(&mut self, name: &String, view_plugins: &mut ViewPlugins, pos: (f32, f32), direction: Direction) {
+        let ui = Imgui::create_ui_instance();
+        if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
+            if let Some(dock_handle) = self.ws.is_hovering_dock(pos) {
+                self.ws.split_by_dock_handle(direction, dock_handle, DockHandle(handle.0));
+            } else {
+                self.ws.split_top(DockHandle(handle.0), direction);
+            }
+
+            self.views.push(handle);
+        }
+    }
+
+    fn show_popup(&mut self, show: bool, mouse_pos: (f32, f32), view_plugins: &mut ViewPlugins) {
         let ui = Imgui::get_ui();
 
         if show {
@@ -220,7 +239,7 @@ impl Window {
             if ui.begin_menu("Split Horizontally", true) {
                 for name in &plugin_names {
                     if ui.menu_item(name, false, true) {
-                        Self::add_view(self, &name, view_plugins);
+                        Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Horizontal);
                     }
                 }
                 ui.end_menu();
@@ -228,7 +247,9 @@ impl Window {
 
             if ui.begin_menu("Split Vertically", true) {
                 for name in &plugin_names {
-                    ui.menu_item(name, false, true);
+                    if ui.menu_item(name, false, true) {
+                        Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Vertical);
+                    }
                 }
                 ui.end_menu();
             }
@@ -236,10 +257,4 @@ impl Window {
             ui.end_popup();
         }
     }
-
-    /*
-    pub fn add_view(&mut self, view: ViewHandle) {
-        self.views.push(view);
-    }
-    */
 }
