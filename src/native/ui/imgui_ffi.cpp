@@ -1936,7 +1936,7 @@ extern "C" void imgui_set_window_pos(float x, float y) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void imgui_set_window_size(float w, float h) {
-    ImGui::SetNextWindowSize(ImVec2(w, h));
+    ImGui::SetNextWindowSize(ImVec2(w - 4, h - 4));
 }
 
 
