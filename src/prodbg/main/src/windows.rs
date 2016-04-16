@@ -75,7 +75,7 @@ impl Windows {
                 Ok(Window {
                     win: win,
                     views: Vec::new(),
-                    ws: Workspace::new(Rect::new(0.0, 0.0, width as f32, height as f32)).unwrap(),
+                    ws: Workspace::new(Rect::new(0.0, 0.0, width as f32, (height - 20) as f32)).unwrap(),
                 })
             }
             Err(err) => Err(err),
@@ -217,8 +217,10 @@ impl Window {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
             if let Some(dock_handle) = self.ws.is_hovering_dock(pos) {
+                println!("split_by_handle dock_handle {}", dock_handle.0);
                 self.ws.split_by_dock_handle(direction, dock_handle, DockHandle(handle.0));
             } else {
+                println!("split_top");
                 self.ws.split_top(DockHandle(handle.0), direction);
             }
 
