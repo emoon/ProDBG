@@ -3,10 +3,10 @@ pub use self::error::Error;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct DockHandle(pub u64);
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct SplitHandle(pub u64);
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -28,7 +28,7 @@ impl Rect {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Dock {
     pub handle: DockHandle,
     pub rect: Rect
@@ -43,14 +43,14 @@ impl Dock {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Direction {
     Vertical,
     Horizontal,
     Full,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Container {
     pub docks: Vec<Dock>,
     pub rect: Rect,
@@ -66,6 +66,7 @@ impl Container {
 
 }
 
+#[derive(Debug)]
 pub struct Split {
     /// left/top slipit
     pub left: Option<Box<Split>>,
@@ -100,7 +101,10 @@ impl Split {
     }
 
     pub fn no_split(&mut self, direction: Direction, dock_handle: DockHandle) -> bool {
-        self.direction = direction;
+        // hack!
+        if self.direction == Direction::Full {
+            self.direction = direction;
+        }
 
         if self.left_docks.docks.len() == 0 {
             self.left_docks.docks.push(Dock::new(dock_handle));
@@ -121,6 +125,7 @@ impl Split {
         if Self::no_split(self, direction, dock_handle) {
             return;
         } else {
+            println!("Do left split");
             let mut split = Box::new(Split::new(direction, split_handle));
             split.right_docks = self.left_docks.clone();
             split.left_docks.docks.push(Dock::new(dock_handle));
@@ -131,15 +136,21 @@ impl Split {
     }
 
     pub fn split_right(&mut self, split_handle: SplitHandle, dock_handle: DockHandle, direction: Direction) {
+        //println!("Do right split");
+        //println!("old {:?}", self);
+
         if Self::no_split(self, direction, dock_handle) {
             return;
         } else {
+            println!("Do right split");
+            println!("old {:?}", self);
             let mut split = Box::new(Split::new(direction, split_handle));
             split.left_docks = self.right_docks.clone();
             split.right_docks.docks.push(Dock::new(dock_handle));
             split.ratio = 0.5;
             self.right = Some(split);
             self.right_docks.docks.clear();
+            println!("new {:?}", self);
         }
     }
 
@@ -201,32 +212,40 @@ impl Split {
         }
     }
 
-    pub fn split_by_dock_handle(&mut self, direction: Direction, split_handle: SplitHandle, find_handle: DockHandle, handle: DockHandle) {
+    pub fn split_by_dock_handle(&mut self, direction: Direction, split_handle: SplitHandle, find_handle: DockHandle, handle: DockHandle) -> bool {
         // TODO: Fix me
         let left_docks = self.left_docks.docks.clone();
         let right_docks = self.right_docks.docks.clone();
 
+        println!("SplitHandle {} - Dir {:?}", self.handle.0, self.direction);
+
         for dock in left_docks {
             if dock.handle.0 == find_handle.0 {
                 self.split_left(split_handle, handle, direction);
-                return;
+                return true;
             }
         }
 
         for dock in right_docks {
             if dock.handle.0 == find_handle.0 {
                 self.split_right(split_handle, handle, direction);
-                return;
+                return true;
             }
         }
 
         if let Some(ref mut split) = self.left {
-            Self::split_by_dock_handle(split, direction, split_handle, find_handle, handle);
+            if Self::split_by_dock_handle(split, direction, split_handle, find_handle, handle) {
+                return true;
+            }
         }
 
         if let Some(ref mut split) = self.right {
-            Self::split_by_dock_handle(split, direction, split_handle, find_handle, handle);
+            if Self::split_by_dock_handle(split, direction, split_handle, find_handle, handle) {
+                return true;
+            }
         }
+
+        false
     }
 
     fn is_inside(v: (f32, f32), rect: Rect) -> bool {
@@ -239,6 +258,55 @@ impl Split {
             true
         } else {
             false
+        }
+    }
+
+    fn recrusive_collect_docks(&self, docks: &mut Vec<Dock>) {
+        for h in &self.left_docks.docks {
+            docks.push(h.clone());
+        }
+
+        for h in &self.right_docks.docks {
+            docks.push(h.clone());
+        }
+
+        if let Some(ref split) = self.left {
+            Self::recrusive_collect_docks(split, docks);
+        }
+
+        if let Some(ref split) = self.right {
+            Self::recrusive_collect_docks(split, docks);
+        }
+    }
+
+    fn pad(level: i32) {
+        for _ in 0..level {
+            print!(" ");
+        }
+    }
+
+    fn dump(&self, level: i32) {
+        Self::pad(level);
+
+        println!("Split - Dir {:?} - handle {} - rect {} {} - {} {}",
+                self.direction, self.handle.0, self.rect.x, self.rect.y, self.rect.width, self.rect.height);
+
+        for d in &self.left_docks.docks {
+            Self::pad(level);
+            println!("left dock - {} - rect {} {} - {} {}", d.handle.0, d.rect.x, d.rect.y, d.rect.width, d.rect.height);
+        }
+
+        for d in &self.right_docks.docks {
+            Self::pad(level);
+            println!("left dock - {} - rect {} {} - {} {}", d.handle.0, d.rect.x, d.rect.y, d.rect.width, d.rect.height);
+        }
+
+        if let Some(ref split) = self.left {
+            Self::dump(split, level + 1);
+        }
+
+        if let Some(ref split) = self.right {
+            Self::dump(split, level + 1);
         }
     }
 
@@ -343,31 +411,34 @@ impl Split {
     }
 
     pub fn get_hover_dock(&self, pos: (f32, f32)) -> Option<DockHandle> {
-        for h in &self.left_docks.docks {
-            if Self::is_inside(pos, h.rect) {
-                return Some(h.handle);
+        let mut docks = Vec::<Dock>::new();
+        let mut last_size = 100000000.0;
+        let mut dock_handle: Option<DockHandle> = None;
+
+        Self::recrusive_collect_docks(self, &mut docks);
+
+        println!(".............................");
+
+        for dock in &docks {
+            println!("Searching id {} - {:?} - inside {:?}", dock.handle.0, pos, dock.rect);
+
+            if Self::is_inside(pos, dock.rect) {
+                let size = dock.rect.width * dock.rect.height;
+                println!("  inside {} {} -> last {}", dock.handle.0, size, last_size);
+
+                if size < last_size {
+                    println!("  new inside {} ({})", dock.handle.0, size);
+                    last_size = size;
+                    dock_handle = Some(dock.handle);
+                } else {
+                    println!("  size larger than previous test");
+                }
+            } else {
+                println!("Not inside");
             }
         }
 
-        for h in &self.right_docks.docks {
-            if Self::is_inside(pos, h.rect) {
-                return Some(h.handle);
-            }
-        }
-
-        if let Some(ref split) = self.left {
-            if let Some(handle) = Self::get_hover_dock(split, pos) {
-                return Some(handle);
-            }
-        }
-
-        if let Some(ref split) = self.right {
-            if let Some(handle) = Self::get_hover_dock(split, pos) {
-                return Some(handle);
-            }
-        }
-
-        None
+        dock_handle
     }
 }
 
@@ -467,6 +538,12 @@ impl Workspace {
             split.get_rect_by_handle(handle)
         } else {
             None
+        }
+    }
+
+    pub fn dump_tree(&self) {
+        if let Some(ref split) = self.split {
+            split.dump(0)
         }
     }
 }
