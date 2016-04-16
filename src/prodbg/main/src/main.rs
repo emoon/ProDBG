@@ -59,7 +59,8 @@ fn main() {
     //plugins.add_handler(&backend_plugins);
 
     plugins.add_plugin(&mut lib_handler, "bitmap_memory");
-    plugins.add_plugin(&mut lib_handler, "i3_docking");
+    plugins.add_plugin(&mut lib_handler, "registers_plugin");
+    plugins.add_plugin(&mut lib_handler, "hex_memory_plugin");
 
     windows.create_default();
 
