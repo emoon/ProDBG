@@ -14,6 +14,7 @@ pub struct ViewHandle(pub u64);
 pub struct ViewInstance {
     pub plugin_data: *mut c_void,
     pub ui: Ui,
+    pub name: String,
     pub handle: ViewHandle,
     pub session_handle: SessionHandle,
     pub x: f32,
@@ -117,6 +118,7 @@ impl ViewPlugins {
 
         let instance = ViewInstance {
             plugin_data: plugin_data,
+            name: format!("Plugin {}", self.handle_counter.0),
             ui: ui,
             handle: handle,
             session_handle: session_handle,

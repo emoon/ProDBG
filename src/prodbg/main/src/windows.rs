@@ -143,7 +143,7 @@ impl Window {
         //bgfx_imgui_set_window_pos(0.0, 0.0);
         //bgfx_imgui_set_window_size(500.0, 500.0);
 
-        Imgui::begin_window("Test", true);
+        Imgui::begin_window(&instance.name, true);
         Imgui::init_state(ui.api);
 
         let pos = ui.get_window_pos();
@@ -202,8 +202,9 @@ impl Window {
 
     fn add_view(&mut self, name: &String, view_plugins: &mut ViewPlugins) {
         let ui = Imgui::create_ui_instance();
-        let view = view_plugins.create_instance(ui, name, SessionHandle(0)).unwrap();
-        self.views.push(view);
+        if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
+            self.views.push(handle);
+        }
     }
 
     fn show_popup(&mut self, show: bool, view_plugins: &mut ViewPlugins) {
