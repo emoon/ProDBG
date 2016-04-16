@@ -191,14 +191,42 @@ impl Window {
         }
 
         // if now plugin has showed a menu we do it here
+        // TODO: Handle diffrent cases when attach menu on to plugin menu or not
 
         if has_shown_menu == 0 && show_context_menu {
-            Bgfx::test_menu(true);
+            Self::show_popup(self, true, view_plugins);
         } else {
-            Bgfx::test_menu(false);
+            Self::show_popup(self, false, view_plugins);
+        }
+    }
+
+
+    fn show_popup(&mut self, show: bool, view_plugins: &ViewPlugins) {
+        let ui = Imgui::get_ui();
+
+        if show {
+            ui.open_popup("plugins");
         }
 
+        if ui.begin_popup("plugins") {
+            let plugin_names = view_plugins.get_plugin_names();
 
+            if ui.begin_menu("Split Horizontally", true) {
+                for name in &plugin_names {
+                    ui.menu_item(name, false, true);
+                }
+                ui.end_menu();
+            }
+
+            if ui.begin_menu("Split Vertically", true) {
+                for name in &plugin_names {
+                    ui.menu_item(name, false, true);
+                }
+                ui.end_menu();
+            }
+
+            ui.end_popup();
+        }
     }
 
     pub fn add_view(&mut self, view: ViewHandle) {
