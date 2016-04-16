@@ -341,6 +341,34 @@ impl Split {
 
         None
     }
+
+    pub fn get_hover_dock(&self, pos: (f32, f32)) -> Option<DockHandle> {
+        for h in &self.left_docks.docks {
+            if Self::is_inside(pos, h.rect) {
+                return Some(h.handle);
+            }
+        }
+
+        for h in &self.right_docks.docks {
+            if Self::is_inside(pos, h.rect) {
+                return Some(h.handle);
+            }
+        }
+
+        if let Some(ref split) = self.left {
+            if let Some(handle) = Self::get_hover_dock(split, pos) {
+                return Some(handle);
+            }
+        }
+
+        if let Some(ref split) = self.right {
+            if let Some(handle) = Self::get_hover_dock(split, pos) {
+                return Some(handle);
+            }
+        }
+
+        None
+    }
 }
 
 pub struct Workspace {
@@ -384,6 +412,7 @@ impl Workspace {
         let mut split = Box::new(Split::new(Direction::Full, split_handle));
         split.ratio = 1.0;
         split.left_docks.docks.push(Dock::new(dock_handle));
+        split.rect = self.rect;
         self.split = Some(split);
     }
 
@@ -414,6 +443,14 @@ impl Workspace {
     pub fn is_hovering_sizer(&self, pos: (f32, f32)) -> Option<SplitHandle> {
         if let Some(ref split) = self.split {
             split.is_hovering_sizer(pos)
+        } else {
+            None
+        }
+    }
+
+    pub fn is_hovering_dock(&self, pos: (f32, f32)) -> Option<DockHandle> {
+        if let Some(ref split) = self.split {
+            split.get_hover_dock(pos)
         } else {
             None
         }
