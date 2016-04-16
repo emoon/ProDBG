@@ -176,7 +176,6 @@ impl Window {
         let mut has_shown_menu = 0u32;
 
         let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
-        let mut has_shown_menu = 0u32;
 
         Bgfx::set_mouse_pos(mouse);
         Bgfx::set_mouse_state(0, self.win.get_mouse_down(MouseButton::Left));
@@ -198,6 +197,8 @@ impl Window {
         } else {
             Bgfx::test_menu(false);
         }
+
+
     }
 
     pub fn add_view(&mut self, view: ViewHandle) {
