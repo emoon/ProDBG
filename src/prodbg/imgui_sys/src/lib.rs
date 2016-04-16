@@ -83,6 +83,18 @@ impl Imgui {
         unsafe { imgui_end(); }
     }
 
+    pub fn set_window_pos(x: f32, y: f32) {
+        unsafe {
+            imgui_set_window_pos(x, y);
+        }
+    }
+
+    pub fn set_window_size(w: f32, h: f32) {
+        unsafe {
+            imgui_set_window_size(w, h);
+        }
+    }
+
     fn init_ui_funcs() -> *mut CPdUI {
         unsafe {
             let priv_data = transmute(Box::new(Imgui::new()));
@@ -100,4 +112,6 @@ extern "C" {
     fn imgui_end();
     fn imgui_create_ui_funcs() -> *mut CPdUI;
     fn imgui_get_ui_funcs() -> *mut CPdUI;
+    fn imgui_set_window_pos(x: f32, y: f32);
+    fn imgui_set_window_size(w: f32, h: f32);
 }
