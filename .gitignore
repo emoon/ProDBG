@@ -6,3 +6,4 @@ data/current_layout_2.json
 temp/vice_mem_dump
 .ycm_extra_conf.pyc
 target/
+Cargo.lock
