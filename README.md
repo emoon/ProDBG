@@ -4,7 +4,7 @@ ProDBG
 ProDBG is a new debugger under development that will support a variety of targets and operating systems. Currently it's in very early development and primary focusing on Mac as primary target.
 Right now lots of the code are being restructured and rewritten in [Rust](https://www.rust-lang.org). There is a blog post about the move to Rust over [here](http://prodbg.com/ProDBG-switches-to-Rust)
 
-I did a presentation on 2014-11 about the project for the awesome rendering team at Frostbite/EA and it can be viewed [here](https://dl.dropboxusercontent.com/u/5205843/ProDBG-Presentation.pdf) (notice that some of the information is a bit out-dated by now) 
+I did a presentation on 2014-11 about the project for the awesome rendering team at Frostbite/EA and it can be viewed [here](https://dl.dropboxusercontent.com/u/5205843/ProDBG-Presentation.pdf) (notice that some of the information is a bit out-dated by now)
 
 ## Build status
 
@@ -17,7 +17,7 @@ As the rewrite of ProDBG is currently under way no debugging is working currentl
 
 ## How to compile and build
 
-Latest stable version of Rust needs to be present on the system and can be downloaded from [here](https://www.rust-lang.org/downloads.html)
+Latest stable version of **Rust** (1.8+) needs to be present on the system and can be downloaded from [here](https://www.rust-lang.org/downloads.html) and on Windows the 64-bit **MSVC ABI** version is required which can be found here https://www.rust-lang.org/downloads.html#win-foot
 
 ## Mac
 
@@ -27,12 +27,12 @@ After doing that open a terminal and run ```scripts/mac_build_debug.sh``` and yo
 
 ## Windows
 
-On Windows Visual Studio 2013 is required (2012 or earlier will not work as parts of the code uses C99) With VS 2013 installed do this:
+On Windows Visual Studio 2013 or later is required (2012 or earlier will not work as parts of the code uses C99) With VS 2013 installed do this:
 
 Open a cmd window and first run ```scripts\vcvarsx86_amd64.bat``` and then ```scripts\win64_build_debug.cmd``` and you will have an executable in ```t2-output\win64-msvc-debug-default\prodbg.exe```
 
 ## Linux
 
-Currently the Linux build isn't supported but this is being worked on. 
+Currently the Linux build is compiling but crashes at startup which needs to be investigated.
 
 
