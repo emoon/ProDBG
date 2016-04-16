@@ -111,7 +111,7 @@ impl ViewPlugins {
     pub fn create_instance_from_index(&mut self, ui: Ui, index: usize, session_handle: SessionHandle) -> Option<ViewHandle> {
         let plugin_data = unsafe {
             let callbacks = self.plugin_types[index].plugin_funcs as *mut CViewCallbacks;
-            (*callbacks).create_instance.unwrap()(ptr::null(), Self::service_fun)
+            (*callbacks).create_instance.unwrap()(ui.api as *mut c_void, Self::service_fun)
         };
 
         let handle = self.handle_counter;
