@@ -147,11 +147,11 @@ impl ViewPlugins {
 
     // TODO: Would be nice to use something stack-base instead or return an iterator to interate
     // over the data instead
-    pub fn get_plugin_names(&self) -> Vec<&String> {
+    pub fn get_plugin_names(&self) -> Vec<String> {
         let mut names = Vec::new();
 
         for i in &self.plugin_types {
-            names.push(&i.name);
+            names.push(i.name.clone());
         }
 
         names

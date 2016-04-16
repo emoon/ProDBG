@@ -6,7 +6,7 @@ use bgfx_rs::Bgfx;
 use libc::{c_void, c_int};
 use minifb::{Scale, WindowOptions, MouseMode, MouseButton};
 use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
-use core::session::{Sessions, Session};
+use core::session::{Sessions, Session, SessionHandle};
 use self::viewdock::{Workspace, Rect};
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::{PDVec2};
@@ -200,8 +200,13 @@ impl Window {
         }
     }
 
+    fn add_view(&mut self, name: &String, view_plugins: &mut ViewPlugins) {
+        let ui = Imgui::create_ui_instance();
+        let view = view_plugins.create_instance(ui, name, SessionHandle(0)).unwrap();
+        self.views.push(view);
+    }
 
-    fn show_popup(&mut self, show: bool, view_plugins: &ViewPlugins) {
+    fn show_popup(&mut self, show: bool, view_plugins: &mut ViewPlugins) {
         let ui = Imgui::get_ui();
 
         if show {
@@ -213,7 +218,9 @@ impl Window {
 
             if ui.begin_menu("Split Horizontally", true) {
                 for name in &plugin_names {
-                    ui.menu_item(name, false, true);
+                    if ui.menu_item(name, false, true) {
+                        Self::add_view(self, &name, view_plugins);
+                    }
                 }
                 ui.end_menu();
             }
@@ -229,7 +236,9 @@ impl Window {
         }
     }
 
+    /*
     pub fn add_view(&mut self, view: ViewHandle) {
         self.views.push(view);
     }
+    */
 }
