@@ -274,8 +274,13 @@ impl Split {
     fn dump(&self, level: i32) {
         Self::pad(level);
 
-        println!("Split - Dir {:?} - handle {} - rect {} {} - {} {}",
-                self.direction, self.handle.0, self.rect.x, self.rect.y, self.rect.width, self.rect.height);
+        let l_count = self.left_docks.docks.len();
+        let r_count = self.right_docks.docks.len();
+
+        println!("Split - Dir {:?} - handle {} - ratio {} count ({}, {}) - left ({}) right ({}) - rect {} {} - {} {}",
+                self.direction, self.handle.0, self.ratio, l_count, r_count,
+                self.left.is_some(), self.right.is_some(),
+                self.rect.x, self.rect.y, self.rect.width, self.rect.height);
 
         for d in &self.left_docks.docks {
             Self::pad(level);
@@ -284,7 +289,7 @@ impl Split {
 
         for d in &self.right_docks.docks {
             Self::pad(level);
-            println!("left dock - {} - rect {} {} - {} {}", d.handle.0, d.rect.x, d.rect.y, d.rect.width, d.rect.height);
+            println!("right dock - {} - rect {} {} - {} {}", d.handle.0, d.rect.x, d.rect.y, d.rect.width, d.rect.height);
         }
 
         if let Some(ref split) = self.left {
@@ -356,17 +361,19 @@ impl Split {
 
     pub fn delete_by_handle(&mut self, handle: DockHandle) -> bool {
         for i in (0..self.left_docks.docks.len()).rev() {
+            println!("Matching left {} - {}", self.left_docks.docks[i].handle.0, handle.0);
             if self.left_docks.docks[i].handle.0 == handle.0 {
                 self.ratio = 0.0;
-                println!("deleted dock!");
+                println!("deleted left dock!");
                 self.left_docks.docks.swap_remove(i);
             }
         }
 
         for i in (0..self.right_docks.docks.len()).rev() {
+            println!("Matching right {} - {}", self.right_docks.docks[i].handle.0, handle.0);
             if self.right_docks.docks[i].handle.0 == handle.0 {
                 self.ratio = 1.0;
-                println!("deleted dock!");
+                println!("deleted right dock!");
                 self.right_docks.docks.swap_remove(i);
             }
         }
@@ -374,8 +381,9 @@ impl Split {
         // if nothing left in the docks we return true to notify
         // the parent that the split should be removed
 
-        if self.left_docks.docks.len() == 0 && self.right_docks.docks.len() == 0 {
-            println!("We can delete the split also!");
+        if self.left_docks.docks.len() == 0 && self.left.is_none() &&
+            self.right_docks.docks.len() == 0 && self.right.is_none() {
+            println!("We can delete the split also! - {}", self.handle.0);
             return true;
         }
 
@@ -387,7 +395,10 @@ impl Split {
             }
         }
 
-        if remove_node { self.left = None; }
+        if remove_node {
+            self.ratio = 0.0;
+            self.left = None;
+        }
 
         remove_node = false;
 
@@ -397,10 +408,50 @@ impl Split {
             }
         }
 
-        if remove_node { self.right = None; }
+        if remove_node {
+            self.ratio = 1.0;
+            self.right = None;
+        }
 
         false
     }
+
+    pub fn cleanup_delete(&mut self) -> bool {
+        if self.left_docks.docks.len() == 0 && self.left.is_none() &&
+            self.right_docks.docks.len() == 0 && self.right.is_none() {
+            println!("cleanup delete {}", self.handle.0);
+            return true;
+        }
+
+        if self.left.as_mut().map(|split| split.cleanup_delete()).unwrap_or(false) {
+            self.left = None;
+        }
+
+        if self.right.as_mut().map(|split| split.cleanup_delete()).unwrap_or(false) {
+            self.right = None;
+        }
+
+        false
+    }
+
+    pub fn adjust_percentage(&mut self) {
+        if self.left_docks.docks.len() == 0 && self.left.is_none() {
+            self.ratio = 0.0;
+            println!("adjust left ratio");
+        } else if self.right_docks.docks.len() == 0 && self.right.is_none() {
+            self.ratio = 1.0;
+            println!("adjust right ratio");
+        }
+
+        if let Some(ref mut split) = self.right {
+            Self::adjust_percentage(split);
+        }
+
+        if let Some(ref mut split) = self.right {
+            Self::adjust_percentage(split);
+        }
+    }
+
 
     pub fn drag_sizer(&mut self, handle: SplitHandle, delta: (f32, f32)) {
         if self.handle.0 == handle.0 {
@@ -558,7 +609,10 @@ impl Workspace {
 
     pub fn delete_by_handle(&mut self, handle: DockHandle) {
         if let Some(ref mut split) = self.split {
+            println!("About to delete {}", handle.0);
             let _ = split.delete_by_handle(handle);
+            let _ = split.cleanup_delete();
+            split.adjust_percentage();
         }
     }
 }
