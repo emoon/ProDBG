@@ -4,7 +4,7 @@ extern crate viewdock;
 
 use bgfx_rs::Bgfx;
 use libc::{c_void, c_int};
-use minifb::{Scale, WindowOptions, MouseMode, MouseButton};
+use minifb::{Scale, WindowOptions, MouseMode, MouseButton, Key, KeyRepeat};
 use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::session::{Sessions, Session, SessionHandle};
 use self::viewdock::{Workspace, Rect, Direction, DockHandle};
@@ -24,6 +24,11 @@ pub struct Window {
 
     ///
     pub ws: Workspace,
+}
+
+struct WindowState {
+    pub showed_popup: u32,
+    pub should_close: bool,
 }
 
 ///! Windows keeps track of all different windows that are present with in the application
@@ -137,7 +142,7 @@ impl Window {
         }
     }
 
-    fn update_view(&self, instance: &mut ViewInstance, session: &mut Session, show_context_menu: bool, mouse: (f32, f32)) -> u32 {
+    fn update_view(&self, instance: &mut ViewInstance, session: &mut Session, show_context_menu: bool, mouse: (f32, f32)) -> WindowState {
         let ui = instance.ui;
 
         if let Some(rect) = self.ws.get_rect_by_handle(DockHandle(instance.handle.0)) {
@@ -145,7 +150,7 @@ impl Window {
             Imgui::set_window_size(rect.width, rect.height);
         }
 
-        Imgui::begin_window(&instance.name, true);
+        let open = Imgui::begin_window(&instance.name, true);
         Imgui::init_state(ui.api);
 
         let pos = ui.get_window_pos();
@@ -169,14 +174,24 @@ impl Window {
 
         Imgui::end_window();
 
-        has_shown_menu
+        WindowState {
+            showed_popup: has_shown_menu,
+            should_close: !open,
+        }
+    }
+
+    pub fn remove_views(&mut self, view_plugins: &mut ViewPlugins, views: &Vec<ViewHandle>) {
+        for view in views {
+            view_plugins.destroy_instance(*view);
+            self.ws.delete_by_handle(DockHandle(view.0));
+        }
     }
 
     pub fn update(&mut self, sessions: &mut Sessions, view_plugins: &mut ViewPlugins) {
-        self.win.update();
-
+        let mut views_to_delete = Vec::new();
         let mut has_shown_menu = 0u32;
 
+        self.win.update();
         self.ws.update();
 
         let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
@@ -189,9 +204,19 @@ impl Window {
         for view in &self.views {
             if let Some(ref mut v) = view_plugins.get_view(*view) {
                 if let Some(ref mut s) = sessions.get_session(v.session_handle) {
-                    has_shown_menu |= Self::update_view(self, v, s, show_context_menu, mouse);
+                    let state = Self::update_view(self, v, s, show_context_menu, mouse);
+
+                    if state.should_close {
+                        views_to_delete.push(*view);
+                    }
+
+                    has_shown_menu |= state.showed_popup;
                 }
             }
+        }
+
+        if self.win.is_key_pressed(Key::Down, KeyRepeat::No) {
+            self.ws.dump_tree();
         }
 
         // if now plugin has showed a menu we do it here
@@ -202,25 +227,16 @@ impl Window {
         } else {
             Self::show_popup(self, false, mouse, view_plugins);
         }
-    }
 
-    /*
-    fn add_view(&mut self, name: &String, view_plugins: &mut ViewPlugins) {
-        let ui = Imgui::create_ui_instance();
-        if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
-            self.views.push(handle);
-        }
+        Self::remove_views(self, view_plugins, &views_to_delete);
     }
-    */
 
     fn split_view(&mut self, name: &String, view_plugins: &mut ViewPlugins, pos: (f32, f32), direction: Direction) {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
             if let Some(dock_handle) = self.ws.is_hovering_dock(pos) {
-                println!("split_by_handle dock_handle {}", dock_handle.0);
                 self.ws.split_by_dock_handle(direction, dock_handle, DockHandle(handle.0));
             } else {
-                println!("split_top");
                 self.ws.split_top(DockHandle(handle.0), direction);
             }
 

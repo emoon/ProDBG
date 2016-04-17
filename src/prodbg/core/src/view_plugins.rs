@@ -147,6 +147,15 @@ impl ViewPlugins {
         None
     }
 
+    pub fn destroy_instance(&mut self, handle: ViewHandle) {
+        for i in (0..self.instances.len()).rev() {
+            if self.instances[i].handle.0 == handle.0 {
+                self.instances.swap_remove(i);
+                return;
+            }
+        }
+    }
+
     // TODO: Would be nice to use something stack-base instead or return an iterator to interate
     // over the data instead
     pub fn get_plugin_names(&self) -> Vec<String> {

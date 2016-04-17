@@ -1566,10 +1566,10 @@ static void fill_rect(PDRect rect, PDColor color) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C" void imgui_begin(const char* name, int show) {
+extern "C" int imgui_begin(const char* name, int show) {
 	bool s = !!show;
-    //ImGui::Begin(name, &s, ImVec2(0, 0), true, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     ImGui::Begin(name, &s, ImVec2(500, 500), true, ImGuiWindowFlags_NoCollapse);
+    return s;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -72,10 +72,10 @@ impl Imgui {
         data.showed_popup = 0
     }
 
-    pub fn begin_window(name: &str, show: bool) {
+    pub fn begin_window(name: &str, show: bool) -> bool {
         unsafe {
             let t = CFixedString::from_str(name).as_ptr();
-            imgui_begin(t, show as c_uchar);
+            if imgui_begin(t, show as c_uchar) == 1 { true } else { false }
         }
     }
 
@@ -108,7 +108,7 @@ impl Imgui {
 }
 
 extern "C" {
-    fn imgui_begin(name: *const c_char, show: c_uchar);
+    fn imgui_begin(name: *const c_char, show: c_uchar) -> c_int;
     fn imgui_end();
     fn imgui_create_ui_funcs() -> *mut CPdUI;
     fn imgui_get_ui_funcs() -> *mut CPdUI;

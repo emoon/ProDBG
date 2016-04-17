@@ -189,18 +189,13 @@ impl Split {
         self.left_docks.rect = rects.0;
         self.right_docks.rect = rects.1;
 
-        //println!("level {} left  - x: {} y: {} w: {} h: {}", level, rects.0.x, rects.0.y, rects.0.width, rects.0.height);
-        //println!("level {} right - x: {} y: {} w: {} h: {}", level, rects.1.x, rects.1.y, rects.1.width, rects.1.height);
-
         // TODO: Remove these loops, should be propagated to update call only
 
         for dock in &mut self.left_docks.docks {
-            //println!("level {} left  - x: {} y: {} w: {} h: {}", level, rects.0.x, rects.0.y, rects.0.width, rects.0.height);
             dock.rect = rects.0;
         }
 
         for dock in &mut self.right_docks.docks {
-            //println!("level {} right - x: {} y: {} w: {} h: {}", level, rects.1.x, rects.1.y, rects.1.width, rects.1.height);
             dock.rect = rects.1;
         }
     }
@@ -359,6 +354,54 @@ impl Split {
         }
     }
 
+    pub fn delete_by_handle(&mut self, handle: DockHandle) -> bool {
+        for i in (0..self.left_docks.docks.len()).rev() {
+            if self.left_docks.docks[i].handle.0 == handle.0 {
+                self.ratio = 0.0;
+                println!("deleted dock!");
+                self.left_docks.docks.swap_remove(i);
+            }
+        }
+
+        for i in (0..self.right_docks.docks.len()).rev() {
+            if self.right_docks.docks[i].handle.0 == handle.0 {
+                self.ratio = 1.0;
+                println!("deleted dock!");
+                self.right_docks.docks.swap_remove(i);
+            }
+        }
+
+        // if nothing left in the docks we return true to notify
+        // the parent that the split should be removed
+
+        if self.left_docks.docks.len() == 0 && self.right_docks.docks.len() == 0 {
+            println!("We can delete the split also!");
+            return true;
+        }
+
+        let mut remove_node = false;
+
+        if let Some(ref mut split) = self.left {
+            if Self::delete_by_handle(split, handle) {
+                remove_node = true;
+            }
+        }
+
+        if remove_node { self.left = None; }
+
+        remove_node = false;
+
+        if let Some(ref mut split) = self.right {
+            if Self::delete_by_handle(split, handle) {
+                remove_node = true;
+            }
+        }
+
+        if remove_node { self.right = None; }
+
+        false
+    }
+
     pub fn drag_sizer(&mut self, handle: SplitHandle, delta: (f32, f32)) {
         if self.handle.0 == handle.0 {
             return Self::change_ratio(self, delta);
@@ -374,27 +417,13 @@ impl Split {
     }
 
     pub fn get_rect_by_handle(&self, handle: DockHandle) -> Option<Rect> {
-        for h in &self.left_docks.docks {
-            if h.handle.0 == handle.0 {
-                return Some(h.rect);
-            }
-        }
+        let mut docks = Vec::<Dock>::new();
 
-        for h in &self.right_docks.docks {
-            if h.handle.0 == handle.0 {
-                return Some(h.rect);
-            }
-        }
+        Self::recrusive_collect_docks(self, &mut docks);
 
-        if let Some(ref split) = self.left {
-            if let Some(handle) = Self::get_rect_by_handle(split, handle) {
-                return Some(handle);
-            }
-        }
-
-        if let Some(ref split) = self.right {
-            if let Some(handle) = Self::get_rect_by_handle(split, handle) {
-                return Some(handle);
+        for dock in &docks {
+            if dock.handle.0 == handle.0 {
+                return Some(dock.rect);
             }
         }
 
@@ -524,6 +553,12 @@ impl Workspace {
     pub fn dump_tree(&self) {
         if let Some(ref split) = self.split {
             split.dump(0)
+        }
+    }
+
+    pub fn delete_by_handle(&mut self, handle: DockHandle) {
+        if let Some(ref mut split) = self.split {
+            let _ = split.delete_by_handle(handle);
         }
     }
 }
