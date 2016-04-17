@@ -1,6 +1,8 @@
 ProDBG
 ======
 
+[![Join the chat at https://gitter.im/emoon/ProDBG](https://badges.gitter.im/emoon/ProDBG.svg)](https://gitter.im/emoon/ProDBG?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ProDBG is a new debugger under development that will support a variety of targets and operating systems. Currently it's in very early development and primary focusing on Mac as primary target.
 Right now lots of the code are being restructured and rewritten in [Rust](https://www.rust-lang.org). There is a blog post about the move to Rust over [here](http://prodbg.com/ProDBG-switches-to-Rust)
 
