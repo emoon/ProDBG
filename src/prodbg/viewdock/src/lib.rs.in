@@ -1,6 +1,8 @@
 mod error;
 pub use self::error::Error;
 
+include!(concat!(env!("OUT_DIR"), "/data.rs"));
+
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
@@ -31,6 +33,7 @@ impl Rect {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Dock {
     pub handle: DockHandle,
+    pub name: String,
     pub rect: Rect
 }
 
@@ -500,6 +503,29 @@ impl Split {
 
         dock_handle
     }
+
+    pub fn set_name_to_handle(&mut self, name: &String, handle: DockHandle) {
+        for h in &mut self.left_docks.docks {
+            if h.handle == handle {
+                h.name = name;
+            }
+        }
+
+        for h in &mut self.right_docks.docks {
+            if h.handle == handle {
+                h.name = name;
+            }
+        }
+
+        if let Some(ref split) = self.left {
+            Self::recrusive_collect_docks(split, docks);
+        }
+
+        if let Some(ref split) = self.right {
+            Self::recrusive_collect_docks(split, docks);
+        }
+
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -614,6 +640,12 @@ impl Workspace {
             let _ = split.delete_by_handle(handle);
             let _ = split.cleanup_delete();
             split.adjust_percentage();
+        }
+    }
+
+    pub fn set_name_to_handle(&mut self, name: &String, handle: DockHandle) {
+        if let Some(ref split) = self.split {
+            split.set_name_to_handle(name, handle)
         }
     }
 }
