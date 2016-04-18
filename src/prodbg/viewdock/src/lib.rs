@@ -316,19 +316,19 @@ impl Split {
 
     pub fn delete_by_handle(&mut self, handle: DockHandle) -> bool {
         for i in (0..self.left_docks.docks.len()).rev() {
-            println!("Matching left {} - {}", self.left_docks.docks[i].handle.0, handle.0);
+            //println!("Matching left {} - {}", self.left_docks.docks[i].handle.0, handle.0);
             if self.left_docks.docks[i].handle.0 == handle.0 {
                 self.ratio = 0.0;
-                println!("deleted left dock!");
+                //println!("deleted left dock!");
                 self.left_docks.docks.swap_remove(i);
             }
         }
 
         for i in (0..self.right_docks.docks.len()).rev() {
-            println!("Matching right {} - {}", self.right_docks.docks[i].handle.0, handle.0);
+            //println!("Matching right {} - {}", self.right_docks.docks[i].handle.0, handle.0);
             if self.right_docks.docks[i].handle.0 == handle.0 {
                 self.ratio = 1.0;
-                println!("deleted right dock!");
+                //println!("deleted right dock!");
                 self.right_docks.docks.swap_remove(i);
             }
         }
@@ -338,7 +338,7 @@ impl Split {
 
         if self.left_docks.docks.len() == 0 && self.left.is_none() &&
             self.right_docks.docks.len() == 0 && self.right.is_none() {
-            println!("We can delete the split also! - {}", self.handle.0);
+            //println!("We can delete the split also! - {}", self.handle.0);
             return true;
         }
 
@@ -374,7 +374,7 @@ impl Split {
     pub fn cleanup_delete(&mut self) -> bool {
         if self.left_docks.docks.len() == 0 && self.left.is_none() &&
             self.right_docks.docks.len() == 0 && self.right.is_none() {
-            println!("cleanup delete {}", self.handle.0);
+            //println!("cleanup delete {}", self.handle.0);
             return true;
         }
 
@@ -598,7 +598,7 @@ impl Workspace {
 
     pub fn delete_by_handle(&mut self, handle: DockHandle) {
         if let Some(ref mut split) = self.split {
-            println!("About to delete {}", handle.0);
+            //println!("About to delete {}", handle.0);
             let _ = split.delete_by_handle(handle);
             // TODO: More accurate cleanup code
             let _ = split.cleanup_delete();
