@@ -227,6 +227,26 @@ impl Window {
             let _ = self.ws.save("/Users/danielcollin/code/temp/test.json");
         }
 
+        if self.win.is_key_pressed(Key::Right, KeyRepeat::No) {
+            let ws = Workspace::load("/Users/danielcollin/code/temp/test.json");
+            let docks = ws.get_docks();
+            self.views.clear();
+
+            for dock in &docks {
+                println!("create stuff... {} - {}", dock.name, dock.handle.0);
+                let ui = Imgui::create_ui_instance();
+                let handle = ViewHandle(dock.handle.0);
+                if dock.name == "" {
+                    view_plugins.create_instance_with_handle(ui, &"Bitmap View".to_owned(), SessionHandle(0), ViewHandle(dock.handle.0));
+                } else {
+                    view_plugins.create_instance_with_handle(ui, &dock.name, SessionHandle(0), ViewHandle(dock.handle.0));
+                }
+                self.views.push(handle);
+            }
+
+            self.ws = ws;
+        }
+
         // if now plugin has showed a menu we do it here
         // TODO: Handle diffrent cases when attach menu on to plugin menu or not
 

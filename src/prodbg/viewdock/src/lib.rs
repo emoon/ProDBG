@@ -480,6 +480,12 @@ impl Split {
         }
 
     }
+
+    pub fn get_docks(&self) -> Vec<Dock> {
+        let mut docks = Vec::<Dock>::new();
+        Self::recrusive_collect_docks(self, &mut docks);
+        docks
+    }
 }
 
 impl Workspace {
@@ -579,6 +585,14 @@ impl Workspace {
         }
     }
 
+    pub fn get_docks(&self) -> Vec<Dock> {
+        if let Some(ref split) = self.split {
+            split.get_docks()
+        } else {
+            Vec::<Dock>::new()
+        }
+    }
+
     pub fn delete_by_handle(&mut self, handle: DockHandle) {
         if let Some(ref mut split) = self.split {
             println!("About to delete {}", handle.0);
@@ -597,7 +611,20 @@ impl Workspace {
     pub fn save(&self, file_name: &str) -> io::Result<()> {
         let data = serde_json::to_string(self).unwrap_or("".to_owned());
         let mut f = try!(File::create(file_name));
-        f.write_all(data.as_bytes())
+        let _ = f.write_all(data.as_bytes());
+        println!("saved file");
+        Ok(())
+    }
+
+    pub fn load(file_name: &str) -> Workspace {
+        println!("tring to open {}", file_name);
+        let mut f = File::open(file_name).unwrap();
+        let mut s = String::new();
+        println!("tring to read {}", file_name);
+        f.read_to_string(&mut s).unwrap();
+        println!("tring to serc");
+        let ws: Workspace = serde_json::from_str(&s).unwrap();
+        ws
     }
 }
 

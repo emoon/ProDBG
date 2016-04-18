@@ -75,7 +75,10 @@ impl PluginHandler for ViewPlugins {
     fn reload_plugin(&mut self) {
         let t = self.reload_state.clone();
         for reload_plugin in &t {
-            Self::create_instance(self, reload_plugin.ui, &reload_plugin.name, reload_plugin.session_handle);
+            Self::create_instance(self,
+                                  reload_plugin.ui,
+                                  &reload_plugin.name,
+                                  reload_plugin.session_handle);
         }
     }
 
@@ -108,17 +111,34 @@ impl ViewPlugins {
         None
     }
 
-    pub fn create_instance_from_index(&mut self, ui: Ui, index: usize, session_handle: SessionHandle) -> Option<ViewHandle> {
+    pub fn create_instance_from_index(&mut self,
+                                      ui: Ui,
+                                      index: usize,
+                                      session_handle: SessionHandle,
+                                      view_handle: Option<ViewHandle>)
+                                      -> Option<ViewHandle> {
         let plugin_data = unsafe {
             let callbacks = self.plugin_types[index].plugin_funcs as *mut CViewCallbacks;
             (*callbacks).create_instance.unwrap()(ui.api as *mut c_void, Self::service_fun)
         };
 
-        let handle = self.handle_counter;
+        let handle = match view_handle {
+            Some(h) => {
+                if h.0 >= self.handle_counter.0 {
+                    self.handle_counter.0 = h.0
+                }
+                h
+            },
+            _ => {
+                let counter = self.handle_counter;
+                self.handle_counter.0 += 1;
+                counter
+            }
+        };
 
         let instance = ViewInstance {
             plugin_data: plugin_data,
-            name: format!("Plugin {}", self.handle_counter.0),
+            name: format!("Plugin {}", handle.0),
             ui: ui,
             handle: handle,
             session_handle: session_handle,
@@ -129,19 +149,39 @@ impl ViewPlugins {
             plugin_type: self.plugin_types[index].clone(),
         };
 
-        self.handle_counter.0 += 1;
         self.instances.push(instance);
 
         Some(handle)
     }
 
-    pub fn create_instance(&mut self, ui: Ui, plugin_type: &String, session_handle: SessionHandle) -> Option<ViewHandle> {
+    pub fn create_instance(&mut self,
+                           ui: Ui,
+                           plugin_type: &String,
+                           session_handle: SessionHandle)
+                           -> Option<ViewHandle> {
         for i in 0..self.plugin_types.len() {
             if self.plugin_types[i].name != *plugin_type {
                 continue;
             }
 
-            return Self::create_instance_from_index(self, ui, i, session_handle);
+            return Self::create_instance_from_index(self, ui, i, session_handle, None);
+        }
+
+        None
+    }
+
+    pub fn create_instance_with_handle(&mut self,
+                                       ui: Ui,
+                                       plugin_type: &String,
+                                       session_handle: SessionHandle,
+                                       view_handle: ViewHandle) -> Option<ViewHandle> {
+
+        for i in 0..self.plugin_types.len() {
+            if self.plugin_types[i].name != *plugin_type {
+                continue;
+            }
+
+            return Self::create_instance_from_index(self, ui, i, session_handle, Some(view_handle));
         }
 
         None
@@ -172,8 +212,5 @@ impl ViewPlugins {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test_search_paths_none() {
-    }
+    fn test_search_paths_none() {}
 }
-
-
