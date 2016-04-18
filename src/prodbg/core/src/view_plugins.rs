@@ -125,7 +125,7 @@ impl ViewPlugins {
         let handle = match view_handle {
             Some(h) => {
                 if h.0 >= self.handle_counter.0 {
-                    self.handle_counter.0 = h.0
+                    self.handle_counter.0 = h.0 + 1
                 }
                 h
             },

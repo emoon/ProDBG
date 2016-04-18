@@ -390,15 +390,18 @@ impl Split {
     }
 
     pub fn adjust_percentage(&mut self) {
-        if self.left_docks.docks.len() == 0 && self.left.is_none() {
+        let l_count = self.left_docks.docks.len();
+        let left = self.left.is_none();
+        let r_count = self.right_docks.docks.len();
+        let right = self.right.is_none();
+
+        if l_count == 0 && left {
             self.ratio = 0.0;
-            println!("adjust left ratio");
-        } else if self.right_docks.docks.len() == 0 && self.right.is_none() {
+        } else if r_count == 0 && right {
             self.ratio = 1.0;
-            println!("adjust right ratio");
         }
 
-        if let Some(ref mut split) = self.right {
+        if let Some(ref mut split) = self.left {
             Self::adjust_percentage(split);
         }
 
@@ -597,6 +600,9 @@ impl Workspace {
         if let Some(ref mut split) = self.split {
             println!("About to delete {}", handle.0);
             let _ = split.delete_by_handle(handle);
+            // TODO: More accurate cleanup code
+            let _ = split.cleanup_delete();
+            let _ = split.cleanup_delete();
             let _ = split.cleanup_delete();
             split.adjust_percentage();
         }
