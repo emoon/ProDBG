@@ -2,6 +2,9 @@ extern crate serde;
 extern crate serde_json;
 mod error;
 pub use self::error::Error;
+use std::io::prelude::*;
+use std::fs::File;
+use std::io;
 
 include!(concat!(env!("OUT_DIR"), "/data.rs"));
 
@@ -589,6 +592,12 @@ impl Workspace {
         if let Some(ref mut split) = self.split {
             split.set_name_to_handle(name, handle)
         }
+    }
+
+    pub fn save(&self, file_name: &str) -> io::Result<()> {
+        let data = serde_json::to_string(self).unwrap_or("".to_owned());
+        let mut f = try!(File::create(file_name));
+        f.write_all(data.as_bytes())
     }
 }
 

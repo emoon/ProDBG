@@ -223,6 +223,10 @@ impl Window {
             self.ws.dump_tree();
         }
 
+        if self.win.is_key_pressed(Key::Up, KeyRepeat::No) {
+            let _ = self.ws.save("/Users/danielcollin/code/temp/test.json");
+        }
+
         // if now plugin has showed a menu we do it here
         // TODO: Handle diffrent cases when attach menu on to plugin menu or not
 
@@ -239,7 +243,9 @@ impl Window {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
             if let Some(dock_handle) = self.ws.is_hovering_dock(pos) {
-                self.ws.split_by_dock_handle(direction, dock_handle, DockHandle(handle.0));
+                let new_handle = DockHandle(handle.0);
+                self.ws.split_by_dock_handle(direction, dock_handle, new_handle);
+                self.ws.set_name_to_handle(name, new_handle);
             } else {
                 self.ws.split_top(DockHandle(handle.0), direction);
             }
