@@ -10,7 +10,7 @@ local native = require('tundra.native')
 local function get_rs_src(dir)
 	return Glob {
 		Dir = dir,
-		Extensions = { ".rs" },
+		Extensions = { ".rs", ".in" },
 		Recursive = true,
 	}
 end
