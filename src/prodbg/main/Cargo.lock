@@ -331,6 +331,7 @@ name = "viewdock"
 version = "0.1.0"
 dependencies = [
  "minifb 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xml-rs 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -368,5 +369,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "dylib 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "xml-rs"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "bitflags 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

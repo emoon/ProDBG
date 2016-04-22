@@ -224,12 +224,11 @@ impl Window {
         }
 
         if self.win.is_key_pressed(Key::Up, KeyRepeat::No) {
-            //let _ = self.ws.save("/Users/danielcollin/code/temp/test.json");
+            let _ = self.ws.save("/Users/danielcollin/code/temp/test.xml");
         }
 
         if self.win.is_key_pressed(Key::Right, KeyRepeat::No) {
-            //let ws = Workspace::load("/Users/danielcollin/code/temp/test.json");
-            /*
+            let ws = Workspace::load("/Users/danielcollin/code/temp/test.xml").unwrap();
             let docks = ws.get_docks();
             self.views.clear();
 
@@ -244,9 +243,8 @@ impl Window {
                 }
                 self.views.push(handle);
             }
-            */
 
-            //self.ws = ws;
+            self.ws = ws;
         }
 
         // if now plugin has showed a menu we do it here

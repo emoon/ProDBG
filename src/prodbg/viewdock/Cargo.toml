@@ -5,3 +5,4 @@ authors = ["Daniel Collin <daniel@collin.com>"]
 
 [dependencies]
 minifb = "0.5.0"
+xml-rs = "0.3"
