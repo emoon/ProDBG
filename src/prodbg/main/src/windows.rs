@@ -224,11 +224,12 @@ impl Window {
         }
 
         if self.win.is_key_pressed(Key::Up, KeyRepeat::No) {
-            let _ = self.ws.save("/Users/danielcollin/code/temp/test.json");
+            //let _ = self.ws.save("/Users/danielcollin/code/temp/test.json");
         }
 
         if self.win.is_key_pressed(Key::Right, KeyRepeat::No) {
-            let ws = Workspace::load("/Users/danielcollin/code/temp/test.json");
+            //let ws = Workspace::load("/Users/danielcollin/code/temp/test.json");
+            /*
             let docks = ws.get_docks();
             self.views.clear();
 
@@ -243,8 +244,9 @@ impl Window {
                 }
                 self.views.push(handle);
             }
+            */
 
-            self.ws = ws;
+            //self.ws = ws;
         }
 
         // if now plugin has showed a menu we do it here
@@ -262,12 +264,14 @@ impl Window {
     fn split_view(&mut self, name: &String, view_plugins: &mut ViewPlugins, pos: (f32, f32), direction: Direction) {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
-            if let Some(dock_handle) = self.ws.is_hovering_dock(pos) {
+            if let Some(dock_handle) = self.ws.get_hover_dock(pos) {
                 let new_handle = DockHandle(handle.0);
                 self.ws.split_by_dock_handle(direction, dock_handle, new_handle);
                 self.ws.set_name_to_handle(name, new_handle);
+                //self.ws.dump_tree_linear();
             } else {
-                self.ws.split_top(DockHandle(handle.0), direction);
+                self.ws.new_split(DockHandle(handle.0), direction);
+                //println!("no split");
             }
 
             self.views.push(handle);
