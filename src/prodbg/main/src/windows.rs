@@ -7,13 +7,34 @@ use libc::{c_void, c_int};
 use minifb::{Scale, WindowOptions, MouseMode, MouseButton, Key, KeyRepeat};
 use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::session::{Sessions, Session, SessionHandle};
-use self::viewdock::{Workspace, Rect, Direction, DockHandle};
+use self::viewdock::{Workspace, Rect, Direction, DockHandle, SplitHandle};
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::{PDVec2};
 use prodbg_api::view::CViewCallbacks;
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 800;
+
+enum State {
+    Default,
+    DraggingSlider,
+}
+
+pub struct MouseState {
+    handle: Option<SplitHandle>,
+    state: State,
+    prev_mouse: (f32, f32)
+}
+
+impl MouseState {
+    pub fn new() -> MouseState {
+        MouseState {
+            handle: None,
+            state: State::Default,
+            prev_mouse: (0.0, 0.0),
+        }
+    }
+}
 
 pub struct Window {
     /// minifb window
@@ -24,6 +45,8 @@ pub struct Window {
 
     ///
     pub ws: Workspace,
+
+    pub mouse_state: MouseState,
 }
 
 struct WindowState {
@@ -80,6 +103,7 @@ impl Windows {
                 Ok(Window {
                     win: win,
                     views: Vec::new(),
+                    mouse_state: MouseState::new(),
                     ws: Workspace::new(Rect::new(0.0, 0.0, width as f32, (height - 20) as f32)).unwrap(),
                 })
             }
@@ -191,6 +215,44 @@ impl Window {
         }
     }
 
+    fn update_mouse_state(&mut self, mouse_pos: (f32, f32)) {
+        match self.mouse_state.state {
+            State::Default => {
+                if let Some(h) = self.ws.is_hovering_sizer(mouse_pos) {
+                    if self.win.get_mouse_down(MouseButton::Left) {
+                        self.mouse_state.handle = Some(h);
+                        self.mouse_state.state = State::DraggingSlider;
+                    }
+                }
+            },
+
+            State::DraggingSlider => {
+                let pm = self.mouse_state.prev_mouse;
+                let delta = (pm.0 - mouse_pos.0, pm.1 - mouse_pos.1);
+
+                if self.win.get_mouse_down(MouseButton::Left) {
+                    self.ws.drag_sizer(self.mouse_state.handle.unwrap(), delta);
+                } else {
+                    self.mouse_state.handle = None;
+                    self.mouse_state.state = State::Default;
+                }
+            }
+        }
+
+        /*
+        if let Some(handle) = ws.is_hovering_sizer(mouse_pos) {
+            let delta = (prev_mouse.0 - mouse_pos.0, prev_mouse.1 - mouse_pos.1);
+
+            if window.get_mouse_down(MouseButton::Left) {
+                println!("drangging sizer");
+                ws.drag_sizer(handle, delta);
+            }
+        }
+        */
+
+        self.mouse_state.prev_mouse = mouse_pos;
+    }
+
     pub fn update(&mut self, sessions: &mut Sessions, view_plugins: &mut ViewPlugins) {
         let mut views_to_delete = Vec::new();
         let mut has_shown_menu = 0u32;
@@ -199,6 +261,8 @@ impl Window {
         self.ws.update();
 
         let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
+
+        self.update_mouse_state(mouse);
 
         Bgfx::set_mouse_pos(mouse);
         Bgfx::set_mouse_state(0, self.win.get_mouse_down(MouseButton::Left));
