@@ -233,7 +233,7 @@ impl Window {
             self.views.clear();
 
             for dock in &docks {
-                println!("create stuff... {} - {}", dock.name, dock.handle.0);
+                //println!("create stuff... {} - {}", dock.name, dock.handle.0);
                 let ui = Imgui::create_ui_instance();
                 let handle = ViewHandle(dock.handle.0);
                 if dock.name == "" {

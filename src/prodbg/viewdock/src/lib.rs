@@ -224,7 +224,7 @@ impl Container {
     pub fn load<E: Read>(parser: &mut EventReader<E>, side_name: &str) -> Container {
         let mut container = Container::new();
 
-        println!("Loding docks...");
+        //println!("Loding docks...");
 
         loop {
             match parser.next() {
@@ -240,7 +240,7 @@ impl Container {
                             }
                         }
 
-                        println!("found dock!");
+                        //println!("found dock!");
 
                         container.docks.push(dock);
                     }
@@ -458,12 +458,12 @@ impl Split {
     pub fn load<E: Read>(reader: &mut EventReader<E>) -> Split {
         let mut split = Split::new(Direction::Full, 0.5, SplitHandle(0));
 
-        println!("loading split...");
+        //println!("loading split...");
 
         loop {
             match reader.next() {
                 Ok(XmlReaderEvent::StartElement { name, attributes, .. }) => {
-                    println!("Name {}", name);
+                    //println!("Name {}", name);
                     match name.local_name.as_ref() {
                         "left_docks" => split.left_docks = Container::load(reader, "left_docks"),
                         "right_docks" => split.right_docks = Container::load(reader, "right_docks"),
@@ -830,7 +830,7 @@ impl Workspace {
                         "rect" => self.rect = Rect::load(&attributes),
                         "split" => {
                             let split = Split::load(&mut parser);
-                            split.dump_info(0);
+                            //split.dump_info(0);
                             self.splits.push(split);
                         }
                         _ => (),
@@ -858,8 +858,8 @@ impl Workspace {
         ws.splits.clear();
 
         if Self::internal_load(&mut ws, filename).is_ok() {
-            println!("split count {}", ws.splits.len());
-            ws.dump_tree();
+            //println!("split count {}", ws.splits.len());
+            //ws.dump_tree();
             Some(ws)
         } else {
             None
