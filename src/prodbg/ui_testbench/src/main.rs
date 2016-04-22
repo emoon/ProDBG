@@ -12,14 +12,14 @@ use prodbg_api::view::CViewCallbacks;
 //use prodbg_api::ui::Ui;
 use prodbg_api::ui_ffi::{PDVec2};
 use core::view_plugins::{ViewPlugins};
-use core::session::SessionHandle;
+use core::session::{Sessions, SessionHandle};
 use std::rc::Rc;
 use std::cell::RefCell;
 use imgui_sys::Imgui;
 
 // use core::plugin_handler::*;
 use core::plugins::*;
-use std::ptr;
+//use std::ptr;
 use bgfx_rs::Bgfx;
 
 const WIDTH: usize = 1024;
@@ -51,18 +51,20 @@ fn main() {
                                  })
                          .expect("Unable to create window");
 
+    let mut sessions = Sessions::new();
     let mut lib_handler = DynamicReload::new(None, Some("t2-output"), Search::Backwards);
     let mut plugins = Plugins::new();
 
     // Would be nice to nat have it this way
     let view_plugins = Rc::new(RefCell::new(ViewPlugins::new()));
+    sessions.create_instance();
 
     plugins.add_handler(&view_plugins);
-    plugins.add_plugin(&mut lib_handler, "registers_plugin");
+    plugins.add_plugin(&mut lib_handler, "sourcecode_plugin");
 
     let ui = Imgui::create_ui_instance();
 
-    view_plugins.borrow_mut().create_instance(ui, &"Registers View".to_owned(), SessionHandle(0));
+    view_plugins.borrow_mut().create_instance(ui, &"Source Code View".to_owned(), SessionHandle(0));
 
     Bgfx::create_window(window.get_window_handle() as *mut c_void,
                            WIDTH as i32,
@@ -101,10 +103,11 @@ fn main() {
 
             unsafe {
                 let plugin_funcs = instance.plugin_type.plugin_funcs as *mut CViewCallbacks;
+                let session = sessions.get_session(SessionHandle(0)).unwrap();
                 ((*plugin_funcs).update.unwrap())(instance.plugin_data,
                                                     ui.api as *mut c_void,
-                                                    ptr::null_mut(),
-                                                    ptr::null_mut());
+                                                    session.reader.api as *mut c_void,
+                                                    session.get_current_writer().api as *mut c_void);
             }
 
             has_shown_menu |= Imgui::has_showed_popup(ui.api);
@@ -121,6 +124,7 @@ fn main() {
         }
 
         bgfx.post_update();
+        sessions.update();
 
         window.update();
     }
