@@ -39,6 +39,14 @@ impl Bgfx {
         unsafe { bgfx_test_menu(show as c_int); }
     }
 
+    pub fn cursor_init() {
+        unsafe { cursor_init() };
+    }
+
+    pub fn cursor_set_type(t: i32) {
+        unsafe { cursor_set_type(t) };
+    }
+
     /*
 
     pub fn create_ui_funcs() -> *mut CPdUI {
@@ -81,6 +89,9 @@ extern "C" {
     fn bgfx_create();
     fn bgfx_create_window(window: *const c_void, width: c_int, height: c_int);
     fn bgfx_destroy();
+
+    fn cursor_init();
+    fn cursor_set_type(t: i32);
 
     fn prodbg_set_mouse_pos(x: f32, y: f32);
     fn prodbg_set_mouse_state(mouse: c_int, state: c_int);

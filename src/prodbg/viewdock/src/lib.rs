@@ -731,10 +731,10 @@ impl Workspace {
         }
     }
 
-    pub fn is_hovering_sizer(&self, pos: (f32, f32)) -> Option<SplitHandle> {
+    pub fn is_hovering_sizer(&self, pos: (f32, f32)) -> Option<(SplitHandle, Direction)> {
         for split in &self.splits {
             if split.is_hovering_rect(pos, 8.0, split.left_docks.rect) {
-                return Some(split.handle);
+                return Some((split.handle, split.direction));
             }
         }
 

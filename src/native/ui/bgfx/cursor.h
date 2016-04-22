@@ -8,5 +8,5 @@ enum CursorType {
     CursorType_Count,
 };
 
-void Cursor_init();
-void Cunsor_setType(enum CursorType type);
+void cursor_init();
+void cunsor_set_type(enum CursorType type);

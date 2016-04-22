@@ -14,6 +14,7 @@
 #include "imgui_setup.h"
 #include <imgui.h>
 #include <assert.h>
+#include "cursor.h"
 
 //#include <session/session.h>
 //#include <foundation/apple.h>
@@ -449,7 +450,7 @@ void BgfxPluginUI::postUpdate() {
 
 void BgfxPluginUI::create(void* windowHandle, int width, int height) {
     //docksys_set_callbacks(&s_dockSysCallbacks);
-
+	cursor_init();
 #ifdef PRODBG_WIN
     bgfx::winSetHwnd((HWND)windowHandle);
 #elif PRODBG_MAC

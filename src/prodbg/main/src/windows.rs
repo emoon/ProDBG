@@ -21,7 +21,7 @@ enum State {
 }
 
 pub struct MouseState {
-    handle: Option<SplitHandle>,
+    handle: Option<(SplitHandle, Direction)>,
     state: State,
     prev_mouse: (f32, f32)
 }
@@ -214,15 +214,28 @@ impl Window {
             //self.ws.dump_tree();
         }
     }
+    /*
+    CursorType_Default,
+    CursorType_SizeHorizontal,
+    CursorType_SizeVertical,
+    */
 
     fn update_mouse_state(&mut self, mouse_pos: (f32, f32)) {
         match self.mouse_state.state {
             State::Default => {
                 if let Some(h) = self.ws.is_hovering_sizer(mouse_pos) {
+                    if h.1 == Direction::Vertical {
+                        Bgfx::cursor_set_type(2);
+                    } else {
+                        Bgfx::cursor_set_type(1);
+                    }
+
                     if self.win.get_mouse_down(MouseButton::Left) {
                         self.mouse_state.handle = Some(h);
                         self.mouse_state.state = State::DraggingSlider;
                     }
+                } else {
+                    Bgfx::cursor_set_type(0);
                 }
             },
 
@@ -231,10 +244,17 @@ impl Window {
                 let delta = (pm.0 - mouse_pos.0, pm.1 - mouse_pos.1);
 
                 if self.win.get_mouse_down(MouseButton::Left) {
-                    self.ws.drag_sizer(self.mouse_state.handle.unwrap(), delta);
+                    let t = self.mouse_state.handle.unwrap();
+                    if t.1 == Direction::Vertical {
+                        Bgfx::cursor_set_type(2);
+                    } else {
+                        Bgfx::cursor_set_type(1);
+                    }
+                    self.ws.drag_sizer(t.0, delta);
                 } else {
                     self.mouse_state.handle = None;
                     self.mouse_state.state = State::Default;
+                    Bgfx::cursor_set_type(0);
                 }
             }
         }
