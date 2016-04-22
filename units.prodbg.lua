@@ -32,7 +32,6 @@ RustCrate {
 	CargoConfig = "src/prodbg/viewdock/Cargo.toml",
 	Sources = {
 		get_rs_src("src/prodbg/viewdock"),
-		"src/prodbg/build.rs",
 	},
 }
 
