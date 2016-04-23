@@ -8,5 +8,5 @@ enum CursorType {
     CursorType_Count,
 };
 
-void cursor_init();
-void cunsor_set_type(enum CursorType type);
+extern "C" void cursor_init();
+extern "C" void cunsor_set_type(enum CursorType type);
