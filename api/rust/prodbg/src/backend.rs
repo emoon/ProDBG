@@ -19,7 +19,7 @@ pub struct CBackendCallbacks {
     pub destroy_instance: Option<fn(*mut c_void)>,
     pub register_menu: Option<fn() -> *mut c_void>,
     pub update: Option<fn(ptr: *mut c_void,
-                          a: *mut c_int,
+                          a: c_int,
                           ra: *mut c_void,
                           wa: *mut c_void)>,
 }
@@ -62,7 +62,7 @@ pub fn update_backend_instance<T: Backend>(ptr: *mut c_void,
 macro_rules! define_backend_plugin {
     ($p_name:ident, $name:expr, $x:ty) => {
         static $p_name: CBackendCallbacks = CBackendCallbacks {
-            name: $name as *const u8, 
+            name: $name as *const u8,
             create_instance: Some(prodbg::backend::create_backend_instance::<$x>),
             destroy_instance: Some(prodbg::backend::destroy_backend_instance::<$x>),
             register_menu: None,

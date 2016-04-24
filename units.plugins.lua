@@ -20,15 +20,15 @@ end
 
 SharedLibrary {
     Name = "lldb_plugin",
-    
+
     Env = {
-        CPPPATH = { 
+        CPPPATH = {
         	"api/include",
             "src/plugins/lldb",
         },
 
-        CXXOPTS = { { 
-            "-std=c++11", 
+        CXXOPTS = { {
+            "-std=c++11",
             "-Wno-padded",
             "-Wno-documentation",
             "-Wno-unused-parameter",
@@ -40,7 +40,7 @@ SharedLibrary {
             "-Wno-missing-field-initializers"; Config = { "macosx-clang-*", "linux-*"} },
         },
 
-        SHLIBOPTS = { 
+        SHLIBOPTS = {
             { "-Fsrc/plugins/lldb/Frameworks", "-rpath src/plugins/lldb/Frameworks", "-lstdc++"; Config = "macosx-clang-*" },
             { "-Fsrc/plugins/lldb/Frameworks", "-rpath src/plugins/lldb/Frameworks", "-lstdc++", "-coverage"; Config = "macosx_test-clang-*" },
         },
@@ -48,7 +48,7 @@ SharedLibrary {
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
     },
 
-    Sources = { 
+    Sources = {
         Glob {
             Dir = "src/plugins/lldb",
             Extensions = { ".c", ".cpp", ".m" },
@@ -88,11 +88,11 @@ SharedLibrary {
 
 SharedLibrary {
     Name = "sourcecode_plugin",
-    
+
     Env = {
-        CPPPATH = { 
-        	"api/include", 
-        	"src/native/external", 
+        CPPPATH = {
+        	"api/include",
+        	"src/native/external",
         },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
     },
@@ -106,7 +106,7 @@ SharedLibrary {
 
 SharedLibrary {
     Name = "callstack_plugin",
-    
+
     Env = {
         CPPPATH = { "api/include", },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
@@ -121,7 +121,7 @@ SharedLibrary {
 
 SharedLibrary {
     Name = "disassembly_plugin",
-    
+
     Env = {
         CPPPATH = { "api/include", },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
@@ -136,7 +136,7 @@ SharedLibrary {
 
 SharedLibrary {
     Name = "registers_plugin",
-    
+
     Env = {
         CPPPATH = { "api/include", },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
@@ -151,7 +151,7 @@ SharedLibrary {
 
 SharedLibrary {
     Name = "locals_plugin",
-    
+
     Env = {
         CPPPATH = { "api/include", },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
@@ -166,7 +166,7 @@ SharedLibrary {
 
 SharedLibrary {
     Name = "threads_plugin",
-    
+
     Env = {
         CPPPATH = { "api/include", },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
@@ -182,7 +182,7 @@ SharedLibrary {
 
 SharedLibrary {
     Name = "breakpoints_plugin",
-    
+
     Env = {
         CPPPATH = { "api/include", },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
@@ -197,7 +197,7 @@ SharedLibrary {
 
 SharedLibrary {
     Name = "hex_memory_plugin",
-    
+
     Env = {
         CPPPATH = { "api/include", },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
@@ -212,7 +212,7 @@ SharedLibrary {
 
 SharedLibrary {
     Name = "console_plugin",
-    
+
     Env = {
         CPPPATH = { "api/include", },
         CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
@@ -227,11 +227,11 @@ SharedLibrary {
 
 SharedLibrary {
     Name = "workspace_plugin",
-    
+
     Env = {
-        CPPPATH = { 
+        CPPPATH = {
 			"src/native/external/foundation_lib",
-        	"api/include", 
+        	"api/include",
         },
         CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
     },
@@ -242,7 +242,7 @@ SharedLibrary {
 
     Frameworks = { "Cocoa"  },
 
-    Libs = { 
+    Libs = {
       { "Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "Shell32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } },
 	  -- { "third-party/lib/wx/wx_osx_cocoau_core-3.1", "third-party/lib/wx/wwx_baseu-3.1" ; Config = { "macosx-*-*", "macosx_test-*-*" } },
     },
@@ -255,35 +255,35 @@ SharedLibrary {
 
 SharedLibrary {
     Name = "c64_vice_plugin",
-    
+
     Env = {
-        CPPPATH = { 
+        CPPPATH = {
 			"src/native/external/jansson/include",
 			"src/native/external/libuv/include",
-			"api/include", 
+			"api/include",
 		},
-		
+
 		CCOPTS = {
 			{ "-std=c99"; Config = "linux-*"; },
 		},
 
         COPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-		
+
 		CPPDEFS = {
 			{ "_XOPEN_SOURCE=600"; Config = "linux-*" },
 		},
     },
 
-    Sources = { 
+    Sources = {
 		Glob {
 			Dir = "src/addons/c64_vice_debugger",
 			Extensions = { ".c", ".h" },
 		},
 	},
 
-    Libs = { 
-      { 
-    	"Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } 
+    Libs = {
+      {
+    	"Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" }
       },
     },
 
@@ -296,36 +296,36 @@ SharedLibrary {
 
 SharedLibrary {
     Name = "amiga_uae_plugin",
-    
+
     Env = {
-        CPPPATH = { 
-			"api/include", 
-			"api/src/remote", 
+        CPPPATH = {
+			"api/include",
+			"api/src/remote",
 		},
 		CCOPTS = {
-			{ 
+			{
 				"-Wno-unused-macros",
 				"-Wno-sign-conversion" ; Config = { "macosx-*-*", "linux-*" } },
 			{ "-std=c99"; Config = "linux-*"; },
 		},
 
         COPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-		
+
 		CPPDEFS = {
 			{ "_XOPEN_SOURCE=600"; Config = "linux-*" },
 		},
     },
 
-    Sources = { 
+    Sources = {
 		Glob {
 			Dir = "src/addons/amiga_uae_debugger",
 			Extensions = { ".c", ".h" },
 		},
 	},
 
-    Libs = { 
-      { 
-    	"Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } 
+    Libs = {
+      {
+    	"Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" }
       },
     },
 
@@ -339,7 +339,7 @@ SharedLibrary {
 RustSharedLibrary {
 	Name = "bitmap_memory",
 	CargoConfig = "src/plugins/bitmap_memory/Cargo.toml",
-	Sources = { 
+	Sources = {
 		get_rs_src("src/plugins/bitmap_memory"),
 		get_rs_src("api/rust/prodbg"),
 	}
@@ -351,8 +351,8 @@ RustSharedLibrary {
 SharedLibrary {
     Name = "i3_docking",
 
-    Env = { 
-        CPPPATH = { 
+    Env = {
+        CPPPATH = {
 			"src/native/external/jansson/include",
             "src/plugins/i3_docking/include",
         	"api/include",
@@ -364,7 +364,7 @@ SharedLibrary {
         },
     },
 
-    Sources = { 
+    Sources = {
 		Glob {
 			Dir = "src/plugins/i3_docking",
 			Extensions = { ".c", ".h" },
@@ -379,11 +379,11 @@ SharedLibrary {
 
 SharedLibrary {
     Name = "dummy_backend_plugin",
-    
+
     Env = {
-        CPPPATH = { 
-        	"api/include", 
-        	"src/native/external", 
+        CPPPATH = {
+        	"api/include",
+        	"src/native/external",
         },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
     },
@@ -417,5 +417,6 @@ Default "console_plugin"
 Default "c64_vice_plugin"
 Default "amiga_uae_plugin"
 Default "bitmap_memory"
+Default "dummy_backend_plugin"
 --Default "i3_docking"
 

@@ -124,7 +124,6 @@ fn main() {
         }
 
         bgfx.post_update();
-        sessions.update();
 
         window.update();
     }

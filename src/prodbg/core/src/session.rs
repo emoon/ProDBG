@@ -1,6 +1,9 @@
 use prodbg_api::read_write::{Reader, Writer};
+use prodbg_api::backend::{CBackendCallbacks};
 use plugins::PluginHandler;
 use reader_wrapper::{ReaderWrapper, WriterWrapper};
+use backend_plugin::{BackendHandle, BackendPlugins};
+use libc::{c_void};
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct SessionHandle(pub u64);
@@ -24,6 +27,8 @@ pub struct Session {
 
     current_writer: usize,
     writers: [Writer; 2],
+
+    backend: Option<BackendHandle>,
 }
 
 ///! Connection options for Remote connections. Currently just one Ip adderss
@@ -36,14 +41,13 @@ impl Session {
     pub fn new(handle: SessionHandle) -> Session {
         Session {
             handle: handle,
-            //views: Vec::new(),
             writers: [
                 WriterWrapper::create_writer(),
                 WriterWrapper::create_writer(),
             ],
             reader: ReaderWrapper::create_reader(),
             current_writer: 0,
-            //backend: None,
+            backend: None,
         }
     }
 
@@ -55,13 +59,11 @@ impl Session {
 
     pub fn start_local(_: &str, _: usize) {}
 
-    /*
     pub fn set_backend(&mut self, backend: Option<BackendHandle>) {
         self.backend = backend
     }
-    */
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, backend_plugins: &mut BackendPlugins) {
         // swap the writers
         let p_writer = (self.current_writer + 1) & 1;
         //let c_writer = self.current_writer;
@@ -69,17 +71,19 @@ impl Session {
 
         ReaderWrapper::init_from_writer(&mut self.reader, &self.writers[p_writer]);
 
-        //let mut writer = &mut self.writers[c_writer];
-
-        // TODO: Update backend here
-
-        /*
-        for view in &self.views {
-            if let Some(ref mut v) = view_plugins.get_view(*view) {
-                Self::update_view_instance(&self.reader, writer, v);
+        if let Some(backend) = backend_plugins.get_backend(self.backend) {
+            unsafe {
+                let plugin_funcs = backend.plugin_type.plugin_funcs as *mut CBackendCallbacks;
+                ((*plugin_funcs).update.unwrap())(backend.plugin_data,
+                                                  0,
+                                                  self.reader.api as *mut c_void,
+                                                  self.writers[p_writer].api as *mut c_void);
             }
         }
-        */
+
+        //let mut writer = &mut self.writers[c_writer];
+
+
     }
 }
 
@@ -102,15 +106,17 @@ impl Sessions {
         }
     }
 
-    pub fn create_instance(&mut self) {
+    pub fn create_instance(&mut self) -> SessionHandle {
         let s = Session::new(self.session_counter);
+        let handle = s.handle;
         self.instances.push(s);
         self.session_counter.0 += 1;
+        handle
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, backend_plugins: &mut BackendPlugins) {
         for session in self.instances.iter_mut() {
-            session.update();
+            session.update(backend_plugins);
         }
     }
 
