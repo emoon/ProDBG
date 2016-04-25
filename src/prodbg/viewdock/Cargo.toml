@@ -4,5 +4,5 @@ version = "0.1.0"
 authors = ["Daniel Collin <daniel@collin.com>"]
 
 [dependencies]
-minifb = "0.5.0"
+minifb = "0.5.1"
 xml-rs = "0.3"
