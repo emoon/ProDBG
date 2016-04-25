@@ -460,9 +460,7 @@ void BgfxPluginUI::create(void* windowHandle, int width, int height) {
 #elif PRODBG_MAC
     bgfx::osxSetNSWindow(windowHandle);
 #elif PRODBG_UNIX
-    Display *m_display;
-    m_display = XOpenDisplay(0);
-    bgfx::x11SetDisplayWindow(m_display, (uint32_t)(uintptr_t)windowHandle);
+    bgfx::x11SetDisplayWindow(XOpenDisplay(0), (uint32_t)(uintptr_t)windowHandle);
 #endif
     bgfx::init();
     bgfx::reset((uint32_t)width, (uint32_t)height);
