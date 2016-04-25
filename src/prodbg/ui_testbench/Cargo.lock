@@ -7,7 +7,7 @@ dependencies = [
  "imgui_sys 0.1.0",
  "lazy_static 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "minifb 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "minifb 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "prodbg_api 0.1.0",
 ]
 
@@ -187,7 +187,7 @@ dependencies = [
 
 [[package]]
 name = "minifb"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gcc 0.3.21 (registry+https://github.com/rust-lang/crates.io-index)",

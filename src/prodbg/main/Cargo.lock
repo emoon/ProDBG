@@ -8,7 +8,7 @@ dependencies = [
  "lazy_static 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "libloading 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "minifb 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "minifb 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "prodbg_api 0.1.0",
  "viewdock 0.1.0",
 ]
@@ -194,7 +194,7 @@ dependencies = [
 
 [[package]]
 name = "minifb"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gcc 0.3.21 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -330,7 +330,7 @@ dependencies = [
 name = "viewdock"
 version = "0.1.0"
 dependencies = [
- "minifb 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "minifb 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "xml-rs 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

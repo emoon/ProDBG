@@ -9,7 +9,7 @@ build = "../build.rs"
 libc = "0.2.0"
 libloading = "0.2.0"
 lazy_static = "0.1.*"
-minifb = "0.5.*"
+minifb = "0.5.1"
 viewdock = { path = "../viewdock" }
 bgfx_rs = { path = "../bgfx" }
 core = { path = "../core" }

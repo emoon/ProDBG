@@ -7,7 +7,7 @@ build = "../build.rs"
 
 [dependencies]
 libc = "0.2.0"
-minifb = "0.5.*"
+minifb = "0.5.1"
 lazy_static = "0.1.*"
 core = { path = "../core" }
 bgfx_rs = { path = "../bgfx" }
