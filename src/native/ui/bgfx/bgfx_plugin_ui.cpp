@@ -31,6 +31,10 @@
 #include <Windows.h>
 #endif
 
+#ifdef PRODBG_UNIX
+#include <X11/Xlib.h>
+#endif
+
 #include <bgfxplatform.h>
 
 struct ImGuiWindow;
@@ -455,6 +459,8 @@ void BgfxPluginUI::create(void* windowHandle, int width, int height) {
     bgfx::winSetHwnd((HWND)windowHandle);
 #elif PRODBG_MAC
     bgfx::osxSetNSWindow(windowHandle);
+#elif PRODBG_UNIX
+    bgfx::x11SetDisplayWindow(XOpenDisplay(0), (uint32_t)(uintptr_t)windowHandle);
 #endif
     bgfx::init();
     bgfx::reset((uint32_t)width, (uint32_t)height);
