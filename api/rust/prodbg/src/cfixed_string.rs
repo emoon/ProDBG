@@ -79,7 +79,7 @@ mod tests {
 
     #[test]
     fn test_511() {
-        // this string (with 511) buffer should just fit
+        // this string (width 511) buffer should just fit
         let test_511_string = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeuuuuuuuuuuuuu\
                                 uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu\
                                 uuuueeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeaaaaaaaaaaaa\
@@ -95,7 +95,7 @@ mod tests {
 
     #[test]
     fn test_512() {
-        // this string (with 512) buffer should no fit
+        // this string (width 512) buffer should not fit
         let test_512_string = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeuuuuuuuuuuuuu\
                                 uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu\
                                 uuuueeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeaaaaaaaaaaaa\
@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_513() {
-        // this string (with 513) buffer should no fit
+        // this string (width 513) buffer should not fit
         let test_513_string = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeuuuuuuuuuuuuu\
                                 uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu\
                                 uuuueeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeaaaaaaaaaaaa\
@@ -119,7 +119,7 @@ mod tests {
                                 oooooooooooooooooooooooooooooooooeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\
                                 eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeuuuuuuuuuuuuuuuuuuuuuuuuuu\
                                 uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuoooooooooooooooooooooooooooooo\
-                                oooooooooooooooooooooooooooooooooooooooabcd";
+                                ooooooooooooooooooooooooooooooooooooooooabcd";
         let mut t = CFixedString::from_str(test_513_string);
         assert_eq!(t.heap_string.is_some(), true);
         assert_eq!(get_string(&mut t), test_513_string);
