@@ -81,6 +81,8 @@ impl Session {
                                                   self.writers[p_writer].api as *mut c_void);
             }
         }
+
+        ReaderWrapper::init_from_writer(&mut self.reader, &self.writers[p_writer]);
     }
 }
 
