@@ -7,6 +7,7 @@ use libc::{c_void, c_int};
 use minifb::{Scale, WindowOptions, MouseMode, MouseButton, Key, KeyRepeat};
 use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::session::{Sessions, Session, SessionHandle};
+use core::reader_wrapper::ReaderWrapper;
 use self::viewdock::{Workspace, Rect, Direction, DockHandle, SplitHandle};
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::{PDVec2};
@@ -185,6 +186,9 @@ impl Window {
         } else {
             Imgui::mark_show_popup(ui.api, false);
         }
+
+        // Make sure we move the cursor to the start of the stream here
+        ReaderWrapper::reset_reader(&mut session.reader);
 
         unsafe {
             let plugin_funcs = instance.plugin_type.plugin_funcs as *mut CViewCallbacks;
