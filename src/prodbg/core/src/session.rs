@@ -69,8 +69,6 @@ impl Session {
         let p_writer = (self.current_writer + 1) & 1;
         self.current_writer = p_writer;
 
-        println!("{}", self.current_writer);
-
         ReaderWrapper::init_from_writer(&mut self.reader, &self.writers[p_writer]);
         ReaderWrapper::reset_writer(&mut self.writers[c_writer]);
 
