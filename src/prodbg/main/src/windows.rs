@@ -118,8 +118,10 @@ impl<'a> Windows<'a> {
     pub fn create_window_with_menus() -> minifb::Result<Window<'a>> {
         let mut window = try!(Self::create_window(WIDTH, HEIGHT));
 
-        try!(window.win.add_menu("File", &window.menu.file_menu));
-        try!(window.win.add_menu("Debug", &window.menu.debug_menu));
+        // we ignore the results because we likely brake this on Linux otherwise
+        // TODO: Figure out how to deal with this on Linux
+        let _ = window.win.add_menu("File", &window.menu.file_menu);
+        let _ = window.win.add_menu("Debug", &window.menu.debug_menu);
 
         Ok(window)
     }
