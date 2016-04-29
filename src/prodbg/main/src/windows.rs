@@ -9,7 +9,7 @@ use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::session::{Sessions, Session, SessionHandle};
 use core::reader_wrapper::ReaderWrapper;
 use self::viewdock::{Workspace, Rect, Direction, DockHandle, SplitHandle};
-use menu::Menu;
+use menu::{Menu, MENU_DEBUG_STEP_IN};
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::{PDVec2};
 use prodbg_api::view::CViewCallbacks;
@@ -287,6 +287,16 @@ impl<'a> Window<'a> {
         for view in &self.views {
             if let Some(ref mut v) = view_plugins.get_view(*view) {
                 if let Some(ref mut s) = sessions.get_session(v.session_handle) {
+
+                    // TODO: Only do this on the correct session
+
+                    self.win.is_menu_pressed().map(|menu_id| {
+                        if menu_id == MENU_DEBUG_STEP_IN {
+                            println!("action_step");
+                            s.action_step();
+                        }
+                    });
+
                     let state = Self::update_view(self, v, s, show_context_menu, mouse);
 
                     if state.should_close {
