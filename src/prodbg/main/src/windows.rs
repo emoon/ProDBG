@@ -211,18 +211,9 @@ impl Window {
     pub fn remove_views(&mut self, view_plugins: &mut ViewPlugins, views: &Vec<ViewHandle>) {
         for view in views {
             view_plugins.destroy_instance(*view);
-            //println!("------------------ before delete ----------------------------");
-            //self.ws.dump_tree();
             self.ws.delete_by_handle(DockHandle(view.0));
-            //println!("------------------ after delete ----------------------------");
-            //self.ws.dump_tree();
         }
     }
-    /*
-    CursorType_Default,
-    CursorType_SizeHorizontal,
-    CursorType_SizeVertical,
-    */
 
     fn update_mouse_state(&mut self, mouse_pos: (f32, f32)) {
         match self.mouse_state.state {
