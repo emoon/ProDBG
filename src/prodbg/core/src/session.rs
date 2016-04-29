@@ -25,8 +25,9 @@ pub struct Session {
     pub handle: SessionHandle,
     pub reader: Reader,
 
-    current_writer: usize,
+    //current_writer: usize,
     writers: [Writer; 2],
+    action: i32,
 
     backend: Option<BackendHandle>,
 }
@@ -46,13 +47,14 @@ impl Session {
                 WriterWrapper::create_writer(),
             ],
             reader: ReaderWrapper::create_reader(),
-            current_writer: 0,
+            action: 0,
+            //current_writer: 0,
             backend: None,
         }
     }
 
     pub fn get_current_writer(&mut self) -> &mut Writer {
-        &mut self.writers[self.current_writer]
+        &mut self.writers[0]
     }
 
     pub fn start_remote(_plugin_handler: &PluginHandler, _settings: &ConnectionSettings) {}
@@ -63,26 +65,33 @@ impl Session {
         self.backend = backend
     }
 
+    pub fn action_step(&mut self) {
+        println!("do step");
+        self.action = 4;
+    }
+
     pub fn update(&mut self, backend_plugins: &mut BackendPlugins) {
         // swap the writers
-        let c_writer = self.current_writer;
-        let p_writer = (self.current_writer + 1) & 1;
-        self.current_writer = p_writer;
+        //let c_writer = self.current_writer;
+        //let n_writer = (self.current_writer + 1) & 1;
 
-        ReaderWrapper::init_from_writer(&mut self.reader, &self.writers[p_writer]);
-        ReaderWrapper::reset_writer(&mut self.writers[c_writer]);
+        ReaderWrapper::init_from_writer(&mut self.reader, &self.writers[0]);
+        ReaderWrapper::reset_writer(&mut self.writers[1]);
 
         if let Some(backend) = backend_plugins.get_backend(self.backend) {
             unsafe {
                 let plugin_funcs = backend.plugin_type.plugin_funcs as *mut CBackendCallbacks;
                 ((*plugin_funcs).update.unwrap())(backend.plugin_data,
-                                                  0,
+                                                  self.action,
                                                   self.reader.api as *mut c_void,
-                                                  self.writers[p_writer].api as *mut c_void);
+                                                  self.writers[1].api as *mut c_void);
             }
         }
 
-        ReaderWrapper::init_from_writer(&mut self.reader, &self.writers[p_writer]);
+        self.action = 0;
+
+        ReaderWrapper::init_from_writer(&mut self.reader, &self.writers[1]);
+        ReaderWrapper::reset_writer(&mut self.writers[0]);
     }
 }
 
