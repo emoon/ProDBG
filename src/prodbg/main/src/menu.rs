@@ -3,13 +3,13 @@ extern crate minifb;
 use minifb::{Key, MENU_KEY_CTRL, MENU_KEY_COMMAND};
 use minifb::Menu as MinifbMenu;
 
-const MENU_FILE_OPEN_AND_RUN_EXE: usize = 1;
-const MENU_FILE_OPEN_SOURCE: usize = 1;
-const MENU_DEBUG_ATTACH_TO_REMOTE: usize = 50;
-const MENU_DEBUG_START: usize = 51;
-const MENU_DEBUG_STEP_IN: usize = 52;
-const MENU_DEBUG_STEP_OVER: usize = 53;
-const MENU_DEBUG_TOGGLE_BREAKPOINT: usize = 54;
+pub const MENU_FILE_OPEN_AND_RUN_EXE: usize = 1;
+pub const MENU_FILE_OPEN_SOURCE: usize = 1;
+pub const MENU_DEBUG_ATTACH_TO_REMOTE: usize = 50;
+pub const MENU_DEBUG_START: usize = 51;
+pub const MENU_DEBUG_STEP_IN: usize = 52;
+pub const MENU_DEBUG_STEP_OVER: usize = 53;
+pub const MENU_DEBUG_TOGGLE_BREAKPOINT: usize = 54;
 
 pub struct Menu<'a> {
     pub file_menu: Vec<MinifbMenu<'a>>,
