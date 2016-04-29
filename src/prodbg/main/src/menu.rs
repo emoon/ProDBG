@@ -55,7 +55,7 @@ impl<'a> Menu<'a> {
             },
             MinifbMenu  {
                 name: "Start",
-                key: Key::S,
+                key: Key::F5,
                 id: MENU_DEBUG_START,
                 ..MinifbMenu::default()
             },
