@@ -6,6 +6,7 @@ extern crate bgfx_rs;
 extern crate imgui_sys;
 
 pub mod windows;
+pub mod menu;
 
 use bgfx_rs::Bgfx;
 use core::session::Sessions;
