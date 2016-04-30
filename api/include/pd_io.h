@@ -40,7 +40,7 @@ typedef struct PDLoadState {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define PDIO_read_int(funcs, dest) funcs->read_int(funcs->priv_data, dest)
-#define PDIO_read_real(funcs, data) funcs->read_double(funcs->priv_data, dest)
+#define PDIO_read_double(funcs, dest) funcs->read_double(funcs->priv_data, dest)
 #define PDIO_read_string(funcs, str, maxLen) funcs->read_string(funcs->priv_data, str, maxLen)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

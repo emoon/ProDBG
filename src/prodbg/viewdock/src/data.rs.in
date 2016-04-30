@@ -15,7 +15,8 @@ pub struct Rect {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Dock {
     pub handle: DockHandle,
-    pub name: String,
+    pub plugin_name: String,
+    pub plugin_data: Option<Vec<String>>,
     pub rect: Rect
 }
 

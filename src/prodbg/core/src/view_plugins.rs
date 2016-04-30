@@ -7,6 +7,7 @@ use dynamic_reload::Lib;
 use session::SessionHandle;
 use std::ptr;
 use prodbg_api::ui::Ui;
+use plugin_io;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct ViewHandle(pub u64);
@@ -173,6 +174,7 @@ impl ViewPlugins {
     pub fn create_instance_with_handle(&mut self,
                                        ui: Ui,
                                        plugin_type: &String,
+                                       plugin_data: &Option<Vec<String>>,
                                        session_handle: SessionHandle,
                                        view_handle: ViewHandle) -> Option<ViewHandle> {
 
@@ -181,7 +183,15 @@ impl ViewPlugins {
                 continue;
             }
 
-            return Self::create_instance_from_index(self, ui, i, session_handle, Some(view_handle));
+            let handle = Self::create_instance_from_index(self, ui, i, session_handle, Some(view_handle));
+
+            if let Some(ref data) = *plugin_data {
+                self.get_view(handle.unwrap()).map(|instance| {
+                    instance.load_plugin_data(&data);
+                });
+            }
+
+            return handle;
         }
 
         None
@@ -206,6 +216,31 @@ impl ViewPlugins {
         }
 
         names
+    }
+}
+
+impl ViewInstance {
+    pub fn get_plugin_data(&self) -> (String, Option<Vec<String>>) {
+        let mut plugin_data = None;
+        unsafe {
+            let callbacks = self.plugin_type.plugin_funcs as *mut CViewCallbacks;
+            if let Some(save_state) = (*callbacks).save_state {
+                let mut writer_funcs = plugin_io::get_writer_funcs();
+                save_state(self.plugin_data, &mut writer_funcs);
+                plugin_data = Some(plugin_io::get_data(&mut writer_funcs));
+            }
+        };
+        (self.plugin_type.name.clone(), plugin_data)
+    }
+
+    pub fn load_plugin_data(&mut self, data: &Vec<String>) {
+        unsafe {
+            let callbacks = self.plugin_type.plugin_funcs as *mut CViewCallbacks;
+            if let Some(load_state) = (*callbacks).load_state {
+                let mut loader_funcs = plugin_io::get_loader_funcs(data);
+                load_state(self.plugin_data, &mut loader_funcs);
+            }
+        }
     }
 }
 

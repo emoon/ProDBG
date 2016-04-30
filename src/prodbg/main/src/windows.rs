@@ -313,28 +313,14 @@ impl<'a> Window<'a> {
         }
 
         if self.win.is_key_pressed(Key::Up, KeyRepeat::No) {
-            let _ = self.ws.save("/Users/danielcollin/code/temp/test.xml");
+            self.save_layout("data/layout_temp.json", view_plugins);
         }
 
         if self.win.is_key_pressed(Key::Right, KeyRepeat::No) {
-            let ws = Workspace::load("/Users/danielcollin/code/temp/test.xml").unwrap();
-            let docks = ws.get_docks();
-            self.views.clear();
-
-            for dock in &docks {
-                //println!("create stuff... {} - {}", dock.name, dock.handle.0);
-                let ui = Imgui::create_ui_instance();
-                let handle = ViewHandle(dock.handle.0);
-                if dock.name == "" {
-                    view_plugins.create_instance_with_handle(ui, &"Bitmap View".to_owned(), SessionHandle(0), ViewHandle(dock.handle.0));
-                } else {
-                    view_plugins.create_instance_with_handle(ui, &dock.name, SessionHandle(0), ViewHandle(dock.handle.0));
-                }
-                self.views.push(handle);
-            }
-
-            self.ws = ws;
+            self.load_layout("data/layout_temp.json", view_plugins);
         }
+
+        // test
 
         // if now plugin has showed a menu we do it here
         // TODO: Handle diffrent cases when attach menu on to plugin menu or not
@@ -354,7 +340,7 @@ impl<'a> Window<'a> {
             if let Some(dock_handle) = self.ws.get_hover_dock(pos) {
                 let new_handle = DockHandle(handle.0);
                 self.ws.split_by_dock_handle(direction, dock_handle, new_handle);
-                self.ws.set_name_to_handle(name, new_handle);
+                //self.ws.set_name_to_handle(name, new_handle);
                 //self.ws.dump_tree_linear();
             } else {
                 self.ws.new_split(DockHandle(handle.0), direction);
@@ -395,5 +381,38 @@ impl<'a> Window<'a> {
 
             ui.end_popup();
         }
+    }
+
+    fn save_layout(&mut self, filename: &str, view_plugins: &mut ViewPlugins) {
+        for split in &mut self.ws.splits {
+            let iter = split.left_docks.docks.iter_mut().chain(split.right_docks.docks.iter_mut());
+
+            for dock in iter {
+                if let Some(ref plugin) = view_plugins.get_view(ViewHandle(dock.handle.0)) {
+                    let (plugin_name, data) = plugin.get_plugin_data();
+                    dock.plugin_name = plugin_name;
+                    dock.plugin_data = data;
+                } else {
+                    println!("Unable to find plugin for {:?} - this should never happen", dock);
+                }
+            }
+        }
+
+        let _ = self.ws.save(filename);
+    }
+
+    fn load_layout(&mut self, filename: &str, view_plugins: &mut ViewPlugins) {
+        let ws = Workspace::load(filename);
+        let docks = ws.get_docks();
+        self.views.clear();
+
+        for dock in &docks {
+            let ui = Imgui::create_ui_instance();
+            let handle = ViewHandle(dock.handle.0);
+            view_plugins.create_instance_with_handle(ui, &dock.plugin_name, &dock.plugin_data, SessionHandle(0), ViewHandle(dock.handle.0));
+            self.views.push(handle);
+        }
+
+        self.ws = ws;
     }
 }

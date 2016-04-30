@@ -2,7 +2,14 @@
 name = "viewdock"
 version = "0.1.0"
 authors = ["Daniel Collin <daniel@collin.com>"]
+build = "build.rs"
+
+[build-dependencies]
+serde_codegen = "*"
+syntex = "*"
 
 [dependencies]
 minifb = "0.5.2"
-xml-rs = "0.3"
+serde = "*"
+serde_json = "*"
+

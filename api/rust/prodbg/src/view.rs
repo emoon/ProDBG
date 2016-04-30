@@ -4,6 +4,7 @@ use ui::*;
 use ui_ffi::*;
 use libc::{c_void, c_uchar};
 use std::mem::transmute;
+use io::{CPDSaveState, CPDLoadState};
 
 pub static VIEW_API_VERSION: &'static [u8] = b"ProDBG View 1\0";
 
@@ -25,8 +26,8 @@ pub struct CViewCallbacks {
                           reader: *mut c_void,
                           writer: *mut c_void)>,
 
-    pub save_state: Option<fn(*mut c_void)>,
-    pub load_state: Option<fn(*mut c_void)>,
+    pub save_state: Option<fn(*mut c_void, api: *mut CPDSaveState)>,
+    pub load_state: Option<fn(*mut c_void, api: *mut CPDLoadState)>,
 }
 
 unsafe impl Sync for CViewCallbacks {}
@@ -71,7 +72,7 @@ pub fn update_view_instance<T: View>(ptr: *mut c_void,
 macro_rules! define_view_plugin {
     ($p_name:ident, $name:expr, $x:ty) => {
         static $p_name: CViewCallbacks = CViewCallbacks {
-                name: $name as *const u8, 
+                name: $name as *const u8,
                 create_instance: Some(prodbg_api::view::create_view_instance::<$x>),
                 destroy_instance: Some(prodbg_api::view::destroy_view_instance::<$x>),
                 update: Some(prodbg_api::view::update_view_instance::<$x>),
