@@ -25,7 +25,7 @@
 //#include <foundation/string.h>
 //#include "i3wm_docking.h"
 #include "ui_render.h"
-#include <jansson.h>
+//#include <jansson.h>
 
 #ifdef _WIN32
 #include <Windows.h>

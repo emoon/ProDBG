@@ -14,7 +14,6 @@
 #include <windows.h>
 #endif
 
-#include <jansson.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -239,7 +238,7 @@ int parse_prg(const char* filename) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setupDefaultConfig(PluginData* data) {
+void setupDefaultConfig(PluginData* data) {
 #ifdef PRODBG_MAC
     data->config.vice_exe = strdup("/Applications/VICE/x64.app/Contents/MacOS/x64");
 #elif PRODBG_WIN
@@ -255,6 +254,7 @@ static void setupDefaultConfig(PluginData* data) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 static void load_config(PluginData* data, const char* filename) {
     const char* vice_exe = 0;
     const char* prg_file = 0;
@@ -296,6 +296,7 @@ static void load_config(PluginData* data, const char* filename) {
 
     json_decref(root);
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -586,7 +587,7 @@ static void* create_instance(ServiceFunc* serviceFunc) {
 
     data->state = PDDebugState_NoTarget;
 
-    load_config(data, "data/c64_vice.cfg");
+    //load_config(data, "data/c64_vice.cfg");
 
     MESSAGE_FUNCS = serviceFunc(PDMESSAGEFUNCS_GLOBAL);
 

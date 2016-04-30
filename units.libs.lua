@@ -86,32 +86,6 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
-    Name = "jansson",
-
-    Env = {
-		CPPPATH = {
-			"src/native/external/jansson/include",
-		},
-
-        CCOPTS = {
-        	{ "-Wno-everything"; Config = "macosx-*-*" },
-        	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
-        },
-    },
-
-    Sources = {
-        Glob {
-            Dir = "src/native/external/jansson/src",
-            Extensions = { ".c", ".h" },
-        },
-    },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-StaticLibrary {
     Name = "lua",
 
     Env = {

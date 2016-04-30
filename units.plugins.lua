@@ -289,7 +289,7 @@ SharedLibrary {
 
     IdeGenerationHints = { Msvc = { SolutionFolder = "Addons" } },
 
-    Depends = { "jansson", "uv" },
+    Depends = { "uv" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
