@@ -351,6 +351,41 @@ impl<'a> Window<'a> {
         }
     }
 
+    fn show_popup_menu_no_splits(&mut self, plugin_names: &Vec<String>, mouse_pos: (f32, f32), view_plugins: &mut ViewPlugins) {
+        let ui = Imgui::get_ui();
+
+        if ui.begin_menu("New View", true) {
+            for name in plugin_names {
+                if ui.menu_item(name, false, true) {
+                    Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Horizontal);
+                }
+            }
+            ui.end_menu();
+        }
+    }
+
+    fn show_popup_regular(&mut self, plugin_names: &Vec<String>, mouse_pos: (f32, f32), view_plugins: &mut ViewPlugins) {
+        let ui = Imgui::get_ui();
+
+        if ui.begin_menu("Split Horizontally", true) {
+            for name in plugin_names {
+                if ui.menu_item(name, false, true) {
+                    Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Horizontal);
+                }
+            }
+            ui.end_menu();
+        }
+
+        if ui.begin_menu("Split Vertically", true) {
+            for name in plugin_names {
+                if ui.menu_item(name, false, true) {
+                    Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Vertical);
+                }
+            }
+            ui.end_menu();
+        }
+    }
+
     fn show_popup(&mut self, show: bool, mouse_pos: (f32, f32), view_plugins: &mut ViewPlugins) {
         let ui = Imgui::get_ui();
 
@@ -361,22 +396,10 @@ impl<'a> Window<'a> {
         if ui.begin_popup("plugins") {
             let plugin_names = view_plugins.get_plugin_names();
 
-            if ui.begin_menu("Split Horizontally", true) {
-                for name in &plugin_names {
-                    if ui.menu_item(name, false, true) {
-                        Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Horizontal);
-                    }
-                }
-                ui.end_menu();
-            }
-
-            if ui.begin_menu("Split Vertically", true) {
-                for name in &plugin_names {
-                    if ui.menu_item(name, false, true) {
-                        Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Vertical);
-                    }
-                }
-                ui.end_menu();
+            if self.ws.get_hover_dock(mouse_pos).is_none() {
+                self.show_popup_menu_no_splits(&plugin_names, mouse_pos, view_plugins);
+            } else {
+                self.show_popup_regular(&plugin_names, mouse_pos, view_plugins);
             }
 
             ui.end_popup();
