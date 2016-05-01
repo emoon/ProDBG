@@ -57,6 +57,14 @@ struct WindowState {
     pub should_close: bool,
 }
 
+struct KeyCharCallback;
+
+impl minifb::InputCallback for KeyCharCallback {
+    fn add_char(&mut self, key: u32) {
+        Bgfx::add_char(key as u16);
+    }
+}
+
 ///! Windows keeps track of all different windows that are present with in the application
 ///! There are several ways windows can be created:
 ///!
@@ -117,6 +125,8 @@ impl<'a> Windows<'a> {
 
     pub fn create_window_with_menus() -> minifb::Result<Window<'a>> {
         let mut window = try!(Self::create_window(WIDTH, HEIGHT));
+
+        window.win.set_input_callback(Box::new(KeyCharCallback {}));
 
         // we ignore the results because we likely brake this on Linux otherwise
         // TODO: Figure out how to deal with this on Linux
