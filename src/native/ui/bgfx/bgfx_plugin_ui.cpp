@@ -98,7 +98,7 @@ void BgfxPluginUI::preUpdate() {
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x000f0f0f, 1.0f, 0);
     bgfx::submit(0);
 
-    IMGUI_preUpdate(deltaTime);
+    imgui_pre_update(deltaTime);
 }
 
 /*
@@ -184,7 +184,7 @@ static void renderBorders(Session* session) {
 
 void BgfxPluginUI::postUpdate() {
     renderStatusBar(m_statusText, (float)m_statusSize);
-    IMGUI_postUpdate();
+    imgui_post_update();
 
 	/*
     Session** sessions = Session_getSessions();
@@ -213,7 +213,7 @@ void BgfxPluginUI::create(void* windowHandle, int width, int height) {
     bgfx::init();
     bgfx::reset((uint32_t)width, (uint32_t)height);
     bgfx::setViewSeq(0, true);
-    IMGUI_setup(width, height);
+    imgui_setup(width, height);
 
     s_context.width = width;
     s_context.height = height;
@@ -229,25 +229,27 @@ void BgfxPluginUI::create(void* windowHandle, int width, int height) {
 void BgfxPluginUI::destroy() {
 }
 
+#if 0
+
 // It's a bit weird to have the code like this here. To be cleaned up
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void prodbg_set_mouse_pos(float x, float y) {
-    IMGUI_setMousePos(x, y);
+    imgui_setMousePos(x, y);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void prodbg_set_mouse_state(int button, int state) {
-    IMGUI_setMouseState(state);
+    imgui_setMouseState(state);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void prodbg_set_scroll(float x, float y) {
     (void)x;
-    IMGUI_setScroll(y);
+    imgui_setScroll(y);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -258,7 +260,7 @@ extern "C" void prodbg_key_down(int key, int modifier) {
     //state->keysDown[key] = true;
     //state->modifiers = modifier;
 
-    IMGUI_setKeyDown(key, modifier);
+    imgui_setKeyDown(key, modifier);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -278,14 +280,16 @@ extern "C" void prodbg_key_up(int key, int modifier) {
     state->modifiers = modifier;
     */
 
-    IMGUI_setKeyUp(key, modifier);
+    imgui_setKeyUp(key, modifier);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void prodbg_add_char(unsigned short c) {
-    IMGUI_addInputCharacter(c);
+    imgui_addInputCharacter(c);
 }
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -296,7 +300,7 @@ extern "C" void prodbg_set_window_size(int width, int height) {
     context->height = height;
 
     bgfx::reset((uint32_t)width, (uint32_t)height);
-    IMGUI_updateSize(width, height);
+    imgui_update_size(width, height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

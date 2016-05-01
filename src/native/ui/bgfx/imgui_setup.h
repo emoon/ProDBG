@@ -1,20 +1,19 @@
 #pragma once
 
-struct InputState;
+extern "C"
+{
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void imgui_setup(int width, int height);
+void imgui_update_size(int width, int height);
+void imgui_pre_update(float deltaTime);
+void imgui_post_update();
 
-void IMGUI_setup(int width, int height);
-void IMGUI_updateSize(int width, int height);
-void IMGUI_preUpdate(float deltaTime);
-void IMGUI_postUpdate();
+void imgui_set_key_down(int key, int modifier);
+void imgui_set_key_up(int key, int modifier);
+void imgui_set_mouse_pos(float x, float y);
+void imgui_set_scroll(float scroll);
+void imgui_set_mouse_state(int index, int state);
+void imgui_add_input_character(unsigned short c);
 
-void IMGUI_setKeyDown(int key, int modifier);
-void IMGUI_setKeyUp(int key, int modifier);
-void IMGUI_setMousePos(float x, float y);
-void IMGUI_setScroll(float scroll);
-void IMGUI_setMouseState(int state);
-
-void IMGUI_addInputCharacter(unsigned short c);
-
+}
 

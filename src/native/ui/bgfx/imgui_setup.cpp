@@ -22,7 +22,7 @@ static bgfx::TextureHandle s_textureId;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void imguiRender(ImDrawData* draw_data) {
+static void imgui_render(ImDrawData* draw_data) {
     const float width = ImGui::GetIO().DisplaySize.x;
     const float height = ImGui::GetIO().DisplaySize.y;
 
@@ -85,7 +85,7 @@ static void imguiRender(ImDrawData* draw_data) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void IMGUI_setup(int width, int height) {
+void imgui_setup(int width, int height) {
     unsigned char* fontData;
     int fWidth;
     int fHeight;
@@ -96,6 +96,7 @@ void IMGUI_setup(int width, int height) {
     io.DisplaySize = ImVec2((float)width, (float)height);
     io.DeltaTime = 1.0f / 60.0f;
 
+	/*
     // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
     io.KeyMap[ImGuiKey_Tab]        = PDKEY_TAB;
     io.KeyMap[ImGuiKey_LeftArrow]  = PDKEY_LEFT;
@@ -114,6 +115,7 @@ void IMGUI_setup(int width, int height) {
     io.KeyMap[ImGuiKey_X]          = PDKEY_X;
     io.KeyMap[ImGuiKey_Y]          = PDKEY_Y;
     io.KeyMap[ImGuiKey_Z]          = PDKEY_Z;
+    */
 
     // TODO: Add this as config?
     // Update the style
@@ -138,71 +140,49 @@ void IMGUI_setup(int width, int height) {
 
     s_textureId = bgfx::createTexture2D((uint16_t)fWidth, (uint16_t)fHeight, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_NONE, mem);
 
-    io.RenderDrawListsFn = imguiRender;
+    io.RenderDrawListsFn = imgui_render;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void IMGUI_updateSize(int width, int height) {
+extern "C" void imgui_update_size(int width, int height) {
     ImGuiIO& io = ImGui::GetIO();
-
     io.DisplaySize = ImVec2((float)width, (float)height);
     io.DeltaTime = 1.0f / 60.0f;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void IMGUI_preUpdate(float deltaTime) {
+extern "C" void imgui_pre_update(float deltaTime) {
     ImGuiIO& io = ImGui::GetIO();
     io.DeltaTime = deltaTime;
-
     ImGui::NewFrame();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void IMGUI_setMouseState(int mouseLmb) {
+extern "C" void imgui_set_mouse_state(int index, int state) {
     ImGuiIO& io = ImGui::GetIO();
-    io.MouseDown[0] = !!mouseLmb;
+    io.MouseDown[index] = !!state;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void IMGUI_setMousePos(float x, float y) {
+extern "C" void imgui_set_mouse_pos(float x, float y) {
     ImGuiIO& io = ImGui::GetIO();
     io.MousePos = ImVec2(x, y);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void IMGUI_setScroll(float scroll) {
+extern "C" void imgui_set_scroll(float scroll) {
     ImGuiIO& io = ImGui::GetIO();
     io.MouseWheel = scroll;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-   void IMGUI_scrollMouse(const PDMouseWheelEvent& wheelEvent)
-   {
-   }
- */
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-inline bool isAscii(int ch) {
-    return (ch >= 0) && (ch < 0x80);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool isAlphaNumeric(char ch) {
-    return isAscii(ch) && isalnum(ch);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void IMGUI_setKeyDown(int key, int modifier) {
+extern "C" void imgui_set_key_down(int key, int modifier) {
     ImGuiIO& io = ImGui::GetIO();
     assert(key >= 0 && key <= (int)sizeof_array(io.KeysDown));
     io.KeysDown[key] = true;
@@ -212,7 +192,7 @@ void IMGUI_setKeyDown(int key, int modifier) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void IMGUI_setKeyUp(int key, int modifier) {
+extern "C" void imgui_set_key_up(int key, int modifier) {
     ImGuiIO& io = ImGui::GetIO();
     assert(key >= 0 && key <= (int)sizeof_array(io.KeysDown));
     io.KeysDown[key] = false;
@@ -222,14 +202,21 @@ void IMGUI_setKeyUp(int key, int modifier) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void IMGUI_addInputCharacter(unsigned short c) {
+extern "C" void imgui_add_input_character(unsigned short c) {
     ImGuiIO& io = ImGui::GetIO();
     io.AddInputCharacter(c);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void IMGUI_postUpdate() {
+extern "C" void imgui_map_key(int key_target, int key_source) {
+    ImGuiIO& io = ImGui::GetIO();
+    io.KeyMap[key_target] = key_source;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void imgui_post_update() {
     ImGui::Render();
 }
 

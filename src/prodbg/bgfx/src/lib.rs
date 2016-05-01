@@ -19,18 +19,6 @@ impl Bgfx {
         unsafe { bgfx_create_window(window, width, height); }
     }
 
-    pub fn set_mouse_pos(mouse: (f32, f32)) {
-        unsafe { prodbg_set_mouse_pos(mouse.0, mouse.1) };
-    }
-
-    pub fn set_mouse_state(index: usize, state: bool) {
-        unsafe { prodbg_set_mouse_state(index as i32, state as c_int); }
-    }
-
-    pub fn add_char(c: u16) {
-        unsafe { prodbg_add_char(c); }
-    }
-
     pub fn pre_update(&self) {
         unsafe { bgfx_pre_update(); }
     }
@@ -92,11 +80,6 @@ extern "C" {
 
     fn cursor_init();
     fn cursor_set_type(t: i32);
-
-    fn prodbg_set_mouse_pos(x: f32, y: f32);
-    fn prodbg_set_mouse_state(mouse: c_int, state: c_int);
-
-    fn prodbg_add_char(c: u16);
 
     //fn bgfx_has_showed_popup(ui: *mut CPdUI) -> u32;
     //fn bgfx_mark_show_popup(ui: *mut CPdUI, state: u32);

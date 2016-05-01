@@ -78,8 +78,8 @@ fn main() {
         let mouse = window.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
         let mut _has_shown_menu = 0u32;
 
-        Bgfx::set_mouse_pos(mouse);
-        Bgfx::set_mouse_state(0, window.get_mouse_down(MouseButton::Left));
+        Imgui::set_mouse_pos(mouse);
+        Imgui::set_mouse_state(0, window.get_mouse_down(MouseButton::Left));
 
         let show_context_menu = window.get_mouse_down(MouseButton::Right);
 

@@ -61,7 +61,7 @@ struct KeyCharCallback;
 
 impl minifb::InputCallback for KeyCharCallback {
     fn add_char(&mut self, key: u32) {
-        Bgfx::add_char(key as u16);
+        Imgui::add_input_character(key as u16);
     }
 }
 
@@ -289,8 +289,8 @@ impl<'a> Window<'a> {
 
         self.update_mouse_state(mouse);
 
-        Bgfx::set_mouse_pos(mouse);
-        Bgfx::set_mouse_state(0, self.win.get_mouse_down(MouseButton::Left));
+        Imgui::set_mouse_pos(mouse);
+        Imgui::set_mouse_state(0, self.win.get_mouse_down(MouseButton::Left));
 
         let show_context_menu = self.win.get_mouse_down(MouseButton::Right);
 

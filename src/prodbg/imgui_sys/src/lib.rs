@@ -79,20 +79,33 @@ impl Imgui {
         }
     }
 
+    pub fn map_key(key_target: usize, key_source: usize) {
+        unsafe { imgui_map_key(key_target as u32, key_source as u32); }
+    }
+
+    pub fn set_mouse_pos(mouse: (f32, f32)) {
+        unsafe { imgui_set_mouse_pos(mouse.0, mouse.1) };
+    }
+
+    pub fn set_mouse_state(index: usize, state: bool) {
+        unsafe { imgui_set_mouse_state(index as i32, state as c_int); }
+    }
+
     pub fn end_window() {
         unsafe { imgui_end(); }
     }
 
     pub fn set_window_pos(x: f32, y: f32) {
-        unsafe {
-            imgui_set_window_pos(x, y);
-        }
+        unsafe { imgui_set_window_pos(x, y); }
+    }
+
+    #[inline]
+    pub fn add_input_character(c: u16) {
+        unsafe { imgui_add_input_character(c) };
     }
 
     pub fn set_window_size(w: f32, h: f32) {
-        unsafe {
-            imgui_set_window_size(w, h);
-        }
+        unsafe { imgui_set_window_size(w, h); }
     }
 
     fn init_ui_funcs() -> *mut CPdUI {
@@ -114,4 +127,8 @@ extern "C" {
     fn imgui_get_ui_funcs() -> *mut CPdUI;
     fn imgui_set_window_pos(x: f32, y: f32);
     fn imgui_set_window_size(w: f32, h: f32);
+    fn imgui_add_input_character(c: u16);
+    fn imgui_map_key(key_target: u32, key_source: u32);
+    fn imgui_set_mouse_pos(x: f32, y: f32);
+    fn imgui_set_mouse_state(index: i32, state: c_int);
 }
