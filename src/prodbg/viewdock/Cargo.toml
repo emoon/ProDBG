@@ -9,7 +9,7 @@ serde_codegen = "*"
 syntex = "*"
 
 [dependencies]
-minifb = "0.5.2"
+minifb = "0.6.0"
 serde = "*"
 serde_json = "*"
 
