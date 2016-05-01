@@ -35,10 +35,6 @@ impl Bgfx {
         unsafe { bgfx_post_update(); }
     }
 
-    pub fn test_menu(show: bool) {
-        unsafe { bgfx_test_menu(show as c_int); }
-    }
-
     pub fn cursor_init() {
         unsafe { cursor_init() };
     }
@@ -103,7 +99,6 @@ extern "C" {
     //fn bgfx_imgui_begin(show: c_int);
     //fn bgfx_imgui_end();
 
-    fn bgfx_test_menu(show: c_int);
     //fn bgfx_create_ui_funcs() -> *mut CPdUI;
 }
 

@@ -76,7 +76,7 @@ fn main() {
         bgfx.pre_update();
 
         let mouse = window.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
-        let mut has_shown_menu = 0u32;
+        let mut _has_shown_menu = 0u32;
 
         Bgfx::set_mouse_pos(mouse);
         Bgfx::set_mouse_state(0, window.get_mouse_down(MouseButton::Left));
@@ -85,9 +85,6 @@ fn main() {
 
         for instance in &view_plugins.borrow_mut().instances {
             let ui = instance.ui;
-
-            //bgfx_imgui_set_window_pos(0.0, 0.0);
-            //bgfx_imgui_set_window_size(500.0, 500.0);
 
             Imgui::begin_window("Test", true);
             Imgui::init_state(ui.api);
@@ -110,18 +107,20 @@ fn main() {
                                                     session.get_current_writer().api as *mut c_void);
             }
 
-            has_shown_menu |= Imgui::has_showed_popup(ui.api);
+            _has_shown_menu |= Imgui::has_showed_popup(ui.api);
 
             Imgui::end_window();
         }
 
         // if now plugin has showed a menu we do it here
 
+        /*
         if has_shown_menu == 0 && show_context_menu {
             Bgfx::test_menu(true);
         } else {
             Bgfx::test_menu(false);
         }
+        */
 
         bgfx.post_update();
 

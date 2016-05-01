@@ -54,198 +54,6 @@ struct Context {
 
 static Context s_context;
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-void BgfxPluginUI::init(ViewPluginInstance* pluginInstance) {
-    PrivateData* data = 0;
-
-    PDUI* uiInstance = &pluginInstance->ui;
-
-    *uiInstance = *s_uiFuncs;
-
-    uiInstance->private_data = alloc_zero(sizeof(PrivateData));
-
-    data = (PrivateData*)uiInstance->private_data;
-
-    data->name = buildName(pluginInstance->plugin->name, pluginInstance->count);
-    data->window = 0;
-    data->showWindow = true;
-    data->title = 0;
-
-    pluginInstance->name = data->name;
-}
-*/
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Callback from the docking system
-
-/*
-void updateWindowSize(void* user_data, int x, int y, int width, int height) {
-    ViewPluginInstance* instance = (ViewPluginInstance*)user_data;
-
-    instance->rect.x = x;
-    instance->rect.y = y;
-    instance->rect.width = width;
-    instance->rect.height = height;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-
-static void setCursorStyle(DockSysCursor cursor) {
-    switch (cursor) {
-        case DockSysCursor_SizeHorizontal:
-            Cunsor_setType(CursorType_SizeHorizontal); break;
-        case DockSysCursor_SizeVertical:
-            Cunsor_setType(CursorType_SizeVertical); break;
-        default:
-            Cunsor_setType(CursorType_Default); break;
-    }
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// TODO: Move this code?
-
-static void saveUserData(struct json_t* item, void* user_data) {
-    ViewPluginInstance* view = (ViewPluginInstance*)user_data;
-
-    if (!view->plugin)
-        return;
-
-    PDSaveState saveFuncs;
-    PluginIO_initSaveJson(&saveFuncs);
-
-    PluginData* pluginData = PluginHandler_getPluginData(view->plugin);
-
-    assert(pluginData);
-
-    const char* pluginName = view->plugin->name;
-    const char* filename = pluginData->filename;
-
-    json_object_set_new(item, "plugin_name", json_string(pluginName));
-    json_object_set_new(item, "plugin_file", json_string(filename));
-
-    PDViewPlugin* viewPlugin = (PDViewPlugin*)pluginData->plugin;
-
-    if (!viewPlugin->save_state)
-        return;
-
-    json_t* array = json_array();
-
-    saveFuncs.priv_data = array;
-
-    viewPlugin->save_state(view->userData, &saveFuncs);
-
-    json_object_set_new(item, "plugin_data", array);
-}
-*/
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-
-static void* loadUserData(struct json_t* item) {
-    ViewPluginInstance* view = 0;
-
-    const char* pluginName = json_string_value(json_object_get(item, "plugin_name"));
-    const char* filename = json_string_value(json_object_get(item, "plugin_file"));
-
-    // if this is the case we have no plugin created (empty window)
-
-    if (!strcmp(pluginName, "") && !strcmp(filename, "")) {
-        view = (ViewPluginInstance*)alloc_zero(sizeof(ViewPluginInstance));
-    }else {
-        PDLoadState loadFuncs;
-        PluginIO_initLoadJson(&loadFuncs);
-
-        PluginData* pluginData = PluginHandler_findPlugin(0, filename, pluginName, true);
-
-        if (!pluginData)
-            view = (ViewPluginInstance*)alloc_zero(sizeof(ViewPluginInstance));
-        else
-            view = g_pluginUI->createViewPlugin(pluginData);
-
-        PDViewPlugin* viewPlugin = (PDViewPlugin*)pluginData->plugin;
-
-        json_t* pluginJsonData = json_object_get(item, "plugin_data");
-
-        if (pluginJsonData && viewPlugin && viewPlugin->load_state) {
-            SessionLoadState load_state = { pluginJsonData, (int)json_array_size(pluginJsonData), 0 };
-            loadFuncs.priv_data = &load_state;
-            viewPlugin->load_state(view->userData, &loadFuncs);
-        }
-    }
-
-    // TODO: Fi this: assuming one session
-
-    Session** sessions = Session_getSessions();
-
-    assert(sessions);
-    assert(sessions[0]);
-
-    Session_addViewPlugin(sessions[0], view);
-
-    return view;
-}
-
-*/
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-static DockSysCallbacks s_dockSysCallbacks =
-{
-    updateWindowSize,
-    setCursorStyle,
-    saveUserData,
-    loadUserData,
-};
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-PluginUI::State BgfxPluginUI::updateInstance(ViewPluginInstance* instance, PDReader* reader, PDWriter* writer) {
-    PDUI* uiInstance = &instance->ui;
-    PrivateData* data = (PrivateData*)uiInstance->private_data;
-
-    float x = (float)instance->rect.x;
-    float y = (float)instance->rect.y;
-    float w = (float)instance->rect.width;
-    float h = (float)instance->rect.height;
-
-    ImGui::SetNextWindowPos(ImVec2(x, y));
-    ImGui::SetNextWindowSize(ImVec2(w - s_borderSize, h - s_borderSize));
-
-    // TODO: Cache this?
-
-    char title[1024];
-
-    if (!data->title)
-        strcpy(title, data->name);
-    else{
-        sprintf(title, "%s %d - %s###%s%d",
-                instance->plugin->name, instance->count,
-                data->title, instance->plugin->name, instance->count);
-    }
-
-    ImGui::Begin(title, &data->showWindow, ImVec2(0, 0), true, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-
-    instance->plugin->update(instance->userData, uiInstance, reader, writer);
-
-    ImGui::End();
-
-    // Draw border
-
-    if  (!data->showWindow)
-        return CloseView;
-
-    return None;
-}
-*/
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int BgfxPluginUI::getStatusBarSize() {
@@ -280,54 +88,6 @@ void BgfxPluginUI::setStatusTextNoFormat(const char* text) {
     strcpy(m_statusText, text);
 }
 
-/*
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void updateDock(UIDockingGrid* grid) {
-    switch (UIDock_getSizingState(grid)) {
-        case UIDockSizerDir_None:
-        {
-            Cunsor_setType(CursorType_Default);
-            break;
-        }
-
-        case UIDockSizerDir_Horz:
-        {
-            Cunsor_setType(CursorType_SizeHorizontal);
-            break;
-        }
-
-        case UIDockSizerDir_Vert:
-        {
-            Cunsor_setType(CursorType_SizeVertical);
-            break;
-        }
-
-        case UIDockSizerDir_Both:
-        {
-            Cunsor_setType(CursorType_SizeAll);
-            break;
-        }
-    }
-
-    UIDock_update(grid, InputState_getState());
-    UIDock_render(grid);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void updateDocking(Session* session) {
-    InputState* state = InputState_getState();
-
-    int mx = (int)state->mousePos.x;
-    int my = (int)state->mousePos.y;
-
-    struct ViewPluginInstance* view = Session_getViewAt(session, mx, my, 0);
-
-    docksys_set_mouse(view, mx, my, state->mouseDown[0]);
-}
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -339,18 +99,6 @@ void BgfxPluginUI::preUpdate() {
     bgfx::submit(0);
 
     IMGUI_preUpdate(deltaTime);
-    //InputState_update(deltaTime);
-
-	/*
-    Session** sessions = Session_getSessions();
-
-    for (int i = 0; i < array_size(sessions); ++i) {
-        Session* session = sessions[i];
-        updateDocking(session);
-    }
-
-    docksys_update();
-    */
 }
 
 /*
@@ -549,15 +297,6 @@ extern "C" void prodbg_set_window_size(int width, int height) {
 
     bgfx::reset((uint32_t)width, (uint32_t)height);
     IMGUI_updateSize(width, height);
-
-	/*
-    Session** sessions = Session_getSessions();
-
-    for (int i = 0; i < array_size(sessions); ++i) {
-        Session* session = sessions[i];
-        docksys_update_size(width, height - (int)g_pluginUI->getStatusBarSize());
-    }
-    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -588,38 +327,6 @@ extern "C" void bgfx_post_update() {
 
 extern "C" void bgfx_destroy() {
     g_pluginUI->destroy();
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-extern "C" void bgfx_imgui_set_window_pos(float x, float y) {
-    ImGui::SetNextWindowPos(ImVec2(x, y));
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-extern "C" void bgfx_imgui_set_window_size(float w, float h) {
-    ImGui::SetNextWindowSize(ImVec2(w - s_borderSize, h - s_borderSize));
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-extern "C" void bgfx_test_menu(int show) {
-	if (show)
-		ImGui::OpenPopup("select");
-
-	if (ImGui::BeginPopup("select"))
-	{
-		ImGui::Text("Aquarium");
-
-		if (ImGui::BeginMenu("Sub-menu"))
-		{
-			ImGui::MenuItem("Click me");
-			ImGui::EndMenu();
-		}
-
-		ImGui::EndPopup();
-	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
