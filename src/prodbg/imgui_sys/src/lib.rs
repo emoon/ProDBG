@@ -104,6 +104,17 @@ impl Imgui {
         unsafe { imgui_add_input_character(c) };
     }
 
+    #[inline]
+    pub fn set_key_down(key: usize) {
+        unsafe { imgui_set_key_down(key as i32); }
+    }
+
+
+    #[inline]
+    pub fn clear_keys() {
+        unsafe { imgui_clear_keys(); }
+    }
+
     pub fn set_window_size(w: f32, h: f32) {
         unsafe { imgui_set_window_size(w, h); }
     }
@@ -131,4 +142,6 @@ extern "C" {
     fn imgui_map_key(key_target: u32, key_source: u32);
     fn imgui_set_mouse_pos(x: f32, y: f32);
     fn imgui_set_mouse_state(index: i32, state: c_int);
+    fn imgui_clear_keys();
+    fn imgui_set_key_down(key: i32);
 }

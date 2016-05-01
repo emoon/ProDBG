@@ -11,7 +11,7 @@ use core::reader_wrapper::ReaderWrapper;
 use self::viewdock::{Workspace, Rect, Direction, DockHandle, SplitHandle};
 use menu::{Menu, MENU_DEBUG_STEP_IN};
 use imgui_sys::Imgui;
-use prodbg_api::ui_ffi::{PDVec2};
+use prodbg_api::ui_ffi::{PDVec2, ImguiKey};
 use prodbg_api::view::CViewCallbacks;
 
 const WIDTH: usize = 1280;
@@ -94,6 +94,8 @@ impl<'a> Windows<'a> {
 
         let window = Self::create_window_with_menus().expect("Unable to create window");
 
+        Self::setup_imgui_key_mappings();
+
         self.windows.push(window)
    }
 
@@ -161,6 +163,28 @@ impl<'a> Windows<'a> {
 
     /// Load the state of all the views from a previous run
     pub fn load(_filename: &str) {}
+
+    fn setup_imgui_key_mappings() {
+        Imgui::map_key(ImguiKey::Tab as usize, Key::Tab as usize);
+        Imgui::map_key(ImguiKey::LeftArrow as usize, Key::Left as usize);
+        Imgui::map_key(ImguiKey::RightArrow as usize, Key::Right as usize);
+        Imgui::map_key(ImguiKey::DownArrow as usize, Key::Down as usize);
+        Imgui::map_key(ImguiKey::UpArrow as usize, Key::Up as usize);
+        Imgui::map_key(ImguiKey::PageUp as usize, Key::PageUp as usize);
+        Imgui::map_key(ImguiKey::PageDown as usize, Key::PageDown as usize);
+        Imgui::map_key(ImguiKey::Home as usize, Key::Home as usize);
+        Imgui::map_key(ImguiKey::End as usize, Key::End as usize);
+        Imgui::map_key(ImguiKey::Delete as usize, Key::Delete as usize);
+        Imgui::map_key(ImguiKey::Backspace as usize, Key::Backspace as usize);
+        Imgui::map_key(ImguiKey::Enter as usize, Key::Enter as usize);
+        Imgui::map_key(ImguiKey::Escape as usize, Key::Escape as usize);
+        Imgui::map_key(ImguiKey::A as usize, Key::A as usize);
+        Imgui::map_key(ImguiKey::C as usize, Key::C as usize);
+        Imgui::map_key(ImguiKey::V as usize, Key::V as usize);
+        Imgui::map_key(ImguiKey::X as usize, Key::X as usize);
+        Imgui::map_key(ImguiKey::Y as usize, Key::Y as usize);
+        Imgui::map_key(ImguiKey::Z as usize, Key::Z as usize);
+    }
 }
 
 impl<'a> Window<'a> {
@@ -278,12 +302,23 @@ impl<'a> Window<'a> {
         self.mouse_state.prev_mouse = mouse_pos;
     }
 
+    fn update_key_state(&mut self) {
+        Imgui::clear_keys();
+
+        self.win.get_keys_pressed(KeyRepeat::Yes).map(|keys| {
+            for k in keys {
+                Imgui::set_key_down(k as usize);
+            }
+        });
+    }
+
     pub fn update(&mut self, sessions: &mut Sessions, view_plugins: &mut ViewPlugins) {
         let mut views_to_delete = Vec::new();
         let mut has_shown_menu = 0u32;
 
         self.win.update();
         self.ws.update();
+        self.update_key_state();
 
         let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
 

@@ -182,12 +182,22 @@ extern "C" void imgui_set_scroll(float scroll) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+extern "C" void imgui_clear_keys() {
+    ImGuiIO& io = ImGui::GetIO();
+    int len = (int)sizeof_array(io.KeysDown);
+    for (int i = 0; i < len; ++i) {
+    	io.KeysDown[i] = false;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 extern "C" void imgui_set_key_down(int key, int modifier) {
     ImGuiIO& io = ImGui::GetIO();
     assert(key >= 0 && key <= (int)sizeof_array(io.KeysDown));
     io.KeysDown[key] = true;
-    io.KeyCtrl = !!(modifier & PDKEY_CTRL);
-    io.KeyShift = !!(modifier & PDKEY_SHIFT);
+    //io.KeyCtrl = !!(modifier & PDKEY_CTRL);
+    //io.KeyShift = !!(modifier & PDKEY_SHIFT);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -196,8 +206,8 @@ extern "C" void imgui_set_key_up(int key, int modifier) {
     ImGuiIO& io = ImGui::GetIO();
     assert(key >= 0 && key <= (int)sizeof_array(io.KeysDown));
     io.KeysDown[key] = false;
-    io.KeyCtrl = !!(modifier & PDKEY_CTRL);
-    io.KeyShift = !!(modifier & PDKEY_SHIFT);
+    //io.KeyCtrl = !!(modifier & PDKEY_CTRL);
+    //io.KeyShift = !!(modifier & PDKEY_SHIFT);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
