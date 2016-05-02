@@ -12,8 +12,8 @@ local FCPP_DIR = BGFX_DIR .. "3rdparty/fcpp/"
 -- setup target for shader
 
 local shaderc_platform = "windows"
-local shaderc_vs_extra_params = " -p vs_5_0" 
-local shaderc_ps_extra_params = " -p ps_5_0" 
+local shaderc_vs_extra_params = " -p vs_5_0"
+local shaderc_ps_extra_params = " -p ps_5_0"
 
 if native.host_platform == "macosx" then
 	shaderc_platform = "osx"
@@ -46,7 +46,7 @@ DefRule {
 
 DefRule {
 	Name = "ShadercVS",
-	Command = "$(BGFX_SHADERC) -f $(<) -o $(@) --type vertex --platform " .. shaderc_platform .. shaderc_vs_extra_params, 
+	Command = "$(BGFX_SHADERC) -f $(<) -o $(@) --type vertex --platform " .. shaderc_platform .. shaderc_vs_extra_params,
 
 	Blueprint = {
 		Source = { Required = true, Type = "string", Help = "Input filename", },
@@ -66,7 +66,7 @@ DefRule {
 Program {
 	Name = "bgfx_shaderc",
 	Target = "$(BGFX_SHADERC)",
-	Pass = "BuildTools", 
+	Pass = "BuildTools",
 
     Env = {
         CCOPTS = {
@@ -85,7 +85,7 @@ Program {
 			{ "NINCLUDE=64", "NWORK=65536", "NBUFF=65536", "OLD_PREPROCESSOR=0" },
 		},
 
-		CPPPATH = { 
+		CPPPATH = {
 			{
 				BX_DIR .. "include",
 				BGFX_DIR .. "include",
@@ -98,8 +98,8 @@ Program {
 				GLSL_OPTIMIZER .. "src/glsl/glcpp",
 			},
 
-			{ 
-				BX_DIR .. "include/compat/msvc"; Config = "win64-*-*" 
+			{
+				BX_DIR .. "include/compat/msvc"; Config = "win64-*-*"
 			},
 		},
 
@@ -139,4 +139,6 @@ Program {
 -----------------------------------------------------------------------------------------------------------------------
 
 Default "bgfx_shaderc"
+
+-- vim: ts=4:sw=4:sts=4
 

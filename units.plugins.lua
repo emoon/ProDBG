@@ -420,3 +420,5 @@ Default "bitmap_memory"
 Default "dummy_backend_plugin"
 --Default "i3_docking"
 
+-- vim: ts=4:sw=4:sts=4
+

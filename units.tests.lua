@@ -7,10 +7,10 @@ require "tundra.util"
 local function Test(params)
 
 	Program {
-		Name = params.Name, 
+		Name = params.Name,
 
-		Env = { 
-			CPPPATH = { 
+		Env = {
+			CPPPATH = {
 				"api/include",
 				"src/external/jansson/include",
 				"src/external/foundation_lib",
@@ -27,11 +27,11 @@ local function Test(params)
 			},
 		},
 
-		Sources = { 
-			params.Source,	
+		Sources = {
+			params.Source,
 		},
 
-		Depends = params.Depends, 
+		Depends = params.Depends,
 
 		Libs = {
 			{ "Ws2_32.lib", "shell32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" } },
@@ -76,4 +76,6 @@ Default "dbgeng_tests"
 Default "c64_vice_tests"
 Default "capstone_tests"
 Default "rust_api_tests"
+
+-- vim: ts=4:sw=4:sts=4
 

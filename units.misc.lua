@@ -59,3 +59,5 @@ Program {
 Default "fake6502"
 Default "crashing_native"
 
+-- vim: ts=4:sw=4:sts=4
+
