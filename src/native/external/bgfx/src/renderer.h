@@ -1,6 +1,6 @@
 /*
- * Copyright 2011-2015 Branimir Karadzic. All rights reserved.
- * License: http://www.opensource.org/licenses/BSD-2-Clause
+ * Copyright 2011-2016 Branimir Karadzic. All rights reserved.
+ * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
 
 #ifndef BGFX_RENDERER_H_HEADER_GUARD
@@ -73,7 +73,7 @@ namespace bgfx
 		}
 
 		template<uint16_t mtxRegs, typename RendererContext, typename Program, typename Draw>
-		void setPredefined(RendererContext* _renderer, uint8_t view, uint8_t eye, Program& _program, Frame* _render, const Draw& _draw)
+		void setPredefined(RendererContext* _renderer, uint16_t view, uint8_t eye, Program& _program, Frame* _render, const Draw& _draw)
 		{
 			for (uint32_t ii = 0, num = _program.m_numPredefined; ii < num; ++ii)
 			{

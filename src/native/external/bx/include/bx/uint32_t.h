@@ -1,6 +1,6 @@
 /*
- * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
- * License: http://www.opensource.org/licenses/BSD-2-Clause
+ * Copyright 2010-2016 Branimir Karadzic. All rights reserved.
+ * License: https://github.com/bkaradzic/bx#license-bsd-2-clause
  */
 
 // Copyright 2006 Mike Acton <macton@gmail.com>
@@ -29,7 +29,7 @@
 #include "bx.h"
 
 #if BX_COMPILER_MSVC
-#	if BX_PLATFORM_WINDOWS || BX_PLATFORM_WINRT
+#	if BX_PLATFORM_WINDOWS || BX_PLATFORM_XBOXONE || BX_PLATFORM_WINRT
 #		include <math.h> // math.h is included because VS bitches:
 						 // warning C4985: 'ceil': attributes not present on previous declaration.
 						 // must be included before intrin.h.
@@ -272,6 +272,14 @@ namespace bx
 	{
 		const uint32_t tmp    = uint32_max(_a, _min);
 		const uint32_t result = uint32_min(tmp, _max);
+
+		return result;
+	}
+
+	inline uint32_t uint32_iclamp(uint32_t _a, uint32_t _min, uint32_t _max)
+	{
+		const uint32_t tmp    = uint32_imax(_a, _min);
+		const uint32_t result = uint32_imin(tmp, _max);
 
 		return result;
 	}
@@ -644,8 +652,8 @@ namespace bx
 	inline uint64_t uint64_cntlz_ref(uint64_t _val)
 	{
 		return _val & UINT64_C(0xffffffff00000000)
-			 ? uint32_cntlz(uint32_t(_val>>32) ) + 32
-			 : uint32_cntlz(uint32_t(_val) )
+			 ? uint32_cntlz(uint32_t(_val>>32) )
+			 : uint32_cntlz(uint32_t(_val) ) + 32
 			 ;
 	}
 

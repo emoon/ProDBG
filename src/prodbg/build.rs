@@ -17,6 +17,9 @@ fn main() {
 	if target.contains("darwin") {
 		println!("cargo:rustc-flags=-l dylib=stdc++");
     	println!("cargo:rustc-flags=-l framework=Cocoa");
+        println!("cargo:rustc-flags=-l framework=Metal");
+        println!("cargo:rustc-flags=-l framework=OpenGL");
+        println!("cargo:rustc-flags=-l framework=QuartzCore");
     } else if target.contains("windows") {
     } else {
 		println!("cargo:rustc-flags=-l dylib=stdc++");

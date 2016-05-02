@@ -1,10 +1,9 @@
 --
--- Copyright 2010-2015 Branimir Karadzic. All rights reserved.
--- License: http://www.opensource.org/licenses/BSD-2-Clause
+-- Copyright 2010-2016 Branimir Karadzic. All rights reserved.
+-- License: https://github.com/bkaradzic/bx#license-bsd-2-clause
 --
 
 project "UnitTest++"
-	uuid "ab932f5c-2409-11e3-b000-887628d43830"
 	kind "StaticLib"
 
 	removeflags {
@@ -16,7 +15,7 @@ project "UnitTest++"
 		"../3rdparty/UnitTest++/src/*.h",
 	}
 
-	configuration { "linux or osx or android-* or *nacl*" }
+	configuration { "linux or osx or android-* or *nacl* or ps4 or rpi or riscv" }
 		files {
 			"../3rdparty/UnitTest++/src/Posix/**.cpp",
 			"../3rdparty/UnitTest++/src/Posix/**.h",

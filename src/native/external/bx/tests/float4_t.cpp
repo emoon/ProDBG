@@ -1,10 +1,11 @@
 /*
- * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
- * License: http://www.opensource.org/licenses/BSD-2-Clause
+ * Copyright 2010-2016 Branimir Karadzic. All rights reserved.
+ * License: https://github.com/bkaradzic/bx#license-bsd-2-clause
  */
 
 #include "test.h"
 #include <bx/float4_t.h>
+#include <bx/fpumath.h>
 #include <string.h>
 
 using namespace bx;
@@ -70,10 +71,10 @@ void float4_check_float(const char* _str, bx::float4_t _a, float _0, float _1, f
 		, _0, _1, _2, _3
 		);
 
-	CHECK_EQUAL(c.f[0], _0);
-	CHECK_EQUAL(c.f[1], _1);
-	CHECK_EQUAL(c.f[2], _2);
-	CHECK_EQUAL(c.f[3], _3);
+	CHECK(bx::fequal(c.f[0], _0, 0.0001f) );
+	CHECK(bx::fequal(c.f[1], _1, 0.0001f) );
+	CHECK(bx::fequal(c.f[2], _2, 0.0001f) );
+	CHECK(bx::fequal(c.f[3], _3, 0.0001f) );
 }
 
 void float4_check_string(const char* _str, bx::float4_t _a)
@@ -227,6 +228,29 @@ TEST(float4_arithmetic)
 	float4_check_float("madd"
 		, float4_madd(float4_ld(0.0f, 1.0f, 2.0f, 3.0f), float4_ld(4.0f, 5.0f, 6.0f, 7.0f), float4_ld(8.0f, 9.0f, 10.0f, 11.0f) )
 		, 8.0f, 14.0f, 22.0f, 32.0f
+		);
+
+	float4_check_float("cross3"
+		, float4_cross3(float4_ld(1.0f, 0.0f, 0.0f, 0.0f), float4_ld(0.0f, 1.0f, 0.0f, 0.0f) )
+		, 0.0f, 0.0f, 1.0f, 0.0f
+		);
+}
+
+TEST(float4_sqrt)
+{
+	float4_check_float("float4_sqrt"
+		, float4_sqrt(float4_ld(1.0f, 16.0f, 65536.0f, 123456.0f) )
+		, 1.0f, 4.0f, 256.0f, 351.363060096f
+		);
+
+	float4_check_float("float4_sqrt_nr_ni"
+		, float4_sqrt_nr_ni(float4_ld(1.0f, 16.0f, 65536.0f, 123456.0f) )
+		, 1.0f, 4.0f, 256.0f, 351.363060096f
+		);
+
+	float4_check_float("float4_sqrt_nr1_ni"
+		, float4_sqrt_nr1_ni(float4_ld(1.0f, 16.0f, 65536.0f, 123456.0f) )
+		, 1.0f, 4.0f, 256.0f, 351.363060096f
 		);
 }
 

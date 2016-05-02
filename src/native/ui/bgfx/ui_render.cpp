@@ -1,4 +1,4 @@
-#include <bgfx.h>
+#include <bgfx/bgfx.h>
 //#include "core/log.h"
 //#include "core/file.h"
 //#include "core/core.h"
@@ -191,7 +191,7 @@ enum {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool UIRender_init() {
-    s_tex = bgfx::createUniform("s_tex", bgfx::UniformType::Uniform1i);
+    s_tex = bgfx::createUniform("s_tex", bgfx::UniformType::Int1);
 
     for (int i = 0; i < (int)sizeof_array(s_programs); ++i) {
         ProgramInfo* program = &s_programs[i];
@@ -236,8 +236,9 @@ void UIRender_allocPosColorTb(bgfx::TransientVertexBuffer* buffer, uint32_t coun
 void UIRender_posTexColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle) {
     bgfx::setTexture(0, s_tex, texHandle);
     bgfx::setVertexBuffer(vertexBuffer, offset, count);
-    bgfx::setProgram(s_programs[Program_PosTexColor].handle);
-    bgfx::submit(0);
+    //NOTE(marco): the program handle is now part of bgfx::submit
+    //bgfx::setProgram(s_programs[Program_PosTexColor].handle);
+    bgfx::submit(0, s_programs[Program_PosTexColor].handle);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -246,8 +247,9 @@ void UIRender_posIdxTexColor(bgfx::TransientVertexBuffer* vertexBuffer, bgfx::Tr
     bgfx::setTexture(0, s_tex, texHandle);
     bgfx::setVertexBuffer(vertexBuffer, 0, vtxSize);
     bgfx::setIndexBuffer(indexBuffer, offset, count);
-    bgfx::setProgram(s_programs[Program_PosTexColor].handle);
-    bgfx::submit(0);
+    //NOTE(marco): the program handle is now part of bgfx::submit
+    //bgfx::setProgram(s_programs[Program_PosTexColor].handle);
+    bgfx::submit(0, s_programs[Program_PosTexColor].handle);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -255,16 +257,22 @@ void UIRender_posIdxTexColor(bgfx::TransientVertexBuffer* vertexBuffer, bgfx::Tr
 void UIRender_posTexRColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle) {
     bgfx::setTexture(0, s_tex, texHandle);
     bgfx::setVertexBuffer(vertexBuffer, offset, count);
-    bgfx::setProgram(s_programs[Program_PosTexRColor].handle);
-    bgfx::submit(0);
+    //NOTE(marco): the program handle is now part of bgfx::submit
+    //bgfx::setProgram(s_programs[Program_PosTexRColor].handle);
+    bgfx::submit(0, s_programs[Program_PosTexRColor].handle);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UIRender_posColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count) {
     bgfx::setVertexBuffer(vertexBuffer, offset, count);
-    bgfx::setProgram(s_programs[Program_PosColor].handle);
-    bgfx::submit(0);
+    //NOTE(marco): the program handle is now part of bgfx::submit
+    //bgfx::setProgram(s_programs[Program_PosColor].handle);
+    bgfx::submit(0, s_programs[Program_PosColor].handle);
+}
+
+bgfx::ProgramHandle UIRender_getProgramHandle(uint32_t programIndex) {
+    return s_programs[2].handle;
 }
 
 

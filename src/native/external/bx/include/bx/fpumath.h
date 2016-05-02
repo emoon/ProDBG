@@ -1,6 +1,6 @@
 /*
- * Copyright 2011-2015 Branimir Karadzic. All rights reserved.
- * License: http://www.opensource.org/licenses/BSD-2-Clause
+ * Copyright 2011-2016 Branimir Karadzic. All rights reserved.
+ * License: https://github.com/bkaradzic/bx#license-bsd-2-clause
  */
 
 // FPU math lib
@@ -19,6 +19,24 @@ namespace bx
 	static const float piHalf = 1.57079632679489661923f;
 	static const float sqrt2  = 1.41421356237309504880f;
 
+	struct Handness
+	{
+		enum Enum
+		{
+			Left,
+			Right,
+		};
+	};
+
+	struct NearFar
+	{
+		enum Enum
+		{
+			Default,
+			Reverse,
+		};
+	};
+
 	inline float toRad(float _deg)
 	{
 		return _deg * pi / 180.0f;
@@ -29,9 +47,19 @@ namespace bx
 		return _rad * 180.0f / pi;
 	}
 
+	inline float ffloor(float _f)
+	{
+		return floorf(_f);
+	}
+
+	inline float fceil(float _f)
+	{
+		return ceilf(_f);
+	}
+
 	inline float fround(float _f)
 	{
-		return float(int(_f) );
+		return ffloor(_f + 0.5f);
 	}
 
 	inline float fmin(float _a, float _b)
@@ -89,9 +117,49 @@ namespace bx
 		return fabsf(_a);
 	}
 
+	inline float fsq(float _a)
+	{
+		return _a * _a;
+	}
+
+	inline float fsin(float _a)
+	{
+		return sinf(_a);
+	}
+
+	inline float fcos(float _a)
+	{
+		return cosf(_a);
+	}
+
+	inline float fpow(float _a, float _b)
+	{
+		return powf(_a, _b);
+	}
+
+	inline float fexp2(float _a)
+	{
+		return fpow(2.0f, _a);
+	}
+
+	inline float flog(float _a)
+	{
+		return logf(_a);
+	}
+
+	inline float flog2(float _a)
+	{
+		return flog(_a) * 1.442695041f;
+	}
+
 	inline float fsqrt(float _a)
 	{
 		return sqrtf(_a);
+	}
+
+	inline float frsqrt(float _a)
+	{
+		return 1.0f/fsqrt(_a);
 	}
 
 	inline float ffract(float _a)
@@ -99,9 +167,17 @@ namespace bx
 		return _a - floorf(_a);
 	}
 
+	inline float fmod(float _a, float _b)
+	{
+		return fmodf(_a, _b);
+	}
+
 	inline bool fequal(float _a, float _b, float _epsilon)
 	{
-		return fabsolute(_a - _b) <= _epsilon;
+		// http://realtimecollisiondetection.net/blog/?p=89
+		const float lhs = fabsolute(_a - _b);
+		const float rhs = _epsilon * fmax3(1.0f, fabsolute(_a), fabsolute(_b) );
+		return lhs <= rhs;
 	}
 
 	inline bool fequal(const float* __restrict _a, const float* __restrict _b, uint32_t _num, float _epsilon)
@@ -116,9 +192,28 @@ namespace bx
 
 	inline float fwrap(float _a, float _wrap)
 	{
-		const float mod    = fmodf(_a, _wrap);
+		const float mod    = fmod(_a, _wrap);
 		const float result = mod < 0.0f ? _wrap + mod : mod;
 		return result;
+	}
+
+	// References:
+	//  - Bias And Gain Are Your Friend
+	//    http://blog.demofox.org/2012/09/24/bias-and-gain-are-your-friend/
+	//  - http://demofox.org/biasgain.html
+	inline float fbias(float _time, float _bias)
+	{
+		return _time / ( ( (1.0f/_bias - 2.0f)*(1.0f - _time) ) + 1.0f);
+	}
+
+	inline float fgain(float _time, float _gain)
+	{
+		if (_time < 0.5f)
+		{
+			return fbias(_time * 2.0f, _gain) * 0.5f;
+		}
+
+		return fbias(_time * 2.0f - 1.0f, 1.0f - _gain) * 0.5f + 0.5f;
 	}
 
 	inline void vec3Move(float* __restrict _result, const float* __restrict _a)
@@ -149,11 +244,25 @@ namespace bx
 		_result[2] = _a[2] + _b[2];
 	}
 
+	inline void vec3Add(float* __restrict _result, const float* __restrict _a, float _b)
+	{
+		_result[0] = _a[0] + _b;
+		_result[1] = _a[1] + _b;
+		_result[2] = _a[2] + _b;
+	}
+
 	inline void vec3Sub(float* __restrict _result, const float* __restrict _a, const float* __restrict _b)
 	{
 		_result[0] = _a[0] - _b[0];
 		_result[1] = _a[1] - _b[1];
 		_result[2] = _a[2] - _b[2];
+	}
+
+	inline void vec3Sub(float* __restrict _result, const float* __restrict _a, float _b)
+	{
+		_result[0] = _a[0] - _b;
+		_result[1] = _a[1] - _b;
+		_result[2] = _a[2] - _b;
 	}
 
 	inline void vec3Mul(float* __restrict _result, const float* __restrict _a, const float* __restrict _b)
@@ -187,6 +296,20 @@ namespace bx
 		return fsqrt(vec3Dot(_a, _a) );
 	}
 
+	inline void vec3Lerp(float* __restrict _result, const float* __restrict _a, const float* __restrict _b, float _t)
+	{
+		_result[0] = flerp(_a[0], _b[0], _t);
+		_result[1] = flerp(_a[1], _b[1], _t);
+		_result[2] = flerp(_a[2], _b[2], _t);
+	}
+
+	inline void vec3Lerp(float* __restrict _result, const float* __restrict _a, const float* __restrict _b, const float* __restrict _c)
+	{
+		_result[0] = flerp(_a[0], _b[0], _c[0]);
+		_result[1] = flerp(_a[1], _b[1], _c[1]);
+		_result[2] = flerp(_a[2], _b[2], _c[2]);
+	}
+
 	inline float vec3Norm(float* __restrict _result, const float* __restrict _a)
 	{
 		const float len = vec3Length(_a);
@@ -197,12 +320,41 @@ namespace bx
 		return len;
 	}
 
+	inline void vec3Min(float* __restrict _result, const float* __restrict _a, const float* __restrict _b)
+	{
+		_result[0] = fmin(_a[0], _b[0]);
+		_result[1] = fmin(_a[1], _b[1]);
+		_result[2] = fmin(_a[2], _b[2]);
+	}
+
+	inline void vec3Max(float* __restrict _result, const float* __restrict _a, const float* __restrict _b)
+	{
+		_result[0] = fmax(_a[0], _b[0]);
+		_result[1] = fmax(_a[1], _b[1]);
+		_result[2] = fmax(_a[2], _b[2]);
+	}
+
+	inline void vec3Rcp(float* __restrict _result, const float* __restrict _a)
+	{
+		_result[0] = 1.0f / _a[0];
+		_result[1] = 1.0f / _a[1];
+		_result[2] = 1.0f / _a[2];
+	}
+
 	inline void quatIdentity(float* _result)
 	{
 		_result[0] = 0.0f;
 		_result[1] = 0.0f;
 		_result[2] = 0.0f;
 		_result[3] = 1.0f;
+	}
+
+	inline void quatMove(float* __restrict _result, const float* __restrict _a)
+	{
+		_result[0] = _a[0];
+		_result[1] = _a[1];
+		_result[2] = _a[2];
+		_result[3] = _a[3];
 	}
 
 	inline void quatMulXYZ(float* __restrict _result, const float* __restrict _qa, const float* __restrict _qb)
@@ -248,6 +400,32 @@ namespace bx
 		_result[3] =  _quat[3];
 	}
 
+	inline float quatDot(const float* __restrict _a, const float* __restrict _b)
+	{
+		return _a[0]*_b[0]
+			 + _a[1]*_b[1]
+			 + _a[2]*_b[2]
+			 + _a[3]*_b[3]
+			 ;
+	}
+
+	inline void quatNorm(float* __restrict _result, const float* __restrict _quat)
+	{
+		const float norm = quatDot(_quat, _quat);
+		if (0.0f < norm)
+		{
+			const float invNorm = 1.0f / fsqrt(norm);
+			_result[0] = _quat[0] * invNorm;
+			_result[1] = _quat[1] * invNorm;
+			_result[2] = _quat[2] * invNorm;
+			_result[3] = _quat[3] * invNorm;
+		}
+		else
+		{
+			quatIdentity(_result);
+		}
+	}
+
 	inline void quatToEuler(float* __restrict _result, const float* __restrict _quat)
 	{
 		const float x = _quat[0];
@@ -264,11 +442,22 @@ namespace bx
 		_result[2] = asinf (2.0f * (x * y + z * w) );
 	}
 
+	inline void quatRotateAxis(float* __restrict _result, const float* _axis, float _angle)
+	{
+		const float ha = _angle * 0.5f;
+		const float ca = fcos(ha);
+		const float sa = fsin(ha);
+		_result[0] = _axis[0] * sa;
+		_result[1] = _axis[1] * sa;
+		_result[2] = _axis[2] * sa;
+		_result[3] = ca;
+	}
+
 	inline void quatRotateX(float* _result, float _ax)
 	{
 		const float hx = _ax * 0.5f;
-		const float cx = cosf(hx);
-		const float sx = sinf(hx);
+		const float cx = fcos(hx);
+		const float sx = fsin(hx);
 		_result[0] = sx;
 		_result[1] = 0.0f;
 		_result[2] = 0.0f;
@@ -278,8 +467,8 @@ namespace bx
 	inline void quatRotateY(float* _result, float _ay)
 	{
 		const float hy = _ay * 0.5f;
-		const float cy = cosf(hy);
-		const float sy = sinf(hy);
+		const float cy = fcos(hy);
+		const float sy = fsin(hy);
 		_result[0] = 0.0f;
 		_result[1] = sy;
 		_result[2] = 0.0f;
@@ -289,8 +478,8 @@ namespace bx
 	inline void quatRotateZ(float* _result, float _az)
 	{
 		const float hz = _az * 0.5f;
-		const float cz = cosf(hz);
-		const float sz = sinf(hz);
+		const float cz = fcos(hz);
+		const float sz = fsin(hz);
 		_result[0] = 0.0f;
 		_result[1] = 0.0f;
 		_result[2] = sz;
@@ -396,14 +585,8 @@ namespace bx
 		mtxQuatTranslation(_result, quat, _translation);
 	}
 
-	inline void mtxLookAt(float* __restrict _result, const float* __restrict _eye, const float* __restrict _at, const float* __restrict _up = NULL)
+	inline void mtxLookAt_Impl(float* __restrict _result, const float* __restrict _eye, const float* __restrict _view, const float* __restrict _up = NULL)
 	{
-		float tmp[4];
-		vec3Sub(tmp, _at, _eye);
-
-		float view[4];
-		vec3Norm(view, tmp);
-
 		float up[3] = { 0.0f, 1.0f, 0.0f };
 		if (NULL != _up)
 		{
@@ -411,92 +594,315 @@ namespace bx
 			up[1] = _up[1];
 			up[2] = _up[2];
 		}
-		vec3Cross(tmp, up, view);
+
+		float tmp[4];
+		vec3Cross(tmp, up, _view);
 
 		float right[4];
 		vec3Norm(right, tmp);
 
-		vec3Cross(up, view, right);
+		vec3Cross(up, _view, right);
 
 		memset(_result, 0, sizeof(float)*16);
 		_result[ 0] = right[0];
 		_result[ 1] = up[0];
-		_result[ 2] = view[0];
+		_result[ 2] = _view[0];
 
 		_result[ 4] = right[1];
 		_result[ 5] = up[1];
-		_result[ 6] = view[1];
+		_result[ 6] = _view[1];
 
 		_result[ 8] = right[2];
 		_result[ 9] = up[2];
-		_result[10] = view[2];
+		_result[10] = _view[2];
 
 		_result[12] = -vec3Dot(right, _eye);
 		_result[13] = -vec3Dot(up, _eye);
-		_result[14] = -vec3Dot(view, _eye);
+		_result[14] = -vec3Dot(_view, _eye);
 		_result[15] = 1.0f;
 	}
 
+	inline void mtxLookAtLh(float* __restrict _result, const float* __restrict _eye, const float* __restrict _at, const float* __restrict _up = NULL)
+	{
+		float tmp[4];
+		vec3Sub(tmp, _at, _eye);
+
+		float view[4];
+		vec3Norm(view, tmp);
+
+		mtxLookAt_Impl(_result, _eye, view, _up);
+	}
+
+	inline void mtxLookAtRh(float* __restrict _result, const float* __restrict _eye, const float* __restrict _at, const float* __restrict _up = NULL)
+	{
+		float tmp[4];
+		vec3Sub(tmp, _eye, _at);
+
+		float view[4];
+		vec3Norm(view, tmp);
+
+		mtxLookAt_Impl(_result, _eye, view, _up);
+	}
+
+	inline void mtxLookAt(float* __restrict _result, const float* __restrict _eye, const float* __restrict _at, const float* __restrict _up = NULL)
+	{
+		mtxLookAtLh(_result, _eye, _at, _up);
+	}
+
+	template <Handness::Enum HandnessT>
 	inline void mtxProjXYWH(float* _result, float _x, float _y, float _width, float _height, float _near, float _far, bool _oglNdc = false)
 	{
 		const float diff = _far-_near;
 		const float aa = _oglNdc ?       (_far+_near)/diff : _far/diff;
-		const float bb = _oglNdc ? -(2.0f*_far*_near)/diff : -_near*aa;
+		const float bb = _oglNdc ?  (2.0f*_far*_near)/diff : _near*aa;
 
 		memset(_result, 0, sizeof(float)*16);
 		_result[ 0] = _width;
 		_result[ 5] = _height;
-		_result[ 8] =  _x;
-		_result[ 9] = -_y;
-		_result[10] = aa;
-		_result[11] = 1.0f;
-		_result[14] = bb;
+		_result[ 8] = (Handness::Right == HandnessT) ?    _x :  -_x;
+		_result[ 9] = (Handness::Right == HandnessT) ?    _y :  -_y;
+		_result[10] = (Handness::Right == HandnessT) ?   -aa :   aa;
+		_result[11] = (Handness::Right == HandnessT) ? -1.0f : 1.0f;
+		_result[14] = -bb;
+	}
+
+	template <Handness::Enum HandnessT>
+	inline void mtxProj_impl(float* _result, float _ut, float _dt, float _lt, float _rt, float _near, float _far, bool _oglNdc = false)
+	{
+		const float invDiffRl = 1.0f/(_rt - _lt);
+		const float invDiffUd = 1.0f/(_ut - _dt);
+		const float width  =  2.0f*_near * invDiffRl;
+		const float height =  2.0f*_near * invDiffUd;
+		const float xx     = (_rt + _lt) * invDiffRl;
+		const float yy     = (_ut + _dt) * invDiffUd;
+		mtxProjXYWH<HandnessT>(_result, xx, yy, width, height, _near, _far, _oglNdc);
+	}
+
+	template <Handness::Enum HandnessT>
+	inline void mtxProj_impl(float* _result, const float _fov[4], float _near, float _far, bool _oglNdc = false)
+	{
+		mtxProj_impl<HandnessT>(_result, _fov[0], _fov[1], _fov[2], _fov[3], _near, _far, _oglNdc);
+	}
+
+	template <Handness::Enum HandnessT>
+	inline void mtxProj_impl(float* _result, float _fovy, float _aspect, float _near, float _far, bool _oglNdc = false)
+	{
+		const float height = 1.0f/tanf(toRad(_fovy)*0.5f);
+		const float width  = height * 1.0f/_aspect;
+		mtxProjXYWH<HandnessT>(_result, 0.0f, 0.0f, width, height, _near, _far, _oglNdc);
 	}
 
 	inline void mtxProj(float* _result, float _ut, float _dt, float _lt, float _rt, float _near, float _far, bool _oglNdc = false)
 	{
-		const float width  = 2.0f / (_lt + _rt);
-		const float height = 2.0f / (_ut + _dt);
-		const float xx     = (_lt - _rt) * width  * 0.5f;
-		const float yy     = (_ut - _dt) * height * 0.5f;
-		mtxProjXYWH(_result, xx, yy, width, height, _near, _far, _oglNdc);
+		mtxProj_impl<Handness::Left>(_result, _ut, _dt, _lt, _rt, _near, _far, _oglNdc);
 	}
 
 	inline void mtxProj(float* _result, const float _fov[4], float _near, float _far, bool _oglNdc = false)
 	{
-		mtxProj(_result, _fov[0], _fov[1], _fov[2], _fov[3], _near, _far, _oglNdc);
+		mtxProj_impl<Handness::Left>(_result, _fov, _near, _far, _oglNdc);
 	}
 
 	inline void mtxProj(float* _result, float _fovy, float _aspect, float _near, float _far, bool _oglNdc = false)
 	{
-		const float height = 1.0f/tanf(toRad(_fovy)*0.5f);
-		const float width  = height * 1.0f/_aspect;
-		mtxProjXYWH(_result, 0.0f, 0.0f, width, height, _near, _far, _oglNdc);
+		mtxProj_impl<Handness::Left>(_result, _fovy, _aspect, _near, _far, _oglNdc);
 	}
 
-	inline void mtxOrtho(float* _result, float _left, float _right, float _bottom, float _top, float _near, float _far, float _offset = 0.0f)
+	inline void mtxProjLh(float* _result, float _ut, float _dt, float _lt, float _rt, float _near, float _far, bool _oglNdc = false)
+	{
+		mtxProj_impl<Handness::Left>(_result, _ut, _dt, _lt, _rt, _near, _far, _oglNdc);
+	}
+
+	inline void mtxProjLh(float* _result, const float _fov[4], float _near, float _far, bool _oglNdc = false)
+	{
+		mtxProj_impl<Handness::Left>(_result, _fov, _near, _far, _oglNdc);
+	}
+
+	inline void mtxProjLh(float* _result, float _fovy, float _aspect, float _near, float _far, bool _oglNdc = false)
+	{
+		mtxProj_impl<Handness::Left>(_result, _fovy, _aspect, _near, _far, _oglNdc);
+	}
+
+	inline void mtxProjRh(float* _result, float _ut, float _dt, float _lt, float _rt, float _near, float _far, bool _oglNdc = false)
+	{
+		mtxProj_impl<Handness::Right>(_result, _ut, _dt, _lt, _rt, _near, _far, _oglNdc);
+	}
+
+	inline void mtxProjRh(float* _result, const float _fov[4], float _near, float _far, bool _oglNdc = false)
+	{
+		mtxProj_impl<Handness::Right>(_result, _fov, _near, _far, _oglNdc);
+	}
+
+	inline void mtxProjRh(float* _result, float _fovy, float _aspect, float _near, float _far, bool _oglNdc = false)
+	{
+		mtxProj_impl<Handness::Right>(_result, _fovy, _aspect, _near, _far, _oglNdc);
+	}
+
+	template <NearFar::Enum NearFarT, Handness::Enum HandnessT>
+	inline void mtxProjInfXYWH(float* _result, float _x, float _y, float _width, float _height, float _near, bool _oglNdc = false)
+	{
+		float aa;
+		float bb;
+		if (BX_ENABLED(NearFar::Reverse == NearFarT) )
+		{
+			aa = _oglNdc ?       -1.0f :   0.0f;
+			bb = _oglNdc ? -2.0f*_near : -_near;
+		}
+		else
+		{
+			aa = 1.0f;
+			bb = _oglNdc ? 2.0f*_near : _near;
+		}
+
+		memset(_result, 0, sizeof(float)*16);
+		_result[ 0] = _width;
+		_result[ 5] = _height;
+		_result[ 8] = (Handness::Right == HandnessT) ?    _x :  -_x;
+		_result[ 9] = (Handness::Right == HandnessT) ?    _y :  -_y;
+		_result[10] = (Handness::Right == HandnessT) ?   -aa :   aa;
+		_result[11] = (Handness::Right == HandnessT) ? -1.0f : 1.0f;
+		_result[14] = -bb;
+	}
+
+	template <NearFar::Enum NearFarT, Handness::Enum HandnessT>
+	inline void mtxProjInf_impl(float* _result, float _ut, float _dt, float _lt, float _rt, float _near, bool _oglNdc = false)
+	{
+		const float invDiffRl = 1.0f/(_rt - _lt);
+		const float invDiffUd = 1.0f/(_ut - _dt);
+		const float width  =  2.0f*_near * invDiffRl;
+		const float height =  2.0f*_near * invDiffUd;
+		const float xx     = (_rt + _lt) * invDiffRl;
+		const float yy     = (_ut + _dt) * invDiffUd;
+		mtxProjInfXYWH<NearFarT,HandnessT>(_result, xx, yy, width, height, _near, _oglNdc);
+	}
+
+	template <NearFar::Enum NearFarT, Handness::Enum HandnessT>
+	inline void mtxProjInf_impl(float* _result, const float _fov[4], float _near, bool _oglNdc = false)
+	{
+		mtxProjInf_impl<NearFarT,HandnessT>(_result, _fov[0], _fov[1], _fov[2], _fov[3], _near, _oglNdc);
+	}
+
+	template <NearFar::Enum NearFarT, Handness::Enum HandnessT>
+	inline void mtxProjInf_impl(float* _result, float _fovy, float _aspect, float _near, bool _oglNdc = false)
+	{
+		const float height = 1.0f/tanf(toRad(_fovy)*0.5f);
+		const float width  = height * 1.0f/_aspect;
+		mtxProjInfXYWH<NearFarT,HandnessT>(_result, 0.0f, 0.0f, width, height, _near, _oglNdc);
+	}
+
+	inline void mtxProjInf(float* _result, const float _fov[4], float _near, bool _oglNdc = false)
+	{
+		mtxProjInf_impl<NearFar::Default,Handness::Left>(_result, _fov, _near, _oglNdc);
+	}
+
+	inline void mtxProjInf(float* _result, float _ut, float _dt, float _lt, float _rt, float _near, bool _oglNdc = false)
+	{
+		mtxProjInf_impl<NearFar::Default,Handness::Left>(_result, _ut, _dt, _lt, _rt, _near, _oglNdc);
+	}
+
+	inline void mtxProjInf(float* _result, float _fovy, float _aspect, float _near, bool _oglNdc = false)
+	{
+		mtxProjInf_impl<NearFar::Default,Handness::Left>(_result, _fovy, _aspect, _near, _oglNdc);
+	}
+
+	inline void mtxProjInfLh(float* _result, float _ut, float _dt, float _lt, float _rt, float _near, bool _oglNdc = false)
+	{
+		mtxProjInf_impl<NearFar::Default,Handness::Left>(_result, _ut, _dt, _lt, _rt, _near, _oglNdc);
+	}
+
+	inline void mtxProjInfLh(float* _result, const float _fov[4], float _near, bool _oglNdc = false)
+	{
+		mtxProjInf_impl<NearFar::Default,Handness::Left>(_result, _fov, _near, _oglNdc);
+	}
+
+	inline void mtxProjInfLh(float* _result, float _fovy, float _aspect, float _near, bool _oglNdc = false)
+	{
+		mtxProjInf_impl<NearFar::Default,Handness::Left>(_result, _fovy, _aspect, _near, _oglNdc);
+	}
+
+	inline void mtxProjInfRh(float* _result, float _ut, float _dt, float _lt, float _rt, float _near, bool _oglNdc = false)
+	{
+		mtxProjInf_impl<NearFar::Default,Handness::Right>(_result, _ut, _dt, _lt, _rt, _near, _oglNdc);
+	}
+
+	inline void mtxProjInfRh(float* _result, const float _fov[4], float _near, bool _oglNdc = false)
+	{
+		mtxProjInf_impl<NearFar::Default,Handness::Right>(_result, _fov, _near, _oglNdc);
+	}
+
+	inline void mtxProjInfRh(float* _result, float _fovy, float _aspect, float _near, bool _oglNdc = false)
+	{
+		mtxProjInf_impl<NearFar::Default,Handness::Right>(_result, _fovy, _aspect, _near, _oglNdc);
+	}
+
+	inline void mtxProjRevInfLh(float* _result, float _ut, float _dt, float _lt, float _rt, float _near, bool _oglNdc = false)
+	{
+		mtxProjInf_impl<NearFar::Reverse,Handness::Left>(_result, _ut, _dt, _lt, _rt, _near, _oglNdc);
+	}
+
+	inline void mtxProjRevInfLh(float* _result, const float _fov[4], float _near, bool _oglNdc = false)
+	{
+		mtxProjInf_impl<NearFar::Reverse,Handness::Left>(_result, _fov, _near, _oglNdc);
+	}
+
+	inline void mtxProjRevInfLh(float* _result, float _fovy, float _aspect, float _near, bool _oglNdc = false)
+	{
+		mtxProjInf_impl<NearFar::Reverse,Handness::Left>(_result, _fovy, _aspect, _near, _oglNdc);
+	}
+
+	inline void mtxProjRevInfRh(float* _result, float _ut, float _dt, float _lt, float _rt, float _near, bool _oglNdc = false)
+	{
+		mtxProjInf_impl<NearFar::Reverse,Handness::Right>(_result, _ut, _dt, _lt, _rt, _near, _oglNdc);
+	}
+
+	inline void mtxProjRevInfRh(float* _result, const float _fov[4], float _near, bool _oglNdc = false)
+	{
+		mtxProjInf_impl<NearFar::Reverse,Handness::Right>(_result, _fov, _near, _oglNdc);
+	}
+
+	inline void mtxProjRevInfRh(float* _result, float _fovy, float _aspect, float _near, bool _oglNdc = false)
+	{
+		mtxProjInf_impl<NearFar::Reverse,Handness::Right>(_result, _fovy, _aspect, _near, _oglNdc);
+	}
+
+	template <Handness::Enum HandnessT>
+	inline void mtxOrtho_impl(float* _result, float _left, float _right, float _bottom, float _top, float _near, float _far, float _offset = 0.0f, bool _oglNdc = false)
 	{
 		const float aa = 2.0f/(_right - _left);
 		const float bb = 2.0f/(_top - _bottom);
-		const float cc = 1.0f/(_far - _near);
+		const float cc = (_oglNdc ? 2.0f : 1.0f) / (_far - _near);
 		const float dd = (_left + _right)/(_left - _right);
 		const float ee = (_top + _bottom)/(_bottom - _top);
-		const float ff = _near / (_near - _far);
+		const float ff = _oglNdc ? (_near + _far)/(_near - _far) : _near/(_near - _far);
 
 		memset(_result, 0, sizeof(float)*16);
 		_result[ 0] = aa;
 		_result[ 5] = bb;
-		_result[10] = cc;
+		_result[10] = (Handness::Right == HandnessT) ? -cc : cc;
 		_result[12] = dd + _offset;
 		_result[13] = ee;
 		_result[14] = ff;
 		_result[15] = 1.0f;
 	}
 
+	inline void mtxOrtho(float* _result, float _left, float _right, float _bottom, float _top, float _near, float _far, float _offset = 0.0f, bool _oglNdc = false)
+	{
+		mtxOrtho_impl<Handness::Left>(_result, _left, _right, _bottom, _top, _near, _far, _offset, _oglNdc);
+	}
+
+	inline void mtxOrthoLh(float* _result, float _left, float _right, float _bottom, float _top, float _near, float _far, float _offset = 0.0f, bool _oglNdc = false)
+	{
+		mtxOrtho_impl<Handness::Left>(_result, _left, _right, _bottom, _top, _near, _far, _offset, _oglNdc);
+	}
+
+	inline void mtxOrthoRh(float* _result, float _left, float _right, float _bottom, float _top, float _near, float _far, float _offset = 0.0f, bool _oglNdc = false)
+	{
+		mtxOrtho_impl<Handness::Right>(_result, _left, _right, _bottom, _top, _near, _far, _offset, _oglNdc);
+	}
+
 	inline void mtxRotateX(float* _result, float _ax)
 	{
-		const float sx = sinf(_ax);
-		const float cx = cosf(_ax);
+		const float sx = fsin(_ax);
+		const float cx = fcos(_ax);
 
 		memset(_result, 0, sizeof(float)*16);
 		_result[ 0] = 1.0f;
@@ -509,8 +915,8 @@ namespace bx
 
 	inline void mtxRotateY(float* _result, float _ay)
 	{
-		const float sy = sinf(_ay);
-		const float cy = cosf(_ay);
+		const float sy = fsin(_ay);
+		const float cy = fcos(_ay);
 
 		memset(_result, 0, sizeof(float)*16);
 		_result[ 0] = cy;
@@ -523,8 +929,8 @@ namespace bx
 
 	inline void mtxRotateZ(float* _result, float _az)
 	{
-		const float sz = sinf(_az);
-		const float cz = cosf(_az);
+		const float sz = fsin(_az);
+		const float cz = fcos(_az);
 
 		memset(_result, 0, sizeof(float)*16);
 		_result[ 0] = cz;
@@ -537,10 +943,10 @@ namespace bx
 
 	inline void mtxRotateXY(float* _result, float _ax, float _ay)
 	{
-		const float sx = sinf(_ax);
-		const float cx = cosf(_ax);
-		const float sy = sinf(_ay);
-		const float cy = cosf(_ay);
+		const float sx = fsin(_ax);
+		const float cx = fcos(_ax);
+		const float sy = fsin(_ay);
+		const float cy = fcos(_ay);
 
 		memset(_result, 0, sizeof(float)*16);
 		_result[ 0] = cy;
@@ -556,12 +962,12 @@ namespace bx
 
 	inline void mtxRotateXYZ(float* _result, float _ax, float _ay, float _az)
 	{
-		const float sx = sinf(_ax);
-		const float cx = cosf(_ax);
-		const float sy = sinf(_ay);
-		const float cy = cosf(_ay);
-		const float sz = sinf(_az);
-		const float cz = cosf(_az);
+		const float sx = fsin(_ax);
+		const float cx = fcos(_ax);
+		const float sy = fsin(_ay);
+		const float cy = fcos(_ay);
+		const float sz = fsin(_az);
+		const float cz = fcos(_az);
 
 		memset(_result, 0, sizeof(float)*16);
 		_result[ 0] = cy*cz;
@@ -578,12 +984,12 @@ namespace bx
 
 	inline void mtxRotateZYX(float* _result, float _ax, float _ay, float _az)
 	{
-		const float sx = sinf(_ax);
-		const float cx = cosf(_ax);
-		const float sy = sinf(_ay);
-		const float cy = cosf(_ay);
-		const float sz = sinf(_az);
-		const float cz = cosf(_az);
+		const float sx = fsin(_ax);
+		const float cx = fcos(_ax);
+		const float sy = fsin(_ay);
+		const float cy = fcos(_ay);
+		const float sz = fsin(_az);
+		const float cz = fcos(_az);
 
 		memset(_result, 0, sizeof(float)*16);
 		_result[ 0] = cy*cz;
@@ -600,12 +1006,12 @@ namespace bx
 
 	inline void mtxSRT(float* _result, float _sx, float _sy, float _sz, float _ax, float _ay, float _az, float _tx, float _ty, float _tz)
 	{
-		const float sx = sinf(_ax);
-		const float cx = cosf(_ax);
-		const float sy = sinf(_ay);
-		const float cy = cosf(_ay);
-		const float sz = sinf(_az);
-		const float cz = cosf(_az);
+		const float sx = fsin(_ax);
+		const float cx = fcos(_ax);
+		const float sy = fsin(_ay);
+		const float cy = fcos(_ay);
+		const float sz = fsin(_az);
+		const float cz = fcos(_az);
 
 		const float sxsz = sx*sz;
 		const float cycz = cy*cz;
@@ -831,6 +1237,82 @@ namespace bx
 		_result[1] = normal[1];
 		_result[2] = normal[2];
 		_result[3] = -vec3Dot(normal, _va);
+	}
+
+	inline void calcLinearFit2D(float _result[2], const void* _points, uint32_t _stride, uint32_t _numPoints)
+	{
+		float sumX  = 0.0f;
+		float sumY  = 0.0f;
+		float sumXX = 0.0f;
+		float sumXY = 0.0f;
+
+		const uint8_t* ptr = (const uint8_t*)_points;
+		for (uint32_t ii = 0; ii < _numPoints; ++ii, ptr += _stride)
+		{
+			const float* point = (const float*)ptr;
+			float xx = point[0];
+			float yy = point[1];
+			sumX  += xx;
+			sumY  += yy;
+			sumXX += xx*xx;
+			sumXY += xx*yy;
+		}
+
+		// [ sum(x^2) sum(x)    ] [ A ] = [ sum(x*y) ]
+		// [ sum(x)   numPoints ] [ B ]   [ sum(y)   ]
+
+		float det = (sumXX*_numPoints - sumX*sumX);
+		float invDet = 1.0f/det;
+
+		_result[0] = (-sumX * sumY + _numPoints * sumXY) * invDet;
+		_result[1] = (sumXX * sumY - sumX       * sumXY) * invDet;
+	}
+
+	inline void calcLinearFit3D(float _result[3], const void* _points, uint32_t _stride, uint32_t _numPoints)
+	{
+		float sumX  = 0.0f;
+		float sumY  = 0.0f;
+		float sumZ  = 0.0f;
+		float sumXX = 0.0f;
+		float sumXY = 0.0f;
+		float sumXZ = 0.0f;
+		float sumYY = 0.0f;
+		float sumYZ = 0.0f;
+
+		const uint8_t* ptr = (const uint8_t*)_points;
+		for (uint32_t ii = 0; ii < _numPoints; ++ii, ptr += _stride)
+		{
+			const float* point = (const float*)ptr;
+			float xx = point[0];
+			float yy = point[1];
+			float zz = point[2];
+
+			sumX  += xx;
+			sumY  += yy;
+			sumZ  += zz;
+			sumXX += xx*xx;
+			sumXY += xx*yy;
+			sumXZ += xx*zz;
+			sumYY += yy*yy;
+			sumYZ += yy*zz;
+		}
+
+		// [ sum(x^2) sum(x*y) sum(x)    ] [ A ]   [ sum(x*z) ]
+		// [ sum(x*y) sum(y^2) sum(y)    ] [ B ] = [ sum(y*z) ]
+		// [ sum(x)   sum(y)   numPoints ] [ C ]   [ sum(z)   ]
+
+		float mtx[9] =
+		{
+			sumXX, sumXY, sumX,
+			sumXY, sumYY, sumY,
+			sumX,  sumY,  float(_numPoints),
+		};
+		float invMtx[9];
+		mtx3Inverse(invMtx, mtx);
+
+		_result[0] = invMtx[0]*sumXZ + invMtx[1]*sumYZ + invMtx[2]*sumZ;
+		_result[1] = invMtx[3]*sumXZ + invMtx[4]*sumYZ + invMtx[5]*sumZ;
+		_result[2] = invMtx[6]*sumXZ + invMtx[7]*sumYZ + invMtx[8]*sumZ;
 	}
 
 	inline void rgbToHsv(float _hsv[3], const float _rgb[3])

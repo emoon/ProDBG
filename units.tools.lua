@@ -131,7 +131,12 @@ Program {
 
     Libs = { { "kernel32.lib", "d3dcompiler.lib", "dxguid.lib" ; Config = "win64-*-*" } },
 
-    Frameworks = { "Cocoa"  },
+    Frameworks = { 
+        { "Cocoa" }, 
+        { "Metal" }, 
+        { "QuartzCore" }, 
+        { "OpenGL" }  
+    },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Tools" } },
 }

@@ -38,7 +38,12 @@ local function Test(params)
 			{ "X11", "GL" ; Config = { "linux-*-*" } },
 		},
 
-		Frameworks = { "Cocoa"  },
+		Frameworks = { 
+			{ "Cocoa" }, 
+			{ "Metal" }, 
+			{ "QuartzCore" }, 
+			{ "OpenGL" }  
+		},
 
 		IdeGenerationHints = { Msvc = { SolutionFolder = "Tests" } },
 	}

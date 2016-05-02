@@ -1,0 +1,16 @@
+.tundra2*
+t2-output
+tags
+imgui.ini
+data/current_layout_2.json
+temp/vice_mem_dump
+.ycm_extra_conf.pyc
+<<<<<<< HEAD
+*.orig
+build.sh
+=======
+api/rust/prodbg/target
+src/prodbg/tests/rust_api_test/debug
+src/prodbg/tests/rust_api_test/target
+src/prodbg/tests/rust_api_test/deps
+>>>>>>> master

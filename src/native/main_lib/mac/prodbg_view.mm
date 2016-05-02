@@ -53,7 +53,8 @@ void Window_setTitle(const char* title);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)lockFocus {
-    NSOpenGLContext* context = (NSOpenGLContext*)bgfx::nativeContext();
+    bgfx::bgfx_internal_data_t *internalData = bgfx::getInternalData();
+    NSOpenGLContext* context = (NSOpenGLContext*)internalData->context;
 
     [super lockFocus];
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
- * License: http://www.opensource.org/licenses/BSD-2-Clause
+ * Copyright 2010-2016 Branimir Karadzic. All rights reserved.
+ * License: https://github.com/bkaradzic/bx#license-bsd-2-clause
  */
 
 #ifndef BX_FLOAT4_NI_H_HEADER_GUARD
@@ -15,7 +15,7 @@ namespace bx
 		const float4_t xAyB   = float4_shuf_xAyB(_a, _b);
 		const float4_t zCwD   = float4_shuf_zCwD(_a, _b);
 		const float4_t result = float4_shuf_xyAB(xAyB, zCwD);
-		
+
 		return result;
 	}
 
@@ -24,7 +24,7 @@ namespace bx
 		const float4_t xAyB   = float4_shuf_xAyB(_a, _b);
 		const float4_t zCwD   = float4_shuf_zCwD(_a, _b);
 		const float4_t result = float4_shuf_zwCD(xAyB, zCwD);
-		
+
 		return result;
 	}
 
@@ -177,12 +177,26 @@ namespace bx
 	{
 		const float4_t half   = float4_splat(0.5f);
 		const float4_t one    = float4_splat(1.0f);
-		const float4_t zero   = float4_zero();
 		const float4_t tmp0   = float4_rsqrt_est(_a);
-		const float4_t tmp1   = float4_madd(tmp0, _a, zero);
-		const float4_t tmp2   = float4_madd(tmp1, half, zero);
+		const float4_t tmp1   = float4_mul(tmp0, _a);
+		const float4_t tmp2   = float4_mul(tmp1, half);
 		const float4_t tmp3   = float4_nmsub(tmp0, tmp1, one);
 		const float4_t result = float4_madd(tmp3, tmp2, tmp1);
+
+		return result;
+	}
+
+	BX_FLOAT4_INLINE float4_t float4_sqrt_nr1_ni(float4_t _a)
+	{
+		const float4_t half = float4_splat(0.5f);
+
+		float4_t result = _a;
+		for (uint32_t ii = 0; ii < 11; ++ii)
+		{
+			const float4_t tmp1 = float4_div(_a, result);
+			const float4_t tmp2 = float4_add(tmp1, result);
+			result              = float4_mul(tmp2, half);
+		}
 
 		return result;
 	}
@@ -192,7 +206,7 @@ namespace bx
 		const float4_t one    = float4_splat(1.0f);
 		const float4_t sqrt   = float4_sqrt(_a);
 		const float4_t result = float4_div(one, sqrt);
-		
+
 		return result;
 	}
 
@@ -206,7 +220,7 @@ namespace bx
 		const float4_t three           = float4_splat(3.0f);
 		const float4_t three_sub_iter1 = float4_sub(three, iter1);
 		const float4_t result          = float4_mul(half_rsqrt, three_sub_iter1);
-		
+
 		return result;
 	}
 
@@ -375,7 +389,7 @@ namespace bx
 		const float4_t expfpart = float4_logexp_detail::float4_exppoly(fpart);
 
 		const float4_t result   = float4_mul(expipart, expfpart);
-		
+
 		return result;
 	}
 
@@ -401,12 +415,21 @@ namespace bx
 
 	BX_FLOAT4_INLINE float4_t float4_cross3_ni(float4_t _a, float4_t _b)
 	{
+		// a.yzx * b.zxy - a.zxy * b.yzx == (a * b.yzx - a.yzx * b).yzx
+#if 0
 		const float4_t a_yzxw = float4_swiz_yzxw(_a);
 		const float4_t a_zxyw = float4_swiz_zxyw(_a);
 		const float4_t b_zxyw = float4_swiz_zxyw(_b);
 		const float4_t b_yzxw = float4_swiz_yzxw(_b);
 		const float4_t tmp    = float4_mul(a_yzxw, b_zxyw);
 		const float4_t result = float4_nmsub(a_zxyw, b_yzxw, tmp);
+#else
+		const float4_t a_yzxw = float4_swiz_yzxw(_a);
+		const float4_t b_yzxw = float4_swiz_yzxw(_b);
+		const float4_t tmp0   = float4_mul(_a, b_yzxw);
+		const float4_t tmp1   = float4_nmsub(a_yzxw, _b, tmp0);
+		const float4_t result = float4_swiz_yzxw(tmp1);
+#endif
 
 		return result;
 	}
@@ -416,7 +439,7 @@ namespace bx
 		const float4_t dot3    = float4_dot3(_a, _a);
 		const float4_t invSqrt = float4_rsqrt(dot3);
 		const float4_t result  = float4_mul(_a, invSqrt);
-		
+
 		return result;
 	}
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <bgfx.h>
+#include <bgfx/bgfx.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -32,5 +32,9 @@ void UIRender_posTexColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t of
 void UIRender_posIdxTexColor(bgfx::TransientVertexBuffer* vertexBuffer, bgfx::TransientIndexBuffer* indexBuffer, uint32_t vtxSize, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle);
 void UIRender_posTexRColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count, bgfx::TextureHandle texHandle);
 void UIRender_posColor(bgfx::TransientVertexBuffer* vertexBuffer, uint32_t offset, uint32_t count);
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bgfx::ProgramHandle UIRender_getProgramHandle(uint32_t programIndex);
 
 

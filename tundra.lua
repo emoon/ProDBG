@@ -50,7 +50,12 @@ local macosx = {
         BGFX_SHADERC = "$(OBJECTDIR)$(SEP)bgfx_shaderc$(PROGSUFFIX)",
     },
 
-    Frameworks = { "Cocoa" },
+    Frameworks = { 
+        { "Cocoa" }, 
+        { "Metal" }, 
+        { "QuartzCore" }, 
+        { "OpenGL" }  
+    },
 }
 
 local macosx_test = {
@@ -74,7 +79,12 @@ local macosx_test = {
         BGFX_SHADERC = "$(OBJECTDIR)$(SEP)bgfx_shaderc$(PROGSUFFIX)",
     },
 
-    Frameworks = { "Cocoa" },
+    Frameworks = { 
+        { "Cocoa" }, 
+        { "Metal" }, 
+        { "QuartzCore" }, 
+        { "OpenGL" }  
+    },
 }
 
 -----------------------------------------------------------------------------------------------------------------------

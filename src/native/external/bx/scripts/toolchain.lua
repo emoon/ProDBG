@@ -1,5 +1,5 @@
 --
--- Copyright 2010-2015 Branimir Karadzic. All rights reserved.
+-- Copyright 2010-2016 Branimir Karadzic. All rights reserved.
 -- License: https://github.com/bkaradzic/bx#license-bsd-2-clause
 --
 
@@ -13,24 +13,31 @@ function toolchain(_buildDir, _libDir)
 		value = "GCC",
 		description = "Choose GCC flavor",
 		allowed = {
-			{ "android-arm",   "Android - ARM"          },
-			{ "android-mips",  "Android - MIPS"         },
-			{ "android-x86",   "Android - x86"          },
-			{ "asmjs",         "Emscripten/asm.js"      },
-			{ "freebsd",       "FreeBSD"                },
-			{ "linux-gcc",     "Linux (GCC compiler)"   },
-			{ "linux-gcc-5",   "Linux (GCC-5 compiler)" },
-			{ "linux-clang",   "Linux (Clang compiler)" },
-			{ "ios-arm",       "iOS - ARM"              },
-			{ "ios-simulator", "iOS - Simulator"        },
-			{ "mingw-gcc",     "MinGW"                  },
-			{ "mingw-clang",   "MinGW (clang compiler)" },
-			{ "nacl",          "Native Client"          },
-			{ "nacl-arm",      "Native Client - ARM"    },
-			{ "osx",           "OSX"                    },
-			{ "pnacl",         "Native Client - PNaCl"  },
-			{ "qnx-arm",       "QNX/Blackberry - ARM"   },
-			{ "rpi",           "RaspberryPi"            },
+			{ "android-arm",     "Android - ARM"              },
+			{ "android-mips",    "Android - MIPS"             },
+			{ "android-x86",     "Android - x86"              },
+			{ "asmjs",           "Emscripten/asm.js"          },
+			{ "freebsd",         "FreeBSD"                    },
+			{ "ios-arm",         "iOS - ARM"                  },
+			{ "ios-simulator",   "iOS - Simulator"            },
+			{ "linux-gcc",       "Linux (GCC compiler)"       },
+			{ "linux-gcc-5",     "Linux (GCC-5 compiler)"     },
+			{ "linux-clang",     "Linux (Clang compiler)"     },
+			{ "linux-mips-gcc",  "Linux (MIPS, GCC compiler)" },
+			{ "linux-arm-gcc",   "Linux (ARM, GCC compiler)"  },
+			{ "linux-steamlink", "Steam Link"                 },
+			{ "tvos-arm64",      "tvOS - ARM64"               },
+			{ "tvos-simulator",  "tvOS - Simulator"           },
+			{ "mingw-gcc",       "MinGW"                      },
+			{ "mingw-clang",     "MinGW (clang compiler)"     },
+			{ "nacl",            "Native Client"              },
+			{ "nacl-arm",        "Native Client - ARM"        },
+			{ "osx",             "OSX"                        },
+			{ "pnacl",           "Native Client - PNaCl"      },
+			{ "ps4",             "PS4"                        },
+			{ "qnx-arm",         "QNX/Blackberry - ARM"       },
+			{ "rpi",             "RaspberryPi"                },
+			{ "riscv",           "RISC-V"                     },
 		},
 	}
 
@@ -39,13 +46,17 @@ function toolchain(_buildDir, _libDir)
 		value = "toolset",
 		description = "Choose VS toolset",
 		allowed = {
-			{ "vs2012-clang",  "Clang 3.6"         },
-			{ "vs2013-clang",  "Clang 3.6"         },
+			{ "vs2012-clang",  "Clang 3.6"                       },
+			{ "vs2013-clang",  "Clang 3.6"                       },
+			{ "vs2015-clang",  "Clang 3.9"                       },
 			{ "vs2012-xp",     "Visual Studio 2012 targeting XP" },
 			{ "vs2013-xp",     "Visual Studio 2013 targeting XP" },
 			{ "vs2015-xp",     "Visual Studio 2015 targeting XP" },
-			{ "winphone8",     "Windows Phone 8.0" },
-			{ "winphone81",    "Windows Phone 8.1" },
+			{ "winphone8",     "Windows Phone 8.0"               },
+			{ "winphone81",    "Windows Phone 8.1"               },
+			{ "winstore81",    "Windows Store 8.1"               },
+			{ "winstore82",    "Universal Windows App"           },
+			{ "durango",       "Durango"                         },
 		},
 	}
 
@@ -57,6 +68,7 @@ function toolchain(_buildDir, _libDir)
 		allowed = {
 			{ "osx", "OSX" },
 			{ "ios", "iOS" },
+			{ "tvos", "tvOS" },
 		}
 	}
 
@@ -70,6 +82,17 @@ function toolchain(_buildDir, _libDir)
 		trigger = "with-ios",
 		value   = "#",
 		description = "Set iOS target version (default: 8.0).",
+	}
+
+	newoption {
+		trigger = "with-tvos",
+		value   = "#",
+		description = "Set tvOS target version (default: 9.0).",
+	}
+
+	newoption {
+		trigger = "with-dynamic-runtime",
+		description = "Dynamically link with the runtime rather than statically",
 	}
 
 	-- Avoid error when invoking genie --help.
@@ -89,6 +112,11 @@ function toolchain(_buildDir, _libDir)
 	local iosPlatform = ""
 	if _OPTIONS["with-ios"] then
 		iosPlatform = _OPTIONS["with-ios"]
+	end
+
+	local tvosPlatform = ""
+	if _OPTIONS["with-tvos"] then
+		tvosPlatform = _OPTIONS["with-tvos"]
 	end
 
 	if _ACTION == "gmake" then
@@ -138,7 +166,7 @@ function toolchain(_buildDir, _libDir)
 		elseif "asmjs" == _OPTIONS["gcc"] then
 
 			if not os.getenv("EMSCRIPTEN") then
-				print("Set EMSCRIPTEN enviroment variables.")
+				print("Set EMSCRIPTEN enviroment variable.")
 			end
 
 			premake.gcc.cc   = "$(EMSCRIPTEN)/emcc"
@@ -162,6 +190,18 @@ function toolchain(_buildDir, _libDir)
 			premake.gcc.ar  = "ar"
 			location (path.join(_buildDir, "projects", _ACTION .. "-ios-simulator"))
 
+		elseif "tvos-arm64" == _OPTIONS["gcc"] then
+			premake.gcc.cc  = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang"
+			premake.gcc.cxx = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++"
+			premake.gcc.ar  = "ar"
+			location (path.join(_buildDir, "projects", _ACTION .. "-tvos-arm64"))
+
+		elseif "tvos-simulator" == _OPTIONS["gcc"] then
+			premake.gcc.cc  = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang"
+			premake.gcc.cxx = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++"
+			premake.gcc.ar  = "ar"
+			location (path.join(_buildDir, "projects", _ACTION .. "-tvos-simulator"))
+
 		elseif "linux-gcc" == _OPTIONS["gcc"] then
 			location (path.join(_buildDir, "projects", _ACTION .. "-linux"))
 
@@ -176,6 +216,22 @@ function toolchain(_buildDir, _libDir)
 			premake.gcc.cxx = "clang++"
 			premake.gcc.ar  = "ar"
 			location (path.join(_buildDir, "projects", _ACTION .. "-linux-clang"))
+
+		elseif "linux-mips-gcc" == _OPTIONS["gcc"] then
+			location (path.join(_buildDir, "projects", _ACTION .. "-linux-mips-gcc"))
+
+		elseif "linux-arm-gcc" == _OPTIONS["gcc"] then
+			location (path.join(_buildDir, "projects", _ACTION .. "-linux-arm-gcc"))
+
+		elseif "linux-steamlink" == _OPTIONS["gcc"] then
+			if not os.getenv("MARVELL_SDK_PATH") then
+				print("Set MARVELL_SDK_PATH enviroment variable.")
+			end
+
+			premake.gcc.cc  = "$(MARVELL_SDK_PATH)/toolchain/bin/armv7a-cros-linux-gnueabi-gcc"
+			premake.gcc.cxx = "$(MARVELL_SDK_PATH)/toolchain/bin/armv7a-cros-linux-gnueabi-g++"
+			premake.gcc.ar  = "$(MARVELL_SDK_PATH)/toolchain/bin/armv7a-cros-linux-gnueabi-ar"
+			location (path.join(_buildDir, "projects", _ACTION .. "-linux-steamlink"))
 
 		elseif "mingw-gcc" == _OPTIONS["gcc"] then
 			premake.gcc.cc  = "$(MINGW)/bin/x86_64-w64-mingw32-gcc"
@@ -194,7 +250,7 @@ function toolchain(_buildDir, _libDir)
 		elseif "nacl" == _OPTIONS["gcc"] then
 
 			if not os.getenv("NACL_SDK_ROOT") then
-				print("Set NACL_SDK_ROOT enviroment variables.")
+				print("Set NACL_SDK_ROOT enviroment variable.")
 			end
 
 			naclToolchain = "$(NACL_SDK_ROOT)/toolchain/win_x86_newlib/bin/x86_64-nacl-"
@@ -212,7 +268,7 @@ function toolchain(_buildDir, _libDir)
 		elseif "nacl-arm" == _OPTIONS["gcc"] then
 
 			if not os.getenv("NACL_SDK_ROOT") then
-				print("Set NACL_SDK_ROOT enviroment variables.")
+				print("Set NACL_SDK_ROOT enviroment variable.")
 			end
 
 			naclToolchain = "$(NACL_SDK_ROOT)/toolchain/win_arm_newlib/bin/arm-nacl-"
@@ -240,7 +296,7 @@ function toolchain(_buildDir, _libDir)
 		elseif "pnacl" == _OPTIONS["gcc"] then
 
 			if not os.getenv("NACL_SDK_ROOT") then
-				print("Set NACL_SDK_ROOT enviroment variables.")
+				print("Set NACL_SDK_ROOT enviroment variable.")
 			end
 
 			naclToolchain = "$(NACL_SDK_ROOT)/toolchain/win_pnacl/bin/pnacl-"
@@ -255,10 +311,23 @@ function toolchain(_buildDir, _libDir)
 			premake.gcc.ar  = naclToolchain .. "ar"
 			location (path.join(_buildDir, "projects", _ACTION .. "-pnacl"))
 
+		elseif "ps4" == _OPTIONS["gcc"] then
+
+			if not os.getenv("PS4_SDK_ROOT") then
+				print("Set PS4_SDK_ROOT enviroment variable.")
+			end
+
+			ps4Toolchain = "$(PS4_SDK_ROOT)/host_tools/bin/orbis-"
+
+			premake.gcc.cc  = ps4Toolchain .. "clang"
+			premake.gcc.cxx = ps4Toolchain .. "clang++"
+			premake.gcc.ar  = ps4Toolchain .. "ar"
+			location (path.join(_buildDir, "projects", _ACTION .. "-ps4"))
+
 		elseif "qnx-arm" == _OPTIONS["gcc"] then
 
 			if not os.getenv("QNX_HOST") then
-				print("Set QNX_HOST enviroment variables.")
+				print("Set QNX_HOST enviroment variable.")
 			end
 
 			premake.gcc.cc  = "$(QNX_HOST)/usr/bin/arm-unknown-nto-qnx8.0.0eabi-gcc"
@@ -268,11 +337,22 @@ function toolchain(_buildDir, _libDir)
 
 		elseif "rpi" == _OPTIONS["gcc"] then
 			location (path.join(_buildDir, "projects", _ACTION .. "-rpi"))
+
+		elseif "riscv" == _OPTIONS["gcc"] then
+			premake.gcc.cc  = "/opt/riscv/bin/riscv64-unknown-elf-gcc"
+			premake.gcc.cxx = "/opt/riscv/bin/riscv64-unknown-elf-g++"
+			premake.gcc.ar  = "/opt/riscv/bin/riscv64-unknown-elf-ar"
+			location (path.join(_buildDir, "projects", _ACTION .. "-riscv"))
+
 		end
 	elseif _ACTION == "vs2012" or _ACTION == "vs2013" or _ACTION == "vs2015" then
 
 		if (_ACTION .. "-clang") == _OPTIONS["vs"] then
-			premake.vstudio.toolset = ("LLVM-" .. _ACTION)
+			if "vs2015-clang" == _OPTIONS["vs"] then
+				premake.vstudio.toolset = ("LLVM-vs2014")
+			else
+				premake.vstudio.toolset = ("LLVM-" .. _ACTION)
+			end
 			location (path.join(_buildDir, "projects", _ACTION .. "-clang"))
 
 		elseif "winphone8" == _OPTIONS["vs"] then
@@ -281,21 +361,44 @@ function toolchain(_buildDir, _libDir)
 
 		elseif "winphone81" == _OPTIONS["vs"] then
 			premake.vstudio.toolset = "v120_wp81"
+			premake.vstudio.storeapp = "8.1"
 			platforms { "ARM" }
 			location (path.join(_buildDir, "projects", _ACTION .. "-winphone81"))
+
+		elseif "winstore81" == _OPTIONS["vs"] then
+			premake.vstudio.toolset = "v120"
+			premake.vstudio.storeapp = "8.1"
+			platforms { "ARM" }
+			location (path.join(_buildDir, "projects", _ACTION .. "-winstore81"))
+
+		elseif "winstore82" == _OPTIONS["vs"] then
+			premake.vstudio.toolset = "v140"
+			premake.vstudio.storeapp = "8.2"
+			platforms { "ARM" }
+			location (path.join(_buildDir, "projects", _ACTION .. "-winstore82"))
+
+		elseif "durango" == _OPTIONS["vs"] then
+			if not os.getenv("DurangoXDK") then
+				print("DurangoXDK not found.")
+			end
+
+			premake.vstudio.toolset = "v140"
+			premake.vstudio.storeapp = "durango"
+			platforms { "Durango" }
+			location (path.join(_buildDir, "projects", _ACTION .. "-durango"))
+		end
 
 		elseif ("vs2012-xp") == _OPTIONS["vs"] then
 			premake.vstudio.toolset = ("v110_xp")
 			location (path.join(_buildDir, "projects", _ACTION .. "-xp"))
 
-		elseif ("vs2013-xp") == _OPTIONS["vs"] then
+		elseif "vs2013-xp" == _OPTIONS["vs"] then
 			premake.vstudio.toolset = ("v120_xp")
 			location (path.join(_buildDir, "projects", _ACTION .. "-xp"))
 
-		elseif ("vs2015-xp") == _OPTIONS["vs"] then
+		elseif "vs2015-xp" == _OPTIONS["vs"] then
 			premake.vstudio.toolset = ("v140_xp")
 			location (path.join(_buildDir, "projects", _ACTION .. "-xp"))
-		end
 
 	elseif _ACTION == "xcode4" then
 
@@ -306,11 +409,18 @@ function toolchain(_buildDir, _libDir)
 		elseif "ios" == _OPTIONS["xcode"] then
 			premake.xcode.toolset = "iphoneos"
 			location (path.join(_buildDir, "projects", _ACTION .. "-ios"))
+
+		elseif "tvos" == _OPTIONS["xcode"] then
+			premake.xcode.toolset = "appletvos"
+			location (path.join(_buildDir, "projects", _ACTION .. "-tvos"))
 		end
 	end
 
+	if not _OPTIONS["with-dynamic-runtime"] then
+		flags { "StaticRuntime" }
+	end
+
 	flags {
-		"StaticRuntime",
 		"NoPCH",
 		"NativeWChar",
 		"NoRTTI",
@@ -334,7 +444,7 @@ function toolchain(_buildDir, _libDir)
 		}
 		targetsuffix "Release"
 
-	configuration { "vs*", "x86" }
+	configuration { "vs*", "x32" }
 		flags {
 			"EnableSSE2",
 		}
@@ -368,7 +478,6 @@ function toolchain(_buildDir, _libDir)
 		objdir (path.join(_buildDir, "win32_" .. _ACTION, "obj"))
 		libdirs {
 			path.join(_libDir, "lib/win32_" .. _ACTION),
-			"$(DXSDK_DIR)/lib/x86",
 		}
 
 	configuration { "x64", "vs*" }
@@ -377,7 +486,6 @@ function toolchain(_buildDir, _libDir)
 		objdir (path.join(_buildDir, "win64_" .. _ACTION, "obj"))
 		libdirs {
 			path.join(_libDir, "lib/win64_" .. _ACTION),
-			"$(DXSDK_DIR)/lib/x64",
 		}
 
 	configuration { "ARM", "vs*" }
@@ -397,7 +505,7 @@ function toolchain(_buildDir, _libDir)
 		targetdir (path.join(_buildDir, "win64_" .. _ACTION .. "-clang/bin"))
 		objdir (path.join(_buildDir, "win64_" .. _ACTION .. "-clang/obj"))
 
-	configuration { "winphone8*" }
+	configuration { "winphone8* or winstore8*" }
 		removeflags {
 			"StaticRuntime",
 			"NoExceptions",
@@ -424,6 +532,7 @@ function toolchain(_buildDir, _libDir)
 		}
 		linkoptions {
 			"-Wl,--gc-sections",
+			"-static",
 			"-static-libgcc",
 			"-static-libstdc++",
 		}
@@ -433,7 +542,6 @@ function toolchain(_buildDir, _libDir)
 		objdir (path.join(_buildDir, "win32_mingw-gcc/obj"))
 		libdirs {
 			path.join(_libDir, "lib/win32_mingw-gcc"),
-			"$(DXSDK_DIR)/lib/x86",
 		}
 		buildoptions { "-m32" }
 
@@ -442,8 +550,6 @@ function toolchain(_buildDir, _libDir)
 		objdir (path.join(_buildDir, "win64_mingw-gcc/obj"))
 		libdirs {
 			path.join(_libDir, "lib/win64_mingw-gcc"),
-			"$(DXSDK_DIR)/lib/x64",
-			"$(GLES_X64_DIR)",
 		}
 		buildoptions { "-m64" }
 
@@ -463,7 +569,6 @@ function toolchain(_buildDir, _libDir)
 		objdir (path.join(_buildDir, "win32_mingw-clang/obj"))
 		libdirs {
 			path.join(_libDir, "lib/win32_mingw-clang"),
-			"$(DXSDK_DIR)/lib/x86",
 		}
 		buildoptions { "-m32" }
 
@@ -472,8 +577,6 @@ function toolchain(_buildDir, _libDir)
 		objdir (path.join(_buildDir, "win64_mingw-clang/obj"))
 		libdirs {
 			path.join(_libDir, "lib/win64_mingw-clang"),
-			"$(DXSDK_DIR)/lib/x64",
-			"$(GLES_X64_DIR)",
 		}
 		buildoptions { "-m64" }
 
@@ -492,12 +595,12 @@ function toolchain(_buildDir, _libDir)
 --			"ubsan",
 		}
 
-	configuration { "linux-g*" }
+	configuration { "linux-gcc" }
 		buildoptions {
-			"-mfpmath=sse", -- force SSE to get 32-bit and 64-bit builds deterministic.
+			"-mfpmath=sse",
 		}
 
-	configuration { "linux-*" }
+	configuration { "linux-gcc or linux-clang" }
 		buildoptions {
 			"-msse2",
 			"-Wunused-value",
@@ -514,7 +617,7 @@ function toolchain(_buildDir, _libDir)
 			"-Wl,--gc-sections",
 		}
 
-	configuration { "linux-g*", "x32" }
+	configuration { "linux-gcc*", "x32" }
 		targetdir (path.join(_buildDir, "linux32_gcc/bin"))
 		objdir (path.join(_buildDir, "linux32_gcc/obj"))
 		libdirs { path.join(_libDir, "lib/linux32_gcc") }
@@ -522,7 +625,7 @@ function toolchain(_buildDir, _libDir)
 			"-m32",
 		}
 
-	configuration { "linux-g*", "x64" }
+	configuration { "linux-gcc*", "x64" }
 		targetdir (path.join(_buildDir, "linux64_gcc/bin"))
 		objdir (path.join(_buildDir, "linux64_gcc/obj"))
 		libdirs { path.join(_libDir, "lib/linux64_gcc") }
@@ -546,7 +649,46 @@ function toolchain(_buildDir, _libDir)
 			"-m64",
 		}
 
+	configuration { "linux-mips-gcc" }
+		targetdir (path.join(_buildDir, "linux32_mips_gcc/bin"))
+		objdir (path.join(_buildDir, "linux32_mips_gcc/obj"))
+		libdirs { path.join(_libDir, "lib/linux32_mips_gcc") }
+		buildoptions {
+			"-Wunused-value",
+			"-Wundef",
+		}
+		buildoptions_cpp {
+			"-std=c++0x",
+		}
+		links {
+			"rt",
+			"dl",
+		}
+		linkoptions {
+			"-Wl,--gc-sections",
+		}
+
+	configuration { "linux-arm-gcc" }
+		targetdir (path.join(_buildDir, "linux32_arm_gcc/bin"))
+		objdir (path.join(_buildDir, "linux32_arm_gcc/obj"))
+		libdirs { path.join(_libDir, "lib/linux32_arm_gcc") }
+		buildoptions {
+			"-Wunused-value",
+			"-Wundef",
+		}
+		buildoptions_cpp {
+			"-std=c++0x",
+		}
+		links {
+			"rt",
+			"dl",
+		}
+		linkoptions {
+			"-Wl,--gc-sections",
+		}
+
 	configuration { "android-*" }
+		targetprefix ("lib")
 		flags {
 			"NoImportLib",
 		}
@@ -588,15 +730,40 @@ function toolchain(_buildDir, _libDir)
 			"-Wl,-z,now",
 		}
 
+	configuration { "linux-steamlink" }
+		targetdir (path.join(_buildDir, "steamlink/bin"))
+		objdir (path.join(_buildDir, "steamlink/obj"))
+		libdirs { path.join(_libDir, "lib/steamlink") }
+		includedirs { path.join(bxDir, "include/compat/linux") }
+		defines {
+			"__STEAMLINK__=1", -- There is no special prefedined compiler symbol to detect SteamLink, faking it.
+		}
+		buildoptions {
+			"-std=c++0x",
+			"-Wfatal-errors",
+			"-Wunused-value",
+			"-Wundef",
+			"-pthread",
+			"-marm",
+			"-mfloat-abi=hard",
+			"--sysroot=$(MARVELL_SDK_PATH)/rootfs",
+		}
+		linkoptions {
+			"-static-libgcc",
+			"-static-libstdc++",
+			"--sysroot=$(MARVELL_SDK_PATH)/rootfs",
+		}
+
 	configuration { "android-arm" }
 		targetdir (path.join(_buildDir, "android-arm/bin"))
 		objdir (path.join(_buildDir, "android-arm/obj"))
 		libdirs {
 			path.join(_libDir, "lib/android-arm"),
-			"$(ANDROID_NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a",
+			"$(ANDROID_NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a",
 		}
 		includedirs {
-			"$(ANDROID_NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a/include",
+			"$(ANDROID_NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include",
+			"$(ANDROID_NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/4.9/include",
 		}
 		buildoptions {
 			"--sysroot=" .. path.join("$(ANDROID_NDK_ROOT)/platforms", androidPlatform, "arch-arm"),
@@ -659,7 +826,7 @@ function toolchain(_buildDir, _libDir)
 		linkoptions {
 			"--sysroot=" .. path.join("$(ANDROID_NDK_ROOT)/platforms", androidPlatform, "arch-x86"),
 			path.join("$(ANDROID_NDK_ROOT)/platforms", androidPlatform, "arch-x86/usr/lib/crtbegin_so.o"),
-			path.join("$(ANDROID_NDK_ROOT)/platforms", androidPlatform, "/arch-x86/usr/lib/crtend_so.o"),
+			path.join("$(ANDROID_NDK_ROOT)/platforms", androidPlatform, "arch-x86/usr/lib/crtend_so.o"),
 		}
 
 	configuration { "asmjs" }
@@ -758,14 +925,23 @@ function toolchain(_buildDir, _libDir)
 	configuration { "pnacl", "Release" }
 		libdirs { "$(NACL_SDK_ROOT)/lib/pnacl/Release" }
 
-	configuration { "Xbox360" }
+	configuration { "xbox360" }
 		targetdir (path.join(_buildDir, "xbox360/bin"))
 		objdir (path.join(_buildDir, "xbox360/obj"))
 		includedirs { path.join(bxDir, "include/compat/msvc") }
 		libdirs { path.join(_libDir, "lib/xbox360") }
 		defines {
 			"NOMINMAX",
-			"_XBOX",
+		}
+
+	configuration { "durango" }
+		targetdir (path.join(_buildDir, "durango/bin"))
+		objdir (path.join(_buildDir, "durango/obj"))
+		includedirs { path.join(bxDir, "include/compat/msvc") }
+		libdirs { path.join(_libDir, "lib/durango") }
+		removeflags { "StaticRuntime" }
+		defines {
+			"NOMINMAX",
 		}
 
 	configuration { "osx", "x32" }
@@ -783,6 +959,10 @@ function toolchain(_buildDir, _libDir)
 		buildoptions {
 			"-m64",
 		}
+
+	configuration { "osx", "Universal" }
+		targetdir (path.join(_buildDir, "osx_universal/bin"))
+		objdir (path.join(_buildDir, "osx_universal/bin"))
 
 	configuration { "osx" }
 		buildoptions {
@@ -803,6 +983,10 @@ function toolchain(_buildDir, _libDir)
 			"-Wundef",
 		}
 		includedirs { path.join(bxDir, "include/compat/ios") }
+
+	configuration { "xcode4", "ios*" }
+		targetdir (path.join(_buildDir, "ios-arm/bin"))
+		objdir (path.join(_buildDir, "ios-arm/obj"))
 
 	configuration { "ios-arm" }
 		targetdir (path.join(_buildDir, "ios-arm/bin"))
@@ -838,6 +1022,74 @@ function toolchain(_buildDir, _libDir)
 			"-mios-simulator-version-min=7.0",
 			"-arch i386",
 			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator" ..iosPlatform .. ".sdk",
+		}
+
+	configuration { "tvos*" }
+		linkoptions {
+			"-lc++",
+		}
+		buildoptions {
+			"-Wfatal-errors",
+			"-Wunused-value",
+			"-Wundef",
+		}
+		includedirs { path.join(bxDir, "include/compat/ios") }
+
+	configuration { "xcode4", "tvos*" }
+		targetdir (path.join(_buildDir, "tvos-arm64/bin"))
+		objdir (path.join(_buildDir, "tvos-arm64/obj"))
+
+	configuration { "tvos-arm64" }
+		targetdir (path.join(_buildDir, "tvos-arm64/bin"))
+		objdir (path.join(_buildDir, "tvos-arm64/obj"))
+		libdirs { path.join(_libDir, "lib/tvos-arm64") }
+		linkoptions {
+			"-mtvos-version-min=9.0",
+			"-arch arm64",
+			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS" ..tvosPlatform .. ".sdk",
+			"-L/Applications/Xcode.app/Contents/Developer/Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS" ..tvosPlatform .. ".sdk/usr/lib/system",
+			"-F/Applications/Xcode.app/Contents/Developer/Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS" ..tvosPlatform .. ".sdk/System/Library/Frameworks",
+			"-F/Applications/Xcode.app/Contents/Developer/Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS" ..tvosPlatform .. ".sdk/System/Library/PrivateFrameworks",
+		}
+		buildoptions {
+			"-mtvos-version-min=9.0",
+			"-arch arm64",
+			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS" ..tvosPlatform .. ".sdk",
+		}
+
+	configuration { "tvos-simulator" }
+		targetdir (path.join(_buildDir, "tvos-simulator/bin"))
+		objdir (path.join(_buildDir, "tvos-simulator/obj"))
+		libdirs { path.join(_libDir, "lib/tvos-simulator") }
+		linkoptions {
+			"-mtvos-simulator-version-min=9.0",
+			"-arch i386",
+			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator" ..tvosPlatform .. ".sdk",
+			"-L/Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator" ..tvosPlatform .. ".sdk/usr/lib/system",
+			"-F/Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator" ..tvosPlatform .. ".sdk/System/Library/Frameworks",
+			"-F/Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator" ..tvosPlatform .. ".sdk/System/Library/PrivateFrameworks",
+		}
+		buildoptions {
+			"-mtvos-simulator-version-min=9.0",
+			"-arch i386",
+			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator" ..tvosPlatform .. ".sdk",
+		}
+
+	configuration { "ps4" }
+		targetdir (path.join(_buildDir, "ps4/bin"))
+		objdir (path.join(_buildDir, "ps4/obj"))
+		libdirs { path.join(_libDir, "lib/ps4") }
+		includedirs {
+			path.join(bxDir, "include/compat/freebsd"),
+			"$(PS4_SDK_ROOT)/target/include",
+			"$(PS4_SDK_ROOT)/target/include_common",
+		}
+		buildoptions {
+		}
+		buildoptions_cpp {
+			"-std=c++0x",
+		}
+		linkoptions {
 		}
 
 	configuration { "qnx-arm" }
@@ -884,6 +1136,17 @@ function toolchain(_buildDir, _libDir)
 			"-Wl,--gc-sections",
 		}
 
+	configuration { "riscv" }
+		targetdir (path.join(_buildDir, "riscv/bin"))
+		objdir (path.join(_buildDir, "riscv/obj"))
+		buildoptions {
+			"-Wunused-value",
+			"-Wundef",
+		}
+		buildoptions_cpp {
+			"-std=c++0x",
+		}
+
 	configuration {} -- reset configuration
 
 	return true
@@ -909,7 +1172,13 @@ function strip()
 			"$(SILENT) $(ANDROID_NDK_X86)/bin/i686-linux-android-strip -s \"$(TARGET)\""
 		}
 
-	configuration { "linux-* or rpi", "Release" }
+	configuration { "linux-steamlink", "Release" }
+		postbuildcommands {
+			"$(SILENT) echo Stripping symbols.",
+			"$(SILENT) $(MARVELL_SDK_PATH)/toolchain/bin/armv7a-cros-linux-gnueabi-strip -s \"$(TARGET)\""
+		}
+
+	configuration { "linux-* or rpi", "not linux-steamlink", "Release" }
 		postbuildcommands {
 			"$(SILENT) echo Stripping symbols.",
 			"$(SILENT) strip -s \"$(TARGET)\""
@@ -936,8 +1205,15 @@ function strip()
 	configuration { "asmjs" }
 		postbuildcommands {
 			"$(SILENT) echo Running asmjs finalize.",
-			"$(SILENT) $(EMSCRIPTEN)/emcc -O2 -s TOTAL_MEMORY=268435456 \"$(TARGET)\" -o \"$(TARGET)\".html"
-			-- ALLOW_MEMORY_GROWTH
+			"$(SILENT) $(EMSCRIPTEN)/emcc -O2 "
+--				.. "-s EMTERPRETIFY=1 "
+--				.. "-s EMTERPRETIFY_ASYNC=1 "
+				.. "-s TOTAL_MEMORY=268435456 "
+--				.. "-s ALLOW_MEMORY_GROWTH=1 "
+--				.. "-s USE_WEBGL2=1 "
+				.. "--memory-init-file 1 "
+				.. "\"$(TARGET)\" -o \"$(TARGET)\".html "
+--				.. "--preload-file ../../../examples/runtime@/"
 		}
 
 	configuration {} -- reset configuration

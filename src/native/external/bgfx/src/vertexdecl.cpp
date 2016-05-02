@@ -1,14 +1,15 @@
 /*
- * Copyright 2011-2015 Branimir Karadzic. All rights reserved.
- * License: http://www.opensource.org/licenses/BSD-2-Clause
+ * Copyright 2011-2016 Branimir Karadzic. All rights reserved.
+ * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
 
 #include <string.h>
 #include <bx/debug.h>
 #include <bx/hash.h>
-#include <bx/uint32_t.h>
-#include <bx/string.h>
 #include <bx/readerwriter.h>
+#include <bx/radixsort.h>
+#include <bx/string.h>
+#include <bx/uint32_t.h>
 
 #include "config.h"
 #include "vertexdecl.h"
@@ -17,26 +18,29 @@ namespace bgfx
 {
 	static const uint8_t s_attribTypeSizeDx9[AttribType::Count][4] =
 	{
-		{  4,  4,  4,  4 },
-		{  4,  4,  8,  8 },
-		{  4,  4,  8,  8 },
-		{  4,  8, 12, 16 },
+		{  4,  4,  4,  4 }, // Uint8
+		{  4,  4,  4,  4 }, // Uint10
+		{  4,  4,  8,  8 }, // Int16
+		{  4,  4,  8,  8 }, // Half
+		{  4,  8, 12, 16 }, // Float
 	};
 
 	static const uint8_t s_attribTypeSizeDx1x[AttribType::Count][4] =
 	{
-		{  1,  2,  4,  4 },
-		{  2,  4,  8,  8 },
-		{  2,  4,  8,  8 },
-		{  4,  8, 12, 16 },
+		{  1,  2,  4,  4 }, // Uint8
+		{  4,  4,  4,  4 }, // Uint10
+		{  2,  4,  8,  8 }, // Int16
+		{  2,  4,  8,  8 }, // Half
+		{  4,  8, 12, 16 }, // Float
 	};
 
 	static const uint8_t s_attribTypeSizeGl[AttribType::Count][4] =
 	{
-		{  1,  2,  4,  4 },
-		{  2,  4,  6,  8 },
-		{  2,  4,  6,  8 },
-		{  4,  8, 12, 16 },
+		{  1,  2,  4,  4 }, // Uint8
+		{  4,  4,  4,  4 }, // Uint10
+		{  2,  4,  6,  8 }, // Int16
+		{  2,  4,  6,  8 }, // Half
+		{  4,  8, 12, 16 }, // Float
 	};
 
 	static const uint8_t (*s_attribTypeSize[])[AttribType::Count][4] =
@@ -45,6 +49,7 @@ namespace bgfx
 		&s_attribTypeSizeDx9,  // Direct3D9
 		&s_attribTypeSizeDx1x, // Direct3D11
 		&s_attribTypeSizeDx1x, // Direct3D12
+		&s_attribTypeSizeGl,   // Metal
 		&s_attribTypeSizeGl,   // OpenGLES
 		&s_attribTypeSizeGl,   // OpenGL
 		&s_attribTypeSizeGl,   // Vulkan
@@ -107,10 +112,10 @@ namespace bgfx
 
 	VertexDecl& VertexDecl::add(Attrib::Enum _attrib, uint8_t _num, AttribType::Enum _type, bool _normalized, bool _asInt)
 	{
-		const uint8_t encodedNorm = (_normalized&1)<<6;
-		const uint8_t encodedType = (_type&3)<<3;
-		const uint8_t encodedNum  = (_num-1)&3;
-		const uint8_t encodeAsInt = (_asInt&(!!"\x1\x1\x0\x0"[_type]) )<<7;
+		const uint16_t encodedNorm = (_normalized&1)<<7;
+		const uint16_t encodedType = (_type&7)<<3;
+		const uint16_t encodedNum  = (_num-1)&3;
+		const uint16_t encodeAsInt = (_asInt&(!!"\x1\x1\x1\x0\x0"[_type]) )<<8;
 		m_attributes[_attrib] = encodedNorm|encodedType|encodedNum|encodeAsInt;
 
 		m_offset[_attrib] = m_stride;
@@ -128,11 +133,11 @@ namespace bgfx
 
 	void VertexDecl::decode(Attrib::Enum _attrib, uint8_t& _num, AttribType::Enum& _type, bool& _normalized, bool& _asInt) const
 	{
-		uint8_t val = m_attributes[_attrib];
+		uint16_t val = m_attributes[_attrib];
 		_num        = (val&3)+1;
-		_type       = AttribType::Enum((val>>3)&3);
-		_normalized = !!(val&(1<<6) );
-		_asInt      = !!(val&(1<<7) );
+		_type       = AttribType::Enum( (val>>3)&7);
+		_normalized = !!(val&(1<<7) );
+		_asInt      = !!(val&(1<<8) );
 	}
 
 	static const char* s_attrName[] =
@@ -173,7 +178,7 @@ namespace bgfx
 
 			for (uint32_t attr = 0; attr < Attrib::Count; ++attr)
 			{
-				if (0xff != _decl.m_attributes[attr])
+				if (UINT16_MAX != _decl.m_attributes[attr])
 				{
 					uint8_t num;
 					AttribType::Enum type;
@@ -255,10 +260,11 @@ namespace bgfx
 		// AttribType must be in order how it appears in AttribType::Enum!
 		// id is unique and should not be changed if new AttribTypes are
 		// added.
-		{ AttribType::Uint8, 0x0001 },
-		{ AttribType::Int16, 0x0002 },
-		{ AttribType::Half,  0x0003 },
-		{ AttribType::Float, 0x0004 },
+		{ AttribType::Uint8,  0x0001 },
+		{ AttribType::Uint10, 0x0005 },
+		{ AttribType::Int16,  0x0002 },
+		{ AttribType::Half,   0x0003 },
+		{ AttribType::Float,  0x0004 },
 	};
 	BX_STATIC_ASSERT(BX_COUNTOF(s_attribTypeToId) == AttribType::Count);
 
@@ -280,75 +286,89 @@ namespace bgfx
 		return s_attribTypeToId[_attr].id;
 	}
 
-	int32_t write(bx::WriterI* _writer, const VertexDecl& _decl)
+	int32_t write(bx::WriterI* _writer, const VertexDecl& _decl, bx::Error* _err)
 	{
+		BX_ERROR_SCOPE(_err);
+
 		int32_t total = 0;
 		uint8_t numAttrs = 0;
 
 		for (uint32_t attr = 0; attr < Attrib::Count; ++attr)
 		{
-			numAttrs += 0xff == _decl.m_attributes[attr] ? 0 : 1;
+			numAttrs += UINT16_MAX == _decl.m_attributes[attr] ? 0 : 1;
 		}
 
-		total += bx::write(_writer, numAttrs);
-		total += bx::write(_writer, _decl.m_stride);
+		total += bx::write(_writer, numAttrs, _err);
+		total += bx::write(_writer, _decl.m_stride, _err);
 
 		for (uint32_t attr = 0; attr < Attrib::Count; ++attr)
 		{
-			if (0xff != _decl.m_attributes[attr])
+			if (UINT16_MAX != _decl.m_attributes[attr])
 			{
 				uint8_t num;
 				AttribType::Enum type;
 				bool normalized;
 				bool asInt;
 				_decl.decode(Attrib::Enum(attr), num, type, normalized, asInt);
-				total += bx::write(_writer, _decl.m_offset[attr]);
-				total += bx::write(_writer, s_attribToId[attr].id);
-				total += bx::write(_writer, num);
-				total += bx::write(_writer, s_attribTypeToId[type].id);
-				total += bx::write(_writer, normalized);
-				total += bx::write(_writer, asInt);
+				total += bx::write(_writer, _decl.m_offset[attr], _err);
+				total += bx::write(_writer, s_attribToId[attr].id, _err);
+				total += bx::write(_writer, num, _err);
+				total += bx::write(_writer, s_attribTypeToId[type].id, _err);
+				total += bx::write(_writer, normalized, _err);
+				total += bx::write(_writer, asInt, _err);
 			}
 		}
 
 		return total;
 	}
 
-	int32_t read(bx::ReaderI* _reader, VertexDecl& _decl)
+	int32_t read(bx::ReaderI* _reader, VertexDecl& _decl, bx::Error* _err)
 	{
+		BX_ERROR_SCOPE(_err);
+
 		int32_t total = 0;
 
 		uint8_t numAttrs;
-		total += bx::read(_reader, numAttrs);
+		total += bx::read(_reader, numAttrs, _err);
 
 		uint16_t stride;
-		total += bx::read(_reader, stride);
+		total += bx::read(_reader, stride, _err);
+
+		if (!_err->isOk() )
+		{
+			return total;
+		}
 
 		_decl.begin();
 
 		for (uint32_t ii = 0; ii < numAttrs; ++ii)
 		{
 			uint16_t offset;
-			total += bx::read(_reader, offset);
+			total += bx::read(_reader, offset, _err);
 
 			uint16_t attribId = 0;
-			total += bx::read(_reader, attribId);
+			total += bx::read(_reader, attribId, _err);
 
 			uint8_t num;
-			total += bx::read(_reader, num);
+			total += bx::read(_reader, num, _err);
 
 			uint16_t attribTypeId;
-			total += bx::read(_reader, attribTypeId);
+			total += bx::read(_reader, attribTypeId, _err);
 
 			bool normalized;
-			total += bx::read(_reader, normalized);
+			total += bx::read(_reader, normalized, _err);
 
 			bool asInt;
-			total += bx::read(_reader, asInt);
+			total += bx::read(_reader, asInt, _err);
+
+			if (!_err->isOk() )
+			{
+				return total;
+			}
 
 			Attrib::Enum     attr = idToAttrib(attribId);
 			AttribType::Enum type = idToAttribType(attribTypeId);
-			if (Attrib::Count != attr
+			if (Attrib::Count     != attr
 			&&  AttribType::Count != type)
 			{
 				_decl.add(attr, num, type, normalized, asInt);
@@ -417,6 +437,46 @@ namespace bgfx
 					case 1:  *packed++ = uint8_t(*_input++);
 					}
 				}
+			}
+			break;
+
+		case AttribType::Uint10:
+			{
+				uint32_t packed = 0;
+				if (_inputNormalized)
+				{
+					if (asInt)
+					{
+						switch (num)
+						{
+						default:
+						case 3:                packed |= uint32_t(*_input++ * 511.0f + 512.0f);
+						case 2: packed <<= 10; packed |= uint32_t(*_input++ * 511.0f + 512.0f);
+						case 1: packed <<= 10; packed |= uint32_t(*_input++ * 511.0f + 512.0f);
+						}
+					}
+					else
+					{
+						switch (num)
+						{
+						default:
+						case 3:                packed |= uint32_t(*_input++ * 1023.0f);
+						case 2: packed <<= 10; packed |= uint32_t(*_input++ * 1023.0f);
+						case 1: packed <<= 10; packed |= uint32_t(*_input++ * 1023.0f);
+						}
+					}
+				}
+				else
+				{
+					switch (num)
+					{
+					default:
+					case 3:                packed |= uint32_t(*_input++);
+					case 2: packed <<= 10; packed |= uint32_t(*_input++);
+					case 1: packed <<= 10; packed |= uint32_t(*_input++);
+					}
+				}
+				*(uint32_t*)data = packed;
 			}
 			break;
 
@@ -519,6 +579,32 @@ namespace bgfx
 					case 3:  *_output++ = float(*packed++)*1.0f/255.0f;
 					case 2:  *_output++ = float(*packed++)*1.0f/255.0f;
 					case 1:  *_output++ = float(*packed++)*1.0f/255.0f;
+					}
+				}
+			}
+			break;
+
+		case AttribType::Uint10:
+			{
+				uint32_t packed = *(uint32_t*)data;
+				if (asInt)
+				{
+					switch (num)
+					{
+					default:
+					case 3: *_output++ = (float(packed & 0x3ff) - 512.0f)*1.0f/511.0f; packed >>= 10;
+					case 2: *_output++ = (float(packed & 0x3ff) - 512.0f)*1.0f/511.0f; packed >>= 10;
+					case 1: *_output++ = (float(packed & 0x3ff) - 512.0f)*1.0f/511.0f;
+					}
+				}
+				else
+				{
+					switch (num)
+					{
+					default:
+					case 3: *_output++ = float(packed & 0x3ff)*1.0f/1023.0f; packed >>= 10;
+					case 2: *_output++ = float(packed & 0x3ff)*1.0f/1023.0f; packed >>= 10;
+					case 1: *_output++ = float(packed & 0x3ff)*1.0f/1023.0f;
 					}
 				}
 			}
@@ -768,4 +854,5 @@ namespace bgfx
 
 		return (uint16_t)numVertices;
 	}
+
 } // namespace bgfx

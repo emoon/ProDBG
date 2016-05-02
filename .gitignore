@@ -7,3 +7,4 @@ temp/vice_mem_dump
 .ycm_extra_conf.pyc
 target/
 Cargo.lock
+.vscode/

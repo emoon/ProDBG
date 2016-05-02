@@ -1,6 +1,6 @@
 /*
- * Copyright 2011-2015 Branimir Karadzic. All rights reserved.
- * License: http://www.opensource.org/licenses/BSD-2-Clause
+ * Copyright 2011-2016 Branimir Karadzic. All rights reserved.
+ * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
 
 #include "bgfx_p.h"
@@ -11,43 +11,50 @@
 #	if BGFX_USE_EGL
 
 #		if BX_PLATFORM_RPI
+#			include <X11/Xlib.h>
 #			include <bcm_host.h>
 #		endif // BX_PLATFORM_RPI
 
 namespace bgfx { namespace gl
 {
+#ifndef EGL_CONTEXT_FLAG_NO_ERROR_BIT_KHR
+#	define EGL_CONTEXT_FLAG_NO_ERROR_BIT_KHR 0x00000008
+#endif // EGL_CONTEXT_FLAG_NO_ERROR_BIT_KHR
+
 #if BGFX_USE_GL_DYNAMIC_LIB
 
 	typedef void (*EGLPROC)(void);
 
-	typedef EGLPROC    (EGLAPIENTRY* PFNEGLGETPROCADDRESSPROC)(const char *procname);
-	typedef EGLBoolean (EGLAPIENTRY* PFNEGLSWAPINTERVALPROC)(EGLDisplay dpy, EGLint interval);
-	typedef EGLBoolean (EGLAPIENTRY* PFNEGLMAKECURRENTPROC)(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx);
-	typedef EGLContext (EGLAPIENTRY* PFNEGLCREATECONTEXTPROC)(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint *attrib_list);
-	typedef EGLSurface (EGLAPIENTRY* PFNEGLCREATEWINDOWSURFACEPROC)(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType win, const EGLint *attrib_list);
-	typedef EGLBoolean (EGLAPIENTRY* PFNEGLCHOOSECONFIGPROC)(EGLDisplay dpy, const EGLint *attrib_list,	EGLConfig *configs, EGLint config_size,	EGLint *num_config);
-	typedef EGLBoolean (EGLAPIENTRY* PFNEGLINITIALIZEPROC)(EGLDisplay dpy, EGLint *major, EGLint *minor);
-	typedef EGLint     (EGLAPIENTRY* PFNEGLGETERRORPROC)(void);
-	typedef EGLDisplay (EGLAPIENTRY* PFNEGLGETDISPLAYPROC)(EGLNativeDisplayType display_id);
-	typedef EGLBoolean (EGLAPIENTRY* PFNEGLTERMINATEPROC)(EGLDisplay dpy);
-	typedef EGLBoolean (EGLAPIENTRY* PFNEGLDESTROYSURFACEPROC)(EGLDisplay dpy, EGLSurface surface);
-	typedef EGLBoolean (EGLAPIENTRY* PFNEGLDESTROYCONTEXTPROC)(EGLDisplay dpy, EGLContext ctx);
-	typedef EGLBoolean (EGLAPIENTRY* PFNEGLSWAPBUFFERSPROC)(EGLDisplay dpy, EGLSurface surface);
+	typedef EGLBoolean  (EGLAPIENTRY* PFNEGLCHOOSECONFIGPROC)(EGLDisplay dpy, const EGLint *attrib_list,	EGLConfig *configs, EGLint config_size,	EGLint *num_config);
+	typedef EGLContext  (EGLAPIENTRY* PFNEGLCREATECONTEXTPROC)(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint *attrib_list);
+	typedef EGLSurface  (EGLAPIENTRY* PFNEGLCREATEWINDOWSURFACEPROC)(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType win, const EGLint *attrib_list);
+	typedef EGLint      (EGLAPIENTRY* PFNEGLGETERRORPROC)(void);
+	typedef EGLDisplay  (EGLAPIENTRY* PFNEGLGETDISPLAYPROC)(EGLNativeDisplayType display_id);
+	typedef EGLPROC     (EGLAPIENTRY* PFNEGLGETPROCADDRESSPROC)(const char *procname);
+	typedef EGLBoolean  (EGLAPIENTRY* PFNEGLINITIALIZEPROC)(EGLDisplay dpy, EGLint *major, EGLint *minor);
+	typedef EGLBoolean  (EGLAPIENTRY* PFNEGLMAKECURRENTPROC)(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx);
+	typedef EGLBoolean  (EGLAPIENTRY* PFNEGLDESTROYCONTEXTPROC)(EGLDisplay dpy, EGLContext ctx);
+	typedef EGLBoolean  (EGLAPIENTRY* PFNEGLDESTROYSURFACEPROC)(EGLDisplay dpy, EGLSurface surface);
+	typedef const char* (EGLAPIENTRY* PGNEGLQUERYSTRINGPROC)(EGLDisplay dpy, EGLint name);
+	typedef EGLBoolean  (EGLAPIENTRY* PFNEGLSWAPBUFFERSPROC)(EGLDisplay dpy, EGLSurface surface);
+	typedef EGLBoolean  (EGLAPIENTRY* PFNEGLSWAPINTERVALPROC)(EGLDisplay dpy, EGLint interval);
+	typedef EGLBoolean  (EGLAPIENTRY* PFNEGLTERMINATEPROC)(EGLDisplay dpy);
 
 #define EGL_IMPORT \
-			EGL_IMPORT_FUNC(PFNEGLGETPROCADDRESSPROC,      eglGetProcAddress); \
-			EGL_IMPORT_FUNC(PFNEGLSWAPINTERVALPROC,        eglSwapInterval); \
-			EGL_IMPORT_FUNC(PFNEGLMAKECURRENTPROC,         eglMakeCurrent); \
+			EGL_IMPORT_FUNC(PFNEGLCHOOSECONFIGPROC,        eglChooseConfig); \
 			EGL_IMPORT_FUNC(PFNEGLCREATECONTEXTPROC,       eglCreateContext); \
 			EGL_IMPORT_FUNC(PFNEGLCREATEWINDOWSURFACEPROC, eglCreateWindowSurface); \
-			EGL_IMPORT_FUNC(PFNEGLCHOOSECONFIGPROC,        eglChooseConfig); \
-			EGL_IMPORT_FUNC(PFNEGLINITIALIZEPROC,          eglInitialize); \
-			EGL_IMPORT_FUNC(PFNEGLGETERRORPROC,            eglGetError); \
 			EGL_IMPORT_FUNC(PFNEGLGETDISPLAYPROC,          eglGetDisplay); \
-			EGL_IMPORT_FUNC(PFNEGLTERMINATEPROC,           eglTerminate); \
-			EGL_IMPORT_FUNC(PFNEGLDESTROYSURFACEPROC,      eglDestroySurface); \
+			EGL_IMPORT_FUNC(PFNEGLGETERRORPROC,            eglGetError); \
+			EGL_IMPORT_FUNC(PFNEGLGETPROCADDRESSPROC,      eglGetProcAddress); \
 			EGL_IMPORT_FUNC(PFNEGLDESTROYCONTEXTPROC,      eglDestroyContext); \
-			EGL_IMPORT_FUNC(PFNEGLSWAPBUFFERSPROC,         eglSwapBuffers);
+			EGL_IMPORT_FUNC(PFNEGLDESTROYSURFACEPROC,      eglDestroySurface); \
+			EGL_IMPORT_FUNC(PFNEGLINITIALIZEPROC,          eglInitialize); \
+			EGL_IMPORT_FUNC(PFNEGLMAKECURRENTPROC,         eglMakeCurrent); \
+			EGL_IMPORT_FUNC(PGNEGLQUERYSTRINGPROC,         eglQueryString); \
+			EGL_IMPORT_FUNC(PFNEGLSWAPBUFFERSPROC,         eglSwapBuffers); \
+			EGL_IMPORT_FUNC(PFNEGLSWAPINTERVALPROC,        eglSwapInterval); \
+			EGL_IMPORT_FUNC(PFNEGLTERMINATEPROC,           eglTerminate);
 
 #define EGL_IMPORT_FUNC(_proto, _func) _proto _func
 EGL_IMPORT
@@ -139,12 +146,6 @@ EGL_IMPORT
 
 #	if BX_PLATFORM_RPI
 	static EGL_DISPMANX_WINDOW_T s_dispmanWindow;
-
-	void x11SetDisplayWindow(::Display* _display, ::Window _window)
-	{
-		// Noop for now...
-		BX_UNUSED(_display, _window);
-	}
 #	endif // BX_PLATFORM_RPI
 
 	void GlContext::create(uint32_t _width, uint32_t _height)
@@ -157,6 +158,10 @@ EGL_IMPORT
 
 		if (NULL == g_platformData.context)
 		{
+#	if BX_PLATFORM_RPI
+			g_platformData.ndt = EGL_DEFAULT_DISPLAY;
+#	endif // BX_PLATFORM_RPI
+
 			BX_UNUSED(_width, _height);
 			EGLNativeDisplayType ndt = (EGLNativeDisplayType)g_platformData.ndt;
 			EGLNativeWindowType  nwh = (EGLNativeWindowType )g_platformData.nwh;
@@ -218,8 +223,8 @@ EGL_IMPORT
 			DISPMANX_DISPLAY_HANDLE_T dispmanDisplay = vc_dispmanx_display_open(0);
 			DISPMANX_UPDATE_HANDLE_T  dispmanUpdate  = vc_dispmanx_update_start(0);
 
-			VC_RECT_T dstRect = { 0, 0, _width,        _height       };
-			VC_RECT_T srcRect = { 0, 0, _width  << 16, _height << 16 };
+			VC_RECT_T dstRect = { 0, 0, int32_t(_width),        int32_t(_height)       };
+			VC_RECT_T srcRect = { 0, 0, int32_t(_width)  << 16, int32_t(_height) << 16 };
 
 			DISPMANX_ELEMENT_HANDLE_T dispmanElement = vc_dispmanx_element_add(dispmanUpdate
 				, dispmanDisplay
@@ -245,30 +250,49 @@ EGL_IMPORT
 			BGFX_FATAL(m_surface != EGL_NO_SURFACE, Fatal::UnableToInitialize, "Failed to create surface.");
 
 			const bool hasEglKhrCreateContext = !!bx::findIdentifierMatch(extensions, "EGL_KHR_create_context");
+			const bool hasEglKhrNoError       = !!bx::findIdentifierMatch(extensions, "EGL_KHR_create_context_no_error");
+
+			const uint32_t gles = BGFX_CONFIG_RENDERER_OPENGLES;
 
 			for (uint32_t ii = 0; ii < 2; ++ii)
 			{
 				bx::StaticMemoryBlockWriter writer(s_contextAttrs, sizeof(s_contextAttrs) );
 
-				bx::write(&writer, EGLint(EGL_CONTEXT_MAJOR_VERSION_KHR) );
-				bx::write(&writer, EGLint(BGFX_CONFIG_RENDERER_OPENGLES / 10) );
-
-				bx::write(&writer, EGLint(EGL_CONTEXT_MINOR_VERSION_KHR) );
-				bx::write(&writer, EGLint(BGFX_CONFIG_RENDERER_OPENGLES % 10) );
-
 				EGLint flags = 0;
 
-				if (hasEglKhrCreateContext
-				&&  0 == ii)
+#	if BX_PLATFORM_RPI
+				BX_UNUSED(hasEglKhrCreateContext, hasEglKhrNoError);
+#else
+				if (hasEglKhrCreateContext)
 				{
-					flags = BGFX_CONFIG_DEBUG ? 0
-						| EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR
-//						| EGL_OPENGL_ES3_BIT_KHR
+					bx::write(&writer, EGLint(EGL_CONTEXT_MAJOR_VERSION_KHR) );
+					bx::write(&writer, EGLint(gles / 10) );
+
+					bx::write(&writer, EGLint(EGL_CONTEXT_MINOR_VERSION_KHR) );
+					bx::write(&writer, EGLint(gles % 10) );
+
+					flags |= BGFX_CONFIG_DEBUG && hasEglKhrNoError ? 0
+						| EGL_CONTEXT_FLAG_NO_ERROR_BIT_KHR
 						: 0
 						;
 
-					bx::write(&writer, EGLint(EGL_CONTEXT_FLAGS_KHR) );
-					bx::write(&writer, flags);
+					if (0 == ii)
+					{
+						flags |= BGFX_CONFIG_DEBUG ? 0
+							| EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR
+//							| EGL_OPENGL_ES3_BIT_KHR
+							: 0
+							;
+
+						bx::write(&writer, EGLint(EGL_CONTEXT_FLAGS_KHR) );
+						bx::write(&writer, flags);
+					}
+				}
+				else
+#	endif // BX_PLATFORM_RPI
+				{
+					bx::write(&writer, EGLint(EGL_CONTEXT_CLIENT_VERSION) );
+					bx::write(&writer, 2);
 				}
 
 				bx::write(&writer, EGLint(EGL_NONE) );
@@ -291,11 +315,9 @@ EGL_IMPORT
 			eglSwapInterval(m_display, 0);
 		}
 
-#	if BX_PLATFORM_EMSCRIPTEN
-		emscripten_set_canvas_size(_width, _height);
-#	endif // BX_PLATFORM_EMSCRIPTEN
-
 		import();
+
+		g_internalData.context = m_context;
 	}
 
 	void GlContext::destroy()
@@ -318,8 +340,6 @@ EGL_IMPORT
 
 	void GlContext::resize(uint32_t _width, uint32_t _height, uint32_t _flags)
 	{
-		BX_UNUSED(_width, _height);
-
 #	if BX_PLATFORM_ANDROID
 		if (NULL != m_display)
 		{
@@ -327,7 +347,11 @@ EGL_IMPORT
 			eglGetConfigAttrib(m_display, m_config, EGL_NATIVE_VISUAL_ID, &format);
 			ANativeWindow_setBuffersGeometry( (ANativeWindow*)g_platformData.nwh, _width, _height, format);
 		}
-#	endif // BX_PLATFORM_ANDROID
+#	elif BX_PLATFORM_EMSCRIPTEN
+		emscripten_set_canvas_size(_width, _height);
+#	else
+		BX_UNUSED(_width, _height);
+#	endif // BX_PLATFORM_*
 
 		if (NULL != m_display)
 		{
@@ -336,12 +360,15 @@ EGL_IMPORT
 		}
 	}
 
-	bool GlContext::isSwapChainSupported()
+	uint64_t GlContext::getCaps() const
 	{
 		return BX_ENABLED(0
 						| BX_PLATFORM_LINUX
 						| BX_PLATFORM_WINDOWS
-						);
+						)
+			? BGFX_CAPS_SWAP_CHAIN
+			: 0
+			;
 	}
 
 	SwapChainGL* GlContext::createSwapChain(void* _nwh)

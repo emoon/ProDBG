@@ -1,6 +1,6 @@
 /*
- * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
- * License: http://www.opensource.org/licenses/BSD-2-Clause
+ * Copyright 2010-2016 Branimir Karadzic. All rights reserved.
+ * License: https://github.com/bkaradzic/bx#license-bsd-2-clause
  */
 
 #ifndef BX_PLATFORM_H_HEADER_GUARD
@@ -14,7 +14,7 @@
 
 #define BX_PLATFORM_ANDROID    0
 #define BX_PLATFORM_EMSCRIPTEN 0
-#define BX_PLATFORM_FREEBSD    0
+#define BX_PLATFORM_BSD        0
 #define BX_PLATFORM_IOS        0
 #define BX_PLATFORM_LINUX      0
 #define BX_PLATFORM_NACL       0
@@ -22,16 +22,18 @@
 #define BX_PLATFORM_PS4        0
 #define BX_PLATFORM_QNX        0
 #define BX_PLATFORM_RPI        0
+#define BX_PLATFORM_STEAMLINK  0
 #define BX_PLATFORM_WINDOWS    0
 #define BX_PLATFORM_WINRT      0
 #define BX_PLATFORM_XBOX360    0
 #define BX_PLATFORM_XBOXONE    0
 
-#define BX_CPU_ARM  0
-#define BX_CPU_JIT  0
-#define BX_CPU_MIPS 0
-#define BX_CPU_PPC  0
-#define BX_CPU_X86  0
+#define BX_CPU_ARM   0
+#define BX_CPU_JIT   0
+#define BX_CPU_MIPS  0
+#define BX_CPU_PPC   0
+#define BX_CPU_RISCV 0
+#define BX_CPU_X86   0
 
 #define BX_ARCH_32BIT 0
 #define BX_ARCH_64BIT 0
@@ -83,6 +85,12 @@
 #	undef  BX_CPU_PPC
 #	define BX_CPU_PPC 1
 #	define BX_CACHE_LINE_SIZE 128
+#elif defined(__riscv)   || \
+	  defined(__riscv__) || \
+	  defined(RISCVEL)
+#	undef  BX_CPU_RISCV
+#	define BX_CPU_RISCV 1
+#	define BX_CACHE_LINE_SIZE 64
 #elif defined(_M_IX86)    || \
 	  defined(_M_X64)     || \
 	  defined(__i386__)   || \
@@ -102,7 +110,8 @@
 	defined(__64BIT__)     || \
 	defined(__mips64)      || \
 	defined(__powerpc64__) || \
-	defined(__ppc64__)
+	defined(__ppc64__)     || \
+	defined(__LP64__)
 #	undef  BX_ARCH_64BIT
 #	define BX_ARCH_64BIT 64
 #else
@@ -122,7 +131,7 @@
 #if defined(_XBOX_VER)
 #	undef  BX_PLATFORM_XBOX360
 #	define BX_PLATFORM_XBOX360 1
-#elif defined (_DURANGO)
+#elif defined(_DURANGO) || defined(_XBOX_ONE)
 #	undef  BX_PLATFORM_XBOXONE
 #	define BX_PLATFORM_XBOXONE 1
 #elif defined(_WIN32) || defined(_WIN64)
@@ -152,30 +161,40 @@
 #		undef  BX_PLATFORM_WINRT
 #		define BX_PLATFORM_WINRT 1
 #	endif
-#elif defined(__VCCOREVER__)
-// RaspberryPi compiler defines __linux__
-#	undef  BX_PLATFORM_RPI
-#	define BX_PLATFORM_RPI 1
-#elif defined(__native_client__)
-// NaCl compiler defines __linux__
-#	include <ppapi/c/pp_macros.h>
-#	undef  BX_PLATFORM_NACL
-#	define BX_PLATFORM_NACL PPAPI_RELEASE
 #elif defined(__ANDROID__)
 // Android compiler defines __linux__
 #	include <android/api-level.h>
 #	undef  BX_PLATFORM_ANDROID
 #	define BX_PLATFORM_ANDROID __ANDROID_API__
-#elif defined(__linux__)
+#elif defined(__native_client__)
+// NaCl compiler defines __linux__
+#	include <ppapi/c/pp_macros.h>
+#	undef  BX_PLATFORM_NACL
+#	define BX_PLATFORM_NACL PPAPI_RELEASE
+#elif defined(__STEAMLINK__)
+// SteamLink compiler defines __linux__
+#	undef  BX_PLATFORM_STEAMLINK
+#	define BX_PLATFORM_STEAMLINK 1
+#elif defined(__VCCOREVER__)
+// RaspberryPi compiler defines __linux__
+#	undef  BX_PLATFORM_RPI
+#	define BX_PLATFORM_RPI 1
+#elif  defined(__linux__) \
+	|| defined(__riscv__)
 #	undef  BX_PLATFORM_LINUX
 #	define BX_PLATFORM_LINUX 1
-#elif defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__)
+#elif  defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) \
+	|| defined(__ENVIRONMENT_TV_OS_VERSION_MIN_REQUIRED__)
 #	undef  BX_PLATFORM_IOS
 #	define BX_PLATFORM_IOS 1
 #elif defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__)
 #	undef  BX_PLATFORM_OSX
-#	define BX_PLATFORM_OSX 1
-#elif defined(EMSCRIPTEN)
+#	if defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__)
+#		define BX_PLATFORM_OSX __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__
+#	else
+#		define BX_PLATFORM_OSX 1
+#	endif // defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__)
+#elif defined(__EMSCRIPTEN__)
 #	undef  BX_PLATFORM_EMSCRIPTEN
 #	define BX_PLATFORM_EMSCRIPTEN 1
 #elif defined(__ORBIS__)
@@ -184,9 +203,9 @@
 #elif defined(__QNX__)
 #	undef  BX_PLATFORM_QNX
 #	define BX_PLATFORM_QNX 1
-#elif defined(__FreeBSD__)
-#	undef  BX_PLATFORM_FREEBSD
-#	define BX_PLATFORM_FREEBSD 1
+#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+#	undef  BX_PLATFORM_BSD
+#	define BX_PLATFORM_BSD 1
 #else
 #	error "BX_PLATFORM_* is not defined!"
 #endif //
@@ -194,12 +213,14 @@
 #define BX_PLATFORM_POSIX (0 \
 						|| BX_PLATFORM_ANDROID \
 						|| BX_PLATFORM_EMSCRIPTEN \
-						|| BX_PLATFORM_FREEBSD \
+						|| BX_PLATFORM_BSD \
 						|| BX_PLATFORM_IOS \
 						|| BX_PLATFORM_LINUX \
 						|| BX_PLATFORM_NACL \
 						|| BX_PLATFORM_OSX \
 						|| BX_PLATFORM_QNX \
+						|| BX_PLATFORM_STEAMLINK \
+						|| BX_PLATFORM_PS4 \
 						|| BX_PLATFORM_RPI \
 						)
 
@@ -218,15 +239,15 @@
 				BX_STRINGIZE(__clang_minor__) "." \
 				BX_STRINGIZE(__clang_patchlevel__)
 #elif BX_COMPILER_MSVC
-#	if BX_COMPILER_MSVC >= 1900
+#	if BX_COMPILER_MSVC >= 1900 // Visual Studio 2015
 #		define BX_COMPILER_NAME "MSVC 14.0"
-#	elif BX_COMPILER_MSVC >= 1800
+#	elif BX_COMPILER_MSVC >= 1800 // Visual Studio 2013
 #		define BX_COMPILER_NAME "MSVC 12.0"
-#	elif BX_COMPILER_MSVC >= 1700
+#	elif BX_COMPILER_MSVC >= 1700 // Visual Studio 2012
 #		define BX_COMPILER_NAME "MSVC 11.0"
-#	elif BX_COMPILER_MSVC >= 1600
+#	elif BX_COMPILER_MSVC >= 1600 // Visual Studio 2010
 #		define BX_COMPILER_NAME "MSVC 10.0"
-#	elif BX_COMPILER_MSVC >= 1500
+#	elif BX_COMPILER_MSVC >= 1500 // Visual Studio 2008
 #		define BX_COMPILER_NAME "MSVC 9.0"
 #	else
 #		define BX_COMPILER_NAME "MSVC"
@@ -241,8 +262,8 @@
 				BX_STRINGIZE(__EMSCRIPTEN_major__) "." \
 				BX_STRINGIZE(__EMSCRIPTEN_minor__) "." \
 				BX_STRINGIZE(__EMSCRIPTEN_tiny__)
-#elif BX_PLATFORM_FREEBSD
-#	define BX_PLATFORM_NAME "FreeBSD"
+#elif BX_PLATFORM_BSD
+#	define BX_PLATFORM_NAME "BSD"
 #elif BX_PLATFORM_IOS
 #	define BX_PLATFORM_NAME "iOS"
 #elif BX_PLATFORM_LINUX
@@ -258,6 +279,8 @@
 #	define BX_PLATFORM_NAME "QNX"
 #elif BX_PLATFORM_RPI
 #	define BX_PLATFORM_NAME "RaspberryPi"
+#elif BX_PLATFORM_STEAMLINK
+#	define BX_PLATFORM_NAME "SteamLink"
 #elif BX_PLATFORM_WINDOWS
 #	define BX_PLATFORM_NAME "Windows"
 #elif BX_PLATFORM_WINRT
@@ -270,12 +293,14 @@
 
 #if BX_CPU_ARM
 #	define BX_CPU_NAME "ARM"
+#elif BX_CPU_JIT
+#	define BX_CPU_NAME "JIT-VM"
 #elif BX_CPU_MIPS
 #	define BX_CPU_NAME "MIPS"
 #elif BX_CPU_PPC
 #	define BX_CPU_NAME "PowerPC"
-#elif BX_CPU_JIT
-#	define BX_CPU_NAME "JIT-VM"
+#elif BX_CPU_RISCV
+#	define BX_CPU_NAME "RISC-V"
 #elif BX_CPU_X86
 #	define BX_CPU_NAME "x86"
 #endif // BX_CPU_

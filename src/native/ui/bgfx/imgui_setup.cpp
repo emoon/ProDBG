@@ -11,7 +11,7 @@
 //#include "core/input_state.h"
 #include <stdio.h>
 #include <pd_keys.h>
-#include <bgfx.h>
+#include <bgfx/bgfx.h>
 #include <bx/fpumath.h>
 
 #define sizeof_array(t) (sizeof(t) / sizeof(t[0]))
