@@ -4,15 +4,15 @@ require "tundra.path"
 require "tundra.util"
 
 -----------------------------------------------------------------------------------------------------------------------
------------------------------------------------ EXTERNAL LIBS --------------------------------------------------------- 
+----------------------------------------------- EXTERNAL LIBS ---------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
     Name = "stb",
 
-    Env = { 
+    Env = {
         CCOPTS = {
-        	{ 
+        	{
 		-- "-Werror",
 		    "-Wno-parentheses",
         	"-Wno-unused-variable",
@@ -24,12 +24,12 @@ StaticLibrary {
 			"-Wno-error=strict-aliasing" ; Config = "linux-*-*" },
         	{ "-Wno-everything"; Config = "macosx-*-*" },
         	{ "/wd4244", "/wd4267", "/wd4133", "/wd4047", "/wd4204", "/wd4201", "/wd4701", "/wd4703",
-			  "/wd4024", "/wd4100", "/wd4053", "/wd4431", 
+			  "/wd4024", "/wd4100", "/wd4053", "/wd4431",
 			  "/wd4189", "/wd4127"; Config = "win64-*-*" },
         },
     },
 
-    Sources = { 
+    Sources = {
         Glob {
             Dir = "src/native/external/stb",
             Extensions = { ".c", ".h" },
@@ -44,14 +44,14 @@ StaticLibrary {
 StaticLibrary {
     Name = "remotery",
 
-    Env = { 
+    Env = {
         CCOPTS = {
         	{ "-Wno-everything"; Config = "macosx-*-*" },
         	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
         },
     },
 
-    Sources = { 
+    Sources = {
         Glob {
             Dir = "src/native/external/remotery/lib",
             Extensions = { ".c", ".h" },
@@ -66,14 +66,14 @@ StaticLibrary {
 StaticLibrary {
     Name = "tinyxml2",
 
-    Env = { 
+    Env = {
         CXXOPTS = {
         	{ "-Wno-everything"; Config = "macosx-*-*" },
         	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
         },
     },
 
-    Sources = { 
+    Sources = {
         Glob {
             Dir = "src/native/external/tinyxml2",
             Extensions = { ".cpp", ".h" },
@@ -88,8 +88,8 @@ StaticLibrary {
 StaticLibrary {
     Name = "lua",
 
-    Env = { 
-        CPPPATH = { 
+    Env = {
+        CPPPATH = {
             "src/native/external/lua/src",
         },
 
@@ -99,7 +99,7 @@ StaticLibrary {
         },
     },
 
-    Sources = { 
+    Sources = {
         Glob {
             Dir = "src/native/external/lua/src",
             Extensions = { ".c", ".h", ".hpp" },
@@ -114,8 +114,8 @@ StaticLibrary {
 StaticLibrary {
     Name = "foundation_lib",
 
-    Env = { 
-		CPPPATH = { 
+    Env = {
+		CPPPATH = {
 			"src/native/external/foundation_lib",
 		},
 
@@ -152,8 +152,8 @@ StaticLibrary {
 StaticLibrary {
     Name = "scintilla",
 
-    Env = { 
-		CPPPATH = { 
+    Env = {
+		CPPPATH = {
 			"src/native/external/scintilla/include",
 			"src/native/external/scintilla/src/lexlib",
 		},
@@ -165,7 +165,7 @@ StaticLibrary {
         },
     },
 
-    Sources = { 
+    Sources = {
         Glob {
             Dir = "src/native/external/scintilla/src",
             Extensions = { ".cxx", ".h" },
@@ -182,49 +182,49 @@ StaticLibrary {
 StaticLibrary {
     Name = "uv",
 
-    Env = { 
-		CPPPATH = { 
+    Env = {
+		CPPPATH = {
 			"src/native/external/libuv/include",
 			"src/native/external/libuv/src",
 		},
 
         CCOPTS = {
         	{ "-Wno-everything"; Config = "macosx-*-*" },
-        	{ "/wd4201", "/wd4127", "/wd4244", "/wd4100", 
+        	{ "/wd4201", "/wd4127", "/wd4244", "/wd4100",
 			  "/wd4245", "/wd4204", "/wd4701", "/wd4703", "/wd4054", "/wd4477",
 			  "/wd4702", "/wd4267"; Config = "win64-*-*" },
         },
     },
 
-    Sources = { 
-    	
-    	-- general 
-    	
-    	{ Glob { 
-    		Dir = "src/native/external/libuv/src", 
+    Sources = {
+
+    	-- general
+
+    	{ Glob {
+    		Dir = "src/native/external/libuv/src",
     		Extensions = { ".c", ".h" },
     		Recursive = false },
     	},
 
     	-- Windows
 
-    	{ Glob { 
-    		Dir = "src/native/external/libuv/src/win", 
+    	{ Glob {
+    		Dir = "src/native/external/libuv/src/win",
     		Extensions = { ".c", ".h" },
-    		Recursive = false } ; Config = "win64-*-*" 
+    		Recursive = false } ; Config = "win64-*-*"
     	},
 
     	-- Unix
-    	
-    	{ Glob { 
-    		Dir = "src/native/external/libuv/src/unix", 
+
+    	{ Glob {
+    		Dir = "src/native/external/libuv/src/unix",
     		Extensions = { ".c", ".h" },
     		Recursive = false } ; Config = { "macosx-*-*", "macosx_test-*", "linux-*-*" }
     	},
 
     	-- Mac
 
-		{ 
+		{
 		  "src/native/external/libuv/src/unix/freebsd/kqueue.c",
 		  "src/native/external/libuv/src/unix/darwin/fsevents.c",
 		  "src/native/external/libuv/src/unix/darwin/darwin-proctitle.c",
@@ -232,7 +232,7 @@ StaticLibrary {
 
 		-- Linux
 
-		{ 
+		{
 		  "src/native/external/libuv/src/unix/linux/linux-core.c",
 		  "src/native/external/libuv/src/unix/linux/linux-inotify.c",
 		  "src/native/external/libuv/src/unix/linux/linux-syscalls.c" ; Config = "linux-*-*" },
@@ -247,33 +247,34 @@ StaticLibrary {
 StaticLibrary {
     Name = "bgfx",
 
-    Env = { 
-        CPPPATH = { 
+    Env = {
+        CPPPATH = {
 		  { "src/native/external/bx/include/compat/msvc"; Config = "win64-*-*" },
             "src/native/external/remotery/lib",
             "src/native/external/bgfx/include",
             "src/native/external/bx/include",
             "src/native/external/bgfx/3rdparty/khronos",
         },
-        
+
         CXXOPTS = {
 			{ "-Wno-variadic-macros", "-Wno-everything" ; Config = "macosx-*-*" },
 			{ "/Isrc/native/external/bx/include/compat/msvc", "/EHsc"; Config = "win64-*-*" },
         },
     },
 
-    Sources = { 
+    Sources = {
 		{ "src/native/external/bgfx/src/bgfx.cpp",
 		  "src/native/external/bgfx/src/image.cpp",
 		  "src/native/external/bgfx/src/vertexdecl.cpp",
 		  "src/native/external/bgfx/src/debug_renderdoc.cpp",
+		  "src/native/external/bgfx/src/topology.cpp",
 		  "src/native/external/bgfx/src/renderer_gl.cpp",
 		  "src/native/external/bgfx/src/renderer_vk.cpp",
 		  "src/native/external/bgfx/src/renderer_null.cpp",
-		  "src/native/external/bgfx/src/renderer_d3d9.cpp", 
-		  "src/native/external/bgfx/src/renderer_d3d11.cpp", 
-		  "src/native/external/bgfx/src/renderer_d3d12.cpp" }, 
-        { "src/native/external/bgfx/src/renderer_mtl.mm" ; Config = { "macosx-*-*", "macosx_test-*" } }, 
+		  "src/native/external/bgfx/src/renderer_d3d9.cpp",
+		  "src/native/external/bgfx/src/renderer_d3d11.cpp",
+		  "src/native/external/bgfx/src/renderer_d3d12.cpp" },
+        { "src/native/external/bgfx/src/renderer_mtl.mm" ; Config = { "macosx-*-*", "macosx_test-*" } },
 	    { "src/native/external/bgfx/src/glcontext_wgl.cpp" ; Config = "win64-*-*" },
 	    { "src/native/external/bgfx/src/glcontext_glx.cpp" ; Config = "linux-*-*" },
 	    { "src/native/external/bgfx/src/glcontext_nsgl.mm" ; Config = { "macosx-*-*", "macosx_test-*" } },
@@ -287,18 +288,18 @@ StaticLibrary {
 StaticLibrary {
     Name = "cmocka",
 
-    Env = { 
-        CPPPATH = { 
+    Env = {
+        CPPPATH = {
             "src/native/external/cmocka/include",
         },
-        
+
         CCOPTS = {
        		{ "-Wno-everything" ; Config = "macosx-*-*" },
         	{ "/wd4204", "/wd4701", "/wd4703" ; Config = "win64-*-*" },
        },
     },
 
-    Sources = { 
+    Sources = {
         Glob {
             Dir = "src/native/external/cmocka/src",
             Extensions = { ".c", ".h" },
@@ -313,16 +314,16 @@ StaticLibrary {
 StaticLibrary {
     Name = "imgui",
 
-    Env = { 
+    Env = {
         CXXOPTS = {
         	{ "-Wno-everything"; Config = "macosx-*-*" },
         },
-        CPPPATH = { 
+        CPPPATH = {
 			"src/native/external/scintilla/include",
         },
     },
 
-    Sources = { 
+    Sources = {
         Glob {
             Dir = "src/native/external/imgui",
             Extensions = { ".cpp", ".h" },
@@ -337,13 +338,13 @@ StaticLibrary {
 StaticLibrary {
     Name = "remote_api",
 
-    Env = { 
-        
+    Env = {
+
         CPPPATH = { "api/include" },
         CCOPTS = {
             "-Wno-visibility",
-            "-Wno-conversion", 
-            "-Wno-pedantic", 
+            "-Wno-conversion",
+            "-Wno-pedantic",
             "-Wno-conversion",
             "-Wno-covered-switch-default",
             "-Wno-unreachable-code",
@@ -352,11 +353,11 @@ StaticLibrary {
             "-Wno-float-equal",
             "-Wno-conversion",
             "-Wno-switch-enum",
-            "-Wno-format-nonliteral"; Config = "macosx-*-*" 
+            "-Wno-format-nonliteral"; Config = "macosx-*-*"
         },
     },
 
-    Sources = { 
+    Sources = {
         Glob {
             Dir = "api/src/remote",
             Extensions = { ".c" },
@@ -371,13 +372,13 @@ StaticLibrary {
 StaticLibrary {
     Name = "remote_connection",
 
-    Env = { 
-        
+    Env = {
+
         CPPPATH = { "api/include" },
         CCOPTS = {
             "-Wno-visibility",
-            "-Wno-conversion", 
-            "-Wno-pedantic", 
+            "-Wno-conversion",
+            "-Wno-pedantic",
             "-Wno-conversion",
             "-Wno-covered-switch-default",
             "-Wno-unreachable-code",
@@ -386,11 +387,11 @@ StaticLibrary {
             "-Wno-float-equal",
             "-Wno-conversion",
             "-Wno-switch-enum",
-            "-Wno-format-nonliteral"; Config = "macosx-*-*" 
+            "-Wno-format-nonliteral"; Config = "macosx-*-*"
         },
     },
 
-    Sources = { 
+    Sources = {
             "api/src/remote/remote_connection.c",
     },
 
@@ -404,8 +405,8 @@ StaticLibrary {
 
 
 
-    Env = { 
-        CPPPATH = { 
+    Env = {
+        CPPPATH = {
 			"src/native/external/capstone/include",
         },
 
@@ -415,14 +416,14 @@ StaticLibrary {
         },
 
 		CPPDEFS = {
-			{   "CAPSTONE_ARM64_SUPPORT", "CAPSTONE_ARM_SUPPORT", "CAPSTONE_HAS_ARM", "CAPSTONE_HAS_ARM64", "CAPSTONE_HAS_M68K", "CAPSTONE_HAS_MIPS", 
-				"CAPSTONE_HAS_POWERPC", "CAPSTONE_HAS_SPARC", "CAPSTONE_HAS_SYSZ", "CAPSTONE_HAS_X86", "CAPSTONE_HAS_XCORE", "CAPSTONE_M68K_SUPPORT", 
-				"CAPSTONE_MIPS_SUPPORT", "CAPSTONE_PPC_SUPPORT", "CAPSTONE_SPARC_SUPPORT", "CAPSTONE_SYSZ_SUPPORT", "CAPSTONE_USE_SYS_DYN_MEM", 
+			{   "CAPSTONE_ARM64_SUPPORT", "CAPSTONE_ARM_SUPPORT", "CAPSTONE_HAS_ARM", "CAPSTONE_HAS_ARM64", "CAPSTONE_HAS_M68K", "CAPSTONE_HAS_MIPS",
+				"CAPSTONE_HAS_POWERPC", "CAPSTONE_HAS_SPARC", "CAPSTONE_HAS_SYSZ", "CAPSTONE_HAS_X86", "CAPSTONE_HAS_XCORE", "CAPSTONE_M68K_SUPPORT",
+				"CAPSTONE_MIPS_SUPPORT", "CAPSTONE_PPC_SUPPORT", "CAPSTONE_SPARC_SUPPORT", "CAPSTONE_SYSZ_SUPPORT", "CAPSTONE_USE_SYS_DYN_MEM",
 				"CAPSTONE_X86_SUPPORT", "CAPSTONE_XCORE_SUPPORT" },
 		},
     },
 
-    Sources = { 
+    Sources = {
         Glob {
             Dir = "src/native/external/capstone",
             Extensions = { ".h", ".c" },
@@ -433,13 +434,13 @@ StaticLibrary {
 }
 
 -----------------------------------------------------------------------------------------------------------------------
------------------------------------------------ INTERNAL LIBS --------------------------------------------------------- 
+----------------------------------------------- INTERNAL LIBS ---------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
     Name = "ui",
 
-    Env = { 
+    Env = {
     	CCOPTS = {
 			{ "-Wno-objc-interface-ivars",
 			  "-Wno-direct-ivar-access",
@@ -448,7 +449,7 @@ StaticLibrary {
 		},
 
         CXXOPTS = {
-        	{ 
+        	{
 
         	  "-Wno-gnu-anonymous-struct",
 			  "-Wno-global-constructors",
@@ -461,7 +462,7 @@ StaticLibrary {
 			  "-Wno-format-nonliteral"; Config = "macosx-*-*" },
         },
 
-        CPPPATH = { 
+        CPPPATH = {
 			"src/native/external",
             "src/native/external/imgui",
             "src/native/external/bx/include",
@@ -477,7 +478,7 @@ StaticLibrary {
         },
     },
 
-    Sources = { 
+    Sources = {
         FGlob {
             Dir = "src/native/ui",
             Extensions = { ".c", ".cpp", ".m", ".mm", ".h", "*.inl" },
@@ -509,17 +510,17 @@ StaticLibrary {
     Name = "main_lib",
 
     Env = {
-        CPPPATH = { 
+        CPPPATH = {
 			"src/native/external/remotery/lib",
 			"src/native/external/foundation_lib",
 			"src/native/external/jansson/include",
             "src/native/external/lua/src",
 			"src/native/external/libuv/include",
-            "src/native/external/bgfx/include", 
+            "src/native/external/bgfx/include",
             "src/native/external/bx/include",
             "src/native/external/stb",
             "src/native/external/i3wm_docking",
-            "src/native", 
+            "src/native",
         	"api/include",
             "src/frontend",
         },
@@ -528,8 +529,8 @@ StaticLibrary {
             { "/SUBSYSTEM:WINDOWS", "/DEBUG"; Config = { "win32-*-*", "win64-*-*" } },
         },
 
-        CXXOPTS = { 
-			{ 
+        CXXOPTS = {
+			{
 			  "-Wno-conversion",
 			  "-Wno-gnu-anonymous-struct",
 			  "-Wno-global-constructors",
@@ -545,7 +546,7 @@ StaticLibrary {
 
         CCOPTS = {
 			{ "-Wno-c11-extensions"; Config = "macosx-clang-*" },
-        	{ 
+        	{
         	  "/wd4201" -- namless struct/union
 			  ; Config = "win64-*-*" },
         },
@@ -556,7 +557,7 @@ StaticLibrary {
 		},
     },
 
-    Sources = { 
+    Sources = {
         FGlob {
             Dir = "src/native/main_lib",
             Extensions = { ".c", ".cpp", ".m", ".mm", ".h" },
