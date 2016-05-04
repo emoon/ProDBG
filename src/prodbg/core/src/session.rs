@@ -25,7 +25,7 @@ pub struct Session {
     pub handle: SessionHandle,
     pub reader: Reader,
 
-    //current_writer: usize,
+    current_writer: usize,
     writers: [Writer; 2],
     action: i32,
 
@@ -48,7 +48,7 @@ impl Session {
             ],
             reader: ReaderWrapper::create_reader(),
             action: 0,
-            //current_writer: 0,
+            current_writer: 0,
             backend: None,
         }
     }
@@ -70,13 +70,17 @@ impl Session {
         self.action = 4;
     }
 
+
+    // The way this code works is to allow the view plugins to have "two rounds" of updates.
+    // That is to allow the view plugins to send things that other view plugins can listen
+    // to and not only get data from the backend.
     pub fn update(&mut self, backend_plugins: &mut BackendPlugins) {
         // swap the writers
-        //let c_writer = self.current_writer;
-        //let n_writer = (self.current_writer + 1) & 1;
+        let c_writer = self.current_writer;
+        let n_writer = (self.current_writer + 1) & 1;
 
-        ReaderWrapper::init_from_writer(&mut self.reader, &self.writers[0]);
-        ReaderWrapper::reset_writer(&mut self.writers[1]);
+        ReaderWrapper::init_from_writer(&mut self.reader, &self.writers[c_writer]);
+        ReaderWrapper::reset_writer(&mut self.writers[n_writer]);
 
         if let Some(backend) = backend_plugins.get_backend(self.backend) {
             unsafe {
@@ -84,14 +88,15 @@ impl Session {
                 ((*plugin_funcs).update.unwrap())(backend.plugin_data,
                                                   self.action,
                                                   self.reader.api as *mut c_void,
-                                                  self.writers[1].api as *mut c_void);
+                                                  self.writers[n_writer].api as *mut c_void);
             }
         }
 
         self.action = 0;
+        self.current_writer = n_writer;
 
-        ReaderWrapper::init_from_writer(&mut self.reader, &self.writers[1]);
-        ReaderWrapper::reset_writer(&mut self.writers[0]);
+        //ReaderWrapper::init_from_writer(&mut self.reader, &self.writers[1]);
+        //ReaderWrapper::reset_writer(&mut self.writers[0]);
     }
 }
 
