@@ -5,11 +5,11 @@ authors = ["Daniel Collin <daniel@collin.com>"]
 build = "build.rs"
 
 [build-dependencies]
-serde_codegen = "0.7.0"
-syntex = "0.31.0"
+serde_codegen = "0.7.4"
+syntex = "0.32.0"
 
 [dependencies]
 minifb = "0.6.0"
-serde = "0.7.0"
+serde = "0.7.4"
 serde_json = "0.7.0"
 
