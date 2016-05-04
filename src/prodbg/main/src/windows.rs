@@ -409,8 +409,28 @@ impl<'a> Window<'a> {
         }
     }
 
+    fn show_popup_change_view(&mut self, plugin_names: &Vec<String>, mouse_pos: (f32, f32), view_plugins: &mut ViewPlugins) {
+        let ui = Imgui::get_ui();
+
+        if ui.begin_menu("Change View", true) {
+            for name in plugin_names {
+                if ui.menu_item(name, false, true) {
+                    if let Some(dock_handle) = self.ws.get_hover_dock(mouse_pos) {
+                        view_plugins.destroy_instance(ViewHandle(dock_handle.0));
+                        view_plugins.create_instance_with_handle(Imgui::create_ui_instance(), 
+                                                                 &name, &None, SessionHandle(0), ViewHandle(dock_handle.0));
+                    }
+                }
+            }
+            ui.end_menu();
+        }
+    }
+
     fn show_popup_regular(&mut self, plugin_names: &Vec<String>, mouse_pos: (f32, f32), view_plugins: &mut ViewPlugins) {
         let ui = Imgui::get_ui();
+
+        self.show_popup_change_view(plugin_names, mouse_pos, view_plugins);
+
 
         if ui.begin_menu("Split Horizontally", true) {
             for name in plugin_names {
