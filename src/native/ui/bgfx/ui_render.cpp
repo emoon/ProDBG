@@ -91,7 +91,7 @@ static const bgfx::Memory* loadShader(const char* filename) {
         return 0;
     }
 
-    const bgfx::Memory* mem = bgfx::makeRef(data, size + 1, NULL, NULL);
+    const bgfx::Memory* mem = bgfx::makeRef(data, (uint32_t)(size + 1), NULL, NULL);
 
     // terminate strings
     data[size] = 0;
