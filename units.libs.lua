@@ -249,7 +249,9 @@ StaticLibrary {
 
     Env = {
         CPPPATH = {
-		  { "src/native/external/bx/include/compat/msvc"; Config = "win64-*-*" },
+		  { 
+		  	{ "src/native/external/bx/include/compat/msvc", 
+		  	  "src/native/external/bgfx/3rdparty/dxsdk/include" } ; Config = "win64-*-*" },
             "src/native/external/remotery/lib",
             "src/native/external/bgfx/include",
             "src/native/external/bx/include",
@@ -258,7 +260,8 @@ StaticLibrary {
 
         CXXOPTS = {
 			{ "-Wno-variadic-macros", "-Wno-everything" ; Config = "macosx-*-*" },
-			{ "/Isrc/native/external/bx/include/compat/msvc", "/EHsc"; Config = "win64-*-*" },
+			{ "/Isrc/native/external/bx/include/compat/msvc", 
+			"/EHsc"; Config = "win64-*-*" },
         },
     },
 
@@ -268,6 +271,7 @@ StaticLibrary {
 		  "src/native/external/bgfx/src/vertexdecl.cpp",
 		  "src/native/external/bgfx/src/debug_renderdoc.cpp",
 		  "src/native/external/bgfx/src/topology.cpp",
+		  "src/native/external/bgfx/src/shader_dxbc.cpp",
 		  "src/native/external/bgfx/src/renderer_gl.cpp",
 		  "src/native/external/bgfx/src/renderer_vk.cpp",
 		  "src/native/external/bgfx/src/renderer_null.cpp",
