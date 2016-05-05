@@ -2,73 +2,14 @@
 extern crate prodbg_api;
 use prodbg_api::*;
 
-static CODE: &'static [u8] = b"\x55\x48\x8b\x05\xb8\x13\x00\x00";
+//static CODE: &'static [u8] = b"\x55\x48\x8b\x05\xb8\x13\x00\x00";
 
 struct AmigaUaeBackend {
-    capstone: Capstone,
-    current_test: u32,
+    _capstone: Capstone,
 }
 
 impl AmigaUaeBackend {
-    fn write_all_types(&mut self, writer: &mut Writer) {
-        let data: [u8; 6] = [1, 2, 3, 80, 50, 60];
-
-        writer.event_begin(3);
-
-        writer.write_s8("my_s8", -2);
-        writer.write_u8("my_u8", 3);
-
-        writer.write_s16("my_s16", -2000);
-        writer.write_u16("my_u16", 56);
-
-        writer.write_s32("my_s32", -300000);
-        writer.write_u32("my_u32", 4000000);
-
-        writer.write_s64("my_s64", -1400000);
-        writer.write_u64("my_u64", 6000000);
-
-        writer.write_float("my_float", 14.0);
-        writer.write_float("my_float2", -24.0);
-
-        writer.write_double("my_double", 23.0);
-        writer.write_double("my_double2", 63.0);
-
-        writer.write_string("my_string", "foobar1337");
-        writer.write_data("my_data", &data);
-
-        writer.event_end();
-    }
-
-    fn test_read_data(&mut self, reader: &mut Reader) {
-        while let Some(e) = reader.get_event() {
-            assert!(e == 3);
-
-            // so while unwrapping here might not be very nice
-            // this is actually ok in this case because a painc
-            // will tell us that something is wrong and fail the
-            // test case
-            
-            assert!(reader.find_s8("my_s8").ok().unwrap() == -2i8);
-            assert!(reader.find_s8("my_s8").ok().unwrap() == -2);
-            assert!(reader.find_u8("my_u8").ok().unwrap() == 3);
-
-            assert!(reader.find_s16("my_s16").ok().unwrap() == -2000);
-            assert!(reader.find_u16("my_u16").ok().unwrap() == 56);
-
-            assert!(reader.find_s32("my_s32").ok().unwrap() == -300000);
-            assert!(reader.find_u32("my_u32").ok().unwrap() == 4000000);
-
-            assert!(reader.find_s64("my_s64").ok().unwrap() == -1400000);
-            assert!(reader.find_u64("my_u64").ok().unwrap() == 6000000);
-
-            assert!(reader.find_float("my_float").ok().unwrap() == 14.0);
-            assert!(reader.find_float("my_float2").ok().unwrap() == -24.0);
-
-            assert!(reader.find_double("my_double").ok().unwrap() == 23.0);
-            assert!(reader.find_double("my_double2").ok().unwrap() == 63.0);
-        }
-    }
-
+    /*
     fn test_capstone(&mut self) {
         match self.capstone.open(Arch::X86, MODE_64) {
             Err(e) => {
@@ -88,28 +29,19 @@ impl AmigaUaeBackend {
             println!("No instructions :(");
         }
     }
+    */
 }
 
 impl Backend for AmigaUaeBackend {
     fn new(service: &Service) -> Self {
         AmigaUaeBackend { 
-            capstone: service.get_capstone(),
-            current_test: 0 
+            _capstone: service.get_capstone(),
         }
     }
 
-    // fn update(&mut self, reader: &prodbg::Reader)
     // TODO: Something about action action as i32
-    fn update(&mut self, _: i32, reader: &mut Reader, writer: &mut Writer) {
-        println!("running update");
-        match self.current_test {
-            0 => Self::write_all_types(self, writer),
-            1 => Self::test_read_data(self, reader),
-            2 => Self::test_capstone(self),
-            _ => (),
-        }
+    fn update(&mut self, _: i32, _reader: &mut Reader, _writer: &mut Writer) {
 
-        self.current_test += 1;
     }
 }
 
