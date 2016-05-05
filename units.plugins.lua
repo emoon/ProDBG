@@ -299,44 +299,13 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
-SharedLibrary {
-    Name = "amiga_uae_plugin",
-
-    Env = {
-        CPPPATH = {
-			"api/include",
-			"api/src/remote",
-		},
-		CCOPTS = {
-			{
-				"-Wno-unused-macros",
-				"-Wno-sign-conversion" ; Config = { "macosx-*-*", "linux-*" } },
-			{ "-std=c99"; Config = "linux-*"; },
-		},
-
-        COPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-
-		CPPDEFS = {
-			{ "_XOPEN_SOURCE=600"; Config = "linux-*" },
-		},
-    },
-
-    Sources = {
-		Glob {
-			Dir = "src/addons/amiga_uae_debugger",
-			Extensions = { ".c", ".h" },
-		},
-	},
-
-    Libs = {
-      {
-    	"Ws2_32.lib", "psapi.lib", "iphlpapi.lib", "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", "Advapi32.lib" ; Config = { "win32-*-*", "win64-*-*" }
-      },
-    },
-
-    IdeGenerationHints = { Msvc = { SolutionFolder = "Addons" } },
-
-    Depends = { "remote_connection", "uv" },
+RustSharedLibrary {
+	Name = "amiga_uae_plugin",
+	CargoConfig = "src/addons/amiga_uae_plugin/Cargo.toml",
+	Sources = {
+		get_rs_src("src/addons/amiga_uae_plugin"),
+		get_rs_src("api/rust/prodbg"),
+	}
 }
 
 -----------------------------------------------------------------------------------------------------------------------
