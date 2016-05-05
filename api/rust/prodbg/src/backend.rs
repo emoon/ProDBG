@@ -42,7 +42,7 @@ pub fn destroy_backend_instance<T: Backend>(ptr: *mut c_void) {
 }
 
 pub fn update_backend_instance<T: Backend>(ptr: *mut c_void,
-                                           action: *mut c_int,
+                                           action: c_int,
                                            reader_api: *mut c_void,
                                            writer_api: *mut c_void) {
     let backend: &mut T = unsafe { &mut *(ptr as *mut T) };
@@ -63,10 +63,10 @@ macro_rules! define_backend_plugin {
     ($p_name:ident, $name:expr, $x:ty) => {
         static $p_name: CBackendCallbacks = CBackendCallbacks {
             name: $name as *const u8,
-            create_instance: Some(prodbg::backend::create_backend_instance::<$x>),
-            destroy_instance: Some(prodbg::backend::destroy_backend_instance::<$x>),
+            create_instance: Some(prodbg_api::backend::create_backend_instance::<$x>),
+            destroy_instance: Some(prodbg_api::backend::destroy_backend_instance::<$x>),
             register_menu: None,
-            update: Some(prodbg::backend::update_backend_instance::<$x>)
+            update: Some(prodbg_api::backend::update_backend_instance::<$x>)
         };
     }
 }
