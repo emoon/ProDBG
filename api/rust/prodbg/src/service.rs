@@ -10,6 +10,9 @@ use CMessageFuncs1;
 use Dialogs;
 use CDialogFuncs1;
 
+use MenuFuncs;
+use CMenuFuncs1;
+
 pub struct Service {
     pub service_func: extern "C" fn(data: *const c_uchar) -> *mut c_void,
 }
@@ -41,6 +44,14 @@ impl Service {
             let api: &mut CDialogFuncs1 = transmute(((*self).service_func)(b"Dialogs 1\0"
                                                                                .as_ptr()));
             Dialogs { api: api }
+        }
+    }
+
+    pub fn get_menu_service(&self) -> MenuFuncs {
+        unsafe {
+            let api: &mut CMenuFuncs1 = transmute(((*self).service_func)(b"Menu Service 1\0"
+                                                                               .as_ptr()));
+            MenuFuncs { api: api }
         }
     }
 }

@@ -3,6 +3,7 @@ extern crate libc;
 #[macro_use]
 extern crate bitflags;
 
+pub mod menu_service;
 pub mod read_write;
 pub mod backend;
 pub mod plugin_handler;
@@ -28,5 +29,5 @@ pub use ui::*;
 pub use view::*;
 pub use cfixed_string::*;
 pub use io::*;
-
+pub use menu_service::*;
 

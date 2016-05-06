@@ -28,7 +28,7 @@ typedef struct PDMenuFuncs {
 	void (*insert_menu)(PDMenuHandle parent, PDMenuHandle child);
 	void (*destroy_menu)(PDMenuHandle handle);
 
-	PDMenuItem (*insert_menu_item)(PDMenuHandle menu, const char* name, uint32_t id);
+	PDMenuItem (*add_menu_item)(PDMenuHandle menu, const char* name, uint32_t id);
 	void (*remove_menu_item)(PDMenuItem handle);
 
 	void (*set_flags)(PDMenuItem item, uint32_t flags);
