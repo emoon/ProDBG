@@ -1634,6 +1634,8 @@ static PDDebugState update(void* user_data, PDAction action, PDReader* reader, P
     return plugin->state;
 }
 
+/*
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static PDMenuItem MENU_0[] = {
@@ -1655,6 +1657,7 @@ static PDMenu MENUS[] = {
 static PDMenu* createMenu() {
     return (PDMenu*)&MENUS;
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1662,7 +1665,7 @@ static PDBackendPlugin plugin = {
     "C64 VICE Debugger",
     create_instance,
     destroy_instance,
-    createMenu,
+    0,
     update,
 };
 
