@@ -1,9 +1,9 @@
-use libc::{c_void, c_uchar};
+use libc::{c_void};
 use std::rc::Rc;
 use plugin::Plugin;
 use plugins::PluginHandler;
 use prodbg_api::backend::CBackendCallbacks;
-use std::ptr;
+use services;
 use Lib;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -79,14 +79,14 @@ impl BackendPlugins {
         }
     }
 
-    extern "C" fn service_fun(_name: *const c_uchar) -> *mut c_void {
-        ptr::null_mut()
-    }
+    //extern "C" fn service_fun(_name: *const c_uchar) -> *mut c_void {
+    //    ptr::null_mut()
+    //}
 
     fn create_instance_from_type(&mut self, index: usize) -> Option<BackendHandle> {
         let user_data = unsafe {
             let callbacks = self.plugin_types[index].plugin_funcs as *mut CBackendCallbacks;
-            (*callbacks).create_instance.unwrap()(Self::service_fun)
+            (*callbacks).create_instance.unwrap()(services::get_services)
         };
 
         let handle = self.handle_counter;
