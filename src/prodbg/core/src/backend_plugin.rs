@@ -79,10 +79,6 @@ impl BackendPlugins {
         }
     }
 
-    //extern "C" fn service_fun(_name: *const c_uchar) -> *mut c_void {
-    //    ptr::null_mut()
-    //}
-
     fn create_instance_from_type(&mut self, index: usize) -> Option<BackendHandle> {
         let user_data = unsafe {
             let callbacks = self.plugin_types[index].plugin_funcs as *mut CBackendCallbacks;
