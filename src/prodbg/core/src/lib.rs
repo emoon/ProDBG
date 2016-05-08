@@ -3,6 +3,8 @@ extern crate notify;
 extern crate dynamic_reload;
 extern crate prodbg_api;
 
+pub mod menus;
+
 mod services;
 
 pub mod plugins;

@@ -1,7 +1,42 @@
-use std::ptr;
+use libc::{c_char, c_void, c_uint};
+use prodbg_api::{CMenuFuncs1, PDMenuItem};
+use std::mem::transmute;
+
+static mut MENU_FUNCS: CMenuFuncs1 = CMenuFuncs1 { 
+    create_menu: create_menu,
+    destroy_menu: destroy_menu,
+    add_menu_item: add_menu_item,
+    remove_menu_item: remove_menu_item,
+    set_flags: set_flags,
+    set_shortcut_key: set_shortcut_key,
+};
+
+fn create_menu(_title: *const c_char) -> u64 {
+    0
+}
+
+fn destroy_menu(_handle: u64) {
+
+}
+    
+fn add_menu_item(_menu: u64, _name: *const c_char, _id: c_uint) -> PDMenuItem {
+    PDMenuItem(0)
+}
+
+fn remove_menu_item(_item: u64) {
+
+}
+
+fn set_flags(_item: u64, _flags: c_uint) {
+
+}
+
+fn set_shortcut_key(_item: u64, _accel_key: c_uint, _modifier: c_uint) {
+
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 /*
     create_menu: extern "C" fn(title: *const c_char) -> u64,
     destroy_menu: extern "C" fn(handle: u64),
@@ -14,6 +49,9 @@ use std::ptr;
 */
 
 pub fn get_menu_funcs1() -> *mut c_void {
-    ptr::null_mut();
-
+    unsafe {
+        let funcs: *mut c_void = transmute(&mut MENU_FUNCS);
+        funcs
+    }
+    //ptr::null_mut()
 }
