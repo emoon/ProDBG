@@ -38,10 +38,10 @@ impl MouseState {
     }
 }
 
-pub struct Window<'a> {
+pub struct Window {
     /// minifb window
     pub win: minifb::Window,
-    pub menu: Menu<'a>,
+    pub menu: Menu,
 
     /// Views in this window
     pub views: Vec<ViewHandle>,
@@ -72,14 +72,14 @@ impl minifb::InputCallback for KeyCharCallback {
 ///! 2. User "undocks" a view from an existing window giving it it's own floating window.
 ///! 3. etc
 
-pub struct Windows<'a> {
+pub struct Windows {
     /// All the windows being tracked
-    windows: Vec<Window<'a>>,
+    windows: Vec<Window>,
     current: usize,
 }
 
-impl<'a> Windows<'a> {
-    pub fn new() -> Windows<'a> {
+impl Windows {
+    pub fn new() -> Windows {
         Windows {
             windows: Vec::new(),
             current: 0,
@@ -99,7 +99,7 @@ impl<'a> Windows<'a> {
         self.windows.push(window)
    }
 
-    pub fn create_window(width: usize, height: usize) -> minifb::Result<Window<'a>> {
+    pub fn create_window(width: usize, height: usize) -> minifb::Result<Window> {
         let res = minifb::Window::new("ProDBG",
                                       width,
                                       height,
@@ -125,15 +125,15 @@ impl<'a> Windows<'a> {
         }
     }
 
-    pub fn create_window_with_menus() -> minifb::Result<Window<'a>> {
+    pub fn create_window_with_menus() -> minifb::Result<Window> {
         let mut window = try!(Self::create_window(WIDTH, HEIGHT));
 
         window.win.set_input_callback(Box::new(KeyCharCallback {}));
 
         // we ignore the results because we likely brake this on Linux otherwise
         // TODO: Figure out how to deal with this on Linux
-        let _ = window.win.add_menu("File", &window.menu.file_menu);
-        let _ = window.win.add_menu("Debug", &window.menu.debug_menu);
+        let _ = window.win.add_menu(&window.menu.file_menu);
+        let _ = window.win.add_menu(&window.menu.debug_menu);
 
         Ok(window)
     }
@@ -148,7 +148,7 @@ impl<'a> Windows<'a> {
         }
     }
 
-    pub fn get_current(&mut self) -> &'a mut Window {
+    pub fn get_current(&mut self) -> &mut Window {
         let current = self.current;
         &mut self.windows[current]
     }
@@ -187,7 +187,7 @@ impl<'a> Windows<'a> {
     }
 }
 
-impl<'a> Window<'a> {
+impl Window {
     fn is_inside(v: (f32, f32), pos: PDVec2, size: PDVec2) -> bool {
         let x0 = pos.x;
         let y0 = pos.y;
@@ -417,7 +417,7 @@ impl<'a> Window<'a> {
                 if ui.menu_item(name, false, true) {
                     if let Some(dock_handle) = self.ws.get_hover_dock(mouse_pos) {
                         view_plugins.destroy_instance(ViewHandle(dock_handle.0));
-                        view_plugins.create_instance_with_handle(Imgui::create_ui_instance(), 
+                        view_plugins.create_instance_with_handle(Imgui::create_ui_instance(),
                                                                  &name, &None, SessionHandle(0), ViewHandle(dock_handle.0));
                     }
                 }
