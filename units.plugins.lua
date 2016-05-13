@@ -240,11 +240,11 @@ SharedLibrary {
 
     Depends = { "foundation_lib" },
 
-    Frameworks = { 
-        { "Cocoa" }, 
-        { "Metal" }, 
-        { "QuartzCore" }, 
-        { "OpenGL" }  
+    Frameworks = {
+        { "Cocoa" },
+        { "Metal" },
+        { "QuartzCore" },
+        { "OpenGL" }
     },
 
     Libs = {
