@@ -67,14 +67,48 @@ static void send_6502_registers(PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void on_menu(PDReader* reader) {
+    uint32_t menuId;
+
+    PDRead_find_u32(reader, &menuId, "menu_id", 0);
+
+    switch (menuId) {
+        case 1:
+        {
+        	printf("id 1 pressed!\n");
+            break;
+        }
+
+        case 2:
+        {
+        	printf("id 2 pressed!\n");
+            break;
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDDebugState update(void* user_data,
 						   PDAction action,
 						   PDReader* reader,
 						   PDWriter* writer) {
+    uint32_t event;
+
 	(void)user_data;
     (void)action;
     (void)reader;
     (void)writer;
+
+    while ((event = PDRead_get_event(reader))) {
+        switch (event) {
+            case PDEventType_MenuEvent: 
+			{
+                on_menu(reader);
+                break;
+            }
+		}
+	}
 
 	send_6502_registers(writer);
 
@@ -90,7 +124,8 @@ static PDMenuHandle register_menu(void* user_data, PDMenuFuncs* menu_funcs) {
 
 	PDMenuHandle menu = PDMenu_create_menu(menu_funcs, "Dummy Backend Menu");
 
-	PDMenu_add_menu_item(menu_funcs, menu, "Test", 0, 0, 0);
+	PDMenu_add_menu_item(menu_funcs, menu, "Id 1", 1, 0, 0);
+	PDMenu_add_menu_item(menu_funcs, menu, "Id 2", 2, 0, 0);
 
 	return menu;
 }

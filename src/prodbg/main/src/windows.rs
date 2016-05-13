@@ -352,7 +352,7 @@ impl Window {
                     }
                 }
                 _ => {
-                    println!("Menu id pressed {}", menu_id);
+                    current_session.send_menu_id(menu_id as u32, backend_plugins);
                 }
             }
         });

@@ -54,7 +54,7 @@ impl Session {
     }
 
     pub fn get_current_writer(&mut self) -> &mut Writer {
-        &mut self.writers[0]
+        &mut self.writers[self.current_writer]
     }
 
     pub fn start_remote(_plugin_handler: &PluginHandler, _settings: &ConnectionSettings) {}
@@ -70,6 +70,17 @@ impl Session {
         self.action = 4;
     }
 
+    pub fn send_menu_id(&mut self, menu_id: u32, backend_plugins: &mut BackendPlugins) {
+        if let Some(backend) = backend_plugins.get_backend(self.backend) {
+            if menu_id >= backend.menu_id_offset && (menu_id < backend.menu_id_offset + 1000) {
+                let writer = self.get_current_writer();
+                //println!("Write event, writer {}", );
+                writer.event_begin(35); // Menu event, TODO: Fix hard-coded value
+                writer.write_u32("menu_id", menu_id - backend.menu_id_offset); 
+                writer.event_end();
+            }
+        }
+    }
 
     // The way this code works is to allow the view plugins to have "two rounds" of updates.
     // That is to allow the view plugins to send things that other view plugins can listen
