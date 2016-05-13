@@ -143,8 +143,8 @@ impl Windows {
         Ok(window)
     }
 
-    pub fn update(&mut self, 
-                  sessions: &mut Sessions, 
+    pub fn update(&mut self,
+                  sessions: &mut Sessions,
                   view_plugins: &mut ViewPlugins,
                   backend_plugins: &mut BackendPlugins) {
         for i in (0..self.windows.len()).rev() {
@@ -342,7 +342,7 @@ impl Window {
             match menu_id {
                 MENU_DEBUG_STEP_IN => current_session.action_step(),
                 MENU_FILE_START_NEW_BACKEND => {
-                    if let Some(backend) = backend_plugins.create_instance(&"Dummy Backend".to_owned()) {
+                    if let Some(backend) = backend_plugins.create_instance(&"Amiga UAE Debugger".to_owned()) {
                         current_session.set_backend(Some(backend));
 
                         if let Some(menu) = backend_plugins.get_menu(backend, self.menu_id_offset) {
@@ -358,9 +358,9 @@ impl Window {
         });
     }
 
-    pub fn update(&mut self, 
-                  sessions: &mut Sessions, 
-                  view_plugins: &mut ViewPlugins, 
+    pub fn update(&mut self,
+                  sessions: &mut Sessions,
+                  view_plugins: &mut ViewPlugins,
                   backend_plugins: &mut BackendPlugins) {
         let mut views_to_delete = Vec::new();
         let mut has_shown_menu = 0u32;
