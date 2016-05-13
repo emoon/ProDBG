@@ -3,6 +3,7 @@ use std::rc::Rc;
 use plugin::Plugin;
 use plugins::PluginHandler;
 use prodbg_api::backend::CBackendCallbacks;
+use menus;
 use services;
 use Lib;
 use minifb::Menu;
@@ -16,6 +17,7 @@ pub struct BackendInstance {
     pub plugin_data: *mut c_void,
     pub handle: BackendHandle,
     pub plugin_type: Rc<Plugin>,
+    pub menu_id_offset: u32,
 }
 
 #[derive(Clone)]
@@ -94,6 +96,7 @@ impl BackendPlugins {
             plugin_data: user_data,
             handle: handle,
             plugin_type: self.plugin_types[index].clone(),
+            menu_id_offset: 0,
         };
 
         self.handle_counter.0 += 1;
@@ -131,16 +134,20 @@ impl BackendPlugins {
         None
     }
 
-    pub fn get_menu(&mut self, handle: BackendHandle) -> Option<Box<Menu>> {
+    pub fn get_menu(&mut self, handle: BackendHandle, menu_id_offset: u32) -> Option<Box<Menu>> {
         if let Some(backend) = self.get_backend(Some(handle)) {
             unsafe {
                 let plugin_funcs = backend.plugin_type.plugin_funcs as *mut CBackendCallbacks;
 
                 if let Some(register_menu) = (*plugin_funcs).register_menu { 
-                    let menu = register_menu(backend.plugin_data, services::get_services);
+                    let mut menus_funcs = menus::get_menu_funcs(menu_id_offset); 
+                    let funcs: *mut c_void = transmute(&mut menus_funcs);
+                    let menu = register_menu(backend.plugin_data, funcs);
                     if menu == ptr::null_mut() {
                         return None;
                     }
+
+                    backend.menu_id_offset = menu_id_offset;
 
                     let menu: Box<Menu> = transmute(menu);
                     return Some(menu)

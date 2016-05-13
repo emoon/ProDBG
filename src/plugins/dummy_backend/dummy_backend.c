@@ -85,15 +85,12 @@ static PDDebugState update(void* user_data,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDMenuHandle register_menu(void* user_data, ServiceFunc* service_func) {
+static PDMenuHandle register_menu(void* user_data, PDMenuFuncs* menu_funcs) {
 	(void)user_data;
-	(void)service_func;
 
-	PDMenuFuncs* menu_funcs = service_func(PDMENUFUNCS_GLOBAL); 
+	PDMenuHandle menu = PDMenu_create_menu(menu_funcs, "Dummy Backend Menu");
 
-	PDMenuHandle menu = menu_funcs->create_menu("Dummy Backend Menu");
-
-	menu_funcs->add_menu_item(menu, "Test", 0, 0, 0);
+	PDMenu_add_menu_item(menu_funcs, menu, "Test", 0, 0, 0);
 
 	return menu;
 }

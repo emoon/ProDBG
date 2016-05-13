@@ -1,7 +1,6 @@
 use libc::{c_void, c_char, c_uchar};
 use std::ffi::CStr;
 use std::ptr;
-use menus;
 
 pub extern "C" fn get_services(type_name: *const c_uchar) -> *mut c_void {
     unsafe {
@@ -9,7 +8,6 @@ pub extern "C" fn get_services(type_name: *const c_uchar) -> *mut c_void {
 
         match name {
             "Capstone Service 1" => get_capstone_service_1(),
-            "Menu Service 1" => menus::get_menu_funcs1(),
             _ =>  ptr::null_mut(),
         }
     }

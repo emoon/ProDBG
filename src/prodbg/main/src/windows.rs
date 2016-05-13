@@ -52,6 +52,8 @@ pub struct Window {
     pub ws: Workspace,
 
     pub mouse_state: MouseState,
+
+    pub menu_id_offset: u32,
 }
 
 struct WindowState {
@@ -119,6 +121,7 @@ impl Windows {
                     win: win,
                     menu: Menu::new(),
                     views: Vec::new(),
+                    menu_id_offset: 1000,
                     mouse_state: MouseState::new(),
                     ws: Workspace::new(Rect::new(0.0, 0.0, width as f32, (height - 20) as f32)).unwrap(),
                 })
@@ -342,12 +345,15 @@ impl Window {
                     if let Some(backend) = backend_plugins.create_instance(&"Dummy Backend".to_owned()) {
                         current_session.set_backend(Some(backend));
 
-                        if let Some(menu) = backend_plugins.get_menu(backend) {
+                        if let Some(menu) = backend_plugins.get_menu(backend, self.menu_id_offset) {
                             self.win.add_menu(&menu);
+                            self.menu_id_offset += 1000;
                         }
                     }
                 }
-                _ => (),
+                _ => {
+                    println!("Menu id pressed {}", menu_id);
+                }
             }
         });
     }

@@ -17,7 +17,7 @@ pub struct CBackendCallbacks {
     pub name: *const c_uchar,
     pub create_instance: Option<fn(service_func: ServiceFunc) -> *mut c_void>,
     pub destroy_instance: Option<fn(*mut c_void)>,
-    pub register_menu: Option<fn(ptr: *mut c_void, service_func: ServiceFunc) -> *mut c_void>,
+    pub register_menu: Option<fn(ptr: *mut c_void, menu_funcs: *mut c_void) -> *mut c_void>,
     pub update: Option<fn(ptr: *mut c_void,
                           a: c_int,
                           ra: *mut c_void,

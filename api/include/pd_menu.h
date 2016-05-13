@@ -24,19 +24,28 @@ enum {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct PDMenuFuncs {
-	PDMenuHandle (*create_menu)(const char* name);
-	void (*destroy_menu)(PDMenuHandle handle);
-	void (*add_sub_menu)(const char* name, PDMenuHandle parent, PDMenuHandle child);
+	void* private_data;
+
+	PDMenuHandle (*create_menu)(void* private_data, const char* name);
+	void (*destroy_menu)(void* private_data, PDMenuHandle handle);
+	void (*add_sub_menu)(void* private_data, const char* name, 
+						 PDMenuHandle parent, PDMenuHandle child);
 
 	PDMenuItem (*add_menu_item)(
+			void* private_data,
 			PDMenuHandle menu, 
 			const char* name, 
 			uint32_t id,
 			uint32_t key,
 			uint32_t modifier);
-	void (*remove_menu_item)(PDMenuItem handle);
+
+	void (*remove_menu_item)(void* private_data, PDMenuItem handle);
 
 } PDMenuFuncs;
+
+#define PDMenu_create_menu(funcs, name) funcs->create_menu(funcs->private_data, name) 
+#define PDMenu_add_menu_item(funcs, handle, name, id, key, modifier) \
+	funcs->add_menu_item(funcs->private_data, handle, name, id, key, modifier) 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
