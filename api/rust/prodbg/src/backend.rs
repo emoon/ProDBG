@@ -10,7 +10,7 @@ pub static BACKEND_API_VERSION: &'static [u8] = b"ProDBG Backend 1\0";
 pub trait Backend {
     fn new(service: &Service) -> Self;
     fn update(&mut self, action: i32, reader: &mut Reader, writer: &mut Writer);
-    fn register_menu(&mut self, menu_funcs: &MenuFuncs) -> *mut c_void;
+    fn register_menu(&mut self, menu_funcs: &mut MenuFuncs) -> *mut c_void;
 }
 
 pub type ServiceFunc = extern "C" fn(service: *const c_uchar) -> *mut c_void;
