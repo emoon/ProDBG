@@ -1,3 +1,4 @@
+extern crate minifb;
 extern crate libc;
 extern crate notify;
 extern crate dynamic_reload;

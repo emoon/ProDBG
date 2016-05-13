@@ -55,7 +55,7 @@ fn main() {
 
         plugins.update(&mut lib_handler);
         sessions.update(&mut backend_plugins.borrow_mut());
-        windows.update(&mut sessions, &mut view_plugins.borrow_mut());
+        windows.update(&mut sessions, &mut view_plugins.borrow_mut(), &mut backend_plugins.borrow_mut());
 
         if windows.should_exit() {
             break;

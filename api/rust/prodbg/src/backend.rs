@@ -10,14 +10,14 @@ pub trait Backend {
     fn update(&mut self, action: i32, reader: &mut Reader, writer: &mut Writer);
 }
 
+pub type ServiceFunc = extern "C" fn(service: *const c_uchar) -> *mut c_void;
+
 #[repr(C)]
 pub struct CBackendCallbacks {
     pub name: *const c_uchar,
-    pub create_instance: Option<fn(service_func: extern "C" fn(service: *const c_uchar)
-                                                               -> *mut c_void)
-                                   -> *mut c_void>,
+    pub create_instance: Option<fn(service_func: ServiceFunc) -> *mut c_void>,
     pub destroy_instance: Option<fn(*mut c_void)>,
-    pub register_menu: Option<fn() -> *mut c_void>,
+    pub register_menu: Option<fn(ptr: *mut c_void, service_func: ServiceFunc) -> *mut c_void>,
     pub update: Option<fn(ptr: *mut c_void,
                           a: c_int,
                           ra: *mut c_void,

@@ -3,6 +3,7 @@
 
 #include "pd_common.h"
 #include "pd_readwrite.h"
+#include "pd_menu.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -104,7 +105,7 @@ typedef struct PDBackendPlugin {
 
     void* (*create_instance)(ServiceFunc* service_func);
     void (*destroy_instance)(void* user_data);
-    struct PDMenu* (*register_menu)();
+    PDMenuHandle (*register_menu)(void* user_data, ServiceFunc* service_func);
     PDDebugState (*update)(void* user_data, PDAction action, PDReader* reader, PDWriter* writer);
 
 } PDBackendPlugin;

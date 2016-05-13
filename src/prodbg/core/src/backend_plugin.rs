@@ -5,6 +5,9 @@ use plugins::PluginHandler;
 use prodbg_api::backend::CBackendCallbacks;
 use services;
 use Lib;
+use minifb::Menu;
+use std::mem::transmute;
+use std::ptr;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct BackendHandle(pub usize);
@@ -121,6 +124,26 @@ impl BackendPlugins {
             for i in 0..self.instances.len() {
                 if self.instances[i].handle == handle {
                     return Some(&mut self.instances[i]);
+                }
+            }
+        }
+
+        None
+    }
+
+    pub fn get_menu(&mut self, handle: BackendHandle) -> Option<Box<Menu>> {
+        if let Some(backend) = self.get_backend(Some(handle)) {
+            unsafe {
+                let plugin_funcs = backend.plugin_type.plugin_funcs as *mut CBackendCallbacks;
+
+                if let Some(register_menu) = (*plugin_funcs).register_menu { 
+                    let menu = register_menu(backend.plugin_data, services::get_services);
+                    if menu == ptr::null_mut() {
+                        return None;
+                    }
+
+                    let menu: Box<Menu> = transmute(menu);
+                    return Some(menu)
                 }
             }
         }

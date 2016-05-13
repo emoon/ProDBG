@@ -1,5 +1,6 @@
 #include "pd_backend.h"
 #include "pd_host.h"
+#include "pd_menu.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -84,12 +85,27 @@ static PDDebugState update(void* user_data,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static PDMenuHandle register_menu(void* user_data, ServiceFunc* service_func) {
+	(void)user_data;
+	(void)service_func;
+
+	PDMenuFuncs* menu_funcs = service_func(PDMENUFUNCS_GLOBAL); 
+
+	PDMenuHandle menu = menu_funcs->create_menu("Dummy Backend Menu");
+
+	menu_funcs->add_menu_item(menu, "Test", 0, 0, 0);
+
+	return menu;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDBackendPlugin plugin =
 {
     "Dummy Backend",
     create_instance,
     destroy_instance,
-    0,
+	register_menu,
     update,
 };
 

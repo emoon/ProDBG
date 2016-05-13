@@ -4,7 +4,8 @@ use minifb::{Key, MENU_KEY_CTRL};
 use minifb::Menu as MinifbMenu;
 
 pub const MENU_FILE_OPEN_AND_RUN_EXE: usize = 1;
-pub const MENU_FILE_OPEN_SOURCE: usize = 1;
+pub const MENU_FILE_OPEN_SOURCE: usize = 2;
+pub const MENU_FILE_START_NEW_BACKEND: usize = 3;
 pub const MENU_DEBUG_ATTACH_TO_REMOTE: usize = 50;
 pub const MENU_DEBUG_START: usize = 51;
 pub const MENU_DEBUG_STEP_IN: usize = 52;
@@ -33,6 +34,10 @@ impl Menu {
 
         menu.add_item("Open Source...", MENU_FILE_OPEN_SOURCE)
             .shortcut(Key::O, MENU_KEY_CTRL)
+            .build();
+
+        menu.add_item("Start new backend...", MENU_FILE_START_NEW_BACKEND)
+            .shortcut(Key::N, MENU_KEY_CTRL)
             .build();
 
         menu

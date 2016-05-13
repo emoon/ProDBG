@@ -6,13 +6,15 @@ use bgfx_rs::Bgfx;
 use libc::{c_void, c_int};
 use minifb::{Scale, WindowOptions, MouseMode, MouseButton, Key, KeyRepeat};
 use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
+use core::backend_plugin::{BackendPlugins};
 use core::session::{Sessions, Session, SessionHandle};
 use core::reader_wrapper::ReaderWrapper;
 use self::viewdock::{Workspace, Rect, Direction, DockHandle, SplitHandle};
-use menu::{Menu, MENU_DEBUG_STEP_IN};
+use menu::*;
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::{PDVec2, ImguiKey};
 use prodbg_api::view::CViewCallbacks;
+//use std::mem::transmute;
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 800;
@@ -97,7 +99,7 @@ impl Windows {
         Self::setup_imgui_key_mappings();
 
         self.windows.push(window)
-   }
+    }
 
     pub fn create_window(width: usize, height: usize) -> minifb::Result<Window> {
         let res = minifb::Window::new("ProDBG",
@@ -111,8 +113,8 @@ impl Windows {
         match res {
             Ok(win) => {
                 Bgfx::create_window(win.get_window_handle() as *const c_void,
-                                    width as c_int,
-                                    height as c_int);
+                width as c_int,
+                height as c_int);
                 Ok(Window {
                     win: win,
                     menu: Menu::new(),
@@ -138,9 +140,12 @@ impl Windows {
         Ok(window)
     }
 
-    pub fn update(&mut self, sessions: &mut Sessions, view_plugins: &mut ViewPlugins) {
+    pub fn update(&mut self, 
+                  sessions: &mut Sessions, 
+                  view_plugins: &mut ViewPlugins,
+                  backend_plugins: &mut BackendPlugins) {
         for i in (0..self.windows.len()).rev() {
-            self.windows[i].update(sessions, view_plugins);
+            self.windows[i].update(sessions, view_plugins, backend_plugins);
 
             if !self.windows[i].win.is_open() {
                 self.windows.swap_remove(i);
@@ -227,9 +232,9 @@ impl Window {
         unsafe {
             let plugin_funcs = instance.plugin_type.plugin_funcs as *mut CViewCallbacks;
             ((*plugin_funcs).update.unwrap())(instance.plugin_data,
-                                                ui.api as *mut c_void,
-                                                session.reader.api as *mut c_void,
-                                                session.get_current_writer().api as *mut c_void);
+                                              ui.api as *mut c_void,
+                                              session.reader.api as *mut c_void,
+                                              session.get_current_writer().api as *mut c_void);
         }
 
         let has_shown_menu = Imgui::has_showed_popup(ui.api);
@@ -289,15 +294,15 @@ impl Window {
         }
 
         /*
-        if let Some(handle) = ws.is_hovering_sizer(mouse_pos) {
-            let delta = (prev_mouse.0 - mouse_pos.0, prev_mouse.1 - mouse_pos.1);
+           if let Some(handle) = ws.is_hovering_sizer(mouse_pos) {
+           let delta = (prev_mouse.0 - mouse_pos.0, prev_mouse.1 - mouse_pos.1);
 
-            if window.get_mouse_down(MouseButton::Left) {
-                println!("drangging sizer");
-                ws.drag_sizer(handle, delta);
-            }
-        }
-        */
+           if window.get_mouse_down(MouseButton::Left) {
+           println!("drangging sizer");
+           ws.drag_sizer(handle, delta);
+           }
+           }
+           */
 
         self.mouse_state.prev_mouse = mouse_pos;
     }
@@ -312,7 +317,45 @@ impl Window {
         });
     }
 
-    pub fn update(&mut self, sessions: &mut Sessions, view_plugins: &mut ViewPlugins) {
+    fn show_unix_menus(window: &minifb::Window) -> Option<usize> {
+        let _ui = Imgui::get_ui();
+        let _menus = window.get_unix_menus().unwrap();
+        // implement unix menus here
+        None
+    }
+
+    fn is_menu_pressed(window: &mut minifb::Window) -> Option<usize> {
+        if window.get_unix_menus().is_some() {
+            return Self::show_unix_menus(&window);
+        }
+
+        window.is_menu_pressed()
+    }
+
+    fn update_menus(&mut self, sessions: &mut Sessions, backend_plugins: &mut BackendPlugins) {
+        let current_session = sessions.get_current();
+
+        Self::is_menu_pressed(&mut self.win).map(|menu_id| {
+            match menu_id {
+                MENU_DEBUG_STEP_IN => current_session.action_step(),
+                MENU_FILE_START_NEW_BACKEND => {
+                    if let Some(backend) = backend_plugins.create_instance(&"Dummy Backend".to_owned()) {
+                        current_session.set_backend(Some(backend));
+
+                        if let Some(menu) = backend_plugins.get_menu(backend) {
+                            self.win.add_menu(&menu);
+                        }
+                    }
+                }
+                _ => (),
+            }
+        });
+    }
+
+    pub fn update(&mut self, 
+                  sessions: &mut Sessions, 
+                  view_plugins: &mut ViewPlugins, 
+                  backend_plugins: &mut BackendPlugins) {
         let mut views_to_delete = Vec::new();
         let mut has_shown_menu = 0u32;
 
@@ -332,16 +375,6 @@ impl Window {
         for view in &self.views {
             if let Some(ref mut v) = view_plugins.get_view(*view) {
                 if let Some(ref mut s) = sessions.get_session(v.session_handle) {
-
-                    // TODO: Only do this on the correct session
-
-                    self.win.is_menu_pressed().map(|menu_id| {
-                        if menu_id == MENU_DEBUG_STEP_IN {
-                            println!("action_step");
-                            s.action_step();
-                        }
-                    });
-
                     let state = Self::update_view(self, v, s, show_context_menu, mouse);
 
                     if state.should_close {
@@ -352,6 +385,10 @@ impl Window {
                 }
             }
         }
+
+        self.update_menus(sessions, backend_plugins);
+
+        // TODO: Only do this on the correct session
 
         if self.win.is_key_pressed(Key::Down, KeyRepeat::No) {
             self.ws.dump_tree();
@@ -418,7 +455,7 @@ impl Window {
                     if let Some(dock_handle) = self.ws.get_hover_dock(mouse_pos) {
                         view_plugins.destroy_instance(ViewHandle(dock_handle.0));
                         view_plugins.create_instance_with_handle(Imgui::create_ui_instance(),
-                                                                 &name, &None, SessionHandle(0), ViewHandle(dock_handle.0));
+                        &name, &None, SessionHandle(0), ViewHandle(dock_handle.0));
                     }
                 }
             }

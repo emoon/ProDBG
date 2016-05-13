@@ -25,14 +25,16 @@ enum {
 
 typedef struct PDMenuFuncs {
 	PDMenuHandle (*create_menu)(const char* name);
-	void (*insert_menu)(PDMenuHandle parent, PDMenuHandle child);
 	void (*destroy_menu)(PDMenuHandle handle);
+	void (*add_sub_menu)(const char* name, PDMenuHandle parent, PDMenuHandle child);
 
-	PDMenuItem (*add_menu_item)(PDMenuHandle menu, const char* name, uint32_t id);
+	PDMenuItem (*add_menu_item)(
+			PDMenuHandle menu, 
+			const char* name, 
+			uint32_t id,
+			uint32_t key,
+			uint32_t modifier);
 	void (*remove_menu_item)(PDMenuItem handle);
-
-	void (*set_flags)(PDMenuItem item, uint32_t flags);
-	void (*set_shortcut_key)(PDMenuItem item, uint32_t accel_key, uint32_t modifier);
 
 } PDMenuFuncs;
 

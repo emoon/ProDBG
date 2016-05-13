@@ -61,6 +61,7 @@ dependencies = [
  "dynamic_reload 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "libloading 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "minifb 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "notify 2.5.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "prodbg_api 0.1.0",
  "tempdir 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
