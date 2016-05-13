@@ -3,12 +3,17 @@ extern crate prodbg_api;
 extern crate libc;
 use prodbg_api::*;
 use libc::c_void;
+pub mod gdb;
+use gdb::{GdbRemote, NeedsAck};
+use std::net::{SocketAddr, SocketAddrV4, Ipv4Addr};
+
 //use std::ptr;
 
 //static CODE: &'static [u8] = b"\x55\x48\x8b\x05\xb8\x13\x00\x00";
 
 struct AmigaUaeBackend {
     _capstone: Capstone,
+    conn: gdb::GdbRemote,
 }
 
 impl AmigaUaeBackend {
@@ -39,12 +44,33 @@ impl Backend for AmigaUaeBackend {
     fn new(service: &Service) -> Self {
         AmigaUaeBackend {
             _capstone: service.get_capstone(),
+            conn: GdbRemote::new(NeedsAck::No),
         }
     }
 
     // TODO: Something about action action as i32
-    fn update(&mut self, _: i32, _reader: &mut Reader, _writer: &mut Writer) {
+    fn update(&mut self, action: i32, reader: &mut Reader, _writer: &mut Writer) {
+        for event in reader.get_event() {
+            match event {
+                35 => {
+                    if self.conn.connect(&SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 6860))).is_ok() {
+                        println!("Connected!");
+                    }
+                }
+                _ => (),
+            }
+        }
 
+        match action {
+            ACTION_BREAK => {
+                println!("Break");
+            }
+
+            ACTION_STEP => {
+                println!("step");
+            }
+            _ => (),
+        }
     }
 
     fn register_menu(&mut self, menu_funcs: &mut MenuFuncs) -> *mut c_void {
