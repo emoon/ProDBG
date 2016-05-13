@@ -1,6 +1,8 @@
 use read_write::*;
 use service::*;
 use libc::*;
+//use std::os::raw;
+use menu_service::{MenuFuncs, CMenuFuncs1};
 use std::mem::transmute;
 
 pub static BACKEND_API_VERSION: &'static [u8] = b"ProDBG Backend 1\0";
@@ -8,6 +10,7 @@ pub static BACKEND_API_VERSION: &'static [u8] = b"ProDBG Backend 1\0";
 pub trait Backend {
     fn new(service: &Service) -> Self;
     fn update(&mut self, action: i32, reader: &mut Reader, writer: &mut Writer);
+    fn register_menu(&mut self, menu_funcs: &MenuFuncs) -> *mut c_void;
 }
 
 pub type ServiceFunc = extern "C" fn(service: *const c_uchar) -> *mut c_void;
@@ -58,6 +61,18 @@ pub fn update_backend_instance<T: Backend>(ptr: *mut c_void,
     backend.update(action as i32, &mut reader, &mut writer);
 }
 
+pub fn register_backend_menu<T: Backend>(ptr: *mut c_void,
+                                         menu_api: *mut c_void) -> *mut c_void {
+    let backend: &mut T = unsafe { &mut *(ptr as *mut T) };
+
+    let mut menu_funcs = MenuFuncs {
+        api: menu_api as *mut CMenuFuncs1,
+    };
+
+    backend.register_menu(&mut menu_funcs)
+}
+
+
 #[macro_export]
 macro_rules! define_backend_plugin {
     ($p_name:ident, $name:expr, $x:ty) => {
@@ -65,7 +80,7 @@ macro_rules! define_backend_plugin {
             name: $name as *const u8,
             create_instance: Some(prodbg_api::backend::create_backend_instance::<$x>),
             destroy_instance: Some(prodbg_api::backend::destroy_backend_instance::<$x>),
-            register_menu: None,
+            register_menu: Some(prodbg_api::backend::register_backend_menu::<$x>),
             update: Some(prodbg_api::backend::update_backend_instance::<$x>)
         };
     }
