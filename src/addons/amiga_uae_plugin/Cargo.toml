@@ -8,4 +8,5 @@ name = "amiga_uae_plugin"
 crate-type = ["dylib"]
 
 [dependencies]
+libc = "0.2"
 prodbg_api = { path = "../../../api/rust/prodbg" }

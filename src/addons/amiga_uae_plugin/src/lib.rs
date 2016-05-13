@@ -1,6 +1,9 @@
 #[macro_use]
 extern crate prodbg_api;
+extern crate libc;
 use prodbg_api::*;
+use libc::c_void; 
+use std::ptr;
 
 //static CODE: &'static [u8] = b"\x55\x48\x8b\x05\xb8\x13\x00\x00";
 
@@ -42,6 +45,10 @@ impl Backend for AmigaUaeBackend {
     // TODO: Something about action action as i32
     fn update(&mut self, _: i32, _reader: &mut Reader, _writer: &mut Writer) {
 
+    }
+    
+    fn register_menu(&mut self, _menu_funcs: &MenuFuncs) -> *mut c_void {
+        ptr::null_mut()
     }
 }
 
