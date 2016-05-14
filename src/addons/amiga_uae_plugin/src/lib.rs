@@ -5,7 +5,9 @@ use prodbg_api::*;
 use libc::c_void;
 pub mod gdb;
 use gdb::{GdbRemote, NeedsAck};
-use std::net::{SocketAddr, SocketAddrV4, Ipv4Addr};
+//use std::net::{SocketAddr, SocketAddrV4, Ipv4Addr};
+//use std::io::Read;
+//use std::{slice, str};
 
 //use std::ptr;
 
@@ -53,8 +55,9 @@ impl Backend for AmigaUaeBackend {
         for event in reader.get_event() {
             match event {
                 35 => {
-                    if self.conn.connect(&SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 6860))).is_ok() {
+                    if self.conn.connect("127.0.0.1:6860").is_ok() {
                         println!("Connected!");
+                        self.conn.get_registers();
                     }
                 }
                 _ => (),
@@ -71,6 +74,8 @@ impl Backend for AmigaUaeBackend {
             }
             _ => (),
         }
+
+        self.conn.update();
     }
 
     fn register_menu(&mut self, menu_funcs: &mut MenuFuncs) -> *mut c_void {
