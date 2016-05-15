@@ -13,6 +13,65 @@ pub const ACTION_STEP: i32 = 4;
 pub const ACTION_STEP_OUT: i32 = 5;
 pub const ACTION_STEP_OVER: i32 = 6;
 
+#[repr(C)]
+pub enum EventType {
+    No,
+    GetLocals,
+    SetLocals,
+    GetCallstack,
+    SetCallstack,
+    GetWatch,
+    SetWatch,
+    GetRegisters,
+    SetRegisters,
+    GetMemory,
+    SetMemory,
+    GetTty,
+    SetTty,
+    GetExceptionLocation,
+    SetExceptionLocation,
+    GetDisassembly,
+    SetDisassembly,
+    GetStatus,
+    SetStatus,
+    SetThreads,
+    GetThreads,
+    SelectThread,
+    SelectFrame,
+    GetSourceFiles,
+    SetSourceFiles,
+
+    SetSourceCodeFile,
+
+    // setbreakpoint send a breakpoint to the backend with supplied id
+    // Back end will reply if this worked correct with supplied ID
+
+    SetBreakpoint,
+    ReplyBreakpoint,
+
+    DeleteBreakpoint,
+    SetExecutable,
+    Action,
+    AttachToProcess,
+    AttachToRemoteSession,
+
+    ExecuteConsole,
+    GetConsole,
+
+	MenuEvent,
+
+    // TODO: Somewhat temporary, need to figure this out
+
+    ToggleBreakpointCurrentLine,
+
+    // End of events
+
+    End,
+
+    /// Custom events. Here you can have your own events. Note that they must start with PDEventType_custom and up
+    Custom = 0x1000
+}
+
 pub static BACKEND_API_VERSION: &'static [u8] = b"ProDBG Backend 1\0";
 
 pub trait Backend {
