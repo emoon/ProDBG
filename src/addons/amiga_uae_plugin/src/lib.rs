@@ -16,9 +16,91 @@ use gdb::{GdbRemote, NeedsAck};
 struct AmigaUaeBackend {
     _capstone: Capstone,
     conn: gdb::GdbRemote,
+    exception_location: u32,
 }
 
 impl AmigaUaeBackend {
+
+    fn from_hex(ch: u8) -> u8 {
+        if (ch >= b'a') && (ch <= b'f') {
+            return ch - b'a' + 10;
+        }
+
+        if (ch >= b'0') && (ch <= b'9') {
+            return ch - b'0';
+        }
+
+        if (ch >= b'A') && (ch <= b'F') {
+            return ch - b'A' + 10;
+        }
+
+        return 0;
+    }
+
+    fn get_u32(data: &[u8]) -> u32 {
+        let t0 = ((Self::from_hex(data[0]) << 4) | Self::from_hex(data[1])) as u32;
+        let t1 = ((Self::from_hex(data[2]) << 4) | Self::from_hex(data[3])) as u32;
+        let t2 = ((Self::from_hex(data[4]) << 4) | Self::from_hex(data[5])) as u32;
+        let t3 = ((Self::from_hex(data[6]) << 4) | Self::from_hex(data[7])) as u32;
+        (t0 << 24) | (t1 << 16) | (t2 << 8) | t3
+    }
+
+    fn write_register(writer: &mut Writer, name: &str, data: u32, read_only: bool) {
+        writer.array_entry_begin();
+        writer.write_string("name", name);
+        writer.write_u8("size", 4);
+
+        if read_only {
+            writer.write_u8("read_only", 1);
+        }
+
+        writer.write_u32("register", data);
+
+        writer.array_entry_end();
+    }
+
+    fn write_registers(&mut self, writer: &mut Writer, data: &Vec<u8>) {
+        let mut index = 1;  // 1 to skip starting $
+
+        writer.event_begin(EventType::SetRegisters as u16);
+        writer.array_begin("registers");
+
+        // a registers
+
+        for i in 0..8 {
+            let name = format!("a{}", i);
+            let reg = Self::get_u32(&data[index..]);
+
+            Self::write_register(writer, &name, reg, false);
+
+            index += 8;
+        }
+
+        // d registers
+
+        for i in 0..8 {
+            let name = format!("d{}", i);
+            let reg = Self::get_u32(&data[index..]);
+
+            Self::write_register(writer, &name, reg, false);
+
+            index += 8;
+        }
+
+        // Status registers & pc
+
+        let sr = Self::get_u32(&data[index..]);
+        let pc = Self::get_u32(&data[index + 8..]);
+
+        self.exception_location = pc;
+
+        Self::write_register(writer, "sr", sr, true);
+        Self::write_register(writer, "pc", pc, true);
+
+        writer.array_end();
+        writer.event_end();
+    }
+
     /*
     fn test_capstone(&mut self) {
         match self.capstone.open(Arch::X86, MODE_64) {
@@ -47,17 +129,17 @@ impl Backend for AmigaUaeBackend {
         AmigaUaeBackend {
             _capstone: service.get_capstone(),
             conn: GdbRemote::new(NeedsAck::No),
+            exception_location: 0,
         }
     }
 
     // TODO: Something about action action as i32
-    fn update(&mut self, action: i32, reader: &mut Reader, _writer: &mut Writer) {
+    fn update(&mut self, action: i32, reader: &mut Reader, writer: &mut Writer) {
         for event in reader.get_event() {
             match event {
-                35 => {
+                 35 => {
                     if self.conn.connect("127.0.0.1:6860").is_ok() {
                         println!("Connected!");
-                        self.conn.get_registers();
                     }
                 }
                 _ => (),
@@ -70,12 +152,17 @@ impl Backend for AmigaUaeBackend {
             }
 
             ACTION_STEP => {
-                println!("step");
+                self.conn.step_sync();
+
+                if let Some(data) = self.conn.get_registers_sync() {
+                    self.write_registers(writer, &data.clone());
+                }
             }
             _ => (),
         }
 
-        self.conn.update();
+
+        //self.conn.update();
     }
 
     fn register_menu(&mut self, menu_funcs: &mut MenuFuncs) -> *mut c_void {
@@ -89,7 +176,7 @@ impl Backend for AmigaUaeBackend {
 
 #[no_mangle]
 pub fn init_plugin(plugin_handler: &mut PluginHandler) {
-    define_backend_plugin!(PLUGIN, b"Amiga UAE Debugger", AmigaUaeBackend);
+    define_backend_plugin!(PLUGIN, b"Amiga UAE Debugger\0", AmigaUaeBackend);
     plugin_handler.register_backend(&PLUGIN);
 }
 

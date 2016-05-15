@@ -1,7 +1,7 @@
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::net::TcpStream;
 use std::io::{Read, Write};
-//use std::time::Duration;
+use std::sync::{Arc, RwLock};
 use std::io;
 use std::thread;
 
@@ -10,11 +10,13 @@ pub enum NeedsAck {
     No,
 }
 
+#[derive(Copy, Clone, PartialEq)]
 pub enum State {
     Disconnected,
     Connected,
     SendingData,
     WaitingForData,
+    Close,
 }
 
 pub struct GdbRemote {
@@ -22,6 +24,7 @@ pub struct GdbRemote {
     pub writer: Sender<Vec<u8>>,
     pub reader: Receiver<Vec<u8>>,
     temp_data: Vec<u8>,
+    state: Arc<RwLock<State>>,
 }
 
 static HEX_CHARS: &'static [u8; 16] = b"0123456789abcdef";
@@ -35,12 +38,14 @@ impl GdbRemote {
             reader: rx,
             needs_ack: needs_ack,
             temp_data: Vec::new(),
+            state: Arc::new(RwLock::new(State::Disconnected)),
         }
     }
 
     fn read_write_data(reader: &Receiver<Vec<u8>>, writer: &Sender<Vec<u8>>, stream: &mut TcpStream) -> io::Result<()> {
         match reader.recv() {
             Ok(data) => {
+                // TODO: Less allocs
                 let mut buffer = [0; 1024];
                 let mut t = Vec::new();
                 try!(stream.write_all(&data.into_boxed_slice()));
@@ -56,8 +61,14 @@ impl GdbRemote {
         }
     }
 
+    fn set_state(&mut self, state: State) {
+        *(*self.state).write().unwrap() = state
+    }
+
     pub fn connect(&mut self, addr: &str) -> io::Result<()> {
         let mut stream = try!(TcpStream::connect(addr));
+
+        self.set_state(State::Connected);
 
         let (main_tx, main_rx) = channel::<Vec<u8>>();
         let (thread_tx, thread_rx) = channel::<Vec<u8>>();
@@ -65,10 +76,13 @@ impl GdbRemote {
         self.writer = main_tx;
         self.reader = thread_rx;
 
+        let state = self.state.clone();
+
         thread::spawn(move || {
             loop {
                 match Self::read_write_data(&main_rx, &thread_tx, &mut stream) {
                     Err(e) => {
+                        *(*state).write().unwrap() = State::Disconnected;
                         println!("Error reading/sending data {:?}", e);
                         break;
                     }
@@ -136,12 +150,44 @@ impl GdbRemote {
         Ok((0))
     }
 
+    fn get_state(&mut self) -> State {
+        *(*self.state).read().unwrap()
+    }
+
     pub fn send_no_ack_request(&mut self)-> io::Result<usize> {
         self.send_command_raw("+$QStartNoAckMode+#db")
     }
 
-    pub fn get_registers(&mut self) {
-        self.send_command("g").unwrap();
+    pub fn get_data_sync(&mut self) -> Option<Vec<u8>> {
+        match self.reader.recv() {
+            Ok(data) => {
+                self.temp_data.clear();
+                for i in &data { self.temp_data.push(*i) }
+                Some(self.temp_data.clone())
+            }
+
+            Err(_) => None,
+        }
+    }
+
+    pub fn send_command_sync(&mut self, command: &str) -> Option<Vec<u8>> {
+        if self.get_state() == State::Connected {
+            self.send_command(command).unwrap();
+            println!("waiting for data");
+            let data = self.get_data_sync();
+            println!("got data {}", data.as_ref().unwrap().len());
+            data
+        } else {
+            None
+        }
+    }
+
+    pub fn step_sync(&mut self) -> Option<Vec<u8>> {
+        self.send_command_sync("s")
+    }
+
+    pub fn get_registers_sync(&mut self) -> Option<Vec<u8>> {
+        self.send_command_sync("g")
     }
 }
 
