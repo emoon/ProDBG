@@ -64,19 +64,19 @@ impl AmigaUaeBackend {
         writer.event_begin(EventType::SetRegisters as u16);
         writer.array_begin("registers");
 
-        // a registers
+        // d registers
 
         for i in 0..8 {
-            let name = format!("a{}", i);
+            let name = format!("d{}", i);
             let reg = Self::get_u32(&data[index..]);
             Self::write_register(writer, &name, reg, false);
             index += 8;
         }
 
-        // d registers
+        // a registers
 
         for i in 0..8 {
-            let name = format!("d{}", i);
+            let name = format!("a{}", i);
             let reg = Self::get_u32(&data[index..]);
             Self::write_register(writer, &name, reg, false);
             index += 8;
@@ -110,7 +110,7 @@ impl AmigaUaeBackend {
             writer.array_begin("disassembly");
 
             for i in insns.iter() {
-                let text = format!("{}\t{}", i.mnemonic().unwrap(), i.op_str().unwrap_or(""));
+                let text = format!("{0: <10} {1: <10}", i.mnemonic().unwrap(), i.op_str().unwrap_or(""));
                 writer.array_entry_begin();
                 writer.write_u32("address", i.address as u32);
                 writer.write_string("line", &text);
