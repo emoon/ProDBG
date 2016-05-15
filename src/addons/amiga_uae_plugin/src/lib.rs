@@ -5,13 +5,6 @@ use prodbg_api::*;
 use libc::c_void;
 pub mod gdb;
 use gdb::{GdbRemote, Memory, NeedsAck};
-//use std::net::{SocketAddr, SocketAddrV4, Ipv4Addr};
-//use std::io::Read;
-//use std::{slice, str};
-
-//use std::ptr;
-
-//static CODE: &'static [u8] = b"\xd4\x40\x87\x5a\x4e\x71\x02\xb4\xc0\xde\xc0\xde\x5c\x00\x1d\x80\x71\x12\x01\x23\xf2\x3c\x44\x22\x40\x49\x0e\x56\x54\xc5\xf2\x3c\x44\x00\x44\x7a\x00\x00\xf2\x00\x0a\x28\x4E\xB9\x00\x00\x00\x12\x4E\x75";
 
 struct AmigaUaeBackend {
     capstone: Capstone,
@@ -115,8 +108,6 @@ impl AmigaUaeBackend {
                 writer.write_u32("address", i.address as u32);
                 writer.write_string("line", &text);
 
-                //println!("{:?}", i);
-
                 writer.array_entry_end();
             }
 
@@ -133,28 +124,6 @@ impl AmigaUaeBackend {
         writer.write_u8("size", 4);
         writer.event_end();
     }
-
-    /*
-    fn test_capstone(&mut self) {
-        match self.capstone.open(Arch::M68K, CS_MODE_M68K_000) {
-            Err(e) => {
-                println!("Unable to open Capstone {}", e as i32);
-                return;
-            }
-            _ => (),
-        }
-
-        if let Ok(insns) = self.capstone.disasm(CODE, 0x1000, 0) {
-            println!("Got {} instructions", insns.len());
-
-            for i in insns.iter() {
-                println!("{:?}", i);
-            }
-        } else {
-            println!("No instructions :(");
-        }
-    }
-    */
 }
 
 impl Backend for AmigaUaeBackend {
@@ -166,7 +135,6 @@ impl Backend for AmigaUaeBackend {
         }
     }
 
-    // TODO: Something about action action as i32
     fn update(&mut self, action: i32, reader: &mut Reader, writer: &mut Writer) {
         for event in reader.get_event() {
             match event {
@@ -199,9 +167,6 @@ impl Backend for AmigaUaeBackend {
             }
             _ => (),
         }
-
-
-        //self.conn.update();
     }
 
     fn register_menu(&mut self, menu_funcs: &mut MenuFuncs) -> *mut c_void {
