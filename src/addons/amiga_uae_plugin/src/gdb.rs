@@ -27,6 +27,11 @@ pub struct GdbRemote {
     state: Arc<RwLock<State>>,
 }
 
+pub struct Memory {
+    pub address: u64,
+    pub data: Vec<u8>
+}
+
 static HEX_CHARS: &'static [u8; 16] = b"0123456789abcdef";
 
 impl GdbRemote {
@@ -158,6 +163,22 @@ impl GdbRemote {
         self.send_command_raw("+$QStartNoAckMode+#db")
     }
 
+    fn from_hex(ch: u8) -> u8 {
+        if (ch >= b'a') && (ch <= b'f') {
+            return ch - b'a' + 10;
+        }
+
+        if (ch >= b'0') && (ch <= b'9') {
+            return ch - b'0';
+        }
+
+        if (ch >= b'A') && (ch <= b'F') {
+            return ch - b'A' + 10;
+        }
+
+        return 0;
+    }
+
     pub fn get_data_sync(&mut self) -> Option<Vec<u8>> {
         match self.reader.recv() {
             Ok(data) => {
@@ -188,6 +209,31 @@ impl GdbRemote {
 
     pub fn get_registers_sync(&mut self) -> Option<Vec<u8>> {
         self.send_command_sync("g")
+    }
+
+    // TODO: 64-bit addresses
+    pub fn get_memory_sync(&mut self, address: u32, size: u32) -> Option<Memory> {
+        let mem_req = format!("m{:x},{:x}", address, size);
+
+        if let Some(data) = self.send_command_sync(&mem_req) {
+            let mut memory = Vec::with_capacity((data.len() - 2) / 2);
+            let mut index = 1;
+
+            for _ in 0..((data.len() - 2) / 2) {
+                let v0 = data[index + 0];
+                let v1 = data[index + 1];
+                let v = (Self::from_hex(v0) << 4) | (Self::from_hex(v1));
+                memory.push(v);
+                index += 2;
+            }
+
+            Some(Memory {
+                address: address as u64,
+                data: memory,
+            })
+        } else {
+            None
+        }
     }
 }
 
