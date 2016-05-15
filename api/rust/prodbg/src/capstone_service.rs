@@ -123,6 +123,12 @@ pub struct Capstone {
 
 impl Capstone {
     pub fn open(&mut self, arch: Arch, mode: Mode) -> Result<(), Error> {
+        // If handle is already setup we just return from here
+        if self.handle != ptr::null_mut() {
+            return Ok(());
+        }
+
+
         let mut handle: *const c_void = 0 as *const c_void;
         unsafe {
             match ((*self.api).open)(arch as c_int, mode.bits as c_int, &mut handle) {
