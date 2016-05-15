@@ -189,7 +189,7 @@ void renderUI(DissassemblyData* data, PDUI* uiFuncs) {
             uiFuncs->set_scroll_here(0.5f);
         }
 
-        uiFuncs->text("0x%04x %s", (uint64_t)line.address, line.text);
+        uiFuncs->text("0x%08x %s", (uint64_t)line.address, line.text);
     }
 }
 
