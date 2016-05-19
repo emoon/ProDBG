@@ -26,7 +26,7 @@ static void* createInstance(PDUI* uiFuncs, ServiceFunc* serviceFunc) {
     (void)uiFuncs;
 
     HexMemoryData* user_data = (HexMemoryData*)malloc(sizeof(HexMemoryData));
-    memset(user_data, 0, sizeof(sizeof(HexMemoryData)));
+    memset(user_data, 0, sizeof(HexMemoryData));
 
     strcpy(user_data->startAddress, "0x00000000");
     strcpy(user_data->endAddress, "0x00001000");
