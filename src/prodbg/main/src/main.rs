@@ -39,7 +39,7 @@ fn main() {
     plugins.add_plugin(&mut lib_handler, "amiga_uae_plugin");
     plugins.add_plugin(&mut lib_handler, "bitmap_memory");
     plugins.add_plugin(&mut lib_handler, "registers_plugin");
-    plugins.add_plugin(&mut lib_handler, "disassembly_plugin");
+    plugins.add_plugin(&mut lib_handler, "disassembly2");
     plugins.add_plugin(&mut lib_handler, "hex_memory_plugin");
 
     windows.create_default();

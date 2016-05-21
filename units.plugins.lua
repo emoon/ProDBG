@@ -321,6 +321,18 @@ RustSharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+RustSharedLibrary {
+	Name = "disassembly2",
+	CargoConfig = "src/plugins/disassembly2/Cargo.toml",
+	Sources = {
+		get_rs_src("src/plugins/disassembly2"),
+		get_rs_src("api/rust/prodbg"),
+	}
+}
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
 --[[
 SharedLibrary {
     Name = "i3_docking",
@@ -382,6 +394,7 @@ Default "registers_plugin"
 Default "callstack_plugin"
 Default "sourcecode_plugin"
 Default "disassembly_plugin"
+Default "disassembly2"
 Default "locals_plugin"
 Default "threads_plugin"
 Default "breakpoints_plugin"

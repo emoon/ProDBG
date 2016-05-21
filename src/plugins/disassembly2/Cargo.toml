@@ -1,0 +1,13 @@
+[package]
+name = "disassembly2"
+version = "0.1.0"
+authors = ["Daniel Collin <daniel@collin.com>"]
+
+# Type
+[lib]
+nme = "disassembly2"
+crate-type = ["dylib"]
+
+# Depends
+[dependencies]
+prodbg_api = { path = "../../../api/rust/prodbg" }
