@@ -1,0 +1,3 @@
+[submodule "src/creates/gdb-remote"]
+	path = src/creates/gdb-remote
+	url = https://github.com/emoon/gdb-remote
