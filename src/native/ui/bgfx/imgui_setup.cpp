@@ -131,6 +131,9 @@ void imgui_setup(int width, int height) {
 
     style.WindowRounding = 0.0f;
 
+	//io.Fonts->AddFontDefault();
+ 	io.Fonts->AddFontFromFileTTF("data/font/source_code_pro/SourceCodePro-Medium.ttf", 20.0f);
+
     UIRender_init();
 
     ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&fontData, &fWidth, &fHeight, &outBytes);
