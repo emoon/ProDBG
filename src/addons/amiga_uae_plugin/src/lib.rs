@@ -1,39 +1,23 @@
 #[macro_use]
 extern crate prodbg_api;
+extern crate gdb_remote;
 extern crate libc;
 use prodbg_api::*;
 use libc::c_void;
-pub mod gdb;
-use gdb::{GdbRemote, Memory, NeedsAck};
+use gdb_remote::GdbRemote;
 
 struct AmigaUaeBackend {
-    capstone: Capstone,
-    conn: gdb::GdbRemote,
+    _capstone: Capstone,
+    conn: GdbRemote,
     exception_location: u32,
 }
 
 impl AmigaUaeBackend {
-    fn from_hex(ch: u8) -> u8 {
-        if (ch >= b'a') && (ch <= b'f') {
-            return ch - b'a' + 10;
-        }
-
-        if (ch >= b'0') && (ch <= b'9') {
-            return ch - b'0';
-        }
-
-        if (ch >= b'A') && (ch <= b'F') {
-            return ch - b'A' + 10;
-        }
-
-        return 0;
-    }
-
     fn get_u32(data: &[u8]) -> u32 {
-        let t0 = ((Self::from_hex(data[0]) << 4) | Self::from_hex(data[1])) as u32;
-        let t1 = ((Self::from_hex(data[2]) << 4) | Self::from_hex(data[3])) as u32;
-        let t2 = ((Self::from_hex(data[4]) << 4) | Self::from_hex(data[5])) as u32;
-        let t3 = ((Self::from_hex(data[6]) << 4) | Self::from_hex(data[7])) as u32;
+        let t0 = data[0] as u32;
+        let t1 = data[1] as u32;
+        let t2 = data[2] as u32;
+        let t3 = data[3] as u32;
         (t0 << 24) | (t1 << 16) | (t2 << 8) | t3
     }
 
@@ -51,8 +35,8 @@ impl AmigaUaeBackend {
         writer.array_entry_end();
     }
 
-    fn write_registers(&mut self, writer: &mut Writer, data: &Vec<u8>) {
-        let mut index = 1;  // 1 to skip starting $
+    fn write_registers(&mut self, writer: &mut Writer, data: &[u8]) {
+        let mut index = 0;
 
         writer.event_begin(EventType::SetRegisters as u16);
         writer.array_begin("registers");
@@ -63,7 +47,7 @@ impl AmigaUaeBackend {
             let name = format!("d{}", i);
             let reg = Self::get_u32(&data[index..]);
             Self::write_register(writer, &name, reg, false);
-            index += 8;
+            index += 4;
         }
 
         // a registers
@@ -72,13 +56,13 @@ impl AmigaUaeBackend {
             let name = format!("a{}", i);
             let reg = Self::get_u32(&data[index..]);
             Self::write_register(writer, &name, reg, false);
-            index += 8;
+            index += 4;
         }
 
         // Status registers & pc
 
         let sr = Self::get_u32(&data[index..]);
-        let pc = Self::get_u32(&data[index + 8..]);
+        let pc = Self::get_u32(&data[index + 4..]);
 
         self.exception_location = pc;
 
@@ -89,6 +73,7 @@ impl AmigaUaeBackend {
         writer.event_end();
     }
 
+    /*
     fn write_disassembly(&mut self, writer: &mut Writer, mem: &Memory) {
         match self.capstone.open(Arch::M68K, CS_MODE_M68K_000) {
             Err(e) => {
@@ -117,6 +102,7 @@ impl AmigaUaeBackend {
             println!("No instructions :(");
         }
     }
+    */
 
     fn write_exception_location(&mut self, writer: &mut Writer) {
         writer.event_begin(EventType::SetExceptionLocation as u16);
@@ -129,8 +115,8 @@ impl AmigaUaeBackend {
 impl Backend for AmigaUaeBackend {
     fn new(service: &Service) -> Self {
         AmigaUaeBackend {
-            capstone: service.get_capstone(),
-            conn: GdbRemote::new(NeedsAck::No),
+            _capstone: service.get_capstone(),
+            conn: GdbRemote::new(),
             exception_location: 0,
         }
     }
@@ -138,9 +124,15 @@ impl Backend for AmigaUaeBackend {
     fn update(&mut self, action: i32, reader: &mut Reader, writer: &mut Writer) {
         for event in reader.get_event() {
             match event {
-                 35 => {
+                35 => {
                     if self.conn.connect("127.0.0.1:6860").is_ok() {
-                        println!("Connected!");
+                        if self.conn.request_no_ack_mode().is_ok() {
+                            println!("Connected. Ready to go!");
+                        } else {
+                            println!("no ack request failed");
+                        }
+                    } else {
+                        println!("Unable to connect to UAE");
                     }
                 }
                 _ => (),
@@ -153,15 +145,15 @@ impl Backend for AmigaUaeBackend {
             }
 
             ACTION_STEP => {
-                self.conn.step_sync();
+                let mut step_res = [0; 16];
+                let mut register_data = [0; 1024];
+                self.conn.step(&mut step_res).unwrap();
 
-                if let Some(data) = self.conn.get_registers_sync() {
-                    self.write_registers(writer, &data.clone());
-                }
-
-                if let Some(memory) = self.conn.get_memory_sync(self.exception_location - 128, 256) {
-                    self.write_disassembly(writer, &memory);
-                }
+                    println!("steping ok!");
+                    if self.conn.get_registers(&mut register_data).is_ok() {
+                        println!("setting registers!");
+                        self.write_registers(writer, &register_data);
+                    }
 
                 self.write_exception_location(writer);
             }
