@@ -1,3 +1,3 @@
-[submodule "src/creates/gdb-remote"]
-	path = src/creates/gdb-remote
+[submodule "src/crates/gdb-remote"]
+	path = src/crates/gdb-remote
 	url = https://github.com/emoon/gdb-remote
