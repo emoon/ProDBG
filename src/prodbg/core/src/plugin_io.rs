@@ -84,7 +84,7 @@ fn read_string(priv_data: *mut c_void, data: *mut c_char, max_len: i32) -> LoadS
 
         if len > max_len as usize { len = max_len as usize; }
 
-        let mut tstring = CFixedString::from_str(&v);
+        let tstring = CFixedString::from_str(&v);
 
         ptr::copy(tstring.as_ptr(), data as *mut i8, len);
 
