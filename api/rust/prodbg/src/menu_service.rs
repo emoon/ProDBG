@@ -30,7 +30,7 @@ pub struct MenuFuncs {
 
 impl MenuFuncs {
     pub fn create_menu(&mut self, name: &str) -> *mut c_void {
-        let mut title = CFixedString::from_str(name);
+        let title = CFixedString::from_str(name);
         unsafe {
             let data = (*self.api).private_data;
             ((*self.api).create_menu)(data, title.as_ptr())
@@ -53,7 +53,7 @@ impl MenuFuncs {
                          -> PDMenuItem {
         unsafe {
             let data = (*self.api).private_data;
-            let mut title = CFixedString::from_str(name);
+            let title = CFixedString::from_str(name);
             ((*self.api).add_menu_item)(data, item, title.as_ptr(), id as c_uint, key, modifier)
         }
     }
