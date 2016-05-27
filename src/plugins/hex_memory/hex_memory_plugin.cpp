@@ -138,7 +138,7 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void drawUI(HexMemoryData* data, PDUI* uiFuncs) {
-    uiFuncs->push_item_width(100);
+    uiFuncs->push_item_width(128);
     uiFuncs->input_text("Start Address", data->startAddress, sizeof(data->startAddress), PDUIInputTextFlags_CharsHexadecimal, 0, 0);
     uiFuncs->same_line(0, -1);
     uiFuncs->input_text("Size", data->sizeText, sizeof(data->sizeText), 0, 0, 0);
