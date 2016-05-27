@@ -7,7 +7,7 @@ use libc::c_void;
 use gdb_remote::GdbRemote;
 
 struct AmigaUaeBackend {
-    _capstone: Capstone,
+    capstone: Capstone,
     conn: GdbRemote,
     exception_location: u32,
 }
@@ -73,8 +73,7 @@ impl AmigaUaeBackend {
         writer.event_end();
     }
 
-    /*
-    fn write_disassembly(&mut self, writer: &mut Writer, mem: &Memory) {
+    fn write_disassembly(&mut self, reader: &mut Reader, writer: &mut Writer) {
         match self.capstone.open(Arch::M68K, CS_MODE_M68K_000) {
             Err(e) => {
                 println!("Unable to open Capstone {}", e as i32);
@@ -83,18 +82,34 @@ impl AmigaUaeBackend {
             _ => (),
         }
 
-        if let Ok(insns) = self.capstone.disasm(&mem.data, mem.address, 0) {
+        let address = reader.find_u64("address_start").ok().unwrap();
+        let count = reader.find_u32("instruction_count").ok().unwrap();
+
+        let mut data = Vec::<u8>::with_capacity(256 * 1024);
+        let memory_fetch_size = count * 4;
+
+        if self.conn.get_memory(&mut data, address, memory_fetch_size as u64).is_err() {
+            println!("Unable to fetch memory from {:x} - size {}", address, memory_fetch_size);
+            return;
+        }
+
+        println!("disasm data address {:x} - len {}", address, data.len());
+
+        if let Ok(insns) = self.capstone.disasm(&data, address as u64, 0) {
             writer.event_begin(EventType::SetDisassembly as u16);
             writer.array_begin("disassembly");
+            let mut c = 0;
 
             for i in insns.iter() {
                 let text = format!("{0: <10} {1: <10}", i.mnemonic().unwrap(), i.op_str().unwrap_or(""));
                 writer.array_entry_begin();
                 writer.write_u32("address", i.address as u32);
                 writer.write_string("line", &text);
-
                 writer.array_entry_end();
+                c += 1;
             }
+
+            println!("reported {} instructions", c);
 
             writer.array_end();
             writer.event_end();
@@ -102,7 +117,23 @@ impl AmigaUaeBackend {
             println!("No instructions :(");
         }
     }
-    */
+
+    fn get_memory(&mut self, reader: &mut Reader, writer: &mut Writer) {
+        let mut data = Vec::<u8>::with_capacity(256 * 1024);
+
+        let address = reader.find_u64("address_start").ok().unwrap();
+        let size = reader.find_u32("size").ok().unwrap();
+
+        if self.conn.get_memory(&mut data, address, size as u64).is_err() {
+            println!("Unable to fetch memory from {:x} - size {}", address, size);
+            return;
+        }
+
+        writer.event_begin(EventType::SetMemory as u16);
+        writer.write_u64("address", address);
+        writer.write_data("data", &data);
+        writer.event_end();
+    }
 
     fn write_exception_location(&mut self, writer: &mut Writer) {
         writer.event_begin(EventType::SetExceptionLocation as u16);
@@ -115,7 +146,7 @@ impl AmigaUaeBackend {
 impl Backend for AmigaUaeBackend {
     fn new(service: &Service) -> Self {
         AmigaUaeBackend {
-            _capstone: service.get_capstone(),
+            capstone: service.get_capstone(),
             conn: GdbRemote::new(),
             exception_location: 0,
         }
@@ -124,7 +155,7 @@ impl Backend for AmigaUaeBackend {
     fn update(&mut self, action: i32, reader: &mut Reader, writer: &mut Writer) {
         for event in reader.get_event() {
             match event {
-                35 => {
+                EVENT_MENU_EVENT => {
                     if self.conn.connect("127.0.0.1:6860").is_ok() {
                         if self.conn.request_no_ack_mode().is_ok() {
                             println!("Connected. Ready to go!");
@@ -135,6 +166,14 @@ impl Backend for AmigaUaeBackend {
                         println!("Unable to connect to UAE");
                     }
                 }
+                EVENT_GET_DISASSEMBLY => {
+                    self.write_disassembly(reader, writer);
+                }
+
+                EVENT_GET_MEMORY => {
+                    self.get_memory(reader, writer);
+                }
+
                 _ => (),
             }
         }

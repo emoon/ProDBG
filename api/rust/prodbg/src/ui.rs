@@ -1,11 +1,14 @@
 use std::ptr;
 use ui_ffi::*;
+use std::fmt;
+use std::fmt::Write;
 
 use CFixedString;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Ui {
     pub api: *mut CPdUI,
+    fmt_buffer: String,
 }
 
 macro_rules! true_is_1 {
@@ -20,6 +23,7 @@ impl Ui {
     pub fn new(native_api: *mut CPdUI) -> Ui {
         Ui {
             api: native_api,
+            fmt_buffer: String::with_capacity(2048),
         }
     }
 
@@ -31,13 +35,49 @@ impl Ui {
     }
 
     #[inline]
-    pub fn get_window_size(&self) -> PDVec2 {
-        unsafe { ((*self.api).get_window_size)() }
+    pub fn get_window_size(&self) -> (f32, f32) {
+        unsafe {
+            let t = ((*self.api).get_window_size)();
+            (t.x, t.y)
+        }
     }
 
     #[inline]
     pub fn get_window_pos(&self) -> PDVec2 {
         unsafe { ((*self.api).get_window_pos)() }
+    }
+
+    #[inline]
+    pub fn get_text_line_height_with_spacing(&self) -> f32 {
+        unsafe { ((*self.api).get_text_line_height_with_spacing)() as f32 }
+    }
+
+    #[inline]
+    pub fn get_cursor_pos(&self) -> (f32, f32) {
+        unsafe {
+            let t = ((*self.api).get_cursor_pos)();
+            (t.x, t.y)
+        }
+    }
+
+    #[inline]
+    pub fn get_cursor_screen_pos(&self) -> (f32, f32) {
+        unsafe {
+            let t = ((*self.api).get_cursor_screen_pos)();
+            (t.x, t.y)
+        }
+    }
+
+    #[inline]
+    pub fn fill_rect(&self, x: f32, y: f32, width: f32, height: f32, color: u32) {
+        unsafe {
+            ((*self.api).fill_rect)(PDRect { x: x, y: y, width: width, height: height }, color);
+        }
+    }
+
+    #[inline]
+    pub fn set_scroll_here(&self, center: f32) {
+        unsafe { ((*self.api).set_scroll_here)(center) }
     }
 
     pub fn begin_child(&self, id: &str, pos: Option<PDVec2>, border: bool, flags: u32) {
@@ -76,11 +116,6 @@ impl Ui {
     }
 
     #[inline]
-    pub fn set_scroll_here(&self, center_ratio: f32) {
-        unsafe { ((*self.api).set_scroll_here)(center_ratio) }
-    }
-
-    #[inline]
     pub fn set_scroll_from_pos_y(&self, pos_y: f32, center_ratio: f32) {
         unsafe { ((*self.api).set_scroll_from_pos_y)(pos_y, center_ratio) }
     }
@@ -112,11 +147,25 @@ impl Ui {
         unsafe { ((*self.api).push_style_var_vec)(index as u32, val) }
     }
 
+    #[inline]
+    pub fn get_font_size(&self) -> f32 {
+        unsafe { ((*self.api).get_font_size)() }
+    }
+
     // Text
 
     pub fn text(&self, text: &str) {
         unsafe {
             let t = CFixedString::from_str(text).as_ptr();
+            ((*self.api).text)(t);
+        }
+    }
+
+    pub fn text_fmt(&mut self, args: fmt::Arguments) {
+        unsafe {
+            self.fmt_buffer.clear();
+            write!(&mut self.fmt_buffer, "{}", args).unwrap();
+            let t = CFixedString::from_str(&self.fmt_buffer).as_ptr();
             ((*self.api).text)(t);
         }
     }

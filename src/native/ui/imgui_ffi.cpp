@@ -171,6 +171,12 @@ static void pop_style_var(int count) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static float get_font_size() {
+	return ImGui::GetFontSize();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void push_item_width(float itemWidth) {
     ImGui::PushItemWidth(itemWidth);
 }
@@ -1622,6 +1628,7 @@ static PDUI s_uiFuncs[] =
     push_style_var,
     push_style_varVec,
     pop_style_var,
+    get_font_size,
 
     // Parameters stacks (current window)
 
@@ -1866,7 +1873,6 @@ static PDUI s_uiFuncs[] =
     set_mouse_cursor,
 
 /*
-
     text,
     text_colored,
     text_wrapped,

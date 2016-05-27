@@ -10,7 +10,7 @@ pub static VIEW_API_VERSION: &'static [u8] = b"ProDBG View 1\0";
 
 pub trait View {
     fn new(ui: &Ui, service: &Service) -> Self;
-    fn update(&mut self, ui: &Ui, reader: &mut Reader, writer: &mut Writer);
+    fn update(&mut self, ui: &mut Ui, reader: &mut Reader, writer: &mut Writer);
 }
 
 #[repr(C)]
@@ -37,7 +37,7 @@ pub fn create_view_instance<T: View>(ui_api: *const c_void,
                                                                  -> *mut c_void)
                                      -> *mut c_void {
     let c_ui: &mut CPdUI = unsafe { &mut *(ui_api as *mut CPdUI) };
-    let ui = Ui { api: c_ui };
+    let ui = Ui::new(c_ui);
     let service = Service { service_func: service_func };
     let instance = unsafe { transmute(Box::new(T::new(&ui, &service))) };
     instance
@@ -63,9 +63,9 @@ pub fn update_view_instance<T: View>(ptr: *mut c_void,
     };
 
     let mut writer = Writer { api: c_writer };
-    let ui = Ui { api: c_ui };
+    let mut ui = Ui::new(c_ui);
 
-    view.update(&ui, &mut reader, &mut writer);
+    view.update(&mut ui, &mut reader, &mut writer);
 }
 
 #[macro_export]

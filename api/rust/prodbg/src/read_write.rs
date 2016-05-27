@@ -1,5 +1,7 @@
 use libc::*;
 use std::mem::transmute;
+use std::slice;
+use std::str;
 use CFixedString;
 
 #[repr(C)]
@@ -124,6 +126,10 @@ pub struct ReaderIter {
     curr_iter: u64,
 }
 
+pub struct EventIter {
+    reader: Reader,
+}
+
 impl Clone for Reader {
     fn clone(&self) -> Self {
         return Reader {
@@ -167,6 +173,12 @@ impl Reader {
         };
     }
 
+    pub fn get_events(&self) -> EventIter {
+        EventIter {
+            reader: self.clone(),
+        }
+    }
+
     pub fn get_event(&self) -> Option<i32> {
         let event_id = unsafe {
             ((*self.api).read_get_event)(transmute(self.api)) as i32
@@ -188,6 +200,34 @@ impl Reader {
     find_fun!(read_find_u64, find_u64, u64);
     find_fun!(read_find_float, find_float, f32);
     find_fun!(read_find_double, find_double, f64);
+
+    unsafe fn strlen(t: *const i8) -> usize{
+        // very lange slice so this is kinda hacky but should work
+        let slice = slice::from_raw_parts(t, 16834);
+        let mut count = 0;
+
+        loop {
+            if slice[count] == 0 { break; }
+            count += 1;
+        }
+
+        count
+    }
+
+    pub fn find_string(&self, id: &str) -> Result<&str, ReadStatus> {
+        let s = CFixedString::from_str(id).as_ptr();
+        let mut temp = 0 as *const c_char;
+        let ret;
+        let res;
+
+        unsafe {
+            ret = ((*self.api).read_find_string)(transmute(self.api), &mut temp, s, self.it);
+            let slice = slice::from_raw_parts(temp as *const u8, Self::strlen(temp));
+            res = str::from_utf8(slice).unwrap();
+        }
+
+        return status_res(res, ret);
+    }
 
     pub fn find_array(&self, id: &str) -> ReaderIter {
         let s = CFixedString::from_str(id).as_ptr();
@@ -217,6 +257,13 @@ impl Iterator for ReaderIter {
             0 => None,
             _ => Some(Reader::new(self.reader.api, self.curr_iter)),
         }
+    }
+}
+
+impl Iterator for EventIter {
+    type Item = i32;
+    fn next(&mut self) -> Option<i32> {
+        self.reader.get_event()
     }
 }
 

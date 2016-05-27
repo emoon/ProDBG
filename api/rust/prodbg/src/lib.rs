@@ -17,6 +17,7 @@ pub mod view;
 pub mod cfixed_string;
 pub mod docking;
 pub mod io;
+pub mod events;
 
 pub use backend::*;
 pub use read_write::*;
@@ -30,4 +31,5 @@ pub use view::*;
 pub use cfixed_string::*;
 pub use io::*;
 pub use menu_service::*;
+pub use events::*;
 

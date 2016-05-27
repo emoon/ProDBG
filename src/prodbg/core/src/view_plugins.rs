@@ -55,7 +55,7 @@ impl PluginHandler for ViewPlugins {
         for i in (0..self.instances.len()).rev() {
             if &self.instances[i].plugin_type.lib == lib {
                 let state = ReloadState {
-                    ui: self.instances[i].ui,
+                    ui: self.instances[i].ui.clone(),
                     name: self.instances[i].plugin_type.name.clone(),
                     handle: self.instances[i].handle,
                     session_handle: self.instances[i].session_handle,
@@ -77,7 +77,7 @@ impl PluginHandler for ViewPlugins {
         let t = self.reload_state.clone();
         for reload_plugin in &t {
             Self::create_instance(self,
-                                  reload_plugin.ui,
+                                  reload_plugin.ui.clone(),
                                   &reload_plugin.name,
                                   reload_plugin.session_handle);
         }

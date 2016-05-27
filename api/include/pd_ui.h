@@ -259,6 +259,7 @@ typedef struct PDUI {
 	void (*push_style_var)(PDUIStyleVar idx, float val);
 	void (*push_style_varVec)(PDUIStyleVar idx, PDVec2 val);
 	void (*pop_style_var)(int count);
+	float (*get_font_size)();
 
 	// Parameters stacks (current window)
 	void (*push_item_width)(float item_width);

@@ -5,13 +5,6 @@ use libc::*;
 use menu_service::{MenuFuncs, CMenuFuncs1};
 use std::mem::transmute;
 
-pub const ACTION_NONE: i32 = 0;
-pub const ACTION_STOP: i32 = 1;
-pub const ACTION_BREAK: i32 = 2;
-pub const ACTION_RUN: i32 = 3;
-pub const ACTION_STEP: i32 = 4;
-pub const ACTION_STEP_OUT: i32 = 5;
-pub const ACTION_STEP_OVER: i32 = 6;
 
 #[repr(C)]
 pub enum EventType {

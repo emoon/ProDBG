@@ -195,6 +195,7 @@ void renderUI(DissassemblyData* data, PDUI* uiFuncs) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 static void updateRegisters(DissassemblyData* data, PDReader* reader) {
     PDReaderIterator it;
 
@@ -211,6 +212,7 @@ static void updateRegisters(DissassemblyData* data, PDReader* reader) {
         }
     }
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -222,6 +224,7 @@ static int update(void* user_data, PDUI* uiFuncs, PDReader* inEvents, PDWriter* 
     data->requestDisassembly = false;
 
     while ((event = PDRead_get_event(inEvents)) != 0) {
+    	//printf("C: got event %d\n", event);
         switch (event) {
             case PDEventType_SetDisassembly:
             {
@@ -237,6 +240,8 @@ static int update(void* user_data, PDUI* uiFuncs, PDReader* inEvents, PDWriter* 
 
                 if (location != data->location) {
                     data->location = location;
+                    data->pc = location;
+                    printf("location 0x%llx\n", location);
                     data->requestDisassembly = true;
                 }
 
@@ -246,7 +251,7 @@ static int update(void* user_data, PDUI* uiFuncs, PDReader* inEvents, PDWriter* 
 
             case PDEventType_SetRegisters:
             {
-                updateRegisters(data, inEvents);
+                //updateRegisters(data, inEvents);
                 break;
             }
 
@@ -257,6 +262,7 @@ static int update(void* user_data, PDUI* uiFuncs, PDReader* inEvents, PDWriter* 
 
     if (data->requestDisassembly) {
         int pc = (int)(data->pc) & ~(BlockSize - 1);
+        printf("request disassembly %x\n", pc);
         PDWrite_event_begin(writer, PDEventType_GetDisassembly);
         PDWrite_u64(writer, "address_start", (uint64_t)pc);
         PDWrite_u32(writer, "instruction_count", (uint32_t)BlockSize / 3);
