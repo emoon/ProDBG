@@ -396,6 +396,7 @@ impl Window {
 
         // TODO: Only do this on the correct session
 
+        /*
         if self.win.is_key_pressed(Key::Down, KeyRepeat::No) {
             self.ws.dump_tree();
         }
@@ -407,6 +408,7 @@ impl Window {
         if self.win.is_key_pressed(Key::Right, KeyRepeat::No) {
             self.load_layout("data/layout_temp.json", view_plugins);
         }
+        */
 
         // test
 
