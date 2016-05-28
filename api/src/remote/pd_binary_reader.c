@@ -117,7 +117,7 @@ static uint32_t read_get_event(struct PDReader* reader) {
     uint8_t* data;
 
     if (!rData->data) {
-        log_debug("no data");
+        //log_debug("no data");
         return 0;
     }
 
