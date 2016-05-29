@@ -234,8 +234,8 @@ static int update(void* user_data, PDUI* uiFuncs, PDReader* inEvents, PDWriter* 
 
     //showInUI(data, uiFuncs);
 
-    PDWrite_event_begin(writer, PDEventType_GetExceptionLocation);
-    PDWrite_event_end(writer);
+    //PDWrite_event_begin(writer, PDEventType_GetExceptionLocation);
+    //PDWrite_event_end(writer);
 
     if (!data->hasFiles && data->requestFiles) {
         PDWrite_event_begin(writer, PDEventType_GetSourceFiles);
