@@ -26,10 +26,13 @@ impl Plugin {
         unsafe {
             let plugin_funcs: *mut CBasePlugin = transmute(plugin);
 
+            let type_name = CStr::from_ptr(plugin_type);
+            let name = CStr::from_ptr((*plugin_funcs).name);
+
             Plugin {
                 lib: lib.clone(),
-                type_name: CStr::from_ptr(plugin_type).to_string_lossy().into_owned(),
-                name: CStr::from_ptr((*plugin_funcs).name).to_string_lossy().into_owned(),
+                type_name: type_name.to_string_lossy().into_owned(),
+                name: name.to_string_lossy().into_owned(),
                 plugin_funcs: plugin_funcs,
             }
         }
