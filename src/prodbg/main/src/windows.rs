@@ -516,6 +516,7 @@ impl Window {
         }
     }
 
+    /*
     fn save_layout(&mut self, filename: &str, view_plugins: &mut ViewPlugins) {
         for split in &mut self.ws.splits {
             let iter = split.left_docks.docks.iter_mut().chain(split.right_docks.docks.iter_mut());
@@ -548,4 +549,5 @@ impl Window {
 
         self.ws = ws;
     }
+    */
 }

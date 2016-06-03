@@ -1,10 +1,10 @@
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct DockHandle(pub u64);
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct SplitHandle(pub u64);
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct Rect {
     pub x: f32,
     pub y: f32,
@@ -12,7 +12,32 @@ pub struct Rect {
     pub height: f32,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+/*
+struct RectVisitor<'a> {
+    value: &'a Rect
+}
+
+impl<'a> serde::ser::MapVisitor for RectVisitor<'a> {
+    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error>
+        where S: serde::Serializer
+    {
+        try!(serializer.serialize_struct_elt("x", &self.value.x));
+        try!(serializer.serialize_struct_elt("y", &self.value.y));
+        try!(serializer.serialize_struct_elt("width", &self.value.y));
+        try!(serializer.serialize_struct_elt("height", &self.value.height));
+        Ok(None)
+    }
+}
+
+impl serde::ser::Serialize for Rect {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> 
+        where S: serde::ser::Serializer {
+        serializer.serialize_struct("", RectVisitor { value: self }).map(|_| ())
+    }
+}
+*/
+
+#[derive(Debug, Clone)]
 pub struct Dock {
     pub handle: DockHandle,
     pub plugin_name: String,
@@ -20,20 +45,20 @@ pub struct Dock {
     pub rect: Rect
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Direction {
     Vertical,
     Horizontal,
     Full,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct Container {
     pub docks: Vec<Dock>,
     pub rect: Rect,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub struct Split {
     /// left/top slipit
     pub left: Option<SplitHandle>,
@@ -53,7 +78,7 @@ pub struct Split {
     rect: Rect,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub struct Workspace {
     pub splits: Vec<Split>,
     pub rect: Rect,
