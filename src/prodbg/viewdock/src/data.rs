@@ -1,6 +1,7 @@
 extern crate serde;
 
 use Rect;
+use DockHandle;
 
 struct RectMapVisitor<'a> {
     value: &'a Rect
@@ -116,8 +117,12 @@ impl serde::de::Visitor for RectVisitor {
     }
 }
 
-
-
+impl serde::ser::Serialize for DockHandle {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> 
+        where S: serde::ser::Serializer {
+        serializer.serialize_newtype_struct("DockHandle", &self.0)
+    }
+}
 
 /*
 extern crate serde;
