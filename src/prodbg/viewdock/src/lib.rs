@@ -633,6 +633,8 @@ impl Workspace {
 
 #[cfg(test)]
 mod test {
+    extern crate serde_json;
+
     use {Split, Workspace, Rect, DockHandle, Direction};
 
     fn check_range(inv: f32, value: f32, delta: f32) -> bool {
@@ -756,5 +758,19 @@ mod test {
 
         assert_eq!(Rect::is_inside((9.0, 61.0), rect_horz), false);
         assert_eq!(Rect::is_inside((11.0, 61.0), rect_horz), true);
+    }
+
+    #[test]
+    fn test_rect_serialize() {
+        let rect_in = Rect { x: 1.0, y: 2.0, width: 1024.0, height: 768.0 };
+        let serialized = serde_json::to_string(&rect_in).unwrap();
+        let rect_out: Rect = serde_json::from_str(&serialized).unwrap();
+        
+        println!("ser {}", serialized); 
+
+        assert_eq!(rect_in.x as i32, rect_out.x as i32);
+        assert_eq!(rect_in.y as i32, rect_out.y as i32);
+        assert_eq!(rect_in.width as i32, rect_out.width as i32);
+        assert_eq!(rect_in.height as i32, rect_out.height as i32);
     }
 }
