@@ -635,7 +635,7 @@ impl Workspace {
 mod test {
     extern crate serde_json;
 
-    use {Split, Workspace, Dock, Rect, DockHandle, SplitHandle, Direction};
+    use {Container, Split, Workspace, Dock, Rect, DockHandle, SplitHandle, Direction};
 
     fn check_range(inv: f32, value: f32, delta: f32) -> bool {
         (inv - value).abs() < delta
@@ -839,5 +839,42 @@ mod test {
         assert_eq!(plugin_data.len(), 2);
         assert_eq!(plugin_data[0], "some_data");
         assert_eq!(plugin_data[1], "more_data");
+    }
+
+    #[test]
+    fn test_container_serialize_0() {
+        let container_in = Container {
+            docks: Vec::new(),
+            rect: Rect::new(4.0, 5.0, 2.0, 8.0)
+        };
+
+        let serialized = serde_json::to_string(&container_in).unwrap();
+        let container_out: Container = serde_json::from_str(&serialized).unwrap();
+
+        assert_eq!(container_out.docks.len(), 0);
+        // expect that rect is not serialized and set to zero
+        assert_eq!(container_out.rect.x as i32, 0);
+        assert_eq!(container_out.rect.y as i32, 0);
+        assert_eq!(container_out.rect.width as i32, 0);
+        assert_eq!(container_out.rect.height as i32, 0);
+    }
+
+    #[test]
+    fn test_container_serialize_1() {
+        let container_in = Container {
+            docks: vec![Dock {
+                handle: DockHandle(1),
+                plugin_name: "registers".to_owned(),
+                plugin_data: Some(vec!["some_data".to_owned(), "more_data".to_owned()]),
+                rect: Rect::new(4.0, 5.0, 2.0, 8.0)
+            }],
+            rect: Rect::default(),
+        };
+
+        let serialized = serde_json::to_string(&container_in).unwrap();
+        let container_out: Container = serde_json::from_str(&serialized).unwrap();
+
+        assert_eq!(container_out.docks.len(), 1);
+        assert_eq!(container_out.docks[0].plugin_name, "registers");
     }
 }
