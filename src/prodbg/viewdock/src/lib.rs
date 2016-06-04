@@ -1,6 +1,6 @@
-extern crate serde;
 extern crate serde_json;
 mod error;
+mod data;
 pub use self::error::Error;
 //use std::io::prelude::*;
 //use std::fs::File;
@@ -19,31 +19,6 @@ pub struct Rect {
     pub width: f32,
     pub height: f32,
 }
-
-/*
-struct RectVisitor<'a> {
-    value: &'a Rect
-}
-
-impl<'a> serde::ser::MapVisitor for RectVisitor<'a> {
-    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error>
-        where S: serde::Serializer
-    {
-        try!(serializer.serialize_struct_elt("x", &self.value.x));
-        try!(serializer.serialize_struct_elt("y", &self.value.y));
-        try!(serializer.serialize_struct_elt("width", &self.value.y));
-        try!(serializer.serialize_struct_elt("height", &self.value.height));
-        Ok(None)
-    }
-}
-
-impl serde::ser::Serialize for Rect {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> 
-        where S: serde::ser::Serializer {
-        serializer.serialize_struct("", RectVisitor { value: self }).map(|_| ())
-    }
-}
-*/
 
 #[derive(Debug, Clone)]
 pub struct Dock {
@@ -96,7 +71,7 @@ pub struct Workspace {
 }
 
 
-pub type Result<T> = std::result::Result<T, Error>;
+pub type ResultView<T> = std::result::Result<T, Error>;
 
 impl Rect {
     pub fn new(x: f32, y: f32, width: f32, height: f32) -> Rect {
