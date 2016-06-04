@@ -829,7 +829,7 @@ mod test {
         assert_eq!(dock_in.plugin_data, dock_out.plugin_data);
 
         // expect that rect is not serialized and set to zero
-        assert_eq!(dock_out.rect.x as i32, 1);
+        assert_eq!(dock_out.rect.x as i32, 0);
         assert_eq!(dock_out.rect.y as i32, 0);
         assert_eq!(dock_out.rect.width as i32, 0);
         assert_eq!(dock_out.rect.height as i32, 0);
