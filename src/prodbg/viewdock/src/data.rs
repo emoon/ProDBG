@@ -1,10 +1,6 @@
 extern crate serde;
 
-use Rect;
-use DockHandle;
-use SplitHandle;
-use Container;
-use Dock;
+use {DockHandle, SplitHandle, Rect, Container, Dock, Direction, Split};
 
 struct RectMapVisitor<'a> {
     value: &'a Rect
@@ -347,87 +343,235 @@ impl serde::de::Visitor for ContainerVisitor {
     }
 }
 
-
-/*
-extern crate serde;
-extern crate serde_json;
-
-#[derive(Debug)]
-struct Point {
-    x: i32,
-    y: i32,
+impl serde::ser::Serialize for Direction {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
+        where S: serde::ser::Serializer {
+        match *self {
+            Direction::Vertical => serde::ser::Serializer::serialize_unit_variant(serializer, "Direction", 0usize, "Vertical"),
+            Direction::Horizontal => serde::ser::Serializer::serialize_unit_variant(serializer, "Direction", 1usize, "Horizontal"),
+            Direction::Full => serde::ser::Serializer::serialize_unit_variant(serializer, "Direction", 2usize, "Full"),
+        }
+    }
 }
 
-enum PointField {
-    X,
-    Y,
+enum DirectionField {
+    Vertical,
+    Horizontal,
+    Full,
 }
 
-impl serde::Deserialize for PointField {
-    fn deserialize<D>(deserializer: &mut D) -> Result<PointField, D::Error>
-        where D: serde::de::Deserializer
-    {
-        struct PointFieldVisitor;
+impl serde::Deserialize for DirectionField  {
+    fn deserialize<D>(deserializer: &mut D) -> Result<DirectionField, D::Error>
+        where D: serde::de::Deserializer {
+        struct DirectionFieldVisitor;
 
-        impl serde::de::Visitor for PointFieldVisitor {
-            type Value = PointField;
+        impl serde::de::Visitor for DirectionFieldVisitor {
+            type Value = DirectionField;
 
-            fn visit_str<E>(&mut self, value: &str) -> Result<PointField, E>
-                where E: serde::de::Error
-            {
+            fn visit_usize<E>(&mut self, value: usize) -> Result<DirectionField, E>
+                where E: serde::de::Error {
                 match value {
-                    "x" => Ok(PointField::X),
-                    "y" => Ok(PointField::Y),
-                    _ => Err(serde::de::Error::custom("expected x or y")),
+                    0usize => Ok(DirectionField::Vertical),
+                    1usize => Ok(DirectionField::Horizontal),
+                    2usize => Ok(DirectionField::Full),
+                    _ => Err(serde::de::Error::invalid_value("expected a variant")),
+                }
+            }
+
+            fn visit_str<E>(&mut self, value: &str) -> Result<DirectionField, E>
+                where E: serde::de::Error {
+                match value {
+                    "Vertial" => Ok(DirectionField::Vertical),
+                    "Horizontal" => Ok(DirectionField::Horizontal),
+                    "Full" => Ok(DirectionField::Full),
+                    _ => Err(serde::de::Error::invalid_value("expected a variant")),
                 }
             }
         }
 
-        deserializer.deserialize(PointFieldVisitor)
+        deserializer.deserialize_struct_field(DirectionFieldVisitor)
     }
 }
 
-impl serde::Deserialize for Point {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Point, D::Error>
-        where D: serde::de::Deserializer
-    {
-        static FIELDS: &'static [&'static str] = &["x", "y"];
-        deserializer.deserialize_struct("Point", FIELDS, PointVisitor)
+struct DirectionVisitor;
+
+impl serde::Deserialize for Direction {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Direction, D::Error>
+        where D: serde::de::Deserializer {
+        const VARIANTS: &'static [&'static str] = &["Vertical", "Horizontal", "Full"];
+        deserializer.deserialize_enum("Direction", VARIANTS, DirectionVisitor)
     }
 }
 
-struct PointVisitor;
+impl serde::de::EnumVisitor for DirectionVisitor {
+    type Value = Direction;
 
-impl serde::de::Visitor for PointVisitor {
-    type Value = Point;
+    fn visit<V>(&mut self, mut visitor: V) -> Result<Direction, V::Error>
+        where V: serde::de::VariantVisitor {
 
-    fn visit_map<V>(&mut self, mut visitor: V) -> Result<Point, V::Error>
-        where V: serde::de::MapVisitor
-    {
-        let mut x = None;
-        let mut y = None;
+        match try!(visitor.visit_variant()) {
+            DirectionField::Vertical => {
+                try!(visitor.visit_unit());
+                Ok(Direction::Vertical)
+            },
+            DirectionField::Horizontal => {
+                try!(visitor.visit_unit());
+                Ok(Direction::Horizontal)
+            }
+            DirectionField::Full => {
+                try!(visitor.visit_unit());
+                Ok(Direction::Full)
+            }
+        }
+    }
+}
+
+struct SplitMapVisitor<'a> {
+    value: &'a Split
+}
+
+impl<'a> serde::ser::MapVisitor for SplitMapVisitor<'a> {
+    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error>
+        where S: serde::Serializer {
+        try!(serializer.serialize_struct_elt("left", &self.value.left));
+        try!(serializer.serialize_struct_elt("right", &self.value.right));
+        try!(serializer.serialize_struct_elt("left_docks", &self.value.left_docks));
+        try!(serializer.serialize_struct_elt("right_docks", &self.value.right_docks));
+        try!(serializer.serialize_struct_elt("ratio", &self.value.ratio));
+        try!(serializer.serialize_struct_elt("direction", &self.value.direction));
+        try!(serializer.serialize_struct_elt("handle", &self.value.handle));
+        Ok(None)
+    }
+}
+
+impl serde::ser::Serialize for Split {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
+        where S: serde::ser::Serializer {
+        serializer.serialize_struct("Split", SplitMapVisitor { value: self }).map(|_| ())
+    }
+}
+
+enum SplitField {
+    Left,
+    Right,
+    LeftDocks,
+    RightDocks,
+    Ratio,
+    Direction,
+    Handle,
+}
+
+impl serde::Deserialize for SplitField  {
+    fn deserialize<D>(deserializer: &mut D) -> Result<SplitField, D::Error>
+        where D: serde::de::Deserializer {
+        struct SplitFieldVisitor;
+
+        impl serde::de::Visitor for SplitFieldVisitor {
+            type Value = SplitField;
+
+            fn visit_str<E>(&mut self, value: &str) -> Result<SplitField, E>
+                where E: serde::de::Error {
+                match value {
+                    "left" => Ok(SplitField::Left),
+                    "right" => Ok(SplitField::Right),
+                    "left_docks" => Ok(SplitField::LeftDocks),
+                    "right_docks" => Ok(SplitField::RightDocks),
+                    "ratio" => Ok(SplitField::Ratio),
+                    "direction" => Ok(SplitField::Direction),
+                    "handle" => Ok(SplitField::Handle),
+                    _ => Err(serde::de::Error::custom("expected left, right, left_docks, right_docs, ratio, direction or handle")),
+                }
+            }
+        }
+
+        deserializer.deserialize(SplitFieldVisitor)
+    }
+}
+
+struct SplitVisitor;
+
+impl serde::Deserialize for Split {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Split, D::Error>
+        where D: serde::de::Deserializer {
+        static FIELDS: &'static [&'static str] = &[ "left", "right", "left_docks", "right_docks", "ratio", "direction", "handle"];
+        deserializer.deserialize_struct("Split", FIELDS, SplitVisitor)
+    }
+}
+
+impl serde::de::Visitor for SplitVisitor {
+    type Value = Split;
+
+    fn visit_map<V>(&mut self, mut visitor: V) -> Result<Split, V::Error>
+        where V: serde::de::MapVisitor {
+        let mut left = None;
+        let mut right = None;
+        let mut left_docks = None;
+        let mut right_docks = None;
+        let mut ratio = None;
+        let mut direction = None;
+        let mut handle = None;
 
         loop {
             match try!(visitor.visit_key()) {
-                Some(PointField::X) => { x = Some(try!(visitor.visit_value())); }
-                Some(PointField::Y) => { y = Some(try!(visitor.visit_value())); }
+                Some(SplitField::Left) => { left = Some(try!(visitor.visit_value())); }
+                Some(SplitField::Right) => { right = Some(try!(visitor.visit_value())); }
+                Some(SplitField::LeftDocks) => { left_docks = Some(try!(visitor.visit_value())); }
+                Some(SplitField::RightDocks) => { right_docks = Some(try!(visitor.visit_value())); }
+                Some(SplitField::Ratio) => { ratio = Some(try!(visitor.visit_value())); }
+                Some(SplitField::Direction) => { direction = Some(try!(visitor.visit_value())); }
+                Some(SplitField::Handle) => { handle = Some(try!(visitor.visit_value())); }
                 None => { break; }
             }
         }
 
-        let x = match x {
-            Some(x) => x,
-            None => try!(visitor.missing_field("x")),
+        let left = match left {
+            Some(left) => left,
+            None => try!(visitor.missing_field("left")),
         };
 
-        let y = match y {
-            Some(y) => y,
-            None => try!(visitor.missing_field("y")),
+        let right = match right {
+            Some(right) => right,
+            None => try!(visitor.missing_field("right")),
+        };
+
+        let left_docks = match left_docks {
+            Some(left_docks) => left_docks,
+            None => try!(visitor.missing_field("left_docks")),
+        };
+
+        let right_docks = match right_docks {
+            Some(right_docks) => right_docks,
+            None => try!(visitor.missing_field("right_docks")),
+        };
+
+        let ratio = match ratio {
+            Some(ratio) => ratio,
+            None => try!(visitor.missing_field("ratio")),
+        };
+
+        let direction = match direction {
+            Some(direction) => direction,
+            None => try!(visitor.missing_field("direction")),
+        };
+
+        let handle = match handle {
+            Some(handle) => handle,
+            None => try!(visitor.missing_field("handle")),
         };
 
         try!(visitor.end());
 
-        Ok(Point{ x: x, y: y })
+        Ok(Split {
+            left: left,
+            right: right,
+            left_docks: left_docks,
+            right_docks: right_docks,
+            ratio: ratio,
+            direction: direction,
+            handle: handle,
+            rect: Rect::default(), // reconstructed during update
+        })
     }
 }
-*/
+
+

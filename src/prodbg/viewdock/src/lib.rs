@@ -51,7 +51,7 @@ pub struct Split {
     pub left_docks: Container,
     /// right/top docks
     pub right_docks: Container,
-    /// ratioage value of how much of each side that is visible. 1.0 = right/bottom fully visible
+    /// ratio value of how much of each side that is visible. 1.0 = right/bottom fully visible
     pub ratio: f32,
     /// Direction of the split
     pub direction: Direction,
@@ -876,5 +876,50 @@ mod test {
 
         assert_eq!(container_out.docks.len(), 1);
         assert_eq!(container_out.docks[0].plugin_name, "registers");
+    }
+
+    #[test]
+    fn test_split_serialize_0() {
+        let split_in = Split {
+            left: None,
+            right: None,
+            left_docks: Container::new(),
+            right_docks: Container::new(),
+            ratio: 0.7,
+            direction: Direction::Full,
+            handle: SplitHandle(1),
+            rect: Rect::new(4.0, 5.0, 2.0, 8.0)
+        };
+
+        let serialized = serde_json::to_string(&split_in).unwrap();
+        let split_out: Split = serde_json::from_str(&serialized).unwrap();
+
+        assert_eq!(split_in.left, split_out.left);
+        assert_eq!(split_in.right, split_out.right);
+        assert_eq!(split_in.direction, split_out.direction);
+        assert_eq!(split_in.handle, split_out.handle);
+
+        // expect that rect is not serialized and set to zero
+        assert_eq!(split_out.rect.x as i32, 0);
+        assert_eq!(split_out.rect.y as i32, 0);
+        assert_eq!(split_out.rect.width as i32, 0);
+        assert_eq!(split_out.rect.height as i32, 0);
+    }
+
+    #[test]
+    fn test_direction_serialize() {
+        let dir_in_0 = Direction::Horizontal;
+        let dir_in_1 = Direction::Full;
+
+        let s0 = serde_json::to_string(&dir_in_0).unwrap();
+        let s1 = serde_json::to_string(&dir_in_1).unwrap();
+
+        println!("s0 {}", s0);
+
+        let dir_out_0: Direction = serde_json::from_str(&s0).unwrap();
+        let dir_out_1: Direction = serde_json::from_str(&s1).unwrap();
+
+        assert_eq!(dir_in_0, dir_out_0);
+        assert_eq!(dir_in_1, dir_out_1);
     }
 }
