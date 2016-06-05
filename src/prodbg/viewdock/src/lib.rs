@@ -922,4 +922,49 @@ mod test {
         assert_eq!(dir_in_0, dir_out_0);
         assert_eq!(dir_in_1, dir_out_1);
     }
+
+    #[test]
+    fn test_workspace_serialize_0() {
+        let ws_in = Workspace {
+            splits: Vec::new(),
+            rect: Rect::new(4.0, 5.0, 2.0, 8.0),
+            window_border: 6.0,
+            handle_counter: SplitHandle(2),
+        };
+
+        let serialized = serde_json::to_string(&ws_in).unwrap();
+        let ws_out: Workspace = serde_json::from_str(&serialized).unwrap();
+
+        assert_eq!(ws_out.splits.len(), 0);
+        assert_eq!(ws_out.window_border as i32, 6);
+        assert_eq!(ws_out.rect.x as i32, 4);
+        assert_eq!(ws_out.rect.y as i32, 5);
+        assert_eq!(ws_out.rect.width as i32, 2);
+        assert_eq!(ws_out.rect.height as i32, 8);
+    }
+
+    #[test]
+    fn test_workspace_serialize_1() {
+        let ws_in = Workspace {
+            splits: vec![Split {
+                left: None,
+                right: None,
+                left_docks: Container::new(),
+                right_docks: Container::new(),
+                ratio: 0.7,
+                direction: Direction::Full,
+                handle: SplitHandle(1),
+                rect: Rect::new(4.0, 5.0, 2.0, 8.0)
+            }],
+            rect: Rect::new(4.0, 5.0, 2.0, 8.0),
+            window_border: 6.0,
+            handle_counter: SplitHandle(2),
+        };
+
+        let serialized = serde_json::to_string(&ws_in).unwrap();
+        let ws_out: Workspace = serde_json::from_str(&serialized).unwrap();
+
+        assert_eq!(ws_out.splits.len(), 1);
+        assert_eq!(ws_out.splits[0].handle.0, 1);
+    }
 }
