@@ -120,21 +120,6 @@ SharedLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
-    Name = "disassembly_plugin",
-
-    Env = {
-        CPPPATH = { "api/include", },
-    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-    },
-
-    Sources = { "src/plugins/disassembly/disassembly_plugin.cpp" },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-SharedLibrary {
     Name = "registers_plugin",
 
     Env = {
@@ -393,7 +378,6 @@ end
 Default "registers_plugin"
 Default "callstack_plugin"
 Default "sourcecode_plugin"
-Default "disassembly_plugin"
 Default "disassembly2"
 Default "locals_plugin"
 Default "threads_plugin"

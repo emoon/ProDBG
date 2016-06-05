@@ -40,7 +40,6 @@ fn main() {
     plugins.add_plugin(&mut lib_handler, "bitmap_memory");
     plugins.add_plugin(&mut lib_handler, "registers_plugin");
     plugins.add_plugin(&mut lib_handler, "disassembly2");
-    plugins.add_plugin(&mut lib_handler, "disassembly_plugin");
     plugins.add_plugin(&mut lib_handler, "hex_memory_plugin");
 
     if let Some(backend) = backend_plugins.borrow_mut().create_instance(&"Dummy Backend".to_owned()) {
