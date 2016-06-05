@@ -32,25 +32,25 @@ enum RectField {
 impl serde::Deserialize for RectField  {
     fn deserialize<D>(deserializer: &mut D) -> Result<RectField, D::Error>
         where D: serde::de::Deserializer {
-        struct RectFieldVisitor;
+            struct RectFieldVisitor;
 
-        impl serde::de::Visitor for RectFieldVisitor {
-            type Value = RectField;
+            impl serde::de::Visitor for RectFieldVisitor {
+                type Value = RectField;
 
-            fn visit_str<E>(&mut self, value: &str) -> Result<RectField, E>
-                where E: serde::de::Error {
-                match value {
-                    "x" => Ok(RectField::X),
-                    "y" => Ok(RectField::Y),
-                    "width" => Ok(RectField::WIDTH),
-                    "height" => Ok(RectField::HEIGHT),
-                    _ => Err(serde::de::Error::custom("expected x,y,width or height")),
-                }
+                fn visit_str<E>(&mut self, value: &str) -> Result<RectField, E>
+                    where E: serde::de::Error {
+                        match value {
+                            "x" => Ok(RectField::X),
+                            "y" => Ok(RectField::Y),
+                            "width" => Ok(RectField::WIDTH),
+                            "height" => Ok(RectField::HEIGHT),
+                            _ => Err(serde::de::Error::custom("expected x,y,width or height")),
+                        }
+                    }
             }
-        }
 
-        deserializer.deserialize(RectFieldVisitor)
-    }
+            deserializer.deserialize(RectFieldVisitor)
+        }
 }
 
 struct RectVisitor;
@@ -115,8 +115,8 @@ macro_rules! gen_handle {
         impl serde::ser::Serialize for $type_name {
             fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
                 where S: serde::ser::Serializer {
-                serializer.serialize_newtype_struct($name, &self.0)
-            }
+                    serializer.serialize_newtype_struct($name, &self.0)
+                }
         }
 
         struct $visitor;
@@ -134,17 +134,17 @@ macro_rules! gen_handle {
                 where D: serde::de::Deserializer {
                     let value = try!(serde::de::Deserialize::deserialize(deserializer));
                     Ok($type_name(value))
-            }
+                }
 
             fn visit_seq<V>(&mut self, mut visitor: V) -> Result<$type_name, V::Error>
                 where V: serde::de::SeqVisitor {
-                let v = match try!(visitor.visit()) {
-                    Some(value) => { value }
-                    None => { return Err(serde::de::Error::end_of_stream()); }
-                };
-                try!(visitor.end());
-                Ok($type_name(v))
-            }
+                    let v = match try!(visitor.visit()) {
+                        Some(value) => { value }
+                        None => { return Err(serde::de::Error::end_of_stream()); }
+                    };
+                    try!(visitor.end());
+                    Ok($type_name(v))
+                }
         }
     }
 }
@@ -186,13 +186,13 @@ impl serde::Deserialize for DockField  {
 
             fn visit_str<E>(&mut self, value: &str) -> Result<DockField, E>
                 where E: serde::de::Error {
-                match value {
-                    "handle" => Ok(DockField::Handle),
-                    "plugin_name" => Ok(DockField::PluginName),
-                    "plugin_data" => Ok(DockField::PluginData),
-                    _ => Err(serde::de::Error::custom("expected handle,plugin_name or pluin_data")),
+                    match value {
+                        "handle" => Ok(DockField::Handle),
+                        "plugin_name" => Ok(DockField::PluginName),
+                        "plugin_data" => Ok(DockField::PluginData),
+                        _ => Err(serde::de::Error::custom("expected handle,plugin_name or pluin_data")),
+                    }
                 }
-            }
         }
 
         deserializer.deserialize(DockFieldVisitor)
@@ -281,11 +281,11 @@ impl serde::Deserialize for ContainerField  {
 
             fn visit_str<E>(&mut self, value: &str) -> Result<ContainerField, E>
                 where E: serde::de::Error {
-                match value {
-                    "docks" => Ok(ContainerField::Docks),
-                    _ => Err(serde::de::Error::custom("expected docks")),
+                    match value {
+                        "docks" => Ok(ContainerField::Docks),
+                        _ => Err(serde::de::Error::custom("expected docks")),
+                    }
                 }
-            }
         }
 
         deserializer.deserialize(ContainerFieldVisitor)
@@ -353,23 +353,23 @@ impl serde::Deserialize for DirectionField  {
 
             fn visit_usize<E>(&mut self, value: usize) -> Result<DirectionField, E>
                 where E: serde::de::Error {
-                match value {
-                    0usize => Ok(DirectionField::Vertical),
-                    1usize => Ok(DirectionField::Horizontal),
-                    2usize => Ok(DirectionField::Full),
-                    _ => Err(serde::de::Error::invalid_value("expected a variant")),
+                    match value {
+                        0usize => Ok(DirectionField::Vertical),
+                        1usize => Ok(DirectionField::Horizontal),
+                        2usize => Ok(DirectionField::Full),
+                        _ => Err(serde::de::Error::invalid_value("expected a variant")),
+                    }
                 }
-            }
 
             fn visit_str<E>(&mut self, value: &str) -> Result<DirectionField, E>
                 where E: serde::de::Error {
-                match value {
-                    "Vertial" => Ok(DirectionField::Vertical),
-                    "Horizontal" => Ok(DirectionField::Horizontal),
-                    "Full" => Ok(DirectionField::Full),
-                    _ => Err(serde::de::Error::invalid_value("expected a variant")),
+                    match value {
+                        "Vertical" => Ok(DirectionField::Vertical),
+                        "Horizontal" => Ok(DirectionField::Horizontal),
+                        "Full" => Ok(DirectionField::Full),
+                        _ => Err(serde::de::Error::invalid_value("expected a variant")),
+                    }
                 }
-            }
         }
 
         deserializer.deserialize_struct_field(DirectionFieldVisitor)
@@ -448,17 +448,17 @@ impl serde::Deserialize for SplitField  {
 
             fn visit_str<E>(&mut self, value: &str) -> Result<SplitField, E>
                 where E: serde::de::Error {
-                match value {
-                    "left" => Ok(SplitField::Left),
-                    "right" => Ok(SplitField::Right),
-                    "left_docks" => Ok(SplitField::LeftDocks),
-                    "right_docks" => Ok(SplitField::RightDocks),
-                    "ratio" => Ok(SplitField::Ratio),
-                    "direction" => Ok(SplitField::Direction),
-                    "handle" => Ok(SplitField::Handle),
-                    _ => Err(serde::de::Error::custom("expected left, right, left_docks, right_docs, ratio, direction or handle")),
+                    match value {
+                        "left" => Ok(SplitField::Left),
+                        "right" => Ok(SplitField::Right),
+                        "left_docks" => Ok(SplitField::LeftDocks),
+                        "right_docks" => Ok(SplitField::RightDocks),
+                        "ratio" => Ok(SplitField::Ratio),
+                        "direction" => Ok(SplitField::Direction),
+                        "handle" => Ok(SplitField::Handle),
+                        _ => Err(serde::de::Error::custom("expected left, right, left_docks, right_docs, ratio, direction or handle")),
+                    }
                 }
-            }
         }
 
         deserializer.deserialize(SplitFieldVisitor)
@@ -585,14 +585,14 @@ impl serde::Deserialize for WorkspaceField  {
 
             fn visit_str<E>(&mut self, value: &str) -> Result<WorkspaceField, E>
                 where E: serde::de::Error {
-                match value {
-                    "splits" => Ok(WorkspaceField::Splits),
-                    "rect" => Ok(WorkspaceField::Rect),
-                    "window_border" => Ok(WorkspaceField::WindowBorder),
-                    "handle_counter" => Ok(WorkspaceField::HandleCounter),
-                    _ => Err(serde::de::Error::custom("expected splits,rect,window_border or handle_counter")),
+                    match value {
+                        "splits" => Ok(WorkspaceField::Splits),
+                        "rect" => Ok(WorkspaceField::Rect),
+                        "window_border" => Ok(WorkspaceField::WindowBorder),
+                        "handle_counter" => Ok(WorkspaceField::HandleCounter),
+                        _ => Err(serde::de::Error::custom("expected splits,rect,window_border or handle_counter")),
+                    }
                 }
-            }
         }
 
         deserializer.deserialize(WorkspaceFieldVisitor)

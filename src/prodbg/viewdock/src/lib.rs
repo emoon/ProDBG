@@ -2,9 +2,9 @@ extern crate serde_json;
 mod error;
 mod serialize;
 pub use self::error::Error;
-//use std::io::prelude::*;
-//use std::fs::File;
-//use std::io;
+use std::io::{Write, Read};
+use std::fs::File;
+use std::io;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct DockHandle(pub u64);
@@ -609,7 +609,6 @@ impl Workspace {
         docks
     }
 
-    /*
     pub fn save(&self, file_name: &str) -> io::Result<()> {
         let data = serde_json::to_string_pretty(self).unwrap_or("".to_owned());
         let mut f = try!(File::create(file_name));
@@ -628,7 +627,6 @@ impl Workspace {
         let ws: Workspace = serde_json::from_str(&s).unwrap();
         ws
     }
-    */
 }
 
 #[cfg(test)]
@@ -910,17 +908,19 @@ mod test {
     fn test_direction_serialize() {
         let dir_in_0 = Direction::Horizontal;
         let dir_in_1 = Direction::Full;
+        let dir_in_2 = Direction::Vertical;
 
         let s0 = serde_json::to_string(&dir_in_0).unwrap();
         let s1 = serde_json::to_string(&dir_in_1).unwrap();
-
-        println!("s0 {}", s0);
+        let s2 = serde_json::to_string(&dir_in_2).unwrap();
 
         let dir_out_0: Direction = serde_json::from_str(&s0).unwrap();
         let dir_out_1: Direction = serde_json::from_str(&s1).unwrap();
+        let dir_out_2: Direction = serde_json::from_str(&s2).unwrap();
 
         assert_eq!(dir_in_0, dir_out_0);
         assert_eq!(dir_in_1, dir_out_1);
+        assert_eq!(dir_in_2, dir_out_2);
     }
 
     #[test]
