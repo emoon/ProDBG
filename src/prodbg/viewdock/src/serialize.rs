@@ -7,8 +7,7 @@ struct RectMapVisitor<'a> {
 }
 
 impl<'a> serde::ser::MapVisitor for RectMapVisitor<'a> {
-    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error>
-        where S: serde::Serializer {
+    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: serde::Serializer {
         try!(serializer.serialize_struct_elt("x", &self.value.x));
         try!(serializer.serialize_struct_elt("y", &self.value.y));
         try!(serializer.serialize_struct_elt("width", &self.value.width));
@@ -18,8 +17,7 @@ impl<'a> serde::ser::MapVisitor for RectMapVisitor<'a> {
 }
 
 impl serde::ser::Serialize for Rect {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-        where S: serde::ser::Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: serde::ser::Serializer {
         serializer.serialize_struct("", RectMapVisitor { value: self }).map(|_| ())
     }
 }
@@ -58,8 +56,7 @@ impl serde::Deserialize for RectField  {
 struct RectVisitor;
 
 impl serde::Deserialize for Rect {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Rect, D::Error>
-        where D: serde::de::Deserializer {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Rect, D::Error> where D: serde::de::Deserializer {
         static FIELDS: &'static [&'static str] = &["x", "y", "width", "height"];
         deserializer.deserialize_struct("Rect", FIELDS, RectVisitor)
     }
@@ -68,8 +65,7 @@ impl serde::Deserialize for Rect {
 impl serde::de::Visitor for RectVisitor {
     type Value = Rect;
 
-    fn visit_map<V>(&mut self, mut visitor: V) -> Result<Rect, V::Error>
-        where V: serde::de::MapVisitor {
+    fn visit_map<V>(&mut self, mut visitor: V) -> Result<Rect, V::Error> where V: serde::de::MapVisitor {
         let mut x = None;
         let mut y = None;
         let mut width = None;
@@ -116,7 +112,6 @@ impl serde::de::Visitor for RectVisitor {
 
 macro_rules! gen_handle {
     ($name:expr, $type_name:ident, $visitor:ident) => {
-
         impl serde::ser::Serialize for $type_name {
             fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
                 where S: serde::ser::Serializer {
@@ -162,8 +157,7 @@ struct DockMapVisitor<'a> {
 }
 
 impl<'a> serde::ser::MapVisitor for DockMapVisitor<'a> {
-    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error>
-        where S: serde::Serializer {
+    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: serde::Serializer {
         try!(serializer.serialize_struct_elt("handle", &self.value.handle));
         try!(serializer.serialize_struct_elt("plugin_name", &self.value.plugin_name));
         try!(serializer.serialize_struct_elt("plugin_data", &self.value.plugin_data));
@@ -172,8 +166,7 @@ impl<'a> serde::ser::MapVisitor for DockMapVisitor<'a> {
 }
 
 impl serde::ser::Serialize for Dock {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-        where S: serde::ser::Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: serde::ser::Serializer {
         serializer.serialize_struct("Dock", DockMapVisitor { value: self }).map(|_| ())
     }
 }
@@ -185,8 +178,7 @@ enum DockField {
 }
 
 impl serde::Deserialize for DockField  {
-    fn deserialize<D>(deserializer: &mut D) -> Result<DockField, D::Error>
-        where D: serde::de::Deserializer {
+    fn deserialize<D>(deserializer: &mut D) -> Result<DockField, D::Error> where D: serde::de::Deserializer {
         struct DockFieldVisitor;
 
         impl serde::de::Visitor for DockFieldVisitor {
@@ -210,8 +202,7 @@ impl serde::Deserialize for DockField  {
 struct DockVisitor;
 
 impl serde::Deserialize for Dock {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Dock, D::Error>
-        where D: serde::de::Deserializer {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Dock, D::Error> where D: serde::de::Deserializer {
         static FIELDS: &'static [&'static str] = &["handle", "plugin_name", "plugin_data"];
         deserializer.deserialize_struct("Dock", FIELDS, DockVisitor)
     }
@@ -220,8 +211,7 @@ impl serde::Deserialize for Dock {
 impl serde::de::Visitor for DockVisitor {
     type Value = Dock;
 
-    fn visit_map<V>(&mut self, mut visitor: V) -> Result<Dock, V::Error>
-        where V: serde::de::MapVisitor {
+    fn visit_map<V>(&mut self, mut visitor: V) -> Result<Dock, V::Error> where V: serde::de::MapVisitor {
         let mut handle = None;
         let mut plugin_name = None;
         let mut plugin_data = None;
@@ -266,16 +256,14 @@ struct ContainerMapVisitor<'a> {
 }
 
 impl<'a> serde::ser::MapVisitor for ContainerMapVisitor<'a> {
-    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error>
-        where S: serde::Serializer {
+    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: serde::Serializer {
         try!(serializer.serialize_struct_elt("docks", &self.value.docks));
         Ok(None)
     }
 }
 
 impl serde::ser::Serialize for Container {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-        where S: serde::ser::Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: serde::ser::Serializer {
         serializer.serialize_struct("Container", ContainerMapVisitor { value: self }).map(|_| ())
     }
 }
@@ -285,8 +273,7 @@ enum ContainerField {
 }
 
 impl serde::Deserialize for ContainerField  {
-    fn deserialize<D>(deserializer: &mut D) -> Result<ContainerField, D::Error>
-        where D: serde::de::Deserializer {
+    fn deserialize<D>(deserializer: &mut D) -> Result<ContainerField, D::Error> where D: serde::de::Deserializer {
         struct ContainerFieldVisitor;
 
         impl serde::de::Visitor for ContainerFieldVisitor {
@@ -308,8 +295,7 @@ impl serde::Deserialize for ContainerField  {
 struct ContainerVisitor;
 
 impl serde::Deserialize for Container {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Container, D::Error>
-        where D: serde::de::Deserializer {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Container, D::Error> where D: serde::de::Deserializer {
         static FIELDS: &'static [&'static str] = &["docks"];
         deserializer.deserialize_struct("Container", FIELDS, ContainerVisitor)
     }
@@ -318,8 +304,7 @@ impl serde::Deserialize for Container {
 impl serde::de::Visitor for ContainerVisitor {
     type Value = Container;
 
-    fn visit_map<V>(&mut self, mut visitor: V) -> Result<Container, V::Error>
-        where V: serde::de::MapVisitor {
+    fn visit_map<V>(&mut self, mut visitor: V) -> Result<Container, V::Error> where V: serde::de::MapVisitor {
         let mut docks = None;
 
         loop {
@@ -344,8 +329,7 @@ impl serde::de::Visitor for ContainerVisitor {
 }
 
 impl serde::ser::Serialize for Direction {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-        where S: serde::ser::Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: serde::ser::Serializer {
         match *self {
             Direction::Vertical => serde::ser::Serializer::serialize_unit_variant(serializer, "Direction", 0usize, "Vertical"),
             Direction::Horizontal => serde::ser::Serializer::serialize_unit_variant(serializer, "Direction", 1usize, "Horizontal"),
@@ -361,8 +345,7 @@ enum DirectionField {
 }
 
 impl serde::Deserialize for DirectionField  {
-    fn deserialize<D>(deserializer: &mut D) -> Result<DirectionField, D::Error>
-        where D: serde::de::Deserializer {
+    fn deserialize<D>(deserializer: &mut D) -> Result<DirectionField, D::Error> where D: serde::de::Deserializer {
         struct DirectionFieldVisitor;
 
         impl serde::de::Visitor for DirectionFieldVisitor {
@@ -396,8 +379,7 @@ impl serde::Deserialize for DirectionField  {
 struct DirectionVisitor;
 
 impl serde::Deserialize for Direction {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Direction, D::Error>
-        where D: serde::de::Deserializer {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Direction, D::Error> where D: serde::de::Deserializer {
         const VARIANTS: &'static [&'static str] = &["Vertical", "Horizontal", "Full"];
         deserializer.deserialize_enum("Direction", VARIANTS, DirectionVisitor)
     }
@@ -406,9 +388,7 @@ impl serde::Deserialize for Direction {
 impl serde::de::EnumVisitor for DirectionVisitor {
     type Value = Direction;
 
-    fn visit<V>(&mut self, mut visitor: V) -> Result<Direction, V::Error>
-        where V: serde::de::VariantVisitor {
-
+    fn visit<V>(&mut self, mut visitor: V) -> Result<Direction, V::Error> where V: serde::de::VariantVisitor {
         match try!(visitor.visit_variant()) {
             DirectionField::Vertical => {
                 try!(visitor.visit_unit());
@@ -431,8 +411,7 @@ struct SplitMapVisitor<'a> {
 }
 
 impl<'a> serde::ser::MapVisitor for SplitMapVisitor<'a> {
-    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error>
-        where S: serde::Serializer {
+    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: serde::Serializer {
         try!(serializer.serialize_struct_elt("left", &self.value.left));
         try!(serializer.serialize_struct_elt("right", &self.value.right));
         try!(serializer.serialize_struct_elt("left_docks", &self.value.left_docks));
@@ -445,8 +424,7 @@ impl<'a> serde::ser::MapVisitor for SplitMapVisitor<'a> {
 }
 
 impl serde::ser::Serialize for Split {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-        where S: serde::ser::Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: serde::ser::Serializer {
         serializer.serialize_struct("Split", SplitMapVisitor { value: self }).map(|_| ())
     }
 }
@@ -462,8 +440,7 @@ enum SplitField {
 }
 
 impl serde::Deserialize for SplitField  {
-    fn deserialize<D>(deserializer: &mut D) -> Result<SplitField, D::Error>
-        where D: serde::de::Deserializer {
+    fn deserialize<D>(deserializer: &mut D) -> Result<SplitField, D::Error> where D: serde::de::Deserializer {
         struct SplitFieldVisitor;
 
         impl serde::de::Visitor for SplitFieldVisitor {
@@ -491,8 +468,7 @@ impl serde::Deserialize for SplitField  {
 struct SplitVisitor;
 
 impl serde::Deserialize for Split {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Split, D::Error>
-        where D: serde::de::Deserializer {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Split, D::Error> where D: serde::de::Deserializer {
         static FIELDS: &'static [&'static str] = &[ "left", "right", "left_docks", "right_docks", "ratio", "direction", "handle"];
         deserializer.deserialize_struct("Split", FIELDS, SplitVisitor)
     }
@@ -501,8 +477,7 @@ impl serde::Deserialize for Split {
 impl serde::de::Visitor for SplitVisitor {
     type Value = Split;
 
-    fn visit_map<V>(&mut self, mut visitor: V) -> Result<Split, V::Error>
-        where V: serde::de::MapVisitor {
+    fn visit_map<V>(&mut self, mut visitor: V) -> Result<Split, V::Error> where V: serde::de::MapVisitor {
         let mut left = None;
         let mut right = None;
         let mut left_docks = None;
@@ -579,8 +554,7 @@ struct WorkspaceMapVisitor<'a> {
 }
 
 impl<'a> serde::ser::MapVisitor for WorkspaceMapVisitor<'a> {
-    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error>
-        where S: serde::Serializer {
+    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: serde::Serializer {
         try!(serializer.serialize_struct_elt("splits", &self.value.splits));
         try!(serializer.serialize_struct_elt("rect", &self.value.rect));
         try!(serializer.serialize_struct_elt("window_border", &self.value.window_border));
@@ -590,8 +564,7 @@ impl<'a> serde::ser::MapVisitor for WorkspaceMapVisitor<'a> {
 }
 
 impl serde::ser::Serialize for Workspace {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-        where S: serde::ser::Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: serde::ser::Serializer {
         serializer.serialize_struct("", WorkspaceMapVisitor { value: self }).map(|_| ())
     }
 }
@@ -604,8 +577,7 @@ enum WorkspaceField {
 }
 
 impl serde::Deserialize for WorkspaceField  {
-    fn deserialize<D>(deserializer: &mut D) -> Result<WorkspaceField, D::Error>
-        where D: serde::de::Deserializer {
+    fn deserialize<D>(deserializer: &mut D) -> Result<WorkspaceField, D::Error> where D: serde::de::Deserializer {
         struct WorkspaceFieldVisitor;
 
         impl serde::de::Visitor for WorkspaceFieldVisitor {
@@ -630,8 +602,7 @@ impl serde::Deserialize for WorkspaceField  {
 struct WorkspaceVisitor;
 
 impl serde::Deserialize for Workspace {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Workspace, D::Error>
-        where D: serde::de::Deserializer {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Workspace, D::Error> where D: serde::de::Deserializer {
         static FIELDS: &'static [&'static str] = &["splits", "rect", "window_border", "handle_counter"];
         deserializer.deserialize_struct("Workspace", FIELDS, WorkspaceVisitor)
     }
@@ -640,8 +611,7 @@ impl serde::Deserialize for Workspace {
 impl serde::de::Visitor for WorkspaceVisitor {
     type Value = Workspace;
 
-    fn visit_map<V>(&mut self, mut visitor: V) -> Result<Workspace, V::Error>
-        where V: serde::de::MapVisitor {
+    fn visit_map<V>(&mut self, mut visitor: V) -> Result<Workspace, V::Error> where V: serde::de::MapVisitor {
         let mut splits = None;
         let mut rect = None;
         let mut window_border = None;
@@ -687,5 +657,4 @@ impl serde::de::Visitor for WorkspaceVisitor {
         })
     }
 }
-
 
