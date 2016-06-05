@@ -1,11 +1,11 @@
 [package]
-name = "disassembly2"
+name = "disassembly"
 version = "0.1.0"
 authors = ["Daniel Collin <daniel@collin.com>"]
 
 # Type
 [lib]
-nme = "disassembly2"
+name = "disassembly"
 crate-type = ["dylib"]
 
 # Depends

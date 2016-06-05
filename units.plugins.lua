@@ -307,10 +307,10 @@ RustSharedLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 RustSharedLibrary {
-	Name = "disassembly2",
-	CargoConfig = "src/plugins/disassembly2/Cargo.toml",
+	Name = "disassembly",
+	CargoConfig = "src/plugins/disassembly/Cargo.toml",
 	Sources = {
-		get_rs_src("src/plugins/disassembly2"),
+		get_rs_src("src/plugins/disassembly"),
 		get_rs_src("api/rust/prodbg"),
 	}
 }
@@ -378,7 +378,7 @@ end
 Default "registers_plugin"
 Default "callstack_plugin"
 Default "sourcecode_plugin"
-Default "disassembly2"
+Default "disassembly"
 Default "locals_plugin"
 Default "threads_plugin"
 Default "breakpoints_plugin"

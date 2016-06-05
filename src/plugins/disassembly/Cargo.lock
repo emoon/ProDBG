@@ -1,5 +1,5 @@
 [root]
-name = "disassembly2"
+name = "disassembly"
 version = "0.1.0"
 dependencies = [
  "prodbg_api 0.1.0",
