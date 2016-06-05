@@ -86,7 +86,7 @@ impl<'a> From<&'a str> for CFixedString {
 
 impl fmt::Write for CFixedString {
     fn write_str(&mut self, s: &str) -> Result<(), fmt::Error> {
-        use std::fmt::Write;
+        //use std::fmt::Write;
 
         unsafe {
             let cur_len = self.as_str().len();
