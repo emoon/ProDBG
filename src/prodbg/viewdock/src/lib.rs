@@ -1,6 +1,6 @@
 extern crate serde_json;
 mod error;
-mod data;
+mod serialize;
 pub use self::error::Error;
 //use std::io::prelude::*;
 //use std::fs::File;
