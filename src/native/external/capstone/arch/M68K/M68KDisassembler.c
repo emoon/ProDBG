@@ -48,8 +48,12 @@
 #include "M68KDisassembler.h"
 
 #ifndef DECL_SPEC
+#ifdef _MSC_VER
+#define DECL_SPEC __cdecl
+#else
 #define DECL_SPEC
-#endif
+#endif	// _MSC_VER
+#endif	// DECL_SPEC
 
 /* ======================================================================== */
 /* ============================ GENERAL DEFINES =========================== */
@@ -457,7 +461,7 @@ void get_ea_mode_op(m68k_info *info, cs_m68k_op* op, uint instruction, uint size
 			/* address register indirect with displacement*/
 			op->address_mode = M68K_AM_REGI_ADDR_DISP;
 			op->mem.base_reg = M68K_REG_A0 + (instruction & 7);
-			op->mem.disp = read_imm_16(info);
+			op->mem.disp = (uint16_t)read_imm_16(info);
 			break;
 
 		case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37:
@@ -480,7 +484,7 @@ void get_ea_mode_op(m68k_info *info, cs_m68k_op* op, uint instruction, uint size
 		case 0x3a:
 			/* program counter with displacement */
 			op->address_mode = M68K_AM_PCI_DISP;
-			op->mem.disp = read_imm_16(info);
+			op->mem.disp = (uint16_t)read_imm_16(info);
 			break;
 
 		case 0x3b:
@@ -521,7 +525,7 @@ static cs_m68k* build_init_op(m68k_info *info, int opcode, int count, int size)
 
 	ext = &info->extension;
 
-	ext->op_count = count;
+	ext->op_count = (uint8_t)count;
 	ext->op_size.type = M68K_SIZE_TYPE_CPU;
 	ext->op_size.cpu_size = size;
 
@@ -844,7 +848,7 @@ static void build_bitfield_ins(m68k_info *info, int opcode, int has_d_arg)
 	if (BIT_5(extension))
 		width = extension & 7;
 	else
-		width = g_5bit_data_table[extension & 31];
+		width = (uint8_t)g_5bit_data_table[extension & 31];
 
 	if (has_d_arg) {
 		ext->op_count = 2;
@@ -979,19 +983,21 @@ static void build_cas2(m68k_info *info, int size)
 
 	op0->address_mode = M68K_AM_NONE;
 	op0->type = M68K_OP_REG_PAIR;
-	op0->register_bits = (((extension >> 16) & 7) << 4) | (extension & 7);
+	op0->reg_pair.reg_0 = (extension >> 16) & 7;
+	op0->reg_pair.reg_1 = extension & 7;
 
 	op1->address_mode = M68K_AM_NONE;
 	op1->type = M68K_OP_REG_PAIR;
-	op1->register_bits = (((extension >> 22) & 7) << 4) | ((extension >> 6) & 7);
+	op1->reg_pair.reg_0 = (extension >> 22) & 7;
+	op1->reg_pair.reg_1 = (extension >> 6) & 7;
 
 	reg_0 = (extension >> 28) & 7;
 	reg_1 = (extension >> 12) & 7;
 
 	op2->address_mode = M68K_AM_NONE;
 	op2->type = M68K_OP_REG_PAIR;
-	op2->register_bits = ((reg_0 + (BIT_1F(extension) ? 8 : 0)) << 4) |
-		(reg_1 + (BIT_F(extension) ? 8 : 0));
+	op2->reg_pair.reg_0 = reg_0 + (BIT_1F(extension) ? 8 : 0);
+	op2->reg_pair.reg_1 = reg_1 + (BIT_F(extension) ? 8 : 0);
 }
 
 static void build_chk2_cmp2(m68k_info *info, int size)
@@ -1108,7 +1114,7 @@ static void build_movep_re(m68k_info *info, int size)
 	op1->address_mode = M68K_AM_REGI_ADDR_DISP;
 	op1->type = M68K_OP_MEM;
 	op1->mem.base_reg = M68K_REG_A0 + (info->ir & 7);
-	op1->mem.disp = read_imm_16(info);
+	op1->mem.disp = (uint16_t)read_imm_16(info);
 }
 
 static void build_movep_er(m68k_info *info, int size)
@@ -1123,7 +1129,7 @@ static void build_movep_er(m68k_info *info, int size)
 	op0->address_mode = M68K_AM_REGI_ADDR_DISP;
 	op0->type = M68K_OP_MEM;
 	op0->mem.base_reg = M68K_REG_A0 + (info->ir & 7);
-	op0->mem.disp = read_imm_16(info);
+	op0->mem.disp = (uint16_t)read_imm_16(info);
 
 	op1->reg = M68K_REG_D0 + ((info->ir >> 9) & 7);
 }
@@ -2077,12 +2083,14 @@ static void d68020_cpgen(m68k_info *info)
 				ext->op_size.type = M68K_SIZE_TYPE_FPU;
 				ext->op_size.fpu_size = M68K_FPU_SIZE_SINGLE;
 				get_ea_mode_op(info, op0, info->ir, 4);
+				op0->type = M68K_OP_FP_SINGLE;
 				break;
 
 			case 0x05:
 				ext->op_size.type = M68K_SIZE_TYPE_FPU;
 				ext->op_size.fpu_size = M68K_FPU_SIZE_DOUBLE;
 				get_ea_mode_op(info, op0, info->ir, 8);
+				op0->type = M68K_OP_FP_DOUBLE;
 				break;
 
 			default :
@@ -2244,7 +2252,8 @@ static void d68020_divl(m68k_info *info)
 
 	op1->address_mode = M68K_AM_NONE;
 	op1->type = M68K_OP_REG_PAIR;
-	op1->register_bits = (reg_0 << 4) | reg_1;
+	op1->reg_pair.reg_0 = reg_0;
+	op1->reg_pair.reg_1 = reg_1;
 
 	if ((reg_0 == reg_1) || !BIT_A(extension)) {
 		op1->type = M68K_OP_REG;
@@ -2523,16 +2532,12 @@ static void d68000_move_to_sr(m68k_info *info)
 {
 	cs_m68k_op* op0;
 	cs_m68k_op* op1;
-	cs_m68k* ext;
-
-	LIMIT_CPU_TYPES(info, M68010_PLUS);
-
-	ext = build_init_op(info, M68K_INS_MOVE, 2, 2);
+	cs_m68k* ext = build_init_op(info, M68K_INS_MOVE, 2, 2);
 
 	op0 = &ext->operands[0];
 	op1 = &ext->operands[1];
 
-	get_ea_mode_op(info, op0, info->ir, 1);
+	get_ea_mode_op(info, op0, info->ir, 2);
 
 	op1->address_mode = M68K_AM_NONE;
 	op1->reg = M68K_REG_SR;
@@ -2793,7 +2798,8 @@ static void d68020_mull(m68k_info *info)
 
 	op1->address_mode = M68K_AM_NONE;
 	op1->type = M68K_OP_REG_PAIR;
-	op1->register_bits = (reg_0 << 4) | reg_1;
+	op1->reg_pair.reg_0 = reg_0;
+	op1->reg_pair.reg_1 = reg_1;
 
 	if (!BIT_A(extension)) {
 		op1->type = M68K_OP_REG;

@@ -1,7 +1,6 @@
 /* Capstone Disassembly Engine */
 /* By Nguyen Anh Quynh <aquynh@gmail.com>, 2013-2015 */
 
-#include <stdint.h>
 #include <stdarg.h>
 #if defined(CAPSTONE_HAS_OSXKERNEL)
 #include <libkern/libkern.h>
@@ -10,9 +9,10 @@
 #endif
 #include <string.h>
 
+#include <capstone/platform.h>
+
 #include "SStream.h"
 #include "cs_priv.h"
-#include "myinttypes.h"
 #include "utils.h"
 
 #ifdef _MSC_VER

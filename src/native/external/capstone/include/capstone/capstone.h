@@ -8,8 +8,8 @@
 extern "C" {
 #endif
 
-#include <stdint.h>
 #include <stdarg.h>
+
 #if defined(CAPSTONE_HAS_OSXKERNEL)
 #include <libkern/libkern.h>
 #else
@@ -22,12 +22,14 @@ extern "C" {
 #ifdef _MSC_VER
 #pragma warning(disable:4201)
 #pragma warning(disable:4100)
+#define CAPSTONE_API __cdecl
 #ifdef CAPSTONE_SHARED
 #define CAPSTONE_EXPORT __declspec(dllexport)
 #else    // defined(CAPSTONE_STATIC)
 #define CAPSTONE_EXPORT
 #endif
 #else
+#define CAPSTONE_API
 #ifdef __GNUC__
 #define CAPSTONE_EXPORT __attribute__((visibility("default")))
 #else
@@ -114,11 +116,11 @@ typedef enum cs_mode {
 	CS_MODE_MIPS64 = CS_MODE_64,	// Mips64 ISA (Mips)
 } cs_mode;
 
-typedef void* (*cs_malloc_t)(size_t size);
-typedef void* (*cs_calloc_t)(size_t nmemb, size_t size);
-typedef void* (*cs_realloc_t)(void *ptr, size_t size);
-typedef void (*cs_free_t)(void *ptr);
-typedef int (*cs_vsnprintf_t)(char *str, size_t size, const char *format, va_list ap);
+typedef void* (CAPSTONE_API *cs_malloc_t)(size_t size);
+typedef void* (CAPSTONE_API *cs_calloc_t)(size_t nmemb, size_t size);
+typedef void* (CAPSTONE_API *cs_realloc_t)(void *ptr, size_t size);
+typedef void (CAPSTONE_API *cs_free_t)(void *ptr);
+typedef int (CAPSTONE_API *cs_vsnprintf_t)(char *str, size_t size, const char *format, va_list ap);
 
 
 // User-defined dynamic memory related functions: malloc/calloc/realloc/free/vsnprintf()
@@ -144,18 +146,20 @@ typedef struct cs_opt_mnem {
 
 // Runtime option for the disassembled engine
 typedef enum cs_opt_type {
-	CS_OPT_SYNTAX = 1,	// Assembly output syntax
+	CS_OPT_INVALID = 0,	// No option specified
+	CS_OPT_SYNTAX,	// Assembly output syntax
 	CS_OPT_DETAIL,	// Break down instruction structure into details
 	CS_OPT_MODE,	// Change engine's mode at run-time
 	CS_OPT_MEM,	// User-defined dynamic memory related functions
 	CS_OPT_SKIPDATA, // Skip data when disassembling. Then engine is in SKIPDATA mode.
 	CS_OPT_SKIPDATA_SETUP, // Setup user-defined function for SKIPDATA option
 	CS_OPT_MNEMONIC, // Customize instruction mnemonic
+	CS_OPT_UNSIGNED, // print immediate operands in unsigned form
 } cs_opt_type;
 
 // Runtime option value (associated with option type above)
 typedef enum cs_opt_value {
-	CS_OPT_OFF = 0,  // Turn OFF an option - default option of CS_OPT_DETAIL, CS_OPT_SKIPDATA.
+	CS_OPT_OFF = 0,  // Turn OFF an option - default for CS_OPT_DETAIL, CS_OPT_SKIPDATA, CS_OPT_UNSIGNED.
 	CS_OPT_ON = 3, // Turn ON an option (CS_OPT_DETAIL, CS_OPT_SKIPDATA).
 	CS_OPT_SYNTAX_DEFAULT = 0, // Default asm syntax (CS_OPT_SYNTAX).
 	CS_OPT_SYNTAX_INTEL, // X86 Intel asm syntax - default on X86 (CS_OPT_SYNTAX).
@@ -206,7 +210,7 @@ typedef enum cs_group_type {
 
  @return: return number of bytes to skip, or 0 to immediately stop disassembling.
 */
-typedef size_t (*cs_skipdata_cb_t)(const uint8_t *code, size_t code_size, size_t offset, void *user_data);
+typedef size_t (CAPSTONE_API *cs_skipdata_cb_t)(const uint8_t *code, size_t code_size, size_t offset, void *user_data);
 
 // User-customized setup for SKIPDATA option
 typedef struct cs_opt_skipdata {
@@ -289,6 +293,7 @@ typedef struct cs_insn {
 	// Size of this instruction
 	// This information is available even when CS_OPT_DETAIL = CS_OPT_OFF
 	uint16_t size;
+
 	// Machine bytes of this instruction, with number of bytes indicated by @size above
 	// This information is available even when CS_OPT_DETAIL = CS_OPT_OFF
 	uint8_t bytes[16];
@@ -356,7 +361,7 @@ typedef enum cs_err {
  set both @major & @minor arguments to NULL.
 */
 CAPSTONE_EXPORT
-unsigned int cs_version(int *major, int *minor);
+unsigned int CAPSTONE_API cs_version(int *major, int *minor);
 
 
 /*
@@ -373,7 +378,7 @@ unsigned int cs_version(int *major, int *minor);
  @return True if this library supports the given arch, or in 'diet' mode.
 */
 CAPSTONE_EXPORT
-bool cs_support(int query);
+bool CAPSTONE_API cs_support(int query);
 
 /*
  Initialize CS handle: this must be done before any usage of CS.
@@ -386,7 +391,7 @@ bool cs_support(int query);
  for detailed error).
 */
 CAPSTONE_EXPORT
-cs_err cs_open(cs_arch arch, cs_mode mode, csh *handle);
+cs_err CAPSTONE_API cs_open(cs_arch arch, cs_mode mode, csh *handle);
 
 /*
  Close CS handle: MUST do to release the handle when it is not used anymore.
@@ -403,7 +408,7 @@ cs_err cs_open(cs_arch arch, cs_mode mode, csh *handle);
  for detailed error).
 */
 CAPSTONE_EXPORT
-cs_err cs_close(csh *handle);
+cs_err CAPSTONE_API cs_close(csh *handle);
 
 /*
  Set option for disassembling engine at runtime
@@ -420,7 +425,7 @@ cs_err cs_close(csh *handle);
  even before cs_open()
 */
 CAPSTONE_EXPORT
-cs_err cs_option(csh handle, cs_opt_type type, size_t value);
+cs_err CAPSTONE_API cs_option(csh handle, cs_opt_type type, size_t value);
 
 /*
  Report the last error number when some API function fail.
@@ -431,7 +436,7 @@ cs_err cs_option(csh handle, cs_opt_type type, size_t value);
  @return: error code of cs_err enum type (CS_ERR_*, see above)
 */
 CAPSTONE_EXPORT
-cs_err cs_errno(csh handle);
+cs_err CAPSTONE_API cs_errno(csh handle);
 
 
 /*
@@ -443,7 +448,7 @@ cs_err cs_errno(csh handle);
 	passed in the argument @code
 */
 CAPSTONE_EXPORT
-const char *cs_strerror(cs_err code);
+const char * CAPSTONE_API cs_strerror(cs_err code);
 
 /*
  Disassemble binary code, given the code buffer, size, address and number
@@ -479,7 +484,7 @@ const char *cs_strerror(cs_err code);
  On failure, call cs_errno() for error code.
 */
 CAPSTONE_EXPORT
-size_t cs_disasm(csh handle,
+size_t CAPSTONE_API cs_disasm(csh handle,
 		const uint8_t *code, size_t code_size,
 		uint64_t address,
 		size_t count,
@@ -491,7 +496,7 @@ size_t cs_disasm(csh handle,
 */
 CAPSTONE_EXPORT
 CAPSTONE_DEPRECATED
-size_t cs_disasm_ex(csh handle,
+size_t CAPSTONE_API cs_disasm_ex(csh handle,
 		const uint8_t *code, size_t code_size,
 		uint64_t address,
 		size_t count,
@@ -505,7 +510,7 @@ size_t cs_disasm_ex(csh handle,
      to free memory allocated by cs_malloc().
 */
 CAPSTONE_EXPORT
-void cs_free(cs_insn *insn, size_t count);
+void CAPSTONE_API cs_free(cs_insn *insn, size_t count);
 
 
 /*
@@ -517,7 +522,7 @@ void cs_free(cs_insn *insn, size_t count);
  this instruction with cs_free(insn, 1)
 */
 CAPSTONE_EXPORT
-cs_insn *cs_malloc(csh handle);
+cs_insn * CAPSTONE_API cs_malloc(csh handle);
 
 /*
  Fast API to disassemble binary code, given the code buffer, size, address
@@ -555,7 +560,7 @@ cs_insn *cs_malloc(csh handle);
  On failure, call cs_errno() for error code.
 */
 CAPSTONE_EXPORT
-bool cs_disasm_iter(csh handle,
+bool CAPSTONE_API cs_disasm_iter(csh handle,
 	const uint8_t **code, size_t *size,
 	uint64_t *address, cs_insn *insn);
 
@@ -573,7 +578,7 @@ bool cs_disasm_iter(csh handle,
  @return: string name of the register, or NULL if @reg_id is invalid.
 */
 CAPSTONE_EXPORT
-const char *cs_reg_name(csh handle, unsigned int reg_id);
+const char * CAPSTONE_API cs_reg_name(csh handle, unsigned int reg_id);
 
 /*
  Return friendly name of an instruction in a string.
@@ -588,7 +593,7 @@ const char *cs_reg_name(csh handle, unsigned int reg_id);
  @return: string name of the instruction, or NULL if @insn_id is invalid.
 */
 CAPSTONE_EXPORT
-const char *cs_insn_name(csh handle, unsigned int insn_id);
+const char * CAPSTONE_API cs_insn_name(csh handle, unsigned int insn_id);
 
 /*
  Return friendly name of a group id (that an instruction can belong to)
@@ -603,7 +608,7 @@ const char *cs_insn_name(csh handle, unsigned int insn_id);
  @return: string name of the group, or NULL if @group_id is invalid.
 */
 CAPSTONE_EXPORT
-const char *cs_group_name(csh handle, unsigned int group_id);
+const char * CAPSTONE_API cs_group_name(csh handle, unsigned int group_id);
 
 /*
  Check if a disassembled instruction belong to a particular group.
@@ -622,7 +627,7 @@ const char *cs_group_name(csh handle, unsigned int group_id);
  @return: true if this instruction indeed belongs to aboved group, or false otherwise.
 */
 CAPSTONE_EXPORT
-bool cs_insn_group(csh handle, const cs_insn *insn, unsigned int group_id);
+bool CAPSTONE_API cs_insn_group(csh handle, const cs_insn *insn, unsigned int group_id);
 
 /*
  Check if a disassembled instruction IMPLICITLY used a particular register.
@@ -640,7 +645,7 @@ bool cs_insn_group(csh handle, const cs_insn *insn, unsigned int group_id);
  @return: true if this instruction indeed implicitly used aboved register, or false otherwise.
 */
 CAPSTONE_EXPORT
-bool cs_reg_read(csh handle, const cs_insn *insn, unsigned int reg_id);
+bool CAPSTONE_API cs_reg_read(csh handle, const cs_insn *insn, unsigned int reg_id);
 
 /*
  Check if a disassembled instruction IMPLICITLY modified a particular register.
@@ -658,7 +663,7 @@ bool cs_reg_read(csh handle, const cs_insn *insn, unsigned int reg_id);
  @return: true if this instruction indeed implicitly modified aboved register, or false otherwise.
 */
 CAPSTONE_EXPORT
-bool cs_reg_write(csh handle, const cs_insn *insn, unsigned int reg_id);
+bool CAPSTONE_API cs_reg_write(csh handle, const cs_insn *insn, unsigned int reg_id);
 
 /*
  Count the number of operands of a given type.
@@ -674,7 +679,7 @@ bool cs_reg_write(csh handle, const cs_insn *insn, unsigned int reg_id);
  or -1 on failure.
 */
 CAPSTONE_EXPORT
-int cs_op_count(csh handle, const cs_insn *insn, unsigned int op_type);
+int CAPSTONE_API cs_op_count(csh handle, const cs_insn *insn, unsigned int op_type);
 
 /*
  Retrieve the position of operand of given type in <arch>.operands[] array.
@@ -693,7 +698,7 @@ int cs_op_count(csh handle, const cs_insn *insn, unsigned int op_type);
  in instruction @insn, or -1 on failure.
 */
 CAPSTONE_EXPORT
-int cs_op_index(csh handle, const cs_insn *insn, unsigned int op_type,
+int CAPSTONE_API cs_op_index(csh handle, const cs_insn *insn, unsigned int op_type,
 		unsigned int position);
 
 // Type of array to keep the list of registers
@@ -717,7 +722,7 @@ typedef uint16_t cs_regs[64];
  for detailed error).
 */
 CAPSTONE_EXPORT
-cs_err cs_regs_access(csh handle, const cs_insn *insn,
+cs_err CAPSTONE_API cs_regs_access(csh handle, const cs_insn *insn,
 		cs_regs regs_read, uint8_t *regs_read_count,
 		cs_regs regs_write, uint8_t *regs_write_count);
 

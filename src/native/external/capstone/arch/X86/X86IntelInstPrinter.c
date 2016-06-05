@@ -20,7 +20,7 @@
 #if !defined(CAPSTONE_HAS_OSXKERNEL)
 #include <ctype.h>
 #endif
-#include "../../myinttypes.h"
+#include <capstone/platform.h>
 #if defined(CAPSTONE_HAS_OSXKERNEL)
 #include <libkern/libkern.h>
 #else
@@ -64,6 +64,7 @@ static void set_mem_access(MCInst *MI, bool status)
 static void printopaquemem(MCInst *MI, unsigned OpNo, SStream *O)
 {
 	// FIXME: do this with autogen
+	// printf(">>> ID = %u\n", MI->flat_insn->id);
 	switch(MI->flat_insn->id) {
 		default:
 			SStream_concat0(O, "ptr ");
@@ -72,6 +73,10 @@ static void printopaquemem(MCInst *MI, unsigned OpNo, SStream *O)
 		case X86_INS_SIDT:
 		case X86_INS_LGDT:
 		case X86_INS_LIDT:
+		case X86_INS_FXRSTOR:
+		case X86_INS_FXSAVE:
+		case X86_INS_LJMP:
+		case X86_INS_LCALL:
 			// do not print "ptr"
 			break;
 	}
@@ -183,8 +188,34 @@ static void printi512mem(MCInst *MI, unsigned OpNo, SStream *O)
 
 static void printf32mem(MCInst *MI, unsigned OpNo, SStream *O)
 {
-	SStream_concat0(O, "dword ptr ");
-	MI->x86opsize = 4;
+	switch(MCInst_getOpcode(MI)) {
+		default:
+			SStream_concat0(O, "dword ptr ");
+			MI->x86opsize = 4;
+			break;
+		case X86_FBSTPm:
+		case X86_FBLDm:
+			// TODO: fix this in tablegen instead
+			SStream_concat0(O, "tbyte ptr ");
+			MI->x86opsize = 10;
+			break;
+		case X86_FSTENVm:
+		case X86_FLDENVm:
+			// TODO: fix this in tablegen instead
+			switch(MI->csh->mode) {
+				default:    // never reach
+					break;
+				case CS_MODE_16:
+					MI->x86opsize = 14;
+					break;
+				case CS_MODE_32:
+				case CS_MODE_64:
+					MI->x86opsize = 28;
+					break;
+			}
+			break;
+	}
+
 	printMemReference(MI, OpNo, O);
 }
 
@@ -336,7 +367,9 @@ static void printImm(int syntax, SStream *O, int64_t imm, bool positive)
 		// always print this number in positive form
 		if (syntax == CS_OPT_SYNTAX_MASM) {
 			if (imm < 0) {
-				if (need_zero_prefix(imm))
+				if (imm == 0x8000000000000000)  // imm == -imm
+					SStream_concat0(O, "8000000000000000h");
+				else if (need_zero_prefix(imm))
 					SStream_concat(O, "0%"PRIx64"h", imm);
 				else
 					SStream_concat(O, "%"PRIx64"h", imm);
@@ -362,7 +395,9 @@ static void printImm(int syntax, SStream *O, int64_t imm, bool positive)
 	} else {
 		if (syntax == CS_OPT_SYNTAX_MASM) {
 			if (imm < 0) {
-				if (imm < -HEX_THRESHOLD) {
+				if (imm == 0x8000000000000000)  // imm == -imm
+					SStream_concat0(O, "8000000000000000h");
+				else if (imm < -HEX_THRESHOLD) {
 					if (need_zero_prefix(imm))
 						SStream_concat(O, "-0%"PRIx64"h", -imm);
 					else
@@ -380,7 +415,9 @@ static void printImm(int syntax, SStream *O, int64_t imm, bool positive)
 			}
 		} else {	// Intel syntax
 			if (imm < 0) {
-				if (imm < -HEX_THRESHOLD)
+				if (imm == 0x8000000000000000)  // imm == -imm
+					SStream_concat0(O, "0x8000000000000000");
+				else if (imm < -HEX_THRESHOLD)
 					SStream_concat(O, "-0x%"PRIx64, -imm);
 				else
 					SStream_concat(O, "-%"PRIu64, -imm);
@@ -680,7 +717,7 @@ void X86_Intel_printInst(MCInst *MI, SStream *O, void *Info)
 {
 	char *mnem;
 	x86_reg reg, reg2;
-	uint8_t imm_sz = 0;
+	enum cs_ac_type access1, access2;
 
 	// Try to print any aliases first.
 	mnem = printAliasInstr(MI, O, Info);
@@ -689,7 +726,7 @@ void X86_Intel_printInst(MCInst *MI, SStream *O, void *Info)
 	else
 		printInstruction(MI, O, Info);
 
-	reg = X86_insn_reg_intel(MCInst_getOpcode(MI), &imm_sz);
+	reg = X86_insn_reg_intel(MCInst_getOpcode(MI), &access1);
 	if (MI->csh->detail) {
 #ifndef CAPSTONE_DIET
 		uint8_t access[6];
@@ -704,16 +741,18 @@ void X86_Intel_printInst(MCInst *MI, SStream *O, void *Info)
 			MI->flat_insn->detail->x86.operands[0].type = X86_OP_REG;
 			MI->flat_insn->detail->x86.operands[0].reg = reg;
 			MI->flat_insn->detail->x86.operands[0].size = MI->csh->regsize_map[reg];
-			MI->flat_insn->detail->x86.operands[1].size = imm_sz ? imm_sz : MI->csh->regsize_map[reg];
+			MI->flat_insn->detail->x86.operands[0].access = access1;
 			MI->flat_insn->detail->x86.op_count++;
 		} else {
-			if (X86_insn_reg_intel2(MCInst_getOpcode(MI), &reg, &reg2)) {
+			if (X86_insn_reg_intel2(MCInst_getOpcode(MI), &reg, &access1, &reg2, &access2)) {
 				MI->flat_insn->detail->x86.operands[0].type = X86_OP_REG;
 				MI->flat_insn->detail->x86.operands[0].reg = reg;
 				MI->flat_insn->detail->x86.operands[0].size = MI->csh->regsize_map[reg];
+				MI->flat_insn->detail->x86.operands[0].access = access1;
 				MI->flat_insn->detail->x86.operands[1].type = X86_OP_REG;
 				MI->flat_insn->detail->x86.operands[1].reg = reg2;
 				MI->flat_insn->detail->x86.operands[1].size = MI->csh->regsize_map[reg2];
+				MI->flat_insn->detail->x86.operands[1].access = access2;
 				MI->flat_insn->detail->x86.op_count = 2;
 			}
 		}
@@ -768,7 +807,7 @@ static void printPCRelImm(MCInst *MI, unsigned OpNo, SStream *O)
 			if (MI->flat_insn->detail->x86.op_count > 0)
 				MI->flat_insn->detail->x86.operands[MI->flat_insn->detail->x86.op_count].size = MI->flat_insn->detail->x86.operands[0].size;
 			else if (opsize > 0)
-				MI->flat_insn->detail->x86.operands[MI->flat_insn->detail->x86.op_count].size = opsize;
+				MI->flat_insn->detail->x86.operands[MI->flat_insn->detail->x86.op_count].size = (uint8_t)opsize;
 			else
 				MI->flat_insn->detail->x86.operands[MI->flat_insn->detail->x86.op_count].size = MI->imm_size;
 			MI->flat_insn->detail->x86.operands[MI->flat_insn->detail->x86.op_count].imm = imm;
@@ -823,11 +862,19 @@ static void printOperand(MCInst *MI, unsigned OpNo, SStream *O)
 		if (opsize == 1)    // print 1 byte immediate in positive form
 			imm = imm & 0xff;
 
+		// printf(">>> id = %u\n", MI->flat_insn->id);
 		switch(MI->flat_insn->id) {
 			default:
 				printImm(MI->csh->syntax, O, imm, false);
 				break;
 
+			case X86_INS_MOVABS:
+				// do not print number in negative form
+				printImm(MI->csh->syntax, O, imm, true);
+				break;
+
+			case X86_INS_IN:
+			case X86_INS_OUT:
 			case X86_INS_INT:
 				// do not print number in negative form
 				imm = imm & 0xff;
@@ -877,7 +924,7 @@ static void printOperand(MCInst *MI, unsigned OpNo, SStream *O)
 
 				MI->flat_insn->detail->x86.operands[MI->flat_insn->detail->x86.op_count].type = X86_OP_IMM;
 				if (opsize > 0)
-					MI->flat_insn->detail->x86.operands[MI->flat_insn->detail->x86.op_count].size = opsize;
+					MI->flat_insn->detail->x86.operands[MI->flat_insn->detail->x86.op_count].size = (uint8_t)opsize;
 				else if (MI->flat_insn->detail->x86.op_count > 0) {
 					if (MI->flat_insn->id != X86_INS_LCALL && MI->flat_insn->id != X86_INS_LJMP) {
 						MI->flat_insn->detail->x86.operands[MI->flat_insn->detail->x86.op_count].size =

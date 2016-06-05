@@ -19,7 +19,7 @@
 #include <stdio.h>	// DEBUG
 #include <stdlib.h>
 #include <string.h>
-#include "../../myinttypes.h"
+#include <capstone/platform.h>
 
 #include "ARMInstPrinter.h"
 #include "ARMAddressingModes.h"
@@ -33,6 +33,7 @@
 
 #define GET_SUBTARGETINFO_ENUM
 #include "ARMGenSubtargetInfo.inc"
+
 
 static void printRegName(cs_struct *h, SStream *OS, unsigned RegNo);
 
@@ -841,36 +842,20 @@ static void printOperand(MCInst *MI, unsigned OpNo, SStream *O)
 				imm += (int32_t)MI->address + 4;
 				if (ARM_blx_to_arm_mode(MI->csh, opc)) {
 					// here need to align down to the nearest 4-byte address
-#define _ALIGN_DOWN(v, align_width) ((v/align_width)*align_width)
-					imm = _ALIGN_DOWN(imm, 4);
-#undef _ALIGN_DOWN
+					imm &= ~3;
 				}
 			} else {
 				imm += (int32_t)MI->address + 8;
 			}
 
-			if (imm >= 0) {
-				if (imm > HEX_THRESHOLD)
-					SStream_concat(O, "#0x%x", imm);
-				else
-					SStream_concat(O, "#%u", imm);
-			} else {
-				SStream_concat(O, "#0x%x", imm);
-			}
+			printUInt32Bang(O, imm);
 		} else {
 			switch(MI->flat_insn->id) {
 				default:
-					if (imm >= 0) {
-						if (imm > HEX_THRESHOLD)
-							SStream_concat(O, "#0x%x", imm);
-						else
-							SStream_concat(O, "#%u", imm);
-					} else {
-						if (imm < -HEX_THRESHOLD)
-							SStream_concat(O, "#-0x%x", -imm);
-						else
-							SStream_concat(O, "#-%u", -imm);
-					}
+					if (MI->csh->imm_unsigned)
+						printUInt32Bang(O, imm);
+					else
+						printInt32Bang(O, imm);
 					break;
 				case ARM_INS_AND:
 				case ARM_INS_ORR:
@@ -878,10 +863,7 @@ static void printOperand(MCInst *MI, unsigned OpNo, SStream *O)
 				case ARM_INS_BIC:
 				case ARM_INS_MVN:
 					// do not print number in negative form
-					if (imm >= 0 && imm <= HEX_THRESHOLD)
-						SStream_concat(O, "#%u", imm);
-					else
-						SStream_concat(O, "#0x%x", imm);
+					printUInt32Bang(O, imm);
 					break;
 			}
 		}
@@ -914,10 +896,7 @@ static void printThumbLdrLabelOperand(MCInst *MI, unsigned OpNum, SStream *O)
 	if (isSub) {
 		SStream_concat(O, "#-0x%x", -OffImm);
 	} else {
-		if (OffImm > HEX_THRESHOLD)
-			SStream_concat(O, "#0x%x", OffImm);
-		else
-			SStream_concat(O, "#%u", OffImm);
+		printUInt32Bang(O, OffImm);
 	}
 
 	SStream_concat0(O, "]");
@@ -1388,10 +1367,7 @@ static void printBitfieldInvMaskImmOperand(MCInst *MI, unsigned OpNum, SStream *
 	int32_t width = (32 - CountLeadingZeros_32 (v)) - lsb;
 
 	//assert(MO.isImm() && "Not a valid bf_inv_mask_imm value!");
-	if (lsb > HEX_THRESHOLD)
-		SStream_concat(O, "#0x%x", lsb);
-	else
-		SStream_concat(O, "#%u", lsb);
+	printUInt32Bang(O, lsb);
 
 	if (width > HEX_THRESHOLD)
 		SStream_concat(O, ", #0x%x", width);
@@ -1723,7 +1699,7 @@ static void printMSRMaskOperand(MCInst *MI, unsigned OpNum, SStream *O)
 
 static void printBankedRegOperand(MCInst *MI, unsigned OpNum, SStream *O)
 {
-	uint32_t Banked = MCOperand_getImm(MCInst_getOperand(MI, OpNum));
+	uint32_t Banked = (uint32_t)MCOperand_getImm(MCInst_getOperand(MI, OpNum));
 	uint32_t R = (Banked & 0x20) >> 5;
 	uint32_t SysM = Banked & 0x1f;
 	char *RegNames[] = {
@@ -1816,7 +1792,7 @@ static void printNoHashImmediate(MCInst *MI, unsigned OpNum, SStream *O)
 	if (MI->csh->detail) {
 		if (MI->csh->doing_mem) {
 			MI->flat_insn->detail->arm.op_count--;
-			MI->flat_insn->detail->arm.operands[MI->flat_insn->detail->arm.op_count].neon_lane = tmp;
+			MI->flat_insn->detail->arm.operands[MI->flat_insn->detail->arm.op_count].neon_lane = (int8_t)tmp;
 			MI->ac_idx--;	// consecutive operands share the same access right
 		} else {
 			MI->flat_insn->detail->arm.operands[MI->flat_insn->detail->arm.op_count].type = ARM_OP_IMM;
@@ -1897,10 +1873,9 @@ static void printAdrLabelOperand(MCInst *MI, unsigned OpNum, SStream *O, unsigne
 static void printThumbS4ImmOperand(MCInst *MI, unsigned OpNum, SStream *O)
 {
 	unsigned tmp = (unsigned int)MCOperand_getImm(MCInst_getOperand(MI, OpNum)) * 4;
-	if (tmp > HEX_THRESHOLD)
-		SStream_concat(O, "#0x%x", tmp);
-	else
-		SStream_concat(O, "#%u", tmp);
+
+	printUInt32Bang(O, tmp);
+
 	if (MI->csh->detail) {
 		MI->flat_insn->detail->arm.operands[MI->flat_insn->detail->arm.op_count].type = ARM_OP_IMM;
 		MI->flat_insn->detail->arm.operands[MI->flat_insn->detail->arm.op_count].imm = tmp;
@@ -1912,10 +1887,8 @@ static void printThumbSRImm(MCInst *MI, unsigned OpNum, SStream *O)
 {
 	unsigned Imm = (unsigned int)MCOperand_getImm(MCInst_getOperand(MI, OpNum));
 	unsigned tmp = Imm == 0 ? 32 : Imm;
-	if (tmp > HEX_THRESHOLD)
-		SStream_concat(O, "#0x%x", tmp);
-	else
-		SStream_concat(O, "#%u", tmp);
+
+	printUInt32Bang(O, tmp);
 
 	if (MI->csh->detail) {
 		MI->flat_insn->detail->arm.operands[MI->flat_insn->detail->arm.op_count].type = ARM_OP_IMM;
@@ -1990,10 +1963,7 @@ static void printThumbAddrModeImm5SOperand(MCInst *MI, unsigned Op, SStream *O,
 	if (ImmOffs) {
 		tmp = ImmOffs * Scale;
 		SStream_concat0(O, ", ");
-		if (tmp > HEX_THRESHOLD)
-			SStream_concat(O, "#0x%x", tmp);
-		else
-			SStream_concat(O, "#%u", tmp);
+		printUInt32Bang(O, tmp);
 		if (MI->csh->detail)
 			MI->flat_insn->detail->arm.operands[MI->flat_insn->detail->arm.op_count].mem.disp = tmp;
 	}
@@ -2186,10 +2156,7 @@ static void printT2AddrModeImm0_1020s4Operand(MCInst *MI, unsigned OpNum, SStrea
 	if (MCOperand_getImm(MO2)) {
 		SStream_concat0(O, ", ");
 		tmp = (unsigned int)MCOperand_getImm(MO2) * 4;
-		if (tmp > HEX_THRESHOLD)
-			SStream_concat(O, "#0x%x", tmp);
-		else
-			SStream_concat(O, "#%u", tmp);
+		printUInt32Bang(O, tmp);
 		if (MI->csh->detail)
 			MI->flat_insn->detail->arm.operands[MI->flat_insn->detail->arm.op_count].mem.disp = tmp;
 	}
@@ -2211,17 +2178,7 @@ static void printT2AddrModeImm8OffsetOperand(MCInst *MI,
 			MI->flat_insn->detail->arm.op_count++;
 		}
 	} else {
-		if (OffImm < 0) {
-			if (OffImm < -HEX_THRESHOLD)
-				SStream_concat(O, "#-0x%x", -OffImm);
-			else
-				SStream_concat(O, "#-%u", -OffImm);
-		} else {
-			if (OffImm > HEX_THRESHOLD)
-				SStream_concat(O, "#0x%x", OffImm);
-			else
-				SStream_concat(O, "#%u", OffImm);
-		}
+		printInt32Bang(O, OffImm);
 		if (MI->csh->detail) {
 			MI->flat_insn->detail->arm.operands[MI->flat_insn->detail->arm.op_count].type = ARM_OP_IMM;
 			MI->flat_insn->detail->arm.operands[MI->flat_insn->detail->arm.op_count].imm = OffImm;
@@ -2247,17 +2204,7 @@ static void printT2AddrModeImm8s4OffsetOperand(MCInst *MI,
 			MI->flat_insn->detail->arm.op_count++;
 		}
 	} else {
-		if (OffImm < 0) {
-			if (OffImm < -HEX_THRESHOLD)
-				SStream_concat(O, "#-0x%x", -OffImm);
-			else
-				SStream_concat(O, "#-%u", -OffImm);
-		} else {
-			if (OffImm > HEX_THRESHOLD)
-				SStream_concat(O, "#0x%x", OffImm);
-			else
-				SStream_concat(O, "#%u", OffImm);
-		}
+		printInt32Bang(O, OffImm);
 		if (MI->csh->detail) {
 			MI->flat_insn->detail->arm.operands[MI->flat_insn->detail->arm.op_count].type = ARM_OP_IMM;
 			MI->flat_insn->detail->arm.operands[MI->flat_insn->detail->arm.op_count].imm = OffImm;
@@ -2419,10 +2366,8 @@ static void printFBits16(MCInst *MI, unsigned OpNum, SStream *O)
 	unsigned tmp;
 
 	tmp = 16 - (unsigned int)MCOperand_getImm(MCInst_getOperand(MI, OpNum));
-	if (tmp > HEX_THRESHOLD)
-		SStream_concat(O, "#0x%x", tmp);
-	else
-		SStream_concat(O, "#%u", tmp);
+	printUInt32Bang(O, tmp);
+
 	if (MI->csh->detail) {
 		MI->flat_insn->detail->arm.operands[MI->flat_insn->detail->arm.op_count].type = ARM_OP_IMM;
 		MI->flat_insn->detail->arm.operands[MI->flat_insn->detail->arm.op_count].imm = tmp;
@@ -2435,10 +2380,8 @@ static void printFBits32(MCInst *MI, unsigned OpNum, SStream *O)
 	unsigned tmp;
 
 	tmp = 32 - (unsigned int)MCOperand_getImm(MCInst_getOperand(MI, OpNum));
-	if (tmp > HEX_THRESHOLD)
-		SStream_concat(O, "#0x%x", tmp);
-	else
-		SStream_concat(O, "#%u", tmp);
+	printUInt32Bang(O, tmp);
+
 	if (MI->csh->detail) {
 		MI->flat_insn->detail->arm.operands[MI->flat_insn->detail->arm.op_count].type = ARM_OP_IMM;
 		MI->flat_insn->detail->arm.operands[MI->flat_insn->detail->arm.op_count].imm = tmp;

@@ -17,9 +17,7 @@
 #ifdef CAPSTONE_HAS_SPARC
 
 #ifdef _MSC_VER
-#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
-#endif
 #endif
 
 #include <stdio.h>
@@ -83,7 +81,7 @@ void Sparc_post_printer(csh ud, cs_insn *insn, char *insn_asm, MCInst *mci)
 	if (insn->id == SPARC_INS_CASX) {
 		// first op is actually a memop, not regop
 		insn->detail->sparc.operands[0].type = SPARC_OP_MEM;
-		insn->detail->sparc.operands[0].mem.base = insn->detail->sparc.operands[0].reg;
+		insn->detail->sparc.operands[0].mem.base = (uint8_t)insn->detail->sparc.operands[0].reg;
 		insn->detail->sparc.operands[0].mem.disp = 0;
 	}
 }
@@ -174,9 +172,9 @@ static void printOperand(MCInst *MI, int opNum, SStream *O)
 		if (MI->csh->detail) {
 			if (MI->csh->doing_mem) {
 				if (MI->flat_insn->detail->sparc.operands[MI->flat_insn->detail->sparc.op_count].mem.base)
-					MI->flat_insn->detail->sparc.operands[MI->flat_insn->detail->sparc.op_count].mem.index = reg;
+					MI->flat_insn->detail->sparc.operands[MI->flat_insn->detail->sparc.op_count].mem.index = (uint8_t)reg;
 				else
-					MI->flat_insn->detail->sparc.operands[MI->flat_insn->detail->sparc.op_count].mem.base = reg;
+					MI->flat_insn->detail->sparc.operands[MI->flat_insn->detail->sparc.op_count].mem.base = (uint8_t)reg;
 			} else {
 				MI->flat_insn->detail->sparc.operands[MI->flat_insn->detail->sparc.op_count].type = SPARC_OP_REG;
 				MI->flat_insn->detail->sparc.operands[MI->flat_insn->detail->sparc.op_count].reg = reg;
@@ -197,7 +195,7 @@ static void printOperand(MCInst *MI, int opNum, SStream *O)
 		// backward, so they need to be multiplied by 4
 		switch (MI->Opcode) {
 			case SP_CALL:
-				Imm = SignExtend32(Imm, 30);
+				// Imm = SignExtend32(Imm, 30);
 				Imm += (uint32_t)MI->address;
 				break;
 

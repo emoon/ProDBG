@@ -21,7 +21,7 @@
 #if !defined(CAPSTONE_HAS_OSXKERNEL)
 #include <ctype.h>
 #endif
-#include "../../myinttypes.h"
+#include <capstone/platform.h>
 #if defined(CAPSTONE_HAS_OSXKERNEL)
 #include <libkern/libkern.h>
 #else
@@ -165,7 +165,31 @@ static void printi512mem(MCInst *MI, unsigned OpNo, SStream *O)
 
 static void printf32mem(MCInst *MI, unsigned OpNo, SStream *O)
 {
-	MI->x86opsize = 4;
+	switch(MCInst_getOpcode(MI)) {
+		default:
+			MI->x86opsize = 4;
+			break;
+		case X86_FBSTPm:
+		case X86_FBLDm:
+			// TODO: fix this in tablegen instead
+			MI->x86opsize = 10;
+			break;
+		case X86_FSTENVm:
+		case X86_FLDENVm:
+			// TODO: fix this in tablegen instead
+			switch(MI->csh->mode) {
+				default:    // never reach
+					break;
+				case CS_MODE_16:
+					MI->x86opsize = 14;
+					break;
+				case CS_MODE_32:
+				case CS_MODE_64:
+					MI->x86opsize = 28;
+					break;
+			}
+			break;
+	}
 	printMemReference(MI, OpNo, O);
 }
 
@@ -630,13 +654,22 @@ static void printOperand(MCInst *MI, unsigned OpNo, SStream *O)
 					else
 						SStream_concat(O, "$%"PRIu64, imm);
 				} else {
-					if (imm < -HEX_THRESHOLD)
+					if (imm == 0x8000000000000000)  // imm == -imm
+						SStream_concat0(O, "$0x8000000000000000");
+					else if (imm < -HEX_THRESHOLD)
 						SStream_concat(O, "$-0x%"PRIx64, -imm);
 					else
 						SStream_concat(O, "$-%"PRIu64, -imm);
 				}
 				break;
 
+			case X86_INS_MOVABS:
+				// do not print number in negative form
+				SStream_concat(O, "$0x%"PRIx64, imm);
+				break;
+
+			case X86_INS_IN:
+			case X86_INS_OUT:
 			case X86_INS_INT:
 				// do not print number in negative form
 				imm = imm & 0xff;
@@ -690,7 +723,7 @@ static void printOperand(MCInst *MI, unsigned OpNo, SStream *O)
 				MI->flat_insn->detail->x86.operands[MI->flat_insn->detail->x86.op_count].imm = imm;
 
 				if (opsize > 0)
-					MI->flat_insn->detail->x86.operands[MI->flat_insn->detail->x86.op_count].size = opsize;
+					MI->flat_insn->detail->x86.operands[MI->flat_insn->detail->x86.op_count].size = (uint8_t)opsize;
 				else if (MI->op1_size > 0)
 					MI->flat_insn->detail->x86.operands[MI->flat_insn->detail->x86.op_count].size = MI->op1_size;
 				else
@@ -831,6 +864,7 @@ void X86_ATT_printInst(MCInst *MI, SStream *OS, void *info)
 {
 	char *mnem;
 	x86_reg reg, reg2;
+	enum cs_ac_type access1, access2;
 	int i;
 
 	// Output CALLpcrel32 as "callq" in 64-bit mode.
@@ -870,7 +904,7 @@ void X86_ATT_printInst(MCInst *MI, SStream *OS, void *info)
 	if (MI->csh->detail) {
 		uint8_t access[6];
 
-        // some instructions need to supply immediate 1 in the first op
+		// some instructions need to supply immediate 1 in the first op
 		switch(MCInst_getOpcode(MI)) {
 			default:
 				break;
@@ -953,7 +987,7 @@ void X86_ATT_printInst(MCInst *MI, SStream *OS, void *info)
 
 		//printf(">>> opcode = %u\n", MCInst_getOpcode(MI));
 
-		reg = X86_insn_reg_att(MCInst_getOpcode(MI));
+		reg = X86_insn_reg_att(MCInst_getOpcode(MI), &access1);
 		if (reg) {
 			// shift all the ops right to leave 1st slot for this new register op
 			memmove(&(MI->flat_insn->detail->x86.operands[1]), &(MI->flat_insn->detail->x86.operands[0]),
@@ -961,17 +995,20 @@ void X86_ATT_printInst(MCInst *MI, SStream *OS, void *info)
 			MI->flat_insn->detail->x86.operands[0].type = X86_OP_REG;
 			MI->flat_insn->detail->x86.operands[0].reg = reg;
 			MI->flat_insn->detail->x86.operands[0].size = MI->csh->regsize_map[reg];
+			MI->flat_insn->detail->x86.operands[0].access = access1;
 
 			MI->flat_insn->detail->x86.op_count++;
 		} else {
-			if (X86_insn_reg_att2(MCInst_getOpcode(MI), &reg, &reg2)) {
+			if (X86_insn_reg_att2(MCInst_getOpcode(MI), &reg, &access1, &reg2, &access2)) {
 
 				MI->flat_insn->detail->x86.operands[0].type = X86_OP_REG;
 				MI->flat_insn->detail->x86.operands[0].reg = reg;
 				MI->flat_insn->detail->x86.operands[0].size = MI->csh->regsize_map[reg];
+				MI->flat_insn->detail->x86.operands[0].access = access1;
 				MI->flat_insn->detail->x86.operands[1].type = X86_OP_REG;
 				MI->flat_insn->detail->x86.operands[1].reg = reg2;
 				MI->flat_insn->detail->x86.operands[1].size = MI->csh->regsize_map[reg2];
+				MI->flat_insn->detail->x86.operands[0].access = access2;
 				MI->flat_insn->detail->x86.op_count = 2;
 			}
 		}

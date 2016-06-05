@@ -19,7 +19,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../../myinttypes.h"
 
 #include "PPCInstPrinter.h"
 #include "PPCPredicates.h"
@@ -564,20 +563,20 @@ static void printBranchOperand(MCInst *MI, unsigned OpNo, SStream *O)
 
 static void printAbsBranchOperand(MCInst *MI, unsigned OpNo, SStream *O)
 {
-	int imm;
+	int64_t imm;
 
 	if (!MCOperand_isImm(MCInst_getOperand(MI, OpNo))) {
 		printOperand(MI, OpNo, O);
 		return;
 	}
 
-	imm = ((int)MCOperand_getImm(MCInst_getOperand(MI, OpNo)) << 2);
+	imm = MCOperand_getImm(MCInst_getOperand(MI, OpNo)) << 2;
 
 	if (!PPC_abs_branch(MI->csh, MCInst_getOpcode(MI))) {
-		imm = (int)MI->address + imm;
+		imm = MI->address + imm;
 	}
 
-	SStream_concat(O, "0x%x", imm);
+	SStream_concat(O, "0x%"PRIx64, imm);
 
 	if (MI->csh->detail) {
 		MI->flat_insn->detail->ppc.operands[MI->flat_insn->detail->ppc.op_count].type = PPC_OP_IMM;
@@ -728,7 +727,7 @@ static void printOperand(MCInst *MI, unsigned OpNo, SStream *O)
 
 		if (MI->csh->detail) {
 			if (MI->csh->doing_mem) {
-				MI->flat_insn->detail->ppc.operands[MI->flat_insn->detail->ppc.op_count].mem.disp = imm;
+				MI->flat_insn->detail->ppc.operands[MI->flat_insn->detail->ppc.op_count].mem.disp = (int32_t)imm;
 			} else {
 				MI->flat_insn->detail->ppc.operands[MI->flat_insn->detail->ppc.op_count].type = PPC_OP_IMM;
 				MI->flat_insn->detail->ppc.operands[MI->flat_insn->detail->ppc.op_count].imm = imm;
