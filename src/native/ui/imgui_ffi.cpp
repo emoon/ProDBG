@@ -35,14 +35,14 @@ static intptr_t scSendCommand(void* privData, unsigned int message, uintptr_t p0
 
 static void scUpdate(void* privData) {
     ImScEditor* editor = (ImScEditor*)privData;
-    editor->Draw();
+    editor->Update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void scDraw(void* privData) {
     ImScEditor* editor = (ImScEditor*)privData;
-    return editor->Update();
+    return editor->Draw();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1574,7 +1574,7 @@ static void fill_rect(PDRect rect, PDColor color) {
 
 extern "C" int imgui_begin(const char* name, int show) {
 	bool s = !!show;
-    ImGui::Begin(name, &s, ImVec2(0, 0), true, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::Begin(name, &s, ImVec2(0, 0), true, ImGuiWindowFlags_NoCollapse);
     return s;
 }
 
