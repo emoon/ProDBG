@@ -517,8 +517,8 @@ typedef struct PDUI {
 #define PDUI_button_size(uiFuncs, label, w, h) uiFuncs->button(label, w, h)
 
 #define PDUI_sc_send_command(funcs, msg, p0, p1) funcs->send_command(funcs->private_data, msg, p0, p1)
-#define PDUI_sc_draw(funcs) funcs->update(funcs->private_data)
-#define PDUI_sc_update(funcs) funcs->draw(funcs->private_data)
+#define PDUI_sc_draw(funcs) funcs->draw(funcs->private_data)
+#define PDUI_sc_update(funcs) funcs->update(funcs->private_data)
 
 #define PDUI_set_title(funcs, title) funcs->set_title(funcs->private_data, title)
 

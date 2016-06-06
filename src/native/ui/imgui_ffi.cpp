@@ -35,14 +35,14 @@ static intptr_t scSendCommand(void* privData, unsigned int message, uintptr_t p0
 
 static void scUpdate(void* privData) {
     ImScEditor* editor = (ImScEditor*)privData;
-    editor->Draw();
+    editor->Update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void scDraw(void* privData) {
     ImScEditor* editor = (ImScEditor*)privData;
-    return editor->Update();
+    return editor->Draw();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -122,7 +122,8 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
 
     ScEditor_setDrawList(GetWindowDrawList());
     ScEditor_setFont(GetWindowFont());
-	ScEditor_setPos(0.0f, 14.0f);
+    // update Scintilla rendering position accordingly with position of the ImGui window
+	ScEditor_setPos(window->PosFloat.x, window->PosFloat.y + 14.0f);
 
 	//int currentPos = (int)editorInterface->SendCommand(SCN_GETTOPLINE, 0, 0);
 
