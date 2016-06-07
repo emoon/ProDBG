@@ -125,6 +125,10 @@ fn main() {
         bgfx.post_update();
 
         window.update();
+
+        // update main window size if it was changed by user
+        let win_size = window.get_size();
+        bgfx.update_window_size(win_size.0 as i32, win_size.1 as i32);
     }
 
     //unsafe {

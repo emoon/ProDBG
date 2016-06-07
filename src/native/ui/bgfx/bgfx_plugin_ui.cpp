@@ -294,14 +294,16 @@ extern "C" void prodbg_add_char(unsigned short c) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C" void prodbg_set_window_size(int width, int height) {
+extern "C" void bgfx_set_window_size(int width, int height) {
     Context* context = &s_context;
 
-    context->width = width;
-    context->height = height;
+    if (context->width != width || context->height != height) {
+        context->width = width;
+        context->height = height;
 
-    bgfx::reset((uint32_t)width, (uint32_t)height);
-    imgui_update_size(width, height);
+        bgfx::reset((uint32_t)width, (uint32_t)height);
+        imgui_update_size(width, height);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
