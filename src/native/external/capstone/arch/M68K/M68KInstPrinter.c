@@ -22,7 +22,7 @@
 #include "../../MCRegisterInfo.h"
 
 #ifndef CAPSTONE_DIET
-static const char* s_spacing = "";
+static const char* s_spacing = " ";
 
 static const char* s_reg_names[] = {
 	"invalid",
@@ -244,10 +244,15 @@ void M68K_printInst(MCInst* MI, SStream* O, void* PrinterInfo)
 	detail = MI->flat_insn->detail;
 	if (detail) {
 		memcpy(&detail->m68k, ext, sizeof(cs_m68k));
+
+		memcpy(&detail->regs_read, &info->regs_read, info->regs_read_count * sizeof(uint16_t));
+		detail->regs_read_count = info->regs_read_count;
+
+		memcpy(&detail->regs_write, &info->regs_write, info->regs_write_count * sizeof(uint16_t));
+		detail->regs_write_count = info->regs_write_count;
+
 		memcpy(&detail->groups, &info->groups, info->groups_count);
 		detail->groups_count = info->groups_count;
-		detail->regs_read_count = 0;
-		detail->regs_write_count = 0;
 	}
 
 	if (MI->Opcode == M68K_INS_INVALID) {
