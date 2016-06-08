@@ -82,6 +82,8 @@ impl AmigaUaeBackend {
             _ => (),
         }
 
+        let mut scratch_string = String::with_capacity(256);
+
         let address = reader.find_u64("address_start").ok().unwrap();
         let count = reader.find_u32("instruction_count").ok().unwrap();
 
@@ -105,16 +107,34 @@ impl AmigaUaeBackend {
                 writer.array_entry_begin();
                 writer.write_u32("address", i.address as u32);
                 writer.write_string("line", &text);
-                writer.array_entry_end();
 
-                /*
-                println!("{}", text);
+                scratch_string.clear();
 
                 for register in i.regs_read().unwrap() {
                     let reg_name = self.capstone.reg_name(*register);
-                    println!("read read {}", reg_name);
+                    scratch_string.push_str(reg_name);
+                    scratch_string.push(' ');
                 }
-                */
+
+                if scratch_string.len() > 0 {
+                    let t = scratch_string.trim_right();
+                    writer.write_string("registers_read", t);
+                }
+
+                scratch_string.clear();
+
+                for register in i.regs_write().unwrap() {
+                    let reg_name = self.capstone.reg_name(*register);
+                    scratch_string.push_str(reg_name);
+                    scratch_string.push(' ');
+                }
+
+                if scratch_string.len() > 0 {
+                    let t = scratch_string.trim_right();
+                    writer.write_string("registers_write", t);
+                }
+
+                writer.array_entry_end();
 
                 c += 1;
             }
