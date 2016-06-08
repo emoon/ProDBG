@@ -286,7 +286,7 @@ pub struct CPdUI {
 	pub get_frame_count: *mut extern fn () -> c_int,
 	pub get_style_col_name: extern fn(c_uint) -> *const c_char,
 	pub calc_item_rect_closest_point: extern fn(PDVec2, c_int, c_float) -> PDVec2,
-	pub calc_text_size: extern fn(*const c_char, *const c_char, c_int, c_float) -> PDVec2,
+	pub calc_text_size: extern fn(*const u8, *const u8, c_int, c_float) -> PDVec2,
 	pub calc_list_clipping: extern fn(c_int, c_float, *mut c_int, *mut c_int),
 	pub begin_child_frame: extern fn(c_uint, PDVec2) -> c_int,
 	pub end_child_frame: *mut extern fn () -> c_void,

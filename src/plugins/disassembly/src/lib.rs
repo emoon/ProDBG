@@ -75,30 +75,12 @@ impl DisassemblyView {
         println!("requsted {}", visible_lines * 10);
     }
 
-    fn color_text_reg_selection(ui: &Ui, regs_use: &Vec<&str>, line: &String, text_height: f32) {
+    fn color_text_reg_selection(ui: &Ui, regs_use: &Vec<&str>, line: &Line, text_height: f32) {
         let (cx, cy) = ui.get_cursor_screen_pos();
-        //let mut color_index = 0;
+        let mut color_index = 0;
+        // TODO: Allocs memory, fix
+        let line_text = format!("0x{:x} {}", line.address, line.opcode);
 
-        let font_size = 14.0;
-        // TODO: Offset here is hardcoded with given hex size, this should be fixed
-        //let start_offset = font_size * 11.0; // 0x00000000 "
-
-        for reg in regs_use {
-            line.find(reg).map(|offset| {
-                let o = cx + (offset as f32) * font_size;
-                println!("found {} at offset {} for {}", reg, offset, line);
-                ui.fill_rect(o, cy, font_size * 2.0, text_height, (200 << 24) | 127 << 8);
-                //color_index +=
-            });
-        }
-    }
-
-    fn render_ui(&mut self, ui: &mut Ui) {
-        if self.lines.len() == 0 {
-            return;
-        }
-
-        /*
         let colors = [
             0x00b27474,
             0x00b28050,
@@ -110,7 +92,34 @@ impl DisassemblyView {
             0x008850b2,
             0x00b25091,
         ];
-        */
+
+        //let mut color_index = 0;
+
+        //let font_size = 14.0;
+        // TODO: Offset here is hardcoded with given hex size, this should be fixed
+        //let start_offset = font_size * 11.0; // 0x00000000 "
+
+        for reg in regs_use {
+            let color = colors[color_index & 7];
+            line_text.find(reg).map(|offset| {
+                let (tx, _) = ui.calc_text_size(&line_text, offset);
+                //let (rx, _) = ui.calc_text_size(&reg, 0);
+                //println!("found {} at offset {} for {}", reg, offset, line.opcode);
+                ui.fill_rect(cx + tx, cy, 22.0, text_height, (200 << 24) | color);
+                //color_index +=
+            });
+
+            color_index += 1;
+        }
+
+        ui.text(&line_text);
+    }
+
+    fn render_ui(&mut self, ui: &mut Ui) {
+        if self.lines.len() == 0 {
+            return;
+        }
+
 
         let (size_x, size_h) = ui.get_window_size();
         let text_height = ui.get_text_line_height_with_spacing();
@@ -123,12 +132,16 @@ impl DisassemblyView {
         for line in &self.lines {
             if line.address == self.location {
                 if line.regs_read.len() > 1 || line.regs_write.len() > 1 {
-                    regs.push_str(&line.regs_read);
+                    if line.regs_read.len() > 0 {
+                        regs.push_str(&line.regs_read);
+                    }
                     if line.regs_write.len() > 0 {
                         regs.push(' ');
                         regs.push_str(&line.regs_write);
                     }
-                    regs_pc_use = regs.split(' ').collect();
+
+                    let t = regs.trim_left();
+                    regs_pc_use = t.split(' ').collect();
                     break;
                 }
             }
@@ -147,10 +160,10 @@ impl DisassemblyView {
             }
 
             if regs_pc_use.len() > 0 {
-                Self::color_text_reg_selection(ui, &regs_pc_use, &line.opcode, text_height);
+                Self::color_text_reg_selection(ui, &regs_pc_use, &line, text_height);
+            } else {
+                ui.text_fmt(format_args!("0x{:x} {}", line.address, line.opcode));
             }
-
-            ui.text_fmt(format_args!("0x{:x} {}", line.address, line.opcode));
         }
     }
 }

@@ -152,6 +152,20 @@ impl Ui {
         unsafe { ((*self.api).get_font_size)() }
     }
 
+    #[inline]
+    pub fn calc_text_size(&self, text: &str, offset: usize) -> (f32, f32) {
+        unsafe {
+            if offset == 0 {
+                let t = ((*self.api).calc_text_size)(text.as_ptr(), ptr::null(), 0, -1.0);
+                (t.x, t.y)
+            } else {
+                let slice = &text[offset..];
+                let t = ((*self.api).calc_text_size)(text.as_ptr(), slice.as_ptr(), 0, -1.0);
+                (t.x, t.y)
+            }
+        }
+    }
+
     // Text
 
     pub fn text(&self, text: &str) {
