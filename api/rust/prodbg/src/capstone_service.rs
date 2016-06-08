@@ -2,6 +2,7 @@ use libc::{c_int, c_uint, c_void, size_t};
 use std::fmt::{Debug, Formatter};
 use std::ffi::CStr;
 use std::mem::transmute;
+use std::slice;
 use std::ptr;
 use std::str::from_utf8;
 use capstone_m68k::cs_detail;
@@ -33,6 +34,11 @@ pub struct CCapstone1 {
                           insn: &mut *const Insn)
                           -> size_t,
     free: extern "C" fn(insn: *const Insn, count: size_t),
+
+    disasm_iter: extern "C" fn(handle: *const c_void,
+                              code: *const u8,
+                              code_size: *const size_t) -> size_t,
+    regname: extern "C" fn(handle: *const c_void, id: u16) -> *const i8,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -179,6 +185,24 @@ impl Capstone {
 
         Ok(Instructions::from_raw_parts(self.api, ptr, insn_count as isize))
     }
+
+    pub fn reg_name(&self, reg_id: u16) -> &str {
+        unsafe {
+            let name = ((*self.api).regname)(self.handle, reg_id);
+
+            // very lange slice so this is kinda hacky but should work
+            let t = slice::from_raw_parts(name, 16834);
+            let mut count = 0;
+
+            loop {
+                if t[count] == 0 { break; }
+                count += 1;
+            }
+
+            let slice = slice::from_raw_parts(name as *const u8, count); 
+            from_utf8(slice).unwrap()
+        }
+    }
 }
 
 // Using an actual slice is causing issues with auto deref, instead implement a custom iterator and
@@ -258,6 +282,29 @@ impl Insn {
 
             let d: &cs_detail = transmute(self.detail);
             Some(d)
+        }
+    }
+
+    pub fn regs_read(&self) -> Option<&[u16]> {
+        unsafe {
+            if self.detail == ptr::null() {
+                return None;
+            }
+
+            let detail: &cs_detail = transmute(self.detail);
+            Some(&slice::from_raw_parts(detail.regs_read.as_ptr(), detail.regs_read_count as usize))
+            //Some(&detail.regs_read)
+        }
+    }
+
+    pub fn regs_write(&self) -> Option<&[u16]> {
+        unsafe {
+            if self.detail == ptr::null() {
+                return None;
+            }
+
+            let detail: &cs_detail = transmute(self.detail);
+            Some(&slice::from_raw_parts(detail.regs_write.as_ptr(), detail.regs_write_count as usize))
         }
     }
 }
