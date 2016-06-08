@@ -4,6 +4,7 @@ use std::ffi::CStr;
 use std::mem::transmute;
 use std::ptr;
 use std::str::from_utf8;
+use capstone_m68k::cs_detail;
 
 #[repr(C)]
 pub struct Insn {
