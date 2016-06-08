@@ -23,7 +23,7 @@ impl Bgfx {
         unsafe { bgfx_pre_update(); }
     }
 
-    pub fn update_window_size(&self, width: c_int, height: c_int) {
+    pub fn update_window_size(width: c_int, height: c_int) {
         unsafe { bgfx_set_window_size(width, height); }
     }
 
