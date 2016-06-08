@@ -23,6 +23,10 @@ impl Bgfx {
         unsafe { bgfx_pre_update(); }
     }
 
+    pub fn update_window_size(width: c_int, height: c_int) {
+        unsafe { bgfx_set_window_size(width, height); }
+    }
+
     pub fn post_update(&self) {
         unsafe { bgfx_post_update(); }
     }
@@ -77,6 +81,7 @@ extern "C" {
     fn bgfx_create();
     fn bgfx_create_window(window: *const c_void, width: c_int, height: c_int);
     fn bgfx_destroy();
+    fn bgfx_set_window_size(width: c_int, height: c_int);
 
     fn cursor_init();
     fn cursor_set_type(t: i32);

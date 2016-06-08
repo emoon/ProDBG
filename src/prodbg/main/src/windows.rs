@@ -365,6 +365,9 @@ impl Window {
         let mut views_to_delete = Vec::new();
         let mut has_shown_menu = 0u32;
 
+        let win_size = self.win.get_size();
+        Bgfx::update_window_size(win_size.0 as i32, win_size.1 as i32);
+
         self.win.update();
         self.ws.update();
         self.update_key_state();
