@@ -272,7 +272,7 @@ cs_err CAPSTONE_API cs_open(cs_arch arch, cs_mode mode, csh *handle)
 		ud->mode = mode;
 		ud->big_endian = (mode & CS_MODE_BIG_ENDIAN) != 0;
 		// by default, do not break instruction into details
-		ud->detail = CS_OPT_OFF;
+		ud->detail = CS_OPT_ON;
 
 		// default skipdata setup
 		ud->skipdata_setup.mnemonic = SKIPDATA_MNEM;
@@ -285,6 +285,8 @@ cs_err CAPSTONE_API cs_open(cs_arch arch, cs_mode mode, csh *handle)
 		}
 
 		*handle = (uintptr_t)ud;
+
+		//cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON);
 
 		return CS_ERR_OK;
 	} else {
@@ -465,6 +467,7 @@ cs_err CAPSTONE_API cs_option(csh ud, cs_opt_type type, size_t value)
 			return CS_ERR_OK;
 
 		case CS_OPT_DETAIL:
+			printf("setting detail %d\n", value);
 			handle->detail = (cs_opt_value)value;
 			return CS_ERR_OK;
 
