@@ -467,7 +467,6 @@ cs_err CAPSTONE_API cs_option(csh ud, cs_opt_type type, size_t value)
 			return CS_ERR_OK;
 
 		case CS_OPT_DETAIL:
-			printf("setting detail %d\n", value);
 			handle->detail = (cs_opt_value)value;
 			return CS_ERR_OK;
 
