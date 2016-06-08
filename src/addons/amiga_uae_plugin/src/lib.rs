@@ -106,6 +106,16 @@ impl AmigaUaeBackend {
                 writer.write_u32("address", i.address as u32);
                 writer.write_string("line", &text);
                 writer.array_entry_end();
+
+                /*
+                println!("{}", text);
+
+                for register in i.regs_read().unwrap() {
+                    let reg_name = self.capstone.reg_name(*register);
+                    println!("read read {}", reg_name);
+                }
+                */
+
                 c += 1;
             }
 
