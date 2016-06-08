@@ -18,6 +18,7 @@ pub mod cfixed_string;
 pub mod docking;
 pub mod io;
 pub mod events;
+pub mod capstone_m68k;
 
 pub use backend::*;
 pub use read_write::*;

@@ -248,6 +248,17 @@ impl Insn {
         let cstr = unsafe { CStr::from_ptr(self.op_str.as_ptr()) };
         from_utf8(cstr.to_bytes()).ok()
     }
+
+    pub fn detail(&self) -> Option<&cs_detail> {
+        unsafe {
+            if self.detail == ptr::null() {
+                return None;
+            }
+
+            let d: &cs_detail = transmute(self.detail);
+            Some(d)
+        }
+    }
 }
 
 impl Debug for Insn {
