@@ -218,12 +218,15 @@ impl Reader {
         let s = CFixedString::from_str(id).as_ptr();
         let mut temp = 0 as *const c_char;
         let ret;
-        let res;
+        let mut res = "";
 
         unsafe {
             ret = ((*self.api).read_find_string)(transmute(self.api), &mut temp, s, self.it);
-            let slice = slice::from_raw_parts(temp as *const u8, Self::strlen(temp));
-            res = str::from_utf8(slice).unwrap();
+            let t = (ret >> 8) & 0xff;
+            if t == 1 {
+                let slice = slice::from_raw_parts(temp as *const u8, Self::strlen(temp));
+                res = str::from_utf8(slice).unwrap();
+            }
         }
 
         return status_res(res, ret);
