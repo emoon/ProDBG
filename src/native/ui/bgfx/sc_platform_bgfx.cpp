@@ -889,11 +889,9 @@ WindowImpl* AllocateWindowImpl() {
 
 inline WindowImpl* GetWindow(WindowID id) { return (WindowImpl*)id; }
 
-/*
-   Window::~Window()
-   {
-   }
- */
+Window::~Window()
+{
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

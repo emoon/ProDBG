@@ -36,7 +36,7 @@ public:
 
 /**
  * When platform has a way to generate an event before painting,
- * accumulate needed styling range and other work items in 
+ * accumulate needed styling range and other work items in
  * WorkNeeded to avoid unnecessary work inside paint handler
  */
 class WorkNeeded {
@@ -46,13 +46,11 @@ public:
 		workStyle=1,
 		workUpdateUI=2
 	};
-	bool active;
 	enum workItems items;
 	Position upTo;
 
-	WorkNeeded() : active(false), items(workNone), upTo(0) {}
+	WorkNeeded() : items(workNone), upTo(0) {}
 	void Reset() {
-		active = false;
 		items = workNone;
 		upTo = 0;
 	}
@@ -153,10 +151,10 @@ struct WrapPending {
  */
 class Editor : public EditModel, public DocWatcher {
 	// Private so Editor objects can not be copied
-	Editor(const Editor &);
+	explicit Editor(const Editor &);
 	Editor &operator=(const Editor &);
 
-public:	// ScintillaBase subclass needs access to much of Editor
+protected:	// ScintillaBase subclass needs access to much of Editor
 
 	/** On GTK+, Scintilla is a container widget holding two scroll bars
 	 * whereas on Windows there is just one window with both scroll bars turned on. */
@@ -234,6 +232,8 @@ public:	// ScintillaBase subclass needs access to much of Editor
 	bool paintingAllText;
 	bool willRedrawAll;
 	WorkNeeded workNeeded;
+	int idleStyling;
+	bool needIdleStyling;
 
 	int modEventMask;
 
@@ -313,24 +313,27 @@ public:	// ScintillaBase subclass needs access to much of Editor
 	void SetRectangularRange();
 	void ThinRectangularRange();
 	void InvalidateSelection(SelectionRange newMain, bool invalidateWholeSelection=false);
+	void InvalidateWholeSelection();
 	void SetSelection(SelectionPosition currentPos_, SelectionPosition anchor_);
 	void SetSelection(int currentPos_, int anchor_);
 	void SetSelection(SelectionPosition currentPos_);
 	void SetSelection(int currentPos_);
 	void SetEmptySelection(SelectionPosition currentPos_);
 	void SetEmptySelection(int currentPos_);
+	enum AddNumber { addOne, addEach };
+	void MultipleSelectAdd(AddNumber addNumber);
 	bool RangeContainsProtected(int start, int end) const;
 	bool SelectionContainsProtected();
 	int MovePositionOutsideChar(int pos, int moveDir, bool checkLineEnd=true) const;
 	SelectionPosition MovePositionOutsideChar(SelectionPosition pos, int moveDir, bool checkLineEnd=true) const;
-	int MovePositionTo(SelectionPosition newPos, Selection::selTypes selt=Selection::noSel, bool ensureVisible=true);
-	int MovePositionTo(int newPos, Selection::selTypes selt=Selection::noSel, bool ensureVisible=true);
+	void MovedCaret(SelectionPosition newPos, SelectionPosition previousPos, bool ensureVisible);
+	void MovePositionTo(SelectionPosition newPos, Selection::selTypes selt=Selection::noSel, bool ensureVisible=true);
+	void MovePositionTo(int newPos, Selection::selTypes selt=Selection::noSel, bool ensureVisible=true);
 	SelectionPosition MovePositionSoVisible(SelectionPosition pos, int moveDir);
 	SelectionPosition MovePositionSoVisible(int pos, int moveDir);
 	Point PointMainCaret();
 	void SetLastXChosen();
 
-	void ScrollTo(int line, bool moveThumb=true);
 	virtual void ScrollText(int linesToMove);
 	void HorizontalScrollTo(int xPos);
 	void VerticalCentreCaret();
@@ -361,6 +364,7 @@ public:	// ScintillaBase subclass needs access to much of Editor
 	void DropCaret();
 	void CaretSetPeriod(int period);
 	void InvalidateCaret();
+	virtual void NotifyCaretMove();
 	virtual void UpdateSystemCaret();
 
 	bool Wrapping() const;
@@ -388,7 +392,7 @@ public:	// ScintillaBase subclass needs access to much of Editor
 	int InsertSpace(int position, unsigned int spaces);
 	void AddChar(char ch);
 	virtual void AddCharUTF(const char *s, unsigned int len, bool treatAsDBCS=false);
-	void FillVirtualSpace();
+	void ClearBeforeTentativeStart();
 	void InsertPaste(const char *text, int len);
 	enum PasteShape { pasteStream=0, pasteRectangular = 1, pasteLine = 2 };
 	void InsertPasteShape(const char *text, int len, PasteShape shape);
@@ -408,7 +412,7 @@ public:	// ScintillaBase subclass needs access to much of Editor
 	void DelCharBack(bool allowLineStartDeletion);
 	virtual void ClaimSelection() = 0;
 
-	static int ModifierFlags(bool shift, bool ctrl, bool alt, bool meta=false);
+	static int ModifierFlags(bool shift, bool ctrl, bool alt, bool meta=false, bool super=false);
 	virtual void NotifyChange() = 0;
 	virtual void NotifyFocus(bool focus);
 	virtual void SetCtrlID(int identifier);
@@ -455,9 +459,15 @@ public:	// ScintillaBase subclass needs access to much of Editor
 	void Duplicate(bool forLine);
 	virtual void CancelModes();
 	void NewLine();
-	void CursorUpOrDown(int direction, Selection::selTypes selt=Selection::noSel);
-	void ParaUpOrDown(int direction, Selection::selTypes selt=Selection::noSel);
+	SelectionPosition PositionUpOrDown(SelectionPosition spStart, int direction, int lastX);
+	void CursorUpOrDown(int direction, Selection::selTypes selt);
+	void ParaUpOrDown(int direction, Selection::selTypes selt);
 	int StartEndDisplayLine(int pos, bool start);
+	int VCHomeDisplayPosition(int position);
+	int VCHomeWrapPosition(int position);
+	int LineEndWrapPosition(int position);
+	int HorizontalMove(unsigned int iMessage);
+	int DelWordOrLine(unsigned int iMessage);
 	virtual int KeyCommand(unsigned int iMessage);
 	virtual int KeyDefault(int /* key */, int /*modifiers*/);
 	int KeyDownWithModifiers(int key, int modifiers, bool *consumed);
@@ -515,6 +525,10 @@ public:	// ScintillaBase subclass needs access to much of Editor
 
 	int PositionAfterArea(PRectangle rcArea) const;
 	void StyleToPositionInView(Position pos);
+	int PositionAfterMaxStyling(int posMax, bool scrolling) const;
+	void StartIdleStyling(bool truncatedLastStyling);
+	void StyleAreaBounded(PRectangle rcArea, bool scrolling);
+	void IdleStyling();
 	virtual void IdleWork();
 	virtual void QueueIdleWork(WorkNeeded::workItems items, int upTo=0);
 
@@ -545,6 +559,8 @@ public:	// ScintillaBase subclass needs access to much of Editor
 	bool PointIsHotspot(Point pt);
 	void SetHotSpotRange(Point *pt);
 	Range GetHotSpotRange() const;
+	void SetHoverIndicatorPosition(int position);
+	void SetHoverIndicatorPoint(Point pt);
 
 	int CodePage() const;
 	virtual bool ValidCodePage(int /* codePage */) const { return true; }
@@ -561,6 +577,7 @@ public:	// ScintillaBase subclass needs access to much of Editor
 	static sptr_t BytesResult(sptr_t lParam, const unsigned char *val, size_t len);
 
 public:
+	void ScrollTo(int line, bool moveThumb=true);
 	// Public so the COM thunks can access it.
 	bool IsUnicodeMode() const;
 	// Public so scintilla_send_message can use it.

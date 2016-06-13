@@ -145,7 +145,7 @@ public:
 			(pt.y >= top) && (pt.y <= bottom);
 	}
 	bool ContainsWholePixel(Point pt) const {
-		// Does the rectangle contain all of the pixel to left/below the point 
+		// Does the rectangle contain all of the pixel to left/below the point
 		return (pt.x >= left) && ((pt.x+1) <= right) &&
 			(pt.y >= top) && ((pt.y+1) <= bottom);
 	}
@@ -198,11 +198,11 @@ public:
 
 	static inline unsigned int ValueOfHex(const char ch) {
 		if (ch >= '0' && ch <= '9')
-			return (unsigned int)(ch - '0');
+			return ch - '0';
 		else if (ch >= 'A' && ch <= 'F')
-			return (unsigned int)(ch - 'A' + 10);
+			return ch - 'A' + 10;
 		else if (ch >= 'a' && ch <= 'f')
-			return (unsigned int)(ch - 'a' + 10);
+			return ch - 'a' + 10;
 		else
 			return 0;
 	}
@@ -271,9 +271,6 @@ struct FontParameters {
 class Font {
 protected:
 	FontID fid;
-#if PLAT_WX
-	int ascent;
-#endif
 	// Private so Font objects can not be copied
 	Font(const Font &);
 	Font &operator=(const Font &);
@@ -287,9 +284,6 @@ public:
 	FontID GetID() { return fid; }
 	// Alias another font - caller guarantees not to Release
 	void SetID(FontID fid_) { fid = fid_; }
-#if PLAT_WX
-	void SetAscent(int ascent_) { ascent = ascent_; }
-#endif
 	friend class Surface;
 	friend class SurfaceImpl;
 };
@@ -364,11 +358,9 @@ protected:
 public:
 	Window() : wid(0), cursorLast(cursorInvalid) {
 	}
-	/*
 	Window(const Window &source) : wid(source.wid), cursorLast(cursorInvalid) {
 	}
-	*/
-	//virtual ~Window();
+	virtual ~Window();
 	Window &operator=(WindowID wid_) {
 		wid = wid_;
 		return *this;

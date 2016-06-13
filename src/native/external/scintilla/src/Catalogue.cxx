@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <ctype.h>
 
+#include <stdexcept>
 #include <vector>
 
 #include "ILexer.h"
@@ -125,6 +126,7 @@ int Scintilla_LinkLexers() {
 	LINK_LEXER(lmHTML);
 	LINK_LEXER(lmIHex);
 	LINK_LEXER(lmInno);
+	LINK_LEXER(lmJSON);
 	LINK_LEXER(lmKix);
 	LINK_LEXER(lmKVIrc);
 	LINK_LEXER(lmLatex);

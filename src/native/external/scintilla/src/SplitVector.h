@@ -32,12 +32,12 @@ protected:
 				memmove(
 					body + position + gapLength,
 					body + position,
-					int(sizeof(T)) * (size_t)(part1Length - position));
+					sizeof(T) * (part1Length - position));
 			} else {	// position > part1Length
 				memmove(
 					body + part1Length,
 					body + part1Length + gapLength,
-					sizeof(T) * (size_t)(position - part1Length));
+					sizeof(T) * (position - part1Length));
 			}
 			part1Length = position;
 		}
@@ -85,12 +85,15 @@ public:
 	/// copy exisiting contents to the new buffer.
 	/// Must not be used to decrease the size of the buffer.
 	void ReAllocate(int newSize) {
+		if (newSize < 0)
+			throw std::runtime_error("SplitVector::ReAllocate: negative size.");
+
 		if (newSize > size) {
 			// Move the gap to the end
 			GapTo(lengthBody);
 			T *newBody = new T[newSize];
 			if ((size != 0) && (body != 0)) {
-				memmove(newBody, body, sizeof(T) * (size_t)lengthBody);
+				memmove(newBody, body, sizeof(T) * lengthBody);
 				delete []body;
 			}
 			body = newBody;

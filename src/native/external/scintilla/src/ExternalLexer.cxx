@@ -11,6 +11,7 @@
 #include <assert.h>
 #include <ctype.h>
 
+#include <stdexcept>
 #include <string>
 
 #include "Platform.h"
@@ -52,9 +53,7 @@ LexerLibrary::LexerLibrary(const char *ModuleName) {
 	last = NULL;
 
 	// Load the DLL
-	//[PRODBG] - Disabled because this function can't be found on Linux (but we don't need it anyway)
-	lib = 0; //DynamicLibrary::Load(ModuleName);
-	//[PRODBG]
+	lib = DynamicLibrary::Load(ModuleName);
 	if (lib->IsValid()) {
 		m_sModuleName = ModuleName;
 		//Cannot use reinterpret_cast because: ANSI C++ forbids casting between pointers to functions and objects
