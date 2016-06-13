@@ -53,7 +53,7 @@ LexerLibrary::LexerLibrary(const char *ModuleName) {
 	last = NULL;
 
 	// Load the DLL
-	lib = DynamicLibrary::Load(ModuleName);
+	lib = 0; //DynamicLibrary::Load(ModuleName);
 	if (lib->IsValid()) {
 		m_sModuleName = ModuleName;
 		//Cannot use reinterpret_cast because: ANSI C++ forbids casting between pointers to functions and objects
