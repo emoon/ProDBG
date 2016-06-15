@@ -5,8 +5,8 @@
 extern crate libc;
 extern crate bitflags;
 
-use std::os::raw::{c_char, c_uchar, c_float, c_int, c_uint, c_ulonglong, c_longlong, c_ushort, c_void};
-
+use std::os::raw::{c_char, c_uchar, c_float, c_int, c_uint, c_ushort, c_void};
+use scintilla::PDUISCInterface;
 
 // struct PDVec2
 // (float) x
@@ -39,17 +39,6 @@ pub struct PDVec4 {
 // (void (*)(void *)) draw [void (*)(void *)]
 // (void *) private_data
 //
-#[repr(C)]
-pub struct PDUISCInterface {
-    pub send_command: Option<extern "C" fn(*mut c_void,
-                                           c_uint,
-                                           c_ulonglong,
-                                           c_longlong)
-                                           -> c_longlong>,
-    pub update: Option<extern "C" fn(*mut c_void)>,
-    pub draw: Option<extern "C" fn(*mut c_void)>,
-    pub private_data: *mut c_void,
-}
 
 // struct PDUIInputTextCallbackData
 // (PDUIInputTextFlags) event_flag [unsigned int]
@@ -189,7 +178,7 @@ pub struct CPdUI {
 	pub plot_lines2: extern fn(*const c_char, extern fn(*mut c_void, c_int) -> c_float, *mut c_void, c_int, c_int, *const c_char, c_float, c_float, PDVec2),
 	pub plot_histogram: extern fn(*const c_char, *const c_float, c_int, c_int, *const c_char, c_float, c_float, PDVec2, c_int),
 	pub plot_histogram2: extern fn(*const c_char, extern fn(*mut c_void, c_int) -> c_float, *mut c_void, c_int, c_int, *const c_char, c_float, c_float, PDVec2),
-	pub sc_input_text: extern fn(*const c_char, c_float, c_float, extern fn(*mut c_void), *mut c_void) -> *mut PDUISCInterface,
+	pub sc_input_text: extern fn(*const c_char, c_float, c_float, Option<extern fn(*mut c_void, *mut c_void)>) -> *mut PDUISCInterface,
 	pub slider_float: extern fn(*const c_char, *mut c_float, c_float, c_float, *const c_char, c_float) -> c_int,
 	pub slider_float2: extern fn(*const c_char, *mut c_float, c_float, c_float, *const c_char, c_float) -> c_int,
 	pub slider_float3: extern fn(*const c_char, *mut c_float, c_float, c_float, *const c_char, c_float) -> c_int,

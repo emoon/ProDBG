@@ -19,6 +19,7 @@ pub mod docking;
 pub mod io;
 pub mod events;
 pub mod capstone_m68k;
+pub mod scintilla;
 
 pub use backend::*;
 pub use read_write::*;

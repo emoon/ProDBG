@@ -2,6 +2,7 @@ use std::ptr;
 use ui_ffi::*;
 use std::fmt;
 use std::fmt::Write;
+use scintilla::Scintilla;
 
 use CFixedString;
 
@@ -270,5 +271,13 @@ impl Ui {
         unsafe { ((*self.api).end_popup)() }
     }
 
+	pub fn sc_input_text(&self, title: &str, width: usize, height: usize) -> Scintilla {
+	    unsafe {
+            let name = CFixedString::from_str(title);
+	        Scintilla::new(((*self.api).sc_input_text)(name.as_ptr(), 
+	                        width as f32, 
+	                        height as f32, None))
+        }
+    }
 }
 
