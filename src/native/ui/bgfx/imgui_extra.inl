@@ -41,8 +41,6 @@ void CircleFilled(ImVec2 pos, float radius, unsigned int color, int segment_coun
 	(void)aa;
 	ImGuiWindow* window = GetCurrentWindow();
 	ImVec2 current_pos = window->Pos + pos;
-	printf("draw cicle %f %f - %f 0x%08x %d\n", current_pos.x, current_pos.y, radius, color, segment_count);
-
     window->DrawList->AddCircleFilled(current_pos, radius, color, segment_count);
 }
 
