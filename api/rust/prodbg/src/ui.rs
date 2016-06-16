@@ -12,6 +12,40 @@ pub struct Ui {
     fmt_buffer: String,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct Color {
+    color: u32,
+}
+
+impl Color {
+    pub fn from_u32(color: u32) -> Color {
+        Color { color: color }
+    }
+
+    pub fn from_rgb(r: u32, g: u32, b: u32) -> Color {
+        Self::from_u32((255 << 24) | (r << 16) | (g << 8) | b)
+    }
+
+    pub fn from_rgba(r: u32, g: u32, b: u32, a: u32) -> Color {
+        Self::from_u32((a << 24) | (r << 16) | (g << 8) | b)
+    }
+
+    pub fn from_argb(a: u32, r: u32, g: u32, b: u32) -> Color {
+        Self::from_u32((a << 24) | (r << 16) | (g << 8) | b)
+    }
+    pub fn from_au32(a: u32, rgb: u32) -> Color {
+        Self::from_u32((a << 24) | rgb)
+    }
+}
+
+/*
+#[repr(C)]
+struct Vec2 {
+    x: f32,
+    y: f32,
+}
+*/
+
 macro_rules! true_is_1 {
     ($e:expr) => (if $e { 1 } else { 0 })
 }
@@ -70,9 +104,9 @@ impl Ui {
     }
 
     #[inline]
-    pub fn fill_rect(&self, x: f32, y: f32, width: f32, height: f32, color: u32) {
+    pub fn fill_rect(&self, x: f32, y: f32, width: f32, height: f32, col: Color) {
         unsafe {
-            ((*self.api).fill_rect)(PDRect { x: x, y: y, width: width, height: height }, color);
+            ((*self.api).fill_rect)(PDRect { x: x, y: y, width: width, height: height }, col.color);
         }
     }
 
@@ -129,8 +163,8 @@ impl Ui {
     // TODO: push/pop font
 
     #[inline]
-	pub fn push_style_color(&self, index: usize, color: u32) {
-        unsafe { ((*self.api).push_style_color)(index as u32, color) }
+	pub fn push_style_color(&self, index: usize, col: Color) {
+        unsafe { ((*self.api).push_style_color)(index as u32, col.color) }
     }
 
     #[inline]
@@ -185,10 +219,10 @@ impl Ui {
         }
     }
 
-    pub fn text_colored(&self, color: u32, text: &str) {
+    pub fn text_colored(&self, col: Color, text: &str) {
         unsafe {
             let t = CFixedString::from_str(text).as_ptr();
-            ((*self.api).text_colored)(color, t);
+            ((*self.api).text_colored)(col.color, t);
         }
     }
 
@@ -274,10 +308,26 @@ impl Ui {
 	pub fn sc_input_text(&self, title: &str, width: usize, height: usize) -> Scintilla {
 	    unsafe {
             let name = CFixedString::from_str(title);
-	        Scintilla::new(((*self.api).sc_input_text)(name.as_ptr(), 
-	                        width as f32, 
+	        Scintilla::new(((*self.api).sc_input_text)(name.as_ptr(),
+	                        width as f32,
 	                        height as f32, None))
         }
     }
+
+    /*
+    pub fn fill_convex_ploy(vertices: &[Vec2], col: Color, anti_aliased: bool) {
+	    unsafe {
+            ((*self.api).fill_convex_ploy)(
+                vertices.as_ptr(),
+                vertices.len(),
+                col.color,
+                true_is_1!(anti_aliased))
+        }
+    }
+
+    pub fn fill_circle(pos: &Vec2, radius: f32, color: u32, anti_aliased: bool) {
+
+    }
+    */
 }
 

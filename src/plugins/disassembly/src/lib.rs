@@ -103,10 +103,7 @@ impl DisassemblyView {
             let color = colors[color_index & 7];
             line_text.find(reg).map(|offset| {
                 let (tx, _) = ui.calc_text_size(&line_text, offset);
-                //let (rx, _) = ui.calc_text_size(&reg, 0);
-                //println!("found {} at offset {} for {}", reg, offset, line.opcode);
-                ui.fill_rect(cx + tx, cy, 22.0, text_height, (200 << 24) | color);
-                //color_index +=
+                ui.fill_rect(cx + tx, cy, 22.0, text_height, Color::from_au32(200, color));
             });
 
             color_index += 1;
@@ -156,7 +153,7 @@ impl DisassemblyView {
                     self.reset_to_center = false;
                 }
 
-                ui.fill_rect(cx, cy, size_x, text_height, (200 << 24) | 127);
+                ui.fill_rect(cx, cy, size_x, text_height, Color::from_argb(200, 0, 0, 127));
             }
 
             if regs_pc_use.len() > 0 {
