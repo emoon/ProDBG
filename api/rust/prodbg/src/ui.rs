@@ -231,10 +231,24 @@ impl Ui {
     }
 
     #[inline]
+    pub fn set_cursor_pos(&self, pos: (f32, f32)) {
+        unsafe {
+            ((*self.api).set_cursor_pos)(PDVec2{x: pos.0, y: pos.1});
+        }
+    }
+
+    #[inline]
     pub fn get_cursor_screen_pos(&self) -> (f32, f32) {
         unsafe {
             let t = ((*self.api).get_cursor_screen_pos)();
             (t.x, t.y)
+        }
+    }
+
+    #[inline]
+    pub fn set_cursor_screen_pos(&self, pos: (f32, f32)) {
+        unsafe {
+            ((*self.api).set_cursor_screen_pos)(PDVec2{x: pos.0, y: pos.1});
         }
     }
 
