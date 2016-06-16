@@ -8,14 +8,38 @@ struct Line {
     regs_write: String,
     regs_read: String,
     address: u64,
-    _breakpoint: bool
 }
+
+///
+/// Breakpoint
+///
+struct Breakpoint {
+    address: u64,
+}
+
+///
+/// Holds colors use for the disassembly view. This should be possible to configure later on.
+///
+/*
+struct Colors {
+    breakpoint: Color,
+    step_cursor: Color,
+    cursor: Color,
+    address: Color,
+    _bytes: Color,
+}
+*/
+
 
 struct DisassemblyView {
     location: u64,
+    _cursor: u64,
+    breakpoint_radius: f32,
+    breakpoint_spacing: f32,
     address_size: u8,
     reset_to_center: bool,
     lines: Vec<Line>,
+    breakpoints: Vec<Breakpoint>,
 }
 
 impl DisassemblyView {
@@ -26,7 +50,7 @@ impl DisassemblyView {
             let address = entry.find_u64("address").ok().unwrap();
             let line = entry.find_string("line").ok().unwrap();
             let mut regs_read = String::new();
-            let mut regs_write =  String::new();
+            let mut regs_write = String::new();
 
             entry.find_string("registers_read").map(|regs| {
                 regs_read = regs.to_owned();
@@ -41,11 +65,13 @@ impl DisassemblyView {
                 regs_read: regs_read,
                 regs_write: regs_write,
                 address: address,
-                _breakpoint: false,
             });
         }
     }
 
+    ///
+    /// Calculate how many visible lines we have
+    ///
     fn get_visible_lines_count(ui: &Ui) -> usize {
         let (_, height) = ui.get_window_size();
         let text_height = ui.get_text_line_height_with_spacing();
@@ -112,11 +138,39 @@ impl DisassemblyView {
         ui.text(&line_text);
     }
 
+    fn toggle_breakpoint(&mut self, writer: &mut Writer) {
+        // TODO: Should really be cursor_pos
+        let address = self.location;
+
+        for i in (0..self.breakpoints.len()).rev() {
+            if self.breakpoints[i].address == address {
+                writer.event_begin(EVENT_DELETE_BREAKPOINT as u16);
+                writer.write_u64("address", address);
+                writer.event_end();
+                self.breakpoints.swap_remove(i);
+                return;
+            }
+        }
+
+        writer.event_begin(EVENT_SET_BREAKPOINT as u16);
+        writer.write_u64("address", address);
+        writer.event_end();
+
+        // TODO: We shouldn't really add the breakpoint here but wait for reply
+        // from the backend that we actually managed to set the breakpoint.
+        // +bonus would be a "progress" icon here instead that it's being set.
+
+        self.breakpoints.push(Breakpoint { address: self.location } );
+    }
+
+    fn has_breakpoint(&self, address: u64) -> bool {
+        self.breakpoints.iter().find(|bp| bp.address == address).is_some()
+    }
+
     fn render_ui(&mut self, ui: &mut Ui) {
         if self.lines.len() == 0 {
             return;
         }
-
 
         let (size_x, size_h) = ui.get_window_size();
         let text_height = ui.get_text_line_height_with_spacing();
@@ -145,9 +199,10 @@ impl DisassemblyView {
         }
 
         for line in &self.lines {
-            if line.address == self.location {
-                let (cx, cy) = ui.get_cursor_screen_pos();
+            let (cx, cy) = ui.get_cursor_screen_pos();
+            let bp_radius = self.breakpoint_radius;
 
+            if line.address == self.location {
                 if (cy < 0.0 || cy > (size_h - text_height)) || self.reset_to_center {
                     ui.set_scroll_here(0.5);
                     self.reset_to_center = false;
@@ -159,9 +214,26 @@ impl DisassemblyView {
             if regs_pc_use.len() > 0 {
                 Self::color_text_reg_selection(ui, &regs_pc_use, &line, text_height);
             } else {
-                ui.text_fmt(format_args!("0x{:x} {}", line.address, line.opcode));
+                ui.text_fmt(format_args!("   0x{:x} {}", line.address, line.opcode));
+            }
+
+            if self.has_breakpoint(line.address) {
+                    ui.fill_circle(&Vec2{ x: cx + self.breakpoint_spacing + bp_radius, y: cy + bp_radius + 2.0},
+                                   bp_radius, Color::from_argb(255,0,0,140), 12, false);
             }
         }
+
+        /*
+        let arrow: [Vec2; 3] = [
+            Vec2::new(112.0, 122.0),
+            Vec2::new(212.0, 222.0),
+            Vec2::new(12.0, 322.0),
+        ];
+        */
+
+        //ui.fill_convex_poly(&arrow, Color::from_argb(255,0,0,200), true);
+        //ui.fill_circle(&Vec2{ x: 112.0, y: 112.0}, 12.0, Color::from_argb(255,0,0,200), 12, false);
+        //ui.fill_circle(&Vec2{ x: 112.0, y: 112.0}, 12.0, Color::from_argb(255,0,0,200), 12, false);
     }
 }
 
@@ -169,8 +241,12 @@ impl View for DisassemblyView {
     fn new(_: &Ui, _: &Service) -> Self {
         DisassemblyView {
             location: u64::max_value(),
+            _cursor: u64::max_value(),
+            breakpoint_radius: 10.0,
+            breakpoint_spacing: 6.0,
             address_size: 4,
             lines: Vec::new(),
+            breakpoints: Vec::new(),
             reset_to_center: false,
         }
     }
@@ -196,6 +272,10 @@ impl View for DisassemblyView {
 
                 _ => (),
             }
+        }
+
+        if ui.is_key_down(Key::F9) {
+            self.toggle_breakpoint(writer);
         }
 
         self.render_ui(ui);
