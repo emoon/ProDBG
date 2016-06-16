@@ -1,6 +1,5 @@
 
 #include "ui_sc_editor.h"
-
 #include <Scintilla.h>
 
 namespace ImGui
@@ -17,10 +16,42 @@ void FillRect(ImVec2 pos, ImVec2 size, unsigned int color)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void ConvexPolyFilled(void* vertices, int count, unsigned int color, bool aa)
+{
+	ImVec2* verts = (ImVec2*)vertices;
+	ImVec2 temp_verts[4096];
+
+	ImGuiWindow* window = GetCurrentWindow();
+	ImVec2 current_pos = window->Pos;
+
+	assert(count < 4096);
+
+	// offset the verts temporary here so we don't need to mutate the data
+	for (int i = 0; i < count; ++i) {
+		temp_verts[i] = verts[i] + current_pos;
+	}
+
+    window->DrawList->AddConvexPolyFilled(temp_verts, count, color, aa);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CircleFilled(ImVec2 pos, float radius, unsigned int color, int segment_count, bool aa)
+{
+	(void)aa;
+	ImGuiWindow* window = GetCurrentWindow();
+	ImVec2 current_pos = window->Pos + pos;
+	printf("draw cicle %f %f - %f 0x%08x %d\n", current_pos.x, current_pos.y, radius, color, segment_count);
+
+    window->DrawList->AddCircleFilled(current_pos, radius, color, segment_count);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float GetTextWidth(const char* textStart, const char* textEnd)
 {
 	ImVec2 size = CalcTextSize(textStart, textEnd);
-	return size.x; 
+	return size.x;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -110,7 +141,7 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
 	// TODO: Remove hardcoded value, ask scintilla
 	float textSize = 26;
 
-	ScEditor_resize(editor, 0, 0, (int)window->Size.x - 20, (int)window->Size.y); 
+	ScEditor_resize(editor, 0, 0, (int)window->Size.x - 20, (int)window->Size.y);
 
 	int lineCount = (int)editorInterface->SendCommand(SCI_GETLINECOUNT, 0, 0);
 
@@ -128,8 +159,8 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
 	//int currentPos = (int)editorInterface->SendCommand(SCN_GETTOPLINE, 0, 0);
 
 	//float scrollPos = ImGui::GetScrollPosY();
-	
-	//int iPos = (int)(((int)ImGui::GetScrollPosY()) / (int)(textSize)); 
+
+	//int iPos = (int)(((int)ImGui::GetScrollPosY()) / (int)(textSize));
 
 	//if (currentPos != iPos)
 	//{
@@ -141,7 +172,7 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
 	clipper.End();
 
     //ImGui::EndChild();
-	
+
 	return editorInterface;
 }
 

@@ -1572,6 +1572,17 @@ static void fill_rect(PDRect rect, PDColor color) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void fill_convex_ploy(void* vertices, int count, PDColor color, int anti_aliased) {
+    ImGui::ConvexPolyFilled(vertices, count, color, !!anti_aliased);
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void fill_circle(PDVec2 pos, float radius, PDColor color, int num_seg, int aa) {
+    ImGui::CircleFilled(ImVec2(pos.x, pos.y), radius, color, num_seg, !!aa);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 extern "C" int imgui_begin(const char* name, int show) {
 	bool s = !!show;
     ImGui::Begin(name, &s, ImVec2(0, 0), true, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
@@ -1583,20 +1594,6 @@ extern "C" int imgui_begin(const char* name, int show) {
 extern "C" void imgui_end() {
     ImGui::End();
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-char* buildName(const char* pluginName, int id) {
-    char name[1024];
-
-    sprintf(name, "%s %d ###%s%d", pluginName, id, pluginName, id);
-
-    return strdup(name);
-}
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1872,47 +1869,11 @@ static PDUI s_uiFuncs[] =
     get_mouse_cursor,
     set_mouse_cursor,
 
-/*
-    text,
-    text_colored,
-    text_wrapped,
-    input_text,
-    scEditText,
-    checkbox,
-    button,
-    buttonSmall,
-    buttonSize,
-    selectableFixed,
-    selectable,
-
-    // Misc
-
-    // Mouse
-
-    get_mouse_pos,
-    getMouseScreenPos,
-    is_mouse_clicked,
-    is_mouse_double_clicked,
-    isMouseHoveringBox,
-    is_item_hovered,
-
-    // Keyboard
-
-    is_key_down_id,
-    is_key_down,
-    getKeyModifier,
-    set_keyboard_focus_here,
-
-    // Styles
-
-    push_style_varV,
-    push_style_varF,
-    pop_style_var,
- */
-
     // Rendering
 
     fill_rect,
+	fill_convex_ploy,
+	fill_circle,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1944,8 +1905,4 @@ extern "C" void imgui_set_window_pos(float x, float y) {
 extern "C" void imgui_set_window_size(float w, float h) {
     ImGui::SetNextWindowSize(ImVec2(w - 4, h - 4));
 }
-
-
-
-
 

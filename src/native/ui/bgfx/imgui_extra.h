@@ -15,6 +15,8 @@ struct ImScEditor {
 namespace ImGui {
 
 void FillRect(ImVec2 pos, ImVec2 size, unsigned int color);
+void ConvexPolyFilled(void* vertices, int count, unsigned int color, bool aa);
+void CircleFilled(ImVec2 pos, float radius, unsigned int color, int segment_count, bool aa);
 float GetTextWidth(const char* textStart, const char* textEnd);
 
 bool IsFocusWindowKeyDown(int key, bool repeat);

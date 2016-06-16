@@ -502,7 +502,8 @@ typedef struct PDUI {
     // Rendering
 
 	void (*fill_rect)(PDRect rect, unsigned int color);
-
+ 	void (*fill_convex_poly)(void* verts, int count, PDColor color, int aa);
+ 	void (*fill_circle)(PDVec2 pos, float radius, PDColor color, int num_seg, int aa);
 
 } PDUI;
 

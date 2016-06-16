@@ -3,6 +3,7 @@ use ui_ffi::*;
 use std::fmt;
 use std::fmt::Write;
 use scintilla::Scintilla;
+use std::os::raw::{c_void};
 
 use CFixedString;
 
@@ -38,13 +39,18 @@ impl Color {
     }
 }
 
-/*
 #[repr(C)]
-struct Vec2 {
-    x: f32,
-    y: f32,
+#[derive(Clone, Copy, Debug)]
+pub struct Vec2 {
+    pub x: f32,
+    pub y: f32,
 }
-*/
+
+impl Vec2 {
+    pub fn new(x: f32, y: f32) -> Vec2 {
+        Vec2 { x: x, y: y }
+    }
+}
 
 macro_rules! true_is_1 {
     ($e:expr) => (if $e { 1 } else { 0 })
@@ -314,20 +320,25 @@ impl Ui {
         }
     }
 
-    /*
-    pub fn fill_convex_ploy(vertices: &[Vec2], col: Color, anti_aliased: bool) {
+    pub fn fill_convex_poly(&self, vertices: &[Vec2], col: Color, anti_aliased: bool) {
 	    unsafe {
-            ((*self.api).fill_convex_ploy)(
-                vertices.as_ptr(),
-                vertices.len(),
+            ((*self.api).fill_convex_poly)(
+                vertices.as_ptr() as *const c_void,
+                vertices.len() as u32,
                 col.color,
                 true_is_1!(anti_aliased))
         }
     }
 
-    pub fn fill_circle(pos: &Vec2, radius: f32, color: u32, anti_aliased: bool) {
-
+    pub fn fill_circle(&self, pos: &Vec2, radius: f32, col: Color, segment_count: usize, anti_aliased: bool) {
+	    unsafe {
+            ((*self.api).fill_circle)(
+                PDVec2 { x: pos.x, y: pos.y },
+                radius,
+                col.color,
+                segment_count as u32,
+                true_is_1!(anti_aliased))
+        }
     }
-    */
 }
 

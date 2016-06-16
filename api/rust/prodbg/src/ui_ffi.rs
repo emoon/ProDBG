@@ -299,6 +299,8 @@ pub struct CPdUI {
 	pub get_mouse_cursor: *mut extern fn () -> c_uint,
 	pub set_mouse_cursor: extern fn(c_uint),
 	pub fill_rect: extern fn(PDRect, c_uint),
+	pub fill_convex_poly: extern fn(verts: *const c_void, count: u32, color: u32, aa: c_int),
+	pub fill_circle: extern fn(pos: PDVec2, radius: f32,  color: u32, num_seg: u32, aa: c_int),
 }
 
 #[repr(C)]
