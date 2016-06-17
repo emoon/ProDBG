@@ -76,10 +76,12 @@ impl PluginHandler for ViewPlugins {
     fn reload_plugin(&mut self) {
         let t = self.reload_state.clone();
         for reload_plugin in &t {
-            Self::create_instance(self,
+            self.create_instance_with_handle(
                                   reload_plugin.ui.clone(),
                                   &reload_plugin.name,
-                                  reload_plugin.session_handle);
+                                  &None, // TODO: Include saved data here
+                                  reload_plugin.session_handle,
+                                  reload_plugin.handle);
         }
     }
 
