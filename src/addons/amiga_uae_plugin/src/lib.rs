@@ -173,10 +173,18 @@ impl AmigaUaeBackend {
         writer.event_end();
     }
 
-    fn toggle_breakpoint(&mut self, reader: &mut Reader, _writer: &mut Writer) {
+    fn set_breakpoint(&mut self, reader: &mut Reader, _writer: &mut Writer) {
        if let Some(address) = reader.find_u64("address").ok() {
            if self.conn.set_breakpoint_at_address(address).is_err() {
                println!("Unable to set breakpoint at 0x{:08x}", address);
+           }
+       }
+    }
+
+    fn delete_breakpoint(&mut self, reader: &mut Reader, _writer: &mut Writer) {
+       if let Some(address) = reader.find_u64("address").ok() {
+           if self.conn.remove_breakpoint_at_address(address).is_err() {
+               println!("Unable to remove breakpoint at 0x{:08x}", address);
            }
        }
     }
@@ -214,7 +222,15 @@ impl Backend for AmigaUaeBackend {
                 }
 
                 EVENT_SET_BREAKPOINT => {
-                    self.toggle_breakpoint(reader, writer);
+                    self.set_breakpoint(reader, writer);
+                }
+
+                EVENT_DELETE_BREAKPOINT => {
+                    self.delete_breakpoint(reader, writer);
+                }
+
+                EVENT_GET_EXCEPTION_LOCATION => {
+                    self.write_exception_location(writer);
                 }
 
                 _ => (),
@@ -235,7 +251,8 @@ impl Backend for AmigaUaeBackend {
             ACTION_STEP => {
                 let mut step_res = [0; 16];
                 let mut register_data = [0; 1024];
-                if self.conn.step(&mut step_res).is_ok() {
+                self.conn.step(&mut step_res).unwrap();
+                    println!("step res {:?}", step_res);
                     println!("steping ok!");
                     if self.conn.get_registers(&mut register_data).is_ok() {
                         println!("setting registers!");
@@ -244,7 +261,6 @@ impl Backend for AmigaUaeBackend {
 
                     self.write_exception_location(writer);
                 }
-            }
             _ => (),
         }
     }
