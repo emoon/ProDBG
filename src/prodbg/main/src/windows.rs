@@ -341,6 +341,8 @@ impl Window {
         Self::is_menu_pressed(&mut self.win).map(|menu_id| {
             match menu_id {
                 MENU_DEBUG_STEP_IN => current_session.action_step(),
+                MENU_DEBUG_STEP_OVER => current_session.action_step_over(),
+                MENU_DEBUG_START => current_session.action_run(),
                 MENU_FILE_START_NEW_BACKEND => {
                     if let Some(backend) = backend_plugins.create_instance(&"Amiga UAE Debugger".to_owned()) {
                         current_session.set_backend(Some(backend));
