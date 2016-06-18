@@ -32,8 +32,9 @@ struct Colors {
 
 
 struct DisassemblyView {
-    location: u64,
-    _cursor: u64,
+    exception_location: u64,
+    has_made_step: bool,
+    cursor: u64,
     breakpoint_radius: f32,
     breakpoint_spacing: f32,
     address_size: u8,
@@ -84,8 +85,6 @@ impl DisassemblyView {
     fn request_disassembly(&mut self, ui: &mut Ui, location: u64, writer: &mut Writer) {
         let visible_lines = Self::get_visible_lines_count(ui) as u64;
 
-        self.location = location;
-
         // check if we have the the location within all lines, then we don't need to request more
         for line in &self.lines {
             if line.address == location {
@@ -105,7 +104,7 @@ impl DisassemblyView {
         let (cx, cy) = ui.get_cursor_screen_pos();
         let mut color_index = 0;
         // TODO: Allocs memory, fix
-        let line_text = format!("0x{:x} {}", line.address, line.opcode);
+        let line_text = format!("   0x{:x} {}", line.address, line.opcode);
 
         let colors = [
             0x00b27474,
@@ -139,8 +138,7 @@ impl DisassemblyView {
     }
 
     fn toggle_breakpoint(&mut self, writer: &mut Writer) {
-        // TODO: Should really be cursor_pos
-        let address = self.location;
+        let address = self.cursor;
 
         for i in (0..self.breakpoints.len()).rev() {
             if self.breakpoints[i].address == address {
@@ -156,15 +154,74 @@ impl DisassemblyView {
         writer.write_u64("address", address);
         writer.event_end();
 
+        println!("adding breakpoint");
+
         // TODO: We shouldn't really add the breakpoint here but wait for reply
         // from the backend that we actually managed to set the breakpoint.
         // +bonus would be a "progress" icon here instead that it's being set.
 
-        self.breakpoints.push(Breakpoint { address: self.location } );
+        self.breakpoints.push(Breakpoint { address: address } );
     }
 
     fn has_breakpoint(&self, address: u64) -> bool {
         self.breakpoints.iter().find(|bp| bp.address == address).is_some()
+    }
+
+    /*
+    fn set_cursor_at(&mut self, pos: i32) {
+        // if we don'n have enough lines we need to fetch more
+        if pos < 0 {
+
+            return;
+        }
+
+        // need to fetch more data here also
+        if pos > self.lines.len() as i32 {
+
+            return;
+        }
+
+        self.cursor = self.lines[pos as usize].address;
+    }
+    */
+
+    fn scroll_cursor(&mut self, steps: i32) {
+        for (i, line) in self.lines.iter().enumerate() {
+            if line.address == self.cursor {
+                let pos = (i as i32) + steps;
+                // if we don'n have enough lines we need to fetch more
+                if pos < 0 {
+                    return;
+                }
+
+                // need to fetch more data here also
+                if pos >= self.lines.len() as i32 {
+                    return;
+                }
+
+                self.cursor = self.lines[pos as usize].address;
+                return;
+            }
+        }
+    }
+
+    fn render_arrow(ui: &Ui, pos_x: f32, pos_y: f32, scale: f32) {
+        let color = Color::from_argb(255, 0, 180, 180);
+
+        ui.fill_rect(pos_x + (0.0 * scale),
+                     pos_y + (0.25 * scale),
+                     0.5 * scale,
+                     0.5 * scale,
+                     color);
+
+        // Wasn't able to get this to work with just one convex poly fill
+        let arrow: [Vec2; 3] = [
+            Vec2::new((0.50 * scale) + pos_x, (0.00 * scale) + pos_y),
+            Vec2::new((1.00 * scale) + pos_x, (0.50 * scale) + pos_y),
+            Vec2::new((0.50 * scale) + pos_x, (1.00 * scale) + pos_y),
+        ];
+
+        ui.fill_convex_poly(&arrow, color, true);
     }
 
     fn render_ui(&mut self, ui: &mut Ui) {
@@ -181,7 +238,7 @@ impl DisassemblyView {
         // find registerss for pc
 
         for line in &self.lines {
-            if line.address == self.location {
+            if line.address == self.exception_location {
                 if line.regs_read.len() > 1 || line.regs_write.len() > 1 {
                     if line.regs_read.len() > 0 {
                         regs.push_str(&line.regs_read);
@@ -202,10 +259,23 @@ impl DisassemblyView {
             let (cx, cy) = ui.get_cursor_screen_pos();
             let bp_radius = self.breakpoint_radius;
 
-            if line.address == self.location {
-                if (cy < 0.0 || cy > (size_h - text_height)) || self.reset_to_center {
-                    ui.set_scroll_here(0.5);
-                    self.reset_to_center = false;
+            if line.address == self.cursor {
+                if (cy - text_height) < 0.0 {
+                    if self.reset_to_center || self.has_made_step {
+                        ui.set_scroll_here(0.5);
+                        self.reset_to_center = false;
+                    } else {
+                        ui.set_scroll_from_pos_y(cy - text_height, 0.0);
+                    }
+                }
+
+                if cy > (size_h - text_height) {
+                    if self.reset_to_center || self.has_made_step {
+                        ui.set_scroll_here(0.5);
+                        self.reset_to_center = false;
+                    } else {
+                        ui.set_scroll_from_pos_y(cy + text_height, 1.0);
+                    }
                 }
 
                 ui.fill_rect(cx, cy, size_x, text_height, Color::from_argb(200, 0, 0, 127));
@@ -221,30 +291,27 @@ impl DisassemblyView {
                     ui.fill_circle(&Vec2{ x: cx + self.breakpoint_spacing + bp_radius, y: cy + bp_radius + 2.0},
                                    bp_radius, Color::from_argb(255,0,0,140), 12, false);
             }
+
+            //println!("draw arrow {} {}", line.address, self.exception_location);
+
+            if line.address == self.exception_location {
+                Self::render_arrow(ui, cx, cy + 2.0, self.breakpoint_radius * 2.0);
+            }
         }
 
-        /*
-        let arrow: [Vec2; 3] = [
-            Vec2::new(112.0, 122.0),
-            Vec2::new(212.0, 222.0),
-            Vec2::new(12.0, 322.0),
-        ];
-        */
-
-        //ui.fill_convex_poly(&arrow, Color::from_argb(255,0,0,200), true);
-        //ui.fill_circle(&Vec2{ x: 112.0, y: 112.0}, 12.0, Color::from_argb(255,0,0,200), 12, false);
-        //ui.fill_circle(&Vec2{ x: 112.0, y: 112.0}, 12.0, Color::from_argb(255,0,0,200), 12, false);
+        self.has_made_step = false;
     }
 }
 
 impl View for DisassemblyView {
     fn new(_: &Ui, _: &Service) -> Self {
         DisassemblyView {
-            location: u64::max_value(),
-            _cursor: u64::max_value(),
+            exception_location: u64::max_value(),
+            cursor: 0xe003, //u64::max_value(),
             breakpoint_radius: 10.0,
             breakpoint_spacing: 6.0,
             address_size: 4,
+            has_made_step: false,
             lines: Vec::new(),
             breakpoints: Vec::new(),
             reset_to_center: false,
@@ -261,8 +328,11 @@ impl View for DisassemblyView {
                         self.address_size = adress_size;
                     });
 
-                    if self.location != location {
+                    if self.exception_location != location {
                         self.request_disassembly(ui, location, writer);
+                        self.has_made_step = true;
+                        self.exception_location = location;
+                        self.cursor = location;
                     }
                 }
 
@@ -276,6 +346,22 @@ impl View for DisassemblyView {
 
         if ui.is_key_down(Key::F9) {
             self.toggle_breakpoint(writer);
+        }
+
+        if ui.is_key_down(Key::Down) {
+            self.scroll_cursor(1);
+        }
+
+        if ui.is_key_down(Key::Up) {
+            self.scroll_cursor(-1);
+        }
+
+        if ui.is_key_down(Key::PageDown) {
+            self.scroll_cursor(8);
+        }
+
+        if ui.is_key_down(Key::PageUp) {
+            self.scroll_cursor(-8);
         }
 
         self.render_ui(ui);
