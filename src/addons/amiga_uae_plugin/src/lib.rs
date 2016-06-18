@@ -165,11 +165,20 @@ impl AmigaUaeBackend {
         writer.event_end();
     }
 
+    //
     fn write_exception_location(&mut self, writer: &mut Writer) {
         writer.event_begin(EventType::SetExceptionLocation as u16);
         writer.write_u64("address", self.exception_location as u64);
         writer.write_u8("size", 4);
         writer.event_end();
+    }
+
+    fn toggle_breakpoint(&mut self, reader: &mut Reader, _writer: &mut Writer) {
+       if let Some(address) = reader.find_u64("address").ok() {
+           if self.conn.set_breakpoint_at_address(address).is_err() {
+               println!("Unable to set breakpoint at 0x{:08x}", address);
+           }
+       }
     }
 }
 
@@ -204,6 +213,10 @@ impl Backend for AmigaUaeBackend {
                     self.get_memory(reader, writer);
                 }
 
+                EVENT_SET_BREAKPOINT => {
+                    self.toggle_breakpoint(reader, writer);
+                }
+
                 _ => (),
             }
         }
@@ -213,18 +226,24 @@ impl Backend for AmigaUaeBackend {
                 println!("Break");
             }
 
+            ACTION_RUN => {
+                if self.conn.cont().is_err() {
+                    println!("Unable to run");
+                }
+            }
+
             ACTION_STEP => {
                 let mut step_res = [0; 16];
                 let mut register_data = [0; 1024];
-                self.conn.step(&mut step_res).unwrap();
-
+                if self.conn.step(&mut step_res).is_ok() {
                     println!("steping ok!");
                     if self.conn.get_registers(&mut register_data).is_ok() {
                         println!("setting registers!");
                         self.write_registers(writer, &register_data);
                     }
 
-                self.write_exception_location(writer);
+                    self.write_exception_location(writer);
+                }
             }
             _ => (),
         }
