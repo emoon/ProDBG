@@ -4,6 +4,7 @@ use plugins::PluginHandler;
 use reader_wrapper::{ReaderWrapper, WriterWrapper};
 use backend_plugin::{BackendHandle, BackendPlugins};
 use libc::{c_void};
+use prodbg_api::events::*;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct SessionHandle(pub u64);
@@ -67,7 +68,22 @@ impl Session {
 
     pub fn action_step(&mut self) {
         println!("do step");
-        self.action = 4;
+        self.action = ACTION_STEP;
+    }
+
+    pub fn action_run(&mut self) {
+        println!("do run");
+        self.action = ACTION_RUN;
+    }
+
+    pub fn action_step_over(&mut self) {
+        println!("do step over");
+        self.action = ACTION_STEP_OVER;
+    }
+
+    pub fn action_break(&mut self) {
+        println!("do break");
+        self.action = ACTION_BREAK;
     }
 
     pub fn send_menu_id(&mut self, menu_id: u32, backend_plugins: &mut BackendPlugins) {
@@ -76,7 +92,7 @@ impl Session {
                 let writer = self.get_current_writer();
                 //println!("Write event, writer {}", );
                 writer.event_begin(35); // Menu event, TODO: Fix hard-coded value
-                writer.write_u32("menu_id", menu_id - backend.menu_id_offset); 
+                writer.write_u32("menu_id", menu_id - backend.menu_id_offset);
                 writer.event_end();
             }
         }
