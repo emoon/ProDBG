@@ -1,5 +1,4 @@
 extern crate core;
-extern crate libc;
 extern crate minifb;
 extern crate prodbg_api;
 extern crate bgfx_rs;

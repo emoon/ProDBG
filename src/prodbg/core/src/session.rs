@@ -3,7 +3,7 @@ use prodbg_api::backend::{CBackendCallbacks};
 use plugins::PluginHandler;
 use reader_wrapper::{ReaderWrapper, WriterWrapper};
 use backend_plugin::{BackendHandle, BackendPlugins};
-use libc::{c_void};
+use std::os::raw::{c_void};
 use prodbg_api::events::*;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]

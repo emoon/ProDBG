@@ -1,7 +1,6 @@
 //extern crate prodbg_api;
-extern crate libc;
 
-use libc::{c_int, c_void};
+use std::os::raw::{c_int, c_void};
 
 pub struct Bgfx {
     pub temp: i32,

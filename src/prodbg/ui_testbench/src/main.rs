@@ -1,5 +1,4 @@
 extern crate core;
-extern crate libc;
 extern crate minifb;
 extern crate prodbg_api;
 extern crate bgfx_rs;
@@ -7,7 +6,7 @@ extern crate imgui_sys;
 
 use core::{DynamicReload, Search};
 use minifb::{Window, Key, Scale, WindowOptions, MouseMode, MouseButton};
-use libc::{c_void};
+use std::os::raw::{c_void};
 use prodbg_api::view::CViewCallbacks;
 //use prodbg_api::ui::Ui;
 use prodbg_api::ui_ffi::{PDVec2};

@@ -1,4 +1,4 @@
-use libc::{c_char, c_uint, c_void};
+use std::os::raw::{c_char, c_uint, c_void};
 use CFixedString;
 
 pub struct PDMenuHandle(pub u64);

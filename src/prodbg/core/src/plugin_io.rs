@@ -1,4 +1,4 @@
-use libc::{c_void, c_char};
+use std::os::raw::{c_char, c_void};
 use prodbg_api::io::{CPDLoadState, CPDSaveState, LoadState};
 use prodbg_api::cfixed_string::CFixedString;
 use std::ffi::CStr;

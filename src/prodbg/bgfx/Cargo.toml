@@ -4,6 +4,5 @@ version = "0.1.0"
 authors = ["Daniel Collin <daniel@collin.com>"]
 
 [dependencies]
-libc = "0.2"
 prodbg_api = { path = "../../../api/rust/prodbg" }
 

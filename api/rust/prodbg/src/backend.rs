@@ -1,7 +1,6 @@
 use read_write::*;
 use service::*;
-use libc::*;
-//use std::os::raw;
+use std::os::raw::{c_uchar, c_int, c_void};
 use menu_service::{MenuFuncs, CMenuFuncs1};
 use std::mem::transmute;
 

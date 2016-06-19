@@ -1,6 +1,6 @@
-use libc::*;
 use backend::*;
 use view::*;
+use std::os::raw::{c_char, c_void};
 use std::mem::transmute;
 
 #[repr(C)]

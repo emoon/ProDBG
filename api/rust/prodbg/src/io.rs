@@ -1,4 +1,4 @@
-use libc::{c_void, c_char};
+use std::os::raw::{c_char, c_void};
 
 #[repr(C)]
 pub enum LoadState {

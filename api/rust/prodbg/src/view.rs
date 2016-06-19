@@ -2,7 +2,7 @@ use service::*;
 use read_write::*;
 use ui::*;
 use ui_ffi::*;
-use libc::{c_void, c_uchar};
+use std::os::raw::{c_uchar, c_void};
 use std::mem::transmute;
 use io::{CPDSaveState, CPDLoadState};
 

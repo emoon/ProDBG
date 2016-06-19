@@ -1,4 +1,4 @@
-use libc::{c_int, c_uint, c_void, size_t};
+use std::os::raw::{c_int, c_uint, c_void};
 use std::fmt::{Debug, Formatter};
 use std::ffi::CStr;
 use std::mem::transmute;
@@ -24,20 +24,20 @@ pub struct CCapstone1 {
     support: extern "C" fn(query: c_int) -> c_int,
     open: extern "C" fn(arch: c_int, mode: c_int, handle: *mut *const c_void) -> c_int,
     close: extern "C" fn(handle: *mut *const c_void) -> c_int,
-    option: extern "C" fn(handle: *const c_void, _type: c_int, value: size_t) -> c_int,
+    option: extern "C" fn(handle: *const c_void, _type: c_int, value: usize) -> c_int,
     err: extern "C" fn(handle: *const c_void) -> c_int,
     disasm: extern "C" fn(handle: *const c_void,
                           code: *const u8,
-                          code_size: size_t,
+                          code_size: usize,
                           address: u64,
-                          count: size_t,
+                          count: usize,
                           insn: &mut *const Insn)
-                          -> size_t,
-    free: extern "C" fn(insn: *const Insn, count: size_t),
+                          -> usize,
+    free: extern "C" fn(insn: *const Insn, count: usize),
 
     disasm_iter: extern "C" fn(handle: *const c_void,
                               code: *const u8,
-                              code_size: *const size_t) -> size_t,
+                              code_size: *const usize) -> usize,
     regname: extern "C" fn(handle: *const c_void, id: u16) -> *const i8,
 }
 
@@ -153,7 +153,7 @@ impl Capstone {
 
     pub fn set_option(&self, option: Opt, value: usize) -> Result<(), Error> {
         unsafe {
-            match ((*self.api).option)(self.handle, option as c_int, value as size_t) {
+            match ((*self.api).option)(self.handle, option as c_int, value as usize) {
                 0 => Ok(()),
                 e => {
                     let err: Error = transmute(e);
@@ -169,9 +169,9 @@ impl Capstone {
         unsafe {
             insn_count = ((*self.api).disasm)(self.handle,
                                               code.as_ptr(),
-                                              code.len() as size_t,
+                                              code.len() as usize,
                                               addr,
-                                              count as size_t,
+                                              count as usize,
                                               &mut ptr) as isize;
         }
 
@@ -239,7 +239,7 @@ impl Instructions {
 impl Drop for Instructions {
     fn drop(&mut self) {
         unsafe {
-            ((*self.api).free)(self.ptr, self.len as size_t);
+            ((*self.api).free)(self.ptr, self.len as usize);
         }
     }
 }

@@ -1,4 +1,4 @@
-use libc::c_char;
+use std::os::raw::c_char;
 use std::ffi::CString;
 
 #[repr(C)]

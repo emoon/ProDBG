@@ -1,4 +1,4 @@
-use libc::{c_char, c_void, c_uint};
+use std::os::raw::{c_char, c_void, c_uint};
 use prodbg_api::{CMenuFuncs1, PDMenuItem};
 use std::ffi::CStr;
 use std::mem::transmute;

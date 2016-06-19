@@ -3,7 +3,6 @@ name = "core"
 version = "0.1.0"
 dependencies = [
  "dynamic_reload 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "libloading 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "minifb 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "notify 2.5.5 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -233,7 +232,6 @@ version = "0.1.0"
 dependencies = [
  "bitflags 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "gcc 0.3.26 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
