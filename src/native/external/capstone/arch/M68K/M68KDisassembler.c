@@ -4064,7 +4064,7 @@ bool M68K_getInstruction(csh ud, const uint8_t* code, size_t code_len, MCInst* i
 
 	if (s == 0) {
 		*size = 2;
-		return false;
+		return true;
 	}
 
 	build_regs_read_write_counts(info);
