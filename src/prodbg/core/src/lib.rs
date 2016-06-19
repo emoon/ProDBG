@@ -1,5 +1,4 @@
 extern crate minifb;
-extern crate libc;
 extern crate notify;
 extern crate dynamic_reload;
 extern crate prodbg_api;

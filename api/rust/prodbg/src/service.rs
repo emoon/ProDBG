@@ -1,4 +1,4 @@
-use libc::{c_uchar, c_void};
+use std::os::raw::{c_uchar, c_void};
 use std::mem::transmute;
 
 use Capstone;

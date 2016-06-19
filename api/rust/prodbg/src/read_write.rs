@@ -1,48 +1,48 @@
-use libc::*;
 use std::mem::transmute;
 use std::slice;
 use std::str;
+use std::os::raw::*;
 use CFixedString;
 
 #[repr(C)]
 pub struct CPDReaderAPI {
     pub data: *mut c_void,
-    pub read_get_event: extern fn(reader: *mut c_void) -> uint32_t,
+    pub read_get_event: extern fn(reader: *mut c_void) -> c_uint,
     pub read_iterator_next_event: extern fn(reader: *mut c_void,
-                                            it: *mut uint64_t) -> uint32_t,
-    pub read_iterator_begin: extern fn(reader: *mut c_void, it: *mut uint64_t,
-                                       keyName: *mut *const c_char, parentIt: uint64_t)
-                                    -> uint32_t,
+                                            it: *mut c_ulonglong) -> c_uint,
+    pub read_iterator_begin: extern fn(reader: *mut c_void, it: *mut c_ulonglong,
+                                       keyName: *mut *const c_char, parentIt: c_ulonglong)
+                                    -> c_uint,
     pub read_iterator_next: extern fn(reader: *mut c_void, keyName: *mut *const c_char,
-                                      it: *mut uint64_t) -> uint32_t,
-    pub read_next_entry: extern fn(reader: *mut c_void, arrayIt: *mut uint64_t)
-                                -> int32_t,
-    pub read_find_s8: extern fn(reader: *mut c_void, res: *mut int8_t, id: *const c_char,
-                                it: uint64_t) -> uint32_t,
-    pub read_find_u8: extern fn(reader: *mut c_void, res: *mut uint8_t, id: *const c_char,
-                                it: uint64_t) -> uint32_t,
-    pub read_find_s16: extern fn(reader: *mut c_void, res: *mut int16_t, id: *const c_char,
-                                 it: uint64_t) -> uint32_t,
-    pub read_find_u16: extern fn(reader: *mut c_void, res: *mut uint16_t, id: *const c_char,
-                                 it: uint64_t) -> uint32_t,
-    pub read_find_s32: extern fn(reader: *mut c_void, res: *mut int32_t, id: *const c_char,
-                                 it: uint64_t) -> uint32_t,
-    pub read_find_u32: extern fn(reader: *mut c_void, res: *mut uint32_t, id: *const c_char,
-                                 it: uint64_t) -> uint32_t,
-    pub read_find_s64: extern fn(reader: *mut c_void, res: *mut int64_t, id: *const c_char,
-                                 it: uint64_t) -> uint32_t,
-    pub read_find_u64: extern fn(reader: *mut c_void, res: *mut uint64_t, id: *const c_char,
-                                 it: uint64_t) -> uint32_t,
+                                      it: *mut c_ulonglong) -> c_uint,
+    pub read_next_entry: extern fn(reader: *mut c_void, arrayIt: *mut c_ulonglong)
+                                -> c_int,
+    pub read_find_s8: extern fn(reader: *mut c_void, res: *mut c_char, id: *const c_char,
+                                it: c_ulonglong) -> c_uint,
+    pub read_find_u8: extern fn(reader: *mut c_void, res: *mut c_uchar, id: *const c_char,
+                                it: c_ulonglong) -> c_uint,
+    pub read_find_s16: extern fn(reader: *mut c_void, res: *mut c_short, id: *const c_char,
+                                 it: c_ulonglong) -> c_uint,
+    pub read_find_u16: extern fn(reader: *mut c_void, res: *mut c_ushort, id: *const c_char,
+                                 it: c_ulonglong) -> c_uint,
+    pub read_find_s32: extern fn(reader: *mut c_void, res: *mut c_int, id: *const c_char,
+                                 it: c_ulonglong) -> c_uint,
+    pub read_find_u32: extern fn(reader: *mut c_void, res: *mut c_uint, id: *const c_char,
+                                 it: c_ulonglong) -> c_uint,
+    pub read_find_s64: extern fn(reader: *mut c_void, res: *mut c_longlong, id: *const c_char,
+                                 it: c_ulonglong) -> c_uint,
+    pub read_find_u64: extern fn(reader: *mut c_void, res: *mut c_ulonglong, id: *const c_char,
+                                 it: c_ulonglong) -> c_uint,
     pub read_find_float: extern fn(reader: *mut c_void, res: *mut c_float, id: *const c_char,
-                                   it: uint64_t) -> uint32_t,
+                                   it: c_ulonglong) -> c_uint,
     pub read_find_double: extern fn(reader: *mut c_void, res: *mut c_double, id: *const c_char,
-                                    it: uint64_t) -> uint32_t,
+                                    it: c_ulonglong) -> c_uint,
     pub read_find_string: extern fn(reader: *mut c_void, res: *mut *const c_char, id: *const c_char,
-                                    it: uint64_t) -> uint32_t,
-    pub read_find_data: extern fn(reader: *mut c_void, data: *mut *mut c_void, size: *mut uint64_t,
-                                  id: *const c_char, it: uint64_t) -> uint32_t,
-    pub read_find_array: extern fn(reader: *mut c_void, arrayIt: *mut uint64_t, id: *const c_char,
-                                   it: uint64_t) -> uint32_t,
+                                    it: c_ulonglong) -> c_uint,
+    pub read_find_data: extern fn(reader: *mut c_void, data: *mut *mut c_void, size: *mut c_ulonglong,
+                                  id: *const c_char, it: c_ulonglong) -> c_uint,
+    pub read_find_array: extern fn(reader: *mut c_void, arrayIt: *mut c_ulonglong, id: *const c_char,
+                                   it: c_ulonglong) -> c_uint,
     pub read_dump_data: extern fn(reader: *mut c_void),
 }
 
@@ -55,7 +55,7 @@ pub enum WriteStatus {
 #[repr(C)]
 pub struct CPDWriterAPI {
     private_data: *mut c_void,
-    pub write_event_begin: extern "C" fn(writer: *mut c_void, event: uint16_t) -> WriteStatus,
+    pub write_event_begin: extern "C" fn(writer: *mut c_void, event: c_ushort) -> WriteStatus,
     pub write_event_end: extern fn(writer: *mut c_void) -> WriteStatus,
     pub write_header_array_begin: extern fn(writer: *mut c_void, ids: *mut *const c_char)
                                          -> WriteStatus,
@@ -64,19 +64,19 @@ pub struct CPDWriterAPI {
     pub write_array_end: extern fn(writer: *mut c_void) -> WriteStatus,
     pub write_array_entry_begin: extern fn(writer: *mut c_void) -> WriteStatus,
     pub write_array_entry_end: extern fn(writer: *mut c_void) -> WriteStatus,
-    pub write_s8: extern fn(writer: *mut c_void, id: *const c_char, v: int8_t) -> WriteStatus,
-    pub write_u8: extern fn(writer: *mut c_void, id: *const c_char, v: uint8_t) -> WriteStatus,
-    pub write_s16: extern fn(writer: *mut c_void, id: *const c_char, v: int16_t) -> WriteStatus,
-    pub write_u16: extern fn(writer: *mut c_void, id: *const c_char, v: uint16_t) -> WriteStatus,
-    pub write_s32: extern fn(writer: *mut c_void, id: *const c_char, v: int32_t) -> WriteStatus,
-    pub write_u32: extern fn(writer: *mut c_void, id: *const c_char, v: uint32_t) -> WriteStatus,
-    pub write_s64: extern fn(writer: *mut c_void, id: *const c_char, v: int64_t) -> WriteStatus,
-    pub write_u64: extern fn(writer: *mut c_void, id: *const c_char, v: uint64_t) -> WriteStatus,
+    pub write_s8: extern fn(writer: *mut c_void, id: *const c_char, v: c_char) -> WriteStatus,
+    pub write_u8: extern fn(writer: *mut c_void, id: *const c_char, v: c_uchar) -> WriteStatus,
+    pub write_s16: extern fn(writer: *mut c_void, id: *const c_char, v: c_short) -> WriteStatus,
+    pub write_u16: extern fn(writer: *mut c_void, id: *const c_char, v: c_ushort) -> WriteStatus,
+    pub write_s32: extern fn(writer: *mut c_void, id: *const c_char, v: c_int) -> WriteStatus,
+    pub write_u32: extern fn(writer: *mut c_void, id: *const c_char, v: c_uint) -> WriteStatus,
+    pub write_s64: extern fn(writer: *mut c_void, id: *const c_char, v: c_longlong) -> WriteStatus,
+    pub write_u64: extern fn(writer: *mut c_void, id: *const c_char, v: c_ulonglong) -> WriteStatus,
     pub write_float: extern fn(writer: *mut c_void, id: *const c_char, v: c_float) -> WriteStatus,
     pub write_double: extern fn(writer: *mut c_void, id: *const c_char, v: c_double) -> WriteStatus,
     pub write_string: extern fn(writer: *mut c_void, id: *const c_char, v: *const c_char)
                              -> WriteStatus,
-    pub write_data: extern fn(w: *mut c_void, id: *const c_char, d: *const uint8_t, l: c_uint)
+    pub write_data: extern fn(w: *mut c_void, id: *const c_char, d: *const c_uchar, l: c_uint)
                             -> WriteStatus,
 }
 

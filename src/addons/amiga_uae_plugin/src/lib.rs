@@ -1,9 +1,8 @@
 #[macro_use]
 extern crate prodbg_api;
 extern crate gdb_remote;
-extern crate libc;
 use prodbg_api::*;
-use libc::c_void;
+use std::os::raw::{c_void};
 use gdb_remote::GdbRemote;
 
 struct AmigaUaeBackend {

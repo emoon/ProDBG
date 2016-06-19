@@ -1,4 +1,4 @@
-use libc::{c_void, c_char, c_uchar};
+use std::os::raw::{c_void, c_char, c_uchar};
 use std::ffi::CStr;
 use std::ptr;
 

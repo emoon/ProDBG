@@ -7,6 +7,5 @@ authors = ["Daniel Collin <daniel@collin.com>"]
 gcc = "0.3.19"
 
 [dependencies]
-libc = "0.2"
 bitflags = "0.3"
 

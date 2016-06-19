@@ -1,4 +1,3 @@
-//use libc::{c_void, c_uchar};
 use std::rc::Rc;
 use core::plugin::Plugin;
 use core::plugins::PluginHandler;

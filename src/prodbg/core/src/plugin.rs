@@ -4,7 +4,7 @@
 ///!
 
 use dynamic_reload::Lib;
-use libc::{c_char, c_void};
+use std::os::raw::{c_char, c_void};
 use std::rc::Rc;
 use std::mem::transmute;
 use std::ffi::CStr;

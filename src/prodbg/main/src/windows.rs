@@ -3,7 +3,6 @@ extern crate bgfx_rs;
 extern crate viewdock;
 
 use bgfx_rs::Bgfx;
-use libc::{c_void, c_int};
 use minifb::{Scale, WindowOptions, MouseMode, MouseButton, Key, KeyRepeat};
 use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::backend_plugin::{BackendPlugins};
@@ -14,6 +13,7 @@ use menu::*;
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::{PDVec2, ImguiKey};
 use prodbg_api::view::CViewCallbacks;
+use std::os::raw::{c_void, c_int};
 //use std::mem::transmute;
 
 const WIDTH: usize = 1280;

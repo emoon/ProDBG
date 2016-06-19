@@ -1,12 +1,11 @@
 extern crate libloading;
 extern crate dynamic_reload;
-extern crate libc;
 
 use self::dynamic_reload::{DynamicReload, Lib, PlatformName, UpdateState};
 use self::libloading::Result as LibRes;
 use self::libloading::Symbol;
 use std::rc::Rc;
-use self::libc::{c_char, c_void};
+use std::os::raw::{c_char, c_void};
 use std::mem::transmute;
 use plugin::Plugin;
 use std::cell::RefCell;

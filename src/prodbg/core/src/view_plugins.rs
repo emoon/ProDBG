@@ -1,11 +1,11 @@
 use prodbg_api::view::CViewCallbacks;
-use libc::{c_void, c_uchar};
 use std::rc::Rc;
 use plugin::Plugin;
 use plugins::PluginHandler;
 use dynamic_reload::Lib;
 use session::SessionHandle;
 use std::ptr;
+use std::os::raw::{c_void, c_uchar};
 use prodbg_api::ui::Ui;
 use plugin_io;
 

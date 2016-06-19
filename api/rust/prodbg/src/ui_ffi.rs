@@ -2,7 +2,6 @@
 // Disable this warning until all code has been fixed
 #[allow(non_upper_case_globals)]
 
-extern crate libc;
 extern crate bitflags;
 
 use std::os::raw::{c_char, c_uchar, c_float, c_int, c_uint, c_ushort, c_void};
