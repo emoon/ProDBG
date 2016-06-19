@@ -1,3 +1,28 @@
+//! View dock is a generic windowing docking library written in [Rust](https://www.rust-lang.org). The purpose of this library
+//! is to allow windows (views from now on) to connect to each other in flexible grid. The main
+//! purpose of this is to be used inside graphical user interfaces (GUI) as it allows users to
+//! arrange their views in an intuitive way.
+//!
+//! Here is an high-level overview of the data layout:
+//!
+//! ![](https://dl.dropboxusercontent.com/u/5205843/prodbg_doc/viewdock/overview.png)
+//!
+//! Viewdock in inspired by https://i3wm.org/docs/userguide.html and while the data structures
+//! isn't identical the idea is the same
+//!
+//! Here is an example in i3wm:
+//!
+//! ![](https://i3wm.org/docs/tree-shot1.png)
+//!
+//! Tree layout
+//!
+//! ![](https://i3wm.org/docs/tree-layout1.png)
+//!
+//! Each split has percentage value that decides how much of each Container that is visible and can
+//! have exact 2 other splits. If a new split is created in an Split the old container will be
+//! moved down a level.
+//!
+
 extern crate serde_json;
 mod error;
 mod serialize;
@@ -6,12 +31,15 @@ use std::io::{Write, Read};
 use std::fs::File;
 use std::io;
 
+/// Handle to a dock
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct DockHandle(pub u64);
 
+/// Handle to a split
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct SplitHandle(pub u64);
 
+/// Data structure for rectangles
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Rect {
     pub x: f32,
@@ -20,6 +48,7 @@ pub struct Rect {
     pub height: f32,
 }
 
+/// Holds information about the plugin view, data and handle
 #[derive(Debug, Clone)]
 pub struct Dock {
     pub handle: DockHandle,
@@ -35,15 +64,21 @@ pub enum Direction {
     Full,
 }
 
+/// Holds a list of available docks
 #[derive(Debug, Clone)]
 pub struct Container {
+    /// Docks this container. The reason of supporting several docks here is that this can be used
+    /// to implement tabs but only one dock should be visible at a time
     pub docks: Vec<Dock>,
     pub rect: Rect,
 }
 
+/// Holds data of the splits and containers. There are always two containers in a split if it has
+/// no split children. If the Split has another split in left it's expected that the left_docks
+/// container will be empty as they docks would be on a lower level.
 #[derive(Debug)]
 pub struct Split {
-    /// left/top slipit
+    /// left/top split
     pub left: Option<SplitHandle>,
     /// right/bottom split
     pub right: Option<SplitHandle>,
@@ -55,12 +90,15 @@ pub struct Split {
     pub ratio: f32,
     /// Direction of the split
     pub direction: Direction,
-    /// Handle of the spliter
+    /// Handle of the split
     pub handle: SplitHandle,
     /// Rect
     rect: Rect,
 }
 
+/// Top level structure that holds an array of all the splits and the rect size of of the full
+/// layout. This size is then propagated downwards and recalculated depending on the tree
+/// structure.
 #[derive(Debug)]
 pub struct Workspace {
     pub splits: Vec<Split>,
