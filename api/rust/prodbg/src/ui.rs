@@ -418,7 +418,8 @@ impl Ui {
     pub fn begin_popup(&self, text: &str) -> bool {
         unsafe {
             let t = CFixedString::from_str(text).as_ptr();
-            int_to_bool!(((*self.api).begin_popup)(t))
+            ((*self.api).begin_popup)(t) == 1
+            //int_to_bool!(((*self.api).begin_popup)(t))
         }
     }
 
@@ -426,7 +427,7 @@ impl Ui {
         unsafe {
             let t = CFixedString::from_str(text).as_ptr();
             let s = if enabled { 1 } else { 0 };
-            int_to_bool!(((*self.api).begin_menu)(t, s))
+            ((*self.api).begin_menu)(t, s) == 1
         }
     }
 
@@ -442,7 +443,7 @@ impl Ui {
             let name = CFixedString::from_str(text).as_ptr();
             let s = if selected { 1 } else { 0 };
             let e = if enabled { 1 } else { 0 };
-            int_to_bool!(((*self.api).menu_item)(name, ptr::null(), s, e))
+            ((*self.api).menu_item)(name, ptr::null(), s, e) == 1
         }
     }
 

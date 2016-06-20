@@ -419,14 +419,14 @@ typedef struct PDUI {
 	void (*end_main_menu_bar)();
 	bool (*begin_menuBar)();
 	void (*end_menu_bar)();
-	bool (*begin_menu)(const char* label, bool enabled);
+	int  (*begin_menu)(const char* label, bool enabled);
 	void (*end_menu)();
-	bool (*menu_item)(const char* label, const char* shortcut, bool selected, bool enabled);
+	int  (*menu_item)(const char* label, const char* shortcut, bool selected, bool enabled);
 	bool (*menu_itemPtr)(const char* label, const char* shortcut, bool* p_selected, bool enabled);
 
 	// Popup
 	void (*open_popup)(const char* strId);
-	bool (*begin_popup)(const char* strId);
+	int  (*begin_popup)(const char* strId);
 	bool (*begin_popup_modal)(const char* name, bool* p_opened, PDUIWindowFlags extraFlags);
 	bool (*begin_popup_context_item)(const char* strId, int mouse_button);
 	bool (*begin_popup_context_window)(bool also_over_items, const char* strId, int mouse_button);
