@@ -185,10 +185,6 @@ macro_rules! true_is_1 {
     ($e:expr) => (if $e { 1 } else { 0 })
 }
 
-macro_rules! int_to_bool {
-    ($e:expr) => (if $e == 1 { true } else { false })
-}
-
 impl Ui {
     pub fn new(native_api: *mut CPdUI) -> Ui {
         Ui {
@@ -419,7 +415,6 @@ impl Ui {
         unsafe {
             let t = CFixedString::from_str(text).as_ptr();
             ((*self.api).begin_popup)(t) == 1
-            //int_to_bool!(((*self.api).begin_popup)(t))
         }
     }
 
@@ -470,15 +465,15 @@ impl Ui {
     ///
 
 	pub fn is_key_down(&self, key: Key) -> bool {
-        unsafe { int_to_bool!(((*self.api).is_key_down)(key as i32)) }
+        unsafe { ((*self.api).is_key_down)(key as i32) == 1 }
     }
 
 	pub fn is_key_pressed(&self, key: Key, repeat: bool) -> bool {
-        unsafe { int_to_bool!(((*self.api).is_key_pressed)(key as i32, true_is_1!(repeat))) }
+        unsafe { ((*self.api).is_key_pressed)(key as i32, true_is_1!(repeat)) == 1 }
     }
 
 	pub fn is_key_released(&self, key: Key) -> bool {
-        unsafe { int_to_bool!(((*self.api).is_key_released)(key as i32)) }
+        unsafe { ((*self.api).is_key_released)(key as i32) == 1 }
     }
 
     ///
