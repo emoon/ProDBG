@@ -631,6 +631,7 @@ static int combo2(const char* label, int* currentItem, const char* itemsSeparate
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// note: function pointer returns bool - is this potentially a problem in the future?
 static int combo3(const char* label, int* currentItem, bool (*itemsGetter)(void* data, int idx, const char** out_text), void* data, int itemsCount, int heightInItems) {
     return ImGui::Combo(label, currentItem, itemsGetter, data, itemsCount, heightInItems) ? 1 : 0;
 }
@@ -1057,6 +1058,7 @@ static int list_box(const char* label, int* currentItem, const char** items, int
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// note: function pointer returns bool - is this potentially a problem in the future?
 static int list_box2(const char* label, int* currentItem, bool (*itemsGetter)(void* data, int idx, const char** out_text), void* data, int itemsCount, int heightInItems) {
     return ImGui::ListBox(label, currentItem, itemsGetter, data, itemsCount, heightInItems) ? 1 : 0;
 }
