@@ -47,7 +47,7 @@ sudo apt-get update
 sudo apt-get install -y libx11-dev libgl1-mesa-dev
 ```
 
-ProDBG uses Tundra to build the project on non-Windows systems. You can get and build by running the following:
+ProDBG uses Tundra to build the project the project. Binaries are supplied on Mac and Windows but needs to be built on Linux:
 * `git clone https://github.com/emoon/tundra.git`
 * `cd tundra`
 * `CXX=g++ make`
