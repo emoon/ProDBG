@@ -17,9 +17,19 @@ I did a presentation on 2014-11 about the project for the awesome rendering team
 
 As the rewrite of ProDBG is currently under way no debugging is working currently and just some basic UI is up and running.
 
+## Cloning the repository
+
+The ProDBG repository contains submodules. Clone it with git clone --recursive. If you forgot, run git submodule update --init --recursive.
+
 ## How to compile and build
 
 Latest stable version of **Rust** (1.8+) needs to be present on the system and can be downloaded from [here](https://www.rust-lang.org/downloads.html) and on Windows the 64-bit **MSVC ABI** version is required which can be found here https://www.rust-lang.org/downloads.html#win-foot
+
+ProDBG uses Tundra to build the project. You can get and build by running the following:
+* git clone https://github.com/emoon/tundra.git
+* cd tundra
+* make
+* sudo make install
 
 ## Mac
 
@@ -35,20 +45,18 @@ Open a cmd window and first run ```scripts\vcvarsx86_amd64.bat``` and then ```sc
 
 ## Linux
 
-This repository contains submodules. Clone it with git clone --recursive. If you forgot, run git submodule update --init --recursive
+Building the code on Linux will require some prerequisites to be installed. Which prerequisites depends on the distribution being used.
 
-After clone ProDBG, you need to do:
+For Ubuntu you can use the following:
 ```
-git clone https://github.com/emoon/tundra.git
-cd tundra; make; sudo make install; cd ..
-sudo add-apt-repository -y ppa:ubuntu-toolchain-r/testsudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 sudo apt-get update && sudo apt-get install -y clang-3.5 libx11-dev libgl1-mesa-dev g++-4.9
 sudo ln -s /usr/lib/llvm-3.5/bin/clang /usr/bin/clang
 sudo ln -s /usr/lib/llvm-3.5/bin/clang++ /usr/bin/clang++
 tundra2 linux-gcc-debug
 ```
 
-To run complited programm
+To run the compiled program
 ```
 t2-output/linux-gcc-debug-default/prodbg
 ```
+
