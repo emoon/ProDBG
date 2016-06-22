@@ -35,6 +35,20 @@ Open a cmd window and first run ```scripts\vcvarsx86_amd64.bat``` and then ```sc
 
 ## Linux
 
-Currently the Linux build is compiling but crashes at startup which needs to be investigated.
+This repository contains submodules. Clone it with git clone --recursive. If you forgot, run git submodule update --init --recursive
 
+After clone ProDBG, you need to do:
+```
+git clone https://github.com/emoon/tundra.git
+cd tundra; make; sudo make install; cd ..
+sudo add-apt-repository -y ppa:ubuntu-toolchain-r/testsudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+sudo apt-get update && sudo apt-get install -y clang-3.5 libx11-dev libgl1-mesa-dev g++-4.9
+sudo ln -s /usr/lib/llvm-3.5/bin/clang /usr/bin/clang
+sudo ln -s /usr/lib/llvm-3.5/bin/clang++ /usr/bin/clang++
+tundra2 linux-gcc-debug
+```
 
+To run complited programm
+```
+t2-output/linux-gcc-debug-default/prodbg
+```
