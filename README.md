@@ -25,12 +25,6 @@ The ProDBG repository contains submodules. Clone it with `git clone --recursive`
 
 Latest stable version of **Rust** (1.8+) needs to be present on the system and can be downloaded from [here](https://www.rust-lang.org/downloads.html) and on Windows the 64-bit **MSVC ABI** version is required which can be found here https://www.rust-lang.org/downloads.html#win-foot
 
-ProDBG uses Tundra to build the project. You can get and build by running the following:
-* `git clone https://github.com/emoon/tundra.git`
-* `cd tundra`
-* `make`
-* `sudo make install`
-
 ## Mac
 
 Building the code on Mac requires that Clang is installed on your system. The easiest way to do this is to get Xcode and install the commandline tools.
@@ -49,14 +43,18 @@ Building the code on Linux will require some prerequisites to be installed. Whic
 
 For Ubuntu you can use the following:
 ```
-sudo apt-get update && sudo apt-get install -y clang-3.5 libx11-dev libgl1-mesa-dev g++-4.9
-sudo ln -s /usr/lib/llvm-3.5/bin/clang /usr/bin/clang
-sudo ln -s /usr/lib/llvm-3.5/bin/clang++ /usr/bin/clang++
+sudo apt-get update
+sudo apt-get install -y libx11-dev libgl1-mesa-dev g++-4.9
 tundra2 linux-gcc-debug
 ```
 
-To run the compiled program
-```
-t2-output/linux-gcc-debug-default/prodbg
-```
+ProDBG uses Tundra to build the project on non-Windows systems. You can get and build by running the following:
+* `git clone https://github.com/emoon/tundra.git`
+* `cd tundra`
+* `make`
+* `sudo make install`
+
+After having installed Tundra, from within the ProDBG repository run `tundra2 linux-gcc-debug` to kick off the compilation.
+
+To run the compiled program after compilation: `t2-output/linux-gcc-debug-default/prodbg`
 
