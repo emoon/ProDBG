@@ -50,7 +50,7 @@ sudo apt-get install -y libx11-dev libgl1-mesa-dev
 ProDBG uses Tundra to build the project on non-Windows systems. You can get and build by running the following:
 * `git clone https://github.com/emoon/tundra.git`
 * `cd tundra`
-* `make`
+* `CXX=g++ make`
 * `sudo make install`
 
 After having installed Tundra, from within the ProDBG repository run `tundra2 linux-gcc-debug` to kick off the compilation.
