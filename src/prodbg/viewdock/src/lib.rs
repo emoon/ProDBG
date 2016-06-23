@@ -234,15 +234,11 @@ impl Split {
     }
 
     pub fn no_split(&mut self, direction: Direction, dock_handle: DockHandle) -> bool {
-        // hack!
-        if self.direction == Direction::Full {
-            self.direction = direction;
-        }
-
         if self.is_left_zero_and_none() {
             //println!("no_split: is_left_zero_and_none");
             self.left_docks.docks.push(Dock::new(dock_handle));
             self.adjust_ratio_after_add();
+            self.direction = direction;
             return true;
         }
 
@@ -250,6 +246,7 @@ impl Split {
             //println!("no_split: is_right_zero_and_none");
             self.right_docks.docks.push(Dock::new(dock_handle));
             self.adjust_ratio_after_add();
+            self.direction = direction;
             return true;
         }
 
