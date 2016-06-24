@@ -234,7 +234,7 @@ static void destroyInstance(void* user_data) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void showInUI(ConsoleData* consoleData, PDReader* reader, PDUI* uiFuncs) {
+void showInUI(ConsoleData* consoleData, PDReader* reader, PDUI* uiFuncs) {
     (void)consoleData;
     (void)reader;
 
@@ -333,7 +333,10 @@ static int update(void* user_data, PDUI* uiFuncs, PDReader* inEvents, PDWriter* 
         }
        }*/
 
-    showInUI(consoleData, inEvents, uiFuncs);
+	(void)consoleData;
+	(void)inEvents;
+	(void)uiFuncs;
+    //showInUI(consoleData, inEvents, uiFuncs);
 
 
     for (size_t i = 0; i < consoleData->scripts.size(); ++i) {
