@@ -297,3 +297,37 @@ impl Container {
         None
     }
 }
+
+#[cfg(test)]
+mod test {
+    use {Split, Rect};
+
+    fn check_range(inv: f32, value: f32, delta: f32) -> bool {
+        (inv - value).abs() < delta
+    }
+
+    #[test]
+    fn test_gen_horizontal_size() {
+        let border_size = 4.0;
+        let rect_in = Rect::new(10.0, 20.0, 30.0, 40.0);
+        let rect = Split::get_sizer_from_rect_horizontal(rect_in, border_size);
+
+        assert_eq!(check_range(rect.x, rect_in.x, 0.001), true);
+        assert_eq!(check_range(rect.y, 60.0, 0.001), true);
+        assert_eq!(check_range(rect.width, rect_in.width, 0.001), true);
+        assert_eq!(check_range(rect.height, border_size, 0.001), true);
+    }
+
+    #[test]
+    fn test_gen_vertical_size() {
+        let border_size = 4.0;
+        let rect_in = Rect::new(10.0, 20.0, 30.0, 40.0);
+        let rect = Split::get_sizer_from_rect_vertical(rect_in, border_size);
+
+        assert_eq!(check_range(rect.x, 40.0, 0.001), true);
+        assert_eq!(check_range(rect.y, rect_in.y, 0.001), true);
+        assert_eq!(check_range(rect.width, border_size, 0.001), true);
+        assert_eq!(check_range(rect.height, rect_in.height, 0.001), true);
+    }
+
+}

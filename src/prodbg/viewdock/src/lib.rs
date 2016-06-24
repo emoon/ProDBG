@@ -265,82 +265,9 @@ impl Workspace {
 
 #[cfg(test)]
 mod test {
-    extern crate serde_json;
-
-    use {Container, Split, Workspace, Dock, Rect, DockHandle, SplitHandle, Direction};
-
-    fn check_range(inv: f32, value: f32, delta: f32) -> bool {
-        (inv - value).abs() < delta
-    }
-
-    #[test]
-    fn test_calc_rect_horz_half() {
-        let rects = Rect::split_horizontally(Rect::new(0.0, 0.0, 1024.0, 1024.0), 0.5);
-
-        assert_eq!(check_range(rects.0.x, 0.0, 0.001), true);
-        assert_eq!(check_range(rects.0.y, 0.0, 0.001), true);
-        assert_eq!(check_range(rects.0.width, 1024.0, 0.001), true);
-        assert_eq!(check_range(rects.0.height, 512.0, 0.001), true);
-
-        assert_eq!(check_range(rects.1.x, 0.0, 0.001), true);
-        assert_eq!(check_range(rects.1.y, 512.0, 0.001), true);
-        assert_eq!(check_range(rects.1.width, 1024.0, 0.001), true);
-        assert_eq!(check_range(rects.1.height, 512.0, 0.001), true);
-    }
-
-    #[test]
-    fn test_calc_rect_horz_25_per() {
-        let rects = Workspace::split_horizontally(Rect::new(0.0, 0.0, 1024.0, 1024.0), 0.25);
-
-        assert_eq!(check_range(rects.0.x, 0.0, 0.001), true);
-        assert_eq!(check_range(rects.0.y, 0.0, 0.001), true);
-        assert_eq!(check_range(rects.0.width, 1024.0, 0.001), true);
-        assert_eq!(check_range(rects.0.height, 256.0, 0.001), true);
-
-        assert_eq!(check_range(rects.1.x, 0.0, 0.001), true);
-        assert_eq!(check_range(rects.1.y, 256.0, 0.001), true);
-        assert_eq!(check_range(rects.1.width, 1024.0, 0.001), true);
-        assert_eq!(check_range(rects.1.height, 768.0, 0.001), true);
-    }
-
-    #[test]
-    fn test_calc_rect_horz_25_per_2() {
-        let rects = Workspace::split_horizontally(Rect::new(16.0, 32.0, 512.0, 1024.0), 0.25);
-
-        assert_eq!(check_range(rects.0.x, 16.0, 0.001), true);
-        assert_eq!(check_range(rects.0.y, 32.0, 0.001), true);
-        assert_eq!(check_range(rects.0.width, 512.0, 0.001), true);
-        assert_eq!(check_range(rects.0.height, 256.0, 0.001), true);
-
-        assert_eq!(check_range(rects.1.x, 16.0, 0.001), true);
-        assert_eq!(check_range(rects.1.y, 288.0, 0.001), true);
-        assert_eq!(check_range(rects.1.width, 512.0, 0.001), true);
-        assert_eq!(check_range(rects.1.height, 768.0, 0.001), true);
-    }
-
-    #[test]
-    fn test_gen_horizontal_size() {
-        let border_size = 4.0;
-        let rect_in = Rect::new(10.0, 20.0, 30.0, 40.0);
-        let rect = Split::get_sizer_from_rect_horizontal(rect_in, border_size);
-
-        assert_eq!(check_range(rect.x, rect_in.x, 0.001), true);
-        assert_eq!(check_range(rect.y, 60.0, 0.001), true);
-        assert_eq!(check_range(rect.width, rect_in.width, 0.001), true);
-        assert_eq!(check_range(rect.height, border_size, 0.001), true);
-    }
-
-    #[test]
-    fn test_gen_vertical_size() {
-        let border_size = 4.0;
-        let rect_in = Rect::new(10.0, 20.0, 30.0, 40.0);
-        let rect = Split::get_sizer_from_rect_vertical(rect_in, border_size);
-
-        assert_eq!(check_range(rect.x, 40.0, 0.001), true);
-        assert_eq!(check_range(rect.y, rect_in.y, 0.001), true);
-        assert_eq!(check_range(rect.width, border_size, 0.001), true);
-        assert_eq!(check_range(rect.height, rect_in.height, 0.001), true);
-    }
+//    extern crate serde_json;
+//
+//    use {Container, Split, Workspace, Dock, Rect, DockHandle, SplitHandle, Direction};
 
 //    #[test]
 //    fn test_inside_horizontal() {
@@ -352,213 +279,213 @@ mod test {
 //        assert_eq!(Rect::is_inside((11.0, 61.0), rect_horz), true);
 //    }
 
-    #[test]
-    fn test_rect_serialize() {
-        let rect_in = Rect { x: 1.0, y: 2.0, width: 1024.0, height: 768.0 };
-        let serialized = serde_json::to_string(&rect_in).unwrap();
-        let rect_out: Rect = serde_json::from_str(&serialized).unwrap();
-
-        assert_eq!(rect_in.x as i32, rect_out.x as i32);
-        assert_eq!(rect_in.y as i32, rect_out.y as i32);
-        assert_eq!(rect_in.width as i32, rect_out.width as i32);
-        assert_eq!(rect_in.height as i32, rect_out.height as i32);
-    }
-
-    #[test]
-    fn test_dockhandle_serialize() {
-        let handle_in = DockHandle(0x1337);
-        let serialized = serde_json::to_string(&handle_in).unwrap();
-        let handle_out: DockHandle = serde_json::from_str(&serialized).unwrap();
-
-        assert_eq!(handle_in, handle_out);
-    }
-
-    #[test]
-    fn test_splithandle_serialize() {
-        let handle_in = SplitHandle(0x4422);
-        let serialized = serde_json::to_string(&handle_in).unwrap();
-        let handle_out: SplitHandle = serde_json::from_str(&serialized).unwrap();
-
-        assert_eq!(handle_in, handle_out);
-    }
-
-    #[test]
-    fn test_dock_serialize_0() {
-        let dock_in = Dock {
-            handle: DockHandle(1),
-            plugin_name: "disassembly".to_owned(),
-            plugin_data: None,
-            rect: Rect::new(1.0, 2.0, 3.0, 4.0)
-        };
-
-        let serialized = serde_json::to_string(&dock_in).unwrap();
-        let dock_out: Dock = serde_json::from_str(&serialized).unwrap();
-
-        assert_eq!(dock_in.handle, dock_out.handle);
-        assert_eq!(dock_in.plugin_name, dock_out.plugin_name);
-        assert_eq!(dock_in.plugin_data, dock_out.plugin_data);
-        // expect that rect is not serialized and set to zero
-        assert_eq!(dock_out.rect.x as i32, 0);
-        assert_eq!(dock_out.rect.y as i32, 0);
-        assert_eq!(dock_out.rect.width as i32, 0);
-        assert_eq!(dock_out.rect.height as i32, 0);
-    }
-
-    #[test]
-    fn test_dock_serialize_1() {
-        let dock_in = Dock {
-            handle: DockHandle(1),
-            plugin_name: "registers".to_owned(),
-            plugin_data: Some(vec!["some_data".to_owned(), "more_data".to_owned()]),
-            rect: Rect::new(4.0, 5.0, 2.0, 8.0)
-        };
-
-        let serialized = serde_json::to_string(&dock_in).unwrap();
-        let dock_out: Dock = serde_json::from_str(&serialized).unwrap();
-
-        assert_eq!(dock_in.handle, dock_out.handle);
-        assert_eq!(dock_in.plugin_name, dock_out.plugin_name);
-        assert_eq!(dock_in.plugin_data, dock_out.plugin_data);
-
-        // expect that rect is not serialized and set to zero
-        assert_eq!(dock_out.rect.x as i32, 0);
-        assert_eq!(dock_out.rect.y as i32, 0);
-        assert_eq!(dock_out.rect.width as i32, 0);
-        assert_eq!(dock_out.rect.height as i32, 0);
-
-        let plugin_data = dock_out.plugin_data.as_ref().unwrap();
-
-        assert_eq!(plugin_data.len(), 2);
-        assert_eq!(plugin_data[0], "some_data");
-        assert_eq!(plugin_data[1], "more_data");
-    }
-
-    #[test]
-    fn test_container_serialize_0() {
-        let container_in = Container {
-            docks: Vec::new(),
-            rect: Rect::new(4.0, 5.0, 2.0, 8.0)
-        };
-
-        let serialized = serde_json::to_string(&container_in).unwrap();
-        let container_out: Container = serde_json::from_str(&serialized).unwrap();
-
-        assert_eq!(container_out.docks.len(), 0);
-        // expect that rect is not serialized and set to zero
-        assert_eq!(container_out.rect.x as i32, 0);
-        assert_eq!(container_out.rect.y as i32, 0);
-        assert_eq!(container_out.rect.width as i32, 0);
-        assert_eq!(container_out.rect.height as i32, 0);
-    }
-
-    #[test]
-    fn test_container_serialize_1() {
-        let container_in = Container {
-            docks: vec![Dock {
-                handle: DockHandle(1),
-                plugin_name: "registers".to_owned(),
-                plugin_data: Some(vec!["some_data".to_owned(), "more_data".to_owned()]),
-                rect: Rect::new(4.0, 5.0, 2.0, 8.0)
-            }],
-            rect: Rect::default(),
-        };
-
-        let serialized = serde_json::to_string(&container_in).unwrap();
-        let container_out: Container = serde_json::from_str(&serialized).unwrap();
-
-        assert_eq!(container_out.docks.len(), 1);
-        assert_eq!(container_out.docks[0].plugin_name, "registers");
-    }
-
-    #[test]
-    fn test_split_serialize_0() {
-        let split_in = Split {
-            left: None,
-            right: None,
-            left_docks: Container::new(),
-            right_docks: Container::new(),
-            ratio: 0.7,
-            direction: Direction::Full,
-            handle: SplitHandle(1),
-            rect: Rect::new(4.0, 5.0, 2.0, 8.0)
-        };
-
-        let serialized = serde_json::to_string(&split_in).unwrap();
-        let split_out: Split = serde_json::from_str(&serialized).unwrap();
-
-        assert_eq!(split_in.left, split_out.left);
-        assert_eq!(split_in.right, split_out.right);
-        assert_eq!(split_in.direction, split_out.direction);
-        assert_eq!(split_in.handle, split_out.handle);
-
-        // expect that rect is not serialized and set to zero
-        assert_eq!(split_out.rect.x as i32, 0);
-        assert_eq!(split_out.rect.y as i32, 0);
-        assert_eq!(split_out.rect.width as i32, 0);
-        assert_eq!(split_out.rect.height as i32, 0);
-    }
-
-    #[test]
-    fn test_direction_serialize() {
-        let dir_in_0 = Direction::Horizontal;
-        let dir_in_1 = Direction::Full;
-        let dir_in_2 = Direction::Vertical;
-
-        let s0 = serde_json::to_string(&dir_in_0).unwrap();
-        let s1 = serde_json::to_string(&dir_in_1).unwrap();
-        let s2 = serde_json::to_string(&dir_in_2).unwrap();
-
-        let dir_out_0: Direction = serde_json::from_str(&s0).unwrap();
-        let dir_out_1: Direction = serde_json::from_str(&s1).unwrap();
-        let dir_out_2: Direction = serde_json::from_str(&s2).unwrap();
-
-        assert_eq!(dir_in_0, dir_out_0);
-        assert_eq!(dir_in_1, dir_out_1);
-        assert_eq!(dir_in_2, dir_out_2);
-    }
-
-    #[test]
-    fn test_workspace_serialize_0() {
-        let ws_in = Workspace {
-            splits: Vec::new(),
-            rect: Rect::new(4.0, 5.0, 2.0, 8.0),
-            window_border: 6.0,
-            handle_counter: SplitHandle(2),
-        };
-
-        let serialized = serde_json::to_string(&ws_in).unwrap();
-        let ws_out: Workspace = serde_json::from_str(&serialized).unwrap();
-
-        assert_eq!(ws_out.splits.len(), 0);
-        assert_eq!(ws_out.window_border as i32, 6);
-        assert_eq!(ws_out.rect.x as i32, 4);
-        assert_eq!(ws_out.rect.y as i32, 5);
-        assert_eq!(ws_out.rect.width as i32, 2);
-        assert_eq!(ws_out.rect.height as i32, 8);
-    }
-
-    #[test]
-    fn test_workspace_serialize_1() {
-        let ws_in = Workspace {
-            splits: vec![Split {
-                left: None,
-                right: None,
-                left_docks: Container::new(),
-                right_docks: Container::new(),
-                ratio: 0.7,
-                direction: Direction::Full,
-                handle: SplitHandle(1),
-                rect: Rect::new(4.0, 5.0, 2.0, 8.0)
-            }],
-            rect: Rect::new(4.0, 5.0, 2.0, 8.0),
-            window_border: 6.0,
-            handle_counter: SplitHandle(2),
-        };
-
-        let serialized = serde_json::to_string(&ws_in).unwrap();
-        let ws_out: Workspace = serde_json::from_str(&serialized).unwrap();
-
-        assert_eq!(ws_out.splits.len(), 1);
-        assert_eq!(ws_out.splits[0].handle.0, 1);
-    }
+//    #[test]
+//    fn test_rect_serialize() {
+//        let rect_in = Rect { x: 1.0, y: 2.0, width: 1024.0, height: 768.0 };
+//        let serialized = serde_json::to_string(&rect_in).unwrap();
+//        let rect_out: Rect = serde_json::from_str(&serialized).unwrap();
+//
+//        assert_eq!(rect_in.x as i32, rect_out.x as i32);
+//        assert_eq!(rect_in.y as i32, rect_out.y as i32);
+//        assert_eq!(rect_in.width as i32, rect_out.width as i32);
+//        assert_eq!(rect_in.height as i32, rect_out.height as i32);
+//    }
+//
+//    #[test]
+//    fn test_dockhandle_serialize() {
+//        let handle_in = DockHandle(0x1337);
+//        let serialized = serde_json::to_string(&handle_in).unwrap();
+//        let handle_out: DockHandle = serde_json::from_str(&serialized).unwrap();
+//
+//        assert_eq!(handle_in, handle_out);
+//    }
+//
+//    #[test]
+//    fn test_splithandle_serialize() {
+//        let handle_in = SplitHandle(0x4422);
+//        let serialized = serde_json::to_string(&handle_in).unwrap();
+//        let handle_out: SplitHandle = serde_json::from_str(&serialized).unwrap();
+//
+//        assert_eq!(handle_in, handle_out);
+//    }
+//
+//    #[test]
+//    fn test_dock_serialize_0() {
+//        let dock_in = Dock {
+//            handle: DockHandle(1),
+//            plugin_name: "disassembly".to_owned(),
+//            plugin_data: None,
+//            rect: Rect::new(1.0, 2.0, 3.0, 4.0)
+//        };
+//
+//        let serialized = serde_json::to_string(&dock_in).unwrap();
+//        let dock_out: Dock = serde_json::from_str(&serialized).unwrap();
+//
+//        assert_eq!(dock_in.handle, dock_out.handle);
+//        assert_eq!(dock_in.plugin_name, dock_out.plugin_name);
+//        assert_eq!(dock_in.plugin_data, dock_out.plugin_data);
+//        // expect that rect is not serialized and set to zero
+//        assert_eq!(dock_out.rect.x as i32, 0);
+//        assert_eq!(dock_out.rect.y as i32, 0);
+//        assert_eq!(dock_out.rect.width as i32, 0);
+//        assert_eq!(dock_out.rect.height as i32, 0);
+//    }
+//
+//    #[test]
+//    fn test_dock_serialize_1() {
+//        let dock_in = Dock {
+//            handle: DockHandle(1),
+//            plugin_name: "registers".to_owned(),
+//            plugin_data: Some(vec!["some_data".to_owned(), "more_data".to_owned()]),
+//            rect: Rect::new(4.0, 5.0, 2.0, 8.0)
+//        };
+//
+//        let serialized = serde_json::to_string(&dock_in).unwrap();
+//        let dock_out: Dock = serde_json::from_str(&serialized).unwrap();
+//
+//        assert_eq!(dock_in.handle, dock_out.handle);
+//        assert_eq!(dock_in.plugin_name, dock_out.plugin_name);
+//        assert_eq!(dock_in.plugin_data, dock_out.plugin_data);
+//
+//        // expect that rect is not serialized and set to zero
+//        assert_eq!(dock_out.rect.x as i32, 0);
+//        assert_eq!(dock_out.rect.y as i32, 0);
+//        assert_eq!(dock_out.rect.width as i32, 0);
+//        assert_eq!(dock_out.rect.height as i32, 0);
+//
+//        let plugin_data = dock_out.plugin_data.as_ref().unwrap();
+//
+//        assert_eq!(plugin_data.len(), 2);
+//        assert_eq!(plugin_data[0], "some_data");
+//        assert_eq!(plugin_data[1], "more_data");
+//    }
+//
+//    #[test]
+//    fn test_container_serialize_0() {
+//        let container_in = Container {
+//            docks: Vec::new(),
+//            rect: Rect::new(4.0, 5.0, 2.0, 8.0)
+//        };
+//
+//        let serialized = serde_json::to_string(&container_in).unwrap();
+//        let container_out: Container = serde_json::from_str(&serialized).unwrap();
+//
+//        assert_eq!(container_out.docks.len(), 0);
+//        // expect that rect is not serialized and set to zero
+//        assert_eq!(container_out.rect.x as i32, 0);
+//        assert_eq!(container_out.rect.y as i32, 0);
+//        assert_eq!(container_out.rect.width as i32, 0);
+//        assert_eq!(container_out.rect.height as i32, 0);
+//    }
+//
+//    #[test]
+//    fn test_container_serialize_1() {
+//        let container_in = Container {
+//            docks: vec![Dock {
+//                handle: DockHandle(1),
+//                plugin_name: "registers".to_owned(),
+//                plugin_data: Some(vec!["some_data".to_owned(), "more_data".to_owned()]),
+//                rect: Rect::new(4.0, 5.0, 2.0, 8.0)
+//            }],
+//            rect: Rect::default(),
+//        };
+//
+//        let serialized = serde_json::to_string(&container_in).unwrap();
+//        let container_out: Container = serde_json::from_str(&serialized).unwrap();
+//
+//        assert_eq!(container_out.docks.len(), 1);
+//        assert_eq!(container_out.docks[0].plugin_name, "registers");
+//    }
+//
+//    #[test]
+//    fn test_split_serialize_0() {
+//        let split_in = Split {
+//            left: None,
+//            right: None,
+//            left_docks: Container::new(),
+//            right_docks: Container::new(),
+//            ratio: 0.7,
+//            direction: Direction::Full,
+//            handle: SplitHandle(1),
+//            rect: Rect::new(4.0, 5.0, 2.0, 8.0)
+//        };
+//
+//        let serialized = serde_json::to_string(&split_in).unwrap();
+//        let split_out: Split = serde_json::from_str(&serialized).unwrap();
+//
+//        assert_eq!(split_in.left, split_out.left);
+//        assert_eq!(split_in.right, split_out.right);
+//        assert_eq!(split_in.direction, split_out.direction);
+//        assert_eq!(split_in.handle, split_out.handle);
+//
+//        // expect that rect is not serialized and set to zero
+//        assert_eq!(split_out.rect.x as i32, 0);
+//        assert_eq!(split_out.rect.y as i32, 0);
+//        assert_eq!(split_out.rect.width as i32, 0);
+//        assert_eq!(split_out.rect.height as i32, 0);
+//    }
+//
+//    #[test]
+//    fn test_direction_serialize() {
+//        let dir_in_0 = Direction::Horizontal;
+//        let dir_in_1 = Direction::Full;
+//        let dir_in_2 = Direction::Vertical;
+//
+//        let s0 = serde_json::to_string(&dir_in_0).unwrap();
+//        let s1 = serde_json::to_string(&dir_in_1).unwrap();
+//        let s2 = serde_json::to_string(&dir_in_2).unwrap();
+//
+//        let dir_out_0: Direction = serde_json::from_str(&s0).unwrap();
+//        let dir_out_1: Direction = serde_json::from_str(&s1).unwrap();
+//        let dir_out_2: Direction = serde_json::from_str(&s2).unwrap();
+//
+//        assert_eq!(dir_in_0, dir_out_0);
+//        assert_eq!(dir_in_1, dir_out_1);
+//        assert_eq!(dir_in_2, dir_out_2);
+//    }
+//
+//    #[test]
+//    fn test_workspace_serialize_0() {
+//        let ws_in = Workspace {
+//            splits: Vec::new(),
+//            rect: Rect::new(4.0, 5.0, 2.0, 8.0),
+//            window_border: 6.0,
+//            handle_counter: SplitHandle(2),
+//        };
+//
+//        let serialized = serde_json::to_string(&ws_in).unwrap();
+//        let ws_out: Workspace = serde_json::from_str(&serialized).unwrap();
+//
+//        assert_eq!(ws_out.splits.len(), 0);
+//        assert_eq!(ws_out.window_border as i32, 6);
+//        assert_eq!(ws_out.rect.x as i32, 4);
+//        assert_eq!(ws_out.rect.y as i32, 5);
+//        assert_eq!(ws_out.rect.width as i32, 2);
+//        assert_eq!(ws_out.rect.height as i32, 8);
+//    }
+//
+//    #[test]
+//    fn test_workspace_serialize_1() {
+//        let ws_in = Workspace {
+//            splits: vec![Split {
+//                left: None,
+//                right: None,
+//                left_docks: Container::new(),
+//                right_docks: Container::new(),
+//                ratio: 0.7,
+//                direction: Direction::Full,
+//                handle: SplitHandle(1),
+//                rect: Rect::new(4.0, 5.0, 2.0, 8.0)
+//            }],
+//            rect: Rect::new(4.0, 5.0, 2.0, 8.0),
+//            window_border: 6.0,
+//            handle_counter: SplitHandle(2),
+//        };
+//
+//        let serialized = serde_json::to_string(&ws_in).unwrap();
+//        let ws_out: Workspace = serde_json::from_str(&serialized).unwrap();
+//
+//        assert_eq!(ws_out.splits.len(), 1);
+//        assert_eq!(ws_out.splits[0].handle.0, 1);
+//    }
 }
