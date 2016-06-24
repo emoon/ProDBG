@@ -262,9 +262,9 @@ impl Window {
             State::Default => {
                 if let Some(h) = self.ws.is_hovering_sizer(mouse_pos) {
                     if h.1 == Direction::Vertical {
-                    	self.win.set_cursor_style(CursorStyle::ResizeUpDown);
-                    } else {
                     	self.win.set_cursor_style(CursorStyle::ResizeLeftRight);
+                    } else {
+                    	self.win.set_cursor_style(CursorStyle::ResizeUpDown);
                     }
 
                     if self.win.get_mouse_down(MouseButton::Left) {
@@ -283,9 +283,9 @@ impl Window {
                 if self.win.get_mouse_down(MouseButton::Left) {
                     let t = self.mouse_state.handle.unwrap();
                     if t.1 == Direction::Vertical {
-                    	self.win.set_cursor_style(CursorStyle::ResizeUpDown);
-                    } else {
                     	self.win.set_cursor_style(CursorStyle::ResizeLeftRight);
+                    } else {
+                    	self.win.set_cursor_style(CursorStyle::ResizeUpDown);
                     }
                     self.ws.drag_sizer(t.0, delta);
                 } else {
