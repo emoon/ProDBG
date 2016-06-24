@@ -25,11 +25,11 @@
 
 extern crate serde_json;
 mod error;
-mod serialize;
+// mod serialize;
 pub use self::error::Error;
-use std::io::{Write, Read};
-use std::fs::File;
-use std::io;
+// use std::io::{Write, Read};
+// use std::fs::File;
+//use std::io;
 
 /// Handle to a dock
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -57,13 +57,6 @@ pub struct Dock {
     pub rect: Rect
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub enum Direction {
-    Vertical,
-    Horizontal,
-    Full,
-}
-
 /// Holds a list of available docks
 #[derive(Debug, Clone)]
 pub struct Container {
@@ -73,27 +66,132 @@ pub struct Container {
     pub rect: Rect,
 }
 
-/// Holds data of the splits and containers. There are always two containers in a split if it has
-/// no split children. If the Split has another split in left it's expected that the left_docks
-/// container will be empty as they docks would be on a lower level.
-#[derive(Debug)]
+/// Area could be occupied either by Container or by Split
+#[derive(Debug, Clone)]
+pub enum Area {
+    Container(Container),
+    Split(Split),
+}
+
+pub enum SplitSearchResult<T> {
+    FirstChild(T),
+    SecondChild(T),
+    None,
+}
+
+impl<T> SplitSearchResult<T> {
+    pub fn is_some(&self) -> bool {
+        match self {
+            &SplitSearchResult::None => false,
+            _ => true,
+        }
+    }
+}
+
+impl Area {
+    /// Finds Area::Container with supplied DockHandle
+    pub fn find_container_holder_by_dock_handle(&mut self, handle: DockHandle) -> Option<&mut Area> {
+        let mut is_self = false;
+        if let &mut Area::Container(ref c) = self {
+            is_self = c.find_handle(handle).is_some();
+        }
+        if is_self {
+            return Some(self);
+        }
+        if let &mut Area::Split(ref mut s) = self {
+            let res = s.first.find_container_holder_by_dock_handle(handle);
+            if res.is_some() {
+                return res;
+            }
+            return s.second.find_container_holder_by_dock_handle(handle);
+        }
+        return None;
+    }
+
+    pub fn update_rect(&mut self, rect: Rect) {
+        match self {
+            &mut Area::Container(ref mut c) => c.rect = rect,
+            &mut Area::Split(ref mut s) => s.update_rect(rect),
+        }
+    }
+
+    pub fn get_rect(&self) -> Rect {
+        match self {
+            &Area::Container(ref c) => c.rect.clone(),
+            &Area::Split(ref s) => s.rect.clone(),
+        }
+    }
+
+    /// Finds Container with supplied DockHandle
+    pub fn find_container_by_dock_handle(&self, handle: DockHandle) -> Option<&Container> {
+        match self {
+            &Area::Container(ref c) => c.find_handle(handle).map(|_| c),
+            &Area::Split(ref s) => s.first
+                .find_container_by_dock_handle(handle)
+                .or_else(|| s.second.find_container_by_dock_handle(handle))
+        }
+    }
+
+    /// Finds Area::Split which contains Container with supplied DockHandle
+    pub fn find_split_by_dock_handle(&mut self, handle: DockHandle) -> SplitSearchResult<&mut Area> {
+        let mut found_child = 0;
+        if let &mut Area::Split(ref mut s) = self {
+            if let Area::Container (ref c) = *s.first {
+                if c.find_handle(handle).is_some() {
+                    found_child = 1;
+                };
+            }
+            if let Area::Container (ref c) = *s.second {
+                if c.find_handle(handle).is_some() {
+                    found_child = 2;
+                }
+            }
+        }
+        match found_child {
+            1 => {return SplitSearchResult::FirstChild(self);},
+            2 => {return SplitSearchResult::SecondChild(self);},
+            _ => {
+                if let &mut Area::Split(ref mut s) = self {
+                    if let Area::Split(_) = *s.first {
+                        let res = s.first.find_split_by_dock_handle(handle);
+                        if res.is_some() {
+                            return res;
+                        }
+                    }
+                    if let Area::Split(_) = *s.second {
+                        let res = s.second.find_split_by_dock_handle(handle);
+                        if res.is_some() {
+                            return res;
+                        }
+                    }
+                }
+                return SplitSearchResult::None;
+            }
+        }
+    }
+}
+
+/// Given rectangle area is split in two parts.
+#[derive(Debug, Clone)]
 pub struct Split {
-    /// left/top split
-    pub left: Option<SplitHandle>,
-    /// right/bottom split
-    pub right: Option<SplitHandle>,
-    /// left/top docks
-    pub left_docks: Container,
-    /// right/top docks
-    pub right_docks: Container,
-    /// ratio value of how much of each side that is visible. 1.0 = right/bottom fully visible
+    /// left/top part of area
+    pub first: Box<Area>,
+    /// right/bottom part of area
+    pub second: Box<Area>,
+    /// ratio value of how much of each side that is visible. 1.0 = first fully visible
     pub ratio: f32,
     /// Direction of the split
     pub direction: Direction,
     /// Handle of the split
     pub handle: SplitHandle,
-    /// Rect
-    rect: Rect,
+    /// Area occupied by this split
+    pub rect: Rect,
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Direction {
+    Vertical,
+    Horizontal,
 }
 
 /// Top level structure that holds an array of all the splits and the rect size of of the full
@@ -101,8 +199,8 @@ pub struct Split {
 /// structure.
 #[derive(Debug)]
 pub struct Workspace {
-    pub splits: Vec<Split>,
-    pub rect: Rect,
+    pub root_area: Option<Area>,
+    rect: Rect,
     /// border size of the windows (in pixels)
     pub window_border: f32,
     handle_counter: SplitHandle,
@@ -121,19 +219,38 @@ impl Rect {
         }
     }
 
-    fn is_inside(v: (f32, f32), rect: Rect) -> bool {
-        let x0 = rect.x;
-        let y0 = rect.y;
-        let x1 = x0 + rect.width;
-        let y1 = y0 + rect.height;
+    pub fn point_is_inside(&self, pos: (f32, f32)) -> bool {
+        let (x, y) = pos;
+        return
+            self.x <= x &&
+            self.x + self.width >= x &&
+            self.y <= y &&
+            self.y + self.height >= y;
+    }
 
-        //println!("checking {:?} inside {:?}", v, rect);
-
-        if (v.0 >= x0 && v.0 < x1) && (v.1 >= y0 && v.1 < y1) {
-            true
-        } else {
-            false
+    pub fn split_by_direction(&self, direction: Direction, ratio: f32) -> (Rect, Rect) {
+        match direction {
+            Direction::Horizontal => Rect::split_horizontally(self, ratio),
+            Direction::Vertical => Rect::split_vertically(self, ratio),
         }
+    }
+
+    pub fn split_horizontally(rect: &Rect, ratio: f32) -> (Rect, Rect) {
+        let h = rect.height * ratio;
+
+        let rect_top = Rect::new(rect.x, rect.y, rect.width, h);
+        let rect_bottom = Rect::new(rect.x, rect.y + h, rect.width, rect.height - h);
+
+        (rect_top, rect_bottom)
+    }
+
+    pub fn split_vertically(rect: &Rect, ratio: f32) -> (Rect, Rect) {
+        let w = rect.width * ratio;
+
+        let rect_left = Rect::new(rect.x, rect.y, w, rect.height);
+        let rect_right = Rect::new(rect.x + w, rect.y, rect.width - w, rect.height);
+
+        (rect_left, rect_right)
     }
 }
 
@@ -149,10 +266,10 @@ impl Dock {
 }
 
 impl Container {
-    pub fn new() -> Container {
+    pub fn new(dock: Dock, rect: Rect) -> Container {
         Container {
-            docks: Vec::new(),
-            rect: Rect::default(),
+            docks: vec!(dock),
+            rect: rect,
         }
     }
 
@@ -182,6 +299,14 @@ impl Container {
         None
     }
 
+    pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
+        if self.rect.point_is_inside(pos) {
+            self.docks.first().map(|dock| dock.handle)
+        } else {
+            None
+        }
+    }
+
     /*
     pub fn get_rect_by_handle(&self, handle: DockHandle) -> Option<Rect> {
         self.docks.iter().find(|&dock| dock.handle == handle).map(|dock| dock.rect)
@@ -190,99 +315,35 @@ impl Container {
 
     pub fn is_inside(&self, pos: (f32, f32)) -> Option<(DockHandle, f32)> {
         for dock in &self.docks {
-            if Rect::is_inside(pos, self.rect) {
+            if self.rect.point_is_inside(pos) {
                 return Some((dock.handle, dock.rect.width * dock.rect.height));
             }
         }
 
         None
     }
-
-
 }
 
 impl Split {
-    pub fn new(direction: Direction, ratio: f32, handle: SplitHandle) -> Split {
-        Split {
-            left: None,
-            right: None,
-            left_docks: Container::new(),
-            right_docks: Container::new(),
+    pub fn new(direction: Direction, ratio: f32, handle: SplitHandle, first: Area, second: Area, rect: Rect) -> Split {
+        let mut res = Split {
+            first: Box::new(first),
+            second: Box::new(second),
             ratio: ratio,
             direction: direction,
             handle: handle,
-            rect: Rect::default(),
-        }
+            rect: rect,
+        };
+        res.update_rect(rect);
+        return res;
     }
 
-    pub fn is_left_zero_and_none(&self) -> bool {
-        self.left_docks.docks.len() == 0 && self.left.is_none()
+    pub fn update_rect(&mut self, rect: Rect) {
+        self.rect = rect;
+        let (first_rect, second_rect) = self.rect.split_by_direction(self.direction, self.ratio);
+        self.first.update_rect(first_rect);
+        self.second.update_rect(second_rect);
     }
-
-    pub fn is_right_zero_and_none(&self) -> bool {
-        self.right_docks.docks.len() == 0 && self.right.is_none()
-    }
-
-    fn adjust_ratio_after_add(&mut self) {
-        if self.right_docks.docks.len() == 0 {
-            self.ratio = 1.0;
-        } else if self.left_docks.docks.len() == 0 {
-            self.ratio = 0.0;
-        } else {
-            self.ratio = 0.5;
-        }
-    }
-
-    pub fn no_split(&mut self, direction: Direction, dock_handle: DockHandle) -> bool {
-        if self.is_left_zero_and_none() {
-            //println!("no_split: is_left_zero_and_none");
-            self.left_docks.docks.push(Dock::new(dock_handle));
-            self.adjust_ratio_after_add();
-            self.direction = direction;
-            return true;
-        }
-
-        if self.is_right_zero_and_none() {
-            //println!("no_split: is_right_zero_and_none");
-            self.right_docks.docks.push(Dock::new(dock_handle));
-            self.adjust_ratio_after_add();
-            self.direction = direction;
-            return true;
-        }
-
-        false
-    }
-
-    pub fn split_left(&mut self, split_handle: SplitHandle, dock_handle: DockHandle, direction: Direction) -> Option<Split> {
-        if Self::no_split(self, direction, dock_handle) {
-            return None;
-        }
-
-        let mut split = Split::new(direction, 0.5, split_handle);
-        split.right_docks = self.left_docks.clone();
-        split.left_docks.docks.push(Dock::new(dock_handle));
-        self.ratio = 0.5;
-        self.left = Some(split_handle);
-        self.left_docks.docks.clear();
-
-        Some(split)
-    }
-
-    pub fn split_right(&mut self, split_handle: SplitHandle, dock_handle: DockHandle, direction: Direction) -> Option<Split> {
-        if Self::no_split(self, direction, dock_handle) {
-            return None;
-        }
-
-        let mut split = Split::new(direction, 0.5, split_handle);
-        split.left_docks = self.right_docks.clone();
-        split.right_docks.docks.push(Dock::new(dock_handle));
-        self.ratio = 0.5;
-        self.right = Some(split_handle);
-        self.right_docks.docks.clear();
-
-        Some(split)
-    }
-
 
     pub fn get_sizer_from_rect_horizontal(rect: Rect, size: f32) -> Rect {
         Rect::new(rect.x, rect.y + rect.height, rect.width, size)
@@ -292,19 +353,19 @@ impl Split {
         Rect::new(rect.x + rect.width, rect.y, size, rect.height)
     }
 
-    pub fn is_hovering_rect(&self, pos: (f32, f32), border_size: f32, rect: Rect) -> bool {
-        match self.direction {
-            Direction::Horizontal => Rect::is_inside(pos, Self::get_sizer_from_rect_horizontal(rect, border_size)),
-            Direction::Vertical => Rect::is_inside(pos, Self::get_sizer_from_rect_vertical(rect, border_size)),
-            Direction::Full => false,
-        }
-    }
+//    pub fn is_hovering_rect(&self, pos: (f32, f32), border_size: f32, rect: Rect) -> bool {
+//        unimplemented!();
+//        match self.direction {
+//            Direction::Horizontal => Rect::is_inside(pos, Self::get_sizer_from_rect_horizontal(rect, border_size)),
+//            Direction::Vertical => Rect::is_inside(pos, Self::get_sizer_from_rect_vertical(rect, border_size)),
+//            Direction::Full => false,
+//        }
+//    }
 
     pub fn map_rect_to_delta(&self, delta: (f32, f32)) -> f32 {
         match self.direction {
             Direction::Vertical => -delta.0 / self.rect.width,
             Direction::Horizontal => -delta.1 / self.rect.height,
-            _ => 0.0,
         }
     }
 
@@ -322,46 +383,54 @@ impl Split {
         }
     }
 
-    fn pad(level: i32) {
-        for _ in 0..level {
-            print!(" ");
-        }
+//    pub fn dump_info(&self, level: i32) {
+//        unimplemented!();
+//        let l_count = self.left_docks.docks.len();
+//        let r_count = self.right_docks.docks.len();
+//
+//        Self::pad(level);
+//
+//        println!("Split - Dir {:?} - handle {} - ratio {} count ({}, {}) - left ({:?}) right ({:?}) - rect {} {} - {} {}",
+//        self.direction, self.handle.0, self.ratio, l_count, r_count,
+//        self.left, self.right, self.rect.x, self.rect.y, self.rect.width, self.rect.height);
+//
+//        for d in &self.left_docks.docks {
+//            Self::pad(level);
+//            println!("left dock handle - {}", d.handle.0);
+//        }
+//
+//        for d in &self.right_docks.docks {
+//            Self::pad(level);
+//            println!("right dock handle - {}", d.handle.0);
+//        }
+//    }
+
+    pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
+        let (first_rect, _) = self.rect.split_by_direction(self.direction, self.ratio);
+        let res = if first_rect.point_is_inside(pos) {
+            &self.first
+        } else {
+            &self.second
+        };
+        return match **res {
+            Area::Container(ref c) => c.get_dock_handle_at_pos(pos),
+            Area::Split(ref c) => c.get_dock_handle_at_pos(pos),
+        };
     }
-
-    pub fn dump_info(&self, level: i32) {
-        let l_count = self.left_docks.docks.len();
-        let r_count = self.right_docks.docks.len();
-
-        Self::pad(level);
-
-        println!("Split - Dir {:?} - handle {} - ratio {} count ({}, {}) - left ({:?}) right ({:?}) - rect {} {} - {} {}",
-        self.direction, self.handle.0, self.ratio, l_count, r_count,
-        self.left, self.right, self.rect.x, self.rect.y, self.rect.width, self.rect.height);
-
-        for d in &self.left_docks.docks {
-            Self::pad(level);
-            println!("left dock handle - {}", d.handle.0);
-        }
-
-        for d in &self.right_docks.docks {
-            Self::pad(level);
-            println!("right dock handle - {}", d.handle.0);
-        }
-    }
-
 }
 
 impl Workspace {
     /// Construct a new workspace. The rect has to be y >= 0, x >= 0, width > 0 and height > 0
     pub fn new(rect: Rect) -> std::io::Result<Workspace> {
         if rect.x < 0.0 || rect.y < 0.0 || rect.width <= 0.0 || rect.height <= 0.0 {
+            // TODO: Remove commented code
             //return Err(Error::IllegalSize(write!("Illegal rect {} {} - {} {}",
             //                              rect.x, rect.y, rect.width, rect.height)));
             //return Err(Error::IllegalSize("Illegal rect size".to_owned()));
         }
 
         Ok(Workspace {
-            splits: vec![Split::new(Direction::Full, 0.0, SplitHandle(0))],
+            root_area: None,
             rect: rect,
             window_border: 4.0,
             handle_counter: SplitHandle(0),
@@ -374,294 +443,191 @@ impl Workspace {
         self.handle_counter
     }
 
-    pub fn calc_horizontal_sizing(rect: Rect, ratio: f32) -> (Rect, Rect) {
-        let h = rect.height * ratio;
-
-        let rect_top = Rect::new(rect.x, rect.y, rect.width, h);
-        let rect_bottom = Rect::new(rect.x, rect.y + h, rect.width, rect.height - h);
-
-        (rect_top, rect_bottom)
-    }
-
-    pub fn calc_vertical_sizing(rect: Rect, ratio: f32) -> (Rect, Rect) {
-        let w = rect.width * ratio;
-
-        let rect_left = Rect::new(rect.x, rect.y, w, rect.height);
-        let rect_right = Rect::new(rect.x + w, rect.y, rect.width - w, rect.height);
-
-        (rect_left, rect_right)
-    }
-
-    fn calc_rects(direction: Direction, rect: Rect, ratio: f32) -> (Rect, Rect) {
-        match direction {
-            Direction::Vertical => Self::calc_vertical_sizing(rect, ratio),
-            Direction::Horizontal => Self::calc_horizontal_sizing(rect, ratio),
-            Direction::Full => (rect, rect),
-        }
-    }
-
-    pub fn split(&mut self, dock_handle: DockHandle, direction: Direction) {
-        // If we have only one split we right now split on the left side
-        if self.splits.len() == 1 {
-            let handle = self.next_handle();
-            self.splits[0].split_left(handle, dock_handle, direction);
-        }
-    }
-
-    fn find_split_by_handle(splits: &Vec<Split>, handle: SplitHandle) -> usize {
-        for i in 0..splits.len() {
-            if splits[i].handle == handle {
-                return i;
-            }
-        }
-
-        panic!("Should never happen!")
-    }
-
-    fn recursive_update(splits: &mut Vec<Split>, rect: Rect, handle: SplitHandle) {
-        let i = Self::find_split_by_handle(splits, handle);
-
-        let rects = Self::calc_rects(splits[i].direction, rect, splits[i].ratio);
-
-        if let Some(split_handle) = splits[i].left {
-            Self::recursive_update(splits, rects.0, split_handle);
-        }
-
-        if let Some(split_handle) = splits[i].right {
-            Self::recursive_update(splits, rects.1, split_handle);
-        }
-
-        splits[i].rect = rect;
-        splits[i].left_docks.rect = rects.0;
-        splits[i].right_docks.rect = rects.1;
+    pub fn initialize(&mut self, handle: DockHandle) {
+        self.root_area = Some(Area::Container(
+            Container::new(
+                Dock::new(handle),
+                self.rect.clone()
+            )
+        ));
     }
 
     pub fn split_by_dock_handle(&mut self, direction: Direction, find_handle: DockHandle, handle: DockHandle) {
-        let split_handle = self.next_handle();
-        let mut temp_splits = Vec::new();
-
-        //println!("split_by_dock_handle");
-
-        for split in &mut self.splits {
-            if split.left_docks.find_handle(find_handle).is_some() {
-                if let Some(s) = split.split_left(split_handle, handle, direction) {
-                    temp_splits.push(s);
-                }
-            }
-
-            if split.right_docks.find_handle(find_handle).is_some() {
-                if let Some(s) = split.split_right(split_handle, handle, direction) {
-                    temp_splits.push(s);
-                }
-            }
-        }
-
-        for split in temp_splits {
-            self.splits.push(split);
+        let next_handle = self.next_handle();
+        let holder = self.root_area.as_mut().and_then(|root| {
+            root.find_container_holder_by_dock_handle(find_handle)
+        });
+        if let Some(area) = holder {
+            let rect = area.get_rect();
+            let first = area.clone();
+            let second = Area::Container(Container::new(Dock::new(handle), Rect::default()));
+            let split = Split::new(direction, 0.5, next_handle, first, second, rect);
+            *area = Area::Split(split);
         }
     }
 
-    fn delete_handle(splits: &mut Vec<Split>, handle: DockHandle) {
-        for i in 0..splits.len() {
-            if splits[i].left_docks.remove_handle(handle) {
-                return;
-            }
+//    fn delete_handle(splits: &mut Vec<Split>, handle: DockHandle) {
+//        for i in 0..splits.len() {
+//            if splits[i].left_docks.remove_handle(handle) {
+//                return;
+//            }
+//
+//            if splits[i].right_docks.remove_handle(handle) {
+//                return;
+//            }
+//        }
+//    }
 
-            if splits[i].right_docks.remove_handle(handle) {
-                return;
-            }
-        }
-    }
-
-    pub fn new_split(&mut self, handle: DockHandle, direction: Direction) {
-        if self.splits.len() == 1 {
-            self.splits[0].split_left(SplitHandle(0), handle, direction);
-        }
-    }
+//    pub fn new_split(&mut self, handle: DockHandle, direction: Direction) {
+//        if self.splits.len() == 1 {
+//            self.splits[0].split_left(SplitHandle(0), handle, direction);
+//        }
+//    }
 
     pub fn get_rect_by_handle(&self, handle: DockHandle) -> Option<Rect> {
-        for split in &self.splits {
-            if let Some(rect) = split.left_docks.get_rect_by_handle(handle) {
-                return Some(rect);
-            }
-
-            if let Some(rect) = split.right_docks.get_rect_by_handle(handle) {
-                return Some(rect);
-            }
-        }
-
-        None
+        self.root_area.as_ref().and_then(|area| {
+            area.find_container_by_dock_handle(handle).and_then(|container| {
+                Some(container.rect.clone())
+            })
+        })
     }
 
     pub fn get_hover_dock(&self, pos: (f32, f32)) -> Option<DockHandle> {
-        let mut dock_handle = None;
-        let mut last_size = 100000000.0;
-
-        for split in &self.splits {
-            if let Some(data) = split.left_docks.is_inside(pos) {
-                if data.1 < last_size {
-                    dock_handle = Some(data.0);
-                    last_size = data.1;
-                }
+        self.root_area.as_ref().and_then(|root| {
+            match *root {
+                Area::Container(ref c) => c.get_dock_handle_at_pos(pos),
+                Area::Split(ref s) => s.get_dock_handle_at_pos(pos),
             }
-
-            if let Some(data) = split.right_docks.is_inside(pos) {
-                if data.1 < last_size {
-                    dock_handle = Some(data.0);
-                    last_size = data.1;
-                }
-            }
-
-        }
-
-        dock_handle
+        })
     }
 
-
-    fn clean_splits(splits: &mut Vec<Split>) -> bool {
-        if splits.len() == 1 {
-            return false;
-        }
-
-        for i in (0..splits.len()).rev() {
-            if splits[i].is_left_zero_and_none() && splits[i].is_right_zero_and_none() {
-                let handle = Some(splits[i].handle);
-
-                for split in splits.iter_mut() {
-                    if split.left == handle {
-                        split.ratio = 0.0;
-                        split.left = None;
-                    }
-
-                    if split.right == handle {
-                        split.ratio = 1.0;
-                        split.right = None;
-                    }
-                }
-
-                splits.swap_remove(i);
-                return true;
-            }
-        }
-
-        false
+    pub fn update(&mut self, new_rect: Rect) {
+        self.rect = new_rect;
+        // TODO: perform actual update
     }
 
-    fn cleanup_after_delete(splits: &mut Vec<Split>) {
-        loop {
-            if !Self::clean_splits(splits) {
-                break;
-            }
-        }
+//    pub fn drag_sizer(&mut self, handle: SplitHandle, delta: (f32, f32)) {
+//        unimplemented!();
+//        for split in &mut self.splits {
+//            if split.handle == handle {
+//                return split.change_ratio(delta);
+//            }
+//        }
+//    }
 
-        // If there is nothing left (empty space) we switch the direction
-        // to full for the first splitter
+//    pub fn get_sizer_at(&self, pos: (f32, f32)) -> Option<(SplitHandle, Direction)> {
+//        for split in &self.splits {
+//            if split.is_hovering_rect(pos, 8.0, split.left_docks.rect) {
+//                return Some((split.handle, split.direction));
+//            }
+//        }
+//
+//        None
+//    }
 
-        if splits.len() == 1 {
-            if splits[0].is_left_zero_and_none() && splits[0].is_right_zero_and_none() {
-                splits[0].direction = Direction::Full;
-            }
-        }
-    }
-
-    fn adjust_percentages(splits: &mut Vec<Split>) {
-        for split in splits {
-            if split.is_left_zero_and_none() {
-                split.ratio = 0.0;
-            } else if split.is_right_zero_and_none() {
-                split.ratio = 1.0;
-            }
-        }
-    }
-
-    pub fn update(&mut self) {
-        Self::recursive_update(&mut self.splits, self.rect, SplitHandle(0));
-    }
-
-    pub fn drag_sizer(&mut self, handle: SplitHandle, delta: (f32, f32)) {
-        for split in &mut self.splits {
-            if split.handle == handle {
-                return split.change_ratio(delta);
-            }
-        }
-    }
-
-    pub fn is_hovering_sizer(&self, pos: (f32, f32)) -> Option<(SplitHandle, Direction)> {
-        for split in &self.splits {
-            if split.is_hovering_rect(pos, 8.0, split.left_docks.rect) {
-                return Some((split.handle, split.direction));
-            }
-        }
-
-        None
-    }
-
-    fn recursive_dump(splits: &Vec<Split>, handle: SplitHandle, level: i32) {
-        let i = Self::find_split_by_handle(splits, handle);
-
-        splits[i].dump_info(level);
-
-        if let Some(split_handle) = splits[i].left {
-            Self::recursive_dump(splits, split_handle, level + 1);
-        }
-
-        if let Some(split_handle) = splits[i].right {
-            Self::recursive_dump(splits, split_handle, level + 1);
-        }
-    }
+//    fn recursive_dump(splits: &Vec<Split>, handle: SplitHandle, level: i32) {
+//        unimplemented!();
+//        let i = Self::find_split_by_handle(splits, handle);
+//
+//        splits[i].dump_info(level);
+//
+//        if let Some(split_handle) = splits[i].left {
+//            Self::recursive_dump(splits, split_handle, level + 1);
+//        }
+//
+//        if let Some(split_handle) = splits[i].right {
+//            Self::recursive_dump(splits, split_handle, level + 1);
+//        }
+//    }
 
     // testing
 
-    pub fn dump_tree(&self) {
-        Self::recursive_dump(&self.splits, SplitHandle(0), 0);
-    }
+//    pub fn dump_tree(&self) {
+//        unimplemented!();
+//        Self::recursive_dump(&self.splits, SplitHandle(0), 0);
+//    }
 
-    pub fn dump_tree_linear(&self) {
-        for split in &self.splits {
-            split.dump_info(0);
-        }
+//    pub fn dump_tree_linear(&self) {
+//        unimplemented!();
+//        for split in &self.splits {
+//            split.dump_info(0);
+//        }
+//    }
+
+    fn replace_area(area: &mut Area, mut subs: Area) {
+        subs.update_rect(area.get_rect());
+        *area = subs;
     }
 
     pub fn delete_by_handle(&mut self, handle: DockHandle) {
-        Self::delete_handle(&mut self.splits, handle);
-        Self::cleanup_after_delete(&mut self.splits);
-        Self::adjust_percentages(&mut self.splits);
+        let mut should_delete_root = false;
+        if let Some(Area::Container(ref c)) = self.root_area {
+            if c.find_handle(handle).is_some() {
+                should_delete_root = true;
+            }
+        }
+        if should_delete_root {
+            self.root_area = None;
+            return;
+        }
+        if let Some(ref mut root) = self.root_area {
+            match root.find_split_by_dock_handle(handle) {
+                SplitSearchResult::None => {},
+                SplitSearchResult::FirstChild(area) => {
+                    let subs;
+                    if let &mut Area::Split(ref mut s) = area {
+                        subs = *s.second.clone();
+                    } else { unreachable!() }
+                    Self::replace_area(area, subs);
+                },
+                SplitSearchResult::SecondChild(area) => {
+                    let subs;
+                    if let &mut Area::Split(ref mut s) = area {
+                        subs = *s.first.clone();
+                    } else { unreachable!() }
+                    Self::replace_area(area, subs);
+                }
+            }
+        }
     }
 
     pub fn get_docks(&self) -> Vec<Dock> {
-        let mut docks = Vec::new();
-
-        for split in &self.splits {
-            for dock in &split.left_docks.docks {
-                docks.push(dock.clone());
-            }
-
-            for dock in &split.right_docks.docks {
-                docks.push(dock.clone());
-            }
-        }
-
-        docks
+        unimplemented!();
+//        let mut docks = Vec::new();
+//
+//        for split in &self.splits {
+//            for dock in &split.left_docks.docks {
+//                docks.push(dock.clone());
+//            }
+//
+//            for dock in &split.right_docks.docks {
+//                docks.push(dock.clone());
+//            }
+//        }
+//
+//        docks
     }
 
-    pub fn save(&self, file_name: &str) -> io::Result<()> {
-        let data = serde_json::to_string_pretty(self).unwrap_or("".to_owned());
-        let mut f = try!(File::create(file_name));
-        let _ = f.write_all(data.as_bytes());
-        println!("saved file");
-        Ok(())
-    }
+//    pub fn save(&self, file_name: &str) -> io::Result<()> {
+//        unimplemented!();
+//        let data = serde_json::to_string_pretty(self).unwrap_or("".to_owned());
+//        let mut f = try!(File::create(file_name));
+//        let _ = f.write_all(data.as_bytes());
+//        println!("saved file");
+//        Ok(())
+//    }
 
-    pub fn load(file_name: &str) -> Workspace {
-        println!("tring to open {}", file_name);
-        let mut f = File::open(file_name).unwrap();
-        let mut s = String::new();
-        println!("tring to read {}", file_name);
-        f.read_to_string(&mut s).unwrap();
-        println!("tring to serc");
-        let ws: Workspace = serde_json::from_str(&s).unwrap();
-        ws
-    }
+//    pub fn load(file_name: &str) -> Workspace {
+//        unimplemented!();
+//        println!("tring to open {}", file_name);
+//        let mut f = File::open(file_name).unwrap();
+//        let mut s = String::new();
+//        println!("tring to read {}", file_name);
+//        f.read_to_string(&mut s).unwrap();
+//        println!("tring to serc");
+//        let ws: Workspace = serde_json::from_str(&s).unwrap();
+//        ws
+//    }
 }
 
 #[cfg(test)]
@@ -675,48 +641,8 @@ mod test {
     }
 
     #[test]
-    fn test_split_top() {
-        let mut ws = Workspace::new(Rect::new(0.0, 0.0, 1024.0, 1024.0)).unwrap();
-        ws.split(DockHandle(1), Direction::Vertical);
-
-        assert_eq!(ws.splits.len(), 1);
-        let split = &ws.splits[0];
-
-        assert_eq!(split.left_docks.docks.len(), 1);
-    }
-
-    #[test]
-    fn test_split_top_2() {
-        let mut ws = Workspace::new(Rect::new(0.0, 0.0, 1024.0, 1024.0)).unwrap();
-        ws.split(DockHandle(1), Direction::Vertical);
-        ws.split(DockHandle(2), Direction::Vertical);
-
-        assert_eq!(ws.splits.len(), 1);
-        let split = &ws.splits[0];
-
-        assert_eq!(split.right_docks.docks.len(), 1);
-        assert_eq!(split.left_docks.docks.len(), 1);
-        assert_eq!(check_range(split.ratio, 0.5, 0.01), true);
-    }
-
-    #[test]
-    fn test_find_dock_handle() {
-        let mut ws = Workspace::new(Rect::new(0.0, 0.0, 1024.0, 1024.0)).unwrap();
-        ws.split(DockHandle(1), Direction::Vertical);
-        ws.split(DockHandle(2), Direction::Vertical);
-        ws.split_by_dock_handle(Direction::Horizontal, DockHandle(2), DockHandle(3));
-
-        assert_eq!(ws.splits.len(), 2);
-
-        assert_eq!(ws.get_rect_by_handle(DockHandle(1)).is_some(), true);
-        assert_eq!(ws.get_rect_by_handle(DockHandle(2)).is_some(), true);
-        assert_eq!(ws.get_rect_by_handle(DockHandle(2)).is_some(), true);
-        assert_eq!(ws.get_rect_by_handle(DockHandle(4)).is_some(), false);
-    }
-
-    #[test]
     fn test_calc_rect_horz_half() {
-        let rects = Workspace::calc_horizontal_sizing(Rect::new(0.0, 0.0, 1024.0, 1024.0), 0.5);
+        let rects = Rect::split_horizontally(Rect::new(0.0, 0.0, 1024.0, 1024.0), 0.5);
 
         assert_eq!(check_range(rects.0.x, 0.0, 0.001), true);
         assert_eq!(check_range(rects.0.y, 0.0, 0.001), true);
@@ -731,7 +657,7 @@ mod test {
 
     #[test]
     fn test_calc_rect_horz_25_per() {
-        let rects = Workspace::calc_horizontal_sizing(Rect::new(0.0, 0.0, 1024.0, 1024.0), 0.25);
+        let rects = Workspace::split_horizontally(Rect::new(0.0, 0.0, 1024.0, 1024.0), 0.25);
 
         assert_eq!(check_range(rects.0.x, 0.0, 0.001), true);
         assert_eq!(check_range(rects.0.y, 0.0, 0.001), true);
@@ -746,7 +672,7 @@ mod test {
 
     #[test]
     fn test_calc_rect_horz_25_per_2() {
-        let rects = Workspace::calc_horizontal_sizing(Rect::new(16.0, 32.0, 512.0, 1024.0), 0.25);
+        let rects = Workspace::split_horizontally(Rect::new(16.0, 32.0, 512.0, 1024.0), 0.25);
 
         assert_eq!(check_range(rects.0.x, 16.0, 0.001), true);
         assert_eq!(check_range(rects.0.y, 32.0, 0.001), true);
@@ -783,15 +709,15 @@ mod test {
         assert_eq!(check_range(rect.height, rect_in.height, 0.001), true);
     }
 
-    #[test]
-    fn test_inside_horizontal() {
-        let border_size = 4.0;
-        let rect = Rect::new(10.0, 20.0, 30.0, 40.0);
-        let rect_horz = Split::get_sizer_from_rect_horizontal(rect, border_size);
-
-        assert_eq!(Rect::is_inside((9.0, 61.0), rect_horz), false);
-        assert_eq!(Rect::is_inside((11.0, 61.0), rect_horz), true);
-    }
+//    #[test]
+//    fn test_inside_horizontal() {
+//        let border_size = 4.0;
+//        let rect = Rect::new(10.0, 20.0, 30.0, 40.0);
+//        let rect_horz = Split::get_sizer_from_rect_horizontal(rect, border_size);
+//
+//        assert_eq!(Rect::is_inside((9.0, 61.0), rect_horz), false);
+//        assert_eq!(Rect::is_inside((11.0, 61.0), rect_horz), true);
+//    }
 
     #[test]
     fn test_rect_serialize() {

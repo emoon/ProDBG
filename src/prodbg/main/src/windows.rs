@@ -260,17 +260,17 @@ impl Window {
     fn update_mouse_state(&mut self, mouse_pos: (f32, f32)) {
         match self.mouse_state.state {
             State::Default => {
-                if let Some(h) = self.ws.is_hovering_sizer(mouse_pos) {
-                    if h.1 == Direction::Vertical {
-                        Bgfx::cursor_set_type(2);
-                    } else {
-                        Bgfx::cursor_set_type(1);
-                    }
-
-                    if self.win.get_mouse_down(MouseButton::Left) {
-                        self.mouse_state.handle = Some(h);
-                        self.mouse_state.state = State::DraggingSlider;
-                    }
+                if false { // let Some(h) = self.ws.get_sizer_at(mouse_pos) {
+//                    if h.1 == Direction::Vertical {
+//                        Bgfx::cursor_set_type(2);
+//                    } else {
+//                        Bgfx::cursor_set_type(1);
+//                    }
+//
+//                    if self.win.get_mouse_down(MouseButton::Left) {
+//                        self.mouse_state.handle = Some(h);
+//                        self.mouse_state.state = State::DraggingSlider;
+//                    }
                 } else {
                     Bgfx::cursor_set_type(0);
                 }
@@ -287,7 +287,7 @@ impl Window {
                     } else {
                         Bgfx::cursor_set_type(1);
                     }
-                    self.ws.drag_sizer(t.0, delta);
+//                    self.ws.drag_sizer(t.0, delta);
                 } else {
                     self.mouse_state.handle = None;
                     self.mouse_state.state = State::Default;
@@ -371,7 +371,7 @@ impl Window {
         Bgfx::update_window_size(win_size.0 as i32, win_size.1 as i32);
 
         self.win.update();
-        self.ws.update();
+//        self.ws.update();
         self.update_key_state();
 
         let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
@@ -438,7 +438,8 @@ impl Window {
                 //self.ws.set_name_to_handle(name, new_handle);
                 //self.ws.dump_tree_linear();
             } else {
-                self.ws.new_split(DockHandle(handle.0), direction);
+                self.ws.initialize(DockHandle(handle.0));
+                // self.ws.new_split(DockHandle(handle.0), direction);
                 //println!("no split");
             }
 
