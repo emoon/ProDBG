@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Daniel Collin <daniel@collin.com>"]
 
 [dependencies]
+walkdir = "0.1.5"
 notify = "^2.5.0"
 libloading = "0.2.0"
 tempdir = "0.3"
