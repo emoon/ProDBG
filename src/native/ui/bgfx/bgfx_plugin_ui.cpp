@@ -1,31 +1,13 @@
 #include "bgfx_plugin_ui.h"
 #include "pd_ui.h"
 #include "pd_view.h"
-//#include "api/plugin_instance.h"
-//#include "core/plugin_handler.h"
-//#include "core/alloc.h"
-//#include "core/log.h"
-//#include "core/math.h"
-//#include "core/input_state.h"
-//#include "core/plugin_io.h"
-//#include "core/service.h"
-//#include "ui_dock.h"
 #include "ui_host.h"
 #include "imgui_setup.h"
 #include <imgui.h>
 #include <assert.h>
-#include "cursor.h"
 
-//#include <session/session.h>
-//#include <foundation/apple.h>
-//#include <foundation/string.h>
 #include <bgfx/bgfx.h>
-//#include "core/input_state.h"
-//#include "ui/bgfx/cursor.h"
-//#include <foundation/string.h>
-//#include "i3wm_docking.h"
 #include "ui_render.h"
-//#include <jansson.h>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -47,7 +29,6 @@ const int s_borderSize = 4;
 struct Context {
     int width;
     int height;
-    //InputState inputState;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,86 +81,7 @@ void BgfxPluginUI::preUpdate() {
     bgfx::submit(0, UIRender_getProgramHandle(2));
 
     imgui_pre_update(deltaTime);
-    }
-
-/*
-
-static PosColorVertex* fill_rectBorder(PosColorVertex* verts, IntRect* rect, uint32_t color) {
-    const float x0 = (float)rect->x;
-    const float y0 = (float)rect->y;
-    const float x1 = (float)rect->width + x0;
-    const float y1 = (float)rect->height + y0;
-
-    // First triangle
-
-    verts[0].x = x0;
-    verts[0].y = y0;
-    verts[0].color = color;
-
-    verts[1].x = x1;
-    verts[1].y = y0;
-    verts[1].color = color;
-
-    verts[2].x = x1;
-    verts[2].y = y1;
-    verts[2].color = color;
-
-    // Second triangle
-
-    verts[3].x = x0;
-    verts[3].y = y0;
-    verts[3].color = color;
-
-    verts[4].x = x1;
-    verts[4].y = y1;
-    verts[4].color = color;
-
-    verts[5].x = x0;
-    verts[5].y = y1;
-    verts[5].color = color;
-
-    verts += 6;
-
-    return verts;
 }
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void renderBorders(Session* session) {
-    int count = 0;
-    ViewPluginInstance** views = Session_getViewPlugins(session, &count);
-
-    bgfx::TransientVertexBuffer tvb;
-
-    const uint32_t vertexCount = (uint32_t)count * 2 * 6;
-
-    UIRender_allocPosColorTb(&tvb, vertexCount);
-    PosColorVertex* verts = (PosColorVertex*)tvb.data;
-
-    // TODO: Use settings for colors
-
-    const uint32_t colorDefalut = (0x40 << 16) | (0x40 << 8) | 0x40;
-    const uint32_t colorHigh = (0x60 << 16) | (0x60 << 8) | 0x60;
-
-    for (int i = 0; i < count; ++i) {
-        IntRect t = views[i]->rect;
-
-        IntRect t0 = {{{ t.x + t.width - s_borderSize, t.y, s_borderSize, t.height }}};
-        IntRect t1 = {{{ t.x, t.y + t.height - s_borderSize, t.width, s_borderSize }}};
-
-        verts = fill_rectBorder(verts, &t0, colorDefalut);
-        verts = fill_rectBorder(verts, &t1, colorDefalut);
-    }
-
-    bgfx::setState(0
-                   | BGFX_STATE_RGB_WRITE
-                   | BGFX_STATE_ALPHA_WRITE
-                   | BGFX_STATE_MSAA);
-
-    UIRender_posColor(&tvb, 0, vertexCount);
-}
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -202,8 +104,6 @@ void BgfxPluginUI::postUpdate() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BgfxPluginUI::create(void* windowHandle, int width, int height) {
-    //docksys_set_callbacks(&s_dockSysCallbacks);
-	cursor_init();
 #ifdef PRODBG_WIN
     bgfx::winSetHwnd((HWND)windowHandle);
 #elif PRODBG_MAC
@@ -218,76 +118,11 @@ void BgfxPluginUI::create(void* windowHandle, int width, int height) {
 
     s_context.width = width;
     s_context.height = height;
-
-    //Service_register(&g_serviceMessageFuncs, PDMESSAGEFUNCS_GLOBAL);
-    //Service_register(&g_dialogFuncs, PDDIALOGS_GLOBAL);
-
-    //Cursor_init();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BgfxPluginUI::destroy() {
-}
-
-#if 0
-
-// It's a bit weird to have the code like this here. To be cleaned up
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-extern "C" void prodbg_set_mouse_pos(float x, float y) {
-    imgui_setMousePos(x, y);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-extern "C" void prodbg_set_mouse_state(int button, int state) {
-    imgui_setMouseState(state);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-extern "C" void prodbg_set_scroll(float x, float y) {
-    (void)x;
-    imgui_setScroll(y);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-extern "C" void prodbg_key_down(int key, int modifier) {
-    //InputState* state = InputState_getState();
-
-    //state->keysDown[key] = true;
-    //state->modifiers = modifier;
-
-    imgui_setKeyDown(key, modifier);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void ProDBG_keyDownMods(int modifier) {
-    //InputState* state = InputState_getState();
-    //state->modifiers = modifier;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-extern "C" void prodbg_key_up(int key, int modifier) {
-	/*
-    InputState* state = InputState_getState();
-
-    state->keysDown[key] = false;
-    state->modifiers = modifier;
-    */
-
-    imgui_setKeyUp(key, modifier);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-extern "C" void prodbg_add_char(unsigned short c) {
-    imgui_addInputCharacter(c);
 }
 
 #endif
