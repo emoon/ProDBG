@@ -125,8 +125,6 @@ void BgfxPluginUI::create(void* windowHandle, int width, int height) {
 void BgfxPluginUI::destroy() {
 }
 
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void bgfx_set_window_size(int width, int height) {
