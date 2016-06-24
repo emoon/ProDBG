@@ -30,14 +30,6 @@ impl Bgfx {
         unsafe { bgfx_post_update(); }
     }
 
-    pub fn cursor_init() {
-        unsafe { cursor_init() };
-    }
-
-    pub fn cursor_set_type(t: i32) {
-        unsafe { cursor_set_type(t) };
-    }
-
     /*
 
     pub fn create_ui_funcs() -> *mut CPdUI {
@@ -81,9 +73,6 @@ extern "C" {
     fn bgfx_create_window(window: *const c_void, width: c_int, height: c_int);
     fn bgfx_destroy();
     fn bgfx_set_window_size(width: c_int, height: c_int);
-
-    fn cursor_init();
-    fn cursor_set_type(t: i32);
 
     //fn bgfx_has_showed_popup(ui: *mut CPdUI) -> u32;
     //fn bgfx_mark_show_popup(ui: *mut CPdUI, state: u32);
