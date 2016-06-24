@@ -7,7 +7,7 @@ authors = ["Daniel Collin <daniel@collin.com>"]
 notify = "^2.5.0"
 libloading = "0.2.0"
 tempdir = "0.3"
-minifb = "0.7.1"
+minifb = "0.8.0"
 dynamic_reload = "0.2.0"
 prodbg_api = { path = "../../../api/rust/prodbg" }
 
