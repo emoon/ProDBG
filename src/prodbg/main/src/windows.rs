@@ -371,7 +371,7 @@ impl Window {
         Bgfx::update_window_size(win_size.0 as i32, win_size.1 as i32);
 
         self.win.update();
-//        self.ws.update();
+        self.ws.update(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
         self.update_key_state();
 
         let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));

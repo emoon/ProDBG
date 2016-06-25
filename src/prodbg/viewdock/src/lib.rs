@@ -136,7 +136,9 @@ impl Workspace {
 
     pub fn update(&mut self, new_rect: Rect) {
         self.rect = new_rect;
-        // TODO: perform actual update
+        if let Some(ref mut a) = self.root_area {
+            a.update_rect(new_rect);
+        }
     }
 
 //    pub fn drag_sizer(&mut self, handle: SplitHandle, delta: (f32, f32)) {
