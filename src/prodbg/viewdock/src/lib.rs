@@ -70,7 +70,6 @@ impl Workspace {
         })
     }
 
-    #[inline]
     fn next_handle(&mut self) -> SplitHandle {
         self.handle_counter.0 += 1;
         self.handle_counter
