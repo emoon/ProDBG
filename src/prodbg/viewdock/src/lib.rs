@@ -98,24 +98,6 @@ impl Workspace {
         }
     }
 
-//    fn delete_handle(splits: &mut Vec<Split>, handle: DockHandle) {
-//        for i in 0..splits.len() {
-//            if splits[i].left_docks.remove_handle(handle) {
-//                return;
-//            }
-//
-//            if splits[i].right_docks.remove_handle(handle) {
-//                return;
-//            }
-//        }
-//    }
-
-//    pub fn new_split(&mut self, handle: DockHandle, direction: Direction) {
-//        if self.splits.len() == 1 {
-//            self.splits[0].split_left(SplitHandle(0), handle, direction);
-//        }
-//    }
-
     pub fn get_rect_by_handle(&self, handle: DockHandle) -> Option<Rect> {
         self.root_area.as_ref().and_then(|area| {
             area.find_container_by_dock_handle(handle).and_then(|container| {
