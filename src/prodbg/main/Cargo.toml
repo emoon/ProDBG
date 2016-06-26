@@ -11,6 +11,7 @@ minifb = "0.8.0"
 viewdock = { path = "../viewdock" }
 bgfx_rs = { path = "../bgfx" }
 core = { path = "../core" }
+settings = { path = "../../crates/settings" }
 imgui_sys = { path = "../imgui_sys" }
 prodbg_api = { path = "../../../api/rust/prodbg" }
 

@@ -38,6 +38,16 @@ RustCrate {
 -----------------------------------------------------------------------------------------------------------------------
 
 RustCrate {
+	Name = "settings",
+	CargoConfig = "src/crates/settings/Cargo.toml",
+	Sources = {
+		get_rs_src("src/crates/settings"),
+	},
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+RustCrate {
 	Name = "bgfx_rs",
 	CargoConfig = "src/prodbg/bgfx/Cargo.toml",
 	Sources = {
@@ -97,7 +107,7 @@ RustProgram {
 	},
 
     Depends = { "lua", "remote_api", "stb", "bgfx", "bgfx_rs", "ui",
-    			"imgui", "scintilla", "tinyxml2", "capstone", "imgui_sys", "core", "viewdock" },
+    			"imgui", "scintilla", "tinyxml2", "capstone", "imgui_sys", "core", "viewdock", "settings" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------

@@ -8,8 +8,7 @@
 
 	"window_size":{
 		"width": 1024,
-		"height": 768,
-		"scale": 2.2
+		"height": 768
 	},
 
 	"window_position":{
@@ -20,26 +19,11 @@
 	"Source Code View":{
 		"some_regular_setting": "test",
 		"keys":{
-			"fast_open": { 
-				"Default": "Ctrl+o"
+			"fast_open": {
+				"Default": "Ctrl+Shift+O"
 			},
-
-			"open_file": { 
-				"Default": "Ctrl+Alt+o",
-				"Mac": "Super+Alt+o"
-			},
-
-			"funky": { 
-				"Default": "Ctrl+o",
-				"Windows": "Ctrl+w"
-			},
-
-			"multi_combo": { 
-				"Default": "Super+Alt+Ctrl+Shift+Escape"
-			},
-
-			"f_key": { 
-				"Default": "F4"
+			"toggle_breakpoint": {
+				"Default": "F8"
 			}
 		}
 	}
