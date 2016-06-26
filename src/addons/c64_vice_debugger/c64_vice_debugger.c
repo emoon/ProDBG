@@ -37,7 +37,7 @@ enum {
     C64_VICE_MENU_DETACH_FROM_VICE,
 };
 
-static PDMessageFuncs* MESSAGE_FUNCS;
+//static PDMessageFuncs* MESSAGE_FUNCS;
 
 #ifdef _WIN32
 __declspec(dllimport) void OutputDebugStringA(const char*);
@@ -589,7 +589,7 @@ static void* create_instance(ServiceFunc* serviceFunc) {
 
     //load_config(data, "data/c64_vice.cfg");
 
-    MESSAGE_FUNCS = serviceFunc(PDMESSAGEFUNCS_GLOBAL);
+    //MESSAGE_FUNCS = serviceFunc(PDMESSAGEFUNCS_GLOBAL);
 
     //TODO: non fixed size?
 
@@ -733,7 +733,7 @@ uint16_t get_basic_start(PluginData* data) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void launch_vice_with_config(PluginData* data) {
-    int r, cmdIndex = 1;
+    int cmdIndex = 1;
     uv_process_options_t options = { 0 };
 
     log_debug("spawning vice...\n", "");
@@ -757,10 +757,12 @@ static void launch_vice_with_config(PluginData* data) {
     options.file = data->config.vice_exe;
     options.args = args;
 
+	/*
     if ((r = uv_spawn(uv_default_loop(), &data->process, &options))) {
         MESSAGE_FUNCS->error("Unable to launch VICE", uv_strerror(r));
         return;
     }
+    */
 
     sleepMs(3000);
 

@@ -9,16 +9,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define PDMESSAGEFUNCS_GLOBAL "Info Messages 1"
-
-typedef struct PDMessageFuncs {
-	void (*info)(const char* title, const char* message);
-	void (*error)(const char* title, const char* message);
-	void (*warning)(const char* title, const char* message);
-} PDMessageFuncs;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 #define PDDIALOGS_GLOBAL "Dialogs 1"
 
 typedef struct PDDialogFuncs {

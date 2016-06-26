@@ -4,9 +4,6 @@ use std::mem::transmute;
 use Capstone;
 use CCapstone1;
 
-use Messages;
-use CMessageFuncs1;
-
 use Dialogs;
 use CDialogFuncs1;
 
@@ -15,16 +12,6 @@ pub struct Service {
 }
 
 impl Service {
-    // TODO: Handle different versions
-
-    pub fn get_messages(&self) -> Messages {
-        unsafe {
-            let api: &mut CMessageFuncs1 = transmute(((*self).service_func)(b"Info Messages 1\0"
-                                                                                .as_ptr()));
-            Messages { api: api }
-        }
-    }
-
     pub fn get_capstone(&self) -> Capstone {
         unsafe {
             let api: &mut CCapstone1 = transmute(((*self).service_func)(b"Capstone Service 1\0"
