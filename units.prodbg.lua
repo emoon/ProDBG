@@ -102,7 +102,7 @@ RustProgram {
 	Sources = {
 		get_rs_src("src/prodbg/main"),
 		-- get_rs_src("src/prodbg/core"),
-		get_rs_src("src/ui"),
+		-- get_rs_src("src/ui"),
 		"src/prodbg/build.rs",
 	},
 
@@ -145,6 +145,8 @@ local uiBundle = OsxBundle
 -----------------------------------------------------------------------------------------------------------------------
 
 if native.host_platform == "macosx" then
+	Default "prodbg"
+	Default "ui_testbench"
 	Default(prodbgBundle)
 	Default(uiBundle)
 else

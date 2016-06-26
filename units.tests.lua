@@ -16,7 +16,6 @@ local function Test(params)
 				"src/external/foundation_lib",
 				"src/external/minifb/include",
             	"src/external/imgui",
-				"src/external/cmocka/include",
 				"src/prodbg",
 			},
 
@@ -38,11 +37,11 @@ local function Test(params)
 			{ "X11", "GL" ; Config = { "linux-*-*" } },
 		},
 
-		Frameworks = { 
-			{ "Cocoa" }, 
-			{ "Metal" }, 
-			{ "QuartzCore" }, 
-			{ "OpenGL" }  
+		Frameworks = {
+			{ "Cocoa" },
+			{ "Metal" },
+			{ "QuartzCore" },
+			{ "OpenGL" }
 		},
 
 		IdeGenerationHints = { Msvc = { SolutionFolder = "Tests" } },
