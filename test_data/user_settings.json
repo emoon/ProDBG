@@ -7,9 +7,9 @@
 	},
 
 	"window_size":{
-		"width": 1280,
-		"height": 768,
-		"scale": 4.4
+		"width": 1920,
+		"height": 1080,
+		"some_new_data": 42
 	},
 
 	"window_position":{

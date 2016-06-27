@@ -1,14 +1,18 @@
 extern crate libloading;
 extern crate dynamic_reload;
+extern crate walkdir;
 
 use self::dynamic_reload::{DynamicReload, Lib, PlatformName, UpdateState};
 use self::libloading::Result as LibRes;
 use self::libloading::Symbol;
-use std::rc::Rc;
-use std::os::raw::{c_char, c_void};
-use std::mem::transmute;
 use plugin::Plugin;
 use std::cell::RefCell;
+use std::env;
+use std::path::{Path, PathBuf};
+use std::mem::transmute;
+use std::os::raw::{c_char, c_void};
+use std::rc::Rc;
+use self::walkdir::WalkDir;
 
 pub struct Plugins {
     pub plugin_types: Vec<Rc<Lib>>,
@@ -120,6 +124,74 @@ impl Plugins {
             }
         }
     }
+
+    #[cfg(target_os="windows")]
+    fn get_ext_name() -> &'static str {
+        "dll"
+    }
+
+    #[cfg(target_os="macos")]
+    fn get_ext_name() -> &'static str {
+        "dylib"
+    }
+
+    #[cfg(any(target_os="linux",
+              target_os="freebsd",
+              target_os="dragonfly",
+              target_os="netbsd",
+              target_os="openbsd"))]
+    fn get_ext_name() -> &'static str {
+        "so"
+    }
+
+    fn is_plugin(path: &Path) -> bool {
+        if let Some(p) = path.extension() {
+            p.to_str().unwrap() == Self::get_ext_name()
+        } else {
+            false
+        }
+    }
+
+    fn try_load_plugins(&mut self, path: &Path, lib_handler: &mut DynamicReload) -> bool {
+        let mut found_plugins = false;
+        for entry in WalkDir::new(path).max_depth(1) {
+            let entry = entry.unwrap();
+            if Self::is_plugin(entry.path()) {
+                match lib_handler.add_library(&entry.path().to_string_lossy(), PlatformName::No) {
+                    Ok(lib) => unsafe {
+                        Self::add_p(self, &lib);
+                    },
+                    Err(e) => {
+                        println!("Unable to add {} err {:?}", &entry.path().to_string_lossy(), e);
+                    }
+                }
+
+                found_plugins = true;
+            }
+        }
+
+        found_plugins
+    }
+
+    pub fn search_load_plugins(&mut self, lib_handler: &mut DynamicReload) {
+        let t = env::current_exe().unwrap_or(PathBuf::new());
+        let mut path = t.as_path();
+
+        loop {
+            if self.try_load_plugins(&path, lib_handler) {
+                return;
+            }
+
+            let t = path.parent();
+
+            if t.is_none() {
+                return;
+            }
+
+            path = t.unwrap();
+        }
+    }
+
 
     pub fn update(&mut self, lib_handler: &mut DynamicReload) {
         let mut handler = ReloadHandler::new(self);

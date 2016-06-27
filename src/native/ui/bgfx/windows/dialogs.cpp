@@ -65,39 +65,3 @@ int Dialog_selectDirectory(char* path) {
      */
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Dialog_showError(const char* text) {
-    MessageBox(NULL, (wchar_t*)text, L"Error", MB_ICONERROR | MB_OK);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void internalPanel(const char* titleText, const char* messageText, unsigned int type) {
-    wchar_t title[1024];
-    wchar_t message[4096];
-
-	uv_utf8_to_utf16(titleText, title, 1024 * 2);
-	uv_utf8_to_utf16(messageText, message, 4096 * 2);
-
-    MessageBox(NULL, message, title, type | MB_OK);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Windows_infoDialog(const char* titleText, const char* message) {
-    internalPanel(titleText, message, MB_ICONINFORMATION);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Windows_errorDialog(const char* title, const char* message) {
-    internalPanel(title, message, MB_ICONERROR);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Windows_warningDialog(const char* title, const char* message) {
-    internalPanel(title, message, MB_ICONWARNING);
-}
-

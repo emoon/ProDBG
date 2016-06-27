@@ -33,13 +33,7 @@ fn main() {
 
     plugins.add_handler(&view_plugins);
     plugins.add_handler(&backend_plugins);
-
-    plugins.add_plugin(&mut lib_handler, "dummy_backend_plugin");
-    plugins.add_plugin(&mut lib_handler, "amiga_uae_plugin");
-    plugins.add_plugin(&mut lib_handler, "bitmap_memory");
-    plugins.add_plugin(&mut lib_handler, "registers_plugin");
-    plugins.add_plugin(&mut lib_handler, "disassembly");
-    plugins.add_plugin(&mut lib_handler, "hex_memory_plugin");
+    plugins.search_load_plugins(&mut lib_handler);
 
     if let Some(backend) = backend_plugins.borrow_mut().create_instance(&"Dummy Backend".to_owned()) {
         if let Some(session) = sessions.get_session(session) {

@@ -1,3 +1,6 @@
 [submodule "src/crates/gdb-remote"]
 	path = src/crates/gdb-remote
 	url = https://github.com/emoon/gdb-remote
+[submodule "src/native/external/scintilla"]
+	path = src/native/external/scintilla
+	url = https://github.com/emoon/scintilla

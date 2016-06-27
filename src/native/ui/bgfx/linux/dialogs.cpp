@@ -28,14 +28,3 @@ int Dialog_selectDirectory(char* path) {
     return 0;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int Dialog_showError(char* message) {
-    // TODO: Implement
-    (void)message;
-    assert(0);
-    return 0;
-}
-
-
-

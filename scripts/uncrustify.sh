@@ -1,5 +1,0 @@
-rm uncrustify.lst 2> /dev/null
-find . -type f \( -name "*.c" -o -name "*.cpp" -o -name "*.h" -o -name "*.hpp" -o -name "*.mm" -o -name "*.m" \) -not -path "./examples/fake_6502/*" -not -path "./src/plugins/lldb/*" -not -path "./src/external/*" -not -path "./src/old/*" -not -path "./old/*" > uncrustify.lst
-bin/macosx/uncrustify -c scripts/uncrustify.cfg --no-backup -F uncrustify.lst
-rm uncrustify.lst 2> /dev/null
-

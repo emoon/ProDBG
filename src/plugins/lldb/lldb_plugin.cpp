@@ -2,9 +2,9 @@
 
 #include "pd_backend.h"
 #include "pd_host.h"
-#include <stdlib.h> 
-#include <stdio.h> 
-#include <string.h> 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <LLDB/SBModuleSpec.h>
 #include <LLDB/SBTarget.h>
 #include <LLDB/SBThread.h>
@@ -16,11 +16,11 @@
 #include <LLDB/SBBreakpoint.h>
 #include <LLDB/SBStream.h>
 #include <LLDB/SBValueList.h>
-#include <LLDB/SBCommandInterpreter.h> 
-#include <LLDB/SBCommandReturnObject.h> 
+#include <LLDB/SBCommandInterpreter.h>
+#include <LLDB/SBCommandReturnObject.h>
 #include <map>
 
-static PDMessageFuncs* s_messageFuncs;
+//static PDMessageFuncs* s_messageFuncs;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -54,13 +54,13 @@ void* createInstance(ServiceFunc* serviceFunc)
 {
     lldb::SBDebugger::Initialize();
 
-    s_messageFuncs = (PDMessageFuncs*)serviceFunc(PDMESSAGEFUNCS_GLOBAL); 
+    //s_messageFuncs = (PDMessageFuncs*)serviceFunc(PDMESSAGEFUNCS_GLOBAL);
 
-    LLDBPlugin* plugin = new LLDBPlugin; 
+    LLDBPlugin* plugin = new LLDBPlugin;
 
     plugin->debugger = lldb::SBDebugger::Create(false);
     plugin->state = PDDebugState_NoTarget;
-    plugin->listener = plugin->debugger.GetListener(); 
+    plugin->listener = plugin->debugger.GetListener();
     plugin->hasValidTarget = false;
     plugin->selectedThreadId = 0;
 
@@ -156,7 +156,8 @@ void onRun(LLDBPlugin* plugin)
 
         if (!error.Success())
         {
-			s_messageFuncs->error("Error to start executable", "The LLDB backend was unable to start the selected executable. Currently ProDBG requires the user to run it as sudo due to the fact that debugging on Mac needs that. This will be made a bit more friendly in the future");
+			//s_messageFuncs->error("Error to start executable", "The LLDB backend was unable to start the selected executable. Currently ProDBG requires the user to run it as sudo due to the fact that debugging on Mac needs that. This will be made a bit more friendly in the future");
+			printf("Error to start executable\nThe LLDB backend was unable to start the selected executable. Currently ProDBG requires the user to run it as sudo due to the fact that debugging on Mac needs that. This will be made a bit more friendly in the future\n");
             return;
         }
 
@@ -169,10 +170,10 @@ void onRun(LLDBPlugin* plugin)
         printf("Started valid process\n");
 
         plugin->process.GetBroadcaster().AddListener(
-                plugin->listener, 
+                plugin->listener,
                 lldb::SBProcess::eBroadcastBitStateChanged |
                 lldb::SBProcess::eBroadcastBitInterrupt);
-    
+
         plugin->state = PDDebugState_Running;
         plugin->hasValidTarget = true;
 
@@ -200,13 +201,13 @@ static void setCallstack(LLDBPlugin* plugin, PDWriter* writer)
 
     PDWrite_event_begin(writer, PDEventType_SetCallstack);
     PDWrite_array_begin(writer, "callstack");
-        
+
     for (int i = 0; i < frameCount; ++i)
     {
         char fileLine[2048];
         char moduleName[2048];
 
-        lldb::SBFrame frame = thread.GetFrameAtIndex((uint32_t)i); 
+        lldb::SBFrame frame = thread.GetFrameAtIndex((uint32_t)i);
         lldb::SBModule module = frame.GetModule();
         lldb::SBCompileUnit compileUnit = frame.GetCompileUnit();
         lldb::SBSymbolContext context(frame.GetSymbolContext(0x0000006e));
@@ -268,7 +269,7 @@ static void setExceptionLocation(LLDBPlugin* plugin, PDWriter* writer)
     lldb::SBSymbolContext context(frame.GetSymbolContext(lldb::eSymbolContextEverything));
     lldb::SBLineEntry entry(context.GetLineEntry());
     uint32_t line = entry.GetLine();
-    
+
     PDWrite_event_begin(writer, PDEventType_SetExceptionLocation);
     PDWrite_string(writer, "filename", filename);
     PDWrite_u32(writer, "line", line);
@@ -288,7 +289,7 @@ static void setTty(LLDBPlugin* plugin, PDWriter* writer)
     {
         PDWrite_event_begin(writer, PDEventType_SetTty);
         PDWrite_string(writer, "tty", buffer);
-        PDWrite_event_end(writer);    
+        PDWrite_event_end(writer);
     }
 }
 
@@ -322,11 +323,11 @@ static void setExecutable(LLDBPlugin* plugin, PDReader* reader)
 		if (!breakpoint.IsValid())
 		{
 			// TODO: Send message back that this breakpoint could't be set
-			printf("Unable to set breakpoint %s:%d\n", bp.filename, bp.line); 
+			printf("Unable to set breakpoint %s:%d\n", bp.filename, bp.line);
 		}
 	}
 
-    printf("Valid target %s\n", filename); 
+    printf("Valid target %s\n", filename);
 
     onRun(plugin);
 }
@@ -337,7 +338,7 @@ static void setLocals(LLDBPlugin* plugin, PDWriter* writer)
 {
     lldb::SBThread thread(plugin->process.GetThreadByID(plugin->selectedThreadId));
     lldb::SBFrame frame = thread.GetSelectedFrame();
-    
+
     lldb::SBValueList variables = frame.GetVariables(true, true, true, false);
 
     uint32_t count = variables.GetSize();
@@ -347,13 +348,13 @@ static void setLocals(LLDBPlugin* plugin, PDWriter* writer)
 
     PDWrite_event_begin(writer, PDEventType_SetLocals);
     PDWrite_array_begin(writer, "locals");
-        
+
     for (uint32_t i = 0; i < count; ++i)
     {
         lldb::SBValue value = variables.GetValueAtIndex(i);
 
         PDWrite_array_entry_begin(writer);
-        
+
         PDWrite_u64(writer, "address", value.GetAddress().GetFileAddress());
 
         if (value.GetValue())
@@ -361,7 +362,7 @@ static void setLocals(LLDBPlugin* plugin, PDWriter* writer)
 
         if (value.GetTypeName())
             PDWrite_string(writer, "type", value.GetTypeName());
-            
+
         if (value.GetName())
             PDWrite_string(writer, "name", value.GetName());
 
@@ -389,7 +390,7 @@ static void setThreads(LLDBPlugin* plugin, PDWriter* writer)
     	lldb::SBThread thread = plugin->process.GetThreadAtIndex(i);
     	lldb::SBFrame frame = thread.GetFrameAtIndex(0);
 
-		uint64_t threadId = thread.GetThreadID(); 
+		uint64_t threadId = thread.GetThreadID();
     	const char* threadName = thread.GetName();
     	const char* queueName = thread.GetQueueName();
     	const char* functionName = frame.GetFunctionName();
@@ -399,16 +400,16 @@ static void setThreads(LLDBPlugin* plugin, PDWriter* writer)
         PDWrite_u64(writer, "id", threadId);
 
 		if (threadName)
-	        PDWrite_string(writer, "name", threadName); 
+	        PDWrite_string(writer, "name", threadName);
 		else if (queueName)
-	        PDWrite_string(writer, "name", queueName); 
+	        PDWrite_string(writer, "name", queueName);
 		else
-	        PDWrite_string(writer, "name", "unknown_thread"); 
+	        PDWrite_string(writer, "name", "unknown_thread");
 
 		if (functionName)
-        	PDWrite_string(writer, "function", functionName); 
+        	PDWrite_string(writer, "function", functionName);
 		else
-        	PDWrite_string(writer, "function", "unknown_function"); 
+        	PDWrite_string(writer, "function", "unknown_function");
 
         PDWrite_entry_end(writer);
 	}
@@ -522,7 +523,7 @@ static void selectThread(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer)
 
 	plugin->selectedThreadId = threadId;
 
-	setCallstack(plugin, writer); 
+	setCallstack(plugin, writer);
 
     PDWrite_event_begin(writer, PDEventType_SelectFrame);
     PDWrite_u32(writer, "frame", getThreadFrame(plugin, threadId));
@@ -684,7 +685,7 @@ static void updateLLDBEvent(LLDBPlugin* plugin, PDWriter* writer)
                 bool select_thread = false;
                 lldb::StopReason stop_reason = thread.GetStopReason();
 
-                if (m_verbose) 
+                if (m_verbose)
                     printf("tid = 0x%llx pc = 0x%llx ",thread.GetThreadID(),frame.GetPC());
 
                 switch (stop_reason)
@@ -693,14 +694,14 @@ static void updateLLDBEvent(LLDBPlugin* plugin, PDWriter* writer)
                         if (m_verbose)
                             printf("none\n");
                         break;
-                        
+
                     case lldb::eStopReasonTrace:
                         select_thread = true;
                         plugin->state = PDDebugState_Trace;
                         if (m_verbose)
                             printf("trace\n");
                         break;
-                        
+
                     case lldb::eStopReasonPlanComplete:
                         select_thread = true;
 
@@ -727,11 +728,11 @@ static void updateLLDBEvent(LLDBPlugin* plugin, PDWriter* writer)
                     {
                         select_thread = true;
 
-                        printf("%d %d\n", plugin->state, PDDebugState_StopException); 
+                        printf("%d %d\n", plugin->state, PDDebugState_StopException);
 
                         if (plugin->state != PDDebugState_StopException)
                             sendExceptionState(plugin, writer);
-                        
+
                         plugin->state = PDDebugState_StopException;
 
                         if (m_verbose)

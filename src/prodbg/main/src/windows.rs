@@ -3,7 +3,7 @@ extern crate bgfx_rs;
 extern crate viewdock;
 
 use bgfx_rs::Bgfx;
-use minifb::{Scale, WindowOptions, MouseMode, MouseButton, Key, KeyRepeat};
+use minifb::{CursorStyle, Scale, WindowOptions, MouseMode, MouseButton, Key, KeyRepeat};
 use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::backend_plugin::{BackendPlugins};
 use core::session::{Sessions, Session, SessionHandle};
@@ -262,9 +262,9 @@ impl Window {
             State::Default => {
                 if let Some(h) = self.ws.get_sizer_at(mouse_pos) {
                     if h.1 == Direction::Vertical {
-                        Bgfx::cursor_set_type(2);
+                    	self.win.set_cursor_style(CursorStyle::ResizeLeftRight);
                     } else {
-                        Bgfx::cursor_set_type(1);
+                    	self.win.set_cursor_style(CursorStyle::ResizeUpDown);
                     }
 
                     if self.win.get_mouse_down(MouseButton::Left) {
@@ -272,7 +272,7 @@ impl Window {
                         self.mouse_state.state = State::DraggingSlider;
                     }
                 } else {
-                    Bgfx::cursor_set_type(0);
+					self.win.set_cursor_style(CursorStyle::Arrow);
                 }
             },
 
@@ -283,15 +283,15 @@ impl Window {
                 if self.win.get_mouse_down(MouseButton::Left) {
                     let t = self.mouse_state.handle.unwrap();
                     if t.1 == Direction::Vertical {
-                        Bgfx::cursor_set_type(2);
+                    	self.win.set_cursor_style(CursorStyle::ResizeLeftRight);
                     } else {
-                        Bgfx::cursor_set_type(1);
+                    	self.win.set_cursor_style(CursorStyle::ResizeUpDown);
                     }
 //                    self.ws.drag_sizer(t.0, delta);
                 } else {
                     self.mouse_state.handle = None;
                     self.mouse_state.state = State::Default;
-                    Bgfx::cursor_set_type(0);
+					self.win.set_cursor_style(CursorStyle::Arrow);
                 }
             }
         }

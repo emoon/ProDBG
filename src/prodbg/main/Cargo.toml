@@ -7,10 +7,11 @@ build = "../build.rs"
 [dependencies]
 libloading = "0.2.0"
 lazy_static = "0.1.*"
-minifb = "0.7.1"
+minifb = "0.8.0"
 viewdock = { path = "../viewdock" }
 bgfx_rs = { path = "../bgfx" }
 core = { path = "../core" }
+settings = { path = "../../crates/settings" }
 imgui_sys = { path = "../imgui_sys" }
 prodbg_api = { path = "../../../api/rust/prodbg" }
 

@@ -38,6 +38,16 @@ RustCrate {
 -----------------------------------------------------------------------------------------------------------------------
 
 RustCrate {
+	Name = "settings",
+	CargoConfig = "src/crates/settings/Cargo.toml",
+	Sources = {
+		get_rs_src("src/crates/settings"),
+	},
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+RustCrate {
 	Name = "bgfx_rs",
 	CargoConfig = "src/prodbg/bgfx/Cargo.toml",
 	Sources = {
@@ -92,12 +102,12 @@ RustProgram {
 	Sources = {
 		get_rs_src("src/prodbg/main"),
 		-- get_rs_src("src/prodbg/core"),
-		get_rs_src("src/ui"),
+		-- get_rs_src("src/ui"),
 		"src/prodbg/build.rs",
 	},
 
     Depends = { "lua", "remote_api", "stb", "bgfx", "bgfx_rs", "ui",
-    			"imgui", "scintilla", "tinyxml2", "capstone", "imgui_sys", "core", "viewdock" },
+    			"imgui", "scintilla", "tinyxml2", "capstone", "imgui_sys", "core", "viewdock", "settings" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -135,6 +145,8 @@ local uiBundle = OsxBundle
 -----------------------------------------------------------------------------------------------------------------------
 
 if native.host_platform == "macosx" then
+	Default "prodbg"
+	Default "ui_testbench"
 	Default(prodbgBundle)
 	Default(uiBundle)
 else

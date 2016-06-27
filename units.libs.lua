@@ -42,28 +42,6 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
-    Name = "remotery",
-
-    Env = {
-        CCOPTS = {
-        	{ "-Wno-everything"; Config = "macosx-*-*" },
-        	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
-        },
-    },
-
-    Sources = {
-        Glob {
-            Dir = "src/native/external/remotery/lib",
-            Extensions = { ".c", ".h" },
-        },
-    },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-StaticLibrary {
     Name = "tinyxml2",
 
     Env = {
@@ -249,8 +227,8 @@ StaticLibrary {
 
     Env = {
         CPPPATH = {
-		  { 
-		  	{ "src/native/external/bx/include/compat/msvc", 
+		  {
+		  	{ "src/native/external/bx/include/compat/msvc",
 		  	  "src/native/external/bgfx/3rdparty/dxsdk/include" } ; Config = "win64-*-*" },
             "src/native/external/remotery/lib",
             "src/native/external/bgfx/include",
@@ -260,7 +238,7 @@ StaticLibrary {
 
         CXXOPTS = {
 			{ "-Wno-variadic-macros", "-Wno-everything" ; Config = "macosx-*-*" },
-			{ "/Isrc/native/external/bx/include/compat/msvc", 
+			{ "/Isrc/native/external/bx/include/compat/msvc",
 			"/EHsc"; Config = "win64-*-*" },
         },
     },
@@ -282,32 +260,6 @@ StaticLibrary {
 	    { "src/native/external/bgfx/src/glcontext_wgl.cpp" ; Config = "win64-*-*" },
 	    { "src/native/external/bgfx/src/glcontext_glx.cpp" ; Config = "linux-*-*" },
 	    { "src/native/external/bgfx/src/glcontext_nsgl.mm" ; Config = { "macosx-*-*", "macosx_test-*" } },
-    },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-StaticLibrary {
-    Name = "cmocka",
-
-    Env = {
-        CPPPATH = {
-            "src/native/external/cmocka/include",
-        },
-
-        CCOPTS = {
-       		{ "-Wno-everything" ; Config = "macosx-*-*" },
-        	{ "/wd4204", "/wd4701", "/wd4703" ; Config = "win64-*-*" },
-       },
-    },
-
-    Sources = {
-        Glob {
-            Dir = "src/native/external/cmocka/src",
-            Extensions = { ".c", ".h" },
-        },
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
