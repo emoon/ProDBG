@@ -1,15 +1,9 @@
-use rect::Rect;
+use rect::{Rect, Direction};
 use dock::{DockHandle, Dock};
 
 /// Handle to a split
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct SplitHandle(pub u64);
-
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub enum Direction {
-    Vertical,
-    Horizontal,
-}
 
 /// Given rectangle area is split in two parts.
 #[derive(Debug, Clone)]

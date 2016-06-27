@@ -1,4 +1,8 @@
-use area::Direction;
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Direction {
+    Vertical,
+    Horizontal,
+}
 
 /// Data structure for rectangles
 #[derive(Debug, Default, Clone, Copy)]
@@ -69,7 +73,7 @@ impl Rect {
 
 #[cfg(test)]
 mod test {
-    use Rect;
+    use {Rect, Direction};
 
     fn check_range(inv: f32, value: f32, delta: f32) -> bool {
         (inv - value).abs() < delta

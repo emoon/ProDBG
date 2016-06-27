@@ -33,8 +33,8 @@ pub use self::error::Error;
 // use std::io::{Write, Read};
 // use std::fs::File;
 //use std::io;
-pub use rect::Rect;
-pub use area::{Direction, Area, Split, SplitHandle, SplitSearchResult, Container};
+pub use rect::{Rect, Direction};
+pub use area::{Area, Split, SplitHandle, SplitSearchResult, Container};
 pub use dock::{DockHandle, Dock};
 
 /// Top level structure that holds an array of all the splits and the rect size of of the full
