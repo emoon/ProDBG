@@ -49,22 +49,21 @@ impl Split {
         self.second.update_rect(second_rect);
     }
 
-    pub fn get_sizer_from_rect_horizontal(rect: Rect, size: f32) -> Rect {
-        Rect::new(rect.x, rect.y + rect.height, rect.width, size)
-    }
+    pub fn get_sizer_at(&self, pos: (f32, f32)) -> Option<(SplitHandle, Direction)> {
+        let sizer_rect = self.rect.area_around_split(self.direction, self.ratio, 8.0);
+        if sizer_rect.point_is_inside(pos) {
+            return Some((self.handle, self.direction));
+        }
 
-    pub fn get_sizer_from_rect_vertical(rect: Rect, size: f32) -> Rect {
-        Rect::new(rect.x + rect.width, rect.y, size, rect.height)
+        let (first_rect, second_rect) = self.rect.split_by_direction(self.direction, self.ratio);
+        return if first_rect.point_is_inside(pos) {
+            self.first.get_sizer_at(pos)
+        } else if second_rect.point_is_inside(pos) {
+            self.second.get_sizer_at(pos)
+        } else {
+            None
+        }
     }
-
-//    pub fn is_hovering_rect(&self, pos: (f32, f32), border_size: f32, rect: Rect) -> bool {
-//        unimplemented!();
-//        match self.direction {
-//            Direction::Horizontal => Rect::is_inside(pos, Self::get_sizer_from_rect_horizontal(rect, border_size)),
-//            Direction::Vertical => Rect::is_inside(pos, Self::get_sizer_from_rect_vertical(rect, border_size)),
-//            Direction::Full => false,
-//        }
-//    }
 
     pub fn map_rect_to_delta(&self, delta: (f32, f32)) -> f32 {
         match self.direction {
@@ -236,6 +235,13 @@ impl Area {
             }
         }
     }
+
+    pub fn get_sizer_at(&self, pos: (f32, f32)) -> Option<(SplitHandle, Direction)> {
+        match self {
+            &Area::Split(ref s) => s.get_sizer_at(pos),
+            _ => None,
+        }
+    }
 }
 
 
@@ -296,38 +302,4 @@ impl Container {
 
         None
     }
-}
-
-#[cfg(test)]
-mod test {
-    use {Split, Rect};
-
-    fn check_range(inv: f32, value: f32, delta: f32) -> bool {
-        (inv - value).abs() < delta
-    }
-
-    #[test]
-    fn test_gen_horizontal_size() {
-        let border_size = 4.0;
-        let rect_in = Rect::new(10.0, 20.0, 30.0, 40.0);
-        let rect = Split::get_sizer_from_rect_horizontal(rect_in, border_size);
-
-        assert_eq!(check_range(rect.x, rect_in.x, 0.001), true);
-        assert_eq!(check_range(rect.y, 60.0, 0.001), true);
-        assert_eq!(check_range(rect.width, rect_in.width, 0.001), true);
-        assert_eq!(check_range(rect.height, border_size, 0.001), true);
-    }
-
-    #[test]
-    fn test_gen_vertical_size() {
-        let border_size = 4.0;
-        let rect_in = Rect::new(10.0, 20.0, 30.0, 40.0);
-        let rect = Split::get_sizer_from_rect_vertical(rect_in, border_size);
-
-        assert_eq!(check_range(rect.x, 40.0, 0.001), true);
-        assert_eq!(check_range(rect.y, rect_in.y, 0.001), true);
-        assert_eq!(check_range(rect.width, border_size, 0.001), true);
-        assert_eq!(check_range(rect.height, rect_in.height, 0.001), true);
-    }
-
 }

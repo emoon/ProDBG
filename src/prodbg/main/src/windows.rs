@@ -260,17 +260,17 @@ impl Window {
     fn update_mouse_state(&mut self, mouse_pos: (f32, f32)) {
         match self.mouse_state.state {
             State::Default => {
-                if false { // let Some(h) = self.ws.get_sizer_at(mouse_pos) {
-//                    if h.1 == Direction::Vertical {
-//                        Bgfx::cursor_set_type(2);
-//                    } else {
-//                        Bgfx::cursor_set_type(1);
-//                    }
-//
-//                    if self.win.get_mouse_down(MouseButton::Left) {
-//                        self.mouse_state.handle = Some(h);
-//                        self.mouse_state.state = State::DraggingSlider;
-//                    }
+                if let Some(h) = self.ws.get_sizer_at(mouse_pos) {
+                    if h.1 == Direction::Vertical {
+                        Bgfx::cursor_set_type(2);
+                    } else {
+                        Bgfx::cursor_set_type(1);
+                    }
+
+                    if self.win.get_mouse_down(MouseButton::Left) {
+                        self.mouse_state.handle = Some(h);
+                        self.mouse_state.state = State::DraggingSlider;
+                    }
                 } else {
                     Bgfx::cursor_set_type(0);
                 }

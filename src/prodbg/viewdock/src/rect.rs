@@ -28,6 +28,19 @@ impl Rect {
             self.y + self.height >= y;
     }
 
+    pub fn area_around_split(&self, direction: Direction, ratio: f32, width: f32) -> Rect {
+        match direction {
+            Direction::Horizontal => {
+                let y_start = self.y + self.height * ratio - width / 2.0;
+                return Rect::new(self.x, y_start, self.width, width);
+            },
+            Direction::Vertical => {
+                let x_start = self.x + self.width * ratio - width / 2.0;
+                return Rect::new(x_start, self.y, width, self.height);
+            },
+        }
+    }
+
     pub fn split_by_direction(&self, direction: Direction, ratio: f32) -> (Rect, Rect) {
         match direction {
             Direction::Horizontal => Rect::split_horizontally(self, ratio),
@@ -106,4 +119,28 @@ mod test {
         assert_eq!(check_range(rects.1.width, 512.0, 0.001), true);
         assert_eq!(check_range(rects.1.height, 768.0, 0.001), true);
     }
+//    TODO: update following tests for area around split calculation
+//    #[test]
+//    fn test_gen_horizontal_size() {
+//        let border_size = 4.0;
+//        let rect_in = Rect::new(10.0, 20.0, 30.0, 40.0);
+//        let rect = rect_in.area_around_split(border_size);
+//
+//        assert_eq!(check_range(rect.x, rect_in.x, 0.001), true);
+//        assert_eq!(check_range(rect.y, 60.0, 0.001), true);
+//        assert_eq!(check_range(rect.width, rect_in.width, 0.001), true);
+//        assert_eq!(check_range(rect.height, border_size, 0.001), true);
+//    }
+//
+//    #[test]
+//    fn test_gen_vertical_size() {
+//        let border_size = 4.0;
+//        let rect_in = Rect::new(10.0, 20.0, 30.0, 40.0);
+//        let rect = Split::get_sizer_from_rect_vertical(rect_in, border_size);
+//
+//        assert_eq!(check_range(rect.x, 40.0, 0.001), true);
+//        assert_eq!(check_range(rect.y, rect_in.y, 0.001), true);
+//        assert_eq!(check_range(rect.width, border_size, 0.001), true);
+//        assert_eq!(check_range(rect.height, rect_in.height, 0.001), true);
+//    }
 }

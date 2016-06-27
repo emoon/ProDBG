@@ -131,15 +131,12 @@ impl Workspace {
 //        }
 //    }
 
-//    pub fn get_sizer_at(&self, pos: (f32, f32)) -> Option<(SplitHandle, Direction)> {
-//        for split in &self.splits {
-//            if split.is_hovering_rect(pos, 8.0, split.left_docks.rect) {
-//                return Some((split.handle, split.direction));
-//            }
-//        }
-//
-//        None
-//    }
+    pub fn get_sizer_at(&self, pos: (f32, f32)) -> Option<(SplitHandle, Direction)> {
+        match self.root_area {
+            Some(ref a) => a.get_sizer_at(pos),
+            _ => None
+        }
+    }
 
 //    fn recursive_dump(splits: &Vec<Split>, handle: SplitHandle, level: i32) {
 //        unimplemented!();
