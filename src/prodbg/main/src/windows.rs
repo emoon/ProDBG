@@ -287,7 +287,7 @@ impl Window {
                     } else {
                     	self.win.set_cursor_style(CursorStyle::ResizeUpDown);
                     }
-//                    self.ws.drag_sizer(t.0, delta);
+                    self.ws.drag_sizer(t.0, delta);
                 } else {
                     self.mouse_state.handle = None;
                     self.mouse_state.state = State::Default;

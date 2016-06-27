@@ -120,12 +120,11 @@ impl Workspace {
     }
 
     pub fn drag_sizer(&mut self, handle: SplitHandle, delta: (f32, f32)) {
-//        unimplemented!();
-//        for split in &mut self.splits {
-//            if split.handle == handle {
-//                return split.change_ratio(delta);
-//            }
-//        }
+        if let Some(ref mut root) = self.root_area {
+            if let Some(s) = root.find_split_by_handle(handle) {
+                s.change_ratio(delta);
+            }
+        }
     }
 
     pub fn get_sizer_at(&self, pos: (f32, f32)) -> Option<(SplitHandle, Direction)> {

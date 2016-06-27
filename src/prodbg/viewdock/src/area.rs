@@ -171,6 +171,23 @@ impl Area {
         return None;
     }
 
+    /// Finds Area::Split by its handle
+    pub fn find_split_by_handle(&mut self, handle: SplitHandle) -> Option<&mut Split> {
+        match self {
+            &mut Area::Container(_) => None,
+            &mut Area::Split(ref mut s) => if s.handle == handle {
+                Some(s)
+            } else {
+                let first_res = s.first.find_split_by_handle(handle);
+                if first_res.is_some() {
+                    first_res
+                } else {
+                    s.second.find_split_by_handle(handle)
+                }
+            }
+        }
+    }
+
     pub fn update_rect(&mut self, rect: Rect) {
         match self {
             &mut Area::Container(ref mut c) => c.rect = rect,
