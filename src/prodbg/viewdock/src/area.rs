@@ -115,10 +115,7 @@ impl Split {
         } else {
             &self.second
         };
-        return match **res {
-            Area::Container(ref c) => c.get_dock_handle_at_pos(pos),
-            Area::Split(ref c) => c.get_dock_handle_at_pos(pos),
-        };
+        return res.get_dock_handle_at_pos(pos);
     }
 }
 
@@ -241,6 +238,13 @@ impl Area {
             &Area::Split(ref s) => s.get_sizer_at(pos),
             _ => None,
         }
+    }
+
+    pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
+        return match self {
+            &Area::Container(ref c) => c.get_dock_handle_at_pos(pos),
+            &Area::Split(ref c) => c.get_dock_handle_at_pos(pos),
+        };
     }
 }
 

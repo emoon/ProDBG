@@ -108,10 +108,7 @@ impl Workspace {
 
     pub fn get_hover_dock(&self, pos: (f32, f32)) -> Option<DockHandle> {
         self.root_area.as_ref().and_then(|root| {
-            match *root {
-                Area::Container(ref c) => c.get_dock_handle_at_pos(pos),
-                Area::Split(ref s) => s.get_dock_handle_at_pos(pos),
-            }
+            root.get_dock_handle_at_pos(pos)
         })
     }
 
@@ -122,20 +119,19 @@ impl Workspace {
         }
     }
 
-//    pub fn drag_sizer(&mut self, handle: SplitHandle, delta: (f32, f32)) {
+    pub fn drag_sizer(&mut self, handle: SplitHandle, delta: (f32, f32)) {
 //        unimplemented!();
 //        for split in &mut self.splits {
 //            if split.handle == handle {
 //                return split.change_ratio(delta);
 //            }
 //        }
-//    }
+    }
 
     pub fn get_sizer_at(&self, pos: (f32, f32)) -> Option<(SplitHandle, Direction)> {
-        match self.root_area {
-            Some(ref a) => a.get_sizer_at(pos),
-            _ => None
-        }
+        self.root_area.as_ref().and_then(|root| {
+            root.get_sizer_at(pos)
+        })
     }
 
 //    fn recursive_dump(splits: &Vec<Split>, handle: SplitHandle, level: i32) {
@@ -175,9 +171,7 @@ impl Workspace {
     pub fn delete_by_handle(&mut self, handle: DockHandle) {
         let mut should_delete_root = false;
         if let Some(Area::Container(ref c)) = self.root_area {
-            if c.find_handle(handle).is_some() {
-                should_delete_root = true;
-            }
+            should_delete_root = c.find_handle(handle).is_some();
         }
         if should_delete_root {
             self.root_area = None;
