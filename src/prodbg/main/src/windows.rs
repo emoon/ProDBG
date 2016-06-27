@@ -8,7 +8,7 @@ use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::backend_plugin::{BackendPlugins};
 use core::session::{Sessions, Session, SessionHandle};
 use core::reader_wrapper::ReaderWrapper;
-use self::viewdock::{Workspace, Rect, Direction, DockHandle, SplitHandle};
+use self::viewdock::{Workspace, Rect, Direction, DockHandle, SplitHandle, DragTarget, DropTarget};
 use menu::*;
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::{PDVec2, ImguiKey};
@@ -21,11 +21,10 @@ const HEIGHT: usize = 800;
 
 enum State {
     Default,
-    DraggingSlider,
+    Dragging(DragTarget),
 }
 
 pub struct MouseState {
-    handle: Option<(SplitHandle, Direction)>,
     state: State,
     prev_mouse: (f32, f32)
 }
@@ -33,7 +32,6 @@ pub struct MouseState {
 impl MouseState {
     pub fn new() -> MouseState {
         MouseState {
-            handle: None,
             state: State::Default,
             prev_mouse: (0.0, 0.0),
         }
@@ -258,56 +256,66 @@ impl Window {
     }
 
     fn update_mouse_state(&mut self, mouse_pos: (f32, f32)) {
+        let mut next_state = None;
+        let cursor;
         match self.mouse_state.state {
             State::Default => {
-                if let Some(h) = self.ws.get_sizer_at(mouse_pos) {
-                    if h.1 == Direction::Vertical {
-                    	self.win.set_cursor_style(CursorStyle::ResizeLeftRight);
-                    } else {
-                    	self.win.set_cursor_style(CursorStyle::ResizeUpDown);
-                    }
-
+                if let Some(target) = self.ws.get_drag_target_at_pos(mouse_pos) {
+                    cursor = match target {
+                        DragTarget::Dock(_) => CursorStyle::OpenHand,
+                        DragTarget::SplitSizer(_, direction) => match direction {
+                            Direction::Vertical => CursorStyle::ResizeLeftRight,
+                            Direction::Horizontal => CursorStyle::ResizeUpDown
+                        }
+                    };
                     if self.win.get_mouse_down(MouseButton::Left) {
-                        self.mouse_state.handle = Some(h);
-                        self.mouse_state.state = State::DraggingSlider;
+                        next_state = Some(State::Dragging(target));
                     }
                 } else {
-					self.win.set_cursor_style(CursorStyle::Arrow);
+                    cursor = CursorStyle::Arrow;
                 }
             },
 
-            State::DraggingSlider => {
-                let pm = self.mouse_state.prev_mouse;
-                let delta = (pm.0 - mouse_pos.0, pm.1 - mouse_pos.1);
-
+            State::Dragging(DragTarget::SplitSizer(handle, direction)) => {
                 if self.win.get_mouse_down(MouseButton::Left) {
-                    let t = self.mouse_state.handle.unwrap();
-                    if t.1 == Direction::Vertical {
-                    	self.win.set_cursor_style(CursorStyle::ResizeLeftRight);
-                    } else {
-                    	self.win.set_cursor_style(CursorStyle::ResizeUpDown);
-                    }
-                    self.ws.drag_sizer(t.0, delta);
+                    cursor = match direction {
+                        Direction::Vertical => CursorStyle::ResizeLeftRight,
+                        Direction::Horizontal => CursorStyle::ResizeUpDown
+                    };
+                    let pm = self.mouse_state.prev_mouse;
+                    let delta = (pm.0 - mouse_pos.0, pm.1 - mouse_pos.1);
+                    self.ws.drag_sizer(handle, delta);
                 } else {
-                    self.mouse_state.handle = None;
-                    self.mouse_state.state = State::Default;
-					self.win.set_cursor_style(CursorStyle::Arrow);
+                    next_state = Some(State::Default);
+                    cursor = CursorStyle::Arrow;
+                }
+            },
+
+            State::Dragging(DragTarget::Dock(handle)) => {
+                let drop_target = self.ws.get_drop_target_at_pos(mouse_pos);
+                if self.win.get_mouse_down(MouseButton::Left) {
+                    cursor = match drop_target {
+                        Some(DropTarget::Dock(target)) if target != handle => CursorStyle::OpenHand,
+                        // TODO: make sure this cursor style works. Did not work with minifb 0.8.0
+                        _ => CursorStyle::ClosedHand,
+                    }
+                } else {
+                    if let Some(DropTarget::Dock(target)) = drop_target {
+                        if target != handle {
+                            self.ws.swap_docks(handle, target);
+                        }
+                    }
+                    next_state = Some(State::Default);
+                    cursor = CursorStyle::Arrow;
                 }
             }
         }
 
-        /*
-           if let Some(handle) = ws.is_hovering_sizer(mouse_pos) {
-           let delta = (prev_mouse.0 - mouse_pos.0, prev_mouse.1 - mouse_pos.1);
-
-           if window.get_mouse_down(MouseButton::Left) {
-           println!("drangging sizer");
-           ws.drag_sizer(handle, delta);
-           }
-           }
-           */
-
+        self.win.set_cursor_style(cursor);
         self.mouse_state.prev_mouse = mouse_pos;
+        if let Some(ns) = next_state {
+            self.mouse_state.state = ns;
+        }
     }
 
     fn update_key_state(&mut self) {

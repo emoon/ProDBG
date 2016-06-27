@@ -34,7 +34,7 @@ pub use self::error::Error;
 // use std::fs::File;
 //use std::io;
 pub use rect::{Rect, Direction};
-pub use area::{Area, Split, SplitHandle, SplitSearchResult, Container};
+pub use area::{Area, Split, SplitHandle, SplitSearchResult, Container, DragTarget, DropTarget};
 pub use dock::{DockHandle, Dock};
 
 /// Top level structure that holds an array of all the splits and the rect size of of the full
@@ -127,9 +127,15 @@ impl Workspace {
         }
     }
 
-    pub fn get_sizer_at(&self, pos: (f32, f32)) -> Option<(SplitHandle, Direction)> {
+    pub fn get_drag_target_at_pos(&self, pos: (f32, f32)) -> Option<DragTarget> {
         self.root_area.as_ref().and_then(|root| {
-            root.get_sizer_at(pos)
+            root.get_drag_target_at_pos(pos)
+        })
+    }
+
+    pub fn get_drop_target_at_pos(&self, pos: (f32, f32)) -> Option<DropTarget> {
+        self.root_area.as_ref().and_then(|root| {
+            root.get_drop_target_at_pos(pos)
         })
     }
 
@@ -170,7 +176,7 @@ impl Workspace {
     pub fn delete_by_handle(&mut self, handle: DockHandle) {
         let mut should_delete_root = false;
         if let Some(Area::Container(ref c)) = self.root_area {
-            should_delete_root = c.find_handle(handle).is_some();
+            should_delete_root = c.find_dock(handle).is_some();
         }
         if should_delete_root {
             self.root_area = None;
@@ -192,6 +198,62 @@ impl Workspace {
                         subs = *s.first.clone();
                     } else { unreachable!() }
                     Self::replace_area(area, subs);
+                }
+            }
+        }
+    }
+
+    pub fn swap_docks(&mut self, first: DockHandle, second: DockHandle) {
+        if let Some(ref mut root) = self.root_area {
+            if first == second {
+                return;
+            }
+            let first_copy;
+            let second_copy;
+            let first_split_handle;
+            let first_dock_pos;
+            match root.find_split_by_dock_handle(first) {
+                SplitSearchResult::None => return,
+                SplitSearchResult::FirstChild(area) => {
+                    first_copy = if let &mut Area::Split(ref s) = area {
+                        first_split_handle = s.handle;
+                        first_dock_pos = 0;
+                        s.first.clone()
+                    } else { unreachable!() };
+                },
+                SplitSearchResult::SecondChild(area) => {
+                    first_copy = if let &mut Area::Split(ref s) = area {
+                        first_split_handle = s.handle;
+                        first_dock_pos = 1;
+                        s.second.clone()
+                    } else { unreachable!() };
+                }
+            }
+            match root.find_split_by_dock_handle(second) {
+                SplitSearchResult::None => return,
+                SplitSearchResult::FirstChild(area) => {
+                    second_copy = if let &mut Area::Split(ref mut s) = area {
+                        let res = s.first.clone();
+                        s.change_first_child(first_copy);
+                        res
+                    } else { unreachable!() };
+                },
+                SplitSearchResult::SecondChild(area) => {
+                    second_copy = if let &mut Area::Split(ref mut s) = area {
+                        let res = s.second.clone();
+                        s.change_second_child(first_copy);
+                        res
+                    } else { unreachable!() };
+                }
+            }
+            match root.find_split_by_handle(first_split_handle) {
+                None => panic!("Tried to swap docks {:?} and {:?} but lost {:?} in the middle", first, second, first),
+                Some(s) => {
+                    match first_dock_pos {
+                        0 => s.change_first_child(second_copy),
+                        1 => s.change_second_child(second_copy),
+                        _ => unreachable!(),
+                    }
                 }
             }
         }

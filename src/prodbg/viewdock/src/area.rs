@@ -36,27 +36,40 @@ impl Split {
         return res;
     }
 
-    pub fn update_rect(&mut self, rect: Rect) {
-        self.rect = rect;
+    fn update_child_sizes(&mut self) {
         let (first_rect, second_rect) = self.rect.split_by_direction(self.direction, self.ratio);
         self.first.update_rect(first_rect);
         self.second.update_rect(second_rect);
     }
 
-    pub fn get_sizer_at(&self, pos: (f32, f32)) -> Option<(SplitHandle, Direction)> {
-        let sizer_rect = self.rect.area_around_split(self.direction, self.ratio, 8.0);
-        if sizer_rect.point_is_inside(pos) {
-            return Some((self.handle, self.direction));
-        }
+    pub fn update_rect(&mut self, rect: Rect) {
+        self.rect = rect;
+        self.update_child_sizes();
+    }
 
+    fn get_child_at_pos(&self, pos: (f32, f32)) -> Option<&Box<Area>> {
         let (first_rect, second_rect) = self.rect.split_by_direction(self.direction, self.ratio);
         return if first_rect.point_is_inside(pos) {
-            self.first.get_sizer_at(pos)
+            Some(&self.first)
         } else if second_rect.point_is_inside(pos) {
-            self.second.get_sizer_at(pos)
+            Some(&self.second)
         } else {
             None
         }
+    }
+
+    pub fn get_drag_target_at_pos(&self, pos: (f32, f32)) -> Option<DragTarget> {
+        let sizer_rect = self.rect.area_around_split(self.direction, self.ratio, 8.0);
+        if sizer_rect.point_is_inside(pos) {
+            return Some(DragTarget::SplitSizer(self.handle, self.direction));
+        }
+        return self.get_child_at_pos(pos)
+            .and_then(|child| child.get_drag_target_at_pos(pos));
+    }
+
+    pub fn get_drop_target_at_pos(&self, pos: (f32, f32)) -> Option<DropTarget> {
+        self.get_child_at_pos(pos)
+            .and_then(|child| child.get_drop_target_at_pos(pos))
     }
 
     pub fn map_rect_to_delta(&self, delta: (f32, f32)) -> f32 {
@@ -78,6 +91,7 @@ impl Split {
         if self.ratio > 0.99 {
             self.ratio = 0.99;
         }
+        self.update_child_sizes();
     }
 
 //    pub fn dump_info(&self, level: i32) {
@@ -110,6 +124,16 @@ impl Split {
             &self.second
         };
         return res.get_dock_handle_at_pos(pos);
+    }
+
+    pub fn change_first_child(&mut self, child: Box<Area>) {
+        self.first = child;
+        self.update_child_sizes();
+    }
+
+    pub fn change_second_child(&mut self, child: Box<Area>) {
+        self.second = child;
+        self.update_child_sizes();
     }
 }
 
@@ -150,7 +174,7 @@ impl Area {
     pub fn find_container_holder_by_dock_handle(&mut self, handle: DockHandle) -> Option<&mut Area> {
         let mut is_self = false;
         if let &mut Area::Container(ref c) = self {
-            is_self = c.find_handle(handle).is_some();
+            is_self = c.find_dock(handle).is_some();
         }
         if is_self {
             return Some(self);
@@ -199,10 +223,24 @@ impl Area {
     /// Finds Container with supplied DockHandle
     pub fn find_container_by_dock_handle(&self, handle: DockHandle) -> Option<&Container> {
         match self {
-            &Area::Container(ref c) => c.find_handle(handle).map(|_| c),
+            &Area::Container(ref c) => c.find_dock(handle).map(|_| c),
             &Area::Split(ref s) => s.first
                 .find_container_by_dock_handle(handle)
                 .or_else(|| s.second.find_container_by_dock_handle(handle))
+        }
+    }
+
+    pub fn find_dock_by_handle_mut(&mut self, handle: DockHandle) -> Option<&mut Dock> {
+        match self {
+            &mut Area::Container(ref mut c) => c.find_dock_mut(handle),
+            &mut Area::Split(ref mut s) => {
+                let res = s.first.find_dock_by_handle_mut(handle);
+                if res.is_some() {
+                    res
+                } else {
+                    s.second.find_dock_by_handle_mut(handle)
+                }
+            }
         }
     }
 
@@ -211,12 +249,12 @@ impl Area {
         let mut found_child = 0;
         if let &mut Area::Split(ref mut s) = self {
             if let Area::Container (ref c) = *s.first {
-                if c.find_handle(handle).is_some() {
+                if c.find_dock(handle).is_some() {
                     found_child = 1;
                 };
             }
             if let Area::Container (ref c) = *s.second {
-                if c.find_handle(handle).is_some() {
+                if c.find_dock(handle).is_some() {
                     found_child = 2;
                 }
             }
@@ -244,10 +282,17 @@ impl Area {
         }
     }
 
-    pub fn get_sizer_at(&self, pos: (f32, f32)) -> Option<(SplitHandle, Direction)> {
+    pub fn get_drag_target_at_pos(&self, pos: (f32, f32)) -> Option<DragTarget> {
         match self {
-            &Area::Split(ref s) => s.get_sizer_at(pos),
-            _ => None,
+            &Area::Split(ref s) => s.get_drag_target_at_pos(pos),
+            &Area::Container(ref c) => c.get_drag_target_at_pos(pos),
+        }
+    }
+
+    pub fn get_drop_target_at_pos(&self, pos: (f32, f32)) -> Option<DropTarget> {
+        match self {
+            &Area::Split(ref s) => s.get_drop_target_at_pos(pos),
+            &Area::Container(ref c) => c.get_drop_target_at_pos(pos),
         }
     }
 
@@ -268,8 +313,12 @@ impl Container {
         }
     }
 
-    pub fn find_handle(&self, handle: DockHandle) -> Option<&Dock> {
+    pub fn find_dock(&self, handle: DockHandle) -> Option<&Dock> {
         self.docks.iter().find(|&dock| dock.handle == handle)
+    }
+
+    pub fn find_dock_mut(&mut self, handle: DockHandle) -> Option<&mut Dock> {
+        self.docks.iter_mut().find(|dock| dock.handle == handle)
     }
 
     pub fn remove_handle(&mut self, handle: DockHandle) -> bool {
@@ -317,4 +366,35 @@ impl Container {
 
         None
     }
+
+    pub fn get_header_rect(&self) -> Rect {
+        Rect::new(self.rect.x, self.rect.y, self.rect.width - 30.0, 30.0)
+    }
+
+    pub fn get_drag_target_at_pos(&self, pos: (f32, f32)) -> Option<DragTarget> {
+        return if self.get_header_rect().point_is_inside(pos) {
+            Some(DragTarget::Dock(self.docks.first().unwrap().handle))
+        } else {
+            None
+        }
+    }
+
+    pub fn get_drop_target_at_pos(&self, pos: (f32, f32)) -> Option<DropTarget> {
+        return if self.get_header_rect().point_is_inside(pos) {
+            Some(DropTarget::Dock(self.docks.first().unwrap().handle))
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum DragTarget {
+    SplitSizer(SplitHandle, Direction),
+    Dock(DockHandle)
+}
+
+#[derive(Debug)]
+pub enum DropTarget {
+    Dock(DockHandle)
 }
