@@ -34,7 +34,7 @@ pub use self::error::Error;
 // use std::fs::File;
 //use std::io;
 pub use rect::{Rect, Direction};
-pub use area::{Area, Split, SplitHandle, SplitSearchResult, Container, DragTarget, DropTarget};
+pub use area::{Area, Split, SplitHandle, Container, DragTarget, DropTarget};
 pub use dock::{DockHandle, Dock};
 
 /// Top level structure that holds an array of all the splits and the rect size of of the full
@@ -86,15 +86,30 @@ impl Workspace {
 
     pub fn split_by_dock_handle(&mut self, direction: Direction, find_handle: DockHandle, handle: DockHandle) {
         let next_handle = self.next_handle();
-        let holder = self.root_area.as_mut().and_then(|root| {
-            root.find_container_holder_by_dock_handle(find_handle)
+        let is_root = match self.root_area {
+            Some(Area::Container(ref c)) => c.find_dock(find_handle).is_some(),
+            _ => false,
+        };
+        let new_dock = Area::Container(Container::new(Dock::new(handle), Rect::default()));
+        if is_root {
+            if let Some(ref mut root) = self.root_area {
+                let old_root = root.clone();
+                let new_child = Split::from_two(direction, 0.5, next_handle, self.rect.clone(), old_root, new_dock);
+                *root = Area::Split(new_child);
+                return;
+            }
+        }
+        let parent_split = self.root_area.as_mut().and_then(|root| {
+            root.find_split_by_dock_handle(find_handle)
         });
-        if let Some(area) = holder {
-            let rect = area.get_rect();
-            let first = area.clone();
-            let second = Area::Container(Container::new(Dock::new(handle), Rect::default()));
-            let split = Split::new(direction, 0.5, next_handle, first, second, rect);
-            *area = Area::Split(split);
+        if let Some((parent, pos)) = parent_split {
+            if direction == parent.direction {
+                parent.append_child(pos, new_dock);
+            } else {
+                let old_child = parent.children[pos].clone();
+                let new_child = Split::from_two(direction, 0.5, next_handle, Rect::default(), old_child, new_dock);
+                parent.replace_child(pos, Area::Split(new_child));
+            }
         }
     }
 
@@ -119,10 +134,10 @@ impl Workspace {
         }
     }
 
-    pub fn drag_sizer(&mut self, handle: SplitHandle, delta: (f32, f32)) {
+    pub fn drag_sizer(&mut self, handle: SplitHandle, index: usize, delta: (f32, f32)) {
         if let Some(ref mut root) = self.root_area {
             if let Some(s) = root.find_split_by_handle(handle) {
-                s.change_ratio(delta);
+                s.change_ratio(index, delta);
             }
         }
     }
@@ -139,11 +154,6 @@ impl Workspace {
         })
     }
 
-    fn replace_area(area: &mut Area, mut subs: Area) {
-        subs.update_rect(area.get_rect());
-        *area = subs;
-    }
-
     pub fn delete_by_handle(&mut self, handle: DockHandle) {
         let mut should_delete_root = false;
         if let Some(Area::Container(ref c)) = self.root_area {
@@ -154,21 +164,27 @@ impl Workspace {
             return;
         }
         if let Some(ref mut root) = self.root_area {
-            match root.find_split_by_dock_handle(handle) {
-                SplitSearchResult::None => {},
-                SplitSearchResult::FirstChild(area) => {
-                    let subs;
-                    if let &mut Area::Split(ref mut s) = area {
-                        subs = *s.second.clone();
-                    } else { unreachable!() }
-                    Self::replace_area(area, subs);
-                },
-                SplitSearchResult::SecondChild(area) => {
-                    let subs;
-                    if let &mut Area::Split(ref mut s) = area {
-                        subs = *s.first.clone();
-                    } else { unreachable!() }
-                    Self::replace_area(area, subs);
+            let mut should_adopt = None;
+            if let Some((split, index)) = root.find_split_by_dock_handle(handle) {
+                split.remove_child(index);
+                if split.children.len() == 1 {
+                    should_adopt = Some((split.handle, split.children[0].clone()));
+                }
+            }
+            if let Some((split_handle, mut contents)) = should_adopt {
+                let mut should_replace_root = false;
+                if let &mut Area::Split(ref s) = root {
+                    if s.handle == split_handle {
+                        should_replace_root = true;
+                    }
+                }
+                if should_replace_root {
+                    contents.update_rect(root.get_rect().clone());
+                    *root = contents;
+                } else if let Some((parent_split, index)) = root.find_parent_split_by_split_handle(split_handle) {
+                    // TODO: If contents is Area::Split with the same direction as ours we need to
+                    // adopt its children.
+                    parent_split.replace_child(index, contents);
                 }
             }
         }
@@ -182,50 +198,22 @@ impl Workspace {
             let first_copy;
             let second_copy;
             let first_split_handle;
-            let first_dock_pos;
+            let first_dock_index;
             match root.find_split_by_dock_handle(first) {
-                SplitSearchResult::None => return,
-                SplitSearchResult::FirstChild(area) => {
-                    first_copy = if let &mut Area::Split(ref s) = area {
-                        first_split_handle = s.handle;
-                        first_dock_pos = 0;
-                        s.first.clone()
-                    } else { unreachable!() };
-                },
-                SplitSearchResult::SecondChild(area) => {
-                    first_copy = if let &mut Area::Split(ref s) = area {
-                        first_split_handle = s.handle;
-                        first_dock_pos = 1;
-                        s.second.clone()
-                    } else { unreachable!() };
+                None => return,
+                Some((parent, index)) => {
+                    first_copy = parent.children[index].clone();
+                    first_dock_index = index;
+                    first_split_handle = parent.handle;
                 }
             }
             match root.find_split_by_dock_handle(second) {
-                SplitSearchResult::None => return,
-                SplitSearchResult::FirstChild(area) => {
-                    second_copy = if let &mut Area::Split(ref mut s) = area {
-                        let res = s.first.clone();
-                        s.change_first_child(first_copy);
-                        res
-                    } else { unreachable!() };
-                },
-                SplitSearchResult::SecondChild(area) => {
-                    second_copy = if let &mut Area::Split(ref mut s) = area {
-                        let res = s.second.clone();
-                        s.change_second_child(first_copy);
-                        res
-                    } else { unreachable!() };
-                }
+                None => return,
+                Some((parent, index)) => second_copy = parent.replace_child(index, first_copy),
             }
             match root.find_split_by_handle(first_split_handle) {
                 None => panic!("Tried to swap docks {:?} and {:?} but lost {:?} in the middle", first, second, first),
-                Some(s) => {
-                    match first_dock_pos {
-                        0 => s.change_first_child(second_copy),
-                        1 => s.change_second_child(second_copy),
-                        _ => unreachable!(),
-                    }
-                }
+                Some(s) => {s.replace_child(first_dock_index, second_copy);},
             }
         }
     }

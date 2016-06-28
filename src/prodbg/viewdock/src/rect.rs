@@ -32,42 +32,50 @@ impl Rect {
             self.y + self.height >= y;
     }
 
-    pub fn area_around_split(&self, direction: Direction, ratio: f32, width: f32) -> Rect {
+    pub fn area_around_splits(&self, direction: Direction, ratios: &[f32], width: f32) -> Vec<Rect> {
         match direction {
             Direction::Horizontal => {
-                let y_start = self.y + self.height * ratio - width / 2.0;
-                return Rect::new(self.x, y_start, self.width, width);
+                ratios.iter().map(|ratio| {
+                    let y_start = self.y + self.height * ratio - width / 2.0;
+                    return Rect::new(self.x, y_start, self.width, width);
+                }).collect()
             },
             Direction::Vertical => {
-                let x_start = self.x + self.width * ratio - width / 2.0;
-                return Rect::new(x_start, self.y, width, self.height);
+                ratios.iter().map(|ratio| {
+                    let x_start = self.x + self.width * ratio - width / 2.0;
+                    return Rect::new(x_start, self.y, width, self.height);
+                }).collect()
             },
         }
     }
 
-    pub fn split_by_direction(&self, direction: Direction, ratio: f32) -> (Rect, Rect) {
+    pub fn split_by_direction(&self, direction: Direction, ratios: &[f32]) -> Vec<Rect> {
         match direction {
-            Direction::Horizontal => Rect::split_horizontally(self, ratio),
-            Direction::Vertical => Rect::split_vertically(self, ratio),
+            Direction::Horizontal => Rect::split_horizontally(self, ratios),
+            Direction::Vertical => Rect::split_vertically(self, ratios),
         }
     }
 
-    pub fn split_horizontally(rect: &Rect, ratio: f32) -> (Rect, Rect) {
-        let h = rect.height * ratio;
-
-        let rect_top = Rect::new(rect.x, rect.y, rect.width, h);
-        let rect_bottom = Rect::new(rect.x, rect.y + h, rect.width, rect.height - h);
-
-        (rect_top, rect_bottom)
+    pub fn split_horizontally(rect: &Rect, ratios: &[f32]) -> Vec<Rect> {
+        let mut prev_height = 0.0;
+        return ratios.iter().map(|ratio| {
+            let next_height = rect.height * ratio;
+            let rect_height = next_height - prev_height;
+            let res = Rect::new(rect.x, rect.y + prev_height, rect.width, rect_height);
+            prev_height = next_height;
+            return res;
+        }).collect();
     }
 
-    pub fn split_vertically(rect: &Rect, ratio: f32) -> (Rect, Rect) {
-        let w = rect.width * ratio;
-
-        let rect_left = Rect::new(rect.x, rect.y, w, rect.height);
-        let rect_right = Rect::new(rect.x + w, rect.y, rect.width - w, rect.height);
-
-        (rect_left, rect_right)
+    pub fn split_vertically(rect: &Rect, ratios: &[f32]) -> Vec<Rect> {
+        let mut prev_width = 0.0;
+        return ratios.iter().map(|ratio| {
+            let next_width = rect.width * ratio;
+            let rect_width = next_width - prev_width;
+            let res = Rect::new(rect.x + prev_width, rect.y, rect_width, rect.height);
+            prev_width = next_width;
+            return res;
+        }).collect();
     }
 }
 

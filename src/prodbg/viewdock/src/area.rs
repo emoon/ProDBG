@@ -8,12 +8,10 @@ pub struct SplitHandle(pub u64);
 /// Given rectangle area is split in two parts.
 #[derive(Debug, Clone)]
 pub struct Split {
-    /// left/top part of area
-    pub first: Box<Area>,
-    /// right/bottom part of area
-    pub second: Box<Area>,
-    /// ratio value of how much of each side that is visible. 1.0 = first fully visible
-    pub ratio: f32,
+    /// Children
+    pub children: Vec<Area>,
+    /// Right (or bottom) border of each child. Last should always be 1.
+    pub ratios: Vec<f32>,
     /// Direction of the split
     pub direction: Direction,
     /// Handle of the split
@@ -23,48 +21,44 @@ pub struct Split {
 }
 
 impl Split {
-    pub fn new(direction: Direction, ratio: f32, handle: SplitHandle, first: Area, second: Area, rect: Rect) -> Split {
+    pub fn from_two(direction: Direction, ratio: f32, handle: SplitHandle, rect: Rect, first: Area, second: Area) -> Split {
         let mut res = Split {
-            first: Box::new(first),
-            second: Box::new(second),
-            ratio: ratio,
+            children: vec!(first, second),
+            ratios: vec!(ratio, 1.0),
             direction: direction,
             handle: handle,
             rect: rect,
         };
-        res.update_rect(rect);
+        res.update_children_sizes();
         return res;
     }
 
-    fn update_child_sizes(&mut self) {
-        let (first_rect, second_rect) = self.rect.split_by_direction(self.direction, self.ratio);
-        self.first.update_rect(first_rect);
-        self.second.update_rect(second_rect);
+    fn update_children_sizes(&mut self) {
+        let rects = self.rect.split_by_direction(self.direction, &self.ratios);
+        for (child, rect) in self.children.iter_mut().zip(rects.iter()) {
+            child.update_rect(*rect);
+        }
     }
 
     pub fn update_rect(&mut self, rect: Rect) {
         self.rect = rect;
-        self.update_child_sizes();
+        self.update_children_sizes();
     }
 
-    fn get_child_at_pos(&self, pos: (f32, f32)) -> Option<&Box<Area>> {
-        let (first_rect, second_rect) = self.rect.split_by_direction(self.direction, self.ratio);
-        return if first_rect.point_is_inside(pos) {
-            Some(&self.first)
-        } else if second_rect.point_is_inside(pos) {
-            Some(&self.second)
-        } else {
-            None
-        }
+    fn get_child_at_pos(&self, pos: (f32, f32)) -> Option<&Area> {
+        self.children.iter()
+            .find(|child| child.get_rect().point_is_inside(pos))
     }
 
     pub fn get_drag_target_at_pos(&self, pos: (f32, f32)) -> Option<DragTarget> {
-        let sizer_rect = self.rect.area_around_split(self.direction, self.ratio, 8.0);
-        if sizer_rect.point_is_inside(pos) {
-            return Some(DragTarget::SplitSizer(self.handle, self.direction));
-        }
-        return self.get_child_at_pos(pos)
-            .and_then(|child| child.get_drag_target_at_pos(pos));
+        let sizer_rects = self.rect.area_around_splits(self.direction, &self.ratios[0..self.ratios.len() - 1], 8.0);
+        return sizer_rects.iter().enumerate()
+            .find(|&(_, rect)| rect.point_is_inside(pos))
+            .map(|(i, _)| DragTarget::SplitSizer(self.handle, i, self.direction))
+            .or_else(|| {
+                self.get_child_at_pos(pos)
+                    .and_then(|child| child.get_drag_target_at_pos(pos))
+            });
     }
 
     pub fn get_drop_target_at_pos(&self, pos: (f32, f32)) -> Option<DropTarget> {
@@ -79,61 +73,54 @@ impl Split {
         }
     }
 
-    pub fn change_ratio(&mut self, delta: (f32, f32)) {
+    pub fn change_ratio(&mut self, index: usize, delta: (f32, f32)) {
         let scale = Self::map_rect_to_delta(self, delta);
+        let mut res = self.ratios[index] + scale;
 
-        self.ratio += scale;
-
-        if self.ratio < 0.01 {
-            self.ratio = 0.01;
+        if res < 0.01 {
+            res = 0.01;
         }
 
-        if self.ratio > 0.99 {
-            self.ratio = 0.99;
+        if res > 0.99 {
+            res = 0.99;
         }
-        self.update_child_sizes();
+
+        self.ratios[index] = res;
+        self.update_children_sizes();
     }
-
-//    pub fn dump_info(&self, level: i32) {
-//        unimplemented!();
-//        let l_count = self.left_docks.docks.len();
-//        let r_count = self.right_docks.docks.len();
-//
-//        Self::pad(level);
-//
-//        println!("Split - Dir {:?} - handle {} - ratio {} count ({}, {}) - left ({:?}) right ({:?}) - rect {} {} - {} {}",
-//        self.direction, self.handle.0, self.ratio, l_count, r_count,
-//        self.left, self.right, self.rect.x, self.rect.y, self.rect.width, self.rect.height);
-//
-//        for d in &self.left_docks.docks {
-//            Self::pad(level);
-//            println!("left dock handle - {}", d.handle.0);
-//        }
-//
-//        for d in &self.right_docks.docks {
-//            Self::pad(level);
-//            println!("right dock handle - {}", d.handle.0);
-//        }
-//    }
 
     pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
-        let (first_rect, _) = self.rect.split_by_direction(self.direction, self.ratio);
-        let res = if first_rect.point_is_inside(pos) {
-            &self.first
-        } else {
-            &self.second
+        self.children.iter()
+            .find(|child| child.get_rect().point_is_inside(pos))
+            .and_then(|child| child.get_dock_handle_at_pos(pos))
+    }
+
+    pub fn replace_child(&mut self, index: usize, new_child: Area) -> Area {
+        self.children.push(new_child);
+        let res = self.children.swap_remove(index);
+        self.update_children_sizes();
+        return res;
+    }
+
+    pub fn append_child(&mut self, index: usize, child: Area) {
+        let existing_ratio = self.ratios[index];
+        let previous_ratio = match index {
+            0 => 0.0,
+            _ => self.ratios[index - 1]
         };
-        return res.get_dock_handle_at_pos(pos);
+        let diff = existing_ratio - previous_ratio;
+        self.children.insert(index, child);
+        self.ratios.insert(index, existing_ratio - diff / 2.0);
+        self.update_children_sizes();
     }
 
-    pub fn change_first_child(&mut self, child: Box<Area>) {
-        self.first = child;
-        self.update_child_sizes();
-    }
-
-    pub fn change_second_child(&mut self, child: Box<Area>) {
-        self.second = child;
-        self.update_child_sizes();
+    pub fn remove_child(&mut self, index: usize) {
+        self.children.remove(index);
+        self.ratios.remove(index);
+        if index == self.ratios.len() {
+            self.ratios[index - 1] = 1.0;
+        }
+        self.update_children_sizes();
     }
 }
 
@@ -154,41 +141,7 @@ pub enum Area {
     Split(Split),
 }
 
-pub enum SplitSearchResult<T> {
-    FirstChild(T),
-    SecondChild(T),
-    None,
-}
-
-impl<T> SplitSearchResult<T> {
-    pub fn is_some(&self) -> bool {
-        match self {
-            &SplitSearchResult::None => false,
-            _ => true,
-        }
-    }
-}
-
 impl Area {
-    /// Finds Area::Container with supplied DockHandle
-    pub fn find_container_holder_by_dock_handle(&mut self, handle: DockHandle) -> Option<&mut Area> {
-        let mut is_self = false;
-        if let &mut Area::Container(ref c) = self {
-            is_self = c.find_dock(handle).is_some();
-        }
-        if is_self {
-            return Some(self);
-        }
-        if let &mut Area::Split(ref mut s) = self {
-            let res = s.first.find_container_holder_by_dock_handle(handle);
-            if res.is_some() {
-                return res;
-            }
-            return s.second.find_container_holder_by_dock_handle(handle);
-        }
-        return None;
-    }
-
     /// Finds Area::Split by its handle
     pub fn find_split_by_handle(&mut self, handle: SplitHandle) -> Option<&mut Split> {
         match self {
@@ -196,12 +149,10 @@ impl Area {
             &mut Area::Split(ref mut s) => if s.handle == handle {
                 Some(s)
             } else {
-                let first_res = s.first.find_split_by_handle(handle);
-                if first_res.is_some() {
-                    first_res
-                } else {
-                    s.second.find_split_by_handle(handle)
-                }
+                s.children.iter_mut()
+                    .map(|child| child.find_split_by_handle(handle))
+                    .find(|c| {c.is_some() })
+                    .map(|res| res.unwrap())
             }
         }
     }
@@ -224,62 +175,50 @@ impl Area {
     pub fn find_container_by_dock_handle(&self, handle: DockHandle) -> Option<&Container> {
         match self {
             &Area::Container(ref c) => c.find_dock(handle).map(|_| c),
-            &Area::Split(ref s) => s.first
-                .find_container_by_dock_handle(handle)
-                .or_else(|| s.second.find_container_by_dock_handle(handle))
-        }
-    }
-
-    pub fn find_dock_by_handle_mut(&mut self, handle: DockHandle) -> Option<&mut Dock> {
-        match self {
-            &mut Area::Container(ref mut c) => c.find_dock_mut(handle),
-            &mut Area::Split(ref mut s) => {
-                let res = s.first.find_dock_by_handle_mut(handle);
-                if res.is_some() {
-                    res
-                } else {
-                    s.second.find_dock_by_handle_mut(handle)
-                }
-            }
+            &Area::Split(ref s) => s.children.iter()
+                .map(|child| child.find_container_by_dock_handle(handle))
+                .find(|c| {c.is_some() })
+                .map(|res| res.unwrap())
         }
     }
 
     /// Finds Area::Split which contains Container with supplied DockHandle
-    pub fn find_split_by_dock_handle(&mut self, handle: DockHandle) -> SplitSearchResult<&mut Area> {
-        let mut found_child = 0;
+    pub fn find_split_by_dock_handle(&mut self, handle: DockHandle) -> Option<(&mut Split, usize)> {
         if let &mut Area::Split(ref mut s) = self {
-            if let Area::Container (ref c) = *s.first {
-                if c.find_dock(handle).is_some() {
-                    found_child = 1;
-                };
-            }
-            if let Area::Container (ref c) = *s.second {
-                if c.find_dock(handle).is_some() {
-                    found_child = 2;
+            let found_child = s.children.iter_mut().position(|child| {
+                match child {
+                    &mut Area::Container(ref c) => c.find_dock(handle).is_some(),
+                    _ => false,
                 }
+            });
+            return match found_child {
+                Some(position) => Some((s, position)),
+                None => s.children.iter_mut()
+                    .map(|child| child.find_split_by_dock_handle(handle))
+                    .find(|res| res.is_some())
+                    .map(|res| res.unwrap())
             }
         }
-        match found_child {
-            1 => {return SplitSearchResult::FirstChild(self);},
-            2 => {return SplitSearchResult::SecondChild(self);},
-            _ => {
-                if let &mut Area::Split(ref mut s) = self {
-                    if let Area::Split(_) = *s.first {
-                        let res = s.first.find_split_by_dock_handle(handle);
-                        if res.is_some() {
-                            return res;
-                        }
-                    }
-                    if let Area::Split(_) = *s.second {
-                        let res = s.second.find_split_by_dock_handle(handle);
-                        if res.is_some() {
-                            return res;
-                        }
-                    }
+        return None;
+    }
+
+    pub fn find_parent_split_by_split_handle(&mut self, handle: SplitHandle) -> Option<(&mut Split, usize)> {
+        if let &mut Area::Split(ref mut s) = self {
+            let found_child = s.children.iter_mut().position(|child| {
+                match child {
+                    &mut Area::Split(ref s) => s.handle == handle,
+                    _ => false,
                 }
-                return SplitSearchResult::None;
+            });
+            return match found_child {
+                Some(position) => Some((s, position)),
+                None => s.children.iter_mut()
+                    .map(|child| child.find_parent_split_by_split_handle(handle))
+                    .find(|res| res.is_some())
+                    .map(|res| res.unwrap())
             }
         }
+        return None;
     }
 
     pub fn get_drag_target_at_pos(&self, pos: (f32, f32)) -> Option<DragTarget> {
@@ -317,10 +256,6 @@ impl Container {
         self.docks.iter().find(|&dock| dock.handle == handle)
     }
 
-    pub fn find_dock_mut(&mut self, handle: DockHandle) -> Option<&mut Dock> {
-        self.docks.iter_mut().find(|dock| dock.handle == handle)
-    }
-
     pub fn remove_handle(&mut self, handle: DockHandle) -> bool {
         for i in (0..self.docks.len()).rev() {
             if self.docks[i].handle == handle {
@@ -333,38 +268,12 @@ impl Container {
         false
     }
 
-    pub fn get_rect_by_handle(&self, handle: DockHandle) -> Option<Rect> {
-        for dock in &self.docks {
-            if dock.handle == handle {
-                return Some(self.rect);
-            }
-        }
-
-        None
-    }
-
     pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
         if self.rect.point_is_inside(pos) {
             self.docks.first().map(|dock| dock.handle)
         } else {
             None
         }
-    }
-
-    /*
-    pub fn get_rect_by_handle(&self, handle: DockHandle) -> Option<Rect> {
-        self.docks.iter().find(|&dock| dock.handle == handle).map(|dock| dock.rect)
-    }
-    */
-
-    pub fn is_inside(&self, pos: (f32, f32)) -> Option<(DockHandle, f32)> {
-        for dock in &self.docks {
-            if self.rect.point_is_inside(pos) {
-                return Some((dock.handle, dock.rect.width * dock.rect.height));
-            }
-        }
-
-        None
     }
 
     pub fn get_header_rect(&self) -> Rect {
@@ -390,7 +299,7 @@ impl Container {
 
 #[derive(Debug)]
 pub enum DragTarget {
-    SplitSizer(SplitHandle, Direction),
+    SplitSizer(SplitHandle, usize, Direction),
     Dock(DockHandle)
 }
 

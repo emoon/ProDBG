@@ -8,7 +8,7 @@ use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::backend_plugin::{BackendPlugins};
 use core::session::{Sessions, Session, SessionHandle};
 use core::reader_wrapper::ReaderWrapper;
-use self::viewdock::{Workspace, Rect, Direction, DockHandle, SplitHandle, DragTarget, DropTarget};
+use self::viewdock::{Workspace, Rect, Direction, DockHandle, DragTarget, DropTarget};
 use menu::*;
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::{PDVec2, ImguiKey};
@@ -263,7 +263,7 @@ impl Window {
                 if let Some(target) = self.ws.get_drag_target_at_pos(mouse_pos) {
                     cursor = match target {
                         DragTarget::Dock(_) => CursorStyle::OpenHand,
-                        DragTarget::SplitSizer(_, direction) => match direction {
+                        DragTarget::SplitSizer(_, _, direction) => match direction {
                             Direction::Vertical => CursorStyle::ResizeLeftRight,
                             Direction::Horizontal => CursorStyle::ResizeUpDown
                         }
@@ -276,7 +276,7 @@ impl Window {
                 }
             },
 
-            State::Dragging(DragTarget::SplitSizer(handle, direction)) => {
+            State::Dragging(DragTarget::SplitSizer(handle, index, direction)) => {
                 if self.win.get_mouse_down(MouseButton::Left) {
                     cursor = match direction {
                         Direction::Vertical => CursorStyle::ResizeLeftRight,
@@ -284,7 +284,7 @@ impl Window {
                     };
                     let pm = self.mouse_state.prev_mouse;
                     let delta = (pm.0 - mouse_pos.0, pm.1 - mouse_pos.1);
-                    self.ws.drag_sizer(handle, delta);
+                    self.ws.drag_sizer(handle, index, delta);
                 } else {
                     next_state = Some(State::Default);
                     cursor = CursorStyle::Arrow;
