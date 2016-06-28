@@ -139,35 +139,6 @@ impl Workspace {
         })
     }
 
-//    fn recursive_dump(splits: &Vec<Split>, handle: SplitHandle, level: i32) {
-//        unimplemented!();
-//        let i = Self::find_split_by_handle(splits, handle);
-//
-//        splits[i].dump_info(level);
-//
-//        if let Some(split_handle) = splits[i].left {
-//            Self::recursive_dump(splits, split_handle, level + 1);
-//        }
-//
-//        if let Some(split_handle) = splits[i].right {
-//            Self::recursive_dump(splits, split_handle, level + 1);
-//        }
-//    }
-
-    // testing
-
-//    pub fn dump_tree(&self) {
-//        unimplemented!();
-//        Self::recursive_dump(&self.splits, SplitHandle(0), 0);
-//    }
-
-//    pub fn dump_tree_linear(&self) {
-//        unimplemented!();
-//        for split in &self.splits {
-//            split.dump_info(0);
-//        }
-//    }
-
     fn replace_area(area: &mut Area, mut subs: Area) {
         subs.update_rect(area.get_rect());
         *area = subs;
