@@ -314,25 +314,6 @@ mod test {
 //    }
 //
 //    #[test]
-//    fn test_direction_serialize() {
-//        let dir_in_0 = Direction::Horizontal;
-//        let dir_in_1 = Direction::Full;
-//        let dir_in_2 = Direction::Vertical;
-//
-//        let s0 = serde_json::to_string(&dir_in_0).unwrap();
-//        let s1 = serde_json::to_string(&dir_in_1).unwrap();
-//        let s2 = serde_json::to_string(&dir_in_2).unwrap();
-//
-//        let dir_out_0: Direction = serde_json::from_str(&s0).unwrap();
-//        let dir_out_1: Direction = serde_json::from_str(&s1).unwrap();
-//        let dir_out_2: Direction = serde_json::from_str(&s2).unwrap();
-//
-//        assert_eq!(dir_in_0, dir_out_0);
-//        assert_eq!(dir_in_1, dir_out_1);
-//        assert_eq!(dir_in_2, dir_out_2);
-//    }
-//
-//    #[test]
 //    fn test_workspace_serialize_0() {
 //        let ws_in = Workspace {
 //            splits: Vec::new(),

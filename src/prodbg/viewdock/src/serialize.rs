@@ -1,6 +1,6 @@
 extern crate serde;
 
-use {SplitHandle, Container, Dock, Direction, Split, Workspace};
+use {SplitHandle, Direction, Split, Workspace};
 
 
 // Use a macro here otherwise we would have needed to copy'n'paste this code twice.
@@ -45,84 +45,6 @@ macro_rules! gen_handle {
 }
 
 gen_handle!("SplitHandle", SplitHandle, SplitHandleVisitor);
-
-impl serde::ser::Serialize for Direction {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: serde::ser::Serializer {
-        match *self {
-            Direction::Vertical => serde::ser::Serializer::serialize_unit_variant(serializer, "Direction", 0usize, "Vertical"),
-            Direction::Horizontal => serde::ser::Serializer::serialize_unit_variant(serializer, "Direction", 1usize, "Horizontal"),
-            Direction::Full => serde::ser::Serializer::serialize_unit_variant(serializer, "Direction", 2usize, "Full"),
-        }
-    }
-}
-
-enum DirectionField {
-    Vertical,
-    Horizontal,
-    Full,
-}
-
-impl serde::Deserialize for DirectionField  {
-    fn deserialize<D>(deserializer: &mut D) -> Result<DirectionField, D::Error> where D: serde::de::Deserializer {
-        struct DirectionFieldVisitor;
-
-        impl serde::de::Visitor for DirectionFieldVisitor {
-            type Value = DirectionField;
-
-            fn visit_usize<E>(&mut self, value: usize) -> Result<DirectionField, E>
-                where E: serde::de::Error {
-                    match value {
-                        0usize => Ok(DirectionField::Vertical),
-                        1usize => Ok(DirectionField::Horizontal),
-                        2usize => Ok(DirectionField::Full),
-                        _ => Err(serde::de::Error::invalid_value("expected a variant")),
-                    }
-                }
-
-            fn visit_str<E>(&mut self, value: &str) -> Result<DirectionField, E>
-                where E: serde::de::Error {
-                    match value {
-                        "Vertical" => Ok(DirectionField::Vertical),
-                        "Horizontal" => Ok(DirectionField::Horizontal),
-                        "Full" => Ok(DirectionField::Full),
-                        _ => Err(serde::de::Error::invalid_value("expected a variant")),
-                    }
-                }
-        }
-
-        deserializer.deserialize_struct_field(DirectionFieldVisitor)
-    }
-}
-
-struct DirectionVisitor;
-
-impl serde::Deserialize for Direction {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Direction, D::Error> where D: serde::de::Deserializer {
-        const VARIANTS: &'static [&'static str] = &["Vertical", "Horizontal", "Full"];
-        deserializer.deserialize_enum("Direction", VARIANTS, DirectionVisitor)
-    }
-}
-
-impl serde::de::EnumVisitor for DirectionVisitor {
-    type Value = Direction;
-
-    fn visit<V>(&mut self, mut visitor: V) -> Result<Direction, V::Error> where V: serde::de::VariantVisitor {
-        match try!(visitor.visit_variant()) {
-            DirectionField::Vertical => {
-                try!(visitor.visit_unit());
-                Ok(Direction::Vertical)
-            },
-            DirectionField::Horizontal => {
-                try!(visitor.visit_unit());
-                Ok(Direction::Horizontal)
-            }
-            DirectionField::Full => {
-                try!(visitor.visit_unit());
-                Ok(Direction::Full)
-            }
-        }
-    }
-}
 
 struct SplitMapVisitor<'a> {
     value: &'a Split

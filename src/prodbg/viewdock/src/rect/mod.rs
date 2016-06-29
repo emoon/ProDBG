@@ -136,7 +136,7 @@ mod test {
 //    }
 
     #[test]
-    fn test_serialization() {
+    fn test_rect_serialization() {
         let rect_in = Rect { x: 1.0, y: 2.0, width: 1024.0, height: 768.0 };
         let serialized = serde_json::to_string(&rect_in).unwrap();
         let rect_out: Rect = serde_json::from_str(&serialized).unwrap();
@@ -145,6 +145,21 @@ mod test {
         assert_eq!(rect_in.y as i32, rect_out.y as i32);
         assert_eq!(rect_in.width as i32, rect_out.width as i32);
         assert_eq!(rect_in.height as i32, rect_out.height as i32);
+    }
+
+    #[test]
+    fn test_direction_serialize() {
+        let dir_in_0 = Direction::Horizontal;
+        let dir_in_1 = Direction::Vertical;
+
+        let s0 = serde_json::to_string(&dir_in_0).unwrap();
+        let s1 = serde_json::to_string(&dir_in_1).unwrap();
+
+        let dir_out_0: Direction = serde_json::from_str(&s0).unwrap();
+        let dir_out_1: Direction = serde_json::from_str(&s1).unwrap();
+
+        assert_eq!(dir_in_0, dir_out_0);
+        assert_eq!(dir_in_1, dir_out_1);
     }
 //
 //    TODO: update following tests for area around split calculation
