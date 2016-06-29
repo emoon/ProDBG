@@ -23,7 +23,7 @@ const WORKSPACE_UNDO_LIMIT: usize = 10;
 
 enum State {
     Default,
-    Dragging(DragTarget),
+    Dragging(DragTarget, String),
 }
 
 pub struct MouseState {
@@ -267,6 +267,7 @@ impl Window {
     fn update_mouse_state(&mut self, mouse_pos: (f32, f32)) {
         let mut next_state = None;
         let cursor;
+        let mut ws_state_to_save = None;
         match self.mouse_state.state {
             State::Default => {
                 if let Some(target) = self.ws.get_drag_target_at_pos(mouse_pos) {
@@ -278,14 +279,14 @@ impl Window {
                         }
                     };
                     if self.win.get_mouse_down(MouseButton::Left) {
-                        next_state = Some(State::Dragging(target));
+                        next_state = Some(State::Dragging(target, self.ws.save_state()));
                     }
                 } else {
                     cursor = CursorStyle::Arrow;
                 }
             },
 
-            State::Dragging(DragTarget::SplitSizer(handle, index, direction)) => {
+            State::Dragging(DragTarget::SplitSizer(handle, index, direction), ref ws_state) => {
                 if self.win.get_mouse_down(MouseButton::Left) {
                     cursor = match direction {
                         Direction::Vertical => CursorStyle::ResizeLeftRight,
@@ -297,10 +298,11 @@ impl Window {
                 } else {
                     next_state = Some(State::Default);
                     cursor = CursorStyle::Arrow;
+                    ws_state_to_save = Some(ws_state.clone());
                 }
             },
 
-            State::Dragging(DragTarget::Dock(handle)) => {
+            State::Dragging(DragTarget::Dock(handle), ref ws_state) => {
                 let drop_target = self.ws.get_drop_target_at_pos(mouse_pos);
                 if self.win.get_mouse_down(MouseButton::Left) {
                     cursor = match drop_target {
@@ -311,7 +313,7 @@ impl Window {
                 } else {
                     if let Some(DropTarget::Dock(target)) = drop_target {
                         if target != handle {
-                            self.save_workspace_state();
+                            ws_state_to_save = Some(ws_state.clone());
                             self.ws.swap_docks(handle, target);
                         }
                     }
@@ -325,6 +327,9 @@ impl Window {
         self.mouse_state.prev_mouse = mouse_pos;
         if let Some(ns) = next_state {
             self.mouse_state.state = ns;
+        }
+        if let Some(ws_state) = ws_state_to_save {
+            self.save_workspace_state(ws_state.clone());
         }
     }
 
@@ -453,7 +458,7 @@ impl Window {
         }
 
         if !views_to_delete.is_empty() {
-            self.save_workspace_state();
+            self.save_cur_workspace_state();
             Self::remove_views(self, view_plugins, &views_to_delete);
         }
     }
@@ -491,41 +496,49 @@ impl Window {
 
     fn undo_workspace_change(&mut self, view_plugins: &mut ViewPlugins) {
         if let Some(state) = self.ws_prev_states.pop_back() {
-            self.save_workspace_future_state();
+            let prev_state = self.ws.save_state();
+            self.save_workspace_future_state(prev_state);
             self.restore_workspace_state(view_plugins, &state);
         }
     }
 
     fn redo_workspace_change(&mut self, view_plugins: &mut ViewPlugins) {
         if let Some(state) = self.ws_future_states.pop_back() {
-            self.save_workspace_prev_state();
+            let prev_state = self.ws.save_state();
+            self.save_workspace_prev_state(prev_state);
             self.restore_workspace_state(view_plugins, &state);
         }
     }
 
-    fn save_workspace_state(&mut self) {
+    fn save_cur_workspace_state(&mut self) {
         self.ws_future_states.clear();
-        self.save_workspace_prev_state();
+        let prev_state = self.ws.save_state();
+        self.save_workspace_prev_state(prev_state);
     }
 
-    fn save_workspace_prev_state(&mut self) {
+    fn save_workspace_state(&mut self, state: String) {
+        self.ws_future_states.clear();
+        self.save_workspace_prev_state(state);
+    }
+
+    fn save_workspace_prev_state(&mut self, state: String) {
         if self.ws_prev_states.len() == WORKSPACE_UNDO_LIMIT {
             self.ws_prev_states.pop_front();
         }
-        self.ws_prev_states.push_back(self.ws.save_state());
+        self.ws_prev_states.push_back(state);
     }
 
-    fn save_workspace_future_state(&mut self) {
+    fn save_workspace_future_state(&mut self, state: String) {
         if self.ws_future_states.len() == WORKSPACE_UNDO_LIMIT {
             self.ws_future_states.pop_front();
         }
-        self.ws_future_states.push_back(self.ws.save_state());
+        self.ws_future_states.push_back(state);
     }
 
     fn split_view(&mut self, name: &String, view_plugins: &mut ViewPlugins, pos: (f32, f32), direction: Direction) {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
-            self.save_workspace_state();
+            self.save_cur_workspace_state();
             let new_dock = Dock::new(DockHandle(handle.0), name);
             if let Some(dock_handle) = self.ws.get_hover_dock(pos) {
                 self.ws.split_by_dock_handle(direction, dock_handle, new_dock);
