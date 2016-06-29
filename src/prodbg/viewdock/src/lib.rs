@@ -24,6 +24,8 @@
 //!
 
 extern crate serde_json;
+#[macro_use]
+mod serialize_helper;
 mod error;
 mod rect;
 mod area;
