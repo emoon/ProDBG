@@ -8,16 +8,18 @@ use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::backend_plugin::{BackendPlugins};
 use core::session::{Sessions, Session, SessionHandle};
 use core::reader_wrapper::ReaderWrapper;
-use self::viewdock::{Workspace, Rect, Direction, DockHandle, DragTarget, DropTarget};
+use self::viewdock::{Workspace, Rect, Direction, DockHandle, DragTarget, DropTarget, Dock};
 use menu::*;
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::{PDVec2, ImguiKey};
 use prodbg_api::view::CViewCallbacks;
 use std::os::raw::{c_void, c_int};
+use std::collections::VecDeque;
 //use std::mem::transmute;
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 800;
+const WORKSPACE_UNDO_LIMIT: usize = 10;
 
 enum State {
     Default,
@@ -48,6 +50,7 @@ pub struct Window {
 
     ///
     pub ws: Workspace,
+    ws_states: VecDeque<String>,
 
     pub mouse_state: MouseState,
 
@@ -122,6 +125,7 @@ impl Windows {
                     menu_id_offset: 1000,
                     mouse_state: MouseState::new(),
                     ws: Workspace::new(Rect::new(0.0, 0.0, width as f32, (height - 20) as f32)).unwrap(),
+                    ws_states: VecDeque::with_capacity(WORKSPACE_UNDO_LIMIT),
                 })
             }
             Err(err) => Err(err),
@@ -251,6 +255,9 @@ impl Window {
     pub fn remove_views(&mut self, view_plugins: &mut ViewPlugins, views: &Vec<ViewHandle>) {
         for view in views {
             view_plugins.destroy_instance(*view);
+            if let Some(pos) = self.views.iter().position(|v| v == view) {
+                self.views.swap_remove(pos);
+            }
             self.ws.delete_by_handle(DockHandle(view.0));
         }
     }
@@ -302,6 +309,7 @@ impl Window {
                 } else {
                     if let Some(DropTarget::Dock(target)) = drop_target {
                         if target != handle {
+                            self.save_workspace_state();
                             self.ws.swap_docks(handle, target);
                         }
                     }
@@ -407,6 +415,10 @@ impl Window {
 
         self.update_menus(sessions, backend_plugins);
 
+        if self.win.is_key_pressed(Key::Z, KeyRepeat::No) {
+            self.undo_workspace_change(view_plugins);
+        }
+
         // TODO: Only do this on the correct session
 
         /*
@@ -434,21 +446,61 @@ impl Window {
             Self::show_popup(self, false, mouse, view_plugins);
         }
 
-        Self::remove_views(self, view_plugins, &views_to_delete);
+        if !views_to_delete.is_empty() {
+            self.save_workspace_state();
+            Self::remove_views(self, view_plugins, &views_to_delete);
+        }
+    }
+
+    fn undo_workspace_change(&mut self, view_plugins: &mut ViewPlugins) {
+        if let Some(ref state) = self.ws_states.pop_back() {
+            self.ws = Workspace::from_state(state);
+            let win_size = self.win.get_size();
+            self.ws.update(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
+            let docks = self.ws.get_docks();
+            let views_to_delete: Vec<ViewHandle> = self.views.iter()
+                .filter(|view| docks.iter().find(|dock| view.0 == dock.handle.0).is_none())
+                .map(|view| view.clone())
+                .collect();
+            Self::remove_views(self, view_plugins, &views_to_delete);
+
+            for dock in &docks {
+                let mut new_view_handles: Vec<ViewHandle> = Vec::new();
+                if !self.views.iter().find(|view| view.0 == dock.handle.0).is_some() {
+                    let ui = Imgui::create_ui_instance();
+                    if let Some(handle) = view_plugins.create_instance_with_handle(
+                        ui,
+                        &dock.plugin_name,
+                        &dock.plugin_data,
+                        SessionHandle(0),
+                        ViewHandle(dock.handle.0)
+                    ) {
+                        new_view_handles.push(handle);
+                    } else {
+                        panic!("Could not restore view");
+                    }
+                }
+                self.views.extend(new_view_handles);
+            }
+        }
+    }
+
+    fn save_workspace_state(&mut self) {
+        if self.ws_states.len() == WORKSPACE_UNDO_LIMIT {
+            self.ws_states.pop_front();
+        }
+        self.ws_states.push_back(self.ws.save_state());
     }
 
     fn split_view(&mut self, name: &String, view_plugins: &mut ViewPlugins, pos: (f32, f32), direction: Direction) {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
+            self.save_workspace_state();
+            let new_dock = Dock::new(DockHandle(handle.0), name);
             if let Some(dock_handle) = self.ws.get_hover_dock(pos) {
-                let new_handle = DockHandle(handle.0);
-                self.ws.split_by_dock_handle(direction, dock_handle, new_handle);
-                //self.ws.set_name_to_handle(name, new_handle);
-                //self.ws.dump_tree_linear();
+                self.ws.split_by_dock_handle(direction, dock_handle, new_dock);
             } else {
-                self.ws.initialize(DockHandle(handle.0));
-                // self.ws.new_split(DockHandle(handle.0), direction);
-                //println!("no split");
+                self.ws.initialize(new_dock);
             }
 
             self.views.push(handle);

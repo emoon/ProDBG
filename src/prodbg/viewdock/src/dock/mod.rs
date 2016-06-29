@@ -16,10 +16,10 @@ pub struct Dock {
 }
 
 impl Dock {
-    pub fn new(dock_handle: DockHandle) -> Dock {
+    pub fn new(dock_handle: DockHandle, plugin_name: &str) -> Dock {
         Dock {
             handle: dock_handle,
-            plugin_name: "".to_owned(),
+            plugin_name: plugin_name.to_owned(),
             plugin_data: None,
             rect: Rect::default(),
         }

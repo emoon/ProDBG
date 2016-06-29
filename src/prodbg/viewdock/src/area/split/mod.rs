@@ -181,8 +181,8 @@ mod test {
             0.7,
             SplitHandle(513),
             Rect::new(17.0, 15.0, 100.0, 159.0),
-            Area::Container(Container::new(Dock::new(DockHandle(14)), Rect::default())),
-            Area::Container(Container::new(Dock::new(DockHandle(15)), Rect::default()))
+            Area::Container(Container::new(Dock::new(DockHandle(14), "test"), Rect::default())),
+            Area::Container(Container::new(Dock::new(DockHandle(15), "test2"), Rect::default()))
         );
 
         let serialized = serde_json::to_string(&split_in).unwrap();

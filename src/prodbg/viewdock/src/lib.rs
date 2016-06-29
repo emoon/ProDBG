@@ -78,22 +78,22 @@ impl Workspace {
         self.handle_counter
     }
 
-    pub fn initialize(&mut self, handle: DockHandle) {
+    pub fn initialize(&mut self, dock: Dock) {
         self.root_area = Some(Area::Container(
             Container::new(
-                Dock::new(handle),
+                dock,
                 self.rect.clone()
             )
         ));
     }
 
-    pub fn split_by_dock_handle(&mut self, direction: Direction, find_handle: DockHandle, handle: DockHandle) {
+    pub fn split_by_dock_handle(&mut self, direction: Direction, find_handle: DockHandle, dock: Dock) {
         let next_handle = self.next_handle();
         let is_root = match self.root_area {
             Some(Area::Container(ref c)) => c.find_dock(find_handle).is_some(),
             _ => false,
         };
-        let new_dock = Area::Container(Container::new(Dock::new(handle), Rect::default()));
+        let new_dock = Area::Container(Container::new(dock, Rect::default()));
         if is_root {
             if let Some(ref mut root) = self.root_area {
                 let old_root = root.clone();
@@ -224,21 +224,36 @@ impl Workspace {
         }
     }
 
+    pub fn save_state(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
+
+    pub fn from_state(state: &str) -> Workspace {
+        serde_json::from_str(state).unwrap()
+    }
+
     pub fn get_docks(&self) -> Vec<Dock> {
-        unimplemented!();
-//        let mut docks = Vec::new();
-//
-//        for split in &self.splits {
-//            for dock in &split.left_docks.docks {
-//                docks.push(dock.clone());
-//            }
-//
-//            for dock in &split.right_docks.docks {
-//                docks.push(dock.clone());
-//            }
-//        }
-//
-//        docks
+        let mut docks = Vec::new();
+        match self.root_area {
+            Some(ref root) => Workspace::collect_docks(&mut docks, root),
+            None => {},
+        };
+        return docks;
+    }
+
+    fn collect_docks(target: &mut Vec<Dock>, source: &Area) {
+        match *source {
+            Area::Container(ref c) => {
+                for dock in &c.docks {
+                    target.push(dock.clone());
+                }
+            },
+            Area::Split(ref s) => {
+                for child in &s.children {
+                    Workspace::collect_docks(target, child);
+                }
+            }
+        }
     }
 
 //    pub fn save(&self, file_name: &str) -> io::Result<()> {
@@ -294,7 +309,7 @@ mod test {
     fn test_workspace_serialize_1() {
         let ws_in = Workspace {
             root_area: Some(Area::Container(
-                Container::new(Dock::new(DockHandle(5)), Rect::default())
+                Container::new(Dock::new(DockHandle(5), "test"), Rect::default())
             )),
             rect: Rect::new(4.0, 5.0, 2.0, 8.0),
             window_border: 6.0,
