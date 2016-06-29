@@ -122,6 +122,35 @@ impl Split {
         }
         self.update_children_sizes();
     }
+
+    pub fn replace_child_with_children(&mut self, index: usize, children: &[Area]) {
+        self.children.remove(index);
+        let mut dimensions: Vec<f32> = children.iter()
+            .map(|child| match self.direction {
+                Direction::Horizontal => child.get_rect().height,
+                Direction::Vertical => child.get_rect().width,
+            }).collect();
+        let dimension_sum = dimensions.iter().fold(0.0, |sum, dimension| sum + dimension);
+        let mut prev = 0.0;
+        for dimension in dimensions.iter_mut() {
+            prev += *dimension / dimension_sum;
+            *dimension = prev;
+        }
+        for child in children.iter().rev() {
+            self.children.insert(index, child.clone());
+        }
+
+        let old_ratio = self.ratios.remove(index);
+        let previous_ratio = match index {
+            0 => 0.0,
+            _ => self.ratios[index - 1]
+        };
+        let diff = old_ratio - previous_ratio;
+        for pos in dimensions.iter().rev() {
+            self.ratios.insert(index, previous_ratio + pos * diff);
+        }
+        self.update_children_sizes();
+    }
 }
 
 

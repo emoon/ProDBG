@@ -182,9 +182,12 @@ impl Workspace {
                     contents.update_rect(root.get_rect().clone());
                     *root = contents;
                 } else if let Some((parent_split, index)) = root.find_parent_split_by_split_handle(split_handle) {
-                    // TODO: If contents is Area::Split with the same direction as ours we need to
-                    // adopt its children.
-                    parent_split.replace_child(index, contents);
+                    match contents {
+                        Area::Split(ref mut s) if s.direction == parent_split.direction => {
+                            parent_split.replace_child_with_children(index, &s.children)
+                        },
+                        _ => {parent_split.replace_child(index, contents);},
+                    }
                 }
             }
         }
