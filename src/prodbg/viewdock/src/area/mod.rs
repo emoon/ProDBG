@@ -1,5 +1,8 @@
+mod container;
+
 use rect::{Rect, Direction};
-use dock::{DockHandle, Dock};
+use dock::DockHandle;
+pub use self::container::Container;
 
 /// Handle to a split
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -154,15 +157,6 @@ impl Split {
 }
 
 
-/// Holds a list of available docks
-#[derive(Debug, Clone)]
-pub struct Container {
-    /// Docks this container. The reason of supporting several docks here is that this can be used
-    /// to implement tabs but only one dock should be visible at a time
-    pub docks: Vec<Dock>,
-    pub rect: Rect,
-}
-
 /// Area could be occupied either by Container or by Split
 #[derive(Debug, Clone)]
 pub enum Area {
@@ -272,59 +266,6 @@ impl Area {
     }
 }
 
-
-impl Container {
-    pub fn new(dock: Dock, rect: Rect) -> Container {
-        Container {
-            docks: vec!(dock),
-            rect: rect,
-        }
-    }
-
-    pub fn find_dock(&self, handle: DockHandle) -> Option<&Dock> {
-        self.docks.iter().find(|&dock| dock.handle == handle)
-    }
-
-    pub fn remove_handle(&mut self, handle: DockHandle) -> bool {
-        for i in (0..self.docks.len()).rev() {
-            if self.docks[i].handle == handle {
-                //println!("Removed dock handle {:?}", handle);
-                self.docks.swap_remove(i);
-                return true;
-            }
-        }
-
-        false
-    }
-
-    pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
-        if self.rect.point_is_inside(pos) {
-            self.docks.first().map(|dock| dock.handle)
-        } else {
-            None
-        }
-    }
-
-    pub fn get_header_rect(&self) -> Rect {
-        Rect::new(self.rect.x, self.rect.y, self.rect.width - 30.0, 30.0)
-    }
-
-    pub fn get_drag_target_at_pos(&self, pos: (f32, f32)) -> Option<DragTarget> {
-        return if self.get_header_rect().point_is_inside(pos) {
-            Some(DragTarget::Dock(self.docks.first().unwrap().handle))
-        } else {
-            None
-        }
-    }
-
-    pub fn get_drop_target_at_pos(&self, pos: (f32, f32)) -> Option<DropTarget> {
-        return if self.get_header_rect().point_is_inside(pos) {
-            Some(DropTarget::Dock(self.docks.first().unwrap().handle))
-        } else {
-            None
-        }
-    }
-}
 
 #[derive(Debug)]
 pub enum DragTarget {
