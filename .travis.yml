@@ -16,7 +16,7 @@ before_install:
 
 script: 
     - if [ $TRAVIS_OS_NAME == linux ]; then tundra2 linux-gcc-debug; fi
-    - if [ $TRAVIS_OS_NAME == mac ]; then scripts/mac_build_debug.sh; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then scripts/mac_build_debug.sh; fi
 
 os:
   - linux
