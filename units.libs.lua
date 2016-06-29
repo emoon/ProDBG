@@ -230,6 +230,7 @@ StaticLibrary {
 		  {
 		  	{ "src/native/external/bx/include/compat/msvc",
 		  	  "src/native/external/bgfx/3rdparty/dxsdk/include" } ; Config = "win64-*-*" },
+          { "src/native/external/bx/include/compat/osx" ; Config = "macosx-*-*" },
             "src/native/external/remotery/lib",
             "src/native/external/bgfx/include",
             "src/native/external/bx/include",

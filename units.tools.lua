@@ -99,6 +99,10 @@ Program {
 			},
 
 			{
+				BX_DIR .. "include/compat/osx" ; Config = "macosx-*-*"
+			},
+
+			{
 				BX_DIR .. "include/compat/msvc"; Config = "win64-*-*"
 			},
 		},
@@ -124,9 +128,27 @@ Program {
 		FCPP_DIR .. "cpp5.c",
 		FCPP_DIR .. "cpp6.c",
 
-		Glob { Dir = GLSL_OPTIMIZER .. "src/mesa", Extensions = { ".c", ".h" } },
-		Glob { Dir = GLSL_OPTIMIZER .. "src/glsl", Extensions = { ".cpp", ".c", ".h" } },
-		Glob { Dir = GLSL_OPTIMIZER .. "src/util", Extensions = { ".c", ".h" } },
+		FGlob {
+			Dir = GLSL_OPTIMIZER .. "src/mesa",
+			Extensions = { ".c", ".h" },
+			Filters = {
+				{ Pattern = "main.cpp", Config = "never" }
+			}
+		},
+		FGlob {
+			Dir = GLSL_OPTIMIZER .. "src/glsl",
+			Extensions = { ".cpp", ".c", ".h" },
+			Filters = {
+				{ Pattern = "main.cpp", Config = "never" }
+			}
+		},
+		FGlob {
+			Dir = GLSL_OPTIMIZER .. "src/util",
+			Extensions = { ".c", ".h" },
+			Filters = {
+				{ Pattern = "main.cpp", Config = "never" }
+			}
+		},
 	},
 
     Libs = { { "kernel32.lib", "d3dcompiler.lib", "dxguid.lib" ; Config = "win64-*-*" } },
