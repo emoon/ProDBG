@@ -24,6 +24,7 @@ const WORKSPACE_UNDO_LIMIT: usize = 10;
 enum State {
     Default,
     Dragging(DragTarget, String),
+    DraggingNothing,
 }
 
 pub struct MouseState {
@@ -283,6 +284,16 @@ impl Window {
                     }
                 } else {
                     cursor = CursorStyle::Arrow;
+                    if self.win.get_mouse_down(MouseButton::Left) {
+                        next_state = Some(State::DraggingNothing);
+                    }
+                }
+            },
+
+            State::DraggingNothing => {
+                cursor = CursorStyle::Arrow;
+                if !self.win.get_mouse_down(MouseButton::Left) {
+                    next_state = Some(State::Default);
                 }
             },
 
