@@ -186,4 +186,15 @@ mod test {
 //        assert_eq!(check_range(rect.width, border_size, 0.001), true);
 //        assert_eq!(check_range(rect.height, rect_in.height, 0.001), true);
 //    }
+
+//    #[test]
+//    fn test_inside_horizontal() {
+//        let border_size = 4.0;
+//        let rect = Rect::new(10.0, 20.0, 30.0, 40.0);
+//        let rect_horz = Split::get_sizer_from_rect_horizontal(rect, border_size);
+//
+//        assert_eq!(Rect::is_inside((9.0, 61.0), rect_horz), false);
+//        assert_eq!(Rect::is_inside((11.0, 61.0), rect_horz), true);
+//    }
+
 }
