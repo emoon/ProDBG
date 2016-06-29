@@ -1,3 +1,4 @@
+/*
 #[macro_use]
 extern crate lazy_static;
 extern crate json;
@@ -193,5 +194,6 @@ mod tests {
         assert_eq!(settings.get_int("window_size", "some_new_data"), Some(42));
     }
 }
+*/
 
 

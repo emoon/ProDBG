@@ -127,11 +127,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "json"
-version = "0.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
 name = "kernel32-sys"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -330,11 +325,6 @@ dependencies = [
 [[package]]
 name = "settings"
 version = "0.1.0"
-dependencies = [
- "json 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "lazy_static 0.1.16 (registry+https://github.com/rust-lang/crates.io-index)",
- "notify 2.5.5 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [[package]]
 name = "slab"

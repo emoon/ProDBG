@@ -4,6 +4,6 @@ version = "0.1.0"
 authors = ["Daniel Collin <daniel@collin.com>"]
 
 [dependencies]
-lazy_static = "0.1.*"
-json = "*"
-notify = "^2.5.0"
+# lazy_static = "0.1.*"
+# json = "*"
+# notify = "^2.5.0"
