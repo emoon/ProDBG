@@ -6,7 +6,7 @@
 	url = https://github.com/emoon/scintilla
 [submodule "src/native/external/bgfx"]
 	path = src/native/external/bgfx
-	url = https://github.com/bkaradzic/bgfx.git
+	url = https://github.com/v3n/bgfx.git
 [submodule "src/native/external/bx"]
 	path = src/native/external/bx
 	url = https://github.com/bkaradzic/bx.git
