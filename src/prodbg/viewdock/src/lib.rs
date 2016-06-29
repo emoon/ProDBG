@@ -277,43 +277,6 @@ mod test {
 //    }
 //
 //    #[test]
-//    fn test_splithandle_serialize() {
-//        let handle_in = SplitHandle(0x4422);
-//        let serialized = serde_json::to_string(&handle_in).unwrap();
-//        let handle_out: SplitHandle = serde_json::from_str(&serialized).unwrap();
-//
-//        assert_eq!(handle_in, handle_out);
-//    }
-//
-//    #[test]
-//    fn test_split_serialize_0() {
-//        let split_in = Split {
-//            left: None,
-//            right: None,
-//            left_docks: Container::new(),
-//            right_docks: Container::new(),
-//            ratio: 0.7,
-//            direction: Direction::Full,
-//            handle: SplitHandle(1),
-//            rect: Rect::new(4.0, 5.0, 2.0, 8.0)
-//        };
-//
-//        let serialized = serde_json::to_string(&split_in).unwrap();
-//        let split_out: Split = serde_json::from_str(&serialized).unwrap();
-//
-//        assert_eq!(split_in.left, split_out.left);
-//        assert_eq!(split_in.right, split_out.right);
-//        assert_eq!(split_in.direction, split_out.direction);
-//        assert_eq!(split_in.handle, split_out.handle);
-//
-//        // expect that rect is not serialized and set to zero
-//        assert_eq!(split_out.rect.x as i32, 0);
-//        assert_eq!(split_out.rect.y as i32, 0);
-//        assert_eq!(split_out.rect.width as i32, 0);
-//        assert_eq!(split_out.rect.height as i32, 0);
-//    }
-//
-//    #[test]
 //    fn test_workspace_serialize_0() {
 //        let ws_in = Workspace {
 //            splits: Vec::new(),
