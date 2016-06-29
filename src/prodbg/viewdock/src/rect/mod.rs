@@ -1,3 +1,5 @@
+mod serialize;
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Direction {
     Vertical,
@@ -81,56 +83,70 @@ impl Rect {
 
 #[cfg(test)]
 mod test {
+    extern crate serde_json;
     use {Rect, Direction};
 
     fn check_range(inv: f32, value: f32, delta: f32) -> bool {
         (inv - value).abs() < delta
     }
 
+//    #[test]
+//    fn test_calc_rect_horz_half() {
+//        let rects = Rect::split_horizontally(&Rect::new(0.0, 0.0, 1024.0, 1024.0), 0.5);
+//
+//        assert_eq!(check_range(rects.0.x, 0.0, 0.001), true);
+//        assert_eq!(check_range(rects.0.y, 0.0, 0.001), true);
+//        assert_eq!(check_range(rects.0.width, 1024.0, 0.001), true);
+//        assert_eq!(check_range(rects.0.height, 512.0, 0.001), true);
+//
+//        assert_eq!(check_range(rects.1.x, 0.0, 0.001), true);
+//        assert_eq!(check_range(rects.1.y, 512.0, 0.001), true);
+//        assert_eq!(check_range(rects.1.width, 1024.0, 0.001), true);
+//        assert_eq!(check_range(rects.1.height, 512.0, 0.001), true);
+//    }
+//
+//    #[test]
+//    fn test_calc_rect_horz_25_per() {
+//        let rects = Rect::split_horizontally(&Rect::new(0.0, 0.0, 1024.0, 1024.0), 0.25);
+//
+//        assert_eq!(check_range(rects.0.x, 0.0, 0.001), true);
+//        assert_eq!(check_range(rects.0.y, 0.0, 0.001), true);
+//        assert_eq!(check_range(rects.0.width, 1024.0, 0.001), true);
+//        assert_eq!(check_range(rects.0.height, 256.0, 0.001), true);
+//
+//        assert_eq!(check_range(rects.1.x, 0.0, 0.001), true);
+//        assert_eq!(check_range(rects.1.y, 256.0, 0.001), true);
+//        assert_eq!(check_range(rects.1.width, 1024.0, 0.001), true);
+//        assert_eq!(check_range(rects.1.height, 768.0, 0.001), true);
+//    }
+//
+//    #[test]
+//    fn test_calc_rect_horz_25_per_2() {
+//        let rects = Rect::split_horizontally(&Rect::new(16.0, 32.0, 512.0, 1024.0), 0.25);
+//
+//        assert_eq!(check_range(rects.0.x, 16.0, 0.001), true);
+//        assert_eq!(check_range(rects.0.y, 32.0, 0.001), true);
+//        assert_eq!(check_range(rects.0.width, 512.0, 0.001), true);
+//        assert_eq!(check_range(rects.0.height, 256.0, 0.001), true);
+//
+//        assert_eq!(check_range(rects.1.x, 16.0, 0.001), true);
+//        assert_eq!(check_range(rects.1.y, 288.0, 0.001), true);
+//        assert_eq!(check_range(rects.1.width, 512.0, 0.001), true);
+//        assert_eq!(check_range(rects.1.height, 768.0, 0.001), true);
+//    }
+
     #[test]
-    fn test_calc_rect_horz_half() {
-        let rects = Rect::split_horizontally(&Rect::new(0.0, 0.0, 1024.0, 1024.0), 0.5);
+    fn test_serialization() {
+        let rect_in = Rect { x: 1.0, y: 2.0, width: 1024.0, height: 768.0 };
+        let serialized = serde_json::to_string(&rect_in).unwrap();
+        let rect_out: Rect = serde_json::from_str(&serialized).unwrap();
 
-        assert_eq!(check_range(rects.0.x, 0.0, 0.001), true);
-        assert_eq!(check_range(rects.0.y, 0.0, 0.001), true);
-        assert_eq!(check_range(rects.0.width, 1024.0, 0.001), true);
-        assert_eq!(check_range(rects.0.height, 512.0, 0.001), true);
-
-        assert_eq!(check_range(rects.1.x, 0.0, 0.001), true);
-        assert_eq!(check_range(rects.1.y, 512.0, 0.001), true);
-        assert_eq!(check_range(rects.1.width, 1024.0, 0.001), true);
-        assert_eq!(check_range(rects.1.height, 512.0, 0.001), true);
+        assert_eq!(rect_in.x as i32, rect_out.x as i32);
+        assert_eq!(rect_in.y as i32, rect_out.y as i32);
+        assert_eq!(rect_in.width as i32, rect_out.width as i32);
+        assert_eq!(rect_in.height as i32, rect_out.height as i32);
     }
-
-    #[test]
-    fn test_calc_rect_horz_25_per() {
-        let rects = Rect::split_horizontally(&Rect::new(0.0, 0.0, 1024.0, 1024.0), 0.25);
-
-        assert_eq!(check_range(rects.0.x, 0.0, 0.001), true);
-        assert_eq!(check_range(rects.0.y, 0.0, 0.001), true);
-        assert_eq!(check_range(rects.0.width, 1024.0, 0.001), true);
-        assert_eq!(check_range(rects.0.height, 256.0, 0.001), true);
-
-        assert_eq!(check_range(rects.1.x, 0.0, 0.001), true);
-        assert_eq!(check_range(rects.1.y, 256.0, 0.001), true);
-        assert_eq!(check_range(rects.1.width, 1024.0, 0.001), true);
-        assert_eq!(check_range(rects.1.height, 768.0, 0.001), true);
-    }
-
-    #[test]
-    fn test_calc_rect_horz_25_per_2() {
-        let rects = Rect::split_horizontally(&Rect::new(16.0, 32.0, 512.0, 1024.0), 0.25);
-
-        assert_eq!(check_range(rects.0.x, 16.0, 0.001), true);
-        assert_eq!(check_range(rects.0.y, 32.0, 0.001), true);
-        assert_eq!(check_range(rects.0.width, 512.0, 0.001), true);
-        assert_eq!(check_range(rects.0.height, 256.0, 0.001), true);
-
-        assert_eq!(check_range(rects.1.x, 16.0, 0.001), true);
-        assert_eq!(check_range(rects.1.y, 288.0, 0.001), true);
-        assert_eq!(check_range(rects.1.width, 512.0, 0.001), true);
-        assert_eq!(check_range(rects.1.height, 768.0, 0.001), true);
-    }
+//
 //    TODO: update following tests for area around split calculation
 //    #[test]
 //    fn test_gen_horizontal_size() {

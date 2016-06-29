@@ -277,18 +277,6 @@ mod test {
 //    }
 
 //    #[test]
-//    fn test_rect_serialize() {
-//        let rect_in = Rect { x: 1.0, y: 2.0, width: 1024.0, height: 768.0 };
-//        let serialized = serde_json::to_string(&rect_in).unwrap();
-//        let rect_out: Rect = serde_json::from_str(&serialized).unwrap();
-//
-//        assert_eq!(rect_in.x as i32, rect_out.x as i32);
-//        assert_eq!(rect_in.y as i32, rect_out.y as i32);
-//        assert_eq!(rect_in.width as i32, rect_out.width as i32);
-//        assert_eq!(rect_in.height as i32, rect_out.height as i32);
-//    }
-//
-//    #[test]
 //    fn test_dockhandle_serialize() {
 //        let handle_in = DockHandle(0x1337);
 //        let serialized = serde_json::to_string(&handle_in).unwrap();
