@@ -4,6 +4,7 @@ language: rust
 
 compiler:
     - gcc
+    - clang
 
 before_install:
     - echo $LANG
@@ -13,7 +14,11 @@ before_install:
     - if [ $TRAVIS_OS_NAME == linux ]; then sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 90; fi
     - if [ $TRAVIS_OS_NAME == linux ]; then git clone https://github.com/emoon/tundra.git; cd tundra; make; sudo make install; cd ..; fi
 
-script: tundra2 linux-gcc-debug
+script: 
+    - if [ $TRAVIS_OS_NAME == linux ]; then tundra2 linux-gcc-debug
+    - if [ $TRAVIS_OS_NAME == mac ]; then scripts/mac_build_debug.sh 
 
 os:
   - linux
+  - osx
+
