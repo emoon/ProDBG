@@ -2,6 +2,7 @@
 #include "pd_view.h"
 #include <imgui.h>
 #include <stdlib.h>
+#include <imgui_internal.h> //+Z
 #include <stdio.h>
 #include <string.h>
 
@@ -1044,6 +1045,17 @@ static int selectable(const char* label, int selected, PDUISelectableFlags flags
     return ImGui::Selectable(label, !!selected, flags, ImVec2(size.x, size.y)) ? 1 : 0;
 }
 
+extern "C" bool imgui_tab(const char* label, bool selected, bool last) {
+    bool res = ImGui::Selectable(label, selected, 0, ImGui::CalcTextSize(label));
+    if (!last) {
+    	ImGui::SameLine(); ImGui::Text("|"); ImGui::SameLine();
+    }
+    else {
+    	ImGui::Separator();
+    }
+    return res;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static int selectable_ex(const char* label, int* p_selected, PDUISelectableFlags flags, const PDVec2 size) {
@@ -1591,6 +1603,12 @@ extern "C" int imgui_begin(const char* name, int show) {
     return s ? 1 : 0;
 }
 
+extern "C" int imgui_begin_float(const char* name, int show) {
+	bool s = !!show;
+    ImGui::Begin(name, &s, ImVec2(500.0, 500.0), 0.8f, ImGuiWindowFlags_NoCollapse);
+    return s;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void imgui_end() {
@@ -1908,3 +1926,6 @@ extern "C" void imgui_set_window_size(float w, float h) {
     ImGui::SetNextWindowSize(ImVec2(w - 4, h - 4));
 }
 
+extern "C" void imgui_RenderFrame(float x, float y, float width, float height, int fill_col) {
+	ImGui::RenderFrame(ImVec2(x,y), ImVec2(x+width,y+height), fill_col, false, 0.0f);
+}

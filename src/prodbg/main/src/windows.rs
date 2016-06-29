@@ -214,12 +214,32 @@ impl Window {
     fn update_view(&self, instance: &mut ViewInstance, session: &mut Session, show_context_menu: bool, mouse: (f32, f32)) -> WindowState {
         let ui = &instance.ui;
 
+        //+Z
+        let mut float_mode = false;
+        if let Some(_) = self.ws.float.iter().find(|&dock| dock.handle == DockHandle(instance.handle.0)) {
+            //Imgui::set_window_pos(dock.rect.x, dock.rect.y);
+            //Imgui::set_window_size(dock.rect.width, dock.rect.height);
+            float_mode = true;
+        }
+        else
         if let Some(rect) = self.ws.get_rect_by_handle(DockHandle(instance.handle.0)) {
             Imgui::set_window_pos(rect.x, rect.y);
             Imgui::set_window_size(rect.width, rect.height);
         }
 
-        let open = Imgui::begin_window(&instance.name, true);
+        //+Z
+        //let open = Imgui::begin_window(&instance.name, true);
+        let open = match float_mode {
+        	false => Imgui::begin_window(&instance.name, true),
+        	true => Imgui::begin_window_float(&instance.name, true),
+        };
+
+        //+Z test tabs
+        let tabs = ["tab 1", "tab 2", "tab 3"];
+        for (i,t) in tabs.iter().enumerate() {
+            Imgui::tab(t, i==0, i==tabs.len()-1);
+        }
+
         Imgui::init_state(ui.api);
 
         let pos = ui.get_window_pos();
@@ -244,6 +264,11 @@ impl Window {
 
         let has_shown_menu = Imgui::has_showed_popup(ui.api);
 
+        //+Z test drag zone
+        let pos = ui.get_window_pos();
+        let size = ui.get_window_size();
+        Imgui::render_frame(pos.x+size.0-50.0, pos.y, 50.0, size.1, 0x8000FF00);
+        
         Imgui::end_window();
 
         WindowState {
@@ -507,6 +532,18 @@ impl Window {
         }
     }
 
+    //+Z
+    fn float_view(&mut self, name: &String, view_plugins: &mut ViewPlugins) {
+        let ui = Imgui::create_ui_instance();
+        if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
+            let new_handle = DockHandle(handle.0);
+            let mut dock = viewdock::Dock::new(new_handle, name);
+            dock.rect = Rect::new(20.0, 20.0, 500.0, 500.0);
+			self.ws.float.push(dock);
+            self.views.push(handle);
+        }
+    }
+
     fn show_popup_menu_no_splits(&mut self, plugin_names: &Vec<String>, mouse_pos: (f32, f32), view_plugins: &mut ViewPlugins) {
         let ui = Imgui::get_ui();
 
@@ -556,6 +593,16 @@ impl Window {
             for name in plugin_names {
                 if ui.menu_item(name, false, true) {
                     Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Vertical);
+                }
+            }
+            ui.end_menu();
+        }
+
+        //+Z
+        if ui.begin_menu("Float", true) {
+            for name in plugin_names {
+                if ui.menu_item(name, false, true) {
+                    Self::float_view(self, &name, view_plugins);
                 }
             }
             ui.end_menu();

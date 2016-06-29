@@ -46,6 +46,7 @@ pub use dock::{DockHandle, Dock};
 #[derive(Debug)]
 pub struct Workspace {
     pub root_area: Option<Area>,
+    pub float: Vec<Dock>,
     rect: Rect,
     /// border size of the windows (in pixels)
     pub window_border: f32,
@@ -67,6 +68,7 @@ impl Workspace {
 
         Ok(Workspace {
             root_area: None,
+            float: Vec::new(),
             rect: rect,
             window_border: 4.0,
             handle_counter: SplitHandle(0),
@@ -288,6 +290,7 @@ mod test {
     fn test_workspace_serialize_0() {
         let ws_in = Workspace {
             root_area: None,
+            float: Vec::new(),
             rect: Rect::new(4.0, 5.0, 2.0, 8.0),
             window_border: 6.0,
             handle_counter: SplitHandle(2),
@@ -311,6 +314,7 @@ mod test {
             root_area: Some(Area::Container(
                 Container::new(Dock::new(DockHandle(5), "test"), Rect::default())
             )),
+            float: Vec::new(),
             rect: Rect::new(4.0, 5.0, 2.0, 8.0),
             window_border: 6.0,
             handle_counter: SplitHandle(2),
