@@ -50,7 +50,8 @@ pub struct Window {
 
     ///
     pub ws: Workspace,
-    ws_states: VecDeque<String>,
+    ws_prev_states: VecDeque<String>,
+    ws_future_states: VecDeque<String>,
 
     pub mouse_state: MouseState,
 
@@ -125,7 +126,8 @@ impl Windows {
                     menu_id_offset: 1000,
                     mouse_state: MouseState::new(),
                     ws: Workspace::new(Rect::new(0.0, 0.0, width as f32, (height - 20) as f32)).unwrap(),
-                    ws_states: VecDeque::with_capacity(WORKSPACE_UNDO_LIMIT),
+                    ws_prev_states: VecDeque::with_capacity(WORKSPACE_UNDO_LIMIT),
+                    ws_future_states: VecDeque::with_capacity(WORKSPACE_UNDO_LIMIT),
                 })
             }
             Err(err) => Err(err),
@@ -419,6 +421,10 @@ impl Window {
             self.undo_workspace_change(view_plugins);
         }
 
+        if self.win.is_key_pressed(Key::X, KeyRepeat::No) {
+            self.redo_workspace_change(view_plugins);
+        }
+
         // TODO: Only do this on the correct session
 
         /*
@@ -452,44 +458,68 @@ impl Window {
         }
     }
 
-    fn undo_workspace_change(&mut self, view_plugins: &mut ViewPlugins) {
-        if let Some(ref state) = self.ws_states.pop_back() {
-            self.ws = Workspace::from_state(state);
-            let win_size = self.win.get_size();
-            self.ws.update(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
-            let docks = self.ws.get_docks();
-            let views_to_delete: Vec<ViewHandle> = self.views.iter()
-                .filter(|view| docks.iter().find(|dock| view.0 == dock.handle.0).is_none())
-                .map(|view| view.clone())
-                .collect();
-            Self::remove_views(self, view_plugins, &views_to_delete);
+    fn restore_workspace_state(&mut self, view_plugins: &mut ViewPlugins, state: &str) {
+        self.ws = Workspace::from_state(&state);
+        let win_size = self.win.get_size();
+        self.ws.update(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
+        let docks = self.ws.get_docks();
+        let views_to_delete: Vec<ViewHandle> = self.views.iter()
+            .filter(|view| docks.iter().find(|dock| view.0 == dock.handle.0).is_none())
+            .map(|view| view.clone())
+            .collect();
+        Self::remove_views(self, view_plugins, &views_to_delete);
 
-            for dock in &docks {
-                let mut new_view_handles: Vec<ViewHandle> = Vec::new();
-                if !self.views.iter().find(|view| view.0 == dock.handle.0).is_some() {
-                    let ui = Imgui::create_ui_instance();
-                    if let Some(handle) = view_plugins.create_instance_with_handle(
-                        ui,
-                        &dock.plugin_name,
-                        &dock.plugin_data,
-                        SessionHandle(0),
-                        ViewHandle(dock.handle.0)
-                    ) {
-                        new_view_handles.push(handle);
-                    } else {
-                        panic!("Could not restore view");
-                    }
+        for dock in &docks {
+            let mut new_view_handles: Vec<ViewHandle> = Vec::new();
+            if !self.views.iter().find(|view| view.0 == dock.handle.0).is_some() {
+                let ui = Imgui::create_ui_instance();
+                if let Some(handle) = view_plugins.create_instance_with_handle(
+                    ui,
+                    &dock.plugin_name,
+                    &dock.plugin_data,
+                    SessionHandle(0),
+                    ViewHandle(dock.handle.0)
+                ) {
+                    new_view_handles.push(handle);
+                } else {
+                    panic!("Could not restore view");
                 }
-                self.views.extend(new_view_handles);
             }
+            self.views.extend(new_view_handles);
+        }
+    }
+
+    fn undo_workspace_change(&mut self, view_plugins: &mut ViewPlugins) {
+        if let Some(state) = self.ws_prev_states.pop_back() {
+            self.save_workspace_future_state();
+            self.restore_workspace_state(view_plugins, &state);
+        }
+    }
+
+    fn redo_workspace_change(&mut self, view_plugins: &mut ViewPlugins) {
+        if let Some(state) = self.ws_future_states.pop_back() {
+            self.save_workspace_prev_state();
+            self.restore_workspace_state(view_plugins, &state);
         }
     }
 
     fn save_workspace_state(&mut self) {
-        if self.ws_states.len() == WORKSPACE_UNDO_LIMIT {
-            self.ws_states.pop_front();
+        self.ws_future_states.clear();
+        self.save_workspace_prev_state();
+    }
+
+    fn save_workspace_prev_state(&mut self) {
+        if self.ws_prev_states.len() == WORKSPACE_UNDO_LIMIT {
+            self.ws_prev_states.pop_front();
         }
-        self.ws_states.push_back(self.ws.save_state());
+        self.ws_prev_states.push_back(self.ws.save_state());
+    }
+
+    fn save_workspace_future_state(&mut self) {
+        if self.ws_future_states.len() == WORKSPACE_UNDO_LIMIT {
+            self.ws_future_states.pop_front();
+        }
+        self.ws_future_states.push_back(self.ws.save_state());
     }
 
     fn split_view(&mut self, name: &String, view_plugins: &mut ViewPlugins, pos: (f32, f32), direction: Direction) {
