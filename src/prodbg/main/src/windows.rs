@@ -51,8 +51,8 @@ pub struct Window {
 
     ///
     pub ws: Workspace,
-    ws_prev_states: VecDeque<String>,
-    ws_future_states: VecDeque<String>,
+    ws_states: VecDeque<String>,
+    cur_state_index: usize,
 
     pub mouse_state: MouseState,
 
@@ -107,32 +107,30 @@ impl Windows {
     }
 
     pub fn create_window(width: usize, height: usize) -> minifb::Result<Window> {
-        let res = minifb::Window::new("ProDBG",
+        let win = try!(minifb::Window::new("ProDBG",
                                       width,
                                       height,
                                       WindowOptions {
                                           resize: true,
                                           scale: Scale::X1,
                                           ..WindowOptions::default()
-                                      });
-        match res {
-            Ok(win) => {
-                Bgfx::create_window(win.get_window_handle() as *const c_void,
-                width as c_int,
-                height as c_int);
-                Ok(Window {
-                    win: win,
-                    menu: Menu::new(),
-                    views: Vec::new(),
-                    menu_id_offset: 1000,
-                    mouse_state: MouseState::new(),
-                    ws: Workspace::new(Rect::new(0.0, 0.0, width as f32, (height - 20) as f32)).unwrap(),
-                    ws_prev_states: VecDeque::with_capacity(WORKSPACE_UNDO_LIMIT),
-                    ws_future_states: VecDeque::with_capacity(WORKSPACE_UNDO_LIMIT),
-                })
-            }
-            Err(err) => Err(err),
-        }
+                                      }));
+        Bgfx::create_window(win.get_window_handle() as *const c_void,
+                            width as c_int,
+                            height as c_int);
+        let ws = Workspace::new(Rect::new(0.0, 0.0, width as f32, (height - 20) as f32)).unwrap();
+        let mut ws_states = VecDeque::with_capacity(WORKSPACE_UNDO_LIMIT);
+        ws_states.push_back(ws.save_state());
+        return Ok(Window {
+            win: win,
+            menu: Menu::new(),
+            views: Vec::new(),
+            menu_id_offset: 1000,
+            mouse_state: MouseState::new(),
+            ws: ws,
+            ws_states: ws_states,
+            cur_state_index: 0usize,
+        });
     }
 
     pub fn create_window_with_menus() -> minifb::Result<Window> {
@@ -474,8 +472,8 @@ impl Window {
         }
     }
 
-    fn restore_workspace_state(&mut self, view_plugins: &mut ViewPlugins, state: &str) {
-        self.ws = Workspace::from_state(&state);
+    fn restore_workspace_state(&mut self, view_plugins: &mut ViewPlugins) {
+        self.ws = Workspace::from_state(&self.ws_states[self.cur_state_index]);
         let win_size = self.win.get_size();
         self.ws.update(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
         let docks = self.ws.get_docks();
@@ -506,44 +504,32 @@ impl Window {
     }
 
     fn undo_workspace_change(&mut self, view_plugins: &mut ViewPlugins) {
-        if let Some(state) = self.ws_prev_states.pop_back() {
-            let prev_state = self.ws.save_state();
-            self.save_workspace_future_state(prev_state);
-            self.restore_workspace_state(view_plugins, &state);
+        if self.cur_state_index > 0 {
+            self.cur_state_index -= 1;
+            self.restore_workspace_state(view_plugins);
         }
     }
 
     fn redo_workspace_change(&mut self, view_plugins: &mut ViewPlugins) {
-        if let Some(state) = self.ws_future_states.pop_back() {
-            let prev_state = self.ws.save_state();
-            self.save_workspace_prev_state(prev_state);
-            self.restore_workspace_state(view_plugins, &state);
+        if self.cur_state_index < self.ws_states.len() - 1 {
+            self.cur_state_index += 1;
+            self.restore_workspace_state(view_plugins);
         }
     }
 
     fn save_cur_workspace_state(&mut self) {
-        self.ws_future_states.clear();
-        let prev_state = self.ws.save_state();
-        self.save_workspace_prev_state(prev_state);
+        let state = self.ws.save_state();
+        self.save_workspace_state(state);
     }
 
     fn save_workspace_state(&mut self, state: String) {
-        self.ws_future_states.clear();
-        self.save_workspace_prev_state(state);
-    }
-
-    fn save_workspace_prev_state(&mut self, state: String) {
-        if self.ws_prev_states.len() == WORKSPACE_UNDO_LIMIT {
-            self.ws_prev_states.pop_front();
+        self.ws_states.drain(self.cur_state_index+1..);
+        if self.cur_state_index == WORKSPACE_UNDO_LIMIT - 1 {
+            self.ws_states.pop_front();
+            self.cur_state_index -= 1;
         }
-        self.ws_prev_states.push_back(state);
-    }
-
-    fn save_workspace_future_state(&mut self, state: String) {
-        if self.ws_future_states.len() == WORKSPACE_UNDO_LIMIT {
-            self.ws_future_states.pop_front();
-        }
-        self.ws_future_states.push_back(state);
+        self.ws_states.push_back(state);
+        self.cur_state_index += 1;
     }
 
     fn split_view(&mut self, name: &String, view_plugins: &mut ViewPlugins, pos: (f32, f32), direction: Direction) {
