@@ -2,6 +2,8 @@ sudo: required
 
 language: rust
 
+osx_image: xcode7.3
+
 compiler:
     - gcc
     - clang
