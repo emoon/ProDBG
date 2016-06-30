@@ -3,6 +3,7 @@ mod serialize;
 use dock::{Dock, DockHandle};
 use rect::Rect;
 use super::{DragTarget, DropTarget};
+use std::cell::Cell;
 
 /// Holds a list of available docks
 #[derive(Debug, Clone)]
@@ -11,6 +12,8 @@ pub struct Container {
     /// to implement tabs but only one dock should be visible at a time
     pub docks: Vec<Dock>,
     pub rect: Rect,
+    //+Z
+    pub active_dock: Cell<usize>,
 }
 
 impl Container {
@@ -18,6 +21,7 @@ impl Container {
         Container {
             docks: vec!(dock),
             rect: rect,
+            active_dock: Cell::new(0),
         }
     }
 

@@ -214,6 +214,19 @@ impl Window {
     fn update_view(&self, instance: &mut ViewInstance, session: &mut Session, show_context_menu: bool, mouse: (f32, f32)) -> WindowState {
         let ui = &instance.ui;
 
+        //+Z skip inactive tab
+        if let Some(ref container) = self.ws.root_area.as_ref().unwrap().find_container_by_dock_handle(DockHandle(instance.handle.0)) {
+            if let Some(idx) = container.docks.iter().position(|dock| dock.handle.0 == instance.handle.0) {
+                if idx != container.active_dock.get() {
+                    return
+                        WindowState {
+                            showed_popup: 0,
+                            should_close: false,
+                    }
+                }
+            }
+        }
+
         //+Z
         let mut float_mode = false;
         if let Some(_) = self.ws.float.iter().find(|&dock| dock.handle == DockHandle(instance.handle.0)) {
@@ -234,11 +247,24 @@ impl Window {
         	true => Imgui::begin_window_float(&instance.name, true),
         };
 
-        //+Z test tabs
-        let tabs = ["tab 1", "tab 2", "tab 3"];
-        for (i,t) in tabs.iter().enumerate() {
-            Imgui::tab(t, i==0, i==tabs.len()-1);
+        //+Z tabs
+        if let Some(ref root) = self.ws.root_area {
+            if let Some(ref container) = root.find_container_by_dock_handle(DockHandle(instance.handle.0)) {
+                let tabs:Vec<String> = container.docks.iter().map(|dock| dock.plugin_name.clone()).collect();
+                if tabs.len()>1 {
+                    for (i,t) in tabs.iter().enumerate() {
+                        if Imgui::tab(t, i==container.active_dock.get(), i==tabs.len()-1) {
+                            container.active_dock.set(i);
+                        }
+                    }
+                }
+            }
         }
+        // simple test
+        //let tabs = ["tab 1", "tab 2", "tab 3"];
+        //for (i,t) in tabs.iter().enumerate() {
+        //    Imgui::tab(t, i==0, i==tabs.len()-1);
+        //}
 
         Imgui::init_state(ui.api);
 
@@ -265,9 +291,9 @@ impl Window {
         let has_shown_menu = Imgui::has_showed_popup(ui.api);
 
         //+Z test drag zone
-        let pos = ui.get_window_pos();
-        let size = ui.get_window_size();
-        Imgui::render_frame(pos.x+size.0-50.0, pos.y, 50.0, size.1, 0x8000FF00);
+        //let pos = ui.get_window_pos();
+        //let size = ui.get_window_size();
+        //Imgui::render_frame(pos.x+size.0-50.0, pos.y, 50.0, size.1, 0x8000FF00);
         
         Imgui::end_window();
 
@@ -389,7 +415,7 @@ impl Window {
                         current_session.set_backend(Some(backend));
 
                         if let Some(menu) = backend_plugins.get_menu(backend, self.menu_id_offset) {
-                            self.win.add_menu(&menu);
+                            self.win.add_menu(&(*menu));
                             self.menu_id_offset += 1000;
                         }
                     }
@@ -427,12 +453,11 @@ impl Window {
         for view in &self.views {
             if let Some(ref mut v) = view_plugins.get_view(*view) {
                 if let Some(ref mut s) = sessions.get_session(v.session_handle) {
-                    let state = Self::update_view(self, v, s, show_context_menu, mouse);
+                    let state = Self::update_view(&self, v, s, show_context_menu, mouse);
 
                     if state.should_close {
                         views_to_delete.push(*view);
                     }
-
                     has_shown_menu |= state.showed_popup;
                 }
             }
@@ -544,6 +569,25 @@ impl Window {
         }
     }
 
+    fn tab_view(&mut self, name: &String, view_plugins: &mut ViewPlugins, pos: (f32, f32)) {
+        let ui = Imgui::create_ui_instance();
+        if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
+            let new_handle = DockHandle(handle.0);
+            let mut dock = viewdock::Dock::new(new_handle, name);
+            self.views.push(handle);
+
+            if let Some(src_dock_handle) = self.ws.get_hover_dock(pos) {
+                if let Some(ref mut root) = self.ws.root_area {
+                    if let Some(ref mut container) = root.find_container_by_dock_handle_mut(src_dock_handle) {
+                        dock.rect = container.docks[0].rect.clone();
+                        container.docks.push(dock);
+                        container.active_dock.set(container.docks.len()-1);
+                    }
+                }
+            }
+
+        }
+    }
     fn show_popup_menu_no_splits(&mut self, plugin_names: &Vec<String>, mouse_pos: (f32, f32), view_plugins: &mut ViewPlugins) {
         let ui = Imgui::get_ui();
 
@@ -603,6 +647,16 @@ impl Window {
             for name in plugin_names {
                 if ui.menu_item(name, false, true) {
                     Self::float_view(self, &name, view_plugins);
+                }
+            }
+            ui.end_menu();
+        }
+
+        //+Z
+        if ui.begin_menu("Tab", true) {
+            for name in plugin_names {
+                if ui.menu_item(name, false, true) {
+                    Self::tab_view(self, &name, view_plugins, mouse_pos);
                 }
             }
             ui.end_menu();
