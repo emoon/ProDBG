@@ -565,8 +565,7 @@ impl Window {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
             let new_handle = DockHandle(handle.0);
-            let mut dock = viewdock::Dock::new(new_handle, name);
-            dock.rect = Rect::new(20.0, 20.0, 500.0, 500.0);
+            let dock = viewdock::Dock::new(new_handle, name);
 			self.ws.float.push(dock);
             self.views.push(handle);
         }
@@ -576,13 +575,12 @@ impl Window {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
             let new_handle = DockHandle(handle.0);
-            let mut dock = viewdock::Dock::new(new_handle, name);
+            let dock = viewdock::Dock::new(new_handle, name);
             self.views.push(handle);
 
             if let Some(src_dock_handle) = self.ws.get_hover_dock(pos) {
                 if let Some(ref mut root) = self.ws.root_area {
                     if let Some(ref mut container) = root.find_container_by_dock_handle_mut(src_dock_handle) {
-                        dock.rect = container.docks[0].rect.clone();
                         container.docks.push(dock);
                         container.active_dock = container.docks.len() - 1;
                     }

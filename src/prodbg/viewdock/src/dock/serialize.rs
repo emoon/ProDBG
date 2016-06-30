@@ -1,6 +1,5 @@
 extern crate serde;
 use super::{Dock, DockHandle};
-use rect::Rect;
 
 gen_handle!("DockHandle", DockHandle, DockHandleVisitor);
 
@@ -74,7 +73,6 @@ impl serde::de::Visitor for DockVisitor {
             handle: handle,
             plugin_name: plugin_name,
             plugin_data: plugin_data,
-            rect: Rect::default(), // We use default here as this is always recalculated
         })
     }
 }

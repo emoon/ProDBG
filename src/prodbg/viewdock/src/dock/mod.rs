@@ -1,7 +1,5 @@
 mod serialize;
 
-use rect::Rect;
-
 /// Handle to a dock
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct DockHandle(pub u64);
@@ -12,7 +10,6 @@ pub struct Dock {
     pub handle: DockHandle,
     pub plugin_name: String,
     pub plugin_data: Option<Vec<String>>,
-    pub rect: Rect
 }
 
 impl Dock {
@@ -21,7 +18,6 @@ impl Dock {
             handle: dock_handle,
             plugin_name: plugin_name.to_owned(),
             plugin_data: None,
-            rect: Rect::default(),
         }
     }
 }
@@ -29,7 +25,7 @@ impl Dock {
 #[cfg(test)]
 mod test {
     extern crate serde_json;
-    use {Dock, DockHandle, Rect};
+    use {Dock, DockHandle};
 
     #[test]
     fn test_dockhandle_serialize() {
@@ -46,7 +42,6 @@ mod test {
             handle: DockHandle(1),
             plugin_name: "disassembly".to_owned(),
             plugin_data: None,
-            rect: Rect::new(1.0, 2.0, 3.0, 4.0)
         };
 
         let serialized = serde_json::to_string(&dock_in).unwrap();
