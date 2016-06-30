@@ -12,3 +12,4 @@ install:
 build_script:
 - scripts\vcvarsx86_amd64.bat
 - scripts\win64_build_debug.cmd
+- scripts\win64_build_debug_test.cmd
