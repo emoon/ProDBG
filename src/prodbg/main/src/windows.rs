@@ -255,11 +255,14 @@ impl Window {
             if let Some(ref mut container) = root.find_container_by_dock_handle_mut(DockHandle(instance.handle.0)) {
                 let tabs:Vec<String> = container.docks.iter().map(|dock| dock.plugin_name.clone()).collect();
                 if tabs.len() > 1 {
+                    let mut sizes = Vec::with_capacity(tabs.len());
                     for (i, t) in tabs.iter().enumerate() {
                         if Imgui::tab(t, i==container.active_dock, i==tabs.len()-1) {
                             container.active_dock = i;
                         }
+                        sizes.push(100.0);
                     }
+                    container.update_tab_sizes(&sizes);
                 }
             }
         }
@@ -312,7 +315,7 @@ impl Window {
             if let Some(pos) = self.views.iter().position(|v| v == view) {
                 self.views.swap_remove(pos);
             }
-            self.ws.delete_by_handle(DockHandle(view.0));
+            self.ws.delete_dock_by_handle(DockHandle(view.0));
         }
     }
 
@@ -357,15 +360,21 @@ impl Window {
                 if self.win.get_mouse_down(MouseButton::Left) {
                     cursor = match drop_target {
                         Some(DropTarget::Dock(target)) if target != handle => CursorStyle::OpenHand,
+                        Some(_) => CursorStyle::OpenHand,
                         // TODO: make sure this cursor style works. Did not work with minifb 0.8.0
                         _ => CursorStyle::ClosedHand,
                     }
                 } else {
-                    if let Some(DropTarget::Dock(target)) = drop_target {
-                        if target != handle {
+                    match drop_target {
+                        Some(DropTarget::Dock(target)) if target != handle => {
                             self.save_workspace_state();
                             self.ws.swap_docks(handle, target);
-                        }
+                        },
+                        Some(DropTarget::Dock(_)) => {},
+                        Some(DropTarget::Container(target, index)) => {
+                            println!("Want to put {:?} in the same container with {:?} at pos {}", handle, target, index);
+                        },
+                        None => {}
                     }
                     next_state = Some(State::Default);
                     cursor = CursorStyle::Arrow;
@@ -581,8 +590,7 @@ impl Window {
             if let Some(src_dock_handle) = self.ws.get_hover_dock(pos) {
                 if let Some(ref mut root) = self.ws.root_area {
                     if let Some(ref mut container) = root.find_container_by_dock_handle_mut(src_dock_handle) {
-                        container.docks.push(dock);
-                        container.active_dock = container.docks.len() - 1;
+                        container.append_dock(dock);
                     }
                 }
             }

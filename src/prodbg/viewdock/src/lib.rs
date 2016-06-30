@@ -159,21 +159,35 @@ impl Workspace {
         })
     }
 
-    pub fn delete_by_handle(&mut self, handle: DockHandle) {
+    pub fn delete_dock_by_handle(&mut self, handle: DockHandle) {
         let mut should_delete_root = false;
-        if let Some(Area::Container(ref c)) = self.root_area {
-            should_delete_root = c.find_dock(handle).is_some();
+        let mut should_stop = false;
+        if let Some(Area::Container(ref mut c)) = self.root_area {
+            if c.find_dock(handle).is_some() {
+                c.remove_dock(handle);
+                should_delete_root = c.docks.is_empty();
+                should_stop = true;
+            }
         }
         if should_delete_root {
             self.root_area = None;
+        }
+        if should_stop {
             return;
         }
         if let Some(ref mut root) = self.root_area {
             let mut should_adopt = None;
             if let Some((split, index)) = root.find_split_by_dock_handle(handle) {
-                split.remove_child(index);
-                if split.children.len() == 1 {
-                    should_adopt = Some((split.handle, split.children[0].clone()));
+                let mut should_remove_child = false;
+                if let Area::Container(ref mut container) = split.children[index] {
+                    container.remove_dock(handle);
+                    should_remove_child = container.docks.is_empty();
+                }
+                if should_remove_child {
+                    split.remove_child(index);
+                    if split.children.len() == 1 {
+                        should_adopt = Some((split.handle, split.children[0].clone()));
+                    }
                 }
             }
             if let Some((split_handle, mut contents)) = should_adopt {
@@ -210,18 +224,32 @@ impl Workspace {
             match root.find_split_by_dock_handle(first) {
                 None => return,
                 Some((parent, index)) => {
-                    first_copy = parent.children[index].clone();
-                    first_dock_index = index;
-                    first_split_handle = parent.handle;
+                    if let Area::Container(ref c) = parent.children[index] {
+                        first_copy = c.find_dock(first).unwrap().clone();
+                        first_dock_index = index;
+                        first_split_handle = parent.handle;
+                    } else {
+                        panic!();
+                    }
                 }
             }
             match root.find_split_by_dock_handle(second) {
                 None => return,
-                Some((parent, index)) => second_copy = parent.replace_child(index, first_copy),
+                Some((parent, index)) => if let Area::Container(ref mut c) = parent.children[index] {
+                    second_copy = c.replace_dock(second, first_copy).unwrap();
+                } else {
+                    panic!()
+                }
             }
             match root.find_split_by_handle(first_split_handle) {
                 None => panic!("Tried to swap docks {:?} and {:?} but lost {:?} in the middle", first, second, first),
-                Some(s) => {s.replace_child(first_dock_index, second_copy);},
+                Some(s) => {
+                    if let Area::Container(ref mut c) = s.children[first_dock_index] {
+                        if c.replace_dock(first, second_copy).is_none() {
+                            println!("Tab swap is not supported yet!");
+                        }
+                    }
+                },
             }
         }
     }

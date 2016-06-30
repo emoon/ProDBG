@@ -136,7 +136,8 @@ pub enum DragTarget {
 
 #[derive(Debug)]
 pub enum DropTarget {
-    Dock(DockHandle)
+    Dock(DockHandle),
+    Container(DockHandle, usize)
 }
 
 

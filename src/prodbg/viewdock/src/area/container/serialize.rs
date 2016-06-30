@@ -62,6 +62,7 @@ impl serde::de::Visitor for ContainerVisitor {
 
         Ok(Container {
             docks: docks,
+            tab_sizes: vec!(0.0),
             active_dock: active_dock,
             rect: Rect::default(), // We use default here as this is always recalculated
         })
