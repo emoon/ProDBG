@@ -16,6 +16,8 @@ use prodbg_api::view::CViewCallbacks;
 use std::os::raw::{c_void, c_int};
 use std::collections::VecDeque;
 //use std::mem::transmute;
+use std::thread::sleep;
+use std::time::Duration;
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 800;
@@ -141,7 +143,7 @@ impl Windows {
         // TODO: Figure out how to deal with this on Linux
         let _ = window.win.add_menu(&window.menu.file_menu);
         let _ = window.win.add_menu(&window.menu.debug_menu);
-
+      
         Ok(window)
     }
 
@@ -149,6 +151,7 @@ impl Windows {
                   sessions: &mut Sessions,
                   view_plugins: &mut ViewPlugins,
                   backend_plugins: &mut BackendPlugins) {
+        sleep(Duration::from_millis(100));
         for i in (0..self.windows.len()).rev() {
             self.windows[i].update(sessions, view_plugins, backend_plugins);
 
@@ -456,7 +459,7 @@ impl Window {
                     let state = Self::update_view(&self, v, s, show_context_menu, mouse);
 
                     if state.should_close {
-                        views_to_delete.push(*view);
+                       views_to_delete.push(*view);
                     }
                     has_shown_menu |= state.showed_popup;
                 }
