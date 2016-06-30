@@ -47,7 +47,7 @@ impl Area {
     /// Finds Container with supplied DockHandle
     pub fn find_container_by_dock_handle(&self, handle: DockHandle) -> Option<&Container> {
         match self {
-            &Area::Container(ref c) => if c.find_dock(handle).is_some() {Some(c)} else {None},//c.find_dock(handle).map(|_| c),
+            &Area::Container(ref c) => if c.find_dock(handle).is_some() {Some(c)} else {None},
             &Area::Split(ref s) => s.children.iter()
                 .map(|child| child.find_container_by_dock_handle(handle))
                 .find(|c| {c.is_some() })
@@ -58,7 +58,7 @@ impl Area {
     //+Z
     pub fn find_container_by_dock_handle_mut(&mut self, handle: DockHandle) -> Option<&mut Container> {
         match self {
-            &mut Area::Container(ref mut c) => if c.find_dock(handle).is_some() {Some(c)} else {None},//c.find_dock(handle).map(|_| c),
+            &mut Area::Container(ref mut c) => if c.find_dock(handle).is_some() {Some(c)} else {None},
             &mut Area::Split(ref mut s) => s.children.iter_mut()
                 .map(|child| child.find_container_by_dock_handle_mut(handle))
                 .find(|c| {c.is_some() })

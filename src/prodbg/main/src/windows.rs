@@ -214,13 +214,13 @@ impl Window {
         }
     }
 
-    fn update_view(&self, instance: &mut ViewInstance, session: &mut Session, show_context_menu: bool, mouse: (f32, f32)) -> WindowState {
+    fn update_view(ws: &mut Workspace, instance: &mut ViewInstance, session: &mut Session, show_context_menu: bool, mouse: (f32, f32)) -> WindowState {
         let ui = &instance.ui;
 
         //+Z skip inactive tab
-        if let Some(ref container) = self.ws.root_area.as_ref().unwrap().find_container_by_dock_handle(DockHandle(instance.handle.0)) {
-            if let Some(idx) = container.docks.iter().position(|dock| dock.handle.0 == instance.handle.0) {
-                if idx != container.active_dock.get() {
+        if let Some(ref root) = ws.root_area {
+            if let Some(ref container) = root.find_container_by_dock_handle(DockHandle(instance.handle.0)) {
+                if container.docks[container.active_dock].handle.0 != instance.handle.0 {
                     return
                         WindowState {
                             showed_popup: 0,
@@ -232,13 +232,13 @@ impl Window {
 
         //+Z
         let mut float_mode = false;
-        if let Some(_) = self.ws.float.iter().find(|&dock| dock.handle == DockHandle(instance.handle.0)) {
+        if let Some(_) = ws.float.iter().find(|&dock| dock.handle == DockHandle(instance.handle.0)) {
             //Imgui::set_window_pos(dock.rect.x, dock.rect.y);
             //Imgui::set_window_size(dock.rect.width, dock.rect.height);
             float_mode = true;
         }
         else
-        if let Some(rect) = self.ws.get_rect_by_handle(DockHandle(instance.handle.0)) {
+        if let Some(rect) = ws.get_rect_by_handle(DockHandle(instance.handle.0)) {
             Imgui::set_window_pos(rect.x, rect.y);
             Imgui::set_window_size(rect.width, rect.height);
         }
@@ -251,13 +251,13 @@ impl Window {
         };
 
         //+Z tabs
-        if let Some(ref root) = self.ws.root_area {
-            if let Some(ref container) = root.find_container_by_dock_handle(DockHandle(instance.handle.0)) {
+        if let Some(ref mut root) = ws.root_area {
+            if let Some(ref mut container) = root.find_container_by_dock_handle_mut(DockHandle(instance.handle.0)) {
                 let tabs:Vec<String> = container.docks.iter().map(|dock| dock.plugin_name.clone()).collect();
-                if tabs.len()>1 {
-                    for (i,t) in tabs.iter().enumerate() {
-                        if Imgui::tab(t, i==container.active_dock.get(), i==tabs.len()-1) {
-                            container.active_dock.set(i);
+                if tabs.len() > 1 {
+                    for (i, t) in tabs.iter().enumerate() {
+                        if Imgui::tab(t, i==container.active_dock, i==tabs.len()-1) {
+                            container.active_dock = i;
                         }
                     }
                 }
@@ -456,7 +456,7 @@ impl Window {
         for view in &self.views {
             if let Some(ref mut v) = view_plugins.get_view(*view) {
                 if let Some(ref mut s) = sessions.get_session(v.session_handle) {
-                    let state = Self::update_view(&self, v, s, show_context_menu, mouse);
+                    let state = Self::update_view(&mut self.ws, v, s, show_context_menu, mouse);
 
                     if state.should_close {
                        views_to_delete.push(*view);
@@ -584,7 +584,7 @@ impl Window {
                     if let Some(ref mut container) = root.find_container_by_dock_handle_mut(src_dock_handle) {
                         dock.rect = container.docks[0].rect.clone();
                         container.docks.push(dock);
-                        container.active_dock.set(container.docks.len()-1);
+                        container.active_dock = container.docks.len() - 1;
                     }
                 }
             }
