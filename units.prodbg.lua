@@ -28,6 +28,16 @@ end
 -----------------------------------------------------------------------------------------------------------------------
 
 RustCrate {
+	Name = "prodbg_api",
+	CargoConfig = "api/rust/prodbg/Cargo.toml",
+	Sources = {
+		get_rs_src("api/rust/prodbg"),
+	},
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+RustCrate {
 	Name = "viewdock",
 	CargoConfig = "src/prodbg/viewdock/Cargo.toml",
 	Sources = {
@@ -107,7 +117,8 @@ RustProgram {
 	},
 
     Depends = { "lua", "remote_api", "stb", "bgfx", "bgfx_rs", "ui",
-    			"imgui", "scintilla", "tinyxml2", "capstone", "imgui_sys", "core", "viewdock", "settings" },
+    			"imgui", "scintilla", "tinyxml2", "capstone", 
+    			"imgui_sys", "core", "viewdock", "settings", "prodbg_api" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
