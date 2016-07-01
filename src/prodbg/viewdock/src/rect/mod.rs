@@ -6,6 +6,15 @@ pub enum Direction {
     Horizontal,
 }
 
+impl Direction {
+    pub fn opposite(&self) -> Direction {
+        match *self {
+            Direction::Vertical => Direction::Horizontal,
+            Direction::Horizontal => Direction::Vertical,
+        }
+    }
+}
+
 /// Data structure for rectangles
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Rect {
