@@ -260,7 +260,14 @@ impl Window {
                         if Imgui::tab(t, i==container.active_dock, i==tabs.len()-1) {
                             container.active_dock = i;
                         }
-                        sizes.push(100.0);
+                        //sizes.push(100.0);
+                        if i==0 {sizes.push(Imgui::tab_pos()); }
+                        else
+                        {
+                            if let Some(&s) = sizes.last() {
+                                sizes.push(Imgui::tab_pos() - s);
+                            }
+                        }
                     }
                     container.update_tab_sizes(&sizes);
                 }
