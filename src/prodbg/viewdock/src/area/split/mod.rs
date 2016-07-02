@@ -63,7 +63,7 @@ impl Split {
             .map(|(i, _)| SizerPos(self.handle, i, self.direction));
     }
 
-    pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<ItemTarget> {
+    pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
         for (index, child) in self.children.iter().enumerate() {
             match *child {
                 Area::Split(ref s) => {
@@ -76,7 +76,7 @@ impl Split {
                     let rects = c.rect.area_around_splits(self.direction.opposite(), &[0.0, 1.0], 50.0);
                     for (new_index, rect) in rects.iter().enumerate() {
                         if rect.point_is_inside(pos) {
-                            return Some(ItemTarget::SplitContainer(self.handle, index, new_index));
+                            return Some((ItemTarget::SplitContainer(self.handle, index, new_index), *rect));
                         }
                     }
                 }
@@ -87,7 +87,7 @@ impl Split {
         let sizer_rects = self.rect.area_around_splits(self.direction, &self.ratios, 50.0);
         return first_rect.iter().chain(sizer_rects.iter()).enumerate()
             .find(|&(_, rect)| rect.point_is_inside(pos))
-            .map(|(i, _)| ItemTarget::AppendToSplit(self.handle, i));
+            .map(|(i, rect)| (ItemTarget::AppendToSplit(self.handle, i), *rect));
     }
 
     pub fn map_rect_to_delta(&self, delta: (f32, f32)) -> f32 {

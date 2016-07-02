@@ -89,23 +89,24 @@ impl Container {
         return None;
     }
 
-    pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<ItemTarget> {
+    pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
         if self.docks.len() == 1 {
-            if self.get_header_rect().point_is_inside(pos) {
-                return Some(ItemTarget::AppendToContainer(self.docks[0].handle, 1));
+            let header_rect = self.get_header_rect();
+            if header_rect.point_is_inside(pos) {
+                return Some((ItemTarget::AppendToContainer(self.docks[0].handle, 1), header_rect));
             }
         }
         let mut total_width = 0.0;
         for (index, size) in self.tab_sizes.iter().enumerate() {
             let item_pos = Rect::new(self.rect.x + total_width - 40.0, self.rect.y + 30.0, 80.0, 30.0);
             if item_pos.point_is_inside(pos) {
-                return Some(ItemTarget::AppendToContainer(self.docks[0].handle, index));
+                return Some((ItemTarget::AppendToContainer(self.docks[0].handle, index), item_pos));
             }
             total_width += *size;
         }
         let item_pos = Rect::new(self.rect.x + total_width - 40.0, self.rect.y + 30.0, 80.0, 30.0);
         if item_pos.point_is_inside(pos) {
-            return Some(ItemTarget::AppendToContainer(self.docks[0].handle, self.tab_sizes.len()));
+            return Some((ItemTarget::AppendToContainer(self.docks[0].handle, self.tab_sizes.len()), item_pos));
         }
         return None;
     }

@@ -383,14 +383,20 @@ impl Window {
             State::DraggingDock(handle) => {
                 if !self.win.is_key_down(Key::Tab) {
                     let move_target = self.ws.get_item_target(mouse_pos);
-                    println!("{:?}", move_target);
                     if self.win.get_mouse_down(MouseButton::Left) {
                         cursor = match move_target {
                             Some(_) => CursorStyle::OpenHand,
                             None => CursorStyle::ClosedHand
+                        };
+                        if let Some((_, rect)) = move_target {
+                            // TODO: draw good overlay here
+                            Imgui::begin_window_float("Overlay", true);
+                            Imgui::set_window_pos(rect.x, rect.y);
+                            Imgui::set_window_size(rect.width, rect.height);
+                            Imgui::end_window();
                         }
                     } else {
-                        if let Some(target) = move_target {
+                        if let Some((target, _)) = move_target {
                             self.save_cur_workspace_state();
                             self.ws.move_dock(handle, target);
                         }
@@ -423,13 +429,19 @@ impl Window {
                 let drop_target = self.ws.get_item_target(mouse_pos);
                 cursor = CursorStyle::Arrow;
                 if self.win.get_mouse_down(MouseButton::Left) {
-                    println!("Dropping at {:?}", drop_target);
-                    if let Some(target) = drop_target {
+                    if let Some((target, _)) = drop_target {
                         self.ws.create_dock_at(target, Dock::new(handle.clone(), &plugin_name));
                     }
                     next_state = Some(State::Default);
                 } else {
-                    println!("Hovering {:?}", drop_target);
+                    if let Some((_, rect)) = drop_target {
+                        // TODO: draw good overlay here
+                        Imgui::set_window_pos(rect.x, rect.y);
+                        Imgui::set_window_size(rect.width, rect.height);
+                        Imgui::begin_window_float("Overlay", false);
+                        Imgui::end_window();
+//                        Imgui::render_frame(rect.x, rect.y, rect.width, rect.height, 0x8000FF00);
+                    }
                 }
             }
         }

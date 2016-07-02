@@ -194,7 +194,7 @@ impl Workspace {
         )
     }
 
-    pub fn get_item_target(&self, pos: (f32, f32)) -> Option<ItemTarget> {
+    pub fn get_item_target(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
         self.root_area.as_ref().and_then(|root| {
             match *root {
                 Area::Container(ref c) => {
@@ -204,12 +204,12 @@ impl Workspace {
                     }
                     for (rect, target) in self.get_horizontal_root_split_rects() {
                         if rect.point_is_inside(pos) {
-                            return Some(target);
+                            return Some((target, rect));
                         }
                     }
                     for (rect, target) in self.get_vertical_root_split_rects() {
                         if rect.point_is_inside(pos) {
-                            return Some(target);
+                            return Some((target, rect));
                         }
                     }
                     return None;
@@ -223,14 +223,14 @@ impl Workspace {
                         Direction::Horizontal => {
                             for (rect, target) in self.get_vertical_root_split_rects() {
                                 if rect.point_is_inside(pos) {
-                                    return Some(target);
+                                    return Some((target, rect));
                                 }
                             }
                         },
                         Direction::Vertical => {
                             for (rect, target) in self.get_horizontal_root_split_rects() {
                                 if rect.point_is_inside(pos) {
-                                    return Some(target);
+                                    return Some((target, rect));
                                 }
                             }
                         }
