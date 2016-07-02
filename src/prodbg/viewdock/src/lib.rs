@@ -56,6 +56,13 @@ pub struct Workspace {
 
 pub type ResultView<T> = std::result::Result<T, Error>;
 
+#[derive(Debug)]
+pub enum ItemTarget {
+    SplitRoot(Direction, usize),
+    AppendToSplit(SplitHandle, usize),
+    SplitContainer(SplitHandle, usize, usize),
+}
+
 impl Workspace {
     /// Construct a new workspace. The rect has to be y >= 0, x >= 0, width > 0 and height > 0
     pub fn new(rect: Rect) -> std::io::Result<Workspace> {
@@ -157,6 +164,114 @@ impl Workspace {
         self.root_area.as_ref().and_then(|root| {
             root.get_drop_target_at_pos(pos)
         })
+    }
+
+    fn get_horizontal_root_split_rects(&self) -> Vec<(Rect, ItemTarget)> {
+        vec!(
+            (
+                Rect::new(self.rect.x, self.rect.y, self.rect.width, 100.0),
+                ItemTarget::SplitRoot(Direction::Horizontal, 0)
+            ),
+            (
+                Rect::new(self.rect.x, self.rect.y + self.rect.height - 100.0, self.rect.width, 100.0),
+                ItemTarget::SplitRoot(Direction::Horizontal, 1)
+            ),
+        )
+    }
+
+    fn get_vertical_root_split_rects(&self) -> Vec<(Rect, ItemTarget)> {
+        vec!(
+            (
+                Rect::new(self.rect.x, self.rect.y, 100.0, self.rect.height),
+                ItemTarget::SplitRoot(Direction::Vertical, 0)
+            ),
+            (
+                Rect::new(self.rect.x + self.rect.width - 100.0, self.rect.y, 100.0, self.rect.height),
+                ItemTarget::SplitRoot(Direction::Vertical, 1)
+            )
+        )
+    }
+
+    pub fn get_item_target(&self, pos: (f32, f32)) -> Option<ItemTarget> {
+        self.root_area.as_ref().and_then(|root| {
+            match *root {
+                Area::Container(_) => {
+                    for (rect, target) in self.get_horizontal_root_split_rects() {
+                        if rect.point_is_inside(pos) {
+                            return Some(target);
+                        }
+                    }
+                    for (rect, target) in self.get_vertical_root_split_rects() {
+                        if rect.point_is_inside(pos) {
+                            return Some(target);
+                        }
+                    }
+                    return None;
+                },
+                Area::Split(ref s) => {
+                    let res = s.get_item_target_at_pos(pos);
+                    if res.is_some() {
+                        return res;
+                    }
+                    match s.direction {
+                        Direction::Horizontal => {
+                            for (rect, target) in self.get_vertical_root_split_rects() {
+                                if rect.point_is_inside(pos) {
+                                    return Some(target);
+                                }
+                            }
+                        },
+                        Direction::Vertical => {
+                            for (rect, target) in self.get_horizontal_root_split_rects() {
+                                if rect.point_is_inside(pos) {
+                                    return Some(target);
+                                }
+                            }
+                        }
+                    }
+                    return None;
+                }
+            }
+        })
+    }
+
+    pub fn create_dock_at(&mut self, target: ItemTarget, dock: Dock) {
+        let new_dock = Area::Container(Container::new(dock, Rect::default()));
+        match target {
+            ItemTar3get::SplitRoot(direction, index) => {
+                let next_handle = self.next_handle();
+                if let Some(ref mut root) = self.root_area {
+                    let old_root = root.clone();
+                    let new_child = if index == 0 {
+                        Split::from_two(direction, 0.5, next_handle, self.rect.clone(), new_dock, old_root)
+                    } else {
+                        Split::from_two(direction, 0.5, next_handle, self.rect.clone(), old_root, new_dock)
+                    };
+                    *root = Area::Split(new_child);
+                }
+            },
+            ItemTarget::AppendToSplit(handle, index) => {
+                if let Some(ref mut root) = self.root_area {
+                    if let Some(s) = root.find_split_by_handle(handle) {
+                        s.append_child(index, new_dock);
+                    }
+                }
+            },
+            ItemTarget::SplitContainer(handle, index, new_index) => {
+                let next_handle = self.next_handle();
+                if let Some(ref mut root) = self.root_area {
+                    if let Some(s) = root.find_split_by_handle(handle) {
+                        let old_copy = s.children[index].clone();
+                        let new_child = Area::Split(if new_index == 0 {
+                            Split::from_two(s.direction.opposite(), 0.5, next_handle, self.rect.clone(), new_dock, old_copy)
+                        } else {
+                            Split::from_two(s.direction.opposite(), 0.5, next_handle, self.rect.clone(), old_copy, new_dock)
+                        });
+                        s.replace_child(index, new_child);
+                    }
+                }
+            }
+        }
     }
 
     pub fn delete_dock_by_handle(&mut self, handle: DockHandle) {

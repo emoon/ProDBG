@@ -1,6 +1,7 @@
 mod serialize;
 
 use super::{Area, DragTarget, DropTarget};
+use super::super::ItemTarget;
 use dock::DockHandle;
 use rect::{Rect, Direction};
 
@@ -69,6 +70,33 @@ impl Split {
             .and_then(|child| child.get_drop_target_at_pos(pos))
     }
 
+    pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<ItemTarget> {
+        for (index, child) in self.children.iter().enumerate() {
+            match *child {
+                Area::Split(ref s) => {
+                    let res = s.get_item_target_at_pos(pos);
+                    if res.is_some() {
+                        return res;
+                    }
+                },
+                Area::Container(ref c) => {
+                    let rects = c.rect.area_around_splits(self.direction.opposite(), &[0.0, 1.0], 50.0);
+                    for (new_index, rect) in rects.iter().enumerate() {
+                        if rect.point_is_inside(pos) {
+                            return Some(ItemTarget::SplitContainer(self.handle, index, new_index));
+                        }
+                    }
+                }
+            }
+        }
+        // TODO: change Rect methods to accept iterators
+        let first_rect = self.rect.area_around_splits(self.direction, &[0.0], 50.0);
+        let sizer_rects = self.rect.area_around_splits(self.direction, &self.ratios, 50.0);
+        return first_rect.iter().chain(sizer_rects.iter()).enumerate()
+            .find(|&(_, rect)| rect.point_is_inside(pos))
+            .map(|(i, _)| ItemTarget::AppendToSplit(self.handle, i));
+    }
+
     pub fn map_rect_to_delta(&self, delta: (f32, f32)) -> f32 {
         match self.direction {
             Direction::Vertical => -delta.0 / self.rect.width,
@@ -105,7 +133,11 @@ impl Split {
         return res;
     }
 
+    // TODO: rename into `insert_child`
     pub fn append_child(&mut self, index: usize, child: Area) {
+        if index > self.children.len() - 1 {
+            return self.push_child(child);
+        }
         let existing_ratio = self.ratios[index];
         let previous_ratio = match index {
             0 => 0.0,
@@ -115,6 +147,14 @@ impl Split {
         self.children.insert(index, child);
         self.ratios.insert(index, existing_ratio - diff / 2.0);
         self.update_children_sizes();
+    }
+
+    pub fn push_child(&mut self, child: Area) {
+        let last_index = self.children.len() - 1;
+        self.children.push(child);
+        let diff = 1.0 - self.ratios[last_index - 1];
+        self.ratios[last_index] = 1.0 - diff/2.0;
+        self.ratios.push(1.0);
     }
 
     pub fn remove_child(&mut self, index: usize) {

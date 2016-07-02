@@ -27,6 +27,7 @@ enum State {
     Default,
     Dragging(DragTarget, String),
     DraggingNothing,
+    CreatingDock(DockHandle, String),
 }
 
 pub struct MouseState {
@@ -399,6 +400,20 @@ impl Window {
                     next_state = Some(State::Default);
                     cursor = CursorStyle::Arrow;
                 }
+            },
+
+            State::CreatingDock(ref handle, ref plugin_name) => {
+                let drop_target = self.ws.get_item_target(mouse_pos);
+                cursor = CursorStyle::Arrow;
+                if self.win.get_mouse_down(MouseButton::Left) {
+                    println!("Dropping at {:?}", drop_target);
+                    if let Some(target) = drop_target {
+                        self.ws.create_dock_at(target, Dock::new(handle.clone(), &plugin_name));
+                    }
+                    next_state = Some(State::Default);
+                } else {
+                    println!("Hovering {:?}", drop_target);
+                }
             }
         }
 
@@ -683,8 +698,13 @@ impl Window {
         if ui.begin_menu("Split Horizontally", true) {
             for name in plugin_names {
                 if ui.menu_item(name, false, true) {
-                    Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Horizontal);
+                    let ui = Imgui::create_ui_instance();
+                    if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
+                        self.views.push(handle);
+                        self.mouse_state.state = State::CreatingDock(DockHandle(handle.0), name.clone());
+                    }
                 }
+//                    Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Horizontal);
             }
             ui.end_menu();
         }
