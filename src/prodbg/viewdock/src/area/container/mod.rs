@@ -34,6 +34,7 @@ impl Container {
                 *size = *new_size;
             }
         } else {
+            // TODO: do we really need to panic here?
             panic!("Wrong tab sizes! Expected {}, but got {}", self.docks.len(), sizes.len());
         }
     }
