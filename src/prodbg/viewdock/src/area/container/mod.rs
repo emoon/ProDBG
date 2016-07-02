@@ -89,17 +89,6 @@ impl Container {
         return vec!(Rect::new(self.rect.x + last_tab, self.rect.y + 30.0, self.rect.width - last_tab, 30.0));
     }
 
-    pub fn update_tab_sizes(&mut self, sizes: &[f32]) {
-        if sizes.len() == self.docks.len() {
-            for (mut size, new_size) in self.tab_sizes.iter_mut().zip(sizes) {
-                *size = *new_size;
-            }
-        } else {
-            // TODO: do we really need to panic here?
-            panic!("Wrong tab sizes! Expected {}, but got {}", self.docks.len(), sizes.len());
-        }
-    }
-
     pub fn get_drop_target_at_pos(&self, pos: (f32, f32)) -> Option<DropTarget> {
         if self.docks.len() == 1 {
             return if self.get_header_rect().point_is_inside(pos) {
@@ -121,6 +110,17 @@ impl Container {
                 }
             }
             return None;
+        }
+    }
+
+    pub fn update_tab_sizes(&mut self, sizes: &[f32]) {
+        if sizes.len() == self.docks.len() {
+            for (mut size, new_size) in self.tab_sizes.iter_mut().zip(sizes) {
+                *size = *new_size;
+            }
+        } else {
+            // TODO: do we really need to panic here?
+            panic!("Wrong tab sizes! Expected {}, but got {}", self.docks.len(), sizes.len());
         }
     }
 }
