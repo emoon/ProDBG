@@ -333,6 +333,23 @@ impl Workspace {
         }
     }
 
+    pub fn move_dock(&mut self, handle: DockHandle, target: ItemTarget) {
+        // TODO: use special constant here
+        let marker = DockHandle(u64::max_value());
+        let copy = self.root_area.as_mut()
+            .and_then(|root| root.find_container_by_dock_handle_mut(handle))
+            .and_then(|c| c.find_dock_mut(handle))
+            .and_then(|dock| {
+                let res = Some(dock.clone());
+                dock.handle = marker;
+                return res;
+            });
+        if let Some(dock) = copy {
+            self.create_dock_at(target, dock);
+            self.delete_dock_by_handle(marker);
+        }
+    }
+
     pub fn swap_docks(&mut self, first: DockHandle, second: DockHandle) {
         if let Some(ref mut root) = self.root_area {
             if first == second {

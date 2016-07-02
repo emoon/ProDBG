@@ -333,6 +333,7 @@ impl Window {
         let mut next_state = None;
         let cursor;
         let mut ws_state_to_save = None;
+        //TODO: do not make any changes if user drag-and-dropped in short time (1 sec or less)
         match self.mouse_state.state {
             State::Default => {
                 if let Some(sizer) = self.ws.get_sizer_at_pos(mouse_pos) {
@@ -380,18 +381,29 @@ impl Window {
             },
 
             State::DraggingDock(handle) => {
-                let drop_target = self.ws.get_dock_handle_at_pos(mouse_pos);
+                let move_target = self.ws.get_item_target(mouse_pos);
+                let swap_target = self.ws.get_dock_handle_at_pos(mouse_pos);
+                println!("{:?} {:?}", move_target, swap_target);
                 if self.win.get_mouse_down(MouseButton::Left) {
-                    cursor = match drop_target {
-                        Some(drop_handle) if handle != drop_handle => CursorStyle::OpenHand,
-                        // TODO: make sure this cursor style works. Did not work with minifb 0.8.0
-                        _ => CursorStyle::ClosedHand,
+                    cursor = if move_target.is_some() {
+                        CursorStyle::OpenHand
+                    } else {
+                        match swap_target {
+                            Some(drop_handle) if handle != drop_handle => CursorStyle::OpenHand,
+                            // TODO: make sure this cursor style works. Did not work with minifb 0.8.0
+                            _ => CursorStyle::ClosedHand,
+                        }
                     }
                 } else {
-                    if let Some(drop_handle) = drop_target {
-                        if drop_handle != handle {
-                            self.save_cur_workspace_state();
-                            self.ws.swap_docks(handle, drop_handle);
+                    if let Some(target) = move_target {
+                        self.save_cur_workspace_state();
+                        self.ws.move_dock(handle, target);
+                    } else {
+                        if let Some(drop_handle) = swap_target {
+                            if drop_handle != handle {
+                                self.save_cur_workspace_state();
+                                self.ws.swap_docks(handle, drop_handle);
+                            }
                         }
                     }
                     next_state = Some(State::Default);
