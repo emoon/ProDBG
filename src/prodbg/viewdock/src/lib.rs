@@ -196,48 +196,43 @@ impl Workspace {
 
     pub fn get_item_target(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
         self.root_area.as_ref().and_then(|root| {
-            match *root {
-                Area::Container(ref c) => {
-                    let res = c.get_item_target_at_pos(pos);
-                    if res.is_some() {
-                        return res;
-                    }
-                    for (rect, target) in self.get_horizontal_root_split_rects() {
-                        if rect.point_is_inside(pos) {
-                            return Some((target, rect));
-                        }
-                    }
-                    for (rect, target) in self.get_vertical_root_split_rects() {
-                        if rect.point_is_inside(pos) {
-                            return Some((target, rect));
-                        }
-                    }
-                    return None;
-                },
-                Area::Split(ref s) => {
-                    let res = s.get_item_target_at_pos(pos);
-                    if res.is_some() {
-                        return res;
-                    }
-                    match s.direction {
-                        Direction::Horizontal => {
-                            for (rect, target) in self.get_vertical_root_split_rects() {
-                                if rect.point_is_inside(pos) {
-                                    return Some((target, rect));
-                                }
-                            }
-                        },
-                        Direction::Vertical => {
+            root.get_item_target_at_pos(pos)
+                .or_else(||
+                    match *root {
+                        Area::Container(_) => {
                             for (rect, target) in self.get_horizontal_root_split_rects() {
                                 if rect.point_is_inside(pos) {
                                     return Some((target, rect));
                                 }
                             }
+                            for (rect, target) in self.get_vertical_root_split_rects() {
+                                if rect.point_is_inside(pos) {
+                                    return Some((target, rect));
+                                }
+                            }
+                            return None;
+                        },
+                        Area::Split(ref s) => {
+                            match s.direction {
+                                Direction::Horizontal => {
+                                    for (rect, target) in self.get_vertical_root_split_rects() {
+                                        if rect.point_is_inside(pos) {
+                                            return Some((target, rect));
+                                        }
+                                    }
+                                },
+                                Direction::Vertical => {
+                                    for (rect, target) in self.get_horizontal_root_split_rects() {
+                                        if rect.point_is_inside(pos) {
+                                            return Some((target, rect));
+                                        }
+                                    }
+                                }
+                            }
+                            return None;
                         }
                     }
-                    return None;
-                }
-            }
+                )
         })
     }
 

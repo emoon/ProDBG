@@ -4,6 +4,7 @@ mod serialize;
 
 use rect::{Rect, Direction};
 use dock::{Dock, DockHandle};
+use super::ItemTarget;
 pub use self::container::Container;
 pub use self::split::{SplitHandle, Split};
 
@@ -61,7 +62,6 @@ impl Area {
         }
     }
 
-    //+Z
     pub fn find_container_by_dock_handle_mut(&mut self, handle: DockHandle) -> Option<&mut Container> {
         match self {
             &mut Area::Container(ref mut c) => if c.has_dock(handle) {Some(c)} else {None},
@@ -112,21 +112,28 @@ impl Area {
     }
 
     pub fn get_sizer_at_pos(&self, pos: (f32, f32)) -> Option<SizerPos> {
-        match self {
-            &Area::Split(ref s) => s.get_sizer_at_pos(pos)
-                .or_else(||
-                     s.get_child_at_pos(pos)
-                        .and_then(|child| child.get_sizer_at_pos(pos))
-                ),
-            &Area::Container(_) => None,
+        match *self {
+            Area::Container(_) => None,
+            Area::Split(ref s) => s.get_sizer_at_pos(pos)
+                .or_else(|| s.get_child_at_pos(pos)
+                    .and_then(|child| child.get_sizer_at_pos(pos))),
+        }
+    }
+
+    pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
+        match *self {
+            Area::Container(ref c) => c.get_item_target_at_pos(pos),
+            Area::Split(ref s) => s.get_child_at_pos(pos)
+                .and_then(|child| child.get_item_target_at_pos(pos))
+                .or_else(|| s.get_item_target_at_pos(pos)),
         }
     }
 
     pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
-        match self {
-            &Area::Split(ref s) => s.get_child_at_pos(pos)
+        match *self {
+            Area::Container(ref c) => c.get_dock_handle_at_pos(pos),
+            Area::Split(ref s) => s.get_child_at_pos(pos)
                 .and_then(|child| child.get_dock_handle_at_pos(pos)),
-            &Area::Container(ref c) => c.get_dock_handle_at_pos(pos),
         }
     }
 }

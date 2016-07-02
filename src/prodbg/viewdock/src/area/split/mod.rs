@@ -65,19 +65,11 @@ impl Split {
 
     pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
         for (index, child) in self.children.iter().enumerate() {
-            match *child {
-                Area::Split(ref s) => {
-                    let res = s.get_item_target_at_pos(pos);
-                    if res.is_some() {
-                        return res;
-                    }
-                },
-                Area::Container(ref c) => {
-                    let rects = c.rect.area_around_splits(self.direction.opposite(), &[0.0, 1.0], 50.0);
-                    for (new_index, rect) in rects.iter().enumerate() {
-                        if rect.point_is_inside(pos) {
-                            return Some((ItemTarget::SplitContainer(self.handle, index, new_index), *rect));
-                        }
+            if let &Area::Container(ref c) = child {
+                let rects = c.rect.area_around_splits(self.direction.opposite(), &[0.0, 1.0], 50.0);
+                for (new_index, rect) in rects.iter().enumerate() {
+                    if rect.point_is_inside(pos) {
+                        return Some((ItemTarget::SplitContainer(self.handle, index, new_index), *rect));
                     }
                 }
             }
