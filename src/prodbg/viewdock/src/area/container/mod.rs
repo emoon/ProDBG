@@ -49,12 +49,12 @@ impl Container {
     }
 
     pub fn replace_dock(&mut self, handle: DockHandle, new_dock: Dock) -> Option<Dock> {
-        if let Some(index) = self.docks.iter().position(|dock| dock.handle == handle) {
-            self.docks.push(new_dock);
-            Some(self.docks.swap_remove(index))
-        } else {
-            None
-        }
+        self.docks.iter()
+            .position(|dock| dock.handle == handle)
+            .and_then(|index| {
+                self.docks.push(new_dock);
+                Some(self.docks.swap_remove(index))
+            })
     }
 
     pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
