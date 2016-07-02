@@ -105,10 +105,22 @@ impl Area {
         return None;
     }
 
-    pub fn get_drag_target_at_pos(&self, pos: (f32, f32)) -> Option<DragTarget> {
+    pub fn get_sizer_at_pos(&self, pos: (f32, f32)) -> Option<SizerPos> {
         match self {
-            &Area::Split(ref s) => s.get_drag_target_at_pos(pos),
-            &Area::Container(ref c) => c.get_drag_target_at_pos(pos),
+            &Area::Split(ref s) => s.get_sizer_at_pos(pos)
+                .or_else(||
+                     s.get_child_at_pos(pos)
+                        .and_then(|child| child.get_sizer_at_pos(pos))
+                ),
+            &Area::Container(_) => None,
+        }
+    }
+
+    pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
+        match self {
+            &Area::Split(ref s) => s.get_child_at_pos(pos)
+                .and_then(|child| child.get_dock_handle_at_pos(pos)),
+            &Area::Container(ref c) => c.get_dock_handle_at_pos(pos),
         }
     }
 
@@ -118,21 +130,10 @@ impl Area {
             &Area::Container(ref c) => c.get_drop_target_at_pos(pos),
         }
     }
-
-    pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
-        return match self {
-            &Area::Container(ref c) => c.get_dock_handle_at_pos(pos),
-            &Area::Split(ref c) => c.get_dock_handle_at_pos(pos),
-        };
-    }
 }
-
 
 #[derive(Debug)]
-pub enum DragTarget {
-    SplitSizer(SplitHandle, usize, Direction),
-    Dock(DockHandle)
-}
+pub struct SizerPos(pub SplitHandle, pub usize, pub Direction);
 
 #[derive(Debug)]
 pub enum DropTarget {

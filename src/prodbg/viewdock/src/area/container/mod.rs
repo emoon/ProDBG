@@ -2,7 +2,7 @@ mod serialize;
 
 use dock::{Dock, DockHandle};
 use rect::Rect;
-use super::{DragTarget, DropTarget};
+use super::{DropTarget};
 
 #[derive(Debug, Clone)]
 pub struct Container {
@@ -42,6 +42,10 @@ impl Container {
         self.docks.iter().find(|&dock| dock.handle == handle)
     }
 
+    pub fn find_dock_mut(&mut self, handle: DockHandle) -> Option<&mut Dock> {
+        self.docks.iter_mut().find(|dock| dock.handle == handle)
+    }
+
     pub fn remove_dock(&mut self, handle: DockHandle) {
         if let Some(index) = self.docks.iter().position(|dock| dock.handle == handle) {
             self.docks.remove(index);
@@ -62,6 +66,7 @@ impl Container {
     }
 
     pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
+        // TODO: add tabs here
         if self.rect.point_is_inside(pos) {
             self.docks.get(self.active_dock).map(|dock| dock.handle)
         } else {
@@ -90,14 +95,6 @@ impl Container {
             last_tab += *size;
         }
         return vec!(Rect::new(self.rect.x + last_tab, self.rect.y + 30.0, self.rect.width - last_tab, 30.0));
-    }
-
-    pub fn get_drag_target_at_pos(&self, pos: (f32, f32)) -> Option<DragTarget> {
-        return if self.get_header_rect().point_is_inside(pos) {
-            Some(DragTarget::Dock(self.docks.get(self.active_dock).unwrap().handle))
-        } else {
-            None
-        }
     }
 
     pub fn get_drop_target_at_pos(&self, pos: (f32, f32)) -> Option<DropTarget> {

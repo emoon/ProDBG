@@ -1,8 +1,7 @@
 mod serialize;
 
-use super::{Area, DragTarget, DropTarget};
+use super::{Area, SizerPos, DropTarget};
 use super::super::ItemTarget;
-use dock::DockHandle;
 use rect::{Rect, Direction};
 
 /// Handle to a split
@@ -49,20 +48,19 @@ impl Split {
         self.update_children_sizes();
     }
 
-    fn get_child_at_pos(&self, pos: (f32, f32)) -> Option<&Area> {
+    pub fn get_child_at_pos(&self, pos: (f32, f32)) -> Option<&Area> {
         self.children.iter()
             .find(|child| child.get_rect().point_is_inside(pos))
     }
 
-    pub fn get_drag_target_at_pos(&self, pos: (f32, f32)) -> Option<DragTarget> {
+    pub fn get_sizer_at_pos(&self, pos: (f32, f32)) -> Option<SizerPos> {
+        if !self.rect.point_is_inside(pos) {
+            return None;
+        }
         let sizer_rects = self.rect.area_around_splits(self.direction, &self.ratios[0..self.ratios.len() - 1], 8.0);
         return sizer_rects.iter().enumerate()
             .find(|&(_, rect)| rect.point_is_inside(pos))
-            .map(|(i, _)| DragTarget::SplitSizer(self.handle, i, self.direction))
-            .or_else(|| {
-                self.get_child_at_pos(pos)
-                    .and_then(|child| child.get_drag_target_at_pos(pos))
-            });
+            .map(|(i, _)| SizerPos(self.handle, i, self.direction));
     }
 
     pub fn get_drop_target_at_pos(&self, pos: (f32, f32)) -> Option<DropTarget> {
@@ -118,12 +116,6 @@ impl Split {
 
         self.ratios[index] = res;
         self.update_children_sizes();
-    }
-
-    pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
-        self.children.iter()
-            .find(|child| child.get_rect().point_is_inside(pos))
-            .and_then(|child| child.get_dock_handle_at_pos(pos))
     }
 
     pub fn replace_child(&mut self, index: usize, new_child: Area) -> Area {

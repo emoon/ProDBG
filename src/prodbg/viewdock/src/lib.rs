@@ -37,7 +37,7 @@ pub use self::error::Error;
 // use std::fs::File;
 //use std::io;
 pub use rect::{Rect, Direction};
-pub use area::{Area, Split, SplitHandle, Container, DragTarget, DropTarget};
+pub use area::{Area, Split, SplitHandle, Container, SizerPos, DropTarget};
 pub use dock::{DockHandle, Dock};
 
 /// Top level structure that holds an array of all the splits and the rect size of of the full
@@ -154,9 +154,9 @@ impl Workspace {
         }
     }
 
-    pub fn get_drag_target_at_pos(&self, pos: (f32, f32)) -> Option<DragTarget> {
+    pub fn get_sizer_at_pos(&self, pos: (f32, f32)) -> Option<SizerPos> {
         self.root_area.as_ref().and_then(|root| {
-            root.get_drag_target_at_pos(pos)
+            root.get_sizer_at_pos(pos)
         })
     }
 
@@ -235,10 +235,16 @@ impl Workspace {
         })
     }
 
+    pub fn get_dock_handle_at_pos(&self, pos:(f32, f32)) -> Option<DockHandle> {
+        self.root_area.as_ref().and_then(|root| {
+            root.get_dock_handle_at_pos(pos)
+        })
+    }
+
     pub fn create_dock_at(&mut self, target: ItemTarget, dock: Dock) {
         let new_dock = Area::Container(Container::new(dock, Rect::default()));
         match target {
-            ItemTar3get::SplitRoot(direction, index) => {
+            ItemTarget::SplitRoot(direction, index) => {
                 let next_handle = self.next_handle();
                 if let Some(ref mut root) = self.root_area {
                     let old_root = root.clone();
@@ -334,35 +340,36 @@ impl Workspace {
             }
             let first_copy;
             let second_copy;
-            let first_split_handle;
-            let first_dock_index;
-            match root.find_split_by_dock_handle(first) {
+            // TODO: use special constant here
+            let marker = DockHandle(u64::max_value());
+            match root.find_container_by_dock_handle_mut(first) {
                 None => return,
-                Some((parent, index)) => {
-                    if let Area::Container(ref c) = parent.children[index] {
-                        first_copy = c.find_dock(first).unwrap().clone();
-                        first_dock_index = index;
-                        first_split_handle = parent.handle;
+                Some(c) => {
+                    if let Some(ref mut dock) = c.find_dock_mut(first) {
+                        first_copy = dock.clone();
+                        dock.handle = marker;
                     } else {
+                        return;
+                    }
+                }
+            }
+            match root.find_container_by_dock_handle_mut(second) {
+                None => return,
+                Some(c) => {
+                    if let Some(copy) = c.replace_dock(second, first_copy) {
+                        second_copy = copy;
+                    } else {
+                        // TODO: can we cancel previous operations here?
                         panic!();
                     }
                 }
             }
-            match root.find_split_by_dock_handle(second) {
-                None => return,
-                Some((parent, index)) => if let Area::Container(ref mut c) = parent.children[index] {
-                    second_copy = c.replace_dock(second, first_copy).unwrap();
-                } else {
-                    panic!()
-                }
-            }
-            match root.find_split_by_handle(first_split_handle) {
+            match root.find_container_by_dock_handle_mut(marker) {
                 None => panic!("Tried to swap docks {:?} and {:?} but lost {:?} in the middle", first, second, first),
-                Some(s) => {
-                    if let Area::Container(ref mut c) = s.children[first_dock_index] {
-                        if c.replace_dock(first, second_copy).is_none() {
-                            println!("Tab swap is not supported yet!");
-                        }
+                Some(c) => {
+                    if c.replace_dock(marker, second_copy).is_none() {
+                        // TODO: can we cancel previous operations here?
+                        panic!();
                     }
                 },
             }

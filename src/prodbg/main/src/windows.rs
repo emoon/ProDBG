@@ -8,7 +8,7 @@ use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::backend_plugin::{BackendPlugins};
 use core::session::{Sessions, Session, SessionHandle};
 use core::reader_wrapper::ReaderWrapper;
-use self::viewdock::{Workspace, Rect, Direction, DockHandle, DragTarget, DropTarget, Dock};
+use self::viewdock::{Workspace, Rect, Direction, DockHandle, SizerPos, Dock};
 use menu::*;
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::{PDVec2, ImguiKey};
@@ -25,8 +25,9 @@ const WORKSPACE_UNDO_LIMIT: usize = 10;
 
 enum State {
     Default,
-    Dragging(DragTarget, String),
     DraggingNothing,
+    DraggingSizer(SizerPos, String),
+    DraggingDock(DockHandle),
     CreatingDock(DockHandle, String),
 }
 
@@ -334,16 +335,18 @@ impl Window {
         let mut ws_state_to_save = None;
         match self.mouse_state.state {
             State::Default => {
-                if let Some(target) = self.ws.get_drag_target_at_pos(mouse_pos) {
-                    cursor = match target {
-                        DragTarget::Dock(_) => CursorStyle::OpenHand,
-                        DragTarget::SplitSizer(_, _, direction) => match direction {
-                            Direction::Vertical => CursorStyle::ResizeLeftRight,
-                            Direction::Horizontal => CursorStyle::ResizeUpDown
-                        }
+                if let Some(sizer) = self.ws.get_sizer_at_pos(mouse_pos) {
+                    cursor = match sizer.2 {
+                        Direction::Vertical => CursorStyle::ResizeLeftRight,
+                        Direction::Horizontal => CursorStyle::ResizeUpDown
                     };
                     if self.win.get_mouse_down(MouseButton::Left) {
-                        next_state = Some(State::Dragging(target, self.ws.save_state()));
+                        next_state = Some(State::DraggingSizer(sizer, self.ws.save_state()));
+                    }
+                } else if let Some(handle) = self.ws.get_dock_handle_at_pos(mouse_pos) {
+                    cursor = CursorStyle::ClosedHand;
+                    if self.win.get_mouse_down(MouseButton::Left) {
+                        next_state = Some(State::DraggingDock(handle));
                     }
                 } else {
                     cursor = CursorStyle::Arrow;
@@ -360,7 +363,7 @@ impl Window {
                 }
             },
 
-            State::Dragging(DragTarget::SplitSizer(handle, index, direction), ref ws_state) => {
+            State::DraggingSizer(SizerPos(handle, index, direction), ref ws_state) => {
                 if self.win.get_mouse_down(MouseButton::Left) {
                     cursor = match direction {
                         Direction::Vertical => CursorStyle::ResizeLeftRight,
@@ -376,26 +379,20 @@ impl Window {
                 }
             },
 
-            State::Dragging(DragTarget::Dock(handle), ref ws_state) => {
-                let drop_target = self.ws.get_drop_target_at_pos(mouse_pos);
+            State::DraggingDock(handle) => {
+                let drop_target = self.ws.get_dock_handle_at_pos(mouse_pos);
                 if self.win.get_mouse_down(MouseButton::Left) {
                     cursor = match drop_target {
-                        Some(DropTarget::Dock(target)) if target != handle => CursorStyle::OpenHand,
-                        Some(_) => CursorStyle::OpenHand,
+                        Some(drop_handle) if handle != drop_handle => CursorStyle::OpenHand,
                         // TODO: make sure this cursor style works. Did not work with minifb 0.8.0
                         _ => CursorStyle::ClosedHand,
                     }
                 } else {
-                    match drop_target {
-                        Some(DropTarget::Dock(target)) if target != handle => {
-                            ws_state_to_save = Some(ws_state.clone());
-                            self.ws.swap_docks(handle, target);
-                        },
-                        Some(DropTarget::Dock(_)) => {},
-                        Some(DropTarget::Container(target, index)) => {
-                            println!("Want to put {:?} in the same container with {:?} at pos {}", handle, target, index);
-                        },
-                        None => {}
+                    if let Some(drop_handle) = drop_target {
+                        if drop_handle != handle {
+                            self.save_cur_workspace_state();
+                            self.ws.swap_docks(handle, drop_handle);
+                        }
                     }
                     next_state = Some(State::Default);
                     cursor = CursorStyle::Arrow;
