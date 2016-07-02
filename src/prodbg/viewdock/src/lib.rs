@@ -99,7 +99,7 @@ impl Workspace {
     pub fn split_by_dock_handle(&mut self, direction: Direction, find_handle: DockHandle, dock: Dock) {
         let next_handle = self.next_handle();
         let is_root = match self.root_area {
-            Some(Area::Container(ref c)) => c.find_dock(find_handle).is_some(),
+            Some(Area::Container(ref c)) => c.has_dock(find_handle),
             _ => false,
         };
         let new_dock = Area::Container(Container::new(dock, Rect::default()));
@@ -284,7 +284,7 @@ impl Workspace {
         let mut should_delete_root = false;
         let mut should_stop = false;
         if let Some(Area::Container(ref mut c)) = self.root_area {
-            if c.find_dock(handle).is_some() {
+            if c.has_dock(handle) {
                 c.remove_dock(handle);
                 should_delete_root = c.docks.is_empty();
                 should_stop = true;
@@ -338,7 +338,7 @@ impl Workspace {
         let marker = DockHandle(u64::max_value());
         let copy = self.root_area.as_mut()
             .and_then(|root| root.find_container_by_dock_handle_mut(handle))
-            .and_then(|c| c.find_dock_mut(handle))
+            .and_then(|c| c.get_dock_mut(handle))
             .and_then(|dock| {
                 let res = Some(dock.clone());
                 dock.handle = marker;
@@ -362,7 +362,7 @@ impl Workspace {
             match root.find_container_by_dock_handle_mut(first) {
                 None => return,
                 Some(c) => {
-                    if let Some(ref mut dock) = c.find_dock_mut(first) {
+                    if let Some(ref mut dock) = c.get_dock_mut(first) {
                         first_copy = dock.clone();
                         dock.handle = marker;
                     } else {

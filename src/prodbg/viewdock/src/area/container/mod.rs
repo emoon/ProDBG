@@ -28,22 +28,13 @@ impl Container {
         self.active_dock = self.docks.len() - 1;
     }
 
-    pub fn update_tab_sizes(&mut self, sizes: &[f32]) {
-        if sizes.len() == self.docks.len() {
-            for (mut size, new_size) in self.tab_sizes.iter_mut().zip(sizes) {
-                *size = *new_size;
-            }
-        } else {
-            // TODO: do we really need to panic here?
-            panic!("Wrong tab sizes! Expected {}, but got {}", self.docks.len(), sizes.len());
-        }
+    pub fn has_dock(&self, handle: DockHandle) -> bool {
+        self.docks.iter()
+            .find(|&dock| dock.handle == handle)
+            .is_some()
     }
 
-    pub fn find_dock(&self, handle: DockHandle) -> Option<&Dock> {
-        self.docks.iter().find(|&dock| dock.handle == handle)
-    }
-
-    pub fn find_dock_mut(&mut self, handle: DockHandle) -> Option<&mut Dock> {
+    pub fn get_dock_mut(&mut self, handle: DockHandle) -> Option<&mut Dock> {
         self.docks.iter_mut().find(|dock| dock.handle == handle)
     }
 
@@ -96,6 +87,17 @@ impl Container {
             last_tab += *size;
         }
         return vec!(Rect::new(self.rect.x + last_tab, self.rect.y + 30.0, self.rect.width - last_tab, 30.0));
+    }
+
+    pub fn update_tab_sizes(&mut self, sizes: &[f32]) {
+        if sizes.len() == self.docks.len() {
+            for (mut size, new_size) in self.tab_sizes.iter_mut().zip(sizes) {
+                *size = *new_size;
+            }
+        } else {
+            // TODO: do we really need to panic here?
+            panic!("Wrong tab sizes! Expected {}, but got {}", self.docks.len(), sizes.len());
+        }
     }
 
     pub fn get_drop_target_at_pos(&self, pos: (f32, f32)) -> Option<DropTarget> {
