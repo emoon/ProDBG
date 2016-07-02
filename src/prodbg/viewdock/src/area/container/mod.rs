@@ -2,7 +2,7 @@ mod serialize;
 
 use dock::{Dock, DockHandle};
 use rect::Rect;
-use super::{DropTarget};
+use super::super::ItemTarget;
 
 #[derive(Debug, Clone)]
 pub struct Container {
@@ -57,13 +57,9 @@ impl Container {
             })
     }
 
-    pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
-        // TODO: add tabs here
-        if self.rect.point_is_inside(pos) {
-            self.docks.get(self.active_dock).map(|dock| dock.handle)
-        } else {
-            None
-        }
+    pub fn insert_dock(&mut self, index: usize, dock: Dock) {
+        self.docks.insert(index, dock);
+        self.tab_sizes.insert(index, 1.0);
     }
 
     fn get_header_rect(&self) -> Rect {
@@ -81,39 +77,41 @@ impl Container {
             .collect();
     }
 
-    fn get_new_child_rects(&self) -> Vec<Rect> {
-        let mut last_tab = 0.0;
-        for size in self.tab_sizes.iter() {
-            last_tab += *size;
+    pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
+        if self.get_header_rect().point_is_inside(pos) {
+            return Some(self.docks[self.active_dock].handle);
         }
-        return vec!(Rect::new(self.rect.x + last_tab, self.rect.y + 30.0, self.rect.width - last_tab, 30.0));
+        if self.docks.len() > 1 {
+            return self.get_tab_rects().iter().enumerate()
+                .find(|&(_, rect)| rect.point_is_inside(pos))
+                .and_then(|(i, _)| Some(self.docks[i].handle));
+        }
+        return None;
     }
 
-    pub fn get_drop_target_at_pos(&self, pos: (f32, f32)) -> Option<DropTarget> {
+    pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<ItemTarget> {
         if self.docks.len() == 1 {
-            return if self.get_header_rect().point_is_inside(pos) {
-                Some(DropTarget::Dock(self.docks.get(self.active_dock).unwrap().handle))
-            } else {
-                None
+            if self.get_header_rect().point_is_inside(pos) {
+                return Some(ItemTarget::AppendToContainer(self.docks[0].handle, 1));
             }
-        } else {
-            let tab_rects = self.get_tab_rects();
-            for (i, rect) in tab_rects.iter().enumerate() {
-                if rect.point_is_inside(pos) {
-                    return Some(DropTarget::Dock(self.docks[i].handle));
-                }
-            }
-            let new_child_rects = self.get_new_child_rects();
-            for (i, rect) in new_child_rects.iter().enumerate() {
-                if rect.point_is_inside(pos) {
-                    return Some(DropTarget::Container(self.docks[0].handle, i));
-                }
-            }
-            return None;
         }
+        let mut total_width = 0.0;
+        for (index, size) in self.tab_sizes.iter().enumerate() {
+            let item_pos = Rect::new(self.rect.x + total_width - 40.0, self.rect.y + 30.0, 80.0, 30.0);
+            if item_pos.point_is_inside(pos) {
+                return Some(ItemTarget::AppendToContainer(self.docks[0].handle, index));
+            }
+            total_width += *size;
+        }
+        let item_pos = Rect::new(self.rect.x + total_width - 40.0, self.rect.y + 30.0, 80.0, 30.0);
+        if item_pos.point_is_inside(pos) {
+            return Some(ItemTarget::AppendToContainer(self.docks[0].handle, self.tab_sizes.len()));
+        }
+        return None;
     }
 
     pub fn update_tab_sizes(&mut self, sizes: &[f32]) {
+        // TODO: store tab positions instead of tab sizes
         if sizes.len() == self.docks.len() {
             for (mut size, new_size) in self.tab_sizes.iter_mut().zip(sizes) {
                 *size = *new_size;

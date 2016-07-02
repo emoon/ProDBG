@@ -37,7 +37,8 @@ pub use self::error::Error;
 // use std::fs::File;
 //use std::io;
 pub use rect::{Rect, Direction};
-pub use area::{Area, Split, SplitHandle, Container, SizerPos, DropTarget};
+pub use area::{Area, SplitHandle, Container, SizerPos, DropTarget};
+use area::Split;
 pub use dock::{DockHandle, Dock};
 
 /// Top level structure that holds an array of all the splits and the rect size of of the full
@@ -58,9 +59,16 @@ pub type ResultView<T> = std::result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum ItemTarget {
+    // TODO: use (Direction, bool) instead
+    /// Direction of split and position (0 for first child, 1 for second child)
     SplitRoot(Direction, usize),
+    /// Handle of split to change and index of new Dock
     AppendToSplit(SplitHandle, usize),
+    /// SplitHandle, usize define container. usize defines position in split (0 for first child,
+    /// 1 for second child). Direction is opposite to direction of parent split
     SplitContainer(SplitHandle, usize, usize),
+    /// DockHandle defines container. usize defines index of new Dock
+    AppendToContainer(DockHandle, usize)
 }
 
 impl Workspace {
@@ -160,12 +168,6 @@ impl Workspace {
         })
     }
 
-    pub fn get_drop_target_at_pos(&self, pos: (f32, f32)) -> Option<DropTarget> {
-        self.root_area.as_ref().and_then(|root| {
-            root.get_drop_target_at_pos(pos)
-        })
-    }
-
     fn get_horizontal_root_split_rects(&self) -> Vec<(Rect, ItemTarget)> {
         vec!(
             (
@@ -195,7 +197,11 @@ impl Workspace {
     pub fn get_item_target(&self, pos: (f32, f32)) -> Option<ItemTarget> {
         self.root_area.as_ref().and_then(|root| {
             match *root {
-                Area::Container(_) => {
+                Area::Container(ref c) => {
+                    let res = c.get_item_target_at_pos(pos);
+                    if res.is_some() {
+                        return res;
+                    }
                     for (rect, target) in self.get_horizontal_root_split_rects() {
                         if rect.point_is_inside(pos) {
                             return Some(target);
@@ -242,12 +248,12 @@ impl Workspace {
     }
 
     pub fn create_dock_at(&mut self, target: ItemTarget, dock: Dock) {
-        let new_dock = Area::Container(Container::new(dock, Rect::default()));
         match target {
             ItemTarget::SplitRoot(direction, index) => {
                 let next_handle = self.next_handle();
                 if let Some(ref mut root) = self.root_area {
                     let old_root = root.clone();
+                    let new_dock = Area::container_from_dock(dock);
                     let new_child = if index == 0 {
                         Split::from_two(direction, 0.5, next_handle, self.rect.clone(), new_dock, old_root)
                     } else {
@@ -259,7 +265,7 @@ impl Workspace {
             ItemTarget::AppendToSplit(handle, index) => {
                 if let Some(ref mut root) = self.root_area {
                     if let Some(s) = root.find_split_by_handle(handle) {
-                        s.append_child(index, new_dock);
+                        s.append_child(index, Area::container_from_dock(dock));
                     }
                 }
             },
@@ -268,12 +274,20 @@ impl Workspace {
                 if let Some(ref mut root) = self.root_area {
                     if let Some(s) = root.find_split_by_handle(handle) {
                         let old_copy = s.children[index].clone();
+                        let new_dock = Area::container_from_dock(dock);
                         let new_child = Area::Split(if new_index == 0 {
                             Split::from_two(s.direction.opposite(), 0.5, next_handle, self.rect.clone(), new_dock, old_copy)
                         } else {
                             Split::from_two(s.direction.opposite(), 0.5, next_handle, self.rect.clone(), old_copy, new_dock)
                         });
                         s.replace_child(index, new_child);
+                    }
+                }
+            },
+            ItemTarget::AppendToContainer(handle, new_index) => {
+                if let Some(ref mut root) = self.root_area {
+                    if let Some(c) = root.find_container_by_dock_handle_mut(handle) {
+                        c.insert_dock(new_index, dock);
                     }
                 }
             }

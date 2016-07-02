@@ -3,7 +3,7 @@ mod split;
 mod serialize;
 
 use rect::{Rect, Direction};
-use dock::DockHandle;
+use dock::{Dock, DockHandle};
 pub use self::container::Container;
 pub use self::split::{SplitHandle, Split};
 
@@ -12,6 +12,12 @@ pub use self::split::{SplitHandle, Split};
 pub enum Area {
     Container(Container),
     Split(Split),
+}
+
+impl Area {
+    pub fn container_from_dock(dock: Dock) -> Area {
+        Area::Container(Container::new(dock, Rect::default()))
+    }
 }
 
 impl Area {
@@ -121,13 +127,6 @@ impl Area {
             &Area::Split(ref s) => s.get_child_at_pos(pos)
                 .and_then(|child| child.get_dock_handle_at_pos(pos)),
             &Area::Container(ref c) => c.get_dock_handle_at_pos(pos),
-        }
-    }
-
-    pub fn get_drop_target_at_pos(&self, pos: (f32, f32)) -> Option<DropTarget> {
-        match self {
-            &Area::Split(ref s) => s.get_drop_target_at_pos(pos),
-            &Area::Container(ref c) => c.get_drop_target_at_pos(pos),
         }
     }
 }

@@ -1,6 +1,6 @@
 mod serialize;
 
-use super::{Area, SizerPos, DropTarget};
+use super::{Area, SizerPos};
 use super::super::ItemTarget;
 use rect::{Rect, Direction};
 
@@ -61,11 +61,6 @@ impl Split {
         return sizer_rects.iter().enumerate()
             .find(|&(_, rect)| rect.point_is_inside(pos))
             .map(|(i, _)| SizerPos(self.handle, i, self.direction));
-    }
-
-    pub fn get_drop_target_at_pos(&self, pos: (f32, f32)) -> Option<DropTarget> {
-        self.get_child_at_pos(pos)
-            .and_then(|child| child.get_drop_target_at_pos(pos))
     }
 
     pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<ItemTarget> {

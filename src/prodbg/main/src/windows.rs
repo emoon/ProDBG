@@ -263,7 +263,7 @@ impl Window {
                         if Imgui::tab(t, i==container.active_dock, i==tabs.len()-1) {
                             container.active_dock = i;
                         }
-                        //sizes.push(100.0);
+                        // TODO: fix last tab size. It occupies all the space that is left.
                         if i==0 {sizes.push(Imgui::tab_pos()); }
                         else
                         {
@@ -766,7 +766,7 @@ impl Window {
         if ui.begin_popup("plugins") {
             let plugin_names = view_plugins.get_plugin_names();
 
-            if self.ws.get_hover_dock(mouse_pos).is_none() {
+            if self.ws.root_area.is_none() {
                 self.show_popup_menu_no_splits(&plugin_names, mouse_pos, view_plugins);
             } else {
                 self.show_popup_regular(&plugin_names, mouse_pos, view_plugins);
