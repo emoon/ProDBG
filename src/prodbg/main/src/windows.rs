@@ -222,7 +222,7 @@ impl Window {
 
         //+Z skip inactive tab
         if let Some(ref root) = ws.root_area {
-            if let Some(ref container) = root.find_container_by_dock_handle(DockHandle(instance.handle.0)) {
+            if let Some(ref container) = root.get_container_by_dock_handle(DockHandle(instance.handle.0)) {
                 if container.docks[container.active_dock].handle.0 != instance.handle.0 {
                     return
                         WindowState {
@@ -255,7 +255,7 @@ impl Window {
 
         //+Z tabs
         if let Some(ref mut root) = ws.root_area {
-            if let Some(ref mut container) = root.find_container_by_dock_handle_mut(DockHandle(instance.handle.0)) {
+            if let Some(ref mut container) = root.get_container_by_dock_handle_mut(DockHandle(instance.handle.0)) {
                 let tabs:Vec<String> = container.docks.iter().map(|dock| dock.plugin_name.clone()).collect();
                 if tabs.len() > 1 {
                     let mut sizes = Vec::with_capacity(tabs.len());
@@ -651,7 +651,7 @@ impl Window {
             self.save_cur_workspace_state();
             let new_dock = Dock::new(DockHandle(handle.0), name);
             if let Some(dock_handle) = self.ws.get_hover_dock(pos) {
-                self.ws.split_by_dock_handle(direction, dock_handle, new_dock);
+//                self.ws.split_by_dock_handle(direction, dock_handle, new_dock);
             } else {
                 self.ws.initialize(new_dock);
             }
@@ -680,7 +680,7 @@ impl Window {
 
             if let Some(src_dock_handle) = self.ws.get_hover_dock(pos) {
                 if let Some(ref mut root) = self.ws.root_area {
-                    if let Some(ref mut container) = root.find_container_by_dock_handle_mut(src_dock_handle) {
+                    if let Some(ref mut container) = root.get_container_by_dock_handle_mut(src_dock_handle) {
                         container.append_dock(dock);
                     }
                 }

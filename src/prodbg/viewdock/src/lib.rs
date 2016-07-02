@@ -37,7 +37,7 @@ pub use self::error::Error;
 // use std::fs::File;
 //use std::io;
 pub use rect::{Rect, Direction};
-pub use area::{Area, SplitHandle, Container, SizerPos, DropTarget};
+pub use area::{Area, SplitHandle, Container, SizerPos};
 use area::Split;
 pub use dock::{DockHandle, Dock};
 
@@ -104,38 +104,9 @@ impl Workspace {
         ));
     }
 
-    pub fn split_by_dock_handle(&mut self, direction: Direction, find_handle: DockHandle, dock: Dock) {
-        let next_handle = self.next_handle();
-        let is_root = match self.root_area {
-            Some(Area::Container(ref c)) => c.has_dock(find_handle),
-            _ => false,
-        };
-        let new_dock = Area::Container(Container::new(dock, Rect::default()));
-        if is_root {
-            if let Some(ref mut root) = self.root_area {
-                let old_root = root.clone();
-                let new_child = Split::from_two(direction, 0.5, next_handle, self.rect.clone(), old_root, new_dock);
-                *root = Area::Split(new_child);
-                return;
-            }
-        }
-        let parent_split = self.root_area.as_mut().and_then(|root| {
-            root.find_split_by_dock_handle(find_handle)
-        });
-        if let Some((parent, pos)) = parent_split {
-            if direction == parent.direction {
-                parent.append_child(pos, new_dock);
-            } else {
-                let old_child = parent.children[pos].clone();
-                let new_child = Split::from_two(direction, 0.5, next_handle, Rect::default(), old_child, new_dock);
-                parent.replace_child(pos, Area::Split(new_child));
-            }
-        }
-    }
-
     pub fn get_rect_by_handle(&self, handle: DockHandle) -> Option<Rect> {
         self.root_area.as_ref().and_then(|area| {
-            area.find_container_by_dock_handle(handle).and_then(|container| {
+            area.get_container_by_dock_handle(handle).and_then(|container| {
                 Some(container.rect.clone())
             })
         })
@@ -156,7 +127,7 @@ impl Workspace {
 
     pub fn drag_sizer(&mut self, handle: SplitHandle, index: usize, delta: (f32, f32)) {
         if let Some(ref mut root) = self.root_area {
-            if let Some(s) = root.find_split_by_handle(handle) {
+            if let Some(s) = root.get_split_by_handle(handle) {
                 s.change_ratio(index, delta);
             }
         }
@@ -259,7 +230,7 @@ impl Workspace {
             },
             ItemTarget::AppendToSplit(handle, index) => {
                 if let Some(ref mut root) = self.root_area {
-                    if let Some(s) = root.find_split_by_handle(handle) {
+                    if let Some(s) = root.get_split_by_handle(handle) {
                         s.append_child(index, Area::container_from_dock(dock));
                     }
                 }
@@ -267,7 +238,7 @@ impl Workspace {
             ItemTarget::SplitContainer(handle, index, new_index) => {
                 let next_handle = self.next_handle();
                 if let Some(ref mut root) = self.root_area {
-                    if let Some(s) = root.find_split_by_handle(handle) {
+                    if let Some(s) = root.get_split_by_handle(handle) {
                         let old_copy = s.children[index].clone();
                         let new_dock = Area::container_from_dock(dock);
                         let new_child = Area::Split(if new_index == 0 {
@@ -281,7 +252,7 @@ impl Workspace {
             },
             ItemTarget::AppendToContainer(handle, new_index) => {
                 if let Some(ref mut root) = self.root_area {
-                    if let Some(c) = root.find_container_by_dock_handle_mut(handle) {
+                    if let Some(c) = root.get_container_by_dock_handle_mut(handle) {
                         c.insert_dock(new_index, dock);
                     }
                 }
@@ -307,7 +278,7 @@ impl Workspace {
         }
         if let Some(ref mut root) = self.root_area {
             let mut should_adopt = None;
-            if let Some((split, index)) = root.find_split_by_dock_handle(handle) {
+            if let Some((split, index)) = root.get_split_by_dock_handle(handle) {
                 let mut should_remove_child = false;
                 if let Area::Container(ref mut container) = split.children[index] {
                     container.remove_dock(handle);
@@ -330,7 +301,7 @@ impl Workspace {
                 if should_replace_root {
                     contents.update_rect(root.get_rect().clone());
                     *root = contents;
-                } else if let Some((parent_split, index)) = root.find_parent_split_by_split_handle(split_handle) {
+                } else if let Some((parent_split, index)) = root.get_parent_split_by_split_handle(split_handle) {
                     match contents {
                         Area::Split(ref mut s) if s.direction == parent_split.direction => {
                             parent_split.replace_child_with_children(index, &s.children)
@@ -346,7 +317,7 @@ impl Workspace {
         // TODO: use special constant here
         let marker = DockHandle(u64::max_value());
         let copy = self.root_area.as_mut()
-            .and_then(|root| root.find_container_by_dock_handle_mut(handle))
+            .and_then(|root| root.get_container_by_dock_handle_mut(handle))
             .and_then(|c| c.get_dock_mut(handle))
             .and_then(|dock| {
                 let res = Some(dock.clone());
@@ -368,7 +339,7 @@ impl Workspace {
             let second_copy;
             // TODO: use special constant here
             let marker = DockHandle(u64::max_value());
-            match root.find_container_by_dock_handle_mut(first) {
+            match root.get_container_by_dock_handle_mut(first) {
                 None => return,
                 Some(c) => {
                     if let Some(ref mut dock) = c.get_dock_mut(first) {
@@ -379,7 +350,7 @@ impl Workspace {
                     }
                 }
             }
-            match root.find_container_by_dock_handle_mut(second) {
+            match root.get_container_by_dock_handle_mut(second) {
                 None => return,
                 Some(c) => {
                     if let Some(copy) = c.replace_dock(second, first_copy) {
@@ -390,7 +361,7 @@ impl Workspace {
                     }
                 }
             }
-            match root.find_container_by_dock_handle_mut(marker) {
+            match root.get_container_by_dock_handle_mut(marker) {
                 None => panic!("Tried to swap docks {:?} and {:?} but lost {:?} in the middle", first, second, first),
                 Some(c) => {
                     if c.replace_dock(marker, second_copy).is_none() {
