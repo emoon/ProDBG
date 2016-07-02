@@ -180,9 +180,11 @@ impl Split {
 mod test {
     extern crate serde_json;
 
-    use {Split, SplitHandle, Rect, Direction, Area};
-    use super::super::container::Container;
+    use super::{Split, SplitHandle};
+    use area::Area;
+    use area::container::Container;
     use dock::{Dock, DockHandle};
+    use rect::{Rect, Direction};
 
     #[test]
     fn test_splithandle_serialize() {

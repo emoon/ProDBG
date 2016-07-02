@@ -127,12 +127,16 @@ impl Container {
 #[cfg(test)]
 mod test {
     extern crate serde_json;
-    use {Container, Dock, DockHandle, Rect};
+    use super::Container;
+    use dock::{Dock, DockHandle};
+    use rect::Rect;
 
     #[test]
     fn test_container_serialize_0() {
         let container_in = Container {
             docks: Vec::new(),
+            active_dock: 0,
+            tab_sizes: Vec::new(),
             rect: Rect::new(4.0, 5.0, 2.0, 8.0)
         };
 
@@ -154,8 +158,9 @@ mod test {
                 handle: DockHandle(1),
                 plugin_name: "registers".to_owned(),
                 plugin_data: Some(vec!["some_data".to_owned(), "more_data".to_owned()]),
-                rect: Rect::new(4.0, 5.0, 2.0, 8.0)
             }],
+            tab_sizes: vec!(0.0),
+            active_dock: 0,
             rect: Rect::default(),
         };
 
