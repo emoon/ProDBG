@@ -2,8 +2,11 @@ sudo: required
 
 language: rust
 
+osx_image: xcode7.3
+
 compiler:
     - gcc
+    - clang
 
 before_install:
     - echo $LANG
@@ -13,7 +16,13 @@ before_install:
     - if [ $TRAVIS_OS_NAME == linux ]; then sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 90; fi
     - if [ $TRAVIS_OS_NAME == linux ]; then git clone https://github.com/emoon/tundra.git; cd tundra; make; sudo make install; cd ..; fi
 
-script: tundra2 linux-gcc-debug
+script: 
+    - if [ $TRAVIS_OS_NAME == linux ]; then tundra2 linux-gcc-debug; fi
+    - if [ $TRAVIS_OS_NAME == linux ]; then tundra2 linux-gcc-debug-test; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then bin/macosx/tundra/tundra2 macosx-clang-debug; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then bin/macosx/tundra/tundra2 macosx-clang-debug-test; fi
 
 os:
   - linux
+  - osx
+
