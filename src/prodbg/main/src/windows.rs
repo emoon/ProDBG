@@ -381,23 +381,31 @@ impl Window {
             },
 
             State::DraggingDock(handle) => {
-                let move_target = self.ws.get_item_target(mouse_pos);
-                let swap_target = self.ws.get_dock_handle_at_pos(mouse_pos);
-                println!("{:?} {:?}", move_target, swap_target);
-                if self.win.get_mouse_down(MouseButton::Left) {
-                    cursor = if move_target.is_some() {
-                        CursorStyle::OpenHand
+                if !self.win.is_key_down(Key::Tab) {
+                    let move_target = self.ws.get_item_target(mouse_pos);
+                    println!("{:?}", move_target);
+                    if self.win.get_mouse_down(MouseButton::Left) {
+                        cursor = match move_target {
+                            Some(_) => CursorStyle::OpenHand,
+                            None => CursorStyle::ClosedHand
+                        }
                     } else {
-                        match swap_target {
+                        if let Some(target) = move_target {
+                            self.save_cur_workspace_state();
+                            self.ws.move_dock(handle, target);
+                        }
+                        next_state = Some(State::Default);
+                        cursor = CursorStyle::Arrow;
+                    }
+                } else {
+                    let swap_target = self.ws.get_dock_handle_at_pos(mouse_pos);
+                    println!("{:?}", swap_target);
+                    if self.win.get_mouse_down(MouseButton::Left) {
+                        cursor = match swap_target {
                             Some(drop_handle) if handle != drop_handle => CursorStyle::OpenHand,
                             // TODO: make sure this cursor style works. Did not work with minifb 0.8.0
                             _ => CursorStyle::ClosedHand,
                         }
-                    }
-                } else {
-                    if let Some(target) = move_target {
-                        self.save_cur_workspace_state();
-                        self.ws.move_dock(handle, target);
                     } else {
                         if let Some(drop_handle) = swap_target {
                             if drop_handle != handle {
@@ -405,9 +413,9 @@ impl Window {
                                 self.ws.swap_docks(handle, drop_handle);
                             }
                         }
+                        next_state = Some(State::Default);
+                        cursor = CursorStyle::Arrow;
                     }
-                    next_state = Some(State::Default);
-                    cursor = CursorStyle::Arrow;
                 }
             },
 
