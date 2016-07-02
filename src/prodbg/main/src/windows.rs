@@ -233,25 +233,12 @@ impl Window {
             }
         }
 
-        //+Z
-        let mut float_mode = false;
-        if let Some(_) = ws.float.iter().find(|&dock| dock.handle == DockHandle(instance.handle.0)) {
-            //Imgui::set_window_pos(dock.rect.x, dock.rect.y);
-            //Imgui::set_window_size(dock.rect.width, dock.rect.height);
-            float_mode = true;
-        }
-        else
         if let Some(rect) = ws.get_rect_by_handle(DockHandle(instance.handle.0)) {
             Imgui::set_window_pos(rect.x, rect.y);
             Imgui::set_window_size(rect.width, rect.height);
         }
 
-        //+Z
-        //let open = Imgui::begin_window(&instance.name, true);
-        let open = match float_mode {
-        	false => Imgui::begin_window(&instance.name, true),
-        	true => Imgui::begin_window_float(&instance.name, true),
-        };
+        let open = Imgui::begin_window(&instance.name, true);
 
         //+Z tabs
         if let Some(ref mut root) = ws.root_area {
@@ -660,17 +647,6 @@ impl Window {
         }
     }
 
-    //+Z
-    fn float_view(&mut self, name: &String, view_plugins: &mut ViewPlugins) {
-        let ui = Imgui::create_ui_instance();
-        if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
-            let new_handle = DockHandle(handle.0);
-            let dock = viewdock::Dock::new(new_handle, name);
-			self.ws.float.push(dock);
-            self.views.push(handle);
-        }
-    }
-
     fn tab_view(&mut self, name: &String, view_plugins: &mut ViewPlugins, pos: (f32, f32)) {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
@@ -742,16 +718,6 @@ impl Window {
             for name in plugin_names {
                 if ui.menu_item(name, false, true) {
                     Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Vertical);
-                }
-            }
-            ui.end_menu();
-        }
-
-        //+Z
-        if ui.begin_menu("Float", true) {
-            for name in plugin_names {
-                if ui.menu_item(name, false, true) {
-                    Self::float_view(self, &name, view_plugins);
                 }
             }
             ui.end_menu();

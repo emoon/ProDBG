@@ -17,7 +17,6 @@ struct WorkspaceMapVisitor<'a> {
 impl<'a> serde::ser::MapVisitor for WorkspaceMapVisitor<'a> {
     fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: serde::Serializer {
         try!(serializer.serialize_struct_elt("root_area", &self.value.root_area));
-        try!(serializer.serialize_struct_elt("float", &self.value.float));
         try!(serializer.serialize_struct_elt("rect", &self.value.rect));
         try!(serializer.serialize_struct_elt("window_border", &self.value.window_border));
         try!(serializer.serialize_struct_elt("handle_counter", &self.value.handle_counter));
@@ -41,7 +40,6 @@ impl serde::de::Visitor for WorkspaceVisitor {
 
     fn visit_map<V>(&mut self, mut visitor: V) -> Result<Workspace, V::Error> where V: serde::de::MapVisitor {
         let mut root_area = None;
-        let mut float = None;
         let mut rect = None;
         let mut window_border = None;
         let mut handle_counter = None;
@@ -49,7 +47,6 @@ impl serde::de::Visitor for WorkspaceVisitor {
         loop {
             match try!(visitor.visit_key()) {
                 Some(WorkspaceField::RootArea) => { root_area = Some(try!(visitor.visit_value())); }
-                Some(WorkspaceField::Float) => {float = Some(try!(visitor.visit_value())); }
                 Some(WorkspaceField::Rect) => { rect = Some(try!(visitor.visit_value())); }
                 Some(WorkspaceField::WindowBorder) => { window_border = Some(try!(visitor.visit_value())); }
                 Some(WorkspaceField::HandleCounter) => { handle_counter = Some(try!(visitor.visit_value())); }
@@ -60,11 +57,6 @@ impl serde::de::Visitor for WorkspaceVisitor {
         let root_area = match root_area {
             Some(root_area) => root_area,
             None => try!(visitor.missing_field("root_area")),
-        };
-
-        let float = match float {
-            Some(float) => float,
-            None => try!(visitor.missing_field("float")),
         };
 
         let rect = match rect {
@@ -86,7 +78,6 @@ impl serde::de::Visitor for WorkspaceVisitor {
 
         Ok(Workspace {
             root_area: root_area,
-            float: float,
             rect: rect,
             window_border: window_border,
             handle_counter: handle_counter,
@@ -96,7 +87,6 @@ impl serde::de::Visitor for WorkspaceVisitor {
 
 enum WorkspaceField {
     RootArea,
-    Float,
     Rect,
     WindowBorder,
     HandleCounter,
@@ -113,7 +103,6 @@ impl serde::Deserialize for WorkspaceField  {
                 where E: serde::de::Error {
                     match value {
                         "root_area" => Ok(WorkspaceField::RootArea),
-                        "float" => Ok(WorkspaceField::Float),
                         "rect" => Ok(WorkspaceField::Rect),
                         "window_border" => Ok(WorkspaceField::WindowBorder),
                         "handle_counter" => Ok(WorkspaceField::HandleCounter),
