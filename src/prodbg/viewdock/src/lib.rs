@@ -194,7 +194,7 @@ impl Workspace {
         )
     }
 
-    pub fn get_item_target(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
+    pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
         self.root_area.as_ref().and_then(|root| {
             root.get_item_target_at_pos(pos)
                 .or_else(||

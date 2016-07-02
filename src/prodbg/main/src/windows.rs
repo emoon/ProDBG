@@ -382,7 +382,7 @@ impl Window {
 
             State::DraggingDock(handle) => {
                 if !self.win.is_key_down(Key::Tab) {
-                    let move_target = self.ws.get_item_target(mouse_pos);
+                    let move_target = self.ws.get_item_target_at_pos(mouse_pos);
                     if self.win.get_mouse_down(MouseButton::Left) {
                         cursor = match move_target {
                             Some(_) => CursorStyle::OpenHand,
@@ -426,7 +426,7 @@ impl Window {
             },
 
             State::CreatingDock(ref handle, ref plugin_name) => {
-                let drop_target = self.ws.get_item_target(mouse_pos);
+                let drop_target = self.ws.get_item_target_at_pos(mouse_pos);
                 cursor = CursorStyle::Arrow;
                 if self.win.get_mouse_down(MouseButton::Left) {
                     if let Some((target, _)) = drop_target {
