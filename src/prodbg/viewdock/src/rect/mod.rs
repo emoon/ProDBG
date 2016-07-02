@@ -43,6 +43,26 @@ impl Rect {
             self.y + self.height >= y;
     }
 
+    pub fn split(&self, direction: Direction, size: f32) -> [Rect; 2] {
+        match direction {
+            Direction::Horizontal => [
+                Rect::new(self.x, self.y, self.width, size),
+                Rect::new(self.x, self.y + self.height - size, self.width, size),
+            ],
+            Direction::Vertical => [
+                Rect::new(self.x, self.y, size, self.height),
+                Rect::new(self.x + self.width - size, self.y, size, self.height),
+            ]
+        }
+    }
+
+    pub fn dimension(&self, direction: Direction) -> f32 {
+        match direction {
+            Direction::Horizontal => self.width,
+            Direction::Vertical => self.height,
+        }
+    }
+
     pub fn area_around_splits(&self, direction: Direction, ratios: &[f32], width: f32) -> Vec<Rect> {
         match direction {
             Direction::Horizontal => {

@@ -140,30 +140,11 @@ impl Workspace {
         })
     }
 
-    fn get_horizontal_root_split_rects(&self) -> Vec<(Rect, ItemTarget)> {
-        vec!(
-            (
-                Rect::new(self.rect.x, self.rect.y, self.rect.width, 100.0),
-                ItemTarget::SplitRoot(Direction::Horizontal, 0)
-            ),
-            (
-                Rect::new(self.rect.x, self.rect.y + self.rect.height - 100.0, self.rect.width, 100.0),
-                ItemTarget::SplitRoot(Direction::Horizontal, 1)
-            ),
-        )
-    }
-
-    fn get_vertical_root_split_rects(&self) -> Vec<(Rect, ItemTarget)> {
-        vec!(
-            (
-                Rect::new(self.rect.x, self.rect.y, 100.0, self.rect.height),
-                ItemTarget::SplitRoot(Direction::Vertical, 0)
-            ),
-            (
-                Rect::new(self.rect.x + self.rect.width - 100.0, self.rect.y, 100.0, self.rect.height),
-                ItemTarget::SplitRoot(Direction::Vertical, 1)
-            )
-        )
+    fn get_root_split_item_target(&self, direction: Direction, pos: (f32,f32)) -> Option<(ItemTarget, Rect)> {
+        self.rect.split(direction, self.rect.dimension(direction.opposite()) / 4.0)
+            .iter().enumerate()
+            .find(|&(_, rect)| rect.point_is_inside(pos))
+            .map(|(index, rect)| (ItemTarget::SplitRoot(direction, index), *rect))
     }
 
     pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
@@ -171,38 +152,11 @@ impl Workspace {
             root.get_item_target_at_pos(pos)
                 .or_else(||
                     match *root {
-                        Area::Container(_) => {
-                            for (rect, target) in self.get_horizontal_root_split_rects() {
-                                if rect.point_is_inside(pos) {
-                                    return Some((target, rect));
-                                }
-                            }
-                            for (rect, target) in self.get_vertical_root_split_rects() {
-                                if rect.point_is_inside(pos) {
-                                    return Some((target, rect));
-                                }
-                            }
-                            return None;
-                        },
-                        Area::Split(ref s) => {
-                            match s.direction {
-                                Direction::Horizontal => {
-                                    for (rect, target) in self.get_vertical_root_split_rects() {
-                                        if rect.point_is_inside(pos) {
-                                            return Some((target, rect));
-                                        }
-                                    }
-                                },
-                                Direction::Vertical => {
-                                    for (rect, target) in self.get_horizontal_root_split_rects() {
-                                        if rect.point_is_inside(pos) {
-                                            return Some((target, rect));
-                                        }
-                                    }
-                                }
-                            }
-                            return None;
-                        }
+                        Area::Container(_) => [Direction::Vertical, Direction::Horizontal].iter()
+                            .map(|direction| self.get_root_split_item_target(*direction, pos))
+                            .find(|res| res.is_some())
+                            .and_then(|res| res),
+                        Area::Split(ref s) => self.get_root_split_item_target(s.direction.opposite(), pos)
                     }
                 )
         })
