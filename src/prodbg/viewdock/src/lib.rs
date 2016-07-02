@@ -116,6 +116,7 @@ impl Workspace {
         })
     }
 
+    // TODO: rename into `update_rect`
     pub fn update(&mut self, new_rect: Rect) {
         self.rect = new_rect;
         if let Some(ref mut a) = self.root_area {
@@ -123,6 +124,8 @@ impl Workspace {
         }
     }
 
+    // TODO: rename into `change_ratio`
+    // TODO: use absolute coordinates here
     pub fn drag_sizer(&mut self, handle: SplitHandle, index: usize, delta: (f32, f32)) {
         if let Some(ref mut root) = self.root_area {
             if let Some(s) = root.get_split_by_handle(handle) {
