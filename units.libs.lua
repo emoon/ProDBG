@@ -90,44 +90,6 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
-    Name = "foundation_lib",
-
-    Env = {
-		CPPPATH = {
-			"src/native/external/foundation_lib",
-		},
-
-        CCOPTS = {
-        	{ "-DFOUNDATION_COMPILE=1", "-funit-at-a-time", "-fstrict-aliasing", "-fno-math-errno", "-ffinite-math-only", "-funsafe-math-optimizations", "-fno-trapping-math", "-ffast-math", "-Wno-missing-braces", "-std=c99"; Config = { "macosx-*-*", "macosx_test-*", "linux-*-*" } },
-			{ "-Wno-everything"; Config = { "macosx-*-*", "macosx_test-*" } },
-        	{ "/DFOUNDATION_COMPILE=1", "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
-        	{ "-DBUILD_DEBUG=1"; Config = { "macosx-*-debug", "macosx_test-*-debug", "linux-*-debug" } },
-        	{ "-DBUILD_RELEASE=1"; Config = { "macosx-*-release", "macosx_test-*-release", "linux-*-release" } },
-        	{ "/DBUILD_DEBUG=1"; Config = "win64-*-debug" },
-        	{ "/DBUILD_RELEASE=1"; Config = "win64-*-release" },
-        },
-    },
-
-    Sources = {
-    	FGlob {
-            Dir = "src/native/external/foundation_lib/foundation",
-			Extensions = { ".cpp", ".c", ".h", ".s", ".m" },
-			Filters = {
-				{ Pattern = "[/\\]windows[/\\]"; Config = { "win32-*", "win64-*" } },
-				{ Pattern = "[/\\]macosx[/\\]"; Config = "mac*-*" },
-				{ Pattern = "[/\\]x11[/\\]"; Config = { "linux-*" } },
-			},
-
-			Recursive = true,
-        },
-    },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-StaticLibrary {
     Name = "scintilla",
 
     Env = {
@@ -154,71 +116,6 @@ StaticLibrary {
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
 }
-
------------------------------------------------------------------------------------------------------------------------
-
-StaticLibrary {
-    Name = "uv",
-
-    Env = {
-		CPPPATH = {
-			"src/native/external/libuv/include",
-			"src/native/external/libuv/src",
-		},
-
-        CCOPTS = {
-        	{ "-Wno-everything"; Config = "macosx-*-*" },
-        	{ "/wd4201", "/wd4127", "/wd4244", "/wd4100",
-			  "/wd4245", "/wd4204", "/wd4701", "/wd4703", "/wd4054", "/wd4477",
-			  "/wd4702", "/wd4267"; Config = "win64-*-*" },
-        },
-    },
-
-    Sources = {
-
-    	-- general
-
-    	{ Glob {
-    		Dir = "src/native/external/libuv/src",
-    		Extensions = { ".c", ".h" },
-    		Recursive = false },
-    	},
-
-    	-- Windows
-
-    	{ Glob {
-    		Dir = "src/native/external/libuv/src/win",
-    		Extensions = { ".c", ".h" },
-    		Recursive = false } ; Config = "win64-*-*"
-    	},
-
-    	-- Unix
-
-    	{ Glob {
-    		Dir = "src/native/external/libuv/src/unix",
-    		Extensions = { ".c", ".h" },
-    		Recursive = false } ; Config = { "macosx-*-*", "macosx_test-*", "linux-*-*" }
-    	},
-
-    	-- Mac
-
-		{
-		  "src/native/external/libuv/src/unix/freebsd/kqueue.c",
-		  "src/native/external/libuv/src/unix/darwin/fsevents.c",
-		  "src/native/external/libuv/src/unix/darwin/darwin-proctitle.c",
-		  "src/native/external/libuv/src/unix/darwin/darwin.c" ; Config = { "macosx-*-*", "macosx_test-*" } },
-
-		-- Linux
-
-		{
-		  "src/native/external/libuv/src/unix/linux/linux-core.c",
-		  "src/native/external/libuv/src/unix/linux/linux-inotify.c",
-		  "src/native/external/libuv/src/unix/linux/linux-syscalls.c" ; Config = "linux-*-*" },
-	},
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
-}
-
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -360,8 +257,6 @@ StaticLibrary {
 StaticLibrary {
     Name = "capstone",
 
-
-
     Env = {
         CPPPATH = {
 			"src/native/external/capstone/include",
@@ -458,81 +353,6 @@ StaticLibrary {
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
 }
-
------------------------------------------------------------------------------------------------------------------------
-
---[[
-
-StaticLibrary {
-    Name = "main_lib",
-
-    Env = {
-        CPPPATH = {
-			"src/native/external/remotery/lib",
-			"src/native/external/foundation_lib",
-			"src/native/external/jansson/include",
-            "src/native/external/lua/src",
-			"src/native/external/libuv/include",
-            "src/native/external/bgfx/include",
-            "src/native/external/bx/include",
-            "src/native/external/stb",
-            "src/native/external/i3wm_docking",
-            "src/native",
-        	"api/include",
-            "src/frontend",
-        },
-
-        PROGOPTS = {
-            { "/SUBSYSTEM:WINDOWS", "/DEBUG"; Config = { "win32-*-*", "win64-*-*" } },
-        },
-
-        CXXOPTS = {
-			{
-			  "-Wno-conversion",
-			  "-Wno-gnu-anonymous-struct",
-			  "-Wno-global-constructors",
-			  "-Wno-nested-anon-types",
-			  "-Wno-float-equal",
-			  "-Wno-cast-align",
-			  "-Wno-exit-time-destructors",
-			  "-Wno-format-nonliteral",
-			  "-Wno-documentation",	-- Because clang warnings in a bad manner even if the doc is correct
-			  "-std=c++11" ; Config = "macosx-clang-*" },
-			{ "/EHsc"; Config = "win64-*-*" },
-        },
-
-        CCOPTS = {
-			{ "-Wno-c11-extensions"; Config = "macosx-clang-*" },
-        	{
-        	  "/wd4201" -- namless struct/union
-			  ; Config = "win64-*-*" },
-        },
-
-		PROGCOM = {
-			{ "-lstdc++"; Config = "linux-gcc-*" },
-			{ "-lm -lrt -lpthread -ldl -lX11 -lGL"; Config = "linux-*-*" },
-		},
-    },
-
-    Sources = {
-        FGlob {
-            Dir = "src/native/main_lib",
-            Extensions = { ".c", ".cpp", ".m", ".mm", ".h" },
-            Filters = {
-                { Pattern = "mac"; Config = { "macosx-*-*", "macosx_test-*-*" } },
-                { Pattern = "windows"; Config = "win64-*-*" },
-                { Pattern = "linux"; Config = "linux-*-*" },
-            },
-
-            Recursive = true,
-        },
-    },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
-}
-
---]]
-
 
 -- vim: ts=4:sw=4:sts=4
 
