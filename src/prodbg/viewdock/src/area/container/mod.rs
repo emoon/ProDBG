@@ -7,16 +7,21 @@ use super::super::ItemTarget;
 #[derive(Debug, Clone)]
 pub struct Container {
     pub docks: Vec<Dock>,
-    pub tab_sizes: Vec<f32>,
+    pub tab_borders: Vec<f32>,
     pub rect: Rect,
     pub active_dock: usize,
 }
+
+const HEADER_HEIGHT: f32 = 26.0;
+const TAB_HEIGHT: f32 = 22.0;
+const CLOSE_BUTTON_WIDTH: f32 = 30.0;
+const TAB_INSERT_WIDTH: f32 = 80.0;
 
 impl Container {
     pub fn new(dock: Dock, rect: Rect) -> Container {
         Container {
             docks: vec!(dock),
-            tab_sizes: vec!(0.0),
+            tab_borders: vec!(0.0),
             rect: rect,
             active_dock: 0,
         }
@@ -24,7 +29,7 @@ impl Container {
 
     pub fn append_dock(&mut self, dock: Dock) {
         self.docks.push(dock);
-        self.tab_sizes.push(0.0);
+        self.tab_borders.push(0.0);
         self.active_dock = self.docks.len() - 1;
     }
 
@@ -41,7 +46,7 @@ impl Container {
     pub fn remove_dock(&mut self, handle: DockHandle) {
         if let Some(index) = self.docks.iter().position(|dock| dock.handle == handle) {
             self.docks.remove(index);
-            self.tab_sizes.remove(index);
+            self.tab_borders.remove(index);
             if self.active_dock > 0 {
                 self.active_dock = self.active_dock - 1;
             }
@@ -59,19 +64,20 @@ impl Container {
 
     pub fn insert_dock(&mut self, index: usize, dock: Dock) {
         self.docks.insert(index, dock);
-        self.tab_sizes.insert(index, 1.0);
+        self.tab_borders.insert(index, 1.0);
     }
 
     fn get_header_rect(&self) -> Rect {
-        Rect::new(self.rect.x, self.rect.y, self.rect.width - 30.0, 30.0)
+        Rect::new(self.rect.x, self.rect.y, self.rect.width - CLOSE_BUTTON_WIDTH, HEADER_HEIGHT)
     }
 
     fn get_tab_rects(&self) -> Vec<Rect> {
-        let mut total_width = 0.0;
-        return self.tab_sizes.iter()
-            .map(|size| {
-                let res = Rect::new(self.rect.x + total_width, self.rect.y + 30.0, *size, 30.0);
-                total_width += *size;
+        let mut left_border = 0.0;
+        return self.tab_borders.iter()
+            .map(|&right_border| {
+                let width = right_border - left_border;
+                let res = Rect::new(self.rect.x + left_border, self.rect.y + HEADER_HEIGHT, width, TAB_HEIGHT);
+                left_border = right_border;
                 return res;
             })
             .collect();
@@ -98,23 +104,15 @@ impl Container {
     }
 
     pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
-        if self.docks.len() == 1 {
-            let header_rect = self.get_header_rect();
-            if header_rect.point_is_inside(pos) {
-                return Some((ItemTarget::AppendToContainer(self.docks[0].handle, 1), header_rect));
+        for (index, &border) in [0.0].iter().chain(self.tab_borders.iter()).enumerate() {
+            let gap_rect = Rect::new(
+                self.rect.x + border - TAB_INSERT_WIDTH / 2.0,
+                self.rect.y + HEADER_HEIGHT,
+                TAB_INSERT_WIDTH,
+                TAB_HEIGHT);
+            if gap_rect.point_is_inside(pos) {
+                return Some((ItemTarget::AppendToContainer(self.docks[0].handle, index), gap_rect));
             }
-        }
-        let mut total_width = 0.0;
-        for (index, size) in self.tab_sizes.iter().enumerate() {
-            let item_pos = Rect::new(self.rect.x + total_width - 40.0, self.rect.y + 30.0, 80.0, 30.0);
-            if item_pos.point_is_inside(pos) {
-                return Some((ItemTarget::AppendToContainer(self.docks[0].handle, index), item_pos));
-            }
-            total_width += *size;
-        }
-        let item_pos = Rect::new(self.rect.x + total_width - 40.0, self.rect.y + 30.0, 80.0, 30.0);
-        if item_pos.point_is_inside(pos) {
-            return Some((ItemTarget::AppendToContainer(self.docks[0].handle, self.tab_sizes.len()), item_pos));
         }
         let w3 = self.rect.width / 3.0;
         let h3 = self.rect.height / 3.0;
@@ -133,10 +131,10 @@ impl Container {
         return None;
     }
 
-    pub fn update_tab_sizes(&mut self, sizes: &[f32]) {
+    pub fn update_tab_borders(&mut self, sizes: &[f32]) {
         // TODO: store tab positions instead of tab sizes
         if sizes.len() == self.docks.len() {
-            for (mut size, new_size) in self.tab_sizes.iter_mut().zip(sizes) {
+            for (mut size, new_size) in self.tab_borders.iter_mut().zip(sizes) {
                 *size = *new_size;
             }
         } else {
@@ -158,7 +156,7 @@ mod test {
         let container_in = Container {
             docks: Vec::new(),
             active_dock: 0,
-            tab_sizes: Vec::new(),
+            tab_borders: Vec::new(),
             rect: Rect::new(4.0, 5.0, 2.0, 8.0)
         };
 
@@ -181,7 +179,7 @@ mod test {
                 plugin_name: "registers".to_owned(),
                 plugin_data: Some(vec!["some_data".to_owned(), "more_data".to_owned()]),
             }],
-            tab_sizes: vec!(0.0),
+            tab_borders: vec!(0.0),
             active_dock: 0,
             rect: Rect::default(),
         };

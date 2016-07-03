@@ -265,22 +265,14 @@ impl Window {
             if let Some(ref mut container) = root.get_container_by_dock_handle_mut(DockHandle(instance.handle.0)) {
                 let tabs:Vec<String> = container.docks.iter().map(|dock| dock.plugin_name.clone()).collect();
                 if tabs.len() > 1 {
-                    let mut sizes = Vec::with_capacity(tabs.len());
+                    let mut borders = Vec::with_capacity(tabs.len());
                     for (i, t) in tabs.iter().enumerate() {
                         if Imgui::tab(t, i==container.active_dock, i==tabs.len()-1) {
                             container.active_dock = i;
                         }
-                        // TODO: fix last tab size. It occupies all the space that is left.
-                        if i==0 {sizes.push(Imgui::tab_pos()); }
-                        else
-                        {
-                            if let Some(&s) = sizes.last() {
-                                sizes.push(Imgui::tab_pos() - s);
-                            }
-                            if i==tabs.len()-1 { Imgui::separator(); }
-                        }
+                        borders.push(Imgui::tab_pos());
                     }
-                    container.update_tab_sizes(&sizes);
+                    container.update_tab_borders(&borders);
                 }
             }
         }

@@ -174,10 +174,8 @@ impl Workspace {
         })
     }
 
-    fn index_is_neighbour(first: usize, second: usize) -> bool {
-        first == second ||
-        first + 1 == second ||
-        first == second + 1
+    fn index_is_neighbour(cur: usize, target: usize) -> bool {
+        target == cur || target == cur + 1
     }
 
     pub fn already_at_place(&self, target: &ItemTarget, handle: DockHandle) -> bool {
