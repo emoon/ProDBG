@@ -29,7 +29,6 @@ enum State {
     DraggingNothing,
     DraggingSizer(SizerPos, String),
     DraggingDock(DockHandle),
-    CreatingDock(DockHandle, String),
 }
 
 pub struct MouseState {
@@ -54,7 +53,6 @@ impl fmt::Display for State {
                 &State::DraggingNothing => "Dragging Nothing",
                 &State::DraggingSizer(_,_) => "Dragging Sizer",
                 &State::DraggingDock(_) => "Dragging Dock",
-                &State::CreatingDock(_,_) => "Creating Dock",
             }
         )
     }
@@ -445,33 +443,6 @@ impl Window {
                         self.drag_handle = None;
                     }
                 }
-            },
-
-            State::CreatingDock(ref handle, ref plugin_name) => {
-                let drop_target = self.ws.get_item_target_at_pos(mouse_pos);
-                cursor = CursorStyle::Arrow;
-                if self.win.get_mouse_down(MouseButton::Left) {
-                    if let Some((target, _)) = drop_target {
-                        self.ws.create_dock_at(target, Dock::new(handle.clone(), &plugin_name));
-                    }
-                    next_state = Some(State::Default);
-                } else {
-                    if let Some((_, rect)) = drop_target {
-                        // TODO: draw good overlay here
-                        /*Imgui::set_window_pos(rect.x, rect.y);
-                        Imgui::set_window_size(rect.width, rect.height);
-                        Imgui::begin_window_float("Overlay", false);
-                        Imgui::end_window();*/
-//                        Imgui::render_frame(rect.x, rect.y, rect.width, rect.height, 0x8000FF00);
-                        if let Some(dh) = self.ws.get_dock_handle_at_pos(mouse_pos) {
-                            self.drag_handle = Some(dh);
-                            self.drag_rect = rect;
-                        }
-                        else {
-                            self.drag_handle = None;
-                        }
-                    }
-                }
             }
         }
 
@@ -743,20 +714,6 @@ impl Window {
         let ui = Imgui::get_ui();
 
         self.show_popup_change_view(plugin_names, mouse_pos, view_plugins);
-
-
-        if ui.begin_menu("Somewhere", true) {
-            for name in plugin_names {
-                if ui.menu_item(name, false, true) {
-                    let ui = Imgui::create_ui_instance();
-                    if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
-                        self.views.push(handle);
-                        self.mouse_state.state = State::CreatingDock(DockHandle(handle.0), name.clone());
-                    }
-                }
-            }
-            ui.end_menu();
-        }
 
         if ui.begin_menu("Split Horizontally", true) {
             for name in plugin_names {
