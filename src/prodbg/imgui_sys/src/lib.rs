@@ -146,6 +146,12 @@ impl Imgui {
     	}
     }
 
+    pub fn separator() {
+        unsafe {
+            imgui_separator()
+        }
+    }
+
     pub fn tab_pos() -> f32 {
         unsafe {
             imgui_tab_pos()
@@ -177,6 +183,7 @@ extern "C" {
     fn imgui_set_key_down(key: i32);
     //+Z
     fn imgui_tab(label: *const c_char, selected: bool, last: bool) -> c_int;
+    fn imgui_separator();
     fn imgui_tab_pos() -> f32;
     fn imgui_RenderFrame(x: f32, y:f32, width:f32, height:f32, fill_col: u32);
 }
