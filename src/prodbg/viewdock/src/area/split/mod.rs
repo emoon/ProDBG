@@ -1,7 +1,6 @@
 mod serialize;
 
 use super::{Area, SizerPos};
-use super::super::ItemTarget;
 use rect::{Rect, Direction};
 
 /// Handle to a split
@@ -61,25 +60,6 @@ impl Split {
         return sizer_rects.iter().enumerate()
             .find(|&(_, rect)| rect.point_is_inside(pos))
             .map(|(i, _)| SizerPos(self.handle, i, self.direction));
-    }
-
-    pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
-        for (index, child) in self.children.iter().enumerate() {
-            if let &Area::Container(ref c) = child {
-                let rects = c.rect.area_around_splits(self.direction.opposite(), &[0.0, 1.0], 50.0);
-                for (new_index, rect) in rects.iter().enumerate() {
-                    if rect.point_is_inside(pos) {
-                        return Some((ItemTarget::SplitContainer(self.handle, index, new_index), *rect));
-                    }
-                }
-            }
-        }
-        // TODO: change Rect methods to accept iterators
-        let first_rect = self.rect.area_around_splits(self.direction, &[0.0], 50.0);
-        let sizer_rects = self.rect.area_around_splits(self.direction, &self.ratios, 50.0);
-        return first_rect.iter().chain(sizer_rects.iter()).enumerate()
-            .find(|&(_, rect)| rect.point_is_inside(pos))
-            .map(|(i, rect)| (ItemTarget::AppendToSplit(self.handle, i), *rect));
     }
 
     pub fn map_rect_to_delta(&self, delta: (f32, f32)) -> f32 {

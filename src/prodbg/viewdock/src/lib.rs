@@ -136,25 +136,9 @@ impl Workspace {
         })
     }
 
-    fn get_root_split_item_target(&self, direction: Direction, pos: (f32,f32)) -> Option<(ItemTarget, Rect)> {
-        self.rect.split(direction, self.rect.dimension(direction.opposite()) / 4.0)
-            .iter().enumerate()
-            .find(|&(_, rect)| rect.point_is_inside(pos))
-            .map(|(index, rect)| (ItemTarget::SplitRoot(direction, index), *rect))
-    }
-
     pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
         self.root_area.as_ref().and_then(|root| {
             root.get_item_target_at_pos(pos)
-                .or_else(||
-                    match *root {
-                        Area::Container(_) => [Direction::Vertical, Direction::Horizontal].iter()
-                            .map(|direction| self.get_root_split_item_target(*direction, pos))
-                            .find(|res| res.is_some())
-                            .and_then(|res| res),
-                        Area::Split(ref s) => self.get_root_split_item_target(s.direction.opposite(), pos)
-                    }
-                )
         })
     }
 

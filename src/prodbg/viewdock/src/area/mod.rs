@@ -159,7 +159,6 @@ impl Area {
             Area::Container(ref c) => c.get_item_target_at_pos(pos),
             Area::Split(ref s) => s.get_child_at_pos(pos)
                 .and_then(|child| child.get_item_target_at_pos(pos))
-                .or_else(|| s.get_item_target_at_pos(pos)),
         }
     }
 }
