@@ -118,6 +118,14 @@ impl Area {
         }
     }
 
+    pub fn get_dock_handle_with_header_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
+        match *self {
+            Area::Container(ref c) => c.get_dock_handle_with_header_at_pos(pos),
+            Area::Split(ref s) => s.get_child_at_pos(pos)
+                .and_then(|child| child.get_dock_handle_with_header_at_pos(pos)),
+        }
+    }
+
     pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
         match *self {
             Area::Container(ref c) => c.get_dock_handle_at_pos(pos),

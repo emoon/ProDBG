@@ -59,7 +59,7 @@ pub type ResultView<T> = std::result::Result<T, Error>;
 #[derive(Debug)]
 pub enum ItemTarget {
     // TODO: use (Direction, bool) instead
-    /// Direction of split and position (0 for first child, 1 3for second child)
+    /// Direction of split and position (0 for first child, 1 for second child)
     SplitRoot(Direction, usize),
     /// Handle of split to change and index of new Dock
     AppendToSplit(SplitHandle, usize),
@@ -68,8 +68,8 @@ pub enum ItemTarget {
     SplitContainer(SplitHandle, usize, usize),
     /// DockHandle defines container. usize defines index of new Dock
     AppendToContainer(DockHandle, usize),
-    /// Direction of split and dock handle
-    SplitDock(DockHandle, Direction),
+    /// Direction of split and dock handle, position in split
+    SplitDock(DockHandle, Direction, usize),
 }
 
 impl Workspace {
@@ -109,15 +109,6 @@ impl Workspace {
             area.get_container_by_dock_handle(handle).and_then(|container| {
                 Some(container.rect.clone())
             })
-        })
-    }
-
-    pub fn get_hover_dock(&self, pos: (f32, f32)) -> Option<DockHandle> {
-        //+Z
-//        FIXME!
-        // function should check full window, not only header
-        self.root_area.as_ref().and_then(|root| {
-            root.get_dock_handle_at_pos(pos)
         })
     }
 
@@ -164,6 +155,12 @@ impl Workspace {
                         Area::Split(ref s) => self.get_root_split_item_target(s.direction.opposite(), pos)
                     }
                 )
+        })
+    }
+
+    pub fn get_dock_handle_with_header_at_pos(&self, pos:(f32, f32)) -> Option<DockHandle> {
+        self.root_area.as_ref().and_then(|root| {
+            root.get_dock_handle_with_header_at_pos(pos)
         })
     }
 
@@ -217,18 +214,18 @@ impl Workspace {
                     }
                 }
             },
-            ItemTarget::SplitDock(target_handle, direction) => {
-                let mut new_target: Option<ItemTarget> = None;
-                if let Some(ref mut root) = self.root_area {
-                    if let Some((ref mut sh, position)) = root.get_split_by_dock_handle(target_handle) {
+            ItemTarget::SplitDock(target_handle, direction, pos) => {
+                let new_target = self.root_area.as_mut().map(|root| {
+                    if let Some((sh, position)) = root.get_split_by_dock_handle(target_handle) {
                         if sh.direction != direction { // split with different direction
-                            new_target = Some(ItemTarget::SplitContainer(sh.handle, position, 1));
+                            ItemTarget::SplitContainer(sh.handle, position, pos)
+                        } else {
+                            ItemTarget::AppendToSplit(sh.handle, position+pos)
                         }
-                        else {
-                            new_target = Some(ItemTarget::AppendToSplit(sh.handle, position+1));
-                        }
+                    } else {
+                        ItemTarget::SplitRoot(direction, pos)
                     }
-                }
+                });
                 self.create_dock_at(new_target.unwrap(), dock);
             },
         }

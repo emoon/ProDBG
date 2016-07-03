@@ -1,7 +1,7 @@
 mod serialize;
 
 use dock::{Dock, DockHandle};
-use rect::Rect;
+use rect::{Rect, Direction};
 use super::super::ItemTarget;
 
 #[derive(Debug, Clone)]
@@ -77,7 +77,7 @@ impl Container {
             .collect();
     }
 
-    pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
+    pub fn get_dock_handle_with_header_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
         if self.get_header_rect().point_is_inside(pos) {
             return Some(self.docks[self.active_dock].handle);
         }
@@ -87,6 +87,14 @@ impl Container {
                 .and_then(|(i, _)| Some(self.docks[i].handle));
         }
         return None;
+    }
+
+    pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
+        if self.rect.point_is_inside(pos) {
+            return Some(self.docks[self.active_dock].handle);
+        } else {
+            return None;
+        }
     }
 
     pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
@@ -107,6 +115,20 @@ impl Container {
         let item_pos = Rect::new(self.rect.x + total_width - 40.0, self.rect.y + 30.0, 80.0, 30.0);
         if item_pos.point_is_inside(pos) {
             return Some((ItemTarget::AppendToContainer(self.docks[0].handle, self.tab_sizes.len()), item_pos));
+        }
+        let w3 = self.rect.width / 3.0;
+        let h3 = self.rect.height / 3.0;
+        let mid = Rect::new(self.rect.x + w3, self.rect.y + h3, w3, h3);
+        if mid.point_is_inside(pos) {
+            return Some((ItemTarget::AppendToContainer(self.docks[0].handle, self.docks.len()), mid));
+        }
+        for &(dist, direction) in [(w3, Direction::Horizontal), (h3, Direction::Vertical)].iter() {
+            for &(mult, place) in [(-1.0, 0), (1.0, 1)].iter() {
+                let place_rect = mid.shifted(direction, dist * mult);
+                if place_rect.point_is_inside(pos) {
+                    return Some((ItemTarget::SplitDock(self.docks[0].handle, direction, place), place_rect));
+                }
+            }
         }
         return None;
     }

@@ -63,6 +63,13 @@ impl Rect {
         }
     }
 
+    pub fn shifted(&self, direction: Direction, dist: f32) -> Rect {
+        match direction {
+            Direction::Horizontal => Rect::new(self.x + dist, self.y, self.width, self.height),
+            Direction::Vertical => Rect::new(self.x, self.y + dist, self.width, self.height),
+        }
+    }
+
     pub fn area_around_splits(&self, direction: Direction, ratios: &[f32], width: f32) -> Vec<Rect> {
         match direction {
             Direction::Horizontal => {

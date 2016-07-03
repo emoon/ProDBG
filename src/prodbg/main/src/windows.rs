@@ -356,7 +356,7 @@ impl Window {
                     if self.win.get_mouse_down(MouseButton::Left) {
                         next_state = Some(State::DraggingSizer(sizer, self.ws.save_state()));
                     }
-                } else if let Some(handle) = self.ws.get_dock_handle_at_pos(mouse_pos) {
+                } else if let Some(handle) = self.ws.get_dock_handle_with_header_at_pos(mouse_pos) {
                     cursor = CursorStyle::ClosedHand;
                     if self.win.get_mouse_down(MouseButton::Left) {
                         next_state = Some(State::DraggingDock(handle));
@@ -406,7 +406,7 @@ impl Window {
                             Imgui::set_window_pos(rect.x, rect.y);
                             Imgui::set_window_size(rect.width, rect.height);
                             Imgui::end_window();*/
-                            if let Some(dh) = self.ws.get_hover_dock(mouse_pos) {
+                            if let Some(dh) = self.ws.get_dock_handle_at_pos(mouse_pos) {
                                 self.drag_handle = Some(dh);
                                 self.drag_rect = rect;
                             }
@@ -422,7 +422,7 @@ impl Window {
                         self.drag_handle = None;
                     }
                 } else {
-                    let swap_target = self.ws.get_dock_handle_at_pos(mouse_pos);
+                    let swap_target = self.ws.get_dock_handle_with_header_at_pos(mouse_pos);
                     println!("{:?}", swap_target);
                     if self.win.get_mouse_down(MouseButton::Left) {
                         cursor = match swap_target {
@@ -460,7 +460,7 @@ impl Window {
                         Imgui::begin_window_float("Overlay", false);
                         Imgui::end_window();*/
 //                        Imgui::render_frame(rect.x, rect.y, rect.width, rect.height, 0x8000FF00);
-                        if let Some(dh) = self.ws.get_hover_dock(mouse_pos) {
+                        if let Some(dh) = self.ws.get_dock_handle_at_pos(mouse_pos) {
                             self.drag_handle = Some(dh);
                             self.drag_rect = rect;
                         }
@@ -679,9 +679,8 @@ impl Window {
         if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
             self.save_cur_workspace_state();
             let new_dock = Dock::new(DockHandle(handle.0), name);
-            if let Some(dock_handle) = self.ws.get_hover_dock(pos) {
-                //self.ws.split_by_dock_handle(direction, dock_handle, new_dock);
-                self.ws.create_dock_at(ItemTarget::SplitDock(dock_handle, direction), new_dock);
+            if let Some(dock_handle) = self.ws.get_dock_handle_at_pos(pos) {
+                self.ws.create_dock_at(ItemTarget::SplitDock(dock_handle, direction, 0), new_dock);
             } else {
                 self.ws.initialize(new_dock);
             }
@@ -697,7 +696,7 @@ impl Window {
             let dock = viewdock::Dock::new(new_handle, name);
             self.views.push(handle);
 
-            if let Some(src_dock_handle) = self.ws.get_hover_dock(pos) {
+            if let Some(src_dock_handle) = self.ws.get_dock_handle_at_pos(pos) {
                 if let Some(ref mut root) = self.ws.root_area {
                     if let Some(ref mut container) = root.get_container_by_dock_handle_mut(src_dock_handle) {
                         container.append_dock(dock);
@@ -726,7 +725,7 @@ impl Window {
         if ui.begin_menu("Change View", true) {
             for name in plugin_names {
                 if ui.menu_item(name, false, true) {
-                    if let Some(dock_handle) = self.ws.get_hover_dock(mouse_pos) {
+                    if let Some(dock_handle) = self.ws.get_dock_handle_at_pos(mouse_pos) {
                         view_plugins.destroy_instance(ViewHandle(dock_handle.0));
                         view_plugins.create_instance_with_handle(Imgui::create_ui_instance(),
                         &name, &None, SessionHandle(0), ViewHandle(dock_handle.0));
