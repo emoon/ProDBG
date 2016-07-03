@@ -349,49 +349,6 @@ impl Workspace {
         }
     }
 
-    pub fn swap_docks(&mut self, first: DockHandle, second: DockHandle) {
-        if let Some(ref mut root) = self.root_area {
-            if first == second {
-                return;
-            }
-            let first_copy;
-            let second_copy;
-            // TODO: use special constant here
-            let marker = DockHandle(u64::max_value());
-            match root.get_container_by_dock_handle_mut(first) {
-                None => return,
-                Some(c) => {
-                    if let Some(ref mut dock) = c.get_dock_mut(first) {
-                        first_copy = dock.clone();
-                        dock.handle = marker;
-                    } else {
-                        return;
-                    }
-                }
-            }
-            match root.get_container_by_dock_handle_mut(second) {
-                None => return,
-                Some(c) => {
-                    if let Some(copy) = c.replace_dock(second, first_copy) {
-                        second_copy = copy;
-                    } else {
-                        // TODO: can we cancel previous operations here?
-                        panic!();
-                    }
-                }
-            }
-            match root.get_container_by_dock_handle_mut(marker) {
-                None => panic!("Tried to swap docks {:?} and {:?} but lost {:?} in the middle", first, second, first),
-                Some(c) => {
-                    if c.replace_dock(marker, second_copy).is_none() {
-                        // TODO: can we cancel previous operations here?
-                        panic!();
-                    }
-                },
-            }
-        }
-    }
-
     pub fn save_state(&self) -> String {
         serde_json::to_string(self).unwrap()
     }

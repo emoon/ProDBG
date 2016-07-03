@@ -23,6 +23,7 @@ use std::fmt;
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 800;
 const WORKSPACE_UNDO_LIMIT: usize = 10;
+const OVERLAY_COLOR: u32 = 0x8000FF00;
 
 enum State {
     Default,
@@ -75,8 +76,7 @@ pub struct Window {
 
     pub menu_id_offset: u32,
 
-    pub drag_rect: Rect,
-    pub drag_handle: Option<DockHandle>,
+    pub overlay: Option<(DockHandle, Rect)>,
 }
 
 struct WindowState {
@@ -150,8 +150,7 @@ impl Windows {
             ws: ws,
             ws_states: ws_states,
             cur_state_index: 0usize,
-            drag_rect: Rect::new(0.0,0.0,0.0,0.0),
-            drag_handle: None,
+            overlay: None,
         });
     }
 
@@ -235,7 +234,7 @@ impl Window {
         }
     }
 
-    fn update_view(ws: &mut Workspace, instance: &mut ViewInstance, session: &mut Session, show_context_menu: bool, mouse: (f32, f32), drag_handle: Option<DockHandle>, drag_rect: Rect) -> WindowState {
+    fn update_view(ws: &mut Workspace, instance: &mut ViewInstance, session: &mut Session, show_context_menu: bool, mouse: (f32, f32), overlay: &Option<(DockHandle, Rect)>) -> WindowState {
         let ui = &instance.ui;
 
         //+Z skip inactive tab
@@ -305,12 +304,11 @@ impl Window {
         let has_shown_menu = Imgui::has_showed_popup(ui.api);
 
         //+Z test drag zone
-        //let pos = ui.get_window_pos();
-        //let size = ui.get_window_size();
-        //Imgui::render_frame(pos.x+size.0-50.0, pos.y, 50.0, size.1, 0x8000FF00);
-        if drag_handle == Some(DockHandle(instance.handle.0)) {
-            println!("{} {} {} {}", drag_rect.x, drag_rect.y, drag_rect.width, drag_rect.height);
-            Imgui::render_frame(drag_rect.x, drag_rect.y, drag_rect.width, drag_rect.height, 0x8000FF00);
+        if let &Some((handle, rect)) = overlay {
+            if handle.0 == instance.handle.0 {
+                println!("{} {} {} {}", rect.x, rect.y, rect.width, rect.height);
+                Imgui::render_frame(rect.x, rect.y, rect.width, rect.height, OVERLAY_COLOR);
+            }
         }
 
         Imgui::end_window();
@@ -383,65 +381,31 @@ impl Window {
             },
 
             State::DraggingDock(handle) => {
-                if !self.win.is_key_down(Key::Tab) {
-                    let move_target = self.ws.get_item_target_at_pos(mouse_pos);
-                    if self.win.get_mouse_down(MouseButton::Left) {
-                        cursor = match move_target {
-                            Some((ref target, _)) => if self.ws.already_at_place(target, handle) {
-                                CursorStyle::ClosedHand
-                            } else {
-                                CursorStyle::OpenHand
-                            },
-                            None => CursorStyle::ClosedHand
-                        };
-                        if let Some((ref target, rect)) = move_target {
-                            // TODO: draw good overlay here
-                            /*Imgui::begin_window_float("Overlay", true);
-                            Imgui::set_window_pos(rect.x, rect.y);
-                            Imgui::set_window_size(rect.width, rect.height);
-                            Imgui::end_window();*/
-                            if self.ws.already_at_place(target, handle) {
-                                self.drag_handle = None;
-                            } else {
-                                if let Some(dh) = self.ws.get_dock_handle_at_pos(mouse_pos) {
-                                    println!("{:?}", target);
-                                    self.drag_handle = Some(dh);
-                                    self.drag_rect = rect;
-                                }
-                                else {self.drag_handle = None;}
-                            }
+                let move_target = self.ws.get_item_target_at_pos(mouse_pos)
+                    .and_then(|target| match self.ws.already_at_place(&target.0, handle) {
+                        false => Some(target),
+                        true => None,
+                    });
+                if self.win.get_mouse_down(MouseButton::Left) {
+                    cursor = match move_target {
+                        Some(_) => CursorStyle::OpenHand,
+                        None => CursorStyle::ClosedHand
+                    };
+                    if let Some((_, rect)) = move_target {
+                        if let Some(dh) = self.ws.get_dock_handle_at_pos(mouse_pos) {
+                            self.overlay = Some((dh, rect));
+                        } else {
+                            self.overlay = None;
                         }
-                    } else {
-                        if let Some((target, _)) = move_target {
-                            if !self.ws.already_at_place(&target, handle) {
-                                self.save_cur_workspace_state();
-                                self.ws.move_dock(handle, target);
-                            }
-                        }
-                        next_state = Some(State::Default);
-                        cursor = CursorStyle::Arrow;
-                        self.drag_handle = None;
                     }
                 } else {
-                    let swap_target = self.ws.get_dock_handle_with_header_at_pos(mouse_pos);
-                    println!("{:?}", swap_target);
-                    if self.win.get_mouse_down(MouseButton::Left) {
-                        cursor = match swap_target {
-                            Some(drop_handle) if handle != drop_handle => CursorStyle::OpenHand,
-                            // TODO: make sure this cursor style works. Did not work with minifb 0.8.0
-                            _ => CursorStyle::ClosedHand,
-                        }
-                    } else {
-                        if let Some(drop_handle) = swap_target {
-                            if drop_handle != handle {
-                                self.save_cur_workspace_state();
-                                self.ws.swap_docks(handle, drop_handle);
-                            }
-                        }
-                        next_state = Some(State::Default);
-                        cursor = CursorStyle::Arrow;
-                        self.drag_handle = None;
+                    if let Some((target, _)) = move_target {
+                        self.save_cur_workspace_state();
+                        self.ws.move_dock(handle, target);
                     }
+                    next_state = Some(State::Default);
+                    cursor = CursorStyle::Arrow;
+                    self.overlay = None;
                 }
             }
         }
@@ -535,7 +499,7 @@ impl Window {
         for view in &self.views {
             if let Some(ref mut v) = view_plugins.get_view(*view) {
                 if let Some(ref mut s) = sessions.get_session(v.session_handle) {
-                    let state = Self::update_view(&mut self.ws, v, s, show_context_menu, mouse, self.drag_handle, self.drag_rect);
+                    let state = Self::update_view(&mut self.ws, v, s, show_context_menu, mouse, &self.overlay);
 
                     if state.should_close {
                        views_to_delete.push(*view);
