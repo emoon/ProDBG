@@ -158,7 +158,6 @@ impl Workspace {
         self.root_area.as_ref().map(|root| {
             match *target {
                 ItemTarget::SplitDock(target_handle, direction, pos) => {
-                    println!("Normalizing {:?}", *target);
                     let res = if let Some((sh, position)) = root.get_split_by_dock_handle(target_handle) {
                         if sh.direction != direction { // split with different direction
                             ItemTarget::SplitContainer(sh.handle, position, pos)
@@ -168,7 +167,6 @@ impl Workspace {
                     } else {
                         ItemTarget::SplitRoot(direction, pos)
                     };
-                    println!("Result is {:?}", res);
                     return res;
                 },
                 _ => (*target).clone()
@@ -188,7 +186,7 @@ impl Workspace {
             if let Some(ref root) = self.root_area {
                 let mut single_dock = true;
                 if let Some(container) = root.get_container_by_dock_handle(handle) {
-                    single_dock = container.docks.len() > 1;
+                    single_dock = container.docks.len() == 1;
                 }
                 match target {
                     ItemTarget::AppendToSplit(target_handle, target_index) if single_dock => {
@@ -199,12 +197,10 @@ impl Workspace {
                     },
                     ItemTarget::AppendToContainer(target_handle, target_index) => {
                         if let Some(container) = root.get_container_by_dock_handle(target_handle) {
-                            if container.has_dock(handle) {
-                                if let Some(cur_index) = container.docks.iter()
-                                    .position(|dock| dock.handle == handle) {
+                            if let Some(cur_index) = container.docks.iter()
+                                .position(|dock| dock.handle == handle) {
 
-                                    res = Self::index_is_neighbour(cur_index, target_index);
-                                }
+                                res = Self::index_is_neighbour(cur_index, target_index);
                             }
                         }
                     },
@@ -221,9 +217,7 @@ impl Workspace {
     }
 
     pub fn create_dock_at(&mut self, target: ItemTarget, dock: Dock) {
-        println!("{:?}", target);
         if let Some(target) = self.normalize_target(&target) {
-            println!("{:?}", target);
             match target {
                 ItemTarget::SplitRoot(direction, index) => {
                     let next_handle = self.next_handle();
@@ -327,7 +321,7 @@ impl Workspace {
         }
     }
 
-    pub fn move_dock(&mut self, handle: DockHandle, target: ItemTarget) {
+    pub fn move_dock(&mut self, handle: DockHandle, mut target: ItemTarget) {
         // TODO: use special constant here
         let marker = DockHandle(u64::max_value());
         let copy = self.root_area.as_mut()
@@ -338,6 +332,19 @@ impl Workspace {
                 dock.handle = marker;
                 return res;
             });
+        match target {
+            ItemTarget::SplitDock(ref mut target_handle, _, _) => {
+                if *target_handle == handle {
+                    *target_handle = marker;
+                }
+            },
+            ItemTarget::AppendToContainer(ref mut target_handle, _) => {
+                if *target_handle == handle {
+                    *target_handle = marker;
+                }
+            },
+            _ => {}
+        }
         if let Some(dock) = copy {
             self.create_dock_at(target, dock);
             self.delete_dock_by_handle(marker);
