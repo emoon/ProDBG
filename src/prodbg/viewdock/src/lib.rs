@@ -170,7 +170,7 @@ impl Workspace {
         })
     }
 
-    pub fn create_dock_at<'a>(&'a mut self, target: ItemTarget, dock: Dock) {
+    pub fn create_dock_at(&mut self, target: ItemTarget, dock: Dock) {
         match target {
             ItemTarget::SplitRoot(direction, index) => {
                 let next_handle = self.next_handle();
