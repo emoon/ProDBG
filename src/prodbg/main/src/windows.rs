@@ -414,6 +414,7 @@ impl Window {
                                 self.drag_handle = None;
                             } else {
                                 if let Some(dh) = self.ws.get_dock_handle_at_pos(mouse_pos) {
+                                    println!("{:?}", target);
                                     self.drag_handle = Some(dh);
                                     self.drag_rect = rect;
                                 }

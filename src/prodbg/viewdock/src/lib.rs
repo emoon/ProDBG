@@ -158,7 +158,8 @@ impl Workspace {
         self.root_area.as_ref().map(|root| {
             match *target {
                 ItemTarget::SplitDock(target_handle, direction, pos) => {
-                    if let Some((sh, position)) = root.get_split_by_dock_handle(target_handle) {
+                    println!("Normalizing {:?}", *target);
+                    let res = if let Some((sh, position)) = root.get_split_by_dock_handle(target_handle) {
                         if sh.direction != direction { // split with different direction
                             ItemTarget::SplitContainer(sh.handle, position, pos)
                         } else {
@@ -166,7 +167,9 @@ impl Workspace {
                         }
                     } else {
                         ItemTarget::SplitRoot(direction, pos)
-                    }
+                    };
+                    println!("Result is {:?}", res);
+                    return res;
                 },
                 _ => (*target).clone()
             }
@@ -183,22 +186,31 @@ impl Workspace {
         let mut res = false;
         if let Some(target) = self.normalize_target(target) {
             if let Some(ref root) = self.root_area {
+                let mut single_dock = true;
+                if let Some(container) = root.get_container_by_dock_handle(handle) {
+                    single_dock = container.docks.len() > 1;
+                }
                 match target {
-                    ItemTarget::AppendToSplit(target_handle, target_index) => {
+                    ItemTarget::AppendToSplit(target_handle, target_index) if single_dock => {
                         if let Some((split, cur_index)) = root.get_split_by_dock_handle(handle) {
                             res = split.handle == target_handle
                                 && Self::index_is_neighbour(cur_index, target_index)
                         }
                     },
                     ItemTarget::AppendToContainer(target_handle, target_index) => {
-                        if let Some(container) = root.get_container_by_dock_handle(handle) {
-                            if container.has_dock(target_handle) {
+                        if let Some(container) = root.get_container_by_dock_handle(target_handle) {
+                            if container.has_dock(handle) {
                                 if let Some(cur_index) = container.docks.iter()
                                     .position(|dock| dock.handle == handle) {
 
                                     res = Self::index_is_neighbour(cur_index, target_index);
                                 }
                             }
+                        }
+                    },
+                    ItemTarget::SplitContainer(target_handle, target_index, _) if single_dock => {
+                        if let Some((split, cur_index)) = root.get_split_by_dock_handle(handle) {
+                            res = split.handle == target_handle && cur_index == target_index;
                         }
                     },
                     _ => {}
