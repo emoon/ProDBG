@@ -126,7 +126,7 @@ impl Container {
             for &(mult, place) in [(-1.0, 0), (1.0, 1)].iter() {
                 let place_rect = mid.shifted(direction, dist * mult);
                 if place_rect.point_is_inside(pos) {
-                    return Some((ItemTarget::SplitDock(self.docks[0].handle, direction, place), place_rect));
+                    return Some((ItemTarget::SplitDock(self.docks[0].handle, direction.opposite(), place), place_rect));
                 }
             }
         }

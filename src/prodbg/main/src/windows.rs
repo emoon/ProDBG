@@ -397,25 +397,35 @@ impl Window {
                     let move_target = self.ws.get_item_target_at_pos(mouse_pos);
                     if self.win.get_mouse_down(MouseButton::Left) {
                         cursor = match move_target {
-                            Some(_) => CursorStyle::OpenHand,
+                            Some((ref target, _)) => if self.ws.already_at_place(target, handle) {
+                                CursorStyle::ClosedHand
+                            } else {
+                                CursorStyle::OpenHand
+                            },
                             None => CursorStyle::ClosedHand
                         };
-                        if let Some((_, rect)) = move_target {
+                        if let Some((ref target, rect)) = move_target {
                             // TODO: draw good overlay here
                             /*Imgui::begin_window_float("Overlay", true);
                             Imgui::set_window_pos(rect.x, rect.y);
                             Imgui::set_window_size(rect.width, rect.height);
                             Imgui::end_window();*/
-                            if let Some(dh) = self.ws.get_dock_handle_at_pos(mouse_pos) {
-                                self.drag_handle = Some(dh);
-                                self.drag_rect = rect;
+                            if self.ws.already_at_place(target, handle) {
+                                self.drag_handle = None;
+                            } else {
+                                if let Some(dh) = self.ws.get_dock_handle_at_pos(mouse_pos) {
+                                    self.drag_handle = Some(dh);
+                                    self.drag_rect = rect;
+                                }
+                                else {self.drag_handle = None;}
                             }
-                            else {self.drag_handle = None;}
                         }
                     } else {
                         if let Some((target, _)) = move_target {
-                            self.save_cur_workspace_state();
-                            self.ws.move_dock(handle, target);
+                            if !self.ws.already_at_place(&target, handle) {
+                                self.save_cur_workspace_state();
+                                self.ws.move_dock(handle, target);
+                            }
                         }
                         next_state = Some(State::Default);
                         cursor = CursorStyle::Arrow;

@@ -56,7 +56,7 @@ pub struct Workspace {
 
 pub type ResultView<T> = std::result::Result<T, Error>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ItemTarget {
     // TODO: use (Direction, bool) instead
     /// Direction of split and position (0 for first child, 1 for second child)
@@ -170,52 +170,10 @@ impl Workspace {
         })
     }
 
-    pub fn create_dock_at(&mut self, target: ItemTarget, dock: Dock) {
-        match target {
-            ItemTarget::SplitRoot(direction, index) => {
-                let next_handle = self.next_handle();
-                if let Some(ref mut root) = self.root_area {
-                    let old_root = root.clone();
-                    let new_dock = Area::container_from_dock(dock);
-                    let new_child = if index == 0 {
-                        Split::from_two(direction, 0.5, next_handle, self.rect.clone(), new_dock, old_root)
-                    } else {
-                        Split::from_two(direction, 0.5, next_handle, self.rect.clone(), old_root, new_dock)
-                    };
-                    *root = Area::Split(new_child);
-                }
-            },
-            ItemTarget::AppendToSplit(handle, index) => {
-                if let Some(ref mut root) = self.root_area {
-                    if let Some(s) = root.get_split_by_handle(handle) {
-                        s.append_child(index, Area::container_from_dock(dock));
-                    }
-                }
-            },
-            ItemTarget::SplitContainer(handle, index, new_index) => {
-                let next_handle = self.next_handle();
-                if let Some(ref mut root) = self.root_area {
-                    if let Some(s) = root.get_split_by_handle(handle) {
-                        let old_copy = s.children[index].clone();
-                        let new_dock = Area::container_from_dock(dock);
-                        let new_child = Area::Split(if new_index == 0 {
-                            Split::from_two(s.direction.opposite(), 0.5, next_handle, self.rect.clone(), new_dock, old_copy)
-                        } else {
-                            Split::from_two(s.direction.opposite(), 0.5, next_handle, self.rect.clone(), old_copy, new_dock)
-                        });
-                        s.replace_child(index, new_child);
-                    }
-                }
-            },
-            ItemTarget::AppendToContainer(handle, new_index) => {
-                if let Some(ref mut root) = self.root_area {
-                    if let Some(c) = root.get_container_by_dock_handle_mut(handle) {
-                        c.insert_dock(new_index, dock);
-                    }
-                }
-            },
-            ItemTarget::SplitDock(target_handle, direction, pos) => {
-                let new_target = self.root_area.as_mut().map(|root| {
+    fn normalize_target(&self, target: &ItemTarget) -> Option<ItemTarget> {
+        self.root_area.as_ref().map(|root| {
+            match *target {
+                ItemTarget::SplitDock(target_handle, direction, pos) => {
                     if let Some((sh, position)) = root.get_split_by_dock_handle(target_handle) {
                         if sh.direction != direction { // split with different direction
                             ItemTarget::SplitContainer(sh.handle, position, pos)
@@ -225,9 +183,98 @@ impl Workspace {
                     } else {
                         ItemTarget::SplitRoot(direction, pos)
                     }
-                });
-                self.create_dock_at(new_target.unwrap(), dock);
-            },
+                },
+                _ => (*target).clone()
+            }
+        })
+    }
+
+    fn index_is_neighbour(first: usize, second: usize) -> bool {
+        first == second ||
+        first + 1 == second ||
+        first == second + 1
+    }
+
+    pub fn already_at_place(&self, target: &ItemTarget, handle: DockHandle) -> bool {
+        let mut res = false;
+        if let Some(target) = self.normalize_target(target) {
+            if let Some(ref root) = self.root_area {
+                match target {
+                    ItemTarget::AppendToSplit(target_handle, target_index) => {
+                        if let Some((split, cur_index)) = root.get_split_by_dock_handle(handle) {
+                            res = split.handle == target_handle
+                                && Self::index_is_neighbour(cur_index, target_index)
+                        }
+                    },
+                    ItemTarget::AppendToContainer(target_handle, target_index) => {
+                        if let Some(container) = root.get_container_by_dock_handle(handle) {
+                            if container.has_dock(target_handle) {
+                                if let Some(cur_index) = container.docks.iter()
+                                    .position(|dock| dock.handle == handle) {
+
+                                    res = Self::index_is_neighbour(cur_index, target_index);
+                                }
+                            }
+                        }
+                    },
+                    _ => {}
+                }
+            }
+        }
+        return res;
+    }
+
+    pub fn create_dock_at(&mut self, target: ItemTarget, dock: Dock) {
+        println!("{:?}", target);
+        if let Some(target) = self.normalize_target(&target) {
+            println!("{:?}", target);
+            match target {
+                ItemTarget::SplitRoot(direction, index) => {
+                    let next_handle = self.next_handle();
+                    if let Some(ref mut root) = self.root_area {
+                        let old_root = root.clone();
+                        let new_dock = Area::container_from_dock(dock);
+                        let new_child = if index == 0 {
+                            Split::from_two(direction, 0.5, next_handle, self.rect.clone(), new_dock, old_root)
+                        } else {
+                            Split::from_two(direction, 0.5, next_handle, self.rect.clone(), old_root, new_dock)
+                        };
+                        *root = Area::Split(new_child);
+                    }
+                },
+                ItemTarget::AppendToSplit(handle, index) => {
+                    if let Some(ref mut root) = self.root_area {
+                        if let Some(s) = root.get_split_by_handle(handle) {
+                            s.append_child(index, Area::container_from_dock(dock));
+                        }
+                    }
+                },
+                ItemTarget::SplitContainer(handle, index, new_index) => {
+                    let next_handle = self.next_handle();
+                    if let Some(ref mut root) = self.root_area {
+                        if let Some(s) = root.get_split_by_handle(handle) {
+                            let old_copy = s.children[index].clone();
+                            let new_dock = Area::container_from_dock(dock);
+                            let new_child = Area::Split(if new_index == 0 {
+                                Split::from_two(s.direction.opposite(), 0.5, next_handle, self.rect.clone(), new_dock, old_copy)
+                            } else {
+                                Split::from_two(s.direction.opposite(), 0.5, next_handle, self.rect.clone(), old_copy, new_dock)
+                            });
+                            s.replace_child(index, new_child);
+                        }
+                    }
+                },
+                ItemTarget::AppendToContainer(handle, new_index) => {
+                    if let Some(ref mut root) = self.root_area {
+                        if let Some(c) = root.get_container_by_dock_handle_mut(handle) {
+                            c.insert_dock(new_index, dock);
+                        }
+                    }
+                },
+                _ => {
+                    // Should never happen due to normalization
+                }
+            }
         }
     }
 
@@ -249,7 +296,7 @@ impl Workspace {
         }
         if let Some(ref mut root) = self.root_area {
             let mut should_adopt = None;
-            if let Some((split, index)) = root.get_split_by_dock_handle(handle) {
+            if let Some((split, index)) = root.get_split_by_dock_handle_mut(handle) {
                 let mut should_remove_child = false;
                 if let Area::Container(ref mut container) = split.children[index] {
                     container.remove_dock(handle);

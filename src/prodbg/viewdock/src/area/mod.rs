@@ -36,7 +36,27 @@ impl Area {
     }
 
     /// Finds Area::Split which contains Container with supplied DockHandle
-    pub fn get_split_by_dock_handle(&mut self, handle: DockHandle) -> Option<(&mut Split, usize)> {
+    pub fn get_split_by_dock_handle(&self, handle: DockHandle) -> Option<(&Split, usize)> {
+        if let Area::Split(ref s) = *self {
+            let found_child = s.children.iter().position(|child| {
+                match *child {
+                    Area::Container(ref c) => c.has_dock(handle),
+                    _ => false,
+                }
+            });
+            return match found_child {
+                Some(position) => Some((s, position)),
+                None => s.children.iter()
+                    .map(|child| child.get_split_by_dock_handle(handle))
+                    .find(|res| res.is_some())
+                    .and_then(|res| res)
+            }
+        }
+        return None;
+    }
+
+    /// Finds Area::Split which contains Container with supplied DockHandle
+    pub fn get_split_by_dock_handle_mut(&mut self, handle: DockHandle) -> Option<(&mut Split, usize)> {
         if let Area::Split(ref mut s) = *self {
             let found_child = s.children.iter_mut().position(|child| {
                 match *child {
@@ -47,7 +67,7 @@ impl Area {
             return match found_child {
                 Some(position) => Some((s, position)),
                 None => s.children.iter_mut()
-                    .map(|child| child.get_split_by_dock_handle(handle))
+                    .map(|child| child.get_split_by_dock_handle_mut(handle))
                     .find(|res| res.is_some())
                     .and_then(|res| res)
             }
