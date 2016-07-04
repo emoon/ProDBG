@@ -175,7 +175,6 @@ impl Windows {
                   sessions: &mut Sessions,
                   view_plugins: &mut ViewPlugins,
                   backend_plugins: &mut BackendPlugins) {
-        sleep(Duration::from_millis(100));
         for i in (0..self.windows.len()).rev() {
             self.windows[i].update(sessions, view_plugins, backend_plugins);
 
@@ -183,6 +182,7 @@ impl Windows {
                 self.windows.swap_remove(i);
             }
         }
+        sleep(Duration::from_millis(5));
     }
 
     pub fn get_current(&mut self) -> &mut Window {
