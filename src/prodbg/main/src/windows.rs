@@ -79,7 +79,7 @@ pub struct Window {
     pub menu_id_offset: u32,
 
     pub overlay: Option<(DockHandle, Rect)>,
-    pub context_dock_handle: Option<DockHandle>,
+    pub context_menu_data: Option<(DockHandle, (f32, f32))>,
 }
 
 struct WindowState {
@@ -154,7 +154,7 @@ impl Windows {
             ws_states: ws_states,
             cur_state_index: 0usize,
             overlay: None,
-            context_dock_handle: None,
+            context_menu_data: None,
         });
     }
 
@@ -510,7 +510,8 @@ impl Window {
 
         let show_context_menu = self.win.get_mouse_down(MouseButton::Right);
         if show_context_menu {
-            self.context_dock_handle = self.ws.get_dock_handle_at_pos(mouse);
+            self.context_menu_data = self.ws.get_dock_handle_at_pos(mouse)
+                .map(|handle| (handle, mouse));
         }
 
         for view in &self.views {
@@ -634,8 +635,16 @@ impl Window {
         if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
             self.save_cur_workspace_state();
             let new_dock = Dock::new(DockHandle(handle.0), name);
-            if let Some(dock_handle) = self.context_dock_handle { //self.ws.get_dock_handle_at_pos(pos) {
-                self.ws.create_dock_at(ItemTarget::SplitDock(dock_handle, direction, 1), new_dock);
+            if let Some((dock_handle, pos)) = self.context_menu_data {
+                let position = self.ws.get_rect_by_handle(dock_handle).map(|rect| {
+                    let lower_rect = rect.split_by_direction(direction, &[0.5])[0];
+                    return if lower_rect.point_is_inside(pos) {
+                        0
+                    } else {
+                        1
+                    }
+                }).unwrap_or(1);
+                self.ws.create_dock_at(ItemTarget::SplitDock(dock_handle, direction, position), new_dock);
             } else {
                 self.ws.initialize(new_dock);
             }
@@ -651,7 +660,7 @@ impl Window {
             let dock = viewdock::Dock::new(new_handle, name);
             self.views.push(handle);
 
-            if let Some(src_dock_handle) = self.context_dock_handle { //self.ws.get_dock_handle_at_pos(pos) {
+            if let Some((src_dock_handle, _)) = self.context_menu_data {
                 if let Some(ref mut root) = self.ws.root_area {
                     if let Some(ref mut container) = root.get_container_by_dock_handle_mut(src_dock_handle) {
                         container.append_dock(dock);
@@ -680,7 +689,7 @@ impl Window {
         if ui.begin_menu("Change View", true) {
             for name in plugin_names {
                 if ui.menu_item(name, false, true) {
-                    if let Some(dock_handle) = self.context_dock_handle { //self.ws.get_dock_handle_at_pos(mouse_pos) {
+                    if let Some((dock_handle, _)) = self.context_menu_data {
                         view_plugins.destroy_instance(ViewHandle(dock_handle.0));
                         view_plugins.create_instance_with_handle(Imgui::create_ui_instance(),
                         &name, &None, SessionHandle(0), ViewHandle(dock_handle.0));
