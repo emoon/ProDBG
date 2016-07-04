@@ -118,7 +118,7 @@ impl Container {
         let h3 = self.rect.height / 3.0;
         let mid = Rect::new(self.rect.x + w3, self.rect.y + h3, w3, h3);
         if mid.point_is_inside(pos) {
-            return Some((ItemTarget::AppendToContainer(self.docks[0].handle, self.docks.len()), mid));
+            return Some((ItemTarget::AppendToContainer(self.docks[0].handle, self.docks.len()), self.rect));
         }
         for &(dist, over_dist, direction) in [(w3, self.rect.width/2.0, Direction::Horizontal), (h3, self.rect.height/2.0, Direction::Vertical)].iter() {
             for &(mult, place) in [(-1.0, 0), (1.0, 1)].iter() {
