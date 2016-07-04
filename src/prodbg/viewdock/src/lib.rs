@@ -112,8 +112,7 @@ impl Workspace {
         })
     }
 
-    // TODO: rename into `update_rect`
-    pub fn update(&mut self, new_rect: Rect) {
+    pub fn update_rect(&mut self, new_rect: Rect) {
         self.rect = new_rect;
         if let Some(ref mut a) = self.root_area {
             a.update_rect(new_rect);

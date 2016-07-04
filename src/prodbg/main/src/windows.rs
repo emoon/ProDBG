@@ -496,7 +496,7 @@ impl Window {
         Bgfx::update_window_size(win_size.0 as i32, win_size.1 as i32);
 
         self.win.update();
-        self.ws.update(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
+        self.ws.update_rect(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
         self.update_key_state();
 
         let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
@@ -573,7 +573,7 @@ impl Window {
     fn restore_workspace_state(&mut self, view_plugins: &mut ViewPlugins) {
         self.ws = Workspace::from_state(&self.ws_states[self.cur_state_index]);
         let win_size = self.win.get_size();
-        self.ws.update(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
+        self.ws.update_rect(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
         let docks = self.ws.get_docks();
         let views_to_delete: Vec<ViewHandle> = self.views.iter()
             .filter(|view| docks.iter().find(|dock| view.0 == dock.handle.0).is_none())
