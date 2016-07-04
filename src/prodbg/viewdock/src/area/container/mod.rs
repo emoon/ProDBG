@@ -132,14 +132,8 @@ impl Container {
     }
 
     pub fn update_tab_borders(&mut self, sizes: &[f32]) {
-        // TODO: store tab positions instead of tab sizes
-        if sizes.len() == self.docks.len() {
-            for (mut size, new_size) in self.tab_borders.iter_mut().zip(sizes) {
-                *size = *new_size;
-            }
-        } else {
-            // TODO: do we really need to panic here?
-            panic!("Wrong tab sizes! Expected {}, but got {}", self.docks.len(), sizes.len());
+        for (mut size, new_size) in self.tab_borders.iter_mut().zip(sizes) {
+            *size = *new_size;
         }
     }
 }
