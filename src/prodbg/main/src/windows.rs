@@ -661,14 +661,18 @@ impl Window {
             let dock = viewdock::Dock::new(new_handle, name);
             self.views.push(handle);
 
+            let mut should_save_ws = false;
             if let Some((src_dock_handle, _)) = self.context_menu_data {
                 if let Some(ref mut root) = self.ws.root_area {
                     if let Some(ref mut container) = root.get_container_by_dock_handle_mut(src_dock_handle) {
                         container.append_dock(dock);
+                        should_save_ws = true;
                     }
                 }
             }
-
+            if should_save_ws {
+                self.save_cur_workspace_state();
+            }
         }
     }
     fn show_popup_menu_no_splits(&mut self, plugin_names: &Vec<String>, view_plugins: &mut ViewPlugins) {
