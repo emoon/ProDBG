@@ -79,14 +79,24 @@ impl Split {
 
     pub fn change_ratio(&mut self, index: usize, delta: (f32, f32)) {
         let scale = Self::map_rect_to_delta(self, delta);
+        let max = if index < self.ratios.len() - 1 {
+            self.ratios[index + 1]
+        } else {
+            1.0
+        };
+        let min = if index > 0 {
+            self.ratios[index - 1]
+        } else {
+            0.0
+        };
         let mut res = self.ratios[index] + scale;
 
-        if res < 0.01 {
-            res = 0.01;
+        if res < min {
+            res = min;
         }
 
-        if res > 0.99 {
-            res = 0.99;
+        if res > max {
+            res = max;
         }
 
         self.ratios[index] = res;
