@@ -120,11 +120,12 @@ impl Container {
         if mid.point_is_inside(pos) {
             return Some((ItemTarget::AppendToContainer(self.docks[0].handle, self.docks.len()), mid));
         }
-        for &(dist, direction) in [(w3, Direction::Horizontal), (h3, Direction::Vertical)].iter() {
+        for &(dist, over_dist, direction) in [(w3, self.rect.width/2.0, Direction::Horizontal), (h3, self.rect.height/2.0, Direction::Vertical)].iter() {
             for &(mult, place) in [(-1.0, 0), (1.0, 1)].iter() {
                 let place_rect = mid.shifted(direction, dist * mult);
+                let over_rect = self.rect.shifted_clip(direction, over_dist * mult);
                 if place_rect.point_is_inside(pos) {
-                    return Some((ItemTarget::SplitDock(self.docks[0].handle, direction.opposite(), place), place_rect));
+                    return Some((ItemTarget::SplitDock(self.docks[0].handle, direction.opposite(), place), over_rect));
                 }
             }
         }

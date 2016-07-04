@@ -77,6 +77,13 @@ impl Rect {
         }
     }
 
+    pub fn shifted_clip(&self, direction: Direction, dist: f32) -> Rect {
+        match direction {
+            Direction::Horizontal => Rect::new(self.x + if dist>0.0 {dist} else {0.0}, self.y, self.width - dist.abs(), self.height),
+            Direction::Vertical => Rect::new(self.x, self.y + if dist>0.0 {dist} else {0.0}, self.width, self.height - dist.abs()),
+        }
+    }
+
     pub fn shrinked(&self, direction: Direction, size: f32, side: ShrinkSide) -> Rect {
         let mut res = self.clone();
         {
