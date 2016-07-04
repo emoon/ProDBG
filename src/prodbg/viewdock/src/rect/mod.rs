@@ -15,6 +15,13 @@ impl Direction {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum ShrinkSide {
+    Lower,
+    Higher,
+    Both
+}
+
 /// Data structure for rectangles
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Rect {
@@ -68,6 +75,30 @@ impl Rect {
             Direction::Horizontal => Rect::new(self.x + dist, self.y, self.width, self.height),
             Direction::Vertical => Rect::new(self.x, self.y + dist, self.width, self.height),
         }
+    }
+
+    pub fn shrinked(&self, direction: Direction, size: f32, side: ShrinkSide) -> Rect {
+        let mut res = self.clone();
+        {
+            let (start, dimesion) = match direction {
+                Direction::Horizontal => (&mut res.x, &mut res.width),
+                Direction::Vertical => (&mut res.y, &mut res.height),
+            };
+            match side {
+                ShrinkSide::Lower => {
+                    *start += size;
+                    *dimesion -= size;
+                },
+                ShrinkSide::Higher => {
+                    *dimesion -= size;
+                },
+                ShrinkSide::Both => {
+                    *start += size;
+                    *dimesion -= size * 2.0;
+                }
+            }
+        }
+        return res;
     }
 
     pub fn area_around_splits(&self, direction: Direction, ratios: &[f32], width: f32) -> Vec<Rect> {

@@ -1,7 +1,7 @@
 mod serialize;
 
 use super::{Area, SizerPos};
-use rect::{Rect, Direction};
+use rect::{Rect, Direction, ShrinkSide};
 
 /// Handle to a split
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -22,6 +22,8 @@ pub struct Split {
     pub rect: Rect,
 }
 
+const SIZER_WIDTH: f32 = 4.0;
+
 impl Split {
     pub fn from_two(direction: Direction, ratio: f32, handle: SplitHandle, rect: Rect, first: Area, second: Area) -> Split {
         let mut res = Split {
@@ -37,8 +39,14 @@ impl Split {
 
     fn update_children_sizes(&mut self) {
         let rects = self.rect.split_by_direction(self.direction, &self.ratios);
-        for (child, rect) in self.children.iter_mut().zip(rects.iter()) {
-            child.update_rect(*rect);
+        let last_index = self.children.len() - 1;
+        for (index, (child, rect)) in self.children.iter_mut().zip(rects.iter()).enumerate() {
+            let side = match index {
+                0 => ShrinkSide::Higher,
+                x if x == last_index => ShrinkSide::Lower,
+                _ => ShrinkSide::Both,
+            };
+            child.update_rect(rect.shrinked(self.direction.opposite(), SIZER_WIDTH / 2.0, side));
         }
     }
 
