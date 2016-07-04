@@ -233,7 +233,7 @@ impl Workspace {
                 ItemTarget::AppendToSplit(handle, index) => {
                     if let Some(ref mut root) = self.root_area {
                         if let Some(s) = root.get_split_by_handle(handle) {
-                            s.append_child(index, Area::container_from_dock(dock));
+                            s.insert_child(index, Area::container_from_dock(dock));
                         }
                     }
                 },

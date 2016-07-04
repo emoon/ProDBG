@@ -100,8 +100,7 @@ impl Split {
         return res;
     }
 
-    // TODO: rename into `insert_child`
-    pub fn append_child(&mut self, index: usize, child: Area) {
+    pub fn insert_child(&mut self, index: usize, child: Area) {
         if index > self.children.len() - 1 {
             return self.push_child(child);
         }
