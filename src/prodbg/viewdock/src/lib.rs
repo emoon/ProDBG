@@ -58,7 +58,6 @@ pub type ResultView<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, Clone)]
 pub enum ItemTarget {
-    // TODO: use (Direction, bool) instead
     /// Direction of split and position (0 for first child, 1 for second child)
     SplitRoot(Direction, usize),
     /// Handle of split to change and index of new Dock
