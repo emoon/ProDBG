@@ -292,7 +292,6 @@ impl Window {
         //+Z test drag zone
         if let &Some((handle, rect)) = overlay {
             if handle.0 == instance.handle.0 {
-                //println!("{} {} {} {}", rect.x, rect.y, rect.width, rect.height);
                 Imgui::render_frame(rect.x, rect.y, rect.width, rect.height, OVERLAY_COLOR);
             }
         }
@@ -411,6 +410,8 @@ impl Window {
                         } else {
                             self.overlay = None;
                         }
+                    } else {
+                        self.overlay = None;
                     }
                 } else {
                     if let Some((target, _)) = move_target {
