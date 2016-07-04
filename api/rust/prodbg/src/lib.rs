@@ -5,6 +5,7 @@ pub mod menu_service;
 pub mod read_write;
 pub mod backend;
 pub mod plugin_handler;
+pub mod id_register;
 pub mod service;
 pub mod message_service;
 pub mod capstone_service;
@@ -32,4 +33,5 @@ pub use cfixed_string::*;
 pub use io::*;
 pub use menu_service::*;
 pub use events::*;
+pub use id_register::*;
 

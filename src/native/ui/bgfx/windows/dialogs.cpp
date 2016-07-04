@@ -1,6 +1,6 @@
 #include "../dialogs.h"
 //#include "core/core.h"
-#include <uv.h>
+//#include <uv.h>
 #include <windows.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,7 +24,7 @@ int Dialog_open(char* path) {
 
     int state = GetOpenFileName(&ofn);
 
-    uv_utf16_to_utf8(filename, size, path, 4096);
+    //uv_utf16_to_utf8(filename, size, path, 4096);
 
     return size;
 }
