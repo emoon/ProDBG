@@ -320,7 +320,6 @@ impl Workspace {
     }
 
     pub fn move_dock(&mut self, handle: DockHandle, mut target: ItemTarget) {
-        // TODO: use special constant here
         let marker = DockHandle(u64::max_value());
         let copy = self.root_area.as_mut()
             .and_then(|root| root.get_container_by_dock_handle_mut(handle))
