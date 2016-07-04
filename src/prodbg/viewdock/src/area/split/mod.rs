@@ -1,8 +1,7 @@
 mod serialize;
 
-use super::{Area, DragTarget, DropTarget};
-use dock::DockHandle;
-use rect::{Rect, Direction};
+use super::{Area, SizerPos};
+use rect::{Rect, Direction, ShrinkSide};
 
 /// Handle to a split
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -23,6 +22,8 @@ pub struct Split {
     pub rect: Rect,
 }
 
+const SIZER_WIDTH: f32 = 4.0;
+
 impl Split {
     pub fn from_two(direction: Direction, ratio: f32, handle: SplitHandle, rect: Rect, first: Area, second: Area) -> Split {
         let mut res = Split {
@@ -38,8 +39,14 @@ impl Split {
 
     fn update_children_sizes(&mut self) {
         let rects = self.rect.split_by_direction(self.direction, &self.ratios);
-        for (child, rect) in self.children.iter_mut().zip(rects.iter()) {
-            child.update_rect(*rect);
+        let last_index = self.children.len() - 1;
+        for (index, (child, rect)) in self.children.iter_mut().zip(rects.iter()).enumerate() {
+            let side = match index {
+                0 => ShrinkSide::Higher,
+                x if x == last_index => ShrinkSide::Lower,
+                _ => ShrinkSide::Both,
+            };
+            child.update_rect(rect.shrinked(self.direction.opposite(), SIZER_WIDTH / 2.0, side));
         }
     }
 
@@ -48,25 +55,19 @@ impl Split {
         self.update_children_sizes();
     }
 
-    fn get_child_at_pos(&self, pos: (f32, f32)) -> Option<&Area> {
+    pub fn get_child_at_pos(&self, pos: (f32, f32)) -> Option<&Area> {
         self.children.iter()
             .find(|child| child.get_rect().point_is_inside(pos))
     }
 
-    pub fn get_drag_target_at_pos(&self, pos: (f32, f32)) -> Option<DragTarget> {
+    pub fn get_sizer_at_pos(&self, pos: (f32, f32)) -> Option<SizerPos> {
+        if !self.rect.point_is_inside(pos) {
+            return None;
+        }
         let sizer_rects = self.rect.area_around_splits(self.direction, &self.ratios[0..self.ratios.len() - 1], 8.0);
         return sizer_rects.iter().enumerate()
             .find(|&(_, rect)| rect.point_is_inside(pos))
-            .map(|(i, _)| DragTarget::SplitSizer(self.handle, i, self.direction))
-            .or_else(|| {
-                self.get_child_at_pos(pos)
-                    .and_then(|child| child.get_drag_target_at_pos(pos))
-            });
-    }
-
-    pub fn get_drop_target_at_pos(&self, pos: (f32, f32)) -> Option<DropTarget> {
-        self.get_child_at_pos(pos)
-            .and_then(|child| child.get_drop_target_at_pos(pos))
+            .map(|(i, _)| SizerPos(self.handle, i, self.direction));
     }
 
     pub fn map_rect_to_delta(&self, delta: (f32, f32)) -> f32 {
@@ -78,24 +79,28 @@ impl Split {
 
     pub fn change_ratio(&mut self, index: usize, delta: (f32, f32)) {
         let scale = Self::map_rect_to_delta(self, delta);
+        let max = if index < self.ratios.len() - 1 {
+            self.ratios[index + 1]
+        } else {
+            1.0
+        };
+        let min = if index > 0 {
+            self.ratios[index - 1]
+        } else {
+            0.0
+        };
         let mut res = self.ratios[index] + scale;
 
-        if res < 0.01 {
-            res = 0.01;
+        if res < min {
+            res = min;
         }
 
-        if res > 0.99 {
-            res = 0.99;
+        if res > max {
+            res = max;
         }
 
         self.ratios[index] = res;
         self.update_children_sizes();
-    }
-
-    pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
-        self.children.iter()
-            .find(|child| child.get_rect().point_is_inside(pos))
-            .and_then(|child| child.get_dock_handle_at_pos(pos))
     }
 
     pub fn replace_child(&mut self, index: usize, new_child: Area) -> Area {
@@ -105,7 +110,10 @@ impl Split {
         return res;
     }
 
-    pub fn append_child(&mut self, index: usize, child: Area) {
+    pub fn insert_child(&mut self, index: usize, child: Area) {
+        if index > self.children.len() - 1 {
+            return self.push_child(child);
+        }
         let existing_ratio = self.ratios[index];
         let previous_ratio = match index {
             0 => 0.0,
@@ -115,6 +123,14 @@ impl Split {
         self.children.insert(index, child);
         self.ratios.insert(index, existing_ratio - diff / 2.0);
         self.update_children_sizes();
+    }
+
+    pub fn push_child(&mut self, child: Area) {
+        let last_index = self.children.len() - 1;
+        self.children.push(child);
+        let diff = 1.0 - self.ratios[last_index - 1];
+        self.ratios[last_index] = 1.0 - diff/2.0;
+        self.ratios.push(1.0);
     }
 
     pub fn remove_child(&mut self, index: usize) {
@@ -161,9 +177,11 @@ impl Split {
 mod test {
     extern crate serde_json;
 
-    use {Split, SplitHandle, Rect, Direction, Area};
-    use super::super::container::Container;
+    use super::{Split, SplitHandle};
+    use area::Area;
+    use area::container::Container;
     use dock::{Dock, DockHandle};
+    use rect::{Rect, Direction};
 
     #[test]
     fn test_splithandle_serialize() {

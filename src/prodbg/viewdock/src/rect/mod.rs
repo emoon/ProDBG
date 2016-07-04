@@ -6,6 +6,22 @@ pub enum Direction {
     Horizontal,
 }
 
+impl Direction {
+    pub fn opposite(&self) -> Direction {
+        match *self {
+            Direction::Vertical => Direction::Horizontal,
+            Direction::Horizontal => Direction::Vertical,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum ShrinkSide {
+    Lower,
+    Higher,
+    Both
+}
+
 /// Data structure for rectangles
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Rect {
@@ -32,6 +48,64 @@ impl Rect {
             self.x + self.width >= x &&
             self.y <= y &&
             self.y + self.height >= y;
+    }
+
+    pub fn split(&self, direction: Direction, size: f32) -> [Rect; 2] {
+        match direction {
+            Direction::Horizontal => [
+                Rect::new(self.x, self.y, self.width, size),
+                Rect::new(self.x, self.y + self.height - size, self.width, size),
+            ],
+            Direction::Vertical => [
+                Rect::new(self.x, self.y, size, self.height),
+                Rect::new(self.x + self.width - size, self.y, size, self.height),
+            ]
+        }
+    }
+
+    pub fn dimension(&self, direction: Direction) -> f32 {
+        match direction {
+            Direction::Horizontal => self.width,
+            Direction::Vertical => self.height,
+        }
+    }
+
+    pub fn shifted(&self, direction: Direction, dist: f32) -> Rect {
+        match direction {
+            Direction::Horizontal => Rect::new(self.x + dist, self.y, self.width, self.height),
+            Direction::Vertical => Rect::new(self.x, self.y + dist, self.width, self.height),
+        }
+    }
+
+    pub fn shifted_clip(&self, direction: Direction, dist: f32) -> Rect {
+        match direction {
+            Direction::Horizontal => Rect::new(self.x + if dist>0.0 {dist} else {0.0}, self.y, self.width - dist.abs(), self.height),
+            Direction::Vertical => Rect::new(self.x, self.y + if dist>0.0 {dist} else {0.0}, self.width, self.height - dist.abs()),
+        }
+    }
+
+    pub fn shrinked(&self, direction: Direction, size: f32, side: ShrinkSide) -> Rect {
+        let mut res = self.clone();
+        {
+            let (start, dimesion) = match direction {
+                Direction::Horizontal => (&mut res.x, &mut res.width),
+                Direction::Vertical => (&mut res.y, &mut res.height),
+            };
+            match side {
+                ShrinkSide::Lower => {
+                    *start += size;
+                    *dimesion -= size;
+                },
+                ShrinkSide::Higher => {
+                    *dimesion -= size;
+                },
+                ShrinkSide::Both => {
+                    *start += size;
+                    *dimesion -= size * 2.0;
+                }
+            }
+        }
+        return res;
     }
 
     pub fn area_around_splits(&self, direction: Direction, ratios: &[f32], width: f32) -> Vec<Rect> {

@@ -3,7 +3,8 @@ mod split;
 mod serialize;
 
 use rect::{Rect, Direction};
-use dock::DockHandle;
+use dock::{Dock, DockHandle};
+use super::ItemTarget;
 pub use self::container::Container;
 pub use self::split::{SplitHandle, Split};
 
@@ -15,18 +16,102 @@ pub enum Area {
 }
 
 impl Area {
+    pub fn container_from_dock(dock: Dock) -> Area {
+        Area::Container(Container::new(dock, Rect::default()))
+    }
+
     /// Finds Area::Split by its handle
-    pub fn find_split_by_handle(&mut self, handle: SplitHandle) -> Option<&mut Split> {
-        match self {
-            &mut Area::Container(_) => None,
-            &mut Area::Split(ref mut s) => if s.handle == handle {
+    pub fn get_split_by_handle(&mut self, handle: SplitHandle) -> Option<&mut Split> {
+        match *self {
+            Area::Container(_) => None,
+            Area::Split(ref mut s) => if s.handle == handle {
                 Some(s)
             } else {
                 s.children.iter_mut()
-                    .map(|child| child.find_split_by_handle(handle))
-                    .find(|c| {c.is_some() })
-                    .map(|res| res.unwrap())
+                    .map(|child| child.get_split_by_handle(handle))
+                    .find(|s| {s.is_some() })
+                    .and_then(|res| res)
             }
+        }
+    }
+
+    /// Finds Area::Split which contains Container with supplied DockHandle
+    pub fn get_split_by_dock_handle(&self, handle: DockHandle) -> Option<(&Split, usize)> {
+        if let Area::Split(ref s) = *self {
+            let found_child = s.children.iter().position(|child| {
+                match *child {
+                    Area::Container(ref c) => c.has_dock(handle),
+                    _ => false,
+                }
+            });
+            return match found_child {
+                Some(position) => Some((s, position)),
+                None => s.children.iter()
+                    .map(|child| child.get_split_by_dock_handle(handle))
+                    .find(|res| res.is_some())
+                    .and_then(|res| res)
+            }
+        }
+        return None;
+    }
+
+    /// Finds Area::Split which contains Container with supplied DockHandle
+    pub fn get_split_by_dock_handle_mut(&mut self, handle: DockHandle) -> Option<(&mut Split, usize)> {
+        if let Area::Split(ref mut s) = *self {
+            let found_child = s.children.iter_mut().position(|child| {
+                match *child {
+                    Area::Container(ref c) => c.has_dock(handle),
+                    _ => false,
+                }
+            });
+            return match found_child {
+                Some(position) => Some((s, position)),
+                None => s.children.iter_mut()
+                    .map(|child| child.get_split_by_dock_handle_mut(handle))
+                    .find(|res| res.is_some())
+                    .and_then(|res| res)
+            }
+        }
+        return None;
+    }
+
+    pub fn get_parent_split_by_split_handle(&mut self, handle: SplitHandle) -> Option<(&mut Split, usize)> {
+        if let &mut Area::Split(ref mut s) = self {
+            let found_child = s.children.iter_mut().position(|child| {
+                match child {
+                    &mut Area::Split(ref s) => s.handle == handle,
+                    _ => false,
+                }
+            });
+            return match found_child {
+                Some(position) => Some((s, position)),
+                None => s.children.iter_mut()
+                    .map(|child| child.get_parent_split_by_split_handle(handle))
+                    .find(|res| res.is_some())
+                    .and_then(|res| res)
+            }
+        }
+        return None;
+    }
+
+    /// Finds Container with supplied DockHandle
+    pub fn get_container_by_dock_handle(&self, handle: DockHandle) -> Option<&Container> {
+        match *self {
+            Area::Container(ref c) => if c.has_dock(handle) {Some(c)} else {None},
+            Area::Split(ref s) => s.children.iter()
+                .map(|child| child.get_container_by_dock_handle(handle))
+                .find(|c| {c.is_some() })
+                .and_then(|res| res)
+        }
+    }
+
+    pub fn get_container_by_dock_handle_mut(&mut self, handle: DockHandle) -> Option<&mut Container> {
+        match *self {
+            Area::Container(ref mut c) => if c.has_dock(handle) {Some(c)} else {None},
+            Area::Split(ref mut s) => s.children.iter_mut()
+                .map(|child| child.get_container_by_dock_handle_mut(handle))
+                .find(|c| {c.is_some() })
+                .and_then(|res| res)
         }
     }
 
@@ -44,89 +129,42 @@ impl Area {
         }
     }
 
-    /// Finds Container with supplied DockHandle
-    pub fn find_container_by_dock_handle(&self, handle: DockHandle) -> Option<&Container> {
-        match self {
-            &Area::Container(ref c) => c.find_dock(handle).map(|_| c),
-            &Area::Split(ref s) => s.children.iter()
-                .map(|child| child.find_container_by_dock_handle(handle))
-                .find(|c| {c.is_some() })
-                .map(|res| res.unwrap())
+    pub fn get_sizer_at_pos(&self, pos: (f32, f32)) -> Option<SizerPos> {
+        match *self {
+            Area::Container(_) => None,
+            Area::Split(ref s) => s.get_sizer_at_pos(pos)
+                .or_else(|| s.get_child_at_pos(pos)
+                    .and_then(|child| child.get_sizer_at_pos(pos))),
         }
     }
 
-    /// Finds Area::Split which contains Container with supplied DockHandle
-    pub fn find_split_by_dock_handle(&mut self, handle: DockHandle) -> Option<(&mut Split, usize)> {
-        if let &mut Area::Split(ref mut s) = self {
-            let found_child = s.children.iter_mut().position(|child| {
-                match child {
-                    &mut Area::Container(ref c) => c.find_dock(handle).is_some(),
-                    _ => false,
-                }
-            });
-            return match found_child {
-                Some(position) => Some((s, position)),
-                None => s.children.iter_mut()
-                    .map(|child| child.find_split_by_dock_handle(handle))
-                    .find(|res| res.is_some())
-                    .map(|res| res.unwrap())
-            }
-        }
-        return None;
-    }
-
-    pub fn find_parent_split_by_split_handle(&mut self, handle: SplitHandle) -> Option<(&mut Split, usize)> {
-        if let &mut Area::Split(ref mut s) = self {
-            let found_child = s.children.iter_mut().position(|child| {
-                match child {
-                    &mut Area::Split(ref s) => s.handle == handle,
-                    _ => false,
-                }
-            });
-            return match found_child {
-                Some(position) => Some((s, position)),
-                None => s.children.iter_mut()
-                    .map(|child| child.find_parent_split_by_split_handle(handle))
-                    .find(|res| res.is_some())
-                    .map(|res| res.unwrap())
-            }
-        }
-        return None;
-    }
-
-    pub fn get_drag_target_at_pos(&self, pos: (f32, f32)) -> Option<DragTarget> {
-        match self {
-            &Area::Split(ref s) => s.get_drag_target_at_pos(pos),
-            &Area::Container(ref c) => c.get_drag_target_at_pos(pos),
-        }
-    }
-
-    pub fn get_drop_target_at_pos(&self, pos: (f32, f32)) -> Option<DropTarget> {
-        match self {
-            &Area::Split(ref s) => s.get_drop_target_at_pos(pos),
-            &Area::Container(ref c) => c.get_drop_target_at_pos(pos),
+    pub fn get_dock_handle_with_header_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
+        match *self {
+            Area::Container(ref c) => c.get_dock_handle_with_header_at_pos(pos),
+            Area::Split(ref s) => s.get_child_at_pos(pos)
+                .and_then(|child| child.get_dock_handle_with_header_at_pos(pos)),
         }
     }
 
     pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
-        return match self {
-            &Area::Container(ref c) => c.get_dock_handle_at_pos(pos),
-            &Area::Split(ref c) => c.get_dock_handle_at_pos(pos),
-        };
+        match *self {
+            Area::Container(ref c) => c.get_dock_handle_at_pos(pos),
+            Area::Split(ref s) => s.get_child_at_pos(pos)
+                .and_then(|child| child.get_dock_handle_at_pos(pos)),
+        }
+    }
+
+    pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
+        match *self {
+            Area::Container(ref c) => c.get_item_target_at_pos(pos),
+            Area::Split(ref s) => s.get_child_at_pos(pos)
+                .and_then(|child| child.get_item_target_at_pos(pos))
+        }
     }
 }
 
-
 #[derive(Debug)]
-pub enum DragTarget {
-    SplitSizer(SplitHandle, usize, Direction),
-    Dock(DockHandle)
-}
-
-#[derive(Debug)]
-pub enum DropTarget {
-    Dock(DockHandle)
-}
+pub struct SizerPos(pub SplitHandle, pub usize, pub Direction);
 
 
 #[cfg(test)]

@@ -8,7 +8,7 @@ use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::backend_plugin::{BackendPlugins};
 use core::session::{Sessions, Session, SessionHandle};
 use core::reader_wrapper::ReaderWrapper;
-use self::viewdock::{Workspace, Rect, Direction, DockHandle, DragTarget, DropTarget, Dock};
+use self::viewdock::{Workspace, Rect, Direction, DockHandle, SizerPos, Dock, ItemTarget};
 use menu::*;
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::{PDVec2, ImguiKey};
@@ -16,15 +16,21 @@ use prodbg_api::view::CViewCallbacks;
 use std::os::raw::{c_void, c_int};
 use std::collections::VecDeque;
 //use std::mem::transmute;
+use std::thread::sleep;
+use std::time::Duration;
+use std::fmt;
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 800;
 const WORKSPACE_UNDO_LIMIT: usize = 10;
+const OVERLAY_COLOR: u32 = 0x8000FF00;
 
 enum State {
     Default,
-    Dragging(DragTarget, String),
     DraggingNothing,
+    DraggingSizer(SizerPos, String),
+    DraggingDock(DockHandle),
+    PreDraggingDock(DockHandle),
 }
 
 pub struct MouseState {
@@ -38,6 +44,20 @@ impl MouseState {
             state: State::Default,
             prev_mouse: (0.0, 0.0),
         }
+    }
+}
+
+impl fmt::Display for State {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}",
+            match self {
+                &State::Default => "Default",
+                &State::DraggingNothing => "Dragging Nothing",
+                &State::DraggingSizer(_,_) => "Dragging Sizer",
+                &State::DraggingDock(_) => "Dragging Dock",
+                &State::PreDraggingDock(_) => "PreDragging Dock",
+            }
+        )
     }
 }
 
@@ -57,6 +77,9 @@ pub struct Window {
     pub mouse_state: MouseState,
 
     pub menu_id_offset: u32,
+
+    pub overlay: Option<(DockHandle, Rect)>,
+    pub context_menu_data: Option<(DockHandle, (f32, f32))>,
 }
 
 struct WindowState {
@@ -130,6 +153,8 @@ impl Windows {
             ws: ws,
             ws_states: ws_states,
             cur_state_index: 0usize,
+            overlay: None,
+            context_menu_data: None,
         });
     }
 
@@ -150,6 +175,7 @@ impl Windows {
                   sessions: &mut Sessions,
                   view_plugins: &mut ViewPlugins,
                   backend_plugins: &mut BackendPlugins) {
+        sleep(Duration::from_millis(100));
         for i in (0..self.windows.len()).rev() {
             self.windows[i].update(sessions, view_plugins, backend_plugins);
 
@@ -212,15 +238,46 @@ impl Window {
         }
     }
 
-    fn update_view(&self, instance: &mut ViewInstance, session: &mut Session, show_context_menu: bool, mouse: (f32, f32)) -> WindowState {
+    fn update_view(ws: &mut Workspace, instance: &mut ViewInstance, session: &mut Session, show_context_menu: bool, mouse: (f32, f32), overlay: &Option<(DockHandle, Rect)>) -> WindowState {
         let ui = &instance.ui;
 
-        if let Some(rect) = self.ws.get_rect_by_handle(DockHandle(instance.handle.0)) {
+        //+Z skip inactive tab
+        if let Some(ref root) = ws.root_area {
+            if let Some(ref container) = root.get_container_by_dock_handle(DockHandle(instance.handle.0)) {
+                if container.docks[container.active_dock].handle.0 != instance.handle.0 {
+                    return
+                        WindowState {
+                            showed_popup: 0,
+                            should_close: false,
+                    }
+                }
+            }
+        }
+
+        if let Some(rect) = ws.get_rect_by_handle(DockHandle(instance.handle.0)) {
             Imgui::set_window_pos(rect.x, rect.y);
             Imgui::set_window_size(rect.width, rect.height);
         }
 
         let open = Imgui::begin_window(&instance.name, true);
+
+        //+Z tabs
+        if let Some(ref mut root) = ws.root_area {
+            if let Some(ref mut container) = root.get_container_by_dock_handle_mut(DockHandle(instance.handle.0)) {
+                let tabs:Vec<String> = container.docks.iter().map(|dock| dock.plugin_name.clone()).collect();
+                if tabs.len() > 1 {
+                    let mut borders = Vec::with_capacity(tabs.len());
+                    for (i, t) in tabs.iter().enumerate() {
+                        if Imgui::tab(t, i==container.active_dock, i==tabs.len()-1) {
+                            container.active_dock = i;
+                        }
+                        borders.push(Imgui::tab_pos());
+                    }
+                    container.update_tab_borders(&borders);
+                }
+            }
+        }
+
         Imgui::init_state(ui.api);
 
         let pos = ui.get_window_pos();
@@ -230,6 +287,14 @@ impl Window {
             Imgui::mark_show_popup(ui.api, true);
         } else {
             Imgui::mark_show_popup(ui.api, false);
+        }
+
+        //+Z test drag zone
+        if let &Some((handle, rect)) = overlay {
+            if handle.0 == instance.handle.0 {
+                //println!("{} {} {} {}", rect.x, rect.y, rect.width, rect.height);
+                Imgui::render_frame(rect.x, rect.y, rect.width, rect.height, OVERLAY_COLOR);
+            }
         }
 
         // Make sure we move the cursor to the start of the stream here
@@ -259,7 +324,7 @@ impl Window {
             if let Some(pos) = self.views.iter().position(|v| v == view) {
                 self.views.swap_remove(pos);
             }
-            self.ws.delete_by_handle(DockHandle(view.0));
+            self.ws.delete_dock_by_handle(DockHandle(view.0));
         }
     }
 
@@ -267,18 +332,21 @@ impl Window {
         let mut next_state = None;
         let cursor;
         let mut ws_state_to_save = None;
+        //TODO: do not make any changes if user drag-and-dropped in short time (1 sec or less)
         match self.mouse_state.state {
             State::Default => {
-                if let Some(target) = self.ws.get_drag_target_at_pos(mouse_pos) {
-                    cursor = match target {
-                        DragTarget::Dock(_) => CursorStyle::OpenHand,
-                        DragTarget::SplitSizer(_, _, direction) => match direction {
-                            Direction::Vertical => CursorStyle::ResizeLeftRight,
-                            Direction::Horizontal => CursorStyle::ResizeUpDown
-                        }
+                if let Some(sizer) = self.ws.get_sizer_at_pos(mouse_pos) {
+                    cursor = match sizer.2 {
+                        Direction::Vertical => CursorStyle::ResizeLeftRight,
+                        Direction::Horizontal => CursorStyle::ResizeUpDown
                     };
                     if self.win.get_mouse_down(MouseButton::Left) {
-                        next_state = Some(State::Dragging(target, self.ws.save_state()));
+                        next_state = Some(State::DraggingSizer(sizer, self.ws.save_state()));
+                    }
+                } else if let Some(handle) = self.ws.get_dock_handle_with_header_at_pos(mouse_pos) {
+                    cursor = CursorStyle::ClosedHand;
+                    if self.win.get_mouse_down(MouseButton::Left) {
+                        next_state = Some(State::PreDraggingDock(handle));
                     }
                 } else {
                     cursor = CursorStyle::Arrow;
@@ -295,7 +363,7 @@ impl Window {
                 }
             },
 
-            State::Dragging(DragTarget::SplitSizer(handle, index, direction), ref ws_state) => {
+            State::DraggingSizer(SizerPos(handle, index, direction), ref ws_state) => {
                 if self.win.get_mouse_down(MouseButton::Left) {
                     cursor = match direction {
                         Direction::Vertical => CursorStyle::ResizeLeftRight,
@@ -303,7 +371,7 @@ impl Window {
                     };
                     let pm = self.mouse_state.prev_mouse;
                     let delta = (pm.0 - mouse_pos.0, pm.1 - mouse_pos.1);
-                    self.ws.drag_sizer(handle, index, delta);
+                    self.ws.change_split_ratio(handle, index, delta);
                 } else {
                     next_state = Some(State::Default);
                     cursor = CursorStyle::Arrow;
@@ -311,23 +379,47 @@ impl Window {
                 }
             },
 
-            State::Dragging(DragTarget::Dock(handle), ref ws_state) => {
-                let drop_target = self.ws.get_drop_target_at_pos(mouse_pos);
+            State::PreDraggingDock(handle) => {
+                cursor = CursorStyle::Arrow;
                 if self.win.get_mouse_down(MouseButton::Left) {
-                    cursor = match drop_target {
-                        Some(DropTarget::Dock(target)) if target != handle => CursorStyle::OpenHand,
-                        // TODO: make sure this cursor style works. Did not work with minifb 0.8.0
-                        _ => CursorStyle::ClosedHand,
+                    let pm = self.mouse_state.prev_mouse;
+                    let delta = (pm.0 - mouse_pos.0, pm.1 - mouse_pos.1);
+                    if delta.0.abs()>=5.0 && delta.1.abs()>=5.0 {
+                        next_state = Some(State::DraggingDock(handle));
+                    }
+                }
+                else
+                {
+                    next_state = Some(State::Default);
+                }
+            },
+
+            State::DraggingDock(handle) => {
+                let move_target = self.ws.get_item_target_at_pos(mouse_pos)
+                    .and_then(|target| match self.ws.already_at_place(&target.0, handle) {
+                        false => Some(target),
+                        true => None,
+                    });
+                if self.win.get_mouse_down(MouseButton::Left) {
+                    cursor = match move_target {
+                        Some(_) => CursorStyle::OpenHand,
+                        None => CursorStyle::ClosedHand
+                    };
+                    if let Some((_, rect)) = move_target {
+                        if let Some(dh) = self.ws.get_dock_handle_at_pos(mouse_pos) {
+                            self.overlay = Some((dh, rect));
+                        } else {
+                            self.overlay = None;
+                        }
                     }
                 } else {
-                    if let Some(DropTarget::Dock(target)) = drop_target {
-                        if target != handle {
-                            ws_state_to_save = Some(ws_state.clone());
-                            self.ws.swap_docks(handle, target);
-                        }
+                    if let Some((target, _)) = move_target {
+                        self.ws.move_dock(handle, target);
+                        self.save_cur_workspace_state();
                     }
                     next_state = Some(State::Default);
                     cursor = CursorStyle::Arrow;
+                    self.overlay = None;
                 }
             }
         }
@@ -336,6 +428,7 @@ impl Window {
         self.mouse_state.prev_mouse = mouse_pos;
         if let Some(ns) = next_state {
             self.mouse_state.state = ns;
+            //println!("Mouse state changed: {}", self.mouse_state.state);
         }
         if let Some(ws_state) = ws_state_to_save {
             self.save_workspace_state(ws_state.clone());
@@ -380,7 +473,7 @@ impl Window {
                         current_session.set_backend(Some(backend));
 
                         if let Some(menu) = backend_plugins.get_menu(backend, self.menu_id_offset) {
-                            self.win.add_menu(&menu);
+                            self.win.add_menu(&(*menu));
                             self.menu_id_offset += 1000;
                         }
                     }
@@ -403,27 +496,32 @@ impl Window {
         Bgfx::update_window_size(win_size.0 as i32, win_size.1 as i32);
 
         self.win.update();
-        self.ws.update(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
+        self.ws.update_rect(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
         self.update_key_state();
 
         let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
 
-        self.update_mouse_state(mouse);
+        if has_shown_menu==0 {
+            self.update_mouse_state(mouse);
+        }
 
         Imgui::set_mouse_pos(mouse);
         Imgui::set_mouse_state(0, self.win.get_mouse_down(MouseButton::Left));
 
         let show_context_menu = self.win.get_mouse_down(MouseButton::Right);
+        if show_context_menu {
+            self.context_menu_data = self.ws.get_dock_handle_at_pos(mouse)
+                .map(|handle| (handle, mouse));
+        }
 
         for view in &self.views {
             if let Some(ref mut v) = view_plugins.get_view(*view) {
                 if let Some(ref mut s) = sessions.get_session(v.session_handle) {
-                    let state = Self::update_view(self, v, s, show_context_menu, mouse);
+                    let state = Self::update_view(&mut self.ws, v, s, show_context_menu, mouse, &self.overlay);
 
                     if state.should_close {
-                        views_to_delete.push(*view);
+                       views_to_delete.push(*view);
                     }
-
                     has_shown_menu |= state.showed_popup;
                 }
             }
@@ -461,21 +559,21 @@ impl Window {
         // TODO: Handle diffrent cases when attach menu on to plugin menu or not
 
         if has_shown_menu == 0 && show_context_menu {
-            Self::show_popup(self, true, mouse, view_plugins);
+            Self::show_popup(self, true, view_plugins);
         } else {
-            Self::show_popup(self, false, mouse, view_plugins);
+            Self::show_popup(self, false, view_plugins);
         }
 
         if !views_to_delete.is_empty() {
-            self.save_cur_workspace_state();
             Self::remove_views(self, view_plugins, &views_to_delete);
+            self.save_cur_workspace_state();
         }
     }
 
     fn restore_workspace_state(&mut self, view_plugins: &mut ViewPlugins) {
         self.ws = Workspace::from_state(&self.ws_states[self.cur_state_index]);
         let win_size = self.win.get_size();
-        self.ws.update(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
+        self.ws.update_rect(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
         let docks = self.ws.get_docks();
         let views_to_delete: Vec<ViewHandle> = self.views.iter()
             .filter(|view| docks.iter().find(|dock| view.0 == dock.handle.0).is_none())
@@ -532,41 +630,66 @@ impl Window {
         self.cur_state_index += 1;
     }
 
-    fn split_view(&mut self, name: &String, view_plugins: &mut ViewPlugins, pos: (f32, f32), direction: Direction) {
+    fn split_view(&mut self, name: &String, view_plugins: &mut ViewPlugins, direction: Direction) {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
-            self.save_cur_workspace_state();
             let new_dock = Dock::new(DockHandle(handle.0), name);
-            if let Some(dock_handle) = self.ws.get_hover_dock(pos) {
-                self.ws.split_by_dock_handle(direction, dock_handle, new_dock);
+            if let Some((dock_handle, pos)) = self.context_menu_data {
+                let position = self.ws.get_rect_by_handle(dock_handle).map(|rect| {
+                    let lower_rect = rect.split_by_direction(direction, &[0.5])[0];
+                    return if lower_rect.point_is_inside(pos) {
+                        0
+                    } else {
+                        1
+                    }
+                }).unwrap_or(1);
+                self.ws.create_dock_at(ItemTarget::SplitDock(dock_handle, direction, position), new_dock);
             } else {
                 self.ws.initialize(new_dock);
             }
 
+            self.save_cur_workspace_state();
             self.views.push(handle);
         }
     }
 
-    fn show_popup_menu_no_splits(&mut self, plugin_names: &Vec<String>, mouse_pos: (f32, f32), view_plugins: &mut ViewPlugins) {
+    fn tab_view(&mut self, name: &String, view_plugins: &mut ViewPlugins) {
+        let ui = Imgui::create_ui_instance();
+        if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
+            let new_handle = DockHandle(handle.0);
+            let dock = viewdock::Dock::new(new_handle, name);
+            self.views.push(handle);
+
+            if let Some((src_dock_handle, _)) = self.context_menu_data {
+                if let Some(ref mut root) = self.ws.root_area {
+                    if let Some(ref mut container) = root.get_container_by_dock_handle_mut(src_dock_handle) {
+                        container.append_dock(dock);
+                    }
+                }
+            }
+
+        }
+    }
+    fn show_popup_menu_no_splits(&mut self, plugin_names: &Vec<String>, view_plugins: &mut ViewPlugins) {
         let ui = Imgui::get_ui();
 
         if ui.begin_menu("New View", true) {
             for name in plugin_names {
                 if ui.menu_item(name, false, true) {
-                    Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Horizontal);
+                    Self::split_view(self, &name, view_plugins, Direction::Horizontal);
                 }
             }
             ui.end_menu();
         }
     }
 
-    fn show_popup_change_view(&mut self, plugin_names: &Vec<String>, mouse_pos: (f32, f32), view_plugins: &mut ViewPlugins) {
+    fn show_popup_change_view(&mut self, plugin_names: &Vec<String>, view_plugins: &mut ViewPlugins) {
         let ui = Imgui::get_ui();
 
         if ui.begin_menu("Change View", true) {
             for name in plugin_names {
                 if ui.menu_item(name, false, true) {
-                    if let Some(dock_handle) = self.ws.get_hover_dock(mouse_pos) {
+                    if let Some((dock_handle, _)) = self.context_menu_data {
                         view_plugins.destroy_instance(ViewHandle(dock_handle.0));
                         view_plugins.create_instance_with_handle(Imgui::create_ui_instance(),
                         &name, &None, SessionHandle(0), ViewHandle(dock_handle.0));
@@ -577,16 +700,15 @@ impl Window {
         }
     }
 
-    fn show_popup_regular(&mut self, plugin_names: &Vec<String>, mouse_pos: (f32, f32), view_plugins: &mut ViewPlugins) {
+    fn show_popup_regular(&mut self, plugin_names: &Vec<String>, view_plugins: &mut ViewPlugins) {
         let ui = Imgui::get_ui();
 
-        self.show_popup_change_view(plugin_names, mouse_pos, view_plugins);
-
+        self.show_popup_change_view(plugin_names, view_plugins);
 
         if ui.begin_menu("Split Horizontally", true) {
             for name in plugin_names {
                 if ui.menu_item(name, false, true) {
-                    Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Horizontal);
+                    Self::split_view(self, &name, view_plugins, Direction::Horizontal);
                 }
             }
             ui.end_menu();
@@ -595,14 +717,24 @@ impl Window {
         if ui.begin_menu("Split Vertically", true) {
             for name in plugin_names {
                 if ui.menu_item(name, false, true) {
-                    Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Vertical);
+                    Self::split_view(self, &name, view_plugins, Direction::Vertical);
+                }
+            }
+            ui.end_menu();
+        }
+
+        //+Z
+        if ui.begin_menu("Tab", true) {
+            for name in plugin_names {
+                if ui.menu_item(name, false, true) {
+                    Self::tab_view(self, &name, view_plugins);
                 }
             }
             ui.end_menu();
         }
     }
 
-    fn show_popup(&mut self, show: bool, mouse_pos: (f32, f32), view_plugins: &mut ViewPlugins) {
+    fn show_popup(&mut self, show: bool, view_plugins: &mut ViewPlugins) {
         let ui = Imgui::get_ui();
 
         if show {
@@ -612,10 +744,10 @@ impl Window {
         if ui.begin_popup("plugins") {
             let plugin_names = view_plugins.get_plugin_names();
 
-            if self.ws.get_hover_dock(mouse_pos).is_none() {
-                self.show_popup_menu_no_splits(&plugin_names, mouse_pos, view_plugins);
+            if self.ws.root_area.is_none() {
+                self.show_popup_menu_no_splits(&plugin_names, view_plugins);
             } else {
-                self.show_popup_regular(&plugin_names, mouse_pos, view_plugins);
+                self.show_popup_regular(&plugin_names, view_plugins);
             }
 
             ui.end_popup();
