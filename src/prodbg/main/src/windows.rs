@@ -371,7 +371,7 @@ impl Window {
                     };
                     let pm = self.mouse_state.prev_mouse;
                     let delta = (pm.0 - mouse_pos.0, pm.1 - mouse_pos.1);
-                    self.ws.drag_sizer(handle, index, delta);
+                    self.ws.change_split_ratio(handle, index, delta);
                 } else {
                     next_state = Some(State::Default);
                     cursor = CursorStyle::Arrow;
