@@ -30,6 +30,7 @@ enum State {
     DraggingNothing,
     DraggingSizer(SizerPos, String),
     DraggingDock(DockHandle),
+    PreDraggingDock(DockHandle),
 }
 
 pub struct MouseState {
@@ -54,6 +55,7 @@ impl fmt::Display for State {
                 &State::DraggingNothing => "Dragging Nothing",
                 &State::DraggingSizer(_,_) => "Dragging Sizer",
                 &State::DraggingDock(_) => "Dragging Dock",
+                &State::PreDraggingDock(_) => "PreDragging Dock",
             }
         )
     }
@@ -77,6 +79,7 @@ pub struct Window {
     pub menu_id_offset: u32,
 
     pub overlay: Option<(DockHandle, Rect)>,
+    pub context_dock_handle: Option<DockHandle>,
 }
 
 struct WindowState {
@@ -151,6 +154,7 @@ impl Windows {
             ws_states: ws_states,
             cur_state_index: 0usize,
             overlay: None,
+            context_dock_handle: None,
         });
     }
 
@@ -273,11 +277,6 @@ impl Window {
                 }
             }
         }
-        // simple test
-        //let tabs = ["tab 1", "tab 2", "tab 3"];
-        //for (i,t) in tabs.iter().enumerate() {
-        //    Imgui::tab(t, i==0, i==tabs.len()-1);
-        //}
 
         Imgui::init_state(ui.api);
 
@@ -288,6 +287,14 @@ impl Window {
             Imgui::mark_show_popup(ui.api, true);
         } else {
             Imgui::mark_show_popup(ui.api, false);
+        }
+
+        //+Z test drag zone
+        if let &Some((handle, rect)) = overlay {
+            if handle.0 == instance.handle.0 {
+                //println!("{} {} {} {}", rect.x, rect.y, rect.width, rect.height);
+                Imgui::render_frame(rect.x, rect.y, rect.width, rect.height, OVERLAY_COLOR);
+            }
         }
 
         // Make sure we move the cursor to the start of the stream here
@@ -302,14 +309,6 @@ impl Window {
         }
 
         let has_shown_menu = Imgui::has_showed_popup(ui.api);
-
-        //+Z test drag zone
-        if let &Some((handle, rect)) = overlay {
-            if handle.0 == instance.handle.0 {
-                println!("{} {} {} {}", rect.x, rect.y, rect.width, rect.height);
-                Imgui::render_frame(rect.x, rect.y, rect.width, rect.height, OVERLAY_COLOR);
-            }
-        }
 
         Imgui::end_window();
 
@@ -347,7 +346,7 @@ impl Window {
                 } else if let Some(handle) = self.ws.get_dock_handle_with_header_at_pos(mouse_pos) {
                     cursor = CursorStyle::ClosedHand;
                     if self.win.get_mouse_down(MouseButton::Left) {
-                        next_state = Some(State::DraggingDock(handle));
+                        next_state = Some(State::PreDraggingDock(handle));
                     }
                 } else {
                     cursor = CursorStyle::Arrow;
@@ -377,6 +376,21 @@ impl Window {
                     next_state = Some(State::Default);
                     cursor = CursorStyle::Arrow;
                     ws_state_to_save = Some(ws_state.clone());
+                }
+            },
+
+            State::PreDraggingDock(handle) => {
+                cursor = CursorStyle::Arrow;
+                if self.win.get_mouse_down(MouseButton::Left) {
+                    let pm = self.mouse_state.prev_mouse;
+                    let delta = (pm.0 - mouse_pos.0, pm.1 - mouse_pos.1);
+                    if delta.0.abs()>=5.0 && delta.1.abs()>=5.0 {
+                        next_state = Some(State::DraggingDock(handle));
+                    }
+                }
+                else
+                {
+                    next_state = Some(State::Default);
                 }
             },
 
@@ -495,6 +509,9 @@ impl Window {
         Imgui::set_mouse_state(0, self.win.get_mouse_down(MouseButton::Left));
 
         let show_context_menu = self.win.get_mouse_down(MouseButton::Right);
+        if show_context_menu {
+            self.context_dock_handle = self.ws.get_dock_handle_at_pos(mouse);
+        }
 
         for view in &self.views {
             if let Some(ref mut v) = view_plugins.get_view(*view) {
@@ -541,9 +558,9 @@ impl Window {
         // TODO: Handle diffrent cases when attach menu on to plugin menu or not
 
         if has_shown_menu == 0 && show_context_menu {
-            Self::show_popup(self, true, mouse, view_plugins);
+            Self::show_popup(self, true, view_plugins);
         } else {
-            Self::show_popup(self, false, mouse, view_plugins);
+            Self::show_popup(self, false, view_plugins);
         }
 
         if !views_to_delete.is_empty() {
@@ -612,13 +629,13 @@ impl Window {
         self.cur_state_index += 1;
     }
 
-    fn split_view(&mut self, name: &String, view_plugins: &mut ViewPlugins, pos: (f32, f32), direction: Direction) {
+    fn split_view(&mut self, name: &String, view_plugins: &mut ViewPlugins, direction: Direction) {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
             self.save_cur_workspace_state();
             let new_dock = Dock::new(DockHandle(handle.0), name);
-            if let Some(dock_handle) = self.ws.get_dock_handle_at_pos(pos) {
-                self.ws.create_dock_at(ItemTarget::SplitDock(dock_handle, direction, 0), new_dock);
+            if let Some(dock_handle) = self.context_dock_handle { //self.ws.get_dock_handle_at_pos(pos) {
+                self.ws.create_dock_at(ItemTarget::SplitDock(dock_handle, direction, 1), new_dock);
             } else {
                 self.ws.initialize(new_dock);
             }
@@ -627,14 +644,14 @@ impl Window {
         }
     }
 
-    fn tab_view(&mut self, name: &String, view_plugins: &mut ViewPlugins, pos: (f32, f32)) {
+    fn tab_view(&mut self, name: &String, view_plugins: &mut ViewPlugins) {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
             let new_handle = DockHandle(handle.0);
             let dock = viewdock::Dock::new(new_handle, name);
             self.views.push(handle);
 
-            if let Some(src_dock_handle) = self.ws.get_dock_handle_at_pos(pos) {
+            if let Some(src_dock_handle) = self.context_dock_handle { //self.ws.get_dock_handle_at_pos(pos) {
                 if let Some(ref mut root) = self.ws.root_area {
                     if let Some(ref mut container) = root.get_container_by_dock_handle_mut(src_dock_handle) {
                         container.append_dock(dock);
@@ -644,26 +661,26 @@ impl Window {
 
         }
     }
-    fn show_popup_menu_no_splits(&mut self, plugin_names: &Vec<String>, mouse_pos: (f32, f32), view_plugins: &mut ViewPlugins) {
+    fn show_popup_menu_no_splits(&mut self, plugin_names: &Vec<String>, view_plugins: &mut ViewPlugins) {
         let ui = Imgui::get_ui();
 
         if ui.begin_menu("New View", true) {
             for name in plugin_names {
                 if ui.menu_item(name, false, true) {
-                    Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Horizontal);
+                    Self::split_view(self, &name, view_plugins, Direction::Horizontal);
                 }
             }
             ui.end_menu();
         }
     }
 
-    fn show_popup_change_view(&mut self, plugin_names: &Vec<String>, mouse_pos: (f32, f32), view_plugins: &mut ViewPlugins) {
+    fn show_popup_change_view(&mut self, plugin_names: &Vec<String>, view_plugins: &mut ViewPlugins) {
         let ui = Imgui::get_ui();
 
         if ui.begin_menu("Change View", true) {
             for name in plugin_names {
                 if ui.menu_item(name, false, true) {
-                    if let Some(dock_handle) = self.ws.get_dock_handle_at_pos(mouse_pos) {
+                    if let Some(dock_handle) = self.context_dock_handle { //self.ws.get_dock_handle_at_pos(mouse_pos) {
                         view_plugins.destroy_instance(ViewHandle(dock_handle.0));
                         view_plugins.create_instance_with_handle(Imgui::create_ui_instance(),
                         &name, &None, SessionHandle(0), ViewHandle(dock_handle.0));
@@ -674,15 +691,15 @@ impl Window {
         }
     }
 
-    fn show_popup_regular(&mut self, plugin_names: &Vec<String>, mouse_pos: (f32, f32), view_plugins: &mut ViewPlugins) {
+    fn show_popup_regular(&mut self, plugin_names: &Vec<String>, view_plugins: &mut ViewPlugins) {
         let ui = Imgui::get_ui();
 
-        self.show_popup_change_view(plugin_names, mouse_pos, view_plugins);
+        self.show_popup_change_view(plugin_names, view_plugins);
 
         if ui.begin_menu("Split Horizontally", true) {
             for name in plugin_names {
                 if ui.menu_item(name, false, true) {
-                    Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Horizontal);
+                    Self::split_view(self, &name, view_plugins, Direction::Horizontal);
                 }
             }
             ui.end_menu();
@@ -691,7 +708,7 @@ impl Window {
         if ui.begin_menu("Split Vertically", true) {
             for name in plugin_names {
                 if ui.menu_item(name, false, true) {
-                    Self::split_view(self, &name, view_plugins, mouse_pos, Direction::Vertical);
+                    Self::split_view(self, &name, view_plugins, Direction::Vertical);
                 }
             }
             ui.end_menu();
@@ -701,14 +718,14 @@ impl Window {
         if ui.begin_menu("Tab", true) {
             for name in plugin_names {
                 if ui.menu_item(name, false, true) {
-                    Self::tab_view(self, &name, view_plugins, mouse_pos);
+                    Self::tab_view(self, &name, view_plugins);
                 }
             }
             ui.end_menu();
         }
     }
 
-    fn show_popup(&mut self, show: bool, mouse_pos: (f32, f32), view_plugins: &mut ViewPlugins) {
+    fn show_popup(&mut self, show: bool, view_plugins: &mut ViewPlugins) {
         let ui = Imgui::get_ui();
 
         if show {
@@ -719,9 +736,9 @@ impl Window {
             let plugin_names = view_plugins.get_plugin_names();
 
             if self.ws.root_area.is_none() {
-                self.show_popup_menu_no_splits(&plugin_names, mouse_pos, view_plugins);
+                self.show_popup_menu_no_splits(&plugin_names, view_plugins);
             } else {
-                self.show_popup_regular(&plugin_names, mouse_pos, view_plugins);
+                self.show_popup_regular(&plugin_names, view_plugins);
             }
 
             ui.end_popup();
