@@ -414,8 +414,8 @@ impl Window {
                     }
                 } else {
                     if let Some((target, _)) = move_target {
-                        self.save_cur_workspace_state();
                         self.ws.move_dock(handle, target);
+                        self.save_cur_workspace_state();
                     }
                     next_state = Some(State::Default);
                     cursor = CursorStyle::Arrow;
@@ -565,8 +565,8 @@ impl Window {
         }
 
         if !views_to_delete.is_empty() {
-            self.save_cur_workspace_state();
             Self::remove_views(self, view_plugins, &views_to_delete);
+            self.save_cur_workspace_state();
         }
     }
 
@@ -633,7 +633,6 @@ impl Window {
     fn split_view(&mut self, name: &String, view_plugins: &mut ViewPlugins, direction: Direction) {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
-            self.save_cur_workspace_state();
             let new_dock = Dock::new(DockHandle(handle.0), name);
             if let Some((dock_handle, pos)) = self.context_menu_data {
                 let position = self.ws.get_rect_by_handle(dock_handle).map(|rect| {
@@ -649,6 +648,7 @@ impl Window {
                 self.ws.initialize(new_dock);
             }
 
+            self.save_cur_workspace_state();
             self.views.push(handle);
         }
     }
