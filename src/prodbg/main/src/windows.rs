@@ -141,7 +141,7 @@ impl Windows {
         Bgfx::create_window(win.get_window_handle() as *const c_void,
                             width as c_int,
                             height as c_int);
-        let ws = Workspace::new(Rect::new(0.0, 0.0, width as f32, (height - 20) as f32)).unwrap();
+        let ws = Workspace::new(Rect::new(0.0, 0.0, width as f32, (height - 20) as f32));
         let mut ws_states = VecDeque::with_capacity(WORKSPACE_UNDO_LIMIT);
         ws_states.push_back(ws.save_state());
         return Ok(Window {

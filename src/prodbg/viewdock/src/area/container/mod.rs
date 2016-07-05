@@ -108,7 +108,7 @@ impl Container {
             .collect();
     }
 
-    /// Returns `Some(DockHandle)` pos points at header or tabs area.
+    /// Returns `Some(DockHandle)` which header or tab is at `pos`.
     pub fn get_dock_handle_with_header_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
         if self.get_header_rect().point_is_inside(pos) {
             return Some(self.docks[self.active_dock].handle);
@@ -121,7 +121,7 @@ impl Container {
         return None;
     }
 
-    /// Returns handle of active if `pos` is inside this container's rect.
+    /// Returns handle of active dock if `pos` is inside this container's rect.
     pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
         if self.rect.point_is_inside(pos) {
             return Some(self.docks[self.active_dock].handle);

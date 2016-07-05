@@ -10,7 +10,7 @@ pub struct SplitHandle(pub u64);
 /// Handle to a sizer (area between two children). Identified by `SplitHandle` and index,
 /// `Direction` is to simplify further use of `SizerPos`. Last member is current ratio.
 #[derive(Debug)]
-pub struct SizerPos(pub SplitHandle, pub usize, pub Direction, f32);
+pub struct SizerPos(pub SplitHandle, pub usize, pub Direction, pub f32);
 
 /// `Split` gives slice of its area to each child. It intentionally does not contain any tree
 /// traversal methods. For tree traversal see `Area`.
