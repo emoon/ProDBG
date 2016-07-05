@@ -479,7 +479,7 @@ static void set_exception_location(DummyPlugin* data, PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void set_memory(DummyPlugin* data, PDReader* reader, PDWriter* writer) {
+static void get_memory(DummyPlugin* data, PDReader* reader, PDWriter* writer) {
     int64_t address_start = 0;
     int64_t size = 0;
     int64_t end_address;
@@ -510,6 +510,23 @@ static void set_memory(DummyPlugin* data, PDReader* reader, PDWriter* writer) {
 	PDWrite_u64(writer, "address", (uint64_t)address_start);
 	PDWrite_data(writer, "data", data->memory + (address_start - data->memory_start), (uint32_t)size);
 	PDWrite_event_end(writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void update_memory(DummyPlugin* plugin, PDReader* reader) {
+    void* data;
+    uint64_t address = 0;
+    uint64_t size = 0;
+
+    PDRead_find_u64(reader, &address, "address", 0);
+
+    if (PDRead_find_data(reader, &data, &size, "data", 0) == PDReadStatus_NotFound)
+        return;
+
+    // TODO: Not to assume that this is always within range?
+
+	memcpy(plugin->memory + (address - (uint64_t)plugin->memory_start), data, size);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -654,7 +671,13 @@ static PDDebugState update(void* user_data,
 
 			case PDEventType_GetMemory:
 			{
-				set_memory(data, reader, writer);
+				get_memory(data, reader, writer);
+				break;
+			}
+
+			case PDEventType_UpdateMemory:
+			{
+				update_memory(data, reader);
 				break;
 			}
 		}
