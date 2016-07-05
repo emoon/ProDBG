@@ -8,9 +8,9 @@ use rect::{Rect, Direction, ShrinkSide};
 pub struct SplitHandle(pub u64);
 
 /// Handle to a sizer (area between two children). Identified by `SplitHandle` and index,
-/// `Direction` is to simplify further use of `SizerPos`.
+/// `Direction` is to simplify further use of `SizerPos`. Last member is current ratio.
 #[derive(Debug)]
-pub struct SizerPos(pub SplitHandle, pub usize, pub Direction);
+pub struct SizerPos(pub SplitHandle, pub usize, pub Direction, f32);
 
 /// `Split` gives slice of its area to each child.
 #[derive(Debug, Clone)]
@@ -93,6 +93,8 @@ impl Split {
         }
     }
 
+    /// Changes ratio at `index`. Does not allow distance between neighbouring ratios less then
+    /// `0.05`.
     pub fn change_ratio(&mut self, index: usize, origin: f32, delta: (f32, f32)) {
         let scale = Self::map_rect_to_delta(self, delta);
         let mut res = origin + scale;
@@ -112,6 +114,7 @@ impl Split {
         self.update_children_sizes();
     }
 
+    /// Replace child at `index` by `new_child` and replaced child.
     pub fn replace_child(&mut self, index: usize, new_child: Area) -> Area {
         self.children.push(new_child);
         let res = self.children.swap_remove(index);
@@ -119,6 +122,8 @@ impl Split {
         return res;
     }
 
+    /// Insert `child` at given `index`. If `index` is more then `children.len()`, pushes child
+    /// to the end.
     pub fn insert_child(&mut self, index: usize, child: Area) {
         if index > self.children.len() - 1 {
             return self.push_child(child);
@@ -134,6 +139,7 @@ impl Split {
         self.update_children_sizes();
     }
 
+    /// Pushes `child` to the end of `children`.
     pub fn push_child(&mut self, child: Area) {
         let last_index = self.children.len() - 1;
         self.children.push(child);
@@ -142,6 +148,7 @@ impl Split {
         self.ratios.push(1.0);
     }
 
+    /// Removes child at given `index`
     pub fn remove_child(&mut self, index: usize) {
         self.children.remove(index);
         self.ratios.remove(index);
@@ -151,6 +158,8 @@ impl Split {
         self.update_children_sizes();
     }
 
+    /// Replaces child at `index` with `children`. Area occupied by child at `index` is split
+    /// between `children` according to their rects.
     pub fn replace_child_with_children(&mut self, index: usize, children: &[Area]) {
         self.children.remove(index);
         let mut dimensions: Vec<f32> = children.iter()
