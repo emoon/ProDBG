@@ -164,7 +164,7 @@ impl Area {
 }
 
 #[derive(Debug)]
-pub struct SizerPos(pub SplitHandle, pub usize, pub Direction);
+pub struct SizerPos(pub SplitHandle, pub usize, pub Direction, pub f32);
 
 
 #[cfg(test)]
