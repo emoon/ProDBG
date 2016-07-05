@@ -190,24 +190,24 @@ mod test {
     #[test]
     fn test_shifted() {
         let rect = Rect::new(0.0, 0.0, 10.0, 10.0);
-        assert!(rects_are_equal(Rect::new(2.0, 0.0, 10.0, 10.0), rect.shifted(Direction::Horizontal, 2.0)));
-        assert!(rects_are_equal(Rect::new(0.0, -5.0, 10.0, 10.0), rect.shifted(Direction::Vertical, -5.0)));
+        assert!(rects_are_equal(&Rect::new(2.0, 0.0, 10.0, 10.0), &rect.shifted(Direction::Horizontal, 2.0)));
+        assert!(rects_are_equal(&Rect::new(0.0, -5.0, 10.0, 10.0), &rect.shifted(Direction::Vertical, -5.0)));
     }
 
     #[test]
     fn test_shrinked() {
         let rect = Rect::new(0.0, 0.0, 10.0, 20.0);
         assert!(rects_are_equal(
-            Rect::new(5.0, 0.0, 5.0, 20.0),
-            rect.shrinked(Direction::Horizontal, 5.0, ShrinkSide::Lower)
+            &Rect::new(5.0, 0.0, 5.0, 20.0),
+            &rect.shrinked(Direction::Horizontal, 5.0, ShrinkSide::Lower)
         ));
         assert!(rects_are_equal(
-            Rect::new(0.0, 0.0, 10.0, 15.0),
-            rect.shrinked(Direction::Vertical, 5.0, ShrinkSide::Higher)
+            &Rect::new(0.0, 0.0, 10.0, 15.0),
+            &rect.shrinked(Direction::Vertical, 5.0, ShrinkSide::Higher)
         ));
         assert!(rects_are_equal(
-            Rect::new(0.0, 2.0, 10.0, 16.0),
-            rect.shrinked(Direction::Vertical, 2.0, ShrinkSide::Both)
+            &Rect::new(0.0, 2.0, 10.0, 16.0),
+            &rect.shrinked(Direction::Vertical, 2.0, ShrinkSide::Both)
         ));
     }
 
@@ -216,13 +216,13 @@ mod test {
         let rect = Rect::new(0.0, 0.0, 10.0, 20.0);
         let res = rect.area_around_splits(Direction::Horizontal, &[0.4, 0.8], 2.0);
         assert_eq!(2, res.len());
-        assert!(rects_are_equal(Rect::new(0.0, 7.0, 10.0, 2.0), res[0]));
-        assert!(rects_are_equal(Rect::new(0.0, 15.0, 10.0, 2.0), res[1]));
+        assert!(rects_are_equal(&Rect::new(0.0, 7.0, 10.0, 2.0), &res[0]));
+        assert!(rects_are_equal(&Rect::new(0.0, 15.0, 10.0, 2.0), &res[1]));
         let res2 = rect.area_around_splits(Direction::Vertical, &[0.25, 0.5, 1.0], 2.0);
         assert_eq!(3, res2.len());
-        assert!(rects_are_equal(Rect::new(1.5, 0.0, 2.0, 20.0), res2[0]));
-        assert!(rects_are_equal(Rect::new(4.0, 0.0, 2.0, 20.0), res2[1]));
-        assert!(rects_are_equal(Rect::new(9.0, 0.0, 2.0, 20.0), res2[2]));
+        assert!(rects_are_equal(&Rect::new(1.5, 0.0, 2.0, 20.0), &res2[0]));
+        assert!(rects_are_equal(&Rect::new(4.0, 0.0, 2.0, 20.0), &res2[1]));
+        assert!(rects_are_equal(&Rect::new(9.0, 0.0, 2.0, 20.0), &res2[2]));
     }
 
     #[test]
@@ -230,14 +230,14 @@ mod test {
         let rect = Rect::new(0.0, 0.0, 1024.0, 1024.0);
         let res = rect.split_by_direction(Direction::Horizontal, &[0.25, 0.5, 1.0]);
         assert_eq!(3, res.len());
-        assert!(rects_are_equal(Rect::new(0.0, 0.0, 1024.0, 256.0), res[0]));
-        assert!(rects_are_equal(Rect::new(0.0, 256.0, 1024.0, 256.0), res[1]));
-        assert!(rects_are_equal(Rect::new(0.0, 512.0, 1024.0, 512.0), res[2]));
+        assert!(rects_are_equal(&Rect::new(0.0, 0.0, 1024.0, 256.0), &res[0]));
+        assert!(rects_are_equal(&Rect::new(0.0, 256.0, 1024.0, 256.0), &res[1]));
+        assert!(rects_are_equal(&Rect::new(0.0, 512.0, 1024.0, 512.0), &res[2]));
         let res2 = rect.split_by_direction(Direction::Vertical, &[0.25, 0.5, 1.0]);
         assert_eq!(3, res.len());
-        assert!(rects_are_equal(Rect::new(0.0, 0.0, 256.0, 1024.0), res2[0]));
-        assert!(rects_are_equal(Rect::new(256.0, 0.0, 256.0, 1024.0), res2[1]));
-        assert!(rects_are_equal(Rect::new(512.0, 0.0, 512.0, 1024.0), res2[2]));
+        assert!(rects_are_equal(&Rect::new(0.0, 0.0, 256.0, 1024.0), &res2[0]));
+        assert!(rects_are_equal(&Rect::new(256.0, 0.0, 256.0, 1024.0), &res2[1]));
+        assert!(rects_are_equal(&Rect::new(512.0, 0.0, 512.0, 1024.0), &res2[2]));
     }
 
     #[test]

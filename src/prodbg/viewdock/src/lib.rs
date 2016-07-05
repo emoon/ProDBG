@@ -30,8 +30,7 @@ mod serialize;
 mod test_helper;
 
 pub use rect::{Rect, Direction};
-pub use area::{Area, SplitHandle, Container, SizerPos};
-use area::Split;
+pub use area::{Area, Split, SplitHandle, Container, SizerPos};
 pub use dock::{DockHandle, Dock};
 
 /// Top level structure.
@@ -402,8 +401,93 @@ impl Workspace {
 mod test {
     extern crate serde_json;
 
-    use {Area, Container, Workspace, Dock, Rect, DockHandle, SplitHandle};
-    use test_helper::rects_are_equal;
+    use {Area, Container, Workspace, Split, SplitHandle, Dock, DockHandle, Rect, Direction};
+    use test_helper::{is_container_with_single_dock, rects_are_equal};
+
+    fn test_area_container(id: u64) -> Area {
+        Area::Container(Container::new(Dock::new(DockHandle(id), "test"), Rect::default()))
+    }
+
+    fn test_area_split(dir: Direction, id: u64, first: Area, second: Area) -> Area {
+        Area::Split(Split::from_two(dir, 0.5, SplitHandle(id), Rect::default(), first, second))
+    }
+
+    #[test]
+    fn test_delete_dock_by_handle_deletes_empty_container_from_root() {
+        let dock = Dock::new(DockHandle(5), "test");
+        let mut ws = Workspace {
+            root_area: Some(Area::Container(Container::new(dock, Rect::default()))),
+            rect: Rect::default(),
+            handle_counter: SplitHandle(0)
+        };
+        ws.delete_dock_by_handle(DockHandle(5));
+        assert!(ws.root_area.is_none());
+    }
+
+    #[test]
+    fn test_delete_dock_by_handle_deletes_empty_split_from_root() {
+        let first = test_area_container(0);
+        let second = test_area_container(1);
+        let split = test_area_split(Direction::Horizontal, 0, first, second);
+        let mut ws = Workspace {
+            root_area: Some(split),
+            rect: Rect::default(),
+            handle_counter: SplitHandle(1),
+        };
+        ws.delete_dock_by_handle(DockHandle(0));
+        match ws.root_area.unwrap() {
+            Area::Container(ref c) => assert_eq!(c.docks[0].handle, DockHandle(1)),
+            _ => panic!("Root node should become container")
+        }
+    }
+
+    #[test]
+    fn test_delete_dock_by_handle_delete_empty_container_from_split() {
+        let first = test_area_container(0);
+        let second = test_area_container(1);
+        let third = test_area_container(2);
+        let mut split = Split::from_two(Direction::Horizontal, 0.5, SplitHandle(0), Rect::default(), first, second);
+        split.push_child(third);
+        let mut ws = Workspace {
+            root_area: Some(Area::Split(split)),
+            rect: Rect::default(),
+            handle_counter: SplitHandle(1),
+        };
+        ws.delete_dock_by_handle(DockHandle(0));
+        match ws.root_area.unwrap() {
+            Area::Split(ref s) => {
+                assert!(is_container_with_single_dock(&s.children[0], 1));
+                assert!(is_container_with_single_dock(&s.children[1], 2));
+            }
+            _ => panic!("Root node should become container")
+        }
+    }
+
+    #[test]
+    fn test_delete_dock_by_handle_adopts_children() {
+        let first = test_area_container(1);
+        let second = test_area_container(2);
+        let third = test_area_container(3);
+        let fourth = test_area_container(4);
+        let bottom_split = test_area_split(Direction::Horizontal, 0, third, fourth);
+        let middle_split = test_area_split(Direction::Vertical,1, second, bottom_split);
+        let top_split = test_area_split(Direction::Horizontal, 2, middle_split, first);
+        let mut ws = Workspace {
+            root_area: Some(top_split),
+            rect: Rect::default(),
+            handle_counter: SplitHandle(1),
+        };
+        ws.delete_dock_by_handle(DockHandle(1));
+        match ws.root_area.unwrap() {
+            Area::Split(ref s) => {
+                assert_eq!(s.children.len(), 2);
+                assert!(is_container_with_single_dock(&s.children[0], 3));
+                assert!(is_container_with_single_dock(&s.children[1], 4));
+                assert!(is_container_with_single_dock(&s.children[2], 1));
+            }
+            _ => panic!("Root node should be container")
+        }
+    }
 
     #[test]
     fn test_workspace_serialize_0() {
@@ -417,7 +501,7 @@ mod test {
         let ws_out: Workspace = serde_json::from_str(&serialized).unwrap();
 
         assert!(ws_out.root_area.is_none());
-        assert!(rects_are_equal(Rect::default(), ws_out.rect));
+        assert!(rects_are_equal(&Rect::default(), &ws_out.rect));
     }
 
     #[test]
