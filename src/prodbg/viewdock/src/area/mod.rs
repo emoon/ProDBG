@@ -10,6 +10,8 @@ pub use self::split::{SplitHandle, Split, SizerPos};
 
 /// Represents some rectangular area that could be occupied either by Container or by Split.
 /// This enum does all the tree traversal for data structure.
+/// Data structure follows next rule: split's child can only be `Container` or `Split` with opposite
+/// direction.
 #[derive(Debug, Clone)]
 pub enum Area {
     Container(Container),
