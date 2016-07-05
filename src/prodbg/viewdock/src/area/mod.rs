@@ -8,7 +8,8 @@ use super::ItemTarget;
 pub use self::container::Container;
 pub use self::split::{SplitHandle, Split, SizerPos};
 
-/// Area could be occupied either by Container or by Split
+/// Represents some rectangular area that could be occupied either by Container or by Split.
+/// This enum does all the tree traversal for data structure.
 #[derive(Debug, Clone)]
 pub enum Area {
     Container(Container),
@@ -16,11 +17,12 @@ pub enum Area {
 }
 
 impl Area {
+    /// Wraps `Dock` into `Container`
     pub fn container_from_dock(dock: Dock) -> Area {
         Area::Container(Container::new(dock, Rect::default()))
     }
 
-    /// Finds Area::Split by its handle
+    /// Finds mutable reference to Area::Split by its handle
     pub fn get_split_by_handle(&mut self, handle: SplitHandle) -> Option<&mut Split> {
         match *self {
             Area::Container(_) => None,
@@ -35,7 +37,9 @@ impl Area {
         }
     }
 
-    /// Finds Area::Split which contains Container with supplied DockHandle
+    /// Finds `Split` which contains `Container` with supplied `DockHandle`. `usize` is position
+    /// of `Container` in `Split` children. Since containers do not have their own ids they are
+    /// usually referenced by `(SplitHandle, usize)`
     pub fn get_split_by_dock_handle(&self, handle: DockHandle) -> Option<(&Split, usize)> {
         if let Area::Split(ref s) = *self {
             let found_child = s.children.iter().position(|child| {
@@ -55,7 +59,7 @@ impl Area {
         return None;
     }
 
-    /// Finds Area::Split which contains Container with supplied DockHandle
+    /// Mutable version of `get_split_by_dock_handle`
     pub fn get_split_by_dock_handle_mut(&mut self, handle: DockHandle) -> Option<(&mut Split, usize)> {
         if let Area::Split(ref mut s) = *self {
             let found_child = s.children.iter_mut().position(|child| {
@@ -75,6 +79,7 @@ impl Area {
         return None;
     }
 
+    /// Finds parent `Split` that contains child `Split` and returns its position.
     pub fn get_parent_split_by_split_handle(&mut self, handle: SplitHandle) -> Option<(&mut Split, usize)> {
         if let &mut Area::Split(ref mut s) = self {
             let found_child = s.children.iter_mut().position(|child| {
@@ -94,7 +99,7 @@ impl Area {
         return None;
     }
 
-    /// Finds Container with supplied DockHandle
+    /// Finds `Container` with supplied `DockHandle`
     pub fn get_container_by_dock_handle(&self, handle: DockHandle) -> Option<&Container> {
         match *self {
             Area::Container(ref c) => if c.has_dock(handle) {Some(c)} else {None},
@@ -105,6 +110,7 @@ impl Area {
         }
     }
 
+    /// Mutable version of `get_container_by_dock_handle`
     pub fn get_container_by_dock_handle_mut(&mut self, handle: DockHandle) -> Option<&mut Container> {
         match *self {
             Area::Container(ref mut c) => if c.has_dock(handle) {Some(c)} else {None},
@@ -115,6 +121,7 @@ impl Area {
         }
     }
 
+    /// Updates rectangle area of this unit
     pub fn update_rect(&mut self, rect: Rect) {
         match self {
             &mut Area::Container(ref mut c) => c.rect = rect,
@@ -122,6 +129,7 @@ impl Area {
         }
     }
 
+    /// Returns area occupied by this unit
     pub fn get_rect(&self) -> Rect {
         match self {
             &Area::Container(ref c) => c.rect.clone(),
@@ -129,6 +137,7 @@ impl Area {
         }
     }
 
+    /// Returns sizer handle for sizer at `pos`. See `Split` for more.
     pub fn get_sizer_at_pos(&self, pos: (f32, f32)) -> Option<SizerPos> {
         match *self {
             Area::Container(_) => None,
@@ -138,6 +147,8 @@ impl Area {
         }
     }
 
+    /// Returns `DockHandle` for dock which header (or tab) is at `pos`. See
+    /// `Container::get_dock_handle_with_header_at_pos` for more.
     pub fn get_dock_handle_with_header_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
         match *self {
             Area::Container(ref c) => c.get_dock_handle_with_header_at_pos(pos),
@@ -146,6 +157,7 @@ impl Area {
         }
     }
 
+    /// Returns `DockHandle` for `Dock` which is under `pos`
     pub fn get_dock_handle_at_pos(&self, pos: (f32, f32)) -> Option<DockHandle> {
         match *self {
             Area::Container(ref c) => c.get_dock_handle_at_pos(pos),
@@ -154,6 +166,8 @@ impl Area {
         }
     }
 
+    /// Returns a pointer (`ItemTarget`) to some new (not yet existing) place in whole structure and
+    /// a corresponding `Rect` for area that is will occupy if inserted at that place.
     pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
         match *self {
             Area::Container(ref c) => c.get_item_target_at_pos(pos),
@@ -168,7 +182,7 @@ impl Area {
 mod test {
     extern crate serde_json;
 
-    use {Area};
+    use Area;
     use super::container::Container;
     use super::split::{Split, SplitHandle};
     use dock::{Dock, DockHandle};

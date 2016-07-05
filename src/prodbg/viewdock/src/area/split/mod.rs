@@ -12,7 +12,8 @@ pub struct SplitHandle(pub u64);
 #[derive(Debug)]
 pub struct SizerPos(pub SplitHandle, pub usize, pub Direction, f32);
 
-/// `Split` gives slice of its area to each child.
+/// `Split` gives slice of its area to each child. It intentionally does not contain any tree
+/// traversal methods. For tree traversal see `Area`.
 #[derive(Debug, Clone)]
 pub struct Split {
     /// Children
