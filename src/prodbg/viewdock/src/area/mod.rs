@@ -2,7 +2,7 @@ mod container;
 mod split;
 mod serialize;
 
-use rect::{Rect, Direction};
+use rect::Rect;
 use dock::{Dock, DockHandle};
 use super::ItemTarget;
 pub use self::container::Container;
