@@ -1,6 +1,7 @@
 #include "pd_backend.h"
 #include "pd_host.h"
 #include "pd_menu.h"
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -380,17 +381,30 @@ static DisasmData s_disasm_data[] = {
 
 typedef struct DummyPlugin {
 	int exception_location;
-
+	// 1 MB of memory, range is 0x10000
+	uint8_t* memory;
+	int64_t memory_start;
+	int64_t memory_end;
 } DummyPlugin;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void* create_instance(ServiceFunc* serviceFunc) {
 	(void)serviceFunc;
+	int i = 0;
 
 	DummyPlugin* plugin = (DummyPlugin*)malloc(sizeof(DummyPlugin));
 	memset(plugin, 0, sizeof(DummyPlugin));
 	plugin->exception_location = s_disasm_data[0].address;
+	plugin->memory = malloc(1 * 1024 * 1024);
+	plugin->memory_start = 0x10000;
+	plugin->memory_end = (1 * 1024 * 1024) + plugin->memory_start;
+
+	srand(0xc0cac01a);
+
+	for (i = 0; i < 1024 * 1024; ++i) {
+		plugin->memory[i] = rand() & 0xff;
+	}
 
     return plugin;
 }
@@ -461,6 +475,41 @@ static void set_exception_location(DummyPlugin* data, PDWriter* writer) {
     PDWrite_u64(writer, "address", (uint64_t)data->exception_location);
     PDWrite_u8(writer, "address_size", 2);
     PDWrite_event_end(writer);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void set_memory(DummyPlugin* data, PDReader* reader, PDWriter* writer) {
+    int64_t address_start = 0;
+    int64_t size = 0;
+    int64_t end_address;
+
+    PDRead_find_s64(reader, &address_start, "address_start", 0);
+    PDRead_find_s64(reader, &size, "size", 0);
+
+    // clamp the range we can fetch memory from
+
+    if (address_start < data->memory_start) {
+    	size -= (data->memory_start - address_start);
+    	address_start = data->memory_start;
+	}
+
+	end_address = address_start + size;
+
+	if (end_address > data->memory_end) {
+		size -= end_address - data->memory_end;
+	}
+
+	// Make sure we have some data to read from
+
+	if (size <= 0) {
+		return;
+	}
+
+	PDWrite_event_begin(writer, PDEventType_SetMemory);
+	PDWrite_u64(writer, "address", (uint64_t)address_start);
+	PDWrite_data(writer, "data", data->memory + (address_start - data->memory_start), (uint32_t)size);
+	PDWrite_event_end(writer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -600,6 +649,12 @@ static PDDebugState update(void* user_data,
 			case PDEventType_GetDisassembly:
 			{
 				get_disassembly(reader, writer);
+				break;
+			}
+
+			case PDEventType_GetMemory:
+			{
+				set_memory(data, reader, writer);
 				break;
 			}
 		}
