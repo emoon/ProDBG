@@ -56,6 +56,10 @@ pub enum EventType {
 
     ToggleBreakpointCurrentLine,
 
+    UpdateMemory,
+    UpdateRegister,
+    UpdatePc,
+
     // End of events
 
     End,

@@ -1,5 +1,5 @@
 #ifndef _PRODBGAPI_BACKEND_H_
-#define _PRODBGAPI_BACKEND_H_ 
+#define _PRODBGAPI_BACKEND_H_
 
 #include "pd_common.h"
 #include "pd_readwrite.h"
@@ -88,6 +88,10 @@ typedef enum PDEventType {
     // TODO: Somewhat temporary, need to figure this out
 
     PDEventType_ToggleBreakpointCurrentLine,
+
+    PDEventType_UpdateMemory,
+    PDEventType_UpdateRegister,
+    PDEventType_UpdatePc,
 
     // End of events
 
