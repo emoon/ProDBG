@@ -31,6 +31,8 @@ mod rect;
 mod area;
 mod dock;
 mod serialize;
+#[cfg(test)]
+mod test_helper;
 
 pub use self::error::Error;
 // use std::io::{Write, Read};
