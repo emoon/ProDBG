@@ -6,7 +6,7 @@ use rect::{Rect, Direction};
 use dock::{Dock, DockHandle};
 use super::ItemTarget;
 pub use self::container::Container;
-pub use self::split::{SplitHandle, Split};
+pub use self::split::{SplitHandle, Split, SizerPos};
 
 /// Area could be occupied either by Container or by Split
 #[derive(Debug, Clone)]
@@ -162,9 +162,6 @@ impl Area {
         }
     }
 }
-
-#[derive(Debug)]
-pub struct SizerPos(pub SplitHandle, pub usize, pub Direction);
 
 
 #[cfg(test)]

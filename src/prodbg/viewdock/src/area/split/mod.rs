@@ -1,30 +1,41 @@
 mod serialize;
 
-use super::{Area, SizerPos};
+use super::Area;
 use rect::{Rect, Direction, ShrinkSide};
 
 /// Handle to a split
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct SplitHandle(pub u64);
 
-/// Given rectangle area is split in two parts.
+/// Handle to a sizer (area between two children). Identified by `SplitHandle` and index,
+/// `Direction` is to simplify further use of `SizerPos`.
+#[derive(Debug)]
+pub struct SizerPos(pub SplitHandle, pub usize, pub Direction);
+
+/// `Split` gives slice of its area to each child.
 #[derive(Debug, Clone)]
 pub struct Split {
     /// Children
     pub children: Vec<Area>,
-    /// Right (or bottom) border of each child. Last should always be 1.
+    /// Higher (right of bottom) border of each child. Last element should always be 1.0. For
+    /// example, if `ratios` is `[0.25, 0.7, 1.0]`, then area `0 - 0.25` will be occupied by first
+    /// child, `0.25 - 0.7` by second and so on.
     pub ratios: Vec<f32>,
-    /// Direction of the split
+    /// Direction of the split. For example, `Direction::Horizontal` means `rect.height` will be
+    /// split by horizontal lines.
     pub direction: Direction,
-    /// Handle of the split
+    /// Handle of the split.
     pub handle: SplitHandle,
-    /// Area occupied by this split
+    /// Area occupied by this split.
     pub rect: Rect,
 }
 
+/// Width of area between splits. Children's rects will be shrinked a bit to fit sizers (empty area
+/// currently) between them;
 const SIZER_WIDTH: f32 = 4.0;
 
 impl Split {
+    /// Creates new `Split` from two children
     pub fn from_two(direction: Direction, ratio: f32, handle: SplitHandle, rect: Rect, first: Area, second: Area) -> Split {
         let mut res = Split {
             children: vec!(first, second),
@@ -37,6 +48,7 @@ impl Split {
         return res;
     }
 
+    // Recalculates children sizes and pushes changes further
     fn update_children_sizes(&mut self) {
         let rects = self.rect.split_by_direction(self.direction, &self.ratios);
         let last_index = self.children.len() - 1;
@@ -50,16 +62,19 @@ impl Split {
         }
     }
 
+    /// Updates area of this split and all children
     pub fn update_rect(&mut self, rect: Rect) {
         self.rect = rect;
         self.update_children_sizes();
     }
 
+    /// Returns reference to child which area contains `pos`
     pub fn get_child_at_pos(&self, pos: (f32, f32)) -> Option<&Area> {
         self.children.iter()
             .find(|child| child.get_rect().point_is_inside(pos))
     }
 
+    /// Returns handle to a sizer
     pub fn get_sizer_at_pos(&self, pos: (f32, f32)) -> Option<SizerPos> {
         if !self.rect.point_is_inside(pos) {
             return None;
@@ -70,7 +85,8 @@ impl Split {
             .map(|(i, _)| SizerPos(self.handle, i, self.direction));
     }
 
-    pub fn map_rect_to_delta(&self, delta: (f32, f32)) -> f32 {
+    // recalculates absolute delta (in pixels) into relative value (to increase/decrease `ratios`)
+    fn map_rect_to_delta(&self, delta: (f32, f32)) -> f32 {
         match self.direction {
             Direction::Vertical => -delta.0 / self.rect.width,
             Direction::Horizontal => -delta.1 / self.rect.height,

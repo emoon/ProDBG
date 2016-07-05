@@ -4,7 +4,7 @@ use dock::{Dock, DockHandle};
 use rect::{Rect, Direction};
 use super::super::ItemTarget;
 
-/// Container shares its area (defined by `rect`) between its child `docks`. `active_dock` is an
+/// `Container` shares its area (defined by `rect`) between its child `docks`. `active_dock` is an
 /// index of dock that gets all the area, while others only draw their headers in tabs, defined by
 /// `tab_borders`. Since drawing of tabs happen outside of Viewdock, `tab_borders` should be updated
 /// each time they are changed.
