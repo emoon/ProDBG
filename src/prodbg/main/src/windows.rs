@@ -16,9 +16,6 @@ use prodbg_api::view::CViewCallbacks;
 use std::os::raw::{c_void, c_int};
 use std::collections::VecDeque;
 //use std::mem::transmute;
-use std::thread::sleep;
-use std::time::Duration;
-use std::fmt;
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 800;
@@ -47,20 +44,6 @@ impl MouseState {
     }
 }
 
-impl fmt::Display for State {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}",
-            match self {
-                &State::Default => "Default",
-                &State::DraggingNothing => "Dragging Nothing",
-                &State::DraggingSizer(_) => "Dragging Sizer",
-                &State::DraggingDock(_) => "Dragging Dock",
-                &State::PreDraggingDock(_) => "PreDragging Dock",
-            }
-        )
-    }
-}
-
 pub struct Window {
     /// minifb window
     pub win: minifb::Window,
@@ -69,7 +52,6 @@ pub struct Window {
     /// Views in this window
     pub views: Vec<ViewHandle>,
 
-    ///
     pub ws: Workspace,
     ws_states: VecDeque<String>,
     cur_state_index: usize,
@@ -182,7 +164,6 @@ impl Windows {
                 self.windows.swap_remove(i);
             }
         }
-        sleep(Duration::from_millis(5));
     }
 
     pub fn get_current(&mut self) -> &mut Window {
