@@ -92,6 +92,8 @@ RustCrate  {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+--[[
+
 RustProgram {
 	Name = "ui_testbench",
 	CargoConfig = "src/prodbg/ui_testbench/Cargo.toml",
@@ -103,6 +105,8 @@ RustProgram {
     Depends = { "lua", "remote_api", "stb", "bgfx", "bgfx_rs", "ui",
     			"imgui", "scintilla", "tinyxml2", "capstone", "imgui_sys", "core" },
 }
+
+--]]
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -117,7 +121,7 @@ RustProgram {
 	},
 
     Depends = { "lua", "remote_api", "stb", "bgfx", "bgfx_rs", "ui",
-    			"imgui", "scintilla", "tinyxml2", "capstone", 
+    			"imgui", "scintilla", "tinyxml2", "capstone",
     			"imgui_sys", "core", "viewdock", "settings", "prodbg_api" },
 }
 
@@ -139,6 +143,8 @@ local prodbgBundle = OsxBundle
 
 -----------------------------------------------------------------------------------------------------------------------
 
+--[[
+
 local uiBundle = OsxBundle
 {
 	Depends = { "ui_testbench" },
@@ -153,16 +159,18 @@ local uiBundle = OsxBundle
 	Config = { "macosx-clang-debug-default" ; "macosx-clang-release-default" },
 }
 
+--]]
+
 -----------------------------------------------------------------------------------------------------------------------
 
 if native.host_platform == "macosx" then
 	Default "prodbg"
-	Default "ui_testbench"
+	--Default "ui_testbench"
 	Default(prodbgBundle)
-	Default(uiBundle)
+	--Default(uiBundle)
 else
 	Default "prodbg"
-	Default "ui_testbench"
+	--Default "ui_testbench"
 end
 
 -- vim: ts=4:sw=4:sts=4
