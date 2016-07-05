@@ -276,7 +276,8 @@ impl Workspace {
         }
     }
 
-    /// Deletes dock identified by `handle`
+    /// Deletes dock identified by `handle`. Note that due to structural change stored `ItemTarget`
+    /// object can become invalid.
     pub fn delete_dock_by_handle(&mut self, handle: DockHandle) {
         let mut should_delete_root = false;
         let mut should_stop = false;
@@ -330,7 +331,14 @@ impl Workspace {
         }
     }
 
-    /// Move dock identified by `handle` to a `target`.
+    /// Move dock identified by `handle` to a `target`. Strategy used is simple:
+    /// * find source dock, copy it, mark with special DockHandle;
+    /// * insert copy of source dock using `create_dock` method;
+    /// * delete marked dock using `delete_dock_by_handle` method;
+    ///
+    /// This strategy ensures that ItemTarget will always be valid (since we perform no structural
+    /// changes before using it) and we will always delete source dock (since we marked it and will
+    /// not mess it with newly created).
     pub fn move_dock(&mut self, handle: DockHandle, mut target: ItemTarget) {
         let marker = DockHandle(u64::max_value());
         let copy = self.root_area.as_mut()
@@ -401,7 +409,7 @@ impl Workspace {
 mod test {
     extern crate serde_json;
 
-    use {Area, Container, Workspace, Split, SplitHandle, Dock, DockHandle, Rect, Direction};
+    use {Area, Container, Workspace, Split, SplitHandle, ItemTarget, Dock, DockHandle, Rect, Direction};
     use test_helper::{is_container_with_single_dock, rects_are_equal};
 
     fn test_area_container(id: u64) -> Area {
@@ -414,9 +422,8 @@ mod test {
 
     #[test]
     fn test_delete_dock_by_handle_deletes_empty_container_from_root() {
-        let dock = Dock::new(DockHandle(5), "test");
         let mut ws = Workspace {
-            root_area: Some(Area::Container(Container::new(dock, Rect::default()))),
+            root_area: Some(test_area_container(5)),
             rect: Rect::default(),
             handle_counter: SplitHandle(0)
         };
@@ -451,7 +458,7 @@ mod test {
         let mut ws = Workspace {
             root_area: Some(Area::Split(split)),
             rect: Rect::default(),
-            handle_counter: SplitHandle(1),
+            handle_counter: SplitHandle(2),
         };
         ws.delete_dock_by_handle(DockHandle(0));
         match ws.root_area.unwrap() {
@@ -475,17 +482,140 @@ mod test {
         let mut ws = Workspace {
             root_area: Some(top_split),
             rect: Rect::default(),
-            handle_counter: SplitHandle(1),
+            handle_counter: SplitHandle(3),
         };
-        ws.delete_dock_by_handle(DockHandle(1));
+        ws.delete_dock_by_handle(DockHandle(2));
         match ws.root_area.unwrap() {
             Area::Split(ref s) => {
-                assert_eq!(s.children.len(), 2);
+                assert_eq!(s.children.len(), 3);
                 assert!(is_container_with_single_dock(&s.children[0], 3));
                 assert!(is_container_with_single_dock(&s.children[1], 4));
                 assert!(is_container_with_single_dock(&s.children[2], 1));
             }
             _ => panic!("Root node should be container")
+        }
+    }
+
+    #[test]
+    fn test_create_dock_at_split_root_0() {
+        let mut ws = Workspace {
+            root_area: Some(test_area_container(5)),
+            rect: Rect::default(),
+            handle_counter: SplitHandle(0)
+        };
+        let target = ItemTarget::SplitRoot(Direction::Horizontal, 0);
+        ws.create_dock_at(target, Dock::new(DockHandle(6), "test2"));
+        match ws.root_area.unwrap() {
+            Area::Split(ref s) => {
+                assert_eq!(s.children.len(), 2);
+                assert!(is_container_with_single_dock(&s.children[0], 6));
+                assert!(is_container_with_single_dock(&s.children[1], 5));
+            },
+            _ => panic!("Root node should be split")
+        }
+    }
+
+    #[test]
+    fn test_create_dock_at_split_root_1() {
+        let mut ws = Workspace {
+            root_area: Some(test_area_container(5)),
+            rect: Rect::default(),
+            handle_counter: SplitHandle(0)
+        };
+        let target = ItemTarget::SplitRoot(Direction::Vertical, 1);
+        ws.create_dock_at(target, Dock::new(DockHandle(6), "test2"));
+        match ws.root_area.unwrap() {
+            Area::Split(ref s) => {
+                assert_eq!(s.children.len(), 2);
+                assert!(is_container_with_single_dock(&s.children[0], 5));
+                assert!(is_container_with_single_dock(&s.children[1], 6));
+            },
+            _ => panic!("Root node should be split")
+        }
+    }
+
+    #[test]
+    fn test_create_dock_at_split_container() {
+        let first = test_area_container(0);
+        let second = test_area_container(1);
+        let split = test_area_split(Direction::Horizontal, 0, first, second);
+        let mut ws = Workspace {
+            root_area: Some(split),
+            rect: Rect::default(),
+            handle_counter: SplitHandle(1),
+        };
+        let target = ItemTarget::SplitContainer(SplitHandle(0), 0, 1);
+        ws.create_dock_at(target, Dock::new(DockHandle(2), "test2"));
+        match ws.root_area.unwrap() {
+            Area::Split(ref s) => {
+                assert_eq!(s.direction, Direction::Horizontal);
+                assert_eq!(s.children.len(), 2);
+                assert!(is_container_with_single_dock(&s.children[1], 1));
+                match s.children[0] {
+                    Area::Split(ref s) => {
+                        assert_eq!(s.direction, Direction::Vertical);
+                        assert_eq!(s.children.len(), 2);
+                        assert!(is_container_with_single_dock(&s.children[0], 0));
+                        assert!(is_container_with_single_dock(&s.children[1], 2));
+                    },
+                    _ => panic!("First child should be split")
+                }
+            },
+            _ => panic!("Root node should be split")
+        }
+    }
+
+    #[test]
+    fn test_create_dock_at_split_dock_1() {
+        let first = test_area_container(0);
+        let second = test_area_container(1);
+        let split = test_area_split(Direction::Horizontal, 0, first, second);
+        let mut ws = Workspace {
+            root_area: Some(split),
+            rect: Rect::default(),
+            handle_counter: SplitHandle(1),
+        };
+        let target = ItemTarget::SplitDock(DockHandle(1), Direction::Horizontal, 1);
+        ws.create_dock_at(target, Dock::new(DockHandle(2), "test2"));
+        match ws.root_area.unwrap() {
+            Area::Split(ref s) => {
+                assert_eq!(s.children.len(), 3);
+                assert!(is_container_with_single_dock(&s.children[0], 0));
+                assert!(is_container_with_single_dock(&s.children[1], 1));
+                assert!(is_container_with_single_dock(&s.children[2], 2));
+            },
+            _ => panic!("Root node should be split")
+        }
+    }
+
+    #[test]
+    fn test_create_dock_at_split_dock_2() {
+        let first = test_area_container(0);
+        let second = test_area_container(1);
+        let split = test_area_split(Direction::Horizontal, 0, first, second);
+        let mut ws = Workspace {
+            root_area: Some(split),
+            rect: Rect::default(),
+            handle_counter: SplitHandle(1),
+        };
+        let target = ItemTarget::SplitDock(DockHandle(0), Direction::Vertical, 0);
+        ws.create_dock_at(target, Dock::new(DockHandle(2), "test2"));
+        match ws.root_area.unwrap() {
+            Area::Split(ref s) => {
+                assert_eq!(s.direction, Direction::Horizontal);
+                assert_eq!(s.children.len(), 2);
+                assert!(is_container_with_single_dock(&s.children[1], 1));
+                match s.children[0] {
+                    Area::Split(ref s) => {
+                        assert_eq!(s.direction, Direction::Vertical);
+                        assert_eq!(s.children.len(), 2);
+                        assert!(is_container_with_single_dock(&s.children[0], 2));
+                        assert!(is_container_with_single_dock(&s.children[1], 0));
+                    },
+                    _ => panic!("First child should be split")
+                }
+            },
+            _ => panic!("Root node should be split")
         }
     }
 
