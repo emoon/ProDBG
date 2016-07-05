@@ -1,6 +1,4 @@
-/*
 #[macro_use]
-extern crate lazy_static;
 extern crate json;
 
 use json::JsonValue;
@@ -11,77 +9,16 @@ pub mod error;
 use error::SettingsError;
 
 #[derive(Debug)]
-pub struct Key {
-    pub name: String,
-    pub key_id: u32,
-}
-
-#[derive(Debug)]
-pub struct Setting {
-    pub name: String,
-    pub value: JsonValue,
-}
-
-#[derive(Debug)]
-pub struct Category {
-    pub name: String,
-    pub keys: Vec<Key>,
-    pub values: Vec<Setting>,
-}
-
-#[derive(Debug)]
 pub struct Settings {
-    pub categories: Vec<Category>,
-}
-
-impl Setting {
-    fn new(name: &String, json_data: &JsonValue) -> Setting {
-        Setting {
-            name: name.clone(),
-            value: json_data.clone(),
-        }
-    }
-
-    fn update(&mut self, json_data: &JsonValue) {
-        self.value = json_data.clone();
-    }
-}
-
-impl Category {
-    pub fn new(name: &String, json_data: &JsonValue) -> Category {
-        let mut cat = Category {
-            name: name.clone(),
-            keys: Vec::new(),
-            values: Vec::new(),
-        };
-
-        cat.update(name, json_data);
-
-        cat
-    }
-
-    fn update_entry(&mut self, entry: (&String, &JsonValue)) -> bool {
-        if let Some(value) = self.values.iter_mut().find(|ref mut e| e.name == *entry.0) {
-            value.update(entry.1);
-            true
-        } else {
-            false
-        }
-    }
-
-    fn update(&mut self, _name: &String, json_data: &JsonValue) {
-        for entry in json_data.entries() {
-            if !self.update_entry(entry) {
-                self.values.push(Setting::new(entry.0, entry.1));
-            }
-        }
-    }
+    default_values: JsonValue,
+    user_values: JsonValue,
 }
 
 impl Settings {
     pub fn new() -> Settings {
         Settings {
-            categories: Vec::new(),
+            default_values: JsonValue::new_object(),
+            user_values: JsonValue::new_object(),
         }
     }
 
@@ -96,38 +33,33 @@ impl Settings {
         Ok(json_data)
     }
 
-    fn update_entry(&mut self, entry: (&String, &JsonValue)) -> bool {
-        if let Some(value) = self.categories.iter_mut().find(|ref e| e.name == *entry.0) {
-            value.update(entry.0, entry.1);
-            true
-        } else {
-            false
-        }
-    }
-
-    fn update_settings(&mut self, data: &JsonValue) {
-        for entry in data.entries() {
-            if !self.update_entry(entry) {
-                self.categories.push(Category::new(entry.0, entry.1));
-            }
-        }
-    }
-
-    pub fn update(&mut self, filename: &str) -> Result<JsonValue, SettingsError> {
+    pub fn load_default_settings(&mut self, filename: &str) -> Result<JsonValue, SettingsError> {
         let data = try!(Self::load_file(filename));
 
-        self.update_settings(&data);
+        self.default_values = data;
 
-        Ok(data)
+        Ok(JsonValue::new_object())
+    }
+
+    pub fn load_user_settings(&mut self, filename: &str) -> Result<JsonValue, SettingsError> {
+        let data = try!(Self::load_file(filename));
+
+        self.user_values = data;
+
+        Ok(JsonValue::new_object())
     }
 
     pub fn get_int(&self, category: &str, key: &str) -> Option<i32> {
-        for cat in &self.categories {
-            if cat.name == category {
-                if let Some(ref t) = cat.values.iter().find(|ref s| s.name == key) {
-                    return t.value.as_i32()
-                }
-            }
+        let ref v = self.user_values[category][key];
+
+        if !v.is_null() {
+            return v.as_i32();
+        }
+
+        let ref v = self.default_values[category][key];
+
+        if !v.is_null() {
+            return v.as_i32();
         }
 
         None
@@ -155,28 +87,10 @@ mod tests {
     }
 
     #[test]
-    fn test_json_traverse_top() {
-        let mut settings = Settings::new();
-
-        settings.update("../../../test_data/settings.json").unwrap();
-
-        let cats = [
-            "Source Code View",
-            "default_native_backend",
-            "window_position",
-            "window_size",
-        ];
-
-        for (i, cat) in settings.categories.iter().enumerate() {
-            assert_eq!(cat.name, cats[i]);
-        }
-    }
-
-    #[test]
     fn test_json_get_int() {
         let mut settings = Settings::new();
 
-        settings.update("../../../test_data/settings.json").unwrap();
+        settings.load_default_settings("../../../test_data/settings.json").unwrap();
 
         assert_eq!(settings.get_int("window_size", "width"), Some(1024));
         assert_eq!(settings.get_int("window_size", "some_new_data"), None);
@@ -186,14 +100,13 @@ mod tests {
     fn test_json_get_int_updated() {
         let mut settings = Settings::new();
 
-        settings.update("../../../test_data/settings.json").unwrap();
-        settings.update("../../../test_data/user_settings.json").unwrap();
+        settings.load_default_settings("../../../test_data/settings.json").unwrap();
+        settings.load_user_settings("../../../test_data/user_settings.json").unwrap();
 
         assert_eq!(settings.get_int("window_size", "width"), Some(1920));
         assert_eq!(settings.get_int("window_size", "hsoeu"), None);
         assert_eq!(settings.get_int("window_size", "some_new_data"), Some(42));
     }
 }
-*/
 
 
