@@ -132,6 +132,7 @@ impl Container {
 
     /// Returns `ItemTarget` corresponding to `pos`. See `ItemTarget` documentation for more.
     pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
+        // check special place inside tabs to change tab order
         for (index, &border) in [0.0].iter().chain(self.tab_borders.iter()).enumerate() {
             let gap_rect = Rect::new(
                 self.rect.x + border - TAB_INSERT_WIDTH / 2.0,
@@ -142,22 +143,41 @@ impl Container {
                 return Some((ItemTarget::AppendToContainer(self.docks[0].handle, index), gap_rect));
             }
         }
+
+        // check middle box area to inject new tab
         let w3 = self.rect.width / 3.0;
         let h3 = self.rect.height / 3.0;
         let mid = Rect::new(self.rect.x + w3, self.rect.y + h3, w3, h3);
         if mid.point_is_inside(pos) {
             return Some((ItemTarget::AppendToContainer(self.docks[0].handle, self.docks.len()), self.rect));
         }
-        for &(dist, over_dist, direction) in [(w3, self.rect.width/2.0, Direction::Horizontal), (h3, self.rect.height/2.0, Direction::Vertical)].iter() {
-            for &(mult, place) in [(-1.0, 0), (1.0, 1)].iter() {
-                let place_rect = mid.shifted(direction, dist * mult);
-                let over_rect = self.rect.shifted_clip(direction, over_dist * mult);
-                if place_rect.point_is_inside(pos) {
-                    return Some((ItemTarget::SplitDock(self.docks[0].handle, direction.opposite(), place), over_rect));
-                }
+
+        if !self.rect.point_is_inside(pos) { return None; }
+
+        // calc closest distance to border
+        let mut res = None;
+        let x = self.rect.x;
+        let y = self.rect.y;
+        let w = self.rect.width;
+        let h = self.rect.height;
+        let mut min = 0.0;
+        for &(add_x, add_y, over_dist, direction, place) in [
+            (0.0, 0.0, -w / 2.0, Direction::Horizontal, 0),
+            (w, 0.0, w / 2.0, Direction::Horizontal, 1),
+            (0.0, 0.0, -h / 2.0, Direction::Vertical, 0),
+            (0.0, h, h / 2.0, Direction::Vertical, 1),
+        ].iter() {
+            let dist = match direction {
+                Direction::Horizontal => (pos.0 - (x + add_x)).abs(),
+                Direction::Vertical => (pos.1 - (y + add_y)).abs(),
+            };
+            if min == 0.0 || dist < min {
+                let over_rect = self.rect.shifted_clip(direction, over_dist);
+                res = Some((ItemTarget::SplitDock(self.docks[0].handle, direction.opposite(), place), over_rect));
+                min = dist;
             }
         }
-        return None;
+        res
     }
 
     /// Updates tab borders for this container
