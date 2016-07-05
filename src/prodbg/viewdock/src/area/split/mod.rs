@@ -1,30 +1,42 @@
 mod serialize;
 
-use super::{Area, SizerPos};
+use super::Area;
 use rect::{Rect, Direction, ShrinkSide};
 
 /// Handle to a split
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct SplitHandle(pub u64);
 
-/// Given rectangle area is split in two parts.
+/// Handle to a sizer (area between two children). Identified by `SplitHandle` and index,
+/// `Direction` is to simplify further use of `SizerPos`. Last member is current ratio.
+#[derive(Debug)]
+pub struct SizerPos(pub SplitHandle, pub usize, pub Direction, pub f32);
+
+/// `Split` gives slice of its area to each child. It intentionally does not contain any tree
+/// traversal methods. For tree traversal see `Area`.
 #[derive(Debug, Clone)]
 pub struct Split {
     /// Children
     pub children: Vec<Area>,
-    /// Right (or bottom) border of each child. Last should always be 1.
+    /// Higher (right of bottom) border of each child. Last element should always be 1.0. For
+    /// example, if `ratios` is `[0.25, 0.7, 1.0]`, then area `0 - 0.25` will be occupied by first
+    /// child, `0.25 - 0.7` by second and so on.
     pub ratios: Vec<f32>,
-    /// Direction of the split
+    /// Direction of the split. For example, `Direction::Horizontal` means `rect.height` will be
+    /// split by horizontal lines.
     pub direction: Direction,
-    /// Handle of the split
+    /// Handle of the split.
     pub handle: SplitHandle,
-    /// Area occupied by this split
+    /// Area occupied by this split.
     pub rect: Rect,
 }
 
+/// Width of area between splits. Children's rects will be shrinked a bit to fit sizers (empty area
+/// currently) between them;
 const SIZER_WIDTH: f32 = 4.0;
 
 impl Split {
+    /// Creates new `Split` from two children
     pub fn from_two(direction: Direction, ratio: f32, handle: SplitHandle, rect: Rect, first: Area, second: Area) -> Split {
         let mut res = Split {
             children: vec!(first, second),
@@ -37,6 +49,7 @@ impl Split {
         return res;
     }
 
+    // Recalculates children sizes and pushes changes further
     fn update_children_sizes(&mut self) {
         let rects = self.rect.split_by_direction(self.direction, &self.ratios);
         let last_index = self.children.len() - 1;
@@ -50,16 +63,19 @@ impl Split {
         }
     }
 
+    /// Updates area of this split and all children
     pub fn update_rect(&mut self, rect: Rect) {
         self.rect = rect;
         self.update_children_sizes();
     }
 
+    /// Returns reference to child which area contains `pos`
     pub fn get_child_at_pos(&self, pos: (f32, f32)) -> Option<&Area> {
         self.children.iter()
             .find(|child| child.get_rect().point_is_inside(pos))
     }
 
+    /// Returns handle to a sizer
     pub fn get_sizer_at_pos(&self, pos: (f32, f32)) -> Option<SizerPos> {
         if !self.rect.point_is_inside(pos) {
             return None;
@@ -70,13 +86,16 @@ impl Split {
             .map(|(i, _)| SizerPos(self.handle, i, self.direction, self.ratios[i]));
     }
 
-    pub fn map_rect_to_delta(&self, delta: (f32, f32)) -> f32 {
+    // recalculates absolute delta (in pixels) into relative value (to increase/decrease `ratios`)
+    fn map_rect_to_delta(&self, delta: (f32, f32)) -> f32 {
         match self.direction {
             Direction::Vertical => -delta.0 / self.rect.width,
             Direction::Horizontal => -delta.1 / self.rect.height,
         }
     }
 
+    /// Changes ratio at `index`. Does not allow distance between neighbouring ratios less then
+    /// `0.05`.
     pub fn change_ratio(&mut self, index: usize, origin: f32, delta: (f32, f32)) {
         let scale = Self::map_rect_to_delta(self, delta);
         let mut res = origin + scale;
@@ -96,6 +115,7 @@ impl Split {
         self.update_children_sizes();
     }
 
+    /// Replace child at `index` by `new_child` and replaced child.
     pub fn replace_child(&mut self, index: usize, new_child: Area) -> Area {
         self.children.push(new_child);
         let res = self.children.swap_remove(index);
@@ -103,6 +123,8 @@ impl Split {
         return res;
     }
 
+    /// Insert `child` at given `index`. If `index` is more then `children.len()`, pushes child
+    /// to the end.
     pub fn insert_child(&mut self, index: usize, child: Area) {
         if index > self.children.len() - 1 {
             return self.push_child(child);
@@ -118,6 +140,7 @@ impl Split {
         self.update_children_sizes();
     }
 
+    /// Pushes `child` to the end of `children`.
     pub fn push_child(&mut self, child: Area) {
         let last_index = self.children.len() - 1;
         self.children.push(child);
@@ -126,6 +149,7 @@ impl Split {
         self.ratios.push(1.0);
     }
 
+    /// Removes child at given `index`
     pub fn remove_child(&mut self, index: usize) {
         self.children.remove(index);
         self.ratios.remove(index);
@@ -135,6 +159,8 @@ impl Split {
         self.update_children_sizes();
     }
 
+    /// Replaces child at `index` with `children`. Area occupied by child at `index` is split
+    /// between `children` according to their rects.
     pub fn replace_child_with_children(&mut self, index: usize, children: &[Area]) {
         self.children.remove(index);
         let mut dimensions: Vec<f32> = children.iter()

@@ -16,9 +16,6 @@ use prodbg_api::view::CViewCallbacks;
 use std::os::raw::{c_void, c_int};
 use std::collections::VecDeque;
 //use std::mem::transmute;
-use std::thread::sleep;
-use std::time::Duration;
-use std::fmt;
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 800;
@@ -47,20 +44,6 @@ impl MouseState {
     }
 }
 
-impl fmt::Display for State {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}",
-            match self {
-                &State::Default => "Default",
-                &State::DraggingNothing => "Dragging Nothing",
-                &State::DraggingSizer(_) => "Dragging Sizer",
-                &State::DraggingDock(_) => "Dragging Dock",
-                &State::PreDraggingDock(_) => "PreDragging Dock",
-            }
-        )
-    }
-}
-
 pub struct Window {
     /// minifb window
     pub win: minifb::Window,
@@ -69,7 +52,6 @@ pub struct Window {
     /// Views in this window
     pub views: Vec<ViewHandle>,
 
-    ///
     pub ws: Workspace,
     ws_states: VecDeque<String>,
     cur_state_index: usize,
@@ -141,7 +123,7 @@ impl Windows {
         Bgfx::create_window(win.get_window_handle() as *const c_void,
                             width as c_int,
                             height as c_int);
-        let ws = Workspace::new(Rect::new(0.0, 0.0, width as f32, (height - 20) as f32)).unwrap();
+        let ws = Workspace::new(Rect::new(0.0, 0.0, width as f32, (height - 20) as f32));
         let mut ws_states = VecDeque::with_capacity(WORKSPACE_UNDO_LIMIT);
         ws_states.push_back(ws.save_state());
         return Ok(Window {
@@ -182,7 +164,6 @@ impl Windows {
                 self.windows.swap_remove(i);
             }
         }
-        sleep(Duration::from_millis(5));
     }
 
     pub fn get_current(&mut self) -> &mut Window {
@@ -340,7 +321,6 @@ impl Window {
         let mut next_state = None;
         let cursor;
         let mut should_save_ws_state = false;
-        //TODO: do not make any changes if user drag-and-dropped in short time (1 sec or less)
         match self.mouse_state.state {
             State::Default => {
                 if let Some(sizer) = self.ws.get_sizer_at_pos(mouse_pos) {
