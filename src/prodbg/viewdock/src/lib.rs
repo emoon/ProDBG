@@ -118,13 +118,21 @@ impl Workspace {
         }
     }
 
-    // TODO: use absolute coordinates here
-    pub fn change_split_ratio(&mut self, handle: SplitHandle, index: usize, delta: (f32, f32)) {
+    pub fn change_ratio(&mut self, handle: SplitHandle, index: usize, origin:f32, delta: (f32, f32)) {
         if let Some(ref mut root) = self.root_area {
             if let Some(s) = root.get_split_by_handle(handle) {
-                s.change_ratio(index, delta);
+                s.change_ratio(index, origin, delta);
             }
         }
+    }
+
+    pub fn get_ratio(&mut self, handle: SplitHandle, index: usize) -> f32 {
+        if let Some(ref mut root) = self.root_area {
+            if let Some(s) = root.get_split_by_handle(handle) {
+                return s.ratios[index];
+            }
+        }
+        0.0
     }
 
     pub fn get_sizer_at_pos(&self, pos: (f32, f32)) -> Option<SizerPos> {

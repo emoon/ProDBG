@@ -1618,6 +1618,14 @@ extern "C" int imgui_begin_float(const char* name, int show) {
     return s;
 }
 
+extern "C" void imgui_begin_child(const char* name, float h) {
+	ImGui::BeginChild(name, ImVec2(0, h), false, 0);
+}
+
+extern "C" void imgui_end_child() {
+	ImGui::EndChild();
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void imgui_end() {
