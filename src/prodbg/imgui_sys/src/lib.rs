@@ -79,12 +79,24 @@ impl Imgui {
         }
     }
 
-    //+Z
     pub fn begin_window_float(name: &str, show: bool) -> bool {
         unsafe {
             let t = CFixedString::from_str(name).as_ptr();
             if imgui_begin_float(t, show as c_uchar) == 1 { true } else { false }
         }
+    }
+
+    pub fn begin_window_child(name: &str, height: f32) {
+    	unsafe {
+            let t = CFixedString::from_str(name).as_ptr();
+            imgui_begin_child(t, height);
+    	}
+    }
+
+    pub fn end_window_child() {
+    	unsafe {
+    		imgui_end_child();
+    	} 
     }
 
     pub fn map_key(key_target: usize, key_source: usize) {
@@ -168,9 +180,10 @@ impl Imgui {
 
 extern "C" {
     fn imgui_begin(name: *const c_char, show: c_uchar) -> c_int;
-    //+Z
     fn imgui_begin_float(name: *const c_char, show: c_uchar) -> c_int;
     fn imgui_end();
+    fn imgui_begin_child(name: *const c_char, h: f32);
+    fn imgui_end_child();
     fn imgui_create_ui_funcs() -> *mut CPdUI;
     fn imgui_get_ui_funcs() -> *mut CPdUI;
     fn imgui_set_window_pos(x: f32, y: f32);
@@ -181,7 +194,6 @@ extern "C" {
     fn imgui_set_mouse_state(index: i32, state: c_int);
     fn imgui_clear_keys();
     fn imgui_set_key_down(key: i32);
-    //+Z
     fn imgui_tab(label: *const c_char, selected: bool, last: bool) -> c_int;
     fn imgui_separator();
     fn imgui_tab_pos() -> f32;

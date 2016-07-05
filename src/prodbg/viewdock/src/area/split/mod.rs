@@ -82,7 +82,7 @@ impl Split {
         let sizer_rects = self.rect.area_around_splits(self.direction, &self.ratios[0..self.ratios.len() - 1], 8.0);
         return sizer_rects.iter().enumerate()
             .find(|&(_, rect)| rect.point_is_inside(pos))
-            .map(|(i, _)| SizerPos(self.handle, i, self.direction));
+            .map(|(i, _)| SizerPos(self.handle, i, self.direction, self.ratios[i]));
     }
 
     // recalculates absolute delta (in pixels) into relative value (to increase/decrease `ratios`)
@@ -93,20 +93,13 @@ impl Split {
         }
     }
 
-    pub fn change_ratio(&mut self, index: usize, delta: (f32, f32)) {
+    pub fn change_ratio(&mut self, index: usize, origin: f32, delta: (f32, f32)) {
         let scale = Self::map_rect_to_delta(self, delta);
-        let max = if index < self.ratios.len() - 1 {
-            self.ratios[index + 1]
-        } else {
-            1.0
-        };
-        let min = if index > 0 {
-            self.ratios[index - 1]
-        } else {
-            0.0
-        };
-        let mut res = self.ratios[index] + scale;
+        let mut res = origin + scale;
 
+        let min = if index==0 {0.05} else {self.ratios[index-1]+0.05};
+        let max = if index==self.ratios.len()-1 {0.95} else {self.ratios[index+1]-0.05};
+        
         if res < min {
             res = min;
         }

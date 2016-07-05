@@ -28,7 +28,7 @@ const OVERLAY_COLOR: u32 = 0x8000FF00;
 enum State {
     Default,
     DraggingNothing,
-    DraggingSizer(SizerPos, String),
+    DraggingSizer(SizerPos),
     DraggingDock(DockHandle),
     PreDraggingDock(DockHandle),
 }
@@ -53,7 +53,7 @@ impl fmt::Display for State {
             match self {
                 &State::Default => "Default",
                 &State::DraggingNothing => "Dragging Nothing",
-                &State::DraggingSizer(_,_) => "Dragging Sizer",
+                &State::DraggingSizer(_) => "Dragging Sizer",
                 &State::DraggingDock(_) => "Dragging Dock",
                 &State::PreDraggingDock(_) => "PreDragging Dock",
             }
@@ -262,10 +262,13 @@ impl Window {
         let open = Imgui::begin_window(&instance.name, true);
 
         //+Z tabs
+        let mut has_tabs = false;
         if let Some(ref mut root) = ws.root_area {
             if let Some(ref mut container) = root.get_container_by_dock_handle_mut(DockHandle(instance.handle.0)) {
                 let tabs:Vec<String> = container.docks.iter().map(|dock| dock.plugin_name.clone()).collect();
                 if tabs.len() > 1 {
+                	has_tabs = true;
+                	Imgui::begin_window_child("tabs", 20.0);
                     let mut borders = Vec::with_capacity(tabs.len());
                     for (i, t) in tabs.iter().enumerate() {
                         if Imgui::tab(t, i==container.active_dock, i==tabs.len()-1) {
@@ -274,6 +277,9 @@ impl Window {
                         borders.push(Imgui::tab_pos());
                     }
                     container.update_tab_borders(&borders);
+                    Imgui::end_window_child();
+                    Imgui::separator();
+                    Imgui::begin_window_child("body", 0.0);
                 }
             }
         }
@@ -289,7 +295,7 @@ impl Window {
             Imgui::mark_show_popup(ui.api, false);
         }
 
-        //+Z test drag zone
+        // Draw drag zone
         if let &Some((handle, rect)) = overlay {
             if handle.0 == instance.handle.0 {
                 Imgui::render_frame(rect.x, rect.y, rect.width, rect.height, OVERLAY_COLOR);
@@ -309,6 +315,9 @@ impl Window {
 
         let has_shown_menu = Imgui::has_showed_popup(ui.api);
 
+        if has_tabs {
+        	Imgui::end_window_child();
+        }
         Imgui::end_window();
 
         WindowState {
@@ -330,7 +339,7 @@ impl Window {
     fn update_mouse_state(&mut self, mouse_pos: (f32, f32)) {
         let mut next_state = None;
         let cursor;
-        let mut ws_state_to_save = None;
+        let mut should_save_ws_state = false;
         //TODO: do not make any changes if user drag-and-dropped in short time (1 sec or less)
         match self.mouse_state.state {
             State::Default => {
@@ -340,11 +349,13 @@ impl Window {
                         Direction::Horizontal => CursorStyle::ResizeUpDown
                     };
                     if self.win.get_mouse_down(MouseButton::Left) {
-                        next_state = Some(State::DraggingSizer(sizer, self.ws.save_state()));
+                        self.mouse_state.prev_mouse = mouse_pos;
+                        next_state = Some(State::DraggingSizer(sizer));
                     }
                 } else if let Some(handle) = self.ws.get_dock_handle_with_header_at_pos(mouse_pos) {
                     cursor = CursorStyle::ClosedHand;
                     if self.win.get_mouse_down(MouseButton::Left) {
+                        self.mouse_state.prev_mouse = mouse_pos;
                         next_state = Some(State::PreDraggingDock(handle));
                     }
                 } else {
@@ -362,7 +373,7 @@ impl Window {
                 }
             },
 
-            State::DraggingSizer(SizerPos(handle, index, direction), ref ws_state) => {
+            State::DraggingSizer(SizerPos(handle, index, direction, origin_ratio)) => {
                 if self.win.get_mouse_down(MouseButton::Left) {
                     cursor = match direction {
                         Direction::Vertical => CursorStyle::ResizeLeftRight,
@@ -370,11 +381,11 @@ impl Window {
                     };
                     let pm = self.mouse_state.prev_mouse;
                     let delta = (pm.0 - mouse_pos.0, pm.1 - mouse_pos.1);
-                    self.ws.change_split_ratio(handle, index, delta);
+                    self.ws.change_ratio(handle, index, origin_ratio, delta);
                 } else {
                     next_state = Some(State::Default);
                     cursor = CursorStyle::Arrow;
-                    ws_state_to_save = Some(ws_state.clone());
+                    should_save_ws_state = true;
                 }
             },
 
@@ -394,11 +405,12 @@ impl Window {
             },
 
             State::DraggingDock(handle) => {
-                let move_target = self.ws.get_item_target_at_pos(mouse_pos)
-                    .and_then(|target| match self.ws.already_at_place(&target.0, handle) {
-                        false => Some(target),
-                        true => None,
-                    });
+                let mut move_target = self.ws.get_item_target_at_pos(mouse_pos);
+
+                if let Some(target_handle) = self.ws.get_dock_handle_at_pos(mouse_pos) {
+                    if target_handle==handle { move_target = None;}
+                }
+
                 if self.win.get_mouse_down(MouseButton::Left) {
                     cursor = match move_target {
                         Some(_) => CursorStyle::OpenHand,
@@ -415,8 +427,10 @@ impl Window {
                     }
                 } else {
                     if let Some((target, _)) = move_target {
-                        self.ws.move_dock(handle, target);
-                        self.save_cur_workspace_state();
+                        if !self.ws.already_at_place(&target, handle) {
+                            self.ws.move_dock(handle, target);
+                            self.save_cur_workspace_state();
+                        }
                     }
                     next_state = Some(State::Default);
                     cursor = CursorStyle::Arrow;
@@ -426,13 +440,11 @@ impl Window {
         }
 
         self.win.set_cursor_style(cursor);
-        self.mouse_state.prev_mouse = mouse_pos;
         if let Some(ns) = next_state {
             self.mouse_state.state = ns;
-            //println!("Mouse state changed: {}", self.mouse_state.state);
         }
-        if let Some(ws_state) = ws_state_to_save {
-            self.save_workspace_state(ws_state.clone());
+        if should_save_ws_state {
+            self.save_cur_workspace_state();
         }
     }
 
