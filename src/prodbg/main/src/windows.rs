@@ -340,7 +340,6 @@ impl Window {
         let mut next_state = None;
         let cursor;
         let mut should_save_ws_state = false;
-        //TODO: do not make any changes if user drag-and-dropped in short time (1 sec or less)
         match self.mouse_state.state {
             State::Default => {
                 if let Some(sizer) = self.ws.get_sizer_at_pos(mouse_pos) {
