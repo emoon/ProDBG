@@ -187,6 +187,35 @@ impl AmigaUaeBackend {
            }
        }
     }
+
+    fn get_registers(&mut self, writer: &mut Writer) {
+        let mut register_data = [0; 1024];
+        if self.conn.get_registers(&mut register_data).is_ok() {
+            println!("setting registers!");
+            self.write_registers(writer, &register_data);
+        }
+
+        self.write_exception_location(writer);
+    }
+
+    fn update_conn_incoming(&mut self, writer: &mut Writer) {
+        let mut should_break = false;
+
+        if self.conn.is_connected() {
+            if let Some(ref event) = self.conn.read_incoming_event() {
+                println!("Got incoming {:?}", event.data);
+                // Check if we got an exception back
+                if let Some(ref _data) = event.begins_with("S") {
+                    println!("Should break");
+                    should_break = true;
+                }
+            }
+        }
+
+        if should_break {
+            self.get_registers(writer);
+        }
+    }
 }
 
 impl Backend for AmigaUaeBackend {
@@ -199,6 +228,8 @@ impl Backend for AmigaUaeBackend {
     }
 
     fn update(&mut self, action: i32, reader: &mut Reader, writer: &mut Writer) {
+        self.update_conn_incoming(writer);
+
         for event in reader.get_event() {
             match event {
                 EVENT_MENU_EVENT => {
@@ -249,19 +280,13 @@ impl Backend for AmigaUaeBackend {
 
             ACTION_STEP => {
                 let mut step_res = [0; 16];
-                let mut register_data = [0; 1024];
                 self.conn.step(&mut step_res).unwrap();
                     println!("step res {:?}", step_res);
-                    println!("steping ok!");
-                    if self.conn.get_registers(&mut register_data).is_ok() {
-                        println!("setting registers!");
-                        self.write_registers(writer, &register_data);
-                    }
-
-                    self.write_exception_location(writer);
+                    self.get_registers(writer);
                 }
             _ => (),
         }
+
     }
 
     fn register_menu(&mut self, menu_funcs: &mut MenuFuncs) -> *mut c_void {
