@@ -3,6 +3,7 @@ extern crate minifb;
 extern crate prodbg_api;
 extern crate bgfx_rs;
 extern crate imgui_sys;
+extern crate settings;
 
 pub mod windows;
 pub mod menu;
@@ -10,6 +11,7 @@ pub mod menu;
 use bgfx_rs::Bgfx;
 use core::session::Sessions;
 use windows::Windows;
+use settings::Settings;
 use core::{DynamicReload, Search};
 use core::view_plugins::{ViewPlugins};
 use core::backend_plugin::{BackendPlugins};
@@ -22,6 +24,7 @@ fn main() {
     let bgfx = Bgfx::new();
     let mut sessions = Sessions::new();
     let mut windows = Windows::new();
+    let mut _settings = Settings::new();
 
     let mut lib_handler = DynamicReload::new(None, Some("t2-output"), Search::Backwards);
     let mut plugins = Plugins::new();
