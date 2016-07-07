@@ -4,9 +4,9 @@ use plugin::Plugin;
 use plugins::PluginHandler;
 use dynamic_reload::Lib;
 use session::SessionHandle;
-use std::ptr;
-use std::os::raw::{c_void, c_uchar};
+use std::os::raw::{c_void};
 use prodbg_api::ui::Ui;
+use services;
 use plugin_io;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -100,10 +100,6 @@ impl ViewPlugins {
         }
     }
 
-    pub extern "C" fn service_fun(_name: *const c_uchar) -> *mut c_void {
-        ptr::null_mut()
-    }
-
     pub fn get_view(&mut self, view_handle: ViewHandle) -> Option<&mut ViewInstance> {
         for i in 0..self.instances.len() {
             if self.instances[i].handle == view_handle {
@@ -122,7 +118,7 @@ impl ViewPlugins {
                                       -> Option<ViewHandle> {
         let plugin_data = unsafe {
             let callbacks = self.plugin_types[index].plugin_funcs as *mut CViewCallbacks;
-            (*callbacks).create_instance.unwrap()(ui.api as *mut c_void, Self::service_fun)
+            (*callbacks).create_instance.unwrap()(ui.api as *mut c_void, services::get_services)
         };
 
         let handle = match view_handle {
