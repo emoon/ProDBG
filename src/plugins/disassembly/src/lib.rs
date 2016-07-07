@@ -101,7 +101,7 @@ impl DisassemblyView {
     }
 
     fn color_text_reg_selection(ui: &Ui, regs_use: &Vec<&str>, line: &Line, text_height: f32) {
-        let (cx, cy) = ui.get_cursor_screen_pos();
+        let (_cx, cy) = ui.get_cursor_screen_pos();
         let mut color_index = 0;
         // TODO: Allocs memory, fix
         let line_text = format!("   0x{:x} {}", line.address, line.opcode);
@@ -128,7 +128,7 @@ impl DisassemblyView {
             let color = colors[color_index & 7];
             line_text.find(reg).map(|offset| {
                 let (tx, _) = ui.calc_text_size(&line_text, offset);
-                ui.fill_rect(cx + tx, cy, 22.0, text_height, Color::from_au32(200, color));
+                ui.fill_rect(0.0 + tx, cy, 22.0, text_height, Color::from_au32(200, color));
             });
 
             color_index += 1;
@@ -256,7 +256,7 @@ impl DisassemblyView {
         }
 
         for line in &self.lines {
-            let (cx, cy) = ui.get_cursor_screen_pos();
+            let (_cx, cy) = ui.get_cursor_screen_pos();
             let bp_radius = self.breakpoint_radius;
 
             if line.address == self.cursor {
@@ -278,7 +278,7 @@ impl DisassemblyView {
                     }
                 }
 
-                ui.fill_rect(cx, cy, size_x, text_height, Color::from_argb(200, 0, 0, 127));
+                ui.fill_rect(0.0, cy, size_x, text_height, Color::from_argb(200, 0, 0, 127));
             }
 
             if regs_pc_use.len() > 0 {
@@ -288,14 +288,14 @@ impl DisassemblyView {
             }
 
             if self.has_breakpoint(line.address) {
-                    ui.fill_circle(&Vec2{ x: cx + self.breakpoint_spacing + bp_radius, y: cy + bp_radius + 2.0},
+                    ui.fill_circle(&Vec2{ x: self.breakpoint_spacing + bp_radius, y: cy + bp_radius + 2.0},
                                    bp_radius, Color::from_argb(255,0,0,140), 12, false);
             }
 
             //println!("draw arrow {} {}", line.address, self.exception_location);
 
             if line.address == self.exception_location {
-                Self::render_arrow(ui, cx, cy + 2.0, self.breakpoint_radius * 2.0);
+                Self::render_arrow(ui, 0.0, cy + 2.0, self.breakpoint_radius * 2.0);
             }
         }
 
