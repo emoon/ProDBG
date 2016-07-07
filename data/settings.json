@@ -7,8 +7,8 @@
 	},
 
 	"window_size":{
-		"width": 1024,
-		"height": 768
+		"width": 1920,
+		"height": 1080
 	},
 
 	"window_position":{
@@ -19,10 +19,10 @@
 	"Source Code View":{
 		"some_regular_setting": "test",
 		"keys":{
-			"fast_open": { 
+			"fast_open": {
 				"Default": "Ctrl+Shift+O"
 			},
-			"toggle_breakpoint": { 
+			"toggle_breakpoint": {
 				"Default": "F8"
 			}
 		}

@@ -9,6 +9,7 @@ use core::backend_plugin::{BackendPlugins};
 use core::session::{Sessions, Session, SessionHandle};
 use core::reader_wrapper::ReaderWrapper;
 use self::viewdock::{Workspace, Rect, Direction, DockHandle, SizerPos, Dock, ItemTarget};
+use settings::Settings;
 use menu::*;
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::{PDVec2, ImguiKey};
@@ -17,8 +18,8 @@ use std::os::raw::{c_void, c_int};
 use std::collections::VecDeque;
 //use std::mem::transmute;
 
-const WIDTH: usize = 1280;
-const HEIGHT: usize = 800;
+const WIDTH: i32 = 1280;
+const HEIGHT: i32 = 800;
 const WORKSPACE_UNDO_LIMIT: usize = 10;
 const OVERLAY_COLOR: u32 = 0x8000FF00;
 
@@ -99,12 +100,12 @@ impl Windows {
     }
 
     /// Create a default window which will only be created if there are no other
-    pub fn create_default(&mut self) {
+    pub fn create_default(&mut self, settings: &Settings) {
         if self.windows.len() > 0 {
             return;
         }
 
-        let window = Self::create_window_with_menus().expect("Unable to create window");
+        let window = Self::create_window_with_menus(settings).expect("Unable to create window");
 
         Self::setup_imgui_key_mappings();
 
@@ -140,8 +141,12 @@ impl Windows {
         });
     }
 
-    pub fn create_window_with_menus() -> minifb::Result<Window> {
-        let mut window = try!(Self::create_window(WIDTH, HEIGHT));
+    pub fn create_window_with_menus(settings: &Settings) -> minifb::Result<Window> {
+
+        let width = settings.get_int("window_size", "width").unwrap_or(WIDTH) as usize;
+        let height = settings.get_int("window_size", "height").unwrap_or(HEIGHT) as usize;
+
+        let mut window = try!(Self::create_window(width, height));
 
         window.win.set_input_callback(Box::new(KeyCharCallback {}));
 
