@@ -118,7 +118,7 @@ impl Area {
             Area::Container(ref mut c) => if c.has_dock(handle) {Some(c)} else {None},
             Area::Split(ref mut s) => s.children.iter_mut()
                 .map(|child| child.get_container_by_dock_handle_mut(handle))
-                .find(|c| {c.is_some() })
+                .find(|c| { c.is_some() })
                 .and_then(|res| res)
         }
     }
@@ -145,7 +145,7 @@ impl Area {
             Area::Container(_) => None,
             Area::Split(ref s) => s.get_sizer_at_pos(pos)
                 .or_else(|| s.get_child_at_pos(pos)
-                    .and_then(|child| child.get_sizer_at_pos(pos))),
+                .and_then(|child| child.get_sizer_at_pos(pos))),
         }
     }
 

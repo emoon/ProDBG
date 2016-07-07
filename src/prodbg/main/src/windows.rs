@@ -222,7 +222,6 @@ impl Window {
     fn update_view(ws: &mut Workspace, instance: &mut ViewInstance, session: &mut Session, show_context_menu: bool, mouse: (f32, f32), overlay: &Option<(DockHandle, Rect)>) -> WindowState {
         let ui = &instance.ui;
 
-        //+Z skip inactive tab
         if let Some(ref root) = ws.root_area {
             if let Some(ref container) = root.get_container_by_dock_handle(DockHandle(instance.handle.0)) {
                 if container.docks[container.active_dock].handle.0 != instance.handle.0 {
@@ -242,7 +241,6 @@ impl Window {
 
         let open = Imgui::begin_window(&instance.name, true);
 
-        //+Z tabs
         let mut has_tabs = false;
         if let Some(ref mut root) = ws.root_area {
             if let Some(ref mut container) = root.get_container_by_dock_handle_mut(DockHandle(instance.handle.0)) {
@@ -667,6 +665,7 @@ impl Window {
             }
         }
     }
+
     fn show_popup_menu_no_splits(&mut self, plugin_names: &Vec<String>, view_plugins: &mut ViewPlugins) {
         let ui = Imgui::get_ui();
 
@@ -720,7 +719,6 @@ impl Window {
             ui.end_menu();
         }
 
-        //+Z
         if ui.begin_menu("Tab", true) {
             for name in plugin_names {
                 if ui.menu_item(name, false, true) {
