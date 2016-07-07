@@ -1,0 +1,25 @@
+[root]
+name = "amiga_uae_view_plugin"
+version = "0.1.0"
+dependencies = [
+ "prodbg_api 0.1.0",
+]
+
+[[package]]
+name = "bitflags"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "gcc"
+version = "0.3.28"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "prodbg_api"
+version = "0.1.0"
+dependencies = [
+ "bitflags 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gcc 0.3.28 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
