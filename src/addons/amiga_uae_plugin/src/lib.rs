@@ -5,10 +5,14 @@ use prodbg_api::*;
 use std::os::raw::{c_void};
 use gdb_remote::GdbRemote;
 
+const MENU_CONNECT: u32 = 0;
+const MENU_ENABLE_DMA: u32 = 1;
+
 struct AmigaUaeBackend {
     capstone: Capstone,
     conn: GdbRemote,
     exception_location: u32,
+    _id_amiga_uae_dma_time: u16,
 }
 
 impl AmigaUaeBackend {
@@ -216,12 +220,45 @@ impl AmigaUaeBackend {
             self.get_registers(writer);
         }
     }
+
+    fn on_menu(&mut self, reader: &mut Reader) {
+        let menu_id = reader.find_u32("menu_id").ok().unwrap();
+
+        println!("menu id {}", menu_id);
+
+        match menu_id {
+            MENU_CONNECT => {
+                if self.conn.connect("127.0.0.1:6860").is_ok() {
+                    if self.conn.request_no_ack_mode().is_ok() {
+                        println!("Connected. Ready to go!");
+                        if self.conn.cont().is_err() {
+                            println!("Failed to cont");
+                        }
+                    } else {
+                        println!("no ack request failed");
+                    }
+                } else {
+                    println!("Unable to connect to UAE");
+                }
+            }
+
+            MENU_ENABLE_DMA => {
+                if self.conn.is_connected() {
+                    let mut res = [0; 256];
+                    self.conn.send_command_wait_reply_raw(&mut res, "QDmaTimeEnable").unwrap();
+                }
+            }
+
+            _ => (),
+        }
+    }
 }
 
 impl Backend for AmigaUaeBackend {
     fn new(service: &Service) -> Self {
         AmigaUaeBackend {
             capstone: service.get_capstone(),
+            _id_amiga_uae_dma_time: service.get_id_register().register_id("AmigaUAEDmaTime"),
             conn: GdbRemote::new(),
             exception_location: 0,
         }
@@ -233,15 +270,7 @@ impl Backend for AmigaUaeBackend {
         for event in reader.get_event() {
             match event {
                 EVENT_MENU_EVENT => {
-                    if self.conn.connect("127.0.0.1:6860").is_ok() {
-                        if self.conn.request_no_ack_mode().is_ok() {
-                            println!("Connected. Ready to go!");
-                        } else {
-                            println!("no ack request failed");
-                        }
-                    } else {
-                        println!("Unable to connect to UAE");
-                    }
+                    self.on_menu(reader);
                 }
                 EVENT_GET_DISASSEMBLY => {
                     self.write_disassembly(reader, writer);
@@ -291,7 +320,8 @@ impl Backend for AmigaUaeBackend {
 
     fn register_menu(&mut self, menu_funcs: &mut MenuFuncs) -> *mut c_void {
         let menu = menu_funcs.create_menu("Amiga UAE Debugger");
-        menu_funcs.add_menu_item(menu, "Connect to UAE...", 0, 0, 0);
+        menu_funcs.add_menu_item(menu, "Connect to UAE...", MENU_CONNECT as usize, 0, 0);
+        menu_funcs.add_menu_item(menu, "Enable DMA Stream", MENU_ENABLE_DMA as usize, 0, 0);
         menu
     }
 }
