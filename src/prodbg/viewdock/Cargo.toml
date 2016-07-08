@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Daniel Collin <daniel@collin.com>"]
 
 [dependencies]
-minifb = "0.8.0"
+minifb = "0.8.1"
 serde = "0.7.4"
 serde_json = "0.7.0"
 
