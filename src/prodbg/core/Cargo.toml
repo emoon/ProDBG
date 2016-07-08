@@ -8,7 +8,7 @@ walkdir = "0.1.5"
 notify = "^2.5.0"
 libloading = "0.2.0"
 tempdir = "0.3"
-minifb = "0.8.1"
+minifb = "0.8.2"
 dynamic_reload = "0.2.0"
 prodbg_api = { path = "../../../api/rust/prodbg" }
 
