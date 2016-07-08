@@ -335,12 +335,13 @@ impl Ui {
     #[inline]
     pub fn calc_text_size(&self, text: &str, offset: usize) -> (f32, f32) {
         unsafe {
+            let start = CFixedString::from_str(text);
             if offset == 0 {
-                let t = ((*self.api).calc_text_size)(text.as_ptr(), ptr::null(), 0, -1.0);
+                let t = ((*self.api).calc_text_size)(start.as_ptr(), ptr::null(), 0, -1.0);
                 (t.x, t.y)
             } else {
-                let slice = &text[offset..];
-                let t = ((*self.api).calc_text_size)(text.as_ptr(), slice.as_ptr(), 0, -1.0);
+                let slice = &start.as_str()[offset..];
+                let t = ((*self.api).calc_text_size)(start.as_ptr(), slice.as_ptr(), 0, -1.0);
                 (t.x, t.y)
             }
         }
