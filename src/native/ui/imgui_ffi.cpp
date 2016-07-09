@@ -5,6 +5,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <bgfx/bgfx.h>
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct ImageData {
+    bgfx::TextureHandle tex;
+	uint16_t width;
+	uint16_t height;
+	int size;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -578,8 +588,13 @@ static int invisible_button(const char* strId, const PDVec2 size) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void image(PDUITextureID user_texture_id, const PDVec2 size, const PDVec2 uv0, const PDVec2 uv1, const PDColor tintColor, const PDColor borderColor) {
-    ImGui::Image((ImTextureID)user_texture_id, ImVec2(size.x, size.y), ImVec2(uv0.x, uv0.y), ImVec2(uv1.x, uv1.y), pdColorToImVec4(tintColor), pdColorToImVec4(borderColor));
+static void image(void* image_data, const PDVec2 size, const PDVec2 uv0, const PDVec2 uv1, const PDColor tintColor, const PDColor borderColor) {
+	ImageData* data = (ImageData*)image_data;
+	union { void* ptr; bgfx::TextureHandle handle; } texture;
+	texture.handle = data->tex;
+
+    ImGui::Image((ImTextureID)texture.ptr, ImVec2(size.x, size.y), ImVec2(uv0.x, uv0.y), ImVec2(uv1.x, uv1.y),
+    			 pdColorToImVec4(tintColor), pdColorToImVec4(borderColor));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1612,18 +1627,70 @@ extern "C" int imgui_begin(const char* name, int show) {
     return s ? 1 : 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 extern "C" int imgui_begin_float(const char* name, int show) {
 	bool s = !!show;
     ImGui::Begin(name, &s, ImVec2(500.0, 500.0), 0.8f, ImGuiWindowFlags_NoCollapse);
     return s;
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void imgui_begin_child(const char* name, float h) {
 	ImGui::BeginChild(name, ImVec2(0, h), false, 0);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 extern "C" void imgui_end_child() {
 	ImGui::EndChild();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void* image_create_rgba(int width, int height) {
+	bgfx::TextureHandle tex = bgfx::createTexture2D(
+			(uint16_t)width,
+			(uint16_t)height,
+			1,
+			bgfx::TextureFormat::BGRA8,
+			BGFX_TEXTURE_NONE,
+			0);
+
+	if (!isValid(tex)) {
+		return 0;
+	}
+
+	ImageData* data = (ImageData*)malloc(sizeof(ImageData));
+
+	data->tex = tex;
+	data->size = width * height * 4;
+	data->width = (uint16_t)width;
+	data->height = (uint16_t)height;
+
+    const bgfx::Memory* mem = bgfx::alloc((uint32_t)data->size);
+    memset(mem->data, 0, data->size);
+
+    // Update with cleared data section to not have "empty" texture
+
+    bgfx::updateTexture2D(tex, 0, 0, 0, (uint16_t)width, (uint16_t)height, mem);
+
+    return data;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void image_update(void* imageData, const void* src, int size) {
+	ImageData* data = (ImageData*)imageData;
+
+	// clamp size if it's being incorrect
+	if (size > data->size)
+		size = data->size;
+
+    const bgfx::Memory* mem = bgfx::alloc((uint32_t)data->size);
+	memcpy(mem->data, src, size);
+
+    bgfx::updateTexture2D(data->tex, 0, 0, 0, data->width, data->height, mem);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1911,6 +1978,13 @@ static PDUI s_uiFuncs[] =
     fill_rect,
 	fill_convex_ploy,
 	fill_circle,
+
+	// Image
+
+ 	// Image support
+
+	image_create_rgba,
+	image_update,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1943,7 +2017,8 @@ extern "C" void imgui_set_window_size(float w, float h) {
     ImGui::SetNextWindowSize(ImVec2(w, h));
 }
 
-//+Z
-extern "C" void imgui_RenderFrame(float x, float y, float width, float height, int fill_col) {
-	ImGui::RenderFrame(ImVec2(x,y), ImVec2(x+width,y+height), fill_col, false, 0.0f);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void imgui_render_frame(float x, float y, float width, float height, int fill_col) {
+	ImGui::RenderFrame(ImVec2(x, y), ImVec2(x + width,y + height), fill_col, false, 0.0f);
 }

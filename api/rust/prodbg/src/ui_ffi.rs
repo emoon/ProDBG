@@ -300,6 +300,8 @@ pub struct CPdUI {
 	pub fill_rect: extern fn(PDRect, c_uint),
 	pub fill_convex_poly: extern fn(verts: *const c_void, count: u32, color: u32, aa: c_int),
 	pub fill_circle: extern fn(pos: PDVec2, radius: f32,  color: u32, num_seg: u32, aa: c_int),
+	pub image_crate_rgba: extern fn(width: u32, height: u32) -> *mut c_void,
+	pub image_update: extern fn(handle: *mut c_void, src: *const c_void, size: u32) -> *mut c_void,
 }
 
 #[repr(C)]

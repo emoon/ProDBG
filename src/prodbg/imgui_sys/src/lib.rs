@@ -96,7 +96,7 @@ impl Imgui {
     pub fn end_window_child() {
     	unsafe {
     		imgui_end_child();
-    	} 
+    	}
     }
 
     pub fn map_key(key_target: usize, key_source: usize) {
@@ -173,7 +173,7 @@ impl Imgui {
     //+Z
     pub fn render_frame(x: f32, y:f32, width:f32, height:f32, fill_col:u32) {
     	unsafe {
-    		imgui_RenderFrame(x, y, width, height, fill_col)
+    		imgui_render_frame(x, y, width, height, fill_col)
     	}
     }
 }
@@ -197,5 +197,5 @@ extern "C" {
     fn imgui_tab(label: *const c_char, selected: bool, last: bool) -> c_int;
     fn imgui_separator();
     fn imgui_tab_pos() -> f32;
-    fn imgui_RenderFrame(x: f32, y:f32, width:f32, height:f32, fill_col: u32);
+    fn imgui_render_frame(x: f32, y:f32, width:f32, height:f32, fill_col: u32);
 }

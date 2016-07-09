@@ -1,5 +1,6 @@
 use std::ptr;
 use ui_ffi::*;
+use std::mem;
 use std::fmt;
 use std::fmt::Write;
 use scintilla::Scintilla;
@@ -163,9 +164,16 @@ impl Color {
     pub fn from_argb(a: u32, r: u32, g: u32, b: u32) -> Color {
         Self::from_u32((a << 24) | (r << 16) | (g << 8) | b)
     }
+
     pub fn from_au32(a: u32, rgb: u32) -> Color {
         Self::from_u32((a << 24) | rgb)
     }
+}
+
+pub struct Image {
+    api: *mut CPdUI,
+    handle: *mut c_void,
+    size: Vec2,
 }
 
 #[repr(C)]
@@ -183,6 +191,16 @@ impl Vec2 {
 
 macro_rules! true_is_1 {
     ($e:expr) => (if $e { 1 } else { 0 })
+}
+
+pub struct ImageBuilder<'a> {
+    pub api: *mut CPdUI,
+    image: &'a Image,
+    size: Vec2,
+    uv0: Vec2,
+    uv1: Vec2,
+    tint_color: Color,
+    border_color: Color,
 }
 
 impl Ui {
@@ -460,6 +478,17 @@ impl Ui {
         }
     }
 
+    pub fn image<'a>(&'a self, image: &'a Image) -> ImageBuilder {
+        ImageBuilder {
+            api: self.api,
+            image: image,
+            size: image.size,
+            uv0: Vec2::new(0.0, 0.0),
+            uv1: Vec2::new(1.0, 1.0),
+            tint_color: Color::from_rgba(255, 255, 255, 255),
+            border_color: Color::from_rgba(0, 0, 0, 0),
+        }
+    }
 
     ///
     /// Keyboard support
@@ -499,6 +528,47 @@ impl Ui {
                 col.color,
                 segment_count as u32,
                 true_is_1!(anti_aliased))
+        }
+    }
+
+    ///
+    /// Image
+    ///
+
+    pub fn image_create_rgba(&self, width: u32, height: u32) -> Option<Image> {
+        unsafe {
+            let handle = ((*self.api).image_crate_rgba)(width, height);
+            if handle != ptr::null_mut() {
+                Some(Image {
+                    api: self.api,
+                    handle: handle,
+                    size: Vec2 { x: width as f32, y: height as f32 },
+                })
+            } else {
+                None
+            }
+        }
+    }
+}
+
+impl Image {
+    pub fn update<T>(&self, data: &[T]) {
+        unsafe {
+            let size = data.len() * mem::size_of::<T>();
+            ((*self.api).image_update)(self.handle, data.as_ptr() as *const c_void, size as u32);
+        }
+    }
+}
+
+impl<'a> ImageBuilder<'a> {
+    pub fn show(&self) {
+        unsafe {
+            ((*self.api).image)(self.image.handle,
+                                PDVec2 { x:self.size.x, y:self.size.y },
+                                PDVec2 { x:self.uv0.x, y:self.uv0.y },
+                                PDVec2 { x:self.uv1.x, y:self.uv1.y },
+                                self.tint_color.color,
+                                self.border_color.color);
         }
     }
 }

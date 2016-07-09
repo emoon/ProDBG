@@ -505,6 +505,11 @@ typedef struct PDUI {
  	void (*fill_convex_poly)(void* verts, int count, PDColor color, int aa);
  	void (*fill_circle)(PDVec2 pos, float radius, PDColor color, int num_seg, int aa);
 
+ 	// Image support
+
+	void* (*image_create_rgba)(int width, int height);
+	void (*image_update)(void* dest, const void* src, int size);
+
 } PDUI;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
