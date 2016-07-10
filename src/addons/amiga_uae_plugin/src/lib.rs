@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate prodbg_api;
 extern crate gdb_remote;
+
 use prodbg_api::*;
 use std::os::raw::{c_void};
 use gdb_remote::GdbRemote;
@@ -12,16 +13,24 @@ struct AmigaUaeBackend {
     capstone: Capstone,
     conn: GdbRemote,
     exception_location: u32,
-    _id_amiga_uae_dma_time: u16,
+    id_amiga_uae_dma_time: u16,
 }
 
 impl AmigaUaeBackend {
+    #[inline]
     fn get_u32(data: &[u8]) -> u32 {
         let t0 = data[0] as u32;
         let t1 = data[1] as u32;
         let t2 = data[2] as u32;
         let t3 = data[3] as u32;
         (t0 << 24) | (t1 << 16) | (t2 << 8) | t3
+    }
+
+    #[inline]
+    fn get_u16(data: &[u8]) -> u16 {
+        let t0 = data[0] as u16;
+        let t1 = data[1] as u16;
+        (t0 << 8) | t1
     }
 
     fn write_register(writer: &mut Writer, name: &str, data: u32, read_only: bool) {
@@ -202,15 +211,50 @@ impl AmigaUaeBackend {
         self.write_exception_location(writer);
     }
 
+
+    // TODO: Would be nice to provide some better way to read the data from the gdb
+    // backend using iterators or such
+
+    fn process_dma_time(event_id: u16, gdb_data: &[u8], writer: &mut Writer) {
+        let mut index = 4;
+        let mut data = [0; 4096];
+
+        GdbRemote::convert_hex_data_to_binary(&mut data, gdb_data);
+
+        let line = Self::get_u16(&data[0..]);
+        let count = Self::get_u16(&data[2..]);
+
+        writer.event_begin(event_id);
+        writer.write_u16("line", line);
+        writer.write_u16("count", count);
+        writer.array_begin("events");
+
+        println!("processing dma event line {} - {}", line, count);
+
+        for _ in 0..count {
+            let event = Self::get_u16(&data[index..]);
+            let t = Self::get_u16(&data[index + 2..]);
+
+            writer.array_entry_begin();
+            writer.write_u16("event", event);
+            writer.write_u16("type", t);
+            writer.array_entry_end();
+
+            index += 4;
+        }
+
+        writer.array_end();
+        writer.event_end();
+    }
+
     fn update_conn_incoming(&mut self, writer: &mut Writer) {
         let mut should_break = false;
 
         if self.conn.is_connected() {
             if let Some(ref event) = self.conn.read_incoming_event() {
-                println!("Got incoming {:?}", event.data);
-                // Check if we got an exception back
-                if let Some(ref _data) = event.begins_with("S") {
-                    println!("Should break");
+                if let Some(ref data) = event.begins_with("QDmaTime:") {
+                    Self::process_dma_time(self.id_amiga_uae_dma_time, &data, writer);
+                } else if let Some(ref _data) = event.begins_with("S") {
                     should_break = true;
                 }
             }
@@ -258,7 +302,7 @@ impl Backend for AmigaUaeBackend {
     fn new(service: &Service) -> Self {
         AmigaUaeBackend {
             capstone: service.get_capstone(),
-            _id_amiga_uae_dma_time: service.get_id_register().register_id("AmigaUAEDmaTime"),
+            id_amiga_uae_dma_time: service.get_id_register().register_id("AmigaUAEDmaTime"),
             conn: GdbRemote::new(),
             exception_location: 0,
         }
