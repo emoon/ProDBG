@@ -23,22 +23,39 @@ The ProDBG repository contains submodules. Clone it with `git clone --recursive`
 
 ## How to compile and build
 
-Latest stable version of **Rust** (1.8+) needs to be present on the system and can be downloaded from [here](https://www.rust-lang.org/downloads.html) and on Windows the 64-bit **MSVC ABI** version is required which can be found here https://www.rust-lang.org/downloads.html#win-foot
+Latest stable version of **Rust** (1.8+) needs to be present on the system. We recommend using [rustup](https://www.rustup.rs/) to install and manage your Rust toolchain(s). There are also other ways to [install rustup](https://github.com/rust-lang-nursery/rustup.rs/#other-installation-methods). If you already have rustup installed but aren't on the latest stable Rust, you can simply run `rustup update`.
 
 ## Mac
 
-Building the code on Mac requires that Clang is installed on your system. The easiest way to do this is to get Xcode and install the commandline tools.
+### Prequisites
+Building the code on Mac requires that **Clang** is installed on your system. The easiest way to do this is to get Xcode and install the commandline tools.
 
-After doing that open a terminal and run `scripts/mac_build_debug.sh` and you should have an executable that you can open in `t2-output/macosx-clang-debug-default/ProDBG.app/Content/MacOS/prodbg`
+### Rustup
+Run: `rustup install stable-x86_64-apple-darwin` or `rustup override add stable-x86_64-apple-darwin`
+
+### Build
+Run: `scripts/mac_build_debug.sh`
+
+### Output
+The main execeutable is located at: `t2-output/macosx-clang-debug-default/ProDBG.app/Content/MacOS/prodbg`
 
 ## Windows
 
-On Windows Visual Studio 2013 or later is required (2012 or earlier will not work as parts of the code uses C99) With VS 2013 installed do this:
+### Prequisites
+On Windows Visual Studio 2013 or later is required (2012 or earlier will not work as parts of the code uses C99)
 
-Open a cmd window and first run `scripts\vcvarsx86_amd64.bat` and then `scripts\win64_build_debug.cmd` and you will have an executable in `t2-output\win64-msvc-debug-default\prodbg.exe`
+### Rustup
+`rustup install stable-x86_64-pc-windows-msvc` or `rustup override add stable-x86_64-pc-windows-msvc`
+
+### Build
+Run: `scripts\vcvarsx86_amd64.bat` and then `scripts\win64_build_debug.cmd`
+
+### Run
+Run: `t2-output\win64-msvc-debug-default\prodbg.exe`
 
 ## Linux
 
+### Prequisites
 Building the code on Linux will require some prerequisites to be installed. Which prerequisites depends on the distribution being used.
 
 For Ubuntu you can use the following:
@@ -53,7 +70,11 @@ ProDBG uses Tundra to build the project the project. Binaries are supplied on Ma
 * `CXX=g++ make`
 * `sudo make install`
 
-After having installed Tundra, from within the ProDBG repository run `tundra2 linux-gcc-debug` to kick off the compilation.
+### Rustup
+Run: `rustup install stable-x86_64-unknown-linux-gnu` or `rustup override add stable-x86_64-unknown-linux-gnu`
 
-To run the compiled program after compilation: `t2-output/linux-gcc-debug-default/prodbg`
+### Build
+Run: `tundra2 linux-gcc-debug`
 
+### Run
+The main execeutable is located at: `t2-output/linux-gcc-debug-default/prodbg`
