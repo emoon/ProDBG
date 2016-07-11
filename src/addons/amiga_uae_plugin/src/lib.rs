@@ -215,35 +215,22 @@ impl AmigaUaeBackend {
     // TODO: Would be nice to provide some better way to read the data from the gdb
     // backend using iterators or such
 
-    fn process_dma_time(event_id: u16, gdb_data: &[u8], writer: &mut Writer) {
-        let mut index = 4;
-        let mut data = [0; 4096];
+    fn process_dma_frame(event_id: u16, gdb_data: &[u8], writer: &mut Writer) {
+        let mut data = [0; 512*1024];
+
+        println!("DataLen {}", gdb_data.len());
 
         GdbRemote::convert_hex_data_to_binary(&mut data, gdb_data);
 
         let line = Self::get_u16(&data[0..]);
         let count = Self::get_u16(&data[2..]);
 
+        println!("Dma frame {} - {} - len {}", line, count, gdb_data.len());
+
         writer.event_begin(event_id);
         writer.write_u16("line", line);
-        writer.write_u16("count", count);
-        writer.array_begin("events");
-
-        println!("processing dma event line {} - {}", line, count);
-
-        for _ in 0..count {
-            let event = Self::get_u16(&data[index..]);
-            let t = Self::get_u16(&data[index + 2..]);
-
-            writer.array_entry_begin();
-            writer.write_u16("event", event);
-            writer.write_u16("type", t);
-            writer.array_entry_end();
-
-            index += 4;
-        }
-
-        writer.array_end();
+        writer.write_u16("xcount", count);
+        writer.write_data("data", &data[4..((line as usize * count as usize) * 2)]);
         writer.event_end();
     }
 
@@ -252,8 +239,8 @@ impl AmigaUaeBackend {
 
         if self.conn.is_connected() {
             if let Some(ref event) = self.conn.read_incoming_event() {
-                if let Some(ref data) = event.begins_with("QDmaTime:") {
-                    Self::process_dma_time(self.id_amiga_uae_dma_time, &data, writer);
+                if let Some(ref data) = event.begins_with("QDmaFrame:") {
+                    Self::process_dma_frame(self.id_amiga_uae_dma_time, &data, writer);
                 } else if let Some(ref _data) = event.begins_with("S") {
                     should_break = true;
                 }
