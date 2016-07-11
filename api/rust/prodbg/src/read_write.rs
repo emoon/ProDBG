@@ -232,6 +232,18 @@ impl Reader {
         return status_res(res, ret);
     }
 
+    pub fn find_data(&self, id: &str) -> Result<&[u8], ReadStatus> {
+        let s = CFixedString::from_str(id).as_ptr();
+        let mut temp = 0 as *mut c_void;
+        let mut size = 0 as c_ulonglong;
+
+        unsafe {
+            let ret = ((*self.api).read_find_data)(transmute(self.api), &mut temp, &mut size, s, self.it);
+            let slice = slice::from_raw_parts(temp as *const u8, size as usize);
+            status_res(slice, ret)
+        }
+    }
+
     pub fn find_array(&self, id: &str) -> ReaderIter {
         let s = CFixedString::from_str(id).as_ptr();
         let mut t = 0u64;
