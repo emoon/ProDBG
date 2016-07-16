@@ -59,21 +59,21 @@ fn run_main() -> i32 {
     }
     else {
         println!("* api_gen: using definition: {}", input_file);
+        let raw_code = api_gen!(&input_file);
+        match raw_code {
+            Err(why) => {
+                println!("{}", why.description());
+                return 1;
+            },
+            _ => {},
+        }
+
+        let raw_code = raw_code.unwrap();
         for lang in output_files {
             println!("* api_gen: generating: {}", lang.0);
-            let raw_code = api_gen!(&input_file);
-
-            match raw_code {
-                Err(why) => {
-                    println!("{}", why.description());
-                    return 1;
-                },
-                _ => {},
-            }
-
             let file_saved = match lang.0 {
-                Lang::Rust => raw_code.unwrap().to_rust().to_file(&lang.1),
-                Lang::Cpp  => raw_code.unwrap().to_cpp().to_file(&lang.1),
+                Lang::Rust => raw_code.to_rust().to_file(&lang.1),
+                Lang::Cpp  => raw_code.to_cpp().to_file(&lang.1),
             };
 
             match file_saved {
