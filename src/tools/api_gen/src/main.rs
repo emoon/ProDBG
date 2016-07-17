@@ -11,14 +11,16 @@ use std::error::Error;
 
 macro_rules! api_gen {
     ($x:expr) => {
-        {
-            let input_ext = Path::new($x).extension().unwrap();
+        if let Some(input_ext) = Path::new($x).extension() {
             let parsed_object = match input_ext.to_str() {
                 Some("json") => codespawn::from_json($x),
                 Some("xml")  => codespawn::from_xml($x),
                 _  => Err(IoError::new(ParseError, format!("!!! api_gen: unrecognized input file extension: {}", input_ext.to_str().unwrap()))),
             };
             parsed_object
+        }
+        else {
+            Err(IoError::new(ParseError, format!("!!! api_gen: unrecognized input file extension")))
         }
     };
 }
