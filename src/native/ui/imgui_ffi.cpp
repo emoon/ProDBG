@@ -702,8 +702,8 @@ static void plot_histogram2(const char* label, float (*valuesGetter)(void* data,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDUISCInterface* sc_input_text(const char* label, float xSize, float ySize, void (*callback)(void*), void* user_data) {
-    ImScEditor* ed = ImGui::ScInputText(label, xSize, ySize, callback, user_data);
+static PDUISCInterface* sc_input_text(const char* label, float xSize, float ySize) {
+    ImScEditor* ed = ImGui::ScInputText(label, xSize, ySize, 0, 0);
 
     if (!ed->userData) {
         PDUISCInterface* funcs = (PDUISCInterface*)malloc(sizeof(PDUISCInterface));

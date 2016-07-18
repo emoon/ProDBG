@@ -473,8 +473,7 @@ impl Ui {
 	    unsafe {
             let name = CFixedString::from_str(title);
 	        Scintilla::new(((*self.api).sc_input_text)(name.as_ptr(),
-	                        width as f32,
-	                        height as f32, None))
+	                        width as f32, height as f32))
         }
     }
 

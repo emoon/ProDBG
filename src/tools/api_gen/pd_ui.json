@@ -1,0 +1,3136 @@
+{
+  "config": [
+    { "file": "rust.json" },
+    { "file": "cpp.json" }
+    ],
+
+  "struct": {
+    "name": "PDUI",
+    "attribute": "C-ABI",
+    "var": {
+        "name": "private_data",
+        "type": "void*"
+    },
+    "fptr": [
+      {
+        "type": "no_ret",
+        "name": "set_title",
+        "var": [
+          {
+            "type": "void*",
+            "name": "private_data"
+          },
+          {
+            "type": "const char*",
+            "name": "title"
+          }
+        ]
+      },
+      {
+        "type": "PDVec2",
+        "name": "get_window_size"
+      },
+      {
+        "type": "PDVec2",
+        "name": "get_window_pos"
+      },
+      {
+        "type": "no_ret",
+        "name": "begin_child",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "stringId"
+          },
+          {
+            "type": "PDVec2",
+            "name": "size"
+          },
+          {
+            "type": "int",
+            "name": "border"
+          },
+          {
+            "type": "int",
+            "name": "extraFlags"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "end_child"
+      },
+      {
+        "type": "float",
+        "name": "get_scroll_y"
+      },
+      {
+        "type": "float",
+        "name": "get_scroll_max_y"
+      },
+      {
+        "type": "no_ret",
+        "name": "set_scroll_y",
+        "var": {
+          "type": "float",
+          "name": "scrollY"
+        }
+      },
+      {
+        "type": "no_ret",
+        "name": "set_scroll_here",
+        "var": {
+          "type": "float",
+          "name": "centerYratio"
+        }
+      },
+      {
+        "type": "no_ret",
+        "name": "set_scroll_from_pos_y",
+        "var": [
+          {
+            "type": "float",
+            "name": "posY"
+          },
+          {
+            "type": "float",
+            "name": "centerYratio"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "set_keyboard_focus_here",
+        "var": {
+          "type": "int",
+          "name": "offset"
+        }
+      },
+      {
+        "type": "no_ret",
+        "name": "push_font",
+        "var": {
+          "type": "PDUIFont",
+          "name": "font"
+        }
+      },
+      {
+        "type": "void",
+        "name": "pop_font",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "no_ret",
+        "name": "push_style_color",
+        "var": [
+          {
+            "type": "PDUICol",
+            "name": "idx"
+          },
+          {
+            "type": "PDColor",
+            "name": "col"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "pop_style_color",
+        "var": {
+          "type": "int",
+          "name": "count"
+        }
+      },
+      {
+        "type": "no_ret",
+        "name": "push_style_var",
+        "var": [
+          {
+            "type": "PDUIStyleVar",
+            "name": "idx"
+          },
+          {
+            "type": "float",
+            "name": "val"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "push_style_varVec",
+        "var": [
+          {
+            "type": "PDUIStyleVar",
+            "name": "idx"
+          },
+          {
+            "type": "PDVec2",
+            "name": "val"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "pop_style_var",
+        "var": {
+          "type": "int",
+          "name": "count"
+        }
+      },
+      {
+        "type": "float32",
+        "name": "get_font_size"
+      },
+      {
+        "type": "no_ret",
+        "name": "push_item_width",
+        "var": {
+          "type": "float",
+          "name": "item_width"
+        }
+      },
+      {
+        "type": "void",
+        "name": "pop_item_width",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "float",
+        "name": "calc_item_width",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "no_ret",
+        "name": "push_allow_keyboard_focus",
+        "var": {
+          "type": "int",
+          "name": "v"
+        }
+      },
+      {
+        "type": "void",
+        "name": "pop_allow_keyboard_focus",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "no_ret",
+        "name": "push_text_wrap_pos",
+        "var": {
+          "type": "float",
+          "name": "wrapPosX"
+        }
+      },
+      {
+        "type": "void",
+        "name": "pop_text_wrap_pos",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "no_ret",
+        "name": "push_button_repeat",
+        "var": {
+          "type": "int",
+          "name": "repeat"
+        }
+      },
+      {
+        "type": "void",
+        "name": "pop_button_repeat",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "void",
+        "name": "begin_group",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "void",
+        "name": "end_group",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "void",
+        "name": "separator",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "no_ret",
+        "name": "same_line",
+        "var": [
+          {
+            "type": "int",
+            "name": "columnX"
+          },
+          {
+            "type": "int",
+            "name": "spacingW"
+          }
+        ]
+      },
+      {
+        "type": "void",
+        "name": "spacing",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "no_ret",
+        "name": "dummy",
+        "var": {
+          "type": "PDVec2",
+          "name": "size"
+        }
+      },
+      {
+        "type": "void",
+        "name": "indent",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "void",
+        "name": "un_indent",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "no_ret",
+        "name": "columns",
+        "var": [
+          {
+            "type": "int",
+            "name": "count"
+          },
+          {
+            "type": "const char*",
+            "name": "id"
+          },
+          {
+            "type": "int",
+            "name": "border"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "next_column"
+      },
+      {
+        "type": "int",
+        "name": "get_column_index"
+      },
+      {
+        "type": "float",
+        "name": "get_column_offset",
+        "var": {
+          "type": "int",
+          "name": "column_index"
+        }
+      },
+      {
+        "type": "no_ret",
+        "name": "set_column_offset",
+        "var": [
+          {
+            "type": "int",
+            "name": "column_index"
+          },
+          {
+            "type": "float",
+            "name": "offset_x"
+          }
+        ]
+      },
+      {
+        "type": "float",
+        "name": "get_column_width",
+        "var": {
+          "type": "int",
+          "name": "column_index"
+        }
+      },
+      {
+        "type": "int",
+        "name": "get_columns_count"
+      },
+      {
+        "type": "PDVec2",
+        "name": "get_cursor_pos"
+      },
+      {
+        "type": "float",
+        "name": "get_cursor_pos_x"
+      },
+      {
+        "type": "float",
+        "name": "get_cursor_pos_y"
+      },
+      {
+        "type": "no_ret",
+        "name": "set_cursor_pos",
+        "var": {
+          "type": "PDVec2",
+          "name": "pos"
+        }
+      },
+      {
+        "type": "no_ret",
+        "name": "set_cursor_pos_x",
+        "var": {
+          "type": "float",
+          "name": "x"
+        }
+      },
+      {
+        "type": "no_ret",
+        "name": "set_cursor_pos_y",
+        "var": {
+          "type": "float",
+          "name": "y"
+        }
+      },
+      {
+        "type": "PDVec2",
+        "name": "get_cursor_screen_pos"
+      },
+      {
+        "type": "no_ret",
+        "name": "set_cursor_screen_pos",
+        "var": {
+          "type": "PDVec2",
+          "name": "pos"
+        }
+      },
+      {
+        "type": "void",
+        "name": "align_first_text_height_to_widgets",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "float",
+        "name": "get_text_line_height",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "float",
+        "name": "get_text_line_height_with_spacing"
+      },
+      {
+        "type": "float",
+        "name": "get_items_line_height_with_spacing",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "no_ret",
+        "name": "push_id_str",
+        "var": {
+          "type": "const char*",
+          "name": "strId"
+        }
+      },
+      {
+        "type": "no_ret",
+        "name": "push_id_str_range",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "strBegin"
+          },
+          {
+            "type": "const char*",
+            "name": "strEnd"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "push_id_ptr",
+        "var": {
+          "type": "const void*",
+          "name": "ptrId"
+        }
+      },
+      {
+        "type": "no_ret",
+        "name": "push_id_int",
+        "var": {
+          "type": "const int",
+          "name": "intId"
+        }
+      },
+      {
+        "type": "void",
+        "name": "pop_id",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "PDID",
+        "name": "get_id_str",
+        "var": {
+          "type": "const char*",
+          "name": "strId"
+        }
+      },
+      {
+        "type": "PDID",
+        "name": "get_id_str_range",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "strBegin"
+          },
+          {
+            "type": "const char*",
+            "name": "strEnd"
+          }
+        ]
+      },
+      {
+        "type": "PDID",
+        "name": "get_id_ptr",
+        "var": {
+          "type": "const void*",
+          "name": "ptrId"
+        }
+      },
+      {
+        "type": "no_ret",
+        "name": "text",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          { "type": "..." }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "text_v",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          {
+            "type": "va_list",
+            "name": "args"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "text_colored",
+        "var": [
+          {
+            "type": "const PDColor",
+            "name": "col"
+          },
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          { "type": "..." }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "text_colored_v",
+        "var": [
+          {
+            "type": "const PDColor",
+            "name": "col"
+          },
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          {
+            "type": "va_list",
+            "name": "args"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "text_disabled",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          { "type": "..." }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "text_disabled_v",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          {
+            "type": "va_list",
+            "name": "args"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "text_wrapped",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          { "type": "..." }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "text_wrapped_v",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          {
+            "type": "va_list",
+            "name": "args"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "text_unformatted",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "text"
+          },
+          {
+            "type": "const char*",
+            "name": "text_end"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "label_text",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          { "type": "..." }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "label_text_v",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          {
+            "type": "va_list",
+            "name": "args"
+          }
+        ]
+      },
+      {
+        "type": "void",
+        "name": "bullet",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "no_ret",
+        "name": "bullet_text",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          { "type": "..." }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "bullet_text_v",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          {
+            "type": "va_list",
+            "name": "args"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "button",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "const PDVec2",
+            "name": "size"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "small_button",
+        "var": {
+          "type": "const uchar*",
+          "name": "label"
+        }
+      },
+      {
+        "type": "int",
+        "name": "invisible_button",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "strId"
+          },
+          {
+            "type": "const PDVec2",
+            "name": "size"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "image",
+        "var": [
+          {
+            "type": "PDUITextureID",
+            "name": "user_texture_id"
+          },
+          {
+            "type": "const PDVec2",
+            "name": "size"
+          },
+          {
+            "type": "const PDVec2",
+            "name": "uv0"
+          },
+          {
+            "type": "const PDVec2",
+            "name": "uv1"
+          },
+          {
+            "type": "const PDColor",
+            "name": "tintColor"
+          },
+          {
+            "type": "const PDColor",
+            "name": "borderColor"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "image_button",
+        "var": [
+          {
+            "type": "PDUITextureID",
+            "name": "user_texture_id"
+          },
+          {
+            "type": "const PDVec2",
+            "name": "size"
+          },
+          {
+            "type": "const PDVec2",
+            "name": "uv0"
+          },
+          {
+            "type": "const PDVec2",
+            "name": "uv1"
+          },
+          {
+            "type": "int",
+            "name": "framePadding"
+          },
+          {
+            "type": "const PDColor",
+            "name": "bgColor"
+          },
+          {
+            "type": "const PDColor",
+            "name": "tintCol"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "collapsing_header",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "const char*",
+            "name": "strId"
+          },
+          {
+            "type": "int",
+            "name": "displayFrame"
+          },
+          {
+            "type": "int",
+            "name": "defaultOpen"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "checkbox",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "int*",
+            "name": "v"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "checkbox_flags",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "unsigned int*",
+            "name": "flags"
+          },
+          {
+            "type": "unsigned int",
+            "name": "flagsValue"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "radio_buttonBool",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "int",
+            "name": "active"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "radio_button",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "int*",
+            "name": "v"
+          },
+          {
+            "type": "int",
+            "name": "v_button"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "combo",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "int*",
+            "name": "currentItem"
+          },
+          {
+            "type": "const char**",
+            "name": "items"
+          },
+          {
+            "type": "int",
+            "name": "itemsCount"
+          },
+          {
+            "type": "int",
+            "name": "heightInItems"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "combo2",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "int*",
+            "name": "currentItem"
+          },
+          {
+            "type": "const char*",
+            "name": "itemsSeparatedByZeros"
+          },
+          {
+            "type": "int",
+            "name": "heightInItems"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "combo3",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "int*",
+            "name": "currentItem"
+          },
+          {
+            "fptr": {
+                "type": "bool",
+                "name": "itemsGetter",
+                "var": [
+                {
+                    "type": "void*",
+                    "name": "data"
+                },
+                {
+                    "type": "int",
+                    "name": "idx"
+                },
+                {
+                    "type": "const char**",
+                    "name": "out_text"
+                }
+             ]
+           }
+          },
+          {
+              "type": "void*",
+              "name": "data"
+          },
+          {
+              "type": "int",
+              "name": "itemsCount"
+          },
+          {
+              "type": "int",
+              "name": "heightInItems"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "color_button",
+        "var": [
+          {
+            "type": "const PDColor",
+            "name": "col"
+          },
+          {
+            "type": "int",
+            "name": "smallHeight"
+          },
+          {
+            "type": "int",
+            "name": "outlineBorder"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "color_edit3",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_float",
+            "name": "col[3]"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "color_edit4",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_float",
+            "name": "col[4]"
+          },
+          {
+            "type": "int",
+            "name": "showAlpha"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "color_edit_mode",
+        "var": {
+          "type": "PDUIColorEditMode",
+          "name": "mode"
+        }
+      },
+      {
+        "type": "no_ret",
+        "name": "plot_lines",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "const float*",
+            "name": "values"
+          },
+          {
+            "type": "int",
+            "name": "valuesCount"
+          },
+          {
+            "type": "int",
+            "name": "valuesOffset"
+          },
+          {
+            "type": "const char*",
+            "name": "overlayText"
+          },
+          {
+            "type": "float",
+            "name": "scaleMin"
+          },
+          {
+            "type": "float",
+            "name": "scaleMax"
+          },
+          {
+            "type": "PDVec2",
+            "name": "graphSize"
+          },
+          {
+            "type": "size_t",
+            "name": "stride"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "plot_lines2",
+        "var": [
+            {
+                "type": "const char*",
+                "name": "label"
+            },
+            {
+                "fptr": {
+                "type": "float",
+                "name": "valuesGetter",
+                "var": [
+                {
+                    "type": "void*",
+                    "name": "data"
+                },
+                {
+                    "type": "int",
+                    "name": "idx"
+                }
+               ]
+             }
+            },
+            {
+                "type": "void*",
+                "name": "data"
+            },
+            {
+                "type": "int",
+                "name": "valuesCount"
+            },
+            {
+                "type": "int",
+                "name": "valuesOffset"
+            },
+            {
+                "type": "const char*",
+                "name": "overlayText"
+            },
+            {
+                "type": "float",
+                "name": "scaleMin"
+            },
+            {
+                "type": "float",
+                "name": "scaleMax"
+            },
+            {
+                "type": "PDVec2",
+                "name": "graphSize"
+            }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "plot_histogram",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "const float*",
+            "name": "values"
+          },
+          {
+            "type": "int",
+            "name": "valuesCount"
+          },
+          {
+            "type": "int",
+            "name": "valuesOffset"
+          },
+          {
+            "type": "const char*",
+            "name": "overlayText"
+          },
+          {
+            "type": "float",
+            "name": "scaleMin"
+          },
+          {
+            "type": "float",
+            "name": "scaleMax"
+          },
+          {
+            "type": "PDVec2",
+            "name": "graphSize"
+          },
+          {
+            "type": "size_t",
+            "name": "stride"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "plot_histogram2",
+        "var": [
+            {
+                "type": "const char*",
+                "name": "label"
+            },
+            {
+                "fptr": {
+                "type": "float",
+                "name": "valuesGetter",
+                "var": [
+                {
+                    "type": "void*",
+                    "name": "data"
+                },
+                {
+                    "type": "int",
+                    "name": "idx"
+                }
+               ]
+             }
+            },
+            {
+                "type": "void*",
+                "name": "data"
+            },
+            {
+                "type": "int",
+                "name": "valuesCount"
+            },
+            {
+                "type": "int",
+                "name": "valuesOffset"
+            },
+            {
+                "type": "const char*",
+                "name": "overlayText"
+            },
+            {
+                "type": "float",
+                "name": "scaleMin"
+            },
+            {
+                "type": "float",
+                "name": "scaleMax"
+            },
+            {
+                "type": "PDVec2",
+                "name": "graphSize"
+            }
+        ]
+      },
+      {
+        "type": "PDUISCInterface*",
+        "name": "sc_input_text",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "float",
+            "name": "xSize"
+          },
+          {
+            "type": "float",
+            "name": "ySize"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "slider_float",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "float*",
+            "name": "v"
+          },
+          {
+            "type": "float",
+            "name": "vMin"
+          },
+          {
+            "type": "float",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          },
+          {
+            "type": "float",
+            "name": "power"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "slider_float2",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_float",
+            "name": "v[2]"
+          },
+          {
+            "type": "float",
+            "name": "vMin"
+          },
+          {
+            "type": "float",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          },
+          {
+            "type": "float",
+            "name": "power"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "slider_float3",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_float",
+            "name": "v[3]"
+          },
+          {
+            "type": "float",
+            "name": "vMin"
+          },
+          {
+            "type": "float",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          },
+          {
+            "type": "float",
+            "name": "power"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "slider_float4",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_float",
+            "name": "v[4]"
+          },
+          {
+            "type": "float",
+            "name": "vMin"
+          },
+          {
+            "type": "float",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          },
+          {
+            "type": "float",
+            "name": "power"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "slider_angle",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "float*",
+            "name": "v_rad"
+          },
+          {
+            "type": "float",
+            "name": "vDegreesMin"
+          },
+          {
+            "type": "float",
+            "name": "vDegreesMax"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "slider_int",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "int*",
+            "name": "v"
+          },
+          {
+            "type": "int",
+            "name": "vMin"
+          },
+          {
+            "type": "int",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "slider_int2",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_int",
+            "name": "v[2]"
+          },
+          {
+            "type": "int",
+            "name": "vMin"
+          },
+          {
+            "type": "int",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "slider_int3",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_int",
+            "name": "v[3]"
+          },
+          {
+            "type": "int",
+            "name": "vMin"
+          },
+          {
+            "type": "int",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "slider_int4",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_int",
+            "name": "v[4]"
+          },
+          {
+            "type": "int",
+            "name": "vMin"
+          },
+          {
+            "type": "int",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "vslider_float",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "const PDVec2",
+            "name": "size"
+          },
+          {
+            "type": "float*",
+            "name": "v"
+          },
+          {
+            "type": "float",
+            "name": "vMin"
+          },
+          {
+            "type": "float",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          },
+          {
+            "type": "float",
+            "name": "power"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "vslider_int",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "const PDVec2",
+            "name": "size"
+          },
+          {
+            "type": "int*",
+            "name": "v"
+          },
+          {
+            "type": "int",
+            "name": "vMin"
+          },
+          {
+            "type": "int",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "drag_float",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "float*",
+            "name": "v"
+          },
+          {
+            "type": "float",
+            "name": "vSpeed"
+          },
+          {
+            "type": "float",
+            "name": "vMin"
+          },
+          {
+            "type": "float",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          },
+          {
+            "type": "float",
+            "name": "power"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "drag_float2",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_float",
+            "name": "v[2]"
+          },
+          {
+            "type": "float",
+            "name": "vSpeed"
+          },
+          {
+            "type": "float",
+            "name": "vMin"
+          },
+          {
+            "type": "float",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          },
+          {
+            "type": "float",
+            "name": "power"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "drag_float3",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_float",
+            "name": "v[3]"
+          },
+          {
+            "type": "float",
+            "name": "vSpeed"
+          },
+          {
+            "type": "float",
+            "name": "vMin"
+          },
+          {
+            "type": "float",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          },
+          {
+            "type": "float",
+            "name": "power"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "drag_float4",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_float",
+            "name": "v[4]"
+          },
+          {
+            "type": "float",
+            "name": "vSpeed"
+          },
+          {
+            "type": "float",
+            "name": "vMin"
+          },
+          {
+            "type": "float",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          },
+          {
+            "type": "float",
+            "name": "power"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "drag_int",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "int*",
+            "name": "v"
+          },
+          {
+            "type": "float",
+            "name": "vSpeed"
+          },
+          {
+            "type": "int",
+            "name": "vMin"
+          },
+          {
+            "type": "int",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "drag_int2",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_int",
+            "name": "v[2]"
+          },
+          {
+            "type": "float",
+            "name": "vSpeed"
+          },
+          {
+            "type": "int",
+            "name": "vMin"
+          },
+          {
+            "type": "int",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "drag_int3",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_int",
+            "name": "v[3]"
+          },
+          {
+            "type": "float",
+            "name": "vSpeed"
+          },
+          {
+            "type": "int",
+            "name": "vMin"
+          },
+          {
+            "type": "int",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "drag_int4",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_int",
+            "name": "v[4]"
+          },
+          {
+            "type": "float",
+            "name": "vSpeed"
+          },
+          {
+            "type": "int",
+            "name": "vMin"
+          },
+          {
+            "type": "int",
+            "name": "vMax"
+          },
+          {
+            "type": "const char*",
+            "name": "displayFormat"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "input_text",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "char*",
+            "name": "buf"
+          },
+          {
+            "type": "int",
+            "name": "buf_size"
+          },
+          {
+            "type": "int",
+            "name": "flags"
+          },
+          {
+            "fptr": {
+                "type": "void",
+                "name": "callback",
+                "var": {
+                    "type": "PDUIInputTextCallbackData*"
+                }
+            }
+          },
+          {
+            "type": "void*",
+            "name": "user_data"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "input_text_multiline",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "char*",
+            "name": "buf"
+          },
+          {
+            "type": "size_t",
+            "name": "buf_size"
+          },
+          {
+            "type": "const PDVec2",
+            "name": "size"
+          },
+          {
+            "type": "PDUIInputTextFlags",
+            "name": "flags"
+          },
+          {
+            "fptr": {
+                "type": "void",
+                "name": "callback",
+                "var": {
+                    "type": "PDUIInputTextCallbackData*"
+                }
+            }
+          },
+          {
+            "type": "void*",
+            "name": "user_data"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "input_float",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "float*",
+            "name": "v"
+          },
+          {
+            "type": "float",
+            "name": "step"
+          },
+          {
+            "type": "float",
+            "name": "step_fast"
+          },
+          {
+            "type": "int",
+            "name": "decimal_precision"
+          },
+          {
+            "type": "PDUIInputTextFlags",
+            "name": "extraFlags"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "input_float2",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_float",
+            "name": "v[2]"
+          },
+          {
+            "type": "int",
+            "name": "decimal_precision"
+          },
+          {
+            "type": "PDUIInputTextFlags",
+            "name": "extraFlags"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "input_float3",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_float",
+            "name": "v[3]"
+          },
+          {
+            "type": "int",
+            "name": "decimal_precision"
+          },
+          {
+            "type": "PDUIInputTextFlags",
+            "name": "extraFlags"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "input_float4",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_float",
+            "name": "v[4]"
+          },
+          {
+            "type": "int",
+            "name": "decimal_precision"
+          },
+          {
+            "type": "PDUIInputTextFlags",
+            "name": "extraFlags"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "input_int",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "int*",
+            "name": "v"
+          },
+          {
+            "type": "int",
+            "name": "step"
+          },
+          {
+            "type": "int",
+            "name": "step_fast"
+          },
+          {
+            "type": "PDUIInputTextFlags",
+            "name": "extraFlags"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "input_int2",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_int",
+            "name": "v[2]"
+          },
+          {
+            "type": "PDUIInputTextFlags",
+            "name": "extraFlags"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "input_int3",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_int",
+            "name": "v[3]"
+          },
+          {
+            "type": "PDUIInputTextFlags",
+            "name": "extraFlags"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "input_int4",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "mut_int",
+            "name": "v[4]"
+          },
+          {
+            "type": "PDUIInputTextFlags",
+            "name": "extraFlags"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "tree_node",
+        "var": {
+          "type": "const char*",
+          "name": "str_label_id"
+        }
+      },
+      {
+        "type": "int",
+        "name": "tree_node_str",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "strId"
+          },
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          { "type": "..." }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "tree_node_ptr",
+        "var": [
+          {
+            "type": "const void*",
+            "name": "ptrId"
+          },
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          { "type": "..." }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "tree_node_str_v",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "strId"
+          },
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          {
+            "type": "va_list",
+            "name": "args"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "tree_node_ptr_v",
+        "var": [
+          {
+            "type": "const void*",
+            "name": "ptrId"
+          },
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          {
+            "type": "va_list",
+            "name": "args"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "tree_push_str",
+        "var": {
+          "type": "const char*",
+          "name": "strId"
+        }
+      },
+      {
+        "type": "no_ret",
+        "name": "tree_push_ptr",
+        "var": {
+          "type": "const void*",
+          "name": "ptrId"
+        }
+      },
+      {
+        "type": "void",
+        "name": "tree_pop",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "no_ret",
+        "name": "set_next_tree_node_opened",
+        "var": [
+          {
+            "type": "int",
+            "name": "opened"
+          },
+          {
+            "type": "PDUISetCond",
+            "name": "cond"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "selectable",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "int",
+            "name": "selected"
+          },
+          {
+            "type": "PDUISelectableFlags",
+            "name": "flags"
+          },
+          {
+            "type": "const PDVec2",
+            "name": "size"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "selectable_ex",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "int*",
+            "name": "p_selected"
+          },
+          {
+            "type": "PDUISelectableFlags",
+            "name": "flags"
+          },
+          {
+            "type": "const PDVec2",
+            "name": "size"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "list_box",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "int*",
+            "name": "currentItem"
+          },
+          {
+            "type": "const char**",
+            "name": "items"
+          },
+          {
+            "type": "int",
+            "name": "itemsCount"
+          },
+          {
+            "type": "int",
+            "name": "heightInItems"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "list_box2",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "int*",
+            "name": "currentItem"
+          },
+          {
+            "fptr": {
+                "type": "bool",
+                "name": "itemsGetter",
+                "var": [
+                {
+                    "type": "void*",
+                    "name": "data"
+                },
+                {
+                    "type": "int",
+                    "name": "idx"
+                },
+                {
+                    "type": "const char**",
+                    "name": "out_text"
+                }
+              ]
+            }
+          },
+          {
+              "type": "void*",
+              "name": "data"
+          },
+          {
+              "type": "int",
+              "name": "itemsCount"
+          },
+          {
+              "type": "int",
+              "name": "heightInItems"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "list_box_header",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "const PDVec2",
+            "name": "size"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "list_box_header2",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "int",
+            "name": "itemsCount"
+          },
+          {
+            "type": "int",
+            "name": "heightInItems"
+          }
+        ]
+      },
+      {
+        "type": "void",
+        "name": "list_box_footer",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "no_ret",
+        "name": "set_tooltip",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          { "type": "..." }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "set_tooltip_v",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "fmt"
+          },
+          {
+            "type": "va_list",
+            "name": "args"
+          }
+        ]
+      },
+      {
+        "type": "void",
+        "name": "begin_tooltip",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "void",
+        "name": "end_tooltip",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "begin_main_menu_bar",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "void",
+        "name": "end_main_menu_bar",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "begin_menuBar",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "void",
+        "name": "end_menu_bar",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "begin_menu",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "int",
+            "name": "enabled"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "end_menu"
+      },
+      {
+        "type": "int",
+        "name": "menu_item",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "const char*",
+            "name": "shortcut"
+          },
+          {
+            "type": "int",
+            "name": "selected"
+          },
+          {
+            "type": "int",
+            "name": "enabled"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "menu_itemPtr",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "label"
+          },
+          {
+            "type": "const char*",
+            "name": "shortcut"
+          },
+          {
+            "type": "int*",
+            "name": "p_selected"
+          },
+          {
+            "type": "int",
+            "name": "enabled"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "open_popup",
+        "var": {
+          "type": "const char*",
+          "name": "strId"
+        }
+      },
+      {
+        "type": "int",
+        "name": "begin_popup",
+        "var": {
+          "type": "const char*",
+          "name": "strId"
+        }
+      },
+      {
+        "type": "int",
+        "name": "begin_popup_modal",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "name"
+          },
+          {
+            "type": "int*",
+            "name": "p_opened"
+          },
+          {
+            "type": "PDUIWindowFlags",
+            "name": "extraFlags"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "begin_popup_context_item",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "strId"
+          },
+          {
+            "type": "int",
+            "name": "mouse_button"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "begin_popup_context_window",
+        "var": [
+          {
+            "type": "int",
+            "name": "also_over_items"
+          },
+          {
+            "type": "const char*",
+            "name": "strId"
+          },
+          {
+            "type": "int",
+            "name": "mouse_button"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "begin_popupContext_void",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "strId"
+          },
+          {
+            "type": "int",
+            "name": "mouse_button"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "end_popup"
+      },
+      {
+        "type": "void",
+        "name": "close_current_popup",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "begin_popup_context",
+        "var": {
+          "type": "void*",
+          "name": "priv_data"
+        }
+      },
+      {
+        "type": "no_ret",
+        "name": "end_popup_context",
+        "var": {
+          "type": "void*",
+          "name": "priv_data"
+        }
+      },
+      {
+        "type": "no_ret",
+        "name": "value_bool",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "prefix"
+          },
+          {
+            "type": "int",
+            "name": "b"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "value_int",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "prefix"
+          },
+          {
+            "type": "int",
+            "name": "v"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "value_u_int",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "prefix"
+          },
+          {
+            "type": "unsigned int",
+            "name": "v"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "value_float",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "prefix"
+          },
+          {
+            "type": "float",
+            "name": "v"
+          },
+          {
+            "type": "const char*",
+            "name": "float_format"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "color",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "prefix"
+          },
+          {
+            "type": "const PDColor",
+            "name": "col"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "log_to_tty",
+        "var": {
+          "type": "int",
+          "name": "maxDepth"
+        }
+      },
+      {
+        "type": "no_ret",
+        "name": "log_to_file",
+        "var": [
+          {
+            "type": "int",
+            "name": "maxDepth"
+          },
+          {
+            "type": "const char*",
+            "name": "filename"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "log_to_clipboard",
+        "var": {
+          "type": "int",
+          "name": "maxDepth"
+        }
+      },
+      {
+        "type": "void",
+        "name": "log_finish",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "void",
+        "name": "log_buttons",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "is_item_hovered",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "is_item_hovered_rect",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "is_item_active",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "is_item_visible",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "is_any_item_hovered",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "is_any_item_active",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "PDVec2",
+        "name": "get_item_rect_min",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "PDVec2",
+        "name": "get_item_rect_max",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "PDVec2",
+        "name": "get_item_rect_size",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "is_window_hovered",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "is_window_focused",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "is_root_window_focused",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "is_root_window_or_any_child_focused",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "is_rect_visible",
+        "var": {
+          "type": "const PDVec2",
+          "name": "itemSize"
+        }
+      },
+      {
+        "type": "int",
+        "name": "is_pos_hovering_any_window",
+        "var": {
+          "type": "const PDVec2",
+          "name": "pos"
+        }
+      },
+      {
+        "type": "float",
+        "name": "get_time",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "get_frame_count",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "const char*",
+        "name": "get_style_col_name",
+        "var": {
+          "type": "PDUICol",
+          "name": "idx"
+        }
+      },
+      {
+        "type": "PDVec2",
+        "name": "calc_item_rect_closest_point",
+        "var": [
+          {
+            "type": "const PDVec2",
+            "name": "pos"
+          },
+          {
+            "type": "int",
+            "name": "on_edge"
+          },
+          {
+            "type": "float",
+            "name": "outward"
+          }
+        ]
+      },
+      {
+        "type": "PDVec2",
+        "name": "calc_text_size",
+        "var": [
+          {
+            "type": "const char*",
+            "name": "text"
+          },
+          {
+            "type": "const *uint8",
+            "name": "text_end"
+          },
+          {
+            "type": "int",
+            "name": "hide_text_after_double_hash"
+          },
+          {
+            "type": "float",
+            "name": "wrap_width"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "calc_list_clipping",
+        "var": [
+          {
+            "type": "int",
+            "name": "items_count"
+          },
+          {
+            "type": "float",
+            "name": "items_height"
+          },
+          {
+            "type": "int*",
+            "name": "out_items_display_start"
+          },
+          {
+            "type": "int*",
+            "name": "out_items_display_end"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "begin_childFrame",
+        "var": [
+          {
+            "type": "PDID",
+            "name": "id"
+          },
+          {
+            "type": "const struct PDVec2",
+            "name": "size"
+          }
+        ]
+      },
+      {
+        "type": "void",
+        "name": "end_child_frame",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "no_ret",
+        "name": "color_convert_rg_bto_hsv",
+        "var": [
+          {
+            "type": "float",
+            "name": "r"
+          },
+          {
+            "type": "float",
+            "name": "g"
+          },
+          {
+            "type": "float",
+            "name": "b"
+          },
+          {
+            "type": "float*",
+            "name": "out_h"
+          },
+          {
+            "type": "float*",
+            "name": "out_s"
+          },
+          {
+            "type": "float*",
+            "name": "out_v"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "color_convert_hs_vto_rgb",
+        "var": [
+          {
+            "type": "float",
+            "name": "h"
+          },
+          {
+            "type": "float",
+            "name": "s"
+          },
+          {
+            "type": "float",
+            "name": "v"
+          },
+          {
+            "type": "float*",
+            "name": "out_r"
+          },
+          {
+            "type": "float*",
+            "name": "out_g"
+          },
+          {
+            "type": "float*",
+            "name": "out_b"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "is_key_down",
+        "var": {
+          "type": "int",
+          "name": "key_index"
+        }
+      },
+      {
+        "type": "int",
+        "name": "is_key_pressed",
+        "var": [
+          {
+            "type": "int",
+            "name": "key_index"
+          },
+          {
+            "type": "int",
+            "name": "repeat"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "is_key_released",
+        "var": {
+          "type": "int",
+          "name": "key_index"
+        }
+      },
+      {
+        "type": "int",
+        "name": "is_key_down_id",
+        "var": [
+          {
+            "type": "uint32_t",
+            "name": "keyId"
+          },
+          {
+            "type": "int",
+            "name": "repeat"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "is_mouse_down",
+        "var": {
+          "type": "int",
+          "name": "button"
+        }
+      },
+      {
+        "type": "int",
+        "name": "is_mouse_clicked",
+        "var": [
+          {
+            "type": "int",
+            "name": "button"
+          },
+          {
+            "type": "int",
+            "name": "repeat"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "is_mouse_double_clicked",
+        "var": {
+          "type": "int",
+          "name": "button"
+        }
+      },
+      {
+        "type": "int",
+        "name": "is_mouse_released",
+        "var": {
+          "type": "int",
+          "name": "button"
+        }
+      },
+      {
+        "type": "int",
+        "name": "is_mouse_hovering_window",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "is_mouse_hovering_any_window",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "int",
+        "name": "is_mouse_hovering_rect",
+        "var": [
+          {
+            "type": "const PDVec2",
+            "name": "rectMin"
+          },
+          {
+            "type": "const PDVec2",
+            "name": "rectMax"
+          }
+        ]
+      },
+      {
+        "type": "int",
+        "name": "is_mouse_dragging",
+        "var": [
+          {
+            "type": "int",
+            "name": "button"
+          },
+          {
+            "type": "float",
+            "name": "lockThreshold"
+          }
+        ]
+      },
+      {
+        "type": "PDVec2",
+        "name": "get_mouse_pos",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "PDVec2",
+        "name": "get_mouse_drag_delta",
+        "var": [
+          {
+            "type": "int",
+            "name": "button"
+          },
+          {
+            "type": "float",
+            "name": "lockThreshold"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "reset_mouse_drag_delta",
+        "var": {
+          "type": "int",
+          "name": "button"
+        }
+      },
+      {
+        "type": "PDUIMouseCursor",
+        "name": "get_mouse_cursor",
+        "qualifier": "mut_ext"
+      },
+      {
+        "type": "no_ret",
+        "name": "set_mouse_cursor",
+        "var": {
+          "type": "PDUIMouseCursor",
+          "name": "type"
+        }
+      },
+      {
+        "type": "no_ret",
+        "name": "fill_rect",
+        "var": [
+          {
+            "type": "PDRect",
+            "name": "rect"
+          },
+          {
+            "type": "unsigned int",
+            "name": "color"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "fill_convex_poly",
+        "var": [
+          {
+            "type": "const_voidptr",
+            "name": "verts"
+          },
+          {
+            "type": "int32",
+            "name": "count"
+          },
+          {
+            "type": "uint32",
+            "name": "color"
+          },
+          {
+            "type": "int",
+            "name": "aa"
+          }
+        ]
+      },
+      {
+        "type": "no_ret",
+        "name": "fill_circle",
+        "var": [
+          {
+            "type": "PDVec2",
+            "name": "pos"
+          },
+          {
+            "type": "float32",
+            "name": "radius"
+          },
+          {
+            "type": "uint32",
+            "name": "color"
+          },
+          {
+            "type": "int32",
+            "name": "num_seg"
+          },
+          {
+            "type": "int",
+            "name": "aa"
+          }
+        ]
+      },
+      {
+        "type": "void*",
+        "name": "image_create_rgba",
+        "var": [
+          {
+            "type": "int32",
+            "name": "width"
+          },
+          {
+            "type": "int32",
+            "name": "height"
+          }
+        ]
+      },
+      {
+        "type": "void",
+        "name": "image_update",
+        "var": [
+          {
+            "type": "void*",
+            "name": "dest"
+          },
+          {
+            "type": "const void*",
+            "name": "src"
+          },
+          {
+            "type": "int32",
+            "name": "size"
+          }
+        ]
+      }
+    ]
+  }
+}
