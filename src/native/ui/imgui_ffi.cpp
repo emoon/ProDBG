@@ -7,6 +7,8 @@
 #include <string.h>
 #include <bgfx/bgfx.h>
 
+#define sizeof_array(t) (sizeof(t) / sizeof(t[0]))
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct ImageData {
@@ -14,6 +16,15 @@ struct ImageData {
 	uint16_t width;
 	uint16_t height;
 	int size;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct FontTextureInfo {
+	void* data;
+	uint16_t width;
+	uint16_t height;
+	uint32_t bytes;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1990,6 +2001,7 @@ static PDUI s_uiFuncs[] =
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void* imgui_create_ui_funcs() {
+	// TODO: This is leaking, store pointers in a list and free on exit?
 	PDUI* ui = (PDUI*)malloc(sizeof(PDUI));
 	*ui = *s_uiFuncs;
 
@@ -2022,3 +2034,218 @@ extern "C" void imgui_set_window_size(float w, float h) {
 extern "C" void imgui_render_frame(float x, float y, float width, float height, int fill_col) {
 	ImGui::RenderFrame(ImVec2(x, y), ImVec2(x + width,y + height), fill_col, false, 0.0f);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void imgui_update_size(int width, int height) {
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2((float)width, (float)height);
+    io.DeltaTime = 1.0f / 60.0f;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void imgui_pre_update(float deltaTime) {
+    ImGuiIO& io = ImGui::GetIO();
+    io.DeltaTime = deltaTime;
+    ImGui::NewFrame();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void imgui_set_mouse_state(int index, int state) {
+    ImGuiIO& io = ImGui::GetIO();
+    io.MouseDown[index] = !!state;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void imgui_set_mouse_pos(float x, float y) {
+    ImGuiIO& io = ImGui::GetIO();
+    io.MousePos = ImVec2(x, y);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void imgui_set_scroll(float scroll) {
+    ImGuiIO& io = ImGui::GetIO();
+    io.MouseWheel = scroll;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void imgui_clear_keys() {
+    ImGuiIO& io = ImGui::GetIO();
+    int len = (int)sizeof_array(io.KeysDown);
+    for (int i = 0; i < len; ++i) {
+    	io.KeysDown[i] = false;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void imgui_set_key_down(int key, int modifier) {
+    ImGuiIO& io = ImGui::GetIO();
+    assert(key >= 0 && key <= (int)sizeof_array(io.KeysDown));
+    io.KeysDown[key] = true;
+    //io.KeyCtrl = !!(modifier & PDKEY_CTRL);
+    //io.KeyShift = !!(modifier & PDKEY_SHIFT);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void imgui_set_key_up(int key, int modifier) {
+    ImGuiIO& io = ImGui::GetIO();
+    assert(key >= 0 && key <= (int)sizeof_array(io.KeysDown));
+    io.KeysDown[key] = false;
+    //io.KeyCtrl = !!(modifier & PDKEY_CTRL);
+    //io.KeyShift = !!(modifier & PDKEY_SHIFT);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void imgui_add_input_character(unsigned short c) {
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddInputCharacter(c);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void imgui_map_key(int key_target, int key_source) {
+    ImGuiIO& io = ImGui::GetIO();
+    io.KeyMap[key_target] = key_source;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void imgui_post_update() {
+    ImGui::Render();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void imgui_setup(const char* font, float font_size, int width, int height) {
+    ImGuiIO& io = ImGui::GetIO();
+
+    io.DisplaySize = ImVec2((float)width, (float)height);
+    io.DeltaTime = 1.0f / 60.0f;
+
+    // TODO: Add this as config?
+    // Update the style
+
+    ImGuiStyle& style = ImGui::GetStyle();
+
+    style.Colors[ImGuiCol_TitleBg] = ImVec4(0.50f, 0.50f, 0.50f, 0.45f);
+    style.Colors[ImGuiCol_CloseButton] = ImVec4(0.60f, 0.60f, 0.60f, 0.50f);
+    style.Colors[ImGuiCol_CloseButtonHovered] = ImVec4(0.70f, 0.70f, 0.70f, 0.60f);
+    style.Colors[ImGuiCol_CloseButtonActive] = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
+    style.Colors[ImGuiCol_TitleBgCollapsed] = style.Colors[ImGuiCol_TitleBg];
+    style.WindowPadding = ImVec2(4, 0);
+
+    style.WindowRounding = 0.0f;
+
+    if (font) {
+ 		io.Fonts->AddFontFromFileTTF(font, font_size);
+	}
+
+    io.RenderDrawListsFn = 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" FontTextureInfo imgui_get_font_tex_data() {
+    unsigned char* font_data;
+    int width, height, bytes;
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&font_data, &width, &height, &bytes);
+    printf("C: font_data %p\n", font_data);
+	FontTextureInfo data = { font_data, (uint16_t)width, (uint16_t)height, (uint32_t)bytes };
+	return data;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void* imgui_get_draw_data() {
+	return (void*)ImGui::GetDrawData();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#if 0
+
+	/*
+    UIRender_init();
+
+    ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&fontData, &fWidth, &fHeight, &outBytes);
+
+    const bgfx::Memory* mem = bgfx::alloc((uint32_t)(fWidth * fHeight * outBytes));
+    memcpy(mem->data, fontData, size_t(fWidth * fHeight * outBytes));
+
+    s_textureId = bgfx::createTexture2D((uint16_t)fWidth, (uint16_t)fHeight, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_NONE, mem);
+    */
+
+
+static void imgui_render(ImDrawData* draw_data) {
+    const float width = ImGui::GetIO().DisplaySize.x;
+    const float height = ImGui::GetIO().DisplaySize.y;
+
+    float ortho[16];
+    bx::mtxOrtho(ortho, 0.0f, width, height, 0.0f, -1.0f, 1.0f);
+
+    bgfx::setViewTransform(0, NULL, ortho);
+
+    // Render command lists
+    for (int32_t ii = 0; ii < draw_data->CmdListsCount; ++ii) {
+        bgfx::TransientVertexBuffer tvb;
+        bgfx::TransientIndexBuffer tib;
+
+        const ImDrawList* cmd_list = draw_data->CmdLists[ii];
+        uint32_t vtx_size = (uint32_t)cmd_list->VtxBuffer.size();
+        uint32_t idx_size = (uint32_t)cmd_list->IdxBuffer.size();
+
+        UIRender_allocPosTexColorTb(&tvb, (uint32_t)vtx_size);
+        bgfx::allocTransientIndexBuffer(&tib, idx_size);
+
+        ImDrawVert* verts = (ImDrawVert*)tvb.data;
+        memcpy(verts, cmd_list->VtxBuffer.begin(), vtx_size * sizeof(ImDrawVert) );
+
+        ImDrawIdx* indices = (ImDrawIdx*)tib.data;
+        memcpy(indices, cmd_list->IdxBuffer.begin(), idx_size * sizeof(ImDrawIdx) );
+
+        uint32_t elem_offset = 0;
+        const ImDrawCmd* pcmd_begin = cmd_list->CmdBuffer.begin();
+        const ImDrawCmd* pcmd_end = cmd_list->CmdBuffer.end();
+
+        for (const ImDrawCmd* pcmd = pcmd_begin; pcmd != pcmd_end; pcmd++) {
+            if (pcmd->UserCallback) {
+                pcmd->UserCallback(cmd_list, pcmd);
+                elem_offset += pcmd->ElemCount;
+                continue;
+            }
+
+            if (0 == pcmd->ElemCount)
+                continue;
+
+            bgfx::setState(0
+                           | BGFX_STATE_RGB_WRITE
+                           | BGFX_STATE_ALPHA_WRITE
+                           | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+                           | BGFX_STATE_MSAA
+                           );
+            bgfx::setScissor(uint16_t(bx::fmax(pcmd->ClipRect.x, 0.0f) )
+                             , uint16_t(bx::fmax(pcmd->ClipRect.y, 0.0f) )
+                             , uint16_t(bx::fmin(pcmd->ClipRect.z, 65535.0f) - bx::fmax(pcmd->ClipRect.x, 0.0f) )
+                             , uint16_t(bx::fmin(pcmd->ClipRect.w, 65535.0f) - bx::fmax(pcmd->ClipRect.y, 0.0f) )
+                             );
+            union { void* ptr; bgfx::TextureHandle handle; } texture = { pcmd->TextureId };
+
+            UIRender_posIdxTexColor(&tvb, &tib, vtx_size, elem_offset, pcmd->ElemCount, 0 != texture.handle.idx ? texture.handle : s_textureId);
+
+            elem_offset += pcmd->ElemCount;
+        }
+    }
+}
+
+#endif
+
+

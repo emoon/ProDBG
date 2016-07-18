@@ -120,7 +120,7 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
-    Name = "bgfx",
+    Name = "bgfx_native",
 
     Env = {
         CPPPATH = {
@@ -169,11 +169,13 @@ StaticLibrary {
     Name = "imgui",
 
     Env = {
+    	CPPDEFS = { "IMGUI_INCLUDE_IMGUI_USER_H" },
         CXXOPTS = {
         	{ "-Wno-everything"; Config = "macosx-*-*" },
         },
         CPPPATH = {
 			"src/native/external/scintilla/include",
+			"src/native/ui",
         },
     },
 
@@ -293,6 +295,8 @@ StaticLibrary {
     Name = "ui",
 
     Env = {
+    	CPPDEFS = { "IMGUI_INCLUDE_IMGUI_USER_H" },
+
     	CCOPTS = {
 			{ "-Wno-objc-interface-ivars",
 			  "-Wno-direct-ivar-access",
@@ -315,16 +319,13 @@ StaticLibrary {
         },
 
         CPPPATH = {
+			"src/native/ui",
 			"src/native/external",
             "src/native/external/imgui",
             "src/native/external/bx/include",
             "src/native/external/bgfx/include",
         	"api/include",
-        	"src/native/external/i3wm_docking",
-			-- "src/native/external/foundation_lib",
-			"src/native/external/libuv/include",
             "src/native/external/stb",
-            "src/native/external/jansson/include",
             "src/prodbg",
 			"third-party/include",
         },

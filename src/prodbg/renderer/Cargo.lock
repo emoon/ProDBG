@@ -1,0 +1,54 @@
+[root]
+name = "renderer"
+version = "0.1.0"
+dependencies = [
+ "bgfx 0.1.0",
+ "imgui_sys 0.1.0",
+]
+
+[[package]]
+name = "bgfx"
+version = "0.1.0"
+dependencies = [
+ "bgfx-sys 0.1.0",
+ "bitflags 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "bgfx-sys"
+version = "0.1.0"
+dependencies = [
+ "libc 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "bitflags"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "gcc"
+version = "0.3.31"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "imgui_sys"
+version = "0.1.0"
+dependencies = [
+ "prodbg_api 0.1.0",
+]
+
+[[package]]
+name = "libc"
+version = "0.2.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "prodbg_api"
+version = "0.1.0"
+dependencies = [
+ "bitflags 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gcc 0.3.31 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+

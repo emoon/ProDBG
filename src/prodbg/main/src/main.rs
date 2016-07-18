@@ -1,14 +1,15 @@
 extern crate core;
 extern crate minifb;
 extern crate prodbg_api;
-extern crate bgfx_rs;
+extern crate bgfx;
 extern crate imgui_sys;
 extern crate settings;
+extern crate renderer;
 
 pub mod windows;
 pub mod menu;
 
-use bgfx_rs::Bgfx;
+//use renderer::Renderer;
 use core::session::Sessions;
 use windows::Windows;
 use settings::Settings;
@@ -17,11 +18,11 @@ use core::view_plugins::{ViewPlugins};
 use core::backend_plugin::{BackendPlugins};
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::time::Duration;
 
 use core::plugins::*;
 
 fn main() {
-    let bgfx = Bgfx::new();
     let mut sessions = Sessions::new();
     let mut windows = Windows::new();
     let mut settings = Settings::new();
@@ -49,21 +50,21 @@ fn main() {
             println!("set backend");
         }
     }
-
     windows.create_default(&settings);
 
     loop {
-        bgfx.pre_update();
-
         plugins.update(&mut lib_handler);
         sessions.update(&mut backend_plugins.borrow_mut());
-        windows.update(&mut sessions, &mut view_plugins.borrow_mut(), &mut backend_plugins.borrow_mut());
+        windows.update(&mut sessions,
+                       &mut view_plugins.borrow_mut(),
+                       &mut backend_plugins.borrow_mut());
 
         if windows.should_exit() {
             break;
         }
 
-        bgfx.post_update();
+        // TODO: Proper config and sleep timings
+        std::thread::sleep(Duration::from_millis(5));
     }
 }
 

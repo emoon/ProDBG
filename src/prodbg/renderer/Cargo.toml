@@ -1,0 +1,8 @@
+[package]
+name = "renderer"
+version = "0.1.0"
+authors = ["Daniel Collin <daniel@collin.com>"]
+
+[dependencies]
+bgfx = { path = "../bgfx-rs" }
+imgui_sys = { path = "../imgui_sys" }

@@ -1,9 +1,10 @@
 extern crate minifb;
-extern crate bgfx_rs;
+extern crate bgfx;
 extern crate viewdock;
+extern crate renderer;
 
-use bgfx_rs::Bgfx;
 use minifb::{CursorStyle, Scale, WindowOptions, MouseMode, MouseButton, Key, KeyRepeat};
+use renderer::Renderer;
 use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::backend_plugin::{BackendPlugins};
 use core::session::{Sessions, Session, SessionHandle};
@@ -14,7 +15,7 @@ use menu::*;
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::{PDVec2, ImguiKey};
 use prodbg_api::view::CViewCallbacks;
-use std::os::raw::{c_void, c_int};
+use std::os::raw::{c_void};
 use std::collections::VecDeque;
 //use std::mem::transmute;
 
@@ -89,12 +90,14 @@ pub struct Windows {
     /// All the windows being tracked
     windows: Vec<Window>,
     current: usize,
+    renderer: Renderer,
 }
 
 impl Windows {
     pub fn new() -> Windows {
         Windows {
             windows: Vec::new(),
+            renderer: Renderer::new(),
             current: 0,
         }
     }
@@ -105,14 +108,14 @@ impl Windows {
             return;
         }
 
-        let window = Self::create_window_with_menus(settings).expect("Unable to create window");
+        let window = self.create_window_with_menus(settings).expect("Unable to create window");
 
         Self::setup_imgui_key_mappings();
 
         self.windows.push(window)
     }
 
-    pub fn create_window(width: usize, height: usize) -> minifb::Result<Window> {
+    pub fn create_window(&mut self, width: usize, height: usize) -> minifb::Result<Window> {
         let win = try!(minifb::Window::new("ProDBG",
                                       width,
                                       height,
@@ -121,12 +124,14 @@ impl Windows {
                                           scale: Scale::X1,
                                           ..WindowOptions::default()
                                       }));
-        Bgfx::create_window(win.get_window_handle() as *const c_void,
-                            width as c_int,
-                            height as c_int);
+        // TODO: Return correctly
+        self.renderer.setup_window(win.get_window_handle(), width as u16, height as u16).unwrap();
+
         let ws = Workspace::new(Rect::new(0.0, 0.0, width as f32, (height - 20) as f32));
         let mut ws_states = VecDeque::with_capacity(WORKSPACE_UNDO_LIMIT);
+
         ws_states.push_back(ws.save_state());
+
         return Ok(Window {
             win: win,
             menu: Menu::new(),
@@ -141,12 +146,12 @@ impl Windows {
         });
     }
 
-    pub fn create_window_with_menus(settings: &Settings) -> minifb::Result<Window> {
+    pub fn create_window_with_menus(&mut self, settings: &Settings) -> minifb::Result<Window> {
 
         let width = settings.get_int("window_size", "width").unwrap_or(WIDTH) as usize;
         let height = settings.get_int("window_size", "height").unwrap_or(HEIGHT) as usize;
 
-        let mut window = try!(Self::create_window(width, height));
+        let mut window = try!(self.create_window(width, height));
 
         window.win.set_input_callback(Box::new(KeyCharCallback {}));
 
@@ -162,6 +167,8 @@ impl Windows {
                   sessions: &mut Sessions,
                   view_plugins: &mut ViewPlugins,
                   backend_plugins: &mut BackendPlugins) {
+        self.renderer.pre_update();
+
         for i in (0..self.windows.len()).rev() {
             self.windows[i].update(sessions, view_plugins, backend_plugins);
 
@@ -169,6 +176,8 @@ impl Windows {
                 self.windows.swap_remove(i);
             }
         }
+
+        self.renderer.post_update();
     }
 
     pub fn get_current(&mut self) -> &mut Window {
@@ -489,7 +498,7 @@ impl Window {
         let mut has_shown_menu = 0u32;
 
         let win_size = self.win.get_size();
-        Bgfx::update_window_size(win_size.0 as i32, win_size.1 as i32);
+        //Bgfx::update_window_size(win_size.0 as i32, win_size.1 as i32);
 
         self.win.update();
         self.ws.update_rect(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
