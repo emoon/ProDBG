@@ -3,6 +3,7 @@
       { "name": "mut_ext", "value": "" },
       { "name": "mut_int", "value": "int" },
       { "name": "mut_float", "value": "float" },
+      { "name": "extern_c", "value": ""},
       { "type": "int32", "value": "int" },
       { "type": "uint32", "value": "PDColor" },
       { "type": "const *uint8", "value": "const char*" },

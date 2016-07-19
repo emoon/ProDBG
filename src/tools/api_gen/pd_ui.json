@@ -3,8 +3,118 @@
     { "file": "rust.json" },
     { "file": "cpp.json" }
     ],
+   
+   "enum": {
+       "name": "PDUIWindowFlags_",
+       "var": [
+         { "name": "PDUIWindowFlags_NoTitleBar", "type": "unsigned int", "value": "1" },
+         { "name": "PDUIWindowFlags_NoResize ", "type": "unsigned int", "value": "2" },
+         { "name": "PDUIWindowFlags_NoMove", "type": "unsigned int", "value": "4" },
+         { "name": "PDUIWindowFlags_NoScrollbar", "type": "unsigned int", "value": "8" },
+         { "name": "PDUIWindowFlags_NoScrollWithMouse", "type": "unsigned int", "value": "16" },
+         { "name": "PDUIWindowFlags_NoCollapse", "type": "unsigned int", "value": "32" },
+         { "name": "PDUIWindowFlags_AlwaysAutoResize", "type": "unsigned int", "value": "64" },
+         { "name": "PDUIWindowFlags_ShowBorders", "type": "unsigned int", "value": "128" },
+         { "name": "PDUIWindowFlags_NoSavedSettings ", "type": "unsigned int", "value": "256" },
+         { "name": "PDUIWindowFlags_NoInputs ", "type": "unsigned int", "value": "512" },
+         { "name": "PDUIWindowFlags_MenuBar", "type": "unsigned int", "value": "1024" }
+       ]
+   },
+   
+   "struct": [{
+       "name": "PDVec2",
+       "attribute": "C-ABI",
+       "attribute": "DERIVE-DBG",
+       "var": [
+         { "name": "x", "type": "float" },
+         { "name": "y", "type": "float" }
+       ]
+   },
+   
+   {
+       "name": "PDVec4",
+       "attribute": "C-ABI",
+       "var": [
+         { "name": "x", "type": "float" },
+         { "name": "y", "type": "float" },
+         { "name": "z", "type": "float" },
+         { "name": "w", "type": "float" }
+       ]
+   },
 
-  "struct": {
+   {
+       "name": "PDRect",
+       "attribute": "C-ABI",
+       "var": [
+         { "name": "x", "type": "float" },
+         { "name": "y", "type": "float" },
+         { "name": "width", "type": "float" },
+         { "name": "height", "type": "float" }
+       ]
+   },
+   
+   {
+       "name": "PDUIInputTextCallbackData",
+       "attribute": "C-ABI",
+       "var": [
+         { "name": "event_flag", "type": "PDInputTextFlags" },
+         { "name": "flags", "type": "PDInputTextFlags" },
+         { "name": "user_data", "type": "void*" },
+         { "name": "event_char", "type": "uint16_t" },
+         { "name": "event_key", "type": "uint16_t" },
+         { "name": "buf", "type": "char*" },
+         { "name": "buf_size", "type": "size_t" },
+         { "name": "buf_dirty", "type": "bool" },
+         { "name": "cursor_pos", "type": "int" },
+         { "name": "selection_start", "type": "int" },
+         { "name": "selection_end", "type": "int" }
+       ],
+       "fptr": [
+        {
+            "type": "no_ret",
+            "name": "delete_chars",
+            "qualifier": "extern_c",
+            "var": [
+            {
+                "type": "struct PDUInputTextCallbackData*",
+                "name": "data"
+            },
+            {
+                "type": "int",
+                "name": "pos"
+            },
+            {
+                "type": "int",
+                "name": "byteCount"
+            }
+            ]
+        },
+        {
+            "type": "no_ret",
+            "name": "set_title",
+            "qualifier": "extern_c",
+            "var": [
+            {
+                "type": "struct PDUInputTextCallbackData*",
+                "name": "data"
+            },
+            {
+                "type": "int",
+                "name": "pos"
+            },
+            {
+                "type": "const char*",
+                "name": "text"
+            },
+            {
+                "type": "const char*",
+                "name": "textEnd"
+            }
+            ]
+        } ]
+   },
+   
+   {
     "name": "PDUI",
     "attribute": "C-ABI",
     "var": {
@@ -3132,5 +3242,5 @@
         ]
       }
     ]
-  }
+  } ]
 }

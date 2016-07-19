@@ -45,7 +45,9 @@
       { "type": "ignored_voidptr", "value": "" },
       { "type": "const_voidptr", "value": "*const c_void" },
       { "type": "const uchar*", "value": "*const c_uchar" },
+      { "type": "struct PDUInputTextCallbackData*", "value": "*mut PDUIInputTextCallbackData"},
       { "name": "C-ABI", "value": "#[repr(C)]" },
+      { "name": "DERIVE-DBG", "value": "#[derive(Debug)]" },
       { "name": "PDUI", "value": "CPdUI" },
       { "name": "mut_int", "value": "*mut c_int" },
       { "name": "mut_float", "value": "*mut c_float" },
@@ -63,6 +65,7 @@
       { "name": "menu_itemPtr", "value": "menu_item_ptr" },
       { "name": "begin_popupContext_void", "value": "begin_popup_context_void" },
       { "name": "image_create_rgba", "value": "image_crate_rgba" },
-      { "name": "radio_buttonBool", "value": "radio_button_int" }
+      { "name": "radio_buttonBool", "value": "radio_button_int" },
+      { "name": "extern_c", "value": "Option<extern \"C\""}
     ]
 }
