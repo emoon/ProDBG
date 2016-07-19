@@ -607,77 +607,6 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
     s_drawList->AddText(s_imFont, realFont->fontSize, ImVec2(xt + s_pos.x, yt + s_pos.y), fore, s, s + len);
 
 
-    /*
-
-       bgfx::TransientVertexBuffer tvb;
-
-
-       UIRender_allocPosTexColorTb(&tvb, (uint32_t)(len * 6)); // * 6 vertices per character (2 triangles)
-
-       PosTexColorVertex* vb = (PosTexColorVertex*)tvb.data;
-
-       while (len--)
-       {
-        if (*s >= 32 && *s < 127)
-        {
-            stbtt_aligned_quad q;
-            stbtt_GetBakedQuad(realFont->cdata, 512, 512, *s - 32, &xt, &yt, &q, 1);
-
-            // First triangle
-
-            vb[0].x = q.x0;
-            vb[0].y = q.y0;
-            vb[0].u = q.s0;
-            vb[0].v = q.t0;
-            vb[0].color = fore;
-
-            vb[1].x = q.x1;
-            vb[1].y = q.y0;
-            vb[1].u = q.s1;
-            vb[1].v = q.t0;
-            vb[1].color = fore;
-
-            vb[2].x = q.x1;
-            vb[2].y = q.y1;
-            vb[2].u = q.s1;
-            vb[2].v = q.t1;
-            vb[2].color = fore;
-
-            // Second triangle
-
-            vb[3].x = q.x0;
-            vb[3].y = q.y0;
-            vb[3].u = q.s0;
-            vb[3].v = q.t0;
-            vb[3].color = fore;
-
-            vb[4].x = q.x1;
-            vb[4].y = q.y1;
-            vb[4].u = q.s1;
-            vb[4].v = q.t1;
-            vb[4].color = fore;
-
-            vb[5].x = q.x0;
-            vb[5].y = q.y1;
-            vb[5].u = q.s0;
-            vb[5].v = q.t1;
-            vb[5].color = fore;
-
-            vb += 6;
-            realLength++;
-        }
-
-       ++s;
-       }
-
-       bgfx::setState(0
-     | BGFX_STATE_RGB_WRITE
-     | BGFX_STATE_ALPHA_WRITE
-     | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
-     | BGFX_STATE_MSAA);
-
-       UIRender_posTexRColor(&tvb, 0, realLength * 6, realFont->ftex);
-     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -717,26 +646,6 @@ void SurfaceImpl::MeasureWidths(Font& font_, const char* s, int len, float* posi
         position += advance;//TODO: +Kerning
         *positions++ = position;// * realFont->scale;
     }
-
-
-    //assert(false);
-
-    /*
-       stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
-
-       //TODO: implement proper UTF-8 handling
-
-       float position = 0;
-       while (len--)
-       {
-        int advance, leftBearing;
-
-        stbtt_GetCodepointHMetrics(&realFont->fontinfo, *s++, &advance, &leftBearing);
-
-        position += advance;//TODO: +Kerning
-     * positions++ = position * realFont->scale;
-       }
-     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -745,22 +654,6 @@ float SurfaceImpl::WidthText(Font& font_, const char* s, int len) {
     (void)font_;
     ImVec2 t = ImGui::CalcTextSize(s, s + len);
     return t.x;
-
-    /*
-       stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
-
-       //TODO: implement proper UTF-8 handling
-
-       float position = 0;
-       while (len--)
-       {
-        int advance, leftBearing;
-        stbtt_GetCodepointHMetrics(&realFont->fontinfo, *s++, &advance, &leftBearing);
-        position += advance * realFont->scale;//TODO: +Kerning
-       }
-
-       return position;
-     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
