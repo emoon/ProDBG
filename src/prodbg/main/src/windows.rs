@@ -11,12 +11,15 @@ use core::session::{Sessions, Session, SessionHandle};
 use core::reader_wrapper::ReaderWrapper;
 use self::viewdock::{Workspace, Rect, Direction, DockHandle, SizerPos, Dock, ItemTarget};
 use settings::Settings;
+use std::fs::File;
+use std::io;
 use menu::*;
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::{PDVec2, ImguiKey};
 use prodbg_api::view::CViewCallbacks;
 use std::os::raw::{c_void};
 use std::collections::VecDeque;
+use std::io::{Read, Write};
 //use std::mem::transmute;
 
 const WIDTH: i32 = 1280;
@@ -173,6 +176,8 @@ impl Windows {
             self.windows[i].update(sessions, view_plugins, backend_plugins);
 
             if !self.windows[i].win.is_open() {
+                // TODO: Support more than one window
+                let _ = self.windows[i].save_layout("data/user_layout.json", view_plugins);
                 self.windows.swap_remove(i);
             }
         }
@@ -191,10 +196,24 @@ impl Windows {
     }
 
     /// Save the state of the windows (usually done when exiting the application)
-    pub fn save(_filename: &str) {}
+    pub fn save(&mut self, filename: &str, view_plugins: &mut ViewPlugins) {
+        println!("window len {}", self.windows.len());
+        // TODO: This only supports one window for now
+        if self.windows.len() == 1 {
+            // TODO: Proper error handling here
+            println!("save layout");
+            self.windows[0].save_layout(filename, view_plugins).unwrap();
+        }
+    }
 
     /// Load the state of all the views from a previous run
-    pub fn load(_filename: &str) {}
+    pub fn load(&mut self, filename: &str, view_plugins: &mut ViewPlugins) {
+        // TODO: This only supports one window for now
+        if self.windows.len() == 1 {
+            // TODO: Proper error handling here (loading is ok to fail though)
+            let _ = self.windows[0].load_layout(filename, view_plugins);
+        }
+    }
 
     fn setup_imgui_key_mappings() {
         Imgui::map_key(ImguiKey::Tab as usize, Key::Tab as usize);
@@ -763,8 +782,12 @@ impl Window {
         }
     }
 
-    /*
-    fn save_layout(&mut self, filename: &str, view_plugins: &mut ViewPlugins) {
+    pub fn save_layout(&mut self, filename: &str, _view_plugins: &mut ViewPlugins) -> io::Result<()> {
+        let mut file = try!(File::create(filename));
+        let state = self.ws.save_state();
+        println!("writing state to disk");
+        file.write_all(state.as_str().as_bytes())
+        /*
         for split in &mut self.ws.splits {
             let iter = split.left_docks.docks.iter_mut().chain(split.right_docks.docks.iter_mut());
 
@@ -780,21 +803,39 @@ impl Window {
         }
 
         let _ = self.ws.save(filename);
+        */
     }
 
-    fn load_layout(&mut self, filename: &str, view_plugins: &mut ViewPlugins) {
-        let ws = Workspace::load(filename);
-        let docks = ws.get_docks();
-        self.views.clear();
+    pub fn load_layout(&mut self, filename: &str, view_plugins: &mut ViewPlugins) -> io::Result<()> {
+        let mut data = "".to_owned();
 
+        let mut file = try!(File::open(filename));
+        try!(file.read_to_string(&mut data));
+
+        self.ws = Workspace::from_state(&data);
+
+        let docks = self.ws.get_docks();
+
+        // TODO: Move this code to seprate file and make it generic (copy'n'paste currently)
         for dock in &docks {
-            let ui = Imgui::create_ui_instance();
-            let handle = ViewHandle(dock.handle.0);
-            view_plugins.create_instance_with_handle(ui, &dock.plugin_name, &dock.plugin_data, SessionHandle(0), ViewHandle(dock.handle.0));
-            self.views.push(handle);
+            let mut new_view_handles: Vec<ViewHandle> = Vec::new();
+            if !self.views.iter().find(|view| view.0 == dock.handle.0).is_some() {
+                let ui = Imgui::create_ui_instance();
+                if let Some(handle) = view_plugins.create_instance_with_handle(
+                    ui,
+                    &dock.plugin_name,
+                    &dock.plugin_data,
+                    SessionHandle(0),
+                    ViewHandle(dock.handle.0)
+                ) {
+                    new_view_handles.push(handle);
+                } else {
+                    panic!("Could not restore view");
+                }
+            }
+            self.views.extend(new_view_handles);
         }
 
-        self.ws = ws;
+        Ok(())
     }
-    */
 }

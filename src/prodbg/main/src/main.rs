@@ -50,7 +50,9 @@ fn main() {
             println!("set backend");
         }
     }
+
     windows.create_default(&settings);
+    windows.load("data/user_layout.json", &mut view_plugins.borrow_mut());
 
     loop {
         plugins.update(&mut lib_handler);
@@ -66,6 +68,8 @@ fn main() {
         // TODO: Proper config and sleep timings
         std::thread::sleep(Duration::from_millis(5));
     }
+
+    //windows.save("data/user_layout.json", &mut view_plugins.borrow_mut());
 }
 
 // dummy
