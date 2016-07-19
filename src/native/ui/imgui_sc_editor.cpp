@@ -550,7 +550,7 @@ public:
         //bool result = scTheme.Load("data/themes/theme-6563.xml"); // Monokai 2 Dark
         assert(result);
 
-        const int fontSize = 13;
+        const int fontSize = 20;
         const char* fontName = "data/font/source_code_pro/SourceCodePro-Medium.ttf";
 
         scTheme.Apply(this, fontSize, fontName);
