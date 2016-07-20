@@ -123,6 +123,7 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
     (void)userData;
 
     ScEditor_setFont(GetWindowFont());
+    ScEditor_setDrawList(GetWindowDrawList());
 
 	ImGuiStorage* storage = GetStateStorage();
 	ScEditor* editor = (ScEditor*)storage->GetVoidPtr(id);
@@ -139,9 +140,7 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
 
 	ImScEditor* editorInterface = ScEditor_getInterface(editor);
 
-	//float textSize = ImGui::GetTextLineHeightWithSpacing() - 1;
-	// TODO: Remove hardcoded value, ask scintilla
-	float textSize = 40;
+	float textSize = ImGui::GetTextLineHeight();
 
 	ScEditor_resize(editor, 0, 0, (int)window->Size.x - style.ScrollbarSize, (int)(window->Size.y - title_height));
 
@@ -149,30 +148,17 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
 
 	editorInterface->HandleInput();
 
-	ImGuiListClipper clipper(lineCount, textSize);
-
-	//ImVec2 pos = window->DC.CursorPos;
-
-    ScEditor_setDrawList(GetWindowDrawList());
-    // update Scintilla rendering position accordingly with position of the ImGui window
 	ScEditor_setPos(window->PosFloat.x, window->PosFloat.y + title_height);
 
-	//int currentPos = (int)editorInterface->SendCommand(SCN_GETTOPLINE, 0, 0);
+	ImGuiListClipper clipper(lineCount, textSize);
+	// TODO: Might not be the fully correct way to do this but works better than without it
+	// This is here because we don't do any really rendering to imgui (scintilla adds text directly using
+	// DrawList->AddText(...) so we need to advance the cursor ourselfs
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + clipper.ItemsCount * clipper.ItemsHeight);
 
-	//float scrollPos = ImGui::GetScrollPosY();
-
-	//int iPos = (int)(((int)ImGui::GetScrollPosY()) / (int)(textSize));
-
-	//if (currentPos != iPos)
-	//{
 	editorInterface->ScrollTo(clipper.DisplayStart);
-	//}
-
-	//printf("current pos in scintilla %d - pos sent %d\n", newPos, iPos);
 
 	clipper.End();
-
-    //ImGui::EndChild();
 
 	return editorInterface;
 }
