@@ -50,11 +50,11 @@ local macosx = {
         BGFX_SHADERC = "$(OBJECTDIR)$(SEP)bgfx_shaderc$(PROGSUFFIX)",
     },
 
-    Frameworks = { 
-        { "Cocoa" }, 
-        { "Metal" }, 
-        { "QuartzCore" }, 
-        { "OpenGL" }  
+    Frameworks = {
+        { "Cocoa" },
+        { "Metal" },
+        { "QuartzCore" },
+        { "OpenGL" }
     },
 }
 
@@ -79,11 +79,11 @@ local macosx_test = {
         BGFX_SHADERC = "$(OBJECTDIR)$(SEP)bgfx_shaderc$(PROGSUFFIX)",
     },
 
-    Frameworks = { 
-        { "Cocoa" }, 
-        { "Metal" }, 
-        { "QuartzCore" }, 
-        { "OpenGL" }  
+    Frameworks = {
+        { "Cocoa" },
+        { "Metal" },
+        { "QuartzCore" },
+        { "OpenGL" }
     },
 }
 
@@ -126,7 +126,7 @@ local gcc_env = {
 
 local win64_opts = {
     "/DPRODBG_WIN",
-    "/EHsc", "/FS", "/MT", "/W3", "/I.", "/WX", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4200", "/wd4152", "/wd4996", "/wd4389", "/wd4201", "/wd4152", "/wd4996", "/wd4389",
+    "/EHsc", "/FS", "/MT", "/W3", "/I.", "/WX", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4005", "/wd4200", "/wd4152", "/wd4996", "/wd4389", "/wd4201", "/wd4152", "/wd4996", "/wd4389",
     "\"/DOBJECT_DIR=$(OBJECTDIR:#)\"",
     { "/Od"; Config = "*-*-debug" },
     { "/O2"; Config = "*-*-release" },
