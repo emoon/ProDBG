@@ -200,6 +200,11 @@ impl Imgui {
         unsafe { imgui_set_mouse_state(index as i32, state as c_int); }
     }
 
+    #[inline]
+    pub fn set_scroll(scroll: f32) {
+        unsafe { imgui_set_scroll(scroll); }
+    }
+
     pub fn end_window() {
         unsafe { imgui_end(); }
     }
@@ -319,6 +324,7 @@ extern "C" {
     fn imgui_add_input_character(c: u16);
     fn imgui_map_key(key_target: u32, key_source: u32);
     fn imgui_set_mouse_pos(x: f32, y: f32);
+    fn imgui_set_scroll(scroll: f32);
     fn imgui_set_mouse_state(index: i32, state: c_int);
     fn imgui_clear_keys();
     fn imgui_set_key_down(key: i32);

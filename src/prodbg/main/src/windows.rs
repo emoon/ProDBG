@@ -170,6 +170,10 @@ impl Windows {
                   sessions: &mut Sessions,
                   view_plugins: &mut ViewPlugins,
                   backend_plugins: &mut BackendPlugins) {
+        for win in &mut self.windows {
+            win.pre_update();
+        }
+
         self.renderer.pre_update();
 
         for i in (0..self.windows.len()).rev() {
@@ -510,6 +514,15 @@ impl Window {
         });
     }
 
+    pub fn pre_update(&mut self) {
+        let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
+        Imgui::set_mouse_pos(mouse);
+        Imgui::set_mouse_state(0, self.win.get_mouse_down(MouseButton::Left));
+        if let Some(scroll) = self.win.get_scroll_wheel() {
+            Imgui::set_scroll(scroll.1 * 0.25);
+        }
+    }
+
     pub fn update(&mut self,
                   sessions: &mut Sessions,
                   view_plugins: &mut ViewPlugins,
@@ -518,20 +531,16 @@ impl Window {
         let mut has_shown_menu = 0u32;
 
         let win_size = self.win.get_size();
-        //Bgfx::update_window_size(win_size.0 as i32, win_size.1 as i32);
+
+        let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
+
+        if has_shown_menu == 0 {
+            self.update_mouse_state(mouse);
+        }
 
         self.win.update();
         self.ws.update_rect(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
         self.update_key_state();
-
-        let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
-
-        if has_shown_menu==0 {
-            self.update_mouse_state(mouse);
-        }
-
-        Imgui::set_mouse_pos(mouse);
-        Imgui::set_mouse_state(0, self.win.get_mouse_down(MouseButton::Left));
 
         let show_context_menu = self.win.get_mouse_down(MouseButton::Right);
         if show_context_menu {
