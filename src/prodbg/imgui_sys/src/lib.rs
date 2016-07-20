@@ -309,6 +309,11 @@ impl Imgui {
     pub fn post_update() {
         unsafe { imgui_post_update() }
     }
+
+    #[inline]
+    pub fn resize(width: u16, height: u16) {
+        unsafe { imgui_update_size(width, height); }
+    }
 }
 
 extern "C" {
@@ -336,5 +341,6 @@ extern "C" {
     fn imgui_get_font_tex_data() -> ImFontTextData;
     fn imgui_get_draw_data() -> *const ImDrawData;
     fn imgui_pre_update(delta_time: f32);
+    fn imgui_update_size(width: u16, height: u16);
     fn imgui_post_update();
 }

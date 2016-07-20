@@ -2037,7 +2037,7 @@ extern "C" void imgui_render_frame(float x, float y, float width, float height, 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C" void imgui_update_size(int width, int height) {
+extern "C" void imgui_update_size(uint16_t width, uint16_t height) {
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2((float)width, (float)height);
     io.DeltaTime = 1.0f / 60.0f;

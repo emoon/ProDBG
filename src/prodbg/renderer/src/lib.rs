@@ -77,6 +77,7 @@ impl Renderer {
         try!(Bgfx::init(bgfx::RendererType::Default, None, None));
 
         Imgui::setup(Some("data/font/source_code_pro/SourceCodePro-Medium.ttf"), 20.0, width as u32, height as u32);
+        //Imgui::setup(None, 20.0, width as u32, height as u32);
 
         let font = Imgui::get_font_tex_data();
 
@@ -110,6 +111,7 @@ impl Renderer {
         if self.width != size.0 as u16 || self.height != size.1 as u16 {
             self.width = size.0 as u16;
             self.height = size.1 as u16;
+            Imgui::resize(self.width, self.height);
             Bgfx::reset(self.width, self.height, bgfx::RESET_NONE);
         }
     }
