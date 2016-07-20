@@ -5,13 +5,12 @@
 #include <stdarg.h>
 #include <math.h>
 #include <assert.h>
-#include <stb/stb_truetype.h>
 #include "file.h"
 
 #include "scintilla/include/Platform.h"
 #include <bgfx/bgfx.h>
 
-#include <imgui.h> // TODO: TEMP! Hook up properly to ImGui
+#include <imgui.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -165,16 +164,6 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct stbtt_Font {
-    stbtt_fontinfo fontinfo;
-    stbtt_bakedchar cdata[96]; // ASCII 32..126 is 95 glyphs
-    bgfx::TextureHandle ftex;
-    float scale;
-    float fontSize;
-};
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 Font::Font() : fid(0) {
 }
 
@@ -186,33 +175,6 @@ Font::~Font() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Font::Create(const FontParameters& fp) {
-    size_t len;
-
-    // TODO: Remove hard-coded value
-
-    void* data = File_loadToMemory(fp.faceName, &len, 0);
-
-    if (!data)
-        return;
-
-    unsigned char* bmp = new unsigned char[512 * 512];
-    stbtt_Font* newFont = new stbtt_Font;
-
-    stbtt_BakeFontBitmap((unsigned char*)data, 0, fp.size, bmp, 512, 512, 32, 96, newFont->cdata); // no guarantee this fits!
-
-    const bgfx::Memory* mem = bgfx::alloc(512 * 512);
-    memcpy(mem->data, bmp, 512 * 512);
-
-    newFont->ftex = bgfx::createTexture2D(512, 512, 1, bgfx::TextureFormat::R8, BGFX_TEXTURE_NONE, mem);
-
-    stbtt_InitFont(&newFont->fontinfo, (unsigned char*)data, 0);
-
-    newFont->scale = stbtt_ScaleForPixelHeight(&newFont->fontinfo, fp.size);
-    newFont->fontSize = fp.size;
-
-    delete[] bmp;
-
-    fid = newFont;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -304,17 +266,6 @@ void SurfaceImpl::RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired
     (void)fore;
 
     FillRectangle(rc, back);
-    /*
-       glColor4ubv((GLubyte*)&fore);
-       glDisable(GL_TEXTURE_2D);
-       glBegin(GL_LINE_STRIP);
-       glVertex2f(rc.left+0.5f,  rc.top+0.5f);
-       glVertex2f(rc.right-0.5f, rc.top+0.5f);
-       glVertex2f(rc.right-0.5f, rc.bottom-0.5f);
-       glVertex2f(rc.left+0.5f,  rc.bottom-0.5f);
-       glVertex2f(rc.left+0.5f,  rc.top+0.5f);
-       glEnd();
-     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -442,50 +393,6 @@ static void fillRectangle(PRectangle rc, ColourDesired b) {
     s_drawList->AddDrawCmd();
     s_drawList->AddRectFilled(ImVec2(rc.left + s_pos.x, rc.top + s_pos.y),
                               ImVec2(rc.right + s_pos.x, rc.bottom + s_pos.y), back);
-    /*
-       bgfx::TransientVertexBuffer tvb;
-
-
-       UIRender_allocPosColorTb(&tvb, 6);
-
-       PosColorVertex* vb = (PosColorVertex*)tvb.data;
-
-       // First triangle
-
-       vb[0].x = rc.left;
-       vb[0].y = rc.top;
-       vb[0].color = back;
-
-       vb[1].x = rc.right;
-       vb[1].y = rc.top;
-       vb[1].color = back;
-
-       vb[2].x = rc.right;
-       vb[2].y = rc.bottom;
-       vb[2].color = back;
-
-       // Second triangle
-
-       vb[3].x = rc.left;
-       vb[3].y = rc.top;
-       vb[3].color = back;
-
-       vb[4].x = rc.right;
-       vb[4].y = rc.bottom;
-       vb[4].color = back;
-
-       vb[5].x = rc.left;
-       vb[5].y = rc.bottom;
-       vb[5].color = back;
-
-       bgfx::setState(0
-     | BGFX_STATE_RGB_WRITE
-     | BGFX_STATE_ALPHA_WRITE
-     | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
-     | BGFX_STATE_MSAA);
-
-       UIRender_posColor(&tvb, 0, 6);
-     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -500,54 +407,10 @@ void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired b) {
 
 void SurfaceImpl::FillRectangle(PRectangle rc, Surface&) {
     // GW: This probably needs to be a blit from incoming surface?
+    // const uint32_t back = 0xFFFFFF; // GW-TODO: Likely need to track the current fore\back color as per style
 
     (void)rc;
     assert(false);
-/*
-    bgfx::TransientVertexBuffer tvb;
-
-    const uint32_t back = 0xFFFFFF; // GW-TODO: Likely need to track the current fore\back color as per style
-
-    UIRender_allocPosColorTb(&tvb, 6);
-
-    PosColorVertex* vb = (PosColorVertex*)tvb.data;
-
-    // First triangle
-
-    vb[0].x = rc.left;
-    vb[0].y = rc.top;
-    vb[0].color = back;
-
-    vb[1].x = rc.right;
-    vb[1].y = rc.top;
-    vb[1].color = back;
-
-    vb[2].x = rc.right;
-    vb[2].y = rc.bottom;
-    vb[2].color = back;
-
-    // Second triangle
-
-    vb[3].x = rc.left;
-    vb[3].y = rc.top;
-    vb[3].color = back;
-
-    vb[4].x = rc.right;
-    vb[4].y = rc.bottom;
-    vb[4].color = back;
-
-    vb[5].x = rc.left;
-    vb[5].y = rc.bottom;
-    vb[5].color = back;
-
-    bgfx::setState(0
- | BGFX_STATE_RGB_WRITE
- | BGFX_STATE_ALPHA_WRITE
- | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
- | BGFX_STATE_MSAA);
-
-    UIRender_posColor(&tvb, 0, 6);
- */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -584,10 +447,12 @@ void SurfaceImpl::Ellipse(PRectangle rc, ColourDesired fore, ColourDesired back)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Font::Release() {
+	/*
     if (fid) {
         free(((stbtt_Font*)fid)->fontinfo.data);
         delete (stbtt_Font*)fid;
     }
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -598,15 +463,13 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const ch
     float yt = ybase;
 
     uint32_t fore = (uint32_t)f.AsLong();
-    stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+    //stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
 
     assert(s_drawList);
     assert(s_imFont);
 
     //s_drawList->SplitDrawCmd();
-    s_drawList->AddText(s_imFont, realFont->fontSize, ImVec2(xt + s_pos.x, yt + s_pos.y), fore, s, s + len);
-
-
+    s_drawList->AddText(s_imFont, s_imFont->FontSize, ImVec2(xt + s_pos.x, yt + s_pos.y), fore, s, s + len);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -638,10 +501,12 @@ void SurfaceImpl::MeasureWidths(Font& font_, const char* s, int len, float* posi
     while (len--) {
         int advance;
 
-        const ImFont::Glyph* glyph = s_imFont->FindGlyph((unsigned short)*s++);
+        char c = *s++;
+
+        const ImFont::Glyph* glyph = s_imFont->FindGlyph((unsigned short)c);
         assert(glyph);
 
-        advance = (int)glyph->XAdvance;
+        advance = glyph->XAdvance;
 
         position += advance;//TODO: +Kerning
         *positions++ = position;// * realFont->scale;
@@ -659,31 +524,52 @@ float SurfaceImpl::WidthText(Font& font_, const char* s, int len) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SurfaceImpl::WidthChar(Font& font_, char ch) {
+	/*
     int advance, leftBearing;
     stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
     stbtt_GetCodepointHMetrics(&realFont->fontinfo, ch, &advance, &leftBearing);
 
+    printf("advance %f\n", advance * realFont->scale);
+    if (s_imFont) {
+    	printf("advance imgui %f\n", s_imFont->IndexXAdvance[ch]);
+	}
+
     return advance * realFont->scale;
+    */
+
+    return s_imFont->IndexXAdvance[ch];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SurfaceImpl::Ascent(Font& font_) {
+	/*
     int ascent, descent, lineGap;
     stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
     stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
 
+    printf("ascent  %f\n", ascent * realFont->scale);
+    printf("ascent imgui %f\n", s_imFont->Ascent);
+
     return ascent * realFont->scale;
+    */
+	return s_imFont->Ascent;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SurfaceImpl::Descent(Font& font_) {
+	/*
     int ascent, descent, lineGap;
     stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
     stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
 
+    printf("descent %f\n", -descent * realFont->scale);
+    printf("descent imgui %f\n", s_imFont->Descent);
+
     return -descent * realFont->scale;
+    */
+	return -s_imFont->Descent;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -695,10 +581,16 @@ float SurfaceImpl::InternalLeading(Font&) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SurfaceImpl::ExternalLeading(Font& font_) {
+	/*
     stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
     int ascent, descent, lineGap;
     stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
+
+    printf("lineGap %f\n", lineGap * realFont->scale);
+
     return lineGap * realFont->scale;
+    */
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

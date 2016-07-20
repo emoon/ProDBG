@@ -120,7 +120,7 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
     (void)callback;
     (void)userData;
 
-    //ImGui::BeginChild("Log");
+    ScEditor_setFont(GetWindowFont());
 
 	ImGuiStorage* storage = GetStateStorage();
 	ScEditor* editor = (ScEditor*)storage->GetVoidPtr(id);
@@ -137,7 +137,7 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
 
 	//float textSize = ImGui::GetTextLineHeightWithSpacing() - 1;
 	// TODO: Remove hardcoded value, ask scintilla
-	float textSize = 26;
+	float textSize = 20;
 
 	ScEditor_resize(editor, 0, 0, (int)window->Size.x - 20, (int)window->Size.y);
 
@@ -150,7 +150,6 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
 	//ImVec2 pos = window->DC.CursorPos;
 
     ScEditor_setDrawList(GetWindowDrawList());
-    ScEditor_setFont(GetWindowFont());
     // update Scintilla rendering position accordingly with position of the ImGui window
 	ScEditor_setPos(window->PosFloat.x, window->PosFloat.y + 14.0f);
 
