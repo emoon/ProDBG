@@ -17,24 +17,6 @@ struct PDUIUIPainter;
 struct PDRect;
 typedef void* PDUITextureID;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef struct PDVec2 {
-    float x, y;
-} PDVec2;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef struct PDVec4 {
-    float x, y, z, w;
-} PDVec4;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef struct PDRect {
-	float x, y;
-	float width, height;
-} PDRect;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -62,23 +44,6 @@ typedef enum PDUIStyleVar {
     PDUIStyleVar_TreeNodeSpacing,   // float
     PDUIStyleVar_Count
 } PDUIStyleVar;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-enum PDUIWindowFlags_ {
-    // Default: 0
-    PDUIWindowFlags_NoTitleBar             = 1 << 0,   // Disable title-bar
-    PDUIWindowFlags_NoResize               = 1 << 1,   // Disable user resizing with the lower-right grip
-    PDUIWindowFlags_NoMove                 = 1 << 2,   // Disable user moving the window
-    PDUIWindowFlags_NoScrollbar            = 1 << 3,   // Disable scrollbar (window can still scroll with mouse or programatically)
-    PDUIWindowFlags_NoScrollWithMouse      = 1 << 4,   // Disable user scrolling with mouse wheel
-    PDUIWindowFlags_NoCollapse             = 1 << 5,   // Disable user collapsing window by double-clicking on it
-    PDUIWindowFlags_AlwaysAutoResize       = 1 << 6,   // Resize every window to its content every frame
-    PDUIWindowFlags_ShowBorders            = 1 << 7,   // Show borders around windows and items
-    PDUIWindowFlags_NoSavedSettings        = 1 << 8,   // Never load/save settings in .ini file
-    PDUIWindowFlags_NoInputs               = 1 << 9,   // Disable catching mouse or keyboard inputs
-    PDUIWindowFlags_MenuBar                = 1 << 10,  // Has a menu-bar
-};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -194,34 +159,6 @@ enum PDUISetCond_ {
     PDUISetCond_Appearing     = 1 << 3  // Only set the variable if the window is appearing after being inactive (or the first time)
 };
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef struct PDUIInputTextCallbackData {
-    PDUIInputTextFlags event_flag;    // One of PDUIInputTextFlags_Callback* // Read-only
-    PDUIInputTextFlags flags;        // What user passed to InputText()      // Read-only
-    void* user_data;      			 // What user passed to InputText()      // Read-only
-
-    // CharFilter event:
-    uint16_t event_char;    // Character input                       // Read-write (replace character or set to zero)
-
-    // Completion,History,Always events:
-    uint16_t event_key;      // Key pressed (Up/Down/TAB)            // Read-only
-    char* buf;            	// Current text                         // Read-write (pointed data only)
-    size_t buf_size;        	//                                      // Read-only
-    bool buf_dirty;       	// Set if you modify Buf directly       // Write
-    int cursor_pos;      	//                                      // Read-write
-    int selection_start; 	//                                      // Read-write (== to SelectionEnd when no selection)
-    int selection_end;   	//                                      // Read-write
-
-	void (*delete_chars)(struct PDUIInputTextCallbackData* data, int pos, int byteCount);
-	void (*insert_chars)(struct PDUIInputTextCallbackData* data, int pos, const char* text, const char* textEnd);
-
-} PDUIInputTextCallbackData;
-
-typedef int (*PDUITextEditCallback)(PDUIInputTextCallbackData* data);
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 typedef struct PDUISCInterface {
 	intptr_t (*send_command)(void* privData, unsigned int message, uintptr_t p0, intptr_t p1);
 	void (*update)(void* privData);
@@ -232,6 +169,10 @@ typedef struct PDUISCInterface {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "pd_ui_autogen.h"
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef int (*PDUITextEditCallback)(PDUIInputTextCallbackData* data);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -10,6 +10,7 @@
       { "type": "float*", "value": "*mut c_float" },
       { "type": "void*", "value": "*mut c_void" },
       { "type": "va_list", "value": "c_int" },
+      { "type": "uint16_t", "value": "c_ushort" },
       { "type": "uint32_t", "value": "c_uint" },
       { "type": "int32", "value": "u32" },
       { "type": "uint32", "value": "u32" },
@@ -45,7 +46,7 @@
       { "type": "ignored_voidptr", "value": "" },
       { "type": "const_voidptr", "value": "*const c_void" },
       { "type": "const uchar*", "value": "*const c_uchar" },
-      { "type": "struct PDUInputTextCallbackData*", "value": "*mut PDUIInputTextCallbackData"},
+      { "type": "struct PDUIInputTextCallbackData*", "value": "*mut PDUIInputTextCallbackData"},
       { "name": "C-ABI", "value": "#[repr(C)]" },
       { "name": "DERIVE-DBG", "value": "#[derive(Debug)]" },
       { "name": "PDUI", "value": "CPdUI" },
@@ -66,6 +67,6 @@
       { "name": "begin_popupContext_void", "value": "begin_popup_context_void" },
       { "name": "image_create_rgba", "value": "image_crate_rgba" },
       { "name": "radio_buttonBool", "value": "radio_button_int" },
-      { "name": "extern_c", "value": "Option<extern \"C\""}
+      { "name": "extern_c", "value": "Option<extern \"C\" "}
     ]
 }

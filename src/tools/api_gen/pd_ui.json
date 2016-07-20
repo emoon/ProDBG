@@ -4,8 +4,9 @@
     { "file": "cpp.json" }
     ],
    
-   "enum": {
+   "bitflags": {
        "name": "PDUIWindowFlags_",
+       "type": "unsigned int",
        "var": [
          { "name": "PDUIWindowFlags_NoTitleBar", "type": "unsigned int", "value": "1" },
          { "name": "PDUIWindowFlags_NoResize ", "type": "unsigned int", "value": "2" },
@@ -23,8 +24,7 @@
    
    "struct": [{
        "name": "PDVec2",
-       "attribute": "C-ABI",
-       "attribute": "DERIVE-DBG",
+       "attribute": [ {"name": "C-ABI"}, {"name": "DERIVE-DBG"} ],
        "var": [
          { "name": "x", "type": "float" },
          { "name": "y", "type": "float" }
@@ -57,8 +57,8 @@
        "name": "PDUIInputTextCallbackData",
        "attribute": "C-ABI",
        "var": [
-         { "name": "event_flag", "type": "PDInputTextFlags" },
-         { "name": "flags", "type": "PDInputTextFlags" },
+         { "name": "event_flag", "type": "PDUIInputTextFlags" },
+         { "name": "flags", "type": "PDUIInputTextFlags" },
          { "name": "user_data", "type": "void*" },
          { "name": "event_char", "type": "uint16_t" },
          { "name": "event_key", "type": "uint16_t" },
@@ -76,7 +76,7 @@
             "qualifier": "extern_c",
             "var": [
             {
-                "type": "struct PDUInputTextCallbackData*",
+                "type": "struct PDUIInputTextCallbackData*",
                 "name": "data"
             },
             {
@@ -91,11 +91,11 @@
         },
         {
             "type": "no_ret",
-            "name": "set_title",
+            "name": "insert_chars",
             "qualifier": "extern_c",
             "var": [
             {
-                "type": "struct PDUInputTextCallbackData*",
+                "type": "struct PDUIInputTextCallbackData*",
                 "name": "data"
             },
             {
