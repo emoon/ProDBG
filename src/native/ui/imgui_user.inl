@@ -122,7 +122,9 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
     (void)callback;
     (void)userData;
 
-    ScEditor_setFont(GetWindowFont());
+	ImFont* font = GetWindowFont();
+
+    ScEditor_setFont(font);
     ScEditor_setDrawList(GetWindowDrawList());
 
 	ImGuiStorage* storage = GetStateStorage();
@@ -138,11 +140,13 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
 
 	float title_height = window->TitleBarHeight();
 
+	title_height -= (int)font->Ascent;
+
 	ImScEditor* editorInterface = ScEditor_getInterface(editor);
 
 	float textSize = ImGui::GetTextLineHeight();
 
-	ScEditor_resize(editor, 0, 0, (int)window->Size.x - (int)style.ScrollbarSize, (int)(window->Size.y - (int)title_height));
+	ScEditor_resize(editor, 0, (int)font->Ascent, (int)window->Size.x - (int)style.ScrollbarSize, (int)(window->Size.y - (int)title_height));
 
 	int lineCount = (int)editorInterface->SendCommand(SCI_GETLINECOUNT, 0, 0);
 

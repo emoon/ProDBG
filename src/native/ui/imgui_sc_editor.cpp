@@ -558,7 +558,7 @@ public:
         (void)x;
         (void)y;
 
-        wMain.SetPosition(PRectangle::FromInts(0, 0, m_width, m_height));
+        wMain.SetPosition(PRectangle::FromInts(0, y, m_width, m_height));
 
         // GW-TODO: Likely need to adjust a member var on wMain and make
         // GetClientRectangle return that value.
@@ -899,7 +899,7 @@ void ScEditor_resize(ScEditor* editor, int x, int y, int width, int height) {
     (void)y;
 
     if (editor) {
-        editor->Resize(0, 0, width, height);
+        editor->Resize(0, y, width, height);
 	}
 }
 
