@@ -114,6 +114,8 @@ bool IsActiveWindow(ImGuiWindow* window)
 
 ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*callback)(void*), void* userData)
 {
+    const ImGuiStyle& style = ImGui::GetStyle();
+
     ImGuiWindow* window = GetCurrentWindow();
     const ImGuiID id = window->GetID(label);
 
@@ -133,13 +135,15 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
 		storage->SetVoidPtr(id, (void*)editor);
 	}
 
+	float title_height = window->TitleBarHeight();
+
 	ImScEditor* editorInterface = ScEditor_getInterface(editor);
 
 	//float textSize = ImGui::GetTextLineHeightWithSpacing() - 1;
 	// TODO: Remove hardcoded value, ask scintilla
-	float textSize = 20;
+	float textSize = 40;
 
-	ScEditor_resize(editor, 0, 0, (int)window->Size.x - 20, (int)window->Size.y);
+	ScEditor_resize(editor, 0, 0, (int)window->Size.x - style.ScrollbarSize, (int)(window->Size.y - title_height));
 
 	int lineCount = (int)editorInterface->SendCommand(SCI_GETLINECOUNT, 0, 0);
 
@@ -151,7 +155,7 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
 
     ScEditor_setDrawList(GetWindowDrawList());
     // update Scintilla rendering position accordingly with position of the ImGui window
-	ScEditor_setPos(window->PosFloat.x, window->PosFloat.y + 14.0f);
+	ScEditor_setPos(window->PosFloat.x, window->PosFloat.y + title_height);
 
 	//int currentPos = (int)editorInterface->SendCommand(SCN_GETTOPLINE, 0, 0);
 
