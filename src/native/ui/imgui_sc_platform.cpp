@@ -489,7 +489,7 @@ void SurfaceImpl::MeasureWidths(Font& font_, const char* s, int len, float* posi
     (void)font_;
 
     while (len--) {
-        int advance;
+        float advance;
 
         const char c = *s++;
 

@@ -142,7 +142,7 @@ ImScEditor* ScInputText(const char* label, float xSize, float ySize, void (*call
 
 	float textSize = ImGui::GetTextLineHeight();
 
-	ScEditor_resize(editor, 0, 0, (int)window->Size.x - style.ScrollbarSize, (int)(window->Size.y - title_height));
+	ScEditor_resize(editor, 0, 0, (int)window->Size.x - (int)style.ScrollbarSize, (int)(window->Size.y - (int)title_height));
 
 	int lineCount = (int)editorInterface->SendCommand(SCI_GETLINECOUNT, 0, 0);
 
