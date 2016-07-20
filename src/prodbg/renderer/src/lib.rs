@@ -106,6 +106,14 @@ impl Renderer {
         Imgui::pre_update(1.0 / 60.0);
     }
 
+    pub fn update_size(&mut self, size: (usize, usize)) {
+        if self.width != size.0 as u16 || self.height != size.1 as u16 {
+            self.width = size.0 as u16;
+            self.height = size.1 as u16;
+            Bgfx::reset(self.width, self.height, bgfx::RESET_NONE);
+        }
+    }
+
     fn render_imgui(&self) {
         let draw_lists = Imgui::get_draw_data();
         let view = mtx_ortho(0.0, self.width as f32, self.height as f32, 0.0, -1.0, 0.0);

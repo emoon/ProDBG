@@ -174,6 +174,7 @@ impl Windows {
 
         for i in (0..self.windows.len()).rev() {
             self.windows[i].update(sessions, view_plugins, backend_plugins);
+            self.renderer.update_size(self.windows[i].win.get_size());
 
             if !self.windows[i].win.is_open() {
                 // TODO: Support more than one window
