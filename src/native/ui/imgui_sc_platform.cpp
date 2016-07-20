@@ -447,28 +447,19 @@ void SurfaceImpl::Ellipse(PRectangle rc, ColourDesired fore, ColourDesired back)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Font::Release() {
-	/*
-    if (fid) {
-        free(((stbtt_Font*)fid)->fontinfo.data);
-        delete (stbtt_Font*)fid;
-    }
-    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SurfaceImpl::DrawTextBase(PRectangle rc, Font& font_, float ybase, const char* s, int len, ColourDesired f) {
-    //uint32_t realLength = 0;
     float xt = rc.left;
     float yt = ybase;
 
     uint32_t fore = (uint32_t)f.AsLong();
-    //stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
 
     assert(s_drawList);
     assert(s_imFont);
 
-    //s_drawList->SplitDrawCmd();
     s_drawList->AddText(s_imFont, s_imFont->FontSize, ImVec2(xt + s_pos.x, yt + s_pos.y), fore, s, s + len);
 }
 
@@ -496,20 +487,16 @@ void SurfaceImpl::DrawTextTransparent(PRectangle rc, Font& font_, float ybase, c
 void SurfaceImpl::MeasureWidths(Font& font_, const char* s, int len, float* positions) {
     float position = 0;
     (void)font_;
-    //stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
 
     while (len--) {
         int advance;
 
-        char c = *s++;
+        const char c = *s++;
 
-        const ImFont::Glyph* glyph = s_imFont->FindGlyph((unsigned short)c);
-        assert(glyph);
-
-        advance = glyph->XAdvance;
+        advance = s_imFont->IndexXAdvance[c];
 
         position += advance;//TODO: +Kerning
-        *positions++ = position;// * realFont->scale;
+        *positions++ = position;
     }
 }
 
@@ -524,51 +511,18 @@ float SurfaceImpl::WidthText(Font& font_, const char* s, int len) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SurfaceImpl::WidthChar(Font& font_, char ch) {
-	/*
-    int advance, leftBearing;
-    stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
-    stbtt_GetCodepointHMetrics(&realFont->fontinfo, ch, &advance, &leftBearing);
-
-    printf("advance %f\n", advance * realFont->scale);
-    if (s_imFont) {
-    	printf("advance imgui %f\n", s_imFont->IndexXAdvance[ch]);
-	}
-
-    return advance * realFont->scale;
-    */
-
     return s_imFont->IndexXAdvance[ch];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SurfaceImpl::Ascent(Font& font_) {
-	/*
-    int ascent, descent, lineGap;
-    stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
-    stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
-
-    printf("ascent  %f\n", ascent * realFont->scale);
-    printf("ascent imgui %f\n", s_imFont->Ascent);
-
-    return ascent * realFont->scale;
-    */
 	return s_imFont->Ascent;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SurfaceImpl::Descent(Font& font_) {
-	/*
-    int ascent, descent, lineGap;
-    stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
-    stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
-
-    printf("descent %f\n", -descent * realFont->scale);
-    printf("descent imgui %f\n", s_imFont->Descent);
-
-    return -descent * realFont->scale;
-    */
 	return -s_imFont->Descent;
 }
 
@@ -581,15 +535,6 @@ float SurfaceImpl::InternalLeading(Font&) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float SurfaceImpl::ExternalLeading(Font& font_) {
-	/*
-    stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
-    int ascent, descent, lineGap;
-    stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
-
-    printf("lineGap %f\n", lineGap * realFont->scale);
-
-    return lineGap * realFont->scale;
-    */
     return 0;
 }
 
