@@ -59,72 +59,9 @@ extern struct WindowImpl* AllocateWindowImpl();
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool htmlToColour(ColourDesired& colour, const char* html) {
-#if 1 // Built In
     colour.Set(html);
     colour.Set(colour.AsLong() | ((unsigned int)0xFF << 24)); // ColourDesired is lame in that it never sets the alpha channel..
     return true;
-#else
-    const char* start = html;
-    if (*start == '#')
-        ++start;
-
-    const size_t size = strlen(start);
-    if (size == 6) {
-        // 8 bits per channel
-        char* end;
-        char parse[3];
-        parse[2] = '\0';
-
-        // Red
-        parse[0] = start[0];
-        parse[1] = start[1];
-        unsigned int r = strtol(parse, &end, 16);
-
-        // Green
-        parse[0] = start[2];
-        parse[1] = start[3];
-        unsigned int g = strtol(parse, &end, 16);
-
-        // Blue
-        parse[0] = start[4];
-        parse[1] = start[5];
-        unsigned int b = strtol(parse, &end, 16);
-
-        // ColourDesired is lame in that it never sets the alpha channel..
-        long result = r | (g << 8) | (b << 16) | (0xFF << 24);
-        colour.Set(result);
-        return true;
-    }else if (size == 3) {
-        // 4 bits per channel
-        char* end;
-        char parse[2];
-        parse[2] = '\0';
-
-        // Red
-        parse[0] = start[0];
-
-        unsigned int r = strtol(parse, &end, 16);
-        r = r * 16 + r;
-
-        // Green
-        parse[0] = start[1];
-        unsigned int g = strtol(parse, &end, 16);
-        g = g * 16 + g;
-
-        // Blue
-        parse[0] = start[2];
-        unsigned int b = strtol(parse, &end, 16);
-        b = b * 16 + b;
-
-        // ColourDesired is lame in that it never sets the alpha channel..
-        long result = r | (g << 8) | (b << 16) | (0xFF << 24);
-        colour.Set(result);
-        return true;
-    }
-
-    // Invalid color
-    return false;
-#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -527,10 +464,6 @@ public:
     void Initialise() {
         wMain = AllocateWindowImpl();
 
-        // TODO: TEMP! Hook up properly to ImGui
-        ImGuiIO& io = ImGui::GetIO();
-        wMain.SetPosition(PRectangle::FromInts(0, 0, int(io.DisplaySize.x), int(io.DisplaySize.y)));
-
         // We need to disable buffered draw so Scintilla doesn't keep a yoffset of 0
         // when rendering text, thinking we are blitting through a pixmap. We want a
         // single draw list for efficiency.
@@ -543,22 +476,19 @@ public:
 
         ScEclipseTheme scTheme;
         //bool result = scTheme.Load("data/themes/theme-1.xml");    // Oblivion
-        bool result = scTheme.Load("data/themes/theme-118.xml");  // Wombat
-        //bool result = scTheme.Load("data/themes/theme-383.xml");  // Sunburst
+        //bool result = scTheme.Load("data/themes/theme-118.xml");  // Wombat
+        bool result = scTheme.Load("data/themes/theme-383.xml");  // Sunburst
         //bool result = scTheme.Load("data/themes/theme-3796.xml"); // Ambients
         //bool result = scTheme.Load("data/themes/theme-4967.xml"); // Sublime Monokai
         //bool result = scTheme.Load("data/themes/theme-6563.xml"); // Monokai 2 Dark
         assert(result);
 
-        const int fontSize = 20;
-        const char* fontName = "data/font/source_code_pro/SourceCodePro-Medium.ttf";
-
-        scTheme.Apply(this, fontSize, fontName);
+        scTheme.Apply(this);
 
         XPM xpm(breakpoint_xpm);
         RGBAImage bpImage(xpm);
 
-        SendCommand(SCI_SETMARGINWIDTHN, 0, 44);//Calculate correct width
+        SendCommand(SCI_SETMARGINWIDTHN, 0, 44); //Calculate correct width
         SendCommand(SCI_SETMARGINTYPEN, 1, SC_MARGIN_SYMBOL);
         SendCommand(SCI_SETMARGINMASKN, 1, ~SC_MASK_FOLDERS); // allow everything except for the folding symbols
         SendCommand(SCI_RGBAIMAGESETSCALE, 100);
@@ -600,15 +530,15 @@ public:
         CaretSetPeriod(0);
 
         size_t textSize = 0;
-        const char* text = static_cast<const char*>(File_loadToMemory("examples/fake_6502/fake6502_main.c", &textSize, 0));
+        //const char* text = static_cast<const char*>(File_loadToMemory("examples/fake_6502/fake6502_main.c", &textSize, 0));
+        const char* text = static_cast<const char*>(File_loadToMemory("src/native/external/imgui/imgui.cpp", &textSize, 0));
         assert(text);
 
-        SendCommand(SCI_ADDTEXT, textSize,
-                    reinterpret_cast<sptr_t>(static_cast<const char*>(text)));
+        SendCommand(SCI_ADDTEXT, textSize, reinterpret_cast<sptr_t>(static_cast<const char*>(text)));
 
         free((void*)text);
 
-        SendCommand(SCI_MARKERADD, 0, 0);
+        //SendCommand(SCI_MARKERADD, 0, 0);
         SendCommand(SCI_MARKERADD, 1, 0);
         SendCommand(SCI_MARKERADD, 2, 0);
 
@@ -619,6 +549,9 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     void Resize(int x, int y, int width, int height) {
+		if (m_width == width && m_height == height)
+			return;
+
         m_width = width;
         m_height = height;
 
@@ -965,8 +898,9 @@ void ScEditor_resize(ScEditor* editor, int x, int y, int width, int height) {
     (void)x;
     (void)y;
 
-    if (editor)
+    if (editor) {
         editor->Resize(0, 0, width, height);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
