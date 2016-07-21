@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate bitflags;
 extern crate prodbg_api;
 
 use std::mem;
@@ -33,7 +35,7 @@ pub type ImDrawIdx = u16;
 pub type ImU32 = u32;
 pub type ImWchar = u16;
 pub type ImTextureID = *mut std::os::raw::c_void;
-pub type ImGuiID = ImU32;
+pub type ID = ImU32;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
@@ -103,6 +105,39 @@ pub struct FontTexData<'a> {
     pub width: u16,
     pub height: u16,
 }
+
+bitflags!(
+    #[repr(C)]
+    pub flags WindowFlags: u32 {
+        const WINDOWFLAGS_NO_TITLE_BAR = 1 << 0,
+        const WINDOWFLAGS_NO_RESIZE = 1 << 1,
+        const WINDOWFLAGS_NO_MOVE = 1 << 2,
+        const WINDOWFLAGS_NO_SCROLLBAR = 1 << 3,
+        const WINDOWFLAGS_NO_SCROLLWITH_MOUSE = 1 << 4,
+        const WINDOWFLAGS_NO_COLLAPSE = 1 << 5,
+        const WINDOWFLAGS_ALWAYS_AUTO_RESIZE = 1 << 6,
+        const WINDOWFLAGS_SHOW_BORDERS = 1 << 7,
+        const WINDOWFLAGS_NO_SAVEDSETTINGS = 1 << 8,
+        const WINDOWFLAGS_NO_INPUTS = 1 << 9,
+        const WINDOWFLAGS_MENU_BAR = 1 << 10,
+        const WINDOWFLAGS_HORIZONTAL_SCROLLBAR = 1 << 11,
+        const WINDOWFLAGS_NO_FOCUS_ON_APPEARING = 1 << 12,
+        const WINDOWFLAGS_NO_BRING_TO_FRONT_ON_FOCUS = 1 << 13,
+        const WINDOWFLAGS_ALWAYS_VERTICAL_SCROLLBAR = 1 << 14,
+        const WINDOWFLAGS_ALWAY_SHORIZONTALS_CROLLBAR = 1 << 15,
+        const WINDOWFLAGS_ALWAYS_USE_WINDOW_PADDING = 1 << 16,
+
+        const WINDOWFLAGS_CHILD_WINDOW = 1 << 20,
+        const WINDOWFLAGS_CHILD_WINDOW_AUTO_FITX = 1 << 21,
+        const WINDOWFLAGS_CHILD_WINDOW_AUTO_FITY = 1 << 22,
+        const WINDOWFLAGS_COMBOBOX = 1 << 23,
+        const WINDOWFLAGS_TOOLTIP = 1 << 24,
+        const WINDOWFLAGS_POPUP = 1 << 25,
+        const WINDOWFLAGS_MODAL = 1 << 26,
+        const WINDOWFLAGS_CHIL_DMENU = 1 << 27,
+    }
+);
+
 
 impl Imgui {
     fn new() -> Imgui {
@@ -314,11 +349,19 @@ impl Imgui {
     pub fn resize(width: u16, height: u16) {
         unsafe { imgui_update_size(width, height); }
     }
+
+    pub fn begin_window_flags(name: &str, show: bool, flags: WindowFlags) -> bool {
+        unsafe {
+            let t = CFixedString::from_str(name).as_ptr();
+            imgui_begin_with_flags(t, show as c_uchar, flags.bits()) == 1
+        }
+    }
 }
 
 extern "C" {
     fn imgui_begin(name: *const c_char, show: c_uchar) -> c_int;
     fn imgui_begin_float(name: *const c_char, show: c_uchar) -> c_int;
+    fn imgui_begin_with_flags(name: *const c_char, show: c_uchar, flags: u32) -> c_int;
     fn imgui_end();
     fn imgui_begin_child(name: *const c_char, h: f32);
     fn imgui_end_child();

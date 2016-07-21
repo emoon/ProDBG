@@ -170,7 +170,7 @@ static void push_style_color(PDUICol idx, PDColor col) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void pop_style_color(int count) {
-    ImGui::PopStyleVar(count);
+    ImGui::PopStyleColor(count);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1630,21 +1630,27 @@ static void fill_circle(PDVec2 pos, float radius, PDColor color, int num_seg, in
     ImGui::CircleFilled(ImVec2(pos.x, pos.y), radius, color, num_seg, !!aa);
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C" int imgui_begin(const char* name, int show) {
+extern "C" int imgui_begin_with_flags(const char* name, int show, int flags) {
     bool s = !!show;
-    ImGui::Begin(name, &s, ImVec2(0, 0), true, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::Begin(name, &s, ImVec2(0, 0), true, flags);
     return s ? 1 : 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C" int imgui_begin_float(const char* name, int show) {
-	bool s = !!show;
-    ImGui::Begin(name, &s, ImVec2(500.0, 500.0), 0.8f, ImGuiWindowFlags_NoCollapse);
-    return s;
+extern "C" int imgui_begin(const char* name, int show) {
+	return imgui_begin_with_flags(name, show, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" int imgui_begin_float(const char* name, int show) {
+	return imgui_begin_with_flags(name, show, ImGuiWindowFlags_NoCollapse);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void imgui_begin_child(const char* name, float h) {
