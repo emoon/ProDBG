@@ -1,9 +1,6 @@
 {
-  "config": [
-    { "file": "rust.json" },
-    { "file": "cpp.json" }
-    ],
-   
+  "config": [ "rust.json", "cpp.json" ],
+  
    "bitflags": {
        "name": "PDUIWindowFlags_",
        "type": "unsigned int",
