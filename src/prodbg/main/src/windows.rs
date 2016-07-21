@@ -20,6 +20,7 @@ use prodbg_api::view::CViewCallbacks;
 use std::os::raw::{c_void};
 use std::collections::VecDeque;
 use std::io::{Read, Write};
+use statusbar::Statusbar;
 //use std::mem::transmute;
 
 const WIDTH: i32 = 1280;
@@ -67,6 +68,8 @@ pub struct Window {
 
     pub overlay: Option<(DockHandle, Rect)>,
     pub context_menu_data: Option<(DockHandle, (f32, f32))>,
+
+    pub statusbar: Statusbar,
 }
 
 struct WindowState {
@@ -146,6 +149,7 @@ impl Windows {
             cur_state_index: 0usize,
             overlay: None,
             context_menu_data: None,
+            statusbar: Statusbar::new(),
         });
     }
 
@@ -530,7 +534,8 @@ impl Window {
         let mut views_to_delete = Vec::new();
         let mut has_shown_menu = 0u32;
 
-        let win_size = self.win.get_size();
+        let mut win_size = self.win.get_size();
+        win_size.1 -= self.statusbar.get_size() as usize;
 
         let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
 
@@ -560,6 +565,8 @@ impl Window {
                 }
             }
         }
+
+        self.statusbar.update(self.win.get_size());
 
         self.update_menus(sessions, backend_plugins);
 

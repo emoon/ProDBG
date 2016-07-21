@@ -5,4 +5,5 @@ authors = ["Daniel Collin <daniel@collin.com>"]
 
 [dependencies]
 prodbg_api = { path = "../../../api/rust/prodbg" }
+bitflags = "0.7"
 

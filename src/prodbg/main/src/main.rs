@@ -8,6 +8,7 @@ extern crate renderer;
 
 pub mod windows;
 pub mod menu;
+pub mod statusbar;
 
 //use renderer::Renderer;
 use core::session::Sessions;
