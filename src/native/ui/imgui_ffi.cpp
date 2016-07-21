@@ -1670,7 +1670,7 @@ extern "C" void* image_create_rgba(int width, int height) {
 			(uint16_t)width,
 			(uint16_t)height,
 			1,
-			bgfx::TextureFormat::BGRA8,
+			bgfx::TextureFormat::RGBA8,
 			BGFX_TEXTURE_NONE,
 			0);
 
