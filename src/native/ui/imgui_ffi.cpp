@@ -11,9 +11,9 @@
 
 struct ImageData {
     bgfx::TextureHandle tex;
-	uint16_t width;
-	uint16_t height;
-	int size;
+    uint16_t width;
+    uint16_t height;
+    unsigned int size;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ static void scDraw(void* privData) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void set_title(void* private_data, const char* title) {
-	/*
+    /*
     PrivateData* data = (PrivateData*)private_data;
 
     (void)data;
@@ -183,7 +183,7 @@ static void pop_style_var(int count) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static float get_font_size() {
-	return ImGui::GetFontSize();
+    return ImGui::GetFontSize();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -589,12 +589,12 @@ static int invisible_button(const char* strId, const PDVec2 size) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void image(void* image_data, const PDVec2 size, const PDVec2 uv0, const PDVec2 uv1, const PDColor tintColor, const PDColor borderColor) {
-	ImageData* data = (ImageData*)image_data;
-	union { void* ptr; bgfx::TextureHandle handle; } texture;
-	texture.handle = data->tex;
+    ImageData* data = (ImageData*)image_data;
+    union { void* ptr; bgfx::TextureHandle handle; } texture;
+    texture.handle = data->tex;
 
     ImGui::Image((ImTextureID)texture.ptr, ImVec2(size.x, size.y), ImVec2(uv0.x, uv0.y), ImVec2(uv1.x, uv1.y),
-    			 pdColorToImVec4(tintColor), pdColorToImVec4(borderColor));
+                 pdColorToImVec4(tintColor), pdColorToImVec4(borderColor));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1064,10 +1064,10 @@ static int selectable(const char* label, int selected, PDUISelectableFlags flags
 extern "C" bool imgui_tab(const char* label, bool selected, bool last) {
     bool res = ImGui::Selectable(label, selected, 0, ImGui::CalcTextSize(label));
     if (!last) {
-    	ImGui::SameLine(); ImGui::Text("|"); ImGui::SameLine();
+        ImGui::SameLine(); ImGui::Text("|"); ImGui::SameLine();
     }
     else {
-    	//ImGui::Separator();
+        //ImGui::Separator();
     }
     return res;
 }
@@ -1246,30 +1246,30 @@ static void close_current_popup() {
 
 /*
 static int begin_popup_context(void* priv_data) {
-	PrivateData* data = (PrivateData*)priv_data;
+    PrivateData* data = (PrivateData*)priv_data;
 
-	if (data->show_popup) {
-		ImGui::OpenPopup("_select");
-		data->showed_popup = true;
-	}
+    if (data->show_popup) {
+        ImGui::OpenPopup("_select");
+        data->showed_popup = true;
+    }
 
-	bool showed_menu = ImGui::BeginPopup("_select");
+    bool showed_menu = ImGui::BeginPopup("_select");
 
-	if (showed_menu)
-	{
-		ImGui::Text("Inside");
-		ImGui::MenuItem("Click me");
-	}
+    if (showed_menu)
+    {
+        ImGui::Text("Inside");
+        ImGui::MenuItem("Click me");
+    }
 
-	return showed_menu ? 1 : 0;
+    return showed_menu ? 1 : 0;
 }
 */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void end_popup_context(void* priv_data) {
-	(void)priv_data;
-	ImGui::EndPopup();
+    (void)priv_data;
+    ImGui::EndPopup();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1610,12 +1610,12 @@ static void fill_rect(PDRect rect, PDColor color) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void fill_convex_ploy(void* vertices, int count, PDColor color, int anti_aliased) {
+static void fill_convex_ploy(void* vertices, unsigned int count, PDColor color, int anti_aliased) {
     ImGui::ConvexPolyFilled(vertices, count, color, !!anti_aliased);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void fill_circle(PDVec2 pos, float radius, PDColor color, int num_seg, int aa) {
+static void fill_circle(PDVec2 pos, float radius, PDColor color, unsigned int num_seg, int aa) {
     ImGui::CircleFilled(ImVec2(pos.x, pos.y), radius, color, num_seg, !!aa);
 }
 
@@ -1630,43 +1630,43 @@ extern "C" int imgui_begin(const char* name, int show) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" int imgui_begin_float(const char* name, int show) {
-	bool s = !!show;
+    bool s = !!show;
     ImGui::Begin(name, &s, ImVec2(500.0, 500.0), 0.8f, ImGuiWindowFlags_NoCollapse);
     return s;
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void imgui_begin_child(const char* name, float h) {
-	ImGui::BeginChild(name, ImVec2(0, h), false, 0);
+    ImGui::BeginChild(name, ImVec2(0, h), false, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void imgui_end_child() {
-	ImGui::EndChild();
+    ImGui::EndChild();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C" void* image_create_rgba(int width, int height) {
-	bgfx::TextureHandle tex = bgfx::createTexture2D(
-			(uint16_t)width,
-			(uint16_t)height,
-			1,
-			bgfx::TextureFormat::BGRA8,
-			BGFX_TEXTURE_NONE,
-			0);
+extern "C" void* image_create_rgba(unsigned int width, unsigned int height) {
+    bgfx::TextureHandle tex = bgfx::createTexture2D(
+            (uint16_t)width,
+            (uint16_t)height,
+            1,
+            bgfx::TextureFormat::BGRA8,
+            BGFX_TEXTURE_NONE,
+            0);
 
-	if (!isValid(tex)) {
-		return 0;
-	}
+    if (!isValid(tex)) {
+        return 0;
+    }
 
-	ImageData* data = (ImageData*)malloc(sizeof(ImageData));
+    ImageData* data = (ImageData*)malloc(sizeof(ImageData));
 
-	data->tex = tex;
-	data->size = width * height * 4;
-	data->width = (uint16_t)width;
-	data->height = (uint16_t)height;
+    data->tex = tex;
+    data->size = width * height * 4;
+    data->width = (uint16_t)width;
+    data->height = (uint16_t)height;
 
     const bgfx::Memory* mem = bgfx::alloc((uint32_t)data->size);
     memset(mem->data, 0, data->size);
@@ -1680,15 +1680,15 @@ extern "C" void* image_create_rgba(int width, int height) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C" void image_update(void* imageData, const void* src, int size) {
-	ImageData* data = (ImageData*)imageData;
+extern "C" void image_update(void* imageData, const void* src, unsigned int size) {
+    ImageData* data = (ImageData*)imageData;
 
-	// clamp size if it's being incorrect
-	if (size > data->size)
-		size = data->size;
+    // clamp size if it's being incorrect
+    if (size > data->size)
+        size = data->size;
 
     const bgfx::Memory* mem = bgfx::alloc((uint32_t)data->size);
-	memcpy(mem->data, src, size);
+    memcpy(mem->data, src, size);
 
     bgfx::updateTexture2D(data->tex, 0, 0, 0, data->width, data->height, mem);
 }
@@ -1703,7 +1703,7 @@ extern "C" void imgui_end() {
 
 static PDUI s_uiFuncs[] =
 {
-	0,
+    0,
 
     // Windows
 
@@ -1908,8 +1908,8 @@ static PDUI s_uiFuncs[] =
     end_popup,
     close_current_popup,
     // Set by Rust
-	0, // begin_popup_context,
-	end_popup_context,
+    0, // begin_popup_context,
+    end_popup_context,
 
     // Widgets: value() Helpers. Output single value in "name: value" format
     value_bool,
@@ -1976,33 +1976,33 @@ static PDUI s_uiFuncs[] =
     // Rendering
 
     fill_rect,
-	fill_convex_ploy,
-	fill_circle,
+    fill_convex_ploy,
+    fill_circle,
 
-	// Image
+    // Image
 
- 	// Image support
+     // Image support
 
-	image_create_rgba,
-	image_update,
+    image_create_rgba,
+    image_update,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void* imgui_create_ui_funcs() {
-	PDUI* ui = (PDUI*)malloc(sizeof(PDUI));
-	*ui = *s_uiFuncs;
+    PDUI* ui = (PDUI*)malloc(sizeof(PDUI));
+    *ui = *s_uiFuncs;
 
-	// set by the Rust code
-	ui->private_data = 0;
+    // set by the Rust code
+    ui->private_data = 0;
 
-	return ui;
+    return ui;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void* imgui_get_ui_funcs() {
-	return s_uiFuncs;
+    return s_uiFuncs;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2020,5 +2020,5 @@ extern "C" void imgui_set_window_size(float w, float h) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void imgui_render_frame(float x, float y, float width, float height, int fill_col) {
-	ImGui::RenderFrame(ImVec2(x, y), ImVec2(x + width,y + height), fill_col, false, 0.0f);
+    ImGui::RenderFrame(ImVec2(x, y), ImVec2(x + width,y + height), fill_col, false, 0.0f);
 }

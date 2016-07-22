@@ -4,13 +4,12 @@
       { "name": "mut_int", "value": "int" },
       { "name": "mut_float", "value": "float" },
       { "name": "extern_c", "value": ""},
-      { "type": "int32", "value": "int" },
-      { "type": "uint32", "value": "PDColor" },
+      { "type": "uint", "value": "unsigned int"},
+      { "type": "uint*", "value": "unsigned int*"},
+      { "type": "ushort", "value": "uint16_t" },
       { "type": "const *uint8", "value": "const char*" },
-      { "type": "float32", "value": "float" },
       { "type": "no_ret", "value": "void" },
       { "type": "ignored_voidptr", "value": "void*" },
-      { "type": "const_voidptr", "value": "void*" },
-      { "type": "const uchar*", "value": "const char*" }
+      { "type": "const_voidptr", "value": "void*" }
     ]
 }

@@ -2,19 +2,19 @@
   "config": [ "rust.json", "cpp.json" ],
   
    "bitflags": {
-       "unsigned int": "PDUIWindowFlags_",
+       "uint": "PDUIWindowFlags_",
        "var": [
-         { "unsigned int": "PDUIWindowFlags_NoTitleBar", "value": "1" },
-         { "unsigned int": "PDUIWindowFlags_NoResize", "value": "2" },
-         { "unsigned int": "PDUIWindowFlags_NoMove", "value": "4" },
-         { "unsigned int": "PDUIWindowFlags_NoScrollbar", "value": "8" },
-         { "unsigned int": "PDUIWindowFlags_NoScrollWithMouse", "value": "16" },
-         { "unsigned int": "PDUIWindowFlags_NoCollapse","value": "32" },
-         { "unsigned int": "PDUIWindowFlags_AlwaysAutoResize", "value": "64" },
-         { "unsigned int": "PDUIWindowFlags_ShowBorders", "value": "128" },
-         { "unsigned int": "PDUIWindowFlags_NoSavedSettings ", "value": "256" },
-         { "unsigned int": "PDUIWindowFlags_NoInputs ", "value": "512" },
-         { "unsigned int": "PDUIWindowFlags_MenuBar", "value": "1024" }
+         { "uint": "PDUIWindowFlags_NoTitleBar", "value": "1" },
+         { "uint": "PDUIWindowFlags_NoResize", "value": "2" },
+         { "uint": "PDUIWindowFlags_NoMove", "value": "4" },
+         { "uint": "PDUIWindowFlags_NoScrollbar", "value": "8" },
+         { "uint": "PDUIWindowFlags_NoScrollWithMouse", "value": "16" },
+         { "uint": "PDUIWindowFlags_NoCollapse","value": "32" },
+         { "uint": "PDUIWindowFlags_AlwaysAutoResize", "value": "64" },
+         { "uint": "PDUIWindowFlags_ShowBorders", "value": "128" },
+         { "uint": "PDUIWindowFlags_NoSavedSettings ", "value": "256" },
+         { "uint": "PDUIWindowFlags_NoInputs ", "value": "512" },
+         { "uint": "PDUIWindowFlags_MenuBar", "value": "1024" }
        ]
    },
    
@@ -40,8 +40,8 @@
        "var": [{ "PDUIInputTextFlags": "event_flag" },
                { "PDUIInputTextFlags": "flags" },
                { "void*": "user_data" },
-               { "uint16_t": "event_char" },
-               { "uint16_t": "event_key" },
+               { "ushort": "event_char" },
+               { "ushort": "event_key" },
                { "char*": "buf" },
                { "size_t": "buf_size" },
                { "bool": "buf_dirty" },
@@ -95,7 +95,7 @@
       { "no_ret": "push_style_var", "var": [{ "PDUIStyleVar": "idx" }, { "float": "val" }] },
       { "no_ret": "push_style_var_vec", "var": [{ "PDUIStyleVar": "idx" }, { "PDVec2": "val" }] },
       { "no_ret": "pop_style_var", "var": { "int": "count" } },
-      { "float32": "get_font_size" },
+      { "float": "get_font_size" },
       { "no_ret": "push_item_width", "var": { "float": "item_width" } },
       { "void": "pop_item_width", "qualifier": "mut_ext" },
       { "float": "calc_item_width", "qualifier": "mut_ext" },
@@ -155,7 +155,7 @@
       { "no_ret": "bullet_text", "var": [{ "const char*": "fmt" }, { "type": "..." }] },
       { "no_ret": "bullet_text_v", "var": [{ "const char*": "fmt" }, { "va_list": "args" }] },
       { "int": "button", "var": [{ "const char*": "label" }, { "const PDVec2": "size" }] },
-      { "int": "small_button", "var": { "const uchar*": "label" } },
+      { "int": "small_button", "var": { "const char*": "label" } },
       { "int": "invisible_button", "var": [{ "const char*": "strId" }, { "const PDVec2": "size" }] },
       {
         "no_ret": "image",
@@ -190,7 +190,7 @@
         ]
       },
       { "int": "checkbox", "var": [{ "const char*": "label" }, { "int*": "v" }] },
-      { "int": "checkbox_flags", "var": [{ "const char*": "label" }, { "unsigned int*": "flags" }, { "unsigned int": "flagsValue" }] },
+      { "int": "checkbox_flags", "var": [{ "const char*": "label" }, { "uint*": "flags" }, { "uint": "flagsValue" }] },
       { "int": "radio_button_bool", "var": [{ "const char*": "label" }, { "int": "active" }] },
       { "int": "radio_button", "var": [{ "const char*": "label" }, { "int*": "v" }, { "int": "v_button" }] },
       {
@@ -697,7 +697,7 @@
       { "no_ret": "end_popup_context", "var": { "void*": "priv_data" } },
       { "no_ret": "value_bool", "var": [{ "const char*": "prefix" }, { "int": "b" }] },
       { "no_ret": "value_int", "var": [{ "const char*": "prefix" }, { "int": "v" }] },
-      { "no_ret": "value_u_int", "var": [{ "const char*": "prefix" }, { "unsigned int": "v" }] },
+      { "no_ret": "value_u_int", "var": [{ "const char*": "prefix" }, { "uint": "v" }] },
       { "no_ret": "value_float", "var": [{ "const char*": "prefix" }, { "float": "v" }, { "const char*": "float_format" }] },
       { "no_ret": "color", "var": [{ "const char*": "prefix" }, { "const PDColor": "col" }] },
       { "no_ret": "log_to_tty", "var": { "int": "maxDepth" } },
@@ -769,7 +769,7 @@
       { "int": "is_key_down", "var": { "int": "key_index" } },
       { "int": "is_key_pressed", "var": [{ "int": "key_index" }, { "int": "repeat" }] },
       { "int": "is_key_released", "var": { "int": "key_index" } },
-      { "int": "is_key_down_id", "var": [{ "uint32_t": "keyId" }, { "int": "repeat" }] },
+      { "int": "is_key_down_id", "var": [{ "uint": "keyId" }, { "int": "repeat" }] },
       { "int": "is_mouse_down", "var": { "int": "button" } },
       { "int": "is_mouse_clicked", "var": [{ "int": "button" }, { "int": "repeat" }] },
       { "int": "is_mouse_double_clicked", "var": { "int": "button" } },
@@ -782,14 +782,14 @@
       { "PDVec2": "get_mouse_drag_delta", "var": [{ "int": "button" }, { "float": "lockThreshold" }] },
       { "no_ret": "reset_mouse_drag_delta", "var": { "int": "button" } },
       { "PDUIMouseCursor": "get_mouse_cursor", "qualifier": "mut_ext" },
-      { "no_ret": "set_mouse_cursor", "var": { "PDUIMouseCursor": "type" } },
-      { "no_ret": "fill_rect", "var": [{ "PDRect": "rect" }, { "unsigned int": "color" }] },
+      { "no_ret": "set_mouse_cursor", "var": { "PDUIMouseCursor": "ctype" } },
+      { "no_ret": "fill_rect", "var": [{ "PDRect": "rect" }, { "uint": "color" }] },
       {
         "no_ret": "fill_convex_poly",
         "var": [
           { "const_voidptr": "verts" },
-          { "int32": "count" },
-          { "uint32": "color" },
+          { "uint": "count" },
+          { "PDColor": "color" },
           { "int": "aa" }
         ]
       },
@@ -797,14 +797,14 @@
         "no_ret": "fill_circle",
         "var": [
           { "PDVec2": "pos" },
-          { "float32": "radius" },
-          { "uint32": "color" },
-          { "int32": "num_seg" },
+          { "float": "radius" },
+          { "PDColor": "color" },
+          { "uint": "num_seg" },
           { "int": "aa" }
         ]
       },
-      { "void*": "image_create_rgba", "var": [{ "int32": "width" }, { "int32": "height" }] },
-      { "void": "image_update", "var": [{ "void*": "dest" }, { "const void*": "src" }, { "int32": "size"}] }
+      { "void*": "image_create_rgba", "var": [{ "uint": "width" }, { "uint": "height" }] },
+      { "void": "image_update", "var": [{ "void*": "dest" }, { "const void*": "src" }, { "uint": "size"}] }
     ]
   } ]
 }
