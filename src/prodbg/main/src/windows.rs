@@ -271,93 +271,93 @@ impl Window {
                    show_context_menu: bool,
                    mouse: (f32, f32),
                    overlay: &Option<(DockHandle, Rect)>)
-                   -> WindowState {
-        let ui = &instance.ui;
+        -> WindowState {
+            let ui = &instance.ui;
 
-        if let Some(ref root) = ws.root_area {
-            if let Some(ref container) =
-                   root.get_container_by_dock_handle(DockHandle(instance.handle.0)) {
-                if container.docks[container.active_dock].handle.0 != instance.handle.0 {
-                    return WindowState {
-                        showed_popup: 0,
-                        should_close: false,
-                    };
-                }
-            }
-        }
-
-        if let Some(rect) = ws.get_rect_by_handle(DockHandle(instance.handle.0)) {
-            Imgui::set_window_pos(rect.x, rect.y);
-            Imgui::set_window_size(rect.width, rect.height);
-        }
-
-        let open = Imgui::begin_window(&instance.name, true);
-
-        let mut has_tabs = false;
-        if let Some(ref mut root) = ws.root_area {
-            if let Some(ref mut container) =
-                   root.get_container_by_dock_handle_mut(DockHandle(instance.handle.0)) {
-                let tabs: Vec<String> =
-                    container.docks.iter().map(|dock| dock.plugin_name.clone()).collect();
-                if tabs.len() > 1 {
-                    has_tabs = true;
-                    Imgui::begin_window_child("tabs", 20.0);
-                    let mut borders = Vec::with_capacity(tabs.len());
-                    for (i, t) in tabs.iter().enumerate() {
-                        if Imgui::tab(t, i == container.active_dock, i == tabs.len() - 1) {
-                            container.active_dock = i;
+            if let Some(ref root) = ws.root_area {
+                if let Some(ref container) =
+                    root.get_container_by_dock_handle(DockHandle(instance.handle.0)) {
+                        if container.docks[container.active_dock].handle.0 != instance.handle.0 {
+                            return WindowState {
+                                showed_popup: 0,
+                                should_close: false,
+                            };
                         }
-                        borders.push(Imgui::tab_pos());
                     }
-                    container.update_tab_borders(&borders);
-                    Imgui::end_window_child();
-                    Imgui::separator();
-                    Imgui::begin_window_child("body", 0.0);
+            }
+
+            if let Some(rect) = ws.get_rect_by_handle(DockHandle(instance.handle.0)) {
+                Imgui::set_window_pos(rect.x, rect.y);
+                Imgui::set_window_size(rect.width, rect.height);
+            }
+
+            let open = Imgui::begin_window(&instance.name, true);
+
+            let mut has_tabs = false;
+            if let Some(ref mut root) = ws.root_area {
+                if let Some(ref mut container) =
+                    root.get_container_by_dock_handle_mut(DockHandle(instance.handle.0)) {
+                        let tabs: Vec<String> =
+                            container.docks.iter().map(|dock| dock.plugin_name.clone()).collect();
+                        if tabs.len() > 1 {
+                            has_tabs = true;
+                            Imgui::begin_window_child("tabs", 20.0);
+                            let mut borders = Vec::with_capacity(tabs.len());
+                            for (i, t) in tabs.iter().enumerate() {
+                                if Imgui::tab(t, i == container.active_dock, i == tabs.len() - 1) {
+                                    container.active_dock = i;
+                                }
+                                borders.push(Imgui::tab_pos());
+                            }
+                            container.update_tab_borders(&borders);
+                            Imgui::end_window_child();
+                            Imgui::separator();
+                            Imgui::begin_window_child("body", 0.0);
+                        }
+                    }
+            }
+
+            Imgui::init_state(ui.api);
+
+            let pos = ui.get_window_pos();
+            let size = ui.get_window_size();
+
+            if Self::is_inside(mouse, pos, size) && show_context_menu {
+                Imgui::mark_show_popup(ui.api, true);
+            } else {
+                Imgui::mark_show_popup(ui.api, false);
+            }
+
+            // Draw drag zone
+            if let &Some((handle, rect)) = overlay {
+                if handle.0 == instance.handle.0 {
+                    Imgui::render_frame(rect.x, rect.y, rect.width, rect.height, OVERLAY_COLOR);
                 }
             }
-        }
 
-        Imgui::init_state(ui.api);
+            // Make sure we move the cursor to the start of the stream here
+            ReaderWrapper::reset_reader(&mut session.reader);
 
-        let pos = ui.get_window_pos();
-        let size = ui.get_window_size();
+            unsafe {
+                let plugin_funcs = instance.plugin_type.plugin_funcs as *mut CViewCallbacks;
+                ((*plugin_funcs).update.unwrap())(instance.plugin_data,
+                                                  ui.api as *mut c_void,
+                                                  session.reader.api as *mut c_void,
+                                                  session.get_current_writer().api as *mut c_void);
+            }
 
-        if Self::is_inside(mouse, pos, size) && show_context_menu {
-            Imgui::mark_show_popup(ui.api, true);
-        } else {
-            Imgui::mark_show_popup(ui.api, false);
-        }
+            let has_shown_menu = Imgui::has_showed_popup(ui.api);
 
-        // Draw drag zone
-        if let &Some((handle, rect)) = overlay {
-            if handle.0 == instance.handle.0 {
-                Imgui::render_frame(rect.x, rect.y, rect.width, rect.height, OVERLAY_COLOR);
+            if has_tabs {
+                Imgui::end_window_child();
+            }
+            Imgui::end_window();
+
+            WindowState {
+                showed_popup: has_shown_menu,
+                should_close: !open,
             }
         }
-
-        // Make sure we move the cursor to the start of the stream here
-        ReaderWrapper::reset_reader(&mut session.reader);
-
-        unsafe {
-            let plugin_funcs = instance.plugin_type.plugin_funcs as *mut CViewCallbacks;
-            ((*plugin_funcs).update.unwrap())(instance.plugin_data,
-                                              ui.api as *mut c_void,
-                                              session.reader.api as *mut c_void,
-                                              session.get_current_writer().api as *mut c_void);
-        }
-
-        let has_shown_menu = Imgui::has_showed_popup(ui.api);
-
-        if has_tabs {
-            Imgui::end_window_child();
-        }
-        Imgui::end_window();
-
-        WindowState {
-            showed_popup: has_shown_menu,
-            should_close: !open,
-        }
-    }
 
     pub fn remove_views(&mut self, view_plugins: &mut ViewPlugins, views: &Vec<ViewHandle>) {
         for view in views {
@@ -506,37 +506,41 @@ impl Window {
     }
 
     fn has_source_code_view(&self) -> bool {
-    	// TODO: Use setting for this name
-    	for dock in self.ws.get_docks() {
-    		if dock.plugin_name == "Source Code View" {
-    			return true;
-    		}
-    	}
+        // TODO: Use setting for this name
+        for dock in self.ws.get_docks() {
+            if dock.plugin_name == "Source Code View" {
+                return true;
+            }
+        }
 
-    	false
+        false
     }
 
-    fn open_source_file(&mut self, filename: &str, session: &mut Session) {
-    	// this
-    	// check if we already have a source view open and just post the message.
-    	if !self.has_source_code_view() {
-    		// This is somewhat hacky to set a "correct" split view for
+    fn open_source_file(&mut self, filename: &str, 
+                        view_plugins: &mut ViewPlugins,
+                        session: &mut Session) {
+        // check if we already have a source view open and just post the message.
+        if !self.has_source_code_view() {
+            let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
+            // This is somewhat hacky to set a "correct" split view for
+            self.context_menu_data = self.ws.get_dock_handle_at_pos(mouse)
+                                         .map(|handle| (handle, mouse));
+            self.split_view(&"Source Code View".to_owned(), view_plugins, Direction::Vertical);
+        }
 
-    	}
-
-    	let writer = session.get_current_writer();
-    	writer.event_begin(events::EVENT_SET_SOURCE_CODE_FILE as u16);
-    	writer.write_string("filename", filename);
-		writer.event_end();
+        let writer = session.get_current_writer();
+        writer.event_begin(events::EVENT_SET_SOURCE_CODE_FILE as u16);
+        writer.write_string("filename", filename);
+        writer.event_end();
     }
 
     fn browse_source_file(&mut self,
-    					 _view_plugins: &mut ViewPlugins,
-    					 session: &mut Session) {
+                          view_plugins: &mut ViewPlugins,
+                          session: &mut Session) {
         match nfd::dialog().open() {
             Ok(NfdResponse::Cancel) => return,
             Err(e) => println!("Failed to open file dialog {:?}", e),
-            Ok(NfdResponse::Okay(file)) => self.open_source_file(&file, session),
+            Ok(NfdResponse::Okay(file)) => self.open_source_file(&file, view_plugins, session),
             _ => (),
         }
     }
@@ -548,30 +552,30 @@ impl Window {
         let current_session = sessions.get_current();
 
         let menu_id = match Self::is_menu_pressed(&mut self.win) {
-        	Some(id) => id,
-        	None => return,
+            Some(id) => id,
+            None => return,
         };
 
-		match menu_id {
-			MENU_DEBUG_STEP_IN => current_session.action_step(),
-			MENU_DEBUG_STEP_OVER => current_session.action_step_over(),
-			MENU_DEBUG_START => current_session.action_run(),
-			MENU_FILE_OPEN_SOURCE => self.browse_source_file(view_plugins, current_session),
-			MENU_FILE_START_NEW_BACKEND => {
-				if let Some(backend) =
-						backend_plugins.create_instance(&"Amiga UAE Debugger".to_owned()) {
-					current_session.set_backend(Some(backend));
+        match menu_id {
+            MENU_DEBUG_STEP_IN => current_session.action_step(),
+            MENU_DEBUG_STEP_OVER => current_session.action_step_over(),
+            MENU_DEBUG_START => current_session.action_run(),
+            MENU_FILE_OPEN_SOURCE => self.browse_source_file(view_plugins, current_session),
+            MENU_FILE_START_NEW_BACKEND => {
+                if let Some(backend) =
+                    backend_plugins.create_instance(&"Amiga UAE Debugger".to_owned()) {
+                        current_session.set_backend(Some(backend));
 
-					if let Some(menu) = backend_plugins.get_menu(backend, self.menu_id_offset) {
-						self.win.add_menu(&(*menu));
-						self.menu_id_offset += 1000;
-					}
-				}
-			}
-			_ => {
-				current_session.send_menu_id(menu_id as u32, backend_plugins);
-			}
-		}
+                        if let Some(menu) = backend_plugins.get_menu(backend, self.menu_id_offset) {
+                            self.win.add_menu(&(*menu));
+                            self.menu_id_offset += 1000;
+                        }
+                    }
+            }
+            _ => {
+                current_session.send_menu_id(menu_id as u32, backend_plugins);
+            }
+        }
     }
 
     pub fn pre_update(&mut self) {
@@ -689,10 +693,10 @@ impl Window {
             if !self.views.iter().find(|view| view.0 == dock.handle.0).is_some() {
                 let ui = Imgui::create_ui_instance();
                 if let Some(handle) = view_plugins.create_instance_with_handle(ui,
-                                                 &dock.plugin_name,
-                                                 &dock.plugin_data,
-                                                 SessionHandle(0),
-                                                 ViewHandle(dock.handle.0)) {
+                                                                               &dock.plugin_name,
+                                                                               &dock.plugin_data,
+                                                                               SessionHandle(0),
+                                                                               ViewHandle(dock.handle.0)) {
                     new_view_handles.push(handle);
                 } else {
                     panic!("Could not restore view");
@@ -746,9 +750,9 @@ impl Window {
                             1
                         };
                     })
-                    .unwrap_or(1);
+                .unwrap_or(1);
                 self.ws.create_dock_at(ItemTarget::SplitDock(dock_handle, direction, position),
-                                       new_dock);
+                new_dock);
             } else {
                 self.ws.initialize(new_dock);
             }
@@ -769,10 +773,10 @@ impl Window {
             if let Some((src_dock_handle, _)) = self.context_menu_data {
                 if let Some(ref mut root) = self.ws.root_area {
                     if let Some(ref mut container) =
-                           root.get_container_by_dock_handle_mut(src_dock_handle) {
-                        container.append_dock(dock);
-                        should_save_ws = true;
-                    }
+                        root.get_container_by_dock_handle_mut(src_dock_handle) {
+                            container.append_dock(dock);
+                            should_save_ws = true;
+                        }
                 }
             }
             if should_save_ws {
@@ -807,10 +811,10 @@ impl Window {
                     if let Some((dock_handle, _)) = self.context_menu_data {
                         view_plugins.destroy_instance(ViewHandle(dock_handle.0));
                         view_plugins.create_instance_with_handle(Imgui::create_ui_instance(),
-                                                                 &name,
-                                                                 &None,
-                                                                 SessionHandle(0),
-                                                                 ViewHandle(dock_handle.0));
+                        &name,
+                        &None,
+                        SessionHandle(0),
+                        ViewHandle(dock_handle.0));
                     }
                 }
             }
@@ -874,60 +878,60 @@ impl Window {
     pub fn save_layout(&mut self,
                        filename: &str,
                        _view_plugins: &mut ViewPlugins)
-                       -> io::Result<()> {
-        let mut file = try!(File::create(filename));
-        let state = self.ws.save_state();
-        println!("writing state to disk");
-        file.write_all(state.as_str().as_bytes())
-        // for split in &mut self.ws.splits {
-        // let iter = split.left_docks.docks.iter_mut().chain(split.right_docks.docks.iter_mut());
-        //
-        // for dock in iter {
-        // if let Some(ref plugin) = view_plugins.get_view(ViewHandle(dock.handle.0)) {
-        // let (plugin_name, data) = plugin.get_plugin_data();
-        // dock.plugin_name = plugin_name;
-        // dock.plugin_data = data;
-        // } else {
-        // println!("Unable to find plugin for {:?} - this should never happen", dock);
-        // }
-        // }
-        // }
-        //
-        // let _ = self.ws.save(filename);
-        //
-    }
+        -> io::Result<()> {
+            let mut file = try!(File::create(filename));
+            let state = self.ws.save_state();
+            println!("writing state to disk");
+            file.write_all(state.as_str().as_bytes())
+                // for split in &mut self.ws.splits {
+                // let iter = split.left_docks.docks.iter_mut().chain(split.right_docks.docks.iter_mut());
+                //
+                // for dock in iter {
+                // if let Some(ref plugin) = view_plugins.get_view(ViewHandle(dock.handle.0)) {
+                // let (plugin_name, data) = plugin.get_plugin_data();
+                // dock.plugin_name = plugin_name;
+                // dock.plugin_data = data;
+                // } else {
+                // println!("Unable to find plugin for {:?} - this should never happen", dock);
+                // }
+                // }
+                // }
+                //
+                // let _ = self.ws.save(filename);
+                //
+        }
 
     pub fn load_layout(&mut self,
                        filename: &str,
                        view_plugins: &mut ViewPlugins)
-                       -> io::Result<()> {
-        let mut data = "".to_owned();
+        -> io::Result<()> {
+            let mut data = "".to_owned();
 
-        let mut file = try!(File::open(filename));
-        try!(file.read_to_string(&mut data));
+            let mut file = try!(File::open(filename));
+            try!(file.read_to_string(&mut data));
 
-        self.ws = Workspace::from_state(&data);
+            self.ws = Workspace::from_state(&data);
 
-        let docks = self.ws.get_docks();
+            let docks = self.ws.get_docks();
 
-        // TODO: Move this code to seprate file and make it generic (copy'n'paste currently)
-        for dock in &docks {
-            let mut new_view_handles: Vec<ViewHandle> = Vec::new();
-            if !self.views.iter().find(|view| view.0 == dock.handle.0).is_some() {
-                let ui = Imgui::create_ui_instance();
-                if let Some(handle) = view_plugins.create_instance_with_handle(ui,
-                                                 &dock.plugin_name,
-                                                 &dock.plugin_data,
-                                                 SessionHandle(0),
-                                                 ViewHandle(dock.handle.0)) {
-                    new_view_handles.push(handle);
-                } else {
-                    panic!("Could not restore view");
+            // TODO: Move this code to seprate file and make it generic (copy'n'paste currently)
+            for dock in &docks {
+                let mut new_view_handles: Vec<ViewHandle> = Vec::new();
+                if !self.views.iter().find(|view| view.0 == dock.handle.0).is_some() {
+                    let ui = Imgui::create_ui_instance();
+                    if let Some(handle) = view_plugins.create_instance_with_handle(ui,
+                                                                                   &dock.plugin_name,
+                                                                                   &dock.plugin_data,
+                                                                                   SessionHandle(0),
+                                                                                   ViewHandle(dock.handle.0)) {
+                        new_view_handles.push(handle);
+                    } else {
+                        panic!("Could not restore view");
+                    }
                 }
+                self.views.extend(new_view_handles);
             }
-            self.views.extend(new_view_handles);
-        }
 
-        Ok(())
-    }
+            Ok(())
+        }
 }
