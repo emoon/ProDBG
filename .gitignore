@@ -8,3 +8,5 @@ temp/vice_mem_dump
 target/
 .vscode/
 src/crates/settings/Cargo.lock
+src/prodbg/renderer/Cargo.lock
+src/prodbg/imgui_sys/Cargo.lock
