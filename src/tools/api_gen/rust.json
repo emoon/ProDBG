@@ -60,13 +60,6 @@
       { "name": "v[3]", "value": "v3" },
       { "name": "v[4]", "value": "v4" },
       { "name": "type", "value": "t" },
-      { "name": "push_style_varVec", "value": "push_style_var_vec" },
-      { "name": "begin_menuBar", "value": "begin_menu_bar" },
-      { "name": "begin_childFrame", "value": "begin_child_frame" },
-      { "name": "menu_itemPtr", "value": "menu_item_ptr" },
-      { "name": "begin_popupContext_void", "value": "begin_popup_context_void" },
-      { "name": "image_create_rgba", "value": "image_crate_rgba" },
-      { "name": "radio_buttonBool", "value": "radio_button_int" },
       { "name": "extern_c", "value": "Option<extern \"C\" "}
     ]
 }

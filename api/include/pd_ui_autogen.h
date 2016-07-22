@@ -72,7 +72,7 @@ struct PDUI {
     void (*push_style_color)(PDUICol idx, PDColor col);
     void (*pop_style_color)(int count);
     void (*push_style_var)(PDUIStyleVar idx, float val);
-    void (*push_style_varVec)(PDUIStyleVar idx, PDVec2 val);
+    void (*push_style_var_vec)(PDUIStyleVar idx, PDVec2 val);
     void (*pop_style_var)(int count);
     float (*get_font_size)();
     void (*push_item_width)(float item_width);
@@ -141,7 +141,7 @@ struct PDUI {
     int (*collapsing_header)(const char* label, const char* strId, int displayFrame, int defaultOpen);
     int (*checkbox)(const char* label, int* v);
     int (*checkbox_flags)(const char* label, unsigned int* flags, unsigned int flagsValue);
-    int (*radio_buttonBool)(const char* label, int active);
+    int (*radio_button_bool)(const char* label, int active);
     int (*radio_button)(const char* label, int* v, int v_button);
     int (*combo)(const char* label, int* currentItem, const char** items, int itemsCount, int heightInItems);
     int (*combo2)(const char* label, int* currentItem, const char* itemsSeparatedByZeros, int heightInItems);
@@ -206,18 +206,18 @@ struct PDUI {
     void (*end_tooltip)();
     int (*begin_main_menu_bar)();
     void (*end_main_menu_bar)();
-    int (*begin_menuBar)();
+    int (*begin_menu_bar)();
     void (*end_menu_bar)();
     int (*begin_menu)(const char* label, int enabled);
     void (*end_menu)();
     int (*menu_item)(const char* label, const char* shortcut, int selected, int enabled);
-    int (*menu_itemPtr)(const char* label, const char* shortcut, int* p_selected, int enabled);
+    int (*menu_item_ptr)(const char* label, const char* shortcut, int* p_selected, int enabled);
     void (*open_popup)(const char* strId);
     int (*begin_popup)(const char* strId);
     int (*begin_popup_modal)(const char* name, int* p_opened, PDUIWindowFlags extraFlags);
     int (*begin_popup_context_item)(const char* strId, int mouse_button);
     int (*begin_popup_context_window)(int also_over_items, const char* strId, int mouse_button);
-    int (*begin_popupContext_void)(const char* strId, int mouse_button);
+    int (*begin_popup_context_void)(const char* strId, int mouse_button);
     void (*end_popup)();
     void (*close_current_popup)();
     int (*begin_popup_context)(void* priv_data);
@@ -253,7 +253,7 @@ struct PDUI {
     PDVec2 (*calc_item_rect_closest_point)(const PDVec2 pos, int on_edge, float outward);
     PDVec2 (*calc_text_size)(const char* text, const char* text_end, int hide_text_after_double_hash, float wrap_width);
     void (*calc_list_clipping)(int items_count, float items_height, int* out_items_display_start, int* out_items_display_end);
-    int (*begin_childFrame)(PDID id, const struct PDVec2 size);
+    int (*begin_child_frame)(PDID id, const struct PDVec2 size);
     void (*end_child_frame)();
     void (*color_convert_rg_bto_hsv)(float r, float g, float b, float* out_h, float* out_s, float* out_v);
     void (*color_convert_hs_vto_rgb)(float h, float s, float v, float* out_r, float* out_g, float* out_b);

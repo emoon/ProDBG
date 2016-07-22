@@ -18,40 +18,37 @@
        ]
    },
    
-   "struct": [{
+   "struct": [
+   {
        "name": "PDVec2",
        "attribute": [ {"name": "C-ABI"}, {"name": "DERIVE-DBG"} ],
        "var": [{ "float":"x" }, { "float": "y" }]
-   },
-   
+   }, 
    {
        "name": "PDVec4",
        "attribute": "C-ABI",
        "var": [{ "float": "x" }, { "float": "y" }, { "float": "z" }, { "float": "w" }]
    },
-
    {
        "name": "PDRect",
        "attribute": "C-ABI",
        "var": [{ "float": "x" }, { "float": "y" }, { "float": "width" }, { "float": "height" }]
    },
-   
    {
        "name": "PDUIInputTextCallbackData",
        "attribute": "C-ABI",
-       "var": [
-         { "PDUIInputTextFlags": "event_flag" },
-         { "PDUIInputTextFlags": "flags" },
-         { "void*": "user_data" },
-         { "uint16_t": "event_char" },
-         { "uint16_t": "event_key" },
-         { "char*": "buf" },
-         { "size_t": "buf_size" },
-         { "bool": "buf_dirty" },
-         { "int": "cursor_pos" },
-         { "int": "selection_start" },
-         { "int": "selection_end" }
-       ],
+       "var": [{ "PDUIInputTextFlags": "event_flag" },
+               { "PDUIInputTextFlags": "flags" },
+               { "void*": "user_data" },
+               { "uint16_t": "event_char" },
+               { "uint16_t": "event_key" },
+               { "char*": "buf" },
+               { "size_t": "buf_size" },
+               { "bool": "buf_dirty" },
+               { "int": "cursor_pos" },
+               { "int": "selection_start" },
+               { "int": "selection_end" }
+        ],
        "fptr": [
         {
             "no_ret": "delete_chars",
@@ -69,7 +66,6 @@
             ]
         } ]
    },
-   
    {
     "name": "PDUI",
     "attribute": "C-ABI",
@@ -97,7 +93,7 @@
       { "no_ret": "push_style_color", "var": [{ "PDUICol": "idx" }, { "PDColor": "col" }] },
       { "no_ret": "pop_style_color", "var": { "int": "count" } },
       { "no_ret": "push_style_var", "var": [{ "PDUIStyleVar": "idx" }, { "float": "val" }] },
-      { "no_ret": "push_style_varVec", "var": [{ "PDUIStyleVar": "idx" }, { "PDVec2": "val" }] },
+      { "no_ret": "push_style_var_vec", "var": [{ "PDUIStyleVar": "idx" }, { "PDVec2": "val" }] },
       { "no_ret": "pop_style_var", "var": { "int": "count" } },
       { "float32": "get_font_size" },
       { "no_ret": "push_item_width", "var": { "float": "item_width" } },
@@ -195,7 +191,7 @@
       },
       { "int": "checkbox", "var": [{ "const char*": "label" }, { "int*": "v" }] },
       { "int": "checkbox_flags", "var": [{ "const char*": "label" }, { "unsigned int*": "flags" }, { "unsigned int": "flagsValue" }] },
-      { "int": "radio_buttonBool", "var": [{ "const char*": "label" }, { "int": "active" }] },
+      { "int": "radio_button_bool", "var": [{ "const char*": "label" }, { "int": "active" }] },
       { "int": "radio_button", "var": [{ "const char*": "label" }, { "int*": "v" }, { "int": "v_button" }] },
       {
         "int": "combo",
@@ -667,7 +663,7 @@
       { "void": "end_tooltip", "qualifier": "mut_ext" },
       { "int": "begin_main_menu_bar", "qualifier": "mut_ext" },
       { "void": "end_main_menu_bar", "qualifier": "mut_ext" },
-      { "int": "begin_menuBar", "qualifier": "mut_ext" },
+      { "int": "begin_menu_bar", "qualifier": "mut_ext" },
       { "void": "end_menu_bar", "qualifier": "mut_ext" },
       { "int": "begin_menu", "var": [{ "const char*": "label" }, { "int": "enabled" }] },
       { "no_ret": "end_menu" },
@@ -681,7 +677,7 @@
         ]
       },
       {
-        "int": "menu_itemPtr",
+        "int": "menu_item_ptr",
         "var": [
           { "const char*": "label" },
           { "const char*": "shortcut" },
@@ -694,7 +690,7 @@
       { "int": "begin_popup_modal", "var": [{ "const char*": "name" }, { "int*": "p_opened" }, { "PDUIWindowFlags": "extraFlags" }] },
       { "int": "begin_popup_context_item", "var": [{ "const char*": "strId" }, { "int": "mouse_button" }] },
       { "int": "begin_popup_context_window", "var": [{ "int": "also_over_items" }, { "const char*": "strId" }, { "int": "mouse_button" }] },
-      { "int": "begin_popupContext_void", "var": [{ "const char*": "strId" }, { "int": "mouse_button" }] },
+      { "int": "begin_popup_context_void", "var": [{ "const char*": "strId" }, { "int": "mouse_button" }] },
       { "no_ret": "end_popup" },
       { "void": "close_current_popup", "qualifier": "mut_ext" },
       { "int": "begin_popup_context", "var": { "void*": "priv_data" } },
@@ -746,7 +742,7 @@
           { "int*": "out_items_display_end" }
         ]
       },
-      { "int": "begin_childFrame", "var": [{ "PDID": "id" }, { "const struct PDVec2": "size" }] },
+      { "int": "begin_child_frame", "var": [{ "PDID": "id" }, { "const struct PDVec2": "size" }] },
       { "void": "end_child_frame", "qualifier": "mut_ext" },
       {
         "no_ret": "color_convert_rg_bto_hsv",

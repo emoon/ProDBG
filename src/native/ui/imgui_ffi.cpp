@@ -170,7 +170,7 @@ static void push_style_var(PDUIStyleVar idx, float val) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void push_style_varVec(PDUIStyleVar idx, PDVec2 val) {
+static void push_style_var_vec(PDUIStyleVar idx, PDVec2 val) {
     ImGui::PushStyleVar(ImGuiStyleVar(idx), ImVec2(val.x, val.y));
 }
 
@@ -623,7 +623,7 @@ static int checkbox_flags(const char* label, unsigned int* flags, unsigned int f
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int radio_buttonBool(const char* label, int active) {
+static int radio_button_bool(const char* label, int active) {
     return ImGui::RadioButton(label, !!active) ? 1 : 0;
 }
 
@@ -1160,7 +1160,7 @@ static void end_main_menu_bar() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int begin_menuBar() {
+static int begin_menu_bar() {
     return ImGui::BeginMenuBar() ? 1 : 0;
 }
 
@@ -1470,7 +1470,7 @@ static void calc_list_clipping(int items_count, float items_height, int* out_ite
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int begin_childFrame(PDID id, const struct PDVec2 size) {
+static int begin_child_frame(PDID id, const struct PDVec2 size) {
     return ImGui::BeginChildFrame(id, ImVec2(size.x, size.y)) ? 1 : 0;
 }
 
@@ -1727,7 +1727,7 @@ static PDUI s_uiFuncs[] =
     push_style_color,
     pop_style_color,
     push_style_var,
-    push_style_varVec,
+    push_style_var_vec,
     pop_style_var,
     get_font_size,
 
@@ -1810,7 +1810,7 @@ static PDUI s_uiFuncs[] =
     collapsing_header,
     checkbox,
     checkbox_flags,
-    radio_buttonBool,
+    radio_button_bool,
     radio_button,
     combo,
     combo2,
@@ -1891,7 +1891,7 @@ static PDUI s_uiFuncs[] =
     // Widgets: Menus
     begin_main_menu_bar,
     end_main_menu_bar,
-    begin_menuBar,
+    begin_menu_bar,
     end_menu_bar,
     begin_menu,
     end_menu,
@@ -1949,7 +1949,7 @@ static PDUI s_uiFuncs[] =
     calc_text_size,
     calc_list_clipping,
 
-    begin_childFrame,
+    begin_child_frame,
     end_child_frame,
 
     color_convert_rg_bto_hsv,

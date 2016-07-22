@@ -148,7 +148,7 @@ pub struct CPdUI {
     pub collapsing_header: extern fn(label: *const c_char, strId: *const c_char, displayFrame: c_int, defaultOpen: c_int) -> c_int,
     pub checkbox: extern fn(label: *const c_char, v: *mut c_int) -> c_int,
     pub checkbox_flags: extern fn(label: *const c_char, flags: *mut c_uint, flagsValue: c_uint) -> c_int,
-    pub radio_button_int: extern fn(label: *const c_char, active: c_int) -> c_int,
+    pub radio_button_bool: extern fn(label: *const c_char, active: c_int) -> c_int,
     pub radio_button: extern fn(label: *const c_char, v: *mut c_int, v_button: c_int) -> c_int,
     pub combo: extern fn(label: *const c_char, currentItem: *mut c_int, items: *mut *const c_char, itemsCount: c_int, heightInItems: c_int) -> c_int,
     pub combo2: extern fn(label: *const c_char, currentItem: *mut c_int, itemsSeparatedByZeros: *const c_char, heightInItems: c_int) -> c_int,
@@ -284,7 +284,7 @@ pub struct CPdUI {
     pub fill_rect: extern fn(rect: PDRect, color: c_uint),
     pub fill_convex_poly: extern fn(verts: *const c_void, count: u32, color: u32, aa: c_int),
     pub fill_circle: extern fn(pos: PDVec2, radius: f32, color: u32, num_seg: u32, aa: c_int),
-    pub image_crate_rgba: extern fn(width: u32, height: u32) -> *mut c_void,
+    pub image_create_rgba: extern fn(width: u32, height: u32) -> *mut c_void,
     pub image_update: extern fn(dest: *mut c_void, src: *const c_void, size: u32) -> c_void,
 }
 
