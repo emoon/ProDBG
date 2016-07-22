@@ -21,10 +21,10 @@ struct ImageData {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct FontTextureInfo {
-	void* data;
-	uint16_t width;
-	uint16_t height;
-	uint32_t bytes;
+    void* data;
+    uint16_t width;
+    uint16_t height;
+    uint32_t bytes;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1642,13 +1642,13 @@ extern "C" int imgui_begin_with_flags(const char* name, int show, int flags) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" int imgui_begin(const char* name, int show) {
-	return imgui_begin_with_flags(name, show, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    return imgui_begin_with_flags(name, show, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" int imgui_begin_float(const char* name, int show) {
-	return imgui_begin_with_flags(name, show, ImGuiWindowFlags_NoCollapse);
+    return imgui_begin_with_flags(name, show, ImGuiWindowFlags_NoCollapse);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1670,7 +1670,7 @@ extern "C" void* image_create_rgba(unsigned int width, unsigned int height) {
             (uint16_t)width,
             (uint16_t)height,
             1,
-			bgfx::TextureFormat::RGBA8,
+            bgfx::TextureFormat::RGBA8,
             BGFX_TEXTURE_NONE,
             0);
 
@@ -2007,9 +2007,9 @@ static PDUI s_uiFuncs[] =
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void* imgui_create_ui_funcs() {
-	// TODO: This is leaking, store pointers in a list and free on exit?
-	PDUI* ui = (PDUI*)malloc(sizeof(PDUI));
-	*ui = *s_uiFuncs;
+    // TODO: This is leaking, store pointers in a list and free on exit?
+    PDUI* ui = (PDUI*)malloc(sizeof(PDUI));
+    *ui = *s_uiFuncs;
 
     // set by the Rust code
     ui->private_data = 0;
@@ -2084,8 +2084,8 @@ extern "C" void imgui_clear_keys() {
     ImGuiIO& io = ImGui::GetIO();
     int len = (int)sizeof_array(io.KeysDown);
     for (int i = 0; i < len; ++i) {
-    	io.KeysDown[i] = false;
-	}
+        io.KeysDown[i] = false;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2151,8 +2151,8 @@ extern "C" void imgui_setup(const char* font, float font_size, int width, int he
     style.WindowRounding = 0.0f;
 
     if (font) {
- 		io.Fonts->AddFontFromFileTTF(font, font_size);
-	}
+         io.Fonts->AddFontFromFileTTF(font, font_size);
+    }
 
     io.RenderDrawListsFn = 0;
 }
@@ -2165,21 +2165,21 @@ extern "C" FontTextureInfo imgui_get_font_tex_data() {
     ImGuiIO& io = ImGui::GetIO();
     ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&font_data, &width, &height, &bytes);
     printf("C: font_data %p\n", font_data);
-	FontTextureInfo data = { font_data, (uint16_t)width, (uint16_t)height, (uint32_t)bytes };
-	return data;
+    FontTextureInfo data = { font_data, (uint16_t)width, (uint16_t)height, (uint32_t)bytes };
+    return data;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void* imgui_get_draw_data() {
-	return (void*)ImGui::GetDrawData();
+    return (void*)ImGui::GetDrawData();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #if 0
 
-	/*
+    /*
     UIRender_init();
 
     ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&fontData, &fWidth, &fHeight, &outBytes);
