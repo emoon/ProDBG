@@ -19,7 +19,7 @@
 //!
 //! Before this crate can be used, some platform data must be initialized. See [`PlatformData`].
 //!
-//! ```should_panic
+//! ```ignore
 //! bgfx::PlatformData::new()
 //!     .context(std::ptr::null_mut())
 //!     .display(std::ptr::null_mut())
@@ -32,7 +32,7 @@
 //! thread. This thread should call [`bgfx::init`] to initialize bgfx. The object returned by that
 //! function should be used to access bgfx API calls.
 //!
-//! ```no_run
+//! ```ignore
 //! std::thread::spawn(|| {
 //!     let bgfx = bgfx::init(bgfx::RendererType::Default, None, None)
 //!         .expect("Failed to initialize bgfx");
@@ -43,7 +43,7 @@
 //! Finally, the real main thread should act as the render thread, and repeatedly be calling
 //! [`bgfx::render_frame`].
 //!
-//! ```no_run
+//! ```ignore
 //! loop {
 //!     // This is probably also where you will want to pump the window event queue.
 //!     bgfx::render_frame();
@@ -618,7 +618,7 @@ impl VertexDecl {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// let decl = bgfx::VertexDecl::new(None)
     ///                .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
     ///                .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8(true))
@@ -907,7 +907,7 @@ pub fn render_frame() -> RenderFrame {
 ///
 /// # Example
 ///
-/// ```should_panic
+/// ```ignore
 /// // Note: The default value for all of these options is null. If that is what you want, you may
 /// // choose not to call said setter.
 /// bgfx::PlatformData::new()
