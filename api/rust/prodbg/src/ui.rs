@@ -154,19 +154,19 @@ impl Color {
     }
 
     pub fn from_rgb(r: u32, g: u32, b: u32) -> Color {
-        Self::from_u32((255 << 24) | (r << 16) | (g << 8) | b)
+        Self::from_u32((((r << 16) | (g << 8) | b) << 8) | 0xff)
     }
 
     pub fn from_rgba(r: u32, g: u32, b: u32, a: u32) -> Color {
-        Self::from_u32((a << 24) | (r << 16) | (g << 8) | b)
+        Self::from_u32((((r << 16) | (g << 8) | b) << 8) | a)
     }
 
     pub fn from_argb(a: u32, r: u32, g: u32, b: u32) -> Color {
-        Self::from_u32((a << 24) | (r << 16) | (g << 8) | b)
+        Self::from_u32((((r << 16) | (g << 8) | b) << 8) | a)
     }
 
     pub fn from_au32(a: u32, rgb: u32) -> Color {
-        Self::from_u32((a << 24) | rgb)
+        Self::from_u32((rgb << 8) | a)
     }
 }
 

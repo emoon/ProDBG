@@ -1,0 +1,6 @@
+fn_call_width = 80
+struct_lit_width = 50
+report_todo = "Never"
+reorder_imports = true
+single_line_if_else = true
+newline_style = "Native"

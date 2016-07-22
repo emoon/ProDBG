@@ -8,9 +8,11 @@ build = "../build.rs"
 libloading = "0.2.0"
 lazy_static = "0.1.*"
 minifb = "0.8.2"
+nfd = { git = "https://github.com/emoon/nfd-rs.git", branch = "refactor" }
 viewdock = { path = "../viewdock" }
-bgfx_rs = { path = "../bgfx" }
+bgfx = { path = "../bgfx-rs" }
 core = { path = "../core" }
+renderer = { path = "../renderer" }
 settings = { path = "../../crates/settings" }
 imgui_sys = { path = "../imgui_sys" }
 prodbg_api = { path = "../../../api/rust/prodbg" }

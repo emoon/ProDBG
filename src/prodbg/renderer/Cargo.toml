@@ -1,9 +1,8 @@
 [package]
-name = "imgui_sys"
+name = "renderer"
 version = "0.1.0"
 authors = ["Daniel Collin <daniel@collin.com>"]
 
 [dependencies]
-prodbg_api = { path = "../../../api/rust/prodbg" }
-bitflags = "0.7"
-
+bgfx = { path = "../bgfx-rs" }
+imgui_sys = { path = "../imgui_sys" }

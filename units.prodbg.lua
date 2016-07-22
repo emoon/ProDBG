@@ -58,14 +58,30 @@ RustCrate {
 -----------------------------------------------------------------------------------------------------------------------
 
 RustCrate {
-	Name = "bgfx_rs",
-	CargoConfig = "src/prodbg/bgfx/Cargo.toml",
+	Name = "bgfx",
+	CargoConfig = "src/prodbg/bgfx-rs/Cargo.toml",
 	Sources = {
-		get_rs_src("src/prodbg/bgfx"),
+		get_rs_src("src/prodbg/bgfx-rs"),
 		get_rs_src("api/rust"),
 		"src/prodbg/build.rs",
 	},
+
+    Depends = { "bgfx_native" },
 }
+
+-----------------------------------------------------------------------------------------------------------------------
+
+RustCrate {
+	Name = "renderer",
+	CargoConfig = "src/prodbg/renderer/Cargo.toml",
+	Sources = {
+		get_rs_src("src/prodbg/renderer"),
+		get_rs_src("src/prodbg/imgui_sys"),
+		get_rs_src("src/prodbg/bgfx-rs"),
+		"src/prodbg/build.rs",
+	},
+}
+
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -102,7 +118,7 @@ RustProgram {
 		"src/prodbg/build.rs",
 	},
 
-    Depends = { "lua", "remote_api", "stb", "bgfx", "bgfx_rs", "ui",
+    Depends = { "lua", "remote_api", "stb", "bgfx_native", "bgfx", "ui",
     			"imgui", "scintilla", "tinyxml2", "capstone", "imgui_sys", "core" },
 }
 
@@ -120,8 +136,8 @@ RustProgram {
 		"src/prodbg/build.rs",
 	},
 
-    Depends = { "lua", "remote_api", "stb", "bgfx", "bgfx_rs", "ui",
-    			"imgui", "scintilla", "tinyxml2", "capstone",
+    Depends = { "lua", "remote_api", "stb", "bgfx_native", "bgfx", "ui",
+    			"imgui", "tinyxml2", "capstone", "renderer", "scintilla",
     			"imgui_sys", "core", "viewdock", "settings", "prodbg_api", "settings" },
 }
 
