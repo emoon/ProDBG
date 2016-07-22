@@ -1,5 +1,5 @@
 {
-  "config": [ "rust.json", "cpp.json" ],
+  "config": [ "src/tools/api_gen/rust.json", "src/tools/api_gen/cpp.json" ],
   
    "bitflags": {
        "uint": "PDUIWindowFlags_",

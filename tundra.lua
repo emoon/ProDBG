@@ -48,6 +48,7 @@ local macosx = {
         PROGCOM = { "-lstdc++" },
 
         BGFX_SHADERC = "$(OBJECTDIR)$(SEP)bgfx_shaderc$(PROGSUFFIX)",
+        API_GEN = "$(OBJECTDIR)$(SEP)api_gen$(PROGSUFFIX)",
     },
 
     Frameworks = { 
@@ -77,6 +78,7 @@ local macosx_test = {
         PROGCOM = { "-lstdc++", "-coverage" },
 
         BGFX_SHADERC = "$(OBJECTDIR)$(SEP)bgfx_shaderc$(PROGSUFFIX)",
+        API_GEN = "$(OBJECTDIR)$(SEP)api_gen$(PROGSUFFIX)",
     },
 
     Frameworks = { 
@@ -115,6 +117,7 @@ local gcc_env = {
         },
 
         BGFX_SHADERC = "$(OBJECTDIR)$(SEP)bgfx_shaderc$(PROGSUFFIX)",
+        API_GEN = "$(OBJECTDIR)$(SEP)api_gen$(PROGSUFFIX)",
     },
 
     ReplaceEnv = {
@@ -148,6 +151,7 @@ local win64 = {
         },
 
         BGFX_SHADERC = "$(OBJECTDIR)$(SEP)bgfx_shaderc$(PROGSUFFIX)",
+        API_GEN = "$(OBJECTDIR)$(SEP)api_gen$(PROGSUFFIX)",
         OBJCCOM = "meh",
     },
 }
