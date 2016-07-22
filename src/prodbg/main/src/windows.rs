@@ -2,6 +2,7 @@ extern crate minifb;
 extern crate bgfx;
 extern crate viewdock;
 extern crate renderer;
+extern crate nfd;
 
 use minifb::{CursorStyle, Scale, WindowOptions, MouseMode, MouseButton, Key, KeyRepeat};
 use renderer::Renderer;
@@ -21,6 +22,7 @@ use std::os::raw::{c_void};
 use std::collections::VecDeque;
 use std::io::{Read, Write};
 use statusbar::Statusbar;
+use self::nfd::Response as NfdResponse;
 //use std::mem::transmute;
 
 const WIDTH: i32 = 1280;
@@ -493,7 +495,19 @@ impl Window {
         window.is_menu_pressed()
     }
 
-    fn update_menus(&mut self, sessions: &mut Sessions, backend_plugins: &mut BackendPlugins) {
+    fn open_source_file(_view_plugins: &mut ViewPlugins) {
+    	match nfd::dialog().open() {
+    		Ok(NfdResponse::Cancel) => return,
+    		Ok(NfdResponse::Okay(file)) => println!("File to open {}", file),
+    		Err(e) => println!("Failed to open file dialog {:?}", e),
+    		_ => (),
+    	}
+    }
+
+    fn update_menus(&mut self,
+			view_plugins: &mut ViewPlugins,
+    		sessions: &mut Sessions,
+    		backend_plugins: &mut BackendPlugins) {
         let current_session = sessions.get_current();
 
         Self::is_menu_pressed(&mut self.win).map(|menu_id| {
@@ -501,6 +515,7 @@ impl Window {
                 MENU_DEBUG_STEP_IN => current_session.action_step(),
                 MENU_DEBUG_STEP_OVER => current_session.action_step_over(),
                 MENU_DEBUG_START => current_session.action_run(),
+                MENU_FILE_OPEN_SOURCE => Self::open_source_file(view_plugins),
                 MENU_FILE_START_NEW_BACKEND => {
                     if let Some(backend) = backend_plugins.create_instance(&"Amiga UAE Debugger".to_owned()) {
                         current_session.set_backend(Some(backend));
@@ -568,7 +583,7 @@ impl Window {
 
         self.statusbar.update(self.win.get_size());
 
-        self.update_menus(sessions, backend_plugins);
+        self.update_menus(view_plugins, sessions, backend_plugins);
 
         if self.win.is_key_pressed(Key::Z, KeyRepeat::No) {
             self.undo_workspace_change(view_plugins);
