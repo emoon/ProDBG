@@ -7,6 +7,4 @@ temp/vice_mem_dump
 .ycm_extra_conf.pyc
 target/
 .vscode/
-src/crates/settings/Cargo.lock
-src/prodbg/renderer/Cargo.lock
-src/prodbg/imgui_sys/Cargo.lock
+Cargo.lock
