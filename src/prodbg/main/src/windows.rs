@@ -23,6 +23,8 @@ use std::collections::VecDeque;
 use std::io::{Read, Write};
 use statusbar::Statusbar;
 use self::nfd::Response as NfdResponse;
+use prodbg_api::events;
+
 // use std::mem::transmute;
 
 const WIDTH: i32 = 1280;
@@ -503,11 +505,38 @@ impl Window {
         window.is_menu_pressed()
     }
 
-    fn open_source_file(_view_plugins: &mut ViewPlugins) {
+    fn has_source_code_view(&self) -> bool {
+    	// TODO: Use setting for this name
+    	for dock in self.ws.get_docks() {
+    		if dock.plugin_name == "Source Code View" {
+    			return true;
+    		}
+    	}
+
+    	false
+    }
+
+    fn open_source_file(&mut self, filename: &str, session: &mut Session) {
+    	// this
+    	// check if we already have a source view open and just post the message.
+    	if !self.has_source_code_view() {
+    		// This is somewhat hacky to set a "correct" split view for
+
+    	}
+
+    	let writer = session.get_current_writer();
+    	writer.event_begin(events::EVENT_SET_SOURCE_CODE_FILE as u16);
+    	writer.write_string("filename", filename);
+		writer.event_end();
+    }
+
+    fn browse_source_file(&mut self,
+    					 _view_plugins: &mut ViewPlugins,
+    					 session: &mut Session) {
         match nfd::dialog().open() {
             Ok(NfdResponse::Cancel) => return,
-            Ok(NfdResponse::Okay(file)) => println!("File to open {}", file),
             Err(e) => println!("Failed to open file dialog {:?}", e),
+            Ok(NfdResponse::Okay(file)) => self.open_source_file(&file, session),
             _ => (),
         }
     }
@@ -518,28 +547,31 @@ impl Window {
                     backend_plugins: &mut BackendPlugins) {
         let current_session = sessions.get_current();
 
-        Self::is_menu_pressed(&mut self.win).map(|menu_id| {
-            match menu_id {
-                MENU_DEBUG_STEP_IN => current_session.action_step(),
-                MENU_DEBUG_STEP_OVER => current_session.action_step_over(),
-                MENU_DEBUG_START => current_session.action_run(),
-                MENU_FILE_OPEN_SOURCE => Self::open_source_file(view_plugins),
-                MENU_FILE_START_NEW_BACKEND => {
-                    if let Some(backend) =
-                           backend_plugins.create_instance(&"Amiga UAE Debugger".to_owned()) {
-                        current_session.set_backend(Some(backend));
+        let menu_id = match Self::is_menu_pressed(&mut self.win) {
+        	Some(id) => id,
+        	None => return,
+        };
 
-                        if let Some(menu) = backend_plugins.get_menu(backend, self.menu_id_offset) {
-                            self.win.add_menu(&(*menu));
-                            self.menu_id_offset += 1000;
-                        }
-                    }
-                }
-                _ => {
-                    current_session.send_menu_id(menu_id as u32, backend_plugins);
-                }
-            }
-        });
+		match menu_id {
+			MENU_DEBUG_STEP_IN => current_session.action_step(),
+			MENU_DEBUG_STEP_OVER => current_session.action_step_over(),
+			MENU_DEBUG_START => current_session.action_run(),
+			MENU_FILE_OPEN_SOURCE => self.browse_source_file(view_plugins, current_session),
+			MENU_FILE_START_NEW_BACKEND => {
+				if let Some(backend) =
+						backend_plugins.create_instance(&"Amiga UAE Debugger".to_owned()) {
+					current_session.set_backend(Some(backend));
+
+					if let Some(menu) = backend_plugins.get_menu(backend, self.menu_id_offset) {
+						self.win.add_menu(&(*menu));
+						self.menu_id_offset += 1000;
+					}
+				}
+			}
+			_ => {
+				current_session.send_menu_id(menu_id as u32, backend_plugins);
+			}
+		}
     }
 
     pub fn pre_update(&mut self) {
