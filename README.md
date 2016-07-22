@@ -61,7 +61,7 @@ Building the code on Linux will require some prerequisites to be installed. Whic
 For Ubuntu you can use the following:
 ```
 sudo apt-get update
-sudo apt-get install -y libx11-dev libgl1-mesa-dev
+sudo apt-get install -y libx11-dev libgl1-mesa-dev libgtk-3-dev pkg-config
 ```
 
 ProDBG uses Tundra to build the project the project. Binaries are supplied on Mac and Windows but needs to be built on Linux:
