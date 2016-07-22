@@ -2,7 +2,7 @@
 
 enum PDUIWindowFlags_ {
     PDUIWindowFlags_NoTitleBar = 1,
-    PDUIWindowFlags_NoResize  = 2,
+    PDUIWindowFlags_NoResize = 2,
     PDUIWindowFlags_NoMove = 4,
     PDUIWindowFlags_NoScrollbar = 8,
     PDUIWindowFlags_NoScrollWithMouse = 16,

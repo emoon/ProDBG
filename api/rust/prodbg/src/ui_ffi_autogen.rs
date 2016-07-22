@@ -2,7 +2,7 @@
 bitflags! {
     flags PDUIWindowFlags_: c_uint {
         const PDUIWINDOWFLAGS_NOTITLEBAR = 1 as c_uint,
-        const PDUIWINDOWFLAGS_NORESIZE  = 2 as c_uint,
+        const PDUIWINDOWFLAGS_NORESIZE = 2 as c_uint,
         const PDUIWINDOWFLAGS_NOMOVE = 4 as c_uint,
         const PDUIWINDOWFLAGS_NOSCROLLBAR = 8 as c_uint,
         const PDUIWINDOWFLAGS_NOSCROLLWITHMOUSE = 16 as c_uint,
