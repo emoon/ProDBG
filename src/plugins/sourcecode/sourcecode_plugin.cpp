@@ -188,7 +188,7 @@ static int update(void* user_data, PDUI* uiFuncs, PDReader* inEvents, PDWriter* 
     (void)uiFuncs;
 
     SourceCodeData* data = (SourceCodeData*)user_data;
-    PDUISCInterface* sourceFuncs = uiFuncs->sc_input_text("test", 800, 700, 0, 0);
+    PDUISCInterface* sourceFuncs = uiFuncs->sc_input_text("test", 800, 700);
 
     while ((event = PDRead_get_event(inEvents)) != 0) {
         switch (event) {

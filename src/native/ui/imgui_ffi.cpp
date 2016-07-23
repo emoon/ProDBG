@@ -13,18 +13,18 @@
 
 struct ImageData {
     bgfx::TextureHandle tex;
-	uint16_t width;
-	uint16_t height;
-	int size;
+    uint16_t width;
+    uint16_t height;
+    unsigned int size;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct FontTextureInfo {
-	void* data;
-	uint16_t width;
-	uint16_t height;
-	uint32_t bytes;
+    void* data;
+    uint16_t width;
+    uint16_t height;
+    uint32_t bytes;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,7 +70,7 @@ static void scDraw(void* privData) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void set_title(void* private_data, const char* title) {
-	/*
+    /*
     PrivateData* data = (PrivateData*)private_data;
 
     (void)data;
@@ -181,7 +181,7 @@ static void push_style_var(PDUIStyleVar idx, float val) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void push_style_varVec(PDUIStyleVar idx, PDVec2 val) {
+static void push_style_var_vec(PDUIStyleVar idx, PDVec2 val) {
     ImGui::PushStyleVar(ImGuiStyleVar(idx), ImVec2(val.x, val.y));
 }
 
@@ -194,7 +194,7 @@ static void pop_style_var(int count) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static float get_font_size() {
-	return ImGui::GetFontSize();
+    return ImGui::GetFontSize();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -600,12 +600,12 @@ static int invisible_button(const char* strId, const PDVec2 size) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void image(void* image_data, const PDVec2 size, const PDVec2 uv0, const PDVec2 uv1, const PDColor tintColor, const PDColor borderColor) {
-	ImageData* data = (ImageData*)image_data;
-	union { void* ptr; bgfx::TextureHandle handle; } texture;
-	texture.handle = data->tex;
+    ImageData* data = (ImageData*)image_data;
+    union { void* ptr; bgfx::TextureHandle handle; } texture;
+    texture.handle = data->tex;
 
     ImGui::Image((ImTextureID)texture.ptr, ImVec2(size.x, size.y), ImVec2(uv0.x, uv0.y), ImVec2(uv1.x, uv1.y),
-    			 pdColorToImVec4(tintColor), pdColorToImVec4(borderColor));
+                 pdColorToImVec4(tintColor), pdColorToImVec4(borderColor));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -634,7 +634,7 @@ static int checkbox_flags(const char* label, unsigned int* flags, unsigned int f
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int radio_buttonBool(const char* label, int active) {
+static int radio_button_bool(const char* label, int active) {
     return ImGui::RadioButton(label, !!active) ? 1 : 0;
 }
 
@@ -713,8 +713,8 @@ static void plot_histogram2(const char* label, float (*valuesGetter)(void* data,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDUISCInterface* sc_input_text(const char* label, float xSize, float ySize, void (*callback)(void*), void* user_data) {
-    ImScEditor* ed = ImGui::ScInputText(label, xSize, ySize, callback, user_data);
+static PDUISCInterface* sc_input_text(const char* label, float xSize, float ySize) {
+    ImScEditor* ed = ImGui::ScInputText(label, xSize, ySize, 0, 0);
 
     if (!ed->userData) {
         PDUISCInterface* funcs = (PDUISCInterface*)malloc(sizeof(PDUISCInterface));
@@ -1075,10 +1075,10 @@ static int selectable(const char* label, int selected, PDUISelectableFlags flags
 extern "C" bool imgui_tab(const char* label, bool selected, bool last) {
     bool res = ImGui::Selectable(label, selected, 0, ImGui::CalcTextSize(label));
     if (!last) {
-    	ImGui::SameLine(); ImGui::Text("|"); ImGui::SameLine();
+        ImGui::SameLine(); ImGui::Text("|"); ImGui::SameLine();
     }
     else {
-    	//ImGui::Separator();
+        //ImGui::Separator();
     }
     return res;
 }
@@ -1171,7 +1171,7 @@ static void end_main_menu_bar() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int begin_menuBar() {
+static int begin_menu_bar() {
     return ImGui::BeginMenuBar() ? 1 : 0;
 }
 
@@ -1257,30 +1257,30 @@ static void close_current_popup() {
 
 /*
 static int begin_popup_context(void* priv_data) {
-	PrivateData* data = (PrivateData*)priv_data;
+    PrivateData* data = (PrivateData*)priv_data;
 
-	if (data->show_popup) {
-		ImGui::OpenPopup("_select");
-		data->showed_popup = true;
-	}
+    if (data->show_popup) {
+        ImGui::OpenPopup("_select");
+        data->showed_popup = true;
+    }
 
-	bool showed_menu = ImGui::BeginPopup("_select");
+    bool showed_menu = ImGui::BeginPopup("_select");
 
-	if (showed_menu)
-	{
-		ImGui::Text("Inside");
-		ImGui::MenuItem("Click me");
-	}
+    if (showed_menu)
+    {
+        ImGui::Text("Inside");
+        ImGui::MenuItem("Click me");
+    }
 
-	return showed_menu ? 1 : 0;
+    return showed_menu ? 1 : 0;
 }
 */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void end_popup_context(void* priv_data) {
-	(void)priv_data;
-	ImGui::EndPopup();
+    (void)priv_data;
+    ImGui::EndPopup();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1481,7 +1481,7 @@ static void calc_list_clipping(int items_count, float items_height, int* out_ite
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int begin_childFrame(PDID id, const struct PDVec2 size) {
+static int begin_child_frame(PDID id, const struct PDVec2 size) {
     return ImGui::BeginChildFrame(id, ImVec2(size.x, size.y)) ? 1 : 0;
 }
 
@@ -1621,12 +1621,12 @@ static void fill_rect(PDRect rect, PDColor color) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void fill_convex_ploy(void* vertices, int count, PDColor color, int anti_aliased) {
+static void fill_convex_ploy(void* vertices, unsigned int count, PDColor color, int anti_aliased) {
     ImGui::ConvexPolyFilled(vertices, count, color, !!anti_aliased);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void fill_circle(PDVec2 pos, float radius, PDColor color, int num_seg, int aa) {
+static void fill_circle(PDVec2 pos, float radius, PDColor color, unsigned int num_seg, int aa) {
     ImGui::CircleFilled(ImVec2(pos.x, pos.y), radius, color, num_seg, !!aa);
 }
 
@@ -1642,48 +1642,48 @@ extern "C" int imgui_begin_with_flags(const char* name, int show, int flags) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" int imgui_begin(const char* name, int show) {
-	return imgui_begin_with_flags(name, show, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    return imgui_begin_with_flags(name, show, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" int imgui_begin_float(const char* name, int show) {
-	return imgui_begin_with_flags(name, show, ImGuiWindowFlags_NoCollapse);
+    return imgui_begin_with_flags(name, show, ImGuiWindowFlags_NoCollapse);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void imgui_begin_child(const char* name, float h) {
-	ImGui::BeginChild(name, ImVec2(0, h), false, 0);
+    ImGui::BeginChild(name, ImVec2(0, h), false, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void imgui_end_child() {
-	ImGui::EndChild();
+    ImGui::EndChild();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C" void* image_create_rgba(int width, int height) {
-	bgfx::TextureHandle tex = bgfx::createTexture2D(
-			(uint16_t)width,
-			(uint16_t)height,
-			1,
-			bgfx::TextureFormat::RGBA8,
-			BGFX_TEXTURE_NONE,
-			0);
+extern "C" void* image_create_rgba(unsigned int width, unsigned int height) {
+    bgfx::TextureHandle tex = bgfx::createTexture2D(
+            (uint16_t)width,
+            (uint16_t)height,
+            1,
+            bgfx::TextureFormat::RGBA8,
+            BGFX_TEXTURE_NONE,
+            0);
 
-	if (!isValid(tex)) {
-		return 0;
-	}
+    if (!isValid(tex)) {
+        return 0;
+    }
 
-	ImageData* data = (ImageData*)malloc(sizeof(ImageData));
+    ImageData* data = (ImageData*)malloc(sizeof(ImageData));
 
-	data->tex = tex;
-	data->size = width * height * 4;
-	data->width = (uint16_t)width;
-	data->height = (uint16_t)height;
+    data->tex = tex;
+    data->size = width * height * 4;
+    data->width = (uint16_t)width;
+    data->height = (uint16_t)height;
 
     const bgfx::Memory* mem = bgfx::alloc((uint32_t)data->size);
     memset(mem->data, 0, data->size);
@@ -1697,15 +1697,15 @@ extern "C" void* image_create_rgba(int width, int height) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C" void image_update(void* imageData, const void* src, int size) {
-	ImageData* data = (ImageData*)imageData;
+extern "C" void image_update(void* imageData, const void* src, unsigned int size) {
+    ImageData* data = (ImageData*)imageData;
 
-	// clamp size if it's being incorrect
-	if (size > data->size)
-		size = data->size;
+    // clamp size if it's being incorrect
+    if (size > data->size)
+        size = data->size;
 
     const bgfx::Memory* mem = bgfx::alloc((uint32_t)data->size);
-	memcpy(mem->data, src, size);
+    memcpy(mem->data, src, size);
 
     bgfx::updateTexture2D(data->tex, 0, 0, 0, data->width, data->height, mem);
 }
@@ -1720,7 +1720,7 @@ extern "C" void imgui_end() {
 
 static PDUI s_uiFuncs[] =
 {
-	0,
+    0,
 
     // Windows
 
@@ -1744,7 +1744,7 @@ static PDUI s_uiFuncs[] =
     push_style_color,
     pop_style_color,
     push_style_var,
-    push_style_varVec,
+    push_style_var_vec,
     pop_style_var,
     get_font_size,
 
@@ -1827,7 +1827,7 @@ static PDUI s_uiFuncs[] =
     collapsing_header,
     checkbox,
     checkbox_flags,
-    radio_buttonBool,
+    radio_button_bool,
     radio_button,
     combo,
     combo2,
@@ -1908,7 +1908,7 @@ static PDUI s_uiFuncs[] =
     // Widgets: Menus
     begin_main_menu_bar,
     end_main_menu_bar,
-    begin_menuBar,
+    begin_menu_bar,
     end_menu_bar,
     begin_menu,
     end_menu,
@@ -1925,8 +1925,8 @@ static PDUI s_uiFuncs[] =
     end_popup,
     close_current_popup,
     // Set by Rust
-	0, // begin_popup_context,
-	end_popup_context,
+    0, // begin_popup_context,
+    end_popup_context,
 
     // Widgets: value() Helpers. Output single value in "name: value" format
     value_bool,
@@ -1966,7 +1966,7 @@ static PDUI s_uiFuncs[] =
     calc_text_size,
     calc_list_clipping,
 
-    begin_childFrame,
+    begin_child_frame,
     end_child_frame,
 
     color_convert_rg_bto_hsv,
@@ -1993,34 +1993,34 @@ static PDUI s_uiFuncs[] =
     // Rendering
 
     fill_rect,
-	fill_convex_ploy,
-	fill_circle,
+    fill_convex_ploy,
+    fill_circle,
 
-	// Image
+    // Image
 
- 	// Image support
+     // Image support
 
-	image_create_rgba,
-	image_update,
+    image_create_rgba,
+    image_update,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void* imgui_create_ui_funcs() {
-	// TODO: This is leaking, store pointers in a list and free on exit?
-	PDUI* ui = (PDUI*)malloc(sizeof(PDUI));
-	*ui = *s_uiFuncs;
+    // TODO: This is leaking, store pointers in a list and free on exit?
+    PDUI* ui = (PDUI*)malloc(sizeof(PDUI));
+    *ui = *s_uiFuncs;
 
-	// set by the Rust code
-	ui->private_data = 0;
+    // set by the Rust code
+    ui->private_data = 0;
 
-	return ui;
+    return ui;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void* imgui_get_ui_funcs() {
-	return s_uiFuncs;
+    return s_uiFuncs;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2038,7 +2038,7 @@ extern "C" void imgui_set_window_size(float w, float h) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void imgui_render_frame(float x, float y, float width, float height, int fill_col) {
-	ImGui::RenderFrame(ImVec2(x, y), ImVec2(x + width,y + height), fill_col, false, 0.0f);
+    ImGui::RenderFrame(ImVec2(x, y), ImVec2(x + width,y + height), fill_col, false, 0.0f);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2084,8 +2084,8 @@ extern "C" void imgui_clear_keys() {
     ImGuiIO& io = ImGui::GetIO();
     int len = (int)sizeof_array(io.KeysDown);
     for (int i = 0; i < len; ++i) {
-    	io.KeysDown[i] = false;
-	}
+        io.KeysDown[i] = false;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2151,8 +2151,8 @@ extern "C" void imgui_setup(const char* font, float font_size, int width, int he
     style.WindowRounding = 0.0f;
 
     if (font) {
- 		io.Fonts->AddFontFromFileTTF(font, font_size);
-	}
+         io.Fonts->AddFontFromFileTTF(font, font_size);
+    }
 
     io.RenderDrawListsFn = 0;
 }
@@ -2165,21 +2165,21 @@ extern "C" FontTextureInfo imgui_get_font_tex_data() {
     ImGuiIO& io = ImGui::GetIO();
     ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&font_data, &width, &height, &bytes);
     printf("C: font_data %p\n", font_data);
-	FontTextureInfo data = { font_data, (uint16_t)width, (uint16_t)height, (uint32_t)bytes };
-	return data;
+    FontTextureInfo data = { font_data, (uint16_t)width, (uint16_t)height, (uint32_t)bytes };
+    return data;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" void* imgui_get_draw_data() {
-	return (void*)ImGui::GetDrawData();
+    return (void*)ImGui::GetDrawData();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #if 0
 
-	/*
+    /*
     UIRender_init();
 
     ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&fontData, &fWidth, &fHeight, &outBytes);

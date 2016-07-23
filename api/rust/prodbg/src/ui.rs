@@ -473,8 +473,7 @@ impl Ui {
 	    unsafe {
             let name = CFixedString::from_str(title);
 	        Scintilla::new(((*self.api).sc_input_text)(name.as_ptr(),
-	                        width as f32,
-	                        height as f32, None))
+	                        width as f32, height as f32))
         }
     }
 
@@ -537,7 +536,7 @@ impl Ui {
 
     pub fn image_create_rgba(&self, width: u32, height: u32) -> Option<Image> {
         unsafe {
-            let handle = ((*self.api).image_crate_rgba)(width, height);
+            let handle = ((*self.api).image_create_rgba)(width, height);
             if handle != ptr::null_mut() {
                 Some(Image {
                     api: self.api,

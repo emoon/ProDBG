@@ -252,7 +252,7 @@ void showInUI(ConsoleData* consoleData, PDReader* reader, PDUI* uiFuncs) {
 
     PDVec2 pad = { 0.0f, 0.0f };
 
-    uiFuncs->push_style_varVec(PDUIStyleVar_FramePadding, pad);
+    uiFuncs->push_style_var_vec(PDUIStyleVar_FramePadding, pad);
 
     //static ImGuiTextFilter filter;
     //filter.Draw("Filter (\"incl,-excl\") (\"error\")", 180);
@@ -268,7 +268,7 @@ void showInUI(ConsoleData* consoleData, PDReader* reader, PDUI* uiFuncs) {
     PDVec2 itemSpacing = { 4.0f, 1.0f };
 
     uiFuncs->begin_child("ScrollingRegion", spacing, false, PDUIWindowFlags(0));
-    uiFuncs->push_style_varVec(PDUIStyleVar_ItemSpacing, itemSpacing); // Tighten spacing
+    uiFuncs->push_style_var_vec(PDUIStyleVar_ItemSpacing, itemSpacing); // Tighten spacing
 
     for (size_t i = 0; i < consoleData->items.size(); i++) {
         const char* item = consoleData->items[i];

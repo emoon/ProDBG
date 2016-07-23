@@ -1,4 +1,5 @@
 require "tundra.syntax.glob"
+require "tundra.syntax.rust-cargo"
 require "tundra.util"
 
 local native = require('tundra.native')
@@ -59,6 +60,27 @@ DefRule {
 			OutputFiles   = { "$(OBJECTDIR)/_generated/" .. path.drop_suffix(data.Source) .. ".vs" },
 		}
 	end,
+}
+
+DefRule {
+    Name = "ApiGen",
+    Command = "", -- Replaced on a per-instance basis.
+    Pass = "GenerateSources",
+    ConfigInvariant = true,
+
+    Blueprint = {
+        Source  = { Required = true, Type = "string", Help = "API definition filename", },
+        Lang    = { Required = true, Type = "string", Help = "language parameter for api_gen", },
+        OutName = { Required = true, Type = "string", Help = "Output filename", },
+    },
+
+    Setup = function (env, data)
+        return {
+            InputFiles    = { data.Source },
+            Command = "$(API_GEN) -i ".. data.Source .." ".. data.Lang .." ".. data.OutName,
+            OutputFiles   = { data.OutName },
+        }
+    end,
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -163,9 +185,19 @@ Program {
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Tools" } },
 }
 
+RustProgram {
+    Name = "api_gen",
+    Pass = "BuildTools",
+    CargoConfig = "src/tools/api_gen/Cargo.toml",
+    Sources = {
+        "src/tools/api_gen/src/main.rs"
+    },
+}
+
 -----------------------------------------------------------------------------------------------------------------------
 
 Default "bgfx_shaderc"
+Default "api_gen"
 
 -- vim: ts=4:sw=4:sts=4
 
