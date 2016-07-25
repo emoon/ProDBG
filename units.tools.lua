@@ -72,11 +72,12 @@ DefRule {
         Source  = { Required = true, Type = "string", Help = "API definition filename", },
         Lang    = { Required = true, Type = "string", Help = "language parameter for api_gen", },
         OutName = { Required = true, Type = "string", Help = "Output filename", },
+        LangCfg = { Required = false, Type = "string", Help = "Optional config file for generated language (added to track file changes)"},
     },
 
     Setup = function (env, data)
         return {
-            InputFiles    = { data.Source },
+            InputFiles    = { data.Source, data.LangCfg },
             Command = "$(API_GEN) -i ".. data.Source .." ".. data.Lang .." ".. data.OutName,
             OutputFiles   = { data.OutName },
         }
