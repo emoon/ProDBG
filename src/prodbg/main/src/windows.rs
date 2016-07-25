@@ -595,7 +595,7 @@ impl Window {
         let mut has_shown_menu = 0u32;
 
         let mut win_size = self.win.get_size();
-        win_size.1 -= self.statusbar.get_size() as usize;
+        win_size.1 = win_size.1.saturating_sub(self.statusbar.get_size() as usize);
 
         let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
 
