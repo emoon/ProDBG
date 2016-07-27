@@ -3,10 +3,9 @@
 //
 extern crate codespawn;
 use codespawn::fmt_code::{Lang};
+use codespawn::error::CodeSpawnError;
 use std::env;
 use std::path::Path;
-use std::io::Error as IoError;
-use std::io::ErrorKind::Other as ParseError;
 use std::error::Error;
 
 macro_rules! api_gen {
@@ -15,12 +14,12 @@ macro_rules! api_gen {
             let parsed_object = match input_ext.to_str() {
                 Some("json") => codespawn::from_json($x),
                 Some("xml")  => codespawn::from_xml($x),
-                _  => Err(IoError::new(ParseError, format!("!!! api_gen: unrecognized input file extension: {}", input_ext.to_str().unwrap()))),
+                _  => Err(CodeSpawnError::Other(format!("!!! api_gen: unrecognized input file extension: {}", input_ext.to_str().unwrap()))),
             };
             parsed_object
         }
         else {
-            Err(IoError::new(ParseError, format!("!!! api_gen: unrecognized input file extension")))
+            Err(CodeSpawnError::Other(format!("!!! api_gen: unrecognized input file extension")))
         }
     };
 }
@@ -64,7 +63,7 @@ fn run_main() -> i32 {
         let raw_code = api_gen!(&input_file);
         match raw_code {
             Err(why) => {
-                println!("{}", why.description());
+                println!("!!! api_gen: error processing {}: {}", input_file, why.description());
                 return 1;
             },
             _ => {},
@@ -74,8 +73,8 @@ fn run_main() -> i32 {
         for lang in output_files {
             println!("* api_gen: generating {} ({})", lang.1, lang.0);
             let file_saved = match lang.0 {
-                Lang::Rust => raw_code.to_rust().to_file(&lang.1),
-                Lang::Cpp  => raw_code.to_cpp().to_file(&lang.1),
+                Lang::Rust => raw_code.to_rust().unwrap().to_file(&lang.1),
+                Lang::Cpp  => raw_code.to_cpp().unwrap().to_file(&lang.1),
             };
 
             match file_saved {
