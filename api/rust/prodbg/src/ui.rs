@@ -712,6 +712,17 @@ impl Ui {
         unsafe { ((*self.api).end_popup)() }
     }
 
+    ///
+    ///
+    ///
+
+	pub fn tree_node<'a>(&'a self, label: &'a str) -> TreeBuilder<'a> {
+		TreeBuilder {
+			ui: self,
+			label: label,
+		}
+	}
+
 	pub fn sc_input_text(&self, title: &str, width: usize, height: usize) -> Scintilla {
 	    unsafe {
             let name = CFixedString::from_str(title);
@@ -803,6 +814,25 @@ impl Ui {
             }
         }
     }
+}
+
+pub struct TreeBuilder<'a> {
+	ui: &'a Ui,
+	label: &'a str,
+}
+
+impl<'a> TreeBuilder<'a> {
+	pub fn show<F: FnOnce(&Ui)>(&self, f: F) {
+		unsafe {
+            let label = CFixedString::from_str(self.label);
+            let t = ((*self.ui.api).tree_node)(label.as_ptr());
+
+            if t == 1 {
+                f(self.ui);
+                ((*self.ui.api).tree_pop)();
+            }
+		}
+	}
 }
 
 impl Image {
