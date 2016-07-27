@@ -9,3 +9,4 @@ temp/vice_mem_dump
 target/
 .vscode/
 Cargo.lock
+.idea
