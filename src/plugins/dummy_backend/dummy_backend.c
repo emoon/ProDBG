@@ -381,6 +381,7 @@ static DisasmData s_disasm_data[] = {
 
 typedef struct DummyPlugin {
 	int exception_location;
+	int prev_exception_location;
 	// 1 MB of memory, range is 0x10000
 	uint8_t* memory;
 	int64_t memory_start;
@@ -396,8 +397,9 @@ void* create_instance(ServiceFunc* serviceFunc) {
 	DummyPlugin* plugin = (DummyPlugin*)malloc(sizeof(DummyPlugin));
 	memset(plugin, 0, sizeof(DummyPlugin));
 	plugin->exception_location = s_disasm_data[0].address;
+	plugin->prev_exception_location = s_disasm_data[0].address - 1;
 	plugin->memory = malloc(1 * 1024 * 1024);
-	plugin->memory_start = 0x10000;
+	plugin->memory_start = 0;
 	plugin->memory_end = (1 * 1024 * 1024) + plugin->memory_start;
 
 	srand(0xc0cac01a);
@@ -471,10 +473,15 @@ static void step_to_next_location(DummyPlugin* plugin) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void set_exception_location(DummyPlugin* data, PDWriter* writer) {
+	if (data->exception_location == data->prev_exception_location)
+		return;
+
     PDWrite_event_begin(writer, PDEventType_SetExceptionLocation);
     PDWrite_u64(writer, "address", (uint64_t)data->exception_location);
     PDWrite_u8(writer, "address_size", 2);
     PDWrite_event_end(writer);
+
+	data->prev_exception_location = data->exception_location;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

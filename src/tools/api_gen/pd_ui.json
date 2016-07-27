@@ -1,7 +1,8 @@
 {
   "config": [ "src/tools/api_gen/rust.json", "src/tools/api_gen/cpp.json" ],
   
-   "bitflags": {
+   "bitflags": [
+   {
        "uint": "PDUIWindowFlags_",
        "var": [
          { "uint": "PDUIWindowFlags_NoTitleBar", "value": "1" },
@@ -14,10 +15,37 @@
          { "uint": "PDUIWindowFlags_ShowBorders", "value": "128" },
          { "uint": "PDUIWindowFlags_NoSavedSettings ", "value": "256" },
          { "uint": "PDUIWindowFlags_NoInputs ", "value": "512" },
-         { "uint": "PDUIWindowFlags_MenuBar", "value": "1024" }
+         { "uint": "PDUIWindowFlags_MenuBar", "value": "1024" },
+         { "uint": "PDUIWindowFlags_HorizontalScrollbar", "value": "2048" },
+         { "uint": "PDUIWindowFlags_NoFocusOnAppearing", "value": "4096" },
+         { "uint": "PDUIWindowFlags_NoBringToFrontOnFocus", "value": "8192" },
+         { "uint": "PDUIWindowFlags_AlwaysVerticalScrollbar", "value": "16384" },
+         { "uint": "PDUIWindowFlags_AlwaysHorizontalScrollbar", "value": "32768" },
+         { "uint": "PDUIWindowFlags_AlwaysUseWindowPadding", "value": "65536" }
        ]
    },
-   
+   {
+       "uint": "PDUIInputTextFlags_",
+       "var": [
+         { "uint": "PDUIInputTextFlags_CharsDecimal", "value": "1" },
+         { "uint": "PDUIInputTextFlags_CharsHexadecimal", "value": "2" },
+         { "uint": "PDUIInputTextFlags_CharsUppercase", "value": "4" },
+         { "uint": "PDUIInputTextFlags_CharsNoBlank", "value": "8" },
+         { "uint": "PDUIInputTextFlags_AutoSelectAll", "value": "16" },
+         { "uint": "PDUIInputTextFlags_EnterReturnsTrue","value": "32" },
+         { "uint": "PDUIInputTextFlags_CallbackCompletion", "value": "64" },
+         { "uint": "PDUIInputTextFlags_CallbackHistory", "value": "128" },
+         { "uint": "PDUIInputTextFlags_CallbackAlways ", "value": "256" },
+         { "uint": "PDUIInputTextFlags_CallbackCharFilter ", "value": "512" },
+         { "uint": "PDUIInputTextFlags_AllowTabInput", "value": "1024" },
+         { "uint": "PDUIInputTextFlags_CtrlEnterForNewLine", "value": "2048" },
+         { "uint": "PDUIInputTextFlags_NoHorizontalScroll", "value": "4096" },
+         { "uint": "PDUIInputTextFlags_AlwaysInsertMode", "value": "8192" },
+         { "uint": "PDUIInputTextFlags_ReadOnly", "value": "16384" },
+         { "uint": "PDUIInputTextFlags_Password", "value": "32768" }
+       ]
+   }],
+
    "struct": [
    {
        "name": "PDVec2",
@@ -79,7 +107,7 @@
         "var": [{ "const char*": "stringId" },
                 { "PDVec2": "size" },
                 { "int": "border" },
-                { "int": "extraFlags" }]
+                { "PDUIWindowFlags": "extraFlags" }]
       },
       { "no_ret": "end_child" },
       { "float": "get_scroll_y" },
@@ -97,7 +125,7 @@
       { "no_ret": "pop_style_var", "var": { "int": "count" } },
       { "float": "get_font_size" },
       { "no_ret": "push_item_width", "var": { "float": "item_width" } },
-      { "void": "pop_item_width", "qualifier": "mut_ext" },
+      { "void": "pop_item_width"},
       { "float": "calc_item_width", "qualifier": "mut_ext" },
       { "no_ret": "push_allow_keyboard_focus", "var": { "int": "v" } },
       { "void": "pop_allow_keyboard_focus", "qualifier": "mut_ext" },
@@ -136,11 +164,12 @@
       { "no_ret": "push_id_str_range", "var": [{ "const char*": "strBegin" }, { "const char*": "strEnd" }] },
       { "no_ret": "push_id_ptr", "var": { "const void*": "ptrId" } },
       { "no_ret": "push_id_int", "var": { "const int": "intId" } },
-      { "void": "pop_id", "qualifier": "mut_ext" },
+      { "void": "pop_id" },
       { "PDID": "get_id_str", "var": { "const char*": "strId" } },
       { "PDID": "get_id_str_range", "var": [{ "const char*": "strBegin" }, { "const char*": "strEnd" }] },
       { "PDID": "get_id_ptr", "var": { "const void*": "ptrId" } },
-      { "no_ret": "text", "var": [{ "const char*": "fmt" }, { "type": "..." }] },
+      { "no_ret": "text", "var": [{ "const char*": "fmt" }] },
+      { "no_ret": "text_format", "var": [{ "const char*": "fmt" }, { "type": "..." }] },
       { "no_ret": "text_v", "var": [{ "const char*": "fmt" }, { "va_list": "args" }] },
       { "no_ret": "text_colored", "var": [{ "const PDColor": "col" }, { "const char*": "fmt" }, { "type": "..." }] },
       { "no_ret": "text_colored_v", "var": [{ "const PDColor": "col" }, { "const char*": "fmt" }, { "va_list": "args" }] },
@@ -517,8 +546,8 @@
           { "const char*": "label" },
           { "char*": "buf" },
           { "int": "buf_size" },
-          { "int": "flags"},
-          { "fptr": { "void": "callback", "var": { "type": "PDUIInputTextCallbackData*" } } },
+          { "PDUIInputTextFlags": "flags"},
+          { "fptr": { "no_ret": "callback", "var": { "type": "PDUIInputTextCallbackData*" } } },
           { "void*": "user_data" }
         ]
       },
@@ -705,15 +734,15 @@
       { "no_ret": "log_to_clipboard", "var": { "int": "maxDepth" } },
       { "void": "log_finish", "qualifier": "mut_ext" },
       { "void": "log_buttons", "qualifier": "mut_ext" },
-      { "int": "is_item_hovered", "qualifier": "mut_ext" },
+      { "int": "is_item_hovered" },
       { "int": "is_item_hovered_rect", "qualifier": "mut_ext" },
       { "int": "is_item_active", "qualifier": "mut_ext" },
       { "int": "is_item_visible", "qualifier": "mut_ext" },
       { "int": "is_any_item_hovered", "qualifier": "mut_ext" },
       { "int": "is_any_item_active", "qualifier": "mut_ext" },
-      { "PDVec2": "get_item_rect_min", "qualifier": "mut_ext" },
-      { "PDVec2": "get_item_rect_max", "qualifier": "mut_ext" },
-      { "PDVec2": "get_item_rect_size", "qualifier": "mut_ext" },
+      { "PDVec2": "get_item_rect_min" },
+      { "PDVec2": "get_item_rect_max" },
+      { "PDVec2": "get_item_rect_size" },
       { "int": "is_window_hovered", "qualifier": "mut_ext" },
       { "int": "is_window_focused", "qualifier": "mut_ext" },
       { "int": "is_root_window_focused", "qualifier": "mut_ext" },
@@ -778,11 +807,12 @@
       { "int": "is_mouse_hovering_any_window", "qualifier": "mut_ext" },
       { "int": "is_mouse_hovering_rect", "var": [{ "const PDVec2": "rectMin" }, { "const PDVec2": "rectMax" }] },
       { "int": "is_mouse_dragging", "var": [{ "int": "button" }, { "float": "lockThreshold" }] },
-      { "PDVec2": "get_mouse_pos", "qualifier": "mut_ext" },
+      { "PDVec2": "get_mouse_pos" },
       { "PDVec2": "get_mouse_drag_delta", "var": [{ "int": "button" }, { "float": "lockThreshold" }] },
       { "no_ret": "reset_mouse_drag_delta", "var": { "int": "button" } },
       { "PDUIMouseCursor": "get_mouse_cursor", "qualifier": "mut_ext" },
       { "no_ret": "set_mouse_cursor", "var": { "PDUIMouseCursor": "ctype" } },
+      { "float": "get_mouse_wheel" },
       { "no_ret": "fill_rect", "var": [{ "PDRect": "rect" }, { "uint": "color" }] },
       {
         "no_ret": "fill_convex_poly",

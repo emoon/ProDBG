@@ -158,7 +158,7 @@ static void drawText(PDUI* uiFuncs, const char* text) {
 
 static void drawTextInt(PDUI* uiFuncs, int v) {
     if (v >= 0)
-        uiFuncs->text("%d", v);
+        uiFuncs->text_format("%d", v);
     else
         uiFuncs->text("");
 

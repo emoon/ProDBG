@@ -244,6 +244,17 @@ RustSharedLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 RustSharedLibrary {
+	Name = "memory_view",
+	CargoConfig = "src/plugins/memory_view/Cargo.toml",
+	Sources = {
+		get_rs_src("src/plugins/memory_view"),
+		get_rs_src("api/rust/prodbg"),
+	}
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+RustSharedLibrary {
 	Name = "disassembly",
 	CargoConfig = "src/plugins/disassembly/Cargo.toml",
 	Sources = {
@@ -325,6 +336,7 @@ Default "console_plugin"
 Default "amiga_uae_plugin"
 Default "amiga_uae_view_plugin"
 Default "bitmap_memory"
+Default "memory_view"
 Default "dummy_backend_plugin"
 --Default "i3_docking"
 

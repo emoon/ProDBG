@@ -112,6 +112,7 @@ pub enum ReadType {
 }
 
 #[repr(C)]
+#[derive(Debug)]
 pub enum ReadStatus {
     Ok = 1 << 8,
     Converted = 2 << 8,

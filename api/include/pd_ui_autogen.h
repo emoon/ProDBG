@@ -12,6 +12,32 @@ enum PDUIWindowFlags_ {
     PDUIWindowFlags_NoSavedSettings  = 256,
     PDUIWindowFlags_NoInputs  = 512,
     PDUIWindowFlags_MenuBar = 1024,
+    PDUIWindowFlags_HorizontalScrollbar = 2048,
+    PDUIWindowFlags_NoFocusOnAppearing = 4096,
+    PDUIWindowFlags_NoBringToFrontOnFocus = 8192,
+    PDUIWindowFlags_AlwaysVerticalScrollbar = 16384,
+    PDUIWindowFlags_AlwaysHorizontalScrollbar = 32768,
+    PDUIWindowFlags_AlwaysUseWindowPadding = 65536,
+};
+
+
+enum PDUIInputTextFlags_ {
+    PDUIInputTextFlags_CharsDecimal = 1,
+    PDUIInputTextFlags_CharsHexadecimal = 2,
+    PDUIInputTextFlags_CharsUppercase = 4,
+    PDUIInputTextFlags_CharsNoBlank = 8,
+    PDUIInputTextFlags_AutoSelectAll = 16,
+    PDUIInputTextFlags_EnterReturnsTrue = 32,
+    PDUIInputTextFlags_CallbackCompletion = 64,
+    PDUIInputTextFlags_CallbackHistory = 128,
+    PDUIInputTextFlags_CallbackAlways  = 256,
+    PDUIInputTextFlags_CallbackCharFilter  = 512,
+    PDUIInputTextFlags_AllowTabInput = 1024,
+    PDUIInputTextFlags_CtrlEnterForNewLine = 2048,
+    PDUIInputTextFlags_NoHorizontalScroll = 4096,
+    PDUIInputTextFlags_AlwaysInsertMode = 8192,
+    PDUIInputTextFlags_ReadOnly = 16384,
+    PDUIInputTextFlags_Password = 32768,
 };
 
 
@@ -59,7 +85,7 @@ struct PDUI {
     void (*set_title)(void* private_data, const char* title);
     PDVec2 (*get_window_size)();
     PDVec2 (*get_window_pos)();
-    void (*begin_child)(const char* stringId, PDVec2 size, int border, int extraFlags);
+    void (*begin_child)(const char* stringId, PDVec2 size, int border, PDUIWindowFlags extraFlags);
     void (*end_child)();
     float (*get_scroll_y)();
     float (*get_scroll_max_y)();
@@ -119,7 +145,8 @@ struct PDUI {
     PDID (*get_id_str)(const char* strId);
     PDID (*get_id_str_range)(const char* strBegin, const char* strEnd);
     PDID (*get_id_ptr)(const void* ptrId);
-    void (*text)(const char* fmt, ...);
+    void (*text)(const char* fmt);
+    void (*text_format)(const char* fmt, ...);
     void (*text_v)(const char* fmt, va_list args);
     void (*text_colored)(const PDColor col, const char* fmt, ...);
     void (*text_colored_v)(const PDColor col, const char* fmt, va_list args);
@@ -174,7 +201,7 @@ struct PDUI {
     int (*drag_int2)(const char* label, int v[2], float vSpeed, int vMin, int vMax, const char* displayFormat);
     int (*drag_int3)(const char* label, int v[3], float vSpeed, int vMin, int vMax, const char* displayFormat);
     int (*drag_int4)(const char* label, int v[4], float vSpeed, int vMin, int vMax, const char* displayFormat);
-    int (*input_text)(const char* label, char* buf, int buf_size, int flags, void (*callback)(PDUIInputTextCallbackData*), void* user_data);
+    int (*input_text)(const char* label, char* buf, int buf_size, PDUIInputTextFlags flags, void (*callback)(PDUIInputTextCallbackData*), void* user_data);
     int (*input_text_multiline)(const char* label, char* buf, size_t buf_size, const PDVec2 size, PDUIInputTextFlags flags, void (*callback)(PDUIInputTextCallbackData*), void* user_data);
     int (*input_float)(const char* label, float* v, float step, float step_fast, int decimal_precision, PDUIInputTextFlags extraFlags);
     int (*input_float2)(const char* label, float v[2], int decimal_precision, PDUIInputTextFlags extraFlags);
@@ -274,6 +301,7 @@ struct PDUI {
     void (*reset_mouse_drag_delta)(int button);
     PDUIMouseCursor (*get_mouse_cursor)();
     void (*set_mouse_cursor)(PDUIMouseCursor ctype);
+    float (*get_mouse_wheel)();
     void (*fill_rect)(PDRect rect, unsigned int color);
     void (*fill_convex_poly)(void* verts, unsigned int count, PDColor color, int aa);
     void (*fill_circle)(PDVec2 pos, float radius, PDColor color, unsigned int num_seg, int aa);

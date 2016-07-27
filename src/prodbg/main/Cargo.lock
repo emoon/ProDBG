@@ -265,7 +265,7 @@ dependencies = [
 [[package]]
 name = "nfd"
 version = "0.0.2"
-source = "git+https://github.com/emoon/nfd-rs.git?branch=refactor#3ce5ff88ba680ad5ddc50b59b959b6dc3d06826f"
+source = "git+https://github.com/emoon/nfd-rs.git?branch=refactor#d4c4e88436662ca37a98ce8aefcc0553e4e43a44"
 dependencies = [
  "gcc 0.3.28 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

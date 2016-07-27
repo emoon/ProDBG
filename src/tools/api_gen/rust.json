@@ -13,7 +13,7 @@
       { "type": "ushort", "value": "c_ushort" },
       { "type": "const *uint8", "value": "*const u8" },
       { "type": "const int", "value": "c_int" },
-      { "type": "size_t", "value": "c_int" },
+      { "type": "size_t", "value": "usize" },
       { "type": "uint", "value": "c_uint" },
       { "type": "uint*", "value": "*mut c_uint" },
       { "type": "const float*", "value": "*const c_float" },

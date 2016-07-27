@@ -1,5 +1,5 @@
 //use prodbg_api::backend::Status;
-use prodbg_api::ui::Color;
+use prodbg_api::{Color, ImGuiCol};
 use super::imgui_sys::*;
 //use imgui_sys::*;
 
@@ -29,7 +29,7 @@ impl Statusbar {
         Imgui::set_window_pos(0.0, y_pos);
         Imgui::set_window_size(window_size.0 as f32, status_size); 
 
-        ui.push_style_color(2, Color::from_rgb(50, 30, 40));
+        ui.push_style_color(ImGuiCol::WindowBg, Color::from_rgb(50, 30, 40));
 
         Imgui::begin_window_flags("", true, 
                                       WINDOWFLAGS_NO_TITLE_BAR |

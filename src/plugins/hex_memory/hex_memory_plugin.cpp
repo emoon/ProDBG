@@ -89,7 +89,7 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
 
         // Get Hex and chars
 
-        uiFuncs->text("%s: ", addressText); uiFuncs->same_line(0, -1);
+        uiFuncs->text_format("%s: ", addressText); uiFuncs->same_line(0, -1);
 
         PDColor color = PDUI_COLOR(255, 0, 0, 255);
 
@@ -100,7 +100,7 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
             uint8_t co = oldMemoryData[p];
 
             if (c == co)
-                uiFuncs->text("%02x", c);
+                uiFuncs->text_format("%02x", c);
             else
                 uiFuncs->text_colored(color, "%02x", c);
 
@@ -120,7 +120,7 @@ static void drawData(HexMemoryData* data, PDUI* uiFuncs, int lineCount, int char
                 wc = '.';
 
             if (c == co)
-                uiFuncs->text("%c", wc);
+                uiFuncs->text_format("%c", wc);
             else
                 uiFuncs->text_colored(color, "%c", wc);
 

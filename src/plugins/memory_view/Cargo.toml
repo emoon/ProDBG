@@ -1,0 +1,11 @@
+[package]
+name = "memory_view"
+version = "0.0.1"
+authors = ["Slava Baginov <slnpacifist@gmail.com>"]
+
+[lib]
+name = "memory_view"
+crate-type = ["dylib"]
+
+[dependencies]
+prodbg_api = { path = "../../../api/rust/prodbg" }

@@ -103,7 +103,7 @@ static PDVec2 get_window_pos() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void begin_child(const char* stringId, PDVec2 size, int border, int extraFlags) {
+static void begin_child(const char* stringId, PDVec2 size, int border, PDUIInputTextFlags extraFlags) {
     ImGui::BeginChild(stringId, ImVec2(size.x, size.y), !!border, ImGuiWindowFlags(extraFlags));
 }
 
@@ -467,7 +467,13 @@ static PDID get_id_ptr(const void* ptrId) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void text(const char* format, ...) {
+static void text(const char* text) {
+    ImGui::Text("%s", text);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void text_format(const char* format, ...) {
     va_list ap;
     va_start(ap, format);
 
@@ -904,6 +910,8 @@ static int textEditCallbackStub(ImGuiTextEditCallbackData* data) {
     callbackData.buf = data->Buf;
     callbackData.buf_size = int(data->BufSize);
     callbackData.buf_dirty = data->BufDirty;
+    callbackData.event_char = data->EventChar;
+    callbackData.event_flag = data->EventFlag;
     callbackData.flags = PDUIInputTextFlags(data->Flags);
     callbackData.cursor_pos = data->CursorPos;
     callbackData.selection_start = data->SelectionStart;
@@ -923,17 +931,18 @@ static int textEditCallbackStub(ImGuiTextEditCallbackData* data) {
     data->Buf = callbackData.buf;
     data->BufSize = (int)callbackData.buf_size;
     data->BufDirty = callbackData.buf_dirty;
+    data->EventChar = callbackData.event_char;
     data->Flags = ImGuiInputTextFlags(callbackData.flags);
     data->CursorPos = callbackData.cursor_pos;
     data->SelectionStart = callbackData.selection_start;
     data->SelectionEnd   = callbackData.selection_end;
 
-    return 1;
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int input_text(const char* label, char* buf, int buf_size, int flags, void (*callback)(PDUIInputTextCallbackData*), void* user_data) {
+static int input_text(const char* label, char* buf, int buf_size, PDUIInputTextFlags flags, void (*callback)(PDUIInputTextCallbackData*), void* user_data) {
     PDInputTextUserData wrappedUserData;
     wrappedUserData.callback = callback;
     wrappedUserData.user_data = user_data;
@@ -1615,6 +1624,12 @@ static void set_mouse_cursor(PDUIMouseCursor type) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static float get_mouse_wheel() {
+    return ImGui::GetIO().MouseWheel;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void fill_rect(PDRect rect, PDColor color) {
     ImGui::FillRect(ImVec2(rect.x, rect.y), ImVec2(rect.width, rect.height), color);
 }
@@ -1806,6 +1821,7 @@ static PDUI s_uiFuncs[] =
     // Widgets
 
     text,
+    text_format,
     text_v,
     text_colored,
     text_colored_v,
@@ -1989,6 +2005,7 @@ static PDUI s_uiFuncs[] =
     reset_mouse_drag_delta,
     get_mouse_cursor,
     set_mouse_cursor,
+    get_mouse_wheel,
 
     // Rendering
 
