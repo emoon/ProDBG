@@ -24,6 +24,7 @@ use std::io::{Read, Write};
 use statusbar::Statusbar;
 use self::nfd::Response as NfdResponse;
 use prodbg_api::events;
+use prodbg_api::ui::Ui;
 
 // use std::mem::transmute;
 
@@ -492,21 +493,31 @@ impl Window {
         });
     }
 
+    fn render_unix_menu(ui: &Ui, menu: &minifb::UnixMenu) -> Option<usize> {
+        let mut res = None;
+        if ui.begin_menu(&menu.name, true) {
+            for item in menu.items.iter() {
+                if let Some(ref sub_menu) = item.sub_menu {
+                    res = res.or(Self::render_unix_menu(ui, sub_menu));
+                } else {
+                    if ui.menu_item(&item.label, false, true) {
+                        res = Some(item.id);
+                    }
+                }
+            }
+            ui.end_menu();
+        }
+        res
+    }
+
     fn show_unix_menus(&mut self) -> Option<usize> {
+        // TODO: process unix menus shortcuts
         let mut res = None;
         if let Some(menus) = self.win.get_unix_menus() {
             let ui = Imgui::get_ui();
             if ui.begin_main_menu_bar() {
                 for menu in menus {
-                    if ui.begin_menu(&menu.name, true) {
-                        for item in menu.items.iter() {
-                            // TODO: implement recursive menus
-                            if ui.menu_item(&item.label, false, true) {
-                                res = Some(item.id);
-                            }
-                        }
-                        ui.end_menu();
-                    }
+                    res = res.or(Self::render_unix_menu(&ui, menu));
                 }
                 self.custom_menu_height = ui.get_window_size().1;
                 ui.end_main_menu_bar();
