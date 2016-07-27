@@ -74,6 +74,7 @@ pub struct Window {
     pub context_menu_data: Option<(DockHandle, (f32, f32))>,
 
     pub statusbar: Statusbar,
+    pub custom_menu_height: f32,
 }
 
 struct WindowState {
@@ -154,6 +155,7 @@ impl Windows {
             overlay: None,
             context_menu_data: None,
             statusbar: Statusbar::new(),
+            custom_menu_height: 0.0,
         });
     }
 
@@ -490,19 +492,27 @@ impl Window {
         });
     }
 
-    fn show_unix_menus(window: &minifb::Window) -> Option<usize> {
-        let _ui = Imgui::get_ui();
-        let _menus = window.get_unix_menus().unwrap();
-        // implement unix menus here
-        None
-    }
-
-    fn is_menu_pressed(window: &mut minifb::Window) -> Option<usize> {
-        if window.get_unix_menus().is_some() {
-            return Self::show_unix_menus(&window);
+    fn show_unix_menus(&mut self) -> Option<usize> {
+        let mut res = None;
+        if let Some(menus) = self.win.get_unix_menus() {
+            let ui = Imgui::get_ui();
+            if ui.begin_main_menu_bar() {
+                for menu in menus {
+                    if ui.begin_menu(&menu.name, true) {
+                        for item in menu.items.iter() {
+                            // TODO: implement recursive menus
+                            if ui.menu_item(&item.label, false, true) {
+                                res = Some(item.id);
+                            }
+                        }
+                        ui.end_menu();
+                    }
+                }
+                self.custom_menu_height = ui.get_window_size().1;
+                ui.end_main_menu_bar();
+            }
         }
-
-        window.is_menu_pressed()
+        res
     }
 
     fn has_source_code_view(&self) -> bool {
@@ -551,7 +561,7 @@ impl Window {
                     backend_plugins: &mut BackendPlugins) {
         let current_session = sessions.get_current();
 
-        let menu_id = match Self::is_menu_pressed(&mut self.win) {
+        let menu_id = match self.show_unix_menus().or_else(|| self.win.is_menu_pressed()) {
             Some(id) => id,
             None => return,
         };
@@ -595,7 +605,7 @@ impl Window {
         let mut has_shown_menu = 0u32;
 
         let mut win_size = self.win.get_size();
-        win_size.1 = win_size.1.saturating_sub(self.statusbar.get_size() as usize);
+        win_size.1 = win_size.1.saturating_sub(self.statusbar.get_size() as usize).saturating_sub(self.custom_menu_height as usize);
 
         let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
 
