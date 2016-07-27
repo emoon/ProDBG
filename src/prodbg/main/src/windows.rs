@@ -619,8 +619,11 @@ impl Window {
         let mut views_to_delete = Vec::new();
         let mut has_shown_menu = 0u32;
 
-        let mut win_size = self.win.get_size();
-        win_size.1 = win_size.1.saturating_sub(self.statusbar.get_size() as usize).saturating_sub(self.custom_menu_height as usize);
+        self.update_menus(view_plugins, sessions, backend_plugins);
+
+        let win_size = self.win.get_size();
+        let width = win_size.0 as f32;
+        let height = (win_size.1 as f32) - self.statusbar.get_size() - self.custom_menu_height;
 
         let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
 
@@ -629,7 +632,7 @@ impl Window {
         }
 
         self.win.update();
-        self.ws.update_rect(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
+        self.ws.update_rect(Rect::new(0.0, self.custom_menu_height, width, height));
         self.update_key_state();
 
         let show_context_menu = self.win.get_mouse_down(MouseButton::Right);
@@ -658,8 +661,6 @@ impl Window {
         }
 
         self.statusbar.update(self.win.get_size());
-
-        self.update_menus(view_plugins, sessions, backend_plugins);
 
         if self.win.is_key_pressed(Key::Z, KeyRepeat::No) {
             self.undo_workspace_change(view_plugins);
