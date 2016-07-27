@@ -1,6 +1,6 @@
 {
   "config": [ "src/tools/api_gen/rust.json", "src/tools/api_gen/cpp.json" ],
-  
+
    "bitflags": [
    {
        "uint": "PDUIWindowFlags_",
@@ -51,7 +51,7 @@
        "name": "PDVec2",
        "attribute": [ {"name": "C-ABI"}, {"name": "DERIVE-DBG"} ],
        "var": [{ "float":"x" }, { "float": "y" }]
-   }, 
+   },
    {
        "name": "PDVec4",
        "attribute": "C-ABI",
@@ -642,7 +642,7 @@
       { "int": "tree_node_ptr_v", "var": [{ "const void*": "ptrId" }, { "const char*": "fmt" }, { "va_list": "args" }] },
       { "no_ret": "tree_push_str", "var": { "const char*": "strId" } },
       { "no_ret": "tree_push_ptr", "var": { "const void*": "ptrId" } },
-      { "void": "tree_pop", "qualifier": "mut_ext" },
+      { "no_ret": "tree_pop" },
       { "no_ret": "set_next_tree_node_opened", "var": [{ "int": "opened" }, { "PDUISetCond": "cond" }] },
       {
         "int": "selectable",

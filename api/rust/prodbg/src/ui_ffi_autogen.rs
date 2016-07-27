@@ -226,7 +226,7 @@ pub struct CPdUI {
     pub tree_node_ptr_v: extern fn(ptrId: *const c_void, fmt: *const c_char, args: c_int) -> c_int,
     pub tree_push_str: extern fn(strId: *const c_char),
     pub tree_push_ptr: extern fn(ptrId: *const c_void),
-    pub tree_pop: *mut extern fn() -> c_void,
+    pub tree_pop: extern fn(),
     pub set_next_tree_node_opened: extern fn(opened: c_int, cond: c_uint),
     pub selectable: extern fn(label: *const c_char, selected: c_int, flags: c_uint, size: PDVec2) -> c_int,
     pub selectable_ex: extern fn(label: *const c_char, p_selected: *mut c_int, flags: c_uint, size: PDVec2) -> c_int,
