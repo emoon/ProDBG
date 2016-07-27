@@ -914,7 +914,7 @@ impl Window {
 
             let docks = self.ws.get_docks();
 
-            // TODO: Move this code to seprate file and make it generic (copy'n'paste currently)
+            // TODO: Move this code to separate file and make it generic (copy'n'paste currently)
             for dock in &docks {
                 let mut new_view_handles: Vec<ViewHandle> = Vec::new();
                 if !self.views.iter().find(|view| view.0 == dock.handle.0).is_some() {
@@ -926,7 +926,8 @@ impl Window {
                                                                                    ViewHandle(dock.handle.0)) {
                         new_view_handles.push(handle);
                     } else {
-                        panic!("Could not restore view");
+                        println!("Could not load view {}", dock.plugin_name);
+                        self.ws.delete_dock_by_handle(dock.handle);
                     }
                 }
                 self.views.extend(new_view_handles);
