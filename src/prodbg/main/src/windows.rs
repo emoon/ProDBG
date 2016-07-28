@@ -677,7 +677,7 @@ impl Window {
     }
 
     fn restore_workspace_state(&mut self, view_plugins: &mut ViewPlugins) {
-        self.ws = Workspace::from_state(&self.ws_states[self.cur_state_index]);
+        self.ws = Workspace::from_state(&self.ws_states[self.cur_state_index]).unwrap();
         let win_size = self.win.get_size();
         self.ws.update_rect(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
         let docks = self.ws.get_docks();
@@ -692,11 +692,12 @@ impl Window {
             let mut new_view_handles: Vec<ViewHandle> = Vec::new();
             if !self.views.iter().find(|view| view.0 == dock.handle.0).is_some() {
                 let ui = Imgui::create_ui_instance();
-                if let Some(handle) = view_plugins.create_instance_with_handle(ui,
-                                                                               &dock.plugin_name,
-                                                                               &dock.plugin_data,
-                                                                               SessionHandle(0),
-                                                                               ViewHandle(dock.handle.0)) {
+                if let Some(handle) = view_plugins.create_instance(ui,
+                                                                   &dock.plugin_name,
+                                                                   dock.plugin_data.as_ref(),
+                                                                   Some(&dock.name),
+                                                                   SessionHandle(0),
+                                                                   Some(ViewHandle(dock.handle.0))) {
                     new_view_handles.push(handle);
                 } else {
                     panic!("Could not restore view");
@@ -735,10 +736,11 @@ impl Window {
         self.cur_state_index += 1;
     }
 
-    fn split_view(&mut self, name: &String, view_plugins: &mut ViewPlugins, direction: Direction) {
+    fn split_view(&mut self, plugin_name: &str, view_plugins: &mut ViewPlugins, direction: Direction) {
         let ui = Imgui::create_ui_instance();
-        if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
-            let new_dock = Dock::new(DockHandle(handle.0), name);
+        if let Some(handle) = view_plugins.create_instance(ui, plugin_name, None, None, SessionHandle(0), None) {
+            let name = &view_plugins.get_view(handle).unwrap().name;
+            let new_dock = Dock::new(DockHandle(handle.0), name, plugin_name);
             if let Some((dock_handle, pos)) = self.context_menu_data {
                 let position = self.ws
                     .get_rect_by_handle(dock_handle)
@@ -762,11 +764,12 @@ impl Window {
         }
     }
 
-    fn tab_view(&mut self, name: &String, view_plugins: &mut ViewPlugins) {
+    fn tab_view(&mut self, plugin_name: &str, view_plugins: &mut ViewPlugins) {
         let ui = Imgui::create_ui_instance();
-        if let Some(handle) = view_plugins.create_instance(ui, name, SessionHandle(0)) {
+        if let Some(handle) = view_plugins.create_instance(ui, plugin_name, None, None, SessionHandle(0), None) {
             let new_handle = DockHandle(handle.0);
-            let dock = viewdock::Dock::new(new_handle, name);
+            let name = &view_plugins.get_view(handle).unwrap().name;
+            let dock = viewdock::Dock::new(new_handle, name, plugin_name);
             self.views.push(handle);
 
             let mut should_save_ws = false;
@@ -810,11 +813,12 @@ impl Window {
                 if ui.menu_item(name, false, true) {
                     if let Some((dock_handle, _)) = self.context_menu_data {
                         view_plugins.destroy_instance(ViewHandle(dock_handle.0));
-                        view_plugins.create_instance_with_handle(Imgui::create_ui_instance(),
-                        &name,
-                        &None,
-                        SessionHandle(0),
-                        ViewHandle(dock_handle.0));
+                        view_plugins.create_instance(Imgui::create_ui_instance(),
+                                                     &name,
+                                                     None,
+                                                     None,
+                                                     SessionHandle(0),
+                                                     Some(ViewHandle(dock_handle.0)));
                     }
                 }
             }
@@ -910,7 +914,10 @@ impl Window {
             let mut file = try!(File::open(filename));
             try!(file.read_to_string(&mut data));
 
-            self.ws = Workspace::from_state(&data);
+            self.ws = match Workspace::from_state(&data) {
+                Ok(ws) => ws,
+                Err(error) => return Result::Err(io::Error::new(io::ErrorKind::InvalidData, error)),
+            };
 
             let docks = self.ws.get_docks();
 
@@ -919,11 +926,12 @@ impl Window {
                 let mut new_view_handles: Vec<ViewHandle> = Vec::new();
                 if !self.views.iter().find(|view| view.0 == dock.handle.0).is_some() {
                     let ui = Imgui::create_ui_instance();
-                    if let Some(handle) = view_plugins.create_instance_with_handle(ui,
-                                                                                   &dock.plugin_name,
-                                                                                   &dock.plugin_data,
-                                                                                   SessionHandle(0),
-                                                                                   ViewHandle(dock.handle.0)) {
+                    if let Some(handle) = view_plugins.create_instance(ui,
+                                                                       &dock.plugin_name,
+                                                                       dock.plugin_data.as_ref(),
+                                                                       Some(&dock.name),
+                                                                       SessionHandle(0),
+                                                                       Some(ViewHandle(dock.handle.0))) {
                         new_view_handles.push(handle);
                     } else {
                         println!("Could not load view {}", dock.plugin_name);
