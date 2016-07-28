@@ -9,14 +9,15 @@ extern crate renderer;
 pub mod windows;
 pub mod menu;
 pub mod statusbar;
+mod dir_searcher;
 
-//use renderer::Renderer;
+// use renderer::Renderer;
 use core::session::Sessions;
 use windows::Windows;
 use settings::Settings;
 use core::{DynamicReload, Search};
-use core::view_plugins::{ViewPlugins};
-use core::backend_plugin::{BackendPlugins};
+use core::view_plugins::ViewPlugins;
+use core::backend_plugin::BackendPlugins;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::Duration;
@@ -24,6 +25,14 @@ use std::time::Duration;
 use core::plugins::*;
 
 fn main() {
+    match dir_searcher::find_working_dir() {
+        Some(wd) => std::env::set_current_dir(wd).unwrap(),
+        None => {
+            panic!("\
+            Could not find proper working directory. Working directory \
+                    should contain accessible \"data\" directory.")
+        }
+    }
     let mut sessions = Sessions::new();
     let mut windows = Windows::new();
     let mut settings = Settings::new();
@@ -45,7 +54,8 @@ fn main() {
     plugins.add_handler(&backend_plugins);
     plugins.search_load_plugins(&mut lib_handler);
 
-    if let Some(backend) = backend_plugins.borrow_mut().create_instance(&"Dummy Backend".to_owned()) {
+    if let Some(backend) = backend_plugins.borrow_mut()
+        .create_instance(&"Dummy Backend".to_owned()) {
         if let Some(session) = sessions.get_session(session) {
             session.set_backend(Some(backend));
             println!("set backend");
@@ -70,10 +80,9 @@ fn main() {
         std::thread::sleep(Duration::from_millis(5));
     }
 
-    //windows.save("data/user_layout.json", &mut view_plugins.borrow_mut());
+    // windows.save("data/user_layout.json", &mut view_plugins.borrow_mut());
 }
 
 // dummy
 #[no_mangle]
-pub fn init_plugin() {
-}
+pub fn init_plugin() {}
