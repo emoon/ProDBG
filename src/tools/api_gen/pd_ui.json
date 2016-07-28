@@ -135,7 +135,7 @@
       { "void": "pop_button_repeat", "qualifier": "mut_ext" },
       { "void": "begin_group", "qualifier": "mut_ext" },
       { "void": "end_group", "qualifier": "mut_ext" },
-      { "void": "separator", "qualifier": "mut_ext" },
+      { "void": "separator" },
       { "no_ret": "same_line", "var": [{ "int": "columnX" }, { "int": "spacingW" }] },
       { "void": "spacing", "qualifier": "mut_ext" },
       { "no_ret": "dummy", "var": { "PDVec2": "size" } },

@@ -120,7 +120,7 @@ pub struct CPdUI {
     pub pop_button_repeat: *mut extern fn() -> c_void,
     pub begin_group: *mut extern fn() -> c_void,
     pub end_group: *mut extern fn() -> c_void,
-    pub separator: *mut extern fn() -> c_void,
+    pub separator: extern fn() -> c_void,
     pub same_line: extern fn(columnX: c_int, spacingW: c_int),
     pub spacing: *mut extern fn() -> c_void,
     pub dummy: extern fn(size: PDVec2),

@@ -500,8 +500,12 @@ impl Window {
                 if let Some(ref sub_menu) = item.sub_menu {
                     res = res.or(Self::render_unix_menu(ui, sub_menu));
                 } else {
-                    if ui.menu_item(&item.label, false, true) {
-                        res = Some(item.id);
+                    if item.label.is_empty() {
+                        ui.separator();
+                    } else {
+                        if ui.menu_item(&item.label, false, true) {
+                            res = Some(item.id);
+                        }
                     }
                 }
             }
