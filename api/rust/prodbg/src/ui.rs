@@ -673,6 +673,19 @@ impl Ui {
             }
         }
     }
+
+    pub fn begin_main_menu_bar(&self) -> bool {
+        unsafe { ((*self.api).begin_main_menu_bar)() == 1 }
+    }
+
+    pub fn end_main_menu_bar(&self) {
+        unsafe { ((*self.api).end_main_menu_bar)(); }
+    }
+
+    pub fn separator(&self) {
+        unsafe { ((*self.api).separator)(); }
+    }
+
     pub fn begin_popup(&self, text: &str) -> bool {
         unsafe {
             let t = CFixedString::from_str(text).as_ptr();
