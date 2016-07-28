@@ -8,14 +8,16 @@ pub struct DockHandle(pub u64);
 #[derive(Debug, Clone)]
 pub struct Dock {
     pub handle: DockHandle,
+    pub name: String,
     pub plugin_name: String,
     pub plugin_data: Option<Vec<String>>,
 }
 
 impl Dock {
-    pub fn new(dock_handle: DockHandle, plugin_name: &str) -> Dock {
+    pub fn new(handle: DockHandle, name: &str, plugin_name: &str) -> Dock {
         Dock {
-            handle: dock_handle,
+            handle: handle,
+            name: name.to_owned(),
             plugin_name: plugin_name.to_owned(),
             plugin_data: None,
         }
@@ -40,6 +42,7 @@ mod test {
     fn test_dock_serialize_0() {
         let dock_in = Dock {
             handle: DockHandle(1),
+            name: "checker".to_owned(),
             plugin_name: "disassembly".to_owned(),
             plugin_data: None,
         };
@@ -48,6 +51,7 @@ mod test {
         let dock_out: Dock = serde_json::from_str(&serialized).unwrap();
 
         assert_eq!(dock_in.handle, dock_out.handle);
+        assert_eq!(dock_in.name, dock_out.name);
         assert_eq!(dock_in.plugin_name, dock_out.plugin_name);
         assert_eq!(dock_in.plugin_data, dock_out.plugin_data);
     }
@@ -56,6 +60,7 @@ mod test {
     fn test_dock_serialize_1() {
         let dock_in = Dock {
             handle: DockHandle(1),
+            name: "regs".to_owned(),
             plugin_name: "registers".to_owned(),
             plugin_data: Some(vec!["some_data".to_owned(), "more_data".to_owned()]),
         };

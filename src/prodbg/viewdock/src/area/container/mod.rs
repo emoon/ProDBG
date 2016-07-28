@@ -196,7 +196,7 @@ mod test {
     use rect::Rect;
 
     fn get_test_dock(id: u64) -> Dock {
-        return Dock::new(DockHandle(id), "test");
+        return Dock::new(DockHandle(id), "test_name", "test_plugin");
     }
 
     fn get_test_container() -> Container {
@@ -294,6 +294,7 @@ mod test {
         let container_in = Container {
             docks: vec![Dock {
                 handle: DockHandle(1),
+                name: "regs".to_owned(),
                 plugin_name: "registers".to_owned(),
                 plugin_data: Some(vec!["some_data".to_owned(), "more_data".to_owned()]),
             }],

@@ -197,11 +197,11 @@ mod test {
             0.7,
             SplitHandle(513),
             Rect::new(17.0, 15.0, 100.0, 159.0),
-            Area::Container(Container::new(Dock::new(DockHandle(14), "test"), Rect::default())),
-            Area::Container(Container::new(Dock::new(DockHandle(15), "test2"), Rect::default()))
+            Area::Container(Container::new(Dock::new(DockHandle(14), "test", "plugin"), Rect::default())),
+            Area::Container(Container::new(Dock::new(DockHandle(15), "test2", "plugin"), Rect::default()))
         ));
         let container = Area::Container(Container::new(
-            Dock::new(DockHandle(17), "test"), Rect::new(1.0, 2.0, 3.0, 4.0)
+            Dock::new(DockHandle(17), "test", "plugin"), Rect::new(1.0, 2.0, 3.0, 4.0)
         ));
         let split_serialized = serde_json::to_string(&split).unwrap();
         let container_serialized = serde_json::to_string(&container).unwrap();

@@ -27,6 +27,7 @@ pub struct ViewInstance {
 
 #[derive(Clone)]
 struct ReloadState {
+    plugin_type: String,
     name: String,
     ui: Ui,
     handle: ViewHandle,
@@ -56,7 +57,8 @@ impl PluginHandler for ViewPlugins {
             if &self.instances[i].plugin_type.lib == lib {
                 let state = ReloadState {
                     ui: self.instances[i].ui.clone(),
-                    name: self.instances[i].plugin_type.name.clone(),
+                    plugin_type: self.instances[i].plugin_type.name.clone(),
+                    name: self.instances[i].name.clone(),
                     handle: self.instances[i].handle,
                     session_handle: self.instances[i].session_handle,
                 };
@@ -76,12 +78,12 @@ impl PluginHandler for ViewPlugins {
     fn reload_plugin(&mut self) {
         let t = self.reload_state.clone();
         for reload_plugin in &t {
-            self.create_instance_with_handle(
-                                  reload_plugin.ui.clone(),
-                                  &reload_plugin.name,
-                                  &None, // TODO: Include saved data here
-                                  reload_plugin.session_handle,
-                                  reload_plugin.handle);
+            self.create_instance(reload_plugin.ui.clone(),
+                                 &reload_plugin.plugin_type,
+                                 None, // TODO: Include saved data here
+                                 Some(&reload_plugin.name),
+                                 reload_plugin.session_handle,
+                                 Some(reload_plugin.handle));
         }
     }
 
@@ -100,21 +102,30 @@ impl ViewPlugins {
         }
     }
 
-    pub fn get_view(&mut self, view_handle: ViewHandle) -> Option<&mut ViewInstance> {
-        for i in 0..self.instances.len() {
-            if self.instances[i].handle == view_handle {
-                return Some(&mut self.instances[i]);
-            }
-        }
+    pub fn get_view(&mut self, handle: ViewHandle) -> Option<&mut ViewInstance> {
+        self.instances.iter_mut().find(|i| i.handle == handle)
+    }
 
-        None
+    fn name_is_unique(&self, name: &str) -> bool {
+        !self.instances.iter().any(|i| i.name == name)
+    }
+
+    fn get_unique_name(&self, plugin_type_name: &str) -> String {
+        let mut res = plugin_type_name.to_owned();
+        let mut counter = 2;
+        while !self.name_is_unique(&res) {
+            res = format!("{} {}", plugin_type_name, counter);
+            counter += 1;
+        }
+        res
     }
 
     pub fn create_instance_from_index(&mut self,
                                       ui: Ui,
                                       index: usize,
                                       session_handle: SessionHandle,
-                                      view_handle: Option<ViewHandle>)
+                                      view_handle: Option<ViewHandle>,
+                                      name: Option<&str>)
                                       -> Option<ViewHandle> {
         let plugin_data = unsafe {
             let callbacks = self.plugin_types[index].plugin_funcs as *mut CViewCallbacks;
@@ -135,9 +146,13 @@ impl ViewPlugins {
             }
         };
 
+        let name = name
+            .map(|n| n.to_owned())
+            .unwrap_or_else(|| self.get_unique_name(&self.plugin_types[index].name));
+
         let instance = ViewInstance {
             plugin_data: plugin_data,
-            name: format!("Plugin {}", handle.0),
+            name: name,
             ui: ui,
             handle: handle,
             session_handle: session_handle,
@@ -153,46 +168,31 @@ impl ViewPlugins {
         Some(handle)
     }
 
+    /// Creates new plugin instance. If `name` is not specified, unique name will be generated.
     pub fn create_instance(&mut self,
                            ui: Ui,
-                           plugin_type: &String,
-                           session_handle: SessionHandle)
+                           plugin_type: &str,
+                           plugin_data: Option<&Vec<String>>,
+                           name: Option<&str>,
+                           session_handle: SessionHandle,
+                           handle: Option<ViewHandle>)
                            -> Option<ViewHandle> {
-        for i in 0..self.plugin_types.len() {
-            if self.plugin_types[i].name != *plugin_type {
-                continue;
-            }
+        self.plugin_types
+            .iter()
+            .position(|pt| plugin_type == pt.name)
+            .and_then(|pos| {
+                let res = self.create_instance_from_index(ui, pos, session_handle, handle, name);
 
-            return Self::create_instance_from_index(self, ui, i, session_handle, None);
-        }
+                if let Some(handle) = res {
+                    if let Some(data) = plugin_data {
+                        self.get_view(handle).map(|instance| {
+                            instance.load_plugin_data(data);
+                        });
+                    }
+                }
 
-        None
-    }
-
-    pub fn create_instance_with_handle(&mut self,
-                                       ui: Ui,
-                                       plugin_type: &String,
-                                       plugin_data: &Option<Vec<String>>,
-                                       session_handle: SessionHandle,
-                                       view_handle: ViewHandle) -> Option<ViewHandle> {
-
-        for i in 0..self.plugin_types.len() {
-            if self.plugin_types[i].name != *plugin_type {
-                continue;
-            }
-
-            let handle = Self::create_instance_from_index(self, ui, i, session_handle, Some(view_handle));
-
-            if let Some(ref data) = *plugin_data {
-                self.get_view(handle.unwrap()).map(|instance| {
-                    instance.load_plugin_data(&data);
-                });
-            }
-
-            return handle;
-        }
-
-        None
+                res
+            })
     }
 
     pub fn destroy_instance(&mut self, handle: ViewHandle) {

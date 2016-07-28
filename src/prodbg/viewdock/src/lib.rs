@@ -375,8 +375,8 @@ impl Workspace {
 
     /// Creates workspace from serialized string. Since `Rect` fields are not serialized, call
     /// `update_rect` to set new one.
-    pub fn from_state(state: &str) -> Workspace {
-        serde_json::from_str(state).unwrap()
+    pub fn from_state(state: &str) -> Result<Workspace, serde_json::Error> {
+        serde_json::from_str(state)
     }
 
     /// Returns all the docks in this structure
@@ -413,7 +413,7 @@ mod test {
     use test_helper::{is_container_with_single_dock, rects_are_equal};
 
     fn test_area_container(id: u64) -> Area {
-        Area::Container(Container::new(Dock::new(DockHandle(id), "test"), Rect::default()))
+        Area::Container(Container::new(Dock::new(DockHandle(id), "test", "plugin"), Rect::default()))
     }
 
     fn test_area_split(dir: Direction, id: u64, first: Area, second: Area) -> Area {
@@ -504,7 +504,7 @@ mod test {
             handle_counter: SplitHandle(0)
         };
         let target = ItemTarget::SplitRoot(Direction::Horizontal, 0);
-        ws.create_dock_at(target, Dock::new(DockHandle(6), "test2"));
+        ws.create_dock_at(target, Dock::new(DockHandle(6), "test2", "plugin"));
         match ws.root_area.unwrap() {
             Area::Split(ref s) => {
                 assert_eq!(s.children.len(), 2);
@@ -523,7 +523,7 @@ mod test {
             handle_counter: SplitHandle(0)
         };
         let target = ItemTarget::SplitRoot(Direction::Vertical, 1);
-        ws.create_dock_at(target, Dock::new(DockHandle(6), "test2"));
+        ws.create_dock_at(target, Dock::new(DockHandle(6), "test2", "plugin"));
         match ws.root_area.unwrap() {
             Area::Split(ref s) => {
                 assert_eq!(s.children.len(), 2);
@@ -545,7 +545,7 @@ mod test {
             handle_counter: SplitHandle(1),
         };
         let target = ItemTarget::SplitContainer(SplitHandle(0), 0, 1);
-        ws.create_dock_at(target, Dock::new(DockHandle(2), "test2"));
+        ws.create_dock_at(target, Dock::new(DockHandle(2), "test2", "plugin"));
         match ws.root_area.unwrap() {
             Area::Split(ref s) => {
                 assert_eq!(s.direction, Direction::Horizontal);
@@ -576,7 +576,7 @@ mod test {
             handle_counter: SplitHandle(1),
         };
         let target = ItemTarget::SplitDock(DockHandle(1), Direction::Horizontal, 1);
-        ws.create_dock_at(target, Dock::new(DockHandle(2), "test2"));
+        ws.create_dock_at(target, Dock::new(DockHandle(2), "test2", "plugin"));
         match ws.root_area.unwrap() {
             Area::Split(ref s) => {
                 assert_eq!(s.children.len(), 3);
@@ -599,7 +599,7 @@ mod test {
             handle_counter: SplitHandle(1),
         };
         let target = ItemTarget::SplitDock(DockHandle(0), Direction::Vertical, 0);
-        ws.create_dock_at(target, Dock::new(DockHandle(2), "test2"));
+        ws.create_dock_at(target, Dock::new(DockHandle(2), "test2", "plugin"));
         match ws.root_area.unwrap() {
             Area::Split(ref s) => {
                 assert_eq!(s.direction, Direction::Horizontal);
@@ -638,7 +638,7 @@ mod test {
     fn test_workspace_serialize_1() {
         let ws_in = Workspace {
             root_area: Some(Area::Container(
-                Container::new(Dock::new(DockHandle(5), "test"), Rect::default())
+                Container::new(Dock::new(DockHandle(5), "test", "plugin"), Rect::default())
             )),
             rect: Rect::new(4.0, 5.0, 2.0, 8.0),
             handle_counter: SplitHandle(2),

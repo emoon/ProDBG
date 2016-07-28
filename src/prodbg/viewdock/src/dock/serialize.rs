@@ -18,6 +18,7 @@ struct DockMapVisitor<'a> {
 impl<'a> serde::ser::MapVisitor for DockMapVisitor<'a> {
     fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: serde::Serializer {
         try!(serializer.serialize_struct_elt("handle", &self.value.handle));
+        try!(serializer.serialize_struct_elt("name", &self.value.name));
         try!(serializer.serialize_struct_elt("plugin_name", &self.value.plugin_name));
         try!(serializer.serialize_struct_elt("plugin_data", &self.value.plugin_data));
         Ok(None)
@@ -27,6 +28,7 @@ impl<'a> serde::ser::MapVisitor for DockMapVisitor<'a> {
 // Deserialization
 gen_struct_deserializer!(Dock;
     handle => "handle", Handle,
+    name => "name", Name,
     plugin_name => "plugin_name", PluginName,
     plugin_data => "plugin_data", PluginData;
 );
