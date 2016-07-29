@@ -81,6 +81,7 @@ pub struct Window {
     pub context_menu_data: Option<(DockHandle, (f32, f32))>,
 
     pub statusbar: Statusbar,
+    pub custom_menu_height: f32,
 
     /// View currently being renamed
     view_rename_state: ViewRenameState,
@@ -164,6 +165,7 @@ impl Windows {
             overlay: None,
             context_menu_data: None,
             statusbar: Statusbar::new(),
+            custom_menu_height: 0.0,
             view_rename_state: ViewRenameState::None,
         });
     }
@@ -501,19 +503,41 @@ impl Window {
         });
     }
 
-    fn show_unix_menus(window: &minifb::Window) -> Option<usize> {
-        let _ui = Imgui::get_ui();
-        let _menus = window.get_unix_menus().unwrap();
-        // implement unix menus here
-        None
+    fn render_unix_menu(ui: &Ui, menu: &minifb::UnixMenu) -> Option<usize> {
+        let mut res = None;
+        if ui.begin_menu(&menu.name, true) {
+            for item in menu.items.iter() {
+                if let Some(ref sub_menu) = item.sub_menu {
+                    res = res.or(Self::render_unix_menu(ui, sub_menu));
+                } else {
+                    if item.label.is_empty() {
+                        ui.separator();
+                    } else {
+                        if ui.menu_item(&item.label, false, true) {
+                            res = Some(item.id);
+                        }
+                    }
+                }
+            }
+            ui.end_menu();
+        }
+        res
     }
 
-    fn is_menu_pressed(window: &mut minifb::Window) -> Option<usize> {
-        if window.get_unix_menus().is_some() {
-            return Self::show_unix_menus(&window);
+    fn show_unix_menus(&mut self) -> Option<usize> {
+        // TODO: process unix menus shortcuts
+        let mut res = None;
+        if let Some(menus) = self.win.get_unix_menus() {
+            let ui = Imgui::get_ui();
+            if ui.begin_main_menu_bar() {
+                for menu in menus {
+                    res = res.or(Self::render_unix_menu(&ui, menu));
+                }
+                self.custom_menu_height = ui.get_window_size().1;
+                ui.end_main_menu_bar();
+            }
         }
-
-        window.is_menu_pressed()
+        res
     }
 
     fn has_source_code_view(&self) -> bool {
@@ -562,7 +586,7 @@ impl Window {
                     backend_plugins: &mut BackendPlugins) {
         let current_session = sessions.get_current();
 
-        let menu_id = match Self::is_menu_pressed(&mut self.win) {
+        let menu_id = match self.show_unix_menus().or_else(|| self.win.is_menu_pressed()) {
             Some(id) => id,
             None => return,
         };
@@ -605,8 +629,11 @@ impl Window {
         let mut views_to_delete = Vec::new();
         let mut has_shown_menu = 0u32;
 
-        let mut win_size = self.win.get_size();
-        win_size.1 = win_size.1.saturating_sub(self.statusbar.get_size() as usize);
+        self.update_menus(view_plugins, sessions, backend_plugins);
+
+        let win_size = self.win.get_size();
+        let width = win_size.0 as f32;
+        let height = (win_size.1 as f32) - self.statusbar.get_size() - self.custom_menu_height;
 
         let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
 
@@ -615,7 +642,7 @@ impl Window {
         }
 
         self.win.update();
-        self.ws.update_rect(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
+        self.ws.update_rect(Rect::new(0.0, self.custom_menu_height, width, height));
         self.update_key_state();
 
         let show_context_menu = self.win.get_mouse_down(MouseButton::Right);
@@ -644,8 +671,6 @@ impl Window {
         }
 
         self.statusbar.update(self.win.get_size());
-
-        self.update_menus(view_plugins, sessions, backend_plugins);
 
         if self.win.is_key_pressed(Key::Z, KeyRepeat::No) {
             self.undo_workspace_change(view_plugins);
