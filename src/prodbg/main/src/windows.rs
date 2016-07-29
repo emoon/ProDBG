@@ -311,7 +311,7 @@ impl Window {
                 if let Some(ref mut container) =
                     root.get_container_by_dock_handle_mut(DockHandle(instance.handle.0)) {
                         let tabs: Vec<String> =
-                            container.docks.iter().map(|dock| dock.plugin_name.clone()).collect();
+                            container.docks.iter().map(|dock| dock.name.clone()).collect();
                         if tabs.len() > 1 {
                             has_tabs = true;
                             Imgui::begin_window_child("tabs", 20.0);
