@@ -341,9 +341,7 @@ impl Workspace {
     /// not mess it with newly created).
     pub fn move_dock(&mut self, handle: DockHandle, mut target: ItemTarget) {
         let marker = DockHandle(u64::max_value());
-        let copy = self.root_area.as_mut()
-            .and_then(|root| root.get_container_by_dock_handle_mut(handle))
-            .and_then(|c| c.get_dock_mut(handle))
+        let copy = self.get_dock_mut(handle)
             .and_then(|dock| {
                 let res = Some(dock.clone());
                 dock.handle = marker;
@@ -402,6 +400,12 @@ impl Workspace {
                 }
             }
         }
+    }
+
+    pub fn get_dock_mut(&mut self, handle: DockHandle) -> Option<&mut Dock> {
+        self.root_area.as_mut()
+            .and_then(|root| root.get_container_by_dock_handle_mut(handle))
+            .and_then(|c| c.get_dock_mut(handle))
     }
 }
 
