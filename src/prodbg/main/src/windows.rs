@@ -711,10 +711,10 @@ impl Window {
             self.save_cur_workspace_state();
         }
 
-        self.render_view_rename_dialogue(view_plugins);
+        self.render_view_rename_dialog(view_plugins);
     }
 
-    fn render_rename_dialogue_popup(ui: &Ui, set_focus: bool, buf: &mut [u8], plugin: &mut ViewInstance, dock: &mut Dock) -> bool {
+    fn render_rename_dialog_popup(ui: &Ui, set_focus: bool, buf: &mut [u8], plugin: &mut ViewInstance, dock: &mut Dock) -> bool {
         let mut res = false;
         if ui.begin_popup("##name_input_popup") {
             if set_focus {
@@ -735,7 +735,7 @@ impl Window {
         res
     }
 
-    fn render_view_rename_dialogue(&mut self, view_plugins: &mut ViewPlugins) {
+    fn render_view_rename_dialog(&mut self, view_plugins: &mut ViewPlugins) {
         let next_state = (|| {
             let handle = match self.view_rename_state {
                 ViewRenameState::None => return None,
@@ -750,7 +750,7 @@ impl Window {
                 None => return Some(ViewRenameState::None),
                 Some(dock) => dock,
             };
-            let ui = Imgui::create_ui_instance();
+            let ui = Imgui::get_ui();
             let set_focus = if let ViewRenameState::Init(_) = self.view_rename_state {
                 // TODO: is there a way to avoid allocation of 200 bytes on stack?
                 let mut buf: [u8; 100] = [0; 100];
@@ -762,7 +762,7 @@ impl Window {
                 false
             };
             if let ViewRenameState::Showing(_, ref mut buf) = self.view_rename_state {
-                if Self::render_rename_dialogue_popup(&ui, set_focus, buf.as_mut(), plugin, dock) {
+                if Self::render_rename_dialog_popup(&ui, set_focus, buf.as_mut(), plugin, dock) {
                     return Some(ViewRenameState::None);
                 }
             }
