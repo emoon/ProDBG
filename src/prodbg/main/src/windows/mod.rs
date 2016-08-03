@@ -56,7 +56,9 @@ impl Windows {
     pub fn create_window(&mut self, width: usize, height: usize) -> minifb::Result<Window> {
         let win = try!(Window::new(width, height));
         // TODO: Return correctly
-        self.renderer.setup_window(win.win.get_window_handle(), width as u16, height as u16).unwrap();
+        self.renderer
+            .setup_window(win.win.get_window_handle(), width as u16, height as u16)
+            .unwrap();
         Ok(win)
     }
 

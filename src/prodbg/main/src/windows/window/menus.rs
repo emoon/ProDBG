@@ -10,7 +10,7 @@ use core::backend_plugin::BackendPlugins;
 use core::session::{Sessions, Session};
 use menu::*;
 use imgui_sys::Imgui;
-use prodbg_api::{Ui};
+use prodbg_api::Ui;
 use self::nfd::Response as NfdResponse;
 
 
@@ -37,9 +37,9 @@ fn render_unix_menu(ui: &Ui, menu: &minifb::UnixMenu) -> Option<usize> {
 
 impl Window {
     pub fn update_menus(&mut self,
-                    view_plugins: &mut ViewPlugins,
-                    sessions: &mut Sessions,
-                    backend_plugins: &mut BackendPlugins) {
+                        view_plugins: &mut ViewPlugins,
+                        sessions: &mut Sessions,
+                        backend_plugins: &mut BackendPlugins) {
         let current_session = sessions.get_current();
 
         let menu_id = match self.show_unix_menus().or_else(|| self.win.is_menu_pressed()) {
@@ -54,14 +54,14 @@ impl Window {
             MENU_FILE_OPEN_SOURCE => self.browse_source_file(view_plugins, current_session),
             MENU_FILE_START_NEW_BACKEND => {
                 if let Some(backend) =
-                    backend_plugins.create_instance(&"Amiga UAE Debugger".to_owned()) {
-                        current_session.set_backend(Some(backend));
+                       backend_plugins.create_instance(&"Amiga UAE Debugger".to_owned()) {
+                    current_session.set_backend(Some(backend));
 
-                        if let Some(menu) = backend_plugins.get_menu(backend, self.menu_id_offset) {
-                            self.win.add_menu(&(*menu));
-                            self.menu_id_offset += 1000;
-                        }
+                    if let Some(menu) = backend_plugins.get_menu(backend, self.menu_id_offset) {
+                        self.win.add_menu(&(*menu));
+                        self.menu_id_offset += 1000;
                     }
+                }
             }
             _ => {
                 current_session.send_menu_id(menu_id as u32, backend_plugins);
@@ -85,9 +85,7 @@ impl Window {
         res
     }
 
-    fn browse_source_file(&mut self,
-                          view_plugins: &mut ViewPlugins,
-                          session: &mut Session) {
+    fn browse_source_file(&mut self, view_plugins: &mut ViewPlugins, session: &mut Session) {
         match nfd::dialog().open() {
             Ok(NfdResponse::Cancel) => return,
             Err(e) => println!("Failed to open file dialog {:?}", e),
