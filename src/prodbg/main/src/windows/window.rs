@@ -55,6 +55,15 @@ struct WindowState {
     pub should_close: bool,
 }
 
+fn is_inside(v: (f32, f32), pos: PDVec2, size: (f32, f32)) -> bool {
+    let x0 = pos.x;
+    let y0 = pos.y;
+    let x1 = pos.x + size.0;
+    let y1 = pos.y + size.1;
+
+    v.0 >= x0 && v.0 < x1 && v.1 >= y0 && v.1 < y1
+}
+
 
 pub struct Window {
     /// minifb window
@@ -115,19 +124,6 @@ impl Window {
         })
     }
 
-    fn is_inside(v: (f32, f32), pos: PDVec2, size: (f32, f32)) -> bool {
-        let x0 = pos.x;
-        let y0 = pos.y;
-        let x1 = pos.x + size.0;
-        let y1 = pos.y + size.1;
-
-        if (v.0 >= x0 && v.0 < x1) && (v.1 >= y0 && v.1 < y1) {
-            true
-        } else {
-            false
-        }
-    }
-
     fn update_view(ws: &mut Workspace,
                    instance: &mut ViewInstance,
                    session: &mut Session,
@@ -185,11 +181,7 @@ impl Window {
             let pos = ui.get_window_pos();
             let size = ui.get_window_size();
 
-            if Self::is_inside(mouse, pos, size) && show_context_menu {
-                Imgui::mark_show_popup(ui.api, true);
-            } else {
-                Imgui::mark_show_popup(ui.api, false);
-            }
+            Imgui::mark_show_popup(ui.api, is_inside(mouse, pos, size) && show_context_menu);
 
             // Draw drag zone
             if let &Some((handle, rect)) = overlay {
