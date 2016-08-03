@@ -109,7 +109,7 @@ impl Windows {
 
     /// Checks if application should exit (all window instances closed)
     pub fn should_exit(&self) -> bool {
-        self.windows.len() == 0
+        self.windows.is_empty()
     }
 
     /// Save the state of the windows (usually done when exiting the application)
