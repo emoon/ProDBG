@@ -1,37 +1,26 @@
-extern crate minifb;
-extern crate bgfx;
-extern crate viewdock;
-extern crate renderer;
-extern crate nfd;
-
-use minifb::{CursorStyle, Scale, WindowOptions, MouseMode, MouseButton, Key, KeyRepeat};
-use renderer::Renderer;
+use minifb::{self, CursorStyle, Scale, WindowOptions, MouseMode, MouseButton, Key, KeyRepeat};
 use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::backend_plugin::BackendPlugins;
 use core::session::{Sessions, Session, SessionHandle};
 use core::reader_wrapper::ReaderWrapper;
-use self::viewdock::{Workspace, Rect, Direction, DockHandle, SizerPos, Dock, ItemTarget};
-use settings::Settings;
+use super::viewdock::{self, Workspace, Rect, Direction, DockHandle, SizerPos, Dock, ItemTarget};
 use std::fs::File;
 use std::io;
 use menu::*;
 use imgui_sys::Imgui;
-use prodbg_api::ui_ffi::{PDVec2, ImguiKey};
+use prodbg_api::ui_ffi::PDVec2;
 use prodbg_api::{Ui, PDUIINPUTTEXTFLAGS_ENTERRETURNSTRUE, PDUIINPUTTEXTFLAGS_AUTOSELECTALL};
 use prodbg_api::view::CViewCallbacks;
 use std::os::raw::c_void;
 use std::collections::VecDeque;
 use std::io::{Read, Write};
 use statusbar::Statusbar;
-use self::nfd::Response as NfdResponse;
+use super::nfd::{self, Response as NfdResponse};
 use prodbg_api::events;
 
-// use std::mem::transmute;
-
-const WIDTH: i32 = 1280;
-const HEIGHT: i32 = 800;
-const WORKSPACE_UNDO_LIMIT: usize = 10;
 const OVERLAY_COLOR: u32 = 0x8000FF00;
+const WORKSPACE_UNDO_LIMIT: usize = 10;
+
 
 enum State {
     Default,
@@ -61,6 +50,12 @@ enum ViewRenameState {
     Showing(DockHandle, Box<[u8; 100]>)
 }
 
+struct WindowState {
+    pub showed_popup: u32,
+    pub should_close: bool,
+}
+
+
 pub struct Window {
     /// minifb window
     pub win: minifb::Window,
@@ -87,56 +82,9 @@ pub struct Window {
     view_rename_state: ViewRenameState,
 }
 
-struct WindowState {
-    pub showed_popup: u32,
-    pub should_close: bool,
-}
 
-struct KeyCharCallback;
-
-impl minifb::InputCallback for KeyCharCallback {
-    fn add_char(&mut self, key: u32) {
-        Imgui::add_input_character(key as u16);
-    }
-}
-
-/// ! Windows keeps track of all different windows that are present with in the application
-/// ! There are several ways windows can be created:
-/// !
-/// ! 1. User opens a new window using a shortcut or menu selection.
-/// ! 2. User "undocks" a view from an existing window giving it it's own floating window.
-/// ! 3. etc
-
-pub struct Windows {
-    /// All the windows being tracked
-    windows: Vec<Window>,
-    current: usize,
-    renderer: Renderer,
-}
-
-impl Windows {
-    pub fn new() -> Windows {
-        Windows {
-            windows: Vec::new(),
-            renderer: Renderer::new(),
-            current: 0,
-        }
-    }
-
-    /// Create a default window which will only be created if there are no other
-    pub fn create_default(&mut self, settings: &Settings) {
-        if self.windows.len() > 0 {
-            return;
-        }
-
-        let window = self.create_window_with_menus(settings).expect("Unable to create window");
-
-        Self::setup_imgui_key_mappings();
-
-        self.windows.push(window)
-    }
-
-    pub fn create_window(&mut self, width: usize, height: usize) -> minifb::Result<Window> {
+impl Window {
+    pub fn new(width: usize, height: usize) -> minifb::Result<Window> {
         let win = try!(minifb::Window::new("ProDBG",
                                            width,
                                            height,
@@ -145,15 +93,12 @@ impl Windows {
                                                scale: Scale::X1,
                                                ..WindowOptions::default()
                                            }));
-        // TODO: Return correctly
-        self.renderer.setup_window(win.get_window_handle(), width as u16, height as u16).unwrap();
-
         let ws = Workspace::new(Rect::new(0.0, 0.0, width as f32, (height - 20) as f32));
         let mut ws_states = VecDeque::with_capacity(WORKSPACE_UNDO_LIMIT);
 
         ws_states.push_back(ws.save_state());
 
-        return Ok(Window {
+        Ok(Window {
             win: win,
             menu: Menu::new(),
             views: Vec::new(),
@@ -167,104 +112,9 @@ impl Windows {
             statusbar: Statusbar::new(),
             custom_menu_height: 0.0,
             view_rename_state: ViewRenameState::None,
-        });
+        })
     }
 
-    pub fn create_window_with_menus(&mut self, settings: &Settings) -> minifb::Result<Window> {
-
-        let width = settings.get_int("window_size", "width").unwrap_or(WIDTH) as usize;
-        let height = settings.get_int("window_size", "height").unwrap_or(HEIGHT) as usize;
-
-        let mut window = try!(self.create_window(width, height));
-
-        window.win.set_input_callback(Box::new(KeyCharCallback {}));
-
-        // we ignore the results because we likely brake this on Linux otherwise
-        // TODO: Figure out how to deal with this on Linux
-        let _ = window.win.add_menu(&window.menu.file_menu);
-        let _ = window.win.add_menu(&window.menu.debug_menu);
-
-        Ok(window)
-    }
-
-    pub fn update(&mut self,
-                  sessions: &mut Sessions,
-                  view_plugins: &mut ViewPlugins,
-                  backend_plugins: &mut BackendPlugins) {
-        for win in &mut self.windows {
-            win.pre_update();
-        }
-
-        self.renderer.pre_update();
-
-        for i in (0..self.windows.len()).rev() {
-            self.windows[i].update(sessions, view_plugins, backend_plugins);
-            self.renderer.update_size(self.windows[i].win.get_size());
-
-            if !self.windows[i].win.is_open() {
-                // TODO: Support more than one window
-                let _ = self.windows[i].save_layout("data/user_layout.json", view_plugins);
-                self.windows.swap_remove(i);
-            }
-        }
-
-        self.renderer.post_update();
-    }
-
-    pub fn get_current(&mut self) -> &mut Window {
-        let current = self.current;
-        &mut self.windows[current]
-    }
-
-    /// Checks if application should exit (all window instances closed)
-    pub fn should_exit(&self) -> bool {
-        self.windows.len() == 0
-    }
-
-    /// Save the state of the windows (usually done when exiting the application)
-    pub fn save(&mut self, filename: &str, view_plugins: &mut ViewPlugins) {
-        println!("window len {}", self.windows.len());
-        // TODO: This only supports one window for now
-        if self.windows.len() == 1 {
-            // TODO: Proper error handling here
-            println!("save layout");
-            self.windows[0].save_layout(filename, view_plugins).unwrap();
-        }
-    }
-
-    /// Load the state of all the views from a previous run
-    pub fn load(&mut self, filename: &str, view_plugins: &mut ViewPlugins) {
-        // TODO: This only supports one window for now
-        if self.windows.len() == 1 {
-            // TODO: Proper error handling here (loading is ok to fail though)
-            let _ = self.windows[0].load_layout(filename, view_plugins);
-        }
-    }
-
-    fn setup_imgui_key_mappings() {
-        Imgui::map_key(ImguiKey::Tab as usize, Key::Tab as usize);
-        Imgui::map_key(ImguiKey::LeftArrow as usize, Key::Left as usize);
-        Imgui::map_key(ImguiKey::RightArrow as usize, Key::Right as usize);
-        Imgui::map_key(ImguiKey::DownArrow as usize, Key::Down as usize);
-        Imgui::map_key(ImguiKey::UpArrow as usize, Key::Up as usize);
-        Imgui::map_key(ImguiKey::PageUp as usize, Key::PageUp as usize);
-        Imgui::map_key(ImguiKey::PageDown as usize, Key::PageDown as usize);
-        Imgui::map_key(ImguiKey::Home as usize, Key::Home as usize);
-        Imgui::map_key(ImguiKey::End as usize, Key::End as usize);
-        Imgui::map_key(ImguiKey::Delete as usize, Key::Delete as usize);
-        Imgui::map_key(ImguiKey::Backspace as usize, Key::Backspace as usize);
-        Imgui::map_key(ImguiKey::Enter as usize, Key::Enter as usize);
-        Imgui::map_key(ImguiKey::Escape as usize, Key::Escape as usize);
-        Imgui::map_key(ImguiKey::A as usize, Key::A as usize);
-        Imgui::map_key(ImguiKey::C as usize, Key::C as usize);
-        Imgui::map_key(ImguiKey::V as usize, Key::V as usize);
-        Imgui::map_key(ImguiKey::X as usize, Key::X as usize);
-        Imgui::map_key(ImguiKey::Y as usize, Key::Y as usize);
-        Imgui::map_key(ImguiKey::Z as usize, Key::Z as usize);
-    }
-}
-
-impl Window {
     fn is_inside(v: (f32, f32), pos: PDVec2, size: (f32, f32)) -> bool {
         let x0 = pos.x;
         let y0 = pos.y;
@@ -551,7 +401,7 @@ impl Window {
         false
     }
 
-    fn open_source_file(&mut self, filename: &str, 
+    fn open_source_file(&mut self, filename: &str,
                         view_plugins: &mut ViewPlugins,
                         session: &mut Session) {
         // check if we already have a source view open and just post the message.
