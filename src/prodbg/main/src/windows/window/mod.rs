@@ -1,7 +1,8 @@
 mod menus;
 mod mouse;
+mod keys;
 
-use minifb::{self, Scale, WindowOptions, Key, KeyRepeat};
+use minifb::{self, Scale, WindowOptions};
 use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::backend_plugin::BackendPlugins;
 use core::session::{Sessions, Session, SessionHandle};
@@ -105,27 +106,32 @@ impl Window {
 
     pub fn pre_update(&mut self) {
         self.update_imgui_mouse();
+        self.update_imgui_keys();
     }
 
     pub fn update(&mut self,
                   sessions: &mut Sessions,
                   view_plugins: &mut ViewPlugins,
                   backend_plugins: &mut BackendPlugins) {
-        let mut views_to_delete = Vec::new();
-        let mut has_shown_menu = 0u32;
 
+        // Update minifb window to get current window size
+        self.win.update();
+
+        // Update menus first to find out size of self-drawn menus (if any)
         self.update_menus(view_plugins, sessions, backend_plugins);
 
         let win_size = self.win.get_size();
+        // Status bar needs full size of window
+        self.statusbar.update(win_size);
         let width = win_size.0 as f32;
         let height = (win_size.1 as f32) - self.statusbar.get_size() - self.custom_menu_height;
-
-        self.win.update();
+        // Workspace needs area without menus and status bar
         self.ws.update_rect(Rect::new(0.0, self.custom_menu_height, width, height));
-        self.update_key_state();
+
+        let mut views_to_delete = Vec::new();
+        let mut has_shown_menu = 0u32;
         let show_context_menu = self.update_mouse_state();
         let mouse = self.get_mouse_pos();
-
         for view in &self.views {
             if let Some(ref mut v) = view_plugins.get_view(*view) {
                 if let Some(ref mut s) = sessions.get_session(v.session_handle) {
@@ -143,29 +149,19 @@ impl Window {
                 }
             }
         }
-
-        self.statusbar.update(win_size);
-
-        if self.win.is_key_pressed(Key::Z, KeyRepeat::No) {
-            self.undo_workspace_change(view_plugins);
+        if !views_to_delete.is_empty() {
+            Self::remove_views(self, view_plugins, &views_to_delete);
+            self.save_cur_workspace_state();
         }
 
-        if self.win.is_key_pressed(Key::X, KeyRepeat::No) {
-            self.redo_workspace_change(view_plugins);
-        }
+        self.process_key_presses(view_plugins);
 
         // if now plugin has showed a menu we do it here
         // TODO: Handle diffrent cases when attach menu on to plugin menu or not
-
         if has_shown_menu == 0 && show_context_menu {
             Self::show_popup(self, true, view_plugins);
         } else {
             Self::show_popup(self, false, view_plugins);
-        }
-
-        if !views_to_delete.is_empty() {
-            Self::remove_views(self, view_plugins, &views_to_delete);
-            self.save_cur_workspace_state();
         }
 
         self.render_view_rename_dialog(view_plugins);
@@ -320,16 +316,6 @@ impl Window {
         }
     }
 
-    fn update_key_state(&mut self) {
-        Imgui::clear_keys();
-
-        self.win.get_keys_pressed(KeyRepeat::Yes).map(|keys| {
-            for k in keys {
-                Imgui::set_key_down(k as usize);
-            }
-        });
-    }
-
     fn has_source_code_view(&self) -> bool {
         // TODO: Use setting for this name
         for dock in self.ws.get_docks() {
@@ -417,9 +403,8 @@ impl Window {
     }
 
     fn restore_workspace_state(&mut self, view_plugins: &mut ViewPlugins) {
+        // workspace will recalculate rects on the next update
         self.ws = Workspace::from_state(&self.ws_states[self.cur_state_index]).unwrap();
-        let win_size = self.win.get_size();
-        self.ws.update_rect(Rect::new(0.0, 0.0, win_size.0 as f32, win_size.1 as f32));
         let docks = self.ws.get_docks();
         let views_to_delete: Vec<ViewHandle> = self.views
             .iter()
