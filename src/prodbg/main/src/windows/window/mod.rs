@@ -154,23 +154,6 @@ impl Window {
             self.redo_workspace_change(view_plugins);
         }
 
-        // TODO: Only do this on the correct session
-
-        // if self.win.is_key_pressed(Key::Down, KeyRepeat::No) {
-        // self.ws.dump_tree();
-        // }
-        //
-        // if self.win.is_key_pressed(Key::Up, KeyRepeat::No) {
-        // self.save_layout("data/layout_temp.json", view_plugins);
-        // }
-        //
-        // if self.win.is_key_pressed(Key::Right, KeyRepeat::No) {
-        // self.load_layout("data/layout_temp.json", view_plugins);
-        // }
-        //
-
-        // test
-
         // if now plugin has showed a menu we do it here
         // TODO: Handle diffrent cases when attach menu on to plugin menu or not
 
@@ -196,22 +179,6 @@ impl Window {
             let state = self.ws.save_state();
             println!("writing state to disk");
             file.write_all(state.as_str().as_bytes())
-                // for split in &mut self.ws.splits {
-                // let iter = split.left_docks.docks.iter_mut().chain(split.right_docks.docks.iter_mut());
-                //
-                // for dock in iter {
-                // if let Some(ref plugin) = view_plugins.get_view(ViewHandle(dock.handle.0)) {
-                // let (plugin_name, data) = plugin.get_plugin_data();
-                // dock.plugin_name = plugin_name;
-                // dock.plugin_data = data;
-                // } else {
-                // println!("Unable to find plugin for {:?} - this should never happen", dock);
-                // }
-                // }
-                // }
-                //
-                // let _ = self.ws.save(filename);
-                //
         }
 
     pub fn load_layout(&mut self,
