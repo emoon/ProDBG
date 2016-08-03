@@ -1,6 +1,7 @@
 mod menus;
 mod mouse;
 mod keys;
+mod popup;
 
 use minifb::{self, Scale, WindowOptions};
 use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
@@ -13,7 +14,6 @@ use std::io;
 use menu::Menu;
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::PDVec2;
-use prodbg_api::{Ui, PDUIINPUTTEXTFLAGS_ENTERRETURNSTRUE, PDUIINPUTTEXTFLAGS_AUTOSELECTALL};
 use prodbg_api::view::CViewCallbacks;
 use std::os::raw::c_void;
 use std::collections::VecDeque;
@@ -21,16 +21,11 @@ use std::io::{Read, Write};
 use statusbar::Statusbar;
 use prodbg_api::events;
 use self::mouse::MouseState;
+use self::popup::ViewRenameState;
 
 
 const OVERLAY_COLOR: u32 = 0x8000FF00;
 const WORKSPACE_UNDO_LIMIT: usize = 10;
-
-enum ViewRenameState {
-    None,
-    Init(DockHandle),
-    Showing(DockHandle, Box<[u8; 100]>)
-}
 
 struct WindowState {
     pub showed_popup: u32,
@@ -158,13 +153,7 @@ impl Window {
 
         // if now plugin has showed a menu we do it here
         // TODO: Handle diffrent cases when attach menu on to plugin menu or not
-        if has_shown_menu == 0 && show_context_menu {
-            Self::show_popup(self, true, view_plugins);
-        } else {
-            Self::show_popup(self, false, view_plugins);
-        }
-
-        self.render_view_rename_dialog(view_plugins);
+        self.render_popup(show_context_menu && has_shown_menu == 0, view_plugins);
     }
 
     pub fn save_layout(&mut self,
@@ -345,63 +334,6 @@ impl Window {
         writer.event_end();
     }
 
-    fn render_rename_dialog_popup(ui: &Ui, set_focus: bool, buf: &mut [u8], plugin: &mut ViewInstance, dock: &mut Dock) -> bool {
-        let mut res = false;
-        if ui.begin_popup("##name_input_popup") {
-            if set_focus {
-                ui.set_keyboard_focus_here(0);
-            }
-            if ui.input_text("##name_input", buf.as_mut(), PDUIINPUTTEXTFLAGS_ENTERRETURNSTRUE | PDUIINPUTTEXTFLAGS_AUTOSELECTALL, None) {
-                let null_index = buf.iter().position(|c| *c == 0).unwrap_or(buf.len());
-                if let Ok(parsed) = ::std::str::from_utf8(&buf[..null_index]) {
-                    plugin.name = parsed.to_string();
-                    dock.name = plugin.name.clone();
-                }
-                res = true;
-            }
-            ui.end_popup();
-        } else {
-            res = true;
-        }
-        res
-    }
-
-    fn render_view_rename_dialog(&mut self, view_plugins: &mut ViewPlugins) {
-        let next_state = (|| {
-            let handle = match self.view_rename_state {
-                ViewRenameState::None => return None,
-                ViewRenameState::Init(handle) => handle,
-                ViewRenameState::Showing(handle, _) => handle,
-            };
-            let plugin = match view_plugins.get_view(ViewHandle(handle.0)) {
-                None => return Some(ViewRenameState::None),
-                Some(plugin) => plugin,
-            };
-            let dock = match self.ws.get_dock_mut(handle) {
-                None => return Some(ViewRenameState::None),
-                Some(dock) => dock,
-            };
-            let ui = Imgui::get_ui();
-            let set_focus = if let ViewRenameState::Init(_) = self.view_rename_state {
-                // TODO: is there a way to avoid allocation of 200 bytes on stack?
-                let mut buf: [u8; 100] = [0; 100];
-                buf[..plugin.name.len()].copy_from_slice(plugin.name.as_bytes());
-                ui.open_popup("##name_input_popup");
-                self.view_rename_state = ViewRenameState::Showing(handle, Box::new(buf));
-                true
-            } else {
-                false
-            };
-            if let ViewRenameState::Showing(_, ref mut buf) = self.view_rename_state {
-                if Self::render_rename_dialog_popup(&ui, set_focus, buf.as_mut(), plugin, dock) {
-                    return Some(ViewRenameState::None);
-                }
-            }
-            None
-        })();
-        next_state.map(|val| self.view_rename_state = val);
-    }
-
     fn restore_workspace_state(&mut self, view_plugins: &mut ViewPlugins) {
         // workspace will recalculate rects on the next update
         self.ws = Workspace::from_state(&self.ws_states[self.cur_state_index]).unwrap();
@@ -510,103 +442,6 @@ impl Window {
             if should_save_ws {
                 self.save_cur_workspace_state();
             }
-        }
-    }
-
-    fn show_popup_menu_no_splits(&mut self,
-                                 plugin_names: &Vec<String>,
-                                 view_plugins: &mut ViewPlugins) {
-        let ui = Imgui::get_ui();
-
-        if ui.begin_menu("New View", true) {
-            for name in plugin_names {
-                if ui.menu_item(name, false, true) {
-                    Self::split_view(self, &name, view_plugins, Direction::Horizontal);
-                }
-            }
-            ui.end_menu();
-        }
-    }
-
-    fn show_popup_change_view(&mut self,
-                              plugin_names: &Vec<String>,
-                              view_plugins: &mut ViewPlugins) {
-        let ui = Imgui::get_ui();
-
-        if ui.begin_menu("Change View", true) {
-            for name in plugin_names {
-                if ui.menu_item(name, false, true) {
-                    if let Some((dock_handle, _)) = self.context_menu_data {
-                        view_plugins.destroy_instance(ViewHandle(dock_handle.0));
-                        view_plugins.create_instance(Imgui::create_ui_instance(),
-                                                     &name,
-                                                     None,
-                                                     None,
-                                                     SessionHandle(0),
-                                                     Some(ViewHandle(dock_handle.0)));
-                    }
-                }
-            }
-            ui.end_menu();
-        }
-    }
-
-    fn show_popup_regular(&mut self, plugin_names: &Vec<String>, view_plugins: &mut ViewPlugins) {
-        let ui = Imgui::get_ui();
-
-        self.show_popup_change_view(plugin_names, view_plugins);
-
-        if ui.begin_menu("Split Horizontally", true) {
-            for name in plugin_names {
-                if ui.menu_item(name, false, true) {
-                    self.split_view(&name, view_plugins, Direction::Horizontal);
-                }
-            }
-            ui.end_menu();
-        }
-
-        if ui.begin_menu("Split Vertically", true) {
-            for name in plugin_names {
-                if ui.menu_item(name, false, true) {
-                    self.split_view(&name, view_plugins, Direction::Vertical);
-                }
-            }
-            ui.end_menu();
-        }
-
-        if ui.begin_menu("Tab", true) {
-            for name in plugin_names {
-                if ui.menu_item(name, false, true) {
-                    self.tab_view(&name, view_plugins);
-                }
-            }
-            ui.end_menu();
-        }
-
-        if ui.menu_item("Rename", false, true) {
-            if let Some(handle) = self.context_menu_data.map(|(handle, _)| handle) {
-                self.view_rename_state = ViewRenameState::Init(handle);
-            }
-        }
-    }
-
-    fn show_popup(&mut self, show: bool, view_plugins: &mut ViewPlugins) {
-        let ui = Imgui::get_ui();
-
-        if show {
-            ui.open_popup("plugins");
-        }
-
-        if ui.begin_popup("plugins") {
-            let plugin_names = view_plugins.get_plugin_names();
-
-            if self.ws.root_area.is_none() {
-                self.show_popup_menu_no_splits(&plugin_names, view_plugins);
-            } else {
-                self.show_popup_regular(&plugin_names, view_plugins);
-            }
-
-            ui.end_popup();
         }
     }
 }
