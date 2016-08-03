@@ -1,11 +1,12 @@
 mod menus;
+mod mouse;
 
-use minifb::{self, CursorStyle, Scale, WindowOptions, MouseMode, MouseButton, Key, KeyRepeat};
+use minifb::{self, Scale, WindowOptions, Key, KeyRepeat};
 use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::backend_plugin::BackendPlugins;
 use core::session::{Sessions, Session, SessionHandle};
 use core::reader_wrapper::ReaderWrapper;
-use super::viewdock::{self, Workspace, Rect, Direction, DockHandle, SizerPos, Dock, ItemTarget};
+use super::viewdock::{self, Workspace, Rect, Direction, DockHandle, Dock, ItemTarget};
 use std::fs::File;
 use std::io;
 use menu::Menu;
@@ -18,32 +19,11 @@ use std::collections::VecDeque;
 use std::io::{Read, Write};
 use statusbar::Statusbar;
 use prodbg_api::events;
+use self::mouse::MouseState;
+
 
 const OVERLAY_COLOR: u32 = 0x8000FF00;
 const WORKSPACE_UNDO_LIMIT: usize = 10;
-
-
-enum State {
-    Default,
-    DraggingNothing,
-    DraggingSizer(SizerPos),
-    DraggingDock(DockHandle),
-    PreDraggingDock(DockHandle),
-}
-
-pub struct MouseState {
-    state: State,
-    prev_mouse: (f32, f32),
-}
-
-impl MouseState {
-    pub fn new() -> MouseState {
-        MouseState {
-            state: State::Default,
-            prev_mouse: (0.0, 0.0),
-        }
-    }
-}
 
 enum ViewRenameState {
     None,
@@ -124,12 +104,7 @@ impl Window {
     }
 
     pub fn pre_update(&mut self) {
-        let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
-        Imgui::set_mouse_pos(mouse);
-        Imgui::set_mouse_state(0, self.win.get_mouse_down(MouseButton::Left));
-        if let Some(scroll) = self.win.get_scroll_wheel() {
-            Imgui::set_scroll(scroll.1 * 0.25);
-        }
+        self.update_imgui_mouse();
     }
 
     pub fn update(&mut self,
@@ -145,22 +120,11 @@ impl Window {
         let width = win_size.0 as f32;
         let height = (win_size.1 as f32) - self.statusbar.get_size() - self.custom_menu_height;
 
-        let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
-
-        if has_shown_menu == 0 {
-            self.update_mouse_state(mouse);
-        }
-
         self.win.update();
         self.ws.update_rect(Rect::new(0.0, self.custom_menu_height, width, height));
         self.update_key_state();
-
-        let show_context_menu = self.win.get_mouse_down(MouseButton::Right);
-        if show_context_menu {
-            self.context_menu_data = self.ws
-                .get_dock_handle_at_pos(mouse)
-                .map(|handle| (handle, mouse));
-        }
+        let show_context_menu = self.update_mouse_state();
+        let mouse = self.get_mouse_pos();
 
         for view in &self.views {
             if let Some(ref mut v) = view_plugins.get_view(*view) {
@@ -180,7 +144,7 @@ impl Window {
             }
         }
 
-        self.statusbar.update(self.win.get_size());
+        self.statusbar.update(win_size);
 
         if self.win.is_key_pressed(Key::Z, KeyRepeat::No) {
             self.undo_workspace_change(view_plugins);
@@ -389,117 +353,6 @@ impl Window {
         }
     }
 
-    fn update_mouse_state(&mut self, mouse_pos: (f32, f32)) {
-        let mut next_state = None;
-        let cursor;
-        let mut should_save_ws_state = false;
-        match self.mouse_state.state {
-            State::Default => {
-                if let Some(sizer) = self.ws.get_sizer_at_pos(mouse_pos) {
-                    cursor = match sizer.2 {
-                        Direction::Vertical => CursorStyle::ResizeLeftRight,
-                        Direction::Horizontal => CursorStyle::ResizeUpDown,
-                    };
-                    if self.win.get_mouse_down(MouseButton::Left) {
-                        self.mouse_state.prev_mouse = mouse_pos;
-                        next_state = Some(State::DraggingSizer(sizer));
-                    }
-                } else if let Some(handle) = self.ws.get_dock_handle_with_header_at_pos(mouse_pos) {
-                    cursor = CursorStyle::ClosedHand;
-                    if self.win.get_mouse_down(MouseButton::Left) {
-                        self.mouse_state.prev_mouse = mouse_pos;
-                        next_state = Some(State::PreDraggingDock(handle));
-                    }
-                } else {
-                    cursor = CursorStyle::Arrow;
-                    if self.win.get_mouse_down(MouseButton::Left) {
-                        next_state = Some(State::DraggingNothing);
-                    }
-                }
-            }
-
-            State::DraggingNothing => {
-                cursor = CursorStyle::Arrow;
-                if !self.win.get_mouse_down(MouseButton::Left) {
-                    next_state = Some(State::Default);
-                }
-            }
-
-            State::DraggingSizer(SizerPos(handle, index, direction, origin_ratio)) => {
-                if self.win.get_mouse_down(MouseButton::Left) {
-                    cursor = match direction {
-                        Direction::Vertical => CursorStyle::ResizeLeftRight,
-                        Direction::Horizontal => CursorStyle::ResizeUpDown,
-                    };
-                    let pm = self.mouse_state.prev_mouse;
-                    let delta = (pm.0 - mouse_pos.0, pm.1 - mouse_pos.1);
-                    self.ws.change_ratio(handle, index, origin_ratio, delta);
-                } else {
-                    next_state = Some(State::Default);
-                    cursor = CursorStyle::Arrow;
-                    should_save_ws_state = true;
-                }
-            }
-
-            State::PreDraggingDock(handle) => {
-                cursor = CursorStyle::Arrow;
-                if self.win.get_mouse_down(MouseButton::Left) {
-                    let pm = self.mouse_state.prev_mouse;
-                    let delta = (pm.0 - mouse_pos.0, pm.1 - mouse_pos.1);
-                    if delta.0.abs() >= 5.0 && delta.1.abs() >= 5.0 {
-                        next_state = Some(State::DraggingDock(handle));
-                    }
-                } else {
-                    next_state = Some(State::Default);
-                }
-            }
-
-            State::DraggingDock(handle) => {
-                let mut move_target = self.ws.get_item_target_at_pos(mouse_pos);
-
-                if let Some(target_handle) = self.ws.get_dock_handle_at_pos(mouse_pos) {
-                    if target_handle == handle {
-                        move_target = None;
-                    }
-                }
-
-                if self.win.get_mouse_down(MouseButton::Left) {
-                    cursor = match move_target {
-                        Some(_) => CursorStyle::OpenHand,
-                        None => CursorStyle::ClosedHand,
-                    };
-                    if let Some((_, rect)) = move_target {
-                        if let Some(dh) = self.ws.get_dock_handle_at_pos(mouse_pos) {
-                            self.overlay = Some((dh, rect));
-                        } else {
-                            self.overlay = None;
-                        }
-                    } else {
-                        self.overlay = None;
-                    }
-                } else {
-                    if let Some((target, _)) = move_target {
-                        if !self.ws.already_at_place(&target, handle) {
-                            self.ws.move_dock(handle, target);
-                            self.save_cur_workspace_state();
-                        }
-                    }
-                    next_state = Some(State::Default);
-                    cursor = CursorStyle::Arrow;
-                    self.overlay = None;
-                }
-            }
-        }
-
-        self.win.set_cursor_style(cursor);
-        if let Some(ns) = next_state {
-            self.mouse_state.state = ns;
-        }
-        if should_save_ws_state {
-            self.save_cur_workspace_state();
-        }
-    }
-
     fn update_key_state(&mut self) {
         Imgui::clear_keys();
 
@@ -526,7 +379,7 @@ impl Window {
                         session: &mut Session) {
         // check if we already have a source view open and just post the message.
         if !self.has_source_code_view() {
-            let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
+            let mouse = self.get_mouse_pos();
             // This is somewhat hacky to set a "correct" split view for
             self.context_menu_data = self.ws.get_dock_handle_at_pos(mouse)
                                          .map(|handle| (handle, mouse));
