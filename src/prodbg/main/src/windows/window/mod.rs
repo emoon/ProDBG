@@ -1,3 +1,5 @@
+mod menus;
+
 use minifb::{self, CursorStyle, Scale, WindowOptions, MouseMode, MouseButton, Key, KeyRepeat};
 use core::view_plugins::{ViewHandle, ViewPlugins, ViewInstance};
 use core::backend_plugin::BackendPlugins;
@@ -6,7 +8,7 @@ use core::reader_wrapper::ReaderWrapper;
 use super::viewdock::{self, Workspace, Rect, Direction, DockHandle, SizerPos, Dock, ItemTarget};
 use std::fs::File;
 use std::io;
-use menu::*;
+use menu::Menu;
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::PDVec2;
 use prodbg_api::{Ui, PDUIINPUTTEXTFLAGS_ENTERRETURNSTRUE, PDUIINPUTTEXTFLAGS_AUTOSELECTALL};
@@ -15,7 +17,6 @@ use std::os::raw::c_void;
 use std::collections::VecDeque;
 use std::io::{Read, Write};
 use statusbar::Statusbar;
-use super::nfd::{self, Response as NfdResponse};
 use prodbg_api::events;
 
 const OVERLAY_COLOR: u32 = 0x8000FF00;
@@ -94,14 +95,12 @@ pub struct Window {
 
 impl Window {
     pub fn new(width: usize, height: usize) -> minifb::Result<Window> {
-        let win = try!(minifb::Window::new("ProDBG",
-                                           width,
-                                           height,
-                                           WindowOptions {
-                                               resize: true,
-                                               scale: Scale::X1,
-                                               ..WindowOptions::default()
-                                           }));
+        let options = WindowOptions {
+           resize: true,
+           scale: Scale::X1,
+           ..WindowOptions::default()
+        };
+        let win = try!(minifb::Window::new("ProDBG", width, height, options));
         let ws = Workspace::new(Rect::new(0.0, 0.0, width as f32, (height - 20) as f32));
         let mut ws_states = VecDeque::with_capacity(WORKSPACE_UNDO_LIMIT);
 
@@ -123,6 +122,172 @@ impl Window {
             view_rename_state: ViewRenameState::None,
         })
     }
+
+    pub fn pre_update(&mut self) {
+        let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
+        Imgui::set_mouse_pos(mouse);
+        Imgui::set_mouse_state(0, self.win.get_mouse_down(MouseButton::Left));
+        if let Some(scroll) = self.win.get_scroll_wheel() {
+            Imgui::set_scroll(scroll.1 * 0.25);
+        }
+    }
+
+    pub fn update(&mut self,
+                  sessions: &mut Sessions,
+                  view_plugins: &mut ViewPlugins,
+                  backend_plugins: &mut BackendPlugins) {
+        let mut views_to_delete = Vec::new();
+        let mut has_shown_menu = 0u32;
+
+        self.update_menus(view_plugins, sessions, backend_plugins);
+
+        let win_size = self.win.get_size();
+        let width = win_size.0 as f32;
+        let height = (win_size.1 as f32) - self.statusbar.get_size() - self.custom_menu_height;
+
+        let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
+
+        if has_shown_menu == 0 {
+            self.update_mouse_state(mouse);
+        }
+
+        self.win.update();
+        self.ws.update_rect(Rect::new(0.0, self.custom_menu_height, width, height));
+        self.update_key_state();
+
+        let show_context_menu = self.win.get_mouse_down(MouseButton::Right);
+        if show_context_menu {
+            self.context_menu_data = self.ws
+                .get_dock_handle_at_pos(mouse)
+                .map(|handle| (handle, mouse));
+        }
+
+        for view in &self.views {
+            if let Some(ref mut v) = view_plugins.get_view(*view) {
+                if let Some(ref mut s) = sessions.get_session(v.session_handle) {
+                    let state = Self::update_view(&mut self.ws,
+                                                  v,
+                                                  s,
+                                                  show_context_menu,
+                                                  mouse,
+                                                  &self.overlay);
+
+                    if state.should_close {
+                        views_to_delete.push(*view);
+                    }
+                    has_shown_menu |= state.showed_popup;
+                }
+            }
+        }
+
+        self.statusbar.update(self.win.get_size());
+
+        if self.win.is_key_pressed(Key::Z, KeyRepeat::No) {
+            self.undo_workspace_change(view_plugins);
+        }
+
+        if self.win.is_key_pressed(Key::X, KeyRepeat::No) {
+            self.redo_workspace_change(view_plugins);
+        }
+
+        // TODO: Only do this on the correct session
+
+        // if self.win.is_key_pressed(Key::Down, KeyRepeat::No) {
+        // self.ws.dump_tree();
+        // }
+        //
+        // if self.win.is_key_pressed(Key::Up, KeyRepeat::No) {
+        // self.save_layout("data/layout_temp.json", view_plugins);
+        // }
+        //
+        // if self.win.is_key_pressed(Key::Right, KeyRepeat::No) {
+        // self.load_layout("data/layout_temp.json", view_plugins);
+        // }
+        //
+
+        // test
+
+        // if now plugin has showed a menu we do it here
+        // TODO: Handle diffrent cases when attach menu on to plugin menu or not
+
+        if has_shown_menu == 0 && show_context_menu {
+            Self::show_popup(self, true, view_plugins);
+        } else {
+            Self::show_popup(self, false, view_plugins);
+        }
+
+        if !views_to_delete.is_empty() {
+            Self::remove_views(self, view_plugins, &views_to_delete);
+            self.save_cur_workspace_state();
+        }
+
+        self.render_view_rename_dialog(view_plugins);
+    }
+
+    pub fn save_layout(&mut self,
+                       filename: &str,
+                       _view_plugins: &mut ViewPlugins)
+        -> io::Result<()> {
+            let mut file = try!(File::create(filename));
+            let state = self.ws.save_state();
+            println!("writing state to disk");
+            file.write_all(state.as_str().as_bytes())
+                // for split in &mut self.ws.splits {
+                // let iter = split.left_docks.docks.iter_mut().chain(split.right_docks.docks.iter_mut());
+                //
+                // for dock in iter {
+                // if let Some(ref plugin) = view_plugins.get_view(ViewHandle(dock.handle.0)) {
+                // let (plugin_name, data) = plugin.get_plugin_data();
+                // dock.plugin_name = plugin_name;
+                // dock.plugin_data = data;
+                // } else {
+                // println!("Unable to find plugin for {:?} - this should never happen", dock);
+                // }
+                // }
+                // }
+                //
+                // let _ = self.ws.save(filename);
+                //
+        }
+
+    pub fn load_layout(&mut self,
+                       filename: &str,
+                       view_plugins: &mut ViewPlugins)
+        -> io::Result<()> {
+            let mut data = "".to_owned();
+
+            let mut file = try!(File::open(filename));
+            try!(file.read_to_string(&mut data));
+
+            self.ws = match Workspace::from_state(&data) {
+                Ok(ws) => ws,
+                Err(error) => return Result::Err(io::Error::new(io::ErrorKind::InvalidData, error)),
+            };
+
+            let docks = self.ws.get_docks();
+
+            // TODO: Move this code to separate file and make it generic (copy'n'paste currently)
+            for dock in &docks {
+                let mut new_view_handles: Vec<ViewHandle> = Vec::new();
+                if !self.views.iter().any(|view| view.0 == dock.handle.0) {
+                    let ui = Imgui::create_ui_instance();
+                    if let Some(handle) = view_plugins.create_instance(ui,
+                                                                       &dock.plugin_name,
+                                                                       dock.plugin_data.as_ref(),
+                                                                       Some(&dock.name),
+                                                                       SessionHandle(0),
+                                                                       Some(ViewHandle(dock.handle.0))) {
+                        new_view_handles.push(handle);
+                    } else {
+                        println!("Could not load view {}", dock.plugin_name);
+                        self.ws.delete_dock_by_handle(dock.handle);
+                    }
+                }
+                self.views.extend(new_view_handles);
+            }
+
+            Ok(())
+        }
 
     fn update_view(ws: &mut Workspace,
                    instance: &mut ViewInstance,
@@ -345,43 +510,6 @@ impl Window {
         });
     }
 
-    fn render_unix_menu(ui: &Ui, menu: &minifb::UnixMenu) -> Option<usize> {
-        let mut res = None;
-        if ui.begin_menu(&menu.name, true) {
-            for item in menu.items.iter() {
-                if let Some(ref sub_menu) = item.sub_menu {
-                    res = res.or(Self::render_unix_menu(ui, sub_menu));
-                } else {
-                    if item.label.is_empty() {
-                        ui.separator();
-                    } else {
-                        if ui.menu_item(&item.label, false, true) {
-                            res = Some(item.id);
-                        }
-                    }
-                }
-            }
-            ui.end_menu();
-        }
-        res
-    }
-
-    fn show_unix_menus(&mut self) -> Option<usize> {
-        // TODO: process unix menus shortcuts
-        let mut res = None;
-        if let Some(menus) = self.win.get_unix_menus() {
-            let ui = Imgui::get_ui();
-            if ui.begin_main_menu_bar() {
-                for menu in menus {
-                    res = res.or(Self::render_unix_menu(&ui, menu));
-                }
-                self.custom_menu_height = ui.get_window_size().1;
-                ui.end_main_menu_bar();
-            }
-        }
-        res
-    }
-
     fn has_source_code_view(&self) -> bool {
         // TODO: Use setting for this name
         for dock in self.ws.get_docks() {
@@ -409,151 +537,6 @@ impl Window {
         writer.event_begin(events::EVENT_SET_SOURCE_CODE_FILE as u16);
         writer.write_string("filename", filename);
         writer.event_end();
-    }
-
-    fn browse_source_file(&mut self,
-                          view_plugins: &mut ViewPlugins,
-                          session: &mut Session) {
-        match nfd::dialog().open() {
-            Ok(NfdResponse::Cancel) => return,
-            Err(e) => println!("Failed to open file dialog {:?}", e),
-            Ok(NfdResponse::Okay(file)) => self.open_source_file(&file, view_plugins, session),
-            _ => (),
-        }
-    }
-
-    fn update_menus(&mut self,
-                    view_plugins: &mut ViewPlugins,
-                    sessions: &mut Sessions,
-                    backend_plugins: &mut BackendPlugins) {
-        let current_session = sessions.get_current();
-
-        let menu_id = match self.show_unix_menus().or_else(|| self.win.is_menu_pressed()) {
-            Some(id) => id,
-            None => return,
-        };
-
-        match menu_id {
-            MENU_DEBUG_STEP_IN => current_session.action_step(),
-            MENU_DEBUG_STEP_OVER => current_session.action_step_over(),
-            MENU_DEBUG_START => current_session.action_run(),
-            MENU_FILE_OPEN_SOURCE => self.browse_source_file(view_plugins, current_session),
-            MENU_FILE_START_NEW_BACKEND => {
-                if let Some(backend) =
-                    backend_plugins.create_instance(&"Amiga UAE Debugger".to_owned()) {
-                        current_session.set_backend(Some(backend));
-
-                        if let Some(menu) = backend_plugins.get_menu(backend, self.menu_id_offset) {
-                            self.win.add_menu(&(*menu));
-                            self.menu_id_offset += 1000;
-                        }
-                    }
-            }
-            _ => {
-                current_session.send_menu_id(menu_id as u32, backend_plugins);
-            }
-        }
-    }
-
-    pub fn pre_update(&mut self) {
-        let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
-        Imgui::set_mouse_pos(mouse);
-        Imgui::set_mouse_state(0, self.win.get_mouse_down(MouseButton::Left));
-        if let Some(scroll) = self.win.get_scroll_wheel() {
-            Imgui::set_scroll(scroll.1 * 0.25);
-        }
-    }
-
-    pub fn update(&mut self,
-                  sessions: &mut Sessions,
-                  view_plugins: &mut ViewPlugins,
-                  backend_plugins: &mut BackendPlugins) {
-        let mut views_to_delete = Vec::new();
-        let mut has_shown_menu = 0u32;
-
-        self.update_menus(view_plugins, sessions, backend_plugins);
-
-        let win_size = self.win.get_size();
-        let width = win_size.0 as f32;
-        let height = (win_size.1 as f32) - self.statusbar.get_size() - self.custom_menu_height;
-
-        let mouse = self.win.get_mouse_pos(MouseMode::Clamp).unwrap_or((0.0, 0.0));
-
-        if has_shown_menu == 0 {
-            self.update_mouse_state(mouse);
-        }
-
-        self.win.update();
-        self.ws.update_rect(Rect::new(0.0, self.custom_menu_height, width, height));
-        self.update_key_state();
-
-        let show_context_menu = self.win.get_mouse_down(MouseButton::Right);
-        if show_context_menu {
-            self.context_menu_data = self.ws
-                .get_dock_handle_at_pos(mouse)
-                .map(|handle| (handle, mouse));
-        }
-
-        for view in &self.views {
-            if let Some(ref mut v) = view_plugins.get_view(*view) {
-                if let Some(ref mut s) = sessions.get_session(v.session_handle) {
-                    let state = Self::update_view(&mut self.ws,
-                                                  v,
-                                                  s,
-                                                  show_context_menu,
-                                                  mouse,
-                                                  &self.overlay);
-
-                    if state.should_close {
-                        views_to_delete.push(*view);
-                    }
-                    has_shown_menu |= state.showed_popup;
-                }
-            }
-        }
-
-        self.statusbar.update(self.win.get_size());
-
-        if self.win.is_key_pressed(Key::Z, KeyRepeat::No) {
-            self.undo_workspace_change(view_plugins);
-        }
-
-        if self.win.is_key_pressed(Key::X, KeyRepeat::No) {
-            self.redo_workspace_change(view_plugins);
-        }
-
-        // TODO: Only do this on the correct session
-
-        // if self.win.is_key_pressed(Key::Down, KeyRepeat::No) {
-        // self.ws.dump_tree();
-        // }
-        //
-        // if self.win.is_key_pressed(Key::Up, KeyRepeat::No) {
-        // self.save_layout("data/layout_temp.json", view_plugins);
-        // }
-        //
-        // if self.win.is_key_pressed(Key::Right, KeyRepeat::No) {
-        // self.load_layout("data/layout_temp.json", view_plugins);
-        // }
-        //
-
-        // test
-
-        // if now plugin has showed a menu we do it here
-        // TODO: Handle diffrent cases when attach menu on to plugin menu or not
-
-        if has_shown_menu == 0 && show_context_menu {
-            Self::show_popup(self, true, view_plugins);
-        } else {
-            Self::show_popup(self, false, view_plugins);
-        }
-
-        if !views_to_delete.is_empty() {
-            Self::remove_views(self, view_plugins, &views_to_delete);
-            self.save_cur_workspace_state();
-        }
-
-        self.render_view_rename_dialog(view_plugins);
     }
 
     fn render_rename_dialog_popup(ui: &Ui, set_focus: bool, buf: &mut [u8], plugin: &mut ViewInstance, dock: &mut Dock) -> bool {
@@ -821,69 +804,4 @@ impl Window {
             ui.end_popup();
         }
     }
-
-    pub fn save_layout(&mut self,
-                       filename: &str,
-                       _view_plugins: &mut ViewPlugins)
-        -> io::Result<()> {
-            let mut file = try!(File::create(filename));
-            let state = self.ws.save_state();
-            println!("writing state to disk");
-            file.write_all(state.as_str().as_bytes())
-                // for split in &mut self.ws.splits {
-                // let iter = split.left_docks.docks.iter_mut().chain(split.right_docks.docks.iter_mut());
-                //
-                // for dock in iter {
-                // if let Some(ref plugin) = view_plugins.get_view(ViewHandle(dock.handle.0)) {
-                // let (plugin_name, data) = plugin.get_plugin_data();
-                // dock.plugin_name = plugin_name;
-                // dock.plugin_data = data;
-                // } else {
-                // println!("Unable to find plugin for {:?} - this should never happen", dock);
-                // }
-                // }
-                // }
-                //
-                // let _ = self.ws.save(filename);
-                //
-        }
-
-    pub fn load_layout(&mut self,
-                       filename: &str,
-                       view_plugins: &mut ViewPlugins)
-        -> io::Result<()> {
-            let mut data = "".to_owned();
-
-            let mut file = try!(File::open(filename));
-            try!(file.read_to_string(&mut data));
-
-            self.ws = match Workspace::from_state(&data) {
-                Ok(ws) => ws,
-                Err(error) => return Result::Err(io::Error::new(io::ErrorKind::InvalidData, error)),
-            };
-
-            let docks = self.ws.get_docks();
-
-            // TODO: Move this code to separate file and make it generic (copy'n'paste currently)
-            for dock in &docks {
-                let mut new_view_handles: Vec<ViewHandle> = Vec::new();
-                if !self.views.iter().any(|view| view.0 == dock.handle.0) {
-                    let ui = Imgui::create_ui_instance();
-                    if let Some(handle) = view_plugins.create_instance(ui,
-                                                                       &dock.plugin_name,
-                                                                       dock.plugin_data.as_ref(),
-                                                                       Some(&dock.name),
-                                                                       SessionHandle(0),
-                                                                       Some(ViewHandle(dock.handle.0))) {
-                        new_view_handles.push(handle);
-                    } else {
-                        println!("Could not load view {}", dock.plugin_name);
-                        self.ws.delete_dock_by_handle(dock.handle);
-                    }
-                }
-                self.views.extend(new_view_handles);
-            }
-
-            Ok(())
-        }
 }

@@ -2,7 +2,6 @@ extern crate minifb;
 extern crate bgfx;
 extern crate viewdock;
 extern crate renderer;
-extern crate nfd;
 
 mod window;
 mod keys;
