@@ -70,10 +70,9 @@ impl Windows {
 
         window.win.set_input_callback(Box::new(KeyCharCallback {}));
 
-        // we ignore the results because we likely brake this on Linux otherwise
-        // TODO: Figure out how to deal with this on Linux
-        let _ = window.win.add_menu(&window.menu.file_menu);
-        let _ = window.win.add_menu(&window.menu.debug_menu);
+        // TODO: Figure check result of add_menu
+        window.win.add_menu(&window.menu.file_menu);
+        window.win.add_menu(&window.menu.debug_menu);
 
         Ok(window)
     }
