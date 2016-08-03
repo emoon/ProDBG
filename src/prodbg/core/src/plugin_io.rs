@@ -74,6 +74,15 @@ fn read_double(priv_data: *mut c_void, data: *mut f64) -> LoadState {
     }
 }
 
+fn read_string_len(priv_data: *const c_void, len: *mut i32) -> LoadState {
+    unsafe {
+        let t = priv_data as *mut WriterData;
+        let v = &(*t).data[(*t).read_index];
+        *len = v.len() as i32;
+        LoadState::Ok
+    }
+}
+
 fn read_string(priv_data: *mut c_void, data: *mut c_char, max_len: i32) -> LoadState {
     unsafe {
         let t = priv_data as *mut WriterData;
@@ -82,7 +91,9 @@ fn read_string(priv_data: *mut c_void, data: *mut c_char, max_len: i32) -> LoadS
 
         let mut len = v.len();
 
-        if len > max_len as usize { len = max_len as usize; }
+        if len > max_len as usize {
+            len = max_len as usize;
+        }
 
         let tstring = CFixedString::from_str(&v);
 
@@ -107,15 +118,11 @@ pub fn get_data(save_state: &mut CPDSaveState) -> Vec<String> {
 }
 
 pub fn get_loader_funcs(data: &Vec<String>) -> CPDLoadState {
-    CPDLoadState  {
+    CPDLoadState {
         priv_data: unsafe { transmute(Box::new(WriterData::new_load(data))) },
         read_int: read_int,
         read_double: read_double,
+        read_string_len: read_string_len,
         read_string: read_string,
     }
 }
-
-
-
-
-

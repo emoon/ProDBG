@@ -4,13 +4,15 @@ use ui::*;
 use ui_ffi::*;
 use std::os::raw::{c_uchar, c_void};
 use std::mem::transmute;
-use io::{CPDSaveState, CPDLoadState};
+use io::{CPDSaveState, StateSaver, CPDLoadState, StateLoader};
 
 pub static VIEW_API_VERSION: &'static [u8] = b"ProDBG View 1\0";
 
 pub trait View {
     fn new(ui: &Ui, service: &Service) -> Self;
     fn update(&mut self, ui: &mut Ui, reader: &mut Reader, writer: &mut Writer);
+    fn save_state(&mut self, _: StateSaver) {}
+    fn load_state(&mut self, _: StateLoader) {}
 }
 
 #[repr(C)]
@@ -50,9 +52,9 @@ pub fn destroy_view_instance<T: View>(ptr: *mut c_void) {
 }
 
 pub fn update_view_instance<T: View>(ptr: *mut c_void,
-                                        ui_api: *mut c_void,
-                                        reader_api: *mut c_void,
-                                        writer_api: *mut c_void) {
+                                     ui_api: *mut c_void,
+                                     reader_api: *mut c_void,
+                                     writer_api: *mut c_void) {
     let view: &mut T = unsafe { &mut *(ptr as *mut T) };
     let c_ui: &mut CPdUI = unsafe { &mut *(ui_api as *mut CPdUI) };
     let c_reader: &mut CPDReaderAPI = unsafe { &mut *(reader_api as *mut CPDReaderAPI) };
@@ -68,6 +70,18 @@ pub fn update_view_instance<T: View>(ptr: *mut c_void,
     view.update(&mut ui, &mut reader, &mut writer);
 }
 
+pub fn save_view_state<T: View>(ptr: *mut c_void, saver_api: *mut CPDSaveState) {
+    let view: &mut T = unsafe { &mut *(ptr as *mut T) };
+    let saver = StateSaver::new(saver_api);
+    view.save_state(saver);
+}
+
+pub fn load_view_state<T: View>(ptr: *mut c_void, loader_api: *mut CPDLoadState) {
+    let view: &mut T = unsafe { &mut *(ptr as *mut T) };
+    let loader = StateLoader::new(loader_api);
+    view.load_state(loader);
+}
+
 #[macro_export]
 macro_rules! define_view_plugin {
     ($p_name:ident, $name:expr, $x:ty) => {
@@ -76,8 +90,8 @@ macro_rules! define_view_plugin {
                 create_instance: Some(prodbg_api::view::create_view_instance::<$x>),
                 destroy_instance: Some(prodbg_api::view::destroy_view_instance::<$x>),
                 update: Some(prodbg_api::view::update_view_instance::<$x>),
-                save_state: None,
-                load_state: None
+                save_state: Some(prodbg_api::view::save_view_state::<$x>),
+                load_state: Some(prodbg_api::view::load_view_state::<$x>)
         };
     }
 }

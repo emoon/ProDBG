@@ -1,12 +1,14 @@
 use std::os::raw::{c_char, c_void};
+use std::mem::transmute;
+use super::CFixedString;
 
 #[repr(C)]
 pub enum LoadState {
-	Ok,
-	Fail,
-	Converted,
-	Truncated,
-	OutOfData,
+    Ok,
+    Fail,
+    Converted,
+    Truncated,
+    OutOfData,
 }
 
 #[repr(C)]
@@ -17,10 +19,98 @@ pub struct CPDSaveState {
     pub write_string: fn(priv_data: *mut c_void, data: *const c_char),
 }
 
+pub struct StateSaver {
+    api: *mut CPDSaveState,
+}
+
+impl StateSaver {
+    pub fn new(api: *mut CPDSaveState) -> StateSaver {
+        StateSaver { api: api }
+    }
+
+    pub fn write_int(&mut self, data: i64) {
+        unsafe { ((*self.api).write_int)((*self.api).priv_data, data) }
+    }
+
+    pub fn write_double(&mut self, data: f64) {
+        unsafe { ((*self.api).write_double)((*self.api).priv_data, data) }
+    }
+
+    pub fn write_str(&mut self, data: &str) {
+        unsafe {
+            let str = CFixedString::from_str(data);
+            ((*self.api).write_string)((*self.api).priv_data, str.as_ptr())
+        }
+    }
+}
+
+#[repr(C)]
 pub struct CPDLoadState {
     pub priv_data: *mut c_void,
     pub read_int: fn(priv_data: *mut c_void, dest: *mut i64) -> LoadState,
     pub read_double: fn(priv_data: *mut c_void, dest: *mut f64) -> LoadState,
+    pub read_string_len: fn(priv_data: *const c_void, len: *mut i32) -> LoadState,
     pub read_string: fn(priv_data: *mut c_void, dest: *mut c_char, max_len: i32) -> LoadState,
 }
 
+pub enum LoadResult<T> {
+    Ok(T),
+    Fail,
+    Converted(T),
+    Truncated(T),
+    OutOfData,
+}
+
+impl<T> LoadResult<T> {
+    pub fn from_state(state: LoadState, val: T) -> LoadResult<T> {
+        match state {
+            LoadState::Ok => LoadResult::Ok(val),
+            LoadState::Converted => LoadResult::Converted(val),
+            LoadState::Truncated => LoadResult::Truncated(val),
+            LoadState::Fail => LoadResult::Fail,
+            LoadState::OutOfData => LoadResult::OutOfData,
+        }
+    }
+}
+
+pub struct StateLoader {
+    api: *mut CPDLoadState,
+}
+
+impl StateLoader {
+    pub fn new(api: *mut CPDLoadState) -> StateLoader {
+        StateLoader { api: api }
+    }
+
+    pub fn read_int(&mut self) -> LoadResult<i64> {
+        unsafe {
+            let mut res: i64 = 0;
+            let state = ((*self.api).read_int)((*self.api).priv_data, &mut res);
+            LoadResult::from_state(state, res)
+        }
+    }
+
+    pub fn read_f64(&mut self) -> LoadResult<f64> {
+        unsafe {
+            let mut res: f64 = 0.0;
+            let state = ((*self.api).read_double)((*self.api).priv_data, &mut res);
+            LoadResult::from_state(state, res)
+        }
+    }
+
+    pub fn read_string(&mut self) -> LoadResult<String> {
+        unsafe {
+            let mut len: i32 = 0;
+            let len_state = ((*self.api).read_string_len)((*self.api).priv_data, &mut len);
+            match len_state {
+                LoadState::Fail => return LoadResult::Fail,
+                LoadState::OutOfData => return LoadResult::OutOfData,
+                _ => {}
+            }
+            let mut buf = vec!(0u8; len as usize);
+            let state =
+                ((*self.api).read_string)((*self.api).priv_data, transmute(buf.as_mut_ptr()), len);
+            LoadResult::from_state(state, String::from_utf8(buf).unwrap())
+        }
+    }
+}
