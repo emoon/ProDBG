@@ -77,4 +77,4 @@ Run: `rustup install stable-x86_64-unknown-linux-gnu` or `rustup override add st
 Run: `tundra2 linux-gcc-debug`
 
 ### Run
-The main execeutable is located at: `t2-output/linux-gcc-debug-default/prodbg`
+The main executable is located at: `t2-output/linux-gcc-debug-default/prodbg`
