@@ -24,14 +24,18 @@ extern crate serde_json;
 mod serialize_helper;
 mod rect;
 mod area;
-mod dock;
 mod serialize;
 #[cfg(test)]
 mod test_helper;
 
 pub use rect::{Rect, Direction};
 pub use area::{Area, Split, SplitHandle, Container, SizerPos};
-pub use dock::{DockHandle, Dock};
+
+// TODO: remove this struct. Let client code use its own handlers instead. Workspace shoud be
+// Workspace<T> where T is a handle.
+/// Handle to a dock
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct DockHandle(pub u64);
 
 /// Top level structure.
 #[derive(Debug)]
@@ -86,12 +90,9 @@ impl Workspace {
     }
 
     /// Used to set or change root area
-    pub fn initialize(&mut self, dock: Dock) {
+    pub fn initialize(&mut self, handle: DockHandle) {
         self.root_area = Some(Area::Container(
-            Container::new(
-                dock,
-                self.rect.clone()
-            )
+            Container::new(handle, self.rect.clone())
         ));
     }
 
@@ -153,7 +154,7 @@ impl Workspace {
         })
     }
 
-    /// Returns `DockHandle` for `Dock` that is currently under `pos`
+    /// Returns `DockHandle` that is currently under `pos`
     pub fn get_dock_handle_at_pos(&self, pos:(f32, f32)) -> Option<DockHandle> {
         self.root_area.as_ref().and_then(|root| {
             root.get_dock_handle_at_pos(pos)
@@ -205,7 +206,7 @@ impl Workspace {
                     ItemTarget::AppendToContainer(target_handle, target_index) => {
                         if let Some(container) = root.get_container_by_dock_handle(target_handle) {
                             if let Some(cur_index) = container.docks.iter()
-                                .position(|dock| dock.handle == handle) {
+                                .position(|dock_handle| *dock_handle == handle) {
 
                                 res = Self::index_is_neighbour(cur_index, target_index);
                             }
@@ -223,15 +224,15 @@ impl Workspace {
         return res;
     }
 
-    /// Inserts `dock` into a place identified by `target`
-    pub fn create_dock_at(&mut self, target: ItemTarget, dock: Dock) {
+    /// Inserts `handle` into a place identified by `target`
+    pub fn create_dock_at(&mut self, target: ItemTarget, handle: DockHandle) {
         if let Some(target) = self.normalize_target(&target) {
             match target {
                 ItemTarget::SplitRoot(direction, index) => {
                     let next_handle = self.next_handle();
                     if let Some(ref mut root) = self.root_area {
                         let old_root = root.clone();
-                        let new_dock = Area::container_from_dock(dock);
+                        let new_dock = Area::container_from_dock(handle);
                         let new_child = if index == 0 {
                             Split::from_two(direction, 0.5, next_handle, self.rect.clone(), new_dock, old_root)
                         } else {
@@ -240,19 +241,19 @@ impl Workspace {
                         *root = Area::Split(new_child);
                     }
                 },
-                ItemTarget::AppendToSplit(handle, index) => {
+                ItemTarget::AppendToSplit(split_handle, index) => {
                     if let Some(ref mut root) = self.root_area {
-                        if let Some(s) = root.get_split_by_handle(handle) {
-                            s.insert_child(index, Area::container_from_dock(dock));
+                        if let Some(s) = root.get_split_by_handle(split_handle) {
+                            s.insert_child(index, Area::container_from_dock(handle));
                         }
                     }
                 },
-                ItemTarget::SplitContainer(handle, index, new_index) => {
+                ItemTarget::SplitContainer(split_handle, index, new_index) => {
                     let next_handle = self.next_handle();
                     if let Some(ref mut root) = self.root_area {
-                        if let Some(s) = root.get_split_by_handle(handle) {
+                        if let Some(s) = root.get_split_by_handle(split_handle) {
                             let old_copy = s.children[index].clone();
-                            let new_dock = Area::container_from_dock(dock);
+                            let new_dock = Area::container_from_dock(handle);
                             let new_child = Area::Split(if new_index == 0 {
                                 Split::from_two(s.direction.opposite(), 0.5, next_handle, self.rect.clone(), new_dock, old_copy)
                             } else {
@@ -265,7 +266,7 @@ impl Workspace {
                 ItemTarget::AppendToContainer(handle, new_index) => {
                     if let Some(ref mut root) = self.root_area {
                         if let Some(c) = root.get_container_by_dock_handle_mut(handle) {
-                            c.insert_dock(new_index, dock);
+                            c.insert_dock(new_index, handle);
                         }
                     }
                 },
@@ -341,12 +342,9 @@ impl Workspace {
     /// not mess it with newly created).
     pub fn move_dock(&mut self, handle: DockHandle, mut target: ItemTarget) {
         let marker = DockHandle(u64::max_value());
-        let copy = self.get_dock_mut(handle)
-            .and_then(|dock| {
-                let res = Some(dock.clone());
-                dock.handle = marker;
-                return res;
-            });
+        let copy = self.root_area.as_mut()
+            .and_then(|root| root.get_container_by_dock_handle_mut(handle))
+            .and_then(|c| c.replace_dock(handle, marker));
         match target {
             ItemTarget::SplitDock(ref mut target_handle, _, _) => {
                 if *target_handle == handle {
@@ -377,8 +375,9 @@ impl Workspace {
         serde_json::from_str(state)
     }
 
+    // TODO: return iterator over workspace
     /// Returns all the docks in this structure
-    pub fn get_docks(&self) -> Vec<Dock> {
+    pub fn get_docks(&self) -> Vec<DockHandle> {
         let mut docks = Vec::new();
         match self.root_area {
             Some(ref root) => Workspace::collect_docks(&mut docks, root),
@@ -387,11 +386,11 @@ impl Workspace {
         return docks;
     }
 
-    fn collect_docks(target: &mut Vec<Dock>, source: &Area) {
+    fn collect_docks(target: &mut Vec<DockHandle>, source: &Area) {
         match *source {
             Area::Container(ref c) => {
                 for dock in &c.docks {
-                    target.push(dock.clone());
+                    target.push(*dock);
                 }
             },
             Area::Split(ref s) => {
@@ -401,23 +400,17 @@ impl Workspace {
             }
         }
     }
-
-    pub fn get_dock_mut(&mut self, handle: DockHandle) -> Option<&mut Dock> {
-        self.root_area.as_mut()
-            .and_then(|root| root.get_container_by_dock_handle_mut(handle))
-            .and_then(|c| c.get_dock_mut(handle))
-    }
 }
 
 #[cfg(test)]
 mod test {
     extern crate serde_json;
 
-    use {Area, Container, Workspace, Split, SplitHandle, ItemTarget, Dock, DockHandle, Rect, Direction};
+    use {Area, Container, Workspace, Split, SplitHandle, ItemTarget, DockHandle, Rect, Direction};
     use test_helper::{is_container_with_single_dock, rects_are_equal};
 
     fn test_area_container(id: u64) -> Area {
-        Area::Container(Container::new(Dock::new(DockHandle(id), "test", "plugin"), Rect::default()))
+        Area::Container(Container::new(DockHandle(id), Rect::default()))
     }
 
     fn test_area_split(dir: Direction, id: u64, first: Area, second: Area) -> Area {
@@ -447,7 +440,7 @@ mod test {
         };
         ws.delete_dock_by_handle(DockHandle(0));
         match ws.root_area.unwrap() {
-            Area::Container(ref c) => assert_eq!(c.docks[0].handle, DockHandle(1)),
+            Area::Container(ref c) => assert_eq!(c.docks[0], DockHandle(1)),
             _ => panic!("Root node should become container")
         }
     }
@@ -508,7 +501,7 @@ mod test {
             handle_counter: SplitHandle(0)
         };
         let target = ItemTarget::SplitRoot(Direction::Horizontal, 0);
-        ws.create_dock_at(target, Dock::new(DockHandle(6), "test2", "plugin"));
+        ws.create_dock_at(target, DockHandle(6));
         match ws.root_area.unwrap() {
             Area::Split(ref s) => {
                 assert_eq!(s.children.len(), 2);
@@ -527,7 +520,7 @@ mod test {
             handle_counter: SplitHandle(0)
         };
         let target = ItemTarget::SplitRoot(Direction::Vertical, 1);
-        ws.create_dock_at(target, Dock::new(DockHandle(6), "test2", "plugin"));
+        ws.create_dock_at(target, DockHandle(6));
         match ws.root_area.unwrap() {
             Area::Split(ref s) => {
                 assert_eq!(s.children.len(), 2);
@@ -549,7 +542,7 @@ mod test {
             handle_counter: SplitHandle(1),
         };
         let target = ItemTarget::SplitContainer(SplitHandle(0), 0, 1);
-        ws.create_dock_at(target, Dock::new(DockHandle(2), "test2", "plugin"));
+        ws.create_dock_at(target, DockHandle(2));
         match ws.root_area.unwrap() {
             Area::Split(ref s) => {
                 assert_eq!(s.direction, Direction::Horizontal);
@@ -580,7 +573,7 @@ mod test {
             handle_counter: SplitHandle(1),
         };
         let target = ItemTarget::SplitDock(DockHandle(1), Direction::Horizontal, 1);
-        ws.create_dock_at(target, Dock::new(DockHandle(2), "test2", "plugin"));
+        ws.create_dock_at(target, DockHandle(2));
         match ws.root_area.unwrap() {
             Area::Split(ref s) => {
                 assert_eq!(s.children.len(), 3);
@@ -603,7 +596,7 @@ mod test {
             handle_counter: SplitHandle(1),
         };
         let target = ItemTarget::SplitDock(DockHandle(0), Direction::Vertical, 0);
-        ws.create_dock_at(target, Dock::new(DockHandle(2), "test2", "plugin"));
+        ws.create_dock_at(target, DockHandle(2));
         match ws.root_area.unwrap() {
             Area::Split(ref s) => {
                 assert_eq!(s.direction, Direction::Horizontal);
@@ -641,9 +634,7 @@ mod test {
     #[test]
     fn test_workspace_serialize_1() {
         let ws_in = Workspace {
-            root_area: Some(Area::Container(
-                Container::new(Dock::new(DockHandle(5), "test", "plugin"), Rect::default())
-            )),
+            root_area: Some(Area::container_from_dock(DockHandle(5))),
             rect: Rect::new(4.0, 5.0, 2.0, 8.0),
             handle_counter: SplitHandle(2),
         };

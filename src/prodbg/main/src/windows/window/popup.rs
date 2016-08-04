@@ -154,10 +154,6 @@ impl Window {
                     None => return Some(ViewRenameState::None),
                     Some(plugin) => plugin,
                 };
-                let dock = match self.ws.get_dock_mut(handle) {
-                    None => return Some(ViewRenameState::None),
-                    Some(dock) => dock,
-                };
                 let ui = Imgui::get_ui();
                 let set_focus = if let ViewRenameState::Init(_) = self.view_rename_state {
                     // TODO: is there a way to avoid allocation of 100 bytes on stack?
@@ -177,7 +173,6 @@ impl Window {
                             let null_index = buf.iter().position(|c| *c == 0).unwrap_or(buf.len());
                             if let Ok(parsed) = ::std::str::from_utf8(&buf[..null_index]) {
                                 plugin.name = parsed.to_string();
-                                dock.name = plugin.name.clone();
                             }
                             Some(ViewRenameState::None)
                         }

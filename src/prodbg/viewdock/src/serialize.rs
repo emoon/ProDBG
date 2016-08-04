@@ -1,9 +1,11 @@
 extern crate serde;
 
-use Workspace;
+use {Workspace, DockHandle};
 use super::Rect;
 
 // Serialization
+
+gen_handle!("DockHandle", DockHandle, DockHandleVisitor);
 
 impl serde::ser::Serialize for Workspace {
     fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: serde::ser::Serializer {

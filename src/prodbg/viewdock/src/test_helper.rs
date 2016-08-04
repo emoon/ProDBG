@@ -18,7 +18,7 @@ pub fn is_container_with_single_dock(target: &Area, id: u64) -> bool {
             if c.docks.len() != 1 {
                 false
             } else {
-                c.docks[0].handle == DockHandle(id)
+                c.docks[0] == DockHandle(id)
             }
         },
         _ => false
