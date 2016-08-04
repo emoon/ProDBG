@@ -103,10 +103,8 @@ impl Window {
         let win = try!(minifb::Window::new("ProDBG", width, height, options));
         let ws = Workspace::new(Rect::new(0.0, 0.0, width as f32, (height - 20) as f32));
 
-        let mut ws_states = VecDeque::with_capacity(WORKSPACE_UNDO_LIMIT);
-        ws_states.push_back(ws.save_state());
-
-        Ok(Window {
+        let ws_states = VecDeque::with_capacity(WORKSPACE_UNDO_LIMIT);
+        let mut res = Window {
             win: win,
             menu: Menu::new(),
             views: Vec::new(),
@@ -121,7 +119,11 @@ impl Window {
             statusbar: Statusbar::new(),
             custom_menu_height: 0.0,
             view_rename_state: ViewRenameState::None,
-        })
+        };
+
+        res.initialize_workspace_state();
+
+        Ok(res)
     }
 
     pub fn pre_update(&mut self) {
@@ -213,6 +215,7 @@ impl Window {
         // ViewPlugins are the same?
         let new_view_handles = WindowLayout::restore_view_plugins(view_plugins, &layout.infos);
         self.views.extend(new_view_handles);
+        self.initialize_workspace_state();
         Ok(())
     }
 
@@ -364,6 +367,11 @@ impl Window {
         writer.event_begin(events::EVENT_SET_SOURCE_CODE_FILE as u16);
         writer.write_string("filename", filename);
         writer.event_end();
+    }
+
+    fn initialize_workspace_state(&mut self) {
+        self.ws_states.clear();
+        self.ws_states.push_back(self.ws.save_state());
     }
 
     fn restore_workspace_state(&mut self, view_plugins: &mut ViewPlugins) {
