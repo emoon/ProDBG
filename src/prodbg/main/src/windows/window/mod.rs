@@ -2,13 +2,14 @@ mod menus;
 mod mouse;
 mod keys;
 mod popup;
+mod layout;
 
 use minifb::{self, Scale, WindowOptions};
 use core::view_plugins::{ViewHandle, ViewPlugins};
 use core::backend_plugin::BackendPlugins;
 use core::session::{Sessions, Session, SessionHandle};
 use core::reader_wrapper::ReaderWrapper;
-use super::viewdock::{self, Workspace, Rect, Direction, DockHandle, ItemTarget};
+use super::viewdock::{Workspace, Rect, Direction, DockHandle, ItemTarget};
 use std::fs::File;
 use std::io;
 use menu::Menu;
@@ -22,6 +23,8 @@ use statusbar::Statusbar;
 use prodbg_api::events;
 use self::mouse::MouseState;
 use self::popup::ViewRenameState;
+use self::layout::{PluginInstanceInfo, WindowLayout};
+use std::collections::HashMap;
 
 
 const OVERLAY_COLOR: u32 = 0x8000FF00;
@@ -41,6 +44,24 @@ fn is_inside(v: (f32, f32), pos: PDVec2, size: (f32, f32)) -> bool {
     v.0 >= x0 && v.0 < x1 && v.1 >= y0 && v.1 < y1
 }
 
+fn restore_view_plugins(docks: &[DockHandle], view_plugins: &mut ViewPlugins, info: &mut HashMap<u64, PluginInstanceInfo>) -> Vec<ViewHandle> {
+    let mut new_view_handles = Vec::new();
+    for dock in docks.iter() {
+        if !view_plugins.get_view(ViewHandle(dock.0)).is_some() {
+            let info = match info.remove(&dock.0) {
+                None => panic!("Could not restore view: no info in `removed_instances` found"),
+                Some(info) => info,
+            };
+            if let Some(handle) = info.restore(view_plugins) {
+                new_view_handles.push(handle);
+            } else {
+                panic!("Could not restore view");
+            }
+        }
+    }
+    new_view_handles
+}
+
 
 pub struct Window {
     /// minifb window
@@ -52,8 +73,10 @@ pub struct Window {
     pub views: Vec<ViewHandle>,
 
     pub ws: Workspace,
+    // TODO: should we serialize Workspace if this is stored in memory only?
     ws_states: VecDeque<String>,
     cur_state_index: usize,
+    removed_instances: HashMap<u64, PluginInstanceInfo>,
 
     pub mouse_state: MouseState,
 
@@ -79,8 +102,8 @@ impl Window {
         };
         let win = try!(minifb::Window::new("ProDBG", width, height, options));
         let ws = Workspace::new(Rect::new(0.0, 0.0, width as f32, (height - 20) as f32));
-        let mut ws_states = VecDeque::with_capacity(WORKSPACE_UNDO_LIMIT);
 
+        let mut ws_states = VecDeque::with_capacity(WORKSPACE_UNDO_LIMIT);
         ws_states.push_back(ws.save_state());
 
         Ok(Window {
@@ -92,6 +115,7 @@ impl Window {
             ws: ws,
             ws_states: ws_states,
             cur_state_index: 0usize,
+            removed_instances: HashMap::new(),
             overlay: None,
             context_menu_data: None,
             statusbar: Statusbar::new(),
@@ -162,10 +186,11 @@ impl Window {
 
     pub fn save_layout(&mut self,
                        filename: &str,
-                       _view_plugins: &mut ViewPlugins)
+                       view_plugins: &mut ViewPlugins)
                        -> io::Result<()> {
         let mut file = try!(File::create(filename));
-        let state = self.ws.save_state();
+        let layout = WindowLayout::from_current_state(self.ws.clone(), view_plugins);
+        let state = layout.to_string();
         println!("writing state to disk");
         file.write_all(state.as_str().as_bytes())
     }
@@ -174,39 +199,20 @@ impl Window {
                        filename: &str,
                        view_plugins: &mut ViewPlugins)
                        -> io::Result<()> {
-//        let mut data = "".to_owned();
-//
-//        let mut file = try!(File::open(filename));
-//        try!(file.read_to_string(&mut data));
-//
-//        self.ws = match Workspace::from_state(&data) {
-//            Ok(ws) => ws,
-//            Err(error) => return Result::Err(io::Error::new(io::ErrorKind::InvalidData, error)),
-//        };
-//
-//        let docks = self.ws.get_docks();
-//
-//        // TODO: Move this code to separate file and make it generic (copy'n'paste currently)
-//        for dock in &docks {
-//            let mut new_view_handles: Vec<ViewHandle> = Vec::new();
-//            if !self.views.iter().any(|view| view.0 == dock.handle.0) {
-//                let ui = Imgui::create_ui_instance();
-//                if let Some(handle) = view_plugins.create_instance(ui,
-//                                                                   &dock.plugin_name,
-//                                                                   dock.plugin_data.as_ref(),
-//                                                                   Some(&dock.name),
-//                                                                   SessionHandle(0),
-//                                                                   Some(ViewHandle(dock.handle
-//                                                                       .0))) {
-//                    new_view_handles.push(handle);
-//                } else {
-//                    println!("Could not load view {}", dock.plugin_name);
-//                    self.ws.delete_dock_by_handle(dock.handle);
-//                }
-//            }
-//            self.views.extend(new_view_handles);
-//        }
+        let mut data = String::new();
 
+        let mut file = try!(File::open(filename));
+        try!(file.read_to_string(&mut data));
+
+        let layout = match WindowLayout::from_string(&data) {
+            Ok(layout) => layout,
+            Err(error) => return Result::Err(io::Error::new(io::ErrorKind::InvalidData, error)),
+        };
+        self.ws = layout.workspace;
+        // TODO: should we check here that handles stored in Workspace and handles restored in
+        // ViewPlugins are the same?
+        let new_view_handles = WindowLayout::restore_view_plugins(view_plugins, &layout.infos);
+        self.views.extend(new_view_handles);
         Ok(())
     }
 
@@ -314,6 +320,9 @@ impl Window {
 
     pub fn remove_views(&mut self, view_plugins: &mut ViewPlugins, views: &Vec<ViewHandle>) {
         for view in views {
+            if let Some(instance) = view_plugins.get_view(*view) {
+                self.removed_instances.insert(view.0, PluginInstanceInfo::new(instance));
+            }
             view_plugins.destroy_instance(*view);
             if let Some(pos) = self.views.iter().position(|v| v == view) {
                 self.views.swap_remove(pos);
@@ -367,25 +376,8 @@ impl Window {
             .map(|view| view.clone())
             .collect();
         Self::remove_views(self, view_plugins, &views_to_delete);
-
-//        for dock in &docks {
-//            let mut new_view_handles: Vec<ViewHandle> = Vec::new();
-//            if !self.views.iter().find(|view| view.0 == dock.handle.0).is_some() {
-//                let ui = Imgui::create_ui_instance();
-//                if let Some(handle) = view_plugins.create_instance(ui,
-//                                                                   &dock.plugin_name,
-//                                                                   dock.plugin_data.as_ref(),
-//                                                                   Some(&dock.name),
-//                                                                   SessionHandle(0),
-//                                                                   Some(ViewHandle(dock.handle
-//                                                                       .0))) {
-//                    new_view_handles.push(handle);
-//                } else {
-//                    panic!("Could not restore view");
-//                }
-//            }
-//            self.views.extend(new_view_handles);
-//        }
+        let new_view_handles = restore_view_plugins(&docks, view_plugins, &mut self.removed_instances);
+        self.views.extend(new_view_handles);
     }
 
     fn undo_workspace_change(&mut self, view_plugins: &mut ViewPlugins) {
@@ -424,7 +416,6 @@ impl Window {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) =
                view_plugins.create_instance(ui, plugin_name, None, None, SessionHandle(0), None) {
-            let name = &view_plugins.get_view(handle).unwrap().name;
             let new_dock = DockHandle(handle.0);
             if let Some((dock_handle, pos)) = self.context_menu_data {
                 let position = self.ws
@@ -453,7 +444,6 @@ impl Window {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) =
                view_plugins.create_instance(ui, plugin_name, None, None, SessionHandle(0), None) {
-            let name = &view_plugins.get_view(handle).unwrap().name;
             self.views.push(handle);
 
             let mut should_save_ws = false;

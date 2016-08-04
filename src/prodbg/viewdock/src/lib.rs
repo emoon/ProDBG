@@ -38,7 +38,7 @@ pub use area::{Area, Split, SplitHandle, Container, SizerPos};
 pub struct DockHandle(pub u64);
 
 /// Top level structure.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Workspace {
     pub root_area: Option<Area>,
     rect: Rect,
