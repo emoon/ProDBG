@@ -10,7 +10,8 @@ mod helper;
 mod memory_chunk;
 
 use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, PDVec2,
-                 ImGuiStyleVar, EventType, ImGuiCol, Color, ReadStatus, Key};
+                 ImGuiStyleVar, EventType, ImGuiCol, Color, ReadStatus, Key, StateSaver, StateLoader,
+                 LoadResult};
 use prodbg_api::PDUIWINDOWFLAGS_HORIZONTALSCROLLBAR;
 use std::str;
 use number_view::{NumberView, NumberRepresentation, Endianness};
@@ -654,6 +655,17 @@ impl View for MemoryView {
         self.process_events(reader);
         self.render(ui, writer);
         self.process_memory_request(writer);
+    }
+
+    fn save_state(&mut self, mut saver: StateSaver) {
+        saver.write_int(self.start_address.get() as i64);
+    }
+
+    fn load_state(&mut self, mut loader: StateLoader) {
+        if let LoadResult::Ok(address) = loader.read_int() {
+            println!("Setting address {:#x}", address as usize);
+            self.start_address.set(address as usize);
+        }
     }
 }
 
