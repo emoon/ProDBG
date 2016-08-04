@@ -25,7 +25,7 @@ impl PluginInstanceInfo {
             handle: instance.handle.0,
             name: instance.name.clone(),
             plugin_name: instance.plugin_type.name.clone(),
-            plugin_data: None,
+            plugin_data: instance.get_plugin_data().1,
         }
     }
 
