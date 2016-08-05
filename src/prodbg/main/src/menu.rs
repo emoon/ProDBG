@@ -6,11 +6,13 @@ use minifb::Menu as MinifbMenu;
 pub const MENU_FILE_OPEN_AND_RUN_EXE: usize = 1;
 pub const MENU_FILE_OPEN_SOURCE: usize = 2;
 pub const MENU_FILE_START_NEW_BACKEND: usize = 3;
-pub const MENU_DEBUG_ATTACH_TO_REMOTE: usize = 50;
-pub const MENU_DEBUG_START: usize = 51;
-pub const MENU_DEBUG_STEP_IN: usize = 52;
-pub const MENU_DEBUG_STEP_OVER: usize = 53;
-pub const MENU_DEBUG_TOGGLE_BREAKPOINT: usize = 54;
+pub const MENU_FILE_BACKEND_START: usize = 4;
+pub const MENU_FILE_BACKEND_END: usize = 99;
+pub const MENU_DEBUG_ATTACH_TO_REMOTE: usize = 100;
+pub const MENU_DEBUG_START: usize = 101;
+pub const MENU_DEBUG_STEP_IN: usize = 102;
+pub const MENU_DEBUG_STEP_OVER: usize = 103;
+pub const MENU_DEBUG_TOGGLE_BREAKPOINT: usize = 104;
 
 pub struct Menu {
     pub file_menu: MinifbMenu,

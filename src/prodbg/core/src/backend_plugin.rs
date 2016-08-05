@@ -134,13 +134,23 @@ impl BackendPlugins {
         None
     }
 
+    pub fn get_plugin_names(&self) -> Vec<String> {
+        let mut names = Vec::with_capacity(self.plugin_types.len());
+
+        for plugin_type in &self.plugin_types {
+            names.push(plugin_type.name.clone());
+        }
+
+        names
+    }
+
     pub fn get_menu(&mut self, handle: BackendHandle, menu_id_offset: u32) -> Option<Box<Menu>> {
         if let Some(backend) = self.get_backend(Some(handle)) {
             unsafe {
                 let plugin_funcs = backend.plugin_type.plugin_funcs as *mut CBackendCallbacks;
 
-                if let Some(register_menu) = (*plugin_funcs).register_menu { 
-                    let mut menus_funcs = menus::get_menu_funcs(menu_id_offset); 
+                if let Some(register_menu) = (*plugin_funcs).register_menu {
+                    let mut menus_funcs = menus::get_menu_funcs(menu_id_offset);
                     let funcs: *mut c_void = transmute(&mut menus_funcs);
                     let menu = register_menu(backend.plugin_data, funcs);
                     if menu == ptr::null_mut() {

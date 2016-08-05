@@ -13,6 +13,7 @@ use core::session::Sessions;
 use settings::Settings;
 use self::window::Window;
 use self::keys::KeyCharCallback;
+use menu::{MENU_FILE_BACKEND_START, MENU_FILE_BACKEND_END};
 
 const WIDTH: i32 = 1280;
 const HEIGHT: i32 = 800;
@@ -41,12 +42,12 @@ impl Windows {
     }
 
     /// Create a default window which will only be created if there are no other
-    pub fn create_default(&mut self, settings: &Settings) {
+    pub fn create_default(&mut self, settings: &Settings, backend_plugins: Vec<String>) {
         if self.windows.len() > 0 {
             return;
         }
 
-        let window = self.create_window_with_menus(settings).expect("Unable to create window");
+        let window = self.create_window_with_menus(settings, backend_plugins).expect("Unable to create window");
 
         keys::setup_imgui_key_mappings();
 
@@ -62,14 +63,15 @@ impl Windows {
         Ok(win)
     }
 
-    pub fn create_window_with_menus(&mut self, settings: &Settings) -> minifb::Result<Window> {
-
+    pub fn create_window_with_menus(&mut self, settings: &Settings, backend_plugins: Vec<String>) -> minifb::Result<Window> {
         let width = settings.get_int("window_size", "width").unwrap_or(WIDTH) as usize;
         let height = settings.get_int("window_size", "height").unwrap_or(HEIGHT) as usize;
 
         let mut window = try!(self.create_window(width, height));
 
         window.win.set_input_callback(Box::new(KeyCharCallback {}));
+
+        Self::add_backend_menus(&mut window, backend_plugins);
 
         // TODO: Figure check result of add_menu
         window.win.add_menu(&window.menu.file_menu);
@@ -105,6 +107,23 @@ impl Windows {
     pub fn get_current(&mut self) -> &mut Window {
         let current = self.current;
         &mut self.windows[current]
+    }
+
+    fn add_backend_menus(window: &mut Window, backend_plugins: Vec<String>) {
+        // Build menu with all the backend plugins
+        let mut backend_menus = minifb::Menu::new("").unwrap();
+
+        for (i, name) in backend_plugins.iter().enumerate() {
+            let id = MENU_FILE_BACKEND_START + i;
+
+            if id >= MENU_FILE_BACKEND_END {
+                panic!("Maximum number of backends reached {}", MENU_FILE_BACKEND_END - MENU_FILE_BACKEND_START);
+            }
+
+            backend_menus.add_item(&name, id).build();
+        }
+
+        window.menu.file_menu.add_sub_menu("New Project...", &backend_menus);
     }
 
     /// Checks if application should exit (all window instances closed)

@@ -62,7 +62,7 @@ fn main() {
         }
     }
 
-    windows.create_default(&settings);
+    windows.create_default(&settings, backend_plugins.borrow_mut().get_plugin_names());
     windows.load("data/user_layout.json", &mut view_plugins.borrow_mut());
 
     loop {
@@ -79,8 +79,6 @@ fn main() {
         // TODO: Proper config and sleep timings
         std::thread::sleep(Duration::from_millis(5));
     }
-
-    // windows.save("data/user_layout.json", &mut view_plugins.borrow_mut());
 }
 
 // dummy
