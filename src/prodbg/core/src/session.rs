@@ -23,14 +23,13 @@ pub struct SessionHandle(pub u64);
 ///! 3. Backends and views can post messages which anyone can decide to (optionally) act on.
 ///!
 pub struct Session {
+    pub backend: Option<BackendHandle>,
     pub handle: SessionHandle,
     pub reader: Reader,
 
     current_writer: usize,
     writers: [Writer; 2],
     action: i32,
-
-    backend: Option<BackendHandle>,
 }
 
 ///! Connection options for Remote connections. Currently just one Ip adderss
