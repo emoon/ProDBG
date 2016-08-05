@@ -9,3 +9,6 @@ crate-type = ["dylib"]
 
 [dependencies]
 prodbg_api = { path = "../../../api/rust/prodbg" }
+serde = "0.7.4"
+serde_json = "0.7.0"
+serde_macros = { path = "../../helpers/serde_macros" }

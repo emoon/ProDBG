@@ -1,5 +1,9 @@
 #[macro_use]
 extern crate prodbg_api;
+#[macro_use]
+extern crate serde_macros;
+extern crate serde;
+extern crate serde_json;
 
 mod number_view;
 mod hex_editor;
@@ -8,6 +12,7 @@ mod ascii_editor;
 mod address_input;
 mod helper;
 mod memory_chunk;
+mod state;
 
 use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, PDVec2,
                  ImGuiStyleVar, EventType, ImGuiCol, Color, ReadStatus, Key, StateSaver, StateLoader,
@@ -20,6 +25,7 @@ use ascii_editor::AsciiEditor;
 use address_input::AddressInput;
 use helper::get_text_cursor_index;
 use memory_chunk::MemoryChunk;
+use state::MemoryViewState;
 
 const START_ADDRESS: usize = 0xf0000;
 const CHARS_PER_ADDRESS: usize = 10;
@@ -33,7 +39,7 @@ const LINES_PER_SCROLL: usize = 3;
 const MIN_BYTES_PER_REQUEST: usize = 64 * 1024;
 
 #[derive(Clone)]
-enum Cursor {
+pub enum Cursor {
     /// Number area is edited right now. `HexEditor` structure contains inner data about focusing
     /// and exact cursor position
     Number(HexEditor),
@@ -357,6 +363,13 @@ impl MemoryView {
         };
     }
 
+    fn change_number_view(&mut self, view: Option<NumberView>) {
+        if view != self.number_view {
+            self.number_view = view;
+            self.cursor = Cursor::None;
+        }
+    }
+
     fn render_number_view_picker(&mut self, ui: &mut Ui) {
         let mut res_view = self.number_view;
         let variants = [None,
@@ -401,11 +414,7 @@ impl MemoryView {
                 view.endianness = *e;
             }
         }
-
-        if res_view != self.number_view {
-            self.number_view = res_view;
-            self.cursor = Cursor::None;
-        }
+        self.change_number_view(res_view);
     }
 
     fn render_columns_picker(&mut self, ui: &mut Ui) {
@@ -634,6 +643,22 @@ impl MemoryView {
             self.should_update_memory = false;
         }
     }
+
+    fn to_state(&self) -> MemoryViewState {
+        MemoryViewState {
+            start_address: self.start_address.get(),
+            columns: self.columns,
+            number_view: self.number_view.clone(),
+            text_shown: self.text_shown,
+        }
+    }
+
+    fn restore_from_state(&mut self, state: MemoryViewState) {
+        self.start_address.set(state.start_address);
+        self.columns = state.columns;
+        self.change_number_view(state.number_view);
+        self.text_shown = state.text_shown;
+    }
 }
 
 impl View for MemoryView {
@@ -658,13 +683,16 @@ impl View for MemoryView {
     }
 
     fn save_state(&mut self, mut saver: StateSaver) {
-        saver.write_int(self.start_address.get() as i64);
+        let state = self.to_state().to_string();
+        saver.write_str(&state);
     }
 
     fn load_state(&mut self, mut loader: StateLoader) {
-        if let LoadResult::Ok(address) = loader.read_int() {
-            println!("Setting address {:#x}", address as usize);
-            self.start_address.set(address as usize);
+        if let LoadResult::Ok(source) = loader.read_string() {
+            match MemoryViewState::from_str(&source) {
+                Ok(state) => self.restore_from_state(state),
+                Err(err) => println!("Could not restore memory view state: {}", err),
+            }
         }
     }
 }

@@ -249,6 +249,7 @@ RustSharedLibrary {
 	Sources = {
 		get_rs_src("src/plugins/memory_view"),
 		get_rs_src("api/rust/prodbg"),
+		get_rs_src("src/helpers/serde_macros"),
 	}
 }
 
