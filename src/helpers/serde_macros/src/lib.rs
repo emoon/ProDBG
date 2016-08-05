@@ -1,44 +1,34 @@
 //! Helper macros to create serialization and deserialization serde code. It is handy if one does
 //! not want to use code generators or nightly version of Rust (serde has plugin compiler for that).
 
-/// Generates serialization code for tuple struct
+
 #[macro_export]
-macro_rules! gen_handle {
-    ($name:expr, $type_name:ident, $visitor:ident) => {
-        impl serde::Serialize for $type_name {
+macro_rules! gen_newtype_code {
+    ($name:ident) => {
+        impl serde::Serialize for $name {
             fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
                 where S: serde::Serializer {
-                    serializer.serialize_newtype_struct($name, &self.0)
+                    serializer.serialize_newtype_struct(stringify!($name), &self.0)
                 }
         }
 
-        struct $visitor;
+        impl serde::Deserialize for $name  {
+            fn deserialize<D>(deserializer: &mut D) -> Result<$name, D::Error> where D: serde::Deserializer {
+                struct Visitor;
 
-        impl serde::Deserialize for $type_name  {
-            fn deserialize<D>(deserializer: &mut D) -> Result<$type_name, D::Error> where D: serde::Deserializer {
-                deserializer.deserialize_newtype_struct($name, $visitor)
+                impl serde::de::Visitor for Visitor {
+                    type Value = $name;
+
+                    fn visit_newtype_struct<D>(&mut self, deserializer: &mut D) -> Result<Self::Value, D::Error>
+                        where D: serde::Deserializer {
+                            let value = try!(serde::Deserialize::deserialize(deserializer));
+                            Ok($name(value))
+                        }
+                }
+                deserializer.deserialize_newtype_struct(stringify!($name), Visitor)
             }
         }
 
-        impl serde::de::Visitor for $visitor {
-            type Value = $type_name;
-
-            fn visit_newtype_struct<D>(&mut self, deserializer: &mut D) -> Result<Self::Value, D::Error>
-                where D: serde::Deserializer {
-                    let value = try!(serde::Deserialize::deserialize(deserializer));
-                    Ok($type_name(value))
-                }
-
-            fn visit_seq<V>(&mut self, mut visitor: V) -> Result<$type_name, V::Error>
-                where V: serde::de::SeqVisitor {
-                    let v = match try!(visitor.visit()) {
-                        Some(value) => { value }
-                        None => { return Err(serde::de::Error::end_of_stream()); }
-                    };
-                    try!(visitor.end());
-                    Ok($type_name(v))
-                }
-        }
     }
 }
 

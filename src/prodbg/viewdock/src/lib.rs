@@ -423,7 +423,7 @@ impl Workspace {
 }
 
 // Serialization
-gen_handle!("DockHandle", DockHandle, DockHandleVisitor);
+gen_newtype_code!(DockHandle);
 gen_struct_code!(Workspace, root_area, handle_counter; rect => Rect::default());
 
 #[cfg(test)]
