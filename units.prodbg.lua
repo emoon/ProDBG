@@ -141,6 +141,7 @@ RustProgram {
 	CargoConfig = "src/prodbg/main/Cargo.toml",
 	Sources = {
 		get_rs_src("src/prodbg/main"),
+		get_rs_src("src/helpers/serde_macros"),
 		-- get_rs_src("src/prodbg/core"),
 		-- get_rs_src("src/ui"),
 		"src/prodbg/build.rs",
