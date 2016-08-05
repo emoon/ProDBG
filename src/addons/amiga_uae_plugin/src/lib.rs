@@ -346,7 +346,9 @@ impl Backend for AmigaUaeBackend {
                 }
             _ => (),
         }
+    }
 
+    fn show_config(&mut self, _: &mut Ui) {
     }
 
     fn register_menu(&mut self, menu_funcs: &mut MenuFuncs) -> *mut c_void {
