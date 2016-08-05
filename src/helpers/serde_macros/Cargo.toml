@@ -1,0 +1,5 @@
+[package]
+name = "serde_macros"
+version = "0.0.1"
+description = "Common macros for serde 0.7.4"
+authors = ["Slava Baginov <slnpacifist@gmail.com>"]
