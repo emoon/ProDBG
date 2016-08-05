@@ -47,7 +47,8 @@ impl Windows {
             return;
         }
 
-        let window = self.create_window_with_menus(settings, backend_plugins).expect("Unable to create window");
+        let window = self.create_window_with_menus(settings, backend_plugins)
+            .expect("Unable to create window");
 
         keys::setup_imgui_key_mappings();
 
@@ -63,7 +64,10 @@ impl Windows {
         Ok(win)
     }
 
-    pub fn create_window_with_menus(&mut self, settings: &Settings, backend_plugins: Vec<String>) -> minifb::Result<Window> {
+    pub fn create_window_with_menus(&mut self,
+                                    settings: &Settings,
+                                    backend_plugins: Vec<String>)
+                                    -> minifb::Result<Window> {
         let width = settings.get_int("window_size", "width").unwrap_or(WIDTH) as usize;
         let height = settings.get_int("window_size", "height").unwrap_or(HEIGHT) as usize;
 
@@ -117,7 +121,8 @@ impl Windows {
             let id = MENU_FILE_BACKEND_START + i;
 
             if id >= MENU_FILE_BACKEND_END {
-                panic!("Maximum number of backends reached {}", MENU_FILE_BACKEND_END - MENU_FILE_BACKEND_START);
+                panic!("Maximum number of backends reached {}",
+                       MENU_FILE_BACKEND_END - MENU_FILE_BACKEND_START);
             }
 
             backend_menus.add_item(&name, id).build();
