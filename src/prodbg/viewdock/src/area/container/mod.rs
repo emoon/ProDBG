@@ -1,7 +1,7 @@
 mod serialize;
 
-use ::{DockHandle, ItemTarget};
-use rect::{Rect, Direction};
+use {DockHandle, ItemTarget};
+use rect::{Direction, Rect};
 
 /// `Container` shares its area (defined by `rect`) between its child `docks`. `active_dock` is an
 /// index of dock that gets all the area, while others only draw their headers in tabs, defined by
@@ -31,8 +31,8 @@ const TAB_INSERT_WIDTH: f32 = 80.0;
 impl Container {
     pub fn new(dock_handle: DockHandle, rect: Rect) -> Container {
         Container {
-            docks: vec!(dock_handle),
-            tab_borders: vec!(0.0),
+            docks: vec![dock_handle],
+            tab_borders: vec![0.0],
             rect: rect,
             active_dock: 0,
         }
@@ -47,7 +47,8 @@ impl Container {
 
     /// Returns `true`, if this `handle` dock is in this container
     pub fn has_dock(&self, handle: DockHandle) -> bool {
-        self.docks.iter()
+        self.docks
+            .iter()
             .any(|&dock_handle| dock_handle == handle)
     }
 
@@ -66,7 +67,8 @@ impl Container {
     /// Replaces dock handle with new one. Returns replaced dock handle. Does nothing and returns None if `handle`
     /// is not in this container.
     pub fn replace_dock(&mut self, target: DockHandle, handle: DockHandle) -> Option<DockHandle> {
-        self.docks.iter_mut()
+        self.docks
+            .iter_mut()
             .find(|&&mut dock_handle| dock_handle == target)
             .map(|dock_handle| {
                 *dock_handle = handle;
@@ -85,16 +87,23 @@ impl Container {
 
     /// Returns header area for docks in this container (without close button)
     fn get_header_rect(&self) -> Rect {
-        Rect::new(self.rect.x, self.rect.y, self.rect.width - CLOSE_BUTTON_WIDTH, HEADER_HEIGHT)
+        Rect::new(self.rect.x,
+                  self.rect.y,
+                  self.rect.width - CLOSE_BUTTON_WIDTH,
+                  HEADER_HEIGHT)
     }
 
     /// Returns tab areas for docks in this container
     fn get_tab_rects(&self) -> Vec<Rect> {
         let mut left_border = 0.0;
-        return self.tab_borders.iter()
+        return self.tab_borders
+            .iter()
             .map(|&right_border| {
                 let width = right_border - left_border;
-                let res = Rect::new(self.rect.x + left_border, self.rect.y + HEADER_HEIGHT, width, TAB_HEIGHT);
+                let res = Rect::new(self.rect.x + left_border,
+                                    self.rect.y + HEADER_HEIGHT,
+                                    width,
+                                    TAB_HEIGHT);
                 left_border = right_border;
                 return res;
             })
@@ -107,7 +116,9 @@ impl Container {
             return Some(self.docks[self.active_dock]);
         }
         if self.docks.len() > 1 {
-            return self.get_tab_rects().iter().enumerate()
+            return self.get_tab_rects()
+                .iter()
+                .enumerate()
                 .find(|&(_, rect)| rect.point_is_inside(pos))
                 .and_then(|(i, _)| Some(self.docks[i]));
         }
@@ -127,11 +138,10 @@ impl Container {
     pub fn get_item_target_at_pos(&self, pos: (f32, f32)) -> Option<(ItemTarget, Rect)> {
         // check special place inside tabs to change tab order
         for (index, &border) in [0.0].iter().chain(self.tab_borders.iter()).enumerate() {
-            let gap_rect = Rect::new(
-                self.rect.x + border - TAB_INSERT_WIDTH / 2.0,
-                self.rect.y + HEADER_HEIGHT,
-                TAB_INSERT_WIDTH,
-                TAB_HEIGHT);
+            let gap_rect = Rect::new(self.rect.x + border - TAB_INSERT_WIDTH / 2.0,
+                                     self.rect.y + HEADER_HEIGHT,
+                                     TAB_INSERT_WIDTH,
+                                     TAB_HEIGHT);
             if gap_rect.point_is_inside(pos) {
                 return Some((ItemTarget::AppendToContainer(self.docks[0], index), gap_rect));
             }
@@ -142,10 +152,13 @@ impl Container {
         let h3 = self.rect.height / 3.0;
         let mid = Rect::new(self.rect.x + w3, self.rect.y + h3, w3, h3);
         if mid.point_is_inside(pos) {
-            return Some((ItemTarget::AppendToContainer(self.docks[0], self.docks.len()), self.rect));
+            return Some((ItemTarget::AppendToContainer(self.docks[0], self.docks.len()),
+                         self.rect));
         }
 
-        if !self.rect.point_is_inside(pos) { return None; }
+        if !self.rect.point_is_inside(pos) {
+            return None;
+        }
 
         // calc closest distance to border
         let mut res = None;
@@ -154,19 +167,35 @@ impl Container {
         let w = self.rect.width;
         let h = self.rect.height;
         let mut min = 0.0;
-        for &(add_x, add_y, over_dist, direction, place) in [
-            (0.0, 0.0, -w / 2.0, Direction::Horizontal, 0),
-            (w, 0.0, w / 2.0, Direction::Horizontal, 1),
-            (0.0, 0.0, -h / 2.0, Direction::Vertical, 0),
-            (0.0, h, h / 2.0, Direction::Vertical, 1),
-        ].iter() {
+        for &(add_x, add_y, over_dist, direction, place) in [(0.0,
+                                                              0.0,
+                                                              -w / 2.0,
+                                                              Direction::Horizontal,
+                                                              0),
+                                                             (w,
+                                                              0.0,
+                                                              w / 2.0,
+                                                              Direction::Horizontal,
+                                                              1),
+                                                             (0.0,
+                                                              0.0,
+                                                              -h / 2.0,
+                                                              Direction::Vertical,
+                                                              0),
+                                                             (0.0,
+                                                              h,
+                                                              h / 2.0,
+                                                              Direction::Vertical,
+                                                              1)]
+            .iter() {
             let dist = match direction {
                 Direction::Horizontal => (pos.0 - (x + add_x)).abs(),
                 Direction::Vertical => (pos.1 - (y + add_y)).abs(),
             };
             if min == 0.0 || dist < min {
                 let over_rect = self.rect.shifted_clip(direction, over_dist);
-                res = Some((ItemTarget::SplitDock(self.docks[0], direction.opposite(), place), over_rect));
+                res = Some((ItemTarget::SplitDock(self.docks[0], direction.opposite(), place),
+                            over_rect));
                 min = dist;
             }
         }
@@ -185,7 +214,7 @@ impl Container {
 mod test {
     extern crate serde_json;
     use Container;
-    use ::DockHandle;
+    use DockHandle;
     use rect::Rect;
 
     fn get_test_container() -> Container {
@@ -262,7 +291,7 @@ mod test {
             docks: Vec::new(),
             active_dock: 0,
             tab_borders: Vec::new(),
-            rect: Rect::new(4.0, 5.0, 2.0, 8.0)
+            rect: Rect::new(4.0, 5.0, 2.0, 8.0),
         };
 
         let serialized = serde_json::to_string(&container_in).unwrap();
@@ -279,8 +308,8 @@ mod test {
     #[test]
     fn test_container_serialize_1() {
         let container_in = Container {
-            docks: vec!(DockHandle(1)),
-            tab_borders: vec!(0.0),
+            docks: vec![DockHandle(1)],
+            tab_borders: vec![0.0],
             active_dock: 0,
             rect: Rect::default(),
         };

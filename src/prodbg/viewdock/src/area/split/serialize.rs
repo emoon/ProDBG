@@ -7,17 +7,21 @@ gen_handle!("SplitHandle", SplitHandle, SplitHandleVisitor);
 // Serialization
 
 impl serde::ser::Serialize for Split {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: serde::ser::Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
+        where S: serde::ser::Serializer
+    {
         serializer.serialize_struct("Split", SplitMapVisitor { value: self }).map(|_| ())
     }
 }
 
 struct SplitMapVisitor<'a> {
-    value: &'a Split
+    value: &'a Split,
 }
 
 impl<'a> serde::ser::MapVisitor for SplitMapVisitor<'a> {
-    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: serde::Serializer {
+    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error>
+        where S: serde::Serializer
+    {
         try!(serializer.serialize_struct_elt("children", &self.value.children));
         try!(serializer.serialize_struct_elt("ratios", &self.value.ratios));
         try!(serializer.serialize_struct_elt("direction", &self.value.direction));
