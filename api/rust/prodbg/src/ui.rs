@@ -693,6 +693,13 @@ impl Ui {
         }
     }
 
+    pub fn begin_popup_modal(&self, text: &str) -> bool {
+        unsafe {
+            let t = CFixedString::from_str(text).as_ptr();
+            ((*self.api).begin_popup_modal)(t, ptr::null_mut(), 0) == 1
+        }
+    }
+
     pub fn begin_menu(&self, text: &str, enabled: bool) -> bool {
         unsafe {
             let t = CFixedString::from_str(text).as_ptr();
@@ -705,6 +712,12 @@ impl Ui {
         unsafe {
             let t = CFixedString::from_str(text).as_ptr();
             ((*self.api).open_popup)(t);
+        }
+    }
+
+    pub fn close_current_popup(&self) {
+        unsafe {
+            ((*self.api).close_current_popup)();
         }
     }
 

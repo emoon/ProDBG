@@ -254,7 +254,7 @@ pub struct CPdUI {
     pub begin_popup_context_window: extern fn(also_over_items: c_int, strId: *const c_char, mouse_button: c_int) -> c_int,
     pub begin_popup_context_void: extern fn(strId: *const c_char, mouse_button: c_int) -> c_int,
     pub end_popup: extern fn(),
-    pub close_current_popup: *mut extern fn() -> c_void,
+    pub close_current_popup: extern fn(),
     pub begin_popup_context: extern fn(priv_data: *mut c_void) -> c_int,
     pub end_popup_context: extern fn(priv_data: *mut c_void),
     pub value_bool: extern fn(prefix: *const c_char, b: c_int),

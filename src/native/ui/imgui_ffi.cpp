@@ -1645,7 +1645,6 @@ static void fill_circle(PDVec2 pos, float radius, PDColor color, unsigned int nu
     ImGui::CircleFilled(ImVec2(pos.x, pos.y), radius, color, num_seg, !!aa);
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" int imgui_begin_with_flags(const char* name, int show, int flags) {
