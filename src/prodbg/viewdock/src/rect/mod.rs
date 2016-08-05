@@ -22,7 +22,7 @@ impl Direction {
 pub enum ShrinkSide {
     Lower,
     Higher,
-    Both
+    Both,
 }
 
 /// Data structure for rectangles
@@ -41,18 +41,14 @@ impl Rect {
             x: x,
             y: y,
             width: width,
-            height: height
+            height: height,
         }
     }
 
     /// Returns true if `pos` is inside of rectangle
     pub fn point_is_inside(&self, pos: (f32, f32)) -> bool {
         let (x, y) = pos;
-        return
-            self.x <= x &&
-            self.x + self.width >= x &&
-            self.y <= y &&
-            self.y + self.height >= y;
+        return self.x <= x && self.x + self.width >= x && self.y <= y && self.y + self.height >= y;
     }
 
     /// Returns size of rectangle in given `direction`
@@ -73,8 +69,18 @@ impl Rect {
 
     pub fn shifted_clip(&self, direction: Direction, dist: f32) -> Rect {
         match direction {
-            Direction::Horizontal => Rect::new(self.x + if dist>0.0 {dist} else {0.0}, self.y, self.width - dist.abs(), self.height),
-            Direction::Vertical => Rect::new(self.x, self.y + if dist>0.0 {dist} else {0.0}, self.width, self.height - dist.abs()),
+            Direction::Horizontal => {
+                Rect::new(self.x + dist.max(0.0),
+                          self.y,
+                          self.width - dist.abs(),
+                          self.height)
+            }
+            Direction::Vertical => {
+                Rect::new(self.x,
+                          self.y + dist.max(0.0),
+                          self.width,
+                          self.height - dist.abs())
+            }
         }
     }
 
@@ -102,10 +108,10 @@ impl Rect {
                 ShrinkSide::Lower => {
                     *start += size;
                     *dimesion -= size;
-                },
+                }
                 ShrinkSide::Higher => {
                     *dimesion -= size;
-                },
+                }
                 ShrinkSide::Both => {
                     *start += size;
                     *dimesion -= size * 2.0;
@@ -121,20 +127,28 @@ impl Rect {
     /// `origin.area_around_splits(Direction::Horizontal, &[0.4, 0.8], 2.0)` will be vector of
     /// `Rect {x: 0.0, y: 7.0, width: 10.0, height: 2.0}` and
     /// `Rect {x: 0.0, y: 15.0, width: 10.0, height: 2.0}`
-    pub fn area_around_splits(&self, direction: Direction, ratios: &[f32], width: f32) -> Vec<Rect> {
+    pub fn area_around_splits(&self,
+                              direction: Direction,
+                              ratios: &[f32],
+                              width: f32)
+                              -> Vec<Rect> {
         match direction {
             Direction::Horizontal => {
-                ratios.iter().map(|ratio| {
-                    let y_start = self.y + self.height * ratio - width / 2.0;
-                    return Rect::new(self.x, y_start, self.width, width);
-                }).collect()
-            },
+                ratios.iter()
+                    .map(|ratio| {
+                        let y_start = self.y + self.height * ratio - width / 2.0;
+                        return Rect::new(self.x, y_start, self.width, width);
+                    })
+                    .collect()
+            }
             Direction::Vertical => {
-                ratios.iter().map(|ratio| {
-                    let x_start = self.x + self.width * ratio - width / 2.0;
-                    return Rect::new(x_start, self.y, width, self.height);
-                }).collect()
-            },
+                ratios.iter()
+                    .map(|ratio| {
+                        let x_start = self.x + self.width * ratio - width / 2.0;
+                        return Rect::new(x_start, self.y, width, self.height);
+                    })
+                    .collect()
+            }
         }
     }
 
@@ -149,31 +163,35 @@ impl Rect {
 
     fn split_horizontally(&self, ratios: &[f32]) -> Vec<Rect> {
         let mut prev_height = 0.0;
-        return ratios.iter().map(|ratio| {
-            let next_height = self.height * ratio;
-            let rect_height = next_height - prev_height;
-            let res = Rect::new(self.x, self.y + prev_height, self.width, rect_height);
-            prev_height = next_height;
-            return res;
-        }).collect();
+        return ratios.iter()
+            .map(|ratio| {
+                let next_height = self.height * ratio;
+                let rect_height = next_height - prev_height;
+                let res = Rect::new(self.x, self.y + prev_height, self.width, rect_height);
+                prev_height = next_height;
+                return res;
+            })
+            .collect();
     }
 
     fn split_vertically(&self, ratios: &[f32]) -> Vec<Rect> {
         let mut prev_width = 0.0;
-        return ratios.iter().map(|ratio| {
-            let next_width = self.width * ratio;
-            let rect_width = next_width - prev_width;
-            let res = Rect::new(self.x + prev_width, self.y, rect_width, self.height);
-            prev_width = next_width;
-            return res;
-        }).collect();
+        return ratios.iter()
+            .map(|ratio| {
+                let next_width = self.width * ratio;
+                let rect_width = next_width - prev_width;
+                let res = Rect::new(self.x + prev_width, self.y, rect_width, self.height);
+                prev_width = next_width;
+                return res;
+            })
+            .collect();
     }
 }
 
 #[cfg(test)]
 mod test {
     extern crate serde_json;
-    use super::{Rect, Direction, ShrinkSide};
+    use super::{Direction, Rect, ShrinkSide};
     use test_helper::rects_are_equal;
 
     #[test]
@@ -190,25 +208,21 @@ mod test {
     #[test]
     fn test_shifted() {
         let rect = Rect::new(0.0, 0.0, 10.0, 10.0);
-        assert!(rects_are_equal(&Rect::new(2.0, 0.0, 10.0, 10.0), &rect.shifted(Direction::Horizontal, 2.0)));
-        assert!(rects_are_equal(&Rect::new(0.0, -5.0, 10.0, 10.0), &rect.shifted(Direction::Vertical, -5.0)));
+        assert!(rects_are_equal(&Rect::new(2.0, 0.0, 10.0, 10.0),
+                                &rect.shifted(Direction::Horizontal, 2.0)));
+        assert!(rects_are_equal(&Rect::new(0.0, -5.0, 10.0, 10.0),
+                                &rect.shifted(Direction::Vertical, -5.0)));
     }
 
     #[test]
     fn test_shrinked() {
         let rect = Rect::new(0.0, 0.0, 10.0, 20.0);
-        assert!(rects_are_equal(
-            &Rect::new(5.0, 0.0, 5.0, 20.0),
-            &rect.shrinked(Direction::Horizontal, 5.0, ShrinkSide::Lower)
-        ));
-        assert!(rects_are_equal(
-            &Rect::new(0.0, 0.0, 10.0, 15.0),
-            &rect.shrinked(Direction::Vertical, 5.0, ShrinkSide::Higher)
-        ));
-        assert!(rects_are_equal(
-            &Rect::new(0.0, 2.0, 10.0, 16.0),
-            &rect.shrinked(Direction::Vertical, 2.0, ShrinkSide::Both)
-        ));
+        assert!(rects_are_equal(&Rect::new(5.0, 0.0, 5.0, 20.0),
+                                &rect.shrinked(Direction::Horizontal, 5.0, ShrinkSide::Lower)));
+        assert!(rects_are_equal(&Rect::new(0.0, 0.0, 10.0, 15.0),
+                                &rect.shrinked(Direction::Vertical, 5.0, ShrinkSide::Higher)));
+        assert!(rects_are_equal(&Rect::new(0.0, 2.0, 10.0, 16.0),
+                                &rect.shrinked(Direction::Vertical, 2.0, ShrinkSide::Both)));
     }
 
     #[test]
@@ -242,7 +256,12 @@ mod test {
 
     #[test]
     fn test_rect_serialization() {
-        let rect_in = Rect { x: 1.0, y: 2.0, width: 1024.0, height: 768.0 };
+        let rect_in = Rect {
+            x: 1.0,
+            y: 2.0,
+            width: 1024.0,
+            height: 768.0,
+        };
         let serialized = serde_json::to_string(&rect_in).unwrap();
         let rect_out: Rect = serde_json::from_str(&serialized).unwrap();
 

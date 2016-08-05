@@ -1,7 +1,7 @@
 mod serialize;
 
 use super::Area;
-use rect::{Rect, Direction, ShrinkSide};
+use rect::{Direction, Rect, ShrinkSide};
 
 /// Handle to a split
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -37,10 +37,16 @@ const SIZER_WIDTH: f32 = 4.0;
 
 impl Split {
     /// Creates new `Split` from two children
-    pub fn from_two(direction: Direction, ratio: f32, handle: SplitHandle, rect: Rect, first: Area, second: Area) -> Split {
+    pub fn from_two(direction: Direction,
+                    ratio: f32,
+                    handle: SplitHandle,
+                    rect: Rect,
+                    first: Area,
+                    second: Area)
+                    -> Split {
         let mut res = Split {
-            children: vec!(first, second),
-            ratios: vec!(ratio, 1.0),
+            children: vec![first, second],
+            ratios: vec![ratio, 1.0],
             direction: direction,
             handle: handle,
             rect: rect,
@@ -71,7 +77,8 @@ impl Split {
 
     /// Returns reference to child which area contains `pos`
     pub fn get_child_at_pos(&self, pos: (f32, f32)) -> Option<&Area> {
-        self.children.iter()
+        self.children
+            .iter()
             .find(|child| child.get_rect().point_is_inside(pos))
     }
 
@@ -80,8 +87,10 @@ impl Split {
         if !self.rect.point_is_inside(pos) {
             return None;
         }
-        let sizer_rects = self.rect.area_around_splits(self.direction, &self.ratios[0..self.ratios.len() - 1], 8.0);
-        return sizer_rects.iter().enumerate()
+        let sizer_rects = self.rect
+            .area_around_splits(self.direction, &self.ratios[0..self.ratios.len() - 1], 8.0);
+        return sizer_rects.iter()
+            .enumerate()
             .find(|&(_, rect)| rect.point_is_inside(pos))
             .map(|(i, _)| SizerPos(self.handle, i, self.direction, self.ratios[i]));
     }
@@ -100,9 +109,17 @@ impl Split {
         let scale = Self::map_rect_to_delta(self, delta);
         let mut res = origin + scale;
 
-        let min = if index==0 {0.05} else {self.ratios[index-1]+0.05};
-        let max = if index==self.ratios.len()-1 {0.95} else {self.ratios[index+1]-0.05};
-        
+        let min = if index == 0 {
+            0.05
+        } else {
+            self.ratios[index - 1] + 0.05
+        };
+        let max = if index == self.ratios.len() - 1 {
+            0.95
+        } else {
+            self.ratios[index + 1] - 0.05
+        };
+
         if res < min {
             res = min;
         }
@@ -132,7 +149,7 @@ impl Split {
         let existing_ratio = self.ratios[index];
         let previous_ratio = match index {
             0 => 0.0,
-            _ => self.ratios[index - 1]
+            _ => self.ratios[index - 1],
         };
         let diff = existing_ratio - previous_ratio;
         self.children.insert(index, child);
@@ -145,7 +162,7 @@ impl Split {
         let last_index = self.children.len() - 1;
         self.children.push(child);
         let diff = 1.0 - self.ratios[last_index - 1];
-        self.ratios[last_index] = 1.0 - diff/2.0;
+        self.ratios[last_index] = 1.0 - diff / 2.0;
         self.ratios.push(1.0);
     }
 
@@ -167,7 +184,8 @@ impl Split {
             .map(|child| match self.direction {
                 Direction::Horizontal => child.get_rect().height,
                 Direction::Vertical => child.get_rect().width,
-            }).collect();
+            })
+            .collect();
         let dimension_sum = dimensions.iter().fold(0.0, |sum, dimension| sum + dimension);
         let mut prev = 0.0;
         for dimension in dimensions.iter_mut() {
@@ -181,7 +199,7 @@ impl Split {
         let old_ratio = self.ratios.remove(index);
         let previous_ratio = match index {
             0 => 0.0,
-            _ => self.ratios[index - 1]
+            _ => self.ratios[index - 1],
         };
         let diff = old_ratio - previous_ratio;
         for pos in dimensions.iter().rev() {
@@ -199,8 +217,8 @@ mod test {
     use super::{Split, SplitHandle};
     use area::Area;
     use area::container::Container;
-    use dock::{Dock, DockHandle};
-    use rect::{Rect, Direction};
+    use DockHandle;
+    use rect::{Direction, Rect};
 
     #[test]
     fn test_splithandle_serialize() {
@@ -213,14 +231,13 @@ mod test {
 
     #[test]
     fn test_split_serialize() {
-        let split_in = Split::from_two(
-            Direction::Horizontal,
-            0.7,
-            SplitHandle(513),
-            Rect::new(17.0, 15.0, 100.0, 159.0),
-            Area::Container(Container::new(Dock::new(DockHandle(14), "test", "viewer"), Rect::default())),
-            Area::Container(Container::new(Dock::new(DockHandle(15), "test2", "viewer"), Rect::default()))
-        );
+        let split_in =
+            Split::from_two(Direction::Horizontal,
+                            0.7,
+                            SplitHandle(513),
+                            Rect::new(17.0, 15.0, 100.0, 159.0),
+                            Area::Container(Container::new(DockHandle(14), Rect::default())),
+                            Area::Container(Container::new(DockHandle(15), Rect::default())));
 
         let serialized = serde_json::to_string(&split_in).unwrap();
         let split_out: Split = serde_json::from_str(&serialized).unwrap();
