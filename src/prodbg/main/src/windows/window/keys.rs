@@ -3,7 +3,7 @@
 use super::Window;
 use minifb::{Key, KeyRepeat};
 use imgui_sys::Imgui;
-use core::view_plugins::{ViewPlugins};
+use core::view_plugins::ViewPlugins;
 
 impl Window {
     pub fn update_imgui_keys(&mut self) {

@@ -1,11 +1,11 @@
 //! Implements popup handling functions for `Window`
 
 use super::Window;
-use core::view_plugins::{ViewPlugins, ViewHandle};
+use core::view_plugins::{ViewHandle, ViewPlugins};
 use core::session::SessionHandle;
 use super::super::viewdock::{Direction, DockHandle};
 use imgui_sys::Imgui;
-use prodbg_api::{Ui, PDUIINPUTTEXTFLAGS_ENTERRETURNSTRUE, PDUIINPUTTEXTFLAGS_AUTOSELECTALL};
+use prodbg_api::{PDUIINPUTTEXTFLAGS_AUTOSELECTALL, PDUIINPUTTEXTFLAGS_ENTERRETURNSTRUE, Ui};
 
 /// Current state of "Rename view" popup
 pub enum ViewRenameState {

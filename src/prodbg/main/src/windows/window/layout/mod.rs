@@ -5,7 +5,7 @@ extern crate serde_json;
 mod serialize_helper;
 
 use super::super::viewdock::Workspace;
-use core::view_plugins::{ViewInstance, ViewPlugins, ViewHandle};
+use core::view_plugins::{ViewHandle, ViewInstance, ViewPlugins};
 use core::session::SessionHandle;
 use imgui_sys::Imgui;
 
@@ -56,14 +56,15 @@ impl WindowLayout {
         serde_json::from_str(s)
     }
 
-    pub fn from_current_state(workspace: Workspace, view_plugins: &mut ViewPlugins) -> WindowLayout {
+    pub fn from_current_state(workspace: Workspace,
+                              view_plugins: &mut ViewPlugins)
+                              -> WindowLayout {
         let infos = workspace.get_docks()
             .iter()
-            .map(|dock| PluginInstanceInfo::new(
-                view_plugins
-                    .get_view(ViewHandle(dock.0))
-                    .expect("View exists in viewdock but not in view_plugins")
-            ))
+            .map(|dock| {
+                PluginInstanceInfo::new(view_plugins.get_view(ViewHandle(dock.0))
+                    .expect("View exists in viewdock but not in view_plugins"))
+            })
             .collect();
         WindowLayout {
             workspace: workspace,
@@ -81,21 +82,26 @@ impl WindowLayout {
 }
 
 mod window_layout_serialization {
-    use super::{serde, WindowLayout};
+    use super::{WindowLayout, serde};
     // Serialization
 
     impl serde::ser::Serialize for WindowLayout {
-        fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: serde::ser::Serializer {
-            serializer.serialize_struct("WindowLayout", WindowLayoutMapVisitor { value: self }).map(|_| ())
+        fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
+            where S: serde::ser::Serializer
+        {
+            serializer.serialize_struct("WindowLayout", WindowLayoutMapVisitor { value: self })
+                .map(|_| ())
         }
     }
 
     struct WindowLayoutMapVisitor<'a> {
-        value: &'a WindowLayout
+        value: &'a WindowLayout,
     }
 
     impl<'a> serde::ser::MapVisitor for WindowLayoutMapVisitor<'a> {
-        fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: serde::Serializer {
+        fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error>
+            where S: serde::Serializer
+        {
             try!(serializer.serialize_struct_elt("workspace", &self.value.workspace));
             try!(serializer.serialize_struct_elt("infos", &self.value.infos));
             Ok(None)
@@ -111,21 +117,27 @@ mod window_layout_serialization {
 }
 
 mod plugin_instance_info_serialization {
-    use super::{serde, PluginInstanceInfo};
+    use super::{PluginInstanceInfo, serde};
     // Serialization
 
     impl serde::ser::Serialize for PluginInstanceInfo {
-        fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: serde::ser::Serializer {
-            serializer.serialize_struct("PluginInstanceInfo", PluginInstanceInfoMapVisitor { value: self }).map(|_| ())
+        fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
+            where S: serde::ser::Serializer
+        {
+            serializer.serialize_struct("PluginInstanceInfo",
+                                  PluginInstanceInfoMapVisitor { value: self })
+                .map(|_| ())
         }
     }
 
     struct PluginInstanceInfoMapVisitor<'a> {
-        value: &'a PluginInstanceInfo
+        value: &'a PluginInstanceInfo,
     }
 
     impl<'a> serde::ser::MapVisitor for PluginInstanceInfoMapVisitor<'a> {
-        fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: serde::Serializer {
+        fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error>
+            where S: serde::Serializer
+        {
             try!(serializer.serialize_struct_elt("handle", &self.value.handle));
             try!(serializer.serialize_struct_elt("name", &self.value.name));
             try!(serializer.serialize_struct_elt("plugin_name", &self.value.plugin_name));

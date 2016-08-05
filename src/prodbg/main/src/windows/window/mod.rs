@@ -7,9 +7,9 @@ mod layout;
 use minifb::{self, Scale, WindowOptions};
 use core::view_plugins::{ViewHandle, ViewPlugins};
 use core::backend_plugin::BackendPlugins;
-use core::session::{Sessions, Session, SessionHandle};
+use core::session::{Session, SessionHandle, Sessions};
 use core::reader_wrapper::ReaderWrapper;
-use super::viewdock::{Workspace, Rect, Direction, DockHandle, ItemTarget};
+use super::viewdock::{Direction, DockHandle, ItemTarget, Rect, Workspace};
 use std::fs::File;
 use std::io;
 use menu::Menu;
@@ -44,7 +44,9 @@ fn is_inside(v: (f32, f32), pos: PDVec2, size: (f32, f32)) -> bool {
     v.0 >= x0 && v.0 < x1 && v.1 >= y0 && v.1 < y1
 }
 
-fn restore_view_plugins(docks: &[DockHandle], view_plugins: &mut ViewPlugins, info: &mut HashMap<u64, PluginInstanceInfo>) {
+fn restore_view_plugins(docks: &[DockHandle],
+                        view_plugins: &mut ViewPlugins,
+                        info: &mut HashMap<u64, PluginInstanceInfo>) {
     for dock in docks.iter() {
         if !view_plugins.get_view(ViewHandle(dock.0)).is_some() {
             let info = match info.remove(&dock.0) {
@@ -220,11 +222,15 @@ impl Window {
                    overlay: &Option<(DockHandle, Rect)>)
                    -> WindowState {
 
-        let ws_container = match ws.root_area.as_mut()
+        let ws_container = match ws.root_area
+            .as_mut()
             .and_then(|root| root.get_container_by_dock_handle_mut(DockHandle(handle.0))) {
 
-            None => panic!("Tried to update view {} but it is not in workspace", handle.0),
-            Some(container) => container
+            None => {
+                panic!("Tried to update view {} but it is not in workspace",
+                       handle.0)
+            }
+            Some(container) => container,
         };
 
         if ws_container.docks[ws_container.active_dock].0 != handle.0 {
@@ -238,19 +244,20 @@ impl Window {
         let tab_names: Vec<String> = ws_container.docks
             .iter()
             .map(|dock_handle| {
-                view_plugins
-                    .get_view(ViewHandle(dock_handle.0))
+                view_plugins.get_view(ViewHandle(dock_handle.0))
                     .map(|plugin| plugin.name.clone())
                     .unwrap_or("Not loaded".to_string())
             })
             .collect();
 
         let instance = match view_plugins.get_view(handle) {
-            None => return WindowState {
-                showed_popup: 0,
-                should_close: false,
-            },
-            Some(instance) => instance
+            None => {
+                return WindowState {
+                    showed_popup: 0,
+                    should_close: false,
+                }
+            }
+            Some(instance) => instance,
         };
 
         Imgui::set_window_pos(ws_container.rect.x, ws_container.rect.y);
@@ -263,7 +270,9 @@ impl Window {
             let mut borders = Vec::with_capacity(tab_names.len());
             // TODO: should repeated window names be avoided?
             for (i, name) in tab_names.iter().enumerate() {
-                if Imgui::tab(name, i == ws_container.active_dock, i == tab_names.len() - 1) {
+                if Imgui::tab(name,
+                              i == ws_container.active_dock,
+                              i == tab_names.len() - 1) {
                     ws_container.active_dock = i;
                 }
                 borders.push(Imgui::tab_pos());
@@ -368,8 +377,7 @@ impl Window {
         let docks_before_restore = self.ws.get_docks();
         self.ws = Workspace::from_state(&self.ws_states[self.cur_state_index]).unwrap();
         let docks = self.ws.get_docks();
-        let views_to_delete: Vec<ViewHandle> = docks_before_restore
-            .iter()
+        let views_to_delete: Vec<ViewHandle> = docks_before_restore.iter()
             .filter(|&dock_before| !docks.iter().any(|dock| dock_before == dock))
             .map(|dock_before| ViewHandle(dock_before.0))
             .collect();

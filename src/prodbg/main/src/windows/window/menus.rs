@@ -7,7 +7,7 @@ use super::Window;
 use minifb;
 use core::view_plugins::ViewPlugins;
 use core::backend_plugin::BackendPlugins;
-use core::session::{Sessions, Session};
+use core::session::{Session, Sessions};
 use menu::*;
 use imgui_sys::Imgui;
 use prodbg_api::Ui;
