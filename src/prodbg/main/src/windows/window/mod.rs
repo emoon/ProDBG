@@ -44,22 +44,18 @@ fn is_inside(v: (f32, f32), pos: PDVec2, size: (f32, f32)) -> bool {
     v.0 >= x0 && v.0 < x1 && v.1 >= y0 && v.1 < y1
 }
 
-fn restore_view_plugins(docks: &[DockHandle], view_plugins: &mut ViewPlugins, info: &mut HashMap<u64, PluginInstanceInfo>) -> Vec<ViewHandle> {
-    let mut new_view_handles = Vec::new();
+fn restore_view_plugins(docks: &[DockHandle], view_plugins: &mut ViewPlugins, info: &mut HashMap<u64, PluginInstanceInfo>) {
     for dock in docks.iter() {
         if !view_plugins.get_view(ViewHandle(dock.0)).is_some() {
             let info = match info.remove(&dock.0) {
                 None => panic!("Could not restore view: no info in `removed_instances` found"),
                 Some(info) => info,
             };
-            if let Some(handle) = info.restore(view_plugins) {
-                new_view_handles.push(handle);
-            } else {
+            if info.restore(view_plugins).is_none() {
                 panic!("Could not restore view");
             }
         }
     }
-    new_view_handles
 }
 
 
@@ -67,10 +63,6 @@ pub struct Window {
     /// minifb window
     pub win: minifb::Window,
     pub menu: Menu,
-
-    // TODO: remove this field. Use ws.get_docks() instead.
-    /// Views in this window
-    pub views: Vec<ViewHandle>,
 
     pub ws: Workspace,
     // TODO: should we serialize Workspace if this is stored in memory only?
@@ -107,7 +99,6 @@ impl Window {
         let mut res = Window {
             win: win,
             menu: Menu::new(),
-            views: Vec::new(),
             menu_id_offset: 1000,
             mouse_state: MouseState::new(),
             ws: ws,
@@ -154,8 +145,10 @@ impl Window {
         let mut has_shown_menu = 0u32;
         let show_context_menu = self.update_mouse_state();
         let mouse = self.get_mouse_pos();
-        for view in &self.views {
-            let session = match view_plugins.get_view(*view)
+        let docks = self.ws.get_docks();
+        for dock in docks {
+            let view_handle = ViewHandle(dock.0);
+            let session = match view_plugins.get_view(view_handle)
                 .and_then(|v| sessions.get_session(v.session_handle)) {
 
                 None => continue,
@@ -163,14 +156,14 @@ impl Window {
             };
             let state = Self::update_view(&mut self.ws,
                                           view_plugins,
-                                          *view,
+                                          view_handle,
                                           session,
                                           show_context_menu,
                                           mouse,
                                           &self.overlay);
 
             if state.should_close {
-                views_to_delete.push(*view);
+                views_to_delete.push(view_handle);
             }
             has_shown_menu |= state.showed_popup;
         }
@@ -213,8 +206,7 @@ impl Window {
         self.ws = layout.workspace;
         // TODO: should we check here that handles stored in Workspace and handles restored in
         // ViewPlugins are the same?
-        let new_view_handles = WindowLayout::restore_view_plugins(view_plugins, &layout.infos);
-        self.views.extend(new_view_handles);
+        WindowLayout::restore_view_plugins(view_plugins, &layout.infos);
         self.initialize_workspace_state();
         Ok(())
     }
@@ -327,9 +319,6 @@ impl Window {
                 self.removed_instances.insert(view.0, PluginInstanceInfo::new(instance));
             }
             view_plugins.destroy_instance(*view);
-            if let Some(pos) = self.views.iter().position(|v| v == view) {
-                self.views.swap_remove(pos);
-            }
             self.ws.delete_dock_by_handle(DockHandle(view.0));
         }
     }
@@ -376,16 +365,16 @@ impl Window {
 
     fn restore_workspace_state(&mut self, view_plugins: &mut ViewPlugins) {
         // workspace will recalculate dock areas on the next update
+        let docks_before_restore = self.ws.get_docks();
         self.ws = Workspace::from_state(&self.ws_states[self.cur_state_index]).unwrap();
         let docks = self.ws.get_docks();
-        let views_to_delete: Vec<ViewHandle> = self.views
+        let views_to_delete: Vec<ViewHandle> = docks_before_restore
             .iter()
-            .filter(|view| !docks.iter().any(|dock| view.0 == dock.0))
-            .map(|view| view.clone())
+            .filter(|&dock_before| !docks.iter().any(|dock| dock_before == dock))
+            .map(|dock_before| ViewHandle(dock_before.0))
             .collect();
         Self::remove_views(self, view_plugins, &views_to_delete);
-        let new_view_handles = restore_view_plugins(&docks, view_plugins, &mut self.removed_instances);
-        self.views.extend(new_view_handles);
+        restore_view_plugins(&docks, view_plugins, &mut self.removed_instances);
     }
 
     fn undo_workspace_change(&mut self, view_plugins: &mut ViewPlugins) {
@@ -444,7 +433,6 @@ impl Window {
             }
 
             self.save_cur_workspace_state();
-            self.views.push(handle);
         }
     }
 
@@ -452,7 +440,6 @@ impl Window {
         let ui = Imgui::create_ui_instance();
         if let Some(handle) =
                view_plugins.create_instance(ui, plugin_name, None, None, SessionHandle(0), None) {
-            self.views.push(handle);
 
             let mut should_save_ws = false;
             if let Some((src_dock_handle, _)) = self.context_menu_data {

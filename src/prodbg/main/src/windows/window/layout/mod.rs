@@ -71,16 +71,12 @@ impl WindowLayout {
         }
     }
 
-    pub fn restore_view_plugins(view_plugins: &mut ViewPlugins, infos: &Vec<PluginInstanceInfo>) -> Vec<ViewHandle> {
-        let mut res = Vec::new();
+    pub fn restore_view_plugins(view_plugins: &mut ViewPlugins, infos: &Vec<PluginInstanceInfo>) {
         for info in infos {
-            if let Some(handle) = info.restore(view_plugins) {
-                res.push(handle);
-            } else {
+            if info.restore(view_plugins).is_none() {
                 panic!("Could not restore view");
             }
         }
-        res
     }
 }
 
