@@ -62,6 +62,7 @@ impl Session {
     pub fn start_local(_: &str, _: usize) {}
 
     pub fn set_backend(&mut self, backend: Option<BackendHandle>) {
+        // TODO: Make sure to close down current backend
         self.backend = backend
     }
 

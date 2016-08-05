@@ -141,7 +141,7 @@ impl Window {
         self.update_menus(view_plugins, sessions, backend_plugins);
 
 		// If we have a backend configuration running
-        self.update_backend_configure(backend_plugins);
+        self.update_backend_configure(sessions, backend_plugins);
 
         // Status bar needs full size of window
         let win_size = self.win.get_size();
@@ -353,7 +353,7 @@ impl Window {
         }
     }
 
-    fn update_backend_configure(&mut self, backend_plugins: &mut BackendPlugins) {
+    fn update_backend_configure(&mut self, sessions: &mut Sessions, backend_plugins: &mut BackendPlugins) {
     	if self.config_backend == None {
     		return;
     	}
@@ -369,6 +369,7 @@ impl Window {
             		show_config(backend.plugin_data, Imgui::get_ui_funs() as *mut c_void);
 
             		if ui.button("Ok", Some(PDVec2 { x: 120.0, y: 0.0 })) {
+            			sessions.get_current().set_backend(self.config_backend);
             			self.config_backend = None;
             			ui.close_current_popup();
             		}
@@ -382,6 +383,9 @@ impl Window {
 
 					ui.end_popup();
             	}
+            } else {
+				sessions.get_current().set_backend(self.config_backend);
+				self.config_backend = None;
             }
         }
     }
