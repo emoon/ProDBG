@@ -1,5 +1,4 @@
-mod serialize;
-
+use serde;
 use {DockHandle, ItemTarget};
 use rect::{Direction, Rect};
 
@@ -209,6 +208,12 @@ impl Container {
         }
     }
 }
+
+// Serialization
+gen_struct_code!(Container, docks, active_dock;
+    tab_borders => vec!(0.0),
+    rect => Rect::default()
+);
 
 #[cfg(test)]
 mod test {

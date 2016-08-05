@@ -5,9 +5,9 @@
 #[macro_export]
 macro_rules! gen_handle {
     ($name:expr, $type_name:ident, $visitor:ident) => {
-        impl serde::ser::Serialize for $type_name {
+        impl serde::Serialize for $type_name {
             fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-                where S: serde::ser::Serializer {
+                where S: serde::Serializer {
                     serializer.serialize_newtype_struct($name, &self.0)
                 }
         }
@@ -15,7 +15,7 @@ macro_rules! gen_handle {
         struct $visitor;
 
         impl serde::Deserialize for $type_name  {
-            fn deserialize<D>(deserializer: &mut D) -> Result<$type_name, D::Error> where D: serde::de::Deserializer {
+            fn deserialize<D>(deserializer: &mut D) -> Result<$type_name, D::Error> where D: serde::Deserializer {
                 deserializer.deserialize_newtype_struct($name, $visitor)
             }
         }
@@ -24,8 +24,8 @@ macro_rules! gen_handle {
             type Value = $type_name;
 
             fn visit_newtype_struct<D>(&mut self, deserializer: &mut D) -> Result<Self::Value, D::Error>
-                where D: serde::de::Deserializer {
-                    let value = try!(serde::de::Deserialize::deserialize(deserializer));
+                where D: serde::Deserializer {
+                    let value = try!(serde::Deserialize::deserialize(deserializer));
                     Ok($type_name(value))
                 }
 
@@ -67,10 +67,10 @@ macro_rules! gen_handle {
 /// deserialization
 #[macro_export]
 macro_rules! gen_struct_code {
-    ($name:ident, $($field:ident),*; $($const_field:ident => $value:expr)*) => {
-        impl serde::ser::Serialize for $name {
+    ($name:ident, $($field:ident),*; $($const_field:ident => $value:expr),*) => {
+        impl serde::Serialize for $name {
             fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-                where S: serde::ser::Serializer
+                where S: serde::Serializer
             {
                 struct Visitor<'a> {
                     value: &'a $name,
@@ -92,7 +92,7 @@ macro_rules! gen_struct_code {
         }
 
         impl serde::Deserialize for $name {
-            fn deserialize<D>(deserializer: &mut D) -> Result<$name, D::Error> where D: serde::de::Deserializer {
+            fn deserialize<D>(deserializer: &mut D) -> Result<$name, D::Error> where D: serde::Deserializer {
                 struct Visitor;
                 impl serde::de::Visitor for Visitor {
                     type Value = $name;
@@ -108,7 +108,7 @@ macro_rules! gen_struct_code {
                                         &format!("Unexpected field name {}. Expected one of {}",
                                                  other,
                                                  concat!($(stringify!($field), ", "),*))
-                                     ))},
+                                    ))},
                                 },
                                 None => { break; },
                             }
@@ -149,9 +149,9 @@ macro_rules! gen_struct_code {
 #[macro_export]
 macro_rules! gen_plain_enum_code {
     ($name:ident, $($variant:ident),*) => {
-        impl serde::ser::Serialize for $name {
+        impl serde::Serialize for $name {
             fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-                where S: serde::ser::Serializer
+                where S: serde::Serializer
             {
                 match *self {
                     $($name::$variant => {
@@ -163,7 +163,7 @@ macro_rules! gen_plain_enum_code {
 
         impl serde::Deserialize for $name {
             fn deserialize<D>(deserializer: &mut D) -> Result<$name, D::Error>
-                where D: serde::de::Deserializer
+                where D: serde::Deserializer
             {
                 struct Visitor;
 
@@ -186,6 +186,55 @@ macro_rules! gen_plain_enum_code {
                 }
 
                 deserializer.deserialize_struct_field(Visitor)
+            }
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! gen_newtype_enum_code {
+    ($name:ident, $($variant:ident => $index:expr),*) => {
+        impl serde::Serialize for $name {
+            fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
+                where S: serde::Serializer
+            {
+                match *self {
+                    $($name::$variant(ref value) => {
+                        serializer.serialize_newtype_variant(stringify!($name),
+                                                             $index,
+                                                             stringify!($variant),
+                                                             value
+                        )
+                    },)*
+                }
+            }
+        }
+
+        impl serde::Deserialize for $name {
+            fn deserialize<D>(deserializer: &mut D) -> Result<Area, D::Error>
+                where D: serde::Deserializer
+            {
+                struct Visitor;
+
+                impl serde::de::EnumVisitor for Visitor {
+                    type Value = $name;
+
+                    fn visit<V>(&mut self, mut visitor: V) -> Result<Area, V::Error>
+                        where V: serde::de::VariantVisitor
+                    {
+                        match try!(serde::de::VariantVisitor::visit_variant::<String>(&mut visitor)).as_str() {
+                            $(stringify!($variant) => Ok($name::$variant(try!(visitor.visit_newtype()))),)*
+                            other => Err(serde::de::Error::invalid_value(
+                                        &format!("Unexpected field name {}. Expected one of {}",
+                                                 other,
+                                                 concat!($(stringify!($variant), ", "),*))
+                            )),
+                        }
+                    }
+                }
+
+                const VARIANTS: &'static [&'static str] = &[$(stringify!($variant),)*];
+                deserializer.deserialize_enum(stringify!($name), VARIANTS, Visitor)
             }
         }
     }

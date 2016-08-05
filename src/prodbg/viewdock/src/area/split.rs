@@ -1,5 +1,4 @@
-mod serialize;
-
+use serde;
 use super::Area;
 use rect::{Direction, Rect, ShrinkSide};
 
@@ -209,6 +208,9 @@ impl Split {
     }
 }
 
+// Serialization
+gen_handle!("SplitHandle", SplitHandle, SplitHandleVisitor);
+gen_struct_code!(Split, children, ratios, direction, handle; rect => Rect::default());
 
 #[cfg(test)]
 mod test {

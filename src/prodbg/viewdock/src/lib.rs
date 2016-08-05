@@ -19,12 +19,12 @@
 //! ![](https://i3wm.org/docs/tree-layout1.png)
 //!
 
+extern crate serde;
 extern crate serde_json;
 #[macro_use]
-mod serialize_helper;
+extern crate serde_macros;
 mod rect;
 mod area;
-mod serialize;
 #[cfg(test)]
 mod test_helper;
 
@@ -421,6 +421,10 @@ impl Workspace {
         }
     }
 }
+
+// Serialization
+gen_handle!("DockHandle", DockHandle, DockHandleVisitor);
+gen_struct_code!(Workspace, root_area, handle_counter; rect => Rect::default());
 
 #[cfg(test)]
 mod test {

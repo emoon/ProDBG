@@ -1,7 +1,7 @@
 mod container;
 mod split;
-mod serialize;
 
+use serde;
 use rect::Rect;
 use {DockHandle, ItemTarget};
 pub use self::container::Container;
@@ -224,6 +224,8 @@ impl Area {
     }
 }
 
+// Serialization
+gen_newtype_enum_code!(Area, Container => 0, Split => 1);
 
 #[cfg(test)]
 mod test {

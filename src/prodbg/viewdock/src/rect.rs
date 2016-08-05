@@ -1,4 +1,4 @@
-mod serialize;
+use serde;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Direction {
@@ -187,6 +187,10 @@ impl Rect {
             .collect();
     }
 }
+
+// Serialization
+gen_struct_code!(Rect, x, y, width, height;);
+gen_plain_enum_code!(Direction, Vertical, Horizontal);
 
 #[cfg(test)]
 mod test {
