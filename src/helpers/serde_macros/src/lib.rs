@@ -1,7 +1,18 @@
 //! Helper macros to create serialization and deserialization serde code. It is handy if one does
 //! not want to use code generators or nightly version of Rust (serde has plugin compiler for that).
+//!
+//! Crate `serde` should be imported in namespace. No macro introduces new names.
 
 
+/// Generates code for newtype (tuple struct with one value). Usage:
+/// ```
+/// gen_newtype_code!(type);
+/// ```
+/// For example,
+/// ```
+/// struct Handle(u64);
+/// gen_newtype_code!(Handle);
+/// ```
 #[macro_export]
 macro_rules! gen_newtype_code {
     ($name:ident) => {
@@ -48,12 +59,17 @@ macro_rules! gen_newtype_code {
 ///
 /// For example, following invocation:
 /// ```
+/// struct Workspace {
+///     root_area: RootArea,
+///     handle_counter: HandleCounter,
+///     rect: Rect,
+/// }
 /// gen_struct_deserializer!(Workspace,
 ///     root_area, handle_counter;
 ///     rect => Rect::default()
 /// );
 /// ```
-/// will serialize `root_area`, `handle_counter`, but fill `rect` with `Rect::default()` on
+/// will serialize `root_area`, `handle_counter` and will fill `rect` with `Rect::default()` on
 /// deserialization
 #[macro_export]
 macro_rules! gen_struct_code {
@@ -125,27 +141,32 @@ macro_rules! gen_struct_code {
     }
 }
 
-/// Generates serialization and deserialization code for plain enum (consisting only of unit
+/// Generates serialization and deserialization code for unit enum (consisting only of unit
 /// variants). Usage:
 /// ```
-/// gen_plain_enum_code!(EnumName, Variant1, Variant2, ...);
+/// gen_unit_enum_code!(EnumName, Variant1 => index1, Variant2 => index2, ...);
 /// ```
 /// For example,
 /// ```
-/// gen_plain_enum_code!(NumberRepresentation, Hex, UnsignedDecimal, SignedDecimal, Float);
+/// enum NumberRepresentation {
+///     Hex,
+///     UnsignedDecimal,
+/// }
+/// gen_unit_enum_code!(NumberRepresentation, Hex => 0, UnsignedDecimal => 1);
 /// ```
-/// Enum is encoded as a single string equal to enum name passed. `EnumName::Variant1` will be
-/// encoded as `Variant1`.
+/// `index` is part of `serde` enum serialization interface and is not used in most of serializers.
 #[macro_export]
-macro_rules! gen_plain_enum_code {
-    ($name:ident, $($variant:ident),*) => {
+macro_rules! gen_unit_enum_code {
+    ($name:ident, $($variant:ident => $index:expr),*) => {
         impl serde::Serialize for $name {
             fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
                 where S: serde::Serializer
             {
                 match *self {
                     $($name::$variant => {
-                        serializer.serialize_str(stringify!($variant))
+                        serializer.serialize_unit_variant(stringify!($name),
+                                                          $index,
+                                                          stringify!($variant))
                     },)*
                 }
             }
@@ -157,17 +178,20 @@ macro_rules! gen_plain_enum_code {
             {
                 struct Visitor;
 
-                impl serde::de::Visitor for Visitor {
+                impl serde::de::EnumVisitor for Visitor {
                     type Value = $name;
 
-                    fn visit_str<E>(&mut self, value: &str) -> Result<$name, E>
-                        where E: serde::de::Error
+                    fn visit<V>(&mut self, mut visitor: V) -> Result<$name, V::Error>
+                        where V: serde::de::VariantVisitor
                     {
-                        match value {
-                            $(stringify!($variant) => Ok($name::$variant)),*,
-                            _ => Err(serde::de::Error::invalid_value(
+                        match try!(visitor.visit_variant::<String>()).as_str() {
+                            $(stringify!($variant) => {
+                                try!(visitor.visit_unit());
+                                Ok($name::$variant)
+                            }),*
+                            other => Err(serde::de::Error::invalid_value(
                                 &format!("Unexpected variant name {}. Expected one of {}",
-                                         value,
+                                         other,
                                          concat!($(stringify!($variant), ", "),*)
                                  )
                             )),
@@ -175,12 +199,27 @@ macro_rules! gen_plain_enum_code {
                     }
                 }
 
-                deserializer.deserialize_struct_field(Visitor)
+                const VARIANTS: &'static [&'static str] = &[$(stringify!($variant),)*];
+                deserializer.deserialize_enum(stringify!($name), VARIANTS, Visitor)
             }
         }
     }
 }
 
+/// Generates serialization and deserialization code for newtype enum (consisting only of variants
+/// with one value). Usage:
+/// ```
+/// gen_newtype_enum_code!(EnumName, Variant1 => index1, Variant2 => index2, ...);
+/// ```
+/// For example,
+/// ```
+/// enum Area {
+///     Container(Container),
+///     Split(Split),
+/// }
+/// gen_newtype_enum_code!(Area, Container => 0, Split => 1);
+/// ```
+/// `index` is part of `serde` enum serialization interface and is not used in most of serializers.
 #[macro_export]
 macro_rules! gen_newtype_enum_code {
     ($name:ident, $($variant:ident => $index:expr),*) => {
@@ -201,7 +240,7 @@ macro_rules! gen_newtype_enum_code {
         }
 
         impl serde::Deserialize for $name {
-            fn deserialize<D>(deserializer: &mut D) -> Result<Area, D::Error>
+            fn deserialize<D>(deserializer: &mut D) -> Result<$name, D::Error>
                 where D: serde::Deserializer
             {
                 struct Visitor;
@@ -209,13 +248,13 @@ macro_rules! gen_newtype_enum_code {
                 impl serde::de::EnumVisitor for Visitor {
                     type Value = $name;
 
-                    fn visit<V>(&mut self, mut visitor: V) -> Result<Area, V::Error>
+                    fn visit<V>(&mut self, mut visitor: V) -> Result<$name, V::Error>
                         where V: serde::de::VariantVisitor
                     {
-                        match try!(serde::de::VariantVisitor::visit_variant::<String>(&mut visitor)).as_str() {
+                        match try!(visitor.visit_variant::<String>()).as_str() {
                             $(stringify!($variant) => Ok($name::$variant(try!(visitor.visit_newtype()))),)*
                             other => Err(serde::de::Error::invalid_value(
-                                        &format!("Unexpected field name {}. Expected one of {}",
+                                        &format!("Unexpected variant name {}. Expected one of {}",
                                                  other,
                                                  concat!($(stringify!($variant), ", "),*))
                             )),

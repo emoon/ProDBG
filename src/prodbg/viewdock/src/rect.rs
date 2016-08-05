@@ -190,7 +190,7 @@ impl Rect {
 
 // Serialization
 gen_struct_code!(Rect, x, y, width, height;);
-gen_plain_enum_code!(Direction, Vertical, Horizontal);
+gen_unit_enum_code!(Direction, Vertical => 0, Horizontal => 1);
 
 #[cfg(test)]
 mod test {
@@ -282,6 +282,8 @@ mod test {
 
         let s0 = serde_json::to_string(&dir_in_0).unwrap();
         let s1 = serde_json::to_string(&dir_in_1).unwrap();
+        println!("{} {}", s0, s1);
+        println!("{:?}", serde_json::from_str::<Direction>(&s0));
 
         let dir_out_0: Direction = serde_json::from_str(&s0).unwrap();
         let dir_out_1: Direction = serde_json::from_str(&s1).unwrap();
