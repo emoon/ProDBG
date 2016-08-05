@@ -140,7 +140,7 @@ impl Window {
         // Update menus first to find out size of self-drawn menus (if any)
         self.update_menus(view_plugins, sessions, backend_plugins);
 
-		// If we have a backend configuration running
+        // If we have a backend configuration running
         self.update_backend_configure(sessions, backend_plugins);
 
         // Status bar needs full size of window
@@ -191,15 +191,18 @@ impl Window {
     }
 
     /// Updates the statusbar at the bottom of the window to show which state the debugger currently is in
-    fn update_statusbar(&self, sessions: &mut Sessions, backend_plugins: &mut BackendPlugins, size: (usize, usize)) {
-    	let session = sessions.get_current();
+    fn update_statusbar(&self,
+                        sessions: &mut Sessions,
+                        backend_plugins: &mut BackendPlugins,
+                        size: (usize, usize)) {
+        let session = sessions.get_current();
 
         if let Some(ref backend) = backend_plugins.get_backend(session.backend) {
-        	let name = &backend.plugin_type.name;
-        	self.statusbar.update(&name, size);
-		} else {
-        	self.statusbar.update("", size);
-		}
+            let name = &backend.plugin_type.name;
+            self.statusbar.update(&name, size);
+        } else {
+            self.statusbar.update("", size);
+        }
     }
 
     pub fn save_layout(&mut self,
@@ -353,39 +356,41 @@ impl Window {
         }
     }
 
-    fn update_backend_configure(&mut self, sessions: &mut Sessions, backend_plugins: &mut BackendPlugins) {
-    	if self.config_backend == None {
-    		return;
-    	}
+    fn update_backend_configure(&mut self,
+                                sessions: &mut Sessions,
+                                backend_plugins: &mut BackendPlugins) {
+        if self.config_backend == None {
+            return;
+        }
 
-    	let backend = backend_plugins.get_backend(self.config_backend).unwrap();
+        let backend = backend_plugins.get_backend(self.config_backend).unwrap();
 
         unsafe {
             let plugin_funcs = backend.plugin_type.plugin_funcs as *mut CBackendCallbacks;
             if let Some(show_config) = (*plugin_funcs).show_config {
-            	let ui = Imgui::get_ui();
-            	ui.open_popup("config");
-            	if ui.begin_popup_modal("config") {
-            		show_config(backend.plugin_data, Imgui::get_ui_funs() as *mut c_void);
+                let ui = Imgui::get_ui();
+                ui.open_popup("config");
+                if ui.begin_popup_modal("config") {
+                    show_config(backend.plugin_data, Imgui::get_ui_funs() as *mut c_void);
 
-            		if ui.button("Ok", Some(PDVec2 { x: 120.0, y: 0.0 })) {
-            			sessions.get_current().set_backend(self.config_backend);
-            			self.config_backend = None;
-            			ui.close_current_popup();
-            		}
+                    if ui.button("Ok", Some(PDVec2 { x: 120.0, y: 0.0 })) {
+                        sessions.get_current().set_backend(self.config_backend);
+                        self.config_backend = None;
+                        ui.close_current_popup();
+                    }
 
-            		ui.same_line(0, -1);
+                    ui.same_line(0, -1);
 
-            		if ui.button("Cancel", Some(PDVec2 { x: 120.0, y: 0.0 })) {
-            			self.config_backend = None;
-            			ui.close_current_popup();
-            		}
+                    if ui.button("Cancel", Some(PDVec2 { x: 120.0, y: 0.0 })) {
+                        self.config_backend = None;
+                        ui.close_current_popup();
+                    }
 
-					ui.end_popup();
-            	}
+                    ui.end_popup();
+                }
             } else {
-				sessions.get_current().set_backend(self.config_backend);
-				self.config_backend = None;
+                sessions.get_current().set_backend(self.config_backend);
+                self.config_backend = None;
             }
         }
     }

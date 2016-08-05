@@ -65,14 +65,14 @@ impl Window {
             }
             _ => {
                 if menu_id >= MENU_FILE_BACKEND_START && menu_id < MENU_FILE_BACKEND_END {
-                	let backend_index = menu_id - MENU_FILE_BACKEND_START;
-                	// TODO: the correct way here is to fetch the menu name instead of doing
-                	// this as new plugins may have been added to the menu and this will miss-match
-                	// right now there is no way to do that in minifb so this will have to be
-                	// ok for now
-                	let names = backend_plugins.get_plugin_names();
-					let backend_name = &names[backend_index];
-                	self.config_backend = backend_plugins.create_instance(backend_name);
+                    let backend_index = menu_id - MENU_FILE_BACKEND_START;
+                    // TODO: the correct way here is to fetch the menu name instead of doing
+                    // this as new plugins may have been added to the menu and this will miss-match
+                    // right now there is no way to do that in minifb so this will have to be
+                    // ok for now
+                    let names = backend_plugins.get_plugin_names();
+                    let backend_name = &names[backend_index];
+                    self.config_backend = backend_plugins.create_instance(backend_name);
                 } else {
                     current_session.send_menu_id(menu_id as u32, backend_plugins);
                 }
