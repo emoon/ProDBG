@@ -1,6 +1,7 @@
 #include "pd_backend.h"
 #include "pd_host.h"
 #include "pd_menu.h"
+#include "pd_ui.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -713,6 +714,14 @@ static PDMenuHandle register_menu(void* user_data, PDMenuFuncs* menu_funcs) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void show_config(void* user_data, struct PDUI* uiFuncs) {
+    DummyPlugin* data = (DummyPlugin*)user_data;
+    (void)data;
+	uiFuncs->text("Test");
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDBackendPlugin plugin =
 {
     "Dummy Backend",
@@ -720,7 +729,7 @@ static PDBackendPlugin plugin =
     destroy_instance,
 	register_menu,
     update,
-    0, // show_ui
+    show_config,
     0, // save_state
     0, // load_state
 };
