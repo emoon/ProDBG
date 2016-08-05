@@ -19,21 +19,9 @@ impl MemoryViewState {
     }
 }
 
-gen_struct_serializer!(NumberView, representation, size, endianness);
-gen_struct_deserializer!(NumberView;
-    representation => "representation", Representation,
-    size => "size", Size,
-    endianness => "endianness", Endianness;
-);
+gen_struct_code!(NumberView, representation, size, endianness;);
+gen_struct_code!(MemoryViewState, start_address, columns, number_view, text_shown;);
 
 gen_plain_enum_code!(NumberRepresentation, Hex, UnsignedDecimal, SignedDecimal, Float);
 gen_plain_enum_code!(NumberSize, OneByte, TwoBytes, FourBytes, EightBytes);
 gen_plain_enum_code!(Endianness, Little, Big);
-
-gen_struct_serializer!(MemoryViewState, start_address, columns, number_view, text_shown);
-gen_struct_deserializer!(MemoryViewState;
-    start_address => "start_address", StartAddress,
-    columns => "columns", Columns,
-    number_view => "number_view", NumberView,
-    text_shown => "text_shown", TextShown;
-);
