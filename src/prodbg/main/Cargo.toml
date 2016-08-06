@@ -14,6 +14,7 @@ bgfx = { path = "../bgfx-rs" }
 core = { path = "../core" }
 renderer = { path = "../renderer" }
 settings = { path = "../../crates/settings" }
+project = { path = "../../crates/project" }
 imgui_sys = { path = "../imgui_sys" }
 prodbg_api = { path = "../../../api/rust/prodbg" }
 serde = "0.7.4"
