@@ -7,9 +7,7 @@ pub struct WriterWrapper;
 
 impl ReaderWrapper {
     pub fn create_reader() -> Reader {
-        unsafe {
-            Reader::new(pd_binary_reader_create(), 0)
-        }
+        unsafe { Reader::new(pd_binary_reader_create(), 0) }
     }
 
     pub fn init_from_writer(reader: &mut Reader, writer: &Writer) {
@@ -40,11 +38,7 @@ impl ReaderWrapper {
 
 impl WriterWrapper {
     pub fn create_writer() -> Writer {
-        unsafe {
-            Writer {
-                api: pd_binary_writer_create(),
-            }
-        }
+        unsafe { Writer { api: pd_binary_writer_create() } }
     }
 }
 

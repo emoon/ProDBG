@@ -1,7 +1,7 @@
-///!
-///! Standard plugin is of the type of view plugins and backend plugins
-///! which follows the same structure in the shared libs
-///!
+/// !
+/// ! Standard plugin is of the type of view plugins and backend plugins
+/// ! which follows the same structure in the shared libs
+/// !
 
 use dynamic_reload::Lib;
 use std::os::raw::{c_char, c_void};
@@ -40,5 +40,4 @@ impl Plugin {
 }
 
 #[cfg(test)]
-mod tests {
-}
+mod tests {}

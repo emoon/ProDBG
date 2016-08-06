@@ -3,7 +3,7 @@ extern crate prodbg_api;
 extern crate gdb_remote;
 
 use prodbg_api::*;
-use std::os::raw::{c_void};
+use std::os::raw::c_void;
 use gdb_remote::GdbRemote;
 
 const MENU_CONNECT: u32 = 0;
@@ -103,7 +103,9 @@ impl AmigaUaeBackend {
         let memory_fetch_size = count * 4;
 
         if self.conn.get_memory(&mut data, address, memory_fetch_size as u64).is_err() {
-            println!("Unable to fetch memory from {:x} - size {}", address, memory_fetch_size);
+            println!("Unable to fetch memory from {:x} - size {}",
+                     address,
+                     memory_fetch_size);
             return;
         }
 
@@ -115,7 +117,9 @@ impl AmigaUaeBackend {
             let mut c = 0;
 
             for i in insns.iter() {
-                let text = format!("{0: <10} {1: <10}", i.mnemonic().unwrap(), i.op_str().unwrap_or(""));
+                let text = format!("{0: <10} {1: <10}",
+                                   i.mnemonic().unwrap(),
+                                   i.op_str().unwrap_or(""));
                 writer.array_entry_begin();
                 writer.write_u32("address", i.address as u32);
                 writer.write_string("line", &text);
@@ -186,19 +190,19 @@ impl AmigaUaeBackend {
     }
 
     fn set_breakpoint(&mut self, reader: &mut Reader, _writer: &mut Writer) {
-       if let Some(address) = reader.find_u64("address").ok() {
-           if self.conn.set_breakpoint_at_address(address).is_err() {
-               println!("Unable to set breakpoint at 0x{:08x}", address);
-           }
-       }
+        if let Some(address) = reader.find_u64("address").ok() {
+            if self.conn.set_breakpoint_at_address(address).is_err() {
+                println!("Unable to set breakpoint at 0x{:08x}", address);
+            }
+        }
     }
 
     fn delete_breakpoint(&mut self, reader: &mut Reader, _writer: &mut Writer) {
-       if let Some(address) = reader.find_u64("address").ok() {
-           if self.conn.remove_breakpoint_at_address(address).is_err() {
-               println!("Unable to remove breakpoint at 0x{:08x}", address);
-           }
-       }
+        if let Some(address) = reader.find_u64("address").ok() {
+            if self.conn.remove_breakpoint_at_address(address).is_err() {
+                println!("Unable to remove breakpoint at 0x{:08x}", address);
+            }
+        }
     }
 
     fn get_registers(&mut self, writer: &mut Writer) {
@@ -216,7 +220,7 @@ impl AmigaUaeBackend {
     // backend using iterators or such
 
     fn process_dma_frame(event_id: u16, gdb_data: &[u8], writer: &mut Writer) {
-        let mut data = [0; 512*1024];
+        let mut data = [0; 512 * 1024];
 
         println!("DataLen {}", gdb_data.len());
 
@@ -341,15 +345,14 @@ impl Backend for AmigaUaeBackend {
             ACTION_STEP => {
                 let mut step_res = [0; 16];
                 self.conn.step(&mut step_res).unwrap();
-                    println!("step res {:?}", step_res);
-                    self.get_registers(writer);
-                }
+                println!("step res {:?}", step_res);
+                self.get_registers(writer);
+            }
             _ => (),
         }
     }
 
-    fn show_config(&mut self, _: &mut Ui) {
-    }
+    fn show_config(&mut self, _: &mut Ui) {}
 
     fn register_menu(&mut self, menu_funcs: &mut MenuFuncs) -> *mut c_void {
         let menu = menu_funcs.create_menu("Amiga UAE Debugger");
@@ -364,4 +367,3 @@ pub fn init_plugin(plugin_handler: &mut PluginHandler) {
     define_backend_plugin!(PLUGIN, b"Amiga UAE Debugger\0", AmigaUaeBackend);
     plugin_handler.register_backend(&PLUGIN);
 }
-

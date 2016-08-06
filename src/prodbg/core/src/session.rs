@@ -1,27 +1,27 @@
 use prodbg_api::read_write::{Reader, Writer};
-use prodbg_api::backend::{CBackendCallbacks};
+use prodbg_api::backend::CBackendCallbacks;
 use plugins::PluginHandler;
 use reader_wrapper::{ReaderWrapper, WriterWrapper};
 use backend_plugin::{BackendHandle, BackendPlugins};
-use std::os::raw::{c_void};
+use std::os::raw::c_void;
 use prodbg_api::events::*;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct SessionHandle(pub u64);
 
-///! Session is a major part of ProDBG. There can be several sessions active at the same time
-///! and each session has exactly one backend. There are only communication internally in a session
-///! sessions can't (at least now) not talk to eachother.
-///!
-///! A backend can have several views at the same time. Data can be sent between the backend and
-///| views using the PDReader/PDWriter APIs (prodbg::Writer prodbg::Reader in Rust) and this is the
-///| only way for views and backends to talk with each other. There are several reasons for this
-///| approach:
-///!
-///| 1. No "hacks" on trying to share memory. Plugins can be over a socket/webview/etc.
-///! 2. Views and backends makes no assumetions on the inner workings of the others.
-///! 3. Backends and views can post messages which anyone can decide to (optionally) act on.
-///!
+/// ! Session is a major part of ProDBG. There can be several sessions active at the same time
+/// ! and each session has exactly one backend. There are only communication internally in a session
+/// ! sessions can't (at least now) not talk to eachother.
+/// !
+/// ! A backend can have several views at the same time. Data can be sent between the backend and
+/// | views using the PDReader/PDWriter APIs (prodbg::Writer prodbg::Reader in Rust) and this is the
+/// | only way for views and backends to talk with each other. There are several reasons for this
+/// | approach:
+/// !
+/// | 1. No "hacks" on trying to share memory. Plugins can be over a socket/webview/etc.
+/// ! 2. Views and backends makes no assumetions on the inner workings of the others.
+/// ! 3. Backends and views can post messages which anyone can decide to (optionally) act on.
+/// !
 pub struct Session {
     pub backend: Option<BackendHandle>,
     pub handle: SessionHandle,
@@ -32,8 +32,8 @@ pub struct Session {
     action: i32,
 }
 
-///! Connection options for Remote connections. Currently just one Ip adderss
-///!
+/// ! Connection options for Remote connections. Currently just one Ip adderss
+/// !
 pub struct ConnectionSettings<'a> {
     pub address: &'a str,
 }
@@ -42,10 +42,7 @@ impl Session {
     pub fn new(handle: SessionHandle) -> Session {
         Session {
             handle: handle,
-            writers: [
-                WriterWrapper::create_writer(),
-                WriterWrapper::create_writer(),
-            ],
+            writers: [WriterWrapper::create_writer(), WriterWrapper::create_writer()],
             reader: ReaderWrapper::create_reader(),
             action: 0,
             current_writer: 0,
@@ -90,7 +87,7 @@ impl Session {
         if let Some(backend) = backend_plugins.get_backend(self.backend) {
             if menu_id >= backend.menu_id_offset && (menu_id < backend.menu_id_offset + 1000) {
                 let writer = self.get_current_writer();
-                //println!("Write event, writer {}", );
+                // println!("Write event, writer {}", );
                 writer.event_begin(35); // Menu event, TODO: Fix hard-coded value
                 writer.write_u32("menu_id", menu_id - backend.menu_id_offset);
                 writer.event_end();
@@ -122,8 +119,8 @@ impl Session {
         self.action = 0;
         self.current_writer = n_writer;
 
-        //ReaderWrapper::init_from_writer(&mut self.reader, &self.writers[1]);
-        //ReaderWrapper::reset_writer(&mut self.writers[0]);
+        // ReaderWrapper::init_from_writer(&mut self.reader, &self.writers[1]);
+        // ReaderWrapper::reset_writer(&mut self.writers[0]);
     }
 }
 
@@ -178,28 +175,24 @@ impl Sessions {
 
 #[cfg(test)]
 mod tests {
-    //use core::reader_wrapper::{ReaderWrapper};
-    //use super::*;
+    // use core::reader_wrapper::{ReaderWrapper};
+    // use super::*;
 
     #[test]
     fn create_session() {
-        //let _session = Session::new();
+        // let _session = Session::new();
     }
 
     #[test]
     fn write_simple_event() {
-        /*
-        let mut session = Session::new();
-
-        session.writers[0].event_begin(0x44);
-        session.writers[0].event_end();
-
-        ReaderWrapper::init_from_writer(&mut session.reader, &session.writers[0]);
-
-        assert_eq!(session.reader.get_event().unwrap(), 0x44);
-        */
+        // let mut session = Session::new();
+        //
+        // session.writers[0].event_begin(0x44);
+        // session.writers[0].event_end();
+        //
+        // ReaderWrapper::init_from_writer(&mut session.reader, &session.writers[0]);
+        //
+        // assert_eq!(session.reader.get_event().unwrap(), 0x44);
+        //
     }
 }
-
-
-

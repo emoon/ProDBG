@@ -10,7 +10,7 @@ pub extern "C" fn get_services(type_name: *const c_uchar) -> *mut c_void {
         match name {
             "Capstone Service 1" => get_capstone_service_1(),
             "IdFuncs 1" => id_register::get_id_register_funcs(),
-            _ =>  ptr::null_mut(),
+            _ => ptr::null_mut(),
         }
     }
 }
@@ -18,4 +18,3 @@ pub extern "C" fn get_services(type_name: *const c_uchar) -> *mut c_void {
 extern "C" {
     fn get_capstone_service_1() -> *mut c_void;
 }
-
