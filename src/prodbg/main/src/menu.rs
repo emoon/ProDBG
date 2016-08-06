@@ -8,11 +8,12 @@ pub const MENU_FILE_OPEN_SOURCE: usize = 2;
 pub const MENU_FILE_START_NEW_BACKEND: usize = 3;
 pub const MENU_FILE_BACKEND_START: usize = 4;
 pub const MENU_FILE_BACKEND_END: usize = 99;
-pub const MENU_DEBUG_ATTACH_TO_REMOTE: usize = 100;
-pub const MENU_DEBUG_START: usize = 101;
-pub const MENU_DEBUG_STEP_IN: usize = 102;
-pub const MENU_DEBUG_STEP_OVER: usize = 103;
-pub const MENU_DEBUG_TOGGLE_BREAKPOINT: usize = 104;
+pub const MENU_DEBUG_CONFIGURE: usize = 100;
+pub const MENU_DEBUG_ATTACH_TO_REMOTE: usize = 101;
+pub const MENU_DEBUG_START: usize = 102;
+pub const MENU_DEBUG_STEP_IN: usize = 103;
+pub const MENU_DEBUG_STEP_OVER: usize = 104;
+pub const MENU_DEBUG_TOGGLE_BREAKPOINT: usize = 105;
 
 pub struct Menu {
     pub file_menu: MinifbMenu,
@@ -47,6 +48,9 @@ impl Menu {
 
     pub fn create_debug_menu() -> MinifbMenu {
         let mut menu = MinifbMenu::new("Debug").unwrap();
+
+        menu.add_item("Configure...", MENU_DEBUG_CONFIGURE)
+            .build();
 
         menu.add_item("Attach to Remote...", MENU_DEBUG_ATTACH_TO_REMOTE)
             .shortcut(Key::F6, 0)
