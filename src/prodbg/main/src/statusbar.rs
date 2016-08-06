@@ -1,7 +1,7 @@
-//use prodbg_api::backend::Status;
+// use prodbg_api::backend::Status;
 use prodbg_api::{Color, ImGuiCol};
 use super::imgui_sys::*;
-//use imgui_sys::*;
+// use imgui_sys::*;
 
 pub struct Statusbar {
     status: String,
@@ -9,9 +9,7 @@ pub struct Statusbar {
 
 impl Statusbar {
     pub fn new() -> Statusbar {
-        Statusbar {
-            status: "None".to_owned(),
-        }
+        Statusbar { status: "None".to_owned() }
     }
 
     pub fn get_size(&self) -> f32 {
@@ -29,11 +27,11 @@ impl Statusbar {
 
         ui.push_style_color(ImGuiCol::WindowBg, Color::from_rgb(50, 30, 40));
 
-        Imgui::begin_window_flags("", true,
-                                      WINDOWFLAGS_NO_TITLE_BAR |
-                                      WINDOWFLAGS_NO_COLLAPSE |
-                                      WINDOWFLAGS_NO_RESIZE |
-                                      WINDOWFLAGS_NO_MOVE);
+        Imgui::begin_window_flags("",
+                                  true,
+                                  WINDOWFLAGS_NO_TITLE_BAR | WINDOWFLAGS_NO_COLLAPSE |
+                                  WINDOWFLAGS_NO_RESIZE |
+                                  WINDOWFLAGS_NO_MOVE);
 
         // TODO: Remove hard-coded value
         ui.set_cursor_pos((2.0, 0.0));
