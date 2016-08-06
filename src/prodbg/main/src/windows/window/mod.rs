@@ -6,26 +6,24 @@ mod layout;
 
 use minifb::{self, Scale, WindowOptions};
 use core::view_plugins::{ViewHandle, ViewPlugins};
-use core::backend_plugin::BackendPlugins;
+use core::backend_plugin::{BackendHandle, BackendPlugins};
 use core::session::{Session, SessionHandle, Sessions};
 use core::reader_wrapper::ReaderWrapper;
 use super::viewdock::{Direction, DockHandle, ItemTarget, Rect, Workspace};
-use std::fs::File;
 use std::io;
 use menu::Menu;
 use imgui_sys::Imgui;
 use prodbg_api::ui_ffi::PDVec2;
 use prodbg_api::view::CViewCallbacks;
+use prodbg_api::backend::CBackendCallbacks;
 use std::os::raw::c_void;
 use std::collections::VecDeque;
-use std::io::{Read, Write};
 use statusbar::Statusbar;
 use prodbg_api::events;
 use self::mouse::MouseState;
 use self::popup::ViewRenameState;
 use self::layout::{PluginInstanceInfo, WindowLayout};
 use std::collections::HashMap;
-
 
 const OVERLAY_COLOR: u32 = 0x8000FF00;
 const WORKSPACE_UNDO_LIMIT: usize = 10;
@@ -82,6 +80,9 @@ pub struct Window {
     pub statusbar: Statusbar,
     pub custom_menu_height: f32,
 
+    /// Backend that is currently being configured.
+    pub config_backend: Option<BackendHandle>,
+
     /// View currently being renamed
     view_rename_state: ViewRenameState,
 }
@@ -111,6 +112,7 @@ impl Window {
             context_menu_data: None,
             statusbar: Statusbar::new(),
             custom_menu_height: 0.0,
+            config_backend: None,
             view_rename_state: ViewRenameState::None,
         };
 
@@ -135,9 +137,11 @@ impl Window {
         // Update menus first to find out size of self-drawn menus (if any)
         self.update_menus(view_plugins, sessions, backend_plugins);
 
-        let win_size = self.win.get_size();
         // Status bar needs full size of window
-        self.statusbar.update(win_size);
+        let win_size = self.win.get_size();
+
+        self.update_statusbar(sessions, backend_plugins, win_size);
+
         let width = win_size.0 as f32;
         let height = (win_size.1 as f32) - self.statusbar.get_size() - self.custom_menu_height;
         // Workspace needs area without menus and status bar
@@ -152,7 +156,6 @@ impl Window {
             let view_handle = ViewHandle(dock.0);
             let session = match view_plugins.get_view(view_handle)
                 .and_then(|v| sessions.get_session(v.session_handle)) {
-
                 None => continue,
                 Some(s) => s,
             };
@@ -179,29 +182,38 @@ impl Window {
         // if now plugin has showed a menu we do it here
         // TODO: Handle diffrent cases when attach menu on to plugin menu or not
         self.render_popup(show_context_menu && has_shown_menu == 0, view_plugins);
+
+        // If we have a backend configuration running
+        self.update_backend_configure(sessions, backend_plugins);
     }
 
-    pub fn save_layout(&mut self,
-                       filename: &str,
+    /// Updates the statusbar at the bottom of the window to show which state the debugger currently is in
+    fn update_statusbar(&self,
+                        sessions: &mut Sessions,
+                        backend_plugins: &mut BackendPlugins,
+                        size: (usize, usize)) {
+        let session = sessions.get_current();
+
+        if let Some(ref backend) = backend_plugins.get_backend(session.backend) {
+            let name = &backend.plugin_type.name;
+            self.statusbar.update(&name, size);
+        } else {
+            self.statusbar.update("", size);
+        }
+    }
+
+    pub fn layout_to_string(&mut self,
                        view_plugins: &mut ViewPlugins)
-                       -> io::Result<()> {
-        let mut file = try!(File::create(filename));
+                       -> String {
         let layout = WindowLayout::from_current_state(self.ws.clone(), view_plugins);
-        let state = layout.to_string();
-        println!("writing state to disk");
-        file.write_all(state.as_str().as_bytes())
+        layout.to_string()
     }
 
-    pub fn load_layout(&mut self,
-                       filename: &str,
+    pub fn init_layout(&mut self,
+                       layout_data: &str,
                        view_plugins: &mut ViewPlugins)
                        -> io::Result<()> {
-        let mut data = String::new();
-
-        let mut file = try!(File::open(filename));
-        try!(file.read_to_string(&mut data));
-
-        let layout = match WindowLayout::from_string(&data) {
+        let layout = match WindowLayout::from_string(layout_data) {
             Ok(layout) => layout,
             Err(error) => return Result::Err(io::Error::new(io::ErrorKind::InvalidData, error)),
         };
@@ -329,6 +341,48 @@ impl Window {
             }
             view_plugins.destroy_instance(*view);
             self.ws.delete_dock_by_handle(DockHandle(view.0));
+        }
+    }
+
+    fn update_backend_configure(&mut self,
+                                sessions: &mut Sessions,
+                                backend_plugins: &mut BackendPlugins) {
+        if self.config_backend == None {
+            return;
+        }
+
+        let backend = backend_plugins.get_backend(self.config_backend).unwrap();
+
+        unsafe {
+            let plugin_funcs = backend.plugin_type.plugin_funcs as *mut CBackendCallbacks;
+            if let Some(show_config) = (*plugin_funcs).show_config {
+                let ui = Imgui::get_ui();
+                ui.open_popup("config");
+                if ui.begin_popup_modal("config") {
+                    show_config(backend.plugin_data, Imgui::get_ui_funs() as *mut c_void);
+
+                    let ok_size = Some(PDVec2 { x: 120.0, y: 0.0 });
+                    let cancel_size = Some(PDVec2 { x: 120.0, y: 0.0 });
+
+                    if ui.button("Ok", ok_size) {
+                        sessions.get_current().set_backend(self.config_backend);
+                        self.config_backend = None;
+                        ui.close_current_popup();
+                    }
+
+                    ui.same_line(0, -1);
+
+                    if ui.button("Cancel", cancel_size) {
+                        self.config_backend = None;
+                        ui.close_current_popup();
+                    }
+
+                    ui.end_popup();
+                }
+            } else {
+                sessions.get_current().set_backend(self.config_backend);
+                self.config_backend = None;
+            }
         }
     }
 

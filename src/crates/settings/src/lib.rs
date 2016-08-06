@@ -33,20 +33,20 @@ impl Settings {
         Ok(json_data)
     }
 
-    pub fn load_default_settings(&mut self, filename: &str) -> Result<JsonValue, SettingsError> {
+    pub fn load_default_settings(&mut self, filename: &str) -> Result<(), SettingsError> {
         let data = try!(Self::load_file(filename));
 
         self.default_values = data;
 
-        Ok(JsonValue::new_object())
+        Ok(())
     }
 
-    pub fn load_user_settings(&mut self, filename: &str) -> Result<JsonValue, SettingsError> {
+    pub fn load_user_settings(&mut self, filename: &str) -> Result<(), SettingsError> {
         let data = try!(Self::load_file(filename));
 
         self.user_values = data;
 
-        Ok(JsonValue::new_object())
+        Ok(())
     }
 
     pub fn get_int(&self, category: &str, key: &str) -> Option<i32> {

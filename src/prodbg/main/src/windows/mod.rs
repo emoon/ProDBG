@@ -13,6 +13,8 @@ use core::session::Sessions;
 use settings::Settings;
 use self::window::Window;
 use self::keys::KeyCharCallback;
+use menu::{MENU_FILE_BACKEND_START, MENU_FILE_BACKEND_END};
+use project::Project;
 
 const WIDTH: i32 = 1280;
 const HEIGHT: i32 = 800;
@@ -41,12 +43,13 @@ impl Windows {
     }
 
     /// Create a default window which will only be created if there are no other
-    pub fn create_default(&mut self, settings: &Settings) {
+    pub fn create_default(&mut self, settings: &Settings, backend_plugins: Vec<String>) {
         if self.windows.len() > 0 {
             return;
         }
 
-        let window = self.create_window_with_menus(settings).expect("Unable to create window");
+        let window = self.create_window_with_menus(settings, backend_plugins)
+            .expect("Unable to create window");
 
         keys::setup_imgui_key_mappings();
 
@@ -62,14 +65,18 @@ impl Windows {
         Ok(win)
     }
 
-    pub fn create_window_with_menus(&mut self, settings: &Settings) -> minifb::Result<Window> {
-
+    pub fn create_window_with_menus(&mut self,
+                                    settings: &Settings,
+                                    backend_plugins: Vec<String>)
+                                    -> minifb::Result<Window> {
         let width = settings.get_int("window_size", "width").unwrap_or(WIDTH) as usize;
         let height = settings.get_int("window_size", "height").unwrap_or(HEIGHT) as usize;
 
         let mut window = try!(self.create_window(width, height));
 
         window.win.set_input_callback(Box::new(KeyCharCallback {}));
+
+        Self::add_backend_menus(&mut window, backend_plugins);
 
         // TODO: Figure check result of add_menu
         window.win.add_menu(&window.menu.file_menu);
@@ -94,7 +101,7 @@ impl Windows {
 
             if !self.windows[i].win.is_open() {
                 // TODO: Support more than one window
-                let _ = self.windows[i].save_layout("data/user_layout.json", view_plugins);
+                self.save_project("data/current_project.json", sessions, backend_plugins, view_plugins);
                 self.windows.swap_remove(i);
             }
         }
@@ -107,28 +114,64 @@ impl Windows {
         &mut self.windows[current]
     }
 
+    fn add_backend_menus(window: &mut Window, backend_plugins: Vec<String>) {
+        // Build menu with all the backend plugins
+        let mut backend_menus = minifb::Menu::new("").unwrap();
+
+        for (i, name) in backend_plugins.iter().enumerate() {
+            let id = MENU_FILE_BACKEND_START + i;
+
+            if id >= MENU_FILE_BACKEND_END {
+                panic!("Maximum number of backends reached {}",
+                       MENU_FILE_BACKEND_END - MENU_FILE_BACKEND_START);
+            }
+
+            backend_menus.add_item(&name, id).build();
+        }
+
+        window.menu.file_menu.add_sub_menu("New Project...", &backend_menus);
+    }
+
     /// Checks if application should exit (all window instances closed)
     pub fn should_exit(&self) -> bool {
         self.windows.is_empty()
     }
 
     /// Save the state of the windows (usually done when exiting the application)
-    pub fn save(&mut self, filename: &str, view_plugins: &mut ViewPlugins) {
-        println!("window len {}", self.windows.len());
+    pub fn save_project(&mut self, filename: &str,
+                  sessions: &mut Sessions,
+                  backend_plugins: &mut BackendPlugins,
+    			  view_plugins: &mut ViewPlugins) {
         // TODO: This only supports one window for now
         if self.windows.len() == 1 {
-            // TODO: Proper error handling here
             println!("save layout");
-            self.windows[0].save_layout(filename, view_plugins).unwrap();
+        	let layout = self.windows[0].layout_to_string(view_plugins);
+        	let mut backend_name = "".to_owned();
+        	let mut backend_data = None;
+
+			if let Some(backend) = backend_plugins.get_backend(sessions.get_current().backend) {
+				let t = backend.get_plugin_data();
+				backend_name = t.0;
+				backend_data = t.1;
+			}
+
+			let p = Project {
+				backend_name: backend_name,
+				backend_data: backend_data,
+				layout_data: layout,
+			};
+
+			// TODO: Proper error handling
+			p.save(filename).unwrap();
         }
     }
 
     /// Load the state of all the views from a previous run
-    pub fn load(&mut self, filename: &str, view_plugins: &mut ViewPlugins) {
+    pub fn init(&mut self, layout_data: &str, view_plugins: &mut ViewPlugins) {
         // TODO: This only supports one window for now
         if self.windows.len() == 1 {
             // TODO: Proper error handling here (loading is ok to fail though)
-            let _ = self.windows[0].load_layout(filename, view_plugins);
+            let _ = self.windows[0].init_layout(layout_data, view_plugins);
         }
     }
 }

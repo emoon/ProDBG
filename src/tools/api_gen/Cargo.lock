@@ -2,7 +2,7 @@
 name = "api_gen"
 version = "0.1.1"
 dependencies = [
- "codespawn 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "codespawn 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -12,7 +12,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "codespawn"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "json 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",

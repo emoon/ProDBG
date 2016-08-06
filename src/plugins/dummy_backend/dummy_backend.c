@@ -1,6 +1,8 @@
 #include "pd_backend.h"
 #include "pd_host.h"
 #include "pd_menu.h"
+#include "pd_ui.h"
+#include "pd_io.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -386,6 +388,7 @@ typedef struct DummyPlugin {
 	uint8_t* memory;
 	int64_t memory_start;
 	int64_t memory_end;
+	int register_type;
 } DummyPlugin;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -713,6 +716,37 @@ static PDMenuHandle register_menu(void* user_data, PDMenuFuncs* menu_funcs) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void show_config(void* user_data, struct PDUI* uiFuncs) {
+    DummyPlugin* data = (DummyPlugin*)user_data;
+	static const char* reg_types[] = { "6502", "68000", "x64" };
+    uiFuncs->combo("Register Type", &data->register_type, reg_types, 3, -1);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int save_state(void* user_data, PDSaveState* save) {
+    DummyPlugin* data = (DummyPlugin*)user_data;
+    PDIO_write_int(save, data->register_type);
+    return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int load_state(void* user_data, PDLoadState* load) {
+    int64_t reg_status = 0;
+    DummyPlugin* data = (DummyPlugin*)user_data;
+    if (PDIO_read_int(load, &reg_status) == PDLoadStatus_Ok) {
+        data->register_type = (int)reg_status;
+        printf("loaded register_type %d\n", data->register_type);
+    } else {
+        printf("failed to load register_type\n");
+    }
+
+    return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDBackendPlugin plugin =
 {
     "Dummy Backend",
@@ -720,6 +754,9 @@ static PDBackendPlugin plugin =
     destroy_instance,
 	register_menu,
     update,
+    show_config,
+    save_state,
+    load_state,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

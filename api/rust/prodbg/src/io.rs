@@ -19,7 +19,7 @@ pub struct CPDSaveState {
     pub write_string: fn(priv_data: *mut c_void, data: *const c_char),
 }
 
-pub struct StateSaver<'a> (&'a mut CPDSaveState);
+pub struct StateSaver<'a>(&'a mut CPDSaveState);
 
 impl<'a> StateSaver<'a> {
     pub fn new(api: *mut CPDSaveState) -> StateSaver<'a> {

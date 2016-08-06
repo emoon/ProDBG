@@ -721,7 +721,7 @@
       { "int": "begin_popup_context_window", "var": [{ "int": "also_over_items" }, { "const char*": "strId" }, { "int": "mouse_button" }] },
       { "int": "begin_popup_context_void", "var": [{ "const char*": "strId" }, { "int": "mouse_button" }] },
       { "no_ret": "end_popup" },
-      { "void": "close_current_popup", "qualifier": "mut_ext" },
+      { "no_ret": "close_current_popup" },
       { "int": "begin_popup_context", "var": { "void*": "priv_data" } },
       { "no_ret": "end_popup_context", "var": { "void*": "priv_data" } },
       { "no_ret": "value_bool", "var": [{ "const char*": "prefix" }, { "int": "b" }] },
@@ -838,3 +838,4 @@
     ]
   } ]
 }
+

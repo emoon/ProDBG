@@ -36,8 +36,9 @@ pub struct CCapstone1 {
     free: extern "C" fn(insn: *const Insn, count: usize),
 
     disasm_iter: extern "C" fn(handle: *const c_void,
-                              code: *const u8,
-                              code_size: *const usize) -> usize,
+                               code: *const u8,
+                               code_size: *const usize)
+                               -> usize,
     regname: extern "C" fn(handle: *const c_void, id: u16) -> *const i8,
 }
 
@@ -195,11 +196,13 @@ impl Capstone {
             let mut count = 0;
 
             loop {
-                if t[count] == 0 { break; }
+                if t[count] == 0 {
+                    break;
+                }
                 count += 1;
             }
 
-            let slice = slice::from_raw_parts(name as *const u8, count); 
+            let slice = slice::from_raw_parts(name as *const u8, count);
             from_utf8(slice).unwrap()
         }
     }
@@ -293,7 +296,7 @@ impl Insn {
 
             let detail: &cs_detail = transmute(self.detail);
             Some(&slice::from_raw_parts(detail.regs_read.as_ptr(), detail.regs_read_count as usize))
-            //Some(&detail.regs_read)
+            // Some(&detail.regs_read)
         }
     }
 
@@ -304,7 +307,8 @@ impl Insn {
             }
 
             let detail: &cs_detail = transmute(self.detail);
-            Some(&slice::from_raw_parts(detail.regs_write.as_ptr(), detail.regs_write_count as usize))
+            Some(&slice::from_raw_parts(detail.regs_write.as_ptr(),
+                                        detail.regs_write_count as usize))
         }
     }
 }
@@ -312,10 +316,10 @@ impl Insn {
 impl Debug for Insn {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), ::std::fmt::Error> {
         fmt.debug_struct("Insn")
-           .field("address", &self.address)
-           .field("size", &self.size)
-           .field("mnemonic", &self.mnemonic())
-           .field("op_str", &self.op_str())
-           .finish()
+            .field("address", &self.address)
+            .field("size", &self.size)
+            .field("mnemonic", &self.mnemonic())
+            .field("op_str", &self.op_str())
+            .finish()
     }
 }

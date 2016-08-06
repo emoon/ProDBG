@@ -48,11 +48,15 @@ impl Window {
         };
 
         match menu_id {
+        	MENU_DEBUG_CONFIGURE => {
+				self.config_backend = current_session.backend;
+        	}
             MENU_DEBUG_STEP_IN => current_session.action_step(),
             MENU_DEBUG_STEP_OVER => current_session.action_step_over(),
             MENU_DEBUG_START => current_session.action_run(),
             MENU_FILE_OPEN_SOURCE => self.browse_source_file(view_plugins, current_session),
             MENU_FILE_START_NEW_BACKEND => {
+            /*
                 if let Some(backend) =
                        backend_plugins.create_instance(&"Amiga UAE Debugger".to_owned()) {
                     current_session.set_backend(Some(backend));
@@ -62,9 +66,22 @@ impl Window {
                         self.menu_id_offset += 1000;
                     }
                 }
+            */
             }
             _ => {
-                current_session.send_menu_id(menu_id as u32, backend_plugins);
+                if menu_id >= MENU_FILE_BACKEND_START && menu_id < MENU_FILE_BACKEND_END {
+                    let backend_index = menu_id - MENU_FILE_BACKEND_START;
+                    // TODO: the correct way here is to fetch the menu name instead of doing
+                    // this as new plugins may have been added to the menu and this will miss-match
+                    // right now there is no way to do that in minifb so this will have to be
+                    // ok for now
+                    let names = backend_plugins.get_plugin_names();
+                    let backend_name = &names[backend_index];
+                    // TODO: Default values for backend
+                    self.config_backend = backend_plugins.create_instance(backend_name, &None);
+                } else {
+                    current_session.send_menu_id(menu_id as u32, backend_plugins);
+                }
             }
         }
     }

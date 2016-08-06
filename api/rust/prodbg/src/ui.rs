@@ -142,12 +142,12 @@ pub enum Key {
 pub enum ImGuiCol {
     Text = 0,
     TextDisabled,
-    WindowBg,              // Background of normal windows
-    ChildWindowBg,         // Background of child windows
-    PopupBg,               // Background of popups, menus, tooltips windows
+    WindowBg, // Background of normal windows
+    ChildWindowBg, // Background of child windows
+    PopupBg, // Background of popups, menus, tooltips windows
     Border,
     BorderShadow,
-    FrameBg,               // Background of checkbox, radio button, plot, slider, text input
+    FrameBg, // Background of checkbox, radio button, plot, slider, text input
     FrameBgHovered,
     FrameBgActive,
     TitleBg,
@@ -182,23 +182,22 @@ pub enum ImGuiCol {
     PlotHistogram,
     PlotHistogramHovered,
     TextSelectedBg,
-    ModalWindowDarkening,  // darken entire screen when a modal window is active
+    ModalWindowDarkening, // darken entire screen when a modal window is active
 }
 
 
-pub enum ImGuiStyleVar
-{
-    Alpha = 0,           // float
-    WindowPadding,       // ImVec2
-    WindowRounding,      // float
-    WindowMinSize,       // ImVec2
+pub enum ImGuiStyleVar {
+    Alpha = 0, // float
+    WindowPadding, // ImVec2
+    WindowRounding, // float
+    WindowMinSize, // ImVec2
     ChildWindowRounding, // float
-    FramePadding,        // ImVec2
-    FrameRounding,       // float
-    ItemSpacing,         // ImVec2
-    ItemInnerSpacing,    // ImVec2
-    IndentSpacing,       // float
-    GrabMinSize          // float
+    FramePadding, // ImVec2
+    FrameRounding, // float
+    ItemSpacing, // ImVec2
+    ItemInnerSpacing, // ImVec2
+    IndentSpacing, // float
+    GrabMinSize, // float
 }
 
 
@@ -348,7 +347,10 @@ impl Ui {
     #[inline]
     pub fn set_cursor_pos(&self, pos: (f32, f32)) {
         unsafe {
-            ((*self.api).set_cursor_pos)(PDVec2{x: pos.0, y: pos.1});
+            ((*self.api).set_cursor_pos)(PDVec2 {
+                x: pos.0,
+                y: pos.1,
+            });
         }
     }
 
@@ -363,14 +365,23 @@ impl Ui {
     #[inline]
     pub fn set_cursor_screen_pos(&self, pos: (f32, f32)) {
         unsafe {
-            ((*self.api).set_cursor_screen_pos)(PDVec2{x: pos.0, y: pos.1});
+            ((*self.api).set_cursor_screen_pos)(PDVec2 {
+                x: pos.0,
+                y: pos.1,
+            });
         }
     }
 
     #[inline]
     pub fn fill_rect(&self, x: f32, y: f32, width: f32, height: f32, col: Color) {
         unsafe {
-            ((*self.api).fill_rect)(PDRect { x: x, y: y, width: width, height: height }, col.color);
+            ((*self.api).fill_rect)(PDRect {
+                                        x: x,
+                                        y: y,
+                                        width: width,
+                                        height: height,
+                                    },
+                                    col.color);
         }
     }
 
@@ -379,7 +390,11 @@ impl Ui {
         unsafe { ((*self.api).set_scroll_here)(center) }
     }
 
-    pub fn begin_child(&self, id: &str, pos: Option<PDVec2>, border: bool, flags: PDUIWindowFlags_) {
+    pub fn begin_child(&self,
+                       id: &str,
+                       pos: Option<PDVec2>,
+                       border: bool,
+                       flags: PDUIWindowFlags_) {
         unsafe {
             let t = CFixedString::from_str(id).as_ptr();
             match pos {
@@ -427,27 +442,27 @@ impl Ui {
     // TODO: push/pop font
 
     #[inline]
-	pub fn push_style_color(&self, index: ImGuiCol, col: Color) {
+    pub fn push_style_color(&self, index: ImGuiCol, col: Color) {
         unsafe { ((*self.api).push_style_color)(index as u32, col.color) }
     }
 
     #[inline]
-	pub fn pop_style_color(&self, count: usize) {
+    pub fn pop_style_color(&self, count: usize) {
         unsafe { ((*self.api).pop_style_color)(count as i32) }
     }
 
     #[inline]
-	pub fn push_style_var(&self, index: ImGuiStyleVar, val: f32) {
+    pub fn push_style_var(&self, index: ImGuiStyleVar, val: f32) {
         unsafe { ((*self.api).push_style_var)(index as u32, val) }
     }
 
     #[inline]
-	pub fn push_style_var_vec(&self, index: ImGuiStyleVar, val: PDVec2) {
+    pub fn push_style_var_vec(&self, index: ImGuiStyleVar, val: PDVec2) {
         unsafe { ((*self.api).push_style_var_vec)(index as u32, val) }
     }
 
     #[inline]
-	pub fn pop_style_var(&self, count: usize) {
+    pub fn pop_style_var(&self, count: usize) {
         unsafe { ((*self.api).pop_style_var)(count as i32) }
     }
 
@@ -463,7 +478,9 @@ impl Ui {
 
     #[inline]
     pub fn pop_item_width(&self) {
-        unsafe { ((*self.api).pop_item_width)(); }
+        unsafe {
+            ((*self.api).pop_item_width)();
+        }
     }
 
     #[inline]
@@ -473,7 +490,7 @@ impl Ui {
 
     #[inline]
     pub fn is_item_hovered(&self) -> bool {
-        unsafe { ((*self.api).is_item_hovered)() != 0}
+        unsafe { ((*self.api).is_item_hovered)() != 0 }
     }
 
     #[inline]
@@ -493,14 +510,18 @@ impl Ui {
 
     #[inline]
     pub fn is_mouse_clicked(&self, button: i32, repeat: bool) -> bool {
-        unsafe { ((*self.api).is_mouse_clicked)(button, true_is_1!(repeat)) != 0}
+        unsafe { ((*self.api).is_mouse_clicked)(button, true_is_1!(repeat)) != 0 }
     }
 
     #[inline]
-    pub fn checkbox(&self, label: &str, state: &mut bool) -> bool{
+    pub fn checkbox(&self, label: &str, state: &mut bool) -> bool {
         unsafe {
             let c_label = CFixedString::from_str(label).as_ptr();
-            let mut c_state: i32 = if *state { 1 } else { 0 };
+            let mut c_state: i32 = if *state {
+                1
+            } else {
+                0
+            };
             let res = ((*self.api).checkbox)(c_label, &mut c_state) != 0;
             *state = c_state != 0;
             res
@@ -509,21 +530,37 @@ impl Ui {
 
     #[inline]
     // callback is not called the same frame as input was created
-    pub fn input_text(&self, label: &str, buf: &mut [u8], flags: PDUIInputTextFlags_, callback: Option<&FnMut(InputTextCallbackData)>) -> bool {
+    pub fn input_text(&self,
+                      label: &str,
+                      buf: &mut [u8],
+                      flags: PDUIInputTextFlags_,
+                      callback: Option<&FnMut(InputTextCallbackData)>)
+                      -> bool {
         unsafe {
             let c_label = CFixedString::from_str(label).as_ptr();
             let buf_len = buf.len() as i32;
             let buf_pointer = buf.as_mut_ptr() as *mut i8;
             if let Some(callback) = callback {
-                extern fn cb(data: *mut PDUIInputTextCallbackData) {
+                extern "C" fn cb(data: *mut PDUIInputTextCallbackData) {
                     unsafe {
-                        let callback: *const *mut FnMut(InputTextCallbackData) = mem::transmute((*data).user_data);
+                        let callback: *const *mut FnMut(InputTextCallbackData) =
+                            mem::transmute((*data).user_data);
                         (**callback)(InputTextCallbackData(&mut *data));
                     }
                 };
-                ((*self.api).input_text)(c_label, buf_pointer, buf_len, flags.bits(), cb, mem::transmute(&callback)) != 0
+                ((*self.api).input_text)(c_label,
+                                         buf_pointer,
+                                         buf_len,
+                                         flags.bits(),
+                                         cb,
+                                         mem::transmute(&callback)) != 0
             } else {
-                ((*self.api).input_text)(c_label, buf_pointer, buf_len, flags.bits(), mem::transmute(ptr::null::<()>()), ptr::null_mut()) != 0
+                ((*self.api).input_text)(c_label,
+                                         buf_pointer,
+                                         buf_len,
+                                         flags.bits(),
+                                         mem::transmute(ptr::null::<()>()),
+                                         ptr::null_mut()) != 0
             }
         }
     }
@@ -531,10 +568,20 @@ impl Ui {
     /// Combobox
     /// `height` is number of lines when combobox is open
     /// Returns `true` if `current_item` was changed
-    pub fn combo(&self, label: &str, current_item: &mut usize, items: &[&str], count: usize, height: usize) -> bool {
-        extern fn c_get_item(closure: *mut c_void, item_index: c_int, res: *mut *const c_char) -> c_int {
+    pub fn combo(&self,
+                 label: &str,
+                 current_item: &mut usize,
+                 items: &[&str],
+                 count: usize,
+                 height: usize)
+                 -> bool {
+        extern "C" fn c_get_item(closure: *mut c_void,
+                                 item_index: c_int,
+                                 res: *mut *const c_char)
+                                 -> c_int {
             unsafe {
-                let get_data: *const *mut FnMut(c_int, &mut *const c_char) -> c_int = mem::transmute(closure);
+                let get_data: *const *mut FnMut(c_int, &mut *const c_char) -> c_int =
+                    mem::transmute(closure);
                 (**get_data)(item_index, &mut *res)
             }
         }
@@ -550,7 +597,12 @@ impl Ui {
                     1
                 };
                 let tmp = &get_item as &FnMut(c_int, &mut *const c_char) -> c_int;
-                res = ((*self.api).combo3)(c_label, &mut item, c_get_item, mem::transmute(&tmp), count as i32, height as i32) != 0;
+                res = ((*self.api).combo3)(c_label,
+                                           &mut item,
+                                           c_get_item,
+                                           mem::transmute(&tmp),
+                                           count as i32,
+                                           height as i32) != 0;
             }
             drop(buffer);
             *current_item = item as usize;
@@ -578,7 +630,10 @@ impl Ui {
         unsafe {
             let mut start_index = 0i32;
             let mut end_index = 0i32;
-            ((*self.api).calc_list_clipping)(i32::max_value(), items_height, &mut start_index, &mut end_index);
+            ((*self.api).calc_list_clipping)(i32::max_value(),
+                                             items_height,
+                                             &mut start_index,
+                                             &mut end_index);
             (start_index as usize, end_index as usize)
         }
     }
@@ -586,7 +641,6 @@ impl Ui {
     ///
     /// Ids
     ///
-
     // This version is added since `usize` cannot be converted into pointer in safe Rust.
     #[inline]
     pub fn push_id_usize(&self, id: usize) {
@@ -605,7 +659,9 @@ impl Ui {
 
     #[inline]
     pub fn pop_id(&self) {
-        unsafe { ((*self.api).pop_id)(); }
+        unsafe {
+            ((*self.api).pop_id)();
+        }
     }
 
     // Text
@@ -647,8 +703,8 @@ impl Ui {
         }
     }
 
-	pub fn columns(&self, count: isize, id: Option<&str>, border: bool) {
-	    unsafe {
+    pub fn columns(&self, count: isize, id: Option<&str>, border: bool) {
+        unsafe {
             match id {
                 Some(p) => {
                     let t = CFixedString::from_str(p).as_ptr();
@@ -679,11 +735,15 @@ impl Ui {
     }
 
     pub fn end_main_menu_bar(&self) {
-        unsafe { ((*self.api).end_main_menu_bar)(); }
+        unsafe {
+            ((*self.api).end_main_menu_bar)();
+        }
     }
 
     pub fn separator(&self) {
-        unsafe { ((*self.api).separator)(); }
+        unsafe {
+            ((*self.api).separator)();
+        }
     }
 
     pub fn begin_popup(&self, text: &str) -> bool {
@@ -693,10 +753,21 @@ impl Ui {
         }
     }
 
+    pub fn begin_popup_modal(&self, text: &str) -> bool {
+        unsafe {
+            let t = CFixedString::from_str(text).as_ptr();
+            ((*self.api).begin_popup_modal)(t, ptr::null_mut(), 0) == 1
+        }
+    }
+
     pub fn begin_menu(&self, text: &str, enabled: bool) -> bool {
         unsafe {
             let t = CFixedString::from_str(text).as_ptr();
-            let s = if enabled { 1 } else { 0 };
+            let s = if enabled {
+                1
+            } else {
+                0
+            };
             ((*self.api).begin_menu)(t, s) == 1
         }
     }
@@ -708,11 +779,25 @@ impl Ui {
         }
     }
 
-	pub fn menu_item(&self, text: &str, selected: bool, enabled: bool) -> bool {
+    pub fn close_current_popup(&self) {
+        unsafe {
+            ((*self.api).close_current_popup)();
+        }
+    }
+
+    pub fn menu_item(&self, text: &str, selected: bool, enabled: bool) -> bool {
         unsafe {
             let name = CFixedString::from_str(text).as_ptr();
-            let s = if selected { 1 } else { 0 };
-            let e = if enabled { 1 } else { 0 };
+            let s = if selected {
+                1
+            } else {
+                0
+            };
+            let e = if enabled {
+                1
+            } else {
+                0
+            };
             ((*self.api).menu_item)(name, ptr::null(), s, e) == 1
         }
     }
@@ -729,18 +814,17 @@ impl Ui {
     ///
     ///
 
-	pub fn tree_node<'a>(&'a self, label: &'a str) -> TreeBuilder<'a> {
-		TreeBuilder {
-			ui: self,
-			label: label,
-		}
-	}
+    pub fn tree_node<'a>(&'a self, label: &'a str) -> TreeBuilder<'a> {
+        TreeBuilder {
+            ui: self,
+            label: label,
+        }
+    }
 
-	pub fn sc_input_text(&self, title: &str, width: usize, height: usize) -> Scintilla {
-	    unsafe {
+    pub fn sc_input_text(&self, title: &str, width: usize, height: usize) -> Scintilla {
+        unsafe {
             let name = CFixedString::from_str(title);
-	        Scintilla::new(((*self.api).sc_input_text)(name.as_ptr(),
-	                        width as f32, height as f32))
+            Scintilla::new(((*self.api).sc_input_text)(name.as_ptr(), width as f32, height as f32))
         }
     }
 
@@ -760,15 +844,15 @@ impl Ui {
     /// Keyboard support
     ///
 
-	pub fn is_key_down(&self, key: Key) -> bool {
+    pub fn is_key_down(&self, key: Key) -> bool {
         unsafe { ((*self.api).is_key_down)(key as i32) == 1 }
     }
 
-	pub fn is_key_pressed(&self, key: Key, repeat: bool) -> bool {
+    pub fn is_key_pressed(&self, key: Key, repeat: bool) -> bool {
         unsafe { ((*self.api).is_key_pressed)(key as i32, true_is_1!(repeat)) == 1 }
     }
 
-	pub fn is_key_released(&self, key: Key) -> bool {
+    pub fn is_key_released(&self, key: Key) -> bool {
         unsafe { ((*self.api).is_key_released)(key as i32) == 1 }
     }
 
@@ -776,11 +860,11 @@ impl Ui {
     /// Mouse support
     ///
 
-	pub fn get_mouse_pos(&self) -> PDVec2 {
+    pub fn get_mouse_pos(&self) -> PDVec2 {
         unsafe { ((*self.api).get_mouse_pos)() }
     }
 
-	pub fn get_mouse_wheel(&self) -> f32 {
+    pub fn get_mouse_wheel(&self) -> f32 {
         unsafe { ((*self.api).get_mouse_wheel)() }
     }
 
@@ -789,23 +873,29 @@ impl Ui {
     ///
 
     pub fn fill_convex_poly(&self, vertices: &[Vec2], col: Color, anti_aliased: bool) {
-	    unsafe {
-            ((*self.api).fill_convex_poly)(
-                vertices.as_ptr() as *const c_void,
-                vertices.len() as u32,
-                col.color,
-                true_is_1!(anti_aliased))
+        unsafe {
+            ((*self.api).fill_convex_poly)(vertices.as_ptr() as *const c_void,
+                                           vertices.len() as u32,
+                                           col.color,
+                                           true_is_1!(anti_aliased))
         }
     }
 
-    pub fn fill_circle(&self, pos: &Vec2, radius: f32, col: Color, segment_count: usize, anti_aliased: bool) {
-	    unsafe {
-            ((*self.api).fill_circle)(
-                PDVec2 { x: pos.x, y: pos.y },
-                radius,
-                col.color,
-                segment_count as u32,
-                true_is_1!(anti_aliased))
+    pub fn fill_circle(&self,
+                       pos: &Vec2,
+                       radius: f32,
+                       col: Color,
+                       segment_count: usize,
+                       anti_aliased: bool) {
+        unsafe {
+            ((*self.api).fill_circle)(PDVec2 {
+                                          x: pos.x,
+                                          y: pos.y,
+                                      },
+                                      radius,
+                                      col.color,
+                                      segment_count as u32,
+                                      true_is_1!(anti_aliased))
         }
     }
 
@@ -820,7 +910,10 @@ impl Ui {
                 Some(Image {
                     api: self.api,
                     handle: handle,
-                    size: Vec2 { x: width as f32, y: height as f32 },
+                    size: Vec2 {
+                        x: width as f32,
+                        y: height as f32,
+                    },
                 })
             } else {
                 None
@@ -830,13 +923,13 @@ impl Ui {
 }
 
 pub struct TreeBuilder<'a> {
-	ui: &'a Ui,
-	label: &'a str,
+    ui: &'a Ui,
+    label: &'a str,
 }
 
 impl<'a> TreeBuilder<'a> {
-	pub fn show<F: FnOnce(&Ui)>(&self, f: F) {
-		unsafe {
+    pub fn show<F: FnOnce(&Ui)>(&self, f: F) {
+        unsafe {
             let label = CFixedString::from_str(self.label);
             let t = ((*self.ui.api).tree_node)(label.as_ptr());
 
@@ -844,8 +937,8 @@ impl<'a> TreeBuilder<'a> {
                 f(self.ui);
                 ((*self.ui.api).tree_pop)();
             }
-		}
-	}
+        }
+    }
 }
 
 impl Image {
@@ -861,12 +954,20 @@ impl<'a> ImageBuilder<'a> {
     pub fn show(&self) {
         unsafe {
             ((*self.api).image)(self.image.handle,
-                                PDVec2 { x:self.size.x, y:self.size.y },
-                                PDVec2 { x:self.uv0.x, y:self.uv0.y },
-                                PDVec2 { x:self.uv1.x, y:self.uv1.y },
+                                PDVec2 {
+                                    x: self.size.x,
+                                    y: self.size.y,
+                                },
+                                PDVec2 {
+                                    x: self.uv0.x,
+                                    y: self.uv0.y,
+                                },
+                                PDVec2 {
+                                    x: self.uv1.x,
+                                    y: self.uv1.y,
+                                },
                                 self.tint_color.color,
                                 self.border_color.color);
         }
     }
 }
-

@@ -10,6 +10,9 @@ extern "C" {
 #endif
 
 struct PDMenu;
+struct PDSaveState;
+struct PDLoadState;
+struct PDUI;
 
 #define PD_BACKEND_API_VERSION "ProDBG Backend 1"
 
@@ -111,6 +114,13 @@ typedef struct PDBackendPlugin {
     void (*destroy_instance)(void* user_data);
     PDMenuHandle (*register_menu)(void* user_data, PDMenuFuncs* menu_funcs);
     PDDebugState (*update)(void* user_data, PDAction action, PDReader* reader, PDWriter* writer);
+
+    // show_ui is used when configuring the backend settings
+    void (*show_config)(void* user_data, struct PDUI* ui);
+
+    // save/load state
+	int (*save_state)(void* user_data, struct PDSaveState* save_state);
+	int (*load_state)(void* user_data, struct PDLoadState* load_state);
 
 } PDBackendPlugin;
 

@@ -1,8 +1,8 @@
 [package]
-name = "settings"
+name = "project"
 version = "0.1.0"
 authors = ["Daniel Collin <daniel@collin.com>"]
 
 [dependencies]
 json = "0.10"
-notify = "^2.5.0"
+

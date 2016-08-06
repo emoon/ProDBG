@@ -9,6 +9,7 @@ use Lib;
 use minifb::Menu;
 use std::mem::transmute;
 use std::ptr;
+use plugin_io;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct BackendHandle(pub usize);
@@ -67,7 +68,8 @@ impl PluginHandler for BackendPlugins {
     fn reload_plugin(&mut self) {
         let t = self.reload_state.clone();
         for reload_plugin in &t {
-            Self::create_instance(self, &reload_plugin.name);
+        	// TODO: Support storing backend data during re-load
+            Self::create_instance(self, &reload_plugin.name, &None);
         }
     }
 
@@ -110,14 +112,23 @@ impl BackendPlugins {
         Self::create_instance_from_type(&mut self, index)
     }
 
-    pub fn create_instance(&mut self, plugin_type: &String) -> Option<BackendHandle> {
+    pub fn create_instance(&mut self, plugin_type: &String, data: &Option<Vec<String>>) -> Option<BackendHandle> {
         for i in 0..self.plugin_types.len() {
             if self.plugin_types[i].name != *plugin_type {
                 continue;
             }
 
-            return self.create_instance_from_type(i);
+            let instance = self.create_instance_from_type(i);
+
+            if let &Some(ref plugin_data) = data {
+            	let backend = self.get_backend(instance).unwrap();
+				backend.load_plugin_data(&plugin_data);
+            }
+
+           return instance;
         }
+
+        println!("Unable to find plugin type {}", plugin_type);
 
         None
     }
@@ -134,13 +145,23 @@ impl BackendPlugins {
         None
     }
 
+    pub fn get_plugin_names(&self) -> Vec<String> {
+        let mut names = Vec::with_capacity(self.plugin_types.len());
+
+        for plugin_type in &self.plugin_types {
+            names.push(plugin_type.name.clone());
+        }
+
+        names
+    }
+
     pub fn get_menu(&mut self, handle: BackendHandle, menu_id_offset: u32) -> Option<Box<Menu>> {
         if let Some(backend) = self.get_backend(Some(handle)) {
             unsafe {
                 let plugin_funcs = backend.plugin_type.plugin_funcs as *mut CBackendCallbacks;
 
-                if let Some(register_menu) = (*plugin_funcs).register_menu { 
-                    let mut menus_funcs = menus::get_menu_funcs(menu_id_offset); 
+                if let Some(register_menu) = (*plugin_funcs).register_menu {
+                    let mut menus_funcs = menus::get_menu_funcs(menu_id_offset);
                     let funcs: *mut c_void = transmute(&mut menus_funcs);
                     let menu = register_menu(backend.plugin_data, funcs);
                     if menu == ptr::null_mut() {
@@ -158,3 +179,29 @@ impl BackendPlugins {
         None
     }
 }
+
+impl BackendInstance {
+    pub fn get_plugin_data(&self) -> (String, Option<Vec<String>>) {
+        let mut plugin_data = None;
+        unsafe {
+            let callbacks = self.plugin_type.plugin_funcs as *mut CBackendCallbacks;
+            if let Some(save_state) = (*callbacks).save_state {
+                let mut writer_funcs = plugin_io::get_writer_funcs();
+                save_state(self.plugin_data, &mut writer_funcs);
+                plugin_data = Some(plugin_io::get_data(&mut writer_funcs));
+            }
+        };
+        (self.plugin_type.name.clone(), plugin_data)
+    }
+
+    pub fn load_plugin_data(&mut self, data: &Vec<String>) {
+        unsafe {
+            let callbacks = self.plugin_type.plugin_funcs as *mut CBackendCallbacks;
+            if let Some(load_state) = (*callbacks).load_state {
+                let mut loader_funcs = plugin_io::get_loader_funcs(data);
+                load_state(self.plugin_data, &mut loader_funcs);
+            }
+        }
+    }
+}
+

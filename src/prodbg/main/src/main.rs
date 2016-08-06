@@ -5,6 +5,7 @@ extern crate bgfx;
 extern crate imgui_sys;
 extern crate settings;
 extern crate renderer;
+extern crate project;
 
 pub mod windows;
 pub mod menu;
@@ -21,6 +22,7 @@ use core::backend_plugin::BackendPlugins;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::Duration;
+use project::Project;
 
 use core::plugins::*;
 
@@ -33,6 +35,7 @@ fn main() {
                     should contain accessible \"data\" directory.")
         }
     }
+
     let mut sessions = Sessions::new();
     let mut windows = Windows::new();
     let mut settings = Settings::new();
@@ -45,25 +48,30 @@ fn main() {
 
     let session = sessions.create_instance();
 
-    match settings.load_default_settings("data/settings.json") {
-        Err(e) => println!("Unable to load data/settings: {}", e),
-        _ => (),
-    }
+    settings.load_default_settings("data/settings.json").unwrap_or_else(|e| {
+        println!("Unable to load data/settings: {}", e);
+    });
+
+    let project = Project::load("data/current_project.json").unwrap_or_else(|e| {
+        println!("Unable to load current project {}, using defaults", e);
+        Project::new()
+    });
 
     plugins.add_handler(&view_plugins);
     plugins.add_handler(&backend_plugins);
     plugins.search_load_plugins(&mut lib_handler);
 
     if let Some(backend) = backend_plugins.borrow_mut()
-        .create_instance(&"Dummy Backend".to_owned()) {
+        .create_instance(&project.backend_name, &project.backend_data) {
+        println!("Crated instande {}", project.backend_name);
         if let Some(session) = sessions.get_session(session) {
-            session.set_backend(Some(backend));
             println!("set backend");
+            session.set_backend(Some(backend));
         }
     }
 
-    windows.create_default(&settings);
-    windows.load("data/user_layout.json", &mut view_plugins.borrow_mut());
+    windows.create_default(&settings, backend_plugins.borrow_mut().get_plugin_names());
+    windows.init(&project.layout_data, &mut view_plugins.borrow_mut());
 
     loop {
         plugins.update(&mut lib_handler);
@@ -79,8 +87,6 @@ fn main() {
         // TODO: Proper config and sleep timings
         std::thread::sleep(Duration::from_millis(5));
     }
-
-    // windows.save("data/user_layout.json", &mut view_plugins.borrow_mut());
 }
 
 // dummy
