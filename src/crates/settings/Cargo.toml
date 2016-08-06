@@ -4,5 +4,5 @@ version = "0.1.0"
 authors = ["Daniel Collin <daniel@collin.com>"]
 
 [dependencies]
-json = "0.8.5"
+json = "0.10"
 notify = "^2.5.0"
