@@ -10,7 +10,7 @@ use std::os::raw::{c_char, c_void, c_int, c_uchar};
 use std::mem::transmute;
 use prodbg_api::CFixedString;
 
-pub struct Imgui  {
+pub struct Imgui {
     show_popup: bool,
     showed_popup: c_int,
 }
@@ -19,7 +19,7 @@ pub struct Imgui  {
 #[derive(Copy, Clone, Debug, Default)]
 pub struct ImVec2 {
     pub x: f32,
-    pub y: f32
+    pub y: f32,
 }
 
 #[repr(C)]
@@ -30,7 +30,8 @@ pub struct ImDrawVert {
     pub col: ImU32,
 }
 
-pub type ImDrawCallback = Option<extern "C" fn(parent_list: *const ImDrawList, cmd: *const ImDrawCmd)>;
+pub type ImDrawCallback = Option<extern "C" fn(parent_list: *const ImDrawList,
+                                               cmd: *const ImDrawCmd)>;
 pub type ImDrawIdx = u16;
 pub type ImU32 = u32;
 pub type ImWchar = u16;
@@ -59,8 +60,7 @@ pub struct ImDrawCmd {
 pub struct ImDrawList {
     pub cmd_buffer: ImVector<ImDrawCmd>,
     pub idx_buffer: ImVector<ImDrawIdx>,
-    pub vtx_buffer: ImVector<ImDrawVert>,
-    // other data here is private
+    pub vtx_buffer: ImVector<ImDrawVert>, // other data here is private
 }
 
 #[repr(C)]
@@ -152,16 +152,16 @@ impl Imgui {
     }
 
     pub fn get_ui() -> Ui {
-	    Ui::new(unsafe { imgui_get_ui_funcs() })
+        Ui::new(unsafe { imgui_get_ui_funcs() })
     }
 
     pub fn get_ui_funs() -> *mut CPdUI {
-	    unsafe { imgui_get_ui_funcs() }
+        unsafe { imgui_get_ui_funcs() }
     }
 
-	extern "C" fn begin_popup_context(priv_data: *mut c_void) -> c_int {
+    extern "C" fn begin_popup_context(priv_data: *mut c_void) -> c_int {
         let data = unsafe { &mut *(priv_data as *mut Imgui) };
-	    let ui = Self::get_ui();
+        let ui = Self::get_ui();
 
         if data.show_popup {
             ui.open_popup("_select");
@@ -175,7 +175,11 @@ impl Imgui {
             ui.menu_item("Click from Rust", false, true);
         }
 
-        if showed_menu { 1 } else { 0 }
+        if showed_menu {
+            1
+        } else {
+            0
+        }
     }
 
     /// Returns 1 if UI showed a popup or not
@@ -199,32 +203,42 @@ impl Imgui {
     pub fn begin_window(name: &str, show: bool) -> bool {
         unsafe {
             let t = CFixedString::from_str(name).as_ptr();
-            if imgui_begin(t, show as c_uchar) == 1 { true } else { false }
+            if imgui_begin(t, show as c_uchar) == 1 {
+                true
+            } else {
+                false
+            }
         }
     }
 
     pub fn begin_window_float(name: &str, show: bool) -> bool {
         unsafe {
             let t = CFixedString::from_str(name).as_ptr();
-            if imgui_begin_float(t, show as c_uchar) == 1 { true } else { false }
+            if imgui_begin_float(t, show as c_uchar) == 1 {
+                true
+            } else {
+                false
+            }
         }
     }
 
     pub fn begin_window_child(name: &str, height: f32) {
-    	unsafe {
+        unsafe {
             let t = CFixedString::from_str(name).as_ptr();
             imgui_begin_child(t, height);
-    	}
+        }
     }
 
     pub fn end_window_child() {
-    	unsafe {
-    		imgui_end_child();
-    	}
+        unsafe {
+            imgui_end_child();
+        }
     }
 
     pub fn map_key(key_target: usize, key_source: usize) {
-        unsafe { imgui_map_key(key_target as u32, key_source as u32); }
+        unsafe {
+            imgui_map_key(key_target as u32, key_source as u32);
+        }
     }
 
     pub fn set_mouse_pos(mouse: (f32, f32)) {
@@ -232,20 +246,28 @@ impl Imgui {
     }
 
     pub fn set_mouse_state(index: usize, state: bool) {
-        unsafe { imgui_set_mouse_state(index as i32, state as c_int); }
+        unsafe {
+            imgui_set_mouse_state(index as i32, state as c_int);
+        }
     }
 
     #[inline]
     pub fn set_scroll(scroll: f32) {
-        unsafe { imgui_set_scroll(scroll); }
+        unsafe {
+            imgui_set_scroll(scroll);
+        }
     }
 
     pub fn end_window() {
-        unsafe { imgui_end(); }
+        unsafe {
+            imgui_end();
+        }
     }
 
     pub fn set_window_pos(x: f32, y: f32) {
-        unsafe { imgui_set_window_pos(x, y); }
+        unsafe {
+            imgui_set_window_pos(x, y);
+        }
     }
 
     #[inline]
@@ -255,15 +277,21 @@ impl Imgui {
 
     #[inline]
     pub fn set_key_down(key: usize) {
-        unsafe { imgui_set_key_down(key as i32); }
+        unsafe {
+            imgui_set_key_down(key as i32);
+        }
     }
 
     pub fn clear_keys() {
-        unsafe { imgui_clear_keys(); }
+        unsafe {
+            imgui_clear_keys();
+        }
     }
 
     pub fn set_window_size(w: f32, h: f32) {
-        unsafe { imgui_set_window_size(w, h); }
+        unsafe {
+            imgui_set_window_size(w, h);
+        }
     }
 
     fn init_ui_funcs() -> *mut CPdUI {
@@ -277,38 +305,40 @@ impl Imgui {
     }
 
     pub fn tab(label: &str, selected: bool, last: bool) -> bool {
-    	unsafe {
+        unsafe {
             let t = CFixedString::from_str(label).as_ptr();
             // TODO: Simplify
-            if imgui_tab(t, selected, last) == 1 { true } else { false }
-    	}
+            if imgui_tab(t, selected, last) == 1 {
+                true
+            } else {
+                false
+            }
+        }
     }
 
     // TODO: This should be moved to ui.rs
     pub fn separator() {
-        unsafe {
-            imgui_separator()
-        }
+        unsafe { imgui_separator() }
     }
 
     pub fn tab_pos() -> f32 {
-        unsafe {
-            imgui_tab_pos()
-        }
+        unsafe { imgui_tab_pos() }
     }
 
     pub fn render_frame(x: f32, y: f32, width: f32, height: f32, fill_col: u32) {
-    	unsafe {
-    		imgui_render_frame(x, y, width, height, fill_col)
-    	}
+        unsafe { imgui_render_frame(x, y, width, height, fill_col) }
     }
 
     pub fn setup(fontname: Option<&str>, size: f32, width: u32, height: u32) {
         if let Some(name) = fontname {
             let t = CFixedString::from_str(name);
-            unsafe { imgui_setup(t.as_ptr(), size, width, height); }
+            unsafe {
+                imgui_setup(t.as_ptr(), size, width, height);
+            }
         } else {
-            unsafe { imgui_setup(std::ptr::null(), 0.0, width, height); }
+            unsafe {
+                imgui_setup(std::ptr::null(), 0.0, width, height);
+            }
         }
     }
 
@@ -347,7 +377,9 @@ impl Imgui {
 
     #[inline]
     pub fn resize(width: u16, height: u16) {
-        unsafe { imgui_update_size(width, height); }
+        unsafe {
+            imgui_update_size(width, height);
+        }
     }
 
     pub fn begin_window_flags(name: &str, show: bool, flags: WindowFlags) -> bool {
@@ -379,7 +411,7 @@ extern "C" {
     fn imgui_tab(label: *const c_char, selected: bool, last: bool) -> c_int;
     fn imgui_separator();
     fn imgui_tab_pos() -> f32;
-    fn imgui_render_frame(x: f32, y:f32, width:f32, height:f32, fill_col: u32);
+    fn imgui_render_frame(x: f32, y: f32, width: f32, height: f32, fill_col: u32);
     fn imgui_setup(filename: *const c_char, size: f32, width: u32, height: u32);
     fn imgui_get_font_tex_data() -> ImFontTextData;
     fn imgui_get_draw_data() -> *const ImDrawData;

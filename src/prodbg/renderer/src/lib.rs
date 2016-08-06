@@ -5,7 +5,7 @@ use std::io;
 use std::io::Read;
 use std::fs::File;
 use std::os::raw::c_void;
-use bgfx::{Bgfx, BgfxError, Program, Uniform, TransientIndexBuffer, TransientVertexBuffer };
+use bgfx::{Bgfx, BgfxError, Program, Uniform, TransientIndexBuffer, TransientVertexBuffer};
 use imgui_sys::Imgui;
 
 #[repr(C)]
@@ -26,14 +26,11 @@ fn mtx_ortho(left: f32, right: f32, bottom: f32, top: f32, near: f32, far: f32) 
     let ee = (top + bottom) / (bottom - top);
     let ff = near / (near - far);
 
-    [aa, 0.0, 0.0, 0.0,
-     0.0, bb, 0.0, 0.0,
-     0.0, 0.0, cc, 0.0,
-     dd, ee, ff, 1.0]
+    [aa, 0.0, 0.0, 0.0, 0.0, bb, 0.0, 0.0, 0.0, 0.0, cc, 0.0, dd, ee, ff, 1.0]
 }
 
 
-impl UiVertex  {
+impl UiVertex {
     fn build_decl() -> bgfx::VertexDecl {
         bgfx::VertexDecl::new(None)
             .add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
@@ -67,7 +64,11 @@ impl Renderer {
         }
     }
 
-    pub fn setup_window(&mut self, handle: *mut c_void, width: u16, height: u16) -> Result<(), BgfxError> {
+    pub fn setup_window(&mut self,
+                        handle: *mut c_void,
+                        width: u16,
+                        height: u16)
+                        -> Result<(), BgfxError> {
         try!(bgfx::PlatformData::new()
             .context(std::ptr::null_mut())
             .display(get_display_server())
@@ -76,8 +77,11 @@ impl Renderer {
 
         try!(Bgfx::init(bgfx::RendererType::Default, None, None));
 
-        Imgui::setup(Some("data/font/source_code_pro/SourceCodePro-Medium.ttf"), 20.0, width as u32, height as u32);
-        //Imgui::setup(None, 20.0, width as u32, height as u32);
+        Imgui::setup(Some("data/font/source_code_pro/SourceCodePro-Medium.ttf"),
+                     20.0,
+                     width as u32,
+                     height as u32);
+        // Imgui::setup(None, 20.0, width as u32, height as u32);
 
         let font = Imgui::get_font_tex_data();
 
@@ -87,7 +91,12 @@ impl Renderer {
 
         let memory = bgfx::Memory::copy(font.data);
 
-        self.texture = Some(bgfx::Texture::create_2d(font.width, font.height, 1, bgfx::TextureFormat::Rgba8, bgfx::TEXTURE_NONE, Some(&memory)));
+        self.texture = Some(bgfx::Texture::create_2d(font.width,
+                                                     font.height,
+                                                     1,
+                                                     bgfx::TextureFormat::Rgba8,
+                                                     bgfx::TEXTURE_NONE,
+                                                     Some(&memory)));
         self.ui_shaders = Some(Self::load_shaders("imgui").unwrap());
 
         Bgfx::reset(width, height, bgfx::RESET_NONE);
@@ -101,7 +110,11 @@ impl Renderer {
 
     pub fn pre_update(&self) {
         Bgfx::set_view_rect(0, 0, 0, self.width, self.height);
-        Bgfx::set_view_clear(0, bgfx::CLEAR_COLOR | bgfx::CLEAR_DEPTH, 0x000101010, 1.0, 0);
+        Bgfx::set_view_clear(0,
+                             bgfx::CLEAR_COLOR | bgfx::CLEAR_DEPTH,
+                             0x000101010,
+                             1.0,
+                             0);
         Bgfx::touch(0);
         // TODO: Correct delta time
         Imgui::pre_update(1.0 / 60.0);
@@ -121,7 +134,10 @@ impl Renderer {
         let view = mtx_ortho(0.0, self.width as f32, self.height as f32, 0.0, -1.0, 0.0);
 
         Bgfx::set_view_transform(0, &view);
-        Bgfx::set_texture(0, self.tex_uniform.as_ref().unwrap(), self.texture.as_ref().unwrap(), None);
+        Bgfx::set_texture(0,
+                          self.tex_uniform.as_ref().unwrap(),
+                          self.texture.as_ref().unwrap(),
+                          None);
 
         for &list in draw_lists {
             let cmd_buffer = unsafe { (*list).cmd_buffer.as_slice() };
@@ -141,14 +157,18 @@ impl Renderer {
                     let texture = bgfx::Texture::new_from_handle_ptr(cmd.texture_id);
                     Bgfx::set_texture(0, self.tex_uniform.as_ref().unwrap(), &texture, None);
                 } else {
-                    Bgfx::set_texture(0, self.tex_uniform.as_ref().unwrap(), self.texture.as_ref().unwrap(), None);
+                    Bgfx::set_texture(0,
+                                      self.tex_uniform.as_ref().unwrap(),
+                                      self.texture.as_ref().unwrap(),
+                                      None);
                 }
 
                 if cmd.elem_count > 0 {
                     Bgfx::set_transient_vertex_buffer(&tvb, 0, vtx_buffer.len() as u32);
                     Bgfx::set_transient_index_buffer(&tib, offset, cmd.elem_count);
                     Bgfx::set_state(bgfx::STATE_RGB_WRITE | bgfx::STATE_ALPHA_WRITE |
-                                    bgfx::STATE_BLEND_ALPHA, None);
+                                    bgfx::STATE_BLEND_ALPHA,
+                                    None);
                     Bgfx::submit(0, self.ui_shaders.as_ref().unwrap());
 
                     offset += cmd.elem_count;
@@ -217,5 +237,3 @@ fn get_display_server() -> *mut c_void {
 fn get_display_server() -> *mut c_void {
     std::ptr::null_mut()
 }
-
-

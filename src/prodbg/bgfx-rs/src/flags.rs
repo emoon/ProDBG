@@ -317,4 +317,3 @@ impl Default for TextureFlags {
         TEXTURE_NONE
     }
 }
-

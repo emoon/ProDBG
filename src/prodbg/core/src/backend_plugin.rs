@@ -1,4 +1,4 @@
-use std::os::raw::{c_void};
+use std::os::raw::c_void;
 use std::rc::Rc;
 use plugin::Plugin;
 use plugins::PluginHandler;
@@ -68,7 +68,7 @@ impl PluginHandler for BackendPlugins {
     fn reload_plugin(&mut self) {
         let t = self.reload_state.clone();
         for reload_plugin in &t {
-        	// TODO: Support storing backend data during re-load
+            // TODO: Support storing backend data during re-load
             Self::create_instance(self, &reload_plugin.name, &None);
         }
     }
@@ -112,7 +112,10 @@ impl BackendPlugins {
         Self::create_instance_from_type(&mut self, index)
     }
 
-    pub fn create_instance(&mut self, plugin_type: &String, data: &Option<Vec<String>>) -> Option<BackendHandle> {
+    pub fn create_instance(&mut self,
+                           plugin_type: &String,
+                           data: &Option<Vec<String>>)
+                           -> Option<BackendHandle> {
         for i in 0..self.plugin_types.len() {
             if self.plugin_types[i].name != *plugin_type {
                 continue;
@@ -121,11 +124,11 @@ impl BackendPlugins {
             let instance = self.create_instance_from_type(i);
 
             if let &Some(ref plugin_data) = data {
-            	let backend = self.get_backend(instance).unwrap();
-				backend.load_plugin_data(&plugin_data);
+                let backend = self.get_backend(instance).unwrap();
+                backend.load_plugin_data(&plugin_data);
             }
 
-           return instance;
+            return instance;
         }
 
         println!("Unable to find plugin type {}", plugin_type);
@@ -133,7 +136,9 @@ impl BackendPlugins {
         None
     }
 
-    pub fn get_backend(&mut self, backend_handle: Option<BackendHandle>) -> Option<&mut BackendInstance> {
+    pub fn get_backend(&mut self,
+                       backend_handle: Option<BackendHandle>)
+                       -> Option<&mut BackendInstance> {
         if let Some(handle) = backend_handle {
             for i in 0..self.instances.len() {
                 if self.instances[i].handle == handle {
@@ -171,7 +176,7 @@ impl BackendPlugins {
                     backend.menu_id_offset = menu_id_offset;
 
                     let menu: Box<Menu> = transmute(menu);
-                    return Some(menu)
+                    return Some(menu);
                 }
             }
         }
@@ -204,4 +209,3 @@ impl BackendInstance {
         }
     }
 }
-

@@ -65,7 +65,7 @@ extern crate bitflags;
 extern crate libc;
 
 
-//use std::marker::PhantomData;
+// use std::marker::PhantomData;
 use std::mem;
 use std::ptr;
 use std::ffi::CString;
@@ -129,7 +129,6 @@ impl RendererType {
             None
         }
     }
-
 }
 
 /// `render_frame()` results.
@@ -281,7 +280,8 @@ impl Memory {
     #[inline]
     pub fn copy<T>(data: &[T]) -> Memory {
         unsafe {
-            let handle = bgfx_sys::bgfx_copy(data.as_ptr() as *const libc::c_void, mem::size_of_val(data) as u32);
+            let handle = bgfx_sys::bgfx_copy(data.as_ptr() as *const libc::c_void,
+                                             mem::size_of_val(data) as u32);
             Memory { handle: handle }
         }
     }
@@ -295,7 +295,8 @@ impl Memory {
     #[inline]
     pub fn reference<T>(data: &[T]) -> Memory {
         unsafe {
-            let handle = bgfx_sys::bgfx_make_ref(data.as_ptr() as *const libc::c_void, mem::size_of_val(data) as u32);
+            let handle = bgfx_sys::bgfx_make_ref(data.as_ptr() as *const libc::c_void,
+                                                 mem::size_of_val(data) as u32);
             Memory { handle: handle }
         }
     }
@@ -398,14 +399,30 @@ pub struct Texture {
 
 impl Texture {
     #[inline]
-    pub fn create_2d(width: u16, height: u16, mip_count: u8, format: TextureFormat, flags: TextureFlags, mem: Option<&Memory>) -> Texture {
+    pub fn create_2d(width: u16,
+                     height: u16,
+                     mip_count: u8,
+                     format: TextureFormat,
+                     flags: TextureFlags,
+                     mem: Option<&Memory>)
+                     -> Texture {
         unsafe {
             let handle;
 
             if let Some(t) = mem {
-                handle = bgfx_sys::bgfx_create_texture_2d(width, height, mip_count, format as u32, flags.bits(), t.handle);
+                handle = bgfx_sys::bgfx_create_texture_2d(width,
+                                                          height,
+                                                          mip_count,
+                                                          format as u32,
+                                                          flags.bits(),
+                                                          t.handle);
             } else {
-                handle = bgfx_sys::bgfx_create_texture_2d(width, height, mip_count, format as u32, flags.bits(), std::ptr::null_mut());
+                handle = bgfx_sys::bgfx_create_texture_2d(width,
+                                                          height,
+                                                          mip_count,
+                                                          format as u32,
+                                                          flags.bits(),
+                                                          std::ptr::null_mut());
             }
 
             Texture { handle: handle }
@@ -418,11 +435,10 @@ impl Texture {
         Texture { handle: t }
     }
 
-    /*
-    pub fn update(mip: u8, x: u16, y: u16, width: u16, height: u16, mem: &Memory, pitch: Option<u16>) {
-
-    }
-    */
+    // pub fn update(mip: u8, x: u16, y: u16, width: u16, height: u16, mem: &Memory, pitch: Option<u16>) {
+    //
+    // }
+    //
 }
 
 pub struct TransientVertexBuffer {
@@ -433,7 +449,9 @@ impl TransientVertexBuffer {
     // TODO: Make this more safe (check available memory, and return result?)
     pub fn new(count: usize, decl: &VertexDecl) -> TransientVertexBuffer {
         unsafe {
-            let mut tvb: TransientVertexBuffer = { mem::zeroed() };
+            let mut tvb: TransientVertexBuffer = {
+                mem::zeroed()
+            };
             bgfx_sys::bgfx_alloc_transient_vertex_buffer(&mut tvb.data, count as u32, &decl.decl);
             tvb
         }
@@ -456,7 +474,9 @@ impl TransientIndexBuffer {
     // TODO: Make this more safe (check available memory, and return result?)
     pub fn new(count: usize) -> TransientIndexBuffer {
         unsafe {
-            let mut tib: TransientIndexBuffer = { mem::zeroed() };
+            let mut tib: TransientIndexBuffer = {
+                mem::zeroed()
+            };
             bgfx_sys::bgfx_alloc_transient_index_buffer(&mut tib.data, count as u32);
             tib
         }
@@ -496,9 +516,7 @@ impl Uniform {
     pub fn new(name: &str, utype: UniformType, count: u16) -> Uniform {
         let n = CString::new(name).unwrap();
         unsafe {
-            Uniform {
-                handle: bgfx_sys::bgfx_create_uniform(n.as_ptr(), utype as u32, count)
-            }
+            Uniform { handle: bgfx_sys::bgfx_create_uniform(n.as_ptr(), utype as u32, count) }
         }
     }
 }
@@ -545,7 +563,6 @@ impl Shader {
             Shader { handle: handle }
         }
     }
-
 }
 
 impl Drop for Shader {
@@ -554,7 +571,6 @@ impl Drop for Shader {
         println!("Shader Drop");
         unsafe { bgfx_sys::bgfx_destroy_shader(self.handle) }
     }
-
 }
 
 /// Vertex index buffer.
@@ -571,7 +587,6 @@ impl IndexBuffer {
             IndexBuffer { handle: handle }
         }
     }
-
 }
 
 impl Drop for IndexBuffer {
@@ -579,7 +594,6 @@ impl Drop for IndexBuffer {
     fn drop(&mut self) {
         unsafe { bgfx_sys::bgfx_destroy_index_buffer(self.handle) }
     }
-
 }
 
 /// Vertex data buffer.
@@ -588,16 +602,15 @@ pub struct VertexBuffer {
 }
 
 impl VertexBuffer {
-
     /// Creates a new vertex buffer from bgfx-managed memory.
     #[inline]
     pub fn new(verts: &Memory, decl: &VertexDecl, flags: BufferFlags) -> VertexBuffer {
         unsafe {
-            let handle = bgfx_sys::bgfx_create_vertex_buffer(verts.handle, &decl.decl, flags.bits());
+            let handle =
+                bgfx_sys::bgfx_create_vertex_buffer(verts.handle, &decl.decl, flags.bits());
             VertexBuffer { handle: handle }
         }
     }
-
 }
 
 impl Drop for VertexBuffer {
@@ -605,7 +618,6 @@ impl Drop for VertexBuffer {
     fn drop(&mut self) {
         unsafe { bgfx_sys::bgfx_destroy_vertex_buffer(self.handle) }
     }
-
 }
 
 /// Describes the structure of a vertex.
@@ -636,7 +648,6 @@ impl VertexDecl {
             descr
         }
     }
-
 }
 
 /// Builder for `VertexDecl` instances.
@@ -645,7 +656,6 @@ pub struct VertexDeclBuilder {
 }
 
 impl VertexDeclBuilder {
-
     /// Adds a field to the structure descriptor. See [`VertexDecl::new`] for an example.
     ///
     /// [`VertexDecl::new`]: struct.VertexDecl.html#method.new
@@ -718,7 +728,6 @@ impl VertexDeclBuilder {
 
         self
     }
-
 }
 
 /// Acts as the library wrapper for bgfx. Any calls intended to be run on the main thread are
@@ -732,7 +741,6 @@ pub struct Bgfx {
 }
 
 impl Bgfx {
-
     #[inline]
     pub fn new() -> Bgfx {
         Bgfx { _dummy: 0 }
@@ -786,7 +794,10 @@ impl Bgfx {
 
     /// Set texture stage for draw primitive
     #[inline]
-    pub fn set_texture(stage: u8, sampler: &Uniform, texture: &Texture, flags: Option<TextureFlags>) {
+    pub fn set_texture(stage: u8,
+                       sampler: &Uniform,
+                       texture: &Texture,
+                       flags: Option<TextureFlags>) {
         let flags = flags.unwrap_or(TEXTURE_U32_MAX).bits();
         unsafe {
             bgfx_sys::bgfx_set_texture(stage, sampler.handle, texture.handle, flags);
@@ -829,11 +840,11 @@ impl Bgfx {
 
     /// Sets the view and projection matrices for the given view.
     #[inline]
-    //pub fn set_view_transform(id: u8, _view: &[f32; 16], proj: &[f32; 16]) {
+    // pub fn set_view_transform(id: u8, _view: &[f32; 16], proj: &[f32; 16]) {
     pub fn set_view_transform(id: u8, proj: &[f32; 16]) {
         unsafe {
             bgfx_sys::bgfx_set_view_transform(id,
-                                              //view.as_ptr() as *const libc::c_void,
+                                              // view.as_ptr() as *const libc::c_void,
                                               std::ptr::null(),
                                               proj.as_ptr() as *const libc::c_void)
         }
@@ -874,24 +885,20 @@ impl Bgfx {
         let device = device_id.unwrap_or(0);
 
         unsafe {
-            let success = bgfx_sys::bgfx_init(renderer,
-                                            vendor,
-                                            device,
-                                            ptr::null_mut(),
-                                            ptr::null_mut());
+            let success =
+                bgfx_sys::bgfx_init(renderer, vendor, device, ptr::null_mut(), ptr::null_mut());
 
             if success != 0 { Ok(Bgfx::new()) } else { Err(BgfxError::InitFailed) }
         }
     }
 }
 
-/*
-impl Drop for Bgfx {
-    fn drop(&mut self) {
-        unsafe { bgfx_sys::bgfx_shutdown() }
-    }
-}
-*/
+// impl Drop for Bgfx {
+// fn drop(&mut self) {
+// unsafe { bgfx_sys::bgfx_shutdown() }
+// }
+// }
+//
 
 /// Pump the render thread.
 ///
@@ -922,7 +929,6 @@ pub struct PlatformData {
 }
 
 impl PlatformData {
-
     /// Creates an empty PlatformData instance.
     #[inline]
     pub fn new() -> PlatformData {
@@ -972,4 +978,3 @@ impl PlatformData {
         self
     }
 }
-

@@ -4,7 +4,7 @@ use plugin::Plugin;
 use plugins::PluginHandler;
 use dynamic_reload::Lib;
 use session::SessionHandle;
-use std::os::raw::{c_void};
+use std::os::raw::c_void;
 use prodbg_api::ui::Ui;
 use services;
 use plugin_io;
@@ -138,7 +138,7 @@ impl ViewPlugins {
                     self.handle_counter.0 = h.0 + 1
                 }
                 h
-            },
+            }
             _ => {
                 let counter = self.handle_counter;
                 self.handle_counter.0 += 1;
@@ -146,8 +146,7 @@ impl ViewPlugins {
             }
         };
 
-        let name = name
-            .map(|n| n.to_owned())
+        let name = name.map(|n| n.to_owned())
             .unwrap_or_else(|| self.get_unique_name(&self.plugin_types[index].name));
 
         let instance = ViewInstance {

@@ -202,9 +202,7 @@ impl Window {
         }
     }
 
-    pub fn layout_to_string(&mut self,
-                       view_plugins: &mut ViewPlugins)
-                       -> String {
+    pub fn layout_to_string(&mut self, view_plugins: &mut ViewPlugins) -> String {
         let layout = WindowLayout::from_current_state(self.ws.clone(), view_plugins);
         layout.to_string()
     }

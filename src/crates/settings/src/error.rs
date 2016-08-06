@@ -38,4 +38,3 @@ impl From<io::Error> for SettingsError {
         SettingsError::Io(err)
     }
 }
-

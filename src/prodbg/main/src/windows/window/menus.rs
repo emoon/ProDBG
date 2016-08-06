@@ -48,9 +48,9 @@ impl Window {
         };
 
         match menu_id {
-        	MENU_DEBUG_CONFIGURE => {
-				self.config_backend = current_session.backend;
-        	}
+            MENU_DEBUG_CONFIGURE => {
+                self.config_backend = current_session.backend;
+            }
             MENU_DEBUG_STEP_IN => current_session.action_step(),
             MENU_DEBUG_STEP_OVER => current_session.action_step_over(),
             MENU_DEBUG_START => current_session.action_run(),

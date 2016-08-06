@@ -83,7 +83,8 @@ mod tests {
 
     #[test]
     fn test_json_parse_ok() {
-        assert_eq!(Settings::load_file("../../../test_data/settings.json").is_ok(), true);
+        assert_eq!(Settings::load_file("../../../test_data/settings.json").is_ok(),
+                   true);
     }
 
     #[test]
@@ -108,5 +109,3 @@ mod tests {
         assert_eq!(settings.get_int("window_size", "some_new_data"), Some(42));
     }
 }
-
-

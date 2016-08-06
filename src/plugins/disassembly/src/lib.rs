@@ -20,15 +20,14 @@ struct Breakpoint {
 ///
 /// Holds colors use for the disassembly view. This should be possible to configure later on.
 ///
-/*
-struct Colors {
-    breakpoint: Color,
-    step_cursor: Color,
-    cursor: Color,
-    address: Color,
-    _bytes: Color,
-}
-*/
+// struct Colors {
+// breakpoint: Color,
+// step_cursor: Color,
+// cursor: Color,
+// address: Color,
+// _bytes: Color,
+// }
+//
 
 
 struct DisassemblyView {
@@ -53,13 +52,17 @@ impl DisassemblyView {
             let mut regs_read = String::new();
             let mut regs_write = String::new();
 
-            entry.find_string("registers_read").map(|regs| {
-                regs_read = regs.to_owned();
-            }).ok();
+            entry.find_string("registers_read")
+                .map(|regs| {
+                    regs_read = regs.to_owned();
+                })
+                .ok();
 
-            entry.find_string("registers_write").map(|regs| {
-                regs_write = regs.to_owned();
-            }).ok();
+            entry.find_string("registers_write")
+                .map(|regs| {
+                    regs_write = regs.to_owned();
+                })
+                .ok();
 
             self.lines.push(Line {
                 opcode: line.to_owned(),
@@ -106,29 +109,24 @@ impl DisassemblyView {
         // TODO: Allocs memory, fix
         let line_text = format!("   0x{:x} {}", line.address, line.opcode);
 
-        let colors = [
-            0x00b27474,
-            0x00b28050,
-            0x00a9b250,
-            0x0060b250,
+        let colors = [0x00b27474, 0x00b28050, 0x00a9b250, 0x0060b250, 0x004fb292, 0x004f71b2,
+                      0x008850b2, 0x00b25091];
 
-            0x004fb292,
-            0x004f71b2,
-            0x008850b2,
-            0x00b25091,
-        ];
+        // let mut color_index = 0;
 
-        //let mut color_index = 0;
-
-        //let font_size = 14.0;
+        // let font_size = 14.0;
         // TODO: Offset here is hardcoded with given hex size, this should be fixed
-        //let start_offset = font_size * 11.0; // 0x00000000 "
+        // let start_offset = font_size * 11.0; // 0x00000000 "
 
         for reg in regs_use {
             let color = colors[color_index & 7];
             line_text.find(reg).map(|offset| {
                 let (tx, _) = ui.calc_text_size(&line_text, offset);
-                ui.fill_rect(0.0 + tx, cy, 22.0, text_height, Color::from_au32(200, color));
+                ui.fill_rect(0.0 + tx,
+                             cy,
+                             22.0,
+                             text_height,
+                             Color::from_au32(200, color));
             });
 
             color_index += 1;
@@ -160,30 +158,29 @@ impl DisassemblyView {
         // from the backend that we actually managed to set the breakpoint.
         // +bonus would be a "progress" icon here instead that it's being set.
 
-        self.breakpoints.push(Breakpoint { address: address } );
+        self.breakpoints.push(Breakpoint { address: address });
     }
 
     fn has_breakpoint(&self, address: u64) -> bool {
         self.breakpoints.iter().find(|bp| bp.address == address).is_some()
     }
 
-    /*
-    fn set_cursor_at(&mut self, pos: i32) {
-        // if we don'n have enough lines we need to fetch more
-        if pos < 0 {
-
-            return;
-        }
-
-        // need to fetch more data here also
-        if pos > self.lines.len() as i32 {
-
-            return;
-        }
-
-        self.cursor = self.lines[pos as usize].address;
-    }
-    */
+    // fn set_cursor_at(&mut self, pos: i32) {
+    // if we don'n have enough lines we need to fetch more
+    // if pos < 0 {
+    //
+    // return;
+    // }
+    //
+    // need to fetch more data here also
+    // if pos > self.lines.len() as i32 {
+    //
+    // return;
+    // }
+    //
+    // self.cursor = self.lines[pos as usize].address;
+    // }
+    //
 
     fn scroll_cursor(&mut self, steps: i32) {
         for (i, line) in self.lines.iter().enumerate() {
@@ -215,11 +212,9 @@ impl DisassemblyView {
                      color);
 
         // Wasn't able to get this to work with just one convex poly fill
-        let arrow: [Vec2; 3] = [
-            Vec2::new((0.50 * scale) + pos_x, (0.00 * scale) + pos_y),
-            Vec2::new((1.00 * scale) + pos_x, (0.50 * scale) + pos_y),
-            Vec2::new((0.50 * scale) + pos_x, (1.00 * scale) + pos_y),
-        ];
+        let arrow: [Vec2; 3] = [Vec2::new((0.50 * scale) + pos_x, (0.00 * scale) + pos_y),
+                                Vec2::new((1.00 * scale) + pos_x, (0.50 * scale) + pos_y),
+                                Vec2::new((0.50 * scale) + pos_x, (1.00 * scale) + pos_y)];
 
         ui.fill_convex_poly(&arrow, color, true);
     }
@@ -233,7 +228,7 @@ impl DisassemblyView {
         let text_height = ui.get_text_line_height_with_spacing();
         let mut regs = String::new();
         let mut regs_pc_use = Vec::new();
-        //let font_size = ui.get_font_size();
+        // let font_size = ui.get_font_size();
 
         // find registerss for pc
 
@@ -278,7 +273,11 @@ impl DisassemblyView {
                     }
                 }
 
-                ui.fill_rect(0.0, cy, size_x, text_height, Color::from_argb(200, 0, 0, 127));
+                ui.fill_rect(0.0,
+                             cy,
+                             size_x,
+                             text_height,
+                             Color::from_argb(200, 0, 0, 127));
             }
 
             if regs_pc_use.len() > 0 {
@@ -288,11 +287,17 @@ impl DisassemblyView {
             }
 
             if self.has_breakpoint(line.address) {
-                    ui.fill_circle(&Vec2{ x: self.breakpoint_spacing + bp_radius, y: cy + bp_radius + 2.0},
-                                   bp_radius, Color::from_argb(255,0,0,140), 12, false);
+                ui.fill_circle(&Vec2 {
+                                   x: self.breakpoint_spacing + bp_radius,
+                                   y: cy + bp_radius + 2.0,
+                               },
+                               bp_radius,
+                               Color::from_argb(255, 0, 0, 140),
+                               12,
+                               false);
             }
 
-            //println!("draw arrow {} {}", line.address, self.exception_location);
+            // println!("draw arrow {} {}", line.address, self.exception_location);
 
             if line.address == self.exception_location {
                 Self::render_arrow(ui, 0.0, cy + 2.0, self.breakpoint_radius * 2.0);
@@ -307,7 +312,7 @@ impl View for DisassemblyView {
     fn new(_: &Ui, _: &Service) -> Self {
         DisassemblyView {
             exception_location: u64::max_value(),
-            cursor: 0xe003, //u64::max_value(),
+            cursor: 0xe003, // u64::max_value(),
             breakpoint_radius: 10.0,
             breakpoint_spacing: 6.0,
             address_size: 4,

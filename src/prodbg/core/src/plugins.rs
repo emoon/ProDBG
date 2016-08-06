@@ -162,7 +162,9 @@ impl Plugins {
                         Self::add_p(self, &lib);
                     },
                     Err(e) => {
-                        println!("Unable to add {} err {:?}", &entry.path().to_string_lossy(), e);
+                        println!("Unable to add {} err {:?}",
+                                 &entry.path().to_string_lossy(),
+                                 e);
                     }
                 }
 
