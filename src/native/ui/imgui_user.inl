@@ -56,7 +56,7 @@ float GetTextWidth(const char* textStart, const char* textEnd)
 
 ImVec2 GetRelativeMousePos()
 {
-    const ImGuiState* g = GImGui;
+    const ImGuiContext* g = GImGui;
     ImGuiWindow* window = GetCurrentWindow();
     ImVec2 pos = g->IO.MousePos - window->Pos;
     ImVec2 zero = ImVec2(0.0f, 0.0f);
@@ -106,7 +106,7 @@ void SetWindowRect(ImGuiWindow* window, const ImVec2 pos, const ImVec2 size)
 
 bool IsActiveWindow(ImGuiWindow* window)
 {
-    const ImGuiState* g = GImGui;
+    const ImGuiContext* g = GImGui;
     return g->FocusedWindow == window;
 }
 
