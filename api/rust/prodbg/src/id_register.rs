@@ -9,7 +9,9 @@ extern "C" fn string_hash(id_name: *const c_char) -> u16 {
 
     for i in slice {
         let v = *i as u32;
-        if v == 0 { break; }
+        if v == 0 {
+            break;
+        }
         hash.wrapping_add(v as u32);
         hash.wrapping_add(hash << 10);
         hash ^= hash >> 6;
@@ -32,9 +34,7 @@ pub struct IdFuncs {
 impl IdFuncs {
     pub fn register_id(&self, id_name: &str) -> u16 {
         let d = CString::new(id_name).unwrap();
-        unsafe {
-            ((*self.api).register_id)(d.as_ptr())
-        }
+        unsafe { ((*self.api).register_id)(d.as_ptr()) }
     }
 }
 
@@ -43,12 +43,8 @@ pub struct CIdFuncs1 {
     register_id: extern "C" fn(id_name: *const c_char) -> u16,
 }
 
-static ID_FUNCS: CIdFuncs1 = CIdFuncs1 {
-    register_id: string_hash
-};
+static ID_FUNCS: CIdFuncs1 = CIdFuncs1 { register_id: string_hash };
 
 pub fn get_id_register_funcs() -> *mut c_void {
     unsafe { mem::transmute(&ID_FUNCS) }
 }
-
-

@@ -14,30 +14,21 @@ pub struct Scintilla {
 
 impl Scintilla {
     pub fn new(api: *mut PDUISCInterface) -> Scintilla {
-        Scintilla {
-            api: api
-        }
+        Scintilla { api: api }
     }
 
     #[inline]
     pub fn send_command(&self, message: u32, p0: u64, p1: u64) -> u64 {
-        unsafe { 
-            ((*self.api).send_command)((*self.api).private_data, message, p0, p1)
-        }
+        unsafe { ((*self.api).send_command)((*self.api).private_data, message, p0, p1) }
     }
 
     #[inline]
     pub fn update(&self) {
-        unsafe { 
-            ((*self.api).update)((*self.api).private_data)
-        }
+        unsafe { ((*self.api).update)((*self.api).private_data) }
     }
 
     #[inline]
     pub fn draw(&self) {
-        unsafe { 
-            ((*self.api).draw)((*self.api).private_data)
-        }
+        unsafe { ((*self.api).draw)((*self.api).private_data) }
     }
 }
-

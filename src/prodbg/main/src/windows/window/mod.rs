@@ -373,7 +373,10 @@ impl Window {
                 if ui.begin_popup_modal("config") {
                     show_config(backend.plugin_data, Imgui::get_ui_funs() as *mut c_void);
 
-                    if ui.button("Ok", Some(PDVec2 { x: 120.0, y: 0.0 })) {
+                    let ok_size = Some(PDVec2 { x: 120.0, y: 0.0 });
+                    let cancel_size = Some(PDVec2 { x: 120.0, y: 0.0 });
+
+                    if ui.button("Ok", ok_size) {
                         sessions.get_current().set_backend(self.config_backend);
                         self.config_backend = None;
                         ui.close_current_popup();
@@ -381,7 +384,7 @@ impl Window {
 
                     ui.same_line(0, -1);
 
-                    if ui.button("Cancel", Some(PDVec2 { x: 120.0, y: 0.0 })) {
+                    if ui.button("Cancel", cancel_size) {
                         self.config_backend = None;
                         ui.close_current_popup();
                     }

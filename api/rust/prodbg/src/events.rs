@@ -1,5 +1,5 @@
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// TODO: This file should be auto-generated
+/// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// TODO: This file should be auto-generated
 
 pub const ACTION_NONE: i32 = 0;
 pub const ACTION_STOP: i32 = 1;
@@ -58,4 +58,3 @@ pub const PDEVENT_TOGGLE_BREAKPOINT_CURRENT_LINE: i32 = 36;
 pub const PDEVENT_UPDATE_MEMORY: i32 = 37;
 pub const PDEVENT_UPDATE_REGISTER: i32 = 38;
 pub const PDEVENT_UPDATE_PC: i32 = 39;
-

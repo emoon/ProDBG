@@ -15,8 +15,14 @@ const STRING_SIZE: usize = 512;
 /// Strings over this limit will be heap allocated, but the
 /// interface outside of this abstraction remains the same.
 pub enum CFixedString {
-    Local{ s: [c_char; STRING_SIZE], len: usize },
-    Heap{ s: CString, len: usize },
+    Local {
+        s: [c_char; STRING_SIZE],
+        len: usize,
+    },
+    Heap {
+        s: CString,
+        len: usize,
+    },
 }
 
 impl CFixedString {
@@ -37,15 +43,15 @@ impl CFixedString {
 
     pub fn as_ptr(&self) -> *const c_char {
         match *self {
-            CFixedString::Local{ref s, ..} => s.as_ptr(),
-            CFixedString::Heap{ref s, ..} => s.as_ptr(),
+            CFixedString::Local { ref s, .. } => s.as_ptr(),
+            CFixedString::Heap { ref s, .. } => s.as_ptr(),
         }
     }
 
     /// Returns true if the string has been heap allocated
     pub fn is_allocated(&self) -> bool {
         match *self {
-            CFixedString::Local{..} => false,
+            CFixedString::Local { .. } => false,
             _ => true,
         }
     }
@@ -66,8 +72,12 @@ impl CFixedString {
         use std::str;
 
         match *self {
-            CFixedString::Local{ref s, len} => str::from_utf8_unchecked(slice::from_raw_parts(s.as_ptr() as *const u8, len)),
-            CFixedString::Heap{ref s, len} => str::from_utf8_unchecked(slice::from_raw_parts(s.as_ptr() as *const u8, len)),
+            CFixedString::Local { ref s, len } => {
+                str::from_utf8_unchecked(slice::from_raw_parts(s.as_ptr() as *const u8, len))
+            }
+            CFixedString::Heap { ref s, len } => {
+                str::from_utf8_unchecked(slice::from_raw_parts(s.as_ptr() as *const u8, len))
+            }
         }
     }
 }
@@ -86,7 +96,7 @@ impl<'a> From<&'a str> for CFixedString {
 
 impl fmt::Write for CFixedString {
     fn write_str(&mut self, s: &str) -> Result<(), fmt::Error> {
-        //use std::fmt::Write;
+        // use std::fmt::Write;
 
         unsafe {
             let cur_len = self.as_str().len();
@@ -94,15 +104,15 @@ impl fmt::Write for CFixedString {
             match cur_len + s.len() {
                 len if len <= STRING_SIZE - 1 => {
                     match *self {
-                        CFixedString::Local{ s: ref mut ls, len: ref mut lslen } => {
+                        CFixedString::Local { s: ref mut ls, len: ref mut lslen } => {
                             let ptr = ls.as_mut_ptr() as *mut u8;
                             ptr::copy(s.as_ptr(), ptr.offset(cur_len as isize), s.len());
                             *ptr.offset(len as isize) = 0;
                             *lslen = len;
-                        },
+                        }
                         _ => unreachable!(),
                     }
-                },
+                }
                 len => {
                     let mut heapstring = String::with_capacity(len + 1);
 
@@ -135,28 +145,36 @@ impl ops::Deref for CFixedString {
         use std::slice;
 
         match *self {
-            CFixedString::Local{ref s, len} => unsafe {
+            CFixedString::Local { ref s, len } => unsafe {
                 mem::transmute(slice::from_raw_parts(s.as_ptr(), len + 1))
             },
-            CFixedString::Heap{ref s, ..} => s,
+            CFixedString::Heap { ref s, .. } => s,
         }
     }
 }
 
 impl Borrow<CStr> for CFixedString {
-    fn borrow(&self) -> &CStr { self }
+    fn borrow(&self) -> &CStr {
+        self
+    }
 }
 
 impl AsRef<CStr> for CFixedString {
-    fn as_ref(&self) -> &CStr { self }
+    fn as_ref(&self) -> &CStr {
+        self
+    }
 }
 
 impl Borrow<str> for CFixedString {
-    fn borrow(&self) -> &str { unsafe { self.as_str() } }
+    fn borrow(&self) -> &str {
+        unsafe { self.as_str() }
+    }
 }
 
 impl AsRef<str> for CFixedString {
-    fn as_ref(&self) -> &str { unsafe { self.as_str() } }
+    fn as_ref(&self) -> &str {
+        unsafe { self.as_str() }
+    }
 }
 
 macro_rules! format_c {
@@ -285,10 +303,16 @@ mod tests {
 
         write!(&mut fixed, "one_{}", 1).unwrap();
         write!(&mut fixed, "_two_{}", "two").unwrap();
-        write!(&mut fixed, "_three_{}-{}-{:.3}", 23, "some string data", 56.789).unwrap();
+        write!(&mut fixed,
+               "_three_{}-{}-{:.3}",
+               23,
+               "some string data",
+               56.789)
+            .unwrap();
 
         assert!(!fixed.is_allocated());
-        assert_eq!(&fixed.to_string(), "one_1_two_two_three_23-some string data-56.789");
+        assert_eq!(&fixed.to_string(),
+                   "one_1_two_two_three_23-some string data-56.789");
     }
 
     #[test]
@@ -307,20 +331,19 @@ mod tests {
         assert_eq!(&fixed.to_string(), &string);
     }
 
-    /*
-    TODO: Reenable this test once the empty match arm is allowed
-    by the compiler
-    #[test]
-    fn test_empty_fmt_macro() {
-        let empty = format_c!("");
-        let no_args = format_c!("there are no format args");
-
-        assert!(!empty.is_allocated());
-        assert_eq!(&empty.to_string(), "");
-
-        assert!(!no_args.is_allocated());
-        assert_eq!(&no_args.to_string(), "there are no format args");
-    }*/
+    // TODO: Reenable this test once the empty match arm is allowed
+    // by the compiler
+    // #[test]
+    // fn test_empty_fmt_macro() {
+    // let empty = format_c!("");
+    // let no_args = format_c!("there are no format args");
+    //
+    // assert!(!empty.is_allocated());
+    // assert_eq!(&empty.to_string(), "");
+    //
+    // assert!(!no_args.is_allocated());
+    // assert_eq!(&no_args.to_string(), "there are no format args");
+    // }
 
     #[test]
     fn test_short_fmt_macro() {

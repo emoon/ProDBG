@@ -8,7 +8,7 @@ pub struct PluginHandler {
     pub private_data: *mut c_void,
     pub c_register_plugin: extern "C" fn(pt: *const c_char,
                                          plugin: *mut c_void,
-                                         priv_data: *mut c_void)
+                                         priv_data: *mut c_void),
 }
 
 impl PluginHandler {

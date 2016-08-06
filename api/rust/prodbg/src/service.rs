@@ -17,7 +17,8 @@ pub struct Service {
 impl Service {
     pub fn get_capstone(&self) -> Capstone {
         unsafe {
-            let api: &mut CCapstone1 = transmute(((*self).service_func)(b"Capstone Service 1\0".as_ptr()));
+            let api: &mut CCapstone1 = transmute(((*self).service_func)(b"Capstone Service 1\0"
+                .as_ptr()));
             Capstone {
                 api: api,
                 handle: ::std::ptr::null(),
@@ -27,7 +28,8 @@ impl Service {
 
     pub fn get_dialogs(&self) -> Dialogs {
         unsafe {
-            let api: &mut CDialogFuncs1 = transmute(((*self).service_func)(b"Dialogs 1\0".as_ptr()));
+            let api: &mut CDialogFuncs1 = transmute(((*self).service_func)(b"Dialogs 1\0"
+                .as_ptr()));
             Dialogs { api: api }
         }
     }
