@@ -10,7 +10,6 @@ use core::backend_plugin::{BackendHandle, BackendPlugins};
 use core::session::{Session, SessionHandle, Sessions};
 use core::reader_wrapper::ReaderWrapper;
 use super::viewdock::{Direction, DockHandle, ItemTarget, Rect, Workspace};
-use std::fs::File;
 use std::io;
 use menu::Menu;
 use imgui_sys::Imgui;
@@ -19,14 +18,12 @@ use prodbg_api::view::CViewCallbacks;
 use prodbg_api::backend::CBackendCallbacks;
 use std::os::raw::c_void;
 use std::collections::VecDeque;
-use std::io::{Read, Write};
 use statusbar::Statusbar;
 use prodbg_api::events;
 use self::mouse::MouseState;
 use self::popup::ViewRenameState;
 use self::layout::{PluginInstanceInfo, WindowLayout};
 use std::collections::HashMap;
-
 
 const OVERLAY_COLOR: u32 = 0x8000FF00;
 const WORKSPACE_UNDO_LIMIT: usize = 10;
@@ -140,9 +137,6 @@ impl Window {
         // Update menus first to find out size of self-drawn menus (if any)
         self.update_menus(view_plugins, sessions, backend_plugins);
 
-        // If we have a backend configuration running
-        self.update_backend_configure(sessions, backend_plugins);
-
         // Status bar needs full size of window
         let win_size = self.win.get_size();
 
@@ -188,6 +182,9 @@ impl Window {
         // if now plugin has showed a menu we do it here
         // TODO: Handle diffrent cases when attach menu on to plugin menu or not
         self.render_popup(show_context_menu && has_shown_menu == 0, view_plugins);
+
+        // If we have a backend configuration running
+        self.update_backend_configure(sessions, backend_plugins);
     }
 
     /// Updates the statusbar at the bottom of the window to show which state the debugger currently is in
@@ -205,27 +202,18 @@ impl Window {
         }
     }
 
-    pub fn save_layout(&mut self,
-                       filename: &str,
+    pub fn layout_to_string(&mut self,
                        view_plugins: &mut ViewPlugins)
-                       -> io::Result<()> {
-        let mut file = try!(File::create(filename));
+                       -> String {
         let layout = WindowLayout::from_current_state(self.ws.clone(), view_plugins);
-        let state = layout.to_string();
-        println!("writing state to disk");
-        file.write_all(state.as_str().as_bytes())
+        layout.to_string()
     }
 
-    pub fn load_layout(&mut self,
-                       filename: &str,
+    pub fn init_layout(&mut self,
+                       layout_data: &str,
                        view_plugins: &mut ViewPlugins)
                        -> io::Result<()> {
-        let mut data = String::new();
-
-        let mut file = try!(File::open(filename));
-        try!(file.read_to_string(&mut data));
-
-        let layout = match WindowLayout::from_string(&data) {
+        let layout = match WindowLayout::from_string(layout_data) {
             Ok(layout) => layout,
             Err(error) => return Result::Err(io::Error::new(io::ErrorKind::InvalidData, error)),
         };
