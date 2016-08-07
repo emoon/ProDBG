@@ -8,7 +8,7 @@ mod keys;
 
 use renderer::Renderer;
 use core::view_plugins::ViewPlugins;
-use core::backend_plugin::BackendPlugins;
+use core::backend_plugin::{BackendHandle, BackendPlugins};
 use core::session::Sessions;
 use settings::Settings;
 use self::window::Window;
@@ -171,11 +171,23 @@ impl Windows {
     }
 
     /// Load the state of all the views from a previous run
-    pub fn init(&mut self, layout_data: &str, view_plugins: &mut ViewPlugins) {
+    pub fn init(&mut self,
+                layout_data: &str,
+                view_plugins: &mut ViewPlugins,
+                backend: Option<BackendHandle>,
+                backend_plugins: &mut BackendPlugins) {
         // TODO: This only supports one window for now
         if self.windows.len() == 1 {
             // TODO: Proper error handling here (loading is ok to fail though)
             let _ = self.windows[0].init_layout(layout_data, view_plugins);
+
+            if let Some(backend) = backend {
+                if let Some(menu) =
+                       backend_plugins.get_menu(backend, self.windows[0].menu_id_offset) {
+                    self.windows[0].win.add_menu(&(*menu));
+                    self.windows[0].menu_id_offset += 1000;
+                }
+            }
         }
     }
 }

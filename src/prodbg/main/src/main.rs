@@ -64,8 +64,10 @@ fn main() {
     plugins.add_handler(&backend_plugins);
     plugins.search_load_plugins(&mut lib_handler);
 
-    if let Some(backend) = backend_plugins.borrow_mut()
-        .create_instance(&project.backend_name, &project.backend_data) {
+    let backend = backend_plugins.borrow_mut()
+        .create_instance(&project.backend_name, &project.backend_data);
+
+    if let Some(backend) = backend {
         println!("Crated instande {}", project.backend_name);
         if let Some(session) = sessions.get_session(session) {
             println!("set backend");
@@ -74,7 +76,10 @@ fn main() {
     }
 
     windows.create_default(&settings, backend_plugins.borrow_mut().get_plugin_names());
-    windows.init(&project.layout_data, &mut view_plugins.borrow_mut());
+    windows.init(&project.layout_data,
+                 &mut view_plugins.borrow_mut(),
+                 backend,
+                 &mut backend_plugins.borrow_mut());
 
     loop {
         plugins.update(&mut lib_handler);
