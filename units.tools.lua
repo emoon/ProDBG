@@ -95,13 +95,13 @@ Program {
         CCOPTS = {
 			{ "/wd4291", "/W3", "-D__STDC__", "-D__STDC_VERSION__=199901L", "-Dstrdup=_strdup", "-Dalloca=_alloca", "-Disascii=__isascii"; Config = "win64-*-*" },
         	{ "-Wno-everything"; Config = "macosx-*-*" },
-			{ "-fno-strict-aliasing"; Config = { "macosx_test-*-*", "macosx-*-*", "linux-*-*" } },
+			{ "-fno-strict-aliasing"; Config = { "macosx-*-*", "linux-*-*" } },
         },
 
         CXXOPTS = {
 			{ "/wd4291", "/W3", "-D__STDC__", "-D__STDC_VERSION__=199901L", "-Dstrdup=_strdup", "-Dalloca=_alloca", "-Disascii=__isascii"; Config = "win64-*-*" },
         	{ "-Wno-everything"; Config = "macosx-*-*" },
-			{ "-fno-strict-aliasing"; Config = { "macosx_test-*-*", "macosx-*-*", "linux-*-*" } },
+			{ "-fno-strict-aliasing"; Config = { "macosx-*-*", "linux-*-*" } },
         },
 
 		CPPDEFS = {
@@ -131,7 +131,6 @@ Program {
 		},
 
 		PROGCOM = {
-			{ "-lstdc++", "-coverage"; Config = "macosx_test-*" },
 			{ "-lstdc++"; Config = { "macosx-clang-*", "linux-gcc-*" } },
 			{ "-lm -lpthread -ldl -lX11"; Config = "linux-*-*" },
 		},
@@ -176,15 +175,17 @@ Program {
 
     Libs = { { "kernel32.lib", "d3dcompiler.lib", "dxguid.lib" ; Config = "win64-*-*" } },
 
-    Frameworks = { 
-        { "Cocoa" }, 
-        { "Metal" }, 
-        { "QuartzCore" }, 
-        { "OpenGL" }  
+    Frameworks = {
+        { "Cocoa" },
+        { "Metal" },
+        { "QuartzCore" },
+        { "OpenGL" }
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Tools" } },
 }
+
+-----------------------------------------------------------------------------------------------------------------------
 
 RustProgram {
     Name = "api_gen",
@@ -197,7 +198,7 @@ RustProgram {
 
 -----------------------------------------------------------------------------------------------------------------------
 
-Default "bgfx_shaderc"
+-- Default "bgfx_shaderc"
 Default "api_gen"
 
 -- vim: ts=4:sw=4:sts=4

@@ -42,7 +42,6 @@ SharedLibrary {
 
         SHLIBOPTS = {
             { "-Fsrc/plugins/lldb/Frameworks", "-rpath src/plugins/lldb/Frameworks", "-lstdc++"; Config = "macosx-clang-*" },
-            { "-Fsrc/plugins/lldb/Frameworks", "-rpath src/plugins/lldb/Frameworks", "-lstdc++", "-coverage"; Config = "macosx_test-clang-*" },
         },
 
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
@@ -264,37 +263,6 @@ RustSharedLibrary {
 	}
 }
 
-
------------------------------------------------------------------------------------------------------------------------
-
---[[
-SharedLibrary {
-    Name = "i3_docking",
-
-    Env = {
-        CPPPATH = {
-			"src/native/external/jansson/include",
-            "src/plugins/i3_docking/include",
-        	"api/include",
-        },
-        CCOPTS = {
-        	{ "-Wno-everything", "-std=c99"; Config = { "macosx-*-*", "macosx_test-*" } },
-        	{ "-std=c99"; Config = "linux-*-*" },
-        	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
-        },
-    },
-
-    Sources = {
-		Glob {
-			Dir = "src/plugins/i3_docking",
-			Extensions = { ".c", ".h" },
-		},
-	},
-
-    IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
-}
---]]
-
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
@@ -339,7 +307,6 @@ Default "amiga_uae_view_plugin"
 Default "bitmap_memory"
 Default "memory_view"
 Default "dummy_backend_plugin"
---Default "i3_docking"
 
 -- vim: ts=4:sw=4:sts=4
 
