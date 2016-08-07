@@ -4,14 +4,25 @@
 //! Crate `serde` should be imported in namespace. No macro introduces new names.
 
 
-/// Generates code for newtype (tuple struct with one value). Usage:
+/// Generates code for newtype (tuple struct with one value).
+///
+/// # Examples
+///
 /// ```
-/// gen_newtype_code!(type);
-/// ```
-/// For example,
-/// ```
-/// struct Handle(u64);
-/// gen_newtype_code!(Handle);
+/// # #[macro_use] extern crate serde_macros;
+/// # extern crate serde;
+/// # extern crate serde_json;
+///
+/// # fn main() {
+///     #[derive(Debug, PartialEq)]
+///     struct Handle(u64);
+///     gen_newtype_code!(Handle);
+///
+///     let target = Handle(15u64);
+///     let serialized = serde_json::to_string(&target).unwrap();
+///     let deserialized: Handle = serde_json::from_str(&serialized).unwrap();
+///     assert_eq!(target, deserialized);
+/// # }
 /// ```
 #[macro_export]
 macro_rules! gen_newtype_code {
@@ -44,9 +55,12 @@ macro_rules! gen_newtype_code {
 }
 
 
-/// Generates code for struct serialization. Usage:
-/// ```
-/// gen_struct_deserializer!(struct_name,
+/// Generates code for struct serialization.
+///
+/// Usage:
+///
+/// ```text
+/// gen_struct_code!(struct_name,
 ///     field_name, field_name2;
 ///     const_field_name => arbitrary_expression,
 ///     const_field_name2 => arbitrary_expression,
@@ -57,20 +71,38 @@ macro_rules! gen_newtype_code {
 /// `const_field_name` is name of field that will not be serialized. It is filled with
 /// `arbitrary_expression` on deserialization instead;
 ///
-/// For example, following invocation:
+/// # Examples
+///
 /// ```
-/// struct Workspace {
-///     root_area: RootArea,
-///     handle_counter: HandleCounter,
-///     rect: Rect,
-/// }
-/// gen_struct_deserializer!(Workspace,
-///     root_area, handle_counter;
-///     rect => Rect::default()
-/// );
+/// # #[macro_use] extern crate serde_macros;
+/// # extern crate serde;
+/// # extern crate serde_json;
+///
+/// # fn main() {
+///     #[derive(Debug)]
+///     struct Workspace {
+///         root_area: i64,
+///         handle_counter: i32,
+///         description: Option<String>,
+///     };
+///     gen_struct_code!(Workspace,
+///         root_area, handle_counter;
+///         description => None
+///     );
+///
+///     let target = Workspace {
+///         root_area: 15,
+///         handle_counter: 5,
+///         description: Some("some description".to_string())
+///     };
+///     let serialized = serde_json::to_string(&target).unwrap();
+///     let deserialized: Workspace = serde_json::from_str(&serialized).unwrap();
+///     assert_eq!(deserialized.root_area, target.root_area);
+///     assert_eq!(deserialized.handle_counter, target.handle_counter);
+///     assert_eq!(deserialized.description, None);
+/// # }
 /// ```
-/// will serialize `root_area`, `handle_counter` and will fill `rect` with `Rect::default()` on
-/// deserialization
+
 #[macro_export]
 macro_rules! gen_struct_code {
     ($name:ident, $($field:ident),*; $($const_field:ident => $value:expr),*) => {
@@ -111,7 +143,7 @@ macro_rules! gen_struct_code {
                                 Some(value) => match value.as_str() {
                                     $(stringify!($field) => { $field = Some(try!(visitor.visit_value())); },)*
                                     other => {return Err(serde::de::Error::invalid_value(
-                                        &format!("Unexpected field name {}. Expected one of {}",
+                                        &format!("Unexpected field name {}. Expected one of ({})",
                                                  other,
                                                  concat!($(stringify!($field), ", "),*))
                                     ))},
@@ -142,19 +174,38 @@ macro_rules! gen_struct_code {
 }
 
 /// Generates serialization and deserialization code for unit enum (consisting only of unit
-/// variants). Usage:
-/// ```
+/// variants).
+///
+/// Usage:
+///
+/// ```text
 /// gen_unit_enum_code!(EnumName, Variant1 => index1, Variant2 => index2, ...);
 /// ```
-/// For example,
+///
+/// `index` is of type `usize`. It is part of `serde` enum serialization interface and is not used
+/// in most of serializers.
+///
+/// # Examples
+///
 /// ```
-/// enum NumberRepresentation {
-///     Hex,
-///     UnsignedDecimal,
-/// }
-/// gen_unit_enum_code!(NumberRepresentation, Hex => 0, UnsignedDecimal => 1);
+/// # #[macro_use] extern crate serde_macros;
+/// # extern crate serde;
+/// # extern crate serde_json;
+///
+/// # fn main() {
+///     #[derive(Debug, PartialEq)]
+///     enum NumberRepresentation {
+///         Hex,
+///         UnsignedDecimal,
+///     }
+///     gen_unit_enum_code!(NumberRepresentation, Hex => 0, UnsignedDecimal => 1);
+///
+///     let target = NumberRepresentation::UnsignedDecimal;
+///     let serialized = serde_json::to_string(&target).unwrap();
+///     let deserialized: NumberRepresentation = serde_json::from_str(&serialized).unwrap();
+///     assert_eq!(deserialized, target);
+/// # }
 /// ```
-/// `index` is part of `serde` enum serialization interface and is not used in most of serializers.
 #[macro_export]
 macro_rules! gen_unit_enum_code {
     ($name:ident, $($variant:ident => $index:expr),*) => {
@@ -190,7 +241,7 @@ macro_rules! gen_unit_enum_code {
                                 Ok($name::$variant)
                             }),*
                             other => Err(serde::de::Error::invalid_value(
-                                &format!("Unexpected variant name {}. Expected one of {}",
+                                &format!("Unexpected variant name {}. Expected one of ({})",
                                          other,
                                          concat!($(stringify!($variant), ", "),*)
                                  )
@@ -207,19 +258,38 @@ macro_rules! gen_unit_enum_code {
 }
 
 /// Generates serialization and deserialization code for newtype enum (consisting only of variants
-/// with one value). Usage:
-/// ```
+/// with one value).
+///
+/// Usage:
+///
+/// ```text
 /// gen_newtype_enum_code!(EnumName, Variant1 => index1, Variant2 => index2, ...);
 /// ```
-/// For example,
+///
+/// `index` is of type `usize`. It is part of `serde` enum serialization interface and is not used
+/// in most of serializers.
+///
+/// # Examples
+///
 /// ```
-/// enum Area {
-///     Container(Container),
-///     Split(Split),
-/// }
-/// gen_newtype_enum_code!(Area, Container => 0, Split => 1);
+/// # #[macro_use] extern crate serde_macros;
+/// # extern crate serde;
+/// # extern crate serde_json;
+///
+/// # fn main() {
+///     #[derive(Debug, PartialEq)]
+///     enum Area {
+///         Integer(i64),
+///         Float(f64),
+///     }
+///     gen_newtype_enum_code!(Area, Integer => 0, Float => 1);
+///
+///     let target = Area::Integer(23);
+///     let serialized = serde_json::to_string(&target).unwrap();
+///     let deserialized: Area = serde_json::from_str(&serialized).unwrap();
+///     assert_eq!(deserialized, target);
+/// # }
 /// ```
-/// `index` is part of `serde` enum serialization interface and is not used in most of serializers.
 #[macro_export]
 macro_rules! gen_newtype_enum_code {
     ($name:ident, $($variant:ident => $index:expr),*) => {
@@ -254,7 +324,7 @@ macro_rules! gen_newtype_enum_code {
                         match try!(visitor.visit_variant::<String>()).as_str() {
                             $(stringify!($variant) => Ok($name::$variant(try!(visitor.visit_newtype()))),)*
                             other => Err(serde::de::Error::invalid_value(
-                                        &format!("Unexpected variant name {}. Expected one of {}",
+                                        &format!("Unexpected variant name {}. Expected one of ({})",
                                                  other,
                                                  concat!($(stringify!($variant), ", "),*))
                             )),
@@ -266,5 +336,106 @@ macro_rules! gen_newtype_enum_code {
                 deserializer.deserialize_enum(stringify!($name), VARIANTS, Visitor)
             }
         }
+    }
+}
+
+
+#[cfg(test)]
+mod test {
+    extern crate serde;
+    extern crate serde_json;
+
+    #[test]
+    fn test_gen_struct_code_fails_if_miss_field() {
+        let serialized = {
+            #[derive(Debug)]
+            struct Test {
+                a: i32,
+            }
+            gen_struct_code!(Test, a;);
+            let target = Test {a: 0};
+            serde_json::to_string(&target).unwrap()
+        };
+        #[derive(Debug)]
+        struct Test {
+            a: i32,
+            b: i32,
+        }
+        gen_struct_code!(Test, a, b;);
+
+        let res = serde_json::from_str::<Test>(&serialized);
+        assert!(res.is_err());
+    }
+
+    #[test]
+    fn test_gen_struct_code_fails_if_more_field() {
+        let serialized = {
+            #[derive(Debug)]
+            struct Test {
+                a: i32,
+                b: i32,
+                c: i32,
+            }
+            gen_struct_code!(Test, a, b, c;);
+            let target = Test {a: 0, b: 0, c: 0};
+            serde_json::to_string(&target).unwrap()
+        };
+        #[derive(Debug)]
+        struct Test {
+            a: i32,
+            b: i32,
+        }
+        gen_struct_code!(Test, a, b;);
+
+        let res = serde_json::from_str::<Test>(&serialized);
+        assert!(res.is_err());
+    }
+
+    #[test]
+    fn test_gen_unit_enum_code_fails_if_bad_variant() {
+        let serialized = {
+            #[derive(Debug)]
+            enum Test {
+                A,
+                B,
+                C,
+            }
+            gen_unit_enum_code!(Test, A => 0, B => 1, C => 1);
+            let target = Test::C;
+            serde_json::to_string(&target).unwrap()
+        };
+        #[derive(Debug)]
+        enum Test {
+            A,
+            B,
+        }
+        gen_unit_enum_code!(Test, A => 0, B => 1);
+
+        let res = serde_json::from_str::<Test>(&serialized);
+        assert!(res.is_err());
+    }
+
+    #[test]
+    fn test_gen_newtype_enum_code_fails_if_bad_variant() {
+        let serialized = {
+            #[derive(Debug)]
+            enum Test {
+                A(i32),
+                B(i32),
+                C(i32),
+            }
+            gen_newtype_enum_code!(Test, A => 0, B => 1, C => 1);
+            let target = Test::C(15);
+            serde_json::to_string(&target).unwrap()
+        };
+        #[derive(Debug)]
+        enum Test {
+            A(i32),
+            B(i32),
+        }
+        gen_newtype_enum_code!(Test, A => 0, B => 1);
+
+        let res = serde_json::from_str::<Test>(&serialized);
+        assert!(res.is_err());
     }
 }
