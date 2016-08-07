@@ -17,9 +17,9 @@ before_install:
     - if [ $TRAVIS_OS_NAME == linux ]; then git clone https://github.com/emoon/tundra.git; cd tundra; make; sudo make install; cd ..; fi
 
 script:
-    - if [ $TRAVIS_OS_NAME == linux ]; then tundra2 linux-gcc-debug; fi
+    - if [ $TRAVIS_OS_NAME == linux ]; then tundra2 linux-gcc-debug api_gen; fi
     - if [ $TRAVIS_OS_NAME == linux ]; then tundra2 linux-gcc-debug-test; fi
-    - if [ $TRAVIS_OS_NAME == osx ]; then bin/macosx/tundra/tundra2 macosx-clang-debug; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then bin/macosx/tundra/tundra2 macosx-clang-debug api_gen; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then bin/macosx/tundra/tundra2 macosx-clang-debug-test; fi
 os:
   - linux
