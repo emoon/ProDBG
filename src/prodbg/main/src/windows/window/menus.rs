@@ -79,6 +79,12 @@ impl Window {
                     let backend_name = &names[backend_index];
                     // TODO: Default values for backend
                     self.config_backend = backend_plugins.create_instance(backend_name, &None);
+
+                    // TODO: Need to remove the menu when switching backend
+                    if let Some(menu) = backend_plugins.get_menu(self.config_backend.unwrap(), self.menu_id_offset) {
+                        self.win.add_menu(&(*menu));
+                        self.menu_id_offset += 1000;
+                    }
                 } else {
                     current_session.send_menu_id(menu_id as u32, backend_plugins);
                 }
