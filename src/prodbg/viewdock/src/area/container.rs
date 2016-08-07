@@ -289,40 +289,4 @@ mod test {
         container.append_dock(DockHandle(8));
         assert_eq!(2, container.get_tab_rects().len());
     }
-
-    #[test]
-    fn test_container_serialize_0() {
-        let container_in = Container {
-            docks: Vec::new(),
-            active_dock: 0,
-            tab_borders: Vec::new(),
-            rect: Rect::new(4.0, 5.0, 2.0, 8.0),
-        };
-
-        let serialized = serde_json::to_string(&container_in).unwrap();
-        let container_out: Container = serde_json::from_str(&serialized).unwrap();
-
-        assert_eq!(container_out.docks.len(), 0);
-        // expect that rect is not serialized and set to zero
-        assert_eq!(container_out.rect.x as i32, 0);
-        assert_eq!(container_out.rect.y as i32, 0);
-        assert_eq!(container_out.rect.width as i32, 0);
-        assert_eq!(container_out.rect.height as i32, 0);
-    }
-
-    #[test]
-    fn test_container_serialize_1() {
-        let container_in = Container {
-            docks: vec![DockHandle(1)],
-            tab_borders: vec![0.0],
-            active_dock: 0,
-            rect: Rect::default(),
-        };
-
-        let serialized = serde_json::to_string(&container_in).unwrap();
-        let container_out: Container = serde_json::from_str(&serialized).unwrap();
-
-        assert_eq!(container_out.docks.len(), 1);
-        assert_eq!(container_out.docks[0], DockHandle(1));
-    }
 }
