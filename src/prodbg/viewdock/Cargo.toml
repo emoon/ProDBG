@@ -7,4 +7,4 @@ authors = ["Daniel Collin <daniel@collin.com>"]
 minifb = "0.8.2"
 serde = "0.7.4"
 serde_json = "0.7.0"
-
+serde_macros = { path="../../helpers/serde_macros" }

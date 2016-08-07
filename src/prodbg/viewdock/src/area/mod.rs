@@ -1,7 +1,7 @@
 mod container;
 mod split;
-mod serialize;
 
+use serde;
 use rect::Rect;
 use {DockHandle, ItemTarget};
 pub use self::container::Container;
@@ -224,38 +224,5 @@ impl Area {
     }
 }
 
-
-#[cfg(test)]
-mod test {
-    extern crate serde_json;
-
-    use Area;
-    use super::container::Container;
-    use super::split::{Split, SplitHandle};
-    use DockHandle;
-    use rect::{Direction, Rect};
-
-    #[test]
-    fn test_area_serialize() {
-        let split = Area::Split(Split::from_two(Direction::Horizontal,
-                                                0.7,
-                                                SplitHandle(513),
-                                                Rect::new(17.0, 15.0, 100.0, 159.0),
-                                                Area::container_from_dock(DockHandle(14)),
-                                                Area::container_from_dock(DockHandle(15))));
-        let container = Area::Container(Container::new(DockHandle(17),
-                                                       Rect::new(1.0, 2.0, 3.0, 4.0)));
-        let split_serialized = serde_json::to_string(&split).unwrap();
-        let container_serialized = serde_json::to_string(&container).unwrap();
-        let split_deserialized: Area = serde_json::from_str(&split_serialized).unwrap();
-        let container_deserialized: Area = serde_json::from_str(&container_serialized).unwrap();
-        assert!(match split_deserialized {
-            Area::Split(_) => true,
-            _ => false,
-        });
-        assert!(match container_deserialized {
-            Area::Container(_) => true,
-            _ => false,
-        });
-    }
-}
+// Serialization
+gen_newtype_enum_code!(Area, Container => 0, Split => 1);

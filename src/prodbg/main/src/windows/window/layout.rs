@@ -1,14 +1,11 @@
 extern crate serde;
 extern crate serde_json;
 
-#[macro_use]
-mod serialize_helper;
 
 use super::super::viewdock::Workspace;
 use core::view_plugins::{ViewHandle, ViewInstance, ViewPlugins};
 use core::session::SessionHandle;
 use imgui_sys::Imgui;
-
 
 
 /// Holds information about `ViewPluginInstance` that is needed to restore it.
@@ -81,77 +78,5 @@ impl WindowLayout {
     }
 }
 
-mod window_layout_serialization {
-    use super::{WindowLayout, serde};
-    // Serialization
-
-    impl serde::ser::Serialize for WindowLayout {
-        fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-            where S: serde::ser::Serializer
-        {
-            serializer.serialize_struct("WindowLayout", WindowLayoutMapVisitor { value: self })
-                .map(|_| ())
-        }
-    }
-
-    struct WindowLayoutMapVisitor<'a> {
-        value: &'a WindowLayout,
-    }
-
-    impl<'a> serde::ser::MapVisitor for WindowLayoutMapVisitor<'a> {
-        fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error>
-            where S: serde::Serializer
-        {
-            try!(serializer.serialize_struct_elt("workspace", &self.value.workspace));
-            try!(serializer.serialize_struct_elt("infos", &self.value.infos));
-            Ok(None)
-        }
-    }
-
-    // Deserialization
-
-    gen_struct_deserializer!(WindowLayout;
-        workspace => "workspace", Workspace,
-        infos => "infos", Infos;
-    );
-}
-
-mod plugin_instance_info_serialization {
-    use super::{PluginInstanceInfo, serde};
-    // Serialization
-
-    impl serde::ser::Serialize for PluginInstanceInfo {
-        fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-            where S: serde::ser::Serializer
-        {
-            serializer.serialize_struct("PluginInstanceInfo",
-                                  PluginInstanceInfoMapVisitor { value: self })
-                .map(|_| ())
-        }
-    }
-
-    struct PluginInstanceInfoMapVisitor<'a> {
-        value: &'a PluginInstanceInfo,
-    }
-
-    impl<'a> serde::ser::MapVisitor for PluginInstanceInfoMapVisitor<'a> {
-        fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error>
-            where S: serde::Serializer
-        {
-            try!(serializer.serialize_struct_elt("handle", &self.value.handle));
-            try!(serializer.serialize_struct_elt("name", &self.value.name));
-            try!(serializer.serialize_struct_elt("plugin_name", &self.value.plugin_name));
-            try!(serializer.serialize_struct_elt("plugin_data", &self.value.plugin_data));
-            Ok(None)
-        }
-    }
-
-    // Deserialization
-
-    gen_struct_deserializer!(PluginInstanceInfo;
-        handle => "handle", Handle,
-        name => "name", Name,
-        plugin_name => "plugin_name", PluginName,
-        plugin_data => "plugin_data", PluginData;
-    );
-}
+gen_struct_code!(WindowLayout, workspace, infos;);
+gen_struct_code!(PluginInstanceInfo, handle, name, plugin_name, plugin_data;);

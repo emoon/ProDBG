@@ -42,6 +42,7 @@ RustCrate {
 	CargoConfig = "src/prodbg/viewdock/Cargo.toml",
 	Sources = {
 		get_rs_src("src/prodbg/viewdock"),
+		get_rs_src("src/helpers/serde_macros"),
 	},
 }
 
@@ -118,6 +119,16 @@ RustCrate  {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+RustCrate  {
+	Name = "serde_macros",
+	CargoConfig = "src/helpers/serde_macros/Cargo.toml",
+	Sources = {
+		get_rs_src("src/helpers/serde_macros"),
+	},
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
 --[[
 
 RustProgram {
@@ -141,6 +152,7 @@ RustProgram {
 	CargoConfig = "src/prodbg/main/Cargo.toml",
 	Sources = {
 		get_rs_src("src/prodbg/main"),
+		get_rs_src("src/helpers/serde_macros"),
 		-- get_rs_src("src/prodbg/core"),
 		-- get_rs_src("src/ui"),
 		"src/prodbg/build.rs",
@@ -149,7 +161,7 @@ RustProgram {
     Depends = { "lua", "remote_api", "stb", "bgfx_native", "bgfx", "ui",
     			"imgui", "tinyxml2", "capstone", "renderer", "scintilla",
     			"imgui_sys", "core", "viewdock", "settings", "prodbg_api",
-    			"settings", "project" },
+    			"settings", "project", "serde_macros" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------

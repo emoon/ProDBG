@@ -22,6 +22,11 @@ impl MemoryViewState {
 gen_struct_code!(NumberView, representation, size, endianness;);
 gen_struct_code!(MemoryViewState, start_address, columns, number_view, text_shown;);
 
-gen_plain_enum_code!(NumberRepresentation, Hex, UnsignedDecimal, SignedDecimal, Float);
-gen_plain_enum_code!(NumberSize, OneByte, TwoBytes, FourBytes, EightBytes);
-gen_plain_enum_code!(Endianness, Little, Big);
+gen_unit_enum_code!(NumberRepresentation,
+    Hex => 0,
+    UnsignedDecimal => 1,
+    SignedDecimal => 2,
+    Float => 3
+);
+gen_unit_enum_code!(NumberSize, OneByte => 0, TwoBytes => 1, FourBytes => 2, EightBytes => 3);
+gen_unit_enum_code!(Endianness, Little => 0, Big => 1);

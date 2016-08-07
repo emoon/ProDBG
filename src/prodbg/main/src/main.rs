@@ -6,6 +6,9 @@ extern crate imgui_sys;
 extern crate settings;
 extern crate renderer;
 extern crate project;
+#[macro_use]
+extern crate serde_macros;
+
 
 pub mod windows;
 pub mod menu;

@@ -19,12 +19,12 @@
 //! ![](https://i3wm.org/docs/tree-layout1.png)
 //!
 
+extern crate serde;
 extern crate serde_json;
 #[macro_use]
-mod serialize_helper;
+extern crate serde_macros;
 mod rect;
 mod area;
-mod serialize;
 #[cfg(test)]
 mod test_helper;
 
@@ -422,12 +422,16 @@ impl Workspace {
     }
 }
 
+// Serialization
+gen_newtype_code!(DockHandle);
+gen_struct_code!(Workspace, root_area, handle_counter; rect => Rect::default());
+
 #[cfg(test)]
 mod test {
     extern crate serde_json;
 
     use {Area, Container, Direction, DockHandle, ItemTarget, Rect, Split, SplitHandle, Workspace};
-    use test_helper::{is_container_with_single_dock, rects_are_equal};
+    use test_helper::{is_container_with_single_dock};
 
     fn test_area_container(id: u64) -> Area {
         Area::Container(Container::new(DockHandle(id), Rect::default()))
@@ -639,37 +643,5 @@ mod test {
             }
             _ => panic!("Root node should be split"),
         }
-    }
-
-    #[test]
-    fn test_workspace_serialize_0() {
-        let ws_in = Workspace {
-            root_area: None,
-            rect: Rect::new(4.0, 5.0, 2.0, 8.0),
-            handle_counter: SplitHandle(2),
-        };
-
-        let serialized = serde_json::to_string(&ws_in).unwrap();
-        let ws_out: Workspace = serde_json::from_str(&serialized).unwrap();
-
-        assert!(ws_out.root_area.is_none());
-        assert!(rects_are_equal(&Rect::default(), &ws_out.rect));
-    }
-
-    #[test]
-    fn test_workspace_serialize_1() {
-        let ws_in = Workspace {
-            root_area: Some(Area::container_from_dock(DockHandle(5))),
-            rect: Rect::new(4.0, 5.0, 2.0, 8.0),
-            handle_counter: SplitHandle(2),
-        };
-
-        let serialized = serde_json::to_string(&ws_in).unwrap();
-        let ws_out: Workspace = serde_json::from_str(&serialized).unwrap();
-
-        assert!(match ws_out.root_area {
-            Some(Area::Container(_)) => true,
-            _ => false,
-        });
     }
 }
