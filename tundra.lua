@@ -176,7 +176,6 @@ Build {
 
     Configs = {
         Config { Name = "macosx-clang", DefaultOnHost = "macosx", Inherit = macosx, Tools = { "clang-osx", "rust" } },
-        Config { Name = "macosx_test-clang", SupportedHosts = { "macosx" }, Inherit = macosx_test, Tools = { "clang-osx", "rust" } },
         Config { Name = "win64-msvc", DefaultOnHost = { "windows" }, Inherit = win64, Tools = { "msvc", "rust", "generic-asm" } },
         Config { Name = "linux-gcc", DefaultOnHost = { "linux" }, Inherit = gcc_env, Tools = { "gcc", "rust" } },
     },
