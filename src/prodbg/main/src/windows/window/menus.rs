@@ -101,7 +101,7 @@ impl Window {
                 for menu in menus {
                     res = res.or(render_unix_menu(&ui, menu));
                 }
-                self.custom_menu_height = ui.get_window_size().1;
+                self.custom_menu_height = ui.get_window_size().y;
                 ui.end_main_menu_bar();
             }
         }

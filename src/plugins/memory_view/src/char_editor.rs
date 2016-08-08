@@ -5,7 +5,7 @@
 //! text before and after the cursor as bare text and only one symbol under the cursor is rendered
 //! as actual input.
 
-use prodbg_api::{Ui, PDVec2, ImGuiStyleVar, InputTextCallbackData, Key};
+use prodbg_api::{Ui, Vec2, ImGuiStyleVar, InputTextCallbackData, Key};
 use prodbg_api::{PDUIINPUTTEXTFLAGS_NOHORIZONTALSCROLL, PDUIINPUTTEXTFLAGS_AUTOSELECTALL,
                  PDUIINPUTTEXTFLAGS_ALWAYSINSERTMODE, PDUIINPUTTEXTFLAGS_CALLBACKALWAYS,
                  PDUIINPUTTEXTFLAGS_CALLBACKCHARFILTER, PDUIInputTextFlags_};
@@ -66,8 +66,8 @@ impl CharEditor {
                     }
                 }
             };
-            ui.push_item_width(ui.calc_text_size("f", 0).0);
-            ui.push_style_var_vec(ImGuiStyleVar::FramePadding, PDVec2 { x: 0.0, y: 0.0 });
+            ui.push_item_width(ui.calc_text_size("f", 0).x);
+            ui.push_style_var_vec(ImGuiStyleVar::FramePadding, Vec2 { x: 0.0, y: 0.0 });
             let mut flags = flags | PDUIINPUTTEXTFLAGS_NOHORIZONTALSCROLL |
                             PDUIINPUTTEXTFLAGS_AUTOSELECTALL |
                             PDUIINPUTTEXTFLAGS_ALWAYSINSERTMODE |
@@ -101,7 +101,7 @@ impl CharEditor {
         }
         let mut next_position = NextPosition::Unchanged;
         let mut buf = [text.as_bytes()[cursor], 0];
-        ui.push_style_var_vec(ImGuiStyleVar::ItemSpacing, PDVec2 { x: 0.0, y: 0.0 });
+        ui.push_style_var_vec(ImGuiStyleVar::ItemSpacing, Vec2 { x: 0.0, y: 0.0 });
 
         // render bare text before cursor
         if cursor > 0 {
