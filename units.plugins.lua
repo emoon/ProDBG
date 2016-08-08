@@ -180,21 +180,6 @@ SharedLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
-    Name = "hex_memory_plugin",
-
-    Env = {
-        CPPPATH = { "api/include", },
-    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-    },
-
-    Sources = { "src/plugins/hex_memory/hex_memory_plugin.cpp" },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-SharedLibrary {
     Name = "console_plugin",
 
     Env = {
@@ -299,7 +284,6 @@ Default "disassembly"
 Default "locals_plugin"
 Default "threads_plugin"
 Default "breakpoints_plugin"
-Default "hex_memory_plugin"
 --Default "workspace_plugin"
 Default "console_plugin"
 Default "amiga_uae_plugin"
