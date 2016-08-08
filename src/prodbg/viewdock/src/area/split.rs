@@ -106,27 +106,19 @@ impl Split {
 
     /// Sets ratio at `index`. Does not allow distance between neighbouring ratios less then
     /// `0.05` (ratio will be clamped).
-    pub fn set_ratio(&mut self, index: usize, mut ratio: f32) {
-        let min = if index == 0 {
+    pub fn set_ratio(&mut self, index: usize, ratio: f32) {
+        let low = if index == 0 {
             0.05
         } else {
             self.ratios[index - 1] + 0.05
         };
-        let max = if index == self.ratios.len() - 1 {
+        let high = if index == self.ratios.len() - 1 {
             0.95
         } else {
             self.ratios[index + 1] - 0.05
         };
-
-        if ratio < min {
-            ratio = min;
-        }
-
-        if ratio > max {
-            ratio = max;
-        }
-
-        self.ratios[index] = ratio;
+        // clamping ratio between `low` and `high`
+        self.ratios[index] = ratio.max(low).min(high);
         self.update_children_sizes();
     }
 
