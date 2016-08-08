@@ -95,7 +95,7 @@ impl Window {
                         Direction::Vertical => CursorStyle::ResizeLeftRight,
                         Direction::Horizontal => CursorStyle::ResizeUpDown,
                     };
-                    self.ws.set_splitter_at(handle, index, mouse_pos);
+                    self.ws.set_sizer_at(handle, index, mouse_pos);
                 } else {
                     next_state = Some(MouseState::Default);
                     cursor = CursorStyle::Arrow;

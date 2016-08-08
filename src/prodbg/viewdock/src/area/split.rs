@@ -130,9 +130,9 @@ impl Split {
         self.update_children_sizes();
     }
 
-    /// Changes splitter at `index` to be at `pos` (only one coordinate is used). Useful when
-    /// splitter needs to follow mouse.
-    pub fn set_splitter_at(&mut self, index: usize, pos: (f32, f32)) {
+    /// Changes sizer at `index` to be at `pos` (only one coordinate is used). Useful when
+    /// sizer needs to follow mouse.
+    pub fn set_sizer_at(&mut self, index: usize, pos: (f32, f32)) {
         let ratio = self.map_pos_to_ratio(pos);
         self.set_ratio(index, ratio);
     }

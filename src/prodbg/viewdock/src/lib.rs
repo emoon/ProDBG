@@ -119,10 +119,12 @@ impl Workspace {
         }
     }
 
-    pub fn set_splitter_at(&mut self, handle: SplitHandle, index: usize, pos: (f32, f32)) {
+    /// Changes sizer at `index` to be at `pos` (only one coordinate is used). Useful when
+    /// sizer needs to follow mouse.
+    pub fn set_sizer_at(&mut self, handle: SplitHandle, index: usize, pos: (f32, f32)) {
         if let Some(ref mut root) = self.root_area {
             if let Some(s) = root.get_split_by_handle(handle) {
-                s.set_splitter_at(index, pos);
+                s.set_sizer_at(index, pos);
             }
         }
     }
