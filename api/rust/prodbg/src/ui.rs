@@ -271,6 +271,15 @@ impl From<Vec2> for PDVec2 {
     }
 }
 
+impl From<Option<Vec2>> for PDVec2 {
+    fn from(source: Option<Vec2>) -> PDVec2 {
+        match source {
+            Some(vec) => vec.into(),
+            None => PDVec2 { x: 0.0, y: 0.0 },
+        }
+    }
+}
+
 macro_rules! true_is_1 {
     ($e:expr) => (if $e { 1 } else { 0 })
 }
@@ -393,18 +402,12 @@ impl Ui {
         unsafe { ((*self.api).set_scroll_here)(center) }
     }
 
-    pub fn begin_child(&self, id: &str, pos: Option<Vec2>, border: bool, flags: PDUIWindowFlags_) {
+    /// Adds child window. If `size` is `None` or `0.0, 0.0`, child window size will be calculated
+    /// automatically.
+    pub fn begin_child(&self, id: &str, size: Option<Vec2>, border: bool, flags: PDUIWindowFlags_) {
         unsafe {
             let t = CFixedString::from_str(id).as_ptr();
-            match pos {
-                Some(p) => ((*self.api).begin_child)(t, p.into(), border as i32, flags.bits()),
-                None => {
-                    ((*self.api).begin_child)(t,
-                                              PDVec2 { x: 0.0, y: 0.0 },
-                                              border as i32,
-                                              flags.bits())
-                }
-            }
+            ((*self.api).begin_child)(t, size.into(), border as i32, flags.bits());
         }
     }
 
@@ -718,14 +721,11 @@ impl Ui {
         unsafe { ((*self.api).next_column)() }
     }
 
-    pub fn button(&self, title: &str, pos: Option<Vec2>) -> bool {
+    /// Renders button with `title`. If size is `None` or `0.0, 0.0`, it will fit button content.
+    pub fn button(&self, title: &str, size: Option<Vec2>) -> bool {
         unsafe {
             let t = CFixedString::from_str(title).as_ptr();
-            match pos {
-                // TODO: can we implement From<Option<Vec2>> for PDVec2 instead?
-                Some(p) => ((*self.api).button)(t, p.into()) != 0,
-                None => ((*self.api).button)(t, PDVec2 { x: 0.0, y: 0.0 }) != 0,
-            }
+            ((*self.api).button)(t, size.into()) != 0
         }
     }
 
