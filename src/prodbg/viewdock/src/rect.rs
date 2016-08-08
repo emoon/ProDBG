@@ -59,6 +59,14 @@ impl Rect {
         }
     }
 
+    /// Returns (`x`, `width`) or (`y`, `height`) depending on`direction`
+    pub fn segment(&self, direction: Direction) -> (f32, f32) {
+        match direction {
+            Direction::Horizontal => (self.x, self.width),
+            Direction::Vertical => (self.y, self.height),
+        }
+    }
+
     /// Returns new rectangle shifted by `dist` in given `direction`
     pub fn shifted(&self, direction: Direction, dist: f32) -> Rect {
         match direction {

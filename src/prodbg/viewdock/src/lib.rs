@@ -111,14 +111,20 @@ impl Workspace {
     }
 
     /// Changes ratio of sizer identified by (`handle`, `index`).
-    pub fn change_ratio(&mut self,
-                        handle: SplitHandle,
-                        index: usize,
-                        origin: f32,
-                        delta: (f32, f32)) {
+    pub fn set_ratio(&mut self, handle: SplitHandle, index: usize, ratio: f32) {
         if let Some(ref mut root) = self.root_area {
             if let Some(s) = root.get_split_by_handle(handle) {
-                s.change_ratio(index, origin, delta);
+                s.set_ratio(index, ratio);
+            }
+        }
+    }
+
+    /// Changes sizer at `index` to be at `pos` (only one coordinate is used). Useful when
+    /// sizer needs to follow mouse.
+    pub fn set_sizer_at(&mut self, handle: SplitHandle, index: usize, pos: (f32, f32)) {
+        if let Some(ref mut root) = self.root_area {
+            if let Some(s) = root.get_split_by_handle(handle) {
+                s.set_sizer_at(index, pos);
             }
         }
     }
@@ -431,7 +437,7 @@ mod test {
     extern crate serde_json;
 
     use {Area, Container, Direction, DockHandle, ItemTarget, Rect, Split, SplitHandle, Workspace};
-    use test_helper::{is_container_with_single_dock};
+    use test_helper::is_container_with_single_dock;
 
     fn test_area_container(id: u64) -> Area {
         Area::Container(Container::new(DockHandle(id), Rect::default()))
