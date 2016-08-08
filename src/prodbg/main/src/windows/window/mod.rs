@@ -103,7 +103,7 @@ impl Window {
             win: win,
             menu: Menu::new(),
             menu_id_offset: 1000,
-            mouse_state: MouseState::new(),
+            mouse_state: MouseState::Default,
             ws: ws,
             ws_states: ws_states,
             cur_state_index: 0usize,
