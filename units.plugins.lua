@@ -230,6 +230,17 @@ RustSharedLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 RustSharedLibrary {
+	Name = "registers_view",
+	CargoConfig = "src/plugins/registers_view/Cargo.toml",
+	Sources = {
+		get_rs_src("src/plugins/registers_view"),
+		get_rs_src("api/rust/prodbg"),
+	}
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+RustSharedLibrary {
 	Name = "disassembly",
 	CargoConfig = "src/plugins/disassembly/Cargo.toml",
 	Sources = {
@@ -280,6 +291,7 @@ Default "amiga_uae_plugin"
 Default "amiga_uae_view_plugin"
 Default "bitmap_memory"
 Default "memory_view"
+Default "registers_view"
 Default "dummy_backend_plugin"
 
 -- vim: ts=4:sw=4:sts=4
