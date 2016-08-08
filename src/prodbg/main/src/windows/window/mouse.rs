@@ -106,15 +106,13 @@ impl Window {
                 }
             }
 
-            State::DraggingSizer(SizerPos(handle, index, direction, origin_ratio)) => {
+            State::DraggingSizer(SizerPos(handle, index, direction)) => {
                 if self.win.get_mouse_down(MouseButton::Left) {
                     cursor = match direction {
                         Direction::Vertical => CursorStyle::ResizeLeftRight,
                         Direction::Horizontal => CursorStyle::ResizeUpDown,
                     };
-                    let pm = self.mouse_state.prev_mouse;
-                    let delta = (pm.0 - mouse_pos.0, pm.1 - mouse_pos.1);
-                    self.ws.change_ratio(handle, index, origin_ratio, delta);
+                    self.ws.set_splitter_at(handle, index, mouse_pos);
                 } else {
                     next_state = Some(State::Default);
                     cursor = CursorStyle::Arrow;

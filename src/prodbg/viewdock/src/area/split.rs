@@ -7,9 +7,9 @@ use rect::{Direction, Rect, ShrinkSide};
 pub struct SplitHandle(pub u64);
 
 /// Handle to a sizer (area between two children). Identified by `SplitHandle` and index,
-/// `Direction` is to simplify further use of `SizerPos`. Last member is current ratio.
+/// `Direction` is to simplify further use of `SizerPos`.
 #[derive(Debug)]
-pub struct SizerPos(pub SplitHandle, pub usize, pub Direction, pub f32);
+pub struct SizerPos(pub SplitHandle, pub usize, pub Direction);
 
 /// `Split` gives slice of its area to each child. It intentionally does not contain any tree
 /// traversal methods. For tree traversal see `Area`.
@@ -91,23 +91,22 @@ impl Split {
         return sizer_rects.iter()
             .enumerate()
             .find(|&(_, rect)| rect.point_is_inside(pos))
-            .map(|(i, _)| SizerPos(self.handle, i, self.direction, self.ratios[i]));
+            .map(|(i, _)| SizerPos(self.handle, i, self.direction));
     }
 
-    // recalculates absolute delta (in pixels) into relative value (to increase/decrease `ratios`)
-    fn map_rect_to_delta(&self, delta: (f32, f32)) -> f32 {
-        match self.direction {
-            Direction::Vertical => -delta.0 / self.rect.width,
-            Direction::Horizontal => -delta.1 / self.rect.height,
-        }
+    // recalculates absolute delta (in pixels) into relative ratio
+    fn map_pos_to_ratio(&self, pos: (f32, f32)) -> f32 {
+        let (start, dimension) = self.rect.segment(self.direction.opposite());
+        let pos = match self.direction {
+            Direction::Vertical => pos.0,
+            Direction::Horizontal => pos.1,
+        };
+        (pos - start) / dimension
     }
 
-    /// Changes ratio at `index`. Does not allow distance between neighbouring ratios less then
-    /// `0.05`.
-    pub fn change_ratio(&mut self, index: usize, origin: f32, delta: (f32, f32)) {
-        let scale = Self::map_rect_to_delta(self, delta);
-        let mut res = origin + scale;
-
+    /// Sets ratio at `index`. Does not allow distance between neighbouring ratios less then
+    /// `0.05` (ratio will be clamped).
+    pub fn set_ratio(&mut self, index: usize, mut ratio: f32) {
         let min = if index == 0 {
             0.05
         } else {
@@ -119,16 +118,23 @@ impl Split {
             self.ratios[index + 1] - 0.05
         };
 
-        if res < min {
-            res = min;
+        if ratio < min {
+            ratio = min;
         }
 
-        if res > max {
-            res = max;
+        if ratio > max {
+            ratio = max;
         }
 
-        self.ratios[index] = res;
+        self.ratios[index] = ratio;
         self.update_children_sizes();
+    }
+
+    /// Changes splitter at `index` to be at `pos` (only one coordinate is used). Useful when
+    /// splitter needs to follow mouse.
+    pub fn set_splitter_at(&mut self, index: usize, pos: (f32, f32)) {
+        let ratio = self.map_pos_to_ratio(pos);
+        self.set_ratio(index, ratio);
     }
 
     /// Replace child at `index` by `new_child` and replaced child.
