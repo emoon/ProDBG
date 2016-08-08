@@ -119,7 +119,7 @@ impl Windows {
 
     fn add_backend_menus(window: &mut Window, backend_plugins: Vec<String>) {
         // Build menu with all the backend plugins
-        let mut backend_menus = minifb::Menu::new("").unwrap();
+        let mut backend_menus = minifb::Menu::new("New Project...").unwrap();
 
         for (i, name) in backend_plugins.iter().enumerate() {
             let id = MENU_FILE_BACKEND_START + i;
