@@ -1,6 +1,6 @@
 //! Input field for address in memory
 
-use prodbg_api::{Ui, ImGuiStyleVar, PDVec2};
+use prodbg_api::{Ui, ImGuiStyleVar, Vec2};
 use prodbg_api::{PDUIINPUTTEXTFLAGS_CHARSHEXADECIMAL, PDUIINPUTTEXTFLAGS_ENTERRETURNSTRUE,
                  PDUIINPUTTEXTFLAGS_NOHORIZONTALSCROLL};
 
@@ -26,8 +26,8 @@ impl AddressInput {
     pub fn render(&mut self, ui: &mut Ui) -> bool {
         let mut res = false;
         ui.text("0x");
-        ui.push_style_var_vec(ImGuiStyleVar::FramePadding, PDVec2 { x: 1.0, y: 0.0 });
-        ui.push_item_width(ui.calc_text_size("00000000", 0).0 + 2.0);
+        ui.push_style_var_vec(ImGuiStyleVar::FramePadding, Vec2 { x: 1.0, y: 0.0 });
+        ui.push_item_width(ui.calc_text_size("00000000", 0).x + 2.0);
         ui.same_line(0, 0);
         let flags = PDUIINPUTTEXTFLAGS_CHARSHEXADECIMAL | PDUIINPUTTEXTFLAGS_ENTERRETURNSTRUE |
                     PDUIINPUTTEXTFLAGS_NOHORIZONTALSCROLL;

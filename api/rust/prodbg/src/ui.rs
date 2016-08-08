@@ -253,6 +253,24 @@ impl Vec2 {
     }
 }
 
+impl From<PDVec2> for Vec2 {
+    fn from(source: PDVec2) -> Vec2 {
+        Vec2 {
+            x: source.x,
+            y: source.y,
+        }
+    }
+}
+
+impl From<Vec2> for PDVec2 {
+    fn from(source: Vec2) -> PDVec2 {
+        PDVec2 {
+            x: source.x,
+            y: source.y,
+        }
+    }
+}
+
 macro_rules! true_is_1 {
     ($e:expr) => (if $e { 1 } else { 0 })
 }
@@ -319,16 +337,13 @@ impl Ui {
     }
 
     #[inline]
-    pub fn get_window_size(&self) -> (f32, f32) {
-        unsafe {
-            let t = ((*self.api).get_window_size)();
-            (t.x, t.y)
-        }
+    pub fn get_window_size(&self) -> Vec2 {
+        unsafe { ((*self.api).get_window_size)().into() }
     }
 
     #[inline]
-    pub fn get_window_pos(&self) -> PDVec2 {
-        unsafe { ((*self.api).get_window_pos)() }
+    pub fn get_window_pos(&self) -> Vec2 {
+        unsafe { ((*self.api).get_window_pos)().into() }
     }
 
     #[inline]
@@ -337,38 +352,26 @@ impl Ui {
     }
 
     #[inline]
-    pub fn get_cursor_pos(&self) -> (f32, f32) {
+    pub fn get_cursor_pos(&self) -> Vec2 {
+        unsafe { ((*self.api).get_cursor_pos)().into() }
+    }
+
+    #[inline]
+    pub fn set_cursor_pos(&self, pos: Vec2) {
         unsafe {
-            let t = ((*self.api).get_cursor_pos)();
-            (t.x, t.y)
+            ((*self.api).set_cursor_pos)(pos.into());
         }
     }
 
     #[inline]
-    pub fn set_cursor_pos(&self, pos: (f32, f32)) {
-        unsafe {
-            ((*self.api).set_cursor_pos)(PDVec2 {
-                x: pos.0,
-                y: pos.1,
-            });
-        }
+    pub fn get_cursor_screen_pos(&self) -> Vec2 {
+        unsafe { ((*self.api).get_cursor_screen_pos)().into() }
     }
 
     #[inline]
-    pub fn get_cursor_screen_pos(&self) -> (f32, f32) {
+    pub fn set_cursor_screen_pos(&self, pos: Vec2) {
         unsafe {
-            let t = ((*self.api).get_cursor_screen_pos)();
-            (t.x, t.y)
-        }
-    }
-
-    #[inline]
-    pub fn set_cursor_screen_pos(&self, pos: (f32, f32)) {
-        unsafe {
-            ((*self.api).set_cursor_screen_pos)(PDVec2 {
-                x: pos.0,
-                y: pos.1,
-            });
+            ((*self.api).set_cursor_screen_pos)(pos.into());
         }
     }
 
@@ -390,15 +393,11 @@ impl Ui {
         unsafe { ((*self.api).set_scroll_here)(center) }
     }
 
-    pub fn begin_child(&self,
-                       id: &str,
-                       pos: Option<PDVec2>,
-                       border: bool,
-                       flags: PDUIWindowFlags_) {
+    pub fn begin_child(&self, id: &str, pos: Option<Vec2>, border: bool, flags: PDUIWindowFlags_) {
         unsafe {
             let t = CFixedString::from_str(id).as_ptr();
             match pos {
-                Some(p) => ((*self.api).begin_child)(t, p, border as i32, flags.bits()),
+                Some(p) => ((*self.api).begin_child)(t, p.into(), border as i32, flags.bits()),
                 None => {
                     ((*self.api).begin_child)(t,
                                               PDVec2 { x: 0.0, y: 0.0 },
@@ -457,8 +456,8 @@ impl Ui {
     }
 
     #[inline]
-    pub fn push_style_var_vec(&self, index: ImGuiStyleVar, val: PDVec2) {
-        unsafe { ((*self.api).push_style_var_vec)(index as u32, val) }
+    pub fn push_style_var_vec(&self, index: ImGuiStyleVar, val: Vec2) {
+        unsafe { ((*self.api).push_style_var_vec)(index as u32, val.into()) }
     }
 
     #[inline]
@@ -494,18 +493,18 @@ impl Ui {
     }
 
     #[inline]
-    pub fn get_item_rect_min(&self) -> PDVec2 {
-        unsafe { ((*self.api).get_item_rect_min)() }
+    pub fn get_item_rect_min(&self) -> Vec2 {
+        unsafe { ((*self.api).get_item_rect_min)().into() }
     }
 
     #[inline]
-    pub fn get_item_rect_max(&self) -> PDVec2 {
-        unsafe { ((*self.api).get_item_rect_max)() }
+    pub fn get_item_rect_max(&self) -> Vec2 {
+        unsafe { ((*self.api).get_item_rect_max)().into() }
     }
 
     #[inline]
-    pub fn get_item_rect_size(&self) -> PDVec2 {
-        unsafe { ((*self.api).get_item_rect_size)() }
+    pub fn get_item_rect_size(&self) -> Vec2 {
+        unsafe { ((*self.api).get_item_rect_size)().into() }
     }
 
     #[inline]
@@ -611,16 +610,15 @@ impl Ui {
     }
 
     #[inline]
-    pub fn calc_text_size(&self, text: &str, offset: usize) -> (f32, f32) {
+    pub fn calc_text_size(&self, text: &str, offset: usize) -> Vec2 {
         unsafe {
             let start = CFixedString::from_str(text);
             if offset == 0 {
-                let t = ((*self.api).calc_text_size)(start.as_ptr(), ptr::null(), 0, -1.0);
-                (t.x, t.y)
+                ((*self.api).calc_text_size)(start.as_ptr(), ptr::null(), 0, -1.0).into()
             } else {
+                // TODO: use `<*const T>::offset instead`
                 let slice = &start.as_str()[offset..];
-                let t = ((*self.api).calc_text_size)(start.as_ptr(), slice.as_ptr(), 0, -1.0);
-                (t.x, t.y)
+                ((*self.api).calc_text_size)(start.as_ptr(), slice.as_ptr(), 0, -1.0).into()
             }
         }
     }
@@ -720,11 +718,12 @@ impl Ui {
         unsafe { ((*self.api).next_column)() }
     }
 
-    pub fn button(&self, title: &str, pos: Option<PDVec2>) -> bool {
+    pub fn button(&self, title: &str, pos: Option<Vec2>) -> bool {
         unsafe {
             let t = CFixedString::from_str(title).as_ptr();
             match pos {
-                Some(p) => ((*self.api).button)(t, p) != 0,
+                // TODO: can we implement From<Option<Vec2>> for PDVec2 instead?
+                Some(p) => ((*self.api).button)(t, p.into()) != 0,
                 None => ((*self.api).button)(t, PDVec2 { x: 0.0, y: 0.0 }) != 0,
             }
         }
@@ -860,8 +859,8 @@ impl Ui {
     /// Mouse support
     ///
 
-    pub fn get_mouse_pos(&self) -> PDVec2 {
-        unsafe { ((*self.api).get_mouse_pos)() }
+    pub fn get_mouse_pos(&self) -> Vec2 {
+        unsafe { ((*self.api).get_mouse_pos)().into() }
     }
 
     pub fn get_mouse_wheel(&self) -> f32 {
@@ -882,16 +881,13 @@ impl Ui {
     }
 
     pub fn fill_circle(&self,
-                       pos: &Vec2,
+                       pos: Vec2,
                        radius: f32,
                        col: Color,
                        segment_count: usize,
                        anti_aliased: bool) {
         unsafe {
-            ((*self.api).fill_circle)(PDVec2 {
-                                          x: pos.x,
-                                          y: pos.y,
-                                      },
+            ((*self.api).fill_circle)(pos.into(),
                                       radius,
                                       col.color,
                                       segment_count as u32,
@@ -954,18 +950,9 @@ impl<'a> ImageBuilder<'a> {
     pub fn show(&self) {
         unsafe {
             ((*self.api).image)(self.image.handle,
-                                PDVec2 {
-                                    x: self.size.x,
-                                    y: self.size.y,
-                                },
-                                PDVec2 {
-                                    x: self.uv0.x,
-                                    y: self.uv0.y,
-                                },
-                                PDVec2 {
-                                    x: self.uv1.x,
-                                    y: self.uv1.y,
-                                },
+                                self.size.into(),
+                                self.uv0.into(),
+                                self.uv1.into(),
                                 self.tint_color.color,
                                 self.border_color.color);
         }

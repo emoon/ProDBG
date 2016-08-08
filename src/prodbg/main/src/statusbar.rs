@@ -1,5 +1,5 @@
 // use prodbg_api::backend::Status;
-use prodbg_api::{Color, ImGuiCol};
+use prodbg_api::{Color, ImGuiCol, Vec2};
 use super::imgui_sys::*;
 // use imgui_sys::*;
 
@@ -34,7 +34,7 @@ impl Statusbar {
                                   WINDOWFLAGS_NO_MOVE);
 
         // TODO: Remove hard-coded value
-        ui.set_cursor_pos((2.0, 0.0));
+        ui.set_cursor_pos(Vec2::new(2.0, 0.0));
         ui.text(&format!("{} {}", name, self.status));
 
         Imgui::end_window();

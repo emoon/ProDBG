@@ -13,13 +13,12 @@ use super::viewdock::{Direction, DockHandle, ItemTarget, Rect, Workspace};
 use std::io;
 use menu::Menu;
 use imgui_sys::Imgui;
-use prodbg_api::ui_ffi::PDVec2;
 use prodbg_api::view::CViewCallbacks;
 use prodbg_api::backend::CBackendCallbacks;
 use std::os::raw::c_void;
 use std::collections::VecDeque;
 use statusbar::Statusbar;
-use prodbg_api::events;
+use prodbg_api::{events, Vec2};
 use self::mouse::MouseState;
 use self::popup::ViewRenameState;
 use self::layout::{PluginInstanceInfo, WindowLayout};
@@ -33,11 +32,11 @@ struct WindowState {
     pub should_close: bool,
 }
 
-fn is_inside(v: (f32, f32), pos: PDVec2, size: (f32, f32)) -> bool {
+fn is_inside(v: (f32, f32), pos: Vec2, size: Vec2) -> bool {
     let x0 = pos.x;
     let y0 = pos.y;
-    let x1 = pos.x + size.0;
-    let y1 = pos.y + size.1;
+    let x1 = pos.x + size.x;
+    let y1 = pos.y + size.y;
 
     v.0 >= x0 && v.0 < x1 && v.1 >= y0 && v.1 < y1
 }
@@ -359,8 +358,8 @@ impl Window {
                 if ui.begin_popup_modal("config") {
                     show_config(backend.plugin_data, Imgui::get_ui_funs() as *mut c_void);
 
-                    let ok_size = Some(PDVec2 { x: 120.0, y: 0.0 });
-                    let cancel_size = Some(PDVec2 { x: 120.0, y: 0.0 });
+                    let ok_size = Some(Vec2 { x: 120.0, y: 0.0 });
+                    let cancel_size = Some(Vec2 { x: 120.0, y: 0.0 });
 
                     if ui.button("Ok", ok_size) {
                         sessions.get_current().set_backend(self.config_backend);

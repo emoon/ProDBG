@@ -77,7 +77,7 @@ impl DisassemblyView {
     /// Calculate how many visible lines we have
     ///
     fn get_visible_lines_count(ui: &Ui) -> usize {
-        let (_, height) = ui.get_window_size();
+        let height = ui.get_window_size().y;
         let text_height = ui.get_text_line_height_with_spacing();
         // - 1.0 for title text. Would be better to get the cursor pos here instead
         let visible_lines = (height / text_height) - 1.0;
@@ -104,7 +104,7 @@ impl DisassemblyView {
     }
 
     fn color_text_reg_selection(ui: &Ui, regs_use: &Vec<&str>, line: &Line, text_height: f32) {
-        let (_cx, cy) = ui.get_cursor_screen_pos();
+        let cy = ui.get_cursor_screen_pos().y;
         let mut color_index = 0;
         // TODO: Allocs memory, fix
         let line_text = format!("   0x{:x} {}", line.address, line.opcode);
@@ -121,7 +121,7 @@ impl DisassemblyView {
         for reg in regs_use {
             let color = colors[color_index & 7];
             line_text.find(reg).map(|offset| {
-                let (tx, _) = ui.calc_text_size(&line_text, offset);
+                let tx = ui.calc_text_size(&line_text, offset).x;
                 ui.fill_rect(0.0 + tx,
                              cy,
                              22.0,
@@ -224,7 +224,7 @@ impl DisassemblyView {
             return;
         }
 
-        let (size_x, size_h) = ui.get_window_size();
+        let size = ui.get_window_size();
         let text_height = ui.get_text_line_height_with_spacing();
         let mut regs = String::new();
         let mut regs_pc_use = Vec::new();
@@ -251,7 +251,7 @@ impl DisassemblyView {
         }
 
         for line in &self.lines {
-            let (_cx, cy) = ui.get_cursor_screen_pos();
+            let cy = ui.get_cursor_screen_pos().y;
             let bp_radius = self.breakpoint_radius;
 
             if line.address == self.cursor {
@@ -264,7 +264,7 @@ impl DisassemblyView {
                     }
                 }
 
-                if cy > (size_h - text_height) {
+                if cy > (size.y - text_height) {
                     if self.reset_to_center || self.has_made_step {
                         ui.set_scroll_here(0.5);
                         self.reset_to_center = false;
@@ -275,7 +275,7 @@ impl DisassemblyView {
 
                 ui.fill_rect(0.0,
                              cy,
-                             size_x,
+                             size.x,
                              text_height,
                              Color::from_argb(200, 0, 0, 127));
             }
@@ -287,7 +287,7 @@ impl DisassemblyView {
             }
 
             if self.has_breakpoint(line.address) {
-                ui.fill_circle(&Vec2 {
+                ui.fill_circle(Vec2 {
                                    x: self.breakpoint_spacing + bp_radius,
                                    y: cy + bp_radius + 2.0,
                                },

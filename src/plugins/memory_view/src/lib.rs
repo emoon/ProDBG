@@ -14,7 +14,7 @@ mod helper;
 mod memory_chunk;
 mod state;
 
-use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, PDVec2,
+use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, Vec2,
                  ImGuiStyleVar, EventType, ImGuiCol, Color, ReadStatus, Key, StateSaver, StateLoader,
                  LoadResult};
 use prodbg_api::PDUIWINDOWFLAGS_HORIZONTALSCROLLBAR;
@@ -142,7 +142,7 @@ pub fn combo<'a, T>(ui: &mut Ui,
     }
     let mut res = None;
     let mut current_item = variants.iter().position(|var| var == cur).unwrap_or(0);
-    let width = strings.iter().map(|s| ui.calc_text_size(s, 0).0 as i32 + 40).max().unwrap_or(200);
+    let width = strings.iter().map(|s| ui.calc_text_size(s, 0).x as i32 + 40).max().unwrap_or(200);
     ui.push_item_width(width as f32);
     if ui.combo(id,
                 &mut current_item,
@@ -479,8 +479,8 @@ impl MemoryView {
     /// Minimum number of columns reported is 1.
     fn get_columns_from_width(&self, ui: &Ui) -> usize {
         // TODO: ImGui reports inaccurate glyph size. Find a better way to find chars_in_screen.
-        let glyph_size = ui.calc_text_size("ff", 0).0 / 2.0;
-        let mut chars_left = (ui.get_window_size().0 / glyph_size) as usize;
+        let glyph_size = ui.calc_text_size("ff", 0).x / 2.0;
+        let mut chars_left = (ui.get_window_size().x / glyph_size) as usize;
         // Number of large columns (for numbers, text)
         let mut large_columns: usize = 0;
         // Number of chars per one rendered column
@@ -578,7 +578,7 @@ impl MemoryView {
             None => 1,
         };
 
-        ui.push_style_var_vec(ImGuiStyleVar::ItemSpacing, PDVec2 { x: 0.0, y: 0.0 });
+        ui.push_style_var_vec(ImGuiStyleVar::ItemSpacing, Vec2 { x: 0.0, y: 0.0 });
         ui.begin_child("##lines", None, false, PDUIWINDOWFLAGS_HORIZONTALSCROLLBAR);
 
         let lines_needed = MemoryView::get_screen_lines_count(ui);
