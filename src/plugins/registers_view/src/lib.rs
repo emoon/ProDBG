@@ -1,7 +1,13 @@
+//! View to show registers.
+//! All data that backend sends is in network (big) endianness.
+
 #[macro_use]
 extern crate prodbg_api;
 
+mod number_view;
+
 use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, ReadStatus, EventType};
+use number_view::*;
 
 #[derive(Debug)]
 struct Register {
@@ -19,22 +25,10 @@ impl RegistersView {
         let mut new_registers = Vec::new();
         for reg_data in reader.find_array("registers") {
             let name = try!(reg_data.find_string("name")).to_string();
-            let size = try!(reg_data.find_u8("size"));
             let read_only = reg_data.find_u8("read_only").unwrap_or(0) != 0;
-            let mut data = Vec::with_capacity(size as usize);
-            unsafe {
-                match size {
-                    1 => {
-                        let val = try!(reg_data.find_u8("register"));
-                        data.extend_from_slice(std::mem::transmute::<&u8, &[u8; 1]>(&val));
-                    },
-                    2 => {
-                        let val = try!(reg_data.find_u16("register"));
-                        data.extend_from_slice(std::mem::transmute::<&u16, &[u8; 2]>(&val));
-                    },
-                    _ => panic!("Don't know how to read register of size {}", size),
-                }
-            }
+            let register = try!(reg_data.find_data("register"));
+            let mut data = Vec::new();
+            data.extend_from_slice(register);
             new_registers.push(Register {
                 name: name,
                 read_only: read_only,
@@ -57,6 +51,69 @@ impl RegistersView {
             }
         }
     }
+
+    fn render_register_name(ui: &mut Ui, width: usize, register: &Register) {
+        if register.name.len() < width {
+            for _ in 0..width - register.name.len() {
+                ui.text(" ");
+                ui.same_line(0, 0);
+            }
+        }
+        ui.text(&register.name);
+    }
+
+    fn render_view_short_name(ui: &mut Ui, view: NumberView) {
+        ui.text(view.representation.as_short_str());
+        ui.same_line(0, 0);
+        ui.text(view.size.as_bit_len_str());
+        ui.same_line(0, 0);
+    }
+
+    fn render_register_data(ui: &mut Ui, register: &Register, view: NumberView) {
+        for chunk in register.value.chunks(view.size.byte_count()) {
+            ui.same_line(0, 0);
+            let value = view.format(chunk);
+            ui.text(&value);
+            ui.same_line(0, 0);
+            ui.text(" ");
+        }
+    }
+
+    fn render_register_view(ui: &mut Ui, register: &Register, view: NumberView) {
+        Self::render_view_short_name(ui, view);
+        ui.text("  ");
+        Self::render_register_data(ui, register, view);
+    }
+
+    fn render_register(ui: &mut Ui, width: usize, register: &Register) {
+        let default_view = NumberView {
+            representation: NumberRepresentation::Hex,
+            size: NumberSize::OneByte,
+            endianness: Endianness::Big,
+        };
+        Self::render_register_name(ui, width, register);
+        ui.same_line(0, 0);
+        ui.text("  ");
+        ui.same_line(0, 0);
+        Self::render_register_data(ui, register, default_view);
+        for size in [NumberSize::OneByte, NumberSize::TwoBytes, NumberSize::FourBytes, NumberSize::EightBytes].iter().filter(|size| size.byte_count() <= register.value.len()) {
+            for repr in [NumberRepresentation::Hex, NumberRepresentation::UnsignedDecimal, NumberRepresentation::SignedDecimal, NumberRepresentation::Float].iter().filter(|repr| repr.can_be_of_size(*size)) {
+                let view = NumberView {
+                    representation: *repr,
+                    size: *size,
+                    endianness: Endianness::Big,
+                };
+                Self::render_register_view(ui, register, view);
+            }
+        }
+    }
+
+    pub fn render(&mut self, ui: &mut Ui) {
+        let register_name_width = self.registers.iter().map(|r| r.name.len()).max().unwrap_or(0usize);
+        for register in self.registers.iter() {
+            Self::render_register(ui, register_name_width, register);
+        }
+    }
 }
 
 impl View for RegistersView {
@@ -66,8 +123,9 @@ impl View for RegistersView {
         }
     }
 
-    fn update(&mut self, _: &mut Ui, reader: &mut Reader, _: &mut Writer) {
+    fn update(&mut self, ui: &mut Ui, reader: &mut Reader, _: &mut Writer) {
         self.process_events(reader);
+        self.render(ui);
     }
 }
 

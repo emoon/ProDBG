@@ -422,35 +422,89 @@ void destroy_instance(void* user_data) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void write_register(PDWriter* writer, const char* name, uint8_t size, uint16_t reg, uint8_t read_only) {
+static void write_register(PDWriter* writer, const char* name, uint8_t size, void* reg, uint8_t read_only) {
     PDWrite_array_entry_begin(writer);
     PDWrite_string(writer, "name", name);
-    PDWrite_u8(writer, "size", size);
-
-    if (read_only) {
-        PDWrite_u8(writer, "read_only", 1);
-	}
-
-    if (size == 2) {
-        PDWrite_u16(writer, "register", reg);
-	} else {
-        PDWrite_u8(writer, "register", (uint8_t)reg);
-	}
-
+    PDWrite_u8(writer, "read_only", read_only);
+    PDWrite_data(writer, "register", reg, size);
     PDWrite_entry_end(writer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void send_6502_registers(PDWriter* writer) {
+//static void send_6502_registers(PDWriter* writer) {
+//	PDWrite_event_begin(writer, PDEventType_SetRegisters);
+//	PDWrite_array_begin(writer, "registers");
+//
+//	write_register(writer, "pc", 2, 0x4444, 1);
+//	write_register(writer, "sp", 1, 1, 0);
+//	write_register(writer, "a", 1, 2, 0);
+//	write_register(writer, "x", 1, 3, 0);
+//	write_register(writer, "y", 1, 4, 0);
+//
+//	PDWrite_array_end(writer);
+//	PDWrite_event_end(writer);
+//}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void send_example_registers(PDWriter* writer) {
 	PDWrite_event_begin(writer, PDEventType_SetRegisters);
 	PDWrite_array_begin(writer, "registers");
 
-	write_register(writer, "pc", 2, 0x4444, 1);
-	write_register(writer, "sp", 1, 1, 0);
-	write_register(writer, "a", 1, 2, 0);
-	write_register(writer, "x", 1, 3, 0);
-	write_register(writer, "y", 1, 4, 0);
+    write_register(writer, "eax", 4, (char[]){0xCA, 0xCB, 0xCC, 0xCD}, 0);
+    write_register(writer, "eax", 4, (char[]){0xCC, 0xCC, 0xCC, 0xCC}, 0);
+    write_register(writer, "ebx", 4, (char[]){0x7E, 0xFD, 0xE0, 0x00}, 0);
+    write_register(writer, "ecx", 4, (char[]){0x00, 0x01, 0x21, 0x21}, 0);
+    write_register(writer, "edx", 4, (char[]){0x00, 0xD0, 0x95, 0x80}, 0);
+    write_register(writer, "esi", 4, (char[]){0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "edi", 4, (char[]){0x00, 0x39, 0xFA, 0x28}, 0);
+    write_register(writer, "eip", 4, (char[]){0x00, 0xD0, 0x17, 0xAE}, 0);
+    write_register(writer, "esp", 4, (char[]){0x00, 0x39, 0xF9, 0x5C}, 0);
+    write_register(writer, "ebp", 4, (char[]){0x00, 0x39, 0xFA, 0x28}, 0);
+    write_register(writer, "efl", 4, (char[]){0x00, 0x00, 0x02, 0x00}, 1);
+
+    write_register(writer, "cs", 2, (char[]){0x00, 0x23}, 0);
+    write_register(writer, "ds", 2, (char[]){0x00, 0x2B}, 0);
+    write_register(writer, "es", 2, (char[]){0x00, 0x2B}, 0);
+    write_register(writer, "ss", 2, (char[]){0x00, 0x2B}, 0);
+    write_register(writer, "fs", 2, (char[]){0x00, 0x53}, 0);
+    write_register(writer, "gs", 2, (char[]){0x00, 0x2B}, 0);
+
+    write_register(writer, "st0", 8, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "st1", 8, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "st2", 8, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "st3", 8, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "st4", 8, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "st5", 8, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "st6", 8, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "st7", 8, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "ctrl", 2, (char[]){0x02, 0x7F}, 0);
+    write_register(writer, "stat", 2, (char[]){0x00, 0x00}, 0);
+    write_register(writer, "tags", 2, (char[]){0xFF, 0xFF}, 0);
+    write_register(writer, "eip", 4, (char[]){0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "edo", 4, (char[]){0x00, 0x00, 0x00, 0x00}, 0);
+
+    write_register(writer, "mm0", 8, (char[]){0xB1, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x9A}, 0);
+    write_register(writer, "mm1", 8, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "mm2", 8, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "mm3", 8, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "mm4", 8, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "mm5", 8, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "mm6", 8, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "mm7", 8, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+
+    write_register(writer, "xmm0", 16, (char[]){0x40, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x51, 0x51, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "xmm1", 16, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "xmm2", 16, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "xmm3", 16, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "xmm4", 16, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "xmm5", 16, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "xmm6", 16, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "xmm7", 16, (char[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    write_register(writer, "mxcsr", 4, (char[]){0x00, 0x00, 0x1F, 0x80}, 0);
+
+
 
 	PDWrite_array_end(writer);
 	PDWrite_event_end(writer);
@@ -694,7 +748,8 @@ static PDDebugState update(void* user_data,
 	}
 
 	set_exception_location(data, writer);
-	send_6502_registers(writer);
+//	send_6502_registers(writer);
+    send_example_registers(writer);
 
     // printf("Update backend\n");
 
