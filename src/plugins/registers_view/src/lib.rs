@@ -52,24 +52,14 @@ impl RegistersView {
         }
     }
 
-    fn render_register_name(ui: &mut Ui, width: usize, register: &Register) {
-        if register.name.len() < width {
-            for _ in 0..width - register.name.len() {
-                ui.text(" ");
-                ui.same_line(0, 0);
-            }
-        }
-        ui.text(&register.name);
-    }
-
-    fn render_view_short_name(ui: &mut Ui, view: NumberView) {
+    fn render_view_short_name(ui: &Ui, view: NumberView) {
         ui.text(view.representation.as_short_str());
         ui.same_line(0, 0);
         ui.text(view.size.as_bit_len_str());
         ui.same_line(0, 0);
     }
 
-    fn render_register_data(ui: &mut Ui, register: &Register, view: NumberView) {
+    fn render_register_data(ui: &Ui, register: &Register, view: NumberView) {
         for chunk in register.value.chunks(view.size.byte_count()) {
             ui.same_line(0, 0);
             let value = view.format(chunk);
@@ -79,10 +69,10 @@ impl RegistersView {
         }
     }
 
-    fn render_register_view(ui: &mut Ui, register: &Register, view: NumberView) {
-        Self::render_view_short_name(ui, view);
-        ui.text("  ");
-        Self::render_register_data(ui, register, view);
+    fn render_register_view(ui: &Ui, register: &Register, view: NumberView) {
+            Self::render_view_short_name(ui, view);
+            ui.text("  ");
+            Self::render_register_data(ui, register, view);
     }
 
     fn render_register(ui: &mut Ui, width: usize, register: &Register) {
@@ -91,20 +81,23 @@ impl RegistersView {
             size: NumberSize::OneByte,
             endianness: Endianness::Big,
         };
-        Self::render_register_name(ui, width, register);
-        ui.same_line(0, 0);
-        ui.text("  ");
-        ui.same_line(0, 0);
-        Self::render_register_data(ui, register, default_view);
-        for size in [NumberSize::OneByte, NumberSize::TwoBytes, NumberSize::FourBytes, NumberSize::EightBytes].iter().filter(|size| size.byte_count() <= register.value.len()) {
-            for repr in [NumberRepresentation::Hex, NumberRepresentation::UnsignedDecimal, NumberRepresentation::SignedDecimal, NumberRepresentation::Float].iter().filter(|repr| repr.can_be_of_size(*size)) {
-                let view = NumberView {
-                    representation: *repr,
-                    size: *size,
-                    endianness: Endianness::Big,
-                };
-                Self::render_register_view(ui, register, view);
+        let is_shown = ui.tree_node(&format!("{1:>0$}", width, register.name)).show(|ui: &Ui| {
+            for size in [NumberSize::OneByte, NumberSize::TwoBytes, NumberSize::FourBytes, NumberSize::EightBytes].iter().filter(|size| size.byte_count() <= register.value.len()) {
+                for repr in [NumberRepresentation::Hex, NumberRepresentation::UnsignedDecimal, NumberRepresentation::SignedDecimal, NumberRepresentation::Float].iter().filter(|repr| repr.can_be_of_size(*size)) {
+                    let view = NumberView {
+                        representation: *repr,
+                        size: *size,
+                        endianness: Endianness::Big,
+                    };
+                    Self::render_register_view(ui, register, view);
+                }
             }
+        });
+        if !is_shown {
+            ui.same_line(0, 0);
+            ui.text("  ");
+            ui.same_line(0, 0);
+            Self::render_register_data(ui, register, default_view);
         }
     }
 
