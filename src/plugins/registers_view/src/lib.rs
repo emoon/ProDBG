@@ -60,12 +60,18 @@ impl RegistersView {
     }
 
     fn render_register_data(ui: &Ui, register: &Register, view: NumberView) {
-        for chunk in register.value.chunks(view.size.byte_count()) {
-            ui.same_line(0, 0);
-            let value = view.format(chunk);
-            ui.text(&value);
+        let total_chunks = register.value.len() / view.size.byte_count();
+        let chunks_per_bar = std::cmp::max(1, 4 / view.size.byte_count());
+        for (i, chunk) in register.value.chunks(view.size.byte_count()).enumerate() {
             ui.same_line(0, 0);
             ui.text(" ");
+            let value = view.format(chunk);
+            ui.same_line(0, 0);
+            ui.text(&value);
+            if (i + 1) % chunks_per_bar == 0 && (i + 1) < total_chunks {
+                ui.same_line(0, 0);
+                ui.text(" |");
+            }
         }
     }
 
