@@ -9,6 +9,40 @@ mod number_view;
 use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, ReadStatus, EventType};
 use number_view::*;
 
+
+/// A wrapper to render a combo. Matches `variants` and `strings`, returning one of `variants` if
+/// new item was selected in combo. Uses maximal string width as a combo width.
+pub fn combo<'a, T>(ui: &mut Ui,
+                    id: &str,
+                    variants: &'a [T],
+                    strings: &[&str],
+                    cur: &T)
+                    -> Option<&'a T>
+    where T: PartialEq
+{
+
+    if variants.len() != strings.len() {
+        panic!("Variants and strings length should be equal in combo");
+    }
+    if variants.is_empty() {
+        panic!("Variants cannot be empty in combo");
+    }
+    let mut res = None;
+    let mut current_item = variants.iter().position(|var| var == cur).unwrap_or(0);
+    let width = strings.iter().map(|s| ui.calc_text_size(s, 0).x as i32 + 40).max().unwrap_or(200);
+    ui.push_item_width(width as f32);
+    if ui.combo(id,
+                &mut current_item,
+                &strings,
+                strings.len(),
+                strings.len()) {
+        res = Some(&variants[current_item]);
+    }
+    ui.pop_item_width();
+    res
+}
+
+
 #[derive(Debug)]
 struct Register {
     name: String,
@@ -17,7 +51,8 @@ struct Register {
 }
 
 struct RegistersView {
-    registers: Vec<Register>
+    registers: Vec<Register>,
+    bars_byte_count: Option<usize>,
 }
 
 impl RegistersView {
@@ -59,9 +94,10 @@ impl RegistersView {
         ui.same_line(0, 0);
     }
 
-    fn render_register_data(ui: &Ui, register: &Register, view: NumberView) {
+    fn render_register_data(&self, ui: &Ui, register: &Register, view: NumberView) {
         let total_chunks = register.value.len() / view.size.byte_count();
-        let chunks_per_bar = std::cmp::max(1, 4 / view.size.byte_count());
+        let bars_byte_count = self.bars_byte_count.unwrap_or(100000);
+        let chunks_per_bar = std::cmp::max(1, bars_byte_count / view.size.byte_count());
         for (i, chunk) in register.value.chunks(view.size.byte_count()).enumerate() {
             ui.same_line(0, 0);
             ui.text(" ");
@@ -75,13 +111,13 @@ impl RegistersView {
         }
     }
 
-    fn render_register_view(ui: &Ui, register: &Register, view: NumberView) {
+    fn render_register_view(&self, ui: &Ui, register: &Register, view: NumberView) {
             Self::render_view_short_name(ui, view);
             ui.text("  ");
-            Self::render_register_data(ui, register, view);
+            self.render_register_data(ui, register, view);
     }
 
-    fn render_register(ui: &mut Ui, width: usize, register: &Register) {
+    fn render_register(&self, ui: &mut Ui, width: usize, register: &Register) {
         let default_view = NumberView {
             representation: NumberRepresentation::Hex,
             size: NumberSize::OneByte,
@@ -95,7 +131,7 @@ impl RegistersView {
                         size: *size,
                         endianness: Endianness::Big,
                     };
-                    Self::render_register_view(ui, register, view);
+                    self.render_register_view(ui, register, view);
                 }
             }
         });
@@ -103,14 +139,23 @@ impl RegistersView {
             ui.same_line(0, 0);
             ui.text("  ");
             ui.same_line(0, 0);
-            Self::render_register_data(ui, register, default_view);
+            self.render_register_data(ui, register, default_view);
+        }
+    }
+
+    fn render_header(&mut self, ui: &mut Ui) {
+        const VARIANTS: [Option<usize>; 5] = [None, Some(1), Some(2), Some(4), Some(8)];
+        const NAMES: [&'static str; 5] = ["No bars", "1 byte per bar", "2 bytes per bar", "4 bytes per bar", "8 bytes per bar"];
+        if let Some(val) = combo(ui, "##bars", &VARIANTS, &NAMES, &self.bars_byte_count) {
+            self.bars_byte_count = *val;
         }
     }
 
     pub fn render(&mut self, ui: &mut Ui) {
+        self.render_header(ui);
         let register_name_width = self.registers.iter().map(|r| r.name.len()).max().unwrap_or(0usize);
         for register in self.registers.iter() {
-            Self::render_register(ui, register_name_width, register);
+            self.render_register(ui, register_name_width, register);
         }
     }
 }
@@ -119,6 +164,7 @@ impl View for RegistersView {
     fn new(_: &Ui, _: &Service) -> Self {
         RegistersView {
             registers: Vec::new(),
+            bars_byte_count: None,
         }
     }
 
