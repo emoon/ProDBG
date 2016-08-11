@@ -453,7 +453,6 @@ static void send_example_registers(PDWriter* writer) {
 	PDWrite_array_begin(writer, "registers");
 
     write_register(writer, "eax", 4, (char[]){0xCA, 0xCB, 0xCC, 0xCD}, 0);
-    write_register(writer, "eax", 4, (char[]){0xCC, 0xCC, 0xCC, 0xCC}, 0);
     write_register(writer, "ebx", 4, (char[]){0x7E, 0xFD, 0xE0, 0x00}, 0);
     write_register(writer, "ecx", 4, (char[]){0x00, 0x01, 0x21, 0x21}, 0);
     write_register(writer, "edx", 4, (char[]){0x00, 0xD0, 0x95, 0x80}, 0);

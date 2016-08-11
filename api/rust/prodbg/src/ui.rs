@@ -946,7 +946,7 @@ pub struct TreeBuilder<'a> {
 }
 
 impl<'a> TreeBuilder<'a> {
-    pub fn show<F: FnOnce(&Ui)>(&self, f: F) -> bool {
+    pub fn show<F: FnOnce(&Ui)>(self, f: F) -> bool {
         unsafe {
             let label = CFixedString::from_str(self.label);
             let is_expanded = ((*self.ui.api).tree_node)(label.as_ptr()) == 1;
@@ -956,6 +956,18 @@ impl<'a> TreeBuilder<'a> {
                 ((*self.ui.api).tree_pop)();
             }
             is_expanded
+        }
+    }
+
+    pub fn exec<R, F: Fn(&Ui, bool) -> R>(self, f: F) -> R{
+        unsafe {
+            let label = CFixedString::from_str(self.label);
+            let is_expanded = ((*self.ui.api).tree_node)(label.as_ptr()) == 1;
+            let res = f(self.ui, is_expanded);
+            if is_expanded {
+                ((*self.ui.api).tree_pop)();
+            }
+            res
         }
     }
 }

@@ -53,6 +53,7 @@ struct Register {
 struct RegistersView {
     registers: Vec<Register>,
     bars_byte_count: Option<usize>,
+    group_by_size: bool,
 }
 
 impl RegistersView {
@@ -87,11 +88,8 @@ impl RegistersView {
         }
     }
 
-    fn render_view_short_name(ui: &Ui, view: NumberView) {
-        ui.text(view.representation.as_short_str());
-        ui.same_line(0, 0);
-        ui.text(view.size.as_bit_len_str());
-        ui.same_line(0, 0);
+    fn get_view_short_name(view: NumberView) -> String {
+        format!("{}{}", view.representation.as_short_str(), view.size.as_bit_len_str())
     }
 
     fn render_register_data(&self, ui: &Ui, register: &Register, view: NumberView) {
@@ -111,44 +109,92 @@ impl RegistersView {
         }
     }
 
-    fn render_register_view(&self, ui: &Ui, register: &Register, view: NumberView) {
-            Self::render_view_short_name(ui, view);
-            ui.text("  ");
-            self.render_register_data(ui, register, view);
-    }
-
     fn render_register(&self, ui: &mut Ui, width: usize, register: &Register) {
+        static ALL_REPRESENTATIONS: [NumberRepresentation; 4] = [NumberRepresentation::Hex, NumberRepresentation::UnsignedDecimal, NumberRepresentation::SignedDecimal, NumberRepresentation::Float];
+        static ALL_SIZES: [NumberSize; 4] = [NumberSize::OneByte, NumberSize::TwoBytes, NumberSize::FourBytes, NumberSize::EightBytes];
         let default_view = NumberView {
             representation: NumberRepresentation::Hex,
             size: NumberSize::OneByte,
             endianness: Endianness::Big,
         };
-        let is_shown = ui.tree_node(&format!("{1:>0$}", width, register.name)).show(|ui: &Ui| {
-            for size in [NumberSize::OneByte, NumberSize::TwoBytes, NumberSize::FourBytes, NumberSize::EightBytes].iter().filter(|size| size.byte_count() <= register.value.len()) {
-                for repr in [NumberRepresentation::Hex, NumberRepresentation::UnsignedDecimal, NumberRepresentation::SignedDecimal, NumberRepresentation::Float].iter().filter(|repr| repr.can_be_of_size(*size)) {
-                    let view = NumberView {
-                        representation: *repr,
-                        size: *size,
-                        endianness: Endianness::Big,
-                    };
-                    self.render_register_view(ui, register, view);
+        let mut views = Vec::new();
+        for size in ALL_SIZES.iter().filter(|size| size.byte_count() <= register.value.len()) {
+            let cur_views: Vec<NumberView> = ALL_REPRESENTATIONS
+                .iter()
+                .filter(|repr| repr.can_be_of_size(*size))
+                .map(|&repr| NumberView {
+                    representation: repr,
+                    size: *size,
+                    endianness: Endianness::Big,
+                })
+                .collect();
+            if !cur_views.is_empty() {
+                views.push(cur_views);
+            }
+        }
+        // TODO: do not create format names for every register since they are the same.
+        let format_names: Vec<Vec<String>> = views
+            .iter()
+            .map(|group| group.iter().map(|view| Self::get_view_short_name(*view)).collect())
+            .collect();
+        let format_width = format_names.iter().map(|f| f[0].len()).max().unwrap_or(0);
+
+        ui.tree_node(&format!("{1:>0$}", width, register.name)).exec(|ui, is_expanded| {
+            if !is_expanded {
+                ui.same_line(0, 0);
+                ui.text("  ");
+                ui.same_line(0, 0);
+                self.render_register_data(ui, register, default_view);
+                return;
+            }
+            for (group, names) in views.iter().zip(format_names.iter()) {
+                if self.group_by_size && group.len() > 1 {
+                    ui.tree_node(&format!("{1:>0$}", format_width, names[0]))
+                        .exec(|ui, is_expanded| {
+
+                        ui.same_line(0, 0);
+                        ui.text("  ");
+                        self.render_register_data(ui, register, group[0]);
+                        if !is_expanded {
+                            return;
+                        }
+                        for (&view, name) in group[1..].iter().zip(names[1..].iter()) {
+                            ui.text(" ");
+                            ui.same_line(0, 0);
+                            ui.text(&format!("{1:>0$}", format_width, name));
+                            ui.same_line(0, 0);
+                            ui.text("  ");
+                            self.render_register_data(ui, register, view);
+                        }
+                    });
+                } else {
+                    for (&view, name) in group.iter().zip(names.iter()) {
+                        ui.text(&format!("{1:>0$}", format_width, name));
+                        ui.same_line(0, 0);
+                        ui.text("  ");
+                        self.render_register_data(ui, register, view);
+                    }
                 }
             }
         });
-        if !is_shown {
-            ui.same_line(0, 0);
-            ui.text("  ");
-            ui.same_line(0, 0);
-            self.render_register_data(ui, register, default_view);
-        }
     }
 
-    fn render_header(&mut self, ui: &mut Ui) {
+    fn render_bars_picker(&mut self, ui: &mut Ui) {
         const VARIANTS: [Option<usize>; 5] = [None, Some(1), Some(2), Some(4), Some(8)];
         const NAMES: [&'static str; 5] = ["No bars", "1 byte per bar", "2 bytes per bar", "4 bytes per bar", "8 bytes per bar"];
         if let Some(val) = combo(ui, "##bars", &VARIANTS, &NAMES, &self.bars_byte_count) {
             self.bars_byte_count = *val;
         }
+    }
+
+    fn render_view_picker(&mut self, ui: &mut Ui) {
+        ui.checkbox("Group by size", &mut self.group_by_size);
+    }
+
+    fn render_header(&mut self, ui: &mut Ui) {
+        self.render_bars_picker(ui);
+        ui.same_line(0, -1);
+        self.render_view_picker(ui);
     }
 
     pub fn render(&mut self, ui: &mut Ui) {
@@ -165,6 +211,7 @@ impl View for RegistersView {
         RegistersView {
             registers: Vec::new(),
             bars_byte_count: None,
+            group_by_size: false,
         }
     }
 
