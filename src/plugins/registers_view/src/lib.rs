@@ -92,21 +92,41 @@ impl RegistersView {
         format!("{}{}", view.representation.as_short_str(), view.size.as_bit_len_str())
     }
 
-    fn render_register_data(&self, ui: &Ui, register: &Register, view: NumberView) {
-        let total_chunks = register.value.len() / view.size.byte_count();
-        let bars_byte_count = self.bars_byte_count.unwrap_or(100000);
+    fn render_register_data_no_alignment(&self, ui: &Ui, register: &Register, view: NumberView) {
+        let text = register
+            .value
+            .chunks(view.size.byte_count())
+            .map(|bytes| view.format(bytes))
+            .collect::<Vec<String>>()
+            .join(" ");
+        ui.same_line(0, -1);
+        ui.text(&text);
+    }
+
+    fn render_register_data(&self, ui: &Ui, register: &Register, view: NumberView, single_bar_width: usize) {
+        let mut bars_byte_count = self.bars_byte_count.unwrap_or(100000);
+        let bar_width = if view.size.byte_count() < bars_byte_count {
+            single_bar_width
+        } else {
+            let columns = view.size.byte_count() / bars_byte_count;
+            bars_byte_count = view.size.byte_count();
+            columns * single_bar_width + (columns - 1) * 3
+        };
         let chunks_per_bar = std::cmp::max(1, bars_byte_count / view.size.byte_count());
-        for (i, chunk) in register.value.chunks(view.size.byte_count()).enumerate() {
-            ui.same_line(0, 0);
-            ui.text(" ");
-            let value = view.format(chunk);
-            ui.same_line(0, 0);
-            ui.text(&value);
-            if (i + 1) % chunks_per_bar == 0 && (i + 1) < total_chunks {
-                ui.same_line(0, 0);
-                ui.text(" |");
-            }
-        }
+        let bar_text = register.value
+            .chunks(bars_byte_count)
+            .map(|bar_bytes| {
+                let text = bar_bytes
+                    .chunks(view.size.byte_count())
+                    .map(|chunk| view.format(chunk))
+                    .collect::<Vec<String>>()
+                    .join(" ");
+                format!("{1:>0$}", bar_width, text)
+            })
+            .collect::<Vec<String>>()
+            .join(" | ");
+        ui.same_line(0, -1);
+        ui.text(&bar_text);
     }
 
     fn render_register(&self, ui: &mut Ui, width: usize, register: &Register) {
@@ -137,14 +157,38 @@ impl RegistersView {
             .iter()
             .map(|group| group.iter().map(|view| Self::get_view_short_name(*view)).collect())
             .collect();
+
         let format_width = format_names.iter().map(|f| f[0].len()).max().unwrap_or(0);
+        let render = |ui: &Ui, register: &Register, view: NumberView| {
+            if let Some(bar_bytes) = self.bars_byte_count {
+                let bar_width = views.iter().map(|group| {
+                    group
+                        .iter()
+                        .map(|view| {
+                            let bc = view.size.byte_count();
+                            let res = if bc >= bar_bytes {
+                                let bars = view.size.byte_count() / bar_bytes;
+                                (view.maximum_chars_needed().saturating_sub((bars - 1) * 3)) / bars
+                            } else {
+                                let items_in_bar = bar_bytes / bc;
+                                items_in_bar * view.maximum_chars_needed() + (items_in_bar - 1)
+                            };
+                            res
+                        })
+                        .max().unwrap_or(0)
+                }).max().unwrap_or(0);
+                self.render_register_data(ui, register, view, bar_width)
+            } else {
+                self.render_register_data_no_alignment(ui, register, view)
+            };
+        };
 
         ui.tree_node(&format!("{1:>0$}", width, register.name)).exec(|ui, is_expanded| {
             if !is_expanded {
                 ui.same_line(0, 0);
                 ui.text("  ");
                 ui.same_line(0, 0);
-                self.render_register_data(ui, register, default_view);
+                render(ui, register, default_view);
                 return;
             }
             for (group, names) in views.iter().zip(format_names.iter()) {
@@ -154,7 +198,7 @@ impl RegistersView {
 
                         ui.same_line(0, 0);
                         ui.text("  ");
-                        self.render_register_data(ui, register, group[0]);
+                        render(ui, register, group[0]);
                         if !is_expanded {
                             return;
                         }
@@ -164,7 +208,7 @@ impl RegistersView {
                             ui.text(&format!("{1:>0$}", format_width, name));
                             ui.same_line(0, 0);
                             ui.text("  ");
-                            self.render_register_data(ui, register, view);
+                            render(ui, register, view);
                         }
                     });
                 } else {
@@ -172,7 +216,7 @@ impl RegistersView {
                         ui.text(&format!("{1:>0$}", format_width, name));
                         ui.same_line(0, 0);
                         ui.text("  ");
-                        self.render_register_data(ui, register, view);
+                        render(ui, register, view);
                     }
                 }
             }
@@ -181,7 +225,7 @@ impl RegistersView {
 
     fn render_bars_picker(&mut self, ui: &mut Ui) {
         const VARIANTS: [Option<usize>; 5] = [None, Some(1), Some(2), Some(4), Some(8)];
-        const NAMES: [&'static str; 5] = ["No bars", "1 byte per bar", "2 bytes per bar", "4 bytes per bar", "8 bytes per bar"];
+        const NAMES: [&'static str; 5] = ["No columns", "1 byte columns", "2 bytes columns", "4 bytes columns", "8 bytes columns"];
         if let Some(val) = combo(ui, "##bars", &VARIANTS, &NAMES, &self.bars_byte_count) {
             self.bars_byte_count = *val;
         }
