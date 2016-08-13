@@ -6,7 +6,7 @@ extern crate prodbg_api;
 
 mod number_view;
 
-use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, ReadStatus, EventType};
+use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, ReadStatus, EventType, PDUIWindowFlags_};
 use number_view::*;
 
 
@@ -50,10 +50,39 @@ struct Register {
     value: Vec<u8>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum Grouping {
+    Size,
+    Representation,
+}
+
+impl Grouping {
+    fn same_param(&self, a: NumberView, b: NumberView) -> bool {
+        match *self {
+            Grouping::Size => a.size == b.size,
+            Grouping::Representation => a.representation == b.representation,
+        }
+    }
+
+    pub fn group(&self, views: &Vec<NumberView>) -> Vec<Vec<NumberView>> {
+        let mut res: Vec<Vec<NumberView>> = Vec::new();
+        'views: for view in views {
+            for group in res.iter_mut() {
+                if self.same_param(group[0], *view) {
+                    group.push(*view);
+                    continue 'views;
+                }
+            }
+            res.push(vec!(*view));
+        }
+        res
+    }
+}
+
 struct RegistersView {
     registers: Vec<Register>,
     bars_byte_count: Option<usize>,
-    group_by_size: bool,
+    grouping: Option<Grouping>,
 }
 
 impl RegistersView {
@@ -129,54 +158,51 @@ impl RegistersView {
         ui.text(&bar_text);
     }
 
-    fn render_register(&self, ui: &mut Ui, width: usize, register: &Register) {
+    fn all_possible_views(size: usize) -> Vec<NumberView> {
         static ALL_REPRESENTATIONS: [NumberRepresentation; 4] = [NumberRepresentation::Hex, NumberRepresentation::UnsignedDecimal, NumberRepresentation::SignedDecimal, NumberRepresentation::Float];
         static ALL_SIZES: [NumberSize; 4] = [NumberSize::OneByte, NumberSize::TwoBytes, NumberSize::FourBytes, NumberSize::EightBytes];
+        let mut views = Vec::new();
+        for number_size in ALL_SIZES.iter().filter(|number_size| number_size.byte_count() <= size) {
+            for repr in ALL_REPRESENTATIONS.iter().filter(|repr| repr.can_be_of_size(*number_size)) {
+                views.push(NumberView {
+                    representation: *repr,
+                    size: *number_size,
+                    endianness: Endianness::Big,
+                });
+            }
+        }
+        views
+    }
+
+    fn render_register(&self, ui: &mut Ui, width: usize, register: &Register) {
         let default_view = NumberView {
             representation: NumberRepresentation::Hex,
             size: NumberSize::OneByte,
             endianness: Endianness::Big,
         };
-        let mut views = Vec::new();
-        for size in ALL_SIZES.iter().filter(|size| size.byte_count() <= register.value.len()) {
-            let cur_views: Vec<NumberView> = ALL_REPRESENTATIONS
-                .iter()
-                .filter(|repr| repr.can_be_of_size(*size))
-                .map(|&repr| NumberView {
-                    representation: repr,
-                    size: *size,
-                    endianness: Endianness::Big,
-                })
-                .collect();
-            if !cur_views.is_empty() {
-                views.push(cur_views);
-            }
-        }
+        let views = Self::all_possible_views(register.value.len());
         // TODO: do not create format names for every register since they are the same.
-        let format_names: Vec<Vec<String>> = views
+        let format_names: Vec<String> = views
             .iter()
-            .map(|group| group.iter().map(|view| Self::get_view_short_name(*view)).collect())
+            .map(|view| Self::get_view_short_name(*view))
             .collect();
 
-        let format_width = format_names.iter().map(|f| f[0].len()).max().unwrap_or(0);
+        let format_width = format_names.iter().map(|f| f.len()).max().unwrap_or(0);
         let render = |ui: &Ui, register: &Register, view: NumberView| {
             if let Some(bar_bytes) = self.bars_byte_count {
-                let bar_width = views.iter().map(|group| {
-                    group
-                        .iter()
-                        .map(|view| {
-                            let bc = view.size.byte_count();
-                            let res = if bc >= bar_bytes {
-                                let bars = view.size.byte_count() / bar_bytes;
-                                (view.maximum_chars_needed().saturating_sub((bars - 1) * 3)) / bars
-                            } else {
-                                let items_in_bar = bar_bytes / bc;
-                                items_in_bar * view.maximum_chars_needed() + (items_in_bar - 1)
-                            };
-                            res
-                        })
-                        .max().unwrap_or(0)
-                }).max().unwrap_or(0);
+                let bar_width = views.iter()
+                    .map(|view| {
+                        let bc = view.size.byte_count();
+                        let res = if bc >= bar_bytes {
+                            let bars = view.size.byte_count() / bar_bytes;
+                            (view.maximum_chars_needed().saturating_sub((bars - 1) * 3)) / bars
+                        } else {
+                            let items_in_bar = bar_bytes / bc;
+                            items_in_bar * view.maximum_chars_needed() + (items_in_bar - 1)
+                        };
+                        res
+                    })
+                    .max().unwrap_or(0);
                 self.render_register_data(ui, register, view, bar_width)
             } else {
                 self.render_register_data_no_alignment(ui, register, view)
@@ -191,33 +217,30 @@ impl RegistersView {
                 render(ui, register, default_view);
                 return;
             }
-            for (group, names) in views.iter().zip(format_names.iter()) {
-                if self.group_by_size && group.len() > 1 {
-                    ui.tree_node(&format!("{1:>0$}", format_width, names[0]))
-                        .exec(|ui, is_expanded| {
-
-                        ui.same_line(0, 0);
-                        ui.text("  ");
+            if let Some(grouping) = self.grouping {
+                let groups = grouping.group(&views);
+                for group in groups {
+                    if group.len() > 1 {
+                        ui.tree_node(&format!("{1:>0$}  ", format_width, Self::get_view_short_name(group[0])))
+                            .exec(|ui, is_expanded| {
+                                render(ui, register, group[0]);
+                                if !is_expanded {
+                                    return;
+                                }
+                                for view in group[1..].iter() {
+                                    ui.text(&format!(" {1:>0$}  ", format_width, Self::get_view_short_name(*view)));
+                                    render(ui, register, *view);
+                                }
+                            });
+                    } else {
+                        ui.text(&format!("   {1:>0$}  ", format_width, Self::get_view_short_name(group[0])));
                         render(ui, register, group[0]);
-                        if !is_expanded {
-                            return;
-                        }
-                        for (&view, name) in group[1..].iter().zip(names[1..].iter()) {
-                            ui.text(" ");
-                            ui.same_line(0, 0);
-                            ui.text(&format!("{1:>0$}", format_width, name));
-                            ui.same_line(0, 0);
-                            ui.text("  ");
-                            render(ui, register, view);
-                        }
-                    });
-                } else {
-                    for (&view, name) in group.iter().zip(names.iter()) {
-                        ui.text(&format!("{1:>0$}", format_width, name));
-                        ui.same_line(0, 0);
-                        ui.text("  ");
-                        render(ui, register, view);
                     }
+                }
+            } else {
+                for (&view, name) in views.iter().zip(format_names.iter()) {
+                    ui.text(&format!("{1:>0$}  ", format_width, name));
+                    render(ui, register, view);
                 }
             }
         });
@@ -225,14 +248,18 @@ impl RegistersView {
 
     fn render_bars_picker(&mut self, ui: &mut Ui) {
         const VARIANTS: [Option<usize>; 5] = [None, Some(1), Some(2), Some(4), Some(8)];
-        const NAMES: [&'static str; 5] = ["No columns", "1 byte columns", "2 bytes columns", "4 bytes columns", "8 bytes columns"];
+        const NAMES: [&'static str; 5] = ["No columns", "1 byte columns", "2 byte columns", "4 byte columns", "8 byte columns"];
         if let Some(val) = combo(ui, "##bars", &VARIANTS, &NAMES, &self.bars_byte_count) {
             self.bars_byte_count = *val;
         }
     }
 
     fn render_view_picker(&mut self, ui: &mut Ui) {
-        ui.checkbox("Group by size", &mut self.group_by_size);
+        const VARIANTS: [Option<Grouping>; 3] = [None, Some(Grouping::Size), Some(Grouping::Representation)];
+        const NAMES: [&'static str; 3] = ["No grouping", "Group by size", "Group by representation"];
+        if let Some(val) = combo(ui, "##grouping", &VARIANTS, &NAMES, &self.grouping) {
+            self.grouping = *val;
+        }
     }
 
     fn render_header(&mut self, ui: &mut Ui) {
@@ -244,9 +271,11 @@ impl RegistersView {
     pub fn render(&mut self, ui: &mut Ui) {
         self.render_header(ui);
         let register_name_width = self.registers.iter().map(|r| r.name.len()).max().unwrap_or(0usize);
+        ui.begin_child("##body", None, false, PDUIWindowFlags_::empty());
         for register in self.registers.iter() {
             self.render_register(ui, register_name_width, register);
         }
+        ui.end_child();
     }
 }
 
@@ -255,7 +284,7 @@ impl View for RegistersView {
         RegistersView {
             registers: Vec::new(),
             bars_byte_count: None,
-            group_by_size: false,
+            grouping: None,
         }
     }
 
