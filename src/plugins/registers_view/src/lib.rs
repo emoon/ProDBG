@@ -6,7 +6,7 @@ extern crate prodbg_api;
 
 mod number_view;
 
-use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, ReadStatus, EventType, PDUIWindowFlags_};
+use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, ReadStatus, EventType, PDUIWindowFlags_, ImGuiStyleVar, Vec2};
 use number_view::*;
 
 
@@ -209,6 +209,7 @@ impl RegistersView {
             };
         };
 
+        ui.push_style_var_vec(ImGuiStyleVar::FramePadding, Vec2::new(0.5, 0.0));
         ui.tree_node(&format!("{1:>0$}", width, register.name)).exec(|ui, is_expanded| {
             if !is_expanded {
                 ui.same_line(0, 0);
@@ -228,12 +229,12 @@ impl RegistersView {
                                     return;
                                 }
                                 for view in group[1..].iter() {
-                                    ui.text(&format!(" {1:>0$}  ", format_width, Self::get_view_short_name(*view)));
+                                    ui.text(&format!("{1:>0$}  ", format_width, Self::get_view_short_name(*view)));
                                     render(ui, register, *view);
                                 }
                             });
                     } else {
-                        ui.text(&format!("   {1:>0$}  ", format_width, Self::get_view_short_name(group[0])));
+                        ui.text(&format!("  {1:>0$}  ", format_width, Self::get_view_short_name(group[0])));
                         render(ui, register, group[0]);
                     }
                 }
@@ -244,6 +245,7 @@ impl RegistersView {
                 }
             }
         });
+        ui.pop_style_var(1);
     }
 
     fn render_bars_picker(&mut self, ui: &mut Ui) {
