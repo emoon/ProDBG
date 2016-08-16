@@ -83,6 +83,7 @@ struct RegistersView {
     registers: Vec<Register>,
     bars_byte_count: Option<usize>,
     grouping: Option<Grouping>,
+    align_columns: bool,
 }
 
 impl RegistersView {
@@ -190,19 +191,23 @@ impl RegistersView {
         let format_width = format_names.iter().map(|f| f.len()).max().unwrap_or(0);
         let render = |ui: &Ui, register: &Register, view: NumberView| {
             if let Some(bar_bytes) = self.bars_byte_count {
-                let bar_width = views.iter()
-                    .map(|view| {
-                        let bc = view.size.byte_count();
-                        let res = if bc >= bar_bytes {
-                            let bars = view.size.byte_count() / bar_bytes;
-                            (view.maximum_chars_needed().saturating_sub((bars - 1) * 3)) / bars
-                        } else {
-                            let items_in_bar = bar_bytes / bc;
-                            items_in_bar * view.maximum_chars_needed() + (items_in_bar - 1)
-                        };
-                        res
-                    })
-                    .max().unwrap_or(0);
+                let bar_width = if self.align_columns {
+                    views.iter()
+                        .map(|view| {
+                            let bc = view.size.byte_count();
+                            let res = if bc >= bar_bytes {
+                                let bars = view.size.byte_count() / bar_bytes;
+                                (view.maximum_chars_needed().saturating_sub((bars - 1) * 3)) / bars
+                            } else {
+                                let items_in_bar = bar_bytes / bc;
+                                items_in_bar * view.maximum_chars_needed() + (items_in_bar - 1)
+                            };
+                            res
+                        })
+                        .max().unwrap_or(0)
+                } else {
+                    0
+                };
                 self.render_register_data(ui, register, view, bar_width)
             } else {
                 self.render_register_data_no_alignment(ui, register, view)
@@ -264,10 +269,16 @@ impl RegistersView {
         }
     }
 
+    fn render_align_picker(&mut self, ui: &mut Ui) {
+        ui.checkbox("Align columns", &mut self.align_columns);
+    }
+
     fn render_header(&mut self, ui: &mut Ui) {
+        self.render_view_picker(ui);
+        ui.same_line(0, -1);
         self.render_bars_picker(ui);
         ui.same_line(0, -1);
-        self.render_view_picker(ui);
+        self.render_align_picker(ui);
     }
 
     pub fn render(&mut self, ui: &mut Ui) {
@@ -287,6 +298,7 @@ impl View for RegistersView {
             registers: Vec::new(),
             bars_byte_count: None,
             grouping: None,
+            align_columns: false,
         }
     }
 
