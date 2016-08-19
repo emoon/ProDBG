@@ -122,7 +122,7 @@ pub fn get_loader_funcs(data: &Vec<String>) -> CPDLoadState {
         priv_data: unsafe { transmute(Box::new(WriterData::new_load(data))) },
         read_int: read_int,
         read_double: read_double,
-        read_string_len: read_string_len,
         read_string: read_string,
+        read_string_len: read_string_len,
     }
 }

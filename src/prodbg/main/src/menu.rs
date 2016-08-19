@@ -1,6 +1,6 @@
 extern crate minifb;
 
-use minifb::{Key, MENU_KEY_CTRL};
+use minifb::{Key, MENU_KEY_CTRL, MENU_KEY_SHIFT};
 use minifb::Menu as MinifbMenu;
 
 pub const MENU_FILE_OPEN_AND_RUN_EXE: usize = 1;
@@ -14,6 +14,7 @@ pub const MENU_DEBUG_START: usize = 102;
 pub const MENU_DEBUG_STEP_IN: usize = 103;
 pub const MENU_DEBUG_STEP_OVER: usize = 104;
 pub const MENU_DEBUG_TOGGLE_BREAKPOINT: usize = 105;
+pub const MENU_DEBUG_STOP: usize = 106;
 
 pub struct Menu {
     pub file_menu: MinifbMenu,
@@ -60,6 +61,10 @@ impl Menu {
             .shortcut(Key::F5, 0)
             .build();
 
+        menu.add_item("Stop", MENU_DEBUG_STOP)
+            .shortcut(Key::F5, MENU_KEY_SHIFT)
+            .build();
+
         menu.add_item("Step In", MENU_DEBUG_STEP_IN)
             .shortcut(Key::F11, 0)
             .build();
@@ -69,7 +74,7 @@ impl Menu {
             .build();
 
         menu.add_item("Toggel Breakpoint", MENU_DEBUG_TOGGLE_BREAKPOINT)
-            .shortcut(Key::F10, 0)
+            .shortcut(Key::F9, 0)
             .build();
 
         menu

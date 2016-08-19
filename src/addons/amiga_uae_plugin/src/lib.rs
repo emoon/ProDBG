@@ -1,19 +1,34 @@
 #[macro_use]
 extern crate prodbg_api;
 extern crate gdb_remote;
+extern crate amiga_hunk_parser;
+
+mod debug_info;
 
 use prodbg_api::*;
+use std::str;
 use std::os::raw::c_void;
 use gdb_remote::GdbRemote;
+use debug_info::DebugInfo;
 
 const MENU_CONNECT: u32 = 0;
 const MENU_ENABLE_DMA: u32 = 1;
+
+struct Segment {
+    address: u32,
+    size: u32,
+}
 
 struct AmigaUaeBackend {
     capstone: Capstone,
     conn: GdbRemote,
     exception_location: u32,
     id_amiga_uae_dma_time: u16,
+    amiga_exe_file_path: String,
+    uae_partition_path: String,
+    break_at_start: bool,
+    debug_info: DebugInfo,
+    segments: Vec<Segment>,
 }
 
 impl AmigaUaeBackend {
@@ -181,11 +196,36 @@ impl AmigaUaeBackend {
         writer.event_end();
     }
 
-    //
+    // Write source/line if we can find debug info for it
+
+    fn write_source_line_location(&mut self, writer: &mut Writer) {
+        let location = self.exception_location;
+
+        for seg in &self.segments {
+            let seg_start = seg.address;
+            let seg_end = seg.address + seg.size;
+
+            if location >= seg_start && location < seg_end {
+                println!("Found pc within segment {:x} - {:x}", location, seg_start);
+                if let Some(src_line) = self.debug_info.resolve_file_line(location - seg_start, 0) {
+                    writer.write_string("filename", &src_line.0);
+                    writer.write_u32("line", src_line.1);
+                }
+                //println!("Found pc within segment {:?}", source_line); 
+                return;
+            }
+        }
+
+        println!("Location not found :(");
+    }
+
     fn write_exception_location(&mut self, writer: &mut Writer) {
         writer.event_begin(EventType::SetExceptionLocation as u16);
         writer.write_u64("address", self.exception_location as u64);
         writer.write_u8("size", 4);
+
+        self.write_source_line_location(writer);
+
         writer.event_end();
     }
 
@@ -256,6 +296,30 @@ impl AmigaUaeBackend {
         }
     }
 
+    fn connect(&mut self) -> bool {
+        println!("is_connected {}", self.conn.is_connected());
+        
+        if self.conn.is_connected() {
+            return true;
+        }
+
+        if self.conn.connect("127.0.0.1:6860").is_ok() {
+            if self.conn.request_no_ack_mode().is_ok() {
+                println!("Connected. Ready to go!");
+                if self.conn.cont().is_err() {
+                    println!("Failed to cont");
+                }
+                true
+            } else {
+                println!("no ack request failed");
+                false
+            }
+        } else {
+            println!("Unable to connect to UAE");
+            false
+        }
+    }
+
     fn on_menu(&mut self, reader: &mut Reader) {
         let menu_id = reader.find_u32("menu_id").ok().unwrap();
 
@@ -263,18 +327,7 @@ impl AmigaUaeBackend {
 
         match menu_id {
             MENU_CONNECT => {
-                if self.conn.connect("127.0.0.1:6860").is_ok() {
-                    if self.conn.request_no_ack_mode().is_ok() {
-                        println!("Connected. Ready to go!");
-                        if self.conn.cont().is_err() {
-                            println!("Failed to cont");
-                        }
-                    } else {
-                        println!("no ack request failed");
-                    }
-                } else {
-                    println!("Unable to connect to UAE");
-                }
+                self.connect();
             }
 
             MENU_ENABLE_DMA => {
@@ -287,6 +340,29 @@ impl AmigaUaeBackend {
             _ => (),
         }
     }
+
+    fn store_segments(&mut self, segment_reply: &[u8]) {
+        let segs_name = str::from_utf8(segment_reply).unwrap();
+        let segs: Vec<&str> = segs_name.split(";").collect();
+
+        println!("store segments {:?}", segs);
+
+        self.segments = Vec::new();
+
+        if segs.len() == 0 || segs[0] != "AS" {
+            return;
+        }
+
+        for i in 0..(segs.len()-1)/2 {
+            let index = 1 + i * 2;
+            let address = segs[index];
+            let size = segs[index + 1];
+            self.segments.push(Segment {
+                address: address.parse::<u32>().unwrap(),
+                size: size.parse::<u32>().unwrap(),
+            });
+        }
+    }
 }
 
 impl Backend for AmigaUaeBackend {
@@ -296,6 +372,11 @@ impl Backend for AmigaUaeBackend {
             id_amiga_uae_dma_time: service.get_id_register().register_id("AmigaUAEDmaTime"),
             conn: GdbRemote::new(),
             exception_location: 0,
+            amiga_exe_file_path: "".to_owned(),
+            uae_partition_path: "".to_owned(),
+            break_at_start: false,
+            debug_info: DebugInfo::new(),
+            segments: Vec::new(),
         }
     }
 
@@ -337,8 +418,29 @@ impl Backend for AmigaUaeBackend {
             }
 
             ACTION_RUN => {
-                if self.conn.cont().is_err() {
-                    println!("Unable to run");
+                let mut res = [0; 1024];
+
+                if self.amiga_exe_file_path == "" {
+                    // TODO: Report this back to UI
+                    println!("No executable to run");
+                    return;
+                }
+
+                self.debug_info.load_info(&self.uae_partition_path, &self.amiga_exe_file_path);
+
+                println!("Start (trying to connect)");
+
+                if !self.connect() {
+                    return;
+                }
+
+                let run_cmd = format!("vRun;{};", self.amiga_exe_file_path);
+
+                println!("sending {}", run_cmd);
+
+                if self.conn.send_command_wait_reply_raw(&mut res, &run_cmd).is_ok() {
+                    let null_index = res.iter().position(|c| *c == 0).unwrap_or(res.len());
+                    self.store_segments(&res[..null_index]);
                 }
             }
 
@@ -348,11 +450,82 @@ impl Backend for AmigaUaeBackend {
                 println!("step res {:?}", step_res);
                 self.get_registers(writer);
             }
+
+            ACTION_STOP => {
+                if !self.connect() {
+                    return;
+                }
+
+                // Set kill command
+                if self.conn.send_command("k").is_err() {
+                    println!("Unable to send kill command");
+                }
+            }
             _ => (),
         }
     }
 
-    fn show_config(&mut self, _: &mut Ui) {}
+    fn show_config(&mut self, ui: &mut Ui) {
+        let mut buf: [u8; 4096] = [0; 4096];
+        let mut buf2: [u8; 4096] = [0; 4096];
+        buf[..self.amiga_exe_file_path.len()].copy_from_slice(self.amiga_exe_file_path.as_bytes());
+        buf2[..self.uae_partition_path.len()].copy_from_slice(self.uae_partition_path.as_bytes());
+
+        ui.align_first_text_height_to_widgets();
+
+        ui.text("Executable (dh0:<exe>)");
+        ui.same_line(220, -1);
+
+        if ui.input_text("##Executable", buf.as_mut(), 
+                      PDUIINPUTTEXTFLAGS_ENTERRETURNSTRUE | 
+                      PDUIINPUTTEXTFLAGS_AUTOSELECTALL,
+                      None) {
+            let null_index = buf.iter().position(|c| *c == 0).unwrap_or(buf.len());
+            if let Ok(parsed) = str::from_utf8(&buf[..null_index]) {
+                self.amiga_exe_file_path = parsed.to_string();
+            }
+        }
+
+        ui.text("UAE Partition Path");
+        ui.same_line(220, -1);
+
+        if ui.input_text("##Partion", buf2.as_mut(), 
+                      PDUIINPUTTEXTFLAGS_ENTERRETURNSTRUE | 
+                      PDUIINPUTTEXTFLAGS_AUTOSELECTALL,
+                      None) {
+            let null_index = buf2.iter().position(|c| *c == 0).unwrap_or(buf2.len());
+            if let Ok(parsed) = str::from_utf8(&buf2[..null_index]) {
+                self.uae_partition_path = parsed.to_string();
+            }
+        }
+
+        ui.checkbox("Break at Start", &mut self.break_at_start);
+    }
+
+    fn save_state(&mut self, mut saver: StateSaver) {
+        let break_at_start = if self.break_at_start { 1 } else { 0 };
+        saver.write_str(&self.amiga_exe_file_path);
+        saver.write_str(&self.uae_partition_path);
+        saver.write_int(break_at_start);
+    }
+
+    fn load_state(&mut self, mut loader: StateLoader) {
+        let fp = loader.read_string();
+
+        if let LoadResult::Ok(file_path) = fp {
+            self.amiga_exe_file_path = file_path;
+        }
+
+        let res = loader.read_string();
+
+        if let LoadResult::Ok(uae_part) = res {
+            self.uae_partition_path = uae_part;
+        }
+
+        if let LoadResult::Ok(break_at_start) = loader.read_int() {
+            self.break_at_start = break_at_start == 1; 
+        }
+    }
 
     fn register_menu(&mut self, menu_funcs: &mut MenuFuncs) -> *mut c_void {
         let menu = menu_funcs.create_menu("Amiga UAE Debugger");

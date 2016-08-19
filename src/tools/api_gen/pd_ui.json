@@ -156,7 +156,7 @@
       { "no_ret": "set_cursor_pos_y", "var": { "float": "y" } },
       { "PDVec2": "get_cursor_screen_pos" },
       { "no_ret": "set_cursor_screen_pos", "var": { "PDVec2": "pos" } },
-      { "void": "align_first_text_height_to_widgets", "qualifier": "mut_ext" },
+      { "no_ret": "align_first_text_height_to_widgets" },
       { "float": "get_text_line_height", "qualifier": "mut_ext" },
       { "float": "get_text_line_height_with_spacing" },
       { "float": "get_items_line_height_with_spacing", "qualifier": "mut_ext" },

@@ -45,8 +45,8 @@ pub struct CPDLoadState {
     pub priv_data: *mut c_void,
     pub read_int: fn(priv_data: *mut c_void, dest: *mut i64) -> LoadState,
     pub read_double: fn(priv_data: *mut c_void, dest: *mut f64) -> LoadState,
-    pub read_string_len: fn(priv_data: *const c_void, len: *mut i32) -> LoadState,
     pub read_string: fn(priv_data: *mut c_void, dest: *mut c_char, max_len: i32) -> LoadState,
+    pub read_string_len: fn(priv_data: *const c_void, len: *mut i32) -> LoadState,
 }
 
 pub enum LoadResult<T> {

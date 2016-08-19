@@ -141,7 +141,7 @@ pub struct CPdUI {
     pub set_cursor_pos_y: extern fn(y: c_float),
     pub get_cursor_screen_pos: extern fn() -> PDVec2,
     pub set_cursor_screen_pos: extern fn(pos: PDVec2),
-    pub align_first_text_height_to_widgets: *mut extern fn() -> c_void,
+    pub align_first_text_height_to_widgets: extern fn(),
     pub get_text_line_height: *mut extern fn() -> c_float,
     pub get_text_line_height_with_spacing: extern fn() -> c_float,
     pub get_items_line_height_with_spacing: *mut extern fn() -> c_float,

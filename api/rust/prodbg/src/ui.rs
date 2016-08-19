@@ -373,6 +373,13 @@ impl Ui {
     }
 
     #[inline]
+    pub fn align_first_text_height_to_widgets(&self) {
+        unsafe {
+            ((*self.api).align_first_text_height_to_widgets)();
+        }
+    }
+
+    #[inline]
     pub fn get_cursor_screen_pos(&self) -> Vec2 {
         unsafe { ((*self.api).get_cursor_screen_pos)().into() }
     }
@@ -755,7 +762,7 @@ impl Ui {
     pub fn begin_popup_modal(&self, text: &str) -> bool {
         unsafe {
             let t = CFixedString::from_str(text).as_ptr();
-            ((*self.api).begin_popup_modal)(t, ptr::null_mut(), 0) == 1
+            ((*self.api).begin_popup_modal)(t, ptr::null_mut(), PDUIWINDOWFLAGS_ALWAYSAUTORESIZE.bits()) == 1
         }
     }
 

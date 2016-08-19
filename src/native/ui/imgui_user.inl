@@ -31,6 +31,7 @@ void ConvexPolyFilled(void* vertices, int count, unsigned int color, bool aa)
 		temp_verts[i] = verts[i] + current_pos;
 	}
 
+    window->DrawList->AddDrawCmd();
     window->DrawList->AddConvexPolyFilled(temp_verts, count, color, aa);
 }
 
@@ -41,6 +42,7 @@ void CircleFilled(ImVec2 pos, float radius, unsigned int color, int segment_coun
 	(void)aa;
 	ImGuiWindow* window = GetCurrentWindow();
 	ImVec2 current_pos = window->Pos + pos;
+    window->DrawList->AddDrawCmd();
     window->DrawList->AddCircleFilled(current_pos, radius, color, segment_count);
 }
 

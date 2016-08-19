@@ -68,6 +68,11 @@ impl Session {
         self.action = ACTION_STEP;
     }
 
+    pub fn action_stop(&mut self) {
+        println!("do stop");
+        self.action = ACTION_STOP;
+    }
+
     pub fn action_run(&mut self) {
         println!("do run");
         self.action = ACTION_RUN;

@@ -211,6 +211,7 @@ RustSharedLibrary {
 	Sources = {
 		get_rs_src("src/addons/amiga_uae_view_plugin"),
 		get_rs_src("api/rust/prodbg"),
+		get_rs_src("src/crates/amiga_hunk_parser"),
 	}
 }
 

@@ -2,13 +2,26 @@
 name = "amiga_uae_plugin"
 version = "0.1.0"
 dependencies = [
+ "amiga_hunk_parser 0.1.0",
  "gdb_remote 0.1.0",
  "prodbg_api 0.1.0",
 ]
 
 [[package]]
+name = "amiga_hunk_parser"
+version = "0.1.0"
+dependencies = [
+ "byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "bitflags"
 version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "byteorder"
+version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]

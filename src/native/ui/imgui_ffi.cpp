@@ -1636,7 +1636,7 @@ static void fill_rect(PDRect rect, PDColor color) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void fill_convex_ploy(void* vertices, unsigned int count, PDColor color, int anti_aliased) {
+static void fill_convex_poly(void* vertices, unsigned int count, PDColor color, int anti_aliased) {
     ImGui::ConvexPolyFilled(vertices, count, color, !!anti_aliased);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2009,7 +2009,7 @@ static PDUI s_uiFuncs[] =
     // Rendering
 
     fill_rect,
-    fill_convex_ploy,
+    fill_convex_poly,
     fill_circle,
 
     // Image

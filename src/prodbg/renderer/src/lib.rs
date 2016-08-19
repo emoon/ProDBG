@@ -99,7 +99,7 @@ impl Renderer {
                                                      Some(&memory)));
         self.ui_shaders = Some(Self::load_shaders("imgui").unwrap());
 
-        Bgfx::reset(width, height, bgfx::RESET_NONE);
+        Bgfx::reset(width, height, bgfx::RESET_VSYNC);
         Bgfx::set_view_seq(0, true);
 
         self.width = width;
@@ -125,7 +125,7 @@ impl Renderer {
             self.width = size.0 as u16;
             self.height = size.1 as u16;
             Imgui::resize(self.width, self.height);
-            Bgfx::reset(self.width, self.height, bgfx::RESET_NONE);
+            Bgfx::reset(self.width, self.height, bgfx::RESET_VSYNC);
         }
     }
 

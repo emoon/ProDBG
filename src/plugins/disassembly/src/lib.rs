@@ -203,7 +203,7 @@ impl DisassemblyView {
     }
 
     fn render_arrow(ui: &Ui, pos_x: f32, pos_y: f32, scale: f32) {
-        let color = Color::from_argb(255, 0, 180, 180);
+        let color = Color::from_argb(255, 255, 255, 255);
 
         ui.fill_rect(pos_x + (0.0 * scale),
                      pos_y + (0.25 * scale),
