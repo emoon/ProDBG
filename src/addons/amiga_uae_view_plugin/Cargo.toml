@@ -5,7 +5,7 @@ authors = ["Daniel Collin <daniel@collin.com>"]
 
 [lib]
 name = "amiga_uae_view_plugin"
-crate-type = ["dylib"]
+crate-type = ["cdylib"]
 
 [dependencies]
 prodbg_api = { path = "../../../api/rust/prodbg" }

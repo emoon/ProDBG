@@ -23,7 +23,7 @@ The ProDBG repository contains submodules. Clone it with `git clone --recursive`
 
 ## How to compile and build
 
-Latest stable version of **Rust** (1.8+) needs to be present on the system. We recommend using [rustup](https://www.rustup.rs/) to install and manage your Rust toolchain(s). There are also other ways to [install rustup](https://github.com/rust-lang-nursery/rustup.rs/#other-installation-methods). If you already have rustup installed but aren't on the latest stable Rust, you can simply run `rustup update`.
+Latest stable version of **Rust** (1.11+) needs to be present on the system. We recommend using [rustup](https://www.rustup.rs/) to install and manage your Rust toolchain(s). There are also other ways to [install rustup](https://github.com/rust-lang-nursery/rustup.rs/#other-installation-methods). If you already have rustup installed but aren't on the latest stable Rust, you can simply run `rustup update`.
 
 ## Mac
 

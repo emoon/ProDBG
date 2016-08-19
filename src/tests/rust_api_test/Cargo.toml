@@ -6,7 +6,7 @@ authors = ["Daniel Collin <daniel@collin.com>"]
 # Type
 [lib]
 name = "rust_api_test"
-crate-type = ["dylib"]
+crate-type = ["cdylib"]
 
 # Depends
 [dependencies]

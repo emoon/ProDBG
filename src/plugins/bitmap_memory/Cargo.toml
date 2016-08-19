@@ -7,7 +7,7 @@ authors = ["Daniel Collin <daniel@collin.com>"]
 # Type
 [lib]
 name = "bitmap_memory"
-crate-type = ["dylib"]
+crate-type = ["cdylib"]
 
 # Depends
 [dependencies]

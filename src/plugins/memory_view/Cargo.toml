@@ -5,7 +5,7 @@ authors = ["Slava Baginov <slnpacifist@gmail.com>"]
 
 [lib]
 name = "memory_view"
-crate-type = ["dylib"]
+crate-type = ["cdylib"]
 
 [dependencies]
 prodbg_api = { path = "../../../api/rust/prodbg" }
