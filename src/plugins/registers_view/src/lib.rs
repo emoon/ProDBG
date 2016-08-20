@@ -12,6 +12,8 @@ mod helper;
 use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, ReadStatus, EventType, PDUIWindowFlags_, ImGuiStyleVar, Vec2};
 use number_view::*;
 use hex_editor::HexEditor;
+use char_editor::NextPosition;
+use helper::get_text_cursor_index;
 
 
 /// A wrapper to render a combo. Matches `variants` and `strings`, returning one of `variants` if
@@ -86,6 +88,7 @@ impl Grouping {
 #[derive(Debug, Clone)]
 struct EditingCursor {
     register_name: String,
+    // TODO: remove `view` as it is already in `editor`
     view: NumberView,
     chunk: usize,
     editor: HexEditor,
@@ -122,23 +125,21 @@ impl RegistersSettings {
         format!("{}{}", view.representation.as_short_str(), view.size.as_bit_len_str())
     }
 
-    fn render_chunk(ui: &mut Ui, name: &str, view: NumberView, chunk_num: usize, bytes: &mut [u8], cursor: &mut Option<EditingCursor>) -> Option<EditingCursor> {
-        let mut res = None;
+    fn render_chunk(ui: &mut Ui, name: &str, view: NumberView, chunk_num: usize, bytes: &mut [u8], cursor: &mut Option<EditingCursor>) -> NextPosition<usize> {
         match cursor {
-            &mut Some(ref mut c) if c.chunk == chunk_num && c.register_name == name && c.view == view => {
-                c.editor.render(ui, bytes);
+            &mut Some(ref mut c) if c.chunk == chunk_num && c.register_name == name && c.view == view && view.representation == NumberRepresentation::Hex => {
+                c.editor.render(ui, bytes).0
             },
-            _ => ui.text(&view.format(bytes))
+            _ => {
+                let text = view.format(bytes);
+                ui.text(&text);
+                if ui.is_item_hovered() && ui.is_mouse_clicked(0, false) {
+                    NextPosition::Changed(get_text_cursor_index(ui, text.len()))
+                } else {
+                    NextPosition::Unchanged
+                }
+            }
         }
-        if ui.is_item_hovered() && ui.is_mouse_clicked(0, false) {
-            res = Some(EditingCursor {
-                register_name: name.to_string(),
-                view: view,
-                chunk: chunk_num,
-                editor: HexEditor::new(0, view),
-            });
-        }
-        res
     }
 
     fn render_register_data(&self, ui: &mut Ui, register: &mut Register, view: NumberView, single_bar_width: usize, cursor: &mut Option<EditingCursor>) -> Option<EditingCursor> {
@@ -154,6 +155,7 @@ impl RegistersSettings {
         let pieces = bars_byte_count / view.size.byte_count();
         let leftover = bar_width.saturating_sub(pieces * view.maximum_chars_needed() + pieces - 1);
         let chunks_per_bar = std::cmp::max(1, bars_byte_count / view.size.byte_count());
+        let chunks_count = register.value.len() / view.size.byte_count();
         for (i, bytes) in register.value
             .chunks_mut(view.size.byte_count())
             .enumerate() {
@@ -173,7 +175,33 @@ impl RegistersSettings {
                 ui.text(" ");
             }
             ui.same_line(0, 0);
-            res = res.or(Self::render_chunk(ui, &register.name, view, i, bytes, cursor))
+            match Self::render_chunk(ui, &register.name, view, i, bytes, cursor) {
+                NextPosition::Changed(pos) => {
+                    res = Some(EditingCursor {
+                        register_name: register.name.clone(),
+                        view: view,
+                        chunk: i,
+                        editor: HexEditor::new(pos, view),
+                    })
+                },
+                NextPosition::Left if i > 0 => {
+                    res = Some(EditingCursor {
+                        register_name: register.name.clone(),
+                        view: view,
+                        chunk: i - 1,
+                        editor: HexEditor::new(view.maximum_chars_needed() - 1, view),
+                    })
+                },
+                NextPosition::Right if i < chunks_count - 1 => {
+                    res = Some(EditingCursor {
+                        register_name: register.name.clone(),
+                        view: view,
+                        chunk: i + 1,
+                        editor: HexEditor::new(0, view),
+                    })
+                }
+                _ => {}
+            }
         }
         res
     }
