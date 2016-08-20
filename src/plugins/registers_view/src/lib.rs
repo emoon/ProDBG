@@ -125,24 +125,25 @@ impl RegistersSettings {
         format!("{}{}", view.representation.as_short_str(), view.size.as_bit_len_str())
     }
 
-    fn render_chunk(ui: &mut Ui, name: &str, view: NumberView, chunk_num: usize, bytes: &mut [u8], cursor: &mut Option<EditingCursor>) -> NextPosition<usize> {
+    fn render_chunk(ui: &mut Ui, name: &str, view: NumberView, chunk_num: usize, bytes: &mut [u8], cursor: &mut Option<EditingCursor>) -> (NextPosition<usize>, bool) {
         match cursor {
             &mut Some(ref mut c) if c.chunk == chunk_num && c.register_name == name && c.view == view && view.representation == NumberRepresentation::Hex => {
-                c.editor.render(ui, bytes).0
+                c.editor.render(ui, bytes)
             },
             _ => {
                 let text = view.format(bytes);
                 ui.text(&text);
-                if ui.is_item_hovered() && ui.is_mouse_clicked(0, false) {
+                let pos = if ui.is_item_hovered() && ui.is_mouse_clicked(0, false) {
                     NextPosition::Changed(get_text_cursor_index(ui, text.len()))
                 } else {
                     NextPosition::Unchanged
-                }
+                };
+                (pos, false)
             }
         }
     }
 
-    fn render_register_data(&self, ui: &mut Ui, register: &mut Register, view: NumberView, single_bar_width: usize, cursor: &mut Option<EditingCursor>) -> Option<EditingCursor> {
+    fn render_register_data(&self, ui: &mut Ui, register: &mut Register, view: NumberView, single_bar_width: usize, cursor: &mut Option<EditingCursor>, writer: &mut Writer) -> Option<EditingCursor> {
         let mut bars_byte_count = self.bars_byte_count.unwrap_or(100000);
         let mut res = None;
         let bar_width = if view.size.byte_count() < bars_byte_count {
@@ -156,6 +157,7 @@ impl RegistersSettings {
         let leftover = bar_width.saturating_sub(pieces * view.maximum_chars_needed() + pieces - 1);
         let chunks_per_bar = std::cmp::max(1, bars_byte_count / view.size.byte_count());
         let chunks_count = register.value.len() / view.size.byte_count();
+        let mut register_is_changed = false;
         for (i, bytes) in register.value
             .chunks_mut(view.size.byte_count())
             .enumerate() {
@@ -175,7 +177,8 @@ impl RegistersSettings {
                 ui.text(" ");
             }
             ui.same_line(0, 0);
-            match Self::render_chunk(ui, &register.name, view, i, bytes, cursor) {
+            let (next_pos, is_changed) = Self::render_chunk(ui, &register.name, view, i, bytes, cursor);
+            match next_pos {
                 NextPosition::Changed(pos) => {
                     res = Some(EditingCursor {
                         register_name: register.name.clone(),
@@ -202,6 +205,10 @@ impl RegistersSettings {
                 }
                 _ => {}
             }
+            register_is_changed = register_is_changed || is_changed;
+        }
+        if register_is_changed {
+            RegistersView::set_register(register, writer);
         }
         res
     }
@@ -244,7 +251,7 @@ impl RegistersSettings {
         }
     }
 
-    fn render_register(&self, ui: &mut Ui, width: usize, register: &mut Register, cursor: &mut Option<EditingCursor>) -> Option<EditingCursor> {
+    fn render_register(&self, ui: &mut Ui, width: usize, register: &mut Register, cursor: &mut Option<EditingCursor>, writer: &mut Writer) -> Option<EditingCursor> {
         let default_view = NumberView {
             representation: NumberRepresentation::Hex,
             size: NumberSize::OneByte,
@@ -266,7 +273,7 @@ impl RegistersSettings {
                 ui.same_line(0, 0);
                 ui.text("  ");
                 ui.same_line(0, 0);
-                return self.render_register_data(ui, register, default_view, column_width, cursor)
+                return self.render_register_data(ui, register, default_view, column_width, cursor, writer)
             }
             let mut res = None;
             if let Some(grouping) = self.grouping {
@@ -275,24 +282,24 @@ impl RegistersSettings {
                     if group.len() > 1 {
                         res = res.or(ui.tree_node(&format!("{1:>0$}  ", format_width, Self::get_view_short_name(group[0])))
                             .exec(|ui, is_expanded| {
-                                let mut res = self.render_register_data(ui, register, group[0], column_width, cursor);
+                                let mut res = self.render_register_data(ui, register, group[0], column_width, cursor, writer);
                                 if is_expanded {
                                     for view in group[1..].iter() {
                                         ui.text( & format!("{1:>0$}  ", format_width, Self::get_view_short_name(*view)));
-                                        res = res.or(self.render_register_data(ui, register, *view, column_width, cursor));
+                                        res = res.or(self.render_register_data(ui, register, *view, column_width, cursor, writer));
                                     }
                                 }
                                 res
                             }));
                     } else {
                         ui.text(&format!("  {1:>0$}  ", format_width, Self::get_view_short_name(group[0])));
-                        res = res.or(self.render_register_data(ui, register, group[0], column_width, cursor));
+                        res = res.or(self.render_register_data(ui, register, group[0], column_width, cursor, writer));
                     }
                 }
             } else {
                 for (&view, name) in views.iter().zip(format_names.iter()) {
                     ui.text(&format!("{1:>0$}  ", format_width, name));
-                    res = res.or(self.render_register_data(ui, register, view, column_width, cursor));
+                    res = res.or(self.render_register_data(ui, register, view, column_width, cursor, writer));
                 }
             }
             res
@@ -306,6 +313,7 @@ struct RegistersView {
     registers: Vec<Register>,
     settings: RegistersSettings,
     cursor: Option<EditingCursor>,
+    should_update: bool,
 }
 
 impl RegistersView {
@@ -335,6 +343,9 @@ impl RegistersView {
                         panic!("Could not update registers: {:?}", e);
                     }
                 }
+                et if et == EventType::SetExceptionLocation as i32 => {
+                    self.should_update = true;
+                }
                 _ => {}
             }
         }
@@ -348,20 +359,33 @@ impl RegistersView {
         self.settings.render_align_picker(ui);
     }
 
-    pub fn render(&mut self, ui: &mut Ui) {
+    pub fn render(&mut self, ui: &mut Ui, writer: &mut Writer) {
         self.render_header(ui);
         let register_name_width = self.registers.iter().map(|r| r.name.len()).max().unwrap_or(0usize);
         ui.begin_child("##body", None, false, PDUIWindowFlags_::empty());
         ui.push_style_var_vec(ImGuiStyleVar::FramePadding, Vec2::new(0.5, 0.0));
         let mut cursor = None;
         for register in self.registers.iter_mut() {
-            cursor = cursor.or(self.settings.render_register(ui, register_name_width, register, &mut self.cursor));
+            cursor = cursor.or(self.settings.render_register(ui, register_name_width, register, &mut self.cursor, writer));
         }
         if cursor.is_some() {
             self.cursor = cursor;
         }
         ui.pop_style_var(1);
         ui.end_child();
+    }
+
+    pub fn set_register(register: &Register, writer: &mut Writer) {
+        writer.event_begin(EventType::UpdateRegister as u16);
+        writer.write_string("name", &register.name);
+        writer.write_data("data", &register.value);
+        writer.event_end();
+    }
+
+    pub fn request_registers(&mut self, writer: &mut Writer) {
+        writer.event_begin(EventType::GetRegisters as u16);
+        writer.event_end();
+        self.should_update = false;
     }
 }
 
@@ -375,12 +399,16 @@ impl View for RegistersView {
                 align_columns: false,
             },
             cursor: None,
+            should_update: true
         }
     }
 
-    fn update(&mut self, ui: &mut Ui, reader: &mut Reader, _: &mut Writer) {
+    fn update(&mut self, ui: &mut Ui, reader: &mut Reader, writer: &mut Writer) {
         self.process_events(reader);
-        self.render(ui);
+        self.render(ui, writer);
+        if self.should_update {
+            self.request_registers(writer);
+        }
     }
 }
 
