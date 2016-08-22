@@ -427,6 +427,7 @@ impl RegistersView {
         let register_name_width = self.registers.iter().map(|r| r.name.len()).max().unwrap_or(0usize);
         ui.begin_child("##body", None, false, PDUIWindowFlags_::empty());
         ui.push_style_var_vec(ImGuiStyleVar::FramePadding, Vec2::new(0.5, 0.0));
+        ui.push_style_var_vec(ImGuiStyleVar::ItemSpacing, Vec2 { x: 0.0, y: 0.0 });
         let mut cursor = None;
         self.shown_register_views.resize(self.registers.len(), Vec::new());
         for (register, shown_views) in self.registers.iter_mut()
@@ -437,7 +438,7 @@ impl RegistersView {
         if cursor.is_some() {
             self.cursor = cursor;
         }
-        ui.pop_style_var(1);
+        ui.pop_style_var(2);
         ui.end_child();
     }
 

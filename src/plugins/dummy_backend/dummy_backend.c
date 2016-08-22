@@ -460,7 +460,6 @@ void* create_instance(ServiceFunc* serviceFunc) {
     fill_register(&plugin->registers[reg_counter++], "ctrl", 2, (char[]){0x02, 0x7F}, 0);
     fill_register(&plugin->registers[reg_counter++], "stat", 2, (char[]){0x00, 0x00}, 0);
     fill_register(&plugin->registers[reg_counter++], "tags", 2, (char[]){0xFF, 0xFF}, 0);
-    fill_register(&plugin->registers[reg_counter++], "eip", 4, (char[]){0x00, 0x00, 0x00, 0x00}, 0);
     fill_register(&plugin->registers[reg_counter++], "edo", 4, (char[]){0x00, 0x00, 0x00, 0x00}, 0);
 
     fill_register(&plugin->registers[reg_counter++], "mm0", 8, (char[]){0xB1, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x9A}, 0);
