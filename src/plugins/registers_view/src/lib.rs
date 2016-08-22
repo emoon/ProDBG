@@ -213,32 +213,34 @@ impl RegistersSettings {
             }
             ui.same_line(0, 0);
             let (next_pos, is_changed) = Self::render_chunk(ui, &register.name, view, i, bytes, cursor);
-            match next_pos {
-                NextPosition::Changed(pos) => {
-                    res = Some(EditingCursor {
-                        register_name: register.name.clone(),
-                        view: view,
-                        chunk: i,
-                        editor: HexEditor::new(pos, view),
-                    })
-                },
-                NextPosition::Left if i > 0 => {
-                    res = Some(EditingCursor {
-                        register_name: register.name.clone(),
-                        view: view,
-                        chunk: i - 1,
-                        editor: HexEditor::new(view.maximum_chars_needed() - 1, view),
-                    })
-                },
-                NextPosition::Right if i < chunks_count - 1 => {
-                    res = Some(EditingCursor {
-                        register_name: register.name.clone(),
-                        view: view,
-                        chunk: i + 1,
-                        editor: HexEditor::new(0, view),
-                    })
+            if !register.read_only {
+                match next_pos {
+                    NextPosition::Changed(pos) => {
+                        res = Some(EditingCursor {
+                            register_name: register.name.clone(),
+                            view: view,
+                            chunk: i,
+                            editor: HexEditor::new(pos, view),
+                        })
+                    },
+                    NextPosition::Left if i > 0 => {
+                        res = Some(EditingCursor {
+                            register_name: register.name.clone(),
+                            view: view,
+                            chunk: i - 1,
+                            editor: HexEditor::new(view.maximum_chars_needed() - 1, view),
+                        })
+                    },
+                    NextPosition::Right if i < chunks_count - 1 => {
+                        res = Some(EditingCursor {
+                            register_name: register.name.clone(),
+                            view: view,
+                            chunk: i + 1,
+                            editor: HexEditor::new(0, view),
+                        })
+                    }
+                    _ => {}
                 }
-                _ => {}
             }
             register_is_changed = register_is_changed || is_changed;
         }
