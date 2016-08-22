@@ -3,13 +3,17 @@
 
 #[macro_use]
 extern crate prodbg_api;
+#[macro_use]
+extern crate serde_macros;
+extern crate serde;
+extern crate serde_json;
 
 mod number_view;
 mod char_editor;
 mod hex_editor;
 mod helper;
 
-use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, ReadStatus, EventType, PDUIWindowFlags_, ImGuiStyleVar, Vec2};
+use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, ReadStatus, EventType, PDUIWindowFlags_, ImGuiStyleVar, Vec2, StateSaver, StateLoader, LoadResult};
 use number_view::*;
 use hex_editor::HexEditor;
 use char_editor::NextPosition;
@@ -483,7 +487,35 @@ impl View for RegistersView {
             self.request_registers(writer);
         }
     }
+
+    fn save_state(&mut self, mut saver: StateSaver) {
+        saver.write_str(&serde_json::to_string(&self.settings).unwrap());
+    }
+
+    fn load_state(&mut self, mut loader: StateLoader) {
+        if let LoadResult::Ok(source) = loader.read_string() {
+            match serde_json::from_str(&source) {
+                Ok(settings) => self.settings = settings,
+                Err(err) => println!("Could not restore registers settings: {}", err),
+            }
+        }
+    }
 }
+
+gen_struct_code!(RegistersSettings, column_byte_count, grouping, alignment, default_view;);
+gen_unit_enum_code!(Grouping, Size => 0, Representation => 1);
+gen_unit_enum_code!(Alignment, None => 0, Visible => 1, All => 2);
+gen_struct_code!(NumberView, representation, size, endianness;);
+
+gen_unit_enum_code!(NumberRepresentation,
+    Hex => 0,
+    UnsignedDecimal => 1,
+    SignedDecimal => 2,
+    Float => 3
+);
+gen_unit_enum_code!(NumberSize, OneByte => 0, TwoBytes => 1, FourBytes => 2, EightBytes => 3);
+gen_unit_enum_code!(Endianness, Little => 0, Big => 1);
+
 
 #[no_mangle]
 pub fn init_plugin(plugin_handler: &mut PluginHandler) {
