@@ -105,6 +105,7 @@ struct RegistersSettings {
     column_byte_count: Option<usize>,
     grouping: Option<Grouping>,
     alignment: Alignment,
+    default_view: NumberView,
 }
 
 impl RegistersSettings {
@@ -129,6 +130,30 @@ impl RegistersSettings {
         const NAMES: [&'static str; 5] = ["No columns", "1 byte columns", "2 byte columns", "4 byte columns", "8 byte columns"];
         if let Some(val) = combo(ui, "##bars", &VARIANTS, &NAMES, &self.column_byte_count) {
             self.column_byte_count = *val;
+        }
+    }
+
+    fn render_default_view_picker(&mut self, ui: &mut Ui) {
+        let variants: [NumberRepresentation; 4] = [
+                        NumberRepresentation::Hex,
+                        NumberRepresentation::UnsignedDecimal,
+                        NumberRepresentation::SignedDecimal,
+                        NumberRepresentation::Float];
+        let strings: Vec<&str> = variants.iter().map(|repr| repr.as_str()).collect();
+        if let Some(repr) = combo(ui,
+                                  "##number_representation",
+                                  &variants,
+                                  &strings,
+                                  &self.default_view.representation) {
+
+            self.default_view.change_representation(*repr);
+        }
+
+        let variants = self.default_view.representation.get_avaialable_sizes();
+        let strings: Vec<&str> = variants.iter().map(|size| size.as_str()).collect();
+        ui.same_line(0, -1);
+        if let Some(size) = combo(ui, "##number_size", &variants, &strings, &self.default_view.size) {
+            self.default_view.size = *size;
         }
     }
 
@@ -166,7 +191,6 @@ impl RegistersSettings {
         };
         let pieces = column_byte_count / view.size.byte_count();
         let leftover = bar_width.saturating_sub(pieces * view.maximum_chars_needed() + pieces - 1);
-        let chunks_per_bar = std::cmp::max(1, column_byte_count / view.size.byte_count());
         let chunks_count = register.value.len() / view.size.byte_count();
         let mut register_is_changed = false;
         for (i, bytes) in register.value
@@ -274,7 +298,7 @@ impl RegistersSettings {
     }
 
     fn render_register(&self, ui: &mut Ui, width: usize, register: &mut Register, shown_views: &mut Vec<bool>, cursor: &mut Option<EditingCursor>, writer: &mut Writer) -> Option<EditingCursor> {
-        let default_view = NumberView {
+        const DEFAULT_VIEW: NumberView = NumberView {
             representation: NumberRepresentation::Hex,
             size: NumberSize::OneByte,
             endianness: Endianness::Big,
@@ -295,6 +319,11 @@ impl RegistersSettings {
 
         ui.push_style_var_vec(ImGuiStyleVar::FramePadding, Vec2::new(0.5, 0.0));
         let res = ui.tree_node(&format!("{1:>0$}", width, register.name)).exec(move |ui, is_expanded| {
+            let default_view = if register.value.len() >= self.default_view.size.byte_count() {
+                self.default_view
+            } else {
+                DEFAULT_VIEW
+            };
             if !is_expanded {
                 ui.same_line(0, 0);
                 ui.text("  ");
@@ -325,9 +354,10 @@ impl RegistersSettings {
                     }
                 }
             } else {
-                for (&view, name) in views.iter().zip(format_names.iter()) {
-                    ui.text(&format!("{1:>0$}  ", format_width, name));
-                    res = res.or(self.render_register_data(ui, register, view, column_width, cursor, writer));
+                for i in 0..views.len() {
+                    shown_views[i] = true;
+                    ui.text(&format!("{1:>0$}  ", format_width, format_names[i]));
+                    res = res.or(self.render_register_data(ui, register, views[i], column_width, cursor, writer));
                 }
             }
             res
@@ -386,6 +416,8 @@ impl RegistersView {
         self.settings.render_bars_picker(ui);
         ui.same_line(0, -1);
         self.settings.render_alignment_picker(ui);
+        ui.same_line(0, -1);
+        self.settings.render_default_view_picker(ui);
     }
 
     pub fn render(&mut self, ui: &mut Ui, writer: &mut Writer) {
@@ -430,6 +462,11 @@ impl View for RegistersView {
                 column_byte_count: None,
                 grouping: None,
                 alignment: Alignment::None,
+                default_view: NumberView {
+                    representation: NumberRepresentation::Hex,
+                    size: NumberSize::OneByte,
+                    endianness: Endianness::Big,
+                },
             },
             cursor: None,
             should_update: true
