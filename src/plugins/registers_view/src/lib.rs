@@ -70,19 +70,26 @@ impl Grouping {
         }
     }
 
-    pub fn group(&self, views: &Vec<NumberView>) -> Vec<Vec<NumberView>> {
-        let mut res: Vec<Vec<NumberView>> = Vec::new();
-        'views: for view in views {
+    pub fn group(&self, views: &Vec<NumberView>) -> Vec<Vec<(usize, NumberView)>> {
+        let mut res: Vec<Vec<(usize, NumberView)>> = Vec::new();
+        'views: for (i, view) in views.iter().enumerate() {
             for group in res.iter_mut() {
-                if self.same_param(group[0], *view) {
-                    group.push(*view);
+                if self.same_param(group[0].1, *view) {
+                    group.push((i, *view));
                     continue 'views;
                 }
             }
-            res.push(vec!(*view));
+            res.push(vec!((i, *view)));
         }
         res
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum Alignment {
+    None,
+    Visible,
+    All,
 }
 
 #[derive(Debug, Clone)]
@@ -95,9 +102,9 @@ struct EditingCursor {
 }
 
 struct RegistersSettings {
-    bars_byte_count: Option<usize>,
+    column_byte_count: Option<usize>,
     grouping: Option<Grouping>,
-    align_columns: bool,
+    alignment: Alignment,
 }
 
 impl RegistersSettings {
@@ -109,15 +116,19 @@ impl RegistersSettings {
         }
     }
 
-    fn render_align_picker(&mut self, ui: &mut Ui) {
-        ui.checkbox("Align columns", &mut self.align_columns);
+    fn render_alignment_picker(&mut self, ui: &mut Ui) {
+        const VARIANTS: [Alignment; 3] = [Alignment::None, Alignment::Visible, Alignment::All];
+        const NAMES: [&'static str; 3] = ["Do not align", "Align visible", "Align all"];
+        if let Some(val) = combo(ui, "##alignemnt", &VARIANTS, &NAMES, &self.alignment) {
+            self.alignment = *val;
+        }
     }
 
     fn render_bars_picker(&mut self, ui: &mut Ui) {
         const VARIANTS: [Option<usize>; 5] = [None, Some(1), Some(2), Some(4), Some(8)];
         const NAMES: [&'static str; 5] = ["No columns", "1 byte columns", "2 byte columns", "4 byte columns", "8 byte columns"];
-        if let Some(val) = combo(ui, "##bars", &VARIANTS, &NAMES, &self.bars_byte_count) {
-            self.bars_byte_count = *val;
+        if let Some(val) = combo(ui, "##bars", &VARIANTS, &NAMES, &self.column_byte_count) {
+            self.column_byte_count = *val;
         }
     }
 
@@ -144,18 +155,18 @@ impl RegistersSettings {
     }
 
     fn render_register_data(&self, ui: &mut Ui, register: &mut Register, view: NumberView, single_bar_width: usize, cursor: &mut Option<EditingCursor>, writer: &mut Writer) -> Option<EditingCursor> {
-        let mut bars_byte_count = self.bars_byte_count.unwrap_or(100000);
+        let mut column_byte_count = self.column_byte_count.unwrap_or(100000);
         let mut res = None;
-        let bar_width = if view.size.byte_count() < bars_byte_count {
+        let bar_width = if view.size.byte_count() < column_byte_count {
             single_bar_width
         } else {
-            let columns = view.size.byte_count() / bars_byte_count;
-            bars_byte_count = view.size.byte_count();
+            let columns = view.size.byte_count() / column_byte_count;
+            column_byte_count = view.size.byte_count();
             columns * single_bar_width + (columns - 1) * 3
         };
-        let pieces = bars_byte_count / view.size.byte_count();
+        let pieces = column_byte_count / view.size.byte_count();
         let leftover = bar_width.saturating_sub(pieces * view.maximum_chars_needed() + pieces - 1);
-        let chunks_per_bar = std::cmp::max(1, bars_byte_count / view.size.byte_count());
+        let chunks_per_bar = std::cmp::max(1, column_byte_count / view.size.byte_count());
         let chunks_count = register.value.len() / view.size.byte_count();
         let mut register_is_changed = false;
         for (i, bytes) in register.value
@@ -229,35 +240,47 @@ impl RegistersSettings {
         views
     }
 
-    fn get_column_width(&self, views: &Vec<NumberView>) -> usize {
-        if !self.align_columns {
-            return 0;
-        }
-        match self.bars_byte_count {
-            Some(bar_bytes) => views.iter()
-                .map(|view| {
-                    let bc = view.size.byte_count();
-                    let res = if bc >= bar_bytes {
-                        let bars = view.size.byte_count() / bar_bytes;
-                        (view.maximum_chars_needed().saturating_sub((bars - 1) * 3)) / bars
-                    } else {
-                        let items_in_bar = bar_bytes / bc;
-                        items_in_bar * view.maximum_chars_needed() + (items_in_bar - 1)
-                    };
-                    res
-                })
-                .max().unwrap_or(0),
-            None => 0
+    fn get_view_column_width(view: NumberView, column_byte_count: usize) -> usize {
+        let bc = view.size.byte_count();
+        if bc >= column_byte_count {
+            let bars = bc / column_byte_count;
+            (view.maximum_chars_needed().saturating_sub((bars - 1) * 3)) / bars
+        } else {
+            let items_in_bar = column_byte_count / bc;
+            items_in_bar * view.maximum_chars_needed() + (items_in_bar - 1)
         }
     }
 
-    fn render_register(&self, ui: &mut Ui, width: usize, register: &mut Register, cursor: &mut Option<EditingCursor>, writer: &mut Writer) -> Option<EditingCursor> {
+    fn get_column_width(&self, views: &Vec<NumberView>, shown_views: &Vec<bool>) -> usize {
+        let column_byte_count = match self.column_byte_count {
+            Some(bytes) => bytes,
+            None => return 0,
+        };
+        match self.alignment {
+            Alignment::None => 0,
+            Alignment::Visible => views
+                .iter()
+                .zip(shown_views.iter())
+                .filter(|&(_, &is_shown)| is_shown)
+                .map(|(&view, _)| Self::get_view_column_width(view, column_byte_count))
+                .max()
+                .unwrap_or(0),
+            Alignment::All => views
+                .iter()
+                .map(|&view| Self::get_view_column_width(view, column_byte_count))
+                .max()
+                .unwrap_or(0),
+        }
+    }
+
+    fn render_register(&self, ui: &mut Ui, width: usize, register: &mut Register, shown_views: &mut Vec<bool>, cursor: &mut Option<EditingCursor>, writer: &mut Writer) -> Option<EditingCursor> {
         let default_view = NumberView {
             representation: NumberRepresentation::Hex,
             size: NumberSize::OneByte,
             endianness: Endianness::Big,
         };
         let views = Self::all_possible_views(register.value.len());
+        shown_views.resize(views.len(), false);
         // TODO: do not create format names for every register since they are the same.
         let format_names: Vec<String> = views
             .iter()
@@ -265,7 +288,10 @@ impl RegistersSettings {
             .collect();
 
         let format_width = format_names.iter().map(|f| f.len()).max().unwrap_or(0);
-        let column_width = self.get_column_width(&views);
+        let column_width = self.get_column_width(&views, shown_views);
+        for is_shown in shown_views.iter_mut() {
+            *is_shown = false;
+        }
 
         ui.push_style_var_vec(ImGuiStyleVar::FramePadding, Vec2::new(0.5, 0.0));
         let res = ui.tree_node(&format!("{1:>0$}", width, register.name)).exec(move |ui, is_expanded| {
@@ -279,21 +305,23 @@ impl RegistersSettings {
             if let Some(grouping) = self.grouping {
                 let groups = grouping.group(&views);
                 for group in groups {
+                    shown_views[group[0].0] = true;
                     if group.len() > 1 {
-                        res = res.or(ui.tree_node(&format!("{1:>0$}  ", format_width, Self::get_view_short_name(group[0])))
+                        res = res.or(ui.tree_node(&format!("{1:>0$}  ", format_width, Self::get_view_short_name(group[0].1)))
                             .exec(|ui, is_expanded| {
-                                let mut res = self.render_register_data(ui, register, group[0], column_width, cursor, writer);
+                                let mut res = self.render_register_data(ui, register, group[0].1, column_width, cursor, writer);
                                 if is_expanded {
-                                    for view in group[1..].iter() {
-                                        ui.text( & format!("{1:>0$}  ", format_width, Self::get_view_short_name(*view)));
-                                        res = res.or(self.render_register_data(ui, register, *view, column_width, cursor, writer));
+                                    for &(i, view) in group[1..].iter() {
+                                        shown_views[i] = true;
+                                        ui.text( & format!("{1:>0$}  ", format_width, Self::get_view_short_name(view)));
+                                        res = res.or(self.render_register_data(ui, register, view, column_width, cursor, writer));
                                     }
                                 }
                                 res
                             }));
                     } else {
-                        ui.text(&format!("  {1:>0$}  ", format_width, Self::get_view_short_name(group[0])));
-                        res = res.or(self.render_register_data(ui, register, group[0], column_width, cursor, writer));
+                        ui.text(&format!("  {1:>0$}  ", format_width, Self::get_view_short_name(group[0].1)));
+                        res = res.or(self.render_register_data(ui, register, group[0].1, column_width, cursor, writer));
                     }
                 }
             } else {
@@ -311,6 +339,7 @@ impl RegistersSettings {
 
 struct RegistersView {
     registers: Vec<Register>,
+    shown_register_views: Vec<Vec<bool>>,
     settings: RegistersSettings,
     cursor: Option<EditingCursor>,
     should_update: bool,
@@ -356,7 +385,7 @@ impl RegistersView {
         ui.same_line(0, -1);
         self.settings.render_bars_picker(ui);
         ui.same_line(0, -1);
-        self.settings.render_align_picker(ui);
+        self.settings.render_alignment_picker(ui);
     }
 
     pub fn render(&mut self, ui: &mut Ui, writer: &mut Writer) {
@@ -365,8 +394,11 @@ impl RegistersView {
         ui.begin_child("##body", None, false, PDUIWindowFlags_::empty());
         ui.push_style_var_vec(ImGuiStyleVar::FramePadding, Vec2::new(0.5, 0.0));
         let mut cursor = None;
-        for register in self.registers.iter_mut() {
-            cursor = cursor.or(self.settings.render_register(ui, register_name_width, register, &mut self.cursor, writer));
+        self.shown_register_views.resize(self.registers.len(), Vec::new());
+        for (register, shown_views) in self.registers.iter_mut()
+            .zip(self.shown_register_views.iter_mut()) {
+
+            cursor = cursor.or(self.settings.render_register(ui, register_name_width, register, shown_views, &mut self.cursor, writer));
         }
         if cursor.is_some() {
             self.cursor = cursor;
@@ -393,10 +425,11 @@ impl View for RegistersView {
     fn new(_: &Ui, _: &Service) -> Self {
         RegistersView {
             registers: Vec::new(),
+            shown_register_views: Vec::new(),
             settings: RegistersSettings {
-                bars_byte_count: None,
+                column_byte_count: None,
                 grouping: None,
-                align_columns: false,
+                alignment: Alignment::None,
             },
             cursor: None,
             should_update: true
