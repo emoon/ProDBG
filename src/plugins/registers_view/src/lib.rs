@@ -197,6 +197,7 @@ impl RegistersSettings {
         let leftover = bar_width.saturating_sub(pieces * view.maximum_chars_needed() + pieces - 1);
         let chunks_count = register.value.len() / view.size.byte_count();
         let mut register_is_changed = false;
+        const SPACES: &'static str = "                              ";
         for (i, bytes) in register.value
             .chunks_mut(view.size.byte_count())
             .enumerate() {
@@ -207,10 +208,8 @@ impl RegistersSettings {
                 ui.text(" | ");
             }
             if is_start_of_column {
-                for _ in 0..leftover {
-                    ui.same_line(0, 0);
-                    ui.text(" ");
-                }
+                ui.same_line(0, 0);
+                ui.text(&SPACES[0..leftover]);
             } else {
                 ui.same_line(0, 0);
                 ui.text(" ");
@@ -323,7 +322,6 @@ impl RegistersSettings {
             *is_shown = false;
         }
 
-        ui.push_style_var_vec(ImGuiStyleVar::FramePadding, Vec2::new(0.5, 0.0));
         let res = ui.tree_node(&format!("{1:>0$}", width, register.name)).exec(move |ui, is_expanded| {
             let default_view = if register.value.len() >= self.default_view.size.byte_count() {
                 self.default_view
@@ -368,7 +366,6 @@ impl RegistersSettings {
             }
             res
         });
-        ui.pop_style_var(1);
         res
     }
 }
@@ -430,7 +427,7 @@ impl RegistersView {
         self.render_header(ui);
         let register_name_width = self.registers.iter().map(|r| r.name.len()).max().unwrap_or(0usize);
         ui.begin_child("##body", None, false, PDUIWindowFlags_::empty());
-        ui.push_style_var_vec(ImGuiStyleVar::FramePadding, Vec2::new(0.5, 0.0));
+        ui.push_style_var_vec(ImGuiStyleVar::FramePadding, Vec2::new(0.0, 0.0));
         ui.push_style_var_vec(ImGuiStyleVar::ItemSpacing, Vec2 { x: 0.0, y: 0.0 });
         let mut cursor = None;
         self.shown_register_views.resize(self.registers.len(), Vec::new());
