@@ -7,8 +7,8 @@ extern crate prodbg_api;
 extern crate serde_macros;
 extern crate serde;
 extern crate serde_json;
+extern crate number_view;
 
-mod number_view;
 mod char_editor;
 mod hex_editor;
 mod helper;
@@ -502,16 +502,6 @@ impl View for RegistersView {
 gen_struct_code!(RegistersSettings, column_byte_count, grouping, alignment, default_view;);
 gen_unit_enum_code!(Grouping, Size => 0, Representation => 1);
 gen_unit_enum_code!(Alignment, None => 0, Visible => 1, All => 2);
-gen_struct_code!(NumberView, representation, size, endianness;);
-
-gen_unit_enum_code!(NumberRepresentation,
-    Hex => 0,
-    UnsignedDecimal => 1,
-    SignedDecimal => 2,
-    Float => 3
-);
-gen_unit_enum_code!(NumberSize, OneByte => 0, TwoBytes => 1, FourBytes => 2, EightBytes => 3);
-gen_unit_enum_code!(Endianness, Little => 0, Big => 1);
 
 
 #[no_mangle]

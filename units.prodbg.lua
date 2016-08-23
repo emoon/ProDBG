@@ -129,6 +129,16 @@ RustCrate  {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+RustCrate  {
+	Name = "number_view",
+	CargoConfig = "src/helpers/number_view/Cargo.toml",
+	Sources = {
+		get_rs_src("src/helpers/number_view"),
+	},
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
 --[[
 
 RustProgram {
@@ -161,7 +171,7 @@ RustProgram {
     Depends = { "lua", "remote_api", "stb", "bgfx_native", "bgfx", "ui",
     			"imgui", "tinyxml2", "capstone", "renderer", "scintilla",
     			"imgui_sys", "core", "viewdock", "settings", "prodbg_api",
-    			"settings", "project", "serde_macros" },
+    			"settings", "project", "serde_macros", "number_view" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------

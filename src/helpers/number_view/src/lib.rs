@@ -1,10 +1,14 @@
 //! Structures describing number view:
 //! * representation (hex, signed decimal, unsigned decimal, float)
 //! * size (one to eight bytes)
+//! * endianness (little-endian, big-endian)
 //! Also capable of formatting memory (slice of u8) into such view.
 
-
-use std;
+#[cfg(feature = "serialization")]
+#[macro_use]
+extern crate serde_macros;
+#[cfg(feature = "serialization")]
+mod serialize;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct NumberView {

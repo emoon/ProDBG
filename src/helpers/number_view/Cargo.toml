@@ -1,0 +1,11 @@
+[package]
+name = "number_view"
+version = "0.0.1"
+authors = ["Slava Baginov <slnpacifist@gmail.com>"]
+
+[features]
+serialization = ["serde", "serde_macros"]
+
+[dependencies]
+serde = { version = "0.7.4", optional = true }
+serde_macros = { path = "../serde_macros", optional = true }
