@@ -4,39 +4,77 @@
 //! Since ImGui does not have functionality to change text cursor style, `CharEditor` renders any
 //! text before and after the cursor as bare text and only one symbol under the cursor is rendered
 //! as actual input.
+//! Does not support multi-byte characters.
+//! TODO: use internal ImGui methods to register this component as active and process tab/mouse
+//! clicks using ImGui.
+
+
+extern crate prodbg_api;
 
 use prodbg_api::{Ui, Vec2, ImGuiStyleVar, InputTextCallbackData, Key};
-use prodbg_api::{PDUIINPUTTEXTFLAGS_NOHORIZONTALSCROLL, PDUIINPUTTEXTFLAGS_AUTOSELECTALL,
+pub use prodbg_api::{PDUIINPUTTEXTFLAGS_NOHORIZONTALSCROLL, PDUIINPUTTEXTFLAGS_AUTOSELECTALL,
                  PDUIINPUTTEXTFLAGS_ALWAYSINSERTMODE, PDUIINPUTTEXTFLAGS_CALLBACKALWAYS,
                  PDUIINPUTTEXTFLAGS_CALLBACKCHARFILTER, PDUIInputTextFlags_};
-use helper::get_text_cursor_index;
+
+
+/// Returns index if character under mouse cursor. Assumes one-line text and monospace font.
+pub fn get_text_cursor_index(ui: &Ui, len: usize) -> usize {
+    let width = ui.get_item_rect_size().x;
+    let left_border = ui.get_item_rect_min().x;
+    let mouse = ui.get_mouse_pos().x;
+    let space_per_symbol = width / len as f32;
+    if mouse < left_border {
+        return 0;
+    }
+    let res = ((mouse - left_border) / space_per_symbol) as usize;
+    if res > len - 1 {
+        return len - 1;
+    }
+    return res;
+}
+
 
 #[derive(Debug)]
 pub struct CharEditor {
+    pub cursor: Option<usize>,
     should_take_focus: bool,
     should_set_pos_to_start: bool,
 }
 
 /// Points at next cursor position after current frame.
-pub enum NextPosition<T> {
+pub enum NextPosition {
     /// Left arrow key has been pressed when cursor is at the leftmost character of text
     Left,
     /// Right arrow key has been pressed or character has been changed when cursor is at the
     /// rightmost character of text
     Right,
-    /// Cursor has not changed
-    Unchanged,
-    /// Cursor has been changed to corresponding value
-    Changed(T),
+    /// Cursor is within
+    Within,
 }
 
 impl CharEditor {
     /// Creates new `CharEditor`. It will take focus and set cursor to 0 as quickly as possible.
-    pub fn new() -> CharEditor {
+    pub fn new(cursor: usize) -> CharEditor {
         CharEditor {
+            cursor: Some(cursor),
             should_take_focus: true,
             should_set_pos_to_start: true,
         }
+    }
+
+    fn change_cursor(&mut self, cursor: usize) {
+        if self.cursor == Some(cursor) {
+            return;
+        }
+        self.cursor = Some(cursor);
+        self.should_take_focus = true;
+        self.should_set_pos_to_start = true;
+    }
+
+    fn drop_cursor(&mut self) {
+        self.cursor = None;
+        self.should_take_focus = false;
+        self.should_set_pos_to_start = false;
     }
 
     fn render_input(&mut self,
@@ -82,24 +120,29 @@ impl CharEditor {
         (cursor_pos, text_has_changed)
     }
 
-    /// Renders char editor.
+    /// Renders char editor. Returns next cursor position and new string if it was changed.
     /// `flags` are `InputTextFlags` as i32
     /// `char_filter` is function to filter input character. Set character to `\u{0}` to cancel it.
     /// If `char_filter` is `Some`, appropriate flag will be added.
     pub fn render(&mut self,
                   ui: &mut Ui,
                   text: &str,
-                  mut cursor: usize,
                   flags: PDUIInputTextFlags_,
                   char_filter: Option<&Fn(char) -> char>)
-                  -> (NextPosition<usize>, Option<String>) {
+                  -> (NextPosition, Option<String>) {
         if text.len() == 0 {
-            return (NextPosition::Unchanged, None);
+            return (NextPosition::Within, None);
         }
-        if cursor >= text.len() {
-            cursor = text.len() - 1;
-        }
-        let mut next_position = NextPosition::Unchanged;
+        let cursor = match self.cursor {
+            None => {
+                ui.text(text);
+                return (NextPosition::Within, None)
+            },
+            Some(c) if c < text.len() => c,
+            // TODO: should it return NextPosition::Right instead?
+            _ => text.len() - 1,
+        };
+        let mut next_position = NextPosition::Within;
         let mut buf = [text.as_bytes()[cursor], 0];
         ui.push_style_var_vec(ImGuiStyleVar::ItemSpacing, Vec2 { x: 0.0, y: 0.0 });
 
@@ -107,9 +150,9 @@ impl CharEditor {
         if cursor > 0 {
             let left = &text[0..cursor];
             ui.text(left);
-            ui.same_line(0, -1);
+            ui.same_line(0, 0);
             if ui.is_item_hovered() && ui.is_mouse_clicked(0, false) {
-                next_position = NextPosition::Changed(get_text_cursor_index(ui, left.len()));
+                self.change_cursor(get_text_cursor_index(ui, left.len()));
             }
         }
 
@@ -117,41 +160,54 @@ impl CharEditor {
             ui.set_keyboard_focus_here(0);
             self.should_take_focus = false;
         }
+        ui.push_id_usize(cursor);
         let (cursor_pos, text_has_changed) = self.render_input(ui, &mut buf, flags, char_filter);
-        let changed_text = if text_has_changed {
-            ::std::str::from_utf8(&buf[0..1]).ok().map(|s| s.to_owned())
-        } else {
-            None
-        };
+        ui.pop_id();
         let char_count = text.len();
         if cursor_pos > 0 {
-            next_position = if cursor == char_count - 1 {
-                NextPosition::Right
+            if cursor == char_count - 1 {
+                next_position = NextPosition::Right;
+                self.drop_cursor();
             } else {
-                NextPosition::Changed(cursor + 1)
+                self.change_cursor(cursor + 1);
             }
         }
 
         if cursor < char_count {
-            ui.same_line(0, -1);
+            ui.same_line(0, 0);
             let right = &text[cursor + 1..char_count];
             ui.text(right);
             if ui.is_item_hovered() && ui.is_mouse_clicked(0, false) {
-                next_position = NextPosition::Changed(cursor + 1 +
-                                                      get_text_cursor_index(ui, right.len()));
+                self.change_cursor(cursor + 1 + get_text_cursor_index(ui, right.len()));
             }
         }
 
         ui.pop_style_var(1);
 
+        // Key processing. ImGui input can only have cursor at the start so right arrow key presses
+        // are processed by ImGui, left arrow key presses are processed here.
+
         if ui.is_key_pressed(Key::Left, true) {
-            next_position = if cursor > 0 {
-                NextPosition::Changed(cursor - 1)
+            if cursor > 0 {
+                self.change_cursor(cursor - 1);
             } else {
-                NextPosition::Left
+                self.drop_cursor();
+                next_position = NextPosition::Left;
             }
         }
 
+        let changed_text = if text_has_changed {
+            let changed_symbol = ::std::str::from_utf8(&buf[0..1]).ok().map(|s| s.to_owned());
+            changed_symbol.map(|changed_symbol| {
+                let mut res = String::with_capacity(text.len());
+                res.push_str(&text[0..cursor]);
+                res.push_str(&changed_symbol);
+                res.push_str(&text[cursor + 1..]);
+                res
+            })
+        } else {
+            None
+        };
         return (next_position, changed_text);
     }
 }

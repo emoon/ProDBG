@@ -235,6 +235,9 @@ RustSharedLibrary {
 	Sources = {
 		get_rs_src("src/plugins/registers_view"),
 		get_rs_src("api/rust/prodbg"),
+		get_rs_src("src/helpers/serde_macros"),
+		get_rs_src("src/helpers/number_view"),
+		get_rs_src("src/helpers/char_editor"),
 	}
 }
 

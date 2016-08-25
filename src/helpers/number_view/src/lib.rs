@@ -10,6 +10,9 @@ extern crate serde_macros;
 #[cfg(feature = "serialization")]
 mod serialize;
 
+use std::str::FromStr;
+use std::error::Error;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct NumberView {
     pub representation: NumberRepresentation,
@@ -77,13 +80,13 @@ impl NumberView {
     /// Panics if slice of memory is less than number size.
     pub fn format(&self, buffer: &[u8]) -> String {
         macro_rules! format_buffer {
-            ($data_type:ty, $len:expr, $endianness:expr, $format:expr) => {
+            ($data_type:ty, $len:expr, $format:expr) => {
                 unsafe {
                     if buffer.len() < $len {
                         panic!("Could not convert buffer of length {} into data type of size {}", buffer.len(), $len);
                     }
                     let num_ref: &$data_type = std::mem::transmute(buffer.as_ptr());
-                    let num = match $endianness {
+                    let num = match self.endianness {
                         Endianness::Little => num_ref.to_le(),
                         Endianness::Big => num_ref.to_be(),
                     };
@@ -91,13 +94,13 @@ impl NumberView {
                 }
             };
             // m for manual endianness swap
-            (m: $data_type:ty, $len:expr, $endianness:expr, $max_len: expr, $format:expr) => {
+            (m: $data_type:ty, $len:expr, $max_len: expr, $format:expr) => {
                 unsafe {
                     if buffer.len() < $len {
                         panic!("Could not convert buffer of length {} into data type of size {}", buffer.len(), $len);
                     }
                     let mut rev_buf: [u8; $len] = [0; $len];
-                    let buf = if $endianness == Endianness::default() {
+                    let buf = if self.endianness == Endianness::default() {
                         buffer.as_ptr()
                     } else {
                         for (i, byte) in buffer.iter().enumerate() {
@@ -122,34 +125,88 @@ impl NumberView {
         match self.representation {
             NumberRepresentation::Hex => {
                 match self.size {
-                    NumberSize::OneByte => format_buffer!(u8, 1, self.endianness, "{:02x}"),
-                    NumberSize::TwoBytes => format_buffer!(u16, 2, self.endianness, "{:04x}"),
-                    NumberSize::FourBytes => format_buffer!(u32, 4, self.endianness, "{:08x}"),
-                    NumberSize::EightBytes => format_buffer!(u64, 8, self.endianness, "{:016x}"),
+                    NumberSize::OneByte => format_buffer!(u8, 1, "{:02x}"),
+                    NumberSize::TwoBytes => format_buffer!(u16, 2, "{:04x}"),
+                    NumberSize::FourBytes => format_buffer!(u32, 4, "{:08x}"),
+                    NumberSize::EightBytes => format_buffer!(u64, 8, "{:016x}"),
                 }
             }
             NumberRepresentation::UnsignedDecimal => {
                 match self.size {
-                    NumberSize::OneByte => format_buffer!(u8, 1, self.endianness, "{:3}"),
-                    NumberSize::TwoBytes => format_buffer!(u16, 2, self.endianness, "{:5}"),
-                    NumberSize::FourBytes => format_buffer!(u32, 4, self.endianness, "{:10}"),
-                    NumberSize::EightBytes => format_buffer!(u64, 8, self.endianness, "{:20}"),
+                    NumberSize::OneByte => format_buffer!(u8, 1, "{:3}"),
+                    NumberSize::TwoBytes => format_buffer!(u16, 2, "{:5}"),
+                    NumberSize::FourBytes => format_buffer!(u32, 4, "{:10}"),
+                    NumberSize::EightBytes => format_buffer!(u64, 8, "{:20}"),
                 }
             }
             NumberRepresentation::SignedDecimal => {
                 match self.size {
-                    NumberSize::OneByte => format_buffer!(i8, 1, self.endianness, "{:4}"),
-                    NumberSize::TwoBytes => format_buffer!(i16, 2, self.endianness, "{:6}"),
-                    NumberSize::FourBytes => format_buffer!(i32, 4, self.endianness, "{:11}"),
-                    NumberSize::EightBytes => format_buffer!(i64, 8, self.endianness, "{:20}"),
+                    NumberSize::OneByte => format_buffer!(i8, 1, "{:4}"),
+                    NumberSize::TwoBytes => format_buffer!(i16, 2, "{:6}"),
+                    NumberSize::FourBytes => format_buffer!(i32, 4, "{:11}"),
+                    NumberSize::EightBytes => format_buffer!(i64, 8, "{:20}"),
                 }
             }
             NumberRepresentation::Float => {
                 match self.size {
-                    NumberSize::FourBytes => format_buffer!(m: f32, 4, self.endianness, 14, "{:14.*e}"),
-                    NumberSize::EightBytes => format_buffer!(m: f64, 8, self.endianness, 23, "{:23.*e}"),
+                    NumberSize::FourBytes => format_buffer!(m: f32, 4, 14, "{:14.*e}"),
+                    NumberSize::EightBytes => format_buffer!(m: f64, 8, 23, "{:23.*e}"),
                     // Should never be available to pick through user interface
                     _ => return "Error".to_owned(),
+                }
+            }
+        }
+    }
+
+    pub fn parse(&self, text: &str) -> Result<Vec<u8>, String> {
+        macro_rules! parse_number {
+            ($value:expr, $len:expr) => {
+                unsafe {
+                    match $value {
+                        Ok(bytes) => {
+                            let bytes_ref: &[u8; $len] = std::mem::transmute(&bytes);
+                            let mut res = Vec::with_capacity($len);
+                            res.extend_from_slice(bytes_ref);
+                            if self.endianness != Endianness::default() {
+                                res.reverse();
+                            }
+                            Ok(res)
+                        }
+                        Err(e) => Err(e.description().to_string())
+                    }
+                }
+            };
+        }
+        match self.representation {
+            NumberRepresentation::Hex => {
+                match self.size {
+                    NumberSize::OneByte => parse_number!(u8::from_str_radix(text, 16), 1),
+                    NumberSize::TwoBytes => parse_number!(u16::from_str_radix(text, 16), 2),
+                    NumberSize::FourBytes => parse_number!(u32::from_str_radix(text, 16), 4),
+                    NumberSize::EightBytes => parse_number!(u64::from_str_radix(text, 16), 8),
+                }
+            }
+            NumberRepresentation::UnsignedDecimal => {
+                match self.size {
+                    NumberSize::OneByte => parse_number!(u8::from_str(text), 1),
+                    NumberSize::TwoBytes => parse_number!(u16::from_str(text), 2),
+                    NumberSize::FourBytes => parse_number!(u32::from_str(text), 4),
+                    NumberSize::EightBytes => parse_number!(u64::from_str(text), 8),
+                }
+            }
+            NumberRepresentation::SignedDecimal => {
+                match self.size {
+                    NumberSize::OneByte => parse_number!(i8::from_str(text), 1),
+                    NumberSize::TwoBytes => parse_number!(i16::from_str(text), 2),
+                    NumberSize::FourBytes => parse_number!(i32::from_str(text), 4),
+                    NumberSize::EightBytes => parse_number!(i64::from_str(text), 8),
+                }
+            }
+            NumberRepresentation::Float => {
+                match self.size {
+                    NumberSize::FourBytes => parse_number!(f32::from_str(text), 4),
+                    NumberSize::EightBytes => parse_number!(f64::from_str(text), 8),
+                    _ => Err("Float can only be of size 4 and 8".to_string()),
                 }
             }
         }

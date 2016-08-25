@@ -8,16 +8,12 @@ extern crate serde_macros;
 extern crate serde;
 extern crate serde_json;
 extern crate number_view;
+extern crate char_editor;
 
-mod char_editor;
-mod hex_editor;
-mod helper;
 
-use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, ReadStatus, EventType, PDUIWindowFlags_, ImGuiStyleVar, Vec2, StateSaver, StateLoader, LoadResult};
+use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, ReadStatus, EventType, PDUIWindowFlags_, ImGuiStyleVar, Vec2, StateSaver, StateLoader, LoadResult, PDUIInputTextFlags_};
 use number_view::*;
-use hex_editor::HexEditor;
-use char_editor::NextPosition;
-use helper::get_text_cursor_index;
+use char_editor::{CharEditor, NextPosition, get_text_cursor_index};
 
 
 /// A wrapper to render a combo. Matches `variants` and `strings`, returning one of `variants` if
@@ -96,13 +92,13 @@ enum Alignment {
     All,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct EditingCursor {
     register_name: String,
     // TODO: remove `view` as it is already in `editor`
     view: NumberView,
     chunk: usize,
-    editor: HexEditor,
+    editor: CharEditor,
 }
 
 struct RegistersSettings {
@@ -165,21 +161,40 @@ impl RegistersSettings {
         format!("{}{}", view.representation.as_short_str(), view.size.as_bit_len_str())
     }
 
-    fn render_chunk(ui: &mut Ui, name: &str, view: NumberView, chunk_num: usize, bytes: &mut [u8], cursor: &mut Option<EditingCursor>) -> (NextPosition<usize>, bool) {
-        match cursor {
-            &mut Some(ref mut c) if c.chunk == chunk_num && c.register_name == name && c.view == view && view.representation == NumberRepresentation::Hex => {
-                c.editor.render(ui, bytes)
-            },
-            _ => {
-                let text = view.format(bytes);
-                ui.text(&text);
-                let pos = if ui.is_item_hovered() && ui.is_mouse_clicked(0, false) {
-                    NextPosition::Changed(get_text_cursor_index(ui, text.len()))
-                } else {
-                    NextPosition::Unchanged
-                };
-                (pos, false)
+    fn render_chunk(ui: &mut Ui, name: &str, view: NumberView, chunk_num: usize, bytes: &mut [u8], cursor: &mut Option<EditingCursor>) -> (NextPosition, bool) {
+        let text = view.format(bytes);
+        if view.representation == NumberRepresentation::Hex {
+            match cursor {
+                &mut Some(ref mut c) if c.chunk == chunk_num && c.register_name == name && c.view == view => {
+                    let (next_pos, new_value) = c.editor.render(ui, &text, PDUIInputTextFlags_::empty(), None);
+                    let mut has_changed = false;
+                    if let Some(new_text) = new_value {
+                        match view.parse(&new_text) {
+                            Ok(new_bytes) => {
+                                bytes.copy_from_slice(&new_bytes);
+                                has_changed = true;
+                            }
+                            Err(e) => println!("Could not parse: {}", e)
+                        }
+                    }
+                    (next_pos, has_changed)
+                },
+                _ => {
+                    ui.text(&text);
+                    if ui.is_item_hovered() && ui.is_mouse_clicked(0, false) {
+                        *cursor = Some(EditingCursor {
+                            register_name: name.to_string(),
+                            view: view,
+                            chunk: chunk_num,
+                            editor: CharEditor::new(get_text_cursor_index(ui, text.len()))
+                        })
+                    }
+                    (NextPosition::Within, false)
+                }
             }
+        } else {
+            ui.text(&text);
+            (NextPosition::Within, false)
         }
     }
 
@@ -218,20 +233,12 @@ impl RegistersSettings {
             let (next_pos, is_changed) = Self::render_chunk(ui, &register.name, view, i, bytes, cursor);
             if !register.read_only {
                 match next_pos {
-                    NextPosition::Changed(pos) => {
-                        res = Some(EditingCursor {
-                            register_name: register.name.clone(),
-                            view: view,
-                            chunk: i,
-                            editor: HexEditor::new(pos, view),
-                        })
-                    },
                     NextPosition::Left if i > 0 => {
                         res = Some(EditingCursor {
                             register_name: register.name.clone(),
                             view: view,
                             chunk: i - 1,
-                            editor: HexEditor::new(view.maximum_chars_needed() - 1, view),
+                            editor: CharEditor::new(view.maximum_chars_needed() - 1),
                         })
                     },
                     NextPosition::Right if i < chunks_count - 1 => {
@@ -239,10 +246,10 @@ impl RegistersSettings {
                             register_name: register.name.clone(),
                             view: view,
                             chunk: i + 1,
-                            editor: HexEditor::new(0, view),
+                            editor: CharEditor::new(0),
                         })
-                    }
-                    _ => {}
+                    },
+                    _ => {},
                 }
             }
             register_is_changed = register_is_changed || is_changed;
