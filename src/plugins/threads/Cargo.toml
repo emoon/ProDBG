@@ -1,0 +1,14 @@
+[package]
+name = "threads"
+version = "0.1.0"
+authors = ["Daniel Collin <daniel@collin.com>", "Evgeny Khudoba <evgeny.khudoba@yandex.ru>"]
+
+# Type
+[lib]
+name = "threads"
+crate-type = ["cdylib"]
+
+# Depends
+[dependencies]
+prodbg_api = { path = "../../../api/rust/prodbg" }
+
