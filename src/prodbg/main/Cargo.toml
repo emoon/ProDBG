@@ -8,7 +8,7 @@ build = "../build.rs"
 libloading = "0.2.0"
 lazy_static = "0.1.*"
 minifb = "0.8.2"
-nfd = { git = "https://github.com/emoon/nfd-rs.git", branch = "refactor" }
+nfd = { git = "https://github.com/emoon/nfd-rs.git" }
 viewdock = { path = "../viewdock" }
 bgfx = { path = "../bgfx-rs" }
 core = { path = "../core" }
