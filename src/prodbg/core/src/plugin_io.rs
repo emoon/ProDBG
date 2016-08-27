@@ -53,10 +53,24 @@ fn write_string(priv_data: *mut c_void, data: *const c_char) {
     }
 }
 
+unsafe fn check_out_of_data(reader: *mut WriterData) -> bool {
+    let read_index = (*reader).read_index;
+    if read_index >= (*reader).data.len() {
+        true
+    } else {
+        false
+    }
+}
+
 // TODO: error handling
 fn read_int(priv_data: *mut c_void, data: *mut i64) -> LoadState {
     unsafe {
         let t = priv_data as *mut WriterData;
+
+        if check_out_of_data(t) {
+            return LoadState::OutOfData;
+        }
+
         let v = (*t).data[(*t).read_index].parse::<i64>().unwrap();
         (*t).read_index += 1;
         *data = v;
@@ -67,7 +81,13 @@ fn read_int(priv_data: *mut c_void, data: *mut i64) -> LoadState {
 fn read_double(priv_data: *mut c_void, data: *mut f64) -> LoadState {
     unsafe {
         let t = priv_data as *mut WriterData;
+
+        if check_out_of_data(t) {
+            return LoadState::OutOfData;
+        }
+
         let v = (*t).data[(*t).read_index].parse::<f64>().unwrap();
+
         (*t).read_index += 1;
         *data = v;
         LoadState::Ok
@@ -77,6 +97,11 @@ fn read_double(priv_data: *mut c_void, data: *mut f64) -> LoadState {
 fn read_string_len(priv_data: *const c_void, len: *mut i32) -> LoadState {
     unsafe {
         let t = priv_data as *mut WriterData;
+
+        if check_out_of_data(t) {
+            return LoadState::OutOfData;
+        }
+
         let v = &(*t).data[(*t).read_index];
         *len = v.len() as i32;
         LoadState::Ok
@@ -86,6 +111,11 @@ fn read_string_len(priv_data: *const c_void, len: *mut i32) -> LoadState {
 fn read_string(priv_data: *mut c_void, data: *mut c_char, max_len: i32) -> LoadState {
     unsafe {
         let t = priv_data as *mut WriterData;
+
+        if check_out_of_data(t) {
+            return LoadState::OutOfData;
+        }
+
         let v = &(*t).data[(*t).read_index];
         (*t).read_index += 1;
 
