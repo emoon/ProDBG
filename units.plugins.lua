@@ -86,24 +86,6 @@ SharedLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
-    Name = "sourcecode_plugin",
-
-    Env = {
-        CPPPATH = {
-        	"api/include",
-        	"src/native/external",
-        },
-    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-    },
-
-    Sources = { "src/plugins/sourcecode/sourcecode_plugin.cpp" },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-SharedLibrary {
     Name = "callstack_plugin",
 
     Env = {
@@ -218,6 +200,17 @@ RustSharedLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 RustSharedLibrary {
+	Name = "source_code",
+	CargoConfig = "src/plugins/source_code/Cargo.toml",
+	Sources = {
+		get_rs_src("src/plugins/source_code"),
+		get_rs_src("api/rust/prodbg"),
+	}
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+RustSharedLibrary {
 	Name = "bitmap_memory",
 	CargoConfig = "src/plugins/bitmap_memory/Cargo.toml",
 	Sources = {
@@ -280,7 +273,7 @@ end
 
 Default "registers_plugin"
 Default "callstack_plugin"
-Default "sourcecode_plugin"
+Default "source_code"
 Default "disassembly"
 Default "locals_plugin"
 Default "threads_plugin"
