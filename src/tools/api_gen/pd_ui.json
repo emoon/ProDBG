@@ -44,6 +44,14 @@
          { "uint": "PDUIInputTextFlags_ReadOnly", "value": "16384" },
          { "uint": "PDUIInputTextFlags_Password", "value": "32768" }
        ]
+   },
+   {
+       "uint": "PDUISelectableFlags__",
+       "var": [
+         { "uint": "PDUISelectableFlags__DontClosePopups", "value": "1" },
+         { "uint": "PDUISelectableFlags__SpanAllColumns", "value": "2" },
+         { "uint": "PDUISelectableFlags__AllowDoubleClick", "value": "4" }
+       ]
    }],
 
    "struct": [

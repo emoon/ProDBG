@@ -130,17 +130,13 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
-SharedLibrary {
-    Name = "threads_plugin",
-
-    Env = {
-        CPPPATH = { "api/include", },
-    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-    },
-
-    Sources = { "src/plugins/threads/threads_plugin.cpp" },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
+RustSharedLibrary {
+	Name = "threads",
+	CargoConfig = "src/plugins/threads/Cargo.toml",
+	Sources = {
+		get_rs_src("src/plugins/threads"),
+		get_rs_src("api/rust/prodbg"),
+	}
 }
 
 
@@ -277,7 +273,7 @@ Default "callstack_plugin"
 Default "source_code"
 Default "disassembly"
 Default "locals_plugin"
-Default "threads_plugin"
+Default "threads"
 Default "breakpoints_plugin"
 --Default "workspace_plugin"
 Default "console_plugin"
