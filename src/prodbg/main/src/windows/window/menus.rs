@@ -59,7 +59,7 @@ impl Window {
             MENU_FILE_OPEN_SOURCE => self.browse_source_file(view_plugins, current_session),
             MENU_DEBUG_TOGGLE_BREAKPOINT => {
                 let writer = current_session.get_current_writer();
-                writer.event_begin(events::PDEVENT_TOGGLE_BREAKPOINT_CURRENT_LINE as u16);
+                writer.event_begin(events::EVENT_TOGGLE_BREAKPOINT_CURRENT_LINE as u16);
                 writer.event_end();
             }
             _ => {
