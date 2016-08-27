@@ -2,6 +2,7 @@
 extern crate prodbg_api;
 extern crate gdb_remote;
 extern crate amiga_hunk_parser;
+extern crate nfd;
 
 mod debug_info;
 
@@ -11,6 +12,8 @@ use std::io::Result;
 use std::os::raw::c_void;
 use gdb_remote::GdbRemote;
 use debug_info::DebugInfo;
+use nfd::Response;
+use std::path::{Path, PathBuf};
 
 //const MENU_CONNECT: u32 = 0;
 //const MENU_ENABLE_DMA: u32 = 1;
@@ -353,6 +356,57 @@ impl AmigaUaeBackend {
             });
         }
     }
+
+    fn show_file_dir_select(name: &str, temp: &mut [u8], path: &mut String, ui: &Ui) {
+        temp[..path.len()].copy_from_slice(path.as_bytes());
+
+        if ui.input_text(name, temp.as_mut(), 
+                      PDUIINPUTTEXTFLAGS_ENTERRETURNSTRUE | 
+                      PDUIINPUTTEXTFLAGS_AUTOSELECTALL,
+                      None) {
+            let null_index = temp.iter().position(|c| *c == 0).unwrap_or(temp.len());
+            if let Ok(parsed) = str::from_utf8(&temp[..null_index]) {
+                *path = parsed.to_string();
+            }
+        }
+    }
+
+    fn get_sub_path(&mut self, source: &str) {
+        let mut new_path = PathBuf::new();
+        let source_path = Path::new(source);
+        let needle_path = Path::new(&self.uae_partition_path);
+
+        let mut n = source_path.components();
+
+        for _ in needle_path.components() {
+            n.next();
+        }
+
+        for t in n {
+            match t {
+                std::path::Component::Normal(path) => new_path.push(path),
+                _ => (),
+            }
+        }
+
+        self.amiga_exe_file_path = "dh0:".to_owned() + new_path.as_path().to_string_lossy().as_ref();
+    }
+
+    fn set_file_exe_path(&mut self, filename: &str) {
+        if self.uae_partition_path == "" {
+            println!("Set path to UAE HDD first");
+            return;
+        }
+
+        // Make sure that file is within the partition path 
+
+        if !filename.contains(&self.uae_partition_path) {
+            println!("File {} isn't within the set partition path", filename);
+            return;
+        }
+
+        self.get_sub_path(filename);
+    }
 }
 
 impl Backend for AmigaUaeBackend {
@@ -460,36 +514,52 @@ impl Backend for AmigaUaeBackend {
     fn show_config(&mut self, ui: &mut Ui) {
         let mut buf: [u8; 4096] = [0; 4096];
         let mut buf2: [u8; 4096] = [0; 4096];
-        buf[..self.amiga_exe_file_path.len()].copy_from_slice(self.amiga_exe_file_path.as_bytes());
-        buf2[..self.uae_partition_path.len()].copy_from_slice(self.uae_partition_path.as_bytes());
 
         ui.align_first_text_height_to_widgets();
 
-        ui.text("Executable (dh0:<exe>)");
-        ui.same_line(220, -1);
-
-        if ui.input_text("##Executable", buf.as_mut(), 
-                      PDUIINPUTTEXTFLAGS_ENTERRETURNSTRUE | 
-                      PDUIINPUTTEXTFLAGS_AUTOSELECTALL,
-                      None) {
-            let null_index = buf.iter().position(|c| *c == 0).unwrap_or(buf.len());
-            if let Ok(parsed) = str::from_utf8(&buf[..null_index]) {
-                self.amiga_exe_file_path = parsed.to_string();
-            }
-        }
-
         ui.text("UAE Partition Path");
         ui.same_line(220, -1);
+        Self::show_file_dir_select("##Partition", &mut buf2, &mut self.uae_partition_path, ui);
 
-        if ui.input_text("##Partion", buf2.as_mut(), 
-                      PDUIINPUTTEXTFLAGS_ENTERRETURNSTRUE | 
-                      PDUIINPUTTEXTFLAGS_AUTOSELECTALL,
-                      None) {
-            let null_index = buf2.iter().position(|c| *c == 0).unwrap_or(buf2.len());
-            if let Ok(parsed) = str::from_utf8(&buf2[..null_index]) {
-                self.uae_partition_path = parsed.to_string();
+        ui.same_line(0, -1);
+        if ui.button("...##1", None) {
+            let result = nfd::open_pick_folder(Some(&self.uae_partition_path)).unwrap_or_else(|e| {
+                panic!(e);
+            });
+
+            match result {
+                Response::Okay(file_path) => self.uae_partition_path = file_path, 
+                _ => (),
             }
         }
+
+        ui.text("Executable (dh0:<exe>)");
+        ui.same_line(220, -1);
+        Self::show_file_dir_select("##Executable", &mut buf, &mut self.amiga_exe_file_path, ui);
+
+        ui.same_line(0, -1);
+        if ui.button("...##2", None) {
+            let result = nfd::open_file_dialog(None, Some(&self.amiga_exe_file_path)).unwrap_or_else(|e| {
+                panic!(e);
+            });
+
+            match result {
+                Response::Okay(file_path) => self.set_file_exe_path(&file_path), 
+                _ => (),
+            }
+        }
+
+        /*
+        if ui.button("...") {
+            let result = nfd::open_pick_folder(Some(&self.amiga_exe_file_path)).unwrap_or_else(|e| {
+                println!("Unable to open pick folder {:?}", e);
+            });
+
+            match result {
+                Response::Okay(file_path) => self.amiga_exe_file_path = file_path, 
+            }
+        }
+        */
 
         ui.checkbox("Break at Start", &mut self.break_at_start);
     }
