@@ -7,12 +7,13 @@ mod debug_info;
 
 use prodbg_api::*;
 use std::str;
+use std::io::Result;
 use std::os::raw::c_void;
 use gdb_remote::GdbRemote;
 use debug_info::DebugInfo;
 
-const MENU_CONNECT: u32 = 0;
-const MENU_ENABLE_DMA: u32 = 1;
+//const MENU_CONNECT: u32 = 0;
+//const MENU_ENABLE_DMA: u32 = 1;
 
 struct Segment {
     address: u32,
@@ -296,30 +297,18 @@ impl AmigaUaeBackend {
         }
     }
 
-    fn connect(&mut self) -> bool {
-        println!("is_connected {}", self.conn.is_connected());
-        
+    fn connect(&mut self) -> Result<()> {
         if self.conn.is_connected() {
-            return true;
+            return Ok(());
         }
 
-        if self.conn.connect("127.0.0.1:6860").is_ok() {
-            if self.conn.request_no_ack_mode().is_ok() {
-                println!("Connected. Ready to go!");
-                if self.conn.cont().is_err() {
-                    println!("Failed to cont");
-                }
-                true
-            } else {
-                println!("no ack request failed");
-                false
-            }
-        } else {
-            println!("Unable to connect to UAE");
-            false
-        }
+        try!(self.conn.connect("127.0.0.1:6860"));
+        try!(self.conn.request_no_ack_mode());
+
+        Ok(())
     }
 
+    /*
     fn on_menu(&mut self, reader: &mut Reader) {
         let menu_id = reader.find_u32("menu_id").ok().unwrap();
 
@@ -340,6 +329,7 @@ impl AmigaUaeBackend {
             _ => (),
         }
     }
+    */
 
     fn store_segments(&mut self, segment_reply: &[u8]) {
         let segs_name = str::from_utf8(segment_reply).unwrap();
@@ -385,9 +375,11 @@ impl Backend for AmigaUaeBackend {
 
         for event in reader.get_event() {
             match event {
+                /*
                 EVENT_MENU_EVENT => {
                     self.on_menu(reader);
                 }
+                */
                 EVENT_GET_DISASSEMBLY => {
                     self.write_disassembly(reader, writer);
                 }
@@ -430,7 +422,8 @@ impl Backend for AmigaUaeBackend {
 
                 println!("Start (trying to connect)");
 
-                if !self.connect() {
+                if let Err(err) = self.connect() {
+                    println!("Unable to connect {:?}", err);
                     return;
                 }
 
@@ -446,16 +439,15 @@ impl Backend for AmigaUaeBackend {
 
             ACTION_STEP => {
                 let mut step_res = [0; 16];
-                self.conn.step(&mut step_res).unwrap();
+                if self.conn.step(&mut step_res).is_err() {
+                    println!("Unable to step!");
+                    return;
+                }
                 println!("step res {:?}", step_res);
                 self.get_registers(writer);
             }
 
             ACTION_STOP => {
-                if !self.connect() {
-                    return;
-                }
-
                 // Set kill command
                 if self.conn.send_command("k").is_err() {
                     println!("Unable to send kill command");
@@ -527,11 +519,14 @@ impl Backend for AmigaUaeBackend {
         }
     }
 
-    fn register_menu(&mut self, menu_funcs: &mut MenuFuncs) -> *mut c_void {
+    fn register_menu(&mut self, _menu_funcs: &mut MenuFuncs) -> *mut c_void {
+        /*
         let menu = menu_funcs.create_menu("Amiga UAE Debugger");
         menu_funcs.add_menu_item(menu, "Connect to UAE...", MENU_CONNECT as usize, 0, 0);
         menu_funcs.add_menu_item(menu, "Enable DMA Stream", MENU_ENABLE_DMA as usize, 0, 0);
         menu
+        */
+        std::ptr::null_mut() as *mut c_void
     }
 }
 
