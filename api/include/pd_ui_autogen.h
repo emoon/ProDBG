@@ -41,6 +41,13 @@ enum PDUIInputTextFlags_ {
 };
 
 
+enum PDUISelectableFlags__ {
+    PDUISelectableFlags__DontClosePopups = 1,
+    PDUISelectableFlags__SpanAllColumns = 2,
+    PDUISelectableFlags__AllowDoubleClick = 4,
+};
+
+
 typedef struct PDVec2 {
     float x;
     float y;

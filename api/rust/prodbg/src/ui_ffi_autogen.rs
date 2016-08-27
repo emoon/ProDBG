@@ -42,6 +42,13 @@ bitflags! {
     }
 }
 
+bitflags! {
+    flags PDUISelectableFlags__: c_uint {
+        const PDUISELECTABLEFLAGS__DONTCLOSEPOPUPS = 1 as c_uint,
+        const PDUISELECTABLEFLAGS__SPANALLCOLUMNS = 2 as c_uint,
+        const PDUISELECTABLEFLAGS__ALLOWDOUBLECLICK = 4 as c_uint,
+    }
+}
 
 #[repr(C)]
 #[derive(Debug)]
