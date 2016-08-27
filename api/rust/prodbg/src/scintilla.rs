@@ -23,6 +23,14 @@ impl Scintilla {
     }
 
     #[inline]
+    pub fn send_command_str(&self, message: u32, data: &str) -> u64 {
+        unsafe { 
+            let ptr = data.as_ptr() as u64;
+            ((*self.api).send_command)((*self.api).private_data, message, data.len() as u64, ptr) 
+        }
+    }
+
+    #[inline]
     pub fn update(&self) {
         unsafe { ((*self.api).update)((*self.api).private_data) }
     }
