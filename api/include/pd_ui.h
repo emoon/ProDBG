@@ -25,7 +25,7 @@ typedef uint32_t PDUIInputTextFlags;    // enum PDUIInputTextFlags_
 typedef uint32_t PDID;
 typedef uint32_t PDUISetCond;
 typedef uint32_t PDUIWindowFlags;
-typedef uint32_t PDUISelectableFlags;
+typedef uint32_t PDUISelectableFlags;  // enum PDUISelectableFlags__ // additional underscore to avoid conflicts with C++ code  
 typedef void* PDUIFont;
 
 #define PDUI_COLOR(r, g, b, a) (((uint32_t)a << 24) | ((uint32_t)g << 16) | ((uint32_t)b << 8) | (r))

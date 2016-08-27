@@ -574,6 +574,21 @@ impl Ui {
         }
     }
 
+    #[inline]
+    pub fn selectable(&self,
+                      label: &str, 
+                      selected: bool,
+                      flags: PDUISelectableFlags__,
+                      size: Vec2) -> bool {
+        unsafe {
+            let c_label = CFixedString::from_str(label).as_ptr();
+            ((*self.api).selectable)(c_label, 
+                                    selected as c_int,
+                                    flags.bits(),
+                                    size.into()) != 0
+        }
+    }
+
     /// Combobox
     /// `height` is number of lines when combobox is open
     /// Returns `true` if `current_item` was changed
