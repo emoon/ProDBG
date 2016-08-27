@@ -25,13 +25,21 @@ impl DebugInfo {
     fn try_find_line(filename: &str, 
                      lines: &Vec<SourceLine>, 
                      offset: u32) -> Option<(String, u32)> {
+        let mut source_line = 0u32;
+
         for line in lines {
-            if line.offset == offset {
-                return Some((filename.to_owned(), line.line));
-            }
+            if line.offset <= offset {
+                source_line = line.line;
+            } 
+
+            //if line.offset == offset {
+            //   return Some((filename.to_owned(), line.line));
+            //}
         }
 
-        None
+        println!("Matching source {} line {}", filename, source_line);
+        
+        Some((filename.to_owned(), source_line))
     }
 
     pub fn resolve_file_line(&self, offset: u32, seg_id: u32) -> Option<(String, u32)> {
