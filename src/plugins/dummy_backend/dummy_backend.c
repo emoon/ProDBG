@@ -520,10 +520,12 @@ static void write_register(PDWriter* writer, Register* reg) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void send_registers(DummyPlugin* data, PDWriter* writer) {
+	int i = 0;
+
 	PDWrite_event_begin(writer, PDEventType_SetRegisters);
 	PDWrite_array_begin(writer, "registers");
 
-    for (int i = 0; i < data->registers_count; i++) {
+    for (i = 0; i < data->registers_count; i++) {
         write_register(writer, &data->registers[i]);
     }
 
@@ -534,41 +536,52 @@ static void send_registers(DummyPlugin* data, PDWriter* writer) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static Register* get_register_by_name(DummyPlugin* plugin, const char* name) {
-    for (int i = 0; i < plugin->registers_count; i++) {
+	int i = 0;
+
+    for (i = 0; i < plugin->registers_count; i++) {
         if (strcmp(name, plugin->registers[i].name) == 0) {
             return &plugin->registers[i];
         }
     }
+
     return NULL;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void update_register(DummyPlugin* plugin, PDReader* reader) {
     const char* name;
     void* data;
     uint64_t size;
+    Register* reg;
 
     if (PDRead_find_string(reader, &name, "name", 0) == PDReadStatus_NotFound) {
         printf("Could not find 'name' field in SetRegisters request\n");
         return;
     }
+
     if (PDRead_find_data(reader, &data, &size, "data", 0) == PDReadStatus_NotFound) {
         printf("Could not find 'data' field in SetRegisters request\n");
         return;
     }
 
-    Register* reg = get_register_by_name(plugin, name);
-    if (reg == NULL) {
+    reg = get_register_by_name(plugin, name);
+
+    if (!reg) {
         printf("Could not find register with name %s in SetRegisters request\n", name);
         return;
     }
+
     if (reg->size != size) {
         printf("Size of data for register %s %d does not match its original size %d\n", name, (int)size, reg->size);
         return;
     }
+
     if (reg->read_only != 0) {
         printf("Tried to change register %s which is read-only\n", name);
         return;
     }
+
     printf("Setting value for register %s\n", name);
     memcpy(reg->data, data, size);
 }
