@@ -680,6 +680,14 @@ impl Ui {
         unsafe { ((*self.api).push_id_int)(id) }
     }
 
+    pub fn push_id_str(&self, s: &str) {
+        unsafe {
+            let start = mem::transmute::<*const u8, *const i8>(s.as_ptr());
+            let end = start.offset(s.len() as isize);
+            ((*self.api).push_id_str_range)(start, end);
+        }
+    }
+
     #[inline]
     pub fn pop_id(&self) {
         unsafe {
@@ -835,7 +843,7 @@ impl Ui {
     ///
     ///
 
-    pub fn tree_node<'a>(&'a self, label: &'a str) -> TreeBuilder<'a> {
+    pub fn tree_node<'a>(&'a mut self, label: &'a str) -> TreeBuilder<'a> {
         TreeBuilder {
             ui: self,
             label: label,
@@ -941,20 +949,33 @@ impl Ui {
 }
 
 pub struct TreeBuilder<'a> {
-    ui: &'a Ui,
+    ui: &'a mut Ui,
     label: &'a str,
 }
 
 impl<'a> TreeBuilder<'a> {
-    pub fn show<F: FnOnce(&Ui)>(&self, f: F) {
+    pub fn show<F: FnMut(&mut Ui)>(self, mut f: F) -> bool {
         unsafe {
             let label = CFixedString::from_str(self.label);
-            let t = ((*self.ui.api).tree_node)(label.as_ptr());
+            let is_expanded = ((*self.ui.api).tree_node)(label.as_ptr()) == 1;
 
-            if t == 1 {
+            if is_expanded {
                 f(self.ui);
                 ((*self.ui.api).tree_pop)();
             }
+            is_expanded
+        }
+    }
+
+    pub fn exec<R, F: FnMut(&mut Ui, bool) -> R>(self, mut f: F) -> R {
+        unsafe {
+            let label = CFixedString::from_str(self.label);
+            let is_expanded = ((*self.ui.api).tree_node)(label.as_ptr()) == 1;
+            let res = f(self.ui, is_expanded);
+            if is_expanded {
+                ((*self.ui.api).tree_pop)();
+            }
+            res
         }
     }
 }
