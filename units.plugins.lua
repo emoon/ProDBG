@@ -222,9 +222,8 @@ RustSharedLibrary {
 	CargoConfig = "src/plugins/memory_view/Cargo.toml",
 	Sources = {
 		get_rs_src("src/plugins/memory_view"),
-		get_rs_src("api/rust/prodbg"),
-		get_rs_src("src/helpers/serde_macros"),
-	}
+	},
+    Depends = { "prodbg_api", "serde_macros" }
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -234,11 +233,8 @@ RustSharedLibrary {
 	CargoConfig = "src/plugins/registers_view/Cargo.toml",
 	Sources = {
 		get_rs_src("src/plugins/registers_view"),
-		get_rs_src("api/rust/prodbg"),
-		get_rs_src("src/helpers/serde_macros"),
-		get_rs_src("src/helpers/number_view"),
-		get_rs_src("src/helpers/char_editor"),
-	}
+    },
+    Depends = { "char_editor", "number_view", "serde_macros", "prodbg_api" }
 }
 
 -----------------------------------------------------------------------------------------------------------------------

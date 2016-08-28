@@ -14,3 +14,4 @@ serde_json = "0.7.0"
 serde_macros = { path = "../../helpers/serde_macros" }
 number_view = { path = "../../helpers/number_view", features=["serialization"] }
 char_editor = { path = "../../helpers/char_editor" }
+combo = { path = "../../helpers/combo" }

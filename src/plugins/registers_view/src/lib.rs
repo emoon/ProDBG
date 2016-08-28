@@ -9,44 +9,13 @@ extern crate serde;
 extern crate serde_json;
 extern crate number_view;
 extern crate char_editor;
+extern crate combo;
 
 
 use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, ReadStatus, EventType, PDUIWindowFlags_, ImGuiStyleVar, Vec2, StateSaver, StateLoader, LoadResult, PDUIInputTextFlags_};
 use number_view::*;
 use char_editor::{CharEditor, NextPosition, get_text_cursor_index};
-
-
-/// A wrapper to render a combo. Matches `variants` and `strings`, returning one of `variants` if
-/// new item was selected in combo. Uses maximal string width as a combo width.
-pub fn combo<'a, T>(ui: &mut Ui,
-                    id: &str,
-                    variants: &'a [T],
-                    strings: &[&str],
-                    cur: &T)
-                    -> Option<&'a T>
-    where T: PartialEq
-{
-
-    if variants.len() != strings.len() {
-        panic!("Variants and strings length should be equal in combo");
-    }
-    if variants.is_empty() {
-        panic!("Variants cannot be empty in combo");
-    }
-    let mut res = None;
-    let mut current_item = variants.iter().position(|var| var == cur).unwrap_or(0);
-    let width = strings.iter().map(|s| ui.calc_text_size(s, 0).x as i32 + 40).max().unwrap_or(200);
-    ui.push_item_width(width as f32);
-    if ui.combo(id,
-                &mut current_item,
-                &strings,
-                strings.len(),
-                strings.len()) {
-        res = Some(&variants[current_item]);
-    }
-    ui.pop_item_width();
-    res
-}
+use combo::combo;
 
 
 #[derive(Debug)]
