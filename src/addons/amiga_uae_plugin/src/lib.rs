@@ -501,6 +501,13 @@ impl Backend for AmigaUaeBackend {
                 self.get_registers(writer);
             }
 
+            ACTION_STEP_OVER => {
+                // Really don't think 'n' is correct here but use it for now
+                if self.conn.send_command("n").is_ok() {
+                    println!("Step over instruction");
+                }
+            }
+
             ACTION_STOP => {
                 // Set kill command
                 if self.conn.send_command("k").is_err() {
