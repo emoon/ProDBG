@@ -52,16 +52,15 @@ impl AmigaUaeBackend {
         (t0 << 8) | t1
     }
 
-    fn write_register(writer: &mut Writer, name: &str, data: u32, read_only: bool) {
+    fn write_register(writer: &mut Writer, name: &str, data: &[u8], read_only: bool) {
         writer.array_entry_begin();
         writer.write_string("name", name);
-        writer.write_u8("size", 4);
 
         if read_only {
             writer.write_u8("read_only", 1);
         }
 
-        writer.write_u32("register", data);
+        writer.write_data("register", &data[..4]);
 
         writer.array_entry_end();
     }
@@ -76,8 +75,7 @@ impl AmigaUaeBackend {
 
         for i in 0..8 {
             let name = format!("d{}", i);
-            let reg = Self::get_u32(&data[index..]);
-            Self::write_register(writer, &name, reg, false);
+            Self::write_register(writer, &name, &data[index..], false);
             index += 4;
         }
 
@@ -85,20 +83,18 @@ impl AmigaUaeBackend {
 
         for i in 0..8 {
             let name = format!("a{}", i);
-            let reg = Self::get_u32(&data[index..]);
-            Self::write_register(writer, &name, reg, false);
+            Self::write_register(writer, &name, &data[index..], false);
             index += 4;
         }
 
         // Status registers & pc
 
-        let sr = Self::get_u32(&data[index..]);
         let pc = Self::get_u32(&data[index + 4..]);
 
         self.exception_location = pc;
 
-        Self::write_register(writer, "sr", sr, true);
-        Self::write_register(writer, "pc", pc, true);
+        Self::write_register(writer, "sr", &data[index..], true);
+        Self::write_register(writer, "pc", &data[index + 4..], true);
 
         writer.array_end();
         writer.event_end();
@@ -506,6 +502,7 @@ impl Backend for AmigaUaeBackend {
                 if self.conn.send_command("n").is_ok() {
                     println!("Step over instruction");
                 }
+                //self.get_registers(writer);
             }
 
             ACTION_STOP => {
