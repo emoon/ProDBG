@@ -2949,9 +2949,9 @@ ImVec2 ImGui::CalcTextSize(const char* text, const char* text_end, bool hide_tex
     // Cancel out character spacing for the last character of a line (it is baked into glyph->XAdvance field)
     const float font_scale = font_size / font->FontSize;
     const float character_spacing_x = 1.0f * font_scale;
-    if (text_size.x > 0.0f)
-        text_size.x -= character_spacing_x;
-    text_size.x = (float)(int)(text_size.x + 0.95f);
+    //if (text_size.x > 0.0f)
+    //    text_size.x -= character_spacing_x;
+    //text_size.x = (float)(int)(text_size.x + 0.95f);
 
     return text_size;
 }
