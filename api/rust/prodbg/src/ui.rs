@@ -680,6 +680,14 @@ impl Ui {
         unsafe { ((*self.api).push_id_int)(id) }
     }
 
+    pub fn push_id_str(&self, s: &str) {
+        unsafe {
+            let start = mem::transmute::<*const u8, *const i8>(s.as_ptr());
+            let end = start.offset(s.len() as isize);
+            ((*self.api).push_id_str_range)(start, end);
+        }
+    }
+
     #[inline]
     pub fn pop_id(&self) {
         unsafe {

@@ -166,7 +166,9 @@ impl RegistersSettings {
         if view.representation == NumberRepresentation::Hex {
             match cursor {
                 &mut Some(ref mut c) if c.chunk == chunk_num && c.register_name == name && c.view == view => {
+                    ui.push_id_int(chunk_num as i32);
                     let (next_pos, new_value) = c.editor.render(ui, &text, PDUIInputTextFlags_::empty(), None);
+                    ui.pop_id();
                     let mut has_changed = false;
                     if let Some(new_text) = new_value {
                         match view.parse(&new_text) {
@@ -213,6 +215,7 @@ impl RegistersSettings {
         let chunks_count = register.value.len() / view.size.byte_count();
         let mut register_is_changed = false;
         const SPACES: &'static str = "                              ";
+        ui.push_id_str(&register.name);
         for (i, bytes) in register.value
             .chunks_mut(view.size.byte_count())
             .enumerate() {
@@ -254,6 +257,7 @@ impl RegistersSettings {
             }
             register_is_changed = register_is_changed || is_changed;
         }
+        ui.pop_id();
         if register_is_changed {
             RegistersView::set_register(register, writer);
         }
