@@ -562,7 +562,7 @@ static void update_register(DummyPlugin* plugin, PDReader* reader) {
         return;
     }
     if (reg->size != size) {
-        printf("Size of data for register %s %ld does not match its original size %d\n", name, size, reg->size);
+        printf("Size of data for register %s %d does not match its original size %d\n", name, (int)size, reg->size);
         return;
     }
     if (reg->read_only != 0) {
