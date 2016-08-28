@@ -15,6 +15,7 @@ use menu::Menu;
 use imgui_sys::Imgui;
 use prodbg_api::view::CViewCallbacks;
 use prodbg_api::backend::CBackendCallbacks;
+use prodbg_api::events::EVENT_SET_STATUS;
 use std::os::raw::c_void;
 use std::collections::VecDeque;
 use statusbar::Statusbar;
@@ -139,7 +140,6 @@ impl Window {
         // Status bar needs full size of window
         let win_size = self.win.get_size();
 
-        self.update_statusbar(sessions, backend_plugins, win_size);
 
         let width = win_size.0 as f32;
         let height = (win_size.1 as f32) - self.statusbar.get_size() - self.custom_menu_height;
@@ -176,6 +176,8 @@ impl Window {
             self.save_cur_workspace_state();
         }
 
+        self.update_statusbar(sessions, backend_plugins, win_size);
+
         self.process_key_presses(view_plugins);
 
         // if now plugin has showed a menu we do it here
@@ -187,11 +189,25 @@ impl Window {
     }
 
     /// Updates the statusbar at the bottom of the window to show which state the debugger currently is in
-    fn update_statusbar(&self,
+    fn update_statusbar(&mut self,
                         sessions: &mut Sessions,
                         backend_plugins: &mut BackendPlugins,
                         size: (usize, usize)) {
         let session = sessions.get_current();
+
+        ReaderWrapper::reset_reader(&mut session.reader);
+
+        for event in session.reader.get_event() {
+            match event {
+                EVENT_SET_STATUS => {
+                    if let Ok(status) = session.reader.find_string("status") {
+                        self.statusbar.status = status.to_owned();
+                    } 
+                }
+
+                _ => (),
+            }
+        }
 
         if let Some(ref backend) = backend_plugins.get_backend(session.backend) {
             let name = &backend.plugin_type.name;
