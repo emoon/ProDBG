@@ -12,7 +12,9 @@ extern crate char_editor;
 extern crate combo;
 
 
-use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, ReadStatus, EventType, PDUIWindowFlags_, ImGuiStyleVar, Vec2, StateSaver, StateLoader, LoadResult, PDUIInputTextFlags_};
+use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, ReadStatus,
+                 EventType, PDUIWindowFlags_, ImGuiStyleVar, Vec2, StateSaver, StateLoader,
+                 LoadResult, PDUIInputTextFlags_};
 use number_view::*;
 use char_editor::{CharEditor, NextPosition, get_text_cursor_index};
 use combo::combo;
@@ -48,7 +50,7 @@ impl Grouping {
                     continue 'views;
                 }
             }
-            res.push(vec!((i, *view)));
+            res.push(vec![(i, *view)]);
         }
         res
     }
@@ -78,8 +80,10 @@ struct RegistersSettings {
 
 impl RegistersSettings {
     fn render_view_picker(&mut self, ui: &mut Ui) {
-        const VARIANTS: [Option<Grouping>; 3] = [None, Some(Grouping::Size), Some(Grouping::Representation)];
-        const NAMES: [&'static str; 3] = ["No grouping", "Group by size", "Group by representation"];
+        const VARIANTS: [Option<Grouping>; 3] =
+            [None, Some(Grouping::Size), Some(Grouping::Representation)];
+        const NAMES: [&'static str; 3] =
+            ["No grouping", "Group by size", "Group by representation"];
         if let Some(val) = combo(ui, "##grouping", &VARIANTS, &NAMES, &self.grouping) {
             self.grouping = *val;
         }
@@ -95,18 +99,18 @@ impl RegistersSettings {
 
     fn render_bars_picker(&mut self, ui: &mut Ui) {
         const VARIANTS: [Option<usize>; 5] = [None, Some(1), Some(2), Some(4), Some(8)];
-        const NAMES: [&'static str; 5] = ["No columns", "1 byte columns", "2 byte columns", "4 byte columns", "8 byte columns"];
+        const NAMES: [&'static str; 5] =
+            ["No columns", "1 byte columns", "2 byte columns", "4 byte columns", "8 byte columns"];
         if let Some(val) = combo(ui, "##bars", &VARIANTS, &NAMES, &self.column_byte_count) {
             self.column_byte_count = *val;
         }
     }
 
     fn render_default_view_picker(&mut self, ui: &mut Ui) {
-        let variants: [NumberRepresentation; 4] = [
-                        NumberRepresentation::Hex,
-                        NumberRepresentation::UnsignedDecimal,
-                        NumberRepresentation::SignedDecimal,
-                        NumberRepresentation::Float];
+        let variants: [NumberRepresentation; 4] = [NumberRepresentation::Hex,
+                                                   NumberRepresentation::UnsignedDecimal,
+                                                   NumberRepresentation::SignedDecimal,
+                                                   NumberRepresentation::Float];
         let strings: Vec<&str> = variants.iter().map(|repr| repr.as_str()).collect();
         if let Some(repr) = combo(ui,
                                   "##number_representation",
@@ -120,22 +124,36 @@ impl RegistersSettings {
         let variants = self.default_view.representation.get_avaialable_sizes();
         let strings: Vec<&str> = variants.iter().map(|size| size.as_str()).collect();
         ui.same_line(0, -1);
-        if let Some(size) = combo(ui, "##number_size", &variants, &strings, &self.default_view.size) {
+        if let Some(size) = combo(ui,
+                                  "##number_size",
+                                  &variants,
+                                  &strings,
+                                  &self.default_view.size) {
             self.default_view.size = *size;
         }
     }
 
     fn get_view_short_name(view: NumberView) -> String {
-        format!("{}{}", view.representation.as_short_str(), view.size.as_bit_len_str())
+        format!("{}{}",
+                view.representation.as_short_str(),
+                view.size.as_bit_len_str())
     }
 
-    fn render_chunk(ui: &mut Ui, name: &str, view: NumberView, chunk_num: usize, bytes: &mut [u8], cursor: &mut Option<EditingCursor>) -> (NextPosition, bool) {
+    fn render_chunk(ui: &mut Ui,
+                    name: &str,
+                    view: NumberView,
+                    chunk_num: usize,
+                    bytes: &mut [u8],
+                    cursor: &mut Option<EditingCursor>)
+                    -> (NextPosition, bool) {
         let text = view.format(bytes);
         if view.representation == NumberRepresentation::Hex {
             match cursor {
-                &mut Some(ref mut c) if c.chunk == chunk_num && c.register_name == name && c.view == view => {
+                &mut Some(ref mut c) if c.chunk == chunk_num && c.register_name == name &&
+                                        c.view == view => {
                     ui.push_id_int(chunk_num as i32);
-                    let (next_pos, new_value) = c.editor.render(ui, &text, PDUIInputTextFlags_::empty(), None);
+                    let (next_pos, new_value) = c.editor
+                        .render(ui, &text, PDUIInputTextFlags_::empty(), None);
                     ui.pop_id();
                     let mut has_changed = false;
                     if let Some(new_text) = new_value {
@@ -144,11 +162,11 @@ impl RegistersSettings {
                                 bytes.copy_from_slice(&new_bytes);
                                 has_changed = true;
                             }
-                            Err(e) => println!("Could not parse: {}", e)
+                            Err(e) => println!("Could not parse: {}", e),
                         }
                     }
                     (next_pos, has_changed)
-                },
+                }
                 _ => {
                     ui.text(&text);
                     if ui.is_item_hovered() && ui.is_mouse_clicked(0, false) {
@@ -156,7 +174,7 @@ impl RegistersSettings {
                             register_name: name.to_string(),
                             view: view,
                             chunk: chunk_num,
-                            editor: CharEditor::new(get_text_cursor_index(ui, text.len()))
+                            editor: CharEditor::new(get_text_cursor_index(ui, text.len())),
                         })
                     }
                     (NextPosition::Within, false)
@@ -168,7 +186,14 @@ impl RegistersSettings {
         }
     }
 
-    fn render_register_data(&self, ui: &mut Ui, register: &mut Register, view: NumberView, single_bar_width: usize, cursor: &mut Option<EditingCursor>, writer: &mut Writer) -> Option<EditingCursor> {
+    fn render_register_data(&self,
+                            ui: &mut Ui,
+                            register: &mut Register,
+                            view: NumberView,
+                            single_bar_width: usize,
+                            cursor: &mut Option<EditingCursor>,
+                            writer: &mut Writer)
+                            -> Option<EditingCursor> {
         let mut column_byte_count = self.column_byte_count.unwrap_or(100000);
         let mut res = None;
         let bar_width = if view.size.byte_count() < column_byte_count {
@@ -201,7 +226,8 @@ impl RegistersSettings {
                 ui.text(" ");
             }
             ui.same_line(0, 0);
-            let (next_pos, is_changed) = Self::render_chunk(ui, &register.name, view, i, bytes, cursor);
+            let (next_pos, is_changed) =
+                Self::render_chunk(ui, &register.name, view, i, bytes, cursor);
             if !register.read_only {
                 match next_pos {
                     NextPosition::Left if i > 0 => {
@@ -211,7 +237,7 @@ impl RegistersSettings {
                             chunk: i - 1,
                             editor: CharEditor::new(view.maximum_chars_needed() - 1),
                         })
-                    },
+                    }
                     NextPosition::Right if i < chunks_count - 1 => {
                         res = Some(EditingCursor {
                             register_name: register.name.clone(),
@@ -219,8 +245,8 @@ impl RegistersSettings {
                             chunk: i + 1,
                             editor: CharEditor::new(0),
                         })
-                    },
-                    _ => {},
+                    }
+                    _ => {}
                 }
             }
             register_is_changed = register_is_changed || is_changed;
@@ -233,11 +259,19 @@ impl RegistersSettings {
     }
 
     fn all_possible_views(size: usize) -> Vec<NumberView> {
-        static ALL_REPRESENTATIONS: [NumberRepresentation; 4] = [NumberRepresentation::Hex, NumberRepresentation::UnsignedDecimal, NumberRepresentation::SignedDecimal, NumberRepresentation::Float];
-        static ALL_SIZES: [NumberSize; 4] = [NumberSize::OneByte, NumberSize::TwoBytes, NumberSize::FourBytes, NumberSize::EightBytes];
+        static ALL_REPRESENTATIONS: [NumberRepresentation; 4] =
+            [NumberRepresentation::Hex,
+             NumberRepresentation::UnsignedDecimal,
+             NumberRepresentation::SignedDecimal,
+             NumberRepresentation::Float];
+        static ALL_SIZES: [NumberSize; 4] = [NumberSize::OneByte,
+                                             NumberSize::TwoBytes,
+                                             NumberSize::FourBytes,
+                                             NumberSize::EightBytes];
         let mut views = Vec::new();
         for number_size in ALL_SIZES.iter().filter(|number_size| number_size.byte_count() <= size) {
-            for repr in ALL_REPRESENTATIONS.iter().filter(|repr| repr.can_be_of_size(*number_size)) {
+            for repr in ALL_REPRESENTATIONS.iter()
+                .filter(|repr| repr.can_be_of_size(*number_size)) {
                 views.push(NumberView {
                     representation: *repr,
                     size: *number_size,
@@ -266,22 +300,31 @@ impl RegistersSettings {
         };
         match self.alignment {
             Alignment::None => 0,
-            Alignment::Visible => views
-                .iter()
-                .zip(shown_views.iter())
-                .filter(|&(_, &is_shown)| is_shown)
-                .map(|(&view, _)| Self::get_view_column_width(view, column_byte_count))
-                .max()
-                .unwrap_or(0),
-            Alignment::All => views
-                .iter()
-                .map(|&view| Self::get_view_column_width(view, column_byte_count))
-                .max()
-                .unwrap_or(0),
+            Alignment::Visible => {
+                views.iter()
+                    .zip(shown_views.iter())
+                    .filter(|&(_, &is_shown)| is_shown)
+                    .map(|(&view, _)| Self::get_view_column_width(view, column_byte_count))
+                    .max()
+                    .unwrap_or(0)
+            }
+            Alignment::All => {
+                views.iter()
+                    .map(|&view| Self::get_view_column_width(view, column_byte_count))
+                    .max()
+                    .unwrap_or(0)
+            }
         }
     }
 
-    fn render_register(&self, ui: &mut Ui, width: usize, register: &mut Register, shown_views: &mut Vec<bool>, cursor: &mut Option<EditingCursor>, writer: &mut Writer) -> Option<EditingCursor> {
+    fn render_register(&self,
+                       ui: &mut Ui,
+                       width: usize,
+                       register: &mut Register,
+                       shown_views: &mut Vec<bool>,
+                       cursor: &mut Option<EditingCursor>,
+                       writer: &mut Writer)
+                       -> Option<EditingCursor> {
         const DEFAULT_VIEW: NumberView = NumberView {
             representation: NumberRepresentation::Hex,
             size: NumberSize::OneByte,
@@ -290,8 +333,7 @@ impl RegistersSettings {
         let views = Self::all_possible_views(register.value.len());
         shown_views.resize(views.len(), false);
         // TODO: do not create format names for every register since they are the same.
-        let format_names: Vec<String> = views
-            .iter()
+        let format_names: Vec<String> = views.iter()
             .map(|view| Self::get_view_short_name(*view))
             .collect();
 
@@ -301,7 +343,7 @@ impl RegistersSettings {
             *is_shown = false;
         }
 
-        let res = ui.tree_node(&format!("{1:>0$}", width, register.name)).exec(move |ui, is_expanded| {
+        ui.tree_node(&format!("{1:>0$}", width, register.name)).exec(move |ui, is_expanded| {
             let default_view = if register.value.len() >= self.default_view.size.byte_count() {
                 self.default_view
             } else {
@@ -311,7 +353,12 @@ impl RegistersSettings {
                 ui.same_line(0, 0);
                 ui.text("  ");
                 ui.same_line(0, 0);
-                return self.render_register_data(ui, register, default_view, column_width, cursor, writer)
+                return self.render_register_data(ui,
+                                                 register,
+                                                 default_view,
+                                                 column_width,
+                                                 cursor,
+                                                 writer);
             }
             let mut res = None;
             if let Some(grouping) = self.grouping {
@@ -319,33 +366,58 @@ impl RegistersSettings {
                 for group in groups {
                     shown_views[group[0].0] = true;
                     if group.len() > 1 {
-                        res = res.or(ui.tree_node(&format!("{1:>0$}  ", format_width, Self::get_view_short_name(group[0].1)))
+                        res = res.or(ui.tree_node(&format!("{1:>0$}  ",
+                                                format_width,
+                                                Self::get_view_short_name(group[0].1)))
                             .exec(|ui, is_expanded| {
-                                let mut res = self.render_register_data(ui, register, group[0].1, column_width, cursor, writer);
+                                let mut res = self.render_register_data(ui,
+                                                                        register,
+                                                                        group[0].1,
+                                                                        column_width,
+                                                                        cursor,
+                                                                        writer);
                                 if is_expanded {
                                     for &(i, view) in group[1..].iter() {
                                         shown_views[i] = true;
-                                        ui.text( & format!("{1:>0$}  ", format_width, Self::get_view_short_name(view)));
-                                        res = res.or(self.render_register_data(ui, register, view, column_width, cursor, writer));
+                                        ui.text(&format!("{1:>0$}  ",
+                                                         format_width,
+                                                         Self::get_view_short_name(view)));
+                                        res = res.or(self.render_register_data(ui,
+                                                                               register,
+                                                                               view,
+                                                                               column_width,
+                                                                               cursor,
+                                                                               writer));
                                     }
                                 }
                                 res
                             }));
                     } else {
-                        ui.text(&format!("  {1:>0$}  ", format_width, Self::get_view_short_name(group[0].1)));
-                        res = res.or(self.render_register_data(ui, register, group[0].1, column_width, cursor, writer));
+                        ui.text(&format!("  {1:>0$}  ",
+                                         format_width,
+                                         Self::get_view_short_name(group[0].1)));
+                        res = res.or(self.render_register_data(ui,
+                                                               register,
+                                                               group[0].1,
+                                                               column_width,
+                                                               cursor,
+                                                               writer));
                     }
                 }
             } else {
                 for i in 0..views.len() {
                     shown_views[i] = true;
                     ui.text(&format!("{1:>0$}  ", format_width, format_names[i]));
-                    res = res.or(self.render_register_data(ui, register, views[i], column_width, cursor, writer));
+                    res = res.or(self.render_register_data(ui,
+                                                           register,
+                                                           views[i],
+                                                           column_width,
+                                                           cursor,
+                                                           writer));
                 }
             }
             res
-        });
-        res
+        })
     }
 }
 
@@ -404,16 +476,23 @@ impl RegistersView {
 
     pub fn render(&mut self, ui: &mut Ui, writer: &mut Writer) {
         self.render_header(ui);
-        let register_name_width = self.registers.iter().map(|r| r.name.len()).max().unwrap_or(0usize);
+        let register_name_width =
+            self.registers.iter().map(|r| r.name.len()).max().unwrap_or(0usize);
         ui.begin_child("##body", None, false, PDUIWindowFlags_::empty());
         ui.push_style_var_vec(ImGuiStyleVar::FramePadding, Vec2::new(0.0, 0.0));
         ui.push_style_var_vec(ImGuiStyleVar::ItemSpacing, Vec2 { x: 0.0, y: 0.0 });
         let mut cursor = None;
         self.shown_register_views.resize(self.registers.len(), Vec::new());
-        for (register, shown_views) in self.registers.iter_mut()
+        for (register, shown_views) in self.registers
+            .iter_mut()
             .zip(self.shown_register_views.iter_mut()) {
 
-            cursor = cursor.or(self.settings.render_register(ui, register_name_width, register, shown_views, &mut self.cursor, writer));
+            cursor = cursor.or(self.settings.render_register(ui,
+                                                             register_name_width,
+                                                             register,
+                                                             shown_views,
+                                                             &mut self.cursor,
+                                                             writer));
         }
         if cursor.is_some() {
             self.cursor = cursor;
@@ -452,7 +531,7 @@ impl View for RegistersView {
                 },
             },
             cursor: None,
-            should_update: true
+            should_update: true,
         }
     }
 
