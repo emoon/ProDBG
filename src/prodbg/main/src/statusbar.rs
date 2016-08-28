@@ -4,7 +4,7 @@ use super::imgui_sys::*;
 // use imgui_sys::*;
 
 pub struct Statusbar {
-    status: String,
+    pub status: String,
 }
 
 impl Statusbar {

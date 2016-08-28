@@ -33,6 +33,7 @@ struct AmigaUaeBackend {
     break_at_start: bool,
     debug_info: DebugInfo,
     segments: Vec<Segment>,
+    status: String,
 }
 
 impl AmigaUaeBackend {
@@ -61,7 +62,6 @@ impl AmigaUaeBackend {
         }
 
         writer.write_data("register", &data[..4]);
-
         writer.array_entry_end();
     }
 
@@ -72,7 +72,6 @@ impl AmigaUaeBackend {
         writer.array_begin("registers");
 
         // d registers
-
         for i in 0..8 {
             let name = format!("d{}", i);
             Self::write_register(writer, &name, &data[index..], false);
@@ -80,7 +79,6 @@ impl AmigaUaeBackend {
         }
 
         // a registers
-
         for i in 0..8 {
             let name = format!("a{}", i);
             Self::write_register(writer, &name, &data[index..], false);
@@ -289,6 +287,8 @@ impl AmigaUaeBackend {
                     should_break = true;
                 }
             }
+        } else {
+            self.status = "Not Connected".to_owned();
         }
 
         if should_break {
@@ -306,29 +306,6 @@ impl AmigaUaeBackend {
 
         Ok(())
     }
-
-    /*
-    fn on_menu(&mut self, reader: &mut Reader) {
-        let menu_id = reader.find_u32("menu_id").ok().unwrap();
-
-        println!("menu id {}", menu_id);
-
-        match menu_id {
-            MENU_CONNECT => {
-                self.connect();
-            }
-
-            MENU_ENABLE_DMA => {
-                if self.conn.is_connected() {
-                    let mut res = [0; 256];
-                    self.conn.send_command_wait_reply_raw(&mut res, "QDmaTimeEnable").unwrap();
-                }
-            }
-
-            _ => (),
-        }
-    }
-    */
 
     fn store_segments(&mut self, segment_reply: &[u8]) {
         let segs_name = str::from_utf8(segment_reply).unwrap();
@@ -395,7 +372,6 @@ impl AmigaUaeBackend {
         }
 
         // Make sure that file is within the partition path 
-
         if !filename.contains(&self.uae_partition_path) {
             println!("File {} isn't within the set partition path", filename);
             return;
@@ -417,6 +393,7 @@ impl Backend for AmigaUaeBackend {
             break_at_start: false,
             debug_info: DebugInfo::new(),
             segments: Vec::new(),
+            status: "Not Connected".to_owned(),
         }
     }
 
@@ -425,11 +402,6 @@ impl Backend for AmigaUaeBackend {
 
         for event in reader.get_event() {
             match event {
-                /*
-                EVENT_MENU_EVENT => {
-                    self.on_menu(reader);
-                }
-                */
                 EVENT_GET_DISASSEMBLY => {
                     self.write_disassembly(reader, writer);
                 }
@@ -463,7 +435,6 @@ impl Backend for AmigaUaeBackend {
                 let mut res = [0; 1024];
 
                 if self.amiga_exe_file_path == "" {
-                    // TODO: Report this back to UI
                     println!("No executable to run");
                     return;
                 }
@@ -485,6 +456,8 @@ impl Backend for AmigaUaeBackend {
                     let null_index = res.iter().position(|c| *c == 0).unwrap_or(res.len());
                     self.store_segments(&res[..null_index]);
                 }
+
+                self.status = format!("Connected (127.0.0.1) Running {}", &self.amiga_exe_file_path);
             }
 
             ACTION_STEP => {
@@ -493,7 +466,6 @@ impl Backend for AmigaUaeBackend {
                     println!("Unable to step!");
                     return;
                 }
-                println!("step res {:?}", step_res);
                 self.get_registers(writer);
             }
 
@@ -502,17 +474,22 @@ impl Backend for AmigaUaeBackend {
                 if self.conn.send_command("n").is_ok() {
                     println!("Step over instruction");
                 }
-                //self.get_registers(writer);
             }
 
             ACTION_STOP => {
                 // Set kill command
                 if self.conn.send_command("k").is_err() {
                     println!("Unable to send kill command");
+                } else {
+                    self.status = "Connected (127.0.0.1)".to_owned();
                 }
             }
             _ => (),
         }
+
+        writer.event_begin(EVENT_SET_STATUS as u16);
+        writer.write_string("status", &self.status);
+        writer.event_end();
     }
 
     fn show_config(&mut self, ui: &mut Ui) {
@@ -553,19 +530,7 @@ impl Backend for AmigaUaeBackend {
             }
         }
 
-        /*
-        if ui.button("...") {
-            let result = nfd::open_pick_folder(Some(&self.amiga_exe_file_path)).unwrap_or_else(|e| {
-                println!("Unable to open pick folder {:?}", e);
-            });
-
-            match result {
-                Response::Okay(file_path) => self.amiga_exe_file_path = file_path, 
-            }
-        }
-        */
-
-        ui.checkbox("Break at Start", &mut self.break_at_start);
+        ui.checkbox("Break at Main", &mut self.break_at_start);
     }
 
     fn save_state(&mut self, mut saver: StateSaver) {
@@ -594,12 +559,6 @@ impl Backend for AmigaUaeBackend {
     }
 
     fn register_menu(&mut self, _menu_funcs: &mut MenuFuncs) -> *mut c_void {
-        /*
-        let menu = menu_funcs.create_menu("Amiga UAE Debugger");
-        menu_funcs.add_menu_item(menu, "Connect to UAE...", MENU_CONNECT as usize, 0, 0);
-        menu_funcs.add_menu_item(menu, "Enable DMA Stream", MENU_ENABLE_DMA as usize, 0, 0);
-        menu
-        */
         std::ptr::null_mut() as *mut c_void
     }
 }
