@@ -699,8 +699,9 @@ impl Ui {
 
     pub fn text(&self, text: &str) {
         unsafe {
-            let t = CFixedString::from_str(text).as_ptr();
-            ((*self.api).text)(t);
+            let start = text.as_ptr() as *const i8;
+            let end = start.offset(text.len() as isize);
+            ((*self.api).text_unformatted)(start, end);
         }
     }
 
