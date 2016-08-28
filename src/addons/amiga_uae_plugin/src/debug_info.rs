@@ -25,13 +25,26 @@ impl DebugInfo {
     fn try_find_line(filename: &str, 
                      lines: &Vec<SourceLine>, 
                      offset: u32) -> Option<(String, u32)> {
+        let mut source_line = 0u32;
+        let mut was_over = false;
+
         for line in lines {
             if line.offset == offset {
+                println!("Matching source {} line {}", filename, line.line);
                 return Some((filename.to_owned(), line.line));
+            } if line.offset <= offset {
+                source_line = line.line;
+            } else if line.offset > offset {
+                was_over = true;
             }
         }
 
-        None
+        if was_over {
+            println!("Partial Matching source {} line {}", filename, source_line);
+            Some((filename.to_owned(), source_line))
+        } else {
+            None
+        }
     }
 
     pub fn resolve_file_line(&self, offset: u32, seg_id: u32) -> Option<(String, u32)> {
@@ -43,6 +56,10 @@ impl DebugInfo {
 
         if let Some(ref source_files) = hunk.line_debug_info {
             for src_file in source_files {
+                //if offset > src_file.base_offset {
+                //    continue;
+                //}
+
                 if let Some(data) = Self::try_find_line(&src_file.name, &src_file.lines, offset) {
                     return Some(data);
                 }

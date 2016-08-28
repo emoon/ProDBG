@@ -4,6 +4,7 @@ version = "0.1.0"
 dependencies = [
  "amiga_hunk_parser 0.1.0",
  "gdb_remote 0.1.0",
+ "nfd 0.0.3 (git+https://github.com/emoon/nfd-rs.git)",
  "prodbg_api 0.1.0",
 ]
 
@@ -32,6 +33,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "gdb_remote"
 version = "0.1.0"
+dependencies = [
+ "gcc 0.3.28 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "nfd"
+version = "0.0.3"
+source = "git+https://github.com/emoon/nfd-rs.git#d74e7ce29e2c673807b121d81c63b6f1ab84a226"
 dependencies = [
  "gcc 0.3.28 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

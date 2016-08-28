@@ -8,6 +8,8 @@ name = "amiga_uae_plugin"
 crate-type = ["cdylib"]
 
 [dependencies]
+nfd = { git = "https://github.com/emoon/nfd-rs.git" }
 prodbg_api = { path = "../../../api/rust/prodbg" }
 gdb_remote = { path = "../../crates/gdb-remote" }
 amiga_hunk_parser = { path = "../../crates/amiga_hunk_parser" }
+
