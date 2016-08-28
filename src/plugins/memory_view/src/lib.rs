@@ -4,8 +4,8 @@ extern crate prodbg_api;
 extern crate serde_macros;
 extern crate serde;
 extern crate serde_json;
+extern crate number_view;
 
-mod number_view;
 mod hex_editor;
 mod char_editor;
 mod ascii_editor;

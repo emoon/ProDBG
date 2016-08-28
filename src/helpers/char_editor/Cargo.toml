@@ -1,0 +1,7 @@
+[package]
+name = "char_editor"
+version = "0.0.1"
+authors = ["Slava Baginov <slnpacifist@gmail.com>"]
+
+[dependencies]
+prodbg_api = { path = "../../../api/rust/prodbg" }

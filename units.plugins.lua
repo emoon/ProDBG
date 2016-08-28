@@ -101,21 +101,6 @@ SharedLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
-    Name = "registers_plugin",
-
-    Env = {
-        CPPPATH = { "api/include", },
-    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-    },
-
-    Sources = { "src/plugins/registers/registers_plugin.cpp" },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-SharedLibrary {
     Name = "locals_plugin",
 
     Env = {
@@ -223,9 +208,19 @@ RustSharedLibrary {
 	CargoConfig = "src/plugins/memory_view/Cargo.toml",
 	Sources = {
 		get_rs_src("src/plugins/memory_view"),
-		get_rs_src("api/rust/prodbg"),
-		get_rs_src("src/helpers/serde_macros"),
-	}
+	},
+    Depends = { "prodbg_api", "serde_macros" }
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+RustSharedLibrary {
+	Name = "registers_view",
+	CargoConfig = "src/plugins/registers_view/Cargo.toml",
+	Sources = {
+		get_rs_src("src/plugins/registers_view"),
+    },
+    Depends = { "char_editor", "number_view", "serde_macros", "prodbg_api" }
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -268,7 +263,6 @@ end
 --  Default "dbgeng_plugin"
 --end
 
-Default "registers_plugin"
 Default "callstack_plugin"
 Default "source_code"
 Default "disassembly"
@@ -281,6 +275,7 @@ Default "amiga_uae_plugin"
 Default "amiga_uae_view_plugin"
 Default "bitmap_memory"
 Default "memory_view"
+Default "registers_view"
 Default "dummy_backend_plugin"
 
 -- vim: ts=4:sw=4:sts=4

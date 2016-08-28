@@ -129,6 +129,38 @@ RustCrate  {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+RustCrate  {
+	Name = "number_view",
+	CargoConfig = "src/helpers/number_view/Cargo.toml",
+	Sources = {
+		get_rs_src("src/helpers/number_view"),
+	},
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+RustCrate  {
+	Name = "combo",
+	CargoConfig = "src/helpers/combo/Cargo.toml",
+	Sources = {
+		get_rs_src("src/helpers/combo"),
+	},
+	Depends = { "prodbg_api" }
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+RustCrate  {
+	Name = "char_editor",
+	CargoConfig = "src/helpers/char_editor/Cargo.toml",
+	Sources = {
+		get_rs_src("src/helpers/char_editor"),
+	},
+	Depends = { "prodbg_api" }
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
 --[[
 
 RustProgram {
@@ -161,7 +193,7 @@ RustProgram {
     Depends = { "lua", "remote_api", "stb", "bgfx_native", "bgfx", "ui",
     			"imgui", "tinyxml2", "capstone", "renderer", "scintilla",
     			"imgui_sys", "core", "viewdock", "settings", "prodbg_api",
-    			"settings", "project", "serde_macros" },
+    			"settings", "project", "serde_macros", "number_view", "char_editor", "combo" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
