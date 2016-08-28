@@ -64,7 +64,6 @@ enum Alignment {
 #[derive(Debug)]
 struct EditingCursor {
     register_name: String,
-    // TODO: remove `view` as it is already in `editor`
     view: NumberView,
     chunk: usize,
     editor: CharEditor,
