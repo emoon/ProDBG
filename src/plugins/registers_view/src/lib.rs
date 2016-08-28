@@ -182,7 +182,7 @@ impl RegistersSettings {
         let leftover = bar_width.saturating_sub(pieces * view.maximum_chars_needed() + pieces - 1);
         let chunks_count = register.value.len() / view.size.byte_count();
         let mut register_is_changed = false;
-        const SPACES: &'static str = "                              ";
+        const SPACES: &'static str = "                                                            ";
         ui.push_id_str(&register.name);
         for (i, bytes) in register.value
             .chunks_mut(view.size.byte_count())
@@ -195,7 +195,7 @@ impl RegistersSettings {
             }
             if is_start_of_column {
                 ui.same_line(0, 0);
-                ui.text(&SPACES[0..leftover]);
+                ui.text(&SPACES[0..std::cmp::min(SPACES.len(), leftover)]);
             } else {
                 ui.same_line(0, 0);
                 ui.text(" ");
