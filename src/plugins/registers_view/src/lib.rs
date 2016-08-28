@@ -485,6 +485,6 @@ gen_unit_enum_code!(Alignment, None => 0, Visible => 1, All => 2);
 
 #[no_mangle]
 pub fn init_plugin(plugin_handler: &mut PluginHandler) {
-    define_view_plugin!(PLUGIN, b"Registers View 2\0", RegistersView);
+    define_view_plugin!(PLUGIN, b"Registers View\0", RegistersView);
     plugin_handler.register_view(&PLUGIN);
 }

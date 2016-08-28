@@ -101,21 +101,6 @@ SharedLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
-    Name = "registers_plugin",
-
-    Env = {
-        CPPPATH = { "api/include", },
-    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-    },
-
-    Sources = { "src/plugins/registers/registers_plugin.cpp" },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-SharedLibrary {
     Name = "locals_plugin",
 
     Env = {
@@ -277,7 +262,6 @@ end
 --  Default "dbgeng_plugin"
 --end
 
-Default "registers_plugin"
 Default "callstack_plugin"
 Default "source_code"
 Default "disassembly"
