@@ -209,7 +209,7 @@ RustSharedLibrary {
 	Sources = {
 		get_rs_src("src/plugins/memory_view"),
 	},
-    Depends = { "prodbg_api", "serde_macros" }
+    Depends = { "prodbg_api", "serde_macros", "combo" }
 }
 
 -----------------------------------------------------------------------------------------------------------------------
