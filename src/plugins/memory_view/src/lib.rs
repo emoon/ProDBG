@@ -6,12 +6,11 @@ extern crate serde;
 extern crate serde_json;
 extern crate number_view;
 extern crate combo;
+extern crate char_editor;
 
 mod hex_editor;
-mod char_editor;
 mod ascii_editor;
 mod address_input;
-mod helper;
 mod memory_chunk;
 mod state;
 
@@ -24,7 +23,7 @@ use number_view::{NumberView, NumberRepresentation, Endianness};
 use hex_editor::HexEditor;
 use ascii_editor::AsciiEditor;
 use address_input::AddressInput;
-use helper::get_text_cursor_index;
+use char_editor::get_text_cursor_index;
 use memory_chunk::MemoryChunk;
 use state::MemoryViewState;
 use combo::combo;
@@ -97,7 +96,7 @@ impl Cursor {
             &mut Cursor::Text(ref mut e) => e.address = address,
             &mut Cursor::Number(ref mut e) => {
                 e.address = address;
-                e.cursor = 0;
+                e.set_cursor(0);
             }
             _ => {}
         }

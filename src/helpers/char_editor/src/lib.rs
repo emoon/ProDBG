@@ -211,3 +211,13 @@ impl CharEditor {
         return (next_position, changed_text);
     }
 }
+
+impl Clone for CharEditor {
+    fn clone(&self) -> CharEditor {
+        CharEditor {
+            cursor: self.cursor,
+            should_take_focus: true,
+            should_set_pos_to_start: true,
+        }
+    }
+}
