@@ -16,7 +16,7 @@ impl AsciiEditor {
     pub fn new(address: usize) -> AsciiEditor {
         AsciiEditor {
             address: address,
-            char_editor: CharEditor::new(),
+            char_editor: CharEditor::new(0),
         }
     }
 
@@ -38,7 +38,6 @@ impl AsciiEditor {
         let (next_position, changed_char) = self.char_editor
             .render(ui,
                     &text,
-                    0,
                     PDUIInputTextFlags_::empty(),
                     Some(&AsciiEditor::filter_char));
         ui.pop_id();
