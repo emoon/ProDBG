@@ -209,7 +209,7 @@ RustSharedLibrary {
 	Sources = {
 		get_rs_src("src/plugins/memory_view"),
 	},
-    Depends = { "prodbg_api", "serde_macros", "combo" }
+    Depends = { "prodbg_api", "serde_macros", "combo", "char_editor", "number_view" }
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -220,7 +220,7 @@ RustSharedLibrary {
 	Sources = {
 		get_rs_src("src/plugins/registers_view"),
     },
-    Depends = { "char_editor", "number_view", "serde_macros", "prodbg_api" }
+    Depends = { "char_editor", "number_view", "serde_macros", "prodbg_api", "combo" }
 }
 
 -----------------------------------------------------------------------------------------------------------------------
