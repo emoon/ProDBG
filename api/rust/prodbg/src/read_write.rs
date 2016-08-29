@@ -292,17 +292,17 @@ impl Reader {
         }
     }
 
-    pub fn find_array(&self, id: &str) -> ReaderIter {
+    pub fn find_array(&self, id: &str) -> Result<ReaderIter, ReadStatus> {
         let s = CFixedString::from_str(id).as_ptr();
         let mut t = 0u64;
 
         unsafe {
-            ((*self.api).read_find_array)(transmute(self.api), &mut t, s, 0);
-        }
-
-        ReaderIter {
-            reader: self.clone(),
-            curr_iter: t,
+            let ret = ((*self.api).read_find_array)(transmute(self.api), &mut t, s, 0);
+            let iter = ReaderIter {
+                reader: self.clone(),
+                curr_iter: t,
+            };
+            status_res(iter, ret)
         }
     }
 }

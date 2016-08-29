@@ -432,7 +432,7 @@ struct RegistersView {
 impl RegistersView {
     fn update_registers(&mut self, reader: &mut Reader) -> Result<(), ReadStatus> {
         let mut new_registers = Vec::new();
-        for reg_data in reader.find_array("registers") {
+        for reg_data in try!(reader.find_array("registers")) {
             let name = try!(reg_data.find_string("name")).to_string();
             let read_only = reg_data.find_u8("read_only").unwrap_or(0) != 0;
             let register = try!(reg_data.find_data("register"));

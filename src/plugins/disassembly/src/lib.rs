@@ -46,9 +46,9 @@ impl DisassemblyView {
     fn set_disassembly(&mut self, reader: &mut Reader) {
         self.lines.clear();
 
-        for entry in reader.find_array("disassembly") {
-            let address = entry.find_u64("address").ok().unwrap();
-            let line = entry.find_string("line").ok().unwrap();
+        for entry in reader.find_array("disassembly").unwrap() {
+            let address = entry.find_u64("address").unwrap();
+            let line = entry.find_string("line").unwrap();
             let mut regs_read = String::new();
             let mut regs_write = String::new();
 
