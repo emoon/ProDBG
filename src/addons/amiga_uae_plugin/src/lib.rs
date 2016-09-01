@@ -234,13 +234,13 @@ impl AmigaUaeBackend {
             let command;
 
             if add {
-                command = format!("z0 {:x},{:x}", seg, offset);
+                command = format!("Z0,{:x},{}", offset, seg);
             } else {
-                command = format!("Z0 {:x},{:x}", seg, offset);
+                command = format!("z0,{:x},{}", offset, seg);
             }
 
-            if conn.send_command_wait_reply_raw(&mut res, &command).is_err() {
-                println!("Unable to send breakpoint to UAE");
+            if let Err(err) = conn.send_command_wait_reply_raw(&mut res, &command) {
+                println!("Unable to send breakpoint to UAE {} - {:?}", command, err) 
             }
         } else {
             println!("No debug info, storing breakpoint and send it later");
@@ -259,6 +259,7 @@ impl AmigaUaeBackend {
     fn set_breakpoint(&mut self, reader: &mut Reader, _writer: &mut Writer) {
         if let Ok(filename) = reader.find_string("filename") {
             if let Ok(line) = reader.find_u32("line") {
+                println!("trying to add breakpoint {} - {}", filename, line);
                 self.set_breakpoint_file_line(filename, line);
             }
         } else if let Some(address) = reader.find_u32("address").ok() {
@@ -452,6 +453,8 @@ impl Backend for AmigaUaeBackend {
         self.update_conn_incoming(writer);
 
         for event in reader.get_event() {
+            println!("getting event {}", event);
+
             match event {
                 EVENT_GET_DISASSEMBLY => {
                     self.write_disassembly(reader, writer);
@@ -462,6 +465,7 @@ impl Backend for AmigaUaeBackend {
                 }
 
                 EVENT_SET_BREAKPOINT => {
+                    println!("Set breakpoint");
                     self.set_breakpoint(reader, writer);
                 }
 
@@ -492,12 +496,12 @@ impl Backend for AmigaUaeBackend {
 
                 self.debug_info.load_info(&self.uae_partition_path, &self.amiga_exe_file_path);
 
-                self.send_breakpoints();
-
                 if let Err(err) = self.connect() {
                     println!("Unable to connect {:?}", err);
                     return;
                 }
+
+                self.send_breakpoints();
 
                 let run_cmd = format!("vRun;{};", self.amiga_exe_file_path);
 
@@ -538,9 +542,9 @@ impl Backend for AmigaUaeBackend {
             _ => (),
         }
 
-        writer.event_begin(EVENT_SET_STATUS as u16);
-        writer.write_string("status", &self.status);
-        writer.event_end();
+        //writer.event_begin(EVENT_SET_STATUS as u16);
+        //writer.write_string("status", &self.status);
+        //writer.event_end();
     }
 
     fn show_config(&mut self, ui: &mut Ui) {
