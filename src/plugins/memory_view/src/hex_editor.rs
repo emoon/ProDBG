@@ -2,14 +2,14 @@
 //! This editor can only be used with Hex number representation as it relies on several properties
 //! of it.
 
+
 use prodbg_api::{Ui, PDUIINPUTTEXTFLAGS_CHARSHEXADECIMAL};
-use number_view::{NumberView, Endianness};
+use number_view::NumberView;
 use char_editor::{CharEditor, NextPosition};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct HexEditor {
     pub address: usize,
-    pub cursor: usize,
     view: NumberView,
     char_editor: CharEditor,
 }
@@ -18,9 +18,8 @@ impl HexEditor {
     pub fn new(address: usize, cursor: usize, view: NumberView) -> HexEditor {
         HexEditor {
             address: address,
-            cursor: cursor,
             view: view,
-            char_editor: CharEditor::new(),
+            char_editor: CharEditor::new(cursor),
         }
     }
 
@@ -39,48 +38,36 @@ impl HexEditor {
             .map(|address| (address, 0))
     }
 
+    pub fn set_cursor(&mut self, cursor: usize) {
+        self.char_editor.cursor = Some(cursor);
+    }
+
     pub fn render(&mut self, ui: &mut Ui, data: &mut [u8]) -> (Option<(usize, usize)>, bool) {
-        // ids are needed to prevent ImGui from reusing old buffer
         ui.push_id_usize(self.address);
-        ui.push_id_usize(self.cursor);
         let text = self.view.format(data);
-        let (next_position, changed_digit) = self.char_editor
+        let (next_position, changed_text) = self.char_editor
             .render(ui,
                     &text,
-                    self.cursor,
                     PDUIINPUTTEXTFLAGS_CHARSHEXADECIMAL,
                     None);
         ui.pop_id();
-        ui.pop_id();
         let mut data_has_changed = false;
-        if let Some(changed_digit) = changed_digit {
-            let value = u8::from_str_radix(&changed_digit, 16).unwrap();
-            let offset = match self.view.endianness {
-                Endianness::Little => (text.len() - self.cursor - 1) / 2,
-                Endianness::Big => self.cursor / 2,
-            };
-            let new_byte = if self.cursor % 2 == 1 {
-                data[offset] & 0b11110000 | value
-            } else {
-                data[offset] & 0b00001111 | (value << 4)
-            };
-            data_has_changed = data[offset] != new_byte;
-            data[offset] = new_byte;
+        if let Some(text) = changed_text {
+            match self.view.parse(&text) {
+                Ok(bytes) => {
+                    data_has_changed = data != bytes.as_slice();
+                    data.copy_from_slice(&bytes);
+                }
+                Err(e) => println!("Could not parse: {}", e),
+            }
         }
 
         let next_position = match next_position {
-            NextPosition::Unchanged => None,
-            NextPosition::Changed(next_cursor) => Some((self.address, next_cursor)),
+            NextPosition::Within => None,
             NextPosition::Left => self.previous_position(),
             NextPosition::Right => self.next_position(),
         };
 
         return (next_position, data_has_changed);
-    }
-}
-
-impl Clone for HexEditor {
-    fn clone(&self) -> HexEditor {
-        HexEditor::new(self.address, self.cursor, self.view)
     }
 }

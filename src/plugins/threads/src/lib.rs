@@ -30,7 +30,7 @@ impl ThreadsView {
          self.set_selected_thread = true;
          let old_selected_thread = self.selected_thread;
 
-         for entry in reader.find_array("threads") {
+         for entry in reader.find_array("threads").unwrap() {
              let id = entry.find_u64("id").unwrap();
              let name = entry.find_string("name").unwrap();
              let function = entry.find_string("function").unwrap();

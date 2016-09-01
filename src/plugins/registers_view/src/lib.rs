@@ -14,13 +14,16 @@ extern crate combo;
 
 use prodbg_api::{View, Ui, Service, Reader, Writer, PluginHandler, CViewCallbacks, ReadStatus,
                  EventType, PDUIWindowFlags_, ImGuiStyleVar, Vec2, StateSaver, StateLoader,
-                 LoadResult, PDUIInputTextFlags_};
+                 LoadResult, PDUIInputTextFlags_, ImGuiCol, Color};
 use number_view::*;
 use char_editor::{CharEditor, NextPosition, get_text_cursor_index};
 use combo::combo;
 
 
-#[derive(Debug)]
+const CHANGED_DATA_COLOR: u32 = 0xff0000ff;
+
+
+#[derive(Debug, Clone)]
 struct Register {
     name: String,
     read_only: bool,
@@ -144,10 +147,14 @@ impl RegistersSettings {
                     view: NumberView,
                     chunk_num: usize,
                     bytes: &mut [u8],
+                    is_marked: bool,
                     cursor: &mut Option<EditingCursor>)
                     -> (NextPosition, bool) {
         let text = view.format(bytes);
-        if view.representation == NumberRepresentation::Hex {
+        if is_marked {
+            ui.push_style_color(ImGuiCol::Text, Color::from_u32(CHANGED_DATA_COLOR));
+        }
+        let res = if view.representation == NumberRepresentation::Hex {
             match cursor {
                 &mut Some(ref mut c) if c.chunk == chunk_num && c.register_name == name &&
                                         c.view == view => {
@@ -183,12 +190,17 @@ impl RegistersSettings {
         } else {
             ui.text(&text);
             (NextPosition::Within, false)
+        };
+        if is_marked {
+            ui.pop_style_color(1);
         }
+        res
     }
 
     fn render_register_data(&self,
                             ui: &mut Ui,
                             register: &mut Register,
+                            prev_register: Option<&Register>,
                             view: NumberView,
                             single_bar_width: usize,
                             cursor: &mut Option<EditingCursor>,
@@ -226,8 +238,14 @@ impl RegistersSettings {
                 ui.text(" ");
             }
             ui.same_line(0, 0);
+            let is_marked = match prev_register {
+                Some(reg) => {
+                    &reg.value[i * bytes.len() .. (i + 1) * bytes.len()] != bytes
+                },
+                None => false,
+            };
             let (next_pos, is_changed) =
-                Self::render_chunk(ui, &register.name, view, i, bytes, cursor);
+                Self::render_chunk(ui, &register.name, view, i, bytes, is_marked, cursor);
             if !register.read_only {
                 match next_pos {
                     NextPosition::Left if i > 0 => {
@@ -321,6 +339,7 @@ impl RegistersSettings {
                        ui: &mut Ui,
                        width: usize,
                        register: &mut Register,
+                       prev_register: Option<&Register>,
                        shown_views: &mut Vec<bool>,
                        cursor: &mut Option<EditingCursor>,
                        writer: &mut Writer)
@@ -355,6 +374,7 @@ impl RegistersSettings {
                 ui.same_line(0, 0);
                 return self.render_register_data(ui,
                                                  register,
+                                                 prev_register,
                                                  default_view,
                                                  column_width,
                                                  cursor,
@@ -372,6 +392,7 @@ impl RegistersSettings {
                             .exec(|ui, is_expanded| {
                                 let mut res = self.render_register_data(ui,
                                                                         register,
+                                                                        prev_register,
                                                                         group[0].1,
                                                                         column_width,
                                                                         cursor,
@@ -384,6 +405,7 @@ impl RegistersSettings {
                                                          Self::get_view_short_name(view)));
                                         res = res.or(self.render_register_data(ui,
                                                                                register,
+                                                                               prev_register,
                                                                                view,
                                                                                column_width,
                                                                                cursor,
@@ -398,6 +420,7 @@ impl RegistersSettings {
                                          Self::get_view_short_name(group[0].1)));
                         res = res.or(self.render_register_data(ui,
                                                                register,
+                                                               prev_register,
                                                                group[0].1,
                                                                column_width,
                                                                cursor,
@@ -410,6 +433,7 @@ impl RegistersSettings {
                     ui.text(&format!("{1:>0$}  ", format_width, format_names[i]));
                     res = res.or(self.render_register_data(ui,
                                                            register,
+                                                           prev_register,
                                                            views[i],
                                                            column_width,
                                                            cursor,
@@ -423,6 +447,7 @@ impl RegistersSettings {
 
 struct RegistersView {
     registers: Vec<Register>,
+    prev_registers: Vec<Register>,
     shown_register_views: Vec<Vec<bool>>,
     settings: RegistersSettings,
     cursor: Option<EditingCursor>,
@@ -431,8 +456,9 @@ struct RegistersView {
 
 impl RegistersView {
     fn update_registers(&mut self, reader: &mut Reader) -> Result<(), ReadStatus> {
+        // TODO: reuse old structures to prevent memory distortion
         let mut new_registers = Vec::new();
-        for reg_data in reader.find_array("registers") {
+        for reg_data in try!(reader.find_array("registers")) {
             let name = try!(reg_data.find_string("name")).to_string();
             let read_only = reg_data.find_u8("read_only").unwrap_or(0) != 0;
             let register = try!(reg_data.find_data("register"));
@@ -445,6 +471,9 @@ impl RegistersView {
             });
         }
         self.registers = new_registers;
+        if self.prev_registers.is_empty() {
+            self.prev_registers = self.registers.clone();
+        }
         Ok(())
     }
 
@@ -452,6 +481,7 @@ impl RegistersView {
         for event_type in reader.get_events() {
             match event_type {
                 et if et == EventType::SetRegisters as i32 => {
+                    std::mem::swap(&mut self.registers, &mut self.prev_registers);
                     if let Err(e) = self.update_registers(reader) {
                         panic!("Could not update registers: {:?}", e);
                     }
@@ -487,9 +517,11 @@ impl RegistersView {
             .iter_mut()
             .zip(self.shown_register_views.iter_mut()) {
 
+            let prev_register = self.prev_registers.iter().find(|reg| reg.name == register.name);
             cursor = cursor.or(self.settings.render_register(ui,
                                                              register_name_width,
                                                              register,
+                                                             prev_register,
                                                              shown_views,
                                                              &mut self.cursor,
                                                              writer));
@@ -519,6 +551,7 @@ impl View for RegistersView {
     fn new(_: &Ui, _: &Service) -> Self {
         RegistersView {
             registers: Vec::new(),
+            prev_registers: Vec::new(),
             shown_register_views: Vec::new(),
             settings: RegistersSettings {
                 column_byte_count: None,
