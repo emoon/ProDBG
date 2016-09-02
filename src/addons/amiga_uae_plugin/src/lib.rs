@@ -15,8 +15,10 @@ use debug_info::DebugInfo;
 use nfd::Response;
 use std::path::{Path, PathBuf};
 
-//const MENU_CONNECT: u32 = 0;
-//const MENU_ENABLE_DMA: u32 = 1;
+struct Breakpoint {
+    file_line: Option<(String, u32)>,
+    address: Option<u32>,
+}
 
 struct Segment {
     address: u32,
@@ -34,6 +36,7 @@ struct AmigaUaeBackend {
     debug_info: DebugInfo,
     segments: Vec<Segment>,
     status: String,
+    breakpoints: Vec<Breakpoint>,
 }
 
 impl AmigaUaeBackend {
@@ -204,12 +207,10 @@ impl AmigaUaeBackend {
             let seg_end = seg.address + seg.size;
 
             if location >= seg_start && location < seg_end {
-                println!("Found pc within segment {:x} - {:x}", location, seg_start);
                 if let Some(src_line) = self.debug_info.resolve_file_line(location - seg_start, 0) {
                     writer.write_string("filename", &src_line.0);
                     writer.write_u32("line", src_line.1);
                 }
-                //println!("Found pc within segment {:?}", source_line); 
                 return;
             }
         }
@@ -227,18 +228,68 @@ impl AmigaUaeBackend {
         writer.event_end();
     }
 
+    fn toggle_breakpoint_fileline(conn: &mut GdbRemote, debug_info: &DebugInfo, filename: &str, line: u32, add: bool) {
+        if let Some((seg, offset)) = debug_info.get_address_seg(filename, line) {
+            let mut res = [0; 64];
+            let command;
+
+            if add {
+                command = format!("Z0,{:x},{}", offset, seg);
+            } else {
+                command = format!("z0,{:x},{}", offset, seg);
+            }
+
+            if let Err(err) = conn.send_command_wait_reply_raw(&mut res, &command) {
+                println!("Unable to send breakpoint to UAE {} - {:?}", command, err) 
+            }
+        } else {
+            println!("No debug info, storing breakpoint and send it later");
+        }
+    }
+
+    fn set_breakpoint_file_line(&mut self, filename: &str, line: u32) {
+        Self::toggle_breakpoint_fileline(&mut self.conn, &self.debug_info, filename, line, true);
+
+        self.breakpoints.push(Breakpoint {
+            file_line: Some((filename.to_owned(), line)),
+            address: None
+        });
+    }
+
     fn set_breakpoint(&mut self, reader: &mut Reader, _writer: &mut Writer) {
-        if let Some(address) = reader.find_u64("address").ok() {
-            if self.conn.set_breakpoint_at_address(address).is_err() {
+        if let Ok(filename) = reader.find_string("filename") {
+            if let Ok(line) = reader.find_u32("line") {
+                println!("trying to add breakpoint {} - {}", filename, line);
+                self.set_breakpoint_file_line(filename, line);
+            }
+        } else if let Some(address) = reader.find_u32("address").ok() {
+            self.breakpoints.push(Breakpoint {
+                file_line: None,
+                address: Some(address),
+            });
+
+            if self.conn.set_breakpoint_at_address(address as u64).is_err() {
                 println!("Unable to set breakpoint at 0x{:08x}", address);
             }
         }
     }
 
     fn delete_breakpoint(&mut self, reader: &mut Reader, _writer: &mut Writer) {
-        if let Some(address) = reader.find_u64("address").ok() {
+        if let Ok(address) = reader.find_u64("address") {
             if self.conn.remove_breakpoint_at_address(address).is_err() {
                 println!("Unable to remove breakpoint at 0x{:08x}", address);
+            }
+        }
+    }
+
+    fn send_breakpoints(&mut self) {
+        for breakpoint in &self.breakpoints {
+            if let Some((ref file, line)) = breakpoint.file_line {
+                Self::toggle_breakpoint_fileline(&mut self.conn, &self.debug_info, file, line, true);
+            } else if let Some(address) = breakpoint.address {
+                if self.conn.set_breakpoint_at_address(address as u64).is_err() {
+                    println!("Unable to set breakpoint at 0x{:08x}", address);
+                }
             }
         }
     }
@@ -319,7 +370,7 @@ impl AmigaUaeBackend {
             return;
         }
 
-        for i in 0..(segs.len()-1)/2 {
+        for i in 0..(segs.len() - 1) / 2 {
             let index = 1 + i * 2;
             let address = segs[index];
             let size = segs[index + 1];
@@ -394,6 +445,7 @@ impl Backend for AmigaUaeBackend {
             debug_info: DebugInfo::new(),
             segments: Vec::new(),
             status: "Not Connected".to_owned(),
+            breakpoints: Vec::new(),
         }
     }
 
@@ -401,6 +453,8 @@ impl Backend for AmigaUaeBackend {
         self.update_conn_incoming(writer);
 
         for event in reader.get_event() {
+            println!("getting event {}", event);
+
             match event {
                 EVENT_GET_DISASSEMBLY => {
                     self.write_disassembly(reader, writer);
@@ -411,6 +465,7 @@ impl Backend for AmigaUaeBackend {
                 }
 
                 EVENT_SET_BREAKPOINT => {
+                    println!("Set breakpoint");
                     self.set_breakpoint(reader, writer);
                 }
 
@@ -441,16 +496,14 @@ impl Backend for AmigaUaeBackend {
 
                 self.debug_info.load_info(&self.uae_partition_path, &self.amiga_exe_file_path);
 
-                println!("Start (trying to connect)");
-
                 if let Err(err) = self.connect() {
                     println!("Unable to connect {:?}", err);
                     return;
                 }
 
-                let run_cmd = format!("vRun;{};", self.amiga_exe_file_path);
+                self.send_breakpoints();
 
-                println!("sending {}", run_cmd);
+                let run_cmd = format!("vRun;{};", self.amiga_exe_file_path);
 
                 if self.conn.send_command_wait_reply_raw(&mut res, &run_cmd).is_ok() {
                     let null_index = res.iter().position(|c| *c == 0).unwrap_or(res.len());
@@ -481,15 +534,17 @@ impl Backend for AmigaUaeBackend {
                 if self.conn.send_command("k").is_err() {
                     println!("Unable to send kill command");
                 } else {
+                    // clear debug info
+                    self.debug_info = DebugInfo::new();
                     self.status = "Connected (127.0.0.1)".to_owned();
                 }
             }
             _ => (),
         }
 
-        writer.event_begin(EVENT_SET_STATUS as u16);
-        writer.write_string("status", &self.status);
-        writer.event_end();
+        //writer.event_begin(EVENT_SET_STATUS as u16);
+        //writer.write_string("status", &self.status);
+        //writer.event_end();
     }
 
     fn show_config(&mut self, ui: &mut Ui) {

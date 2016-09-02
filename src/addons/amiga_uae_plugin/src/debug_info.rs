@@ -68,4 +68,24 @@ impl DebugInfo {
 
         None
     }
+
+    pub fn get_address_seg(&self, filename: &str, file_line: u32) -> Option<(u32, u32)> {
+        for (i, hunk) in self.hunks.iter().enumerate() {
+            if let Some(ref source_files) = hunk.line_debug_info {
+                for src_file in source_files {
+                    if src_file.name != filename {
+                        continue;
+                    }
+
+                    for line in &src_file.lines {
+                        if line.line == file_line {
+                            return Some((i as u32, line.offset));
+                        }
+                    }
+                }
+            }
+        }
+
+        None
+    }
 }
