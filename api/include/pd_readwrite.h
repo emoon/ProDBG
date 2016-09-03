@@ -88,19 +88,22 @@ typedef struct PDWriter {
     /**
      * This starts to write an event. An event is usually of the type PDEventType that can be
      * used to compunicate back to the debugger. There is usually (but not always) a pair
-     * of get/setEvents and it's the plugins resposibilty to reply back with data when
+     * of get/set event and it's the plugins resposibilty to reply back with data when
      * there is a request from the debugger
      *
      * @param writer writer object.
-     * @param event Id of the event. This usually a PDEventType
+     * @param event Identifier of the event. This usually a PDEventType
+     *
+     * @return Request_id. This is is storted as "request_id" with the reply and can be used
+     * to pair up and request. 0 means invalid something went wrong.
      *
      * \code
-     * PDWrite_event_begin(writer, PDEvent_setBreakpoint);
+     * uint64_t request_id PDWrite_event_begin(writer, PDEvent_setBreakpoint);
      * ...
      * PDWrite_event_end();
      * \endcode
      */
-    PDWriteStatus (*write_event_begin)(struct PDWriter* writer, uint16_t event);
+    uint64_t (*write_event_begin)(struct PDWriter* writer, uint16_t event);
 
     /**
      * This ends an event. Notice that PDWrite_beginEvent needs to be started first

@@ -97,7 +97,7 @@ pub enum WriteStatus {
 #[repr(C)]
 pub struct CPDWriterAPI {
     private_data: *mut c_void,
-    pub write_event_begin: extern "C" fn(writer: *mut c_void, event: c_ushort) -> WriteStatus,
+    pub write_event_begin: extern "C" fn(writer: *mut c_void, event: c_ushort) -> u64,
     pub write_event_end: extern "C" fn(writer: *mut c_void) -> WriteStatus,
     pub write_header_array_begin: extern "C" fn(writer: *mut c_void, ids: *mut *const c_char)
                                                 -> WriteStatus,
@@ -342,9 +342,9 @@ macro_rules! write_fun {
 }
 
 impl Writer {
-    pub fn event_begin(&mut self, event: u16) {
+    pub fn event_begin(&mut self, event: u16) -> u64 {
         unsafe {
-            ((*self.api).write_event_begin)(transmute(self.api), event);
+            ((*self.api).write_event_begin)(transmute(self.api), event)
         }
     }
 
