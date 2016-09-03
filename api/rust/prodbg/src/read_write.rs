@@ -344,7 +344,7 @@ macro_rules! write_fun {
 impl Writer {
     pub fn event_begin(&mut self, event: u16) -> u64 {
         unsafe {
-            ((*self.api).write_event_begin)(transmute(self.api), event);
+            ((*self.api).write_event_begin)(transmute(self.api), event)
         }
     }
 
