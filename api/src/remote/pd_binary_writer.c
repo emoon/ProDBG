@@ -7,6 +7,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct WriterData {
+	uint64_t 	 request_id;
     uint8_t*     dataStart;
     uint8_t*     data;
     uint8_t*     eventOffset;
@@ -294,8 +295,9 @@ static PDWriteStatus write_data(struct PDWriter* writer, const char* id, void* d
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDWriteStatus write_event_begin(struct PDWriter* writer, uint16_t event) {
+static uint64_t write_event_begin(struct PDWriter* writer, uint16_t event) {
     WriterData* wData = (WriterData*)writer->data;
+    uint64_t request_id = wData->request_id++;
     wData->eventOffset = wData->data + 3;
 
     if (wData->writingEvent) {
@@ -312,7 +314,10 @@ static PDWriteStatus write_event_begin(struct PDWriter* writer, uint16_t event) 
     // we will store the size here (at writeEndEvent) so skip 4 bytes a head
     wData->data += 7;
 
-    return PDWriteStatus_ok;
+	// Writer internal request id that can be used when replying to an event
+	write_u64(writer, "_request_id", request_id);
+
+    return request_id;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -488,6 +493,7 @@ void pd_binary_writer_init(PDWriter* writer) {
 
     // \todo: Make this tweakble/custom allocator 2 meg should be enough most of the time
 
+	data->request_id = 1;
     data->data = data->dataStart = malloc(1024 * 1024 * 2);
     // reserve 4 bytes at the start (to be used for size and 2 flags at the top)
     data->data += 4;
@@ -539,9 +545,11 @@ unsigned int pd_binary_writer_get_size(PDWriter* writer) {
 
 void pd_binary_writer_reset(PDWriter* writer) {
     WriterData* data = (WriterData*)writer->data;
+    uint64_t request_id = data->request_id;
     void* tempData = data->dataStart;
     memset(data, 0, sizeof(WriterData));
-    data->data = data->dataStart = tempData;
+    data->request_id = request_id;
+    data->data = data->dataStart = (uint8_t*)tempData;
     data->data += 4;
 }
 
