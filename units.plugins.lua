@@ -243,7 +243,11 @@ SharedLibrary {
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
     },
 
-    Sources = { "src/plugins/dummy_backend/dummy_backend.c" },
+    Sources = { 
+        "src/plugins/dummy_backend/dummy_backend.c",
+    },
+
+    Depends = { "tinyexpr" },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }

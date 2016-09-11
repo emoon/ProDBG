@@ -96,6 +96,9 @@ typedef enum PDEventType {
     PDEventType_UpdateRegister,
     PDEventType_UpdatePc,
 
+    PDEventType_RequestEvalExpression,
+    PDEventType_ReplyEvalExpression,
+
     // End of events
 
     PDEventType_End,
