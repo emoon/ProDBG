@@ -1,4 +1,4 @@
-BasedOnStyle: Chromium
+BasedOnStyle: Mozilla
 TabWidth: 4
 UseTab: Never
 
