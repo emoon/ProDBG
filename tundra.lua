@@ -1,3 +1,4 @@
+local native = require('tundra.native')
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -31,6 +32,7 @@ local mac_opts = {
 
 local macosx = {
     Env = {
+		QT5 = native.getenv("QT5"),
         RUST_CARGO_OPTS = {
             { "test"; Config = "*-*-*-test" },
         },
@@ -59,36 +61,6 @@ local macosx = {
     },
 }
 
-local macosx_test = {
-    Env = {
-        CCOPTS =  {
-            mac_opts,
-            "-Wno-everything",
-            "-coverage",
-        },
-
-        CXXOPTS = {
-            mac_opts,
-            "-Wno-everything",
-            "-coverage",
-            "-std=c++11",
-        },
-
-        SHLIBOPTS = { "-lstdc++", "-coverage" },
-        PROGCOM = { "-lstdc++", "-coverage" },
-
-        BGFX_SHADERC = "$(OBJECTDIR)$(SEP)bgfx_shaderc$(PROGSUFFIX)",
-        API_GEN = "$(OBJECTDIR)$(SEP)api_gen$(PROGSUFFIX)",
-    },
-
-    Frameworks = {
-        { "Cocoa" },
-        { "Metal" },
-        { "QuartzCore" },
-        { "OpenGL" }
-    },
-}
-
 -----------------------------------------------------------------------------------------------------------------------
 
 local gcc_opts = {
@@ -103,6 +75,7 @@ local gcc_opts = {
 
 local gcc_env = {
     Env = {
+		QT5 = native.getenv("QT5"),
         RUST_CARGO_OPTS = {
             { "test"; Config = "*-*-*-test" },
         },
@@ -137,6 +110,7 @@ local win64_opts = {
 
 local win64 = {
     Env = {
+		QT5 = native.getenv("QT5"),
         RUST_CARGO_OPTS = {
             { "test"; Config = "*-*-*-test" },
         },
@@ -159,7 +133,6 @@ local win64 = {
 -----------------------------------------------------------------------------------------------------------------------
 
 Build {
-
     Passes = {
         BuildTools = { Name="Build Tools", BuildOrder = 1 },
         GenerateSources = { Name="Generate sources", BuildOrder = 2 },
