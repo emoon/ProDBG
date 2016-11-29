@@ -4,9 +4,6 @@ use std::mem::transmute;
 use Capstone;
 use CCapstone1;
 
-use Dialogs;
-use CDialogFuncs1;
-
 use IdFuncs;
 use CIdFuncs1;
 
@@ -23,14 +20,6 @@ impl Service {
                 api: api,
                 handle: ::std::ptr::null(),
             }
-        }
-    }
-
-    pub fn get_dialogs(&self) -> Dialogs {
-        unsafe {
-            let api: &mut CDialogFuncs1 = transmute(((*self).service_func)(b"Dialogs 1\0"
-                .as_ptr()));
-            Dialogs { api: api }
         }
     }
 

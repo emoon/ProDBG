@@ -804,9 +804,7 @@ static PDBackendPlugin plugin =
     "LLDB",
     createInstance,
     destroyInstance,
-    0,
     update,
-    0, // show_ui
     0, // save_state
     0, // load_state
 };

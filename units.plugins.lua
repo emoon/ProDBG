@@ -62,97 +62,6 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
---[[
-SharedLibrary {
-    Name = "dbgeng_plugin",
-
-    Env = {
-        CPPPATH = {
-            "api/include",
-            "src/plugins/dbgeng",
-        },
-    },
-
-    Sources = {
-        "src/plugins/dbgeng/dbgeng_plugin.cpp"
-    },
-
-    Libs = { "dbgeng.lib" },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
-}
---]]
-
------------------------------------------------------------------------------------------------------------------------
-
-SharedLibrary {
-    Name = "callstack_plugin",
-
-    Env = {
-        CPPPATH = { "api/include", },
-    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-    },
-
-    Sources = { "src/plugins/callstack/callstack_plugin.cpp" },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-RustSharedLibrary {
-	Name = "locals",
-	CargoConfig = "src/plugins/locals/Cargo.toml",
-	Sources = {
-		get_rs_src("src/plugins/locals"),
-		get_rs_src("api/rust/prodbg"),
-	}
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-RustSharedLibrary {
-	Name = "threads",
-	CargoConfig = "src/plugins/threads/Cargo.toml",
-	Sources = {
-		get_rs_src("src/plugins/threads"),
-		get_rs_src("api/rust/prodbg"),
-	}
-}
-
-
------------------------------------------------------------------------------------------------------------------------
-
-SharedLibrary {
-    Name = "breakpoints_plugin",
-
-    Env = {
-        CPPPATH = { "api/include", },
-    	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-    },
-
-    Sources = { "src/plugins/breakpoints/breakpoints_plugin.cpp" },
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-SharedLibrary {
-    Name = "console_plugin",
-
-    Env = {
-        CPPPATH = { "api/include", },
-        CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
-    },
-
-    Sources = { "src/plugins/console/console_plugin.cpp" },
-
-    IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
 RustSharedLibrary {
 	Name = "amiga_uae_plugin",
 	CargoConfig = "src/addons/amiga_uae_plugin/Cargo.toml",
@@ -163,72 +72,6 @@ RustSharedLibrary {
 	}
 }
 
------------------------------------------------------------------------------------------------------------------------
-
-RustSharedLibrary {
-	Name = "amiga_uae_view_plugin",
-	CargoConfig = "src/addons/amiga_uae_view_plugin/Cargo.toml",
-	Sources = {
-		get_rs_src("src/addons/amiga_uae_view_plugin"),
-		get_rs_src("api/rust/prodbg"),
-		get_rs_src("src/crates/amiga_hunk_parser"),
-	}
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-RustSharedLibrary {
-	Name = "source_code",
-	CargoConfig = "src/plugins/source_code/Cargo.toml",
-	Sources = {
-		get_rs_src("src/plugins/source_code"),
-		get_rs_src("api/rust/prodbg"),
-	}
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-RustSharedLibrary {
-	Name = "bitmap_memory",
-	CargoConfig = "src/plugins/bitmap_memory/Cargo.toml",
-	Sources = {
-		get_rs_src("src/plugins/bitmap_memory"),
-		get_rs_src("api/rust/prodbg"),
-	}
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-RustSharedLibrary {
-	Name = "memory_view",
-	CargoConfig = "src/plugins/memory_view/Cargo.toml",
-	Sources = {
-		get_rs_src("src/plugins/memory_view"),
-	},
-    Depends = { "prodbg_api", "serde_macros", "combo", "char_editor", "number_view" }
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-RustSharedLibrary {
-	Name = "registers_view",
-	CargoConfig = "src/plugins/registers_view/Cargo.toml",
-	Sources = {
-		get_rs_src("src/plugins/registers_view"),
-    },
-    Depends = { "char_editor", "number_view", "serde_macros", "prodbg_api", "combo" }
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-RustSharedLibrary {
-	Name = "disassembly",
-	CargoConfig = "src/plugins/disassembly/Cargo.toml",
-	Sources = {
-		get_rs_src("src/plugins/disassembly"),
-		get_rs_src("api/rust/prodbg"),
-	}
-}
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -243,15 +86,12 @@ SharedLibrary {
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
     },
 
-    Sources = { 
+    Sources = {
         "src/plugins/dummy_backend/dummy_backend.c",
     },
 
-    Depends = { "tinyexpr" },
-
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
-
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -263,19 +103,7 @@ end
 --  Default "dbgeng_plugin"
 --end
 
-Default "callstack_plugin"
-Default "source_code"
-Default "disassembly"
-Default "locals"
-Default "threads"
-Default "breakpoints_plugin"
---Default "workspace_plugin"
-Default "console_plugin"
 Default "amiga_uae_plugin"
-Default "amiga_uae_view_plugin"
-Default "bitmap_memory"
-Default "memory_view"
-Default "registers_view"
 Default "dummy_backend_plugin"
 
 -- vim: ts=4:sw=4:sts=4

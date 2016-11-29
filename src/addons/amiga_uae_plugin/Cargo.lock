@@ -53,3 +53,8 @@ dependencies = [
  "gcc 0.3.28 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
+[metadata]
+"checksum bitflags 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "32866f4d103c4e438b1db1158aa1b1a80ee078e5d77a59a2f906fd62a577389c"
+"checksum byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)" = "0fc10e8cc6b2580fda3f36eb6dc5316657f812a3df879a44a66fc9f0fdbc4855"
+"checksum gcc 0.3.28 (registry+https://github.com/rust-lang/crates.io-index)" = "3da3a2cbaeb01363c8e3704fd9fd0eb2ceb17c6f27abd4c1ef040fb57d20dc79"
+"checksum nfd 0.0.3 (git+https://github.com/emoon/nfd-rs.git)" = "<none>"

@@ -9,11 +9,9 @@ mod debug_info;
 use prodbg_api::*;
 use std::str;
 use std::io::Result;
-use std::os::raw::c_void;
 use gdb_remote::GdbRemote;
 use debug_info::DebugInfo;
-use nfd::Response;
-use std::path::{Path, PathBuf};
+//use std::path::{Path, PathBuf};
 
 struct Breakpoint {
     file_line: Option<(String, u32)>,
@@ -240,7 +238,7 @@ impl AmigaUaeBackend {
             }
 
             if let Err(err) = conn.send_command_wait_reply_raw(&mut res, &command) {
-                println!("Unable to send breakpoint to UAE {} - {:?}", command, err) 
+                println!("Unable to send breakpoint to UAE {} - {:?}", command, err)
             }
         } else {
             println!("No debug info, storing breakpoint and send it later");
@@ -381,11 +379,12 @@ impl AmigaUaeBackend {
         }
     }
 
+    /*
     fn show_file_dir_select(name: &str, temp: &mut [u8], path: &mut String, ui: &Ui) {
         temp[..path.len()].copy_from_slice(path.as_bytes());
 
-        if ui.input_text(name, temp.as_mut(), 
-                      PDUIINPUTTEXTFLAGS_ENTERRETURNSTRUE | 
+        if ui.input_text(name, temp.as_mut(),
+                      PDUIINPUTTEXTFLAGS_ENTERRETURNSTRUE |
                       PDUIINPUTTEXTFLAGS_AUTOSELECTALL,
                       None) {
             let null_index = temp.iter().position(|c| *c == 0).unwrap_or(temp.len());
@@ -422,7 +421,7 @@ impl AmigaUaeBackend {
             return;
         }
 
-        // Make sure that file is within the partition path 
+        // Make sure that file is within the partition path
         if !filename.contains(&self.uae_partition_path) {
             println!("File {} isn't within the set partition path", filename);
             return;
@@ -430,6 +429,7 @@ impl AmigaUaeBackend {
 
         self.get_sub_path(filename);
     }
+    */
 }
 
 impl Backend for AmigaUaeBackend {
@@ -547,6 +547,7 @@ impl Backend for AmigaUaeBackend {
         //writer.event_end();
     }
 
+    /*
     fn show_config(&mut self, ui: &mut Ui) {
         let mut buf: [u8; 4096] = [0; 4096];
         let mut buf2: [u8; 4096] = [0; 4096];
@@ -564,7 +565,7 @@ impl Backend for AmigaUaeBackend {
             });
 
             match result {
-                Response::Okay(file_path) => self.uae_partition_path = file_path, 
+                Response::Okay(file_path) => self.uae_partition_path = file_path,
                 _ => (),
             }
         }
@@ -580,13 +581,14 @@ impl Backend for AmigaUaeBackend {
             });
 
             match result {
-                Response::Okay(file_path) => self.set_file_exe_path(&file_path), 
+                Response::Okay(file_path) => self.set_file_exe_path(&file_path),
                 _ => (),
             }
         }
 
         ui.checkbox("Break at Main", &mut self.break_at_start);
     }
+    */
 
     fn save_state(&mut self, mut saver: StateSaver) {
         let break_at_start = if self.break_at_start { 1 } else { 0 };
@@ -609,12 +611,8 @@ impl Backend for AmigaUaeBackend {
         }
 
         if let LoadResult::Ok(break_at_start) = loader.read_int() {
-            self.break_at_start = break_at_start == 1; 
+            self.break_at_start = break_at_start == 1;
         }
-    }
-
-    fn register_menu(&mut self, _menu_funcs: &mut MenuFuncs) -> *mut c_void {
-        std::ptr::null_mut() as *mut c_void
     }
 }
 

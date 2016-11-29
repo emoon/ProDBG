@@ -5,18 +5,3 @@ authors = ["Daniel Collin <daniel@collin.com>"]
 build = "../build.rs"
 
 [dependencies]
-libloading = "0.2.0"
-lazy_static = "0.1.*"
-minifb = "0.8.2"
-nfd = { git = "https://github.com/emoon/nfd-rs.git" }
-viewdock = { path = "../viewdock" }
-bgfx = { path = "../bgfx-rs" }
-core = { path = "../core" }
-renderer = { path = "../renderer" }
-settings = { path = "../../crates/settings" }
-project = { path = "../../crates/project" }
-imgui_sys = { path = "../imgui_sys" }
-prodbg_api = { path = "../../../api/rust/prodbg" }
-serde = "0.7.4"
-serde_json = "0.7.0"
-serde_macros = { path = "../../helpers/serde_macros" }

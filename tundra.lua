@@ -166,12 +166,10 @@ Build {
     },
 
     Units = {
-        "units.tools.lua",
         "units.libs.lua",
         "units.misc.lua",
         "units.plugins.lua",
         "units.prodbg.lua",
-        -- "units.tests.lua",
     },
 
     Configs = {
