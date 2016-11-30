@@ -59,6 +59,7 @@ Program {
        CXXOPTS = {
             { "-isystem $(QT5)/lib/QtWidgets.framework/Headers",
               "-isystem $(QT5)/lib/QtCore.framework/Headers",
+              "-isystem $(QT5)/lib/QtGui.framework/Headers",
               "-F$(QT5)/lib"; Config = "macosx-*-*" },
         },
 
