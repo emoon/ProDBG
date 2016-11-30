@@ -62,6 +62,16 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+RustCrate {
+	Name = "prodbg_api",
+	CargoConfig = "api/rust/prodbg/Cargo.toml",
+	Sources = {
+		get_rs_src("api/rust/prodbg"),
+	},
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
 RustSharedLibrary {
 	Name = "amiga_uae_plugin",
 	CargoConfig = "src/addons/amiga_uae_plugin/Cargo.toml",
@@ -71,7 +81,6 @@ RustSharedLibrary {
 		get_rs_src("api/rust/prodbg"),
 	}
 }
-
 
 -----------------------------------------------------------------------------------------------------------------------
 

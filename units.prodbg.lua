@@ -38,69 +38,38 @@ end
 
 -----------------------------------------------------------------------------------------------------------------------
 
-local function get_rs_src(dir)
-	return Glob {
-		Dir = dir,
-		Extensions = { ".rs" },
-		Recursive = true,
-	}
-end
+Program {
+	Name = "prodbg",
+	Sources = {
+        Glob {
+            Dir = "src/prodbg",
+            Extensions = { ".cpp", ".h" },
+            Recursive = true,
+        },
 
------------------------------------------------------------------------------------------------------------------------
-
-StaticLibrary {
-    Name = "qt_main",
+		MocGenerationMulti {
+			Glob {
+				Dir = "src/prodbg",
+				Extensions = { ".h" }
+			},
+		},
+	},
 
     Env = {
-        CXXOPTS = {
-			{
-              "-isystem $(QT5)/lib/QtWidgets.framework/Headers",
+       CXXOPTS = {
+            { "-isystem $(QT5)/lib/QtWidgets.framework/Headers",
               "-isystem $(QT5)/lib/QtCore.framework/Headers",
               "-F$(QT5)/lib"; Config = "macosx-*-*" },
         },
 
-        FRAMEWORKS = { "$(QT5)/lib/QtCore", "$(QT5)/lib/QtWidgets" },
+        PROGCOM = {
+            { "-F$(QT5)/lib", "-lstdc++", Config = "macosx-clang-*" },
+        },
     },
 
-    Sources = {
-		MocGenerationMulti {
-			Glob {
-				Dir = "src/qt_main",
-				Extensions = { ".h" }
-			},
-		},
+	Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore" },
 
-		Glob {
-			Dir = "src/qt_main",
-			Extensions = { ".cpp" }
-		},
-    },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-RustCrate {
-	Name = "prodbg_api",
-	CargoConfig = "api/rust/prodbg/Cargo.toml",
-	Sources = {
-		get_rs_src("api/rust/prodbg"),
-	},
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-RustProgram {
-	Name = "prodbg",
-	CargoConfig = "src/prodbg/main/Cargo.toml",
-	Sources = {
-		get_rs_src("src/prodbg/main"),
-		"src/prodbg/build.rs",
-	},
-
-    Depends = { "remote_api",
-    			"capstone",
-    			"qt_main",
-    			"prodbg_api" },
+    Depends = { "remote_api", "capstone" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
