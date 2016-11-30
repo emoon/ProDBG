@@ -62,6 +62,8 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+--[[
+
 RustCrate {
 	Name = "prodbg_api",
 	CargoConfig = "api/rust/prodbg/Cargo.toml",
@@ -81,6 +83,8 @@ RustSharedLibrary {
 		get_rs_src("api/rust/prodbg"),
 	}
 }
+
+--]]
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -112,7 +116,7 @@ end
 --  Default "dbgeng_plugin"
 --end
 
-Default "amiga_uae_plugin"
+-- Default "amiga_uae_plugin"
 Default "dummy_backend_plugin"
 
 -- vim: ts=4:sw=4:sts=4
