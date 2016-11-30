@@ -64,7 +64,7 @@ Program {
         },
 
         PROGCOM = {
-            { "-F$(QT5)/lib", "-lstdc++", Config = "macosx-clang-*" },
+            {  "-Wl,-rpath,$(QT5)/lib", "-F$(QT5)/lib", "-lstdc++", Config = "macosx-clang-*" },
         },
     },
 
