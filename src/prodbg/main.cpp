@@ -1,13 +1,27 @@
 #include <QApplication>
 #include <QTextEdit>
+#include "MemoryView/Qt5HexEditWidget.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, const char** argv) {
     QApplication app(argc, (char**)argv);
 
-    QTextEdit text_edit;
-    text_edit.show();
+    char* dummy_data = (char*)malloc(1024 * 1024);
+
+    for (int i = 0; i < 1024 * 1024; ++i)
+        dummy_data[i] = (char)rand();
+
+    prodbg::Qt5HexEditWidget hex_edit;
+
+    hex_edit.setData(QByteArray(dummy_data, 1024 * 1024));
+
+    hex_edit.show();
+
+    //QTextEdit text_edit;
+    //text_edit.show();
 
     return app.exec();
 }
