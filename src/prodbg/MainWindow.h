@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QMainWindow>
+#include "ui_mainwindow.h"
 
 class QStatusBar;
 
@@ -23,6 +24,7 @@ private:
     CodeView* m_codeView;
     MemoryViewWidget* m_memoryView;
     QStatusBar* m_statusbar;
+    Ui_MainWindow m_ui;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

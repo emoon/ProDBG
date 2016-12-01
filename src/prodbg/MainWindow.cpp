@@ -19,6 +19,8 @@ MainWindow::MainWindow()
 
     m_memoryView->setData(QByteArray(dummy_data, 1024 * 1024));
 
+    m_ui.setupUi(this);
+
     setCentralWidget(m_codeView);
 
     setWindowTitle(tr("ProDBG"));
