@@ -30,13 +30,22 @@ function _osx_bundle_mt:create_dag(env, data, deps)
   end
 
   local dirs = {
-    { Tag = "Resources", Dir = contents .. "/Resources/" },
-    { Tag = "MacOSFiles", Dir = contents .. "/MacOS/" },
+    { Tag = "Resources", Dir = contents .. "/Resources/", Flatten = true },
+    { Tag = "MacOSFiles", Dir = contents .. "/MacOS/", Flatten = true },
+    { Tag = "Contents", Dir = contents .. "/", Flatten = false },
   }
 
   for _, params in ipairs(dirs) do
     local function do_copy(fn)
-      local basename = select(2, path.split(fn))
+      local basename
+      if params.Flatten then
+        basename = select(2, path.split(fn))
+      else
+        basename = fn
+        while string.sub(basename, 1, 3) == '../' do
+          basename = string.sub(basename, 4)
+        end
+      end
       copy_deps[#copy_deps+1] = files.hardlink_file(env, fn, params.Dir .. basename, pass, deps)
     end
 
@@ -46,7 +55,6 @@ function _osx_bundle_mt:create_dag(env, data, deps)
         do_copy(dep)
       else
         local node = dep:get_dag(env)
-        print(node)
         deps[#deps+1] = node
         local files = {}
         node:insert_output_files(files)
@@ -84,6 +92,8 @@ nodegen.add_evaluator("OsxBundle", _osx_bundle_mt, {
   PkgInfo = { Type = "string", Help = "PkgInfo file" },
   Resources = { Type = "filter_table", Help = "Files to copy to 'Resources'" },
   MacOSFiles = { Type = "filter_table", Help = "Files to copy to 'MacOS'" },
+  Contents = { Type = "filter_table", Help = "Files to copy to 'Contents'" },
+  IdeGenerationHints = { Type = "table", Help = "Data to support control IDE file generation" },
 })
 
 nodegen.add_evaluator("CompileNib", _compile_nib_mt, {

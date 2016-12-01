@@ -70,6 +70,19 @@ local cpp_exts = util.make_lookup_table { ".cpp", ".cc", ".cxx", ".C" }
 
 local _is_native_mt = util.make_lookup_table { _object_mt, _program_mt, _staticlib_mt, _shlib_mt, _extlib_mt, _objgroup_mt }
 
+-- sources can be a mix of raw strings like {"file1.cpp", "file2.cpp"}
+-- or files with filters like {{"file1.cpp", "file2.cpp"; Config = "..."}}
+local function is_file_in_sources(sources, fn)
+  for k,v in pairs(sources) do
+    if type(v) == 'table' then
+      return util.array_contains(v, fn)
+    elseif v == fn then
+      return true
+    end
+  end
+  return false
+end
+
 function _native_mt:customize_env(env, raw_data)
   if env:get('GENERATE_PDB', '0') ~= '0' then
     -- Figure out the final linked PDB (the one next to the dll or exe)
@@ -106,7 +119,7 @@ function _native_mt:customize_env(env, raw_data)
       env:set('PCHCOMPILE', '$(PCHCOMPILE_CC)')
     end
     local pch_source = path.remove_prefix(raw_data.SourceDir or '', pch.Source)
-    if not util.array_contains(raw_data.Sources, pch_source) then
+    if not is_file_in_sources(raw_data.Sources, pch_source) then
       raw_data.Sources[#raw_data.Sources + 1] = pch_source
     end
   end
