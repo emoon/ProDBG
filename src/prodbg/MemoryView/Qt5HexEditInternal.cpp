@@ -620,7 +620,8 @@ void Qt5HexEditInternal::paintEvent(QPaintEvent* event)
     }
 
     // Paint hex area
-    QByteArray hexValues(m_data.getData().mid(firstLineIndex, lastLineIndex - firstLineIndex + 1).toHex());
+    //QByteArray hexValues(m_data.getData().mid(firstLineIndex, lastLineIndex - firstLineIndex + 1).toHex());
+    auto& rawBytes = m_data.getData();
     QBrush highlightedBrush = QBrush(m_highlightingColor);
     QPen highlightedPen = QPen(this->palette().color(QPalette::WindowText));
     QBrush selectedBrush = QBrush(m_selectionColor);
@@ -629,11 +630,13 @@ void Qt5HexEditInternal::paintEvent(QPaintEvent* event)
 
     painter.setBackgroundMode(Qt::TransparentMode);
 
+    QString lineBuf;
+    lineBuf.reserve(kBytesPerLine * 2);
+
     for (int lineIndex = firstLineIndex, positionY = startPositionY; lineIndex < lastLineIndex; lineIndex += kBytesPerLine, positionY += m_characterHeight)
     {
-        QByteArray hex;
+        lineBuf.clear();
 
-        int positionX = m_hexPosition;
         for (int columnIndex = 0; ((lineIndex + columnIndex) < m_data.getSize() && (columnIndex < kBytesPerLine)); ++columnIndex)
         {
             int positionValues = lineIndex + columnIndex;
@@ -663,19 +666,24 @@ void Qt5HexEditInternal::paintEvent(QPaintEvent* event)
             }
 
             // Paint hex value
-            if (columnIndex == 0)
+            if (columnIndex > 0)
             {
-                hex = hexValues.mid((lineIndex - firstLineIndex) * 2, 2);
-                painter.drawText(positionX, positionY, hex);
-                positionX += 2 * m_characterWidth;
+              lineBuf.append(QChar(' '));
             }
-            else
-            {
-                hex = hexValues.mid((lineIndex + columnIndex - firstLineIndex) * 2, 2).prepend(" ");
-                painter.drawText(positionX, positionY, hex);
-                positionX += 3 * m_characterWidth;
-            }
+
+            uint8_t byte = (uint8_t) rawBytes.at(lineIndex * kBytesPerLine + columnIndex);
+            static const QChar toHexTable[] = {
+              QChar('0'), QChar('1'), QChar('2'), QChar('3'),
+              QChar('4'), QChar('5'), QChar('6'), QChar('7'),
+              QChar('8'), QChar('9'), QChar('a'), QChar('b'),
+              QChar('c'), QChar('d'), QChar('e'), QChar('f'),
+            };
+
+            lineBuf.append(toHexTable[byte >> 4]);
+            lineBuf.append(toHexTable[byte & 0xf]);
         }
+
+        painter.drawText(m_hexPosition, positionY, lineBuf);
     }
 
     painter.setBackgroundMode(Qt::TransparentMode);
@@ -684,14 +692,15 @@ void Qt5HexEditInternal::paintEvent(QPaintEvent* event)
     // Paint ascii area
     if (m_asciiArea)
     {
+        lineBuf.reserve(kBytesPerLine);
         for (int lineIndex = firstLineIndex, positionY = startPositionY; lineIndex < lastLineIndex; lineIndex += kBytesPerLine, positionY += m_characterHeight)
         {
-            int asciiPositionX = m_asciiPosition;
+            lineBuf.clear();
             for (int columnIndex = 0; ((lineIndex + columnIndex) < m_data.getSize() && (columnIndex < kBytesPerLine)); ++columnIndex)
             {
-                painter.drawText(asciiPositionX, positionY, m_data.getAsciiChar(lineIndex + columnIndex));
-                asciiPositionX += m_characterWidth;
+                lineBuf.append(m_data.getAsciiChar(lineIndex + columnIndex));
             }
+            painter.drawText(m_asciiPosition, positionY, lineBuf);
         }
     }
 
