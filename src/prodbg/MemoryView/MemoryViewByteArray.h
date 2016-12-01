@@ -11,10 +11,10 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Qt5HexEditByteArray
+class MemoryViewByteArray
 {
 public:
-    explicit Qt5HexEditByteArray();
+    explicit MemoryViewByteArray();
 
     int getAddressOffset() const;
     void setAddressOffset(int offset);

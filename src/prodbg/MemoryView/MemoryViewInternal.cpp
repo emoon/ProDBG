@@ -1,5 +1,5 @@
-#include "Qt5HexEditInternal.h"
-#include "Qt5HexEditCommands.h"
+#include "MemoryViewInternal.h"
+#include "MemoryViewCommands.h"
 #include <QtGui>
 #include <QtWidgets>
 
@@ -16,11 +16,11 @@ const int kBytesPerLine = 16;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5HexEditInternal::Qt5HexEditInternal(QScrollArea* parent)
-  : QWidget(parent)
-  , m_scrollArea(parent)
-  , m_undoStack(new QUndoStack(this))
-  , m_size(0)
+MemoryViewInternal::MemoryViewInternal(QScrollArea* parent) :
+    QWidget(parent)
+    , m_scrollArea(parent)
+    , m_undoStack(new QUndoStack(this))
+    , m_size(0)
 {
     setAddressWidth(4);
     setAddressOffset(0);
@@ -43,26 +43,26 @@ Qt5HexEditInternal::Qt5HexEditInternal(QScrollArea* parent)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5HexEditByteArray& Qt5HexEditInternal::getHexData()
+MemoryViewByteArray& MemoryViewInternal::getHexData()
 {
     return m_data;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::insert(int index, const QByteArray& values)
+void MemoryViewInternal::insert(int index, const QByteArray& values)
 {
     (void)index;
 
     if (values.length() > 0) {
         if (m_overwriteMode) {
-            QUndoCommand* rangeUndoCommand = new Qt5HexEditRangeUndoCommand(
-              &m_data, Qt5HexEditRangeUndoCommand::ReplaceOperation, index, values, values.length());
+            QUndoCommand* rangeUndoCommand = new MemoryViewRangeUndoCommand(
+              &m_data, MemoryViewRangeUndoCommand::ReplaceOperation, index, values, values.length());
             m_undoStack->push(rangeUndoCommand);
             emit dataChanged();
         } else {
-            QUndoCommand* rangeUndoCommand = new Qt5HexEditRangeUndoCommand(
-              &m_data, Qt5HexEditRangeUndoCommand::InsertOperation, index, values, values.length());
+            QUndoCommand* rangeUndoCommand = new MemoryViewRangeUndoCommand(
+              &m_data, MemoryViewRangeUndoCommand::InsertOperation, index, values, values.length());
             m_undoStack->push(rangeUndoCommand);
             emit dataChanged();
         }
@@ -71,17 +71,17 @@ void Qt5HexEditInternal::insert(int index, const QByteArray& values)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::insert(int index, char value)
+void MemoryViewInternal::insert(int index, char value)
 {
     QUndoCommand* valueUndoCommand =
-      new Qt5HexEditValueUndoCommand(&m_data, Qt5HexEditValueUndoCommand::InsertOperation, index, value);
+      new MemoryViewValueUndoCommand(&m_data, MemoryViewValueUndoCommand::InsertOperation, index, value);
     m_undoStack->push(valueUndoCommand);
     emit dataChanged();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5HexEditInternal::indexOf(const QByteArray& values, int from)
+int MemoryViewInternal::indexOf(const QByteArray& values, int from)
 {
     if (from > (m_data.getData().length() - 1)) {
         from = m_data.getData().length() - 1;
@@ -102,7 +102,7 @@ int Qt5HexEditInternal::indexOf(const QByteArray& values, int from)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5HexEditInternal::lastIndexOf(const QByteArray& values, int from)
+int MemoryViewInternal::lastIndexOf(const QByteArray& values, int from)
 {
     from -= values.length();
     if (from < 0) {
@@ -124,7 +124,7 @@ int Qt5HexEditInternal::lastIndexOf(const QByteArray& values, int from)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::remove(int index, int length)
+void MemoryViewInternal::remove(int index, int length)
 {
     (void)index;
 
@@ -132,25 +132,25 @@ void Qt5HexEditInternal::remove(int index, int length)
         if (length == 1) {
             if (m_overwriteMode) {
                 QUndoCommand* valueUndoCommand =
-                  new Qt5HexEditValueUndoCommand(&m_data, Qt5HexEditValueUndoCommand::ReplaceOperation, index, char(0));
+                  new MemoryViewValueUndoCommand(&m_data, MemoryViewValueUndoCommand::ReplaceOperation, index, char(0));
                 m_undoStack->push(valueUndoCommand);
                 emit dataChanged();
             } else {
                 QUndoCommand* valueUndoCommand =
-                  new Qt5HexEditValueUndoCommand(&m_data, Qt5HexEditValueUndoCommand::RemoveOperation, index, char(0));
+                  new MemoryViewValueUndoCommand(&m_data, MemoryViewValueUndoCommand::RemoveOperation, index, char(0));
                 m_undoStack->push(valueUndoCommand);
                 emit dataChanged();
             }
         } else {
             QByteArray values = QByteArray(length, char(0));
             if (m_overwriteMode) {
-                QUndoCommand* rangeUndoCommand = new Qt5HexEditRangeUndoCommand(
-                  &m_data, Qt5HexEditRangeUndoCommand::ReplaceOperation, index, values, values.length());
+                QUndoCommand* rangeUndoCommand = new MemoryViewRangeUndoCommand(
+                  &m_data, MemoryViewRangeUndoCommand::ReplaceOperation, index, values, values.length());
                 m_undoStack->push(rangeUndoCommand);
                 emit dataChanged();
             } else {
-                QUndoCommand* rangeUndoCommand = new Qt5HexEditRangeUndoCommand(
-                  &m_data, Qt5HexEditRangeUndoCommand::RemoveOperation, index, values, length);
+                QUndoCommand* rangeUndoCommand = new MemoryViewRangeUndoCommand(
+                  &m_data, MemoryViewRangeUndoCommand::RemoveOperation, index, values, length);
                 m_undoStack->push(rangeUndoCommand);
                 emit dataChanged();
             }
@@ -160,10 +160,10 @@ void Qt5HexEditInternal::remove(int index, int length)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::replace(int index, char value)
+void MemoryViewInternal::replace(int index, char value)
 {
     QUndoCommand* valueUndoCommand =
-      new Qt5HexEditValueUndoCommand(&m_data, Qt5HexEditValueUndoCommand::ReplaceOperation, index, value);
+      new MemoryViewValueUndoCommand(&m_data, MemoryViewValueUndoCommand::ReplaceOperation, index, value);
     m_undoStack->push(valueUndoCommand);
     resetSelection();
     emit dataChanged();
@@ -171,10 +171,10 @@ void Qt5HexEditInternal::replace(int index, char value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::replace(int index, const QByteArray& values)
+void MemoryViewInternal::replace(int index, const QByteArray& values)
 {
-    QUndoCommand* rangeUndoCommand = new Qt5HexEditRangeUndoCommand(
-      &m_data, Qt5HexEditRangeUndoCommand::ReplaceOperation, index, values, values.length());
+    QUndoCommand* rangeUndoCommand = new MemoryViewRangeUndoCommand(
+      &m_data, MemoryViewRangeUndoCommand::ReplaceOperation, index, values, values.length());
     m_undoStack->push(rangeUndoCommand);
     resetSelection();
     emit dataChanged();
@@ -182,10 +182,10 @@ void Qt5HexEditInternal::replace(int index, const QByteArray& values)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::replace(int position, int length, const QByteArray& values)
+void MemoryViewInternal::replace(int position, int length, const QByteArray& values)
 {
     QUndoCommand* rangeUndoCommand =
-      new Qt5HexEditRangeUndoCommand(&m_data, Qt5HexEditRangeUndoCommand::ReplaceOperation, position, values, length);
+      new MemoryViewRangeUndoCommand(&m_data, MemoryViewRangeUndoCommand::ReplaceOperation, position, values, length);
     m_undoStack->push(rangeUndoCommand);
     resetSelection();
     emit dataChanged();
@@ -193,7 +193,7 @@ void Qt5HexEditInternal::replace(int position, int length, const QByteArray& val
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::undo()
+void MemoryViewInternal::undo()
 {
     m_undoStack->undo();
     emit dataChanged();
@@ -203,7 +203,7 @@ void Qt5HexEditInternal::undo()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::redo()
+void MemoryViewInternal::redo()
 {
     m_undoStack->redo();
     emit dataChanged();
@@ -213,21 +213,21 @@ void Qt5HexEditInternal::redo()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QString Qt5HexEditInternal::getReadableString()
+QString MemoryViewInternal::getReadableString()
 {
     return m_data.getReadableString();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QString Qt5HexEditInternal::getReadableStringFromSelection()
+QString MemoryViewInternal::getReadableStringFromSelection()
 {
     return m_data.getReadableString(getSelectionBegin(), getSelectionEnd());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::setAddressArea(bool addressArea)
+void MemoryViewInternal::setAddressArea(bool addressArea)
 {
     m_addressArea = addressArea;
     adjust();
@@ -236,7 +236,7 @@ void Qt5HexEditInternal::setAddressArea(bool addressArea)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::setAddressWidth(int addressWidth)
+void MemoryViewInternal::setAddressWidth(int addressWidth)
 {
     m_data.setAddressWidth(addressWidth);
     setCursorPosition(m_cursorPosition);
@@ -244,7 +244,7 @@ void Qt5HexEditInternal::setAddressWidth(int addressWidth)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::setAsciiArea(bool asciiArea)
+void MemoryViewInternal::setAsciiArea(bool asciiArea)
 {
     m_asciiArea = asciiArea;
     adjust();
@@ -252,7 +252,7 @@ void Qt5HexEditInternal::setAsciiArea(bool asciiArea)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::setHighlighting(bool mode)
+void MemoryViewInternal::setHighlighting(bool mode)
 {
     m_highlighting = mode;
     update();
@@ -260,7 +260,7 @@ void Qt5HexEditInternal::setHighlighting(bool mode)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::setAddressOffset(int offset)
+void MemoryViewInternal::setAddressOffset(int offset)
 {
     m_data.setAddressOffset(offset);
     adjust();
@@ -268,14 +268,14 @@ void Qt5HexEditInternal::setAddressOffset(int offset)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5HexEditInternal::getAddressOffset() const
+int MemoryViewInternal::getAddressOffset() const
 {
     return m_data.getAddressOffset();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::setCursorPosition(int position)
+void MemoryViewInternal::setCursorPosition(int position)
 {
     // Hide cursor
     m_blinking = false;
@@ -308,14 +308,14 @@ void Qt5HexEditInternal::setCursorPosition(int position)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5HexEditInternal::getCursorPosition() const
+int MemoryViewInternal::getCursorPosition() const
 {
     return m_cursorPosition;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::setData(const QByteArray& data)
+void MemoryViewInternal::setData(const QByteArray& data)
 {
     m_data.setData(data);
     m_undoStack->clear();
@@ -325,42 +325,42 @@ void Qt5HexEditInternal::setData(const QByteArray& data)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QByteArray Qt5HexEditInternal::getData()
+QByteArray MemoryViewInternal::getData()
 {
     return m_data.getData();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::setOverwriteMode(bool overwriteMode)
+void MemoryViewInternal::setOverwriteMode(bool overwriteMode)
 {
     m_overwriteMode = overwriteMode;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Qt5HexEditInternal::getOverwriteMode() const
+bool MemoryViewInternal::getOverwriteMode() const
 {
     return m_overwriteMode;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::setReadOnly(bool readOnly)
+void MemoryViewInternal::setReadOnly(bool readOnly)
 {
     m_readOnly = readOnly;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Qt5HexEditInternal::getReadOnly() const
+bool MemoryViewInternal::getReadOnly() const
 {
     return m_readOnly;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::setAddressAreaColor(const QColor& color)
+void MemoryViewInternal::setAddressAreaColor(const QColor& color)
 {
     m_addressAreaColor = color;
     update();
@@ -368,14 +368,14 @@ void Qt5HexEditInternal::setAddressAreaColor(const QColor& color)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QColor Qt5HexEditInternal::getAddressAreaColor() const
+QColor MemoryViewInternal::getAddressAreaColor() const
 {
     return m_addressAreaColor;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::setHighlightingColor(const QColor& color)
+void MemoryViewInternal::setHighlightingColor(const QColor& color)
 {
     m_highlightingColor = color;
     update();
@@ -383,14 +383,14 @@ void Qt5HexEditInternal::setHighlightingColor(const QColor& color)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QColor Qt5HexEditInternal::getHighlightingColor() const
+QColor MemoryViewInternal::getHighlightingColor() const
 {
     return m_highlightingColor;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::setSelectionColor(const QColor& color)
+void MemoryViewInternal::setSelectionColor(const QColor& color)
 {
     m_selectionColor = color;
     update();
@@ -398,14 +398,14 @@ void Qt5HexEditInternal::setSelectionColor(const QColor& color)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QColor Qt5HexEditInternal::getSelectionColor() const
+QColor MemoryViewInternal::getSelectionColor() const
 {
     return m_selectionColor;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::setFont(const QFont& font)
+void MemoryViewInternal::setFont(const QFont& font)
 {
     QWidget::setFont(font);
     adjust();
@@ -413,7 +413,7 @@ void Qt5HexEditInternal::setFont(const QFont& font)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5HexEditInternal::calculateCursorPos(QPoint position) const
+int MemoryViewInternal::calculateCursorPos(QPoint position) const
 {
     int result = -1;
 
@@ -437,7 +437,7 @@ int Qt5HexEditInternal::calculateCursorPos(QPoint position) const
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::resetSelection(int position)
+void MemoryViewInternal::resetSelection(int position)
 {
     if (position < 0) {
         position = 0;
@@ -452,7 +452,7 @@ void Qt5HexEditInternal::resetSelection(int position)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::resetSelection()
+void MemoryViewInternal::resetSelection()
 {
     m_selectionBegin = m_selectionAnchor;
     m_selectionEnd = m_selectionAnchor;
@@ -460,7 +460,7 @@ void Qt5HexEditInternal::resetSelection()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::setSelection(int position)
+void MemoryViewInternal::setSelection(int position)
 {
     if (position < 0) {
         position = 0;
@@ -479,21 +479,21 @@ void Qt5HexEditInternal::setSelection(int position)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5HexEditInternal::getSelectionBegin() const
+int MemoryViewInternal::getSelectionBegin() const
 {
     return m_selectionBegin;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5HexEditInternal::getSelectionEnd() const
+int MemoryViewInternal::getSelectionEnd() const
 {
     return m_selectionEnd;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::keyPressEvent(QKeyEvent* event)
+void MemoryViewInternal::keyPressEvent(QKeyEvent* event)
 {
     handleCursorMovements(event);
     handleSelectCommands(event);
@@ -525,7 +525,7 @@ void Qt5HexEditInternal::keyPressEvent(QKeyEvent* event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::mouseMoveEvent(QMouseEvent* event)
+void MemoryViewInternal::mouseMoveEvent(QMouseEvent* event)
 {
     m_blinking = false;
     update();
@@ -536,7 +536,7 @@ void Qt5HexEditInternal::mouseMoveEvent(QMouseEvent* event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::mousePressEvent(QMouseEvent* event)
+void MemoryViewInternal::mousePressEvent(QMouseEvent* event)
 {
     m_blinking = false;
     update();
@@ -547,7 +547,7 @@ void Qt5HexEditInternal::mousePressEvent(QMouseEvent* event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::paintEvent(QPaintEvent* event)
+void MemoryViewInternal::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);
 
@@ -682,7 +682,7 @@ void Qt5HexEditInternal::paintEvent(QPaintEvent* event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::updateCursor()
+void MemoryViewInternal::updateCursor()
 {
     m_blinking = !m_blinking;
     update(m_cursorX, m_cursorY, m_characterWidth, m_characterHeight);
@@ -690,7 +690,7 @@ void Qt5HexEditInternal::updateCursor()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::adjust()
+void MemoryViewInternal::adjust()
 {
     m_characterWidth = fontMetrics().width(QLatin1Char('9'));
     m_characterHeight = fontMetrics().height();
@@ -717,7 +717,7 @@ void Qt5HexEditInternal::adjust()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::ensureVisible()
+void MemoryViewInternal::ensureVisible()
 {
     // Scrolls to m_cursorX\m_cursorY
     // X-margin is 3 pixels, Y-margin is half of m_characterHeight
@@ -726,7 +726,7 @@ void Qt5HexEditInternal::ensureVisible()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::handleCursorMovements(QKeyEvent* event)
+void MemoryViewInternal::handleCursorMovements(QKeyEvent* event)
 {
     if (event->matches(QKeySequence::MoveToNextChar)) {
         setCursorPosition(m_cursorPosition + 1);
@@ -783,7 +783,7 @@ void Qt5HexEditInternal::handleCursorMovements(QKeyEvent* event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::handleSelectCommands(QKeyEvent* event)
+void MemoryViewInternal::handleSelectCommands(QKeyEvent* event)
 {
     if (event->matches(QKeySequence::SelectAll)) {
         resetSelection(0);
@@ -855,7 +855,7 @@ void Qt5HexEditInternal::handleSelectCommands(QKeyEvent* event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditInternal::handleEditCommands(QKeyEvent* event)
+void MemoryViewInternal::handleEditCommands(QKeyEvent* event)
 {
     if (m_readOnly)
         return;

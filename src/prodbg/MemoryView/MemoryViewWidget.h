@@ -11,11 +11,11 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Qt5HexEditInternal;
+class MemoryViewInternal;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Qt5HexEditWidget : public QScrollArea
+class MemoryViewWidget : public QScrollArea
 {
     Q_OBJECT
     Q_PROPERTY(QByteArray data READ getData WRITE setData)
@@ -29,7 +29,7 @@ class Qt5HexEditWidget : public QScrollArea
     Q_PROPERTY(QFont font READ getFont WRITE setFont)
 
 public:
-    Qt5HexEditWidget(QWidget* parent = nullptr);
+    MemoryViewWidget(QWidget* parent = nullptr);
 
     void insert(int index, const QByteArray& values);
     void insert(int index, char value);
@@ -90,7 +90,7 @@ signals:
 private:
     QHBoxLayout* m_layout;
     QScrollArea* m_scrollArea;
-    Qt5HexEditInternal* m_internal;
+    MemoryViewInternal* m_internal;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

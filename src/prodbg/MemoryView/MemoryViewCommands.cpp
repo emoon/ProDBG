@@ -1,11 +1,11 @@
-#include "Qt5HexEditCommands.h"
+#include "MemoryViewCommands.h"
 
 namespace prodbg
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5HexEditValueUndoCommand::Qt5HexEditValueUndoCommand(Qt5HexEditByteArray* data,
+MemoryViewValueUndoCommand::MemoryViewValueUndoCommand(MemoryViewByteArray* data,
                                                        Operation            operation,
                                                        int                  characterPosition,
                                                        char                 characterNew,
@@ -22,7 +22,7 @@ Qt5HexEditValueUndoCommand::Qt5HexEditValueUndoCommand(Qt5HexEditByteArray* data
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditValueUndoCommand::undo()
+void MemoryViewValueUndoCommand::undo()
 {
     switch (m_operation)
     {
@@ -44,7 +44,7 @@ void Qt5HexEditValueUndoCommand::undo()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditValueUndoCommand::redo()
+void MemoryViewValueUndoCommand::redo()
 {
     switch (m_operation)
     {
@@ -68,13 +68,13 @@ void Qt5HexEditValueUndoCommand::redo()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Qt5HexEditValueUndoCommand::mergeWith(const QUndoCommand* command)
+bool MemoryViewValueUndoCommand::mergeWith(const QUndoCommand* command)
 {
     bool result = false;
 
     if (m_operation != RemoveOperation)
     {
-        const Qt5HexEditValueUndoCommand* nextCommand = static_cast<const Qt5HexEditValueUndoCommand*>(command);
+        const MemoryViewValueUndoCommand* nextCommand = static_cast<const MemoryViewValueUndoCommand*>(command);
 
         if (nextCommand->m_operation == ReplaceOperation)
         {
@@ -91,7 +91,7 @@ bool Qt5HexEditValueUndoCommand::mergeWith(const QUndoCommand* command)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5HexEditRangeUndoCommand::Qt5HexEditRangeUndoCommand(Qt5HexEditByteArray* data,
+MemoryViewRangeUndoCommand::MemoryViewRangeUndoCommand(MemoryViewByteArray* data,
                                                        Operation            operation,
                                                        int                  positionValues,
                                                        const QByteArray&    newValues,
@@ -108,7 +108,7 @@ Qt5HexEditRangeUndoCommand::Qt5HexEditRangeUndoCommand(Qt5HexEditByteArray* data
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditRangeUndoCommand::undo()
+void MemoryViewRangeUndoCommand::undo()
 {
     switch (m_operation)
     {
@@ -130,7 +130,7 @@ void Qt5HexEditRangeUndoCommand::undo()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditRangeUndoCommand::redo()
+void MemoryViewRangeUndoCommand::redo()
 {
     switch (m_operation)
     {

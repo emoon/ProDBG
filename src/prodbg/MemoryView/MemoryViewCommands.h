@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <QUndoCommand>
-#include "Qt5HexEditByteArray.h"
+#include "MemoryViewByteArray.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -12,7 +12,7 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Qt5HexEditValueUndoCommand : public QUndoCommand
+class MemoryViewValueUndoCommand : public QUndoCommand
 {
 public:
     enum Operation
@@ -22,7 +22,7 @@ public:
         ReplaceOperation
     };
 
-    Qt5HexEditValueUndoCommand(Qt5HexEditByteArray* data,
+    MemoryViewValueUndoCommand(MemoryViewByteArray* data,
                                Operation            operation,
                                int                  characterPosition,
                                char                 characterNew,
@@ -34,7 +34,7 @@ public:
     bool mergeWith(const QUndoCommand* command);
 
 private:
-    Qt5HexEditByteArray* m_data;
+    MemoryViewByteArray* m_data;
     Operation m_operation;
     int m_characterPosition;
     char m_characterNew;
@@ -44,7 +44,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Qt5HexEditRangeUndoCommand : public QUndoCommand
+class MemoryViewRangeUndoCommand : public QUndoCommand
 {
 public:
     enum Operation
@@ -54,7 +54,7 @@ public:
         ReplaceOperation
     };
 
-    Qt5HexEditRangeUndoCommand(Qt5HexEditByteArray* data,
+    MemoryViewRangeUndoCommand(MemoryViewByteArray* data,
                                Operation            operation,
                                int                  positionValues,
                                const QByteArray&    newValues,
@@ -65,7 +65,7 @@ public:
     void redo();
 
 private:
-    Qt5HexEditByteArray* m_data;
+    MemoryViewByteArray* m_data;
     Operation m_operation;
     int m_positionValues;
     int m_length;

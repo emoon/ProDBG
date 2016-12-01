@@ -1,6 +1,6 @@
 #include <QtGui>
-#include "Qt5HexEditWidget.h"
-#include "Qt5HexEditInternal.h"
+#include "MemoryViewWidget.h"
+#include "MemoryViewInternal.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -9,9 +9,9 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5HexEditWidget::Qt5HexEditWidget(QWidget* parent)
+MemoryViewWidget::MemoryViewWidget(QWidget* parent)
     : QScrollArea(parent)
-    , m_internal(new Qt5HexEditInternal(this))
+    , m_internal(new MemoryViewInternal(this))
 {
     setAttribute(Qt::WA_DeleteOnClose);
 
@@ -28,226 +28,226 @@ Qt5HexEditWidget::Qt5HexEditWidget(QWidget* parent)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::insert(int index, const QByteArray& values)
+void MemoryViewWidget::insert(int index, const QByteArray& values)
 {
     m_internal->insert(index, values);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::insert(int index, char value)
+void MemoryViewWidget::insert(int index, char value)
 {
     m_internal->insert(index, value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5HexEditWidget::indexOf(const QByteArray& values, int from) const
+int MemoryViewWidget::indexOf(const QByteArray& values, int from) const
 {
     return m_internal->indexOf(values, from);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5HexEditWidget::lastIndexOf(const QByteArray& values, int from) const
+int MemoryViewWidget::lastIndexOf(const QByteArray& values, int from) const
 {
     return m_internal->lastIndexOf(values, from);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::remove(int position, int length)
+void MemoryViewWidget::remove(int position, int length)
 {
     m_internal->remove(position, length);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::replace(int position, int length, const QByteArray& values)
+void MemoryViewWidget::replace(int position, int length, const QByteArray& values)
 {
     m_internal->replace(position, length, values);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QString Qt5HexEditWidget::getReadableString()
+QString MemoryViewWidget::getReadableString()
 {
     return m_internal->getReadableString();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QString Qt5HexEditWidget::getReadableStringFromSelection()
+QString MemoryViewWidget::getReadableStringFromSelection()
 {
     return m_internal->getReadableStringFromSelection();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::setAddressOffset(int offset)
+void MemoryViewWidget::setAddressOffset(int offset)
 {
     m_internal->setAddressOffset(offset);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5HexEditWidget::getAddressOffset() const
+int MemoryViewWidget::getAddressOffset() const
 {
     return m_internal->getAddressOffset();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::setCursorPosition(int cursorPosition)
+void MemoryViewWidget::setCursorPosition(int cursorPosition)
 {
-    // The cursor position calculated in Qt5HexEditInternal is the
+    // The cursor position calculated in MemoryViewInternal is the
     // position without counting blanks. Need byte position * 2
     m_internal->setCursorPosition(cursorPosition * 2);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5HexEditWidget::getCursorPosition() const
+int MemoryViewWidget::getCursorPosition() const
 {
     return m_internal->getCursorPosition() >> 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::setData(const QByteArray& data)
+void MemoryViewWidget::setData(const QByteArray& data)
 {
     m_internal->setData(data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QByteArray Qt5HexEditWidget::getData() const
+QByteArray MemoryViewWidget::getData() const
 {
     return m_internal->getData();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::setAddressAreaColor(const QColor& color)
+void MemoryViewWidget::setAddressAreaColor(const QColor& color)
 {
     m_internal->setAddressAreaColor(color);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QColor Qt5HexEditWidget::getAddressAreaColor() const
+QColor MemoryViewWidget::getAddressAreaColor() const
 {
     return m_internal->getAddressAreaColor();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::setHighlightingColor(const QColor& color)
+void MemoryViewWidget::setHighlightingColor(const QColor& color)
 {
     m_internal->setHighlightingColor(color);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QColor Qt5HexEditWidget::getHighlightingColor() const
+QColor MemoryViewWidget::getHighlightingColor() const
 {
     return m_internal->getHighlightingColor();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::setSelectionColor(const QColor& color)
+void MemoryViewWidget::setSelectionColor(const QColor& color)
 {
     m_internal->setSelectionColor(color);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QColor Qt5HexEditWidget::getSelectionColor() const
+QColor MemoryViewWidget::getSelectionColor() const
 {
     return m_internal->getSelectionColor();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::setOverwriteMode(bool mode)
+void MemoryViewWidget::setOverwriteMode(bool mode)
 {
     m_internal->setOverwriteMode(mode);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Qt5HexEditWidget::getOverwriteMode() const
+bool MemoryViewWidget::getOverwriteMode() const
 {
     return m_internal->getOverwriteMode();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::setReadOnly(bool mode)
+void MemoryViewWidget::setReadOnly(bool mode)
 {
     m_internal->setReadOnly(mode);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Qt5HexEditWidget::getReadOnly() const
+bool MemoryViewWidget::getReadOnly() const
 {
     return m_internal->getReadOnly();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const QFont& Qt5HexEditWidget::getFont() const
+const QFont& MemoryViewWidget::getFont() const
 {
     return m_internal->font();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::setFont(const QFont& font)
+void MemoryViewWidget::setFont(const QFont& font)
 {
     m_internal->setFont(font);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::setAddressWidth(int addressWidth)
+void MemoryViewWidget::setAddressWidth(int addressWidth)
 {
     m_internal->setAddressWidth(addressWidth);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::setAddressArea(bool addressArea)
+void MemoryViewWidget::setAddressArea(bool addressArea)
 {
     m_internal->setAddressArea(addressArea);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::setAsciiArea(bool asciiArea)
+void MemoryViewWidget::setAsciiArea(bool asciiArea)
 {
     m_internal->setAsciiArea(asciiArea);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::setHighlighting(bool mode)
+void MemoryViewWidget::setHighlighting(bool mode)
 {
     m_internal->setHighlighting(mode);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::undo()
+void MemoryViewWidget::undo()
 {
     m_internal->undo();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditWidget::redo()
+void MemoryViewWidget::redo()
 {
     m_internal->redo();
 }

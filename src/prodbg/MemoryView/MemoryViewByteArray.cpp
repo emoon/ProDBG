@@ -1,11 +1,11 @@
-#include "Qt5HexEditByteArray.h"
+#include "MemoryViewByteArray.h"
 
 namespace prodbg
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5HexEditByteArray::Qt5HexEditByteArray()
+MemoryViewByteArray::MemoryViewByteArray()
     : m_addressNumbers(4)
     , m_addressOffset(0)
     , m_oldSize(-99)
@@ -14,28 +14,28 @@ Qt5HexEditByteArray::Qt5HexEditByteArray()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5HexEditByteArray::getAddressOffset() const
+int MemoryViewByteArray::getAddressOffset() const
 {
     return m_addressOffset;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditByteArray::setAddressOffset(int offset)
+void MemoryViewByteArray::setAddressOffset(int offset)
 {
     m_addressOffset = offset;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5HexEditByteArray::getAddressWidth() const
+int MemoryViewByteArray::getAddressWidth() const
 {
     return m_addressNumbers;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditByteArray::setAddressWidth(int width)
+void MemoryViewByteArray::setAddressWidth(int width)
 {
     if ((width >= 0) && (width <= 6))
     {
@@ -45,14 +45,14 @@ void Qt5HexEditByteArray::setAddressWidth(int width)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QByteArray& Qt5HexEditByteArray::getData()
+QByteArray& MemoryViewByteArray::getData()
 {
     return m_data;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditByteArray::setData(QByteArray data)
+void MemoryViewByteArray::setData(QByteArray data)
 {
     m_data = data;
     m_dataChanged = QByteArray(data.length(), char(0));
@@ -60,28 +60,28 @@ void Qt5HexEditByteArray::setData(QByteArray data)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Qt5HexEditByteArray::getDataChanged(int index) const
+bool MemoryViewByteArray::getDataChanged(int index) const
 {
     return bool(m_dataChanged[index]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QByteArray Qt5HexEditByteArray::getDataChanged(int index, int length) const
+QByteArray MemoryViewByteArray::getDataChanged(int index, int length) const
 {
     return m_dataChanged.mid(index, length);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditByteArray::setDataChanged(int index, bool state)
+void MemoryViewByteArray::setDataChanged(int index, bool state)
 {
     m_dataChanged[index] = char(state);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5HexEditByteArray::setDataChanged(int index, const QByteArray& state)
+void MemoryViewByteArray::setDataChanged(int index, const QByteArray& state)
 {
     int length = state.length();
     int len;
@@ -100,7 +100,7 @@ void Qt5HexEditByteArray::setDataChanged(int index, const QByteArray& state)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5HexEditByteArray::getRealAddressNumbers()
+int MemoryViewByteArray::getRealAddressNumbers()
 {
     if (m_oldSize != m_data.size())
     {
@@ -113,14 +113,14 @@ int Qt5HexEditByteArray::getRealAddressNumbers()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5HexEditByteArray::getSize() const
+int MemoryViewByteArray::getSize() const
 {
     return m_data.size();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QByteArray& Qt5HexEditByteArray::insert(int index, char value)
+QByteArray& MemoryViewByteArray::insert(int index, char value)
 {
     m_data.insert(index, value);
     m_dataChanged.insert(index, char(1));
@@ -129,7 +129,7 @@ QByteArray& Qt5HexEditByteArray::insert(int index, char value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QByteArray& Qt5HexEditByteArray::insert(int index, const QByteArray& values)
+QByteArray& MemoryViewByteArray::insert(int index, const QByteArray& values)
 {
     m_data.insert(index, values);
     m_dataChanged.insert(index, QByteArray(values.length(), char(1)));
@@ -138,7 +138,7 @@ QByteArray& Qt5HexEditByteArray::insert(int index, const QByteArray& values)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QByteArray& Qt5HexEditByteArray::remove(int index, int length)
+QByteArray& MemoryViewByteArray::remove(int index, int length)
 {
     m_data.remove(index, length);
     m_dataChanged.remove(index, length);
@@ -147,7 +147,7 @@ QByteArray& Qt5HexEditByteArray::remove(int index, int length)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QByteArray& Qt5HexEditByteArray::replace(int index, char value)
+QByteArray& MemoryViewByteArray::replace(int index, char value)
 {
     m_data[index] = value;
     m_dataChanged[index] = char(1);
@@ -156,7 +156,7 @@ QByteArray& Qt5HexEditByteArray::replace(int index, char value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QByteArray& Qt5HexEditByteArray::replace(int index, const QByteArray& values)
+QByteArray& MemoryViewByteArray::replace(int index, const QByteArray& values)
 {
     int len = values.length();
     return replace(index, len, values);
@@ -164,7 +164,7 @@ QByteArray& Qt5HexEditByteArray::replace(int index, const QByteArray& values)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QByteArray& Qt5HexEditByteArray::replace(int index, int length, const QByteArray& values)
+QByteArray& MemoryViewByteArray::replace(int index, int length, const QByteArray& values)
 {
     int len;
 
@@ -181,7 +181,7 @@ QByteArray& Qt5HexEditByteArray::replace(int index, int length, const QByteArray
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QChar Qt5HexEditByteArray::getAsciiChar(int index) const
+QChar MemoryViewByteArray::getAsciiChar(int index) const
 {
     char value = m_data[index];
 
@@ -195,7 +195,7 @@ QChar Qt5HexEditByteArray::getAsciiChar(int index) const
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QString Qt5HexEditByteArray::getReadableString(int start, int end)
+QString MemoryViewByteArray::getReadableString(int start, int end)
 {
     int addressWidth = getRealAddressNumbers();
 

@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <QtWidgets>
-#include "Qt5HexEditByteArray.h"
+#include "MemoryViewByteArray.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -21,14 +21,14 @@ namespace prodbg
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Qt5HexEditInternal : public QWidget
+class MemoryViewInternal : public QWidget
 {
     Q_OBJECT
 
 public:
-    Qt5HexEditInternal(QScrollArea* parent);
+    MemoryViewInternal(QScrollArea* parent);
 
-    Qt5HexEditByteArray& getHexData();
+    MemoryViewByteArray& getHexData();
 
     void insert(int index, const QByteArray& values);
     void insert(int index, char value);
@@ -115,7 +115,7 @@ private:
     void handleEditCommands(QKeyEvent* event);
 
 private:
-    Qt5HexEditByteArray m_data;
+    MemoryViewByteArray m_data;
     QTimer m_cursorTimer;
     QColor m_addressAreaColor;
     QColor m_highlightingColor;
