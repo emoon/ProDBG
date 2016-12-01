@@ -56,7 +56,7 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent)
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
 
-#ifdef _WIN32 
+#ifdef _WIN32
     QFont font("Courier", 11);
 #else
     QFont font("Courier", 13);
@@ -79,10 +79,10 @@ Qt5CodeEditor::~Qt5CodeEditor()
 
 void Qt5CodeEditor::sessionUpdate()
 {
-    //const char* filename;
-    //int line;
+    // const char* filename;
+    // int line;
 
-    //if (g_debugSession->getFilenameLine(&filename, &line))
+    // if (g_debugSession->getFilenameLine(&filename, &line))
     //   setFileLine(filename, line);
 
     update();
@@ -209,7 +209,7 @@ void Qt5CodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event)
             painter.setPen(Qt::black);
             painter.drawText(0, top, width, height, Qt::AlignRight, number);
 
-            //if (g_debugSession->hasLineBreakpoint(m_sourceFile, blockNumber))
+            // if (g_debugSession->hasLineBreakpoint(m_sourceFile, blockNumber))
             //   painter.drawArc(0, top + 1, 16, height - 2, 0, 360 * 16);
         }
 
@@ -226,7 +226,7 @@ void Qt5CodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event)
 
 void Qt5CodeEditor::step()
 {
-    //g_debugSession->callAction(PDAction_step);
+    // g_debugSession->callAction(PDAction_step);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -286,9 +286,9 @@ void Qt5CodeEditor::setAddress(uint64_t address)
         if (m_address < m_disassemblyStart)
             m_disassemblyStart = m_address;
 
-        //g_debugSession->requestDisassembly(m_disassemblyStart, (m_lineEnd - m_lineStart));
+        // g_debugSession->requestDisassembly(m_disassemblyStart, (m_lineEnd - m_lineStart));
 
-        //m_disassemblyEnd = 0x40;
+        // m_disassemblyEnd = 0x40;
     }
 }
 
@@ -319,13 +319,13 @@ void Qt5CodeEditor::keyPressEvent(QKeyEvent* event)
 {
     if (event->key() == Qt::Key_F8) {
         QTextCursor cursor = textCursor();
-        //int lineNum = cursor.blockNumber();
+        // int lineNum = cursor.blockNumber();
 
         // Check if this breakpoint was added directly on the UI thread then update the window to show it
 
         printf("Add breakpoint %s\n", m_sourceFile);
 
-        //if (g_debugSession->addBreakpointUI(m_sourceFile, lineNum))
+        // if (g_debugSession->addBreakpointUI(m_sourceFile, lineNum))
         //   update();
 
         return;
@@ -390,7 +390,4 @@ void Qt5CodeEditor::setFileLine(const char* file, int line)
 
     setLine(line);
 }
-
-
-
 }
