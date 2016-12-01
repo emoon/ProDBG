@@ -1,22 +1,18 @@
 #pragma once
 
-#include <ProDBGAPI.h>
 #include <QObject>
 #include <QPlainTextEdit>
 #include <QString>
-
-#include <core/Core.h>
+#include <stdint.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QT_BEGIN_NAMESPACE
 class QPaintEvent;
 class QResizeEvent;
 class QSize;
 class QWidget;
 class QThread;
 class QFileSystemWatcher;
-QT_END_NAMESPACE
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -59,8 +55,6 @@ public:
     void setAddress(uint64_t address);
     void setLine(int line);
     int lineNumberAreaWidth();
-    void setDisassembly(const char* text, int64_t start, int32_t instructionCount);
-    void setAssemblyRegisters(AssemblyRegister* registers, int count);
 
 protected:
     void resizeEvent(QResizeEvent* event);
@@ -97,25 +91,6 @@ private:
     int m_assemblyRegistersCount;
 
     // Range of dissassembly (this currently assumes that the disassembly is non-SMC)
-};
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-class LineNumberArea : public QWidget
-{
-public:
-    LineNumberArea(Qt5CodeEditor* editor)
-        : QWidget(editor)
-        , m_codeEditor(editor)
-    {
-    }
-    QSize sizeHint() const { return QSize(m_codeEditor->lineNumberAreaWidth(), 0); }
-
-protected:
-    void paintEvent(QPaintEvent* event) { m_codeEditor->lineNumberAreaPaintEvent(event); }
-
-private:
-    Qt5CodeEditor* m_codeEditor;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

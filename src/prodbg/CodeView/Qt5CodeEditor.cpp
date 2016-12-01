@@ -1,6 +1,4 @@
 #include "Qt5CodeEditor.h"
-#include "Qt5DebugSession.h"
-#include "core/AssemblyRegister.h"
 #include <QMessageBox>
 #include <QtGui>
 
@@ -10,66 +8,28 @@ namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class AssemblyHighlighter : public QSyntaxHighlighter
+class LineNumberArea : public QWidget
 {
-
 public:
-    AssemblyHighlighter(QTextDocument* document)
-        : QSyntaxHighlighter(document)
+    LineNumberArea(Qt5CodeEditor* editor)
+        : QWidget(editor)
+        , m_codeEditor(editor)
     {
-        m_matchRegisters.clear();
-    };
-
-    ~AssemblyHighlighter(){};
-
-    void clearRegisterList() { m_matchRegisters.clear(); }
-
-    void highlightBlock(const QString& text)
-    {
-        int matchRegCount = m_matchRegisters.count();
-
-        for (int i = 0; i < text.length(); ++i) {
-            for (int p = 0; p < matchRegCount; ++p) {
-                const RegInfo& info = m_matchRegisters[p];
-
-                // \todo Don't use mid. It returns a new QString so we will do malloc/free for each call
-
-                if (text.mid(i, info.length) == info.name)
-                    setFormat(i, info.length, info.color);
-            }
-        }
     }
 
-    void addRegister(QString registerName)
-    {
-        RegInfo info;
+    QSize sizeHint() const { return QSize(m_codeEditor->lineNumberAreaWidth(), 0); }
 
-        static QColor colors[] = {
-            Qt::red, Qt::magenta, Qt::blue,
-        };
-
-        info.length = registerName.length();
-        info.color = colors[m_matchRegisters.count() % 3];
-        info.name = registerName;
-        m_matchRegisters.push_back(info);
-    }
+protected:
+    void paintEvent(QPaintEvent* event) { m_codeEditor->lineNumberAreaPaintEvent(event); }
 
 private:
-    struct RegInfo
-    {
-        int length;
-        QColor color;
-        QString name;
-    };
-
-    QVector<RegInfo> m_matchRegisters;
+    Qt5CodeEditor* m_codeEditor;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Qt5CodeEditor::Qt5CodeEditor(QWidget* parent)
     : QPlainTextEdit(parent)
-    , m_assemblyHighlighter(0)
     , m_lineNumberArea(nullptr)
     , m_fileWatcher(nullptr)
     , m_sourceFile(nullptr)
@@ -96,17 +56,13 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent)
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
 
-#if NcFeature(NcPlatformWindows)
+#ifdef _WIN32 
     QFont font("Courier", 11);
 #else
     QFont font("Courier", 13);
 #endif
 
     setFont(font);
-
-    g_debugSession->addCodeEditor(this);
-
-    m_assemblyHighlighter = new AssemblyHighlighter(document());
 
     m_sourceFile = 0;
 }
@@ -115,9 +71,7 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent)
 
 Qt5CodeEditor::~Qt5CodeEditor()
 {
-    delete m_assemblyHighlighter;
     delete m_fileWatcher;
-    g_debugSession->delCodeEditor(this);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,11 +79,11 @@ Qt5CodeEditor::~Qt5CodeEditor()
 
 void Qt5CodeEditor::sessionUpdate()
 {
-    const char* filename;
-    int line;
+    //const char* filename;
+    //int line;
 
-    if (g_debugSession->getFilenameLine(&filename, &line))
-        setFileLine(filename, line);
+    //if (g_debugSession->getFilenameLine(&filename, &line))
+    //   setFileLine(filename, line);
 
     update();
 }
@@ -222,32 +176,6 @@ void Qt5CodeEditor::highlightCurrentLine()
 
     QString string = cursor.block().text();
 
-    if (m_assemblyHighlighter) {
-        m_assemblyHighlighter->clearRegisterList();
-
-        bool addedReg = false;
-        int registerCount = m_assemblyRegistersCount;
-
-        QByteArray ba = string.toLatin1();
-        const char* lineText = ba.data();
-
-        // Update the syntax highlighter if we should highlight assembly
-
-        for (int i = 0, length = string.length() - 1; i < length; ++i) {
-            for (int p = 0; p < registerCount; ++p) {
-                const AssemblyRegister* reg = &m_assemblyRegisters[p];
-
-                if (!strncmp(&lineText[i], reg->name, reg->nameLength)) {
-                    m_assemblyHighlighter->addRegister(string.mid(i, 2));
-                    addedReg = true;
-                }
-            }
-        }
-
-        if (addedReg)
-            m_assemblyHighlighter->rehighlight();
-    }
-
     QColor lineColor = QColor(Qt::lightGray).lighter(100);
 
     selection.format.setBackground(lineColor);
@@ -281,8 +209,8 @@ void Qt5CodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event)
             painter.setPen(Qt::black);
             painter.drawText(0, top, width, height, Qt::AlignRight, number);
 
-            if (g_debugSession->hasLineBreakpoint(m_sourceFile, blockNumber))
-                painter.drawArc(0, top + 1, 16, height - 2, 0, 360 * 16);
+            //if (g_debugSession->hasLineBreakpoint(m_sourceFile, blockNumber))
+            //   painter.drawArc(0, top + 1, 16, height - 2, 0, 360 * 16);
         }
 
         block = block.next();
@@ -298,7 +226,7 @@ void Qt5CodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event)
 
 void Qt5CodeEditor::step()
 {
-    g_debugSession->callAction(PDAction_step);
+    //g_debugSession->callAction(PDAction_step);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -358,14 +286,15 @@ void Qt5CodeEditor::setAddress(uint64_t address)
         if (m_address < m_disassemblyStart)
             m_disassemblyStart = m_address;
 
-        g_debugSession->requestDisassembly(m_disassemblyStart, (m_lineEnd - m_lineStart));
+        //g_debugSession->requestDisassembly(m_disassemblyStart, (m_lineEnd - m_lineStart));
 
-        m_disassemblyEnd = 0x40;
+        //m_disassemblyEnd = 0x40;
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 void Qt5CodeEditor::setDisassembly(const char* text, int64_t startAddress, int32_t instructionCount)
 {
     (void)instructionCount;
@@ -382,6 +311,7 @@ void Qt5CodeEditor::setDisassembly(const char* text, int64_t startAddress, int32
     QString string = QString::fromLocal8Bit(text);
     setPlainText(string);
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -389,14 +319,14 @@ void Qt5CodeEditor::keyPressEvent(QKeyEvent* event)
 {
     if (event->key() == Qt::Key_F8) {
         QTextCursor cursor = textCursor();
-        int lineNum = cursor.blockNumber();
+        //int lineNum = cursor.blockNumber();
 
         // Check if this breakpoint was added directly on the UI thread then update the window to show it
 
         printf("Add breakpoint %s\n", m_sourceFile);
 
-        if (g_debugSession->addBreakpointUI(m_sourceFile, lineNum))
-            update();
+        //if (g_debugSession->addBreakpointUI(m_sourceFile, lineNum))
+        //   update();
 
         return;
     }
@@ -443,11 +373,13 @@ void Qt5CodeEditor::setLine(int line)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 void Qt5CodeEditor::setAssemblyRegisters(AssemblyRegister* registers, int count)
 {
     m_assemblyRegisters = registers;
     m_assemblyRegistersCount = count;
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -459,5 +391,6 @@ void Qt5CodeEditor::setFileLine(const char* file, int line)
     setLine(line);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 }
