@@ -72,7 +72,7 @@ DefRule {
 
   Setup = function (env, data)
     local src = data.Source
-    local base_name = path.drop_suffix(src) 
+    local base_name = path.get_filename_base(src) 
     local pfx = 'ui_'
     local ext = '.h'
     return {
