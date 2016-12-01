@@ -1,15 +1,15 @@
 #include "MainWindow.h"
-#include "MemoryView/MemoryViewWidget.h"
 #include "CodeView/CodeView.h"
+#include "MemoryView/MemoryViewWidget.h"
 #include <QDockWidget>
 
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MainWindow::MainWindow() : 
-	m_codeView(new CodeView),
-	m_memoryView(new MemoryViewWidget)
+MainWindow::MainWindow()
+    : m_codeView(new CodeView)
+    , m_memoryView(new MemoryViewWidget)
 {
     char* dummy_data = (char*)malloc(1024 * 1024);
 
@@ -18,11 +18,11 @@ MainWindow::MainWindow() :
 
     m_memoryView->setData(QByteArray(dummy_data, 1024 * 1024));
 
-	setCentralWidget(m_codeView);
+    setCentralWidget(m_codeView);
 
-	setWindowTitle(tr("ProDBG"));
+    setWindowTitle(tr("ProDBG"));
 
-	QDockWidget *dock = new QDockWidget(tr("MemoryView"), this);
+    QDockWidget* dock = new QDockWidget(tr("MemoryView"), this);
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
 
     dock->setWidget(m_memoryView);
@@ -34,5 +34,4 @@ MainWindow::MainWindow() :
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 }
