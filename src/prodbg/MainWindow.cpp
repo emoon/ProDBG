@@ -10,6 +10,7 @@ namespace prodbg {
 MainWindow::MainWindow()
     : m_codeView(new CodeView)
     , m_memoryView(new MemoryViewWidget)
+    , m_statusbar(new QStatusBar)
 {
     char* dummy_data = (char*)malloc(1024 * 1024);
 
@@ -29,6 +30,10 @@ MainWindow::MainWindow()
     addDockWidget(Qt::RightDockWidgetArea, dock);
 
     m_codeView->readSourceFile("src/prodbg/main.cpp");
+
+    m_statusbar->showMessage(tr("Ready."));
+
+    setStatusBar(m_statusbar);
 
     resize(1024, 768);
 }

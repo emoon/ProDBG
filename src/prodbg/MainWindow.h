@@ -2,6 +2,8 @@
 
 #include <QMainWindow>
 
+class QStatusBar;
+
 namespace prodbg {
 
 class CodeView;
@@ -17,8 +19,10 @@ public:
     MainWindow();
 
 private:
+
     CodeView* m_codeView;
     MemoryViewWidget* m_memoryView;
+    QStatusBar* m_statusbar;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
