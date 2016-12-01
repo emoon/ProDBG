@@ -6,6 +6,20 @@ require "tundra.util"
 
 local native = require('tundra.native')
 
+local function gen_uic(src)
+	return Uic { 
+		Pass = "GenerateSources",
+		Source = src 
+	}
+end
+
+local function gen_moc(src)
+	return Moc { 
+		Pass = "GenerateSources",
+		Source = src 
+	}
+end
+
 -----------------------------------------------------------------------------------------------------------------------
 
 Program {
@@ -17,10 +31,11 @@ Program {
             Recursive = true,
         },
 
-        Moc { Source = "src/prodbg/MainWindow.h" },
-        Moc { Source = "src/prodbg/CodeView/CodeView.h" },
-        Moc { Source = "src/prodbg/MemoryView/MemoryViewInternal.h" },
-        Moc { Source = "src/prodbg/MemoryView/MemoryViewWidget.h" },
+		gen_uic("src/prodbg/mainwindow.ui"), 
+        gen_moc("src/prodbg/MainWindow.h"),
+        gen_moc("src/prodbg/CodeView/CodeView.h"),
+        gen_moc("src/prodbg/MemoryView/MemoryViewInternal.h"),
+        gen_moc("src/prodbg/MemoryView/MemoryViewWidget.h"),
 	},
 
     Env = {
@@ -30,6 +45,10 @@ Program {
               "-isystem $(QT5)/lib/QtGui.framework/Headers",
               "-F$(QT5)/lib"; Config = "macosx-*-*" },
         },
+
+        CPPPATH = {
+        	"$(OBJECTROOT)",
+		},
 
         PROGCOM = {
             {  "-Wl,-rpath,$(QT5)/lib", "-F$(QT5)/lib", "-lstdc++", Config = "macosx-clang-*" },
