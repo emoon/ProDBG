@@ -16,8 +16,8 @@ const int kBytesPerLine = 16;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MemoryViewInternal::MemoryViewInternal(QScrollArea* parent) :
-    QWidget(parent)
+MemoryViewInternal::MemoryViewInternal(QScrollArea* parent)
+    : QWidget(parent)
     , m_scrollArea(parent)
     , m_undoStack(new QUndoStack(this))
     , m_size(0)
@@ -57,12 +57,12 @@ void MemoryViewInternal::insert(int index, const QByteArray& values)
     if (values.length() > 0) {
         if (m_overwriteMode) {
             QUndoCommand* rangeUndoCommand = new MemoryViewRangeUndoCommand(
-              &m_data, MemoryViewRangeUndoCommand::ReplaceOperation, index, values, values.length());
+                &m_data, MemoryViewRangeUndoCommand::ReplaceOperation, index, values, values.length());
             m_undoStack->push(rangeUndoCommand);
             emit dataChanged();
         } else {
             QUndoCommand* rangeUndoCommand = new MemoryViewRangeUndoCommand(
-              &m_data, MemoryViewRangeUndoCommand::InsertOperation, index, values, values.length());
+                &m_data, MemoryViewRangeUndoCommand::InsertOperation, index, values, values.length());
             m_undoStack->push(rangeUndoCommand);
             emit dataChanged();
         }
@@ -74,7 +74,7 @@ void MemoryViewInternal::insert(int index, const QByteArray& values)
 void MemoryViewInternal::insert(int index, char value)
 {
     QUndoCommand* valueUndoCommand =
-      new MemoryViewValueUndoCommand(&m_data, MemoryViewValueUndoCommand::InsertOperation, index, value);
+        new MemoryViewValueUndoCommand(&m_data, MemoryViewValueUndoCommand::InsertOperation, index, value);
     m_undoStack->push(valueUndoCommand);
     emit dataChanged();
 }
@@ -131,13 +131,13 @@ void MemoryViewInternal::remove(int index, int length)
     if (length > 0) {
         if (length == 1) {
             if (m_overwriteMode) {
-                QUndoCommand* valueUndoCommand =
-                  new MemoryViewValueUndoCommand(&m_data, MemoryViewValueUndoCommand::ReplaceOperation, index, char(0));
+                QUndoCommand* valueUndoCommand = new MemoryViewValueUndoCommand(
+                    &m_data, MemoryViewValueUndoCommand::ReplaceOperation, index, char(0));
                 m_undoStack->push(valueUndoCommand);
                 emit dataChanged();
             } else {
-                QUndoCommand* valueUndoCommand =
-                  new MemoryViewValueUndoCommand(&m_data, MemoryViewValueUndoCommand::RemoveOperation, index, char(0));
+                QUndoCommand* valueUndoCommand = new MemoryViewValueUndoCommand(
+                    &m_data, MemoryViewValueUndoCommand::RemoveOperation, index, char(0));
                 m_undoStack->push(valueUndoCommand);
                 emit dataChanged();
             }
@@ -145,12 +145,12 @@ void MemoryViewInternal::remove(int index, int length)
             QByteArray values = QByteArray(length, char(0));
             if (m_overwriteMode) {
                 QUndoCommand* rangeUndoCommand = new MemoryViewRangeUndoCommand(
-                  &m_data, MemoryViewRangeUndoCommand::ReplaceOperation, index, values, values.length());
+                    &m_data, MemoryViewRangeUndoCommand::ReplaceOperation, index, values, values.length());
                 m_undoStack->push(rangeUndoCommand);
                 emit dataChanged();
             } else {
                 QUndoCommand* rangeUndoCommand = new MemoryViewRangeUndoCommand(
-                  &m_data, MemoryViewRangeUndoCommand::RemoveOperation, index, values, length);
+                    &m_data, MemoryViewRangeUndoCommand::RemoveOperation, index, values, length);
                 m_undoStack->push(rangeUndoCommand);
                 emit dataChanged();
             }
@@ -163,7 +163,7 @@ void MemoryViewInternal::remove(int index, int length)
 void MemoryViewInternal::replace(int index, char value)
 {
     QUndoCommand* valueUndoCommand =
-      new MemoryViewValueUndoCommand(&m_data, MemoryViewValueUndoCommand::ReplaceOperation, index, value);
+        new MemoryViewValueUndoCommand(&m_data, MemoryViewValueUndoCommand::ReplaceOperation, index, value);
     m_undoStack->push(valueUndoCommand);
     resetSelection();
     emit dataChanged();
@@ -174,7 +174,7 @@ void MemoryViewInternal::replace(int index, char value)
 void MemoryViewInternal::replace(int index, const QByteArray& values)
 {
     QUndoCommand* rangeUndoCommand = new MemoryViewRangeUndoCommand(
-      &m_data, MemoryViewRangeUndoCommand::ReplaceOperation, index, values, values.length());
+        &m_data, MemoryViewRangeUndoCommand::ReplaceOperation, index, values, values.length());
     m_undoStack->push(rangeUndoCommand);
     resetSelection();
     emit dataChanged();
@@ -185,7 +185,7 @@ void MemoryViewInternal::replace(int index, const QByteArray& values)
 void MemoryViewInternal::replace(int position, int length, const QByteArray& values)
 {
     QUndoCommand* rangeUndoCommand =
-      new MemoryViewRangeUndoCommand(&m_data, MemoryViewRangeUndoCommand::ReplaceOperation, position, values, length);
+        new MemoryViewRangeUndoCommand(&m_data, MemoryViewRangeUndoCommand::ReplaceOperation, position, values, length);
     m_undoStack->push(rangeUndoCommand);
     resetSelection();
     emit dataChanged();
@@ -584,8 +584,8 @@ void MemoryViewInternal::paintEvent(QPaintEvent* event)
     if (m_addressArea) {
         for (int lineIndex = firstLineIndex, positionY = startPositionY; lineIndex < lastLineIndex;
              lineIndex += kBytesPerLine, positionY += m_characterHeight) {
-            QString address =
-              QString("%1").arg(lineIndex + m_data.getAddressOffset(), m_data.getRealAddressNumbers(), 16, QChar('0'));
+            QString address = QString("%1").arg(lineIndex + m_data.getAddressOffset(), m_data.getRealAddressNumbers(),
+                                                16, QChar('0'));
             painter.drawText(m_addressPosition, positionY, address);
         }
     }
@@ -828,14 +828,14 @@ void MemoryViewInternal::handleSelectCommands(QKeyEvent* event)
 
     if (event->matches(QKeySequence::SelectNextPage)) {
         const int position =
-          m_cursorPosition + (((m_scrollArea->viewport()->height() / m_characterHeight) - 1) * 2 * kBytesPerLine);
+            m_cursorPosition + (((m_scrollArea->viewport()->height() / m_characterHeight) - 1) * 2 * kBytesPerLine);
         setCursorPosition(position);
         setSelection(position);
     }
 
     if (event->matches(QKeySequence::SelectPreviousPage)) {
         const int position =
-          m_cursorPosition - (((m_scrollArea->viewport()->height() / m_characterHeight) - 1) * 2 * kBytesPerLine);
+            m_cursorPosition - (((m_scrollArea->viewport()->height() / m_characterHeight) - 1) * 2 * kBytesPerLine);
         setCursorPosition(position);
         setSelection(position);
     }

@@ -2,13 +2,12 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <QUndoCommand>
 #include "MemoryViewByteArray.h"
+#include <QUndoCommand>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace prodbg
-{
+namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -22,11 +21,8 @@ public:
         ReplaceOperation
     };
 
-    MemoryViewValueUndoCommand(MemoryViewByteArray* data,
-                               Operation            operation,
-                               int                  characterPosition,
-                               char                 characterNew,
-                               QUndoCommand*        parent = 0);
+    MemoryViewValueUndoCommand(MemoryViewByteArray* data, Operation operation, int characterPosition, char characterNew,
+                               QUndoCommand* parent = 0);
 
     void undo();
     void redo();
@@ -54,12 +50,8 @@ public:
         ReplaceOperation
     };
 
-    MemoryViewRangeUndoCommand(MemoryViewByteArray* data,
-                               Operation            operation,
-                               int                  positionValues,
-                               const QByteArray&    newValues,
-                               int                  length = 0,
-                               QUndoCommand*        parent = 0);
+    MemoryViewRangeUndoCommand(MemoryViewByteArray* data, Operation operation, int positionValues,
+                               const QByteArray& newValues, int length = 0, QUndoCommand* parent = 0);
 
     void undo();
     void redo();
@@ -75,5 +67,4 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 }

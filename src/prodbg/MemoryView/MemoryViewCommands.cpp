@@ -1,15 +1,11 @@
 #include "MemoryViewCommands.h"
 
-namespace prodbg
-{
+namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MemoryViewValueUndoCommand::MemoryViewValueUndoCommand(MemoryViewByteArray* data,
-                                                       Operation            operation,
-                                                       int                  characterPosition,
-                                                       char                 characterNew,
-                                                       QUndoCommand*        parent)
+MemoryViewValueUndoCommand::MemoryViewValueUndoCommand(MemoryViewByteArray* data, Operation operation,
+                                                       int characterPosition, char characterNew, QUndoCommand* parent)
     : QUndoCommand(parent)
     , m_data(data)
     , m_operation(operation)
@@ -24,8 +20,7 @@ MemoryViewValueUndoCommand::MemoryViewValueUndoCommand(MemoryViewByteArray* data
 
 void MemoryViewValueUndoCommand::undo()
 {
-    switch (m_operation)
-    {
+    switch (m_operation) {
         case InsertOperation:
             m_data->remove(m_characterPosition, 1);
             break;
@@ -46,8 +41,7 @@ void MemoryViewValueUndoCommand::undo()
 
 void MemoryViewValueUndoCommand::redo()
 {
-    switch (m_operation)
-    {
+    switch (m_operation) {
         case InsertOperation:
             m_data->insert(m_characterPosition, m_characterNew);
             break;
@@ -72,14 +66,11 @@ bool MemoryViewValueUndoCommand::mergeWith(const QUndoCommand* command)
 {
     bool result = false;
 
-    if (m_operation != RemoveOperation)
-    {
+    if (m_operation != RemoveOperation) {
         const MemoryViewValueUndoCommand* nextCommand = static_cast<const MemoryViewValueUndoCommand*>(command);
 
-        if (nextCommand->m_operation == ReplaceOperation)
-        {
-            if (nextCommand->m_characterPosition == m_characterPosition)
-            {
+        if (nextCommand->m_operation == ReplaceOperation) {
+            if (nextCommand->m_characterPosition == m_characterPosition) {
                 m_characterNew = nextCommand->m_characterNew;
                 result = true;
             }
@@ -91,12 +82,9 @@ bool MemoryViewValueUndoCommand::mergeWith(const QUndoCommand* command)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MemoryViewRangeUndoCommand::MemoryViewRangeUndoCommand(MemoryViewByteArray* data,
-                                                       Operation            operation,
-                                                       int                  positionValues,
-                                                       const QByteArray&    newValues,
-                                                       int                  length,
-                                                       QUndoCommand*        parent)
+MemoryViewRangeUndoCommand::MemoryViewRangeUndoCommand(MemoryViewByteArray* data, Operation operation,
+                                                       int positionValues, const QByteArray& newValues, int length,
+                                                       QUndoCommand* parent)
     : QUndoCommand(parent)
     , m_data(data)
     , m_operation(operation)
@@ -110,8 +98,7 @@ MemoryViewRangeUndoCommand::MemoryViewRangeUndoCommand(MemoryViewByteArray* data
 
 void MemoryViewRangeUndoCommand::undo()
 {
-    switch (m_operation)
-    {
+    switch (m_operation) {
         case InsertOperation:
             m_data->remove(m_positionValues, m_newValues.length());
             break;
@@ -132,8 +119,7 @@ void MemoryViewRangeUndoCommand::undo()
 
 void MemoryViewRangeUndoCommand::redo()
 {
-    switch (m_operation)
-    {
+    switch (m_operation) {
         case InsertOperation:
             m_data->insert(m_positionValues, m_newValues);
             break;
@@ -151,5 +137,4 @@ void MemoryViewRangeUndoCommand::redo()
             break;
     }
 }
-
 }

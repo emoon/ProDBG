@@ -1,7 +1,6 @@
 #include "MemoryViewByteArray.h"
 
-namespace prodbg
-{
+namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -37,8 +36,7 @@ int MemoryViewByteArray::getAddressWidth() const
 
 void MemoryViewByteArray::setAddressWidth(int width)
 {
-    if ((width >= 0) && (width <= 6))
-    {
+    if ((width >= 0) && (width <= 6)) {
         m_addressNumbers = width;
     }
 }
@@ -86,12 +84,9 @@ void MemoryViewByteArray::setDataChanged(int index, const QByteArray& state)
     int length = state.length();
     int len;
 
-    if ((index + length) > m_dataChanged.length())
-    {
+    if ((index + length) > m_dataChanged.length()) {
         len = m_dataChanged.length() - index;
-    }
-    else
-    {
+    } else {
         len = length;
     }
 
@@ -102,8 +97,7 @@ void MemoryViewByteArray::setDataChanged(int index, const QByteArray& state)
 
 int MemoryViewByteArray::getRealAddressNumbers()
 {
-    if (m_oldSize != m_data.size())
-    {
+    if (m_oldSize != m_data.size()) {
         QString convert = QString("%1").arg(m_data.size() + m_addressOffset, m_addressNumbers, 16, QChar('0'));
         m_addressRealNumbers = convert.size();
     }
@@ -185,8 +179,7 @@ QChar MemoryViewByteArray::getAsciiChar(int index) const
 {
     char value = m_data[index];
 
-    if ((value < 0x20) || (value > 0x7e))
-    {
+    if ((value < 0x20) || (value > 0x7e)) {
         value = '.';
     }
 
@@ -199,28 +192,23 @@ QString MemoryViewByteArray::getReadableString(int start, int end)
 {
     int addressWidth = getRealAddressNumbers();
 
-    if (m_addressNumbers > addressWidth)
-    {
+    if (m_addressNumbers > addressWidth) {
         addressWidth = m_addressNumbers;
     }
 
-    if (end < 0)
-    {
+    if (end < 0) {
         end = m_data.size();
     }
 
     QString result;
 
-    for (int index1 = start; index1 < end; index1 += 16)
-    {
+    for (int index1 = start; index1 < end; index1 += 16) {
         QString addressStr = QString("%1").arg(m_addressOffset + index1, addressWidth, 16, QChar('0'));
         QString hexStr;
         QString ascStr;
 
-        for (int index2 = 0; index2 < 16; ++index2)
-        {
-            if ((index1 + index2) < m_data.size())
-            {
+        for (int index2 = 0; index2 < 16; ++index2) {
+            if ((index1 + index2) < m_data.size()) {
                 hexStr.append(" ").append(m_data.mid(index1 + index2, 1).toHex());
                 ascStr.append(getAsciiChar(index1 + index2));
             }
@@ -231,5 +219,4 @@ QString MemoryViewByteArray::getReadableString(int start, int end)
 
     return result;
 }
-
 }
