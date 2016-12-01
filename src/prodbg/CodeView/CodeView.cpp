@@ -1,4 +1,4 @@
-#include "Qt5CodeEditor.h"
+#include "CodeView.h"
 #include <QMessageBox>
 #include <QtGui>
 
@@ -11,7 +11,7 @@ namespace prodbg {
 class LineNumberArea : public QWidget
 {
 public:
-    LineNumberArea(Qt5CodeEditor* editor)
+    LineNumberArea(CodeView* editor)
         : QWidget(editor)
         , m_codeEditor(editor)
     {
@@ -23,12 +23,12 @@ protected:
     void paintEvent(QPaintEvent* event) { m_codeEditor->lineNumberAreaPaintEvent(event); }
 
 private:
-    Qt5CodeEditor* m_codeEditor;
+    CodeView* m_codeEditor;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5CodeEditor::Qt5CodeEditor(QWidget* parent)
+CodeView::CodeView(QWidget* parent)
     : QPlainTextEdit(parent)
     , m_lineNumberArea(nullptr)
     , m_fileWatcher(nullptr)
@@ -69,7 +69,7 @@ Qt5CodeEditor::Qt5CodeEditor(QWidget* parent)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Qt5CodeEditor::~Qt5CodeEditor()
+CodeView::~CodeView()
 {
     delete m_fileWatcher;
 }
@@ -77,7 +77,7 @@ Qt5CodeEditor::~Qt5CodeEditor()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // update called from the debugging session
 
-void Qt5CodeEditor::sessionUpdate()
+void CodeView::sessionUpdate()
 {
     // const char* filename;
     // int line;
@@ -90,7 +90,7 @@ void Qt5CodeEditor::sessionUpdate()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CodeEditor::fileChange(const QString filename)
+void CodeView::fileChange(const QString filename)
 {
     QMessageBox::StandardButton reply;
 
@@ -117,7 +117,7 @@ void Qt5CodeEditor::fileChange(const QString filename)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Qt5CodeEditor::lineNumberAreaWidth()
+int CodeView::lineNumberAreaWidth()
 {
     int digits = 1;
     int max = qMax(1, blockCount());
@@ -135,14 +135,14 @@ int Qt5CodeEditor::lineNumberAreaWidth()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CodeEditor::updateLineNumberAreaWidth(int)
+void CodeView::updateLineNumberAreaWidth(int)
 {
     setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CodeEditor::updateLineNumberArea(const QRect& rect, int dy)
+void CodeView::updateLineNumberArea(const QRect& rect, int dy)
 {
     if (dy)
         m_lineNumberArea->scroll(0, dy);
@@ -155,7 +155,7 @@ void Qt5CodeEditor::updateLineNumberArea(const QRect& rect, int dy)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CodeEditor::resizeEvent(QResizeEvent* e)
+void CodeView::resizeEvent(QResizeEvent* e)
 {
     QPlainTextEdit::resizeEvent(e);
 
@@ -165,7 +165,7 @@ void Qt5CodeEditor::resizeEvent(QResizeEvent* e)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CodeEditor::highlightCurrentLine()
+void CodeView::highlightCurrentLine()
 {
     QList<QTextEdit::ExtraSelection> extraSelections;
 
@@ -189,7 +189,7 @@ void Qt5CodeEditor::highlightCurrentLine()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event)
+void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
 {
     QPainter painter(m_lineNumberArea);
     painter.fillRect(event->rect(), Qt::lightGray);
@@ -224,14 +224,14 @@ void Qt5CodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CodeEditor::step()
+void CodeView::step()
 {
     // g_debugSession->callAction(PDAction_step);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CodeEditor::setMode(Mode mode)
+void CodeView::setMode(Mode mode)
 {
     m_mode = mode;
 
@@ -249,7 +249,7 @@ void Qt5CodeEditor::setMode(Mode mode)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CodeEditor::setAddress(uint64_t address)
+void CodeView::setAddress(uint64_t address)
 {
     m_address = address;
 
@@ -295,7 +295,7 @@ void Qt5CodeEditor::setAddress(uint64_t address)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-void Qt5CodeEditor::setDisassembly(const char* text, int64_t startAddress, int32_t instructionCount)
+void CodeView::setDisassembly(const char* text, int64_t startAddress, int32_t instructionCount)
 {
     (void)instructionCount;
 
@@ -315,7 +315,7 @@ void Qt5CodeEditor::setDisassembly(const char* text, int64_t startAddress, int32
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CodeEditor::keyPressEvent(QKeyEvent* event)
+void CodeView::keyPressEvent(QKeyEvent* event)
 {
     if (event->key() == Qt::Key_F8) {
         QTextCursor cursor = textCursor();
@@ -339,7 +339,7 @@ void Qt5CodeEditor::keyPressEvent(QKeyEvent* event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CodeEditor::readSourceFile(const char* filename)
+void CodeView::readSourceFile(const char* filename)
 {
     QFile f(filename);
 
@@ -361,7 +361,7 @@ void Qt5CodeEditor::readSourceFile(const char* filename)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CodeEditor::setLine(int line)
+void CodeView::setLine(int line)
 {
     const QTextBlock& block = document()->findBlockByNumber(line - 1);
     QTextCursor cursor(block);
@@ -374,7 +374,7 @@ void Qt5CodeEditor::setLine(int line)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-void Qt5CodeEditor::setAssemblyRegisters(AssemblyRegister* registers, int count)
+void CodeView::setAssemblyRegisters(AssemblyRegister* registers, int count)
 {
     m_assemblyRegisters = registers;
     m_assemblyRegistersCount = count;
@@ -383,7 +383,7 @@ void Qt5CodeEditor::setAssemblyRegisters(AssemblyRegister* registers, int count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Qt5CodeEditor::setFileLine(const char* file, int line)
+void CodeView::setFileLine(const char* file, int line)
 {
     if (strcmp(file, m_sourceFile))
         readSourceFile(file);

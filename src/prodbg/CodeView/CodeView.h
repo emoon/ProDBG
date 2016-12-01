@@ -32,7 +32,7 @@ struct FileLineBreakpoint
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Qt5CodeEditor : public QPlainTextEdit
+class CodeView : public QPlainTextEdit
 {
     Q_OBJECT
 
@@ -44,8 +44,8 @@ public:
         Mixed,       // Mixed Source + Disassembly mode
     };
 
-    Qt5CodeEditor(QWidget* parent = 0);
-    virtual ~Qt5CodeEditor();
+    CodeView(QWidget* parent = 0);
+    virtual ~CodeView();
 
     void setMode(Mode mode);
     void setExceptionAddress(uint64_t address);
