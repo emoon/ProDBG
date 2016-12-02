@@ -1,3 +1,4 @@
+#include "Core/PluginHandler.h"
 #include "MainWindow.h"
 #include <QApplication>
 #include <QFile>
@@ -12,6 +13,8 @@
 int main(int argc, const char** argv)
 {
     QApplication app(argc, (char**)argv);
+
+    prodbg::PluginHandler_addPlugin(QStringLiteral("dummy_backend_plugin"));
 
     /*
     QResource::registerResource("data/dark_theme/style.rcc");
