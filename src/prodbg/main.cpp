@@ -14,7 +14,10 @@ int main(int argc, const char** argv)
 {
     QApplication app(argc, (char**)argv);
 
+    // load hard-coded list of backends for now
+
     prodbg::PluginHandler_addPlugin(QStringLiteral("dummy_backend_plugin"));
+    prodbg::PluginHandler_addPlugin(QStringLiteral("amiga_uae_plugin"));
 
     /*
     QResource::registerResource("data/dark_theme/style.rcc");
@@ -33,9 +36,6 @@ int main(int argc, const char** argv)
     prodbg::MainWindow main_window;
 
     main_window.show();
-
-    // QTextEdit text_edit;
-    // text_edit.show();
 
     return app.exec();
 }
