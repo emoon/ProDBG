@@ -7,36 +7,36 @@ require "tundra.util"
 local native = require('tundra.native')
 
 local function gen_uic(src)
-	return Uic { 
-		Pass = "GenerateSources",
-		Source = src 
-	}
+    return Uic { 
+        Pass = "GenerateSources",
+        Source = src 
+    }
 end
 
 local function gen_moc(src)
-	return Moc { 
-		Pass = "GenerateSources",
-		Source = src 
-	}
+    return Moc { 
+        Pass = "GenerateSources",
+        Source = src 
+    }
 end
 
 -----------------------------------------------------------------------------------------------------------------------
 
 Program {
-	Name = "prodbg",
-	Sources = {
+    Name = "prodbg",
+    Sources = {
         Glob {
             Dir = "src/prodbg",
             Extensions = { ".cpp", ".h" },
             Recursive = true,
         },
 
-		gen_uic("src/prodbg/mainwindow.ui"), 
+        gen_uic("src/prodbg/mainwindow.ui"), 
         gen_moc("src/prodbg/MainWindow.h"),
         gen_moc("src/prodbg/CodeView/CodeView.h"),
         gen_moc("src/prodbg/MemoryView/MemoryViewInternal.h"),
         gen_moc("src/prodbg/MemoryView/MemoryViewWidget.h"),
-	},
+    },
 
     Env = {
        CXXOPTS = {
@@ -47,15 +47,15 @@ Program {
         },
 
         CPPPATH = {
-        	"$(OBJECTROOT)",
-		},
+            "$(OBJECTROOT)",
+        },
 
         PROGCOM = {
             {  "-Wl,-rpath,$(QT5)/lib", "-F$(QT5)/lib", "-lstdc++", Config = "macosx-clang-*" },
         },
     },
 
-	Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore" },
+    Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore" },
 
     Depends = { "remote_api", "capstone" },
 }
@@ -64,25 +64,25 @@ Program {
 
 local prodbgBundle = OsxBundle
 {
-	Depends = { "prodbg" },
-	Target = "$(OBJECTDIR)/ProDBG.app",
-	InfoPList = "Data/Mac/Info.plist",
-	Executable = "$(OBJECTDIR)/prodbg",
-	Resources = {
-		CompileNib { Source = "data/mac/appnib.xib", Target = "appnib.nib" },
-		"data/mac/icon.icns",
-	},
+    Depends = { "prodbg" },
+    Target = "$(OBJECTDIR)/ProDBG.app",
+    InfoPList = "Data/Mac/Info.plist",
+    Executable = "$(OBJECTDIR)/prodbg",
+    Resources = {
+        CompileNib { Source = "data/mac/appnib.xib", Target = "appnib.nib" },
+        "data/mac/icon.icns",
+    },
 
-	Config = { "macosx-clang-debug-default" ; "macosx-clang-release-default" },
+    Config = { "macosx-clang-debug-default" ; "macosx-clang-release-default" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
 
 if native.host_platform == "macosx" then
-	Default "prodbg"
-	Default(prodbgBundle)
+    Default "prodbg"
+    Default(prodbgBundle)
 else
-	Default "prodbg"
+    Default "prodbg"
 end
 
 -- vim: ts=4:sw=4:sts=4
