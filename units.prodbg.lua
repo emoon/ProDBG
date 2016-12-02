@@ -47,6 +47,7 @@ Program {
         },
 
         CPPPATH = {
+        	"api/include",
             "$(OBJECTROOT)", "$(OBJECTDIR)",
         },
 
