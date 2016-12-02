@@ -8,7 +8,7 @@ class QStatusBar;
 namespace prodbg {
 
 class CodeView;
-class MemoryViewWidget;
+class MemoryView;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -21,13 +21,13 @@ public:
 protected:
     void closeEvent(QCloseEvent* event);
 
-private slots:
-    void start();
-    void stop();
-    void stepIn();
-    void stepOver();
-    void toggleBreakpoint();
-    void amigaUAEConfig();
+private:
+    Q_SLOT void start();
+    Q_SLOT void stop();
+    Q_SLOT void stepIn();
+    Q_SLOT void stepOver();
+    Q_SLOT void toggleBreakpoint();
+    Q_SLOT void amigaUAEConfig();
 
 private:
     void initActions();
@@ -35,7 +35,7 @@ private:
     void readSettings();
 
     CodeView* m_codeView;
-    MemoryViewWidget* m_memoryView;
+    MemoryView* m_memoryView;
     QStatusBar* m_statusbar;
     Ui_MainWindow m_ui;
 };

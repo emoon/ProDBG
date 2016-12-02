@@ -35,10 +35,11 @@ Program {
         gen_moc("src/prodbg/Config/AmigaUAEConfig.h"),
 
         gen_uic("src/prodbg/mainwindow.ui"), 
+        gen_uic("src/prodbg/MemoryView/MemoryView.ui"), 
         gen_moc("src/prodbg/MainWindow.h"),
 
         gen_moc("src/prodbg/CodeView/CodeView.h"),
-        gen_moc("src/prodbg/MemoryView/MemoryViewInternal.h"),
+        gen_moc("src/prodbg/MemoryView/MemoryView.h"),
         gen_moc("src/prodbg/MemoryView/MemoryViewWidget.h"),
     },
 
@@ -53,6 +54,12 @@ Program {
               "-isystem $(QT5)/include/QtCore",
               "-isystem $(QT5)/include/QtGui",
               "-isystem $(QT5)/include"; Config = "linux-*-*" },
+        },
+
+        CPPDEFS = {
+            "QT_NO_KEYWORDS",
+            "QT_NO_CAST_FROM_ASCII",
+            "QT_NO_CAST_TO_ASCII",
         },
 
         CPPPATH = {

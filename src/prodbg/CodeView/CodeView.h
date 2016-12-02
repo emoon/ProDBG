@@ -49,9 +49,9 @@ public:
 
     void setMode(Mode mode);
     void setExceptionAddress(uint64_t address);
-    void readSourceFile(const char* file);
+    void readSourceFile(const QString& file);
     void lineNumberAreaPaintEvent(QPaintEvent* event);
-    void setFileLine(const char* file, int line);
+    void setFileLine(const QString& file, int line);
     void setAddress(uint64_t address);
     void setLine(int line);
     int lineNumberAreaWidth();
@@ -61,24 +61,24 @@ protected:
     void keyPressEvent(QKeyEvent* event);
     void step();
 
-private slots:
-    void updateLineNumberAreaWidth(int newBlockCount);
-    void highlightCurrentLine();
-    void updateLineNumberArea(const QRect&, int);
-    void sessionUpdate();
-    void fileChange(const QString filename);
+private:
+    Q_SLOT void updateLineNumberAreaWidth(int newBlockCount);
+    Q_SLOT void highlightCurrentLine();
+    Q_SLOT void updateLineNumberArea(const QRect&, int);
+    Q_SLOT void sessionUpdate();
+    Q_SLOT void fileChange(const QString filename);
 
-signals:
-    void tryAddBreakpoint(const char*, int line);
-    void tryStartDebugging(const char* filename);
-    void tryStep();
+public:
+    Q_SIGNAL void tryAddBreakpoint(const char*, int line);
+    Q_SIGNAL void tryStartDebugging(const char* filename);
+    Q_SIGNAL void tryStep();
 
 private:
     AssemblyHighlighter* m_assemblyHighlighter;
     QWidget* m_lineNumberArea;
     QFileSystemWatcher* m_fileWatcher;
 
-    const char* m_sourceFile;
+    QString m_sourceFile;
     AssemblyRegister* m_assemblyRegisters;
     Mode m_mode;
 

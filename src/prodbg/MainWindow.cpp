@@ -1,25 +1,22 @@
 #include "MainWindow.h"
 #include "CodeView/CodeView.h"
+
 #include "Config/AmigaUAEConfig.h"
-#include "MemoryView/MemoryViewWidget.h"
-#include <QDockWidget>
+
+#include "MemoryView/MemoryView.h"
+
+#include <QtWidgets/QDockWidget>
+#include <QtCore/QSettings>
 
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MainWindow::MainWindow()
-    : m_codeView(new CodeView)
-    , m_memoryView(new MemoryViewWidget)
-    , m_statusbar(new QStatusBar)
+    : m_codeView(new CodeView(this))
+    , m_memoryView(new MemoryView(this))
+    , m_statusbar(new QStatusBar(this))
 {
-    char* dummy_data = (char*)malloc(1024 * 1024);
-
-    for (int i = 0; i < 1024 * 1024; ++i)
-        dummy_data[i] = (char)rand();
-
-    m_memoryView->setData(QByteArray(dummy_data, 1024 * 1024));
-
     m_ui.setupUi(this);
 
     setCentralWidget(m_codeView);
@@ -34,7 +31,7 @@ MainWindow::MainWindow()
     dock->setWidget(m_memoryView);
     addDockWidget(Qt::RightDockWidgetArea, dock);
 
-    m_codeView->readSourceFile("src/prodbg/main.cpp");
+    m_codeView->readSourceFile(QStringLiteral("src/prodbg/main.cpp"));
 
     m_statusbar->showMessage(tr("Ready."));
 
@@ -104,13 +101,13 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 void MainWindow::writeSettings()
 {
-    QSettings settings("TBL", "ProDBG");
+    QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
 
-    settings.beginGroup("MainWindow");
-    settings.setValue("size", size());
-    settings.setValue("pos", pos());
-    settings.setValue("geometry", saveGeometry());
-    settings.setValue("windowState", saveState());
+    settings.beginGroup(QStringLiteral("MainWindow"));
+    settings.setValue(QStringLiteral("size"), size());
+    settings.setValue(QStringLiteral("pos"), pos());
+    settings.setValue(QStringLiteral("geometry"), saveGeometry());
+    settings.setValue(QStringLiteral("windowState"), saveState());
     settings.endGroup();
 }
 
@@ -118,13 +115,13 @@ void MainWindow::writeSettings()
 
 void MainWindow::readSettings()
 {
-    QSettings settings("TBL", "ProDBG");
+    QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
 
-    settings.beginGroup("MainWindow");
-    restoreGeometry(settings.value("geometry").toByteArray());
-    restoreState(settings.value("windowState").toByteArray());
-    resize(settings.value("size", QSize(800, 600)).toSize());
-    move(settings.value("pos", QPoint(100, 100)).toPoint());
+    settings.beginGroup(QStringLiteral("MainWindow"));
+    restoreGeometry(settings.value(QStringLiteral("geometry")).toByteArray());
+    restoreState(settings.value(QStringLiteral("windowState")).toByteArray());
+    resize(settings.value(QStringLiteral("size"), QSize(800, 600)).toSize());
+    move(settings.value(QStringLiteral("pos"), QPoint(100, 100)).toPoint());
     settings.endGroup();
 }
 

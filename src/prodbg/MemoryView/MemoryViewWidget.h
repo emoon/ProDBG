@@ -1,96 +1,79 @@
 #pragma once
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#include <QtWidgets/QWidget>
 
-#include <QtWidgets>
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-namespace prodbg {
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-class MemoryViewInternal;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-class MemoryViewWidget : public QScrollArea
+namespace prodbg
 {
-    Q_OBJECT
-    Q_PROPERTY(QByteArray data READ getData WRITE setData)
-    Q_PROPERTY(int addressOffset READ getAddressOffset WRITE setAddressOffset)
-    Q_PROPERTY(QColor addressAreaColor READ getAddressAreaColor WRITE setAddressAreaColor)
-    Q_PROPERTY(int cursorPosition READ getCursorPosition WRITE setCursorPosition)
-    Q_PROPERTY(QColor highlightingColor READ getHighlightingColor WRITE setHighlightingColor)
-    Q_PROPERTY(QColor selectionColor READ getSelectionColor WRITE setSelectionColor)
-    Q_PROPERTY(bool overwriteMode READ getOverwriteMode WRITE setOverwriteMode)
-    Q_PROPERTY(bool readOnly READ getReadOnly WRITE setReadOnly)
-    Q_PROPERTY(QFont font READ getFont WRITE setFont)
+  class MemoryViewPrivate;
+  class MemoryViewInterface;
 
-public:
-    MemoryViewWidget(QWidget* parent = nullptr);
+  class MemoryViewWidget : public QWidget
+  {
+    Q_OBJECT;
+    using Base = QWidget;
 
-    void insert(int index, const QByteArray& values);
-    void insert(int index, char value);
+  public:
+    enum DataType
+    {
+      X8,
+      U8,
+      S8,
 
-    int indexOf(const QByteArray& values, int from = 0) const;
-    int lastIndexOf(const QByteArray& values, int from = 0) const;
+      X16,
+      U16,
+      S16,
 
-    void remove(int position, int length = 1);
+      X32,
+      U32,
+      S32,
 
-    void replace(int position, int length, const QByteArray& values);
+      X64,
+      U64,
+      S64,
 
-    QString getReadableString();
-    QString getReadableStringFromSelection();
+      F32,
+      F64,
+    };
+    
+    Q_ENUM(DataType);
 
-public:
-    void setAddressOffset(int offset);
-    int getAddressOffset() const;
+    enum Endianess
+    {
+      Big,
+      Little,
+    };
+    
+    Q_ENUM(Endianess);
 
-    void setCursorPosition(int cursorPosition);
-    int getCursorPosition() const;
+  public:
+    explicit MemoryViewWidget(QWidget* parent = nullptr);
+    virtual ~MemoryViewWidget();
 
-    void setData(const QByteArray& data);
-    QByteArray getData() const;
+  public:
+    void setMemoryInterface(MemoryViewInterface* interface);
 
-    void setAddressAreaColor(const QColor& color);
-    QColor getAddressAreaColor() const;
+  protected:
+    void paintEvent(QPaintEvent* ev) override;
+    void contextMenuEvent(QContextMenuEvent* ev) override;
+    void wheelEvent(QWheelEvent* ev) override;
 
-    void setHighlightingColor(const QColor& color);
-    QColor getHighlightingColor() const;
+  public:
+    DataType dataType() const;
+    Q_SLOT void setDataType(DataType t);
 
-    void setSelectionColor(const QColor& color);
-    QColor getSelectionColor() const;
+    Endianess endianess() const;
+    Q_SLOT void setEndianess(Endianess e);
 
-    void setOverwriteMode(bool mode);
-    bool getOverwriteMode() const;
+    int elementsPerLine() const;
+    Q_SLOT void setElementsPerLine(int count);
 
-    void setReadOnly(bool mode);
-    bool getReadOnly() const;
+  public:
+    Q_SLOT void displayNextPage();
+    Q_SLOT void displayPrevPage();
+    Q_SLOT void displayNextLine();
+    Q_SLOT void displayPrevLine();
 
-    const QFont& getFont() const;
-    void setFont(const QFont& font);
-
-public slots:
-    void setAddressWidth(int addressWidth);
-    void setAddressArea(bool addressArea);
-    void setAsciiArea(bool asciiArea);
-    void setHighlighting(bool mode);
-
-    void undo();
-    void redo();
-
-signals:
-    void currentAddressChanged(int address);
-    void currentSizeChanged(int size);
-    void overwriteModeChanged(bool state);
-    void dataChanged();
-
-private:
-    QHBoxLayout* m_layout;
-    QScrollArea* m_scrollArea;
-    MemoryViewInternal* m_internal;
-};
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  private:
+    MemoryViewPrivate* m_Private;
+  };
 }

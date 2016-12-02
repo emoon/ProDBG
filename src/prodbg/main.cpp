@@ -15,9 +15,9 @@ int main(int argc, const char** argv)
 {
     QApplication app(argc, (char**)argv);
 
-    QCoreApplication::setOrganizationName("TBL");
-    QCoreApplication::setOrganizationDomain("prodbg.com");
-    QCoreApplication::setApplicationName("ProDBG");
+    QCoreApplication::setOrganizationName(QStringLiteral("TBL"));
+    QCoreApplication::setOrganizationDomain(QStringLiteral("prodbg.com"));
+    QCoreApplication::setApplicationName(QStringLiteral("ProDBG"));
 
     // load hard-coded list of backends for now
 

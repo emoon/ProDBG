@@ -32,7 +32,6 @@ CodeView::CodeView(QWidget* parent)
     : QPlainTextEdit(parent)
     , m_lineNumberArea(nullptr)
     , m_fileWatcher(nullptr)
-    , m_sourceFile(nullptr)
     , m_address(0)
     , m_disassemblyStart(0)
     , m_disassemblyEnd(0)
@@ -57,14 +56,14 @@ CodeView::CodeView(QWidget* parent)
     highlightCurrentLine();
 
 #ifdef _WIN32
-    QFont font("Courier", 11);
+    QFont font(QStringLiteral("Courier"), 11);
 #else
-    QFont font("Courier", 13);
+    QFont font(QStringLiteral("Courier"), 13);
 #endif
 
     setFont(font);
 
-    m_sourceFile = 0;
+    m_sourceFile = QString();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -94,7 +93,7 @@ void CodeView::fileChange(const QString filename)
 {
     QMessageBox::StandardButton reply;
 
-    reply = QMessageBox::question(this, "File has been changed", "File" + filename + " was changed, Reload?",
+    reply = QMessageBox::question(this, QStringLiteral("File has been changed"), QStringLiteral("File %1 was changed, Reload?").arg(filename),
                                   QMessageBox::Yes | QMessageBox::No);
 
     if (reply != QMessageBox::Yes)
@@ -262,7 +261,7 @@ void CodeView::setAddress(uint64_t address)
         // which is just a waste of time
 
         QString text = toPlainText();
-        QStringList textList = text.split("\n");
+        QStringList textList = text.split(QLatin1Char('\n'));
 
         for (int i = 0, lineCount = textList.size(); i < lineCount; ++i) {
             QByteArray ba = textList[i].toLocal8Bit();
@@ -323,7 +322,7 @@ void CodeView::keyPressEvent(QKeyEvent* event)
 
         // Check if this breakpoint was added directly on the UI thread then update the window to show it
 
-        printf("Add breakpoint %s\n", m_sourceFile);
+        printf("Add breakpoint %s\n", m_sourceFile.toUtf8().constData());
 
         // if (g_debugSession->addBreakpointUI(m_sourceFile, lineNum))
         //   update();
@@ -339,18 +338,17 @@ void CodeView::keyPressEvent(QKeyEvent* event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::readSourceFile(const char* filename)
+void CodeView::readSourceFile(const QString& filename)
 {
     QFile f(filename);
 
     if (!f.exists())
         return;
 
-    if (m_sourceFile)
-        m_fileWatcher->removePath(QString(m_sourceFile));
+    if (!m_sourceFile.isEmpty())
+        m_fileWatcher->removePath(m_sourceFile);
 
-    free((void*)m_sourceFile);
-    m_sourceFile = strdup(filename);
+    m_sourceFile = filename;
 
     m_fileWatcher->addPath(QString(filename));
 
@@ -383,9 +381,9 @@ void CodeView::setAssemblyRegisters(AssemblyRegister* registers, int count)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::setFileLine(const char* file, int line)
+void CodeView::setFileLine(const QString& file, int line)
 {
-    if (strcmp(file, m_sourceFile))
+    if (file != m_sourceFile)
         readSourceFile(file);
 
     setLine(line);
