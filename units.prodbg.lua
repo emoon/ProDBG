@@ -47,7 +47,7 @@ Program {
         },
 
         CPPPATH = {
-            "$(OBJECTROOT)",
+            "$(OBJECTROOT)", "$(OBJECTDIR)",
         },
 
         PROGCOM = {
