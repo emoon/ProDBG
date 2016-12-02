@@ -1,20 +1,19 @@
 #pragma once
 
-namespace prodbg
-{
+class QString;
+
+namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct Plugin
 {
-	void* data;
-	const char* type;
+    void* data;
+    const char* type;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool PluginHandler_addPlugin(const char* basePath, const char* plugin);
+bool PluginHandler_addPlugin(const QString& pluginName);
 Plugin* PluginHandler_getPlugins(int* count);
-
 }
-
