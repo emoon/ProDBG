@@ -13,10 +13,9 @@ matrix:
     - sudo apt-get update
     - sudo apt-get install qt57base mesa-common-dev
     - git clone https://github.com/emoon/tundra.git
-    - cd tundra; 
+    - cd tundra
     - make
     - sudo make install
     - cd ..
-    - set QT5=/opt/qt57
-    - tundra2 linux-gcc-debug
+    - set QT5=/opt/qt57; tundra2 linux-gcc-debug
   - <<: *common
