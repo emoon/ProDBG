@@ -22,7 +22,7 @@ DefRule {
     --   If the source file is a cpp file, we do things a little differently:
     --     - input: foo.cpp, output foo.moc
     --     - foo.moc is then manually included at the end of foo.cpp
-    local base_name = path.drop_suffix(src) 
+    local base_name = path.get_filename_base(src) 
     local pfx = 'moc_'
     local ext = '.cpp'
     if path.get_extension(src) == ".cpp" then
@@ -31,7 +31,7 @@ DefRule {
     end
     return {
       InputFiles = { src },
-      OutputFiles = { "$(OBJECTROOT)$(SEP)" .. pfx .. base_name .. ext },
+      OutputFiles = { "$(OBJECTDIR)$(SEP)" .. pfx .. base_name .. ext },
       Scanner = scanner.make_cpp_scanner(env:get_list('CPPPATH'))
     }
   end,
@@ -47,12 +47,12 @@ DefRule {
 
   Setup = function (env, data)
     local src = data.Source
-    local base_name = path.drop_suffix(src) 
+    local base_name = path.get_filename_base(src) 
     local pfx = 'qrc_'
     local ext = '.cpp'
     return {
       InputFiles = { src },
-      OutputFiles = { "$(OBJECTROOT)$(SEP)" .. pfx .. base_name .. ext },
+      OutputFiles = { "$(OBJECTDIR)$(SEP)" .. pfx .. base_name .. ext },
       Scanner = scanner.make_generic_scanner {
         Paths = { "." },
         KeywordsNoFollow = { "<file" },
@@ -77,7 +77,7 @@ DefRule {
     local ext = '.h'
     return {
       InputFiles = { src },
-      OutputFiles = { "$(OBJECTROOT)$(SEP)" .. pfx .. base_name .. ext },
+      OutputFiles = { "$(OBJECTDIR)$(SEP)" .. pfx .. base_name .. ext },
     }
   end,
 }
