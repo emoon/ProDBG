@@ -48,9 +48,6 @@ local macosx = {
 
         SHLIBOPTS = { "-lstdc++" },
         PROGCOM = { "-lstdc++" },
-
-        BGFX_SHADERC = "$(OBJECTDIR)$(SEP)bgfx_shaderc$(PROGSUFFIX)",
-        API_GEN = "$(OBJECTDIR)$(SEP)api_gen$(PROGSUFFIX)",
     },
 
     Frameworks = {
@@ -89,8 +86,9 @@ local gcc_env = {
             "-std=c++11",
         },
 
-        BGFX_SHADERC = "$(OBJECTDIR)$(SEP)bgfx_shaderc$(PROGSUFFIX)",
-        API_GEN = "$(OBJECTDIR)$(SEP)api_gen$(PROGSUFFIX)",
+        QTMOC = "$(QT5)/bin/moc",
+        QTUIC = "$(QT5)/bin/uic",
+        QTRCC = "$(QT5)/bin/rcc",
     },
 
     ReplaceEnv = {
@@ -124,8 +122,9 @@ local win64 = {
             win64_opts,
         },
 
-        BGFX_SHADERC = "$(OBJECTDIR)$(SEP)bgfx_shaderc$(PROGSUFFIX)",
-        API_GEN = "$(OBJECTDIR)$(SEP)api_gen$(PROGSUFFIX)",
+        QTMOC = "$(QT5)/bin/moc",
+        QTUIC = "$(QT5)/bin/uic",
+        QTRCC = "$(QT5)/bin/rcc",
         OBJCCOM = "meh",
     },
 }
