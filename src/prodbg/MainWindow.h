@@ -18,6 +18,8 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow();
+protected:
+    void closeEvent(QCloseEvent* event);
 
 private slots:
     void start();
@@ -28,7 +30,9 @@ private slots:
     void amigaUAEConfig();
 
 private:
-    void init_actions();
+    void initActions();
+    void writeSettings();
+    void readSettings();
 
     CodeView* m_codeView;
     MemoryViewWidget* m_memoryView;

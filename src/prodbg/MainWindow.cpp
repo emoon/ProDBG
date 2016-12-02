@@ -38,14 +38,13 @@ MainWindow::MainWindow()
 
     setStatusBar(m_statusbar);
 
-    init_actions();
-
-    resize(800, 600);
+    initActions();
+    readSettings();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::init_actions()
+void MainWindow::initActions()
 {
     connect(m_ui.actionStart, &QAction::triggered, this, &MainWindow::start);
     connect(m_ui.actionAmiga_UAE, &QAction::triggered, this, &MainWindow::amigaUAEConfig);
@@ -89,6 +88,38 @@ void MainWindow::stepOver()
 
 void MainWindow::toggleBreakpoint()
 {
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+    writeSettings();
+    event->accept();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::writeSettings()
+{
+    QSettings settings("TBL", "ProDBG");
+
+    settings.beginGroup("MainWindow");
+    settings.setValue("size", size());
+    settings.setValue("pos", pos());
+    settings.endGroup();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::readSettings()
+{
+    QSettings settings("TBL", "ProDBG");
+
+    settings.beginGroup("MainWindow");
+    resize(settings.value("size", QSize(800, 600)).toSize());
+    move(settings.value("pos", QPoint(100, 100)).toPoint());
+    settings.endGroup();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
