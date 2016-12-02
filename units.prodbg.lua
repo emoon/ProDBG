@@ -31,8 +31,12 @@ Program {
             Recursive = true,
         },
 
+        gen_uic("src/prodbg/Config/AmigaUAEConfig.ui"), 
+        gen_moc("src/prodbg/Config/AmigaUAEConfig.h"),
+
         gen_uic("src/prodbg/mainwindow.ui"), 
         gen_moc("src/prodbg/MainWindow.h"),
+
         gen_moc("src/prodbg/CodeView/CodeView.h"),
         gen_moc("src/prodbg/MemoryView/MemoryViewInternal.h"),
         gen_moc("src/prodbg/MemoryView/MemoryViewWidget.h"),

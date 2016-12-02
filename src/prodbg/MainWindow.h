@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QMainWindow>
 #include "ui_mainwindow.h"
+#include <QMainWindow>
 
 class QStatusBar;
 
@@ -20,14 +20,15 @@ public:
     MainWindow();
 
 private slots:
-	void start();
-	void stop();
-	void step_in();
-	void step_over();
-	void toggle_breakpoint(); 
+    void start();
+    void stop();
+    void stepIn();
+    void stepOver();
+    void toggleBreakpoint();
+    void amigaUAEConfig();
 
 private:
-	void init_actions();
+    void init_actions();
 
     CodeView* m_codeView;
     MemoryViewWidget* m_memoryView;

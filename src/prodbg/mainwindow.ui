@@ -39,8 +39,15 @@
     <addaction name="actionStep_Over"/>
     <addaction name="actionToggle_Breakpoint"/>
    </widget>
+   <widget class="QMenu" name="menuConfig">
+    <property name="title">
+     <string>Config</string>
+    </property>
+    <addaction name="actionAmiga_UAE"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuDebug"/>
+   <addaction name="menuConfig"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionStart">
@@ -86,6 +93,11 @@
   <action name="actionOpen">
    <property name="text">
     <string>Open</string>
+   </property>
+  </action>
+  <action name="actionAmiga_UAE">
+   <property name="text">
+    <string>Amiga UAE...</string>
    </property>
   </action>
  </widget>
