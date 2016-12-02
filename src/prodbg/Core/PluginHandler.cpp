@@ -51,10 +51,7 @@ QLibrary* findPlugin(const QString& plugin)
         QString path = currentDir.filePath(pluginName);
         QLibrary* lib = new QLibrary(path);
 
-        qDebug() << "trying to load" << path;
-
         if (lib->load()) {
-            qDebug() << "Loaded" << path;
             return lib;
         }
 
