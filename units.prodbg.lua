@@ -51,7 +51,8 @@ Program {
 
             { "-isystem $(QT5)/include/QtWidgets",
               "-isystem $(QT5)/include/QtCore",
-              "-isystem $(QT5)/include/QtGui"; Config = "linux-*-*" },
+              "-isystem $(QT5)/include/QtGui",
+              "-isystem $(QT5)/include"; Config = "linux-*-*" },
         },
 
         CPPPATH = {
