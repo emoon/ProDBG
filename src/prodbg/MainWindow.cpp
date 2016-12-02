@@ -29,6 +29,8 @@ MainWindow::MainWindow()
     QDockWidget* dock = new QDockWidget(tr("MemoryView"), this);
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
 
+    dock->setObjectName(tr("MemoryViewDock"));
+
     dock->setWidget(m_memoryView);
     addDockWidget(Qt::RightDockWidgetArea, dock);
 
@@ -107,6 +109,8 @@ void MainWindow::writeSettings()
     settings.beginGroup("MainWindow");
     settings.setValue("size", size());
     settings.setValue("pos", pos());
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("windowState", saveState());
     settings.endGroup();
 }
 
@@ -117,6 +121,8 @@ void MainWindow::readSettings()
     QSettings settings("TBL", "ProDBG");
 
     settings.beginGroup("MainWindow");
+    restoreGeometry(settings.value("geometry").toByteArray());
+    restoreState(settings.value("windowState").toByteArray());
     resize(settings.value("size", QSize(800, 600)).toSize());
     move(settings.value("pos", QPoint(100, 100)).toPoint());
     settings.endGroup();
