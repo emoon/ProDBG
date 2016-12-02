@@ -48,6 +48,10 @@ Program {
               "-isystem $(QT5)/lib/QtCore.framework/Headers",
               "-isystem $(QT5)/lib/QtGui.framework/Headers",
               "-F$(QT5)/lib"; Config = "macosx-*-*" },
+
+            { "-isystem $(QT5)/include/QtWidgets",
+              "-isystem $(QT5)/include/QtCore",
+              "-isystem $(QT5)/include/QtGui"; Config = "linux-*-*" },
         },
 
         CPPPATH = {
