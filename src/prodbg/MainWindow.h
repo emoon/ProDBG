@@ -19,7 +19,15 @@ class MainWindow : public QMainWindow
 public:
     MainWindow();
 
+private slots:
+	void start();
+	void stop();
+	void step_in();
+	void step_over();
+	void toggle_breakpoint(); 
+
 private:
+	void init_actions();
 
     CodeView* m_codeView;
     MemoryViewWidget* m_memoryView;
