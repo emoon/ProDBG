@@ -24,12 +24,12 @@ MainWindow::MainWindow()
 
     setCentralWidget(m_codeView);
 
-    setWindowTitle(tr("ProDBG"));
+    setWindowTitle(QStringLiteral("ProDBG"));
 
-    QDockWidget* dock = new QDockWidget(tr("MemoryView"), this);
+    QDockWidget* dock = new QDockWidget(QStringLiteral("MemoryView"), this);
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
 
-    dock->setObjectName(tr("MemoryViewDock"));
+    dock->setObjectName(QStringLiteral("MemoryViewDock"));
 
     dock->setWidget(m_memoryView);
     addDockWidget(Qt::RightDockWidgetArea, dock);
