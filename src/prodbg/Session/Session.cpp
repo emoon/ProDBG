@@ -1,5 +1,8 @@
 #include "Session.h"
+#include "Core/PluginHandler.h"
+#include <QDebug>
 #include <QString>
+#include <pd_backend.h>
 #include <pd_readwrite.h>
 
 namespace prodbg {
@@ -13,30 +16,103 @@ Session::Session(QStatusBar* statusbar)
     , m_currentWriter(nullptr)
     , m_prevWriter(nullptr)
     , m_reader(new PDReader)
+    , m_backendPlugin(nullptr)
+    , m_backendPluginData(nullptr)
 {
     m_currentWriter = m_writer0;
     m_prevWriter = m_writer1;
     (void)m_status;
+    (void)m_backendPlugin;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Session::~Session()
 {
+    destroyPluginData();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Session* Session::createSession(const QString& backendName, const QStatusBar* statusbar)
+Session* Session::createSession(const QString& backendName, QStatusBar* statusbar)
 {
-    (void)backendName;
-    (void)statusbar;
-    return nullptr;
+    Session* session = new Session(statusbar);
+
+    if (!session->setBackend(backendName)) {
+        delete session;
+        return nullptr;
+    }
+
+    return session;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Session::setBackend(const QString& backendName)
+{
+    // Names of the backends are stored in utf-8 so convert them here
+    QByteArray name = backendName.toUtf8();
+    PDBackendPlugin* plugin = PluginHandler_findBackendPlugin(name.constData());
+
+    if (!plugin) {
+        qDebug() << "Unable to find plugin: " << backendName;
+        return false;
+    }
+
+    destroyPluginData();
+
+    m_backendPlugin = plugin;
+
+    // Asserts here to verify that these are always set. TODO: Better user facing error?
+
+    Q_ASSERT(m_backendPlugin->create_instance);
+
+    m_backendPluginData = m_backendPlugin->create_instance(0);
+
+    Q_ASSERT(m_backendPluginData);
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Session::destroyPluginData()
+{
+    if (m_backendPlugin && m_backendPluginData) {
+        m_backendPlugin->destroy_instance(m_backendPluginData);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Session::update()
+{
+    if (!m_backendPlugin) {
+        return;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Session::start()
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Session::stop()
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Session::stepIn()
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Session::stepOver()
 {
 }
 

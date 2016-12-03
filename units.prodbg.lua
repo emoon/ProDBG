@@ -7,16 +7,16 @@ require "tundra.util"
 local native = require('tundra.native')
 
 local function gen_uic(src)
-    return Uic { 
+    return Uic {
         Pass = "GenerateSources",
-        Source = src 
+        Source = src
     }
 end
 
 local function gen_moc(src)
-    return Moc { 
+    return Moc {
         Pass = "GenerateSources",
-        Source = src 
+        Source = src
     }
 end
 
@@ -31,11 +31,11 @@ Program {
             Recursive = true,
         },
 
-        gen_uic("src/prodbg/Config/AmigaUAEConfig.ui"), 
+        gen_uic("src/prodbg/Config/AmigaUAEConfig.ui"),
         gen_moc("src/prodbg/Config/AmigaUAEConfig.h"),
 
-        gen_uic("src/prodbg/mainwindow.ui"), 
-        gen_uic("src/prodbg/MemoryView/MemoryView.ui"), 
+        gen_uic("src/prodbg/mainwindow.ui"),
+        gen_uic("src/prodbg/MemoryView/MemoryView.ui"),
         gen_moc("src/prodbg/MainWindow.h"),
 
         gen_moc("src/prodbg/CodeView/CodeView.h"),
@@ -63,6 +63,7 @@ Program {
         },
 
         CPPPATH = {
+            "src/prodbg",
         	"api/include",
             "$(OBJECTROOT)", "$(OBJECTDIR)",
         },

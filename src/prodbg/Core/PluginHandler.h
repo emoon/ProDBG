@@ -2,6 +2,8 @@
 
 class QString;
 
+struct PDBackendPlugin;
+
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -16,4 +18,7 @@ struct Plugin
 
 bool PluginHandler_addPlugin(const QString& pluginName);
 Plugin* PluginHandler_getPlugins(int* count);
+
+PDBackendPlugin* PluginHandler_findBackendPlugin(const char* name);
+
 }

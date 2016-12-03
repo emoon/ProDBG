@@ -2,9 +2,10 @@
 #include "CodeView/CodeView.h"
 
 #include "Config/AmigaUAEConfig.h"
-
 #include "MemoryView/MemoryView.h"
+#include "Session/Session.h"
 
+#include <QTimer>
 #include <QtCore/QSettings>
 #include <QtWidgets/QDockWidget>
 
@@ -16,6 +17,8 @@ MainWindow::MainWindow()
     : m_codeView(new CodeView(this))
     , m_memoryView(new MemoryView(this))
     , m_statusbar(new QStatusBar(this))
+    , m_timer(new QTimer(this))
+    , m_currentSession(nullptr)
 {
     m_ui.setupUi(this);
 
@@ -37,6 +40,8 @@ MainWindow::MainWindow()
 
     setStatusBar(m_statusbar);
 
+    m_currentSession = Session::createSession(QStringLiteral("Dummy Backend"), m_statusbar);
+
     initActions();
     readSettings();
 }
@@ -47,6 +52,10 @@ void MainWindow::initActions()
 {
     connect(m_ui.actionStart, &QAction::triggered, this, &MainWindow::start);
     connect(m_ui.actionAmiga_UAE, &QAction::triggered, this, &MainWindow::amigaUAEConfig);
+    // TODO: We really don't need to have this running all the time but will do for now
+    connect(m_timer, &QTimer::timeout, this, &MainWindow::timedUpdate);
+
+    m_timer->start(10); // update every 10 ms
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,6 +63,15 @@ void MainWindow::initActions()
 void MainWindow::start()
 {
     printf("start\n");
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::timedUpdate()
+{
+    if (m_currentSession) {
+        m_currentSession->update();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
