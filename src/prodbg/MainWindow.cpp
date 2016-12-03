@@ -60,9 +60,9 @@ void MainWindow::start()
 
 void MainWindow::amigaUAEConfig()
 {
-    AmigaUAEConfig* cfg = new AmigaUAEConfig();
-    cfg->setModal(true);
-    cfg->show();
+    AmigaUAEConfig cfg(this);
+    cfg.setModal(true);
+    cfg.exec();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
