@@ -38,6 +38,8 @@ Program {
         gen_uic("src/prodbg/MemoryView/MemoryView.ui"),
         gen_moc("src/prodbg/MainWindow.h"),
 
+        gen_moc("src/prodbg/BackendInterface.h"),
+
         gen_moc("src/prodbg/CodeView/CodeView.h"),
         gen_moc("src/prodbg/MemoryView/MemoryView.h"),
         gen_moc("src/prodbg/MemoryView/MemoryViewWidget.h"),
