@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include "CodeView/CodeView.h"
 
+#include "AmigaUAE/AmigaUAE.h"
 #include "Config/AmigaUAEConfig.h"
 #include "MemoryView/MemoryView.h"
 #include "Session/Session.h"
@@ -19,6 +20,7 @@ MainWindow::MainWindow()
     , m_statusbar(new QStatusBar(this))
     , m_timer(new QTimer(this))
     , m_currentSession(nullptr)
+    , m_amigaUae(nullptr)
 {
     m_ui.setupUi(this);
 
@@ -44,6 +46,8 @@ MainWindow::MainWindow()
 
     initActions();
     readSettings();
+
+    (void)m_amigaUae;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,6 +56,8 @@ void MainWindow::initActions()
 {
     connect(m_ui.actionStart, &QAction::triggered, this, &MainWindow::start);
     connect(m_ui.actionAmiga_UAE, &QAction::triggered, this, &MainWindow::amigaUAEConfig);
+    connect(m_ui.actionDebugAmigaExe, &QAction::triggered, this, &MainWindow::debugAmigaExe);
+
     // TODO: We really don't need to have this running all the time but will do for now
     connect(m_timer, &QTimer::timeout, this, &MainWindow::timedUpdate);
 
@@ -81,6 +87,17 @@ void MainWindow::amigaUAEConfig()
     AmigaUAEConfig cfg(this);
     cfg.setModal(true);
     cfg.exec();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::debugAmigaExe()
+{
+    AmigaUAE amigaUae;
+
+    if (amigaUae.validateSettings()) {
+        return;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -11,6 +11,7 @@ namespace prodbg {
 class Session;
 class CodeView;
 class MemoryView;
+class AmigaUAE;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -32,6 +33,7 @@ private:
     Q_SLOT void toggleBreakpoint();
     Q_SLOT void amigaUAEConfig();
     Q_SLOT void timedUpdate();
+    Q_SLOT void debugAmigaExe();
 
 private:
     void initActions();
@@ -48,6 +50,10 @@ private:
 
     // This is the active debugging session that will communicate with the backend and supply data to the frontend
     Session* m_currentSession;
+
+    // This isn't likey the best idea to have it like. Would be nicer to have something more
+    // generic (like a backend "handler" that is needed to setup stuff)
+    AmigaUAE* m_amigaUae;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

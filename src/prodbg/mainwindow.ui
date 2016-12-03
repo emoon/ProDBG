@@ -28,6 +28,7 @@
      <string>File</string>
     </property>
     <addaction name="actionOpen"/>
+    <addaction name="actionDebugAmigaExe"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -98,6 +99,14 @@
   <action name="actionAmiga_UAE">
    <property name="text">
     <string>Amiga UAE...</string>
+   </property>
+  </action>
+  <action name="actionDebugAmigaExe">
+   <property name="text">
+    <string>Debug Amiga Executable..</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
    </property>
   </action>
  </widget>
