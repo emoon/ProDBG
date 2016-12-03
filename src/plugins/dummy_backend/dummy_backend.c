@@ -693,28 +693,6 @@ static void update_memory(DummyPlugin* plugin, PDReader* reader) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void on_menu(PDReader* reader) {
-    uint32_t menuId;
-
-    PDRead_find_u32(reader, &menuId, "menu_id", 0);
-
-    switch (menuId) {
-        case 1:
-        {
-            printf("id 1 pressed!\n");
-            break;
-        }
-
-        case 2:
-        {
-            printf("id 2 pressed!\n");
-            break;
-        }
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 static int find_instruction_index(uint64_t address) {
     int i = 0;
 
@@ -868,12 +846,6 @@ static PDDebugState update(void* user_data,
 
     while ((event = PDRead_get_event(reader))) {
         switch (event) {
-            case PDEventType_MenuEvent:
-            {
-                on_menu(reader);
-                break;
-            }
-
             case PDEventType_GetDisassembly:
             {
                 get_disassembly(reader, writer);
@@ -917,7 +889,7 @@ static PDDebugState update(void* user_data,
     set_exception_location(data, writer);
     // printf("Update backend\n");
 
-    return PDDebugState_NoTarget;
+    return PDDebugState_Running;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
