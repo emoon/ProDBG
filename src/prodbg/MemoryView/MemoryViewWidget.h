@@ -5,7 +5,7 @@
 namespace prodbg
 {
   class MemoryViewPrivate;
-  class MemoryViewInterface;
+  class BackendInterface;
 
   class MemoryViewWidget : public QWidget
   {
@@ -50,7 +50,7 @@ namespace prodbg
     virtual ~MemoryViewWidget();
 
   public:
-    void setMemoryInterface(MemoryViewInterface* interface);
+    void setBackendInterface(BackendInterface* interface);
 
   protected:
     void paintEvent(QPaintEvent* ev) override;

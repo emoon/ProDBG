@@ -1,5 +1,5 @@
 #include "MemoryViewWidget.h"
-#include "MemoryViewInterface.h"
+#include "BackendInterface.h"
 
 #include <QtCore/QPointer>
 #include <QtGui/QPainter>
@@ -171,7 +171,7 @@ static QChar s_AsciiTab[256];
 class MemoryViewPrivate
 {
 public:
-  QPointer<MemoryViewInterface> m_Interface;
+  QPointer<BackendInterface> m_Interface;
 
   int m_ElementsPerRow = 8;
   MemoryViewWidget::DataType m_DataType = MemoryViewWidget::X8;
@@ -361,7 +361,7 @@ prodbg::MemoryViewWidget::~MemoryViewWidget()
   delete m_Private;
 }
 
-void prodbg::MemoryViewWidget::setMemoryInterface(MemoryViewInterface* interface)
+void prodbg::MemoryViewWidget::setBackendInterface(BackendInterface* interface)
 {
   m_Private->m_Interface = interface;
   update();
