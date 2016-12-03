@@ -1,11 +1,11 @@
 #include "Core/PluginHandler.h"
 #include "MainWindow.h"
 #include <QApplication>
+#include <QCoreApplication>
 #include <QFile>
 #include <QResource>
 #include <QTextEdit>
 #include <QTextStream>
-#include <QCoreApplication>
 #include <stdio.h>
 #include <stdlib.h>
 

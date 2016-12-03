@@ -5,8 +5,8 @@
 
 #include "MemoryView/MemoryView.h"
 
-#include <QtWidgets/QDockWidget>
 #include <QtCore/QSettings>
+#include <QtWidgets/QDockWidget>
 
 namespace prodbg {
 
