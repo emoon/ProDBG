@@ -2,9 +2,13 @@
 
 #include <QDialog>
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace Ui {
 class AmigaUAEConfig;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class AmigaUAEConfig : public QDialog
 {
@@ -15,5 +19,11 @@ public:
     ~AmigaUAEConfig();
 
 private:
+    Q_SLOT void selectExecutable();
+    Q_SLOT void selectConfigFile();
+
+    void writeSettings();
+    void readSettings();
+
     Ui::AmigaUAEConfig* m_ui;
 };
