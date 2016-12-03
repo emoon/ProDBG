@@ -16,11 +16,11 @@ public:
 	~AmigaUAE();
 
 	void runExecutable(const QString& filename);
+	bool validateSettings();
 
 private:
 
 	void readSettings();
-	bool validateSettings();
 
 	QString m_uaeExe;
 	QString m_config;

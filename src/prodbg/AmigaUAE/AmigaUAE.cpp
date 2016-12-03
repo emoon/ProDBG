@@ -1,6 +1,7 @@
 #include "AmigaUAE.h"
 #include <QSettings>
 #include <QString>
+#include <QMessageBox>
 
 namespace prodbg {
 
@@ -23,7 +24,6 @@ AmigaUAE::~AmigaUAE()
 
 void AmigaUAE::runExecutable(const QString& filename)
 {
-    readSettings();
     if (!validateSettings()) {
         return;
     }
@@ -33,6 +33,26 @@ void AmigaUAE::runExecutable(const QString& filename)
 
 bool AmigaUAE::validateSettings()
 {
+    readSettings();
+
+    if (m_uaeExe.isEmpty()) {
+        QMessageBox::critical(nullptr, QStringLiteral("No UAE executable selected"), 
+                QStringLiteral("In order to run Amiga executables you need to select the emulator executable in \"Config -> Amiga UAE..\""));
+        return false;
+    }
+
+    if (m_config.isEmpty()) {
+        QMessageBox::critical(nullptr, QStringLiteral("No UAE config selected"), 
+                QStringLiteral("In order to run Amiga executables you need to select a configuration file for UAE in \"Config -> Amiga UAE..\""));
+        return false;
+    }
+
+    if (m_dh0Path.isEmpty()) {
+        QMessageBox::critical(nullptr, QStringLiteral("No hard drive path selected"), 
+                QStringLiteral("In order to run Amiga executables you need to select the directory use for the hard drive in \"Config -> Amiga UAE..\""));
+        return false;
+    }
+
     return false;
 }
 
