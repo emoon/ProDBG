@@ -21,6 +21,7 @@ public:
 private:
     Q_SLOT void selectExecutable();
     Q_SLOT void selectConfigFile();
+    Q_SLOT void selectDh0Path();
 
     void writeSettings();
     void readSettings();

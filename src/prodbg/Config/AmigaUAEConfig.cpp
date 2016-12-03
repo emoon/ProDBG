@@ -15,6 +15,7 @@ AmigaUAEConfig::AmigaUAEConfig(QWidget* parent)
 
     connect(m_ui->selectExe, &QPushButton::released, this, &AmigaUAEConfig::selectExecutable);
     connect(m_ui->selectConfig, &QPushButton::released, this, &AmigaUAEConfig::selectConfigFile);
+    connect(m_ui->selectDh0Path, &QPushButton::released, this, &AmigaUAEConfig::selectDh0Path);
 
     readSettings();
 }
@@ -55,6 +56,19 @@ void AmigaUAEConfig::selectConfigFile()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void AmigaUAEConfig::selectDh0Path()
+{
+    QString path = QFileDialog::getExistingDirectory(this, QStringLiteral("Select dh0 directory"), m_ui->dh0Path->text());
+
+    if (path.isEmpty()) {
+        return;
+    }
+
+    m_ui->dh0Path->setText(path);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void AmigaUAEConfig::writeSettings()
 {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
@@ -63,6 +77,8 @@ void AmigaUAEConfig::writeSettings()
     settings.setValue(QStringLiteral("executablePath"), m_ui->uaeExe->text());
     settings.setValue(QStringLiteral("configPath"), m_ui->configPath->text());
     settings.setValue(QStringLiteral("cmdlineArgs"), m_ui->cmdlineArgs->text());
+    settings.setValue(QStringLiteral("dh0Path"), m_ui->dh0Path->text());
+    settings.setValue(QStringLiteral("copyFilesToHDD"), m_ui->copyFilesToHdd->isChecked());
     settings.endGroup();
 }
 
@@ -76,5 +92,7 @@ void AmigaUAEConfig::readSettings()
     m_ui->uaeExe->setText(settings.value(QStringLiteral("executablePath")).toString());
     m_ui->configPath->setText(settings.value(QStringLiteral("configPath")).toString());
     m_ui->cmdlineArgs->setText(settings.value(QStringLiteral("cmdlineArgs")).toString());
+    m_ui->dh0Path->setText(settings.value(QStringLiteral("dh0Path")).toString());
+    m_ui->copyFilesToHdd->setChecked(settings.value(QStringLiteral("copyFilesToHDD")).toBool());
     settings.endGroup();
 }
