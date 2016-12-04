@@ -30,28 +30,27 @@ AmigaUAEConfig::~AmigaUAEConfig()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void selectFilename(const QString& title, QLineEdit* line)
+{
+    QString path = QFileDialog::getOpenFileName(nullptr, title, line->text());
+
+    if (!path.isEmpty()) {
+        line->setText(path);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void AmigaUAEConfig::selectExecutable()
 {
-    QString path = QFileDialog::getOpenFileName(this, QStringLiteral("Select UAE executable"), m_ui->uaeExe->text());
-
-    if (path.isEmpty()) {
-        return;
-    }
-
-    m_ui->uaeExe->setText(path);
+    selectFilename(QStringLiteral("Select UAE executable"), m_ui->uaeExe);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AmigaUAEConfig::selectConfigFile()
 {
-    QString path = QFileDialog::getOpenFileName(this, QStringLiteral("Select UAE config"), m_ui->configPath->text());
-
-    if (path.isEmpty()) {
-        return;
-    }
-
-    m_ui->configPath->setText(path);
+    selectFilename(QStringLiteral("Select UAE configuration"), m_ui->configPath);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
