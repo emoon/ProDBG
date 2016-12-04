@@ -8,7 +8,6 @@ local path = require "tundra.path"
 DefRule {
   Name = "Moc",
   Command = "$(QTMOCCMD)",
-  ConfigInvariant = true,
   Blueprint = {
     Source = { Required = true, Type = "string" },
   },
@@ -40,7 +39,6 @@ DefRule {
 DefRule {
   Name = "Rcc",
   Command = "$(QTRCCCMD)",
-  ConfigInvariant = true,
   Blueprint = {
     Source = { Required = true, Type = "string" },
   },
@@ -65,7 +63,6 @@ DefRule {
 DefRule {
   Name = "Uic",
   Command = "$(QTUICCMD)",
-  ConfigInvariant = true,
   Blueprint = {
     Source = { Required = true, Type = "string" },
   },
