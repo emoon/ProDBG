@@ -41,7 +41,9 @@ Program {
         gen_uic("src/prodbg/MemoryView/MemoryView.ui"),
         gen_moc("src/prodbg/MainWindow.h"),
 
-        gen_moc("src/prodbg/BackendInterface.h"),
+        gen_moc("src/prodbg/Backend/IBackendRequests.h"),
+        gen_moc("src/prodbg/Backend/BackendRequests.h"),
+        gen_moc("src/prodbg/Backend/BackendHandler.h"),
 
         gen_moc("src/prodbg/CodeView/CodeView.h"),
         gen_moc("src/prodbg/MemoryView/MemoryView.h"),
