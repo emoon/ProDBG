@@ -9,6 +9,7 @@
 #include "RegisterView/RegisterView.h"
 #include "Session/Session.h"
 
+#include <QDebug>
 #include <QMainWindow>
 #include <QThread>
 #include <QtCore/QSettings>
@@ -121,10 +122,17 @@ void MainWindow::debugAmigaExe()
 
 void MainWindow::startDummyBackend()
 {
+    Session* dummySession = Session::createSession(QStringLiteral("Dummy Backend"));
+
+    if (!dummySession) {
+        qDebug() << "Unable to create Dummy Backend";
+        return;
+    }
+
     // TODO: Create sessino here also
 
     m_backendThread = new QThread;
-    m_backend = new BackendHandler(0);
+    m_backend = new BackendHandler(dummySession);
 
     m_backend->moveToThread(m_backendThread);
     m_backendRequests = new BackendRequests(m_backend);
