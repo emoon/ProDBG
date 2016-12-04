@@ -27,6 +27,8 @@ MainWindow::MainWindow()
 //, m_currentSession(nullptr)
 //, m_amigaUae(nullptr)
 {
+    qRegisterMetaType<uint64_t>("uint64_t");
+
     m_ui.setupUi(this);
 
     setCentralWidget(m_codeView);
