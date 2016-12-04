@@ -2,23 +2,19 @@
 
 #include <QObject>
 #include <QVector>
-#include <QString>
 #include <stdint.h>
+
+class QString;
 
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class BackendInterface : public QObject
+class IBackendRequests : public QObject
 {
     Q_OBJECT;
 
 public:
-    struct Register
-    {
-        QString name;
-    };
-
     enum MemoryAddressFlags
     {
         Readable = 1 << 8,
@@ -37,15 +33,9 @@ public:
     // Readable/Writeable/etc
     virtual void requestMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target) = 0;
 
-    // Request registers from the backend
-    virtual void requestRegisters(QVector<Register>* target) = 0;
-
 public:
     // Response signal for a memory request
     Q_SIGNAL void responseMemory(QVector<uint16_t>* target, uint64_t address);
-
-    // Response signal for a register request 
-    Q_SIGNAL void responseRegisters(QVector<Register>* target);
 
     // This signal is being sent when the program counter of the debugged application has changed
     // This can be used to figure out if it's needed to re-request data. For example a Memory view may want to use

@@ -1,5 +1,7 @@
 #include "RegisterView.h"
+#include "Backend/IBackendRequests.h"
 #include "Ui_RegisterView.h"
+#include <QDebug>
 
 namespace prodbg {
 
@@ -10,6 +12,7 @@ RegisterView::RegisterView(QWidget* parent)
 		m_ui(new Ui_RegisterView)
 {
 	m_ui->setupUi(this);
+	connect(m_ui->pushButton, &QPushButton::released, this, &RegisterView::getSomeData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -23,6 +26,34 @@ RegisterView::~RegisterView()
 
 void RegisterView::dataTypeChanged(int type)
 {
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void RegisterView::getSomeData()
+{
+	if (!m_interface) {
+		return;
+	}
+
+	qDebug() << "About to request some data";
+
+	m_interface->requestMemory(0, 1, nullptr);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void RegisterView::programCounterChanged(uint64_t pc)
+{
+	qDebug() << "RegisterView PC changed " << pc;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void RegisterView::setBackendInterface(IBackendRequests* interface)
+{
+	m_interface = interface;
+	connect(m_interface, &IBackendRequests::programCounterChanged, this, &RegisterView::programCounterChanged);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

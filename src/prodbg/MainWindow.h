@@ -14,6 +14,7 @@ class MemoryView;
 class AmigaUAE;
 class BackendHandler;
 class RegisterView;
+class BackendRequests;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -23,6 +24,7 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow();
+    ~MainWindow();
 
 protected:
     void closeEvent(QCloseEvent* event);
@@ -40,6 +42,7 @@ private:
     void initActions();
     void writeSettings();
     void readSettings();
+    void startDummyBackend();
 
     // Hardcoded views for now.
     CodeView* m_codeView;
@@ -48,6 +51,7 @@ private:
     QStatusBar* m_statusbar;
     Ui_MainWindow m_ui;
 
+    BackendRequests* m_backendRequests;
     BackendHandler* m_backend;
     QThread* m_backendThread;
 };

@@ -2,12 +2,15 @@
 #include "CodeView/CodeView.h"
 
 #include "AmigaUAE/AmigaUAE.h"
+#include "Backend/BackendHandler.h"
+#include "Backend/BackendRequests.h"
 #include "Config/AmigaUAEConfig.h"
 #include "MemoryView/MemoryView.h"
 #include "RegisterView/RegisterView.h"
 #include "Session/Session.h"
 
 #include <QMainWindow>
+#include <QThread>
 #include <QtCore/QSettings>
 #include <QtWidgets/QDockWidget>
 
@@ -21,8 +24,8 @@ MainWindow::MainWindow()
     , m_registerView(new RegisterView(this))
     , m_statusbar(new QStatusBar(this))
     , m_backend(nullptr)
-    //, m_currentSession(nullptr)
-    //, m_amigaUae(nullptr)
+//, m_currentSession(nullptr)
+//, m_amigaUae(nullptr)
 {
     m_ui.setupUi(this);
 
@@ -56,12 +59,24 @@ MainWindow::MainWindow()
 
     setStatusBar(m_statusbar);
 
-    //m_currentSession = Session::createSession(QStringLiteral("Dummy Backend"), m_statusbar);
+    startDummyBackend();
 
     initActions();
     readSettings();
 
     (void)m_backend;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+MainWindow::~MainWindow()
+{
+    if (m_backendThread) {
+        m_backendThread->quit();
+        m_backendThread->wait();
+    }
+
+    delete m_backendThread;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -98,6 +113,25 @@ void MainWindow::debugAmigaExe()
     if (amigaUae.validateSettings()) {
         return;
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::startDummyBackend()
+{
+    // TODO: Create sessino here also
+
+    m_backendThread = new QThread;
+    m_backend = new BackendHandler(0);
+
+    m_backend->moveToThread(m_backendThread);
+    m_backendRequests = new BackendRequests(m_backend);
+
+    m_registerView->setBackendInterface(m_backendRequests);
+
+    printf("Debugger thread started\n");
+
+    m_backendThread->start();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

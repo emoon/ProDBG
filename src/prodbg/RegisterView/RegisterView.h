@@ -7,7 +7,7 @@ class Ui_RegisterView;
 
 namespace prodbg {
 
-class BackendInterface;
+class IBackendRequests;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -19,14 +19,16 @@ public:
     RegisterView(QWidget* parent = nullptr);
     ~RegisterView();
 
-    void setBackendInterface(BackendInterface* interface);
+    void setBackendInterface(IBackendRequests* interface);
 
 private:
     Q_SLOT void dataTypeChanged(int);
+    Q_SLOT void getSomeData();
+    Q_SLOT void programCounterChanged(uint64_t pc);
 
 private:
     Ui_RegisterView* m_ui = nullptr;
-    QPointer<BackendInterface> m_interface;
+    QPointer<IBackendRequests> m_interface;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

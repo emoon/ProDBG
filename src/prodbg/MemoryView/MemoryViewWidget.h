@@ -5,7 +5,7 @@
 namespace prodbg
 {
   class MemoryViewPrivate;
-  class BackendInterface;
+  class IBackendRequests;
 
   class MemoryViewWidget : public QWidget
   {
@@ -34,7 +34,7 @@ namespace prodbg
       F32,
       F64,
     };
-    
+
     Q_ENUM(DataType);
 
     enum Endianess
@@ -42,7 +42,7 @@ namespace prodbg
       Big,
       Little,
     };
-    
+
     Q_ENUM(Endianess);
 
   public:
@@ -50,7 +50,7 @@ namespace prodbg
     virtual ~MemoryViewWidget();
 
   public:
-    void setBackendInterface(BackendInterface* interface);
+    void setBackendInterface(IBackendRequests* interface);
 
   protected:
     void paintEvent(QPaintEvent* ev) override;
