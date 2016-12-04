@@ -4,6 +4,7 @@
 #include "AmigaUAE/AmigaUAE.h"
 #include "Config/AmigaUAEConfig.h"
 #include "MemoryView/MemoryView.h"
+#include "RegisterView/RegisterView.h"
 #include "Session/Session.h"
 
 #include <QMainWindow>
@@ -17,6 +18,7 @@ namespace prodbg {
 MainWindow::MainWindow()
     : m_codeView(new CodeView(this))
     , m_memoryView(new MemoryView(this))
+    , m_registerView(new RegisterView(this))
     , m_statusbar(new QStatusBar(this))
     , m_backend(nullptr)
     //, m_currentSession(nullptr)
@@ -28,13 +30,25 @@ MainWindow::MainWindow()
 
     setWindowTitle(QStringLiteral("ProDBG"));
 
-    QDockWidget* dock = new QDockWidget(QStringLiteral("MemoryView"), this);
-    dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    // Setup docking for MemoryView
 
-    dock->setObjectName(QStringLiteral("MemoryViewDock"));
+    {
+        QDockWidget* dock = new QDockWidget(QStringLiteral("MemoryView"), this);
+        dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+        dock->setObjectName(QStringLiteral("MemoryViewDock"));
+        dock->setWidget(m_memoryView);
+        addDockWidget(Qt::RightDockWidgetArea, dock);
+    }
 
-    dock->setWidget(m_memoryView);
-    addDockWidget(Qt::RightDockWidgetArea, dock);
+    // Setup docking for RegisterView
+
+    {
+        QDockWidget* dock = new QDockWidget(QStringLiteral("RegisterView"), this);
+        dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+        dock->setObjectName(QStringLiteral("RegisterViewDock"));
+        dock->setWidget(m_registerView);
+        addDockWidget(Qt::BottomDockWidgetArea, dock);
+    }
 
     m_codeView->readSourceFile(QStringLiteral("src/prodbg/main.cpp"));
 
@@ -57,11 +71,6 @@ void MainWindow::initActions()
     connect(m_ui.actionStart, &QAction::triggered, this, &MainWindow::start);
     connect(m_ui.actionAmiga_UAE, &QAction::triggered, this, &MainWindow::amigaUAEConfig);
     connect(m_ui.actionDebugAmigaExe, &QAction::triggered, this, &MainWindow::debugAmigaExe);
-
-    // TODO: We really don't need to have this running all the time but will do for now
-    //connect(m_timer, &QTimer::timeout, this, &MainWindow::timedUpdate);
-
-    //m_timer->start(10); // update every 10 ms
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,17 +78,6 @@ void MainWindow::initActions()
 void MainWindow::start()
 {
     printf("start\n");
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void MainWindow::timedUpdate()
-{
-    /*
-    if (m_currentSession) {
-        m_currentSession->update();
-    }
-    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

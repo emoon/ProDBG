@@ -4,7 +4,7 @@
 #include <QMainWindow>
 
 class QStatusBar;
-class QTimer;
+class QThread;
 
 namespace prodbg {
 
@@ -13,6 +13,7 @@ class CodeView;
 class MemoryView;
 class AmigaUAE;
 class BackendHandler;
+class RegisterView;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -33,7 +34,6 @@ private:
     Q_SLOT void stepOver();
     Q_SLOT void toggleBreakpoint();
     Q_SLOT void amigaUAEConfig();
-    Q_SLOT void timedUpdate();
     Q_SLOT void debugAmigaExe();
 
 private:
@@ -44,10 +44,12 @@ private:
     // Hardcoded views for now.
     CodeView* m_codeView;
     MemoryView* m_memoryView;
+    RegisterView* m_registerView;
     QStatusBar* m_statusbar;
     Ui_MainWindow m_ui;
 
     BackendHandler* m_backend;
+    QThread* m_backendThread;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

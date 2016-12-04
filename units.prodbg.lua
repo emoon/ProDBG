@@ -34,6 +34,9 @@ Program {
         gen_uic("src/prodbg/Config/AmigaUAEConfig.ui"),
         gen_moc("src/prodbg/Config/AmigaUAEConfig.h"),
 
+        gen_uic("src/prodbg/RegisterView/RegisterView.ui"),
+        gen_moc("src/prodbg/RegisterView/RegisterView.h"),
+
         gen_uic("src/prodbg/mainwindow.ui"),
         gen_uic("src/prodbg/MemoryView/MemoryView.ui"),
         gen_moc("src/prodbg/MainWindow.h"),
