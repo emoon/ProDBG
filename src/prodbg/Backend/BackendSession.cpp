@@ -1,9 +1,11 @@
 #include "BackendSession.h"
 #include "Core/PluginHandler.h"
+#include "IBackendRequests.h"
 #include "api/src/remote/pd_readwrite_private.h"
 #include <QDebug>
 #include <QString>
 #include <pd_backend.h>
+#include <pd_io.h>
 #include <pd_readwrite.h>
 
 namespace prodbg {
@@ -128,13 +130,72 @@ static const QString& getStateName(int state)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void updateMemory(QVector<uint16_t>* target, PDReader* reader)
+{
+    uint8_t* data;
+    uint64_t address = 0;
+    uint64_t size = 0;
+
+    target->resize(0);
+
+    PDRead_find_u64(reader, &address, "address", 0);
+
+    if (PDRead_find_data(reader, (void**)&data, &size, "data", 0) == PDReadStatus_NotFound) {
+        return;
+    }
+
+    for (uint64_t i = 0; i < size; ++i) {
+        uint16_t t = *data++;
+        t |= IBackendRequests::MemoryAddressFlags::Readable;
+        t |= IBackendRequests::MemoryAddressFlags::Writable;
+        target->append(t);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void BackendSession::requestMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target)
 {
-    qDebug() << "Got memory request!" << lo << " " << hi << " " << target;
+    uint32_t event;
 
-    m_currentPc += 2;
-    responseMemory(target, 2);
-    programCounterChanged(m_currentPc);
+    qDebug() << "Got memory request";
+
+    // There should be a better way to return this. Right now the reciver size has to guess
+    // what goes wrong. I think it would be better to wrap all of this into some Result<> (Rust style)
+    // type instead that describes why something is Err or Ok.
+
+    if (!target) {
+        responseMemory(target, 0);
+        return;
+    }
+
+    if (lo >= hi) {
+        target->resize(0);
+        responseMemory(target, 0);
+        return;
+    }
+
+    uint64_t size = hi - lo;
+
+    // Write request and update
+
+    PDWrite_event_begin(m_currentWriter, PDEventType_GetMemory);
+    PDWrite_u64(m_currentWriter, "address_start", lo);
+    PDWrite_u64(m_currentWriter, "size", size);
+    PDWrite_event_end(m_currentWriter);
+
+    update();
+
+    while ((event = PDRead_get_event(m_reader))) {
+        switch (event) {
+            case PDEventType_SetMemory: {
+                updateMemory(target, m_reader);
+                break;
+            }
+        }
+    }
+
+    responseMemory(target, lo);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,22 +206,28 @@ void BackendSession::update()
         return;
     }
 
-    // Swap the write buffers
-    PDWriter* temp = m_currentWriter;
-    m_currentWriter = m_prevWriter;
-    m_prevWriter = temp;
+    pd_binary_writer_finalize(m_currentWriter);
 
-    unsigned int reqDataSize = pd_binary_writer_get_size(m_prevWriter);
+    // Swap the write buffers
+    // PDWriter* temp = m_currentWriter;
+    // m_currentWriter = m_prevWriter;
+    // m_prevWriter = temp;
+
+    unsigned int reqDataSize = pd_binary_writer_get_size(m_currentWriter);
     pd_binary_reader_reset(m_reader);
 
-    pd_binary_reader_init_stream(m_reader, pd_binary_writer_get_data(m_prevWriter), reqDataSize);
-    pd_binary_writer_reset(m_currentWriter);
+    pd_binary_reader_init_stream(m_reader, pd_binary_writer_get_data(m_currentWriter), reqDataSize);
+    pd_binary_writer_reset(m_prevWriter);
 
-    int state = m_backendPlugin->update(m_backendPluginData, PDAction_None, m_reader, m_currentWriter);
+    int state = m_backendPlugin->update(m_backendPluginData, PDAction_None, m_reader, m_prevWriter);
     (void)state;
 
-    pd_binary_reader_init_stream(m_reader, pd_binary_writer_get_data(m_prevWriter), pd_binary_writer_get_size(m_prevWriter));
+    pd_binary_writer_finalize(m_prevWriter);
+
+    pd_binary_reader_init_stream(m_reader, pd_binary_writer_get_data(m_prevWriter),
+                                 pd_binary_writer_get_size(m_prevWriter));
     pd_binary_reader_reset(m_reader);
+    pd_binary_writer_reset(m_currentWriter);
 
     // update interfaces with data
 

@@ -8,18 +8,18 @@ namespace prodbg {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 RegisterView::RegisterView(QWidget* parent)
-		: QWidget(parent),
-		m_ui(new Ui_RegisterView)
+    : QWidget(parent)
+    , m_ui(new Ui_RegisterView)
 {
-	m_ui->setupUi(this);
-	connect(m_ui->pushButton, &QPushButton::released, this, &RegisterView::getSomeData);
+    m_ui->setupUi(this);
+    connect(m_ui->pushButton, &QPushButton::released, this, &RegisterView::getSomeData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 RegisterView::~RegisterView()
 {
-	delete m_ui;
+    delete m_ui;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,30 +32,31 @@ void RegisterView::dataTypeChanged(int type)
 
 void RegisterView::getSomeData()
 {
-	if (!m_interface) {
-		return;
-	}
+    if (!m_interface) {
+        return;
+    }
 
-	qDebug() << "About to request some data";
+    qDebug() << "About to request some data";
 
-	m_interface->requestMemory(0, 1, nullptr);
+    // Request 16 bytes
+
+    m_interface->requestMemory(0, 16, &m_memRes);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RegisterView::programCounterChanged(uint64_t pc)
+void RegisterView::responseMemory(QVector<uint16_t>* res, uint64_t address)
 {
-	qDebug() << "RegisterView PC changed " << pc;
+    qDebug() << "RegisterView Got memory " << res << " " << res->size();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void RegisterView::setBackendInterface(IBackendRequests* interface)
 {
-	m_interface = interface;
-	connect(m_interface, &IBackendRequests::programCounterChanged, this, &RegisterView::programCounterChanged);
+    m_interface = interface;
+    connect(m_interface, &IBackendRequests::responseMemory, this, &RegisterView::responseMemory);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 }

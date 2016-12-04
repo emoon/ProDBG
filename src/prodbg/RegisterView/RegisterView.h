@@ -1,7 +1,8 @@
 #pragma once
 
-#include <QWidget>
 #include <QPointer>
+#include <QVector>
+#include <QWidget>
 
 class Ui_RegisterView;
 
@@ -24,13 +25,13 @@ public:
 private:
     Q_SLOT void dataTypeChanged(int);
     Q_SLOT void getSomeData();
-    Q_SLOT void programCounterChanged(uint64_t pc);
+    Q_SLOT void responseMemory(QVector<uint16_t>* res, uint64_t address);
 
 private:
     Ui_RegisterView* m_ui = nullptr;
     QPointer<IBackendRequests> m_interface;
+    QVector<uint16_t> m_memRes;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 }
