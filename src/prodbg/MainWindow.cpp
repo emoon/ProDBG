@@ -2,12 +2,11 @@
 #include "CodeView/CodeView.h"
 
 #include "AmigaUAE/AmigaUAE.h"
-#include "Backend/BackendHandler.h"
+#include "Backend/BackendSession.h"
 #include "Backend/BackendRequests.h"
 #include "Config/AmigaUAEConfig.h"
 #include "MemoryView/MemoryView.h"
 #include "RegisterView/RegisterView.h"
-#include "Session/Session.h"
 
 #include <QDebug>
 #include <QMainWindow>
@@ -122,9 +121,9 @@ void MainWindow::debugAmigaExe()
 
 void MainWindow::startDummyBackend()
 {
-    Session* dummySession = Session::createSession(QStringLiteral("Dummy Backend"));
+    m_backend = BackendSession::createBackendSession(QStringLiteral("Dummy Backend"));
 
-    if (!dummySession) {
+    if (!m_backend) {
         qDebug() << "Unable to create Dummy Backend";
         return;
     }
@@ -132,7 +131,6 @@ void MainWindow::startDummyBackend()
     // TODO: Create sessino here also
 
     m_backendThread = new QThread;
-    m_backend = new BackendHandler(dummySession);
 
     m_backend->moveToThread(m_backendThread);
     m_backendRequests = new BackendRequests(m_backend);

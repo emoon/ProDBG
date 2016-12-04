@@ -5,7 +5,7 @@
 
 namespace prodbg {
 
-class BackendHandler;
+class BackendSession;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -13,7 +13,7 @@ class BackendRequests : public IBackendRequests
 {
     Q_OBJECT
 public:
-    BackendRequests(BackendHandler* handler);
+    BackendRequests(BackendSession* session);
 
 public:
     // Return the number of bytes an address uses. E.g. 4 for a 32-bit target.

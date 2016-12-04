@@ -1,4 +1,4 @@
-#include "Session.h"
+#include "BackendSession.h"
 #include "Core/PluginHandler.h"
 #include "api/src/remote/pd_readwrite_private.h"
 #include <QDebug>
@@ -10,12 +10,13 @@ namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Session::Session()
+BackendSession::BackendSession()
     : m_writer0(new PDWriter)
     , m_writer1(new PDWriter)
     , m_currentWriter(nullptr)
     , m_prevWriter(nullptr)
     , m_reader(new PDReader)
+    , m_currentPc(0)
     , m_backendPlugin(nullptr)
     , m_backendPluginData(nullptr)
 {
@@ -29,7 +30,7 @@ Session::Session()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Session::~Session()
+BackendSession::~BackendSession()
 {
     destroyPluginData();
 
@@ -40,9 +41,9 @@ Session::~Session()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Session* Session::createSession(const QString& backendName)
+BackendSession* BackendSession::createBackendSession(const QString& backendName)
 {
-    Session* session = new Session();
+    BackendSession* session = new BackendSession();
 
     if (!session->setBackend(backendName)) {
         delete session;
@@ -54,7 +55,7 @@ Session* Session::createSession(const QString& backendName)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Session::setBackend(const QString& backendName)
+bool BackendSession::setBackend(const QString& backendName)
 {
     // Names of the backends are stored in utf-8 so convert them here
     QByteArray name = backendName.toUtf8();
@@ -82,7 +83,7 @@ bool Session::setBackend(const QString& backendName)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Session::destroyPluginData()
+void BackendSession::destroyPluginData()
 {
     if (m_backendPlugin && m_backendPluginData) {
         m_backendPlugin->destroy_instance(m_backendPluginData);
@@ -125,7 +126,18 @@ static const QString& getStateName(int state)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Session::update()
+void BackendSession::requestMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target)
+{
+    qDebug() << "Got memory request!" << lo << " " << hi << " " << target;
+
+    m_currentPc += 2;
+    responseMemory(target, 2);
+    programCounterChanged(m_currentPc);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendSession::update()
 {
     if (!m_backendPlugin) {
         return;
@@ -143,6 +155,7 @@ void Session::update()
     pd_binary_writer_reset(m_currentWriter);
 
     int state = m_backendPlugin->update(m_backendPluginData, PDAction_None, m_reader, m_currentWriter);
+    (void)state;
 
     pd_binary_reader_init_stream(m_reader, pd_binary_writer_get_data(m_prevWriter), pd_binary_writer_get_size(m_prevWriter));
     pd_binary_reader_reset(m_reader);
@@ -158,29 +171,31 @@ void Session::update()
     */
 }
 
+/*
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Session::start()
+void BackendSession::start()
 {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Session::stop()
+void BackendSession::stop()
 {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Session::stepIn()
+void BackendSession::stepIn()
 {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Session::stepOver()
+void BackendSession::stepOver()
 {
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

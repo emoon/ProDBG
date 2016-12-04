@@ -12,7 +12,7 @@ class Session;
 class CodeView;
 class MemoryView;
 class AmigaUAE;
-class BackendHandler;
+class BackendSession;
 class RegisterView;
 class BackendRequests;
 
@@ -52,7 +52,7 @@ private:
     Ui_MainWindow m_ui;
 
     BackendRequests* m_backendRequests;
-    BackendHandler* m_backend;
+    BackendSession* m_backend;
     QThread* m_backendThread;
 };
 

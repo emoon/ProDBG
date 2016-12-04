@@ -1,15 +1,15 @@
 #include "BackendRequests.h"
-#include "BackendHandler.h"
+#include "BackendSession.h"
 
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-BackendRequests::BackendRequests(BackendHandler* handler)
+BackendRequests::BackendRequests(BackendSession* session)
 {
-    connect(this, &BackendRequests::requestMem, handler, &BackendHandler::requestMemory);
-    connect(handler, &BackendHandler::responseMemory, this, &BackendRequests::responseMemory);
-    connect(handler, &BackendHandler::programCounterChanged, this, &BackendRequests::programCounterChanged);
+    connect(this, &BackendRequests::requestMem, session, &BackendSession::requestMemory);
+    connect(session, &BackendSession::responseMemory, this, &BackendRequests::responseMemory);
+    connect(session, &BackendSession::programCounterChanged, this, &BackendRequests::programCounterChanged);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
