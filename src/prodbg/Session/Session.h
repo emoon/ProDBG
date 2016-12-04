@@ -1,7 +1,6 @@
 #pragma once
 
 class QString;
-class QStatusBar;
 struct PDReader;
 struct PDWriter;
 struct PDBackendPlugin;
@@ -13,10 +12,10 @@ namespace prodbg {
 class Session
 {
 public:
-    Session(QStatusBar* statusbar = 0);
+    Session();
     ~Session();
 
-    static Session* createSession(const QString& backendName, QStatusBar* statusbar);
+    static Session* createSession(const QString& backendName);
     bool setBackend(const QString& backendName);
 
     void start();
@@ -27,9 +26,6 @@ public:
 
 private:
     void destroyPluginData();
-
-    // Used to show the current status of the backend
-    QStatusBar* m_status;
 
     // Writers/Read for communitaction between backend and UI
     PDWriter* m_writer0;

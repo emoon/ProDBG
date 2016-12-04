@@ -3,7 +3,6 @@
 #include "api/src/remote/pd_readwrite_private.h"
 #include <QDebug>
 #include <QString>
-#include <QStatusBar>
 #include <pd_backend.h>
 #include <pd_readwrite.h>
 
@@ -11,9 +10,8 @@ namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Session::Session(QStatusBar* statusbar)
-    : m_status(statusbar)
-    , m_writer0(new PDWriter)
+Session::Session()
+    : m_writer0(new PDWriter)
     , m_writer1(new PDWriter)
     , m_currentWriter(nullptr)
     , m_prevWriter(nullptr)
@@ -42,9 +40,9 @@ Session::~Session()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Session* Session::createSession(const QString& backendName, QStatusBar* statusbar)
+Session* Session::createSession(const QString& backendName)
 {
-    Session* session = new Session(statusbar);
+    Session* session = new Session();
 
     if (!session->setBackend(backendName)) {
         delete session;
@@ -145,12 +143,6 @@ void Session::update()
     pd_binary_writer_reset(m_currentWriter);
 
     int state = m_backendPlugin->update(m_backendPluginData, PDAction_None, m_reader, m_currentWriter);
-
-    if (m_status) {
-        QString result;
-        QTextStream(&result) << m_backendPlugin->name << " : " << getStateName(state);
-        m_status->showMessage(result);
-    }
 
     pd_binary_reader_init_stream(m_reader, pd_binary_writer_get_data(m_prevWriter), pd_binary_writer_get_size(m_prevWriter));
     pd_binary_reader_reset(m_reader);
