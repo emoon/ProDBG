@@ -40,14 +40,14 @@ void RegisterView::getSomeData()
 
     // Request 16 bytes
 
-    m_interface->requestMemory(0, 16, &m_memRes);
+    m_interface->beginReadMemory(0, 16, &m_memRes);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RegisterView::responseMemory(QVector<uint16_t>* res, uint64_t address)
+void RegisterView::endReadMemory(QVector<uint16_t>* res, uint64_t address, int addressSize)
 {
-    qDebug() << "RegisterView Got memory " << res << " " << res->size();
+    qDebug() << "RegisterView Got memory " << res << " " << res->size() << " addressSize " << addressSize;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,7 +55,7 @@ void RegisterView::responseMemory(QVector<uint16_t>* res, uint64_t address)
 void RegisterView::setBackendInterface(IBackendRequests* interface)
 {
     m_interface = interface;
-    connect(m_interface, &IBackendRequests::responseMemory, this, &RegisterView::responseMemory);
+    connect(m_interface, &IBackendRequests::endReadMemory, this, &RegisterView::endReadMemory);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

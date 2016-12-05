@@ -154,7 +154,7 @@ static void updateMemory(QVector<uint16_t>* target, PDReader* reader)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::requestMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target)
+void BackendSession::beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target)
 {
     uint32_t event;
 
@@ -165,13 +165,13 @@ void BackendSession::requestMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* 
     // type instead that describes why something is Err or Ok.
 
     if (!target) {
-        responseMemory(target, 0);
+        endReadMemory(target, 0, 0);
         return;
     }
 
     if (lo >= hi) {
         target->resize(0);
-        responseMemory(target, 0);
+        endReadMemory(target, 0, 0);
         return;
     }
 
@@ -195,7 +195,7 @@ void BackendSession::requestMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* 
         }
     }
 
-    responseMemory(target, lo);
+    endReadMemory(target, lo, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -25,7 +25,7 @@ public:
 private:
     Q_SLOT void dataTypeChanged(int);
     Q_SLOT void getSomeData();
-    Q_SLOT void responseMemory(QVector<uint16_t>* res, uint64_t address);
+    Q_SLOT void endReadMemory(QVector<uint16_t>* res, uint64_t address, int addressSize);
 
 private:
     Ui_RegisterView* m_ui = nullptr;
