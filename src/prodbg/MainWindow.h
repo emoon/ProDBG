@@ -45,15 +45,15 @@ private:
     void startDummyBackend();
 
     // Hardcoded views for now.
-    CodeView* m_codeView;
-    MemoryView* m_memoryView;
-    RegisterView* m_registerView;
-    QStatusBar* m_statusbar;
+    CodeView* m_codeView = nullptr;
+    MemoryView* m_memoryView = nullptr;
+    RegisterView* m_registerView = nullptr;
+    QStatusBar* m_statusbar = nullptr;
     Ui_MainWindow m_ui;
 
-    BackendRequests* m_backendRequests;
-    BackendSession* m_backend;
-    QThread* m_backendThread;
+    BackendRequests* m_backendRequests = nullptr;
+    BackendSession* m_backend = nullptr;
+    QThread* m_backendThread = nullptr;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
