@@ -47,7 +47,7 @@ QLibrary* findPlugin(const QString& plugin)
     QString pluginName = plugin;
 #endif
 
-    while (currentDir.cdUp()) {
+	do {
         QString path = currentDir.filePath(pluginName);
         QLibrary* lib = new QLibrary(path);
 
@@ -56,7 +56,8 @@ QLibrary* findPlugin(const QString& plugin)
         }
 
         delete lib;
-    }
+    
+    } while (currentDir.cdUp());
 
     return nullptr;
 }
