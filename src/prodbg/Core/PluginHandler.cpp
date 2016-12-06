@@ -99,7 +99,7 @@ Plugin* PluginHandler_getPlugins(int* count)
 
 PDBackendPlugin* PluginHandler_findBackendPlugin(const char* name)
 {
-    for (int i = 0; i < s_pluginCount; ++i) {
+    for (unsigned int i = 0; i < s_pluginCount; ++i) {
         Plugin* plugin = &s_plugins[i];
 
         if (strcmp(plugin->type, "ProDBG Backend 1")) {
