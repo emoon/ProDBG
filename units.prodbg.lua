@@ -70,15 +70,28 @@ Program {
         },
 
         CPPPATH = {
+            "$(QT5)/include",
+            "$(QT5)/include/QtCore",
+            "$(QT5)/include/QtGui",
+            "$(QT5)/include/QtWidgets",
             "src/prodbg",
         	"api/include",
             "$(OBJECTROOT)", "$(OBJECTDIR)",
         },
 
+        LIBPATH = {
+			{ "$(QT5)\\lib"; Config = "win64-*-*" },
+		},
+
         PROGCOM = {
             {  "-Wl,-rpath,$(QT5)/lib", "-F$(QT5)/lib", "-lstdc++", Config = "macosx-clang-*" },
         },
     },
+
+	Libs = { 
+		{ "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", 
+		  "Advapi32.lib", "Qt5Gui.lib", "Qt5Core.lib", "Qt5Widgets.lib"; Config = "win64-*-*" }, 
+	},
 
     Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore" },
 
