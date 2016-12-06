@@ -8,7 +8,11 @@ namespace prodbg {
 BackendRequests::BackendRequests(BackendSession* session)
 {
     connect(this, &BackendRequests::requestMem, session, &BackendSession::beginReadMemory);
+    connect(this, &BackendRequests::requestDisassembly, session, &BackendSession::beginDisassembly);
+
     connect(session, &BackendSession::endReadMemory, this, &BackendRequests::endReadMemory);
+    connect(session, &BackendSession::endDisassembly, this, &BackendRequests::endDisassembly);
+
     connect(session, &BackendSession::programCounterChanged, this, &BackendRequests::programCounterChanged);
 }
 
@@ -19,6 +23,13 @@ void BackendRequests::beginResolveAddress(const QString& expression, uint64_t* o
 {
     (void)expression;
     (void)out;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendRequests::beginDisassembly(uint64_t address, uint32_t count, QVector<IBackendRequests::AssemblyInstruction>* instructions)
+{
+    requestDisassembly(address, count, instructions);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

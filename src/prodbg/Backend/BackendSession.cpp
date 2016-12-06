@@ -154,6 +154,32 @@ static void updateMemory(QVector<uint16_t>* target, PDReader* reader)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void updateDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, PDReader* reader)
+{
+    PDReaderIterator it;
+
+    if (PDRead_find_array(reader, &it, "disassembly", 0) == PDReadStatus_NotFound) {
+        return;
+    }
+
+    while (PDRead_get_next_entry(reader, &it)) {
+        uint64_t address;
+        const char* text;
+
+        IBackendRequests::AssemblyInstruction inst;
+
+        PDRead_find_u64(reader, &address, "address", it);
+        PDRead_find_string(reader, &text, "line", it);
+
+        inst.text = QString::fromUtf8(text);
+        inst.address = address;
+
+        instructions->append(inst);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void BackendSession::beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target)
 {
     uint32_t event;
@@ -196,6 +222,35 @@ void BackendSession::beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>
     }
 
     endReadMemory(target, lo, 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendSession::beginDisassembly(uint64_t address, uint32_t count, QVector<IBackendRequests::AssemblyInstruction>* target)
+{
+    uint32_t event = 0;
+
+    qDebug() << "Got disassembly request";
+    
+    target->resize(0);
+
+    PDWrite_event_begin(m_currentWriter, PDEventType_GetDisassembly);
+    PDWrite_u64(m_currentWriter, "address_start", address);
+    PDWrite_u64(m_currentWriter, "size", count);
+    PDWrite_event_end(m_currentWriter);
+
+    update();
+
+    while ((event = PDRead_get_event(m_reader))) {
+        switch (event) {
+            case PDEventType_SetDisassembly: {
+                updateDisassembly(target, m_reader);
+                break;
+            }
+        }
+    }
+
+    endDisassembly(target);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

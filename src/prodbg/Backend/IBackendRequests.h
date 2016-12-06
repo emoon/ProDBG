@@ -60,6 +60,12 @@ public:
     };
 
 public:
+    // Get disassembly from the backend 
+    // lo = starting memory range
+    // hi = ending memory range
+    // instruction = a series of instructions from the backend
+    virtual void beginDisassembly(uint64_t address, uint32_t instructionCount, QVector<AssemblyInstruction>* instructions) = 0;
+
     // Evaluate expressions such ass 0x120+12 (useful for memory view)
     // expression = expression to evaluate (for example 0x124 + 2)
     // out = result of the operation
@@ -71,12 +77,14 @@ public:
     // target = output of memory. Each byte is stored as uint16_t with the upper 8 bits are set as combination
     //          of MemoryAddressFlags
     virtual bool beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target) = 0;
-
+    
 public:
+    // The result from the beginDisassembly operation
+    Q_SIGNAL void endDisassembly(QVector<AssemblyInstruction>* instructions);
     // Response signal for expression evaluation 
     // success = true if experssion was evaluated correctly, otherwise false
     // dest = output of the evalutation
-    Q_SIGNAL void endResolveadderss(bool success, uint64_t* dest);
+    Q_SIGNAL void endResolveAdress(bool success, uint64_t* dest);
 
     // Response signal for a memory request. If target size is 0 the operation failed. TODO: Better way
     // target = filled with requested memory (if successful)

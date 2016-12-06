@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include "IBackendRequests.h"
 
 class QString;
 struct PDReader;
@@ -29,8 +30,10 @@ public:
     void update();
 
     Q_SLOT void beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target);
+    Q_SLOT void beginDisassembly(uint64_t address, uint32_t count, QVector<IBackendRequests::AssemblyInstruction>* target);
 
     // Signals
+    Q_SIGNAL void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions);
     Q_SIGNAL void endReadMemory(QVector<uint16_t>* res, uint64_t address, int addressWidth);
     Q_SIGNAL void programCounterChanged(uint64_t pc);
     Q_SIGNAL void statusUpdate(QString update);
