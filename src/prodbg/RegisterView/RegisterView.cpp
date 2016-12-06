@@ -41,6 +41,7 @@ void RegisterView::getSomeData()
     // Request 16 bytes
 
     m_interface->beginReadMemory(0, 16, &m_memRes);
+    m_interface->beginReadRegisters(&m_targetRegisters);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,6 +49,15 @@ void RegisterView::getSomeData()
 void RegisterView::endReadMemory(QVector<uint16_t>* res, uint64_t address, int addressSize)
 {
     qDebug() << "RegisterView Got memory " << res << " " << res->size() << " addressSize " << addressSize;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void RegisterView::endReadRegisters(QVector<IBackendRequests::Register>* registers)
+{
+    for (auto& reg : *registers) {
+        qDebug() << "Got register " << reg.name;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,6 +73,7 @@ void RegisterView::setBackendInterface(IBackendRequests* interface)
     m_interface = interface;
     connect(m_interface, &IBackendRequests::endReadMemory, this, &RegisterView::endReadMemory);
     connect(m_interface, &IBackendRequests::programCounterChanged, this, &RegisterView::programCounterChanged);
+    connect(m_interface, &IBackendRequests::endReadRegisters, this, &RegisterView::endReadRegisters);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

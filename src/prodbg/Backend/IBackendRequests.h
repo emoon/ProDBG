@@ -22,10 +22,10 @@ public:
     {
         // Name of the register
         QString name;
-        // If the register is read only (hw registers such as Program Counter)
-        bool read_only;
         // Data for the register (stored in big endian order)
         QByteArray data;
+        // If the register is read only (hw registers such as Program Counter)
+        bool read_only;
     };
 
     //
@@ -59,6 +59,10 @@ public:
     };
 
 public:
+    // Get hw registers from the backend
+    // registers = array of registers
+    virtual void beginReadRegisters(QVector<Register>* registers) = 0;
+
     // Get disassembly from the backend
     // lo = starting memory range
     // hi = ending memory range
@@ -79,6 +83,10 @@ public:
     virtual bool beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target) = 0;
 
 public:
+    // Get hw registers from the backend
+    // registers = array of registers
+    Q_SIGNAL void endReadRegisters(QVector<Register>* registers);
+
     // The result from the beginDisassembly operation
     Q_SIGNAL void endDisassembly(QVector<AssemblyInstruction>* instructions, int addressWidth);
     // Response signal for expression evaluation

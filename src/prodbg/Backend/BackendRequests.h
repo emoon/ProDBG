@@ -16,6 +16,10 @@ public:
     BackendRequests(BackendSession* session);
 
 public:
+    // Get hw registers from the backend
+    // registers = array of registers
+    virtual void beginReadRegisters(QVector<Register>* registers);
+
     // Get disassembly from the backend
     // address = starting memory range
     // instructionCount = number of instructions to recive
@@ -32,6 +36,7 @@ public:
     bool beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target);
 
 private:
+    Q_SIGNAL void readRegisters(QVector<Register>* registers);
     Q_SIGNAL void requestMem(uint64_t lo, uint64_t hi, QVector<uint16_t>* target);
     Q_SIGNAL void requestDisassembly(uint64_t address, uint32_t count,
                                      QVector<IBackendRequests::AssemblyInstruction>* instructions);

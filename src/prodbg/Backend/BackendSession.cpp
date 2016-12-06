@@ -178,26 +178,71 @@ static uint32_t updateDisassembly(QVector<IBackendRequests::AssemblyInstruction>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void updateRegisters(QVector<IBackendRequests::Register>* target, PDReader* reader)
+{
+    PDReaderIterator it;
+
+    if (PDRead_find_array(reader, &it, "registers", 0) == PDReadStatus_NotFound) {
+        return;
+    }
+
+    while (PDRead_get_next_entry(reader, &it)) {
+        const char* name = "";
+        uint8_t* data = 0;
+        uint64_t size = 0;
+        uint8_t read_only = 0;
+
+        IBackendRequests::Register reg;
+
+        PDRead_find_string(reader, &name, "name", 0);
+        PDRead_find_u8(reader, &read_only, "read_only", 0);
+        PDRead_find_data(reader, (void**)&data, &size, "register", 0);
+
+        printf("%s - %p - %d\n", name, data, (int)size);
+
+        reg.name = QString::fromUtf8(name);
+        reg.name = read_only ? true : false;
+        reg.data.resize(size);
+
+        for (int i = 0; i < size; ++i) {
+            reg.data.append(data[i]);
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendSession::beginReadRegisters(QVector<IBackendRequests::Register>* target)
+{
+    uint32_t event = 0;
+
+    PDWrite_event_begin(m_currentWriter, PDEventType_GetRegisters);
+    PDWrite_event_end(m_currentWriter);
+
+    qDebug() << "Got register request";
+
+    update();
+
+    target->resize(0);
+
+    while ((event = PDRead_get_event(m_reader))) {
+        if (event != PDEventType_SetRegisters) {
+            continue;
+        }
+
+        updateRegisters(target, m_reader);
+    }
+
+    endReadRegisters(target);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void BackendSession::beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target)
 {
     uint32_t event;
 
     qDebug() << "Got memory request";
-
-    // There should be a better way to return this. Right now the reciver size has to guess
-    // what goes wrong. I think it would be better to wrap all of this into some Result<> (Rust style)
-    // type instead that describes why something is Err or Ok.
-
-    if (!target) {
-        endReadMemory(target, 0, 0);
-        return;
-    }
-
-    if (lo >= hi) {
-        target->resize(0);
-        endReadMemory(target, 0, 0);
-        return;
-    }
 
     uint64_t size = hi - lo;
 
