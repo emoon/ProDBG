@@ -27,7 +27,8 @@ void BackendRequests::beginResolveAddress(const QString& expression, uint64_t* o
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendRequests::beginDisassembly(uint64_t address, uint32_t count, QVector<IBackendRequests::AssemblyInstruction>* instructions)
+void BackendRequests::beginDisassembly(uint64_t address, uint32_t count,
+                                       QVector<IBackendRequests::AssemblyInstruction>* instructions)
 {
     requestDisassembly(address, count, instructions);
 }

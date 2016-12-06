@@ -1,11 +1,11 @@
 #pragma once
 
+#include "Backend/IBackendRequests.h"
 #include <QObject>
 #include <QPlainTextEdit>
 #include <QPointer>
 #include <QString>
 #include <stdint.h>
-#include "Backend/IBackendRequests.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -110,7 +110,6 @@ private:
 
     // Temp vector for recving data from backend
     QVector<IBackendRequests::AssemblyInstruction> m_recvInstructions;
-
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

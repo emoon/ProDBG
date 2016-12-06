@@ -307,11 +307,16 @@ void CodeView::endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* in
     m_disassemblyStart = instructions->at(0).address;
 
     for (auto& inst : *instructions) {
-        switch (addressWidth)
-        {
-            case 2 : addressText.sprintf("%02X", inst.address); break;
-            case 4 : addressText.sprintf("%04X", inst.address); break;
-            default : addressText.sprintf("%08X", inst.address); break;
+        switch (addressWidth) {
+            case 2:
+                addressText.sprintf("%02X", (uint16_t)inst.address);
+                break;
+            case 4:
+                addressText.sprintf("%04X", (uint32_t)inst.address);
+                break;
+            default:
+                addressText.sprintf("%08llX", inst.address);
+                break;
         }
 
         m_disassemblyText.append(inst.text);
@@ -326,7 +331,7 @@ void CodeView::endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* in
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::toggleDisassembly() 
+void CodeView::toggleDisassembly()
 {
     printf("toggle disassembly\n");
 
@@ -403,10 +408,10 @@ void CodeView::setLine(int line)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//void CodeView::setBackendInterface(IBackendRequests* interface)
+// void CodeView::setBackendInterface(IBackendRequests* interface)
 //{
- //   m_interface = interface;
-    //connect(m_interface, &IBackendRequests::endDisassembly, this, &CodeView::endDisassembly);
+//   m_interface = interface;
+// connect(m_interface, &IBackendRequests::endDisassembly, this, &CodeView::endDisassembly);
 //}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -428,5 +433,4 @@ void CodeView::setFileLine(const QString& file, int line)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 }

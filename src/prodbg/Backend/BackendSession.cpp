@@ -18,7 +18,6 @@ BackendSession::BackendSession()
     , m_currentWriter(nullptr)
     , m_prevWriter(nullptr)
     , m_reader(new PDReader)
-    , m_currentPc(0)
     , m_backendPlugin(nullptr)
     , m_backendPluginData(nullptr)
 {
@@ -94,15 +93,9 @@ void BackendSession::destroyPluginData()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-static QString s_stateTable[] =
-{
-    QStringLiteral("No target"),
-    QStringLiteral("Running"),
-    QStringLiteral("Stop (breakpoint)"),
-    QStringLiteral("Stop (exception)"),
-    QStringLiteral("Trace (stepping)"),
-    QStringLiteral("Unknown"),
+static QString s_stateTable[] = {
+    QStringLiteral("No target"),        QStringLiteral("Running"),          QStringLiteral("Stop (breakpoint)"),
+    QStringLiteral("Stop (exception)"), QStringLiteral("Trace (stepping)"), QStringLiteral("Unknown"),
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,7 +119,6 @@ static const QString& getStateName(int state)
 
     return s_stateTable[5];
 }
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -232,7 +224,8 @@ void BackendSession::beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::beginDisassembly(uint64_t address, uint32_t count, QVector<IBackendRequests::AssemblyInstruction>* target)
+void BackendSession::beginDisassembly(uint64_t address, uint32_t count,
+                                      QVector<IBackendRequests::AssemblyInstruction>* target)
 {
     uint32_t event = 0;
     uint32_t addressWidth = 0;
@@ -260,18 +253,13 @@ void BackendSession::beginDisassembly(uint64_t address, uint32_t count, QVector<
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::update()
+PDDebugState BackendSession::internalUpdate(PDAction action)
 {
     if (!m_backendPlugin) {
-        return;
+        return PDDebugState_NoTarget;
     }
 
     pd_binary_writer_finalize(m_currentWriter);
-
-    // Swap the write buffers
-    // PDWriter* temp = m_currentWriter;
-    // m_currentWriter = m_prevWriter;
-    // m_prevWriter = temp;
 
     unsigned int reqDataSize = pd_binary_writer_get_size(m_currentWriter);
     pd_binary_reader_reset(m_reader);
@@ -279,8 +267,14 @@ void BackendSession::update()
     pd_binary_reader_init_stream(m_reader, pd_binary_writer_get_data(m_currentWriter), reqDataSize);
     pd_binary_writer_reset(m_prevWriter);
 
-    int state = m_backendPlugin->update(m_backendPluginData, PDAction_None, m_reader, m_prevWriter);
-    (void)state;
+    PDDebugState state = m_backendPlugin->update(m_backendPluginData, action, m_reader, m_prevWriter);
+
+    // Send state change if state is different from the last time
+
+    if (state != m_debugState) {
+        statusUpdate(getStateName(state));
+        m_debugState = state;
+    }
 
     pd_binary_writer_finalize(m_prevWriter);
 
@@ -289,42 +283,47 @@ void BackendSession::update()
     pd_binary_reader_reset(m_reader);
     pd_binary_writer_reset(m_currentWriter);
 
-    // update interfaces with data
-
-    /*
-    for (int i = 0; i < len; ++i) {
-        // do stuff here
-
-        PDBinaryReader_reset(m_reader);
-    }
-    */
+    return state;
 }
 
-/*
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendSession::update()
+{
+    internalUpdate(PDAction_None);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendSession::start()
 {
+    if (m_debugState == PDDebugState_Running) {
+        return;
+    }
+
+    internalUpdate(PDAction_Run);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendSession::stop()
 {
+    internalUpdate(PDAction_Break);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendSession::stepIn()
 {
+    internalUpdate(PDAction_Step);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendSession::stepOver()
 {
+    internalUpdate(PDAction_StepOver);
 }
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

@@ -16,11 +16,12 @@ public:
     BackendRequests(BackendSession* session);
 
 public:
-    // Get disassembly from the backend 
+    // Get disassembly from the backend
     // address = starting memory range
-    // instructionCount = number of instructions to recive 
+    // instructionCount = number of instructions to recive
     // instruction = a series of instructions from the backend
-    void beginDisassembly(uint64_t address, uint32_t instructionCount, QVector<IBackendRequests::AssemblyInstruction>* instructions);
+    void beginDisassembly(uint64_t address, uint32_t instructionCount,
+                          QVector<IBackendRequests::AssemblyInstruction>* instructions);
 
     // Evaluate expressions such ass 0x120+12 (useful for memory view)
     void beginResolveAddress(const QString& expression, uint64_t* out);
@@ -32,7 +33,8 @@ public:
 
 private:
     Q_SIGNAL void requestMem(uint64_t lo, uint64_t hi, QVector<uint16_t>* target);
-    Q_SIGNAL void requestDisassembly(uint64_t address, uint32_t count, QVector<IBackendRequests::AssemblyInstruction>* instructions);
+    Q_SIGNAL void requestDisassembly(uint64_t address, uint32_t count,
+                                     QVector<IBackendRequests::AssemblyInstruction>* instructions);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

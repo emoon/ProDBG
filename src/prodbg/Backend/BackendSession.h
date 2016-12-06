@@ -1,7 +1,8 @@
 #pragma once
 
-#include <QObject>
 #include "IBackendRequests.h"
+#include <QObject>
+#include <pd_backend.h>
 
 class QString;
 struct PDReader;
@@ -23,14 +24,16 @@ public:
     static BackendSession* createBackendSession(const QString& backendName);
     bool setBackend(const QString& backendName);
 
-    // void start();
-    // void stop();
-    // void stepIn();
-    // void stepOver();
     void update();
 
+    Q_SLOT void start();
+    Q_SLOT void stop();
+    Q_SLOT void stepIn();
+    Q_SLOT void stepOver();
+
     Q_SLOT void beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target);
-    Q_SLOT void beginDisassembly(uint64_t address, uint32_t count, QVector<IBackendRequests::AssemblyInstruction>* target);
+    Q_SLOT void beginDisassembly(uint64_t address, uint32_t count,
+                                 QVector<IBackendRequests::AssemblyInstruction>* target);
 
     // Signals
     Q_SIGNAL void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int adressWidth);
@@ -40,6 +43,9 @@ public:
 
 private:
     void destroyPluginData();
+    PDDebugState internalUpdate(PDAction action);
+
+    PDDebugState m_debugState = PDDebugState_NoTarget;
 
     // Writers/Read for communitaction between backend and UI
     PDWriter* m_writer0;
@@ -47,9 +53,6 @@ private:
     PDWriter* m_currentWriter;
     PDWriter* m_prevWriter;
     PDReader* m_reader;
-
-    // DUMMY, to be removed
-    uint64_t m_currentPc;
 
     // Current active backend plugin
     PDBackendPlugin* m_backendPlugin;
