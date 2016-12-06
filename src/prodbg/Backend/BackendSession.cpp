@@ -253,6 +253,45 @@ void BackendSession::beginDisassembly(uint64_t address, uint32_t count,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void BackendSession::updateCurrentPc() {
+    uint32_t event = 0;
+
+    pd_binary_writer_reset(m_currentWriter);
+
+    while ((event = PDRead_get_event(m_reader))) {
+        if (event != PDEventType_SetExceptionLocation) {
+            continue;
+        }
+
+        uint64_t pc = 0;
+        const char* filename = nullptr;
+
+        if (PDRead_find_string(m_reader, &filename, "filename", 0) != PDReadStatus_NotFound) {
+            uint32_t line = 0;
+            PDRead_find_u32(m_reader, &line, "line", 0);
+
+            QString file = QString::fromUtf8(filename);
+
+            if (line != m_currentLine || file != m_currentFile) {
+                m_currentFile = file;
+                m_currentLine = line;
+                fileLineChanged(m_currentFile, m_currentLine);
+            }
+        }
+
+        PDRead_find_u64(m_reader, &pc, "address", 0);
+
+        if (pc != m_currentPc) {
+            m_currentPc = pc;
+            programCounterChanged(pc);
+        }
+    }
+
+    pd_binary_writer_reset(m_currentWriter);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 PDDebugState BackendSession::internalUpdate(PDAction action)
 {
     if (!m_backendPlugin) {
@@ -269,19 +308,20 @@ PDDebugState BackendSession::internalUpdate(PDAction action)
 
     PDDebugState state = m_backendPlugin->update(m_backendPluginData, action, m_reader, m_prevWriter);
 
-    // Send state change if state is different from the last time
-
-    if (state != m_debugState) {
-        statusUpdate(getStateName(state));
-        m_debugState = state;
-    }
-
     pd_binary_writer_finalize(m_prevWriter);
 
     pd_binary_reader_init_stream(m_reader, pd_binary_writer_get_data(m_prevWriter),
                                  pd_binary_writer_get_size(m_prevWriter));
     pd_binary_reader_reset(m_reader);
     pd_binary_writer_reset(m_currentWriter);
+
+    // Send state change if state is different from the last time
+
+    if (state != m_debugState) {
+        statusUpdate(getStateName(state));
+        m_debugState = state;
+        updateCurrentPc();
+    }
 
     return state;
 }
@@ -309,13 +349,16 @@ void BackendSession::start()
 void BackendSession::stop()
 {
     internalUpdate(PDAction_Break);
+    updateCurrentPc();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendSession::stepIn()
 {
+    printf("stepIn\n");
     internalUpdate(PDAction_Step);
+    updateCurrentPc();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -323,6 +366,7 @@ void BackendSession::stepIn()
 void BackendSession::stepOver()
 {
     internalUpdate(PDAction_StepOver);
+    updateCurrentPc();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

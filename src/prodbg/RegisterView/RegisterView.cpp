@@ -52,10 +52,17 @@ void RegisterView::endReadMemory(QVector<uint16_t>* res, uint64_t address, int a
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void RegisterView::programCounterChanged(uint64_t pc) {
+    printf("RegisterView: PC %0llx\n", pc);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void RegisterView::setBackendInterface(IBackendRequests* interface)
 {
     m_interface = interface;
     connect(m_interface, &IBackendRequests::endReadMemory, this, &RegisterView::endReadMemory);
+    connect(m_interface, &IBackendRequests::programCounterChanged, this, &RegisterView::programCounterChanged);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

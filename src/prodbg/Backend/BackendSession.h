@@ -40,12 +40,19 @@ public:
     Q_SIGNAL void endReadMemory(QVector<uint16_t>* res, uint64_t address, int addressWidth);
     Q_SIGNAL void programCounterChanged(uint64_t pc);
     Q_SIGNAL void statusUpdate(QString update);
+    Q_SIGNAL void fileLineChanged(QString file, uint32_t line);
 
 private:
+    void updateCurrentPc();
     void destroyPluginData();
+
     PDDebugState internalUpdate(PDAction action);
 
     PDDebugState m_debugState = PDDebugState_NoTarget;
+
+    QString m_currentFile;
+    uint32_t m_currentLine = 0;
+    uint64_t m_currentPc = 0;
 
     // Writers/Read for communitaction between backend and UI
     PDWriter* m_writer0;

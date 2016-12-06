@@ -38,11 +38,17 @@ private:
     Q_SLOT void amigaUAEConfig();
     Q_SLOT void debugAmigaExe();
 
+    Q_SIGNAL void startBackend();
+    Q_SIGNAL void stopBackend();
+    Q_SIGNAL void stepInBackend();
+    Q_SIGNAL void stepOverBackend();
+
 private:
     void initActions();
     void writeSettings();
     void readSettings();
     void startDummyBackend();
+    void setupBackendConnections();
 
     // Hardcoded views for now.
     CodeView* m_codeView = nullptr;

@@ -2,8 +2,8 @@
 #include "CodeView/CodeView.h"
 
 #include "AmigaUAE/AmigaUAE.h"
-#include "Backend/BackendSession.h"
 #include "Backend/BackendRequests.h"
+#include "Backend/BackendSession.h"
 #include "Config/AmigaUAEConfig.h"
 #include "MemoryView/MemoryView.h"
 #include "RegisterView/RegisterView.h"
@@ -87,6 +87,7 @@ MainWindow::~MainWindow()
 void MainWindow::initActions()
 {
     connect(m_ui.actionStart, &QAction::triggered, this, &MainWindow::start);
+    connect(m_ui.actionStep_In, &QAction::triggered, this, &MainWindow::stepIn);
     connect(m_ui.actionAmiga_UAE, &QAction::triggered, this, &MainWindow::amigaUAEConfig);
     connect(m_ui.actionDebugAmigaExe, &QAction::triggered, this, &MainWindow::debugAmigaExe);
 }
@@ -120,6 +121,13 @@ void MainWindow::debugAmigaExe()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void MainWindow::setupBackendConnections()
+{
+    connect(this, &MainWindow::stepInBackend, m_backend, &BackendSession::stepIn);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void MainWindow::startDummyBackend()
 {
     m_backend = BackendSession::createBackendSession(QStringLiteral("Dummy Backend"));
@@ -142,6 +150,8 @@ void MainWindow::startDummyBackend()
     printf("Debugger thread started\n");
 
     m_backendThread->start();
+
+    setupBackendConnections();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -154,6 +164,7 @@ void MainWindow::stop()
 
 void MainWindow::stepIn()
 {
+    stepInBackend();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

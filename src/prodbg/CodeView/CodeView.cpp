@@ -331,6 +331,12 @@ void CodeView::endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* in
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void CodeView::programCounterChanged(uint64_t pc) {
+    m_interface->beginDisassembly(pc, 32, &m_recvInstructions);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CodeView::toggleDisassembly()
 {
     printf("toggle disassembly\n");
@@ -420,6 +426,7 @@ void CodeView::setBackendInterface(IBackendRequests* iface)
 {
     m_interface = iface;
     connect(m_interface, &IBackendRequests::endDisassembly, this, &CodeView::endDisassembly);
+    connect(m_interface, &IBackendRequests::programCounterChanged, this, &CodeView::programCounterChanged);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

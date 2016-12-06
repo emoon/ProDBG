@@ -69,11 +69,7 @@ private:
     Q_SLOT void sessionUpdate();
     Q_SLOT void fileChange(const QString filename);
     Q_SLOT void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth);
-
-public:
-    Q_SIGNAL void tryAddBreakpoint(const char*, int line);
-    Q_SIGNAL void tryStartDebugging(const char* filename);
-    Q_SIGNAL void tryStep();
+    Q_SLOT void programCounterChanged(uint64_t pc);
 
 private:
     void toggleDisassembly();
