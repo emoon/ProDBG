@@ -32,7 +32,7 @@ public:
 
 private:
     Q_SIGNAL void requestMem(uint64_t lo, uint64_t hi, QVector<uint16_t>* target);
-    Q_SIGNAL void requestDisassembly(uint64_t lo, uint64_t hi, QVector<IBackendRequests::AssemblyInstruction>* instructions);
+    Q_SIGNAL void requestDisassembly(uint64_t address, uint32_t count, QVector<IBackendRequests::AssemblyInstruction>* instructions);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -33,7 +33,7 @@ public:
     Q_SLOT void beginDisassembly(uint64_t address, uint32_t count, QVector<IBackendRequests::AssemblyInstruction>* target);
 
     // Signals
-    Q_SIGNAL void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions);
+    Q_SIGNAL void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int adressWidth);
     Q_SIGNAL void endReadMemory(QVector<uint16_t>* res, uint64_t address, int addressWidth);
     Q_SIGNAL void programCounterChanged(uint64_t pc);
     Q_SIGNAL void statusUpdate(QString update);

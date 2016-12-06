@@ -80,7 +80,7 @@ public:
     
 public:
     // The result from the beginDisassembly operation
-    Q_SIGNAL void endDisassembly(QVector<AssemblyInstruction>* instructions);
+    Q_SIGNAL void endDisassembly(QVector<AssemblyInstruction>* instructions, int addressWidth);
     // Response signal for expression evaluation 
     // success = true if experssion was evaluated correctly, otherwise false
     // dest = output of the evalutation

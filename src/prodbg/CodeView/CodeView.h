@@ -2,8 +2,10 @@
 
 #include <QObject>
 #include <QPlainTextEdit>
+#include <QPointer>
 #include <QString>
 #include <stdint.h>
+#include "Backend/IBackendRequests.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -18,8 +20,6 @@ class QFileSystemWatcher;
 
 namespace prodbg {
 
-struct AssemblyRegister;
-class AssemblyHighlighter;
 class LineNumberArea;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -47,6 +47,7 @@ public:
     CodeView(QWidget* parent = 0);
     virtual ~CodeView();
 
+    void setBackendInterface(IBackendRequests* iface);
     void setMode(Mode mode);
     void setExceptionAddress(uint64_t address);
     void readSourceFile(const QString& file);
@@ -67,6 +68,7 @@ private:
     Q_SLOT void updateLineNumberArea(const QRect&, int);
     Q_SLOT void sessionUpdate();
     Q_SLOT void fileChange(const QString filename);
+    Q_SLOT void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth);
 
 public:
     Q_SIGNAL void tryAddBreakpoint(const char*, int line);
@@ -74,23 +76,41 @@ public:
     Q_SIGNAL void tryStep();
 
 private:
-    AssemblyHighlighter* m_assemblyHighlighter;
+    void toggleDisassembly();
+    void toggleSourceFile();
+
+    QPointer<IBackendRequests> m_interface;
+
     QWidget* m_lineNumberArea;
     QFileSystemWatcher* m_fileWatcher;
 
+    uint32_t m_lineStart = 0;
+    uint32_t m_lineEnd = 0;
+
     QString m_sourceFile;
-    AssemblyRegister* m_assemblyRegisters;
-    Mode m_mode;
+    QString m_sourceCodeData;
+    Mode m_mode = Mode::Sourcefile;
 
-    uint64_t m_address;
-    uint64_t m_disassemblyStart;
-    uint64_t m_disassemblyEnd;
+    // Data for disassembly
 
-    int m_lineStart;
-    int m_lineEnd;
-    int m_assemblyRegistersCount;
+    struct AddressData
+    {
+        uint64_t address;
+        QString addressText;
+    };
 
-    // Range of dissassembly (this currently assumes that the disassembly is non-SMC)
+    uint64_t m_disassemblyStart = 0;
+    uint64_t m_disassemblyEnd = 0;
+    uint64_t m_currentPc = 0;
+
+    QString m_disassemblyText;
+
+    // Currenty range of disassembly addresses
+    QVector<AddressData> m_disassemblyAdresses;
+
+    // Temp vector for recving data from backend
+    QVector<IBackendRequests::AssemblyInstruction> m_recvInstructions;
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

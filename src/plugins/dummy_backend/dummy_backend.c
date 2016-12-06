@@ -729,6 +729,8 @@ static void get_disassembly(PDReader* reader, PDWriter* writer) {
     }
 
     PDWrite_event_begin(writer, PDEventType_SetDisassembly);
+    PDWrite_u32(writer, "adress_width", 4); 
+
     PDWrite_array_begin(writer, "disassembly");
 
     total_instruction_count = sizeof_array(s_disasm_data);

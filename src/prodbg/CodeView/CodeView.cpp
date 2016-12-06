@@ -1,4 +1,5 @@
 #include "CodeView.h"
+#include "Backend/IBackendRequests.h"
 #include <QMessageBox>
 #include <QtGui>
 
@@ -32,12 +33,8 @@ CodeView::CodeView(QWidget* parent)
     : QPlainTextEdit(parent)
     , m_lineNumberArea(nullptr)
     , m_fileWatcher(nullptr)
-    , m_address(0)
     , m_disassemblyStart(0)
     , m_disassemblyEnd(0)
-    , m_lineStart(0)
-    , m_lineEnd(0)
-    , m_assemblyRegistersCount(0)
 {
     setReadOnly(true);
     setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
@@ -251,6 +248,7 @@ void CodeView::setMode(Mode mode)
 
 void CodeView::setAddress(uint64_t address)
 {
+    /*
     m_address = address;
 
     // Check if disassembly is with in the range of what we have
@@ -290,49 +288,79 @@ void CodeView::setAddress(uint64_t address)
 
         // m_disassemblyEnd = 0x40;
     }
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-void CodeView::setDisassembly(const char* text, int64_t startAddress, int32_t instructionCount)
+void CodeView::endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth)
 {
-    (void)instructionCount;
+    if (instructions->count() == 0) {
+        return;
+    }
 
-    // \todo: We should be a bit smarter than clearing the whole buffer when we set this
-    // and keep track on sub regions that we can request instead by keeping track of valid start points
-    // the disassembly meroy
+    QString addressText;
 
-    if (startAddress != -1LL)
-        m_disassemblyStart = (uint64_t)startAddress;
+    m_disassemblyText.resize(0);
+    m_disassemblyAdresses.resize(0);
 
-    printf("setDisassembly %s\n", text);
+    m_disassemblyStart = instructions->at(0).address;
 
-    QString string = QString::fromLocal8Bit(text);
-    setPlainText(string);
+    for (auto& inst : *instructions) {
+        switch (addressWidth)
+        {
+            case 2 : addressText.sprintf("%02X", inst.address); break;
+            case 4 : addressText.sprintf("%04X", inst.address); break;
+            default : addressText.sprintf("%08X", inst.address); break;
+        }
+
+        m_disassemblyText.append(inst.text);
+        m_disassemblyText.append(QLatin1Char('\n'));
+        m_disassemblyAdresses.append({ inst.address, addressText });
+    }
+
+    m_disassemblyEnd = instructions->at(instructions->count() - 1).address;
+
+    setPlainText(m_disassemblyText);
 }
-*/
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeView::toggleDisassembly() 
+{
+    printf("toggle disassembly\n");
+
+    if (!m_interface) {
+        return;
+    }
+
+    printf("requesting disassembly\n");
+
+    m_interface->beginDisassembly(0, 32, &m_recvInstructions);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeView::toggleSourceFile()
+{
+    setPlainText(m_sourceCodeData);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeView::keyPressEvent(QKeyEvent* event)
 {
-    if (event->key() == Qt::Key_F8) {
-        QTextCursor cursor = textCursor();
-        // int lineNum = cursor.blockNumber();
+    // TODO: Use proper actions from main menu instead
 
-        // Check if this breakpoint was added directly on the UI thread then update the window to show it
-
-        printf("Add breakpoint %s\n", m_sourceFile.toUtf8().constData());
-
-        // if (g_debugSession->addBreakpointUI(m_sourceFile, lineNum))
-        //   update();
-
-        return;
+    if (event->key() == Qt::Key_Space) {
+        if (m_mode == Sourcefile) {
+            m_mode = Disassembly;
+            toggleDisassembly();
+        } else {
+            m_mode = Sourcefile;
+            toggleSourceFile();
+        }
     }
-
-    if (event->key() == Qt::Key_F11)
-        step();
 
     QPlainTextEdit::keyPressEvent(event);
 }
@@ -355,7 +383,10 @@ void CodeView::readSourceFile(const QString& filename)
 
     f.open(QFile::ReadOnly | QFile::Text);
     QTextStream ts(&f);
-    setPlainText(ts.readAll());
+
+    m_sourceCodeData = ts.readAll();
+
+    setPlainText(m_sourceCodeData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -372,13 +403,19 @@ void CodeView::setLine(int line)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-void CodeView::setAssemblyRegisters(AssemblyRegister* registers, int count)
+//void CodeView::setBackendInterface(IBackendRequests* interface)
+//{
+ //   m_interface = interface;
+    //connect(m_interface, &IBackendRequests::endDisassembly, this, &CodeView::endDisassembly);
+//}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeView::setBackendInterface(IBackendRequests* iface)
 {
-    m_assemblyRegisters = registers;
-    m_assemblyRegistersCount = count;
+    m_interface = iface;
+    connect(m_interface, &IBackendRequests::endDisassembly, this, &CodeView::endDisassembly);
 }
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -389,4 +426,7 @@ void CodeView::setFileLine(const QString& file, int line)
 
     setLine(line);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 }

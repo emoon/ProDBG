@@ -28,6 +28,7 @@ MainWindow::MainWindow()
 //, m_amigaUae(nullptr)
 {
     qRegisterMetaType<uint64_t>("uint64_t");
+    qRegisterMetaType<uint32_t>("uint32_t");
 
     m_ui.setupUi(this);
 
@@ -136,6 +137,7 @@ void MainWindow::startDummyBackend()
     m_backendRequests = new BackendRequests(m_backend);
 
     m_registerView->setBackendInterface(m_backendRequests);
+    m_codeView->setBackendInterface(m_backendRequests);
 
     printf("Debugger thread started\n");
 

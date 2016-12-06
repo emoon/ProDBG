@@ -154,12 +154,16 @@ static void updateMemory(QVector<uint16_t>* target, PDReader* reader)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void updateDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, PDReader* reader)
+static uint32_t updateDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, PDReader* reader)
 {
+    uint32_t addressWidth = 0;
+
     PDReaderIterator it;
 
+    PDRead_find_u32(reader, &addressWidth, "address_width", 0);
+
     if (PDRead_find_array(reader, &it, "disassembly", 0) == PDReadStatus_NotFound) {
-        return;
+        return addressWidth;
     }
 
     while (PDRead_get_next_entry(reader, &it)) {
@@ -176,6 +180,8 @@ static void updateDisassembly(QVector<IBackendRequests::AssemblyInstruction>* in
 
         instructions->append(inst);
     }
+
+    return addressWidth;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -229,14 +235,13 @@ void BackendSession::beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>
 void BackendSession::beginDisassembly(uint64_t address, uint32_t count, QVector<IBackendRequests::AssemblyInstruction>* target)
 {
     uint32_t event = 0;
+    uint32_t addressWidth = 0;
 
-    qDebug() << "Got disassembly request";
-    
     target->resize(0);
 
     PDWrite_event_begin(m_currentWriter, PDEventType_GetDisassembly);
     PDWrite_u64(m_currentWriter, "address_start", address);
-    PDWrite_u64(m_currentWriter, "size", count);
+    PDWrite_u64(m_currentWriter, "instruction_count", count);
     PDWrite_event_end(m_currentWriter);
 
     update();
@@ -244,13 +249,13 @@ void BackendSession::beginDisassembly(uint64_t address, uint32_t count, QVector<
     while ((event = PDRead_get_event(m_reader))) {
         switch (event) {
             case PDEventType_SetDisassembly: {
-                updateDisassembly(target, m_reader);
+                addressWidth = updateDisassembly(target, m_reader);
                 break;
             }
         }
     }
 
-    endDisassembly(target);
+    endDisassembly(target, addressWidth);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
