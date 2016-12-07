@@ -354,6 +354,8 @@ void CodeView::toggleDisassembly()
     //setCenterOnScroll(true);
 
     programCounterChanged(m_currentPc);
+    setPlainText(m_disassemblyText);
+    updateDisassemblyCursor();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
