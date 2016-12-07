@@ -15,34 +15,22 @@ flags = [
 # For a C project, you would set this to 'c' instead of 'c++'.
 '-x',
 'c++',
-'-D',
-'OBJECT_DIR',
 '-I',
 'api/include',
 '-I',
 'api/src/remote',
 '-I',
-'src/external',
-'-I',
-'src/external/imgui',
-'-I',
-'src/external/foundation_lib',
-'-I',
-'src/external/jansson/include',
-'-I',
-'src/external/scintilla/include',
-'-I',
-'src/external/scintilla/src/lexlib',
-'-I',
-'src/external/bgfx/include',
-'-I',
-'src/external/cmocka/include',
-'-I',
 'src/prodbg',
 '-I',
-'src/external/i3wm_docking/include'
-'-I',
 'api/include/capstore',
+'-I',
+'$(QT5)/lib/QtCore.framework/Headers',
+'-I',
+'$(QT5)/lib/QtGui.framework/Headers',
+'-I',
+'$(QT5)/lib/QtWidgets.framework/Headers',
+'-F',
+'$(QT5)/lib',
 '-I',
 '.'
 ]
@@ -75,13 +63,16 @@ def MakeRelativePathsInFlagsAbsolute( flags, working_directory ):
     return list( flags )
   new_flags = []
   make_next_absolute = False
-  path_flags = [ '-isystem', '-I', '-iquote', '--sysroot=' ]
+  path_flags = [ '-isystem', '-I', '-iquote', '--sysroot=', '-F' ]
   for flag in flags:
     new_flag = flag
 
     if make_next_absolute:
       make_next_absolute = False
-      if not flag.startswith( '/' ):
+
+      if flag.startswith('$'):
+        new_flag = os.path.expandvars(flag.replace("(", "").replace(")", ""))
+      elif not flag.startswith( '/' ):
         new_flag = os.path.join( working_directory, flag )
 
     for path_flag in path_flags:
