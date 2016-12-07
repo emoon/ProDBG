@@ -118,7 +118,6 @@ int CodeView::lineNumberAreaWidth()
 {
     int digits = 1;
     if (m_mode == Disassembly) {
-        printf("addressWidth %d\n", m_addressWidth); 
         digits = m_addressWidth * 2;
     } else {
         int max = qMax(1, blockCount());
@@ -348,7 +347,20 @@ void CodeView::endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* in
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeView::programCounterChanged(uint64_t pc) {
-    m_interface->beginDisassembly(pc, 32, &m_recvInstructions);
+    m_currentPc = pc;
+
+    // check if pc is with the disassembly range and search for the current line to set
+
+    if (pc >= m_disassemblyStart && pc <= m_disassemblyEnd) {
+        for (int i = 0, count = m_disassemblyAdresses.count(); i < count; ++i) {
+            if (m_disassemblyAdresses[i].address == pc) {
+                setLine(i + 1);
+                break;
+            }
+        }
+    } else {
+        m_interface->beginDisassembly(pc, document()->lineCount(), &m_recvInstructions);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
