@@ -23,7 +23,7 @@ public:
         // Name of the register
         QString name;
         // Data for the register (stored in big endian order)
-        QByteArray data;
+        QVector<uint8_t> data;
         // If the register is read only (hw registers such as Program Counter)
         bool read_only;
     };

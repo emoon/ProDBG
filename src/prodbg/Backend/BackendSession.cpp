@@ -200,7 +200,6 @@ static void updateRegisters(QVector<IBackendRequests::Register>* target, PDReade
 
         reg.name = QString::fromUtf8(name);
         reg.read_only = read_only ? true : false;
-        reg.data.resize(size);
 
         for (int i = 0; i < size; ++i) {
             reg.data.append(data[i]);
@@ -218,8 +217,6 @@ void BackendSession::beginReadRegisters(QVector<IBackendRequests::Register>* tar
 
     PDWrite_event_begin(m_currentWriter, PDEventType_GetRegisters);
     PDWrite_event_end(m_currentWriter);
-
-    qDebug() << "Got register request";
 
     update();
 

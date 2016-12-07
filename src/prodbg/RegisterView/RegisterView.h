@@ -24,9 +24,6 @@ public:
     void setBackendInterface(IBackendRequests* interface);
 
 private:
-    Q_SLOT void dataTypeChanged(int);
-    Q_SLOT void getSomeData();
-    Q_SLOT void endReadMemory(QVector<uint16_t>* res, uint64_t address, int addressSize);
     Q_SLOT void endReadRegisters(QVector<IBackendRequests::Register>* target);
     Q_SLOT void programCounterChanged(uint64_t pc);
 
