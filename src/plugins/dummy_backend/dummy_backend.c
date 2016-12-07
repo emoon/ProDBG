@@ -616,7 +616,7 @@ static void step_to_next_location(DummyPlugin* plugin) {
     for (i = 0; i < (int)sizeof_array(s_disasm_data) - 1; ++i) {
         if (s_disasm_data[i].address == plugin->exception_location) {
             plugin->exception_location = s_disasm_data[i + 1].address;
-            printf("set exception to 0x%x\n", plugin->exception_location);
+            //printf("set exception to 0x%x\n", plugin->exception_location);
             return;
         }
     }

@@ -401,7 +401,7 @@ void BackendSession::stop()
 
 void BackendSession::stepIn()
 {
-    printf("stepIn\n");
+    //printf("stepIn\n");
     internalUpdate(PDAction_Step);
     updateCurrentPc();
 }
