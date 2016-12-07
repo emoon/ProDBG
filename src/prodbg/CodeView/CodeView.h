@@ -98,6 +98,7 @@ private:
     uint64_t m_disassemblyStart = 0;
     uint64_t m_disassemblyEnd = 0;
     uint64_t m_currentPc = 0;
+    int m_addressWidth = 0;
 
     QString m_disassemblyText;
 

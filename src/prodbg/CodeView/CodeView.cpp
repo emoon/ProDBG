@@ -117,10 +117,15 @@ void CodeView::fileChange(const QString filename)
 int CodeView::lineNumberAreaWidth()
 {
     int digits = 1;
-    int max = qMax(1, blockCount());
-    while (max >= 10) {
-        max /= 10;
-        ++digits;
+    if (m_mode == Disassembly) {
+        printf("addressWidth %d\n", m_addressWidth); 
+        digits = m_addressWidth * 2;
+    } else {
+        int max = qMax(1, blockCount());
+        while (max >= 10) {
+            max /= 10;
+            ++digits;
+        }
     }
 
     // 20 + to give rom for breakpoint marker
@@ -199,12 +204,22 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
     int height = fontMetrics().height();
 
     m_lineStart = blockNumber;
+    const bool isDisassembly = m_mode == Disassembly;
+    const int addressCount = m_disassemblyAdresses.count();
 
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
             QString number = QString::number(blockNumber + 1);
             painter.setPen(Qt::black);
-            painter.drawText(0, top, width, height, Qt::AlignRight, number);
+
+            if (isDisassembly) {
+                if (blockNumber >= addressCount) {
+                    return;
+                }
+                painter.drawText(0, top, width, height, Qt::AlignRight, m_disassemblyAdresses[blockNumber].addressText);
+            } else {
+                painter.drawText(0, top, width, height, Qt::AlignRight, number);
+            }
 
             // if (g_debugSession->hasLineBreakpoint(m_sourceFile, blockNumber))
             //   painter.drawArc(0, top + 1, 16, height - 2, 0, 360 * 16);
@@ -305,17 +320,18 @@ void CodeView::endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* in
     m_disassemblyAdresses.resize(0);
 
     m_disassemblyStart = instructions->at(0).address;
+    m_addressWidth = addressWidth;
 
     for (auto& inst : *instructions) {
         switch (addressWidth) {
             case 2:
-                addressText.sprintf("%02X", (uint16_t)inst.address);
+                addressText.sprintf("%04X", (uint16_t)inst.address);
                 break;
             case 4:
-                addressText.sprintf("%04X", (uint32_t)inst.address);
+                addressText.sprintf("%08X", (uint32_t)inst.address);
                 break;
             default:
-                addressText.sprintf("%08llX", inst.address);
+                addressText.sprintf("%16llX", inst.address);
                 break;
         }
 
