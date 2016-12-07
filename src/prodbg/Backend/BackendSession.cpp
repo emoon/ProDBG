@@ -194,19 +194,19 @@ static void updateRegisters(QVector<IBackendRequests::Register>* target, PDReade
 
         IBackendRequests::Register reg;
 
-        PDRead_find_string(reader, &name, "name", 0);
-        PDRead_find_u8(reader, &read_only, "read_only", 0);
-        PDRead_find_data(reader, (void**)&data, &size, "register", 0);
-
-        printf("%s - %p - %d\n", name, data, (int)size);
+        PDRead_find_string(reader, &name, "name", it);
+        PDRead_find_u8(reader, &read_only, "read_only", it);
+        PDRead_find_data(reader, (void**)&data, &size, "register", it);
 
         reg.name = QString::fromUtf8(name);
-        reg.name = read_only ? true : false;
+        reg.read_only = read_only ? true : false;
         reg.data.resize(size);
 
         for (int i = 0; i < size; ++i) {
             reg.data.append(data[i]);
         }
+
+        target->append(reg);
     }
 }
 
