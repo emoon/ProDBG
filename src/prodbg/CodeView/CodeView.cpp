@@ -260,53 +260,6 @@ void CodeView::setMode(Mode mode)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::setAddress(uint64_t address)
-{
-    /*
-    m_address = address;
-
-    // Check if disassembly is with in the range of what we have
-
-    if (address >= m_disassemblyStart && m_address < m_disassemblyEnd) {
-        // We have the address within the range so now we need to find the current line
-        // \todo: We should really just keep a faster way to look this up using a struct
-        // with address + text line for each line so we don't need to performe this operation
-        // which is just a waste of time
-
-        QString text = toPlainText();
-        QStringList textList = text.split(QLatin1Char('\n'));
-
-        for (int i = 0, lineCount = textList.size(); i < lineCount; ++i) {
-            QByteArray ba = textList[i].toLocal8Bit();
-            char* temp = ba.data() + 4;
-            uint64_t ta = strtoul(ba.data(), &temp, 16);
-
-            // printf("address 0x%x 0x%x\n", (uint32_t)address, (uint32_t)ta);
-
-            if (ta == address) {
-                setLine(i + m_lineStart + 1);
-                return;
-            }
-        }
-    } else {
-        // Right now we request from only from the PC because we know that that location
-        // is valid (from the disassembly point of view) If we had some more contex it would
-        // be nice to be able to request code around a PC.
-
-        printf("request address 0x%x\n", (uint32_t)m_address);
-
-        if (m_address < m_disassemblyStart)
-            m_disassemblyStart = m_address;
-
-        // g_debugSession->requestDisassembly(m_disassemblyStart, (m_lineEnd - m_lineStart));
-
-        // m_disassemblyEnd = 0x40;
-    }
-    */
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void CodeView::endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth)
 {
     if (instructions->count() == 0) {
@@ -342,24 +295,49 @@ void CodeView::endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* in
     m_disassemblyEnd = instructions->at(instructions->count() - 1).address;
 
     setPlainText(m_disassemblyText);
+
+    updateDisassemblyCursor();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::programCounterChanged(uint64_t pc) {
+void CodeView::updateDisassemblyCursor()
+{
+    for (int i = 0, count = m_disassemblyAdresses.count(); i < count; ++i) {
+        if (m_disassemblyAdresses[i].address != m_currentPc) {
+            continue;
+        }
+
+        setLine(i + 1);
+
+        return;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeView::programCounterChanged(uint64_t pc) 
+{
     m_currentPc = pc;
 
     // check if pc is with the disassembly range and search for the current line to set
 
-    if (pc >= m_disassemblyStart && pc <= m_disassemblyEnd) {
-        for (int i = 0, count = m_disassemblyAdresses.count(); i < count; ++i) {
-            if (m_disassemblyAdresses[i].address == pc) {
-                setLine(i + 1);
-                break;
-            }
-        }
+    if ((pc >= m_disassemblyStart && pc <= m_disassemblyEnd) && m_disassemblyEnd != 0) {
+        updateDisassemblyCursor();
     } else {
-        m_interface->beginDisassembly(pc, document()->lineCount(), &m_recvInstructions);
+        //QSize size = frameSize();
+        int fontHeight = fontMetrics().height();
+        int linesInView = (height() / fontHeight) - 1; 
+        if (linesInView <= 0) {
+            linesInView = 1; 
+        }
+
+        if (pc >= linesInView) {
+            pc -= linesInView;
+        }
+        
+        //printf("font height %d\n", size.height() / fontHeight); 
+        m_interface->beginDisassembly(pc, linesInView * 2, &m_recvInstructions);
     }
 }
 
@@ -373,15 +351,16 @@ void CodeView::toggleDisassembly()
         return;
     }
 
-    printf("requesting disassembly\n");
+    //setCenterOnScroll(true);
 
-    m_interface->beginDisassembly(0, 32, &m_recvInstructions);
+    programCounterChanged(m_currentPc);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeView::toggleSourceFile()
 {
+    setCenterOnScroll(false);
     setPlainText(m_sourceCodeData);
 }
 

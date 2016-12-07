@@ -74,6 +74,7 @@ private:
 private:
     void toggleDisassembly();
     void toggleSourceFile();
+    void updateDisassemblyCursor();
 
     QPointer<IBackendRequests> m_interface;
 
