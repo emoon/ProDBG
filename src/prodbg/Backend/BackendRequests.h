@@ -16,16 +16,16 @@ public:
     BackendRequests(BackendSession* session);
 
 public:
-    // Add a breakpoint at a specific address 
+    // Add a breakpoint at a specific address
     virtual void beginAddAddressBreakpoint(uint64_t address);
 
-    // Add a breakpoint on a specific file and line number 
+    // Add a breakpoint on a specific file and line number
     virtual void beginAddFileLineBreakpoint(const QString& filename, int line);
 
-    // Remove a breakpoint at a specific address 
+    // Remove a breakpoint at a specific address
     virtual void beginRemoveAddressBreakpoint(uint64_t address);
 
-    // Remove a breakpoint on a specific file and line number 
+    // Remove a breakpoint on a specific file and line number
     virtual void beginRemoveFileLineBreakpoint(const QString& filename, int line);
 
     // Get hw registers from the backend

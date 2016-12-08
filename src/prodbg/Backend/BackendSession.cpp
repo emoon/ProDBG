@@ -309,7 +309,8 @@ void BackendSession::beginDisassembly(uint64_t address, uint32_t count,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::updateCurrentPc() {
+void BackendSession::updateCurrentPc()
+{
     uint32_t event = 0;
 
     pd_binary_writer_reset(m_currentWriter);
@@ -412,7 +413,7 @@ void BackendSession::stop()
 
 void BackendSession::stepIn()
 {
-    //printf("stepIn\n");
+    // printf("stepIn\n");
     internalUpdate(PDAction_Step);
     updateCurrentPc();
 }

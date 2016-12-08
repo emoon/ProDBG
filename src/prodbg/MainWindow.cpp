@@ -4,10 +4,10 @@
 #include "AmigaUAE/AmigaUAE.h"
 #include "Backend/BackendRequests.h"
 #include "Backend/BackendSession.h"
+#include "BreakpointModel.h"
 #include "Config/AmigaUAEConfig.h"
 #include "MemoryView/MemoryView.h"
 #include "RegisterView/RegisterView.h"
-#include "BreakpointModel.h"
 
 #include <QDebug>
 #include <QMainWindow>
