@@ -16,6 +16,18 @@ public:
     BackendRequests(BackendSession* session);
 
 public:
+    // Add a breakpoint at a specific address 
+    virtual void beginAddAddressBreakpoint(uint64_t address);
+
+    // Add a breakpoint on a specific file and line number 
+    virtual void beginAddFileLineBreakpoint(const QString& filename, int line);
+
+    // Remove a breakpoint at a specific address 
+    virtual void beginRemoveAddressBreakpoint(uint64_t address);
+
+    // Remove a breakpoint on a specific file and line number 
+    virtual void beginRemoveFileLineBreakpoint(const QString& filename, int line);
+
     // Get hw registers from the backend
     // registers = array of registers
     virtual void beginReadRegisters(QVector<Register>* registers);
@@ -36,6 +48,9 @@ public:
     bool beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target);
 
 private:
+    Q_SIGNAL void toggleFileLineBreakpoint(const QString& filename, int line, bool add);
+    Q_SIGNAL void toggleAddressBreakpoint(uint64_t address, bool add);
+
     Q_SIGNAL void readRegisters(QVector<Register>* registers);
     Q_SIGNAL void requestMem(uint64_t lo, uint64_t hi, QVector<uint16_t>* target);
     Q_SIGNAL void requestDisassembly(uint64_t address, uint32_t count,

@@ -25,8 +25,8 @@ public:
 	bool hasBreakpointFileLine(const QString& filename, int line);
 	bool hasBreakpointAddress(uint64_t address);
 
-	void toggleFileLineBreakpoint(const QString& filename, int line);
-	void toggleAddressBreakpoint(uint64_t address);
+	bool toggleFileLineBreakpoint(const QString& filename, int line);
+	bool toggleAddressBreakpoint(uint64_t address);
 
 	const QVector<FileLineBreakpoint>& getFileLineBreakpoints() { return m_fileLineBreakpoints; }
 	const QVector<uint64_t>& getAddressBreakpoints() { return m_addressBreakpoints; }

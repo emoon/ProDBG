@@ -11,11 +11,42 @@ BackendRequests::BackendRequests(BackendSession* session)
     connect(this, &BackendRequests::requestDisassembly, session, &BackendSession::beginDisassembly);
     connect(this, &BackendRequests::readRegisters, session, &BackendSession::beginReadRegisters);
 
+    connect(this, &BackendRequests::toggleAddressBreakpoint, session, &BackendSession::toggleAddressBreakpoint);
+    connect(this, &BackendRequests::toggleFileLineBreakpoint, session, &BackendSession::toggleFileLineBreakpoint);
+
     connect(session, &BackendSession::endReadMemory, this, &BackendRequests::endReadMemory);
     connect(session, &BackendSession::endDisassembly, this, &BackendRequests::endDisassembly);
     connect(session, &BackendSession::endReadRegisters, this, &BackendRequests::endReadRegisters);
 
     connect(session, &BackendSession::programCounterChanged, this, &BackendRequests::programCounterChanged);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendRequests::beginAddAddressBreakpoint(uint64_t address)
+{
+    toggleAddressBreakpoint(address, true);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendRequests::beginAddFileLineBreakpoint(const QString& filename, int line)
+{
+    toggleFileLineBreakpoint(filename, line, true);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendRequests::beginRemoveAddressBreakpoint(uint64_t address)
+{
+    toggleAddressBreakpoint(address, false);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendRequests::beginRemoveFileLineBreakpoint(const QString& filename, int line)
+{
+    toggleFileLineBreakpoint(filename, line, false);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

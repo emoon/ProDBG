@@ -423,14 +423,27 @@ void CodeView::toggleBreakpoint()
     if (m_mode == Disassembly) {
         QTextCursor cursor = textCursor();
         int index = cursor.block().blockNumber();
-        m_breakpoints->toggleAddressBreakpoint(m_disassemblyAdresses[index].address);
-        m_lineNumberArea->repaint();
+        bool added = m_breakpoints->toggleAddressBreakpoint(m_disassemblyAdresses[index].address);
+
+        if (added) {
+            m_interface->beginAddAddressBreakpoint(m_disassemblyAdresses[index].address);
+        } else {
+            m_interface->beginRemoveAddressBreakpoint(m_disassemblyAdresses[index].address);
+        }
+
     } else {
         QTextCursor cursor = textCursor();
-        int index = cursor.block().blockNumber();
-        m_breakpoints->toggleFileLineBreakpoint(m_sourceFile, index);
-        m_lineNumberArea->repaint();
+        int line = cursor.block().blockNumber();
+        bool added = m_breakpoints->toggleFileLineBreakpoint(m_sourceFile, line);
+
+        if (added) {
+            m_interface->beginAddFileLineBreakpoint(m_sourceFile, line);
+        } else {
+            m_interface->beginRemoveFileLineBreakpoint(m_sourceFile, line);
+        }
     }
+
+    m_lineNumberArea->repaint();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

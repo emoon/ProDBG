@@ -59,6 +59,18 @@ public:
     };
 
 public:
+    // Add a breakpoint at a specific address 
+    virtual void beginAddAddressBreakpoint(uint64_t address) = 0;
+
+    // Add a breakpoint on a specific file and line number 
+    virtual void beginAddFileLineBreakpoint(const QString& filename, int line) = 0;
+
+    // Remove a breakpoint at a specific address 
+    virtual void beginRemoveAddressBreakpoint(uint64_t address) = 0;
+
+    // Remove a breakpoint on a specific file and line number 
+    virtual void beginRemoveFileLineBreakpoint(const QString& filename, int line) = 0;
+
     // Get hw registers from the backend
     // registers = array of registers
     virtual void beginReadRegisters(QVector<Register>* registers) = 0;

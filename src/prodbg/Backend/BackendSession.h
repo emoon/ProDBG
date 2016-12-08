@@ -31,6 +31,9 @@ public:
     Q_SLOT void stepIn();
     Q_SLOT void stepOver();
 
+    Q_SLOT void toggleAddressBreakpoint(uint64_t address, bool add);
+    Q_SLOT void toggleFileLineBreakpoint(const QString& filename, int line, bool add);
+
     Q_SLOT void beginReadRegisters(QVector<IBackendRequests::Register>* target);
     Q_SLOT void beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target);
     Q_SLOT void beginDisassembly(uint64_t address, uint32_t count,

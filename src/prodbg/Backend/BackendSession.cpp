@@ -211,6 +211,20 @@ static void updateRegisters(QVector<IBackendRequests::Register>* target, PDReade
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void BackendSession::toggleAddressBreakpoint(uint64_t address, bool add)
+{
+    printf("BackendSession: toggle breakpoint at %016llx\n %d", address, add);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendSession::toggleFileLineBreakpoint(const QString& filename, int line, bool add)
+{
+    qDebug() << "BackendSession: toggle breakpoint at " << filename << " " << line << " " << add;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void BackendSession::beginReadRegisters(QVector<IBackendRequests::Register>* target)
 {
     uint32_t event = 0;
