@@ -1,5 +1,6 @@
 #include "CodeView.h"
 #include "Backend/IBackendRequests.h"
+#include "BreakpointModel.h"
 #include <QMessageBox>
 #include <QtGui>
 
@@ -215,7 +216,17 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
                 if (blockNumber >= addressCount) {
                     return;
                 }
-                painter.drawText(0, top, width, height, Qt::AlignRight, m_disassemblyAdresses[blockNumber].addressText);
+
+                uint64_t address = m_disassemblyAdresses[blockNumber].address;
+                const QString& addressText = m_disassemblyAdresses[blockNumber].addressText;
+
+                painter.drawText(0, top, width, height, Qt::AlignRight, addressText);
+
+                if (m_breakpoints->hasBreakpointAddress(address)) {
+                    // TODO: Make sure to take font size into account
+                    painter.setBrush(Qt::red);
+                    painter.drawEllipse(2, top + 1, 16, 16);
+                }
             } else {
                 painter.drawText(0, top, width, height, Qt::AlignRight, number);
             }
@@ -411,6 +422,20 @@ void CodeView::readSourceFile(const QString& filename)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void CodeView::toggleBreakpoint()
+{
+    if (m_mode == Disassembly) {
+        QTextCursor cursor = textCursor();
+        int index = cursor.block().blockNumber();
+        m_breakpoints->toggleAddressBreakpoint(m_disassemblyAdresses[index].address);
+        m_lineNumberArea->repaint();
+    } else {
+
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CodeView::setLine(int line)
 {
     const QTextBlock& block = document()->findBlockByNumber(line - 1);
@@ -422,12 +447,11 @@ void CodeView::setLine(int line)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// void CodeView::setBackendInterface(IBackendRequests* interface)
-//{
-//   m_interface = interface;
-// connect(m_interface, &IBackendRequests::endDisassembly, this, &CodeView::endDisassembly);
-//}
+    
+void CodeView::setBreakpointModel(BreakpointModel* breakpoints)
+{
+    m_breakpoints = breakpoints;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

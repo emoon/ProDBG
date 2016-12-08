@@ -5,6 +5,7 @@
 #include <QPlainTextEdit>
 #include <QPointer>
 #include <QString>
+#include <QPointer>
 #include <stdint.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -21,6 +22,7 @@ class QFileSystemWatcher;
 namespace prodbg {
 
 class LineNumberArea;
+class BreakpointModel;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -47,7 +49,10 @@ public:
     CodeView(QWidget* parent = 0);
     virtual ~CodeView();
 
+    void toggleBreakpoint();
     void setBackendInterface(IBackendRequests* iface);
+    void setBreakpointModel(BreakpointModel* breakpoints);
+
     void setMode(Mode mode);
     void setExceptionAddress(uint64_t address);
     void readSourceFile(const QString& file);
@@ -77,6 +82,7 @@ private:
     void updateDisassemblyCursor();
 
     QPointer<IBackendRequests> m_interface;
+    BreakpointModel* m_breakpoints = 0;
 
     QWidget* m_lineNumberArea;
     QFileSystemWatcher* m_fileWatcher;

@@ -34,6 +34,19 @@ bool BreakpointModel::hasBreakpointFileLine(const QString& filename, int line)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool BreakpointModel::hasBreakpointAddress(uint64_t address)
+{
+	for (auto& bp : m_addressBreakpoints) {
+		if (bp == address) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void BreakpointModel::toggleAddressBreakpoint(uint64_t address)
 {
 	for (int i = 0, count = m_addressBreakpoints.count(); i < count; ++i) {

@@ -7,6 +7,7 @@
 #include "Config/AmigaUAEConfig.h"
 #include "MemoryView/MemoryView.h"
 #include "RegisterView/RegisterView.h"
+#include "BreakpointModel.h"
 
 #include <QDebug>
 #include <QMainWindow>
@@ -36,6 +37,8 @@ MainWindow::MainWindow()
 
     setWindowTitle(QStringLiteral("ProDBG"));
 
+    m_breakpoints = new BreakpointModel;
+
     // Setup docking for MemoryView
 
     {
@@ -57,6 +60,7 @@ MainWindow::MainWindow()
     }
 
     m_codeView->readSourceFile(QStringLiteral("src/prodbg/main.cpp"));
+    m_codeView->setBreakpointModel(m_breakpoints);
 
     m_statusbar->showMessage(tr("Ready."));
 
@@ -90,6 +94,7 @@ void MainWindow::initActions()
     connect(m_ui.actionStep_In, &QAction::triggered, this, &MainWindow::stepIn);
     connect(m_ui.actionAmiga_UAE, &QAction::triggered, this, &MainWindow::amigaUAEConfig);
     connect(m_ui.actionDebugAmigaExe, &QAction::triggered, this, &MainWindow::debugAmigaExe);
+    connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggleBreakpoint);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -177,6 +182,9 @@ void MainWindow::stepOver()
 
 void MainWindow::toggleBreakpoint()
 {
+    if (m_codeView) {
+        m_codeView->toggleBreakpoint();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

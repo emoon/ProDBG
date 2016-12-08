@@ -23,6 +23,7 @@ public:
 	};
 
 	bool hasBreakpointFileLine(const QString& filename, int line);
+	bool hasBreakpointAddress(uint64_t address);
 
 	void toggleFileLineBreakpoint(const QString& filename, int line);
 	void toggleAddressBreakpoint(uint64_t address);

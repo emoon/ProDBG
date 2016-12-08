@@ -15,6 +15,7 @@ class AmigaUAE;
 class BackendSession;
 class RegisterView;
 class BackendRequests;
+class BreakpointModel;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -55,6 +56,8 @@ private:
     MemoryView* m_memoryView = nullptr;
     RegisterView* m_registerView = nullptr;
     QStatusBar* m_statusbar = nullptr;
+    BreakpointModel* m_breakpoints = nullptr;
+
     Ui_MainWindow m_ui;
 
     BackendRequests* m_backendRequests = nullptr;

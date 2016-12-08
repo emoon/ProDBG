@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -38,7 +38,7 @@
     <addaction name="actionStop"/>
     <addaction name="actionStep_In"/>
     <addaction name="actionStep_Over"/>
-    <addaction name="actionToggle_Breakpoint"/>
+    <addaction name="actionToggleBreakpoint"/>
    </widget>
    <widget class="QMenu" name="menuConfig">
     <property name="title">
@@ -83,7 +83,7 @@
     <string>F10</string>
    </property>
   </action>
-  <action name="actionToggle_Breakpoint">
+  <action name="actionToggleBreakpoint">
    <property name="text">
     <string>Toggle Breakpoint</string>
    </property>
