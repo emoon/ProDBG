@@ -29,7 +29,7 @@ RegisterView::RegisterView(QWidget* parent)
     m_ui->m_registers->setShowGrid(false);
     m_ui->m_registers->setFont(font);
     m_ui->m_registers->setStyleSheet(QStringLiteral("QTableWidget::item { padding: 0px }"));
-    m_ui->m_registers->verticalHeader()->setDefaultSectionSize( 15 );
+    m_ui->m_registers->verticalHeader()->setDefaultSectionSize(m_ui->m_registers->fontMetrics().height() + 2);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
