@@ -1,7 +1,8 @@
 #include "AmigaUAE.h"
+#include <QMessageBox>
 #include <QSettings>
 #include <QString>
-#include <QMessageBox>
+#include <QProcess>
 
 namespace prodbg {
 
@@ -36,24 +37,61 @@ bool AmigaUAE::validateSettings()
     readSettings();
 
     if (m_uaeExe.isEmpty()) {
-        QMessageBox::critical(nullptr, QStringLiteral("No UAE executable selected"), 
-                QStringLiteral("In order to run Amiga executables you need to select the emulator executable in \"Config -> Amiga UAE..\""));
+        QMessageBox::critical(nullptr, QStringLiteral("No UAE executable selected"),
+                              QStringLiteral("In order to run Amiga executables you need to select the emulator "
+                                             "executable in \"Config -> Amiga UAE..\""));
         return false;
     }
 
     if (m_config.isEmpty()) {
-        QMessageBox::critical(nullptr, QStringLiteral("No UAE config selected"), 
-                QStringLiteral("In order to run Amiga executables you need to select a configuration file for UAE in \"Config -> Amiga UAE..\""));
+        QMessageBox::critical(nullptr, QStringLiteral("No UAE config selected"),
+                              QStringLiteral("In order to run Amiga executables you need to select a configuration "
+                                             "file for UAE in \"Config -> Amiga UAE..\""));
         return false;
     }
 
     if (m_dh0Path.isEmpty()) {
-        QMessageBox::critical(nullptr, QStringLiteral("No hard drive path selected"), 
-                QStringLiteral("In order to run Amiga executables you need to select the directory use for the hard drive in \"Config -> Amiga UAE..\""));
+        QMessageBox::critical(nullptr, QStringLiteral("No hard drive path selected"),
+                              QStringLiteral("In order to run Amiga executables you need to select the directory use "
+                                             "for the hard drive in \"Config -> Amiga UAE..\""));
         return false;
     }
 
     return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void AmigaUAE::launchUAE()
+{
+    QStringList args;
+
+    m_uaeProcess = new QProcess();
+
+    m_running = false;
+
+    connect(m_uaeProcess, &QProcess::started, this, &AmigaUAE::started);
+    connect(m_uaeProcess, &QProcess::errorOccurred, this, &AmigaUAE::errorOccurred);
+
+    args << m_config; 
+    args << QStringLiteral("--remote-debugger=1"); 
+    args << m_cmdLineArgs;
+
+    m_uaeProcess->start(m_uaeExe, args);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void AmigaUAE::started()
+{
+    m_running = true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void AmigaUAE::errorOccurred(QProcess::ProcessError error)
+{
+    (void)error;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

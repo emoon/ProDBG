@@ -1,16 +1,18 @@
 #pragma once
 
 #include <QString>
-
-class QProcess;
+#include <QObject>
+#include <QProcess>
 
 namespace prodbg
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class AmigaUAE
+class AmigaUAE : public QObject
 {
+	Q_OBJECT
+
 public:
 	AmigaUAE();
 	~AmigaUAE();
@@ -20,7 +22,13 @@ public:
 
 private:
 
+	Q_SLOT void started();
+	Q_SLOT void errorOccurred(QProcess::ProcessError error);
+
 	void readSettings();
+	void launchUAE();
+
+	bool m_running = false;
 
 	QString m_uaeExe;
 	QString m_config;

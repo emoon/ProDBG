@@ -44,6 +44,7 @@ Program {
         gen_moc("src/prodbg/Backend/IBackendRequests.h"),
         gen_moc("src/prodbg/Backend/BackendRequests.h"),
         gen_moc("src/prodbg/Backend/BackendSession.h"),
+        gen_moc("src/prodbg/AmigaUAE/AmigaUAE.h"),
 
         gen_moc("src/prodbg/CodeView/CodeView.h"),
         gen_moc("src/prodbg/MemoryView/MemoryView.h"),
