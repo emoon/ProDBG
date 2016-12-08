@@ -95,6 +95,16 @@ void MainWindow::initActions()
     connect(m_ui.actionAmiga_UAE, &QAction::triggered, this, &MainWindow::amigaUAEConfig);
     connect(m_ui.actionDebugAmigaExe, &QAction::triggered, this, &MainWindow::debugAmigaExe);
     connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggleBreakpoint);
+    connect(m_ui.actionOpen, &QAction::triggered, this, &MainWindow::openSourceFile);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::openSourceFile()
+{
+    if (m_codeView) {
+        m_codeView->openFile();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

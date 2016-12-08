@@ -3,6 +3,7 @@
 #include "BreakpointModel.h"
 #include <QMessageBox>
 #include <QtGui>
+#include <QFileDialog>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -72,17 +73,16 @@ CodeView::~CodeView()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// update called from the debugging session
 
-void CodeView::sessionUpdate()
+void CodeView::openFile()
 {
-    // const char* filename;
-    // int line;
+    QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("Open Source File")); 
 
-    // if (g_debugSession->getFilenameLine(&filename, &line))
-    //   setFileLine(filename, line);
+    if (path.isEmpty()) {
+        return;
+    }
 
-    update();
+    readSourceFile(path);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -203,7 +203,6 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
     int width = m_lineNumberArea->width();
     int height = fontMetrics().height();
 
-    m_lineStart = blockNumber;
     const bool isDisassembly = m_mode == Disassembly;
     const int addressCount = m_disassemblyAdresses.count();
 
@@ -229,6 +228,12 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
                 }
             } else {
                 painter.drawText(0, top, width, height, Qt::AlignRight, number);
+
+                if (m_breakpoints->hasBreakpointFileLine(m_sourceFile, blockNumber)) {
+                    // TODO: Make sure to take font size into account
+                    painter.setBrush(Qt::red);
+                    painter.drawEllipse(2, top + 1, 16, 16);
+                }
             }
 
             // if (g_debugSession->hasLineBreakpoint(m_sourceFile, blockNumber))
@@ -240,8 +245,6 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
         bottom = top + (int)blockBoundingRect(block).height();
         ++blockNumber;
     }
-
-    m_lineEnd = blockNumber;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -356,14 +359,7 @@ void CodeView::programCounterChanged(uint64_t pc)
 
 void CodeView::toggleDisassembly()
 {
-    printf("toggle disassembly\n");
-
-    if (!m_interface) {
-        return;
-    }
-
-    //setCenterOnScroll(true);
-
+    m_mode = Disassembly;
     programCounterChanged(m_currentPc);
     setPlainText(m_disassemblyText);
     updateDisassemblyCursor();
@@ -373,6 +369,7 @@ void CodeView::toggleDisassembly()
 
 void CodeView::toggleSourceFile()
 {
+    m_mode = Sourcefile;
     setCenterOnScroll(false);
     setPlainText(m_sourceCodeData);
 }
@@ -385,10 +382,8 @@ void CodeView::keyPressEvent(QKeyEvent* event)
 
     if (event->key() == Qt::Key_Space) {
         if (m_mode == Sourcefile) {
-            m_mode = Disassembly;
             toggleDisassembly();
         } else {
-            m_mode = Sourcefile;
             toggleSourceFile();
         }
     }
@@ -405,8 +400,9 @@ void CodeView::readSourceFile(const QString& filename)
     if (!f.exists())
         return;
 
-    if (!m_sourceFile.isEmpty())
+    if (!m_sourceFile.isEmpty()) {
         m_fileWatcher->removePath(m_sourceFile);
+    }
 
     m_sourceFile = filename;
 
@@ -417,7 +413,7 @@ void CodeView::readSourceFile(const QString& filename)
 
     m_sourceCodeData = ts.readAll();
 
-    setPlainText(m_sourceCodeData);
+    toggleSourceFile();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -430,7 +426,10 @@ void CodeView::toggleBreakpoint()
         m_breakpoints->toggleAddressBreakpoint(m_disassemblyAdresses[index].address);
         m_lineNumberArea->repaint();
     } else {
-
+        QTextCursor cursor = textCursor();
+        int index = cursor.block().blockNumber();
+        m_breakpoints->toggleFileLineBreakpoint(m_sourceFile, index);
+        m_lineNumberArea->repaint();
     }
 }
 

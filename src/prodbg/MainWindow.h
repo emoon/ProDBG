@@ -31,6 +31,7 @@ protected:
     void closeEvent(QCloseEvent* event);
 
 private:
+    Q_SLOT void openSourceFile();
     Q_SLOT void start();
     Q_SLOT void stop();
     Q_SLOT void stepIn();

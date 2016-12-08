@@ -52,6 +52,7 @@ public:
     void toggleBreakpoint();
     void setBackendInterface(IBackendRequests* iface);
     void setBreakpointModel(BreakpointModel* breakpoints);
+    void openFile();
 
     void setMode(Mode mode);
     void setExceptionAddress(uint64_t address);
@@ -71,7 +72,6 @@ private:
     Q_SLOT void updateLineNumberAreaWidth(int newBlockCount);
     Q_SLOT void highlightCurrentLine();
     Q_SLOT void updateLineNumberArea(const QRect&, int);
-    Q_SLOT void sessionUpdate();
     Q_SLOT void fileChange(const QString filename);
     Q_SLOT void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth);
     Q_SLOT void programCounterChanged(uint64_t pc);
@@ -86,9 +86,6 @@ private:
 
     QWidget* m_lineNumberArea;
     QFileSystemWatcher* m_fileWatcher;
-
-    uint32_t m_lineStart = 0;
-    uint32_t m_lineEnd = 0;
 
     QString m_sourceFile;
     QString m_sourceCodeData;
