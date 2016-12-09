@@ -33,6 +33,7 @@ public:
     QString m_fileToRun;
     QString m_localExeToRun;
     bool m_copyFiles;
+    bool m_skipUAELaunch;
 
 private:
     Q_SLOT void started();

@@ -5,6 +5,7 @@
 #include "api/src/remote/pd_readwrite_private.h"
 #include <QDebug>
 #include <QString>
+#include <QTimer>
 #include <pd_backend.h>
 #include <pd_io.h>
 #include <pd_readwrite.h>
@@ -410,6 +411,7 @@ PDDebugState BackendSession::internalUpdate(PDAction action)
 void BackendSession::update()
 {
     internalUpdate(PDAction_None);
+    updateCurrentPc();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -421,6 +423,9 @@ void BackendSession::start()
     }
 
     internalUpdate(PDAction_Run);
+
+    m_timer = new QTimer(this);
+    connect(m_timer, &QTimer::timeout, this, &BackendSession::update);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

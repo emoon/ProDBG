@@ -346,7 +346,8 @@ impl AmigaUaeBackend {
         }
 
         if should_break {
-            self.get_registers(writer);
+            println!("Should break!");
+            self.write_exception_location(writer);
         }
     }
 
@@ -509,6 +510,8 @@ impl Backend for AmigaUaeBackend {
                 if self.conn.send_command_wait_reply_raw(&mut res, &run_cmd).is_ok() {
                     let null_index = res.iter().position(|c| *c == 0).unwrap_or(res.len());
                     self.store_segments(&res[..null_index]);
+                } else {
+                    println!("Didn't get relpy with segmnts");
                 }
 
                 self.status = format!("Connected (127.0.0.1) Running {}", &self.amiga_exe_file_path);

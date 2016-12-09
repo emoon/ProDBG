@@ -25,7 +25,9 @@ AmigaUAE::AmigaUAE(QObject* parent)
 
 AmigaUAE::~AmigaUAE()
 {
-    m_uaeProcess->kill();
+    if (!m_skipUAELaunch) {
+        m_uaeProcess->kill();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,7 +53,9 @@ void AmigaUAE::runExecutable(const QString& filename)
         return;
     }
 
-    launchUAE();
+    if (!m_skipUAELaunch) {
+        launchUAE();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -167,6 +171,7 @@ void AmigaUAE::readSettings()
     m_cmdLineArgs = settings.value(QStringLiteral("cmdlineArgs")).toString();
     m_dh0Path = settings.value(QStringLiteral("dh0Path")).toString();
     m_copyFiles = settings.value(QStringLiteral("copyFilesToHDD")).toBool();
+    m_skipUAELaunch = settings.value(QStringLiteral("skipUAELaunch")).toBool();
     settings.endGroup();
 }
 

@@ -78,6 +78,7 @@ void AmigaUAEConfig::writeSettings()
     settings.setValue(QStringLiteral("cmdlineArgs"), m_ui->cmdlineArgs->text());
     settings.setValue(QStringLiteral("dh0Path"), m_ui->dh0Path->text());
     settings.setValue(QStringLiteral("copyFilesToHDD"), m_ui->copyFilesToHdd->isChecked());
+    settings.setValue(QStringLiteral("skipUAELaunch"), m_ui->skipUAELaunch->isChecked());
     settings.endGroup();
 }
 
@@ -93,5 +94,6 @@ void AmigaUAEConfig::readSettings()
     m_ui->cmdlineArgs->setText(settings.value(QStringLiteral("cmdlineArgs")).toString());
     m_ui->dh0Path->setText(settings.value(QStringLiteral("dh0Path")).toString());
     m_ui->copyFilesToHdd->setChecked(settings.value(QStringLiteral("copyFilesToHDD")).toBool());
+    m_ui->skipUAELaunch->setChecked(settings.value(QStringLiteral("skipUAELaunch")).toBool());
     settings.endGroup();
 }

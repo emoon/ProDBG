@@ -68,7 +68,7 @@ private:
     PDWriter* m_currentWriter;
     PDWriter* m_prevWriter;
     PDReader* m_reader;
-    QTimer* m_timer;
+    QTimer* m_timer = nullptr;
 
     // Current active backend plugin
     PDBackendPlugin* m_backendPlugin;

@@ -161,9 +161,12 @@ void MainWindow::debugAmigaExe()
         return;
     }
 
-    connect(m_amigaUae->m_uaeProcess, &QProcess::started, this, &MainWindow::uaeStarted);
-
-    m_amigaUae->launchUAE();
+    if (!m_amigaUae->m_skipUAELaunch) {
+        connect(m_amigaUae->m_uaeProcess, &QProcess::started, this, &MainWindow::uaeStarted);
+        m_amigaUae->launchUAE();
+    } else {
+        startAmigaUAEBackend();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
