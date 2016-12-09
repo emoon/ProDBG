@@ -134,17 +134,11 @@ void MainWindow::uaeStarted()
 
 void MainWindow::debugAmigaExe()
 {
-    printf("open\n");
-
     if (!m_amigaUae->openFile()) {
-        printf("open exit \n");
         return;
     }
 
-    printf("startint validade\n");
-
     if (!m_amigaUae->validateSettings()) {
-        printf("failed\n");
         return;
     }
 
