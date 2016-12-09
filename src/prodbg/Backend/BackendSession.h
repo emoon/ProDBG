@@ -5,6 +5,7 @@
 #include <pd_backend.h>
 
 class QString;
+class QTimer;
 struct PDReader;
 struct PDWriter;
 struct PDBackendPlugin;
@@ -24,12 +25,11 @@ public:
     static BackendSession* createBackendSession(const QString& backendName);
     bool setBackend(const QString& backendName);
 
-    void update();
-
     Q_SLOT void start();
     Q_SLOT void stop();
     Q_SLOT void stepIn();
     Q_SLOT void stepOver();
+    Q_SLOT void update();
 
     Q_SLOT void toggleAddressBreakpoint(uint64_t address, bool add);
     Q_SLOT void toggleFileLineBreakpoint(const QString& filename, int line, bool add);
@@ -65,6 +65,7 @@ private:
     PDWriter* m_currentWriter;
     PDWriter* m_prevWriter;
     PDReader* m_reader;
+    QTimer* m_timer;
 
     // Current active backend plugin
     PDBackendPlugin* m_backendPlugin;

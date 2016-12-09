@@ -59,14 +59,14 @@ static uint32_t getU32(uint8_t* ptr)
 
 static uint64_t getU64(uint8_t* ptr)
 {
-    uint64_t v = ((uint64_t)ptr[0] << 56) | ((uint64_t)ptr[1] << 48) | ((uint64_t)ptr[2] << 40) | 
+    uint64_t v = ((uint64_t)ptr[0] << 56) | ((uint64_t)ptr[1] << 48) | ((uint64_t)ptr[2] << 40) |
                  ((uint64_t)ptr[3] << 32) | (ptr[4] << 24) | (ptr[5] << 16) | (ptr[6] << 8) | ptr[7];
     return v;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QTableWidgetItem* buildRegisterValue(IBackendRequests::Register* reg) 
+QTableWidgetItem* buildRegisterValue(IBackendRequests::Register* reg)
 {
     QString regText;
 
@@ -138,6 +138,11 @@ void RegisterView::programCounterChanged(uint64_t) {
 void RegisterView::setBackendInterface(IBackendRequests* interface)
 {
     m_interface = interface;
+
+    if (!interface) {
+        return;
+    }
+
     connect(m_interface, &IBackendRequests::programCounterChanged, this, &RegisterView::programCounterChanged);
     connect(m_interface, &IBackendRequests::endReadRegisters, this, &RegisterView::endReadRegisters);
 }

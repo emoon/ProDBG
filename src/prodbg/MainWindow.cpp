@@ -31,6 +31,8 @@ MainWindow::MainWindow()
     qRegisterMetaType<uint64_t>("uint64_t");
     qRegisterMetaType<uint32_t>("uint32_t");
 
+    m_amigaUae = new AmigaUAE(this);
+
     m_ui.setupUi(this);
 
     setCentralWidget(m_codeView);
@@ -78,12 +80,7 @@ MainWindow::MainWindow()
 
 MainWindow::~MainWindow()
 {
-    if (m_backendThread) {
-        m_backendThread->quit();
-        m_backendThread->wait();
-    }
-
-    delete m_backendThread;
+    closeCurrentBackend();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,13 +122,21 @@ void MainWindow::amigaUAEConfig()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void MainWindow::uaeStarted() {
+    startAmigaUAEBackend();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void MainWindow::debugAmigaExe()
 {
-    AmigaUAE amigaUae;
-
-    if (amigaUae.validateSettings()) {
+    if (m_amigaUae->validateSettings()) {
         return;
     }
+
+    connect(m_amigaUae->m_uaeProcess, &QProcess::started, this, &MainWindow::uaeStarted);
+
+    m_amigaUae->launchUAE();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,14 +150,58 @@ void MainWindow::setupBackendConnections()
 
 void MainWindow::startDummyBackend()
 {
-    m_backend = BackendSession::createBackendSession(QStringLiteral("Dummy Backend"));
+    BackendSession* backend = BackendSession::createBackendSession(QStringLiteral("Dummy Backend"));
 
-    if (!m_backend) {
+    if (!backend) {
         qDebug() << "Unable to create Dummy Backend";
         return;
     }
 
-    // TODO: Create sessino here also
+    setupBackend(backend);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::closeCurrentBackend()
+{
+    if (m_backendThread) {
+        m_backendThread->quit();
+        m_backendThread->wait();
+    }
+
+    delete m_backend;
+    delete m_backendThread;
+    delete m_backendRequests;
+
+    m_registerView->setBackendInterface(nullptr);
+    m_codeView->setBackendInterface(nullptr);
+
+    m_backend = nullptr;
+    m_backendThread = nullptr;
+    m_backendRequests = nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::startAmigaUAEBackend()
+{
+    closeCurrentBackend();
+
+    BackendSession* backend = BackendSession::createBackendSession(QStringLiteral("Amiga UAE Debugger"));
+
+    if (!backend) {
+        printf("Unable to create Amiga UAE Debugger backend\n");
+        return;
+    }
+
+    setupBackend(backend);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::setupBackend(BackendSession* backend)
+{
+    m_backend = backend;
 
     m_backendThread = new QThread;
 
@@ -161,8 +210,6 @@ void MainWindow::startDummyBackend()
 
     m_registerView->setBackendInterface(m_backendRequests);
     m_codeView->setBackendInterface(m_backendRequests);
-
-    printf("Debugger thread started\n");
 
     m_backendThread->start();
 

@@ -436,7 +436,7 @@ impl Backend for AmigaUaeBackend {
     fn new(service: &Service) -> Self {
         AmigaUaeBackend {
             capstone: service.get_capstone(),
-            id_amiga_uae_dma_time: service.get_id_register().register_id("AmigaUAEDmaTime"),
+            id_amiga_uae_dma_time: 0, //service.get_id_register().register_id("AmigaUAEDmaTime"),
             conn: GdbRemote::new(),
             exception_location: 0,
             amiga_exe_file_path: "".to_owned(),

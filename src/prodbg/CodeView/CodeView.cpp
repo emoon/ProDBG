@@ -76,7 +76,7 @@ CodeView::~CodeView()
 
 void CodeView::openFile()
 {
-    QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("Open Source File")); 
+    QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("Open Source File"));
 
     if (path.isEmpty()) {
         return;
@@ -330,7 +330,7 @@ void CodeView::updateDisassemblyCursor()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::programCounterChanged(uint64_t pc) 
+void CodeView::programCounterChanged(uint64_t pc)
 {
     m_currentPc = pc;
 
@@ -341,17 +341,18 @@ void CodeView::programCounterChanged(uint64_t pc)
     } else {
         //QSize size = frameSize();
         int fontHeight = fontMetrics().height();
-        int linesInView = (height() / fontHeight) - 1; 
+        int linesInView = (height() / fontHeight) - 1;
         if (linesInView <= 0) {
-            linesInView = 1; 
+            linesInView = 1;
         }
 
         if (pc >= linesInView) {
             pc -= linesInView;
         }
-        
-        //printf("font height %d\n", size.height() / fontHeight); 
-        m_interface->beginDisassembly(pc, linesInView * 2, &m_recvInstructions);
+
+        if (m_interface) {
+            m_interface->beginDisassembly(pc, linesInView * 2, &m_recvInstructions);
+        }
     }
 }
 
@@ -420,6 +421,10 @@ void CodeView::readSourceFile(const QString& filename)
 
 void CodeView::toggleBreakpoint()
 {
+    if (!m_interface) {
+        return;
+    }
+
     if (m_mode == Disassembly) {
         QTextCursor cursor = textCursor();
         int index = cursor.block().blockNumber();
@@ -459,7 +464,7 @@ void CodeView::setLine(int line)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
 void CodeView::setBreakpointModel(BreakpointModel* breakpoints)
 {
     m_breakpoints = breakpoints;
@@ -470,6 +475,11 @@ void CodeView::setBreakpointModel(BreakpointModel* breakpoints)
 void CodeView::setBackendInterface(IBackendRequests* iface)
 {
     m_interface = iface;
+
+    if (!iface) {
+        return;
+    }
+
     connect(m_interface, &IBackendRequests::endDisassembly, this, &CodeView::endDisassembly);
     connect(m_interface, &IBackendRequests::programCounterChanged, this, &CodeView::programCounterChanged);
 }

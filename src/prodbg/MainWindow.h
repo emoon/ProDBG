@@ -50,7 +50,14 @@ private:
     void writeSettings();
     void readSettings();
     void startDummyBackend();
+    void closeCurrentBackend();
+    void startAmigaUAEBackend();
     void setupBackendConnections();
+    void setupBackend(BackendSession* backend);
+    Q_SLOT void uaeStarted();
+
+    // Hard-coded Amiga support. Would be nice to have this more modular
+    AmigaUAE* m_amigaUae = nullptr;
 
     // Hardcoded views for now.
     CodeView* m_codeView = nullptr;

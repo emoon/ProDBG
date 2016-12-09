@@ -1,17 +1,19 @@
 #include "AmigaUAE.h"
 #include <QMessageBox>
+#include <QProcess>
 #include <QSettings>
 #include <QString>
-#include <QProcess>
 
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-AmigaUAE::AmigaUAE()
-    : m_copyFiles(true)
+AmigaUAE::AmigaUAE(QObject* parent)
+    : QObject(parent)
     , m_uaeProcess(nullptr)
+    , m_copyFiles(true)
 {
+    m_uaeProcess = new QProcess();
     (void)m_uaeProcess;
 }
 
@@ -19,6 +21,7 @@ AmigaUAE::AmigaUAE()
 
 AmigaUAE::~AmigaUAE()
 {
+    m_uaeProcess->kill();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -28,6 +31,8 @@ void AmigaUAE::runExecutable(const QString& filename)
     if (!validateSettings()) {
         return;
     }
+
+    launchUAE();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,15 +71,13 @@ void AmigaUAE::launchUAE()
 {
     QStringList args;
 
-    m_uaeProcess = new QProcess();
-
     m_running = false;
 
     connect(m_uaeProcess, &QProcess::started, this, &AmigaUAE::started);
     connect(m_uaeProcess, &QProcess::errorOccurred, this, &AmigaUAE::errorOccurred);
 
-    args << m_config; 
-    args << QStringLiteral("--remote-debugger=1"); 
+    args << m_config;
+    args << QStringLiteral("--remote-debugger=1");
     args << m_cmdLineArgs;
 
     m_uaeProcess->start(m_uaeExe, args);
@@ -85,6 +88,7 @@ void AmigaUAE::launchUAE()
 void AmigaUAE::started()
 {
     m_running = true;
+    printf("started uae ok!\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,6 +1,7 @@
 #include "BackendSession.h"
 #include "Core/PluginHandler.h"
 #include "IBackendRequests.h"
+#include "Service.h"
 #include "api/src/remote/pd_readwrite_private.h"
 #include <QDebug>
 #include <QString>
@@ -75,7 +76,7 @@ bool BackendSession::setBackend(const QString& backendName)
 
     Q_ASSERT(m_backendPlugin->create_instance);
 
-    m_backendPluginData = m_backendPlugin->create_instance(0);
+    m_backendPluginData = m_backendPlugin->create_instance(&Service_get);
 
     Q_ASSERT(m_backendPluginData);
 
