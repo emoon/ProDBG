@@ -519,8 +519,6 @@ void CodeView::setBackendInterface(IBackendRequests* iface)
 
 void CodeView::setFileLine(const QString& file, int line)
 {
-    qDebug() << "CodeView::setFileLine " << file << " " << line;
-
     if (file != m_sourceFile) {
         readSourceFile(file);
     }
@@ -528,7 +526,6 @@ void CodeView::setFileLine(const QString& file, int line)
     m_currentSourceLine = line;
 
     if (m_mode == Sourcefile) {
-        printf("Set line %d\n", line);
         setLine(line);
     }
 }
