@@ -78,7 +78,7 @@ void AmigaUAE::launchUAE()
 
     args << m_config;
     args << QStringLiteral("--remote-debugger=1");
-    args << m_cmdLineArgs;
+    args << m_cmdLineArgs.split(QLatin1Char(' '));
 
     m_uaeProcess->start(m_uaeExe, args);
 }
