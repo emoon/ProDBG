@@ -1,9 +1,10 @@
 #include "AmigaUAE.h"
+#include "Backend/IdService.h"
+#include <QFileDialog>
 #include <QMessageBox>
 #include <QProcess>
 #include <QSettings>
 #include <QString>
-#include "Backend/IdService.h"
 
 namespace prodbg {
 
@@ -18,7 +19,6 @@ AmigaUAE::AmigaUAE(QObject* parent)
     m_setHddPathId = IdService_register("AmigaUAE_SetHddPath");
 
     m_uaeProcess = new QProcess();
-    (void)m_uaeProcess;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -26,6 +26,21 @@ AmigaUAE::AmigaUAE(QObject* parent)
 AmigaUAE::~AmigaUAE()
 {
     m_uaeProcess->kill();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool AmigaUAE::openFile()
+{
+    QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("Select Amiga executable to debug"));
+
+    if (path.isEmpty()) {
+        return false;
+    }
+
+    m_localExeToRun = path;
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,7 +81,41 @@ bool AmigaUAE::validateSettings()
         return false;
     }
 
-    return false;
+    QFileInfo fileInfo(m_localExeToRun);
+    QString filename = fileInfo.fileName();
+
+    // If we aren't going to copy file we have to make sure the path to the file is located in the output
+    // hdd directory
+
+    if (!m_copyFiles) {
+        if (m_localExeToRun.indexOf(m_dh0Path) != 0) {
+            QMessageBox::critical(
+                nullptr, QStringLiteral("Executable not peresent in path"),
+                QStringLiteral("The executable you are trying to run isn't present in the HDD path."
+                               "Either select correct path or the 'Copy files' option in \"Config -> Amiga UAE..\""));
+            return false;
+        }
+    } else {
+        QFileInfo fileInfo(m_localExeToRun);
+        QString filename = fileInfo.fileName();
+        QString fileDest = QDir::cleanPath(m_dh0Path + QDir::separator() + filename);
+
+        if (!QFile::copy(m_localExeToRun, fileDest)) {
+            QString error = QStringLiteral("Failed to copy file ");
+            error += m_localExeToRun;
+            error += QStringLiteral(" to ");
+            error += fileDest;
+            error += QStringLiteral(" . Make sure file is readable/directory is writeable/etc ");
+
+            QMessageBox::critical(nullptr, QStringLiteral("Failed to copy file"), error);
+
+            return false;
+        }
+    }
+
+    m_fileToRun = QStringLiteral("dh0:") + filename;
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

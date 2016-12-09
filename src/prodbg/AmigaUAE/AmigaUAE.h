@@ -16,6 +16,7 @@ public:
     AmigaUAE(QObject* parent);
     ~AmigaUAE();
 
+    bool openFile();
     void runExecutable(const QString& filename);
     bool validateSettings();
     void launchUAE();
@@ -30,6 +31,7 @@ public:
     QString m_cmdLineArgs;
     QString m_dh0Path;
     QString m_fileToRun;
+    QString m_localExeToRun;
     bool m_copyFiles;
 
 private:

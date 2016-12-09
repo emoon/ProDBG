@@ -27,6 +27,7 @@ public:
     MainWindow();
     ~MainWindow();
 
+
 protected:
     void closeEvent(QCloseEvent* event);
 
@@ -46,6 +47,14 @@ private:
     Q_SIGNAL void stepOverBackend();
 
 private:
+    // Current supported backends (hard-coded for now)
+    enum Backend
+    {
+        Dummy,
+        Amiga,
+        Custom,
+    };
+
     void initActions();
     void writeSettings();
     void readSettings();
@@ -54,6 +63,7 @@ private:
     void startAmigaUAEBackend();
     void setupBackendConnections();
     void setupBackend(BackendSession* backend);
+
     Q_SLOT void uaeStarted();
 
     // Hard-coded Amiga support. Would be nice to have this more modular
@@ -67,6 +77,7 @@ private:
     BreakpointModel* m_breakpoints = nullptr;
 
     Ui_MainWindow m_ui;
+    Backend m_currentBackend = Dummy;
 
     BackendRequests* m_backendRequests = nullptr;
     BackendSession* m_backend = nullptr;

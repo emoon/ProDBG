@@ -134,7 +134,17 @@ void MainWindow::uaeStarted()
 
 void MainWindow::debugAmigaExe()
 {
-    if (m_amigaUae->validateSettings()) {
+    printf("open\n");
+
+    if (!m_amigaUae->openFile()) {
+        printf("open exit \n");
+        return;
+    }
+
+    printf("startint validade\n");
+
+    if (!m_amigaUae->validateSettings()) {
+        printf("failed\n");
         return;
     }
 
@@ -201,7 +211,7 @@ void MainWindow::startAmigaUAEBackend()
 
     setupBackend(backend);
 
-    m_backendRequests->sendCustomString(m_amigaUae->m_setFileId, QStringLiteral("dh0:test"));
+    m_backendRequests->sendCustomString(m_amigaUae->m_setFileId, m_amigaUae->m_fileToRun);
     m_backendRequests->sendCustomString(m_amigaUae->m_setHddPathId, m_amigaUae->m_dh0Path);
 
     QTimer::singleShot(2000, this, &MainWindow::start);
