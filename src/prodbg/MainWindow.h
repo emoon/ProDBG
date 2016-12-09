@@ -32,6 +32,7 @@ protected:
 
 private:
     Q_SLOT void openSourceFile();
+    Q_SLOT void breakDebug();
     Q_SLOT void start();
     Q_SLOT void stop();
     Q_SLOT void stepIn();
@@ -40,6 +41,7 @@ private:
     Q_SLOT void amigaUAEConfig();
     Q_SLOT void debugAmigaExe();
 
+    Q_SIGNAL void breakBackend();
     Q_SIGNAL void startBackend();
     Q_SIGNAL void stopBackend();
     Q_SIGNAL void stepInBackend();

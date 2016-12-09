@@ -63,7 +63,7 @@ MainWindow::MainWindow()
         addDockWidget(Qt::BottomDockWidgetArea, dock);
     }
 
-    m_codeView->readSourceFile(QStringLiteral("src/prodbg/main.cpp"));
+    m_codeView->initDefaultSourceFile(QStringLiteral("src/prodbg/main.cpp"));
     m_codeView->setBreakpointModel(m_breakpoints);
 
     m_statusbar->showMessage(tr("Ready."));
@@ -109,6 +109,14 @@ void MainWindow::openSourceFile()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::start()
+{
+    printf("start\n");
+    startBackend();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::breakDebug()
 {
     printf("start\n");
     startBackend();

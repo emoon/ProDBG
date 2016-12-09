@@ -56,7 +56,10 @@ public:
 
     void setMode(Mode mode);
     void setExceptionAddress(uint64_t address);
+
+    void initDefaultSourceFile(const QString& file);
     void readSourceFile(const QString& file);
+
     void lineNumberAreaPaintEvent(QPaintEvent* event);
     void setFileLine(const QString& file, int line);
     void setAddress(uint64_t address);
@@ -80,6 +83,9 @@ private:
     void toggleDisassembly();
     void toggleSourceFile();
     void updateDisassemblyCursor();
+
+    void readSettings();
+    void writeSettings();
 
     QPointer<IBackendRequests> m_interface;
     BreakpointModel* m_breakpoints = 0;

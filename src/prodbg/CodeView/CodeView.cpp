@@ -62,13 +62,14 @@ CodeView::CodeView(QWidget* parent)
 
     setFont(font);
 
-    m_sourceFile = QString();
+    readSettings();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CodeView::~CodeView()
 {
+    writeSettings();
     delete m_fileWatcher;
 }
 
@@ -206,6 +207,8 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
     const bool isDisassembly = m_mode == Disassembly;
     const int addressCount = m_disassemblyAdresses.count();
 
+    int fontHeight = fontMetrics().height() - 2;
+
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
             QString number = QString::number(blockNumber + 1);
@@ -224,7 +227,7 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
                 if (m_breakpoints->hasBreakpointAddress(address)) {
                     // TODO: Make sure to take font size into account
                     painter.setBrush(Qt::red);
-                    painter.drawEllipse(2, top + 1, 16, 16);
+                    painter.drawEllipse(4, top, fontHeight, fontHeight);
                 }
             } else {
                 painter.drawText(0, top, width, height, Qt::AlignRight, number);
@@ -232,7 +235,7 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
                 if (m_breakpoints->hasBreakpointFileLine(m_sourceFile, blockNumber)) {
                     // TODO: Make sure to take font size into account
                     painter.setBrush(Qt::red);
-                    painter.drawEllipse(2, top + 1, 16, 16);
+                    painter.drawEllipse(4, top, fontHeight, fontHeight);
                 }
             }
 
@@ -397,6 +400,16 @@ void CodeView::keyPressEvent(QKeyEvent* event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void CodeView::initDefaultSourceFile(const QString& filename) {
+    if (m_sourceFile.isEmpty()) {
+        m_sourceFile = filename;
+    }
+
+    readSourceFile(m_sourceFile);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CodeView::readSourceFile(const QString& filename)
 {
     QFile f(filename);
@@ -498,4 +511,25 @@ void CodeView::setFileLine(const QString& file, int line)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeView::readSettings()
+{
+    QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
+    settings.beginGroup(QStringLiteral("CodeView"));
+    m_sourceFile = settings.value(QStringLiteral("Sourcefile")).toString();
+    settings.endGroup();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeView::writeSettings()
+{
+    QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
+    settings.beginGroup(QStringLiteral("CodeView"));
+    settings.setValue(QStringLiteral("Sourcefile"), m_sourceFile);
+    settings.endGroup();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 }
