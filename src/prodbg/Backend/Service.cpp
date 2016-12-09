@@ -1,8 +1,10 @@
 #include "Service.h"
+#include "IdService.h"
 #include <string.h>
 #include <stdio.h>
 
 extern "C" void* get_capstone_service_1();
+extern "C" void* get_id_service_1();
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -13,6 +15,8 @@ namespace prodbg {
 void* Service_get(const char* name) {
 	if (!strcmp(name, "Capstone Service 1")) {
 		return get_capstone_service_1();
+	} else if (!strcmp(name, "IdFuncs 1")) {
+		return get_id_service_1();
 	}
 
 	printf("Failed to find service %s we are likely gooing to crash!\n", name);
