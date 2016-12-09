@@ -29,9 +29,9 @@ MainWindow::MainWindow()
 //, m_currentSession(nullptr)
 //, m_amigaUae(nullptr)
 {
-    qRegisterMetaType<uint64_t>("uint64_t");
-    qRegisterMetaType<uint32_t>("uint32_t");
     qRegisterMetaType<uint16_t>("uint16_t");
+    qRegisterMetaType<uint32_t>("uint32_t");
+    qRegisterMetaType<uint64_t>("uint64_t");
 
     m_amigaUae = new AmigaUAE(this);
 
@@ -74,8 +74,6 @@ MainWindow::MainWindow()
 
     initActions();
     readSettings();
-
-    (void)m_backend;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -95,6 +93,7 @@ void MainWindow::initActions()
     connect(m_ui.actionDebugAmigaExe, &QAction::triggered, this, &MainWindow::debugAmigaExe);
     connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggleBreakpoint);
     connect(m_ui.actionOpen, &QAction::triggered, this, &MainWindow::openSourceFile);
+    connect(m_ui.actionBreak, &QAction::triggered, this, &MainWindow::breakDebug);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,7 +118,7 @@ void MainWindow::start()
 void MainWindow::breakDebug()
 {
     printf("start\n");
-    startBackend();
+    breakBackend();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -161,6 +160,7 @@ void MainWindow::setupBackendConnections()
 {
     connect(this, &MainWindow::stepInBackend, m_backend, &BackendSession::stepIn);
     connect(this, &MainWindow::startBackend, m_backend, &BackendSession::start);
+    connect(this, &MainWindow::breakBackend, m_backend, &BackendSession::breakDebug);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -216,6 +216,7 @@ void MainWindow::startAmigaUAEBackend()
     m_backendRequests->sendCustomString(m_amigaUae->m_setFileId, m_amigaUae->m_fileToRun);
     m_backendRequests->sendCustomString(m_amigaUae->m_setHddPathId, m_amigaUae->m_dh0Path);
 
+    // TODO: This is really temporary
     QTimer::singleShot(2000, this, &MainWindow::start);
 }
 

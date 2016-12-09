@@ -100,6 +100,10 @@ bool AmigaUAE::validateSettings()
         QString filename = fileInfo.fileName();
         QString fileDest = QDir::cleanPath(m_dh0Path + QDir::separator() + filename);
 
+        if (QFile::exists(fileDest)) {
+            QFile::remove(fileDest);
+        }
+
         if (!QFile::copy(m_localExeToRun, fileDest)) {
             QString error = QStringLiteral("Failed to copy file ");
             error += m_localExeToRun;

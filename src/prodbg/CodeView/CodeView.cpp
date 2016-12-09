@@ -63,6 +63,8 @@ CodeView::CodeView(QWidget* parent)
     setFont(font);
 
     readSettings();
+
+    toggleSourceFile();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -311,15 +313,16 @@ void CodeView::endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* in
 
     m_disassemblyEnd = instructions->at(instructions->count() - 1).address;
 
-    setPlainText(m_disassemblyText);
-
-    updateDisassemblyCursor();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeView::updateDisassemblyCursor()
 {
+    if (m_mode != Disassembly) {
+        return;
+    }
+
     for (int i = 0, count = m_disassemblyAdresses.count(); i < count; ++i) {
         if (m_disassemblyAdresses[i].address != m_currentPc) {
             continue;
@@ -329,6 +332,13 @@ void CodeView::updateDisassemblyCursor()
 
         return;
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeView::sourceFileLineChanged(const QString& filename, int line)
+{
+    setFileLine(filename, line);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -379,6 +389,7 @@ void CodeView::toggleSourceFile()
     m_mode = Sourcefile;
     setCenterOnScroll(false);
     setPlainText(m_sourceCodeData);
+    setLine(m_currentSourceLine);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -406,6 +417,7 @@ void CodeView::initDefaultSourceFile(const QString& filename) {
     }
 
     readSourceFile(m_sourceFile);
+    toggleSourceFile();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -430,7 +442,9 @@ void CodeView::readSourceFile(const QString& filename)
 
     m_sourceCodeData = ts.readAll();
 
-    toggleSourceFile();
+    if (m_mode == Sourcefile) {
+        setPlainText(m_sourceCodeData);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -498,16 +512,25 @@ void CodeView::setBackendInterface(IBackendRequests* iface)
 
     connect(m_interface, &IBackendRequests::endDisassembly, this, &CodeView::endDisassembly);
     connect(m_interface, &IBackendRequests::programCounterChanged, this, &CodeView::programCounterChanged);
+    connect(m_interface, &IBackendRequests::sourceFileLineChanged, this, &CodeView::sourceFileLineChanged);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeView::setFileLine(const QString& file, int line)
 {
-    if (file != m_sourceFile)
-        readSourceFile(file);
+    qDebug() << "CodeView::setFileLine " << file << " " << line;
 
-    setLine(line);
+    if (file != m_sourceFile) {
+        readSourceFile(file);
+    }
+
+    m_currentSourceLine = line;
+
+    if (m_mode == Sourcefile) {
+        printf("Set line %d\n", line);
+        setLine(line);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

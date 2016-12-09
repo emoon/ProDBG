@@ -345,7 +345,7 @@ void BackendSession::updateCurrentPc()
             if (line != m_currentLine || file != m_currentFile) {
                 m_currentFile = file;
                 m_currentLine = line;
-                fileLineChanged(m_currentFile, m_currentLine);
+                sourceFileLineChanged(m_currentFile, m_currentLine);
             }
         }
 
@@ -417,6 +417,14 @@ void BackendSession::start()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendSession::stop()
+{
+    internalUpdate(PDAction_Break);
+    updateCurrentPc();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendSession::breakDebug()
 {
     internalUpdate(PDAction_Break);
     updateCurrentPc();

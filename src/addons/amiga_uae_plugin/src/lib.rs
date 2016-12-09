@@ -349,6 +349,24 @@ impl AmigaUaeBackend {
         }
     }
 
+    fn step(&mut self, writer: &mut Writer) {
+        let mut step_res = [0; 16];
+        if self.conn.step(&mut step_res).is_err() {
+            println!("Unable to step!");
+            return;
+        }
+
+        let mut register_data = [0; 1024];
+        if self.conn.get_registers(&mut register_data).is_err() {
+            println!("Unable to get registers!");
+            return;
+        }
+
+        self.exception_location = Self::get_u32(&register_data[64 + 4..]);
+
+        self.write_exception_location(writer);
+    }
+
     fn connect(&mut self) -> Result<()> {
         if self.conn.is_connected() {
             return Ok(());
@@ -463,7 +481,7 @@ impl Backend for AmigaUaeBackend {
 
         match action {
             ACTION_BREAK => {
-                println!("Break");
+                self.step(writer);
             }
 
             ACTION_RUN => {
@@ -494,21 +512,7 @@ impl Backend for AmigaUaeBackend {
             }
 
             ACTION_STEP => {
-                let mut step_res = [0; 16];
-                if self.conn.step(&mut step_res).is_err() {
-                    println!("Unable to step!");
-                    return;
-                }
-
-                let mut register_data = [0; 1024];
-                if self.conn.get_registers(&mut register_data).is_err() {
-                    println!("Unable to get registers!");
-                    return;
-                }
-
-                self.exception_location = Self::get_u32(&register_data[64 + 4..]);
-
-                self.write_exception_location(writer);
+                self.step(writer);
             }
 
             ACTION_STEP_OVER => {

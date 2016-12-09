@@ -121,6 +121,9 @@ public:
     // This can be used to figure out if it's needed to re-request data. For example a Memory view may want to use
     // this as the program may have altered the same memory that is currently being displayed
     Q_SIGNAL void programCounterChanged(uint64_t pc);
+
+    // This signal is being sent when the source/line has been changed (when debung info is present)
+    Q_SIGNAL void sourceFileLineChanged(const QString& filename, int line);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

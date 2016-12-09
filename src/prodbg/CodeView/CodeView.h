@@ -78,6 +78,7 @@ private:
     Q_SLOT void fileChange(const QString filename);
     Q_SLOT void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth);
     Q_SLOT void programCounterChanged(uint64_t pc);
+    Q_SLOT void sourceFileLineChanged(const QString& filename, int line);
 
 private:
     void toggleDisassembly();
@@ -96,6 +97,8 @@ private:
     QString m_sourceFile;
     QString m_sourceCodeData;
     Mode m_mode = Mode::Sourcefile;
+
+    int m_currentSourceLine = 0;
 
     // Data for disassembly
 
