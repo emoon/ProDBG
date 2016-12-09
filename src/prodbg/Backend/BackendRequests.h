@@ -16,21 +16,26 @@ public:
     BackendRequests(BackendSession* session);
 
 public:
+    // Send a custom event to the backend. The id should be registers using the IdService_register
+    // This can be done in the same way using the id service on the backend side. This allows the front-end to send custom commands
+    // to the backend that doesn't fit any general backend
+    void sendCustomString(uint16_t id, const QString& text);
+
     // Add a breakpoint at a specific address
-    virtual void beginAddAddressBreakpoint(uint64_t address);
+    void beginAddAddressBreakpoint(uint64_t address);
 
     // Add a breakpoint on a specific file and line number
-    virtual void beginAddFileLineBreakpoint(const QString& filename, int line);
+    void beginAddFileLineBreakpoint(const QString& filename, int line);
 
     // Remove a breakpoint at a specific address
-    virtual void beginRemoveAddressBreakpoint(uint64_t address);
+    void beginRemoveAddressBreakpoint(uint64_t address);
 
     // Remove a breakpoint on a specific file and line number
-    virtual void beginRemoveFileLineBreakpoint(const QString& filename, int line);
+    void beginRemoveFileLineBreakpoint(const QString& filename, int line);
 
     // Get hw registers from the backend
     // registers = array of registers
-    virtual void beginReadRegisters(QVector<Register>* registers);
+    void beginReadRegisters(QVector<Register>* registers);
 
     // Get disassembly from the backend
     // address = starting memory range
@@ -48,6 +53,8 @@ public:
     bool beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target);
 
 private:
+    Q_SIGNAL void sendCustomStr(uint16_t id, const QString& text);
+
     Q_SIGNAL void toggleFileLineBreakpoint(const QString& filename, int line, bool add);
     Q_SIGNAL void toggleAddressBreakpoint(uint64_t address, bool add);
 

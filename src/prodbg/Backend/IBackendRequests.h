@@ -59,6 +59,11 @@ public:
     };
 
 public:
+    // Send a custom event to the backend. The id should be registers using the IdService_register
+    // This can be done in the same way using the id service on the backend side. This allows the front-end to send custom commands
+    // to the backend that doesn't fit any general backend
+    virtual void sendCustomString(uint16_t id, const QString& text) = 0;
+
     // Add a breakpoint at a specific address
     virtual void beginAddAddressBreakpoint(uint64_t address) = 0;
 

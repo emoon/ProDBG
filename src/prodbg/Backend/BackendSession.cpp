@@ -184,6 +184,7 @@ static void updateRegisters(QVector<IBackendRequests::Register>* target, PDReade
     PDReaderIterator it;
 
     if (PDRead_find_array(reader, &it, "registers", 0) == PDReadStatus_NotFound) {
+        printf("Unable to find registers array\n");
         return;
     }
 
@@ -310,11 +311,22 @@ void BackendSession::beginDisassembly(uint64_t address, uint32_t count,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void BackendSession::sendCustomString(uint16_t id, const QString& text)
+{
+    PDWrite_event_begin(m_currentWriter, id);
+    PDWrite_string(m_currentWriter, "text", text.toUtf8().data());
+    PDWrite_event_end(m_currentWriter);
+
+    update();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void BackendSession::updateCurrentPc()
 {
     uint32_t event = 0;
 
-    pd_binary_writer_reset(m_currentWriter);
+    pd_binary_reader_reset(m_reader);
 
     while ((event = PDRead_get_event(m_reader))) {
         if (event != PDEventType_SetExceptionLocation) {
@@ -345,7 +357,7 @@ void BackendSession::updateCurrentPc()
         }
     }
 
-    pd_binary_writer_reset(m_currentWriter);
+    pd_binary_reader_reset(m_reader);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

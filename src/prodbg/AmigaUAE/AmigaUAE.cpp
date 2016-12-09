@@ -3,6 +3,7 @@
 #include <QProcess>
 #include <QSettings>
 #include <QString>
+#include "Backend/IdService.h"
 
 namespace prodbg {
 
@@ -13,6 +14,9 @@ AmigaUAE::AmigaUAE(QObject* parent)
     , m_uaeProcess(nullptr)
     , m_copyFiles(true)
 {
+    m_setFileId = IdService_register("AmigaUAE_SetFile");
+    m_setHddPathId = IdService_register("AmigaUAE_SetHddPath");
+
     m_uaeProcess = new QProcess();
     (void)m_uaeProcess;
 }

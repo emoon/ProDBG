@@ -7,6 +7,8 @@ namespace prodbg {
 
 BackendRequests::BackendRequests(BackendSession* session)
 {
+    connect(this, &BackendRequests::sendCustomStr, session, &BackendSession::sendCustomString);
+
     connect(this, &BackendRequests::requestMem, session, &BackendSession::beginReadMemory);
     connect(this, &BackendRequests::requestDisassembly, session, &BackendSession::beginDisassembly);
     connect(this, &BackendRequests::readRegisters, session, &BackendSession::beginReadRegisters);
@@ -19,6 +21,13 @@ BackendRequests::BackendRequests(BackendSession* session)
     connect(session, &BackendSession::endReadRegisters, this, &BackendRequests::endReadRegisters);
 
     connect(session, &BackendSession::programCounterChanged, this, &BackendRequests::programCounterChanged);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendRequests::sendCustomString(uint16_t id, const QString& text)
+{
+    sendCustomStr(id, text);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

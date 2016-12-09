@@ -350,6 +350,9 @@ void CodeView::programCounterChanged(uint64_t pc)
             pc -= linesInView;
         }
 
+        // mask out the lower bits of start offset so we have a 4 byte even address to disassemble from
+        pc &= (uint64_t)(~3);
+
         if (m_interface) {
             m_interface->beginDisassembly(pc, linesInView * 2, &m_recvInstructions);
         }

@@ -12,6 +12,7 @@
 #include <QDebug>
 #include <QMainWindow>
 #include <QThread>
+#include <QTimer>
 #include <QtCore/QSettings>
 #include <QtWidgets/QDockWidget>
 
@@ -30,6 +31,7 @@ MainWindow::MainWindow()
 {
     qRegisterMetaType<uint64_t>("uint64_t");
     qRegisterMetaType<uint32_t>("uint32_t");
+    qRegisterMetaType<uint16_t>("uint16_t");
 
     m_amigaUae = new AmigaUAE(this);
 
@@ -109,6 +111,7 @@ void MainWindow::openSourceFile()
 void MainWindow::start()
 {
     printf("start\n");
+    startBackend();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,7 +125,8 @@ void MainWindow::amigaUAEConfig()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::uaeStarted() {
+void MainWindow::uaeStarted()
+{
     startAmigaUAEBackend();
 }
 
@@ -144,6 +148,7 @@ void MainWindow::debugAmigaExe()
 void MainWindow::setupBackendConnections()
 {
     connect(this, &MainWindow::stepInBackend, m_backend, &BackendSession::stepIn);
+    connect(this, &MainWindow::startBackend, m_backend, &BackendSession::start);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -195,6 +200,11 @@ void MainWindow::startAmigaUAEBackend()
     }
 
     setupBackend(backend);
+
+    m_backendRequests->sendCustomString(m_amigaUae->m_setFileId, QStringLiteral("dh0:test"));
+    m_backendRequests->sendCustomString(m_amigaUae->m_setHddPathId, m_amigaUae->m_dh0Path);
+
+    QTimer::singleShot(2000, this, &MainWindow::start);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

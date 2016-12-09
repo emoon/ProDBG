@@ -20,7 +20,17 @@ public:
     bool validateSettings();
     void launchUAE();
 
+    // TODO: Structure this better
+
     QProcess* m_uaeProcess;
+    uint16_t m_setFileId;
+    uint16_t m_setHddPathId;
+    QString m_uaeExe;
+    QString m_config;
+    QString m_cmdLineArgs;
+    QString m_dh0Path;
+    QString m_fileToRun;
+    bool m_copyFiles;
 
 private:
     Q_SLOT void started();
@@ -30,12 +40,6 @@ private:
 
     bool m_running = false;
 
-    QString m_uaeExe;
-    QString m_config;
-    QString m_cmdLineArgs;
-    QString m_dh0Path;
-    QString m_fileToRun;
-    bool m_copyFiles;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

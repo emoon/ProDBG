@@ -31,6 +31,8 @@ public:
     Q_SLOT void stepOver();
     Q_SLOT void update();
 
+    Q_SLOT void sendCustomString(uint16_t id, const QString& text);
+
     Q_SLOT void toggleAddressBreakpoint(uint64_t address, bool add);
     Q_SLOT void toggleFileLineBreakpoint(const QString& filename, int line, bool add);
 
