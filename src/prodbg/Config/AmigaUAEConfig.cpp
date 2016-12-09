@@ -13,9 +13,9 @@ AmigaUAEConfig::AmigaUAEConfig(QWidget* parent)
 {
     m_ui->setupUi(this);
 
-    connect(m_ui->selectExe, &QPushButton::released, this, &AmigaUAEConfig::selectExecutable);
-    connect(m_ui->selectConfig, &QPushButton::released, this, &AmigaUAEConfig::selectConfigFile);
-    connect(m_ui->selectDh0Path, &QPushButton::released, this, &AmigaUAEConfig::selectDh0Path);
+    connect(m_ui->selectExe, &QPushButton::clicked, this, &AmigaUAEConfig::selectExecutable);
+    connect(m_ui->selectConfig, &QPushButton::clicked, this, &AmigaUAEConfig::selectConfigFile);
+    connect(m_ui->selectDh0Path, &QPushButton::clicked, this, &AmigaUAEConfig::selectDh0Path);
 
     readSettings();
 }
