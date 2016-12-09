@@ -109,6 +109,19 @@ void MainWindow::openSourceFile()
 
 void MainWindow::start()
 {
+    const QVector<BreakpointModel::FileLineBreakpoint>& fileLineBreakpoints = m_breakpoints->getFileLineBreakpoints();
+    const QVector<uint64_t>& addressBreakpoints = m_breakpoints->getAddressBreakpoints();
+
+    // add the breakpoints before we start
+
+    for (auto& bp :fileLineBreakpoints) {
+        m_backendRequests->beginAddFileLineBreakpoint(bp.filename, bp.line);
+    }
+
+    for (auto& bp : addressBreakpoints) {
+        m_backendRequests->beginAddAddressBreakpoint(bp);
+    }
+
     printf("start\n");
     startBackend();
 }
@@ -117,7 +130,6 @@ void MainWindow::start()
 
 void MainWindow::breakDebug()
 {
-    printf("start\n");
     breakBackend();
 }
 

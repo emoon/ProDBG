@@ -265,10 +265,10 @@ impl AmigaUaeBackend {
                 println!("trying to add breakpoint {} - {}", filename, line);
                 self.set_breakpoint_file_line(filename, line);
             }
-        } else if let Some(address) = reader.find_u32("address").ok() {
+        } else if let Some(address) = reader.find_u64("address").ok() {
             self.breakpoints.push(Breakpoint {
                 file_line: None,
-                address: Some(address),
+                address: Some(address as u32),
             });
 
             if self.conn.set_breakpoint_at_address(address as u64).is_err() {
@@ -288,6 +288,7 @@ impl AmigaUaeBackend {
     fn send_breakpoints(&mut self) {
         for breakpoint in &self.breakpoints {
             if let Some((ref file, line)) = breakpoint.file_line {
+                println!("AmigaUAE: Sending breakpoint {} - {}", file, line);
                 Self::toggle_breakpoint_fileline(&mut self.conn, &self.debug_info, file, line, true);
             } else if let Some(address) = breakpoint.address {
                 if self.conn.set_breakpoint_at_address(address as u64).is_err() {
@@ -499,7 +500,9 @@ impl Backend for AmigaUaeBackend {
                     return;
                 }
 
+                println!("Sending breakpoints...");
                 self.send_breakpoints();
+                println!("Sending breakpoints... Done");
 
                 let run_cmd = format!("vRun;{};", self.amiga_exe_file_path);
 

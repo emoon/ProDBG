@@ -234,7 +234,7 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
             } else {
                 painter.drawText(0, top, width, height, Qt::AlignRight, number);
 
-                if (m_breakpoints->hasBreakpointFileLine(m_sourceFile, blockNumber)) {
+                if (m_breakpoints->hasBreakpointFileLine(m_sourceFile, blockNumber + 1)) {
                     // TODO: Make sure to take font size into account
                     painter.setBrush(Qt::red);
                     painter.drawEllipse(4, top, fontHeight, fontHeight);
@@ -469,7 +469,9 @@ void CodeView::toggleBreakpoint()
     } else {
         QTextCursor cursor = textCursor();
         int line = cursor.block().blockNumber();
-        bool added = m_breakpoints->toggleFileLineBreakpoint(m_sourceFile, line);
+
+        // + 1 due to 1 indexed
+        bool added = m_breakpoints->toggleFileLineBreakpoint(m_sourceFile, line + 1);
 
         if (added) {
             m_interface->beginAddFileLineBreakpoint(m_sourceFile, line);
