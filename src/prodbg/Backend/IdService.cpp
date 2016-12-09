@@ -13,8 +13,6 @@ uint16_t IdService_register(const char* id)
     uint32_t hash, i;
     uint32_t len = (uint32_t)strlen(id);
 
-    printf("register id for %s\n", id);
-
     for (hash = i = 0; i < len; ++i) {
         hash += id[i];
         hash += (hash << 10);
@@ -26,7 +24,6 @@ uint16_t IdService_register(const char* id)
     hash += (hash << 15);
 
     // Limit the range that we use for Ids
-
     return (hash & 0x7fff) + 0x1000;
 }
 
