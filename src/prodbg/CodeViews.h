@@ -8,6 +8,7 @@ namespace prodbg {
 
 class BreakpointModel;
 class IBackendRequests;
+class DisassemblyView;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -22,10 +23,22 @@ public:
     void openFile(const QString& filename);
     void setBackendInterface(IBackendRequests* iface);
 
+    Q_SLOT void programCounterChanged(const IBackendRequests::ProgramCounterChange& pc);
+    Q_SLOT void sourceFileLineChanged(const QString& filename, int line);
     Q_SLOT void toggleSourceAsm();
 
 private:
-    BreakpointModel* m_breakpoints;
+    enum Mode
+    {
+        SourceView,
+        Disassembly,
+    };
+
+    Mode m_mode = SourceView;
+    int m_oldIndex = 0;
+
+    DisassemblyView* m_disassemblyView = nullptr;
+    BreakpointModel* m_breakpoints = nullptr;
     QPointer<IBackendRequests> m_interface;
     QVector<QString> m_files;
 };
@@ -39,10 +52,4 @@ inline void CodeViews::setBreakpointModel(BreakpointModel* breakpoints)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-inline void CodeViews::setBackendInterface(IBackendRequests* iface)
-{
-    m_interface = iface;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

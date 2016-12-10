@@ -46,7 +46,7 @@ public:
     Q_SIGNAL void endReadRegisters(QVector<IBackendRequests::Register>* registers);
     Q_SIGNAL void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int adressWidth);
     Q_SIGNAL void endReadMemory(QVector<uint16_t>* res, uint64_t address, int addressWidth);
-    Q_SIGNAL void programCounterChanged(uint64_t pc);
+    Q_SIGNAL void programCounterChanged(const IBackendRequests::ProgramCounterChange& pc);
     Q_SIGNAL void statusUpdate(QString update);
     Q_SIGNAL void sourceFileLineChanged(const QString& filename, uint32_t line);
 

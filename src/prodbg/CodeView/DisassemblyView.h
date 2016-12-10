@@ -40,7 +40,7 @@ private:
     Q_SLOT void updateLineNumberAreaWidth(int newBlockCount);
     Q_SLOT void highlightCurrentLine();
     Q_SLOT void updateLineNumberArea(const QRect& rect, int dy);
-    Q_SLOT void programCounterChanged(uint64_t pc);
+    Q_SLOT void programCounterChanged(const IBackendRequests::ProgramCounterChange& pc);
     Q_SLOT void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth);
 
     QWidget* m_lineNumberArea;

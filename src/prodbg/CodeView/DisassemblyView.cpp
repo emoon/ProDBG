@@ -34,6 +34,11 @@ DisassemblyView::DisassemblyView(QWidget* parent)
     : QPlainTextEdit(parent)
     , m_lineNumberArea(nullptr)
 {
+    setReadOnly(true);
+    setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
+
+    m_lineNumberArea = new LineNumberArea(this);
+
 #ifdef _WIN32
     QFont font(QStringLiteral("Courier"), 11);
 #else
@@ -195,7 +200,7 @@ void DisassemblyView::endDisassembly(QVector<IBackendRequests::AssemblyInstructi
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DisassemblyView::programCounterChanged(uint64_t)
+void DisassemblyView::programCounterChanged(const IBackendRequests::ProgramCounterChange& pc)
 {
     /*
     m_currentPc = pc;
