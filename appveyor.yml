@@ -7,6 +7,7 @@ environment:
 install:
   - ps: Start-FileDownload "https://static.rust-lang.org/dist/rust-beta-x86_64-pc-windows-msvc.exe"
   - rust-beta-x86_64-pc-windows-msvc.exe /VERYSILENT /NORESTART /DIR="C:\Program Files (x86)\Rust"
+  - set QT5=C:\Qt\5.7\msvc2015_64
   - SET PATH=%PATH%;C:\Program Files (x86)\Rust\bin
   - git submodule update --init --recursive
 build_script:

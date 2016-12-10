@@ -122,10 +122,13 @@ local win64 = {
             win64_opts,
         },
 
-        -- QTMOC = "$(QT5)\\bin\\moc2",
-        -- QTUIC = "$(QT5)/bin/uic",
-        -- QTRCC = "$(QT5)/bin/rcc",
         OBJCCOM = "meh",
+    },
+
+    ReplaceEnv = {
+        QTMOC = "$(QT5)\\bin\\moc",
+        QTUIC = "$(QT5)\\bin\\uic",
+        QTRCC = "$(QT5)\\bin\\rcc",
     },
 }
 
