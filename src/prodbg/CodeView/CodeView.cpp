@@ -1,9 +1,9 @@
 #include "CodeView.h"
 #include "Backend/IBackendRequests.h"
 #include "BreakpointModel.h"
+#include <QFileDialog>
 #include <QMessageBox>
 #include <QtGui>
-#include <QFileDialog>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -312,7 +312,6 @@ void CodeView::endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* in
     }
 
     m_disassemblyEnd = instructions->at(instructions->count() - 1).address;
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -352,7 +351,7 @@ void CodeView::programCounterChanged(uint64_t pc)
     if ((pc >= m_disassemblyStart && pc <= m_disassemblyEnd) && m_disassemblyEnd != 0) {
         updateDisassemblyCursor();
     } else {
-        //QSize size = frameSize();
+        // QSize size = frameSize();
         int fontHeight = fontMetrics().height();
         int linesInView = (height() / fontHeight) - 1;
         if (linesInView <= 0) {
@@ -411,11 +410,9 @@ void CodeView::keyPressEvent(QKeyEvent* event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::initDefaultSourceFile(const QString& filename) {
-    if (m_sourceFile.isEmpty()) {
-        m_sourceFile = filename;
-    }
-
+void CodeView::initDefaultSourceFile(const QString& filename)
+{
+    m_sourceFile = filename;
     readSourceFile(m_sourceFile);
     toggleSourceFile();
 }
@@ -451,19 +448,16 @@ void CodeView::readSourceFile(const QString& filename)
 
 void CodeView::toggleBreakpoint()
 {
-    if (!m_interface) {
-        return;
-    }
-
+    /*
     if (m_mode == Disassembly) {
         QTextCursor cursor = textCursor();
         int index = cursor.block().blockNumber();
         bool added = m_breakpoints->toggleAddressBreakpoint(m_disassemblyAdresses[index].address);
 
         if (added) {
-            m_interface->beginAddAddressBreakpoint(m_disassemblyAdresses[index].address);
+            interface->beginAddAddressBreakpoint(m_disassemblyAdresses[index].address);
         } else {
-            m_interface->beginRemoveAddressBreakpoint(m_disassemblyAdresses[index].address);
+            interface->beginRemoveAddressBreakpoint(m_disassemblyAdresses[index].address);
         }
 
     } else {
@@ -474,13 +468,14 @@ void CodeView::toggleBreakpoint()
         bool added = m_breakpoints->toggleFileLineBreakpoint(m_sourceFile, line + 1);
 
         if (added) {
-            m_interface->beginAddFileLineBreakpoint(m_sourceFile, line);
+            interface->beginAddFileLineBreakpoint(m_sourceFile, line);
         } else {
-            m_interface->beginRemoveFileLineBreakpoint(m_sourceFile, line);
+            interface->beginRemoveFileLineBreakpoint(m_sourceFile, line);
         }
     }
 
     m_lineNumberArea->repaint();
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -504,6 +499,7 @@ void CodeView::setBreakpointModel(BreakpointModel* breakpoints)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 void CodeView::setBackendInterface(IBackendRequests* iface)
 {
     m_interface = iface;
@@ -516,6 +512,7 @@ void CodeView::setBackendInterface(IBackendRequests* iface)
     connect(m_interface, &IBackendRequests::programCounterChanged, this, &CodeView::programCounterChanged);
     connect(m_interface, &IBackendRequests::sourceFileLineChanged, this, &CodeView::sourceFileLineChanged);
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -553,5 +550,4 @@ void CodeView::writeSettings()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 }

@@ -8,6 +8,7 @@
 #include "Config/AmigaUAEConfig.h"
 #include "MemoryView/MemoryView.h"
 #include "RegisterView/RegisterView.h"
+#include "SourceFiles.h"
 
 #include <QDebug>
 #include <QMainWindow>
@@ -15,14 +16,14 @@
 #include <QTimer>
 #include <QtCore/QSettings>
 #include <QtWidgets/QDockWidget>
+#include <QFileDialog>
 
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MainWindow::MainWindow()
-    : m_codeView(new CodeView(this))
-    , m_memoryView(new MemoryView(this))
+    : m_memoryView(new MemoryView(this))
     , m_registerView(new RegisterView(this))
     , m_statusbar(new QStatusBar(this))
     , m_backend(nullptr)
@@ -37,11 +38,18 @@ MainWindow::MainWindow()
 
     m_ui.setupUi(this);
 
-    setCentralWidget(m_codeView);
+    m_breakpoints = new BreakpointModel;
+
+    m_sourceFiles = new SourceFiles(this);
+    m_sourceFiles->setBreakpointModel(m_breakpoints);
+    m_sourceFiles->openFile(QStringLiteral("src/prodbg/main.cpp"));
+    //m_sourceFiles->openFile(QStringLiteral("src/prodbg/main.cpp"), m_breakpoints);
+    //m_sourceFiles->openFile(QStringLiteral("src/prodbg/main.cpp"), m_breakpoints);
+
+    setCentralWidget(m_sourceFiles);
 
     setWindowTitle(QStringLiteral("ProDBG"));
 
-    m_breakpoints = new BreakpointModel;
 
     // Setup docking for MemoryView
 
@@ -62,9 +70,6 @@ MainWindow::MainWindow()
         dock->setWidget(m_registerView);
         addDockWidget(Qt::BottomDockWidgetArea, dock);
     }
-
-    m_codeView->initDefaultSourceFile(QStringLiteral("src/prodbg/main.cpp"));
-    m_codeView->setBreakpointModel(m_breakpoints);
 
     m_statusbar->showMessage(tr("Ready."));
 
@@ -100,9 +105,13 @@ void MainWindow::initActions()
 
 void MainWindow::openSourceFile()
 {
-    if (m_codeView) {
-        m_codeView->openFile();
+    QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("Open Source File"));
+
+    if (path.isEmpty()) {
+        return;
     }
+
+    m_sourceFiles->openFile(path);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -114,7 +123,7 @@ void MainWindow::start()
 
     // add the breakpoints before we start
 
-    for (auto& bp :fileLineBreakpoints) {
+    for (auto& bp : fileLineBreakpoints) {
         m_backendRequests->beginAddFileLineBreakpoint(bp.filename, bp.line);
     }
 
@@ -122,7 +131,6 @@ void MainWindow::start()
         m_backendRequests->beginAddAddressBreakpoint(bp);
     }
 
-    printf("start\n");
     startBackend();
 }
 
@@ -206,7 +214,7 @@ void MainWindow::closeCurrentBackend()
     delete m_backendRequests;
 
     m_registerView->setBackendInterface(nullptr);
-    m_codeView->setBackendInterface(nullptr);
+    //m_codeView->setBackendInterface(nullptr);
 
     m_backend = nullptr;
     m_backendThread = nullptr;
@@ -247,7 +255,7 @@ void MainWindow::setupBackend(BackendSession* backend)
     m_backendRequests = new BackendRequests(m_backend);
 
     m_registerView->setBackendInterface(m_backendRequests);
-    m_codeView->setBackendInterface(m_backendRequests);
+    //m_codeView->setBackendInterface(m_backendRequests);
 
     m_backendThread->start();
 
@@ -277,9 +285,7 @@ void MainWindow::stepOver()
 
 void MainWindow::toggleBreakpoint()
 {
-    if (m_codeView) {
-        m_codeView->toggleBreakpoint();
-    }
+    m_sourceFiles->toggleBreakpoint();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -50,7 +50,6 @@ public:
     virtual ~CodeView();
 
     void toggleBreakpoint();
-    void setBackendInterface(IBackendRequests* iface);
     void setBreakpointModel(BreakpointModel* breakpoints);
     void openFile();
 
