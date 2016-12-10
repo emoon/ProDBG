@@ -89,7 +89,7 @@ local gcc_env = {
     },
 
     ReplaceEnv = {
-        PROGCOM = "$(LD) $(PROGOPTS) $(LIBPATH:p-L) -o $(@) -Wl,--start-group $(LIBS:p-l) $(<) -Wl,--end-group",
+        -- PROGCOM = "$(LD) $(PROGOPTS) $(LIBPATH:p-L) -o $(@) -Wl,--start-group $(LIBS:p-l) $(<) -Wl,--end-group",
         QTMOC = "$(QT5)/bin/moc",
         QTUIC = "$(QT5)/bin/uic",
         QTRCC = "$(QT5)/bin/rcc",
