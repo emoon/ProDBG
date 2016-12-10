@@ -279,43 +279,6 @@ void CodeView::setMode(Mode mode)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth)
-{
-    if (instructions->count() == 0) {
-        return;
-    }
-
-    QString addressText;
-
-    m_disassemblyText.resize(0);
-    m_disassemblyAdresses.resize(0);
-
-    m_disassemblyStart = instructions->at(0).address;
-    m_addressWidth = addressWidth;
-
-    for (auto& inst : *instructions) {
-        switch (addressWidth) {
-            case 2:
-                addressText.sprintf("%04X", (uint16_t)inst.address);
-                break;
-            case 4:
-                addressText.sprintf("%08X", (uint32_t)inst.address);
-                break;
-            default:
-                addressText.sprintf("%16llX", inst.address);
-                break;
-        }
-
-        m_disassemblyText.append(inst.text);
-        m_disassemblyText.append(QLatin1Char('\n'));
-        m_disassemblyAdresses.append({ inst.address, addressText });
-    }
-
-    m_disassemblyEnd = instructions->at(instructions->count() - 1).address;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void CodeView::updateDisassemblyCursor()
 {
     if (m_mode != Disassembly) {
@@ -342,41 +305,10 @@ void CodeView::sourceFileLineChanged(const QString& filename, int line)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::programCounterChanged(uint64_t pc)
-{
-    m_currentPc = pc;
-
-    // check if pc is with the disassembly range and search for the current line to set
-
-    if ((pc >= m_disassemblyStart && pc <= m_disassemblyEnd) && m_disassemblyEnd != 0) {
-        updateDisassemblyCursor();
-    } else {
-        // QSize size = frameSize();
-        int fontHeight = fontMetrics().height();
-        int linesInView = (height() / fontHeight) - 1;
-        if (linesInView <= 0) {
-            linesInView = 1;
-        }
-
-        if (pc >= linesInView) {
-            pc -= linesInView;
-        }
-
-        // mask out the lower bits of start offset so we have a 4 byte even address to disassemble from
-        pc &= (uint64_t)(~3);
-
-        if (m_interface) {
-            m_interface->beginDisassembly(pc, linesInView * 2, &m_recvInstructions);
-        }
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void CodeView::toggleDisassembly()
 {
     m_mode = Disassembly;
-    programCounterChanged(m_currentPc);
+    //programCounterChanged(m_currentPc);
     setPlainText(m_disassemblyText);
     updateDisassemblyCursor();
 }
@@ -393,6 +325,7 @@ void CodeView::toggleSourceFile()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 void CodeView::keyPressEvent(QKeyEvent* event)
 {
     // TODO: Use proper actions from main menu instead
@@ -407,6 +340,7 @@ void CodeView::keyPressEvent(QKeyEvent* event)
 
     QPlainTextEdit::keyPressEvent(event);
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

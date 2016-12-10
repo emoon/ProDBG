@@ -1,14 +1,16 @@
 #include "SourceFiles.h"
 #include "CodeView/CodeView.h"
+#include <QDebug>
 #include <QFileInfo>
 
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SourceFiles::SourceFiles(QWidget* parent) : QTabWidget(parent)
+SourceFiles::SourceFiles(QWidget* parent)
+    : QTabWidget(parent)
 {
-	setTabsClosable(true);
+    setTabsClosable(true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,13 +29,20 @@ void SourceFiles::toggleBreakpoint()
 
 void SourceFiles::openFile(const QString& filename)
 {
-	QFileInfo info(filename);
+    QFileInfo info(filename);
 
-	CodeView* codeView = new CodeView;
-	codeView->initDefaultSourceFile(filename);
-	codeView->setBreakpointModel(m_breakpoints);
+    CodeView* codeView = new CodeView;
+    codeView->initDefaultSourceFile(filename);
+    codeView->setBreakpointModel(m_breakpoints);
 
-	addTab(codeView, info.fileName());
+    addTab(codeView, info.fileName());
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SourceFiles::toggleSourceAsm()
+{
+    qDebug() << "Toggle source asm";
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

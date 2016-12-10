@@ -22,6 +22,8 @@ public:
     void openFile(const QString& filename);
     void setBackendInterface(IBackendRequests* iface);
 
+    Q_SLOT void toggleSourceAsm();
+
 private:
     BreakpointModel* m_breakpoints;
     QPointer<IBackendRequests> m_interface;

@@ -99,6 +99,7 @@ void MainWindow::initActions()
     connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggleBreakpoint);
     connect(m_ui.actionOpen, &QAction::triggered, this, &MainWindow::openSourceFile);
     connect(m_ui.actionBreak, &QAction::triggered, this, &MainWindow::breakDebug);
+    connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_sourceFiles, &SourceFiles::toggleSourceAsm);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
