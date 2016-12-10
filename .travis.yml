@@ -5,6 +5,7 @@ __common: &common
 
 matrix:
   include:
+  - <<: *common
     os: linux
     dist: trusty
     addons:
