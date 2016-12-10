@@ -11,6 +11,8 @@ matrix:
     env: COMPILER_NAME=gcc CXX=g++-5 CC=gcc-5
     addons:
       apt:
+        sources:
+          - ubuntu-toolchain-r-test
         packages:
           - g++-5
     script:
