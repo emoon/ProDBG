@@ -2,7 +2,6 @@
 extern crate prodbg_api;
 extern crate gdb_remote;
 extern crate amiga_hunk_parser;
-extern crate nfd;
 
 mod debug_info;
 
