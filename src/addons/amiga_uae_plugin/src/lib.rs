@@ -194,6 +194,7 @@ impl AmigaUaeBackend {
         }
 
         writer.event_begin(EventType::SetMemory as u16);
+        writer.write_u32("address_width", 4);
         writer.write_u64("address", address);
         writer.write_data("data", &data);
         writer.event_end();

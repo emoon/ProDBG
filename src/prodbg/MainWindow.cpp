@@ -215,7 +215,8 @@ void MainWindow::closeCurrentBackend()
     delete m_backendRequests;
 
     m_registerView->setBackendInterface(nullptr);
-    //m_codeView->setBackendInterface(nullptr);
+    m_codeViews->setBackendInterface(nullptr);
+    m_memoryView->setBackendInterface(nullptr);
 
     m_backend = nullptr;
     m_backendThread = nullptr;
@@ -257,6 +258,7 @@ void MainWindow::setupBackend(BackendSession* backend)
 
     m_registerView->setBackendInterface(m_backendRequests);
     m_codeViews->setBackendInterface(m_backendRequests);
+    m_memoryView->setBackendInterface(m_backendRequests);
 
     m_backendThread->start();
 

@@ -4,28 +4,32 @@
 
 class Ui_MemoryView;
 
-namespace prodbg
+namespace prodbg {
+
+class IBackendRequests;
+
+class MemoryView : public QWidget
 {
-  class MemoryView : public QWidget
-  {
     using Base = QWidget;
 
     Q_OBJECT;
 
-  public:
+public:
     explicit MemoryView(QWidget* parent = nullptr);
     ~MemoryView();
 
-  public:
+    void setBackendInterface(IBackendRequests* interface);
+
+public:
     Q_SLOT void jumpToAddressExpression(const QString& expression);
 
-  private:
+private:
     Q_SLOT void jumpAddressChanged();
     Q_SLOT void endianChanged(int);
     Q_SLOT void dataTypeChanged(int);
     Q_SLOT void countChanged(const QString&);
 
-  private:
+private:
     Ui_MemoryView* m_Ui = nullptr;
-  };
+};
 }

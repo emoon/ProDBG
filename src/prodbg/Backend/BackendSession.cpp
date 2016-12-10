@@ -124,18 +124,20 @@ static const QString& getStateName(int state)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void updateMemory(QVector<uint16_t>* target, PDReader* reader)
+static uint32_t updateMemory(QVector<uint16_t>* target, PDReader* reader)
 {
     uint8_t* data;
     uint64_t address = 0;
     uint64_t size = 0;
+    uint32_t addressWidth = 0;
 
     target->resize(0);
 
     PDRead_find_u64(reader, &address, "address", 0);
+    PDRead_find_u32(reader, &addressWidth, "address_width", 0);
 
     if (PDRead_find_data(reader, (void**)&data, &size, "data", 0) == PDReadStatus_NotFound) {
-        return;
+        return addressWidth;
     }
 
     for (uint64_t i = 0; i < size; ++i) {
@@ -144,6 +146,8 @@ static void updateMemory(QVector<uint16_t>* target, PDReader* reader)
         t |= IBackendRequests::MemoryAddressFlags::Writable;
         target->append(t);
     }
+
+    return addressWidth;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -263,6 +267,7 @@ void BackendSession::beginReadRegisters(QVector<IBackendRequests::Register>* tar
 
 void BackendSession::beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target)
 {
+    uint32_t addressWidth = 0;
     uint32_t event;
 
     qDebug() << "Got memory request";
@@ -281,13 +286,14 @@ void BackendSession::beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>
     while ((event = PDRead_get_event(m_reader))) {
         switch (event) {
             case PDEventType_SetMemory: {
-                updateMemory(target, m_reader);
+                addressWidth = updateMemory(target, m_reader);
                 break;
             }
         }
     }
 
-    endReadMemory(target, lo, 0);
+    // TODO: Fix me
+    endReadMemory(target, lo, addressWidth);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
