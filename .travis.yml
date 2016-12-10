@@ -17,5 +17,5 @@ matrix:
     - make
     - sudo make install
     - cd ..
-    - export QT5=/opt/qt57; tundra2 -v linux-gcc-debug
+    - export QT5=/opt/qt57; tundra2 -v -j 1 linux-gcc-debug
   - <<: *common
