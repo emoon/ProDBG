@@ -16,6 +16,10 @@ I did a presentation on 2014-11 about the project for the awesome rendering team
 
 As the rewrite of ProDBG (to using Qt in C++) is currently under way no debugging is working currently as everything is being brought up again. Notice that the intention is still to Rust as the main language when this has been tested out and a good API boundry can be setup.
 
+## Cloning the repository
+
+The ProDBG repository contains submodules. Clone it with `git clone --recursive`. If you forgot to clone it recursively the first time, from within the cloned repository run `git submodule update --init --recursive`.
+
 ## How to compile and build
 
 Latest stable version of **Rust** (1.13+) needs to be present on the system. We recommend using [rustup](https://www.rustup.rs/) to install and manage your Rust toolchain(s). There are also other ways to [install rustup](https://github.com/rust-lang-nursery/rustup.rs/#other-installation-methods). If you already have rustup installed but aren't on the latest stable Rust, you can simply run `rustup update`.
