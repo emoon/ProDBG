@@ -254,6 +254,13 @@ function apply_msvc_visual_studio(version, env, options)
 
   -- We'll find any edition of VS (including Express) here
   local vs_root = native.reg_query("HKLM", "SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VS7", version)
+  if vs_root == nil then
+    -- This is necessary for supporting the "Visual C++ Build Tools", which includes only the Compiler & SDK (not Visual Studio)
+    local vc_root = native.reg_query("HKLM", "SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7", version)
+    if vc_root ~= nil then
+      vs_root = string.gsub(vc_root, "\\VC\\$", "\\")
+    end
+  end
   assert(vs_root, "Visual Studio [Version " .. version .. "] isn't installed. To use a different Visual Studio version, edit tundra.lua accordingly")
   vs_root = string.gsub(vs_root, "\\+$", "\\")
 

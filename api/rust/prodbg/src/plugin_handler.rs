@@ -1,5 +1,4 @@
 use backend::*;
-use view::*;
 use std::os::raw::{c_char, c_void};
 use std::mem::transmute;
 
@@ -15,14 +14,6 @@ impl PluginHandler {
     pub fn register_backend(&self, plugin: &CBackendCallbacks) {
         unsafe {
             (self.c_register_plugin)(BACKEND_API_VERSION.as_ptr() as *const i8,
-                                     transmute(plugin),
-                                     (self.private_data));
-        }
-    }
-
-    pub fn register_view(&self, plugin: &CViewCallbacks) {
-        unsafe {
-            (self.c_register_plugin)(VIEW_API_VERSION.as_ptr() as *const i8,
                                      transmute(plugin),
                                      (self.private_data));
         }

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen"/>
+    <addaction name="actionDebugAmigaExe"/>
+   </widget>
+   <widget class="QMenu" name="menuDebug">
+    <property name="title">
+     <string>Debug</string>
+    </property>
+    <addaction name="actionBreak"/>
+    <addaction name="actionStart"/>
+    <addaction name="actionStop"/>
+    <addaction name="actionStep_In"/>
+    <addaction name="actionStep_Over"/>
+    <addaction name="actionToggleBreakpoint"/>
+   </widget>
+   <widget class="QMenu" name="menuConfig">
+    <property name="title">
+     <string>Config</string>
+    </property>
+    <addaction name="actionAmiga_UAE"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionToggleSourceAsm"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuView"/>
+   <addaction name="menuDebug"/>
+   <addaction name="menuConfig"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionStart">
+   <property name="text">
+    <string>Start</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+  </action>
+  <action name="actionStop">
+   <property name="text">
+    <string>Stop</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+F5</string>
+   </property>
+  </action>
+  <action name="actionStep_In">
+   <property name="text">
+    <string>Step In</string>
+   </property>
+   <property name="shortcut">
+    <string>F11</string>
+   </property>
+  </action>
+  <action name="actionStep_Over">
+   <property name="text">
+    <string>Step Over</string>
+   </property>
+   <property name="shortcut">
+    <string>F10</string>
+   </property>
+  </action>
+  <action name="actionToggleBreakpoint">
+   <property name="text">
+    <string>Toggle Breakpoint</string>
+   </property>
+   <property name="shortcut">
+    <string>F9</string>
+   </property>
+  </action>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionAmiga_UAE">
+   <property name="text">
+    <string>Amiga UAE...</string>
+   </property>
+  </action>
+  <action name="actionDebugAmigaExe">
+   <property name="text">
+    <string>Debug Amiga Executable..</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
+  </action>
+  <action name="actionBreak">
+   <property name="text">
+    <string>Break</string>
+   </property>
+   <property name="shortcut">
+    <string>F4</string>
+   </property>
+  </action>
+  <action name="actionToggleSourceAsm">
+   <property name="text">
+    <string>Toggle Source / Disassembly</string>
+   </property>
+   <property name="shortcut">
+    <string>Space</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

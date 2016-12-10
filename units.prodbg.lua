@@ -1,247 +1,131 @@
 require "tundra.syntax.glob"
+require "tundra.syntax.qt"
 require "tundra.syntax.rust-cargo"
 require "tundra.path"
 require "tundra.util"
 
 local native = require('tundra.native')
 
------------------------------------------------------------------------------------------------------------------------
+local function gen_uic(src)
+    return Uic {
+        Pass = "GenerateSources",
+        Source = src
+    }
+end
 
-local function get_rs_src(dir)
-	return Glob {
-		Dir = dir,
-		Extensions = { ".rs", ".in" },
-		Recursive = true,
-	}
+local function gen_moc(src)
+    return Moc {
+        Pass = "GenerateSources",
+        Source = src
+    }
 end
 
 -----------------------------------------------------------------------------------------------------------------------
 
-local function get_rs_native_src(dir)
-	return Glob {
-		Dir = dir,
-		Extensions = { ".rs", ".c", ".m", ".mm" },
-		Recursive = true,
-	}
-end
+Program {
+    Name = "prodbg",
+    Sources = {
+        Glob {
+            Dir = "src/prodbg",
+            Extensions = { ".cpp", ".h" },
+            Recursive = true,
+        },
 
------------------------------------------------------------------------------------------------------------------------
+        gen_uic("src/prodbg/Config/AmigaUAEConfig.ui"),
+        gen_moc("src/prodbg/Config/AmigaUAEConfig.h"),
 
-RustCrate {
-	Name = "prodbg_api",
-	CargoConfig = "api/rust/prodbg/Cargo.toml",
-	Sources = {
-		get_rs_src("api/rust/prodbg"),
-	},
-}
+        gen_uic("src/prodbg/RegisterView/RegisterView.ui"),
+        gen_moc("src/prodbg/RegisterView/RegisterView.h"),
 
------------------------------------------------------------------------------------------------------------------------
+        gen_uic("src/prodbg/MainWindow.ui"),
+        gen_uic("src/prodbg/MemoryView/MemoryView.ui"),
+        gen_moc("src/prodbg/MainWindow.h"),
 
-RustCrate {
-	Name = "viewdock",
-	CargoConfig = "src/prodbg/viewdock/Cargo.toml",
-	Sources = {
-		get_rs_src("src/prodbg/viewdock"),
-		get_rs_src("src/helpers/serde_macros"),
-	},
-}
+        gen_moc("src/prodbg/Backend/IBackendRequests.h"),
+        gen_moc("src/prodbg/Backend/BackendRequests.h"),
+        gen_moc("src/prodbg/Backend/BackendSession.h"),
+        gen_moc("src/prodbg/AmigaUAE/AmigaUAE.h"),
 
------------------------------------------------------------------------------------------------------------------------
+        gen_moc("src/prodbg/CodeView/CodeView.h"),
+        gen_moc("src/prodbg/CodeView/DisassemblyView.h"),
+        gen_moc("src/prodbg/MemoryView/MemoryView.h"),
+        gen_moc("src/prodbg/MemoryView/MemoryViewWidget.h"),
+    },
 
-RustCrate {
-	Name = "settings",
-	CargoConfig = "src/crates/settings/Cargo.toml",
-	Sources = {
-		get_rs_src("src/crates/settings"),
-	},
-}
+    Env = {
+       CXXOPTS = {
+            { "-isystem $(QT5)/lib/QtWidgets.framework/Headers",
+              "-isystem $(QT5)/lib/QtCore.framework/Headers",
+              "-isystem $(QT5)/lib/QtGui.framework/Headers",
+              "-F$(QT5)/lib"; Config = "macosx-*-*" },
 
------------------------------------------------------------------------------------------------------------------------
+            { "-isystem $(QT5)/include/QtWidgets",
+              "-isystem $(QT5)/include/QtCore",
+              "-isystem $(QT5)/include/QtGui",
+              "-isystem $(QT5)/include"; Config = "linux-*-*" },
+        },
 
-RustCrate {
-	Name = "project",
-	CargoConfig = "src/crates/project/Cargo.toml",
-	Sources = {
-		get_rs_src("src/crates/project"),
-	},
-}
+        CPPDEFS = {
+            "QT_NO_KEYWORDS",
+            "QT_NO_CAST_FROM_ASCII",
+            "QT_NO_CAST_TO_ASCII",
+        },
 
------------------------------------------------------------------------------------------------------------------------
+        CPPPATH = {
+            "$(QT5)/include",
+            "$(QT5)/include/QtCore",
+            "$(QT5)/include/QtGui",
+            "$(QT5)/include/QtWidgets",
+            "src/prodbg",
+        	"api/include",
+            "$(OBJECTROOT)", "$(OBJECTDIR)",
+        },
 
-RustCrate {
-	Name = "bgfx",
-	CargoConfig = "src/prodbg/bgfx-rs/Cargo.toml",
-	Sources = {
-		get_rs_src("src/prodbg/bgfx-rs"),
-		get_rs_src("api/rust"),
-		"src/prodbg/build.rs",
-	},
+        LIBPATH = {
+			{ "$(QT5)\\lib"; Config = "win64-*-*" },
+			{ "$(QT5)/lib"; Config = "linux-*-*" },
+		},
 
-    Depends = { "bgfx_native" },
-}
+        PROGCOM = {
+            {  "-Wl,-rpath,$(QT5)/lib", "-F$(QT5)/lib", "-lstdc++", Config = "macosx-clang-*" },
+            {  "-Wl,-rpath,$(QT5)/lib", "-lstdc++", Config = "linux-*-*" },
+        },
+    },
 
------------------------------------------------------------------------------------------------------------------------
-
-RustCrate {
-	Name = "renderer",
-	CargoConfig = "src/prodbg/renderer/Cargo.toml",
-	Sources = {
-		get_rs_src("src/prodbg/renderer"),
-		get_rs_src("src/prodbg/imgui_sys"),
-		get_rs_src("src/prodbg/bgfx-rs"),
-		"src/prodbg/build.rs",
-	},
-}
-
-
------------------------------------------------------------------------------------------------------------------------
-
-RustCrate {
-	Name = "imgui_sys",
-	CargoConfig = "src/prodbg/imgui_sys/Cargo.toml",
-	Sources = {
-		get_rs_src("src/prodbg/imgui_sys"),
-		get_rs_src("api/rust"),
-		"src/prodbg/build.rs",
-	},
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-RustCrate  {
-	Name = "core",
-	CargoConfig = "src/prodbg/core/Cargo.toml",
-	Sources = {
-		get_rs_src("src/prodbg/core"),
-		"src/prodbg/build.rs",
-	},
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-RustCrate  {
-	Name = "serde_macros",
-	CargoConfig = "src/helpers/serde_macros/Cargo.toml",
-	Sources = {
-		get_rs_src("src/helpers/serde_macros"),
-	},
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-RustCrate  {
-	Name = "number_view",
-	CargoConfig = "src/helpers/number_view/Cargo.toml",
-	Sources = {
-		get_rs_src("src/helpers/number_view"),
-	},
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-RustCrate  {
-	Name = "combo",
-	CargoConfig = "src/helpers/combo/Cargo.toml",
-	Sources = {
-		get_rs_src("src/helpers/combo"),
-	},
-	Depends = { "prodbg_api" }
-}
-
------------------------------------------------------------------------------------------------------------------------
-
-RustCrate  {
-	Name = "char_editor",
-	CargoConfig = "src/helpers/char_editor/Cargo.toml",
-	Sources = {
-		get_rs_src("src/helpers/char_editor"),
-	},
-	Depends = { "prodbg_api" }
-}
-
------------------------------------------------------------------------------------------------------------------------
-
---[[
-
-RustProgram {
-	Name = "ui_testbench",
-	CargoConfig = "src/prodbg/ui_testbench/Cargo.toml",
-	Sources = {
-		get_rs_src("src/prodbg/ui_testbench"),
-		"src/prodbg/build.rs",
+	Libs = {
+		{ "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib",
+		  "Advapi32.lib", "Qt5Gui.lib", "Qt5Core.lib", "Qt5Widgets.lib"; Config = "win64-*-*" },
+		{ "Qt5Gui", "Qt5Core", "Qt5Widgets"; Config = "linux-*-*" },
 	},
 
-    Depends = { "lua", "remote_api", "stb", "bgfx_native", "bgfx", "ui",
-    			"imgui", "scintilla", "tinyxml2", "capstone", "imgui_sys", "core" },
-}
+    Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore" },
 
---]]
-
------------------------------------------------------------------------------------------------------------------------
-
-RustProgram {
-	Name = "prodbg",
-	CargoConfig = "src/prodbg/main/Cargo.toml",
-	Sources = {
-		get_rs_src("src/prodbg/main"),
-		get_rs_src("src/helpers/serde_macros"),
-		-- get_rs_src("src/prodbg/core"),
-		-- get_rs_src("src/ui"),
-		"src/prodbg/build.rs",
-	},
-
-    Depends = { "lua", "remote_api", "stb", "bgfx_native", "bgfx", "ui",
-    			"imgui", "tinyxml2", "capstone", "renderer", "scintilla",
-    			"imgui_sys", "core", "viewdock", "settings", "prodbg_api",
-    			"settings", "project", "serde_macros", "number_view", "char_editor", "combo" },
+    Depends = { "remote_api", "capstone" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
 
 local prodbgBundle = OsxBundle
 {
-	Depends = { "prodbg" },
-	Target = "$(OBJECTDIR)/ProDBG.app",
-	InfoPList = "Data/Mac/Info.plist",
-	Executable = "$(OBJECTDIR)/prodbg",
-	Resources = {
-		CompileNib { Source = "data/mac/appnib.xib", Target = "appnib.nib" },
-		"data/mac/icon.icns",
-	},
+    Depends = { "prodbg" },
+    Target = "$(OBJECTDIR)/ProDBG.app",
+    InfoPList = "Data/Mac/Info.plist",
+    Executable = "$(OBJECTDIR)/prodbg",
+    Resources = {
+        CompileNib { Source = "data/mac/appnib.xib", Target = "appnib.nib" },
+        "data/mac/icon.icns",
+    },
 
-	Config = { "macosx-clang-debug-default" ; "macosx-clang-release-default" },
+    Config = { "macosx-clang-debug-default" ; "macosx-clang-release-default" },
 }
-
------------------------------------------------------------------------------------------------------------------------
-
---[[
-
-local uiBundle = OsxBundle
-{
-	Depends = { "ui_testbench" },
-	Target = "$(OBJECTDIR)/UITestbench.app",
-	InfoPList = "Data/Mac/Info.plist",
-	Executable = "$(OBJECTDIR)/ui_testbench",
-	Resources = {
-		CompileNib { Source = "data/mac/appnib.xib", Target = "appnib2.nib" },
-		"data/mac/icon.icns",
-	},
-
-	Config = { "macosx-clang-debug-default" ; "macosx-clang-release-default" },
-}
-
---]]
 
 -----------------------------------------------------------------------------------------------------------------------
 
 if native.host_platform == "macosx" then
-	Default "prodbg"
-	--Default "ui_testbench"
-	Default(prodbgBundle)
-	--Default(uiBundle)
+    Default "prodbg"
+    Default(prodbgBundle)
 else
-	Default "prodbg"
-	--Default "ui_testbench"
+    Default "prodbg"
 end
 
 -- vim: ts=4:sw=4:sts=4

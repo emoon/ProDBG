@@ -1,9 +1,6 @@
 use read_write::*;
 use service::*;
-use ui_ffi::CPdUI;
-use ui::Ui;
 use std::os::raw::{c_uchar, c_int, c_void};
-use menu_service::{MenuFuncs, CMenuFuncs1};
 use std::mem::transmute;
 use io::{CPDSaveState, StateSaver, CPDLoadState, StateLoader};
 
@@ -72,8 +69,6 @@ pub static BACKEND_API_VERSION: &'static [u8] = b"ProDBG Backend 1\0";
 pub trait Backend {
     fn new(service: &Service) -> Self;
     fn update(&mut self, action: i32, reader: &mut Reader, writer: &mut Writer);
-    fn show_config(&mut self, ui: &mut Ui);
-    fn register_menu(&mut self, menu_funcs: &mut MenuFuncs) -> *mut c_void;
     fn save_state(&mut self, _: StateSaver) {}
     fn load_state(&mut self, _: StateLoader) {}
 }
@@ -85,9 +80,7 @@ pub struct CBackendCallbacks {
     pub name: *const c_uchar,
     pub create_instance: Option<fn(service_func: ServiceFunc) -> *mut c_void>,
     pub destroy_instance: Option<fn(*mut c_void)>,
-    pub register_menu: Option<fn(ptr: *mut c_void, menu_funcs: *mut c_void) -> *mut c_void>,
     pub update: Option<fn(ptr: *mut c_void, a: c_int, ra: *mut c_void, wa: *mut c_void)>,
-    pub show_config: Option<fn(ptr: *mut c_void, ui: *mut c_void)>,
     pub save_state: Option<fn(*mut c_void, api: *mut CPDSaveState)>,
     pub load_state: Option<fn(*mut c_void, api: *mut CPDLoadState)>,
 }
@@ -126,13 +119,6 @@ pub fn update_backend_instance<T: Backend>(ptr: *mut c_void,
     backend.update(action as i32, &mut reader, &mut writer);
 }
 
-pub fn show_backend_config<T: Backend>(ptr: *mut c_void, ui_api: *mut c_void) {
-    let backend: &mut T = unsafe { &mut *(ptr as *mut T) };
-    let c_ui: &mut CPdUI = unsafe { &mut *(ui_api as *mut CPdUI) };
-    let mut ui = Ui::new(c_ui);
-    backend.show_config(&mut ui);
-}
-
 pub fn save_backend_state<T: Backend>(ptr: *mut c_void, saver_api: *mut CPDSaveState) {
     let view: &mut T = unsafe { &mut *(ptr as *mut T) };
     let saver = StateSaver::new(saver_api);
@@ -145,12 +131,6 @@ pub fn load_backend_state<T: Backend>(ptr: *mut c_void, loader_api: *mut CPDLoad
     view.load_state(loader);
 }
 
-pub fn register_backend_menu<T: Backend>(ptr: *mut c_void, menu_api: *mut c_void) -> *mut c_void {
-    let backend: &mut T = unsafe { &mut *(ptr as *mut T) };
-    let mut menu_funcs = MenuFuncs { api: menu_api as *mut CMenuFuncs1 };
-    backend.register_menu(&mut menu_funcs)
-}
-
 #[macro_export]
 macro_rules! define_backend_plugin {
     ($p_name:ident, $name:expr, $x:ty) => {
@@ -158,9 +138,7 @@ macro_rules! define_backend_plugin {
             name: $name as *const u8,
             create_instance: Some(prodbg_api::backend::create_backend_instance::<$x>),
             destroy_instance: Some(prodbg_api::backend::destroy_backend_instance::<$x>),
-            register_menu: Some(prodbg_api::backend::register_backend_menu::<$x>),
             update: Some(prodbg_api::backend::update_backend_instance::<$x>),
-            show_config: Some(prodbg_api::backend::show_backend_config::<$x>),
 			save_state: Some(prodbg_api::backend::save_backend_state::<$x>),
 			load_state: Some(prodbg_api::backend::load_backend_state::<$x>)
         };

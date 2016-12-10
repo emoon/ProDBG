@@ -1,4 +1,4 @@
-#include <pd_backend.h> 
+#include <pd_backend.h>
 #include "debugger6502.h"
 #include <string.h>
 #include <stdlib.h>
@@ -73,7 +73,7 @@ static void setRegisters(PDWriter* writer)
 
 static void setExceptionLocation(PDWriter* writer)
 {
-    PDWrite_event_begin(writer,PDEventType_SetExceptionLocation); 
+    PDWrite_event_begin(writer,PDEventType_SetExceptionLocation);
     PDWrite_u16(writer, "address", pc);
     PDWrite_u8(writer, "address_size", 2);
     PDWrite_event_end(writer);
@@ -126,17 +126,17 @@ static void doAction(Debugger6502* debugger, PDAction action, PDWriter* writer)
 
     switch (t)
     {
-        case PDAction_Break : 
+        case PDAction_Break :
         {
             // On this target we can anways break so just set that we have stopped on breakpoint
-            
+
             printf("Fake6502Debugger: break\n");
             debugger->runState = PDDebugState_StopException;
             sendState(writer);
             break;
         }
 
-        case PDAction_Run : 
+        case PDAction_Run :
         {
             // on this target we can always start running directly again
             printf("Fake6502Debugger: run\n");
@@ -144,9 +144,9 @@ static void doAction(Debugger6502* debugger, PDAction action, PDWriter* writer)
             break;
         }
 
-        case PDAction_Step : 
+        case PDAction_Step :
         {
-            // on this target we can always stepp 
+            // on this target we can always stepp
             printf("Fake6502Debugger: step\n");
             debugger->runState = PDDebugState_Trace;
             sendState(writer);
@@ -189,7 +189,6 @@ PDBackendPlugin s_debuggerPlugin =
     "Fake6502",
     createInstance,
     destroyInstance,
-    0,
     update,
 };
 

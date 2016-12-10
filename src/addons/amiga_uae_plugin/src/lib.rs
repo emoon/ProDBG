@@ -2,18 +2,15 @@
 extern crate prodbg_api;
 extern crate gdb_remote;
 extern crate amiga_hunk_parser;
-extern crate nfd;
 
 mod debug_info;
 
 use prodbg_api::*;
 use std::str;
 use std::io::Result;
-use std::os::raw::c_void;
 use gdb_remote::GdbRemote;
 use debug_info::DebugInfo;
-use nfd::Response;
-use std::path::{Path, PathBuf};
+//use std::path::{Path, PathBuf};
 
 struct Breakpoint {
     file_line: Option<(String, u32)>,
@@ -30,9 +27,11 @@ struct AmigaUaeBackend {
     conn: GdbRemote,
     exception_location: u32,
     id_amiga_uae_dma_time: u16,
+    id_amiga_uae_set_file: u16,
+    id_amiga_uae_set_hdd_path: u16,
     amiga_exe_file_path: String,
     uae_partition_path: String,
-    break_at_start: bool,
+    _break_at_start: bool,
     debug_info: DebugInfo,
     segments: Vec<Segment>,
     status: String,
@@ -91,7 +90,6 @@ impl AmigaUaeBackend {
         // Status registers & pc
 
         let pc = Self::get_u32(&data[index + 4..]);
-
         self.exception_location = pc;
 
         Self::write_register(writer, "sr", &data[index..], true);
@@ -110,7 +108,7 @@ impl AmigaUaeBackend {
             _ => (),
         }
 
-        let mut scratch_string = String::with_capacity(256);
+        //let mut scratch_string = String::with_capacity(256);
 
         let address = reader.find_u64("address_start").ok().unwrap();
         let count = reader.find_u32("instruction_count").ok().unwrap();
@@ -129,6 +127,8 @@ impl AmigaUaeBackend {
 
         if let Ok(insns) = self.capstone.disasm(&data, address as u64, 0) {
             writer.event_begin(EventType::SetDisassembly as u16);
+            writer.write_u32("address_width", 4);
+
             writer.array_begin("disassembly");
             let mut c = 0;
 
@@ -140,6 +140,7 @@ impl AmigaUaeBackend {
                 writer.write_u32("address", i.address as u32);
                 writer.write_string("line", &text);
 
+                /*
                 scratch_string.clear();
 
                 for register in i.regs_read().unwrap() {
@@ -165,6 +166,7 @@ impl AmigaUaeBackend {
                     let t = scratch_string.trim_right();
                     writer.write_string("registers_write", t);
                 }
+                */
 
                 writer.array_entry_end();
 
@@ -215,7 +217,7 @@ impl AmigaUaeBackend {
             }
         }
 
-        println!("Location not found :(");
+        //println!("Location not found :(");
     }
 
     fn write_exception_location(&mut self, writer: &mut Writer) {
@@ -240,7 +242,7 @@ impl AmigaUaeBackend {
             }
 
             if let Err(err) = conn.send_command_wait_reply_raw(&mut res, &command) {
-                println!("Unable to send breakpoint to UAE {} - {:?}", command, err) 
+                println!("Unable to send breakpoint to UAE {} - {:?}", command, err)
             }
         } else {
             println!("No debug info, storing breakpoint and send it later");
@@ -262,10 +264,10 @@ impl AmigaUaeBackend {
                 println!("trying to add breakpoint {} - {}", filename, line);
                 self.set_breakpoint_file_line(filename, line);
             }
-        } else if let Some(address) = reader.find_u32("address").ok() {
+        } else if let Some(address) = reader.find_u64("address").ok() {
             self.breakpoints.push(Breakpoint {
                 file_line: None,
-                address: Some(address),
+                address: Some(address as u32),
             });
 
             if self.conn.set_breakpoint_at_address(address as u64).is_err() {
@@ -285,6 +287,7 @@ impl AmigaUaeBackend {
     fn send_breakpoints(&mut self) {
         for breakpoint in &self.breakpoints {
             if let Some((ref file, line)) = breakpoint.file_line {
+                println!("AmigaUAE: Sending breakpoint {} - {}", file, line);
                 Self::toggle_breakpoint_fileline(&mut self.conn, &self.debug_info, file, line, true);
             } else if let Some(address) = breakpoint.address {
                 if self.conn.set_breakpoint_at_address(address as u64).is_err() {
@@ -297,11 +300,10 @@ impl AmigaUaeBackend {
     fn get_registers(&mut self, writer: &mut Writer) {
         let mut register_data = [0; 1024];
         if self.conn.get_registers(&mut register_data).is_ok() {
-            println!("setting registers!");
             self.write_registers(writer, &register_data);
+        } else {
+            println!("Unable to get registers from UAE");
         }
-
-        self.write_exception_location(writer);
     }
 
 
@@ -343,8 +345,27 @@ impl AmigaUaeBackend {
         }
 
         if should_break {
-            self.get_registers(writer);
+            println!("Should break!");
+            self.write_exception_location(writer);
         }
+    }
+
+    fn step(&mut self, writer: &mut Writer) {
+        let mut step_res = [0; 16];
+        if self.conn.step(&mut step_res).is_err() {
+            println!("Unable to step!");
+            return;
+        }
+
+        let mut register_data = [0; 1024];
+        if self.conn.get_registers(&mut register_data).is_err() {
+            println!("Unable to get registers!");
+            return;
+        }
+
+        self.exception_location = Self::get_u32(&register_data[64 + 4..]);
+
+        self.write_exception_location(writer);
     }
 
     fn connect(&mut self) -> Result<()> {
@@ -356,6 +377,20 @@ impl AmigaUaeBackend {
         try!(self.conn.request_no_ack_mode());
 
         Ok(())
+    }
+
+    fn set_file(&mut self, reader: &mut Reader) {
+        if let Ok(filename) = reader.find_string("text") {
+            println!("AmigaUAEBackend: Set file path {}", filename);
+            self.amiga_exe_file_path = filename.to_owned();
+        }
+    }
+
+    fn set_hdd_path(&mut self, reader: &mut Reader) {
+        if let Ok(path) = reader.find_string("text") {
+            println!("AmigaUAEBackend: Set uae path {}", path);
+            self.uae_partition_path = path.to_owned();
+        }
     }
 
     fn store_segments(&mut self, segment_reply: &[u8]) {
@@ -380,68 +415,22 @@ impl AmigaUaeBackend {
             });
         }
     }
-
-    fn show_file_dir_select(name: &str, temp: &mut [u8], path: &mut String, ui: &Ui) {
-        temp[..path.len()].copy_from_slice(path.as_bytes());
-
-        if ui.input_text(name, temp.as_mut(), 
-                      PDUIINPUTTEXTFLAGS_ENTERRETURNSTRUE | 
-                      PDUIINPUTTEXTFLAGS_AUTOSELECTALL,
-                      None) {
-            let null_index = temp.iter().position(|c| *c == 0).unwrap_or(temp.len());
-            if let Ok(parsed) = str::from_utf8(&temp[..null_index]) {
-                *path = parsed.to_string();
-            }
-        }
-    }
-
-    fn get_sub_path(&mut self, source: &str) {
-        let mut new_path = PathBuf::new();
-        let source_path = Path::new(source);
-        let needle_path = Path::new(&self.uae_partition_path);
-
-        let mut n = source_path.components();
-
-        for _ in needle_path.components() {
-            n.next();
-        }
-
-        for t in n {
-            match t {
-                std::path::Component::Normal(path) => new_path.push(path),
-                _ => (),
-            }
-        }
-
-        self.amiga_exe_file_path = "dh0:".to_owned() + new_path.as_path().to_string_lossy().as_ref();
-    }
-
-    fn set_file_exe_path(&mut self, filename: &str) {
-        if self.uae_partition_path == "" {
-            println!("Set path to UAE HDD first");
-            return;
-        }
-
-        // Make sure that file is within the partition path 
-        if !filename.contains(&self.uae_partition_path) {
-            println!("File {} isn't within the set partition path", filename);
-            return;
-        }
-
-        self.get_sub_path(filename);
-    }
 }
 
 impl Backend for AmigaUaeBackend {
     fn new(service: &Service) -> Self {
+        let id_service = service.get_id_register();
+
         AmigaUaeBackend {
             capstone: service.get_capstone(),
-            id_amiga_uae_dma_time: service.get_id_register().register_id("AmigaUAEDmaTime"),
+            id_amiga_uae_dma_time: id_service.register_id("AmigaUAE_DmaTime"),
+            id_amiga_uae_set_file: id_service.register_id("AmigaUAE_SetFile"),
+            id_amiga_uae_set_hdd_path: id_service.register_id("AmigaUAE_SetHddPath"),
             conn: GdbRemote::new(),
             exception_location: 0,
             amiga_exe_file_path: "".to_owned(),
             uae_partition_path: "".to_owned(),
-            break_at_start: false,
+            _break_at_start: false,
             debug_info: DebugInfo::new(),
             segments: Vec::new(),
             status: "Not Connected".to_owned(),
@@ -453,9 +442,13 @@ impl Backend for AmigaUaeBackend {
         self.update_conn_incoming(writer);
 
         for event in reader.get_event() {
-            println!("getting event {}", event);
+            //println!("getting event {}", event);
 
             match event {
+                EVENT_GET_REGISTERS => {
+                    self.get_registers(writer);
+                }
+
                 EVENT_GET_DISASSEMBLY => {
                     self.write_disassembly(reader, writer);
                 }
@@ -477,13 +470,19 @@ impl Backend for AmigaUaeBackend {
                     self.write_exception_location(writer);
                 }
 
-                _ => (),
+                _ => {
+                    if event as u16 == self.id_amiga_uae_set_file {
+                        self.set_file(reader);
+                    } else if event as u16 == self.id_amiga_uae_set_hdd_path {
+                        self.set_hdd_path(reader);
+                    }
+                }
             }
         }
 
         match action {
             ACTION_BREAK => {
-                println!("Break");
+                self.step(writer);
             }
 
             ACTION_RUN => {
@@ -501,25 +500,24 @@ impl Backend for AmigaUaeBackend {
                     return;
                 }
 
+                println!("Sending breakpoints...");
                 self.send_breakpoints();
+                println!("Sending breakpoints... Done");
 
                 let run_cmd = format!("vRun;{};", self.amiga_exe_file_path);
 
                 if self.conn.send_command_wait_reply_raw(&mut res, &run_cmd).is_ok() {
                     let null_index = res.iter().position(|c| *c == 0).unwrap_or(res.len());
                     self.store_segments(&res[..null_index]);
+                } else {
+                    println!("Didn't get relpy with segmnts");
                 }
 
                 self.status = format!("Connected (127.0.0.1) Running {}", &self.amiga_exe_file_path);
             }
 
             ACTION_STEP => {
-                let mut step_res = [0; 16];
-                if self.conn.step(&mut step_res).is_err() {
-                    println!("Unable to step!");
-                    return;
-                }
-                self.get_registers(writer);
+                self.step(writer);
             }
 
             ACTION_STEP_OVER => {
@@ -545,76 +543,6 @@ impl Backend for AmigaUaeBackend {
         //writer.event_begin(EVENT_SET_STATUS as u16);
         //writer.write_string("status", &self.status);
         //writer.event_end();
-    }
-
-    fn show_config(&mut self, ui: &mut Ui) {
-        let mut buf: [u8; 4096] = [0; 4096];
-        let mut buf2: [u8; 4096] = [0; 4096];
-
-        ui.align_first_text_height_to_widgets();
-
-        ui.text("UAE Partition Path");
-        ui.same_line(220, -1);
-        Self::show_file_dir_select("##Partition", &mut buf2, &mut self.uae_partition_path, ui);
-
-        ui.same_line(0, -1);
-        if ui.button("...##1", None) {
-            let result = nfd::open_pick_folder(Some(&self.uae_partition_path)).unwrap_or_else(|e| {
-                panic!(e);
-            });
-
-            match result {
-                Response::Okay(file_path) => self.uae_partition_path = file_path, 
-                _ => (),
-            }
-        }
-
-        ui.text("Executable (dh0:<exe>)");
-        ui.same_line(220, -1);
-        Self::show_file_dir_select("##Executable", &mut buf, &mut self.amiga_exe_file_path, ui);
-
-        ui.same_line(0, -1);
-        if ui.button("...##2", None) {
-            let result = nfd::open_file_dialog(None, Some(&self.amiga_exe_file_path)).unwrap_or_else(|e| {
-                panic!(e);
-            });
-
-            match result {
-                Response::Okay(file_path) => self.set_file_exe_path(&file_path), 
-                _ => (),
-            }
-        }
-
-        ui.checkbox("Break at Main", &mut self.break_at_start);
-    }
-
-    fn save_state(&mut self, mut saver: StateSaver) {
-        let break_at_start = if self.break_at_start { 1 } else { 0 };
-        saver.write_str(&self.amiga_exe_file_path);
-        saver.write_str(&self.uae_partition_path);
-        saver.write_int(break_at_start);
-    }
-
-    fn load_state(&mut self, mut loader: StateLoader) {
-        let fp = loader.read_string();
-
-        if let LoadResult::Ok(file_path) = fp {
-            self.amiga_exe_file_path = file_path;
-        }
-
-        let res = loader.read_string();
-
-        if let LoadResult::Ok(uae_part) = res {
-            self.uae_partition_path = uae_part;
-        }
-
-        if let LoadResult::Ok(break_at_start) = loader.read_int() {
-            self.break_at_start = break_at_start == 1; 
-        }
-    }
-
-    fn register_menu(&mut self, _menu_funcs: &mut MenuFuncs) -> *mut c_void {
-        std::ptr::null_mut() as *mut c_void
     }
 }
 

@@ -1,27 +1,29 @@
-sudo: required
+__common: &common
+  language: rust
+  rust: stable
+  cache: cargo
 
-language: rust
-
-osx_image: xcode7.3
-
-compiler:
-    - gcc
-    - clang
-
-before_install:
-    - echo $LANG
-    - echo $LC_ALL
-    - if [ $TRAVIS_OS_NAME == linux ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
-    - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get update && sudo apt-get install -y libx11-dev libgl1-mesa-dev g++-4.9 libgtk-3-dev pkg-config; fi
-    - if [ $TRAVIS_OS_NAME == linux ]; then sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 90; fi
-    - if [ $TRAVIS_OS_NAME == linux ]; then git clone https://github.com/emoon/tundra.git; cd tundra; make; sudo make install; cd ..; fi
-
-script:
-    - if [ $TRAVIS_OS_NAME == linux ]; then tundra2 linux-gcc-debug api_gen; fi
-    - if [ $TRAVIS_OS_NAME == linux ]; then tundra2 linux-gcc-debug-test; fi
-    - if [ $TRAVIS_OS_NAME == osx ]; then bin/macosx/tundra/tundra2 macosx-clang-debug api_gen; fi
-    - if [ $TRAVIS_OS_NAME == osx ]; then bin/macosx/tundra/tundra2 macosx-clang-debug-test; fi
-os:
-  - linux
-  - osx
-
+matrix:
+  include:
+  - <<: *common
+    os: linux
+    dist: trusty
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-6
+    env: COMPILER=g++-6
+    script:
+    - sudo add-apt-repository ppa:beineri/opt-qt57-trusty --yes
+    - sudo apt-get update
+    - sudo apt-get install qt57base mesa-common-dev
+    - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90;
+    - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 90;
+    - git clone https://github.com/deplinenoise/tundra.git
+    - cd tundra
+    - make
+    - sudo make install
+    - cd ..
+    - export QT5=/opt/qt57; g++ --version ; tundra2 -v linux-gcc-debug

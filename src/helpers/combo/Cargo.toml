@@ -1,7 +1,0 @@
-[package]
-name = "combo"
-version = "0.1.0"
-authors = ["slnpacifist <slnpacifist@gmail.com>"]
-
-[dependencies]
-prodbg_api = { path = "../../../api/rust/prodbg" }

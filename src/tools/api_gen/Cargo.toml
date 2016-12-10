@@ -1,7 +1,0 @@
-[package]
-name = "api_gen"
-version = "0.1.1"
-authors = ["Krzysztof Kondrak <krzysztof.kondrak@gmail.com>"]
-
-[dependencies]
-codespawn = "0.3.1"

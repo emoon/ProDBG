@@ -1,13 +1,12 @@
 #include "pd_backend.h"
 #include "pd_host.h"
 #include "pd_menu.h"
-#include "pd_ui.h"
 #include "pd_io.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <tinyexpr/tinyexpr.h>
+//#include <tinyexpr/tinyexpr.h>
 
 #define sizeof_array(t) (sizeof(t) / sizeof(t[0]))
 
@@ -396,7 +395,7 @@ double get_reg_for_expression(const Register* reg) {
     unsigned char* data = (unsigned char*)reg->data;
 
     switch (reg->size) {
-        case 4: 
+        case 4:
         {
             t = (((uint32_t)data[0]) << 24) |
                 (((uint32_t)data[1]) << 16) |
@@ -617,7 +616,7 @@ static void step_to_next_location(DummyPlugin* plugin) {
     for (i = 0; i < (int)sizeof_array(s_disasm_data) - 1; ++i) {
         if (s_disasm_data[i].address == plugin->exception_location) {
             plugin->exception_location = s_disasm_data[i + 1].address;
-            printf("set exception to 0x%x\n", plugin->exception_location);
+            //printf("set exception to 0x%x\n", plugin->exception_location);
             return;
         }
     }
@@ -694,28 +693,6 @@ static void update_memory(DummyPlugin* plugin, PDReader* reader) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void on_menu(PDReader* reader) {
-    uint32_t menuId;
-
-    PDRead_find_u32(reader, &menuId, "menu_id", 0);
-
-    switch (menuId) {
-        case 1:
-        {
-            printf("id 1 pressed!\n");
-            break;
-        }
-
-        case 2:
-        {
-            printf("id 2 pressed!\n");
-            break;
-        }
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 static int find_instruction_index(uint64_t address) {
     int i = 0;
 
@@ -752,6 +729,8 @@ static void get_disassembly(PDReader* reader, PDWriter* writer) {
     }
 
     PDWrite_event_begin(writer, PDEventType_SetDisassembly);
+    PDWrite_u32(writer, "address_width", 4); 
+
     PDWrite_array_begin(writer, "disassembly");
 
     total_instruction_count = sizeof_array(s_disasm_data);
@@ -782,6 +761,7 @@ static void get_disassembly(PDReader* reader, PDWriter* writer) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 
 void eval_expression(DummyPlugin* data, PDReader* reader, PDWriter* writer) {
     int i;
@@ -810,13 +790,13 @@ void eval_expression(DummyPlugin* data, PDReader* reader, PDWriter* writer) {
     for (i = 0; i < 8; ++i) {
         temp_regs[i] = get_reg_for_expression(data->registers[i].data);
         vars[i].name = data->registers[i].name;
-        vars[i].address = &temp_regs; 
-        vars[i].type = TE_VARIABLE; 
-        vars[i].context = 0; 
+        vars[i].address = &temp_regs;
+        vars[i].type = TE_VARIABLE;
+        vars[i].context = 0;
     }
 
     PDWrite_event_begin(writer, PDEventType_ReplyEvalExpression);
-    PDWrite_u64(writer, "_reply_request", request_id); 
+    PDWrite_u64(writer, "_reply_request", request_id);
 
     expr = te_compile(expression, vars, 8, &err);
 
@@ -824,11 +804,12 @@ void eval_expression(DummyPlugin* data, PDReader* reader, PDWriter* writer) {
         double ret = te_eval(expr);
         PDWrite_u64(writer, "result", (uint64_t)ret);
     } else {
-        PDWrite_string(writer, "error", expression); 
+        PDWrite_string(writer, "error", expression);
     }
 
     PDWrite_event_end(writer);
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -867,12 +848,6 @@ static PDDebugState update(void* user_data,
 
     while ((event = PDRead_get_event(reader))) {
         switch (event) {
-            case PDEventType_MenuEvent:
-            {
-                on_menu(reader);
-                break;
-            }
-
             case PDEventType_GetDisassembly:
             {
                 get_disassembly(reader, writer);
@@ -903,39 +878,20 @@ static PDDebugState update(void* user_data,
                 break;
             }
 
+            /*
             case PDEventType_RequestEvalExpression:
             {
                 eval_expression(data, reader, writer);
                 break;
             }
+            */
         }
     }
 
     set_exception_location(data, writer);
     // printf("Update backend\n");
 
-    return PDDebugState_NoTarget;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static PDMenuHandle register_menu(void* user_data, PDMenuFuncs* menu_funcs) {
-    (void)user_data;
-
-    PDMenuHandle menu = PDMenu_create_menu(menu_funcs, "Dummy Backend Menu");
-
-    PDMenu_add_menu_item(menu_funcs, menu, "Id 1", 1, 0, 0);
-    PDMenu_add_menu_item(menu_funcs, menu, "Id 2", 2, 0, 0);
-
-    return menu;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void show_config(void* user_data, struct PDUI* uiFuncs) {
-    DummyPlugin* data = (DummyPlugin*)user_data;
-    static const char* reg_types[] = { "6502", "68000", "x64" };
-    uiFuncs->combo("Register Type", &data->register_type, reg_types, 3, -1);
+    return PDDebugState_Running;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -968,9 +924,7 @@ static PDBackendPlugin plugin =
     "Dummy Backend",
     create_instance,
     destroy_instance,
-    register_menu,
     update,
-    show_config,
     save_state,
     load_state,
 };

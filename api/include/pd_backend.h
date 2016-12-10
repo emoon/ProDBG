@@ -2,8 +2,8 @@
 #define _PRODBGAPI_BACKEND_H_
 
 #include "pd_common.h"
-#include "pd_readwrite.h"
 #include "pd_menu.h"
+#include "pd_readwrite.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -86,7 +86,7 @@ typedef enum PDEventType {
     PDEventType_ExecuteConsole,
     PDEventType_GetConsole,
 
-	PDEventType_MenuEvent,
+    PDEventType_MenuEvent,
 
     // TODO: Somewhat temporary, need to figure this out
 
@@ -110,20 +110,17 @@ typedef enum PDEventType {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDBackendPlugin {
+typedef struct PDBackendPlugin
+{
     const char* name;
 
     void* (*create_instance)(ServiceFunc* service_func);
     void (*destroy_instance)(void* user_data);
-    PDMenuHandle (*register_menu)(void* user_data, PDMenuFuncs* menu_funcs);
     PDDebugState (*update)(void* user_data, PDAction action, PDReader* reader, PDWriter* writer);
 
-    // show_ui is used when configuring the backend settings
-    void (*show_config)(void* user_data, struct PDUI* ui);
-
     // save/load state
-	int (*save_state)(void* user_data, struct PDSaveState* save_state);
-	int (*load_state)(void* user_data, struct PDLoadState* load_state);
+    int (*save_state)(void* user_data, struct PDSaveState* save_state);
+    int (*load_state)(void* user_data, struct PDLoadState* load_state);
 
 } PDBackendPlugin;
 
@@ -143,4 +140,3 @@ typedef struct PDBackendPlugin {
 #endif
 
 #endif
-
