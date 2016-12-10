@@ -95,9 +95,6 @@ Program {
 	Libs = {
 		{ "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib",
 		  "Advapi32.lib", "Qt5Gui.lib", "Qt5Core.lib", "Qt5Widgets.lib"; Config = "win64-*-*" },
-	},
-
-	Libs = {
 		{ "Qt5Gui", "Qt5Core", "Qt5Widgets"; Config = "linux-*-*" },
 	},
 
