@@ -19,6 +19,8 @@ matrix:
     - sudo add-apt-repository ppa:beineri/opt-qt57-trusty --yes
     - sudo apt-get update
     - sudo apt-get install qt57base mesa-common-dev
+    - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5.0 90;
+    - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5.0 90;
     - git clone https://github.com/deplinenoise/tundra.git
     - cd tundra
     - make
