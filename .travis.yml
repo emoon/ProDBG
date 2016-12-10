@@ -8,6 +8,7 @@ matrix:
   - <<: *common
     os: linux
     dist: trusty
+    env: COMPILER_NAME=gcc CXX=g++-5 CC=gcc-5
     script:
     - sudo add-apt-repository ppa:beineri/opt-qt57-trusty --yes
     - sudo apt-get update
@@ -17,5 +18,5 @@ matrix:
     - make
     - sudo make install
     - cd ..
-    - export QT5=/opt/qt57; tundra2 -v -j 1 linux-gcc-debug
+    - export QT5=/opt/qt57; g++ --version ; tundra2 -v linux-gcc-debug
   - <<: *common
