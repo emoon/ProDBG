@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ui_mainwindow.h"
+#include "ui_MainWindow.h"
 #include <QMainWindow>
 
 class QStatusBar;

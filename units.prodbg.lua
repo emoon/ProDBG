@@ -83,16 +83,22 @@ Program {
 
         LIBPATH = {
 			{ "$(QT5)\\lib"; Config = "win64-*-*" },
+			{ "$(QT5)/lib"; Config = "linux-*-*" },
 		},
 
         PROGCOM = {
             {  "-Wl,-rpath,$(QT5)/lib", "-F$(QT5)/lib", "-lstdc++", Config = "macosx-clang-*" },
+            {  "-Wl,-rpath,$(QT5)/lib", "-lstdc++", Config = "linux-*-*" },
         },
     },
 
 	Libs = {
 		{ "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib",
 		  "Advapi32.lib", "Qt5Gui.lib", "Qt5Core.lib", "Qt5Widgets.lib"; Config = "win64-*-*" },
+	},
+
+	Libs = {
+		{ "Qt5Gui", "Qt5Core", "Qt5Widgets"; Config = "linux-*-*" },
 	},
 
     Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore" },

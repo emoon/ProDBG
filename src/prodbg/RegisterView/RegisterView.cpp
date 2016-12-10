@@ -1,6 +1,6 @@
 #include "RegisterView.h"
 #include "Backend/IBackendRequests.h"
-#include "Ui_RegisterView.h"
+#include "ui_RegisterView.h"
 #include <QDebug>
 #include <stdint.h>
 
