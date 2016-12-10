@@ -2,8 +2,12 @@
 #include "Backend/IBackendRequests.h"
 #include "BreakpointModel.h"
 #include <QFileDialog>
+#include <QFileSystemWatcher>
 #include <QMessageBox>
-#include <QtGui>
+#include <QPainter>
+#include <QSettings>
+#include <QTextBlock>
+#include <QTextStream>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -308,7 +312,7 @@ void CodeView::sourceFileLineChanged(const QString& filename, int line)
 void CodeView::toggleDisassembly()
 {
     m_mode = Disassembly;
-    //programCounterChanged(m_currentPc);
+    // programCounterChanged(m_currentPc);
     setPlainText(m_disassemblyText);
     updateDisassemblyCursor();
 }
