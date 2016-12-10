@@ -16,7 +16,7 @@ class BackendSession;
 class RegisterView;
 class BackendRequests;
 class BreakpointModel;
-class SourceFiles;
+class CodeViews;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -80,7 +80,7 @@ private:
     Ui_MainWindow m_ui;
     Backend m_currentBackend = Dummy;
 
-    SourceFiles* m_sourceFiles = nullptr;
+    CodeViews* m_sourceFiles = nullptr;
 
     BackendRequests* m_backendRequests = nullptr;
     BackendSession* m_backend = nullptr;

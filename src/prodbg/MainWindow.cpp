@@ -8,7 +8,7 @@
 #include "Config/AmigaUAEConfig.h"
 #include "MemoryView/MemoryView.h"
 #include "RegisterView/RegisterView.h"
-#include "SourceFiles.h"
+#include "CodeViews.h"
 
 #include <QDebug>
 #include <QMainWindow>
@@ -40,7 +40,7 @@ MainWindow::MainWindow()
 
     m_breakpoints = new BreakpointModel;
 
-    m_sourceFiles = new SourceFiles(this);
+    m_sourceFiles = new CodeViews(this);
     m_sourceFiles->setBreakpointModel(m_breakpoints);
     m_sourceFiles->openFile(QStringLiteral("src/prodbg/main.cpp"));
     //m_sourceFiles->openFile(QStringLiteral("src/prodbg/main.cpp"), m_breakpoints);
@@ -99,7 +99,7 @@ void MainWindow::initActions()
     connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggleBreakpoint);
     connect(m_ui.actionOpen, &QAction::triggered, this, &MainWindow::openSourceFile);
     connect(m_ui.actionBreak, &QAction::triggered, this, &MainWindow::breakDebug);
-    connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_sourceFiles, &SourceFiles::toggleSourceAsm);
+    connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_sourceFiles, &CodeViews::toggleSourceAsm);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

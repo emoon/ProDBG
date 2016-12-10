@@ -11,11 +11,11 @@ class IBackendRequests;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class SourceFiles : public QTabWidget
+class CodeViews : public QTabWidget
 {
 public:
-    SourceFiles(QWidget* parent);
-    virtual ~SourceFiles();
+    CodeViews(QWidget* parent);
+    virtual ~CodeViews();
     void setBreakpointModel(BreakpointModel* breakpoints);
 
     void toggleBreakpoint();
@@ -32,14 +32,14 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-inline void SourceFiles::setBreakpointModel(BreakpointModel* breakpoints)
+inline void CodeViews::setBreakpointModel(BreakpointModel* breakpoints)
 {
     m_breakpoints = breakpoints;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-inline void SourceFiles::setBackendInterface(IBackendRequests* iface)
+inline void CodeViews::setBackendInterface(IBackendRequests* iface)
 {
     m_interface = iface;
 }
