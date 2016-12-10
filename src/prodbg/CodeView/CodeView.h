@@ -65,6 +65,8 @@ public:
     void setLine(int line);
     int lineNumberAreaWidth();
 
+    int getCurrentLine();
+
 protected:
     void resizeEvent(QResizeEvent* event);
     //void keyPressEvent(QKeyEvent* event);

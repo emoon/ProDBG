@@ -19,7 +19,7 @@ class QThread;
 
 namespace prodbg {
 
-class LineNumberArea;
+class AddressArea;
 class BreakpointModel;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,20 +30,29 @@ class DisassemblyView : public QPlainTextEdit
 
 public:
 
-    DisassemblyView (QWidget* parent = 0);
+    DisassemblyView(QWidget* parent = 0);
     virtual ~DisassemblyView();
 
+    void updatePc(uint64_t pc);
+
+    void toggleBreakpoint();
     int lineNumberAreaWidth();
     void lineNumberAreaPaintEvent(QPaintEvent* event);
+    void setBackendInterface(IBackendRequests* interface);
+    void setBreakpointModel(BreakpointModel* breakpoints);
 
-private:
-    Q_SLOT void updateLineNumberAreaWidth(int newBlockCount);
-    Q_SLOT void highlightCurrentLine();
-    Q_SLOT void updateLineNumberArea(const QRect& rect, int dy);
-    Q_SLOT void programCounterChanged(const IBackendRequests::ProgramCounterChange& pc);
     Q_SLOT void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth);
 
-    QWidget* m_lineNumberArea;
+private:
+    Q_SLOT void updateAddressAreaWidth(int newBlockCount);
+    Q_SLOT void highlightCurrentLine();
+    Q_SLOT void updateAddressArea(const QRect& rect, int dy);
+
+    void resizeEvent(QResizeEvent* event);
+    void updateDisassemblyCursor();
+    void setLine(int line);
+
+    QWidget* m_addressArea;
     QPointer<IBackendRequests> m_interface;
     BreakpointModel* m_breakpoints;
 
@@ -66,6 +75,13 @@ private:
     // Temp vector for recving data from backend
     QVector<IBackendRequests::AssemblyInstruction> m_recvInstructions;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline void DisassemblyView::setBreakpointModel(BreakpointModel* breakpoints)
+{
+    m_breakpoints = breakpoints;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

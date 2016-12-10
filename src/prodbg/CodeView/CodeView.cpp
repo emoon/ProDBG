@@ -380,32 +380,22 @@ void CodeView::readSourceFile(const QString& filename)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::toggleBreakpoint()
+int CodeView::getCurrentLine()
 {
+    QTextCursor cursor = textCursor();
+    int line = cursor.block().blockNumber();
+
+    return line;
+
     /*
-    if (m_mode == Disassembly) {
-        QTextCursor cursor = textCursor();
-        int index = cursor.block().blockNumber();
-        bool added = m_breakpoints->toggleAddressBreakpoint(m_disassemblyAdresses[index].address);
 
-        if (added) {
-            interface->beginAddAddressBreakpoint(m_disassemblyAdresses[index].address);
-        } else {
-            interface->beginRemoveAddressBreakpoint(m_disassemblyAdresses[index].address);
-        }
+    // + 1 due to 1 indexed
+    bool added = m_breakpoints->toggleFileLineBreakpoint(m_sourceFile, line + 1);
 
+    if (added) {
+        m_interface->beginAddFileLineBreakpoint(m_sourceFile, line);
     } else {
-        QTextCursor cursor = textCursor();
-        int line = cursor.block().blockNumber();
-
-        // + 1 due to 1 indexed
-        bool added = m_breakpoints->toggleFileLineBreakpoint(m_sourceFile, line + 1);
-
-        if (added) {
-            interface->beginAddFileLineBreakpoint(m_sourceFile, line);
-        } else {
-            interface->beginRemoveFileLineBreakpoint(m_sourceFile, line);
-        }
+        m_interface->beginRemoveFileLineBreakpoint(m_sourceFile, line);
     }
 
     m_lineNumberArea->repaint();

@@ -80,7 +80,7 @@ private:
     Ui_MainWindow m_ui;
     Backend m_currentBackend = Dummy;
 
-    CodeViews* m_sourceFiles = nullptr;
+    CodeViews* m_codeViews = nullptr;
 
     BackendRequests* m_backendRequests = nullptr;
     BackendSession* m_backend = nullptr;

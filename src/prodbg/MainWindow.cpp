@@ -33,6 +33,7 @@ MainWindow::MainWindow()
     qRegisterMetaType<uint16_t>("uint16_t");
     qRegisterMetaType<uint32_t>("uint32_t");
     qRegisterMetaType<uint64_t>("uint64_t");
+    qRegisterMetaType<IBackendRequests::ProgramCounterChange>("IBackendRequests::ProgramCounterChange");
 
     m_amigaUae = new AmigaUAE(this);
 
@@ -40,13 +41,12 @@ MainWindow::MainWindow()
 
     m_breakpoints = new BreakpointModel;
 
-    m_sourceFiles = new CodeViews(this);
-    m_sourceFiles->setBreakpointModel(m_breakpoints);
-    m_sourceFiles->openFile(QStringLiteral("src/prodbg/main.cpp"));
-    //m_sourceFiles->openFile(QStringLiteral("src/prodbg/main.cpp"), m_breakpoints);
-    //m_sourceFiles->openFile(QStringLiteral("src/prodbg/main.cpp"), m_breakpoints);
+    m_codeViews = new CodeViews(m_breakpoints, this);
+    m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), true);
+    //m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), m_breakpoints);
+    //m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), m_breakpoints);
 
-    setCentralWidget(m_sourceFiles);
+    setCentralWidget(m_codeViews);
 
     setWindowTitle(QStringLiteral("ProDBG"));
 
@@ -99,7 +99,7 @@ void MainWindow::initActions()
     connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggleBreakpoint);
     connect(m_ui.actionOpen, &QAction::triggered, this, &MainWindow::openSourceFile);
     connect(m_ui.actionBreak, &QAction::triggered, this, &MainWindow::breakDebug);
-    connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_sourceFiles, &CodeViews::toggleSourceAsm);
+    connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_codeViews, &CodeViews::toggleSourceAsm);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -112,7 +112,7 @@ void MainWindow::openSourceFile()
         return;
     }
 
-    m_sourceFiles->openFile(path);
+    m_codeViews->openFile(path, true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -256,7 +256,7 @@ void MainWindow::setupBackend(BackendSession* backend)
     m_backendRequests = new BackendRequests(m_backend);
 
     m_registerView->setBackendInterface(m_backendRequests);
-    //m_codeView->setBackendInterface(m_backendRequests);
+    m_codeViews->setBackendInterface(m_backendRequests);
 
     m_backendThread->start();
 
@@ -286,7 +286,7 @@ void MainWindow::stepOver()
 
 void MainWindow::toggleBreakpoint()
 {
-    m_sourceFiles->toggleBreakpoint();
+    m_codeViews->toggleBreakpoint();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
