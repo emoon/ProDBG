@@ -270,8 +270,6 @@ void BackendSession::beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>
     uint32_t addressWidth = 0;
     uint32_t event;
 
-    qDebug() << "Got memory request";
-
     uint64_t size = hi - lo;
 
     // Write request and update

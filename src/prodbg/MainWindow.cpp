@@ -214,9 +214,9 @@ void MainWindow::closeCurrentBackend()
     delete m_backendThread;
     delete m_backendRequests;
 
-    m_registerView->setBackendInterface(nullptr);
-    m_codeViews->setBackendInterface(nullptr);
-    m_memoryView->setBackendInterface(nullptr);
+    //m_registerView->setBackendInterface(nullptr);
+    //m_codeViews->setBackendInterface(nullptr);
+    //m_memoryView->setBackendInterface(nullptr);
 
     m_backend = nullptr;
     m_backendThread = nullptr;
