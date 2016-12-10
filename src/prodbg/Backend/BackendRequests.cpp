@@ -21,7 +21,6 @@ BackendRequests::BackendRequests(BackendSession* session)
     connect(session, &BackendSession::endReadRegisters, this, &BackendRequests::endReadRegisters);
 
     connect(session, &BackendSession::programCounterChanged, this, &BackendRequests::programCounterChanged);
-    connect(session, &BackendSession::sourceFileLineChanged, this, &BackendRequests::sourceFileLineChanged);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

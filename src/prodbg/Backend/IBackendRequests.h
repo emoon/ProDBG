@@ -29,6 +29,18 @@ public:
     };
 
     //
+    // Send from the backend when the position of the program counter has changed.
+    // filename and line is optionally set if this information is avalibile in the backend
+    // and line is set to -1 if no such info is there to be used
+    //
+    struct ProgramCounterChange
+    {
+        QString filename;
+        uint64_t programCounter;
+        int line;
+    };
+
+    //
     // Description of assembly instruction that is provided when requesting
     // disassemble of code fro the target
     //
@@ -120,10 +132,7 @@ public:
     // This signal is being sent when the program counter of the debugged application has changed
     // This can be used to figure out if it's needed to re-request data. For example a Memory view may want to use
     // this as the program may have altered the same memory that is currently being displayed
-    Q_SIGNAL void programCounterChanged(uint64_t pc);
-
-    // This signal is being sent when the source/line has been changed (when debung info is present)
-    Q_SIGNAL void sourceFileLineChanged(const QString& filename, int line);
+    Q_SIGNAL void programCounterChanged(const ProgramCounterChange& pc);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

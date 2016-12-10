@@ -16,6 +16,7 @@ class BackendSession;
 class RegisterView;
 class BackendRequests;
 class BreakpointModel;
+class CodeViews;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -71,7 +72,6 @@ private:
     AmigaUAE* m_amigaUae = nullptr;
 
     // Hardcoded views for now.
-    CodeView* m_codeView = nullptr;
     MemoryView* m_memoryView = nullptr;
     RegisterView* m_registerView = nullptr;
     QStatusBar* m_statusbar = nullptr;
@@ -79,6 +79,8 @@ private:
 
     Ui_MainWindow m_ui;
     Backend m_currentBackend = Dummy;
+
+    CodeViews* m_codeViews = nullptr;
 
     BackendRequests* m_backendRequests = nullptr;
     BackendSession* m_backend = nullptr;

@@ -129,7 +129,7 @@ void RegisterView::endReadRegisters(QVector<IBackendRequests::Register>* registe
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RegisterView::programCounterChanged(uint64_t) {
+void RegisterView::programCounterChanged(const IBackendRequests::ProgramCounterChange& pc) {
     m_interface->beginReadRegisters(&m_targetRegisters);
 }
 

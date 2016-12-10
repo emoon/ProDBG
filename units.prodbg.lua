@@ -47,6 +47,7 @@ Program {
         gen_moc("src/prodbg/AmigaUAE/AmigaUAE.h"),
 
         gen_moc("src/prodbg/CodeView/CodeView.h"),
+        gen_moc("src/prodbg/CodeView/DisassemblyView.h"),
         gen_moc("src/prodbg/MemoryView/MemoryView.h"),
         gen_moc("src/prodbg/MemoryView/MemoryViewWidget.h"),
     },
@@ -89,9 +90,9 @@ Program {
         },
     },
 
-	Libs = { 
-		{ "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib", 
-		  "Advapi32.lib", "Qt5Gui.lib", "Qt5Core.lib", "Qt5Widgets.lib"; Config = "win64-*-*" }, 
+	Libs = {
+		{ "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib",
+		  "Advapi32.lib", "Qt5Gui.lib", "Qt5Core.lib", "Qt5Widgets.lib"; Config = "win64-*-*" },
 	},
 
     Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore" },

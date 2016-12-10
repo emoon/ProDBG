@@ -50,7 +50,6 @@ public:
     virtual ~CodeView();
 
     void toggleBreakpoint();
-    void setBackendInterface(IBackendRequests* iface);
     void setBreakpointModel(BreakpointModel* breakpoints);
     void openFile();
 
@@ -66,9 +65,11 @@ public:
     void setLine(int line);
     int lineNumberAreaWidth();
 
+    int getCurrentLine();
+
 protected:
     void resizeEvent(QResizeEvent* event);
-    void keyPressEvent(QKeyEvent* event);
+    //void keyPressEvent(QKeyEvent* event);
     void step();
 
 private:
@@ -76,8 +77,8 @@ private:
     Q_SLOT void highlightCurrentLine();
     Q_SLOT void updateLineNumberArea(const QRect&, int);
     Q_SLOT void fileChange(const QString filename);
-    Q_SLOT void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth);
-    Q_SLOT void programCounterChanged(uint64_t pc);
+    //Q_SLOT void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth);
+    //Q_SLOT void programCounterChanged(uint64_t pc);
     Q_SLOT void sourceFileLineChanged(const QString& filename, int line);
 
 private:

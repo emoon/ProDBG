@@ -343,7 +343,10 @@ void BackendSession::updateCurrentPc()
             continue;
         }
 
+        IBackendRequests::ProgramCounterChange pcChange;
+
         uint64_t pc = 0;
+        bool fileLineChaged = false;
         const char* filename = nullptr;
 
         if (PDRead_find_string(m_reader, &filename, "filename", 0) != PDReadStatus_NotFound) {
@@ -352,18 +355,25 @@ void BackendSession::updateCurrentPc()
 
             QString file = QString::fromUtf8(filename);
 
+            pcChange.filename = file;
+            pcChange.line = (int)line;;
+
             if (line != m_currentLine || file != m_currentFile) {
                 m_currentFile = file;
                 m_currentLine = line;
-                sourceFileLineChanged(m_currentFile, m_currentLine);
+                fileLineChaged = true;
             }
+        } else {
+            pcChange.line = -1;
         }
 
         PDRead_find_u64(m_reader, &pc, "address", 0);
 
-        if (pc != m_currentPc) {
+        pcChange.programCounter = pc;
+
+        if (pc != m_currentPc || fileLineChaged) {
             m_currentPc = pc;
-            programCounterChanged(pc);
+            programCounterChanged(pcChange);
         }
     }
 
