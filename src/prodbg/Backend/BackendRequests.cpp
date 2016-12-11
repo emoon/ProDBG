@@ -16,9 +16,12 @@ BackendRequests::BackendRequests(BackendSession* session)
     connect(this, &BackendRequests::toggleAddressBreakpoint, session, &BackendSession::toggleAddressBreakpoint);
     connect(this, &BackendRequests::toggleFileLineBreakpoint, session, &BackendSession::toggleFileLineBreakpoint);
 
+    connect(this, &BackendRequests::evalExpression, session, &BackendSession::evalExpression);
+
     connect(session, &BackendSession::endReadMemory, this, &BackendRequests::endReadMemory);
     connect(session, &BackendSession::endDisassembly, this, &BackendRequests::endDisassembly);
     connect(session, &BackendSession::endReadRegisters, this, &BackendRequests::endReadRegisters);
+    connect(session, &BackendSession::endResolveAddress, this, &BackendRequests::endResolveAddress);
 
     connect(session, &BackendSession::programCounterChanged, this, &BackendRequests::programCounterChanged);
 }
@@ -69,8 +72,7 @@ void BackendRequests::beginReadRegisters(QVector<IBackendRequests::Register>* re
 
 void BackendRequests::beginResolveAddress(const QString& expression, uint64_t* out)
 {
-    (void)expression;
-    (void)out;
+    evalExpression(expression, out);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

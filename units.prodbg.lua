@@ -76,6 +76,7 @@ Program {
             "$(QT5)/include/QtCore",
             "$(QT5)/include/QtGui",
             "$(QT5)/include/QtWidgets",
+            "src/native/external/tinyexpr",
             "src/prodbg",
         	"api/include",
             "$(OBJECTROOT)", "$(OBJECTDIR)",

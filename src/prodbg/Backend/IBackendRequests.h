@@ -118,10 +118,11 @@ public:
 
     // The result from the beginDisassembly operation
     Q_SIGNAL void endDisassembly(QVector<AssemblyInstruction>* instructions, int addressWidth);
+
     // Response signal for expression evaluation
-    // success = true if experssion was evaluated correctly, otherwise false
+    // errorMessage = "" if no issue, otherwise error message
     // dest = output of the evalutation
-    Q_SIGNAL void endResolveAdress(bool success, uint64_t* dest);
+    Q_SIGNAL void endResolveAddress(uint64_t* dest);
 
     // Response signal for a memory request. If target size is 0 the operation failed. TODO: Better way
     // target = filled with requested memory (if successful)

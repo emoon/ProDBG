@@ -9,6 +9,7 @@
 #include <pd_backend.h>
 #include <pd_io.h>
 #include <pd_readwrite.h>
+#include <tinyexpr.h>
 
 namespace prodbg {
 
@@ -332,6 +333,25 @@ void BackendSession::sendCustomString(uint16_t id, const QString& text)
     PDWrite_event_end(m_currentWriter);
 
     update();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendSession::evalExpression(const QString& expression, uint64_t* out)
+{
+    int error = 0;
+
+    qDebug() << "eval expression " << expression;
+
+    double t = te_interp(expression.toUtf8().data(), &error);
+
+    *out = (uint64_t)t;
+
+    if (error != 0) {
+        endResolveAddress(nullptr);
+    } else {
+        endResolveAddress(out);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

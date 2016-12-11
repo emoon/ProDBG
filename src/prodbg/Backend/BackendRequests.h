@@ -53,6 +53,7 @@ public:
     bool beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target);
 
 private:
+    Q_SIGNAL void evalExpression(const QString& expr, uint64_t* out);
     Q_SIGNAL void sendCustomStr(uint16_t id, const QString& text);
 
     Q_SIGNAL void toggleFileLineBreakpoint(const QString& filename, int line, bool add);

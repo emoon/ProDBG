@@ -32,6 +32,8 @@ public:
     Q_SLOT void update();
     Q_SLOT void breakDebug();
 
+    Q_SLOT void evalExpression(const QString& expression, uint64_t* out);
+
     Q_SLOT void sendCustomString(uint16_t id, const QString& text);
 
     Q_SLOT void toggleAddressBreakpoint(uint64_t address, bool add);
@@ -43,6 +45,7 @@ public:
                                  QVector<IBackendRequests::AssemblyInstruction>* target);
 
     // Signals
+    Q_SIGNAL void endResolveAddress(uint64_t* out);
     Q_SIGNAL void endReadRegisters(QVector<IBackendRequests::Register>* registers);
     Q_SIGNAL void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int adressWidth);
     Q_SIGNAL void endReadMemory(QVector<uint16_t>* res, uint64_t address, int addressWidth);

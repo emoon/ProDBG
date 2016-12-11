@@ -50,6 +50,8 @@ public:
 
 public:
     void setBackendInterface(IBackendRequests* interface);
+    void setAddress(uint64_t address);
+    void setExpressionStatus(bool status);
 
 protected:
     void paintEvent(QPaintEvent* ev) override;

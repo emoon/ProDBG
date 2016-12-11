@@ -1,5 +1,6 @@
 #include "MemoryView.h"
 #include "ui_MemoryView.h"
+#include "Backend/IBackendRequests.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QMetaEnum>
@@ -51,7 +52,13 @@ void prodbg::MemoryView::endianChanged(int e)
 
 void prodbg::MemoryView::setBackendInterface(IBackendRequests* interface)
 {
+    m_interface = interface;
+
     m_Ui->m_View->setBackendInterface(interface);
+
+    if (interface) {
+        connect(interface, &IBackendRequests::endResolveAddress, this, &prodbg::MemoryView::endResolveAddress);
+    }
 }
 
 void prodbg::MemoryView::dataTypeChanged(int t)
@@ -66,8 +73,25 @@ void prodbg::MemoryView::jumpAddressChanged()
 
 void prodbg::MemoryView::jumpToAddressExpression(const QString& str)
 {
+    if (m_interface) {
+        m_interface->beginResolveAddress(str, &m_evalAddress);
+    }
+
     // TODO: Parse, evaluate, etc.
-    qDebug() << "Jump to address:" << str;
+    // qDebug() << "Jump to address:" << str;
+}
+
+void prodbg::MemoryView::endResolveAddress(uint64_t* out)
+{
+    if (!out) {
+        m_Ui->m_View->setExpressionStatus(false);
+    } else {
+        m_Ui->m_View->setExpressionStatus(true);
+        m_Ui->m_Address->setText(QStringLiteral("0x") + QString::number(*out, 16));
+        m_Ui->m_View->setAddress(*out);
+    }
+
+    m_Ui->m_View->update();
 }
 
 void prodbg::MemoryView::countChanged(const QString& text)

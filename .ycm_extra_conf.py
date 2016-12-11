@@ -20,6 +20,8 @@ flags = [
 '-I',
 'api/src/remote',
 '-I',
+'src/native/external/tinyexpr',
+'-I',
 'src/prodbg',
 '-I',
 'api/include/capstore',

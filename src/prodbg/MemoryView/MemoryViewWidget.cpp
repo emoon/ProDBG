@@ -193,6 +193,7 @@ public:
     uint64_t m_cachedRangeStart = 0;
     uint64_t m_cachedRangeEnd = 0;
     bool m_transferInProgress = false;
+    bool m_expressionStatus = true;
 
     QVector<uint16_t> m_Cache;
     QVector<uint16_t> m_transferCache;
@@ -236,6 +237,11 @@ public:
 
         QPainter painter(widget);
         painter.setFont(font);
+
+        if (!m_expressionStatus) {
+            painter.drawText(dirtyRect, 0, QStringLiteral("Unable to evaluate expression."));
+            return;
+        }
 
         const int charWidth = fontMetrics.boundingRect(QLatin1Char('W')).width();
         const int rowHeight = fontMetrics.height();
@@ -390,6 +396,13 @@ void prodbg::MemoryViewWidget::endReadMemory(QVector<uint16_t>* target, uint64_t
     m_Private->m_cachedRangeEnd = address + target->count();
 
     m_Private->m_transferInProgress = false;
+
+    update();
+}
+
+void prodbg::MemoryViewWidget::setExpressionStatus(bool status)
+{
+    m_Private->m_expressionStatus = status;
 }
 
 void prodbg::MemoryViewWidget::paintEvent(QPaintEvent* ev)
@@ -471,3 +484,10 @@ void prodbg::MemoryViewWidget::setElementsPerLine(int count)
     m_Private->m_ElementsPerRow = std::min(std::max(1, count), 64);
     update();
 }
+
+void prodbg::MemoryViewWidget::setAddress(uint64_t address)
+{
+    m_Private->m_TopRow = address;
+    update();
+}
+
