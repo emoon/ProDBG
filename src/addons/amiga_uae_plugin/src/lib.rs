@@ -35,6 +35,7 @@ struct AmigaUaeBackend {
     debug_info: DebugInfo,
     segments: Vec<Segment>,
     status: String,
+    debug_state: DebugState,
     breakpoints: Vec<Breakpoint>,
 }
 
@@ -343,10 +344,12 @@ impl AmigaUaeBackend {
             }
         } else {
             self.status = "Not Connected".to_owned();
+            self.debug_state = DebugState::NoTarget;
         }
 
         if should_break {
             println!("Should break!");
+            self.debug_state = DebugState::StopException;
             self.write_exception_location(writer);
         }
     }
@@ -435,11 +438,12 @@ impl Backend for AmigaUaeBackend {
             debug_info: DebugInfo::new(),
             segments: Vec::new(),
             status: "Not Connected".to_owned(),
+            debug_state: DebugState::NoTarget,
             breakpoints: Vec::new(),
         }
     }
 
-    fn update(&mut self, action: i32, reader: &mut Reader, writer: &mut Writer) {
+    fn update(&mut self, action: i32, reader: &mut Reader, writer: &mut Writer) -> DebugState {
         self.update_conn_incoming(writer);
 
         for event in reader.get_event() {
@@ -491,14 +495,14 @@ impl Backend for AmigaUaeBackend {
 
                 if self.amiga_exe_file_path == "" {
                     println!("No executable to run");
-                    return;
+                    return self.debug_state;
                 }
 
                 self.debug_info.load_info(&self.uae_partition_path, &self.amiga_exe_file_path);
 
                 if let Err(err) = self.connect() {
                     println!("Unable to connect {:?}", err);
-                    return;
+                    return self.debug_state;
                 }
 
                 println!("Sending breakpoints...");
@@ -515,10 +519,12 @@ impl Backend for AmigaUaeBackend {
                 }
 
                 self.status = format!("Connected (127.0.0.1) Running {}", &self.amiga_exe_file_path);
+                self.debug_state = DebugState::Running;
             }
 
             ACTION_STEP => {
                 self.step(writer);
+                self.debug_state = DebugState::Trace;
             }
 
             ACTION_STEP_OVER => {
@@ -536,6 +542,7 @@ impl Backend for AmigaUaeBackend {
                     // clear debug info
                     self.debug_info = DebugInfo::new();
                     self.status = "Connected (127.0.0.1)".to_owned();
+                    self.debug_state = DebugState::NoTarget;
                 }
             }
             _ => (),
@@ -544,6 +551,8 @@ impl Backend for AmigaUaeBackend {
         //writer.event_begin(EVENT_SET_STATUS as u16);
         //writer.write_string("status", &self.status);
         //writer.event_end();
+
+        self.debug_state
     }
 }
 

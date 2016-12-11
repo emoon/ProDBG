@@ -64,11 +64,23 @@ pub enum EventType {
     Custom = 0x1000,
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub enum DebugState {
+    NoTarget,
+    Running,
+    StopBreakpoint,
+    StopException,
+    Trace,
+}
+
 pub static BACKEND_API_VERSION: &'static [u8] = b"ProDBG Backend 1\0";
 
 pub trait Backend {
     fn new(service: &Service) -> Self;
-    fn update(&mut self, action: i32, reader: &mut Reader, writer: &mut Writer);
+    fn update(&mut self, action: i32, reader: &mut Reader, writer: &mut Writer) -> DebugState;
     fn save_state(&mut self, _: StateSaver) {}
     fn load_state(&mut self, _: StateLoader) {}
 }
@@ -80,7 +92,7 @@ pub struct CBackendCallbacks {
     pub name: *const c_uchar,
     pub create_instance: Option<fn(service_func: ServiceFunc) -> *mut c_void>,
     pub destroy_instance: Option<fn(*mut c_void)>,
-    pub update: Option<fn(ptr: *mut c_void, a: c_int, ra: *mut c_void, wa: *mut c_void)>,
+    pub update: Option<fn(ptr: *mut c_void, a: c_int, ra: *mut c_void, wa: *mut c_void) -> DebugState>,
     pub save_state: Option<fn(*mut c_void, api: *mut CPDSaveState)>,
     pub load_state: Option<fn(*mut c_void, api: *mut CPDLoadState)>,
 }
@@ -105,7 +117,7 @@ pub fn destroy_backend_instance<T: Backend>(ptr: *mut c_void) {
 pub fn update_backend_instance<T: Backend>(ptr: *mut c_void,
                                            action: c_int,
                                            reader_api: *mut c_void,
-                                           writer_api: *mut c_void) {
+                                           writer_api: *mut c_void) -> DebugState {
     let backend: &mut T = unsafe { &mut *(ptr as *mut T) };
     let c_reader: &mut CPDReaderAPI = unsafe { &mut *(reader_api as *mut CPDReaderAPI) };
     let c_writer: &mut CPDWriterAPI = unsafe { &mut *(writer_api as *mut CPDWriterAPI) };
@@ -116,7 +128,7 @@ pub fn update_backend_instance<T: Backend>(ptr: *mut c_void,
 
     let mut writer = Writer { api: c_writer };
 
-    backend.update(action as i32, &mut reader, &mut writer);
+    backend.update(action as i32, &mut reader, &mut writer)
 }
 
 pub fn save_backend_state<T: Backend>(ptr: *mut c_void, saver_api: *mut CPDSaveState) {
