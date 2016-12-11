@@ -36,6 +36,10 @@ BackendSession::BackendSession()
 
 BackendSession::~BackendSession()
 {
+    if (m_timer) {
+        m_timer->stop();
+    }
+
     destroyPluginData();
 
     pd_binary_writer_destroy(m_writer0);
@@ -550,7 +554,17 @@ PDDebugState BackendSession::internalUpdate(PDAction action)
     if (state != m_debugState) {
         statusUpdate(getStateName(state));
         m_debugState = state;
-        updateCurrentPc();
+
+        if (state != PDDebugState_Running) {
+            if (m_timer) {
+                m_timer->stop();
+            }
+            updateCurrentPc();
+        } else {
+            if (m_timer) {
+                m_timer->start(50);
+            }
+        }
     }
 
     return state;
@@ -576,6 +590,8 @@ void BackendSession::start()
 
     m_timer = new QTimer(this);
     connect(m_timer, &QTimer::timeout, this, &BackendSession::update);
+
+    m_timer->start(50);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
