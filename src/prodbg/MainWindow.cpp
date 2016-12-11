@@ -42,7 +42,7 @@ MainWindow::MainWindow()
     m_breakpoints = new BreakpointModel;
 
     m_codeViews = new CodeViews(m_breakpoints, this);
-    m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), true);
+    //m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), true);
     //m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), m_breakpoints);
     //m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), m_breakpoints);
 

@@ -27,11 +27,16 @@ public:
     Q_SLOT void toggleSourceAsm();
 
 private:
+    Q_SLOT void closeTab(int index);
+
     enum Mode
     {
         SourceView,
         Disassembly,
     };
+
+    void readSettings();
+    void writeSettings();
 
     void setDisassemblyMode();
     void setSourceMode();
@@ -57,5 +62,4 @@ inline void CodeViews::setBreakpointModel(BreakpointModel* breakpoints)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 }

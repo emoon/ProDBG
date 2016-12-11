@@ -1,9 +1,10 @@
 #include "CodeViews.h"
+#include "BreakpointModel.h"
 #include "CodeView/CodeView.h"
 #include "CodeView/DisassemblyView.h"
-#include "BreakpointModel.h"
 #include <QDebug>
 #include <QFileInfo>
+#include <QSettings>
 
 namespace prodbg {
 
@@ -16,12 +17,16 @@ CodeViews::CodeViews(BreakpointModel* breakpoints, QWidget* parent)
     setTabsClosable(true);
     m_disassemblyView = new DisassemblyView(nullptr);
     m_disassemblyView->setBreakpointModel(breakpoints);
+    readSettings();
+
+    connect(this, &QTabWidget::tabCloseRequested, this, &CodeViews::closeTab);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CodeViews::~CodeViews()
 {
+    writeSettings();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,7 +85,7 @@ void CodeViews::programCounterChanged(const IBackendRequests::ProgramCounterChan
 
     if (pc.line == -1) {
         if (m_mode == SourceView) {
-            m_wasInSourceView  = true;
+            m_wasInSourceView = true;
         }
 
         setDisassemblyMode();
@@ -178,4 +183,56 @@ void CodeViews::setSourceMode()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void CodeViews::closeTab(int index)
+{
+    removeTab(index);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeViews::readSettings()
+{
+    QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
+    settings.beginGroup(QStringLiteral("CodeViews"));
+
+    int size = settings.beginReadArray(QStringLiteral("sourceFiles"));
+
+    for (int i = 0; i < size; ++i) {
+        settings.setArrayIndex(i);
+        QString filename = settings.value(QStringLiteral("sourceFile")).toString();
+        openFile(filename, false);
+    }
+
+    settings.endArray();
+    settings.endGroup();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeViews::writeSettings()
+{
+    QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
+    settings.beginGroup(QStringLiteral("CodeViews"));
+    settings.beginWriteArray(QStringLiteral("sourceFiles"));
+
+    int index = 0;
+
+    for (int i = 0, c = count(); i < c; ++i) {
+        if (tabText(i).indexOf(QStringLiteral("Disassembly")) == 0) {
+            continue;
+        }
+
+        QString filename = tabToolTip(i);
+
+        settings.setArrayIndex(index);
+        settings.setValue(QStringLiteral("sourceFile"), filename);
+
+        index += 1;
+    }
+
+    settings.endArray();
+    settings.endGroup();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
