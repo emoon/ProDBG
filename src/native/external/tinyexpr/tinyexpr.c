@@ -184,7 +184,7 @@ static uint64_t add(uint64_t a, uint64_t b) {return a + b;}
 static uint64_t sub(uint64_t a, uint64_t b) {return a - b;}
 static uint64_t mul(uint64_t a, uint64_t b) {return a * b;}
 static uint64_t divide(uint64_t a, uint64_t b) {return a / b;}
-static uint64_t negate(uint64_t a) {return -a;}
+static uint64_t negate(uint64_t a) {return (uint64_t)-a;}
 static uint64_t comma(uint64_t a, uint64_t b) {return b;}
 
 
@@ -589,7 +589,7 @@ static void pn (const te_expr *n, int depth) {
     printf("%*s", depth, "");
 
     switch(TYPE_MASK(n->type)) {
-    case TE_CONSTANT: printf("%f\n", n->value); break;
+    case TE_CONSTANT: printf("%llx\n", n->value); break;
     case TE_VARIABLE: printf("bound %p\n", n->bound); break;
 
     case TE_FUNCTION0: case TE_FUNCTION1: case TE_FUNCTION2: case TE_FUNCTION3:
