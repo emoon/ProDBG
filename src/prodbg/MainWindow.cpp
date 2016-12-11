@@ -185,6 +185,8 @@ void MainWindow::setupBackendConnections()
     connect(this, &MainWindow::stepInBackend, m_backend, &BackendSession::stepIn);
     connect(this, &MainWindow::startBackend, m_backend, &BackendSession::start);
     connect(this, &MainWindow::breakBackend, m_backend, &BackendSession::breakDebug);
+
+    connect(m_backend, &BackendSession::statusUpdate, this, &MainWindow::statusUpdate);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -289,6 +291,13 @@ void MainWindow::stepOver()
 void MainWindow::toggleBreakpoint()
 {
     m_codeViews->toggleBreakpoint();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::statusUpdate(const QString& status)
+{
+    m_statusbar->showMessage(status);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

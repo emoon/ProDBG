@@ -67,6 +67,7 @@ private:
     void setupBackend(BackendSession* backend);
 
     Q_SLOT void uaeStarted();
+    Q_SLOT void statusUpdate(const QString& status);
 
     // Hard-coded Amiga support. Would be nice to have this more modular
     AmigaUAE* m_amigaUae = nullptr;
