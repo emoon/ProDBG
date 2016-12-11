@@ -33,6 +33,7 @@ protected:
 
 private:
     Q_SLOT void openSourceFile();
+    Q_SLOT void reloadCurrentFile();
     Q_SLOT void breakDebug();
     Q_SLOT void startDebug();
     Q_SLOT void start();

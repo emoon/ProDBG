@@ -29,6 +29,7 @@
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionDebugAmigaExe"/>
+    <addaction name="actionReloadCurrentFile"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -134,6 +135,14 @@
    </property>
    <property name="shortcut">
     <string>Space</string>
+   </property>
+  </action>
+  <action name="actionReloadCurrentFile">
+   <property name="text">
+    <string>Reload current file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
    </property>
   </action>
  </widget>

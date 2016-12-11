@@ -52,6 +52,7 @@ public:
     void toggleBreakpoint();
     void setBreakpointModel(BreakpointModel* breakpoints);
     void openFile();
+    void reload();
 
     void setMode(Mode mode);
     void setExceptionAddress(uint64_t address);

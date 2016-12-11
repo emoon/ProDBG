@@ -19,6 +19,7 @@ public:
     virtual ~CodeViews();
     void setBreakpointModel(BreakpointModel* breakpoints);
 
+    void reloadCurrentFile();
     void toggleBreakpoint();
     void openFile(const QString& filename, bool setActive);
     void setBackendInterface(IBackendRequests* iface);

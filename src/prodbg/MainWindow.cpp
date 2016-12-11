@@ -92,6 +92,7 @@ MainWindow::~MainWindow()
 void MainWindow::initActions()
 {
     connect(m_ui.actionStart, &QAction::triggered, this, &MainWindow::startDebug);
+    connect(m_ui.actionReloadCurrentFile, &QAction::triggered, this, &MainWindow::reloadCurrentFile);
     connect(m_ui.actionStep_In, &QAction::triggered, this, &MainWindow::stepIn);
     connect(m_ui.actionAmiga_UAE, &QAction::triggered, this, &MainWindow::amigaUAEConfig);
     connect(m_ui.actionDebugAmigaExe, &QAction::triggered, this, &MainWindow::debugAmigaExe);
@@ -180,6 +181,13 @@ void MainWindow::startDebug()
     if (m_currentBackend == Amiga && !m_lastAmigaExe.isEmpty()) {
         internalStartAmigaExe();
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::reloadCurrentFile()
+{
+    m_codeViews->reloadCurrentFile();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

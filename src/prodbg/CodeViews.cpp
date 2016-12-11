@@ -77,6 +77,22 @@ void CodeViews::openFile(const QString& filename, bool setActive)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void CodeViews::reloadCurrentFile()
+{
+    const int index = currentIndex();
+
+    if (tabText(index).indexOf(QStringLiteral("Disassembly")) == 0) {
+        return;
+    }
+
+    CodeView* view = dynamic_cast<CodeView*>(widget(index));
+    Q_ASSERT(view);
+
+    view->reload();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CodeViews::programCounterChanged(const IBackendRequests::ProgramCounterChange& pc)
 {
     m_disassemblyView->updatePc(pc.programCounter);
