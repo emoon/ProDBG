@@ -20,6 +20,7 @@ public:
     void runExecutable(const QString& filename);
     bool validateSettings();
     void launchUAE();
+    void killProcess();
 
     // TODO: Structure this better
 
