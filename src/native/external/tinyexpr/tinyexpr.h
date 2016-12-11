@@ -25,16 +25,16 @@
 #ifndef __TINYEXPR_H__
 #define __TINYEXPR_H__
 
+#include <stdint.h>
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
-
 typedef struct te_expr {
     int type;
-    union {double value; const double *bound; const void *function;};
+    union {uint64_t value; const uint64_t *bound; const void *function;};
     void *parameters[1];
 } te_expr;
 
@@ -62,14 +62,14 @@ typedef struct te_variable {
 
 /* Parses the input expression, evaluates it, and frees it. */
 /* Returns NaN on error. */
-double te_interp(const char *expression, int *error);
+uint64_t te_interp(const char *expression, int *error);
 
 /* Parses the input expression and binds variables. */
 /* Returns NULL on error. */
 te_expr *te_compile(const char *expression, const te_variable *variables, int var_count, int *error);
 
 /* Evaluates the expression. */
-double te_eval(const te_expr *n);
+uint64_t te_eval(const te_expr *n);
 
 /* Prints debugging information on the syntax tree. */
 void te_print(const te_expr *n);
