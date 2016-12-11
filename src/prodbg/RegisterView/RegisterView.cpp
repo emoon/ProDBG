@@ -100,7 +100,7 @@ QTableWidgetItem* buildRegisterValue(IBackendRequests::Register* reg)
     }
 
     QTableWidgetItem* item = new QTableWidgetItem(regText);
-    item->setFlags(Qt::ItemIsEnabled);
+    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
     return item;
 }
