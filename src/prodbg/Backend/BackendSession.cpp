@@ -219,6 +219,100 @@ static void updateRegisters(QVector<IBackendRequests::Register>* target, PDReade
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static uint16_t getU16(uint8_t* ptr)
+{
+    uint16_t v = (ptr[0] << 8) | ptr[1];
+    return v;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static uint32_t getU32(uint8_t* ptr)
+{
+    uint32_t v = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3];
+    return v;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static uint64_t getU64(uint8_t* ptr)
+{
+    uint64_t v = ((uint64_t)ptr[0] << 56) | ((uint64_t)ptr[1] << 48) | ((uint64_t)ptr[2] << 40) |
+                 ((uint64_t)ptr[3] << 32) | (ptr[4] << 24) | (ptr[5] << 16) | (ptr[6] << 8) | ptr[7];
+    return v;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static uint64_t getRegValue(uint8_t* data, int size) {
+    switch (size) {
+        case 1: {
+            return data[1];
+        }
+
+        case 2: {
+            return getU16(data);
+        }
+
+        case 4: {
+            return getU32(data);
+        }
+
+        case 8: {
+            return getU64(data);
+            break;
+        }
+
+        default: {
+            //printf("getRegValue: size %d not supported, returing 0\n");
+            return 0;
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int buildExpressionVars(te_variable* variables, uint64_t* values, int maxRegs, PDReader* reader)
+{
+    PDReaderIterator it;
+
+    if (PDRead_find_array(reader, &it, "registers", 0) == PDReadStatus_NotFound) {
+        printf("Unable to find registers array\n");
+        return 0;
+    }
+
+    int index = 0;
+
+    while (PDRead_get_next_entry(reader, &it)) {
+        const char* name = "";
+        uint8_t* data = 0;
+        uint64_t size = 0;
+        uint8_t read_only = 0;
+
+        PDRead_find_string(reader, &name, "name", it);
+        PDRead_find_u8(reader, &read_only, "read_only", it);
+        PDRead_find_data(reader, (void**)&data, &size, "register", it);
+
+        values[index] = getRegValue(data, size);
+
+        variables[index].name = name; // this is safe as we use this result directly without reseting any streams
+        variables[index].address = &values[index];
+        variables[index].type = 0;
+        variables[index].context = nullptr;
+
+        ++index;
+
+        if (index >= maxRegs) {
+            printf("buildExpressionVars: Reached max regs, no more will be added");
+            break;
+        }
+    }
+
+    return index;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void BackendSession::toggleAddressBreakpoint(uint64_t address, bool add)
 {
     PDWrite_event_begin(m_currentWriter, PDEventType_SetBreakpoint);
@@ -337,19 +431,44 @@ void BackendSession::sendCustomString(uint16_t id, const QString& text)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void BackendSession::evalExpression(const QString& expression, uint64_t* out)
 {
+    te_variable variables[512];
+    uint64_t values[512];
+
+    uint32_t event = 0;
     int error = 0;
+    int maxRegs = 512;
+    int regCount = 0;
 
-    qDebug() << "eval expression " << expression;
+    // Get the registers
 
-    double t = te_interp(expression.toUtf8().data(), &error);
+    PDWrite_event_begin(m_currentWriter, PDEventType_GetRegisters);
+    PDWrite_event_end(m_currentWriter);
 
-    *out = (uint64_t)t;
+    update();
+
+    while ((event = PDRead_get_event(m_reader))) {
+        if (event != PDEventType_SetRegisters) {
+            continue;
+        }
+
+        regCount = buildExpressionVars(variables, values, maxRegs, m_reader);
+
+        break;
+    }
+
+    //qDebug() << "eval expression " << expression;
+
+    te_expr* expr = te_compile(expression.toUtf8().data(), variables, regCount, &error);
 
     if (error != 0) {
         endResolveAddress(nullptr);
     } else {
+        *out = te_eval(expr);
         endResolveAddress(out);
     }
 }
