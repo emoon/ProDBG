@@ -5,18 +5,18 @@
 #include "Backend/BackendRequests.h"
 #include "Backend/BackendSession.h"
 #include "BreakpointModel.h"
+#include "CodeViews.h"
 #include "Config/AmigaUAEConfig.h"
 #include "MemoryView/MemoryView.h"
 #include "RegisterView/RegisterView.h"
-#include "CodeViews.h"
 
 #include <QDebug>
+#include <QFileDialog>
 #include <QMainWindow>
 #include <QThread>
 #include <QTimer>
 #include <QtCore/QSettings>
 #include <QtWidgets/QDockWidget>
-#include <QFileDialog>
 
 namespace prodbg {
 
@@ -42,14 +42,13 @@ MainWindow::MainWindow()
     m_breakpoints = new BreakpointModel;
 
     m_codeViews = new CodeViews(m_breakpoints, this);
-    //m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), true);
-    //m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), m_breakpoints);
-    //m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), m_breakpoints);
+    // m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), true);
+    // m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), m_breakpoints);
+    // m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), m_breakpoints);
 
     setCentralWidget(m_codeViews);
 
     setWindowTitle(QStringLiteral("ProDBG"));
-
 
     // Setup docking for MemoryView
 
@@ -92,13 +91,14 @@ MainWindow::~MainWindow()
 
 void MainWindow::initActions()
 {
-    connect(m_ui.actionStart, &QAction::triggered, this, &MainWindow::start);
+    connect(m_ui.actionStart, &QAction::triggered, this, &MainWindow::startDebug);
     connect(m_ui.actionStep_In, &QAction::triggered, this, &MainWindow::stepIn);
     connect(m_ui.actionAmiga_UAE, &QAction::triggered, this, &MainWindow::amigaUAEConfig);
     connect(m_ui.actionDebugAmigaExe, &QAction::triggered, this, &MainWindow::debugAmigaExe);
     connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggleBreakpoint);
     connect(m_ui.actionOpen, &QAction::triggered, this, &MainWindow::openSourceFile);
     connect(m_ui.actionBreak, &QAction::triggered, this, &MainWindow::breakDebug);
+    connect(m_ui.actionStop, &QAction::triggered, this, &MainWindow::stop);
     connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_codeViews, &CodeViews::toggleSourceAsm);
 }
 
@@ -119,6 +119,8 @@ void MainWindow::openSourceFile()
 
 void MainWindow::start()
 {
+    printf("MainWindow::start\n");
+
     const QVector<BreakpointModel::FileLineBreakpoint>& fileLineBreakpoints = m_breakpoints->getFileLineBreakpoints();
     const QVector<uint64_t>& addressBreakpoints = m_breakpoints->getAddressBreakpoints();
 
@@ -166,9 +168,31 @@ void MainWindow::debugAmigaExe()
         return;
     }
 
+    m_lastAmigaExe = m_amigaUae->m_localExeToRun;
+
+    internalStartAmigaExe();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::startDebug()
+{
+    if (m_currentBackend == Amiga && !m_lastAmigaExe.isEmpty()) {
+        internalStartAmigaExe();
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::internalStartAmigaExe()
+{
+    m_amigaUae->m_localExeToRun = m_lastAmigaExe;
+
     if (!m_amigaUae->validateSettings()) {
         return;
     }
+
+    m_lastAmigaExe = m_amigaUae->m_localExeToRun;
 
     if (!m_amigaUae->m_skipUAELaunch) {
         connect(m_amigaUae->m_uaeProcess, &QProcess::started, this, &MainWindow::uaeStarted);
@@ -216,9 +240,9 @@ void MainWindow::closeCurrentBackend()
     delete m_backendThread;
     delete m_backendRequests;
 
-    //m_registerView->setBackendInterface(nullptr);
-    //m_codeViews->setBackendInterface(nullptr);
-    //m_memoryView->setBackendInterface(nullptr);
+    // m_registerView->setBackendInterface(nullptr);
+    // m_codeViews->setBackendInterface(nullptr);
+    // m_memoryView->setBackendInterface(nullptr);
 
     m_backend = nullptr;
     m_backendThread = nullptr;
@@ -245,6 +269,8 @@ void MainWindow::startAmigaUAEBackend()
 
     // TODO: This is really temporary
     QTimer::singleShot(2000, this, &MainWindow::start);
+
+    m_currentBackend = Amiga;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -271,6 +297,13 @@ void MainWindow::setupBackend(BackendSession* backend)
 
 void MainWindow::stop()
 {
+    if (m_currentBackend == Amiga) {
+        m_amigaUae->killProcess();
+    }
+
+    stopBackend();
+
+    m_statusbar->showMessage(QStringLiteral("Ready."));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

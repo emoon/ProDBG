@@ -34,6 +34,7 @@ protected:
 private:
     Q_SLOT void openSourceFile();
     Q_SLOT void breakDebug();
+    Q_SLOT void startDebug();
     Q_SLOT void start();
     Q_SLOT void stop();
     Q_SLOT void stepIn();
@@ -57,6 +58,7 @@ private:
         Custom,
     };
 
+    void internalStartAmigaExe();
     void initActions();
     void writeSettings();
     void readSettings();
@@ -68,6 +70,9 @@ private:
 
     Q_SLOT void uaeStarted();
     Q_SLOT void statusUpdate(const QString& status);
+
+    // This is somewhat temporary but convinient to have
+    QString m_lastAmigaExe;
 
     // Hard-coded Amiga support. Would be nice to have this more modular
     AmigaUAE* m_amigaUae = nullptr;
