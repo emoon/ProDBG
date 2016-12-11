@@ -443,6 +443,16 @@ impl Backend for AmigaUaeBackend {
         }
     }
 
+    fn destroy_instance(&mut self) {
+        // TODO: Disconnect
+        /*
+        if self.conn.is_connected() {
+            self.conn.clo
+
+        }
+        */
+    }
+
     fn update(&mut self, action: i32, reader: &mut Reader, writer: &mut Writer) -> DebugState {
         self.update_conn_incoming(writer);
 

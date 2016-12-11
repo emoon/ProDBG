@@ -80,6 +80,7 @@ pub static BACKEND_API_VERSION: &'static [u8] = b"ProDBG Backend 1\0";
 
 pub trait Backend {
     fn new(service: &Service) -> Self;
+    fn destroy_instance(&mut self) { }
     fn update(&mut self, action: i32, reader: &mut Reader, writer: &mut Writer) -> DebugState;
     fn save_state(&mut self, _: StateSaver) {}
     fn load_state(&mut self, _: StateLoader) {}
@@ -110,6 +111,8 @@ pub fn create_backend_instance<T: Backend>(service_func: extern "C" fn(service: 
 
 pub fn destroy_backend_instance<T: Backend>(ptr: *mut c_void) {
     println!("rust: backend: destroy");
+    let backend: &mut T = unsafe { &mut *(ptr as *mut T) };
+    backend.destroy_instance();
     let _: Box<T> = unsafe { transmute(ptr) };
     // implicitly dropped
 }
