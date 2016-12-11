@@ -66,7 +66,7 @@ static uint64_t getU64(uint8_t* ptr)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QTableWidgetItem* buildRegisterValue(IBackendRequests::Register* reg)
+static QString getRegisterValue(IBackendRequests::Register* reg)
 {
     QString regText;
 
@@ -99,6 +99,15 @@ QTableWidgetItem* buildRegisterValue(IBackendRequests::Register* reg)
         }
     }
 
+    return regText;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+QTableWidgetItem* buildRegisterValue(IBackendRequests::Register* reg)
+{
+    QString regText = getRegisterValue(reg);
+
     QTableWidgetItem* item = new QTableWidgetItem(regText);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
@@ -111,25 +120,53 @@ void RegisterView::endReadRegisters(QVector<IBackendRequests::Register>* registe
 {
     int i = 0;
 
-    m_ui->m_registers->clearContents();
-    m_ui->m_registers->setRowCount(registers->count());
+    // TODO: Rewrite using QTableView/QAbstractItemModel
 
-    for (auto& reg : *registers) {
-        QTableWidgetItem* item = new QTableWidgetItem(reg.name);
-        QTableWidgetItem* value = buildRegisterValue(&reg);
+    int tableCount = m_ui->m_registers->rowCount();
+    int registerCount = registers->count();
 
-        item->setFlags(Qt::ItemIsEnabled);
+    const QBrush& defaultTextColor = QGuiApplication::palette().windowText();
 
-        m_ui->m_registers->setItem(i + 0, 0, item);
-        m_ui->m_registers->setItem(i + 0, 1, value);
+    // If not the same amount of registers we just clear and instert them all
 
-        ++i;
+    if (tableCount != registerCount) {
+        m_ui->m_registers->clearContents();
+        m_ui->m_registers->setRowCount(registers->count());
+
+        for (auto& reg : *registers) {
+            QTableWidgetItem* item = new QTableWidgetItem(reg.name);
+            QTableWidgetItem* value = buildRegisterValue(&reg);
+
+            item->setFlags(Qt::ItemIsEnabled);
+
+            m_ui->m_registers->setItem(i + 0, 0, item);
+            m_ui->m_registers->setItem(i + 0, 1, value);
+
+            ++i;
+        }
+    } else {
+        // Otherwise we update here
+
+        for (auto& reg : *registers) {
+            QTableWidgetItem* value = m_ui->m_registers->item(i, 1);
+            QString newValue = getRegisterValue(&reg);
+
+            if (value->text() != newValue) {
+                value->setText(newValue);
+                value->setForeground(Qt::red);
+            } else {
+                value->setForeground(defaultTextColor);
+            }
+
+            ++i;
+        }
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RegisterView::programCounterChanged(const IBackendRequests::ProgramCounterChange& pc) {
+void RegisterView::programCounterChanged(const IBackendRequests::ProgramCounterChange& pc)
+{
     m_interface->beginReadRegisters(&m_targetRegisters);
 }
 
