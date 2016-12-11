@@ -96,7 +96,9 @@ void CodeView::openFile()
 
 void CodeView::reload()
 {
+    int currentLine = getCurrentLine();
     readSourceFile(m_sourceFile);
+    setLine(currentLine);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -117,9 +119,13 @@ void CodeView::fileChange(const QString filename)
     if (!f.exists())
         return;
 
+    int currentLine = getCurrentLine();
+
     f.open(QFile::ReadOnly | QFile::Text);
     QTextStream ts(&f);
     setPlainText(ts.readAll());
+
+    setLine(currentLine);
 
     // BUG: We need to readd the file here as it seems the watcher thinks it has been deleted (even if just changed)
     //      so we only get one notification of a change so when doing a re-add here we get correct notifications again
