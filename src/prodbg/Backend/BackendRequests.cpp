@@ -24,6 +24,7 @@ BackendRequests::BackendRequests(BackendSession* session)
     connect(session, &BackendSession::endResolveAddress, this, &BackendRequests::endResolveAddress);
 
     connect(session, &BackendSession::programCounterChanged, this, &BackendRequests::programCounterChanged);
+    connect(session, &BackendSession::sessionEnded, this, &BackendRequests::sessionEnded);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

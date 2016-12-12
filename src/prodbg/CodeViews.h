@@ -25,6 +25,7 @@ public:
     void setBackendInterface(IBackendRequests* iface);
 
     Q_SLOT void programCounterChanged(const IBackendRequests::ProgramCounterChange& pc);
+    Q_SLOT void sessionEnded();
     Q_SLOT void toggleSourceAsm();
 
 private:

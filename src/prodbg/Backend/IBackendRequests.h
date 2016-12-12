@@ -134,6 +134,9 @@ public:
     // This can be used to figure out if it's needed to re-request data. For example a Memory view may want to use
     // this as the program may have altered the same memory that is currently being displayed
     Q_SIGNAL void programCounterChanged(const ProgramCounterChange& pc);
+
+    // This signal is being sent when the the current debugging session has ended 
+    Q_SIGNAL void sessionEnded();
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

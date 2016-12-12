@@ -94,6 +94,7 @@ bool BackendSession::setBackend(const QString& backendName)
 void BackendSession::destroyPluginData()
 {
     if (m_backendPlugin && m_backendPluginData) {
+        sessionEnded();
         m_backendPlugin->destroy_instance(m_backendPluginData);
     }
 }

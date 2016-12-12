@@ -58,6 +58,22 @@ void CodeViews::toggleBreakpoint()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void CodeViews::sessionEnded()
+{
+    for (int i = 0, c = count(); i < c; ++i) {
+        if (tabText(i).indexOf(QStringLiteral("Disassembly")) == 0) {
+            continue;
+        }
+
+        CodeView* view = dynamic_cast<CodeView*>(widget(i));
+        Q_ASSERT(view);
+
+        view->sessionEnded();
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CodeViews::openFile(const QString& filename, bool setActive)
 {
     QFileInfo info(filename);
@@ -147,7 +163,10 @@ void CodeViews::setBackendInterface(IBackendRequests* iface)
 
     m_disassemblyView->setBackendInterface(iface);
 
-    connect(m_interface, &IBackendRequests::programCounterChanged, this, &CodeViews::programCounterChanged);
+    if (iface) {
+        connect(m_interface, &IBackendRequests::programCounterChanged, this, &CodeViews::programCounterChanged);
+        connect(m_interface, &IBackendRequests::sessionEnded, this, &CodeViews::sessionEnded);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -52,6 +52,7 @@ public:
     Q_SIGNAL void programCounterChanged(const IBackendRequests::ProgramCounterChange& pc);
     Q_SIGNAL void statusUpdate(const QString& update);
     Q_SIGNAL void sourceFileLineChanged(const QString& filename, uint32_t line);
+    Q_SIGNAL void sessionEnded();
 
 private:
     void updateCurrentPc();
