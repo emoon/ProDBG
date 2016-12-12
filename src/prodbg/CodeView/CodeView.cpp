@@ -8,6 +8,7 @@
 #include <QSettings>
 #include <QTextBlock>
 #include <QTextStream>
+#include <QDebug>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -223,9 +224,6 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
     int width = m_lineNumberArea->width();
     int height = fontMetrics().height();
 
-    const bool isDisassembly = m_mode == Disassembly;
-    const int addressCount = m_disassemblyAdresses.count();
-
     int fontHeight = fontMetrics().height() - 2;
 
     while (block.isValid() && top <= event->rect().bottom()) {
@@ -242,7 +240,7 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
 
             // Draw ugly arrow!
 
-            if (blockNumber == m_currentSourceLine) {
+            if ((blockNumber + 1) == m_currentSourceLine) {
                 float scale = fontHeight / 2.0f;
                 float pos_x = 10.0f;
                 float pos_y = top + scale;
@@ -459,6 +457,14 @@ void CodeView::setBackendInterface(IBackendRequests* iface)
 void CodeView::sessionEnded()
 {
     m_currentSourceLine = -1;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeView::setExceptionLine(int line)
+{
+    m_currentSourceLine = line;
+    setLine(line);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

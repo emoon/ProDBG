@@ -350,6 +350,15 @@ impl AmigaUaeBackend {
         if should_break {
             println!("Should break!");
             self.debug_state = DebugState::StopException;
+
+            let mut register_data = [0; 1024];
+            if self.conn.get_registers(&mut register_data).is_err() {
+                println!("Unable to get registers!");
+                return;
+            }
+
+            self.exception_location = Self::get_u32(&register_data[64 + 4..]);
+
             self.write_exception_location(writer);
         }
     }

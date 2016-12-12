@@ -64,6 +64,7 @@ public:
     void setFileLine(const QString& file, int line);
     void setAddress(uint64_t address);
     void setLine(int line);
+    void setExceptionLine(int line);
     void sessionEnded();
 
     int lineNumberAreaWidth();

@@ -113,6 +113,7 @@ void CodeViews::programCounterChanged(const IBackendRequests::ProgramCounterChan
 {
     m_disassemblyView->updatePc(pc.programCounter);
 
+
     // No source/line for the PC so toggle to disassmbly mode if we already aren't there
 
     if (pc.line == -1) {
@@ -139,7 +140,7 @@ void CodeViews::programCounterChanged(const IBackendRequests::ProgramCounterChan
 
             CodeView* view = dynamic_cast<CodeView*>(widget(i));
             Q_ASSERT(view);
-            view->setLine(pc.line);
+            view->setExceptionLine(pc.line);
 
             if (m_mode == SourceView) {
                 setCurrentIndex(i);
@@ -151,7 +152,7 @@ void CodeViews::programCounterChanged(const IBackendRequests::ProgramCounterChan
         openFile(pc.filename, m_mode == SourceView);
 
         CodeView* view = dynamic_cast<CodeView*>(widget(tabsCount));
-        view->setLine(pc.line);
+        view->setExceptionLine(pc.line);
     }
 }
 
