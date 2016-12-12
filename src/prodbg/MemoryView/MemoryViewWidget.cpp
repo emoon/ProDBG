@@ -11,11 +11,15 @@
 
 namespace prodbg {
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static const QChar s_HexTable[16] = {
     QLatin1Char('0'), QLatin1Char('1'), QLatin1Char('2'), QLatin1Char('3'), QLatin1Char('4'), QLatin1Char('5'),
     QLatin1Char('6'), QLatin1Char('7'), QLatin1Char('8'), QLatin1Char('9'), QLatin1Char('a'), QLatin1Char('b'),
     QLatin1Char('c'), QLatin1Char('d'), QLatin1Char('e'), QLatin1Char('f'),
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct MemViewTypeMeta
 {
@@ -24,6 +28,8 @@ struct MemViewTypeMeta
     void (*m_Formatter)(QString* target, int displayWidth, int byteCount, const uint16_t* values,
                         MemoryViewWidget::Endianess);
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint64_t decodeValue(const uint16_t* values, int count, MemoryViewWidget::Endianess endianess)
 {
@@ -46,6 +52,8 @@ static uint64_t decodeValue(const uint16_t* values, int count, MemoryViewWidget:
     return value;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void formatHex(QString* target, int displayWidth, int byteCount, const uint16_t* values,
                       MemoryViewWidget::Endianess endianess)
 {
@@ -59,6 +67,8 @@ static void formatHex(QString* target, int displayWidth, int byteCount, const ui
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void assignStr(const char* str, int len, int displayWidth, QString* target)
 {
     for (int i = len; i < displayWidth; ++i) {
@@ -68,6 +78,8 @@ static void assignStr(const char* str, int len, int displayWidth, QString* targe
         target->push_back(QChar(int(*p)));
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void formatUnsigned(QString* target, int displayWidth, int byteCount, const uint16_t* values,
                            MemoryViewWidget::Endianess endianess)
@@ -94,6 +106,8 @@ static void formatUnsigned(QString* target, int displayWidth, int byteCount, con
     assignStr(buffer, len, displayWidth, target);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void formatSigned(QString* target, int displayWidth, int byteCount, const uint16_t* values,
                          MemoryViewWidget::Endianess endianess)
 {
@@ -118,6 +132,8 @@ static void formatSigned(QString* target, int displayWidth, int byteCount, const
 
     assignStr(buffer, len, displayWidth, target);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void formatFloat(QString* target, int displayWidth, int byteCount, const uint16_t* values,
                         MemoryViewWidget::Endianess endianess)
@@ -157,6 +173,8 @@ static void formatFloat(QString* target, int displayWidth, int byteCount, const 
     assignStr(buffer, len, displayWidth, target);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static const struct MemViewTypeMeta s_TypeMeta[] = {
     { 1, 2, formatHex },       // kHexByte: FF
     { 1, 3, formatUnsigned },  // kUnsignedByte: 255
@@ -173,6 +191,8 @@ static const struct MemViewTypeMeta s_TypeMeta[] = {
     { 4, 16, formatFloat },    // kFloat: arbitrary formatting width
     { 8, 16, formatFloat },    // kDouble: arbitrary formatting width
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static QChar s_AsciiTab[256];
 
@@ -198,6 +218,8 @@ public:
     QVector<uint16_t> m_Cache;
     QVector<uint16_t> m_transferCache;
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     void access(uint64_t address, uint64_t count, QVector<uint16_t>* values)
     {
         uint64_t start = address;
@@ -222,9 +244,13 @@ public:
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     void jump(int rowCount) { m_TopRow += rowCount * m_ElementsPerRow * bytesPerElement(); }
 
     int bytesPerElement() const { return s_TypeMeta[m_DataType].m_BytesPerElement; }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     void paintEvent(QWidget* widget, QPaintEvent* ev)
     {
@@ -317,9 +343,10 @@ public:
         }
     }
 };
-}
 
-prodbg::MemoryViewWidget::MemoryViewWidget(QWidget* parent)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+MemoryViewWidget::MemoryViewWidget(QWidget* parent)
     : Base(parent)
     , m_Private(new MemoryViewPrivate)
 {
@@ -373,22 +400,30 @@ prodbg::MemoryViewWidget::MemoryViewWidget(QWidget* parent)
     }
 }
 
-prodbg::MemoryViewWidget::~MemoryViewWidget()
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+MemoryViewWidget::~MemoryViewWidget()
 {
     delete m_Private;
 }
 
-void prodbg::MemoryViewWidget::setBackendInterface(IBackendRequests* interface)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryViewWidget::setBackendInterface(IBackendRequests* interface)
 {
     m_Private->m_Interface = interface;
 
-    connect(interface, &IBackendRequests::endReadMemory, this, &prodbg::MemoryViewWidget::endReadMemory);
+    if (interface) {
+        connect(interface, &IBackendRequests::endReadMemory, this, &MemoryViewWidget::endReadMemory);
+    }
 
     update();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Gets called when transfor from backend to frontend has finished
-void prodbg::MemoryViewWidget::endReadMemory(QVector<uint16_t>* target, uint64_t address, int addressWidth)
+
+void MemoryViewWidget::endReadMemory(QVector<uint16_t>* target, uint64_t address, int addressWidth)
 {
     m_Private->m_adddressWidth = addressWidth;
 
@@ -400,48 +435,64 @@ void prodbg::MemoryViewWidget::endReadMemory(QVector<uint16_t>* target, uint64_t
     update();
 }
 
-void prodbg::MemoryViewWidget::setExpressionStatus(bool status)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryViewWidget::setExpressionStatus(bool status)
 {
     m_Private->m_expressionStatus = status;
 }
 
-void prodbg::MemoryViewWidget::paintEvent(QPaintEvent* ev)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryViewWidget::paintEvent(QPaintEvent* ev)
 {
     m_Private->paintEvent(this, ev);
 }
 
-void prodbg::MemoryViewWidget::displayNextPage()
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryViewWidget::displayNextPage()
 {
     m_Private->jump(m_Private->m_PageSizeInRows);
     update();
 }
 
-void prodbg::MemoryViewWidget::displayPrevPage()
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryViewWidget::displayPrevPage()
 {
     m_Private->jump(-m_Private->m_PageSizeInRows);
     update();
 }
 
-void prodbg::MemoryViewWidget::displayNextLine()
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryViewWidget::displayNextLine()
 {
     m_Private->jump(1);
     update();
 }
 
-void prodbg::MemoryViewWidget::displayPrevLine()
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryViewWidget::displayPrevLine()
 {
     m_Private->jump(-1);
     update();
 }
 
-void prodbg::MemoryViewWidget::contextMenuEvent(QContextMenuEvent* ev)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryViewWidget::contextMenuEvent(QContextMenuEvent* ev)
 {
     QMenu contextMenu;
     contextMenu.addActions(actions());
     contextMenu.exec(mapToGlobal(ev->pos()));
 }
 
-void prodbg::MemoryViewWidget::wheelEvent(QWheelEvent* ev)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryViewWidget::wheelEvent(QWheelEvent* ev)
 {
     if (ev->angleDelta().y() < 0) {
         m_Private->jump(m_Private->m_WheelSpeedRows);
@@ -452,42 +503,58 @@ void prodbg::MemoryViewWidget::wheelEvent(QWheelEvent* ev)
     update();
 }
 
-prodbg::MemoryViewWidget::DataType prodbg::MemoryViewWidget::dataType() const
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+MemoryViewWidget::DataType MemoryViewWidget::dataType() const
 {
     return m_Private->m_DataType;
 }
 
-void prodbg::MemoryViewWidget::setDataType(DataType type)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryViewWidget::setDataType(DataType type)
 {
     m_Private->m_DataType = type;
     update();
 }
 
-prodbg::MemoryViewWidget::Endianess prodbg::MemoryViewWidget::endianess() const
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+MemoryViewWidget::Endianess MemoryViewWidget::endianess() const
 {
     return m_Private->m_Endianess;
 }
 
-void prodbg::MemoryViewWidget::setEndianess(Endianess e)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryViewWidget::setEndianess(Endianess e)
 {
     m_Private->m_Endianess = e;
     update();
 }
 
-int prodbg::MemoryViewWidget::elementsPerLine() const
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int MemoryViewWidget::elementsPerLine() const
 {
     return m_Private->m_ElementsPerRow;
 }
 
-void prodbg::MemoryViewWidget::setElementsPerLine(int count)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryViewWidget::setElementsPerLine(int count)
 {
     m_Private->m_ElementsPerRow = std::min(std::max(1, count), 64);
     update();
 }
 
-void prodbg::MemoryViewWidget::setAddress(uint64_t address)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryViewWidget::setAddress(uint64_t address)
 {
     m_Private->m_TopRow = address;
     update();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+}

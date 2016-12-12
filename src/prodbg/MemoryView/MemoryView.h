@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Backend/IBackendRequests.h"
-#include <QtWidgets/QWidget>
 #include <QPointer>
+#include <QtWidgets/QWidget>
 
 class Ui_MemoryView;
 

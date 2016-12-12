@@ -5,6 +5,10 @@
 #include <QtCore/QDebug>
 #include <QtCore/QMetaEnum>
 
+namespace prodbg {
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename EnumType>
 static void enumToCombo(QComboBox* combo, int startValue)
 {
@@ -17,7 +21,9 @@ static void enumToCombo(QComboBox* combo, int startValue)
     combo->setCurrentIndex(startValue);
 }
 
-prodbg::MemoryView::MemoryView(QWidget* parent)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+MemoryView::MemoryView(QWidget* parent)
     : Base(parent)
     , m_Ui(new Ui_MemoryView)
 {
@@ -40,48 +46,59 @@ prodbg::MemoryView::MemoryView(QWidget* parent)
             &MemoryView::countChanged);
 }
 
-prodbg::MemoryView::~MemoryView()
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+MemoryView::~MemoryView()
 {
     delete m_Ui;
 }
 
-void prodbg::MemoryView::endianChanged(int e)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryView::endianChanged(int e)
 {
     m_Ui->m_View->setEndianess(static_cast<MemoryViewWidget::Endianess>(e));
 }
 
-void prodbg::MemoryView::setBackendInterface(IBackendRequests* interface)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryView::setBackendInterface(IBackendRequests* interface)
 {
     m_interface = interface;
 
     m_Ui->m_View->setBackendInterface(interface);
 
     if (interface) {
-        connect(interface, &IBackendRequests::endResolveAddress, this, &prodbg::MemoryView::endResolveAddress);
+        connect(interface, &IBackendRequests::endResolveAddress, this, &MemoryView::endResolveAddress);
     }
 }
 
-void prodbg::MemoryView::dataTypeChanged(int t)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryView::dataTypeChanged(int t)
 {
     m_Ui->m_View->setDataType(static_cast<MemoryViewWidget::DataType>(t));
 }
 
-void prodbg::MemoryView::jumpAddressChanged()
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryView::jumpAddressChanged()
 {
     jumpToAddressExpression(m_Ui->m_Address->text());
 }
 
-void prodbg::MemoryView::jumpToAddressExpression(const QString& str)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryView::jumpToAddressExpression(const QString& str)
 {
     if (m_interface) {
         m_interface->beginResolveAddress(str, &m_evalAddress);
     }
-
-    // TODO: Parse, evaluate, etc.
-    // qDebug() << "Jump to address:" << str;
 }
 
-void prodbg::MemoryView::endResolveAddress(uint64_t* out)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryView::endResolveAddress(uint64_t* out)
 {
     if (!out) {
         m_Ui->m_View->setExpressionStatus(false);
@@ -94,11 +111,17 @@ void prodbg::MemoryView::endResolveAddress(uint64_t* out)
     m_Ui->m_View->update();
 }
 
-void prodbg::MemoryView::countChanged(const QString& text)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryView::countChanged(const QString& text)
 {
     bool ok = false;
     int count = text.toInt(&ok, /*base:*/ 0);
     if (ok) {
         m_Ui->m_View->setElementsPerLine(count);
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 }
