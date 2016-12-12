@@ -166,6 +166,30 @@ void DisassemblyView::lineNumberAreaPaintEvent(QPaintEvent* event)
                 painter.setBrush(Qt::red);
                 painter.drawEllipse(4, top, fontHeight, fontHeight);
             }
+
+            // Draw ugly arrow!
+
+            if (m_disassemblyAdresses[blockNumber].address == m_currentPc) {
+                float scale = fontHeight / 2.0f;
+                float pos_x = 10.0f;
+                float pos_y = top + scale;
+
+                const QPointF points[7] = {
+                    QPointF((0.0f * scale) + pos_x, (-0.5f * scale) + pos_y),
+                    QPointF((0.5f * scale) + pos_x, (-0.5f * scale) + pos_y),
+                    QPointF((0.5f * scale) + pos_x, (-1.0f * scale) + pos_y),
+
+                    QPointF((1.0f * scale) + pos_x, (0.0f * scale) + pos_y),
+
+                    QPointF((0.5f * scale) + pos_x, (1.0f * scale) + pos_y),
+                    QPointF((0.5f * scale) + pos_x, (0.5f * scale) + pos_y),
+                    QPointF((0.0f * scale) + pos_x, (0.5f * scale) + pos_y),
+                };
+
+                painter.setPen(Qt::yellow);
+                painter.setBrush(Qt::yellow);
+                painter.drawConvexPolygon(points, 7);
+            }
         }
 
         block = block.next();

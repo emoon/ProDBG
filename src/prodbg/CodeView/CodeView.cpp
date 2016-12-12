@@ -258,8 +258,29 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
                 }
             }
 
-            // if (g_debugSession->hasLineBreakpoint(m_sourceFile, blockNumber))
-            //   painter.drawArc(0, top + 1, 16, height - 2, 0, 360 * 16);
+            // Draw ugly arrow!
+
+            if (blockNumber == m_currentSourceLine) {
+                float scale = fontHeight / 2.0f;
+                float pos_x = 10.0f;
+                float pos_y = top + scale;
+
+                const QPointF points[7] = {
+                    QPointF((0.0f * scale) + pos_x, (-0.5f * scale) + pos_y),
+                    QPointF((0.5f * scale) + pos_x, (-0.5f * scale) + pos_y),
+                    QPointF((0.5f * scale) + pos_x, (-1.0f * scale) + pos_y),
+
+                    QPointF((1.0f * scale) + pos_x, (0.0f * scale) + pos_y),
+
+                    QPointF((0.5f * scale) + pos_x, (1.0f * scale) + pos_y),
+                    QPointF((0.5f * scale) + pos_x, (0.5f * scale) + pos_y),
+                    QPointF((0.0f * scale) + pos_x, (0.5f * scale) + pos_y),
+                };
+
+                painter.setPen(Qt::yellow);
+                painter.setBrush(Qt::yellow);
+                painter.drawConvexPolygon(points, 7);
+            }
         }
 
         block = block.next();
