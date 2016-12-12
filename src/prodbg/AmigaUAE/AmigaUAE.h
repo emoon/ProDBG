@@ -46,7 +46,7 @@ private:
     Q_SLOT void started();
     Q_SLOT void errorOccurred(QProcess::ProcessError error);
 
-    QTemporaryDir* m_tempDir;
+    QTemporaryDir* m_tempDir = nullptr;
 
     void readSettings();
 
