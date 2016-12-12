@@ -233,29 +233,11 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
             QString number = QString::number(blockNumber + 1);
             painter.setPen(Qt::black);
 
-            if (isDisassembly) {
-                if (blockNumber >= addressCount) {
-                    return;
-                }
+            painter.drawText(0, top, width, height, Qt::AlignRight, number);
 
-                uint64_t address = m_disassemblyAdresses[blockNumber].address;
-                const QString& addressText = m_disassemblyAdresses[blockNumber].addressText;
-
-                painter.drawText(0, top, width, height, Qt::AlignRight, addressText);
-
-                if (m_breakpoints->hasBreakpointAddress(address)) {
-                    // TODO: Make sure to take font size into account
-                    painter.setBrush(Qt::red);
-                    painter.drawEllipse(4, top, fontHeight, fontHeight);
-                }
-            } else {
-                painter.drawText(0, top, width, height, Qt::AlignRight, number);
-
-                if (m_breakpoints->hasBreakpointFileLine(m_sourceFile, blockNumber + 1)) {
-                    // TODO: Make sure to take font size into account
-                    painter.setBrush(Qt::red);
-                    painter.drawEllipse(4, top, fontHeight, fontHeight);
-                }
+            if (m_breakpoints->hasBreakpointFileLine(m_sourceFile, blockNumber + 1)) {
+                painter.setBrush(Qt::red);
+                painter.drawEllipse(4, top, fontHeight, fontHeight);
             }
 
             // Draw ugly arrow!
