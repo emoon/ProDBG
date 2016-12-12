@@ -4,6 +4,10 @@
 #include <QProcess>
 #include <QString>
 
+#include "Config/AmigaUAEConfig.h"
+
+class QTemporaryDir;
+
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -33,17 +37,20 @@ public:
     QString m_dh0Path;
     QString m_fileToRun;
     QString m_localExeToRun;
+    QString m_romPath;
     bool m_copyFiles;
     bool m_skipUAELaunch;
+    AmigaUAEConfig::ConfigMode m_configMode;
 
 private:
     Q_SLOT void started();
     Q_SLOT void errorOccurred(QProcess::ProcessError error);
 
+    QTemporaryDir* m_tempDir;
+
     void readSettings();
 
     bool m_running = false;
-
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

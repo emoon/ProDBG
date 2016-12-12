@@ -21,6 +21,7 @@ AmigaUAEConfig::AmigaUAEConfig(QWidget* parent)
     connect(m_ui->selectExe, &QPushButton::clicked, this, &AmigaUAEConfig::selectExecutable);
     connect(m_ui->selectConfig, &QPushButton::clicked, this, &AmigaUAEConfig::selectConfigFile);
     connect(m_ui->selectDh0Path, &QPushButton::clicked, this, &AmigaUAEConfig::selectDh0Path);
+    connect(m_ui->selectROM, &QPushButton::clicked, this, &AmigaUAEConfig::selectRomFile);
 
     connect(m_ui->configMode, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
             &AmigaUAEConfig::configModeChanged);
@@ -54,6 +55,13 @@ static void selectFilename(const QString& title, QLineEdit* line)
 void AmigaUAEConfig::selectExecutable()
 {
     selectFilename(QStringLiteral("Select UAE executable"), m_ui->uaeExe);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void AmigaUAEConfig::selectRomFile()
+{
+    selectFilename(QStringLiteral("Select Amiga ROM file"), m_ui->romPath);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,6 +105,7 @@ void AmigaUAEConfig::updateMode()
         m_ui->selectConfig->setEnabled(true);
         m_ui->selectDh0Path->setEnabled(true);
         m_ui->romPath->setEnabled(false);
+        m_ui->selectROM->setEnabled(false);
     } else {
         m_ui->dh0Path->setEnabled(false);
         m_ui->copyFilesToHdd->setEnabled(false);
@@ -105,6 +114,7 @@ void AmigaUAEConfig::updateMode()
         m_ui->selectConfig->setEnabled(false);
         m_ui->selectDh0Path->setEnabled(false);
         m_ui->romPath->setEnabled(true);
+        m_ui->selectROM->setEnabled(true);
     }
 }
 
@@ -121,6 +131,8 @@ void AmigaUAEConfig::writeSettings()
     settings.setValue(QStringLiteral("dh0Path"), m_ui->dh0Path->text());
     settings.setValue(QStringLiteral("copyFilesToHDD"), m_ui->copyFilesToHdd->isChecked());
     settings.setValue(QStringLiteral("skipUAELaunch"), m_ui->skipUAELaunch->isChecked());
+    settings.setValue(QStringLiteral("configMode"), m_ui->configMode->currentIndex());
+    settings.setValue(QStringLiteral("romPath"), m_ui->romPath->text());
     settings.endGroup();
 }
 
@@ -137,6 +149,8 @@ void AmigaUAEConfig::readSettings()
     m_ui->dh0Path->setText(settings.value(QStringLiteral("dh0Path")).toString());
     m_ui->copyFilesToHdd->setChecked(settings.value(QStringLiteral("copyFilesToHDD")).toBool());
     m_ui->skipUAELaunch->setChecked(settings.value(QStringLiteral("skipUAELaunch")).toBool());
+    m_ui->configMode->setCurrentIndex(settings.value(QStringLiteral("configMode")).toInt());
+    m_ui->romPath->setText(settings.value(QStringLiteral("romPath")).toString());
     settings.endGroup();
 
 }

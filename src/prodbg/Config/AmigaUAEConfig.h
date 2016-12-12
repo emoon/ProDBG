@@ -5,7 +5,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace Ui {
-class AmigaUAEConfig;
+    class AmigaUAEConfig;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -18,8 +18,6 @@ public:
     explicit AmigaUAEConfig(QWidget* parent = 0);
     ~AmigaUAEConfig();
 
-private:
-    
     enum ConfigMode
     {
         ConfigMode_Auto_Fastest,
@@ -28,9 +26,12 @@ private:
         ConfigMode_Manual,
     };
 
+private:
+    
     Q_SLOT void configModeChanged(int index);
     Q_SLOT void selectExecutable();
     Q_SLOT void selectConfigFile();
+    Q_SLOT void selectRomFile();
     Q_SLOT void selectDh0Path();
 
     void writeSettings();
