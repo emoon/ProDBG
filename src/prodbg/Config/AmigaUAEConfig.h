@@ -19,12 +19,23 @@ public:
     ~AmigaUAEConfig();
 
 private:
+    
+    enum ConfigMode
+    {
+        ConfigMode_Auto_Fastest,
+        ConfigMode_Auto_A500,
+        ConfigMode_Auto_A1200,
+        ConfigMode_Manual,
+    };
+
+    Q_SLOT void configModeChanged(int index);
     Q_SLOT void selectExecutable();
     Q_SLOT void selectConfigFile();
     Q_SLOT void selectDh0Path();
 
     void writeSettings();
     void readSettings();
+    void updateMode();
 
     Ui::AmigaUAEConfig* m_ui;
 };
