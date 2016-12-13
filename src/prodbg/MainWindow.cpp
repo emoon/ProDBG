@@ -215,6 +215,7 @@ void MainWindow::internalStartAmigaExe()
 void MainWindow::setupBackendConnections()
 {
     connect(this, &MainWindow::stepInBackend, m_backend, &BackendSession::stepIn);
+    connect(this, &MainWindow::stepOverBackend, m_backend, &BackendSession::stepOver);
     connect(this, &MainWindow::startBackend, m_backend, &BackendSession::start);
     connect(this, &MainWindow::breakBackend, m_backend, &BackendSession::breakDebug);
 
@@ -325,6 +326,7 @@ void MainWindow::stepIn()
 
 void MainWindow::stepOver()
 {
+    stepOverBackend();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
