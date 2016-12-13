@@ -32,6 +32,7 @@ public:
     Q_SLOT void update();
     Q_SLOT void breakDebug();
 
+    Q_SLOT void threadFinished();
     Q_SLOT void evalExpression(const QString& expression, uint64_t* out);
 
     Q_SLOT void sendCustomString(uint16_t id, const QString& text);

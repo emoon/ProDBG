@@ -276,8 +276,9 @@ void MainWindow::setupBackendConnections()
     connect(this, &MainWindow::stepOverBackend, m_backend, &BackendSession::stepOver);
     connect(this, &MainWindow::startBackend, m_backend, &BackendSession::start);
     connect(this, &MainWindow::breakBackend, m_backend, &BackendSession::breakDebug);
+    connect(this, &MainWindow::stopBackend, m_backend, &BackendSession::breakDebug);
 
-    connect(m_backend, &BackendSession::statusUpdate, this, &MainWindow::statusUpdate);
+    connect(m_backendThread, &QThread::finished, m_backend, &BackendSession::threadFinished);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -303,7 +304,6 @@ void MainWindow::closeCurrentBackend()
         m_backendThread->wait();
     }
 
-    delete m_backend;
     delete m_backendThread;
     delete m_backendRequests;
 
@@ -369,6 +369,7 @@ void MainWindow::stop()
     }
 
     stopBackend();
+    closeCurrentBackend();
 
     m_statusbar->showMessage(QStringLiteral("Ready."));
 }

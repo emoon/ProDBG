@@ -101,6 +101,13 @@ void BackendSession::destroyPluginData()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void BackendSession::threadFinished()
+{
+    delete this;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static QString s_stateTable[] = {
     QStringLiteral("No target"),        QStringLiteral("Running"),          QStringLiteral("Stop (breakpoint)"),
     QStringLiteral("Stop (exception)"), QStringLiteral("Trace (stepping)"), QStringLiteral("Unknown"),
