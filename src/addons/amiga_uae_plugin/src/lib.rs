@@ -512,6 +512,17 @@ impl Backend for AmigaUaeBackend {
             ACTION_RUN => {
                 let mut res = [0; 1024];
 
+                // If wa are already in trace mode we can just continnue the execution
+                if self.debug_state == DebugState::Trace {
+                    if let Err(err) = self.conn.cont() {
+                        println!("Unable to continue {:?}", err);
+                    } else {
+                        self.debug_state = DebugState::Running;
+                    }
+
+                    return self.debug_state;
+                }
+
                 if self.amiga_exe_file_path == "" {
                     println!("No executable to run");
                     return self.debug_state;
