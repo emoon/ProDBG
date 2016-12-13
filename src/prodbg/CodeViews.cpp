@@ -33,6 +33,7 @@ CodeViews::~CodeViews()
 
 void CodeViews::toggleBreakpoint()
 {
+
     const int index = currentIndex();
 
     if (index == 0 && tabText(0).indexOf(QStringLiteral("Disassembly")) == 0) {
@@ -46,11 +47,13 @@ void CodeViews::toggleBreakpoint()
         int line = view->getCurrentLine();
         bool added = m_breakpoints->toggleFileLineBreakpoint(filename, line + 1);
 
-        if (added) {
-            m_interface->beginAddFileLineBreakpoint(filename, line);
-        } else {
-            m_interface->beginRemoveFileLineBreakpoint(filename, line);
-        }
+        if (m_interface) {
+			if (added) {
+				m_interface->beginAddFileLineBreakpoint(filename, line);
+			} else {
+				m_interface->beginRemoveFileLineBreakpoint(filename, line);
+			}
+		}
 
         view->repaint();
     }
