@@ -20,20 +20,27 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
+    <widget class="QMenu" name="menuRecentExecutables">
+     <property name="title">
+      <string>Recent Executables</string>
+     </property>
+    </widget>
     <addaction name="actionOpen"/>
     <addaction name="actionDebugAmigaExe"/>
     <addaction name="actionReloadCurrentFile"/>
+    <addaction name="separator"/>
+    <addaction name="menuRecentExecutables"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
-     <string>Debug</string>
+     <string>&amp;Debug</string>
     </property>
     <addaction name="actionBreak"/>
     <addaction name="actionStart"/>
@@ -44,13 +51,13 @@
    </widget>
    <widget class="QMenu" name="menuConfig">
     <property name="title">
-     <string>Config</string>
+     <string>&amp;Config</string>
     </property>
     <addaction name="actionAmiga_UAE"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
-     <string>View</string>
+     <string>&amp;View</string>
     </property>
     <addaction name="actionToggleSourceAsm"/>
    </widget>
@@ -143,6 +150,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionRecent_files">
+   <property name="text">
+    <string>Recent files</string>
    </property>
   </action>
  </widget>

@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "CodeView/CodeView.h"
+#include "RecentExecutables.h"
 
 #include "AmigaUAE/AmigaUAE.h"
 #include "Backend/BackendRequests.h"
@@ -35,6 +36,7 @@ MainWindow::MainWindow()
     qRegisterMetaType<uint64_t>("uint64_t");
     qRegisterMetaType<IBackendRequests::ProgramCounterChange>("IBackendRequests::ProgramCounterChange");
 
+    m_recentExecutables = new RecentExecutables;
     m_amigaUae = new AmigaUAE(this);
 
     m_ui.setupUi(this);
@@ -78,12 +80,16 @@ MainWindow::MainWindow()
 
     initActions();
     readSettings();
+
+    initRecentFileActions();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MainWindow::~MainWindow()
 {
+    delete m_recentExecutables;
+
     closeCurrentBackend();
 }
 
@@ -101,6 +107,40 @@ void MainWindow::initActions()
     connect(m_ui.actionBreak, &QAction::triggered, this, &MainWindow::breakDebug);
     connect(m_ui.actionStop, &QAction::triggered, this, &MainWindow::stop);
     connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_codeViews, &CodeViews::toggleSourceAsm);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static QAction* findMenu(QMenu* menu, const QString& menuName)
+{
+    QList<QAction*> menus = menu->actions(); 
+
+    for (auto& menu : menus) {
+        if (menu->text() == menuName) {
+            return menu;
+        }
+    }
+
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::initRecentFileActions()
+{
+    QMenu* menu = m_ui.menuRecentExecutables;
+
+    //QAction* recentFiles = m_ui.menuFile->actionRecentExecutables;
+
+    for (int i = 0; i < RecentExecutables::MaxFiles_Count; ++i) {
+        QAction* recentFileAction = new QAction(this);
+        recentFileAction->setVisible(false);
+        connect(recentFileAction, &QAction::triggered, this, &MainWindow::openRecentExe);
+        m_recentFileActions.append(recentFileAction);
+        menu->addAction(recentFileAction); 
+    }
+
+    m_recentExecutables->updateActionList(m_recentFileActions);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -171,7 +211,25 @@ void MainWindow::debugAmigaExe()
 
     m_lastAmigaExe = m_amigaUae->m_localExeToRun;
 
+    m_recentExecutables->setFile(m_recentFileActions, m_lastAmigaExe, BackendType_AmigaUAE); 
+
     internalStartAmigaExe();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::openRecentExe()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if (action) {
+        QString filename = action->data().toString();
+        m_lastAmigaExe = filename;
+        m_amigaUae->m_localExeToRun = filename;
+
+        m_recentExecutables->putFileOnTop(m_recentFileActions, filename);
+
+        internalStartAmigaExe();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -215,10 +273,12 @@ void MainWindow::internalStartAmigaExe()
 void MainWindow::setupBackendConnections()
 {
     connect(this, &MainWindow::stepInBackend, m_backend, &BackendSession::stepIn);
+    connect(this, &MainWindow::stepOverBackend, m_backend, &BackendSession::stepOver);
     connect(this, &MainWindow::startBackend, m_backend, &BackendSession::start);
     connect(this, &MainWindow::breakBackend, m_backend, &BackendSession::breakDebug);
+    connect(this, &MainWindow::stopBackend, m_backend, &BackendSession::breakDebug);
 
-    connect(m_backend, &BackendSession::statusUpdate, this, &MainWindow::statusUpdate);
+    connect(m_backendThread, &QThread::finished, m_backend, &BackendSession::threadFinished);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -244,7 +304,6 @@ void MainWindow::closeCurrentBackend()
         m_backendThread->wait();
     }
 
-    delete m_backend;
     delete m_backendThread;
     delete m_backendRequests;
 
@@ -310,6 +369,7 @@ void MainWindow::stop()
     }
 
     stopBackend();
+    closeCurrentBackend();
 
     m_statusbar->showMessage(QStringLiteral("Ready."));
 }
@@ -325,6 +385,7 @@ void MainWindow::stepIn()
 
 void MainWindow::stepOver()
 {
+    stepOverBackend();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

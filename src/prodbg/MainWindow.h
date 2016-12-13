@@ -17,6 +17,7 @@ class RegisterView;
 class BackendRequests;
 class BreakpointModel;
 class CodeViews;
+class RecentExecutables;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -43,6 +44,7 @@ private:
     Q_SLOT void toggleBreakpoint();
     Q_SLOT void amigaUAEConfig();
     Q_SLOT void debugAmigaExe();
+    Q_SLOT void openRecentExe();
 
     Q_SIGNAL void breakBackend();
     Q_SIGNAL void startBackend();
@@ -69,14 +71,21 @@ private:
     void setupBackendConnections();
     void setupBackend(BackendSession* backend);
 
+    void initRecentFileActions();
+
     Q_SLOT void uaeStarted();
     Q_SLOT void statusUpdate(const QString& status);
+
+    QVector<QAction*> m_recentFileActions;
 
     // This is somewhat temporary but convinient to have
     QString m_lastAmigaExe;
 
     // Hard-coded Amiga support. Would be nice to have this more modular
     AmigaUAE* m_amigaUae = nullptr;
+
+    // List of recent executables
+    RecentExecutables* m_recentExecutables = nullptr;
 
     // Hardcoded views for now.
     MemoryView* m_memoryView = nullptr;
