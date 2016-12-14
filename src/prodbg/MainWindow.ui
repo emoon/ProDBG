@@ -42,6 +42,14 @@
     <property name="title">
      <string>&amp;Debug</string>
     </property>
+    <widget class="QMenu" name="menuViews">
+     <property name="title">
+      <string>Views</string>
+     </property>
+     <addaction name="actionOpenMemoryView"/>
+     <addaction name="actionOpenRegisterView"/>
+    </widget>
+    <addaction name="menuViews"/>
     <addaction name="actionBreak"/>
     <addaction name="actionStart"/>
     <addaction name="actionStop"/>
@@ -155,6 +163,16 @@
   <action name="actionRecent_files">
    <property name="text">
     <string>Recent files</string>
+   </property>
+  </action>
+  <action name="actionOpenMemoryView">
+   <property name="text">
+    <string>Memory View</string>
+   </property>
+  </action>
+  <action name="actionOpenRegisterView">
+   <property name="text">
+    <string>Register View</string>
    </property>
   </action>
  </widget>
