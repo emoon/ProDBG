@@ -262,10 +262,22 @@ void MainWindow::internalStartAmigaExe()
 
     if (!m_amigaUae->m_skipUAELaunch) {
         connect(m_amigaUae->m_uaeProcess, &QProcess::started, this, &MainWindow::uaeStarted);
+        connect(m_amigaUae->m_uaeProcess, static_cast<void(QProcess::*)(int)>(&QProcess::finished), this,
+                &MainWindow::processEnded);
+
+        printf("BackendSession::destroyPluginData\n");
+
         m_amigaUae->launchUAE();
     } else {
         startAmigaUAEBackend();
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::processEnded(int)
+{
+    stopInternal();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -362,16 +374,23 @@ void MainWindow::setupBackend(BackendSession* backend)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::stop()
+void MainWindow::stopInternal()
 {
-    if (m_currentBackend == Amiga) {
-        m_amigaUae->killProcess();
-    }
-
     stopBackend();
     closeCurrentBackend();
 
     m_statusbar->showMessage(QStringLiteral("Ready."));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::stop()
+{
+    if (m_currentBackend == Amiga) {
+        m_amigaUae->killProcess();
+    } else {
+        stopInternal();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

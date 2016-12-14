@@ -72,9 +72,11 @@ private:
     void setupBackend(BackendSession* backend);
 
     void initRecentFileActions();
+    void stopInternal();
 
     Q_SLOT void uaeStarted();
     Q_SLOT void statusUpdate(const QString& status);
+    Q_SLOT void processEnded(int exitCode);
 
     QVector<QAction*> m_recentFileActions;
 
