@@ -1,6 +1,7 @@
 #include "ViewHandler.h"
 #include "View.h"
 #include <QDebug>
+#include <QMainWindow>
 
 namespace prodbg {
 
@@ -8,7 +9,6 @@ namespace prodbg {
 
 ViewHandler::ViewHandler(QObject* parent) : QObject(parent)
 {
-    readSettings();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -20,21 +20,43 @@ ViewHandler::~ViewHandler()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ViewHandler::readSettings()
+void ViewHandler::readSettings(QMainWindow* window)
 {
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*
+void ViewHandler::destroyedView(QObject* object)
+{
+    printf("destroyedView\n");
+    for (int i = 0; i < m_views.count(); ++i) {
+        if (m_views[i] == object) {
+            printf("removed view\n");
+            m_views.remove(i);
+            break;
+        }
+    }
+}
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ViewHandler::addView(View* view)
 {
     m_views.append(view);
+    //connect(view, &QObject::destroyed, this, &ViewHandler::destroyedView);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ViewHandler::writeSettings()
 {
+    /*
+    QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
+    settings.beginGroup(QStringLiteral("MainWindow"));
+    */
+
     for (auto& view : m_views) {
         qDebug() << "view type " << view->metaObject()->className();
     }

@@ -46,8 +46,8 @@
      <property name="title">
       <string>Views</string>
      </property>
-     <addaction name="actionOpenMemoryView"/>
-     <addaction name="actionOpenRegisterView"/>
+     <addaction name="actionMemoryView"/>
+     <addaction name="actionRegisterView"/>
     </widget>
     <addaction name="menuViews"/>
     <addaction name="actionBreak"/>
@@ -165,12 +165,12 @@
     <string>Recent files</string>
    </property>
   </action>
-  <action name="actionOpenMemoryView">
+  <action name="actionMemoryView">
    <property name="text">
     <string>Memory View</string>
    </property>
   </action>
-  <action name="actionOpenRegisterView">
+  <action name="actionRegisterView">
    <property name="text">
     <string>Register View</string>
    </property>

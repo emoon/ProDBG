@@ -50,6 +50,7 @@ MemoryView::MemoryView(QWidget* parent)
 
 MemoryView::~MemoryView()
 {
+    printf("destruct MemoryView\n");
     delete m_Ui;
 }
 

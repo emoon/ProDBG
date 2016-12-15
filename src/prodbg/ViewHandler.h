@@ -3,6 +3,8 @@
 #include <QObject>
 #include <QVector>
 
+class QMainWindow;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace prodbg {
@@ -19,10 +21,12 @@ public:
     ~ViewHandler();
 
     void addView(View* view);
+    void readSettings(QMainWindow* mainWindow);
+
+    //Q_SLOT void closeView(QObject* object);
 
 private:
 
-    void readSettings();
     void writeSettings();
 
     QVector<View*> m_views;

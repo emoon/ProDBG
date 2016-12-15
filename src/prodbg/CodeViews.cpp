@@ -48,12 +48,12 @@ void CodeViews::toggleBreakpoint()
         bool added = m_breakpoints->toggleFileLineBreakpoint(filename, line + 1);
 
         if (m_interface) {
-			if (added) {
-				m_interface->beginAddFileLineBreakpoint(filename, line);
-			} else {
-				m_interface->beginRemoveFileLineBreakpoint(filename, line);
-			}
-		}
+            if (added) {
+                m_interface->beginAddFileLineBreakpoint(filename, line);
+            } else {
+                m_interface->beginRemoveFileLineBreakpoint(filename, line);
+            }
+        }
 
         view->repaint();
     }

@@ -425,6 +425,12 @@ void MemoryViewWidget::setBackendInterface(IBackendRequests* interface)
 
 void MemoryViewWidget::endReadMemory(QVector<uint16_t>* target, uint64_t address, int addressWidth)
 {
+    // so this is a hack. We need a better way to do this. This is because if there are several memory requests
+    // in flight we must make sure that its "ours" that gets called here.
+    if (target != &m_Private->m_transferCache) {
+        return;
+    }
+
     m_Private->m_adddressWidth = addressWidth;
 
     m_Private->m_cachedRangeStart = address;

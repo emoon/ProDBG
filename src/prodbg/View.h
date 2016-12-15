@@ -11,6 +11,8 @@ class IBackendRequests;
 
 class View : public QWidget
 {
+    Q_OBJECT
+
 public:
     explicit View(QWidget* parent);
     virtual ~View();

@@ -47,6 +47,9 @@ private:
     Q_SLOT void debugAmigaExe();
     Q_SLOT void openRecentExe();
 
+    Q_SLOT void newMemoryView();
+    Q_SLOT void newRegisterView();
+
     Q_SIGNAL void breakBackend();
     Q_SIGNAL void startBackend();
     Q_SIGNAL void stopBackend();
