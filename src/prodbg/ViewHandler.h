@@ -13,9 +13,12 @@ class View;
 
 class ViewHandler : public QObject
 {
+    Q_OBJECT;
 public:
-    ViewHandler();
+    ViewHandler(QObject* parent);
     ~ViewHandler();
+
+    void addView(View* view);
 
 private:
 

@@ -18,6 +18,7 @@ class BackendRequests;
 class BreakpointModel;
 class CodeViews;
 class RecentExecutables;
+class ViewHandler;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -79,6 +80,8 @@ private:
     Q_SLOT void processEnded(int exitCode);
 
     QVector<QAction*> m_recentFileActions;
+
+    ViewHandler* m_viewHandler = nullptr;
 
     // This is somewhat temporary but convinient to have
     QString m_lastAmigaExe;

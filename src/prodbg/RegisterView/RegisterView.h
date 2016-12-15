@@ -20,6 +20,9 @@ public:
     RegisterView(QWidget* parent = nullptr);
     ~RegisterView();
 
+    static View* createView(QWidget* parent);
+    const QString& name();
+
     void interfaceSet();
     void readSettings();
     void writeSettings();

@@ -23,6 +23,8 @@ public:
     explicit MemoryView(QWidget* parent = nullptr);
     ~MemoryView();
 
+    static View* createView(QWidget* parent);
+
     void interfaceSet();
     void readSettings();
     void writeSettings();

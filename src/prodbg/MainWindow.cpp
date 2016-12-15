@@ -10,6 +10,7 @@
 #include "Config/AmigaUAEConfig.h"
 #include "MemoryView/MemoryView.h"
 #include "RegisterView/RegisterView.h"
+#include "ViewHandler.h"
 
 #include <QDebug>
 #include <QFileDialog>
@@ -35,6 +36,11 @@ MainWindow::MainWindow()
     qRegisterMetaType<uint32_t>("uint32_t");
     qRegisterMetaType<uint64_t>("uint64_t");
     qRegisterMetaType<IBackendRequests::ProgramCounterChange>("IBackendRequests::ProgramCounterChange");
+
+    m_viewHandler = new ViewHandler(this);
+
+    m_viewHandler->addView(new MemoryView(this));
+    m_viewHandler->addView(new RegisterView(this));
 
     m_recentExecutables = new RecentExecutables;
     m_amigaUae = new AmigaUAE(this);
