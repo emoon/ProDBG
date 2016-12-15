@@ -62,14 +62,12 @@ void MemoryView::endianChanged(int e)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryView::setBackendInterface(IBackendRequests* interface)
+void MemoryView::interfaceSet()
 {
-    m_interface = interface;
+    m_Ui->m_View->setBackendInterface(m_interface);
 
-    m_Ui->m_View->setBackendInterface(interface);
-
-    if (interface) {
-        connect(interface, &IBackendRequests::endResolveAddress, this, &MemoryView::endResolveAddress);
+    if (m_interface) {
+        connect(m_interface, &IBackendRequests::endResolveAddress, this, &MemoryView::endResolveAddress);
     }
 }
 
@@ -123,5 +121,15 @@ void MemoryView::countChanged(const QString& text)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+void MemoryView::readSettings()
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryView::writeSettings()
+{
+}
 
 }

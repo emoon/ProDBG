@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Backend/IBackendRequests.h"
+#include "View.h"
 #include <QPointer>
 #include <QtWidgets/QWidget>
 
@@ -12,9 +13,9 @@ namespace prodbg {
 
 class IBackendRequests;
 
-class MemoryView : public QWidget
+class MemoryView : public View
 {
-    using Base = QWidget;
+    using Base = View;
 
     Q_OBJECT;
 
@@ -22,7 +23,9 @@ public:
     explicit MemoryView(QWidget* parent = nullptr);
     ~MemoryView();
 
-    void setBackendInterface(IBackendRequests* interface);
+    void interfaceSet();
+    void readSettings();
+    void writeSettings();
 
 public:
     Q_SLOT void jumpToAddressExpression(const QString& expression);
@@ -35,7 +38,6 @@ private:
     Q_SLOT void countChanged(const QString&);
 
 private:
-    QPointer<IBackendRequests> m_interface;
     Ui_MemoryView* m_Ui = nullptr;
     uint64_t m_evalAddress = 0;
 };

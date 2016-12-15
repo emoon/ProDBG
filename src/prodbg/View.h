@@ -17,8 +17,11 @@ public:
 
     void setBackendInterface(IBackendRequests* interface);
 
-    virtual void saveSettings() = 0;
+    // not very nice. Just for testing now
+    virtual void interfaceSet() = 0;
+
     virtual void readSettings() = 0;
+    virtual void writeSettings() = 0;
 
 protected:
     QPointer<IBackendRequests> m_interface;
