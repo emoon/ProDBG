@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Backend/IBackendRequests.h"
+#include "View.h"
 #include <QPointer>
 #include <QVector>
 #include <QWidget>
@@ -9,11 +10,9 @@ class Ui_RegisterView;
 
 namespace prodbg {
 
-class IBackendRequests;
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class RegisterView : public QWidget
+class RegisterView : public View
 {
     Q_OBJECT;
 
@@ -21,7 +20,9 @@ public:
     RegisterView(QWidget* parent = nullptr);
     ~RegisterView();
 
-    void setBackendInterface(IBackendRequests* interface);
+    void interfaceSet();
+    void readSettings();
+    void writeSettings();
 
 private:
     Q_SLOT void endReadRegisters(QVector<IBackendRequests::Register>* target);
@@ -29,8 +30,6 @@ private:
 
 private:
     Ui_RegisterView* m_ui = nullptr;
-    QPointer<IBackendRequests> m_interface;
-    QVector<uint16_t> m_memRes;
     QVector<IBackendRequests::Register> m_targetRegisters;
 };
 
