@@ -415,9 +415,22 @@ void MemoryViewWidget::setBackendInterface(IBackendRequests* interface)
 
     if (interface) {
         connect(interface, &IBackendRequests::endReadMemory, this, &MemoryViewWidget::endReadMemory);
+        connect(interface, &IBackendRequests::programCounterChanged, this, &MemoryViewWidget::programCounterChanged);
     }
 
     update();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MemoryViewWidget::programCounterChanged(const IBackendRequests::ProgramCounterChange&)
+{
+    // If pc has changed we re-request the current data again
+    if (m_Private->m_Interface) {
+        m_Private->m_Interface->beginReadMemory(m_Private->m_cachedRangeStart, m_Private->m_cachedRangeEnd, 
+                                                &m_Private->m_transferCache);
+        m_Private->m_transferInProgress = true;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
