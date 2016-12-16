@@ -46,6 +46,8 @@ Program {
         gen_moc("src/prodbg/Backend/BackendSession.h"),
         gen_moc("src/prodbg/AmigaUAE/AmigaUAE.h"),
 
+        gen_moc("src/prodbg/View.h"),
+        gen_moc("src/prodbg/ViewHandler.h"),
         gen_moc("src/prodbg/CodeView/CodeView.h"),
         gen_moc("src/prodbg/CodeView/DisassemblyView.h"),
         gen_moc("src/prodbg/MemoryView/MemoryView.h"),

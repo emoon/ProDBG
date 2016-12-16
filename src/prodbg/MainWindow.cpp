@@ -10,6 +10,7 @@
 #include "Config/AmigaUAEConfig.h"
 #include "MemoryView/MemoryView.h"
 #include "RegisterView/RegisterView.h"
+#include "ViewHandler.h"
 
 #include <QDebug>
 #include <QFileDialog>
@@ -35,6 +36,11 @@ MainWindow::MainWindow()
     qRegisterMetaType<uint32_t>("uint32_t");
     qRegisterMetaType<uint64_t>("uint64_t");
     qRegisterMetaType<IBackendRequests::ProgramCounterChange>("IBackendRequests::ProgramCounterChange");
+
+    m_viewHandler = new ViewHandler(this);
+
+    //m_viewHandler->addView(new MemoryView(this));
+    //m_viewHandler->addView(new RegisterView(this));
 
     m_recentExecutables = new RecentExecutables;
     m_amigaUae = new AmigaUAE(this);
@@ -99,6 +105,7 @@ void MainWindow::initActions()
 {
     connect(m_ui.actionStart, &QAction::triggered, this, &MainWindow::startDebug);
     connect(m_ui.actionReloadCurrentFile, &QAction::triggered, this, &MainWindow::reloadCurrentFile);
+    connect(m_ui.actionStep_Over, &QAction::triggered, this, &MainWindow::stepOver);
     connect(m_ui.actionStep_In, &QAction::triggered, this, &MainWindow::stepIn);
     connect(m_ui.actionAmiga_UAE, &QAction::triggered, this, &MainWindow::amigaUAEConfig);
     connect(m_ui.actionDebugAmigaExe, &QAction::triggered, this, &MainWindow::debugAmigaExe);
@@ -107,6 +114,8 @@ void MainWindow::initActions()
     connect(m_ui.actionBreak, &QAction::triggered, this, &MainWindow::breakDebug);
     connect(m_ui.actionStop, &QAction::triggered, this, &MainWindow::stop);
     connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_codeViews, &CodeViews::toggleSourceAsm);
+    connect(m_ui.actionMemoryView, &QAction::triggered, this, &MainWindow::newMemoryView);
+    connect(m_ui.actionRegisterView, &QAction::triggered, this, &MainWindow::newRegisterView);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -262,10 +271,22 @@ void MainWindow::internalStartAmigaExe()
 
     if (!m_amigaUae->m_skipUAELaunch) {
         connect(m_amigaUae->m_uaeProcess, &QProcess::started, this, &MainWindow::uaeStarted);
+        connect(m_amigaUae->m_uaeProcess, static_cast<void(QProcess::*)(int)>(&QProcess::finished), this,
+                &MainWindow::processEnded);
+
+        printf("BackendSession::destroyPluginData\n");
+
         m_amigaUae->launchUAE();
     } else {
         startAmigaUAEBackend();
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::processEnded(int)
+{
+    stopInternal();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -362,16 +383,23 @@ void MainWindow::setupBackend(BackendSession* backend)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::stop()
+void MainWindow::stopInternal()
 {
-    if (m_currentBackend == Amiga) {
-        m_amigaUae->killProcess();
-    }
-
     stopBackend();
     closeCurrentBackend();
 
     m_statusbar->showMessage(QStringLiteral("Ready."));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::stop()
+{
+    if (m_currentBackend == Amiga) {
+        m_amigaUae->killProcess();
+    } else {
+        stopInternal();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -386,6 +414,9 @@ void MainWindow::stepIn()
 void MainWindow::stepOver()
 {
     stepOverBackend();
+
+    printf("stepOver\n");
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -393,6 +424,38 @@ void MainWindow::stepOver()
 void MainWindow::toggleBreakpoint()
 {
     m_codeViews->toggleBreakpoint();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::newMemoryView()
+{
+    MemoryView* mv = new MemoryView(this);
+    mv->setBackendInterface(m_backendRequests);
+    QDockWidget* dock = new QDockWidget(QStringLiteral("MemoryView"), this);
+    dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    dock->setObjectName(QStringLiteral("MemoryViewDock"));
+    dock->setWidget(mv);
+    addDockWidget(Qt::TopDockWidgetArea, dock);
+    dock->setFloating(true);
+
+    m_viewHandler->addView(mv);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Q_SLOT void MainWindow::newRegisterView()
+{
+    RegisterView* rg = new RegisterView(this);
+    rg->setBackendInterface(m_backendRequests);
+    QDockWidget* dock = new QDockWidget(QStringLiteral("RegisteView"), this);
+    dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    dock->setObjectName(QStringLiteral("RegisteViewDock"));
+    dock->setWidget(rg);
+    addDockWidget(Qt::TopDockWidgetArea, dock);
+    dock->setFloating(true);
+
+    m_viewHandler->addView(rg);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -406,6 +469,8 @@ void MainWindow::statusUpdate(const QString& status)
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+    QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
+
     writeSettings();
     event->accept();
 }
@@ -417,10 +482,34 @@ void MainWindow::writeSettings()
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
 
     settings.beginGroup(QStringLiteral("MainWindow"));
+
+    qDebug() << "filename " << settings.fileName();
+
+    /*
+    settings.beginWriteArray(QStringLiteral("views"));
+
+    int index = 0;
+
+    QList<QDockWidget*> docs = findChildren<QDockWidget*>(QString());
+    for (auto& doc : docs) {
+        View* view = qobject_cast<View*>(doc->widget());
+
+        if (view && view->isVisible()) {
+            // TODO: Write settings here
+            settings.setArrayIndex(index);
+            settings.setValue(QStringLiteral("type"), QString::fromUtf8(view->metaObject()->className()));
+            index += 1;
+        }
+    }
+
+    settings.endArray();
+    */
+
     settings.setValue(QStringLiteral("size"), size());
     settings.setValue(QStringLiteral("pos"), pos());
     settings.setValue(QStringLiteral("geometry"), saveGeometry());
     settings.setValue(QStringLiteral("windowState"), saveState());
+
     settings.endGroup();
 }
 
@@ -431,6 +520,35 @@ void MainWindow::readSettings()
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
 
     settings.beginGroup(QStringLiteral("MainWindow"));
+
+    /*
+    int size = settings.beginReadArray(QStringLiteral("views"));
+
+    for (int i = 0; i < size; ++i) {
+        settings.setArrayIndex(i);
+        QString viewType = settings.value(QStringLiteral("type")).toString();
+
+        View* view = nullptr;
+
+        // hack for now
+        if (viewType == QStringLiteral("prodbg::MemoryView")) {
+            view = new MemoryView(this);
+        } else if (viewType == QStringLiteral("prodbg::RegisterView")) {
+            view = new RegisterView(this);
+        } else {
+            Q_ASSERT(view);
+        }
+
+        QDockWidget* dock = new QDockWidget(viewType, this);
+        dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+        dock->setObjectName(viewType + QStringLiteral("Dock"));
+        dock->setWidget(view);
+        addDockWidget(Qt::RightDockWidgetArea, dock);
+    }
+
+    settings.endArray();
+    */
+
     restoreGeometry(settings.value(QStringLiteral("geometry")).toByteArray());
     restoreState(settings.value(QStringLiteral("windowState")).toByteArray());
     resize(settings.value(QStringLiteral("size"), QSize(800, 600)).toSize());

@@ -9,7 +9,7 @@ namespace prodbg {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 RegisterView::RegisterView(QWidget* parent)
-    : QWidget(parent)
+    : View(parent)
     , m_ui(new Ui_RegisterView)
 {
     m_ui->setupUi(this);
@@ -172,17 +172,26 @@ void RegisterView::programCounterChanged(const IBackendRequests::ProgramCounterC
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RegisterView::setBackendInterface(IBackendRequests* interface)
+void RegisterView::interfaceSet()
 {
-    m_interface = interface;
-
-    if (!interface) {
-        return;
+    if (m_interface) {
+        connect(m_interface, &IBackendRequests::programCounterChanged, this, &RegisterView::programCounterChanged);
+        connect(m_interface, &IBackendRequests::endReadRegisters, this, &RegisterView::endReadRegisters);
     }
-
-    connect(m_interface, &IBackendRequests::programCounterChanged, this, &RegisterView::programCounterChanged);
-    connect(m_interface, &IBackendRequests::endReadRegisters, this, &RegisterView::endReadRegisters);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+void RegisterView::readSettings()
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void RegisterView::writeSettings()
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 }

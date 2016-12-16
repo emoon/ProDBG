@@ -18,6 +18,7 @@ class BackendRequests;
 class BreakpointModel;
 class CodeViews;
 class RecentExecutables;
+class ViewHandler;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -46,6 +47,9 @@ private:
     Q_SLOT void debugAmigaExe();
     Q_SLOT void openRecentExe();
 
+    Q_SLOT void newMemoryView();
+    Q_SLOT void newRegisterView();
+
     Q_SIGNAL void breakBackend();
     Q_SIGNAL void startBackend();
     Q_SIGNAL void stopBackend();
@@ -72,11 +76,15 @@ private:
     void setupBackend(BackendSession* backend);
 
     void initRecentFileActions();
+    void stopInternal();
 
     Q_SLOT void uaeStarted();
     Q_SLOT void statusUpdate(const QString& status);
+    Q_SLOT void processEnded(int exitCode);
 
     QVector<QAction*> m_recentFileActions;
+
+    ViewHandler* m_viewHandler = nullptr;
 
     // This is somewhat temporary but convinient to have
     QString m_lastAmigaExe;
