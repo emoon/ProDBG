@@ -78,6 +78,7 @@ RustSharedLibrary {
 	Sources = {
 		get_rs_src("src/addons/amiga_uae_plugin"),
 		get_rs_src("src/crates/amiga_hunk_parser"),
+		get_rs_src("src/crates/gdb-remote"),
 		get_rs_src("api/rust/prodbg"),
 	}
 }
