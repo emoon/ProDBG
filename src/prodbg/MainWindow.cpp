@@ -283,6 +283,7 @@ void MainWindow::setupBackendConnections()
     connect(this, &MainWindow::startBackend, m_backend, &BackendSession::start);
     connect(this, &MainWindow::breakContBackend, m_backend, &BackendSession::breakContDebug);
     connect(this, &MainWindow::stopBackend, m_backend, &BackendSession::stop);
+    connect(m_backend, &BackendSession::statusUpdate, this, &MainWindow::statusUpdate);
 
     connect(m_backendThread, &QThread::finished, m_backend, &BackendSession::threadFinished);
 }
