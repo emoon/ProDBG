@@ -120,21 +120,6 @@ void MainWindow::initActions()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static QAction* findMenu(QMenu* menu, const QString& menuName)
-{
-    QList<QAction*> menus = menu->actions(); 
-
-    for (auto& menu : menus) {
-        if (menu->text() == menuName) {
-            return menu;
-        }
-    }
-
-    return nullptr;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void MainWindow::initRecentFileActions()
 {
     QMenu* menu = m_ui.menuRecentExecutables;
@@ -146,7 +131,7 @@ void MainWindow::initRecentFileActions()
         recentFileAction->setVisible(false);
         connect(recentFileAction, &QAction::triggered, this, &MainWindow::openRecentExe);
         m_recentFileActions.append(recentFileAction);
-        menu->addAction(recentFileAction); 
+        menu->addAction(recentFileAction);
     }
 
     m_recentExecutables->updateActionList(m_recentFileActions);
@@ -220,7 +205,7 @@ void MainWindow::debugAmigaExe()
 
     m_lastAmigaExe = m_amigaUae->m_localExeToRun;
 
-    m_recentExecutables->setFile(m_recentFileActions, m_lastAmigaExe, BackendType_AmigaUAE); 
+    m_recentExecutables->setFile(m_recentFileActions, m_lastAmigaExe, BackendType_AmigaUAE);
 
     internalStartAmigaExe();
 }
@@ -482,8 +467,6 @@ void MainWindow::writeSettings()
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
 
     settings.beginGroup(QStringLiteral("MainWindow"));
-
-    qDebug() << "filename " << settings.fileName();
 
     /*
     settings.beginWriteArray(QStringLiteral("views"));
