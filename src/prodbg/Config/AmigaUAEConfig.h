@@ -20,9 +20,10 @@ public:
 
     enum ConfigMode
     {
-        ConfigMode_Auto_Fastest,
-        ConfigMode_Auto_A500,
-        ConfigMode_Auto_A1200,
+        ConfigMode_Auto_Fastest_FsUAE,
+        ConfigMode_Auto_Fastest_WinUAE,
+        //ConfigMode_Auto_A500,
+        //ConfigMode_Auto_A1200,
         ConfigMode_Manual,
     };
 

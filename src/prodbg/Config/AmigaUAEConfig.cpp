@@ -13,9 +13,10 @@ AmigaUAEConfig::AmigaUAEConfig(QWidget* parent)
 {
     m_ui->setupUi(this);
 
-    m_ui->configMode->addItem(QStringLiteral("Automatic (Fastest startup)"));
-    m_ui->configMode->addItem(QStringLiteral("Automatic (A500)"));
-    m_ui->configMode->addItem(QStringLiteral("Automatic (A1200)"));
+    m_ui->configMode->addItem(QStringLiteral("Automatic (Fastest startup) - FS-UAE"));
+    m_ui->configMode->addItem(QStringLiteral("Automatic (Fastest startup) - WinUAE"));
+    //m_ui->configMode->addItem(QStringLiteral("Automatic (A500)"));
+    //m_ui->configMode->addItem(QStringLiteral("Automatic (A1200)"));
     m_ui->configMode->addItem(QStringLiteral("Manual"));
 
     connect(m_ui->selectExe, &QPushButton::clicked, this, &AmigaUAEConfig::selectExecutable);
