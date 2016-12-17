@@ -287,7 +287,7 @@ public:
         QString rowText;
         rowText.reserve((1 + typeMeta.m_DisplayWidthChars));
 
-        const int addressWidth = (m_adddressWidth + 4) * 16;
+        const int addressWidth = (m_adddressWidth * 2) * charWidth;
         const int dataWidth = charWidth * (elementsPerRow * typeMeta.m_DisplayWidthChars + elementsPerRow - 1);
         const int asciiWidth = bytesPerRow * charWidth;
         const int gutterWidth = charWidth;
@@ -301,8 +301,16 @@ public:
                 rowText.resize(0);
                 uint64_t addr = (m_TopRow + dataOffset);
 
-                for (int i = 0; i < 8 /* fixme */; ++i) {
-                    uint8_t byte = addr >> 56;
+                uint32_t byteShift = 56;
+
+                if (m_adddressWidth == 4) {
+                    byteShift = 24;
+                } else {
+                    byteShift = 8;
+                }
+
+                for (int i = 0; i < m_adddressWidth; ++i) {
+                    uint8_t byte = addr >> byteShift;
                     rowText.append(s_HexTable[byte >> 4]);
                     rowText.append(s_HexTable[byte & 0xf]);
                     addr <<= 8;
@@ -351,7 +359,12 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent)
     , m_Private(new MemoryViewPrivate)
 {
     // Can be any fixed with font.
+#ifdef _WIN32
+    QFont font(QStringLiteral("Courier"), 11);
+#else
     QFont font(QStringLiteral("Courier"), 13);
+#endif
+
     font.setFixedPitch(true);
     setFont(font);
 
@@ -427,7 +440,7 @@ void MemoryViewWidget::programCounterChanged(const IBackendRequests::ProgramCoun
 {
     // If pc has changed we re-request the current data again
     if (m_Private->m_Interface) {
-        m_Private->m_Interface->beginReadMemory(m_Private->m_cachedRangeStart, m_Private->m_cachedRangeEnd, 
+        m_Private->m_Interface->beginReadMemory(m_Private->m_cachedRangeStart, m_Private->m_cachedRangeEnd,
                                                 &m_Private->m_transferCache);
         m_Private->m_transferInProgress = true;
     }
