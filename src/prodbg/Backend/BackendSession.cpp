@@ -256,7 +256,8 @@ static uint64_t getU64(uint8_t* ptr)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static uint64_t getRegValue(uint8_t* data, int size) {
+static uint64_t getRegValue(uint8_t* data, int size)
+{
     switch (size) {
         case 1: {
             return data[1];
@@ -276,7 +277,7 @@ static uint64_t getRegValue(uint8_t* data, int size) {
         }
 
         default: {
-            //printf("getRegValue: size %d not supported, returing 0\n");
+            // printf("getRegValue: size %d not supported, returing 0\n");
             return 0;
         }
     }
@@ -469,7 +470,7 @@ void BackendSession::evalExpression(const QString& expression, uint64_t* out)
         break;
     }
 
-    //qDebug() << "eval expression " << expression;
+    // qDebug() << "eval expression " << expression;
 
     te_expr* expr = te_compile(expression.toUtf8().data(), variables, regCount, &error);
 
@@ -507,7 +508,8 @@ void BackendSession::updateCurrentPc()
             QString file = QString::fromUtf8(filename);
 
             pcChange.filename = file;
-            pcChange.line = (int)line;;
+            pcChange.line = (int)line;
+            ;
 
             if (line != m_currentLine || file != m_currentFile) {
                 m_currentFile = file;
