@@ -111,7 +111,7 @@ void MainWindow::initActions()
     connect(m_ui.actionDebugAmigaExe, &QAction::triggered, this, &MainWindow::debugAmigaExe);
     connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggleBreakpoint);
     connect(m_ui.actionOpen, &QAction::triggered, this, &MainWindow::openSourceFile);
-    connect(m_ui.actionBreak, &QAction::triggered, this, &MainWindow::breakDebug);
+    connect(m_ui.actionBreak, &QAction::triggered, this, &MainWindow::breakContDebug);
     connect(m_ui.actionStop, &QAction::triggered, this, &MainWindow::stop);
     connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_codeViews, &CodeViews::toggleSourceAsm);
     connect(m_ui.actionMemoryView, &QAction::triggered, this, &MainWindow::newMemoryView);
@@ -174,9 +174,9 @@ void MainWindow::start()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::breakDebug()
+void MainWindow::breakContDebug()
 {
-    breakBackend();
+    breakContBackend();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,8 +281,8 @@ void MainWindow::setupBackendConnections()
     connect(this, &MainWindow::stepInBackend, m_backend, &BackendSession::stepIn);
     connect(this, &MainWindow::stepOverBackend, m_backend, &BackendSession::stepOver);
     connect(this, &MainWindow::startBackend, m_backend, &BackendSession::start);
-    connect(this, &MainWindow::breakBackend, m_backend, &BackendSession::breakDebug);
-    connect(this, &MainWindow::stopBackend, m_backend, &BackendSession::breakDebug);
+    connect(this, &MainWindow::breakContBackend, m_backend, &BackendSession::breakContDebug);
+    connect(this, &MainWindow::stopBackend, m_backend, &BackendSession::stop);
 
     connect(m_backendThread, &QThread::finished, m_backend, &BackendSession::threadFinished);
 }

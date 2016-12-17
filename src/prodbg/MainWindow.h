@@ -36,7 +36,7 @@ protected:
 private:
     Q_SLOT void openSourceFile();
     Q_SLOT void reloadCurrentFile();
-    Q_SLOT void breakDebug();
+    Q_SLOT void breakContDebug();
     Q_SLOT void startDebug();
     Q_SLOT void start();
     Q_SLOT void stop();
@@ -50,7 +50,7 @@ private:
     Q_SLOT void newMemoryView();
     Q_SLOT void newRegisterView();
 
-    Q_SIGNAL void breakBackend();
+    Q_SIGNAL void breakContBackend();
     Q_SIGNAL void startBackend();
     Q_SIGNAL void stopBackend();
     Q_SIGNAL void stepInBackend();

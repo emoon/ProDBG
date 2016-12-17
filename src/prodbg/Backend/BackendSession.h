@@ -30,7 +30,7 @@ public:
     Q_SLOT void stepIn();
     Q_SLOT void stepOver();
     Q_SLOT void update();
-    Q_SLOT void breakDebug();
+    Q_SLOT void breakContDebug();
 
     Q_SLOT void threadFinished();
     Q_SLOT void evalExpression(const QString& expression, uint64_t* out);

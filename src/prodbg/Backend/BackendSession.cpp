@@ -611,9 +611,18 @@ void BackendSession::stop()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::breakDebug()
+void BackendSession::breakContDebug()
 {
-    internalUpdate(PDAction_Break);
+    if (m_debugState == PDDebugState_NoTarget) {
+        return;
+    }
+
+    if (m_debugState == PDDebugState_Running) {
+        internalUpdate(PDAction_Break);
+    } else {
+        internalUpdate(PDAction_Run);
+    }
+
     updateCurrentPc();
 }
 
