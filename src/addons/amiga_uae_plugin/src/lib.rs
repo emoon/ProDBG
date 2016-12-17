@@ -351,25 +351,11 @@ impl AmigaUaeBackend {
             println!("Should break!");
             self.debug_state = DebugState::StopException;
 
-            let mut register_data = [0; 1024];
-            if self.conn.get_registers(&mut register_data).is_err() {
-                println!("Unable to get registers!");
-                return;
-            }
-
-            self.exception_location = Self::get_u32(&register_data[64 + 4..]);
-
-            self.write_exception_location(writer);
+            self.update_pc(writer);
         }
     }
 
-    fn step(&mut self, writer: &mut Writer) {
-        let mut step_res = [0; 16];
-        if self.conn.step(&mut step_res).is_err() {
-            println!("Unable to step!");
-            return;
-        }
-
+    fn update_pc(&mut self, writer: &mut Writer) {
         let mut register_data = [0; 1024];
         if self.conn.get_registers(&mut register_data).is_err() {
             println!("Unable to get registers!");
@@ -379,6 +365,25 @@ impl AmigaUaeBackend {
         self.exception_location = Self::get_u32(&register_data[64 + 4..]);
 
         self.write_exception_location(writer);
+    }
+
+    fn step(&mut self, writer: &mut Writer) {
+        let mut step_res = [0; 16];
+        if self.conn.step(&mut step_res).is_err() {
+            println!("Unable to step!");
+            return;
+        }
+
+        self.update_pc(writer);
+    }
+
+    fn step_over(&mut self) {
+        if self.conn.step_over().is_err() {
+            println!("Unable to step over!");
+            return;
+        }
+
+        self.debug_state = DebugState::Running;
     }
 
     fn connect(&mut self) -> Result<()> {
@@ -558,10 +563,8 @@ impl Backend for AmigaUaeBackend {
             }
 
             ACTION_STEP_OVER => {
-                // Really don't think 'n' is correct here but use it for now
-                if self.conn.send_command("n").is_ok() {
-                    println!("Step over instruction");
-                }
+                self.step_over();
+                self.debug_state = DebugState::Running;
             }
 
             ACTION_STOP => {

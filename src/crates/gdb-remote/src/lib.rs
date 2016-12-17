@@ -5,6 +5,7 @@ use std::io::{Read, Write};
 use std::io;
 use std::time::Duration;
 use incoming_result::IncomingResult;
+use std::str;
 
 #[cfg(target_os = "windows")]
 use std::os::windows::io::AsRawSocket;
@@ -219,8 +220,10 @@ impl GdbRemote {
 
     pub fn send_command_wait_reply_raw(&mut self, res: &mut [u8], command: &str) -> io::Result<usize> {
         let mut temp_buffer = [0; PACKET_SIZE];
+        //println!("Send command {}", command);
         try!(self.send_command(command));
         let len = try!(self.read_reply(&mut temp_buffer));
+        //println!("Reply {}", str::from_utf8(&temp_buffer).unwrap());
         // If len returned 0 it means that we got disconnected from the server
         if len == 0 {
             self.stream = None;
@@ -241,6 +244,10 @@ impl GdbRemote {
 
     pub fn step(&mut self, res: &mut [u8]) -> io::Result<usize> {
         self.send_command_wait_reply_raw(res, "s")
+    }
+
+    pub fn step_over(&mut self) -> io::Result<()> {
+        self.send_command("n")
     }
 
     pub fn cont(&mut self) -> io::Result<(usize)> {
