@@ -525,6 +525,8 @@ impl Backend for AmigaUaeBackend {
                         self.debug_state = DebugState::Running;
                     }
 
+                    println!("Continue!");
+
                     return self.debug_state;
                 }
 
