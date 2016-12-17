@@ -110,7 +110,7 @@ void CodeView::fileChange(const QString filename)
 
     reply = QMessageBox::question(this, QStringLiteral("File has been changed"),
                                   QStringLiteral("File %1 was changed, Reload?").arg(filename),
-                                  QMessageBox::Yes | QMessageBox::No);
+                                  QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
     if (reply != QMessageBox::Yes)
         return;
