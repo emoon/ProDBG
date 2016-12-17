@@ -1,9 +1,0 @@
-[submodule "src/native/external/scintilla"]
-	path = src/native/external/scintilla
-	url = https://github.com/emoon/scintilla
-[submodule "src/native/external/bx"]
-	path = src/native/external/bx
-	url = https://github.com/bkaradzic/bx.git
-[submodule "bgfx"]
-	path = src/native/external/bgfx
-	url = https://github.com/bkaradzic/bgfx
