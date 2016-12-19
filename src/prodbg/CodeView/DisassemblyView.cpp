@@ -2,6 +2,7 @@
 #include "DisassemblyView.h"
 #include <QTextBlock>
 #include <QPainter>
+#include <QApplication>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -97,7 +98,7 @@ void DisassemblyView::highlightCurrentLine()
 
     QString string = cursor.block().text();
 
-    QColor lineColor = QColor(Qt::lightGray).lighter(100);
+    QColor lineColor = QApplication::palette().highlight().color();
 
     selection.format.setBackground(lineColor);
     selection.format.setProperty(QTextFormat::FullWidthSelection, true);
@@ -134,8 +135,16 @@ void DisassemblyView::resizeEvent(QResizeEvent* e)
 
 void DisassemblyView::lineNumberAreaPaintEvent(QPaintEvent* event)
 {
+    QPalette pal = QApplication::palette();
+
+#ifdef _WIN32
+    QFont font(QStringLiteral("Courier"), 11);
+#else
+    QFont font(QStringLiteral("Courier"), 13);
+#endif
+
     QPainter painter(m_addressArea);
-    painter.fillRect(event->rect(), Qt::lightGray);
+    painter.fillRect(event->rect(), pal.alternateBase());
 
     QTextBlock block = firstVisibleBlock();
     int blockNumber = block.blockNumber();
@@ -151,7 +160,7 @@ void DisassemblyView::lineNumberAreaPaintEvent(QPaintEvent* event)
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
             QString number = QString::number(blockNumber + 1);
-            painter.setPen(Qt::black);
+            painter.setPen(pal.text().color());
 
             if (blockNumber >= addressCount) {
                 return;

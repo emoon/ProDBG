@@ -9,6 +9,7 @@
 #include <QTextBlock>
 #include <QTextStream>
 #include <QDebug>
+#include <QApplication>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -199,7 +200,7 @@ void CodeView::highlightCurrentLine()
 
     QString string = cursor.block().text();
 
-    QColor lineColor = QColor(Qt::lightGray).lighter(100);
+    QColor lineColor = QApplication::palette().highlight().color();
 
     selection.format.setBackground(lineColor);
     selection.format.setProperty(QTextFormat::FullWidthSelection, true);
@@ -214,14 +215,24 @@ void CodeView::highlightCurrentLine()
 
 void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
 {
+    QPalette pal = QApplication::palette();
+
+#ifdef _WIN32
+    QFont font(QStringLiteral("Courier"), 11);
+#else
+    QFont font(QStringLiteral("Courier"), 13);
+#endif
+
     QPainter painter(m_lineNumberArea);
-    painter.fillRect(event->rect(), Qt::lightGray);
+    painter.fillRect(event->rect(), pal.alternateBase());
+
+    painter.setFont(font);
 
     QTextBlock block = firstVisibleBlock();
     int blockNumber = block.blockNumber();
     int top = (int)blockBoundingGeometry(block).translated(contentOffset()).top();
     int bottom = top + (int)blockBoundingRect(block).height();
-    int width = m_lineNumberArea->width();
+    int width = m_lineNumberArea->width() - 4;
     int height = fontMetrics().height();
 
     int fontHeight = fontMetrics().height() - 2;
@@ -229,7 +240,7 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
             QString number = QString::number(blockNumber + 1);
-            painter.setPen(Qt::black);
+            painter.setPen(pal.text().color());
 
             painter.drawText(0, top, width, height, Qt::AlignRight, number);
 

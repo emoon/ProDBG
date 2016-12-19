@@ -6,6 +6,7 @@
 #include <QtGui/QPainter>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QMenu>
+#include <QApplication>
 
 #include <ctype.h>
 
@@ -261,8 +262,12 @@ public:
         const int elementsPerRow = m_ElementsPerRow;
         const int bytesPerRow = elementsPerRow * bytesPerElement();
 
+        QColor baseColor = QApplication::palette().base().color();
+
         QPainter painter(widget);
         painter.setFont(font);
+
+        painter.fillRect(dirtyRect, baseColor);
 
         if (!m_expressionStatus) {
             painter.drawText(dirtyRect, 0, QStringLiteral("Unable to evaluate expression."));
