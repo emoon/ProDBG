@@ -70,7 +70,7 @@ sudo apt-get install -y libx11-dev libgl1-mesa-dev libgtk-3-dev pkg-config qt57b
 ```
 
 ProDBG uses Tundra to build the project the project. Binaries are supplied on Mac and Windows but needs to be built on Linux:
-* `git clone https://github.com/emoon/tundra.git`
+* `git clone https://github.com/deplinenoise/tundra.git`
 * `cd tundra`
 * `CXX=g++ make`
 * `sudo make install`
