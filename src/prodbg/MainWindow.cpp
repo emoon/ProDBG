@@ -341,11 +341,12 @@ void MainWindow::startAmigaUAEBackend()
     m_backendRequests->sendCustomString(m_amigaUae->m_setFileId, m_amigaUae->m_fileToRun);
     m_backendRequests->sendCustomString(m_amigaUae->m_setHddPathId, m_amigaUae->m_dh0Path);
 
+
     // TODO: This is really temporary
-    QTimer::singleShot(2000, this, &MainWindow::start);
+    QTimer::singleShot(5000, this, &MainWindow::start);
 
     m_currentBackend = Amiga;
-}
+}	
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
