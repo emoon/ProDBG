@@ -22,6 +22,7 @@ AmigaUAE::AmigaUAE(QObject* parent)
     m_setHddPathId = IdService_register("AmigaUAE_SetHddPath");
 
     m_uaeProcess = new QProcess();
+    m_uaeProcess->setProcessChannelMode(QProcess::ForwardedChannels);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,6 +69,8 @@ void AmigaUAE::runExecutable(const QString& filename)
         launchUAE();
     }
 }
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -232,6 +235,9 @@ void AmigaUAE::launchUAE()
 
     connect(m_uaeProcess, &QProcess::started, this, &AmigaUAE::started);
     connect(m_uaeProcess, &QProcess::errorOccurred, this, &AmigaUAE::errorOccurred);
+    connect(m_uaeProcess, &QProcess::readyReadStandardOutput, this, &AmigaUAE::printOutput);
+
+    printf("launchUae\n");
 
     qDebug() << "config " << m_config;
 
@@ -244,6 +250,15 @@ void AmigaUAE::launchUAE()
     args << m_cmdLineArgs.split(QLatin1Char(' '));
 
     m_uaeProcess->start(m_uaeExe, args);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void AmigaUAE::printOutput()
+{
+    printf("printOutput\n");
+
+    qDebug() << "UAE output " << m_uaeProcess->readAllStandardOutput();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
