@@ -1,9 +1,9 @@
 #include "MemoryView.h"
 #include "ui_MemoryView.h"
 #include "Backend/IBackendRequests.h"
-
 #include <QtCore/QDebug>
 #include <QtCore/QMetaEnum>
+#include <QSettings>
 
 namespace prodbg {
 
@@ -44,12 +44,15 @@ MemoryView::MemoryView(QWidget* parent)
 
     connect(m_Ui->m_Count, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged), this,
             &MemoryView::countChanged);
+
+    readSettings();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MemoryView::~MemoryView()
 {
+    writeSettings();
     printf("destruct MemoryView\n");
     delete m_Ui;
 }
@@ -125,12 +128,29 @@ void MemoryView::countChanged(const QString& text)
     
 void MemoryView::readSettings()
 {
+    QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
+
+    // TODO: Support more than one memory view
+    settings.beginGroup(QStringLiteral("MemoryView_0"));
+    m_Ui->m_Endianess->setCurrentIndex(settings.value(QStringLiteral("endian")).toInt());
+    m_Ui->m_Type->setCurrentIndex(settings.value(QStringLiteral("data_type")).toInt());
+    settings.endGroup();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MemoryView::writeSettings()
 {
+    QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
+
+    // TODO: Support more than one memory view
+    settings.beginGroup(QStringLiteral("MemoryView_0"));
+    settings.setValue(QStringLiteral("endian"), m_Ui->m_Endianess->currentIndex());
+    settings.setValue(QStringLiteral("data_type"), m_Ui->m_Type->currentIndex());
+    settings.setValue(QStringLiteral("count"), m_Ui->m_Type->currentIndex());
+    settings.endGroup();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
