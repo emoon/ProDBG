@@ -459,6 +459,11 @@ void MainWindow::closeEvent(QCloseEvent* event)
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
 
     writeSettings();
+
+    if (m_amigaUae) {
+        m_amigaUae->writeSettings();
+    }
+
     event->accept();
 }
 

@@ -38,9 +38,13 @@ public:
     QString m_fileToRun;
     QString m_localExeToRun;
     QString m_romPath;
+    QString m_amigaExePath;
+
     bool m_copyFiles;
     bool m_skipUAELaunch;
     AmigaUAEConfig::ConfigMode m_configMode;
+
+    void writeSettings();
 
 private:
     Q_SLOT void started();

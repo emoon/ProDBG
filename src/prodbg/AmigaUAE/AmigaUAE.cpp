@@ -37,13 +37,22 @@ AmigaUAE::~AmigaUAE()
 
 bool AmigaUAE::openFile()
 {
-    QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("Select Amiga executable to debug"));
+    readSettings();
+
+    QString path = QFileDialog::getOpenFileName(nullptr, 
+            QStringLiteral("Select Amiga executable to debug"), 
+            m_amigaExePath);
 
     if (path.isEmpty()) {
         return false;
     }
 
     m_localExeToRun = path;
+
+    QFileInfo info(path);
+    m_amigaExePath = info.path();
+
+    writeSettings();
 
     return true;
 }
@@ -68,9 +77,12 @@ void AmigaUAE::runExecutable(const QString& filename)
     if (!m_skipUAELaunch) {
         launchUAE();
     }
+
+    QFileInfo info(filename);
+
+    m_amigaExePath = info.path();
+    writeSettings();
 }
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -278,6 +290,16 @@ void AmigaUAE::errorOccurred(QProcess::ProcessError error)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void AmigaUAE::writeSettings()
+{
+    QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
+    settings.beginGroup(QStringLiteral("AmigaUAEExePath"));
+    settings.setValue(QStringLiteral("amigaExePath"), m_amigaExePath);
+    settings.endGroup();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void AmigaUAE::readSettings()
 {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
@@ -291,9 +313,14 @@ void AmigaUAE::readSettings()
     m_copyFiles = settings.value(QStringLiteral("copyFilesToHDD")).toBool();
     m_skipUAELaunch = settings.value(QStringLiteral("skipUAELaunch")).toBool();
     m_configMode = (AmigaUAEConfig::ConfigMode)settings.value(QStringLiteral("configMode")).toInt();
+    settings.endGroup();
+
+    settings.beginGroup(QStringLiteral("AmigaUAEExePath"));
+    m_amigaExePath = settings.value(QStringLiteral("amigaExePath")).toString();
 
     settings.endGroup();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 }
