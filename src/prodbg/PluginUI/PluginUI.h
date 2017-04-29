@@ -1,9 +1,11 @@
 #pragma once
 
+#include <stdint.h>
+
 // This is the C wrapper API for the UI plugins in ProDBG even if it is usable from C/C++ this
 // API is mainly to be seen as a "low-level" API that a nicer API is wrapped on top of it.
 
-struct PUHandle;
+typedef uint64_t PUHandle;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Describes an 2d area where x,y is the upper left corner and width,height expands to lower right
