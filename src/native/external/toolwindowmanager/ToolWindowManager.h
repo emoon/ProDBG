@@ -279,12 +279,12 @@ public:
   QRubberBand* lineRubberBand() { return m_lineRubberBand; }
 
 
-signals:
+//signals:
   /*!
    * \brief This signal is emitted when \a toolWindow may be hidden or shown.
    * \a visible indicates new visibility state of the tool window.
    */
-  void toolWindowVisibilityChanged(QWidget* toolWindow, bool visible);
+  Q_SIGNAL void toolWindowVisibilityChanged(QWidget* toolWindow, bool visible);
 
 private:
   QList<QWidget*> m_toolWindows; // all added tool windows
@@ -347,11 +347,10 @@ protected:
    */
   virtual QPixmap generateDragPixmap(const QList<QWidget *> &toolWindows);
 
-private slots:
-  void showNextDropSuggestion();
-  void tabCloseRequested(int index);
-  void windowTitleChanged(const QString &title);
-
+private:
+  Q_SLOT void showNextDropSuggestion();
+  Q_SLOT void tabCloseRequested(int index);
+  Q_SLOT void windowTitleChanged(const QString &title);
 };
 
 inline ToolWindowManager::ToolWindowProperty operator|(ToolWindowManager::ToolWindowProperty a, ToolWindowManager::ToolWindowProperty b)

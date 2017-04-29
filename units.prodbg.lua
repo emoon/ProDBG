@@ -81,6 +81,8 @@ Program {
             "src/native/external/tinyexpr",
             "src/prodbg",
         	"api/include",
+        	"src/native/external",
+        	"src/native/external/toolwindowmanager",
             "$(OBJECTROOT)", "$(OBJECTDIR)",
         },
 

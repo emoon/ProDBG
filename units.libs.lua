@@ -1,7 +1,15 @@
 require "tundra.syntax.glob"
+require "tundra.syntax.qt"
 require "tundra.syntax.osx-bundle"
 require "tundra.path"
 require "tundra.util"
+
+local function gen_moc(src)
+    return Moc {
+        Pass = "GenerateSources",
+        Source = src
+    }
+end
 
 -----------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------- EXTERNAL LIBS ---------------------------------------------------------
@@ -169,6 +177,10 @@ StaticLibrary {
             Dir = "src/native/external/toolwindowmanager",
             Extensions = { ".cpp", ".h" },
         },
+
+        gen_moc("src/native/external/toolwindowmanager/ToolWindowManager.h"),
+        gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerArea.h"),
+        gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerWrapper.h"),
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
