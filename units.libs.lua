@@ -137,5 +137,42 @@ StaticLibrary {
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
 }
 
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
+    Name = "toolwindowmanager",
+
+    Env = {
+       CXXOPTS = {
+            { "-isystem $(QT5)/lib/QtWidgets.framework/Headers",
+              "-isystem $(QT5)/lib/QtCore.framework/Headers",
+              "-isystem $(QT5)/lib/QtGui.framework/Headers"; 
+              "-isystem $(QT5)/lib/QtGui.framework/Headers", 
+              "-F$(QT5)/lib"; Config = "macosx-*-*" },
+
+            { "-isystem $(QT5)/include/QtWidgets",
+              "-isystem $(QT5)/include/QtCore",
+              "-isystem $(QT5)/include/QtGui",
+              "-isystem $(QT5)/include"; Config = "linux-*-*" },
+        },
+
+        CPPPATH = {
+            "$(QT5)/include",
+            "$(QT5)/include/QtCore",
+            "$(QT5)/include/QtGui",
+            "$(QT5)/include/QtWidgets",
+        },
+    },
+
+    Sources = {
+        Glob {
+            Dir = "src/native/external/toolwindowmanager",
+            Extensions = { ".cpp", ".h" },
+        },
+    },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
+}
+
 -- vim: ts=4:sw=4:sts=4
 

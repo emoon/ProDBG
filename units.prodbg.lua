@@ -103,7 +103,7 @@ Program {
 
     Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore" },
 
-    Depends = { "remote_api", "capstone", "tinyexpr" },
+    Depends = { "remote_api", "capstone", "tinyexpr", "toolwindowmanager" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
