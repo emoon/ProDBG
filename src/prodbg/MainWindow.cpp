@@ -12,6 +12,7 @@
 #include "RegisterView/RegisterView.h"
 #include "ViewHandler.h"
 #include "toolwindowmanager/ToolWindowManager.h"
+#include "PluginUI/PluginUI_internal.h"
 
 #include <QDebug>
 #include <QFileDialog>
@@ -61,12 +62,15 @@ MainWindow::MainWindow()
 
 	m_ui.toolWindowManager->setRubberBandLineWidth(50);
 
+	PluginInstance* inst = PluginUI_createTestPlugin(this);
+
     // Setup docking for MemoryView
 
     {
 		m_ui.toolWindowManager->addToolWindow(m_codeViews, ToolWindowManager::EmptySpace);
 		m_ui.toolWindowManager->addToolWindow(m_memoryView, ToolWindowManager::LastUsedArea);
 		m_ui.toolWindowManager->addToolWindow(m_registerView, ToolWindowManager::LastUsedArea);
+		m_ui.toolWindowManager->addToolWindow(inst->priv.parent, ToolWindowManager::LastUsedArea);
 
         //QDockWidget* dock = new QDockWidget(QStringLiteral("MemoryView"), this);
         //dock->setAllowedAreas(Qt::AllDockWidgetAreas);

@@ -27,7 +27,7 @@ Program {
     Sources = {
         Glob {
             Dir = "src/prodbg",
-            Extensions = { ".cpp", ".h" },
+            Extensions = { ".c",".cpp", ".h" },
             Recursive = true,
         },
 
