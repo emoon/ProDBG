@@ -85,6 +85,17 @@ RustSharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+RustSharedLibrary {
+	Name = "memory_view_2",
+	CargoConfig = "src/plugins/memory_view_2/Cargo.toml",
+	Sources = {
+		get_rs_src("src/plugins/memory_view_2"),
+		get_rs_src("api/rust/prodbg"),
+	}
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
 SharedLibrary {
     Name = "dummy_backend_plugin",
 
@@ -114,6 +125,7 @@ end
 --end
 
 Default "amiga_uae_plugin"
+Default "memory_view_2"
 Default "dummy_backend_plugin"
 
 -- vim: ts=4:sw=4:sts=4

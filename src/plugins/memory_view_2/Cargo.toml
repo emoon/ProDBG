@@ -1,0 +1,10 @@
+[package]
+name = "memory_view_2"
+version = "0.1.0"
+authors = ["Daniel Collin <daniel@collin.com>"]
+
+[lib]
+name = "memory_view_2"
+crate-type = ["cdylib"]
+
+[dependencies]
