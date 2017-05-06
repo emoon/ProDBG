@@ -18,7 +18,7 @@ impl Ui {
             PushButton {
                 widget_funcs: (*self.pu).widget_funcs,
                 funcs: (*self.pu).push_button_funcs,
-                obj: ((*self.pu).push_button_create)((*self.pu).privd)
+                obj: ((*self.pu).push_button_create)()
            }
         }
     }

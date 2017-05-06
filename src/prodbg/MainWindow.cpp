@@ -65,7 +65,9 @@ MainWindow::MainWindow()
 
 	//PluginInstance* inst = PluginUI_createTestPlugin(this);
 
-	QWidget* plugin_ui = PluginHandler_tempLoadUIPlugin(QStringLiteral("memory_view_2"));
+    QWidget* plugin_parent = new QWidget(this);
+
+	PluginHandler_tempLoadUIPlugin(plugin_parent, QStringLiteral("memory_view_2"));
 
     // Setup docking for MemoryView
 
@@ -73,10 +75,7 @@ MainWindow::MainWindow()
 		m_ui.toolWindowManager->addToolWindow(m_codeViews, ToolWindowManager::EmptySpace);
 		m_ui.toolWindowManager->addToolWindow(m_memoryView, ToolWindowManager::LastUsedArea);
 		m_ui.toolWindowManager->addToolWindow(m_registerView, ToolWindowManager::LastUsedArea);
-
-        if (plugin_ui) {
-		    m_ui.toolWindowManager->addToolWindow(plugin_ui, ToolWindowManager::LastUsedArea);
-		}
+        m_ui.toolWindowManager->addToolWindow(plugin_parent, ToolWindowManager::LastUsedArea);
 
         //QDockWidget* dock = new QDockWidget(QStringLiteral("MemoryView"), this);
         //dock->setAllowedAreas(Qt::AllDockWidgetAreas);

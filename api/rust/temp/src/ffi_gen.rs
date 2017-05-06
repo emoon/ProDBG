@@ -35,9 +35,8 @@ pub struct PUPushButton {
 #[repr(C)]
 pub struct PU {
     pub api_version: u64,
-    pub push_button_create: extern "C" fn(privd: *const c_void) -> *const PUPushButton,
+    pub push_button_create: extern "C" fn() -> *const PUPushButton,
     pub widget_funcs: *const PUWidgetFuncs,
     pub push_button_funcs: *const PUPushButtonFuncs,
-    pub privd: *const c_void,
 }
 

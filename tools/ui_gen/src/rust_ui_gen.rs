@@ -50,7 +50,7 @@ fn generate_create_func(f: &mut File, func_ptr: &FuncPtr) -> io::Result<()> {
     f.write_fmt(format_args!("            {} {{\n", type_name))?;
     f.write_fmt(format_args!("                widget_funcs: (*self.pu).{},\n", "widget_funcs"))?;
     f.write_fmt(format_args!("                funcs: (*self.pu).{},\n", funcs_name))?;
-    f.write_fmt(format_args!("                obj: ((*self.pu).{})()\n", func_ptr.name))?;
+    f.write_fmt(format_args!("                obj: ((*self.pu).{})((*self.pu).privd)\n", func_ptr.name))?;
     f.write_all(b"           }\n")?;
     f.write_all(b"        }\n")?;
     f.write_all(b"    }\n\n")?;

@@ -91,6 +91,7 @@ RustSharedLibrary {
 	Sources = {
 		get_rs_src("src/plugins/memory_view_2"),
 		get_rs_src("api/rust/prodbg"),
+		get_rs_src("api/rust/prodbg_ui"),
 	}
 }
 

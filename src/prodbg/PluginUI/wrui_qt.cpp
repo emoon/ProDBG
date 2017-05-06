@@ -8,6 +8,13 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+struct PrivateData {
+    QWidget* parent;
+    void* user_data;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void widget_set_size(struct PUWidget* widget, int width, int height) {
 	QObject* q_obj = (QObject*) widget->object->p;
 	QWidget* q_widget = static_cast<QWidget*>(q_obj);
@@ -45,9 +52,11 @@ static struct PUPushButtonFuncs s_pushButtonFuncs {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PUPushButton* push_button_create() {
-	QPushButton* qt_button = new QPushButton(QStringLiteral(""), 0);
-	//qt_button->show();
+static PUPushButton* push_button_create(void* priv) {
+    PrivateData* priv_data = (PrivateData*)priv;
+
+	QPushButton* qt_button = new QPushButton(QStringLiteral("Test"), priv_data->parent);
+	qt_button->show();
 
 	printf("Push button ptr %p\n", (void*)qt_button);
 
@@ -75,12 +84,24 @@ static PU s_pu = {
 
 	&s_widgetFuncs,
 	&s_pushButtonFuncs,
+
+	// private data
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PU* pu_get_funcs() {
-    return &s_pu;
+extern "C" PU* pu_get_instance(void* parent) {
+    PrivateData* priv_data = new PrivateData;
+    PU* pu_inst = new PU;
+
+    priv_data->parent = (QWidget*)parent;
+    priv_data->user_data = nullptr;
+
+    memcpy(pu_inst, &s_pu, sizeof(PU));
+
+    pu_inst->privd = (void*)priv_data;
+
+    return pu_inst;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

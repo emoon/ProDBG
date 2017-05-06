@@ -8,3 +8,5 @@ name = "memory_view_2"
 crate-type = ["cdylib"]
 
 [dependencies]
+prodbg_ui = { path = "../../../api/rust/prodbg_ui" }
+

@@ -55,10 +55,13 @@ PU_INTERNAL_WIDGET_TYPE(PUPushButton);
 typedef struct PU {
 	uint64_t api_version;
 
-	PUPushButton* (*push_button_create)();
+	PUPushButton* (*push_button_create)(void* privd);
 
 	PUWidgetFuncs* widget_funcs;
 	PUPushButtonFuncs* push_button_funcs;
+
+	// private data
+    void* privd;
 
 } PU;
 
@@ -66,7 +69,7 @@ typedef struct PU {
 
 // temp
 
-PU* pu_get_funcs();
+PU* pu_get_instance(void* parent);
 
 #ifdef __cplusplus
 }
