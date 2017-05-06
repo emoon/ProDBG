@@ -64,6 +64,10 @@ typedef struct PU {
 
 #define PU_VERSION(major, minor, sub) ((((uint64_t)major) << 32) | (minor << 16) | (sub))
 
+// temp
+
+PU* pu_get_funcs();
+
 #ifdef __cplusplus
 }
 #endif

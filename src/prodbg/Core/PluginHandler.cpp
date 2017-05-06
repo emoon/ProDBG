@@ -9,6 +9,9 @@
 #include <pd_common.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "PluginUI/wrui.h"
+
+class QWidget;
 
 #define sizeof_array(t) (sizeof(t) / sizeof(t[0]))
 
@@ -56,7 +59,7 @@ QLibrary* findPlugin(const QString& plugin)
         }
 
         delete lib;
-    
+
     } while (currentDir.cdUp());
 
     return nullptr;
@@ -113,6 +116,27 @@ PDBackendPlugin* PluginHandler_findBackendPlugin(const char* name)
             return (PDBackendPlugin*)plugin->data;
         }
     }
+
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef void* (*CreateUIPlugin)(PU* ui);
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+QWidget* PluginHandler_tempLoadUIPlugin(const QString& plugin) {
+    QLibrary* lib = findPlugin(plugin);
+
+    if (!lib) {
+        qDebug() << "Unable to find " << plugin;
+        return nullptr;
+    }
+
+    auto create_ui_plugin = (CreateUIPlugin)lib->resolve("init_plugin");
+
+    create_ui_plugin(0);
 
     return nullptr;
 }
