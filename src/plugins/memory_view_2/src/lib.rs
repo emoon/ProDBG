@@ -10,6 +10,42 @@ struct MyPlugin {
     _dummy: i32,
 }
 
+macro_rules! create_button {
+    ($ui:tt, $data:tt, $data_type:ty, $($rest:tt)*) => {{
+        let button = $ui.push_button_create(); 
+        create_button_inner!(button, $data, $data_type, $($rest)*);
+        button
+    }}
+}
+
+macro_rules! create_button_inner {
+    ($w:expr, ) => {};
+    ($w:expr, $data:tt, ) => {};
+    ($w:expr, $data:tt, $data_type:ty, ) => {};
+
+    ($w:expr, $data:tt, $data_type:ty, title: $value:expr, $($rest:tt)*) => {{
+        $w.set_title($value);
+        create_button_inner!($w, $data, $data_type, $($rest)*);
+    }};
+
+    ($w:expr, $data:tt, $data_type:ty, on_released: $callback:path, $($rest:tt)*) => {{
+        extern "C" fn temp_call(target: *mut std::os::raw::c_void) {
+            unsafe {
+                let app = target as *mut $data_type;
+                $callback(&mut *app);
+            }
+        }
+
+        unsafe {
+            let object = (*(*$w.get_obj()).base).object;
+            prodbg_ui::connect(object, b"2released()\0", $data, temp_call);
+        }
+
+        create_button_inner!($w, $data, $data_type, $($rest)*);
+    }};
+}
+
+
 impl MyPlugin {
     fn new() -> Self {
         MyPlugin {
@@ -22,6 +58,14 @@ impl MyPlugin {
     }
 
     fn create_ui(&mut self, ui: &prodbg_ui::ui_gen::Ui) {
+        let _button = create_button! {
+            ui, self, MyPlugin,
+            title: "foo",
+            on_released: MyPlugin::pressed_button, 
+        };
+    }
+
+        /*
         let button = ui.push_button_create();
         button.set_title("Rust: Test");
 
@@ -39,6 +83,7 @@ impl MyPlugin {
 
         //button.on_pressed(self, MyPlugin::pressed_button);
     }
+    */
 }
 
 macro_rules! connect_released {
