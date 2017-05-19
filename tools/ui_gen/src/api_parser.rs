@@ -1,3 +1,5 @@
+use std::fs::File;
+use std::io::prelude::*;
 use pest::prelude::*;
 
 impl_rdp! {
@@ -54,20 +56,33 @@ pub enum StructEntry {
     Function(Function),
 }
 
+#[derive(Debug)]
 pub struct Struct<'a> {
     name: &'a str, 
     inharit: Option<&'a str>,
     entries: Vec<StructEntry<'a>>,
 }
 
+#[derive(Debug)]
 pub struct ApiDef<'a> {
     pub entries: Vec<Struct<'a>>,
 }
 
 impl ApiDef {
-    pub parse_file(&mut self, filename: &str) {
-        self.api_def = 
+    pub parse_file<P: AsRef<Path>>(path: P) -> Result<()>
+        let mut file = File::open(path)?;
+        file.read_to_string(&mut self.text)?;
 
+        let mut parser = Rdp::new(StringInput::new(&self.text));
+
+        assert!(parser.block());
+        assert!(parser.end());
+
+        for token in parser.queue() {
+            println!("{:?}", token);
+        }
+
+        // build up tokens here
     }
 }
 
