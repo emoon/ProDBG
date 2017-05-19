@@ -36,24 +36,41 @@ impl_rdp! {
     }
 }
 
+#[derive(Debug)]
 pub struct Variable<'a> {
-    name: &'a str,
-    vtype: &'a str,
+    pub name: &'a str,
+    pub vtype: &'a str,
 }
 
-pub struct Function {
-
+pub struct Function<'a> {
+    pub name: &'a str,
+    pub function_args: Vec<Variable<'a>>,
+    pub return_val: Option<Variable<'a>>,
 }
 
-pub struct Struct {
-
-
+#[derive(Debug)]
+pub enum StructEntry {
+    Var(Variable),
+    Function(Function),
 }
 
-struct ApiDef {
-
-
+pub struct Struct<'a> {
+    name: &'a str, 
+    inharit: Option<&'a str>,
+    entries: Vec<StructEntry<'a>>,
 }
+
+pub struct ApiDef<'a> {
+    pub entries: Vec<Struct<'a>>,
+}
+
+impl ApiDef {
+    pub parse_file(&mut self, filename: &str) {
+        self.api_def = 
+
+    }
+}
+
 
 /*
 fn main() {
