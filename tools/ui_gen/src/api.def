@@ -1,0 +1,12 @@
+Foo {
+	test2(i32 test, u32 foo),
+	test3(i32 test, u32 foo)
+}
+
+
+
+
+
+// Test
+
+

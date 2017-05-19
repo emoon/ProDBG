@@ -60,9 +60,9 @@ pub enum StructEntry<'a> {
 
 #[derive(Debug)]
 pub struct Struct<'a> {
-    name: &'a str, 
-    inharit: Option<&'a str>,
-    entries: Vec<StructEntry<'a>>,
+    pub name: &'a str,
+    pub inharit: Option<&'a str>,
+    pub entries: Vec<StructEntry<'a>>,
 }
 
 #[derive(Debug)]
@@ -72,17 +72,34 @@ pub struct ApiDef<'a> {
 }
 
 impl<'a> ApiDef<'a> {
-    pub fn parse_file<P: AsRef<Path>>(&mut self, path: P) {
+    pub fn parse_file<P: AsRef<Path>>(&'a mut self, path: P) {
         let mut file = File::open(path).unwrap();
         file.read_to_string(&mut self.text).unwrap();
 
         let mut parser = Rdp::new(StringInput::new(&self.text));
 
-        assert!(parser.block());
-        assert!(parser.end());
+        parser.chunk();
+
+        if !parser.end() {
+            let expected = parser.expected();
+            panic!("Failed to parse {:?} - {}", parser.expected(), &self.text[expected.1..]);
+        }
 
         for token in parser.queue() {
             println!("{:?}", token);
+
+            let s = Struct {
+                name: &self.text[0..3],
+                inharit: None,
+                entries: Vec::new(),
+            };
+
+            self.entries.push(s);
+
+            /*
+            match token.rule {
+            }
+            */
         }
 
         // build up tokens here

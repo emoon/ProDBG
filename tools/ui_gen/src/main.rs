@@ -5,11 +5,11 @@ extern crate clang;
 
 
 pub mod data;
+pub mod api_parser;
 mod rust_ffi_gen;
 mod rust_widgets_gen;
 mod rust_traits_gen;
 mod rust_ui_gen;
-mod api_parser;
 
 use clang::*;
 
@@ -41,6 +41,12 @@ fn main() {
         .collect::<Vec<_>>();
 
     let structs = data::build_data(&structs);
+    let mut api_def = api_parser::ApiDef {
+        text: "".to_owned(),
+        entries: Vec::new()
+    };
+
+    api_def.parse_file("src/api.def");
 
     if let Err(err) = rust_ffi_gen::generate_ffi_bindings(RUST_FFI_FILE, &structs) {
         panic!("Unable to generate {} err {:?}", RUST_FFI_FILE, err);
