@@ -1,4 +1,5 @@
 use std::fs::File;
+use std::path::Path;
 use std::io::prelude::*;
 use pest::prelude::*;
 
@@ -44,6 +45,7 @@ pub struct Variable<'a> {
     pub vtype: &'a str,
 }
 
+#[derive(Debug)]
 pub struct Function<'a> {
     pub name: &'a str,
     pub function_args: Vec<Variable<'a>>,
@@ -51,9 +53,9 @@ pub struct Function<'a> {
 }
 
 #[derive(Debug)]
-pub enum StructEntry {
-    Var(Variable),
-    Function(Function),
+pub enum StructEntry<'a> {
+    Var(Variable<'a>),
+    Function(Function<'a>),
 }
 
 #[derive(Debug)]
@@ -65,13 +67,14 @@ pub struct Struct<'a> {
 
 #[derive(Debug)]
 pub struct ApiDef<'a> {
+    pub text: String,
     pub entries: Vec<Struct<'a>>,
 }
 
-impl ApiDef {
-    pub parse_file<P: AsRef<Path>>(path: P) -> Result<()>
-        let mut file = File::open(path)?;
-        file.read_to_string(&mut self.text)?;
+impl<'a> ApiDef<'a> {
+    pub fn parse_file<P: AsRef<Path>>(&mut self, path: P) {
+        let mut file = File::open(path).unwrap();
+        file.read_to_string(&mut self.text).unwrap();
 
         let mut parser = Rdp::new(StringInput::new(&self.text));
 
