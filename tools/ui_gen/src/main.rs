@@ -1,10 +1,15 @@
+#![recursion_limit = "200"]
+#[macro_use]
+extern crate pest;
 extern crate clang;
+
 
 pub mod data;
 mod rust_ffi_gen;
 mod rust_widgets_gen;
 mod rust_traits_gen;
 mod rust_ui_gen;
+mod api_parser;
 
 use clang::*;
 
