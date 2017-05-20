@@ -5,27 +5,27 @@ use pest::prelude::*;
 
 impl_rdp! {
     grammar! {
-        chunk = { block ~ eoi }
-        block = { stat* }
+        chunk = { block* ~ eoi }
 
-        stat = {
+        block = {
             whitespace |
             comment |
-            tableconstructor
+            structdef
         }
 
-        tableconstructor =  { name ~ ["{"] ~ fieldlist? ~ ["}"] }
-        fieldlist        =  { field ~ (fieldsep ~ field)* ~ fieldsep* }
-        field            =  { var | function }
-        fieldsep         = _{ [","] }
+        structdef   =  { name ~ derive? ~ ["{"] ~ fieldlist? ~ ["}"] }
+        fieldlist   =  { field ~ (fieldsep ~ field)* ~ fieldsep* }
+        field       =  { var | function }
+        fieldsep    = _{ [","] }
 
-        ftype            = { name }
-        rettype          = { name }
-        callback         = { ["[callback]"] }
-        retexp           = { ["->"] ~ name }
-        var              = { ftype ~ name }
-        varlist          = { var ~ ([","] ~ var)* }
-        function         = { callback? ~ name ~ ["("] ~ varlist? ~ [")"] ~ retexp? }
+        ftype       = { name }
+        rettype     = { name }
+        derive      = { [":"] ~ name }
+        callback    = { ["[callback]"] }
+        retexp      = { ["->"] ~ name }
+        var         = { ftype ~ name }
+        varlist     = { var ~ ([","] ~ var)* }
+        function    = { callback? ~ name ~ ["("] ~ varlist? ~ [")"] ~ retexp? }
 
         name = @{
             (['a'..'z'] | ['A'..'Z'] | ["_"]) ~ (['a'..'z'] | ['A'..'Z'] | ["_"] | ['0'..'9'])*
@@ -36,6 +36,36 @@ impl_rdp! {
         }
 
         whitespace = _{ [" "] | ["\t"] | ["\u{000C}"] | ["\r"] | ["\n"] }
+    }
+
+    process! {
+        process(&self) -> () {
+            (_: chunk) => {
+                println!("chunk");
+            },
+
+            (_: block) => {
+                println!("block");
+            },
+
+            (_: structdef, &name: name) => {
+                println!("struct name {}", name);
+                //(name, None)
+            },
+
+            (_: structdef, &name: name, &derive: derive) => {
+                println!("struct name {}", name);
+                println!("struct name {}", derive);
+                //(name, Some(derive))
+            },
+
+            (&name: name) => {
+                println!("{}", name);
+                //(name, None)
+            },
+
+            () => (), //("", None)
+        }
     }
 }
 
@@ -85,8 +115,20 @@ impl<'a> ApiDef<'a> {
             panic!("Failed to parse {:?} - {}", parser.expected(), &self.text[expected.1..]);
         }
 
+        parser.process();
+
         for token in parser.queue() {
             println!("{:?}", token);
+
+            /*
+            match token.rule {
+                Rule::structdef => {
+                    let t = parser.process_struct();
+                    println!("{:?}", t);
+                }
+
+                _ => (),
+            }
 
             let s = Struct {
                 name: &self.text[0..3],
@@ -95,6 +137,7 @@ impl<'a> ApiDef<'a> {
             };
 
             self.entries.push(s);
+            */
 
             /*
             match token.rule {
@@ -105,38 +148,3 @@ impl<'a> ApiDef<'a> {
         // build up tokens here
     }
 }
-
-
-/*
-fn main() {
-    let mut parser = Rdp::new(StringInput::new(
-        "
-        // This is a comment!
-        Rect {
-           f32 x,
-           f32 y,
-           f32 width,
-           f32 height,
-       }
-
-       // This struct has some functions and callbacks
-       Foo {
-            test2(i32 test, u32 foo),
-            // Another comment in the \"struct\"
-            [callback] test1(Rect test) -> void,
-            i32 foo,
-        }
-
-        // Empty struct
-        Table {
-
-        }"));
-
-    assert!(parser.block());
-    assert!(parser.end());
-
-    for token in parser.queue() {
-        println!("{:?}", token);
-    }
-}
-*/
