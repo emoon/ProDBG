@@ -5,36 +5,35 @@ use pest::prelude::*;
 use std::collections::VecDeque;
 
 #[derive(Debug)]
-pub struct Variable<'a> {
-    pub name: &'a str,
-    pub vtype: &'a str,
+pub struct Variable {
+    pub name: String,
+    pub vtype: String,
 }
 
 #[derive(Debug)]
-pub struct Function<'a> {
-    pub name: &'a str,
-    pub function_args: Vec<Variable<'a>>,
-    pub return_val: Option<&'a str>,
+pub struct Function {
+    pub name: String,
+    pub function_args: Vec<Variable>,
+    pub return_val: Option<String>,
     pub callback: bool,
 }
 
 #[derive(Debug)]
-pub enum StructEntry<'a> {
-    Var(Variable<'a>),
-    Function(Function<'a>),
+pub enum StructEntry {
+    Var(Variable),
+    Function(Function),
 }
 
 #[derive(Debug)]
-pub struct Struct<'a> {
-    pub name: &'a str,
-    pub inherit: Option<&'a str>,
-    pub entries: Vec<StructEntry<'a>>,
+pub struct Struct {
+    pub name: String,
+    pub inherit: Option<String>,
+    pub entries: Vec<StructEntry>,
 }
 
 #[derive(Debug)]
-pub struct ApiDef<'a> {
-    pub text: String,
-    pub entries: Vec<Struct<'a>>,
+pub struct ApiDef {
+    pub entries: Vec<Struct>,
 }
 
 impl_rdp! {
@@ -66,13 +65,13 @@ impl_rdp! {
     }
 
     process! {
-        process(&self) -> Vec<Struct<'input>> {
+        process(&self) -> Vec<Struct> {
             (structs: _chunk()) => {
                 structs.into_iter().collect::<Vec<_>>()
             },
         }
 
-        _chunk(&self) -> VecDeque<Struct<'input>> {
+        _chunk(&self) -> VecDeque<Struct> {
             (_: structdef, sdef: _structdef(), mut tail: _chunk()) => {
                 tail.push_front(sdef);
                 tail
@@ -81,22 +80,22 @@ impl_rdp! {
             () => VecDeque::new(),
         }
 
-        _structdef(&self) -> Struct<'input> {
+        _structdef(&self) -> Struct {
             (&name: name, inherit: _derive(), list: _fieldentries()) => {
                 Struct {
-                    name: name,
+                    name: name.to_owned(),
                     inherit: inherit,
                     entries: list.into_iter().collect::<Vec<_>>(),
                 }
             },
         }
 
-        _derive(&self) -> Option<&'input str> {
-            (_: derive, &name: name) => Some(name),
+        _derive(&self) -> Option<String> {
+            (_: derive, &name: name) => Some(name.to_owned()),
             () => None,
         }
 
-        _fieldentries(&self) -> VecDeque<StructEntry<'input>> {
+        _fieldentries(&self) -> VecDeque<StructEntry> {
             (_: field, entry: _fieldentry(), mut tail: _fieldentries()) => {
                 tail.push_front(entry);
                 tail
@@ -106,21 +105,21 @@ impl_rdp! {
             () => VecDeque::new(),
         }
 
-        _fieldentry(&self) -> StructEntry<'input> {
+        _fieldentry(&self) -> StructEntry {
             (_: function, func: _funcentry()) => func,
 
             (_: var, &vtype: name, &name: name) => {
                 StructEntry::Var(Variable {
-                    name: name,
-                    vtype: vtype,
+                    name: name.to_owned(),
+                    vtype: vtype.to_owned(),
                 })
             },
         }
 
-        _funcentry(&self) -> StructEntry<'input> {
+        _funcentry(&self) -> StructEntry {
             (callback: _callback(), &name: name, func_args: _func_args_list(), ret_value: _returnvalue()) => {
                 StructEntry::Function(Function {
-                    name: name,
+                    name: name.to_owned(),
                     function_args: func_args.into_iter().collect::<Vec<_>>(),
                     return_val: ret_value,
                     callback: callback,
@@ -133,16 +132,16 @@ impl_rdp! {
             () => false,
         }
 
-        _returnvalue(&self) -> Option<&'input str> {
-            (_: retexp, &name: name) => Some(name),
+        _returnvalue(&self) -> Option<String> {
+            (_: retexp, &name: name) => Some(name.to_owned()),
             () => None,
         }
 
-        _func_args_list(&self) -> VecDeque<Variable<'input>> {
+        _func_args_list(&self) -> VecDeque<Variable> {
             (_: var, &name: name, &atype: name, mut tail: _func_args_list()) => {
                 tail.push_front(Variable {
-                    name: name,
-                    vtype: atype,
+                    name: name.to_owned(),
+                    vtype: atype.to_owned(),
                 });
 
                 tail
@@ -154,22 +153,24 @@ impl_rdp! {
     }
 }
 
-impl<'a> ApiDef<'a> {
-    pub fn parse_file<P: AsRef<Path>>(&'a mut self, path: P) {
-        let mut file = File::open(path).unwrap();
-        file.read_to_string(&mut self.text).unwrap();
+impl ApiDef {
+    pub fn new<P: AsRef<Path>>(path: P) -> ApiDef {
+        let mut text = String::new();
 
-        let mut parser = Rdp::new(StringInput::new(&self.text));
+        let mut file = File::open(path).unwrap();
+        file.read_to_string(&mut text).unwrap();
+
+        let mut parser = Rdp::new(StringInput::new(&text));
 
         parser.chunk();
 
         if !parser.end() {
             let expected = parser.expected();
-            panic!("Failed to parse {:?} - {}", parser.expected(), &self.text[expected.1..]);
+            panic!("Failed to parse file - {:?} - {}", parser.expected(), &text[expected.1..]);
         }
 
-        self.entries = parser.process();
-
-        println!("API {:?}", self.entries);
+        ApiDef {
+            entries: parser.process(),
+        }
     }
 }
