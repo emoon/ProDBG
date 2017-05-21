@@ -10,10 +10,13 @@ mod rust_ffi_gen;
 mod rust_widgets_gen;
 mod rust_traits_gen;
 mod rust_ui_gen;
+pub mod c_api_gen;
 
 use clang::*;
 
 static INPUT_HEADER: &'static str = "../../src/prodbg/PluginUI/wrui.h";
+static C_API_HEADER: &'static str = "../../src/prodbg/PluginUI/c_api.h";
+static INPUT_API: &'static str = "src/api.def";
 static RUST_FFI_FILE: &'static str = "../../api/rust/prodbg_ui/src/ffi_gen.rs";
 static TRAITS_FILE: &'static str = "../../api/rust/prodbg_ui/src/traits_gen.rs";
 static WIDGETS_FILE: &'static str = "../../api/rust/prodbg_ui/src/widgets_gen.rs";
@@ -41,12 +44,12 @@ fn main() {
         .collect::<Vec<_>>();
 
     let structs = data::build_data(&structs);
-    let mut api_def = api_parser::ApiDef {
-        text: "".to_owned(),
-        entries: Vec::new()
-    };
 
-    api_def.parse_file("src/api.def");
+    let api_def = api_parser::ApiDef::new(INPUT_API);
+
+    if let Err(err) = c_api_gen::generate_c_api(C_API_HEADER, &api_def) {
+        panic!("Unable to generate {} err {:?}", RUST_FFI_FILE, err);
+    }
 
     if let Err(err) = rust_ffi_gen::generate_ffi_bindings(RUST_FFI_FILE, &structs) {
         panic!("Unable to generate {} err {:?}", RUST_FFI_FILE, err);

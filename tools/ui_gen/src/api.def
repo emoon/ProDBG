@@ -2,20 +2,29 @@
 // test
 
 Button {
-	// int test,
-	[callback] my_cool_func(i32 test, u32 foo) -> i32,
-	render_foo(i32 test, u32 foo),
+	is_down() -> bool,
+	set_text(String text),
 
-	// variables
-	int test,
-	// Some more varso
-	i32 scale,
+	// Callbacks
+
+	[callback] clicked(bool state),
+	[callback] pressed(),
+	[callback] released(),
 }
 
 // Inherit functions from Button in PushButton
 
 PushButton : Button {
-	test3(i32 test, u32 foo),
+}
+
+// Sliders
+
+Slider {
+	[callback] value_changed(int value),
+}
+
+Painter {
+	draw_line(int x1, int y1, int x2, int y2),
 }
 
 
