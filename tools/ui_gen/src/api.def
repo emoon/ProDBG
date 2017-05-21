@@ -1,3 +1,14 @@
-PushButton : Button {
-	test2(i32 test, u32 foo),
+
+// test
+
+PushButton {
+	// int test,
+	my_cool_func(i32 test, u32 foo),
+	render_foo(i32 test, u32 foo),
 }
+
+PushButton2 : Button {
+	test3(i32 test, u32 foo),
+}
+
+
