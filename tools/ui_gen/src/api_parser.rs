@@ -2,6 +2,7 @@ use std::fs::File;
 use std::path::Path;
 use std::io::prelude::*;
 use pest::prelude::*;
+use std::collections::VecDeque;
 
 impl_rdp! {
     grammar! {
@@ -53,7 +54,7 @@ impl_rdp! {
                 let t = Struct {
                     name: name,
                     inherit: inherit,
-                    entries: list,
+                    entries: list.into_iter().collect::<Vec<_>>(),
                 };
 
                 println!("Created struct {:?}", t);
@@ -67,24 +68,24 @@ impl_rdp! {
             () => None,
         }
 
-        _fieldlist(&self) -> Vec<StructEntry<'input>> {
+        _fieldlist(&self) -> VecDeque<StructEntry<'input>> {
             (_: fieldlist, entries: _fieldentries()) => {
                 entries
             },
 
-            () => Vec::new(),
+            () => VecDeque::new(),
         }
 
-        _fieldentries(&self) -> Vec<StructEntry<'input>> {
+        _fieldentries(&self) -> VecDeque<StructEntry<'input>> {
             (_: field, entry: _fieldentry(), mut tail: _fieldentries()) => {
                 println!("_fieldentries");
-                tail.push(entry);
+                tail.push_front(entry);
                 tail
             },
 
             () => {
                 println!("_fieldentries::new");
-                Vec::new()
+                VecDeque::new()
             }
         }
 
@@ -102,10 +103,10 @@ impl_rdp! {
         }
 
         _funcentry(&self) -> StructEntry<'input> {
-            (&name: name, callback: _callback(), func_args: _func_args_list(), ret_value: _returnvalue()) => {
+            (callback: _callback(), &name: name, func_args: _func_args_list(), ret_value: _returnvalue()) => {
                 StructEntry::Function(Function {
                     name: name,
-                    function_args: func_args,
+                    function_args: func_args.into_iter().collect::<Vec<_>>(),
                     return_val: ret_value,
                     callback: callback,
                 })
@@ -122,9 +123,9 @@ impl_rdp! {
             () => None,
         }
 
-        _func_args_list(&self) -> Vec<Variable<'input>> {
+        _func_args_list(&self) -> VecDeque<Variable<'input>> {
             (_: var, &name: name, &atype: name, mut tail: _func_args_list()) => {
-                tail.push(Variable {
+                tail.push_front(Variable {
                     name: name,
                     vtype: atype,
                 });
@@ -132,14 +133,8 @@ impl_rdp! {
                 tail
             },
 
-            (_: varlist, tail: _func_args_list()) => {
-                tail
-            },
-
-            () => {
-                println!("_func_args_list::new");
-                Vec::new()
-            }
+            (_: varlist, tail: _func_args_list()) => tail,
+            () => VecDeque::new(),
         }
     }
 }
