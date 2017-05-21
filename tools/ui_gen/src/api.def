@@ -1,13 +1,20 @@
 
 // test
 
-PushButton {
+Button {
 	// int test,
 	[callback] my_cool_func(i32 test, u32 foo) -> i32,
 	render_foo(i32 test, u32 foo),
+
+	// variables
+	int test,
+	// Some more varso
+	i32 scale,
 }
 
-PushButton2 : Button {
+// Inherit functions from Button in PushButton
+
+PushButton : Button {
 	test3(i32 test, u32 foo),
 }
 

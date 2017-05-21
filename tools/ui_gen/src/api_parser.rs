@@ -4,6 +4,39 @@ use std::io::prelude::*;
 use pest::prelude::*;
 use std::collections::VecDeque;
 
+#[derive(Debug)]
+pub struct Variable<'a> {
+    pub name: &'a str,
+    pub vtype: &'a str,
+}
+
+#[derive(Debug)]
+pub struct Function<'a> {
+    pub name: &'a str,
+    pub function_args: Vec<Variable<'a>>,
+    pub return_val: Option<&'a str>,
+    pub callback: bool,
+}
+
+#[derive(Debug)]
+pub enum StructEntry<'a> {
+    Var(Variable<'a>),
+    Function(Function<'a>),
+}
+
+#[derive(Debug)]
+pub struct Struct<'a> {
+    pub name: &'a str,
+    pub inherit: Option<&'a str>,
+    pub entries: Vec<StructEntry<'a>>,
+}
+
+#[derive(Debug)]
+pub struct ApiDef<'a> {
+    pub text: String,
+    pub entries: Vec<Struct<'a>>,
+}
+
 impl_rdp! {
     grammar! {
         chunk = _{ soi ~ structdef* ~ eoi }
@@ -41,7 +74,6 @@ impl_rdp! {
 
         _chunk(&self) -> VecDeque<Struct<'input>> {
             (_: structdef, sdef: _structdef(), mut tail: _chunk()) => {
-                println!("push push");
                 tail.push_front(sdef);
                 tail
             },
@@ -122,39 +154,6 @@ impl_rdp! {
     }
 }
 
-#[derive(Debug)]
-pub struct Variable<'a> {
-    pub name: &'a str,
-    pub vtype: &'a str,
-}
-
-#[derive(Debug)]
-pub struct Function<'a> {
-    pub name: &'a str,
-    pub function_args: Vec<Variable<'a>>,
-    pub return_val: Option<&'a str>,
-    pub callback: bool,
-}
-
-#[derive(Debug)]
-pub enum StructEntry<'a> {
-    Var(Variable<'a>),
-    Function(Function<'a>),
-}
-
-#[derive(Debug)]
-pub struct Struct<'a> {
-    pub name: &'a str,
-    pub inherit: Option<&'a str>,
-    pub entries: Vec<StructEntry<'a>>,
-}
-
-#[derive(Debug)]
-pub struct ApiDef<'a> {
-    pub text: String,
-    pub entries: Vec<Struct<'a>>,
-}
-
 impl<'a> ApiDef<'a> {
     pub fn parse_file<P: AsRef<Path>>(&'a mut self, path: P) {
         let mut file = File::open(path).unwrap();
@@ -169,8 +168,8 @@ impl<'a> ApiDef<'a> {
             panic!("Failed to parse {:?} - {}", parser.expected(), &self.text[expected.1..]);
         }
 
-        let t = parser.process();
+        self.entries = parser.process();
 
-        println!("API {:?}", t);
+        println!("API {:?}", self.entries);
     }
 }
