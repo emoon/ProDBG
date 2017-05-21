@@ -35,31 +35,27 @@ impl_rdp! {
     process! {
         process(&self) -> Vec<Struct<'input>> {
             (structs: _chunk()) => {
-                structs
+                structs.into_iter().collect::<Vec<_>>()
             },
         }
 
-        _chunk(&self) -> Vec<Struct<'input>> {
+        _chunk(&self) -> VecDeque<Struct<'input>> {
             (_: structdef, sdef: _structdef(), mut tail: _chunk()) => {
                 println!("push push");
-                tail.push(sdef);
+                tail.push_front(sdef);
                 tail
             },
 
-            () => Vec::new(),
+            () => VecDeque::new(),
         }
 
         _structdef(&self) -> Struct<'input> {
-            (&name: name, inherit: _derive(), list: _fieldlist()) => {
-                let t = Struct {
+            (&name: name, inherit: _derive(), list: _fieldentries()) => {
+                Struct {
                     name: name,
                     inherit: inherit,
                     entries: list.into_iter().collect::<Vec<_>>(),
-                };
-
-                println!("Created struct {:?}", t);
-
-                t
+                }
             },
         }
 
@@ -68,31 +64,18 @@ impl_rdp! {
             () => None,
         }
 
-        _fieldlist(&self) -> VecDeque<StructEntry<'input>> {
-            (_: fieldlist, entries: _fieldentries()) => {
-                entries
-            },
-
-            () => VecDeque::new(),
-        }
-
         _fieldentries(&self) -> VecDeque<StructEntry<'input>> {
             (_: field, entry: _fieldentry(), mut tail: _fieldentries()) => {
-                println!("_fieldentries");
                 tail.push_front(entry);
                 tail
             },
 
-            () => {
-                println!("_fieldentries::new");
-                VecDeque::new()
-            }
+            (_: fieldlist, entries: _fieldentries()) => entries,
+            () => VecDeque::new(),
         }
 
         _fieldentry(&self) -> StructEntry<'input> {
-            (_: function, func: _funcentry()) => {
-                func
-            },
+            (_: function, func: _funcentry()) => func,
 
             (_: var, &vtype: name, &name: name) => {
                 StructEntry::Var(Variable {
@@ -166,17 +149,6 @@ pub struct Struct<'a> {
     pub entries: Vec<StructEntry<'a>>,
 }
 
-impl<'a> Struct<'a> {
-    fn new() -> Struct<'a> {
-        Struct {
-            name: "",
-            inherit: None,
-            entries: Vec::new(),
-        }
-    }
-}
-
-
 #[derive(Debug)]
 pub struct ApiDef<'a> {
     pub text: String,
@@ -197,92 +169,8 @@ impl<'a> ApiDef<'a> {
             panic!("Failed to parse {:?} - {}", parser.expected(), &self.text[expected.1..]);
         }
 
-        //let mut struct_def = Struct::new();
-        //let mut state = State::StructDef;
+        let t = parser.process();
 
-        // We could do this using process! instead the parser instead but as the rules
-        // are quite simple we just do a basic state machine istead
-
-        parser.process();
-
-        for token in parser.queue() {
-            println!("{:?}", token);
-        }
-
-        /*
-        let mut queue = parser.queue().iter();
-
-        loop {
-            match queue.next() {
-                Some(token) => {
-                    match token.rule {
-                        Rule::structdef => {
-                            let mut struct_def = Struct::new();
-                            let t: i32 = queue;
-                        }
-
-                        _ => (),
-
-                    }
-                }
-
-                None => { break },
-            }
-        }
-        */
-
-        /*
-
-        for token in queue {
-            println!("{:?}", token);
-
-            match token.rule {
-                Rule::name => {
-                    match state {
-                        State::StructDef => struct_def.name = &self.text[token.start..token.end],
-                        State::Derive => struct_def.inherit = Some(&self.text[token.start..token.end]),
-                        _ => (),
-                    }
-                }
-
-                Rule::structdef => {
-                    println!("{:?}", struct_def);
-                    struct_def = Struct::new();
-                    state = State::StructDef;
-                },
-
-
-                Rule::derive => state = State::Derive,
-
-                _ => (),
-            }
-        */
-
-            /*
-            match token.rule {
-                Rule::structdef => {
-                    let t = parser.process_struct();
-                    println!("{:?}", t);
-                }
-
-                _ => (),
-            }
-
-            let s = Struct {
-                name: &self.text[0..3],
-                inharit: None,
-                entries: Vec::new(),
-            };
-
-            self.entries.push(s);
-            */
-
-            /*
-            match token.rule {
-            }
-            */
-        //}
-
-        // build up tokens here
+        println!("API {:?}", t);
     }
 }
