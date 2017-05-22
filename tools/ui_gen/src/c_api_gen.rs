@@ -30,6 +30,8 @@ pub fn generate_c_api(filename: &str, api_def: &ApiDef) -> io::Result<()> {
         f.write_fmt(format_args!("struct PU{};\n", sdef.name))?;
     }
 
+    f.write_all(b"\n")?;
+
     f.write_all(FOOTER)?;
 
     Ok(())

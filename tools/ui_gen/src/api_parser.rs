@@ -8,6 +8,7 @@ use std::collections::VecDeque;
 pub struct Variable {
     pub name: String,
     pub vtype: String,
+    pub primitive: bool,
 }
 
 #[derive(Debug)]
@@ -34,6 +35,18 @@ pub struct Struct {
 #[derive(Debug)]
 pub struct ApiDef {
     pub entries: Vec<Struct>,
+}
+
+fn is_primitve(name: &str) -> bool {
+    if name == "u8" || name == "u8" || 
+       name == "i16" || name == "u16" || 
+       name == "i32" || name == "u32" ||
+       name == "i64" || name == "u64" ||
+       name == "f32" || name == "f64" {
+        true
+    } else {
+        false
+    }
 }
 
 impl_rdp! {
@@ -112,6 +125,7 @@ impl_rdp! {
                 StructEntry::Var(Variable {
                     name: name.to_owned(),
                     vtype: vtype.to_owned(),
+                    primitive: is_primitve(vtype),
                 })
             },
         }
@@ -142,6 +156,7 @@ impl_rdp! {
                 tail.push_front(Variable {
                     name: name.to_owned(),
                     vtype: atype.to_owned(),
+                    primitive: is_primitve(atype),
                 });
 
                 tail
