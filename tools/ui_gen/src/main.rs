@@ -1,18 +1,15 @@
 #![recursion_limit = "200"]
 #[macro_use]
 extern crate pest;
-extern crate clang;
 
 
-pub mod data;
+//pub mod data;
 pub mod api_parser;
-mod rust_ffi_gen;
-mod rust_widgets_gen;
-mod rust_traits_gen;
-mod rust_ui_gen;
+//mod rust_ffi_gen;
+//mod rust_widgets_gen;
+//mod rust_traits_gen;
+//mod rust_ui_gen;
 pub mod c_api_gen;
-
-use clang::*;
 
 static INPUT_HEADER: &'static str = "../../src/prodbg/PluginUI/wrui.h";
 static C_API_HEADER: &'static str = "../../src/prodbg/PluginUI/c_api.h";
@@ -23,6 +20,7 @@ static WIDGETS_FILE: &'static str = "../../api/rust/prodbg_ui/src/widgets_gen.rs
 static UI_FILE: &'static str = "../../api/rust/prodbg_ui/src/ui_gen.rs";
 
 fn main() {
+    /*
     // Acquire an instance of `Clang`
     let clang = Clang::new().unwrap();
 
@@ -44,6 +42,7 @@ fn main() {
         .collect::<Vec<_>>();
 
     let structs = data::build_data(&structs);
+    */
 
     let api_def = api_parser::ApiDef::new(INPUT_API);
 
@@ -51,6 +50,7 @@ fn main() {
         panic!("Unable to generate {} err {:?}", RUST_FFI_FILE, err);
     }
 
+    /*
     if let Err(err) = rust_ffi_gen::generate_ffi_bindings(RUST_FFI_FILE, &structs) {
         panic!("Unable to generate {} err {:?}", RUST_FFI_FILE, err);
     }
@@ -70,4 +70,5 @@ fn main() {
     if let Err(err) = rust_ui_gen::generate_ui(UI_FILE, &structs) {
         panic!("Unable to generate {} err {:?}", UI_FILE, err);
     }
+    */
 }
