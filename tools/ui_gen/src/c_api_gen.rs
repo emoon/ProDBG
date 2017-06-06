@@ -15,6 +15,26 @@ static FOOTER: &'static [u8] = b"
 }
 #endif\n";
 
+fn get_type_name(tname: &str, primitve: bool) -> String {
+    if primitve {
+        if tname == "f32" {
+            "float".to_owned()
+        } else if tname == "f64" {
+            return "double".to_owned()
+        } else {
+            // here we will have u8/i8,u32/etc
+           if tname.starts_with("u") {
+                format!("uint{}_t", &tname[1..])
+            } else {
+                format!("int{}_t", &tname[1..])
+            }
+        }
+    } else {
+        // Unknown type here, we always assume to use a struct Type*
+        format!("struct {}*", tname)
+    }
+}
+
 pub fn generate_c_api(filename: &str, api_def: &ApiDef) -> io::Result<()> {
 	let mut f = File::create(filename)?;
 
@@ -31,6 +51,24 @@ pub fn generate_c_api(filename: &str, api_def: &ApiDef) -> io::Result<()> {
     }
 
     f.write_all(b"\n")?;
+
+    // Write the struct defs
+
+	for sdef in &api_def.entries {
+        f.write_fmt(format_args!("struct PU{} {{;\n", sdef.name))?;
+
+        for entry in &sdef.entries {
+            match *entry {
+                StructEntry::Var(ref var) => {
+                    f.write_fmt(format_args!("    {} {},\n", get_type_name(&var.vtype, var.primitive), var.name))?;
+                },
+
+                _ => (),
+            }
+        }
+
+        f.write_fmt(format_args!("}}\n\n"))?;
+    }
 
     f.write_all(FOOTER)?;
 

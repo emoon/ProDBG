@@ -1,6 +1,14 @@
 
 // test
 
+Rect {
+    f32 x,
+    f32 y,
+    f32 width,
+    f32 height,
+}
+
+
 Button {
 	is_down() -> bool,
 	set_text(String text),
