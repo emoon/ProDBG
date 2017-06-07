@@ -15,7 +15,7 @@ pub struct Variable {
 pub struct Function {
     pub name: String,
     pub function_args: Vec<Variable>,
-    pub return_val: Option<String>,
+    pub return_val: Option<Variable>,
     pub callback: bool,
 }
 
@@ -42,12 +42,47 @@ fn is_primitve(name: &str) -> bool {
        name == "i16" || name == "u16" || 
        name == "i32" || name == "u32" ||
        name == "i64" || name == "u64" ||
-       name == "f32" || name == "f64" {
+       name == "f32" || name == "f64" ||
+       name == "bool" {
         true
     } else {
         false
     }
 }
+
+/*
+impl Function {
+    pub fn write_func_def<F>(&self, f: &mut File, filter: F) -> io::Result<()>
+                         where F: Fn(usize, &Variable) -> (String, String) {
+        let arg_count = self.function_args.len();
+
+        for (i, arg) in self.function_args.iter().enumerate() {
+            let filter_arg = filter(i, &arg);
+
+            if filter_arg.1 == "" {
+                f.write_fmt(format_args!("{}", filter_arg.0))?;
+            } else {
+                f.write_fmt(format_args!("{}: {}", filter_arg.0, filter_arg.1))?;
+            }
+
+            if i != arg_count - 1 {
+                f.write_all(b", ")?;
+            }
+        }
+
+        f.write_all(b")")?;
+
+        if let Some(ref ret_var) = self.return_val {
+            let filter_arg = filter(arg_count, &ret_var);
+            if filter_arg.1 != "" {
+                f.write_fmt(format_args!(" -> {}", filter_arg.1))?;
+            }
+        }
+
+        Ok(())
+    }
+}
+*/
 
 impl_rdp! {
     grammar! {
@@ -146,17 +181,23 @@ impl_rdp! {
             () => false,
         }
 
-        _returnvalue(&self) -> Option<String> {
-            (_: retexp, &name: name) => Some(name.to_owned()),
+        _returnvalue(&self) -> Option<Variable> {
+            (_: retexp, &name: name) => {
+                Some(Variable {
+                    name: "".to_owned(),
+                    vtype: name.to_owned(),
+                    primitive: is_primitve(name),
+                })
+            },
             () => None,
         }
 
         _func_args_list(&self) -> VecDeque<Variable> {
             (_: var, &name: name, &atype: name, mut tail: _func_args_list()) => {
                 tail.push_front(Variable {
-                    name: name.to_owned(),
-                    vtype: atype.to_owned(),
-                    primitive: is_primitve(atype),
+                    name: atype.to_owned(),
+                    vtype: name.to_owned(),
+                    primitive: is_primitve(name),
                 });
 
                 tail

@@ -8,8 +8,12 @@ Rect {
     f32 height,
 }
 
+Widget {
+    show(),
+}
 
-Button {
+
+Button : Widget {
 	is_down() -> bool,
 	set_text(String text),
 
@@ -23,6 +27,7 @@ Button {
 // Inherit functions from Button in PushButton
 
 PushButton : Button {
+	draw_line(i32 x1, i32 y1, i32 x2, Rect y2),
 }
 
 // Sliders
@@ -32,7 +37,7 @@ Slider {
 }
 
 Painter {
-	draw_line(int x1, int y1, int x2, int y2),
+	draw_line(i32 x1, i32 y1, i32 x2, Rect y2),
 }
 
 
