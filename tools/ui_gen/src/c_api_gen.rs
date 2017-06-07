@@ -55,19 +55,19 @@ pub fn generate_c_api(filename: &str, api_def: &ApiDef) -> io::Result<()> {
     // Write the struct defs
 
 	for sdef in &api_def.entries {
-        f.write_fmt(format_args!("struct PU{} {{;\n", sdef.name))?;
+        f.write_fmt(format_args!("struct PU{} {{\n", sdef.name))?;
 
         for entry in &sdef.entries {
             match *entry {
                 StructEntry::Var(ref var) => {
-                    f.write_fmt(format_args!("    {} {},\n", get_type_name(&var.vtype, var.primitive), var.name))?;
+                    f.write_fmt(format_args!("    {} {};\n", get_type_name(&var.vtype, var.primitive), var.name))?;
                 },
 
                 _ => (),
             }
         }
 
-        f.write_fmt(format_args!("}}\n\n"))?;
+        f.write_fmt(format_args!("}};\n\n"))?;
     }
 
     f.write_all(FOOTER)?;
