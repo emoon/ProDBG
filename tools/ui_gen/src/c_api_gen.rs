@@ -51,6 +51,40 @@ fn is_struct_pod(sdef: &Struct) -> bool {
     })
 }
 
+fn generate_func_def(f: &mut File, func: &Function) -> io::Result<()> {
+    let mut ret_value;
+
+    if let Some(ref ret_val) = func.return_val {
+        ret_value = get_type_name(&ret_val.vtype, ret_val.primitive);
+    } else { 
+        ret_value = "void".to_owned();
+    }
+
+    // write return value and function name
+    f.write_fmt(format_args!("    {} (*{})(", ret_value, func.name))?; 
+
+    // write arguments 
+    for arg in &func.function_args {
+        f.write_fmt(format_args!("{} {}, ", get_type_name(&arg.vtype, arg.primitive), arg.name))?;
+    }
+
+    // write last parameter (always private data)
+    f.write_fmt(format_args!("void* priv_data);\n"))
+}
+
+fn generate_callback_def(f: &mut File, func: &Function) -> io::Result<()> {
+    // write return value and function name
+    f.write_fmt(format_args!("    void connect_{}(void* object, void* user_data, void (*callback)(", func.name))?; 
+
+    // write arguments 
+    for arg in &func.function_args {
+        f.write_fmt(format_args!("{} {}, ", get_type_name(&arg.vtype, arg.primitive), arg.name))?;
+    }
+
+    // write last parameter (always private data)
+    f.write_fmt(format_args!("void* user_data));\n"))
+}
+
 fn generate_struct_body_recursive(f: &mut File, api_def: &ApiDef, sdef: &Struct) -> io::Result<()> {
     if let Some(ref inherit_name) = sdef.inherit {
         for sdef in &api_def.entries {
@@ -68,22 +102,9 @@ fn generate_struct_body_recursive(f: &mut File, api_def: &ApiDef, sdef: &Struct)
 
             StructEntry::Function(ref func) => {
                 if func.callback == false {
-                    let mut ret_value = "void".to_owned();
-
-                    if let Some(ref ret_val) = func.return_val {
-                        ret_value = get_type_name(&ret_val.vtype, ret_val.primitive);
-                    }
-
-                    // write return value and function name
-                    f.write_fmt(format_args!("    {} (*{})(", ret_value, func.name))?; 
-
-                    // write arguments 
-                    for arg in &func.function_args {
-                        f.write_fmt(format_args!("{} {}, ", get_type_name(&arg.vtype, arg.primitive), arg.name))?;
-                    }
-
-                    // write last parameter (always private data)
-                    f.write_fmt(format_args!("void* priv_data);\n"));
+                    generate_func_def(f, func)?;
+                } else {
+                    generate_callback_def(f, func)?;
                 }
             },
         }

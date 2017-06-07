@@ -32,7 +32,7 @@ PushButton : Button {
 // Sliders
 
 Slider {
-    [callback] value_changed(int value),
+    [callback] value_changed(i32 value),
 }
 
 Painter {
