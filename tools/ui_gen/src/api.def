@@ -12,32 +12,31 @@ Widget {
     show(),
 }
 
-
 Button : Widget {
-	is_down() -> bool,
-	set_text(String text),
+    is_down() -> bool,
+    set_text(String text),
 
-	// Callbacks
+    // Callbacks
 
-	[callback] clicked(bool state),
-	[callback] pressed(),
-	[callback] released(),
+    [callback] clicked(bool state),
+    [callback] pressed(),
+    [callback] released(),
 }
 
 // Inherit functions from Button in PushButton
 
 PushButton : Button {
-	draw_line(i32 x1, i32 y1, i32 x2, Rect y2),
+    draw_line(i32 x1, i32 y1, i32 x2, i32 y2),
 }
 
 // Sliders
 
 Slider {
-	[callback] value_changed(int value),
+    [callback] value_changed(int value),
 }
 
 Painter {
-	draw_line(i32 x1, i32 y1, i32 x2, Rect y2),
+    draw_line(i32 x1, i32 y1, i32 x2, i32 y2),
 }
 
 

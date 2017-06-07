@@ -5,3 +5,4 @@ authors = ["Daniel Collin <daniel@collin.com>"]
 
 [dependencies]
 pest = "0.4"
+heck = "0.2.1"

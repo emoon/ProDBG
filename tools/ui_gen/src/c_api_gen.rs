@@ -42,6 +42,15 @@ fn get_type_name(tname: &str, primitve: bool) -> String {
     }
 }
 
+fn is_struct_pod(sdef: &Struct) -> bool {
+    sdef.entries.iter().all(|e| {
+        match *e {
+            StructEntry::Var(ref _var) => true,
+            _ => false,
+        }
+    })
+}
+
 fn generate_struct_body_recursive(f: &mut File, api_def: &ApiDef, sdef: &Struct) -> io::Result<()> {
     if let Some(ref inherit_name) = sdef.inherit {
         for sdef in &api_def.entries {
@@ -109,6 +118,22 @@ pub fn generate_c_api(filename: &str, api_def: &ApiDef) -> io::Result<()> {
 
         f.write_fmt(format_args!("}};\n\n"))?;
     }
+
+    // generate C_API entry
+
+    f.write_all(b"typedef struct PU { \n")?;
+
+    use heck::SnakeCase;
+
+	for sdef in &api_def.entries {
+	    if is_struct_pod(sdef) {
+	        continue;
+        }
+
+        f.write_fmt(format_args!("    struct PU{}* create_{}(void* priv_data);\n", sdef.name, sdef.name.to_snake_case()))?;
+    }
+
+    f.write_all(b"    void* priv_data;\n} PU;\n")?;
 
     f.write_all(FOOTER)?;
 
