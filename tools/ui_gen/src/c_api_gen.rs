@@ -1,7 +1,7 @@
 use std::io;
 use std::fs::File;
 use std::io::Write;
-use ::api_parser::*;
+use api_parser::*;
 
 static HEADER: &'static [u8] = b"
 #pragma once\n
@@ -16,7 +16,10 @@ static FOOTER: &'static [u8] = b"
 }
 #endif\n";
 
-fn get_type_name(tname: &str, primitve: bool) -> String {
+pub fn get_type_name(arg: &Variable) -> String {
+    let tname = &arg.vtype;
+    let primitve = arg.primitive;
+
     if tname == "String" {
         return "const char*".to_owned();
     }
@@ -30,7 +33,7 @@ fn get_type_name(tname: &str, primitve: bool) -> String {
             return "double".to_owned();
         } else {
             // here we will have u8/i8,u32/etc
-           if tname.starts_with("u") {
+            if tname.starts_with("u") {
                 return format!("uint{}_t", &tname[1..]);
             } else {
                 return format!("int{}_t", &tname[1..]);
@@ -43,42 +46,50 @@ fn get_type_name(tname: &str, primitve: bool) -> String {
 }
 
 fn is_struct_pod(sdef: &Struct) -> bool {
-    sdef.entries.iter().all(|e| {
-        match *e {
-            StructEntry::Var(ref _var) => true,
-            _ => false,
-        }
-    })
+    sdef.entries
+        .iter()
+        .all(|e| match *e {
+                 StructEntry::Var(ref _var) => true,
+                 _ => false,
+             })
+}
+
+pub fn generate_c_function_args(func: &Function) -> String {
+    let mut function_args = String::new();
+
+    // write arguments
+    for arg in &func.function_args {
+        function_args.push_str(&get_type_name(&arg));
+        function_args.push_str(", ");
+    }
+
+    function_args.push_str("void*");
+    function_args
 }
 
 fn generate_func_def(f: &mut File, func: &Function) -> io::Result<()> {
-    let mut ret_value;
+    let ret_value;
 
     if let Some(ref ret_val) = func.return_val {
-        ret_value = get_type_name(&ret_val.vtype, ret_val.primitive);
-    } else { 
+        ret_value = get_type_name(&ret_val);
+    } else {
         ret_value = "void".to_owned();
     }
 
     // write return value and function name
-    f.write_fmt(format_args!("    {} (*{})(", ret_value, func.name))?; 
-
-    // write arguments 
-    for arg in &func.function_args {
-        f.write_fmt(format_args!("{} {}, ", get_type_name(&arg.vtype, arg.primitive), arg.name))?;
-    }
-
-    // write last parameter (always private data)
-    f.write_fmt(format_args!("void* priv_data);\n"))
+    f.write_fmt(format_args!("    {} (*{})({})\n", ret_value, func.name, generate_c_function_args(func)))
 }
 
 fn generate_callback_def(f: &mut File, func: &Function) -> io::Result<()> {
     // write return value and function name
-    f.write_fmt(format_args!("    void connect_{}(void* object, void* user_data, void (*callback)(", func.name))?; 
+    f.write_fmt(format_args!("    void connect_{}(void* object, void* user_data, void (*callback)(",
+                                func.name))?;
 
-    // write arguments 
+    // write arguments
     for arg in &func.function_args {
-        f.write_fmt(format_args!("{} {}, ", get_type_name(&arg.vtype, arg.primitive), arg.name))?;
+        f.write_fmt(format_args!("{} {}, ",
+                                    get_type_name(&arg),
+                                    arg.name))?;
     }
 
     // write last parameter (always private data)
@@ -97,8 +108,8 @@ fn generate_struct_body_recursive(f: &mut File, api_def: &ApiDef, sdef: &Struct)
     for entry in &sdef.entries {
         match *entry {
             StructEntry::Var(ref var) => {
-                f.write_fmt(format_args!("    {} {};\n", get_type_name(&var.vtype, var.primitive), var.name))?;
-            },
+                f.write_fmt(format_args!("    {} {};\n", get_type_name(&var), var.name))?;
+            }
 
             StructEntry::Function(ref func) => {
                 if func.callback == false {
@@ -106,7 +117,7 @@ fn generate_struct_body_recursive(f: &mut File, api_def: &ApiDef, sdef: &Struct)
                 } else {
                     generate_callback_def(f, func)?;
                 }
-            },
+            }
         }
     }
 
@@ -114,17 +125,17 @@ fn generate_struct_body_recursive(f: &mut File, api_def: &ApiDef, sdef: &Struct)
 }
 
 pub fn generate_c_api(filename: &str, api_def: &ApiDef) -> io::Result<()> {
-	let mut f = File::create(filename)?;
+    let mut f = File::create(filename)?;
 
-	for sdef in &api_def.entries {
-	    println!("name {}", sdef.name);
+    for sdef in &api_def.entries {
+        println!("name {}", sdef.name);
     }
 
     f.write_all(HEADER)?;
 
     // Write forward declarations
 
-	for sdef in &api_def.entries {
+    for sdef in &api_def.entries {
         f.write_fmt(format_args!("struct PU{};\n", sdef.name))?;
     }
 
@@ -132,7 +143,7 @@ pub fn generate_c_api(filename: &str, api_def: &ApiDef) -> io::Result<()> {
 
     // Write the struct defs
 
-	for sdef in &api_def.entries {
+    for sdef in &api_def.entries {
         f.write_fmt(format_args!("struct PU{} {{\n", sdef.name))?;
 
         generate_struct_body_recursive(&mut f, api_def, sdef)?;
@@ -146,12 +157,14 @@ pub fn generate_c_api(filename: &str, api_def: &ApiDef) -> io::Result<()> {
 
     use heck::SnakeCase;
 
-	for sdef in &api_def.entries {
-	    if is_struct_pod(sdef) {
-	        continue;
+    for sdef in &api_def.entries {
+        if is_struct_pod(sdef) {
+            continue;
         }
 
-        f.write_fmt(format_args!("    struct PU{}* create_{}(void* priv_data);\n", sdef.name, sdef.name.to_snake_case()))?;
+        f.write_fmt(format_args!("    struct PU{}* create_{}(void* priv_data);\n",
+                                    sdef.name,
+                                    sdef.name.to_snake_case()))?;
     }
 
     f.write_all(b"    void* priv_data;\n} PU;\n")?;
@@ -160,4 +173,3 @@ pub fn generate_c_api(filename: &str, api_def: &ApiDef) -> io::Result<()> {
 
     Ok(())
 }
-

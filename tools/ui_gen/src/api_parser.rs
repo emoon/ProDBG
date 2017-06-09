@@ -4,14 +4,14 @@ use std::io::prelude::*;
 use pest::prelude::*;
 use std::collections::VecDeque;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Variable {
     pub name: String,
     pub vtype: String,
     pub primitive: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Function {
     pub name: String,
     pub function_args: Vec<Variable>,
@@ -38,8 +38,8 @@ pub struct ApiDef {
 }
 
 fn is_primitve(name: &str) -> bool {
-    if name == "u8" || name == "u8" || 
-       name == "i16" || name == "u16" || 
+    if name == "u8" || name == "u8" ||
+       name == "i16" || name == "u16" ||
        name == "i32" || name == "u32" ||
        name == "i64" || name == "u64" ||
        name == "f32" || name == "f64" ||

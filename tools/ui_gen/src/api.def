@@ -19,6 +19,7 @@ Button : Widget {
     // Callbacks
 
     [callback] clicked(bool state),
+    [callback] clicked2(bool state),
     [callback] pressed(),
     [callback] released(),
 }
