@@ -84,8 +84,14 @@ fn generate_func_def(f: &mut File, func: &Function) -> io::Result<()> {
     f.write_fmt(format_args!("    {} (*{})({});\n", ret_value, func.name, generate_c_function_args(func)))
 }
 
-pub fn callback_fun_def_name(name: &str, func: &Function) -> String {
-    let mut func_def = format!("void connect_{}(void* object, void* user_data, void (*callback)(", name);
+pub fn callback_fun_def_name(def: bool, name: &str, func: &Function) -> String {
+    let mut func_def;
+
+    if def {
+        func_def = format!("void (*connect_{})(void* object, void* user_data, void (*callback)(", name);
+    } else {
+        func_def = format!("void connect_{}(void* object, void* user_data, void (*callback)(", name);
+    }
 
     for arg in &func.function_args {
         func_def.push_str(&get_type_name(&arg));
@@ -99,7 +105,7 @@ pub fn callback_fun_def_name(name: &str, func: &Function) -> String {
 }
 
 fn generate_callback_def(f: &mut File, func: &Function) -> io::Result<()> {
-    f.write_fmt(format_args!("    {};\n", callback_fun_def_name(&func.name, func)))
+    f.write_fmt(format_args!("    {};\n", callback_fun_def_name(true, &func.name, func)))
 }
 
 fn generate_struct_body_recursive(f: &mut File, api_def: &ApiDef, sdef: &Struct) -> io::Result<()> {

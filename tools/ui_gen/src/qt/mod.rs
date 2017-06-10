@@ -135,6 +135,10 @@ pub fn generate_signal_wrappers(f: &mut File, info: &HashMap<String, Function>) 
 
 }
 
+fn function_name(struct_name: &str, func: &Function) -> String {
+    format!("{}_{}", struct_name.to_snake_case(), func.name)
+}
+
 fn generate_func_def(f: &mut File,
                      struct_name: &str,
                      func: &Function,
@@ -150,10 +154,9 @@ fn generate_func_def(f: &mut File,
 
 
     // write return value and function name
-    f.write_fmt(format_args!("static {} {}_{}({}) {{ \n",
+    f.write_fmt(format_args!("static {} {}({}) {{ \n",
                                 ret_value,
-                                struct_name.to_snake_case(),
-                                func.name,
+                                function_name(struct_name, func),
                                 generate_c_function_args(func)))?;
 
     let struct_qt_name = struct_name_map
@@ -199,37 +202,33 @@ fn generate_func_def(f: &mut File,
     Ok(())
 }
 
+
 ///
 ///
 ///
 ///
 
-fn func_def_callback(f: &mut File,
-                    struct_name: &str,
-                    func: &Function)
-                  -> io::Result<()> {
-
+fn func_def_callback(f: &mut File, struct_name: &str, func: &Function) -> io::Result<()> {
     let signal_type_name = signal_type_callback(func);
-    let fun_name = format!("{}_{}", struct_name.to_snake_case(), func.name);
+    let func_name = function_name(struct_name, func);
 
-    f.write_fmt(format_args!("static {} {{\n",  callback_fun_def_name(&fun_name, func)))?;
+    println!("struct_name {}", struct_name);
+
+    f.write_fmt(format_args!("static {} {{\n", callback_fun_def_name(false, &func_name, func)))?;
 
     //QSlotWrapperNoArgs* wrap = new QSlotWrapperNoArgs(reciver, (SignalNoArgs)callback);
     f.write_fmt(format_args!("    QSlotWrapper{}* wrap = new QSlotWrapper{}(user_data, ({})callback);\n", signal_type_name, signal_type_name, signal_type_name))?;
     f.write_all(b"    QObject* q_obj = (QObject*)object;\n")?;
 
 
-    f.write_fmt(format_args!("    QObject::connect(q_obj, SIGNAL({}(", func.name.to_mixed_case()))?;
+    f.write_fmt(format_args!("    QObject::connect(q_obj, SIGNAL({}(",
+                                func.name.to_mixed_case()))?;
 
-    func.write_c_func_def(f, |_, arg| {
-        (get_type_name(arg), "".to_owned())
-    })?;
+    func.write_c_func_def(f, |_, arg| (get_type_name(arg), "".to_owned()))?;
 
     f.write_all(b"), wrap, SLOT(method(")?;
 
-    func.write_c_func_def(f, |_, arg| {
-        (get_type_name(arg), "".to_owned())
-    })?;
+    func.write_c_func_def(f, |_, arg| (get_type_name(arg), "".to_owned()))?;
 
     f.write_all(b"));\n")?;
     f.write_all(b"}\n\n")?;
@@ -300,20 +299,31 @@ fn generate_includes(f: &mut File,
 ///
 /// Generate the struct defs
 ///
-/*
-fn generate_struct_defs(f: &mut File,
-                     struct_name_map: &HashMap<&str, &str>,
-                     api_def: &ApiDef)
-                     -> io::Result<()> {
-    for sdef in &api_def.entries {
-        if is_struct_pod(sdef) {
-            continue;
+fn generate_struct_defs(f: &mut File, struct_name: &str, api_def: &ApiDef, sdef: &Struct) -> io::Result<()> {
+    if let Some(ref inherit_name) = sdef.inherit {
+        for sdef in &api_def.entries {
+            if &sdef.name == inherit_name {
+                generate_struct_defs(f, struct_name, api_def, &sdef)?;
+            }
+        }
+    }
+
+    for entry in &sdef.entries {
+        match *entry {
+            StructEntry::Function(ref func) => {
+                if func.callback {
+                    f.write_fmt(format_args!("    connect_{},\n", function_name(struct_name, func)))?;
+                } else {
+                    f.write_fmt(format_args!("    {},\n", function_name(struct_name, func)))?;
+                }
+            }
+
+            _ => (),
         }
     }
 
     Ok(())
 }
-*/
 ///
 /// This is the main entry for generating the C/C++ buindings for Qt. The current API mimics Qt
 /// fairly closely when it comes to names but at the start there is a map setup that used used
@@ -338,6 +348,22 @@ pub fn generate_qt_bindings(filename: &str, api_def: &ApiDef) -> io::Result<()> 
 
     for sdef in &api_def.entries {
         generate_struct_body_recursive(&mut f, &sdef.name, &sdef, &struct_name_map, api_def)?;
+    }
+
+    // generate the structs
+
+    for sdef in &api_def.entries {
+        if is_struct_pod(sdef) {
+            continue;
+        }
+
+        f.write_all(b"///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\n")?;
+        f.write_fmt(format_args!("static struct PU{} s_{} = {{\n", sdef.name, sdef.name.to_snake_case()))?;
+
+        generate_struct_defs(&mut f, &sdef.name, api_def, sdef)?;
+
+        f.write_all(b"    0,\n")?;
+        f.write_all(b"};\n\n")?;
     }
 
     Ok(())
