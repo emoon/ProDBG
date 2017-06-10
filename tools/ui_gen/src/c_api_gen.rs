@@ -60,10 +60,12 @@ pub fn generate_c_function_args(func: &Function) -> String {
     // write arguments
     for arg in &func.function_args {
         function_args.push_str(&get_type_name(&arg));
+        function_args.push_str(" ");
+        function_args.push_str(&arg.name);
         function_args.push_str(", ");
     }
 
-    function_args.push_str("void*");
+    function_args.push_str("void* priv_data");
     function_args
 }
 
@@ -77,7 +79,7 @@ fn generate_func_def(f: &mut File, func: &Function) -> io::Result<()> {
     }
 
     // write return value and function name
-    f.write_fmt(format_args!("    {} (*{})({})\n", ret_value, func.name, generate_c_function_args(func)))
+    f.write_fmt(format_args!("    {} (*{})({});\n", ret_value, func.name, generate_c_function_args(func)))
 }
 
 fn generate_callback_def(f: &mut File, func: &Function) -> io::Result<()> {
@@ -147,6 +149,10 @@ pub fn generate_c_api(filename: &str, api_def: &ApiDef) -> io::Result<()> {
         f.write_fmt(format_args!("struct PU{} {{\n", sdef.name))?;
 
         generate_struct_body_recursive(&mut f, api_def, sdef)?;
+
+        if !is_struct_pod(sdef) {
+            f.write_all(b"    void* priv_data;\n")?;
+        }
 
         f.write_fmt(format_args!("}};\n\n"))?;
     }

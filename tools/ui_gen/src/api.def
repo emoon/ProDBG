@@ -13,13 +13,10 @@ Widget {
 }
 
 Button : Widget {
-    is_down() -> bool,
     set_text(String text),
 
     // Callbacks
 
-    [callback] clicked(bool state),
-    [callback] clicked2(bool state),
     [callback] pressed(),
     [callback] released(),
 }
@@ -27,7 +24,7 @@ Button : Widget {
 // Inherit functions from Button in PushButton
 
 PushButton : Button {
-    draw_line(i32 x1, i32 y1, i32 x2, i32 y2),
+    set_flat(bool flat),
 }
 
 // Sliders
