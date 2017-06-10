@@ -31,6 +31,8 @@ pub fn get_type_name(arg: &Variable) -> String {
             return "bool".to_owned();
         } else if tname == "f64" {
             return "double".to_owned();
+        } else if tname == "i32" {
+            return "int".to_owned();
         } else {
             // here we will have u8/i8,u32/etc
             if tname.starts_with("u") {
@@ -45,7 +47,7 @@ pub fn get_type_name(arg: &Variable) -> String {
     }
 }
 
-fn is_struct_pod(sdef: &Struct) -> bool {
+pub fn is_struct_pod(sdef: &Struct) -> bool {
     sdef.entries
         .iter()
         .all(|e| match *e {
@@ -82,20 +84,22 @@ fn generate_func_def(f: &mut File, func: &Function) -> io::Result<()> {
     f.write_fmt(format_args!("    {} (*{})({});\n", ret_value, func.name, generate_c_function_args(func)))
 }
 
-fn generate_callback_def(f: &mut File, func: &Function) -> io::Result<()> {
-    // write return value and function name
-    f.write_fmt(format_args!("    void connect_{}(void* object, void* user_data, void (*callback)(",
-                                func.name))?;
+pub fn callback_fun_def_name(name: &str, func: &Function) -> String {
+    let mut func_def = format!("void connect_{}(void* object, void* user_data, void (*callback)(", name);
 
-    // write arguments
     for arg in &func.function_args {
-        f.write_fmt(format_args!("{} {}, ",
-                                    get_type_name(&arg),
-                                    arg.name))?;
+        func_def.push_str(&get_type_name(&arg));
+        func_def.push_str(" ");
+        func_def.push_str(&arg.name);
+        func_def.push_str(", ");
     }
 
-    // write last parameter (always private data)
-    f.write_fmt(format_args!("void* user_data));\n"))
+    func_def.push_str("void* user_data))");
+    func_def
+}
+
+fn generate_callback_def(f: &mut File, func: &Function) -> io::Result<()> {
+    f.write_fmt(format_args!("    {};\n", callback_fun_def_name(&func.name, func)))
 }
 
 fn generate_struct_body_recursive(f: &mut File, api_def: &ApiDef, sdef: &Struct) -> io::Result<()> {

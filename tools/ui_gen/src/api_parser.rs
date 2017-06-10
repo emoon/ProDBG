@@ -1,8 +1,10 @@
 use std::fs::File;
-use std::path::Path;
+use std::io::Write;
 use std::io::prelude::*;
-use pest::prelude::*;
+use std::io;
+use std::path::Path;
 use std::collections::VecDeque;
+use pest::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Variable {
@@ -50,9 +52,8 @@ fn is_primitve(name: &str) -> bool {
     }
 }
 
-/*
 impl Function {
-    pub fn write_func_def<F>(&self, f: &mut File, filter: F) -> io::Result<()>
+    pub fn write_c_func_def<F>(&self, f: &mut File, filter: F) -> io::Result<()>
                          where F: Fn(usize, &Variable) -> (String, String) {
         let arg_count = self.function_args.len();
 
@@ -62,7 +63,7 @@ impl Function {
             if filter_arg.1 == "" {
                 f.write_fmt(format_args!("{}", filter_arg.0))?;
             } else {
-                f.write_fmt(format_args!("{}: {}", filter_arg.0, filter_arg.1))?;
+                f.write_fmt(format_args!("{}, {}", filter_arg.0, filter_arg.1))?;
             }
 
             if i != arg_count - 1 {
@@ -82,7 +83,6 @@ impl Function {
         Ok(())
     }
 }
-*/
 
 impl_rdp! {
     grammar! {

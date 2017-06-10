@@ -7,6 +7,11 @@ use std::collections::HashMap;
 use api_parser::*;
 use c_api_gen::get_type_name;
 use c_api_gen::generate_c_function_args;
+use c_api_gen::is_struct_pod;
+use c_api_gen::callback_fun_def_name;
+
+use heck::SnakeCase;
+use heck::MixedCase;
 
 fn generate_bind_info(info: &mut HashMap<String, Function>, func: &Function) {
     if !func.callback {
@@ -143,9 +148,6 @@ fn generate_func_def(f: &mut File,
         ret_value = "void".to_owned();
     }
 
-    use heck::SnakeCase;
-
-    f.write_all(b"///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\n")?;
 
     // write return value and function name
     f.write_fmt(format_args!("static {} {}_{}({}) {{ \n",
@@ -154,15 +156,10 @@ fn generate_func_def(f: &mut File,
                                 func.name,
                                 generate_c_function_args(func)))?;
 
-    let struct_qt_name;
+    let struct_qt_name = struct_name_map
+        .get(struct_name)
+        .unwrap_or_else(|| &struct_name);
 
-    if let Some(qt_name) = struct_name_map.get(struct_name) {
-        struct_qt_name = qt_name;
-    } else {
-        struct_qt_name = &struct_name;
-    }
-
-    // Currently we assume that name of the struct matches Qt + Q in front and that the name
     // (changed from snake_case to camelCase matches the Qt function)
 
     // QWidget* qt_data = (QWidget*)priv_data;
@@ -172,8 +169,6 @@ fn generate_func_def(f: &mut File,
 
     // TODO: Handle return functions
 
-    use heck::MixedCase;
-
     // qt_data->func(params);
     f.write_fmt(format_args!("    qt_data->{}(", func.name.to_mixed_case()))?;
 
@@ -182,10 +177,20 @@ fn generate_func_def(f: &mut File,
     if args_count > 0 {
         for i in 0..args_count - 1 {
             let arg = &func.function_args[i];
-            f.write_fmt(format_args!("{}, ", &arg.name))?;
+            // TODO: This is a hack for strings for now
+            if arg.vtype == "String" {
+                f.write_fmt(format_args!("QString::fromLatin1({}), ", &arg.name))?;
+            } else {
+                f.write_fmt(format_args!("{}, ", &arg.name))?;
+            }
         }
 
-        f.write_fmt(format_args!("{}", func.function_args[args_count - 1].name))?;
+        let arg = &func.function_args[args_count - 1];
+        if arg.vtype == "String" {
+            f.write_fmt(format_args!("QString::fromLatin1({})", &arg.name))?;
+        } else {
+            f.write_fmt(format_args!("{}", &arg.name))?;
+        }
     }
 
     f.write_all(b");\n")?;
@@ -194,6 +199,48 @@ fn generate_func_def(f: &mut File,
     Ok(())
 }
 
+///
+///
+///
+///
+
+fn func_def_callback(f: &mut File,
+                    struct_name: &str,
+                    func: &Function)
+                  -> io::Result<()> {
+
+    let signal_type_name = signal_type_callback(func);
+    let fun_name = format!("{}_{}", struct_name.to_snake_case(), func.name);
+
+    f.write_fmt(format_args!("static {} {{\n",  callback_fun_def_name(&fun_name, func)))?;
+
+    //QSlotWrapperNoArgs* wrap = new QSlotWrapperNoArgs(reciver, (SignalNoArgs)callback);
+    f.write_fmt(format_args!("    QSlotWrapper{}* wrap = new QSlotWrapper{}(user_data, ({})callback);\n", signal_type_name, signal_type_name, signal_type_name))?;
+    f.write_all(b"    QObject* q_obj = (QObject*)object;\n")?;
+
+
+    f.write_fmt(format_args!("    QObject::connect(q_obj, SIGNAL({}(", func.name.to_mixed_case()))?;
+
+    func.write_c_func_def(f, |_, arg| {
+        (get_type_name(arg), "".to_owned())
+    })?;
+
+    f.write_all(b"), wrap, SLOT(method(")?;
+
+    func.write_c_func_def(f, |_, arg| {
+        (get_type_name(arg), "".to_owned())
+    })?;
+
+    f.write_all(b"));\n")?;
+    f.write_all(b"}\n\n")?;
+
+    Ok(())
+}
+
+///
+///
+///
+///
 fn generate_struct_body_recursive(f: &mut File,
                                   name: &str,
                                   sdef: &Struct,
@@ -211,8 +258,12 @@ fn generate_struct_body_recursive(f: &mut File,
     for entry in &sdef.entries {
         match *entry {
             StructEntry::Function(ref func) => {
+                f.write_all(b"///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\n")?;
+
                 if func.callback == false {
                     generate_func_def(f, name, func, struct_name_map)?;
+                } else {
+                    func_def_callback(f, name, func)?;
                 }
             }
 
@@ -223,6 +274,46 @@ fn generate_struct_body_recursive(f: &mut File,
     Ok(())
 }
 
+///
+/// Generate includes from all the structs which are non-pod
+///
+fn generate_includes(f: &mut File,
+                     struct_name_map: &HashMap<&str, &str>,
+                     api_def: &ApiDef)
+                     -> io::Result<()> {
+    for sdef in &api_def.entries {
+        let struct_name = sdef.name.as_str();
+
+        if is_struct_pod(sdef) {
+            continue;
+        }
+
+        let struct_qt_name = struct_name_map
+            .get(struct_name)
+            .unwrap_or_else(|| &struct_name);
+        f.write_fmt(format_args!("#include <Q{}>\n", struct_qt_name))?;
+    }
+
+    Ok(())
+}
+
+///
+/// Generate the struct defs
+///
+/*
+fn generate_struct_defs(f: &mut File,
+                     struct_name_map: &HashMap<&str, &str>,
+                     api_def: &ApiDef)
+                     -> io::Result<()> {
+    for sdef in &api_def.entries {
+        if is_struct_pod(sdef) {
+            continue;
+        }
+    }
+
+    Ok(())
+}
+*/
 ///
 /// This is the main entry for generating the C/C++ buindings for Qt. The current API mimics Qt
 /// fairly closely when it comes to names but at the start there is a map setup that used used
@@ -238,10 +329,9 @@ pub fn generate_qt_bindings(filename: &str, api_def: &ApiDef) -> io::Result<()> 
     struct_name_map.insert("Button", "AbstractButton");
 
     f.write_all(b"#include \"c_api.h\"\n")?;
-    f.write_all(b"#include <QObject>\n\n")?;
 
+    generate_includes(&mut f, &struct_name_map, api_def)?;
     build_signal_wrappers_info(&mut signals_info, api_def);
-
     generate_signal_wrappers(&mut f, &signals_info)?;
 
     // generate wrapper functions
