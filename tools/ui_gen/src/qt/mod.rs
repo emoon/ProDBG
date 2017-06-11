@@ -214,7 +214,8 @@ fn func_def_callback(f: &mut File, struct_name: &str, func: &Function) -> io::Re
 
     println!("struct_name {}", struct_name);
 
-    f.write_fmt(format_args!("static {} {{\n", callback_fun_def_name(false, &func_name, func)))?;
+    f.write_fmt(format_args!("static {} {{\n",
+                                callback_fun_def_name(false, &func_name, func)))?;
 
     //QSlotWrapperNoArgs* wrap = new QSlotWrapperNoArgs(reciver, (SignalNoArgs)callback);
     f.write_fmt(format_args!("    QSlotWrapper{}* wrap = new QSlotWrapper{}(user_data, ({})callback);\n", signal_type_name, signal_type_name, signal_type_name))?;
@@ -299,7 +300,11 @@ fn generate_includes(f: &mut File,
 ///
 /// Generate the struct defs
 ///
-fn generate_struct_def(f: &mut File, struct_name: &str, api_def: &ApiDef, sdef: &Struct) -> io::Result<()> {
+fn generate_struct_def(f: &mut File,
+                       struct_name: &str,
+                       api_def: &ApiDef,
+                       sdef: &Struct)
+                       -> io::Result<()> {
     if let Some(ref inherit_name) = sdef.inherit {
         for sdef in &api_def.entries {
             if &sdef.name == inherit_name {
@@ -312,7 +317,8 @@ fn generate_struct_def(f: &mut File, struct_name: &str, api_def: &ApiDef, sdef: 
         match *entry {
             StructEntry::Function(ref func) => {
                 if func.callback {
-                    f.write_fmt(format_args!("    connect_{},\n", function_name(struct_name, func)))?;
+                    f.write_fmt(format_args!("    connect_{},\n",
+                                                function_name(struct_name, func)))?;
                 } else {
                     f.write_fmt(format_args!("    {},\n", function_name(struct_name, func)))?;
                 }
@@ -337,7 +343,9 @@ fn generate_struct_defs(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
         }
 
         f.write_all(b"///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\n")?;
-        f.write_fmt(format_args!("static struct PU{} s_{} = {{\n", sdef.name, sdef.name.to_snake_case()))?;
+        f.write_fmt(format_args!("static struct PU{} s_{} = {{\n",
+                                    sdef.name,
+                                    sdef.name.to_snake_case()))?;
 
         generate_struct_def(f, &sdef.name, api_def, sdef)?;
 
