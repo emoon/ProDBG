@@ -7,7 +7,6 @@ use std::collections::HashMap;
 use api_parser::*;
 use c_api_gen::get_type_name;
 use c_api_gen::generate_c_function_args;
-use c_api_gen::is_struct_pod;
 use c_api_gen::callback_fun_def_name;
 
 use heck::SnakeCase;
@@ -267,7 +266,7 @@ fn generate_includes(f: &mut File,
                      struct_name_map: &HashMap<&str, &str>,
                      api_def: &ApiDef)
                      -> io::Result<()> {
-    for sdef in api_def.entries.iter().filter(|v| !is_struct_pod(v)) {
+    for sdef in api_def.entries.iter().filter(|v| !v.is_pod()) {
         let struct_name = sdef.name.as_str();
         let struct_qt_name = struct_name_map
             .get(struct_name)
@@ -318,7 +317,7 @@ fn generate_struct_def(f: &mut File,
 ///
 ///
 fn generate_struct_defs(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
-    for sdef in api_def.entries.iter().filter(|v| !is_struct_pod(v)) {
+    for sdef in api_def.entries.iter().filter(|s| !s.is_pod()) {
         f.write_all(b"///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\n")?;
         f.write_fmt(format_args!("static struct PU{} s_{} = {{\n",
                                     sdef.name,
@@ -334,12 +333,14 @@ fn generate_struct_defs(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
 }
 
 ///
+
+
+///
 /// This is the main entry for generating the C/C++ buindings for Qt. The current API mimics Qt
 /// fairly closely when it comes to names but at the start there is a map setup that used used
 /// to translate between some struct names to fit the Qt version. If more structs gets added that
 /// needs to be translated into another Qt name they needs to be added here as well
 ///
-
 pub fn generate_qt_bindings(filename: &str, api_def: &ApiDef) -> io::Result<()> {
     let mut f = File::create(filename)?;
     let mut signals_info = HashMap::new();

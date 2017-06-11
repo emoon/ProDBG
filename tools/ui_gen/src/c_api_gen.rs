@@ -2,6 +2,7 @@ use std::io;
 use std::fs::File;
 use std::io::Write;
 use api_parser::*;
+use heck::SnakeCase;
 
 static HEADER: &'static [u8] = b"
 #pragma once\n
@@ -45,15 +46,6 @@ pub fn get_type_name(arg: &Variable) -> String {
         // Unknown type here, we always assume to use a struct Type*
         format!("struct PU{}*", tname)
     }
-}
-
-pub fn is_struct_pod(sdef: &Struct) -> bool {
-    sdef.entries
-        .iter()
-        .all(|e| match *e {
-                 StructEntry::Var(ref _var) => true,
-                 _ => false,
-             })
 }
 
 pub fn generate_c_function_args(func: &Function) -> String {
@@ -156,7 +148,7 @@ pub fn generate_c_api(filename: &str, api_def: &ApiDef) -> io::Result<()> {
 
         generate_struct_body_recursive(&mut f, api_def, sdef)?;
 
-        if !is_struct_pod(sdef) {
+        if !sdef.is_pod() {
             f.write_all(b"    void* priv_data;\n")?;
         }
 
@@ -167,13 +159,8 @@ pub fn generate_c_api(filename: &str, api_def: &ApiDef) -> io::Result<()> {
 
     f.write_all(b"typedef struct PU { \n")?;
 
-    use heck::SnakeCase;
 
-    for sdef in &api_def.entries {
-        if is_struct_pod(sdef) {
-            continue;
-        }
-
+    for sdef in api_def.entries.iter().filter(|s| !s.is_pod()) {
         f.write_fmt(format_args!("    struct PU{}* create_{}(void* priv_data);\n",
                                     sdef.name,
                                     sdef.name.to_snake_case()))?;
