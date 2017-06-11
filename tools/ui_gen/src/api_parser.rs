@@ -91,6 +91,37 @@ impl Function {
 
         Ok(())
     }
+
+    pub fn write_func_def<F>(&self, f: &mut File, filter: F) -> io::Result<()>
+        where F: Fn(usize, &Variable) -> (String, String)
+    {
+        let arg_count = self.function_args.len();
+
+        for (i, arg) in self.function_args.iter().enumerate() {
+            let filter_arg = filter(i, &arg);
+
+            if filter_arg.1 == "" {
+                f.write_fmt(format_args!("{}", filter_arg.0))?;
+            } else {
+                f.write_fmt(format_args!("{}: {}", filter_arg.0, filter_arg.1))?;
+            }
+
+            if i != arg_count - 1 {
+                f.write_all(b", ")?;
+            }
+        }
+
+        f.write_all(b")")?;
+
+        if let Some(ref ret_var) = self.return_val {
+            let filter_arg = filter(arg_count, &ret_var);
+            if filter_arg.1 != "" {
+                f.write_fmt(format_args!(" -> {}", filter_arg.1))?;
+            }
+        }
+
+        Ok(())
+    }
 }
 
 impl_rdp! {

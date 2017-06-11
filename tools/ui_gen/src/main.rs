@@ -7,7 +7,7 @@ pub mod qt;
 
 //pub mod data;
 pub mod api_parser;
-//mod rust_ffi_gen;
+mod rust_ffi_gen;
 //mod rust_widgets_gen;
 //mod rust_traits_gen;
 //mod rust_ui_gen;
@@ -19,7 +19,7 @@ static QT_API_IMPL: &'static str = "../../src/prodbg/PluginUI/qt_api_gen.cpp";
 static QT_API_IMPL_HEADER: &'static str = "../../src/prodbg/PluginUI/qt_api_gen.h";
 static INPUT_API: &'static str = "src/api.def";
 
-//static RUST_FFI_FILE: &'static str = "../../api/rust/prodbg_ui/src/ffi_gen.rs";
+static RUST_FFI_FILE: &'static str = "../../api/rust/prodbg_ui/src/ffi_gen.rs";
 //static TRAITS_FILE: &'static str = "../../api/rust/prodbg_ui/src/traits_gen.rs";
 //static WIDGETS_FILE: &'static str = "../../api/rust/prodbg_ui/src/widgets_gen.rs";
 //static UI_FILE: &'static str = "../../api/rust/prodbg_ui/src/ui_gen.rs";
@@ -59,11 +59,11 @@ fn main() {
         panic!("Unable to generate {} err {:?}", QT_API_IMPL, err);
     }
 
-    /*
-    if let Err(err) = rust_ffi_gen::generate_ffi_bindings(RUST_FFI_FILE, &structs) {
+    if let Err(err) = rust_ffi_gen::generate_ffi_bindings(RUST_FFI_FILE, &api_def.entries) {
         panic!("Unable to generate {} err {:?}", RUST_FFI_FILE, err);
     }
 
+    /*
     if let Err(err) = rust_traits_gen::generate_traits(TRAITS_FILE, &structs) {
         panic!("Unable to generate {} err {:?}", TRAITS_FILE, err);
     }
