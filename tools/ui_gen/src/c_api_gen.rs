@@ -161,7 +161,7 @@ pub fn generate_c_api(filename: &str, api_def: &ApiDef) -> io::Result<()> {
 
 
     for sdef in api_def.entries.iter().filter(|s| !s.is_pod()) {
-        f.write_fmt(format_args!("    struct PU{}* create_{}(void* priv_data);\n",
+        f.write_fmt(format_args!("    struct PU{}* (*create_{})(void* priv_data);\n",
                                     sdef.name,
                                     sdef.name.to_snake_case()))?;
     }

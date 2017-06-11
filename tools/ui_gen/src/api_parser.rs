@@ -40,21 +40,30 @@ pub struct ApiDef {
 }
 
 fn is_primitve(name: &str) -> bool {
-    if name == "u8" || name == "u8" ||
-       name == "i16" || name == "u16" ||
-       name == "i32" || name == "u32" ||
-       name == "i64" || name == "u64" ||
-       name == "f32" || name == "f64" ||
-       name == "bool" {
+    if name == "u8" || name == "u8" || name == "i16" || name == "u16" ||
+       name == "i32" || name == "u32" || name == "i64" || name == "u64" ||
+       name == "f32" || name == "f64" || name == "bool" {
         true
     } else {
         false
     }
 }
 
+impl Struct {
+    pub fn is_pod(&self) -> bool {
+        self.entries
+            .iter()
+            .all(|e| match *e {
+                     StructEntry::Var(ref _var) => true,
+                     _ => false,
+                 })
+    }
+}
+
 impl Function {
     pub fn write_c_func_def<F>(&self, f: &mut File, filter: F) -> io::Result<()>
-                         where F: Fn(usize, &Variable) -> (String, String) {
+        where F: Fn(usize, &Variable) -> (String, String)
+    {
         let arg_count = self.function_args.len();
 
         for (i, arg) in self.function_args.iter().enumerate() {
@@ -222,11 +231,11 @@ impl ApiDef {
 
         if !parser.end() {
             let expected = parser.expected();
-            panic!("Failed to parse file - {:?} - {}", parser.expected(), &text[expected.1..]);
+            panic!("Failed to parse file - {:?} - {}",
+                   parser.expected(),
+                   &text[expected.1..]);
         }
 
-        ApiDef {
-            entries: parser.process(),
-        }
+        ApiDef { entries: parser.process() }
     }
 }

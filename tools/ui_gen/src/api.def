@@ -12,18 +12,11 @@ Widget {
     show(),
 }
 
-Button : Widget {
-    set_text(String text),
-
-    // Callbacks
-
-    [callback] pressed(),
-    [callback] released(),
-}
-
 // Inherit functions from Button in PushButton
 
-PushButton : Button {
+PushButton : Widget {
+    [callback] released(),
+    set_text(String text),
     set_flat(bool flat),
 }
 

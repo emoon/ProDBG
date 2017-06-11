@@ -53,6 +53,8 @@ Program {
         gen_moc("src/prodbg/CodeView/DisassemblyView.h"),
         gen_moc("src/prodbg/MemoryView/MemoryView.h"),
         gen_moc("src/prodbg/MemoryView/MemoryViewWidget.h"),
+
+        gen_moc("src/prodbg/PluginUI/qt_api_gen.h"),
     },
 
     Env = {

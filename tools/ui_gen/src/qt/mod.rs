@@ -12,6 +12,32 @@ use c_api_gen::callback_fun_def_name;
 use heck::SnakeCase;
 use heck::MixedCase;
 
+static HEADER: &'static [u8] = b"
+struct PrivData {
+    QWidget* parent;
+    void* user_data;
+};\n\n";
+
+static CREATE_TEMPLATE: &'static [u8] = b"
+template<typename T, typename QT> T* create_func(T* struct_data, void* priv_data) {
+    PrivData* data = (PrivData*)priv_data;
+    QT* qt_obj = new QT(data->parent);
+    T* ctl = new T;
+    memcpy(ctl, struct_data, sizeof(T));
+    ctl->priv_data = qt_obj;
+    return ctl;
+}\n\n";
+
+static FOOTER: &'static [u8] = b"
+struct PU* PU_create_instance(void* user_data, QWidget* parent) {
+    struct PU* instance = new PU;
+    memcpy(instance, &s_pu, sizeof(PU));
+    PrivData* priv_data = new PrivData;
+    priv_data->parent = parent;
+    priv_data->user_data = user_data;
+    return instance;
+}\n\n";
+
 fn generate_bind_info(info: &mut HashMap<String, Function>, func: &Function) {
     if !func.callback {
         return;
@@ -173,13 +199,11 @@ fn generate_func_def(f: &mut File,
     // qt_data->func(params);
     f.write_fmt(format_args!("    qt_data->{}(", func.name.to_mixed_case()))?;
 
-    func.write_c_func_def(f, |_, arg| {
-        if arg.vtype == "String" {
+    func.write_c_func_def(f, |_, arg| if arg.vtype == "String" {
             (format!("QString::fromLatin1({})", &arg.name), "".to_owned())
         } else {
             (arg.name.clone(), "".to_owned())
-        }
-    })?;
+        })?;
 
     f.write_all(b";\n")?;
     f.write_all(b"}\n\n")?;
@@ -332,8 +356,58 @@ fn generate_struct_defs(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
     Ok(())
 }
 
-///
 
+// struct PUWidget* create_widget(void* priv_data) {
+//    PrivData* data = (PrivData*)priv_data;
+//    QWidget* qt_obj = new QWidget(data->parent);
+//    PUWidget* ctl = new PUWidget;
+//    memcpy(ctl, s_widget, sizeof(s_widget);
+//    ctl->priv_data = qt_object;
+//    return ctl;
+// }
+
+///
+/// Generates the create functions
+///
+fn generate_create_functions(f: &mut File,
+                             struct_name_map: &HashMap<&str, &str>,
+                             api_def: &ApiDef)
+                             -> io::Result<()> {
+    f.write_all(b"///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n")?;
+    f.write_all(CREATE_TEMPLATE)?;
+
+    for sdef in api_def.entries.iter().filter(|s| !s.is_pod()) {
+        let struct_name = sdef.name.as_str();
+
+        f.write_all(b"///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\n")?;
+
+        f.write_fmt(format_args!("static struct PU{}* create_{}(void* priv_data) {{\n",
+                                    sdef.name,
+                                    sdef.name.to_snake_case()))?;
+
+        let struct_qt_name = struct_name_map
+            .get(struct_name)
+            .unwrap_or_else(|| &struct_name);
+
+        f.write_fmt(format_args!("    return create_func<struct PU{}, Q{}>(&s_{}, priv_data);\n}}\n", struct_name, struct_qt_name, struct_name.to_snake_case()))?;
+    }
+
+    Ok(())
+}
+
+///
+/// Generate the PU structure
+///
+fn generate_pu_struct(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
+    f.write_all(b"///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n")?;
+    f.write_all(b"static struct PU s_pu = {\n")?;
+
+    for sdef in api_def.entries.iter().filter(|s| !s.is_pod()) {
+        f.write_fmt(format_args!("    create_{},\n", sdef.name.to_snake_case()))?;
+    }
+
+    f.write_all(b"};\n\n")
+}
 
 ///
 /// This is the main entry for generating the C/C++ buindings for Qt. The current API mimics Qt
@@ -341,8 +415,10 @@ fn generate_struct_defs(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
 /// to translate between some struct names to fit the Qt version. If more structs gets added that
 /// needs to be translated into another Qt name they needs to be added here as well
 ///
-pub fn generate_qt_bindings(filename: &str, api_def: &ApiDef) -> io::Result<()> {
+pub fn generate_qt_bindings(filename: &str, header_filename: &str, api_def: &ApiDef) -> io::Result<()> {
     let mut f = File::create(filename)?;
+    let mut header_file = File::create(header_filename)?;
+
     let mut signals_info = HashMap::new();
 
     let mut struct_name_map = HashMap::new();
@@ -350,10 +426,16 @@ pub fn generate_qt_bindings(filename: &str, api_def: &ApiDef) -> io::Result<()> 
     struct_name_map.insert("Button", "AbstractButton");
 
     f.write_all(b"#include \"c_api.h\"\n")?;
+    f.write_all(b"#include \"qt_api_gen.h\"\n")?;
 
     generate_includes(&mut f, &struct_name_map, api_def)?;
+
+    f.write_all(HEADER)?;
+
     build_signal_wrappers_info(&mut signals_info, api_def);
-    generate_signal_wrappers(&mut f, &signals_info)?;
+
+    header_file.write_all(b"#pragma once\n#include <QObject>\n")?;
+    generate_signal_wrappers(&mut header_file, &signals_info)?;
 
     // generate wrapper functions
 
@@ -362,6 +444,8 @@ pub fn generate_qt_bindings(filename: &str, api_def: &ApiDef) -> io::Result<()> 
     }
 
     generate_struct_defs(&mut f, api_def)?;
+    generate_create_functions(&mut f, &struct_name_map, api_def)?;
+    generate_pu_struct(&mut f, api_def)?;
 
-    Ok(())
+    f.write_all(FOOTER)
 }
