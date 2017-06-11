@@ -139,10 +139,6 @@ fn generate_struct_body_recursive(f: &mut File, api_def: &ApiDef, sdef: &Struct)
 pub fn generate_c_api(filename: &str, api_def: &ApiDef) -> io::Result<()> {
     let mut f = File::create(filename)?;
 
-    for sdef in &api_def.entries {
-        println!("name {}", sdef.name);
-    }
-
     f.write_all(HEADER)?;
 
     // Write forward declarations

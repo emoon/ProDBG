@@ -152,7 +152,6 @@ fn generate_func_def(f: &mut File,
         ret_value = "void".to_owned();
     }
 
-
     // write return value and function name
     f.write_fmt(format_args!("static {} {}({}) {{ \n",
                                 ret_value,
@@ -175,28 +174,15 @@ fn generate_func_def(f: &mut File,
     // qt_data->func(params);
     f.write_fmt(format_args!("    qt_data->{}(", func.name.to_mixed_case()))?;
 
-    let args_count = func.function_args.len();
-
-    if args_count > 0 {
-        for i in 0..args_count - 1 {
-            let arg = &func.function_args[i];
-            // TODO: This is a hack for strings for now
-            if arg.vtype == "String" {
-                f.write_fmt(format_args!("QString::fromLatin1({}), ", &arg.name))?;
-            } else {
-                f.write_fmt(format_args!("{}, ", &arg.name))?;
-            }
-        }
-
-        let arg = &func.function_args[args_count - 1];
+    func.write_c_func_def(f, |_, arg| {
         if arg.vtype == "String" {
-            f.write_fmt(format_args!("QString::fromLatin1({})", &arg.name))?;
+            (format!("QString::fromLatin1({})", &arg.name), "".to_owned())
         } else {
-            f.write_fmt(format_args!("{}", &arg.name))?;
+            (arg.name.clone(), "".to_owned())
         }
-    }
+    })?;
 
-    f.write_all(b");\n")?;
+    f.write_all(b";\n")?;
     f.write_all(b"}\n\n")?;
 
     Ok(())
@@ -281,13 +267,8 @@ fn generate_includes(f: &mut File,
                      struct_name_map: &HashMap<&str, &str>,
                      api_def: &ApiDef)
                      -> io::Result<()> {
-    for sdef in &api_def.entries {
+    for sdef in api_def.entries.iter().filter(|v| !is_struct_pod(v)) {
         let struct_name = sdef.name.as_str();
-
-        if is_struct_pod(sdef) {
-            continue;
-        }
-
         let struct_qt_name = struct_name_map
             .get(struct_name)
             .unwrap_or_else(|| &struct_name);
@@ -337,11 +318,7 @@ fn generate_struct_def(f: &mut File,
 ///
 ///
 fn generate_struct_defs(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
-    for sdef in &api_def.entries {
-        if is_struct_pod(sdef) {
-            continue;
-        }
-
+    for sdef in api_def.entries.iter().filter(|v| !is_struct_pod(v)) {
         f.write_all(b"///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\n")?;
         f.write_fmt(format_args!("static struct PU{} s_{} = {{\n",
                                     sdef.name,
