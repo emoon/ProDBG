@@ -299,11 +299,11 @@ fn generate_includes(f: &mut File,
 ///
 /// Generate the struct defs
 ///
-fn generate_struct_defs(f: &mut File, struct_name: &str, api_def: &ApiDef, sdef: &Struct) -> io::Result<()> {
+fn generate_struct_def(f: &mut File, struct_name: &str, api_def: &ApiDef, sdef: &Struct) -> io::Result<()> {
     if let Some(ref inherit_name) = sdef.inherit {
         for sdef in &api_def.entries {
             if &sdef.name == inherit_name {
-                generate_struct_defs(f, struct_name, api_def, &sdef)?;
+                generate_struct_def(f, struct_name, api_def, &sdef)?;
             }
         }
     }
@@ -324,12 +324,37 @@ fn generate_struct_defs(f: &mut File, struct_name: &str, api_def: &ApiDef, sdef:
 
     Ok(())
 }
+
+///
+///
+///
+///
+///
+fn generate_struct_defs(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
+    for sdef in &api_def.entries {
+        if is_struct_pod(sdef) {
+            continue;
+        }
+
+        f.write_all(b"///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\n")?;
+        f.write_fmt(format_args!("static struct PU{} s_{} = {{\n", sdef.name, sdef.name.to_snake_case()))?;
+
+        generate_struct_def(f, &sdef.name, api_def, sdef)?;
+
+        f.write_all(b"    0,\n")?;
+        f.write_all(b"};\n\n")?;
+    }
+
+    Ok(())
+}
+
 ///
 /// This is the main entry for generating the C/C++ buindings for Qt. The current API mimics Qt
 /// fairly closely when it comes to names but at the start there is a map setup that used used
 /// to translate between some struct names to fit the Qt version. If more structs gets added that
 /// needs to be translated into another Qt name they needs to be added here as well
 ///
+
 pub fn generate_qt_bindings(filename: &str, api_def: &ApiDef) -> io::Result<()> {
     let mut f = File::create(filename)?;
     let mut signals_info = HashMap::new();
@@ -350,21 +375,7 @@ pub fn generate_qt_bindings(filename: &str, api_def: &ApiDef) -> io::Result<()> 
         generate_struct_body_recursive(&mut f, &sdef.name, &sdef, &struct_name_map, api_def)?;
     }
 
-    // generate the structs
-
-    for sdef in &api_def.entries {
-        if is_struct_pod(sdef) {
-            continue;
-        }
-
-        f.write_all(b"///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\n")?;
-        f.write_fmt(format_args!("static struct PU{} s_{} = {{\n", sdef.name, sdef.name.to_snake_case()))?;
-
-        generate_struct_defs(&mut f, &sdef.name, api_def, sdef)?;
-
-        f.write_all(b"    0,\n")?;
-        f.write_all(b"};\n\n")?;
-    }
+    generate_struct_defs(&mut f, api_def)?;
 
     Ok(())
 }
