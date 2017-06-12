@@ -8,6 +8,7 @@ pub mod qt;
 //pub mod data;
 pub mod api_parser;
 mod rust_ffi_gen;
+mod rust_gen;
 //mod rust_widgets_gen;
 //mod rust_traits_gen;
 //mod rust_ui_gen;
@@ -22,7 +23,7 @@ static INPUT_API: &'static str = "src/api.def";
 static RUST_FFI_FILE: &'static str = "../../api/rust/prodbg_ui/src/ffi_gen.rs";
 //static TRAITS_FILE: &'static str = "../../api/rust/prodbg_ui/src/traits_gen.rs";
 //static WIDGETS_FILE: &'static str = "../../api/rust/prodbg_ui/src/widgets_gen.rs";
-//static UI_FILE: &'static str = "../../api/rust/prodbg_ui/src/ui_gen.rs";
+static UI_FILE: &'static str = "../../api/rust/prodbg_ui/src/lib.rs";
 
 fn main() {
     /*
@@ -61,6 +62,10 @@ fn main() {
 
     if let Err(err) = rust_ffi_gen::generate_ffi_bindings(RUST_FFI_FILE, &api_def.entries) {
         panic!("Unable to generate {} err {:?}", RUST_FFI_FILE, err);
+    }
+
+    if let Err(err) = rust_gen::generate_rust_bindigs(UI_FILE, &api_def) {
+        panic!("Unable to generate {} err {:?}", UI_FILE, err);
     }
 
     /*

@@ -11,7 +11,6 @@ pub struct PURect {
 #[repr(C)]
 pub struct PUWidget {
     pub show: extern "C" fn(),
-    pub draw: extern "C" fn(rect: *const PURect, color: i32),
     pub privd: *const c_void,
 }
 

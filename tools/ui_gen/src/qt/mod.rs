@@ -47,18 +47,13 @@ fn generate_bind_info(info: &mut HashMap<String, Function>, func: &Function) {
 
     for arg in &func.function_args {
         let tname = get_type_name(&arg);
-
         input_args.push_str(&tname);
         input_args.push_str(", ");
     }
 
     input_args.push_str("void*"); // user_data
 
-    if info.contains_key(&input_args) {
-        return;
-    }
-
-    info.insert(input_args.clone(), func.clone());
+    info.entry(input_args.clone()).or_insert(func.clone());
 }
 
 // generates signal wrappers for the variatos depending on input parameters
@@ -169,13 +164,9 @@ fn generate_func_def(f: &mut File,
                      func: &Function,
                      struct_name_map: &HashMap<&str, &str>)
                      -> io::Result<()> {
-    let ret_value;
-
-    if let Some(ref ret_val) = func.return_val {
-        ret_value = get_type_name(&ret_val);
-    } else {
-        ret_value = "void".to_owned();
-    }
+    let ret_value = func.return_val
+        .as_ref()
+        .map_or("void".to_owned(), |v| v.get_c_type());
 
     // write return value and function name
     f.write_fmt(format_args!("static {} {}({}) {{ \n",
@@ -199,8 +190,12 @@ fn generate_func_def(f: &mut File,
     // qt_data->func(params);
     f.write_fmt(format_args!("    qt_data->{}(", func.name.to_mixed_case()))?;
 
-    func.write_c_func_def(f, |_, arg| if arg.vtype == "String" {
+    func.write_c_func_def(f, |_, arg|
+        // Hacky, and needs to be extended but will do for now
+        if arg.vtype == "String" {
             (format!("QString::fromLatin1({})", &arg.name), "".to_owned())
+        } else if arg.vtype == "Rect" {
+            (format!("QRect({}->x, {}->y, {}->width, {}->height)", &arg.name, &arg.name, &arg.name, &arg.name), "".to_owned())
         } else {
             (arg.name.clone(), "".to_owned())
         })?;
@@ -415,7 +410,10 @@ fn generate_pu_struct(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
 /// to translate between some struct names to fit the Qt version. If more structs gets added that
 /// needs to be translated into another Qt name they needs to be added here as well
 ///
-pub fn generate_qt_bindings(filename: &str, header_filename: &str, api_def: &ApiDef) -> io::Result<()> {
+pub fn generate_qt_bindings(filename: &str,
+                            header_filename: &str,
+                            api_def: &ApiDef)
+                            -> io::Result<()> {
     let mut f = File::create(filename)?;
     let mut header_file = File::create(header_filename)?;
 
@@ -434,7 +432,8 @@ pub fn generate_qt_bindings(filename: &str, header_filename: &str, api_def: &Api
 
     build_signal_wrappers_info(&mut signals_info, api_def);
 
-    header_file.write_all(b"#pragma once\n#include <QObject>\n")?;
+    header_file
+        .write_all(b"#pragma once\n#include <QObject>\n")?;
     generate_signal_wrappers(&mut header_file, &signals_info)?;
 
     // generate wrapper functions

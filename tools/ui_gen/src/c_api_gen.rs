@@ -64,13 +64,17 @@ pub fn generate_c_function_args(func: &Function) -> String {
 }
 
 fn generate_func_def(f: &mut File, func: &Function) -> io::Result<()> {
-    let ret_value;
+    let ret_value = func.return_val
+        .as_ref()
+        .map_or("void".to_owned(), |r| r.get_c_type());
 
+    /*
     if let Some(ref ret_val) = func.return_val {
         ret_value = get_type_name(&ret_val);
     } else {
         ret_value = "void".to_owned();
     }
+    */
 
     // write return value and function name
     f.write_fmt(format_args!("    {} (*{})({});\n", ret_value, func.name, generate_c_function_args(func)))
