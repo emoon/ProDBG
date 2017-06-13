@@ -51,15 +51,16 @@ pub fn get_type_name(arg: &Variable) -> String {
 pub fn generate_c_function_args(func: &Function) -> String {
     let mut function_args = String::new();
 
+    function_args.push_str("void* priv_data");
+
     // write arguments
     for arg in &func.function_args {
+        function_args.push_str(", ");
         function_args.push_str(&get_type_name(&arg));
         function_args.push_str(" ");
         function_args.push_str(&arg.name);
-        function_args.push_str(", ");
     }
 
-    function_args.push_str("void* priv_data");
     function_args
 }
 

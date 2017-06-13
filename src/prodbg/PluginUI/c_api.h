@@ -29,8 +29,8 @@ struct PUWidget {
 struct PUPushButton {
     void (*show)(void* priv_data);
     void (*connect_released)(void* object, void* user_data, void (*callback)(void* user_data));
-    void (*set_text)(const char* text, void* priv_data);
-    void (*set_flat)(bool flat, void* priv_data);
+    void (*set_text)(void* priv_data, const char* text);
+    void (*set_flat)(void* priv_data, bool flat);
     void* priv_data;
 };
 
@@ -40,7 +40,7 @@ struct PUSlider {
 };
 
 struct PUPainter {
-    void (*draw_line)(int x1, int y1, int x2, int y2, void* priv_data);
+    void (*draw_line)(void* priv_data, int x1, int y1, int x2, int y2);
     void* priv_data;
 };
 
