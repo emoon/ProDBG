@@ -58,6 +58,15 @@ impl Struct {
                      _ => false,
                  })
     }
+
+    pub fn get_functions(&self, funcs: &mut Vec<Function>) {
+        for entry in &self.entries {
+            match *entry {
+                StructEntry::Function(ref func) => funcs.push(func.clone()),
+                _ => (),
+            }
+        }
+    }
 }
 
 impl Variable {
@@ -144,7 +153,7 @@ impl Function {
             }
         }
 
-        f.write_all(b")")?;
+        //f.write_all(b")")?;
 
         if let Some(ref ret_var) = self.return_val {
             let filter_arg = filter(arg_count, &ret_var);
@@ -154,6 +163,29 @@ impl Function {
         }
 
         Ok(())
+    }
+}
+
+
+impl ApiDef {
+    fn collect_recursive(funcs: &mut Vec<Function>, api_def: &ApiDef, sdef: &Struct) {
+        if let Some(ref inherit_name) = sdef.inherit {
+            for sdef in &api_def.entries {
+                if &sdef.name == inherit_name {
+                    Self::collect_recursive(funcs, api_def, &sdef);
+                }
+            }
+        }
+
+        sdef.get_functions(funcs);
+    }
+
+    pub fn collect_functions(&self, sdef: &Struct) -> Vec<Function> {
+        let mut funcs = Vec::new();
+
+        Self::collect_recursive(&mut funcs, &self, sdef);
+
+        funcs
     }
 }
 

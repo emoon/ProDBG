@@ -10,7 +10,7 @@ pub struct PURect {
 
 #[repr(C)]
 pub struct PUWidget {
-    pub show: extern "C" fn(),
+    pub show: extern "C" fn(,
     pub privd: *const c_void,
 }
 
@@ -18,8 +18,8 @@ pub struct PUWidget {
 pub struct PUPushButton {
     pub connect_released: extern "C" fn(object: *const c_void, user_data: *const c_void,
                                         callback: extern "C" fn(user_data: *const c_void)),
-    pub set_text: extern "C" fn(text: *const c_char),
-    pub set_flat: extern "C" fn(flat: bool),
+    pub set_text: extern "C" fn(text: *const c_char,
+    pub set_flat: extern "C" fn(flat: bool,
     pub privd: *const c_void,
 }
 
@@ -32,7 +32,7 @@ pub struct PUSlider {
 
 #[repr(C)]
 pub struct PUPainter {
-    pub draw_line: extern "C" fn(x1: i32, y1: i32, x2: i32, y2: i32),
+    pub draw_line: extern "C" fn(x1: i32, y1: i32, x2: i32, y2: i32,
     pub privd: *const c_void,
 }
 
