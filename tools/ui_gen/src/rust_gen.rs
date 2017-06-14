@@ -3,19 +3,21 @@ use std::fs::File;
 use std::io::Write;
 use api_parser::*;
 use std::collections::HashMap;
+use heck::SnakeCase;
 
 static HEADER: &'static [u8] = b"use rust_ffi::*;\n\n";
 
-/*
-pub struct Ui {
+static UI_HEADER: &'static [u8] = b"pub struct Ui {
     pu: *const PU
 }
 
 impl Ui {
     pub fn new(pu: *const PU) -> Ui { Ui { pu: pu } }
-#\n";
-*/
+\n";
 
+///
+///
+///
 fn generate_struct(f: &mut File, structs: &Vec<Struct>) -> io::Result<()> {
     for sdef in structs {
         f.write_fmt(format_args!("pub struct {} {{\n", sdef.name))?;
@@ -111,6 +113,22 @@ fn generate_impl(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
     Ok(())
 }
 
+fn generate_ui_impl(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
+    f.write_all(UI_HEADER)?;
+
+    for sdef in api_def.entries.iter().filter(|s| !s.is_pod()) {
+        let snake_name = sdef.name.to_snake_case();
+
+        f.write_fmt(format_args!("    pub fn create_{}(&self) -> {} {{\n", snake_name, sdef.name))?;
+        f.write_fmt(format_args!("        {} {{ obj: (*self.obj)(create_{})() }}\n", sdef.name, snake_name))?;
+        f.write_all(b"    }\n\n")?;
+    }
+
+    f.write_all(b"}\n")?;
+
+    Ok(())
+}
+
 pub fn generate_rust_bindigs(filename: &str, api_def: &ApiDef) -> io::Result<()> {
     let mut f = File::create(filename)?;
 
@@ -118,6 +136,7 @@ pub fn generate_rust_bindigs(filename: &str, api_def: &ApiDef) -> io::Result<()>
 
     generate_struct(&mut f, &api_def.entries)?;
     generate_impl(&mut f, &api_def)?;
+    generate_ui_impl(&mut f, &api_def)?;
 
     Ok(())
 }
