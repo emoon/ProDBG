@@ -78,6 +78,10 @@ impl Variable {
             return "const char*".to_owned();
         }
 
+        if tname == "self" {
+            return "void*".to_owned();
+        }
+
         if primitve {
             if tname == "f32" {
                 return "float".to_owned();
@@ -114,7 +118,7 @@ impl Function {
             if filter_arg.1 == "" {
                 f.write_fmt(format_args!("{}", filter_arg.0))?;
             } else {
-                f.write_fmt(format_args!("{}, {}", filter_arg.0, filter_arg.1))?;
+                f.write_fmt(format_args!("{} {}", filter_arg.0, filter_arg.1))?;
             }
 
             if i != arg_count - 1 {
@@ -271,7 +275,13 @@ impl_rdp! {
         }
 
         _funcentry(&self) -> StructEntry {
-            (callback: _callback(), &name: name, func_args: _func_args_list(), ret_value: _returnvalue()) => {
+            (callback: _callback(), &name: name, mut func_args: _func_args_list(), ret_value: _returnvalue()) => {
+                func_args.push_front(Variable {
+                    name: "self_c".to_owned(),
+                    vtype: "self".to_owned(),
+                    primitive: false,
+                });
+                // we always have self as first parameter so add it here
                 StructEntry::Function(Function {
                     name: name.to_owned(),
                     function_args: func_args.into_iter().collect::<Vec<_>>(),

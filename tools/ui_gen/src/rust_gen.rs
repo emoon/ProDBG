@@ -39,11 +39,13 @@ fn generate_struct(f: &mut File, structs: &Vec<Struct>) -> io::Result<()> {
 }
 
 fn generate_func_impl(f: &mut File, func: &Function) -> io::Result<()> {
-    f.write_fmt(format_args!("    pub fn {}(&self", func.name))?;
+    f.write_fmt(format_args!("    pub fn {}(", func.name))?;
 
     func.write_func_def(f, |_, arg| {
         if arg.vtype == "String" {
             (arg.name.clone(), "&str".to_owned())
+        } else if arg.vtype == "self" {
+            ("&self".to_owned(), "".to_owned())
         } else if arg.primitive {
             (arg.name.to_owned(), arg.vtype.clone())
         } else {
@@ -73,7 +75,7 @@ fn generate_func_impl(f: &mut File, func: &Function) -> io::Result<()> {
 
     let arg_count = func.function_args.len();
 
-    func.write_func_def(f, |index, arg| {
+    func.write_func_def(f, |_, arg| {
         if !arg.primitive {
             (format!("{}", name_remap.get(&arg.name.to_owned()).unwrap()), "".to_owned())
         } else {

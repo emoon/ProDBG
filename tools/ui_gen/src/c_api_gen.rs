@@ -51,14 +51,12 @@ pub fn get_type_name(arg: &Variable) -> String {
 pub fn generate_c_function_args(func: &Function) -> String {
     let mut function_args = String::new();
 
-    function_args.push_str("void* priv_data");
-
     // write arguments
     for arg in &func.function_args {
+        function_args.push_str(&arg.get_c_type());
         function_args.push_str(", ");
-        function_args.push_str(&get_type_name(&arg));
-        function_args.push_str(" ");
         function_args.push_str(&arg.name);
+        function_args.push_str(" ");
     }
 
     function_args
@@ -69,16 +67,14 @@ fn generate_func_def(f: &mut File, func: &Function) -> io::Result<()> {
         .as_ref()
         .map_or("void".to_owned(), |r| r.get_c_type());
 
-    /*
-    if let Some(ref ret_val) = func.return_val {
-        ret_value = get_type_name(&ret_val);
-    } else {
-        ret_value = "void".to_owned();
-    }
-    */
-
     // write return value and function name
-    f.write_fmt(format_args!("    {} (*{})({});\n", ret_value, func.name, generate_c_function_args(func)))
+    f.write_fmt(format_args!("    {} (*{})(", ret_value, func.name))?;
+
+    func.write_c_func_def(f, |_, arg| {
+        (arg.get_c_type(), arg.name.to_owned())
+    })?;
+
+    f.write_all(b";\n")
 }
 
 pub fn callback_fun_def_name(def: bool, name: &str, func: &Function) -> String {
@@ -90,14 +86,19 @@ pub fn callback_fun_def_name(def: bool, name: &str, func: &Function) -> String {
         func_def = format!("void connect_{}(void* object, void* user_data, void (*callback)(", name);
     }
 
-    for arg in &func.function_args {
-        func_def.push_str(&get_type_name(&arg));
+    let arg_count = func.function_args.len();
+
+    for (i, arg) in func.function_args.iter().enumerate() {
+        func_def.push_str(&arg.get_c_type());
         func_def.push_str(" ");
         func_def.push_str(&arg.name);
-        func_def.push_str(", ");
+
+        if i != arg_count - 1 {
+            func_def.push_str(", ");
+        }
     }
 
-    func_def.push_str("void* user_data))");
+    func_def.push_str("))");
     func_def
 }
 
@@ -166,7 +167,7 @@ pub fn generate_c_api(filename: &str, api_def: &ApiDef) -> io::Result<()> {
 
 
     for sdef in api_def.entries.iter().filter(|s| !s.is_pod()) {
-        f.write_fmt(format_args!("    struct PU{}* (*create_{})(void* priv_data);\n",
+        f.write_fmt(format_args!("    struct PU{}* (*create_{})(void* self);\n",
                                     sdef.name,
                                     sdef.name.to_snake_case()))?;
     }

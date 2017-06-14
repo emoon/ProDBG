@@ -11,6 +11,8 @@ impl Variable {
         } else {
             if self.vtype == "String" {
                 "*const c_char".to_owned()
+            } else if self.vtype == "self" {
+                "*const c_void".to_owned()
             } else {
                 format!("*const PU{}", self.vtype)
             }
@@ -24,15 +26,16 @@ impl Variable {
 fn generate_ffi_function(f: &mut File, func: &Function) -> io::Result<()> {
     f.write_fmt(format_args!("    pub {}: extern \"C\" fn(", func.name))?;
 
-    func.write_func_def(f, |_, arg| (arg.name.to_owned(), arg.get_rust_ffi_type()))
+    func.write_func_def(f, |_, arg| (arg.name.to_owned(), arg.get_rust_ffi_type()))?;
+    f.write_all(b")")
 }
 
 ///
 /// Generate ffi function
 ///
 fn generate_ffi_callback(f: &mut File, func: &Function) -> io::Result<()> {
-    f.write_fmt(format_args!("    pub connect_{}: extern \"C\" fn(object: *const c_void, user_data: *const c_void,
-                                        callback: extern \"C\" fn(user_data: *const c_void))",
+    f.write_fmt(format_args!("    pub connect_{}: extern \"C\" fn(self_c: *const c_void, user_data: *const c_void,
+                                        callback: extern \"C\" fn(self_c: *const c_void))",
                 func.name))
 }
 
