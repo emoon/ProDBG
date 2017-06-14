@@ -73,28 +73,21 @@ fn generate_func_impl(f: &mut File, func: &Function) -> io::Result<()> {
     f.write_all(b"        unsafe {\n")?;
     f.write_fmt(format_args!("            ((*self.obj).{})(", func.name))?;
 
-    let arg_count = func.function_args.len();
-
-    func.write_func_def(f, |_, arg| {
-        if !arg.primitive {
+    func.write_func_def(f, |index, arg| {
+        if index == 0 {
+            ("(*self.obj).privd))".to_owned(), "".to_owned())
+        } else if !arg.primitive {
             (format!("{}", name_remap.get(&arg.name.to_owned()).unwrap()), "".to_owned())
         } else {
             (arg.name.to_owned(), "".to_owned())
         }
     })?;
 
-    if arg_count == 0 {
-        f.write_all(b"(*self.obj).priv_data));\n")?;
-    } else {
-        f.write_all(b", (*self.obj).priv_data));\n")?;
-    }
+    f.write_all(b");\n")?;
+
 
     f.write_all(b"        }\n")?;
     f.write_all(b"    }\n\n")?;
-
-    //
-
-    // f.write_all(b"    }\n\n")?;
 
     Ok(())
 }
