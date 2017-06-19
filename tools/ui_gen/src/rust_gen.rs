@@ -134,7 +134,10 @@ fn generate_connect(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
         }
     }
 
-    println!("{:?}", connect_names);
+    let mut connect_list = connect_names.iter().collect::<Vec<(&String, &String)>>();
+    connect_list.sort();
+
+    println!("{:?}", connect_list);
 
     Ok(())
 }
