@@ -1,6 +1,7 @@
 use std::io;
 use std::fs::File;
 use std::io::Write;
+use std::io::{Error, ErrorKind};
 use api_parser::*;
 use std::collections::HashMap;
 use heck::SnakeCase;
@@ -94,6 +95,50 @@ fn generate_func_impl(f: &mut File, func: &Function) -> io::Result<()> {
     Ok(())
 }
 
+fn get_function_args(func: &Function) -> String {
+    let mut args = String::new();
+
+    for arg in &func.function_args {
+        args.push_str(&arg.vtype);
+        args.push_str(", ");
+    }
+
+    args
+}
+
+///
+/// This code assumes that the connection name f
+///
+fn generate_connect(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
+    let mut connect_names: HashMap<String, String> = HashMap::new();
+
+    for sdef in api_def.entries.iter().filter(|s| !s.is_pod()) {
+        let funcs = api_def.collect_functions(&sdef);
+
+        for func in funcs.iter().filter(|s| s.callback) {
+            let args = get_function_args(&func);
+            let mut found = true;
+
+            if let Some(ref current_args) = connect_names.get(&func.name) {
+                if *current_args != &args {
+                    println!("Signal: {} - has versions with diffrent args {} - {}", func.name, current_args, args);
+                    return Err(Error::new(ErrorKind::Other, "Fail"));
+                }
+            } else {
+                found = false;
+            }
+
+            if !found {
+                connect_names.insert(func.name.clone(), args.clone());
+            }
+        }
+    }
+
+    println!("{:?}", connect_names);
+
+    Ok(())
+}
+
 fn generate_impl(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
     for sdef in api_def.entries.iter().filter(|s| !s.is_pod()) {
         f.write_fmt(format_args!("impl {} {{\n", sdef.name))?;
@@ -136,6 +181,7 @@ pub fn generate_rust_bindigs(filename: &str, api_def: &ApiDef) -> io::Result<()>
 
     generate_struct(&mut f, &api_def.entries)?;
     generate_impl(&mut f, &api_def)?;
+    generate_connect(&mut f, &api_def)?;
     generate_ui_impl(&mut f, &api_def)?;
 
     Ok(())
