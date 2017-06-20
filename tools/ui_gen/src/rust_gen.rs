@@ -107,6 +107,30 @@ fn get_function_args(func: &Function) -> String {
 }
 
 ///
+/// Generate something that looks like this
+///
+/// macro_rules! connect_released {
+///     ($sender:expr, $data:expr, $call_type:ident, $callback:path) => {
+///         {
+///             extern "C" fn temp_call(target: *mut std::os::raw::c_void) {
+///                 unsafe {
+///                     let app = target as *mut $call_type;
+///                     $callback(&mut *app);
+///                 }
+///             }
+/// 
+///             unsafe {
+///                 let object = (*(*$sender.get_obj()).base).object;
+///                 wrui::connect(object, b"2released()\0", $data, temp_call);
+///             }
+///         }
+///     }
+/// }
+fn generate_connect_impl(f: &mut File, func: &Func) -> io::Result<()> {
+    Ok(())
+}
+
+///
 /// This code assumes that the connection name f
 ///
 fn generate_connect(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
