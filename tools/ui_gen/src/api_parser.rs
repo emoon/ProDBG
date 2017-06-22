@@ -59,13 +59,29 @@ impl Struct {
                  })
     }
 
-    pub fn get_functions(&self, funcs: &mut Vec<Function>) {
+    pub fn get_functions<F>(&self, funcs: &mut Vec<Function>, filter: F) 
+        where F: Fn(&Func) -> bool {
         for entry in &self.entries {
             match *entry {
-                StructEntry::Function(ref func) => funcs.push(func.clone()),
+                StructEntry::Function(ref func) => 
+                    if filter(func) {
+                        funcs.push(func.clone());
+                    },
                 _ => (),
             }
         }
+    }
+
+    pub fn get_callback_functions(&self, funcs: &mut Vec<Function>) {
+        Self::get_functions(self, funcs, |func| func.callback)
+    }
+
+    pub fn get_regular_functions(&self, funcs: &mut Vec<Function>) {
+        Self::get_functions(self, funcs, |func| !func.callback)
+    }
+
+    pub fn get_all_functions(&self, funcs: &mut Vec<Function>) {
+        Self::get_functions(self, funcs, |_| true)
     }
 }
 
@@ -172,7 +188,8 @@ impl Function {
 
 
 impl ApiDef {
-    fn collect_recursive(funcs: &mut Vec<Function>, api_def: &ApiDef, sdef: &Struct) {
+    fn collect_recursive<F>(funcs: &mut Vec<Function>, api_def: &ApiDef, sdef: &Struct, filter: F)
+        where F: Fn(&Func) -> bool {
         if let Some(ref inherit_name) = sdef.inherit {
             for sdef in &api_def.entries {
                 if &sdef.name == inherit_name {
@@ -181,15 +198,29 @@ impl ApiDef {
             }
         }
 
-        sdef.get_functions(funcs);
+        sdef.get_functions(funcs, f);
     }
 
-    pub fn collect_functions(&self, sdef: &Struct) -> Vec<Function> {
+    pub fn collect_functions<F>(&self, sdef: &Struct, filter) 
+        where F: Fn(&Func) -> Vec<Function> {
+
         let mut funcs = Vec::new();
 
-        Self::collect_recursive(&mut funcs, &self, sdef);
+        Self::collect_recursive(&mut funcs, &self, sdef, f);
 
         funcs
+    }
+
+    pub fn collect_all_functions(&self, sdef: &Struct) -> Vec<Function> {
+        Self::collect_functions(&self, sdef, |_| true)
+    }
+
+    pub fn collect_callback_functions(&self, sdef: &Struct) -> Vec<Function> {
+        Self::collect_functions(&self, sdef, |f| f.callback )
+    }
+
+    pub fn collect_regular_functions(&self, sdef: &Struct) -> Vec<Function> {
+        Self::collect_functions(&self, sdef, |f| !f.callback)
     }
 }
 
