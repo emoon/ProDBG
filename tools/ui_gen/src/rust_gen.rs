@@ -126,18 +126,18 @@ fn get_function_args(func: &Function) -> String {
 ///         }
 ///     }
 /// }
-fn generate_connect_impl(f: &mut File, func: &Func) -> io::Result<()> {
+fn _generate_connect_impl(_f: &mut File, _func: &Function) -> io::Result<()> {
     Ok(())
 }
 
 ///
 /// This code assumes that the connection name f
 ///
-fn generate_connect(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
+fn generate_connect(_f: &mut File, api_def: &ApiDef) -> io::Result<()> {
     let mut connect_names: HashMap<String, String> = HashMap::new();
 
     for sdef in api_def.entries.iter().filter(|s| !s.is_pod()) {
-        let funcs = api_def.collect_functions(&sdef);
+        let funcs = api_def.collect_callback_functions(&sdef);
 
         for func in funcs.iter().filter(|s| s.callback) {
             let args = get_function_args(&func);
@@ -170,7 +170,7 @@ fn generate_impl(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
     for sdef in api_def.entries.iter().filter(|s| !s.is_pod()) {
         f.write_fmt(format_args!("impl {} {{\n", sdef.name))?;
 
-        let funcs = api_def.collect_functions(&sdef);
+        let funcs = api_def.collect_regular_functions(&sdef);
 
         for func in &funcs {
             if func.callback {

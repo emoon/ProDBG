@@ -49,6 +49,13 @@ fn is_primitve(name: &str) -> bool {
     }
 }
 
+#[derive(Clone, Copy)]
+enum FuncCollectionType {
+    All,
+    Callback,
+    Regular,
+}
+
 impl Struct {
     pub fn is_pod(&self) -> bool {
         self.entries
@@ -60,7 +67,7 @@ impl Struct {
     }
 
     pub fn get_functions<F>(&self, funcs: &mut Vec<Function>, filter: F) 
-        where F: Fn(&Func) -> bool {
+        where F: Fn(&Function) -> bool {
         for entry in &self.entries {
             match *entry {
                 StructEntry::Function(ref func) => 
@@ -188,39 +195,55 @@ impl Function {
 
 
 impl ApiDef {
-    fn collect_recursive<F>(funcs: &mut Vec<Function>, api_def: &ApiDef, sdef: &Struct, filter: F)
-        where F: Fn(&Func) -> bool {
+    fn collect_recursive(funcs: &mut Vec<Function>, api_def: &ApiDef, sdef: &Struct, coll_type: FuncCollectionType) {
         if let Some(ref inherit_name) = sdef.inherit {
             for sdef in &api_def.entries {
                 if &sdef.name == inherit_name {
-                    Self::collect_recursive(funcs, api_def, &sdef);
+                    Self::collect_recursive(funcs, api_def, &sdef, coll_type);
                 }
             }
-        }
+        } 
+    
+        for entry in &sdef.entries {
+            match *entry {
+                StructEntry::Function(ref func) => {
+                    match coll_type {
+                        FuncCollectionType::All => funcs.push(func.clone()),
+                        FuncCollectionType::Callback => {
+                            if func.callback {
+                                funcs.push(func.clone());
+                            }
+                        },
 
-        sdef.get_functions(funcs, f);
+                        FuncCollectionType::Regular => {
+                            if !func.callback {
+                                funcs.push(func.clone());
+                            }
+                        },
+                    }
+                }
+
+                _ => (),
+            }
+        }
     }
 
-    pub fn collect_functions<F>(&self, sdef: &Struct, filter) 
-        where F: Fn(&Func) -> Vec<Function> {
-
+    fn collect_functions(&self, sdef: &Struct, coll_type: FuncCollectionType) -> Vec<Function> {
         let mut funcs = Vec::new();
-
-        Self::collect_recursive(&mut funcs, &self, sdef, f);
-
+        Self::collect_recursive(&mut funcs, &self, sdef, coll_type);
         funcs
     }
 
     pub fn collect_all_functions(&self, sdef: &Struct) -> Vec<Function> {
-        Self::collect_functions(&self, sdef, |_| true)
+        Self::collect_functions(&self, sdef, FuncCollectionType::All)
     }
 
     pub fn collect_callback_functions(&self, sdef: &Struct) -> Vec<Function> {
-        Self::collect_functions(&self, sdef, |f| f.callback )
+        Self::collect_functions(&self, sdef, FuncCollectionType::Callback)
     }
 
     pub fn collect_regular_functions(&self, sdef: &Struct) -> Vec<Function> {
-        Self::collect_functions(&self, sdef, |f| !f.callback)
+        Self::collect_functions(&self, sdef, FuncCollectionType::Regular)
     }
 }
 
