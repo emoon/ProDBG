@@ -26,7 +26,7 @@ pub struct Painter {
 impl Widget {
     pub fn show(&self) {
         unsafe {
-            ((*self.obj).show)((*self.obj).priv_data));
+            ((*self.obj).show)((*self.obj).privd)));
         }
     }
 
@@ -35,20 +35,20 @@ impl Widget {
 impl PushButton {
     pub fn show(&self) {
         unsafe {
-            ((*self.obj).show)((*self.obj).priv_data));
+            ((*self.obj).show)((*self.obj).privd)));
         }
     }
 
-    pub fn set_text(&selftext: &str) {
+    pub fn set_text(&self, text: &str) {
         let str_in_0 = CString::new(text).unwrap();
         unsafe {
-            ((*self.obj).set_text)(str_in_0.get_ptr(), (*self.obj).priv_data));
+            ((*self.obj).set_text)((*self.obj).privd)), str_in_0.get_ptr());
         }
     }
 
-    pub fn set_flat(&selfflat: bool) {
+    pub fn set_flat(&self, flat: bool) {
         unsafe {
-            ((*self.obj).set_flat)(flat, (*self.obj).priv_data));
+            ((*self.obj).set_flat)((*self.obj).privd)), flat);
         }
     }
 
@@ -58,11 +58,35 @@ impl Slider {
 }
 
 impl Painter {
-    pub fn draw_line(&selfx1: i32, y1: i32, x2: i32, y2: i32) {
+    pub fn draw_line(&self, x1: i32, y1: i32, x2: i32, y2: i32) {
         unsafe {
-            ((*self.obj).draw_line)(x1, y1, x2, y2, (*self.obj).priv_data));
+            ((*self.obj).draw_line)((*self.obj).privd)), x1, y1, x2, y2);
         }
     }
 
 }
 
+pub struct Ui {
+    pu: *const PU
+}
+
+impl Ui {
+    pub fn new(pu: *const PU) -> Ui { Ui { pu: pu } }
+
+    pub fn create_widget(&self) -> Widget {
+        Widget { obj: (*self.obj)(create_widget)() }
+    }
+
+    pub fn create_push_button(&self) -> PushButton {
+        PushButton { obj: (*self.obj)(create_push_button)() }
+    }
+
+    pub fn create_slider(&self) -> Slider {
+        Slider { obj: (*self.obj)(create_slider)() }
+    }
+
+    pub fn create_painter(&self) -> Painter {
+        Painter { obj: (*self.obj)(create_painter)() }
+    }
+
+}

@@ -15,14 +15,12 @@ mod rust_gen;
 pub mod c_api_gen;
 
 //static INPUT_HEADER: &'static str = "../../src/prodbg/PluginUI/wrui.h";
-static C_API_HEADER: &'static str = "../../src/prodbg/PluginUI/c_api.h";
-static QT_API_IMPL: &'static str = "../../src/prodbg/PluginUI/qt_api_gen.cpp";
-static QT_API_IMPL_HEADER: &'static str = "../../src/prodbg/PluginUI/qt_api_gen.h";
+static C_API_HEADER: &'static str = "../../src/prodbg/PluginUI/generated/c_api.h";
+static QT_API_IMPL: &'static str = "../../src/prodbg/PluginUI/generated/qt_api_gen.cpp";
+static QT_API_IMPL_HEADER: &'static str = "../../src/prodbg/PluginUI/generated/qt_api_gen.h";
 static INPUT_API: &'static str = "src/api.def";
 
 static RUST_FFI_FILE: &'static str = "../../api/rust/prodbg_ui/src/ffi_gen.rs";
-//static TRAITS_FILE: &'static str = "../../api/rust/prodbg_ui/src/traits_gen.rs";
-//static WIDGETS_FILE: &'static str = "../../api/rust/prodbg_ui/src/widgets_gen.rs";
 static UI_FILE: &'static str = "../../api/rust/prodbg_ui/src/lib.rs";
 
 fn main() {
