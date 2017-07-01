@@ -5,7 +5,6 @@ use std::fs::File;
 use std::io::Write;
 use std::collections::HashMap;
 use api_parser::*;
-use c_api_gen::get_type_name;
 use c_api_gen::generate_c_function_args;
 use c_api_gen::callback_fun_def_name;
 
@@ -46,7 +45,7 @@ fn generate_bind_info(info: &mut HashMap<String, Function>, func: &Function) {
     let mut input_args = String::new();
 
     for arg in &func.function_args {
-        let tname = get_type_name(&arg);
+        let tname = arg.get_c_type();
         input_args.push_str(&tname);
         input_args.push_str(", ");
     }
@@ -132,7 +131,7 @@ pub fn generate_signal_wrappers(f: &mut File, info: &HashMap<String, Function>) 
             }
 
             f.write_fmt(format_args!("{} {}) {{\n",
-                                        get_type_name(&func.function_args[args_count - 1]),
+                                        func.function_args[args_count - 1].get_c_type(),
                                         func.function_args[args_count - 1].name))?;
             input_args.push_str(&func.function_args[args_count - 1].name);
 
@@ -229,11 +228,11 @@ fn func_def_callback(f: &mut File, struct_name: &str, func: &Function) -> io::Re
     f.write_fmt(format_args!("    QObject::connect(q_obj, SIGNAL({}(",
                                 func.name.to_mixed_case()))?;
 
-    func.write_c_func_def(f, |_, arg| (get_type_name(arg), "".to_owned()))?;
+    func.write_c_func_def(f, |_, arg| (arg.get_c_type(), "".to_owned()))?;
 
     f.write_all(b"), wrap, SLOT(method(")?;
 
-    func.write_c_func_def(f, |_, arg| (get_type_name(arg), "".to_owned()))?;
+    func.write_c_func_def(f, |_, arg| (arg.get_c_type(), "".to_owned()))?;
 
     f.write_all(b"));\n")?;
     f.write_all(b"}\n\n")?;

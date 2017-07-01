@@ -131,7 +131,7 @@ fn _generate_connect_impl(_f: &mut File, _func: &Function) -> io::Result<()> {
 }
 
 ///
-/// This code assumes that the connection name f
+/// This code assumes that the connection name has the same number of args 
 ///
 fn generate_connect(_f: &mut File, api_def: &ApiDef) -> io::Result<()> {
     let mut connect_names: HashMap<String, String> = HashMap::new();

@@ -26,30 +26,6 @@ static RUST_FFI_FILE: &'static str = "../../api/rust/prodbg_ui/src/ffi_gen.rs";
 static UI_FILE: &'static str = "../../api/rust/prodbg_ui/src/lib.rs";
 
 fn main() {
-    /*
-    // Acquire an instance of `Clang`
-    let clang = Clang::new().unwrap();
-
-    // Create a new `Index`
-    let index = Index::new(&clang, false, false);
-
-    // Parse a source file into a translation unit
-    let tu = index.parser(INPUT_HEADER).parse().unwrap();
-
-    // Get the structs in this translation unit also remove some stuff we don't need
-    let structs = tu.get_entity()
-        .get_children()
-        .into_iter()
-        .filter(|e| {
-            let name = e.get_type().unwrap().get_display_name();
-            e.get_kind() == EntityKind::StructDecl && name.find("__").is_none() &&
-            name.find("_opaque").is_none()
-        })
-        .collect::<Vec<_>>();
-
-    let structs = data::build_data(&structs);
-    */
-
     let api_def = api_parser::ApiDef::new(INPUT_API);
 
     if let Err(err) = c_api_gen::generate_c_api(C_API_HEADER, &api_def) {

@@ -17,6 +17,7 @@ static FOOTER: &'static [u8] = b"
 }
 #endif\n";
 
+/*
 pub fn get_type_name(arg: &Variable) -> String {
     let tname = &arg.vtype;
     let primitve = arg.primitive;
@@ -47,6 +48,7 @@ pub fn get_type_name(arg: &Variable) -> String {
         format!("struct PU{}*", tname)
     }
 }
+*/
 
 pub fn generate_c_function_args(func: &Function) -> String {
     let mut function_args = String::new();
@@ -118,7 +120,7 @@ fn generate_struct_body_recursive(f: &mut File, api_def: &ApiDef, sdef: &Struct)
     for entry in &sdef.entries {
         match *entry {
             StructEntry::Var(ref var) => {
-                f.write_fmt(format_args!("    {} {};\n", get_type_name(&var), var.name))?;
+                f.write_fmt(format_args!("    {} {};\n", var.get_c_type(), var.name))?;
             }
 
             StructEntry::Function(ref func) => {
