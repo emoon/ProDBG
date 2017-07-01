@@ -3,7 +3,7 @@
 use std::io;
 use std::fs::File;
 use std::io::Write;
-use std::collections::HashMap;
+use std::collections::{HashMap, BTreeMap};
 use api_parser::*;
 use c_api_gen::generate_c_function_args;
 use c_api_gen::callback_fun_def_name;
@@ -38,10 +38,6 @@ struct PU* PU_create_instance(void* user_data, QWidget* parent) {
 }\n\n";
 
 fn generate_bind_info(info: &mut HashMap<String, Function>, func: &Function) {
-    if !func.callback {
-        return;
-    }
-
     let mut input_args = String::new();
 
     for arg in &func.function_args {
@@ -58,11 +54,11 @@ fn generate_bind_info(info: &mut HashMap<String, Function>, func: &Function) {
 // generates signal wrappers for the variatos depending on input parameters
 pub fn build_signal_wrappers_info(info: &mut HashMap<String, Function>, api_def: &ApiDef) {
     for sdef in &api_def.entries {
-        for entry in &sdef.entries {
-            match *entry {
-                StructEntry::Function(ref func) => generate_bind_info(info, func),
-                _ => (),
-            }
+        let mut functions = Vec::new();
+        sdef.get_callback_functions(&mut functions);
+
+        for func in &functions {
+            generate_bind_info(info, &func);
         }
     }
 }
@@ -99,7 +95,9 @@ fn signal_type_callback(func: &Function) -> String {
 //    };
 //
 pub fn generate_signal_wrappers(f: &mut File, info: &HashMap<String, Function>) -> io::Result<()> {
-    for (_, func) in info {
+    let ordered: BTreeMap<_, _> = info.iter().collect();
+
+    for (_, func) in ordered {
         let signal_type_name = signal_type_callback(func);
 
         f.write_all(b"///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\n")?;
