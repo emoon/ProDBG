@@ -430,7 +430,7 @@ pub fn generate_qt_bindings(filename: &str,
     build_signal_wrappers_info(&mut signals_info, api_def);
 
     header_file
-        .write_all(b"#pragma once\n#include <QObject>\n")?;
+        .write_all(b"#pragma once\n#include <QObject>\n\n")?;
     generate_signal_wrappers(&mut header_file, &signals_info)?;
 
     // generate wrapper functions

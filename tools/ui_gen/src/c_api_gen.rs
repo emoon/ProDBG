@@ -17,39 +17,6 @@ static FOOTER: &'static [u8] = b"
 }
 #endif\n";
 
-/*
-pub fn get_type_name(arg: &Variable) -> String {
-    let tname = &arg.vtype;
-    let primitve = arg.primitive;
-
-    if tname == "String" {
-        return "const char*".to_owned();
-    }
-
-    if primitve {
-        if tname == "f32" {
-            return "float".to_owned();
-        } else if tname == "bool" {
-            return "bool".to_owned();
-        } else if tname == "f64" {
-            return "double".to_owned();
-        } else if tname == "i32" {
-            return "int".to_owned();
-        } else {
-            // here we will have u8/i8,u32/etc
-            if tname.starts_with("u") {
-                return format!("uint{}_t", &tname[1..]);
-            } else {
-                return format!("int{}_t", &tname[1..]);
-            }
-        }
-    } else {
-        // Unknown type here, we always assume to use a struct Type*
-        format!("struct PU{}*", tname)
-    }
-}
-*/
-
 pub fn generate_c_function_args(func: &Function) -> String {
     let mut function_args = String::new();
 
