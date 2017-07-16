@@ -16,6 +16,16 @@ impl Ui {
     pub fn new(pu: *const PU) -> Ui { Ui { pu: pu } }
 \n";
 
+trait TypeHandler {
+    fn match_type(&self) -> &'static str;
+
+    fn replace_arg(&self, arg: &Variable) -> (String, String) {
+        (arg.name.to_owned(), arg.vtype.to_owned()
+    }
+
+    fn gen_body(&self, arg: &str, f: &mut File, index: usize) -> String;
+}
+
 ///
 ///
 ///
@@ -41,19 +51,27 @@ fn generate_struct(f: &mut File, structs: &Vec<Struct>) -> io::Result<()> {
     Ok(())
 }
 
-fn generate_func_impl(f: &mut File, func: &Function) -> io::Result<()> {
+fn get_arg(arg: &Variable, type_handlers: &Vec<Box<TypeHandler>>) {
+    for handler in &type_handlers {
+        handler.match_type() == arg.vtype {
+            return handler.replace_arg(arg);
+        }
+    }
+
+    if arg.vtype == "self" {
+        ("&self".to_owned(), "".to_owned())
+    } else if arg.primitive {
+        (arg.name.to_owned(), arg.vtype.clone())
+    } else {
+        (arg.name.clone(), format!("&{}", arg.vtype.to_owned()))
+    }
+}
+
+fn generate_func_impl(f: &mut File, func: &Function, type_handlers: &Vec<Box<TypeHandler>>) -> io::Result<()> {
     f.write_fmt(format_args!("    pub fn {}(", func.name))?;
 
     func.write_func_def(f, |_, arg| {
-        if arg.vtype == "String" {
-            (arg.name.clone(), "&str".to_owned())
-        } else if arg.vtype == "self" {
-            ("&self".to_owned(), "".to_owned())
-        } else if arg.primitive {
-            (arg.name.to_owned(), arg.vtype.clone())
-        } else {
-            (arg.name.clone(), format!("&{}", arg.vtype.to_owned()))
-        }
+        get_arg(arg)
     })?;
 
     f.write_all(b") {\n")?;
@@ -166,17 +184,12 @@ fn generate_connect(_f: &mut File, api_def: &ApiDef) -> io::Result<()> {
     Ok(())
 }
 
-fn generate_impl(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
+fn generate_impl(f: &mut File, api_def: &ApiDef, type_handlers: &Vec<Box<TypeHandler>>) -> io::Result<()> {
     for sdef in api_def.entries.iter().filter(|s| !s.is_pod()) {
         f.write_fmt(format_args!("impl {} {{\n", sdef.name))?;
 
-        let funcs = api_def.collect_regular_functions(&sdef);
-
-        for func in &funcs {
-            if func.callback {
-            } else {
-                generate_func_impl(f, func)?;
-            }
+        for func in api_def.collect_regular_functions(&sdef) {
+            generate_func_impl(f, &func, type_handlers)?;
         }
 
         f.write_all(b"}\n\n")?;
@@ -201,8 +214,77 @@ fn generate_ui_impl(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
     Ok(())
 }
 
+
+struct StringTypeHandler;
+
+///
+/// We need to handle strings in a special way. They need to be sent down using CString and the
+/// pointer to it so have a generator for it
+///
+impl TypeHandler for StringTypeHandler {
+    fn match_type(&self) -> &'static str { "String" }
+
+    fn replace_arg(&self, arg: &str, arg_type: &str) -> (String, String) {
+        (arg.to_owned(), "&str".to_owned()
+    }
+
+    fn get_arg(&self, _arg: &str) -> (String, String) 
+        (arg.clone(), "&str".to_owned()
+    }
+
+    fn gen_body(&self, arg: &str, f: &mut File, index: usize) -> String {
+        let new_arg_name = format!("str_in_{}_{}", arg, index);
+        f.write_fmt(format_args!("        let {} = CString::new({}).unwrap();\n", arg_name, arg).unwrap();
+        format!("{}.get_ptr()", new_arg_name)
+    }
+}
+
+
 pub fn generate_rust_bindigs(filename: &str, api_def: &ApiDef) -> io::Result<()> {
     let mut f = File::create(filename)?;
+    let mut type_handlers: Vec<Box<TypeHandler>> = Vec::new();
+    
+    type_handlers.push(Box::new(StringTypeHandler{}));
+
+
+    //handlers.push(TypeHandler {
+    //    type_name: "String",
+    //    handler: Box::new(|| "move 2"),
+    //});
+
+    //let t: Box<(Fn() -> &'static str)> = Box::new(move || "move");
+    //let t2: Box<(Fn() -> &'static str)> = Box::new(move || "move 2");
+    //let t3 = Box::new(|| "move 2");
+    //let t4 = Box::new(|| "move 2");
+
+    //handlers.push(t);
+    //handlers.push(t2);
+    //handlers.push(t3);
+    //handlers.push(t4);
+    
+    /*
+    for h in handlers {
+        let p = (h.handler)();
+
+        println!("{}", p);
+    }
+    */
+
+    //handlers.push(Box::new(move || "test"));
+
+
+    /*
+    let t = TypeHandler {
+        type_name: "Test",
+        arg_handle: Box::new(move || "Test".to_owned()),
+        func_handle: Box::new(move |arg_handle| {
+            "Test2".to_owned()
+        }),
+    };
+    */
+
+    //let _ = (t.arg_handle)();
+    //let _ = (t.func_handle)("test");
 
     f.write_all(HEADER)?;
 

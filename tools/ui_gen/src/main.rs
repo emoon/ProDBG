@@ -11,14 +11,14 @@ mod rust_gen;
 
 use std::io;
 
-static INPUT_API: &'static str = "src/api.def";
+static INPUT_API: &str = "src/api.def";
 
-static C_API_HEADER: &'static str = "../../src/prodbg/PluginUI/generated/c_api.h";
-static QT_API_IMPL: &'static str = "../../src/prodbg/PluginUI/generated/qt_api_gen.cpp";
-static QT_API_IMPL_HEADER: &'static str = "../../src/prodbg/PluginUI/generated/qt_api_gen.h";
+static C_API_HEADER: &str = "../../src/prodbg/PluginUI/generated/c_api.h";
+static QT_API_IMPL: &str = "../../src/prodbg/PluginUI/generated/qt_api_gen.cpp";
+static QT_API_IMPL_HEADER: &str = "../../src/prodbg/PluginUI/generated/qt_api_gen.h";
 
-static RUST_FFI_FILE: &'static str = "../../api/rust/prodbg_ui/src/ffi_gen.rs";
-static UI_FILE: &'static str = "../../api/rust/prodbg_ui/src/lib.rs";
+static RUST_FFI_FILE: &str = "../../api/rust/prodbg_ui/src/ffi_gen.rs";
+static UI_FILE: &str = "../../api/rust/prodbg_ui/src/lib.rs";
 
 fn generate_code() -> io::Result<()> {
     let api_def = api_parser::ApiDef::new(INPUT_API);
