@@ -5,7 +5,7 @@ use heck::SnakeCase;
 use api_parser::*;
 
 impl Variable {
-    fn get_rust_ffi_type(&self) -> String {
+    pub fn get_rust_ffi_type(&self) -> String {
         if self.primitive {
             self.vtype.clone()
         } else {
@@ -34,7 +34,7 @@ fn generate_ffi_function(f: &mut File, func: &Function) -> io::Result<()> {
 /// Generate ffi function
 ///
 fn generate_ffi_callback(f: &mut File, func: &Function) -> io::Result<()> {
-    f.write_fmt(format_args!("    pub connect_{}: extern \"C\" fn(self_c: *const c_void, user_data: *const c_void,
+    f.write_fmt(format_args!("    pub connect_{}: extern \"C\" fn(object: *const c_void, user_data: *const c_void,
                                         callback: extern \"C\" fn(self_c: *const c_void))",
                 func.name))
 }

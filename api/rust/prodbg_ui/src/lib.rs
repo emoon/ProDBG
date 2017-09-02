@@ -66,6 +66,36 @@ impl Painter {
 
 }
 
+macro_rules! connect_released {
+  ($sender:expr, $data:expr, $call_type:ident) => {
+    {
+      extern "C" fn temp_call(self_c: *const c_void) {
+          unsafe {
+              let app = target as *mut $call_type;
+              $callback(&mut *app);
+          }
+      }
+      unsafe {
+         (*$sender.obj).connect_released)((*$sender.obj).privd, $data, temp_call);
+      }
+    }
+}
+
+macro_rules! connect_value_changed {
+  ($sender:expr, $data:expr, $call_type:ident) => {
+    {
+      extern "C" fn temp_call(self_c: *const c_void, value: i32) {
+          unsafe {
+              let app = target as *mut $call_type;
+              $callback(&mut *app, value);
+          }
+      }
+      unsafe {
+         (*$sender.obj).connect_value_changed)((*$sender.obj).privd, $data, temp_call);
+      }
+    }
+}
+
 pub struct Ui {
     pu: *const PU
 }

@@ -167,15 +167,45 @@ fn get_function_args(func: &Function) -> String {
 ///         }
 ///     }
 /// }
-fn _generate_connect_impl(_f: &mut File, _func: &Function) -> io::Result<()> {
+fn generate_connect_impl(f: &mut File, connect_funcs: &Vec<(&String, &Function)>) -> io::Result<()> {
+    for funcs in connect_funcs {
+        f.write_fmt(format_args!("macro_rules! connect_{} {{\n", funcs.0))?; 
+        f.write_all(b"  ($sender:expr, $data:expr, $call_type:ident) => {\n")?;
+        f.write_all(b"    {\n")?;  
+        f.write_all(b"      extern \"C\" fn temp_call(")?;  
+
+        funcs.1.write_func_def(f, |_, arg| (arg.name.to_owned(), arg.get_rust_ffi_type()))?;
+        f.write_all(b") {\n")?;  
+        f.write_all(b"          unsafe {\n")?;  
+        f.write_all(b"              let app = target as *mut $call_type;\n")?;
+        f.write_all(b"              $callback(")?;
+
+        funcs.1.write_func_def(f, |index, arg| {
+            if index == 0 {
+                ("&mut *app".to_owned(), "".to_owned())
+            } else {
+                (arg.name.to_owned(), "".to_owned()) 
+            }
+        })?;
+
+        f.write_all(b");\n")?;
+        f.write_all(b"          }\n")?;  
+        f.write_all(b"      }\n")?;  
+        f.write_all(b"      unsafe {\n")?;  
+        f.write_fmt(format_args!("         (*$sender.obj).connect_{})((*$sender.obj).privd, $data, temp_call);\n", funcs.0))?;
+        f.write_all(b"      }\n")?;  
+        f.write_all(b"    }\n")?;  
+        f.write_all(b"}\n\n")?;  
+    }
+
     Ok(())
 }
 
 ///
 /// This code assumes that the connection name has the same number of args 
 ///
-fn generate_connect(_f: &mut File, api_def: &ApiDef) -> io::Result<()> {
-    let mut connect_names: HashMap<String, String> = HashMap::new();
+fn generate_connect(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
+    let mut connect_names: HashMap<String, Function> = HashMap::new();
 
     for sdef in api_def.entries.iter().filter(|s| !s.is_pod()) {
         let funcs = api_def.collect_callback_functions(&sdef);
@@ -184,8 +214,9 @@ fn generate_connect(_f: &mut File, api_def: &ApiDef) -> io::Result<()> {
             let args = get_function_args(&func);
             let mut found = true;
 
-            if let Some(ref current_args) = connect_names.get(&func.name) {
-                if *current_args != &args {
+            if let Some(ref f) = connect_names.get(&func.name) {
+                let current_args = get_function_args(&f); 
+                if &current_args != &args {
                     println!("Signal: {} - has versions with diffrent args {} - {}", func.name, current_args, args);
                     return Err(Error::new(ErrorKind::Other, "Fail"));
                 }
@@ -194,17 +225,17 @@ fn generate_connect(_f: &mut File, api_def: &ApiDef) -> io::Result<()> {
             }
 
             if !found {
-                connect_names.insert(func.name.clone(), args.clone());
+                connect_names.insert(func.name.clone(), func.clone());
             }
         }
     }
 
-    let mut connect_list = connect_names.iter().collect::<Vec<(&String, &String)>>();
-    connect_list.sort();
+    let mut connect_list = connect_names.iter().collect::<Vec<(&String, &Function)>>();
+    connect_list.sort_by(|a, b| a.0.cmp(b.0));
 
-    println!("{:?}", connect_list);
+    // println!("{:?}", connect_list);
 
-    Ok(())
+    generate_connect_impl(f, &connect_list)
 }
 
 fn generate_impl(f: &mut File, api_def: &ApiDef, type_handlers: &Vec<Box<TypeHandler>>) -> io::Result<()> {
@@ -257,7 +288,6 @@ impl TypeHandler for StringTypeHandler {
         format!("{}.get_ptr()", arg_name)
     }
 }
-
 
 pub fn generate_rust_bindigs(filename: &str, api_def: &ApiDef) -> io::Result<()> {
     let mut f = File::create(filename)?;

@@ -16,7 +16,7 @@ pub struct PUWidget {
 
 #[repr(C)]
 pub struct PUPushButton {
-    pub connect_released: extern "C" fn(self_c: *const c_void, user_data: *const c_void,
+    pub connect_released: extern "C" fn(object: *const c_void, user_data: *const c_void,
                                         callback: extern "C" fn(self_c: *const c_void)),
     pub set_text: extern "C" fn(self_c: *const c_void, text: *const c_char),
     pub set_flat: extern "C" fn(self_c: *const c_void, flat: bool),
@@ -25,7 +25,7 @@ pub struct PUPushButton {
 
 #[repr(C)]
 pub struct PUSlider {
-    pub connect_value_changed: extern "C" fn(self_c: *const c_void, user_data: *const c_void,
+    pub connect_value_changed: extern "C" fn(object: *const c_void, user_data: *const c_void,
                                         callback: extern "C" fn(self_c: *const c_void)),
     pub privd: *const c_void,
 }
