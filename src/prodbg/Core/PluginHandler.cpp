@@ -9,7 +9,8 @@
 #include <pd_common.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "PluginUI/wrui.h"
+#include "PluginUI/generated/c_api.h"
+//#include "PluginUI/wrui.h"
 
 class QWidget;
 
@@ -136,9 +137,9 @@ QWidget* PluginHandler_tempLoadUIPlugin(QWidget* parent, const QString& plugin) 
 
     auto create_ui_plugin = (CreateUIPlugin)lib->resolve("init_plugin");
 
-    PU* pu = pu_get_instance(parent);
+    //PU* pu = pu_get_instance(parent);
 
-    create_ui_plugin(pu);
+    //create_ui_plugin(pu);
 
     return nullptr;
 }

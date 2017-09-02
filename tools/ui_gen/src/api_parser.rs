@@ -139,8 +139,8 @@ impl Function {
             let filter_arg = filter(i, &arg);
             let mut write_next = true;
 
-            if filter_arg.0 == "" {
-                if filter_arg.1 != "" {
+            if filter_arg.1 == "" {
+                if filter_arg.0 != "" {
                     f.write_fmt(format_args!("{}", filter_arg.0))?;
                 } else {
                     write_next = false;

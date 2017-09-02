@@ -120,7 +120,7 @@ fn generate_func_impl(f: &mut File, func: &Function, type_handlers: &Vec<Box<Typ
 
     func.write_func_def(f, |index, arg| {
         if index == 0 {
-            ("(*self.obj).privd))".to_owned(), "".to_owned())
+            ("(*self.obj).privd)".to_owned(), "".to_owned())
         } else if !arg.primitive {
             (format!("{}", name_remap.get(&index).unwrap()), "".to_owned())
         } else {

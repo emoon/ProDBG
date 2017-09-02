@@ -1,6 +1,6 @@
 #pragma once
 
-struct PDUI;
+struct PU;
 
 class QWidget;
 
@@ -14,9 +14,8 @@ struct PrivData {
 // TODO: Should not be here
 struct PluginInstance {
 	PrivData priv;
-	PDUI* ui_inst;
+	PU* ui_inst;
 };
 
-PDUI* PDUI_getInstance();
 PluginInstance* PluginUI_createTestPlugin(QWidget* parent);
 

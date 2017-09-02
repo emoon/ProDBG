@@ -13,8 +13,8 @@ public:
         m_data = data;
     }
 
-    Q_SLOT void method(self self_c,int value) {
-        m_func(self_c, value, m_data);
+    Q_SLOT void method(int value) {
+        m_func(m_data, value);
     }
 private:
     Signal_self_i32_void m_func;
@@ -33,8 +33,8 @@ public:
         m_data = data;
     }
 
-    Q_SLOT void method(void* self_c) {
-        m_func(self_c, m_data);
+    Q_SLOT void method() {
+        m_func(m_data);
     }
 private:
     Signal_self_void m_func;

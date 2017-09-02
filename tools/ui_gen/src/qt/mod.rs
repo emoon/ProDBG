@@ -116,40 +116,34 @@ pub fn generate_signal_wrappers(f: &mut File, info: &HashMap<String, Function>) 
 
         f.write_all(b"    Q_SLOT void method(")?;
 
-        let args_count = func.function_args.len();
-
-        if args_count > 0 {
-            let mut input_args = String::new();
-
-            for i in 0..args_count - 1 {
-                let arg = &func.function_args[i];
-                f.write_fmt(format_args!("{} {},", arg.vtype, arg.name))?;
-                input_args.push_str(&arg.name);
-                input_args.push_str(", ");
+        func.write_c_func_def(f, |index, arg| {
+            if index == 0 {
+                ("".to_owned(), "".to_owned())
+            } else {
+                (arg.get_c_type(), arg.name.to_owned())
             }
+        })?;
+            
+        f.write_all(b" {\n        m_func(")?;
 
-            f.write_fmt(format_args!("{} {}) {{\n",
-                                        func.function_args[args_count - 1].get_c_type(),
-                                        func.function_args[args_count - 1].name))?;
-            input_args.push_str(&func.function_args[args_count - 1].name);
+        func.write_c_func_def(f, |index, arg| {
+            if index == 0 {
+                ("m_data".to_owned(), "".to_owned())
+            } else {
+                (arg.name.to_owned(), "".to_owned())
+            }
+        })?;
 
-            f.write_fmt(format_args!("        m_func({}, m_data);\n", input_args))?;
-        } else {
-            f.write_all(b") {\n")?;
-            f.write_all(b"        m_func(m_data);\n")?;
-        }
-
+        f.write_all(b";\n")?;
         f.write_all(b"    }\n")?;
 
         f.write_all(b"private:\n")?;
         f.write_fmt(format_args!("    {} m_func;\n", signal_type_name))?;
         f.write_all(b"    void* m_data;\n")?;
         f.write_all(b"};\n\n")?;
-
     }
 
     Ok(())
-
 }
 
 fn function_name(struct_name: &str, func: &Function) -> String {
