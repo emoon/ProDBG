@@ -1,5 +1,5 @@
 
-mod ffi_gen;
+pub mod ffi_gen;
 use ffi_gen::*;
 use std::ffi::CString;
 

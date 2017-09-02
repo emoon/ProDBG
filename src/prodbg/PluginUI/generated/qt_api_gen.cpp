@@ -138,6 +138,7 @@ struct PU* PU_create_instance(void* user_data, QWidget* parent) {
     PrivData* priv_data = new PrivData;
     priv_data->parent = parent;
     priv_data->user_data = user_data;
+    instance->priv_data = priv_data;
     return instance;
 }
 

@@ -16,6 +16,8 @@ class QWidget;
 
 #define sizeof_array(t) (sizeof(t) / sizeof(t[0]))
 
+extern struct PU* PU_create_instance(void* user_data, QWidget* parent);
+
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,9 +139,8 @@ QWidget* PluginHandler_tempLoadUIPlugin(QWidget* parent, const QString& plugin) 
 
     auto create_ui_plugin = (CreateUIPlugin)lib->resolve("init_plugin");
 
-    //PU* pu = pu_get_instance(parent);
-
-    //create_ui_plugin(pu);
+	PU* pu = PU_create_instance(0, parent);
+    create_ui_plugin(pu);
 
     return nullptr;
 }

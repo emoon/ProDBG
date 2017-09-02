@@ -10,6 +10,7 @@ struct MyPlugin {
     _dummy: i32,
 }
 
+/*
 macro_rules! create_button {
     ($ui:tt, $data:tt, $data_type:ty, $($rest:tt)*) => {{
         let button = $ui.push_button_create(); 
@@ -44,6 +45,7 @@ macro_rules! create_button_inner {
         create_button_inner!($w, $data, $data_type, $($rest)*);
     }};
 }
+*/
 
 
 impl MyPlugin {
@@ -53,10 +55,16 @@ impl MyPlugin {
         }
     }
 
-    fn pressed_button(&mut self) {
-        println!("Pressed button");
+    //fn pressed_button(&mut self) {
+    //   println!("Pressed button");
+    //}
+    
+    fn create_ui(&mut self, ui: &prodbg_ui::Ui) {
+        let button = ui.create_push_button();
+        button.set_text("Testing");
     }
 
+    /*
     fn create_ui(&mut self, ui: &prodbg_ui::ui_gen::Ui) {
         let _button = create_button! {
             ui, self, MyPlugin,
@@ -64,6 +72,7 @@ impl MyPlugin {
             on_released: MyPlugin::pressed_button, 
         };
     }
+    */
 
         /*
         let button = ui.push_button_create();
@@ -86,6 +95,7 @@ impl MyPlugin {
     */
 }
 
+/*
 macro_rules! connect_released {
     ($sender:expr, $data:expr, $call_type:ident, $callback:path) => {
         {
@@ -103,12 +113,13 @@ macro_rules! connect_released {
         }
     }
 }
+*/
 
 #[no_mangle]
 pub fn init_plugin(ui_ptr: *const prodbg_ui::ffi_gen::PU) {
     // This stuff here is really hidden from the plugin
     // but we do this temporary when testing out the apis
-    let ui = prodbg_ui::ui_gen::Ui::new(ui_ptr);
+    let ui = prodbg_ui::Ui::new(ui_ptr);
 
     // This is some tricker to (later on) send back a instance of the plugin to C and then on the
     // Rust side again cast it back to a Rust instance
@@ -117,7 +128,6 @@ pub fn init_plugin(ui_ptr: *const prodbg_ui::ffi_gen::PU) {
     let plugin: &mut MyPlugin = unsafe { &mut *(instance as *mut MyPlugin) };
 
     plugin.create_ui(&ui);
-
 
     println!("Rust: memory_view_2");
 }
