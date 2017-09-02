@@ -26,7 +26,7 @@ fn generate_code() -> io::Result<()> {
     c_api_gen::generate_c_api(C_API_HEADER, &api_def)?;
     qt::generate_qt_bindings(QT_API_IMPL, QT_API_IMPL_HEADER, &api_def)?;
 
-    rust_ffi_gen::generate_ffi_bindings(RUST_FFI_FILE, &api_def.entries)?;
+    rust_ffi_gen::generate_ffi_bindings(RUST_FFI_FILE, &api_def, &api_def.entries)?;
     rust_gen::generate_rust_bindigs(UI_FILE, &api_def)?;
 
     Ok(())

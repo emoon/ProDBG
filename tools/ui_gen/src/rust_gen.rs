@@ -6,7 +6,10 @@ use api_parser::*;
 use std::collections::HashMap;
 use heck::SnakeCase;
 
-static HEADER: &'static [u8] = b"use rust_ffi::*;\n\n";
+static HEADER: &'static [u8] = b"
+mod ffi_gen;
+use ffi_gen::*;
+use std::ffi::CString;\n\n";
 
 static UI_HEADER: &'static [u8] = b"pub struct Ui {
     pu: *const PU
@@ -42,7 +45,7 @@ fn generate_struct(f: &mut File, structs: &Vec<Struct>) -> io::Result<()> {
             }
         } else {
             // Assume for non-pod that we only use the FFI interface to do stuff.
-            f.write_fmt(format_args!("    obj: const* PU{},\n", sdef.name))?;
+            f.write_fmt(format_args!("    obj: *const PU{},\n", sdef.name))?;
         }
 
         f.write_all(b"}\n\n")?;
@@ -120,7 +123,7 @@ fn generate_func_impl(f: &mut File, func: &Function, type_handlers: &Vec<Box<Typ
 
     func.write_func_def(f, |index, arg| {
         if index == 0 {
-            ("(*self.obj).privd)".to_owned(), "".to_owned())
+            ("(*self.obj).privd".to_owned(), "".to_owned())
         } else if !arg.primitive {
             (format!("{}", name_remap.get(&index).unwrap()), "".to_owned())
         } else {
@@ -192,10 +195,10 @@ fn generate_connect_impl(f: &mut File, connect_funcs: &Vec<(&String, &Function)>
         f.write_all(b"          }\n")?;  
         f.write_all(b"      }\n")?;  
         f.write_all(b"      unsafe {\n")?;  
-        f.write_fmt(format_args!("         (*$sender.obj).connect_{})((*$sender.obj).privd, $data, temp_call);\n", funcs.0))?;
+        f.write_fmt(format_args!("         ((*$sender.obj).connect_{})((*$sender.obj).privd, $data, temp_call);\n", funcs.0))?;
         f.write_all(b"      }\n")?;  
         f.write_all(b"    }\n")?;  
-        f.write_all(b"}\n\n")?;  
+        f.write_all(b"}}\n\n")?;  
     }
 
     Ok(())
@@ -259,7 +262,7 @@ fn generate_ui_impl(f: &mut File, api_def: &ApiDef) -> io::Result<()> {
         let snake_name = sdef.name.to_snake_case();
 
         f.write_fmt(format_args!("    pub fn create_{}(&self) -> {} {{\n", snake_name, sdef.name))?;
-        f.write_fmt(format_args!("        {} {{ obj: (*self.obj)(create_{})() }}\n", sdef.name, snake_name))?;
+        f.write_fmt(format_args!("        {} {{ obj: unsafe {{ ((*self.pu).create_{})((*self.pu).privd) }}}}\n", sdef.name, snake_name))?;
         f.write_all(b"    }\n\n")?;
     }
 
@@ -285,7 +288,7 @@ impl TypeHandler for StringTypeHandler {
     fn gen_body(&self, arg: &str, f: &mut File, index: usize) -> String {
         let arg_name = format!("str_in_{}_{}", arg, index);
         f.write_fmt(format_args!("        let {} = CString::new({}).unwrap();\n", arg_name, arg)).unwrap();
-        format!("{}.get_ptr()", arg_name)
+        format!("{}.as_ptr()", arg_name)
     }
 }
 

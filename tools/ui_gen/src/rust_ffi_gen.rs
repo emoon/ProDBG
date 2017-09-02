@@ -39,7 +39,40 @@ fn generate_ffi_callback(f: &mut File, func: &Function) -> io::Result<()> {
                 func.name))
 }
 
-pub fn generate_ffi_bindings(filename: &str, structs: &Vec<Struct>) -> io::Result<()> {
+fn generate_struct_body_recursive(f: &mut File, api_def: &ApiDef, sdef: &Struct) -> io::Result<()> {
+    if let Some(ref inherit_name) = sdef.inherit {
+        for sdef in &api_def.entries {
+            if &sdef.name == inherit_name {
+                generate_struct_body_recursive(f, api_def, &sdef)?;
+            }
+        }
+    }
+
+    for entry in &sdef.entries {
+        match *entry {
+            StructEntry::Var(ref var) => {
+                f.write_fmt(format_args!("    pub {}: {},\n",
+                                            var.name,
+                                            var.get_rust_ffi_type()))?;
+            }
+
+            StructEntry::Function(ref func) => {
+                if func.callback {
+                    generate_ffi_callback(f, func)?;
+                } else {
+                    generate_ffi_function(f, func)?;
+                }
+
+                f.write_all(b",\n")?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+
+pub fn generate_ffi_bindings(filename: &str, api_def: &ApiDef, structs: &Vec<Struct>) -> io::Result<()> {
     let mut f = File::create(filename)?;
 
     f.write_all(b"use std::os::raw::{c_void, c_char};\n\n")?;
@@ -48,25 +81,7 @@ pub fn generate_ffi_bindings(filename: &str, structs: &Vec<Struct>) -> io::Resul
         f.write_all(b"#[repr(C)]\n")?;
         f.write_fmt(format_args!("pub struct PU{} {{\n", struct_.name))?;
 
-        for entry in &struct_.entries {
-            match entry {
-                &StructEntry::Var(ref var) => {
-                    f.write_fmt(format_args!("    pub {}: {},\n",
-                                                var.name,
-                                                var.get_rust_ffi_type()))?;
-                }
-
-                &StructEntry::Function(ref func) => {
-                    if func.callback {
-                        generate_ffi_callback(&mut f, func)?;
-                    } else {
-                        generate_ffi_function(&mut f, func)?;
-                    }
-
-                    f.write_all(b",\n")?;
-                }
-            }
-        }
+        generate_struct_body_recursive(&mut f, api_def, &struct_)?;
 
         if !struct_.is_pod() {
             f.write_all(b"    pub privd: *const c_void,\n")?;

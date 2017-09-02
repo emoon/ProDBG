@@ -138,7 +138,6 @@ pub fn generate_c_api(filename: &str, api_def: &ApiDef) -> io::Result<()> {
 
     f.write_all(b"typedef struct PU { \n")?;
 
-
     for sdef in api_def.entries.iter().filter(|s| !s.is_pod()) {
         f.write_fmt(format_args!("    struct PU{}* (*create_{})(void* self);\n",
                                     sdef.name,
