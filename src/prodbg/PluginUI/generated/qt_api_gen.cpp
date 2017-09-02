@@ -12,16 +12,16 @@ struct PrivData {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void widget_show(void*, self_c ) { 
-    QWidget* qt_data = (QWidget*)priv_data;
-    qt_data->show(self_c);
+static void widget_show(void* self_c) { 
+    QWidget* qt_data = (QWidget*)self_c;
+    qt_data->show();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void push_button_show(void*, self_c ) { 
-    QPushButton* qt_data = (QPushButton*)priv_data;
-    qt_data->show(self_c);
+static void push_button_show(void* self_c) { 
+    QPushButton* qt_data = (QPushButton*)self_c;
+    qt_data->show();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -29,21 +29,21 @@ static void push_button_show(void*, self_c ) {
 static void connect_push_button_released(void* object, void* user_data, void (*callback)(void* self_c)) {
     QSlotWrapperSignal_self_void* wrap = new QSlotWrapperSignal_self_void(user_data, (Signal_self_void)callback);
     QObject* q_obj = (QObject*)object;
-    QObject::connect(q_obj, SIGNAL(released(void*)), wrap, SLOT(method(void*)));
+    QObject::connect(q_obj, SIGNAL(released()), wrap, SLOT(method()));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void push_button_set_text(void*, self_c const char*, text ) { 
-    QPushButton* qt_data = (QPushButton*)priv_data;
-    qt_data->setText(self_c, QString::fromLatin1(text));
+static void push_button_set_text(void* self_c, const char* text) { 
+    QPushButton* qt_data = (QPushButton*)self_c;
+    qt_data->setText(QString::fromLatin1(text) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void push_button_set_flat(void*, self_c bool, flat ) { 
-    QPushButton* qt_data = (QPushButton*)priv_data;
-    qt_data->setFlat(self_c, flat);
+static void push_button_set_flat(void* self_c, bool flat) { 
+    QPushButton* qt_data = (QPushButton*)self_c;
+    qt_data->setFlat(flat );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,14 +51,14 @@ static void push_button_set_flat(void*, self_c bool, flat ) {
 static void connect_slider_value_changed(void* object, void* user_data, void (*callback)(void* self_c, int value)) {
     QSlotWrapperSignal_self_i32_void* wrap = new QSlotWrapperSignal_self_i32_void(user_data, (Signal_self_i32_void)callback);
     QObject* q_obj = (QObject*)object;
-    QObject::connect(q_obj, SIGNAL(valueChanged(void*, int)), wrap, SLOT(method(void*, int)));
+    QObject::connect(q_obj, SIGNAL(valueChanged(int )), wrap, SLOT(method(int )));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void painter_draw_line(void*, self_c int, x1 int, y1 int, x2 int, y2 ) { 
-    QPainter* qt_data = (QPainter*)priv_data;
-    qt_data->drawLine(self_c, x1, y1, x2, y2);
+static void painter_draw_line(void* self_c, int x1, int y1, int x2, int y2) { 
+    QPainter* qt_data = (QPainter*)self_c;
+    qt_data->drawLine(x1 , y1 , x2 , y2 );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

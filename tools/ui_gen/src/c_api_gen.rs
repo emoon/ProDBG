@@ -19,13 +19,17 @@ static FOOTER: &'static [u8] = b"
 
 pub fn generate_c_function_args(func: &Function) -> String {
     let mut function_args = String::new();
+    let len = func.function_args.len();
 
     // write arguments
-    for arg in &func.function_args {
+    for (i, arg) in func.function_args.iter().enumerate() {
         function_args.push_str(&arg.get_c_type());
-        function_args.push_str(", ");
-        function_args.push_str(&arg.name);
         function_args.push_str(" ");
+        function_args.push_str(&arg.name);
+
+        if i != len - 1 {
+            function_args.push_str(", ");
+        }
     }
 
     function_args

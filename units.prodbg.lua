@@ -45,7 +45,7 @@ Program {
         gen_moc("src/prodbg/Backend/BackendRequests.h"),
         gen_moc("src/prodbg/Backend/BackendSession.h"),
         gen_moc("src/prodbg/AmigaUAE/AmigaUAE.h"),
-        gen_moc("src/prodbg/PluginUI/signal_wrappers.h"),
+        -- gen_moc("src/prodbg/PluginUI/signal_wrappers.h"),
 
         gen_moc("src/prodbg/View.h"),
         gen_moc("src/prodbg/ViewHandler.h"),
@@ -54,7 +54,7 @@ Program {
         gen_moc("src/prodbg/MemoryView/MemoryView.h"),
         gen_moc("src/prodbg/MemoryView/MemoryViewWidget.h"),
 
-        gen_moc("src/prodbg/PluginUI/qt_api_gen.h"),
+        gen_moc("src/prodbg/PluginUI/generated/qt_api_gen.h"),
     },
 
     Env = {

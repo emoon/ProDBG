@@ -178,7 +178,7 @@ fn generate_func_def(f: &mut File,
     // (changed from snake_case to camelCase matches the Qt function)
 
     // QWidget* qt_data = (QWidget*)priv_data;
-    f.write_fmt(format_args!("    Q{}* qt_data = (Q{}*)priv_data;\n",
+    f.write_fmt(format_args!("    Q{}* qt_data = (Q{}*)self_c;\n",
                                 struct_qt_name,
                                 struct_qt_name))?;
 
@@ -187,15 +187,17 @@ fn generate_func_def(f: &mut File,
     // qt_data->func(params);
     f.write_fmt(format_args!("    qt_data->{}(", func.name.to_mixed_case()))?;
 
-    func.write_c_func_def(f, |_, arg|
-        // Hacky, and needs to be extended but will do for now
-        if arg.vtype == "String" {
+    func.write_c_func_def(f, |index, arg| {
+        if index == 0 {
+            ("".to_owned(), "".to_owned())
+        } else if arg.vtype == "String" {
             (format!("QString::fromLatin1({})", &arg.name), "".to_owned())
         } else if arg.vtype == "Rect" {
             (format!("QRect({}->x, {}->y, {}->width, {}->height)", &arg.name, &arg.name, &arg.name, &arg.name), "".to_owned())
         } else {
             (arg.name.clone(), "".to_owned())
-        })?;
+        }
+    })?;
 
     f.write_all(b";\n")?;
     f.write_all(b"}\n\n")?;
@@ -226,11 +228,26 @@ fn func_def_callback(f: &mut File, struct_name: &str, func: &Function) -> io::Re
     f.write_fmt(format_args!("    QObject::connect(q_obj, SIGNAL({}(",
                                 func.name.to_mixed_case()))?;
 
-    func.write_c_func_def(f, |_, arg| (arg.get_c_type(), "".to_owned()))?;
+    func.write_c_func_def(f, |index, arg| { 
+        if index == 0 {
+            ("".to_owned(), "".to_owned())
+        } else {
+            (arg.get_c_type(), "".to_owned())
+        }
+    })?;
 
     f.write_all(b"), wrap, SLOT(method(")?;
 
-    func.write_c_func_def(f, |_, arg| (arg.get_c_type(), "".to_owned()))?;
+    //func.write_c_func_def(f, |_, arg| (arg.get_c_type(), "".to_owned()))?;
+
+    func.write_c_func_def(f, |index, arg| { 
+        if index == 0 {
+            ("".to_owned(), "".to_owned())
+        } else {
+            (arg.get_c_type(), "".to_owned())
+        }
+    })?;
+
 
     f.write_all(b"));\n")?;
     f.write_all(b"}\n\n")?;

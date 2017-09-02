@@ -3,7 +3,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef void (*Signal_self_i32_void)(void*, self_c int, value );
+typedef void (*Signal_self_i32_void)(void* self_c, int value);
 
 class QSlotWrapperSignal_self_i32_void : public QObject {
     Q_OBJECT
@@ -23,7 +23,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef void (*Signal_self_void)(void*, self_c );
+typedef void (*Signal_self_void)(void* self_c);
 
 class QSlotWrapperSignal_self_void : public QObject {
     Q_OBJECT

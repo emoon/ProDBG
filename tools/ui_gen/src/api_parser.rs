@@ -137,14 +137,19 @@ impl Function {
 
         for (i, arg) in self.function_args.iter().enumerate() {
             let filter_arg = filter(i, &arg);
+            let mut write_next = true;
 
-            if filter_arg.1 == "" {
-                f.write_fmt(format_args!("{}", filter_arg.0))?;
+            if filter_arg.0 == "" {
+                if filter_arg.1 != "" {
+                    f.write_fmt(format_args!("{}", filter_arg.0))?;
+                } else {
+                    write_next = false;
+                }
             } else {
                 f.write_fmt(format_args!("{} {}", filter_arg.0, filter_arg.1))?;
             }
 
-            if i != arg_count - 1 {
+            if (i != arg_count - 1) && write_next == true {
                 f.write_all(b", ")?;
             }
         }
