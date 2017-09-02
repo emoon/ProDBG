@@ -40,9 +40,9 @@ impl PushButton {
     }
 
     pub fn set_text(&self, text: &str) {
-        let str_in_0 = CString::new(text).unwrap();
+        let str_in_text_1 = CString::new(text).unwrap();
         unsafe {
-            ((*self.obj).set_text)((*self.obj).privd)), str_in_0.get_ptr());
+            ((*self.obj).set_text)((*self.obj).privd)), str_in_text_1.get_ptr());
         }
     }
 
