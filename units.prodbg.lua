@@ -27,7 +27,7 @@ Program {
     Sources = {
         Glob {
             Dir = "src/prodbg",
-            Extensions = { ".cpp", ".h" },
+            Extensions = { ".c",".cpp", ".h" },
             Recursive = true,
         },
 
@@ -45,6 +45,7 @@ Program {
         gen_moc("src/prodbg/Backend/BackendRequests.h"),
         gen_moc("src/prodbg/Backend/BackendSession.h"),
         gen_moc("src/prodbg/AmigaUAE/AmigaUAE.h"),
+        -- gen_moc("src/prodbg/PluginUI/signal_wrappers.h"),
 
         gen_moc("src/prodbg/View.h"),
         gen_moc("src/prodbg/ViewHandler.h"),
@@ -52,6 +53,8 @@ Program {
         gen_moc("src/prodbg/CodeView/DisassemblyView.h"),
         gen_moc("src/prodbg/MemoryView/MemoryView.h"),
         gen_moc("src/prodbg/MemoryView/MemoryViewWidget.h"),
+
+        gen_moc("src/prodbg/PluginUI/generated/qt_api_gen.h"),
     },
 
     Env = {
@@ -81,6 +84,8 @@ Program {
             "src/native/external/tinyexpr",
             "src/prodbg",
         	"api/include",
+        	"src/native/external",
+        	"src/native/external/toolwindowmanager",
             "$(OBJECTROOT)", "$(OBJECTDIR)",
         },
 
@@ -103,7 +108,7 @@ Program {
 
     Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore" },
 
-    Depends = { "remote_api", "capstone", "tinyexpr" },
+    Depends = { "remote_api", "capstone", "tinyexpr", "toolwindowmanager" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------

@@ -11,6 +11,9 @@
 #include "MemoryView/MemoryView.h"
 #include "RegisterView/RegisterView.h"
 #include "ViewHandler.h"
+#include "toolwindowmanager/ToolWindowManager.h"
+#include "PluginUI/PluginUI_internal.h"
+#include "Core/PluginHandler.h"
 
 #include <QDebug>
 #include <QFileDialog>
@@ -54,28 +57,41 @@ MainWindow::MainWindow()
     // m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), m_breakpoints);
     // m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), m_breakpoints);
 
-    setCentralWidget(m_codeViews);
+    //setCentralWidget(m_codeViews);
 
     setWindowTitle(QStringLiteral("ProDBG"));
+
+	m_ui.toolWindowManager->setRubberBandLineWidth(50);
+
+	//PluginInstance* inst = PluginUI_createTestPlugin(this);
+
+    QWidget* plugin_parent = new QWidget(this);
+
+	PluginHandler_tempLoadUIPlugin(plugin_parent, QStringLiteral("memory_view_2"));
 
     // Setup docking for MemoryView
 
     {
-        QDockWidget* dock = new QDockWidget(QStringLiteral("MemoryView"), this);
-        dock->setAllowedAreas(Qt::AllDockWidgetAreas);
-        dock->setObjectName(QStringLiteral("MemoryViewDock"));
-        dock->setWidget(m_memoryView);
-        addDockWidget(Qt::RightDockWidgetArea, dock);
+		m_ui.toolWindowManager->addToolWindow(m_codeViews, ToolWindowManager::EmptySpace);
+		m_ui.toolWindowManager->addToolWindow(m_memoryView, ToolWindowManager::LastUsedArea);
+		m_ui.toolWindowManager->addToolWindow(m_registerView, ToolWindowManager::LastUsedArea);
+        m_ui.toolWindowManager->addToolWindow(plugin_parent, ToolWindowManager::LastUsedArea);
+
+        //QDockWidget* dock = new QDockWidget(QStringLiteral("MemoryView"), this);
+        //dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+        //dock->setObjectName(QStringLiteral("MemoryViewDock"));
+        //dock->setWidget(m_memoryView);
+        //addDockWidget(Qt::RightDockWidgetArea, dock);
     }
 
     // Setup docking for RegisterView
 
     {
-        QDockWidget* dock = new QDockWidget(QStringLiteral("RegisterView"), this);
-        dock->setAllowedAreas(Qt::AllDockWidgetAreas);
-        dock->setObjectName(QStringLiteral("RegisterViewDock"));
-        dock->setWidget(m_registerView);
-        addDockWidget(Qt::BottomDockWidgetArea, dock);
+        //QDockWidget* dock = new QDockWidget(QStringLiteral("RegisterView"), this);
+        //dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+        //dock->setObjectName(QStringLiteral("RegisterViewDock"));
+        //dock->setWidget(m_registerView);
+        //addDockWidget(Qt::BottomDockWidgetArea, dock);
     }
 
     m_statusbar->showMessage(tr("Ready."));
@@ -346,7 +362,7 @@ void MainWindow::startAmigaUAEBackend()
     QTimer::singleShot(5000, this, &MainWindow::start);
 
     m_currentBackend = Amiga;
-}	
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

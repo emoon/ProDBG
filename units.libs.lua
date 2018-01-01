@@ -1,7 +1,15 @@
 require "tundra.syntax.glob"
+require "tundra.syntax.qt"
 require "tundra.syntax.osx-bundle"
 require "tundra.path"
 require "tundra.util"
+
+local function gen_moc(src)
+    return Moc {
+        Pass = "GenerateSources",
+        Source = src
+    }
+end
 
 -----------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------- EXTERNAL LIBS ---------------------------------------------------------
@@ -135,6 +143,47 @@ StaticLibrary {
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
+    Name = "toolwindowmanager",
+
+    Env = {
+       CXXOPTS = {
+            { "-isystem $(QT5)/lib/QtWidgets.framework/Headers",
+              "-isystem $(QT5)/lib/QtCore.framework/Headers",
+              "-isystem $(QT5)/lib/QtGui.framework/Headers"; 
+              "-isystem $(QT5)/lib/QtGui.framework/Headers", 
+              "-F$(QT5)/lib"; Config = "macosx-*-*" },
+
+            { "-isystem $(QT5)/include/QtWidgets",
+              "-isystem $(QT5)/include/QtCore",
+              "-isystem $(QT5)/include/QtGui",
+              "-isystem $(QT5)/include"; Config = "linux-*-*" },
+        },
+
+        CPPPATH = {
+            "$(QT5)/include",
+            "$(QT5)/include/QtCore",
+            "$(QT5)/include/QtGui",
+            "$(QT5)/include/QtWidgets",
+        },
+    },
+
+    Sources = {
+        Glob {
+            Dir = "src/native/external/toolwindowmanager",
+            Extensions = { ".cpp", ".h" },
+        },
+
+        gen_moc("src/native/external/toolwindowmanager/ToolWindowManager.h"),
+        gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerArea.h"),
+        gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerWrapper.h"),
+    },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
 }
 
 -- vim: ts=4:sw=4:sts=4
