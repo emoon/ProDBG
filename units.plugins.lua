@@ -126,7 +126,7 @@ end
 --end
 
 Default "amiga_uae_plugin"
-Default "memory_view_2"
+-- Default "memory_view_2"
 Default "dummy_backend_plugin"
 
 -- vim: ts=4:sw=4:sts=4
