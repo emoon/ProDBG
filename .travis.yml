@@ -21,7 +21,7 @@ matrix:
     - sudo apt-get install qt57base mesa-common-dev
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90;
     - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 90;
-    - git clone https://github.com/deplinenoise/tundra.git
+    - git clone --recursive https://github.com/deplinenoise/tundra.git
     - cd tundra
     - make
     - sudo make install
