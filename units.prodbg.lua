@@ -88,7 +88,7 @@ Program {
 
         LIBPATH = {
 			{ "$(QT5_LIB)"; Config = "win64-*-*" },
-			{ "$(QT5_LIB)/lib"; Config = "linux-*-*" },
+			{ "$(QT5_LIB)"; Config = "linux-*-*" },
 		},
 
         PROGCOM = {
