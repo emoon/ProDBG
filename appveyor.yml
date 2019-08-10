@@ -1,9 +1,4 @@
-version: '{build}'
-skip_tags: true
-environment:
-  matrix:
-  - GENERATOR: Visual Studio 2017 Win64
-    DEPS_PATH: deps64
+image: Visual Studio 2017
 
 install:
   - appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
