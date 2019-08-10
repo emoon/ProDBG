@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Backend/IBackendRequests.h"
-#include <QPointer>
-#include <QTabWidget>
+#include <QtCore/QPointer>
+#include <QtWidgets/QTabWidget>
 
 namespace prodbg {
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QDialog>
+#include <QtWidgets/QDialog>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -28,7 +28,7 @@ public:
     };
 
 private:
-    
+
     Q_SLOT void configModeChanged(int index);
     Q_SLOT void selectExecutable();
     Q_SLOT void selectConfigFile();

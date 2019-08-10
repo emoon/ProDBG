@@ -1,9 +1,9 @@
 #include "AmigaUAEConfig.h"
 #include "ui_AmigaUAEConfig.h"
-#include <QCloseEvent>
-#include <QDebug>
-#include <QFileDialog>
-#include <QSettings>
+#include <QtCore/QDebug>
+#include <QtGui/QCloseEvent>
+#include <QtWidgets/QFileDialog>
+#include <QtCore/QSettings>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

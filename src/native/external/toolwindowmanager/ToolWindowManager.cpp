@@ -25,17 +25,17 @@
 #include "ToolWindowManager.h"
 #include "ToolWindowManagerArea.h"
 #include "ToolWindowManagerWrapper.h"
-#include <QVBoxLayout>
-#include <QDebug>
-#include <QEvent>
-#include <QApplication>
-#include <QDrag>
-#include <QMetaMethod>
-#include <QMimeData>
-#include <QMouseEvent>
-#include <QPainter>
-#include <QDesktopWidget>
-#include <QScreen>
+#include <QtCore/QDebug>
+#include <QtCore/QEvent>
+#include <QtCore/QMetaMethod>
+#include <QtCore/QMimeData>
+#include <QtGui/QDrag>
+#include <QtGui/QMouseEvent>
+#include <QtGui/QScreen>
+#include <QtGui/QPainter>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDesktopWidget>
+#include <QtWidgets/QVBoxLayout>
 
 template<class T>
 T findClosestParent(QWidget* widget) {

@@ -25,11 +25,11 @@
 #include "ToolWindowManagerWrapper.h"
 #include "ToolWindowManager.h"
 #include "ToolWindowManagerArea.h"
-#include <QVBoxLayout>
-#include <QDragEnterEvent>
-#include <QMimeData>
-#include <QDebug>
-#include <QApplication>
+#include <QtWidgets/QVBoxLayout>
+#include <QtGui/QDragEnterEvent>
+#include <QtCore/QMimeData>
+#include <QtCore/QDebug>
+#include <QtWidgets/QApplication>
 
 ToolWindowManagerWrapper::ToolWindowManagerWrapper(ToolWindowManager *manager) :
   QWidget(manager)

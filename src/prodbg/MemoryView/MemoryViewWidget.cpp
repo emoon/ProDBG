@@ -6,7 +6,7 @@
 #include <QtGui/QPainter>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QMenu>
-#include <QApplication>
+#include <QtWidgets/QApplication>
 
 #include <ctype.h>
 

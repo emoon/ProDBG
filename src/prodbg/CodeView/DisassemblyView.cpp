@@ -1,8 +1,8 @@
-#include "BreakpointModel.h"
 #include "DisassemblyView.h"
-#include <QTextBlock>
-#include <QPainter>
-#include <QApplication>
+#include "BreakpointModel.h"
+#include <QtGui/QTextBlock>
+#include <QtGui/QPainter>
+#include <QtWidgets/QApplication>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

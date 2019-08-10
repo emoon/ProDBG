@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IBackendRequests.h"
-#include <QObject>
+#include <QtCore/QObject>
 
 namespace prodbg {
 

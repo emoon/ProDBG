@@ -1,9 +1,9 @@
 #include "c_api.h"
 #include "qt_api_gen.h"
-#include <QWidget>
-#include <QPushButton>
-#include <QSlider>
-#include <QPainter>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QSlider>
+#include <QtGui/QPainter>
 
 struct PrivData {
     QWidget* parent;
@@ -12,14 +12,14 @@ struct PrivData {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void widget_show(void* self_c) { 
+static void widget_show(void* self_c) {
     QWidget* qt_data = (QWidget*)self_c;
     qt_data->show();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void push_button_show(void* self_c) { 
+static void push_button_show(void* self_c) {
     QPushButton* qt_data = (QPushButton*)self_c;
     qt_data->show();
 }
@@ -34,14 +34,14 @@ static void connect_push_button_released(void* object, void* user_data, void (*c
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void push_button_set_text(void* self_c, const char* text) { 
+static void push_button_set_text(void* self_c, const char* text) {
     QPushButton* qt_data = (QPushButton*)self_c;
     qt_data->setText(QString::fromLatin1(text));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void push_button_set_flat(void* self_c, bool flat) { 
+static void push_button_set_flat(void* self_c, bool flat) {
     QPushButton* qt_data = (QPushButton*)self_c;
     qt_data->setFlat(flat);
 }
@@ -56,7 +56,7 @@ static void connect_slider_value_changed(void* object, void* user_data, void (*c
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void painter_draw_line(void* self_c, int x1, int y1, int x2, int y2) { 
+static void painter_draw_line(void* self_c, int x1, int y1, int x2, int y2) {
     QPainter* qt_data = (QPainter*)self_c;
     qt_data->drawLine(x1, y1, x2, y2);
 }

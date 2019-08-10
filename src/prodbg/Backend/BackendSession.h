@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IBackendRequests.h"
-#include <QObject>
+#include <QtCore/QObject>
 #include <pd_backend.h>
 
 class QString;

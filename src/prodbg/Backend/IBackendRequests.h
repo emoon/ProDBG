@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QObject>
-#include <QVector>
+#include <QtCore/QObject>
+#include <QtCore/QVector>
 #include <stdint.h>
 
 class QString;
@@ -135,7 +135,7 @@ public:
     // this as the program may have altered the same memory that is currently being displayed
     Q_SIGNAL void programCounterChanged(const ProgramCounterChange& pc);
 
-    // This signal is being sent when the the current debugging session has ended 
+    // This signal is being sent when the the current debugging session has ended
     Q_SIGNAL void sessionEnded();
 };
 

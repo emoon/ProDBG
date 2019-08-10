@@ -32,7 +32,7 @@ local mac_opts = {
 
 local macosx = {
     Env = {
-		QT5 = native.getenv("QT5"),
+		--QT5 = "", --, native.getenv("QT5"),
         RUST_CARGO_OPTS = {
             { "test"; Config = "*-*-*-test" },
         },
@@ -72,7 +72,9 @@ local gcc_opts = {
 
 local gcc_env = {
     Env = {
-		QT5 = native.getenv("QT5"),
+		QT5_INC = native.getenv("QT5_INC"),
+		QT5_BIN = native.getenv("QT5_BIN"),
+		QT5_LIB = native.getenv("QT5_LIB"),
         RUST_CARGO_OPTS = {
             { "test"; Config = "*-*-*-test" },
         },
@@ -90,9 +92,9 @@ local gcc_env = {
 
     ReplaceEnv = {
         -- PROGCOM = "$(LD) $(PROGOPTS) $(LIBPATH:p-L) -o $(@) -Wl,--start-group $(LIBS:p-l) $(<) -Wl,--end-group",
-        QTMOC = "$(QT5)/bin/moc",
-        QTUIC = "$(QT5)/bin/uic",
-        QTRCC = "$(QT5)/bin/rcc",
+        QTMOC = "$(QT5_BIN)/moc",
+        QTUIC = "$(QT5_BIN)/uic",
+        QTRCC = "$(QT5_BIN)/rcc",
     },
 }
 
@@ -108,7 +110,7 @@ local win64_opts = {
 
 local win64 = {
     Env = {
-		QT5 = native.getenv("QT5"),
+		--QT5 = native.getenv("QT5"),
         RUST_CARGO_OPTS = {
             { "test"; Config = "*-*-*-test" },
         },
@@ -126,9 +128,9 @@ local win64 = {
     },
 
     ReplaceEnv = {
-        QTMOC = "$(QT5)\\bin\\moc",
-        QTUIC = "$(QT5)\\bin\\uic",
-        QTRCC = "$(QT5)\\bin\\rcc",
+        QTMOC = "$(QT5_BIN)\\moc",
+        QTUIC = "$(QT5_BIN)\\uic",
+        QTRCC = "$(QT5_BIN)\\rcc",
     },
 }
 

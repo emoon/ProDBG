@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QObject>
-#include <QVector>
+#include <QtCore/QObject>
+#include <QtCore/QVector>
 
 class QMainWindow;
 

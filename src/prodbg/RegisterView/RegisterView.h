@@ -2,9 +2,9 @@
 
 #include "Backend/IBackendRequests.h"
 #include "View.h"
-#include <QPointer>
-#include <QVector>
-#include <QWidget>
+#include <QtCore/QPointer>
+#include <QtCore/QVector>
+#include <QtWidgets/QWidget>
 
 class Ui_RegisterView;
 
