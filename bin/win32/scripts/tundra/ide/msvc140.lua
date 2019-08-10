@@ -1,4 +1,4 @@
--- Microsoft Visual Studio 2013 Solution/Project file generation
+-- Microsoft Visual Studio 2015 Solution/Project file generation
 
 module(..., package.seeall)
 

@@ -1,15 +1,16 @@
-version: '{build}'
-skip_tags: true
-environment:
-  matrix:
-  - GENERATOR: Visual Studio 12 Win64
-    DEPS_PATH: deps64
+image: Visual Studio 2017
+
 install:
-  - ps: Start-FileDownload "https://static.rust-lang.org/dist/rust-beta-x86_64-pc-windows-msvc.exe"
-  - rust-beta-x86_64-pc-windows-msvc.exe /VERYSILENT /NORESTART /DIR="C:\Program Files (x86)\Rust"
-  - set QT5=C:\Qt\5.7\msvc2015_64
-  - SET PATH=%PATH%;C:\Program Files (x86)\Rust\bin
+  - appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
+  - rustup-init -yv --default-toolchain stable --default-host x86_64-pc-windows-msvc
+  - set PATH=%PATH%;%USERPROFILE%\.cargo\bin
+  - set QT5_LIB=C:\Qt\5.12.4\msvc2017_64\lib
+  - set QT5_BIN=C:\Qt\5.12.4\msvc2017_64\bin
+  - set QT5_INC=C:\Qt\5.12.4\msvc2017_64\include
+  - rustc -vV
+  - cargo -vV
   - git submodule update --init --recursive
+  - dir C:\Qt\5.12.4\msvc2017_64\
 build_script:
 - scripts\vcvarsx86_amd64.bat
 - scripts\win64_build_debug.cmd

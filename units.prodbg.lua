@@ -59,9 +59,9 @@ Program {
 
     Env = {
        CXXOPTS = {
-            { "-isystem $(QT5_LIB)/lib/QtWidgets.framework/Headers",
-              "-isystem $(QT5_LIB)/lib/QtCore.framework/Headers",
-              "-isystem $(QT5_LIB)/lib/QtGui.framework/Headers",
+            { "-isystem $(QT5_LIB)/QtWidgets.framework/Headers",
+              "-isystem $(QT5_LIB)/QtCore.framework/Headers",
+              "-isystem $(QT5_LIB)/QtGui.framework/Headers",
               "-F$(QT5_LIB)/lib"; Config = "macosx-*-*" },
 
             { "-isystem $(QT5_INC)/include/QtWidgets",
@@ -87,8 +87,8 @@ Program {
         },
 
         LIBPATH = {
-			{ "$(QT5_LIB)\\lib"; Config = "win64-*-*" },
-			{ "$(QT5_LIB)/lib"; Config = "linux-*-*" },
+			{ "$(QT5_LIB)"; Config = "win64-*-*" },
+			{ "$(QT5_LIB)"; Config = "linux-*-*" },
 		},
 
         PROGCOM = {

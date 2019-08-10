@@ -25,11 +25,12 @@ local function generic_cpp_setup(env)
 
     local output_files = { object_fn }
 
+    -- pch_source is run through path.normalize() when it gets setup, so we need to normalize fn here too
     local pch_source = env:get('_PCH_SOURCE', '')
+    local is_pch_source = path.normalize(fn) == pch_source
     local implicit_inputs = nil
     
-    if fn == pch_source then
-      
+    if is_pch_source then
       label = 'Precompiled header'
       pass = nodegen.resolve_pass(env:get('_PCH_PASS', ''))
       action = "$(PCHCOMPILE)"
@@ -39,7 +40,7 @@ local function generic_cpp_setup(env)
         output_files = { "$(_PCH_FILE)" }
       end
 
-    elseif pch_source ~= '' and fn ~= pch_source then
+    elseif pch_source ~= '' and not is_pch_source then
 
       -- It would be good to make all non-pch source files dependent upon the .pch node.
       -- That would require that we generate the .pch node before generating these nodes.
