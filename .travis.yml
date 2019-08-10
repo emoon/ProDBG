@@ -16,9 +16,8 @@ matrix:
           - g++-6
     env: COMPILER=g++-6
     script:
-    - sudo add-apt-repository ppa:beineri/opt-qt571-trusty --yes
-    - sudo apt-get update
-    - sudo apt-get install qt57base mesa-common-dev
+    - sudo apt-get install qt5-default
+    - sudo apt-get install qt5-default
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90;
     - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 90;
     - git clone --recursive https://github.com/deplinenoise/tundra.git
@@ -26,4 +25,5 @@ matrix:
     - make
     - sudo make install
     - cd ..
+    - export QT5_BIN=/usr/bin; export QT5_INC=/usr/include/x86_64-linux-gnu/qt5; export QT5_LIB=/usr/lib/x86_64-linux-gnu;
     - export QT5=/opt/qt57; g++ --version ; tundra2 -v linux-gcc-debug
