@@ -1,7 +1,7 @@
 #include "RecentExecutables.h"
 #include <QtCore/QFileInfo>
-#include <QtWidgets/QAction>
 #include <QtCore/QSettings>
+#include <QtWidgets/QAction>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -9,21 +9,20 @@ namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-RecentExecutables::RecentExecutables()
-{
+RecentExecutables::RecentExecutables() {
     readSettings();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-RecentExecutables::~RecentExecutables()
-{
+RecentExecutables::~RecentExecutables() {
     writeSettings();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int findFileInList(const QVector<RecentExecutables::Executable>& files, const QString& filename) {
+static int findFileInList(const QVector<RecentExecutables::Executable>& files,
+                          const QString& filename) {
     for (int i = 0, c = files.count(); i < c; ++i) {
         if (files[i].filename == filename) {
             return i;
@@ -35,15 +34,15 @@ static int findFileInList(const QVector<RecentExecutables::Executable>& files, c
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RecentExecutables::setCurrentFile(const QString& filename, BackendType type)
-{
+void RecentExecutables::setCurrentFile(const QString& filename,
+                                       BackendType type) {
     int existingEntry = findFileInList(m_files, filename);
 
     if (existingEntry != -1) {
         m_files.removeAt(existingEntry);
     }
 
-    Executable exe = { filename, type };
+    Executable exe = {filename, type};
 
     // slow for vector but we have 8 files so we will live :)
     m_files.prepend(exe);
@@ -56,16 +55,17 @@ void RecentExecutables::setCurrentFile(const QString& filename, BackendType type
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RecentExecutables::setFile(QVector<QAction*>& actionList, const QString& filename, BackendType type)
-{
+void RecentExecutables::setFile(QVector<QAction*>& actionList,
+                                const QString& filename,
+                                BackendType type) {
     setCurrentFile(filename, type);
     updateActionList(actionList);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RecentExecutables::putFileOnTop(QVector<QAction*>& actionList, const QString& filename)
-{
+void RecentExecutables::putFileOnTop(QVector<QAction*>& actionList,
+                                     const QString& filename) {
     int index = findFileInList(m_files, filename);
 
     if (index == -1) {
@@ -79,8 +79,7 @@ void RecentExecutables::putFileOnTop(QVector<QAction*>& actionList, const QStrin
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RecentExecutables::updateActionList(QVector<QAction*>& actionList)
-{
+void RecentExecutables::updateActionList(QVector<QAction*>& actionList) {
     int end = 0;
 
     if (m_files.count() <= MaxFiles_Count) {
@@ -91,7 +90,8 @@ void RecentExecutables::updateActionList(QVector<QAction*>& actionList)
 
     for (int i = 0; i < end; ++i) {
         QString strippedName = QFileInfo(m_files[i].filename).fileName();
-        actionList[i]->setShortcut(QKeySequence(QStringLiteral("Ctrl+") + QString::number(i + 1)));
+        actionList[i]->setShortcut(
+            QKeySequence(QStringLiteral("Ctrl+") + QString::number(i + 1)));
         actionList[i]->setText(strippedName);
         actionList[i]->setData(m_files[i].filename);
         actionList[i]->setVisible(true);
@@ -104,8 +104,7 @@ void RecentExecutables::updateActionList(QVector<QAction*>& actionList)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RecentExecutables::writeSettings()
-{
+void RecentExecutables::writeSettings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
     settings.beginGroup(QStringLiteral("RecentFiles"));
     settings.beginWriteArray(QStringLiteral("recentExes"));
@@ -122,8 +121,7 @@ void RecentExecutables::writeSettings()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RecentExecutables::readSettings()
-{
+void RecentExecutables::readSettings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
     settings.beginGroup(QStringLiteral("RecentFiles"));
 
@@ -136,7 +134,7 @@ void RecentExecutables::readSettings()
         QString filename = settings.value(QStringLiteral("file")).toString();
         int backend = settings.value(QStringLiteral("backendIndex")).toInt();
 
-        Executable exe = { filename, (BackendType)backend };
+        Executable exe = {filename, (BackendType)backend};
 
         m_files.append(exe);
     }
@@ -147,4 +145,4 @@ void RecentExecutables::readSettings()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-}
+}  // namespace prodbg

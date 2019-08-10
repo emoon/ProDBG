@@ -1,15 +1,14 @@
 #include "IdService.h"
 #include <pd_id.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // jenkins_one_at_a_time_hash
 
-uint16_t IdService_register(const char* id)
-{
+uint16_t IdService_register(const char* id) {
     uint32_t hash, i;
     uint32_t len = (uint32_t)strlen(id);
 
@@ -30,15 +29,14 @@ uint16_t IdService_register(const char* id)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static PDIdFuncs s_funcs[] = {
-    { IdService_register },
+    {IdService_register},
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-}
+}  // namespace prodbg
 
 extern "C" {
-void* get_id_service_1()
-{
+void* get_id_service_1() {
     return &prodbg::s_funcs;
 }
 }

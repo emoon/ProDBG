@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ui_MainWindow.h"
 #include <QtWidgets/QMainWindow>
+#include "ui_MainWindow.h"
 
 class QStatusBar;
 class QThread;
@@ -22,18 +22,17 @@ class ViewHandler;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
-public:
+   public:
     MainWindow();
     ~MainWindow();
 
-protected:
+   protected:
     void closeEvent(QCloseEvent* event);
 
-private:
+   private:
     Q_SLOT void openSourceFile();
     Q_SLOT void reloadCurrentFile();
     Q_SLOT void breakContDebug();
@@ -56,10 +55,9 @@ private:
     Q_SIGNAL void stepInBackend();
     Q_SIGNAL void stepOverBackend();
 
-private:
+   private:
     // Current supported backends (hard-coded for now)
-    enum Backend
-    {
+    enum Backend {
         Dummy,
         Amiga,
         Custom,
@@ -112,4 +110,4 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-}
+}  // namespace prodbg

@@ -1,14 +1,14 @@
 //#include "SharedObject.h"
 #include "PluginHandler.h"
+#include <assert.h>
+#include <pd_common.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
 #include <QtCore/QLibrary>
 #include <QtCore/QString>
-#include <assert.h>
-#include <pd_common.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "PluginUI/generated/c_api.h"
 //#include "PluginUI/wrui.h"
 
@@ -27,8 +27,7 @@ static unsigned int s_pluginCount = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void registerPlugin(const char* type, void* data, void* privateData)
-{
+static void registerPlugin(const char* type, void* data, void* privateData) {
     Plugin plugin;
 
     plugin.data = data;
@@ -44,8 +43,7 @@ static void registerPlugin(const char* type, void* data, void* privateData)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Search for plugin
 
-QLibrary* findPlugin(const QString& plugin)
-{
+QLibrary* findPlugin(const QString& plugin) {
     QDir currentDir = QDir(QCoreApplication::applicationDirPath());
 #ifdef __APPLE__
     QString pluginName = QString::fromUtf8("lib", 3) + plugin;
@@ -53,7 +51,7 @@ QLibrary* findPlugin(const QString& plugin)
     QString pluginName = plugin;
 #endif
 
-	do {
+    do {
         QString path = currentDir.filePath(pluginName);
         QLibrary* lib = new QLibrary(path);
 
@@ -72,8 +70,7 @@ typedef void* (*InitPlugin)(RegisterPlugin* registerPlugin, void* privateData);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool PluginHandler_addPlugin(const QString& plugin)
-{
+bool PluginHandler_addPlugin(const QString& plugin) {
     QLibrary* lib = findPlugin(plugin);
 
     if (!lib) {
@@ -96,16 +93,14 @@ bool PluginHandler_addPlugin(const QString& plugin)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Plugin* PluginHandler_getPlugins(int* count)
-{
+Plugin* PluginHandler_getPlugins(int* count) {
     *count = (int)s_pluginCount;
     return &s_plugins[0];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PDBackendPlugin* PluginHandler_findBackendPlugin(const char* name)
-{
+PDBackendPlugin* PluginHandler_findBackendPlugin(const char* name) {
     for (unsigned int i = 0; i < s_pluginCount; ++i) {
         Plugin* plugin = &s_plugins[i];
 
@@ -129,7 +124,8 @@ typedef void* (*CreateUIPlugin)(PU* ui);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QWidget* PluginHandler_tempLoadUIPlugin(QWidget* parent, const QString& plugin) {
+QWidget* PluginHandler_tempLoadUIPlugin(QWidget* parent,
+                                        const QString& plugin) {
     QLibrary* lib = findPlugin(plugin);
 
     if (!lib) {
@@ -139,7 +135,7 @@ QWidget* PluginHandler_tempLoadUIPlugin(QWidget* parent, const QString& plugin) 
 
     auto create_ui_plugin = (CreateUIPlugin)lib->resolve("init_plugin");
 
-	PU* pu = PU_create_instance(0, parent);
+    PU* pu = PU_create_instance(0, parent);
     create_ui_plugin(pu);
 
     return nullptr;
@@ -147,4 +143,4 @@ QWidget* PluginHandler_tempLoadUIPlugin(QWidget* parent, const QString& plugin) 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-}
+}  // namespace prodbg

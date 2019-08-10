@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QtWidgets/QWidget>
 #include <QtCore/QPointer>
+#include <QtWidgets/QWidget>
 
 namespace prodbg {
 
@@ -9,11 +9,10 @@ class IBackendRequests;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class View : public QWidget
-{
+class View : public QWidget {
     Q_OBJECT
 
-public:
+   public:
     explicit View(QWidget* parent);
     virtual ~View();
 
@@ -25,10 +24,10 @@ public:
     virtual void readSettings() = 0;
     virtual void writeSettings() = 0;
 
-protected:
+   protected:
     QPointer<IBackendRequests> m_interface;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-}
+}  // namespace prodbg

@@ -12,11 +12,10 @@ namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class AmigaUAE : public QObject
-{
+class AmigaUAE : public QObject {
     Q_OBJECT
 
-public:
+   public:
     AmigaUAE(QObject* parent);
     ~AmigaUAE();
 
@@ -46,7 +45,7 @@ public:
 
     void writeSettings();
 
-private:
+   private:
     Q_SLOT void started();
     Q_SLOT void errorOccurred(QProcess::ProcessError error);
     Q_SLOT void printOutput();
@@ -59,4 +58,4 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-}
+}  // namespace prodbg

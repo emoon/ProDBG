@@ -5,30 +5,27 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace Ui {
-    class AmigaUAEConfig;
+class AmigaUAEConfig;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class AmigaUAEConfig : public QDialog
-{
+class AmigaUAEConfig : public QDialog {
     Q_OBJECT
 
-public:
+   public:
     explicit AmigaUAEConfig(QWidget* parent = 0);
     ~AmigaUAEConfig();
 
-    enum ConfigMode
-    {
+    enum ConfigMode {
         ConfigMode_Auto_Fastest_FsUAE,
         ConfigMode_Auto_Fastest_WinUAE,
-        //ConfigMode_Auto_A500,
-        //ConfigMode_Auto_A1200,
+        // ConfigMode_Auto_A500,
+        // ConfigMode_Auto_A1200,
         ConfigMode_Manual,
     };
 
-private:
-
+   private:
     Q_SLOT void configModeChanged(int index);
     Q_SLOT void selectExecutable();
     Q_SLOT void selectConfigFile();

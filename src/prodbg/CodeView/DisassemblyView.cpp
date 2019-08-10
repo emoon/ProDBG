@@ -1,8 +1,8 @@
 #include "DisassemblyView.h"
-#include "BreakpointModel.h"
-#include <QtGui/QTextBlock>
 #include <QtGui/QPainter>
+#include <QtGui/QTextBlock>
 #include <QtWidgets/QApplication>
+#include "BreakpointModel.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -11,32 +11,31 @@ namespace prodbg {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: This is currently duplicated in CodeView/Disassembly view. Fix!
 
-class AddressArea : public QWidget
-{
-public:
+class AddressArea : public QWidget {
+   public:
     AddressArea(DisassemblyView* view)
-        : QWidget(view)
-        , m_disassemblyView(view)
-    {
+        : QWidget(view), m_disassemblyView(view) {}
+
+    QSize sizeHint() const {
+        return QSize(m_disassemblyView->lineNumberAreaWidth(), 0);
     }
 
-    QSize sizeHint() const { return QSize(m_disassemblyView->lineNumberAreaWidth(), 0); }
+   protected:
+    void paintEvent(QPaintEvent* event) {
+        m_disassemblyView->lineNumberAreaPaintEvent(event);
+    }
 
-protected:
-    void paintEvent(QPaintEvent* event) { m_disassemblyView->lineNumberAreaPaintEvent(event); }
-
-private:
+   private:
     DisassemblyView* m_disassemblyView;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 DisassemblyView::DisassemblyView(QWidget* parent)
-    : QPlainTextEdit(parent)
-    , m_addressArea(nullptr)
-{
+    : QPlainTextEdit(parent), m_addressArea(nullptr) {
     setReadOnly(true);
-    setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
+    setTextInteractionFlags(Qt::TextSelectableByMouse |
+                            Qt::TextSelectableByKeyboard);
     setLineWrapMode(QPlainTextEdit::NoWrap);
 
     m_addressArea = new AddressArea(this);
@@ -50,34 +49,34 @@ DisassemblyView::DisassemblyView(QWidget* parent)
     QFont font(QStringLiteral("Courier"), 13);
 #endif
 
-    connect(this, &QPlainTextEdit::blockCountChanged, this, &DisassemblyView::updateAddressAreaWidth);
-    connect(this, &QPlainTextEdit::updateRequest, this, &DisassemblyView::updateAddressArea);
-    connect(this, &QPlainTextEdit::cursorPositionChanged, this, &DisassemblyView::highlightCurrentLine);
+    connect(this, &QPlainTextEdit::blockCountChanged, this,
+            &DisassemblyView::updateAddressAreaWidth);
+    connect(this, &QPlainTextEdit::updateRequest, this,
+            &DisassemblyView::updateAddressArea);
+    connect(this, &QPlainTextEdit::cursorPositionChanged, this,
+            &DisassemblyView::highlightCurrentLine);
 
     setFont(font);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-DisassemblyView::~DisassemblyView()
-{
-}
+DisassemblyView::~DisassemblyView() {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DisassemblyView::updateAddressAreaWidth(int)
-{
+void DisassemblyView::updateAddressAreaWidth(int) {
     setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DisassemblyView::updateAddressArea(const QRect& rect, int dy)
-{
+void DisassemblyView::updateAddressArea(const QRect& rect, int dy) {
     if (dy) {
         m_addressArea->scroll(0, dy);
     } else {
-        m_addressArea->update(0, rect.y(), m_addressArea->width(), rect.height());
+        m_addressArea->update(0, rect.y(), m_addressArea->width(),
+                              rect.height());
     }
 
     if (rect.contains(viewport()->rect())) {
@@ -87,8 +86,7 @@ void DisassemblyView::updateAddressArea(const QRect& rect, int dy)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DisassemblyView::highlightCurrentLine()
-{
+void DisassemblyView::highlightCurrentLine() {
     QList<QTextEdit::ExtraSelection> extraSelections;
 
     QTextEdit::ExtraSelection selection;
@@ -112,29 +110,28 @@ void DisassemblyView::highlightCurrentLine()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Make this a bit more configurable and less hard-coded
 
-int DisassemblyView::lineNumberAreaWidth()
-{
+int DisassemblyView::lineNumberAreaWidth() {
     // 20 + to give rom for breakpoint marker
 
-    int space = 20 + 3 + fontMetrics().width(QLatin1Char('9')) * m_addressWidth * 2;
+    int space =
+        20 + 3 + fontMetrics().width(QLatin1Char('9')) * m_addressWidth * 2;
 
     return space;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DisassemblyView::resizeEvent(QResizeEvent* e)
-{
+void DisassemblyView::resizeEvent(QResizeEvent* e) {
     QPlainTextEdit::resizeEvent(e);
 
     QRect cr = contentsRect();
-    m_addressArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
+    m_addressArea->setGeometry(
+        QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DisassemblyView::lineNumberAreaPaintEvent(QPaintEvent* event)
-{
+void DisassemblyView::lineNumberAreaPaintEvent(QPaintEvent* event) {
     QPalette pal = QApplication::palette();
 
 #ifdef _WIN32
@@ -148,7 +145,8 @@ void DisassemblyView::lineNumberAreaPaintEvent(QPaintEvent* event)
 
     QTextBlock block = firstVisibleBlock();
     int blockNumber = block.blockNumber();
-    int top = (int)blockBoundingGeometry(block).translated(contentOffset()).top();
+    int top =
+        (int)blockBoundingGeometry(block).translated(contentOffset()).top();
     int bottom = top + (int)blockBoundingRect(block).height();
     int width = m_addressArea->width();
     int height = fontMetrics().height();
@@ -167,9 +165,11 @@ void DisassemblyView::lineNumberAreaPaintEvent(QPaintEvent* event)
             }
 
             uint64_t address = m_disassemblyAdresses[blockNumber].address;
-            const QString& addressText = m_disassemblyAdresses[blockNumber].addressText;
+            const QString& addressText =
+                m_disassemblyAdresses[blockNumber].addressText;
 
-            painter.drawText(0, top, width, height, Qt::AlignRight, addressText);
+            painter.drawText(0, top, width, height, Qt::AlignRight,
+                             addressText);
 
             if (m_breakpoints->hasBreakpointAddress(address)) {
                 painter.setBrush(Qt::red);
@@ -210,8 +210,9 @@ void DisassemblyView::lineNumberAreaPaintEvent(QPaintEvent* event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DisassemblyView::endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth)
-{
+void DisassemblyView::endDisassembly(
+    QVector<IBackendRequests::AssemblyInstruction>* instructions,
+    int addressWidth) {
     if (instructions->count() == 0) {
         return;
     }
@@ -239,7 +240,7 @@ void DisassemblyView::endDisassembly(QVector<IBackendRequests::AssemblyInstructi
 
         m_disassemblyText.append(inst.text);
         m_disassemblyText.append(QLatin1Char('\n'));
-        m_disassemblyAdresses.append({ inst.address, addressText });
+        m_disassemblyAdresses.append({inst.address, addressText});
     }
 
     m_disassemblyEnd = instructions->at(instructions->count() - 1).address;
@@ -250,13 +251,14 @@ void DisassemblyView::endDisassembly(QVector<IBackendRequests::AssemblyInstructi
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DisassemblyView::updatePc(uint64_t pc)
-{
+void DisassemblyView::updatePc(uint64_t pc) {
     m_currentPc = pc;
 
-    // check if pc is with the disassembly range and search for the current line to set
+    // check if pc is with the disassembly range and search for the current line
+    // to set
 
-    if ((pc >= m_disassemblyStart && pc <= m_disassemblyEnd) && m_disassemblyEnd != 0) {
+    if ((pc >= m_disassemblyStart && pc <= m_disassemblyEnd) &&
+        m_disassemblyEnd != 0) {
         updateDisassemblyCursor();
     } else {
         // QSize size = frameSize();
@@ -270,19 +272,20 @@ void DisassemblyView::updatePc(uint64_t pc)
             pc -= linesInView;
         }
 
-        // mask out the lower bits of start offset so we have a 4 byte even address to disassemble from
+        // mask out the lower bits of start offset so we have a 4 byte even
+        // address to disassemble from
         pc &= (uint64_t)(~3);
 
         if (m_interface) {
-            m_interface->beginDisassembly(pc, linesInView * 2, &m_recvInstructions);
+            m_interface->beginDisassembly(pc, linesInView * 2,
+                                          &m_recvInstructions);
         }
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DisassemblyView::updateDisassemblyCursor()
-{
+void DisassemblyView::updateDisassemblyCursor() {
     for (int i = 0, count = m_disassemblyAdresses.count(); i < count; ++i) {
         if (m_disassemblyAdresses[i].address != m_currentPc) {
             continue;
@@ -296,17 +299,19 @@ void DisassemblyView::updateDisassemblyCursor()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DisassemblyView::toggleBreakpoint()
-{
+void DisassemblyView::toggleBreakpoint() {
     QTextCursor cursor = textCursor();
     int index = cursor.block().blockNumber();
 
-    bool added = m_breakpoints->toggleAddressBreakpoint(m_disassemblyAdresses[index].address);
+    bool added = m_breakpoints->toggleAddressBreakpoint(
+        m_disassemblyAdresses[index].address);
 
     if (added) {
-        m_interface->beginAddAddressBreakpoint(m_disassemblyAdresses[index].address);
+        m_interface->beginAddAddressBreakpoint(
+            m_disassemblyAdresses[index].address);
     } else {
-        m_interface->beginRemoveAddressBreakpoint(m_disassemblyAdresses[index].address);
+        m_interface->beginRemoveAddressBreakpoint(
+            m_disassemblyAdresses[index].address);
     }
 
     m_addressArea->repaint();
@@ -314,8 +319,7 @@ void DisassemblyView::toggleBreakpoint()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DisassemblyView::setLine(int line)
-{
+void DisassemblyView::setLine(int line) {
     const QTextBlock& block = document()->findBlockByNumber(line - 1);
     QTextCursor cursor(block);
     cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, 0);
@@ -326,12 +330,12 @@ void DisassemblyView::setLine(int line)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DisassemblyView::setBackendInterface(IBackendRequests* interface)
-{
+void DisassemblyView::setBackendInterface(IBackendRequests* interface) {
     m_interface = interface;
-    connect(m_interface, &IBackendRequests::endDisassembly, this, &DisassemblyView::endDisassembly);
+    connect(m_interface, &IBackendRequests::endDisassembly, this,
+            &DisassemblyView::endDisassembly);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-}
+}  // namespace prodbg

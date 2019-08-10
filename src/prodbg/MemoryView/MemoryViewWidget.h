@@ -9,14 +9,12 @@ class MemoryViewPrivate;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class MemoryViewWidget : public QWidget
-{
+class MemoryViewWidget : public QWidget {
     Q_OBJECT;
     using Base = QWidget;
 
-public:
-    enum DataType
-    {
+   public:
+    enum DataType {
         X8,
         U8,
         S8,
@@ -39,33 +37,35 @@ public:
 
     Q_ENUM(DataType);
 
-    enum Endianess
-    {
+    enum Endianess {
         Big,
         Little,
     };
 
     Q_ENUM(Endianess);
 
-public:
+   public:
     explicit MemoryViewWidget(QWidget* parent = nullptr);
     virtual ~MemoryViewWidget();
 
-public:
+   public:
     void setBackendInterface(IBackendRequests* interface);
     void setAddress(uint64_t address);
     void setExpressionStatus(bool status);
 
-protected:
+   protected:
     void paintEvent(QPaintEvent* ev) override;
     void contextMenuEvent(QContextMenuEvent* ev) override;
     void wheelEvent(QWheelEvent* ev) override;
 
-public:
+   public:
     DataType dataType() const;
     Q_SLOT void setDataType(DataType t);
-    Q_SLOT void endReadMemory(QVector<uint16_t>* target, uint64_t address, int addressWidth);
-    Q_SLOT void programCounterChanged(const IBackendRequests::ProgramCounterChange& pc);
+    Q_SLOT void endReadMemory(QVector<uint16_t>* target,
+                              uint64_t address,
+                              int addressWidth);
+    Q_SLOT void programCounterChanged(
+        const IBackendRequests::ProgramCounterChange& pc);
 
     Endianess endianess() const;
     Q_SLOT void setEndianess(Endianess e);
@@ -73,15 +73,15 @@ public:
     int elementsPerLine() const;
     Q_SLOT void setElementsPerLine(int count);
 
-public:
+   public:
     Q_SLOT void displayNextPage();
     Q_SLOT void displayPrevPage();
     Q_SLOT void displayNextLine();
     Q_SLOT void displayPrevLine();
 
-private:
+   private:
     MemoryViewPrivate* m_Private;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-}
+}  // namespace prodbg

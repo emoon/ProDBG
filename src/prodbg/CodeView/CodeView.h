@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Backend/IBackendRequests.h"
 #include <stdint.h>
 #include <QtCore/QObject>
-#include <QtCore/QString>
 #include <QtCore/QPointer>
+#include <QtCore/QString>
 #include <QtWidgets/QPlainTextEdit>
+#include "Backend/IBackendRequests.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -25,24 +25,21 @@ class BreakpointModel;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct FileLineBreakpoint
-{
+struct FileLineBreakpoint {
     QString filename;
     int line;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class CodeView : public QPlainTextEdit
-{
+class CodeView : public QPlainTextEdit {
     Q_OBJECT
 
-public:
-    enum Mode
-    {
-        Sourcefile,  // Sourcefile (.c .s) etc
-        Disassembly, // Disassembly
-        Mixed,       // Mixed Source + Disassembly mode
+   public:
+    enum Mode {
+        Sourcefile,   // Sourcefile (.c .s) etc
+        Disassembly,  // Disassembly
+        Mixed,        // Mixed Source + Disassembly mode
     };
 
     CodeView(QWidget* parent = 0);
@@ -70,18 +67,18 @@ public:
 
     int getCurrentLine();
 
-protected:
+   protected:
     void resizeEvent(QResizeEvent* event);
-    //void keyPressEvent(QKeyEvent* event);
+    // void keyPressEvent(QKeyEvent* event);
     void step();
 
-private:
+   private:
     Q_SLOT void updateLineNumberAreaWidth(int newBlockCount);
     Q_SLOT void highlightCurrentLine();
     Q_SLOT void updateLineNumberArea(const QRect&, int);
     Q_SLOT void fileChange(const QString filename);
 
-private:
+   private:
     void toggleDisassembly();
     void toggleSourceFile();
     void updateDisassemblyCursor();
@@ -103,8 +100,7 @@ private:
 
     // Data for disassembly
 
-    struct AddressData
-    {
+    struct AddressData {
         uint64_t address;
         QString addressText;
     };
@@ -124,4 +120,4 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-}
+}  // namespace prodbg

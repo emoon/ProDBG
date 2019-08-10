@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Backend/IBackendRequests.h"
-#include "View.h"
 #include <QtCore/QPointer>
 #include <QtCore/QVector>
 #include <QtWidgets/QWidget>
+#include "Backend/IBackendRequests.h"
+#include "View.h"
 
 class Ui_RegisterView;
 
@@ -12,11 +12,10 @@ namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class RegisterView : public View
-{
+class RegisterView : public View {
     Q_OBJECT;
 
-public:
+   public:
     RegisterView(QWidget* parent = nullptr);
     ~RegisterView();
 
@@ -27,14 +26,15 @@ public:
     void readSettings();
     void writeSettings();
 
-private:
+   private:
     Q_SLOT void endReadRegisters(QVector<IBackendRequests::Register>* target);
-    Q_SLOT void programCounterChanged(const IBackendRequests::ProgramCounterChange& pc);
+    Q_SLOT void programCounterChanged(
+        const IBackendRequests::ProgramCounterChange& pc);
 
-private:
+   private:
     Ui_RegisterView* m_ui = nullptr;
     QVector<IBackendRequests::Register> m_targetRegisters;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-}
+}  // namespace prodbg

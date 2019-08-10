@@ -1,11 +1,10 @@
 #pragma once
 
-#include "Backend/IBackendRequests.h"
-#include <QtCore/QPointer>
+#include <stdint.h>
 #include <QtCore/QPointer>
 #include <QtCore/QString>
 #include <QtWidgets/QPlainTextEdit>
-#include <stdint.h>
+#include "Backend/IBackendRequests.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -24,12 +23,10 @@ class BreakpointModel;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class DisassemblyView : public QPlainTextEdit
-{
+class DisassemblyView : public QPlainTextEdit {
     Q_OBJECT
 
-public:
-
+   public:
     DisassemblyView(QWidget* parent = 0);
     virtual ~DisassemblyView();
 
@@ -41,9 +38,11 @@ public:
     void setBackendInterface(IBackendRequests* interface);
     void setBreakpointModel(BreakpointModel* breakpoints);
 
-    Q_SLOT void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth);
+    Q_SLOT void endDisassembly(
+        QVector<IBackendRequests::AssemblyInstruction>* instructions,
+        int addressWidth);
 
-private:
+   private:
     Q_SLOT void updateAddressAreaWidth(int newBlockCount);
     Q_SLOT void highlightCurrentLine();
     Q_SLOT void updateAddressArea(const QRect& rect, int dy);
@@ -56,8 +55,7 @@ private:
     QPointer<IBackendRequests> m_interface;
     BreakpointModel* m_breakpoints;
 
-    struct AddressData
-    {
+    struct AddressData {
         uint64_t address;
         QString addressText;
     };
@@ -78,11 +76,10 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-inline void DisassemblyView::setBreakpointModel(BreakpointModel* breakpoints)
-{
+inline void DisassemblyView::setBreakpointModel(BreakpointModel* breakpoints) {
     m_breakpoints = breakpoints;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-}
+}  // namespace prodbg

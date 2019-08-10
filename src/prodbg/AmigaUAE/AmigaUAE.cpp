@@ -1,23 +1,20 @@
 #include "AmigaUAE.h"
-#include "Backend/IdService.h"
 #include <QtCore/QDebug>
 #include <QtCore/QProcess>
-#include <QtCore/QString>
 #include <QtCore/QSettings>
+#include <QtCore/QString>
 #include <QtCore/QTemporaryDir>
 #include <QtCore/QTextStream>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
+#include "Backend/IdService.h"
 
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 AmigaUAE::AmigaUAE(QObject* parent)
-    : QObject(parent)
-    , m_uaeProcess(nullptr)
-    , m_copyFiles(true)
-{
+    : QObject(parent), m_uaeProcess(nullptr), m_copyFiles(true) {
     m_setFileId = IdService_register("AmigaUAE_SetFile");
     m_setHddPathId = IdService_register("AmigaUAE_SetHddPath");
 
@@ -27,21 +24,19 @@ AmigaUAE::AmigaUAE(QObject* parent)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-AmigaUAE::~AmigaUAE()
-{
+AmigaUAE::~AmigaUAE() {
     delete m_tempDir;
     killProcess();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool AmigaUAE::openFile()
-{
+bool AmigaUAE::openFile() {
     readSettings();
 
-    QString path = QFileDialog::getOpenFileName(nullptr,
-            QStringLiteral("Select Amiga executable to debug"),
-            m_amigaExePath);
+    QString path = QFileDialog::getOpenFileName(
+        nullptr, QStringLiteral("Select Amiga executable to debug"),
+        m_amigaExePath);
 
     if (path.isEmpty()) {
         return false;
@@ -59,8 +54,7 @@ bool AmigaUAE::openFile()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void AmigaUAE::killProcess()
-{
+void AmigaUAE::killProcess() {
     if (!m_skipUAELaunch) {
         m_uaeProcess->kill();
     }
@@ -68,8 +62,7 @@ void AmigaUAE::killProcess()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void AmigaUAE::runExecutable(const QString& filename)
-{
+void AmigaUAE::runExecutable(const QString& filename) {
     if (!validateSettings()) {
         return;
     }
@@ -86,19 +79,24 @@ void AmigaUAE::runExecutable(const QString& filename)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static QString generateUAEConfig(const QString& destPath, const QString& romPath, AmigaUAEConfig::ConfigMode mode)
-{
+static QString generateUAEConfig(const QString& destPath,
+                                 const QString& romPath,
+                                 AmigaUAEConfig::ConfigMode mode) {
     QString fileDest = QString();
 
     if (mode == AmigaUAEConfig::ConfigMode_Auto_Fastest_WinUAE) {
-        fileDest = QDir::cleanPath(destPath + QDir::separator() + QStringLiteral("win_uae_cfg.uae"));
+        fileDest = QDir::cleanPath(destPath + QDir::separator() +
+                                   QStringLiteral("win_uae_cfg.uae"));
     } else {
-        fileDest = QDir::cleanPath(destPath + QDir::separator() + QStringLiteral("uae_config.fs-uae"));
+        fileDest = QDir::cleanPath(destPath + QDir::separator() +
+                                   QStringLiteral("uae_config.fs-uae"));
     }
 
     QFile file(fileDest);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::critical(nullptr, QStringLiteral("Unable to write config to temp directory"), fileDest);
+        QMessageBox::critical(
+            nullptr, QStringLiteral("Unable to write config to temp directory"),
+            fileDest);
         return QString();
     }
 
@@ -136,7 +134,9 @@ static QString generateUAEConfig(const QString& destPath, const QString& romPath
             break;
         }
         default: {
-            QMessageBox::critical(nullptr, QStringLiteral("Unsupported target type"), QStringLiteral(":("));
+            QMessageBox::critical(nullptr,
+                                  QStringLiteral("Unsupported target type"),
+                                  QStringLiteral(":("));
             return QString();
         }
     }
@@ -146,8 +146,7 @@ static QString generateUAEConfig(const QString& destPath, const QString& romPath
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool copyExecutable(const QString& destPath, const QString& sourceFile)
-{
+static bool copyExecutable(const QString& destPath, const QString& sourceFile) {
     QFileInfo fileInfo(sourceFile);
     QString filename = fileInfo.fileName();
     QString fileDest = QDir::cleanPath(destPath + QDir::separator() + filename);
@@ -161,9 +160,11 @@ static bool copyExecutable(const QString& destPath, const QString& sourceFile)
         error += sourceFile;
         error += QStringLiteral(" to ");
         error += fileDest;
-        error += QStringLiteral(" . Make sure file is readable/directory is writeable/etc ");
+        error += QStringLiteral(
+            " . Make sure file is readable/directory is writeable/etc ");
 
-        QMessageBox::critical(nullptr, QStringLiteral("Failed to copy file"), error);
+        QMessageBox::critical(nullptr, QStringLiteral("Failed to copy file"),
+                              error);
 
         return false;
     }
@@ -173,14 +174,15 @@ static bool copyExecutable(const QString& destPath, const QString& sourceFile)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool AmigaUAE::validateSettings()
-{
+bool AmigaUAE::validateSettings() {
     readSettings();
 
     if (m_uaeExe.isEmpty()) {
-        QMessageBox::critical(nullptr, QStringLiteral("No UAE executable selected"),
-                              QStringLiteral("In order to run Amiga executables you need to select the emulator "
-                                             "executable in \"Config -> Amiga UAE..\""));
+        QMessageBox::critical(
+            nullptr, QStringLiteral("No UAE executable selected"),
+            QStringLiteral("In order to run Amiga executables you need to "
+                           "select the emulator "
+                           "executable in \"Config -> Amiga UAE..\""));
         return false;
     }
 
@@ -191,30 +193,37 @@ bool AmigaUAE::validateSettings()
 
     if (m_configMode == AmigaUAEConfig::ConfigMode_Manual) {
         if (m_config.isEmpty()) {
-            QMessageBox::critical(nullptr, QStringLiteral("No UAE config selected"),
-                                  QStringLiteral("In order to run Amiga executables you need to select a configuration "
-                                                 "file for UAE in \"Config -> Amiga UAE..\""));
+            QMessageBox::critical(
+                nullptr, QStringLiteral("No UAE config selected"),
+                QStringLiteral(
+                    "In order to run Amiga executables you need to select "
+                    "a configuration "
+                    "file for UAE in \"Config -> Amiga UAE..\""));
             return false;
         }
 
         if (m_dh0Path.isEmpty()) {
             QMessageBox::critical(
                 nullptr, QStringLiteral("No hard drive path selected"),
-                QStringLiteral("In order to run Amiga executables you need to select the directory use "
-                               "for the hard drive in \"Config -> Amiga UAE..\""));
+                QStringLiteral(
+                    "In order to run Amiga executables you need to select "
+                    "the directory use "
+                    "for the hard drive in \"Config -> Amiga UAE..\""));
             return false;
         }
 
-        // If we aren't going to copy file we have to make sure the path to the file is located in the output
-        // hdd directory
+        // If we aren't going to copy file we have to make sure the path to the
+        // file is located in the output hdd directory
 
         if (!m_copyFiles) {
             if (m_localExeToRun.indexOf(m_dh0Path) != 0) {
                 QMessageBox::critical(
                     nullptr, QStringLiteral("Executable not peresent in path"),
                     QStringLiteral(
-                        "The executable you are trying to run isn't present in the HDD path."
-                        "Either select correct path or the 'Copy files' option in \"Config -> Amiga UAE..\""));
+                        "The executable you are trying to run isn't present "
+                        "in the HDD path."
+                        "Either select correct path or the 'Copy files' "
+                        "option in \"Config -> Amiga UAE..\""));
                 return false;
             }
         } else {
@@ -224,7 +233,8 @@ bool AmigaUAE::validateSettings()
         m_tempDir = new QTemporaryDir();
         m_dh0Path = m_tempDir->path();
 
-        m_config = generateUAEConfig(m_tempDir->path(), m_romPath, m_configMode);
+        m_config =
+            generateUAEConfig(m_tempDir->path(), m_romPath, m_configMode);
         bool copyRes = copyExecutable(m_dh0Path, m_localExeToRun);
 
         if (m_config.isEmpty() || !copyRes) {
@@ -239,15 +249,16 @@ bool AmigaUAE::validateSettings()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void AmigaUAE::launchUAE()
-{
+void AmigaUAE::launchUAE() {
     QStringList args;
 
     m_running = false;
 
     connect(m_uaeProcess, &QProcess::started, this, &AmigaUAE::started);
-    connect(m_uaeProcess, &QProcess::errorOccurred, this, &AmigaUAE::errorOccurred);
-    connect(m_uaeProcess, &QProcess::readyReadStandardOutput, this, &AmigaUAE::printOutput);
+    connect(m_uaeProcess, &QProcess::errorOccurred, this,
+            &AmigaUAE::errorOccurred);
+    connect(m_uaeProcess, &QProcess::readyReadStandardOutput, this,
+            &AmigaUAE::printOutput);
 
     printf("launchUae\n");
 
@@ -266,8 +277,7 @@ void AmigaUAE::launchUAE()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void AmigaUAE::printOutput()
-{
+void AmigaUAE::printOutput() {
     printf("printOutput\n");
 
     qDebug() << "UAE output " << m_uaeProcess->readAllStandardOutput();
@@ -275,23 +285,20 @@ void AmigaUAE::printOutput()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void AmigaUAE::started()
-{
+void AmigaUAE::started() {
     m_running = true;
     printf("started uae ok!\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void AmigaUAE::errorOccurred(QProcess::ProcessError error)
-{
+void AmigaUAE::errorOccurred(QProcess::ProcessError error) {
     (void)error;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void AmigaUAE::writeSettings()
-{
+void AmigaUAE::writeSettings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
     settings.beginGroup(QStringLiteral("AmigaUAEExePath"));
     settings.setValue(QStringLiteral("amigaExePath"), m_amigaExePath);
@@ -300,8 +307,7 @@ void AmigaUAE::writeSettings()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void AmigaUAE::readSettings()
-{
+void AmigaUAE::readSettings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
 
     settings.beginGroup(QStringLiteral("AmigaUAEConfig"));
@@ -312,7 +318,9 @@ void AmigaUAE::readSettings()
     m_romPath = settings.value(QStringLiteral("romPath")).toString();
     m_copyFiles = settings.value(QStringLiteral("copyFilesToHDD")).toBool();
     m_skipUAELaunch = settings.value(QStringLiteral("skipUAELaunch")).toBool();
-    m_configMode = (AmigaUAEConfig::ConfigMode)settings.value(QStringLiteral("configMode")).toInt();
+    m_configMode =
+        (AmigaUAEConfig::ConfigMode)settings.value(QStringLiteral("configMode"))
+            .toInt();
     settings.endGroup();
 
     settings.beginGroup(QStringLiteral("AmigaUAEExePath"));
@@ -323,4 +331,4 @@ void AmigaUAE::readSettings()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-}
+}  // namespace prodbg

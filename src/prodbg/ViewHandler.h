@@ -13,20 +13,19 @@ class View;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class ViewHandler : public QObject
-{
+class ViewHandler : public QObject {
     Q_OBJECT;
-public:
+
+   public:
     ViewHandler(QObject* parent);
     ~ViewHandler();
 
     void addView(View* view);
     void readSettings(QMainWindow* mainWindow);
 
-    //Q_SLOT void closeView(QObject* object);
+    // Q_SLOT void closeView(QObject* object);
 
-private:
-
+   private:
     void writeSettings();
 
     QVector<View*> m_views;
@@ -34,4 +33,4 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-}
+}  // namespace prodbg

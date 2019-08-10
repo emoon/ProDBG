@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,14 +28,18 @@ struct PUWidget {
 
 struct PUPushButton {
     void (*show)(void* self_c);
-    void (*connect_released)(void* object, void* user_data, void (*callback)(void* self_c));
+    void (*connect_released)(void* object,
+                             void* user_data,
+                             void (*callback)(void* self_c));
     void (*set_text)(void* self_c, const char* text);
     void (*set_flat)(void* self_c, bool flat);
     void* priv_data;
 };
 
 struct PUSlider {
-    void (*connect_value_changed)(void* object, void* user_data, void (*callback)(void* self_c, int value));
+    void (*connect_value_changed)(void* object,
+                                  void* user_data,
+                                  void (*callback)(void* self_c, int value));
     void* priv_data;
 };
 
@@ -44,7 +48,7 @@ struct PUPainter {
     void* priv_data;
 };
 
-typedef struct PU { 
+typedef struct PU {
     struct PUWidget* (*create_widget)(void* self);
     struct PUPushButton* (*create_push_button)(void* self);
     struct PUSlider* (*create_slider)(void* self);

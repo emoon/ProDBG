@@ -1,19 +1,17 @@
 #include "CodeViews.h"
-#include "BreakpointModel.h"
-#include "CodeView/CodeView.h"
-#include "CodeView/DisassemblyView.h"
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
 #include <QtCore/QSettings>
+#include "BreakpointModel.h"
+#include "CodeView/CodeView.h"
+#include "CodeView/DisassemblyView.h"
 
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CodeViews::CodeViews(BreakpointModel* breakpoints, QWidget* parent)
-    : QTabWidget(parent)
-    , m_breakpoints(breakpoints)
-{
+    : QTabWidget(parent), m_breakpoints(breakpoints) {
     setTabsClosable(true);
     m_disassemblyView = new DisassemblyView(nullptr);
     m_disassemblyView->setBreakpointModel(breakpoints);
@@ -24,16 +22,13 @@ CodeViews::CodeViews(BreakpointModel* breakpoints, QWidget* parent)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CodeViews::~CodeViews()
-{
+CodeViews::~CodeViews() {
     writeSettings();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::toggleBreakpoint()
-{
-
+void CodeViews::toggleBreakpoint() {
     const int index = currentIndex();
 
     if (index == 0 && tabText(0).indexOf(QStringLiteral("Disassembly")) == 0) {
@@ -45,7 +40,8 @@ void CodeViews::toggleBreakpoint()
         const QString& filename = tabToolTip(index);
 
         int line = view->getCurrentLine();
-        bool added = m_breakpoints->toggleFileLineBreakpoint(filename, line + 1);
+        bool added =
+            m_breakpoints->toggleFileLineBreakpoint(filename, line + 1);
 
         if (m_interface) {
             if (added) {
@@ -61,8 +57,7 @@ void CodeViews::toggleBreakpoint()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::sessionEnded()
-{
+void CodeViews::sessionEnded() {
     for (int i = 0, c = count(); i < c; ++i) {
         if (tabText(i).indexOf(QStringLiteral("Disassembly")) == 0) {
             continue;
@@ -77,8 +72,7 @@ void CodeViews::sessionEnded()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::openFile(const QString& filename, bool setActive)
-{
+void CodeViews::openFile(const QString& filename, bool setActive) {
     QFileInfo info(filename);
 
     CodeView* codeView = new CodeView;
@@ -96,8 +90,7 @@ void CodeViews::openFile(const QString& filename, bool setActive)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::reloadCurrentFile()
-{
+void CodeViews::reloadCurrentFile() {
     const int index = currentIndex();
 
     if (tabText(index).indexOf(QStringLiteral("Disassembly")) == 0) {
@@ -112,12 +105,12 @@ void CodeViews::reloadCurrentFile()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::programCounterChanged(const IBackendRequests::ProgramCounterChange& pc)
-{
+void CodeViews::programCounterChanged(
+    const IBackendRequests::ProgramCounterChange& pc) {
     m_disassemblyView->updatePc(pc.programCounter);
 
-
-    // No source/line for the PC so toggle to disassmbly mode if we already aren't there
+    // No source/line for the PC so toggle to disassmbly mode if we already
+    // aren't there
 
     if (pc.line == -1) {
         if (m_mode == SourceView) {
@@ -161,23 +154,24 @@ void CodeViews::programCounterChanged(const IBackendRequests::ProgramCounterChan
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::setBackendInterface(IBackendRequests* iface)
-{
+void CodeViews::setBackendInterface(IBackendRequests* iface) {
     m_interface = iface;
 
     m_disassemblyView->setBackendInterface(iface);
 
     if (iface) {
-        connect(m_interface, &IBackendRequests::programCounterChanged, this, &CodeViews::programCounterChanged);
-        connect(m_interface, &IBackendRequests::sessionEnded, this, &CodeViews::sessionEnded);
+        connect(m_interface, &IBackendRequests::programCounterChanged, this,
+                &CodeViews::programCounterChanged);
+        connect(m_interface, &IBackendRequests::sessionEnded, this,
+                &CodeViews::sessionEnded);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Toggles to the disassembly view. This view is (right now) always placed to the left most of the tabs
+// Toggles to the disassembly view. This view is (right now) always placed to
+// the left most of the tabs
 
-void CodeViews::toggleSourceAsm()
-{
+void CodeViews::toggleSourceAsm() {
     if (m_mode == SourceView) {
         setDisassemblyMode();
     } else {
@@ -187,14 +181,14 @@ void CodeViews::toggleSourceAsm()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::setDisassemblyMode()
-{
+void CodeViews::setDisassemblyMode() {
     const int tabsCount = count();
 
     if (tabsCount == 0) {
         addTab(m_disassemblyView, QStringLiteral("Disassembly"));
     } else {
-        // Check if the first tab is disassembly, if not insert it at that position
+        // Check if the first tab is disassembly, if not insert it at that
+        // position
         if (tabText(0).indexOf(QStringLiteral("Disassembly")) != 0) {
             insertTab(0, m_disassemblyView, QStringLiteral("Disassembly"));
         }
@@ -209,8 +203,7 @@ void CodeViews::setDisassemblyMode()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::setSourceMode()
-{
+void CodeViews::setSourceMode() {
     const int tabsCount = count();
 
     if (m_oldIndex <= tabsCount) {
@@ -222,15 +215,13 @@ void CodeViews::setSourceMode()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::closeTab(int index)
-{
+void CodeViews::closeTab(int index) {
     removeTab(index);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::readSettings()
-{
+void CodeViews::readSettings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
     settings.beginGroup(QStringLiteral("CodeViews"));
 
@@ -238,7 +229,8 @@ void CodeViews::readSettings()
 
     for (int i = 0; i < size; ++i) {
         settings.setArrayIndex(i);
-        QString filename = settings.value(QStringLiteral("sourceFile")).toString();
+        QString filename =
+            settings.value(QStringLiteral("sourceFile")).toString();
         openFile(filename, false);
     }
 
@@ -248,8 +240,7 @@ void CodeViews::readSettings()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::writeSettings()
-{
+void CodeViews::writeSettings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
     settings.beginGroup(QStringLiteral("CodeViews"));
     settings.beginWriteArray(QStringLiteral("sourceFiles"));
@@ -274,4 +265,4 @@ void CodeViews::writeSettings()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-}
+}  // namespace prodbg

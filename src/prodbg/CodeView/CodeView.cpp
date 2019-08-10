@@ -1,15 +1,15 @@
 #include "CodeView.h"
-#include "Backend/IBackendRequests.h"
-#include "BreakpointModel.h"
 #include <QtCore/QDebug>
 #include <QtCore/QFileSystemWatcher>
 #include <QtCore/QSettings>
-#include <QtGui/QTextBlock>
 #include <QtCore/QTextStream>
 #include <QtGui/QPainter>
+#include <QtGui/QTextBlock>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
+#include "Backend/IBackendRequests.h"
+#include "BreakpointModel.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -17,45 +17,48 @@ namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class LineNumberArea : public QWidget
-{
-public:
-    LineNumberArea(CodeView* editor)
-        : QWidget(editor)
-        , m_codeEditor(editor)
-    {
+class LineNumberArea : public QWidget {
+   public:
+    LineNumberArea(CodeView* editor) : QWidget(editor), m_codeEditor(editor) {}
+
+    QSize sizeHint() const {
+        return QSize(m_codeEditor->lineNumberAreaWidth(), 0);
     }
 
-    QSize sizeHint() const { return QSize(m_codeEditor->lineNumberAreaWidth(), 0); }
+   protected:
+    void paintEvent(QPaintEvent* event) {
+        m_codeEditor->lineNumberAreaPaintEvent(event);
+    }
 
-protected:
-    void paintEvent(QPaintEvent* event) { m_codeEditor->lineNumberAreaPaintEvent(event); }
-
-private:
+   private:
     CodeView* m_codeEditor;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CodeView::CodeView(QWidget* parent)
-    : QPlainTextEdit(parent)
-    , m_lineNumberArea(nullptr)
-    , m_fileWatcher(nullptr)
-    , m_disassemblyStart(0)
-    , m_disassemblyEnd(0)
-{
+    : QPlainTextEdit(parent),
+      m_lineNumberArea(nullptr),
+      m_fileWatcher(nullptr),
+      m_disassemblyStart(0),
+      m_disassemblyEnd(0) {
     setReadOnly(true);
-    setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
+    setTextInteractionFlags(Qt::TextSelectableByMouse |
+                            Qt::TextSelectableByKeyboard);
 
     setLineWrapMode(QPlainTextEdit::NoWrap);
 
     m_lineNumberArea = new LineNumberArea(this);
     m_fileWatcher = new QFileSystemWatcher(this);
 
-    connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth(int)));
-    connect(this, SIGNAL(updateRequest(const QRect&, int)), this, SLOT(updateLineNumberArea(const QRect&, int)));
-    connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
-    connect(m_fileWatcher, SIGNAL(fileChanged(const QString&)), this, SLOT(fileChange(const QString)));
+    connect(this, SIGNAL(blockCountChanged(int)), this,
+            SLOT(updateLineNumberAreaWidth(int)));
+    connect(this, SIGNAL(updateRequest(const QRect&, int)), this,
+            SLOT(updateLineNumberArea(const QRect&, int)));
+    connect(this, SIGNAL(cursorPositionChanged()), this,
+            SLOT(highlightCurrentLine()));
+    connect(m_fileWatcher, SIGNAL(fileChanged(const QString&)), this,
+            SLOT(fileChange(const QString)));
 
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
@@ -75,17 +78,16 @@ CodeView::CodeView(QWidget* parent)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CodeView::~CodeView()
-{
+CodeView::~CodeView() {
     writeSettings();
     delete m_fileWatcher;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::openFile()
-{
-    QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("Open Source File"));
+void CodeView::openFile() {
+    QString path = QFileDialog::getOpenFileName(
+        nullptr, QStringLiteral("Open Source File"));
 
     if (path.isEmpty()) {
         return;
@@ -96,8 +98,7 @@ void CodeView::openFile()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::reload()
-{
+void CodeView::reload() {
     int currentLine = getCurrentLine();
     readSourceFile(m_sourceFile);
     setLine(currentLine);
@@ -105,13 +106,13 @@ void CodeView::reload()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::fileChange(const QString filename)
-{
+void CodeView::fileChange(const QString filename) {
     QMessageBox::StandardButton reply;
 
-    reply = QMessageBox::question(this, QStringLiteral("File has been changed"),
-                                  QStringLiteral("File %1 was changed, Reload?").arg(filename),
-                                  QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+    reply = QMessageBox::question(
+        this, QStringLiteral("File has been changed"),
+        QStringLiteral("File %1 was changed, Reload?").arg(filename),
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
     if (reply != QMessageBox::Yes)
         return;
@@ -129,16 +130,17 @@ void CodeView::fileChange(const QString filename)
 
     setLine(currentLine);
 
-    // BUG: We need to readd the file here as it seems the watcher thinks it has been deleted (even if just changed)
-    //      so we only get one notification of a change so when doing a re-add here we get correct notifications again
+    // BUG: We need to readd the file here as it seems the watcher thinks it has
+    // been deleted (even if just changed)
+    //      so we only get one notification of a change so when doing a re-add
+    //      here we get correct notifications again
 
     m_fileWatcher->addPath(filename);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int CodeView::lineNumberAreaWidth()
-{
+int CodeView::lineNumberAreaWidth() {
     int digits = 1;
     if (m_mode == Disassembly) {
         digits = m_addressWidth * 2;
@@ -159,19 +161,18 @@ int CodeView::lineNumberAreaWidth()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::updateLineNumberAreaWidth(int)
-{
+void CodeView::updateLineNumberAreaWidth(int) {
     setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::updateLineNumberArea(const QRect& rect, int dy)
-{
+void CodeView::updateLineNumberArea(const QRect& rect, int dy) {
     if (dy)
         m_lineNumberArea->scroll(0, dy);
     else
-        m_lineNumberArea->update(0, rect.y(), m_lineNumberArea->width(), rect.height());
+        m_lineNumberArea->update(0, rect.y(), m_lineNumberArea->width(),
+                                 rect.height());
 
     if (rect.contains(viewport()->rect()))
         updateLineNumberAreaWidth(0);
@@ -179,18 +180,17 @@ void CodeView::updateLineNumberArea(const QRect& rect, int dy)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::resizeEvent(QResizeEvent* e)
-{
+void CodeView::resizeEvent(QResizeEvent* e) {
     QPlainTextEdit::resizeEvent(e);
 
     QRect cr = contentsRect();
-    m_lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
+    m_lineNumberArea->setGeometry(
+        QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::highlightCurrentLine()
-{
+void CodeView::highlightCurrentLine() {
     QList<QTextEdit::ExtraSelection> extraSelections;
 
     QTextEdit::ExtraSelection selection;
@@ -213,8 +213,7 @@ void CodeView::highlightCurrentLine()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
-{
+void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event) {
     QPalette pal = QApplication::palette();
 
 #ifdef _WIN32
@@ -230,7 +229,8 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
 
     QTextBlock block = firstVisibleBlock();
     int blockNumber = block.blockNumber();
-    int top = (int)blockBoundingGeometry(block).translated(contentOffset()).top();
+    int top =
+        (int)blockBoundingGeometry(block).translated(contentOffset()).top();
     int bottom = top + (int)blockBoundingRect(block).height();
     int width = m_lineNumberArea->width() - 4;
     int height = fontMetrics().height();
@@ -244,7 +244,8 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
 
             painter.drawText(0, top, width, height, Qt::AlignRight, number);
 
-            if (m_breakpoints->hasBreakpointFileLine(m_sourceFile, blockNumber + 1)) {
+            if (m_breakpoints->hasBreakpointFileLine(m_sourceFile,
+                                                     blockNumber + 1)) {
                 painter.setBrush(Qt::red);
                 painter.drawEllipse(4, top, fontHeight, fontHeight);
             }
@@ -283,15 +284,13 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::step()
-{
+void CodeView::step() {
     // g_debugSession->callAction(PDAction_step);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::setMode(Mode mode)
-{
+void CodeView::setMode(Mode mode) {
     m_mode = mode;
 
     switch (mode) {
@@ -300,7 +299,6 @@ void CodeView::setMode(Mode mode)
             break;
 
         case Disassembly: {
-
             break;
         }
     }
@@ -308,8 +306,7 @@ void CodeView::setMode(Mode mode)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::updateDisassemblyCursor()
-{
+void CodeView::updateDisassemblyCursor() {
     if (m_mode != Disassembly) {
         return;
     }
@@ -327,8 +324,7 @@ void CodeView::updateDisassemblyCursor()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::toggleDisassembly()
-{
+void CodeView::toggleDisassembly() {
     m_mode = Disassembly;
     // programCounterChanged(m_currentPc);
     setPlainText(m_disassemblyText);
@@ -337,8 +333,7 @@ void CodeView::toggleDisassembly()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::toggleSourceFile()
-{
+void CodeView::toggleSourceFile() {
     m_mode = Sourcefile;
     setCenterOnScroll(false);
     setPlainText(m_sourceCodeData);
@@ -369,8 +364,7 @@ void CodeView::keyPressEvent(QKeyEvent* event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::initDefaultSourceFile(const QString& filename)
-{
+void CodeView::initDefaultSourceFile(const QString& filename) {
     m_sourceFile = filename;
     readSourceFile(m_sourceFile);
     toggleSourceFile();
@@ -378,8 +372,7 @@ void CodeView::initDefaultSourceFile(const QString& filename)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::readSourceFile(const QString& filename)
-{
+void CodeView::readSourceFile(const QString& filename) {
     QFile f(filename);
 
     if (!f.exists())
@@ -405,8 +398,7 @@ void CodeView::readSourceFile(const QString& filename)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int CodeView::getCurrentLine()
-{
+int CodeView::getCurrentLine() {
     QTextCursor cursor = textCursor();
     int line = cursor.block().blockNumber();
 
@@ -415,7 +407,8 @@ int CodeView::getCurrentLine()
     /*
 
     // + 1 due to 1 indexed
-    bool added = m_breakpoints->toggleFileLineBreakpoint(m_sourceFile, line + 1);
+    bool added = m_breakpoints->toggleFileLineBreakpoint(m_sourceFile, line +
+    1);
 
     if (added) {
         m_interface->beginAddFileLineBreakpoint(m_sourceFile, line);
@@ -429,8 +422,7 @@ int CodeView::getCurrentLine()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::setLine(int line)
-{
+void CodeView::setLine(int line) {
     const QTextBlock& block = document()->findBlockByNumber(line - 1);
     QTextCursor cursor(block);
     cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, 0);
@@ -441,8 +433,7 @@ void CodeView::setLine(int line)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::setBreakpointModel(BreakpointModel* breakpoints)
-{
+void CodeView::setBreakpointModel(BreakpointModel* breakpoints) {
     m_breakpoints = breakpoints;
 }
 
@@ -457,31 +448,31 @@ void CodeView::setBackendInterface(IBackendRequests* iface)
         return;
     }
 
-    connect(m_interface, &IBackendRequests::endDisassembly, this, &CodeView::endDisassembly);
-    connect(m_interface, &IBackendRequests::programCounterChanged, this, &CodeView::programCounterChanged);
-    connect(m_interface, &IBackendRequests::sourceFileLineChanged, this, &CodeView::sourceFileLineChanged);
+    connect(m_interface, &IBackendRequests::endDisassembly, this,
+&CodeView::endDisassembly); connect(m_interface,
+&IBackendRequests::programCounterChanged, this,
+&CodeView::programCounterChanged); connect(m_interface,
+&IBackendRequests::sourceFileLineChanged, this,
+&CodeView::sourceFileLineChanged);
 }
 */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::sessionEnded()
-{
+void CodeView::sessionEnded() {
     m_currentSourceLine = -1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::setExceptionLine(int line)
-{
+void CodeView::setExceptionLine(int line) {
     m_currentSourceLine = line;
     setLine(line);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::setFileLine(const QString& file, int line)
-{
+void CodeView::setFileLine(const QString& file, int line) {
     if (file != m_sourceFile) {
         readSourceFile(file);
     }
@@ -495,8 +486,7 @@ void CodeView::setFileLine(const QString& file, int line)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::readSettings()
-{
+void CodeView::readSettings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
     settings.beginGroup(QStringLiteral("CodeView"));
     m_sourceFile = settings.value(QStringLiteral("Sourcefile")).toString();
@@ -505,8 +495,7 @@ void CodeView::readSettings()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::writeSettings()
-{
+void CodeView::writeSettings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
     settings.beginGroup(QStringLiteral("CodeView"));
     settings.setValue(QStringLiteral("Sourcefile"), m_sourceFile);
@@ -514,4 +503,4 @@ void CodeView::writeSettings()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-}
+}  // namespace prodbg

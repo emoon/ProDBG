@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Backend/IBackendRequests.h"
 #include <QtCore/QPointer>
 #include <QtWidgets/QTabWidget>
+#include "Backend/IBackendRequests.h"
 
 namespace prodbg {
 
@@ -12,9 +12,8 @@ class DisassemblyView;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class CodeViews : public QTabWidget
-{
-public:
+class CodeViews : public QTabWidget {
+   public:
     CodeViews(BreakpointModel* breakpoints, QWidget* parent = 0);
     virtual ~CodeViews();
     void setBreakpointModel(BreakpointModel* breakpoints);
@@ -24,15 +23,15 @@ public:
     void openFile(const QString& filename, bool setActive);
     void setBackendInterface(IBackendRequests* iface);
 
-    Q_SLOT void programCounterChanged(const IBackendRequests::ProgramCounterChange& pc);
+    Q_SLOT void programCounterChanged(
+        const IBackendRequests::ProgramCounterChange& pc);
     Q_SLOT void sessionEnded();
     Q_SLOT void toggleSourceAsm();
 
-private:
+   private:
     Q_SLOT void closeTab(int index);
 
-    enum Mode
-    {
+    enum Mode {
         SourceView,
         Disassembly,
     };
@@ -46,8 +45,8 @@ private:
     Mode m_mode = SourceView;
     int m_oldIndex = 0;
 
-    // If we get a PC with no source we will auto-switch to disassembly but if we are in disassembly
-    // and get source/line again we switch back
+    // If we get a PC with no source we will auto-switch to disassembly but if
+    // we are in disassembly and get source/line again we switch back
     bool m_wasInSourceView = false;
 
     DisassemblyView* m_disassemblyView = nullptr;
@@ -58,10 +57,9 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-inline void CodeViews::setBreakpointModel(BreakpointModel* breakpoints)
-{
+inline void CodeViews::setBreakpointModel(BreakpointModel* breakpoints) {
     m_breakpoints = breakpoints;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-}
+}  // namespace prodbg

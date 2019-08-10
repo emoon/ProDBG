@@ -1,17 +1,15 @@
 #include "RegisterView.h"
+#include <stdint.h>
+#include <QtCore/QDebug>
 #include "Backend/IBackendRequests.h"
 #include "ui_RegisterView.h"
-#include <QtCore/QDebug>
-#include <stdint.h>
 
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 RegisterView::RegisterView(QWidget* parent)
-    : View(parent)
-    , m_ui(new Ui_RegisterView)
-{
+    : View(parent), m_ui(new Ui_RegisterView) {
     m_ui->setupUi(this);
 
 #ifdef _WIN32
@@ -28,46 +26,44 @@ RegisterView::RegisterView(QWidget* parent)
     m_ui->m_registers->verticalHeader()->setVisible(false);
     m_ui->m_registers->setShowGrid(false);
     m_ui->m_registers->setFont(font);
-    m_ui->m_registers->setStyleSheet(QStringLiteral("QTableWidget::item { padding: 0px }"));
-    m_ui->m_registers->verticalHeader()->setDefaultSectionSize(m_ui->m_registers->fontMetrics().height() + 2);
+    m_ui->m_registers->setStyleSheet(
+        QStringLiteral("QTableWidget::item { padding: 0px }"));
+    m_ui->m_registers->verticalHeader()->setDefaultSectionSize(
+        m_ui->m_registers->fontMetrics().height() + 2);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-RegisterView::~RegisterView()
-{
+RegisterView::~RegisterView() {
     delete m_ui;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static uint16_t getU16(uint8_t* ptr)
-{
+static uint16_t getU16(uint8_t* ptr) {
     uint16_t v = (ptr[0] << 8) | ptr[1];
     return v;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static uint32_t getU32(uint8_t* ptr)
-{
+static uint32_t getU32(uint8_t* ptr) {
     uint32_t v = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3];
     return v;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static uint64_t getU64(uint8_t* ptr)
-{
-    uint64_t v = ((uint64_t)ptr[0] << 56) | ((uint64_t)ptr[1] << 48) | ((uint64_t)ptr[2] << 40) |
-                 ((uint64_t)ptr[3] << 32) | (ptr[4] << 24) | (ptr[5] << 16) | (ptr[6] << 8) | ptr[7];
+static uint64_t getU64(uint8_t* ptr) {
+    uint64_t v = ((uint64_t)ptr[0] << 56) | ((uint64_t)ptr[1] << 48) |
+                 ((uint64_t)ptr[2] << 40) | ((uint64_t)ptr[3] << 32) |
+                 (ptr[4] << 24) | (ptr[5] << 16) | (ptr[6] << 8) | ptr[7];
     return v;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static QString getRegisterValue(IBackendRequests::Register* reg)
-{
+static QString getRegisterValue(IBackendRequests::Register* reg) {
     QString regText;
 
     // This code is somewhat temporary but should be good initially
@@ -104,8 +100,7 @@ static QString getRegisterValue(IBackendRequests::Register* reg)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QTableWidgetItem* buildRegisterValue(IBackendRequests::Register* reg)
-{
+QTableWidgetItem* buildRegisterValue(IBackendRequests::Register* reg) {
     QString regText = getRegisterValue(reg);
 
     QTableWidgetItem* item = new QTableWidgetItem(regText);
@@ -116,8 +111,8 @@ QTableWidgetItem* buildRegisterValue(IBackendRequests::Register* reg)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RegisterView::endReadRegisters(QVector<IBackendRequests::Register>* registers)
-{
+void RegisterView::endReadRegisters(
+    QVector<IBackendRequests::Register>* registers) {
     int i = 0;
 
     // TODO: Rewrite using QTableView/QAbstractItemModel
@@ -165,33 +160,30 @@ void RegisterView::endReadRegisters(QVector<IBackendRequests::Register>* registe
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RegisterView::programCounterChanged(const IBackendRequests::ProgramCounterChange& pc)
-{
+void RegisterView::programCounterChanged(
+    const IBackendRequests::ProgramCounterChange& pc) {
     m_interface->beginReadRegisters(&m_targetRegisters);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RegisterView::interfaceSet()
-{
+void RegisterView::interfaceSet() {
     if (m_interface) {
-        connect(m_interface, &IBackendRequests::programCounterChanged, this, &RegisterView::programCounterChanged);
-        connect(m_interface, &IBackendRequests::endReadRegisters, this, &RegisterView::endReadRegisters);
+        connect(m_interface, &IBackendRequests::programCounterChanged, this,
+                &RegisterView::programCounterChanged);
+        connect(m_interface, &IBackendRequests::endReadRegisters, this,
+                &RegisterView::endReadRegisters);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RegisterView::readSettings()
-{
-}
+void RegisterView::readSettings() {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RegisterView::writeSettings()
-{
-}
+void RegisterView::writeSettings() {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-}
+}  // namespace prodbg

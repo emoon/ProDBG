@@ -9,8 +9,7 @@ namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct Plugin
-{
+struct Plugin {
     void* data;
     const char* type;
 };
@@ -23,4 +22,4 @@ Plugin* PluginHandler_getPlugins(int* count);
 PDBackendPlugin* PluginHandler_findBackendPlugin(const char* name);
 QWidget* PluginHandler_tempLoadUIPlugin(QWidget* parent, const QString& plugin);
 
-}
+}  // namespace prodbg

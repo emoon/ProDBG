@@ -1,9 +1,9 @@
-#include "c_api.h"
 #include "qt_api_gen.h"
-#include <QtWidgets/QWidget>
+#include <QtGui/QPainter>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSlider>
-#include <QtGui/QPainter>
+#include <QtWidgets/QWidget>
+#include "c_api.h"
 
 struct PrivData {
     QWidget* parent;
@@ -26,8 +26,11 @@ static void push_button_show(void* self_c) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void connect_push_button_released(void* object, void* user_data, void (*callback)(void* self_c)) {
-    QSlotWrapperSignal_self_void* wrap = new QSlotWrapperSignal_self_void(user_data, (Signal_self_void)callback);
+static void connect_push_button_released(void* object,
+                                         void* user_data,
+                                         void (*callback)(void* self_c)) {
+    QSlotWrapperSignal_self_void* wrap =
+        new QSlotWrapperSignal_self_void(user_data, (Signal_self_void)callback);
     QObject* q_obj = (QObject*)object;
     QObject::connect(q_obj, SIGNAL(released()), wrap, SLOT(method()));
 }
@@ -48,8 +51,13 @@ static void push_button_set_flat(void* self_c, bool flat) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void connect_slider_value_changed(void* object, void* user_data, void (*callback)(void* self_c, int value)) {
-    QSlotWrapperSignal_self_i32_void* wrap = new QSlotWrapperSignal_self_i32_void(user_data, (Signal_self_i32_void)callback);
+static void connect_slider_value_changed(void* object,
+                                         void* user_data,
+                                         void (*callback)(void* self_c,
+                                                          int value)) {
+    QSlotWrapperSignal_self_i32_void* wrap =
+        new QSlotWrapperSignal_self_i32_void(user_data,
+                                             (Signal_self_i32_void)callback);
     QObject* q_obj = (QObject*)object;
     QObject::connect(q_obj, SIGNAL(valueChanged(int)), wrap, SLOT(method(int)));
 }
@@ -94,7 +102,8 @@ static struct PUPainter s_painter = {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template<typename T, typename QT> T* create_func(T* struct_data, void* priv_data) {
+template <typename T, typename QT>
+T* create_func(T* struct_data, void* priv_data) {
     PrivData* data = (PrivData*)priv_data;
     QT* qt_obj = new QT(data->parent);
     T* ctl = new T;
@@ -111,7 +120,8 @@ static struct PUWidget* create_widget(void* priv_data) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static struct PUPushButton* create_push_button(void* priv_data) {
-    return create_func<struct PUPushButton, QPushButton>(&s_push_button, priv_data);
+    return create_func<struct PUPushButton, QPushButton>(&s_push_button,
+                                                         priv_data);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -131,7 +141,6 @@ static struct PU s_pu = {
     create_painter,
 };
 
-
 struct PU* PU_create_instance(void* user_data, QWidget* parent) {
     struct PU* instance = new PU;
     memcpy(instance, &s_pu, sizeof(PU));
@@ -141,4 +150,3 @@ struct PU* PU_create_instance(void* user_data, QWidget* parent) {
     instance->priv_data = priv_data;
     return instance;
 }
-

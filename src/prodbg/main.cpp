@@ -1,19 +1,18 @@
-#include "Core/PluginHandler.h"
-#include "MainWindow.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
 #include <QtCore/QResource>
 #include <QtCore/QTextStream>
-#include <QtWidgets/QStyleFactory>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QStyleFactory>
 #include <QtWidgets/QTextEdit>
+#include "Core/PluginHandler.h"
+#include "MainWindow.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main(int argc, const char** argv)
-{
+int main(int argc, const char** argv) {
     QApplication app(argc, (char**)argv);
 
     QCoreApplication::setOrganizationName(QStringLiteral("TBL"));
@@ -23,14 +22,14 @@ int main(int argc, const char** argv)
     app.setStyle(QStyleFactory::create(QStringLiteral("Fusion")));
 
     QPalette darkPalette;
-    darkPalette.setColor(QPalette::Window, QColor(53,53,53));
-    darkPalette.setColor(QPalette::WindowText, QColor(170,170,170));
-    darkPalette.setColor(QPalette::Text, QColor(170,170,170));
-    darkPalette.setColor(QPalette::Base, QColor(25,25,25));
-    darkPalette.setColor(QPalette::AlternateBase, QColor(53,53,53));
+    darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));
+    darkPalette.setColor(QPalette::WindowText, QColor(170, 170, 170));
+    darkPalette.setColor(QPalette::Text, QColor(170, 170, 170));
+    darkPalette.setColor(QPalette::Base, QColor(25, 25, 25));
+    darkPalette.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
     darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
     darkPalette.setColor(QPalette::ToolTipText, Qt::white);
-    darkPalette.setColor(QPalette::Button, QColor(53,53,53));
+    darkPalette.setColor(QPalette::Button, QColor(53, 53, 53));
     darkPalette.setColor(QPalette::ButtonText, Qt::white);
     darkPalette.setColor(QPalette::BrightText, Qt::red);
     darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
