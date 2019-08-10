@@ -3,7 +3,7 @@
 #include "Backend/IBackendRequests.h"
 #include <QtCore/QDebug>
 #include <QtCore/QMetaEnum>
-#include <QSettings>
+#include <QtCore/QSettings>
 
 namespace prodbg {
 
@@ -125,7 +125,7 @@ void MemoryView::countChanged(const QString& text)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
 void MemoryView::readSettings()
 {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));

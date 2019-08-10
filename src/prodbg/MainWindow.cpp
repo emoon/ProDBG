@@ -15,13 +15,13 @@
 #include "PluginUI/PluginUI_internal.h"
 #include "Core/PluginHandler.h"
 
-#include <QDebug>
-#include <QFileDialog>
-#include <QMainWindow>
-#include <QThread>
-#include <QTimer>
+#include <QtCore/QDebug>
 #include <QtCore/QSettings>
+#include <QtCore/QThread>
+#include <QtCore/QTimer>
 #include <QtWidgets/QDockWidget>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMainWindow>
 
 namespace prodbg {
 

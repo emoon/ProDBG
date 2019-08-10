@@ -25,15 +25,15 @@
 #ifndef TOOLWINDOWMANAGER_H
 #define TOOLWINDOWMANAGER_H
 
-#include <QWidget>
-#include <QSplitter>
-#include <QTabWidget>
-#include <QTabBar>
-#include <QTimer>
-#include <QRubberBand>
-#include <QHash>
-#include <QVariant>
-#include <QLabel>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QSplitter>
+#include <QtWidgets/QTabWidget>
+#include <QtWidgets/QTabBar>
+#include <QtCore/QTimer>
+#include <QtWidgets/QRubberBand>
+#include <QtCore/QHash>
+#include <QtCore/QVariant>
+#include <QtWidgets/QLabel>
 
 #include <functional>
 
@@ -235,7 +235,7 @@ public:
    * \a toolWindow must be added to the manager prior to calling this function.
    */
   void hideToolWindow(QWidget* toolWindow) { moveToolWindow(toolWindow, NoArea); }
-  
+
   static ToolWindowManager* managerOf(QWidget* toolWindow);
   static void closeToolWindow(QWidget *toolWindow);
   static void raiseToolWindow(QWidget *toolWindow);

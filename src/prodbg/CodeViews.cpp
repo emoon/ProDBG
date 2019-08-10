@@ -2,9 +2,9 @@
 #include "BreakpointModel.h"
 #include "CodeView/CodeView.h"
 #include "CodeView/DisassemblyView.h"
-#include <QDebug>
-#include <QFileInfo>
-#include <QSettings>
+#include <QtCore/QDebug>
+#include <QtCore/QFileInfo>
+#include <QtCore/QSettings>
 
 namespace prodbg {
 

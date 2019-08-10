@@ -1,7 +1,7 @@
 #include "ViewHandler.h"
 #include "View.h"
-#include <QDebug>
-#include <QMainWindow>
+#include <QtCore/QDebug>
+#include <QtWidgets/QMainWindow>
 
 namespace prodbg {
 

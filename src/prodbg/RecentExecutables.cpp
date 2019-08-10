@@ -1,7 +1,7 @@
 #include "RecentExecutables.h"
-#include <QFileInfo>
-#include <QAction>
-#include <QSettings>
+#include <QtCore/QFileInfo>
+#include <QtWidgets/QAction>
+#include <QtCore/QSettings>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

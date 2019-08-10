@@ -25,8 +25,8 @@
 #ifndef TOOLWINDOWMANAGERWRAPPER_H
 #define TOOLWINDOWMANAGERWRAPPER_H
 
-#include <QWidget>
-#include <QVariantMap>
+#include <QtWidgets/QWidget>
+#include <QtCore/QVariantMap>
 
 class ToolWindowManager;
 

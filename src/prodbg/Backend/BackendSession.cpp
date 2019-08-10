@@ -3,9 +3,9 @@
 #include "IBackendRequests.h"
 #include "Service.h"
 #include "api/src/remote/pd_readwrite_private.h"
-#include <QDebug>
-#include <QString>
-#include <QTimer>
+#include <QtCore/QDebug>
+#include <QtCore/QString>
+#include <QtCore/QTimer>
 #include <pd_backend.h>
 #include <pd_io.h>
 #include <pd_readwrite.h>

@@ -1,12 +1,11 @@
 #pragma once
 
 #include "Backend/IBackendRequests.h"
-#include <QObject>
-#include <QPlainTextEdit>
-#include <QPointer>
-#include <QString>
-#include <QPointer>
 #include <stdint.h>
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtCore/QPointer>
+#include <QtWidgets/QPlainTextEdit>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

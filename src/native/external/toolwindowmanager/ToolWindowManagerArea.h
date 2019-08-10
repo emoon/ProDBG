@@ -25,8 +25,8 @@
 #ifndef TOOLWINDOWMANAGERAREA_H
 #define TOOLWINDOWMANAGERAREA_H
 
-#include <QTabWidget>
-#include <QVariantMap>
+#include <QtWidgets/QTabWidget>
+#include <QtCore/QVariantMap>
 
 class ToolWindowManager;
 

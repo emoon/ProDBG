@@ -59,15 +59,15 @@ Program {
 
     Env = {
        CXXOPTS = {
-            { "-isystem $(QT5)/lib/QtWidgets.framework/Headers",
-              "-isystem $(QT5)/lib/QtCore.framework/Headers",
-              "-isystem $(QT5)/lib/QtGui.framework/Headers",
-              "-F$(QT5)/lib"; Config = "macosx-*-*" },
+            { "-isystem $(QT5_LIB)/lib/QtWidgets.framework/Headers",
+              "-isystem $(QT5_LIB)/lib/QtCore.framework/Headers",
+              "-isystem $(QT5_LIB)/lib/QtGui.framework/Headers",
+              "-F$(QT5_LIB)/lib"; Config = "macosx-*-*" },
 
-            { "-isystem $(QT5)/include/QtWidgets",
-              "-isystem $(QT5)/include/QtCore",
-              "-isystem $(QT5)/include/QtGui",
-              "-isystem $(QT5)/include"; Config = "linux-*-*" },
+            { "-isystem $(QT5_INC)/include/QtWidgets",
+              "-isystem $(QT5_INC)/include/QtCore",
+              "-isystem $(QT5_INC)/include/QtGui",
+              "-isystem $(QT5_INC)/include"; Config = "linux-*-*" },
         },
 
         CPPDEFS = {
@@ -77,10 +77,7 @@ Program {
         },
 
         CPPPATH = {
-            "$(QT5)/include",
-            "$(QT5)/include/QtCore",
-            "$(QT5)/include/QtGui",
-            "$(QT5)/include/QtWidgets",
+            "$(QT5_INC)",
             "src/native/external/tinyexpr",
             "src/prodbg",
         	"api/include",
@@ -90,13 +87,13 @@ Program {
         },
 
         LIBPATH = {
-			{ "$(QT5)\\lib"; Config = "win64-*-*" },
-			{ "$(QT5)/lib"; Config = "linux-*-*" },
+			{ "$(QT5_LIB)\\lib"; Config = "win64-*-*" },
+			{ "$(QT5_LIB)/lib"; Config = "linux-*-*" },
 		},
 
         PROGCOM = {
-            {  "-Wl,-rpath,$(QT5)/lib", "-F$(QT5)/lib", "-lstdc++", Config = "macosx-clang-*" },
-            {  "-Wl,-rpath,$(QT5)/lib", "-lstdc++", "-lm", Config = "linux-*-*" },
+            {  "-Wl,-rpath,$(QT5_LIB)/lib", "-F$(QT5_LIB)/lib", "-lstdc++", Config = "macosx-clang-*" },
+            {  "-Wl,-rpath,$(QT5_LIB)/lib", "-lstdc++", "-lm", Config = "linux-*-*" },
         },
     },
 

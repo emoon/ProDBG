@@ -1,10 +1,10 @@
 //#include "SharedObject.h"
 #include "PluginHandler.h"
-#include <QCoreApplication>
-#include <QDebug>
-#include <QDir>
-#include <QLibrary>
-#include <QString>
+#include <QtCore/QCoreApplication>
+#include <QtCore/QDebug>
+#include <QtCore/QDir>
+#include <QtCore/QLibrary>
+#include <QtCore/QString>
 #include <assert.h>
 #include <pd_common.h>
 #include <stdio.h>

@@ -1,7 +1,7 @@
 #include "RegisterView.h"
 #include "Backend/IBackendRequests.h"
 #include "ui_RegisterView.h"
-#include <QDebug>
+#include <QtCore/QDebug>
 #include <stdint.h>
 
 namespace prodbg {
@@ -181,7 +181,7 @@ void RegisterView::interfaceSet()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
 void RegisterView::readSettings()
 {
 }

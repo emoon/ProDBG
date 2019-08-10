@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QWidget>
-#include <QPointer>
+#include <QtWidgets/QWidget>
+#include <QtCore/QPointer>
 
 namespace prodbg {
 

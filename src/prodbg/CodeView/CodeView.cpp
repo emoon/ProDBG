@@ -1,15 +1,15 @@
 #include "CodeView.h"
 #include "Backend/IBackendRequests.h"
 #include "BreakpointModel.h"
-#include <QFileDialog>
-#include <QFileSystemWatcher>
-#include <QMessageBox>
-#include <QPainter>
-#include <QSettings>
-#include <QTextBlock>
-#include <QTextStream>
-#include <QDebug>
-#include <QApplication>
+#include <QtCore/QDebug>
+#include <QtCore/QFileSystemWatcher>
+#include <QtCore/QSettings>
+#include <QtGui/QTextBlock>
+#include <QtCore/QTextStream>
+#include <QtGui/QPainter>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

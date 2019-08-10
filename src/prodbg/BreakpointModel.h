@@ -1,7 +1,7 @@
 #pragma once
 
 // #include <QStandardItemModel>
-#include <QVector>
+#include <QtCore/QVector>
 
 namespace prodbg {
 

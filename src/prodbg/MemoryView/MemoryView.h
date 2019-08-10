@@ -2,7 +2,7 @@
 
 #include "Backend/IBackendRequests.h"
 #include "View.h"
-#include <QPointer>
+#include <QtCore/QPointer>
 #include <QtWidgets/QWidget>
 
 class Ui_MemoryView;

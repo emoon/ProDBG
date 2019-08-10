@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BackendTypes.h"
-#include <QVector>
+#include <QtCore/QVector>
 
 class QAction;
 
@@ -35,7 +35,7 @@ public:
         BackendType type;
     };
 
-private:                
+private:
 
     void setCurrentFile(const QString& filename, BackendType type);
 

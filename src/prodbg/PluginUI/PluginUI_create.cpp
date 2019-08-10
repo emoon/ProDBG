@@ -1,4 +1,4 @@
-#include <QWidget>
+#include <QtWidgets/QWidget>
 #include "PluginUI/generated/c_api.h"
 #include "PluginUI_internal.h"
 

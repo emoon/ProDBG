@@ -1,8 +1,8 @@
 #pragma once
 
-#include <QObject>
-#include <QProcess>
-#include <QString>
+#include <QtCore/QObject>
+#include <QtCore/QProcess>
+#include <QtCore/QString>
 
 #include "Config/AmigaUAEConfig.h"
 

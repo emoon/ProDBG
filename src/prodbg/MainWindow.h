@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ui_MainWindow.h"
-#include <QMainWindow>
+#include <QtWidgets/QMainWindow>
 
 class QStatusBar;
 class QThread;

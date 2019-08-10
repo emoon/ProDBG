@@ -152,23 +152,16 @@ StaticLibrary {
 
     Env = {
        CXXOPTS = {
-            { "-isystem $(QT5)/lib/QtWidgets.framework/Headers",
-              "-isystem $(QT5)/lib/QtCore.framework/Headers",
-              "-isystem $(QT5)/lib/QtGui.framework/Headers"; 
-              "-isystem $(QT5)/lib/QtGui.framework/Headers", 
+            { "-isystem $(QT5_LIB)/lib/QtWidgets.framework/Headers",
+              "-isystem $(QT5_LIB)/lib/QtCore.framework/Headers",
+              "-isystem $(QT5_LIB)/lib/QtGui.framework/Headers";
+              "-isystem $(QT5_LIB)/lib/QtGui.framework/Headers",
               "-F$(QT5)/lib"; Config = "macosx-*-*" },
-
-            { "-isystem $(QT5)/include/QtWidgets",
-              "-isystem $(QT5)/include/QtCore",
-              "-isystem $(QT5)/include/QtGui",
-              "-isystem $(QT5)/include"; Config = "linux-*-*" },
+            { "-isystem $(QT5_LIB)" ; Config = "linux-*-*" },
         },
 
         CPPPATH = {
-            "$(QT5)/include",
-            "$(QT5)/include/QtCore",
-            "$(QT5)/include/QtGui",
-            "$(QT5)/include/QtWidgets",
+            "$(QT5_INC)",
         },
     },
 

@@ -24,9 +24,9 @@
  */
 #include "ToolWindowManagerArea.h"
 #include "ToolWindowManager.h"
-#include <QApplication>
-#include <QMouseEvent>
-#include <QDebug>
+#include <QtWidgets/QApplication>
+#include <QtGui/QMouseEvent>
+#include <QtCore/QDebug>
 
 static void showCloseButton(QTabBar *bar, int index, bool show) {
   QWidget *button = bar->tabButton(index, QTabBar::RightSide);

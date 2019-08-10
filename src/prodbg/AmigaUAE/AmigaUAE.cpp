@@ -1,13 +1,13 @@
 #include "AmigaUAE.h"
 #include "Backend/IdService.h"
-#include <QDebug>
-#include <QFileDialog>
-#include <QMessageBox>
-#include <QProcess>
-#include <QSettings>
-#include <QString>
-#include <QTemporaryDir>
-#include <QTextStream>
+#include <QtCore/QDebug>
+#include <QtCore/QProcess>
+#include <QtCore/QString>
+#include <QtCore/QSettings>
+#include <QtCore/QTemporaryDir>
+#include <QtCore/QTextStream>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 namespace prodbg {
 
@@ -39,8 +39,8 @@ bool AmigaUAE::openFile()
 {
     readSettings();
 
-    QString path = QFileDialog::getOpenFileName(nullptr, 
-            QStringLiteral("Select Amiga executable to debug"), 
+    QString path = QFileDialog::getOpenFileName(nullptr,
+            QStringLiteral("Select Amiga executable to debug"),
             m_amigaExePath);
 
     if (path.isEmpty()) {
