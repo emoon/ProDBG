@@ -16,11 +16,9 @@ matrix:
     #       - g++-6
     # env: COMPILER=g++-6
     script:
-    - sudo add-apt-repository ppa:beineri/opt-qt512-xenial --yes
+    - sudo add-apt-repository ppa:beineri/opt-qt-5.12.3-xenial --yes
     - sudo apt-get update
-    - sudo apt-get install qt57base mesa-common-dev
-    - sudo apt-get install qt5-default
-    - sudo apt-get install qt5-default
+    - sudo apt-get install qt512base mesa-common-dev
     # - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90;
     # - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 90;
     - git clone --recursive https://github.com/deplinenoise/tundra.git
