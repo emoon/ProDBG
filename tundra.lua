@@ -110,7 +110,9 @@ local win64_opts = {
 
 local win64 = {
     Env = {
-		--QT5 = native.getenv("QT5"),
+		QT5_INC = native.getenv("QT5_INC"),
+		QT5_BIN = native.getenv("QT5_BIN"),
+		QT5_LIB = native.getenv("QT5_LIB"),
         RUST_CARGO_OPTS = {
             { "test"; Config = "*-*-*-test" },
         },
