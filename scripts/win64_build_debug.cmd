@@ -1,2 +1,2 @@
 @echo off
-bin\win32\tundra2 win64-msvc-debug -v
+bin\win32\tundra2 -v win64-msvc-debug
