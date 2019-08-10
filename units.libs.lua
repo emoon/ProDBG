@@ -152,10 +152,10 @@ StaticLibrary {
 
     Env = {
        CXXOPTS = {
-            { "-isystem $(QT5_LIB)/lib/QtWidgets.framework/Headers",
-              "-isystem $(QT5_LIB)/lib/QtCore.framework/Headers",
-              "-isystem $(QT5_LIB)/lib/QtGui.framework/Headers";
-              "-isystem $(QT5_LIB)/lib/QtGui.framework/Headers",
+            { "-isystem $(QT5_LIB)/QtWidgets.framework/Headers",
+              "-isystem $(QT5_LIB)/QtCore.framework/Headers",
+              "-isystem $(QT5_LIB)/QtGui.framework/Headers";
+              "-isystem $(QT5_LIB)/QtGui.framework/Headers",
               "-F$(QT5)/lib"; Config = "macosx-*-*" },
             { "-isystem $(QT5_LIB)" ; Config = "linux-*-*" },
         },
