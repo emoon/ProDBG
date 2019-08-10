@@ -47,8 +47,7 @@ BackendSession::~BackendSession() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-BackendSession* BackendSession::createBackendSession(
-    const QString& backendName) {
+BackendSession* BackendSession::createBackendSession(const QString& backendName) {
     BackendSession* session = new BackendSession();
 
     if (!session->setBackend(backendName)) {
@@ -105,9 +104,8 @@ void BackendSession::threadFinished() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static QString s_stateTable[] = {
-    QStringLiteral("No target"),         QStringLiteral("Running"),
-    QStringLiteral("Stop (breakpoint)"), QStringLiteral("Stop (exception)"),
-    QStringLiteral("Trace (stepping)"),  QStringLiteral("Unknown"),
+    QStringLiteral("No target"),        QStringLiteral("Running"),          QStringLiteral("Stop (breakpoint)"),
+    QStringLiteral("Stop (exception)"), QStringLiteral("Trace (stepping)"), QStringLiteral("Unknown"),
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,8 +142,7 @@ static uint32_t updateMemory(QVector<uint16_t>* target, PDReader* reader) {
     PDRead_find_u64(reader, &address, "address", 0);
     PDRead_find_u32(reader, &addressWidth, "address_width", 0);
 
-    if (PDRead_find_data(reader, (void**)&data, &size, "data", 0) ==
-        PDReadStatus_NotFound) {
+    if (PDRead_find_data(reader, (void**)&data, &size, "data", 0) == PDReadStatus_NotFound) {
         return addressWidth;
     }
 
@@ -161,17 +158,14 @@ static uint32_t updateMemory(QVector<uint16_t>* target, PDReader* reader) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static uint32_t updateDisassembly(
-    QVector<IBackendRequests::AssemblyInstruction>* instructions,
-    PDReader* reader) {
+static uint32_t updateDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, PDReader* reader) {
     uint32_t addressWidth = 0;
 
     PDReaderIterator it;
 
     PDRead_find_u32(reader, &addressWidth, "address_width", 0);
 
-    if (PDRead_find_array(reader, &it, "disassembly", 0) ==
-        PDReadStatus_NotFound) {
+    if (PDRead_find_array(reader, &it, "disassembly", 0) == PDReadStatus_NotFound) {
         return addressWidth;
     }
 
@@ -195,12 +189,10 @@ static uint32_t updateDisassembly(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void updateRegisters(QVector<IBackendRequests::Register>* target,
-                            PDReader* reader) {
+static void updateRegisters(QVector<IBackendRequests::Register>* target, PDReader* reader) {
     PDReaderIterator it;
 
-    if (PDRead_find_array(reader, &it, "registers", 0) ==
-        PDReadStatus_NotFound) {
+    if (PDRead_find_array(reader, &it, "registers", 0) == PDReadStatus_NotFound) {
         printf("Unable to find registers array\n");
         return;
     }
@@ -245,9 +237,8 @@ static uint32_t getU32(uint8_t* ptr) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint64_t getU64(uint8_t* ptr) {
-    uint64_t v = ((uint64_t)ptr[0] << 56) | ((uint64_t)ptr[1] << 48) |
-                 ((uint64_t)ptr[2] << 40) | ((uint64_t)ptr[3] << 32) |
-                 (ptr[4] << 24) | (ptr[5] << 16) | (ptr[6] << 8) | ptr[7];
+    uint64_t v = ((uint64_t)ptr[0] << 56) | ((uint64_t)ptr[1] << 48) | ((uint64_t)ptr[2] << 40) |
+                 ((uint64_t)ptr[3] << 32) | (ptr[4] << 24) | (ptr[5] << 16) | (ptr[6] << 8) | ptr[7];
     return v;
 }
 
@@ -281,14 +272,10 @@ static uint64_t getRegValue(uint8_t* data, int size) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int buildExpressionVars(te_variable* variables,
-                               uint64_t* values,
-                               int maxRegs,
-                               PDReader* reader) {
+static int buildExpressionVars(te_variable* variables, uint64_t* values, int maxRegs, PDReader* reader) {
     PDReaderIterator it;
 
-    if (PDRead_find_array(reader, &it, "registers", 0) ==
-        PDReadStatus_NotFound) {
+    if (PDRead_find_array(reader, &it, "registers", 0) == PDReadStatus_NotFound) {
         printf("Unable to find registers array\n");
         return 0;
     }
@@ -316,8 +303,7 @@ static int buildExpressionVars(te_variable* variables,
         ++index;
 
         if (index >= maxRegs) {
-            printf(
-                "buildExpressionVars: Reached max regs, no more will be added");
+            printf("buildExpressionVars: Reached max regs, no more will be added");
             break;
         }
     }
@@ -337,9 +323,7 @@ void BackendSession::toggleAddressBreakpoint(uint64_t address, bool add) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::toggleFileLineBreakpoint(const QString& filename,
-                                              int line,
-                                              bool add) {
+void BackendSession::toggleFileLineBreakpoint(const QString& filename, int line, bool add) {
     PDWrite_event_begin(m_currentWriter, PDEventType_SetBreakpoint);
     PDWrite_string(m_currentWriter, "filename", filename.toUtf8().data());
     PDWrite_u32(m_currentWriter, "line", line);
@@ -350,8 +334,7 @@ void BackendSession::toggleFileLineBreakpoint(const QString& filename,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::beginReadRegisters(
-    QVector<IBackendRequests::Register>* target) {
+void BackendSession::beginReadRegisters(QVector<IBackendRequests::Register>* target) {
     uint32_t event = 0;
 
     PDWrite_event_begin(m_currentWriter, PDEventType_GetRegisters);
@@ -374,9 +357,7 @@ void BackendSession::beginReadRegisters(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::beginReadMemory(uint64_t lo,
-                                     uint64_t hi,
-                                     QVector<uint16_t>* target) {
+void BackendSession::beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target) {
     uint32_t addressWidth = 0;
     uint32_t event;
     uint64_t size = hi - lo;
@@ -405,10 +386,9 @@ void BackendSession::beginReadMemory(uint64_t lo,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::beginDisassembly(
-    uint64_t address,
-    uint32_t count,
-    QVector<IBackendRequests::AssemblyInstruction>* target) {
+void BackendSession::beginDisassembly(uint64_t address,
+                                      uint32_t count,
+                                      QVector<IBackendRequests::AssemblyInstruction>* target) {
     uint32_t event = 0;
     uint32_t addressWidth = 0;
 
@@ -473,8 +453,7 @@ void BackendSession::evalExpression(const QString& expression, uint64_t* out) {
 
     // qDebug() << "eval expression " << expression;
 
-    te_expr* expr =
-        te_compile(expression.toUtf8().data(), variables, regCount, &error);
+    te_expr* expr = te_compile(expression.toUtf8().data(), variables, regCount, &error);
 
     if (error != 0) {
         endResolveAddress(nullptr);
@@ -502,8 +481,7 @@ void BackendSession::updateCurrentPc() {
         bool fileLineChaged = false;
         const char* filename = nullptr;
 
-        if (PDRead_find_string(m_reader, &filename, "filename", 0) !=
-            PDReadStatus_NotFound) {
+        if (PDRead_find_string(m_reader, &filename, "filename", 0) != PDReadStatus_NotFound) {
             uint32_t line = 0;
             PDRead_find_u32(m_reader, &line, "line", 0);
 
@@ -547,17 +525,14 @@ PDDebugState BackendSession::internalUpdate(PDAction action) {
     unsigned int reqDataSize = pd_binary_writer_get_size(m_currentWriter);
     pd_binary_reader_reset(m_reader);
 
-    pd_binary_reader_init_stream(
-        m_reader, pd_binary_writer_get_data(m_currentWriter), reqDataSize);
+    pd_binary_reader_init_stream(m_reader, pd_binary_writer_get_data(m_currentWriter), reqDataSize);
     pd_binary_writer_reset(m_prevWriter);
 
-    PDDebugState state = m_backendPlugin->update(m_backendPluginData, action,
-                                                 m_reader, m_prevWriter);
+    PDDebugState state = m_backendPlugin->update(m_backendPluginData, action, m_reader, m_prevWriter);
 
     pd_binary_writer_finalize(m_prevWriter);
 
-    pd_binary_reader_init_stream(m_reader,
-                                 pd_binary_writer_get_data(m_prevWriter),
+    pd_binary_reader_init_stream(m_reader, pd_binary_writer_get_data(m_prevWriter),
                                  pd_binary_writer_get_size(m_prevWriter));
     pd_binary_reader_reset(m_reader);
     pd_binary_writer_reset(m_currentWriter);

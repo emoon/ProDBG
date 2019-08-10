@@ -26,11 +26,8 @@ static void push_button_show(void* self_c) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void connect_push_button_released(void* object,
-                                         void* user_data,
-                                         void (*callback)(void* self_c)) {
-    QSlotWrapperSignal_self_void* wrap =
-        new QSlotWrapperSignal_self_void(user_data, (Signal_self_void)callback);
+static void connect_push_button_released(void* object, void* user_data, void (*callback)(void* self_c)) {
+    QSlotWrapperSignal_self_void* wrap = new QSlotWrapperSignal_self_void(user_data, (Signal_self_void)callback);
     QObject* q_obj = (QObject*)object;
     QObject::connect(q_obj, SIGNAL(released()), wrap, SLOT(method()));
 }
@@ -51,13 +48,9 @@ static void push_button_set_flat(void* self_c, bool flat) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void connect_slider_value_changed(void* object,
-                                         void* user_data,
-                                         void (*callback)(void* self_c,
-                                                          int value)) {
+static void connect_slider_value_changed(void* object, void* user_data, void (*callback)(void* self_c, int value)) {
     QSlotWrapperSignal_self_i32_void* wrap =
-        new QSlotWrapperSignal_self_i32_void(user_data,
-                                             (Signal_self_i32_void)callback);
+        new QSlotWrapperSignal_self_i32_void(user_data, (Signal_self_i32_void)callback);
     QObject* q_obj = (QObject*)object;
     QObject::connect(q_obj, SIGNAL(valueChanged(int)), wrap, SLOT(method(int)));
 }
@@ -79,11 +72,7 @@ static struct PUWidget s_widget = {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static struct PUPushButton s_push_button = {
-    push_button_show,
-    connect_push_button_released,
-    push_button_set_text,
-    push_button_set_flat,
-    0,
+    push_button_show, connect_push_button_released, push_button_set_text, push_button_set_flat, 0,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -120,8 +109,7 @@ static struct PUWidget* create_widget(void* priv_data) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static struct PUPushButton* create_push_button(void* priv_data) {
-    return create_func<struct PUPushButton, QPushButton>(&s_push_button,
-                                                         priv_data);
+    return create_func<struct PUPushButton, QPushButton>(&s_push_button, priv_data);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

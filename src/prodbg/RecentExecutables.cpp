@@ -21,8 +21,7 @@ RecentExecutables::~RecentExecutables() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int findFileInList(const QVector<RecentExecutables::Executable>& files,
-                          const QString& filename) {
+static int findFileInList(const QVector<RecentExecutables::Executable>& files, const QString& filename) {
     for (int i = 0, c = files.count(); i < c; ++i) {
         if (files[i].filename == filename) {
             return i;
@@ -34,8 +33,7 @@ static int findFileInList(const QVector<RecentExecutables::Executable>& files,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RecentExecutables::setCurrentFile(const QString& filename,
-                                       BackendType type) {
+void RecentExecutables::setCurrentFile(const QString& filename, BackendType type) {
     int existingEntry = findFileInList(m_files, filename);
 
     if (existingEntry != -1) {
@@ -55,17 +53,14 @@ void RecentExecutables::setCurrentFile(const QString& filename,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RecentExecutables::setFile(QVector<QAction*>& actionList,
-                                const QString& filename,
-                                BackendType type) {
+void RecentExecutables::setFile(QVector<QAction*>& actionList, const QString& filename, BackendType type) {
     setCurrentFile(filename, type);
     updateActionList(actionList);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RecentExecutables::putFileOnTop(QVector<QAction*>& actionList,
-                                     const QString& filename) {
+void RecentExecutables::putFileOnTop(QVector<QAction*>& actionList, const QString& filename) {
     int index = findFileInList(m_files, filename);
 
     if (index == -1) {
@@ -90,8 +85,7 @@ void RecentExecutables::updateActionList(QVector<QAction*>& actionList) {
 
     for (int i = 0; i < end; ++i) {
         QString strippedName = QFileInfo(m_files[i].filename).fileName();
-        actionList[i]->setShortcut(
-            QKeySequence(QStringLiteral("Ctrl+") + QString::number(i + 1)));
+        actionList[i]->setShortcut(QKeySequence(QStringLiteral("Ctrl+") + QString::number(i + 1)));
         actionList[i]->setText(strippedName);
         actionList[i]->setData(m_files[i].filename);
         actionList[i]->setVisible(true);

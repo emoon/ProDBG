@@ -41,10 +41,9 @@ class BackendRequests : public IBackendRequests {
     // address = starting memory range
     // instructionCount = number of instructions to recive
     // instruction = a series of instructions from the backend
-    void beginDisassembly(
-        uint64_t address,
-        uint32_t instructionCount,
-        QVector<IBackendRequests::AssemblyInstruction>* instructions);
+    void beginDisassembly(uint64_t address,
+                          uint32_t instructionCount,
+                          QVector<IBackendRequests::AssemblyInstruction>* instructions);
 
     // Evaluate expressions such ass 0x120+12 (useful for memory view)
     void beginResolveAddress(const QString& expression, uint64_t* out);
@@ -58,19 +57,14 @@ class BackendRequests : public IBackendRequests {
     Q_SIGNAL void evalExpression(const QString& expr, uint64_t* out);
     Q_SIGNAL void sendCustomStr(uint16_t id, const QString& text);
 
-    Q_SIGNAL void toggleFileLineBreakpoint(const QString& filename,
-                                           int line,
-                                           bool add);
+    Q_SIGNAL void toggleFileLineBreakpoint(const QString& filename, int line, bool add);
     Q_SIGNAL void toggleAddressBreakpoint(uint64_t address, bool add);
 
     Q_SIGNAL void readRegisters(QVector<Register>* registers);
-    Q_SIGNAL void requestMem(uint64_t lo,
-                             uint64_t hi,
-                             QVector<uint16_t>* target);
-    Q_SIGNAL void requestDisassembly(
-        uint64_t address,
-        uint32_t count,
-        QVector<IBackendRequests::AssemblyInstruction>* instructions);
+    Q_SIGNAL void requestMem(uint64_t lo, uint64_t hi, QVector<uint16_t>* target);
+    Q_SIGNAL void requestDisassembly(uint64_t address,
+                                     uint32_t count,
+                                     QVector<IBackendRequests::AssemblyInstruction>* instructions);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

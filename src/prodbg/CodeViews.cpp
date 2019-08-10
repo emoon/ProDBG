@@ -10,8 +10,7 @@ namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CodeViews::CodeViews(BreakpointModel* breakpoints, QWidget* parent)
-    : QTabWidget(parent), m_breakpoints(breakpoints) {
+CodeViews::CodeViews(BreakpointModel* breakpoints, QWidget* parent) : QTabWidget(parent), m_breakpoints(breakpoints) {
     setTabsClosable(true);
     m_disassemblyView = new DisassemblyView(nullptr);
     m_disassemblyView->setBreakpointModel(breakpoints);
@@ -40,8 +39,7 @@ void CodeViews::toggleBreakpoint() {
         const QString& filename = tabToolTip(index);
 
         int line = view->getCurrentLine();
-        bool added =
-            m_breakpoints->toggleFileLineBreakpoint(filename, line + 1);
+        bool added = m_breakpoints->toggleFileLineBreakpoint(filename, line + 1);
 
         if (m_interface) {
             if (added) {
@@ -105,8 +103,7 @@ void CodeViews::reloadCurrentFile() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::programCounterChanged(
-    const IBackendRequests::ProgramCounterChange& pc) {
+void CodeViews::programCounterChanged(const IBackendRequests::ProgramCounterChange& pc) {
     m_disassemblyView->updatePc(pc.programCounter);
 
     // No source/line for the PC so toggle to disassmbly mode if we already
@@ -160,10 +157,8 @@ void CodeViews::setBackendInterface(IBackendRequests* iface) {
     m_disassemblyView->setBackendInterface(iface);
 
     if (iface) {
-        connect(m_interface, &IBackendRequests::programCounterChanged, this,
-                &CodeViews::programCounterChanged);
-        connect(m_interface, &IBackendRequests::sessionEnded, this,
-                &CodeViews::sessionEnded);
+        connect(m_interface, &IBackendRequests::programCounterChanged, this, &CodeViews::programCounterChanged);
+        connect(m_interface, &IBackendRequests::sessionEnded, this, &CodeViews::sessionEnded);
     }
 }
 
@@ -229,8 +224,7 @@ void CodeViews::readSettings() {
 
     for (int i = 0; i < size; ++i) {
         settings.setArrayIndex(i);
-        QString filename =
-            settings.value(QStringLiteral("sourceFile")).toString();
+        QString filename = settings.value(QStringLiteral("sourceFile")).toString();
         openFile(filename, false);
     }
 

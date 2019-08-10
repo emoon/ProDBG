@@ -4,11 +4,9 @@ namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool BreakpointModel::toggleFileLineBreakpoint(const QString& filename,
-                                               int line) {
+bool BreakpointModel::toggleFileLineBreakpoint(const QString& filename, int line) {
     for (int i = 0, count = m_fileLineBreakpoints.count(); i < count; ++i) {
-        if (m_fileLineBreakpoints[i].line == line &&
-            m_fileLineBreakpoints[i].filename == filename) {
+        if (m_fileLineBreakpoints[i].line == line && m_fileLineBreakpoints[i].filename == filename) {
             m_fileLineBreakpoints.remove(i);
             return false;
         }

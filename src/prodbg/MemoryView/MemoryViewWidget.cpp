@@ -15,9 +15,8 @@ namespace prodbg {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static const QChar s_HexTable[16] = {
-    QLatin1Char('0'), QLatin1Char('1'), QLatin1Char('2'), QLatin1Char('3'),
-    QLatin1Char('4'), QLatin1Char('5'), QLatin1Char('6'), QLatin1Char('7'),
-    QLatin1Char('8'), QLatin1Char('9'), QLatin1Char('a'), QLatin1Char('b'),
+    QLatin1Char('0'), QLatin1Char('1'), QLatin1Char('2'), QLatin1Char('3'), QLatin1Char('4'), QLatin1Char('5'),
+    QLatin1Char('6'), QLatin1Char('7'), QLatin1Char('8'), QLatin1Char('9'), QLatin1Char('a'), QLatin1Char('b'),
     QLatin1Char('c'), QLatin1Char('d'), QLatin1Char('e'), QLatin1Char('f'),
 };
 
@@ -35,9 +34,7 @@ struct MemViewTypeMeta {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static uint64_t decodeValue(const uint16_t* values,
-                            int count,
-                            MemoryViewWidget::Endianess endianess) {
+static uint64_t decodeValue(const uint16_t* values, int count, MemoryViewWidget::Endianess endianess) {
     uint64_t value = 0;
     switch (endianess) {
         case MemoryViewWidget::Big:
@@ -76,10 +73,7 @@ static void formatHex(QString* target,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void assignStr(const char* str,
-                      int len,
-                      int displayWidth,
-                      QString* target) {
+static void assignStr(const char* str, int len, int displayWidth, QString* target) {
     for (int i = len; i < displayWidth; ++i) {
         target->push_back(QLatin1Char(' '));  // Right align
     }
@@ -240,8 +234,7 @@ class MemoryViewPrivate {
 
         // Very basic caching, we only support the exactly previous request as
         // cache.
-        if ((m_cachedRangeStart == start && end == m_cachedRangeEnd) &&
-            !m_transferInProgress) {
+        if ((m_cachedRangeStart == start && end == m_cachedRangeEnd) && !m_transferInProgress) {
             *values = m_transferCache;
             return;
         }
@@ -259,13 +252,9 @@ class MemoryViewPrivate {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void jump(int rowCount) {
-        m_TopRow += rowCount * m_ElementsPerRow * bytesPerElement();
-    }
+    void jump(int rowCount) { m_TopRow += rowCount * m_ElementsPerRow * bytesPerElement(); }
 
-    int bytesPerElement() const {
-        return s_TypeMeta[m_DataType].m_BytesPerElement;
-    }
+    int bytesPerElement() const { return s_TypeMeta[m_DataType].m_BytesPerElement; }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -285,13 +274,11 @@ class MemoryViewPrivate {
         painter.fillRect(dirtyRect, baseColor);
 
         if (!m_expressionStatus) {
-            painter.drawText(dirtyRect, 0,
-                             QStringLiteral("Unable to evaluate expression."));
+            painter.drawText(dirtyRect, 0, QStringLiteral("Unable to evaluate expression."));
             return;
         }
 
-        const int charWidth =
-            fontMetrics.boundingRect(QLatin1Char('W')).width();
+        const int charWidth = fontMetrics.boundingRect(QLatin1Char('W')).width();
         const int rowHeight = fontMetrics.height();
         const int rows = (widget->height() + rowHeight - 1) / rowHeight;
 
@@ -310,18 +297,14 @@ class MemoryViewPrivate {
         rowText.reserve((1 + typeMeta.m_DisplayWidthChars));
 
         const int addressWidth = (m_adddressWidth * 2) * charWidth;
-        const int dataWidth =
-            charWidth * (elementsPerRow * typeMeta.m_DisplayWidthChars +
-                         elementsPerRow - 1);
+        const int dataWidth = charWidth * (elementsPerRow * typeMeta.m_DisplayWidthChars + elementsPerRow - 1);
         const int asciiWidth = bytesPerRow * charWidth;
         const int gutterWidth = charWidth;
 
         for (int row = 0; row < rows; ++row) {
             QRect addressRect(0, screenY, addressWidth, rowHeight);
-            QRect dataRect(addressRect.x() + addressRect.width() + gutterWidth,
-                           screenY, dataWidth, rowHeight);
-            QRect asciiRect(dataRect.x() + dataRect.width() + gutterWidth,
-                            screenY, asciiWidth, rowHeight);
+            QRect dataRect(addressRect.x() + addressRect.width() + gutterWidth, screenY, dataWidth, rowHeight);
+            QRect asciiRect(dataRect.x() + dataRect.width() + gutterWidth, screenY, asciiWidth, rowHeight);
 
             if (dirtyRect.intersects(addressRect)) {
                 rowText.resize(0);
@@ -353,11 +336,9 @@ class MemoryViewPrivate {
                         rowText.push_back(QLatin1Char(' '));
                     }
 
-                    const uint16_t* values = m_Cache.constData() + dataOffset +
-                                             i * typeMeta.m_BytesPerElement;
-                    (*typeMeta.m_Formatter)(
-                        &rowText, typeMeta.m_DisplayWidthChars,
-                        typeMeta.m_BytesPerElement, values, m_Endianess);
+                    const uint16_t* values = m_Cache.constData() + dataOffset + i * typeMeta.m_BytesPerElement;
+                    (*typeMeta.m_Formatter)(&rowText, typeMeta.m_DisplayWidthChars, typeMeta.m_BytesPerElement, values,
+                                            m_Endianess);
                 }
 
                 painter.drawText(dataRect, 0, rowText);
@@ -382,8 +363,7 @@ class MemoryViewPrivate {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MemoryViewWidget::MemoryViewWidget(QWidget* parent)
-    : Base(parent), m_Private(new MemoryViewPrivate) {
+MemoryViewWidget::MemoryViewWidget(QWidget* parent) : Base(parent), m_Private(new MemoryViewPrivate) {
     // Can be any fixed with font.
 #ifdef _WIN32
     QFont font(QStringLiteral("Courier"), 11);
@@ -407,43 +387,35 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent)
     }
 
     {
-        QAction* nextPageAction =
-            new QAction(QStringLiteral("Next Page"), this);
+        QAction* nextPageAction = new QAction(QStringLiteral("Next Page"), this);
         nextPageAction->setShortcut(QKeySequence::MoveToNextPage);
         nextPageAction->setShortcutContext(Qt::WidgetShortcut);
         this->addAction(nextPageAction);
-        connect(nextPageAction, &QAction::triggered, this,
-                &MemoryViewWidget::displayNextPage);
+        connect(nextPageAction, &QAction::triggered, this, &MemoryViewWidget::displayNextPage);
     }
 
     {
-        QAction* prevPageAction =
-            new QAction(QStringLiteral("Previous Page"), this);
+        QAction* prevPageAction = new QAction(QStringLiteral("Previous Page"), this);
         prevPageAction->setShortcut(QKeySequence::MoveToPreviousPage);
         prevPageAction->setShortcutContext(Qt::WidgetShortcut);
         this->addAction(prevPageAction);
-        connect(prevPageAction, &QAction::triggered, this,
-                &MemoryViewWidget::displayPrevPage);
+        connect(prevPageAction, &QAction::triggered, this, &MemoryViewWidget::displayPrevPage);
     }
 
     {
-        QAction* nextLineAction =
-            new QAction(QStringLiteral("Next Line"), this);
+        QAction* nextLineAction = new QAction(QStringLiteral("Next Line"), this);
         nextLineAction->setShortcut(QKeySequence::MoveToNextLine);
         nextLineAction->setShortcutContext(Qt::WidgetShortcut);
         this->addAction(nextLineAction);
-        connect(nextLineAction, &QAction::triggered, this,
-                &MemoryViewWidget::displayNextLine);
+        connect(nextLineAction, &QAction::triggered, this, &MemoryViewWidget::displayNextLine);
     }
 
     {
-        QAction* prevLineAction =
-            new QAction(QStringLiteral("Previous Line"), this);
+        QAction* prevLineAction = new QAction(QStringLiteral("Previous Line"), this);
         prevLineAction->setShortcut(QKeySequence::MoveToPreviousLine);
         prevLineAction->setShortcutContext(Qt::WidgetShortcut);
         this->addAction(prevLineAction);
-        connect(prevLineAction, &QAction::triggered, this,
-                &MemoryViewWidget::displayPrevLine);
+        connect(prevLineAction, &QAction::triggered, this, &MemoryViewWidget::displayPrevLine);
     }
 }
 
@@ -459,10 +431,8 @@ void MemoryViewWidget::setBackendInterface(IBackendRequests* interface) {
     m_Private->m_Interface = interface;
 
     if (interface) {
-        connect(interface, &IBackendRequests::endReadMemory, this,
-                &MemoryViewWidget::endReadMemory);
-        connect(interface, &IBackendRequests::programCounterChanged, this,
-                &MemoryViewWidget::programCounterChanged);
+        connect(interface, &IBackendRequests::endReadMemory, this, &MemoryViewWidget::endReadMemory);
+        connect(interface, &IBackendRequests::programCounterChanged, this, &MemoryViewWidget::programCounterChanged);
     }
 
     update();
@@ -470,12 +440,10 @@ void MemoryViewWidget::setBackendInterface(IBackendRequests* interface) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryViewWidget::programCounterChanged(
-    const IBackendRequests::ProgramCounterChange&) {
+void MemoryViewWidget::programCounterChanged(const IBackendRequests::ProgramCounterChange&) {
     // If pc has changed we re-request the current data again
     if (m_Private->m_Interface) {
-        m_Private->m_Interface->beginReadMemory(m_Private->m_cachedRangeStart,
-                                                m_Private->m_cachedRangeEnd,
+        m_Private->m_Interface->beginReadMemory(m_Private->m_cachedRangeStart, m_Private->m_cachedRangeEnd,
                                                 &m_Private->m_transferCache);
         m_Private->m_transferInProgress = true;
     }
@@ -484,9 +452,7 @@ void MemoryViewWidget::programCounterChanged(
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Gets called when transfor from backend to frontend has finished
 
-void MemoryViewWidget::endReadMemory(QVector<uint16_t>* target,
-                                     uint64_t address,
-                                     int addressWidth) {
+void MemoryViewWidget::endReadMemory(QVector<uint16_t>* target, uint64_t address, int addressWidth) {
     // so this is a hack. We need a better way to do this. This is because if
     // there are several memory requests in flight we must make sure that its
     // "ours" that gets called here.

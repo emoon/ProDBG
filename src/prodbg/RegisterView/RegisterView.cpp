@@ -8,8 +8,7 @@ namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-RegisterView::RegisterView(QWidget* parent)
-    : View(parent), m_ui(new Ui_RegisterView) {
+RegisterView::RegisterView(QWidget* parent) : View(parent), m_ui(new Ui_RegisterView) {
     m_ui->setupUi(this);
 
 #ifdef _WIN32
@@ -26,10 +25,8 @@ RegisterView::RegisterView(QWidget* parent)
     m_ui->m_registers->verticalHeader()->setVisible(false);
     m_ui->m_registers->setShowGrid(false);
     m_ui->m_registers->setFont(font);
-    m_ui->m_registers->setStyleSheet(
-        QStringLiteral("QTableWidget::item { padding: 0px }"));
-    m_ui->m_registers->verticalHeader()->setDefaultSectionSize(
-        m_ui->m_registers->fontMetrics().height() + 2);
+    m_ui->m_registers->setStyleSheet(QStringLiteral("QTableWidget::item { padding: 0px }"));
+    m_ui->m_registers->verticalHeader()->setDefaultSectionSize(m_ui->m_registers->fontMetrics().height() + 2);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,9 +52,8 @@ static uint32_t getU32(uint8_t* ptr) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static uint64_t getU64(uint8_t* ptr) {
-    uint64_t v = ((uint64_t)ptr[0] << 56) | ((uint64_t)ptr[1] << 48) |
-                 ((uint64_t)ptr[2] << 40) | ((uint64_t)ptr[3] << 32) |
-                 (ptr[4] << 24) | (ptr[5] << 16) | (ptr[6] << 8) | ptr[7];
+    uint64_t v = ((uint64_t)ptr[0] << 56) | ((uint64_t)ptr[1] << 48) | ((uint64_t)ptr[2] << 40) |
+                 ((uint64_t)ptr[3] << 32) | (ptr[4] << 24) | (ptr[5] << 16) | (ptr[6] << 8) | ptr[7];
     return v;
 }
 
@@ -111,8 +107,7 @@ QTableWidgetItem* buildRegisterValue(IBackendRequests::Register* reg) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RegisterView::endReadRegisters(
-    QVector<IBackendRequests::Register>* registers) {
+void RegisterView::endReadRegisters(QVector<IBackendRequests::Register>* registers) {
     int i = 0;
 
     // TODO: Rewrite using QTableView/QAbstractItemModel
@@ -160,8 +155,7 @@ void RegisterView::endReadRegisters(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RegisterView::programCounterChanged(
-    const IBackendRequests::ProgramCounterChange& pc) {
+void RegisterView::programCounterChanged(const IBackendRequests::ProgramCounterChange& pc) {
     m_interface->beginReadRegisters(&m_targetRegisters);
 }
 
@@ -169,10 +163,8 @@ void RegisterView::programCounterChanged(
 
 void RegisterView::interfaceSet() {
     if (m_interface) {
-        connect(m_interface, &IBackendRequests::programCounterChanged, this,
-                &RegisterView::programCounterChanged);
-        connect(m_interface, &IBackendRequests::endReadRegisters, this,
-                &RegisterView::endReadRegisters);
+        connect(m_interface, &IBackendRequests::programCounterChanged, this, &RegisterView::programCounterChanged);
+        connect(m_interface, &IBackendRequests::endReadRegisters, this, &RegisterView::endReadRegisters);
     }
 }
 

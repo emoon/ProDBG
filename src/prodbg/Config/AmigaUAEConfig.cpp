@@ -7,31 +7,22 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-AmigaUAEConfig::AmigaUAEConfig(QWidget* parent)
-    : QDialog(parent), m_ui(new Ui::AmigaUAEConfig) {
+AmigaUAEConfig::AmigaUAEConfig(QWidget* parent) : QDialog(parent), m_ui(new Ui::AmigaUAEConfig) {
     m_ui->setupUi(this);
 
-    m_ui->configMode->addItem(
-        QStringLiteral("Automatic (Fastest startup) - FS-UAE"));
-    m_ui->configMode->addItem(
-        QStringLiteral("Automatic (Fastest startup) - WinUAE"));
+    m_ui->configMode->addItem(QStringLiteral("Automatic (Fastest startup) - FS-UAE"));
+    m_ui->configMode->addItem(QStringLiteral("Automatic (Fastest startup) - WinUAE"));
     // m_ui->configMode->addItem(QStringLiteral("Automatic (A500)"));
     // m_ui->configMode->addItem(QStringLiteral("Automatic (A1200)"));
     m_ui->configMode->addItem(QStringLiteral("Manual"));
 
-    connect(m_ui->selectExe, &QPushButton::clicked, this,
-            &AmigaUAEConfig::selectExecutable);
-    connect(m_ui->selectConfig, &QPushButton::clicked, this,
-            &AmigaUAEConfig::selectConfigFile);
-    connect(m_ui->selectDh0Path, &QPushButton::clicked, this,
-            &AmigaUAEConfig::selectDh0Path);
-    connect(m_ui->selectROM, &QPushButton::clicked, this,
-            &AmigaUAEConfig::selectRomFile);
+    connect(m_ui->selectExe, &QPushButton::clicked, this, &AmigaUAEConfig::selectExecutable);
+    connect(m_ui->selectConfig, &QPushButton::clicked, this, &AmigaUAEConfig::selectConfigFile);
+    connect(m_ui->selectDh0Path, &QPushButton::clicked, this, &AmigaUAEConfig::selectDh0Path);
+    connect(m_ui->selectROM, &QPushButton::clicked, this, &AmigaUAEConfig::selectRomFile);
 
-    connect(
-        m_ui->configMode,
-        static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-        this, &AmigaUAEConfig::configModeChanged);
+    connect(m_ui->configMode, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+            &AmigaUAEConfig::configModeChanged);
 
     readSettings();
 
@@ -70,15 +61,14 @@ void AmigaUAEConfig::selectRomFile() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AmigaUAEConfig::selectConfigFile() {
-    selectFilename(QStringLiteral("Select UAE configuration"),
-                   m_ui->configPath);
+    selectFilename(QStringLiteral("Select UAE configuration"), m_ui->configPath);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AmigaUAEConfig::selectDh0Path() {
-    QString path = QFileDialog::getExistingDirectory(
-        this, QStringLiteral("Select dh0 directory"), m_ui->dh0Path->text());
+    QString path =
+        QFileDialog::getExistingDirectory(this, QStringLiteral("Select dh0 directory"), m_ui->dh0Path->text());
 
     if (path.isEmpty()) {
         return;
@@ -129,12 +119,9 @@ void AmigaUAEConfig::writeSettings() {
     settings.setValue(QStringLiteral("configPath"), m_ui->configPath->text());
     settings.setValue(QStringLiteral("cmdlineArgs"), m_ui->cmdlineArgs->text());
     settings.setValue(QStringLiteral("dh0Path"), m_ui->dh0Path->text());
-    settings.setValue(QStringLiteral("copyFilesToHDD"),
-                      m_ui->copyFilesToHdd->isChecked());
-    settings.setValue(QStringLiteral("skipUAELaunch"),
-                      m_ui->skipUAELaunch->isChecked());
-    settings.setValue(QStringLiteral("configMode"),
-                      m_ui->configMode->currentIndex());
+    settings.setValue(QStringLiteral("copyFilesToHDD"), m_ui->copyFilesToHdd->isChecked());
+    settings.setValue(QStringLiteral("skipUAELaunch"), m_ui->skipUAELaunch->isChecked());
+    settings.setValue(QStringLiteral("configMode"), m_ui->configMode->currentIndex());
     settings.setValue(QStringLiteral("romPath"), m_ui->romPath->text());
     settings.endGroup();
 }
@@ -145,21 +132,13 @@ void AmigaUAEConfig::readSettings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
 
     settings.beginGroup(QStringLiteral("AmigaUAEConfig"));
-    m_ui->uaeExe->setText(
-        settings.value(QStringLiteral("executablePath")).toString());
-    m_ui->configPath->setText(
-        settings.value(QStringLiteral("configPath")).toString());
-    m_ui->cmdlineArgs->setText(
-        settings.value(QStringLiteral("cmdlineArgs")).toString());
-    m_ui->dh0Path->setText(
-        settings.value(QStringLiteral("dh0Path")).toString());
-    m_ui->copyFilesToHdd->setChecked(
-        settings.value(QStringLiteral("copyFilesToHDD")).toBool());
-    m_ui->skipUAELaunch->setChecked(
-        settings.value(QStringLiteral("skipUAELaunch")).toBool());
-    m_ui->configMode->setCurrentIndex(
-        settings.value(QStringLiteral("configMode")).toInt());
-    m_ui->romPath->setText(
-        settings.value(QStringLiteral("romPath")).toString());
+    m_ui->uaeExe->setText(settings.value(QStringLiteral("executablePath")).toString());
+    m_ui->configPath->setText(settings.value(QStringLiteral("configPath")).toString());
+    m_ui->cmdlineArgs->setText(settings.value(QStringLiteral("cmdlineArgs")).toString());
+    m_ui->dh0Path->setText(settings.value(QStringLiteral("dh0Path")).toString());
+    m_ui->copyFilesToHdd->setChecked(settings.value(QStringLiteral("copyFilesToHDD")).toBool());
+    m_ui->skipUAELaunch->setChecked(settings.value(QStringLiteral("skipUAELaunch")).toBool());
+    m_ui->configMode->setCurrentIndex(settings.value(QStringLiteral("configMode")).toInt());
+    m_ui->romPath->setText(settings.value(QStringLiteral("romPath")).toString());
     settings.endGroup();
 }

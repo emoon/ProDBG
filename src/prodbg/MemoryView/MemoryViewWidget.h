@@ -61,11 +61,8 @@ class MemoryViewWidget : public QWidget {
    public:
     DataType dataType() const;
     Q_SLOT void setDataType(DataType t);
-    Q_SLOT void endReadMemory(QVector<uint16_t>* target,
-                              uint64_t address,
-                              int addressWidth);
-    Q_SLOT void programCounterChanged(
-        const IBackendRequests::ProgramCounterChange& pc);
+    Q_SLOT void endReadMemory(QVector<uint16_t>* target, uint64_t address, int addressWidth);
+    Q_SLOT void programCounterChanged(const IBackendRequests::ProgramCounterChange& pc);
 
     Endianess endianess() const;
     Q_SLOT void setEndianess(Endianess e);

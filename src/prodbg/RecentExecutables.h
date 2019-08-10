@@ -21,9 +21,7 @@ class RecentExecutables {
     };
 
     void updateActionList(QVector<QAction*>& list);
-    void setFile(QVector<QAction*>& actionList,
-                 const QString& filename,
-                 BackendType type);
+    void setFile(QVector<QAction*>& actionList, const QString& filename, BackendType type);
     void putFileOnTop(QVector<QAction*>& actionList, const QString& filename);
 
     void writeSettings();

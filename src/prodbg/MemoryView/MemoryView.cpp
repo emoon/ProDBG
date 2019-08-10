@@ -22,34 +22,24 @@ static void enumToCombo(QComboBox* combo, int startValue) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MemoryView::MemoryView(QWidget* parent)
-    : Base(parent), m_Ui(new Ui_MemoryView) {
+MemoryView::MemoryView(QWidget* parent) : Base(parent), m_Ui(new Ui_MemoryView) {
     m_Ui->setupUi(this);
 
-    connect(m_Ui->m_Address, &QLineEdit::returnPressed, this,
-            &MemoryView::jumpAddressChanged);
+    connect(m_Ui->m_Address, &QLineEdit::returnPressed, this, &MemoryView::jumpAddressChanged);
 
-    enumToCombo<MemoryViewWidget::Endianess>(m_Ui->m_Endianess,
-                                             m_Ui->m_View->endianess());
-    enumToCombo<MemoryViewWidget::DataType>(m_Ui->m_Type,
-                                            m_Ui->m_View->dataType());
+    enumToCombo<MemoryViewWidget::Endianess>(m_Ui->m_Endianess, m_Ui->m_View->endianess());
+    enumToCombo<MemoryViewWidget::DataType>(m_Ui->m_Type, m_Ui->m_View->dataType());
 
-    connect(
-        m_Ui->m_Endianess,
-        static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-        this, &MemoryView::endianChanged);
-    connect(
-        m_Ui->m_Type,
-        static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-        this, &MemoryView::dataTypeChanged);
+    connect(m_Ui->m_Endianess, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+            &MemoryView::endianChanged);
+    connect(m_Ui->m_Type, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+            &MemoryView::dataTypeChanged);
 
     QIntValidator* countValidator = new QIntValidator(1, 64, this);
     m_Ui->m_Count->setValidator(countValidator);
 
-    connect(m_Ui->m_Count,
-            static_cast<void (QComboBox::*)(const QString&)>(
-                &QComboBox::currentIndexChanged),
-            this, &MemoryView::countChanged);
+    connect(m_Ui->m_Count, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged), this,
+            &MemoryView::countChanged);
 
     readSettings();
 }
@@ -74,8 +64,7 @@ void MemoryView::interfaceSet() {
     m_Ui->m_View->setBackendInterface(m_interface);
 
     if (m_interface) {
-        connect(m_interface, &IBackendRequests::endResolveAddress, this,
-                &MemoryView::endResolveAddress);
+        connect(m_interface, &IBackendRequests::endResolveAddress, this, &MemoryView::endResolveAddress);
     }
 }
 
@@ -106,8 +95,7 @@ void MemoryView::endResolveAddress(uint64_t* out) {
         m_Ui->m_View->setExpressionStatus(false);
     } else {
         m_Ui->m_View->setExpressionStatus(true);
-        m_Ui->m_Address->setText(QStringLiteral("0x") +
-                                 QString::number(*out, 16));
+        m_Ui->m_Address->setText(QStringLiteral("0x") + QString::number(*out, 16));
         m_Ui->m_View->setAddress(*out);
     }
 
@@ -131,10 +119,8 @@ void MemoryView::readSettings() {
 
     // TODO: Support more than one memory view
     settings.beginGroup(QStringLiteral("MemoryView_0"));
-    m_Ui->m_Endianess->setCurrentIndex(
-        settings.value(QStringLiteral("endian")).toInt());
-    m_Ui->m_Type->setCurrentIndex(
-        settings.value(QStringLiteral("data_type")).toInt());
+    m_Ui->m_Endianess->setCurrentIndex(settings.value(QStringLiteral("endian")).toInt());
+    m_Ui->m_Type->setCurrentIndex(settings.value(QStringLiteral("data_type")).toInt());
     settings.endGroup();
 }
 
@@ -145,10 +131,8 @@ void MemoryView::writeSettings() {
 
     // TODO: Support more than one memory view
     settings.beginGroup(QStringLiteral("MemoryView_0"));
-    settings.setValue(QStringLiteral("endian"),
-                      m_Ui->m_Endianess->currentIndex());
-    settings.setValue(QStringLiteral("data_type"),
-                      m_Ui->m_Type->currentIndex());
+    settings.setValue(QStringLiteral("endian"), m_Ui->m_Endianess->currentIndex());
+    settings.setValue(QStringLiteral("data_type"), m_Ui->m_Type->currentIndex());
     settings.setValue(QStringLiteral("count"), m_Ui->m_Type->currentIndex());
     settings.endGroup();
 }

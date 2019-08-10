@@ -124,8 +124,7 @@ typedef void* (*CreateUIPlugin)(PU* ui);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QWidget* PluginHandler_tempLoadUIPlugin(QWidget* parent,
-                                        const QString& plugin) {
+QWidget* PluginHandler_tempLoadUIPlugin(QWidget* parent, const QString& plugin) {
     QLibrary* lib = findPlugin(plugin);
 
     if (!lib) {

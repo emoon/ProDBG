@@ -38,9 +38,7 @@ class DisassemblyView : public QPlainTextEdit {
     void setBackendInterface(IBackendRequests* interface);
     void setBreakpointModel(BreakpointModel* breakpoints);
 
-    Q_SLOT void endDisassembly(
-        QVector<IBackendRequests::AssemblyInstruction>* instructions,
-        int addressWidth);
+    Q_SLOT void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth);
 
    private:
     Q_SLOT void updateAddressAreaWidth(int newBlockCount);

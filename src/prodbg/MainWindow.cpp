@@ -38,8 +38,7 @@ MainWindow::MainWindow()
     qRegisterMetaType<uint16_t>("uint16_t");
     qRegisterMetaType<uint32_t>("uint32_t");
     qRegisterMetaType<uint64_t>("uint64_t");
-    qRegisterMetaType<IBackendRequests::ProgramCounterChange>(
-        "IBackendRequests::ProgramCounterChange");
+    qRegisterMetaType<IBackendRequests::ProgramCounterChange>("IBackendRequests::ProgramCounterChange");
 
     m_viewHandler = new ViewHandler(this);
 
@@ -70,20 +69,15 @@ MainWindow::MainWindow()
 
     QWidget* plugin_parent = new QWidget(this);
 
-    PluginHandler_tempLoadUIPlugin(plugin_parent,
-                                   QStringLiteral("memory_view_2"));
+    PluginHandler_tempLoadUIPlugin(plugin_parent, QStringLiteral("memory_view_2"));
 
     // Setup docking for MemoryView
 
     {
-        m_ui.toolWindowManager->addToolWindow(m_codeViews,
-                                              ToolWindowManager::EmptySpace);
-        m_ui.toolWindowManager->addToolWindow(m_memoryView,
-                                              ToolWindowManager::LastUsedArea);
-        m_ui.toolWindowManager->addToolWindow(m_registerView,
-                                              ToolWindowManager::LastUsedArea);
-        m_ui.toolWindowManager->addToolWindow(plugin_parent,
-                                              ToolWindowManager::LastUsedArea);
+        m_ui.toolWindowManager->addToolWindow(m_codeViews, ToolWindowManager::EmptySpace);
+        m_ui.toolWindowManager->addToolWindow(m_memoryView, ToolWindowManager::LastUsedArea);
+        m_ui.toolWindowManager->addToolWindow(m_registerView, ToolWindowManager::LastUsedArea);
+        m_ui.toolWindowManager->addToolWindow(plugin_parent, ToolWindowManager::LastUsedArea);
 
         // QDockWidget* dock = new QDockWidget(QStringLiteral("MemoryView"),
         // this); dock->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -125,30 +119,19 @@ MainWindow::~MainWindow() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::initActions() {
-    connect(m_ui.actionStart, &QAction::triggered, this,
-            &MainWindow::startDebug);
-    connect(m_ui.actionReloadCurrentFile, &QAction::triggered, this,
-            &MainWindow::reloadCurrentFile);
-    connect(m_ui.actionStep_Over, &QAction::triggered, this,
-            &MainWindow::stepOver);
+    connect(m_ui.actionStart, &QAction::triggered, this, &MainWindow::startDebug);
+    connect(m_ui.actionReloadCurrentFile, &QAction::triggered, this, &MainWindow::reloadCurrentFile);
+    connect(m_ui.actionStep_Over, &QAction::triggered, this, &MainWindow::stepOver);
     connect(m_ui.actionStep_In, &QAction::triggered, this, &MainWindow::stepIn);
-    connect(m_ui.actionAmiga_UAE, &QAction::triggered, this,
-            &MainWindow::amigaUAEConfig);
-    connect(m_ui.actionDebugAmigaExe, &QAction::triggered, this,
-            &MainWindow::debugAmigaExe);
-    connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this,
-            &MainWindow::toggleBreakpoint);
-    connect(m_ui.actionOpen, &QAction::triggered, this,
-            &MainWindow::openSourceFile);
-    connect(m_ui.actionBreak, &QAction::triggered, this,
-            &MainWindow::breakContDebug);
+    connect(m_ui.actionAmiga_UAE, &QAction::triggered, this, &MainWindow::amigaUAEConfig);
+    connect(m_ui.actionDebugAmigaExe, &QAction::triggered, this, &MainWindow::debugAmigaExe);
+    connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggleBreakpoint);
+    connect(m_ui.actionOpen, &QAction::triggered, this, &MainWindow::openSourceFile);
+    connect(m_ui.actionBreak, &QAction::triggered, this, &MainWindow::breakContDebug);
     connect(m_ui.actionStop, &QAction::triggered, this, &MainWindow::stop);
-    connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_codeViews,
-            &CodeViews::toggleSourceAsm);
-    connect(m_ui.actionMemoryView, &QAction::triggered, this,
-            &MainWindow::newMemoryView);
-    connect(m_ui.actionRegisterView, &QAction::triggered, this,
-            &MainWindow::newRegisterView);
+    connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_codeViews, &CodeViews::toggleSourceAsm);
+    connect(m_ui.actionMemoryView, &QAction::triggered, this, &MainWindow::newMemoryView);
+    connect(m_ui.actionRegisterView, &QAction::triggered, this, &MainWindow::newRegisterView);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -161,8 +144,7 @@ void MainWindow::initRecentFileActions() {
     for (int i = 0; i < RecentExecutables::MaxFiles_Count; ++i) {
         QAction* recentFileAction = new QAction(this);
         recentFileAction->setVisible(false);
-        connect(recentFileAction, &QAction::triggered, this,
-                &MainWindow::openRecentExe);
+        connect(recentFileAction, &QAction::triggered, this, &MainWindow::openRecentExe);
         m_recentFileActions.append(recentFileAction);
         menu->addAction(recentFileAction);
     }
@@ -173,8 +155,7 @@ void MainWindow::initRecentFileActions() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::openSourceFile() {
-    QString path = QFileDialog::getOpenFileName(
-        nullptr, QStringLiteral("Open Source File"));
+    QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("Open Source File"));
 
     if (path.isEmpty()) {
         return;
@@ -188,10 +169,8 @@ void MainWindow::openSourceFile() {
 void MainWindow::start() {
     printf("MainWindow::start\n");
 
-    const QVector<BreakpointModel::FileLineBreakpoint>& fileLineBreakpoints =
-        m_breakpoints->getFileLineBreakpoints();
-    const QVector<uint64_t>& addressBreakpoints =
-        m_breakpoints->getAddressBreakpoints();
+    const QVector<BreakpointModel::FileLineBreakpoint>& fileLineBreakpoints = m_breakpoints->getFileLineBreakpoints();
+    const QVector<uint64_t>& addressBreakpoints = m_breakpoints->getAddressBreakpoints();
 
     // add the breakpoints before we start
 
@@ -235,8 +214,7 @@ void MainWindow::debugAmigaExe() {
 
     m_lastAmigaExe = m_amigaUae->m_localExeToRun;
 
-    m_recentExecutables->setFile(m_recentFileActions, m_lastAmigaExe,
-                                 BackendType_AmigaUAE);
+    m_recentExecutables->setFile(m_recentFileActions, m_lastAmigaExe, BackendType_AmigaUAE);
 
     internalStartAmigaExe();
 }
@@ -282,10 +260,8 @@ void MainWindow::internalStartAmigaExe() {
     m_lastAmigaExe = m_amigaUae->m_localExeToRun;
 
     if (!m_amigaUae->m_skipUAELaunch) {
-        connect(m_amigaUae->m_uaeProcess, &QProcess::started, this,
-                &MainWindow::uaeStarted);
-        connect(m_amigaUae->m_uaeProcess,
-                static_cast<void (QProcess::*)(int)>(&QProcess::finished), this,
+        connect(m_amigaUae->m_uaeProcess, &QProcess::started, this, &MainWindow::uaeStarted);
+        connect(m_amigaUae->m_uaeProcess, static_cast<void (QProcess::*)(int)>(&QProcess::finished), this,
                 &MainWindow::processEnded);
 
         printf("BackendSession::destroyPluginData\n");
@@ -305,26 +281,20 @@ void MainWindow::processEnded(int) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::setupBackendConnections() {
-    connect(this, &MainWindow::stepInBackend, m_backend,
-            &BackendSession::stepIn);
-    connect(this, &MainWindow::stepOverBackend, m_backend,
-            &BackendSession::stepOver);
+    connect(this, &MainWindow::stepInBackend, m_backend, &BackendSession::stepIn);
+    connect(this, &MainWindow::stepOverBackend, m_backend, &BackendSession::stepOver);
     connect(this, &MainWindow::startBackend, m_backend, &BackendSession::start);
-    connect(this, &MainWindow::breakContBackend, m_backend,
-            &BackendSession::breakContDebug);
+    connect(this, &MainWindow::breakContBackend, m_backend, &BackendSession::breakContDebug);
     connect(this, &MainWindow::stopBackend, m_backend, &BackendSession::stop);
-    connect(m_backend, &BackendSession::statusUpdate, this,
-            &MainWindow::statusUpdate);
+    connect(m_backend, &BackendSession::statusUpdate, this, &MainWindow::statusUpdate);
 
-    connect(m_backendThread, &QThread::finished, m_backend,
-            &BackendSession::threadFinished);
+    connect(m_backendThread, &QThread::finished, m_backend, &BackendSession::threadFinished);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::startDummyBackend() {
-    BackendSession* backend =
-        BackendSession::createBackendSession(QStringLiteral("Dummy Backend"));
+    BackendSession* backend = BackendSession::createBackendSession(QStringLiteral("Dummy Backend"));
 
     if (!backend) {
         qDebug() << "Unable to create Dummy Backend";
@@ -359,8 +329,7 @@ void MainWindow::closeCurrentBackend() {
 void MainWindow::startAmigaUAEBackend() {
     closeCurrentBackend();
 
-    BackendSession* backend = BackendSession::createBackendSession(
-        QStringLiteral("Amiga UAE Debugger"));
+    BackendSession* backend = BackendSession::createBackendSession(QStringLiteral("Amiga UAE Debugger"));
 
     if (!backend) {
         printf("Unable to create Amiga UAE Debugger backend\n");
@@ -369,10 +338,8 @@ void MainWindow::startAmigaUAEBackend() {
 
     setupBackend(backend);
 
-    m_backendRequests->sendCustomString(m_amigaUae->m_setFileId,
-                                        m_amigaUae->m_fileToRun);
-    m_backendRequests->sendCustomString(m_amigaUae->m_setHddPathId,
-                                        m_amigaUae->m_dh0Path);
+    m_backendRequests->sendCustomString(m_amigaUae->m_setFileId, m_amigaUae->m_fileToRun);
+    m_backendRequests->sendCustomString(m_amigaUae->m_setHddPathId, m_amigaUae->m_dh0Path);
 
     // TODO: This is really temporary
     QTimer::singleShot(5000, this, &MainWindow::start);

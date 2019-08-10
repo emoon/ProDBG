@@ -21,14 +21,10 @@ class LineNumberArea : public QWidget {
    public:
     LineNumberArea(CodeView* editor) : QWidget(editor), m_codeEditor(editor) {}
 
-    QSize sizeHint() const {
-        return QSize(m_codeEditor->lineNumberAreaWidth(), 0);
-    }
+    QSize sizeHint() const { return QSize(m_codeEditor->lineNumberAreaWidth(), 0); }
 
    protected:
-    void paintEvent(QPaintEvent* event) {
-        m_codeEditor->lineNumberAreaPaintEvent(event);
-    }
+    void paintEvent(QPaintEvent* event) { m_codeEditor->lineNumberAreaPaintEvent(event); }
 
    private:
     CodeView* m_codeEditor;
@@ -43,22 +39,17 @@ CodeView::CodeView(QWidget* parent)
       m_disassemblyStart(0),
       m_disassemblyEnd(0) {
     setReadOnly(true);
-    setTextInteractionFlags(Qt::TextSelectableByMouse |
-                            Qt::TextSelectableByKeyboard);
+    setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
 
     setLineWrapMode(QPlainTextEdit::NoWrap);
 
     m_lineNumberArea = new LineNumberArea(this);
     m_fileWatcher = new QFileSystemWatcher(this);
 
-    connect(this, SIGNAL(blockCountChanged(int)), this,
-            SLOT(updateLineNumberAreaWidth(int)));
-    connect(this, SIGNAL(updateRequest(const QRect&, int)), this,
-            SLOT(updateLineNumberArea(const QRect&, int)));
-    connect(this, SIGNAL(cursorPositionChanged()), this,
-            SLOT(highlightCurrentLine()));
-    connect(m_fileWatcher, SIGNAL(fileChanged(const QString&)), this,
-            SLOT(fileChange(const QString)));
+    connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth(int)));
+    connect(this, SIGNAL(updateRequest(const QRect&, int)), this, SLOT(updateLineNumberArea(const QRect&, int)));
+    connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
+    connect(m_fileWatcher, SIGNAL(fileChanged(const QString&)), this, SLOT(fileChange(const QString)));
 
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
@@ -86,8 +77,7 @@ CodeView::~CodeView() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeView::openFile() {
-    QString path = QFileDialog::getOpenFileName(
-        nullptr, QStringLiteral("Open Source File"));
+    QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("Open Source File"));
 
     if (path.isEmpty()) {
         return;
@@ -109,10 +99,9 @@ void CodeView::reload() {
 void CodeView::fileChange(const QString filename) {
     QMessageBox::StandardButton reply;
 
-    reply = QMessageBox::question(
-        this, QStringLiteral("File has been changed"),
-        QStringLiteral("File %1 was changed, Reload?").arg(filename),
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+    reply = QMessageBox::question(this, QStringLiteral("File has been changed"),
+                                  QStringLiteral("File %1 was changed, Reload?").arg(filename),
+                                  QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
     if (reply != QMessageBox::Yes)
         return;
@@ -171,8 +160,7 @@ void CodeView::updateLineNumberArea(const QRect& rect, int dy) {
     if (dy)
         m_lineNumberArea->scroll(0, dy);
     else
-        m_lineNumberArea->update(0, rect.y(), m_lineNumberArea->width(),
-                                 rect.height());
+        m_lineNumberArea->update(0, rect.y(), m_lineNumberArea->width(), rect.height());
 
     if (rect.contains(viewport()->rect()))
         updateLineNumberAreaWidth(0);
@@ -184,8 +172,7 @@ void CodeView::resizeEvent(QResizeEvent* e) {
     QPlainTextEdit::resizeEvent(e);
 
     QRect cr = contentsRect();
-    m_lineNumberArea->setGeometry(
-        QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
+    m_lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -229,8 +216,7 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event) {
 
     QTextBlock block = firstVisibleBlock();
     int blockNumber = block.blockNumber();
-    int top =
-        (int)blockBoundingGeometry(block).translated(contentOffset()).top();
+    int top = (int)blockBoundingGeometry(block).translated(contentOffset()).top();
     int bottom = top + (int)blockBoundingRect(block).height();
     int width = m_lineNumberArea->width() - 4;
     int height = fontMetrics().height();
@@ -244,8 +230,7 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event) {
 
             painter.drawText(0, top, width, height, Qt::AlignRight, number);
 
-            if (m_breakpoints->hasBreakpointFileLine(m_sourceFile,
-                                                     blockNumber + 1)) {
+            if (m_breakpoints->hasBreakpointFileLine(m_sourceFile, blockNumber + 1)) {
                 painter.setBrush(Qt::red);
                 painter.drawEllipse(4, top, fontHeight, fontHeight);
             }
