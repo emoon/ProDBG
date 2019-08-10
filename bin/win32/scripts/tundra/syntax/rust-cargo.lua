@@ -1,4 +1,4 @@
--- rust-cargo.lua - Support for Rust and Cargo 
+-- rust-cargo.lua - Support for Rust and Cargo
 
 module(..., package.seeall)
 
@@ -13,16 +13,24 @@ _rust_cargo_program_mt = nodegen.create_eval_subclass { }
 _rust_cargo_shared_lib_mt = nodegen.create_eval_subclass { }
 _rust_cargo_crate_mt = nodegen.create_eval_subclass { }
 
+-- This allows us to get absolut objectdir to send to Cargo as Cargo can "move around"
+-- in the path this make sure it always finds the directory
+local function get_absolute_object_dir(env)
+  local base_dir = env:interpolate('$(OBJECTDIR)')
+  local cwd = native.getcwd()
+  return cwd .. "$(SEP)" .. base_dir
+end
+
 -- This function will gather up so extra dependencies. In the case when we depend on a Rust crate
 -- We simply return the sources to allow the the unit being built to depend on it. The reason
 -- for this is that Cargo will not actually link with this step but it's only used to make
 -- sure it gets built when a Crate changes
 
-function get_extra_deps(data, env) 
+function get_extra_deps(data, env)
 	local libsuffix = { env:get("LIBSUFFIX") }
   	local sources = data.Sources
   	local source_depts = {}
-	local extra_deps = {} 
+	local extra_deps = {}
 
 	for _, dep in util.nil_ipairs(data.Depends) do
     	if dep.Keyword == "StaticLibrary" then
@@ -35,7 +43,7 @@ function get_extra_deps(data, env)
 		end
 	end
 
-	return extra_deps, source_depts 
+	return extra_deps, source_depts
 end
 
 local cmd_line_type_prog = 0
@@ -54,15 +62,16 @@ function build_rust_action_cmd_line(env, data, program)
 		end
 	end
 
+	local tundra_dir = get_absolute_object_dir(env);
+
 	-- The way Cargo sets it's target directory is by using a env variable which is quite ugly but that is the way it works.
-	-- So before running the command we set the target directory of  
+	-- So before running the command we set the target directory of
 	-- We also set the tundra cmd line as env so we can use that inside the build.rs
 	-- to link with the libs in the correct path
 
-	local target = path.join("$(OBJECTDIR)", "__" .. data.Name)
+	local target = path.join(tundra_dir, "__" .. data.Name)
 
-	local target_dir = "" 
-	local tundra_dir = "$(OBJECTDIR)";
+	local target_dir = ""
 	local export = "export ";
 	local merge = " ; ";
 
@@ -71,18 +80,18 @@ function build_rust_action_cmd_line(env, data, program)
 		merge = "&&"
 	end
 
-	target_dir = export .. "CARGO_TARGET_DIR=" .. target .. merge 
-	tundra_dir = export .. "TUNDRA_OBJECTDIR=" .. tundra_dir .. merge 
+	target_dir = export .. "CARGO_TARGET_DIR=" .. target .. merge
+	tundra_dir = export .. "TUNDRA_OBJECTDIR=" .. tundra_dir .. merge
 
 	if static_libs ~= "" then
 		-- Remove trailing " "
 		local t = string.sub(static_libs, 1, string.len(static_libs) - 1)
-		static_libs = export .. "TUNDRA_STATIC_LIBS=" .. t .. merge 
+		static_libs = export .. "TUNDRA_STATIC_LIBS=\"" .. t .. "\"" .. merge
 	end
 
 	local variant = env:get('CURRENT_VARIANT')
 	local release = ""
-	local output_target = "" 
+	local output_target = ""
 	local output_name = ""
 
 	-- Make sure output_name gets prefixed/sufixed correctly
@@ -92,15 +101,15 @@ function build_rust_action_cmd_line(env, data, program)
 	elseif program == cmd_line_type_shared_lib then
 		output_name = "$(SHLIBPREFIX)" .. data.Name .. "$(HOSTSHLIBSUFFIX)"
 	else
-		output_name = "$(SHLIBPREFIX)" .. data.Name .. ".rlib" 
+		output_name = "$(SHLIBPREFIX)" .. data.Name .. ".rlib"
 	end
 
 	-- If variant is debug (default) we assume that we should use debug and not release mode
 
 	if variant == "debug" then
-		output_target = path.join(target, "debug$(SEP)" .. output_name) 
+		output_target = path.join(target, "debug$(SEP)" .. output_name)
 	else
-		output_target = path.join(target, "release$(SEP)" .. output_name) 
+		output_target = path.join(target, "release$(SEP)" .. output_name)
 		release = " --release "
 	end
 
@@ -112,7 +121,15 @@ function build_rust_action_cmd_line(env, data, program)
 		cargo_opts = "build"
 	end
 
-	local action_cmd_line = tundra_dir .. target_dir .. static_libs .. "$(RUST_CARGO) " .. cargo_opts .. " --manifest-path=" .. data.CargoConfig .. release
+	local rustc_flags = ""
+
+	-- Check if we have some extra flags set for rustc
+	local rust_opts = env:interpolate("$(RUST_OPTS)")
+	if rust_opts ~= "" then
+		rustc_flags = export .. "RUSTFLAGS=\"" .. rust_opts .. "\"" .. merge
+	end
+
+	local action_cmd_line = rustc_flags .. tundra_dir .. target_dir .. static_libs .. "$(RUST_CARGO) " .. cargo_opts .. " --manifest-path=" .. data.CargoConfig .. release
 
 	return action_cmd_line, output_target
 end
@@ -126,21 +143,18 @@ function _rust_cargo_program_mt:create_dag(env, data, deps)
 		Env          = env,
 		Pass         = data.Pass,
 		InputFiles   = util.merge_arrays({ data.CargoConfig }, data.Sources, util.flatten(dep_sources)),
-		Annotation 	 = path.join("$(OBJECTDIR)", data.Name), 
+		Annotation 	 = path.join("$(OBJECTDIR)", data.Name),
 		Label        = "Cargo Program $(@)",
 		Action       = action_cmd_line,
-		OutputFiles  = { output_target }, 
+		OutputFiles  = { output_target },
 		Dependencies = util.merge_arrays(deps, extra_deps),
 	}
 
-	-- No copy if we are running in test mode (as the executable will be executed directly) 
-	if string.match(env:interpolate("$(RUST_CARGO_OPTS)"), "test") then
-		return build_node 
-	else
-		local dst ="$(OBJECTDIR)" .. "$(SEP)" .. path.get_filename(env:interpolate(output_target))
-		local src = output_target
-		return files.copy_file(env, src, dst, data.Pass, { build_node })
-	end
+	local dst ="$(OBJECTDIR)" .. "$(SEP)" .. path.get_filename(env:interpolate(output_target))
+	local src = output_target
+
+	-- Copy the output file to the regular $(OBJECTDIR)
+	return files.copy_file(env, src, dst, data.Pass, { build_node })
 end
 
 function _rust_cargo_shared_lib_mt:create_dag(env, data, deps)
@@ -152,21 +166,18 @@ function _rust_cargo_shared_lib_mt:create_dag(env, data, deps)
 		Env          = env,
 		Pass         = data.Pass,
 		InputFiles   = util.merge_arrays({ data.CargoConfig }, data.Sources, util.flatten(dep_sources)),
-		Annotation 	 = path.join("$(OBJECTDIR)", data.Name), 
+		Annotation 	 = path.join("$(OBJECTDIR)", data.Name),
 		Label        = "Cargo SharedLibrary $(@)",
 		Action       = action_cmd_line,
-		OutputFiles  = { output_target }, 
+		OutputFiles  = { output_target },
 		Dependencies = util.merge_arrays(deps, extra_deps),
 	}
 
-	-- No copy if we are running in test mode (as the executable will be executed directly) 
-	if string.match(env:interpolate("$(RUST_CARGO_OPTS)"), "test") then
-		return build_node 
-	else
-		local dst ="$(OBJECTDIR)" .. "$(SEP)" .. path.get_filename(env:interpolate(output_target))
-		local src = output_target
-		return files.copy_file(env, src, dst, data.Pass, { build_node })
-	end
+	local dst ="$(OBJECTDIR)" .. "$(SEP)" .. path.get_filename(env:interpolate(output_target))
+	local src = output_target
+
+	-- Copy the output file to the regular $(OBJECTDIR)
+	return files.copy_file(env, src, dst, data.Pass, { build_node })
 end
 
 function _rust_cargo_crate_mt:create_dag(env, data, deps)
@@ -178,33 +189,33 @@ function _rust_cargo_crate_mt:create_dag(env, data, deps)
 		Env          = env,
 		Pass         = data.Pass,
 		InputFiles   = util.merge_arrays({ data.CargoConfig }, data.Sources, util.flatten(dep_sources)),
-		Annotation 	 = path.join("$(OBJECTDIR)", data.Name), 
+		Annotation 	 = path.join("$(OBJECTDIR)", data.Name),
 		Label        = "Cargo Crate $(@)",
 		Action       = action_cmd_line,
-		OutputFiles  = { output_target }, 
+		OutputFiles  = { output_target },
 		Dependencies = util.merge_arrays(deps, extra_deps),
 	}
 
-	return build_node 
+	return build_node
 end
 
 
 local rust_blueprint = {
-  Name = { 
-  	  Type = "string", 
-  	  Required = true, 
-  	  Help = "Name of the project. Must match the name in Cargo.toml" 
+  Name = {
+  	  Type = "string",
+  	  Required = true,
+  	  Help = "Name of the project. Must match the name in Cargo.toml"
   },
-  CargoConfig = { 
-  	  Type = "string", 
-  	  Required = true, 
-  	  Help = "Path to Cargo.toml" 
+  CargoConfig = {
+  	  Type = "string",
+  	  Required = true,
+  	  Help = "Path to Cargo.toml"
   },
   Sources = {
     Required = true,
     Help = "List of source files",
     Type = "source_list",
-    ExtensionKey = "RUST_SUFFIXES", 
+    ExtensionKey = "RUST_SUFFIXES",
   },
 }
 

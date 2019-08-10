@@ -6,7 +6,7 @@ function apply(env, options)
   env:set_many {
     ["QTMOC"] = "moc",
     ["QTMOCOPTS"] = "",
-    ["QTMOCCMD"] = "$(QTMOC) -o $(@) $(<)",
+    ["QTMOCCMD"] = "$(QTMOC) $(QTMOCOPTS) $(CPPPATH:P-I) -o $(@) $(<)",
     ["QTRCC"] = "rcc",
     ["QTRCCOPTS"] = "",
     ["QTRCCCMD"] = "$(QTRCC) $(QTRCCOPTS) -o $(@) $(<)",

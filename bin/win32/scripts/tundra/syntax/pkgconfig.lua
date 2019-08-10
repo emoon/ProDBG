@@ -24,6 +24,9 @@ function ConfigureRaw(cmdline, name, constructor)
   end
 
   for value in data:gmatch("-framework ([^ \n\r]+)") do
+    if value:match('^-Wl,') then
+      value = string.sub(value, 5)
+    end
     frameworks[#frameworks + 1] = value
   end
 

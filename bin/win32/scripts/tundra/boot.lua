@@ -89,7 +89,7 @@ local function make_default_env(build_data, add_unfiltered_vars)
   return default_env
 end
 
-function generate_dag_data(build_script_fn)
+function generate_dag_data(build_script_fn, json_file)
   local build_data = buildfile.run(build_script_fn)
   local env = make_default_env(build_data.BuildData, false)
   local raw_nodes, node_bindings = unitgen.generate_dag(
@@ -104,7 +104,8 @@ function generate_dag_data(build_script_fn)
     build_data.DefaultVariant,
     build_data.DefaultSubVariant,
     build_data.ContentDigestExtensions,
-    build_data.Options)
+    build_data.Options,
+    json_file)
 end
 
 function generate_ide_files(build_script_fn, ide_script)

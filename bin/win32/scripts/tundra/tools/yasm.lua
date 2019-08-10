@@ -6,7 +6,7 @@ function apply(env, options)
 
   env:set_many {
     ["YASM"] = "yasm",
-    ["ASMCOM"] = "$(YASM) -o $(@) $(ASMDEFS:p-D ) $(ASMOPTS) $(<)",
+    ["ASMCOM"] = "$(YASM) -o $(@) $(ASMDEFS:p-D ) $(ASMINCPATH:p-I ) $(ASMOPTS) $(<)",
     ["ASMINC_KEYWORDS"] = { "%include" },
   }
 end
