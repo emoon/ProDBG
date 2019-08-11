@@ -1,4 +1,4 @@
-![](https://dl.dropboxusercontent.com/u/5205843/prodbg_logo.png)
+![](/data/prodbg_logo.png)
 ======
 
 [![Join the chat at https://gitter.im/emoon/ProDBG](https://badges.gitter.im/emoon/ProDBG.svg)](https://gitter.im/emoon/ProDBG?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
