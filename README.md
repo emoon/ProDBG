@@ -44,7 +44,7 @@ The main execeutable is located at: `t2-output/macosx-clang-debug-default/ProDBG
 ### Prequisites
 On Windows Visual Studio 2017 or later is required (2012 or earlier will not work as parts of the code uses C99)
 
-## Env variables
+### Env variables
 
 Something similar to this
 
