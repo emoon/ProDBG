@@ -125,6 +125,7 @@ local win64 = {
 
         CXXOPTS = {
             win64_opts,
+            "/I$(QT5_INC)",
         },
 
         OBJCCOM = "meh",
