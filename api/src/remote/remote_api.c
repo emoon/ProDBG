@@ -78,7 +78,6 @@ int PDRemote_create(struct PDBackendPlugin* plugin, int waitForConnection) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int PDRemote_update(int sleepTime) {
-    PDDebugState state;
     uint8_t* recvData = 0;
     int recvSize = 0;
     int action = 0;
@@ -114,7 +113,7 @@ int PDRemote_update(int sleepTime) {
     pd_binary_writer_init(s_writer);
     pd_binary_reader_init_stream(s_reader, recvData, recvSize);
 
-    state = s_plugin->update(s_userData, (PDAction)action, s_reader, s_writer);
+    s_plugin->update(s_userData, (PDAction)action, s_reader, s_writer);
 
     //PDWrite_event_begin(s_writer, PDEventType_setStatus);
     //PDWrite_u32(s_writer, "state", (uint32_t)state);

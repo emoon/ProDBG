@@ -212,7 +212,7 @@ static void updateRegisters(QVector<IBackendRequests::Register>* target, PDReade
         reg.name = QString::fromUtf8(name);
         reg.read_only = read_only ? true : false;
 
-        for (int i = 0; i < size; ++i) {
+        for (uint64_t i = 0; i < size; ++i) {
             reg.data.append(data[i]);
         }
 

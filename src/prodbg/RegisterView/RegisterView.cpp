@@ -3,6 +3,7 @@
 #include <QtCore/QDebug>
 #include "Backend/IBackendRequests.h"
 #include "ui_RegisterView.h"
+#include <inttypes.h>
 
 namespace prodbg {
 
@@ -81,7 +82,7 @@ static QString getRegisterValue(IBackendRequests::Register* reg) {
         }
 
         case 8: {
-            regText.sprintf("%016llx", getU64((uint8_t*)reg->data.data()));
+            regText.sprintf("0x%" PRIx64, getU64((uint8_t*)reg->data.data()));
             break;
         }
 

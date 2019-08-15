@@ -391,7 +391,7 @@ void ToolWindowManager::restoreState(const QVariantMap &dataMap) {
     ToolWindowManagerWrapper* wrapper = new ToolWindowManagerWrapper(this);
     wrapper->restoreState(windowData.toMap());
     wrapper->show();
-    if(wrapper->windowState() && Qt::WindowMaximized)
+    if(wrapper->windowState() & Qt::WindowMaximized)
     {
       wrapper->setWindowState(0);
       wrapper->setWindowState(Qt::WindowMaximized);

@@ -86,7 +86,8 @@ StaticLibrary {
     Env = {
         CCOPTS = {
         	{
-		-- "-Werror",
+        	"-Wno-overflow",
+        	"-Wno-format",
 		    "-Wno-parentheses",
         	"-Wno-unused-variable",
         	"-Wno-pointer-to-int-cast",

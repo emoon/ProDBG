@@ -9,6 +9,7 @@
 #include <QtWidgets/QMenu>
 
 #include <ctype.h>
+#include <inttypes.h>
 
 namespace prodbg {
 
@@ -104,7 +105,7 @@ static void formatUnsigned(QString* target,
             len = snprintf(buffer, sizeof buffer, "%u", (uint32_t)value);
             break;
         case 8:
-            len = snprintf(buffer, sizeof buffer, "%llu", (uint64_t)value);
+            len = snprintf(buffer, sizeof buffer, "%" PRIu64, (uint64_t)value);
             break;
     }
 
@@ -133,7 +134,7 @@ static void formatSigned(QString* target,
             len = snprintf(buffer, sizeof buffer, "%d", (int32_t)value);
             break;
         case 8:
-            len = snprintf(buffer, sizeof buffer, "%lld", (int64_t)value);
+            len = snprintf(buffer, sizeof buffer, "%" PRId64, (int64_t)value);
             break;
     }
 

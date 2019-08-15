@@ -3,6 +3,7 @@
 #include <QtGui/QTextBlock>
 #include <QtWidgets/QApplication>
 #include "BreakpointModel.h"
+#include <inttypes.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -216,7 +217,7 @@ void DisassemblyView::endDisassembly(QVector<IBackendRequests::AssemblyInstructi
                 addressText.sprintf("%08X", (uint32_t)inst.address);
                 break;
             default:
-                addressText.sprintf("%16llX", inst.address);
+                addressText.sprintf("%" PRIu64 "X", inst.address);
                 break;
         }
 
@@ -249,7 +250,7 @@ void DisassemblyView::updatePc(uint64_t pc) {
             linesInView = 1;
         }
 
-        if (pc >= linesInView) {
+        if ((int)pc >= linesInView) {
             pc -= linesInView;
         }
 
