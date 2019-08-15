@@ -64,10 +64,7 @@ Program {
               "-isystem $(QT5_LIB)/QtGui.framework/Headers",
               "-F$(QT5_LIB)/lib"; Config = "macosx-*-*" },
 
-            { "-isystem $(QT5_INC)/include/QtWidgets",
-              "-isystem $(QT5_INC)/include/QtCore",
-              "-isystem $(QT5_INC)/include/QtGui",
-              "-isystem $(QT5_INC)/include"; Config = "linux-*-*" },
+            { "-isystem $(QT5_INC)"; Config = "linux-*-*" },
         },
 
         CPPDEFS = {
@@ -93,7 +90,7 @@ Program {
 
         PROGCOM = {
             {  "-Wl,-rpath,$(QT5_LIB)/lib", "-F$(QT5_LIB)/lib", "-lstdc++", Config = "macosx-clang-*" },
-            {  "-Wl,-rpath,$(QT5_LIB)/lib", "-lstdc++", "-lm", Config = "linux-*-*" },
+            {  "-L$(QT5_LIB)", "-lstdc++", "-lm", Config = "linux-*-*" },
         },
     },
 
