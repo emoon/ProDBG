@@ -6,11 +6,17 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+
+//Banned API Usage : strcat / sprintf is a Banned API as listed in dontuse.h for
+//security purposes.
+#pragma warning(disable:28719)
 #endif
 
 #include <stdio.h>	// DEBUG
 #include <stdlib.h>
 #include <string.h>
+
+#include "M68KInstPrinter.h"
 
 #include "M68KDisassembler.h"
 
@@ -22,7 +28,7 @@
 #include "../../MCRegisterInfo.h"
 
 #ifndef CAPSTONE_DIET
-static const char* s_spacing = "";
+static const char* s_spacing = " ";
 
 static const char* s_reg_names[] = {
 	"invalid",
@@ -66,7 +72,7 @@ static const char* s_instruction_names[] = {
 
 
 #ifndef CAPSTONE_DIET
-const char* getRegName(m68k_reg reg)
+static const char* getRegName(m68k_reg reg)
 {
 	return s_reg_names[(int)reg];
 }
@@ -104,6 +110,11 @@ static void registerBits(SStream* O, const cs_m68k_op* op)
 
 	buffer[0] = 0;
 
+	if (!data) {
+		SStream_concat(O, "%s", "#$0");
+		return;
+	}
+
 	printRegbitsRange(buffer, data & 0xff, "d");
 	printRegbitsRange(buffer, (data >> 8) & 0xff, "a");
 	printRegbitsRange(buffer, (data >> 16) & 0xff, "fp");
@@ -113,11 +124,11 @@ static void registerBits(SStream* O, const cs_m68k_op* op)
 
 static void registerPair(SStream* O, const cs_m68k_op* op)
 {
-	SStream_concat(O, "%s:%s", s_reg_names[M68K_REG_D0 + op->reg_pair.reg_0],
-			s_reg_names[M68K_REG_D0 + op->reg_pair.reg_1]);
+	SStream_concat(O, "%s:%s", s_reg_names[op->reg_pair.reg_0],
+			s_reg_names[op->reg_pair.reg_1]);
 }
 
-void printAddressingMode(SStream* O, const cs_m68k* inst, const cs_m68k_op* op)
+static void printAddressingMode(SStream* O, unsigned int pc, const cs_m68k* inst, const cs_m68k_op* op)
 {
 	switch (op->address_mode) {
 		case M68K_AM_NONE:
@@ -141,11 +152,11 @@ void printAddressingMode(SStream* O, const cs_m68k* inst, const cs_m68k_op* op)
 		case M68K_AM_REGI_ADDR: SStream_concat(O, "(a%d)", (op->reg - M68K_REG_A0)); break;
 		case M68K_AM_REGI_ADDR_POST_INC: SStream_concat(O, "(a%d)+", (op->reg - M68K_REG_A0)); break;
 		case M68K_AM_REGI_ADDR_PRE_DEC: SStream_concat(O, "-(a%d)", (op->reg - M68K_REG_A0)); break;
-		case M68K_AM_REGI_ADDR_DISP: SStream_concat(O, "$%x(a%d)", op->mem.disp, (op->reg - M68K_REG_A0)); break;
-		case M68K_AM_PCI_DISP: SStream_concat(O, "$%x(pc)", op->mem.disp); break;
+		case M68K_AM_REGI_ADDR_DISP: SStream_concat(O, "%s$%x(a%d)", op->mem.disp < 0 ? "-" : "", abs(op->mem.disp), (op->mem.base_reg - M68K_REG_A0)); break;
+		case M68K_AM_PCI_DISP: SStream_concat(O, "$%x(pc)", pc + 2 + op->mem.disp); break;
 		case M68K_AM_ABSOLUTE_DATA_SHORT: SStream_concat(O, "$%x.w", op->imm); break;
 		case M68K_AM_ABSOLUTE_DATA_LONG: SStream_concat(O, "$%x.l", op->imm); break;
-		case M68K_AM_IMMIDIATE:
+		case M68K_AM_IMMEDIATE:
 			 if (inst->op_size.type == M68K_SIZE_TYPE_FPU) {
 #if defined(_KERNEL_MODE)
 				 // Issue #681: Windows kernel does not support formatting float point
@@ -164,15 +175,20 @@ void printAddressingMode(SStream* O, const cs_m68k* inst, const cs_m68k_op* op)
 			 SStream_concat(O, "#$%x", op->imm);
 			 break;
 		case M68K_AM_PCI_INDEX_8_BIT_DISP:
-			SStream_concat(O, "$%x(pc,%s%s.%c)", op->mem.disp, s_spacing, getRegName(op->mem.index_reg), op->mem.index_size ? 'l' : 'w');
+			SStream_concat(O, "$%x(pc,%s%s.%c)", pc + 2 + op->mem.disp, s_spacing, getRegName(op->mem.index_reg), op->mem.index_size ? 'l' : 'w');
 			break;
 		case M68K_AM_AREGI_INDEX_8_BIT_DISP:
-			SStream_concat(O, "$%x(%s,%s%s.%c)", op->mem.disp, getRegName(op->mem.base_reg), s_spacing, getRegName(op->mem.index_reg), op->mem.index_size ? 'l' : 'w');
+			SStream_concat(O, "%s$%x(%s,%s%s.%c)", op->mem.disp < 0 ? "-" : "", abs(op->mem.disp), getRegName(op->mem.base_reg), s_spacing, getRegName(op->mem.index_reg), op->mem.index_size ? 'l' : 'w');
 			break;
 		case M68K_AM_PCI_INDEX_BASE_DISP:
 		case M68K_AM_AREGI_INDEX_BASE_DISP:
-			if (op->mem.in_disp > 0)
-			    SStream_concat(O, "$%x", op->mem.in_disp);
+
+			if (op->address_mode == M68K_AM_PCI_INDEX_BASE_DISP) {
+				SStream_concat(O, "$%x", pc + 2 + op->mem.in_disp);
+			} else {
+				if (op->mem.in_disp > 0)
+					SStream_concat(O, "$%x", op->mem.in_disp);
+			}
 
 			SStream_concat(O, "(");
 
@@ -197,8 +213,13 @@ void printAddressingMode(SStream* O, const cs_m68k* inst, const cs_m68k_op* op)
 		case M68K_AM_MEMI_PRE_INDEX:
 		case M68K_AM_MEMI_POST_INDEX:
 			SStream_concat(O, "([");
-			if (op->mem.in_disp > 0)
-			    SStream_concat(O, "$%x", op->mem.in_disp);
+
+			if (op->address_mode == M68K_AM_PC_MEMI_POST_INDEX || op->address_mode == M68K_AM_PC_MEMI_PRE_INDEX) {
+				SStream_concat(O, "$%x", pc + 2 + op->mem.in_disp);
+			} else {
+				if (op->mem.in_disp > 0)
+					SStream_concat(O, "$%x", op->mem.in_disp);
+			}
 
 			if (op->mem.base_reg != M68K_REG_INVALID) {
 				if (op->mem.in_disp > 0)
@@ -224,6 +245,8 @@ void printAddressingMode(SStream* O, const cs_m68k* inst, const cs_m68k_op* op)
 
 			SStream_concat(O, ")");
 			break;
+		case M68K_AM_BRANCH_DISPLACEMENT:
+			SStream_concat(O, "$%x", pc + 2 + op->br_disp.disp);
 		default:
 			break;
 	}
@@ -232,6 +255,9 @@ void printAddressingMode(SStream* O, const cs_m68k* inst, const cs_m68k_op* op)
 		SStream_concat(O, "{%d:%d}", op->mem.offset, op->mem.width);
 }
 #endif
+
+#define m68k_sizeof_array(array) (int)(sizeof(array)/sizeof(array[0]))
+#define m68k_min(a, b) (a < b) ? a : b
 
 void M68K_printInst(MCInst* MI, SStream* O, void* PrinterInfo)
 {
@@ -243,16 +269,20 @@ void M68K_printInst(MCInst* MI, SStream* O, void* PrinterInfo)
 
 	detail = MI->flat_insn->detail;
 	if (detail) {
+		int regs_read_count = m68k_min(m68k_sizeof_array(detail->regs_read), info->regs_read_count);
+		int regs_write_count = m68k_min(m68k_sizeof_array(detail->regs_write), info->regs_write_count);
+		int groups_count = m68k_min(m68k_sizeof_array(detail->groups), info->groups_count);
+
 		memcpy(&detail->m68k, ext, sizeof(cs_m68k));
 
-		memcpy(&detail->regs_read, &info->regs_read, info->regs_read_count * sizeof(uint16_t));
-		detail->regs_read_count = info->regs_read_count;
+		memcpy(&detail->regs_read, &info->regs_read, regs_read_count * sizeof(uint16_t));
+		detail->regs_read_count = regs_read_count;
 
-		memcpy(&detail->regs_write, &info->regs_write, info->regs_write_count * sizeof(uint16_t));
-		detail->regs_write_count = info->regs_write_count;
+		memcpy(&detail->regs_write, &info->regs_write, regs_write_count * sizeof(uint16_t));
+		detail->regs_write_count = regs_write_count;
 
-		memcpy(&detail->groups, &info->groups, info->groups_count);
-		detail->groups_count = info->groups_count;
+		memcpy(&detail->groups, &info->groups, groups_count);
+		detail->groups_count = groups_count;
 	}
 
 	if (MI->Opcode == M68K_INS_INVALID) {
@@ -294,8 +324,8 @@ void M68K_printInst(MCInst* MI, SStream* O, void* PrinterInfo)
 
 	if (MI->Opcode == M68K_INS_CAS2) {
 		int reg_value_0, reg_value_1;
-		printAddressingMode(O, ext, &ext->operands[0]); SStream_concat0(O, ",");
-		printAddressingMode(O, ext, &ext->operands[1]); SStream_concat0(O, ",");
+		printAddressingMode(O, info->pc, ext, &ext->operands[0]); SStream_concat0(O, ",");
+		printAddressingMode(O, info->pc, ext, &ext->operands[1]); SStream_concat0(O, ",");
 		reg_value_0 = ext->operands[2].register_bits >> 4;
 		reg_value_1 = ext->operands[2].register_bits & 0xf;
 		SStream_concat(O, "(%s):(%s)", s_reg_names[M68K_REG_D0 + reg_value_0], s_reg_names[M68K_REG_D0 + reg_value_1]);
@@ -303,7 +333,7 @@ void M68K_printInst(MCInst* MI, SStream* O, void* PrinterInfo)
 	}
 
 	for (i  = 0; i < ext->op_count; ++i) {
-		printAddressingMode(O, ext, &ext->operands[i]);
+		printAddressingMode(O, info->pc, ext, &ext->operands[i]);
 		if ((i + 1) != ext->op_count)
 			SStream_concat(O, ",%s", s_spacing);
 	}
@@ -315,6 +345,9 @@ const char* M68K_reg_name(csh handle, unsigned int reg)
 #ifdef CAPSTONE_DIET
 	return NULL;
 #else
+	if (reg >= ARR_SIZE(s_reg_names)) {
+		return NULL;
+	}
 	return s_reg_names[(int)reg];
 #endif
 }
@@ -339,6 +372,7 @@ static name_map group_name_maps[] = {
 	{ M68K_GRP_JUMP, "jump" },
 	{ M68K_GRP_RET , "ret" },
 	{ M68K_GRP_IRET, "iret" },
+	{ M68K_GRP_BRANCH_RELATIVE, "branch_relative" },
 };
 #endif
 

@@ -8,16 +8,21 @@
 #include "MipsDisassembler.h"
 #include "MipsInstPrinter.h"
 #include "MipsMapping.h"
+#include "MipsModule.h"
 
-static cs_err init(cs_struct *ud)
+// Returns mode value with implied bits set
+static cs_mode updated_mode(cs_mode mode)
+{
+	if (mode & CS_MODE_MIPS32R6) {
+		mode |= CS_MODE_32;
+	}
+
+	return mode;
+}
+
+cs_err Mips_global_init(cs_struct *ud)
 {
 	MCRegisterInfo *mri;
-
-	// verify if requested mode is valid
-	if (ud->mode & ~(CS_MODE_LITTLE_ENDIAN | CS_MODE_32 | CS_MODE_64 |
-				CS_MODE_MICRO | CS_MODE_MIPS32R6 | CS_MODE_BIG_ENDIAN))
-		return CS_ERR_MODE;
-
 	mri = cs_mem_malloc(sizeof(*mri));
 
 	Mips_init(mri);
@@ -28,28 +33,20 @@ static cs_err init(cs_struct *ud)
 	ud->insn_id = Mips_get_insn_id;
 	ud->insn_name = Mips_insn_name;
 	ud->group_name = Mips_group_name;
+
 	ud->disasm = Mips_getInstruction;
 
 	return CS_ERR_OK;
 }
 
-static cs_err option(cs_struct *handle, cs_opt_type type, size_t value)
+cs_err Mips_option(cs_struct *handle, cs_opt_type type, size_t value)
 {
 	if (type == CS_OPT_MODE) {
-		handle->mode = (cs_mode)value;
+		handle->mode = updated_mode(value);
 		return CS_ERR_OK;
 	}
 
 	return CS_ERR_OPTION;
-}
-
-void Mips_enable(void)
-{
-	arch_init[CS_ARCH_MIPS] = init;
-	arch_option[CS_ARCH_MIPS] = option;
-
-	// support this arch
-	all_arch |= (1 << CS_ARCH_MIPS);
 }
 
 #endif

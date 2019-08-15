@@ -37,7 +37,7 @@ typedef unsigned char bool;
 #if defined(CAPSTONE_HAS_OSXKERNEL) || (defined(_MSC_VER) && (_MSC_VER <= 1700 || defined(_KERNEL_MODE)))
 // this system does not have inttypes.h
 
-#if defined(_MSC_VER) && (_MSC_VER <= 1700 || defined(_KERNEL_MODE))
+#if defined(_MSC_VER) && (_MSC_VER <= 1600 || defined(_KERNEL_MODE))
 // this system does not have stdint.h
 typedef signed char  int8_t;
 typedef signed short int16_t;
@@ -47,7 +47,9 @@ typedef unsigned short uint16_t;
 typedef unsigned int   uint32_t;
 typedef signed long long   int64_t;
 typedef unsigned long long uint64_t;
+#endif  // defined(_MSC_VER) && (_MSC_VER <= 1600 || defined(_KERNEL_MODE))
 
+#if defined(_MSC_VER) && (_MSC_VER < 1600 || defined(_KERNEL_MODE))
 #define INT8_MIN         (-127i8 - 1)
 #define INT16_MIN        (-32767i16 - 1)
 #define INT32_MIN        (-2147483647i32 - 1)
@@ -60,7 +62,12 @@ typedef unsigned long long uint64_t;
 #define UINT16_MAX       0xffffui16
 #define UINT32_MAX       0xffffffffui32
 #define UINT64_MAX       0xffffffffffffffffui64
-#endif  // defined(_MSC_VER) && (_MSC_VER <= 1700 || defined(_KERNEL_MODE))
+#endif  // defined(_MSC_VER) && (_MSC_VER < 1600 || defined(_KERNEL_MODE))
+
+#ifdef CAPSTONE_HAS_OSXKERNEL
+// this system has stdint.h
+#include <stdint.h>
+#endif
 
 #define __PRI_8_LENGTH_MODIFIER__ "hh"
 #define __PRI_64_LENGTH_MODIFIER__ "ll"
@@ -94,6 +101,11 @@ typedef unsigned long long uint64_t;
 #define PRIx32        "x"
 #define PRIX32        "X"
 #endif  // defined(_MSC_VER) && _MSC_VER <= 1700
+
+#if defined(_MSC_VER) && _MSC_VER <= 1700
+// redefine functions from inttypes.h used in cstool
+#define strtoull _strtoui64
+#endif
 
 #define PRId64        __PRI_64_LENGTH_MODIFIER__ "d"
 #define PRIi64        __PRI_64_LENGTH_MODIFIER__ "i"

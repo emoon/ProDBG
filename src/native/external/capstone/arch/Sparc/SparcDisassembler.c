@@ -19,6 +19,8 @@
 #include "../../cs_priv.h"
 #include "../../utils.h"
 
+#include "SparcDisassembler.h"
+
 #include "../../MCInst.h"
 #include "../../MCInstrDesc.h"
 #include "../../MCFixedLenDisassembler.h"
@@ -212,7 +214,7 @@ static DecodeStatus readInstruction32(const uint8_t *code, size_t len, uint32_t 
 	*Insn = (code[3] <<  0) |
 		(code[2] <<  8) |
 		(code[1] << 16) |
-		(code[0] << 24);
+		((uint32_t) code[0] << 24);
 
 	return MCDisassembler_Success;
 }
@@ -228,7 +230,7 @@ bool Sparc_getInstruction(csh ud, const uint8_t *code, size_t code_len, MCInst *
 		return false;
 
 	if (MI->flat_insn->detail) {
-		memset(MI->flat_insn->detail, 0, sizeof(cs_detail));
+		memset(MI->flat_insn->detail, 0, offsetof(cs_detail, sparc)+sizeof(cs_sparc));
 	}
 
 	Result = decodeInstruction_4(DecoderTableSparc32, MI, Insn, address,
