@@ -1,9 +1,10 @@
 #include "RegisterView.h"
-#include <stdint.h>
-#include <QtCore/QDebug>
+
 #include "Backend/IBackendRequests.h"
 #include "ui_RegisterView.h"
+#include <QtCore/QDebug>
 #include <inttypes.h>
+#include <stdint.h>
 
 namespace prodbg {
 

@@ -2,9 +2,11 @@
 
 #include <QtWidgets/QMainWindow>
 #include "ui_MainWindow.h"
+#include "api/include/pd_ui.h"
 
 class QStatusBar;
 class QThread;
+class QPluginLoader;
 
 namespace prodbg {
 
@@ -13,7 +15,7 @@ class CodeView;
 class MemoryView;
 class AmigaUAE;
 class BackendSession;
-class RegisterView;
+//class RegisterView;
 class BackendRequests;
 class BreakpointModel;
 class CodeViews;
@@ -92,10 +94,12 @@ class MainWindow : public QMainWindow {
 
     // List of recent executables
     RecentExecutables* m_recentExecutables = nullptr;
+    // test
+    QPluginLoader* m_regPluginLoader;
+    PDUIInterface* m_registerView = nullptr;
 
     // Hardcoded views for now.
     MemoryView* m_memoryView = nullptr;
-    RegisterView* m_registerView = nullptr;
     QStatusBar* m_statusbar = nullptr;
     BreakpointModel* m_breakpoints = nullptr;
 

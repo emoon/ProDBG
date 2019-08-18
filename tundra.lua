@@ -87,6 +87,8 @@ local gcc_env = {
             gcc_opts,
             "-std=c++11",
             "-I$(QT5_INC)",
+            -- temp
+            "-Isrc/prodbg",
         },
 
     },
