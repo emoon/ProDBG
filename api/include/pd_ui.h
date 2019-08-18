@@ -2,14 +2,18 @@
 
 #include <QtCore/QObject>
 
+<<<<<<< HEAD
 namespace prodbg {
 
 class IBackendRequests;
 
+=======
+>>>>>>> 8b9929dcf62565f0e6b23d15f245e4c7afb83f65
 class PDUIInterface
 {
 public:
     virtual ~PDUIInterface() {}
+<<<<<<< HEAD
     // TODO: Return state if needs animated update
     virtual void create(QWidget* parent) = 0;
 
@@ -24,4 +28,11 @@ public:
 #define PDUIInterface_iid "org.prodbg.PDUIInterface"
 
 Q_DECLARE_INTERFACE(prodbg::PDUIInterface, PDUIInterface_iid)
+=======
+    virtual void test(int t) = 0;
+};
 
+#define PDUIInterface_iid "org.prodbg.PDUIInterface"
+>>>>>>> 8b9929dcf62565f0e6b23d15f245e4c7afb83f65
+
+Q_DECLARE_INTERFACE(PDUIInterface, PDUIInterface_iid)

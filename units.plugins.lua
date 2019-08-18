@@ -10,6 +10,7 @@ local function gen_moc(src)
     }
 end
 
+<<<<<<< HEAD
 local function gen_uic(src)
     return Uic {
         Pass = "GenerateSources",
@@ -18,6 +19,8 @@ local function gen_uic(src)
 end
 
 
+=======
+>>>>>>> 8b9929dcf62565f0e6b23d15f245e4c7afb83f65
 local native = require('tundra.native')
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -83,12 +86,18 @@ SharedLibrary {
     Env = {
         CPPPATH = {
         	"api/include",
+<<<<<<< HEAD
             "$(OBJECTDIR)",
+=======
+>>>>>>> 8b9929dcf62565f0e6b23d15f245e4c7afb83f65
         },
     },
 
     Sources = {
+<<<<<<< HEAD
         gen_uic("src/plugins/registers_view/RegisterView.ui"),
+=======
+>>>>>>> 8b9929dcf62565f0e6b23d15f245e4c7afb83f65
         gen_moc("src/plugins/registers_view/registers_view.h"),
 
         Glob {
