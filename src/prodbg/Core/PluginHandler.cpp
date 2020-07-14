@@ -128,7 +128,7 @@ QWidget* PluginHandler_tempLoadUIPlugin(QWidget* parent, const QString& plugin) 
     QLibrary* lib = findPlugin(plugin);
 
     if (!lib) {
-        qDebug() << "Unable to find " << plugin;
+        qDebug() << "Unable to find " << plugin << " " << lib->errorString();
         return nullptr;
     }
 

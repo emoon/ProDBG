@@ -74,7 +74,7 @@ MainWindow::MainWindow()
 
     QWidget* plugin_parent = new QWidget(this);
 
-    PluginHandler_tempLoadUIPlugin(plugin_parent, QStringLiteral("memory_view_2"));
+    //PluginHandler_tempLoadUIPlugin(plugin_parent, QStringLiteral("memory_view_2"));
 
     // Setup docking for MemoryView
 
@@ -366,7 +366,7 @@ void MainWindow::setupBackend(BackendSession* backend) {
     m_backend->moveToThread(m_backendThread);
     m_backendRequests = new BackendRequests(m_backend);
 
-    m_registerView->set_backend_interface(m_backendRequests);
+    //m_registerView->set_backend_interface(m_backendRequests);
     m_codeViews->setBackendInterface(m_backendRequests);
     m_memoryView->setBackendInterface(m_backendRequests);
 

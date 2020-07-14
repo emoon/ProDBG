@@ -63,8 +63,7 @@ Program {
               "-isystem $(QT5_LIB)/QtCore.framework/Headers",
               "-isystem $(QT5_LIB)/QtGui.framework/Headers",
               "-F$(QT5_LIB)/lib"; Config = "macosx-*-*" },
-
-            { "-isystem $(QT5_INC)"; Config = "linux-*-*" },
+            --{ "-isystem $(QT5_INC)"; Config = "linux-*-*" },
         },
 
         CPPDEFS = {
@@ -80,6 +79,10 @@ Program {
         	"api/include",
         	"src/native/external",
         	"src/native/external/toolwindowmanager",
+            "$(QT5_INC)",
+            "$(QT5_INC)/QtCore",
+            "$(QT5_INC)/QtWidgets",
+            "$(QT5_INC)/QtGui",
             "$(OBJECTROOT)", "$(OBJECTDIR)",
         },
 
@@ -89,8 +92,8 @@ Program {
 		},
 
         PROGCOM = {
-            {  "-Wl,-rpath,$(QT5_LIB)/lib", "-F$(QT5_LIB)/lib", "-lstdc++", Config = "macosx-clang-*" },
-            {  "-L$(QT5_LIB)", "-lstdc++", "-lm", Config = "linux-*-*" },
+            {  "-Wl,-rpath,$(QT5_LIB)", "-F$(QT5_LIB)", "-lstdc++", Config = "macosx-clang-*" },
+            {  "-Wl,-rpath,$(QT5_LIB)", "-lstdc++", "-lm", "-ldl"; Config = "linux-*-*" },
         },
     },
 

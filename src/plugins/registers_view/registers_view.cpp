@@ -1,5 +1,4 @@
 #include "registers_view.h"
-<<<<<<< HEAD
 #include "ui_RegisterView.h"
 
 void RegistersPlugin::create(QWidget* parent) {
@@ -31,12 +30,3 @@ void RegistersPlugin::create(QWidget* parent) {
 void RegistersPlugin::set_backend_interface(prodbg::IBackendRequests* interface) {
     m_backend = interface;
 }
-=======
-
-void RegistersPlugin::test(int t) {
-    printf("RegistersPlugin %d\n", t);
-}
-
->>>>>>> 8b9929dcf62565f0e6b23d15f245e4c7afb83f65
-
-
