@@ -48,11 +48,7 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
     - name: Build Debug
-      run: |
-        export QT5_BIN=$Qt5_DIR/bin
-        export QT5_INC=$Qt5_DIR/include
-        export QT5_LIB=$Qt5_DIR/lib
-        scripts/mac_build_debug.sh
+      run: export QT5_BIN=$Qt5_DIR/bin && export QT5_INC=$Qt5_DIR/include && export QT5_LIB=$Qt5_DIR/lib && scripts/mac_build_debug.sh
 
 # Build Windows
   build_windows:
