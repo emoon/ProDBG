@@ -85,6 +85,11 @@ SharedLibrary {
         	"api/include",
             "$(OBJECTDIR)",
         },
+
+        LIBPATH = {
+			{ "$(QT5_LIB)"; Config = "win64-*-*" },
+			{ "$(QT5_LIB)"; Config = "linux-*-*" },
+		},
     },
 
     Sources = {
@@ -95,8 +100,11 @@ SharedLibrary {
             Dir = "src/plugins/registers_view",
             Extensions = { ".c", ".cpp", ".m" },
         },
-
     },
+
+	Libs = {
+        { "Qt5Gui.lib", "Qt5Core.lib", "Qt5Widgets.lib"; Config = "win64-*-*" },
+	},
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }

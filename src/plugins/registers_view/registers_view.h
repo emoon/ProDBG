@@ -20,8 +20,8 @@ public:
     void create(QWidget* parent);
     void set_backend_interface(prodbg::IBackendRequests* interface);
 
-    Q_SLOT void endReadRegisters(QVector<prodbg::IBackendRequests::Register>* target);
-    Q_SLOT void programCounterChanged(const prodbg::IBackendRequests::ProgramCounterChange& pc);
+    //Q_SLOT void endReadRegisters(QVector<prodbg::IBackendRequests::Register>* target);
+    //Q_SLOT void programCounterChanged(const prodbg::IBackendRequests::ProgramCounterChange& pc);
 private:
 
     // Interface for the backend

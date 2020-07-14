@@ -128,6 +128,7 @@ local win64 = {
         CXXOPTS = {
             win64_opts,
             "/I$(QT5_INC)",
+            "/Isrc\\prodbg",
         },
 
         OBJCCOM = "meh",
