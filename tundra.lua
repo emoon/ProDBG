@@ -86,6 +86,9 @@ local gcc_env = {
         CXXOPTS = {
             gcc_opts,
             "-std=c++11",
+            "-I$(QT5_INC)",
+            -- temp
+            "-Isrc/prodbg",
         },
 
     },
@@ -124,6 +127,7 @@ local win64 = {
 
         CXXOPTS = {
             win64_opts,
+            "/I$(QT5_INC)",
         },
 
         OBJCCOM = "meh",

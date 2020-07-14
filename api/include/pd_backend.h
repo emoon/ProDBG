@@ -2,17 +2,14 @@
 #define _PRODBGAPI_BACKEND_H_
 
 #include "pd_common.h"
-#include "pd_menu.h"
 #include "pd_readwrite.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct PDMenu;
 struct PDSaveState;
 struct PDLoadState;
-struct PDUI;
 
 #define PD_BACKEND_API_VERSION "ProDBG Backend 1"
 
@@ -86,8 +83,6 @@ typedef enum PDEventType {
     PDEventType_ExecuteConsole,
     PDEventType_GetConsole,
 
-    PDEventType_MenuEvent,
-
     // TODO: Somewhat temporary, need to figure this out
 
     PDEventType_ToggleBreakpointCurrentLine,
@@ -110,8 +105,7 @@ typedef enum PDEventType {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct PDBackendPlugin
-{
+typedef struct PDBackendPlugin {
     const char* name;
 
     void* (*create_instance)(ServiceFunc* service_func);
@@ -125,7 +119,6 @@ typedef struct PDBackendPlugin
 } PDBackendPlugin;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Needed for exporting the entry point on Windows
 
 #ifdef _WIN32
 #define PD_EXPORT __declspec(dllexport)

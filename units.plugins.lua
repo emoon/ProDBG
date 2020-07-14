@@ -3,6 +3,21 @@ require "tundra.path"
 require "tundra.util"
 require "tundra.syntax.rust-cargo"
 
+local function gen_moc(src)
+    return Moc {
+        Pass = "GenerateSources",
+        Source = src
+    }
+end
+
+local function gen_uic(src)
+    return Uic {
+        Pass = "GenerateSources",
+        Source = src
+    }
+end
+
+
 local native = require('tundra.native')
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -62,6 +77,32 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+SharedLibrary {
+    Name = "register_view",
+
+    Env = {
+        CPPPATH = {
+        	"api/include",
+            "$(OBJECTDIR)",
+        },
+    },
+
+    Sources = {
+        gen_uic("src/plugins/registers_view/RegisterView.ui"),
+        gen_moc("src/plugins/registers_view/registers_view.h"),
+
+        Glob {
+            Dir = "src/plugins/registers_view",
+            Extensions = { ".c", ".cpp", ".m" },
+        },
+
+    },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
 RustCrate {
 	Name = "prodbg_api",
 	CargoConfig = "api/rust/prodbg/Cargo.toml",
@@ -115,6 +156,7 @@ end
 
 Default "amiga_uae_plugin"
 Default "dummy_backend_plugin"
+Default "register_view"
 
 -- vim: ts=4:sw=4:sts=4
 

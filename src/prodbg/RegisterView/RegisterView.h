@@ -15,7 +15,7 @@ namespace prodbg {
 class RegisterView : public View {
     Q_OBJECT;
 
-   public:
+public:
     RegisterView(QWidget* parent = nullptr);
     ~RegisterView();
 
@@ -26,11 +26,11 @@ class RegisterView : public View {
     void readSettings();
     void writeSettings();
 
-   private:
+private:
     Q_SLOT void endReadRegisters(QVector<IBackendRequests::Register>* target);
     Q_SLOT void programCounterChanged(const IBackendRequests::ProgramCounterChange& pc);
 
-   private:
+private:
     Ui_RegisterView* m_ui = nullptr;
     QVector<IBackendRequests::Register> m_targetRegisters;
 };

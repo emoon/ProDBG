@@ -11,12 +11,13 @@
 #include "Core/PluginHandler.h"
 #include "MemoryView/MemoryView.h"
 #include "PluginUI/PluginUI_internal.h"
-#include "RegisterView/RegisterView.h"
+//#include "RegisterView/RegisterView.h"
 #include "ViewHandler.h"
 #include "toolwindowmanager/ToolWindowManager.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QSettings>
+#include <QtCore/QPluginLoader>
 #include <QtCore/QThread>
 #include <QtCore/QTimer>
 #include <QtWidgets/QDockWidget>
@@ -29,7 +30,7 @@ namespace prodbg {
 
 MainWindow::MainWindow()
     : m_memoryView(new MemoryView(this)),
-      m_registerView(new RegisterView(this)),
+      //m_registerView(new RegisterView(this)),
       m_statusbar(new QStatusBar(this)),
       m_backend(nullptr)
 //, m_currentSession(nullptr)
@@ -41,6 +42,10 @@ MainWindow::MainWindow()
     qRegisterMetaType<IBackendRequests::ProgramCounterChange>("IBackendRequests::ProgramCounterChange");
 
     m_viewHandler = new ViewHandler(this);
+
+    // TODO: Test load registers view plugin
+    m_regPluginLoader = new QPluginLoader(QStringLiteral("registers_view"), this);
+    m_registerView = qobject_cast<PDUIInterface*>(m_regPluginLoader->instance());
 
     // m_viewHandler->addView(new MemoryView(this));
     // m_viewHandler->addView(new RegisterView(this));
@@ -69,14 +74,14 @@ MainWindow::MainWindow()
 
     QWidget* plugin_parent = new QWidget(this);
 
-    PluginHandler_tempLoadUIPlugin(plugin_parent, QStringLiteral("memory_view_2"));
+    //PluginHandler_tempLoadUIPlugin(plugin_parent, QStringLiteral("memory_view_2"));
 
     // Setup docking for MemoryView
 
     {
         m_ui.toolWindowManager->addToolWindow(m_codeViews, ToolWindowManager::EmptySpace);
         m_ui.toolWindowManager->addToolWindow(m_memoryView, ToolWindowManager::LastUsedArea);
-        m_ui.toolWindowManager->addToolWindow(m_registerView, ToolWindowManager::LastUsedArea);
+        //m_ui.toolWindowManager->addToolWindow(m_registerView, ToolWindowManager::LastUsedArea);
         m_ui.toolWindowManager->addToolWindow(plugin_parent, ToolWindowManager::LastUsedArea);
 
         // QDockWidget* dock = new QDockWidget(QStringLiteral("MemoryView"),
@@ -131,7 +136,7 @@ void MainWindow::initActions() {
     connect(m_ui.actionStop, &QAction::triggered, this, &MainWindow::stop);
     connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_codeViews, &CodeViews::toggleSourceAsm);
     connect(m_ui.actionMemoryView, &QAction::triggered, this, &MainWindow::newMemoryView);
-    connect(m_ui.actionRegisterView, &QAction::triggered, this, &MainWindow::newRegisterView);
+    //connect(m_ui.actionRegisterView, &QAction::triggered, this, &MainWindow::newRegisterView);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -315,6 +320,10 @@ void MainWindow::closeCurrentBackend() {
     delete m_backendThread;
     delete m_backendRequests;
 
+    if (m_registerView) {
+        m_registerView->set_backend_interface(nullptr);
+    }
+
     // m_registerView->setBackendInterface(nullptr);
     // m_codeViews->setBackendInterface(nullptr);
     // m_memoryView->setBackendInterface(nullptr);
@@ -357,7 +366,7 @@ void MainWindow::setupBackend(BackendSession* backend) {
     m_backend->moveToThread(m_backendThread);
     m_backendRequests = new BackendRequests(m_backend);
 
-    m_registerView->setBackendInterface(m_backendRequests);
+    //m_registerView->set_backend_interface(m_backendRequests);
     m_codeViews->setBackendInterface(m_backendRequests);
     m_memoryView->setBackendInterface(m_backendRequests);
 
@@ -423,7 +432,8 @@ void MainWindow::newMemoryView() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Q_SLOT void MainWindow::newRegisterView() {
-    RegisterView* rg = new RegisterView(this);
+    /*
+    //RegisterView* rg = new RegisterView(this);
     rg->setBackendInterface(m_backendRequests);
     QDockWidget* dock = new QDockWidget(QStringLiteral("RegisteView"), this);
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -433,6 +443,7 @@ Q_SLOT void MainWindow::newRegisterView() {
     dock->setFloating(true);
 
     m_viewHandler->addView(rg);
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
