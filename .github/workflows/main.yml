@@ -70,4 +70,4 @@ jobs:
         echo %QT5_BIN%
         echo %QT5_INC%
         echo %QT5_LIB%
-        bin\windows\tundra2.exe --unprotected win64-msvc-debug
+        bin\win32\tundra2.exe --unprotected win64-msvc-debug
