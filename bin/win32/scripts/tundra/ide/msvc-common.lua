@@ -516,9 +516,11 @@ function msvc_generator:generate_project(project, all_projects)
   p:write(' DefaultTargets="Build"')
 
   -- This doesn't seem to change any behaviour, but this is the default
-  -- value when creating a makefile project from VS2013, VS2015 and VS2017
-  -- wizards.
-  if VERSION_YEAR == '2017' then
+  -- value when creating a makefile project from VS2013, VS2015, VS2017,
+  -- and VS2019 wizards.
+  if VERSION_YEAR == '2019' then
+    p:write(' ToolsVersion="16.0"')
+  elseif VERSION_YEAR == '2017' then
     p:write(' ToolsVersion="15.0"')
   elseif VERSION_YEAR == '2015' then
     p:write(' ToolsVersion="14.0"')
@@ -542,11 +544,13 @@ function msvc_generator:generate_project(project, all_projects)
   p:write('\t</ItemGroup>', LF)
 
   p:write('\t<PropertyGroup Label="Globals">', LF)
-  if VERSION_YEAR == '2017' then
+  if VERSION_YEAR == '2019' then
+    p:write('\t\t<VCProjectVersion>16.0</VCProjectVersion>', LF)
+  elseif VERSION_YEAR == '2017' then
     p:write('\t\t<VCProjectVersion>15.0</VCProjectVersion>', LF)
   end
   p:write('\t\t<ProjectGuid>{', project.Guid, '}</ProjectGuid>', LF)
-  if VERSION_YEAR == '2017' then
+  if VERSION_YEAR == '2019' or VERSION_YEAR == '2017' then
     p:write('\t\t<Keyword>Win32Proj</Keyword>', LF)
   else
     p:write('\t\t<Keyword>MakefileProj</Keyword>', LF)
@@ -581,13 +585,15 @@ function msvc_generator:generate_project(project, all_projects)
       p:write('\t\t<PlatformToolset>v140</PlatformToolset>', LF) -- I have no idea what this setting affects
     elseif VERSION_YEAR == '2017' then
       p:write('\t\t<PlatformToolset>v141</PlatformToolset>', LF) -- I have no idea what this setting affects
+    elseif VERSION_YEAR == '2019' then
+      p:write('\t\t<PlatformToolset>v142</PlatformToolset>', LF) -- I have no idea what this setting affects
     end
     p:write('\t</PropertyGroup>', LF)
   end
 
   p:write('\t<Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />', LF)
 
-  if VERSION_YEAR == '2017' then
+  if VERSION_YEAR == '2019' or VERSION_YEAR == '2017' then
     for _, tuple in ipairs(self.config_tuples) do
       p:write('\t<ImportGroup Label="PropertySheets" Condition="\'$(Configuration)|$(Platform)\'==\'', tuple.MsvcName, '\'">', LF)
       p:write('\t\t<Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists(\'$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props\')" Label="LocalAppDataPlatform" />', LF)

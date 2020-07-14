@@ -83,18 +83,21 @@ Build {
       SupportedHosts = { "windows" },
       DefaultOnHost = "windows",
       Tools = { "msvc" },
+      Inherit = win64,
     },
     Config {
       Name = "macosx-clang",
       SupportedHosts = { "macosx" },
       DefaultOnHost = "macosx",
       Tools = { "clang-osx" },
+      Inherit = macosx,
     },
     Config {
       Name = "linux-gcc",
       SupportedHosts = { "linux" },
       DefaultOnHost = "linux",
       Tools = { "gcc" },
+      Inherit = linux,
     },
   },
 
