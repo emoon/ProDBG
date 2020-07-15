@@ -1,7 +1,7 @@
 ![](/data/prodbg_logo.png)
 ======
 
-ProDBG is a new debugger under development that will support a variety of targets and operating systems. Currently it's in very early development and primary focusing on Mac as primary target.
+ProDBG is a new debugger under development that will support a variety of targets and operating systems. Currently it's in very early development and primary focusing on Linux as primary target.
 
 ## Build status
 
@@ -24,11 +24,11 @@ Latest stable version of **Rust** (1.36+) needs to be present on the system. We 
 
 ProDBG requires [Qt](https://www.qt.io/) as it's used for the UI. Go and install the 5.7 version and pick the 64-bit version for your system.
 You also need to set three env variables: **QT5_LIB, QT5_BIN, QT5_INC** in order to build the code. See more details for each platform.
-## Mac
+## macOS
 
 ### Prequisites
 
-Building the code on Mac requires that **Clang** is installed on your system. The easiest way to do this is to get Xcode and install the commandline tools.
+Building the code on macOS requires that **Clang** is installed on your system. The easiest way to do this is to get Xcode and install the commandline tools.
 
 ### Rustup
 Run: `rustup install stable-x86_64-apple-darwin` or `rustup override add stable-x86_64-apple-darwin`
@@ -71,10 +71,10 @@ Building the code on Linux will require some prerequisites to be installed. Whic
 For Ubuntu you can use the following:
 ```
 sudo apt-get update
-sudo apt-get install -y libx11-dev libgl1-mesa-dev libgtk-3-dev pkg-config qt512base
+sudo apt-get install -y libx11-dev libgl1-mesa-dev libgtk-3-dev pkg-config qt515base
 ```
 
-ProDBG uses Tundra to build the project the project. Binaries are supplied on Mac and Windows but needs to be built on Linux:
+ProDBG uses Tundra to build the project the project. Binaries are supplied on macOS and Windows but needs to be built on Linux:
 * `git clone https://github.com/deplinenoise/tundra.git`
 * `cd tundra`
 * `CXX=g++ make`
