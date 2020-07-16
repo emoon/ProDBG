@@ -74,8 +74,15 @@ Program {
         gen_rcc("src/prodbg/themes/native/native.qrc"),
         gen_rcc("src/prodbg/themes/qdarkstyle/dark.qrc"),
 
+        -- Dialogs
+        gen_uic("src/prodbg/dialogs/PrefsDialog.ui"),
+        gen_moc("src/prodbg/dialogs/PrefsDialog.h"),
+
+        --
+
         gen_uic("src/prodbg/Config/AmigaUAEConfig.ui"),
         gen_moc("src/prodbg/Config/AmigaUAEConfig.h"),
+        gen_moc("src/prodbg/Config/Config.h"),
 
         -- gen_uic("src/prodbg/RegisterView/RegisterView.ui"),
         -- gen_moc("src/prodbg/RegisterView/RegisterView.h"),

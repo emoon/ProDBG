@@ -57,6 +57,8 @@ class MainWindow : public QMainWindow {
     Q_SIGNAL void stepInBackend();
     Q_SIGNAL void stepOverBackend();
 
+    Q_SLOT void show_prefs();
+
    private:
     // Current supported backends (hard-coded for now)
     enum Backend {

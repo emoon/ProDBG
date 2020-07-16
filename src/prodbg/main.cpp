@@ -9,6 +9,7 @@
 #include <QtWidgets/QTextEdit>
 #include "Core/PluginHandler.h"
 #include "MainWindow.h"
+#include "Config/Config.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -21,6 +22,9 @@ int main(int argc, const char** argv) {
 
     app.setStyle(QStyleFactory::create(QStringLiteral("Fusion")));
 
+    prodbg::Config::create_instance();
+
+    /*
     QPalette darkPalette;
     darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));
     darkPalette.setColor(QPalette::WindowText, QColor(170, 170, 170));
@@ -38,6 +42,7 @@ int main(int argc, const char** argv) {
     darkPalette.setColor(QPalette::HighlightedText, Qt::black);
 
     app.setPalette(darkPalette);
+    */
 
     // load hard-coded list of backends for now
 

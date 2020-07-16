@@ -15,7 +15,7 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
-    <widget class="QListWidget" name="configCategories">
+    <widget class="QListWidget" name="config_categories">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -46,7 +46,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QDialogButtonBox" name="saveButtons">
+      <widget class="QDialogButtonBox" name="save_buttons">
        <property name="standardButtons">
         <set>QDialogButtonBox::Ok</set>
        </property>
