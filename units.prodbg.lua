@@ -77,6 +77,8 @@ Program {
         -- Dialogs
         gen_uic("src/prodbg/dialogs/PrefsDialog.ui"),
         gen_moc("src/prodbg/dialogs/PrefsDialog.h"),
+        gen_uic("src/prodbg/dialogs/AppearanceWidget.ui"),
+        gen_moc("src/prodbg/dialogs/AppearanceWidget.h"),
 
         --
 

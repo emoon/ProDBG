@@ -103,7 +103,7 @@ void DisassemblyView::highlightCurrentLine() {
 int DisassemblyView::lineNumberAreaWidth() {
     // 20 + to give rom for breakpoint marker
 
-    int space = 20 + 3 + fontMetrics().width(QLatin1Char('9')) * m_addressWidth * 2;
+    int space = 20 + 3 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * m_addressWidth * 2;
 
     return space;
 }
