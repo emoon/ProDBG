@@ -5,6 +5,42 @@ require "tundra.path"
 require "tundra.util"
 
 local native = require('tundra.native')
+local scanner = require "tundra.scanner"
+local path = require "tundra.path"
+
+DefRule {
+  Name = "RccName",
+  Command = "",
+
+  Blueprint = {
+    Source = { Required = true, Type = "string" },
+  },
+
+  Setup = function (env, data)
+    local src = data.Source
+    local base_name = path.get_filename_base(src)
+    local pfx = 'qrc_'
+    local ext = '.cpp'
+    local out_name = "$(OBJECTDIR)$(SEP)" .. pfx .. base_name .. ext
+    return {
+      InputFiles = { src },
+      OutputFiles = { out_name },
+      Command = "$(QTRCCCMD) " .. src .. " -name " .. base_name .. " -o " .. out_name,
+      Scanner = scanner.make_generic_scanner {
+        Paths = { "." },
+        KeywordsNoFollow = { "<file" },
+        UseSeparators = true
+      },
+    }
+  end,
+}
+
+local function gen_rcc(src)
+    return RccName {
+        Pass = "GenerateSources",
+        Source = src
+    }
+end
 
 local function gen_uic(src)
     return Uic {
@@ -12,6 +48,7 @@ local function gen_uic(src)
         Source = src
     }
 end
+
 
 local function gen_moc(src)
     return Moc {
@@ -31,8 +68,23 @@ Program {
             Recursive = true,
         },
 
+        -- Themes
+        gen_rcc("src/prodbg/themes/lightstyle/light.qrc"),
+        gen_rcc("src/prodbg/themes/midnight/midnight.qrc"),
+        gen_rcc("src/prodbg/themes/native/native.qrc"),
+        gen_rcc("src/prodbg/themes/qdarkstyle/dark.qrc"),
+
+        -- Dialogs
+        gen_uic("src/prodbg/dialogs/PrefsDialog.ui"),
+        gen_moc("src/prodbg/dialogs/PrefsDialog.h"),
+        gen_uic("src/prodbg/dialogs/AppearanceWidget.ui"),
+        gen_moc("src/prodbg/dialogs/AppearanceWidget.h"),
+
+        --
+
         gen_uic("src/prodbg/Config/AmigaUAEConfig.ui"),
         gen_moc("src/prodbg/Config/AmigaUAEConfig.h"),
+        gen_moc("src/prodbg/Config/Config.h"),
 
         -- gen_uic("src/prodbg/RegisterView/RegisterView.ui"),
         -- gen_moc("src/prodbg/RegisterView/RegisterView.h"),

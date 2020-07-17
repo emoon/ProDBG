@@ -15,6 +15,10 @@
 #include "ViewHandler.h"
 #include "toolwindowmanager/ToolWindowManager.h"
 
+// Dialogs
+#include "dialogs/PrefsDialog.h"
+
+
 #include <QtCore/QDebug>
 #include <QtCore/QSettings>
 #include <QtCore/QPluginLoader>
@@ -136,6 +140,9 @@ void MainWindow::initActions() {
     connect(m_ui.actionStop, &QAction::triggered, this, &MainWindow::stop);
     connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_codeViews, &CodeViews::toggleSourceAsm);
     connect(m_ui.actionMemoryView, &QAction::triggered, this, &MainWindow::newMemoryView);
+    connect(m_ui.actionPreferences, &QAction::triggered, this, &MainWindow::show_prefs);
+
+
     //connect(m_ui.actionRegisterView, &QAction::triggered, this, &MainWindow::newRegisterView);
 }
 
@@ -167,6 +174,13 @@ void MainWindow::openSourceFile() {
     }
 
     m_codeViews->openFile(path, true);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::show_prefs() {
+    auto dialog = new PrefsDialog;
+    dialog->show();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -264,6 +278,7 @@ void MainWindow::internalStartAmigaExe() {
 
     m_lastAmigaExe = m_amigaUae->m_localExeToRun;
 
+    /*
     if (!m_amigaUae->m_skipUAELaunch) {
         connect(m_amigaUae->m_uaeProcess, &QProcess::started, this, &MainWindow::uaeStarted);
         connect(m_amigaUae->m_uaeProcess, static_cast<void (QProcess::*)(int)>(&QProcess::finished), this,
@@ -275,6 +290,7 @@ void MainWindow::internalStartAmigaExe() {
     } else {
         startAmigaUAEBackend();
     }
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

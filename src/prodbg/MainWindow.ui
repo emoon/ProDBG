@@ -29,7 +29,7 @@
      <x>0</x>
      <y>0</y>
      <width>642</width>
-     <height>22</height>
+     <height>35</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -70,6 +70,7 @@
     <property name="title">
      <string>&amp;Config</string>
     </property>
+    <addaction name="actionPreferences"/>
     <addaction name="actionAmiga_UAE"/>
    </widget>
    <widget class="QMenu" name="menuView">
@@ -182,6 +183,11 @@
   <action name="actionRegisterView">
    <property name="text">
     <string>Register View</string>
+   </property>
+  </action>
+  <action name="actionPreferences">
+   <property name="text">
+    <string>Preferences..</string>
    </property>
   </action>
  </widget>
