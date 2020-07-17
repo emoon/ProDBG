@@ -25,8 +25,7 @@ const T& clamp(const T& v, const T& lo, const T& hi) {
 Config::Config() : m_default_palette(qApp->palette()) {
     qDebug() << "setting filename " << m_settings.fileName();
 
-    int current_theme =
-        m_settings.value(QStringLiteral("color_theme"), 0).toInt();
+    int current_theme = m_settings.value(QStringLiteral("color_theme"), 0).toInt();
     load_theme(current_theme);
 }
 
@@ -72,8 +71,7 @@ static void apply_dark_style(const QString& name) {
     }
 
 #ifdef Q_OS_MACX
-    // see
-    // https://github.com/ColinDuquesnoy/QDarkStyleSheet/issues/22#issuecomment-96179529
+    // see https://github.com/ColinDuquesnoy/QDarkStyleSheet/issues/22#issuecomment-96179529
     stylesheet += QStringLiteral(
         "QDockWidget::title"
         "{"
@@ -133,16 +131,13 @@ void Config::load_theme(int index) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Config::current_theme() {
-    return m_settings.value(QStringLiteral("color_theme"), 0).toInt();
-}
+int Config::current_theme() { return m_settings.value(QStringLiteral("color_theme"), 0).toInt(); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const QList<QString>& Config::theme_list() {
-    static const QList<QString> list = {
-        QStringLiteral("Native"), QStringLiteral("DarkStyle"),
-        QStringLiteral("Midnight"), QStringLiteral("Light")};
+    static const QList<QString> list = {QStringLiteral("Native"), QStringLiteral("DarkStyle"),
+                                        QStringLiteral("Midnight"), QStringLiteral("Light")};
 
     return list;
 }
