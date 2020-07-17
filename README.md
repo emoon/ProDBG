@@ -5,7 +5,7 @@ ProDBG is a new debugger under development that will support a variety of target
 
 ## Build status
 
-[![Build status](https://github.com/emoon/ProDBG/workflows/CI/badge.svg)
+![Build status](https://github.com/emoon/ProDBG/workflows/CI/badge.svg)]
 
 ### Status
 
