@@ -5,8 +5,7 @@ ProDBG is a new debugger under development that will support a variety of target
 
 ## Build status
 
-[![Travis Status](https://travis-ci.org/emoon/ProDBG.svg?branch=master)](https://travis-ci.org/emoon/ProDBG)
-[![Appveyor status](https://ci.appveyor.com/api/projects/status/ne1jeu7t8aba5nok?svg=true)](https://ci.appveyor.com/project/emoon/prodbg)
+[![Build status](https://github.com/emoon/ProDBG/workflows/CI/badge.svg)
 
 ### Status
 
