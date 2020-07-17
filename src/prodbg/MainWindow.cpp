@@ -72,7 +72,7 @@ MainWindow::MainWindow()
 
     setWindowTitle(QStringLiteral("ProDBG"));
 
-    m_ui.toolWindowManager->setRubberBandLineWidth(50);
+    //m_ui.toolWindowManager->setRubberBandLineWidth(50);
 
     // PluginInstance* inst = PluginUI_createTestPlugin(this);
 

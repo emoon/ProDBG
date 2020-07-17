@@ -163,6 +163,9 @@ StaticLibrary {
 
         CPPPATH = {
             "$(QT5_INC)",
+            "$(QT5_INC)/QtCore",
+            "$(QT5_INC)/QtGui",
+            "$(QT5_INC)/QtWidgets",
         },
     },
 
@@ -174,6 +177,8 @@ StaticLibrary {
 
         gen_moc("src/native/external/toolwindowmanager/ToolWindowManager.h"),
         gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerArea.h"),
+        gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerTabBar.h"),
+        gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerSplitter.h"),
         gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerWrapper.h"),
     },
 
