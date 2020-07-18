@@ -26,10 +26,7 @@ static const QChar s_HexTable[16] = {
 struct MemViewTypeMeta {
     int m_BytesPerElement;
     int m_DisplayWidthChars;
-    void (*m_Formatter)(QString* target,
-                        int displayWidth,
-                        int byteCount,
-                        const uint16_t* values,
+    void (*m_Formatter)(QString* target, int displayWidth, int byteCount, const uint16_t* values,
                         MemoryViewWidget::Endianess);
 };
 
@@ -57,10 +54,7 @@ static uint64_t decodeValue(const uint16_t* values, int count, MemoryViewWidget:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void formatHex(QString* target,
-                      int displayWidth,
-                      int byteCount,
-                      const uint16_t* values,
+static void formatHex(QString* target, int displayWidth, int byteCount, const uint16_t* values,
                       MemoryViewWidget::Endianess endianess) {
     const uint64_t value = decodeValue(values, byteCount, endianess);
 
@@ -85,10 +79,7 @@ static void assignStr(const char* str, int len, int displayWidth, QString* targe
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void formatUnsigned(QString* target,
-                           int displayWidth,
-                           int byteCount,
-                           const uint16_t* values,
+static void formatUnsigned(QString* target, int displayWidth, int byteCount, const uint16_t* values,
                            MemoryViewWidget::Endianess endianess) {
     const uint64_t value = decodeValue(values, byteCount, endianess);
     char buffer[32];
@@ -114,10 +105,7 @@ static void formatUnsigned(QString* target,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void formatSigned(QString* target,
-                         int displayWidth,
-                         int byteCount,
-                         const uint16_t* values,
+static void formatSigned(QString* target, int displayWidth, int byteCount, const uint16_t* values,
                          MemoryViewWidget::Endianess endianess) {
     const uint64_t value = decodeValue(values, byteCount, endianess);
     char buffer[32];
@@ -143,10 +131,7 @@ static void formatSigned(QString* target,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void formatFloat(QString* target,
-                        int displayWidth,
-                        int byteCount,
-                        const uint16_t* values,
+static void formatFloat(QString* target, int displayWidth, int byteCount, const uint16_t* values,
                         MemoryViewWidget::Endianess endianess) {
     const uint64_t value = decodeValue(values, byteCount, endianess);
 
@@ -422,9 +407,7 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : Base(parent), m_Private(ne
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MemoryViewWidget::~MemoryViewWidget() {
-    delete m_Private;
-}
+MemoryViewWidget::~MemoryViewWidget() { delete m_Private; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -473,15 +456,11 @@ void MemoryViewWidget::endReadMemory(QVector<uint16_t>* target, uint64_t address
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryViewWidget::setExpressionStatus(bool status) {
-    m_Private->m_expressionStatus = status;
-}
+void MemoryViewWidget::setExpressionStatus(bool status) { m_Private->m_expressionStatus = status; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryViewWidget::paintEvent(QPaintEvent* ev) {
-    m_Private->paintEvent(this, ev);
-}
+void MemoryViewWidget::paintEvent(QPaintEvent* ev) { m_Private->paintEvent(this, ev); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -533,9 +512,7 @@ void MemoryViewWidget::wheelEvent(QWheelEvent* ev) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MemoryViewWidget::DataType MemoryViewWidget::dataType() const {
-    return m_Private->m_DataType;
-}
+MemoryViewWidget::DataType MemoryViewWidget::dataType() const { return m_Private->m_DataType; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -546,9 +523,7 @@ void MemoryViewWidget::setDataType(DataType type) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MemoryViewWidget::Endianess MemoryViewWidget::endianess() const {
-    return m_Private->m_Endianess;
-}
+MemoryViewWidget::Endianess MemoryViewWidget::endianess() const { return m_Private->m_Endianess; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -559,9 +534,7 @@ void MemoryViewWidget::setEndianess(Endianess e) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int MemoryViewWidget::elementsPerLine() const {
-    return m_Private->m_ElementsPerRow;
-}
+int MemoryViewWidget::elementsPerLine() const { return m_Private->m_ElementsPerRow; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

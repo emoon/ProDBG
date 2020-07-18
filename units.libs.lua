@@ -12,6 +12,23 @@ local function gen_moc(src)
 end
 
 -----------------------------------------------------------------------------------------------------------------------
+
+local function get_c_cpp_src(dir, recursive)
+    return Glob {
+        Dir = dir,
+        Extensions = { ".cpp", ".c", ".h" },
+        Recursive = recursive,
+}
+end
+
+local function gen_uic(src)
+    return Uic {
+        Pass = "GenerateSources",
+        Source = src
+    }
+end
+
+-----------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------- EXTERNAL LIBS ---------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -137,10 +154,7 @@ StaticLibrary {
     },
 
     Sources = {
-        Glob {
-            Dir = "src/native/external/capstone",
-            Extensions = { ".h", ".c" },
-        },
+        get_c_cpp_src("src/native/external/capstone", true)
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
@@ -170,10 +184,7 @@ StaticLibrary {
     },
 
     Sources = {
-        Glob {
-            Dir = "src/native/external/toolwindowmanager",
-            Extensions = { ".cpp", ".h" },
-        },
+        get_c_cpp_src("src/native/external/toolwindowmanager", true),
 
         gen_moc("src/native/external/toolwindowmanager/ToolWindowManager.h"),
         gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerArea.h"),
@@ -184,6 +195,76 @@ StaticLibrary {
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
 }
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
+    Name = "edbee",
+
+    Env = {
+       CXXOPTS = {
+            { "-isystem $(QT5_LIB)/QtWidgets.framework/Headers",
+              "-isystem $(QT5_LIB)/QtCore.framework/Headers",
+              "-isystem $(QT5_LIB)/QtGui.framework/Headers";
+              "-isystem $(QT5_LIB)/QtGui.framework/Headers",
+              "-F$(QT5)/lib"; Config = "macosx-*-*" },
+            { "-isystem $(QT5_LIB)" ; Config = "linux-*-*" },
+        },
+
+        CPPPATH = {
+            "$(QT5_INC)",
+            "$(QT5_INC)/QtCore",
+            "$(QT5_INC)/QtGui",
+            "$(QT5_INC)/QtWidgets",
+            "src/native/external/edbee-lib/edbee-lib",
+            "src/native/external/edbee-lib/vendor/onig",
+            "src/native/external/edbee-lib/vendor/onig/enc/unicode",
+            "src/native/external/edbee-lib/vendor/qslog/unittest",
+            "src/native/external/edbee-lib/vendor/qslog",
+            "$(OBJECTROOT)", "$(OBJECTDIR)",
+        },
+    },
+
+    Sources = {
+        get_c_cpp_src("src/native/external/edbee-lib/edbee-lib", true),
+        get_c_cpp_src("src/native/external/edbee-lib/vendor/onig", false),
+        get_c_cpp_src("src/native/external/edbee-lib/vendor/onig/enc", false),
+        get_c_cpp_src("src/native/external/edbee-lib/vendor/qslog", false),
+
+        gen_moc("src/native/external/edbee-lib/vendor/qslog/QsLogWindow.h"),
+        gen_uic("src/native/external/edbee-lib/vendor/qslog/QsLogWindow.ui"),
+
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/edbee.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/chardocument/chartextdocument.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/textbuffer.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/textdocument.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/textdocumentscopes.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/texteditorcommandmap.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/texteditorconfig.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/textlinedata.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/textrange.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/textsearcher.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/textundostack.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/texteditorcontroller.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/texteditorwidget.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/util/test.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/views/components/texteditorautocompletecomponent.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/views/components/texteditorcomponent.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/views/components/textmargincomponent.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/views/texteditorscrollarea.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/views/textrenderer.h"),
+        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/views/texttheme.h"),
+
+
+        -- gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerArea.h"),
+        -- gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerTabBar.h"),
+        -- gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerSplitter.h"),
+        -- gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerWrapper.h"),
+    },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
+}
+
 
 -- vim: ts=4:sw=4:sts=4
 

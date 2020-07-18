@@ -131,6 +131,7 @@ Program {
         	"api/include",
         	"src/native/external",
         	"src/native/external/toolwindowmanager",
+        	"src/native/external/edbee-lib/edbee-lib",
             "$(QT5_INC)",
             "$(QT5_INC)/QtCore",
             "$(QT5_INC)/QtWidgets",
@@ -157,7 +158,7 @@ Program {
 
     Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore" },
 
-    Depends = { "remote_api", "capstone", "tinyexpr", "toolwindowmanager" },
+    Depends = { "remote_api", "capstone", "tinyexpr", "toolwindowmanager", "edbee" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------

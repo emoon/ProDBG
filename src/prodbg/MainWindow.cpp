@@ -18,15 +18,22 @@
 // Dialogs
 #include "dialogs/PrefsDialog.h"
 
-
 #include <QtCore/QDebug>
-#include <QtCore/QSettings>
+#include <QtCore/QIODevice>
 #include <QtCore/QPluginLoader>
+#include <QtCore/QSettings>
 #include <QtCore/QThread>
 #include <QtCore/QTimer>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMainWindow>
+#include "edbee/edbee.h"
+#include "edbee/io/textdocumentserializer.h"
+#include "edbee/texteditorwidget.h"
+#include "edbee/views/texteditorscrollarea.h"
+#include "edbee/models/textgrammar.h"
+#include "edbee/models/textdocument.h"
+#include "edbee/models/texteditorconfig.h"
 
 namespace prodbg {
 
@@ -34,7 +41,7 @@ namespace prodbg {
 
 MainWindow::MainWindow()
     : m_memoryView(new MemoryView(this)),
-      //m_registerView(new RegisterView(this)),
+      // m_registerView(new RegisterView(this)),
       m_statusbar(new QStatusBar(this)),
       m_backend(nullptr)
 //, m_currentSession(nullptr)
@@ -61,32 +68,59 @@ MainWindow::MainWindow()
 
     m_breakpoints = new BreakpointModel;
 
-    m_codeViews = new CodeViews(m_breakpoints, this);
+    // m_codeViews = new CodeViews(m_breakpoints, this);
     // m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), true);
     // m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"),
     // m_breakpoints);
     // m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"),
     // m_breakpoints);
 
-    // setCentralWidget(m_codeViews);
-
     setWindowTitle(QStringLiteral("ProDBG"));
 
-    //m_ui.toolWindowManager->setRubberBandLineWidth(50);
+#ifdef _WIN32
+    QFont font(QStringLiteral("Courier"), 11);
+#else
+    QFont font(QStringLiteral("Courier"), 13);
+#endif
+
+
+    // m_ui.toolWindowManager->setRubberBandLineWidth(50);
 
     // PluginInstance* inst = PluginUI_createTestPlugin(this);
 
-    QWidget* plugin_parent = new QWidget(this);
+    edbee::TextEditorWidget* editor = new edbee::TextEditorWidget(this);
+    edbee::TextDocumentSerializer serializer(editor->textDocument());
+    QFile file(QStringLiteral("src/prodbg/Config/Config.cpp"));
+    if (!serializer.load(&file)) {
+        qDebug() << "failed to load file";
+        /*
+        QMessageBox::warning(this, tr("Error opening file"),
+                             tr("Error opening file!\n%1").arg(serializer.errorString()));
+        */
+    }
 
-    //PluginHandler_tempLoadUIPlugin(plugin_parent, QStringLiteral("memory_view_2"));
+    auto grammar_manager = edbee::Edbee::instance()->grammarManager();
+    auto grammar = grammar_manager->detectGrammarWithFilename(QStringLiteral("lib.cpp"));
+    qDebug() << "grammar detected " << grammar;
+    editor->textDocument()->setLanguageGrammar(grammar);
+    editor->textScrollArea()->enableShadowWidget(false);
+    editor->textDocument()->config()->setFont(font);
+
+
+    setCentralWidget(editor);
+
+    // QWidget* plugin_parent = new QWidget(this);
+    // setCentralWidget(m_memoryView);
+
+    // PluginHandler_tempLoadUIPlugin(plugin_parent, QStringLiteral("memory_view_2"));
 
     // Setup docking for MemoryView
 
     {
-        m_ui.toolWindowManager->addToolWindow(m_codeViews, ToolWindowManager::EmptySpace);
-        m_ui.toolWindowManager->addToolWindow(m_memoryView, ToolWindowManager::LastUsedArea);
-        //m_ui.toolWindowManager->addToolWindow(m_registerView, ToolWindowManager::LastUsedArea);
-        m_ui.toolWindowManager->addToolWindow(plugin_parent, ToolWindowManager::LastUsedArea);
+        // m_ui.toolWindowManager->addToolWindow(m_codeViews, ToolWindowManager::EmptySpace);
+        // m_ui.toolWindowManager->addToolWindow(m_memoryView, ToolWindowManager::LastUsedArea);
+        // m_ui.toolWindowManager->addToolWindow(m_registerView, ToolWindowManager::LastUsedArea);
+        // m_ui.toolWindowManager->addToolWindow(plugin_parent, ToolWindowManager::LastUsedArea);
 
         // QDockWidget* dock = new QDockWidget(QStringLiteral("MemoryView"),
         // this); dock->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -142,8 +176,7 @@ void MainWindow::initActions() {
     connect(m_ui.actionMemoryView, &QAction::triggered, this, &MainWindow::newMemoryView);
     connect(m_ui.actionPreferences, &QAction::triggered, this, &MainWindow::show_prefs);
 
-
-    //connect(m_ui.actionRegisterView, &QAction::triggered, this, &MainWindow::newRegisterView);
+    // connect(m_ui.actionRegisterView, &QAction::triggered, this, &MainWindow::newRegisterView);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -206,9 +239,7 @@ void MainWindow::start() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::breakContDebug() {
-    breakContBackend();
-}
+void MainWindow::breakContDebug() { breakContBackend(); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -220,9 +251,7 @@ void MainWindow::amigaUAEConfig() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::uaeStarted() {
-    startAmigaUAEBackend();
-}
+void MainWindow::uaeStarted() { startAmigaUAEBackend(); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -263,9 +292,7 @@ void MainWindow::startDebug() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::reloadCurrentFile() {
-    m_codeViews->reloadCurrentFile();
-}
+void MainWindow::reloadCurrentFile() { m_codeViews->reloadCurrentFile(); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -295,9 +322,7 @@ void MainWindow::internalStartAmigaExe() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::processEnded(int) {
-    stopInternal();
-}
+void MainWindow::processEnded(int) { stopInternal(); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -382,8 +407,8 @@ void MainWindow::setupBackend(BackendSession* backend) {
     m_backend->moveToThread(m_backendThread);
     m_backendRequests = new BackendRequests(m_backend);
 
-    //m_registerView->set_backend_interface(m_backendRequests);
-    m_codeViews->setBackendInterface(m_backendRequests);
+    // m_registerView->set_backend_interface(m_backendRequests);
+    // m_codeViews->setBackendInterface(m_backendRequests);
     m_memoryView->setBackendInterface(m_backendRequests);
 
     m_backendThread->start();
@@ -412,9 +437,7 @@ void MainWindow::stop() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::stepIn() {
-    stepInBackend();
-}
+void MainWindow::stepIn() { stepInBackend(); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -426,9 +449,7 @@ void MainWindow::stepOver() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::toggleBreakpoint() {
-    m_codeViews->toggleBreakpoint();
-}
+void MainWindow::toggleBreakpoint() { m_codeViews->toggleBreakpoint(); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -464,9 +485,7 @@ Q_SLOT void MainWindow::newRegisterView() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::statusUpdate(const QString& status) {
-    m_statusbar->showMessage(status);
-}
+void MainWindow::statusUpdate(const QString& status) { m_statusbar->showMessage(status); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

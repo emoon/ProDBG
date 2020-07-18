@@ -10,6 +10,7 @@
 #include "Core/PluginHandler.h"
 #include "MainWindow.h"
 #include "Config/Config.h"
+#include "edbee/edbee.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -21,6 +22,13 @@ int main(int argc, const char** argv) {
     QCoreApplication::setApplicationName(QStringLiteral("ProDBG"));
 
     app.setStyle(QStyleFactory::create(QStringLiteral("Fusion")));
+
+    // Init source code component
+    edbee::Edbee* edbee = edbee::Edbee::instance();
+    edbee->setGrammarPath(QStringLiteral("data/syntaxfiles"));
+    edbee->setThemePath(QStringLiteral("data/themes"));
+    edbee->autoInit();
+    edbee->init();
 
     prodbg::Config::create_instance();
 
