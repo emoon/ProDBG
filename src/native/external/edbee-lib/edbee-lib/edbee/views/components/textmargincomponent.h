@@ -25,15 +25,15 @@ class TextTheme;
 /// The textmargin component delegate
 /// You can override the methods in the class for adding functionality to the text-margin component
 class EDBEE_EXPORT TextMarginComponentDelegate {
-public:    
+public:
     TextMarginComponentDelegate();
     virtual ~TextMarginComponentDelegate() {}
 
     virtual QString lineText( int line );
 
     virtual int widthBeforeLineNumber();
-    virtual void renderBefore( QPainter* painter, int startLine, int endLine, int width );
-    virtual void renderAfter( QPainter* painter, int startLine, int endLine, int width );
+    virtual void renderBefore( QPainter* painter, int startLine, int endLine, int width, int lineHeight );
+    virtual void renderAfter( QPainter* painter, int startLine, int endLine, int width, int lineHeight );
 
     virtual bool requiresMouseTracking();
     virtual void mouseMoveEvent( int line, QMouseEvent* event );
@@ -90,11 +90,11 @@ public:
     virtual void updateLineAtOffset(int offset);
     virtual void updateLine(int line, int length);
 
-protected slots:
+protected:
 
-    virtual void topChanged(int value);
-    virtual void connectScrollBar();
-    virtual void updateFont();
+    Q_SLOT virtual void topChanged(int value);
+    Q_SLOT virtual void connectScrollBar();
+    Q_SLOT virtual void updateFont();
 
 private:
 

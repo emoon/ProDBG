@@ -143,7 +143,7 @@ int CodeView::lineNumberAreaWidth() {
 
     // 20 + to give rom for breakpoint marker
 
-    int space = 20 + 3 + fontMetrics().width(QLatin1Char('9')) * digits;
+    int space = 20 + 3 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
 
     return space;
 }
@@ -230,7 +230,7 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event) {
 
             painter.drawText(0, top, width, height, Qt::AlignRight, number);
 
-            if (m_breakpoints->hasBreakpointFileLine(m_sourceFile, blockNumber + 1)) {
+            if (m_breakpoints->has_breakpoint_file_line(m_sourceFile, blockNumber + 1)) {
                 painter.setBrush(Qt::red);
                 painter.drawEllipse(4, top, fontHeight, fontHeight);
             }

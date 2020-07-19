@@ -39,7 +39,7 @@ void CodeViews::toggleBreakpoint() {
         const QString& filename = tabToolTip(index);
 
         int line = view->getCurrentLine();
-        bool added = m_breakpoints->toggleFileLineBreakpoint(filename, line + 1);
+        bool added = m_breakpoints->toggle_file_line_breakpoint(filename, line + 1);
 
         if (m_interface) {
             if (added) {

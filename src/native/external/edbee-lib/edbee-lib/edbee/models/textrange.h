@@ -251,8 +251,8 @@ public:
     void setDeleteMode( bool mode );
     bool deleteMode() const;
 
-public slots:
-    void textChanged( edbee::TextBufferChange change );
+public:
+    Q_SLOT void textChanged( edbee::TextBufferChange change );
 
 private:
     bool stickyMode_;                       ///< Sticky mode means if this rangeset is the current selection (This requires a different approach)

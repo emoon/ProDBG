@@ -156,7 +156,7 @@ void DisassemblyView::lineNumberAreaPaintEvent(QPaintEvent* event) {
 
             painter.drawText(0, top, width, height, Qt::AlignRight, addressText);
 
-            if (m_breakpoints->hasBreakpointAddress(address)) {
+            if (m_breakpoints->has_breakpoint_address(address)) {
                 painter.setBrush(Qt::red);
                 painter.drawEllipse(4, top, fontHeight, fontHeight);
             }
@@ -211,13 +211,13 @@ void DisassemblyView::endDisassembly(QVector<IBackendRequests::AssemblyInstructi
     for (auto& inst : *instructions) {
         switch (addressWidth) {
             case 2:
-                addressText.sprintf("%04X", (uint16_t)inst.address);
+                addressText.asprintf("%04X", (uint16_t)inst.address);
                 break;
             case 4:
-                addressText.sprintf("%08X", (uint32_t)inst.address);
+                addressText.asprintf("%08X", (uint32_t)inst.address);
                 break;
             default:
-                addressText.sprintf("%" PRIu64 "X", inst.address);
+                addressText.asprintf("%" PRIu64 "X", inst.address);
                 break;
         }
 
@@ -284,7 +284,7 @@ void DisassemblyView::toggleBreakpoint() {
     QTextCursor cursor = textCursor();
     int index = cursor.block().blockNumber();
 
-    bool added = m_breakpoints->toggleAddressBreakpoint(m_disassemblyAdresses[index].address);
+    bool added = m_breakpoints->toggle_address_breakpoint(m_disassemblyAdresses[index].address);
 
     if (added) {
         m_interface->beginAddAddressBreakpoint(m_disassemblyAdresses[index].address);

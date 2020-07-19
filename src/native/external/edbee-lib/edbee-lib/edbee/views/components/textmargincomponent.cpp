@@ -50,21 +50,23 @@ int TextMarginComponentDelegate::widthBeforeLineNumber()
 }
 
 /// Custom rendering before the line-numbers etc are drawn
-void TextMarginComponentDelegate::renderBefore(QPainter *painter, int startLine, int endLine, int width)
+void TextMarginComponentDelegate::renderBefore(QPainter *painter, int startLine, int endLine, int width, int lineHeight)
 {
     Q_UNUSED(painter);
     Q_UNUSED(startLine);
     Q_UNUSED(endLine);
     Q_UNUSED(width);
+    Q_UNUSED(lineHeight);
 }
 
 /// The delegate can berform custom rendering on a given line
-void TextMarginComponentDelegate::renderAfter(QPainter* painter, int startLine, int endLine, int width)
+void TextMarginComponentDelegate::renderAfter(QPainter* painter, int startLine, int endLine, int width, int lineHeight)
 {
     Q_UNUSED(painter);
     Q_UNUSED(startLine);
     Q_UNUSED(endLine);
     Q_UNUSED(width);
+    Q_UNUSED(lineHeight);
 }
 
 /// Make this method return true to enable mouse tracking
@@ -269,10 +271,12 @@ void TextMarginComponent::paintEvent(QPaintEvent* event)
     // fill the backgound
     painter.fillRect( rect,  renderer()->theme()->backgroundColor() );
 
-    delegate()->renderBefore( &painter, startLine, endLine, size.width() );
+    int lineHeight = renderer()->lineHeight();
+
+    delegate()->renderBefore( &painter, startLine, endLine, size.width(), lineHeight );
     renderCaretMarkers( &painter, startLine, endLine, size.width() );
     renderLineNumber( &painter, startLine, endLine, size.width() );
-    delegate()->renderAfter( &painter, startLine, endLine, size.width() );
+    delegate()->renderAfter( &painter, startLine, endLine, size.width(), lineHeight );
 
     renderer()->renderEnd( paintRect );
     painter.translate(0, top_);
@@ -285,7 +289,7 @@ void TextMarginComponent::paintEvent(QPaintEvent* event)
 /// @param startLine the first line to render
 /// @param endLine the last line to render
 /// @param width the width for rendering
-void TextMarginComponent::renderCaretMarkers(QPainter* painter, int startLine, int endLine , int width)
+void TextMarginComponent::renderCaretMarkers(QPainter* painter, int startLine, int endLine, int width)
 {
     TextDocument* doc = renderer()->textDocument();
     TextSelection* sel = renderer()->textSelection();

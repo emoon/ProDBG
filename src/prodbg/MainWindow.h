@@ -21,6 +21,7 @@ class BreakpointModel;
 class CodeViews;
 class RecentExecutables;
 class ViewHandler;
+class SourceCodeWidget;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -86,6 +87,7 @@ class MainWindow : public QMainWindow {
 
     QVector<QAction*> m_recentFileActions;
 
+    SourceCodeWidget* m_source_view = nullptr;
     ViewHandler* m_viewHandler = nullptr;
 
     // This is somewhat temporary but convinient to have

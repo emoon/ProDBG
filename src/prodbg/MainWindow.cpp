@@ -27,13 +27,16 @@
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMainWindow>
+#include "SourceCodeWidget.h"
+#include "edbee/texteditorwidget.h"
+/*
 #include "edbee/edbee.h"
 #include "edbee/io/textdocumentserializer.h"
-#include "edbee/texteditorwidget.h"
 #include "edbee/views/texteditorscrollarea.h"
 #include "edbee/models/textgrammar.h"
 #include "edbee/models/textdocument.h"
 #include "edbee/models/texteditorconfig.h"
+*/
 
 namespace prodbg {
 
@@ -88,26 +91,28 @@ MainWindow::MainWindow()
 
     // PluginInstance* inst = PluginUI_createTestPlugin(this);
 
+    /*
     edbee::TextEditorWidget* editor = new edbee::TextEditorWidget(this);
     edbee::TextDocumentSerializer serializer(editor->textDocument());
-    QFile file(QStringLiteral("src/prodbg/Config/Config.cpp"));
+    //QString filename = QStringLiteral("/home/emoon/code/projects/hippo_player/src/hippo_core/core/src/lib.rs");
+    QString filename = QStringLiteral("src/prodbg/Config/Config.cpp");
+    QFile file(filename);
     if (!serializer.load(&file)) {
         qDebug() << "failed to load file";
-        /*
-        QMessageBox::warning(this, tr("Error opening file"),
-                             tr("Error opening file!\n%1").arg(serializer.errorString()));
-        */
     }
 
     auto grammar_manager = edbee::Edbee::instance()->grammarManager();
-    auto grammar = grammar_manager->detectGrammarWithFilename(QStringLiteral("lib.cpp"));
+    auto grammar = grammar_manager->detectGrammarWithFilename(filename);
     qDebug() << "grammar detected " << grammar;
     editor->textDocument()->setLanguageGrammar(grammar);
     editor->textScrollArea()->enableShadowWidget(false);
     editor->textDocument()->config()->setFont(font);
+    */
 
+    m_source_view = new SourceCodeWidget(m_breakpoints, this);
+    m_source_view->load_file(QStringLiteral("src/prodbg/Config/Config.cpp"));
 
-    setCentralWidget(editor);
+    setCentralWidget(m_source_view->m_editor);
 
     // QWidget* plugin_parent = new QWidget(this);
     // setCentralWidget(m_memoryView);
@@ -221,8 +226,8 @@ void MainWindow::show_prefs() {
 void MainWindow::start() {
     printf("MainWindow::start\n");
 
-    const QVector<BreakpointModel::FileLineBreakpoint>& fileLineBreakpoints = m_breakpoints->getFileLineBreakpoints();
-    const QVector<uint64_t>& addressBreakpoints = m_breakpoints->getAddressBreakpoints();
+    const QVector<BreakpointModel::FileLineBreakpoint>& fileLineBreakpoints = m_breakpoints->get_file_line_breakpoints();
+    const QVector<uint64_t>& addressBreakpoints = m_breakpoints->get_address_breakpoints();
 
     // add the breakpoints before we start
 
@@ -449,7 +454,9 @@ void MainWindow::stepOver() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::toggleBreakpoint() { m_codeViews->toggleBreakpoint(); }
+void MainWindow::toggleBreakpoint() {
+    m_source_view->toggle_breakpoint_current_line();
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

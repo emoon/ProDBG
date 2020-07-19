@@ -84,67 +84,65 @@ public:
     TextSearcher* textSearcher();
     DynamicVariables* dynamicVariables() const;
 
-signals:
-
     /// This signal is fired if the statusbar needs updating
-    void updateStatusTextSignal( const QString& text );
+    Q_SIGNAL void updateStatusTextSignal( const QString& text );
 
     /// This signal is fired if the textdocument changes.
-    void textDocumentChanged( edbee::TextDocument* oldDocument, edbee::TextDocument* newDocument );
+    Q_SIGNAL void textDocumentChanged( edbee::TextDocument* oldDocument, edbee::TextDocument* newDocument );
 
     /// this method is executed when a command is going to be executed
-    void commandToBeExecuted( edbee::TextEditorCommand* command );
-    void commandExecuted( edbee::TextEditorCommand* command );
+    Q_SIGNAL void commandToBeExecuted( edbee::TextEditorCommand* command );
+    Q_SIGNAL void commandExecuted( edbee::TextEditorCommand* command );
 
-    void backspacePressed();
+    Q_SIGNAL void backspacePressed();
 
-public slots:
+public:
 
-    void onTextChanged( edbee::TextBufferChange change );
-    void onSelectionChanged( edbee::TextRangeSet *oldRangeSet );
-    void onLineDataChanged( int line, int length, int newLength );
+    Q_SLOT void onTextChanged( edbee::TextBufferChange change );
+    Q_SLOT void onSelectionChanged( edbee::TextRangeSet *oldRangeSet );
+    Q_SLOT void onLineDataChanged( int line, int length, int newLength );
 
-    void updateAfterConfigChange();
-    
-public slots:
+    Q_SLOT void updateAfterConfigChange();
+
+public:
 
     // updates the status text
-    virtual void updateStatusText( const QString& extraText=QString() );
+    Q_SLOT virtual void updateStatusText( const QString& extraText=QString() );
 
-    virtual void update();
+    Q_SLOT virtual void update();
 
     // scrolling
-    virtual void scrollPositionVisible( int xPos, int yPos );
-    virtual void scrollOffsetVisible( int offset );
-    virtual void scrollCaretVisible();
+    Q_SLOT virtual void scrollPositionVisible( int xPos, int yPos );
+    Q_SLOT virtual void scrollOffsetVisible( int offset );
+    Q_SLOT virtual void scrollCaretVisible();
 
-    virtual void storeSelection( int coalesceId=0 );
+    Q_SLOT virtual void storeSelection( int coalesceId=0 );
 
     // replace the given selection
-    virtual void replace( int offset, int length, const QString& text, int coalesceId );
-    virtual void replaceSelection( const QString& text, int coalesceId=0 );
-    virtual void replaceSelection( const QStringList& texts, int coalesceId=0 );
-    virtual void replaceRangeSet(TextRangeSet& rangeSet, const QString& text, int coalesceId=0 );
-    virtual void replaceRangeSet(TextRangeSet& rangeSet, const QStringList& texts, int coalesceId=0 );
+    Q_SLOT virtual void replace( int offset, int length, const QString& text, int coalesceId );
+    Q_SLOT virtual void replaceSelection( const QString& text, int coalesceId=0 );
+    Q_SLOT virtual void replaceSelection( const QStringList& texts, int coalesceId=0 );
+    Q_SLOT virtual void replaceRangeSet(TextRangeSet& rangeSet, const QString& text, int coalesceId=0 );
+    Q_SLOT virtual void replaceRangeSet(TextRangeSet& rangeSet, const QStringList& texts, int coalesceId=0 );
 
     // caret movements
-    virtual void moveCaretTo( int line, int col, bool keepAnchors, int rangeIndex=-1 );
-    virtual void moveCaretToOffset( int offset, bool keepAnchors, int rangeIndex=-1 );
-    virtual void addCaretAt( int line, int col);
-    virtual void addCaretAtOffset( int offset );
-    virtual void changeAndGiveTextSelection(TextRangeSet* rangeSet , int coalesceId = 0);
+    Q_SLOT virtual void moveCaretTo( int line, int col, bool keepAnchors, int rangeIndex=-1 );
+    Q_SLOT virtual void moveCaretToOffset( int offset, bool keepAnchors, int rangeIndex=-1 );
+    Q_SLOT virtual void addCaretAt( int line, int col);
+    Q_SLOT virtual void addCaretAtOffset( int offset );
+    Q_SLOT virtual void changeAndGiveTextSelection(TextRangeSet* rangeSet , int coalesceId = 0);
 
     // perform an undo
-    virtual void undo(bool soft=false);
-    virtual void redo(bool soft=false);
+    Q_SLOT virtual void undo(bool soft=false);
+    Q_SLOT virtual void redo(bool soft=false);
 
     // command execution
-    virtual void beginUndoGroup( ChangeGroup* group=0 );
-    virtual void endUndoGroup(int coalesceId=0, bool flatten=false);
+    Q_SLOT virtual void beginUndoGroup( ChangeGroup* group=0 );
+    Q_SLOT virtual void endUndoGroup(int coalesceId=0, bool flatten=false);
 
     // low level command execution
-    virtual void executeCommand( TextEditorCommand* textCommand );
-    virtual bool executeCommand( const QString& name=QString() );
+    Q_SLOT virtual void executeCommand( TextEditorCommand* textCommand );
+    Q_SLOT virtual bool executeCommand( const QString& name=QString() );
 
 private:
 
@@ -162,7 +160,7 @@ private:
     TextCaretCache* textCaretCache_;          ///< The text-caret cache. (For remembering the x-position of the current carrets)
 
     TextSearcher* textSearcher_;              ///< The text-searcher
-    
+
     AutoScrollToCaret autoScrollToCaret_;     ///< This flags tells the editor to automaticly scrol to the caret
 
 
