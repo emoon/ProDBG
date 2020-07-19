@@ -30,7 +30,6 @@ local function get_rs_src(dir)
 	}
 end
 
-
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
@@ -40,23 +39,12 @@ SharedLibrary {
         CPPPATH = {
         	"api/include",
             "src/plugins/lldb",
-        },
-
-        CXXOPTS = { {
-            "-std=c++11",
-            "-Wno-padded",
-            "-Wno-documentation",
-            "-Wno-unused-parameter",
-            "-Wno-missing-prototypes",
-            "-Wno-unused-member-function",
-            "-Wno-switch",
-            "-Wno-switch-enum",
-            "-Wno-c++98-compat-pedantic",
-            "-Wno-missing-field-initializers"; Config = { "macosx-clang-*", "linux-*"} },
+            "src/native/external/lldb/include",
         },
 
         SHLIBOPTS = {
             { "-Fsrc/plugins/lldb/Frameworks", "-rpath src/plugins/lldb/Frameworks", "-lstdc++"; Config = "macosx-clang-*" },
+            { "-Lsrc/native/external/lldb/lib/linux", "-llldb", "-lstdc++"; Config = "linux-*-*" },
         },
 
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
@@ -154,7 +142,7 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
-if native.host_platform == "macosx" then
+if native.host_platform == "macosx" or native.host_platform == "linux" then
    Default "lldb_plugin"
 end
 
