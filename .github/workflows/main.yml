@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
+      with:
+        lfs: true
 
     # install Qt with cache
     - name: Cache Qt
@@ -55,6 +57,8 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        lfs: true
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
     - name: Build code test
