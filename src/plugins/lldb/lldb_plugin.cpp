@@ -47,7 +47,7 @@ typedef struct LLDBPlugin {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void* createInstance(ServiceFunc* serviceFunc) {
+void* create_instance(ServiceFunc* serviceFunc) {
     lldb::SBDebugger::Initialize();
 
     // s_messageFuncs = (PDMessageFuncs*)serviceFunc(PDMESSAGEFUNCS_GLOBAL);
@@ -79,7 +79,7 @@ static uint32_t getThreadFrame(LLDBPlugin* plugin, lldb::tid_t threadId) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void destroyInstance(void* user_data) {
+static void destroy_instance(void* user_data) {
     LLDBPlugin* plugin = (LLDBPlugin*)user_data;
     delete plugin;
 }
@@ -90,15 +90,15 @@ const bool m_verbose = true;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void onStop(LLDBPlugin* plugin) { (void)plugin; }
+static void on_stop(LLDBPlugin* plugin) { (void)plugin; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void onBreak(LLDBPlugin* plugin) { (void)plugin; }
+static void on_break(LLDBPlugin* plugin) { (void)plugin; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void onStep(LLDBPlugin* plugin) {
+static void on_step(LLDBPlugin* plugin) {
     lldb::SBEvent evt;
 
     lldb::SBThread thread(plugin->process.GetThreadByID(plugin->selectedThreadId));
@@ -113,7 +113,7 @@ static void onStep(LLDBPlugin* plugin) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void onStepOver(LLDBPlugin* plugin) {
+void on_step_over(LLDBPlugin* plugin) {
     lldb::SBEvent evt;
 
     lldb::SBThread thread(plugin->process.GetThreadByID(plugin->selectedThreadId));
@@ -128,7 +128,7 @@ void onStepOver(LLDBPlugin* plugin) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void onRun(LLDBPlugin* plugin) {
+void on_run(LLDBPlugin* plugin) {
     // if we haven't started the executable start it here
 
     if (plugin->state == PDDebugState_NoTarget) {
@@ -302,7 +302,7 @@ static void setExecutable(LLDBPlugin* plugin, PDReader* reader) {
 
     printf("Valid target %s\n", filename);
 
-    onRun(plugin);
+    on_run(plugin);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -415,22 +415,22 @@ static void setBreakpoint(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer
 static void doAction(LLDBPlugin* plugin, PDAction action) {
     switch (action) {
         case PDAction_Stop:
-            onStop(plugin);
+            on_stop(plugin);
             break;
         case PDAction_Break:
-            onBreak(plugin);
+            on_break(plugin);
             break;
         case PDAction_Run:
-            onRun(plugin);
+            on_run(plugin);
             break;
         case PDAction_Step:
-            onStep(plugin);
+            on_step(plugin);
             break;
         case PDAction_StepOut:
-            onStepOver(plugin);
+            on_step_over(plugin);
             break;
         case PDAction_StepOver:
-            onStepOver(plugin);
+            on_step_over(plugin);
             break;
         default:
             break;
@@ -757,7 +757,7 @@ static PDDebugState update(void* user_data, PDAction action, PDReader* reader, P
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static PDBackendPlugin plugin = {
-    "LLDB", createInstance, destroyInstance, update,
+    "LLDB", create_instance, destroy_instance, update,
     0,  // save_state
     0,  // load_state
 };

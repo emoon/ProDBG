@@ -133,6 +133,69 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
+	Name = "flatbuffers",
+
+	Pass = "BuildTools",
+
+	SourceDir = "src/native/external/flatbuffers",
+
+	Includes = {
+		"src/native/external/flatbuffers/include",
+	},
+
+	Sources = {
+		"src/code_generators.cpp",
+		"src/idl_parser.cpp",
+		"src/idl_gen_text.cpp",
+		"src/reflection.cpp",
+		"src/util.cpp",
+	},
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+Program {
+	Name = "flatc",
+
+	Pass = "BuildTools",
+
+	SourceDir = "src/native/external/flatbuffers",
+
+	Includes = {
+		"src/native/external/flatbuffers/include",
+		"src/native/external/flatbuffers",
+	},
+
+	Sources = {
+		"src/idl_gen_cpp.cpp",
+		"src/idl_gen_dart.cpp",
+		-- "src/idl_gen_general.cpp",
+		"src/idl_gen_kotlin.cpp",
+		"src/idl_gen_go.cpp",
+		"src/idl_gen_js_ts.cpp",
+		"src/idl_gen_php.cpp",
+		"src/idl_gen_python.cpp",
+		"src/idl_gen_lobster.cpp",
+		"src/idl_gen_lua.cpp",
+		"src/idl_gen_rust.cpp",
+		"src/idl_gen_fbs.cpp",
+		"src/idl_gen_json_schema.cpp",
+		"src/flatc.cpp",
+		"src/flatc_main.cpp",
+	},
+
+	Env = {
+        PROGCOM = {
+            { "-lm"; Config = "linux-*-*" },
+        },
+    },
+
+	Depends = { "flatbuffers" },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
     Name = "capstone",
 
     Env = {
@@ -265,6 +328,7 @@ StaticLibrary {
 	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
 }
 
+Default "flatc"
 
 -- vim: ts=4:sw=4:sts=4
 
