@@ -204,7 +204,7 @@ void TextDocument::beginChanges(TextEditorController* controller)
 /// Replaces the given rangeset
 void TextDocument::replaceRangeSet(TextRangeSet& rangeSet, const QString& textIn )
 {
-    return replaceRangeSet( rangeSet, QStringList(textIn) );
+    //return replaceRangeSet( rangeSet, QStringList(textIn) );
 }
 
 
@@ -303,6 +303,7 @@ Change *TextDocument::executeAndGiveChange(Change* change, int coalesceId )
         return textUndoStack()->last();
 //        return result;
     }
+    return nullptr;
 }
 
 
