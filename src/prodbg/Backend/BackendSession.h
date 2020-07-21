@@ -17,21 +17,23 @@ namespace prodbg {
 class BackendSession : public QObject {
     Q_OBJECT
 
-   public:
+public:
     BackendSession();
     ~BackendSession();
 
-    static BackendSession* createBackendSession(const QString& backendName);
-    bool setBackend(const QString& backendName);
+    static BackendSession* create_backend_session(const QString& backendName);
+    bool set_backend(const QString& backendName);
 
+    Q_SLOT void thread_finished();
+    Q_SLOT void update();
+
+    /*
     Q_SLOT void start();
     Q_SLOT void stop();
     Q_SLOT void stepIn();
     Q_SLOT void stepOver();
-    Q_SLOT void update();
     Q_SLOT void breakContDebug();
 
-    Q_SLOT void threadFinished();
     Q_SLOT void evalExpression(const QString& expression, uint64_t* out);
 
     Q_SLOT void sendCustomString(uint16_t id, const QString& text);
@@ -50,16 +52,17 @@ class BackendSession : public QObject {
     Q_SIGNAL void endReadRegisters(QVector<IBackendRequests::Register>* registers);
     Q_SIGNAL void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int adressWidth);
     Q_SIGNAL void endReadMemory(QVector<uint16_t>* res, uint64_t address, int addressWidth);
-    Q_SIGNAL void programCounterChanged(const IBackendRequests::ProgramCounterChange& pc);
-    Q_SIGNAL void statusUpdate(const QString& update);
-    Q_SIGNAL void sourceFileLineChanged(const QString& filename, uint32_t line);
-    Q_SIGNAL void sessionEnded();
+    */
+    // Q_SIGNAL void statusUpdate(const QString& update);
+    // Q_SIGNAL void sourceFileLineChanged(const QString& filename, uint32_t line);
+    Q_SIGNAL void program_counter_changed(const IBackendRequests::ProgramCounterChange& pc);
+    Q_SIGNAL void session_ended();
 
-   private:
-    void updateCurrentPc();
-    void destroyPluginData();
+private:
+    void update_current_pc();
+    void destory_plugin_data();
 
-    PDDebugState internalUpdate(PDAction action);
+    PDDebugState internal_update(PDAction action);
 
     PDDebugState m_debugState = PDDebugState_NoTarget;
 
@@ -76,10 +79,10 @@ class BackendSession : public QObject {
     QTimer* m_timer = nullptr;
 
     // Current active backend plugin
-    PDBackendPlugin* m_backendPlugin;
+    PDBackendPlugin* m_backend_plugin;
 
     // Data owned by current active backend plugin
-    void* m_backendPluginData;
+    void* m_backend_plugin_data;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

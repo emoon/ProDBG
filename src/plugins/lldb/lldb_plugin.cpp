@@ -50,8 +50,6 @@ typedef struct LLDBPlugin {
 void* create_instance(ServiceFunc* serviceFunc) {
     lldb::SBDebugger::Initialize();
 
-    // s_messageFuncs = (PDMessageFuncs*)serviceFunc(PDMESSAGEFUNCS_GLOBAL);
-
     LLDBPlugin* plugin = new LLDBPlugin;
 
     plugin->debugger = lldb::SBDebugger::Create(false);
@@ -662,15 +660,17 @@ static void updateLLDBEvent(LLDBPlugin* plugin, PDWriter* writer) {
                 if (m_verbose) printf("tid = 0x%lx pc = 0x%lx ", thread.GetThreadID(), frame.GetPC());
 
                 switch (stop_reason) {
-                    case lldb::eStopReasonNone:
+                    case lldb::eStopReasonNone: {
                         if (m_verbose) printf("none\n");
                         break;
+                    }
 
-                    case lldb::eStopReasonTrace:
+                    case lldb::eStopReasonTrace: {
                         select_thread = true;
                         plugin->state = PDDebugState_Trace;
                         if (m_verbose) printf("trace\n");
                         break;
+                    }
 
                     case lldb::eStopReasonPlanComplete:
                         select_thread = true;
@@ -749,7 +749,9 @@ static PDDebugState update(void* user_data, PDAction action, PDReader* reader, P
 
     doAction(plugin, action);
 
-    if (plugin->state == PDDebugState_Running) updateLLDBEvent(plugin, writer);
+    if (plugin->state == PDDebugState_Running) {
+        updateLLDBEvent(plugin, writer);
+    }
 
     return plugin->state;
 }

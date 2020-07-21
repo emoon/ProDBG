@@ -21,10 +21,10 @@ class CodeViews : public QTabWidget {
     void reloadCurrentFile();
     void toggleBreakpoint();
     void openFile(const QString& filename, bool setActive);
-    void setBackendInterface(IBackendRequests* iface);
+    void set_backend_interface(IBackendRequests* iface);
 
-    Q_SLOT void programCounterChanged(const IBackendRequests::ProgramCounterChange& pc);
-    Q_SLOT void sessionEnded();
+    Q_SLOT void program_counter_changed(const IBackendRequests::ProgramCounterChange& pc);
+    Q_SLOT void session_ended();
     Q_SLOT void toggleSourceAsm();
 
    private:

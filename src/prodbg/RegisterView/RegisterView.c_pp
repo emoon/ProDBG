@@ -157,7 +157,7 @@ void RegisterView::endReadRegisters(QVector<IBackendRequests::Register>* registe
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RegisterView::programCounterChanged(const IBackendRequests::ProgramCounterChange& pc) {
+void RegisterView::program_counter_changed(const IBackendRequests::ProgramCounterChange& pc) {
     m_interface->beginReadRegisters(&m_targetRegisters);
 }
 
@@ -165,7 +165,7 @@ void RegisterView::programCounterChanged(const IBackendRequests::ProgramCounterC
 
 void RegisterView::interfaceSet() {
     if (m_interface) {
-        connect(m_interface, &IBackendRequests::programCounterChanged, this, &RegisterView::programCounterChanged);
+        connect(m_interface, &IBackendRequests::program_counter_changed, this, &RegisterView::program_counter_changed);
         connect(m_interface, &IBackendRequests::endReadRegisters, this, &RegisterView::endReadRegisters);
     }
 }

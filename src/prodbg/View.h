@@ -16,7 +16,7 @@ class View : public QWidget {
     explicit View(QWidget* parent);
     virtual ~View();
 
-    void setBackendInterface(IBackendRequests* interface);
+    void set_backend_interface(IBackendRequests* interface);
 
     // not very nice. Just for testing now
     virtual void interfaceSet() = 0;

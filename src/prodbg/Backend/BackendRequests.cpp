@@ -6,6 +6,7 @@ namespace prodbg {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 BackendRequests::BackendRequests(BackendSession* session) {
+    /*
     connect(this, &BackendRequests::sendCustomStr, session, &BackendSession::sendCustomString);
 
     connect(this, &BackendRequests::requestMem, session, &BackendSession::beginReadMemory);
@@ -16,16 +17,20 @@ BackendRequests::BackendRequests(BackendSession* session) {
     connect(this, &BackendRequests::toggleFileLineBreakpoint, session, &BackendSession::toggleFileLineBreakpoint);
 
     connect(this, &BackendRequests::evalExpression, session, &BackendSession::evalExpression);
+    */
 
+    /*
     connect(session, &BackendSession::endReadMemory, this, &BackendRequests::endReadMemory);
     connect(session, &BackendSession::endDisassembly, this, &BackendRequests::endDisassembly);
     connect(session, &BackendSession::endReadRegisters, this, &BackendRequests::endReadRegisters);
     connect(session, &BackendSession::endResolveAddress, this, &BackendRequests::endResolveAddress);
+    */
 
-    connect(session, &BackendSession::programCounterChanged, this, &BackendRequests::programCounterChanged);
-    connect(session, &BackendSession::sessionEnded, this, &BackendRequests::sessionEnded);
+    connect(session, &BackendSession::program_counter_changed, this, &BackendRequests::program_counter_changed);
+    connect(session, &BackendSession::session_ended, this, &BackendRequests::session_ended);
 }
 
+/*
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendRequests::sendCustomString(uint16_t id, const QString& text) {
@@ -97,6 +102,7 @@ bool BackendRequests::beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t
 
     return true;
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }  // namespace prodbg

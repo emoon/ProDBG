@@ -1,3 +1,5 @@
+#if 0
+
 #include "CodeViews.h"
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
@@ -28,6 +30,7 @@ CodeViews::~CodeViews() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeViews::toggleBreakpoint() {
+/*
     const int index = currentIndex();
 
     if (index == 0 && tabText(0).indexOf(QStringLiteral("Disassembly")) == 0) {
@@ -51,11 +54,12 @@ void CodeViews::toggleBreakpoint() {
 
         view->repaint();
     }
+*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::sessionEnded() {
+void CodeViews::session_ended() {
     for (int i = 0, c = count(); i < c; ++i) {
         if (tabText(i).indexOf(QStringLiteral("Disassembly")) == 0) {
             continue;
@@ -64,7 +68,7 @@ void CodeViews::sessionEnded() {
         CodeView* view = dynamic_cast<CodeView*>(widget(i));
         Q_ASSERT(view);
 
-        view->sessionEnded();
+        view->session_ended();
     }
 }
 
@@ -103,8 +107,8 @@ void CodeViews::reloadCurrentFile() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::programCounterChanged(const IBackendRequests::ProgramCounterChange& pc) {
-    m_disassemblyView->updatePc(pc.programCounter);
+void CodeViews::program_counter_changed(const IBackendRequests::ProgramCounterChange& pc) {
+    m_disassemblyView->updatePc(pc.pc);
 
     // No source/line for the PC so toggle to disassmbly mode if we already
     // aren't there
@@ -151,14 +155,14 @@ void CodeViews::programCounterChanged(const IBackendRequests::ProgramCounterChan
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::setBackendInterface(IBackendRequests* iface) {
+void CodeViews::set_backend_interface(IBackendRequests* iface) {
     m_interface = iface;
 
-    m_disassemblyView->setBackendInterface(iface);
+    m_disassemblyView->set_backend_interface(iface);
 
     if (iface) {
-        connect(m_interface, &IBackendRequests::programCounterChanged, this, &CodeViews::programCounterChanged);
-        connect(m_interface, &IBackendRequests::sessionEnded, this, &CodeViews::sessionEnded);
+        connect(m_interface, &IBackendRequests::program_counter_changed, this, &CodeViews::program_counter_changed);
+        connect(m_interface, &IBackendRequests::session_ended, this, &CodeViews::session_ended);
     }
 }
 
@@ -260,3 +264,5 @@ void CodeViews::writeSettings() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }  // namespace prodbg
+
+#endif

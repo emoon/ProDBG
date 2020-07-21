@@ -35,15 +35,15 @@ class DisassemblyView : public QPlainTextEdit {
     void toggleBreakpoint();
     int lineNumberAreaWidth();
     void lineNumberAreaPaintEvent(QPaintEvent* event);
-    void setBackendInterface(IBackendRequests* interface);
+    void set_backend_interface(IBackendRequests* interface);
     void setBreakpointModel(BreakpointModel* breakpoints);
 
-    Q_SLOT void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth);
+    //Q_SLOT void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth);
 
    private:
-    Q_SLOT void updateAddressAreaWidth(int newBlockCount);
-    Q_SLOT void highlightCurrentLine();
-    Q_SLOT void updateAddressArea(const QRect& rect, int dy);
+    //Q_SLOT void updateAddressAreaWidth(int newBlockCount);
+    //Q_SLOT void highlightCurrentLine();
+    //Q_SLOT void updateAddressArea(const QRect& rect, int dy);
 
     void resizeEvent(QResizeEvent* event);
     void updateDisassemblyCursor();

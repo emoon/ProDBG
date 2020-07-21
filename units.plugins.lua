@@ -122,6 +122,7 @@ RustSharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+--[[
 SharedLibrary {
     Name = "dummy_backend_plugin",
 
@@ -139,6 +140,7 @@ SharedLibrary {
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
+--]]
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -151,7 +153,7 @@ end
 --end
 
 Default "amiga_uae_plugin"
-Default "dummy_backend_plugin"
+--Default "dummy_backend_plugin"
 Default "register_view"
 
 -- vim: ts=4:sw=4:sts=4

@@ -1,0 +1,39 @@
+// Messages internal and external messages based on Flatbuffers
+
+// Which file target to start debugging (usually an executable)
+table FileTargetRequest {
+  path: string;
+}
+
+// Reply back, true for ok to set target, otherwise false (with optional error string)
+table FileTargetReply {
+  status: bool;
+  error_message: string;
+}
+
+// Get the current location of where the process is halted.
+table ExceptionLocationRequest { }
+
+// Reply on the exception location. If filename/line is supported (has debugging info, and correct backend)
+// it's expected that the reply will be with those. If only address is supported address should be set.
+table ExceptionLocationReply {
+    filename: string;
+    line: int;
+    address: ulong;
+}
+
+union MessageType {
+    file_target_request: FileTargetRequest,
+    file_target_reply: FileTargetReply,
+    exception_location_request: ExceptionLocationRequest,
+    exception_location_reply: ExceptionLocationReply,
+}
+
+// Main message that is being passed between backend and frontend. User data can be used
+// from both sides to pass extra information around which doesn't fit any of the messages
+table Message {
+  message: MessageType;
+  user_data: [ubyte];
+}
+
+root_type Message;

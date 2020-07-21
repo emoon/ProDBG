@@ -32,18 +32,18 @@
 /*
 #include "edbee/edbee.h"
 #include "edbee/io/textdocumentserializer.h"
-#include "edbee/views/texteditorscrollarea.h"
-#include "edbee/models/textgrammar.h"
 #include "edbee/models/textdocument.h"
 #include "edbee/models/texteditorconfig.h"
-*/
+#include "edbee/models/textgrammar.h"
+#include "edbee/views/texteditorscrollarea.h"
+ */
 
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MainWindow::MainWindow()
-    : m_memoryView(new MemoryView(this)),
+    : m_memory_view(new MemoryView(this)),
       // m_registerView(new RegisterView(this)),
       m_statusbar(new QStatusBar(this)),
       m_backend(nullptr)
@@ -55,17 +55,17 @@ MainWindow::MainWindow()
     qRegisterMetaType<uint64_t>("uint64_t");
     qRegisterMetaType<IBackendRequests::ProgramCounterChange>("IBackendRequests::ProgramCounterChange");
 
-    m_viewHandler = new ViewHandler(this);
+    m_view_handler = new ViewHandler(this);
 
     // TODO: Test load registers view plugin
-    m_regPluginLoader = new QPluginLoader(QStringLiteral("registers_view"), this);
-    m_registerView = qobject_cast<PDUIInterface*>(m_regPluginLoader->instance());
+    m_reg_plugin_loader = new QPluginLoader(QStringLiteral("registers_view"), this);
+    m_register_view = qobject_cast<PDUIInterface*>(m_reg_plugin_loader->instance());
 
     // m_viewHandler->addView(new MemoryView(this));
     // m_viewHandler->addView(new RegisterView(this));
 
-    m_recentExecutables = new RecentExecutables;
-    m_amigaUae = new AmigaUAE(this);
+    m_recent_executables = new RecentExecutables;
+    //m_amigaUae = new AmigaUAE(this);
 
     m_ui.setupUi(this);
 
@@ -86,19 +86,18 @@ MainWindow::MainWindow()
     QFont font(QStringLiteral("Courier"), 13);
 #endif
 
-
     // m_ui.toolWindowManager->setRubberBandLineWidth(50);
 
     // PluginInstance* inst = PluginUI_createTestPlugin(this);
 
     /*
-    edbee::TextEditorWidget* editor = new edbee::TextEditorWidget(this);
-    edbee::TextDocumentSerializer serializer(editor->textDocument());
+       edbee::TextEditorWidget* editor = new edbee::TextEditorWidget(this);
+       edbee::TextDocumentSerializer serializer(editor->textDocument());
     //QString filename = QStringLiteral("/home/emoon/code/projects/hippo_player/src/hippo_core/core/src/lib.rs");
     QString filename = QStringLiteral("src/prodbg/Config/Config.cpp");
     QFile file(filename);
     if (!serializer.load(&file)) {
-        qDebug() << "failed to load file";
+    qDebug() << "failed to load file";
     }
 
     auto grammar_manager = edbee::Edbee::instance()->grammarManager();
@@ -107,7 +106,7 @@ MainWindow::MainWindow()
     editor->textDocument()->setLanguageGrammar(grammar);
     editor->textScrollArea()->enableShadowWidget(false);
     editor->textDocument()->config()->setFont(font);
-    */
+     */
 
     m_source_view = new SourceCodeWidget(m_breakpoints, this);
     m_source_view->load_file(QStringLiteral("src/prodbg/Config/Config.cpp"));
@@ -148,45 +147,47 @@ MainWindow::MainWindow()
 
     setStatusBar(m_statusbar);
 
-    startDummyBackend();
+    start_dummy_backend();
 
-    initActions();
-    readSettings();
+    init_actions();
+    read_settings();
 
-    initRecentFileActions();
+    init_recent_file_actions();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MainWindow::~MainWindow() {
-    delete m_recentExecutables;
+    delete m_recent_executables;
 
-    closeCurrentBackend();
+    close_current_backend();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::initActions() {
-    connect(m_ui.actionStart, &QAction::triggered, this, &MainWindow::startDebug);
-    connect(m_ui.actionReloadCurrentFile, &QAction::triggered, this, &MainWindow::reloadCurrentFile);
-    connect(m_ui.actionStep_Over, &QAction::triggered, this, &MainWindow::stepOver);
-    connect(m_ui.actionStep_In, &QAction::triggered, this, &MainWindow::stepIn);
-    connect(m_ui.actionAmiga_UAE, &QAction::triggered, this, &MainWindow::amigaUAEConfig);
-    connect(m_ui.actionDebugAmigaExe, &QAction::triggered, this, &MainWindow::debugAmigaExe);
-    connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggleBreakpoint);
-    connect(m_ui.actionOpen, &QAction::triggered, this, &MainWindow::openSourceFile);
-    connect(m_ui.actionBreak, &QAction::triggered, this, &MainWindow::breakContDebug);
-    connect(m_ui.actionStop, &QAction::triggered, this, &MainWindow::stop);
-    connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_codeViews, &CodeViews::toggleSourceAsm);
-    connect(m_ui.actionMemoryView, &QAction::triggered, this, &MainWindow::newMemoryView);
-    connect(m_ui.actionPreferences, &QAction::triggered, this, &MainWindow::show_prefs);
+void MainWindow::init_actions() {
+    /*
+       connect(m_ui.actionStart, &QAction::triggered, this, &MainWindow::startDebug);
+       connect(m_ui.actionReloadCurrentFile, &QAction::triggered, this, &MainWindow::reloadCurrentFile);
+       connect(m_ui.actionStep_Over, &QAction::triggered, this, &MainWindow::stepOver);
+       connect(m_ui.actionStep_In, &QAction::triggered, this, &MainWindow::stepIn);
+       connect(m_ui.actionAmiga_UAE, &QAction::triggered, this, &MainWindow::amigaUAEConfig);
+       connect(m_ui.actionDebugAmigaExe, &QAction::triggered, this, &MainWindow::debugAmigaExe);
+       connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggleBreakpoint);
+       connect(m_ui.actionOpen, &QAction::triggered, this, &MainWindow::openSourceFile);
+       connect(m_ui.actionBreak, &QAction::triggered, this, &MainWindow::breakContDebug);
+       connect(m_ui.actionStop, &QAction::triggered, this, &MainWindow::stop);
+       connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_codeViews, &CodeViews::toggleSourceAsm);
+       connect(m_ui.actionMemoryView, &QAction::triggered, this, &MainWindow::newMemoryView);
+       connect(m_ui.actionPreferences, &QAction::triggered, this, &MainWindow::show_prefs);
+     */
 
     // connect(m_ui.actionRegisterView, &QAction::triggered, this, &MainWindow::newRegisterView);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::initRecentFileActions() {
+void MainWindow::init_recent_file_actions() {
     QMenu* menu = m_ui.menuRecentExecutables;
 
     // QAction* recentFiles = m_ui.menuFile->actionRecentExecutables;
@@ -194,24 +195,24 @@ void MainWindow::initRecentFileActions() {
     for (int i = 0; i < RecentExecutables::MaxFiles_Count; ++i) {
         QAction* recentFileAction = new QAction(this);
         recentFileAction->setVisible(false);
-        connect(recentFileAction, &QAction::triggered, this, &MainWindow::openRecentExe);
-        m_recentFileActions.append(recentFileAction);
+        connect(recentFileAction, &QAction::triggered, this, &MainWindow::open_recent_exe);
+        m_recent_file_actions.append(recentFileAction);
         menu->addAction(recentFileAction);
     }
 
-    m_recentExecutables->updateActionList(m_recentFileActions);
+    m_recent_executables->update_action_list(m_recent_file_actions);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::openSourceFile() {
+void MainWindow::open_source_file() {
     QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("Open Source File"));
 
     if (path.isEmpty()) {
         return;
     }
 
-    m_codeViews->openFile(path, true);
+    // m_codeViews->openFile(path, true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -226,41 +227,51 @@ void MainWindow::show_prefs() {
 void MainWindow::start() {
     printf("MainWindow::start\n");
 
-    const QVector<BreakpointModel::FileLineBreakpoint>& fileLineBreakpoints = m_breakpoints->get_file_line_breakpoints();
-    const QVector<uint64_t>& addressBreakpoints = m_breakpoints->get_address_breakpoints();
+    // const QVector<BreakpointModel::FileLineBreakpoint>& fileLineBreakpoints =
+    // m_breakpoints->get_file_line_breakpoints(); const QVector<uint64_t>& addressBreakpoints =
+    // m_breakpoints->get_address_breakpoints();
 
     // add the breakpoints before we start
 
-    for (auto& bp : fileLineBreakpoints) {
-        m_backendRequests->beginAddFileLineBreakpoint(bp.filename, bp.line);
-    }
+    /*
+       for (auto& bp : fileLineBreakpoints) {
+       m_backendRequests->beginAddFileLineBreakpoint(bp.filename, bp.line);
+       }
 
-    for (auto& bp : addressBreakpoints) {
-        m_backendRequests->beginAddAddressBreakpoint(bp);
-    }
+       for (auto& bp : addressBreakpoints) {
+       m_backendRequests->beginAddAddressBreakpoint(bp);
+       }
+     */
 
-    startBackend();
+    // startBackend();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::breakContDebug() { breakContBackend(); }
+void MainWindow::break_cont_debug() {
+    break_cont_backend();
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 void MainWindow::amigaUAEConfig() {
     AmigaUAEConfig cfg(this);
     cfg.setModal(true);
     cfg.exec();
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::uaeStarted() { startAmigaUAEBackend(); }
+void MainWindow::uae_started() {
+    //startAmigaUAEBackend();
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::debugAmigaExe() {
+/*
+void MainWindow::debug_amiga_exe() {
     if (!m_amigaUae->openFile()) {
         return;
     }
@@ -271,37 +282,44 @@ void MainWindow::debugAmigaExe() {
 
     internalStartAmigaExe();
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::openRecentExe() {
+void MainWindow::open_recent_exe() {
     QAction* action = qobject_cast<QAction*>(sender());
     if (action) {
         QString filename = action->data().toString();
-        m_lastAmigaExe = filename;
-        m_amigaUae->m_localExeToRun = filename;
+        //m_lastAmigaExe = filename;
+        //m_amigaUae->m_localExeToRun = filename;
 
-        m_recentExecutables->putFileOnTop(m_recentFileActions, filename);
+        m_recent_executables->put_file_on_top(m_recent_file_actions, filename);
 
-        internalStartAmigaExe();
+        //internalStartAmigaExe();
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::startDebug() {
-    if (m_currentBackend == Amiga && !m_lastAmigaExe.isEmpty()) {
+void MainWindow::start_debug() {
+    /*
+    if (m_current_backend == Amiga && !m_lastAmigaExe.isEmpty()) {
         internalStartAmigaExe();
     }
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::reloadCurrentFile() { m_codeViews->reloadCurrentFile(); }
+void MainWindow::reload_current_file() {
+    //m_codeViews->reloadCurrentFile();
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::internalStartAmigaExe() {
+#if 0
+
+void MainWindow::internal_start_amiga_exe() {
     m_amigaUae->m_localExeToRun = m_lastAmigaExe;
 
     if (!m_amigaUae->validateSettings()) {
@@ -311,80 +329,87 @@ void MainWindow::internalStartAmigaExe() {
     m_lastAmigaExe = m_amigaUae->m_localExeToRun;
 
     /*
-    if (!m_amigaUae->m_skipUAELaunch) {
-        connect(m_amigaUae->m_uaeProcess, &QProcess::started, this, &MainWindow::uaeStarted);
-        connect(m_amigaUae->m_uaeProcess, static_cast<void (QProcess::*)(int)>(&QProcess::finished), this,
-                &MainWindow::processEnded);
+       if (!m_amigaUae->m_skipUAELaunch) {
+       connect(m_amigaUae->m_uaeProcess, &QProcess::started, this, &MainWindow::uaeStarted);
+       connect(m_amigaUae->m_uaeProcess, static_cast<void (QProcess::*)(int)>(&QProcess::finished), this,
+       &MainWindow::processEnded);
 
-        printf("BackendSession::destroyPluginData\n");
+       printf("BackendSession::destroyPluginData\n");
 
-        m_amigaUae->launchUAE();
-    } else {
-        startAmigaUAEBackend();
-    }
-    */
+       m_amigaUae->launchUAE();
+       } else {
+       startAmigaUAEBackend();
+       }
+     */
+}
+
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::process_ended(int) {
+    stop_internal();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::processEnded(int) { stopInternal(); }
+void MainWindow::setup_backend_connections() {
+    /*
+       connect(this, &MainWindow::stepInBackend, m_backend, &BackendSession::stepIn);
+       connect(this, &MainWindow::stepOverBackend, m_backend, &BackendSession::stepOver);
+       connect(this, &MainWindow::startBackend, m_backend, &BackendSession::start);
+       connect(this, &MainWindow::breakContBackend, m_backend, &BackendSession::breakContDebug);
+       connect(this, &MainWindow::stopBackend, m_backend, &BackendSession::stop);
+       connect(m_backend, &BackendSession::statusUpdate, this, &MainWindow::statusUpdate);
+     */
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void MainWindow::setupBackendConnections() {
-    connect(this, &MainWindow::stepInBackend, m_backend, &BackendSession::stepIn);
-    connect(this, &MainWindow::stepOverBackend, m_backend, &BackendSession::stepOver);
-    connect(this, &MainWindow::startBackend, m_backend, &BackendSession::start);
-    connect(this, &MainWindow::breakContBackend, m_backend, &BackendSession::breakContDebug);
-    connect(this, &MainWindow::stopBackend, m_backend, &BackendSession::stop);
-    connect(m_backend, &BackendSession::statusUpdate, this, &MainWindow::statusUpdate);
-
-    connect(m_backendThread, &QThread::finished, m_backend, &BackendSession::threadFinished);
+    connect(m_backend_thread, &QThread::finished, m_backend, &BackendSession::thread_finished);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::startDummyBackend() {
-    BackendSession* backend = BackendSession::createBackendSession(QStringLiteral("Dummy Backend"));
+void MainWindow::start_dummy_backend() {
+    BackendSession* backend = BackendSession::create_backend_session(QStringLiteral("Dummy Backend"));
 
     if (!backend) {
         qDebug() << "Unable to create Dummy Backend";
         return;
     }
 
-    setupBackend(backend);
+    setup_backend(backend);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::closeCurrentBackend() {
-    if (m_backendThread) {
-        m_backendThread->quit();
-        m_backendThread->wait();
+void MainWindow::close_current_backend() {
+    if (m_backend_thread) {
+        m_backend_thread->quit();
+        m_backend_thread->wait();
     }
 
-    delete m_backendThread;
-    delete m_backendRequests;
+    delete m_backend_thread;
+    delete m_backend_requests;
 
-    if (m_registerView) {
-        m_registerView->set_backend_interface(nullptr);
+    if (m_register_view) {
+        m_register_view->set_backend_interface(nullptr);
     }
 
-    // m_registerView->setBackendInterface(nullptr);
-    // m_codeViews->setBackendInterface(nullptr);
-    // m_memoryView->setBackendInterface(nullptr);
+    // m_registerView->set_backend_interface(nullptr);
+    // m_codeViews->set_backend_interface(nullptr);
+    // m_memoryView->set_backend_interface(nullptr);
 
     m_backend = nullptr;
-    m_backendThread = nullptr;
-    m_backendRequests = nullptr;
+    m_backend_thread = nullptr;
+    m_backend_requests = nullptr;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 void MainWindow::startAmigaUAEBackend() {
     closeCurrentBackend();
 
-    BackendSession* backend = BackendSession::createBackendSession(QStringLiteral("Amiga UAE Debugger"));
+    BackendSession* backend = BackendSession::create_backend_session(QStringLiteral("Amiga UAE Debugger"));
 
     if (!backend) {
         printf("Unable to create Amiga UAE Debugger backend\n");
@@ -393,39 +418,42 @@ void MainWindow::startAmigaUAEBackend() {
 
     setupBackend(backend);
 
-    m_backendRequests->sendCustomString(m_amigaUae->m_setFileId, m_amigaUae->m_fileToRun);
-    m_backendRequests->sendCustomString(m_amigaUae->m_setHddPathId, m_amigaUae->m_dh0Path);
+    // m_backendRequests->sendCustomString(m_amigaUae->m_setFileId, m_amigaUae->m_fileToRun);
+    // m_backendRequests->sendCustomString(m_amigaUae->m_setHddPathId, m_amigaUae->m_dh0Path);
 
     // TODO: This is really temporary
-    QTimer::singleShot(5000, this, &MainWindow::start);
+    // QTimer::singleShot(5000, this, &MainWindow::start);
+
+    printf("startAmigaUAEBackend: NOT IMPLEMENTED\n");
 
     m_currentBackend = Amiga;
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::setupBackend(BackendSession* backend) {
+void MainWindow::setup_backend(BackendSession* backend) {
     m_backend = backend;
 
-    m_backendThread = new QThread;
+    m_backend_thread = new QThread;
 
-    m_backend->moveToThread(m_backendThread);
-    m_backendRequests = new BackendRequests(m_backend);
+    m_backend->moveToThread(m_backend_thread);
+    m_backend_requests = new BackendRequests(m_backend);
 
     // m_registerView->set_backend_interface(m_backendRequests);
-    // m_codeViews->setBackendInterface(m_backendRequests);
-    m_memoryView->setBackendInterface(m_backendRequests);
+    // m_codeViews->set_backend_interface(m_backendRequests);
+    //m_memory_view->set_backend_interface(m_backend_requests);
 
-    m_backendThread->start();
+    m_backend_thread->start();
 
-    setupBackendConnections();
+    setup_backend_connections();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::stopInternal() {
-    stopBackend();
-    closeCurrentBackend();
+void MainWindow::stop_internal() {
+    stop_backend();
+    close_current_backend();
 
     m_statusbar->showMessage(QStringLiteral("Ready."));
 }
@@ -433,52 +461,57 @@ void MainWindow::stopInternal() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::stop() {
+    /*
     if (m_currentBackend == Amiga) {
         m_amigaUae->killProcess();
     } else {
         stopInternal();
     }
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::stepIn() { stepInBackend(); }
+void MainWindow::step_in() {
+    step_in_backend();
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::stepOver() {
-    stepOverBackend();
+void MainWindow::step_over() {
+    step_over_backend();
 
     printf("stepOver\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::toggleBreakpoint() {
+void MainWindow::toggle_breakpoint() {
     m_source_view->toggle_breakpoint_current_line();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::newMemoryView() {
+/*
+void MainWindow::new_memory_view() {
     MemoryView* mv = new MemoryView(this);
-    mv->setBackendInterface(m_backendRequests);
+    mv->set_backend_interface(m_backendRequests);
     QDockWidget* dock = new QDockWidget(QStringLiteral("MemoryView"), this);
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     dock->setObjectName(QStringLiteral("MemoryViewDock"));
     dock->setWidget(mv);
     addDockWidget(Qt::TopDockWidgetArea, dock);
     dock->setFloating(true);
-
     m_viewHandler->addView(mv);
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Q_SLOT void MainWindow::newRegisterView() {
+Q_SLOT void MainWindow::new_register_view() {
     /*
     //RegisterView* rg = new RegisterView(this);
-    rg->setBackendInterface(m_backendRequests);
+    rg->set_backend_interface(m_backendRequests);
     QDockWidget* dock = new QDockWidget(QStringLiteral("RegisteView"), this);
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     dock->setObjectName(QStringLiteral("RegisteViewDock"));
@@ -487,53 +520,57 @@ Q_SLOT void MainWindow::newRegisterView() {
     dock->setFloating(true);
 
     m_viewHandler->addView(rg);
-    */
+     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::statusUpdate(const QString& status) { m_statusbar->showMessage(status); }
+void MainWindow::status_update(const QString& status) {
+    m_statusbar->showMessage(status);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::closeEvent(QCloseEvent* event) {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
 
-    writeSettings();
+    write_settings();
 
+    /*
     if (m_amigaUae) {
         m_amigaUae->writeSettings();
     }
+    */
 
     event->accept();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::writeSettings() {
+void MainWindow::write_settings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
 
     settings.beginGroup(QStringLiteral("MainWindow"));
 
     /*
-    settings.beginWriteArray(QStringLiteral("views"));
+       settings.beginWriteArray(QStringLiteral("views"));
 
-    int index = 0;
+       int index = 0;
 
-    QList<QDockWidget*> docs = findChildren<QDockWidget*>(QString());
-    for (auto& doc : docs) {
-        View* view = qobject_cast<View*>(doc->widget());
+       QList<QDockWidget*> docs = findChildren<QDockWidget*>(QString());
+       for (auto& doc : docs) {
+       View* view = qobject_cast<View*>(doc->widget());
 
-        if (view && view->isVisible()) {
-            // TODO: Write settings here
-            settings.setArrayIndex(index);
-            settings.setValue(QStringLiteral("type"),
+       if (view && view->isVisible()) {
+    // TODO: Write settings here
+    settings.setArrayIndex(index);
+    settings.setValue(QStringLiteral("type"),
     QString::fromUtf8(view->metaObject()->className())); index += 1;
-        }
+    }
     }
 
     settings.endArray();
-    */
+     */
 
     settings.setValue(QStringLiteral("size"), size());
     settings.setValue(QStringLiteral("pos"), pos());
@@ -545,38 +582,38 @@ void MainWindow::writeSettings() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::readSettings() {
+void MainWindow::read_settings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
 
     settings.beginGroup(QStringLiteral("MainWindow"));
 
     /*
-    int size = settings.beginReadArray(QStringLiteral("views"));
+       int size = settings.beginReadArray(QStringLiteral("views"));
 
-    for (int i = 0; i < size; ++i) {
-        settings.setArrayIndex(i);
-        QString viewType = settings.value(QStringLiteral("type")).toString();
+       for (int i = 0; i < size; ++i) {
+       settings.setArrayIndex(i);
+       QString viewType = settings.value(QStringLiteral("type")).toString();
 
-        View* view = nullptr;
+       View* view = nullptr;
 
-        // hack for now
-        if (viewType == QStringLiteral("prodbg::MemoryView")) {
-            view = new MemoryView(this);
-        } else if (viewType == QStringLiteral("prodbg::RegisterView")) {
-            view = new RegisterView(this);
-        } else {
-            Q_ASSERT(view);
-        }
+    // hack for now
+    if (viewType == QStringLiteral("prodbg::MemoryView")) {
+    view = new MemoryView(this);
+    } else if (viewType == QStringLiteral("prodbg::RegisterView")) {
+    view = new RegisterView(this);
+    } else {
+    Q_ASSERT(view);
+    }
 
-        QDockWidget* dock = new QDockWidget(viewType, this);
-        dock->setAllowedAreas(Qt::AllDockWidgetAreas);
-        dock->setObjectName(viewType + QStringLiteral("Dock"));
-        dock->setWidget(view);
-        addDockWidget(Qt::RightDockWidgetArea, dock);
+    QDockWidget* dock = new QDockWidget(viewType, this);
+    dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    dock->setObjectName(viewType + QStringLiteral("Dock"));
+    dock->setWidget(view);
+    addDockWidget(Qt::RightDockWidgetArea, dock);
     }
 
     settings.endArray();
-    */
+     */
 
     restoreGeometry(settings.value(QStringLiteral("geometry")).toByteArray());
     restoreState(settings.value(QStringLiteral("windowState")).toByteArray());

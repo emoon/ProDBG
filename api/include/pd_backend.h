@@ -1,5 +1,4 @@
-#ifndef _PRODBGAPI_BACKEND_H_
-#define _PRODBGAPI_BACKEND_H_
+#pragma once
 
 #include "pd_common.h"
 #include "pd_readwrite.h"
@@ -36,6 +35,51 @@ typedef enum PDDebugState {
     PDDebugState_Trace,
     PDDebugState_Count
 } PDDebugState;
+/*
+table PDSetExecutable {
+  path: string;
+}
+
+union MessageType {
+  set_executable: PDSetExecutable,
+}
+
+table PDMessage {
+  message: MessageType;
+  user_data: string;
+}
+
+rpc_service MonsterStorage {
+  Store(Monster):StoreResponse;
+  Retrieve(MonsterId):Monster;
+}
+
+table HelloReply {
+  message:string;
+}
+table HelloRequest {
+  name:string;
+}
+
+table SetExecutableRequest {
+  name:string;
+}
+
+table SetExecutableReply  {
+  status: bool;
+}
+
+
+rpc_service Greeter {
+  SayHello(HelloRequest):HelloReply;
+  SetExecutable(SetExecutableRequest):SetExecutableReply;
+}
+
+//root_type PDMessage;
+
+
+*/
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -130,6 +174,4 @@ typedef struct PDBackendPlugin {
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

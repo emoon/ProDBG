@@ -311,7 +311,7 @@ void CodeView::updateDisassemblyCursor() {
 
 void CodeView::toggleDisassembly() {
     m_mode = Disassembly;
-    // programCounterChanged(m_currentPc);
+    // program_counter_changed(m_currentPc);
     setPlainText(m_disassemblyText);
     updateDisassemblyCursor();
 }
@@ -425,7 +425,7 @@ void CodeView::setBreakpointModel(BreakpointModel* breakpoints) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-void CodeView::setBackendInterface(IBackendRequests* iface)
+void CodeView::set_backend_interface(IBackendRequests* iface)
 {
     m_interface = iface;
 
@@ -435,8 +435,8 @@ void CodeView::setBackendInterface(IBackendRequests* iface)
 
     connect(m_interface, &IBackendRequests::endDisassembly, this,
 &CodeView::endDisassembly); connect(m_interface,
-&IBackendRequests::programCounterChanged, this,
-&CodeView::programCounterChanged); connect(m_interface,
+&IBackendRequests::program_counter_changed, this,
+&CodeView::program_counter_changed); connect(m_interface,
 &IBackendRequests::sourceFileLineChanged, this,
 &CodeView::sourceFileLineChanged);
 }
@@ -444,7 +444,7 @@ void CodeView::setBackendInterface(IBackendRequests* iface)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::sessionEnded() {
+void CodeView::session_ended() {
     m_currentSourceLine = -1;
 }
 

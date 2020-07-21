@@ -13,7 +13,7 @@ View::~View() {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void View::setBackendInterface(IBackendRequests* interface) {
+void View::set_backend_interface(IBackendRequests* interface) {
     m_interface = interface;
     interfaceSet();
 }
