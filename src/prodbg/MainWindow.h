@@ -1,8 +1,8 @@
 #pragma once
 
 #include <QtWidgets/QMainWindow>
-#include "ui_MainWindow.h"
 #include "api/include/pd_ui.h"
+#include "ui_MainWindow.h"
 
 class QStatusBar;
 class QThread;
@@ -15,7 +15,7 @@ class CodeView;
 class MemoryView;
 class AmigaUAE;
 class BackendSession;
-//class RegisterView;
+// class RegisterView;
 class BackendRequests;
 class BreakpointModel;
 class CodeViews;
@@ -28,14 +28,14 @@ class SourceCodeWidget;
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
-   public:
+public:
     MainWindow();
     ~MainWindow();
 
-   protected:
+protected:
     void closeEvent(QCloseEvent* event);
 
-   private:
+private:
     Q_SLOT void open_source_file();
     Q_SLOT void reload_current_file();
     Q_SLOT void break_cont_debug();
@@ -58,7 +58,7 @@ class MainWindow : public QMainWindow {
 
     Q_SLOT void show_prefs();
 
-   private:
+private:
     // Current supported backends (hard-coded for now)
     enum Backend {
         Dummy,

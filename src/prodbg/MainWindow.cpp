@@ -492,8 +492,8 @@ void MainWindow::toggle_breakpoint() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
 void MainWindow::new_memory_view() {
+/*
     MemoryView* mv = new MemoryView(this);
     mv->set_backend_interface(m_backendRequests);
     QDockWidget* dock = new QDockWidget(QStringLiteral("MemoryView"), this);
@@ -503,8 +503,8 @@ void MainWindow::new_memory_view() {
     addDockWidget(Qt::TopDockWidgetArea, dock);
     dock->setFloating(true);
     m_viewHandler->addView(mv);
-}
 */
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

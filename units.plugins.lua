@@ -61,6 +61,8 @@ SharedLibrary {
     Frameworks = { "LLDB" },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
+
+	Depends = { "flatbuffers" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
