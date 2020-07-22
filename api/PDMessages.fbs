@@ -6,7 +6,7 @@ table FileTargetRequest {
 }
 
 // Reply back, true for ok to set target, otherwise false (with optional error string)
-table FileTargetReply {
+table TargetReply {
   status: bool;
   error_message: string;
 }
@@ -24,7 +24,7 @@ table ExceptionLocationReply {
 
 union MessageType {
     file_target_request: FileTargetRequest,
-    file_target_reply: FileTargetReply,
+    target_reply: TargetReply,
     exception_location_request: ExceptionLocationRequest,
     exception_location_reply: ExceptionLocationReply,
 }

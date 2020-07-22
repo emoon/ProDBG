@@ -223,7 +223,7 @@ void MainWindow::open_debug_executable() {
 
     setup_backend(backend);
 
-    // Request starting a file for debugging. file_target_reply will get a status back if it's possible
+    // Request starting a file for debugging. target_reply will get a status back if it's possible
     // to start the file or not and the debugging can procedde after that
     m_backend_requests->file_target_request(path);
 
@@ -400,8 +400,10 @@ void MainWindow::process_ended(int) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::setup_backend_connections() {
-    //connect(this, &MainWindow::start_backend, m_backend, &BackendSession::start);
-    connect(this, &MainWindow::file_target_reply, m_backend, &BackendSession::file_target_reply);
+    connect(this, &MainWindow::start_backend, m_backend, &BackendSession::start);
+    //connect(this, &MainWindow::target_reply, m_backend, &BackendSession::target_reply);
+
+    connect(m_backend, &BackendSession::target_reply, this, &MainWindow::target_reply);
 
 
     /*
@@ -417,8 +419,15 @@ void MainWindow::setup_backend_connections() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::file_target_reply(bool status, const QString& error_message) {
-    qDebug() << "MainWindow::file_target_reply " << status << " " << error_message;
+void MainWindow::target_reply(bool status, const QString& error_message) {
+    // Got ok from backend! we are ready to got so start it, otherwise show the error and close the current backend
+    if (status) {
+        // printf starting the backend!
+        start_backend();
+    } else {
+        close_current_backend();
+        qDebug() << "MainWindow::target_reply " << status << " " << error_message;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -9,8 +9,8 @@
 struct FileTargetRequest;
 struct FileTargetRequestBuilder;
 
-struct FileTargetReply;
-struct FileTargetReplyBuilder;
+struct TargetReply;
+struct TargetReplyBuilder;
 
 struct ExceptionLocationRequest;
 struct ExceptionLocationRequestBuilder;
@@ -24,7 +24,7 @@ struct MessageBuilder;
 enum MessageType {
   MessageType_NONE = 0,
   MessageType_file_target_request = 1,
-  MessageType_file_target_reply = 2,
+  MessageType_target_reply = 2,
   MessageType_exception_location_request = 3,
   MessageType_exception_location_reply = 4,
   MessageType_MIN = MessageType_NONE,
@@ -35,7 +35,7 @@ inline const MessageType (&EnumValuesMessageType())[5] {
   static const MessageType values[] = {
     MessageType_NONE,
     MessageType_file_target_request,
-    MessageType_file_target_reply,
+    MessageType_target_reply,
     MessageType_exception_location_request,
     MessageType_exception_location_reply
   };
@@ -46,7 +46,7 @@ inline const char * const *EnumNamesMessageType() {
   static const char * const names[6] = {
     "NONE",
     "file_target_request",
-    "file_target_reply",
+    "target_reply",
     "exception_location_request",
     "exception_location_reply",
     nullptr
@@ -68,8 +68,8 @@ template<> struct MessageTypeTraits<FileTargetRequest> {
   static const MessageType enum_value = MessageType_file_target_request;
 };
 
-template<> struct MessageTypeTraits<FileTargetReply> {
-  static const MessageType enum_value = MessageType_file_target_reply;
+template<> struct MessageTypeTraits<TargetReply> {
+  static const MessageType enum_value = MessageType_target_reply;
 };
 
 template<> struct MessageTypeTraits<ExceptionLocationRequest> {
@@ -134,8 +134,8 @@ inline flatbuffers::Offset<FileTargetRequest> CreateFileTargetRequestDirect(
       path__);
 }
 
-struct FileTargetReply FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef FileTargetReplyBuilder Builder;
+struct TargetReply FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef TargetReplyBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_STATUS = 4,
     VT_ERROR_MESSAGE = 6
@@ -155,43 +155,43 @@ struct FileTargetReply FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-struct FileTargetReplyBuilder {
-  typedef FileTargetReply Table;
+struct TargetReplyBuilder {
+  typedef TargetReply Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_status(bool status) {
-    fbb_.AddElement<uint8_t>(FileTargetReply::VT_STATUS, static_cast<uint8_t>(status), 0);
+    fbb_.AddElement<uint8_t>(TargetReply::VT_STATUS, static_cast<uint8_t>(status), 0);
   }
   void add_error_message(flatbuffers::Offset<flatbuffers::String> error_message) {
-    fbb_.AddOffset(FileTargetReply::VT_ERROR_MESSAGE, error_message);
+    fbb_.AddOffset(TargetReply::VT_ERROR_MESSAGE, error_message);
   }
-  explicit FileTargetReplyBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit TargetReplyBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<FileTargetReply> Finish() {
+  flatbuffers::Offset<TargetReply> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<FileTargetReply>(end);
+    auto o = flatbuffers::Offset<TargetReply>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<FileTargetReply> CreateFileTargetReply(
+inline flatbuffers::Offset<TargetReply> CreateTargetReply(
     flatbuffers::FlatBufferBuilder &_fbb,
     bool status = false,
     flatbuffers::Offset<flatbuffers::String> error_message = 0) {
-  FileTargetReplyBuilder builder_(_fbb);
+  TargetReplyBuilder builder_(_fbb);
   builder_.add_error_message(error_message);
   builder_.add_status(status);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<FileTargetReply> CreateFileTargetReplyDirect(
+inline flatbuffers::Offset<TargetReply> CreateTargetReplyDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     bool status = false,
     const char *error_message = nullptr) {
   auto error_message__ = error_message ? _fbb.CreateString(error_message) : 0;
-  return CreateFileTargetReply(
+  return CreateTargetReply(
       _fbb,
       status,
       error_message__);
@@ -318,8 +318,8 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const FileTargetRequest *message_as_file_target_request() const {
     return message_type() == MessageType_file_target_request ? static_cast<const FileTargetRequest *>(message()) : nullptr;
   }
-  const FileTargetReply *message_as_file_target_reply() const {
-    return message_type() == MessageType_file_target_reply ? static_cast<const FileTargetReply *>(message()) : nullptr;
+  const TargetReply *message_as_target_reply() const {
+    return message_type() == MessageType_target_reply ? static_cast<const TargetReply *>(message()) : nullptr;
   }
   const ExceptionLocationRequest *message_as_exception_location_request() const {
     return message_type() == MessageType_exception_location_request ? static_cast<const ExceptionLocationRequest *>(message()) : nullptr;
@@ -345,8 +345,8 @@ template<> inline const FileTargetRequest *Message::message_as<FileTargetRequest
   return message_as_file_target_request();
 }
 
-template<> inline const FileTargetReply *Message::message_as<FileTargetReply>() const {
-  return message_as_file_target_reply();
+template<> inline const TargetReply *Message::message_as<TargetReply>() const {
+  return message_as_target_reply();
 }
 
 template<> inline const ExceptionLocationRequest *Message::message_as<ExceptionLocationRequest>() const {
@@ -415,8 +415,8 @@ inline bool VerifyMessageType(flatbuffers::Verifier &verifier, const void *obj, 
       auto ptr = reinterpret_cast<const FileTargetRequest *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case MessageType_file_target_reply: {
-      auto ptr = reinterpret_cast<const FileTargetReply *>(obj);
+    case MessageType_target_reply: {
+      auto ptr = reinterpret_cast<const TargetReply *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case MessageType_exception_location_request: {

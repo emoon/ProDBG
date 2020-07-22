@@ -446,15 +446,13 @@ Q_SLOT void BackendSession::file_target_request(const QString& path) {
         PDRead_find_data(m_reader, &data, &size, "data", 0);
         const Message* msg = GetMessage(data);
 
-        printf("message type %s size %d\n", EnumNameMessageType(msg->message_type()), size);
-
-        if (msg->message_type() == MessageType_file_target_reply) {
-            auto reply = msg->message_as_file_target_reply();
+        if (msg->message_type() == MessageType_target_reply) {
+            auto reply = msg->message_as_target_reply();
             auto error_msg = reply->error_message()->c_str();
             printf("%p\n", error_msg);
             QString error_string = error_msg ? QString::fromUtf8(error_msg) : QString();
             printf("signal from backend\n");
-            file_target_reply(reply->status(), error_string);
+            target_reply(reply->status(), error_string);
             break;
         }
     }
@@ -619,12 +617,13 @@ void BackendSession::update() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
 
 void BackendSession::start() {
     if (m_debugState == PDDebugState_Running) {
         return;
     }
+
+    printf("starting the backend!\n");
 
     internal_update(PDAction_Run);
 
@@ -634,6 +633,7 @@ void BackendSession::start() {
     m_timer->start(50);
 }
 
+/*
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendSession::stop() {

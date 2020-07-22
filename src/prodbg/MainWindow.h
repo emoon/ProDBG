@@ -57,7 +57,7 @@ private:
     Q_SIGNAL void step_in_backend();
     Q_SIGNAL void step_over_backend();
 
-    Q_SLOT void file_target_reply(bool status, const QString& error_message);
+    Q_SLOT void target_reply(bool status, const QString& error_message);
 
     Q_SLOT void show_prefs();
 
