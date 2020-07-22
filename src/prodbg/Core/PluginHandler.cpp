@@ -110,6 +110,8 @@ PDBackendPlugin* PluginHandler_findBackendPlugin(const char* name) {
 
         PDPluginBase* base = (PDPluginBase*)plugin->data;
 
+        printf("name found %s\n", base->name);
+
         if (!strcmp(base->name, name)) {
             return (PDBackendPlugin*)plugin->data;
         }

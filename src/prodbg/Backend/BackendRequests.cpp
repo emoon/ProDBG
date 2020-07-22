@@ -6,6 +6,8 @@ namespace prodbg {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 BackendRequests::BackendRequests(BackendSession* session) {
+    connect(this, &BackendRequests::file_target_request_signal, session, &BackendSession::file_target_request);
+
     /*
     connect(this, &BackendRequests::sendCustomStr, session, &BackendSession::sendCustomString);
 
@@ -28,6 +30,12 @@ BackendRequests::BackendRequests(BackendSession* session) {
 
     connect(session, &BackendSession::program_counter_changed, this, &BackendRequests::program_counter_changed);
     connect(session, &BackendSession::session_ended, this, &BackendRequests::session_ended);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendRequests::file_target_request(const QString& path) {
+    file_target_request_signal(path);
 }
 
 /*

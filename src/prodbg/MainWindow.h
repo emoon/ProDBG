@@ -46,6 +46,7 @@ private:
     Q_SLOT void step_over();
     Q_SLOT void toggle_breakpoint();
     Q_SLOT void open_recent_exe();
+    Q_SLOT void open_debug_executable();
 
     Q_SLOT void new_memory_view();
     Q_SLOT void new_register_view();
@@ -55,6 +56,8 @@ private:
     Q_SIGNAL void stop_backend();
     Q_SIGNAL void step_in_backend();
     Q_SIGNAL void step_over_backend();
+
+    Q_SLOT void file_target_reply(bool status, const QString& error_message);
 
     Q_SLOT void show_prefs();
 

@@ -10,6 +10,8 @@
 #include "IBackendRequests.h"
 #include "Service.h"
 #include "api/src/remote/pd_readwrite_private.h"
+#include "flatbuffers/flatbuffers.h"
+#include "api/include/pd_backend_messages.h"
 
 namespace prodbg {
 
@@ -415,6 +417,51 @@ void BackendSession::beginDisassembly(uint64_t address, uint32_t count,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+Q_SLOT void BackendSession::file_target_request(const QString& path) {
+    uint32_t event = 0;
+    void* data;
+    uint64_t size;
+
+    printf("file target request\n");
+
+    flatbuffers::FlatBufferBuilder builder(1024);
+
+    auto build_path = builder.CreateString(path.toUtf8().data());
+
+    FileTargetRequestBuilder request(builder);
+    request.add_path(build_path);
+
+    builder.Finish(CreateMessageDirect(builder,
+        MessageTypeTraits<FileTargetRequestBuilder::Table>::enum_value, request.Finish().Union()));
+
+    // TODO: Streamline this
+    PDWrite_event_begin(m_currentWriter, PDEventType_Dummy);
+    PDWrite_data(m_currentWriter, "data",  builder.GetBufferPointer(), builder.GetSize());
+    PDWrite_event_end(m_currentWriter);
+
+    update();
+
+    while ((event = PDRead_get_event(m_reader))) {
+        printf("looking for reply\n");
+        PDRead_find_data(m_reader, &data, &size, "data", 0);
+        const Message* msg = GetMessage(data);
+
+        printf("message type %s size %d\n", EnumNameMessageType(msg->message_type()), size);
+
+        if (msg->message_type() == MessageType_file_target_reply) {
+            auto reply = msg->message_as_file_target_reply();
+            auto error_msg = reply->error_message()->c_str();
+            printf("%p\n", error_msg);
+            QString error_string = error_msg ? QString::fromUtf8(error_msg) : QString();
+            printf("signal from backend\n");
+            file_target_reply(reply->status(), error_string);
+            break;
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /*
 void BackendSession::sendCustomString(uint16_t id, const QString& text) {
     PDWrite_event_begin(m_currentWriter, id);
@@ -543,6 +590,7 @@ PDDebugState BackendSession::internal_update(PDAction action) {
 
     // Send state change if state is different from the last time
 
+    /*
     if (state != m_debugState) {
         //statusUpdate(getStateName(state));
         m_debugState = state;
@@ -558,6 +606,7 @@ PDDebugState BackendSession::internal_update(PDAction action) {
             }
         }
     }
+    */
 
     return state;
 }

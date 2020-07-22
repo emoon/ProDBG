@@ -85,6 +85,7 @@ rpc_service Greeter {
 
 typedef enum PDEventType {
     PDEventType_None,
+    PDEventType_Dummy,
     PDEventType_GetLocals,
     PDEventType_SetLocals,
     PDEventType_GetCallstack,

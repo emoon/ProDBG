@@ -29,7 +29,7 @@
      <x>0</x>
      <y>0</y>
      <width>642</width>
-     <height>35</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -41,8 +41,8 @@
       <string>Recent Executables</string>
      </property>
     </widget>
+    <addaction name="debug_executable"/>
     <addaction name="actionOpen"/>
-    <addaction name="actionDebugAmigaExe"/>
     <addaction name="actionReloadCurrentFile"/>
     <addaction name="separator"/>
     <addaction name="menuRecentExecutables"/>
@@ -127,7 +127,7 @@
   </action>
   <action name="actionOpen">
    <property name="text">
-    <string>Open</string>
+    <string>Open Source File...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -138,9 +138,9 @@
     <string>Amiga UAE...</string>
    </property>
   </action>
-  <action name="actionDebugAmigaExe">
+  <action name="debug_executable">
    <property name="text">
-    <string>Debug Amiga Executable..</string>
+    <string>Debug Executable..</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+A</string>

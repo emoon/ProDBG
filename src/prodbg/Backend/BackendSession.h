@@ -26,6 +26,7 @@ public:
 
     Q_SLOT void thread_finished();
     Q_SLOT void update();
+    Q_SLOT void file_target_request(const QString& path);
 
     /*
     Q_SLOT void start();
@@ -56,6 +57,7 @@ public:
     // Q_SIGNAL void statusUpdate(const QString& update);
     // Q_SIGNAL void sourceFileLineChanged(const QString& filename, uint32_t line);
     Q_SIGNAL void program_counter_changed(const IBackendRequests::ProgramCounterChange& pc);
+    Q_SIGNAL void file_target_reply(bool status, const QString& error_message);
     Q_SIGNAL void session_ended();
 
 private:

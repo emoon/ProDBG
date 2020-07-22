@@ -15,6 +15,9 @@ public:
     BackendRequests(BackendSession* session);
 
 public:
+    // Request to start a file for debugging
+    void file_target_request(const QString& path);
+
     // Send a custom event to the backend. The id should be registers using the
     // IdService_register This can be done in the same way using the id service
     // on the backend side. This allows the front-end to send custom commands to
@@ -55,6 +58,8 @@ public:
     */
 
 private:
+    Q_SIGNAL void file_target_request_signal(const QString& filename);
+
     /*
     Q_SIGNAL void evalExpression(const QString& expr, uint64_t* out);
     Q_SIGNAL void sendCustomStr(uint16_t id, const QString& text);

@@ -166,6 +166,8 @@ MainWindow::~MainWindow() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::init_actions() {
+       connect(m_ui.debug_executable, &QAction::triggered, this, &MainWindow::open_debug_executable);
+
     /*
        connect(m_ui.actionStart, &QAction::triggered, this, &MainWindow::startDebug);
        connect(m_ui.actionReloadCurrentFile, &QAction::triggered, this, &MainWindow::reloadCurrentFile);
@@ -201,6 +203,49 @@ void MainWindow::init_recent_file_actions() {
     }
 
     m_recent_executables->update_action_list(m_recent_file_actions);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::open_debug_executable() {
+    close_current_backend();
+
+    // hard-coded for now to skip dialog
+
+    QString path = QStringLiteral("t2-output/linux-gcc-debug-default/crashing_native");
+
+    BackendSession* backend = BackendSession::create_backend_session(QStringLiteral("LLDB"));
+
+    if (!backend) {
+        printf("Unable to create LLDBBackend backend\n");
+        return;
+    }
+
+    setup_backend(backend);
+
+    // Request starting a file for debugging. file_target_reply will get a status back if it's possible
+    // to start the file or not and the debugging can procedde after that
+    m_backend_requests->file_target_request(path);
+
+    // m_backendRequests->sendCustomString(m_amigaUae->m_setFileId, m_amigaUae->m_fileToRun);
+    // m_backendRequests->sendCustomString(m_amigaUae->m_setHddPathId, m_amigaUae->m_dh0Path);
+
+    // TODO: This is really temporary
+    // QTimer::singleShot(5000, this, &MainWindow::start);
+
+
+    //m_currentBackend = Amiga;
+
+    /*
+    QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("Open File for Debug..."));
+
+    if (path.isEmpty()) {
+        return;
+    }
+    */
+
+
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -243,7 +288,8 @@ void MainWindow::start() {
        }
      */
 
-    // startBackend();
+    // signal the backend thread to start
+    start_backend();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -354,16 +400,25 @@ void MainWindow::process_ended(int) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::setup_backend_connections() {
+    //connect(this, &MainWindow::start_backend, m_backend, &BackendSession::start);
+    connect(this, &MainWindow::file_target_reply, m_backend, &BackendSession::file_target_reply);
+
+
     /*
        connect(this, &MainWindow::stepInBackend, m_backend, &BackendSession::stepIn);
        connect(this, &MainWindow::stepOverBackend, m_backend, &BackendSession::stepOver);
-       connect(this, &MainWindow::startBackend, m_backend, &BackendSession::start);
        connect(this, &MainWindow::breakContBackend, m_backend, &BackendSession::breakContDebug);
        connect(this, &MainWindow::stopBackend, m_backend, &BackendSession::stop);
        connect(m_backend, &BackendSession::statusUpdate, this, &MainWindow::statusUpdate);
      */
 
     connect(m_backend_thread, &QThread::finished, m_backend, &BackendSession::thread_finished);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::file_target_reply(bool status, const QString& error_message) {
+    qDebug() << "MainWindow::file_target_reply " << status << " " << error_message;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -390,9 +445,11 @@ void MainWindow::close_current_backend() {
     delete m_backend_thread;
     delete m_backend_requests;
 
+    /*
     if (m_register_view) {
         m_register_view->set_backend_interface(nullptr);
     }
+    */
 
     // m_registerView->set_backend_interface(nullptr);
     // m_codeViews->set_backend_interface(nullptr);

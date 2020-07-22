@@ -44,10 +44,14 @@ SharedLibrary {
 
         SHLIBOPTS = {
             { "-Fsrc/plugins/lldb/Frameworks", "-rpath src/plugins/lldb/Frameworks", "-lstdc++"; Config = "macosx-clang-*" },
-            { "-Lsrc/native/external/lldb/lib/linux", "-llldb", "-lstdc++"; Config = "linux-*-*" },
+            { "-Lsrc/native/external/lldb/lib/linux", "-Wl,-rpath src/native/external/lldb/lib/linux"; Config = "linux-*-*" },
         },
 
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
+    },
+
+    Libs = {
+		{ "lldb"; Config = "linux-*-*" },
     },
 
     Sources = {

@@ -32,8 +32,8 @@ int main(int argc, const char** argv) {
 
     prodbg::Config::create_instance();
 
-    prodbg::PluginHandler_addPlugin(QStringLiteral("dummy_backend_plugin"));
-    prodbg::PluginHandler_addPlugin(QStringLiteral("amiga_uae_plugin"));
+    //prodbg::PluginHandler_addPlugin(QStringLiteral("dummy_backend_plugin"));
+    prodbg::PluginHandler_addPlugin(QStringLiteral("lldb_plugin"));
 
     prodbg::MainWindow main_window;
 
