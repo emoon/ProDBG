@@ -49,7 +49,7 @@ class MemoryViewWidget : public QWidget {
     virtual ~MemoryViewWidget();
 
    public:
-    void setBackendInterface(IBackendRequests* interface);
+    void set_backend_interface(IBackendRequests* interface);
     void setAddress(uint64_t address);
     void setExpressionStatus(bool status);
 
@@ -62,7 +62,7 @@ class MemoryViewWidget : public QWidget {
     DataType dataType() const;
     Q_SLOT void setDataType(DataType t);
     Q_SLOT void endReadMemory(QVector<uint16_t>* target, uint64_t address, int addressWidth);
-    Q_SLOT void programCounterChanged(const IBackendRequests::ProgramCounterChange& pc);
+    Q_SLOT void program_counter_changed(const IBackendRequests::ProgramCounterChange& pc);
 
     Endianess endianess() const;
     Q_SLOT void setEndianess(Endianess e);

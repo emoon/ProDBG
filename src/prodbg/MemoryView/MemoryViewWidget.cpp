@@ -230,10 +230,12 @@ class MemoryViewPrivate {
             values->push_back(0 & 0xff);  // hack test
         }
 
+        /*
         if (m_Interface) {
             m_Interface->beginReadMemory(start, end, &m_transferCache);
             m_transferInProgress = true;
         }
+        */
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -411,26 +413,30 @@ MemoryViewWidget::~MemoryViewWidget() { delete m_Private; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryViewWidget::setBackendInterface(IBackendRequests* interface) {
+void MemoryViewWidget::set_backend_interface(IBackendRequests* interface) {
     m_Private->m_Interface = interface;
 
+    /*
     if (interface) {
         connect(interface, &IBackendRequests::endReadMemory, this, &MemoryViewWidget::endReadMemory);
-        connect(interface, &IBackendRequests::programCounterChanged, this, &MemoryViewWidget::programCounterChanged);
+        connect(interface, &IBackendRequests::program_counter_changed, this, &MemoryViewWidget::program_counter_changed);
     }
+    */
 
     update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryViewWidget::programCounterChanged(const IBackendRequests::ProgramCounterChange&) {
+void MemoryViewWidget::program_counter_changed(const IBackendRequests::ProgramCounterChange&) {
     // If pc has changed we re-request the current data again
+    /*
     if (m_Private->m_Interface) {
         m_Private->m_Interface->beginReadMemory(m_Private->m_cachedRangeStart, m_Private->m_cachedRangeEnd,
                                                 &m_Private->m_transferCache);
         m_Private->m_transferInProgress = true;
     }
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

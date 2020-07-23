@@ -12,7 +12,7 @@ namespace prodbg {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class RecentExecutables {
-   public:
+public:
     RecentExecutables();
     ~RecentExecutables();
 
@@ -20,20 +20,20 @@ class RecentExecutables {
         MaxFiles_Count = 8,
     };
 
-    void updateActionList(QVector<QAction*>& list);
-    void setFile(QVector<QAction*>& actionList, const QString& filename, BackendType type);
-    void putFileOnTop(QVector<QAction*>& actionList, const QString& filename);
+    void update_action_list(QVector<QAction*>& list);
+    void set_file(QVector<QAction*>& actionList, const QString& filename, BackendType type);
+    void put_file_on_top(QVector<QAction*>& actionList, const QString& filename);
 
-    void writeSettings();
-    void readSettings();
+    void write_settings();
+    void read_settings();
 
     struct Executable {
         QString filename;
         BackendType type;
     };
 
-   private:
-    void setCurrentFile(const QString& filename, BackendType type);
+private:
+    void set_current_file(const QString& filename, BackendType type);
 
     QVector<Executable> m_files;
 };

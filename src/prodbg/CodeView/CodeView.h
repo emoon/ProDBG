@@ -61,7 +61,7 @@ class CodeView : public QPlainTextEdit {
     void setAddress(uint64_t address);
     void setLine(int line);
     void setExceptionLine(int line);
-    void sessionEnded();
+    void session_ended();
 
     int lineNumberAreaWidth();
 

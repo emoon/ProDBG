@@ -10,6 +10,8 @@
 #include "IBackendRequests.h"
 #include "Service.h"
 #include "api/src/remote/pd_readwrite_private.h"
+#include "flatbuffers/flatbuffers.h"
+#include "api/include/pd_backend_messages.h"
 
 namespace prodbg {
 
@@ -21,8 +23,8 @@ BackendSession::BackendSession()
       m_currentWriter(nullptr),
       m_prevWriter(nullptr),
       m_reader(new PDReader),
-      m_backendPlugin(nullptr),
-      m_backendPluginData(nullptr) {
+      m_backend_plugin(nullptr),
+      m_backend_plugin_data(nullptr) {
     pd_binary_writer_init(m_writer0);
     pd_binary_writer_init(m_writer1);
     pd_binary_reader_init(m_reader);
@@ -38,7 +40,7 @@ BackendSession::~BackendSession() {
         m_timer->stop();
     }
 
-    destroyPluginData();
+    destory_plugin_data();
 
     pd_binary_writer_destroy(m_writer0);
     pd_binary_writer_destroy(m_writer1);
@@ -47,10 +49,10 @@ BackendSession::~BackendSession() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-BackendSession* BackendSession::createBackendSession(const QString& backendName) {
+BackendSession* BackendSession::create_backend_session(const QString& backend_name) {
     BackendSession* session = new BackendSession();
 
-    if (!session->setBackend(backendName)) {
+    if (!session->set_backend(backend_name)) {
         delete session;
         return nullptr;
     }
@@ -60,7 +62,7 @@ BackendSession* BackendSession::createBackendSession(const QString& backendName)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool BackendSession::setBackend(const QString& backendName) {
+bool BackendSession::set_backend(const QString& backendName) {
     // Names of the backends are stored in utf-8 so convert them here
     QByteArray name = backendName.toUtf8();
     PDBackendPlugin* plugin = PluginHandler_findBackendPlugin(name.constData());
@@ -70,36 +72,34 @@ bool BackendSession::setBackend(const QString& backendName) {
         return false;
     }
 
-    destroyPluginData();
+    destory_plugin_data();
 
-    m_backendPlugin = plugin;
+    m_backend_plugin = plugin;
 
     // Asserts here to verify that these are always set. TODO: Better user
     // facing error?
 
-    Q_ASSERT(m_backendPlugin->create_instance);
+    Q_ASSERT(m_backend_plugin->create_instance);
 
-    m_backendPluginData = m_backendPlugin->create_instance(&Service_get);
+    m_backend_plugin_data = m_backend_plugin->create_instance(&Service_get);
 
-    Q_ASSERT(m_backendPluginData);
+    Q_ASSERT(m_backend_plugin_data);
 
     return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::destroyPluginData() {
-    if (m_backendPlugin && m_backendPluginData) {
-        sessionEnded();
-        m_backendPlugin->destroy_instance(m_backendPluginData);
+void BackendSession::destory_plugin_data() {
+    if (m_backend_plugin && m_backend_plugin_data) {
+        session_ended();
+        m_backend_plugin->destroy_instance(m_backend_plugin_data);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::threadFinished() {
-    delete this;
-}
+void BackendSession::thread_finished() { delete this; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -107,6 +107,8 @@ static QString s_stateTable[] = {
     QStringLiteral("No target"),        QStringLiteral("Running"),          QStringLiteral("Stop (breakpoint)"),
     QStringLiteral("Stop (exception)"), QStringLiteral("Trace (stepping)"), QStringLiteral("Unknown"),
 };
+
+/*
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -386,8 +388,7 @@ void BackendSession::beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::beginDisassembly(uint64_t address,
-                                      uint32_t count,
+void BackendSession::beginDisassembly(uint64_t address, uint32_t count,
                                       QVector<IBackendRequests::AssemblyInstruction>* target) {
     uint32_t event = 0;
     uint32_t addressWidth = 0;
@@ -412,9 +413,44 @@ void BackendSession::beginDisassembly(uint64_t address,
 
     endDisassembly(target, addressWidth);
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+Q_SLOT void BackendSession::file_target_request(const QString& path) {
+    uint32_t event = 0;
+    void* data;
+    uint64_t size;
+
+    flatbuffers::FlatBufferBuilder builder(1024);
+
+    auto build_path = builder.CreateString(path.toUtf8().data());
+
+    FileTargetRequestBuilder request(builder);
+    request.add_path(build_path);
+
+    PDMessage_end_msg(m_currentWriter, request, builder);
+
+    update();
+
+    while ((event = PDRead_get_event(m_reader))) {
+        printf("looking for reply\n");
+        PDRead_find_data(m_reader, &data, &size, "data", 0);
+        const Message* msg = GetMessage(data);
+
+        if (msg->message_type() == MessageType_target_reply) {
+            auto reply = msg->message_as_target_reply();
+            auto error_msg = reply->error_message()->c_str();
+            QString error_string = error_msg ? QString::fromUtf8(error_msg) : QString();
+            target_reply(reply->status(), error_string);
+            break;
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*
 void BackendSession::sendCustomString(uint16_t id, const QString& text) {
     PDWrite_event_begin(m_currentWriter, id);
     PDWrite_string(m_currentWriter, "text", text.toUtf8().data());
@@ -422,9 +458,11 @@ void BackendSession::sendCustomString(uint16_t id, const QString& text) {
 
     update();
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 void BackendSession::evalExpression(const QString& expression, uint64_t* out) {
     te_variable variables[512];
     uint64_t values[512];
@@ -462,14 +500,34 @@ void BackendSession::evalExpression(const QString& expression, uint64_t* out) {
         endResolveAddress(out);
     }
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::updateCurrentPc() {
+void BackendSession::update_current_pc() {
     uint32_t event = 0;
+    void* data;
+    uint64_t size;
 
     pd_binary_reader_reset(m_reader);
 
+    while ((event = PDRead_get_event(m_reader))) {
+        PDRead_find_data(m_reader, &data, &size, "data", 0);
+        const Message* msg = GetMessage(data);
+
+        if (msg->message_type() == MessageType_exception_location_reply) {
+            auto loc = msg->message_as_exception_location_reply();
+            auto path = loc->filename()->c_str();
+            QString filename = path ? QString::fromUtf8(path) : QString();
+
+            IBackendRequests::ProgramCounterChange pc_change = { filename, loc->address(), loc->line() };
+            program_counter_changed(pc_change);
+            break;
+        }
+    }
+
+
+    /*
     while ((event = PDRead_get_event(m_reader))) {
         if (event != PDEventType_SetExceptionLocation) {
             continue;
@@ -502,33 +560,34 @@ void BackendSession::updateCurrentPc() {
 
         PDRead_find_u64(m_reader, &pc, "address", 0);
 
-        pcChange.programCounter = pc;
+        pcChange.pc = pc;
 
         if (pc != m_currentPc || fileLineChaged) {
             m_currentPc = pc;
-            programCounterChanged(pcChange);
+            program_counter_changed(pcChange);
         }
     }
+    */
 
     pd_binary_reader_reset(m_reader);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PDDebugState BackendSession::internalUpdate(PDAction action) {
-    if (!m_backendPlugin) {
+PDDebugState BackendSession::internal_update(PDAction action) {
+    if (!m_backend_plugin) {
         return PDDebugState_NoTarget;
     }
 
     pd_binary_writer_finalize(m_currentWriter);
 
-    unsigned int reqDataSize = pd_binary_writer_get_size(m_currentWriter);
+    unsigned int req_data_size = pd_binary_writer_get_size(m_currentWriter);
     pd_binary_reader_reset(m_reader);
 
-    pd_binary_reader_init_stream(m_reader, pd_binary_writer_get_data(m_currentWriter), reqDataSize);
+    pd_binary_reader_init_stream(m_reader, pd_binary_writer_get_data(m_currentWriter), req_data_size);
     pd_binary_writer_reset(m_prevWriter);
 
-    PDDebugState state = m_backendPlugin->update(m_backendPluginData, action, m_reader, m_prevWriter);
+    PDDebugState state = m_backend_plugin->update(m_backend_plugin_data, action, m_reader, m_prevWriter);
 
     pd_binary_writer_finalize(m_prevWriter);
 
@@ -540,14 +599,14 @@ PDDebugState BackendSession::internalUpdate(PDAction action) {
     // Send state change if state is different from the last time
 
     if (state != m_debugState) {
-        statusUpdate(getStateName(state));
+        //statusUpdate(getStateName(state));
         m_debugState = state;
 
         if (state != PDDebugState_Running) {
             if (m_timer) {
                 m_timer->stop();
             }
-            updateCurrentPc();
+            update_current_pc();
         } else {
             if (m_timer) {
                 m_timer->start(50);
@@ -561,8 +620,8 @@ PDDebugState BackendSession::internalUpdate(PDAction action) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendSession::update() {
-    internalUpdate(PDAction_None);
-    updateCurrentPc();
+    internal_update(PDAction_None);
+    update_current_pc();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -572,7 +631,9 @@ void BackendSession::start() {
         return;
     }
 
-    internalUpdate(PDAction_Run);
+    printf("starting the backend!\n");
+
+    internal_update(PDAction_Run);
 
     m_timer = new QTimer(this);
     connect(m_timer, &QTimer::timeout, this, &BackendSession::update);
@@ -580,11 +641,12 @@ void BackendSession::start() {
     m_timer->start(50);
 }
 
+/*
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendSession::stop() {
-    internalUpdate(PDAction_Break);
-    updateCurrentPc();
+    internal_update(PDAction_Break);
+    update_current_pc();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -595,28 +657,29 @@ void BackendSession::breakContDebug() {
     }
 
     if (m_debugState == PDDebugState_Running) {
-        internalUpdate(PDAction_Break);
+        internal_update(PDAction_Break);
     } else {
-        internalUpdate(PDAction_Run);
+        internal_update(PDAction_Run);
     }
 
-    updateCurrentPc();
+    update_current_pc();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendSession::stepIn() {
     // printf("stepIn\n");
-    internalUpdate(PDAction_Step);
-    updateCurrentPc();
+    internal_update(PDAction_Step);
+    update_current_pc();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendSession::stepOver() {
-    internalUpdate(PDAction_StepOver);
-    updateCurrentPc();
+    internal_update(PDAction_StepOver);
+    update_current_pc();
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }  // namespace prodbg

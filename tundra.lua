@@ -89,12 +89,14 @@ local gcc_env = {
             "-I$(QT5_INC)",
             -- temp
             "-Isrc/prodbg",
+            "-Isrc/native/external/flatbuffers/include",
         },
 
+        SHLIBOPTS = { "-lstdc++" },
+        PROGCOM = { "-lstdc++" },
     },
 
     ReplaceEnv = {
-        -- PROGCOM = "$(LD) $(PROGOPTS) $(LIBPATH:p-L) -o $(@) -Wl,--start-group $(LIBS:p-l) $(<) -Wl,--end-group",
         QTMOC = "$(QT5_BIN)/moc",
         QTUIC = "$(QT5_BIN)/uic",
         QTRCC = "$(QT5_BIN)/rcc",
@@ -146,7 +148,7 @@ local win64 = {
 Build {
     Passes = {
         BuildTools = { Name="Build Tools", BuildOrder = 1 },
-        GenerateSources = { Name="Generate sources", BuildOrder = 2 },
+        GenerateSources = { Name="Generate Sources", BuildOrder = 2 },
     },
 
     Units = {

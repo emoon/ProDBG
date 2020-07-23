@@ -1,8 +1,8 @@
 #pragma once
 
 #include <QtWidgets/QMainWindow>
-#include "ui_MainWindow.h"
 #include "api/include/pd_ui.h"
+#include "ui_MainWindow.h"
 
 class QStatusBar;
 class QThread;
@@ -15,7 +15,7 @@ class CodeView;
 class MemoryView;
 class AmigaUAE;
 class BackendSession;
-//class RegisterView;
+// class RegisterView;
 class BackendRequests;
 class BreakpointModel;
 class CodeViews;
@@ -28,39 +28,40 @@ class SourceCodeWidget;
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
-   public:
+public:
     MainWindow();
     ~MainWindow();
 
-   protected:
+protected:
     void closeEvent(QCloseEvent* event);
 
-   private:
-    Q_SLOT void openSourceFile();
-    Q_SLOT void reloadCurrentFile();
-    Q_SLOT void breakContDebug();
-    Q_SLOT void startDebug();
+private:
+    Q_SLOT void open_source_file();
+    Q_SLOT void reload_current_file();
+    Q_SLOT void break_cont_debug();
+    Q_SLOT void start_debug();
     Q_SLOT void start();
     Q_SLOT void stop();
-    Q_SLOT void stepIn();
-    Q_SLOT void stepOver();
-    Q_SLOT void toggleBreakpoint();
-    Q_SLOT void amigaUAEConfig();
-    Q_SLOT void debugAmigaExe();
-    Q_SLOT void openRecentExe();
+    Q_SLOT void step_in();
+    Q_SLOT void step_over();
+    Q_SLOT void toggle_breakpoint();
+    Q_SLOT void open_recent_exe();
+    Q_SLOT void open_debug_executable();
 
-    Q_SLOT void newMemoryView();
-    Q_SLOT void newRegisterView();
+    Q_SLOT void new_memory_view();
+    Q_SLOT void new_register_view();
 
-    Q_SIGNAL void breakContBackend();
-    Q_SIGNAL void startBackend();
-    Q_SIGNAL void stopBackend();
-    Q_SIGNAL void stepInBackend();
-    Q_SIGNAL void stepOverBackend();
+    Q_SIGNAL void break_cont_backend();
+    Q_SIGNAL void start_backend();
+    Q_SIGNAL void stop_backend();
+    Q_SIGNAL void step_in_backend();
+    Q_SIGNAL void step_over_backend();
+
+    Q_SLOT void target_reply(bool status, const QString& error_message);
 
     Q_SLOT void show_prefs();
 
-   private:
+private:
     // Current supported backends (hard-coded for now)
     enum Backend {
         Dummy,
@@ -68,53 +69,52 @@ class MainWindow : public QMainWindow {
         Custom,
     };
 
-    void internalStartAmigaExe();
-    void initActions();
-    void writeSettings();
-    void readSettings();
-    void startDummyBackend();
-    void closeCurrentBackend();
-    void startAmigaUAEBackend();
-    void setupBackendConnections();
-    void setupBackend(BackendSession* backend);
+    void init_actions();
+    void write_settings();
+    void read_settings();
+    void start_dummy_backend();
+    void close_current_backend();
+    void start_amiga_uae_backend();
+    void setup_backend_connections();
+    void setup_backend(BackendSession* backend);
 
-    void initRecentFileActions();
-    void stopInternal();
+    void init_recent_file_actions();
+    void stop_internal();
 
-    Q_SLOT void uaeStarted();
-    Q_SLOT void statusUpdate(const QString& status);
-    Q_SLOT void processEnded(int exitCode);
+    Q_SLOT void uae_started();
+    Q_SLOT void status_update(const QString& status);
+    Q_SLOT void process_ended(int exitCode);
 
-    QVector<QAction*> m_recentFileActions;
+    QVector<QAction*> m_recent_file_actions;
 
     SourceCodeWidget* m_source_view = nullptr;
-    ViewHandler* m_viewHandler = nullptr;
+    ViewHandler* m_view_handler = nullptr;
 
     // This is somewhat temporary but convinient to have
-    QString m_lastAmigaExe;
+    // QString m_lastAmigaExe;
 
     // Hard-coded Amiga support. Would be nice to have this more modular
-    AmigaUAE* m_amigaUae = nullptr;
+    // AmigaUAE* m_amigaUae = nullptr;
 
     // List of recent executables
-    RecentExecutables* m_recentExecutables = nullptr;
+    RecentExecutables* m_recent_executables = nullptr;
     // test
-    QPluginLoader* m_regPluginLoader;
-    PDUIInterface* m_registerView = nullptr;
+    QPluginLoader* m_reg_plugin_loader;
+    PDUIInterface* m_register_view = nullptr;
 
     // Hardcoded views for now.
-    MemoryView* m_memoryView = nullptr;
+    MemoryView* m_memory_view = nullptr;
     QStatusBar* m_statusbar = nullptr;
     BreakpointModel* m_breakpoints = nullptr;
 
     Ui_MainWindow m_ui;
-    Backend m_currentBackend = Dummy;
+    Backend m_current_backend = Dummy;
 
-    CodeViews* m_codeViews = nullptr;
+    CodeViews* m_code_views = nullptr;
 
-    BackendRequests* m_backendRequests = nullptr;
+    BackendRequests* m_backend_requests = nullptr;
     BackendSession* m_backend = nullptr;
-    QThread* m_backendThread = nullptr;
+    QThread* m_backend_thread = nullptr;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -28,7 +28,7 @@ public:
 
 private:
     Q_SLOT void endReadRegisters(QVector<IBackendRequests::Register>* target);
-    Q_SLOT void programCounterChanged(const IBackendRequests::ProgramCounterChange& pc);
+    Q_SLOT void program_counter_changed(const IBackendRequests::ProgramCounterChange& pc);
 
 private:
     Ui_RegisterView* m_ui = nullptr;

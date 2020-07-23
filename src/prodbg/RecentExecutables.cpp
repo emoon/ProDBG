@@ -10,18 +10,18 @@ namespace prodbg {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 RecentExecutables::RecentExecutables() {
-    readSettings();
+    read_settings();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 RecentExecutables::~RecentExecutables() {
-    writeSettings();
+    write_settings();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int findFileInList(const QVector<RecentExecutables::Executable>& files, const QString& filename) {
+static int find_file_in_list(const QVector<RecentExecutables::Executable>& files, const QString& filename) {
     for (int i = 0, c = files.count(); i < c; ++i) {
         if (files[i].filename == filename) {
             return i;
@@ -33,8 +33,8 @@ static int findFileInList(const QVector<RecentExecutables::Executable>& files, c
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RecentExecutables::setCurrentFile(const QString& filename, BackendType type) {
-    int existingEntry = findFileInList(m_files, filename);
+void RecentExecutables::set_current_file(const QString& filename, BackendType type) {
+    int existingEntry = find_file_in_list(m_files, filename);
 
     if (existingEntry != -1) {
         m_files.removeAt(existingEntry);
@@ -53,15 +53,15 @@ void RecentExecutables::setCurrentFile(const QString& filename, BackendType type
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RecentExecutables::setFile(QVector<QAction*>& actionList, const QString& filename, BackendType type) {
-    setCurrentFile(filename, type);
-    updateActionList(actionList);
+void RecentExecutables::set_file(QVector<QAction*>& actionList, const QString& filename, BackendType type) {
+    set_current_file(filename, type);
+    update_action_list(actionList);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RecentExecutables::putFileOnTop(QVector<QAction*>& actionList, const QString& filename) {
-    int index = findFileInList(m_files, filename);
+void RecentExecutables::put_file_on_top(QVector<QAction*>& actionList, const QString& filename) {
+    int index = find_file_in_list(m_files, filename);
 
     if (index == -1) {
         return;
@@ -69,12 +69,12 @@ void RecentExecutables::putFileOnTop(QVector<QAction*>& actionList, const QStrin
 
     BackendType type = m_files[index].type;
 
-    setFile(actionList, filename, type);
+    set_file(actionList, filename, type);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RecentExecutables::updateActionList(QVector<QAction*>& actionList) {
+void RecentExecutables::update_action_list(QVector<QAction*>& actionList) {
     int end = 0;
 
     if (m_files.count() <= MaxFiles_Count) {
@@ -98,7 +98,7 @@ void RecentExecutables::updateActionList(QVector<QAction*>& actionList) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RecentExecutables::writeSettings() {
+void RecentExecutables::write_settings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
     settings.beginGroup(QStringLiteral("RecentFiles"));
     settings.beginWriteArray(QStringLiteral("recentExes"));
@@ -115,7 +115,7 @@ void RecentExecutables::writeSettings() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RecentExecutables::readSettings() {
+void RecentExecutables::read_settings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
     settings.beginGroup(QStringLiteral("RecentFiles"));
 
