@@ -11,6 +11,7 @@
 #include "edbee/texteditorcontroller.h"
 #include "edbee/texteditorwidget.h"
 #include "edbee/models/textrange.h"
+#include "edbee/models/textlinedata.h"
 #include "edbee/views/components/textmargincomponent.h"
 #include "edbee/views/texteditorscrollarea.h"
 #include "edbee/views/textselection.h"
@@ -78,6 +79,19 @@ void SourceCodeWidget::load_file(const QString& filename) {
 
     m_filename = filename;
     m_margin_delegate->m_filename = filename;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SourceCodeWidget::program_counter_changed(const IBackendRequests::ProgramCounterChange& pc) {
+    if (pc.filename != QStringLiteral("") && m_filename != pc.filename) {
+        m_editor->textDocument()->lineDataManager()->clear();
+        load_file(pc.filename);
+    }
+
+    edbee::TextEditorController* controller = m_editor->controller();
+    controller->moveCaretTo(pc.line - 1, 0, false);
+    controller->scrollCaretVisible();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -109,7 +109,7 @@ MainWindow::MainWindow()
      */
 
     m_source_view = new SourceCodeWidget(m_breakpoints, this);
-    m_source_view->load_file(QStringLiteral("src/prodbg/Config/Config.cpp"));
+    //m_source_view->load_file(QStringLiteral("src/prodbg/Config/Config.cpp"));
 
     setCentralWidget(m_source_view->m_editor);
 
@@ -424,6 +424,10 @@ void MainWindow::target_reply(bool status, const QString& error_message) {
     if (status) {
         // printf starting the backend!
         start_backend();
+
+        // Hook-up the views to the backend
+        connect(m_backend_requests, &IBackendRequests::program_counter_changed, m_source_view, &SourceCodeWidget::program_counter_changed);
+
     } else {
         close_current_backend();
         qDebug() << "MainWindow::target_reply " << status << " " << error_message;

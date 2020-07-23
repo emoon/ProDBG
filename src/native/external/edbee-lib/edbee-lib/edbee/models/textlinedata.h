@@ -112,13 +112,13 @@ protected:
     void destroyRange( int line, int length );
 
 
-public slots:
+//public slots:
 
 //    void linesReplaced( int lineStart, int lineCount, int newLineCount );
 //    void dumpGapvector();
-signals:
+//signals:
 
-    void lineDataChanged( int line, int length, int newLength );   ///< This signal is emitted if line-data is changed
+    Q_SIGNAL void lineDataChanged( int line, int length, int newLength );   ///< This signal is emitted if line-data is changed
 
 private:
 

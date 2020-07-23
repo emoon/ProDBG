@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QString>
+#include "Backend/IBackendRequests.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -27,6 +28,8 @@ public:
     explicit SourceCodeWidget(BreakpointModel* breakpoints, QWidget* parent);
     void load_file(const QString& filename);
     ~SourceCodeWidget();
+
+    Q_SLOT void program_counter_changed(const IBackendRequests::ProgramCounterChange& pc);
 
     void toggle_breakpoint_current_line();
 

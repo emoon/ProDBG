@@ -247,23 +247,11 @@ static void exception_location_reply(LLDBPlugin* plugin, PDWriter* writer) {
     printf("frameIndex %d\n", frameIndex);
 
     lldb::SBFrame frame(thread.GetFrameAtIndex(frameIndex));
-    lldb::SBCompileUnit compileUnit = frame.GetCompileUnit();
-    lldb::SBFileSpec filespec(plugin->process.GetTarget().GetExecutable());
-
-    printf("support files %d\n", compileUnit.GetNumSupportFiles());
-
-    if (compileUnit.GetNumSupportFiles() > 0) {
-        for (int i = 0; i < compileUnit.GetNumSupportFiles(); ++i) {
-            printf("stoehu %s\n", compileUnit.GetSupportFileAtIndex(i).GetFilename());
-        }
-
-        lldb::SBFileSpec fileSpec = compileUnit.GetSupportFileAtIndex(0);
-        fileSpec.GetPath(filename, sizeof(filename));
-    }
 
     lldb::SBSymbolContext context(frame.GetSymbolContext(lldb::eSymbolContextEverything));
     lldb::SBLineEntry entry(context.GetLineEntry());
     uint32_t line = entry.GetLine();
+    entry.GetFileSpec().GetPath(filename, sizeof(filename));
 
     // TODO: Handle binary address also
     flatbuffers::FlatBufferBuilder builder(1024);
@@ -271,13 +259,12 @@ static void exception_location_reply(LLDBPlugin* plugin, PDWriter* writer) {
 
     printf("exception reply %s:%d\n", filename, line);
 
-    builder.Finish(CreateMessageDirect(builder, MessageType_exception_location_reply,
-        CreateExceptionLocationReply(builder, name, line, 0).Union()));
+    ExceptionLocationReplyBuilder reply(builder);
+    reply.add_filename(name);
+    reply.add_line(line);
+    reply.add_address(0);
 
-    // TODO: Streamline this
-    PDWrite_event_begin(writer, PDEventType_Dummy);
-    PDWrite_data(writer, "data",  builder.GetBufferPointer(), builder.GetSize());
-    PDWrite_event_end(writer);
+    PDMessage_end_msg(writer, reply, builder);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -315,20 +302,7 @@ static void target_reply(LLDBPlugin* plugin, const FileTargetRequest* request, P
         TargetReplyBuilder reply(builder);
         reply.add_status(false);
         reply.add_error_message(error_str);
-        printf("LLDBPlugin: Unable to create valid target (%s)\n", filename);
-
-        builder.Finish(CreateMessageDirect(builder,
-            MessageType_target_reply, reply.Finish().Union()));
-
-        printf("writing data size %d\n", builder.GetSize());
-
-        // TODO: Streamline this
-        PDWrite_event_begin(writer, PDEventType_Dummy);
-        PDWrite_data(writer, "data",  builder.GetBufferPointer(), builder.GetSize());
-        PDWrite_event_end(writer);
-
-        return;
-
+        PDMessage_end_msg(writer, reply, builder);
     } else {
         auto error_str = builder.CreateString("");
 
@@ -345,18 +319,7 @@ static void target_reply(LLDBPlugin* plugin, const FileTargetRequest* request, P
         TargetReplyBuilder reply(builder);
         reply.add_error_message(error_str);
         reply.add_status(true);
-
-        builder.Finish(CreateMessageDirect(builder,
-            MessageType_target_reply, reply.Finish().Union()));
-
-        printf("writing data size %d\n", builder.GetSize());
-
-        // TODO: Streamline this
-        PDWrite_event_begin(writer, PDEventType_Dummy);
-        PDWrite_data(writer, "data",  builder.GetBufferPointer(), builder.GetSize());
-        PDWrite_event_end(writer);
-
-        return;
+        PDMessage_end_msg(writer, reply, builder);
     }
 
     //on_run(plugin);

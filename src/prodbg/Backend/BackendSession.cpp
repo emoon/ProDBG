@@ -422,8 +422,6 @@ Q_SLOT void BackendSession::file_target_request(const QString& path) {
     void* data;
     uint64_t size;
 
-    printf("file target request\n");
-
     flatbuffers::FlatBufferBuilder builder(1024);
 
     auto build_path = builder.CreateString(path.toUtf8().data());
@@ -431,13 +429,7 @@ Q_SLOT void BackendSession::file_target_request(const QString& path) {
     FileTargetRequestBuilder request(builder);
     request.add_path(build_path);
 
-    builder.Finish(CreateMessageDirect(builder,
-        MessageTypeTraits<FileTargetRequestBuilder::Table>::enum_value, request.Finish().Union()));
-
-    // TODO: Streamline this
-    PDWrite_event_begin(m_currentWriter, PDEventType_Dummy);
-    PDWrite_data(m_currentWriter, "data",  builder.GetBufferPointer(), builder.GetSize());
-    PDWrite_event_end(m_currentWriter);
+    PDMessage_end_msg(m_currentWriter, request, builder);
 
     update();
 
@@ -449,9 +441,7 @@ Q_SLOT void BackendSession::file_target_request(const QString& path) {
         if (msg->message_type() == MessageType_target_reply) {
             auto reply = msg->message_as_target_reply();
             auto error_msg = reply->error_message()->c_str();
-            printf("%p\n", error_msg);
             QString error_string = error_msg ? QString::fromUtf8(error_msg) : QString();
-            printf("signal from backend\n");
             target_reply(reply->status(), error_string);
             break;
         }
@@ -516,9 +506,28 @@ void BackendSession::evalExpression(const QString& expression, uint64_t* out) {
 
 void BackendSession::update_current_pc() {
     uint32_t event = 0;
+    void* data;
+    uint64_t size;
 
     pd_binary_reader_reset(m_reader);
 
+    while ((event = PDRead_get_event(m_reader))) {
+        PDRead_find_data(m_reader, &data, &size, "data", 0);
+        const Message* msg = GetMessage(data);
+
+        if (msg->message_type() == MessageType_exception_location_reply) {
+            auto loc = msg->message_as_exception_location_reply();
+            auto path = loc->filename()->c_str();
+            QString filename = path ? QString::fromUtf8(path) : QString();
+
+            IBackendRequests::ProgramCounterChange pc_change = { filename, loc->address(), loc->line() };
+            program_counter_changed(pc_change);
+            break;
+        }
+    }
+
+
+    /*
     while ((event = PDRead_get_event(m_reader))) {
         if (event != PDEventType_SetExceptionLocation) {
             continue;
@@ -558,6 +567,7 @@ void BackendSession::update_current_pc() {
             program_counter_changed(pcChange);
         }
     }
+    */
 
     pd_binary_reader_reset(m_reader);
 }
@@ -588,7 +598,6 @@ PDDebugState BackendSession::internal_update(PDAction action) {
 
     // Send state change if state is different from the last time
 
-    /*
     if (state != m_debugState) {
         //statusUpdate(getStateName(state));
         m_debugState = state;
@@ -604,7 +613,6 @@ PDDebugState BackendSession::internal_update(PDAction action) {
             }
         }
     }
-    */
 
     return state;
 }

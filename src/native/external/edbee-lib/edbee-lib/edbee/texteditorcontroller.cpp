@@ -123,7 +123,7 @@ void TextEditorController::setTextDocument(TextDocument* doc)
 {
     Q_ASSERT_GUI_THREAD;
 
-    if( doc != textDocumentRef_ ) {       
+    if( doc != textDocumentRef_ ) {
         // disconnect the old document
         TextDocument* oldDocumentRef = textDocument();
         if( oldDocumentRef ) {
@@ -467,7 +467,7 @@ void TextEditorController::updateStatusText( const QString& extraText )
     if( !extraText.isEmpty() ) {
         text.append(" | " );
         text.append(extraText);
-    }   
+    }
     emit updateStatusTextSignal( text );
 }
 
@@ -718,7 +718,7 @@ void TextEditorController::beginUndoGroup( ChangeGroup* group )
 ///                  and id > 0 means if the previous command had the same id, the command is merged
 /// @param flatten when an undogroup is ended and flatten is set to true ALL sub-undo-groups are merged to this group (default=false)
 void TextEditorController::endUndoGroup(int coalesceId, bool flatten )
-{    
+{
     textDocument()->endUndoGroup(coalesceId,flatten);
 }
 
