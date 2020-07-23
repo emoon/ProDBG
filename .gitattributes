@@ -5,3 +5,5 @@
 *.lib filter=lfs diff=lfs merge=lfs -text
 *.a filter=lfs diff=lfs merge=lfs -text
 *.so filter=lfs diff=lfs merge=lfs -text
+src/native/external/lldb/lib/linux/lldb-server filter=lfs diff=lfs merge=lfs -text
+src/native/external/lldb/lib/linux/liblldb.so.12.0.0git filter=lfs diff=lfs merge=lfs -text
