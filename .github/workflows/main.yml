@@ -53,21 +53,21 @@ jobs:
 #      run: export QT5_BIN=$Qt5_DIR/bin && export QT5_INC=$Qt5_DIR/include && export QT5_LIB=$Qt5_DIR/lib && scripts/mac_build_debug.sh
 
 # Build Windows
-  build_windows:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        lfs: true
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v2
-    - name: Build code test
-      shell: cmd
-      run: |
-        set QT5_BIN=%Qt5_DIR%/bin
-        set QT5_INC=%Qt5_DIR%/include
-        set QT5_LIB=%Qt5_DIR%/lib
-        echo %QT5_BIN%
-        echo %QT5_INC%
-        echo %QT5_LIB%
-        bin\win32\tundra2.exe --unprotected win64-msvc-debug
+#  build_windows:
+#    runs-on: windows-latest
+#    steps:
+#    - uses: actions/checkout@v2
+#      with:
+#        lfs: true
+#    - name: Install Qt
+#      uses: jurplel/install-qt-action@v2
+#    - name: Build code test
+#      shell: cmd
+#      run: |
+#        set QT5_BIN=%Qt5_DIR%/bin
+#        set QT5_INC=%Qt5_DIR%/include
+#        set QT5_LIB=%Qt5_DIR%/lib
+#        echo %QT5_BIN%
+#        echo %QT5_INC%
+#        echo %QT5_LIB%
+#        bin\win32\tundra2.exe --unprotected win64-msvc-debug
