@@ -77,6 +77,14 @@ public:
     // This will request that the backend sends back a list of them
     virtual void request_source_files() = 0;
 
+    // Add a breakpoint on a specific file and line number
+    virtual void request_add_file_line_breakpoint(const QString& filename, int line) = 0;
+
+    // Remove a breakpoint at a specific address
+    virtual void request_remove_file_line_breakpoint(const QString& filename, int line) = 0;
+
+    // TODO: Reply breakpoints back
+
     // Add a breakpoint at a specific address
     // virtual void beginAddAddressBreakpoint(uint64_t address) = 0;
 

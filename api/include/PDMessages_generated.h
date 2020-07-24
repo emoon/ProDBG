@@ -15,6 +15,9 @@ struct TargetReplyBuilder;
 struct ExceptionLocationRequest;
 struct ExceptionLocationRequestBuilder;
 
+struct FileLineBreakpoint;
+struct FileLineBreakpointBuilder;
+
 struct ExceptionLocationReply;
 struct ExceptionLocationReplyBuilder;
 
@@ -27,35 +30,38 @@ enum MessageType {
   MessageType_target_reply = 2,
   MessageType_exception_location_request = 3,
   MessageType_exception_location_reply = 4,
+  MessageType_file_line_breakpoint_request = 5,
   MessageType_MIN = MessageType_NONE,
-  MessageType_MAX = MessageType_exception_location_reply
+  MessageType_MAX = MessageType_file_line_breakpoint_request
 };
 
-inline const MessageType (&EnumValuesMessageType())[5] {
+inline const MessageType (&EnumValuesMessageType())[6] {
   static const MessageType values[] = {
     MessageType_NONE,
     MessageType_file_target_request,
     MessageType_target_reply,
     MessageType_exception_location_request,
-    MessageType_exception_location_reply
+    MessageType_exception_location_reply,
+    MessageType_file_line_breakpoint_request
   };
   return values;
 }
 
 inline const char * const *EnumNamesMessageType() {
-  static const char * const names[6] = {
+  static const char * const names[7] = {
     "NONE",
     "file_target_request",
     "target_reply",
     "exception_location_request",
     "exception_location_reply",
+    "file_line_breakpoint_request",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameMessageType(MessageType e) {
-  if (flatbuffers::IsOutRange(e, MessageType_NONE, MessageType_exception_location_reply)) return "";
+  if (flatbuffers::IsOutRange(e, MessageType_NONE, MessageType_file_line_breakpoint_request)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesMessageType()[index];
 }
@@ -78,6 +84,10 @@ template<> struct MessageTypeTraits<ExceptionLocationRequest> {
 
 template<> struct MessageTypeTraits<ExceptionLocationReply> {
   static const MessageType enum_value = MessageType_exception_location_reply;
+};
+
+template<> struct MessageTypeTraits<FileLineBreakpoint> {
+  static const MessageType enum_value = MessageType_file_line_breakpoint_request;
 };
 
 bool VerifyMessageType(flatbuffers::Verifier &verifier, const void *obj, MessageType type);
@@ -226,6 +236,81 @@ inline flatbuffers::Offset<ExceptionLocationRequest> CreateExceptionLocationRequ
   return builder_.Finish();
 }
 
+struct FileLineBreakpoint FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef FileLineBreakpointBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_FILENAME = 4,
+    VT_LINE = 6,
+    VT_ADD_REMOVE = 8
+  };
+  const flatbuffers::String *filename() const {
+    return GetPointer<const flatbuffers::String *>(VT_FILENAME);
+  }
+  int32_t line() const {
+    return GetField<int32_t>(VT_LINE, 0);
+  }
+  bool add_remove() const {
+    return GetField<uint8_t>(VT_ADD_REMOVE, 0) != 0;
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_FILENAME) &&
+           verifier.VerifyString(filename()) &&
+           VerifyField<int32_t>(verifier, VT_LINE) &&
+           VerifyField<uint8_t>(verifier, VT_ADD_REMOVE) &&
+           verifier.EndTable();
+  }
+};
+
+struct FileLineBreakpointBuilder {
+  typedef FileLineBreakpoint Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_filename(flatbuffers::Offset<flatbuffers::String> filename) {
+    fbb_.AddOffset(FileLineBreakpoint::VT_FILENAME, filename);
+  }
+  void add_line(int32_t line) {
+    fbb_.AddElement<int32_t>(FileLineBreakpoint::VT_LINE, line, 0);
+  }
+  void add_add_remove(bool add_remove) {
+    fbb_.AddElement<uint8_t>(FileLineBreakpoint::VT_ADD_REMOVE, static_cast<uint8_t>(add_remove), 0);
+  }
+  explicit FileLineBreakpointBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<FileLineBreakpoint> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<FileLineBreakpoint>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<FileLineBreakpoint> CreateFileLineBreakpoint(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> filename = 0,
+    int32_t line = 0,
+    bool add_remove = false) {
+  FileLineBreakpointBuilder builder_(_fbb);
+  builder_.add_line(line);
+  builder_.add_filename(filename);
+  builder_.add_add_remove(add_remove);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<FileLineBreakpoint> CreateFileLineBreakpointDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *filename = nullptr,
+    int32_t line = 0,
+    bool add_remove = false) {
+  auto filename__ = filename ? _fbb.CreateString(filename) : 0;
+  return CreateFileLineBreakpoint(
+      _fbb,
+      filename__,
+      line,
+      add_remove);
+}
+
 struct ExceptionLocationReply FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ExceptionLocationReplyBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -327,6 +412,9 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const ExceptionLocationReply *message_as_exception_location_reply() const {
     return message_type() == MessageType_exception_location_reply ? static_cast<const ExceptionLocationReply *>(message()) : nullptr;
   }
+  const FileLineBreakpoint *message_as_file_line_breakpoint_request() const {
+    return message_type() == MessageType_file_line_breakpoint_request ? static_cast<const FileLineBreakpoint *>(message()) : nullptr;
+  }
   const flatbuffers::Vector<uint8_t> *user_data() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_USER_DATA);
   }
@@ -355,6 +443,10 @@ template<> inline const ExceptionLocationRequest *Message::message_as<ExceptionL
 
 template<> inline const ExceptionLocationReply *Message::message_as<ExceptionLocationReply>() const {
   return message_as_exception_location_reply();
+}
+
+template<> inline const FileLineBreakpoint *Message::message_as<FileLineBreakpoint>() const {
+  return message_as_file_line_breakpoint_request();
 }
 
 struct MessageBuilder {
@@ -425,6 +517,10 @@ inline bool VerifyMessageType(flatbuffers::Verifier &verifier, const void *obj, 
     }
     case MessageType_exception_location_reply: {
       auto ptr = reinterpret_cast<const ExceptionLocationReply *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MessageType_file_line_breakpoint_request: {
+      auto ptr = reinterpret_cast<const FileLineBreakpoint *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;

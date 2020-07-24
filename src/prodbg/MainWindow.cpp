@@ -73,7 +73,7 @@ MainWindow::MainWindow()
     m_breakpoints = new BreakpointModel;
 
     m_code_views = new CodeViews(m_breakpoints, this);
-    m_code_views->open_file(QStringLiteral("src/prodbg/main.cpp"), true);
+    m_code_views->open_file(QStringLiteral("examples/crashing_native/crash1.c"), true);
     m_code_views->open_file(QStringLiteral("src/prodbg/Config/Config.cpp"), true);
 
     // m_code_views->openFile(QStringLiteral("src/prodbg/main.cpp"),
@@ -291,21 +291,21 @@ void MainWindow::show_prefs() {
 void MainWindow::start() {
     printf("MainWindow::start\n");
 
-    // const QVector<BreakpointModel::FileLineBreakpoint>& fileLineBreakpoints =
-    // m_breakpoints->get_file_line_breakpoints(); const QVector<uint64_t>& addressBreakpoints =
+    auto file_line_breakpoints = m_breakpoints->get_file_line_breakpoints();
+    // const QVector<uint64_t>& addressBreakpoints =
     // m_breakpoints->get_address_breakpoints();
 
     // add the breakpoints before we start
 
-    /*
-       for (auto& bp : fileLineBreakpoints) {
-       m_backendRequests->beginAddFileLineBreakpoint(bp.filename, bp.line);
-       }
+    for (auto& bp : file_line_breakpoints) {
+        m_backend_requests->request_add_file_line_breakpoint(bp.filename, bp.line);
+    }
 
-       for (auto& bp : addressBreakpoints) {
-       m_backendRequests->beginAddAddressBreakpoint(bp);
-       }
-     */
+    /*
+    for (auto& bp : addressBreakpoints) {
+        m_backendRequests->beginAddAddressBreakpoint(bp);
+    }
+    */
 
     // signal the backend thread to start
     start_backend();
@@ -441,11 +441,11 @@ void MainWindow::target_reply(bool status, const QString& error_message) {
     // Got ok from backend! we are ready to got so start it, otherwise show the error and close the current backend
     if (status) {
         // printf starting the backend!
-        start_backend();
+        start();
 
         // Hook-up the views to the backend
-        connect(m_backend_requests, &IBackendRequests::program_counter_changed, m_source_view,
-                &SourceCodeWidget::program_counter_changed);
+        connect(m_backend_requests, &IBackendRequests::program_counter_changed, m_code_views,
+                &CodeViews::program_counter_changed);
 
     } else {
         close_current_backend();
@@ -577,7 +577,7 @@ void MainWindow::step_over() {
 
 void MainWindow::toggle_breakpoint() {
     m_code_views->toggle_breakpoint();
-    //m_source_view->toggle_breakpoint_current_line();
+    // m_source_view->toggle_breakpoint_current_line();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

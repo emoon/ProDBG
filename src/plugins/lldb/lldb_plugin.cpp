@@ -327,6 +327,33 @@ static void target_reply(LLDBPlugin* plugin, const FileTargetRequest* request, P
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void toggle_breakpoint(LLDBPlugin* plugin, const FileLineBreakpoint* request, PDWriter* writer) {
+    flatbuffers::FlatBufferBuilder builder(1024);
+
+    // TODO: Handle add/delete
+    const char* filename = request->filename()->c_str();
+    int line = request->line();
+
+    lldb::SBBreakpoint breakpoint = plugin->target.BreakpointCreateByLocation(filename, line);
+
+    if (!breakpoint.IsValid()) {
+        printf("adding breakpoints to breakpoint list %s:%d\n", filename, line);
+
+        // Unable to set breakpoint as the target doesn't seem to be valid. This is the usual case
+        // if we haven't actually started an executable yet. So we save them here for later and
+        // then set them before launching the executable
+
+        Breakpoint bp = {strdup(filename), (int)line};
+        plugin->breakpoints.push_back(bp);
+
+        return;
+    }
+
+    printf("Set breakpoint at %s:%d\n", filename, line);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /*
 static void setLocals(LLDBPlugin* plugin, PDWriter* writer) {
     lldb::SBThread thread(plugin->process.GetThreadByID(plugin->selected_thread_id));
@@ -620,6 +647,12 @@ static void process_events(LLDBPlugin* plugin, PDReader* reader, PDWriter* write
                 break;
             }
 
+            case MessageType_file_line_breakpoint_request: {
+                toggle_breakpoint(plugin, msg->message_as_file_line_breakpoint_request(), writer);
+                break;
+            }
+
+
             default: break;
         }
 
@@ -769,8 +802,9 @@ static void update_lldb_event(LLDBPlugin* plugin, PDWriter* writer) {
 
                         printf("%d %d\n", plugin->state, PDDebugState_StopException);
 
-                        if (plugin->state != PDDebugState_StopException)
+                        if (plugin->state != PDDebugState_StopException) {
                             send_exception_state(plugin, writer);
+                        }
 
                         plugin->state = PDDebugState_StopException;
 
@@ -784,13 +818,18 @@ static void update_lldb_event(LLDBPlugin* plugin, PDWriter* writer) {
                     case lldb::eStopReasonBreakpoint: {
                         select_thread = true;
 
-                        if (plugin->state != PDDebugState_StopBreakpoint)
+                        printf("lldb::eStopReasonBreakpoint\n");
+
+                        if (plugin->state != PDDebugState_StopBreakpoint) {
+                            selected_thread = plugin->process.SetSelectedThread(thread);
+                            plugin->selected_thread_id = thread.GetThreadID();
                             send_exception_state(plugin, writer);
+                        }
 
                         plugin->state = PDDebugState_StopBreakpoint;
 
                         if (m_verbose) {
-                            printf("breakpoint id = %ld.%ld\n", thread.GetStopReasonDataAtIndex(0),
+                            printf("lldb::eStopReasonBreakpoint breakpoint id = %ld.%ld\n", thread.GetStopReasonDataAtIndex(0),
                                    thread.GetStopReasonDataAtIndex(1));
                         }
 
@@ -811,14 +850,10 @@ static void update_lldb_event(LLDBPlugin* plugin, PDWriter* writer) {
                     default:
                         break;
                 }
+
                 if (select_thread && !selected_thread) {
                     selected_thread = plugin->process.SetSelectedThread(thread);
                     plugin->selected_thread_id = thread.GetThreadID();
-
-                    if (plugin->state != PDDebugState_StopException)
-                        send_exception_state(plugin, writer);
-
-                    plugin->state = PDDebugState_StopException;
                 }
             }
         } break;

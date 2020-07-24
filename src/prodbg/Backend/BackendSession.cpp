@@ -333,7 +333,43 @@ void BackendSession::toggleFileLineBreakpoint(const QString& filename, int line,
 
     update();
 }
+*/
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendSession::request_add_file_line_breakpoint(const QString& filename, int line) {
+    flatbuffers::FlatBufferBuilder builder(1024);
+
+    auto build_path = builder.CreateString(filename.toUtf8().data());
+
+    FileLineBreakpointBuilder request(builder);
+    request.add_filename(build_path);
+    request.add_line(line);
+    request.add_add_remove(true);
+
+    PDMessage_end_msg(m_currentWriter, request, builder);
+
+    update();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendSession::request_remove_file_line_breakpoint(const QString& filename, int line) {
+    flatbuffers::FlatBufferBuilder builder(1024);
+
+    auto build_path = builder.CreateString(filename.toUtf8().data());
+
+    FileLineBreakpointBuilder request(builder);
+    request.add_filename(build_path);
+    request.add_line(line);
+    request.add_add_remove(false);
+
+    PDMessage_end_msg(m_currentWriter, request, builder);
+
+    update();
+}
+
+/*
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendSession::beginReadRegisters(QVector<IBackendRequests::Register>* target) {

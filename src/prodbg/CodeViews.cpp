@@ -42,17 +42,14 @@ void CodeViews::toggle_breakpoint() {
 
         int line = view->getCurrentLine();
         bool added = m_breakpoints->toggle_file_line_breakpoint(filename, line);
-        (void)added;
 
-        /*
         if (m_interface) {
             if (added) {
-                m_interface->beginAddFileLineBreakpoint(filename, line);
+                m_interface->request_add_file_line_breakpoint(filename, line);
             } else {
-                m_interface->beginRemoveFileLineBreakpoint(filename, line);
+                m_interface->request_remove_file_line_breakpoint(filename, line);
             }
         }
-        */
 
         view->repaint();
     }
@@ -79,12 +76,12 @@ void CodeViews::open_file(const QString& filename, bool setActive) {
     QFileInfo info(filename);
 
     CodeView* codeView = new CodeView(m_breakpoints);
-    codeView->load_file(filename);
+    codeView->load_file(info.absoluteFilePath());
     //codeView->setBreakpointModel(m_breakpoints);
 
     int index = addTab(codeView, info.fileName());
 
-    setTabToolTip(index, filename);
+    setTabToolTip(index, info.absoluteFilePath());
 
     if (setActive) {
         setCurrentIndex(index);
@@ -109,6 +106,10 @@ void CodeViews::reload_current_file() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeViews::program_counter_changed(const IBackendRequests::ProgramCounterChange& pc) {
+    qDebug() << "CodeViews::program_counter_changed";
+    qDebug() << pc.line;
+    qDebug() << pc.filename;
+
     //m_disassemblyView->updatePc(pc.pc);
 
     // No source/line for the PC so toggle to disassmbly mode if we already
@@ -133,6 +134,9 @@ void CodeViews::program_counter_changed(const IBackendRequests::ProgramCounterCh
         // Search for the source file if we already have it open activate it
         for (int i = 0; i < tabs_count; ++i) {
             const QString& filename = tabToolTip(i);
+
+            qDebug() << "tab filename " << filename;
+            qDebug() << "pc  filename " << pc.filename;
 
             if (filename != pc.filename) {
                 continue;

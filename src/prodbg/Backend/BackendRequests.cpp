@@ -7,6 +7,10 @@ namespace prodbg {
 
 BackendRequests::BackendRequests(BackendSession* session) {
     connect(this, &BackendRequests::file_target_request_signal, session, &BackendSession::file_target_request);
+    connect(this, &BackendRequests::request_add_file_line_breakpoint_signal, session,
+            &BackendSession::request_add_file_line_breakpoint);
+    connect(this, &BackendRequests::request_remove_file_line_breakpoint_signal, session,
+            &BackendSession::request_remove_file_line_breakpoint);
 
     /*
     connect(this, &BackendRequests::sendCustomStr, session, &BackendSession::sendCustomString);
@@ -36,6 +40,18 @@ BackendRequests::BackendRequests(BackendSession* session) {
 
 void BackendRequests::file_target_request(const QString& path) {
     file_target_request_signal(path);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendRequests::request_add_file_line_breakpoint(const QString& filename, int line) {
+    request_add_file_line_breakpoint_signal(filename, line);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendRequests::request_remove_file_line_breakpoint(const QString& filename, int line) {
+    request_remove_file_line_breakpoint_signal(filename, line);
 }
 
 /*
