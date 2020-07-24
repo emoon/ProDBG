@@ -80,6 +80,11 @@ Program {
         gen_uic("src/prodbg/dialogs/AppearanceWidget.ui"),
         gen_moc("src/prodbg/dialogs/AppearanceWidget.h"),
 
+
+        -- Views
+        gen_uic("src/prodbg/FileBrowserView.ui"),
+        gen_moc("src/prodbg/FileBrowserView.h"),
+
         --
 
         gen_uic("src/prodbg/Config/AmigaUAEConfig.ui"),

@@ -85,7 +85,7 @@ void SourceCodeWidget::load_file(const QString& filename) {
 
 void SourceCodeWidget::program_counter_changed(const IBackendRequests::ProgramCounterChange& pc) {
     if (pc.filename != QStringLiteral("") && m_filename != pc.filename) {
-        m_editor->textDocument()->lineDataManager()->clear();
+        m_editor->textDocument()->setText(QStringLiteral(""));
         load_file(pc.filename);
     }
 

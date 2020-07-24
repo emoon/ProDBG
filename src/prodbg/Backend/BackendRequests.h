@@ -18,6 +18,9 @@ public:
     // Request to start a file for debugging
     void file_target_request(const QString& path);
 
+    // Request source files from debug target
+    void request_source_files() { }
+
     // Send a custom event to the backend. The id should be registers using the
     // IdService_register This can be done in the same way using the id service
     // on the backend side. This allows the front-end to send custom commands to
@@ -59,6 +62,7 @@ public:
 
 private:
     Q_SIGNAL void file_target_request_signal(const QString& filename);
+    Q_SIGNAL void reply_source_files_signal(const QVector<QString>& files);
 
     /*
     Q_SIGNAL void evalExpression(const QString& expr, uint64_t* out);

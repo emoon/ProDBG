@@ -73,6 +73,10 @@ public:
     // the backend that doesn't fit any general backend
     // virtual void sendCustomString(uint16_t id, const QString& text) = 0;
 
+    // A debug target can contains a list of source files used for the modules.
+    // This will request that the backend sends back a list of them
+    virtual void request_source_files() = 0;
+
     // Add a breakpoint at a specific address
     // virtual void beginAddAddressBreakpoint(uint64_t address) = 0;
 
@@ -111,6 +115,9 @@ public:
     // virtual bool beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target) = 0;
 
 public:
+    // reply from request of source files
+    Q_SIGNAL void reply_source_files(const QVector<QString>& files);
+
     // Get hw registers from the backend
     // registers = array of registers
     // Q_SIGNAL void endReadRegisters(QVector<Register>* registers);

@@ -16,6 +16,7 @@
 #include "toolwindowmanager/ToolWindowManager.h"
 
 // Dialogs
+#include "FileBrowserView.h"
 #include "dialogs/PrefsDialog.h"
 
 #include <QtCore/QDebug>
@@ -43,7 +44,7 @@ namespace prodbg {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MainWindow::MainWindow()
-    : m_memory_view(new MemoryView(this)),
+    : /*m_memory_view(new MemoryView(this)), */
       // m_registerView(new RegisterView(this)),
       m_statusbar(new QStatusBar(this)),
       m_backend(nullptr)
@@ -65,17 +66,19 @@ MainWindow::MainWindow()
     // m_viewHandler->addView(new RegisterView(this));
 
     m_recent_executables = new RecentExecutables;
-    //m_amigaUae = new AmigaUAE(this);
+    // m_amigaUae = new AmigaUAE(this);
 
     m_ui.setupUi(this);
 
     m_breakpoints = new BreakpointModel;
 
-    // m_codeViews = new CodeViews(m_breakpoints, this);
-    // m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"), true);
-    // m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"),
+    m_code_views = new CodeViews(m_breakpoints, this);
+    m_code_views->open_file(QStringLiteral("src/prodbg/main.cpp"), true);
+    m_code_views->open_file(QStringLiteral("src/prodbg/Config/Config.cpp"), true);
+
+    // m_code_views->openFile(QStringLiteral("src/prodbg/main.cpp"),
     // m_breakpoints);
-    // m_codeViews->openFile(QStringLiteral("src/prodbg/main.cpp"),
+    // m_code_views->openFile(QStringLiteral("src/prodbg/main.cpp"),
     // m_breakpoints);
 
     setWindowTitle(QStringLiteral("ProDBG"));
@@ -108,20 +111,39 @@ MainWindow::MainWindow()
     editor->textDocument()->config()->setFont(font);
      */
 
-    m_source_view = new SourceCodeWidget(m_breakpoints, this);
-    //m_source_view->load_file(QStringLiteral("src/prodbg/Config/Config.cpp"));
+    auto temp = new QWidget(this);
 
-    setCentralWidget(m_source_view->m_editor);
+    setCentralWidget(temp);
+    temp->hide();
+
+    // m_source_view = new SourceCodeWidget(m_breakpoints, this);
+    // m_source_view->load_file(QStringLiteral("src/prodbg/Config/Config.cpp"));
+
+    QDockWidget* dock = new QDockWidget(QStringLiteral("Source View"), this);
+    dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    dock->setWidget(m_code_views);
+    // dock->setWidget(m_source_view->m_editor);
+    dock->setObjectName(QStringLiteral("SourceView"));
+
+    addDockWidget(Qt::LeftDockWidgetArea, dock);
+
+    auto file_browser = new FileBrowserView(this);
+    dock = new QDockWidget(QStringLiteral("File Browser"), this);
+    dock->setWidget(file_browser);
+    dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    dock->setObjectName(QStringLiteral("FileBrowser"));
+    addDockWidget(Qt::RightDockWidgetArea, dock);
+
+    // setCentralWidget(m_source_view->m_editor);
 
     // QWidget* plugin_parent = new QWidget(this);
-    // setCentralWidget(m_memoryView);
 
     // PluginHandler_tempLoadUIPlugin(plugin_parent, QStringLiteral("memory_view_2"));
 
     // Setup docking for MemoryView
 
     {
-        // m_ui.toolWindowManager->addToolWindow(m_codeViews, ToolWindowManager::EmptySpace);
+        // m_ui.toolWindowManager->addToolWindow(m_code_views, ToolWindowManager::EmptySpace);
         // m_ui.toolWindowManager->addToolWindow(m_memoryView, ToolWindowManager::LastUsedArea);
         // m_ui.toolWindowManager->addToolWindow(m_registerView, ToolWindowManager::LastUsedArea);
         // m_ui.toolWindowManager->addToolWindow(plugin_parent, ToolWindowManager::LastUsedArea);
@@ -166,7 +188,9 @@ MainWindow::~MainWindow() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::init_actions() {
-       connect(m_ui.debug_executable, &QAction::triggered, this, &MainWindow::open_debug_executable);
+    connect(m_ui.debug_executable, &QAction::triggered, this, &MainWindow::open_debug_executable);
+    connect(m_ui.actionPreferences, &QAction::triggered, this, &MainWindow::show_prefs);
+    connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggle_breakpoint);
 
     /*
        connect(m_ui.actionStart, &QAction::triggered, this, &MainWindow::startDebug);
@@ -179,9 +203,8 @@ void MainWindow::init_actions() {
        connect(m_ui.actionOpen, &QAction::triggered, this, &MainWindow::openSourceFile);
        connect(m_ui.actionBreak, &QAction::triggered, this, &MainWindow::breakContDebug);
        connect(m_ui.actionStop, &QAction::triggered, this, &MainWindow::stop);
-       connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_codeViews, &CodeViews::toggleSourceAsm);
+       connect(m_ui.actionToggleSourceAsm, &QAction::triggered, m_code_views, &CodeViews::toggleSourceAsm);
        connect(m_ui.actionMemoryView, &QAction::triggered, this, &MainWindow::newMemoryView);
-       connect(m_ui.actionPreferences, &QAction::triggered, this, &MainWindow::show_prefs);
      */
 
     // connect(m_ui.actionRegisterView, &QAction::triggered, this, &MainWindow::newRegisterView);
@@ -233,8 +256,7 @@ void MainWindow::open_debug_executable() {
     // TODO: This is really temporary
     // QTimer::singleShot(5000, this, &MainWindow::start);
 
-
-    //m_currentBackend = Amiga;
+    // m_currentBackend = Amiga;
 
     /*
     QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("Open File for Debug..."));
@@ -243,9 +265,6 @@ void MainWindow::open_debug_executable() {
         return;
     }
     */
-
-
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -257,7 +276,7 @@ void MainWindow::open_source_file() {
         return;
     }
 
-    // m_codeViews->openFile(path, true);
+    // m_code_views->openFile(path, true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -311,7 +330,7 @@ void MainWindow::amigaUAEConfig() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::uae_started() {
-    //startAmigaUAEBackend();
+    // startAmigaUAEBackend();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -336,12 +355,12 @@ void MainWindow::open_recent_exe() {
     QAction* action = qobject_cast<QAction*>(sender());
     if (action) {
         QString filename = action->data().toString();
-        //m_lastAmigaExe = filename;
-        //m_amigaUae->m_localExeToRun = filename;
+        // m_lastAmigaExe = filename;
+        // m_amigaUae->m_localExeToRun = filename;
 
         m_recent_executables->put_file_on_top(m_recent_file_actions, filename);
 
-        //internalStartAmigaExe();
+        // internalStartAmigaExe();
     }
 }
 
@@ -358,7 +377,7 @@ void MainWindow::start_debug() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::reload_current_file() {
-    //m_codeViews->reloadCurrentFile();
+    // m_code_views->reloadCurrentFile();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -401,10 +420,9 @@ void MainWindow::process_ended(int) {
 
 void MainWindow::setup_backend_connections() {
     connect(this, &MainWindow::start_backend, m_backend, &BackendSession::start);
-    //connect(this, &MainWindow::target_reply, m_backend, &BackendSession::target_reply);
+    // connect(this, &MainWindow::target_reply, m_backend, &BackendSession::target_reply);
 
     connect(m_backend, &BackendSession::target_reply, this, &MainWindow::target_reply);
-
 
     /*
        connect(this, &MainWindow::stepInBackend, m_backend, &BackendSession::stepIn);
@@ -426,7 +444,8 @@ void MainWindow::target_reply(bool status, const QString& error_message) {
         start_backend();
 
         // Hook-up the views to the backend
-        connect(m_backend_requests, &IBackendRequests::program_counter_changed, m_source_view, &SourceCodeWidget::program_counter_changed);
+        connect(m_backend_requests, &IBackendRequests::program_counter_changed, m_source_view,
+                &SourceCodeWidget::program_counter_changed);
 
     } else {
         close_current_backend();
@@ -465,7 +484,7 @@ void MainWindow::close_current_backend() {
     */
 
     // m_registerView->set_backend_interface(nullptr);
-    // m_codeViews->set_backend_interface(nullptr);
+    // m_code_views->set_backend_interface(nullptr);
     // m_memoryView->set_backend_interface(nullptr);
 
     m_backend = nullptr;
@@ -511,8 +530,8 @@ void MainWindow::setup_backend(BackendSession* backend) {
     m_backend_requests = new BackendRequests(m_backend);
 
     // m_registerView->set_backend_interface(m_backendRequests);
-    // m_codeViews->set_backend_interface(m_backendRequests);
-    //m_memory_view->set_backend_interface(m_backend_requests);
+    // m_code_views->set_backend_interface(m_backendRequests);
+    // m_memory_view->set_backend_interface(m_backend_requests);
 
     m_backend_thread->start();
 
@@ -557,23 +576,24 @@ void MainWindow::step_over() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::toggle_breakpoint() {
-    m_source_view->toggle_breakpoint_current_line();
+    m_code_views->toggle_breakpoint();
+    //m_source_view->toggle_breakpoint_current_line();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::new_memory_view() {
-/*
-    MemoryView* mv = new MemoryView(this);
-    mv->set_backend_interface(m_backendRequests);
-    QDockWidget* dock = new QDockWidget(QStringLiteral("MemoryView"), this);
-    dock->setAllowedAreas(Qt::AllDockWidgetAreas);
-    dock->setObjectName(QStringLiteral("MemoryViewDock"));
-    dock->setWidget(mv);
-    addDockWidget(Qt::TopDockWidgetArea, dock);
-    dock->setFloating(true);
-    m_viewHandler->addView(mv);
-*/
+    /*
+        MemoryView* mv = new MemoryView(this);
+        mv->set_backend_interface(m_backendRequests);
+        QDockWidget* dock = new QDockWidget(QStringLiteral("MemoryView"), this);
+        dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+        dock->setObjectName(QStringLiteral("MemoryViewDock"));
+        dock->setWidget(mv);
+        addDockWidget(Qt::TopDockWidgetArea, dock);
+        dock->setFloating(true);
+        m_viewHandler->addView(mv);
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

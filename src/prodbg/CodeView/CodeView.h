@@ -6,6 +6,7 @@
 #include <QtCore/QString>
 #include <QtWidgets/QPlainTextEdit>
 #include "Backend/IBackendRequests.h"
+#include "edbee/texteditorwidget.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -15,6 +16,7 @@ class QSize;
 class QWidget;
 class QThread;
 class QFileSystemWatcher;
+class QWidget;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -22,6 +24,7 @@ namespace prodbg {
 
 class LineNumberArea;
 class BreakpointModel;
+class BreakpointDelegate;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -32,23 +35,24 @@ struct FileLineBreakpoint {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class CodeView : public QPlainTextEdit {
+class CodeView : public edbee::TextEditorWidget {
     Q_OBJECT
 
-   public:
+public:
     enum Mode {
         Sourcefile,   // Sourcefile (.c .s) etc
         Disassembly,  // Disassembly
         Mixed,        // Mixed Source + Disassembly mode
     };
 
-    CodeView(QWidget* parent = 0);
-    virtual ~CodeView();
+    CodeView(BreakpointModel* breakpoints, QWidget* parent = 0);
+    ~CodeView();
 
-    void toggleBreakpoint();
-    void setBreakpointModel(BreakpointModel* breakpoints);
+    void toggle_breakpoint_current_line();
+
     void openFile();
     void reload();
+    void load_file(const QString& file);
 
     void setMode(Mode mode);
     void setExceptionAddress(uint64_t address);
@@ -56,7 +60,6 @@ class CodeView : public QPlainTextEdit {
     void initDefaultSourceFile(const QString& file);
     void readSourceFile(const QString& file);
 
-    void lineNumberAreaPaintEvent(QPaintEvent* event);
     void setFileLine(const QString& file, int line);
     void setAddress(uint64_t address);
     void setLine(int line);
@@ -67,18 +70,19 @@ class CodeView : public QPlainTextEdit {
 
     int getCurrentLine();
 
-   protected:
-    void resizeEvent(QResizeEvent* event);
+protected:
+    //void resizeEvent(QResizeEvent* event);
     // void keyPressEvent(QKeyEvent* event);
     void step();
 
-   private:
-    Q_SLOT void updateLineNumberAreaWidth(int newBlockCount);
-    Q_SLOT void highlightCurrentLine();
-    Q_SLOT void updateLineNumberArea(const QRect&, int);
+private:
+    //Q_SLOT void updateLineNumberAreaWidth(int newBlockCount);
+    //Q_SLOT void highlightCurrentLine();
+    //Q_SLOT void updateLineNumberArea(const QRect&, int);
     Q_SLOT void fileChange(const QString filename);
 
-   private:
+private:
+    void set_line(int line);
     void toggleDisassembly();
     void toggleSourceFile();
     void updateDisassemblyCursor();
@@ -92,7 +96,7 @@ class CodeView : public QPlainTextEdit {
     QWidget* m_lineNumberArea;
     QFileSystemWatcher* m_fileWatcher;
 
-    QString m_sourceFile;
+    QString m_source_file;
     QString m_sourceCodeData;
     Mode m_mode = Mode::Sourcefile;
 
@@ -109,6 +113,8 @@ class CodeView : public QPlainTextEdit {
     uint64_t m_disassemblyEnd = 0;
     uint64_t m_currentPc = 0;
     int m_addressWidth = 0;
+
+    BreakpointDelegate* m_margin_delegate = nullptr;
 
     QString m_disassemblyText;
 

@@ -10,6 +10,18 @@
 #include <QtWidgets/QMessageBox>
 #include "Backend/IBackendRequests.h"
 #include "BreakpointModel.h"
+#include "edbee/edbee.h"
+#include "edbee/io/textdocumentserializer.h"
+#include "edbee/models/textdocument.h"
+#include "edbee/models/texteditorconfig.h"
+#include "edbee/models/textgrammar.h"
+#include "edbee/texteditorcontroller.h"
+#include "edbee/texteditorwidget.h"
+#include "edbee/models/textrange.h"
+#include "edbee/models/textlinedata.h"
+#include "edbee/views/components/textmargincomponent.h"
+#include "edbee/views/texteditorscrollarea.h"
+#include "edbee/views/textselection.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -17,43 +29,52 @@ namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class LineNumberArea : public QWidget {
-   public:
-    LineNumberArea(CodeView* editor) : QWidget(editor), m_codeEditor(editor) {}
-
-    QSize sizeHint() const { return QSize(m_codeEditor->lineNumberAreaWidth(), 0); }
-
-   protected:
-    void paintEvent(QPaintEvent* event) { m_codeEditor->lineNumberAreaPaintEvent(event); }
-
-   private:
-    CodeView* m_codeEditor;
-};
+class BreakpointModel;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CodeView::CodeView(QWidget* parent)
-    : QPlainTextEdit(parent),
+class BreakpointDelegate : public edbee::TextMarginComponentDelegate {
+public:
+    int widthBeforeLineNumber() { return 30; }
+
+    void renderAfter(QPainter* painter, int start_line, int end_line, int width, int line_height) {
+        painter->setBrush(Qt::red);
+        painter->setRenderHint(QPainter::Antialiasing);
+
+        for (int line = start_line; line <= end_line; ++line) {
+            int y = line * line_height;
+
+            if (m_breakpoints->has_breakpoint_file_line(m_filename, line)) {
+                painter->drawEllipse(4, y + 1, line_height - 2, line_height - 2);
+            }
+        }
+    }
+
+    QString m_filename;
+    BreakpointModel* m_breakpoints;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+CodeView::CodeView(BreakpointModel* breakpoints, QWidget* parent)
+    : edbee::TextEditorWidget(parent),
       m_lineNumberArea(nullptr),
       m_fileWatcher(nullptr),
       m_disassemblyStart(0),
       m_disassemblyEnd(0) {
-    setReadOnly(true);
-    setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
 
-    setLineWrapMode(QPlainTextEdit::NoWrap);
+    m_margin_delegate = new BreakpointDelegate;
+    m_margin_delegate->m_breakpoints = breakpoints;
+    textMarginComponent()->setDelegate(m_margin_delegate);
 
-    m_lineNumberArea = new LineNumberArea(this);
-    m_fileWatcher = new QFileSystemWatcher(this);
+    //m_fileWatcher = new QFileSystemWatcher(this);
+    //connect(m_fileWatcher, SIGNAL(fileChanged(const QString&)), this, SLOT(fileChange(const QString)));
 
-    connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth(int)));
-    connect(this, SIGNAL(updateRequest(const QRect&, int)), this, SLOT(updateLineNumberArea(const QRect&, int)));
-    connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
-    connect(m_fileWatcher, SIGNAL(fileChanged(const QString&)), this, SLOT(fileChange(const QString)));
+    //connect(this, SIGNAL(updateRequest(const QRect&, int)), this, SLOT(updateLineNumberArea(const QRect&, int)));
+    //connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
 
-    updateLineNumberAreaWidth(0);
-    highlightCurrentLine();
-
+    /*
 #ifdef _WIN32
     QFont font(QStringLiteral("Courier"), 11);
 #else
@@ -63,8 +84,36 @@ CodeView::CodeView(QWidget* parent)
     setFont(font);
 
     readSettings();
+    */
 
     toggleSourceFile();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void CodeView::load_file(const QString& filename) {
+    // TODO: Configure font
+#ifdef _WIN32
+    QFont font(QStringLiteral("Courier"), 11);
+#else
+    QFont font(QStringLiteral("Courier"), 13);
+#endif
+
+    edbee::TextDocumentSerializer serializer(textDocument());
+    QFile file(filename);
+    if (!serializer.load(&file)) {
+        qDebug() << "failed to load file";
+    }
+
+    auto grammar_manager = edbee::Edbee::instance()->grammarManager();
+    auto grammar = grammar_manager->detectGrammarWithFilename(filename);
+    textDocument()->setLanguageGrammar(grammar);
+    textScrollArea()->enableShadowWidget(false);
+    textDocument()->config()->setFont(font);
+
+    m_source_file = filename;
+    m_margin_delegate->m_filename = filename;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,20 +132,21 @@ void CodeView::openFile() {
         return;
     }
 
-    readSourceFile(path);
+    load_file(path);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeView::reload() {
     int currentLine = getCurrentLine();
-    readSourceFile(m_sourceFile);
-    setLine(currentLine);
+    load_file(m_source_file);
+    set_line(currentLine);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeView::fileChange(const QString filename) {
+    /*
     QMessageBox::StandardButton reply;
 
     reply = QMessageBox::question(this, QStringLiteral("File has been changed"),
@@ -117,7 +167,7 @@ void CodeView::fileChange(const QString filename) {
     QTextStream ts(&f);
     setPlainText(ts.readAll());
 
-    setLine(currentLine);
+    set_line(currentLine);
 
     // BUG: We need to readd the file here as it seems the watcher thinks it has
     // been deleted (even if just changed)
@@ -125,10 +175,12 @@ void CodeView::fileChange(const QString filename) {
     //      here we get correct notifications again
 
     m_fileWatcher->addPath(filename);
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 int CodeView::lineNumberAreaWidth() {
     int digits = 1;
     if (m_mode == Disassembly) {
@@ -148,8 +200,10 @@ int CodeView::lineNumberAreaWidth() {
     return space;
 }
 
+*/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 void CodeView::updateLineNumberAreaWidth(int) {
     setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
 }
@@ -230,7 +284,7 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event) {
 
             painter.drawText(0, top, width, height, Qt::AlignRight, number);
 
-            if (m_breakpoints->has_breakpoint_file_line(m_sourceFile, blockNumber + 1)) {
+            if (m_breakpoints->has_breakpoint_file_line(m_source_file, blockNumber + 1)) {
                 painter.setBrush(Qt::red);
                 painter.drawEllipse(4, top, fontHeight, fontHeight);
             }
@@ -266,6 +320,7 @@ void CodeView::lineNumberAreaPaintEvent(QPaintEvent* event) {
         ++blockNumber;
     }
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -301,7 +356,7 @@ void CodeView::updateDisassemblyCursor() {
             continue;
         }
 
-        setLine(i + 1);
+        set_line(i + 1);
 
         return;
     }
@@ -310,22 +365,26 @@ void CodeView::updateDisassemblyCursor() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeView::toggleDisassembly() {
+    /*
     m_mode = Disassembly;
     // program_counter_changed(m_currentPc);
     setPlainText(m_disassemblyText);
     updateDisassemblyCursor();
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeView::toggleSourceFile() {
+    /*
     m_mode = Sourcefile;
     setCenterOnScroll(false);
     setPlainText(m_sourceCodeData);
 
     if (m_currentSourceLine >= 0) {
-        setLine(m_currentSourceLine);
+        set_line(m_currentSourceLine);
     }
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -350,8 +409,8 @@ void CodeView::keyPressEvent(QKeyEvent* event)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeView::initDefaultSourceFile(const QString& filename) {
-    m_sourceFile = filename;
-    readSourceFile(m_sourceFile);
+    m_source_file = filename;
+    load_file(m_source_file);
     toggleSourceFile();
 }
 
@@ -363,11 +422,11 @@ void CodeView::readSourceFile(const QString& filename) {
     if (!f.exists())
         return;
 
-    if (!m_sourceFile.isEmpty()) {
-        m_fileWatcher->removePath(m_sourceFile);
+    if (!m_source_file.isEmpty()) {
+        m_fileWatcher->removePath(m_source_file);
     }
 
-    m_sourceFile = filename;
+    m_source_file = filename;
 
     m_fileWatcher->addPath(QString(filename));
 
@@ -377,28 +436,33 @@ void CodeView::readSourceFile(const QString& filename) {
     m_sourceCodeData = ts.readAll();
 
     if (m_mode == Sourcefile) {
-        setPlainText(m_sourceCodeData);
+        textDocument()->setText(m_sourceCodeData);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int CodeView::getCurrentLine() {
-    QTextCursor cursor = textCursor();
-    int line = cursor.block().blockNumber();
+    auto doc = textDocument();
+    auto sel = controller()->textSelection();
 
-    return line;
+    for (int i = 0, cnt = sel->rangeCount(); i < cnt; ++i) {
+        edbee::TextRange& range = sel->range(i);
+        return doc->lineFromOffset(range.caret());
+    }
+
+    return -1;
 
     /*
 
     // + 1 due to 1 indexed
-    bool added = m_breakpoints->toggleFileLineBreakpoint(m_sourceFile, line +
+    bool added = m_breakpoints->toggleFileLineBreakpoint(m_source_file, line +
     1);
 
     if (added) {
-        m_interface->beginAddFileLineBreakpoint(m_sourceFile, line);
+        m_interface->beginAddFileLineBreakpoint(m_source_file, line);
     } else {
-        m_interface->beginRemoveFileLineBreakpoint(m_sourceFile, line);
+        m_interface->beginRemoveFileLineBreakpoint(m_source_file, line);
     }
 
     m_lineNumberArea->repaint();
@@ -407,20 +471,19 @@ int CodeView::getCurrentLine() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeView::setLine(int line) {
-    const QTextBlock& block = document()->findBlockByNumber(line - 1);
-    QTextCursor cursor(block);
-    cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, 0);
-    setTextCursor(cursor);
-    centerCursor();
-    setFocus();
+void CodeView::set_line(int line) {
+    edbee::TextEditorController* c = controller();
+    c->moveCaretTo(line - 1, 0, false);
+    c->scrollCaretVisible();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 void CodeView::setBreakpointModel(BreakpointModel* breakpoints) {
     m_breakpoints = breakpoints;
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -452,20 +515,20 @@ void CodeView::session_ended() {
 
 void CodeView::setExceptionLine(int line) {
     m_currentSourceLine = line;
-    setLine(line);
+    set_line(line);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeView::setFileLine(const QString& file, int line) {
-    if (file != m_sourceFile) {
-        readSourceFile(file);
+    if (file != m_source_file) {
+        load_file(file);
     }
 
     m_currentSourceLine = line;
 
     if (m_mode == Sourcefile) {
-        setLine(line);
+        set_line(line);
     }
 }
 
@@ -474,7 +537,7 @@ void CodeView::setFileLine(const QString& file, int line) {
 void CodeView::readSettings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
     settings.beginGroup(QStringLiteral("CodeView"));
-    m_sourceFile = settings.value(QStringLiteral("Sourcefile")).toString();
+    m_source_file = settings.value(QStringLiteral("Sourcefile")).toString();
     settings.endGroup();
 }
 
@@ -483,7 +546,7 @@ void CodeView::readSettings() {
 void CodeView::writeSettings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
     settings.beginGroup(QStringLiteral("CodeView"));
-    settings.setValue(QStringLiteral("Sourcefile"), m_sourceFile);
+    settings.setValue(QStringLiteral("Sourcefile"), m_source_file);
     settings.endGroup();
 }
 
