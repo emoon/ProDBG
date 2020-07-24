@@ -191,12 +191,12 @@ void MainWindow::init_actions() {
     connect(m_ui.debug_executable, &QAction::triggered, this, &MainWindow::open_debug_executable);
     connect(m_ui.actionPreferences, &QAction::triggered, this, &MainWindow::show_prefs);
     connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggle_breakpoint);
+    connect(m_ui.actionStep_In, &QAction::triggered, this, &MainWindow::step_in);
 
     /*
        connect(m_ui.actionStart, &QAction::triggered, this, &MainWindow::startDebug);
        connect(m_ui.actionReloadCurrentFile, &QAction::triggered, this, &MainWindow::reloadCurrentFile);
        connect(m_ui.actionStep_Over, &QAction::triggered, this, &MainWindow::stepOver);
-       connect(m_ui.actionStep_In, &QAction::triggered, this, &MainWindow::stepIn);
        connect(m_ui.actionAmiga_UAE, &QAction::triggered, this, &MainWindow::amigaUAEConfig);
        connect(m_ui.actionDebugAmigaExe, &QAction::triggered, this, &MainWindow::debugAmigaExe);
        connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggleBreakpoint);
@@ -423,9 +423,9 @@ void MainWindow::setup_backend_connections() {
     // connect(this, &MainWindow::target_reply, m_backend, &BackendSession::target_reply);
 
     connect(m_backend, &BackendSession::target_reply, this, &MainWindow::target_reply);
+    connect(this, &MainWindow::step_in_backend, m_backend, &BackendSession::step_in);
 
     /*
-       connect(this, &MainWindow::stepInBackend, m_backend, &BackendSession::stepIn);
        connect(this, &MainWindow::stepOverBackend, m_backend, &BackendSession::stepOver);
        connect(this, &MainWindow::breakContBackend, m_backend, &BackendSession::breakContDebug);
        connect(this, &MainWindow::stopBackend, m_backend, &BackendSession::stop);

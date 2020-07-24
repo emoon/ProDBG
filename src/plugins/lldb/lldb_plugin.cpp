@@ -89,6 +89,19 @@ static void destroy_instance(void* user_data) {
 
 const bool m_verbose = true;
 
+static void on_step(LLDBPlugin* plugin) {
+    lldb::SBEvent evt;
+
+    lldb::SBThread thread(plugin->process.GetThreadByID(plugin->selected_thread_id));
+
+    printf("thread stopReason %d\n", thread.GetStopReason());
+    printf("threadValid %d\n", thread.IsValid());
+
+    thread.StepInto();
+
+    plugin->state = PDDebugState_Running;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
@@ -104,18 +117,6 @@ static void on_break(LLDBPlugin* plugin) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void on_step(LLDBPlugin* plugin) {
-    lldb::SBEvent evt;
-
-    lldb::SBThread thread(plugin->process.GetThreadByID(plugin->selected_thread_id));
-
-    printf("thread stopReason %d\n", thread.GetStopReason());
-    printf("threadValid %d\n", thread.IsValid());
-
-    thread.StepInto();
-
-    plugin->state = PDDebugState_Running;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -608,10 +609,10 @@ static void do_action(LLDBPlugin* plugin, PDAction action) {
         case PDAction_Run:
             on_run(plugin);
             break;
-        /*
         case PDAction_Step:
             on_step(plugin);
             break;
+        /*
         case PDAction_StepOut:
             on_step_over(plugin);
             break;

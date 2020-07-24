@@ -32,10 +32,11 @@ public:
     Q_SLOT void request_add_file_line_breakpoint(const QString& filename, int line);
     Q_SLOT void request_remove_file_line_breakpoint(const QString& filename, int line);
 
+    Q_SLOT void step_in();
+
     /*
     Q_SLOT void start();
     Q_SLOT void stop();
-    Q_SLOT void stepIn();
     Q_SLOT void stepOver();
     Q_SLOT void breakContDebug();
 
