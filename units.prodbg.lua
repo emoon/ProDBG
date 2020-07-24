@@ -84,8 +84,8 @@ Program {
         -- Views
         gen_uic("src/prodbg/FileBrowserView.ui"),
         gen_moc("src/prodbg/FileBrowserView.h"),
-
-        --
+        gen_uic("src/prodbg/LocalsView.ui"),
+        gen_moc("src/prodbg/LocalsView.h"),
 
         gen_uic("src/prodbg/Config/AmigaUAEConfig.ui"),
         gen_moc("src/prodbg/Config/AmigaUAEConfig.h"),
