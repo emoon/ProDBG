@@ -15,6 +15,7 @@ namespace prodbg {
 
 class IBackendRequests;
 class LocalsModel;
+class Node;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -28,6 +29,10 @@ public:
 
 private:
 
+    Q_SLOT void reply_locals(const IBackendRequests::Variables& variables);
+    Q_SLOT void program_counter_changed(const IBackendRequests::ProgramCounterChange& pc);
+
+    Node* m_root = nullptr;
     LocalsModel* m_model = nullptr;
     IBackendRequests* m_interface = nullptr;
     Ui_LocalsView* m_ui = nullptr;

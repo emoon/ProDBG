@@ -22,6 +22,7 @@ class CodeViews;
 class RecentExecutables;
 class ViewHandler;
 class SourceCodeWidget;
+class LocalsView;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -87,6 +88,7 @@ private:
 
     QVector<QAction*> m_recent_file_actions;
 
+    LocalsView* m_locals_view = nullptr;
     SourceCodeWidget* m_source_view = nullptr;
     ViewHandler* m_view_handler = nullptr;
 

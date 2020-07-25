@@ -27,6 +27,27 @@ public:
     };
 
     //
+    // Data for a variable
+    //
+    struct VariableData {
+        // Adress of the data (may be null if not native code)
+        uint64_t address;
+        QString name;
+        QString value;
+        QString type;
+        // This is is true if the type may have children
+        // such as structs, arrays, etc
+        bool may_have_children;
+    };
+
+    //
+    //
+    struct Variables {
+        QVector<VariableData> variables;
+        uint64_t request_id;
+    };
+
+    //
     // Send from the backend when the position of the program counter has
     // changed. filename and line is optionally set if this information is
     // avalibile in the backend and line is set to -1 if no such info is there
@@ -82,6 +103,9 @@ public:
 
     // Remove a breakpoint at a specific address
     virtual void request_remove_file_line_breakpoint(const QString& filename, int line) = 0;
+
+    // Request locals variables
+    virtual uint64_t request_locals(const QString& locals_entry) = 0;
 
     // TODO: Reply breakpoints back
 
@@ -151,8 +175,10 @@ public:
     // displayed
     Q_SIGNAL void program_counter_changed(const ProgramCounterChange& pc);
 
-    // This signal is being sent when the the current debugging session has
-    // ended
+    // Reply of locals
+    Q_SIGNAL void reply_locals(const Variables& variables);
+
+    // This signal is being sent when the the current debugging session has ended
     Q_SIGNAL void session_ended();
 };
 

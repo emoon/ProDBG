@@ -56,6 +56,8 @@ MainWindow::MainWindow()
     qRegisterMetaType<uint32_t>("uint32_t");
     qRegisterMetaType<uint64_t>("uint64_t");
     qRegisterMetaType<IBackendRequests::ProgramCounterChange>("IBackendRequests::ProgramCounterChange");
+    qRegisterMetaType<IBackendRequests::VariableData>("IBackendRequests::VariableData");
+    qRegisterMetaType<IBackendRequests::Variables>("IBackendRequests::Variables");
 
     m_view_handler = new ViewHandler(this);
 
@@ -134,10 +136,9 @@ MainWindow::MainWindow()
     dock->setObjectName(QStringLiteral("FileBrowser"));
     addDockWidget(Qt::RightDockWidgetArea, dock);
 
-
-    auto locals_view = new LocalsView(this);
+    m_locals_view = new LocalsView(this);
     dock = new QDockWidget(QStringLiteral("Locals"), this);
-    dock->setWidget(locals_view );
+    dock->setWidget(m_locals_view);
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     dock->setObjectName(QStringLiteral("Locals"));
     addDockWidget(Qt::BottomDockWidgetArea, dock);
@@ -428,10 +429,10 @@ void MainWindow::process_ended(int) {
 
 void MainWindow::setup_backend_connections() {
     connect(this, &MainWindow::start_backend, m_backend, &BackendSession::start);
-    // connect(this, &MainWindow::target_reply, m_backend, &BackendSession::target_reply);
+    connect(this, &MainWindow::step_in_backend, m_backend, &BackendSession::step_in);
 
     connect(m_backend, &BackendSession::target_reply, this, &MainWindow::target_reply);
-    connect(this, &MainWindow::step_in_backend, m_backend, &BackendSession::step_in);
+
 
     /*
        connect(this, &MainWindow::stepOverBackend, m_backend, &BackendSession::stepOver);
@@ -455,6 +456,7 @@ void MainWindow::target_reply(bool status, const QString& error_message) {
         connect(m_backend_requests, &IBackendRequests::program_counter_changed, m_code_views,
                 &CodeViews::program_counter_changed);
 
+        m_locals_view->set_backend_interface(m_backend_requests);
     } else {
         close_current_backend();
         qDebug() << "MainWindow::target_reply " << status << " " << error_message;
@@ -536,6 +538,7 @@ void MainWindow::setup_backend(BackendSession* backend) {
 
     m_backend->moveToThread(m_backend_thread);
     m_backend_requests = new BackendRequests(m_backend);
+
 
     // m_registerView->set_backend_interface(m_backendRequests);
     // m_code_views->set_backend_interface(m_backendRequests);

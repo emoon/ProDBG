@@ -328,6 +328,39 @@ static void target_reply(LLDBPlugin* plugin, const FileTargetRequest* request, P
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void locals_reply(LLDBPlugin* plugin, const LocalsRequest* request, PDWriter* writer) {
+    std::vector<flatbuffers::Offset<Variable>> locals;
+    flatbuffers::FlatBufferBuilder builder(4096);
+
+    // TODO: Support expanding locals here
+    (void)request;
+
+    lldb::SBThread thread(plugin->process.GetThreadByID(plugin->selected_thread_id));
+    lldb::SBFrame frame = thread.GetSelectedFrame();
+
+    lldb::SBValueList variables = frame.GetVariables(true, true, true, false);
+
+    for (uint32_t i = 0, c = variables.GetSize(); i < c; ++i) {
+        lldb::SBValue value = variables.GetValueAtIndex(i);
+        uint64_t adr = value.GetAddress().GetFileAddress();
+        bool exp = value.MightHaveChildren();
+        const char* name = value.GetName();
+        const char* vt = value.GetValue();
+        const char* type = value.GetTypeName();
+
+        locals.push_back(CreateVariableDirect(builder, name, vt, type, adr, exp));
+    }
+
+    auto t = builder.CreateVector<flatbuffers::Offset<Variable>>(locals);
+
+    LocalsReplyBuilder reply(builder);
+    reply.add_variables(t);
+
+    PDMessage_end_msg(writer, reply, builder);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void toggle_breakpoint(LLDBPlugin* plugin, const FileLineBreakpoint* request, PDWriter* writer) {
     flatbuffers::FlatBufferBuilder builder(1024);
 
@@ -640,6 +673,11 @@ static void process_events(LLDBPlugin* plugin, PDReader* reader, PDWriter* write
         switch (msg->message_type()) {
             case MessageType_exception_location_request: {
                 exception_location_reply(plugin, writer);
+                break;
+            }
+
+            case MessageType_locals_request: {
+                locals_reply(plugin, msg->message_as_locals_request(), writer);
                 break;
             }
 

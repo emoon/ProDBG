@@ -30,6 +30,11 @@ public:
     // Remove a breakpoint at a specific address
     void request_remove_file_line_breakpoint(const QString& filename, int line);
 
+    // Request locals variables. This function returns an ID that should be used
+    // to match the reply. This is because several users may request data and
+    // it's up to the user to make sure the use the data that match the request
+    uint64_t request_locals(const QString& locals_entry);
+
     // Send a custom event to the backend. The id should be registers using the
     // IdService_register This can be done in the same way using the id service
     // on the backend side. This allows the front-end to send custom commands to
@@ -68,10 +73,10 @@ public:
     */
 
 private:
-    Q_SIGNAL void file_target_request_signal(const QString& filename);
-    Q_SIGNAL void reply_source_files_signal(const QVector<QString>& files);
+    Q_SIGNAL void request_file_target_signal(const QString& filename);
     Q_SIGNAL void request_add_file_line_breakpoint_signal(const QString& filename, int line);
     Q_SIGNAL void request_remove_file_line_breakpoint_signal(const QString& filename, int line);
+    Q_SIGNAL void request_locals_signal(const QString& locals_entry);
 
     /*
     Q_SIGNAL void evalExpression(const QString& expr, uint64_t* out);

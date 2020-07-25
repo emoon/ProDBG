@@ -15,11 +15,23 @@ struct TargetReplyBuilder;
 struct ExceptionLocationRequest;
 struct ExceptionLocationRequestBuilder;
 
+struct LocalsRequest;
+struct LocalsRequestBuilder;
+
 struct FileLineBreakpoint;
 struct FileLineBreakpointBuilder;
 
+struct Variable;
+struct VariableBuilder;
+
+struct LocalsReply;
+struct LocalsReplyBuilder;
+
 struct ExceptionLocationReply;
 struct ExceptionLocationReplyBuilder;
+
+struct FrameSelectReply;
+struct FrameSelectReplyBuilder;
 
 struct Message;
 struct MessageBuilder;
@@ -31,37 +43,46 @@ enum MessageType {
   MessageType_exception_location_request = 3,
   MessageType_exception_location_reply = 4,
   MessageType_file_line_breakpoint_request = 5,
+  MessageType_locals_request = 6,
+  MessageType_locals_reply = 7,
+  MessageType_frame_select_reply = 8,
   MessageType_MIN = MessageType_NONE,
-  MessageType_MAX = MessageType_file_line_breakpoint_request
+  MessageType_MAX = MessageType_frame_select_reply
 };
 
-inline const MessageType (&EnumValuesMessageType())[6] {
+inline const MessageType (&EnumValuesMessageType())[9] {
   static const MessageType values[] = {
     MessageType_NONE,
     MessageType_file_target_request,
     MessageType_target_reply,
     MessageType_exception_location_request,
     MessageType_exception_location_reply,
-    MessageType_file_line_breakpoint_request
+    MessageType_file_line_breakpoint_request,
+    MessageType_locals_request,
+    MessageType_locals_reply,
+    MessageType_frame_select_reply
   };
   return values;
 }
 
 inline const char * const *EnumNamesMessageType() {
-  static const char * const names[7] = {
+  static const char * const names[10] = {
     "NONE",
     "file_target_request",
     "target_reply",
     "exception_location_request",
     "exception_location_reply",
     "file_line_breakpoint_request",
+    "locals_request",
+    "locals_reply",
+    "frame_select_reply",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameMessageType(MessageType e) {
-  if (flatbuffers::IsOutRange(e, MessageType_NONE, MessageType_file_line_breakpoint_request)) return "";
+  if (flatbuffers::IsOutRange(e, MessageType_NONE, MessageType_frame_select_reply)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesMessageType()[index];
 }
@@ -88,6 +109,18 @@ template<> struct MessageTypeTraits<ExceptionLocationReply> {
 
 template<> struct MessageTypeTraits<FileLineBreakpoint> {
   static const MessageType enum_value = MessageType_file_line_breakpoint_request;
+};
+
+template<> struct MessageTypeTraits<LocalsRequest> {
+  static const MessageType enum_value = MessageType_locals_request;
+};
+
+template<> struct MessageTypeTraits<LocalsReply> {
+  static const MessageType enum_value = MessageType_locals_reply;
+};
+
+template<> struct MessageTypeTraits<FrameSelectReply> {
+  static const MessageType enum_value = MessageType_frame_select_reply;
 };
 
 bool VerifyMessageType(flatbuffers::Verifier &verifier, const void *obj, MessageType type);
@@ -236,6 +269,57 @@ inline flatbuffers::Offset<ExceptionLocationRequest> CreateExceptionLocationRequ
   return builder_.Finish();
 }
 
+struct LocalsRequest FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef LocalsRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_ENTRY = 4
+  };
+  const flatbuffers::String *entry() const {
+    return GetPointer<const flatbuffers::String *>(VT_ENTRY);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_ENTRY) &&
+           verifier.VerifyString(entry()) &&
+           verifier.EndTable();
+  }
+};
+
+struct LocalsRequestBuilder {
+  typedef LocalsRequest Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_entry(flatbuffers::Offset<flatbuffers::String> entry) {
+    fbb_.AddOffset(LocalsRequest::VT_ENTRY, entry);
+  }
+  explicit LocalsRequestBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<LocalsRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<LocalsRequest>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<LocalsRequest> CreateLocalsRequest(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> entry = 0) {
+  LocalsRequestBuilder builder_(_fbb);
+  builder_.add_entry(entry);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<LocalsRequest> CreateLocalsRequestDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *entry = nullptr) {
+  auto entry__ = entry ? _fbb.CreateString(entry) : 0;
+  return CreateLocalsRequest(
+      _fbb,
+      entry__);
+}
+
 struct FileLineBreakpoint FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef FileLineBreakpointBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -309,6 +393,161 @@ inline flatbuffers::Offset<FileLineBreakpoint> CreateFileLineBreakpointDirect(
       filename__,
       line,
       add_remove);
+}
+
+struct Variable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef VariableBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_VALUE = 6,
+    VT_TYPE = 8,
+    VT_ADDRESS = 10,
+    VT_MAY_HAVE_CHILDREN = 12
+  };
+  const flatbuffers::String *name() const {
+    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  }
+  const flatbuffers::String *value() const {
+    return GetPointer<const flatbuffers::String *>(VT_VALUE);
+  }
+  const flatbuffers::String *type() const {
+    return GetPointer<const flatbuffers::String *>(VT_TYPE);
+  }
+  uint64_t address() const {
+    return GetField<uint64_t>(VT_ADDRESS, 0);
+  }
+  bool may_have_children() const {
+    return GetField<uint8_t>(VT_MAY_HAVE_CHILDREN, 0) != 0;
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyOffset(verifier, VT_VALUE) &&
+           verifier.VerifyString(value()) &&
+           VerifyOffset(verifier, VT_TYPE) &&
+           verifier.VerifyString(type()) &&
+           VerifyField<uint64_t>(verifier, VT_ADDRESS) &&
+           VerifyField<uint8_t>(verifier, VT_MAY_HAVE_CHILDREN) &&
+           verifier.EndTable();
+  }
+};
+
+struct VariableBuilder {
+  typedef Variable Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+    fbb_.AddOffset(Variable::VT_NAME, name);
+  }
+  void add_value(flatbuffers::Offset<flatbuffers::String> value) {
+    fbb_.AddOffset(Variable::VT_VALUE, value);
+  }
+  void add_type(flatbuffers::Offset<flatbuffers::String> type) {
+    fbb_.AddOffset(Variable::VT_TYPE, type);
+  }
+  void add_address(uint64_t address) {
+    fbb_.AddElement<uint64_t>(Variable::VT_ADDRESS, address, 0);
+  }
+  void add_may_have_children(bool may_have_children) {
+    fbb_.AddElement<uint8_t>(Variable::VT_MAY_HAVE_CHILDREN, static_cast<uint8_t>(may_have_children), 0);
+  }
+  explicit VariableBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<Variable> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<Variable>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Variable> CreateVariable(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> name = 0,
+    flatbuffers::Offset<flatbuffers::String> value = 0,
+    flatbuffers::Offset<flatbuffers::String> type = 0,
+    uint64_t address = 0,
+    bool may_have_children = false) {
+  VariableBuilder builder_(_fbb);
+  builder_.add_address(address);
+  builder_.add_type(type);
+  builder_.add_value(value);
+  builder_.add_name(name);
+  builder_.add_may_have_children(may_have_children);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Variable> CreateVariableDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    const char *value = nullptr,
+    const char *type = nullptr,
+    uint64_t address = 0,
+    bool may_have_children = false) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto value__ = value ? _fbb.CreateString(value) : 0;
+  auto type__ = type ? _fbb.CreateString(type) : 0;
+  return CreateVariable(
+      _fbb,
+      name__,
+      value__,
+      type__,
+      address,
+      may_have_children);
+}
+
+struct LocalsReply FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef LocalsReplyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_VARIABLES = 4
+  };
+  const flatbuffers::Vector<flatbuffers::Offset<Variable>> *variables() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Variable>> *>(VT_VARIABLES);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_VARIABLES) &&
+           verifier.VerifyVector(variables()) &&
+           verifier.VerifyVectorOfTables(variables()) &&
+           verifier.EndTable();
+  }
+};
+
+struct LocalsReplyBuilder {
+  typedef LocalsReply Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_variables(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Variable>>> variables) {
+    fbb_.AddOffset(LocalsReply::VT_VARIABLES, variables);
+  }
+  explicit LocalsReplyBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<LocalsReply> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<LocalsReply>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<LocalsReply> CreateLocalsReply(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Variable>>> variables = 0) {
+  LocalsReplyBuilder builder_(_fbb);
+  builder_.add_variables(variables);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<LocalsReply> CreateLocalsReplyDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<flatbuffers::Offset<Variable>> *variables = nullptr) {
+  auto variables__ = variables ? _fbb.CreateVector<flatbuffers::Offset<Variable>>(*variables) : 0;
+  return CreateLocalsReply(
+      _fbb,
+      variables__);
 }
 
 struct ExceptionLocationReply FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -386,6 +625,47 @@ inline flatbuffers::Offset<ExceptionLocationReply> CreateExceptionLocationReplyD
       address);
 }
 
+struct FrameSelectReply FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef FrameSelectReplyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_FRAME_INDEX = 4
+  };
+  int32_t frame_index() const {
+    return GetField<int32_t>(VT_FRAME_INDEX, 0);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<int32_t>(verifier, VT_FRAME_INDEX) &&
+           verifier.EndTable();
+  }
+};
+
+struct FrameSelectReplyBuilder {
+  typedef FrameSelectReply Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_frame_index(int32_t frame_index) {
+    fbb_.AddElement<int32_t>(FrameSelectReply::VT_FRAME_INDEX, frame_index, 0);
+  }
+  explicit FrameSelectReplyBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<FrameSelectReply> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<FrameSelectReply>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<FrameSelectReply> CreateFrameSelectReply(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t frame_index = 0) {
+  FrameSelectReplyBuilder builder_(_fbb);
+  builder_.add_frame_index(frame_index);
+  return builder_.Finish();
+}
+
 struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MessageBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -414,6 +694,15 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   const FileLineBreakpoint *message_as_file_line_breakpoint_request() const {
     return message_type() == MessageType_file_line_breakpoint_request ? static_cast<const FileLineBreakpoint *>(message()) : nullptr;
+  }
+  const LocalsRequest *message_as_locals_request() const {
+    return message_type() == MessageType_locals_request ? static_cast<const LocalsRequest *>(message()) : nullptr;
+  }
+  const LocalsReply *message_as_locals_reply() const {
+    return message_type() == MessageType_locals_reply ? static_cast<const LocalsReply *>(message()) : nullptr;
+  }
+  const FrameSelectReply *message_as_frame_select_reply() const {
+    return message_type() == MessageType_frame_select_reply ? static_cast<const FrameSelectReply *>(message()) : nullptr;
   }
   const flatbuffers::Vector<uint8_t> *user_data() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_USER_DATA);
@@ -447,6 +736,18 @@ template<> inline const ExceptionLocationReply *Message::message_as<ExceptionLoc
 
 template<> inline const FileLineBreakpoint *Message::message_as<FileLineBreakpoint>() const {
   return message_as_file_line_breakpoint_request();
+}
+
+template<> inline const LocalsRequest *Message::message_as<LocalsRequest>() const {
+  return message_as_locals_request();
+}
+
+template<> inline const LocalsReply *Message::message_as<LocalsReply>() const {
+  return message_as_locals_reply();
+}
+
+template<> inline const FrameSelectReply *Message::message_as<FrameSelectReply>() const {
+  return message_as_frame_select_reply();
 }
 
 struct MessageBuilder {
@@ -521,6 +822,18 @@ inline bool VerifyMessageType(flatbuffers::Verifier &verifier, const void *obj, 
     }
     case MessageType_file_line_breakpoint_request: {
       auto ptr = reinterpret_cast<const FileLineBreakpoint *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MessageType_locals_request: {
+      auto ptr = reinterpret_cast<const LocalsRequest *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MessageType_locals_reply: {
+      auto ptr = reinterpret_cast<const LocalsReply *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MessageType_frame_select_reply: {
+      auto ptr = reinterpret_cast<const FrameSelectReply *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;

@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-extern void callMe();
+extern void callMe(int test, float test2);
 
 #ifdef __clang__
 
@@ -46,7 +46,7 @@ int main() {
     for (i = 0; i < 20; ++i)
         printf("%d\n", i);
 
-    callMe();
+    callMe(1, 2.0f);
 
     for (i = 0; i < 20; ++i)
         printf("%d\n", i);

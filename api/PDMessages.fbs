@@ -14,11 +14,28 @@ table TargetReply {
 // Get the current location of where the process is halted.
 table ExceptionLocationRequest { }
 
+table LocalsRequest {
+    entry: string;
+}
+
 // To set a breakpoint on a file and line
 table FileLineBreakpoint {
     filename: string;
     line: int;
     add_remove: bool;
+}
+
+// Data for variable data frame when debugging with debug info
+table Variable {
+    name: string;
+    value: string;
+    type: string;
+    address: ulong;
+    may_have_children: bool;
+}
+
+table LocalsReply {
+    variables: [Variable];
 }
 
 // Reply on the exception location. If filename/line is supported (has debugging info, and correct backend)
@@ -29,19 +46,26 @@ table ExceptionLocationReply {
     address: ulong;
 }
 
+table FrameSelectReply {
+    frame_index: int;
+}
+
 union MessageType {
     file_target_request: FileTargetRequest,
     target_reply: TargetReply,
     exception_location_request: ExceptionLocationRequest,
     exception_location_reply: ExceptionLocationReply,
     file_line_breakpoint_request: FileLineBreakpoint,
+    locals_request: LocalsRequest,
+    locals_reply: LocalsReply,
+    frame_select_reply: FrameSelectReply,
 }
 
 // Main message that is being passed between backend and frontend. User data can be used
 // from both sides to pass extra information around which doesn't fit any of the messages
 table Message {
-  message: MessageType;
-  user_data: [ubyte];
+    message: MessageType;
+    user_data: [ubyte];
 }
 
 root_type Message;

@@ -112,7 +112,13 @@ int LocalsModel::rowCount(const QModelIndex& parent) const {
         return 0;
     }
 
-    return parent_node->children.count();
+    int count = parent_node->children.count();
+
+    if (parent_node->may_have_children && count == 0) {
+        return 1;
+    } else {
+        return count;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -121,10 +127,6 @@ QModelIndex LocalsModel::index(int row, int column, const QModelIndex& parent) c
     if (!hasIndex(row, column, parent)) {
         return QModelIndex();
     }
-
-    //if (!m_root_node || row < 0 || column < 0) {
-    //    return QModelIndex();
-    //}
 
     Node* parent_node = node_from_index(parent);
     Node* child_node = parent_node->children.value(row);
@@ -196,11 +198,7 @@ Qt::ItemFlags LocalsModel::flags(const QModelIndex& index) const {
     return QAbstractItemModel::flags(index);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-LocalsView::LocalsView(QWidget* parent) : QWidget(parent), m_model(new LocalsModel), m_ui(new Ui_LocalsView) {
-    m_ui->setupUi(this);
-
+/*
     Node* root = new Node(nullptr, QStringLiteral(""), QStringLiteral(""), QStringLiteral(""), true);
     Node* s = new Node(root, QStringLiteral("Value 3"), QStringLiteral("{Foobar}"), QStringLiteral("FooBar"), true);
 
@@ -212,15 +210,16 @@ LocalsView::LocalsView(QWidget* parent) : QWidget(parent), m_model(new LocalsMod
         new Node(root, QStringLiteral("Value 2"), QStringLiteral("2.0"), QStringLiteral("float"), false));
     root->children.push_back(s);
 
-    s->children.push_back(new Node(s, QStringLiteral("Value 4"), QStringLiteral("1.0"), QStringLiteral("float"), false));
-    s->children.push_back(new Node(s, QStringLiteral("Value 5"), QStringLiteral("2.0"), QStringLiteral("float"), false));
-    s->children.push_back(new Node(s, QStringLiteral("Value 6"), QStringLiteral("2.0"), QStringLiteral("float"), false));
+    //s->children.push_back(new Node(s, QStringLiteral("Value 4"), QStringLiteral("1.0"), QStringLiteral("float"), false));
+    //s->children.push_back(new Node(s, QStringLiteral("Value 5"), QStringLiteral("2.0"), QStringLiteral("float"), false));
+    //s->children.push_back(new Node(s, QStringLiteral("Value 6"), QStringLiteral("2.0"), QStringLiteral("float"), false));
+*/
 
-    m_model->set_root_node(root);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+LocalsView::LocalsView(QWidget* parent) : QWidget(parent), m_model(new LocalsModel), m_ui(new Ui_LocalsView) {
+    m_ui->setupUi(this);
     m_ui->locals->setModel(m_model);
-
-    // QObject::connect(m_ui->files, &QTreeView::doubleClicked, this, &LocalsView::item_double_clicked);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -231,18 +230,37 @@ LocalsView::~LocalsView() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void LocalsView::set_backend_interface(IBackendRequests* iface) {
     m_interface = iface;
 
-    /*
     if (iface) {
         connect(m_interface, &IBackendRequests::program_counter_changed, this,
                 &LocalsView::program_counter_changed);
-        connect(m_interface, &IBackendRequests::reply_source_files, this, &LocalsView::reply_source_files);
+        connect(m_interface, &IBackendRequests::reply_locals, this, &LocalsView::reply_locals);
     }
-    */
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void LocalsView::reply_locals(const IBackendRequests::Variables& vars) {
+    if (m_root) {
+        delete m_root;
+    }
+
+    m_root = new Node(nullptr, QStringLiteral(""), QStringLiteral(""), QStringLiteral(""), true);
+
+    for (const auto& t : vars.variables) {
+        m_root->children.push_back(new Node(m_root, t.name, t.value, t.type, t.may_have_children));
+    }
+
+    m_model->set_root_node(m_root);
+    m_model->layoutChanged();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void LocalsView::program_counter_changed(const IBackendRequests::ProgramCounterChange& pc) {
+    m_interface->request_locals(QStringLiteral(""));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

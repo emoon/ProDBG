@@ -685,6 +685,52 @@ void BackendSession::step_in() {
     update_current_pc();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+uint64_t BackendSession::request_locals(const QString& locals_entry) {
+    uint32_t event = 0;
+    void* data;
+    uint64_t size;
+
+    flatbuffers::FlatBufferBuilder builder(1024);
+
+    auto build_path = builder.CreateString(locals_entry.toUtf8().data());
+
+    LocalsRequestBuilder request(builder);
+    request.add_entry(build_path);
+
+    PDMessage_end_msg(m_currentWriter, request, builder);
+
+    update();
+
+    while ((event = PDRead_get_event(m_reader))) {
+        PDRead_find_data(m_reader, &data, &size, "data", 0);
+        const Message* msg = GetMessage(data);
+
+        if (msg->message_type() == MessageType_locals_reply) {
+            auto vars = msg->message_as_locals_reply();
+            IBackendRequests::Variables variables;
+
+            for (const auto& variable : *vars->variables()) {
+                IBackendRequests::VariableData var = {
+                    variable->address(),
+                    variable->name() ? QString::fromUtf8(variable->name()->c_str()) : QString(),
+                    variable->value() ? QString::fromUtf8(variable->value()->c_str()) : QString(),
+                    variable->type() ? QString::fromUtf8(variable->type()->c_str()) : QString(),
+                    variable->may_have_children(),
+                };
+
+                variables.variables.push_back(var);
+                variables.request_id = 0; // TODO: Fix me
+            }
+
+            reply_locals(variables);
+        }
+    }
+
+    return 0;
+}
+
 /*
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

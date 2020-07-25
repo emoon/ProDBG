@@ -6,11 +6,13 @@ namespace prodbg {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 BackendRequests::BackendRequests(BackendSession* session) {
-    connect(this, &BackendRequests::file_target_request_signal, session, &BackendSession::file_target_request);
+    connect(this, &BackendRequests::request_file_target_signal, session, &BackendSession::file_target_request);
     connect(this, &BackendRequests::request_add_file_line_breakpoint_signal, session,
             &BackendSession::request_add_file_line_breakpoint);
     connect(this, &BackendRequests::request_remove_file_line_breakpoint_signal, session,
             &BackendSession::request_remove_file_line_breakpoint);
+
+    connect(this, &BackendRequests::request_locals_signal, session, &BackendSession::request_locals);
 
     /*
     connect(this, &BackendRequests::sendCustomStr, session, &BackendSession::sendCustomString);
@@ -32,6 +34,7 @@ BackendRequests::BackendRequests(BackendSession* session) {
     connect(session, &BackendSession::endResolveAddress, this, &BackendRequests::endResolveAddress);
     */
 
+    connect(session, &BackendSession::reply_locals, this, &BackendRequests::reply_locals);
     connect(session, &BackendSession::program_counter_changed, this, &BackendRequests::program_counter_changed);
     connect(session, &BackendSession::session_ended, this, &BackendRequests::session_ended);
 }
@@ -39,7 +42,7 @@ BackendRequests::BackendRequests(BackendSession* session) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendRequests::file_target_request(const QString& path) {
-    file_target_request_signal(path);
+    request_file_target_signal(path);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,6 +55,13 @@ void BackendRequests::request_add_file_line_breakpoint(const QString& filename, 
 
 void BackendRequests::request_remove_file_line_breakpoint(const QString& filename, int line) {
     request_remove_file_line_breakpoint_signal(filename, line);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+uint64_t BackendRequests::request_locals(const QString& locals_entry) {
+    request_locals_signal(locals_entry);
+    return 0;
 }
 
 /*

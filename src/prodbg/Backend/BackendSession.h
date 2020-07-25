@@ -34,6 +34,8 @@ public:
 
     Q_SLOT void step_in();
 
+    Q_SLOT uint64_t request_locals(const QString& locals_entry);
+
     /*
     Q_SLOT void start();
     Q_SLOT void stop();
@@ -63,6 +65,9 @@ public:
     // Q_SIGNAL void sourceFileLineChanged(const QString& filename, uint32_t line);
     Q_SIGNAL void program_counter_changed(const IBackendRequests::ProgramCounterChange& pc);
     Q_SIGNAL void target_reply(bool status, const QString& error_message);
+
+    Q_SIGNAL void reply_locals(const IBackendRequests::Variables& variables);
+
     Q_SIGNAL void session_ended();
 
 private:
