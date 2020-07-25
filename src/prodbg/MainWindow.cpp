@@ -29,7 +29,8 @@
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMainWindow>
 #include "SourceCodeWidget.h"
-#include "edbee/texteditorwidget.h"
+#include "LocalsView.h"
+
 /*
 #include "edbee/edbee.h"
 #include "edbee/io/textdocumentserializer.h"
@@ -112,7 +113,6 @@ MainWindow::MainWindow()
      */
 
     auto temp = new QWidget(this);
-
     setCentralWidget(temp);
     temp->hide();
 
@@ -133,6 +133,14 @@ MainWindow::MainWindow()
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     dock->setObjectName(QStringLiteral("FileBrowser"));
     addDockWidget(Qt::RightDockWidgetArea, dock);
+
+
+    auto locals_view = new LocalsView(this);
+    dock = new QDockWidget(QStringLiteral("Locals"), this);
+    dock->setWidget(locals_view );
+    dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    dock->setObjectName(QStringLiteral("Locals"));
+    addDockWidget(Qt::BottomDockWidgetArea, dock);
 
     // setCentralWidget(m_source_view->m_editor);
 

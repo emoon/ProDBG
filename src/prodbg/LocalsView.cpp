@@ -12,8 +12,8 @@ namespace prodbg {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct Node {
-    Node(const QString& name, const QString& data, const QString& type, bool may_have_children)
-        : parent(nullptr), name(name), data(data), type(type), may_have_children(may_have_children) {
+    Node(Node* parent, const QString& name, const QString& data, const QString& type, bool may_have_children)
+        : parent(parent), name(name), data(data), type(type), may_have_children(may_have_children) {
     }
     ~Node() {
         qDeleteAll(children);
@@ -35,10 +35,13 @@ public:
     LocalsModel(QObject* parent = 0);
     ~LocalsModel();
 
-    void set_root_node(Node* node);
+    void set_root_node(Node* node) {
+        m_root_node = node;
+    }
 
     QModelIndex index(int row, int column, const QModelIndex& parent) const;
     QModelIndex parent(const QModelIndex& child) const;
+    Qt::ItemFlags flags(const QModelIndex& index) const override;
 
     int rowCount(const QModelIndex& parent) const;
     int columnCount(const QModelIndex& parent) const;
@@ -115,18 +118,22 @@ int LocalsModel::rowCount(const QModelIndex& parent) const {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 QModelIndex LocalsModel::index(int row, int column, const QModelIndex& parent) const {
-    if (!m_root_node || row < 0 || column < 0) {
+    if (!hasIndex(row, column, parent)) {
         return QModelIndex();
     }
+
+    //if (!m_root_node || row < 0 || column < 0) {
+    //    return QModelIndex();
+    //}
 
     Node* parent_node = node_from_index(parent);
-    Node* childNode = parent_node->children.value(row);
+    Node* child_node = parent_node->children.value(row);
 
-    if (!childNode) {
-        return QModelIndex();
+    if (child_node) {
+        return createIndex(row, column, child_node);
     }
 
-    return createIndex(row, column, childNode);
+    return QModelIndex();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,14 +162,15 @@ QModelIndex LocalsModel::parent(const QModelIndex& child) const {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 QVariant LocalsModel::data(const QModelIndex& index, int role) const {
+    if (!index.isValid()) {
+        return QVariant();
+    }
+
     if (role != Qt::DisplayRole) {
         return QVariant();
     }
 
     Node* node = node_from_index(index);
-    if (!node) {
-        return QVariant();
-    }
 
     switch (index.column()) {
         case 0:
@@ -177,10 +185,38 @@ QVariant LocalsModel::data(const QModelIndex& index, int role) const {
 
     return QVariant();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Qt::ItemFlags LocalsModel::flags(const QModelIndex& index) const {
+    if (!index.isValid()) {
+        return Qt::NoItemFlags;
+    }
+
+    return QAbstractItemModel::flags(index);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 LocalsView::LocalsView(QWidget* parent) : QWidget(parent), m_model(new LocalsModel), m_ui(new Ui_LocalsView) {
     m_ui->setupUi(this);
+
+    Node* root = new Node(nullptr, QStringLiteral(""), QStringLiteral(""), QStringLiteral(""), true);
+    Node* s = new Node(root, QStringLiteral("Value 3"), QStringLiteral("{Foobar}"), QStringLiteral("FooBar"), true);
+
+    root->children.push_back(
+        new Node(root, QStringLiteral("Value 0"), QStringLiteral("1.0"), QStringLiteral("float"), false));
+    root->children.push_back(
+        new Node(root, QStringLiteral("Value 1"), QStringLiteral("2.0"), QStringLiteral("float"), false));
+    root->children.push_back(
+        new Node(root, QStringLiteral("Value 2"), QStringLiteral("2.0"), QStringLiteral("float"), false));
+    root->children.push_back(s);
+
+    s->children.push_back(new Node(s, QStringLiteral("Value 4"), QStringLiteral("1.0"), QStringLiteral("float"), false));
+    s->children.push_back(new Node(s, QStringLiteral("Value 5"), QStringLiteral("2.0"), QStringLiteral("float"), false));
+    s->children.push_back(new Node(s, QStringLiteral("Value 6"), QStringLiteral("2.0"), QStringLiteral("float"), false));
+
+    m_model->set_root_node(root);
 
     m_ui->locals->setModel(m_model);
 
