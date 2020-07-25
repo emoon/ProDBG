@@ -6,6 +6,9 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+struct BasicRequest;
+struct BasicRequestBuilder;
+
 struct FileTargetRequest;
 struct FileTargetRequestBuilder;
 
@@ -24,6 +27,12 @@ struct FileLineBreakpointBuilder;
 struct Variable;
 struct VariableBuilder;
 
+struct CallstackEntry;
+struct CallstackEntryBuilder;
+
+struct Callstack;
+struct CallstackBuilder;
+
 struct LocalsReply;
 struct LocalsReplyBuilder;
 
@@ -36,6 +45,36 @@ struct FrameSelectReplyBuilder;
 struct Message;
 struct MessageBuilder;
 
+enum BasicRequestEnum {
+  BasicRequestEnum_SourceFiles = 0,
+  BasicRequestEnum_Callstack = 1,
+  BasicRequestEnum_MIN = BasicRequestEnum_SourceFiles,
+  BasicRequestEnum_MAX = BasicRequestEnum_Callstack
+};
+
+inline const BasicRequestEnum (&EnumValuesBasicRequestEnum())[2] {
+  static const BasicRequestEnum values[] = {
+    BasicRequestEnum_SourceFiles,
+    BasicRequestEnum_Callstack
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesBasicRequestEnum() {
+  static const char * const names[3] = {
+    "SourceFiles",
+    "Callstack",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameBasicRequestEnum(BasicRequestEnum e) {
+  if (flatbuffers::IsOutRange(e, BasicRequestEnum_SourceFiles, BasicRequestEnum_Callstack)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesBasicRequestEnum()[index];
+}
+
 enum MessageType {
   MessageType_NONE = 0,
   MessageType_file_target_request = 1,
@@ -46,11 +85,13 @@ enum MessageType {
   MessageType_locals_request = 6,
   MessageType_locals_reply = 7,
   MessageType_frame_select_reply = 8,
+  MessageType_basic_request = 9,
+  MessageType_callstack_reply = 10,
   MessageType_MIN = MessageType_NONE,
-  MessageType_MAX = MessageType_frame_select_reply
+  MessageType_MAX = MessageType_callstack_reply
 };
 
-inline const MessageType (&EnumValuesMessageType())[9] {
+inline const MessageType (&EnumValuesMessageType())[11] {
   static const MessageType values[] = {
     MessageType_NONE,
     MessageType_file_target_request,
@@ -60,13 +101,15 @@ inline const MessageType (&EnumValuesMessageType())[9] {
     MessageType_file_line_breakpoint_request,
     MessageType_locals_request,
     MessageType_locals_reply,
-    MessageType_frame_select_reply
+    MessageType_frame_select_reply,
+    MessageType_basic_request,
+    MessageType_callstack_reply
   };
   return values;
 }
 
 inline const char * const *EnumNamesMessageType() {
-  static const char * const names[10] = {
+  static const char * const names[12] = {
     "NONE",
     "file_target_request",
     "target_reply",
@@ -76,13 +119,15 @@ inline const char * const *EnumNamesMessageType() {
     "locals_request",
     "locals_reply",
     "frame_select_reply",
+    "basic_request",
+    "callstack_reply",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameMessageType(MessageType e) {
-  if (flatbuffers::IsOutRange(e, MessageType_NONE, MessageType_frame_select_reply)) return "";
+  if (flatbuffers::IsOutRange(e, MessageType_NONE, MessageType_callstack_reply)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesMessageType()[index];
 }
@@ -123,8 +168,57 @@ template<> struct MessageTypeTraits<FrameSelectReply> {
   static const MessageType enum_value = MessageType_frame_select_reply;
 };
 
+template<> struct MessageTypeTraits<BasicRequest> {
+  static const MessageType enum_value = MessageType_basic_request;
+};
+
+template<> struct MessageTypeTraits<Callstack> {
+  static const MessageType enum_value = MessageType_callstack_reply;
+};
+
 bool VerifyMessageType(flatbuffers::Verifier &verifier, const void *obj, MessageType type);
 bool VerifyMessageTypeVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+
+struct BasicRequest FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef BasicRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_ID = 4
+  };
+  BasicRequestEnum id() const {
+    return static_cast<BasicRequestEnum>(GetField<int16_t>(VT_ID, 0));
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<int16_t>(verifier, VT_ID) &&
+           verifier.EndTable();
+  }
+};
+
+struct BasicRequestBuilder {
+  typedef BasicRequest Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_id(BasicRequestEnum id) {
+    fbb_.AddElement<int16_t>(BasicRequest::VT_ID, static_cast<int16_t>(id), 0);
+  }
+  explicit BasicRequestBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<BasicRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<BasicRequest>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<BasicRequest> CreateBasicRequest(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    BasicRequestEnum id = BasicRequestEnum_SourceFiles) {
+  BasicRequestBuilder builder_(_fbb);
+  builder_.add_id(id);
+  return builder_.Finish();
+}
 
 struct FileTargetRequest FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef FileTargetRequestBuilder Builder;
@@ -498,6 +592,147 @@ inline flatbuffers::Offset<Variable> CreateVariableDirect(
       may_have_children);
 }
 
+struct CallstackEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef CallstackEntryBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_ADDRESS = 4,
+    VT_MODULE_NAME = 6,
+    VT_FILE = 8,
+    VT_LINE = 10
+  };
+  uint64_t address() const {
+    return GetField<uint64_t>(VT_ADDRESS, 0);
+  }
+  const flatbuffers::String *module_name() const {
+    return GetPointer<const flatbuffers::String *>(VT_MODULE_NAME);
+  }
+  const flatbuffers::String *file() const {
+    return GetPointer<const flatbuffers::String *>(VT_FILE);
+  }
+  int32_t line() const {
+    return GetField<int32_t>(VT_LINE, 0);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint64_t>(verifier, VT_ADDRESS) &&
+           VerifyOffset(verifier, VT_MODULE_NAME) &&
+           verifier.VerifyString(module_name()) &&
+           VerifyOffset(verifier, VT_FILE) &&
+           verifier.VerifyString(file()) &&
+           VerifyField<int32_t>(verifier, VT_LINE) &&
+           verifier.EndTable();
+  }
+};
+
+struct CallstackEntryBuilder {
+  typedef CallstackEntry Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_address(uint64_t address) {
+    fbb_.AddElement<uint64_t>(CallstackEntry::VT_ADDRESS, address, 0);
+  }
+  void add_module_name(flatbuffers::Offset<flatbuffers::String> module_name) {
+    fbb_.AddOffset(CallstackEntry::VT_MODULE_NAME, module_name);
+  }
+  void add_file(flatbuffers::Offset<flatbuffers::String> file) {
+    fbb_.AddOffset(CallstackEntry::VT_FILE, file);
+  }
+  void add_line(int32_t line) {
+    fbb_.AddElement<int32_t>(CallstackEntry::VT_LINE, line, 0);
+  }
+  explicit CallstackEntryBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<CallstackEntry> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<CallstackEntry>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<CallstackEntry> CreateCallstackEntry(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    uint64_t address = 0,
+    flatbuffers::Offset<flatbuffers::String> module_name = 0,
+    flatbuffers::Offset<flatbuffers::String> file = 0,
+    int32_t line = 0) {
+  CallstackEntryBuilder builder_(_fbb);
+  builder_.add_address(address);
+  builder_.add_line(line);
+  builder_.add_file(file);
+  builder_.add_module_name(module_name);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<CallstackEntry> CreateCallstackEntryDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    uint64_t address = 0,
+    const char *module_name = nullptr,
+    const char *file = nullptr,
+    int32_t line = 0) {
+  auto module_name__ = module_name ? _fbb.CreateString(module_name) : 0;
+  auto file__ = file ? _fbb.CreateString(file) : 0;
+  return CreateCallstackEntry(
+      _fbb,
+      address,
+      module_name__,
+      file__,
+      line);
+}
+
+struct Callstack FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef CallstackBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_ENTRIES = 4
+  };
+  const flatbuffers::Vector<flatbuffers::Offset<CallstackEntry>> *entries() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<CallstackEntry>> *>(VT_ENTRIES);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_ENTRIES) &&
+           verifier.VerifyVector(entries()) &&
+           verifier.VerifyVectorOfTables(entries()) &&
+           verifier.EndTable();
+  }
+};
+
+struct CallstackBuilder {
+  typedef Callstack Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_entries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<CallstackEntry>>> entries) {
+    fbb_.AddOffset(Callstack::VT_ENTRIES, entries);
+  }
+  explicit CallstackBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<Callstack> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<Callstack>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Callstack> CreateCallstack(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<CallstackEntry>>> entries = 0) {
+  CallstackBuilder builder_(_fbb);
+  builder_.add_entries(entries);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Callstack> CreateCallstackDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<flatbuffers::Offset<CallstackEntry>> *entries = nullptr) {
+  auto entries__ = entries ? _fbb.CreateVector<flatbuffers::Offset<CallstackEntry>>(*entries) : 0;
+  return CreateCallstack(
+      _fbb,
+      entries__);
+}
+
 struct LocalsReply FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef LocalsReplyBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -704,6 +939,12 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const FrameSelectReply *message_as_frame_select_reply() const {
     return message_type() == MessageType_frame_select_reply ? static_cast<const FrameSelectReply *>(message()) : nullptr;
   }
+  const BasicRequest *message_as_basic_request() const {
+    return message_type() == MessageType_basic_request ? static_cast<const BasicRequest *>(message()) : nullptr;
+  }
+  const Callstack *message_as_callstack_reply() const {
+    return message_type() == MessageType_callstack_reply ? static_cast<const Callstack *>(message()) : nullptr;
+  }
   const flatbuffers::Vector<uint8_t> *user_data() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_USER_DATA);
   }
@@ -748,6 +989,14 @@ template<> inline const LocalsReply *Message::message_as<LocalsReply>() const {
 
 template<> inline const FrameSelectReply *Message::message_as<FrameSelectReply>() const {
   return message_as_frame_select_reply();
+}
+
+template<> inline const BasicRequest *Message::message_as<BasicRequest>() const {
+  return message_as_basic_request();
+}
+
+template<> inline const Callstack *Message::message_as<Callstack>() const {
+  return message_as_callstack_reply();
 }
 
 struct MessageBuilder {
@@ -834,6 +1083,14 @@ inline bool VerifyMessageType(flatbuffers::Verifier &verifier, const void *obj, 
     }
     case MessageType_frame_select_reply: {
       auto ptr = reinterpret_cast<const FrameSelectReply *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MessageType_basic_request: {
+      auto ptr = reinterpret_cast<const BasicRequest *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MessageType_callstack_reply: {
+      auto ptr = reinterpret_cast<const Callstack *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;

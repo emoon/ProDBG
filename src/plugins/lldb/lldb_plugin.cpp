@@ -178,60 +178,40 @@ void on_run(LLDBPlugin* plugin) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-static void setCallstack(LLDBPlugin* plugin, PDWriter* writer) {
+static void reply_callstack(LLDBPlugin* plugin, PDWriter* writer) {
+    flatbuffers::FlatBufferBuilder builder(1024);
+    std::vector<flatbuffers::Offset<CallstackEntry>> entries;
+
     lldb::SBThread thread(plugin->process.GetThreadByID(plugin->selected_thread_id));
 
-    printf("set callstack\n");
+    printf("reply_callstack\n");
 
-    int frameCount = (int)thread.GetNumFrames();
+    for (uint32_t i = 0, c = thread.GetNumFrames(); i < c; ++i) {
+        char filename[4096];
+        char module_name[4096];
 
-    if (frameCount == 0)
-        return;
-
-    // TODO: Write type of callstack
-
-    PDWrite_event_begin(writer, PDEventType_SetCallstack);
-    PDWrite_array_begin(writer, "callstack");
-
-    for (int i = 0; i < frameCount; ++i) {
-        char fileLine[2048];
-        char moduleName[2048];
-
-        lldb::SBFrame frame = thread.GetFrameAtIndex((uint32_t)i);
-        lldb::SBModule module = frame.GetModule();
-        lldb::SBCompileUnit compileUnit = frame.GetCompileUnit();
-        lldb::SBSymbolContext context(frame.GetSymbolContext(0x0000006e));
+        lldb::SBFrame frame = thread.GetFrameAtIndex(i);
+        lldb::SBModule mod = frame.GetModule();
+        lldb::SBSymbolContext context(frame.GetSymbolContext(lldb::eSymbolContextEverything));
         lldb::SBLineEntry entry(context.GetLineEntry());
 
         uint64_t address = (uint64_t)frame.GetPC();
 
-        module.GetFileSpec().GetPath(moduleName, sizeof(moduleName));
+        mod.GetFileSpec().GetPath(module_name, sizeof(module_name));
 
-        PDWrite_array_entry_begin(writer);
+        uint32_t line = entry.GetLine();
+        entry.GetFileSpec().GetPath(filename, sizeof(filename));
 
-        if (compileUnit.GetNumSupportFiles() > 0) {
-            char filename[2048];
-            lldb::SBFileSpec fileSpec = compileUnit.GetSupportFileAtIndex(0);
-            fileSpec.GetPath(filename, sizeof(filename));
-            sprintf(fileLine, "%s:%d", filename, entry.GetLine());
-
-            printf("callstack %s:%d\n", fileLine, entry.GetLine());
-
-            PDWrite_string(writer, "filename", filename);
-            PDWrite_u32(writer, "line", entry.GetLine());
-        }
-
-        PDWrite_string(writer, "module_name", moduleName);
-        PDWrite_u64(writer, "address", address);
-
-        PDWrite_entry_end(writer);
+        entries.push_back(CreateCallstackEntryDirect(builder, address, module_name, filename, (int)line));
     }
 
-    PDWrite_array_end(writer);
-    PDWrite_event_end(writer);
+    auto t = builder.CreateVector<flatbuffers::Offset<CallstackEntry>>(entries);
+
+    CallstackBuilder reply(builder);
+    reply.add_entries(t);
+
+    PDMessage_end_msg(writer, reply, builder);
 }
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -266,6 +246,15 @@ static void exception_location_reply(LLDBPlugin* plugin, PDWriter* writer) {
     reply.add_address(0);
 
     PDMessage_end_msg(writer, reply, builder);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void basic_reply(LLDBPlugin* plugin, const BasicRequest* request, PDWriter* writer) {
+    switch (request->id()) {
+        case BasicRequestEnum_Callstack: reply_callstack(plugin, writer); break;
+        default: break;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -673,6 +662,11 @@ static void process_events(LLDBPlugin* plugin, PDReader* reader, PDWriter* write
         switch (msg->message_type()) {
             case MessageType_exception_location_request: {
                 exception_location_reply(plugin, writer);
+                break;
+            }
+
+            case MessageType_basic_request: {
+                basic_reply(plugin, msg->message_as_basic_request(), writer);
                 break;
             }
 

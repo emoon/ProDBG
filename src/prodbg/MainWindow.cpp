@@ -30,6 +30,7 @@
 #include <QtWidgets/QMainWindow>
 #include "SourceCodeWidget.h"
 #include "LocalsView.h"
+#include "CallstackView.h"
 
 /*
 #include "edbee/edbee.h"
@@ -58,6 +59,9 @@ MainWindow::MainWindow()
     qRegisterMetaType<IBackendRequests::ProgramCounterChange>("IBackendRequests::ProgramCounterChange");
     qRegisterMetaType<IBackendRequests::VariableData>("IBackendRequests::VariableData");
     qRegisterMetaType<IBackendRequests::Variables>("IBackendRequests::Variables");
+    qRegisterMetaType<IBackendRequests::BasicRequest>("IBackendRequests::BasicRequest");
+    qRegisterMetaType<IBackendRequests::CallstackEntry>("IBackendRequests::CallstackEntry");
+    qRegisterMetaType<IBackendRequests::Callstack>("IBackendRequests::Callstack");
 
     m_view_handler = new ViewHandler(this);
 
@@ -141,6 +145,13 @@ MainWindow::MainWindow()
     dock->setWidget(m_locals_view);
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     dock->setObjectName(QStringLiteral("Locals"));
+    addDockWidget(Qt::BottomDockWidgetArea, dock);
+
+    m_callstack_view = new CallstackView(this);
+    dock = new QDockWidget(QStringLiteral("Callstack"), this);
+    dock->setWidget(m_callstack_view);
+    dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    dock->setObjectName(QStringLiteral("Callstack"));
     addDockWidget(Qt::BottomDockWidgetArea, dock);
 
     // setCentralWidget(m_source_view->m_editor);
@@ -457,6 +468,8 @@ void MainWindow::target_reply(bool status, const QString& error_message) {
                 &CodeViews::program_counter_changed);
 
         m_locals_view->set_backend_interface(m_backend_requests);
+        m_callstack_view->set_backend_interface(m_backend_requests);
+
     } else {
         close_current_backend();
         qDebug() << "MainWindow::target_reply " << status << " " << error_message;

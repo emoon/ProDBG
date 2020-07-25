@@ -220,6 +220,7 @@ Qt::ItemFlags LocalsModel::flags(const QModelIndex& index) const {
 LocalsView::LocalsView(QWidget* parent) : QWidget(parent), m_model(new LocalsModel), m_ui(new Ui_LocalsView) {
     m_ui->setupUi(this);
     m_ui->locals->setModel(m_model);
+    m_ui->locals->setAlternatingRowColors(true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

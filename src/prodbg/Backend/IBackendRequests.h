@@ -14,6 +14,14 @@ class IBackendRequests : public QObject {
     Q_OBJECT;
 
 public:
+    // Used for basic requests that doesn't need input args
+    enum class BasicRequest {
+        // All source files in the debug target as known by the backend
+        SourceFiles,
+        // Callstack of the current debugging thread (if applicable)
+        Callstack,
+    };
+
     //
     // Description of a hardware register commonly found in most CPUs
     //
@@ -24,6 +32,25 @@ public:
         QVector<uint8_t> data;
         // If the register is read only (hw registers such as Program Counter)
         bool read_only;
+    };
+
+    //
+    // Callstack Entry
+    //
+    struct CallstackEntry {
+        // Address (may be ~0 if not applicable)
+        uint64_t address;
+        // Module name (depends on the backend how this name is created)
+        QString module_name;
+        // Source file if supported
+        QString file;
+        // Line matching with source file
+        int line;
+    };
+
+    struct Callstack {
+        QVector<CallstackEntry> entries;
+        uint64_t request_id;
     };
 
     //
@@ -96,7 +123,7 @@ public:
 
     // A debug target can contains a list of source files used for the modules.
     // This will request that the backend sends back a list of them
-    virtual void request_source_files() = 0;
+    virtual void request_basic(BasicRequest request_type) = 0;
 
     // Add a breakpoint on a specific file and line number
     virtual void request_add_file_line_breakpoint(const QString& filename, int line) = 0;
@@ -149,6 +176,9 @@ public:
 public:
     // reply from request of source files
     Q_SIGNAL void reply_source_files(const QVector<QString>& files);
+
+    // reply from request of source files
+    Q_SIGNAL void reply_callstack(const Callstack& callstack);
 
     // Get hw registers from the backend
     // registers = array of registers

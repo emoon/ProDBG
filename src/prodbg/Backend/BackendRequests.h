@@ -19,7 +19,7 @@ public:
     void file_target_request(const QString& path);
 
     // Request source files from debug target
-    void request_source_files() { }
+    void request_basic(IBackendRequests::BasicRequest request_type);
 
     // Add a breakpoint at a specific address
     //void beginAddAddressBreakpoint(uint64_t address);
@@ -73,6 +73,7 @@ public:
     */
 
 private:
+    Q_SIGNAL void request_basic_signal(IBackendRequests::BasicRequest request_type);
     Q_SIGNAL void request_file_target_signal(const QString& filename);
     Q_SIGNAL void request_add_file_line_breakpoint_signal(const QString& filename, int line);
     Q_SIGNAL void request_remove_file_line_breakpoint_signal(const QString& filename, int line);

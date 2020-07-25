@@ -337,6 +337,50 @@ void BackendSession::toggleFileLineBreakpoint(const QString& filename, int line,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void BackendSession::request_basic(IBackendRequests::BasicRequest request_id) {
+    uint32_t event = 0;
+    void* data;
+    uint64_t size;
+
+    flatbuffers::FlatBufferBuilder builder(1024);
+
+    printf("BackendSession::request_basic %d\n", (int)request_id);
+
+    BasicRequestBuilder request(builder);
+    request.add_id((BasicRequestEnum)request_id);
+
+    PDMessage_end_msg(m_currentWriter, request, builder);
+
+    update();
+
+    while ((event = PDRead_get_event(m_reader))) {
+        PDRead_find_data(m_reader, &data, &size, "data", 0);
+        const Message* msg = GetMessage(data);
+
+        if (msg->message_type() == MessageType_callstack_reply) {
+            auto vars = msg->message_as_callstack_reply();
+            IBackendRequests::Callstack callstack;
+
+            for (const auto& variable : *vars->entries()) {
+                IBackendRequests::CallstackEntry var = {
+                    variable->address(),
+                    variable->module_name() ? QString::fromUtf8(variable->module_name()->c_str()) : QString(),
+                    variable->file() ? QString::fromUtf8(variable->file()->c_str()) : QString(),
+                    variable->line(),
+                };
+
+                callstack.entries.push_back(var);
+            }
+
+            reply_callstack(callstack);
+
+            break;
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void BackendSession::request_add_file_line_breakpoint(const QString& filename, int line) {
     flatbuffers::FlatBufferBuilder builder(1024);
 

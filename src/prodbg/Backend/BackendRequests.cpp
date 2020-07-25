@@ -13,6 +13,7 @@ BackendRequests::BackendRequests(BackendSession* session) {
             &BackendSession::request_remove_file_line_breakpoint);
 
     connect(this, &BackendRequests::request_locals_signal, session, &BackendSession::request_locals);
+    connect(this, &BackendRequests::request_basic_signal, session, &BackendSession::request_basic);
 
     /*
     connect(this, &BackendRequests::sendCustomStr, session, &BackendSession::sendCustomString);
@@ -34,6 +35,7 @@ BackendRequests::BackendRequests(BackendSession* session) {
     connect(session, &BackendSession::endResolveAddress, this, &BackendRequests::endResolveAddress);
     */
 
+    connect(session, &BackendSession::reply_callstack, this, &BackendRequests::reply_callstack);
     connect(session, &BackendSession::reply_locals, this, &BackendRequests::reply_locals);
     connect(session, &BackendSession::program_counter_changed, this, &BackendRequests::program_counter_changed);
     connect(session, &BackendSession::session_ended, this, &BackendRequests::session_ended);
@@ -43,6 +45,12 @@ BackendRequests::BackendRequests(BackendSession* session) {
 
 void BackendRequests::file_target_request(const QString& path) {
     request_file_target_signal(path);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendRequests::request_basic(IBackendRequests::BasicRequest request_id) {
+    request_basic_signal(request_id);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -36,6 +36,8 @@ public:
 
     Q_SLOT uint64_t request_locals(const QString& locals_entry);
 
+    Q_SLOT void request_basic(IBackendRequests::BasicRequest request_id);
+
     /*
     Q_SLOT void start();
     Q_SLOT void stop();
@@ -67,6 +69,7 @@ public:
     Q_SIGNAL void target_reply(bool status, const QString& error_message);
 
     Q_SIGNAL void reply_locals(const IBackendRequests::Variables& variables);
+    Q_SIGNAL void reply_callstack(const IBackendRequests::Callstack& callstack);
 
     Q_SIGNAL void session_ended();
 
