@@ -134,6 +134,9 @@ public:
     // Request locals variables
     virtual uint64_t request_locals(const QString& locals_entry) = 0;
 
+    // Request frame index
+    virtual uint64_t request_frame_index(int frame_index) = 0;
+
     // TODO: Reply breakpoints back
 
     // Add a breakpoint at a specific address

@@ -35,6 +35,9 @@ public:
     // it's up to the user to make sure the use the data that match the request
     uint64_t request_locals(const QString& locals_entry);
 
+   // Request frame selection
+    uint64_t request_frame_index(int frame_index);
+
     // Send a custom event to the backend. The id should be registers using the
     // IdService_register This can be done in the same way using the id service
     // on the backend side. This allows the front-end to send custom commands to
@@ -78,6 +81,7 @@ private:
     Q_SIGNAL void request_add_file_line_breakpoint_signal(const QString& filename, int line);
     Q_SIGNAL void request_remove_file_line_breakpoint_signal(const QString& filename, int line);
     Q_SIGNAL void request_locals_signal(const QString& locals_entry);
+    Q_SIGNAL void request_frame_index_signal(int frame_index);
 
     /*
     Q_SIGNAL void evalExpression(const QString& expr, uint64_t* out);

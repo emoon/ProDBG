@@ -42,7 +42,7 @@ typedef struct LLDBPlugin {
     bool has_valid_target;
     uint64_t selected_thread_id;
     const char* targetName;
-    std::map<lldb::tid_t, uint32_t> frameSelection;
+    std::map<lldb::tid_t, uint32_t> frame_selection;
     std::vector<Breakpoint> breakpoints;
 
 } LLDBPlugin;
@@ -69,9 +69,9 @@ void* create_instance(ServiceFunc* serviceFunc) {
 static uint32_t getThreadFrame(LLDBPlugin* plugin, lldb::tid_t threadId) {
     uint32_t frameIndex = 0;
 
-    auto frameIter = plugin->frameSelection.find(threadId);
+    auto frameIter = plugin->frame_selection.find(threadId);
 
-    if (frameIter != plugin->frameSelection.end()) {
+    if (frameIter != plugin->frame_selection.end()) {
         frameIndex = frameIter->second;
     }
 
@@ -558,19 +558,10 @@ static void selectThread(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-static void select_frame(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer) {
-    uint32_t frameIndex;
-
-    printf("select_frame...\n");
-
-    PDRead_find_u32(reader, &frameIndex, "frame", 0);
-
-    plugin->frameSelection[plugin->selected_thread_id] = frameIndex;
-
+static void select_frame(LLDBPlugin* plugin, const FrameSelectRequest* request, PDWriter* writer) {
+    plugin->frame_selection[plugin->selected_thread_id] = request->frame_index();
     exception_location_reply(plugin, writer);
 }
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -685,6 +676,10 @@ static void process_events(LLDBPlugin* plugin, PDReader* reader, PDWriter* write
                 break;
             }
 
+            case MessageType_frame_select_request: {
+                select_frame(plugin, msg->message_as_frame_select_request(), writer);
+                break;
+            }
 
             default: break;
         }

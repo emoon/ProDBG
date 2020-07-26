@@ -129,25 +129,25 @@ MainWindow::MainWindow()
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     dock->setWidget(m_code_views);
     // dock->setWidget(m_source_view->m_editor);
-    dock->setObjectName(QStringLiteral("SourceView"));
+    //dock->setObjectName(QStringLiteral("SourceView"));
 
     addDockWidget(Qt::LeftDockWidgetArea, dock);
 
-    auto file_browser = new FileBrowserView(this);
+    auto file_browser = new FileBrowserView(nullptr);
     dock = new QDockWidget(QStringLiteral("File Browser"), this);
     dock->setWidget(file_browser);
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     dock->setObjectName(QStringLiteral("FileBrowser"));
     addDockWidget(Qt::RightDockWidgetArea, dock);
 
-    m_locals_view = new LocalsView(this);
+    m_locals_view = new LocalsView(nullptr);
     dock = new QDockWidget(QStringLiteral("Locals"), this);
     dock->setWidget(m_locals_view);
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     dock->setObjectName(QStringLiteral("Locals"));
-    addDockWidget(Qt::BottomDockWidgetArea, dock);
+    addDockWidget(Qt::LeftDockWidgetArea, dock);
 
-    m_callstack_view = new CallstackView(this);
+    m_callstack_view = new CallstackView(nullptr);
     dock = new QDockWidget(QStringLiteral("Callstack"), this);
     dock->setWidget(m_callstack_view);
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -163,7 +163,10 @@ MainWindow::MainWindow()
     // Setup docking for MemoryView
 
     {
-        // m_ui.toolWindowManager->addToolWindow(m_code_views, ToolWindowManager::EmptySpace);
+        //m_ui.toolWindowManager->addToolWindow(m_code_views, ToolWindowManager::EmptySpace);
+        //m_ui.toolWindowManager->addToolWindow(m_callstack_view, ToolWindowManager::LastUsedArea);
+        //m_ui.toolWindowManager->addToolWindow(file_browser, ToolWindowManager::LastUsedArea);
+
         // m_ui.toolWindowManager->addToolWindow(m_memoryView, ToolWindowManager::LastUsedArea);
         // m_ui.toolWindowManager->addToolWindow(m_registerView, ToolWindowManager::LastUsedArea);
         // m_ui.toolWindowManager->addToolWindow(plugin_parent, ToolWindowManager::LastUsedArea);

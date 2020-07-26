@@ -28,6 +28,7 @@ private:
 
     Q_SLOT void reply_callstack(const IBackendRequests::Callstack& variables);
     Q_SLOT void program_counter_changed(const IBackendRequests::ProgramCounterChange& pc);
+    Q_SLOT void item_double_clicked(const QModelIndex& item);
 
     CallstackModel* m_model = nullptr;
     IBackendRequests* m_interface = nullptr;

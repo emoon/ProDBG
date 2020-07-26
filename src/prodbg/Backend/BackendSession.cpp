@@ -335,6 +335,17 @@ void BackendSession::toggleFileLineBreakpoint(const QString& filename, int line,
 }
 */
 
+void BackendSession::request_frame_index(int frame_index) {
+    flatbuffers::FlatBufferBuilder builder(1024);
+
+    FrameSelectRequestBuilder request(builder);
+    request.add_frame_index(frame_index);
+
+    PDMessage_end_msg(m_currentWriter, request, builder);
+
+    update();
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendSession::request_basic(IBackendRequests::BasicRequest request_id) {

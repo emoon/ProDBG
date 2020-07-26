@@ -14,6 +14,7 @@ BackendRequests::BackendRequests(BackendSession* session) {
 
     connect(this, &BackendRequests::request_locals_signal, session, &BackendSession::request_locals);
     connect(this, &BackendRequests::request_basic_signal, session, &BackendSession::request_basic);
+    connect(this, &BackendRequests::request_frame_index_signal, session, &BackendSession::request_frame_index);
 
     /*
     connect(this, &BackendRequests::sendCustomStr, session, &BackendSession::sendCustomString);
@@ -71,6 +72,14 @@ uint64_t BackendRequests::request_locals(const QString& locals_entry) {
     request_locals_signal(locals_entry);
     return 0;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+uint64_t BackendRequests::request_frame_index(int frame_index) {
+    request_frame_index_signal(frame_index);
+    return 0;
+}
+
 
 /*
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -37,6 +37,7 @@ public:
     Q_SLOT uint64_t request_locals(const QString& locals_entry);
 
     Q_SLOT void request_basic(IBackendRequests::BasicRequest request_id);
+    Q_SLOT void request_frame_index(int frame_index);
 
     /*
     Q_SLOT void start();

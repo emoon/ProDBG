@@ -66,7 +66,7 @@ table ExceptionLocationReply {
     address: ulong;
 }
 
-table FrameSelectReply {
+table FrameSelectRequest {
     frame_index: int;
 }
 
@@ -78,7 +78,7 @@ union MessageType {
     file_line_breakpoint_request: FileLineBreakpoint,
     locals_request: LocalsRequest,
     locals_reply: LocalsReply,
-    frame_select_reply: FrameSelectReply,
+    frame_select_request: FrameSelectRequest,
     basic_request: BasicRequest,
     callstack_reply: Callstack,
 }

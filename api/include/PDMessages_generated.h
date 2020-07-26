@@ -39,8 +39,8 @@ struct LocalsReplyBuilder;
 struct ExceptionLocationReply;
 struct ExceptionLocationReplyBuilder;
 
-struct FrameSelectReply;
-struct FrameSelectReplyBuilder;
+struct FrameSelectRequest;
+struct FrameSelectRequestBuilder;
 
 struct Message;
 struct MessageBuilder;
@@ -84,7 +84,7 @@ enum MessageType {
   MessageType_file_line_breakpoint_request = 5,
   MessageType_locals_request = 6,
   MessageType_locals_reply = 7,
-  MessageType_frame_select_reply = 8,
+  MessageType_frame_select_request = 8,
   MessageType_basic_request = 9,
   MessageType_callstack_reply = 10,
   MessageType_MIN = MessageType_NONE,
@@ -101,7 +101,7 @@ inline const MessageType (&EnumValuesMessageType())[11] {
     MessageType_file_line_breakpoint_request,
     MessageType_locals_request,
     MessageType_locals_reply,
-    MessageType_frame_select_reply,
+    MessageType_frame_select_request,
     MessageType_basic_request,
     MessageType_callstack_reply
   };
@@ -118,7 +118,7 @@ inline const char * const *EnumNamesMessageType() {
     "file_line_breakpoint_request",
     "locals_request",
     "locals_reply",
-    "frame_select_reply",
+    "frame_select_request",
     "basic_request",
     "callstack_reply",
     nullptr
@@ -164,8 +164,8 @@ template<> struct MessageTypeTraits<LocalsReply> {
   static const MessageType enum_value = MessageType_locals_reply;
 };
 
-template<> struct MessageTypeTraits<FrameSelectReply> {
-  static const MessageType enum_value = MessageType_frame_select_reply;
+template<> struct MessageTypeTraits<FrameSelectRequest> {
+  static const MessageType enum_value = MessageType_frame_select_request;
 };
 
 template<> struct MessageTypeTraits<BasicRequest> {
@@ -860,8 +860,8 @@ inline flatbuffers::Offset<ExceptionLocationReply> CreateExceptionLocationReplyD
       address);
 }
 
-struct FrameSelectReply FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef FrameSelectReplyBuilder Builder;
+struct FrameSelectRequest FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef FrameSelectRequestBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_FRAME_INDEX = 4
   };
@@ -875,28 +875,28 @@ struct FrameSelectReply FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-struct FrameSelectReplyBuilder {
-  typedef FrameSelectReply Table;
+struct FrameSelectRequestBuilder {
+  typedef FrameSelectRequest Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_frame_index(int32_t frame_index) {
-    fbb_.AddElement<int32_t>(FrameSelectReply::VT_FRAME_INDEX, frame_index, 0);
+    fbb_.AddElement<int32_t>(FrameSelectRequest::VT_FRAME_INDEX, frame_index, 0);
   }
-  explicit FrameSelectReplyBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit FrameSelectRequestBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<FrameSelectReply> Finish() {
+  flatbuffers::Offset<FrameSelectRequest> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<FrameSelectReply>(end);
+    auto o = flatbuffers::Offset<FrameSelectRequest>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<FrameSelectReply> CreateFrameSelectReply(
+inline flatbuffers::Offset<FrameSelectRequest> CreateFrameSelectRequest(
     flatbuffers::FlatBufferBuilder &_fbb,
     int32_t frame_index = 0) {
-  FrameSelectReplyBuilder builder_(_fbb);
+  FrameSelectRequestBuilder builder_(_fbb);
   builder_.add_frame_index(frame_index);
   return builder_.Finish();
 }
@@ -936,8 +936,8 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const LocalsReply *message_as_locals_reply() const {
     return message_type() == MessageType_locals_reply ? static_cast<const LocalsReply *>(message()) : nullptr;
   }
-  const FrameSelectReply *message_as_frame_select_reply() const {
-    return message_type() == MessageType_frame_select_reply ? static_cast<const FrameSelectReply *>(message()) : nullptr;
+  const FrameSelectRequest *message_as_frame_select_request() const {
+    return message_type() == MessageType_frame_select_request ? static_cast<const FrameSelectRequest *>(message()) : nullptr;
   }
   const BasicRequest *message_as_basic_request() const {
     return message_type() == MessageType_basic_request ? static_cast<const BasicRequest *>(message()) : nullptr;
@@ -987,8 +987,8 @@ template<> inline const LocalsReply *Message::message_as<LocalsReply>() const {
   return message_as_locals_reply();
 }
 
-template<> inline const FrameSelectReply *Message::message_as<FrameSelectReply>() const {
-  return message_as_frame_select_reply();
+template<> inline const FrameSelectRequest *Message::message_as<FrameSelectRequest>() const {
+  return message_as_frame_select_request();
 }
 
 template<> inline const BasicRequest *Message::message_as<BasicRequest>() const {
@@ -1081,8 +1081,8 @@ inline bool VerifyMessageType(flatbuffers::Verifier &verifier, const void *obj, 
       auto ptr = reinterpret_cast<const LocalsReply *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case MessageType_frame_select_reply: {
-      auto ptr = reinterpret_cast<const FrameSelectReply *>(obj);
+    case MessageType_frame_select_request: {
+      auto ptr = reinterpret_cast<const FrameSelectRequest *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case MessageType_basic_request: {

@@ -7,6 +7,8 @@
 
 namespace prodbg {
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 class CallstackModel : public QAbstractTableModel {
 public:
     CallstackModel(QObject* parent);
@@ -76,15 +78,25 @@ QVariant CallstackModel::data(const QModelIndex& index, int role) const {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CallstackView::CallstackView(QWidget* parent) : QWidget(parent), m_model(new CallstackModel(nullptr)), m_ui(new Ui_CallstackView) {
+CallstackView::CallstackView(QWidget* parent)
+    : QWidget(parent), m_model(new CallstackModel(nullptr)), m_ui(new Ui_CallstackView) {
     m_ui->setupUi(this);
     m_ui->callstack->setModel(m_model);
+    QObject::connect(m_ui->callstack, &QTreeView::doubleClicked, this, &CallstackView::item_double_clicked);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CallstackView::~CallstackView() {
     delete m_ui;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CallstackView::item_double_clicked(const QModelIndex& item) {
+    if (m_interface) {
+        m_interface->request_frame_index(item.row());
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -108,11 +120,9 @@ void CallstackView::reply_callstack(const IBackendRequests::Callstack& callstack
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CallstackView::program_counter_changed(const IBackendRequests::ProgramCounterChange& pc) {
-    printf("CallstackView::program_counter_changed\n");
     m_interface->request_basic(IBackendRequests::BasicRequest::Callstack);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }  // namespace prodbg
-
