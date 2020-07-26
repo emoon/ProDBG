@@ -24,6 +24,7 @@ class ViewHandler;
 class SourceCodeWidget;
 class LocalsView;
 class CallstackView;
+class FileBrowserView;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -89,6 +90,7 @@ private:
 
     QVector<QAction*> m_recent_file_actions;
 
+    FileBrowserView* m_file_browser = nullptr;
     LocalsView* m_locals_view = nullptr;
     CallstackView* m_callstack_view = nullptr;
     SourceCodeWidget* m_source_view = nullptr;

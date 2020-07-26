@@ -62,6 +62,7 @@ MainWindow::MainWindow()
     qRegisterMetaType<IBackendRequests::BasicRequest>("IBackendRequests::BasicRequest");
     qRegisterMetaType<IBackendRequests::CallstackEntry>("IBackendRequests::CallstackEntry");
     qRegisterMetaType<IBackendRequests::Callstack>("IBackendRequests::Callstack");
+    qRegisterMetaType<QVector<QString>>("QVector<QString>");
 
     m_view_handler = new ViewHandler(this);
 
@@ -133,9 +134,9 @@ MainWindow::MainWindow()
 
     addDockWidget(Qt::LeftDockWidgetArea, dock);
 
-    auto file_browser = new FileBrowserView(nullptr);
+    m_file_browser = new FileBrowserView(nullptr);
     dock = new QDockWidget(QStringLiteral("File Browser"), this);
-    dock->setWidget(file_browser);
+    dock->setWidget(m_file_browser);
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     dock->setObjectName(QStringLiteral("FileBrowser"));
     addDockWidget(Qt::RightDockWidgetArea, dock);
@@ -446,7 +447,7 @@ void MainWindow::setup_backend_connections() {
     connect(this, &MainWindow::step_in_backend, m_backend, &BackendSession::step_in);
 
     connect(m_backend, &BackendSession::target_reply, this, &MainWindow::target_reply);
-
+    connect(m_file_browser, &FileBrowserView::open_file_signal, m_code_views, &CodeViews::open_file);
 
     /*
        connect(this, &MainWindow::stepOverBackend, m_backend, &BackendSession::stepOver);
@@ -472,6 +473,7 @@ void MainWindow::target_reply(bool status, const QString& error_message) {
 
         m_locals_view->set_backend_interface(m_backend_requests);
         m_callstack_view->set_backend_interface(m_backend_requests);
+        m_file_browser->set_backend_interface(m_backend_requests);
 
     } else {
         close_current_backend();

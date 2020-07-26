@@ -9,6 +9,9 @@
 struct BasicRequest;
 struct BasicRequestBuilder;
 
+struct SourceFilesReply;
+struct SourceFilesReplyBuilder;
+
 struct FileTargetRequest;
 struct FileTargetRequestBuilder;
 
@@ -87,11 +90,12 @@ enum MessageType {
   MessageType_frame_select_request = 8,
   MessageType_basic_request = 9,
   MessageType_callstack_reply = 10,
+  MessageType_source_files_reply = 11,
   MessageType_MIN = MessageType_NONE,
-  MessageType_MAX = MessageType_callstack_reply
+  MessageType_MAX = MessageType_source_files_reply
 };
 
-inline const MessageType (&EnumValuesMessageType())[11] {
+inline const MessageType (&EnumValuesMessageType())[12] {
   static const MessageType values[] = {
     MessageType_NONE,
     MessageType_file_target_request,
@@ -103,13 +107,14 @@ inline const MessageType (&EnumValuesMessageType())[11] {
     MessageType_locals_reply,
     MessageType_frame_select_request,
     MessageType_basic_request,
-    MessageType_callstack_reply
+    MessageType_callstack_reply,
+    MessageType_source_files_reply
   };
   return values;
 }
 
 inline const char * const *EnumNamesMessageType() {
-  static const char * const names[12] = {
+  static const char * const names[13] = {
     "NONE",
     "file_target_request",
     "target_reply",
@@ -121,13 +126,14 @@ inline const char * const *EnumNamesMessageType() {
     "frame_select_request",
     "basic_request",
     "callstack_reply",
+    "source_files_reply",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameMessageType(MessageType e) {
-  if (flatbuffers::IsOutRange(e, MessageType_NONE, MessageType_callstack_reply)) return "";
+  if (flatbuffers::IsOutRange(e, MessageType_NONE, MessageType_source_files_reply)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesMessageType()[index];
 }
@@ -176,6 +182,10 @@ template<> struct MessageTypeTraits<Callstack> {
   static const MessageType enum_value = MessageType_callstack_reply;
 };
 
+template<> struct MessageTypeTraits<SourceFilesReply> {
+  static const MessageType enum_value = MessageType_source_files_reply;
+};
+
 bool VerifyMessageType(flatbuffers::Verifier &verifier, const void *obj, MessageType type);
 bool VerifyMessageTypeVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
@@ -218,6 +228,58 @@ inline flatbuffers::Offset<BasicRequest> CreateBasicRequest(
   BasicRequestBuilder builder_(_fbb);
   builder_.add_id(id);
   return builder_.Finish();
+}
+
+struct SourceFilesReply FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef SourceFilesReplyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_ENTRIES = 4
+  };
+  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *entries() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_ENTRIES);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_ENTRIES) &&
+           verifier.VerifyVector(entries()) &&
+           verifier.VerifyVectorOfStrings(entries()) &&
+           verifier.EndTable();
+  }
+};
+
+struct SourceFilesReplyBuilder {
+  typedef SourceFilesReply Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_entries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> entries) {
+    fbb_.AddOffset(SourceFilesReply::VT_ENTRIES, entries);
+  }
+  explicit SourceFilesReplyBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<SourceFilesReply> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<SourceFilesReply>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<SourceFilesReply> CreateSourceFilesReply(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> entries = 0) {
+  SourceFilesReplyBuilder builder_(_fbb);
+  builder_.add_entries(entries);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<SourceFilesReply> CreateSourceFilesReplyDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<flatbuffers::Offset<flatbuffers::String>> *entries = nullptr) {
+  auto entries__ = entries ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*entries) : 0;
+  return CreateSourceFilesReply(
+      _fbb,
+      entries__);
 }
 
 struct FileTargetRequest FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -945,6 +1007,9 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Callstack *message_as_callstack_reply() const {
     return message_type() == MessageType_callstack_reply ? static_cast<const Callstack *>(message()) : nullptr;
   }
+  const SourceFilesReply *message_as_source_files_reply() const {
+    return message_type() == MessageType_source_files_reply ? static_cast<const SourceFilesReply *>(message()) : nullptr;
+  }
   const flatbuffers::Vector<uint8_t> *user_data() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_USER_DATA);
   }
@@ -997,6 +1062,10 @@ template<> inline const BasicRequest *Message::message_as<BasicRequest>() const 
 
 template<> inline const Callstack *Message::message_as<Callstack>() const {
   return message_as_callstack_reply();
+}
+
+template<> inline const SourceFilesReply *Message::message_as<SourceFilesReply>() const {
+  return message_as_source_files_reply();
 }
 
 struct MessageBuilder {
@@ -1091,6 +1160,10 @@ inline bool VerifyMessageType(flatbuffers::Verifier &verifier, const void *obj, 
     }
     case MessageType_callstack_reply: {
       auto ptr = reinterpret_cast<const Callstack *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MessageType_source_files_reply: {
+      auto ptr = reinterpret_cast<const SourceFilesReply *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;

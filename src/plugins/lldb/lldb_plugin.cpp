@@ -250,9 +250,68 @@ static void exception_location_reply(LLDBPlugin* plugin, PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void reply_source_files(LLDBPlugin* plugin, PDWriter* writer) {
+    std::vector<flatbuffers::Offset<flatbuffers::String>> filenames;
+    flatbuffers::FlatBufferBuilder builder(8192);
+
+    if (!plugin->has_valid_target) {
+        return;
+    }
+
+    std::map<std::string, bool> dupe_lookup;
+
+    const uint32_t module_count = plugin->target.GetNumModules();
+
+    for (uint32_t im = 0; im < module_count; ++im) {
+        lldb::SBModule mod(plugin->target.GetModuleAtIndex(im));
+
+        const uint32_t compile_unit_count = mod.GetNumCompileUnits();
+
+        for (uint32_t ic = 0; ic < compile_unit_count; ++ic) {
+            lldb::SBCompileUnit compileUnit(mod.GetCompileUnitAtIndex(ic));
+
+            const uint32_t support_file_count = compileUnit.GetNumSupportFiles();
+
+            for (uint32_t is = 0; is < support_file_count; ++is) {
+                char filename[4096];
+
+                lldb::SBFileSpec fileSpec(compileUnit.GetSupportFileAtIndex(is));
+
+                filename[0] = 0;
+
+                fileSpec.GetPath(filename, sizeof(filename));
+
+                if (filename[0] == 0) {
+                    continue;
+                }
+
+                std::string name(filename);
+
+                if (dupe_lookup.find(name) != dupe_lookup.end()) {
+                    continue;
+                }
+
+                dupe_lookup[name] = true;
+
+                filenames.push_back(builder.CreateString(filename));
+            }
+        }
+    }
+
+    auto t = builder.CreateVector<flatbuffers::Offset<flatbuffers::String>>(filenames);
+
+    SourceFilesReplyBuilder reply(builder);
+    reply.add_entries(t);
+
+    PDMessage_end_msg(writer, reply, builder);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void basic_reply(LLDBPlugin* plugin, const BasicRequest* request, PDWriter* writer) {
     switch (request->id()) {
         case BasicRequestEnum_Callstack: reply_callstack(plugin, writer); break;
+        case BasicRequestEnum_SourceFiles: reply_source_files(plugin, writer); break;
         default: break;
     }
 }
@@ -564,50 +623,6 @@ static void select_frame(LLDBPlugin* plugin, const FrameSelectRequest* request, 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-static void set_source_files(LLDBPlugin* plugin, PDWriter* writer) {
-    if (!plugin->has_valid_target)
-        return;
-
-    PDWrite_event_begin(writer, PDEventType_SetSourceFiles);
-    PDWrite_array_begin(writer, "files");
-
-    const uint32_t moduleCount = plugin->target.GetNumModules();
-
-    for (uint32_t im = 0; im < moduleCount; ++im) {
-        lldb::SBModule module(plugin->target.GetModuleAtIndex(im));
-
-        const uint32_t compileUnitCount = module.GetNumCompileUnits();
-
-        for (uint32_t ic = 0; ic < compileUnitCount; ++ic) {
-            lldb::SBCompileUnit compileUnit(module.GetCompileUnitAtIndex(ic));
-
-            const uint32_t supportFileCount = compileUnit.GetNumSupportFiles();
-
-            for (uint32_t is = 0; is < supportFileCount; ++is) {
-                char filename[4096];
-
-                lldb::SBFileSpec fileSpec(compileUnit.GetSupportFileAtIndex(is));
-
-                filename[0] = 0;
-
-                fileSpec.GetPath(filename, sizeof(filename));
-
-                if (filename[0] == 0)
-                    continue;
-
-                PDWrite_array_entry_begin(writer);
-                PDWrite_string(writer, "file", filename);
-                PDWrite_entry_end(writer);
-            }
-        }
-    }
-
-    PDWrite_array_end(writer);
-    PDWrite_event_end(writer);
-}
-*/
 
 static void do_action(LLDBPlugin* plugin, PDAction action) {
     switch (action) {

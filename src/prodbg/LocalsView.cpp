@@ -244,9 +244,12 @@ void LocalsView::set_backend_interface(IBackendRequests* iface) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LocalsView::reply_locals(const IBackendRequests::Variables& vars) {
+    // TODO: Fix memory leak
+    /*
     if (m_root) {
         delete m_root;
     }
+    */
 
     m_root = new Node(nullptr, QStringLiteral(""), QStringLiteral(""), QStringLiteral(""), true);
 
@@ -263,22 +266,6 @@ void LocalsView::reply_locals(const IBackendRequests::Variables& vars) {
 void LocalsView::program_counter_changed(const IBackendRequests::ProgramCounterChange& pc) {
     m_interface->request_locals(QStringLiteral(""));
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-void LocalsView::program_counter_changed(const IBackendRequests::ProgramCounterChange& pc) {
-    // if we don't have any files we request them from the backend
-    if (m_model->m_entries.size() != 0) {
-        m_interface->reply_source_files();
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LocalsView::reply_source_files(const QVector<QString>& files) {
-}
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

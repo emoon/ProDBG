@@ -37,6 +37,7 @@ BackendRequests::BackendRequests(BackendSession* session) {
     */
 
     connect(session, &BackendSession::reply_callstack, this, &BackendRequests::reply_callstack);
+    connect(session, &BackendSession::reply_source_files, this, &BackendRequests::reply_source_files);
     connect(session, &BackendSession::reply_locals, this, &BackendRequests::reply_locals);
     connect(session, &BackendSession::program_counter_changed, this, &BackendRequests::program_counter_changed);
     connect(session, &BackendSession::session_ended, this, &BackendRequests::session_ended);

@@ -71,6 +71,7 @@ public:
 
     Q_SIGNAL void reply_locals(const IBackendRequests::Variables& variables);
     Q_SIGNAL void reply_callstack(const IBackendRequests::Callstack& callstack);
+    Q_SIGNAL void reply_source_files(const QVector<QString>& source_files);
 
     Q_SIGNAL void session_ended();
 

@@ -384,8 +384,15 @@ void BackendSession::request_basic(IBackendRequests::BasicRequest request_id) {
             }
 
             reply_callstack(callstack);
+        } else if (msg->message_type() == MessageType_source_files_reply) {
+            auto files = msg->message_as_source_files_reply();
+            QVector<QString> files_reply;
 
-            break;
+            for (const auto& filename : *files->entries()) {
+                files_reply.push_back(QString::fromUtf8(filename->c_str()));
+            }
+
+            reply_source_files(files_reply);
         }
     }
 }

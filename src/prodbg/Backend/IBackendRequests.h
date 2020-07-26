@@ -178,10 +178,10 @@ public:
 
 public:
     // reply from request of source files
-    Q_SIGNAL void reply_source_files(const QVector<QString>& files);
+    Q_SIGNAL void reply_callstack(const Callstack& callstack);
 
     // reply from request of source files
-    Q_SIGNAL void reply_callstack(const Callstack& callstack);
+    Q_SIGNAL void reply_source_files(const QVector<QString>& files);
 
     // Get hw registers from the backend
     // registers = array of registers

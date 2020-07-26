@@ -9,6 +9,10 @@ table BasicRequest {
     id: BasicRequestEnum;
 }
 
+table SourceFilesReply {
+    entries: [string];
+}
+
 // Which file target to start debugging (usually an executable)
 table FileTargetRequest {
   path: string;
@@ -81,6 +85,7 @@ union MessageType {
     frame_select_request: FrameSelectRequest,
     basic_request: BasicRequest,
     callstack_reply: Callstack,
+    source_files_reply: SourceFilesReply,
 }
 
 // Main message that is being passed between backend and frontend. User data can be used
