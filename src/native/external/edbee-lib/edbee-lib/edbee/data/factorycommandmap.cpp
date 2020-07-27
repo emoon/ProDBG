@@ -1,5 +1,5 @@
 /**
- * Copyright 2011-2014 - Reliable Bits Software by Blommers IT. All Rights Reserved.
+ * Copyright 2011-2020 - Reliable Bits Software by Blommers IT. All Rights Reserved.
  * Author Rick Blommers
  */
 
@@ -19,6 +19,7 @@
 #include "edbee/commands/replaceselectioncommand.h"
 #include "edbee/commands/selectioncommand.h"
 #include "edbee/commands/tabcommand.h"
+#include "edbee/commands/togglereadonlycommand.h"
 #include "edbee/commands/undocommand.h"
 #include "edbee/models/texteditorcommandmap.h"
 
@@ -130,6 +131,8 @@ void FactoryCommandMap::fill(TextEditorCommandMap* cm)
 
     give( "move_lines_up", new MoveLineCommand(-1));
     give( "move_lines_down", new MoveLineCommand(1));
+
+    give( "toggle_readonly", new ToggleReadonlyCommand());
 }
 
 

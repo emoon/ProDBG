@@ -32,8 +32,8 @@ void Change::revert(TextDocument*)
 /// @return true if the merge succeeded. The textChange ownership is only tranfered if true if returend
 bool Change::giveAndMerge(TextDocument* document, Change* textChange)
 {
-    Q_UNUSED(document);
-    Q_UNUSED(textChange );
+    Q_UNUSED(document)
+    Q_UNUSED(textChange )
     return false;
 }
 
@@ -59,14 +59,14 @@ bool Change::isPersistenceRequired()
 /// warning a DOCUMENT change may NEVER return a controllerContext!!
 TextEditorController*Change::controllerContext()
 {
-    return 0;
+    return nullptr;
 }
 
 
 /// this method can be used to check if the given change is a document change
 bool Change::isDocumentChange()
 {
-     return controllerContext() == 0;
+     return controllerContext() == nullptr;
 }
 
 
@@ -127,7 +127,7 @@ TextEditorController* ControllerChange::controllerContext()
 /// returns the controller
 TextEditorController* ControllerChange::controller()
 {
-    return controllerRef_;;
+    return controllerRef_;
 }
 
 
@@ -177,7 +177,7 @@ void ChangeGroup::groupClosed()
 /// @param document the document the document to execute this for
 void ChangeGroup::execute(TextDocument* document)
 {
-    Q_UNUSED(document);
+    Q_UNUSED(document)
     for( int i=0,cnt=size(); i<cnt; ++i ) {
         at(i)->execute(document);
     }
@@ -187,7 +187,7 @@ void ChangeGroup::execute(TextDocument* document)
 /// Reverts the command gorup
 void ChangeGroup::revert(TextDocument* document)
 {
-    Q_UNUSED(document);
+    Q_UNUSED(document)
     for( int i=size()-1; i>=0; --i ) {
         at(i)->revert(document);
     }
@@ -237,6 +237,7 @@ void ChangeGroup::flatten()
 
 void ChangeGroup::giveChange(TextDocument *doc, Change *change)
 {
+    Q_UNUSED(doc)
     changeList_.append(change);
 }
 
@@ -269,7 +270,7 @@ void ChangeGroup::clear(bool performDelete)
 /// @return the last textchange
 Change* ChangeGroup::last()
 {
-    if( size() == 0 ) { return 0; }
+    if( size() == 0 ) { return nullptr; }
     return at(size()-1);
 }
 
@@ -278,7 +279,7 @@ Change* ChangeGroup::last()
 /// @return the last textchange
 Change* ChangeGroup::takeLast()
 {
-    if( size() == 0 ) { return 0; }
+    if( size() == 0 ) { return nullptr; }
     return take(size()-1);
 }
 
@@ -304,13 +305,13 @@ int ChangeGroup::recursiveSize()
 /// Then this context is returned else 0 is returned
 TextEditorController* ChangeGroup::controllerContext()
 {
-    TextEditorController* context = 0;
+    TextEditorController* context = nullptr;
     for( int i=size()-1; i>=0; --i ) {
         TextEditorController* commandContext = at(i)->controllerContext();
 
         // multiple context in 1 group means it's a 'hard' undo
-        if( commandContext == 0 ) return 0;         /// 0 is always 0!
-        if( commandContext && context && commandContext != context ) { return 0; }
+        if( commandContext == nullptr ) return nullptr;  /// 0 is always 0!
+        if( commandContext && context && commandContext != context ) { return nullptr; }
         if( !context && commandContext ) {
             context = commandContext;
         }

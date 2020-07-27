@@ -6,11 +6,14 @@
 #include "tmlanguageparser.h"
 
 #include <QDir>
+#include <QFile>
 #include <QList>
 #include <QHash>
 #include <QVariant>
 #include <QXmlStreamReader>
 
+#include "edbee/io/baseplistparser.h"
+#include "edbee/io/jsonparser.h"
 #include "edbee/models/textgrammar.h"
 #include "edbee/edbee.h"
 
@@ -23,26 +26,82 @@ TmLanguageParser::TmLanguageParser()
 {
 }
 
-
-/// reads the content of a single file
-/// @param device the device to read from. The device NEEDS to be open!!
-/// @return the language grammar or 0 on error
-TextGrammar* TmLanguageParser::parse(QIODevice* device)
+/// returns the last error message
+QString TmLanguageParser::lastErrorMessage() const
 {
-    TextGrammar* result=0;
+    return lastErrorMessage_;
+}
 
-    if( beginParsing(device) ) {
-        QVariant plist = readNextPlistType( );
+/// Sets the last error message
+void TmLanguageParser::setLastErrorMessage(const QString &str)
+{
+    lastErrorMessage_ = str;
+}
+
+
+/// Parses a PList  (XML Grammar file definition)
+TextGrammar *TmLanguageParser::parsePlist(QIODevice *device)
+{
+    TextGrammar* result = nullptr;
+
+    BasePListParser plistParser;
+    if( plistParser.beginParsing(device) ) {
+        QVariant plist = plistParser.readNextPlistType( );
         result = createLanguage( plist );
     }
 
-    if( !endParsing() ) {
+    if( !plistParser.endParsing() ) {
         delete result;
-        result = 0;
+        result = nullptr;
     }
 
     // returns the language
     return result;
+}
+
+
+/// Parses a JSON grammar file definition
+TextGrammar *TmLanguageParser::parseJson(QIODevice *device)
+{
+    TextGrammar* result = nullptr;
+
+    JsonParser jsonParser;
+    if( jsonParser.parse(device) ) {
+        //QVariant plist = readNextPlistType( );
+        QVariant parseResult = jsonParser.result();
+        result = createLanguage( parseResult );
+    }
+
+    return result;
+}
+
+
+/// reads the content of a single file
+/// @param device the device to read from. The device NEEDS to be open!!
+/// @param json use the json parser
+/// @return the language grammar or nullptr on error
+TextGrammar* TmLanguageParser::parse(QIODevice* device, bool json)
+{
+    if( json ) {
+        return parseJson(device);
+    } else {
+        return parsePlist(device);
+    }
+
+}
+
+/// Parses the given file
+TextGrammar *TmLanguageParser::parse(QFile &file)
+{
+    if( file.open( QIODevice::ReadOnly ) ) {
+        TextGrammar* result = parse( &file, file.fileName().endsWith(".json"));
+        file.close();
+        return result;
+    } else {
+        setLastErrorMessage( file.errorString()  );
+        return nullptr;
+    }
+
 }
 
 
@@ -52,14 +111,7 @@ TextGrammar* TmLanguageParser::parse(QIODevice* device)
 TextGrammar* TmLanguageParser::parse(const QString& fileName)
 {
     QFile file(fileName);
-    if( file.open( QIODevice::ReadOnly ) ) {
-        TextGrammar* result = parse( &file );
-        file.close();
-        return result;
-    } else {
-        setLastErrorMessage( file.errorString()  );
-        return 0;
-    }
+    return parse(file);
 }
 
 
@@ -181,12 +233,12 @@ TextGrammar* TmLanguageParser::createLanguage(QVariant& data)
     QString uuid      = hashMap.value("uuid").toString();
 
     if( name.isEmpty() || scopeName.isEmpty() ) {
-        raiseError("Name or scope is empty. Cannot parse language!");
-        return 0;
+        setLastErrorMessage("Name or scope is empty. Cannot parse language!");
+        return nullptr;
     }
 
     // construct the grammar
-    TextGrammar* grammar = new TextGrammar( scopeName, name );
+    TextGrammar* grammar = new TextGrammar(scopeName, name);
 
     // and get the main patterns
     // construct the main rule
@@ -215,7 +267,6 @@ TextGrammar* TmLanguageParser::createLanguage(QVariant& data)
     foreach( QString fileType, fileTypes ) {
         grammar->addFileExtension( fileType );
     }
-
 
     return grammar;
 }

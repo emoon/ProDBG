@@ -23,8 +23,9 @@ public:
     static const QString EDBEE_TEXT_TYPE;
 
 public:
-    virtual void execute( TextEditorController* controller );
-    virtual QString toString();
+    virtual void execute( TextEditorController* controller ) override;
+    virtual QString toString() override;
+    virtual bool readonly() override;
 };
 
 

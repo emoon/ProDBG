@@ -12,8 +12,6 @@
 #include <QStack>
 #include <QVariant>
 
-#include "baseplistparser.h"
-
 class QFile;
 class QIODevice;
 class QXmlStreamReader;
@@ -25,15 +23,21 @@ class TextGrammarManager;
 class TextGrammarRule;
 
 /// For parsing a Textmate Language
-class EDBEE_EXPORT TmLanguageParser : public BasePListParser
+class EDBEE_EXPORT TmLanguageParser
 {
 public:
     TmLanguageParser();
-    TextGrammar* parse( QIODevice* device );
-    TextGrammar* parse(const QFile& file );
-    TextGrammar* parse( const QString& fileName );
+    TextGrammar* parsePlist(QIODevice* device);
+    TextGrammar* parseJson(QIODevice* device);
+
+    TextGrammar* parse(QIODevice* device, bool json=false);
+    TextGrammar* parse(QFile& file);
+    TextGrammar* parse(const QString& fileName);
+
+    QString lastErrorMessage() const;
 
 protected:
+    void setLastErrorMessage( const QString& str );
 
     void addCapturesToGrammarRule( TextGrammarRule* rule, QHash<QString,QVariant> captures, bool endCapture=false );
     void addPatternsToGrammarRule( TextGrammarRule* rule, QList<QVariant> patterns );
@@ -41,7 +45,8 @@ protected:
     TextGrammarRule* createGrammarRule(TextGrammar *grammar, const QVariant &data );
     TextGrammar* createLanguage(QVariant& data );
 
-
+private:
+    QString lastErrorMessage_;               ///< The last error message
 };
 
 } // edbee

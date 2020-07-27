@@ -219,4 +219,9 @@ QString SelectionCommand::toString()
     return QStringLiteral("SelectionCommand(%1)").arg( unitToString(unit_) );
 }
 
+bool SelectionCommand::readonly()
+{
+    return true;
+}
+
 } // edbee

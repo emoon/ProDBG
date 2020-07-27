@@ -20,8 +20,9 @@ public:
     /// This method should return the command identifier
     virtual int commandId() { return CoalesceId_None; }
 
-    virtual void execute( TextEditorController* controller );
-    virtual QString toString();
+    virtual void execute(TextEditorController* controller) override;
+    virtual QString toString() override;
+    virtual bool readonly() override;
 
 private:
     bool soft_;

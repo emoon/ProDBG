@@ -30,17 +30,17 @@ void* debug_malloc(size_t size, const char* file, const int line)
     void* p = ::malloc(size);
     if( allocList->isRunning() ) {
         edbee::DebugAllocation* info = allocList->find(p);
-        if (info != 0) {
+        if (info != nullptr) {
             printf("already exist %p %s %d\n", p, file, line);
-            printf("existing info : %p(%u) %s:%d\n", info->pointer, (unsigned int)info->size, info->file, info->line);
+            printf("existing info : %p(%u) %s:%d\n", info->pointer, static_cast<unsigned int>(info->size), info->file, info->line);
             ::free(p);
-            return 0;
+            return nullptr;
         }
-        info =  allocList->add(p, size, (char*)file, (int)line);
-        if (info == 0) {
-            printf("can not add %p(%u) %s:%d\n", p,(unsigned int)size, file, line);
+        info =  allocList->add(p, size, const_cast<char*>(file), static_cast<int>(line));
+        if (info == nullptr) {
+            printf("can not add %p(%u) %s:%d\n", p, static_cast<unsigned int>(size), file, line);
             ::free(p);
-            return 0;
+            return nullptr;
         }
     }
     return p;
@@ -122,6 +122,8 @@ void pause_memleak_detection(bool value)
 {
 #ifdef EDBEE_DEBUG_NEW_ACTIVE
     DebugAllocationList::instance()->pause(value);
+#else
+    Q_UNUSED(value)
 #endif
 }
 

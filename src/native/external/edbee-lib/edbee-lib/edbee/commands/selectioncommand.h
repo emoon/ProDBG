@@ -50,8 +50,9 @@ public:
     virtual int commandId();
 
 
-    virtual void execute( TextEditorController* controller );
-    virtual QString toString();
+    virtual void execute( TextEditorController* controller ) override;
+    virtual QString toString() override;
+    virtual bool readonly() override;
 
     SelectionType unit() { return unit_; }
     int amount() { return amount_; }

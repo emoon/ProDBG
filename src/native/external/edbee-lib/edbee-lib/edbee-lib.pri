@@ -17,6 +17,7 @@ SOURCES += \
     $$PWD/edbee/commands/replaceselectioncommand.cpp \
     $$PWD/edbee/commands/selectioncommand.cpp \
     $$PWD/edbee/commands/tabcommand.cpp \
+    $$PWD/edbee/commands/togglereadonlycommand.cpp \
     $$PWD/edbee/commands/undocommand.cpp \
     $$PWD/edbee/data/factorycommandmap.cpp \
     $$PWD/edbee/data/factorykeymap.cpp \
@@ -95,6 +96,7 @@ HEADERS += \
     $$PWD/edbee/commands/replaceselectioncommand.h \
     $$PWD/edbee/commands/selectioncommand.h \
     $$PWD/edbee/commands/tabcommand.h \
+    $$PWD/edbee/commands/togglereadonlycommand.h \
     $$PWD/edbee/commands/undocommand.h \
     $$PWD/edbee/data/factorycommandmap.h \
     $$PWD/edbee/data/factorykeymap.h \

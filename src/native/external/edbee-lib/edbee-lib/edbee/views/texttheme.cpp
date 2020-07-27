@@ -147,12 +147,12 @@ TextThemeStyler::~TextThemeStyler()
 ///
 /// @param lineIdx the line index
 /// @return the array of ranges
-QList<QTextLayout::FormatRange> TextThemeStyler::getLineFormatRanges( int lineIdx )
+QVector<QTextLayout::FormatRange> TextThemeStyler::getLineFormatRanges( int lineIdx )
 {
     TextDocumentScopes* scopes = controller()->textDocument()->scopes();
 
     // check if the range is in the case. When it is, use it
-    QList<QTextLayout::FormatRange> formatRangeList;
+    QVector<QTextLayout::FormatRange> formatRangeList;
 
     // get all textranges on the given line
     ScopedTextRangeList* scopedRanges = scopes->scopedRangesAtLine(lineIdx);
@@ -278,7 +278,7 @@ QTextCharFormat TextThemeStyler::getTextScopeFormat( QVector<ScopedTextRange*>& 
 
 
 /// helper function to create a format range
-void TextThemeStyler::appendFormatRange(QList<QTextLayout::FormatRange> &rangeList, int start, int end,  QVector<ScopedTextRange*>& activeRanges )
+void TextThemeStyler::appendFormatRange(QVector<QTextLayout::FormatRange> &rangeList, int start, int end,  QVector<ScopedTextRange*>& activeRanges )
 {
     // only append a format if the lexer style is different then default
     if( activeRanges.size() > 1  ) {

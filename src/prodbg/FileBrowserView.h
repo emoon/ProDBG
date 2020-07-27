@@ -38,6 +38,7 @@ private:
     Q_SLOT void filter_updated(const QString& text);
 
     QSortFilterProxyModel* m_filter_model;
+    bool m_has_requested_files = false;
     Node* m_root_node = nullptr;
     FileBrowserModel* m_model = nullptr;
     IBackendRequests* m_interface = nullptr;

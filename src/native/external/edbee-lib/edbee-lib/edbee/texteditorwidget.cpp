@@ -47,19 +47,20 @@ namespace edbee {
 
 
 /// The default TextEditor widget constructor
-TextEditorWidget::TextEditorWidget( QWidget* parent)
-    : QWidget( parent )
-    , controller_(0)
-    , scrollAreaRef_(0)
-    , editCompRef_(0)
-    , autoCompleteCompRef_(0)
+TextEditorWidget::TextEditorWidget(QWidget* parent)
+    : QWidget(parent)
+    , controller_(nullptr)
+    , scrollAreaRef_(nullptr)
+    , editCompRef_(nullptr)
+    , autoCompleteCompRef_(nullptr)
     , autoScrollMargin_(50)
+    , readonly_(false)
 {
     // auto initialize edbee if this hasn't been done alread
     Edbee::instance()->autoInit();
 
     // create the controller
-    controller_ = new TextEditorController(this );
+    controller_ = new TextEditorController(this);
 
     // setup the ui
     scrollAreaRef_ = new class TextEditorScrollArea(this);
@@ -268,6 +269,19 @@ void TextEditorWidget::setAutoScrollMargin(int amount)
 void TextEditorWidget::setPlaceholderText(const QString &text)
 {
     this->textRenderer()->placeholderTextDocument()->setText(text);
+}
+
+
+/// Return the readonly status
+bool TextEditorWidget::readonly() const
+{
+    return readonly_;
+}
+
+/// Set the readonly status
+void TextEditorWidget::setReadonly(bool value)
+{
+    readonly_ = value;
 }
 
 

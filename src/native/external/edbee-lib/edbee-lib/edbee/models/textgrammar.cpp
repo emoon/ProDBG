@@ -1,5 +1,5 @@
 /**
- * Copyright 2011-2013 - Reliable Bits Software by Blommers IT. All Rights Reserved.
+ * Copyright 2011-2020 - Reliable Bits Software by Blommers IT. All Rights Reserved.
  * Author Rick Blommers
  */
 
@@ -21,7 +21,7 @@ namespace edbee {
 TextGrammarRule::TextGrammarRule(TextGrammar* grammar, Instruction instruction)
     : grammarRef_(grammar)
     , instruction_(instruction)
-    , matchRegExp_(0)
+    , matchRegExp_(nullptr)
     , endRegExpString_()
 {
 }
@@ -294,12 +294,13 @@ TextGrammarManager::~TextGrammarManager()
 TextGrammar* TextGrammarManager::readGrammarFile(const QString& file)
 {
     lastErrorMessage_.clear();
+    TextGrammar* grammar = nullptr;
+    QString lastErrorMessage;
 
-    // read the file
     TmLanguageParser parser;
-    TextGrammar* grammar = parser.parse( file );
-    if( grammar ) {
-        giveGrammar( grammar );
+    grammar = parser.parse(file);
+    if(grammar) {
+        giveGrammar(grammar);
     } else {
         QFileInfo fileInfo(file);
         lastErrorMessage_ = QObject::tr("Error reading file %1:%2").arg(fileInfo.absoluteFilePath()).arg(parser.lastErrorMessage());
@@ -315,7 +316,7 @@ void TextGrammarManager::readAllGrammarFilesInPath(const QString& path )
 {
 //    qlog_info() << "readAllGrammarFilesInPath(" << path << ")";
     QDir dir(path);
-    QStringList filters("*.tmLanguage");
+    QStringList filters = { "*.tmLanguage", "*.tmLanguage.json" };
     foreach( QFileInfo fileInfo, dir.entryInfoList( filters, QDir::Files, QDir::Name ) ) {
 //        qlog_info() << "- parse" << fileInfo.baseName() << ".";
         readGrammarFile( fileInfo.absoluteFilePath());

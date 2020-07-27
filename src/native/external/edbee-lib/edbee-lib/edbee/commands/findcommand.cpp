@@ -114,5 +114,10 @@ QString FindCommand::toString()
     return QStringLiteral("FindCommand(%1)").arg(str);
 }
 
+bool FindCommand::readonly()
+{
+    return true;
+}
+
 
 } // edbee

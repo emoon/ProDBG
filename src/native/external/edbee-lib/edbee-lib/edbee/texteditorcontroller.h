@@ -144,6 +144,10 @@ public:
     Q_SLOT virtual void executeCommand( TextEditorCommand* textCommand );
     Q_SLOT virtual bool executeCommand( const QString& name=QString() );
 
+    // returns the readonly state
+    Q_SLOT virtual bool readonly() const;
+    Q_SLOT virtual void setReadonly(bool value);
+
 private:
 
     TextEditorWidget* widgetRef_;             ///< A reference to the text editor widget

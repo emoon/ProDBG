@@ -36,9 +36,9 @@ namespace edbee {
 /// @param parent the parent QObject
 TextEditorComponent::TextEditorComponent(TextEditorController* controller, QWidget* parent)
     : QWidget(parent)
-    , caretTimer_(0)
+    , caretTimer_(nullptr)
     , controllerRef_(controller)
-    , textEditorRenderer_(0)
+    , textEditorRenderer_(nullptr)
 {
     textEditorRenderer_ = new TextEditorRenderer( controller->textRenderer());
 
@@ -213,12 +213,12 @@ void TextEditorComponent::paintEvent(QPaintEvent* paintEvent)
 
 void TextEditorComponent::moveEvent(QMoveEvent *moveEvent)
 {
-
+    Q_UNUSED(moveEvent)
 }
 
 void TextEditorComponent::hideEvent(QHideEvent *hideEvent)
 {
-
+    Q_UNUSED(hideEvent)
 }
 
 
@@ -317,7 +317,7 @@ void TextEditorComponent::keyPressEvent(QKeyEvent* event)
 /// the key release event
 void TextEditorComponent::keyReleaseEvent(QKeyEvent *event)
 {
-    Q_UNUSED(event);
+    Q_UNUSED(event)
 }
 
 
@@ -484,14 +484,14 @@ void TextEditorComponent::mouseMoveEvent(QMouseEvent* event )
 /// A focus in event occured
 void TextEditorComponent::focusInEvent(QFocusEvent *event)
 {
-    Q_UNUSED(event);
+    Q_UNUSED(event)
 }
 
 
 /// The focus is lost, we must STOP coalescing of undo-events!
 void TextEditorComponent::focusOutEvent(QFocusEvent *event)
 {
-    Q_UNUSED(event);
+    Q_UNUSED(event)
     // no merging for new changes!!
     textDocument()->textUndoStack()->resetAllLastCoalesceIds();
 }
@@ -501,7 +501,7 @@ void TextEditorComponent::focusOutEvent(QFocusEvent *event)
 /// Add the default menu actions
 void TextEditorComponent::contextMenuEvent(QContextMenuEvent* event)
 {
-    Q_UNUSED(event);
+    Q_UNUSED(event)
 
     QMenu* menu = new QMenu();
     menu->addAction( controller()->createAction("cut", tr("Cut") ) );

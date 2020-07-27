@@ -32,7 +32,7 @@ public:
     virtual QString lineText( int line );
 
     virtual int widthBeforeLineNumber();
-    virtual void renderBefore( QPainter* painter, int startLine, int endLine, int width, int lineHeight );
+    virtual void renderBefore( QPainter* painter, int startLine, int endLine, int width );
     virtual void renderAfter( QPainter* painter, int startLine, int endLine, int width, int lineHeight );
 
     virtual bool requiresMouseTracking();

@@ -163,7 +163,7 @@ public:
     TextThemeStyler( TextEditorController* controller );
     virtual ~TextThemeStyler();
 
-    QList<QTextLayout::FormatRange> getLineFormatRanges( int lineIdx );
+    QVector<QTextLayout::FormatRange> getLineFormatRanges( int lineIdx );
 
     TextEditorController* controller() { return controllerRef_; }
 
@@ -176,7 +176,7 @@ public:
 
 private:
     QTextCharFormat getTextScopeFormat(QVector<ScopedTextRange *> &activeRanges);
-    void appendFormatRange(QList<QTextLayout::FormatRange>& rangeList, int start, int end,  QVector<edbee::ScopedTextRange *> &activeRanges );
+    void appendFormatRange(QVector<QTextLayout::FormatRange>& rangeList, int start, int end,  QVector<edbee::ScopedTextRange *> &activeRanges );
 
 private slots:
 

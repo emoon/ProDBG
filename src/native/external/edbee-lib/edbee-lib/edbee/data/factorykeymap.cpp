@@ -128,6 +128,9 @@ void FactoryKeyMap::fill( TextEditorKeyMap* km )
     add( "move_lines_up", "Ctrl+Meta+Up");
     add( "move_lines_down", "Ctrl+Meta+Down");
 
+    // toggle readonly
+    add( "toggle_readonly", "Ctrl+R");
+
 }
 
 

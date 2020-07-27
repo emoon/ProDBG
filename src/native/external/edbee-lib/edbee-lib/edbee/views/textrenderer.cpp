@@ -23,6 +23,7 @@
 #include "edbee/texteditorwidget.h"
 
 #include "edbee/debug.h"
+#include <math.h>
 
 
 /// Using control picutres makes it possible to show the control characters (rquires a special font)
@@ -33,13 +34,13 @@ namespace edbee {
 
 /// The default textrenderer constructor
 TextRenderer::TextRenderer(TextEditorController* controller)
-    : QObject( 0 )
+    : QObject(nullptr)
     , controllerRef_(controller)
     , caretTime_(0)
     , caretBlinkRate_(0)
     , totalWidthCache_(0)
-    , textThemeStyler_(0)
-    , clipRectRef_(0)
+    , textThemeStyler_(nullptr)
+    , clipRectRef_(nullptr)
     , startOffset_(0)
     , endOffset_(0)
     , startLine_(0)
@@ -47,7 +48,7 @@ TextRenderer::TextRenderer(TextEditorController* controller)
     , placeHolderDocument_(0)
 {
     connect( controller, SIGNAL(textDocumentChanged(edbee::TextDocument*,edbee::TextDocument*)), this, SLOT(textDocumentChanged(edbee::TextDocument*,edbee::TextDocument*)));
-    textThemeStyler_ = new TextThemeStyler( controller );
+    textThemeStyler_ = new TextThemeStyler(controller);
     placeHolderDocument_ = new CharTextDocument();
 }
 
@@ -148,7 +149,7 @@ int TextRenderer::totalHeight()
 /// This method returns width of the M cahracter
 int TextRenderer::emWidth()
 {
-    return textWidget()->fontMetrics().width("M");
+    return textWidget()->fontMetrics().horizontalAdvance('M');
 }
 
 
@@ -156,7 +157,7 @@ int TextRenderer::emWidth()
 /// Often the M is to wide. That why we have a nr width which takes the 8 for the width
 int TextRenderer::nrWidth()
 {
-    return textWidget()->fontMetrics().width("8");
+    return textWidget()->fontMetrics().horizontalAdvance('8');
 }
 
 
@@ -192,12 +193,12 @@ int TextRenderer::columnIndexForXpos(int line, int x )
 int TextRenderer::xPosForColumn(int line, int column)
 {
     QTextLayout* layout = textLayoutForLine( line );
-    int x = 0;// sideBarLeftWidth();
+    qreal x = 0;// sideBarLeftWidth();
     if(layout) {
         QTextLine tl = layout->lineAt(0);
-        x += tl.cursorToX( column );
+        x += tl.cursorToX(column);
     }
-    return x;
+    return round(x);
 }
 
 
@@ -248,16 +249,16 @@ QTextLayout *TextRenderer::textLayoutForLineForPlaceholder(int line)
 /// FIXME:  Invalide TextLayout cache when required!!!
 
     TextDocument* doc = textDocument();
-    if( line >= doc->lineCount() ) return 0;
+    if( line >= doc->lineCount() ) return nullptr;
 
     QTextLayout* textLayout = cachedTextLayoutList_.object(line);
     if( !textLayout ) {
         textLayout = new QTextLayout();
         textLayout->setCacheEnabled(true);
-        int tabWidth = controllerRef_->widget()->fontMetrics().charWidth("M",0);
+        int tabWidth = controllerRef_->widget()->fontMetrics().horizontalAdvance('M');
 
         QTextOption option;
-        option.setTabStop( config()->indentSize() * tabWidth );
+        option.setTabStopDistance(config()->indentSize() * tabWidth);
         if( config()->showWhitespaceMode() == TextEditorConfig::ShowWhitespaces ) {
             option.setFlags( QTextOption::ShowTabsAndSpaces );        /// TODO: Make an option to show spaces and tabs
         }
@@ -306,16 +307,16 @@ QTextLayout *TextRenderer::textLayoutForLineNormal(int line)
 /// FIXME:  Invalide TextLayout cache when required!!!
 
     TextDocument* doc = textDocument();
-    if( line >= doc->lineCount() ) return 0;
+    if( line >= doc->lineCount() ) return nullptr;
 
     QTextLayout* textLayout = cachedTextLayoutList_.object(line);
     if( !textLayout ) {
         textLayout = new QTextLayout();
         textLayout->setCacheEnabled(true);
-        int tabWidth = controllerRef_->widget()->fontMetrics().charWidth("M",0);
+        int tabWidth = controllerRef_->widget()->fontMetrics().horizontalAdvance('M');
 
         QTextOption option;
-        option.setTabStop( config()->indentSize() * tabWidth );
+        option.setTabStopDistance(config()->indentSize() * tabWidth);
 
         if( config()->showWhitespaceMode() == TextEditorConfig::ShowWhitespaces ) {
             option.setFlags( QTextOption::ShowTabsAndSpaces );        /// TODO: Make an option to show spaces and tabs
@@ -326,7 +327,8 @@ QTextLayout *TextRenderer::textLayoutForLineNormal(int line)
         textLayout->setTextOption( option );
 
         // add extra format
-        textLayout->setAdditionalFormats( themeStyler()->getLineFormatRanges( line ));
+
+        textLayout->setFormats(themeStyler()->getLineFormatRanges(line));
         QString text = doc->lineWithoutNewline(line);
 #ifdef USE_CONTROL_PICTURES
         for( int i=0; i<text.size(); ++i ) {
@@ -351,7 +353,7 @@ QTextLayout *TextRenderer::textLayoutForLineNormal(int line)
         textLayout->setText( text );
         textLayout->beginLayout();
         QTextLine textline = textLayout->createLine();
-        Q_UNUSED(textline);
+        Q_UNUSED(textline)
         textLayout->endLayout();
 
         // update the width cache
@@ -369,7 +371,7 @@ QTextLayout *TextRenderer::textLayoutForLineNormal(int line)
 
 /// This method starts rendering
 void TextRenderer::renderBegin( const QRect& rect )
-{    
+{
 
 //PROF_BEGIN
     TextDocument* doc = textDocument();
@@ -413,7 +415,7 @@ void TextRenderer::renderBegin( const QRect& rect )
 /// This method starts rendering
 void TextRenderer::renderEnd( const QRect& rect )
 {
-    Q_UNUSED(rect);
+    Q_UNUSED(rect)
 }
 
 
@@ -539,7 +541,7 @@ void TextRenderer::textDocumentChanged(edbee::TextDocument *oldDocument, edbee::
 {
     // disconnect an old document (if required)
     if( oldDocument ) {
-        disconnect(oldDocument, 0, this, 0 );
+        disconnect(oldDocument, nullptr, this, nullptr);
     }
     reset();
 
@@ -576,7 +578,7 @@ void TextRenderer::textChanged(edbee::TextBufferChange change)
 void TextRenderer::lastScopedOffsetChanged(int previousOffset, int newOffset)
 {
 //qlog_info() << "** lastScopedOffsetChanged("<<previousOffset<<","<<newOffset<<") **";
-    Q_UNUSED(newOffset);
+    Q_UNUSED(newOffset)
     int lastValidLine = textDocument()->lineFromOffset(previousOffset);
     invalidateTextLayoutCaches( lastValidLine );
         //    textWidget()->fullUpdate();

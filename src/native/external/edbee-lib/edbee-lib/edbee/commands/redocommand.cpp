@@ -26,5 +26,10 @@ QString RedoCommand::toString()
     return QStringLiteral("RedoCommand(%1)").arg( soft_ ? "soft" : "hard" );
 }
 
+bool RedoCommand::readonly()
+{
+    return soft_;
+}
+
 
 } // edbee

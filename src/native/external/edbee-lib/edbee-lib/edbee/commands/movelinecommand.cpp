@@ -23,6 +23,7 @@ MoveLineCommand::~MoveLineCommand()
 
 
 /// Calculates the new ranges after moving
+/*
 static void calculateNewSelectionRanges( TextDocument* doc, TextRangeSet& newCaretSelection, int direction )
 {
     for( int i=0,cnt=newCaretSelection.rangeCount(); i<cnt; ++i) {
@@ -43,6 +44,7 @@ static void calculateNewSelectionRanges( TextDocument* doc, TextRangeSet& newCar
         }
     }
 }
+*/
 
 
 /// all carets in the newCaretSelection are changed in the movedRange

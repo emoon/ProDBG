@@ -242,9 +242,11 @@ void FileBrowserView::set_backend_interface(IBackendRequests* iface) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void FileBrowserView::program_counter_changed(const IBackendRequests::ProgramCounterChange& pc) {
-    if (m_root_node) {
+    if (m_has_requested_files) {
         return;
     }
+
+    m_has_requested_files = true;
 
     printf("requesting source files\n");
 

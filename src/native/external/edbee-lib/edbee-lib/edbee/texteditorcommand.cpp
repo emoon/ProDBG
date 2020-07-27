@@ -22,5 +22,10 @@ TextEditorCommand::~TextEditorCommand()
 
 }
 
+bool TextEditorCommand::readonly()
+{
+    return false;
+}
+
 
 } // edbee

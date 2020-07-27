@@ -26,5 +26,10 @@ QString UndoCommand::toString()
     return QStringLiteral("UndoCommand(%1)").arg( soft_ ? "soft" : "hard" );
 }
 
+bool UndoCommand::readonly()
+{
+    return soft_;
+}
+
 
 } // edbee

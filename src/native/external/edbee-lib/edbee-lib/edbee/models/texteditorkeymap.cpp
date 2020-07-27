@@ -87,7 +87,7 @@ TextEditorKey* TextEditorKeyMap::get(const QString& name) const
     QHash<QString,TextEditorKey*>::const_iterator itr = keyMap_.find(name);
     if( itr != keyMap_.end() ) { return itr.value(); }
     if( parentRef_ ) { return parentRef_->get(name); }
-    return 0;
+    return nullptr;
 }
 
 
@@ -137,7 +137,7 @@ bool TextEditorKeyMap::has(const QString& name) const
 /// @param sequence the keysequence
 void TextEditorKeyMap::add(const QString& command, TextEditorKey* sequence)
 {
-    keyMap_.insertMulti(command,sequence);
+    keyMap_.insert(command,sequence);
 }
 
 
@@ -146,7 +146,7 @@ void TextEditorKeyMap::add(const QString& command, TextEditorKey* sequence)
 /// @param sequence the keysequence
 void TextEditorKeyMap::add(const QString& command, const QKeySequence& seq)
 {
-    keyMap_.insertMulti(command, new TextEditorKey(seq) );
+    keyMap_.insert(command, new TextEditorKey(seq) );
 }
 
 

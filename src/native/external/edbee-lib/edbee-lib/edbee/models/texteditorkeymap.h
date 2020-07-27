@@ -9,6 +9,7 @@
 
 #include <QKeySequence>
 #include <QHash>
+#include <QMultiHash>
 #include <QStringList>
 
 namespace edbee {
@@ -68,7 +69,7 @@ public:
 private:
 
     TextEditorKeyMap* parentRef_;                       ///< a reference to a parent keymap
-    QHash<QString,TextEditorKey*> keyMap_;      ///< a map to convert a name to a
+    QMultiHash<QString,TextEditorKey*> keyMap_;      ///< a map to convert a name to a
 };
 
 

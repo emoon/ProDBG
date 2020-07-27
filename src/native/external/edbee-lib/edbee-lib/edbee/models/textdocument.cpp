@@ -26,9 +26,9 @@ namespace edbee {
 /// Constructs the textdocument
 TextDocument::TextDocument( QObject* obj )
     : QObject(obj)
-    , documentFilter_(0)
-    , documentFilterRef_(0)
-    , textLineDataManager_(0)
+    , documentFilter_(nullptr)
+    , documentFilterRef_(nullptr)
+    , textLineDataManager_(nullptr)
 {
     textLineDataManager_ = new TextLineDataManager();
 }
@@ -44,7 +44,7 @@ TextDocument::~TextDocument()
 
 /// This method can be used to change the number of reserved fields by the document
 /// Increasing the amount will result in a realoc
-/// Decreasting the fieldcount reults in the lost of the 'old' fields
+/// Decreasting the fieldcount  reults in the lost of the 'old' fields
 /// At least the 'PredefinedFieldCount' amont of fields are required
 /// This method EMPTIES the undo-stack. So after this call all undo history is gone!
 void TextDocument::setLineDataFieldsPerLine( int count )
@@ -89,7 +89,7 @@ TextLineData* TextDocument::getLineData(int line, int field)
 void TextDocument::beginUndoGroup(ChangeGroup* group)
 {
     if( !group ) {
-        group = new ChangeGroup(0);
+        group = new ChangeGroup(nullptr);
     }
 //    if( documentFilter() ) {
 //        documentFilter()->filterBeginGroup( this, group );
@@ -204,7 +204,7 @@ void TextDocument::beginChanges(TextEditorController* controller)
 /// Replaces the given rangeset
 void TextDocument::replaceRangeSet(TextRangeSet& rangeSet, const QString& textIn )
 {
-    //return replaceRangeSet( rangeSet, QStringList(textIn) );
+    return replaceRangeSet( rangeSet, QStringList(textIn) );
 }
 
 
@@ -299,11 +299,11 @@ Change *TextDocument::executeAndGiveChange(Change* change, int coalesceId )
         beginUndoGroup();   // automaticly group changes together (when changes happend on emition)
         change->execute( this );
         Change* result = giveChangeWithoutFilter( change, coalesceId );
+        Q_UNUSED(result)
         endUndoGroup(coalesceId, true);
         return textUndoStack()->last();
 //        return result;
     }
-    return nullptr;
 }
 
 

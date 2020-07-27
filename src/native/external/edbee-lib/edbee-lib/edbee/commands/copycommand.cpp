@@ -55,4 +55,9 @@ QString CopyCommand::toString()
     return "CopyCommand";
 }
 
+bool CopyCommand::readonly()
+{
+    return true;
+}
+
 } // edbee

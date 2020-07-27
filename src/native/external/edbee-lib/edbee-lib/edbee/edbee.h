@@ -40,6 +40,7 @@ public:
 
     void autoInit();
 
+public:
     Q_SLOT void init();
     Q_SLOT void shutdown();
     Q_SLOT void autoShutDownOnAppExit();

@@ -65,6 +65,10 @@ public:
     void setAutoScrollMargin(int amount=50);
     void setPlaceholderText(const QString& text);
 
+    virtual bool readonly() const;
+    void setReadonly(bool readonly);
+
+
 protected:
 
     virtual void resizeEvent(QResizeEvent* event);
@@ -102,7 +106,8 @@ private:
     TextMarginComponent* marginCompRef_;                  ///< The margin components
     TextEditorAutoCompleteComponent* autoCompleteCompRef_; ///< The autocomplete list widget
 
-	int autoScrollMargin_; //< Customize the autoscroll margin
+    int autoScrollMargin_;                                 ///< Customize the autoscroll margin
+    bool readonly_;                                        ///< Readonly mode
 };
 
 } // edbee

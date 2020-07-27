@@ -59,6 +59,9 @@ public:
 
     /// should return the description of the command
     virtual QString toString() = 0;
+
+    /// Tis method should return true if it's executable in readonly mode
+    virtual bool readonly();
 };
 
 } // edbee

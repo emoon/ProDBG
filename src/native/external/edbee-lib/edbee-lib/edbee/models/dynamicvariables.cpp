@@ -96,7 +96,7 @@ void DynamicVariables::setAndGiveScopedSelector(const QString& name, const QVari
 {
     /// Todo, perhaps we should detect identical scope selectors and replace the original
     variableNames_.insert(name);
-    scopedVariableMap_.insertMulti( name, new ScopedDynamicVariable(value, new TextScopeSelector(selector) ) );
+    scopedVariableMap_.insert( name, new ScopedDynamicVariable(value, new TextScopeSelector(selector) ) );
 }
 
 

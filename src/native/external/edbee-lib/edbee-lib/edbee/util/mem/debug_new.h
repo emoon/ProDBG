@@ -27,7 +27,7 @@
     void  operator delete[] (void* p) throw();
 
     #define debug_new new(__FILE__, __LINE__)
-    #define new       debug_new
+    #define new       new(__FILE__, __LINE__)
     #define malloc(A) debug_malloc((A), __FILE__, __LINE__)
     #define free(A)   debug_free((A), __FILE__, __LINE__)
 #endif

@@ -95,6 +95,7 @@ public:
     int autocompleteMinimalCharacters() const;
     void setAutocompleteMinimalCharacters( int amount );
 
+
     Q_SIGNAL void configChanged();
 
 protected:

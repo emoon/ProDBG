@@ -39,6 +39,11 @@ QString DebugCommand::toString()
     return "DebugCommand";
 }
 
+bool DebugCommand::readonly()
+{
+    return true;
+}
+
 /// This method dumps the scopes
 void DebugCommand::dumpScopes( TextEditorController* controller )
 {
