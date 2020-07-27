@@ -32,9 +32,9 @@ QVariant CallstackModel::headerData(int section, Qt::Orientation orientation, in
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
         switch (section) {
             case 0:
-                return QStringLiteral("Name");
+                return QStringLiteral("Frame");
             case 1:
-                return QStringLiteral("Module");
+                return QStringLiteral("Language");
             default:
                 break;
         }
@@ -67,9 +67,9 @@ QVariant CallstackModel::data(const QModelIndex& index, int role) const {
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
             case 0:
-                return m_callstack.entries[index.row()].file;
+                return m_callstack.entries[index.row()].desc;
             case 1:
-                return m_callstack.entries[index.row()].module_name;
+                return m_callstack.entries[index.row()].lang;
         }
     }
 

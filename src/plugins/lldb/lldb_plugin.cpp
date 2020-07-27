@@ -13,6 +13,7 @@
 #include <LLDB/SBTarget.h>
 #include <LLDB/SBThread.h>
 #include <LLDB/SBValueList.h>
+#include <SBLanguageRuntime.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -191,16 +192,21 @@ static void reply_callstack(LLDBPlugin* plugin, PDWriter* writer) {
         lldb::SBFrame frame = thread.GetFrameAtIndex(i);
         lldb::SBModule mod = frame.GetModule();
         lldb::SBSymbolContext context(frame.GetSymbolContext(lldb::eSymbolContextEverything));
-        lldb::SBLineEntry entry(context.GetLineEntry());
+        lldb::SBLineEntry line_entry(context.GetLineEntry());
+        lldb::SBFunction function(context.GetFunction());
 
         uint64_t address = (uint64_t)frame.GetPC();
 
         mod.GetFileSpec().GetPath(module_name, sizeof(module_name));
 
-        uint32_t line = entry.GetLine();
-        entry.GetFileSpec().GetPath(filename, sizeof(filename));
+        uint32_t line = line_entry.GetLine();
+        line_entry.GetFileSpec().GetPath(filename, sizeof(filename));
+        const char* lang = lldb::SBLanguageRuntime::GetNameForLanguageType(function.GetLanguage());
 
-        entries.push_back(CreateCallstackEntryDirect(builder, address, module_name, filename, (int)line));
+        lldb::SBStream desc;
+        frame.GetDescription(desc);
+
+        entries.push_back(CreateCallstackEntryDirect(builder, address, desc.GetData(), lang, filename, (int)line));
     }
 
     auto t = builder.CreateVector<flatbuffers::Offset<CallstackEntry>>(entries);

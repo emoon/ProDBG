@@ -375,7 +375,8 @@ void BackendSession::request_basic(IBackendRequests::BasicRequest request_id) {
             for (const auto& variable : *vars->entries()) {
                 IBackendRequests::CallstackEntry var = {
                     variable->address(),
-                    variable->module_name() ? QString::fromUtf8(variable->module_name()->c_str()) : QString(),
+                    variable->desc() ? QString::fromUtf8(variable->desc()->c_str()) : QString(),
+                    variable->lang() ? QString::fromUtf8(variable->lang()->c_str()) : QString(),
                     variable->file() ? QString::fromUtf8(variable->file()->c_str()) : QString(),
                     variable->line(),
                 };

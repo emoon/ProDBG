@@ -658,15 +658,19 @@ struct CallstackEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef CallstackEntryBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ADDRESS = 4,
-    VT_MODULE_NAME = 6,
-    VT_FILE = 8,
-    VT_LINE = 10
+    VT_DESC = 6,
+    VT_LANG = 8,
+    VT_FILE = 10,
+    VT_LINE = 12
   };
   uint64_t address() const {
     return GetField<uint64_t>(VT_ADDRESS, 0);
   }
-  const flatbuffers::String *module_name() const {
-    return GetPointer<const flatbuffers::String *>(VT_MODULE_NAME);
+  const flatbuffers::String *desc() const {
+    return GetPointer<const flatbuffers::String *>(VT_DESC);
+  }
+  const flatbuffers::String *lang() const {
+    return GetPointer<const flatbuffers::String *>(VT_LANG);
   }
   const flatbuffers::String *file() const {
     return GetPointer<const flatbuffers::String *>(VT_FILE);
@@ -677,8 +681,10 @@ struct CallstackEntry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint64_t>(verifier, VT_ADDRESS) &&
-           VerifyOffset(verifier, VT_MODULE_NAME) &&
-           verifier.VerifyString(module_name()) &&
+           VerifyOffset(verifier, VT_DESC) &&
+           verifier.VerifyString(desc()) &&
+           VerifyOffset(verifier, VT_LANG) &&
+           verifier.VerifyString(lang()) &&
            VerifyOffset(verifier, VT_FILE) &&
            verifier.VerifyString(file()) &&
            VerifyField<int32_t>(verifier, VT_LINE) &&
@@ -693,8 +699,11 @@ struct CallstackEntryBuilder {
   void add_address(uint64_t address) {
     fbb_.AddElement<uint64_t>(CallstackEntry::VT_ADDRESS, address, 0);
   }
-  void add_module_name(flatbuffers::Offset<flatbuffers::String> module_name) {
-    fbb_.AddOffset(CallstackEntry::VT_MODULE_NAME, module_name);
+  void add_desc(flatbuffers::Offset<flatbuffers::String> desc) {
+    fbb_.AddOffset(CallstackEntry::VT_DESC, desc);
+  }
+  void add_lang(flatbuffers::Offset<flatbuffers::String> lang) {
+    fbb_.AddOffset(CallstackEntry::VT_LANG, lang);
   }
   void add_file(flatbuffers::Offset<flatbuffers::String> file) {
     fbb_.AddOffset(CallstackEntry::VT_FILE, file);
@@ -716,29 +725,34 @@ struct CallstackEntryBuilder {
 inline flatbuffers::Offset<CallstackEntry> CreateCallstackEntry(
     flatbuffers::FlatBufferBuilder &_fbb,
     uint64_t address = 0,
-    flatbuffers::Offset<flatbuffers::String> module_name = 0,
+    flatbuffers::Offset<flatbuffers::String> desc = 0,
+    flatbuffers::Offset<flatbuffers::String> lang = 0,
     flatbuffers::Offset<flatbuffers::String> file = 0,
     int32_t line = 0) {
   CallstackEntryBuilder builder_(_fbb);
   builder_.add_address(address);
   builder_.add_line(line);
   builder_.add_file(file);
-  builder_.add_module_name(module_name);
+  builder_.add_lang(lang);
+  builder_.add_desc(desc);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<CallstackEntry> CreateCallstackEntryDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     uint64_t address = 0,
-    const char *module_name = nullptr,
+    const char *desc = nullptr,
+    const char *lang = nullptr,
     const char *file = nullptr,
     int32_t line = 0) {
-  auto module_name__ = module_name ? _fbb.CreateString(module_name) : 0;
+  auto desc__ = desc ? _fbb.CreateString(desc) : 0;
+  auto lang__ = lang ? _fbb.CreateString(lang) : 0;
   auto file__ = file ? _fbb.CreateString(file) : 0;
   return CreateCallstackEntry(
       _fbb,
       address,
-      module_name__,
+      desc__,
+      lang__,
       file__,
       line);
 }

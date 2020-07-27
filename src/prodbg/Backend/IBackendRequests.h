@@ -40,8 +40,10 @@ public:
     struct CallstackEntry {
         // Address (may be ~0 if not applicable)
         uint64_t address;
-        // Module name (depends on the backend how this name is created)
-        QString module_name;
+        // Description line of the callstack. Up to backend but module/file/line/etc may be included
+        QString desc;
+        // Language type
+        QString lang;
         // Source file if supported
         QString file;
         // Line matching with source file
