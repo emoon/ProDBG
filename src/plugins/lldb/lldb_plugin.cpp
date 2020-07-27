@@ -184,8 +184,6 @@ static void reply_callstack(LLDBPlugin* plugin, PDWriter* writer) {
 
     lldb::SBThread thread(plugin->process.GetThreadByID(plugin->selected_thread_id));
 
-    printf("reply_callstack\n");
-
     for (uint32_t i = 0, c = thread.GetNumFrames(); i < c; ++i) {
         char filename[4096];
         char module_name[4096];
@@ -888,6 +886,14 @@ static void update_lldb_event(LLDBPlugin* plugin, PDWriter* writer) {
                         select_thread = true;
                         if (m_verbose)
                             printf("signal %d\n", (int)thread.GetStopReasonDataAtIndex(0));
+
+                        if (plugin->state != PDDebugState_StopException) {
+                            selected_thread = plugin->process.SetSelectedThread(thread);
+                            plugin->selected_thread_id = thread.GetThreadID();
+                            send_exception_state(plugin, writer);
+                        }
+
+                        plugin->state = PDDebugState_StopException;
 
                         break;
                     default:
