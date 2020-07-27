@@ -135,9 +135,6 @@ void CodeViews::program_counter_changed(const IBackendRequests::ProgramCounterCh
         for (int i = 0; i < tabs_count; ++i) {
             const QString& filename = tabToolTip(i);
 
-            qDebug() << "tab filename " << filename;
-            qDebug() << "pc  filename " << pc.filename;
-
             if (filename != pc.filename) {
                 continue;
             }
