@@ -48,8 +48,8 @@ public:
     QVariant data(const QModelIndex& index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
-private:
     Node* node_from_index(const QModelIndex& index) const;
+private:
     Node* m_root_node;
 };
 
@@ -221,6 +221,8 @@ LocalsView::LocalsView(QWidget* parent) : QWidget(parent), m_model(new LocalsMod
     m_ui->setupUi(this);
     m_ui->locals->setModel(m_model);
     m_ui->locals->setAlternatingRowColors(true);
+
+    QObject::connect(m_ui->locals, &QTreeView::expanded, this, &LocalsView::expand_variable);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -244,17 +246,30 @@ void LocalsView::set_backend_interface(IBackendRequests* iface) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LocalsView::reply_locals(const IBackendRequests::Variables& vars) {
-    // TODO: Fix memory leak
-    /*
-    if (m_root) {
-        delete m_root;
+    if (vars.request_id != m_request_id) {
+        return;
     }
-    */
 
-    m_root = new Node(nullptr, QStringLiteral(""), QStringLiteral(""), QStringLiteral(""), true);
+    // handle the case if we have a sub-tree expanded
 
-    for (const auto& t : vars.variables) {
-        m_root->children.push_back(new Node(m_root, t.name, t.value, t.type, t.may_have_children));
+    if (m_request_node) {
+        for (const auto& t : vars.variables) {
+            m_request_node->children.push_back(new Node(m_request_node, t.name, t.value, t.type, t.may_have_children));
+        }
+        m_request_node->may_have_children = false;
+    } else {
+        // TODO: Fix memory leak
+        /*
+        if (m_root) {
+            delete m_root;
+        }
+        */
+
+        m_root = new Node(nullptr, QStringLiteral(""), QStringLiteral(""), QStringLiteral(""), true);
+
+        for (const auto& t : vars.variables) {
+            m_root->children.push_back(new Node(m_root, t.name, t.value, t.type, t.may_have_children));
+        }
     }
 
     m_model->set_root_node(m_root);
@@ -263,8 +278,20 @@ void LocalsView::reply_locals(const IBackendRequests::Variables& vars) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void LocalsView::expand_variable(const QModelIndex& index) {
+    // TODO: Build fully from parent
+    Node* node = m_model->node_from_index(index);
+    m_locals_name_request = node->name;
+    qDebug() << "expand node " << m_locals_name_request;
+    m_request_id = m_interface->request_locals(m_locals_name_request);
+    m_request_node = node;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void LocalsView::program_counter_changed(const IBackendRequests::ProgramCounterChange& pc) {
-    m_interface->request_locals(QStringLiteral(""));
+    m_request_node = nullptr;
+    m_request_id = m_interface->request_locals(QStringLiteral(""));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

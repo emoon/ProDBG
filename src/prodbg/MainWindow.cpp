@@ -82,7 +82,7 @@ MainWindow::MainWindow()
 
     m_code_views = new CodeViews(m_breakpoints, this);
     m_code_views->open_file(QStringLiteral("examples/crashing_native/crash1.c"), true);
-    m_code_views->open_file(QStringLiteral("src/prodbg/Config/Config.cpp"), true);
+    //m_code_views->open_file(QStringLiteral("src/prodbg/Config/Config.cpp"), true);
 
     // m_code_views->openFile(QStringLiteral("src/prodbg/main.cpp"),
     // m_breakpoints);

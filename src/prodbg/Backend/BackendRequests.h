@@ -80,7 +80,7 @@ private:
     Q_SIGNAL void request_file_target_signal(const QString& filename);
     Q_SIGNAL void request_add_file_line_breakpoint_signal(const QString& filename, int line);
     Q_SIGNAL void request_remove_file_line_breakpoint_signal(const QString& filename, int line);
-    Q_SIGNAL void request_locals_signal(const QString& locals_entry);
+    Q_SIGNAL void request_locals_signal(const QString& locals_entry, uint64_t request_id);
     Q_SIGNAL void request_frame_index_signal(int frame_index);
 
     /*
@@ -95,6 +95,8 @@ private:
     Q_SIGNAL void requestDisassembly(uint64_t address, uint32_t count,
                                      QVector<IBackendRequests::AssemblyInstruction>* instructions);
     */
+
+    uint64_t m_request_id;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

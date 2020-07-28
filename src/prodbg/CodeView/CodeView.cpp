@@ -67,6 +67,7 @@ CodeView::CodeView(BreakpointModel* breakpoints, QWidget* parent)
     m_margin_delegate = new BreakpointDelegate;
     m_margin_delegate->m_breakpoints = breakpoints;
     textMarginComponent()->setDelegate(m_margin_delegate);
+    controller()->setReadonly(true);
 
     //m_fileWatcher = new QFileSystemWatcher(this);
     //connect(m_fileWatcher, SIGNAL(fileChanged(const QString&)), this, SLOT(fileChange(const QString)));

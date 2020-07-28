@@ -70,8 +70,9 @@ void BackendRequests::request_remove_file_line_breakpoint(const QString& filenam
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 uint64_t BackendRequests::request_locals(const QString& locals_entry) {
-    request_locals_signal(locals_entry);
-    return 0;
+    uint64_t request_id = m_request_id++;
+    request_locals_signal(locals_entry, request_id);
+    return request_id;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

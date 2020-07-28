@@ -750,10 +750,12 @@ void BackendSession::step_in() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-uint64_t BackendSession::request_locals(const QString& locals_entry) {
+void BackendSession::request_locals(const QString& locals_entry, uint64_t request_id) {
     uint32_t event = 0;
     void* data;
     uint64_t size;
+
+    printf("request locals\n");
 
     flatbuffers::FlatBufferBuilder builder(1024);
 
@@ -784,14 +786,12 @@ uint64_t BackendSession::request_locals(const QString& locals_entry) {
                 };
 
                 variables.variables.push_back(var);
-                variables.request_id = 0; // TODO: Fix me
+                variables.request_id = request_id;
             }
 
             reply_locals(variables);
         }
     }
-
-    return 0;
 }
 
 /*

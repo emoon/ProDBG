@@ -188,6 +188,7 @@ static void reply_callstack(LLDBPlugin* plugin, PDWriter* writer) {
     for (uint32_t i = 0, c = thread.GetNumFrames(); i < c; ++i) {
         char filename[4096];
         char module_name[4096];
+        char desc_no_escape[4096];
 
         lldb::SBFrame frame = thread.GetFrameAtIndex(i);
         lldb::SBModule mod = frame.GetModule();
@@ -206,7 +207,45 @@ static void reply_callstack(LLDBPlugin* plugin, PDWriter* writer) {
         lldb::SBStream desc;
         frame.GetDescription(desc);
 
-        entries.push_back(CreateCallstackEntryDirect(builder, address, desc.GetData(), lang, filename, (int)line));
+        // this description contains ansi codes such as 0x1b5b33m (\0x1b[33m) and we don't
+        // want that in the data sent back so we do a pass where we skip those
+        const char* desc_with_ansi = desc.GetData();
+        char* output = desc_no_escape;
+        int len = strlen(desc_with_ansi);
+        int p = 0;
+        size_t new_len = 0;
+        bool search_end_state = false;
+
+
+        for (p = 0; p < len; ++p) {
+            char c = *desc_with_ansi++;
+
+            if (search_end_state) {
+                if (c != 'm') {
+                    continue;
+                }
+
+                search_end_state = false;
+                continue;
+            }
+
+            if (c != 0x1b) {
+                *output++ = c;
+                new_len++;
+            } else {
+                search_end_state = true;
+            }
+
+            if ((new_len + 1) > sizeof(desc_no_escape)) {
+                break;
+            }
+        }
+
+        desc_no_escape[new_len - 1] = 0;
+
+        printf("%s\n", desc_no_escape);
+
+        entries.push_back(CreateCallstackEntryDirect(builder, address, desc_no_escape, lang, filename, (int)line));
     }
 
     auto t = builder.CreateVector<flatbuffers::Offset<CallstackEntry>>(entries);
@@ -387,20 +426,45 @@ static void locals_reply(LLDBPlugin* plugin, const LocalsRequest* request, PDWri
     // TODO: Support expanding locals here
     (void)request;
 
+
     lldb::SBThread thread(plugin->process.GetThreadByID(plugin->selected_thread_id));
     lldb::SBFrame frame = thread.GetSelectedFrame();
 
     lldb::SBValueList variables = frame.GetVariables(true, true, true, false);
 
-    for (uint32_t i = 0, c = variables.GetSize(); i < c; ++i) {
-        lldb::SBValue value = variables.GetValueAtIndex(i);
-        uint64_t adr = value.GetAddress().GetFileAddress();
-        bool exp = value.MightHaveChildren();
-        const char* name = value.GetName();
-        const char* vt = value.GetValue();
-        const char* type = value.GetTypeName();
 
-        locals.push_back(CreateVariableDirect(builder, name, vt, type, adr, exp));
+    const char* expand_local = request->entry()->c_str();
+
+    if (expand_local && expand_local[0] != 0) {
+        // TODO Tokenize the data
+
+        printf("getting sub data for %s\n", expand_local);
+
+        lldb::SBValue sub_value = variables.GetFirstValueByName(expand_local);
+
+        if (sub_value.IsValid()) {
+            for (uint32_t i = 0, c = sub_value.GetNumChildren(); i < c; ++i) {
+                lldb::SBValue value = sub_value.GetChildAtIndex(i);
+                uint64_t adr = value.GetAddress().GetFileAddress();
+                bool exp = value.MightHaveChildren();
+                const char* name = value.GetName();
+                const char* vt = value.GetValue();
+                const char* type = value.GetTypeName();
+
+                locals.push_back(CreateVariableDirect(builder, name, vt, type, adr, exp));
+            }
+        }
+    } else {
+        for (uint32_t i = 0, c = variables.GetSize(); i < c; ++i) {
+            lldb::SBValue value = variables.GetValueAtIndex(i);
+            uint64_t adr = value.GetAddress().GetFileAddress();
+            bool exp = value.MightHaveChildren();
+            const char* name = value.GetName();
+            const char* vt = value.GetValue();
+            const char* type = value.GetTypeName();
+
+            locals.push_back(CreateVariableDirect(builder, name, vt, type, adr, exp));
+        }
     }
 
     auto t = builder.CreateVector<flatbuffers::Offset<Variable>>(locals);

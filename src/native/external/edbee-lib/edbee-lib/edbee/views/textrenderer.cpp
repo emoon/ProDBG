@@ -492,7 +492,8 @@ bool TextRenderer::shouldRenderCaret()
 /// Returns true if the caret is visible
 bool TextRenderer::isCaretVisible()
 {
-    return caretTime_ >= 0;
+    return false;
+    //return caretTime_ >= 0;
 }
 
 
