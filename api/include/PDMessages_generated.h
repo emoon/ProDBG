@@ -78,6 +78,36 @@ inline const char *EnumNameBasicRequestEnum(BasicRequestEnum e) {
   return EnumNamesBasicRequestEnum()[index];
 }
 
+enum ExpandVarsTypeEnum {
+  ExpandVarsTypeEnum_AllVariables = 0,
+  ExpandVarsTypeEnum_Single = 1,
+  ExpandVarsTypeEnum_MIN = ExpandVarsTypeEnum_AllVariables,
+  ExpandVarsTypeEnum_MAX = ExpandVarsTypeEnum_Single
+};
+
+inline const ExpandVarsTypeEnum (&EnumValuesExpandVarsTypeEnum())[2] {
+  static const ExpandVarsTypeEnum values[] = {
+    ExpandVarsTypeEnum_AllVariables,
+    ExpandVarsTypeEnum_Single
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesExpandVarsTypeEnum() {
+  static const char * const names[3] = {
+    "AllVariables",
+    "Single",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameExpandVarsTypeEnum(ExpandVarsTypeEnum e) {
+  if (flatbuffers::IsOutRange(e, ExpandVarsTypeEnum_AllVariables, ExpandVarsTypeEnum_Single)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesExpandVarsTypeEnum()[index];
+}
+
 enum MessageType {
   MessageType_NONE = 0,
   MessageType_file_target_request = 1,
@@ -428,15 +458,20 @@ inline flatbuffers::Offset<ExceptionLocationRequest> CreateExceptionLocationRequ
 struct LocalsRequest FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef LocalsRequestBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_ENTRY = 4
+    VT_TREE = 4,
+    VT_TYPE = 6
   };
-  const flatbuffers::String *entry() const {
-    return GetPointer<const flatbuffers::String *>(VT_ENTRY);
+  const flatbuffers::Vector<uint16_t> *tree() const {
+    return GetPointer<const flatbuffers::Vector<uint16_t> *>(VT_TREE);
+  }
+  ExpandVarsTypeEnum type() const {
+    return static_cast<ExpandVarsTypeEnum>(GetField<int16_t>(VT_TYPE, 0));
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_ENTRY) &&
-           verifier.VerifyString(entry()) &&
+           VerifyOffset(verifier, VT_TREE) &&
+           verifier.VerifyVector(tree()) &&
+           VerifyField<int16_t>(verifier, VT_TYPE) &&
            verifier.EndTable();
   }
 };
@@ -445,8 +480,11 @@ struct LocalsRequestBuilder {
   typedef LocalsRequest Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_entry(flatbuffers::Offset<flatbuffers::String> entry) {
-    fbb_.AddOffset(LocalsRequest::VT_ENTRY, entry);
+  void add_tree(flatbuffers::Offset<flatbuffers::Vector<uint16_t>> tree) {
+    fbb_.AddOffset(LocalsRequest::VT_TREE, tree);
+  }
+  void add_type(ExpandVarsTypeEnum type) {
+    fbb_.AddElement<int16_t>(LocalsRequest::VT_TYPE, static_cast<int16_t>(type), 0);
   }
   explicit LocalsRequestBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -461,19 +499,23 @@ struct LocalsRequestBuilder {
 
 inline flatbuffers::Offset<LocalsRequest> CreateLocalsRequest(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> entry = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<uint16_t>> tree = 0,
+    ExpandVarsTypeEnum type = ExpandVarsTypeEnum_AllVariables) {
   LocalsRequestBuilder builder_(_fbb);
-  builder_.add_entry(entry);
+  builder_.add_tree(tree);
+  builder_.add_type(type);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<LocalsRequest> CreateLocalsRequestDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const char *entry = nullptr) {
-  auto entry__ = entry ? _fbb.CreateString(entry) : 0;
+    const std::vector<uint16_t> *tree = nullptr,
+    ExpandVarsTypeEnum type = ExpandVarsTypeEnum_AllVariables) {
+  auto tree__ = tree ? _fbb.CreateVector<uint16_t>(*tree) : 0;
   return CreateLocalsRequest(
       _fbb,
-      entry__);
+      tree__,
+      type);
 }
 
 struct FileLineBreakpoint FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

@@ -16,6 +16,7 @@ BackendRequests::BackendRequests(BackendSession* session) {
     connect(this, &BackendRequests::request_basic_signal, session, &BackendSession::request_basic);
     connect(this, &BackendRequests::request_frame_index_signal, session, &BackendSession::request_frame_index);
 
+
     /*
     connect(this, &BackendRequests::sendCustomStr, session, &BackendSession::sendCustomString);
 
@@ -69,9 +70,10 @@ void BackendRequests::request_remove_file_line_breakpoint(const QString& filenam
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-uint64_t BackendRequests::request_locals(const QString& locals_entry) {
+uint64_t BackendRequests::request_locals(const ExpandVars& expanded_vars) {
     uint64_t request_id = m_request_id++;
-    request_locals_signal(locals_entry, request_id);
+    printf("BackendRequests::request_locals\n");
+    request_locals_signal(expanded_vars, request_id);
     return request_id;
 }
 

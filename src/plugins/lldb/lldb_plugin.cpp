@@ -216,6 +216,8 @@ static void reply_callstack(LLDBPlugin* plugin, PDWriter* writer) {
         size_t new_len = 0;
         bool search_end_state = false;
 
+        // this (kinda ugly code) searches for 0x1b as starting and then 'm' as ending
+        // for escape codes
 
         for (p = 0; p < len; ++p) {
             char c = *desc_with_ansi++;
@@ -242,8 +244,6 @@ static void reply_callstack(LLDBPlugin* plugin, PDWriter* writer) {
         }
 
         desc_no_escape[new_len - 1] = 0;
-
-        printf("%s\n", desc_no_escape);
 
         entries.push_back(CreateCallstackEntryDirect(builder, address, desc_no_escape, lang, filename, (int)line));
     }
@@ -423,36 +423,37 @@ static void locals_reply(LLDBPlugin* plugin, const LocalsRequest* request, PDWri
     std::vector<flatbuffers::Offset<Variable>> locals;
     flatbuffers::FlatBufferBuilder builder(4096);
 
-    // TODO: Support expanding locals here
-    (void)request;
-
-
     lldb::SBThread thread(plugin->process.GetThreadByID(plugin->selected_thread_id));
     lldb::SBFrame frame = thread.GetSelectedFrame();
 
     lldb::SBValueList variables = frame.GetVariables(true, true, true, false);
 
+    const uint16_t* expand_vars = request->tree()->data();
+    const uint16_t count = request->tree()->size();
+    const auto type = request->type();
+    (void)count;
+    //const char* expand_local = request->entry()->c_str();
 
-    const char* expand_local = request->entry()->c_str();
+    if (type == ExpandVarsTypeEnum_Single) {
+        int count = (int)*expand_vars++;
+        int index = *expand_vars++;
 
-    if (expand_local && expand_local[0] != 0) {
-        // TODO Tokenize the data
+        lldb::SBValue value = variables.GetValueAtIndex(index);
 
-        printf("getting sub data for %s\n", expand_local);
+        for (int i = 0; i < count; ++i) {
+            // TODO: Validate values here
+            value = value.GetChildAtIndex(*expand_vars++);
+        }
 
-        lldb::SBValue sub_value = variables.GetFirstValueByName(expand_local);
+        for (uint32_t i = 0, c = value.GetNumChildren(); i < c; ++i) {
+            lldb::SBValue current = value.GetChildAtIndex(i);
+            uint64_t adr = current.GetAddress().GetFileAddress();
+            bool exp = current.MightHaveChildren();
+            const char* name = current.GetName();
+            const char* vt = current.GetValue();
+            const char* type = current.GetTypeName();
 
-        if (sub_value.IsValid()) {
-            for (uint32_t i = 0, c = sub_value.GetNumChildren(); i < c; ++i) {
-                lldb::SBValue value = sub_value.GetChildAtIndex(i);
-                uint64_t adr = value.GetAddress().GetFileAddress();
-                bool exp = value.MightHaveChildren();
-                const char* name = value.GetName();
-                const char* vt = value.GetValue();
-                const char* type = value.GetTypeName();
-
-                locals.push_back(CreateVariableDirect(builder, name, vt, type, adr, exp));
-            }
+            locals.push_back(CreateVariableDirect(builder, name, vt, type, adr, exp));
         }
     } else {
         for (uint32_t i = 0, c = variables.GetSize(); i < c; ++i) {

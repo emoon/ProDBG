@@ -32,6 +32,7 @@ private:
     Q_SLOT void reply_locals(const IBackendRequests::Variables& variables);
     Q_SLOT void program_counter_changed(const IBackendRequests::ProgramCounterChange& pc);
     Q_SLOT void expand_variable(const QModelIndex& index);
+    Q_SLOT void collpase_variable(const QModelIndex& index);
 
     Node* m_root = nullptr;
     LocalsModel* m_model = nullptr;
@@ -41,6 +42,7 @@ private:
     uint64_t m_request_id;
     QString m_locals_name_request;
     Node* m_request_node = nullptr;
+    IBackendRequests::ExpandVars m_expand_vars;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

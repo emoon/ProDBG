@@ -33,7 +33,7 @@ public:
     // Request locals variables. This function returns an ID that should be used
     // to match the reply. This is because several users may request data and
     // it's up to the user to make sure the use the data that match the request
-    uint64_t request_locals(const QString& locals_entry);
+    uint64_t request_locals(const ExpandVars& expanded_vars);
 
    // Request frame selection
     uint64_t request_frame_index(int frame_index);
@@ -80,7 +80,7 @@ private:
     Q_SIGNAL void request_file_target_signal(const QString& filename);
     Q_SIGNAL void request_add_file_line_breakpoint_signal(const QString& filename, int line);
     Q_SIGNAL void request_remove_file_line_breakpoint_signal(const QString& filename, int line);
-    Q_SIGNAL void request_locals_signal(const QString& locals_entry, uint64_t request_id);
+    Q_SIGNAL void request_locals_signal(const IBackendRequests::ExpandVars& expanded_vars, uint64_t request_id);
     Q_SIGNAL void request_frame_index_signal(int frame_index);
 
     /*

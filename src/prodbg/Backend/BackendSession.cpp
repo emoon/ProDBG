@@ -750,7 +750,7 @@ void BackendSession::step_in() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::request_locals(const QString& locals_entry, uint64_t request_id) {
+void BackendSession::request_locals(const IBackendRequests::ExpandVars& expanded_vars, uint64_t request_id) {
     uint32_t event = 0;
     void* data;
     uint64_t size;
@@ -759,11 +759,11 @@ void BackendSession::request_locals(const QString& locals_entry, uint64_t reques
 
     flatbuffers::FlatBufferBuilder builder(1024);
 
-    auto build_path = builder.CreateString(locals_entry.toUtf8().data());
-
+    auto tree = builder.CreateVector<uint16_t>(expanded_vars.tree.data(), expanded_vars.tree.size());
     LocalsRequestBuilder request(builder);
-    request.add_entry(build_path);
-
+    request.add_tree(tree);
+    request.add_type(expanded_vars.type == IBackendRequests::ExpandType::Single ?
+                     ExpandVarsTypeEnum_Single : ExpandVarsTypeEnum_AllVariables);
     PDMessage_end_msg(m_currentWriter, request, builder);
 
     update();

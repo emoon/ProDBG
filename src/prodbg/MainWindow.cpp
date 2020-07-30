@@ -56,12 +56,15 @@ MainWindow::MainWindow()
     qRegisterMetaType<uint16_t>("uint16_t");
     qRegisterMetaType<uint32_t>("uint32_t");
     qRegisterMetaType<uint64_t>("uint64_t");
+    qRegisterMetaType<uint64_t>("uint64_t");
     qRegisterMetaType<IBackendRequests::ProgramCounterChange>("IBackendRequests::ProgramCounterChange");
     qRegisterMetaType<IBackendRequests::VariableData>("IBackendRequests::VariableData");
     qRegisterMetaType<IBackendRequests::Variables>("IBackendRequests::Variables");
     qRegisterMetaType<IBackendRequests::BasicRequest>("IBackendRequests::BasicRequest");
     qRegisterMetaType<IBackendRequests::CallstackEntry>("IBackendRequests::CallstackEntry");
     qRegisterMetaType<IBackendRequests::Callstack>("IBackendRequests::Callstack");
+    qRegisterMetaType<IBackendRequests::ExpandVars>("IBackendRequests::ExpandVars");
+    qRegisterMetaType<IBackendRequests::ExpandType>("IBackendRequests::ExpandType");
     qRegisterMetaType<QVector<QString>>("QVector<QString>");
 
     m_view_handler = new ViewHandler(this);
@@ -100,24 +103,6 @@ MainWindow::MainWindow()
     // m_ui.toolWindowManager->setRubberBandLineWidth(50);
 
     // PluginInstance* inst = PluginUI_createTestPlugin(this);
-
-    /*
-       edbee::TextEditorWidget* editor = new edbee::TextEditorWidget(this);
-       edbee::TextDocumentSerializer serializer(editor->textDocument());
-    //QString filename = QStringLiteral("/home/emoon/code/projects/hippo_player/src/hippo_core/core/src/lib.rs");
-    QString filename = QStringLiteral("src/prodbg/Config/Config.cpp");
-    QFile file(filename);
-    if (!serializer.load(&file)) {
-    qDebug() << "failed to load file";
-    }
-
-    auto grammar_manager = edbee::Edbee::instance()->grammarManager();
-    auto grammar = grammar_manager->detectGrammarWithFilename(filename);
-    qDebug() << "grammar detected " << grammar;
-    editor->textDocument()->setLanguageGrammar(grammar);
-    editor->textScrollArea()->enableShadowWidget(false);
-    editor->textDocument()->config()->setFont(font);
-     */
 
     auto temp = new QWidget(this);
     setCentralWidget(temp);

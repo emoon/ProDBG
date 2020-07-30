@@ -50,6 +50,9 @@ public:
         int line;
     };
 
+    //
+    // Callstack entries with request_id
+    //
     struct Callstack {
         QVector<CallstackEntry> entries;
         uint64_t request_id;
@@ -70,10 +73,38 @@ public:
     };
 
     //
+    // List of requested vars
     //
     struct Variables {
         QVector<VariableData> variables;
         uint64_t request_id;
+    };
+
+    //
+    // Type of variable expansion
+    //
+    enum class ExpandType {
+        AllVariables,
+        Single,
+    };
+
+    //
+    // This is used to expand vars for locals/watches/etc
+    // it uses a count with the trees to expand
+    //
+    // Layout of the data
+    //
+    // count,nodes to expand
+    // example
+    //
+    // 1,2  <- count 1, expand node 2 in level 0
+    // 2,3,0 <- count 2, expand node 3 level 0, expand node 0 in level 1
+    //
+    struct ExpandVars {
+        // How to expand tree
+        QVector<uint16_t> tree;
+        // Type of expansion
+        ExpandType type;
     };
 
     //
@@ -134,7 +165,7 @@ public:
     virtual void request_remove_file_line_breakpoint(const QString& filename, int line) = 0;
 
     // Request locals variables
-    virtual uint64_t request_locals(const QString& locals_entry) = 0;
+    virtual uint64_t request_locals(const ExpandVars& expanded_vars) = 0;
 
     // Request frame index
     virtual uint64_t request_frame_index(int frame_index) = 0;

@@ -12,8 +12,9 @@ namespace prodbg {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct Node {
-    Node(Node* parent, const QString& name, const QString& data, const QString& type, bool may_have_children)
-        : parent(parent), name(name), data(data), type(type), may_have_children(may_have_children) {
+    Node(Node* parent, const QString& name, const QString& data, const QString& type, int node_id,
+         bool may_have_children)
+        : parent(parent), name(name), data(data), type(type), node_id(node_id), may_have_children(may_have_children) {
     }
     ~Node() {
         qDeleteAll(children);
@@ -23,6 +24,7 @@ struct Node {
     QString name;
     QString data;
     QString type;
+    int node_id;
     bool may_have_children;
 
     QList<Node*> children;
@@ -49,6 +51,7 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
     Node* node_from_index(const QModelIndex& index) const;
+
 private:
     Node* m_root_node;
 };
@@ -210,9 +213,12 @@ Qt::ItemFlags LocalsModel::flags(const QModelIndex& index) const {
         new Node(root, QStringLiteral("Value 2"), QStringLiteral("2.0"), QStringLiteral("float"), false));
     root->children.push_back(s);
 
-    //s->children.push_back(new Node(s, QStringLiteral("Value 4"), QStringLiteral("1.0"), QStringLiteral("float"), false));
-    //s->children.push_back(new Node(s, QStringLiteral("Value 5"), QStringLiteral("2.0"), QStringLiteral("float"), false));
-    //s->children.push_back(new Node(s, QStringLiteral("Value 6"), QStringLiteral("2.0"), QStringLiteral("float"), false));
+    //s->children.push_back(new Node(s, QStringLiteral("Value 4"), QStringLiteral("1.0"), QStringLiteral("float"),
+   false));
+    //s->children.push_back(new Node(s, QStringLiteral("Value 5"), QStringLiteral("2.0"), QStringLiteral("float"),
+   false));
+    //s->children.push_back(new Node(s, QStringLiteral("Value 6"), QStringLiteral("2.0"), QStringLiteral("float"),
+   false));
 */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -222,6 +228,8 @@ LocalsView::LocalsView(QWidget* parent) : QWidget(parent), m_model(new LocalsMod
     m_ui->locals->setModel(m_model);
     m_ui->locals->setAlternatingRowColors(true);
 
+    m_expand_vars.type = IBackendRequests::ExpandType::AllVariables;
+
     QObject::connect(m_ui->locals, &QTreeView::expanded, this, &LocalsView::expand_variable);
 }
 
@@ -229,6 +237,7 @@ LocalsView::LocalsView(QWidget* parent) : QWidget(parent), m_model(new LocalsMod
 
 LocalsView::~LocalsView() {
     delete m_ui;
+    delete m_root;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -237,8 +246,7 @@ void LocalsView::set_backend_interface(IBackendRequests* iface) {
     m_interface = iface;
 
     if (iface) {
-        connect(m_interface, &IBackendRequests::program_counter_changed, this,
-                &LocalsView::program_counter_changed);
+        connect(m_interface, &IBackendRequests::program_counter_changed, this, &LocalsView::program_counter_changed);
         connect(m_interface, &IBackendRequests::reply_locals, this, &LocalsView::reply_locals);
     }
 }
@@ -253,8 +261,11 @@ void LocalsView::reply_locals(const IBackendRequests::Variables& vars) {
     // handle the case if we have a sub-tree expanded
 
     if (m_request_node) {
+        int node_id = 0;
         for (const auto& t : vars.variables) {
-            m_request_node->children.push_back(new Node(m_request_node, t.name, t.value, t.type, t.may_have_children));
+            m_request_node->children.push_back(
+                new Node(m_request_node, t.name, t.value, t.type, node_id, t.may_have_children));
+            node_id++;
         }
         m_request_node->may_have_children = false;
     } else {
@@ -265,10 +276,12 @@ void LocalsView::reply_locals(const IBackendRequests::Variables& vars) {
         }
         */
 
-        m_root = new Node(nullptr, QStringLiteral(""), QStringLiteral(""), QStringLiteral(""), true);
+        m_root = new Node(nullptr, QStringLiteral(""), QStringLiteral(""), QStringLiteral(""), -1, true);
+        int node_id = 0;
 
         for (const auto& t : vars.variables) {
-            m_root->children.push_back(new Node(m_root, t.name, t.value, t.type, t.may_have_children));
+            m_root->children.push_back(new Node(m_root, t.name, t.value, t.type, node_id, t.may_have_children));
+            node_id++;
         }
     }
 
@@ -278,12 +291,48 @@ void LocalsView::reply_locals(const IBackendRequests::Variables& vars) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LocalsView::expand_variable(const QModelIndex& index) {
-    // TODO: Build fully from parent
+void LocalsView::collpase_variable(const QModelIndex& index) {
     Node* node = m_model->node_from_index(index);
-    m_locals_name_request = node->name;
-    qDebug() << "expand node " << m_locals_name_request;
-    m_request_id = m_interface->request_locals(m_locals_name_request);
+    node->is_expanded = false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void LocalsView::expand_variable(const QModelIndex& index) {
+    IBackendRequests::ExpandVars expand_vars;
+
+    Node* node = m_model->node_from_index(index);
+    node->is_expanded = true;
+
+    int count = 0;
+
+    // build expansion, first do a count, as we only traverse upwards this should be quite fast as this is the
+    // number of levels some data has been expanded and it's likely not very super deep.
+
+    while (m_root != current_node) {
+        count++;
+        current_node = current_node->parent;
+    }
+
+    expand_vars.tree.resize(count + 1);
+    int write_index = count;
+    current_node = node;
+
+    // insert the tree indices
+
+    while (m_root != current_node) {
+        expand_vars.tree[write_index] = current_node->node_id;
+        current_node = current_node->parent;
+        write_index--;
+    }
+    expand_vars.tree[0] = count;
+    expand_vars.type = IBackendRequests::ExpandType::Single;
+
+    // TODO: Build fully from parent
+    // m_locals_name_request = node->name;
+    qDebug() << "expand node " << expand_vars.tree;
+
+    m_request_id = m_interface->request_locals(expand_vars);
     m_request_node = node;
 }
 
@@ -291,7 +340,8 @@ void LocalsView::expand_variable(const QModelIndex& index) {
 
 void LocalsView::program_counter_changed(const IBackendRequests::ProgramCounterChange& pc) {
     m_request_node = nullptr;
-    m_request_id = m_interface->request_locals(QStringLiteral(""));
+    printf("LocalsView::program_counter_changed request locals\n");
+    m_request_id = m_interface->request_locals(m_expand_vars);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

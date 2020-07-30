@@ -5,6 +5,11 @@ enum BasicRequestEnum : short {
     Callstack,
 }
 
+enum ExpandVarsTypeEnum : short {
+    AllVariables,
+    Single,
+}
+
 table BasicRequest {
     id: BasicRequestEnum;
 }
@@ -28,7 +33,8 @@ table TargetReply {
 table ExceptionLocationRequest { }
 
 table LocalsRequest {
-    entry: string;
+    tree: [ushort];
+    type: ExpandVarsTypeEnum;
 }
 
 // To set a breakpoint on a file and line
