@@ -15,6 +15,7 @@ struct Node {
     Node(Node* parent, const QString& name, const QString& data, const QString& type, int node_id,
          bool may_have_children)
         : parent(parent), name(name), data(data), type(type), node_id(node_id), may_have_children(may_have_children) {
+        is_expanded = false;
     }
     ~Node() {
         qDeleteAll(children);
@@ -25,6 +26,7 @@ struct Node {
     QString data;
     QString type;
     int node_id;
+    bool is_expanded;
     bool may_have_children;
 
     QList<Node*> children;
@@ -305,6 +307,8 @@ void LocalsView::expand_variable(const QModelIndex& index) {
     node->is_expanded = true;
 
     int count = 0;
+
+    Node* current_node = node;
 
     // build expansion, first do a count, as we only traverse upwards this should be quite fast as this is the
     // number of levels some data has been expanded and it's likely not very super deep.

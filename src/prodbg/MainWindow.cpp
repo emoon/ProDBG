@@ -181,7 +181,7 @@ MainWindow::MainWindow()
     start_dummy_backend();
 
     init_actions();
-    read_settings();
+    //read_settings();
 
     init_recent_file_actions();
 }

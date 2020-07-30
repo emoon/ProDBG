@@ -57,9 +57,35 @@ Program {
 }
 
 -----------------------------------------------------------------------------------------------------------------------
+-- Unit/integration tests
+
+Program {
+    Name = "tests",
+
+    Includes = {
+        "src/native/external/googletest/include",
+        "src/native/external/googletest",
+        "src/native/external/",
+    },
+
+    Sources = {
+        Glob {
+            Dir = "src/tests",
+            Extensions = { ".c", ".cpp" },
+        },
+    },
+
+    Env = {
+        PROGCOM = {
+            { "-lpthread"; Config = "linux-*-*" },
+        },
+    },
+}
+
 
 -- Default "fake6502"
 Default "crashing_native"
+Default "tests"
 
 -- vim: ts=4:sw=4:sts=4
 

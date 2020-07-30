@@ -14,7 +14,7 @@ CodeViews::CodeViews(BreakpointModel* breakpoints, QWidget* parent) : QTabWidget
     setTabsClosable(true);
     //m_disassemblyView = new DisassemblyView(nullptr);
     //m_disassemblyView->setBreakpointModel(breakpoints);
-    read_settings();
+    //read_settings();
 
     connect(this, &QTabWidget::tabCloseRequested, this, &CodeViews::closeTab);
 }
