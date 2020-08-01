@@ -1007,8 +1007,8 @@ static PDBackendPlugin plugin = {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C" PD_EXPORT void InitPlugin(RegisterPlugin* registerPlugin, void* private_data) {
-    registerPlugin(PD_BACKEND_API_VERSION, &plugin, private_data);
+extern "C" PD_EXPORT void pd_init_plugin(RegisterPlugin* register_plugin, void* private_data) {
+    register_plugin(PD_BACKEND_API_VERSION, &plugin, private_data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

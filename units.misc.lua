@@ -2,6 +2,14 @@ require "tundra.syntax.glob"
 require "tundra.path"
 require "tundra.util"
 
+local function get_c_cpp_src(dir, recursive)
+    return Glob {
+        Dir = dir,
+        Extensions = { ".cpp", ".c", ".h" },
+        Recursive = recursive,
+}
+end
+
 -----------------------------------------------------------------------------------------------------------------------
 -- Example 6502 emulator
 
@@ -47,10 +55,7 @@ Program {
     Name = "crashing_native",
 
     Sources = {
-        Glob {
-            Dir = "examples/crashing_native",
-            Extensions = { ".c" },
-        },
+        get_c_cpp_src("examples/crashing_native", true),
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Misc" } },
@@ -66,20 +71,20 @@ Program {
         "src/external/googletest/include",
         "src/external/googletest",
         "src/external/",
+        "src",
     },
 
     Sources = {
-        Glob {
-            Dir = "src/tests",
-            Extensions = { ".c", ".cpp" },
-        },
+        get_c_cpp_src("src/tests", true),
     },
 
     Env = {
         PROGCOM = {
-            { "-lpthread"; Config = "linux-*-*" },
+            { "-lpthread", "-ldl"; Config = "linux-*-*" },
         },
     },
+
+    Depends = { "core" },
 }
 
 
