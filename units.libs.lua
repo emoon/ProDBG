@@ -122,7 +122,7 @@ StaticLibrary {
 
     Sources = {
         Glob {
-            Dir = "src/native/external/tinyexpr",
+            Dir = "src/external/tinyexpr",
             Extensions = { ".c", ".h" },
         },
     },
@@ -137,10 +137,10 @@ StaticLibrary {
 
 	Pass = "BuildTools",
 
-	SourceDir = "src/native/external/flatbuffers",
+	SourceDir = "src/external/flatbuffers",
 
 	Includes = {
-		"src/native/external/flatbuffers/include",
+		"src/external/flatbuffers/include",
 	},
 
 	Sources = {
@@ -159,11 +159,11 @@ Program {
 
 	Pass = "BuildTools",
 
-	SourceDir = "src/native/external/flatbuffers",
+	SourceDir = "src/external/flatbuffers",
 
 	Includes = {
-		"src/native/external/flatbuffers/include",
-		"src/native/external/flatbuffers",
+		"src/external/flatbuffers/include",
+		"src/external/flatbuffers",
 	},
 
 	Sources = {
@@ -200,7 +200,7 @@ StaticLibrary {
 
     Env = {
         CPPPATH = {
-			"src/native/external/capstone/include",
+			"src/external/capstone/include",
         },
 
         CCOPTS = {
@@ -217,7 +217,7 @@ StaticLibrary {
     },
 
     Sources = {
-        get_c_cpp_src("src/native/external/capstone", true)
+        get_c_cpp_src("src/external/capstone", true)
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
@@ -247,13 +247,13 @@ StaticLibrary {
     },
 
     Sources = {
-        get_c_cpp_src("src/native/external/toolwindowmanager", true),
+        get_c_cpp_src("src/external/toolwindowmanager", true),
 
-        gen_moc("src/native/external/toolwindowmanager/ToolWindowManager.h"),
-        gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerArea.h"),
-        gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerTabBar.h"),
-        gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerSplitter.h"),
-        gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerWrapper.h"),
+        gen_moc("src/external/toolwindowmanager/ToolWindowManager.h"),
+        gen_moc("src/external/toolwindowmanager/ToolWindowManagerArea.h"),
+        gen_moc("src/external/toolwindowmanager/ToolWindowManagerTabBar.h"),
+        gen_moc("src/external/toolwindowmanager/ToolWindowManagerSplitter.h"),
+        gen_moc("src/external/toolwindowmanager/ToolWindowManagerWrapper.h"),
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
@@ -279,50 +279,50 @@ StaticLibrary {
             "$(QT5_INC)/QtCore",
             "$(QT5_INC)/QtGui",
             "$(QT5_INC)/QtWidgets",
-            "src/native/external/edbee-lib/edbee-lib",
-            "src/native/external/edbee-lib/vendor/onig",
-            "src/native/external/edbee-lib/vendor/onig/enc/unicode",
-            "src/native/external/edbee-lib/vendor/qslog/unittest",
-            "src/native/external/edbee-lib/vendor/qslog",
+            "src/external/edbee-lib/edbee-lib",
+            "src/external/edbee-lib/vendor/onig",
+            "src/external/edbee-lib/vendor/onig/enc/unicode",
+            "src/external/edbee-lib/vendor/qslog/unittest",
+            "src/external/edbee-lib/vendor/qslog",
             "$(OBJECTROOT)", "$(OBJECTDIR)",
         },
     },
 
     Sources = {
-        get_c_cpp_src("src/native/external/edbee-lib/edbee-lib", true),
-        get_c_cpp_src("src/native/external/edbee-lib/vendor/onig", false),
-        get_c_cpp_src("src/native/external/edbee-lib/vendor/onig/enc", false),
-        get_c_cpp_src("src/native/external/edbee-lib/vendor/qslog", false),
+        get_c_cpp_src("src/external/edbee-lib/edbee-lib", true),
+        get_c_cpp_src("src/external/edbee-lib/vendor/onig", false),
+        get_c_cpp_src("src/external/edbee-lib/vendor/onig/enc", false),
+        get_c_cpp_src("src/external/edbee-lib/vendor/qslog", false),
 
-        gen_moc("src/native/external/edbee-lib/vendor/qslog/QsLogWindow.h"),
-        gen_uic("src/native/external/edbee-lib/vendor/qslog/QsLogWindow.ui"),
+        gen_moc("src/external/edbee-lib/vendor/qslog/QsLogWindow.h"),
+        gen_uic("src/external/edbee-lib/vendor/qslog/QsLogWindow.ui"),
 
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/edbee.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/chardocument/chartextdocument.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/textbuffer.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/textdocument.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/textdocumentscopes.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/texteditorcommandmap.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/texteditorconfig.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/textlinedata.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/textrange.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/textsearcher.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/models/textundostack.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/texteditorcontroller.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/texteditorwidget.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/util/test.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/views/components/texteditorautocompletecomponent.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/views/components/texteditorcomponent.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/views/components/textmargincomponent.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/views/texteditorscrollarea.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/views/textrenderer.h"),
-        gen_moc("src/native/external/edbee-lib/edbee-lib/edbee/views/texttheme.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/edbee.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/models/chardocument/chartextdocument.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/models/textbuffer.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/models/textdocument.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/models/textdocumentscopes.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/models/texteditorcommandmap.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/models/texteditorconfig.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/models/textlinedata.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/models/textrange.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/models/textsearcher.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/models/textundostack.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/texteditorcontroller.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/texteditorwidget.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/util/test.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/views/components/texteditorautocompletecomponent.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/views/components/texteditorcomponent.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/views/components/textmargincomponent.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/views/texteditorscrollarea.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/views/textrenderer.h"),
+        gen_moc("src/external/edbee-lib/edbee-lib/edbee/views/texttheme.h"),
 
 
-        -- gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerArea.h"),
-        -- gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerTabBar.h"),
-        -- gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerSplitter.h"),
-        -- gen_moc("src/native/external/toolwindowmanager/ToolWindowManagerWrapper.h"),
+        -- gen_moc("src/external/toolwindowmanager/ToolWindowManagerArea.h"),
+        -- gen_moc("src/external/toolwindowmanager/ToolWindowManagerTabBar.h"),
+        -- gen_moc("src/external/toolwindowmanager/ToolWindowManagerSplitter.h"),
+        -- gen_moc("src/external/toolwindowmanager/ToolWindowManagerWrapper.h"),
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },

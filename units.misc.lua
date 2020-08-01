@@ -63,9 +63,9 @@ Program {
     Name = "tests",
 
     Includes = {
-        "src/native/external/googletest/include",
-        "src/native/external/googletest",
-        "src/native/external/",
+        "src/external/googletest/include",
+        "src/external/googletest",
+        "src/external/",
     },
 
     Sources = {

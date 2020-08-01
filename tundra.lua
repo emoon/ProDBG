@@ -89,7 +89,7 @@ local gcc_env = {
             "-I$(QT5_INC)",
             -- temp
             "-Isrc/prodbg",
-            "-Isrc/native/external/flatbuffers/include",
+            "-Isrc/external/flatbuffers/include",
         },
 
         SHLIBOPTS = { "-lstdc++" },

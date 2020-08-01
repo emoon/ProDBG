@@ -135,12 +135,12 @@ Program {
 
         CPPPATH = {
             "$(QT5_INC)",
-            "src/native/external/tinyexpr",
+            "src/external/tinyexpr",
             "src/prodbg",
         	"api/include",
-        	"src/native/external",
-        	"src/native/external/toolwindowmanager",
-        	"src/native/external/edbee-lib/edbee-lib",
+        	"src/external",
+        	"src/external/toolwindowmanager",
+        	"src/external/edbee-lib/edbee-lib",
             "$(QT5_INC)",
             "$(QT5_INC)/QtCore",
             "$(QT5_INC)/QtWidgets",

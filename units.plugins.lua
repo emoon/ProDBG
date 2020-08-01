@@ -39,12 +39,12 @@ SharedLibrary {
         CPPPATH = {
         	"api/include",
             "src/plugins/lldb",
-            "src/native/external/lldb/include",
+            "src/external/lldb/include",
         },
 
         SHLIBOPTS = {
             { "-Fsrc/plugins/lldb/Frameworks", "-rpath src/plugins/lldb/Frameworks", "-lstdc++"; Config = "macosx-clang-*" },
-            { "-Lsrc/native/external/lldb/lib/linux", "-Wl,-rpath src/native/external/lldb/lib/linux"; Config = "linux-*-*" },
+            { "-Lsrc/external/lldb/lib/linux", "-Wl,-rpath src/external/lldb/lib/linux"; Config = "linux-*-*" },
         },
 
         CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
@@ -135,7 +135,7 @@ SharedLibrary {
     Env = {
         CPPPATH = {
         	"api/include",
-        	"src/native/external",
+        	"src/external",
         },
     	CXXOPTS = { { "-fPIC"; Config = "linux-gcc"; }, },
     },
