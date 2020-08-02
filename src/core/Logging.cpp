@@ -1,0 +1,97 @@
+#include "Logging.h"
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+namespace prodbg {
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void generic_log(const char* format, va_list arglist) {
+    char temp_buffer[4096];
+    char* buffer = nullptr;
+    bool own_data = false;
+
+    int length = vsnprintf(NULL, 0, format, arglist);
+
+    if (length > sizeof(temp_buffer)) {
+        buffer = (char*)malloc(length);
+        own_data = true;
+    } else {
+        buffer = temp_buffer;
+    }
+
+    vsnprintf(buffer, length, format, arglist);
+
+    puts(buffer);
+
+    if (own_data) {
+        free(buffer);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void log_info(const char* format, ...) {
+    va_list arglist;
+    va_start(arglist, format);
+    generic_log(format, arglist);
+    va_end(arglist);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void log_warn(const char* format, ...) {
+    va_list arglist;
+    va_start(arglist, format);
+    generic_log(format, arglist);
+    va_end(arglist);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void log_trace(const char* format, ...) {
+    va_list arglist;
+    va_start(arglist, format);
+    generic_log(format, arglist);
+    va_end(arglist);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void log_error(const char* format, ...) {
+    va_list arglist;
+    va_start(arglist, format);
+    generic_log(format, arglist);
+    va_end(arglist);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void api_log_info(void* priv, const char* format, ...) {
+    (void)priv;
+    va_list arglist;
+    va_start(arglist, format);
+    generic_log(format, arglist);
+    va_end(arglist);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PDLog s_log = {
+    nullptr,
+    api_log_info,
+    api_log_info,
+    api_log_info,
+    api_log_info,
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+PDLog* log_get_api() {
+    return &s_log;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+}  // namespace prodbg

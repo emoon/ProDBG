@@ -7,12 +7,12 @@ inline void PDMessage_end_msg(PDWriter* writer, T& msg, flatbuffers::FlatBufferB
     builder.Finish(CreateMessageDirect(builder,
         MessageTypeTraits<typename T::Table>::enum_value, msg.Finish().Union()));
 
-    printf("reply enum %d\n", MessageTypeTraits<typename T::Table>::enum_value);
-    printf("reply size %d\n", builder.GetSize());
+    //printf("reply enum %d\n", MessageTypeTraits<typename T::Table>::enum_value);
+    //printf("reply size %d\n", builder.GetSize());
 
     // TODO: Streamline this
-    PDWrite_event_begin(writer, PDEventType_Dummy);
-    PDWrite_data(writer, "data", builder.GetBufferPointer(), builder.GetSize());
-    PDWrite_event_end(writer);
+    //PDWrite_event_begin(writer, PDEventType_Dummy);
+    //PDWrite_data(writer, "data", builder.GetBufferPointer(), builder.GetSize());
+    //PDWrite_event_end(writer);
 }
 
