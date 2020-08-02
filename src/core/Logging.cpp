@@ -2,77 +2,35 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <time.h>
 
 namespace prodbg {
 
+static const char* level_strings[] = { "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
+static const char* level_colors[] = { "\x1b[94m", "\x1b[36m", "\x1b[32m", "\x1b[33m", "\x1b[31m", "\x1b[35m" };
+
+static int log_color = 1;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void generic_log(const char* format, va_list arglist) {
-    char temp_buffer[4096];
-    char* buffer = nullptr;
-    bool own_data = false;
+void log_func(LogLevel level, const char* file, int line, const char* format, ...) {
+    char buf[16];
 
-    int length = vsnprintf(NULL, 0, format, arglist);
+    time_t t = time(NULL);
+    auto time = localtime(&t);
 
-    if (length > sizeof(temp_buffer)) {
-        buffer = (char*)malloc(length);
-        own_data = true;
+    buf[strftime(buf, sizeof(buf), "%H:%M:%S", time)] = '\0';
+    if (log_color) {
+        printf("%s %s%-5s\x1b[0m \x1b[90m%s:%d:\x1b[0m ", buf, level_colors[(int)level], level_strings[(int)level], file, line);
     } else {
-        buffer = temp_buffer;
+        printf("%s %-5s %s:%d: ", buf, level_strings[(int)level], file, line);
     }
 
-    vsnprintf(buffer, length, format, arglist);
-
-    puts(buffer);
-
-    if (own_data) {
-        free(buffer);
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void log_info(const char* format, ...) {
     va_list arglist;
     va_start(arglist, format);
-    generic_log(format, arglist);
-    va_end(arglist);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void log_warn(const char* format, ...) {
-    va_list arglist;
-    va_start(arglist, format);
-    generic_log(format, arglist);
-    va_end(arglist);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void log_trace(const char* format, ...) {
-    va_list arglist;
-    va_start(arglist, format);
-    generic_log(format, arglist);
-    va_end(arglist);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void log_error(const char* format, ...) {
-    va_list arglist;
-    va_start(arglist, format);
-    generic_log(format, arglist);
-    va_end(arglist);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void api_log_info(void* priv, const char* format, ...) {
-    (void)priv;
-    va_list arglist;
-    va_start(arglist, format);
-    generic_log(format, arglist);
+    vprintf(format, arglist);
     va_end(arglist);
 }
 
@@ -80,10 +38,10 @@ static void api_log_info(void* priv, const char* format, ...) {
 
 static PDLog s_log = {
     nullptr,
-    api_log_info,
-    api_log_info,
-    api_log_info,
-    api_log_info,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

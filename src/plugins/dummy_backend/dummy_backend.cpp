@@ -5,6 +5,9 @@
 #include "pd_backend.h"
 #include "pd_host.h"
 #include "pd_io.h"
+
+#if 0
+
 //#include <tinyexpr/tinyexpr.h>
 
 #define sizeof_array(t) (sizeof(t) / sizeof(t[0]))
@@ -698,5 +701,7 @@ static PDBackendPlugin plugin = {
 PD_EXPORT void pd_init_plugin(RegisterPlugin* register_plugin, void* private_data) {
     register_plugin(PD_BACKEND_API_VERSION, &plugin, private_data);
 }
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
