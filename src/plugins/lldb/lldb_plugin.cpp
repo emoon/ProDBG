@@ -1,5 +1,7 @@
 #ifndef _WIN32
 
+#if 0
+
 #include <LLDB/SBBreakpoint.h>
 #include <LLDB/SBCommandInterpreter.h>
 #include <LLDB/SBCommandReturnObject.h>
@@ -1010,6 +1012,8 @@ static PDBackendPlugin plugin = {
 extern "C" PD_EXPORT void pd_init_plugin(RegisterPlugin* register_plugin, void* private_data) {
     register_plugin(PD_BACKEND_API_VERSION, &plugin, private_data);
 }
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

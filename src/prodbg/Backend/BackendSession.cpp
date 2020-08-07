@@ -9,28 +9,16 @@
 #include "Core/PluginHandler.h"
 #include "IBackendRequests.h"
 #include "Service.h"
+#include "api/include/pd_backend_messages.h"
 #include "api/src/remote/pd_readwrite_private.h"
 #include "flatbuffers/flatbuffers.h"
-#include "api/include/pd_backend_messages.h"
 
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 BackendSession::BackendSession()
-    : m_writer0(new PDWriter),
-      m_writer1(new PDWriter),
-      m_currentWriter(nullptr),
-      m_prevWriter(nullptr),
-      m_reader(new PDReader),
-      m_backend_plugin(nullptr),
-      m_backend_plugin_data(nullptr) {
-    pd_binary_writer_init(m_writer0);
-    pd_binary_writer_init(m_writer1);
-    pd_binary_reader_init(m_reader);
-
-    m_currentWriter = m_writer0;
-    m_prevWriter = m_writer1;
+    : m_messages_api(new MessagesAPI(2 * 1024 * 1024)), m_backend_plugin(nullptr), m_backend_plugin_data(nullptr) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -41,10 +29,6 @@ BackendSession::~BackendSession() {
     }
 
     destory_plugin_data();
-
-    pd_binary_writer_destroy(m_writer0);
-    pd_binary_writer_destroy(m_writer1);
-    pd_binary_reader_destroy(m_reader);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,7 +83,9 @@ void BackendSession::destory_plugin_data() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::thread_finished() { delete this; }
+void BackendSession::thread_finished() {
+    delete this;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -341,7 +327,7 @@ void BackendSession::request_frame_index(int frame_index) {
     FrameSelectRequestBuilder request(builder);
     request.add_frame_index(frame_index);
 
-    PDMessage_end_msg(m_currentWriter, request, builder);
+    PDMessage_end_msg(m_messages_api->get_writer(), request, builder);
 
     update();
 }
@@ -349,8 +335,7 @@ void BackendSession::request_frame_index(int frame_index) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendSession::request_basic(IBackendRequests::BasicRequest request_id) {
-    uint32_t event = 0;
-    void* data;
+    const uint8_t* data;
     uint64_t size;
 
     flatbuffers::FlatBufferBuilder builder(1024);
@@ -360,12 +345,13 @@ void BackendSession::request_basic(IBackendRequests::BasicRequest request_id) {
     BasicRequestBuilder request(builder);
     request.add_id((BasicRequestEnum)request_id);
 
-    PDMessage_end_msg(m_currentWriter, request, builder);
+    PDMessage_end_msg(m_messages_api->get_writer(), request, builder);
 
     update();
 
-    while ((event = PDRead_get_event(m_reader))) {
-        PDRead_find_data(m_reader, &data, &size, "data", 0);
+    auto reader = m_messages_api->get_reader();
+
+    while ((data = PDReadMessage_next_message(reader, &size))) {
         const Message* msg = GetMessage(data);
 
         if (msg->message_type() == MessageType_callstack_reply) {
@@ -410,7 +396,7 @@ void BackendSession::request_add_file_line_breakpoint(const QString& filename, i
     request.add_line(line);
     request.add_add_remove(true);
 
-    PDMessage_end_msg(m_currentWriter, request, builder);
+    PDMessage_end_msg(m_messages_api->get_writer(), request, builder);
 
     update();
 }
@@ -427,7 +413,7 @@ void BackendSession::request_remove_file_line_breakpoint(const QString& filename
     request.add_line(line);
     request.add_add_remove(false);
 
-    PDMessage_end_msg(m_currentWriter, request, builder);
+    PDMessage_end_msg(m_messages_api->get_writer(), request, builder);
 
     update();
 }
@@ -517,8 +503,7 @@ void BackendSession::beginDisassembly(uint64_t address, uint32_t count,
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Q_SLOT void BackendSession::file_target_request(const QString& path) {
-    uint32_t event = 0;
-    void* data;
+    const void* data;
     uint64_t size;
 
     flatbuffers::FlatBufferBuilder builder(1024);
@@ -528,13 +513,13 @@ Q_SLOT void BackendSession::file_target_request(const QString& path) {
     FileTargetRequestBuilder request(builder);
     request.add_path(build_path);
 
-    PDMessage_end_msg(m_currentWriter, request, builder);
+    PDMessage_end_msg(m_messages_api->get_writer(), request, builder);
 
     update();
 
-    while ((event = PDRead_get_event(m_reader))) {
-        printf("looking for reply\n");
-        PDRead_find_data(m_reader, &data, &size, "data", 0);
+    auto reader = m_messages_api->get_reader();
+
+    while ((data = PDReadMessage_next_message(reader, &size))) {
         const Message* msg = GetMessage(data);
 
         if (msg->message_type() == MessageType_target_reply) {
@@ -604,14 +589,13 @@ void BackendSession::evalExpression(const QString& expression, uint64_t* out) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendSession::update_current_pc() {
-    uint32_t event = 0;
-    void* data;
+    const uint8_t* data;
     uint64_t size;
 
-    pd_binary_reader_reset(m_reader);
+    m_messages_api->reset_reader();
+    auto reader = m_messages_api->get_reader();
 
-    while ((event = PDRead_get_event(m_reader))) {
-        PDRead_find_data(m_reader, &data, &size, "data", 0);
+    while ((data = PDReadMessage_next_message(reader, &size))) {
         const Message* msg = GetMessage(data);
 
         if (msg->message_type() == MessageType_exception_location_reply) {
@@ -619,12 +603,11 @@ void BackendSession::update_current_pc() {
             auto path = loc->filename()->c_str();
             QString filename = path ? QString::fromUtf8(path) : QString();
 
-            IBackendRequests::ProgramCounterChange pc_change = { filename, loc->address(), loc->line() };
+            IBackendRequests::ProgramCounterChange pc_change = {filename, loc->address(), loc->line()};
             program_counter_changed(pc_change);
             break;
         }
     }
-
 
     /*
     while ((event = PDRead_get_event(m_reader))) {
@@ -668,7 +651,7 @@ void BackendSession::update_current_pc() {
     }
     */
 
-    pd_binary_reader_reset(m_reader);
+    m_messages_api->reset_reader();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -678,27 +661,17 @@ PDDebugState BackendSession::internal_update(PDAction action) {
         return PDDebugState_NoTarget;
     }
 
-    pd_binary_writer_finalize(m_currentWriter);
+    m_messages_api->swap_buffers();
 
-    unsigned int req_data_size = pd_binary_writer_get_size(m_currentWriter);
-    pd_binary_reader_reset(m_reader);
+    PDDebugState state = m_backend_plugin->update(m_backend_plugin_data, action, m_messages_api->get_reader(),
+                                                  m_messages_api->get_writer());
 
-    pd_binary_reader_init_stream(m_reader, pd_binary_writer_get_data(m_currentWriter), req_data_size);
-    pd_binary_writer_reset(m_prevWriter);
-
-    PDDebugState state = m_backend_plugin->update(m_backend_plugin_data, action, m_reader, m_prevWriter);
-
-    pd_binary_writer_finalize(m_prevWriter);
-
-    pd_binary_reader_init_stream(m_reader, pd_binary_writer_get_data(m_prevWriter),
-                                 pd_binary_writer_get_size(m_prevWriter));
-    pd_binary_reader_reset(m_reader);
-    pd_binary_writer_reset(m_currentWriter);
+    m_messages_api->swap_buffers();
 
     // Send state change if state is different from the last time
 
     if (state != m_debugState) {
-        //statusUpdate(getStateName(state));
+        // statusUpdate(getStateName(state));
         m_debugState = state;
 
         if (state != PDDebugState_Running) {
@@ -751,8 +724,7 @@ void BackendSession::step_in() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BackendSession::request_locals(const IBackendRequests::ExpandVars& expanded_vars, uint64_t request_id) {
-    uint32_t event = 0;
-    void* data;
+    const uint8_t* data;
     uint64_t size;
 
     printf("request locals\n");
@@ -762,14 +734,15 @@ void BackendSession::request_locals(const IBackendRequests::ExpandVars& expanded
     auto tree = builder.CreateVector<uint16_t>(expanded_vars.tree.data(), expanded_vars.tree.size());
     LocalsRequestBuilder request(builder);
     request.add_tree(tree);
-    request.add_type(expanded_vars.type == IBackendRequests::ExpandType::Single ?
-                     ExpandVarsTypeEnum_Single : ExpandVarsTypeEnum_AllVariables);
-    PDMessage_end_msg(m_currentWriter, request, builder);
+    request.add_type(expanded_vars.type == IBackendRequests::ExpandType::Single ? ExpandVarsTypeEnum_Single
+                                                                                : ExpandVarsTypeEnum_AllVariables);
+    PDMessage_end_msg(m_messages_api->get_writer(), request, builder);
 
     update();
 
-    while ((event = PDRead_get_event(m_reader))) {
-        PDRead_find_data(m_reader, &data, &size, "data", 0);
+    auto reader = m_messages_api->get_reader();
+
+    while ((data = PDReadMessage_next_message(reader, &size))) {
         const Message* msg = GetMessage(data);
 
         if (msg->message_type() == MessageType_locals_reply) {

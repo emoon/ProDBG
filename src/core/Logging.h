@@ -20,12 +20,14 @@ void log_func(LogLevel level, const char* file, int line, const char* format, ..
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define trace(fmt, ...) log_func(prodbg::LogLevel::Trace, __FILE__, __LINE__, fmt, __VA_ARGS__);
-#define debug(fmt, ...) log_func(prodbg::LogLevel::Debug, __FILE__, __LINE__, fmt, __VA_ARGS__);
-#define info(fmt, ...)  log_func(prodbg::LogLevel::Info,  __FILE__, __LINE__, fmt, __VA_ARGS__);
-#define warn(fmt, ...)  log_func(prodbg::LogLevel::Warn,  __FILE__, __LINE__, fmt, __VA_ARGS__);
-#define error(fmt, ...) log_func(prodbg::LogLevel::Error, __FILE__, __LINE__, fmt, __VA_ARGS__);
-#define fatal(fmt, ...) log_func(prodbg::LogLevel::Fatal, __FILE__, __LINE__, fmt, __VA_ARGS__);
+#define log_trace(fmt, ...) log_func(prodbg::LogLevel::Trace, __FILE__, __LINE__, fmt, __VA_ARGS__);
+#define log_debug(fmt, ...) log_func(prodbg::LogLevel::Debug, __FILE__, __LINE__, fmt, __VA_ARGS__);
+#define log_info(fmt, ...)  log_func(prodbg::LogLevel::Info,  __FILE__, __LINE__, fmt, __VA_ARGS__);
+#define log_warn(fmt, ...)  log_func(prodbg::LogLevel::Warn,  __FILE__, __LINE__, fmt, __VA_ARGS__);
+#define log_error(fmt, ...) log_func(prodbg::LogLevel::Error, __FILE__, __LINE__, fmt, __VA_ARGS__);
+#define log_fatal(fmt, ...) log_func(prodbg::LogLevel::Fatal, __FILE__, __LINE__, fmt, __VA_ARGS__);
+
+#define fatal(fmt, ...) log_func(prodbg::LogLevel::Fatal, __FILE__, __LINE__, fmt)
 
 }
 

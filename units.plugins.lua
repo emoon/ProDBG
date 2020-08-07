@@ -128,9 +128,8 @@ RustSharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
---[[
 SharedLibrary {
-    Name = "dummy_backend_plugin",
+    Name = "dummy_backend",
 
     Env = {
         CPPPATH = {
@@ -141,12 +140,11 @@ SharedLibrary {
     },
 
     Sources = {
-        "src/plugins/dummy_backend/dummy_backend.c",
+        "src/plugins/dummy_backend/dummy_backend.cpp",
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
---]]
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -159,7 +157,7 @@ end
 --end
 
 Default "amiga_uae_plugin"
---Default "dummy_backend_plugin"
+Default "dummy_backend"
 Default "register_view"
 
 -- vim: ts=4:sw=4:sts=4

@@ -2,13 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
 #include "pd_backend.h"
 #include "pd_host.h"
 #include "pd_io.h"
-
-#if 0
-
-//#include <tinyexpr/tinyexpr.h>
 
 #define sizeof_array(t) (sizeof(t) / sizeof(t[0]))
 
@@ -144,19 +141,18 @@ static DisasmData s_disasm_data[] = {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct Register {
-    char* name;
-    uint8_t size;
+    const char* name;
+    std::vector<uint8_t> data;
     uint8_t read_only;
-    void* data;
 } Register;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double get_reg_for_expression(const Register* reg) {
     double t = 0.0;
-    uint8_t* data = (uint8_t*)reg->data;
+    const uint8_t* data = reg->data.data();
 
-    switch (reg->size) {
+    switch (reg->data.size()) {
         case 4: {
             t = (((uint32_t)data[0]) << 24) | (((uint32_t)data[1]) << 16) | (((uint32_t)data[2]) << 8) |
                 (((uint32_t)data[3]));
@@ -177,29 +173,28 @@ typedef struct DummyPlugin {
     int64_t memory_start;
     int64_t memory_end;
     int register_type;
-    Register* registers;
+    std::vector<Register> registers;
     int registers_count;
 } DummyPlugin;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void fill_register(Register* reg, char* name, uint8_t size, void* initial_data, uint8_t read_only) {
-    reg->name = name;
-    reg->size = size;
-    reg->read_only = read_only;
-    reg->data = malloc(size);
-    memcpy(reg->data, initial_data, size);
+static void push_register(DummyPlugin* plugin, const char* name, std::vector<uint8_t> data, uint8_t read_only) {
+    Register t = {name, data, read_only};
+    plugin->registers.push_back(t);
 }
 
-void* create_instance(ServiceFunc* serviceFunc) {
-    (void)serviceFunc;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void* create_instance(ServiceFunc* service_func) {
+    (void)service_func;
     int i = 0;
 
     DummyPlugin* plugin = (DummyPlugin*)malloc(sizeof(DummyPlugin));
     memset(plugin, 0, sizeof(DummyPlugin));
     plugin->exception_location = s_disasm_data[0].address;
     plugin->prev_exception_location = s_disasm_data[0].address - 1;
-    plugin->memory = malloc(1 * 1024 * 1024);
+    plugin->memory = (uint8_t*)malloc(1 * 1024 * 1024);
     plugin->memory_start = 0;
     plugin->memory_end = (1 * 1024 * 1024) + plugin->memory_start;
 
@@ -209,91 +204,63 @@ void* create_instance(ServiceFunc* serviceFunc) {
         plugin->memory[i] = rand() & 0xff;
     }
 
-    // Allocate memory for 100 registers. Should be enough for dummy plugin
-    plugin->registers = malloc(sizeof(Register[100]));
-    int reg_counter = 0;
-    fill_register(&plugin->registers[reg_counter++], "eax", 4, (uint8_t[]){0xCA, 0xCB, 0xCC, 0xCD}, 0);
-    fill_register(&plugin->registers[reg_counter++], "ebx", 4, (uint8_t[]){0x7E, 0xFD, 0xE0, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "ecx", 4, (uint8_t[]){0x00, 0x01, 0x21, 0x21}, 0);
-    fill_register(&plugin->registers[reg_counter++], "edx", 4, (uint8_t[]){0x00, 0xD0, 0x95, 0x80}, 0);
-    fill_register(&plugin->registers[reg_counter++], "esi", 4, (uint8_t[]){0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "edi", 4, (uint8_t[]){0x00, 0x39, 0xFA, 0x28}, 0);
-    fill_register(&plugin->registers[reg_counter++], "eip", 4, (uint8_t[]){0x00, 0xD0, 0x17, 0xAE}, 0);
-    fill_register(&plugin->registers[reg_counter++], "esp", 4, (uint8_t[]){0x00, 0x39, 0xF9, 0x5C}, 0);
-    fill_register(&plugin->registers[reg_counter++], "ebp", 4, (uint8_t[]){0x00, 0x39, 0xFA, 0x28}, 0);
-    fill_register(&plugin->registers[reg_counter++], "efl", 4, (uint8_t[]){0x00, 0x00, 0x02, 0x00}, 1);
+    push_register(plugin, "eax", {0xCA, 0xCB, 0xCC, 0xCD}, 0);
+    push_register(plugin, "ebx", {0x7E, 0xFD, 0xE0, 0x00}, 0);
+    push_register(plugin, "ecx", {0x00, 0x01, 0x21, 0x21}, 0);
+    push_register(plugin, "edx", {0x00, 0xD0, 0x95, 0x80}, 0);
+    push_register(plugin, "esi", {0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "edi", {0x00, 0x39, 0xFA, 0x28}, 0);
+    push_register(plugin, "eip", {0x00, 0xD0, 0x17, 0xAE}, 0);
+    push_register(plugin, "esp", {0x00, 0x39, 0xF9, 0x5C}, 0);
+    push_register(plugin, "ebp", {0x00, 0x39, 0xFA, 0x28}, 0);
+    push_register(plugin, "efl", {0x00, 0x00, 0x02, 0x00}, 1);
 
-    fill_register(&plugin->registers[reg_counter++], "cs", 2, (uint8_t[]){0x00, 0x23}, 0);
-    fill_register(&plugin->registers[reg_counter++], "ds", 2, (uint8_t[]){0x00, 0x2B}, 0);
-    fill_register(&plugin->registers[reg_counter++], "es", 2, (uint8_t[]){0x00, 0x2B}, 0);
-    fill_register(&plugin->registers[reg_counter++], "ss", 2, (uint8_t[]){0x00, 0x2B}, 0);
-    fill_register(&plugin->registers[reg_counter++], "fs", 2, (uint8_t[]){0x00, 0x53}, 0);
-    fill_register(&plugin->registers[reg_counter++], "gs", 2, (uint8_t[]){0x00, 0x2B}, 0);
+    push_register(plugin, "cs", {0x00, 0x23}, 0);
+    push_register(plugin, "ds", {0x00, 0x2B}, 0);
+    push_register(plugin, "es", {0x00, 0x2B}, 0);
+    push_register(plugin, "ss", {0x00, 0x2B}, 0);
+    push_register(plugin, "fs", {0x00, 0x53}, 0);
+    push_register(plugin, "gs", {0x00, 0x2B}, 0);
 
-    fill_register(&plugin->registers[reg_counter++], "st0", 8,
-                  (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "st1", 8,
-                  (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "st2", 8,
-                  (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "st3", 8,
-                  (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "st4", 8,
-                  (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "st5", 8,
-                  (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "st6", 8,
-                  (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "st7", 8,
-                  (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "ctrl", 2, (uint8_t[]){0x02, 0x7F}, 0);
-    fill_register(&plugin->registers[reg_counter++], "stat", 2, (uint8_t[]){0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "tags", 2, (uint8_t[]){0xFF, 0xFF}, 0);
-    fill_register(&plugin->registers[reg_counter++], "edo", 4, (uint8_t[]){0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "st0", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "st1", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "st2", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "st3", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "st4", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "st5", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "st6", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "st7", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "ctrl", {0x02, 0x7F}, 0);
+    push_register(plugin, "stat", {0x00, 0x00}, 0);
+    push_register(plugin, "tags", {0xFF, 0xFF}, 0);
+    push_register(plugin, "edo", {0x00, 0x00, 0x00, 0x00}, 0);
 
-    fill_register(&plugin->registers[reg_counter++], "mm0", 8,
-                  (uint8_t[]){0xB1, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x9A}, 0);
-    fill_register(&plugin->registers[reg_counter++], "mm1", 8,
-                  (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "mm2", 8,
-                  (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "mm3", 8,
-                  (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "mm4", 8,
-                  (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "mm5", 8,
-                  (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "mm6", 8,
-                  (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "mm7", 8,
-                  (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "mm0", {0xB1, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x9A}, 0);
+    push_register(plugin, "mm1", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "mm2", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "mm3", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "mm4", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "mm5", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "mm6", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "mm7", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
 
-    fill_register(
-        &plugin->registers[reg_counter++], "xmm0", 16,
-        (uint8_t[]){0x40, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x51, 0x51, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(
-        &plugin->registers[reg_counter++], "xmm1", 16,
-        (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(
-        &plugin->registers[reg_counter++], "xmm2", 16,
-        (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(
-        &plugin->registers[reg_counter++], "xmm3", 16,
-        (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(
-        &plugin->registers[reg_counter++], "xmm4", 16,
-        (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(
-        &plugin->registers[reg_counter++], "xmm5", 16,
-        (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(
-        &plugin->registers[reg_counter++], "xmm6", 16,
-        (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(
-        &plugin->registers[reg_counter++], "xmm7", 16,
-        (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    fill_register(&plugin->registers[reg_counter++], "mxcsr", 4, (uint8_t[]){0x00, 0x00, 0x1F, 0x80}, 0);
-    plugin->registers_count = reg_counter;
+    push_register(plugin, "xmm0",
+                  {0x40, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x51, 0x51, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "xmm1",
+                  {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "xmm2",
+                  {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "xmm3",
+                  {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "xmm4",
+                  {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "xmm5",
+                  {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "xmm6",
+                  {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "xmm7",
+                  {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_register(plugin, "mxcsr", {0x00, 0x00, 0x1F, 0x80}, 0);
 
     return plugin;
 }
@@ -306,6 +273,7 @@ void destroy_instance(void* user_data) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 static void write_register(PDWriter* writer, Register* reg) {
     PDWrite_array_entry_begin(writer);
     PDWrite_string(writer, "name", reg->name);
@@ -313,6 +281,7 @@ static void write_register(PDWriter* writer, Register* reg) {
     PDWrite_data(writer, "register", reg->data, reg->size);
     PDWrite_entry_end(writer);
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -330,6 +299,7 @@ static void write_register(PDWriter* writer, Register* reg) {
 //  PDWrite_event_end(writer);
 //}
 
+/*
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void send_registers(DummyPlugin* data, PDWriter* writer) {
@@ -549,6 +519,7 @@ static void get_disassembly(PDReader* reader, PDWriter* writer) {
     PDWrite_array_end(writer);
     PDWrite_event_end(writer);
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
@@ -603,105 +574,74 @@ void eval_expression(DummyPlugin* data, PDReader* reader, PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDDebugState update(void* user_data, PDAction action, PDReader* reader, PDWriter* writer) {
-    uint32_t event;
-    DummyPlugin* data = (DummyPlugin*)user_data;
+static PDDebugState update(void* user_data, PDAction action, PDReadMessage* reader, PDWriteMessage* writer) {
+    /*
+        uint32_t event;
+        DummyPlugin* data = (DummyPlugin*)user_data;
 
-    switch (action) {
-        case PDAction_Step: {
-            step_to_next_location(data);
-            break;
+        switch (action) {
+            case PDAction_Step: {
+                step_to_next_location(data);
+                break;
+            }
+
+            case PDAction_StepOut: {
+                break;
+            }
+
+            case PDAction_StepOver: {
+                break;
+            }
+
+            default: { break; }
         }
 
-        case PDAction_StepOut: {
-            break;
-        }
-
-        case PDAction_StepOver: {
-            break;
-        }
-
-        default: { break; }
-    }
-
-    while ((event = PDRead_get_event(reader))) {
-        switch (event) {
-            case PDEventType_GetDisassembly: {
-                get_disassembly(reader, writer);
-                break;
-            }
-
-            case PDEventType_GetMemory: {
-                get_memory(data, reader, writer);
-                break;
-            }
-
-            case PDEventType_UpdateMemory: {
-                update_memory(data, reader);
-                break;
-            }
-
-            case PDEventType_GetRegisters: {
-                send_registers(data, writer);
-                break;
-            }
-
-            case PDEventType_UpdateRegister: {
-                update_register(data, reader);
-                break;
-            }
-
-                /*
-                case PDEventType_RequestEvalExpression:
-                {
-                    eval_expression(data, reader, writer);
+        while ((event = PDRead_get_event(reader))) {
+            switch (event) {
+                case PDEventType_GetDisassembly: {
+                    get_disassembly(reader, writer);
                     break;
                 }
-                */
-        }
-    }
 
-    set_exception_location(data, writer);
-    // printf("Update backend\n");
+                case PDEventType_GetMemory: {
+                    get_memory(data, reader, writer);
+                    break;
+                }
+
+                case PDEventType_UpdateMemory: {
+                    update_memory(data, reader);
+                    break;
+                }
+
+                case PDEventType_GetRegisters: {
+                    send_registers(data, writer);
+                    break;
+                }
+
+                case PDEventType_UpdateRegister: {
+                    update_register(data, reader);
+                    break;
+                }
+            }
+        }
+
+        set_exception_location(data, writer);
+        // printf("Update backend\n");
+    */
 
     return PDDebugState_Running;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int save_state(void* user_data, PDSaveState* save) {
-    DummyPlugin* data = (DummyPlugin*)user_data;
-    PDIO_write_int(save, data->register_type);
-    return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static int load_state(void* user_data, PDLoadState* load) {
-    int64_t reg_status = 0;
-    DummyPlugin* data = (DummyPlugin*)user_data;
-    if (PDIO_read_int(load, &reg_status) == PDLoadStatus_Ok) {
-        data->register_type = (int)reg_status;
-        printf("loaded register_type %d\n", data->register_type);
-    } else {
-        printf("failed to load register_type\n");
-    }
-
-    return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 static PDBackendPlugin plugin = {
-    "Dummy Backend", create_instance, destroy_instance, update, save_state, load_state,
+    "Dummy Backend", create_instance, destroy_instance, update, nullptr, nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PD_EXPORT void pd_init_plugin(RegisterPlugin* register_plugin, void* private_data) {
+extern "C" PD_EXPORT void pd_init_plugin(RegisterPlugin* register_plugin, void* private_data) {
     register_plugin(PD_BACKEND_API_VERSION, &plugin, private_data);
 }
-
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

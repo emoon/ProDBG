@@ -41,6 +41,8 @@ jobs:
         export QT5_INC=$Qt5_DIR/include
         export QT5_LIB=$Qt5_DIR/lib
         tundra2 linux-gcc-debug
+    - name: Run tests
+      run: t2-output/linux-gcc-debug-default/tests
 
   # Build macOS
 #  build_macOS:

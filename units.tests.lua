@@ -50,7 +50,8 @@ end
 
 -----------------------------------------------------------------------------------------------------------------------
 
-local all_depends = { "uv", "api", "core", "stb", "remote_api", "cmocka", "session", "ui", "bgfx", "jansson", "lua", "imgui", "minifb", "scintilla", "tinyxml2", "foundation_lib", "i3wm_docking", "capstone" }
+--local all_depends = { "uv", "api", "core", "stb", "remote_api", "cmocka", "session", "ui", "bgfx", "jansson", "lua", "imgui", "minifb", "scintilla", "tinyxml2", "foundation_lib", "i3wm_docking", "capstone" }
+local all_depends = { "uv", "api", "core", "stb", "cmocka", "session", "ui", "bgfx", "jansson", "lua", "imgui", "minifb", "scintilla", "tinyxml2", "foundation_lib", "i3wm_docking", "capstone" }
 
 -----------------------------------------------------------------------------------------------------------------------
 

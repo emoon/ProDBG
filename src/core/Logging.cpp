@@ -38,10 +38,6 @@ void log_func(LogLevel level, const char* file, int line, const char* format, ..
 
 static PDLog s_log = {
     nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

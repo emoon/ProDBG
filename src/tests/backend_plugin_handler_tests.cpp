@@ -13,4 +13,15 @@ TEST(BackendPluginHandler, find_dummy_plugin) {
     ASSERT_NE(prodbg::BackendPluginHandler::find_plugin("Dummy Backend"), nullptr);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST(BackendPluginHandler, load_backend_fail) {
+    ASSERT_EQ(prodbg::BackendPluginHandler::add_plugin("no_such_plugin"), false);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST(BackendPluginHandler, find_fail) {
+    ASSERT_EQ(prodbg::BackendPluginHandler::find_plugin("No Such plugin"), nullptr);
+}
 

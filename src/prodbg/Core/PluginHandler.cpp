@@ -33,8 +33,6 @@ static void registerPlugin(const char* type, void* data, void* privateData) {
     plugin.data = data;
     plugin.type = type;
 
-    printf("Register plugin (type %s data %p)\n", type, data);
-
     assert(s_pluginCount < sizeof_array(s_plugins));
 
     s_plugins[s_pluginCount++] = plugin;

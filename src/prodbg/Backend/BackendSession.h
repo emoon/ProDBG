@@ -3,6 +3,7 @@
 #include <pd_backend.h>
 #include <QtCore/QObject>
 #include "IBackendRequests.h"
+#include "../core/MessagesAPI.h"
 
 class QString;
 class QTimer;
@@ -88,12 +89,9 @@ private:
     uint64_t m_currentPc = 0;
 
     // Writers/Read for communitaction between backend and UI
-    PDWriter* m_writer0;
-    PDWriter* m_writer1;
-    PDWriter* m_currentWriter;
-    PDWriter* m_prevWriter;
-    PDReader* m_reader;
+    MessagesAPI* m_messages_api = nullptr;
     QTimer* m_timer = nullptr;
+
 
     // Current active backend plugin
     PDBackendPlugin* m_backend_plugin;

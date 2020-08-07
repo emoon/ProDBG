@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pd_common.h"
-#include "pd_readwrite.h"
+#include "pd_message_readwrite.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,7 +43,8 @@ typedef struct PDBackendPlugin {
 
     void* (*create_instance)(ServiceFunc* service_func);
     void (*destroy_instance)(void* user_data);
-    PDDebugState (*update)(void* user_data, PDAction action, PDReader* reader, PDWriter* writer);
+
+    PDDebugState (*update)(void* user_data, PDAction action, PDReadMessage* reader, PDWriteMessage* writer);
 
     // save/load state
     int (*save_state)(void* user_data, struct PDSaveState* save_state);
