@@ -1,16 +1,11 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   push:
     branches: [ master, dev ]
   pull_request:
     branches: [ master, dev ]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build_linux:
     runs-on: ubuntu-18.04
@@ -33,7 +28,7 @@ jobs:
         cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
     - name: Install Tundra
-      run: git clone --recursive https://github.com/deplinenoise/tundra.git && cd tundra && make && sudo make install && cd ..
+      run: git clone --recursive https://github.com/deplinenoise/tundra.git && cd tundra && make -j2 && sudo make install && cd ..
 
     - name: Build Debug
       run: |
