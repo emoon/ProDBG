@@ -33,8 +33,8 @@ struct VariableBuilder;
 struct CallstackEntry;
 struct CallstackEntryBuilder;
 
-struct Callstack;
-struct CallstackBuilder;
+struct CallstackReply;
+struct CallstackReplyBuilder;
 
 struct LocalsReply;
 struct LocalsReplyBuilder;
@@ -44,6 +44,15 @@ struct ExceptionLocationReplyBuilder;
 
 struct FrameSelectRequest;
 struct FrameSelectRequestBuilder;
+
+struct CPURegistersRequest;
+struct CPURegistersRequestBuilder;
+
+struct CPURegister;
+struct CPURegisterBuilder;
+
+struct CPURegistersReply;
+struct CPURegistersReplyBuilder;
 
 struct Message;
 struct MessageBuilder;
@@ -108,6 +117,47 @@ inline const char *EnumNameExpandVarsTypeEnum(ExpandVarsTypeEnum e) {
   return EnumNamesExpandVarsTypeEnum()[index];
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+enum CPURegisterType {
+  CPURegisterType_All = 0,
+  CPURegisterType_Integer = 1,
+  CPURegisterType_FPU = 2,
+  CPURegisterType_Vector = 3,
+  CPURegisterType_Unspecified = 4,
+  CPURegisterType_MIN = CPURegisterType_All,
+  CPURegisterType_MAX = CPURegisterType_Unspecified
+};
+
+inline const CPURegisterType (&EnumValuesCPURegisterType())[5] {
+  static const CPURegisterType values[] = {
+    CPURegisterType_All,
+    CPURegisterType_Integer,
+    CPURegisterType_FPU,
+    CPURegisterType_Vector,
+    CPURegisterType_Unspecified
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesCPURegisterType() {
+  static const char * const names[6] = {
+    "All",
+    "Integer",
+    "FPU",
+    "Vector",
+    "Unspecified",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameCPURegisterType(CPURegisterType e) {
+  if (flatbuffers::IsOutRange(e, CPURegisterType_All, CPURegisterType_Unspecified)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesCPURegisterType()[index];
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 enum MessageType {
   MessageType_NONE = 0,
   MessageType_file_target_request = 1,
@@ -117,15 +167,17 @@ enum MessageType {
   MessageType_file_line_breakpoint_request = 5,
   MessageType_locals_request = 6,
   MessageType_locals_reply = 7,
-  MessageType_frame_select_request = 8,
-  MessageType_basic_request = 9,
-  MessageType_callstack_reply = 10,
-  MessageType_source_files_reply = 11,
+  MessageType_cpu_registers_request = 8,
+  MessageType_cpu_registers_reply = 9,
+  MessageType_frame_select_request = 10,
+  MessageType_basic_request = 11,
+  MessageType_callstack_reply = 12,
+  MessageType_source_files_reply = 13,
   MessageType_MIN = MessageType_NONE,
   MessageType_MAX = MessageType_source_files_reply
 };
 
-inline const MessageType (&EnumValuesMessageType())[12] {
+inline const MessageType (&EnumValuesMessageType())[14] {
   static const MessageType values[] = {
     MessageType_NONE,
     MessageType_file_target_request,
@@ -135,6 +187,8 @@ inline const MessageType (&EnumValuesMessageType())[12] {
     MessageType_file_line_breakpoint_request,
     MessageType_locals_request,
     MessageType_locals_reply,
+    MessageType_cpu_registers_request,
+    MessageType_cpu_registers_reply,
     MessageType_frame_select_request,
     MessageType_basic_request,
     MessageType_callstack_reply,
@@ -144,7 +198,7 @@ inline const MessageType (&EnumValuesMessageType())[12] {
 }
 
 inline const char * const *EnumNamesMessageType() {
-  static const char * const names[13] = {
+  static const char * const names[15] = {
     "NONE",
     "file_target_request",
     "target_reply",
@@ -153,6 +207,8 @@ inline const char * const *EnumNamesMessageType() {
     "file_line_breakpoint_request",
     "locals_request",
     "locals_reply",
+    "cpu_registers_request",
+    "cpu_registers_reply",
     "frame_select_request",
     "basic_request",
     "callstack_reply",
@@ -200,6 +256,14 @@ template<> struct MessageTypeTraits<LocalsReply> {
   static const MessageType enum_value = MessageType_locals_reply;
 };
 
+template<> struct MessageTypeTraits<CPURegistersRequest> {
+  static const MessageType enum_value = MessageType_cpu_registers_request;
+};
+
+template<> struct MessageTypeTraits<CPURegistersReply> {
+  static const MessageType enum_value = MessageType_cpu_registers_reply;
+};
+
 template<> struct MessageTypeTraits<FrameSelectRequest> {
   static const MessageType enum_value = MessageType_frame_select_request;
 };
@@ -208,7 +272,7 @@ template<> struct MessageTypeTraits<BasicRequest> {
   static const MessageType enum_value = MessageType_basic_request;
 };
 
-template<> struct MessageTypeTraits<Callstack> {
+template<> struct MessageTypeTraits<CallstackReply> {
   static const MessageType enum_value = MessageType_callstack_reply;
 };
 
@@ -799,8 +863,8 @@ inline flatbuffers::Offset<CallstackEntry> CreateCallstackEntryDirect(
       line);
 }
 
-struct Callstack FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef CallstackBuilder Builder;
+struct CallstackReply FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef CallstackReplyBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ENTRIES = 4
   };
@@ -816,37 +880,37 @@ struct Callstack FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-struct CallstackBuilder {
-  typedef Callstack Table;
+struct CallstackReplyBuilder {
+  typedef CallstackReply Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_entries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<CallstackEntry>>> entries) {
-    fbb_.AddOffset(Callstack::VT_ENTRIES, entries);
+    fbb_.AddOffset(CallstackReply::VT_ENTRIES, entries);
   }
-  explicit CallstackBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit CallstackReplyBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<Callstack> Finish() {
+  flatbuffers::Offset<CallstackReply> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<Callstack>(end);
+    auto o = flatbuffers::Offset<CallstackReply>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<Callstack> CreateCallstack(
+inline flatbuffers::Offset<CallstackReply> CreateCallstackReply(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<CallstackEntry>>> entries = 0) {
-  CallstackBuilder builder_(_fbb);
+  CallstackReplyBuilder builder_(_fbb);
   builder_.add_entries(entries);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Callstack> CreateCallstackDirect(
+inline flatbuffers::Offset<CallstackReply> CreateCallstackReplyDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<flatbuffers::Offset<CallstackEntry>> *entries = nullptr) {
   auto entries__ = entries ? _fbb.CreateVector<flatbuffers::Offset<CallstackEntry>>(*entries) : 0;
-  return CreateCallstack(
+  return CreateCallstackReply(
       _fbb,
       entries__);
 }
@@ -1019,6 +1083,201 @@ inline flatbuffers::Offset<FrameSelectRequest> CreateFrameSelectRequest(
   return builder_.Finish();
 }
 
+struct CPURegistersRequest FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef CPURegistersRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_REGISTERS_TYPE = 4
+  };
+  CPURegisterType registers_type() const {
+    return static_cast<CPURegisterType>(GetField<int16_t>(VT_REGISTERS_TYPE, 0));
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<int16_t>(verifier, VT_REGISTERS_TYPE) &&
+           verifier.EndTable();
+  }
+};
+
+struct CPURegistersRequestBuilder {
+  typedef CPURegistersRequest Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_registers_type(CPURegisterType registers_type) {
+    fbb_.AddElement<int16_t>(CPURegistersRequest::VT_REGISTERS_TYPE, static_cast<int16_t>(registers_type), 0);
+  }
+  explicit CPURegistersRequestBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<CPURegistersRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<CPURegistersRequest>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<CPURegistersRequest> CreateCPURegistersRequest(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    CPURegisterType registers_type = CPURegisterType_All) {
+  CPURegistersRequestBuilder builder_(_fbb);
+  builder_.add_registers_type(registers_type);
+  return builder_.Finish();
+}
+
+struct CPURegister FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef CPURegisterBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_READ_ONLY = 6,
+    VT_VARIABLE_SIZE = 8,
+    VT_TYPE = 10,
+    VT_DATA = 12
+  };
+  const flatbuffers::String *name() const {
+    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  }
+  bool read_only() const {
+    return GetField<uint8_t>(VT_READ_ONLY, 0) != 0;
+  }
+  bool variable_size() const {
+    return GetField<uint8_t>(VT_VARIABLE_SIZE, 0) != 0;
+  }
+  CPURegisterType type() const {
+    return static_cast<CPURegisterType>(GetField<int16_t>(VT_TYPE, 0));
+  }
+  const flatbuffers::Vector<uint8_t> *data() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_DATA);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyField<uint8_t>(verifier, VT_READ_ONLY) &&
+           VerifyField<uint8_t>(verifier, VT_VARIABLE_SIZE) &&
+           VerifyField<int16_t>(verifier, VT_TYPE) &&
+           VerifyOffset(verifier, VT_DATA) &&
+           verifier.VerifyVector(data()) &&
+           verifier.EndTable();
+  }
+};
+
+struct CPURegisterBuilder {
+  typedef CPURegister Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+    fbb_.AddOffset(CPURegister::VT_NAME, name);
+  }
+  void add_read_only(bool read_only) {
+    fbb_.AddElement<uint8_t>(CPURegister::VT_READ_ONLY, static_cast<uint8_t>(read_only), 0);
+  }
+  void add_variable_size(bool variable_size) {
+    fbb_.AddElement<uint8_t>(CPURegister::VT_VARIABLE_SIZE, static_cast<uint8_t>(variable_size), 0);
+  }
+  void add_type(CPURegisterType type) {
+    fbb_.AddElement<int16_t>(CPURegister::VT_TYPE, static_cast<int16_t>(type), 0);
+  }
+  void add_data(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data) {
+    fbb_.AddOffset(CPURegister::VT_DATA, data);
+  }
+  explicit CPURegisterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<CPURegister> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<CPURegister>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<CPURegister> CreateCPURegister(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> name = 0,
+    bool read_only = false,
+    bool variable_size = false,
+    CPURegisterType type = CPURegisterType_All,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data = 0) {
+  CPURegisterBuilder builder_(_fbb);
+  builder_.add_data(data);
+  builder_.add_name(name);
+  builder_.add_type(type);
+  builder_.add_variable_size(variable_size);
+  builder_.add_read_only(read_only);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<CPURegister> CreateCPURegisterDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    bool read_only = false,
+    bool variable_size = false,
+    CPURegisterType type = CPURegisterType_All,
+    const std::vector<uint8_t> *data = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto data__ = data ? _fbb.CreateVector<uint8_t>(*data) : 0;
+  return CreateCPURegister(
+      _fbb,
+      name__,
+      read_only,
+      variable_size,
+      type,
+      data__);
+}
+
+struct CPURegistersReply FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef CPURegistersReplyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_ENTRIES = 4
+  };
+  const flatbuffers::Vector<flatbuffers::Offset<CPURegister>> *entries() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<CPURegister>> *>(VT_ENTRIES);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_ENTRIES) &&
+           verifier.VerifyVector(entries()) &&
+           verifier.VerifyVectorOfTables(entries()) &&
+           verifier.EndTable();
+  }
+};
+
+struct CPURegistersReplyBuilder {
+  typedef CPURegistersReply Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_entries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<CPURegister>>> entries) {
+    fbb_.AddOffset(CPURegistersReply::VT_ENTRIES, entries);
+  }
+  explicit CPURegistersReplyBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<CPURegistersReply> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<CPURegistersReply>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<CPURegistersReply> CreateCPURegistersReply(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<CPURegister>>> entries = 0) {
+  CPURegistersReplyBuilder builder_(_fbb);
+  builder_.add_entries(entries);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<CPURegistersReply> CreateCPURegistersReplyDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<flatbuffers::Offset<CPURegister>> *entries = nullptr) {
+  auto entries__ = entries ? _fbb.CreateVector<flatbuffers::Offset<CPURegister>>(*entries) : 0;
+  return CreateCPURegistersReply(
+      _fbb,
+      entries__);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MessageBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -1054,14 +1313,20 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const LocalsReply *message_as_locals_reply() const {
     return message_type() == MessageType_locals_reply ? static_cast<const LocalsReply *>(message()) : nullptr;
   }
+  const CPURegistersRequest *message_as_cpu_registers_request() const {
+    return message_type() == MessageType_cpu_registers_request ? static_cast<const CPURegistersRequest *>(message()) : nullptr;
+  }
+  const CPURegistersReply *message_as_cpu_registers_reply() const {
+    return message_type() == MessageType_cpu_registers_reply ? static_cast<const CPURegistersReply *>(message()) : nullptr;
+  }
   const FrameSelectRequest *message_as_frame_select_request() const {
     return message_type() == MessageType_frame_select_request ? static_cast<const FrameSelectRequest *>(message()) : nullptr;
   }
   const BasicRequest *message_as_basic_request() const {
     return message_type() == MessageType_basic_request ? static_cast<const BasicRequest *>(message()) : nullptr;
   }
-  const Callstack *message_as_callstack_reply() const {
-    return message_type() == MessageType_callstack_reply ? static_cast<const Callstack *>(message()) : nullptr;
+  const CallstackReply *message_as_callstack_reply() const {
+    return message_type() == MessageType_callstack_reply ? static_cast<const CallstackReply *>(message()) : nullptr;
   }
   const SourceFilesReply *message_as_source_files_reply() const {
     return message_type() == MessageType_source_files_reply ? static_cast<const SourceFilesReply *>(message()) : nullptr;
@@ -1108,6 +1373,14 @@ template<> inline const LocalsReply *Message::message_as<LocalsReply>() const {
   return message_as_locals_reply();
 }
 
+template<> inline const CPURegistersRequest *Message::message_as<CPURegistersRequest>() const {
+  return message_as_cpu_registers_request();
+}
+
+template<> inline const CPURegistersReply *Message::message_as<CPURegistersReply>() const {
+  return message_as_cpu_registers_reply();
+}
+
 template<> inline const FrameSelectRequest *Message::message_as<FrameSelectRequest>() const {
   return message_as_frame_select_request();
 }
@@ -1116,7 +1389,7 @@ template<> inline const BasicRequest *Message::message_as<BasicRequest>() const 
   return message_as_basic_request();
 }
 
-template<> inline const Callstack *Message::message_as<Callstack>() const {
+template<> inline const CallstackReply *Message::message_as<CallstackReply>() const {
   return message_as_callstack_reply();
 }
 
@@ -1206,6 +1479,14 @@ inline bool VerifyMessageType(flatbuffers::Verifier &verifier, const void *obj, 
       auto ptr = reinterpret_cast<const LocalsReply *>(obj);
       return verifier.VerifyTable(ptr);
     }
+    case MessageType_cpu_registers_request: {
+      auto ptr = reinterpret_cast<const CPURegistersRequest *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MessageType_cpu_registers_reply: {
+      auto ptr = reinterpret_cast<const CPURegistersReply *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
     case MessageType_frame_select_request: {
       auto ptr = reinterpret_cast<const FrameSelectRequest *>(obj);
       return verifier.VerifyTable(ptr);
@@ -1215,7 +1496,7 @@ inline bool VerifyMessageType(flatbuffers::Verifier &verifier, const void *obj, 
       return verifier.VerifyTable(ptr);
     }
     case MessageType_callstack_reply: {
-      auto ptr = reinterpret_cast<const Callstack *>(obj);
+      auto ptr = reinterpret_cast<const CallstackReply *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case MessageType_source_files_reply: {

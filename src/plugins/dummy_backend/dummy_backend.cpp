@@ -4,6 +4,7 @@
 #include <string.h>
 #include <vector>
 #include "pd_backend.h"
+#include "pd_backend_messages.h"
 #include "pd_host.h"
 #include "pd_io.h"
 
@@ -173,15 +174,40 @@ typedef struct DummyPlugin {
     int64_t memory_start;
     int64_t memory_end;
     int register_type;
-    std::vector<Register> registers;
+    std::vector<Register> integer_registers;
+    std::vector<Register> fpu_registers;
+    std::vector<Register> undefined_registers;
+    std::vector<Register> vector_registers;
+
     int registers_count;
 } DummyPlugin;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void push_register(DummyPlugin* plugin, const char* name, std::vector<uint8_t> data, uint8_t read_only) {
+static void push_integer_register(DummyPlugin* plugin, const char* name, std::vector<uint8_t> data, uint8_t read_only) {
     Register t = {name, data, read_only};
-    plugin->registers.push_back(t);
+    plugin->integer_registers.push_back(t);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void push_fpu_register(DummyPlugin* plugin, const char* name, std::vector<uint8_t> data, uint8_t read_only) {
+    Register t = {name, data, read_only};
+    plugin->fpu_registers.push_back(t);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void push_undefined_register(DummyPlugin* plugin, const char* name, std::vector<uint8_t> data, uint8_t read_only) {
+    Register t = {name, data, read_only};
+    plugin->undefined_registers.push_back(t);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void push_vector_register(DummyPlugin* plugin, const char* name, std::vector<uint8_t> data, uint8_t read_only) {
+    Register t = {name, data, read_only};
+    plugin->vector_registers.push_back(t);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -196,71 +222,71 @@ void* create_instance(ServiceFunc* service_func) {
     plugin->prev_exception_location = s_disasm_data[0].address - 1;
     plugin->memory = (uint8_t*)malloc(1 * 1024 * 1024);
     plugin->memory_start = 0;
-    plugin->memory_end = (1 * 1024 * 1024) + plugin->memory_start;
+    plugin->memory_end = (1 * 64 * 1024) + plugin->memory_start;
 
     srand(0xc0cac01a);
 
-    for (i = 0; i < 1024 * 1024; ++i) {
+    for (i = 0; i < 64 * 1024; ++i) {
         plugin->memory[i] = rand() & 0xff;
     }
 
-    push_register(plugin, "eax", {0xCA, 0xCB, 0xCC, 0xCD}, 0);
-    push_register(plugin, "ebx", {0x7E, 0xFD, 0xE0, 0x00}, 0);
-    push_register(plugin, "ecx", {0x00, 0x01, 0x21, 0x21}, 0);
-    push_register(plugin, "edx", {0x00, 0xD0, 0x95, 0x80}, 0);
-    push_register(plugin, "esi", {0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "edi", {0x00, 0x39, 0xFA, 0x28}, 0);
-    push_register(plugin, "eip", {0x00, 0xD0, 0x17, 0xAE}, 0);
-    push_register(plugin, "esp", {0x00, 0x39, 0xF9, 0x5C}, 0);
-    push_register(plugin, "ebp", {0x00, 0x39, 0xFA, 0x28}, 0);
-    push_register(plugin, "efl", {0x00, 0x00, 0x02, 0x00}, 1);
+    push_integer_register(plugin, "eax", {0xCA, 0xCB, 0xCC, 0xCD}, 0);
+    push_integer_register(plugin, "ebx", {0x7E, 0xFD, 0xE0, 0x00}, 0);
+    push_integer_register(plugin, "ecx", {0x00, 0x01, 0x21, 0x21}, 0);
+    push_integer_register(plugin, "edx", {0x00, 0xD0, 0x95, 0x80}, 0);
+    push_integer_register(plugin, "esi", {0x00, 0x00, 0x00, 0x00}, 0);
+    push_integer_register(plugin, "edi", {0x00, 0x39, 0xFA, 0x28}, 0);
+    push_integer_register(plugin, "eip", {0x00, 0xD0, 0x17, 0xAE}, 0);
+    push_integer_register(plugin, "esp", {0x00, 0x39, 0xF9, 0x5C}, 0);
+    push_integer_register(plugin, "ebp", {0x00, 0x39, 0xFA, 0x28}, 0);
+    push_integer_register(plugin, "efl", {0x00, 0x00, 0x02, 0x00}, 1);
 
-    push_register(plugin, "cs", {0x00, 0x23}, 0);
-    push_register(plugin, "ds", {0x00, 0x2B}, 0);
-    push_register(plugin, "es", {0x00, 0x2B}, 0);
-    push_register(plugin, "ss", {0x00, 0x2B}, 0);
-    push_register(plugin, "fs", {0x00, 0x53}, 0);
-    push_register(plugin, "gs", {0x00, 0x2B}, 0);
+    push_integer_register(plugin, "cs", {0x00, 0x23}, 0);
+    push_integer_register(plugin, "ds", {0x00, 0x2B}, 0);
+    push_integer_register(plugin, "es", {0x00, 0x2B}, 0);
+    push_integer_register(plugin, "ss", {0x00, 0x2B}, 0);
+    push_integer_register(plugin, "fs", {0x00, 0x53}, 0);
+    push_integer_register(plugin, "gs", {0x00, 0x2B}, 0);
 
-    push_register(plugin, "st0", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "st1", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "st2", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "st3", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "st4", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "st5", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "st6", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "st7", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "ctrl", {0x02, 0x7F}, 0);
-    push_register(plugin, "stat", {0x00, 0x00}, 0);
-    push_register(plugin, "tags", {0xFF, 0xFF}, 0);
-    push_register(plugin, "edo", {0x00, 0x00, 0x00, 0x00}, 0);
+    push_fpu_register(plugin, "st0", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_fpu_register(plugin, "st1", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_fpu_register(plugin, "st2", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_fpu_register(plugin, "st3", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_fpu_register(plugin, "st4", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_fpu_register(plugin, "st5", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_fpu_register(plugin, "st6", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_fpu_register(plugin, "st7", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_fpu_register(plugin, "ctrl", {0x02, 0x7F}, 0);
+    push_fpu_register(plugin, "stat", {0x00, 0x00}, 0);
+    push_fpu_register(plugin, "tags", {0xFF, 0xFF}, 0);
+    push_fpu_register(plugin, "edo", {0x00, 0x00, 0x00, 0x00}, 0);
 
-    push_register(plugin, "mm0", {0xB1, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x9A}, 0);
-    push_register(plugin, "mm1", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "mm2", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "mm3", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "mm4", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "mm5", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "mm6", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "mm7", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_undefined_register(plugin, "mm0", {0xB1, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x9A}, 0);
+    push_undefined_register(plugin, "mm1", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_undefined_register(plugin, "mm2", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_undefined_register(plugin, "mm3", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_undefined_register(plugin, "mm4", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_undefined_register(plugin, "mm5", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_undefined_register(plugin, "mm6", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
+    push_undefined_register(plugin, "mm7", {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
 
-    push_register(plugin, "xmm0",
+    push_vector_register(plugin, "xmm0",
                   {0x40, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x51, 0x51, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "xmm1",
+    push_vector_register(plugin, "xmm1",
                   {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "xmm2",
+    push_vector_register(plugin, "xmm2",
                   {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "xmm3",
+    push_vector_register(plugin, "xmm3",
                   {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "xmm4",
+    push_vector_register(plugin, "xmm4",
                   {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "xmm5",
+    push_vector_register(plugin, "xmm5",
                   {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "xmm6",
+    push_vector_register(plugin, "xmm6",
                   {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "xmm7",
+    push_vector_register(plugin, "xmm7",
                   {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0);
-    push_register(plugin, "mxcsr", {0x00, 0x00, 0x1F, 0x80}, 0);
+    push_vector_register(plugin, "mxcsr", {0x00, 0x00, 0x1F, 0x80}, 0);
 
     return plugin;
 }
@@ -574,60 +600,106 @@ void eval_expression(DummyPlugin* data, PDReader* reader, PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void reply_registers(const std::vector<Register>& registers, CPURegisterType reg_type, PDWriteMessage* writer) {
+    std::vector<flatbuffers::Offset<CPURegister>> entries;
+    flatbuffers::FlatBufferBuilder builder(1024);
+
+    entries.reserve(registers.size());
+
+    for (const auto& reg : registers) {
+        auto entry = CreateCPURegisterDirect(builder,
+            reg.name,
+            reg.read_only,
+            false,
+            reg_type,
+            &reg.data);
+
+        entries.push_back(entry);
+    }
+
+    auto t = builder.CreateVector<flatbuffers::Offset<CPURegister>>(entries);
+
+    CPURegistersReplyBuilder reply(builder);
+    reply.add_entries(t);
+
+    PDMessage_end_msg(writer, reply, builder);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Reply registers back to the front-end
+
+static void reply_registes(DummyPlugin* plugin, const CPURegistersRequest* request, PDWriteMessage* writer) {
+    switch (request->registers_type()) {
+        case CPURegisterType_All: {
+            reply_registers(plugin->integer_registers, CPURegisterType_Integer, writer);
+            reply_registers(plugin->fpu_registers, CPURegisterType_FPU, writer);
+            reply_registers(plugin->undefined_registers, CPURegisterType_Unspecified, writer);
+            reply_registers(plugin->vector_registers, CPURegisterType_Vector, writer);
+            break;
+        }
+        case CPURegisterType_Unspecified: {
+            reply_registers(plugin->undefined_registers, CPURegisterType_Unspecified, writer);
+            break;
+        }
+
+        case CPURegisterType_Integer: {
+            reply_registers(plugin->integer_registers, CPURegisterType_Integer, writer);
+            break;
+        }
+
+        case CPURegisterType_FPU: {
+            reply_registers(plugin->fpu_registers, CPURegisterType_FPU, writer);
+            break;
+        }
+
+        case CPURegisterType_Vector: {
+            reply_registers(plugin->vector_registers, CPURegisterType_Vector, writer);
+            break;
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDDebugState update(void* user_data, PDAction action, PDReadMessage* reader, PDWriteMessage* writer) {
-    /*
-        uint32_t event;
-        DummyPlugin* data = (DummyPlugin*)user_data;
+    const uint8_t* data;
+    uint64_t size;
+    DummyPlugin* plugin = (DummyPlugin*)user_data;
+    (void)plugin;
 
-        switch (action) {
-            case PDAction_Step: {
-                step_to_next_location(data);
-                break;
-            }
 
-            case PDAction_StepOut: {
-                break;
-            }
-
-            case PDAction_StepOver: {
-                break;
-            }
-
-            default: { break; }
+/*
+    switch (action) {
+        case PDAction_Step: {
+            step_to_next_location(data);
+            break;
         }
 
-        while ((event = PDRead_get_event(reader))) {
-            switch (event) {
-                case PDEventType_GetDisassembly: {
-                    get_disassembly(reader, writer);
-                    break;
-                }
-
-                case PDEventType_GetMemory: {
-                    get_memory(data, reader, writer);
-                    break;
-                }
-
-                case PDEventType_UpdateMemory: {
-                    update_memory(data, reader);
-                    break;
-                }
-
-                case PDEventType_GetRegisters: {
-                    send_registers(data, writer);
-                    break;
-                }
-
-                case PDEventType_UpdateRegister: {
-                    update_register(data, reader);
-                    break;
-                }
-            }
+        case PDAction_StepOut: {
+            break;
         }
 
-        set_exception_location(data, writer);
-        // printf("Update backend\n");
-    */
+        case PDAction_StepOver: {
+            break;
+        }
+
+        default: { break; }
+    }
+*/
+
+    while ((data = PDReadMessage_next_message(reader, &size))) {
+        const Message* msg = GetMessage(data);
+        (void)msg;
+
+        switch (msg->message_type()) {
+            case MessageType_cpu_registers_request: {
+                reply_registes(plugin, msg->message_as_cpu_registers_request(), writer);
+                break;
+            }
+
+            default: break;
+        }
+    }
 
     return PDDebugState_Running;
 }
