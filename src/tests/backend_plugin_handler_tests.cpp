@@ -93,6 +93,28 @@ TEST(BackendPluginHandler, read_integer_registers) {
         const Message* msg = GetMessage(data);
 
         if (msg->message_type() == MessageType_cpu_registers_reply) {
+            auto registers = msg->message_as_cpu_registers_reply();
+
+            for (auto t : *registers->entries()) {
+                if (!strcmp(t->name()->c_str(), "eax")) {
+                    auto data = t->data()->data();
+                    ASSERT_EQ(t->data()->Length(), (unsigned int)4);
+                    ASSERT_EQ(data[0], (uint8_t)0xca);
+                    ASSERT_EQ(data[1], (uint8_t)0xcb);
+                    ASSERT_EQ(data[2], (uint8_t)0xcc);
+                    ASSERT_EQ(data[3], (uint8_t)0xcd);
+                    ASSERT_EQ(t->read_only(), false);
+                } else if (!strcmp(t->name()->c_str(), "elf")) {
+                    auto data = t->data()->data();
+                    ASSERT_EQ(t->data()->Length(), (unsigned int)4);
+                    ASSERT_EQ(data[0], (uint8_t)0x00);
+                    ASSERT_EQ(data[1], (uint8_t)0x00);
+                    ASSERT_EQ(data[2], (uint8_t)0x02);
+                    ASSERT_EQ(data[3], (uint8_t)0x00);
+                    ASSERT_EQ(t->read_only(), true);
+                }
+            }
+
             found_registers = true;
         }
     }
