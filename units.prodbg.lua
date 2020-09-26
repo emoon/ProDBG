@@ -80,7 +80,6 @@ Program {
         gen_uic("src/prodbg/dialogs/AppearanceWidget.ui"),
         gen_moc("src/prodbg/dialogs/AppearanceWidget.h"),
 
-
         -- Views
         gen_uic("src/prodbg/FileBrowserView.ui"),
         gen_moc("src/prodbg/FileBrowserView.h"),
@@ -116,6 +115,8 @@ Program {
         gen_moc("src/prodbg/MemoryView/MemoryViewWidget.h"),
 
         gen_moc("src/prodbg/PluginUI/generated/qt_api_gen.h"),
+
+        Flatc { Source = "api/PDMessages.fbs" },
     },
 
     Env = {
@@ -173,8 +174,7 @@ Program {
 
 -----------------------------------------------------------------------------------------------------------------------
 
-local prodbgBundle = OsxBundle
-{
+local prodbgBundle = OsxBundle {
     Depends = { "prodbg" },
     Target = "$(OBJECTDIR)/ProDBG.app",
     InfoPList = "Data/Mac/Info.plist",

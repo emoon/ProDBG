@@ -36,7 +36,6 @@ StaticLibrary {
     Name = "remote_api",
 
     Env = {
-
         CPPPATH = { "api/include" },
         CCOPTS = {
             "-Wno-visibility",
@@ -50,7 +49,7 @@ StaticLibrary {
             "-Wno-float-equal",
             "-Wno-conversion",
             "-Wno-switch-enum",
-            "-Wno-format-nonliteral"; Config = "macosx-*-*"
+            "-Wno-format-nonliteral"; Config = "macos-*-*"
         },
     },
 
@@ -70,7 +69,6 @@ StaticLibrary {
     Name = "remote_connection",
 
     Env = {
-
         CPPPATH = { "api/include" },
         CCOPTS = {
             "-Wno-visibility",
@@ -84,12 +82,12 @@ StaticLibrary {
             "-Wno-float-equal",
             "-Wno-conversion",
             "-Wno-switch-enum",
-            "-Wno-format-nonliteral"; Config = "macosx-*-*"
+            "-Wno-format-nonliteral"; Config = "macos-*-*"
         },
     },
 
     Sources = {
-            "api/src/remote/remote_connection.c",
+		"api/src/remote/remote_connection.c",
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
@@ -113,7 +111,7 @@ StaticLibrary {
         	"-Wno-return-type",
         	"-Wno-unused-function",
 			"-Wno-error=strict-aliasing" ; Config = "linux-*-*" },
-        	{ "-Wno-everything"; Config = "macosx-*-*" },
+        	{ "-Wno-everything"; Config = "macos-*-*" },
         	{ "/wd4244", "/wd4267", "/wd4133", "/wd4047", "/wd4204", "/wd4201", "/wd4701", "/wd4703", "/wd4090", "/wd4146",
 			  "/wd4024", "/wd4100", "/wd4053", "/wd4431",
 			  "/wd4189", "/wd4127"; Config = "win64-*-*" },
@@ -154,47 +152,6 @@ StaticLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
-Program {
-	Name = "flatc",
-
-	Pass = "BuildTools",
-
-	SourceDir = "src/external/flatbuffers",
-
-	Includes = {
-		"src/external/flatbuffers/include",
-		"src/external/flatbuffers",
-	},
-
-	Sources = {
-		"src/idl_gen_cpp.cpp",
-		"src/idl_gen_dart.cpp",
-		-- "src/idl_gen_general.cpp",
-		"src/idl_gen_kotlin.cpp",
-		"src/idl_gen_go.cpp",
-		"src/idl_gen_js_ts.cpp",
-		"src/idl_gen_php.cpp",
-		"src/idl_gen_python.cpp",
-		"src/idl_gen_lobster.cpp",
-		"src/idl_gen_lua.cpp",
-		"src/idl_gen_rust.cpp",
-		"src/idl_gen_fbs.cpp",
-		"src/idl_gen_json_schema.cpp",
-		"src/flatc.cpp",
-		"src/flatc_main.cpp",
-	},
-
-	Env = {
-        PROGCOM = {
-            { "-lm"; Config = "linux-*-*" },
-        },
-    },
-
-	Depends = { "flatbuffers" },
-}
-
------------------------------------------------------------------------------------------------------------------------
-
 StaticLibrary {
     Name = "capstone",
 
@@ -204,14 +161,17 @@ StaticLibrary {
         },
 
         CCOPTS = {
-        	{ "-Wno-everything"; Config = "macosx-*-*" },
+        	{ "-Wno-everything"; Config = "macos-*-*" },
         	{ "/wd4267", "/wd4706", "/wd4244", "/wd4701", "/wd4334", "/wd4127"; Config = "win64-*-*" },
         },
 
 		CPPDEFS = {
-			{   "CAPSTONE_ARM64_SUPPORT", "CAPSTONE_ARM_SUPPORT", "CAPSTONE_HAS_ARM", "CAPSTONE_HAS_ARM64", "CAPSTONE_HAS_M68K", "CAPSTONE_HAS_MIPS",
-				"CAPSTONE_HAS_POWERPC", "CAPSTONE_HAS_SPARC", "CAPSTONE_HAS_SYSZ", "CAPSTONE_HAS_X86", "CAPSTONE_HAS_XCORE", "CAPSTONE_M68K_SUPPORT",
-				"CAPSTONE_MIPS_SUPPORT", "CAPSTONE_PPC_SUPPORT", "CAPSTONE_SPARC_SUPPORT", "CAPSTONE_SYSZ_SUPPORT", "CAPSTONE_USE_SYS_DYN_MEM",
+			{   "CAPSTONE_ARM64_SUPPORT", "CAPSTONE_ARM_SUPPORT", "CAPSTONE_HAS_ARM",
+				"CAPSTONE_HAS_ARM64", "CAPSTONE_HAS_M68K", "CAPSTONE_HAS_MIPS",
+				"CAPSTONE_HAS_POWERPC", "CAPSTONE_HAS_SPARC", "CAPSTONE_HAS_SYSZ",
+				"CAPSTONE_HAS_X86", "CAPSTONE_HAS_XCORE", "CAPSTONE_M68K_SUPPORT",
+				"CAPSTONE_MIPS_SUPPORT", "CAPSTONE_PPC_SUPPORT", "CAPSTONE_SPARC_SUPPORT",
+				"CAPSTONE_SYSZ_SUPPORT", "CAPSTONE_USE_SYS_DYN_MEM",
 				"CAPSTONE_X86_SUPPORT", "CAPSTONE_XCORE_SUPPORT" },
 		},
     },
@@ -234,7 +194,7 @@ StaticLibrary {
               "-isystem $(QT5_LIB)/QtCore.framework/Headers",
               "-isystem $(QT5_LIB)/QtGui.framework/Headers";
               "-isystem $(QT5_LIB)/QtGui.framework/Headers",
-              "-F$(QT5)/lib"; Config = "macosx-*-*" },
+              "-F$(QT5)/lib"; Config = "macos-*-*" },
             { "-isystem $(QT5_LIB)" ; Config = "linux-*-*" },
         },
 
@@ -284,7 +244,7 @@ StaticLibrary {
               "-isystem $(QT5_LIB)/QtCore.framework/Headers",
               "-isystem $(QT5_LIB)/QtGui.framework/Headers";
               "-isystem $(QT5_LIB)/QtGui.framework/Headers",
-              "-F$(QT5)/lib"; Config = "macosx-*-*" },
+              "-F$(QT5)/lib"; Config = "macos-*-*" },
             { "-isystem $(QT5_LIB)" ; Config = "linux-*-*" },
         },
 
@@ -331,18 +291,10 @@ StaticLibrary {
         gen_moc("src/external/edbee-lib/edbee-lib/edbee/views/texteditorscrollarea.h"),
         gen_moc("src/external/edbee-lib/edbee-lib/edbee/views/textrenderer.h"),
         gen_moc("src/external/edbee-lib/edbee-lib/edbee/views/texttheme.h"),
-
-
-        -- gen_moc("src/external/toolwindowmanager/ToolWindowManagerArea.h"),
-        -- gen_moc("src/external/toolwindowmanager/ToolWindowManagerTabBar.h"),
-        -- gen_moc("src/external/toolwindowmanager/ToolWindowManagerSplitter.h"),
-        -- gen_moc("src/external/toolwindowmanager/ToolWindowManagerWrapper.h"),
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },
 }
-
-Default "flatc"
 
 -- vim: ts=4:sw=4:sts=4
 

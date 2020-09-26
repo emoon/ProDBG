@@ -2,7 +2,19 @@ local native = require('tundra.native')
 
 -----------------------------------------------------------------------------------------------------------------------
 
+local common = {
+	Env = {
+		FLATC = "$(OBJECTDIR)$(SEP)flatc$(PROGSUFFIX)",
+	},
+
+	Includes = {
+		"$(OBJECTDIR)/_generated/",
+	}
+}
+-----------------------------------------------------------------------------------------------------------------------
+
 local mac_opts = {
+	common,
     "-Wall",
     "-Wno-switch-enum",
     "-I.", "-DPRODBG_MAC",
@@ -30,7 +42,9 @@ local mac_opts = {
     { "-O3", "-g"; Config = "*-*-release" },
 }
 
-local macosx = {
+-----------------------------------------------------------------------------------------------------------------------
+
+local macos = {
     Env = {
 		--QT5 = "", --, native.getenv("QT5"),
         RUST_CARGO_OPTS = {
@@ -70,8 +84,12 @@ local gcc_opts = {
     { "-O3", "-g"; Config = "*-*-release" },
 }
 
+-----------------------------------------------------------------------------------------------------------------------
+
 local gcc_env = {
+	common,
     Env = {
+		FLATC = "$(OBJECTDIR)$(SEP)flatc$(PROGSUFFIX)",
 		QT5_INC = native.getenv("QT5_INC"),
 		QT5_BIN = native.getenv("QT5_BIN"),
 		QT5_LIB = native.getenv("QT5_LIB"),
@@ -87,9 +105,9 @@ local gcc_env = {
             gcc_opts,
             "-std=c++11",
             "-I$(QT5_INC)",
-            -- temp
             "-Isrc/prodbg",
             "-Isrc/external/flatbuffers/include",
+			"-I$(OBJECTDIR)/_generated/",
         },
 
         SHLIBOPTS = { "-lstdc++" },
@@ -107,11 +125,14 @@ local gcc_env = {
 
 local win64_opts = {
     "/DPRODBG_WIN",
-    "/EHsc", "/FS", "/MT", "/W3", "/I.", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS", "/wd4005", "/wd4200", "/wd4152", "/wd4996", "/wd4389", "/wd4201", "/wd4152", "/wd4996", "/wd4389",
+    "/EHsc", "/FS", "/MT", "/W3", "/I.", "/DUNICODE", "/D_UNICODE", "/DWIN32", "/D_CRT_SECURE_NO_WARNINGS",
+    "/wd4005", "/wd4200", "/wd4152", "/wd4996", "/wd4389", "/wd4201", "/wd4152", "/wd4996", "/wd4389",
     "\"/DOBJECT_DIR=$(OBJECTDIR:#)\"",
     { "/Od"; Config = "*-*-debug" },
     { "/O2"; Config = "*-*-release" },
 }
+
+-----------------------------------------------------------------------------------------------------------------------
 
 local win64 = {
     Env = {
@@ -147,8 +168,8 @@ local win64 = {
 
 Build {
     Passes = {
-        BuildTools = { Name="Build Tools", BuildOrder = 1 },
-        GenerateSources = { Name="Generate Sources", BuildOrder = 2 },
+        BuildTools = { Name = "Build Tools", BuildOrder = 1 },
+        GenerateSources = { Name = "Generate Sources", BuildOrder = 2 },
     },
 
     Units = {
@@ -159,18 +180,16 @@ Build {
     },
 
     Configs = {
-        Config { Name = "macosx-clang", DefaultOnHost = "macosx", Inherit = macosx, Tools = { "clang-osx", "rust", "qt" } },
+        Config { Name = "macos-clang", DefaultOnHost = "macos", Inherit = macos, Tools = { "clang-osx", "rust", "qt" } },
         Config { Name = "win64-msvc", DefaultOnHost = { "windows" }, Inherit = win64, Tools = { "msvc-vs2019", "rust", "qt" } },
         Config { Name = "linux-gcc", DefaultOnHost = { "linux" }, Inherit = gcc_env, Tools = { "gcc", "rust", "qt" } },
     },
 
     IdeGenerationHints = {
         Msvc = {
-            -- Remap config names to MSVC platform names (affects things like header scanning & debugging)
             PlatformMappings = {
                 ['win64-msvc'] = 'x64',
             },
-            -- Remap variant names to MSVC friendly names
             VariantMappings = {
                 ['release']    = 'Release',
                 ['debug']      = 'Debug',
@@ -180,7 +199,6 @@ Build {
         MsvcSolutions = {
             ['ProDBG.sln'] = { } -- will get everything
         },
-
     },
 
     Variants = { "debug", "release" },
