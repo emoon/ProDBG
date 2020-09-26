@@ -1,7 +1,5 @@
 #ifndef _WIN32
 
-#if 0
-
 #include <LLDB/SBBreakpoint.h>
 #include <LLDB/SBCommandInterpreter.h>
 #include <LLDB/SBCommandReturnObject.h>
@@ -21,8 +19,9 @@
 #include <string.h>
 #include <map>
 #include "pd_backend.h"
-#include "pd_host.h"
 #include "pd_backend_messages.h"
+#include "pd_host.h"
+#include "pd_message_readwrite.h"
 
 // static PDMessageFuncs* s_messageFuncs;
 
@@ -181,7 +180,7 @@ void on_run(LLDBPlugin* plugin) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void reply_callstack(LLDBPlugin* plugin, PDWriter* writer) {
+static void reply_callstack(LLDBPlugin* plugin, PDWriteMessage* writer) {
     flatbuffers::FlatBufferBuilder builder(1024);
     std::vector<flatbuffers::Offset<CallstackEntry>> entries;
 
@@ -252,7 +251,7 @@ static void reply_callstack(LLDBPlugin* plugin, PDWriter* writer) {
 
     auto t = builder.CreateVector<flatbuffers::Offset<CallstackEntry>>(entries);
 
-    CallstackBuilder reply(builder);
+    CallstackReplyBuilder reply(builder);
     reply.add_entries(t);
 
     PDMessage_end_msg(writer, reply, builder);
@@ -260,8 +259,8 @@ static void reply_callstack(LLDBPlugin* plugin, PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void exception_location_reply(LLDBPlugin* plugin, PDWriter* writer) {
-    char filename[2048] = { 0 };
+static void exception_location_reply(LLDBPlugin* plugin, PDWriteMessage* writer) {
+    char filename[2048] = {0};
 
     // Get the filename & line of the exception/breakpoint
     // \todo: Right now we assume that we only got the break/exception at the first thread.
@@ -295,7 +294,7 @@ static void exception_location_reply(LLDBPlugin* plugin, PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void reply_source_files(LLDBPlugin* plugin, PDWriter* writer) {
+static void reply_source_files(LLDBPlugin* plugin, PDWriteMessage* writer) {
     std::vector<flatbuffers::Offset<flatbuffers::String>> filenames;
     flatbuffers::FlatBufferBuilder builder(8192);
 
@@ -353,18 +352,23 @@ static void reply_source_files(LLDBPlugin* plugin, PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void basic_reply(LLDBPlugin* plugin, const BasicRequest* request, PDWriter* writer) {
+static void basic_reply(LLDBPlugin* plugin, const BasicRequest* request, PDWriteMessage* writer) {
     switch (request->id()) {
-        case BasicRequestEnum_Callstack: reply_callstack(plugin, writer); break;
-        case BasicRequestEnum_SourceFiles: reply_source_files(plugin, writer); break;
-        default: break;
+        case BasicRequestEnum_Callstack:
+            reply_callstack(plugin, writer);
+            break;
+        case BasicRequestEnum_SourceFiles:
+            reply_source_files(plugin, writer);
+            break;
+        default:
+            break;
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-static void setTty(LLDBPlugin* plugin, PDWriter* writer) {
+static void setTty(LLDBPlugin* plugin, PDWriteMessage* writer) {
     const int bufferSize = 4 * 1024;
     char buffer[bufferSize];
 
@@ -380,7 +384,7 @@ static void setTty(LLDBPlugin* plugin, PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void target_reply(LLDBPlugin* plugin, const FileTargetRequest* request, PDWriter* writer) {
+static void target_reply(LLDBPlugin* plugin, const FileTargetRequest* request, PDWriteMessage* writer) {
     flatbuffers::FlatBufferBuilder builder(1024);
 
     const char* filename = request->path()->c_str();
@@ -416,12 +420,12 @@ static void target_reply(LLDBPlugin* plugin, const FileTargetRequest* request, P
         PDMessage_end_msg(writer, reply, builder);
     }
 
-    //on_run(plugin);
+    // on_run(plugin);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void locals_reply(LLDBPlugin* plugin, const LocalsRequest* request, PDWriter* writer) {
+static void locals_reply(LLDBPlugin* plugin, const LocalsRequest* request, PDWriteMessage* writer) {
     std::vector<flatbuffers::Offset<Variable>> locals;
     flatbuffers::FlatBufferBuilder builder(4096);
 
@@ -434,7 +438,7 @@ static void locals_reply(LLDBPlugin* plugin, const LocalsRequest* request, PDWri
     const uint16_t count = request->tree()->size();
     const auto type = request->type();
     (void)count;
-    //const char* expand_local = request->entry()->c_str();
+    // const char* expand_local = request->entry()->c_str();
 
     if (type == ExpandVarsTypeEnum_Single) {
         int count = (int)*expand_vars++;
@@ -480,7 +484,7 @@ static void locals_reply(LLDBPlugin* plugin, const LocalsRequest* request, PDWri
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void toggle_breakpoint(LLDBPlugin* plugin, const FileLineBreakpoint* request, PDWriter* writer) {
+static void toggle_breakpoint(LLDBPlugin* plugin, const FileLineBreakpoint* request, PDWriteMessage* writer) {
     flatbuffers::FlatBufferBuilder builder(1024);
 
     // TODO: Handle add/delete
@@ -508,7 +512,7 @@ static void toggle_breakpoint(LLDBPlugin* plugin, const FileLineBreakpoint* requ
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-static void setLocals(LLDBPlugin* plugin, PDWriter* writer) {
+static void setLocals(LLDBPlugin* plugin, PDWriteMessage* writer) {
     lldb::SBThread thread(plugin->process.GetThreadByID(plugin->selected_thread_id));
     lldb::SBFrame frame = thread.GetSelectedFrame();
 
@@ -547,7 +551,7 @@ static void setLocals(LLDBPlugin* plugin, PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setThreads(LLDBPlugin* plugin, PDWriter* writer) {
+static void setThreads(LLDBPlugin* plugin, PDWriteMessage* writer) {
     uint32_t threadCount = plugin->process.GetNumThreads();
 
     if (threadCount == 0)
@@ -590,7 +594,7 @@ static void setThreads(LLDBPlugin* plugin, PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void setBreakpoint(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer) {
+static void setBreakpoint(LLDBPlugin* plugin, PDReadMessage* reader, PDWriteMessage* writer) {
     const char* filename;
     uint32_t line;
 
@@ -621,7 +625,7 @@ static void setBreakpoint(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void event_action(LLDBPlugin* plugin, PDReader* reader) {
+static void event_action(LLDBPlugin* plugin, PDReadMessage* reader) {
     uint32_t action = 0;
 
     printf("LLDBPlugin; %d\n", (PDRead_find_u32(reader, &action, "action", 0) & 0xff) >> 8);
@@ -664,7 +668,7 @@ static const char* eventTypes[] =
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-static void selectThread(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer) {
+static void selectThread(LLDBPlugin* plugin, PDReadMessage* reader, PDWriteMessage* writer) {
     uint64_t threadId;
 
     PDRead_find_u64(reader, &threadId, "thread_id", 0);
@@ -688,7 +692,7 @@ static void selectThread(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void select_frame(LLDBPlugin* plugin, const FrameSelectRequest* request, PDWriter* writer) {
+static void select_frame(LLDBPlugin* plugin, const FrameSelectRequest* request, PDWriteMessage* writer) {
     plugin->frame_selection[plugin->selected_thread_id] = request->frame_index();
     exception_location_reply(plugin, writer);
 }
@@ -726,14 +730,11 @@ static void do_action(LLDBPlugin* plugin, PDAction action) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void process_events(LLDBPlugin* plugin, PDReader* reader, PDWriter* writer) {
-    uint32_t event;
-    void* data = nullptr;
-    uint64_t size = 0;
+static void process_events(LLDBPlugin* plugin, PDReadMessage* reader, PDWriteMessage* writer) {
+    const uint8_t* data;
+    uint64_t size;
 
-    while ((event = PDRead_get_event(reader))) {
-        // TODO: This wrapping is temporary right now
-        PDRead_find_data(reader, &data, &size, "data", 0);
+    while ((data = PDReadMessage_next_message(reader, &size))) {
         const Message* msg = GetMessage(data);
 
         switch (msg->message_type()) {
@@ -767,9 +768,9 @@ static void process_events(LLDBPlugin* plugin, PDReader* reader, PDWriter* write
                 break;
             }
 
-            default: break;
+            default:
+                break;
         }
-
 
         // printf("LLDBPlugin: %d Got event %s\n", event, eventTypes[event]);
 
@@ -809,12 +810,12 @@ static void process_events(LLDBPlugin* plugin, PDReader* reader, PDWriter* write
         */
     }
 
-    //setTty(plugin, writer);
+    // setTty(plugin, writer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void send_exception_state(LLDBPlugin* plugin, PDWriter* writer) {
+static void send_exception_state(LLDBPlugin* plugin, PDWriteMessage* writer) {
     printf("sending exception state\n");
     // setCallstack(plugin, writer);
     exception_location_reply(plugin, writer);
@@ -823,7 +824,7 @@ static void send_exception_state(LLDBPlugin* plugin, PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void update_lldb_event(LLDBPlugin* plugin, PDWriter* writer) {
+static void update_lldb_event(LLDBPlugin* plugin, PDWriteMessage* writer) {
     if (!plugin->process.IsValid()) {
         printf("process invalid\n");
         return;
@@ -943,8 +944,8 @@ static void update_lldb_event(LLDBPlugin* plugin, PDWriter* writer) {
                         plugin->state = PDDebugState_StopBreakpoint;
 
                         if (m_verbose) {
-                            printf("lldb::eStopReasonBreakpoint breakpoint id = %ld.%ld\n", thread.GetStopReasonDataAtIndex(0),
-                                   thread.GetStopReasonDataAtIndex(1));
+                            printf("lldb::eStopReasonBreakpoint breakpoint id = %ld.%ld\n",
+                                   thread.GetStopReasonDataAtIndex(0), thread.GetStopReasonDataAtIndex(1));
                         }
 
                         break;
@@ -984,7 +985,7 @@ static void update_lldb_event(LLDBPlugin* plugin, PDWriter* writer) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PDDebugState update(void* user_data, PDAction action, PDReader* reader, PDWriter* writer) {
+static PDDebugState update(void* user_data, PDAction action, PDReadMessage* reader, PDWriteMessage* writer) {
     LLDBPlugin* plugin = (LLDBPlugin*)user_data;
 
     process_events(plugin, reader, writer);
@@ -997,7 +998,6 @@ static PDDebugState update(void* user_data, PDAction action, PDReader* reader, P
 
     return plugin->state;
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1012,8 +1012,6 @@ static PDBackendPlugin plugin = {
 extern "C" PD_EXPORT void pd_init_plugin(RegisterPlugin* register_plugin, void* private_data) {
     register_plugin(PD_BACKEND_API_VERSION, &plugin, private_data);
 }
-
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

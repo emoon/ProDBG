@@ -113,6 +113,9 @@ void MessagesAPI::swap_buffers() {
     m_data_write = temp;
     m_read_offset = 0;
     m_write_offset = 0;
+
+    // make sure we set count to zero when swapping buffers
+    *(size_type*)&m_data_write[0] = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -76,7 +76,7 @@ bool PluginHandler_addPlugin(const QString& plugin) {
         return false;
     }
 
-    InitPlugin initPlugin = (InitPlugin)lib->resolve("InitPlugin");
+    InitPlugin initPlugin = (InitPlugin)lib->resolve("pd_init_plugin");
 
     if (!initPlugin) {
         qDebug() << "Unable to find InitPlugin for plugin " << lib->fileName();

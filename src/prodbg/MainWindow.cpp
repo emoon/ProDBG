@@ -178,7 +178,7 @@ MainWindow::MainWindow()
 
     setStatusBar(m_statusbar);
 
-    start_dummy_backend();
+    //start_dummy_backend();
 
     init_actions();
     //read_settings();

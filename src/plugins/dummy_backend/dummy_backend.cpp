@@ -297,34 +297,6 @@ void destroy_instance(void* user_data) {
     free(user_data);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-static void write_register(PDWriter* writer, Register* reg) {
-    PDWrite_array_entry_begin(writer);
-    PDWrite_string(writer, "name", reg->name);
-    PDWrite_u8(writer, "read_only", reg->read_only);
-    PDWrite_data(writer, "register", reg->data, reg->size);
-    PDWrite_entry_end(writer);
-}
-*/
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// static void send_6502_registers(PDWriter* writer) {
-//  PDWrite_event_begin(writer, PDEventType_SetRegisters);
-//  PDWrite_array_begin(writer, "registers");
-//
-//  write_register(writer, "pc", 2, 0x4444, 1);
-//  write_register(writer, "sp", 1, 1, 0);
-//  write_register(writer, "a", 1, 2, 0);
-//  write_register(writer, "x", 1, 3, 0);
-//  write_register(writer, "y", 1, 4, 0);
-//
-//  PDWrite_array_end(writer);
-//  PDWrite_event_end(writer);
-//}
-
 /*
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

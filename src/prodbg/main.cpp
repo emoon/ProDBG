@@ -8,6 +8,7 @@
 #include <QtWidgets/QStyleFactory>
 #include <QtWidgets/QTextEdit>
 #include "Core/PluginHandler.h"
+#include "../core/BackendPluginHandler.h"
 #include "MainWindow.h"
 #include "Config/Config.h"
 #include "edbee/edbee.h"
@@ -31,9 +32,7 @@ int main(int argc, const char** argv) {
     edbee->init();
 
     prodbg::Config::create_instance();
-
-    //prodbg::PluginHandler_addPlugin(QStringLiteral("dummy_backend_plugin"));
-    prodbg::PluginHandler_addPlugin(QStringLiteral("lldb_plugin"));
+    prodbg::BackendPluginHandler::add_plugin("lldb_plugin");
 
     prodbg::MainWindow main_window;
 

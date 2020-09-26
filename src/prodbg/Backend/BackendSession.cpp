@@ -12,6 +12,7 @@
 #include "api/include/pd_backend_messages.h"
 #include "api/src/remote/pd_readwrite_private.h"
 #include "flatbuffers/flatbuffers.h"
+#include "../core/BackendPluginHandler.h"
 
 namespace prodbg {
 
@@ -49,7 +50,7 @@ BackendSession* BackendSession::create_backend_session(const QString& backend_na
 bool BackendSession::set_backend(const QString& backendName) {
     // Names of the backends are stored in utf-8 so convert them here
     QByteArray name = backendName.toUtf8();
-    PDBackendPlugin* plugin = PluginHandler_findBackendPlugin(name.constData());
+    PDBackendPlugin* plugin = prodbg::BackendPluginHandler::find_plugin(name.constData());
 
     if (!plugin) {
         qDebug() << "Unable to find plugin: " << backendName;
