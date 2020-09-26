@@ -11,17 +11,17 @@ namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct Node {
-    Node(Node* parent, const QString& name, const QString& data, const QString& type, int node_id,
+struct LocalNode {
+    LocalNode(LocalNode* parent, const QString& name, const QString& data, const QString& type, int node_id,
          bool may_have_children)
         : parent(parent), name(name), data(data), type(type), node_id(node_id), may_have_children(may_have_children) {
         is_expanded = false;
     }
-    ~Node() {
+    ~LocalNode() {
         qDeleteAll(children);
     }
 
-    Node* parent;
+    LocalNode* parent;
     QString name;
     QString data;
     QString type;
@@ -29,7 +29,7 @@ struct Node {
     bool is_expanded;
     bool may_have_children;
 
-    QList<Node*> children;
+    QList<LocalNode*> children;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ public:
     LocalsModel(QObject* parent = 0);
     ~LocalsModel();
 
-    void set_root_node(Node* node) {
+    void set_root_node(LocalNode* node) {
         m_root_node = node;
     }
 
@@ -52,10 +52,10 @@ public:
     QVariant data(const QModelIndex& index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
-    Node* node_from_index(const QModelIndex& index) const;
+    LocalNode* node_from_index(const QModelIndex& index) const;
 
 private:
-    Node* m_root_node;
+    LocalNode* m_root_node;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,9 +97,9 @@ QVariant LocalsModel::headerData(int section, Qt::Orientation orientation, int r
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Node* LocalsModel::node_from_index(const QModelIndex& index) const {
+LocalNode* LocalsModel::node_from_index(const QModelIndex& index) const {
     if (index.isValid()) {
-        return static_cast<Node*>(index.internalPointer());
+        return static_cast<LocalNode*>(index.internalPointer());
     } else {
         return m_root_node;
     }
@@ -112,7 +112,7 @@ int LocalsModel::rowCount(const QModelIndex& parent) const {
         return 0;
     }
 
-    Node* parent_node = node_from_index(parent);
+    LocalNode* parent_node = node_from_index(parent);
     if (!parent_node) {
         return 0;
     }
@@ -133,8 +133,8 @@ QModelIndex LocalsModel::index(int row, int column, const QModelIndex& parent) c
         return QModelIndex();
     }
 
-    Node* parent_node = node_from_index(parent);
-    Node* child_node = parent_node->children.value(row);
+    LocalNode* parent_node = node_from_index(parent);
+    LocalNode* child_node = parent_node->children.value(row);
 
     if (child_node) {
         return createIndex(row, column, child_node);
@@ -146,17 +146,17 @@ QModelIndex LocalsModel::index(int row, int column, const QModelIndex& parent) c
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 QModelIndex LocalsModel::parent(const QModelIndex& child) const {
-    Node* node = node_from_index(child);
+    LocalNode* node = node_from_index(child);
     if (!node) {
         return QModelIndex();
     }
 
-    Node* parent_node = node->parent;
+    LocalNode* parent_node = node->parent;
     if (!parent_node) {
         return QModelIndex();
     }
 
-    Node* prev_node = parent_node->parent;
+    LocalNode* prev_node = parent_node->parent;
     if (!prev_node) {
         return QModelIndex();
     }
@@ -177,7 +177,7 @@ QVariant LocalsModel::data(const QModelIndex& index, int role) const {
         return QVariant();
     }
 
-    Node* node = node_from_index(index);
+    LocalNode* node = node_from_index(index);
 
     switch (index.column()) {
         case 0:
@@ -204,22 +204,22 @@ Qt::ItemFlags LocalsModel::flags(const QModelIndex& index) const {
 }
 
 /*
-    Node* root = new Node(nullptr, QStringLiteral(""), QStringLiteral(""), QStringLiteral(""), true);
-    Node* s = new Node(root, QStringLiteral("Value 3"), QStringLiteral("{Foobar}"), QStringLiteral("FooBar"), true);
+    LocalNode* root = new LocalNode(nullptr, QStringLiteral(""), QStringLiteral(""), QStringLiteral(""), true);
+    LocalNode* s = new LocalNode(root, QStringLiteral("Value 3"), QStringLiteral("{Foobar}"), QStringLiteral("FooBar"), true);
 
     root->children.push_back(
-        new Node(root, QStringLiteral("Value 0"), QStringLiteral("1.0"), QStringLiteral("float"), false));
+        new LocalNode(root, QStringLiteral("Value 0"), QStringLiteral("1.0"), QStringLiteral("float"), false));
     root->children.push_back(
-        new Node(root, QStringLiteral("Value 1"), QStringLiteral("2.0"), QStringLiteral("float"), false));
+        new LocalNode(root, QStringLiteral("Value 1"), QStringLiteral("2.0"), QStringLiteral("float"), false));
     root->children.push_back(
-        new Node(root, QStringLiteral("Value 2"), QStringLiteral("2.0"), QStringLiteral("float"), false));
+        new LocalNode(root, QStringLiteral("Value 2"), QStringLiteral("2.0"), QStringLiteral("float"), false));
     root->children.push_back(s);
 
-    //s->children.push_back(new Node(s, QStringLiteral("Value 4"), QStringLiteral("1.0"), QStringLiteral("float"),
+    //s->children.push_back(new LocalNode(s, QStringLiteral("Value 4"), QStringLiteral("1.0"), QStringLiteral("float"),
    false));
-    //s->children.push_back(new Node(s, QStringLiteral("Value 5"), QStringLiteral("2.0"), QStringLiteral("float"),
+    //s->children.push_back(new LocalNode(s, QStringLiteral("Value 5"), QStringLiteral("2.0"), QStringLiteral("float"),
    false));
-    //s->children.push_back(new Node(s, QStringLiteral("Value 6"), QStringLiteral("2.0"), QStringLiteral("float"),
+    //s->children.push_back(new LocalNode(s, QStringLiteral("Value 6"), QStringLiteral("2.0"), QStringLiteral("float"),
    false));
 */
 
@@ -266,7 +266,7 @@ void LocalsView::reply_locals(const IBackendRequests::Variables& vars) {
         int node_id = 0;
         for (const auto& t : vars.variables) {
             m_request_node->children.push_back(
-                new Node(m_request_node, t.name, t.value, t.type, node_id, t.may_have_children));
+                new LocalNode(m_request_node, t.name, t.value, t.type, node_id, t.may_have_children));
             node_id++;
         }
         m_request_node->may_have_children = false;
@@ -278,11 +278,11 @@ void LocalsView::reply_locals(const IBackendRequests::Variables& vars) {
         }
         */
 
-        m_root = new Node(nullptr, QStringLiteral(""), QStringLiteral(""), QStringLiteral(""), -1, true);
+        m_root = new LocalNode(nullptr, QStringLiteral(""), QStringLiteral(""), QStringLiteral(""), -1, true);
         int node_id = 0;
 
         for (const auto& t : vars.variables) {
-            m_root->children.push_back(new Node(m_root, t.name, t.value, t.type, node_id, t.may_have_children));
+            m_root->children.push_back(new LocalNode(m_root, t.name, t.value, t.type, node_id, t.may_have_children));
             node_id++;
         }
     }
@@ -294,7 +294,7 @@ void LocalsView::reply_locals(const IBackendRequests::Variables& vars) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LocalsView::collpase_variable(const QModelIndex& index) {
-    Node* node = m_model->node_from_index(index);
+    LocalNode* node = m_model->node_from_index(index);
     node->is_expanded = false;
 }
 
@@ -303,12 +303,12 @@ void LocalsView::collpase_variable(const QModelIndex& index) {
 void LocalsView::expand_variable(const QModelIndex& index) {
     IBackendRequests::ExpandVars expand_vars;
 
-    Node* node = m_model->node_from_index(index);
+    LocalNode* node = m_model->node_from_index(index);
     node->is_expanded = true;
 
     int count = 0;
 
-    Node* current_node = node;
+    LocalNode* current_node = node;
 
     // build expansion, first do a count, as we only traverse upwards this should be quite fast as this is the
     // number of levels some data has been expanded and it's likely not very super deep.

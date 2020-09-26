@@ -15,7 +15,7 @@ namespace prodbg {
 
 class IBackendRequests;
 class LocalsModel;
-class Node;
+class LocalNode;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -34,14 +34,14 @@ private:
     Q_SLOT void expand_variable(const QModelIndex& index);
     Q_SLOT void collpase_variable(const QModelIndex& index);
 
-    Node* m_root = nullptr;
+    LocalNode* m_root = nullptr;
     LocalsModel* m_model = nullptr;
     IBackendRequests* m_interface = nullptr;
     Ui_LocalsView* m_ui = nullptr;
 
     uint64_t m_request_id;
     QString m_locals_name_request;
-    Node* m_request_node = nullptr;
+    LocalNode* m_request_node = nullptr;
     IBackendRequests::ExpandVars m_expand_vars;
 };
 
