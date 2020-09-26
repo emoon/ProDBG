@@ -20,6 +20,7 @@ table SourceFilesReply {
 
 // Which file target to start debugging (usually an executable)
 table FileTargetRequest {
+  stop_at_main: bool;
   path: string;
 }
 

@@ -25,6 +25,8 @@
 
 // static PDMessageFuncs* s_messageFuncs;
 
+const bool m_verbose = true;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct Breakpoint {
@@ -38,9 +40,10 @@ struct Breakpoint {
 typedef struct LLDBPlugin {
     lldb::SBDebugger debugger;
     lldb::SBTarget target;
-    lldb::SBListener listener;
+    //lldb::SBListener listener;
     lldb::SBProcess process;
     PDDebugState state;
+    bool stop_at_entry;
     bool has_valid_target;
     uint64_t selected_thread_id;
     const char* targetName;
@@ -59,7 +62,7 @@ void* create_instance(ServiceFunc* serviceFunc) {
 
     plugin->debugger = lldb::SBDebugger::Create(false);
     plugin->state = PDDebugState_NoTarget;
-    plugin->listener = plugin->debugger.GetListener();
+    //plugin->listener = plugin->debugger.GetListener();
     plugin->has_valid_target = false;
     plugin->selected_thread_id = 0;
     plugin->debugger.SetUseColor(false);
@@ -89,8 +92,6 @@ static void destroy_instance(void* user_data) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-const bool m_verbose = true;
 
 static void on_step(LLDBPlugin* plugin) {
     lldb::SBEvent evt;
@@ -143,10 +144,15 @@ void on_run(LLDBPlugin* plugin) {
     // if we haven't started the executable start it here
 
     if (plugin->state == PDDebugState_NoTarget) {
-        lldb::SBLaunchInfo launchInfo(0);
+        lldb::SBLaunchInfo launch_info(0);
+
         lldb::SBError error;
 
-        plugin->process = plugin->target.Launch(launchInfo, error);
+        if (plugin->stop_at_entry) {
+            launch_info.SetLaunchFlags(launch_info.GetLaunchFlags() | lldb::eLaunchFlagStopAtEntry);
+        }
+
+        plugin->process = plugin->target.Launch(launch_info, error);
 
         printf("try start\n");
 
@@ -166,8 +172,10 @@ void on_run(LLDBPlugin* plugin) {
 
         printf("Started valid process\n");
 
+        /*
         plugin->process.GetBroadcaster().AddListener(
             plugin->listener, lldb::SBProcess::eBroadcastBitStateChanged | lldb::SBProcess::eBroadcastBitInterrupt);
+        */
 
         plugin->state = PDDebugState_Running;
         plugin->has_valid_target = true;
@@ -350,6 +358,7 @@ static void target_reply(LLDBPlugin* plugin, const FileTargetRequest* request, P
     flatbuffers::FlatBufferBuilder builder(1024);
 
     const char* filename = request->path()->c_str();
+    plugin->stop_at_entry = request->stop_at_main();
 
     printf("lldb_plugin: target request %s\n", filename);
 
@@ -794,10 +803,14 @@ static void update_lldb_event(LLDBPlugin* plugin, PDWriteMessage* writer) {
 
     lldb::SBEvent evt;
 
-    plugin->listener.WaitForEvent(1, evt);
+    plugin->debugger.GetListener().WaitForEvent(1, evt);
+    //plugin->listener.WaitForEvent(1, evt);
+
+    const auto event_mask = evt.GetType();
+
     lldb::StateType state = lldb::SBProcess::GetStateFromEvent(evt);
 
-    printf("event = %s\n", lldb::SBDebugger::StateAsCString(state));
+    printf("event = %s mask (%d)\n", lldb::SBDebugger::StateAsCString(state), event_mask);
 
     if (lldb::SBProcess::GetRestartedFromEvent(evt)) {
         printf("lldb::SBProcess::GetRestartedFromEvent(evt)\n");

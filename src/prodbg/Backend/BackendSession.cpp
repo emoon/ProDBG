@@ -503,7 +503,7 @@ void BackendSession::beginDisassembly(uint64_t address, uint32_t count,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Q_SLOT void BackendSession::file_target_request(const QString& path) {
+Q_SLOT void BackendSession::file_target_request(bool stop_at_main, const QString& path) {
     const void* data;
     uint64_t size;
 
@@ -512,6 +512,7 @@ Q_SLOT void BackendSession::file_target_request(const QString& path) {
     auto build_path = builder.CreateString(path.toUtf8().data());
 
     FileTargetRequestBuilder request(builder);
+    request.add_stop_at_main(stop_at_main);
     request.add_path(build_path);
 
     PDMessage_end_msg(m_messages_api->get_writer(), request, builder);
@@ -682,7 +683,7 @@ PDDebugState BackendSession::internal_update(PDAction action) {
             update_current_pc();
         } else {
             if (m_timer) {
-                m_timer->start(50);
+                m_timer->start(1);
             }
         }
     }
@@ -711,7 +712,7 @@ void BackendSession::start() {
     m_timer = new QTimer(this);
     connect(m_timer, &QTimer::timeout, this, &BackendSession::update);
 
-    m_timer->start(50);
+    m_timer->start(1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

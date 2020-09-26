@@ -41,7 +41,8 @@
       <string>Recent Executables</string>
      </property>
     </widget>
-    <addaction name="debug_executable"/>
+    <addaction name="debug_exe_stop_at_main"/>
+    <addaction name="debug_exe"/>
     <addaction name="actionOpen"/>
     <addaction name="actionReloadCurrentFile"/>
     <addaction name="separator"/>
@@ -138,12 +139,12 @@
     <string>Amiga UAE...</string>
    </property>
   </action>
-  <action name="debug_executable">
+  <action name="debug_exe">
    <property name="text">
-    <string>Debug Executable..</string>
+    <string>Debug Executable...</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+A</string>
+    <string>Ctrl+D</string>
    </property>
   </action>
   <action name="actionBreak">
@@ -188,6 +189,14 @@
   <action name="actionPreferences">
    <property name="text">
     <string>Preferences..</string>
+   </property>
+  </action>
+  <action name="debug_exe_stop_at_main">
+   <property name="text">
+    <string>Debug Executable... (stop at main)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+D</string>
    </property>
   </action>
  </widget>

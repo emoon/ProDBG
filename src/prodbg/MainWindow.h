@@ -49,7 +49,8 @@ private:
     Q_SLOT void step_over();
     Q_SLOT void toggle_breakpoint();
     Q_SLOT void open_recent_exe();
-    Q_SLOT void open_debug_executable();
+    Q_SLOT void open_debug_exe();
+    Q_SLOT void open_debug_exe_stop_at_main();
 
     Q_SLOT void new_memory_view();
     Q_SLOT void new_register_view();
@@ -83,6 +84,7 @@ private:
 
     void init_recent_file_actions();
     void stop_internal();
+    void open_debug(bool stop_at_main);
 
     Q_SLOT void uae_started();
     Q_SLOT void status_update(const QString& status);
@@ -121,6 +123,8 @@ private:
     BackendRequests* m_backend_requests = nullptr;
     BackendSession* m_backend = nullptr;
     QThread* m_backend_thread = nullptr;
+
+    QString m_last_file_dir;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

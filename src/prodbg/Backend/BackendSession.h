@@ -27,7 +27,7 @@ public:
 
     Q_SLOT void thread_finished();
     Q_SLOT void update();
-    Q_SLOT void file_target_request(const QString& path);
+    Q_SLOT void file_target_request(bool stop_at_main, const QString& path);
     Q_SLOT void start();
 
     Q_SLOT void request_add_file_line_breakpoint(const QString& filename, int line);
@@ -91,7 +91,6 @@ private:
     // Writers/Read for communitaction between backend and UI
     MessagesAPI* m_messages_api = nullptr;
     QTimer* m_timer = nullptr;
-
 
     // Current active backend plugin
     PDBackendPlugin* m_backend_plugin;

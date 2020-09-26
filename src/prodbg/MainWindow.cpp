@@ -197,7 +197,8 @@ MainWindow::~MainWindow() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::init_actions() {
-    connect(m_ui.debug_executable, &QAction::triggered, this, &MainWindow::open_debug_executable);
+    connect(m_ui.debug_exe, &QAction::triggered, this, &MainWindow::open_debug_exe);
+    connect(m_ui.debug_exe_stop_at_main, &QAction::triggered, this, &MainWindow::open_debug_exe_stop_at_main);
     connect(m_ui.actionPreferences, &QAction::triggered, this, &MainWindow::show_prefs);
     connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggle_breakpoint);
     connect(m_ui.actionStep_In, &QAction::triggered, this, &MainWindow::step_in);
@@ -239,12 +240,18 @@ void MainWindow::init_recent_file_actions() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::open_debug_executable() {
-    close_current_backend();
+void MainWindow::open_debug(bool stop_at_main) {
+    /*
+    QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("Open File for Debug..."));
 
-    // hard-coded for now to skip dialog
+    if (path.isEmpty()) {
+        return;
+    }
+    */
 
     QString path = QStringLiteral("t2-output/linux-gcc-debug-default/crashing_native");
+
+    close_current_backend();
 
     BackendSession* backend = BackendSession::create_backend_session(QStringLiteral("LLDB"));
 
@@ -257,23 +264,19 @@ void MainWindow::open_debug_executable() {
 
     // Request starting a file for debugging. target_reply will get a status back if it's possible
     // to start the file or not and the debugging can procedde after that
-    m_backend_requests->file_target_request(path);
+    m_backend_requests->file_target_request(stop_at_main, path);
+}
 
-    // m_backendRequests->sendCustomString(m_amigaUae->m_setFileId, m_amigaUae->m_fileToRun);
-    // m_backendRequests->sendCustomString(m_amigaUae->m_setHddPathId, m_amigaUae->m_dh0Path);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // TODO: This is really temporary
-    // QTimer::singleShot(5000, this, &MainWindow::start);
+void MainWindow::open_debug_exe() {
+    open_debug(false);
+}
 
-    // m_currentBackend = Amiga;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /*
-    QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("Open File for Debug..."));
-
-    if (path.isEmpty()) {
-        return;
-    }
-    */
+void MainWindow::open_debug_exe_stop_at_main() {
+    open_debug(true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -507,33 +510,6 @@ void MainWindow::close_current_backend() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-void MainWindow::startAmigaUAEBackend() {
-    closeCurrentBackend();
-
-    BackendSession* backend = BackendSession::create_backend_session(QStringLiteral("Amiga UAE Debugger"));
-
-    if (!backend) {
-        printf("Unable to create Amiga UAE Debugger backend\n");
-        return;
-    }
-
-    setupBackend(backend);
-
-    // m_backendRequests->sendCustomString(m_amigaUae->m_setFileId, m_amigaUae->m_fileToRun);
-    // m_backendRequests->sendCustomString(m_amigaUae->m_setHddPathId, m_amigaUae->m_dh0Path);
-
-    // TODO: This is really temporary
-    // QTimer::singleShot(5000, this, &MainWindow::start);
-
-    printf("startAmigaUAEBackend: NOT IMPLEMENTED\n");
-
-    m_currentBackend = Amiga;
-}
-*/
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void MainWindow::setup_backend(BackendSession* backend) {
     m_backend = backend;
 
@@ -541,11 +517,6 @@ void MainWindow::setup_backend(BackendSession* backend) {
 
     m_backend->moveToThread(m_backend_thread);
     m_backend_requests = new BackendRequests(m_backend);
-
-
-    // m_registerView->set_backend_interface(m_backendRequests);
-    // m_code_views->set_backend_interface(m_backendRequests);
-    // m_memory_view->set_backend_interface(m_backend_requests);
 
     m_backend_thread->start();
 

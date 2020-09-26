@@ -16,7 +16,7 @@ public:
 
 public:
     // Request to start a file for debugging
-    void file_target_request(const QString& path);
+    void file_target_request(bool stop_at_main, const QString& path);
 
     // Request source files from debug target
     void request_basic(IBackendRequests::BasicRequest request_type);
@@ -77,7 +77,7 @@ public:
 
 private:
     Q_SIGNAL void request_basic_signal(IBackendRequests::BasicRequest request_type);
-    Q_SIGNAL void request_file_target_signal(const QString& filename);
+    Q_SIGNAL void request_file_target_signal(bool stop_at_main, const QString& filename);
     Q_SIGNAL void request_add_file_line_breakpoint_signal(const QString& filename, int line);
     Q_SIGNAL void request_remove_file_line_breakpoint_signal(const QString& filename, int line);
     Q_SIGNAL void request_locals_signal(const IBackendRequests::ExpandVars& expanded_vars, uint64_t request_id);
