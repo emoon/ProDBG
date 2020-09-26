@@ -62,6 +62,7 @@ void* create_instance(ServiceFunc* serviceFunc) {
     plugin->listener = plugin->debugger.GetListener();
     plugin->has_valid_target = false;
     plugin->selected_thread_id = 0;
+    plugin->debugger.SetUseColor(false);
 
     return plugin;
 }
@@ -189,7 +190,6 @@ static void reply_callstack(LLDBPlugin* plugin, PDWriteMessage* writer) {
     for (uint32_t i = 0, c = thread.GetNumFrames(); i < c; ++i) {
         char filename[4096];
         char module_name[4096];
-        char desc_no_escape[4096];
 
         lldb::SBFrame frame = thread.GetFrameAtIndex(i);
         lldb::SBModule mod = frame.GetModule();
@@ -208,45 +208,7 @@ static void reply_callstack(LLDBPlugin* plugin, PDWriteMessage* writer) {
         lldb::SBStream desc;
         frame.GetDescription(desc);
 
-        // this description contains ansi codes such as 0x1b5b33m (\0x1b[33m) and we don't
-        // want that in the data sent back so we do a pass where we skip those
-        const char* desc_with_ansi = desc.GetData();
-        char* output = desc_no_escape;
-        int len = strlen(desc_with_ansi);
-        int p = 0;
-        size_t new_len = 0;
-        bool search_end_state = false;
-
-        // this (kinda ugly code) searches for 0x1b as starting and then 'm' as ending
-        // for escape codes
-
-        for (p = 0; p < len; ++p) {
-            char c = *desc_with_ansi++;
-
-            if (search_end_state) {
-                if (c != 'm') {
-                    continue;
-                }
-
-                search_end_state = false;
-                continue;
-            }
-
-            if (c != 0x1b) {
-                *output++ = c;
-                new_len++;
-            } else {
-                search_end_state = true;
-            }
-
-            if ((new_len + 1) > sizeof(desc_no_escape)) {
-                break;
-            }
-        }
-
-        desc_no_escape[new_len - 1] = 0;
-
-        entries.push_back(CreateCallstackEntryDirect(builder, address, desc_no_escape, lang, filename, (int)line));
+        entries.push_back(CreateCallstackEntryDirect(builder, address, desc.GetData(), lang, filename, (int)line));
     }
 
     auto t = builder.CreateVector<flatbuffers::Offset<CallstackEntry>>(entries);
