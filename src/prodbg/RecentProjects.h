@@ -2,6 +2,7 @@
 
 #include <QtCore/QVector>
 #include "BackendTypes.h"
+#include "Project.h"
 
 class QAction;
 
@@ -11,31 +12,25 @@ namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class RecentExecutables {
+class RecentProjects {
 public:
-    RecentExecutables();
-    ~RecentExecutables();
+    RecentProjects();
+    ~RecentProjects();
 
-    enum MaxFiles {
-        MaxFiles_Count = 8,
+    enum MaxProjects {
+        MaxProjects_Count = 8,
     };
 
     void update_action_list(QVector<QAction*>& list);
-    void set_file(QVector<QAction*>& actionList, const QString& filename, BackendType type);
-    void put_file_on_top(QVector<QAction*>& actionList, const QString& filename);
-
+    void set_project(QVector<QAction*>& actionList, Project* project);
+    void put_project_on_top(QVector<QAction*>& actionList, const QString& name);
     void write_settings();
     void read_settings();
 
-    struct Executable {
-        QString filename;
-        BackendType type;
-    };
-
 private:
-    void set_current_file(const QString& filename, BackendType type);
+    void set_current_project(Project* project);
 
-    QVector<Executable> m_files;
+    QVector<Project*> m_projects;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

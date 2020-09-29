@@ -36,17 +36,17 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <widget class="QMenu" name="menuRecentExecutables">
+    <widget class="QMenu" name="menu_recent_projects">
      <property name="title">
-      <string>Recent Executables</string>
+      <string>Recent Projects</string>
      </property>
     </widget>
-    <addaction name="debug_exe_stop_at_main"/>
-    <addaction name="debug_exe"/>
+    <addaction name="debug_file"/>
+    <addaction name="open_binary_file"/>
     <addaction name="actionOpen"/>
     <addaction name="actionReloadCurrentFile"/>
     <addaction name="separator"/>
-    <addaction name="menuRecentExecutables"/>
+    <addaction name="menu_recent_projects"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -139,9 +139,9 @@
     <string>Amiga UAE...</string>
    </property>
   </action>
-  <action name="debug_exe">
+  <action name="debug_file">
    <property name="text">
-    <string>Debug Executable...</string>
+    <string>Debug...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+D</string>
@@ -197,6 +197,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+D</string>
+   </property>
+  </action>
+  <action name="open_binary_file">
+   <property name="text">
+    <string>Open Binary File...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
    </property>
   </action>
  </widget>

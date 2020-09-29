@@ -1,6 +1,6 @@
 #include "MainWindow.h"
 #include "CodeView/CodeView.h"
-#include "RecentExecutables.h"
+#include "RecentProjects.h"
 
 #include "AmigaUAE/AmigaUAE.h"
 #include "Backend/BackendRequests.h"
@@ -32,26 +32,13 @@
 #include "LocalsView.h"
 #include "CallstackView.h"
 
-/*
-#include "edbee/edbee.h"
-#include "edbee/io/textdocumentserializer.h"
-#include "edbee/models/textdocument.h"
-#include "edbee/models/texteditorconfig.h"
-#include "edbee/models/textgrammar.h"
-#include "edbee/views/texteditorscrollarea.h"
- */
-
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MainWindow::MainWindow()
-    : /*m_memory_view(new MemoryView(this)), */
-      // m_registerView(new RegisterView(this)),
-      m_statusbar(new QStatusBar(this)),
+    : m_statusbar(new QStatusBar(this)),
       m_backend(nullptr)
-//, m_currentSession(nullptr)
-//, m_amigaUae(nullptr)
 {
     qRegisterMetaType<uint16_t>("uint16_t");
     qRegisterMetaType<uint32_t>("uint32_t");
@@ -76,7 +63,7 @@ MainWindow::MainWindow()
     // m_viewHandler->addView(new MemoryView(this));
     // m_viewHandler->addView(new RegisterView(this));
 
-    m_recent_executables = new RecentExecutables;
+    m_recent_projects = new RecentProjects;
     // m_amigaUae = new AmigaUAE(this);
 
     m_ui.setupUi(this);
@@ -84,7 +71,7 @@ MainWindow::MainWindow()
     m_breakpoints = new BreakpointModel;
 
     m_code_views = new CodeViews(m_breakpoints, this);
-    m_code_views->open_file(QStringLiteral("examples/crashing_native/crash1.c"), true);
+    m_code_views->open_file(QStringLiteral("/home/emoon/code/temp/debug_test/src/main.rs"), true);
     //m_code_views->open_file(QStringLiteral("src/prodbg/Config/Config.cpp"), true);
 
     // m_code_views->openFile(QStringLiteral("src/prodbg/main.cpp"),
@@ -189,7 +176,7 @@ MainWindow::MainWindow()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MainWindow::~MainWindow() {
-    delete m_recent_executables;
+    delete m_recent_projects;
 
     close_current_backend();
 }
@@ -197,8 +184,7 @@ MainWindow::~MainWindow() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::init_actions() {
-    connect(m_ui.debug_exe, &QAction::triggered, this, &MainWindow::open_debug_exe);
-    connect(m_ui.debug_exe_stop_at_main, &QAction::triggered, this, &MainWindow::open_debug_exe_stop_at_main);
+    connect(m_ui.debug_file, &QAction::triggered, this, &MainWindow::open_debug_exe);
     connect(m_ui.actionPreferences, &QAction::triggered, this, &MainWindow::show_prefs);
     connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggle_breakpoint);
     connect(m_ui.actionStep_In, &QAction::triggered, this, &MainWindow::step_in);
@@ -223,33 +209,29 @@ void MainWindow::init_actions() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::init_recent_file_actions() {
-    QMenu* menu = m_ui.menuRecentExecutables;
+    QMenu* menu = m_ui.menu_recent_projects;
 
-    // QAction* recentFiles = m_ui.menuFile->actionRecentExecutables;
-
-    for (int i = 0; i < RecentExecutables::MaxFiles_Count; ++i) {
-        QAction* recentFileAction = new QAction(this);
-        recentFileAction->setVisible(false);
-        connect(recentFileAction, &QAction::triggered, this, &MainWindow::open_recent_exe);
-        m_recent_file_actions.append(recentFileAction);
-        menu->addAction(recentFileAction);
+    for (int i = 0; i < RecentProjects::MaxProjects_Count; ++i) {
+        QAction* recent_project_action = new QAction(this);
+        recent_project_action->setVisible(false);
+        connect(recent_project_action, &QAction::triggered, this, &MainWindow::open_recent_project);
+        m_recent_project_actions.append(recent_project_action);
+        menu->addAction(recent_project_action);
     }
 
-    m_recent_executables->update_action_list(m_recent_file_actions);
+    m_recent_projects->update_action_list(m_recent_project_actions);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::open_debug(bool stop_at_main) {
-    /*
     QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("Open File for Debug..."));
 
     if (path.isEmpty()) {
         return;
     }
-    */
 
-    QString path = QStringLiteral("t2-output/linux-gcc-debug-default/crashing_native");
+    //QString path = QStringLiteral("t2-output/linux-gcc-debug-default/crashing_native");
 
     close_current_backend();
 
@@ -304,11 +286,8 @@ void MainWindow::start() {
     printf("MainWindow::start\n");
 
     auto file_line_breakpoints = m_breakpoints->get_file_line_breakpoints();
-    // const QVector<uint64_t>& addressBreakpoints =
-    // m_breakpoints->get_address_breakpoints();
 
     // add the breakpoints before we start
-
     for (auto& bp : file_line_breakpoints) {
         m_backend_requests->request_add_file_line_breakpoint(bp.filename, bp.line);
     }
@@ -331,96 +310,21 @@ void MainWindow::break_cont_debug() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-void MainWindow::amigaUAEConfig() {
-    AmigaUAEConfig cfg(this);
-    cfg.setModal(true);
-    cfg.exec();
-}
-*/
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void MainWindow::uae_started() {
-    // startAmigaUAEBackend();
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-void MainWindow::debug_amiga_exe() {
-    if (!m_amigaUae->openFile()) {
-        return;
-    }
-
-    m_lastAmigaExe = m_amigaUae->m_localExeToRun;
-
-    m_recentExecutables->setFile(m_recentFileActions, m_lastAmigaExe, BackendType_AmigaUAE);
-
-    internalStartAmigaExe();
-}
-*/
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void MainWindow::open_recent_exe() {
+void MainWindow::open_recent_project() {
     QAction* action = qobject_cast<QAction*>(sender());
     if (action) {
-        QString filename = action->data().toString();
-        // m_lastAmigaExe = filename;
-        // m_amigaUae->m_localExeToRun = filename;
-
-        m_recent_executables->put_file_on_top(m_recent_file_actions, filename);
-
-        // internalStartAmigaExe();
+        QString name = action->data().toString();
+        m_recent_projects->put_project_on_top(m_recent_project_actions, name);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::start_debug() {
-    /*
-    if (m_current_backend == Amiga && !m_lastAmigaExe.isEmpty()) {
-        internalStartAmigaExe();
-    }
-    */
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/*
 void MainWindow::reload_current_file() {
     // m_code_views->reloadCurrentFile();
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#if 0
-
-void MainWindow::internal_start_amiga_exe() {
-    m_amigaUae->m_localExeToRun = m_lastAmigaExe;
-
-    if (!m_amigaUae->validateSettings()) {
-        return;
-    }
-
-    m_lastAmigaExe = m_amigaUae->m_localExeToRun;
-
-    /*
-       if (!m_amigaUae->m_skipUAELaunch) {
-       connect(m_amigaUae->m_uaeProcess, &QProcess::started, this, &MainWindow::uaeStarted);
-       connect(m_amigaUae->m_uaeProcess, static_cast<void (QProcess::*)(int)>(&QProcess::finished), this,
-       &MainWindow::processEnded);
-
-       printf("BackendSession::destroyPluginData\n");
-
-       m_amigaUae->launchUAE();
-       } else {
-       startAmigaUAEBackend();
-       }
-     */
-}
-
-#endif
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -3,6 +3,7 @@
 #include <QtWidgets/QMainWindow>
 #include "api/include/pd_ui.h"
 #include "ui_MainWindow.h"
+#include "Project.h"
 
 class QStatusBar;
 class QThread;
@@ -19,7 +20,7 @@ class BackendSession;
 class BackendRequests;
 class BreakpointModel;
 class CodeViews;
-class RecentExecutables;
+class RecentProjects;
 class ViewHandler;
 class SourceCodeWidget;
 class LocalsView;
@@ -40,15 +41,13 @@ protected:
 
 private:
     Q_SLOT void open_source_file();
-    Q_SLOT void reload_current_file();
     Q_SLOT void break_cont_debug();
-    Q_SLOT void start_debug();
     Q_SLOT void start();
     Q_SLOT void stop();
     Q_SLOT void step_in();
     Q_SLOT void step_over();
     Q_SLOT void toggle_breakpoint();
-    Q_SLOT void open_recent_exe();
+    Q_SLOT void open_recent_project();
     Q_SLOT void open_debug_exe();
     Q_SLOT void open_debug_exe_stop_at_main();
 
@@ -86,11 +85,10 @@ private:
     void stop_internal();
     void open_debug(bool stop_at_main);
 
-    Q_SLOT void uae_started();
     Q_SLOT void status_update(const QString& status);
     Q_SLOT void process_ended(int exitCode);
 
-    QVector<QAction*> m_recent_file_actions;
+    QVector<QAction*> m_recent_project_actions;
 
     FileBrowserView* m_file_browser = nullptr;
     LocalsView* m_locals_view = nullptr;
@@ -104,8 +102,8 @@ private:
     // Hard-coded Amiga support. Would be nice to have this more modular
     // AmigaUAE* m_amigaUae = nullptr;
 
-    // List of recent executables
-    RecentExecutables* m_recent_executables = nullptr;
+    // List of recent projects
+    RecentProjects* m_recent_projects = nullptr;
     // test
     QPluginLoader* m_reg_plugin_loader;
     PDUIInterface* m_register_view = nullptr;
@@ -125,6 +123,9 @@ private:
     QThread* m_backend_thread = nullptr;
 
     QString m_last_file_dir;
+
+    // The current active project
+    Project* m_current_project;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
