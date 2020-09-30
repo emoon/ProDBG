@@ -109,6 +109,45 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+SharedLibrary {
+    Name = "memory_view",
+
+    Env = {
+        CPPPATH = {
+        	"api/include",
+            "$(OBJECTDIR)",
+        },
+
+        LIBPATH = {
+			{ "$(QT5_LIB)"; Config = "win64-*-*" },
+			{ "$(QT5_LIB)"; Config = "linux-*-*" },
+		},
+    },
+
+	Defines = {
+		"QT_NO_DEBUG",
+	},
+
+    Sources = {
+        gen_uic("src/plugins/memory_view/memory_view.ui"),
+        gen_moc("src/plugins/memory_view/memory_view.h"),
+        gen_moc("src/plugins/memory_view/memory_view_widget.h"),
+
+        Glob {
+            Dir = "src/plugins/memory_view",
+            Extensions = { ".c", ".cpp", ".m" },
+        },
+    },
+
+	Libs = {
+        { "Qt5Gui.lib", "Qt5Core.lib", "Qt5Widgets.lib"; Config = "win64-*-*" },
+	},
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
 RustCrate {
 	Name = "prodbg_api",
 	CargoConfig = "api/rust/prodbg/Cargo.toml",
@@ -163,6 +202,7 @@ end
 Default "amiga_uae_plugin"
 Default "dummy_backend"
 Default "register_view"
+Default "memory_view"
 
 -- vim: ts=4:sw=4:sts=4
 

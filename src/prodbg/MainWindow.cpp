@@ -9,7 +9,6 @@
 #include "CodeViews.h"
 #include "Config/AmigaUAEConfig.h"
 #include "Core/PluginHandler.h"
-#include "MemoryView/MemoryView.h"
 #include "PluginUI/PluginUI_internal.h"
 //#include "RegisterView/RegisterView.h"
 #include "ViewHandler.h"

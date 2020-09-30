@@ -98,7 +98,6 @@ Program {
         -- gen_moc("src/prodbg/RegisterView/RegisterView.h"),
 
         gen_uic("src/prodbg/MainWindow.ui"),
-        gen_uic("src/prodbg/MemoryView/MemoryView.ui"),
         gen_moc("src/prodbg/MainWindow.h"),
 
         gen_moc("src/prodbg/Backend/IBackendRequests.h"),
@@ -111,8 +110,6 @@ Program {
         gen_moc("src/prodbg/ViewHandler.h"),
         gen_moc("src/prodbg/CodeView/CodeView.h"),
         -- gen_moc("src/prodbg/CodeView/DisassemblyView.h"),
-        gen_moc("src/prodbg/MemoryView/MemoryView.h"),
-        gen_moc("src/prodbg/MemoryView/MemoryViewWidget.h"),
 
         gen_moc("src/prodbg/PluginUI/generated/qt_api_gen.h"),
 
