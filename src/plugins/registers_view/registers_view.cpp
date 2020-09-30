@@ -1,8 +1,11 @@
 #include "registers_view.h"
 #include "ui_RegisterView.h"
 
-void RegistersPlugin::create(QWidget* parent) {
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void RegistersPlugin::init(QWidget* parent) {
     m_ui = new Ui_RegisterView;
+    m_ui->setupUi(parent);
 
 #ifdef _WIN32
     QFont font(QStringLiteral("Courier"), 11);
@@ -20,13 +23,25 @@ void RegistersPlugin::create(QWidget* parent) {
     m_ui->m_registers->setFont(font);
     m_ui->m_registers->setStyleSheet(QStringLiteral("QTableWidget::item { padding: 0px }"));
     m_ui->m_registers->verticalHeader()->setDefaultSectionSize(m_ui->m_registers->fontMetrics().height() + 2);
-
-    // TODO: is this correct?
-    m_ui->m_registers->setParent(parent);
-
-    //printf("RegistersPlugin %d\n", t);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+prodbg::PDUIInterface* RegistersPlugin::create(QWidget* parent) {
+    RegistersPlugin* instance = new RegistersPlugin;
+    instance->init(parent);
+    return instance;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+RegistersPlugin::~RegistersPlugin() {
+    delete m_ui;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void RegistersPlugin::set_backend_interface(prodbg::IBackendRequests* interface) {
     m_backend = interface;
 }
+

@@ -86,6 +86,10 @@ SharedLibrary {
 		},
     },
 
+	Defines = {
+		"QT_NO_DEBUG",
+	},
+
     Sources = {
         gen_uic("src/plugins/registers_view/RegisterView.ui"),
         gen_moc("src/plugins/registers_view/registers_view.h"),

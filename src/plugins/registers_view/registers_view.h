@@ -13,19 +13,16 @@ class Ui_RegisterView;
 class RegistersPlugin : public QObject, prodbg::PDUIInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.prodbg.PDUIInterface" FILE "registers_view.json")
+    Q_PLUGIN_METADATA(IID PDUIInterface_iid FILE "registers_view.json")
     Q_INTERFACES(prodbg::PDUIInterface)
 
 public:
-    void create(QWidget* parent);
+    prodbg::PDUIInterface* create(QWidget* parent);
     void set_backend_interface(prodbg::IBackendRequests* interface);
+    ~RegistersPlugin();
 
-    //Q_SLOT void endReadRegisters(QVector<prodbg::IBackendRequests::Register>* target);
-    //Q_SLOT void program_counter_changed(const prodbg::IBackendRequests::ProgramCounterChange& pc);
 private:
-
-    // Interface for the backend
+    void init(QWidget* parent);
     QPointer<prodbg::IBackendRequests> m_backend;
-
     Ui_RegisterView* m_ui = nullptr;
 };

@@ -2,8 +2,10 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QVector>
+#include <QtCore/QString>
+#include "api/include/pd_ui.h"
 
-class QMainWindow;
+class QPluginLoader;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -16,19 +18,32 @@ class View;
 class ViewHandler : public QObject {
     Q_OBJECT;
 
-   public:
+public:
     ViewHandler(QObject* parent);
     ~ViewHandler();
 
-    void addView(View* view);
-    void readSettings(QMainWindow* mainWindow);
+    struct PluginInfo {
+        QPluginLoader* plugin;
+        QString plugin_name;
+    };
 
-    // Q_SLOT void closeView(QObject* object);
+    const QVector<PluginInfo>& plugin_types() { return m_plugin_types; }
 
-   private:
-    void writeSettings();
+    bool load_plugins(const QString& plugin_dir);
 
-    QVector<View*> m_views;
+    QWidget* create_view_by_name(const QString& name);
+    QWidget* create_view_by_index(int index);
+
+private:
+    void plugin_view_closed(QObject* obj);
+
+    struct ViewInstance {
+        PDUIInterface* view_plugin;
+        QWidget* widget;
+    };
+
+    QVector<PluginInfo> m_plugin_types;
+    QVector<ViewInstance> m_views;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

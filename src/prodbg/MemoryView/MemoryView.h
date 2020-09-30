@@ -18,7 +18,7 @@ class MemoryView : public View {
 
     Q_OBJECT;
 
-   public:
+public:
     explicit MemoryView(QWidget* parent = nullptr);
     ~MemoryView();
 
@@ -28,17 +28,17 @@ class MemoryView : public View {
     void readSettings();
     void writeSettings();
 
-   public:
+public:
     Q_SLOT void jumpToAddressExpression(const QString& expression);
 
-   private:
+private:
     Q_SLOT void endResolveAddress(uint64_t* out);
     Q_SLOT void jumpAddressChanged();
     Q_SLOT void endianChanged(int);
     Q_SLOT void dataTypeChanged(int);
     Q_SLOT void countChanged(const QString&);
 
-   private:
+private:
     Ui_MemoryView* m_Ui = nullptr;
     uint64_t m_evalAddress = 0;
 };

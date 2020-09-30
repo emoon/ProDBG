@@ -11,7 +11,7 @@ class PDUIInterface
 public:
     virtual ~PDUIInterface() {}
     // TODO: Return state if needs animated update
-    virtual void create(QWidget* parent) = 0;
+    virtual PDUIInterface* create(QWidget* parent) = 0;
 
     // This gets called from the outside and sets an instance to the backend interface.
     // The backend interface is used by the plugin to request data from the backend (such as memory, registers, etc)

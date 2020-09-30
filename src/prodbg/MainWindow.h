@@ -72,6 +72,8 @@ private:
         Custom,
     };
 
+    void create_views_menu();
+
     void init_actions();
     void write_settings();
     void read_settings();
@@ -84,16 +86,17 @@ private:
     void init_recent_file_actions();
     void stop_internal();
     void open_debug(bool stop_at_main);
+    void create_view_instance(int index);
 
     Q_SLOT void status_update(const QString& status);
     Q_SLOT void process_ended(int exitCode);
 
     QVector<QAction*> m_recent_project_actions;
 
-    FileBrowserView* m_file_browser = nullptr;
-    LocalsView* m_locals_view = nullptr;
-    CallstackView* m_callstack_view = nullptr;
-    SourceCodeWidget* m_source_view = nullptr;
+    //FileBrowserView* m_file_browser = nullptr;
+    //LocalsView* m_locals_view = nullptr;
+    //CallstackView* m_callstack_view = nullptr;
+    //SourceCodeWidget* m_source_view = nullptr;
     ViewHandler* m_view_handler = nullptr;
 
     // This is somewhat temporary but convinient to have
@@ -105,11 +108,11 @@ private:
     // List of recent projects
     RecentProjects* m_recent_projects = nullptr;
     // test
-    QPluginLoader* m_reg_plugin_loader;
-    PDUIInterface* m_register_view = nullptr;
+    //QPluginLoader* m_reg_plugin_loader;
+    //PDUIInterface* m_register_view = nullptr;
 
     // Hardcoded views for now.
-    MemoryView* m_memory_view = nullptr;
+    //MemoryView* m_memory_view = nullptr;
     QStatusBar* m_statusbar = nullptr;
     BreakpointModel* m_breakpoints = nullptr;
 
@@ -123,6 +126,8 @@ private:
     QThread* m_backend_thread = nullptr;
 
     QString m_last_file_dir;
+
+    QHash<QString, int> m_view_names;
 
     // The current active project
     Project* m_current_project;

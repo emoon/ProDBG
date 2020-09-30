@@ -54,24 +54,20 @@ MainWindow::MainWindow()
     qRegisterMetaType<IBackendRequests::ExpandType>("IBackendRequests::ExpandType");
     qRegisterMetaType<QVector<QString>>("QVector<QString>");
 
+    // Create the view handler and load all view plugins
     m_view_handler = new ViewHandler(this);
-
-    // TODO: Test load registers view plugin
-    m_reg_plugin_loader = new QPluginLoader(QStringLiteral("registers_view"), this);
-    m_register_view = qobject_cast<PDUIInterface*>(m_reg_plugin_loader->instance());
-
-    // m_viewHandler->addView(new MemoryView(this));
-    // m_viewHandler->addView(new RegisterView(this));
+    m_view_handler->load_plugins(QCoreApplication::applicationDirPath());
 
     m_recent_projects = new RecentProjects;
-    // m_amigaUae = new AmigaUAE(this);
 
     m_ui.setupUi(this);
 
+    create_views_menu();
+
     m_breakpoints = new BreakpointModel;
 
-    m_code_views = new CodeViews(m_breakpoints, this);
-    m_code_views->open_file(QStringLiteral("/home/emoon/code/temp/debug_test/src/main.rs"), true);
+    //m_code_views = new CodeViews(m_breakpoints, this);
+    //m_code_views->open_file(QStringLiteral("/home/emoon/code/temp/debug_test/src/main.rs"), true);
     //m_code_views->open_file(QStringLiteral("src/prodbg/Config/Config.cpp"), true);
 
     // m_code_views->openFile(QStringLiteral("src/prodbg/main.cpp"),
@@ -97,6 +93,7 @@ MainWindow::MainWindow()
 
     // m_source_view = new SourceCodeWidget(m_breakpoints, this);
     // m_source_view->load_file(QStringLiteral("src/prodbg/Config/Config.cpp"));
+    /*
 
     QDockWidget* dock = new QDockWidget(QStringLiteral("Source View"), this);
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -126,6 +123,7 @@ MainWindow::MainWindow()
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     dock->setObjectName(QStringLiteral("Callstack"));
     addDockWidget(Qt::BottomDockWidgetArea, dock);
+    */
 
     // setCentralWidget(m_source_view->m_editor);
 
@@ -339,7 +337,7 @@ void MainWindow::setup_backend_connections() {
     connect(this, &MainWindow::step_in_backend, m_backend, &BackendSession::step_in);
 
     connect(m_backend, &BackendSession::target_reply, this, &MainWindow::target_reply);
-    connect(m_file_browser, &FileBrowserView::open_file_signal, m_code_views, &CodeViews::open_file);
+    //connect(m_file_browser, &FileBrowserView::open_file_signal, m_code_views, &CodeViews::open_file);
 
     /*
        connect(this, &MainWindow::stepOverBackend, m_backend, &BackendSession::stepOver);
@@ -363,9 +361,9 @@ void MainWindow::target_reply(bool status, const QString& error_message) {
         connect(m_backend_requests, &IBackendRequests::program_counter_changed, m_code_views,
                 &CodeViews::program_counter_changed);
 
-        m_locals_view->set_backend_interface(m_backend_requests);
-        m_callstack_view->set_backend_interface(m_backend_requests);
-        m_file_browser->set_backend_interface(m_backend_requests);
+        //m_locals_view->set_backend_interface(m_backend_requests);
+        //m_callstack_view->set_backend_interface(m_backend_requests);
+        //m_file_browser->set_backend_interface(m_backend_requests);
 
     } else {
         close_current_backend();
@@ -500,6 +498,56 @@ Q_SLOT void MainWindow::new_register_view() {
 
     m_viewHandler->addView(rg);
      */
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::create_view_instance(int index) {
+    QWidget* view_widget = m_view_handler->create_view_by_index(index);
+    auto plugin_types = m_view_handler->plugin_types();
+    const QString& plugin_name = plugin_types[index].plugin_name;
+
+    auto dock = new QDockWidget(plugin_name, this);
+    dock->setWidget(view_widget);
+    dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+
+    // make sure we have an unique objectname
+    int count = m_view_names[plugin_name];
+
+    if (count > 0) {
+        QString result;
+        QTextStream(&result) << plugin_name + QStringLiteral(" ") + count;
+        dock->setObjectName(result);
+    } else {
+        dock->setObjectName(plugin_name);
+    }
+
+    // TODO: Better placement
+    addDockWidget(Qt::BottomDockWidgetArea, dock);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::create_views_menu() {
+    QMenu* plugin_menu = menuBar()->addMenu(QStringLiteral("Plugins"));
+    int plugin_index = 0;
+    auto plugin_types = m_view_handler->plugin_types();
+
+    qDebug() << "menu " << plugin_menu;
+
+    for (auto& plugin : plugin_types) {
+        QAction* plugin_menu_entry = new QAction(plugin.plugin_name);
+        plugin_menu_entry->setData(plugin_index);
+        plugin_menu->addAction(plugin_menu_entry);
+
+        printf("adding entry\n");
+
+        connect(plugin_menu_entry, &QAction::triggered, this,
+                [this, plugin_index]() { create_view_instance(plugin_index); });
+        plugin_index++;
+    }
+
+    menuBar()->update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
