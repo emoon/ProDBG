@@ -28,8 +28,6 @@
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMainWindow>
 #include "SourceCodeWidget.h"
-#include "LocalsView.h"
-#include "CallstackView.h"
 
 namespace prodbg {
 

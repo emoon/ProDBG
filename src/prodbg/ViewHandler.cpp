@@ -44,14 +44,11 @@ bool ViewHandler::load_plugins(const QString& plugin_dir) {
         qDebug() << plugin_name_obj;
 
         if (plugin_name_obj == QJsonValue::Undefined) {
-            qDebug() << "no metadata";
             delete plugin_loader;
             continue;
         }
 
         plugin_name_obj = plugin_name_obj.toObject().value(QStringLiteral("prodbg_view_plugin_name"));
-
-        qDebug() << "Found plugin " << plugin_name_obj.toString();
 
         ViewHandler::PluginInfo plugin_info = {
             plugin_loader,
@@ -62,8 +59,6 @@ bool ViewHandler::load_plugins(const QString& plugin_dir) {
 
         plugins_found++;
     }
-
-    printf("found %d\n", plugins_found );
 
     return plugins_found > 0;
 }

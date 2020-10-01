@@ -217,8 +217,7 @@ public:
 
         values->resize(0);
 
-        // Very basic caching, we only support the exactly previous request as
-        // cache.
+        // Very basic caching, we only support the exactly previous request as cache.
         if ((m_cached_range_start == start && end == m_cached_range_end) && !m_transfer_in_progress) {
             *values = m_transfer_cache;
             return;
@@ -239,11 +238,11 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void jump(int rowCount) {
-        m_top_row += rowCount * m_elements_per_row * bytesPerElement();
+    void jump(int row_count) {
+        m_top_row += row_count * m_elements_per_row * bytes_per_element();
     }
 
-    int bytesPerElement() const {
+    int bytes_per_element() const {
         return s_type_meta[m_data_type].m_bytes_per_element;
     }
 
@@ -253,19 +252,19 @@ public:
         QFont font = widget->font();
         QFontMetrics font_metrics(font);
         // QRect widgetRect = widget->rect();
-        QRect dirtyRect = ev->rect();
+        QRect dirty_rect = ev->rect();
         const int elements_per_row = m_elements_per_row;
-        const int bytes_per_row = elements_per_row * bytesPerElement();
+        const int bytes_per_row = elements_per_row * bytes_per_element();
 
-        QColor base_color = QApplication::palette().brush(QPalette::Background).color();
+        //QColor base_color = QApplication::palette().brush(QPalette::Background).color();
 
         QPainter painter(widget);
         painter.setFont(font);
 
-        //painter.fillRect(dirtyRect, base_color);
+        //painter.fillRect(dirty_rect, base_color);
 
         if (!m_expression_status) {
-            painter.drawText(dirtyRect, 0, QStringLiteral("Unable to evaluate expression."));
+            painter.drawText(dirty_rect, 0, QStringLiteral("Unable to evaluate expression."));
             return;
         }
 
@@ -284,8 +283,8 @@ public:
 
         const MemViewTypeMeta& type_meta = s_type_meta[m_data_type];
 
-        QString rowText;
-        rowText.reserve((1 + type_meta.m_display_width_chars));
+        QString row_text;
+        row_text.reserve((1 + type_meta.m_display_width_chars));
 
         const int address_width = (m_address_width * 2) * char_width;
         const int data_width = char_width * (elements_per_row * type_meta.m_display_width_chars + elements_per_row - 1);
@@ -297,53 +296,53 @@ public:
             QRect data_rect(address_rect.x() + address_rect.width() + gutter_width, screen_y, data_width, row_height);
             QRect ascii_rect(data_rect.x() + data_rect.width() + gutter_width, screen_y, ascii_width, row_height);
 
-            if (dirtyRect.intersects(address_rect)) {
-                rowText.resize(0);
+            if (dirty_rect.intersects(address_rect)) {
+                row_text.resize(0);
                 uint64_t addr = (m_top_row + data_offset);
 
-                uint32_t byteShift = 56;
+                uint32_t byte_shift = 56;
 
                 if (m_address_width == 4) {
-                    byteShift = 24;
+                    byte_shift = 24;
                 } else {
-                    byteShift = 8;
+                    byte_shift = 8;
                 }
 
                 for (int i = 0; i < m_address_width; ++i) {
-                    uint8_t byte = addr >> byteShift;
-                    rowText.append(s_hex_table[byte >> 4]);
-                    rowText.append(s_hex_table[byte & 0xf]);
+                    uint8_t byte = addr >> byte_shift;
+                    row_text.append(s_hex_table[byte >> 4]);
+                    row_text.append(s_hex_table[byte & 0xf]);
                     addr <<= 8;
                 }
 
-                painter.drawText(address_rect, 0, rowText);
+                painter.drawText(address_rect, 0, row_text);
             }
 
-            if (dirtyRect.intersects(data_rect)) {
-                rowText.resize(0);
+            if (dirty_rect.intersects(data_rect)) {
+                row_text.resize(0);
 
                 for (int i = 0; i < elements_per_row; ++i) {
                     if (i > 0) {
-                        rowText.push_back(QLatin1Char(' '));
+                        row_text.push_back(QLatin1Char(' '));
                     }
 
                     const uint16_t* values = m_cache.constData() + data_offset + i * type_meta.m_bytes_per_element;
-                    (*type_meta.m_formatter)(&rowText, type_meta.m_display_width_chars, type_meta.m_bytes_per_element,
+                    (*type_meta.m_formatter)(&row_text, type_meta.m_display_width_chars, type_meta.m_bytes_per_element,
                                              values, m_endianess);
                 }
 
-                painter.drawText(data_rect, 0, rowText);
+                painter.drawText(data_rect, 0, row_text);
             }
 
-            if (dirtyRect.intersects(ascii_rect)) {
-                rowText.resize(0);
+            if (dirty_rect.intersects(ascii_rect)) {
+                row_text.resize(0);
                 for (int i = 0; i < bytes_per_row; ++i) {
                     uint16_t value = m_cache.at(i + data_offset);
                     uint8_t byte = value & 0xff;
-                    rowText.append(s_ascii_tab[byte]);
+                    row_text.append(s_ascii_tab[byte]);
                 }
 
-                painter.drawText(ascii_rect, 0, rowText);
+                painter.drawText(ascii_rect, 0, row_text);
             }
 
             screen_y += row_height;
@@ -381,7 +380,7 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : Base(parent), m_private(ne
         QAction* next_page_action = new QAction(QStringLiteral("Next Page"), this);
         next_page_action->setShortcut(QKeySequence::MoveToNextPage);
         next_page_action->setShortcutContext(Qt::WidgetShortcut);
-        this->addAction(next_page_action);
+        addAction(next_page_action);
         connect(next_page_action, &QAction::triggered, this, &MemoryViewWidget::display_next_page);
     }
 
@@ -389,7 +388,7 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : Base(parent), m_private(ne
         QAction* prev_page_action = new QAction(QStringLiteral("Previous Page"), this);
         prev_page_action->setShortcut(QKeySequence::MoveToPreviousPage);
         prev_page_action->setShortcutContext(Qt::WidgetShortcut);
-        this->addAction(prev_page_action);
+        addAction(prev_page_action);
         connect(prev_page_action, &QAction::triggered, this, &MemoryViewWidget::display_prev_page);
     }
 
@@ -397,7 +396,7 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : Base(parent), m_private(ne
         QAction* next_line_action = new QAction(QStringLiteral("Next Line"), this);
         next_line_action->setShortcut(QKeySequence::MoveToNextLine);
         next_line_action->setShortcutContext(Qt::WidgetShortcut);
-        this->addAction(next_line_action);
+        addAction(next_line_action);
         connect(next_line_action, &QAction::triggered, this, &MemoryViewWidget::display_next_line);
     }
 
@@ -405,7 +404,7 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : Base(parent), m_private(ne
         QAction* prev_line_action = new QAction(QStringLiteral("Previous Line"), this);
         prev_line_action->setShortcut(QKeySequence::MoveToPreviousLine);
         prev_line_action->setShortcutContext(Qt::WidgetShortcut);
-        this->addAction(prev_line_action);
+        addAction(prev_line_action);
         connect(prev_line_action, &QAction::triggered, this, &MemoryViewWidget::display_prev_line);
     }
 }

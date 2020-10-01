@@ -63,6 +63,13 @@ StaticLibrary {
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
 }
 
+StaticLibrary {
+    Name = "backend_requests",
+    Sources = {
+        gen_moc("src/prodbg/Backend/IBackendRequests.h"),
+    }
+}
+
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {

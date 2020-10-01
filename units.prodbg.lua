@@ -83,8 +83,8 @@ Program {
         -- Views
         gen_uic("src/prodbg/FileBrowserView.ui"),
         gen_moc("src/prodbg/FileBrowserView.h"),
-        gen_uic("src/prodbg/LocalsView.ui"),
-        gen_moc("src/prodbg/LocalsView.h"),
+        --gen_uic("src/prodbg/LocalsView.ui"),
+        --gen_moc("src/prodbg/LocalsView.h"),
         gen_uic("src/prodbg/CallstackView.ui"),
         gen_moc("src/prodbg/CallstackView.h"),
 
@@ -100,7 +100,6 @@ Program {
         gen_uic("src/prodbg/MainWindow.ui"),
         gen_moc("src/prodbg/MainWindow.h"),
 
-        gen_moc("src/prodbg/Backend/IBackendRequests.h"),
         gen_moc("src/prodbg/Backend/BackendRequests.h"),
         gen_moc("src/prodbg/Backend/BackendSession.h"),
         gen_moc("src/prodbg/AmigaUAE/AmigaUAE.h"),
@@ -166,7 +165,7 @@ Program {
     Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore" },
 
     --Depends = { "remote_api", "capstone", "tinyexpr", "toolwindowmanager", "edbee" },
-    Depends = { "capstone", "tinyexpr", "toolwindowmanager", "edbee", "core" },
+    Depends = { "capstone", "tinyexpr", "toolwindowmanager", "edbee", "core", "backend_requests" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------

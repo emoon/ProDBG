@@ -30,6 +30,14 @@ local function get_rs_src(dir)
 	}
 end
 
+local function get_cpp_src(dir)
+	return Glob {
+		Dir = dir,
+		Extensions = { ".cpp", ".c" },
+		Recursive = true,
+	}
+end
+
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
@@ -71,79 +79,75 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
-SharedLibrary {
-    Name = "register_view",
+local function ViewPlugin(params)
+	local shared_lib = SharedLibrary {
+        Name = params.Name,
 
-    Env = {
-        CPPPATH = {
-        	"api/include",
-            "$(OBJECTDIR)",
+        Env = {
+            CPPPATH = {
+                "api/include",
+                "$(OBJECTDIR)",
+            },
+
+            LIBPATH = {
+                { "$(QT5_LIB)"; Config = "win64-*-*" },
+                { "$(QT5_LIB)"; Config = "linux-*-*" },
+            },
         },
 
-        LIBPATH = {
-			{ "$(QT5_LIB)"; Config = "win64-*-*" },
-			{ "$(QT5_LIB)"; Config = "linux-*-*" },
-		},
-    },
+        Defines = {
+            "QT_NO_DEBUG",
+        },
 
-	Defines = {
-		"QT_NO_DEBUG",
-	},
+        Sources = params.Sources,
+
+        Libs = {
+            { "Qt5Gui.lib", "Qt5Core.lib", "Qt5Widgets.lib"; Config = "win64-*-*" },
+        },
+
+        Depends = { "backend_requests" },
+
+	    IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
+	}
+
+	Default(shared_lib)
+end
+
+-----------------------------------------------------------------------------------------------------------------------
+
+ViewPlugin {
+    Name = "register_view",
 
     Sources = {
         gen_uic("src/plugins/registers_view/RegisterView.ui"),
         gen_moc("src/plugins/registers_view/registers_view.h"),
-
-        Glob {
-            Dir = "src/plugins/registers_view",
-            Extensions = { ".c", ".cpp", ".m" },
-        },
+        get_cpp_src("src/plugins/registers_view"),
     },
-
-	Libs = {
-        { "Qt5Gui.lib", "Qt5Core.lib", "Qt5Widgets.lib"; Config = "win64-*-*" },
-	},
-
-	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
 
-SharedLibrary {
+ViewPlugin {
     Name = "memory_view",
-
-    Env = {
-        CPPPATH = {
-        	"api/include",
-            "$(OBJECTDIR)",
-        },
-
-        LIBPATH = {
-			{ "$(QT5_LIB)"; Config = "win64-*-*" },
-			{ "$(QT5_LIB)"; Config = "linux-*-*" },
-		},
-    },
-
-	Defines = {
-		"QT_NO_DEBUG",
-	},
 
     Sources = {
         gen_uic("src/plugins/memory_view/memory_view.ui"),
         gen_moc("src/plugins/memory_view/memory_view.h"),
         gen_moc("src/plugins/memory_view/memory_view_widget.h"),
-
-        Glob {
-            Dir = "src/plugins/memory_view",
-            Extensions = { ".c", ".cpp", ".m" },
-        },
+        get_cpp_src("src/plugins/memory_view"),
     },
+}
 
-	Libs = {
-        { "Qt5Gui.lib", "Qt5Core.lib", "Qt5Widgets.lib"; Config = "win64-*-*" },
-	},
+-----------------------------------------------------------------------------------------------------------------------
 
-	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
+ViewPlugin {
+    Name = "locals_view",
+
+    Sources = {
+        gen_uic("src/plugins/locals_view/locals_view.ui"),
+        gen_moc("src/plugins/locals_view/locals_view.h"),
+        get_cpp_src("src/plugins/locals_view"),
+    },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
