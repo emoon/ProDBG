@@ -65,18 +65,6 @@ bool ViewHandler::load_plugins(const QString& plugin_dir) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QWidget* ViewHandler::create_view_by_name(const QString& plugin_name) {
-    for (int i = 0, e = m_plugin_types.length(); i < e; ++i) {
-        if (m_plugin_types[i].plugin_name == plugin_name) {
-            return create_view_by_index(i);
-        }
-    }
-
-    return nullptr;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void ViewHandler::plugin_view_closed(QObject* obj) {
     for (size_t i = 0, len = m_views.size(); i < len; ++i) {
         if (m_views[i].widget == obj) {
@@ -88,9 +76,21 @@ void ViewHandler::plugin_view_closed(QObject* obj) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QWidget* ViewHandler::create_view_by_index(int index) {
+ViewHandler::ViewInstance ViewHandler::create_instance_by_name(const QString& name) {
+    for (int i = 0, e = m_plugin_types.length(); i < e; ++i) {
+        if (m_plugin_types[i].plugin_name == name) {
+            return create_instance_by_index(i);
+        }
+    }
+
+    return { nullptr, nullptr };
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ViewHandler::ViewInstance ViewHandler::create_instance_by_index(int index) {
     if (index >= m_plugin_types.length()) {
-        return nullptr;
+        return { nullptr, nullptr };
     }
 
     // Create new plugin instance
@@ -99,14 +99,14 @@ QWidget* ViewHandler::create_view_by_index(int index) {
     if (!plugin_obj) {
         qDebug() << "Unable to create plugin " << m_plugin_types[index].plugin_name << " "
                  << m_plugin_types[index].plugin->errorString();
-        return nullptr;
+        return { nullptr, nullptr };
     }
 
     auto view_plugin = qobject_cast<PDUIInterface*>(plugin_obj);
 
     if (!view_plugin) {
         qDebug() << "Unable to cast plugin " << m_plugin_types[index].plugin_name;
-        return nullptr;
+        return { nullptr, nullptr };
     }
 
     QWidget* widget = new QWidget(nullptr);
@@ -118,7 +118,20 @@ QWidget* ViewHandler::create_view_by_index(int index) {
 
     m_views.append({instance, widget});
 
-    return widget;
+    return {instance, widget};
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+QWidget* ViewHandler::create_view_by_name(const QString& name) {
+    return create_instance_by_name(name).widget;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+QWidget* ViewHandler::create_view_by_index(int index) {
+    return create_instance_by_index(index).widget;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

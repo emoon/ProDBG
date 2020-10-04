@@ -1,4 +1,4 @@
-#include "DisassemblyView.h"
+#include "disassembly_view.h"
 #include <QtGui/QPainter>
 #include <QtGui/QTextBlock>
 #include <QtWidgets/QApplication>

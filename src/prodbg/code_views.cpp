@@ -1,10 +1,10 @@
-#include "CodeViews.h"
+#include "code_views.h"
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
 #include <QtCore/QSettings>
 #include "BreakpointModel.h"
-#include "CodeView/CodeView.h"
-#include "CodeView/DisassemblyView.h"
+#include "code_view.h"
+#include "disassembly_view.h"
 
 namespace prodbg {
 
@@ -75,11 +75,11 @@ void CodeViews::session_ended() {
 void CodeViews::open_file(const QString& filename, bool setActive) {
     QFileInfo info(filename);
 
-    CodeView* codeView = new CodeView(m_breakpoints);
-    codeView->load_file(info.absoluteFilePath());
+    CodeView* code_view = new CodeView(m_breakpoints);
+    code_view->load_file(info.absoluteFilePath());
     //codeView->setBreakpointModel(m_breakpoints);
 
-    int index = addTab(codeView, info.fileName());
+    int index = addTab(code_view, info.fileName());
 
     setTabToolTip(index, info.absoluteFilePath());
 

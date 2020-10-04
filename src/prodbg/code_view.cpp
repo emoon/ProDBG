@@ -1,4 +1,4 @@
-#include "CodeView.h"
+#include "code_view.h"
 #include <QtCore/QDebug>
 #include <QtCore/QFileSystemWatcher>
 #include <QtCore/QSettings>

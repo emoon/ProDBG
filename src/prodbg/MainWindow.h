@@ -51,9 +51,6 @@ private:
     Q_SLOT void open_debug_exe();
     Q_SLOT void open_debug_exe_stop_at_main();
 
-    Q_SLOT void new_memory_view();
-    Q_SLOT void new_register_view();
-
     Q_SIGNAL void break_cont_backend();
     Q_SIGNAL void start_backend();
     Q_SIGNAL void stop_backend();
@@ -107,9 +104,6 @@ private:
 
     // List of recent projects
     RecentProjects* m_recent_projects = nullptr;
-    // test
-    //QPluginLoader* m_reg_plugin_loader;
-    //PDUIInterface* m_register_view = nullptr;
 
     // Hardcoded views for now.
     //MemoryView* m_memory_view = nullptr;
@@ -120,7 +114,6 @@ private:
     Backend m_current_backend = Dummy;
 
     CodeViews* m_code_views = nullptr;
-
     BackendRequests* m_backend_requests = nullptr;
     BackendSession* m_backend = nullptr;
     QThread* m_backend_thread = nullptr;

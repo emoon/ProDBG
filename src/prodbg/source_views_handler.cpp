@@ -1,0 +1,31 @@
+#include "source_views_handler.h"
+
+namespace prodbg {
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+SourceViewsHandler::SourceViewsHandler(ViewHandler* view_handler) : m_view_handler(view_handler) { }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SourceViewsHandler::open_file(const QString& filename, bool set_active) {
+    QDockWidget* widget = m_source_files[filename];
+
+    // If file hasn't been open before
+    if (widget == nullptr) {
+
+
+    } else {
+
+
+    }
+
+    //m_last_dock = widget;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    //QHash<QString, QDockWidget*> m_source_files;
+    //ViewHandler* m_view_handler;
+    //QDockWidget* m_last_dock;
+}

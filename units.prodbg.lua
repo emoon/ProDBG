@@ -107,7 +107,7 @@ Program {
 
         gen_moc("src/prodbg/View.h"),
         gen_moc("src/prodbg/ViewHandler.h"),
-        gen_moc("src/prodbg/CodeView/CodeView.h"),
+        gen_moc("src/prodbg/code_view.h"),
         -- gen_moc("src/prodbg/CodeView/DisassemblyView.h"),
 
         gen_moc("src/prodbg/PluginUI/generated/qt_api_gen.h"),
