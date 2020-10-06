@@ -26,7 +26,6 @@ public:
     Q_SLOT void open_file(const QString& filename, bool setActive);
     Q_SLOT void program_counter_changed(const IBackendRequests::ProgramCounterChange& pc);
     Q_SLOT void session_ended();
-    // Q_SLOT void toggleSourceAsm();
 
 private:
     Q_SLOT void closeTab(int index);

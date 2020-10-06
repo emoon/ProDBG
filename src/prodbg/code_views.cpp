@@ -40,7 +40,7 @@ void CodeViews::toggle_breakpoint() {
 
         const QString& filename = tabToolTip(index);
 
-        int line = view->getCurrentLine();
+        int line = view->get_current_line();
         bool added = m_breakpoints->toggle_file_line_breakpoint(filename, line);
 
         if (m_interface) {
@@ -141,7 +141,7 @@ void CodeViews::program_counter_changed(const IBackendRequests::ProgramCounterCh
 
             CodeView* view = dynamic_cast<CodeView*>(widget(i));
             Q_ASSERT(view);
-            view->setExceptionLine(pc.line);
+            view->set_exception_line(pc.line);
 
             if (m_mode == SourceView) {
                 setCurrentIndex(i);
@@ -153,7 +153,7 @@ void CodeViews::program_counter_changed(const IBackendRequests::ProgramCounterCh
         open_file(pc.filename, m_mode == SourceView);
 
         CodeView* view = dynamic_cast<CodeView*>(widget(tabs_count));
-        view->setExceptionLine(pc.line);
+        view->set_exception_line(pc.line);
     }
 }
 
