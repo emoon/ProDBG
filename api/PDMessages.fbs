@@ -38,6 +38,11 @@ table LocalsRequest {
     type: ExpandVarsTypeEnum;
 }
 
+table MemoryRequest {
+    start_address: u64,
+    end_address: u64,
+}
+
 // To set a breakpoint on a file and line
 table FileLineBreakpoint {
     filename: string;

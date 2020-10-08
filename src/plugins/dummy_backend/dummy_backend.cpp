@@ -226,7 +226,13 @@ void* create_instance(ServiceFunc* service_func) {
 
     srand(0xc0cac01a);
 
-    for (i = 0; i < 64 * 1024; ++i) {
+    // generate the first bytes with a pattern we can test for
+
+    for (i = 0; i < 8; ++i) {
+        plugin->memory[i] = i;
+    }
+
+    for (i = 8; i < 64 * 1024; ++i) {
         plugin->memory[i] = rand() & 0xff;
     }
 
