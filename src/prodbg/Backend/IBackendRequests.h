@@ -137,7 +137,7 @@ public:
     };
 
     //
-    // Describes the memory as sent back from beginReadMemory. These flags
+    // Describes the memory as sent back from memory_repyl. These flags
     // indicates what kind of memory it is (read/write/unmapped/etc)
     //
     enum MemoryAddressFlags {
@@ -175,14 +175,8 @@ public:
     // Add a breakpoint at a specific address
     // virtual void beginAddAddressBreakpoint(uint64_t address) = 0;
 
-    // Add a breakpoint on a specific file and line number
-    // virtual void beginAddFileLineBreakpoint(const QString& filename, int line) = 0;
-
     // Remove a breakpoint at a specific address
     // virtual void beginRemoveAddressBreakpoint(uint64_t address) = 0;
-
-    // Remove a breakpoint on a specific file and line number
-    // virtual void beginRemoveFileLineBreakpoint(const QString& filename, int line) = 0;
 
     // Get hw registers from the backend
     // registers = array of registers
@@ -205,9 +199,8 @@ public:
     // lo = starting memory range
     // hi = ending memory range
     // target = output of memory. Each byte is stored as uint16_t with the upper
-    // 8 bits are set as combination
-    //          of MemoryAddressFlags
-    // virtual bool beginReadMemory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target) = 0;
+    // 8 bits are set as combination MemoryAddressFlags
+    virtual bool request_memory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target) = 0;
 
 public:
     // reply from request of source files
@@ -228,11 +221,11 @@ public:
     // dest = output of the evalutation
     // Q_SIGNAL void endResolveAddress(uint64_t* dest);
 
-    // Response signal for a memory request. If target size is 0 the operation
-    // failed. TODO: Better way target = filled with requested memory (if
-    // successful) address = starting address addressWidth = number of bytes an
-    // address uses. E.g. 4 for a 32-bit target.
-    // Q_SIGNAL void endReadMemory(QVector<uint16_t>* target, uint64_t address, int addressWidth);
+    // Response signal for a memory request. If target size is 0 the operation // failed.
+    // target = filled with requested memory (if successful)
+    // address = starting address
+    // addressWidth = number of bytes an address uses. E.g. 4 for a 32-bit target.
+    Q_SIGNAL void reply_memory(QVector<uint16_t>* target, uint64_t address, int address_width);
 
     // This signal is being sent when the program counter of the debugged
     // application has changed This can be used to figure out if it's needed to

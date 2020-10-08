@@ -16,11 +16,12 @@ BackendRequests::BackendRequests(BackendSession* session) {
     connect(this, &BackendRequests::request_basic_signal, session, &BackendSession::request_basic);
     connect(this, &BackendRequests::request_frame_index_signal, session, &BackendSession::request_frame_index);
 
+    connect(this, &BackendRequests::request_memory_signal, session, &BackendSession::request_memory);
+
 
     /*
     connect(this, &BackendRequests::sendCustomStr, session, &BackendSession::sendCustomString);
 
-    connect(this, &BackendRequests::requestMem, session, &BackendSession::beginReadMemory);
     connect(this, &BackendRequests::requestDisassembly, session, &BackendSession::beginDisassembly);
     connect(this, &BackendRequests::readRegisters, session, &BackendSession::beginReadRegisters);
 
@@ -31,12 +32,12 @@ BackendRequests::BackendRequests(BackendSession* session) {
     */
 
     /*
-    connect(session, &BackendSession::endReadMemory, this, &BackendRequests::endReadMemory);
     connect(session, &BackendSession::endDisassembly, this, &BackendRequests::endDisassembly);
     connect(session, &BackendSession::endReadRegisters, this, &BackendRequests::endReadRegisters);
     connect(session, &BackendSession::endResolveAddress, this, &BackendRequests::endResolveAddress);
     */
 
+    connect(session, &BackendSession::reply_memory, this, &BackendRequests::reply_memory);
     connect(session, &BackendSession::reply_callstack, this, &BackendRequests::reply_callstack);
     connect(session, &BackendSession::reply_source_files, this, &BackendRequests::reply_source_files);
     connect(session, &BackendSession::reply_locals, this, &BackendRequests::reply_locals);
@@ -82,6 +83,25 @@ uint64_t BackendRequests::request_locals(const ExpandVars& expanded_vars) {
 uint64_t BackendRequests::request_frame_index(int frame_index) {
     request_frame_index_signal(frame_index);
     return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool BackendRequests::request_memory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target) {
+    // TODO: Return better error code here
+
+    if (!target) {
+        return false;
+    }
+
+    if (lo >= hi) {
+        target->resize(0);
+        return false;
+    }
+
+    request_memory_signal(lo, hi, target);
+
+    return true;
 }
 
 

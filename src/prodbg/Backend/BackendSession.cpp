@@ -335,6 +335,14 @@ void BackendSession::request_frame_index(int frame_index) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void BackendSession::request_memory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target) {
+    flatbuffers::FlatBufferBuilder builder(1024);
+
+
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void BackendSession::request_basic(IBackendRequests::BasicRequest request_id) {
     const uint8_t* data;
     uint64_t size;

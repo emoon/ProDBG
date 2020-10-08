@@ -163,6 +163,7 @@ TEST(BackendPluginHandler, read_memory_valid_range) {
             auto memory = msg->message_as_memory_reply();
 
             ASSERT_EQ((int)memory->data()->size(), 8);
+            ASSERT_EQ(memory->status(), MemoryReplyStatus_Ok);
             auto data = memory->data()->data();
 
             for (int i = 0; i < 8; ++i) {
