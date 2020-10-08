@@ -167,19 +167,18 @@ double get_reg_for_expression(const Register* reg) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct DummyPlugin {
-    int exception_location;
-    int prev_exception_location;
+    int exception_location = 0;
+    int prev_exception_location = 0;
     // 1 MB of memory, range is 0x10000
-    uint8_t* memory;
-    int64_t memory_start;
-    int64_t memory_end;
-    int register_type;
+    uint8_t* memory = nullptr;
+    uint64_t memory_start = 0;
+    uint64_t memory_end = 0;
+    int register_type = 0;
     std::vector<Register> integer_registers;
     std::vector<Register> fpu_registers;
     std::vector<Register> undefined_registers;
     std::vector<Register> vector_registers;
-
-    int registers_count;
+    int registers_count = 0;
 } DummyPlugin;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -216,13 +215,12 @@ void* create_instance(ServiceFunc* service_func) {
     (void)service_func;
     int i = 0;
 
-    DummyPlugin* plugin = (DummyPlugin*)malloc(sizeof(DummyPlugin));
-    memset(plugin, 0, sizeof(DummyPlugin));
+    DummyPlugin* plugin = new DummyPlugin;
     plugin->exception_location = s_disasm_data[0].address;
     plugin->prev_exception_location = s_disasm_data[0].address - 1;
     plugin->memory = (uint8_t*)malloc(1 * 1024 * 1024);
-    plugin->memory_start = 0;
-    plugin->memory_end = (1 * 64 * 1024) + plugin->memory_start;
+    plugin->memory_start = 0x1000;
+    plugin->memory_end = (64 * 1024) + plugin->memory_start;
 
     srand(0xc0cac01a);
 
@@ -300,7 +298,8 @@ void* create_instance(ServiceFunc* service_func) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void destroy_instance(void* user_data) {
-    free(user_data);
+    DummyPlugin* plugin = (DummyPlugin*)user_data;
+    delete plugin;
 }
 
 /*
@@ -639,6 +638,53 @@ static void reply_registes(DummyPlugin* plugin, const CPURegistersRequest* reque
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void reply_memory(DummyPlugin* plugin, const MemoryRequest* request, PDWriteMessage* writer) {
+    flatbuffers::FlatBufferBuilder builder(1024);
+
+    uint64_t address_start = request->start_address();
+    int64_t initial_size = request->size();
+    int64_t size = initial_size;
+
+    if (address_start < plugin->memory_start) {
+        size -= (plugin->memory_start - address_start);
+        address_start = plugin->memory_start;
+    }
+
+    uint64_t end_address = address_start + size;
+
+    if (end_address > plugin->memory_end) {
+        size -= end_address - plugin->memory_end;
+    }
+
+    MemoryReplyStatus status = MemoryReplyStatus_InvalidRange;
+
+    // If we have a negative range we reply with invalid range
+    if (size > 0) {
+        // If we can't read the whole range reply with partial
+        if (size != initial_size) {
+            status = MemoryReplyStatus_Partial;
+        } else {
+            status = MemoryReplyStatus_Ok;
+        }
+
+        uint64_t start_offset = address_start - plugin->memory_start;
+        auto data = builder.CreateVector(plugin->memory + start_offset, size);
+
+        MemoryReplyBuilder reply(builder);
+        reply.add_data(data);
+        reply.add_start_address(address_start);
+        reply.add_status(status);
+        PDMessage_end_msg(writer, reply, builder);
+
+    } else {
+        MemoryReplyBuilder reply(builder);
+        reply.add_status(status);
+        PDMessage_end_msg(writer, reply, builder);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static PDDebugState update(void* user_data, PDAction action, PDReadMessage* reader, PDWriteMessage* writer) {
     const uint8_t* data;
     uint64_t size;
@@ -667,11 +713,15 @@ static PDDebugState update(void* user_data, PDAction action, PDReadMessage* read
 
     while ((data = PDReadMessage_next_message(reader, &size))) {
         const Message* msg = GetMessage(data);
-        (void)msg;
 
         switch (msg->message_type()) {
             case MessageType_cpu_registers_request: {
                 reply_registes(plugin, msg->message_as_cpu_registers_request(), writer);
+                break;
+            }
+
+            case MessageType_memory_request: {
+                reply_memory(plugin, msg->message_as_memory_request(), writer);
                 break;
             }
 

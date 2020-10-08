@@ -124,3 +124,55 @@ TEST(BackendPluginHandler, read_integer_registers) {
     close_dummy_plugin(p);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void request_memory(Plugin& p, uint64_t start_address, int64_t size) {
+    flatbuffers::FlatBufferBuilder builder(1024);
+
+    // Setup the request
+    MemoryRequestBuilder request(builder);
+    request.add_start_address(start_address);
+    request.add_size(size);
+    PDMessage_end_msg(p.msg_api->get_writer(), request, builder);
+
+    p.msg_api->swap_buffers();
+
+    p.plugin->update(p.user_data, PDAction_None, p.msg_api->get_reader(), p.msg_api->get_writer());
+
+    p.msg_api->swap_buffers();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST(BackendPluginHandler, read_memory_valid_range) {
+    const uint8_t* data;
+    uint64_t size;
+
+    auto p = setup_dummy_plugin();
+
+    // memory for dummy starts at 0x10000
+    request_memory(p, 0x1000, 8);
+
+    auto reader = p.msg_api->get_reader();
+    bool found_memory = false;
+
+    while ((data = PDReadMessage_next_message(reader, &size))) {
+        const Message* msg = GetMessage(data);
+
+        if (msg->message_type() == MessageType_memory_reply) {
+            auto memory = msg->message_as_memory_reply();
+
+            ASSERT_EQ((int)memory->data()->size(), 8);
+            auto data = memory->data()->data();
+
+            for (int i = 0; i < 8; ++i) {
+                ASSERT_EQ(data[i], i);
+            }
+
+            found_memory = true;
+        }
+    }
+
+    ASSERT_EQ(found_memory, true);
+}
+

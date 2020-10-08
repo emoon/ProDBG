@@ -5,6 +5,12 @@ enum BasicRequestEnum : short {
     Callstack,
 }
 
+enum MemoryReplyStatus : byte {
+    Ok,
+    Partial,
+    InvalidRange,
+}
+
 enum ExpandVarsTypeEnum : short {
     AllVariables,
     Single,
@@ -39,8 +45,14 @@ table LocalsRequest {
 }
 
 table MemoryRequest {
-    start_address: u64,
-    end_address: u64,
+    start_address: uint64;
+    size: int64;
+}
+
+table MemoryReply {
+    start_address: uint64;
+    data: [ubyte];
+    status: MemoryReplyStatus;
 }
 
 // To set a breakpoint on a file and line
@@ -127,6 +139,9 @@ union MessageType {
 
     locals_request: LocalsRequest,
     locals_reply: LocalsReply,
+
+    memory_request: MemoryRequest,
+    memory_reply: MemoryReply,
 
     cpu_registers_request: CPURegistersRequest,
     cpu_registers_reply: CPURegistersReply,

@@ -38,15 +38,8 @@ private:
     void read_settings();
     void write_settings();
 
-    // void set_disassembly_mode();
-    // void setSourceMode();
-
     Mode m_mode = SourceView;
     int m_oldIndex = 0;
-
-    // If we get a PC with no source we will auto-switch to disassembly but if
-    // we are in disassembly and get source/line again we switch back
-    // bool m_wasInSourceView = false;
 
     // DisassemblyView* m_disassemblyView = nullptr;
     BreakpointModel* m_breakpoints = nullptr;
