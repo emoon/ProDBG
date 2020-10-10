@@ -22,7 +22,6 @@ class BreakpointModel;
 class CodeViews;
 class RecentProjects;
 class ViewHandler;
-class SourceCodeWidget;
 class LocalsView;
 class CallstackView;
 class FileBrowserView;
@@ -93,7 +92,6 @@ private:
     //FileBrowserView* m_file_browser = nullptr;
     //LocalsView* m_locals_view = nullptr;
     //CallstackView* m_callstack_view = nullptr;
-    //SourceCodeWidget* m_source_view = nullptr;
     ViewHandler* m_view_handler = nullptr;
 
     // This is somewhat temporary but convinient to have

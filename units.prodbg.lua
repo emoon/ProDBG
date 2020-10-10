@@ -92,8 +92,6 @@ Program {
         --gen_moc("src/prodbg/ui/Config/AmigaUAEConfig.h"),
         gen_moc("src/prodbg/ui/config/config.h"),
 
-        gen_moc("src/prodbg/ui/source_code_widget.h"),
-
         -- gen_uic("src/prodbg/RegisterView/RegisterView.ui"),
         -- gen_moc("src/prodbg/RegisterView/RegisterView.h"),
 
