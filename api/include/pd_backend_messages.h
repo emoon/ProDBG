@@ -1,6 +1,7 @@
 #pragma once
 
-#include "PDMessages_generated.h"
+
+#include "pd_messages_generated.h"
 #include "api/include/pd_message_readwrite.h"
 
 template<typename T>
