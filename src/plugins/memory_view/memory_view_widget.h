@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QtWidgets/QWidget>
-#include "Backend/IBackendRequests.h"
+#include "backend/backend_requests_interface.h"
 
 class MemoryViewPrivate;
 

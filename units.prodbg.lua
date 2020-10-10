@@ -75,41 +75,41 @@ Program {
         gen_rcc("src/prodbg/ui/themes/qdarkstyle/dark.qrc"),
 
         -- Dialogs
-        gen_uic("src/prodbg/ui/dialogs/PrefsDialog.ui"),
-        gen_moc("src/prodbg/ui/dialogs/PrefsDialog.h"),
-        gen_uic("src/prodbg/ui/dialogs/AppearanceWidget.ui"),
-        gen_moc("src/prodbg/ui/dialogs/AppearanceWidget.h"),
+        gen_uic("src/prodbg/ui/dialogs/prefs_dialog.ui"),
+        gen_moc("src/prodbg/ui/dialogs/prefs_dialog.h"),
+        gen_uic("src/prodbg/ui/dialogs/appearance_widget.ui"),
+        gen_moc("src/prodbg/ui/dialogs/appearance_widget.h"),
 
         -- Views
-        gen_uic("src/prodbg/ui/FileBrowserView.ui"),
-        gen_moc("src/prodbg/ui/FileBrowserView.h"),
+        gen_uic("src/prodbg/ui/file_browser_view.ui"),
+        gen_moc("src/prodbg/ui/file_browser_view.h"),
         --gen_uic("src/prodbg/LocalsView.ui"),
         --gen_moc("src/prodbg/LocalsView.h"),
-        gen_uic("src/prodbg/ui/CallstackView.ui"),
-        gen_moc("src/prodbg/ui/CallstackView.h"),
+        gen_uic("src/prodbg/ui/callstack_view.ui"),
+        gen_moc("src/prodbg/ui/callstack_view.h"),
 
-        gen_uic("src/prodbg/ui/Config/AmigaUAEConfig.ui"),
-        gen_moc("src/prodbg/ui/Config/AmigaUAEConfig.h"),
-        gen_moc("src/prodbg/ui/Config/Config.h"),
+        -- gen_uic("src/prodbg/ui/Config/AmigaUAEConfig.ui"),
+        --gen_moc("src/prodbg/ui/Config/AmigaUAEConfig.h"),
+        gen_moc("src/prodbg/ui/config/config.h"),
 
-        gen_moc("src/prodbg/ui/SourceCodeWidget.h"),
+        gen_moc("src/prodbg/ui/source_code_widget.h"),
 
         -- gen_uic("src/prodbg/RegisterView/RegisterView.ui"),
         -- gen_moc("src/prodbg/RegisterView/RegisterView.h"),
 
-        gen_uic("src/prodbg/ui/MainWindow.ui"),
-        gen_moc("src/prodbg/ui/MainWindow.h"),
+        gen_uic("src/prodbg/ui/main_window.ui"),
+        gen_moc("src/prodbg/ui/main_window.h"),
 
         -- gen_moc("src/prodbg/PluginUI/signal_wrappers.h"),
 
-        gen_moc("src/prodbg/ui/View.h"),
-        gen_moc("src/prodbg/ui/ViewHandler.h"),
+        gen_moc("src/prodbg/ui/view.h"),
+        gen_moc("src/prodbg/ui/view_handler.h"),
         gen_moc("src/prodbg/ui/code_view.h"),
         -- gen_moc("src/prodbg/CodeView/DisassemblyView.h"),
 
         -- gen_moc("src/prodbg/ui/PluginUI/generated/qt_api_gen.h"),
 
-        Flatc { Source = "api/PDMessages.fbs" },
+        Flatc { Source = "api/pd_messages.fbs" },
     },
 
     Env = {

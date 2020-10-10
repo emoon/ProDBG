@@ -1,4 +1,4 @@
-#include "Backend/IBackendRequests.h"
+#include "backend/backend_requests_interface.h"
 #include "memory_view_widget.h"
 
 #include <QtCore/QPointer>

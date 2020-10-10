@@ -9,7 +9,7 @@
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
 #include "backend/backend_requests_interface.h"
-#include "BreakpointModel.h"
+#include "breakpoint_model.h"
 #include "edbee/edbee.h"
 #include "edbee/io/textdocumentserializer.h"
 #include "edbee/models/textdocument.h"

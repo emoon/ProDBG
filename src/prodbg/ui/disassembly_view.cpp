@@ -2,7 +2,7 @@
 #include <QtGui/QPainter>
 #include <QtGui/QTextBlock>
 #include <QtWidgets/QApplication>
-#include "BreakpointModel.h"
+#include "breakpoint_model.h"
 #include <inttypes.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -7,10 +7,10 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QStyleFactory>
 #include <QtWidgets/QTextEdit>
-#include "Core/PluginHandler.h"
+#include "core/plugin_handler.h"
 #include "../core/BackendPluginHandler.h"
-#include "MainWindow.h"
-#include "Config/Config.h"
+#include "main_window.h"
+#include "config/config.h"
 #include "edbee/edbee.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

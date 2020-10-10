@@ -2,7 +2,7 @@
 #include <QtCore/QDebug>
 #include <QtCore/QMetaEnum>
 #include <QtCore/QSettings>
-#include "Backend/IBackendRequests.h"
+#include "backend/backend_requests_interface.h"
 #include "ui_memory_view.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

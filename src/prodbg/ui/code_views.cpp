@@ -2,7 +2,7 @@
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
 #include <QtCore/QSettings>
-#include "BreakpointModel.h"
+#include "breakpoint_model.h"
 #include "code_view.h"
 #include "disassembly_view.h"
 

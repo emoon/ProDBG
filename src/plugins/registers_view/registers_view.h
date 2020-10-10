@@ -4,7 +4,7 @@
 #include <QtCore/QVector>
 #include <QtWidgets/QWidget>
 #include "api/include/pd_ui.h"
-#include "Backend/IBackendRequests.h"
+#include "backend/backend_requests_interface.h"
 
 class Ui_RegisterView;
 
