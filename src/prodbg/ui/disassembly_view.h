@@ -4,7 +4,7 @@
 #include <QtCore/QPointer>
 #include <QtCore/QString>
 #include <QtWidgets/QPlainTextEdit>
-#include "Backend/IBackendRequests.h"
+#include "backend/backend_requests_interface.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

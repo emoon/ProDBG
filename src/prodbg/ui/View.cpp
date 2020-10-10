@@ -1,5 +1,5 @@
 #include "View.h"
-#include "Backend/IBackendRequests.h"
+#include "backend/backend_requests_interface.h"
 
 namespace prodbg {
 

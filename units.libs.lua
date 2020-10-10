@@ -63,10 +63,41 @@ StaticLibrary {
 	IdeGenerationHints = { Msvc = { SolutionFolder = "Libs" } },
 }
 
+-----------------------------------------------------------------------------------------------------------------------
+
 StaticLibrary {
     Name = "backend_requests",
+
+    Defines = {
+        "QT_NO_KEYWORDS",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+    },
+
     Sources = {
-        gen_moc("src/prodbg/Backend/IBackendRequests.h"),
+        gen_moc("src/prodbg/backend/backend_requests_interface.h"),
+    }
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+StaticLibrary {
+    Name = "backend",
+
+    Includes = {
+        "api/include",
+    },
+
+    Defines = {
+        "QT_NO_KEYWORDS",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+    },
+
+    Sources = {
+        get_c_cpp_src("src/prodbg/backend"),
+        gen_moc("src/prodbg/backend/backend_requests.h"),
+        gen_moc("src/prodbg/backend/backend_session.h"),
     }
 }
 

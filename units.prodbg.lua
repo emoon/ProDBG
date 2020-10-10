@@ -63,54 +63,51 @@ Program {
     Name = "prodbg",
     Sources = {
         Glob {
-            Dir = "src/prodbg",
+            Dir = "src/prodbg/ui",
             Extensions = { ".c",".cpp", ".h" },
             Recursive = true,
         },
 
         -- Themes
-        gen_rcc("src/prodbg/themes/lightstyle/light.qrc"),
-        gen_rcc("src/prodbg/themes/midnight/midnight.qrc"),
-        gen_rcc("src/prodbg/themes/native/native.qrc"),
-        gen_rcc("src/prodbg/themes/qdarkstyle/dark.qrc"),
+        gen_rcc("src/prodbg/ui/themes/lightstyle/light.qrc"),
+        gen_rcc("src/prodbg/ui/themes/midnight/midnight.qrc"),
+        gen_rcc("src/prodbg/ui/themes/native/native.qrc"),
+        gen_rcc("src/prodbg/ui/themes/qdarkstyle/dark.qrc"),
 
         -- Dialogs
-        gen_uic("src/prodbg/dialogs/PrefsDialog.ui"),
-        gen_moc("src/prodbg/dialogs/PrefsDialog.h"),
-        gen_uic("src/prodbg/dialogs/AppearanceWidget.ui"),
-        gen_moc("src/prodbg/dialogs/AppearanceWidget.h"),
+        gen_uic("src/prodbg/ui/dialogs/PrefsDialog.ui"),
+        gen_moc("src/prodbg/ui/dialogs/PrefsDialog.h"),
+        gen_uic("src/prodbg/ui/dialogs/AppearanceWidget.ui"),
+        gen_moc("src/prodbg/ui/dialogs/AppearanceWidget.h"),
 
         -- Views
-        gen_uic("src/prodbg/FileBrowserView.ui"),
-        gen_moc("src/prodbg/FileBrowserView.h"),
+        gen_uic("src/prodbg/ui/FileBrowserView.ui"),
+        gen_moc("src/prodbg/ui/FileBrowserView.h"),
         --gen_uic("src/prodbg/LocalsView.ui"),
         --gen_moc("src/prodbg/LocalsView.h"),
-        gen_uic("src/prodbg/CallstackView.ui"),
-        gen_moc("src/prodbg/CallstackView.h"),
+        gen_uic("src/prodbg/ui/CallstackView.ui"),
+        gen_moc("src/prodbg/ui/CallstackView.h"),
 
-        gen_uic("src/prodbg/Config/AmigaUAEConfig.ui"),
-        gen_moc("src/prodbg/Config/AmigaUAEConfig.h"),
-        gen_moc("src/prodbg/Config/Config.h"),
+        gen_uic("src/prodbg/ui/Config/AmigaUAEConfig.ui"),
+        gen_moc("src/prodbg/ui/Config/AmigaUAEConfig.h"),
+        gen_moc("src/prodbg/ui/Config/Config.h"),
 
-        gen_moc("src/prodbg/SourceCodeWidget.h"),
+        gen_moc("src/prodbg/ui/SourceCodeWidget.h"),
 
         -- gen_uic("src/prodbg/RegisterView/RegisterView.ui"),
         -- gen_moc("src/prodbg/RegisterView/RegisterView.h"),
 
-        gen_uic("src/prodbg/MainWindow.ui"),
-        gen_moc("src/prodbg/MainWindow.h"),
+        gen_uic("src/prodbg/ui/MainWindow.ui"),
+        gen_moc("src/prodbg/ui/MainWindow.h"),
 
-        gen_moc("src/prodbg/Backend/BackendRequests.h"),
-        gen_moc("src/prodbg/Backend/BackendSession.h"),
-        gen_moc("src/prodbg/AmigaUAE/AmigaUAE.h"),
         -- gen_moc("src/prodbg/PluginUI/signal_wrappers.h"),
 
-        gen_moc("src/prodbg/View.h"),
-        gen_moc("src/prodbg/ViewHandler.h"),
-        gen_moc("src/prodbg/code_view.h"),
+        gen_moc("src/prodbg/ui/View.h"),
+        gen_moc("src/prodbg/ui/ViewHandler.h"),
+        gen_moc("src/prodbg/ui/code_view.h"),
         -- gen_moc("src/prodbg/CodeView/DisassemblyView.h"),
 
-        gen_moc("src/prodbg/PluginUI/generated/qt_api_gen.h"),
+        -- gen_moc("src/prodbg/ui/PluginUI/generated/qt_api_gen.h"),
 
         Flatc { Source = "api/PDMessages.fbs" },
     },
@@ -165,7 +162,7 @@ Program {
     Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore" },
 
     --Depends = { "remote_api", "capstone", "tinyexpr", "toolwindowmanager", "edbee" },
-    Depends = { "capstone", "tinyexpr", "toolwindowmanager", "edbee", "core", "backend_requests" },
+    Depends = { "capstone", "tinyexpr", "toolwindowmanager", "edbee", "backend", "backend_requests", "core" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------

@@ -9,7 +9,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QLibrary>
 #include <QtCore/QString>
-#include "PluginUI/generated/c_api.h"
+//#include "PluginUI/generated/c_api.h"
 //#include "PluginUI/wrui.h"
 
 class QWidget;
@@ -114,28 +114,6 @@ PDBackendPlugin* PluginHandler_findBackendPlugin(const char* name) {
             return (PDBackendPlugin*)plugin->data;
         }
     }
-
-    return nullptr;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef void* (*CreateUIPlugin)(PU* ui);
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-QWidget* PluginHandler_tempLoadUIPlugin(QWidget* parent, const QString& plugin) {
-    QLibrary* lib = findPlugin(plugin);
-
-    if (!lib) {
-        qDebug() << "Unable to find " << plugin << " " << lib->errorString();
-        return nullptr;
-    }
-
-    auto create_ui_plugin = (CreateUIPlugin)lib->resolve("init_plugin");
-
-    PU* pu = PU_create_instance(0, parent);
-    create_ui_plugin(pu);
 
     return nullptr;
 }

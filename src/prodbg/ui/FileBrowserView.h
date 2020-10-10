@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QtWidgets/QWidget>
-#include "Backend/BackendRequests.h"
+#include "backend/backend_requests_interface.h"
 #include <QtCore/QVector>
 #include <QtCore/QString>
 

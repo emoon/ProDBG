@@ -4,7 +4,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
 #include <QtCore/QString>
-#include "Backend/IBackendRequests.h"
+#include "backend/backend_requests_interface.h"
 #include "edbee/texteditorwidget.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

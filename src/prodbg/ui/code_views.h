@@ -2,7 +2,7 @@
 
 #include <QtCore/QPointer>
 #include <QtWidgets/QTabWidget>
-#include "Backend/IBackendRequests.h"
+#include "backend/backend_requests_interface.h"
 
 namespace prodbg {
 
