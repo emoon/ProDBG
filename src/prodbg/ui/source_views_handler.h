@@ -18,9 +18,7 @@ public:
     void open_file(const QString& filename, bool set_active);
 
 private:
-    QHash<QString, QDockWidget*> m_source_files;
     ViewHandler* m_view_handler = nullptr;
-    QDockWidget* m_last_dock = nullptr;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -9,7 +9,7 @@
 #include "core/plugin_handler.h"
 //#include "RegisterView/RegisterView.h"
 #include "view_handler.h"
-#include "toolwindowmanager/ToolWindowManager.h"
+#include "fastdock/FastDock.h"
 
 // Dialogs
 #include "file_browser_view.h"
@@ -21,7 +21,6 @@
 #include <QtCore/QSettings>
 #include <QtCore/QThread>
 #include <QtCore/QTimer>
-#include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMainWindow>
 #include <QtGui/QCloseEvent>
@@ -48,6 +47,9 @@ MainWindow::MainWindow()
     qRegisterMetaType<IBackendRequests::ExpandType>("IBackendRequests::ExpandType");
     qRegisterMetaType<QVector<QString>>("QVector<QString>");
 
+    m_docking = new FastDock();
+
+
     //setAllowedAreas(Qt::AllDockWidgetAreas);
 
     // Create the view handler and load all view plugins
@@ -58,13 +60,18 @@ MainWindow::MainWindow()
 
     m_ui.setupUi(this);
 
+    QVBoxLayout* layout = new QVBoxLayout;
+    QWidget* main_widget = new QWidget;
+    main_widget->setLayout(layout);
+    setCentralWidget(main_widget);
+    layout->QLayout::addWidget(m_docking);
 
     create_views_menu();
 
     m_breakpoints = new BreakpointModel;
-    m_code_views = new CodeViews(m_breakpoints, this);
+    //m_code_views = new CodeViews(m_breakpoints, this);
 
-    m_code_views->open_file(QStringLiteral("/home/emoon/code/temp/debug_test/src/main.rs"), true);
+    //m_code_views->open_file(QStringLiteral("/home/emoon/code/temp/debug_test/src/main.rs"), true);
     //m_code_views->open_file(QStringLiteral("src/prodbg/Config/Config.cpp"), true);
 
     // m_code_views->openFile(QStringLiteral("src/prodbg/main.cpp"),
@@ -79,13 +86,6 @@ MainWindow::MainWindow()
 #else
     QFont font(QStringLiteral("Courier"), 13);
 #endif
-
-    {
-        auto dock = new QDockWidget(QStringLiteral("source files"), nullptr);
-        dock->setWidget(m_code_views);
-        dock->setAllowedAreas(Qt::AllDockWidgetAreas);
-        addDockWidget(Qt::RightDockWidgetArea, dock);
-    }
 
     // m_ui.toolWindowManager->setRubberBandLineWidth(50);
 
@@ -102,9 +102,9 @@ MainWindow::MainWindow()
 
     init_recent_file_actions();
 
-    auto t = new QWidget(nullptr);
-    t->hide();
-    setCentralWidget(t);
+    //auto t = new QWidget(nullptr);
+    //t->hide();
+    //setCentralWidget(t);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -408,17 +408,17 @@ void MainWindow::toggle_breakpoint() {
 void MainWindow::create_view_instance(int index) {
     QWidget* view_widget = m_view_handler->create_view_by_index(index);
     auto plugin_types = m_view_handler->plugin_types();
-    const QString& plugin_name = plugin_types[index].plugin_name;
+    //const QString& plugin_name = plugin_types[index].plugin_name;
 
-    auto dock = new QDockWidget(plugin_name, nullptr);
-    view_widget->setParent(dock);
+    //view_widget->setParent(dock);
 
-    dock->setWidget(view_widget);
-    dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    //dock->setWidget(view_widget);
+    //dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     //dock->setAllowedAreas(Qt::TopDockWidgetArea);
 
     // make sure we have an unique objectname
-    int count = m_view_names[plugin_name];
+    //int count = m_view_names[plugin_name];
+    /*
 
     if (count > 0) {
         QString result;
@@ -427,8 +427,12 @@ void MainWindow::create_view_instance(int index) {
     } else {
         dock->setObjectName(plugin_name);
     }
+    */
 
-    addDockWidget(Qt::RightDockWidgetArea, dock);
+    printf("tryngi to create\n");
+
+    m_docking->addToolWindow(view_widget, FastDock::EmptySpace);
+    //addDockWidget(Qt::RightDockWidgetArea, dock);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

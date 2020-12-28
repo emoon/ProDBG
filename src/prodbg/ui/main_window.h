@@ -8,6 +8,7 @@
 class QStatusBar;
 class QThread;
 class QPluginLoader;
+class FastDock;
 
 namespace prodbg {
 
@@ -89,6 +90,9 @@ private:
 
     QVector<QAction*> m_recent_project_actions;
 
+    QStatusBar* m_statusbar = nullptr;
+    FastDock* m_docking = nullptr;
+
     //FileBrowserView* m_file_browser = nullptr;
     //LocalsView* m_locals_view = nullptr;
     //CallstackView* m_callstack_view = nullptr;
@@ -105,7 +109,6 @@ private:
 
     // Hardcoded views for now.
     //MemoryView* m_memory_view = nullptr;
-    QStatusBar* m_statusbar = nullptr;
     BreakpointModel* m_breakpoints = nullptr;
 
     Ui_MainWindow m_ui;
