@@ -121,6 +121,7 @@ Program {
 -----------------------------------------------------------------------------------------------------------------------
 -- Unit/integration tests
 
+--[[
 Program {
     Name = "qt_core_tests",
 
@@ -161,6 +162,7 @@ Program {
 
     Depends = { "backend", "backend_requests", "core" },
 }
+--]]
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -208,7 +210,7 @@ Program {
 Default "flatc"
 Default "crashing_native"
 Default "tests"
-Default "qt_core_tests"
+-- Default "qt_core_tests"
 
 -- vim: ts=4:sw=4:sts=4
 
