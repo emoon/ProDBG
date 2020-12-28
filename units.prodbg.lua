@@ -159,7 +159,7 @@ Program {
     Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore" },
 
     --Depends = { "remote_api", "capstone", "tinyexpr", "toolwindowmanager", "edbee" },
-    Depends = { "capstone", "tinyexpr", "toolwindowmanager", "edbee", "backend", "backend_requests", "core" },
+    Depends = { "capstone", "tinyexpr", "fastdock", "edbee", "backend", "backend_requests", "core" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------

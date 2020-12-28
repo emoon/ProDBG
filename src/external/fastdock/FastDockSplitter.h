@@ -22,27 +22,26 @@
  * SOFTWARE.
  *
  */
-#ifndef TOOLWINDOWMANAGERSPLITTER_H
-#define TOOLWINDOWMANAGERSPLITTER_H
+#ifndef FastDockSPLITTER_H
+#define FastDockSPLITTER_H
 
 #include <QSplitter>
 
 /*!
- * \brief The ToolWindowManagerSplitter class is a splitter that tweaks how sizes are allocated in
+ * \brief The FastDockSplitter class is a splitter that tweaks how sizes are allocated in
  * children when a child is removed.
  */
-class ToolWindowManagerSplitter : public QSplitter
-{
-  Q_OBJECT
+class FastDockSplitter : public QSplitter {
+    Q_OBJECT
 public:
-  //! Creates new tab bar.
-  explicit ToolWindowManagerSplitter(QWidget *parent = 0);
-  //! Destroys the tab bar.
-  virtual ~ToolWindowManagerSplitter();
+    //! Creates new tab bar.
+    explicit FastDockSplitter(QWidget* parent = 0);
+    //! Destroys the tab bar.
+    virtual ~FastDockSplitter();
 
 protected:
-  //! Reimplemented from QSplitter to share excess space differently.
-  void childEvent(QChildEvent *) Q_DECL_OVERRIDE;
+    //! Reimplemented from QSplitter to share excess space differently.
+    void childEvent(QChildEvent*) Q_DECL_OVERRIDE;
 };
 
-#endif    // TOOLWINDOWMANAGERSPLITTER_H
+#endif  // FastDockSPLITTER_H

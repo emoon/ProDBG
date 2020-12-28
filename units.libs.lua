@@ -224,7 +224,7 @@ StaticLibrary {
 -----------------------------------------------------------------------------------------------------------------------
 
 StaticLibrary {
-    Name = "toolwindowmanager",
+    Name = "fastdock",
 
     Env = {
        CXXOPTS = {
@@ -245,13 +245,13 @@ StaticLibrary {
     },
 
     Sources = {
-        get_c_cpp_src("src/external/toolwindowmanager", true),
+        get_c_cpp_src("src/external/fastdock", true),
 
-        gen_moc("src/external/toolwindowmanager/ToolWindowManager.h"),
-        gen_moc("src/external/toolwindowmanager/ToolWindowManagerArea.h"),
-        gen_moc("src/external/toolwindowmanager/ToolWindowManagerTabBar.h"),
-        gen_moc("src/external/toolwindowmanager/ToolWindowManagerSplitter.h"),
-        gen_moc("src/external/toolwindowmanager/ToolWindowManagerWrapper.h"),
+        gen_moc("src/external/fastdock/FastDock.h"),
+        gen_moc("src/external/fastdock/FastDockArea.h"),
+        gen_moc("src/external/fastdock/FastDockTabBar.h"),
+        gen_moc("src/external/fastdock/FastDockSplitter.h"),
+        gen_moc("src/external/fastdock/FastDockWrapper.h"),
     },
 
 	IdeGenerationHints = { Msvc = { SolutionFolder = "External" } },

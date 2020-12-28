@@ -18,9 +18,6 @@
     <bool>true</bool>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <widget class="ToolWindowManager" name="toolWindowManager" native="true"/>
-    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -209,12 +206,6 @@
   </action>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>ToolWindowManager</class>
-   <extends>QWidget</extends>
-   <header>ToolWindowManager.h</header>
-   <container>1</container>
-  </customwidget>
  </customwidgets>
  <resources/>
  <connections/>
