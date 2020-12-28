@@ -4,6 +4,15 @@ require "tundra.util"
 
 -----------------------------------------------------------------------------------------------------------------------
 
+local function gen_moc(src)
+    return Moc {
+        Pass = "GenerateSources",
+        Source = src
+    }
+end
+
+-----------------------------------------------------------------------------------------------------------------------
+
 local function get_c_cpp_src(dir, recursive)
     return Glob {
         Dir = dir,
@@ -97,7 +106,7 @@ Program {
     },
 
     Sources = {
-        get_c_cpp_src("src/tests", true),
+        get_c_cpp_src("src/tests/core", true),
     },
 
     Env = {
@@ -107,6 +116,50 @@ Program {
     },
 
     Depends = { "core" },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+-- Unit/integration tests
+
+Program {
+    Name = "qt_core_tests",
+
+    Includes = {
+        "api/include",
+        "src",
+        "src/prodbg",
+        "src/prodbg/backend",
+        "$(OBJECTDIR)",
+        "$(QT5_INC)",
+        "$(QT5_INC)/QtCore",
+    },
+
+    Sources = {
+        gen_moc("src/tests/qt_core_tests/qt_core_tests.cpp"),
+        get_c_cpp_src("src/tests/qt_core_tests", true),
+    },
+
+    Env = {
+        CPPDEFS = {
+            "QT_NO_KEYWORDS",
+            "QT_NO_CAST_FROM_ASCII",
+            "QT_NO_CAST_TO_ASCII",
+        },
+
+        PROGCOM = {
+            { "-lpthread", "-ldl"; Config = "linux-*-*" },
+        },
+    },
+
+	Libs = {
+		{ "wsock32.lib", "kernel32.lib", "user32.lib", "gdi32.lib", "Comdlg32.lib",
+		  "Advapi32.lib", "Qt5Core.lib", "Qt5Test.lib"; Config = "win64-*-*" },
+		{ "Qt5Test", "Qt5Core" ; Config = "linux-*-*" },
+	},
+
+    Frameworks = { "Cocoa", "QtCore" },
+
+    Depends = { "backend", "backend_requests", "core" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -155,6 +208,7 @@ Program {
 Default "flatc"
 Default "crashing_native"
 Default "tests"
+Default "qt_core_tests"
 
 -- vim: ts=4:sw=4:sts=4
 

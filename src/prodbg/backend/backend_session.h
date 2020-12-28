@@ -22,8 +22,8 @@ public:
     BackendSession();
     ~BackendSession();
 
-    static BackendSession* create_backend_session(const QString& backendName);
-    bool set_backend(const QString& backendName);
+    static BackendSession* create_backend_session(const QString& backend_name);
+    bool set_backend(const QString& backend_name);
 
     Q_SLOT void thread_finished();
     Q_SLOT void update();

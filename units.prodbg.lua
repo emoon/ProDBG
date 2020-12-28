@@ -126,7 +126,6 @@ Program {
         },
 
         CPPPATH = {
-            "$(QT5_INC)",
             "src/external/tinyexpr",
             "src/prodbg",
         	"api/include",

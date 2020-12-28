@@ -46,13 +46,13 @@ BackendSession* BackendSession::create_backend_session(const QString& backend_na
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool BackendSession::set_backend(const QString& backendName) {
+bool BackendSession::set_backend(const QString& backend_name) {
     // Names of the backends are stored in utf-8 so convert them here
-    QByteArray name = backendName.toUtf8();
+    QByteArray name = backend_name.toUtf8();
     PDBackendPlugin* plugin = prodbg::BackendPluginHandler::find_plugin(name.constData());
 
     if (!plugin) {
-        qDebug() << "Unable to find plugin: " << backendName;
+        qDebug() << "Unable to find plugin: " << backend_name;
         return false;
     }
 
