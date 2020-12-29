@@ -437,6 +437,8 @@ void MainWindow::create_view_instance(int index) {
     auto view = m_view_handler->create_instance_by_index(index);
     auto plugin_types = m_view_handler->plugin_types();
 
+    printf("view_plugin ptr %p\n", view.view_plugin);
+
     view.view_plugin->set_backend_interface(m_backend_requests);
 
     //const QString& plugin_name = plugin_types[index].plugin_name;

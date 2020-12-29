@@ -52,7 +52,7 @@ static void target_reply(FilePlugin* plugin, const FileTargetRequest* request, P
             sprintf(error_msg, "FilePlugin: To allocate space (%ld) bytes for file %s", size, filename);
             status = false;
         } else {
-            fread(plugin->buffer, 1, 1, f);
+            fread(plugin->buffer, 1, size, f);
             plugin->filename = strdup(filename);
             plugin->buffer_size = size;
             fclose(f);

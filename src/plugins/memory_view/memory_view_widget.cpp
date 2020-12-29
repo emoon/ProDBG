@@ -228,6 +228,8 @@ public:
             values->push_back(0 & 0xff);  // hack test
         }
 
+        printf("about to request %p\n", m_interface.data());
+
         if (m_interface) {
             printf("requesting %lx %lx\n", start, end);
             m_interface->request_memory(start, end, &m_transfer_cache);
@@ -444,7 +446,7 @@ void MemoryViewWidget::program_counter_changed(const prodbg::IBackendRequests::P
 // Gets called when transfor from backend to frontend has finished
 
 void MemoryViewWidget::end_read_memory(QVector<uint8_t>* target, uint64_t address, int address_width) {
-    printf("end reand memory");
+    printf("end reand memory\n");
 
     // so this is a hack. We need a better way to do this. This is because if
     // there are several memory requests in flight we must make sure that its
