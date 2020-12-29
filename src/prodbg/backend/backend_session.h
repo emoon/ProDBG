@@ -40,7 +40,7 @@ public:
     Q_SLOT void request_basic(IBackendRequests::BasicRequest request_id);
     Q_SLOT void request_frame_index(int frame_index);
 
-    Q_SLOT void request_memory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target);
+    Q_SLOT void request_memory(uint64_t lo, uint64_t hi, QVector<uint8_t>* target);
 
     /*
     Q_SLOT void start();
@@ -75,7 +75,7 @@ public:
     Q_SIGNAL void reply_locals(const IBackendRequests::Variables& variables);
     Q_SIGNAL void reply_callstack(const IBackendRequests::Callstack& callstack);
     Q_SIGNAL void reply_source_files(const QVector<QString>& source_files);
-    Q_SIGNAL void reply_memory(QVector<uint16_t>* res, uint64_t address, int address_width);
+    Q_SIGNAL void reply_memory(QVector<uint8_t>* res, uint64_t address, int address_width);
 
     Q_SIGNAL void session_ended();
 

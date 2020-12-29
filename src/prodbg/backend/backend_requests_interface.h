@@ -200,7 +200,7 @@ public:
     // hi = ending memory range
     // target = output of memory. Each byte is stored as uint16_t with the upper
     // 8 bits are set as combination MemoryAddressFlags
-    virtual bool request_memory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target) = 0;
+    virtual bool request_memory(uint64_t lo, uint64_t hi, QVector<uint8_t>* target) = 0;
 
 public:
     // reply from request of source files
@@ -225,7 +225,7 @@ public:
     // target = filled with requested memory (if successful)
     // address = starting address
     // addressWidth = number of bytes an address uses. E.g. 4 for a 32-bit target.
-    Q_SIGNAL void reply_memory(QVector<uint16_t>* target, uint64_t address, int address_width);
+    Q_SIGNAL void reply_memory(QVector<uint8_t>* target, uint64_t address, int address_width);
 
     // This signal is being sent when the program counter of the debugged
     // application has changed This can be used to figure out if it's needed to

@@ -25,13 +25,13 @@ static const QChar s_hex_table[16] = {
 struct MemViewTypeMeta {
     int m_bytes_per_element;
     int m_display_width_chars;
-    void (*m_formatter)(QString* target, int display_width, int byte_count, const uint16_t* values,
+    void (*m_formatter)(QString* target, int display_width, int byte_count, const uint8_t* values,
                         MemoryViewWidget::Endianess);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static uint64_t decode_value(const uint16_t* values, int count, MemoryViewWidget::Endianess endianess) {
+static uint64_t decode_value(const uint8_t* values, int count, MemoryViewWidget::Endianess endianess) {
     uint64_t value = 0;
     switch (endianess) {
         case MemoryViewWidget::Big:
@@ -53,7 +53,7 @@ static uint64_t decode_value(const uint16_t* values, int count, MemoryViewWidget
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void format_hex(QString* target, int display_width, int byte_count, const uint16_t* values,
+static void format_hex(QString* target, int display_width, int byte_count, const uint8_t* values,
                        MemoryViewWidget::Endianess endianess) {
     const uint64_t value = decode_value(values, byte_count, endianess);
 
@@ -78,7 +78,7 @@ static void assign_str(const char* str, int len, int display_width, QString* tar
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void format_unsigned(QString* target, int display_width, int byte_count, const uint16_t* values,
+static void format_unsigned(QString* target, int display_width, int byte_count, const uint8_t* values,
                             MemoryViewWidget::Endianess endianess) {
     const uint64_t value = decode_value(values, byte_count, endianess);
     char buffer[32];
@@ -104,7 +104,7 @@ static void format_unsigned(QString* target, int display_width, int byte_count, 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void format_signed(QString* target, int display_width, int byte_count, const uint16_t* values,
+static void format_signed(QString* target, int display_width, int byte_count, const uint8_t* values,
                           MemoryViewWidget::Endianess endianess) {
     const uint64_t value = decode_value(values, byte_count, endianess);
     char buffer[32];
@@ -130,7 +130,7 @@ static void format_signed(QString* target, int display_width, int byte_count, co
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void format_float(QString* target, int display_width, int byte_count, const uint16_t* values,
+static void format_float(QString* target, int display_width, int byte_count, const uint8_t* values,
                         MemoryViewWidget::Endianess endianess) {
     const uint64_t value = decode_value(values, byte_count, endianess);
 
@@ -206,12 +206,12 @@ public:
     bool m_transfer_in_progress = false;
     bool m_expression_status = true;
 
-    QVector<uint16_t> m_cache;
-    QVector<uint16_t> m_transfer_cache;
+    QVector<uint8_t> m_cache;
+    QVector<uint8_t> m_transfer_cache;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void access(uint64_t address, uint64_t count, QVector<uint16_t>* values) {
+    void access(uint64_t address, uint64_t count, QVector<uint8_t>* values) {
         uint64_t start = address;
         uint64_t end = address + count;
 
@@ -228,12 +228,11 @@ public:
             values->push_back(0 & 0xff);  // hack test
         }
 
-        /*
         if (m_interface) {
-            m_interface->beginReadMemory(start, end, &m_transfer_cache);
+            printf("requesting %lx %lx\n", start, end);
+            m_interface->request_memory(start, end, &m_transfer_cache);
             m_transfer_in_progress = true;
         }
-        */
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -304,7 +303,7 @@ public:
 
                 if (m_address_width == 4) {
                     byte_shift = 24;
-                } else {
+                } else if (m_address_width == 2) {
                     byte_shift = 8;
                 }
 
@@ -326,7 +325,7 @@ public:
                         row_text.push_back(QLatin1Char(' '));
                     }
 
-                    const uint16_t* values = m_cache.constData() + data_offset + i * type_meta.m_bytes_per_element;
+                    const uint8_t* values = m_cache.constData() + data_offset + i * type_meta.m_bytes_per_element;
                     (*type_meta.m_formatter)(&row_text, type_meta.m_display_width_chars, type_meta.m_bytes_per_element,
                                              values, m_endianess);
                 }
@@ -420,13 +419,10 @@ MemoryViewWidget::~MemoryViewWidget() {
 void MemoryViewWidget::set_backend_interface(prodbg::IBackendRequests* interface) {
     m_private->m_interface = interface;
 
-    /*
     if (interface) {
-        connect(interface, &IBackendRequests::endReadMemory, this, &MemoryViewWidget::endReadMemory);
-        connect(interface, &IBackendRequests::program_counter_changed, this,
-    &MemoryViewWidget::program_counter_changed);
+        connect(interface, &prodbg::IBackendRequests::reply_memory, this, &MemoryViewWidget::end_read_memory);
+        //connect(interface, &IBackendRequests::program_counter_changed, this, &MemoryViewWidget::program_counter_changed);
     }
-    */
 
     update();
 }
@@ -447,7 +443,9 @@ void MemoryViewWidget::program_counter_changed(const prodbg::IBackendRequests::P
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Gets called when transfor from backend to frontend has finished
 
-void MemoryViewWidget::end_read_memory(QVector<uint16_t>* target, uint64_t address, int address_width) {
+void MemoryViewWidget::end_read_memory(QVector<uint8_t>* target, uint64_t address, int address_width) {
+    printf("end reand memory");
+
     // so this is a hack. We need a better way to do this. This is because if
     // there are several memory requests in flight we must make sure that its
     // "ours" that gets called here.

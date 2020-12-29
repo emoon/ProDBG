@@ -33,6 +33,9 @@ int main(int argc, const char** argv) {
 
     prodbg::Config::create_instance();
     prodbg::BackendPluginHandler::add_plugin("lldb_plugin");
+    if (!prodbg::BackendPluginHandler::add_plugin("file")) {
+        printf("failed to add file plugin");
+    }
 
     prodbg::MainWindow main_window;
 

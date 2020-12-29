@@ -49,6 +49,7 @@ private:
     Q_SLOT void toggle_breakpoint();
     Q_SLOT void open_recent_project();
     Q_SLOT void open_debug_exe();
+    Q_SLOT void open_binary_file();
     Q_SLOT void open_debug_exe_stop_at_main();
 
     Q_SIGNAL void break_cont_backend();

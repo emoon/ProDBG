@@ -59,7 +59,7 @@ protected:
 public:
     DataType data_type() const;
     Q_SLOT void set_data_type(DataType t);
-    Q_SLOT void end_read_memory(QVector<uint16_t>* target, uint64_t address, int address_width);
+    Q_SLOT void end_read_memory(QVector<uint8_t>* target, uint64_t address, int address_width);
     Q_SLOT void program_counter_changed(const prodbg::IBackendRequests::ProgramCounterChange& pc);
 
     Endianess endianess() const;

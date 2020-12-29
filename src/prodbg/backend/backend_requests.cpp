@@ -87,7 +87,7 @@ uint64_t BackendRequests::request_frame_index(int frame_index) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool BackendRequests::request_memory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target) {
+bool BackendRequests::request_memory(uint64_t lo, uint64_t hi, QVector<uint8_t>* target) {
     // TODO: Return better error code here
 
     if (!target) {

@@ -118,6 +118,7 @@ MainWindow::~MainWindow() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::init_actions() {
+    connect(m_ui.open_binary_file, &QAction::triggered, this, &MainWindow::open_binary_file);
     connect(m_ui.debug_file, &QAction::triggered, this, &MainWindow::open_debug_exe);
     connect(m_ui.actionPreferences, &QAction::triggered, this, &MainWindow::show_prefs);
     connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggle_breakpoint);
@@ -193,6 +194,31 @@ void MainWindow::open_debug_exe() {
 
 void MainWindow::open_debug_exe_stop_at_main() {
     open_debug(true);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::open_binary_file() {
+    QString path = QFileDialog::getOpenFileName(nullptr, QStringLiteral("Open Binary File..."));
+
+    if (path.isEmpty()) {
+        return;
+    }
+
+    close_current_backend();
+
+    BackendSession* backend = BackendSession::create_backend_session(QStringLiteral("File"));
+
+    if (!backend) {
+        printf("Unable to create File backend\n");
+        return;
+    }
+
+    setup_backend(backend);
+
+    // Request starting a file for debugging. target_reply will get a status back if it's possible
+    // to start the file or not and the debugging can proceed after that
+    m_backend_requests->file_target_request(false, path);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -294,8 +320,8 @@ void MainWindow::target_reply(bool status, const QString& error_message) {
         start();
 
         // Hook-up the views to the backend
-        connect(m_backend_requests, &IBackendRequests::program_counter_changed, m_code_views,
-                &CodeViews::program_counter_changed);
+        //connect(m_backend_requests, &IBackendRequests::program_counter_changed, m_code_views,
+         //       &CodeViews::program_counter_changed);
 
         //m_locals_view->set_backend_interface(m_backend_requests);
         //m_callstack_view->set_backend_interface(m_backend_requests);
@@ -356,6 +382,8 @@ void MainWindow::setup_backend(BackendSession* backend) {
     m_backend->moveToThread(m_backend_thread);
     m_backend_requests = new BackendRequests(m_backend);
 
+    printf("m_backend_requests %p\n", m_backend_requests);
+
     m_backend_thread->start();
 
     setup_backend_connections();
@@ -406,8 +434,11 @@ void MainWindow::toggle_breakpoint() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::create_view_instance(int index) {
-    QWidget* view_widget = m_view_handler->create_view_by_index(index);
+    auto view = m_view_handler->create_instance_by_index(index);
     auto plugin_types = m_view_handler->plugin_types();
+
+    view.view_plugin->set_backend_interface(m_backend_requests);
+
     //const QString& plugin_name = plugin_types[index].plugin_name;
 
     //view_widget->setParent(dock);
@@ -429,9 +460,7 @@ void MainWindow::create_view_instance(int index) {
     }
     */
 
-    printf("tryngi to create\n");
-
-    m_docking->addToolWindow(view_widget, FastDock::EmptySpace);
+    m_docking->addToolWindow(view.widget, FastDock::EmptySpace);
     //addDockWidget(Qt::RightDockWidgetArea, dock);
 }
 

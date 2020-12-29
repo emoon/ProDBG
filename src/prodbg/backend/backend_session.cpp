@@ -335,10 +335,42 @@ void BackendSession::request_frame_index(int frame_index) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::request_memory(uint64_t lo, uint64_t hi, QVector<uint16_t>* target) {
+void BackendSession::request_memory(uint64_t lo, uint64_t hi, QVector<uint8_t>* target) {
+    const uint8_t* data;
+    uint64_t size;
+
     flatbuffers::FlatBufferBuilder builder(1024);
 
+    MemoryRequestBuilder request(builder);
+    request.add_start_address(lo);
+    request.add_size(hi - lo);
 
+    PDMessage_end_msg(m_messages_api->get_writer(), request, builder);
+
+    update();
+
+    auto reader = m_messages_api->get_reader();
+
+    while ((data = PDReadMessage_next_message(reader, &size))) {
+        const Message* msg = GetMessage(data);
+
+        if (msg->message_type() == MessageType_memory_reply) {
+            auto reply = msg->message_as_memory_reply();
+            uint64_t address = reply->start_address();
+            auto data = reply->data();
+            auto size = data->size();
+            auto d = data->data();
+
+            target->resize(size);
+
+            for (uint32_t i = 0; i < size; ++i) {
+                (*target)[i] = d[i];
+            }
+
+            // TODO: Fix width
+            reply_memory(target, address, 8);
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
