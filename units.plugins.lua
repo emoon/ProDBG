@@ -79,6 +79,24 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
+SharedLibrary {
+    Name = "file",
+
+    Includes = {
+        "api/include",
+    },
+
+    Sources = {
+        get_cpp_src("src/plugins/file")
+    },
+
+	IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
+
+	Depends = { "flatbuffers" },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
 local function ViewPlugin(params)
 	local shared_lib = SharedLibrary {
         Name = params.Name,
@@ -203,6 +221,7 @@ end
 --  Default "dbgeng_plugin"
 --end
 
+Default "file"
 Default "amiga_uae_plugin"
 Default "dummy_backend"
 Default "register_view"

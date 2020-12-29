@@ -130,7 +130,7 @@ static void format_signed(QString* target, int display_width, int byte_count, co
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void formatFloat(QString* target, int display_width, int byte_count, const uint16_t* values,
+static void format_float(QString* target, int display_width, int byte_count, const uint16_t* values,
                         MemoryViewWidget::Endianess endianess) {
     const uint64_t value = decode_value(values, byte_count, endianess);
 
@@ -180,8 +180,8 @@ static const struct MemViewTypeMeta s_type_meta[] = {
     {8, 16, format_hex},       // kHexQword: FFFFFFFFFFFFFFFF
     {8, 20, format_unsigned},  // kUnsignedQword: 18446744073709551615
     {8, 20, format_signed},    // kSignedQword: -9223372036854775808
-    {4, 16, formatFloat},      // kFloat: arbitrary formatting width
-    {8, 16, formatFloat},      // kDouble: arbitrary formatting width
+    {4, 16, format_float},     // kFloat: arbitrary formatting width
+    {8, 16, format_float},     // kDouble: arbitrary formatting width
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

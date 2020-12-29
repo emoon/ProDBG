@@ -46,7 +46,7 @@ table LocalsRequest {
 
 table MemoryRequest {
     start_address: uint64;
-    size: int64;
+    size: uint64;
 }
 
 table MemoryReply {
