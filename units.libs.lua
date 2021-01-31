@@ -232,7 +232,7 @@ StaticLibrary {
               "-isystem $(QT5_LIB)/QtCore.framework/Headers",
               "-isystem $(QT5_LIB)/QtGui.framework/Headers";
               "-isystem $(QT5_LIB)/QtGui.framework/Headers",
-              "-F$(QT5)/lib"; Config = "macos-*-*" },
+              "-F$(QT5_LIB)"; Config = "macos-*-*" },
             { "-isystem $(QT5_LIB)" ; Config = "linux-*-*" },
         },
 
@@ -282,7 +282,7 @@ StaticLibrary {
               "-isystem $(QT5_LIB)/QtCore.framework/Headers",
               "-isystem $(QT5_LIB)/QtGui.framework/Headers";
               "-isystem $(QT5_LIB)/QtGui.framework/Headers",
-              "-F$(QT5)/lib"; Config = "macos-*-*" },
+              "-F$(QT5_LIB)"; Config = "macos-*-*" },
             { "-isystem $(QT5_LIB)" ; Config = "linux-*-*" },
         },
 

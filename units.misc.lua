@@ -60,7 +60,7 @@ Program {
             "-Wno-missing-field-initializers",
             "-Wno-conversion",
             "-Wno-switch-enum",
-            "-Wno-format-nonliteral"; Config = "macosx-*-*" },
+            "-Wno-format-nonliteral"; Config = "macos-*-*" },
         },
     },
 

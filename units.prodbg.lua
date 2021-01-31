@@ -115,14 +115,14 @@ Program {
             { "-isystem $(QT5_LIB)/QtWidgets.framework/Headers",
               "-isystem $(QT5_LIB)/QtCore.framework/Headers",
               "-isystem $(QT5_LIB)/QtGui.framework/Headers",
-              "-F$(QT5_LIB)/lib"; Config = "macosx-*-*" },
+              "-F$(QT5_LIB)/lib"; Config = "macos-*-*" },
             --{ "-isystem $(QT5_INC)"; Config = "linux-*-*" },
         },
 
         CPPDEFS = {
             "QT_NO_KEYWORDS",
-            "QT_NO_CAST_FROM_ASCII",
-            "QT_NO_CAST_TO_ASCII",
+            -- "QT_NO_CAST_FROM_ASCII",
+            -- "QT_NO_CAST_TO_ASCII",
         },
 
         CPPPATH = {
@@ -145,7 +145,7 @@ Program {
 		},
 
         PROGCOM = {
-            {  "-Wl,-rpath,$(QT5_LIB)", "-F$(QT5_LIB)", "-lstdc++", Config = "macosx-clang-*" },
+            {  "-Wl,-rpath,$(QT5_LIB)", "-F$(QT5_LIB)", "-lstdc++", Config = "macos-clang-*" },
             {  "-Wl,-rpath,$(QT5_LIB)", "-lstdc++", "-lm", "-ldl"; Config = "linux-*-*" },
         },
     },
@@ -174,12 +174,12 @@ local prodbgBundle = OsxBundle {
         "data/mac/icon.icns",
     },
 
-    Config = { "macosx-clang-debug-default" ; "macosx-clang-release-default" },
+    Config = { "macos-clang-debug-default" ; "macos-clang-release-default" },
 }
 
 -----------------------------------------------------------------------------------------------------------------------
 
-if native.host_platform == "macosx" then
+if native.host_platform == "macos" then
     Default "prodbg"
     Default(prodbgBundle)
 else

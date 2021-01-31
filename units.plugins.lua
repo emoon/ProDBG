@@ -1,4 +1,3 @@
-require "tundra.syntax.glob"
 require "tundra.path"
 require "tundra.util"
 require "tundra.syntax.rust-cargo"
@@ -51,11 +50,11 @@ SharedLibrary {
         },
 
         SHLIBOPTS = {
-            { "-Fsrc/plugins/lldb/Frameworks", "-rpath src/plugins/lldb/Frameworks", "-lstdc++"; Config = "macosx-clang-*" },
+            { "-Fsrc/plugins/lldb/Frameworks", "-rpath src/plugins/lldb/Frameworks", "-lstdc++"; Config = "macos-clang-*" },
             { "-Lsrc/external/lldb/lib/linux", "-Wl,-rpath src/external/lldb/lib/linux"; Config = "linux-*-*" },
         },
 
-        CXXCOM = { "-stdlib=libc++"; Config = "macosx-clang-*" },
+        CXXCOM = { "-stdlib=libc++"; Config = "macos-clang-*" },
     },
 
     Libs = {
@@ -124,6 +123,8 @@ local function ViewPlugin(params)
         },
 
         Depends = { "backend_requests" },
+
+		Frameworks = { "Cocoa", "QtWidgets", "QtGui", "QtCore" },
 
 	    IdeGenerationHints = { Msvc = { SolutionFolder = "Plugins" } },
 	}
@@ -213,7 +214,8 @@ SharedLibrary {
 
 -----------------------------------------------------------------------------------------------------------------------
 
-if native.host_platform == "macosx" or native.host_platform == "linux" then
+-- if native.host_platform == "macosx" or native.host_platform == "linux" then
+if native.host_platform == "linux" then
    Default "lldb_plugin"
 end
 
