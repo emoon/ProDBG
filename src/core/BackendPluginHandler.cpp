@@ -4,13 +4,33 @@
 #include "Logging.h"
 
 #ifndef _WIN32
-#include <libgen.h>
 #include <string.h>
-#include <errno.h>
 #include <dlfcn.h>
 #include <limits.h>
 #include <stdio.h>
 #include <unistd.h>
+#endif
+
+#if defined(PRODBG_NIX)
+#include <libgen.h>
+#include <errno.h>
+#include <unistd.h>
+#include <dlfcn.h>
+#endif
+
+#if defined(PRODBG_LINUX) 
+#define SO_PREFIX "lib"
+#define SO_SUFFIX ".so"
+#elif defined(PRODBG_MAC)
+#define SO_PREFIX "lib"
+#define SO_SUFFIX ".dylib"
+#elif defined(PRODBG_WINDOWS)
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#define SO_PREFIX ""
+#define SO_SUFFIX ".dll"
+#else
+#error unsupported platform
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,39 +52,118 @@ static void register_plugin(const char* type, void* data, void* private_data) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static const char* shared_object_error() {
+#if defined(PRODBG_WINDOWS)
+	static char error[512];
+	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+               NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+               error, sizeof(error), NULL);
+	return error;
+#elif defined(PRODBG_NIX)
+	return dlerror();
+#else
+#error unsuppored platform
+#endif
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// TODO: Widechar on Windows
+
+static char* get_exe_directory() {
+    static char base_path[8192];
+
+#if defined(PRODBG_WINDOWS)
+    if (GetModuleFileNameA(nullptr, base_path, sizeof(base_path)) == 0) {
+        printf("Unable to get executable path: %s", shared_object_error());
+        return nullptr;
+    }
+#elif defined(PRODBG_LINUX) 
+    if (readlink("/proc/self/exe", base_path, sizeof(base_path)) == -1) {
+        printf("Unable to get executable path: error %s\n", strerror(errno));
+        return nullptr;
+    }
+#elif defined(PRODBG_MAC)
+	uint32_t size = sizeof(base_path);
+    if (_NSGetExecutablePath(path, &size) != 0) {
+        printf("Unable to get executable path, size is to small %d", size);
+        return nullptr;
+    }
+#else
+#error "Unsupported platform"
+#endif
+    // find the first / or \ backwards in the output path and set that as end point
+    for (int i = strlen(base_path) - 1; i != 0; --i) {
+        if (base_path[i] == '/' || base_path[i] == '\\') {
+            base_path[i] = 0;
+            break;
+        }
+    }
+
+    return base_path;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void* shared_object_open(const char* base_path, const char* name) {
+	void* handle = NULL;
+	char path[8192];
+
+    // TODO: Support widechar on windows
+	sprintf(path, "%s/%s%s%s", base_path, SO_PREFIX, name, SO_SUFFIX);
+
+#if defined(PRODBG_WINDOWS)
+	handle = (void*)LoadLibraryA(path);
+#elif defined(PRODBG_NIX)
+	handle = dlopen(path, RTLD_LOCAL|RTLD_NOW);
+    if (!handle)
+    {
+        fprintf(stderr, "can't dlopen '%s': %s\n", path, dlerror());
+        exit(1);
+    }
+#else
+#error unsupported platform
+#endif
+
+	return handle;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void* shared_object_symbol(void* handle, const char* symbol_name) {
+#if defined(PRODBG_WINDOWS)
+	return GetProcAddress((HMODULE)handle, symbol_name);
+#elif defined(PRODBG_NIX)
+	return dlsym(handle, symbol_name);
+#else
+#error unsupported platform
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef void* (*InitPlugin)(RegisterPlugin* register_plugin, void* private_data);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool BackendPluginHandler::add_plugin(const char* filename) {
-    char cwd[PATH_MAX] = {0};
-    char fullname[PATH_MAX * 2] = {0};
+bool BackendPluginHandler::add_plugin(const char* name) {
+    const char* base_path = get_exe_directory();
 
-    ssize_t size = readlink("/proc/self/exe", cwd, sizeof(cwd));
-    if (size == -1) {
-        log_error("Unable to get executable path: error %s\n", strerror(errno));
-        return false;
-    }
+    // TODO: Better error handling
+    if (base_path == nullptr)
+        base_path = "";
 
-    char* path = dirname(cwd);
-
-    sprintf(fullname, "%s/lib%s.so", path, filename);
-    void* handle = dlopen(fullname, RTLD_LAZY);
+    void* handle = shared_object_open(base_path, name);
 
     if (!handle) {
-        log_error("Unable to open %s\n (error %s)\n", fullname, dlerror());
+        printf("Unable to open plugin: %s error: %s", name, shared_object_error());
         return false;
     }
 
-    // reset errors;
-    dlerror();
+    InitPlugin init_plugin = (InitPlugin)shared_object_symbol(handle, "pd_init_plugin");
 
-    InitPlugin init_plugin = (InitPlugin)dlsym(handle, "pd_init_plugin");
-    const char* dlsym_error = dlerror();
-    if (dlsym_error) {
-        log_error("Unable to open find \"pd_init_plugin\" in %s (error %s)\n", fullname, dlsym_error);
-        dlclose(handle);
-        return false;
+    if (!init_plugin) {
+        printf("Unable to open find \"pd_init_plugin\" in %s\n", name);
     }
 
     init_plugin(register_plugin, nullptr);
@@ -86,4 +185,5 @@ PDBackendPlugin* BackendPluginHandler::find_plugin(const char* name) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-};  // namespace prodbg
+}  // namespace prodbg
+

@@ -8,6 +8,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMenu>
 #include <QtGui/QPalette>
+#include <stdio.h>
 
 #include <ctype.h>
 #include <inttypes.h>
@@ -231,7 +232,7 @@ public:
         printf("about to request %p\n", m_interface.data());
 
         if (m_interface) {
-            printf("requesting %lx %lx\n", start, end);
+            //printf("requesting %lx %lx\n", start, end);
             m_interface->request_memory(start, end, &m_transfer_cache);
             m_transfer_in_progress = true;
         }

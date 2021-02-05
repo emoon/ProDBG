@@ -9,22 +9,19 @@
 
 #ifdef __clang__
   #pragma clang diagnostic push
+#elif _MSC_VER
+  #pragma warning( push )
 #else
   #pragma GCC diagnostic push
-#endif
-#ifdef _MSC_VER
-  #pragma warning( push )
 #endif
 
 #define ONIG_EXTERN extern
 #include "onigmo.h"
 
-#ifdef _MSC_VER
-  #pragma warning( pop )
-#endif
-
 #ifdef __clang__
   #pragma clang diagnostic pop
+#elif _MSC_VER
+  #pragma warning( pop )
 #else
   #pragma GCC diagnostic pop
 #endif
