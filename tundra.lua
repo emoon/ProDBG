@@ -15,6 +15,7 @@ local common = {
 
 local mac_opts = {
 	common,
+    "-DPRODBG_MAC", "-DPRODBG_NIX",
     "-Wall",
     "-Wno-switch-enum",
     "-I.",
@@ -46,18 +47,6 @@ local mac_opts = {
 -----------------------------------------------------------------------------------------------------------------------
 
 local macos = {
-	Defines = {
-		"PRODBG_MAC", "PRODBG_NIX",
-	},
-
-	Includes = {
-		"src/prodbg",
-		"src/external/flatbuffers/include",
-		"$(OBJECTDIR)/_generated/",
-		"$(QT5_INC)",
-		"$(OBJECTDIR)",
-	},
-
     Env = {
 		FLATC = "$(OBJECTDIR)$(SEP)flatc$(PROGSUFFIX)",
 		QT5_INC = native.getenv("QT5_INC"),
@@ -73,6 +62,11 @@ local macos = {
             "-isystem $(QT5_LIB)/QtWidgets.framework/Headers",
             "-isystem $(QT5_LIB)/QtCore.framework/Headers",
             "-isystem $(QT5_LIB)/QtGui.framework/Headers",
+            "-Isrc/prodbg",
+            "-Isrc/external/flatbuffers/include",
+            "-I$(OBJECTDIR)/_generated/",
+            "-I$(QT5_INC)",
+            "-I$(OBJECTDIR)",
             "-F$(QT5_LIB)",
             "-std=c++11",
         },
@@ -105,7 +99,7 @@ local gcc_opts = {
     "-I.",
     "-Wno-array-bounds", "-Wno-attributes", "-Wno-unused-value",
     "-DOBJECT_DIR=\\\"$(OBJECTDIR)\\\"",
-    "-Wall", "-DPRODBG_UNIX",
+    "-Wall", "-DPRODBG_NIX", "-DPRODBG_LINUX",
     "-fPIC",
     { "-O0", "-g"; Config = "*-*-debug" },
     { "-O3", "-g"; Config = "*-*-release" },
