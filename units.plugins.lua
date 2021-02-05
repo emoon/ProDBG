@@ -37,6 +37,56 @@ local function get_cpp_src(dir)
 	}
 end
 
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--[[
+SharedLibrary {
+    Name = "vamiga",
+
+    Includes = {
+		"src/addons/vamiga/Emulator",
+		"src/addons/vamiga/Emulator/Agnus",
+		"src/addons/vamiga/Emulator/Agnus/Blitter",
+		"src/addons/vamiga/Emulator/Agnus/Copper",
+		"src/addons/vamiga/Emulator/CIA",
+		"src/addons/vamiga/Emulator/CPU",
+		"src/addons/vamiga/Emulator/CPU/Moira",
+		"src/addons/vamiga/Emulator/Denise",
+		"src/addons/vamiga/Emulator/Drive",
+		"src/addons/vamiga/Emulator/Expansion",
+		"src/addons/vamiga/Emulator/Files",
+		"src/addons/vamiga/Emulator/FileSystems",
+		"src/addons/vamiga/Emulator/Foundation",
+		"src/addons/vamiga/Emulator/Memory",
+		"src/addons/vamiga/Emulator/Paula",
+		"src/addons/vamiga/Emulator/Paula/Audio",
+		"src/addons/vamiga/Emulator/Paula/DiskController",
+		"src/addons/vamiga/Emulator/Paula/UART",
+		"src/addons/vamiga/Emulator/Peripherals",
+		"src/addons/vamiga/Emulator/RTC",
+		"src/addons/vamiga/Emulator/xdm",
+		"src/addons/vamiga/Emulator/LogicBoard",
+		"src/addons/vamiga/Emulator/Files/RomFiles",
+		"src/addons/vamiga/Emulator/Files/DiskFiles",
+    },
+
+    Env = {
+        CXXOPTS = {
+			{ "-Wno-unused-result",
+			  "-Wno-reorder",
+			  "-Wno-unused-variable",
+			  "-std=c++17" ; Config = { "macos-*-*", "linux-*-*" }
+            },
+        },
+    },
+
+    Sources = {
+        get_cpp_src("src/addons/vamiga", true),
+    }
+}
+--]]
+
 -----------------------------------------------------------------------------------------------------------------------
 
 SharedLibrary {
@@ -210,6 +260,7 @@ end
 --  Default "dbgeng_plugin"
 --end
 
+-- Default "vamiga"
 Default "file"
 Default "dummy_backend"
 Default "register_view"

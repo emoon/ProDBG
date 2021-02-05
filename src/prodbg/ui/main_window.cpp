@@ -1,19 +1,19 @@
 #include "main_window.h"
 #include "recent_projects.h"
 
-#include "backend/backend_requests_interface.h"
 #include "backend/backend_requests.h"
+#include "backend/backend_requests_interface.h"
 #include "backend/backend_session.h"
 #include "breakpoint_model.h"
 #include "code_views.h"
 #include "core/plugin_handler.h"
 //#include "RegisterView/RegisterView.h"
-#include "view_handler.h"
 #include "fastdock/FastDock.h"
+#include "view_handler.h"
 
 // Dialogs
-#include "file_browser_view.h"
 #include "dialogs/prefs_dialog.h"
+#include "file_browser_view.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QIODevice>
@@ -21,18 +21,15 @@
 #include <QtCore/QSettings>
 #include <QtCore/QThread>
 #include <QtCore/QTimer>
+#include <QtGui/QCloseEvent>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMainWindow>
-#include <QtGui/QCloseEvent>
 
 namespace prodbg {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MainWindow::MainWindow()
-    : m_statusbar(new QStatusBar(this)),
-      m_backend(nullptr)
-{
+MainWindow::MainWindow() : m_statusbar(new QStatusBar(this)), m_backend(nullptr) {
     qRegisterMetaType<uint16_t>("uint16_t");
     qRegisterMetaType<uint32_t>("uint32_t");
     qRegisterMetaType<uint64_t>("uint64_t");
@@ -49,8 +46,7 @@ MainWindow::MainWindow()
 
     m_docking = new FastDock();
 
-
-    //setAllowedAreas(Qt::AllDockWidgetAreas);
+    // setAllowedAreas(Qt::AllDockWidgetAreas);
 
     // Create the view handler and load all view plugins
     m_view_handler = new ViewHandler(this);
@@ -69,10 +65,10 @@ MainWindow::MainWindow()
     create_views_menu();
 
     m_breakpoints = new BreakpointModel;
-    //m_code_views = new CodeViews(m_breakpoints, this);
+    // m_code_views = new CodeViews(m_breakpoints, this);
 
-    //m_code_views->open_file(QStringLiteral("/home/emoon/code/temp/debug_test/src/main.rs"), true);
-    //m_code_views->open_file(QStringLiteral("src/prodbg/Config/Config.cpp"), true);
+    // m_code_views->open_file(QStringLiteral("/home/emoon/code/temp/debug_test/src/main.rs"), true);
+    // m_code_views->open_file(QStringLiteral("src/prodbg/Config/Config.cpp"), true);
 
     // m_code_views->openFile(QStringLiteral("src/prodbg/main.cpp"),
     // m_breakpoints);
@@ -95,16 +91,16 @@ MainWindow::MainWindow()
 
     setStatusBar(m_statusbar);
 
-    //start_dummy_backend();
+    // start_dummy_backend();
 
     init_actions();
-    //read_settings();
+    // read_settings();
 
     init_recent_file_actions();
 
-    //auto t = new QWidget(nullptr);
-    //t->hide();
-    //setCentralWidget(t);
+    // auto t = new QWidget(nullptr);
+    // t->hide();
+    // setCentralWidget(t);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -164,7 +160,7 @@ void MainWindow::open_debug(bool stop_at_main) {
         return;
     }
 
-    //QString path = QStringLiteral("t2-output/linux-gcc-debug-default/crashing_native");
+    // QString path = QStringLiteral("t2-output/linux-gcc-debug-default/crashing_native");
 
     close_current_backend();
 
@@ -297,7 +293,7 @@ void MainWindow::setup_backend_connections() {
     connect(this, &MainWindow::step_in_backend, m_backend, &BackendSession::step_in);
 
     connect(m_backend, &BackendSession::target_reply, this, &MainWindow::target_reply);
-    //connect(m_file_browser, &FileBrowserView::open_file_signal, m_code_views, &CodeViews::open_file);
+    // connect(m_file_browser, &FileBrowserView::open_file_signal, m_code_views, &CodeViews::open_file);
 
     /*
        connect(this, &MainWindow::stepOverBackend, m_backend, &BackendSession::stepOver);
@@ -318,12 +314,12 @@ void MainWindow::target_reply(bool status, const QString& error_message) {
         start();
 
         // Hook-up the views to the backend
-        //connect(m_backend_requests, &IBackendRequests::program_counter_changed, m_code_views,
-         //       &CodeViews::program_counter_changed);
+        // connect(m_backend_requests, &IBackendRequests::program_counter_changed, m_code_views,
+        //       &CodeViews::program_counter_changed);
 
-        //m_locals_view->set_backend_interface(m_backend_requests);
-        //m_callstack_view->set_backend_interface(m_backend_requests);
-        //m_file_browser->set_backend_interface(m_backend_requests);
+        // m_locals_view->set_backend_interface(m_backend_requests);
+        // m_callstack_view->set_backend_interface(m_backend_requests);
+        // m_file_browser->set_backend_interface(m_backend_requests);
 
     } else {
         close_current_backend();
@@ -432,16 +428,16 @@ void MainWindow::create_view_instance(int index) {
 
     view.view_plugin->set_backend_interface(m_backend_requests);
 
-    //const QString& plugin_name = plugin_types[index].plugin_name;
+    // const QString& plugin_name = plugin_types[index].plugin_name;
 
-    //view_widget->setParent(dock);
+    // view_widget->setParent(dock);
 
-    //dock->setWidget(view_widget);
-    //dock->setAllowedAreas(Qt::AllDockWidgetAreas);
-    //dock->setAllowedAreas(Qt::TopDockWidgetArea);
+    // dock->setWidget(view_widget);
+    // dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    // dock->setAllowedAreas(Qt::TopDockWidgetArea);
 
     // make sure we have an unique objectname
-    //int count = m_view_names[plugin_name];
+    // int count = m_view_names[plugin_name];
     /*
 
     if (count > 0) {
@@ -454,7 +450,7 @@ void MainWindow::create_view_instance(int index) {
     */
 
     m_docking->addToolWindow(view.widget, FastDock::EmptySpace);
-    //addDockWidget(Qt::RightDockWidgetArea, dock);
+    // addDockWidget(Qt::RightDockWidgetArea, dock);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
