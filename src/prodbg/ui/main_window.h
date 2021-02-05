@@ -15,7 +15,6 @@ namespace prodbg {
 class Session;
 class CodeView;
 class MemoryView;
-class AmigaUAE;
 class BackendSession;
 // class RegisterView;
 class BackendRequests;
@@ -66,7 +65,6 @@ private:
     // Current supported backends (hard-coded for now)
     enum Backend {
         Dummy,
-        Amiga,
         Custom,
     };
 
@@ -77,7 +75,6 @@ private:
     void read_settings();
     void start_dummy_backend();
     void close_current_backend();
-    void start_amiga_uae_backend();
     void setup_backend_connections();
     void setup_backend(BackendSession* backend);
 
@@ -98,12 +95,6 @@ private:
     //LocalsView* m_locals_view = nullptr;
     //CallstackView* m_callstack_view = nullptr;
     ViewHandler* m_view_handler = nullptr;
-
-    // This is somewhat temporary but convinient to have
-    // QString m_lastAmigaExe;
-
-    // Hard-coded Amiga support. Would be nice to have this more modular
-    // AmigaUAE* m_amigaUae = nullptr;
 
     // List of recent projects
     RecentProjects* m_recent_projects = nullptr;

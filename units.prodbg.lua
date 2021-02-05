@@ -88,8 +88,6 @@ Program {
         gen_uic("src/prodbg/ui/callstack_view.ui"),
         gen_moc("src/prodbg/ui/callstack_view.h"),
 
-        -- gen_uic("src/prodbg/ui/Config/AmigaUAEConfig.ui"),
-        --gen_moc("src/prodbg/ui/Config/AmigaUAEConfig.h"),
         gen_moc("src/prodbg/ui/config/config.h"),
 
         -- gen_uic("src/prodbg/RegisterView/RegisterView.ui"),

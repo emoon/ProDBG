@@ -128,8 +128,6 @@ void MainWindow::init_actions() {
        connect(m_ui.actionStart, &QAction::triggered, this, &MainWindow::startDebug);
        connect(m_ui.actionReloadCurrentFile, &QAction::triggered, this, &MainWindow::reloadCurrentFile);
        connect(m_ui.actionStep_Over, &QAction::triggered, this, &MainWindow::stepOver);
-       connect(m_ui.actionAmiga_UAE, &QAction::triggered, this, &MainWindow::amigaUAEConfig);
-       connect(m_ui.actionDebugAmigaExe, &QAction::triggered, this, &MainWindow::debugAmigaExe);
        connect(m_ui.actionToggleBreakpoint, &QAction::triggered, this, &MainWindow::toggleBreakpoint);
        connect(m_ui.actionOpen, &QAction::triggered, this, &MainWindow::openSourceFile);
        connect(m_ui.actionBreak, &QAction::triggered, this, &MainWindow::breakContDebug);
@@ -401,13 +399,6 @@ void MainWindow::stop_internal() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::stop() {
-    /*
-    if (m_currentBackend == Amiga) {
-        m_amigaUae->killProcess();
-    } else {
-        stopInternal();
-    }
-    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -498,12 +489,6 @@ void MainWindow::closeEvent(QCloseEvent* event) {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
 
     write_settings();
-
-    /*
-    if (m_amigaUae) {
-        m_amigaUae->writeSettings();
-    }
-    */
 
     event->accept();
 }

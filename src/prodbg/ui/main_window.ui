@@ -69,7 +69,6 @@
      <string>&amp;Config</string>
     </property>
     <addaction name="actionPreferences"/>
-    <addaction name="actionAmiga_UAE"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -129,11 +128,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
-   </property>
-  </action>
-  <action name="actionAmiga_UAE">
-   <property name="text">
-    <string>Amiga UAE...</string>
    </property>
   </action>
   <action name="debug_file">

@@ -181,19 +181,6 @@ RustCrate {
 
 -----------------------------------------------------------------------------------------------------------------------
 
-RustSharedLibrary {
-	Name = "amiga_uae_plugin",
-	CargoConfig = "src/addons/amiga_uae_plugin/Cargo.toml",
-	Sources = {
-		get_rs_src("src/addons/amiga_uae_plugin"),
-		get_rs_src("src/crates/amiga_hunk_parser"),
-		get_rs_src("src/crates/gdb-remote"),
-		get_rs_src("api/rust/prodbg"),
-	}
-}
-
------------------------------------------------------------------------------------------------------------------------
-
 SharedLibrary {
     Name = "dummy_backend",
 
@@ -224,7 +211,6 @@ end
 --end
 
 Default "file"
-Default "amiga_uae_plugin"
 Default "dummy_backend"
 Default "register_view"
 Default "memory_view"

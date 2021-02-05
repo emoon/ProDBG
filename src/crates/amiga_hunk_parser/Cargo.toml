@@ -1,7 +1,0 @@
-[package]
-name = "amiga_hunk_parser"
-version = "0.1.0"
-authors = ["Daniel Collin <daniel@collin.com>"]
-
-[dependencies]
-byteorder = "0.5"
