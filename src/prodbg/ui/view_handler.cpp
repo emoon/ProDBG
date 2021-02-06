@@ -36,13 +36,10 @@ bool ViewHandler::load_plugins(const QString& plugin_dir) {
             continue;
         }
 
-        qDebug() << filename;
         QPluginLoader* plugin_loader = new QPluginLoader(dir.absoluteFilePath(filename));
         QJsonObject meta_data = plugin_loader->metaData();
 
         QJsonValue plugin_name_obj = meta_data.value(QStringLiteral("MetaData"));
-        qDebug() << meta_data;
-        qDebug() << plugin_name_obj;
 
         if (plugin_name_obj == QJsonValue::Undefined) {
             delete plugin_loader;

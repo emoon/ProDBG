@@ -163,6 +163,8 @@ bool BackendPluginHandler::add_plugin(const char* name) {
         printf("Unable to open find \"pd_init_plugin\" in %s\n", name);
     }
 
+    printf("Register plugin %s\n", name);
+
     init_plugin(register_plugin, nullptr);
     return true;
 }
