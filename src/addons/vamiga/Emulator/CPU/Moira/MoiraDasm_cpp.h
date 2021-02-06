@@ -83,11 +83,11 @@ Moira::Op(u16 reg, u32 &pc)
 
             if (result.ext1 & 0x100) {
 
-                int dw = baseDispWords((u16)result.ext1);
+                int dw = baseDispWords(result.ext1);
                 if (dw == 1) result.ext2 = dasmRead<Word>(pc);
                 if (dw == 2) result.ext2 = dasmRead<Long>(pc);
 
-                int ow = outerDispWords((u16)result.ext1);
+                int ow = outerDispWords(result.ext1);
                 if (ow == 1) result.ext3 = dasmRead<Word>(pc);
                 if (ow == 2) result.ext3 = dasmRead<Long>(pc);
             }
@@ -578,7 +578,7 @@ Moira::dasmMovea(StrWriter &str, u32 &addr, u16 op)
 template<Instr I, Mode M, Size S> void
 Moira::dasmMovemEaRg(StrWriter &str, u32 &addr, u16 op)
 {
-    auto dst = RegRegList ( (u16)dasmRead<Word>(addr)  );
+    auto dst = RegRegList ( dasmRead<Word>(addr)       );
     auto src = Op <M,S>   ( _____________xxx(op), addr );
 
     str << Ins<I>{} << Sz<S>{} << tab << src << ", " << dst;
@@ -587,7 +587,7 @@ Moira::dasmMovemEaRg(StrWriter &str, u32 &addr, u16 op)
 template<Instr I, Mode M, Size S> void
 Moira::dasmMovemRgEa(StrWriter &str, u32 &addr, u16 op)
 {
-    auto src = RegRegList ( (u16)dasmRead<Word>(addr)  );
+    auto src = RegRegList ( dasmRead<Word>(addr)       );
     auto dst = Op <M,S>   ( _____________xxx(op), addr );
 
     if (M == 4) { src.raw = REVERSE_16(src.raw); }

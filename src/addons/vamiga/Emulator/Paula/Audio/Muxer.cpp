@@ -10,29 +10,18 @@
 #include "Amiga.h"
 
 Muxer::Muxer(Amiga& ref) : AmigaComponent(ref)
-{    
+{
+    setDescription("Muxer");
+    
     subComponents = vector<HardwareComponent *> {
 
         &filterL,
         &filterR
     };
     
-    sampler[0] = new Sampler();
-    sampler[1] = new Sampler();
-    sampler[2] = new Sampler();
-    sampler[3] = new Sampler();
-
     setSampleRate(44100);
 }
- 
-Muxer::~Muxer()
-{
-    delete sampler[0];
-    delete sampler[1];
-    delete sampler[2];
-    delete sampler[3];
-}
-
+    
 void
 Muxer::_reset(bool hard)
 {
@@ -41,8 +30,16 @@ Muxer::_reset(bool hard)
     stats.bufferUnderflows = 0;
     stats.bufferOverflows = 0;
 
-    for (isize i = 0; i < 4; i++) sampler[i]->reset();
-    stream.clear();
+    sampler[0].clear();
+    sampler[1].clear();
+    sampler[2].clear();
+    sampler[3].clear();
+
+    // Add dummy elements, because some methods assume the buffer is never empty
+    sampler[0].write( TaggedSample { 0, 0 } );
+    sampler[1].write( TaggedSample { 0, 0 } );
+    sampler[2].write( TaggedSample { 0, 0 } );
+    sampler[3].write( TaggedSample { 0, 0 } );
 }
 
 void
@@ -60,7 +57,7 @@ Muxer::clear()
 }
 
 long
-Muxer::getConfigItem(Option option) const
+Muxer::getConfigItem(ConfigOption option)
 {
     switch (option) {
             
@@ -76,36 +73,41 @@ Muxer::getConfigItem(Option option) const
             return config.filterAlwaysOn;
 
         case OPT_AUDVOLL:
-            return config.volL;
+            return (long)(exp2(config.volL) * 100.0);
 
         case OPT_AUDVOLR:
-            return config.volR;
+            return (long)(exp2(config.volR) * 100.0);
 
-        default:
-            assert(false);
-            return 0;
-    }
-}
+        case OPT_AUDVOL0:
+            return (long)(exp2(config.vol[0] / 0.0000025) * 100.0);
 
-long
-Muxer::getConfigItem(Option option, long id) const
-{
-    switch (option) {
+        case OPT_AUDVOL1:
+            return (long)(exp2(config.vol[1] / 0.0000025) * 100.0);
             
-        case OPT_AUDVOL:
-            return config.vol[id];
-
-        case OPT_AUDPAN:
-            return config.pan[id];
+        case OPT_AUDVOL2:
+            return (long)(exp2(config.vol[2] / 0.0000025) * 100.0);
             
-        default:
-            assert(false);
-            return 0;
+        case OPT_AUDVOL3:
+            return (long)(exp2(config.vol[3] / 0.0000025) * 100.0);
+
+        case OPT_AUDPAN0:
+            return (long)(config.pan[0] * 100.0);
+            
+        case OPT_AUDPAN1:
+            return (long)(config.pan[1] * 100.0);
+            
+        case OPT_AUDPAN2:
+            return (long)(config.pan[2] * 100.0);
+            
+        case OPT_AUDPAN3:
+            return (long)(config.pan[3] * 100.0);
+
+        default: assert(false);
     }
 }
 
 bool
-Muxer::setConfigItem(Option option, long value)
+Muxer::setConfigItem(ConfigOption option, long value)
 {
     bool wasMuted = isMuted();
     
@@ -113,8 +115,55 @@ Muxer::setConfigItem(Option option, long value)
             
         case OPT_SAMPLING_METHOD:
             
-            if (!SamplingMethodEnum::verify(value)) return false;
+            if (!isSamplingMethod(value)) {
+                warn("Invalid sampling method: %d\n", value);
+                return false;
+            }
+            break;
+            
+        case OPT_FILTER_TYPE:
+            
+            if (!isFilterType(value)) {
+                warn("Invalid filter type: %d\n", value);
+                warn("       Valid values: 0 ... %d\n", FILT_COUNT - 1);
+                return false;
+            }
+            break;
+            
+        case OPT_AUDVOLL:
+        case OPT_AUDVOLR:
+        case OPT_AUDVOL0:
+        case OPT_AUDVOL1:
+        case OPT_AUDVOL2:
+        case OPT_AUDVOL3:
+            
+            if (value < 100 || value > 400) {
+                warn("Invalid volumne: %d\n", value);
+                warn("       Valid values: 100 ... 400\n");
+                return false;
+            }
+            break;
+            
+        case OPT_AUDPAN0:
+        case OPT_AUDPAN1:
+        case OPT_AUDPAN2:
+        case OPT_AUDPAN3:
+            
+            if (value < 0 || value > 100) {
+                warn("Invalid pan: %d\n", value);
+                warn("       Valid values: 0 ... 100\n");
+                return false;
+            }
+            break;
+            
+        default:
+            break;
+    }
 
+    switch (option) {
+            
+        case OPT_SAMPLING_METHOD:
+            
             if (config.samplingMethod == value) {
                 return false;
             }
@@ -124,8 +173,6 @@ Muxer::setConfigItem(Option option, long value)
             
         case OPT_FILTER_TYPE:
             
-            if (!FilterTypeEnum::verify(value)) return false;
-
             if (config.filterType == value) {
                 return false;
             }
@@ -146,63 +193,55 @@ Muxer::setConfigItem(Option option, long value)
 
         case OPT_AUDVOLL:
             
-            if (value < 0) value = 0;
-            if (value > 100) value = 100;
-
-            config.volL = value;
-            volL = pow((double)value / 50, 1.4);
-                        
+            config.volL = log2((double)value / 100.0);
             if (wasMuted != isMuted())
                 messageQueue.put(isMuted() ? MSG_MUTE_ON : MSG_MUTE_OFF);
             return true;
             
         case OPT_AUDVOLR:
 
-            if (value < 0) value = 0;
-            if (value > 100) value = 100;
-
-            config.volR = value;
-            volR = pow((double)value / 50, 1.4);
-
+            config.volR = log2((double)value / 100.0);
             if (wasMuted != isMuted())
                 messageQueue.put(isMuted() ? MSG_MUTE_ON : MSG_MUTE_OFF);
             return true;
             
-        default:
-            return false;
-    }
-}
-
-bool
-Muxer::setConfigItem(Option option, long id, long value)
-{    
-    switch (option) {
-                        
-        case OPT_AUDVOL:
-    
-            assert(id >= 0 && id <= 3);
-            if (value < 0) value = 0;
-            if (value > 100) value = 100;
+        case OPT_AUDVOL0:
             
-            config.vol[id] = value;
-            vol[id] = pow((double)value / 100, 1.4) * 0.0000025;
-            
+            config.vol[0] = log2((double)value / 100.0) * 0.0000025;
             return true;
             
-        case OPT_AUDPAN:
-                        
-            assert(id >= 0 && id <= 3);
-            if (value < 0 || value > 200) {
-                warn(" Invalid pan: %ld\n", value);
-                warn("Valid values: 0 ... 200\n");
-                return false;
-            }
-
-            config.pan[id] = value;
+        case OPT_AUDVOL1:
             
-            if (value <= 50) pan[id] = (50 + value) / 100.0;
-            else if (value <= 150) pan[id] = (150 - value) / 100.0;
-            else if (value <= 200) pan[id] = (value - 150) / 100.0;
+            config.vol[1] = log2((double)value / 100.0) * 0.0000025;
+            return true;
+
+        case OPT_AUDVOL2:
+            
+            config.vol[2] = log2((double)value / 100.0) * 0.0000025;
+            return true;
+
+        case OPT_AUDVOL3:
+            
+            config.vol[3] = log2((double)value / 100.0) * 0.0000025;
+            return true;
+
+        case OPT_AUDPAN0:
+            
+            config.pan[0] = MAX(0.0, MIN(value / 100.0, 1.0));
+            return true;
+
+        case OPT_AUDPAN1:
+            config.pan[1] = MAX(0.0, MIN(value / 100.0, 1.0));
+            return true;
+
+        case OPT_AUDPAN2:
+            
+            config.pan[2] = MAX(0.0, MIN(value / 100.0, 1.0));
+            return true;
+
+        case OPT_AUDPAN3:
+            
+            config.pan[3] = MAX(0.0, MIN(value / 100.0, 1.0));
             return true;
 
         default:
@@ -211,16 +250,16 @@ Muxer::setConfigItem(Option option, long id, long value)
 }
 
 void
-Muxer::_dumpConfig() const
+Muxer::_dumpConfig()
 {
-    msg("samplingMethod : %s\n", SamplingMethodEnum::key(config.samplingMethod));
-    msg("    filtertype : %s\n", FilterTypeEnum::key(config.filterType));
+    msg("samplingMethod : %s\n", sSamplingMethod(config.samplingMethod));
+    msg("    filtertype : %s\n", sFilterType(config.filterType));
     msg("filterAlwaysOn : %d\n", config.filterAlwaysOn);
-    msg("    vol0, pan0 : %lld, %lld\n", config.vol[0], config.pan[0]);
-    msg("    vol1, pan1 : %lld, %lld\n", config.vol[1], config.pan[1]);
-    msg("    vol2, pan2 : %lld, %lld\n", config.vol[2], config.pan[2]);
-    msg("    vol3, pan3 : %lld, %lld\n", config.vol[3], config.pan[3]);
-    msg("    volL, volR : %lld, %lld\n", config.volL, config.volR);
+    msg("    vol0, pan0 : %f, %f\n", config.vol[0], config.pan[0]);
+    msg("    vol1, pan1 : %f, %f\n", config.vol[1], config.pan[1]);
+    msg("    vol2, pan2 : %f, %f\n", config.vol[2], config.pan[2]);
+    msg("    vol3, pan3 : %f, %f\n", config.vol[3], config.pan[3]);
+    msg("    volL, volR : %f, %f\n", config.volL, config.volR);
 }
 
 void
@@ -233,13 +272,6 @@ Muxer::setSampleRate(double hz)
 
     filterL.setSampleRate(hz);
     filterR.setSampleRate(hz);
-}
-
-isize
-Muxer::didLoadFromBuffer(const u8 *buffer)
-{
-    for (isize i = 0; i < 4; i++) sampler[i]->reset();
-    return 0;
 }
 
 void
@@ -310,46 +342,46 @@ template <SamplingMethod method> void
 Muxer::synthesize(Cycle clock, long count, double cyclesPerSample)
 {
     assert(count > 0);
-
-    stream.lock();
     
+    bool filter = ciaa.powerLED() || config.filterAlwaysOn;
+
     // Check for a buffer overflow
     if (stream.count() + count >= stream.cap()) handleBufferOverflow();
 
     double cycle = clock;
-    bool filter = ciaa.powerLED() || config.filterAlwaysOn;
-
     for (long i = 0; i < count; i++) {
 
-        double ch0 = sampler[0]->interpolate<method>((Cycle)cycle) * vol[0];
-        double ch1 = sampler[1]->interpolate<method>((Cycle)cycle) * vol[1];
-        double ch2 = sampler[2]->interpolate<method>((Cycle)cycle) * vol[2];
-        double ch3 = sampler[3]->interpolate<method>((Cycle)cycle) * vol[3];
+        double ch0 = sampler[0].interpolate<method>((Cycle)cycle) * config.vol[0];
+        double ch1 = sampler[1].interpolate<method>((Cycle)cycle) * config.vol[1];
+        double ch2 = sampler[2].interpolate<method>((Cycle)cycle) * config.vol[2];
+        double ch3 = sampler[3].interpolate<method>((Cycle)cycle) * config.vol[3];
+
+        /*
+        if (this == &denise.screenRecorder.muxer)
+        {
+            dumpConfig();
+            debug("ch0: %f ch1: %f ch2: %f ch3: %f\n", ch0, ch1, ch2, ch3);
+        }
+        */
         
         // Compute left channel output
         float l =
-        ch0 * (1 - pan[0]) + ch1 * (1 - pan[1]) +
-        ch2 * (1 - pan[2]) + ch3 * (1 - pan[3]);
+        ch0 * config.pan[0] + ch1 * config.pan[1] +
+        ch2 * config.pan[2] + ch3 * config.pan[3];
 
         // Compute right channel output
         float r =
-        ch0 * pan[0] + ch1 * pan[1] +
-        ch2 * pan[2] + ch3 * pan[3];
-
+        ch0 * (1 - config.pan[0]) + ch1 * (1 - config.pan[1]) +
+        ch2 * (1 - config.pan[2]) + ch3 * (1 - config.pan[3]);
+        
         // Apply audio filter
         if (filter) { l = filterL.apply(l); r = filterR.apply(r); }
-        
-        // Apply master volume
-        l *= volL;
-        r *= volR;
         
         // Write sample into ringbuffer
         stream.write( SamplePair { l, r } );
         
         cycle += cyclesPerSample;
     }
-    
-    stream.unlock();
 }
 
 void
@@ -360,7 +392,7 @@ Muxer::handleBufferUnderflow()
     // (1) The consumer runs slightly faster than the producer
     // (2) The producer is halted or not startet yet
     
-    trace(AUDBUF_DEBUG, "UNDERFLOW (r: %lld w: %lld)\n", stream.r, stream.w);
+    trace(AUDBUF_DEBUG, "UNDERFLOW (r: %d w: %d)\n", stream.r, stream.w);
     
     // Reset the write pointer
     stream.alignWritePtr();
@@ -389,7 +421,7 @@ Muxer::handleBufferOverflow()
     // (1) The consumer runs slightly slower than the producer
     // (2) The consumer is halted or not startet yet
     
-    trace(AUDBUF_DEBUG, "OVERFLOW (r: %lld w: %lld)\n", stream.r, stream.w);
+    trace(AUDBUF_DEBUG, "OVERFLOW (r: %d w: %d)\n", stream.r, stream.w);
     
     // Reset the write pointer
     stream.alignWritePtr();
@@ -417,47 +449,35 @@ Muxer::handleBufferOverflow()
 void
 Muxer::ignoreNextUnderOrOverflow()
 {
-    lastAlignment = Oscillator::nanos();
+    lastAlignment = oscillator.nanos();
 }
 
 void
-Muxer::copyMono(float *buffer, isize n)
+Muxer::copyMono(float *buffer, size_t n)
 {
-    stream.lock();
-    
     // Check for a buffer underflow
     if (stream.count() < n) handleBufferUnderflow();
     
-    // Copy sound samples
+    // Read sound samples
     stream.copyMono(buffer, n, volume.current, volume.target, volume.delta);
-    
-    stream.unlock();
 }
 
 void
-Muxer::copyStereo(float *left, float *right, isize n)
+Muxer::copyStereo(float *left, float *right, size_t n)
 {
-    stream.lock();
-    
     // Check for a buffer underflow
     if (stream.count() < n) handleBufferUnderflow();
     
-    // Copy sound samples
+    // Read sound samples
     stream.copy(left, right, n, volume.current, volume.target, volume.delta);
-    
-    stream.unlock();
 }
 
 void
-Muxer::copyInterleaved(float *buffer, isize n)
+Muxer::copyInterleaved(float *buffer, size_t n)
 {
-    stream.lock();
-    
     // Check for a buffer underflow
     if (stream.count() < n) handleBufferUnderflow();
     
-    // Copy sound samples
+    // Read sound samples
     stream.copyInterleaved(buffer, n, volume.current, volume.target, volume.delta);
-    
-    stream.unlock();
 }

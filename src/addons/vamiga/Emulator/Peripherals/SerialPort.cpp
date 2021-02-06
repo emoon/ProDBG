@@ -11,31 +11,31 @@
 
 SerialPort::SerialPort(Amiga& ref) : AmigaComponent(ref)
 {
+    setDescription("SerialPort");
+
     config.device = SPD_LOOPBACK;
 }
 
 long
-SerialPort::getConfigItem(Option option) const
+SerialPort::getConfigItem(ConfigOption option)
 {
     switch (option) {
             
         case OPT_SERIAL_DEVICE: return (long)config.device;
         
-        default:
-            assert(false);
-            return 0;
+        default: assert(false);
     }
 }
 
 bool
-SerialPort::setConfigItem(Option option, long value)
+SerialPort::setConfigItem(ConfigOption option, long value)
 {
     switch (option) {
             
         case OPT_SERIAL_DEVICE:
             
             if (!isSerialPortDevice(value)) {
-                warn("Invalid serial port device: %ld\n", value);
+                warn("Invalid serial port device: %d\n", value);
                 return false;
             }
             if (config.device == value) {
@@ -67,14 +67,14 @@ SerialPort::_inspect()
 }
 
 void
-SerialPort::_dump() const
+SerialPort::_dump()
 {
-    msg("    device: %ld\n", (long)config.device);
+    msg("    device: %d\n", config.device);
     msg("      port: %X\n", port);
 }
 
 bool
-SerialPort::getPin(isize nr) const
+SerialPort::getPin(int nr)
 {
     assert(nr >= 1 && nr <= 25);
 
@@ -85,7 +85,7 @@ SerialPort::getPin(isize nr) const
 }
 
 void
-SerialPort::setPin(isize nr, bool value)
+SerialPort::setPin(int nr, bool value)
 {
     // debug(SER_DEBUG, "setPin(%d,%d)\n", nr, value);
     assert(nr >= 1 && nr <= 25);

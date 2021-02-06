@@ -7,13 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
-
-#include "AmigaConfig.h"
-#include "AmigaConstants.h"
-#include "Debug.h"
-#include "Errors.h"
-#include "AmigaTypes.h"
+#ifndef _AMIGA_UTILS_H
+#define _AMIGA_UTILS_H
 
 #include <assert.h>
 #include <limits.h>
@@ -26,13 +21,10 @@
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <dirent.h>
-#include <string>
-#include <set>
-#include <sstream>
-#include <fstream>
 
-using std::string;
+#include "AmigaConfig.h"
+#include "AmigaConstants.h"
+
 
 //
 // Optimizing code
@@ -56,23 +48,6 @@ bool releaseBuild();
 // Macros for converting kilo Hertz and mega Hertz to Hertz
 #define KHz(x) ((x) * 1000)
 #define MHz(x) ((x) * 1000000)
-
-
-//
-// Performing overflow-prone arithmetic
-//
-
-// Sanitizer friendly macros for adding signed offsets to u32 values
-#define U32_ADD(x,y) (u32)((i64)(x) + (i64)(y))
-#define U32_SUB(x,y) (u32)((i64)(x) - (i64)(y))
-#define U32_ADD3(x,y,z) (u32)((i64)(x) + (i64)(y) + (i64)(z))
-#define U32_SUB3(x,y,z) (u32)((i64)(x) - (i64)(y) - (i64)(z))
-
-// Sanitizer friendly macros for adding signed offsets to u64 values
-#define U64_ADD(x,y) (u64)((i64)(x) + (i64)(y))
-#define U64_SUB(x,y) (u64)((i64)(x) - (i64)(y))
-#define U64_ADD3(x,y,z) (u64)((i64)(x) + (i64)(y) + (i64)(z))
-#define U64_SUB3(x,y,z) (u64)((i64)(x) - (i64)(y) - (i64)(z))
 
 
 //
@@ -138,79 +113,85 @@ bool releaseBuild();
 
 
 //
-// Accessing memory
-//
-
-// Reads a value in big-endian format
-#define R8BE(a)  (*(u8 *)(a))
-#define R16BE(a) HI_LO(*(u8 *)(a), *(u8 *)((a)+1))
-#define R32BE(a) HI_HI_LO_LO(*(u8 *)(a), *(u8 *)((a)+1), *(u8 *)((a)+2), *(u8 *)((a)+3))
-
-#define R8BE_ALIGNED(a)  (*(u8 *)(a))
-#define R16BE_ALIGNED(a) (htons(*(u16 *)(a)))
-#define R32BE_ALIGNED(a) (htonl(*(u32 *)(a)))
-
-// Writes a value in big-endian format
-#define W8BE(a,v)  { *(u8 *)(a) = (v); }
-#define W16BE(a,v) { *(u8 *)(a) = HI_BYTE(v); *(u8 *)((a)+1) = LO_BYTE(v); }
-#define W32BE(a,v) { W16BE(a,HI_WORD(v)); W16BE((a)+2,LO_WORD(v)); }
-
-#define W8BE_ALIGNED(a,v)  { *(u8 *)(a) = (u8)(v); }
-#define W16BE_ALIGNED(a,v) { *(u16 *)(a) = ntohs((u16)v); }
-#define W32BE_ALIGNED(a,v) { *(u32 *)(a) = ntohl((u32)v); }
-
-
-//
-// Pretty printing
-//
-
-// Prints a hex dump of a buffer to the console (for debugging)
-void hexdump(u8 *p, isize size, isize cols, isize pad);
-void hexdump(u8 *p, isize size, isize cols = 32);
-void hexdumpWords(u8 *p, isize size, isize cols = 32);
-void hexdumpLongwords(u8 *p, isize size, isize cols = 32);
-
-
-//
 // Handling files
 //
 
-// Extracts a certain component from a path
-string extractPath(const string &path);
-string extractName(const string &path);
-string extractSuffix(const string &path);
+/* Extracts the first path component.
+ * Returns a newly created string. You need to delete it manually.
+ */
+char *extractFirstPathComponent(const char *path);
 
-// Strips a certain component from a path
-string stripPath(const string &path);
-string stripName(const string &path);
-string stripSuffix(const string &path);
+/* Extracts the n-th path component.
+ * Returns a newly created string. You need to delete it manually.
+ */
+char *extractPathComponent(const char *path, unsigned n);
 
-// Returns the size of a file in bytes
-isize getSizeOfFile(const string &path);
-isize getSizeOfFile(const char *path);
+/* Strips the filename from a path.
+ * Returns a newly created string. You need to delete it manually.
+ */
+char *stripFilename(const char *path);
+
+/* Extracts the filename from a path.
+ * Returns a newly created string. You need to delete it manually.
+ */
+char *extractFilename(const char *path);
+
+/* Replaces a filename from a path.
+ * Returns a newly created string. You need to delete it manually.
+ */
+char *replaceFilename(const char *path, const char *name);
+
+/* Extracts file suffix from a path.
+ * Returns a newly created string. You need to delete it manually.
+ */
+char *extractSuffix(const char *path);
+
+/* Extracts filename from a path without its suffix.
+ * Returns a newly created string. You need to delete it manually.
+ */
+char *extractFilenameWithoutSuffix(const char *path);
+
+/* Compares the file suffix with a given string.
+ * The function is used for determining the type of a file.
+ */
+bool checkFileSuffix(const char *path, const char *suffix);
 
 // Checks if a path points to a directory
-bool isDirectory(const string &path);
 bool isDirectory(const char *path);
 
-// Returns the number of files in a directory
-isize numDirectoryItems(const string &path);
-isize numDirectoryItems(const char *path);
+// Returns the size of a file in bytes
+long getSizeOfFile(const char *path);
 
-// Checks the header signature (magic bytes) of a stream or buffer
-bool matchingStreamHeader(std::istream &stream, const u8 *header, isize len);
-bool matchingBufferHeader(const u8 *buffer, const u8 *header, isize len);
+// Checks the size of a file
+bool checkFileSize(const char *path, long size);
+bool checkFileSizeRange(const char *path, long min, long max);
+
+// Checks the header signature (magic bytes) of a file or buffer
+bool matchingFileHeader(const char *path, const u8 *header, size_t length);
+bool matchingBufferHeader(const u8 *buffer, const u8 *header, size_t length);
 
 // Loads a file from disk
-bool loadFile(const char *path, u8 **buffer, isize *size);
-bool loadFile(const char *path, const char *name, u8 **buffer, isize *size);
+bool loadFile(const char *path, u8 **buffer, long *size);
+bool loadFile(const char *path, const char *name, u8 **buffer, long *size);
 
 
 //
-// Handling streams
+// Controlling time
 //
 
-isize streamLength(std::istream &stream);
+// Puts the current thread to sleep for a given amout of micro seconds
+// void sleepMicrosec(unsigned usec);
+
+/* Sleeps until the kernel timer reaches kernelTargetTime
+ *
+ * kernelEarlyWakeup: To increase timing precision, the function wakes up the
+ *                    thread earlier by this amount and waits actively in a
+ *                    delay loop until the deadline is reached.
+ *
+ * Returns the overshoot time (jitter), measured in kernel time units. Smaller
+ * values are better, 0 is best.
+ */
+// i64 sleepUntil(u64 kernelTargetTime, u64 kernelEarlyWakeup);
 
 
 //
@@ -222,14 +203,19 @@ inline u32 fnv_1a_init32() { return 0x811c9dc5; }
 inline u64 fnv_1a_init64() { return 0xcbf29ce484222325; }
 
 // Performs a single iteration of the FNV-1a hash algorithm
-u32 fnv_1a_it32(u32 prv, u32 val);
-u64 fnv_1a_it64(u64 prv, u64 val);
+inline u32 fnv_1a_it32(u32 prv, u32 val) { return (prv ^ val) * 0x1000193; }
+inline u64 fnv_1a_it64(u64 prv, u64 val) { return (prv ^ val) * 0x100000001b3; }
 
 // Computes a FNV-1a checksum for a given buffer
-u32 fnv_1a_32(const u8 *addr, isize size);
-u64 fnv_1a_64(const u8 *addr, isize size);
+u32 fnv_1a_32(const u8 *addr, size_t size);
+u64 fnv_1a_64(const u8 *addr, size_t size);
 
 // Computes a CRC checksum for a given buffer
-u16 crc16(const u8 *addr, isize size);
-u32 crc32(const u8 *addr, isize size);
+u16 crc16(const u8 *addr, size_t size);
+u32 crc32(const u8 *addr, size_t size);
 u32 crc32forByte(u32 r);
+
+// Computes a SHA-1 checksum for a given buffer
+int sha_1(u8 *digest, char *hexdigest, const u8 *addr, size_t size);
+
+#endif

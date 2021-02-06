@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _JOYSTICK_H
+#define _JOYSTICK_H
 
 #include "AmigaComponent.h"
 
@@ -47,22 +48,20 @@ class Joystick : public AmigaComponent {
     
 public:
     
-    Joystick(Amiga& ref, ControlPort& pref) : AmigaComponent(ref), port(pref) { };
+    Joystick(Amiga& ref, ControlPort& pref);
 
-    const char *getDescription() const override;
-    
 private:
     
     void _reset(bool hard) override;
 
     
     //
-    // Analyzing
+    // Configuring
     //
     
 private:
     
-    void _dump() const override;
+    void _dump() override;
 
     
     //
@@ -86,10 +85,10 @@ private:
     {
     }
 
-    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
-    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
-    isize didLoadFromBuffer(const u8 *buffer) override;
+    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
+    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    size_t didLoadFromBuffer(u8 *buffer) override;
     
     
     //
@@ -99,15 +98,15 @@ private:
 public:
     
     // Configures autofire mode
-    bool getAutofire() const { return autofire; }
+    bool getAutofire() { return autofire; }
     void setAutofire(bool value);
     
     // Configures the bullets per gun volley (negative value = infinite)
-    int getAutofireBullets() const { return autofireBullets; }
+    int getAutofireBullets() { return autofireBullets; }
     void setAutofireBullets(int value);
     
     // Configures the autofire frequency
-    float getAutofireFrequency() const { return autofireFrequency; }
+    float getAutofireFrequency() { return autofireFrequency; }
     void setAutofireFrequency(float value) { autofireFrequency = value; }
 
 private:
@@ -118,7 +117,7 @@ private:
 public:
 
     // Modifies the PRA bits of CIA A according to the current button state
-    void changePra(u8 &pra) const;
+    void changePra(u8 &pra);
 
 
     //
@@ -128,10 +127,10 @@ public:
 public:
 
     // Callback handler for function ControlPort::joydat()
-    u16 joydat() const;
+    u16 joydat();
 
     // Callback handler for function ControlPort::ciapa()
-    u8 ciapa() const;
+    u8 ciapa();
     
     // Triggers a gamepad event
     void trigger(GamePadAction event);
@@ -141,3 +140,5 @@ public:
      */
     void execute();
 };
+
+#endif

@@ -9,23 +9,23 @@
 
 #define SUPERVISOR_MODE_ONLY if (!reg.sr.s) { execPrivilegeException(); return; }
 
-#define REVERSE_8(x) (u8)(((x) * 0x0202020202ULL & 0x010884422010ULL) % 1023)
-#define REVERSE_16(x) (u16)((REVERSE_8((x) & 0xFF) << 8) | REVERSE_8(((x) >> 8) & 0xFF))
+#define REVERSE_8(x) (((x) * 0x0202020202ULL & 0x010884422010ULL) % 1023)
+#define REVERSE_16(x) ((REVERSE_8((x) & 0xFF) << 8) | REVERSE_8(((x) >> 8) & 0xFF))
 
-#define ______________xx(opcode) (u8)((opcode >> 0)  & 0b11)
-#define _____________xxx(opcode) (u8)((opcode >> 0)  & 0b111)
-#define ____________xxxx(opcode) (u8)((opcode >> 0)  & 0b1111)
-#define ________xxxxxxxx(opcode) (u8)((opcode >> 0)  & 0b11111111)
-#define __________xxx___(opcode) (u8)((opcode >> 3)  & 0b111)
-#define __________xx____(opcode) (u8)((opcode >> 4)  & 0b11)
-#define _______xxx______(opcode) (u8)((opcode >> 6)  & 0b111)
-#define _________x______(opcode) (u8)((opcode >> 6)  & 0b1)
-#define ________x_______(opcode) (u8)((opcode >> 7)  & 0b1)
-#define _______x________(opcode) (u8)((opcode >> 8)  & 0b1)
-#define _____xx_________(opcode) (u8)((opcode >> 9)  & 0b11)
-#define ____xxx_________(opcode) (u8)((opcode >> 9)  & 0b111)
-#define ____x___________(opcode) (u8)((opcode >> 11) & 0b1)
-#define xxxx____________(opcode) (u8)((opcode >> 12) & 0b1111)
+#define ______________xx(opcode) (u16)((opcode >> 0)  & 0b11)
+#define _____________xxx(opcode) (u16)((opcode >> 0)  & 0b111)
+#define ____________xxxx(opcode) (u16)((opcode >> 0)  & 0b1111)
+#define ________xxxxxxxx(opcode) (u16)((opcode >> 0)  & 0b11111111)
+#define __________xxx___(opcode) (u16)((opcode >> 3)  & 0b111)
+#define __________xx____(opcode) (u16)((opcode >> 4)  & 0b11)
+#define _______xxx______(opcode) (u16)((opcode >> 6)  & 0b111)
+#define _________x______(opcode) (u16)((opcode >> 6)  & 0b1)
+#define ________x_______(opcode) (u16)((opcode >> 7)  & 0b1)
+#define _______x________(opcode) (u16)((opcode >> 8)  & 0b1)
+#define _____xx_________(opcode) (u16)((opcode >> 9)  & 0b11)
+#define ____xxx_________(opcode) (u16)((opcode >> 9)  & 0b111)
+#define ____x___________(opcode) (u16)((opcode >> 11) & 0b1)
+#define xxxx____________(opcode) (u16)((opcode >> 12) & 0b1111)
 
 #define STD_AE_FRAME \
 (M == MODE_PD && S != Long) ? AE_INC_PC : \
@@ -148,8 +148,8 @@ Moira::execAdda(u16 opcode)
 
     if (!readOp<M,S, STD_AE_FRAME>(src, ea, data)) return;
     data = SEXT<S>(data);
-    
-    result = (I == ADDA) ? U32_ADD(readA(dst), data) : U32_SUB(readA(dst), data);
+
+    result = (I == ADDA) ? readA(dst) + data : readA(dst) - data;
     prefetch<POLLIPL>();
 
     sync(2);
@@ -310,12 +310,7 @@ Moira::execAndRgEa(u16 opcode)
     isMemMode(M) ? prefetch() : prefetch<POLLIPL>();
 
     if (S == Long && isRegMode(M)) sync(4);
-    
-    if (MIMIC_MUSASHI) {
-        writeOp <M,S, POLLIPL> (dst, ea, result);
-    } else {
-        writeOp <M,S, POLLIPL | REVERSE> (dst, ea, result);
-    }
+    writeOp <M,S, POLLIPL | REVERSE> (dst, ea, result);
 }
 
 template<Instr I, Mode M, Size S> void
@@ -344,11 +339,7 @@ Moira::execAndiEa(u16 opcode)
     result = logic<I,S>(src, data);
     prefetch();
 
-    if (MIMIC_MUSASHI) {
-        writeOp <M,S, POLLIPL> (dst, ea, result);
-    } else {
-        writeOp <M,S, POLLIPL | REVERSE> (dst, ea, result);
-    }
+    writeOp <M,S, POLLIPL | REVERSE> (dst, ea, result);
 }
 
 template<Instr I, Mode M, Size S> void
@@ -360,7 +351,7 @@ Moira::execAndiccr(u16 opcode)
     sync(8);
 
     u32 result = logic<I,S>(src, dst);
-    setCCR((u8)result);
+    setCCR(result);
 
     (void)readM<MEM_DATA, Word>(reg.pc+2);
     prefetch<POLLIPL>();
@@ -377,7 +368,7 @@ Moira::execAndisr(u16 opcode)
     sync(8);
 
     u32 result = logic<I,S>(src, dst);
-    setSR((u16)result);
+    setSR(result);
 
     (void)readM<MEM_DATA, Word>(reg.pc+2);
     prefetch<POLLIPL>();
@@ -389,7 +380,7 @@ Moira::execBcc(u16 opcode)
     sync(2);
     if (cond<I>()) {
 
-        u32 newpc = U32_ADD(reg.pc, S == Word ? (i16)queue.irc : (i8)opcode);
+        u32 newpc = reg.pc + (S == Word ? (i16)queue.irc : (i8)opcode);
         
         // Check for address error
         if (misaligned<Word>(newpc)) {
@@ -452,7 +443,7 @@ Moira::execBitDxEa(u16 opcode)
 template<Instr I, Mode M, Size S> void
 Moira::execBitImEa(u16 opcode)
 {
-    u8  src = (u8)readI<S>();
+    u8  src = readI<S>();
     int dst = _____________xxx(opcode);
 
     switch (M)
@@ -491,9 +482,8 @@ template<Instr I, Mode M, Size S> void
 Moira::execBsr(u16 opcode)
 {
     i16 offset = S == Word ? (i16)queue.irc : (i8)opcode;
-     
-    u32 newpc = U32_ADD(reg.pc, offset);
-    u32 retpc = U32_ADD(reg.pc, S == Word ? 2 : 0);
+    u32 newpc = reg.pc + offset;
+    u32 retpc = reg.pc + (S == Word ? 2 : 0);
 
     // Check for address error
     if (misaligned<Word>(newpc)) {
@@ -561,13 +551,8 @@ Moira::execClr(u16 opcode)
     isMemMode(M) ? prefetch() : prefetch<POLLIPL>();
 
     if (S == Long && isRegMode(M)) sync(2);
-    
-    if (MIMIC_MUSASHI) {
-        writeOp <M,S, POLLIPL> (dst, ea, 0);
-    } else {
-        writeOp <M,S, POLLIPL | REVERSE> (dst, ea, 0);
-    }
-    
+    writeOp <M,S, REVERSE | POLLIPL> (dst, ea, 0);
+
     reg.sr.n = 0;
     reg.sr.z = 1;
     reg.sr.v = 0;
@@ -652,8 +637,8 @@ Moira::execDbcc(u16 opcode)
     if (!cond<I>()) {
 
         int dn = _____________xxx(opcode);
-        u32 newpc = U32_ADD(reg.pc, (i16)queue.irc);
-        
+        u32 newpc = reg.pc + (i16)queue.irc;
+
         bool takeBranch = readD<Word>(dn) != 0;
         
         // Check for address error
@@ -663,7 +648,7 @@ Moira::execDbcc(u16 opcode)
         }
         
         // Decrement loop counter
-        writeD<Word>(dn, U32_SUB(readD<Word>(dn), 1));
+        writeD<Word>(dn, readD<Word>(dn) - 1);
 
         // Branch
         if (takeBranch) {
@@ -767,6 +752,13 @@ Moira::execJsr(u16 opcode)
     
     const int delay[] = { 0,0,0,0,0,2,4,2,0,2,4,0 };
     sync(delay[M]);
+
+    /*
+    if (M == 5) {
+        int x = (i16)queue.irc;
+        printf("JSR $%s%x(a%d) [a%d = %x] ea = %x\n", x<0?"-":"", x<0?-(unsigned)x:x, src, src, reg.a[src], ea);
+    }
+    */
     
     // Check for address error in displacement modes
     if (isDspMode(M) && misaligned<Word>(ea)) {
@@ -791,7 +783,7 @@ Moira::execJsr(u16 opcode)
     // Jump to new address
     reg.pc = ea;
 
-    queue.irc = (u16)readM<MEM_PROG, Word>(ea);
+    queue.irc = readM<MEM_PROG, Word>(ea);
     prefetch<POLLIPL>();
 }
 
@@ -828,7 +820,7 @@ Moira::execLink(u16 opcode)
 
     // Modify address register and stack pointer
     writeA(ax, sp);
-    reg.sp = U32_ADD(reg.sp, disp);
+    reg.sp += (i32)disp;
 
     prefetch<POLLIPL>();
 }
@@ -1110,7 +1102,7 @@ template<Instr I, Mode M, Size S> void
 Moira::execMovemEaRg(u16 opcode)
 {
     int src  = _____________xxx(opcode);
-    u16 mask = (u16)readI<Word>();
+    u16 mask = readI<Word>();
     u32 ea   = computeEA<M,S>(src);
     
     // Check for address error
@@ -1161,7 +1153,7 @@ template<Instr I, Mode M, Size S> void
 Moira::execMovemRgEa(u16 opcode)
 {
     int dst  = _____________xxx(opcode);
-    u16 mask = (u16)readI<Word>();
+    u16 mask = readI<Word>();
 
     switch (M) {
 
@@ -1288,7 +1280,7 @@ Moira::execMoveToCcr(u16 opcode)
     if (!readOp <M,S, STD_AE_FRAME> (src, ea, data)) return;
 
     sync(4);
-    setCCR((u8)data);
+    setCCR(data);
 
     (void)readM <MEM_PROG, Word> (reg.pc + 2);
     prefetch<POLLIPL>();
@@ -1330,7 +1322,7 @@ Moira::execMoveToSr(u16 opcode)
     if (!readOp <M,S, STD_AE_FRAME> (src, ea, data)) return;
 
     sync(4);
-    setSR((u16)data);
+    setSR(data);
 
     (void)readM <MEM_PROG, Word> (reg.pc + 2);
     prefetch<POLLIPL>();
@@ -1564,7 +1556,7 @@ Moira::execRte(u16 opcode)
 {
     SUPERVISOR_MODE_ONLY
 
-    u16 newsr = (u16)readM<MEM_DATA, Word>(reg.sp);
+    u16 newsr = readM<MEM_DATA, Word>(reg.sp);
     reg.sp += 2;
 
     u32 newpc = readM<MEM_DATA, Long>(reg.sp);
@@ -1584,9 +1576,9 @@ Moira::execRte(u16 opcode)
 
 template<Instr I, Mode M, Size S> void
 Moira::execRtr(u16 opcode)
-{
+{    
     bool error;
-    u16 newccr = (u16)readM<M, Word>(reg.sp, error);
+    u16 newccr = readM<M, Word>(reg.sp, error);
     if (error) return;
     
     reg.sp += 2;
@@ -1658,12 +1650,11 @@ Moira::execStop(u16 opcode)
 {
     SUPERVISOR_MODE_ONLY
 
-    u16 src = (u16)readI<Word>();
+    u16 src = readI<Word>();
 
     setSR(src);
     flags |= CPU_IS_STOPPED;
 
-    if (MIMIC_MUSASHI) sync(-4);
     prefetch<POLLIPL>();
     
     signalStop(src);
@@ -1742,8 +1733,6 @@ template<Instr I, Mode M, Size S> void
 Moira::execTrapv(u16 opcode)
 {
     if (reg.sr.v) {
-
-        if (MIMIC_MUSASHI) sync(4);
         execTrapException(7);
         return;
     }
@@ -1787,4 +1776,3 @@ Moira::execUnlk(u16 opcode)
     if (an != 7) reg.sp += 4;
     prefetch<POLLIPL>();
 }
-

@@ -57,7 +57,7 @@ Blitter::beginFastCopyBlit()
     assert(!bltconLINE());
 
     // Run the fast copy Bliter
-    int nr = ((bltcon0 >> 7) & 0b11110) | bltconDESC();
+    int nr = ((bltcon0 >> 7) & 0b11110) | !!bltconDESC();
     (this->*blitfunc[nr])();
 
     // Terminate immediately
@@ -78,8 +78,8 @@ void Blitter::doFastCopyBlit()
     bool fillCarry;
 
     int incr = desc ? -2 : 2;
-    [[maybe_unused]] int ash  = desc ? 16 - bltconASH() : bltconASH();
-    [[maybe_unused]] int bsh  = desc ? 16 - bltconBSH() : bltconBSH();
+    int ash = desc ? 16 - bltconASH() : bltconASH();
+    int bsh = desc ? 16 - bltconBSH() : bltconBSH();
     i32 amod = desc ? -bltamod : bltamod;
     i32 bmod = desc ? -bltbmod : bltbmod;
     i32 cmod = desc ? -bltcmod : bltcmod;
@@ -88,7 +88,7 @@ void Blitter::doFastCopyBlit()
     aold = 0;
     bold = 0;
 
-    for (isize y = 0; y < bltsizeV; y++) {
+    for (int y = 0; y < bltsizeV; y++) {
 
         // Reset the fill carry bit
         fillCarry = !!bltconFCI();
@@ -96,57 +96,48 @@ void Blitter::doFastCopyBlit()
         // Apply the "first word mask" in the first iteration
         u16 mask = bltafwm;
 
-        for (isize x = 0; x < bltsizeH; x++) {
+        for (int x = 0; x < bltsizeH; x++) {
 
             // Apply the "last word mask" in the last iteration
             if (x == bltsizeH - 1) mask &= bltalwm;
 
             // Fetch A
             if (useA) {
-                anew = mem.peek16 <ACCESSOR_AGNUS> (apt);
+                anew = mem.peek16 <AGNUS_ACCESS> (apt);
                 trace(BLT_DEBUG, "    A = peek(%X) = %X\n", apt, anew);
-                apt = U32_ADD(apt, incr);
+                apt += incr;
             }
 
             // Fetch B
             if (useB) {
-                bnew = mem.peek16 <ACCESSOR_AGNUS> (bpt);
+                bnew = mem.peek16 <AGNUS_ACCESS> (bpt);
                 trace(BLT_DEBUG, "    B = peek(%X) = %X\n", bpt, bnew);
-                bpt = U32_ADD(bpt, incr);
+                bpt += incr;
             }
 
             // Fetch C
             if (useC) {
-                chold = mem.peek16 <ACCESSOR_AGNUS> (cpt);
+                chold = mem.peek16 <AGNUS_ACCESS> (cpt);
                 trace(BLT_DEBUG, "    C = peek(%X) = %X\n", cpt, chold);
-                cpt = U32_ADD(cpt, incr);
+                cpt += incr;
             }
-            
-            trace(BLT_DEBUG, "    After fetch: A = %x B = %x C = %x\n",
-                  anew, bnew, chold);
-            trace(BLT_DEBUG, "    After masking with %x (%x,%x) %x\n",
-                  mask, bltafwm, bltalwm, anew & mask);
-            trace(BLT_DEBUG, "    ash = %d bsh = %d mask = %X\n",
-                  bltconASH(), bltconBSH(), mask);
+            trace(BLT_DEBUG, "    After fetch: A = %x B = %x C = %x\n", anew, bnew, chold);
 
-            // Run the barrel shifter on path A (even if A channel is disabled)
+            trace(BLT_DEBUG, "    After masking with %x (%x,%x) %x\n", mask, bltafwm, bltalwm, anew & mask);
+
+            // Run the barrel shifters on data path A and B
+            trace(BLT_DEBUG, "    ash = %d bsh = %d mask = %X\n", bltconASH(), bltconBSH(), mask);
             if (desc) {
-                doBarrelAdesc(anew & mask, &aold, &ahold);
+                ahold = HI_W_LO_W(anew & mask, aold) >> ash;
+                bhold = HI_W_LO_W(bnew, bold) >> bsh;
             } else {
-                doBarrelA(anew & mask, &aold, &ahold);
+                ahold = HI_W_LO_W(aold, anew & mask) >> ash;
+                bhold = HI_W_LO_W(bold, bnew) >> bsh;
             }
-            
-            // Run the barrel shifter on path B (if B channel enabled)
-            if (useB) {
-                if (desc) {
-                    doBarrelBdesc(bnew, &bold, &bhold);
-                } else {
-                    doBarrelB(bnew, &bold, &bhold);
-                }
-            }
-
+            aold = anew & mask;
+            bold = bnew;
             trace(BLT_DEBUG, "    After shifting (%d,%d) A = %x B = %x\n", ash, bsh, ahold, bhold);
-            
+
             // Run the minterm logic circuit
             trace(BLT_DEBUG, "    Minterms: ahold = %X bhold = %X chold = %X bltcon0 = %X (hex)\n", ahold, bhold, chold, bltcon0);
             dhold = doMintermLogicQuick(ahold, bhold, chold, bltcon0 & 0xFF);
@@ -160,14 +151,15 @@ void Blitter::doFastCopyBlit()
 
             // Write D
             if (useD) {
-                mem.poke16 <ACCESSOR_AGNUS> (dpt, dhold);
+                mem.poke16 <AGNUS_ACCESS> (dpt, dhold);
 
                 if (BLT_CHECKSUM) {
                     check1 = fnv_1a_it32(check1, dhold);
                     check2 = fnv_1a_it32(check2, dpt & agnus.ptrMask);
                 }
                 trace(BLT_DEBUG, "D: poke(%X), %X  (check: %X %X)\n", dpt, dhold, check1, check2);
-                dpt = U32_ADD(dpt, incr);
+
+                dpt += incr;
             }
 
             // Clear the word mask
@@ -175,10 +167,10 @@ void Blitter::doFastCopyBlit()
         }
 
         // Add modulo values
-        if (useA) apt = U32_ADD(apt, amod);
-        if (useB) bpt = U32_ADD(bpt, bmod);
-        if (useC) cpt = U32_ADD(cpt, cmod);
-        if (useD) dpt = U32_ADD(dpt, dmod);
+        if (useA) apt += amod;
+        if (useB) bpt += bmod;
+        if (useC) cpt += cmod;
+        if (useD) dpt += dmod;
     }
 
     // Write back pointer registers
@@ -228,7 +220,8 @@ Blitter::doFastLineBlit()
     u16 bltbdat_local = 0;
     u16 bltcdat_local = chold;
     u16 bltddat_local = 0;
-    u16 mask = (u16)((bnew >> bltconBSH()) | (bnew << (16 - bltconBSH())));
+    
+    u16 mask = (bnew >> bltconBSH()) | (bnew << (16 - bltconBSH()));
     bool a_enabled = bltcon & 0x08000000;
     bool c_enabled = bltcon & 0x02000000;
     
@@ -255,7 +248,7 @@ Blitter::doFastLineBlit()
     {
         // Read C-data from memory if the C-channel is enabled
         if (c_enabled) {
-            bltcdat_local = mem.peek16 <ACCESSOR_AGNUS> (bltcpt_local);
+            bltcdat_local = mem.peek16 <AGNUS_ACCESS> (bltcpt_local);
         }
         
         // Calculate data for the A-channel
@@ -280,7 +273,7 @@ Blitter::doFastLineBlit()
         
         // Save result to D-channel, same as the C ptr after first pixel.
         if (c_enabled) { // C-channel must be enabled
-            mem.poke16 <ACCESSOR_AGNUS> (bltdpt_local, bltddat_local);
+            mem.poke16 <AGNUS_ACCESS> (bltdpt_local, bltddat_local);
 
             if (BLT_CHECKSUM) {
                 check1 = fnv_1a_it32(check1, bltddat_local);
@@ -292,7 +285,7 @@ Blitter::doFastLineBlit()
         bzero_local = bzero_local | bltddat_local;
         
         // Rotate mask
-        mask = (u16)(mask << 1 | mask >> 15);
+        mask = (mask << 1) | (mask >> 15);
         
         // Test movement in the X direction
         // When the decision variable gets positive,
@@ -302,13 +295,11 @@ Blitter::doFastLineBlit()
         if (decision_is_signed) {
             // Do not yet increase, D has sign
             // D = D + (2*sdelta = bltbmod)
-            decision_variable = (u32)((i64)decision_variable + decision_inc_signed);
-            // decision_variable += decision_inc_signed;
+            decision_variable += decision_inc_signed;
         } else {
             // increase, D reached a positive value
             // D = D + (2*sdelta - 2*ldelta = bltamod)
-            decision_variable = (u32)((i64)decision_variable + decision_inc_unsigned);
-            // decision_variable += decision_inc_unsigned;
+            decision_variable += decision_inc_unsigned;
             
             if (!x_independent) {
                 if (x_inc) {

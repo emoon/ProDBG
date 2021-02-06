@@ -11,13 +11,15 @@
 
 AudioFilter::AudioFilter(Amiga& ref) : AmigaComponent(ref)
 {
+    setDescription("AudioFilter");
+
     a1 = a2 = b0 = b1 = b2 = 0.0;
 }
 
 void
 AudioFilter::setFilterType(FilterType type)
 {
-    assert_enum(FilterType, type);
+    assert(isFilterType(type));
     this->type = type;
 }
 
@@ -56,10 +58,10 @@ AudioFilter::clear()
 float
 AudioFilter::apply(float sample)
 {
-    if (type == FILTER_NONE) return sample;
+    if (type == FILT_NONE) return sample;
     
     // Apply butterworth filter
-    assert(type == FILTER_BUTTERWORTH);
+    assert(type == FILT_BUTTERWORTH);
     
     // Run pipeline
     double x0 = (double)sample;

@@ -142,12 +142,6 @@ CIA::peek(u16 addr)
 u8
 CIA::spypeek(u16 addr)
 {
-    return const_cast<const CIA*>(this)->spypeek(addr);
-}
-
-u8
-CIA::spypeek(u16 addr) const
-{
     bool running;
 
     assert(addr <= 0x000F);

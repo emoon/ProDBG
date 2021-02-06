@@ -9,55 +9,38 @@
 
 #include "Amiga.h"
 
-u8
-DiskFile::readByte(long t, long s, long offset) const
+DiskFile *
+DiskFile::makeWithFile(const char *path)
 {
-    return readByte(t * numSectors() + s, offset);
-}
+    ADFFile *adf = ADFFile::makeWithFile(path);
+    if (adf) return adf;
+    
+    DMSFile *dms = DMSFile::makeWithFile(path);
+    if (dms) return dms;
 
-u8
-DiskFile::readByte(long b, long offset) const
-{
-    assert(offset < 512);
-    return data[b * 512 + offset];
+    IMGFile *img = IMGFile::makeWithFile(path);
+    if (img) return img;
+
+    return NULL;
 }
 
 void
-DiskFile::readSector(u8 *dst, long t, long s) const
+DiskFile::readSector(u8 *dst, long t, long s)
 {
     readSector(dst, t * numSectors() + s);
 }
 
 void
-DiskFile::readSector(u8 *dst, long s) const
+DiskFile::readSector(u8 *dst, long s)
 {
-    isize sectorSize = 512;
-    isize offset = s * sectorSize;
+    size_t sectorSize = 512;
+    size_t offset = s * sectorSize;
 
     assert(dst != nullptr);
     assert(offset + sectorSize <= size);
 
-    for (isize i = 0; i < sectorSize; i++) {
+    for (unsigned i = 0; i < 512; i++) {
         dst[i] = data[offset + i];
-    }
-}
-
-void
-DiskFile::readSectorHex(char *dst, long t, long s, isize count) const
-{
-    readSectorHex(dst, t * numSectors() + s, count);
-}
-
-void
-DiskFile::readSectorHex(char *dst, long s, isize count) const
-{
-    isize sectorSize = 512;
-    isize offset = s * sectorSize;
-
-    assert(dst != nullptr);
-
-    for (isize i = 0; i < count; i++) {
-        sprintf(dst + 3*i, "%02X ", data[offset + i]);
     }
 }
 
@@ -65,10 +48,12 @@ bool
 DiskFile::encodeDisk(class Disk *disk)
 {
     assert(false);
+    return false;
 }
 
-void
+bool
 DiskFile::decodeDisk(class Disk *disk)
 {
     assert(false);
+    return false;
 }

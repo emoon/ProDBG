@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _COLORS_H
+#define _COLORS_H
 
 struct RgbColor {
 
@@ -31,9 +32,9 @@ struct RgbColor {
     static const RgbColor magenta;
     static const RgbColor cyan;
 
-    RgbColor mix(RgbColor additive, double weight) const;
-    RgbColor tint(double weight) const { return mix(white, weight); }
-    RgbColor shade(double weight) const { return mix(black, weight); }
+    RgbColor mix(RgbColor additive, double weight);
+    RgbColor tint(double weight) { return mix(white, weight); }
+    RgbColor shade(double weight) { return mix(black, weight); }
 };
 
 struct YuvColor {
@@ -110,7 +111,9 @@ struct GpuColor {
     static const GpuColor magenta;
     static const GpuColor cyan;
 
-    GpuColor mix(const struct RgbColor &color, double weight) const;
-    GpuColor tint(double weight) const { return mix(RgbColor::white, weight); }
-    GpuColor shade(double weight) const { return mix(RgbColor::black, weight); }
+    GpuColor mix(const struct RgbColor &color, double weight);
+    GpuColor tint(double weight) { return mix(RgbColor::white, weight); }
+    GpuColor shade(double weight) { return mix(RgbColor::black, weight); }
 };
+
+#endif

@@ -22,13 +22,13 @@ CPU::sync(int cycles)
 u8
 CPU::read8(u32 addr)
 {
-    return mem.peek8 <ACCESSOR_CPU> (addr);
+    return mem.peek8 <CPU_ACCESS> (addr);
 }
 
 u16
 CPU::read16(u32 addr)
 {
-    u16 result = mem.peek16 <ACCESSOR_CPU> (addr);
+    u16 result = mem.peek16 <CPU_ACCESS> (addr);
  
     /*
     static int counter = 0;
@@ -64,7 +64,7 @@ CPU::read16(u32 addr)
 u16
 CPU::read16Dasm(u32 addr)
 {
-    return mem.spypeek16 <ACCESSOR_CPU> (addr);
+    return mem.spypeek16 <CPU_ACCESS> (addr);
 }
 
 u16
@@ -76,17 +76,17 @@ CPU::read16OnReset(u32 addr)
 void
 CPU::write8(u32 addr, u8 val)
 {
-    trace(XFILES && addr - reg.pc < 5, "XFILES: write8 close to PC %x\n", reg.pc);
+    if (XFILES && addr - reg.pc < 5) trace("XFILES: write8 close to PC %x\n", reg.pc);
 
-    mem.poke8 <ACCESSOR_CPU> (addr, val);
+    mem.poke8 <CPU_ACCESS> (addr, val);
 }
 
 void
 CPU::write16 (u32 addr, u16 val)
 {
-    trace(XFILES && addr - reg.pc < 5, "XFILES: write16 close to PC %x\n", reg.pc);
+    if (XFILES && addr - reg.pc < 5) trace("XFILES: write16 close to PC %x\n", reg.pc);
 
-    mem.poke16 <ACCESSOR_CPU> (addr, val);
+    mem.poke16 <CPU_ACCESS> (addr, val);
 }
 
 void
@@ -94,6 +94,7 @@ CPU::signalReset()
 {
     trace(XFILES, "XFILES: RESET instruction\n");
     amiga.softReset();
+    trace("Reset done\n");
 }
 
 void
@@ -121,7 +122,6 @@ CPU::signalAddressError(moira::AEStackFrame &frame)
 {
     trace(XFILES, "XFILES: Address error exception %x %x %x %x %x\n",
           frame.code, frame.addr, frame.ird, frame.sr, frame.pc);
-    // amiga.signalStop();
 }
 
 void
@@ -162,7 +162,9 @@ CPU::signalPrivilegeViolation()
 void
 CPU::signalInterrupt(u8 level)
 {
-    debug(INT_DEBUG, "Executing level %d IRQ\n", level);
+    if (INT_DEBUG) {
+        debug("Executing level %d IRQ\n", level);
+    }
 }
 
 void
@@ -189,6 +191,7 @@ CPU::watchpointReached(u32 addr)
 
 CPU::CPU(Amiga& ref) : AmigaComponent(ref)
 {
+    setDescription("CPU");
 }
 
 void
@@ -230,9 +233,9 @@ CPU::_inspect(u32 dasmStart)
         
         info.pc0 = getPC0() & 0xFFFFFF;
         
-        for (isize i = 0; i < 8; i++) {
-            info.d[i] = getD((int)i);
-            info.a[i] = getA((int)i);
+        for (int i = 0; i < 8; i++) {
+            info.d[i] = getD(i);
+            info.a[i] = getA(i);
         }
         info.usp = getUSP();
         info.ssp = getSSP();
@@ -241,23 +244,25 @@ CPU::_inspect(u32 dasmStart)
 }
 
 void
-CPU::_dump() const
+CPU::_dump()
 {
-    msg("     PC0: %8X\n", reg.pc0);
+    _inspect();
+    
+    msg("     PC0: %8X\n", info.pc0);
     msg(" D0 - D3: ");
-    for (isize i = 0; i < 4; i++) msg("%8X ", reg.d[i]);
+    for (unsigned i = 0; i < 4; i++) msg("%8X ", info.d[i]);
     msg("\n");
     msg(" D4 - D7: ");
-    for (isize i = 4; i < 8; i++) msg("%8X ", reg.d[i]);
+    for (unsigned i = 4; i < 8; i++) msg("%8X ", info.d[i]);
     msg("\n");
     msg(" A0 - A3: ");
-    for (isize i = 0; i < 4; i++) msg("%8X ", reg.a[i]);
+    for (unsigned i = 0; i < 4; i++) msg("%8X ", info.a[i]);
     msg("\n");
     msg(" A4 - A7: ");
-    for (isize i = 4; i < 8; i++) msg("%8X ", reg.a[i]);
+    for (unsigned i = 4; i < 8; i++) msg("%8X ", info.a[i]);
     msg("\n");
-    msg("     SSP: %X\n", reg.ssp);
-    msg("   Flags: %X\n", getSR());
+    msg("     SSP: %X\n", info.ssp);
+    msg("   Flags: %X\n", info.sr);
 }
 
 void
@@ -275,8 +280,8 @@ CPU::_setDebug(bool enable)
      }
 }
 
-isize
-CPU::didLoadFromBuffer(const u8 *buffer)
+size_t
+CPU::didLoadFromBuffer(u8 *buffer)
 {
     /* Because we don't save breakpoints and watchpoints in a snapshot, the
      * CPU flags for checking breakpoints and watchpoints can be in a corrupt
@@ -289,51 +294,51 @@ CPU::didLoadFromBuffer(const u8 *buffer)
 }
 
 const char *
-CPU::disassembleRecordedInstr(isize i, isize *len)
+CPU::disassembleRecordedInstr(int i, long *len)
 {
-    return disassembleInstr(debugger.logEntryAbs((int)i).pc0, len);
+    return disassembleInstr(debugger.logEntryAbs(i).pc0, len);
 }
 const char *
-CPU::disassembleRecordedWords(isize i, isize len)
+CPU::disassembleRecordedWords(int i, int len)
 {
-    return disassembleWords(debugger.logEntryAbs((int)i).pc0, len);
+    return disassembleWords(debugger.logEntryAbs(i).pc0, len);
 }
 
 const char *
-CPU::disassembleRecordedFlags(isize i)
+CPU::disassembleRecordedFlags(int i)
 {
     static char result[18];
     
-    disassembleSR(debugger.logEntryAbs((int)i).sr, result);
+    disassembleSR(debugger.logEntryAbs(i).sr, result);
     return result;
 }
 
 const char *
-CPU::disassembleRecordedPC(isize i)
+CPU::disassembleRecordedPC(int i)
 {
     static char result[16];
     
-    Moira::disassemblePC(debugger.logEntryAbs((int)i).pc0, result);
+    Moira::disassemblePC(debugger.logEntryAbs(i).pc0, result);
     return result;
 }
 
 const char *
-CPU::disassembleInstr(u32 addr, isize *len)
+CPU::disassembleInstr(u32 addr, long *len)
 {
     static char result[128];
 
     int l = disassemble(addr, result);
 
-    if (len) *len = (isize)l;
+    if (len) *len = (long)l;
     return result;
 }
 
 const char *
-CPU::disassembleWords(u32 addr, isize len)
+CPU::disassembleWords(u32 addr, int len)
 {
     static char result[64];
 
-    disassembleMemory(addr, (int)len, result);
+    disassembleMemory(addr, len, result);
     return result;
 }
 
@@ -347,12 +352,12 @@ CPU::disassembleAddr(u32 addr)
 }
 
 const char *
-CPU::disassembleInstr(isize *len)
+CPU::disassembleInstr(long *len)
 {
     return disassembleInstr(reg.pc0, len);
 }
 const char *
-CPU::disassembleWords(isize len)
+CPU::disassembleWords(int len)
 {
     return disassembleWords(reg.pc0, len);
     return "";

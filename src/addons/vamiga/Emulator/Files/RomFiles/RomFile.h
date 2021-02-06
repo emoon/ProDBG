@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _ROM_H
+#define _ROM_H
 
 #include "AmigaFile.h"
 
@@ -16,21 +17,17 @@ class RomFile : public AmigaFile {
     // Accepted header signatures
     static const u8 bootRomHeaders[1][8];
     static const u8 kickRomHeaders[6][7];
-    static const u8 encrRomHeaders[1][11];
 
-    // Path to the rom.key file (if needed)
-    string romKeyPath = "";
-        
 public:
     
     //
     // Class methods
     //
     
-    static bool isCompatibleName(const string &name);
-    static bool isCompatibleStream(std::istream &stream);
+    // Returns true if buffer contains a Boot Rom or an Kickstart Rom image
+    static bool isRomBuffer(const u8 *buffer, size_t length);
     
-    static bool isRomBuffer(const u8 *buf, isize len);
+    // Returns true if path points to a Boot Rom file or a Kickstart Rom file
     static bool isRomFile(const char *path);
     
     // Translates a CRC-32 checksum into a ROM identifier
@@ -55,29 +52,21 @@ public:
     
     RomFile();
     
-    const char *getDescription() const override { return "ROM"; }
-        
+    // Factory methods
+    static RomFile *makeWithBuffer(const u8 *buffer, size_t length);
+    static RomFile *makeWithFile(const char *path);
+    
     
     //
     // Methods from AmigaFile
     //
     
-    FileType type() const override { return FILETYPE_ROM; }
-
-    
-    //
-    // Decrypting
-    //
-    
-    // Returns true iff the Rom was encrypted at the time it was loaded
-    bool wasEncrypted() { return romKeyPath != ""; }
-    
-    // Returns true iff the Rom is currently encrypted
-    bool isEncrypted();
-    
-    /* Tries to decrypt the Rom. If this method is applied to an encrypted Rom,
-     * a rom.key file is seeked in the directory the encrypted Rom was loaded
-     * from and applied to the encrypted data.
-     */
-    void decrypt() throws;
+    AmigaFileType fileType() override { return FILETYPE_ROM; }
+    const char *typeAsString() override { return "Kickstart Rom"; }
+    bool bufferHasSameType(const u8 *buffer, size_t length) override {
+        return isRomBuffer(buffer, length); }
+    bool fileHasSameType(const char *path) override { return isRomFile(path); }
+    bool readFromBuffer(const u8 *buffer, size_t length) override;
 };
+
+#endif

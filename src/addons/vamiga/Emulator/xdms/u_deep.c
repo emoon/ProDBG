@@ -22,7 +22,6 @@ INLINE USHORT DecodePosition(void);
 INLINE void update(USHORT c);
 static void reconst(void);
 
-void Init_DEEP_Tabs(void);
 
 USHORT deep_text_loc;
 int init_deep_tabs=1;

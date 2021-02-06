@@ -12,10 +12,10 @@
 #define TPARAM(x,y,z) <x,y,z>
 #define bind(id, name, I, M, S) { \
 assert(exec[id] == &Moira::execIllegal); \
-if (dasm) assert(dasm[id] == &Moira::dasmIllegal); \
+assert(dasm[id] == &Moira::dasmIllegal); \
 exec[id] = &Moira::exec##name TPARAM(I, M, S); \
-if (dasm) dasm[id] = &Moira::dasm##name TPARAM(I, M, S); \
-if (info) info[id] = InstrInfo { I, M, S }; \
+dasm[id] = &Moira::dasm##name TPARAM(I, M, S); \
+info[id] = InstrInfo { I, M, S }; \
 }
 
 // Registers an instruction in one of the standard instruction formats:
@@ -106,13 +106,13 @@ if ((s) & 0b001) ____XXX___MMMXXX((op) | 1 << 12, I, m, Byte, f); }
 
 
 static u16
-parse(const char *s, int sum = 0)
+parse(const char *s, u16 sum = 0)
 {
     return
     *s == ' ' ? parse(s + 1, sum) :
     *s == '-' ? parse(s + 1, sum << 1) :
     *s == '0' ? parse(s + 1, sum << 1) :
-    *s == '1' ? parse(s + 1, (sum << 1) + 1) : (u16)sum;
+    *s == '1' ? parse(s + 1, (sum << 1) + 1) : sum;
 }
 
 void
@@ -126,8 +126,8 @@ Moira::createJumpTables()
 
     for (int i = 0; i < 0x10000; i++) {
         exec[i] = &Moira::execIllegal;
-        if (dasm) dasm[i] = &Moira::dasmIllegal;
-        if (info) info[i] = InstrInfo { ILLEGAL, MODE_IP, (Size)0 };
+        dasm[i] = &Moira::dasmIllegal;
+        info[i] = InstrInfo { ILLEGAL, MODE_IP, (Size)0 };
     }
 
 
@@ -139,12 +139,12 @@ Moira::createJumpTables()
     for (int i = 0; i < 0x1000; i++) {
 
         exec[0b1010 << 12 | i] = &Moira::execLineA;
-        if (dasm) dasm[0b1010 << 12 | i] = &Moira::dasmLineA;
-        if (info) info[0b1010 << 12 | i] = InstrInfo { LINE_A, MODE_IP, (Size)0 };
+        dasm[0b1010 << 12 | i] = &Moira::dasmLineA;
+        info[0b1010 << 12 | i] = InstrInfo { LINE_A, MODE_IP, (Size)0 };
 
         exec[0b1111 << 12 | i] = &Moira::execLineF;
-        if (dasm) dasm[0b1111 << 12 | i] = &Moira::dasmLineF;
-        if (info) info[0b1111 << 12 | i] = InstrInfo { LINE_F, MODE_IP, (Size)0 };
+        dasm[0b1111 << 12 | i] = &Moira::dasmLineF;
+        info[0b1111 << 12 | i] = InstrInfo { LINE_F, MODE_IP, (Size)0 };
     }
 
 

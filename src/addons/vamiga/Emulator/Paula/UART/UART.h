@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _UART_H
+#define _UART_H
 
 #include "AmigaComponent.h"
 
@@ -47,8 +48,6 @@ public:
     
     UART(Amiga& ref);
     
-    const char *getDescription() const override { return "UART"; }
-
 private:
     
     void _reset(bool hard) override;
@@ -65,7 +64,7 @@ public:
 private:
     
     void _inspect() override;
-    void _dump() const override;
+    void _dump() override;
 
     
     //
@@ -99,9 +98,9 @@ private:
         & recCnt;
     }
 
-    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
-    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
+    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
 
     //
@@ -120,15 +119,15 @@ public:
     void pokeSERPER(u16 value);
 
     // Returns the baud rate (converted to DMA cycles)
-    int rate() const { return DMA_CYCLES((serper & 0x7FFF) + 1); }
+    int rate() { return DMA_CYCLES((serper & 0x7FFF) + 1); }
 
 private:
 
     // Returns the length of a received packet (8 or 9 bits)
-    int packetLength() const { return GET_BIT(serper, 15) ? 9 : 8; }
+    int packetLength() { return GET_BIT(serper, 15) ? 9 : 8; }
 
     // Returns true if the shift register is empty
-    bool shiftRegEmpty() const { return transmitShiftReg == 0; }
+    bool shiftRegEmpty() { return transmitShiftReg == 0; }
 
     // Copies the contents of the transmit buffer to the transmit shift register
     void copyToTransmitShiftRegister();
@@ -163,3 +162,5 @@ public:
     void serviceRxdEvent(EventID id);
 
 };
+
+#endif

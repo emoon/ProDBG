@@ -9,31 +9,79 @@
 
 #include "Amiga.h"
 
-bool
-IMGFile::isCompatibleName(const string &name)
+IMGFile::IMGFile()
 {
-    return true;
+    setDescription("IMGFile");
 }
 
 bool
-IMGFile::isCompatibleStream(std::istream &stream)
+IMGFile::isIMGBuffer(const u8 *buffer, size_t length)
 {
-    isize length = streamLength(stream);
-    
     // There are no magic bytes. We can only check the buffer size
-    return length == IMGSIZE_35_DD;
+    return
+    length == IMGSIZE_35_DD;
+}
+
+bool
+IMGFile::isIMGFile(const char *path)
+{
+    // There are no magic bytes. We can only check the file size
+    return
+    checkFileSize(path, IMGSIZE_35_DD);
 }
 
 IMGFile *
-IMGFile::makeWithDiskType(DiskDiameter t, DiskDensity d)
+IMGFile::makeWithDiskType(DiskType t, DiskDensity d)
 {
-    assert(t == INCH_35);
+    assert(t == DISK_35);
     assert(d == DISK_DD);
     
     IMGFile *img = new IMGFile();
     
-    img->size = 9 * 160 * 512;
-    img->data = new u8[img->size]();
+    if (!img->alloc(9 * 160 * 512)) {
+        delete img;
+        return NULL;
+    }
+    
+    memset(img->data, 0, img->size);
+    return img;
+}
+
+IMGFile *
+IMGFile::makeWithBuffer(const u8 *buffer, size_t length)
+{
+    IMGFile *img = new IMGFile();
+    
+    if (!img->readFromBuffer(buffer, length)) {
+        delete img;
+        return NULL;
+    }
+    
+    return img;
+}
+
+IMGFile *
+IMGFile::makeWithFile(const char *path)
+{
+    IMGFile *img = new IMGFile();
+    
+    if (!img->readFromFile(path)) {
+        delete img;
+        return NULL;
+    }
+    
+    return img;
+}
+
+IMGFile *
+IMGFile::makeWithFile(FILE *file)
+{
+    IMGFile *img = new IMGFile();
+    
+    if (!img->readFromFile(file)) {
+        delete img;
+        return NULL;
+    }
     
     return img;
 }
@@ -41,44 +89,47 @@ IMGFile::makeWithDiskType(DiskDiameter t, DiskDensity d)
 IMGFile *
 IMGFile::makeWithDisk(Disk *disk)
 {
-    assert(disk != nullptr);
+    assert(disk != NULL);
         
     // We only support 3.5"DD disks at the moment
-    if (disk->getDiameter() != INCH_35 || disk->getDensity() != DISK_DD) {
-        throw VAError(ERROR_UNKNOWN);
-    }
+    if (disk->getType() != DISK_35 || disk->getDensity() != DISK_DD) { return NULL; }
     
-    IMGFile *img = makeWithDiskType(INCH_35, DISK_DD);
-    try { img->decodeDisk(disk); }
-    catch (VAError &exception) { delete img; throw exception; }
+    IMGFile *img = makeWithDiskType(DISK_35, DISK_DD);
+    
+    if (img) {
+        if (!img->decodeDisk(disk)) {
+            printf("Failed to decode DOS disk\n");
+            delete img;
+            return NULL;
+        }
+    }
     
     return img;
 }
 
-IMGFile *
-IMGFile::makeWithDisk(Disk *disk, ErrorCode *ec)
+bool
+IMGFile::readFromBuffer(const u8 *buffer, size_t length)
 {
-    *ec = ERROR_OK;
+    if (!AmigaFile::readFromBuffer(buffer, length))
+        return false;
     
-    try { return makeWithDisk(disk); }
-    catch (VAError &exception) { *ec = exception.errorCode; }
-    return nullptr;
+    return isIMGBuffer(buffer, length);
 }
 
-isize
-IMGFile::numSides() const
+long
+IMGFile::numSides()
 {
     return 2;
 }
 
-isize
-IMGFile::numCyls() const
+long
+IMGFile::numCyclinders()
 {
     return 80;
 }
 
-isize
-IMGFile::numSectors() const
+long
+IMGFile::numSectors()
 {
     return 9;
 }
@@ -88,18 +139,16 @@ IMGFile::encodeDisk(Disk *disk)
 {
     long tracks = numTracks();
     
-    debug(MFM_DEBUG, "Encoding DOS disk with %ld tracks\n", tracks);
+    debug(MFM_DEBUG, "Encoding DOS disk with %d tracks\n", tracks);
 
-    if (disk->getDiameter() != getDiskDiameter()) {
+    if (disk->getType() != getDiskType()) {
         warn("Incompatible disk types: %s %s\n",
-             DiskDiameterEnum::key(disk->getDiameter()),
-             DiskDiameterEnum::key(getDiskDiameter()));
+             sDiskType(disk->getType()), sDiskType(getDiskType()));
         return false;
     }
     if (disk->getDensity() != getDiskDensity()) {
         warn("Incompatible disk densities: %s %s\n",
-             DiskDensityEnum::key(disk->getDensity()),
-             DiskDensityEnum::key(getDiskDensity()));
+             sDiskDensity(disk->getDensity()), sDiskDensity(getDiskDensity()));
         return false;
     }
     
@@ -111,7 +160,7 @@ IMGFile::encodeDisk(Disk *disk)
     
     // In debug mode, also run the decoder
     if (MFM_DEBUG) {
-        msg("DOS disk fully encoded (success = %d)\n", result);
+        debug("DOS disk fully encoded (success = %d)\n", result);
         IMGFile *tmp = IMGFile::makeWithDisk(disk);
         if (tmp) {
             msg("Decoded image written to /tmp/debug.img\n");
@@ -127,7 +176,7 @@ IMGFile::encodeTrack(Disk *disk, Track t)
 {
     long sectors = numSectors();
 
-    debug(MFM_DEBUG, "Encoding DOS track %d with %ld sectors\n", t, sectors);
+    debug(MFM_DEBUG, "Encoding DOS track %d with %d sectors\n", t, sectors);
 
     u8 *p = disk->data.track[t];
 
@@ -136,7 +185,7 @@ IMGFile::encodeTrack(Disk *disk, Track t)
 
     // Encode track header
     p += 82;                                        // GAP
-    for (isize i = 0; i < 24; i++) { p[i] = 0xAA; } // SYNC
+    for (int i = 0; i < 24; i++) { p[i] = 0xAA; }   // SYNC
     p += 24;
     p[0] = 0x52; p[1] = 0x24;                       // IAM
     p[2] = 0x52; p[3] = 0x24;
@@ -150,9 +199,10 @@ IMGFile::encodeTrack(Disk *disk, Track t)
     for (Sector s = 0; s < sectors; s++) result &= encodeSector(disk, t, s);
     
     // Compute a checksum for debugging
-    debug(MFM_DEBUG,
-          "Track %d checksum = %x\n",
-          t, fnv_1a_32(disk->data.track[t], disk->length.track[t]));
+    if (MFM_DEBUG) {
+        u64 check = fnv_1a_32(disk->data.track[t], disk->length.track[t]);
+        debug("Track %d checksum = %x\n", t, check);
+    }
 
     return result;
 }
@@ -165,7 +215,7 @@ IMGFile::encodeSector(Disk *disk, Track t, Sector s)
     debug(MFM_DEBUG, "  Encoding DOS sector %d\n", s);
     
     // Write SYNC
-    for (isize i = 0; i < 12; i++) { buf[i] = 0x00; }
+    for (int i = 0; i < 12; i++) { buf[i] = 0x00; }
     
     // Write IDAM
     buf[12] = 0xA1;
@@ -185,10 +235,10 @@ IMGFile::encodeSector(Disk *disk, Track t, Sector s)
     buf[21] = LO_BYTE(crc);
 
     // Write GAP
-    for (isize i = 22; i < 44; i++) { buf[i] = 0x4E; }
+    for (int i = 22; i < 44; i++) { buf[i] = 0x4E; }
 
     // Write SYNC
-    for (isize i = 44; i < 56; i++) { buf[i] = 0x00; }
+    for (int i = 44; i < 56; i++) { buf[i] = 0x00; }
 
     // Write DATA AM
     buf[56] = 0xA1;
@@ -205,7 +255,7 @@ IMGFile::encodeSector(Disk *disk, Track t, Sector s)
     buf[573] = LO_BYTE(crc);
 
     // Write GAP
-    for (isize i = 574; i < isizeof(buf); i++) { buf[i] = 0x4E; }
+    for (size_t i = 574; i < sizeof(buf); i++) { buf[i] = 0x4E; }
 
     // Determine the start of this sector
     u8 *p = disk->data.track[t] + 194 + s * 1300;
@@ -227,26 +277,32 @@ IMGFile::encodeSector(Disk *disk, Track t, Sector s)
     return true;
 }
 
-void
+bool
 IMGFile::decodeDisk(Disk *disk)
 {
     long tracks = numTracks();
     
-    trace(MFM_DEBUG, "Decoding DOS disk (%ld tracks)\n", tracks);
+    trace(MFM_DEBUG, "Decoding DOS disk (%d tracks)\n", tracks);
     
-    if (disk->getDiameter() != getDiskDiameter()) {
-        throw VAError(ERROR_DISK_INVALID_DIAMETER);
+    if (disk->getType() != getDiskType()) {
+        warn("Incompatible disk types: %s %s\n",
+             sDiskType(disk->getType()), sDiskType(getDiskType()));
+        return false;
     }
     if (disk->getDensity() != getDiskDensity()) {
-        throw VAError(ERROR_DISK_INVALID_DENSITY);
+        warn("Incompatible disk densities: %s %s\n",
+             sDiskDensity(disk->getDensity()), sDiskDensity(getDiskDensity()));
+        return false;
     }
     
     // Make the MFM stream scannable beyond the track end
     disk->repeatTracks();
 
     for (Track t = 0; t < tracks; t++) {
-        if (!decodeTrack(disk, t)) throw VAError(ERROR_DISK_CANT_DECODE);
+        if (!decodeTrack(disk, t)) return false;
     }
+    
+    return true;
 }
 
 bool
@@ -259,14 +315,21 @@ IMGFile::decodeTrack(Disk *disk, Track t)
     u8 *dst = data + t * numSectors * 512;
     
     trace(MFM_DEBUG, "Decoding DOS track %d\n", t);
-
+    
+    // Create a local (double) copy of the track to simply the analysis
+    /*
+    u8 local[2 * disk->trackLength(t)];
+    memcpy(local, disk->data.track[t], disk->trackLength(t));
+    memcpy(local + disk->trackLength(t), disk->data.track[t], disk->trackLength(t));
+    */
+    
     // Determine the start of all sectors contained in this track
-    isize sectorStart[numSectors];
-    for (isize i = 0; i < numSectors; i++) {
+    int sectorStart[numSectors];
+    for (int i = 0; i < numSectors; i++) {
         sectorStart[i] = 0;
     }
-    isize cnt = 0;
-    for (isize i = 0; i < isizeof(disk->data.track[t]) - 16;) {
+    int cnt = 0;
+    for (size_t i = 0; i < sizeof(disk->data.track[t]) - 16;) {
         
         // Seek IDAM block
         if (src[i++] != 0x44) continue;
@@ -299,12 +362,12 @@ IMGFile::decodeTrack(Disk *disk, Track t)
     }
 
     if (cnt != numSectors) {
-        warn("Found %zd sectors, expected %ld. Aborting", cnt, numSectors);
+        warn("Found %d sectors, expected %d. Aborting", cnt, numSectors);
         return false;
     }
         
     // Do some consistency checking
-    for (isize i = 0; i < numSectors; i++) assert(sectorStart[i] != 0);
+    for (int i = 0; i < numSectors; i++) assert(sectorStart[i] != 0);
     
     // Encode all sectors
     bool result = true;

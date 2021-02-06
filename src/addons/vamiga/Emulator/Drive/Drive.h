@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _AMIGA_DRIVE_H
+#define _AMIGA_DRIVE_H
 
 #include "AmigaComponent.h"
 #include "Disk.h"
@@ -17,7 +18,7 @@ class Drive : public AmigaComponent {
     friend class DiskController;
         
     // Number of the emulated drive (0 = df0, 1 = df1, etc.)
-    const isize nr;
+    const unsigned nr;
 
     // Current configuration
     DriveConfig config;
@@ -68,8 +69,8 @@ class Drive : public AmigaComponent {
 
 public:
     
-    // The currently inserted disk (nullptr if the drive is empty)
-    Disk *disk = nullptr;
+    // The currently inserted disk (NULL if the drive is empty)
+    Disk *disk = NULL;
 
     
     //
@@ -78,9 +79,7 @@ public:
 
 public:
 
-    Drive(Amiga& ref, isize nr);
-    
-    const char *getDescription() const override;
+    Drive(Amiga& ref, unsigned nr);
     long getNr() { return nr; }
 
 private:
@@ -94,14 +93,14 @@ private:
     
 public:
     
-    const DriveConfig &getConfig() const { return config; }
+    DriveConfig getConfig() { return config; }
     
-    long getConfigItem(Option option) const;
-    bool setConfigItem(Option option, long id, long value) override;
+    long getConfigItem(ConfigOption option);
+    bool setConfigItem(unsigned dfn, ConfigOption option, long value) override;
     
 private:
     
-    void _dumpConfig() const override;
+    void _dumpConfig() override;
 
     
     //
@@ -115,7 +114,7 @@ public:
 private:
     
     void _inspect() override;
-    void _dump() const override;
+    void _dump() override;
 
     
     //
@@ -160,9 +159,9 @@ private:
     {
     }
 
-    isize _size() override;
-    isize _load(const u8 *buffer) override;
-    isize _save(u8 *buffer) override;
+    size_t _size() override;
+    size_t _load(u8 *buffer) override;
+    size_t _save(u8 *buffer) override;
 
 
     //
@@ -172,11 +171,11 @@ private:
 public:
 
     // Identification mode
-    bool idMode() const;
-    u32 getDriveId() const;
+    bool idMode();
+    u32 getDriveId();
 
     // Operation
-    u8 getCylinder() const { return head.cylinder; }
+    u8 getCylinder() { return head.cylinder; }
     
     
     //
@@ -184,9 +183,9 @@ public:
     //
     
     // Returns true if this drive is currently selected
-    inline bool isSelected() const { return (prb & (0b1000 << nr)) == 0; }
+    inline bool isSelected() { return (prb & (0b1000 << nr)) == 0; }
     
-    u8 driveStatusFlags() const;
+    u8 driveStatusFlags();
     
 
     //
@@ -194,25 +193,25 @@ public:
     //
         
     // Returns the current motor speed in percent
-    double motorSpeed() const;
+    double motorSpeed();
 
     // Turns the drive motor on or off
-    bool getMotor() const { return motor; }
+    bool getMotor() { return motor; }
     void setMotor(bool value);
     void switchMotorOn() { setMotor(true); }
     void switchMotorOff() { setMotor(false); }
 
     // Informs about the current drive motor state
-    bool motorSpeedingUp() const;
-    bool motorAtFullSpeed() const;
-    bool motorSlowingDown() const;
-    bool motorStopped() const;
+    bool motorSpeedingUp();
+    bool motorAtFullSpeed();
+    bool motorSlowingDown();
+    bool motorStopped();
 
     // Selects the active drive head (0 = lower, 1 = upper)
-    void selectSide(isize side);
+    void selectSide(int side);
 
     // Reads a value from the drive head and optionally rotates the disk
-    u8 readByte() const;
+    u8 readByte();
     u8 readByteAndRotate();
     u16 readWordAndRotate();
 
@@ -232,10 +231,10 @@ public:
     //
 
     // Returns wheather the drive is ready to accept a stepping pulse
-    bool readyToStep() const;
+    bool readyToStep();
     
     // Moves the drive head (0 = inwards, 1 = outwards).
-    void step(isize dir);
+    void step(int dir);
 
     // Records a cylinder change (needed for diskPollingMode() to work)
     void recordCylinder(u8 cylinder);
@@ -244,32 +243,30 @@ public:
      * Disk polling mode is detected by analyzing the movement history that
      * has been recorded by recordCylinder()
      */
-    bool pollsForDisk() const;
+    bool pollsForDisk();
 
     
     //
     // Handling disks
     //
 
-    bool hasDisk() const { return disk != nullptr; }
-    bool hasDDDisk() const { return disk ? disk->density == DISK_DD : false; }
-    bool hasHDDisk() const { return disk ? disk->density == DISK_HD : false; }
-    bool hasModifiedDisk() const { return disk ? disk->isModified() : false; }
+    bool hasDisk() { return disk != NULL; }
+    bool hasModifiedDisk() { return disk ? disk->isModified() : false; }
     void setModifiedDisk(bool value) { if (disk) disk->setModified(value); }
     
-    bool hasWriteEnabledDisk() const;
-    bool hasWriteProtectedDisk() const;
+    bool hasWriteEnabledDisk();
+    bool hasWriteProtectedDisk();
     void setWriteProtection(bool value); 
     void toggleWriteProtection();
     
-    bool isInsertable(DiskDiameter t, DiskDensity d) const;
-    bool isInsertable(DiskFile *file) const;
-    bool isInsertable(Disk *disk) const;
+    bool isInsertable(DiskType t, DiskDensity d);
+    bool isInsertable(DiskFile *file);
+    bool isInsertable(Disk *disk);
 
     void ejectDisk();
     bool insertDisk(Disk *disk);
     
-    u64 fnv() const;
+    u64 fnv();
     
     //
     // Delegation methods
@@ -278,3 +275,5 @@ public:
     // Write handler for the PRB register of CIA B
     void PRBdidChange(u8 oldValue, u8 newValue);
 };
+
+#endif

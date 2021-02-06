@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _EXTENDED_ROM_H
+#define _EXTENDED_ROM_H
 
 #include "AmigaFile.h"
 
@@ -25,25 +26,34 @@ public:
     // Class methods
     //
 
-    static bool isCompatibleName(const string &name);
-    static bool isCompatibleStream(std::istream &stream);
+    // Returns true iff buffer contains an Extended Rom image
+    static bool isExtendedRomBuffer(const u8 *buffer, size_t length);
 
-
+    // Returns true iff path points to a Extended Rom file
     static bool isExtendedRomFile(const char *path);
 
-    
+
     //
     // Initializing
     //
 
     ExtendedRomFile();
 
-    const char *getDescription() const override { return "ExtendedRom"; }
+    static ExtendedRomFile *makeWithBuffer(const u8 *buffer, size_t length);
+    static ExtendedRomFile *makeWithFile(const char *path);
 
 
     //
     // Methods from AmigaFile
     //
 
-    FileType type() const override { return FILETYPE_EXTENDED_ROM; }
+    AmigaFileType fileType() override { return FILETYPE_EXTENDED_ROM; }
+    const char *typeAsString() override { return "Extended Rom"; }
+    bool bufferHasSameType(const u8 *buffer, size_t length) override {
+        return isExtendedRomBuffer(buffer, length); }
+    bool fileHasSameType(const char *path) override { return isExtendedRomFile(path); }
+    bool readFromBuffer(const u8 *buffer, size_t length) override;
+
 };
+
+#endif

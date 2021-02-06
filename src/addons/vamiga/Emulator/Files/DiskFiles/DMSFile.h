@@ -7,50 +7,64 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _DMS_FILE_H
+#define _DMS_FILE_H
 
 #include "ADFFile.h"
 
 class DMSFile : public DiskFile {
-        
+    
 public:
-
+    
     ADFFile *adf = nullptr;
-        
-    static bool isCompatibleName(const string &name);
-    static bool isCompatibleStream(std::istream &stream);
     
     
     //
-    //  Methods from AmigaObject
+    // Class methods
     //
-        
-    const char *getDescription() const override { return "DMS"; }
-        
+    
+    // Returns true iff the provided buffer contains a DMS file
+    static bool isDMSBuffer(const u8 *buffer, size_t length);
+    
+    // Returns true iff if the provided path points to a DMS file
+    static bool isDMSFile(const char *path);
+    
+    
+    //
+    // Initializing
+    //
+    
+    DMSFile();
+    
+    static DMSFile *makeWithBuffer(const u8 *buffer, size_t length);
+    static DMSFile *makeWithFile(const char *path);
+    
     
     //
     // Methods from AmigaFile
     //
     
-    FileType type() const override { return FILETYPE_DMS; }
-    u64 fnv() const override { return adf->fnv(); }
-    isize readFromStream(std::istream &stream) override;
-
+    AmigaFileType fileType() override { return FILETYPE_DMS; }
+    const char *typeAsString() override { return "DMS"; }
+    u64 fnv() override { return adf->fnv(); }
+    bool bufferHasSameType(const u8 *buffer, size_t length) override {
+        return isDMSBuffer(buffer, length); }
+    bool fileHasSameType(const char *path) override { return isDMSFile(path); }
+    bool readFromBuffer(const u8 *buffer, size_t length) override;
+    
     
     //
     // Methods from DiskFile
     //
     
-    FSVolumeType getDos() const override { return adf->getDos(); }
-    void setDos(FSVolumeType dos) override { adf->setDos(dos); }
-    DiskDiameter getDiskDiameter() const override { return adf->getDiskDiameter(); }
-    DiskDensity getDiskDensity() const override { return adf->getDiskDensity(); }
-    isize numSides() const override { return adf->numSides(); }
-    isize numCyls() const override { return adf->numCyls(); }
-    isize numSectors() const override { return adf->numSectors(); }
-    BootBlockType bootBlockType() const override { return adf->bootBlockType(); }
-    const char *bootBlockName() const override { return adf->bootBlockName(); }
-    void readSector(u8 *target, long s) const override { return adf->readSector(target, s); }
-    void readSector(u8 *target, long t, long s) const override { return adf->readSector(target, t, s); }
+    DiskType getDiskType() override { return adf->getDiskType(); }
+    DiskDensity getDiskDensity() override { return adf->getDiskDensity(); }
+    long numSides() override { return adf->numSides(); }
+    long numCyclinders() override { return adf->numCyclinders(); }
+    long numSectors() override { return adf->numSectors(); }
+    void readSector(u8 *target, long s) override { return adf->readSector(target, s); }
+    void readSector(u8 *target, long t, long s) override { return adf->readSector(target, t, s); }
     bool encodeDisk(class Disk *disk) override { return adf->encodeDisk(disk); }
 };
+
+#endif

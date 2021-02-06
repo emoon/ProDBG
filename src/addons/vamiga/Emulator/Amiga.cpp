@@ -16,7 +16,7 @@
 void
 threadTerminated(void *thisAmiga)
 {
-    assert(thisAmiga != nullptr);
+    assert(thisAmiga != NULL);
     
     // Inform the Amiga that the thread has been canceled
     Amiga *amiga = (Amiga *)thisAmiga;
@@ -26,15 +26,15 @@ threadTerminated(void *thisAmiga)
 void
 *threadMain(void *thisAmiga) {
     
-    assert(thisAmiga != nullptr);
+    assert(thisAmiga != NULL);
     
     // Inform the Amiga that the thread is about to start
     Amiga *amiga = (Amiga *)thisAmiga;
     amiga->threadWillStart();
     
     // Configure the thread
-    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);
-    pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, nullptr);
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+    pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
     pthread_cleanup_push(threadTerminated, thisAmiga);
     
     // Enter the run loop
@@ -42,7 +42,7 @@ void
     
     // Clean up and exit
     pthread_cleanup_pop(1);
-    pthread_exit(nullptr);
+    pthread_exit(NULL);
 }
 
 
@@ -52,6 +52,8 @@ void
 
 Amiga::Amiga()
 {
+    setDescription("Amiga");
+
     /* The order of subcomponents is important here, because some components
      * are dependend on others during initialization. I.e.,
      *
@@ -85,7 +87,6 @@ Amiga::Amiga()
         &ciaB,
         &mem,
         &cpu,
-        &queue
     };
 
     // Set up the initial state
@@ -96,43 +97,13 @@ Amiga::Amiga()
     // mach_timebase_info(&tb);
     
     // Initialize mutex
-    pthread_mutex_init(&threadLock, nullptr);
-    pthread_mutex_init(&stateChangeLock, nullptr);
-    
-    // Print some debug information
-    if (SNP_DEBUG) {
-        
-        msg("             Agnus : %lu bytes\n", sizeof(Agnus));
-        msg("       AudioFilter : %lu bytes\n", sizeof(AudioFilter));
-        msg("       AudioStream : %lu bytes\n", sizeof(AudioStream));
-        msg("               CIA : %lu bytes\n", sizeof(CIA));
-        msg("       ControlPort : %lu bytes\n", sizeof(ControlPort));
-        msg("               CPU : %lu bytes\n", sizeof(CPU));
-        msg("            Denise : %lu bytes\n", sizeof(Denise));
-        msg("             Drive : %lu bytes\n", sizeof(Drive));
-        msg("          Keyboard : %lu bytes\n", sizeof(Keyboard));
-        msg("            Memory : %lu bytes\n", sizeof(Memory));
-        msg("moira::Breakpoints : %lu bytes\n", sizeof(moira::Breakpoints));
-        msg("moira::Watchpoints : %lu bytes\n", sizeof(moira::Watchpoints));
-        msg("   moira::Debugger : %lu bytes\n", sizeof(moira::Debugger));
-        msg("      moira::Moira : %lu bytes\n", sizeof(moira::Moira));
-        msg("             Muxer : %lu bytes\n", sizeof(Muxer));
-        msg("        Oscillator : %lu bytes\n", sizeof(Oscillator));
-        msg("             Paula : %lu bytes\n", sizeof(Paula));
-        msg("       PixelEngine : %lu bytes\n", sizeof(PixelEngine));
-        msg("               RTC : %lu bytes\n", sizeof(RTC));
-        msg("           Sampler : %lu bytes\n", sizeof(Sampler));
-        msg("    ScreenRecorder : %lu bytes\n", sizeof(ScreenRecorder));
-        msg("        SerialPort : %lu bytes\n", sizeof(SerialPort));
-        msg("            Volume : %lu bytes\n", sizeof(Volume));
-        msg("             Zorro : %lu bytes\n", sizeof(ZorroManager));
-        msg("\n");
-    }
+    pthread_mutex_init(&threadLock, NULL);
+    pthread_mutex_init(&stateChangeLock, NULL);
 }
 
 Amiga::~Amiga()
 {
-    debug(RUN_DEBUG, "Destroying Amiga[%p]\n", this);
+    trace("Destroying Amiga[%p]\n", this);
     powerOff();
     
     pthread_mutex_destroy(&threadLock);
@@ -140,7 +111,7 @@ Amiga::~Amiga()
 }
 
 void
-Amiga::prefix() const
+Amiga::prefix()
 {
     fprintf(stderr, "[%lld] (%3d,%3d) ",
             agnus.frame.nr, agnus.pos.v, agnus.pos.h);
@@ -179,20 +150,40 @@ Amiga::reset(bool hard)
     if (hard) resume();
 
     // Inform the GUI
-    if (hard) queue.put(MSG_RESET);
+    if (hard) messageQueue.put(MSG_RESET);
 }
 
-void
-Amiga::_reset(bool hard)
+AmigaConfiguration
+Amiga::getConfig()
 {
-    RESET_SNAPSHOT_ITEMS(hard)
-    
-    // Clear all runloop flags
-    runLoopCtrl = 0;
+    AmigaConfiguration config;
+
+    config.ciaA = ciaA.getConfig();
+    config.ciaB = ciaB.getConfig();
+    config.rtc = rtc.getConfig();
+    config.audio = paula.muxer.getConfig();
+    config.mem = mem.getConfig();
+    config.agnus = agnus.getConfig();
+    config.denise = denise.getConfig();
+    config.serialPort = serialPort.getConfig();
+    config.keyboard = keyboard.getConfig();
+    config.blitter = agnus.blitter.getConfig();
+    config.diskController = paula.diskController.getConfig();
+    config.df0 = df0.getConfig();
+    config.df1 = df1.getConfig();
+    config.df2 = df2.getConfig();
+    config.df3 = df3.getConfig();
+
+    // Assure both CIAs are configured equally
+    assert(config.ciaA.revision == config.ciaB.revision);
+    assert(config.ciaA.todBug == config.ciaB.todBug);
+    assert(config.ciaA.eClockSyncing == config.ciaB.eClockSyncing);
+
+    return config;
 }
 
 long
-Amiga::getConfigItem(Option option) const
+Amiga::getConfigItem(ConfigOption option)
 {
     switch (option) {
 
@@ -228,6 +219,14 @@ Amiga::getConfigItem(Option option) const
         case OPT_FILTER_ALWAYS_ON:
         case OPT_AUDVOLL:
         case OPT_AUDVOLR:
+        case OPT_AUDVOL0:
+        case OPT_AUDVOL1:
+        case OPT_AUDVOL2:
+        case OPT_AUDVOL3:
+        case OPT_AUDPAN0:
+        case OPT_AUDPAN1:
+        case OPT_AUDPAN2:
+        case OPT_AUDPAN3:
             return paula.muxer.getConfigItem(option);
 
         case OPT_BLITTER_ACCURACY:
@@ -254,20 +253,18 @@ Amiga::getConfigItem(Option option) const
 }
 
 long
-Amiga::getConfigItem(Option option, long id) const
+Amiga::getConfigItem(unsigned dfn, ConfigOption option)
 {
+    assert(dfn < 4);
+            
     switch (option) {
             
-        case OPT_AUDPAN:
-        case OPT_AUDVOL:
-            return paula.muxer.getConfigItem(option, id);
-
         case OPT_DRIVE_CONNECT:
-            return paula.diskController.getConfigItem(option, id);
+            return paula.diskController.getConfigItem(dfn, option);
             
         case OPT_DRIVE_TYPE:
         case OPT_EMULATE_MECHANICS:
-            return df[id]->getConfigItem(option);
+            return df[dfn]->getConfigItem(option);
             
         default: assert(false);
     }
@@ -276,39 +273,35 @@ Amiga::getConfigItem(Option option, long id) const
 }
 
 bool
-Amiga::configure(Option option, long value)
+Amiga::configure(ConfigOption option, long value)
 {
     // Propagate configuration request to all components
     bool changed = HardwareComponent::configure(option, value);
     
     // Inform the GUI if the configuration has changed
-    if (changed) queue.put(MSG_CONFIG);
+    if (changed) messageQueue.put(MSG_CONFIG);
     
     // Dump the current configuration in debugging mode
-    if (changed && CNF_DEBUG) dumpConfig();
+    if (changed && OPT_DEBUG) dumpConfig();
 
     return changed;
 }
 
 bool
-Amiga::configure(Option option, long id, long value)
+Amiga::configure(unsigned drive, ConfigOption option, long value)
 {
+    assert(drive <= 3);
+    
     // Propagate configuration request to all components
-    bool changed = HardwareComponent::configure(option, id, value);
+    bool changed = HardwareComponent::configure(drive, option, value);
     
     // Inform the GUI if the configuration has changed
-    if (changed) queue.put(MSG_CONFIG);
+    if (changed) messageQueue.put(MSG_CONFIG);
     
     // Dump the current configuration in debugging mode
-    if (changed && CNF_DEBUG) dumpConfig();
+    if (changed && OPT_DEBUG) dumpConfig();
         
     return changed;
-}
-
-EventID
-Amiga::getInspectionTarget() const
-{
-    return agnus.slot[SLOT_INS].id;
 }
 
 void
@@ -316,9 +309,15 @@ Amiga::setInspectionTarget(EventID id)
 {
     suspend();
     inspectionTarget = id;
-    agnus.scheduleRel<SLOT_INS>(0, inspectionTarget);
+    agnus.scheduleRel<INS_SLOT>(0, inspectionTarget);
     agnus.serviceINSEvent();
     resume();
+}
+
+void
+Amiga::clearInspectionTarget()
+{
+    setInspectionTarget(INS_NONE);
 }
 
 void
@@ -337,29 +336,44 @@ Amiga::_inspect()
 }
 
 void
-Amiga::_dump() const
+Amiga::_dump()
 {
+    AmigaConfiguration config = getConfig();
+    DiskControllerConfig dc = config.diskController;
+
     msg("    poweredOn: %s\n", isPoweredOn() ? "yes" : "no");
     msg("   poweredOff: %s\n", isPoweredOff() ? "yes" : "no");
     msg("       paused: %s\n", isPaused() ? "yes" : "no");
     msg("      running: %s\n", isRunning() ? "yes" : "no");
-    msg("         warp: %s\n", warpMode ? "on" : "off");
+    msg("\n");
+    msg("Current configuration:\n\n");
+    msg("          df0: %s %s\n",
+             dc.connected[0] ? "yes" : "no", driveTypeName(config.df0.type));
+    msg("          df1: %s %s\n",
+             dc.connected[1] ? "yes" : "no", driveTypeName(config.df1.type));
+    msg("          df2: %s %s\n",
+             dc.connected[2] ? "yes" : "no", driveTypeName(config.df2.type));
+    msg("          df3: %s %s\n",
+             dc.connected[3] ? "yes" : "no", driveTypeName(config.df3.type));
+
+    msg("\n");
+    msg("         warp: %d", warpMode);
     msg("\n");
 }
 
 void
 Amiga::powerOn()
 {
-    debug(RUN_DEBUG, "powerOn()\n");
+    trace(RUN_DEBUG, "powerOn()\n");
     
     #ifdef DF0_DISK
-    DiskFile *df0file = AmigaFile::make <ADFFile> (DF0_DISK);
-    if (df0file) {
-        Disk *disk = Disk::makeWithFile(df0file);
-        df0.ejectDisk();
-        df0.insertDisk(disk);
-        df0.setWriteProtection(false);
-    }
+        DiskFile *df0file = DiskFile::makeWithFile(DF0_DISK);
+        if (df0file) {
+            Disk *disk = Disk::makeWithFile(df0file);
+            df0.ejectDisk();
+            df0.insertDisk(disk);
+            df0.setWriteProtection(false);
+        }
     #endif
 
     #ifdef DF1_DISK
@@ -391,21 +405,21 @@ Amiga::powerOn()
 void
 Amiga::_powerOn()
 {
-    debug(RUN_DEBUG, "_powerOn()\n");
+    trace(RUN_DEBUG, "_powerOn()\n");
 
     // Clear all runloop flags
-    // runLoopCtrl = 0;
+    runLoopCtrl = 0;
 
     // Update the recorded debug information
     inspect();
 
-    queue.put(MSG_POWER_ON);
+    messageQueue.put(MSG_POWER_ON);
 }
 
 void
 Amiga::powerOff()
 {
-    debug(RUN_DEBUG, "powerOff()\n");
+    trace(RUN_DEBUG, "powerOff()\n");
     
     pthread_mutex_lock(&stateChangeLock);
     
@@ -421,18 +435,18 @@ Amiga::powerOff()
 void
 Amiga::_powerOff()
 {
-    debug(RUN_DEBUG, "_powerOff()\n");
+    trace("_powerOff()\n");
     
     // Update the recorded debug information
     inspect();
     
-    queue.put(MSG_POWER_OFF);
+    messageQueue.put(MSG_POWER_OFF);
 }
 
 void
 Amiga::run()
 {
-    debug(RUN_DEBUG, "run()\n");
+    trace(RUN_DEBUG, "run()\n");
         
     pthread_mutex_lock(&stateChangeLock);
     
@@ -448,19 +462,19 @@ Amiga::run()
 void
 Amiga::_run()
 {
-    debug(RUN_DEBUG, "_run()\n");
+    trace(RUN_DEBUG, "_run()\n");
     
     // Start the emulator thread
-    pthread_create(&p, nullptr, threadMain, (void *)this);
+    pthread_create(&p, NULL, threadMain, (void *)this);
     
     // Inform the GUI
-    queue.put(MSG_RUN);
+    messageQueue.put(MSG_RUN);
 }
 
 void
 Amiga::pause()
 {
-    debug(RUN_DEBUG, "pause()\n");
+    trace(RUN_DEBUG, "pause()\n");
 
     pthread_mutex_lock(&stateChangeLock);
     
@@ -476,7 +490,7 @@ Amiga::pause()
 void
 Amiga::_pause()
 {
-    debug(RUN_DEBUG, "_pause()\n");
+    trace(RUN_DEBUG, "_pause()\n");
     
     // When we reach this line, the emulator thread is already gone
     assert(p == (pthread_t)0);
@@ -485,7 +499,7 @@ Amiga::_pause()
     inspect();
 
     // Inform the GUI
-    queue.put(MSG_PAUSE);
+    messageQueue.put(MSG_PAUSE);
 }
 
 void
@@ -501,25 +515,20 @@ Amiga::_setWarp(bool enable)
 {
     if (enable) {
         
-        queue.put(MSG_WARP_ON);
+        messageQueue.put(MSG_WARP_ON);
         
     } else {
         
         oscillator.restart();
-        queue.put(MSG_WARP_OFF);
+        // restartTimer();
+        messageQueue.put(MSG_WARP_OFF);
     }
-}
-
-void
-Amiga::setDebug(bool enable)
-{
-    HardwareComponent::setDebug(enable);
 }
 
 void
 Amiga::acquireThreadLock()
 {
-    if (state == EMULATOR_STATE_RUNNING) {
+    if (state == STATE_RUNNING) {
         
         // Assure the emulator thread exists
         assert(p != (pthread_t)0);
@@ -545,13 +554,13 @@ Amiga::isReady(ErrorCode *error)
 {
     if (!mem.hasRom()) {
         msg("isReady: No Boot Rom or Kickstart Rom found\n");
-        if (error) *error = ERROR_ROM_MISSING;
+        if (error) *error = ERR_ROM_MISSING;
         return false;
     }
 
     if (!mem.hasChipRam()) {
         msg("isReady: No Chip Ram found\n");
-        if (error) *error = ERROR_ROM_MISSING;
+        if (error) *error = ERR_ROM_MISSING;
         return false;
     }
     
@@ -559,20 +568,20 @@ Amiga::isReady(ErrorCode *error)
 
         if (!mem.hasExt()) {
             msg("isReady: Aros requires an extension Rom\n");
-            if (error) *error = ERROR_AROS_NO_EXTROM;
+            if (error) *error = ERR_AROS_NO_EXTROM;
             return false;
         }
 
         if (mem.ramSize() < MB(1)) {
             msg("isReady: Aros requires at least 1 MB of memory\n");
-            if (error) *error = ERROR_AROS_RAM_LIMIT;
+            if (error) *error = ERR_AROS_RAM_LIMIT;
             return false;
         }
     }
 
     if (mem.chipRamSize() > KB(agnus.chipRamLimit())) {
         msg("isReady: Chip Ram exceeds Agnus limit\n");
-        if (error) *error = ERROR_CHIP_RAM_LIMIT;
+        if (error) *error = ERR_CHIP_RAM_LIMIT;
         return false;
     }
 
@@ -584,7 +593,7 @@ Amiga::suspend()
 {
     pthread_mutex_lock(&stateChangeLock);
     
-    debug(RUN_DEBUG, "Suspending (%zu)...\n", suspendCounter);
+    trace(RUN_DEBUG, "Suspending (%d)...\n", suspendCounter);
     
     if (suspendCounter || isRunning()) {
         
@@ -602,7 +611,7 @@ Amiga::resume()
 {
     pthread_mutex_lock(&stateChangeLock);
     
-    debug(RUN_DEBUG, "Resuming (%zu)...\n", suspendCounter);
+    trace(RUN_DEBUG, "Resuming (%d)...\n", suspendCounter);
     
     if (suspendCounter && --suspendCounter == 0) {
         
@@ -652,16 +661,16 @@ Amiga::stepOver()
 void
 Amiga::threadWillStart()
 {
-    debug(RUN_DEBUG, "Emulator thread started\n");
+    trace(RUN_DEBUG, "Emulator thread started\n");
 }
 
 void
 Amiga::threadDidTerminate()
 {
-    debug(RUN_DEBUG, "Emulator thread terminated\n");
+    trace(RUN_DEBUG, "Emulator thread terminated\n");
 
     // Trash the thread pointer
-    p = (pthread_t)0;
+    p = 0;
     
     // Pause all components
     HardwareComponent::pause();
@@ -673,10 +682,11 @@ Amiga::threadDidTerminate()
 void
 Amiga::runLoop()
 {
-    debug(RUN_DEBUG, "runLoop()\n");
+    trace(RUN_DEBUG, "runLoop()\n");
 
     // Prepare to run
     oscillator.restart();
+    // restartTimer();
     
     // Enable or disable debugging features
     if (debugMode) {
@@ -684,7 +694,7 @@ Amiga::runLoop()
     } else {
         cpu.debugger.disableLogging();
     }
-    agnus.scheduleRel<SLOT_INS>(0, inspectionTarget);
+    agnus.scheduleRel<INS_SLOT>(0, inspectionTarget);
     
     // Enter the loop
     while(1) {
@@ -697,21 +707,21 @@ Amiga::runLoop()
             
             // Are we requested to take a snapshot?
             if (runLoopCtrl & RL_AUTO_SNAPSHOT) {
-                debug(RUN_DEBUG, "RL_AUTO_SNAPSHOT\n");
+                trace(RUN_DEBUG, "RL_AUTO_SNAPSHOT\n");
                 autoSnapshot = Snapshot::makeWithAmiga(this);
-                queue.put(MSG_AUTO_SNAPSHOT_TAKEN);
+                messageQueue.put(MSG_AUTO_SNAPSHOT_TAKEN);
                 clearControlFlags(RL_AUTO_SNAPSHOT);
             }
             if (runLoopCtrl & RL_USER_SNAPSHOT) {
-                debug(RUN_DEBUG, "RL_USER_SNAPSHOT\n");
+                trace(RUN_DEBUG, "RL_USER_SNAPSHOT\n");
                 userSnapshot = Snapshot::makeWithAmiga(this);
-                queue.put(MSG_USER_SNAPSHOT_TAKEN);
+                messageQueue.put(MSG_USER_SNAPSHOT_TAKEN);
                 clearControlFlags(RL_USER_SNAPSHOT);
             }
 
             // Are we requested to update the debugger info structs?
             if (runLoopCtrl & RL_INSPECT) {
-                debug(RUN_DEBUG, "RL_INSPECT\n");
+                trace(RUN_DEBUG, "RL_INSPECT\n");
                 inspect();
                 clearControlFlags(RL_INSPECT);
             }
@@ -719,8 +729,8 @@ Amiga::runLoop()
             // Did we reach a breakpoint?
             if (runLoopCtrl & RL_BREAKPOINT_REACHED) {
                 inspect();
-                queue.put(MSG_BREAKPOINT_REACHED);
-                debug(RUN_DEBUG, "BREAKPOINT_REACHED pc: %x\n", cpu.getPC());
+                messageQueue.put(MSG_BREAKPOINT_REACHED);
+                trace(RUN_DEBUG, "BREAKPOINT_REACHED pc: %x\n", cpu.getPC());
                 clearControlFlags(RL_BREAKPOINT_REACHED);
                 break;
             }
@@ -728,8 +738,8 @@ Amiga::runLoop()
             // Did we reach a watchpoint?
             if (runLoopCtrl & RL_WATCHPOINT_REACHED) {
                 inspect();
-                queue.put(MSG_WATCHPOINT_REACHED);
-                debug(RUN_DEBUG, "WATCHPOINT_REACHED pc: %x\n", cpu.getPC());
+                messageQueue.put(MSG_WATCHPOINT_REACHED);
+                trace(RUN_DEBUG, "WATCHPOINT_REACHED pc: %x\n", cpu.getPC());
                 clearControlFlags(RL_WATCHPOINT_REACHED);
                 break;
             }
@@ -737,7 +747,7 @@ Amiga::runLoop()
             // Are we requested to terminate the run loop?
             if (runLoopCtrl & RL_STOP) {
                 clearControlFlags(RL_STOP);
-                debug(RUN_DEBUG, "RL_STOP\n");
+                trace(RUN_DEBUG, "RL_STOP\n");
                 break;
             }
         }
@@ -797,7 +807,7 @@ Amiga::requestAutoSnapshot()
 
         // Take snapshot immediately
         autoSnapshot = Snapshot::makeWithAmiga(this);
-        queue.put(MSG_AUTO_SNAPSHOT_TAKEN);
+        messageQueue.put(MSG_AUTO_SNAPSHOT_TAKEN);
         
     } else {
 
@@ -813,7 +823,7 @@ Amiga::requestUserSnapshot()
         
         // Take snapshot immediately
         userSnapshot = Snapshot::makeWithAmiga(this);
-        queue.put(MSG_USER_SNAPSHOT_TAKEN);
+        messageQueue.put(MSG_USER_SNAPSHOT_TAKEN);
         
     } else {
         
@@ -826,7 +836,7 @@ Snapshot *
 Amiga::latestAutoSnapshot()
 {
     Snapshot *result = autoSnapshot;
-    autoSnapshot = nullptr;
+    autoSnapshot = NULL;
     return result;
 }
 
@@ -834,7 +844,7 @@ Snapshot *
 Amiga::latestUserSnapshot()
 {
     Snapshot *result = userSnapshot;
-    userSnapshot = nullptr;
+    userSnapshot = NULL;
     return result;
 }
 
@@ -845,7 +855,7 @@ Amiga::loadFromSnapshotUnsafe(Snapshot *snapshot)
     
     if (snapshot && (ptr = snapshot->getData())) {
         load(ptr);
-        queue.put(MSG_SNAPSHOT_RESTORED);
+        messageQueue.put(MSG_SNAPSHOT_RESTORED);
     }
 }
 

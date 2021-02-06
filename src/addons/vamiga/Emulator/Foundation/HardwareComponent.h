@@ -7,22 +7,16 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _HARDWARE_COMPONENT_H
+#define _HARDWARE_COMPONENT_H
 
 #include "AmigaObject.h"
 #include "Serialization.h"
-#include "Concurrency.h"
 
 /* This class defines the base functionality of all hardware components. It
  * comprises functions for initializing, configuring, and serializing the
- * emulator, as well as functions for powering up and down, running and
- * pausing. Furthermore, a 'synchronized' macro is provided to prevent mutual
- * execution of certain code components.
+ * emulator, as well as functions for powering up and down, running and pausing.
  */
-
-#define synchronized \
-for (AutoMutex _am(mutex); _am.active; _am.active = false)
-
 class HardwareComponent : public AmigaObject {
     
 public:
@@ -39,7 +33,7 @@ protected:
      *     Paused: The Amiga is turned on, but there is no emulator thread
      *    Running: The Amiga is turned on and the emulator thread running
      */
-    EmulatorState state = EMULATOR_STATE_OFF;
+    EmulatorState state = STATE_OFF;
     
     /* Indicates if the emulator should be executed in warp mode. To speed up
      * emulation (e.g., during disk accesses), the virtual hardware may be put
@@ -55,13 +49,7 @@ protected:
      * breakpoints and records the executed instruction in it's trace buffer.
      */
     bool debugMode = false;
-            
-    /* Mutex for implementing the 'synchronized' macro. The macro can be used
-     * to prevent multiple threads to enter the same code block. It mimics the
-     * behaviour of the well known Java construct 'synchronized(this) { }'.
-     */
-    Mutex mutex;
-
+        
     
     //
     // Initializing
@@ -102,20 +90,20 @@ public:
      * setConfigItem(). The function returns true iff the current configuration
      * has changed.
      */
-    bool configure(Option option, long value);
-    bool configure(Option option, long id, long value);
+    bool configure(ConfigOption option, long value);
+    bool configure(unsigned dfn, ConfigOption option, long value);
     
     /* Requests the change of a single configuration item. Each sub-component
      * checks if it is responsible for the requested configuration item. If
      * yes, it changes the internal state. If no, it ignores the request.
      * The function returns true iff the current configuration has changed.
      */
-    virtual bool setConfigItem(Option option, long value) { return false; }
-    virtual bool setConfigItem(Option option, long id, long value) { return false; }
+    virtual bool setConfigItem(ConfigOption option, long value) { return false; }
+    virtual bool setConfigItem(unsigned dfn, ConfigOption option, long value) { return false; }
     
     // Dumps debug information about the current configuration to the console
-    void dumpConfig() const;
-    virtual void _dumpConfig() const { }
+    void dumpConfig();
+    virtual void _dumpConfig() { }
     
     
     //
@@ -150,7 +138,7 @@ public:
     
     // Dumps debug information about the internal state to the console
     void dump();
-    virtual void _dump() const { }
+    virtual void _dump() { }
     
     
     //
@@ -158,25 +146,25 @@ public:
     //
     
     // Returns the size of the internal state in bytes
-    isize size();
-    virtual isize _size() = 0;
+    size_t size();
+    virtual size_t _size() = 0;
     
     // Loads the internal state from a memory buffer
-    isize load(const u8 *buffer);
-    virtual isize _load(const u8 *buffer) = 0;
+    size_t load(u8 *buffer);
+    virtual size_t _load(u8 *buffer) = 0;
     
     // Saves the internal state to a memory buffer
-    isize save(u8 *buffer);
-    virtual isize _save(u8 *buffer) = 0;
+    size_t save(u8 *buffer);
+    virtual size_t _save(u8 *buffer) = 0;
     
     /* Delegation methods called inside load() or save(). Some components
      * override these methods to add custom behavior if not all elements can be
      * processed by the default implementation.
      */
-    virtual isize willLoadFromBuffer(const u8 *buffer) { return 0; }
-    virtual isize didLoadFromBuffer(const u8 *buffer) { return 0; }
-    virtual isize willSaveToBuffer(u8 *buffer) const {return 0; }
-    virtual isize didSaveToBuffer(u8 *buffer) const { return 0; }
+    virtual size_t willLoadFromBuffer(u8 *buffer) { return 0; }
+    virtual size_t didLoadFromBuffer(u8 *buffer) { return 0; }
+    virtual size_t willSaveToBuffer(u8 *buffer) {return 0; }
+    virtual size_t didSaveToBuffer(u8 *buffer) { return 0; }
     
     
     //
@@ -206,10 +194,10 @@ public:
      * Additional component flags: warp (on / off), debug (on / off)
      */
     
-    bool isPoweredOff() const { return state == EMULATOR_STATE_OFF; }
-    bool isPoweredOn() const { return state != EMULATOR_STATE_OFF; }
-    bool isPaused() const { return state == EMULATOR_STATE_PAUSED; }
-    bool isRunning() const { return state == EMULATOR_STATE_RUNNING; }
+    bool isPoweredOff() { return state == STATE_OFF; }
+    bool isPoweredOn() { return state != STATE_OFF; }
+    bool isPaused() { return state == STATE_PAUSED; }
+    bool isRunning() { return state == STATE_RUNNING; }
     
 protected:
     
@@ -291,7 +279,7 @@ SerReader reader(buffer); \
 applyToPersistentItems(reader); \
 applyToHardResetItems(reader); \
 applyToResetItems(reader); \
-debug(SNP_DEBUG, "Recreated from %zu bytes\n", reader.ptr - buffer); \
+debug(SNP_DEBUG, "Recreated from %d bytes\n", reader.ptr - buffer); \
 return reader.ptr - buffer; \
 }
 
@@ -301,6 +289,8 @@ SerWriter writer(buffer); \
 applyToPersistentItems(writer); \
 applyToHardResetItems(writer); \
 applyToResetItems(writer); \
-debug(SNP_DEBUG, "Serialized to %zu bytes\n", writer.ptr - buffer); \
+debug(SNP_DEBUG, "Serialized to %d bytes\n", writer.ptr - buffer); \
 return writer.ptr - buffer; \
 }
+
+#endif

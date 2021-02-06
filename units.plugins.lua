@@ -40,7 +40,6 @@ end
 
 -----------------------------------------------------------------------------------------------------------------------
 
---[[
 SharedLibrary {
     Name = "vamiga",
 
@@ -85,7 +84,6 @@ SharedLibrary {
         get_cpp_src("src/addons/vamiga", true),
     }
 }
---]]
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -260,7 +258,7 @@ end
 --  Default "dbgeng_plugin"
 --end
 
--- Default "vamiga"
+Default "vamiga"
 Default "file"
 Default "dummy_backend"
 Default "register_view"

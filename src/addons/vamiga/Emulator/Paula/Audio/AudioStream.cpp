@@ -10,7 +10,7 @@
 #include "Amiga.h"
 
 void
-AudioStream::copyMono(float *buffer, isize n,
+AudioStream::copyMono(float *buffer, size_t n,
                       i32 &volume, i32 targetVolume, i32 volumeDelta)
 {
     // The caller has to ensure that no buffer underflows occurs
@@ -20,7 +20,7 @@ AudioStream::copyMono(float *buffer, isize n,
         
         float scale = volume / 10000.0f;
         
-        for (isize i = 0; i < n; i++) {
+        for (size_t i = 0; i < n; i++) {
             
             SamplePair pair = read();
             *buffer++ = (pair.left + pair.right) * scale;
@@ -28,7 +28,7 @@ AudioStream::copyMono(float *buffer, isize n,
 
     } else {
         
-        for (isize i = 0; i < n; i++) {
+        for (size_t i = 0; i < n; i++) {
                             
             if (volume < targetVolume) {
                 volume += MIN(volumeDelta, targetVolume - volume);
@@ -45,21 +45,17 @@ AudioStream::copyMono(float *buffer, isize n,
 }
 
 void
-AudioStream::copy(float *left, float *right, isize n,
+AudioStream::copy(float *left, float *right, size_t n,
                   i32 &volume, i32 targetVolume, i32 volumeDelta)
 {
     // The caller has to ensure that no buffer underflows occurs
-    if (count() < n) {
-        printf("count() = \(count()) n = \(n)");
-        assert(false);
-    }
     assert(count() >= n);
 
     if (volume == targetVolume) {
         
         float scale = volume / 10000.0f;
         
-        for (isize i = 0; i < n; i++) {
+        for (size_t i = 0; i < n; i++) {
             
             SamplePair pair = read();
             *left++ = pair.left * scale;
@@ -68,7 +64,7 @@ AudioStream::copy(float *left, float *right, isize n,
 
     } else {
         
-        for (isize i = 0; i < n; i++) {
+        for (size_t i = 0; i < n; i++) {
                             
             if (volume < targetVolume) {
                 volume += MIN(volumeDelta, targetVolume - volume);
@@ -86,7 +82,7 @@ AudioStream::copy(float *left, float *right, isize n,
 }
 
 void
-AudioStream::copyInterleaved(float *buffer, isize n,
+AudioStream::copyInterleaved(float *buffer, size_t n,
                              i32 &volume, i32 targetVolume, i32 volumeDelta)
 {
     // The caller has to ensure that no buffer underflows occurs
@@ -96,7 +92,7 @@ AudioStream::copyInterleaved(float *buffer, isize n,
         
         float scale = volume / 10000.0f;
         
-        for (isize i = 0; i < n; i++) {
+        for (size_t i = 0; i < n; i++) {
             
             SamplePair pair = read();
             *buffer++ = pair.left * scale;
@@ -105,7 +101,7 @@ AudioStream::copyInterleaved(float *buffer, isize n,
 
     } else {
         
-        for (isize i = 0; i < n; i++) {
+        for (size_t i = 0; i < n; i++) {
                             
             if (volume < targetVolume) {
                 volume += MIN(volumeDelta, targetVolume - volume);
@@ -123,19 +119,19 @@ AudioStream::copyInterleaved(float *buffer, isize n,
 }
 
 float
-AudioStream::draw(u32 *buffer, isize width, isize height,
-                  bool left, float highestAmplitude, u32 color)
+AudioStream::draw(unsigned *buffer, int width, int height,
+                          bool left, float highestAmplitude, unsigned color)
 {
-    isize dw = cap() / width;
+    int dw = cap() / width;
     float newHighestAmplitude = 0.001;
     
     // Clear buffer
-    for (isize i = 0; i < width * height; i++) {
+    for (int i = 0; i < width * height; i++) {
         buffer[i] = color & 0xFFFFFF;
     }
     
     // Draw waveform
-    for (isize w = 0; w < width; w++) {
+    for (int w = 0; w < width; w++) {
         
         // Read samples from ringbuffer
         SamplePair pair = current(w * dw);
@@ -155,12 +151,12 @@ AudioStream::draw(u32 *buffer, isize width, isize height,
             if (sample > newHighestAmplitude) newHighestAmplitude = sample;
             
             // Scale the sample
-            isize scaled = isize(sample * height / highestAmplitude);
+            int scaled = int(sample * height / highestAmplitude);
             if (scaled > height) scaled = height;
             
             // Draw vertical line
-            u32 *ptr = buffer + width * ((height - scaled) / 2) + w;
-            for (isize j = 0; j < scaled; j++, ptr += width) *ptr = color;
+            unsigned *ptr = buffer + width * ((height - scaled) / 2) + w;
+            for (int j = 0; j < scaled; j++, ptr += width) *ptr = color;
         }
     }
     return newHighestAmplitude;

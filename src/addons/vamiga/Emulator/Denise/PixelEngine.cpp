@@ -11,14 +11,16 @@
 
 PixelEngine::PixelEngine(Amiga& ref) : AmigaComponent(ref)
 {
+    setDescription("PixelEngine");
+
     // Allocate frame buffers
     emuTexture[0].data = new u32[PIXELS]; emuTexture[0].longFrame = true;
     emuTexture[1].data = new u32[PIXELS]; emuTexture[1].longFrame = true;
     
     // Create random background noise pattern
-    const isize noiseSize = 2 * 512 * 512;
+    const size_t noiseSize = 2 * 512 * 512;
     noise = new u32[noiseSize];
-    for (isize i = 0; i < noiseSize; i++) {
+    for (size_t i = 0; i < noiseSize; i++) {
         noise[i] = rand() % 2 ? 0xFF000000 : 0xFFFFFFFF;
     }
 
@@ -43,8 +45,8 @@ PixelEngine::~PixelEngine()
     delete[] noise;
 }
 
-isize
-PixelEngine::didLoadFromBuffer(const u8 *buffer)
+size_t
+PixelEngine::didLoadFromBuffer(u8 *buffer)
 {
     updateRGBA();
     return 0;
@@ -54,11 +56,11 @@ void
 PixelEngine::_powerOn()
 {
     // Initialize frame buffers with a checkerboard pattern (for debugging)
-    for (isize line = 0; line < VPIXELS; line++) {
-        for (isize i = 0; i < HPIXELS; i++) {
+    for (unsigned line = 0; line < VPIXELS; line++) {
+        for (unsigned i = 0; i < HPIXELS; i++) {
 
-            isize pos = line * HPIXELS + i;
-            u32 col = (line / 4) % 2 == (i / 8) % 2 ? 0xFF222222 : 0xFF444444;
+            int pos = line * HPIXELS + i;
+            int col = (line / 4) % 2 == (i / 8) % 2 ? 0xFF222222 : 0xFF444444;
             emuTexture[0].data[pos] = col;
             emuTexture[1].data[pos] = col;
         }
@@ -104,7 +106,7 @@ PixelEngine::setContrast(double value)
 }
 
 void
-PixelEngine::setColor(isize reg, u16 value)
+PixelEngine::setColor(int reg, u16 value)
 {
     assert(reg < 32);
 
@@ -137,7 +139,7 @@ PixelEngine::updateRGBA()
     }
 
     // Update all RGBA values that are cached in indexedRgba[]
-    for (isize i = 0; i < 32; i++) setColor(i, colreg[i]);
+    for (int i = 0; i < 32; i++) setColor(i, colreg[i]);
 }
 
 void
@@ -217,6 +219,20 @@ PixelEngine::adjustRGB(u8 &r, u8 &g, u8 &b)
     b = u8(newB);
 }
 
+/*
+bool
+PixelEngine::isLongFrame(ScreenBuffer *buf)
+{
+    return buf->longFrame;
+}
+
+bool
+PixelEngine::isShortFrame(ScreenBuffer *buf)
+{
+    return !buf->longFrame;
+}
+*/
+
 ScreenBuffer
 PixelEngine::getStableBuffer()
 {
@@ -226,21 +242,20 @@ PixelEngine::getStableBuffer()
         result = (frameBuffer == &emuTexture[0]) ? emuTexture[1] : emuTexture[0];
     }
     
-    assert(result.data);
     return result;
 }
 
 u32 *
-PixelEngine::getNoise() const
+PixelEngine::getNoise()
 {
     int offset = rand() % (512 * 512);
     return noise + offset;
 }
 
 u32 *
-PixelEngine::pixelAddr(isize pixel) const
+PixelEngine::pixelAddr(int pixel)
 {
-    isize offset = pixel + agnus.pos.v * HPIXELS;
+    u32 offset = pixel + agnus.pos.v * HPIXELS;
 
     assert(pixel < HPIXELS);
     assert(offset < PIXELS);
@@ -264,7 +279,7 @@ void
 PixelEngine::endOfVBlankLine()
 {
     // Apply all color register changes that happened in this line
-    for (isize i = colChanges.begin(); i != colChanges.end(); i = colChanges.next(i)) {
+    for (int i = colChanges.begin(); i != colChanges.end(); i = colChanges.next(i)) {
         applyRegisterChange(colChanges.elements[i]);
     }
 }
@@ -289,11 +304,11 @@ PixelEngine::applyRegisterChange(const RegChange &change)
 }
 
 void
-PixelEngine::colorize(isize line)
+PixelEngine::colorize(int line)
 {
     // Jump to the first pixel in the specified line in the active frame buffer
     u32 *dst = frameBuffer->data + line * HPIXELS;
-    Pixel pixel = 0;
+    int pixel = 0;
 
     // Initialize the HAM mode hold register with the current background color
     u16 hold = colreg[0];
@@ -302,9 +317,9 @@ PixelEngine::colorize(isize line)
     colChanges.insert(HPIXELS, RegChange { SET_NONE, 0 } );
 
     // Iterate over all recorded register changes
-    for (isize i = colChanges.begin(); i != colChanges.end(); i = colChanges.next(i)) {
+    for (int i = colChanges.begin(); i != colChanges.end(); i = colChanges.next(i)) {
 
-        Pixel trigger = (Pixel)colChanges.keys[i];
+        Cycle trigger = colChanges.keys[i];
         RegChange &change = colChanges.elements[i];
 
         // Colorize a chunk of pixels
@@ -320,7 +335,7 @@ PixelEngine::colorize(isize line)
     }
 
     // Wipe out the HBLANK area
-    for (Pixel pixel = 4 * HBLANK_MIN; pixel <= 4 * HBLANK_MAX; pixel++) {
+    for (int pixel = 4 * HBLANK_MIN; pixel <= 4 * HBLANK_MAX; pixel++) {
         dst[pixel] = rgbaHBlank;
     }
 
@@ -329,23 +344,23 @@ PixelEngine::colorize(isize line)
 }
 
 void
-PixelEngine::colorize(u32 *dst, Pixel from, Pixel to)
+PixelEngine::colorize(u32 *dst, int from, int to)
 {
     u8 *mbuf = denise.mBuffer;
 
-    for (Pixel i = from; i < to; i++) {
+    for (int i = from; i < to; i++) {
         dst[i] = indexedRgba[mbuf[i]];
     }
 }
 
 void
-PixelEngine::colorizeHAM(u32 *dst, Pixel from, Pixel to, u16& ham)
+PixelEngine::colorizeHAM(u32 *dst, int from, int to, u16& ham)
 {
     u8 *bbuf = denise.bBuffer;
     u8 *ibuf = denise.iBuffer;
     u8 *mbuf = denise.mBuffer;
 
-    for (Pixel i = from; i < to; i++) {
+    for (int i = from; i < to; i++) {
 
         u8 index = ibuf[i];
         assert(isRgbaIndex(index));
@@ -390,11 +405,11 @@ PixelEngine::colorizeHAM(u32 *dst, Pixel from, Pixel to, u16& ham)
 }
 
 void
-PixelEngine::hide(isize line, u16 layers, u8 alpha)
+PixelEngine::hide(int line, u16 layers, u8 alpha)
 {
     u32 *p = frameBuffer->data + line * HPIXELS;
 
-    for (Pixel i = 0; i < HPIXELS; i++) {
+    for (int i = 0; i < HPIXELS; i++) {
 
         u16 z = denise.zBuffer[i];
 

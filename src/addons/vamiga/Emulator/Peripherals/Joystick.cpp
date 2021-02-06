@@ -1,4 +1,4 @@
-// -----------------------------------------------------------------------------
+/// -----------------------------------------------------------------------------
 // This file is part of vAmiga
 //
 // Copyright (C) Dirk W. Hoffmann. www.dirkwhoffmann.de
@@ -9,10 +9,9 @@
 
 #include "Amiga.h"
 
-const char *
-Joystick::getDescription() const
+Joystick::Joystick(Amiga& ref, ControlPort& pref) : AmigaComponent(ref), port(pref)
 {
-    return port.nr == PORT_1 ? "Joystick1" : "Joystick2";
+    setDescription(port.nr == PORT_1 ? "Joystick1" : "Joystick2");
 }
 
 void
@@ -26,13 +25,13 @@ Joystick::_reset(bool hard)
 }
 
 void
-Joystick::_dump() const
+Joystick::_dump()
 {
     msg("Button:  %s AxisX: %d AxisY: %d\n", button ? "YES" : "NO", axisX, axisY);
 }
 
-isize
-Joystick::didLoadFromBuffer(const u8 *buffer)
+size_t
+Joystick::didLoadFromBuffer(u8 *buffer)
 {
     // Discard any active joystick movements
     button = false;
@@ -69,7 +68,7 @@ Joystick::scheduleNextShot()
 }
 
 void
-Joystick::changePra(u8 &pra) const
+Joystick::changePra(u8 &pra)
 {
     u16 mask = (port.nr == 1) ? 0x40 : 0x80;
 
@@ -77,7 +76,7 @@ Joystick::changePra(u8 &pra) const
 }
 
 u16
-Joystick::joydat() const
+Joystick::joydat()
 {
     // debug("joydat\n");
     
@@ -102,7 +101,7 @@ Joystick::joydat() const
 }
 
 u8
-Joystick::ciapa() const
+Joystick::ciapa()
 {
     return button ? (port.nr == 1 ? 0xBF : 0x7F) : 0xFF;
 }
@@ -110,9 +109,9 @@ Joystick::ciapa() const
 void
 Joystick::trigger(GamePadAction event)
 {
-    assert_enum(GamePadAction, event);
+    assert(isGamePadAction(event));
 
-    debug(PORT_DEBUG, "trigger(%lld)\n", event);
+    trace(PORT_DEBUG, "trigger(%d)\n", event);
      
     switch (event) {
             

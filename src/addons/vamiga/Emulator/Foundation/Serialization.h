@@ -7,9 +7,11 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _SERIALIZATION_H
+#define _SERIALIZATION_H
 
 #include "AmigaTypes.h"
+#include "AmigaPrivateTypes.h"
 #include "Beam.h"
 #include "Buffers.h"
 #include "DDF.h"
@@ -25,80 +27,80 @@
 // Basic memory buffer I/O
 //
 
-inline u8 read8(const u8 *& buf)
+inline u8 read8(u8 *& buffer)
 {
-    u8 result = R8BE(buf);
-    buf += 1;
+    u8 result = *buffer;
+    buffer += 1;
     return result;
 }
 
-inline u16 read16(const u8 *& buf)
+inline u16 read16(u8 *& buffer)
 {
-    u16 result = R16BE(buf);
-    buf += 2;
+    u16 result = ntohs(*((u16 *)buffer));
+    buffer += 2;
     return result;
 }
 
-inline u32 read32(const u8 *& buf)
+inline u32 read32(u8 *& buffer)
 {
-    u32 result = R32BE(buf);
-    buf += 4;
+    u32 result = ntohl(*((u32 *)buffer));
+    buffer += 4;
     return result;
 }
 
-inline u64 read64(const u8 *& buf)
+inline u64 read64(u8 *& buffer)
 {
-    u32 hi = read32(buf);
-    u32 lo = read32(buf);
+    u32 hi = read32(buffer);
+    u32 lo = read32(buffer);
     return ((u64)hi << 32) | lo;
 }
 
-inline float readFloat(const u8 *& buf)
+inline float readFloat(u8 *& buffer)
 {
     float result;
-    *((u32 *)(&result)) = read32(buf);
+    *((u32 *)(&result)) = read32(buffer);
     return result;
 }
 
-inline double readDouble(const u8 *& buf)
+inline double readDouble(u8 *& buffer)
 {
     double result;
-    *((u64 *)(&result)) = read64(buf);
+    *((u64 *)(&result)) = read64(buffer);
     return result;
 }
  
-inline void write8(u8 *& buf, u8 value)
+inline void write8(u8 *& buffer, u8 value)
 {
-    W8BE(buf, value);
-    buf += 1;
+    *buffer = value;
+    buffer += 1;
 }
 
-inline void write16(u8 *& buf, u16 value)
+inline void write16(u8 *& buffer, u16 value)
 {
-    W16BE(buf, value);
-    buf += 2;
+    *((u16 *)buffer) = htons(value);
+    buffer += 2;
 }
 
-inline void write32(u8 *& buf, u32 value)
+inline void write32(u8 *& buffer, u32 value)
 {
-    W32BE(buf, value);
-    buf += 4;
+    *((u32 *)buffer) = htonl(value);
+    buffer += 4;
 }
 
-inline void write64(u8 *& buf, u64 value)
+inline void write64(u8 *& buffer, u64 value)
 {
-    write32(buf, (u32)(value >> 32));
-    write32(buf, (u32)(value));
+    write32(buffer, (u32)(value >> 32));
+    write32(buffer, (u32)(value));
 }
 
-inline void writeFloat(u8 *& buf, float value)
+inline void writeFloat(u8 *& buffer, float value)
 {
-    write32(buf, *((u32 *)(&value)));
+    write32(buffer, *((u32 *)(&value)));
 }
 
-inline void writeDouble(u8 *& buf, double value)
+inline void writeDouble(u8 *& buffer, double value)
 {
-    write64(buf, *((u64 *)(&value)));
+    write64(buffer, *((u64 *)(&value)));
 }
 
 //
@@ -125,7 +127,7 @@ class SerCounter
 {
 public:
 
-    isize count;
+    size_t count;
 
     SerCounter() { count = 0; }
 
@@ -137,6 +139,8 @@ public:
     COUNT(const unsigned short)
     COUNT(const int)
     COUNT(const unsigned int)
+    COUNT(const long)
+    COUNT(const unsigned long)
     COUNT(const long long)
     COUNT(const unsigned long long)
     COUNT(const float)
@@ -154,7 +158,7 @@ public:
     COUNT(const DriveType)
     COUNT(const DriveState)
     COUNT(const RTCRevision)
-    COUNT(const DiskDiameter)
+    COUNT(const DiskType)
     COUNT(const DiskDensity)
     COUNT(const CIARevision)
     COUNT(const AgnusRevision)
@@ -166,14 +170,17 @@ public:
     STRUCT(Event)
     STRUCT(Frame)
     STRUCT(RegChange)
-    template <class T, isize capacity> STRUCT(RingBuffer<T __ capacity>)
-    template <class T, isize capacity> STRUCT(SortedRingBuffer<T __ capacity>)
+    STRUCT(TaggedSample)
+    STRUCT(SamplePair)
+    STRUCT(Sampler)
+    template <class T, size_t capacity> STRUCT(RingBuffer<T __ capacity>)
+    template <class T, size_t capacity> STRUCT(SortedRingBuffer<T __ capacity>)
     template <class T, int delay> STRUCT(TimeDelayed<T __ delay>)
 
-    template <class T, isize N>
+    template <class T, size_t N>
     SerCounter& operator&(T (&v)[N])
     {
-        for(isize i = 0; i < N; ++i) {
+        for(size_t i = 0; i < N; ++i) {
             *this & v[i];
         }
         return *this;
@@ -203,9 +210,9 @@ class SerReader
 {
 public:
 
-    const u8 *ptr;
+    u8 *ptr;
 
-    SerReader(const u8 *p) : ptr(p)
+    SerReader(u8 *p) : ptr(p)
     {
     }
 
@@ -217,6 +224,8 @@ public:
     DESERIALIZE16(unsigned short)
     DESERIALIZE32(int)
     DESERIALIZE32(unsigned int)
+    DESERIALIZE64(long)
+    DESERIALIZE64(unsigned long)
     DESERIALIZE64(long long)
     DESERIALIZE64(unsigned long long)
     DESERIALIZEF(float)
@@ -231,9 +240,9 @@ public:
     DESERIALIZE64(SerialPortDevice)
     DESERIALIZE64(KeyboardState)
     DESERIALIZE64(DriveType)
-    DESERIALIZE64(DriveState)
+    DESERIALIZE32(DriveState)
     DESERIALIZE64(RTCRevision)
-    DESERIALIZE64(DiskDiameter)
+    DESERIALIZE64(DiskType)
     DESERIALIZE64(DiskDensity)
     DESERIALIZE64(CIARevision)
     DESERIALIZE64(AgnusRevision)
@@ -245,20 +254,23 @@ public:
     STRUCT(Event)
     STRUCT(Frame)
     STRUCT(RegChange)
-    template <class T, isize capacity> STRUCT(RingBuffer<T __ capacity>)
-    template <class T, isize capacity> STRUCT(SortedRingBuffer<T __ capacity>)
+    STRUCT(TaggedSample)
+    STRUCT(SamplePair)
+    STRUCT(Sampler)
+    template <class T, size_t capacity> STRUCT(RingBuffer<T __ capacity>)
+    template <class T, size_t capacity> STRUCT(SortedRingBuffer<T __ capacity>)
     template <class T, int delay> STRUCT(TimeDelayed<T __ delay>)
 
-    template <class T, isize N>
+    template <class T, size_t N>
     SerReader& operator&(T (&v)[N])
     {
-        for(isize i = 0; i < N; ++i) {
+        for(size_t i = 0; i < N; ++i) {
             *this & v[i];
         }
         return *this;
     }
 
-    void copy(void *dst, isize n)
+    void copy(void *dst, size_t n)
     {
         memcpy(dst, (void *)ptr, n);
         ptr += n;
@@ -302,6 +314,8 @@ public:
     SERIALIZE16(const unsigned short)
     SERIALIZE32(const int)
     SERIALIZE32(const unsigned int)
+    SERIALIZE64(const long)
+    SERIALIZE64(const unsigned long)
     SERIALIZE64(const long long)
     SERIALIZE64(const unsigned long long)
     SERIALIZEF(const float)
@@ -316,9 +330,9 @@ public:
     SERIALIZE64(const SerialPortDevice)
     SERIALIZE64(const KeyboardState)
     SERIALIZE64(const DriveType)
-    SERIALIZE64(const DriveState)
+    SERIALIZE32(const DriveState)
     SERIALIZE64(const RTCRevision)
-    SERIALIZE64(const DiskDiameter)
+    SERIALIZE64(const DiskType)
     SERIALIZE64(const DiskDensity)
     SERIALIZE64(const CIARevision)
     SERIALIZE64(const AgnusRevision)
@@ -330,20 +344,23 @@ public:
     STRUCT(Event)
     STRUCT(Frame)
     STRUCT(RegChange)
-    template <class T, isize capacity> STRUCT(RingBuffer<T __ capacity>)
-    template <class T, isize capacity> STRUCT(SortedRingBuffer<T __ capacity>)
+    STRUCT(TaggedSample)
+    STRUCT(SamplePair)
+    STRUCT(Sampler)
+    template <class T, size_t capacity> STRUCT(RingBuffer<T __ capacity>)
+    template <class T, size_t capacity> STRUCT(SortedRingBuffer<T __ capacity>)
     template <class T, int delay> STRUCT(TimeDelayed<T __ delay>)
 
-    template <class T, isize N>
+    template <class T, size_t N>
     SerWriter& operator&(T (&v)[N])
     {
-        for(isize i = 0; i < N; ++i) {
+        for(size_t i = 0; i < N; ++i) {
             *this & v[i];
         }
         return *this;
     }
 
-    void copy(const void *src, isize n)
+    void copy(const void *src, size_t n)
     {
         memcpy((void *)ptr, src, n);
         ptr += n;
@@ -404,16 +421,21 @@ public:
     STRUCT(Event)
     STRUCT(Frame)
     STRUCT(RegChange)
-    template <class T, isize capacity> STRUCT(RingBuffer<T __ capacity>)
-    template <class T, isize capacity> STRUCT(SortedRingBuffer<T __ capacity>)
+    STRUCT(TaggedSample)
+    STRUCT(SamplePair)
+    STRUCT(Sampler)
+    template <class T, size_t capacity> STRUCT(RingBuffer<T __ capacity>)
+    template <class T, size_t capacity> STRUCT(SortedRingBuffer<T __ capacity>)
     template <class T, int delay> STRUCT(TimeDelayed<T __ delay>)
 
-    template <class T, isize N>
+    template <class T, size_t N>
     SerResetter& operator&(T (&v)[N])
     {
-        for(isize i = 0; i < N; ++i) {
+        for(size_t i = 0; i < N; ++i) {
             *this & v[i];
         }
         return *this;
     }
 };
+
+#endif

@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _KEYBOARD_H
+#define _KEYBOARD_H
 
 #include "AmigaComponent.h"
 
@@ -29,7 +30,7 @@ class Keyboard : public AmigaComponent {
     Cycle spHigh;
 
     // The keycode type-ahead buffer. The Amiga can hold up to 10 keycodes.
-    static const isize bufferSize = 10;
+    static const size_t bufferSize = 10;
     u8 typeAheadBuffer[bufferSize];
     
     // Next free position in the type ahead buffer
@@ -47,8 +48,6 @@ public:
     
     Keyboard(Amiga& ref);
     
-    const char *getDescription() const override { return "Keyboard"; }
-
 private:
     
     void _reset(bool hard) override;
@@ -60,14 +59,14 @@ private:
     
 public:
     
-    const KeyboardConfig &getConfig() const { return config; }
+    KeyboardConfig getConfig() { return config; }
 
-    long getConfigItem(Option option) const;
-    bool setConfigItem(Option option, long value) override;
+    long getConfigItem(ConfigOption option);
+    bool setConfigItem(ConfigOption option, long value) override;
 
 private:
 
-    void _dumpConfig() const override;
+    void _dumpConfig() override;
     
     
     //
@@ -76,7 +75,7 @@ private:
     
 private:
     
-    void _dump() const override;
+    void _dump() override;
 
     
     //
@@ -116,9 +115,9 @@ private:
     
 private:
     
-    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
-    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
+    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
     
     //
@@ -127,7 +126,7 @@ private:
     
 public:
 
-    bool keyIsPressed(long keycode) const;
+    bool keyIsPressed(long keycode);
     void pressKey(long keycode);
     void releaseKey(long keycode);
     void releaseAllKeys();
@@ -139,8 +138,8 @@ public:
 
 private:
 
-    bool bufferIsEmpty() const { return bufferIndex == 0; }
-    bool bufferIsFull() const { return bufferIndex == bufferSize; }
+    bool bufferIsEmpty() { return bufferIndex == 0; }
+    bool bufferIsFull() { return bufferIndex == bufferSize; }
 
     // Reads a keycode from the type-ahead buffer
     u8 readFromBuffer();
@@ -183,3 +182,5 @@ private:
     // Sends a sync pulse to the Amiga
     void sendSyncPulse();
 };
+
+#endif

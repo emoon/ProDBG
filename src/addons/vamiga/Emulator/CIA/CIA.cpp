@@ -12,7 +12,9 @@
 #define CIA_DEBUG (nr == 0 ? CIAA_DEBUG : CIAB_DEBUG)
 
 CIA::CIA(int n, Amiga& ref) : AmigaComponent(ref), nr(n)
-{    
+{
+    setDescription("CIA");
+    
     subComponents = vector<HardwareComponent *> { &tod };
     
     config.revision = CIA_8520_DIP;
@@ -49,7 +51,7 @@ CIA::_reset(bool hard)
 }
 
 long
-CIA::getConfigItem(Option option) const
+CIA::getConfigItem(ConfigOption option)
 {
     switch (option) {
             
@@ -57,21 +59,21 @@ CIA::getConfigItem(Option option) const
         case OPT_TODBUG:         return config.todBug;
         case OPT_ECLOCK_SYNCING: return config.eClockSyncing;
         
-        default:
-            assert(false);
-            return 0;
+        default: assert(false);
     }
 }
 
 bool
-CIA::setConfigItem(Option option, long value)
+CIA::setConfigItem(ConfigOption option, long value)
 {
     switch (option) {
             
         case OPT_CIA_REVISION:
             
-            if (!CIARevisionEnum::verify(value)) return false;
-            
+            if (!isCIARevision(value)) {
+                warn("Invalid CIA revision: %d\n", value);
+                return false;
+            }
             if (config.revision == value) {
                 return false;
             }
@@ -103,9 +105,9 @@ CIA::setConfigItem(Option option, long value)
 }
 
 void
-CIA::_dumpConfig() const
+CIA::_dumpConfig()
 {
-    msg("      revision : %s\n", CIARevisionEnum::key(config.revision));
+    msg("      revision : %s\n", sCIARevision(config.revision));
     msg("        todBug : %s\n", config.todBug ? "yes" : "no");
     msg(" eClockSyncing : %s\n", config.eClockSyncing ? "yes" : "no");
 }
@@ -155,37 +157,41 @@ CIA::_inspect()
 }
 
 void
-CIA::_dump() const
-{    
+CIA::_dump()
+{
+    _inspect();
+
     msg("                   Clock : %lld\n", clock);
     msg("                Sleeping : %s\n", sleeping ? "yes" : "no");
     msg("               Tiredness : %d\n", tiredness);
     msg(" Most recent sleep cycle : %lld\n", sleepCycle);
     msg("Most recent wakeup cycle : %lld\n", wakeUpCycle);
     msg("\n");
-    msg("               Counter A : %04X\n", counterA);
-    msg("                 Latch A : %04X\n", latchA);
-    msg("         Data register A : %02X\n", PRA);
-    msg("   Data port direction A : %02X\n", DDRA);
-    msg("             Data port A : %02X\n", PA);
+    msg("               Counter A : %04X\n", info.timerA.count);
+    msg("                 Latch A : %04X\n", info.timerA.latch);
+    msg("         Data register A : %02X\n", info.portA.reg);
+    msg("   Data port direction A : %02X\n", info.portA.dir);
+    msg("             Data port A : %02X\n", info.portA.port);
     msg("      Control register A : %02X\n", CRA);
     msg("\n");
-    msg("               Counter B : %04X\n", counterB);
-    msg("                 Latch B : %04X\n", latchB);
-    msg("         Data register B : %02X\n", PRB);
-    msg("   Data port direction B : %02X\n", DDRB);
-    msg("             Data port B : %02X\n", PB);
+    msg("               Counter B : %04X\n", info.timerB.count);
+    msg("                 Latch B : %04X\n", info.timerB.latch);
+    msg("         Data register B : %02X\n", info.portB.reg);
+    msg("   Data port direction B : %02X\n", info.portB.dir);
+    msg("             Data port B : %02X\n", info.portB.port);
     msg("      Control register B : %02X\n", CRB);
     msg("\n");
-    msg("   Interrupt control reg : %02X\n", icr);
-    msg("      Interrupt mask reg : %02X\n", imr);
+    msg("   Interrupt control reg : %02X\n", info.icr);
+    msg("      Interrupt mask reg : %02X\n", info.imr);
     msg("\n");
-    msg("                 SDR/SSR : %02X/%02X\n", sdr, ssr);
+    msg("                     SDR : %02X %02X\n", info.sdr, sdr);
     msg("              serCounter : %02X\n", serCounter);
     msg("\n");
     msg("                     CNT : %d\n", CNT);
     msg("                     INT : %d\n", INT);
     msg("\n");
+
+    tod.dump();
 }
 
 void
@@ -228,7 +234,7 @@ CIA::emulateRisingEdgeOnCntPin()
         trace(CIASER_DEBUG, "Clocking in bit %d [%d]\n", SP, serCounter);
         
         // Shift in a bit from the SP line
-        ssr = (u8)(ssr << 1) | (u8)SP;
+        ssr = ssr << 1 | SP;
         
         // Perform special action if a byte is complete
         if (--serCounter == 0) {
@@ -703,7 +709,7 @@ CIA::wakeUp(Cycle targetCycle)
 }
 
 CIACycle
-CIA::idleSince() const
+CIA::idleSince()
 {
     return isAwake() ? 0 : AS_CIA_CYCLES(agnus.clock - sleepCycle);
 }
@@ -715,6 +721,7 @@ CIA::idleSince() const
 
 CIAA::CIAA(Amiga& ref) : CIA(0, ref)
 {
+    setDescription("CIAA");
 }
 
 void
@@ -791,13 +798,13 @@ CIAA::updatePA()
 }
 
 u8
-CIAA::portAinternal() const
+CIAA::portAinternal()
 {
     return PRA;
 }
 
 u8
-CIAA::portAexternal() const
+CIAA::portAexternal()
 {
     u8 result;
     
@@ -843,13 +850,13 @@ CIAA::updatePB()
 }
 
 u8
-CIAA::portBinternal() const
+CIAA::portBinternal()
 {
     return PRB;
 }
 
 u8
-CIAA::portBexternal() const
+CIAA::portBexternal()
 {
     return 0xFF;
 }
@@ -875,6 +882,7 @@ CIAA::setKeyCode(u8 keyCode)
 
 CIAB::CIAB(Amiga& ref) : CIA(1, ref)
 {
+    setDescription("CIAB");
 }
 
 void 
@@ -902,13 +910,13 @@ CIAB::releaseInterruptLine()
 //                                 -------
 
 u8
-CIAB::portAinternal() const
+CIAB::portAinternal()
 {
     return PRA;
 }
 
 u8
-CIAB::portAexternal() const
+CIAB::portAexternal()
 {
     u8 result = 0xFF;
 
@@ -972,7 +980,7 @@ CIAB::updatePA()
 //            -------
 
 u8
-CIAB::portBinternal() const
+CIAB::portBinternal()
 {
     u8 result = PRB;
     
@@ -988,7 +996,7 @@ CIAB::portBinternal() const
 }
 
 u8
-CIAB::portBexternal() const
+CIAB::portBexternal()
 {
     return 0xFF;
 }

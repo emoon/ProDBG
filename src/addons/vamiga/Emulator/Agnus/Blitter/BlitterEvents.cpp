@@ -10,9 +10,9 @@
 #include "Amiga.h"
 
 void
-Blitter::serviceEvent()
+Blitter::serviceEvent(EventID id)
 {
-    switch (agnus.slot[SLOT_BLT].id) {
+    switch (id) {
 
         case BLT_STRT1:
 
@@ -21,7 +21,7 @@ Blitter::serviceEvent()
 
             // Postpone the operation if Blitter DMA is disabled
             if (!agnus.bltdma()) {
-                agnus.rescheduleAbs<SLOT_BLT>(NEVER);
+                agnus.rescheduleAbs<BLT_SLOT>(NEVER);
                 break;
             }
 
@@ -32,7 +32,7 @@ Blitter::serviceEvent()
             }
 
             // Proceed to the next state
-            agnus.scheduleRel<SLOT_BLT>(DMA_CYCLES(1), BLT_STRT2);
+            agnus.scheduleRel<BLT_SLOT>(DMA_CYCLES(1), BLT_STRT2);
             break;
 
         case BLT_STRT2:

@@ -11,6 +11,7 @@
 
 Keyboard::Keyboard(Amiga& ref) : AmigaComponent(ref)
 {
+    setDescription("Keyboard");
     config.accurate = true;
 }
 
@@ -25,20 +26,18 @@ Keyboard::_reset(bool hard)
 }
 
 long
-Keyboard::getConfigItem(Option option) const
+Keyboard::getConfigItem(ConfigOption option)
 {
     switch (option) {
             
         case OPT_ACCURATE_KEYBOARD:  return config.accurate;
         
-        default:
-            assert(false);
-            return 0;
+        default: assert(false);
     }
 }
 
 bool
-Keyboard::setConfigItem(Option option, long value)
+Keyboard::setConfigItem(ConfigOption option, long value)
 {
     switch (option) {
             
@@ -57,23 +56,23 @@ Keyboard::setConfigItem(Option option, long value)
 }
 
 void
-Keyboard::_dumpConfig() const
+Keyboard::_dumpConfig()
 {
     msg("      accurate : %d\n", config.accurate);
 }
 
 void
-Keyboard::_dump() const
+Keyboard::_dump()
 {
     msg("Type ahead buffer: ");
-    for (isize i = 0; i < bufferIndex; i++) {
+    for (unsigned i = 0; i < bufferIndex; i++) {
         msg("%02X ", typeAheadBuffer[i]);
     }
     msg("\n");
 }
 
 bool
-Keyboard::keyIsPressed(long keycode) const
+Keyboard::keyIsPressed(long keycode)
 {
     assert(keycode < 0x80);
     return keyDown[keycode];
@@ -86,7 +85,7 @@ Keyboard::pressKey(long keycode)
 
     if (!keyDown[keycode] && !bufferIsFull()) {
 
-        trace(KBD_DEBUG, "Pressing Amiga key %02lX\n", keycode);
+        trace(KBD_DEBUG, "Pressing Amiga key %02X\n", keycode);
 
         keyDown[keycode] = true;
         writeToBuffer(keycode);
@@ -105,7 +104,7 @@ Keyboard::releaseKey(long keycode)
 
     if (keyDown[keycode] && !bufferIsFull()) {
 
-        trace(KBD_DEBUG, "Releasing Amiga key %02lX\n", keycode);
+        trace(KBD_DEBUG, "Releasing Amiga key %02X\n", keycode);
 
         keyDown[keycode] = false;
         writeToBuffer(keycode | 0x80);
@@ -115,7 +114,7 @@ Keyboard::releaseKey(long keycode)
 void
 Keyboard::releaseAllKeys()
 {
-    for (isize i = 0; i < 0x80; i++) {
+    for (unsigned i = 0; i < 0x80; i++) {
         releaseKey(i);
     }
 }
@@ -128,7 +127,7 @@ Keyboard::readFromBuffer()
     u8 result = typeAheadBuffer[0];
 
     bufferIndex--;
-    for (isize i = 0; i < bufferIndex; i++) {
+    for (unsigned i = 0; i < bufferIndex; i++) {
         typeAheadBuffer[i] = typeAheadBuffer[i+1];
     }
 
@@ -144,7 +143,7 @@ Keyboard::writeToBuffer(u8 keycode)
     bufferIndex++;
 
     // Wake up the keyboard if it has gone idle
-    if (!agnus.hasEvent<SLOT_KBD>()) {
+    if (!agnus.hasEvent<KBD_SLOT>()) {
         trace(KBD_DEBUG, "Wake up\n");
         state = KB_SEND;
         execute();
@@ -172,19 +171,19 @@ Keyboard::setSPLine(bool value, Cycle cycle)
      *  the pulse must be at least 85 microseconds for operation with all
      *  models of Amiga keyboards." [HRM 3rd editon]
      */
-    isize diff = (spHigh - spLow) / 28;
+    int diff = (spHigh - spLow) / 28;
     bool accept = diff >= 1;
     bool reject = diff > 0 && !accept;
 
     if (accept) {
 
-        trace(KBD_DEBUG, "Accepting handshake (SP low for %zd usec)\n", diff);
+        trace(KBD_DEBUG, "Accepting handshake (SP low for %d usec)\n", diff);
         processHandshake();
     }
 
     if (reject) {
 
-        trace(KBD_DEBUG, "REJECTING handshake (SP low for %zd usec)\n", diff);
+        trace(KBD_DEBUG, "REJECTING handshake (SP low for %d usec)\n", diff);
     }
 }
 
@@ -193,15 +192,11 @@ Keyboard::processHandshake()
 {
     // Switch to the next state
     switch(state) {
-            
         case KB_SELFTEST:  state = KB_STRM_ON;  break;
         case KB_SYNC:      state = KB_STRM_ON;  break;
         case KB_STRM_ON:   state = KB_STRM_OFF; break;
         case KB_STRM_OFF:  state = KB_SEND;     break;
         case KB_SEND:                           break;
-       
-        default:
-            assert(false);
     }
     
     // Perform all state specific actions
@@ -218,7 +213,7 @@ Keyboard::execute()
             trace(KBD_DEBUG, "KB_SELFTEST\n");
             
             // Await a handshake within the next second
-            agnus.scheduleRel<SLOT_KBD>(SEC(1), KBD_TIMEOUT);
+            agnus.scheduleRel<KBD_SLOT>(SEC(1), KBD_TIMEOUT);
             break;
             
         case KB_SYNC:
@@ -251,12 +246,9 @@ Keyboard::execute()
             if (!bufferIsEmpty()) {
                 sendKeyCode(readFromBuffer());
             } else {
-                agnus.cancel<SLOT_KBD>();
+                agnus.cancel<KBD_SLOT>();
             }
             break;
-            
-        default:
-            assert(false);
     }
 }
 
@@ -283,13 +275,13 @@ Keyboard::sendKeyCode(u8 code)
     if (config.accurate) {
         
         // Start with the transmission of the first shift register bit
-        agnus.scheduleImm<SLOT_KBD>(KBD_DAT, 0);
+        agnus.scheduleImm<KBD_SLOT>(KBD_DAT, 0);
         
     } else {
 
         // In simple keyboard mode, send the keycode over in one chunk
         ciaa.setKeyCode(shiftReg);
-        agnus.scheduleRel<SLOT_KBD>(8*USEC(60) + MSEC(143), KBD_TIMEOUT);
+        agnus.scheduleRel<KBD_SLOT>(8*USEC(60) + MSEC(143), KBD_TIMEOUT);
     }
 }
 
@@ -306,7 +298,7 @@ Keyboard::sendSyncPulse()
     
     if (config.accurate) {
          
-         agnus.scheduleImm<SLOT_KBD>(KBD_SYNC_DAT0);
+         agnus.scheduleImm<KBD_SLOT>(KBD_SYNC_DAT0);
          
      } else {
 

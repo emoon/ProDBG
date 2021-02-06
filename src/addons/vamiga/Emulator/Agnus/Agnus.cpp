@@ -10,7 +10,9 @@
 #include "Amiga.h"
 
 Agnus::Agnus(Amiga& ref) : AmigaComponent(ref)
-{    
+{
+    setDescription("Agnus");
+    
     subComponents = vector<HardwareComponent *> {
         
         &copper,
@@ -22,9 +24,6 @@ Agnus::Agnus(Amiga& ref) : AmigaComponent(ref)
     ptrMask = 0x0FFFFF;
     
     initLookupTables();
-    
-    // Wipe out the event slots
-    memset(slot, 0, sizeof(slot));
 }
 
 void Agnus::_reset(bool hard)
@@ -38,26 +37,25 @@ void Agnus::_reset(bool hard)
     clearStats();
     
     // Initialize event tables
-    for (isize i = pos.h; i < HPOS_CNT; i++) bplEvent[i] = bplDMA[0][0][i];
-    for (isize i = pos.h; i < HPOS_CNT; i++) dasEvent[i] = dasDMA[0][i];
+    for (int i = pos.h; i < HPOS_CNT; i++) bplEvent[i] = bplDMA[0][0][i];
+    for (int i = pos.h; i < HPOS_CNT; i++) dasEvent[i] = dasDMA[0][i];
     updateBplJumpTable();
     updateDasJumpTable();
     
     // Initialize the event slots
-    for (isize i = 0; i < SLOT_COUNT; i++) {
+    for (unsigned i = 0; i < SLOT_COUNT; i++) {
         slot[i].triggerCycle = NEVER;
         slot[i].id = (EventID)0;
         slot[i].data = 0;
     }
     
     // Schedule initial events
-    scheduleRel<SLOT_RAS>(DMA_CYCLES(HPOS_CNT), RAS_HSYNC);
-    scheduleRel<SLOT_CIAA>(CIA_CYCLES(AS_CIA_CYCLES(clock)), CIA_EXECUTE);
-    scheduleRel<SLOT_CIAB>(CIA_CYCLES(AS_CIA_CYCLES(clock)), CIA_EXECUTE);
-    scheduleRel<SLOT_SEC>(NEVER, SEC_TRIGGER);
-    // scheduleRel<SLOT_VBL>(DMA_CYCLES(HPOS_CNT * vStrobeLine()), VBL_STROBE0);
-    scheduleStrobe0Event();
-    scheduleRel<SLOT_IRQ>(NEVER, IRQ_CHECK);
+    scheduleRel<RAS_SLOT>(DMA_CYCLES(HPOS_CNT), RAS_HSYNC);
+    scheduleRel<CIAA_SLOT>(CIA_CYCLES(AS_CIA_CYCLES(clock)), CIA_EXECUTE);
+    scheduleRel<CIAB_SLOT>(CIA_CYCLES(AS_CIA_CYCLES(clock)), CIA_EXECUTE);
+    scheduleRel<SEC_SLOT>(NEVER, SEC_TRIGGER);
+    scheduleRel<VBL_SLOT>(DMA_CYCLES(HPOS_CNT * vStrobeLine()), VBL_STROBE0);
+    scheduleRel<IRQ_SLOT>(NEVER, IRQ_CHECK);
     diskController.scheduleFirstDiskEvent();
     scheduleNextBplEvent();
     scheduleNextDasEvent();
@@ -70,21 +68,19 @@ void Agnus::_reset(bool hard)
 }
 
 long
-Agnus::getConfigItem(Option option) const
+Agnus::getConfigItem(ConfigOption option)
 {
     switch (option) {
             
         case OPT_AGNUS_REVISION: return config.revision;
         case OPT_SLOW_RAM_MIRROR: return config.slowRamMirror;
             
-        default:
-            assert(false);
-            return 0;
+        default: assert(false);
     }
 }
 
 bool
-Agnus::setConfigItem(Option option, long value)
+Agnus::setConfigItem(ConfigOption option, long value)
 {
     switch (option) {
             
@@ -92,10 +88,13 @@ Agnus::setConfigItem(Option option, long value)
             
             #ifdef FORCE_AGNUS_REVISION
             value = FORCE_AGNUS_REVISION;
-            warn("Overriding Agnus revision: %ld\n", value);
+            warn("Overriding Agnus revision: %d\n", value);
             #endif
             
-            if (!AgnusRevisionEnum::verify(value)) return false; 
+            if (!isAgnusRevision(value)) {
+                warn("Invalid Agnus revision: %d\n", value);
+                return false;
+            }
             
             if (config.revision == value) {
                 return false;
@@ -129,9 +128,9 @@ Agnus::setConfigItem(Option option, long value)
 }
 
 void
-Agnus::_dumpConfig() const
+Agnus::_dumpConfig()
 {
-    msg("      revision : %s\n", AgnusRevisionEnum::key(config.revision));
+    msg("      revision : %s\n", sAgnusRevision(config.revision));
     msg(" slowRamMirror : %s\n", config.slowRamMirror ? "yes" : "no");
 }
 
@@ -146,7 +145,7 @@ Agnus::idBits()
     }
 }
 
-isize
+size_t
 Agnus::chipRamLimit()
 {
     switch (config.revision) {
@@ -199,27 +198,30 @@ Agnus::_inspect()
         info.bltpt[1] = blitter.bltbpt & ptrMask;
         info.bltpt[2] = blitter.bltcpt & ptrMask;
         info.bltpt[3] = blitter.bltdpt & ptrMask;
-        for (isize i = 0; i < 6; i++) info.bplpt[i] = bplpt[i] & ptrMask;
-        for (isize i = 0; i < 4; i++) info.audpt[i] = audpt[i] & ptrMask;
-        for (isize i = 0; i < 4; i++) info.audlc[i] = audlc[i] & ptrMask;
-        for (isize i = 0; i < 8; i++) info.sprpt[i] = sprpt[i] & ptrMask;
+        for (unsigned i = 0; i < 6; i++) info.bplpt[i] = bplpt[i] & ptrMask;
+        for (unsigned i = 0; i < 4; i++) info.audpt[i] = audpt[i] & ptrMask;
+        for (unsigned i = 0; i < 4; i++) info.audlc[i] = audlc[i] & ptrMask;
+        for (unsigned i = 0; i < 8; i++) info.sprpt[i] = sprpt[i] & ptrMask;
     }
 }
 
 void
-Agnus::_dump() const
+Agnus::_dump()
 {
-    msg(" actions : %llX\n", hsyncActions);
+    msg(" actions : %X\n", hsyncActions);
 
     msg("   dskpt : %X\n", dskpt);
-    for (isize i = 0; i < 4; i++) msg("audpt[%zd] : %X\n", i, audpt[i]);
-    for (isize i = 0; i < 6; i++) msg("bplpt[%zd] : %X\n", i, bplpt[i]);
-    for (isize i = 0; i < 8; i++) msg("bplpt[%zd] : %X\n", i, sprpt[i]);
+    for (unsigned i = 0; i < 4; i++) msg("audpt[%d] : %X\n", i, audpt[i]);
+    for (unsigned i = 0; i < 6; i++) msg("bplpt[%d] : %X\n", i, bplpt[i]);
+    for (unsigned i = 0; i < 8; i++) msg("bplpt[%d] : %X\n", i, sprpt[i]);
     
     msg("   hstrt : %d\n", diwHstrt);
     msg("   hstop : %d\n", diwHstop);
     msg("   vstrt : %d\n", diwVstrt);
     msg("   vstop : %d\n", diwVstop);
+
+    msg("\nEvents:\n\n");
+    dumpEvents();
 
     msg("\nBPL DMA table:\n\n");
     dumpBplEventTable();
@@ -231,7 +233,7 @@ Agnus::_dump() const
 void
 Agnus::clearStats()
 {
-    for (isize i = 0; i < BUS_COUNT; i++) stats.usage[i] = 0;
+    for (int i = 0; i < BUS_COUNT; i++) stats.usage[i] = 0;
     
     stats.copperActivity = 0;
     stats.blitterActivity = 0;
@@ -276,48 +278,48 @@ Agnus::updateStats()
     stats.spriteActivity = w * stats.spriteActivity + (1 - w) * sprite;
     stats.bitplaneActivity = w * stats.bitplaneActivity + (1 - w) * bitplane;
     
-    for (isize i = 0; i < BUS_COUNT; i++) stats.usage[i] = 0;
+    for (int i = 0; i < BUS_COUNT; i++) stats.usage[i] = 0;
 }
 
 Cycle
-Agnus::cyclesInFrame() const
+Agnus::cyclesInFrame()
 {
     return DMA_CYCLES(frame.numLines() * HPOS_CNT);
 }
 
 Cycle
-Agnus::startOfFrame() const
+Agnus::startOfFrame()
 {
     return clock - DMA_CYCLES(pos.v * HPOS_CNT + pos.h);
 }
 
 Cycle
-Agnus::startOfNextFrame() const
+Agnus::startOfNextFrame()
 {
     return startOfFrame() + cyclesInFrame();
 }
 
 bool
-Agnus::belongsToPreviousFrame(Cycle cycle) const
+Agnus::belongsToPreviousFrame(Cycle cycle)
 {
     return cycle < startOfFrame();
 }
 
 bool
-Agnus::belongsToCurrentFrame(Cycle cycle) const
+Agnus::belongsToCurrentFrame(Cycle cycle)
 {
     return !belongsToPreviousFrame(cycle) && !belongsToNextFrame(cycle);
 }
 
 bool
-Agnus::belongsToNextFrame(Cycle cycle) const
+Agnus::belongsToNextFrame(Cycle cycle)
 {
     return cycle >= startOfNextFrame();
 }
 
 bool
-Agnus::inBplDmaLine(u16 dmacon, u16 bplcon0) const
-{
+Agnus::inBplDmaLine(u16 dmacon, u16 bplcon0) {
+
     return
     ddfVFlop                 // Outside VBLANK, inside DIW
     && bpu(bplcon0)          // At least one bitplane enabled
@@ -325,13 +327,13 @@ Agnus::inBplDmaLine(u16 dmacon, u16 bplcon0) const
 }
 
 Cycle
-Agnus::beamToCycle(Beam beam) const
+Agnus::beamToCycle(Beam beam)
 {
     return startOfFrame() + DMA_CYCLES(beam.v * HPOS_CNT + beam.h);
 }
 
 Beam
-Agnus::cycleToBeam(Cycle cycle) const
+Agnus::cycleToBeam(Cycle cycle)
 {
     Beam result;
 
@@ -344,7 +346,7 @@ Agnus::cycleToBeam(Cycle cycle) const
 }
 
 Beam
-Agnus::addToBeam(Beam beam, Cycle cycles) const
+Agnus::addToBeam(Beam beam, Cycle cycles)
 {
     Beam result;
 
@@ -661,7 +663,7 @@ Agnus::syncWithEClock()
     
     // We want to sync to position (2).
     // If we are already too close, we seek (2) in the next E clock cycle.
-    Cycle delay = 0;
+    Cycle delay;
     switch (eClk) {
         case 0: delay = 4 * (2 + 10); break;
         case 1: delay = 4 * (1 + 10); break;
@@ -845,18 +847,18 @@ Agnus::updateSpriteDMA()
 
     // Reset the vertical trigger coordinates in line 25
     if (v == 25 && sprdma()) {
-        for (isize i = 0; i < 8; i++) sprVStop[i] = 25;
+        for (int i = 0; i < 8; i++) sprVStop[i] = 25;
         return;
      }
 
     // Disable DMA in the last rasterline
     if (v == frame.lastLine()) {
-        for (isize i = 0; i < 8; i++) sprDmaState[i] = SPR_DMA_IDLE;
+        for (int i = 0; i < 8; i++) sprDmaState[i] = SPR_DMA_IDLE;
         return;
     }
 
     // Update the DMA status for all sprites
-    for (isize i = 0; i < 8; i++) {
+    for (int i = 0; i < 8; i++) {
         if (v == sprVStrt[i]) sprDmaState[i] = SPR_DMA_ACTIVE;
         if (v == sprVStop[i]) sprDmaState[i] = SPR_DMA_IDLE;
     }
@@ -976,7 +978,7 @@ Agnus::hsyncHandler()
     }
 
     // Clear the bus usage table
-    for (isize i = 0; i < HPOS_CNT; i++) busOwner[i] = BUS_NONE;
+    for (int i = 0; i < HPOS_CNT; i++) busOwner[i] = BUS_NONE;
 
     // Schedule the first BPL and DAS events
     scheduleNextBplEvent();

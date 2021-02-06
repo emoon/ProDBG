@@ -7,97 +7,110 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+// This file must conform to standard ANSI-C to be compatible with Swift.
 
-#include "PortPublicTypes.h"
-#include "Reflection.h"
+#ifndef _PORT_TYPES_H
+#define _PORT_TYPES_H
 
-struct SerialPortDeviceEnum : Reflection<SerialPortDeviceEnum, SerialPortDevice> {
-    
-    static bool isValid(long value)
-    {
-        return (unsigned long)value < SPD_COUNT;
-    }
-    
-    static const char *prefix() { return "SPD"; }
-    static const char *key(SerialPortDevice value)
-    {
-        switch (value) {
-                
-            case SPD_NONE:      return "NONE";
-            case SPD_LOOPBACK:  return "LOOPBACK";
-            case SPD_COUNT:     return "???";
-        }
-        return "???";
-    }
+#include "Aliases.h"
+
+//
+// Enumerations
+//
+
+VAMIGA_ENUM(long, SerialPortDevice)
+{
+    SPD_NONE,
+    SPD_LOOPBACK
 };
 
-struct PortNrEnum : Reflection<PortNrEnum, PortNr> {
-    
-    static bool isValid(long value)
-    {
-        return value == PORT_1 || PORT_2;
-    }
-    
-    static const char *prefix() { return ""; }
-    static const char *key(PortNr value)
-    {
-        switch (value) {
-                
-            case PORT_1:  return "PORT_1";
-            case PORT_2:  return "PORT_2";
-        }
-        return "???";
-    }
+inline bool isSerialPortDevice(long value) {
+    return value >= 0 && value <= SPD_LOOPBACK;
+}
+
+VAMIGA_ENUM(long, PortNr)
+{
+    PORT_1 = 1,
+    PORT_2 = 2
 };
 
-struct ControlPortDeviceEnum : Reflection<ControlPortDeviceEnum, ControlPortDevice> {
-    
-    static bool isValid(long value)
-    {
-        return (unsigned long)value <  CPD_COUNT;
-    }
-    
-    static const char *prefix() { return "CPD"; }
-    static const char *key(ControlPortDevice value)
-    {
-        switch (value) {
-                
-            case CPD_NONE:      return "NONE";
-            case CPD_MOUSE:     return "MOUSE";
-            case CPD_JOYSTICK:  return "JOYSTICK";
-            case CPD_COUNT:     return "???";
-        }
-        return "???";
-    }
+inline bool isPortNr(long value) {
+    return value == PORT_1 || value == PORT_2;
+}
+
+VAMIGA_ENUM(long, ControlPortDevice)
+{
+    CPD_NONE,
+    CPD_MOUSE,
+    CPD_JOYSTICK
 };
 
-struct GamePadActionEnum : Reflection<GamePadActionEnum, GamePadAction> {
-    
-    static bool isValid(long value)
-    {
-        return (unsigned long)value <= RELEASE_RIGHT;
-    }
-    
-    static const char *prefix() { return nullptr; }
-    static const char *key(GamePadAction value)
-    {
-        switch (value) {
-                
-            case PULL_UP:        return "PULL_UP";
-            case PULL_DOWN:      return "PULL_DOWN";
-            case PULL_LEFT:      return "PULL_LEFT";
-            case PULL_RIGHT:     return "PULL_RIGHT";
-            case PRESS_FIRE:     return "PRESS_FIRE";
-            case PRESS_LEFT:     return "PRESS_LEFT";
-            case PRESS_RIGHT:    return "PRESS_RIGHT";
-            case RELEASE_X:      return "RELEASE_X";
-            case RELEASE_Y:      return "RELEASE_Y";
-            case RELEASE_XY:     return "RELEASE_XY";
-            case RELEASE_FIRE:   return "RELEASE_FIRE";
-            case RELEASE_LEFT:   return "RELEASE_LEFT";
-            case RELEASE_RIGHT:  return "RELEASE_RIGHT";
-        }
-        return "???";
-    }
+inline bool isControlPortDevice(long value) {
+    return value >= 0 && value <= CPD_JOYSTICK;
+}
+
+VAMIGA_ENUM(long, GamePadAction)
+{
+    PULL_UP = 0,   // Pull the joystick up
+    PULL_DOWN,     // Pull the joystick down
+    PULL_LEFT,     // Pull the joystick left
+    PULL_RIGHT,    // Pull the joystick right
+    PRESS_FIRE,    // Press the joystick button
+    PRESS_LEFT,    // Press the left mouse button
+    PRESS_RIGHT,   // Press the right mouse button
+    RELEASE_X,     // Move back to neutral horizontally
+    RELEASE_Y,     // Move back to neutral vertically
+    RELEASE_XY,    // Move back to neutral
+    RELEASE_FIRE,  // Release the joystick button
+    RELEASE_LEFT,  // Release the left mouse button
+    RELEASE_RIGHT  // Release the right mouse button
 };
+
+inline bool isGamePadAction(long value) {
+    return value >= 0 && value <= RELEASE_RIGHT;
+}
+
+//
+// Structures
+//
+
+typedef struct
+{
+    bool m0v;
+    bool m0h;
+    bool m1v;
+    bool m1h;
+    u16 joydat;
+    u16 potgo;
+    u16 potgor;
+    u16 potdat;
+}
+ControlPortInfo;
+
+typedef struct
+{
+    SerialPortDevice device;
+}
+SerialPortConfig;
+
+typedef struct
+{
+    u32 port;
+
+    bool txd;
+    bool rxd;
+    bool rts;
+    bool cts;
+    bool dsr;
+    bool cd;
+    bool dtr;
+}
+SerialPortInfo;
+
+typedef struct
+{
+    bool pullUpResistors;
+}
+MouseConfig;
+
+#endif

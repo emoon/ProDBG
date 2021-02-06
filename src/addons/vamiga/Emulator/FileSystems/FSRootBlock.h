@@ -5,46 +5,33 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _FS_ROOT_BLOCK_H
+#define _FS_ROOT_BLOCK_H
 
 #include "FSBlock.h"
 
 struct FSRootBlock : FSBlock {
           
-    FSRootBlock(FSPartition &p, u32 nr);
+    FSRootBlock(FSVolume &ref, u32 nr);
+    FSRootBlock(FSVolume &ref, u32 nr, const char *name);
     ~FSRootBlock();
 
-    const char *getDescription() const override { return "FSRootBlock"; }
-
-    
-    //
     // Methods from Block class
-    //
+    FSBlockType type() override { return FS_ROOT_BLOCK; }
+    void dump() override;
+    bool check(bool verbose) override;
+    void updateChecksum() override;
 
-    void dump() const override;
+    FSName getName() override                    { return FSName(addr(-20)); }
+    void setName(FSName name) override           { name.write(addr(-20));    }
 
-    // Methods from Block class
-    FSBlockType type() const override { return FS_ROOT_BLOCK; }
-    FSItemType itemType(isize byte) const override;
-    ErrorCode check(isize pos, u8 *expected, bool strict) const override;
-    u32 checksumLocation() const override { return 5; }
- 
-    u32 getBmBlockRef(isize nr) const            { return get32(nr-49);        }
-    void setBmBlockRef(isize nr, u32 ref)        {        set32(nr-49, ref);   }
+    FSTime getCreationDate() override            { return FSTime(addr(-7));  }
+    void setCreationDate(FSTime t) override      { t.write(addr(-7));        }
 
-    u32 getNextBmExtBlockRef() const override    { return get32(-24);          }
-    void setNextBmExtBlockRef(u32 ref) override  {        set32(-24, ref);     }
-    
-    FSTime getModificationDate() const override  { return FSTime(addr32(-23)); }
-    void setModificationDate(FSTime t) override  { t.write(addr32(-23));       }
+    FSTime getModificationDate() override        { return FSTime(addr(-23)); }
+    void setModificationDate(FSTime t) override  { t.write(addr(-23));       }
 
-    FSName getName() const override              { return FSName(addr32(-20)); }
-    void setName(FSName name) override           { name.write(addr32(-20));    }
-
-    FSTime getCreationDate() const override      { return FSTime(addr32(-7));  }
-    void setCreationDate(FSTime t) override      { t.write(addr32(-7));        }
-
-    u32 hashTableSize() const override           { return 72;                  }
-
-    bool addBitmapBlockRefs(std::vector<u32> &refs);
+    u32 hashTableSize() override { return 72; }
 };
+
+#endif

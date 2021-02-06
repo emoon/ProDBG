@@ -7,28 +7,78 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+// This file must conform to standard ANSI-C to be compatible with Swift.
 
-#include "DrivePublicTypes.h"
-#include "Reflection.h"
+#ifndef _DRIVE_TYPES_H
+#define _DRIVE_TYPES_H
 
-struct DriveTypeEnum : Reflection<DriveTypeEnum, DriveType> {
-    
-    static bool isValid(long value)
-    {
-        return (unsigned long)value <  DRIVE_COUNT;
-    }
-    
-    static const char *prefix() { return "DRIVE"; }
-    static const char *key(DriveType value)
-    {
-        switch (value) {
-                
-            case DRIVE_DD_35:   return "DD_35";
-            case DRIVE_HD_35:   return "HD_35";
-            case DRIVE_DD_525:  return "DD_525";
-            case DRIVE_COUNT:   return "???";
-        }
-        return "???";
-    }
+#include "Aliases.h"
+
+//
+// Enumerations
+//
+
+VAMIGA_ENUM(long, DriveType)
+{
+    DRIVE_35_DD,
+    DRIVE_35_HD,
+    DRIVE_525_DD
 };
+
+inline bool isDriveType(long value)
+{
+    return value >= DRIVE_35_DD && value <= DRIVE_525_DD;
+}
+
+inline const char *driveTypeName(DriveType type)
+{
+    assert(isDriveType(type));
+    
+    switch (type) {
+        case DRIVE_35_DD:    return "Drive 3.5\" DD";
+        case DRIVE_35_HD:    return "Drive 3.5\" HD";
+        case DRIVE_525_DD:   return "Drive 5.25\" DD";
+        default:             return "???";
+    }
+}
+
+//
+// Structures
+//
+
+typedef struct
+{
+     u8 side;
+     u8 cylinder;
+     u16 offset;
+ }
+DriveHead;
+
+typedef struct
+{
+    DriveType type;
+    
+    // Indicates whether mechanical delays should be emulated
+    bool mechanicalDelays;
+
+    /* Mechanical delays. The start and stop delays specify the number of
+     * cycles that pass between switching the drive motor on or off until the
+     * drive motor runs at full speed or came to rest, respectively. The step
+     * delay specifies the number of cycle needed by the drive head to move to
+     * another cylinder. During this time, the FIFO is filled with garbage data.
+     */
+    Cycle startDelay;
+    Cycle stopDelay;
+    Cycle stepDelay;
+}
+DriveConfig;
+
+typedef struct
+{
+    DriveHead head;
+    bool hasDisk;
+    bool motor;
+}
+DriveInfo;
+
+#endif

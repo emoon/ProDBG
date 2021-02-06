@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _MUXER_H
+#define _MUXER_H
 
 #include "AmigaComponent.h"
 #include "AudioStream.h"
@@ -81,15 +82,7 @@ class Muxer : public AmigaComponent {
 
     // Volume control
     Volume volume;
-            
-    // Volume scaling factors
-    float vol[4];
-    float volL;
-    float volR;
-
-    // Panning factors
-    float pan[4];
-    
+        
     
     //
     // Sub components
@@ -97,8 +90,8 @@ class Muxer : public AmigaComponent {
     
 public:
 
-    // Inputs (one Sampler for each of the four channels)
-    Sampler *sampler[4];
+    // Inputs
+    Sampler sampler[4];
 
     // Output
     AudioStream stream;
@@ -115,13 +108,14 @@ public:
 public:
     
     Muxer(Amiga& ref);
-    ~Muxer();
-
-    const char *getDescription() const override { return "Muxer"; }
+    
     void _reset(bool hard) override;
     
     // Resets the output buffer and the two audio filters
     void clear();
+
+    // Replaces the audio stream by a stream from a different muxer
+    // void cloneStream(AudioStream &other) { stream = other; }
     
     
     //
@@ -130,21 +124,19 @@ public:
     
 public:
     
-    const MuxerConfig &getConfig() const { return config; }
+    MuxerConfig getConfig() { return config; }
 
-    long getConfigItem(Option option) const;
-    long getConfigItem(Option option, long id) const;
-    bool setConfigItem(Option option, long value) override;
-    bool setConfigItem(Option option, long id, long value) override;
+    long getConfigItem(ConfigOption option);
+    bool setConfigItem(ConfigOption option, long value) override;
 
-    bool isMuted() const { return config.volL == 0 && config.volR == 0; }
+    bool isMuted() { return config.volL == 0 && config.volR == 0; }
 
-    double getSampleRate() const { return sampleRate; }
+    double getSampleRate() { return sampleRate; }
     void setSampleRate(double hz);
 
 private:
     
-    void _dumpConfig() const override;
+    void _dumpConfig() override;
 
 
     //
@@ -154,7 +146,7 @@ private:
 public:
     
     // Returns information about the gathered statistical information
-    MuxerStats getStats() const { return stats; }
+    MuxerStats getStats() { return stats; }
     
     
     //
@@ -171,25 +163,19 @@ private:
         & config.samplingMethod
         & config.filterType
         & config.filterAlwaysOn
-        & config.pan
         & config.vol
+        & config.pan
         & config.volL
-        & config.volR
-        & pan
-        & vol
-        & volL
-        & volR;
+        & config.volR;
     }
     
     template <class T>
     void applyToHardResetItems(T& worker)
     {
-        /*
         worker
         
         & sampler
         & stream;
-        */
     }
     
     template <class T>
@@ -197,10 +183,9 @@ private:
     {
     }
 
-    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
-    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
-    isize didLoadFromBuffer(const u8 *buffer) override;
+    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
+    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
     
     
     //
@@ -208,7 +193,10 @@ private:
     //
     
 public:
-        
+    
+    // Sets the current volume
+    // void setVolume(i32 vol) { volume = vol; }
+    
     /* Starts to ramp up the volume. This function configures variables volume
      * and targetVolume to simulate a smooth audio fade in.
      */
@@ -251,7 +239,9 @@ public:
     
 public:
     
-    void copyMono(float *buffer, isize n);
-    void copyStereo(float *left, float *right, isize n);
-    void copyInterleaved(float *buffer, isize n);
+    void copyMono(float *buffer, size_t n);
+    void copyStereo(float *left, float *right, size_t n);
+    void copyInterleaved(float *buffer, size_t n);
 };
+
+#endif

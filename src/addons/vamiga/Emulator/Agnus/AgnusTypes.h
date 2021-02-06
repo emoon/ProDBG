@@ -7,162 +7,137 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+// This file must conform to standard ANSI-C to be compatible with Swift.
 
-#include "AgnusPublicTypes.h"
-#include "Reflection.h"
+#ifndef _AGNUS_TYPES_H
+#define _AGNUS_TYPES_H
 
-//
-// Reflection APIs
-//
+#include "BlitterTypes.h"
+#include "CopperTypes.h"
 
-struct AgnusRevisionEnum : Reflection<AgnusRevisionEnum, AgnusRevision> {
-    
-    static bool isValid(long value)
-    {
-        return (unsigned long)value < AGNUS_COUNT;
-    }
-
-    static const char *prefix() { return "AGNUS"; }
-    static const char *key(AgnusRevision value)
-    {
-        switch (value) {
-                
-            case AGNUS_OCS:     return "OCS";
-            case AGNUS_ECS_1MB: return "ECS_1MB";
-            case AGNUS_ECS_2MB: return "ECS_2MB";
-            case AGNUS_COUNT:   return "???";
-        }
-        return "???";
-    }
+VAMIGA_ENUM(long, AgnusRevision)
+{
+    AGNUS_OCS,              // Revision 8367
+    AGNUS_ECS_1MB,          // Revision 8372
+    AGNUS_ECS_2MB,          // Revision 8375
+    AGNUS_CNT
 };
 
-//
-// Private types
-//
+inline bool isAgnusRevision(long value)
+{
+    return value >= 0 && value < AGNUS_CNT;
+}
 
-enum_long(DDFState)
+inline const char *sAgnusRevision(AgnusRevision value)
+{
+    switch (value) {
+        case AGNUS_OCS:     return "AGNUS_OCS";
+        case AGNUS_ECS_1MB: return "AGNUS_ECS_1MB";
+        case AGNUS_ECS_2MB: return "AGNUS_ECS_2MB";
+        default:            return "???";
+    }
+}
+
+typedef struct
+{
+    AgnusRevision revision;
+    bool slowRamMirror;
+}
+AgnusConfig;
+
+VAMIGA_ENUM(i8, BusOwner)
+{
+    BUS_NONE,
+    BUS_CPU,
+    BUS_REFRESH,
+    BUS_DISK,
+    BUS_AUDIO,
+    BUS_BPL1,
+    BUS_BPL2,
+    BUS_BPL3,
+    BUS_BPL4,
+    BUS_BPL5,
+    BUS_BPL6,
+    BUS_SPRITE0,
+    BUS_SPRITE1,
+    BUS_SPRITE2,
+    BUS_SPRITE3,
+    BUS_SPRITE4,
+    BUS_SPRITE5,
+    BUS_SPRITE6,
+    BUS_SPRITE7,
+    BUS_COPPER,
+    BUS_BLITTER,
+    BUS_COUNT
+};
+
+static inline bool isBusOwner(long value)
+{
+    return value >= 0 && value < BUS_COUNT;
+}
+
+VAMIGA_ENUM(long, DDFState)
 {
     DDF_OFF,
     DDF_READY,
     DDF_ON
 };
 
-static inline bool isDDFState(long value)
-{
-    return (unsigned long)value <= DDF_ON;
-}
-
-enum_long(SprDMAState)
+VAMIGA_ENUM(long, SprDMAState)
 {
     SPR_DMA_IDLE,
     SPR_DMA_ACTIVE
 };
 
-static inline bool isSprDMAState(long value)
+
+//
+// Structures
+//
+
+typedef struct
 {
-    return (unsigned long)value <= SPR_DMA_ACTIVE;
+    i16 vpos;
+    i16 hpos;
+
+    u16 dmacon;
+    u16 bplcon0;
+    u8  bpu;
+    u16 ddfstrt;
+    u16 ddfstop;
+    u16 diwstrt;
+    u16 diwstop;
+
+    u16 bpl1mod;
+    u16 bpl2mod;
+    u16 bltamod;
+    u16 bltbmod;
+    u16 bltcmod;
+    u16 bltdmod;
+    u16 bltcon0;
+    
+    u32 coppc;
+    u32 dskpt;
+    u32 bplpt[6];
+    u32 audpt[4];
+    u32 audlc[4];
+    u32 bltpt[4];
+    u32 sprpt[8];
+
+    bool bls;
 }
+AgnusInfo;
 
-enum RegChangeID : i32
+typedef struct
 {
-    SET_NONE,
+    long usage[BUS_COUNT];
     
-    SET_BLTSIZE,
-    SET_BLTSIZV,
-    SET_BLTCON0,
-    SET_BLTCON0L,
-    SET_BLTCON1,
-    
-    SET_INTREQ,
-    SET_INTENA,
-    
-    SET_BPLCON0_AGNUS,
-    SET_BPLCON0_DENISE,
-    SET_BPLCON1_AGNUS,
-    SET_BPLCON1_DENISE,
-    SET_BPLCON2,
-    SET_BPLCON3,
-    SET_DMACON,
-    
-    SET_DIWSTRT,
-    SET_DIWSTOP,
-    SET_DDFSTRT,
-    SET_DDFSTOP,
-    
-    SET_BPL1MOD,
-    SET_BPL2MOD,
-    SET_BPL1PTH,
-    SET_BPL2PTH,
-    SET_BPL3PTH,
-    SET_BPL4PTH,
-    SET_BPL5PTH,
-    SET_BPL6PTH,
-    SET_BPL1PTL,
-    SET_BPL2PTL,
-    SET_BPL3PTL,
-    SET_BPL4PTL,
-    SET_BPL5PTL,
-    SET_BPL6PTL,
-
-    SET_SPR0DATA,
-    SET_SPR1DATA,
-    SET_SPR2DATA,
-    SET_SPR3DATA,
-    SET_SPR4DATA,
-    SET_SPR5DATA,
-    SET_SPR6DATA,
-    SET_SPR7DATA,
-
-    SET_SPR0DATB,
-    SET_SPR1DATB,
-    SET_SPR2DATB,
-    SET_SPR3DATB,
-    SET_SPR4DATB,
-    SET_SPR5DATB,
-    SET_SPR6DATB,
-    SET_SPR7DATB,
-
-    SET_SPR0POS,
-    SET_SPR1POS,
-    SET_SPR2POS,
-    SET_SPR3POS,
-    SET_SPR4POS,
-    SET_SPR5POS,
-    SET_SPR6POS,
-    SET_SPR7POS,
-
-    SET_SPR0CTL,
-    SET_SPR1CTL,
-    SET_SPR2CTL,
-    SET_SPR3CTL,
-    SET_SPR4CTL,
-    SET_SPR5CTL,
-    SET_SPR6CTL,
-    SET_SPR7CTL,
-
-    SET_SPR0PTH,
-    SET_SPR1PTH,
-    SET_SPR2PTH,
-    SET_SPR3PTH,
-    SET_SPR4PTH,
-    SET_SPR5PTH,
-    SET_SPR6PTH,
-    SET_SPR7PTH,
-
-    SET_SPR0PTL,
-    SET_SPR1PTL,
-    SET_SPR2PTL,
-    SET_SPR3PTL,
-    SET_SPR4PTL,
-    SET_SPR5PTL,
-    SET_SPR6PTL,
-    SET_SPR7PTL,
-
-    REG_COUNT
-};
-
-static inline bool isRegChangeID(long value)
-{
-    return (unsigned long)value < REG_COUNT;
+    double copperActivity;
+    double blitterActivity;
+    double diskActivity;
+    double audioActivity;
+    double spriteActivity;
+    double bitplaneActivity;
 }
+AgnusStats;
+
+#endif

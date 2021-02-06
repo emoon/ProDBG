@@ -10,7 +10,7 @@
 #include "Amiga.h"
 
 u16
-Paula::peekADKCONR() const
+Paula::peekADKCONR()
 {
     debug(AUDREG_DEBUG, "peekADKCON() = %x\n", adkcon);
     debug(DSKREG_DEBUG, "peekADKCON() = %x\n", adkcon);
@@ -50,7 +50,7 @@ Paula::pokeADKCON(u16 value)
 }
 
 u16
-Paula::peekINTREQR() const
+Paula::peekINTREQR()
 {
     u16 result = intreq;
 
@@ -65,7 +65,7 @@ Paula::pokeINTREQ(u16 value)
     trace(INTREG_DEBUG, "pokeINTREQ(%x) (INTENA = %x INTREQ = %x)\n", value, intena, intreq);
 
     // Add a one cycle delay if Copper writes
-    if (s == ACCESSOR_CPU) {
+    if (s == CPU_ACCESS) {
         paula.setINTREQ(value);
     } else {
         agnus.recordRegisterChange(DMA_CYCLES(1), SET_INTREQ, value);
@@ -97,7 +97,7 @@ Paula::pokeINTENA(u16 value)
     trace(INTREG_DEBUG, "pokeINTENA(%x)\n", value);
 
     // Add a one cycle delay if Copper writes
-    if (s == ACCESSOR_CPU) {
+    if (s == CPU_ACCESS) {
         paula.setINTENA(value);
     } else {
         agnus.recordRegisterChange(DMA_CYCLES(1), SET_INTENA, value);
@@ -115,19 +115,19 @@ Paula::setINTENA(bool setclr, u16 value)
     checkInterrupt();
 }
 
-template <isize x> u16
-Paula::peekPOTxDAT() const
+template <int x> u16
+Paula::peekPOTxDAT()
 {
     assert(x == 0 || x == 1);
 
     u16 result = x ? HI_LO(potCntY1, potCntX1) : HI_LO(potCntY0, potCntX0);
-    trace(POTREG_DEBUG, "peekPOT%luDAT() = %x\n", x, result);
+    trace(POTREG_DEBUG, "peekPOT%dDAT() = %x\n", x, result);
 
     return result;
 }
 
 u16
-Paula::peekPOTGOR() const
+Paula::peekPOTGOR()
 {
     u16 result = 0;
 
@@ -171,13 +171,13 @@ Paula::pokePOTGO(u16 value)
         potCntY1 = 0;
 
         // Schedule the first DISCHARGE event
-        agnus.schedulePos<SLOT_POT>(agnus.pos.v, HPOS_MAX, POT_DISCHARGE, 8);
+        agnus.schedulePos<POT_SLOT>(agnus.pos.v, HPOS_MAX, POT_DISCHARGE, 8);
     }
 }
 
-template void Paula::pokeINTREQ<ACCESSOR_CPU>(u16 value);
-template void Paula::pokeINTREQ<ACCESSOR_AGNUS>(u16 value);
-template void Paula::pokeINTENA<ACCESSOR_CPU>(u16 value);
-template void Paula::pokeINTENA<ACCESSOR_AGNUS>(u16 value);
-template u16 Paula::peekPOTxDAT<0>() const;
-template u16 Paula::peekPOTxDAT<1>() const;
+template void Paula::pokeINTREQ<CPU_ACCESS>(u16 value);
+template void Paula::pokeINTREQ<AGNUS_ACCESS>(u16 value);
+template void Paula::pokeINTENA<CPU_ACCESS>(u16 value);
+template void Paula::pokeINTENA<AGNUS_ACCESS>(u16 value);
+template u16 Paula::peekPOTxDAT<0>();
+template u16 Paula::peekPOTxDAT<1>();

@@ -12,7 +12,7 @@
 void
 Agnus::serviceVblEvent()
 {
-    switch (slot[SLOT_VBL].id) {
+    switch (slot[VBL_SLOT].id) {
 
         case VBL_STROBE0:
             
@@ -23,7 +23,7 @@ Agnus::serviceVblEvent()
             paula.raiseIrq(INT_VERTB);
             
             // Schedule next event
-            scheduleStrobe1Event();
+            schedulePos<VBL_SLOT>(5, 84, VBL_STROBE1);
             break;
 
         case VBL_STROBE1:
@@ -35,18 +35,19 @@ Agnus::serviceVblEvent()
             amiga.ciaA.tod.increment();
             
             // Schedule next event
-            scheduleStrobe2Event();
+            schedulePos<VBL_SLOT>(5, 178, VBL_END);
             break;
             
-        case VBL_STROBE2:
+        case VBL_END:
             
             assert(pos.v == 5);
             assert(pos.h == 178);
             
-            // Nothing is done here at the moment
+            // Make the incremented value visible
+            // amiga.ciaA.tod.finishIncrement();
             
-            // Schedule next event
-            scheduleStrobe0Event();
+            // Schedule the next VBL_STROBE event
+            schedulePos<VBL_SLOT>(frame.numLines() + vStrobeLine(), 0, VBL_STROBE0);
             break;
             
         default:
@@ -54,28 +55,10 @@ Agnus::serviceVblEvent()
     }
 }
 
-void
-Agnus::scheduleStrobe0Event()
-{
-    schedulePos<SLOT_VBL>(frame.numLines() + vStrobeLine(), 0, VBL_STROBE0);
-}
-
-void
-Agnus::scheduleStrobe1Event()
-{
-    schedulePos<SLOT_VBL>(5, 84, VBL_STROBE1);
-}
-
-void
-Agnus::scheduleStrobe2Event()
-{
-    schedulePos<SLOT_VBL>(5, 178, VBL_STROBE2);
-}
-
 template <int nr> void
 Agnus::serviceCIAEvent()
 {
-    EventSlot slotNr = (nr == 0) ? SLOT_CIAA : SLOT_CIAB;
+    EventSlot slotNr = (nr == 0) ? CIAA_SLOT : CIAB_SLOT;
 
     switch(slot[slotNr].id) {
 
@@ -170,7 +153,7 @@ Agnus::serviceREGEvent(Cycle until)
 void
 Agnus::serviceBPLEvent()
 {
-    switch ((int)slot[SLOT_BPL].id) {
+    switch ((int)slot[BPL_SLOT].id) {
 
         case EVENT_NONE | DRAW_ODD:
             hires() ? denise.drawHiresOdd() : denise.drawLoresOdd();
@@ -462,9 +445,9 @@ Agnus::serviceBPLEventLores()
 void
 Agnus::serviceDASEvent()
 {
-    assert(slot[SLOT_DAS].id == dasEvent[pos.h]);
+    assert(slot[DAS_SLOT].id == dasEvent[pos.h]);
 
-    switch (slot[SLOT_DAS].id) {
+    switch (slot[DAS_SLOT].id) {
 
         case DAS_REFRESH:
             busOwner[0x01] = BUS_REFRESH;
@@ -596,7 +579,7 @@ Agnus::serviceDASEvent()
 void
 Agnus::serviceINSEvent()
 {
-    switch (slot[SLOT_INS].id) {
+    switch (slot[INS_SLOT].id) {
 
         case INS_NONE:   break;
         case INS_AMIGA:  amiga.inspect(); break;
@@ -617,13 +600,13 @@ Agnus::serviceINSEvent()
     }
 
     // Reschedule event
-    rescheduleRel<SLOT_INS>((Cycle)(inspectionInterval * 28000000));
+    rescheduleRel<INS_SLOT>((Cycle)(inspectionInterval * 28000000));
 }
 
 void
 Agnus::serviceRASEvent()
 {
-    switch (slot[SLOT_RAS].id) {
+    switch (slot[RAS_SLOT].id) {
 
         case RAS_HSYNC:
             hsyncHandler();
@@ -635,7 +618,7 @@ Agnus::serviceRASEvent()
     }
 
     // Reschedule event
-    rescheduleRel<SLOT_RAS>(DMA_CYCLES(HPOS_CNT));
+    rescheduleRel<RAS_SLOT>(DMA_CYCLES(HPOS_CNT));
 }
 
 template void Agnus::serviceCIAEvent<0>();

@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _IMG_H
+#define _IMG_H
 
 #include "DiskFile.h"
 
@@ -16,42 +17,58 @@
 class IMGFile : public DiskFile {
     
 public:
-        
-    static bool isCompatibleName(const string &name);
-    static bool isCompatibleStream(std::istream &stream);
-
-    static IMGFile *makeWithDiskType(DiskDiameter t, DiskDensity d);
-    static IMGFile *makeWithDisk(class Disk *disk) throws;
-    static IMGFile *makeWithDisk(class Disk *disk, ErrorCode *ec);
-
     
     //
-    // Methods from AmigaObject
+    // Class methods
     //
     
-    const char *getDescription() const override { return "IMG"; }
+    // Returns true iff the provided buffer contains an IMG file
+    static bool isIMGBuffer(const u8 *buffer, size_t length);
     
+    // Returns true iff if the provided path points to an IMG file
+    static bool isIMGFile(const char *path);
+    
+    
+    //
+    // Initializing
+    //
+
+public:
+
+    IMGFile();
+    
+    static IMGFile *makeWithDiskType(DiskType t, DiskDensity d);
+    static IMGFile *makeWithBuffer(const u8 *buffer, size_t length);
+    static IMGFile *makeWithFile(const char *path);
+    static IMGFile *makeWithFile(FILE *file);
+    static IMGFile *makeWithDisk(Disk *disk);
+  
     
     //
     // Methods from AmigaFile
     //
-        
-    FileType type() const override { return FILETYPE_IMG; }
+    
+public:
+    
+    AmigaFileType fileType() override { return FILETYPE_IMG; }
+    const char *typeAsString() override { return "IMG"; }
+    bool bufferHasSameType(const u8 *buffer, size_t length) override {
+        return isIMGBuffer(buffer, length); }
+    bool fileHasSameType(const char *path) override { return isIMGFile(path); }
+    bool readFromBuffer(const u8 *buffer, size_t length) override;
     
     
     //
     // Methods from DiskFile
     //
       
-    FSVolumeType getDos() const override { return FS_NODOS; }
-    void setDos(FSVolumeType dos) override { };
-    DiskDiameter getDiskDiameter() const override { return INCH_35; }
-    DiskDensity getDiskDensity() const override { return DISK_DD; }
-    isize numSides() const override;
-    isize numCyls() const override;
-    isize numSectors() const override;
+    DiskType getDiskType() override { return DISK_35; }
+    DiskDensity getDiskDensity() override { return DISK_DD; }
+    long numSides() override;
+    long numCyclinders() override;
+    long numSectors() override;
     bool encodeDisk(class Disk *disk) override;
-    void decodeDisk(class Disk *disk) throws override;
+    bool decodeDisk(class Disk *disk) override;
 
 private:
     
@@ -61,3 +78,5 @@ private:
     bool decodeTrack(class Disk *disk, Track t);
     bool decodeSector(u8 *dst, u8 *src);
 };
+
+#endif

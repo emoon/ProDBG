@@ -11,16 +11,20 @@
 
 Blitter::Blitter(Amiga& ref) : AmigaComponent(ref)
 {
-    // Initialize fill pattern tables    
-    for (isize carryIn = 0; carryIn < 2; carryIn++) {
+    setDescription("Blitter");
+    
+    // Initialize fill pattern lookup tables
+    
+    // Inclusive fill
+    for (unsigned carryIn = 0; carryIn < 2; carryIn++) {
         
-        for (isize byte = 0; byte < 256; byte++) {
+        for (unsigned byte = 0; byte < 256; byte++) {
             
             u8 carry = carryIn;
             u8 inclPattern = byte;
             u8 exclPattern = byte;
             
-            for (isize bit = 0; bit < 8; bit++) {
+            for (int bit = 0; bit < 8; bit++) {
                 
                 inclPattern |= carry << bit; // inclusive fill
                 exclPattern ^= carry << bit; // exclusive fill
@@ -53,20 +57,17 @@ Blitter::_reset(bool hard)
 }
 
 long
-Blitter::getConfigItem(Option option) const
+Blitter::getConfigItem(ConfigOption option)
 {
     switch (option) {
             
         case OPT_BLITTER_ACCURACY: return config.accuracy;
-        
-        default:
-            assert(false);
-            return 0;
+        default: assert(false);
     }
 }
 
 bool
-Blitter::setConfigItem(Option option, long value)
+Blitter::setConfigItem(ConfigOption option, long value)
 {
     switch (option) {
             
@@ -74,11 +75,11 @@ Blitter::setConfigItem(Option option, long value)
             
             #ifdef FORCE_BLT_LEVEL
             value = FORCE_BLT_LEVEL;
-            warn("Overriding Blitter accuracy level: %ld\n", value);
+            warn("Overriding Blitter accuracy level: %d\n", value);
             #endif
             
             if (value < 0 || value > 2) {
-                warn("Invalid Blitter accuracy level: %ld\n", value);
+                warn("Invalid Blitter accuracy level: %d\n", value);
                 return false;
             }
             if (config.accuracy == value) {
@@ -86,7 +87,7 @@ Blitter::setConfigItem(Option option, long value)
             }
             
             amiga.suspend();
-            config.accuracy = (int)value;
+            config.accuracy = value;
             amiga.resume();
 
             return true;
@@ -97,7 +98,7 @@ Blitter::setConfigItem(Option option, long value)
 }
 
 void
-Blitter::_dumpConfig() const
+Blitter::_dumpConfig()
 {
     msg("      accuracy : %d\n", config.accuracy);
 }
@@ -142,7 +143,7 @@ Blitter::_inspect()
 }
 
 void
-Blitter::_dump() const
+Blitter::_dump()
 {
     msg("  Accuracy: %d\n", config.accuracy);
     msg("\n");
@@ -186,36 +187,8 @@ Blitter::_dump() const
     msg("     bbusy: %s bzero: %s\n", bbusy ? "yes" : "no", bzero ? "yes" : "no");
 }
 
-void
-Blitter::doBarrelA(u16 aNew, u16 *aOld, u16 *aHold) const
-{
-    *aHold = (u16)(HI_W_LO_W(*aOld, aNew) >> bltconASH());
-    *aOld  = aNew;
-}
-
-void
-Blitter::doBarrelAdesc(u16 aNew, u16 *aOld, u16 *aHold) const
-{
-    *aHold = (u16)(HI_W_LO_W(aNew, *aOld) >> (16 - bltconASH()));
-    *aOld  = aNew;
-}
-
-void
-Blitter::doBarrelB(u16 bNew, u16 *bOld, u16 *bHold) const
-{
-    *bHold = (u16)(HI_W_LO_W(*bOld, bNew) >> bltconBSH());
-    *bOld  = bNew;
-}
-
-void
-Blitter::doBarrelBdesc(u16 bNew, u16 *bOld, u16 *bHold) const
-{
-    *bHold = (u16)(HI_W_LO_W(bNew, *bOld) >> (16 - bltconBSH()));
-    *bOld  = bNew;
-}
-
 u16
-Blitter::doMintermLogic(u16 a, u16 b, u16 c, u8 minterm) const
+Blitter::doMintermLogic(u16 a, u16 b, u16 c, u8 minterm)
 {
     u16 result = 0;
 
@@ -232,7 +205,7 @@ Blitter::doMintermLogic(u16 a, u16 b, u16 c, u8 minterm) const
 }
 
 u16
-Blitter::doMintermLogicQuick(u16 a, u16 b, u16 c, u8 minterm) const
+Blitter::doMintermLogicQuick(u16 a, u16 b, u16 c, u8 minterm)
 {
     switch (minterm) {
         case 0: return 0;
@@ -539,39 +512,38 @@ Blitter::beginBlit()
     if (bltconLINE()) {
 
         if (BLT_CHECKSUM) {
-            
             linecount++;
             check1 = check2 = fnv_1a_init32();
-            msg("Line %d (%d,%d) (%d%d%d%d)[%x] (%d %d %d %d) %x %x %x %x\n",
-                linecount, bltsizeH, bltsizeV,
-                bltconUSEA(), bltconUSEB(), bltconUSEC(), bltconUSED(),
-                bltcon0,
-                bltamod, bltbmod, bltcmod, bltdmod,
-                bltapt & agnus.ptrMask,
-                bltbpt & agnus.ptrMask,
-                bltcpt & agnus.ptrMask,
-                bltdpt & agnus.ptrMask);
+            debug("Line %d (%d,%d) (%d%d%d%d)[%x] (%d %d %d %d) %x %x %x %x\n",
+                       linecount, bltsizeH, bltsizeV,
+                       bltconUSEA(), bltconUSEB(), bltconUSEC(), bltconUSED(),
+                       bltcon0,
+                       bltamod, bltbmod, bltcmod, bltdmod,
+                       bltapt & agnus.ptrMask,
+                       bltbpt & agnus.ptrMask,
+                       bltcpt & agnus.ptrMask,
+                       bltdpt & agnus.ptrMask);
         }
 
         beginLineBlit(level);
 
     } else {
 
-        if (BLT_CHECKSUM) {
-            
+        if (BLT_CHECKSUM) { // && (bltsizeH != 1 || bltsizeV != 4)
             copycount++;
             check1 = check2 = fnv_1a_init32();
-            msg("Blit %d (%d,%d) (%d%d%d%d)[%x] (%d %d %d %d) %x %x %x %x %s%s\n",
-                copycount,
-                bltsizeH, bltsizeV,
-                bltconUSEA(), bltconUSEB(), bltconUSEC(), bltconUSED(),
-                bltcon0,
-                bltamod, bltbmod, bltcmod, bltdmod,
-                bltapt & agnus.ptrMask,
-                bltbpt & agnus.ptrMask,
-                bltcpt & agnus.ptrMask,
-                bltdpt & agnus.ptrMask,
-                bltconDESC() ? "D" : "", bltconFE() ? "F" : "");
+            
+            debug("Blit %d (%d,%d) (%d%d%d%d)[%x] (%d %d %d %d) %x %x %x %x %s%s\n",
+                       copycount,
+                       bltsizeH, bltsizeV,
+                       bltconUSEA(), bltconUSEB(), bltconUSEC(), bltconUSED(),
+                       bltcon0,
+                       bltamod, bltbmod, bltcmod, bltdmod,
+                       bltapt & agnus.ptrMask,
+                       bltbpt & agnus.ptrMask,
+                       bltcpt & agnus.ptrMask,
+                       bltdpt & agnus.ptrMask,
+                       bltconDESC() ? "D" : "", bltconFE() ? "F" : "");
         }
 
         beginCopyBlit(level);
@@ -633,14 +605,22 @@ Blitter::endBlit()
     if (BLT_GUARD) memset(memguard, 0, sizeof(memguard));
     
     // Clear the Blitter slot
-    agnus.cancel<SLOT_BLT>();
-    
+    agnus.cancel<BLT_SLOT>();
+
     // Dump checksums if requested
-    debug(BLT_CHECKSUM,
-          "check1: %x check2: %x ABCD: %x %x %x %x\n",
-          check1, check2,
-          bltapt & agnus.ptrMask, bltbpt & agnus.ptrMask,
-          bltcpt & agnus.ptrMask, bltdpt & agnus.ptrMask);
+    if (BLT_CHECKSUM) {
+        debug("check1: %x check2: %x ABCD: %x %x %x %x\n",
+                   check1, check2,
+                   bltapt & agnus.ptrMask,
+                   bltbpt & agnus.ptrMask,
+                   bltcpt & agnus.ptrMask,
+                   bltdpt & agnus.ptrMask);
+        /*
+        debug("Memory: %x (%x)\n",
+                   fnv_1a_32(mem.chip, mem.chipRamSize()),
+                   fnv_1a_32(mem.slow, mem.slowRamSize()));
+        */
+    }
     
     // Let the Copper know about the termination
     copper.blitterDidTerminate();

@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _AGNUS_H
+#define _AGNUS_H
 
 #include "AmigaConstants.h"
 #include "Beam.h"
@@ -387,8 +388,6 @@ public:
     
     Agnus(Amiga& ref);
 
-    const char *getDescription() const override { return "Agnus"; }
-
 private:
     
     void initLookupTables();
@@ -405,19 +404,19 @@ private:
     
 public:
     
-    const AgnusConfig &getConfig() const { return config; }
+    AgnusConfig getConfig() { return config; }
     
-    long getConfigItem(Option option) const;
-    bool setConfigItem(Option option, long value) override;
+    long getConfigItem(ConfigOption option);
+    bool setConfigItem(ConfigOption option, long value) override;
     
-    bool isOCS() const { return config.revision == AGNUS_OCS; }
-    bool isECS() const { return config.revision != AGNUS_OCS; }
+    bool isOCS() { return config.revision == AGNUS_OCS; }
+    bool isECS() { return config.revision != AGNUS_OCS; }
     
     // Returns the chip identification bits of this Agnus (shows up in VPOSR)
     i16 idBits();
     
     // Returns the maximum amout of Chip Ram in KB this Agnus can handle
-    isize chipRamLimit();
+    size_t chipRamLimit();
         
     // Returns the line in which the VERTB interrupt gets triggered
     int vStrobeLine() { return isECS() || MIMIC_UAE ? 0 : 1; }
@@ -435,7 +434,7 @@ public:
     
 private:
     
-    void _dumpConfig() const override;
+    void _dumpConfig() override;
 
     
     //
@@ -446,12 +445,12 @@ private:
         
         AgnusInfo getInfo() { return HardwareComponent::getInfo(info); }
         EventInfo getEventInfo();
-        EventSlotInfo getEventSlotInfo(isize nr);
+        EventSlotInfo getEventSlotInfo(int nr);
         
     private:
         
         void _inspect() override;
-        void _dump() const override;
+        void _dump() override;
 
         void inspectEvents();
         void inspectEventSlot(EventSlot nr);
@@ -562,9 +561,9 @@ private:
         & sprDmaState;
     }
 
-    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
-    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
+    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
 
     //
@@ -577,19 +576,19 @@ public:
      * depends on the number of lines that are drawn. This values varies
      * between long and short frames.
      */
-    Cycle cyclesInFrame() const;
+    Cycle cyclesInFrame();
 
     /* Returns the master cycle belonging to beam position (0,0). The first
      * function treats (0,0) as the upper left position of the current frame.
      * The second function referes to the next frame.
      */
-    Cycle startOfFrame() const;
-    Cycle startOfNextFrame() const;
+    Cycle startOfFrame();
+    Cycle startOfNextFrame();
 
     // Indicates if the provided master cycle belongs to a specific frame.
-    bool belongsToPreviousFrame(Cycle cycle) const;
-    bool belongsToCurrentFrame(Cycle cycle) const;
-    bool belongsToNextFrame(Cycle cycle) const;
+    bool belongsToPreviousFrame(Cycle cycle);
+    bool belongsToCurrentFrame(Cycle cycle);
+    bool belongsToNextFrame(Cycle cycle);
 
 
     //
@@ -599,30 +598,30 @@ public:
 public:
 
     // Indicates if the electron beam is inside the VBLANK area
-    bool inVBlank() const { return pos.v < 26; }
+    bool inVBlank() { return pos.v < 26; }
 
     // Indicates if the current rasterline is the last line in this frame
-    bool inLastRasterline() const { return pos.v == frame.lastLine(); }
+    bool inLastRasterline() { return pos.v == frame.lastLine(); }
 
     // Indicates if bitplane DMA is enabled in the current rasterline
-    bool inBplDmaLine() const { return inBplDmaLine(dmacon, bplcon0); }
-    bool inBplDmaLine(u16 dmacon, u16 bplcon0) const;
+    bool inBplDmaLine() { return inBplDmaLine(dmacon, bplcon0); }
+    bool inBplDmaLine(u16 dmacon, u16 bplcon0);
 
     // Indicates if the electron beam is inside a certain DMA area
-    bool inLoresDmaAreaEven(i16 pos) const {
+    bool inLoresDmaAreaEven(i16 pos) {
         return !(pos & 4) && pos >= ddfLores.strtEven && pos < ddfLores.stopEven; }
-    bool inLoresDmaAreaOdd(i16 pos) const {
+    bool inLoresDmaAreaOdd(i16 pos) {
         return (pos & 4) && pos >= ddfLores.strtOdd && pos < ddfLores.stopOdd; }
-    bool inHiresDmaAreaEven(i16 pos) const {
+    bool inHiresDmaAreaEven(i16 pos) {
         return !(pos & 2) && pos >= ddfHires.strtEven && pos < ddfHires.stopEven; }
-    bool inHiresDmaAreaOdd(i16 pos) const {
+    bool inHiresDmaAreaOdd(i16 pos) {
         return (pos & 2) && pos >= ddfHires.strtOdd && pos < ddfHires.stopOdd; }
     
     // Returns the pixel position for the current horizontal position
-    Pixel ppos(i16 posh) const { return (posh * 4) + 2; }
-    Pixel ppos() const { return ppos(pos.h); }
+    i16 ppos(i16 posh) { return (posh * 4) + 2; }
+    i16 ppos() { return ppos(pos.h); }
 
-    
+
     //
     // Working with the beam position
     //
@@ -632,17 +631,17 @@ public:
     /* Translates a beam position to a master cycle. The beam position must be
      * a position inside the current frame.
      */
-    Cycle beamToCycle(Beam beam) const;
+    Cycle beamToCycle(Beam beam);
 
     /* Translates a master cycle to a beam position. The beam position must
      * belong to the current frame.
      */
-    Beam cycleToBeam(Cycle cycle) const;
+    Beam cycleToBeam(Cycle cycle);
 
     /* Advances a beam position by a given number of cycles. Note that only
      * the horizontal component is wrapped over.
      */
-    Beam addToBeam(Beam beam, Cycle cycles) const;
+    Beam addToBeam(Beam beam, Cycle cycles);
 
 
     //
@@ -651,21 +650,27 @@ public:
 
     // Returns true if the Blitter has priority over the CPU
     static bool bltpri(u16 v) { return GET_BIT(v, 10); }
-    bool bltpri() const { return bltpri(dmacon); }
+    bool bltpri() { return bltpri(dmacon); }
 
     // Returns true if a certain DMA channel is enabled
     template <int x> static bool auddma(u16 v);
+    /*
+    template <> bool auddma<0>(u16 v) { return (v & DMAEN) && (v & AUD0EN); }
+    template <> bool auddma<1>(u16 v) { return (v & DMAEN) && (v & AUD1EN); }
+    template <> bool auddma<2>(u16 v) { return (v & DMAEN) && (v & AUD2EN); }
+    template <> bool auddma<3>(u16 v) { return (v & DMAEN) && (v & AUD3EN); }
+    */
     static bool bpldma(u16 v) { return (v & DMAEN) && (v & BPLEN); }
     static bool copdma(u16 v) { return (v & DMAEN) && (v & COPEN); }
     static bool bltdma(u16 v) { return (v & DMAEN) && (v & BLTEN); }
     static bool sprdma(u16 v) { return (v & DMAEN) && (v & SPREN); }
     static bool dskdma(u16 v) { return (v & DMAEN) && (v & DSKEN); }
-    template <int x> bool auddma() const { return auddma<x>(dmacon); }
-    bool bpldma() const { return bpldma(dmacon); }
-    bool copdma() const { return copdma(dmacon); }
-    bool bltdma() const { return bltdma(dmacon); }
-    bool sprdma() const { return sprdma(dmacon); }
-    bool dskdma() const { return dskdma(dmacon); }
+    template <int x> bool auddma() { return auddma<x>(dmacon); }
+    bool bpldma() { return bpldma(dmacon); }
+    bool copdma() { return copdma(dmacon); }
+    bool bltdma() { return bltdma(dmacon); }
+    bool sprdma() { return sprdma(dmacon); }
+    bool dskdma() { return dskdma(dmacon); }
     
     void enableBplDmaOCS();
     void disableBplDmaOCS();
@@ -723,7 +728,7 @@ public:
         
     /* Checks if the bus is currently available for the specified resource.
      */
-    template <BusOwner owner> bool busIsFree() const;
+    template <BusOwner owner> bool busIsFree();
 
     /* Attempts to allocate the bus for the specified resource.
      * Returns true if the bus was successfully allocated.
@@ -783,15 +788,15 @@ private:
     void updateDasJumpTable(i16 end = HPOS_MAX);
 
     // Dumps an event table for debugging
-    void dumpEventTable(const EventID *table, char str[256][3], int from, int to) const;
+    void dumpEventTable(EventID *table, char str[256][3], int from, int to);
 
 public:
     
     // Dumps the BPL or DAS event table for debugging
-    void dumpBplEventTable(int from, int to) const;
-    void dumpBplEventTable() const;
-    void dumpDasEventTable(int from, int to) const;
-    void dumpDasEventTable() const;
+    void dumpBplEventTable(int from, int to);
+    void dumpBplEventTable();
+    void dumpDasEventTable(int from, int to);
+    void dumpDasEventTable();
 
     
     //
@@ -913,7 +918,7 @@ private:
 
 
     //
-    // Handling events
+    // Servicing events
     //
 
 public:
@@ -921,12 +926,6 @@ public:
     // Triggers the vertical blank interrupt
     void serviceVblEvent();
 
-private:
-    
-    // Schedule the next VBL event
-    void scheduleStrobe0Event();
-    void scheduleStrobe1Event();
-    void scheduleStrobe2Event();
 
     //
     // Class extensions
@@ -935,3 +934,5 @@ private:
 #include "EventHandler.h"
 
 };
+
+#endif

@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _OSCILLATOR_H
+#define _OSCILLATOR_H
 
 #include "AmigaComponent.h"
 
@@ -45,14 +46,12 @@ class Oscillator : public AmigaComponent {
 
     
     //
-    // Constructing
+    // Constructing and serializing
     //
     
 public:
     
     Oscillator(Amiga& ref);
-
-    const char *getDescription() const override;
 
 private:
     
@@ -81,9 +80,9 @@ private:
     {
     }
 
-    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
-    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
+    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
     
     
     //
@@ -111,3 +110,5 @@ private:
     // Puts the thread to rest until the target time has been reached
     void waitUntil(u64 deadline);
 };
+
+#endif

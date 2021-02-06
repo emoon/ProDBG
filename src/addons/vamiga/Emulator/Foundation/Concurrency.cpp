@@ -8,10 +8,11 @@
 // -----------------------------------------------------------------------------
 
 #include "Concurrency.h"
+#include <stdio.h>
 
 Mutex::Mutex()
 {
-    pthread_mutex_init(&mutex, nullptr);
+    pthread_mutex_init(&mutex, NULL);
 }
 
 Mutex::~Mutex()
@@ -22,11 +23,13 @@ Mutex::~Mutex()
 int
 Mutex::lock()
 {
+    // printf("Mutex lock\n");
     return pthread_mutex_lock(&mutex);
 }
 
 int
 Mutex::unlock()
 {
+    // printf("Mutex unlock\n");
     return pthread_mutex_unlock(&mutex);
 }

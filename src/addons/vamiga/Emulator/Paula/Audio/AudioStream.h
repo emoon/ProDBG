@@ -7,17 +7,16 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _AUDIO_STREAM_H
+#define _AUDIO_STREAM_H
 
 #include "HardwareComponent.h"
-#include "Concurrency.h"
 
 typedef struct
 {
     float left;
     float right;
     
-    /*
     template <class T>
     void applyToItems(T& worker)
     {
@@ -26,27 +25,23 @@ typedef struct
         & left
         & right;
     }
-    */
 
 }
 SamplePair;
 
 class AudioStream : public RingBuffer <SamplePair, 16384> {
 
-    // Mutex for synchronizing read / write accesses 
-    Mutex mutex;
-
 public:
     
-    // Locks or unlocks the synchronization mutex
-    void lock() { mutex.lock(); }
-    void unlock() { mutex.unlock(); }
-
+    //
+    // Initializing
+    //
+    
     /* Aligns the write pointer. This function puts the write pointer somewhat
      * ahead of the read pointer. With a standard sample rate of 44100 Hz,
      * 735 samples is 1/60 sec.
      */
-    static constexpr u32 samplesAhead() { return 8 * 735; }
+    static u32 samplesAhead() { return 8 * 735; }
     void alignWritePtr() { align(samplesAhead()); }
     
     
@@ -59,13 +54,13 @@ public:
      * sound samples into the buffers of the native sound device. In additon
      * to copying, the volume is modulated and audio filters can be applied.
      */
-    void copyMono(float *buffer, isize n,
+    void copyMono(float *buffer, size_t n,
                   i32 &volume, i32 targetVolume, i32 volumeDelta);
     
-    void copy(float *left, float *right, isize n,
+    void copy(float *left, float *right, size_t n,
                     i32 &volume, i32 targetVolume, i32 volumeDelta);
     
-    void copyInterleaved(float *buffer, isize n,
+    void copyInterleaved(float *buffer, size_t n,
                          i32 &volume, i32 targetVolume, i32 volumeDelta);
     
     
@@ -78,6 +73,8 @@ public:
      * pass the returned value as parameter highestAmplitude in the next call
      * to this function.
      */
-    float draw(u32 *buffer, isize width, isize height,
-               bool left, float highestAmplitude, u32 color);
+    float draw(unsigned *buffer, int width, int height,
+               bool left, float highestAmplitude, unsigned color);
 };
+
+#endif

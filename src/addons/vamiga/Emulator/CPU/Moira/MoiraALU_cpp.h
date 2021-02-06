@@ -7,19 +7,6 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-// Sanitizer friendly macros for adding signed offsets to u32 values
-#define U32_ADD(x,y) (u32)((i64)(x) + (i64)(y))
-#define U32_SUB(x,y) (u32)((i64)(x) - (i64)(y))
-#define U32_ADD3(x,y,z) (u32)((i64)(x) + (i64)(y) + (i64)(z))
-#define U32_SUB3(x,y,z) (u32)((i64)(x) - (i64)(y) - (i64)(z))
-
-// Sanitizer friendly macros for adding signed offsets to u64 values
-#define U64_ADD(x,y) (u64)((i64)(x) + (i64)(y))
-#define U64_SUB(x,y) (u64)((i64)(x) - (i64)(y))
-#define U64_ADD3(x,y,z) (u64)((i64)(x) + (i64)(y) + (i64)(z))
-#define U64_SUB3(x,y,z) (u64)((i64)(x) - (i64)(y) - (i64)(z))
-
-
 template<Size S> u32 MSBIT() {
     if (S == Byte) return 0x00000080;
     if (S == Word) return 0x00008000;
@@ -80,7 +67,7 @@ Moira::shift(int cnt, u64 data) {
             for (int i = 0; i < cnt; i++) {
                 carry = NBIT<S>(data);
                 u64 shifted = data << 1;
-                changed |= (u32)(data ^ shifted);
+                changed |= data ^ shifted;
                 data = shifted;
             }
             if (cnt) reg.sr.x = carry;
@@ -95,7 +82,7 @@ Moira::shift(int cnt, u64 data) {
             for (int i = 0; i < cnt; i++) {
                 carry = data & 1;
                 u64 shifted = SEXT<S>(data) >> 1;
-                changed |= (u32)(data ^ shifted);
+                changed |= data ^ shifted;
                 data = shifted;
             }
             if (cnt) reg.sr.x = carry;
@@ -200,7 +187,7 @@ Moira::addsub(u32 op1, u32 op2)
         case ADDI:
         case ADDQ:
         {
-            result = U64_ADD(op1, op2);
+            result = (u64)op1 + (u64)op2;
 
             reg.sr.x = reg.sr.c = CARRY<S>(result);
             reg.sr.v = NBIT<S>((op1 ^ result) & (op2 ^ result));
@@ -209,7 +196,7 @@ Moira::addsub(u32 op1, u32 op2)
         }
         case ADDX:
         {
-            result = U64_ADD3(op1, op2, reg.sr.x);
+            result = (u64)op1 + (u64)op2 + (u64)reg.sr.x;
 
             reg.sr.x = reg.sr.c = CARRY<S>(result);
             reg.sr.v = NBIT<S>((op1 ^ result) & (op2 ^ result));
@@ -220,7 +207,7 @@ Moira::addsub(u32 op1, u32 op2)
         case SUBI:
         case SUBQ:
         {
-            result = U64_SUB(op2, op1);
+            result = (u64)op2 - (u64)op1;
 
             reg.sr.x = reg.sr.c = CARRY<S>(result);
             reg.sr.v = NBIT<S>((op1 ^ op2) & (op2 ^ result));
@@ -229,7 +216,7 @@ Moira::addsub(u32 op1, u32 op2)
         }
         case SUBX:
         {
-            result = U64_SUB3(op2, op1, reg.sr.x);
+            result = (u64)op2 - (u64)op1 - (u64)reg.sr.x;
 
             reg.sr.x = reg.sr.c = CARRY<S>(result);
             reg.sr.v = NBIT<S>((op1 ^ op2) & (op2 ^ result));
@@ -270,7 +257,7 @@ Moira::mul(u32 op1, u32 op2)
     reg.sr.v = 0;
     reg.sr.c = 0;
 
-    sync(cyclesMul<I>((u16)op1));
+    sync(cyclesMul<I>(op1));
     return result;
 }
 
@@ -289,7 +276,7 @@ Moira::div(u32 op1, u32 op2)
             i64 quotient  = (i64)(i32)op1 / (i16)op2;
             i16 remainder = (i64)(i32)op1 % (i16)op2;
 
-            result = (u32)((quotient & 0xffff) | remainder << 16);
+            result = (quotient & 0xffff) | remainder << 16;
             overflow = ((quotient & 0xffff8000) != 0 &&
                         (quotient & 0xffff8000) != 0xffff8000);
             overflow |= op1 == 0x80000000 && (i16)op2 == -1;
@@ -298,9 +285,9 @@ Moira::div(u32 op1, u32 op2)
         case DIVU: // Unsigned division
         {
             i64 quotient  = op1 / op2;
-            u16 remainder = (u16)(op1 % op2);
+            u16 remainder = op1 % op2;
 
-            result = (u32)((quotient & 0xffff) | remainder << 16);
+            result = (quotient & 0xffff) | remainder << 16;
             overflow = quotient > 0xFFFF;
             break;
         }
@@ -309,7 +296,7 @@ Moira::div(u32 op1, u32 op2)
     reg.sr.n = overflow ? 1        : NBIT<Word>(result);
     reg.sr.z = overflow ? reg.sr.z : ZERO<Word>(result);
 
-    sync(cyclesDiv<I>(op1, (u16)op2) - 4);
+    sync(cyclesDiv<I>(op1, op2) - 4);
     return overflow ? op1 : result;
 }
 
@@ -375,8 +362,8 @@ Moira::bcd(u32 op1, u32 op2)
 template <Size S> void
 Moira::cmp(u32 op1, u32 op2)
 {
-    u64 result = U64_SUB(op2, op1);
-    
+    u64 result = (u64)op2 - (u64)op1;
+
     reg.sr.c = NBIT<S>(result >> 1);
     reg.sr.v = NBIT<S>((op2 ^ op1) & (op2 ^ result));
     reg.sr.z = ZERO<S>(result);
@@ -571,11 +558,11 @@ Moira::cyclesDiv(u32 op1, u16 op2)
             for (int i = 0; i < 15; i++) {
                 if ((i32)dividend < 0) {
                     dividend <<= 1;
-                    dividend = U32_SUB(dividend, hdivisor);
+                    dividend -= hdivisor;
                 } else {
                     dividend <<= 1;
                     if (dividend >= hdivisor) {
-                        dividend = U32_SUB(dividend, hdivisor);
+                        dividend -= hdivisor;
                         mcycles += 1;
                     } else {
                         mcycles += 2;
@@ -685,7 +672,7 @@ Moira::divMusashi(u32 op1, u32 op2)
             sync(136);
 
             i64 quotient  = op1 / op2;
-            u16 remainder = (u16)(op1 % op2);
+            u16 remainder = op1 % op2;
 
             if(quotient < 0x10000) {
 

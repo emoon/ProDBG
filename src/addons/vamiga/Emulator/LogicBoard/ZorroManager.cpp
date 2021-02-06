@@ -11,11 +11,12 @@
 
 ZorroManager::ZorroManager(Amiga& ref) : AmigaComponent(ref)
 {
+    setDescription("ZorroManager");
 }
 
 u8
-ZorroManager::peekFastRamDevice(u32 addr) const
-{
+ZorroManager::peekFastRamDevice(u32 addr)
+{    
     trace(FAS_DEBUG, "peekFastRamDevice(%X)\n", addr & 0xFFFF);
     // debug(FAS_DEBUG, "fastRamSize = %d\n", mem.fastRamSize());
 
@@ -42,7 +43,7 @@ ZorroManager::peekFastRamDevice(u32 addr) const
      *              111 = 4 megabytes
      */
     u8 erTypeHi = 0b1110; // Zorro II, Free pool, Don't boot
-    u8 erTypeLo = 0b0000;
+    u8 erTypeLo;
     
     switch (mem.fastRamSize()) {
         case KB(64):  erTypeLo = 0b001; break;
@@ -67,16 +68,14 @@ ZorroManager::peekFastRamDevice(u32 addr) const
     u8 erFlagsHi = 0b0111;
     u8 erFlagsLo = 0b1111; // Logical and size match
     
-    u8 autoConfData;
-    
     switch (addr & 0xFFFF) {
             
         case 0x00: // er_Type (upper nibble)
-            autoConfData = erTypeHi;
+            if (fastRamConf == 0) autoConfData = erTypeHi;
             break;
             
         case 0x02: // er_Type (lower nibble)
-            autoConfData = erTypeLo;
+            if (fastRamConf == 0) autoConfData = erTypeLo;
             break;
             
         case 0x04: // er_Product (upper nibble)
@@ -84,7 +83,7 @@ ZorroManager::peekFastRamDevice(u32 addr) const
             break;
             
         case 0x06: // er_Product (lower nibble)
-            autoConfData = 0x8;
+            if (fastRamConf == 0) autoConfData = 0x8;
             break;
             
         case 0x08: // er_Flags (upper nibble)
@@ -156,7 +155,7 @@ ZorroManager::peekFastRamDevice(u32 addr) const
 }
 
 u8
-ZorroManager::spypeekFastRamDevice(u32 addr) const
+ZorroManager::spypeekFastRamDevice(u32 addr)
 {
     return peekFastRamDevice(addr);
 }

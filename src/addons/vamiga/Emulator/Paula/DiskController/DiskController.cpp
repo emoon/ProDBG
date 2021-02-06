@@ -11,6 +11,8 @@
 
 DiskController::DiskController(Amiga& ref) : AmigaComponent(ref)
 {
+    setDescription("DiskController");
+
     // Setup initial configuration
     config.connected[0] = true;
     config.connected[1] = false;
@@ -31,12 +33,12 @@ DiskController::_reset(bool hard)
     dsksync = 0x4489;
     
     if (hard) {
-        assert(diskToInsert == nullptr);
+        assert(diskToInsert == NULL);
     }
 }
 
 long
-DiskController::getConfigItem(Option option) const
+DiskController::getConfigItem(ConfigOption option)
 {
     switch (option) {
             
@@ -44,27 +46,23 @@ DiskController::getConfigItem(Option option) const
         case OPT_AUTO_DSKSYNC:  return config.autoDskSync;
         case OPT_LOCK_DSKSYNC:  return config.lockDskSync;
         
-        default:
-            assert(false);
-            return 0;
+        default: assert(false);
     }
 }
 
 long
-DiskController::getConfigItem(Option option, long id) const
+DiskController::getConfigItem(unsigned dfn, ConfigOption option)
 {
     switch (option) {
             
-        case OPT_DRIVE_CONNECT:  return config.connected[id];
-            
-        default:
-            assert(false);
-            return 0;
+        case OPT_DRIVE_CONNECT:  return config.connected[dfn];
+        
+        default: assert(false);
     }
 }
 
 bool
-DiskController::setConfigItem(Option option, long value)
+DiskController::setConfigItem(ConfigOption option, long value)
 {
     switch (option) {
             
@@ -72,18 +70,19 @@ DiskController::setConfigItem(Option option, long value)
             
             #ifdef FORCE_DRIVE_SPEED
             value = FORCE_DRIVE_SPEED;
-            warn("Overriding drive speed: %ld\n", value);
+            warn("Overriding drive speed: %d\n", value);
             #endif
             
             if (!isValidDriveSpeed(value)) {
-                warn("Invalid drive speed: %ld\n", value);
+                warn("Invalid drive speed: %d\n", value);
                 return false;
             }
             if (config.speed == value) {
                 return false;
             }
             
-            config.speed = (i32)value;
+            config.speed = value;
+            trace("Setting acceleration factor to %d\n", config.speed);
             scheduleFirstDiskEvent();
             return true;
                         
@@ -111,22 +110,20 @@ DiskController::setConfigItem(Option option, long value)
 }
 
 bool
-DiskController::setConfigItem(Option option, long id, long value)
+DiskController::setConfigItem(unsigned dfn, ConfigOption option, long value)
 {
     switch (option) {
             
         case OPT_DRIVE_CONNECT:
             
-            assert(id >= 0 && id <= 3);
-            
             // We don't allow the internal drive (Df0) to be disconnected
-            if (id == 0 && value == false) return false;
+            if (dfn == 0 && value == false) return false;
             
             // Connect or disconnect the drive
-            config.connected[id] = value;
+            config.connected[dfn] = value;
             
             // Inform the GUI
-            messageQueue.put(value ? MSG_DRIVE_CONNECT : MSG_DRIVE_DISCONNECT, id);
+            messageQueue.put(value ? MSG_DRIVE_CONNECT : MSG_DRIVE_DISCONNECT, dfn);
             messageQueue.put(MSG_CONFIG);
             return true;
             
@@ -136,7 +133,7 @@ DiskController::setConfigItem(Option option, long id, long value)
 }
 
 void
-DiskController::_dumpConfig() const
+DiskController::_dumpConfig()
 {
     msg("          df0 : %s\n", config.connected[0] ? "connected" : "disconnected");
     msg("          df1 : %s\n", config.connected[1] ? "connected" : "disconnected");
@@ -160,17 +157,17 @@ DiskController::_inspect()
         info.dsksync = dsksync;
         info.prb = prb;
         
-        for (isize i = 0; i < 6; i++) {
+        for (unsigned i = 0; i < 6; i++) {
             info.fifo[i] = (fifo >> (8 * i)) & 0xFF;
         }
     }
 }
 
 void
-DiskController::_dump() const
+DiskController::_dump()
 {
     msg("     selected : %d\n", selected);
-    msg("        state : %s\n", DriveDmaStateName(state));
+    msg("        state : %s\n", driveStateName(state));
     msg("    syncCycle : %lld\n", syncCycle);
     msg("     incoming : %02X\n", incoming);
     msg("         fifo : %llX (count = %d)\n", fifo, fifoCount);
@@ -186,18 +183,18 @@ Drive *
 DiskController::getSelectedDrive()
 {
     assert(selected < 4);
-    return selected < 0 ? nullptr : df[(int)selected];
+    return selected < 0 ? NULL : df[selected];
 }
 
 bool
-DiskController::spinning(isize driveNr) const
+DiskController::spinning(unsigned driveNr)
 {
     assert(driveNr < 4);
     return df[driveNr]->getMotor();
 }
 
 bool
-DiskController::spinning() const
+DiskController::spinning()
 {
     return df0.getMotor() || df1.getMotor() ||df2.getMotor() || df3.getMotor();
 }
@@ -212,7 +209,7 @@ void
 DiskController::setState(DriveState oldState, DriveState newState)
 {
     trace(DSK_DEBUG, "%s -> %s\n",
-          DriveDmaStateName(oldState), DriveDmaStateName(newState));
+          driveStateName(oldState), driveStateName(newState));
     
     state = newState;
     
@@ -233,22 +230,24 @@ DiskController::setState(DriveState oldState, DriveState newState)
 }
 
 void
-DiskController::ejectDisk(isize nr, Cycle delay)
+DiskController::ejectDisk(int nr, Cycle delay)
 {
     assert(nr >= 0 && nr <= 3);
 
+    trace("ejectDisk(%d, %d)\n", nr, delay);
+
     amiga.suspend();
-    agnus.scheduleRel<SLOT_DCH>(delay, DCH_EJECT, nr);
+    agnus.scheduleRel<DCH_SLOT>(delay, DCH_EJECT, nr);
     amiga.resume();
 }
 
 void
-DiskController::insertDisk(class Disk *disk, isize nr, Cycle delay)
+DiskController::insertDisk(class Disk *disk, int nr, Cycle delay)
 {
-    assert(disk != nullptr);
+    assert(disk != NULL);
     assert(nr >= 0 && nr <= 3);
 
-    debug(DSK_DEBUG, "insertDisk(%p, %zd, %lld)\n", disk, nr, delay);
+    trace(DSK_DEBUG, "insertDisk(%p, %d, %d)\n", disk, nr, delay);
 
     // The easy case: The emulator is not running
     if (!amiga.isRunning()) {
@@ -272,13 +271,13 @@ DiskController::insertDisk(class Disk *disk, isize nr, Cycle delay)
     }
 
     diskToInsert = disk;
-    agnus.scheduleRel<SLOT_DCH>(delay, DCH_INSERT, nr);
+    agnus.scheduleRel<DCH_SLOT>(delay, DCH_INSERT, nr);
     
     amiga.resume();
 }
 
 void
-DiskController::insertDisk(class DiskFile *file, isize nr, Cycle delay)
+DiskController::insertDisk(class ADFFile *file, int nr, Cycle delay)
 {
     if (Disk *disk = Disk::makeWithFile(file)) {
         insertDisk(disk, nr, delay);
@@ -286,7 +285,39 @@ DiskController::insertDisk(class DiskFile *file, isize nr, Cycle delay)
 }
 
 void
-DiskController::setWriteProtection(isize nr, bool value)
+DiskController::insertDisk(class IMGFile *file, int nr, Cycle delay)
+{
+    if (Disk *disk = Disk::makeWithFile(file)) {
+        insertDisk(disk, nr, delay);
+    }
+}
+
+void
+DiskController::insertDisk(class DMSFile *file, int nr, Cycle delay)
+{
+    if (Disk *disk = Disk::makeWithFile(file)) {
+        insertDisk(disk, nr, delay);
+    }
+}
+
+void
+DiskController::insertDisk(class EXEFile *file, int nr, Cycle delay)
+{
+    if (Disk *disk = Disk::makeWithFile(file)) {
+        insertDisk(disk, nr, delay);
+    }
+}
+
+void
+DiskController::insertDisk(class DIRFile *file, int nr, Cycle delay)
+{
+    if (Disk *disk = Disk::makeWithFile(file)) {
+        insertDisk(disk, nr, delay);
+    }
+}
+
+void
+DiskController::setWriteProtection(int nr, bool value)
 {
     assert(nr >= 0 && nr <= 3);
     df[nr]->setWriteProtection(value);
@@ -333,15 +364,9 @@ DiskController::writeFifo(u8 byte)
 }
 
 bool
-DiskController::compareFifo(u16 word) const
+DiskController::compareFifo(u16 word)
 {
-    if (fifoHasWord()) {
-        for (isize i = 0; i < 8; i++) {
-            if ((fifo >> i & 0xFFFF) == word) return true;
-        }
-    }
-    return false;
-    // return fifoHasWord() && (fifo & 0xFFFF) == word;
+    return fifoHasWord() && (fifo & 0xFFFF) == word;
 }
 
 void
@@ -460,8 +485,9 @@ DiskController::performDMARead(Drive *drive, u32 remaining)
             paula.raiseIrq(INT_DSKBLK);
             setState(DRIVE_DMA_OFF);
 
-            debug(DSK_CHECKSUM,
-                  "read: cnt = %llu check1 = %x check2 = %x\n", checkcnt, check1, check2);
+            if (DSK_CHECKSUM)
+                debug("read: cnt = %d check1 = %x check2 = %x\n",
+                           checkcnt, check1, check2);
 
             return;
         }
@@ -520,9 +546,10 @@ DiskController::performDMAWrite(Drive *drive, u32 remaining)
                 if (drive) drive->writeByteAndRotate(value);
             }
             setState(DRIVE_DMA_OFF);
-            
-            debug(DSK_CHECKSUM,
-                  "write: cnt = %llu check1 = %x check2 = %x\n", checkcnt, check1, check2);
+
+            if (DSK_CHECKSUM)
+                debug("write: cnt = %d check1 = %x check2 = %x\n",
+                           checkcnt, check1, check2);
 
             return;
         }
@@ -549,7 +576,7 @@ DiskController::performTurboDMA(Drive *drive)
         case DRIVE_DMA_WAIT:
 
             drive->findSyncMark();
-            [[fallthrough]];
+            fallthrough;
 
         case DRIVE_DMA_READ:
             
@@ -576,7 +603,7 @@ DiskController::performTurboDMA(Drive *drive)
 void
 DiskController::performTurboRead(Drive *drive)
 {
-    for (isize i = 0; i < (dsklen & 0x3FFF); i++) {
+    for (unsigned i = 0; i < (dsklen & 0x3FFF); i++) {
         
         // Read word from disk
         u16 word = drive->readWordAndRotate();
@@ -587,27 +614,22 @@ DiskController::performTurboRead(Drive *drive)
             check1 = fnv_1a_it32(check1, word);
             check2 = fnv_1a_it32(check2, agnus.dskpt & agnus.ptrMask);
         }
-        mem.poke16 <ACCESSOR_AGNUS> (agnus.dskpt, word);
+        mem.poke16 <AGNUS_ACCESS> (agnus.dskpt, word);
         agnus.dskpt += 2;
     }
-    
-    debug(DSK_CHECKSUM, "Turbo read %s: cyl: %d side: %d offset: %d ",
-          drive->getDescription(),
-          drive->head.cylinder,
-          drive->head.side,
-          drive->head.offset);
-    
-    debug(DSK_CHECKSUM, "checkcnt = %llu check1 = %x check2 = %x\n",
-          checkcnt, check1, check2);
+
+    if (DSK_CHECKSUM) {
+        debug("Turbo read %s: cyl: %d side: %d offset: %d checkcnt = %d check1 = %x check2 = %x\n", drive->getDescription(), drive->head.cylinder, drive->head.side, drive->head.offset, checkcnt, check1, check2);
+    }
 }
 
 void
 DiskController::performTurboWrite(Drive *drive)
 {
-    for (isize i = 0; i < (dsklen & 0x3FFF); i++) {
+    for (unsigned i = 0; i < (dsklen & 0x3FFF); i++) {
         
         // Read word from memory
-        u16 word = mem.peek16 <ACCESSOR_AGNUS> (agnus.dskpt);
+        u16 word = mem.peek16 <AGNUS_ACCESS> (agnus.dskpt);
         
         if (DSK_CHECKSUM) {
             checkcnt++;
@@ -620,9 +642,10 @@ DiskController::performTurboWrite(Drive *drive)
         // Write word to disk
         drive->writeWordAndRotate(word);
     }
-    
-    debug(DSK_CHECKSUM,
-          "Turbo write %s: checkcnt = %llu check1 = %x check2 = %x\n",
-          drive->getDescription(), checkcnt, check1, check2);
+
+    if (DSK_CHECKSUM) {
+        debug("Turbo write %s: checkcnt = %d check1 = %x check2 = %x\n",
+                   drive->getDescription(), checkcnt, check1, check2);
+    }
 }
 

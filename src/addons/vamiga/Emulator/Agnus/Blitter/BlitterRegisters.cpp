@@ -187,7 +187,7 @@ Blitter::pokeBLTSIZE(u16 value)
     debug(BLTTIM_DEBUG, "(%d,%d) BLTSIZE(%x)\n", agnus.pos.v, agnus.pos.h, value);
     debug(BLTREG_DEBUG, "pokeBLTSIZE(%X)\n", value);
 
-    if (s == ACCESSOR_AGNUS) {
+    if (s == AGNUS_ACCESS) {
         agnus.recordRegisterChange(DMA_CYCLES(1), SET_BLTSIZE, value);
     } else {
         blitter.setBLTSIZE(value);
@@ -200,9 +200,6 @@ Blitter::setBLTSIZE(u16 value)
     debug(BLTREG_DEBUG, "setBLTSIZE(%X)\n", value);
     trace(BLT_GUARD && running, "BLTSIZE written while Blitter is running\n");
 
-    // Execute pending event if the Blitter is still running (Chaosland, #437)
-    if (running && agnus.hasEvent<SLOT_BLT>()) serviceEvent();
-    
     // 15 14 13 12 11 10 09 08 07 06 05 04 03 02 01 00
     // h9 h8 h7 h6 h5 h4 h3 h2 h1 h0 w5 w4 w3 w2 w1 w0
     bltsizeV = value >> 6;
@@ -211,12 +208,15 @@ Blitter::setBLTSIZE(u16 value)
     // Overwrite with default values if zero
     if (!bltsizeV) bltsizeV = 0x0400;
     if (!bltsizeH) bltsizeH = 0x0040;
-    
+
     // Warn if the previous Blitter operation is overwritten
-    trace(XFILES && agnus.hasEvent<SLOT_BLT>(),
-          "XFILES: Overwriting Blitter event %lld\n", agnus.slot[SLOT_BLT].id);
+    if (agnus.hasEvent<BLT_SLOT>()) {
+        trace(XFILES, "XFILES: Overwriting Blitter event %d\n", agnus.slot[BLT_SLOT].id);
+        // EXPERIMENTAL
+        // endBlit();
+    }
     
-    agnus.scheduleRel<SLOT_BLT>(DMA_CYCLES(1), BLT_STRT1);
+    agnus.scheduleRel<BLT_SLOT>(DMA_CYCLES(1), BLT_STRT1);
 }
 
 void
@@ -250,9 +250,6 @@ Blitter::pokeBLTSIZH(u16 value)
 
     trace(BLT_GUARD && running, "BLTSIZH written while Blitter is running\n");
 
-    // Execute pending event if the Blitter is still running
-    if (running && agnus.hasEvent<SLOT_BLT>()) serviceEvent();
-
     // 15  14  13  12  11  10 09 08 07 06 05 04 03 02 01 00
     //  0   0   0   0   0 w10 w9 w8 w7 w6 w5 w4 w3 w2 w1 w0
     bltsizeH = value & 0x07FF;
@@ -261,7 +258,7 @@ Blitter::pokeBLTSIZH(u16 value)
     if (!bltsizeV) bltsizeV = 0x8000;
     if (!bltsizeH) bltsizeH = 0x0800;
 
-    agnus.scheduleRel<SLOT_BLT>(DMA_CYCLES(1), BLT_STRT1);
+    agnus.scheduleRel<BLT_SLOT>(DMA_CYCLES(1), BLT_STRT1);
 }
 
 void
@@ -315,13 +312,6 @@ Blitter::pokeBLTBDAT(u16 value)
     trace(BLT_GUARD && running, "BLTBDAT written while Blitter is running\n");
 
     bnew = value;
-    
-    // Writing BLTBDAT triggers the barrel shifter circuit (unlike BLTADAT)
-    if (bltconDESC()) {
-        doBarrelBdesc(bnew, &bold, &bhold);
-    } else {
-        doBarrelB(bnew, &bold, &bhold);
-    }    
 }
 
 void
@@ -343,8 +333,8 @@ Blitter::pokeDMACON(u16 oldValue, u16 newValue)
     if (!oldBltDma && newBltDma) {
 
         // Perform pending blit operation (if any)
-        if (agnus.hasEvent<SLOT_BLT>(BLT_STRT1)) {
-            agnus.scheduleRel<SLOT_BLT>(DMA_CYCLES(0), BLT_STRT1);
+        if (agnus.hasEvent<BLT_SLOT>(BLT_STRT1)) {
+            agnus.scheduleRel<BLT_SLOT>(DMA_CYCLES(0), BLT_STRT1);
         }
     }
     
@@ -356,5 +346,5 @@ Blitter::pokeDMACON(u16 oldValue, u16 newValue)
     }
 }
 
-template void Blitter::pokeBLTSIZE<ACCESSOR_CPU>(u16 value);
-template void Blitter::pokeBLTSIZE<ACCESSOR_AGNUS>(u16 value);
+template void Blitter::pokeBLTSIZE<CPU_ACCESS>(u16 value);
+template void Blitter::pokeBLTSIZE<AGNUS_ACCESS>(u16 value);

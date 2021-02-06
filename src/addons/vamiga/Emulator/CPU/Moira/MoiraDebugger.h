@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef MOIRA_DEBUGGER_H
+#define MOIRA_DEBUGGER_H
 
 namespace moira {
 
@@ -61,7 +62,7 @@ protected:
 
 
     //
-    // Constructing
+    // Constructing and destructing
     //
 
 public:
@@ -169,7 +170,7 @@ private:
 
 
     //
-    // Constructing
+    // Constructing and destructing
     //
 
 public:
@@ -225,3 +226,4 @@ public:
 };
 
 }
+#endif

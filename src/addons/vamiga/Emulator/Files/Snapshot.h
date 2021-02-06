@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _SNAPSHOT_H
+#define _SNAPSHOT_H
 
 #include "AmigaFile.h"
 
@@ -25,10 +26,10 @@ struct Thumbnail {
     time_t timestamp;
     
     // Factory methods
-    static Thumbnail *makeWithAmiga(Amiga *amiga, isize dx = 2, isize dy = 1);
+    static Thumbnail *makeWithAmiga(Amiga *amiga, int dx = 2, int dy = 1);
     
     // Takes a screenshot from a given Amiga
-    void take(Amiga *amiga, isize dx = 2, isize dy = 1);
+    void take(Amiga *amiga, int dx = 2, int dy = 1);
 };
 
 struct SnapshotHeader {
@@ -53,21 +54,44 @@ class Snapshot : public AmigaFile {
     
 public:
     
-    static bool isCompatibleName(const string &name);
-    static bool isCompatibleStream(std::istream &stream);
-
-            
+    // Returns true iff buffer contains a snapshot.
+    static bool isSnapshot(const u8 *buffer, size_t length);
+    
+    // Returns true iff buffer contains a snapshot of a specific version.
+    static bool isSnapshot(const u8 *buffer, size_t length,
+                           u8 major, u8 minor, u8 subminor);
+    
+    // Returns true iff buffer contains a snapshot with a supported version number.
+    static bool isSupportedSnapshot(const u8 *buffer, size_t length);
+    
+    // Returns true iff buffer contains a snapshot with an outdated version number.
+    static bool isUnsupportedSnapshot(const u8 *buffer, size_t length);
+    
+    // Returns true if path points to a snapshot file.
+    static bool isSnapshotFile(const char *path);
+    
+    // Returns true if file points to a snapshot file of a specific version.
+    static bool isSnapshotFile(const char *path,
+                               u8 major, u8 minor, u8 subminor);
+    
+    // Returns true if file is a snapshot with a supported version number.
+    static bool isSupportedSnapshotFile(const char *path);
+    
+    // Returns true if file is a snapshot with an outdated version number.
+    static bool isUnsupportedSnapshotFile(const char *path);
+    
+    
     //
     // Initializing
     //
     
     Snapshot();
-    Snapshot(isize capacity);
+    Snapshot(size_t capacity);
     
-    const char *getDescription() const override { return "Snapshot"; }
+    bool setCapacity(size_t size);
     
-    bool setCapacity(isize size);
-    
+    static Snapshot *makeWithFile(const char *filename);
+    static Snapshot *makeWithBuffer(const u8 *buffer, size_t size);
     static Snapshot *makeWithAmiga(Amiga *amiga);
     
     
@@ -75,7 +99,10 @@ public:
     // Methods from AmigaFile
     //
     
-    FileType type() const override { return FILETYPE_SNAPSHOT; }
+    AmigaFileType fileType() override { return FILETYPE_SNAPSHOT; }
+    const char *typeAsString() override { return "VAMIGA"; }
+    bool bufferHasSameType(const u8 *buffer, size_t length) override;
+    bool fileHasSameType(const char *filename) override;
     
     
     //
@@ -85,14 +112,26 @@ public:
 public:
     
     // Returns pointer to header data
-    const SnapshotHeader *getHeader() const { return (SnapshotHeader *)data; }
-    
-    // Returns a pointer to the thumbnail image
-    const Thumbnail &getThumbnail() const { return getHeader()->screenshot; }
+    SnapshotHeader *getHeader() { return (SnapshotHeader *)data; }
     
     // Returns pointer to core data
     u8 *getData() { return data + sizeof(SnapshotHeader); }
     
-    // Takes a screenshot
-    void takeScreenshot(Amiga &amiga);
+    // Returns the timestamp
+    // GET DIRECTLY FROM SCREENSHOT
+    time_t getTimestamp() { return getHeader()->screenshot.timestamp; }
+    
+    // Returns a pointer to the screenshot data
+    // DEPRECATED
+    unsigned char *getImageData() { return (unsigned char *)(getHeader()->screenshot.screen); }
+    
+    // Returns the screenshot image width
+    // DEPRECATED
+    unsigned getImageWidth() { return getHeader()->screenshot.width; }
+    
+    // Returns the screenshot image height
+    // DEPRECATED
+    unsigned getImageHeight() { return getHeader()->screenshot.height; }
 };
+
+#endif

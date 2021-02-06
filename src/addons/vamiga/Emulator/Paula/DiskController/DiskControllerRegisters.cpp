@@ -10,7 +10,7 @@
 #include "Amiga.h"
 
 u16
-DiskController::peekDSKDATR() const
+DiskController::peekDSKDATR()
 {
     // TODO: Add Accessor as template parameter.
     // TODO: Use this method to read from the FIFO buffer if Accessor == AGNUS.
@@ -54,8 +54,8 @@ DiskController::setDSKLEN(u16 oldValue, u16 newValue)
     // Enable DMA if bit 15 (DMAEN) has been written twice
     if (oldValue & newValue & 0x8000) {
         
-        trace(XFILES && state != DRIVE_DMA_OFF,
-              "XFILES (DSKLEN): Written in DMA state %lld\n", state);
+        if (XFILES && state != DRIVE_DMA_OFF)
+            trace("XFILES (DSKLEN): Written in DMA state %d\n", state);
 
         // Only proceed if there are bytes to process
         if ((dsklen & 0x3FFF) == 0) { paula.raiseIrq(INT_DSKBLK); return; }
@@ -158,7 +158,7 @@ DiskController::pokeDSKSYNC(u16 value)
 }
 
 u8
-DiskController::driveStatusFlags() const
+DiskController::driveStatusFlags()
 {
     u8 result = 0xFF;
     
@@ -173,6 +173,8 @@ DiskController::driveStatusFlags() const
 void
 DiskController::PRBdidChange(u8 oldValue, u8 newValue)
 {
+    // debug("PRBdidChange: %X -> %X\n", oldValue, newValue);
+
     // Store a copy of the new value for reference
     prb = newValue;
     
@@ -180,7 +182,7 @@ DiskController::PRBdidChange(u8 oldValue, u8 newValue)
     selected = -1;
     
     // Iterate over all connected drives
-    for (isize i = 0; i < 4; i++) {
+    for (unsigned i = 0; i < 4; i++) {
         if (!config.connected[i]) continue;
         
         // Inform the drive and determine the selected one

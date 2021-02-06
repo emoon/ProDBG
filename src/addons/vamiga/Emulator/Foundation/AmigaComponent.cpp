@@ -12,6 +12,7 @@
 AmigaComponent::AmigaComponent(Amiga& ref) :
 agnus(ref.agnus),
 amiga(ref),
+audioUnit(ref.paula.audioUnit),
 blitter(ref.agnus.blitter),
 ciaa(ref.ciaA),
 ciab(ref.ciaB),
@@ -28,7 +29,7 @@ df2(ref.df2),
 df3(ref.df3),
 keyboard(ref.keyboard),
 mem(ref.mem),
-messageQueue(ref.queue),
+messageQueue(ref.messageQueue),
 oscillator(ref.oscillator),
 paula(ref.paula),
 pixelEngine(ref.denise.pixelEngine),
@@ -41,7 +42,7 @@ zorro(ref.zorro)
 };
 
 void
-AmigaComponent::prefix() const
+AmigaComponent::prefix()
 {
     amiga.prefix();
 }

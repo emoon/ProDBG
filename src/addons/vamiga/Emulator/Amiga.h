@@ -7,12 +7,13 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _AMIGA_H
+#define _AMIGA_H
 
 // General
 #include "AmigaComponent.h"
 #include "Serialization.h"
-#include "MsgQueue.h"
+#include "MessageQueue.h"
 
 // Sub components
 #include "Agnus.h"
@@ -30,24 +31,23 @@
 #include "Moira.h"
 #include "Mouse.h"
 #include "Oscillator.h"
-#include "Paula.h"
 #include "RTC.h"
+#include "Paula.h"
 #include "SerialPort.h"
 #include "ZorroManager.h"
 
 // File types
+#include "RomFile.h"
+#include "EncryptedRomFile.h"
+#include "ExtendedRomFile.h"
+#include "Snapshot.h"
 #include "ADFFile.h"
-#include "BootBlockImage.h"
+#include "EXTFile.h"
+#include "IMGFile.h"
 #include "DMSFile.h"
 #include "EXEFile.h"
-#include "ExtendedRomFile.h"
-#include "EXTFile.h"
-#include "Folder.h"
-#include "FSDevice.h"
-#include "HDFFile.h"
-#include "IMGFile.h"
-#include "RomFile.h"
-#include "Snapshot.h"
+#include "DIRFile.h"
+#include "FSVolume.h"
 
 void threadTerminated(void *thisAmiga);
 void *threadMain(void *thisAmiga);
@@ -118,7 +118,7 @@ public:
     /* Communication channel to the GUI. The GUI registers a listener and a
      * callback function to retrieve messages.
      */
-    MsgQueue queue;
+    MessageQueue messageQueue;
 
     
     //
@@ -136,7 +136,7 @@ private:
     u32 runLoopCtrl = 0;
     
     // The invocation counter for implementing suspend() / resume()
-    isize suspendCounter = 0;
+    unsigned suspendCounter = 0;
     
     // The emulator thread
     pthread_t p = (pthread_t)0;
@@ -158,8 +158,8 @@ private:
     
 private:
     
-    Snapshot *autoSnapshot = nullptr;
-    Snapshot *userSnapshot = nullptr;
+    Snapshot *autoSnapshot = NULL;
+    Snapshot *userSnapshot = NULL;
 
     
     //
@@ -171,9 +171,7 @@ public:
     Amiga();
     ~Amiga();
 
-    const char *getDescription() const override { return "Amiga"; }
-
-    void prefix() const override;
+    void prefix() override;
 
     void reset(bool hard);
     void hardReset() { reset(true); }
@@ -181,7 +179,7 @@ public:
 
 private:
     
-    void _reset(bool hard) override;
+    void _reset(bool hard) override { RESET_SNAPSHOT_ITEMS(hard) }
 
     
     //
@@ -189,14 +187,17 @@ private:
     //
     
 public:
-        
+    
+    // Returns the current configuration
+    AmigaConfiguration getConfig();
+    
     // Gets a single configuration item
-    long getConfigItem(Option option) const;
-    long getConfigItem(Option option, long id) const;
+    long getConfigItem(ConfigOption option);
+    long getConfigItem(unsigned dfn, ConfigOption option);
     
     // Sets a single configuration item
-    bool configure(Option option, long value);
-    bool configure(Option option, long id, long value);
+    bool configure(ConfigOption option, long value);
+    bool configure(unsigned dfn, ConfigOption option, long value);
     
     
     //
@@ -207,13 +208,13 @@ public:
     
     AmigaInfo getInfo() { return HardwareComponent::getInfo(info); }
     
-    EventID getInspectionTarget() const;
     void setInspectionTarget(EventID id);
+    void clearInspectionTarget();
     
 private:
     
     void _inspect() override;
-    void _dump() const override;
+    void _dump() override;
     
     
     //
@@ -230,6 +231,7 @@ private:
     template <class T>
     void applyToHardResetItems(T& worker)
     {
+        // worker & clockBase;
     }
 
     template <class T>
@@ -237,9 +239,9 @@ private:
     {
     }
 
-    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
-    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
+    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
 
     //
@@ -258,10 +260,9 @@ public:
     void enableWarpMode() { setWarp(true); }
     void disableWarpMode() { setWarp(false); }
 
-    void setDebug(bool enable);
-    bool inDebugMode() { return debugMode; }
     void enableDebugMode() { setDebug(true); }
     void disableDebugMode() { setDebug(false); }
+    bool inDebugMode() { return debugMode; }
 
 private:
     
@@ -288,7 +289,7 @@ public:
     /* Returns true if a call to powerOn() will be successful. It returns false,
      * e.g., if no Kickstart Rom or Boot Rom is installed.
      */
-    bool isReady(ErrorCode *error = nullptr);
+    bool isReady(ErrorCode *error = NULL);
     
     /* Pauses the emulation thread temporarily. Because the emulator is running
      * in a separate thread, the GUI has to pause the emulator before changing
@@ -373,7 +374,7 @@ public:
     void requestAutoSnapshot();
     void requestUserSnapshot();
      
-    // Returns the most recent snapshot or nullptr if none was taken
+    // Returns the most recent snapshot or NULL if none was taken
     Snapshot *latestAutoSnapshot();
     Snapshot *latestUserSnapshot();
 
@@ -385,3 +386,5 @@ public:
     void loadFromSnapshotUnsafe(Snapshot *snapshot);
     void loadFromSnapshotSafe(Snapshot *snapshot);
 };
+
+#endif

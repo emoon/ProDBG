@@ -7,34 +7,21 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _FS_BOOT_BLOCK_H
+#define _FS_BOOT_BLOCK_H
 
 #include "FSBlock.h"
 
 struct FSBootBlock : FSBlock {
-        
-    FSBootBlock(FSPartition &p, u32 nr);
+      
+    FSBootBlock(FSVolume &ref, u32 nr);
     ~FSBootBlock();
     
-    const char *getDescription() const override { return "FSBootBlock"; }
-
-    
-    //
-    // Methods from Block class
-    //
-
-    FSBlockType type() const override { return FS_BOOT_BLOCK; }
-    FSVolumeType dos() const override;
-    FSItemType itemType(isize byte) const override;
-    ErrorCode check(isize pos, u8 *expected, bool strict) const override;
-    u32 checksumLocation() const override;
-    u32 checksum() const override;
-    void dump() const override;
-    
-    
-    //
-    // Block specific methods
-    //
-
-    void writeBootBlock(long id, int page);
+    FSBlockType type() override { return FS_BOOT_BLOCK; }
+    void dump() override;
+    bool check(bool verbose) override;    
+        
+    void writeBootCode();
 };
+
+#endif

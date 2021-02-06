@@ -8,9 +8,9 @@
 // -----------------------------------------------------------------------------
 
 #include "Moira.h"
-
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 
 namespace moira {
 
@@ -37,7 +37,7 @@ Guard::eval(u32 addr, Size S)
 Guard *
 Guards::guardWithNr(long nr)
 {
-    return nr < count ? &guards[nr] : nullptr;
+    return nr < count ? &guards[nr] : NULL;
 }
 
 Guard *
@@ -47,7 +47,7 @@ Guards::guardAtAddr(u32 addr)
         if (guards[i].addr == addr) return &guards[i];
     }
 
-    return nullptr;
+    return NULL;
 }
 
 bool
@@ -55,7 +55,7 @@ Guards::isSetAt(u32 addr)
 {
     Guard *guard = guardAtAddr(addr);
 
-    return guard != nullptr;
+    return guard != NULL;
 }
 
 bool
@@ -63,7 +63,7 @@ Guards::isSetAndEnabledAt(u32 addr)
 {
     Guard *guard = guardAtAddr(addr);
 
-    return guard != nullptr && guard->enabled;
+    return guard != NULL && guard->enabled;
 }
 
 bool
@@ -71,7 +71,7 @@ Guards::isSetAndDisabledAt(u32 addr)
 {
     Guard *guard = guardAtAddr(addr);
 
-    return guard != nullptr && !guard->enabled;
+    return guard != NULL && !guard->enabled;
 }
 
 bool
@@ -79,7 +79,7 @@ Guards::isSetAndConditionalAt(u32 addr)
 {
     Guard *guard = guardAtAddr(addr);
 
-    return guard != nullptr && guard->skip != 0;
+    return guard != NULL && guard->skip != 0;
 }
 
 void
@@ -264,5 +264,21 @@ Debugger::logEntryAbs(int n)
     assert(n < loggedInstructions());
     return logEntryRel(loggedInstructions() - n - 1);
 }
+
+/*
+u32
+Debugger::loggedPC0Rel(int n)
+{
+    assert(n < loggedInstructions());
+    return logBuffer[(logCnt - 1 - n) % logBufferCapacity].pc0;
+}
+
+u32
+Debugger::loggedPC0Abs(int n)
+{
+    assert(n < loggedInstructions());
+    return loggedPC0Rel(loggedInstructions() - n - 1);
+}
+*/
 
 }

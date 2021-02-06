@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _CPU_H
+#define _CPU_H
 
 #include "AmigaComponent.h"
 #include "Moira.h"
@@ -26,8 +27,6 @@ public:
 
     CPU(Amiga& ref);
 
-    const char *getDescription() const override { return "CPU"; }
-    
     void _reset(bool hard) override;
     
     
@@ -43,7 +42,7 @@ private:
     
     void _inspect() override;
     void _inspect(u32 dasmStart);
-    void _dump() const override;
+    void _dump() override;
 
     
     //
@@ -93,10 +92,10 @@ private:
     {
     }
 
-    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
-    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
-    isize didLoadFromBuffer(const u8 *buffer) override;
+    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
+    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    size_t didLoadFromBuffer(u8 *buffer) override;
 
 
     //
@@ -121,7 +120,7 @@ private:
     u16 read16Dasm(u32 addr) override;
     void write8 (u32 addr, u8  val) override;
     void write16 (u32 addr, u16 val) override;
-    u16 readIrqUserVector(u8 level) const override { return 0; }
+    int readIrqUserVector(u8 level) override { return 0; }
  
     void signalReset() override;
     void signalStop(u16 op) override;
@@ -151,10 +150,10 @@ private:
 public:
 
     // Returns the clock in CPU cycles
-    CPUCycle getCpuClock() const { return getClock(); }
+    CPUCycle getCpuClock() { return getClock(); }
 
     // Returns the clock in master cycles
-    Cycle getMasterClock() const { return CPU_CYCLES(getClock()); }
+    Cycle getMasterClock() { return CPU_CYCLES(getClock()); }
 
     // Delays the CPU by a certain amout of master cycles
     void addWaitStates(Cycle cycles) { clock += AS_CPU_CYCLES(cycles); }
@@ -165,17 +164,19 @@ public:
     //
     
     // Disassembles a recorded instruction from the log buffer
-    const char *disassembleRecordedInstr(isize i, isize *len);
-    const char *disassembleRecordedWords(isize i, isize len);
-    const char *disassembleRecordedFlags(isize i);
-    const char *disassembleRecordedPC(isize i);
+    const char *disassembleRecordedInstr(int i, long *len);
+    const char *disassembleRecordedWords(int i, int len);
+    const char *disassembleRecordedFlags(int i);
+    const char *disassembleRecordedPC(int i);
 
     // Disassembles the instruction at the specified address
-    const char *disassembleInstr(u32 addr, isize *len);
-    const char *disassembleWords(u32 addr, isize len);
+    const char *disassembleInstr(u32 addr, long *len);
+    const char *disassembleWords(u32 addr, int len);
     const char *disassembleAddr(u32 addr);
 
     // Disassembles the currently executed instruction
-    const char *disassembleInstr(isize *len);
-    const char *disassembleWords(isize len);
+    const char *disassembleInstr(long *len);
+    const char *disassembleWords(int len);
 };
+
+#endif

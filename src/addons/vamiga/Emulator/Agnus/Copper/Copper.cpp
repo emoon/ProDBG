@@ -11,6 +11,7 @@
 
 Copper::Copper(Amiga& ref) : AmigaComponent(ref)
 {
+    setDescription("Copper");
 }
 
 void
@@ -25,7 +26,7 @@ Copper::_inspect()
     synchronized {
         
         info.copList = copList;
-        info.active  = agnus.isPending<SLOT_COP>();
+        info.active  = agnus.isPending<COP_SLOT>();
         info.cdang   = cdang;
         info.coppc   = coppc & agnus.ptrMask;
         info.cop1lc  = cop1lc & agnus.ptrMask;
@@ -38,12 +39,12 @@ Copper::_inspect()
 }
 
 void
-Copper::_dump() const
+Copper::_dump()
 {
-    bool active = agnus.isPending<SLOT_COP>();
+    bool active = agnus.isPending<COP_SLOT>();
     msg("    cdang: %d\n", cdang);
     msg("   active: %s\n", active ? "yes" : "no");
-    if (active) msg("    state: %ld\n", (long)agnus.slot[SLOT_COP].id);
+    if (active) msg("    state: %d\n", agnus.slot[COP_SLOT].id);
     msg("    coppc: %X\n", coppc);
     msg("  copins1: %X\n", cop1ins);
     msg("  copins2: %X\n", cop2ins);
@@ -60,18 +61,18 @@ Copper::advancePC()
 }
 
 void
-Copper::switchToCopperList(isize nr)
+Copper::switchToCopperList(int nr)
 {
     assert(nr == 1 || nr == 2);
 
     // debug("switchToCopperList(%d) coppc: %x -> %x\n", nr, coppc, (nr == 1) ? cop1lc : cop2lc);
     coppc = (nr == 1) ? cop1lc : cop2lc;
     copList = nr;
-    agnus.scheduleRel<SLOT_COP>(0, COP_REQ_DMA);
+    agnus.scheduleRel<COP_SLOT>(0, COP_REQ_DMA);
 }
 
 bool
-Copper::findMatch(Beam &result) const
+Copper::findMatch(Beam &result)
 {
     i16 vMatch, hMatch;
 
@@ -120,7 +121,7 @@ Copper::findMatch(Beam &result) const
 }
 
 bool
-Copper::findVerticalMatch(i16 vStrt, i16 vComp, i16 vMask, i16 &result) const
+Copper::findVerticalMatch(i16 vStrt, i16 vComp, i16 vMask, i16 &result)
 {
     i16 vStop = agnus.frame.numLines();
 
@@ -137,9 +138,11 @@ Copper::findVerticalMatch(i16 vStrt, i16 vComp, i16 vMask, i16 &result) const
 }
 
 bool
-Copper::findHorizontalMatch(i16 hStrt, i16 hComp, i16 hMask, i16 &result) const
+Copper::findHorizontalMatch(i16 hStrt, i16 hComp, i16 hMask, i16 &result)
 {
     i16 hStop = HPOS_CNT;
+
+    trace("findHorizontalMatch(%X,%X,%X)\n", hStrt, hComp, hMask);
 
     // Iterate through all horizontal positions
     for (int h = hStrt; h < hStop; h++) {
@@ -154,7 +157,7 @@ Copper::findHorizontalMatch(i16 hStrt, i16 hComp, i16 hMask, i16 &result) const
 }
 
 bool
-Copper::findMatchNew(Beam &match) const
+Copper::findMatchNew(Beam &match)
 {
     // Start searching at the current beam position
     u32 beam = (agnus.pos.v << 8) | agnus.pos.h;
@@ -199,7 +202,7 @@ Copper::findMatchNew(Beam &match) const
 }
 
 bool
-Copper::findHorizontalMatchNew(u32 &match, u32 comp, u32 mask) const
+Copper::findHorizontalMatchNew(u32 &match, u32 comp, u32 mask)
 {
     // Iterate through all horizontal positions
     for (u32 beam = match; (beam & 0xFF) < HPOS_CNT; beam++) {
@@ -249,8 +252,7 @@ Copper::comparator(u32 beam, u32 waitpos, u32 mask)
     u8 vWaitpos = (waitpos >> 8) & 0xFF;
     u8 vMask = (mask >> 8) | 0x80;
     
-    trace(COP_DEBUG && verbose,
-          " * vBeam = %X vWaitpos = %X vMask = %X\n", vBeam, vWaitpos, vMask);
+    if (verbose) debug(" * vBeam = %X vWaitpos = %X vMask = %X\n", vBeam, vWaitpos, vMask);
 
     // Compare vertical positions
     if ((vBeam & vMask) < (vWaitpos & vMask)) {
@@ -267,8 +269,7 @@ Copper::comparator(u32 beam, u32 waitpos, u32 mask)
     u8 hWaitpos = waitpos & 0xFE;
     u8 hMask = mask & 0xFE;
 
-    trace(COP_DEBUG && verbose,
-          " * hBeam = %X hWaitpos = %X hMask = %X\n", hBeam, hWaitpos, hMask);
+    if (verbose) debug(" * hBeam = %X hWaitpos = %X hMask = %X\n", hBeam, hWaitpos, hMask);
     /*
     debug("Comparing horizontal position waitpos = %d vWait = %d hWait = %d \n", waitpos, vWaitpos, hWaitpos);
     debug("hBeam = %d ($x) hMask = %X\n", hBeam, hBeam, hMask);
@@ -281,14 +282,14 @@ Copper::comparator(u32 beam, u32 waitpos, u32 mask)
 #endif
 
 bool
-Copper::comparator(Beam beam, u16 waitpos, u16 mask) const
+Copper::comparator(Beam beam, u16 waitpos, u16 mask)
 {
     // Get comparison bits for the vertical beam position
     u8 vBeam = beam.v & 0xFF;
     u8 vWaitpos = HI_BYTE(waitpos);
     u8 vMask = HI_BYTE(mask) | 0x80;
 
-    // msg(" * vBeam = %X vWaitpos = %X vMask = %X\n", vBeam, vWaitpos, vMask);
+    if (verbose) trace(" * vBeam = %X vWaitpos = %X vMask = %X\n", vBeam, vWaitpos, vMask);
 
     // Compare vertical positions
     if ((vBeam & vMask) < (vWaitpos & vMask)) {
@@ -305,7 +306,7 @@ Copper::comparator(Beam beam, u16 waitpos, u16 mask) const
     u8 hWaitpos = LO_BYTE(waitpos) & 0xFE;
     u8 hMask = LO_BYTE(mask) & 0xFE;
 
-    // msg(" * hBeam = %X hWaitpos = %X hMask = %X\n", hBeam, hWaitpos, hMask);
+    if (verbose) trace(" * hBeam = %X hWaitpos = %X hMask = %X\n", hBeam, hWaitpos, hMask);
     /*
      debug("Comparing horizontal position waitpos = %d vWait = %d hWait = %d \n", waitpos, vWaitpos, hWaitpos);
      debug("hBeam = %d ($x) hMask = %X\n", hBeam, hBeam, hMask);
@@ -317,13 +318,13 @@ Copper::comparator(Beam beam, u16 waitpos, u16 mask) const
 }
 
 bool
-Copper::comparator(Beam beam) const
+Copper::comparator(Beam beam)
 {
     return comparator(beam, getVPHP(), getVMHM());
 }
 
 bool
-Copper::comparator() const
+Copper::comparator()
 {
     return comparator(agnus.pos);
 }
@@ -339,133 +340,150 @@ Copper::scheduleWaitWakeup(bool bfd)
         // In how many cycles do we get there?
         int delay = trigger - agnus.pos;
 
-        // msg("(%d,%d) matches in %d cycles\n", trigger.v, trigger.h, delay);
+        if (verbose) trace("(%d,%d) matches in %d cycles\n", trigger.v, trigger.h, delay);
 
         if (delay == 0) {
 
             // Copper does not stop
-            agnus.scheduleRel<SLOT_COP>(DMA_CYCLES(2), COP_FETCH);
+            agnus.scheduleRel<COP_SLOT>(DMA_CYCLES(2), COP_FETCH);
 
         } else if (delay == 2) {
 
             // Copper does not stop
-            agnus.scheduleRel<SLOT_COP>(DMA_CYCLES(2), COP_FETCH);
+            agnus.scheduleRel<COP_SLOT>(DMA_CYCLES(2), COP_FETCH);
 
         } else {
 
             // Wake up 2 cycles earlier with a WAKEUP event
             delay -= 2;
             if (bfd) {
-                agnus.scheduleRel<SLOT_COP>(DMA_CYCLES(delay), COP_WAKEUP);
+                agnus.scheduleRel<COP_SLOT>(DMA_CYCLES(delay), COP_WAKEUP);
             } else {
-                agnus.scheduleRel<SLOT_COP>(DMA_CYCLES(delay), COP_WAKEUP_BLIT);
+                agnus.scheduleRel<COP_SLOT>(DMA_CYCLES(delay), COP_WAKEUP_BLIT);
             }
         }
 
     } else {
 
-        // msg("(%d,%d) does not match in this frame\n", trigger.v, trigger.h);
-        agnus.scheduleAbs<SLOT_COP>(NEVER, COP_REQ_DMA);
+        if (verbose) trace("(%d,%d) does not match in this frame\n", trigger.v, trigger.h);
+        agnus.scheduleAbs<COP_SLOT>(NEVER, COP_REQ_DMA);
     }
 }
 
 bool
-Copper::isMoveCmd() const
+Copper::isMoveCmd()
 {
     return !(cop1ins & 1);
 }
 
-bool Copper::isMoveCmd(u32 addr) const
+bool Copper::isMoveCmd(u32 addr)
 {
     assert(IS_EVEN(addr));
 
-    u16 hiword = mem.spypeek16 <ACCESSOR_AGNUS> (addr);
+    u16 hiword = mem.spypeek16 <AGNUS_ACCESS> (addr);
 
     return IS_EVEN(hiword);
 }
 
-bool Copper::isWaitCmd() const
+bool Copper::isWaitCmd()
 {
      return (cop1ins & 1) && !(cop2ins & 1);
 }
 
-bool Copper::isWaitCmd(u32 addr) const
+bool Copper::isWaitCmd(u32 addr)
 {
     assert(IS_EVEN(addr));
 
-    u16 hiword = mem.spypeek16 <ACCESSOR_AGNUS> (addr);
-    u16 loword = mem.spypeek16 <ACCESSOR_AGNUS> (addr + 2);
+    u16 hiword = mem.spypeek16 <AGNUS_ACCESS> (addr);
+    u16 loword = mem.spypeek16 <AGNUS_ACCESS> (addr + 2);
 
     return IS_ODD(hiword) && IS_EVEN(loword);
 }
 
+bool
+Copper::isSkipCmd()
+{
+    return (cop1ins & 1) && (cop2ins & 1);
+}
+
+bool
+Copper::isSkipCmd(u32 addr)
+{
+    assert(IS_EVEN(addr));
+
+    u16 hiword = mem.spypeek16 <AGNUS_ACCESS> (addr);
+    u16 loword = mem.spypeek16 <AGNUS_ACCESS> (addr + 2);
+
+    return IS_ODD(hiword) && IS_ODD(loword);
+}
+
 u16
-Copper::getRA() const
+Copper::getRA()
 {
     return cop1ins & 0x1FE;
 }
 
 u16
-Copper::getRA(u32 addr) const
+Copper::getRA(u32 addr)
 {
-    u16 hiword = mem.spypeek16 <ACCESSOR_AGNUS> (addr);
+    u16 hiword = mem.spypeek16 <AGNUS_ACCESS> (addr);
     return hiword & 0x1FE;
 }
 
 u16
-Copper::getDW() const
+Copper::getDW()
 {
     return cop1ins;
 }
 
 u16
-Copper::getDW(u32 addr) const
+Copper::getDW(u32 addr)
 {
-    u16 loword = mem.spypeek16 <ACCESSOR_AGNUS> (addr + 2);
+    u16 loword = mem.spypeek16 <AGNUS_ACCESS> (addr + 2);
     return loword;
 }
 
 bool
-Copper::getBFD() const
+Copper::getBFD()
 {
     return (cop2ins & 0x8000) != 0;
 }
 
 bool
-Copper::getBFD(u32 addr) const
+Copper::getBFD(u32 addr)
 {
-    u16 instr = mem.spypeek16 <ACCESSOR_AGNUS> (addr + 2);
+    u16 instr = mem.spypeek16 <AGNUS_ACCESS> (addr + 2);
     return (instr & 0x8000) != 0;
 }
 
 u16
-Copper::getVPHP() const
+Copper::getVPHP()
 {
     return cop1ins & 0xFFFE;
 }
 
 u16
-Copper::getVPHP(u32 addr) const
+Copper::getVPHP(u32 addr)
 {
-    u16 instr = mem.spypeek16 <ACCESSOR_AGNUS> (addr);
+    u16 instr = mem.spypeek16 <AGNUS_ACCESS> (addr);
     return instr & 0xFFFE;
 }
 
 u16
-Copper::getVMHM() const
+Copper::getVMHM()
 {
     return (cop2ins & 0x7FFE) | 0x8001;
 }
 
 u16
-Copper::getVMHM(u32 addr) const
+Copper::getVMHM(u32 addr)
 {
-    u16 instr = mem.spypeek16 <ACCESSOR_AGNUS> (addr + 2);
+    u16 instr = mem.spypeek16 <AGNUS_ACCESS> (addr + 2);
     return (instr & 0x7FFE) | 0x8001;
 }
 
 bool
-Copper::isIllegalAddress(u32 addr) const
+Copper::isIllegalAddress(u32 addr)
 {
     if (cdang) {
         return agnus.isOCS() ? addr < 0x40 : false;
@@ -475,7 +493,7 @@ Copper::isIllegalAddress(u32 addr) const
 }
 
 bool
-Copper::isIllegalInstr(u32 addr) const
+Copper::isIllegalInstr(u32 addr)
 {
     return isMoveCmd(addr) && isIllegalAddress(getRA(addr));
 }
@@ -489,14 +507,13 @@ Copper::vsyncHandler()
      *  automatically forced to restart its operations at the address contained
      *  in COP1LC." [HRM]
      */
-    agnus.scheduleRel<SLOT_COP>(DMA_CYCLES(0), COP_VBLANK);
+    agnus.scheduleRel<COP_SLOT>(DMA_CYCLES(0), COP_VBLANK);
     
     if (COP_CHECKSUM) {
         
-        if (checkcnt) {
-            msg("[%lld] Checksum: %x (%lld) lc1 = %x lc2 = %x\n",
-                agnus.frame.nr, checksum, checkcnt, cop1lc, cop2lc);
-        }
+        if (checkcnt) debug("[%lld] Checksum: %x (%lld) lc1 = %x lc2 = %x\n",
+                                 agnus.frame.nr, checksum, checkcnt, cop1lc, cop2lc);
+        
         checkcnt = 0;
         checksum = fnv_1a_init32();
     }
@@ -505,19 +522,19 @@ Copper::vsyncHandler()
 void
 Copper::blitterDidTerminate()
 {
-    if (agnus.hasEvent<SLOT_COP>(COP_WAIT_BLIT)) {
+    if (agnus.hasEvent<COP_SLOT>(COP_WAIT_BLIT)) {
 
         // Wake up the Copper in the next even cycle
         if (IS_EVEN(agnus.pos.h)) {
             serviceEvent(COP_WAIT_BLIT);
         } else {
-            agnus.scheduleRel<SLOT_COP>(DMA_CYCLES(1), COP_WAIT_BLIT);
+            agnus.scheduleRel<COP_SLOT>(DMA_CYCLES(1), COP_WAIT_BLIT);
         }
     }
 }
 
-isize
-Copper::instrCount(isize nr) const
+int
+Copper::instrCount(int nr)
 {
     assert(nr == 1 || nr == 2);
 
@@ -528,7 +545,7 @@ Copper::instrCount(isize nr) const
 }
 
 void
-Copper::adjustInstrCount(isize nr, isize offset)
+Copper::adjustInstrCount(int nr, int offset)
 {
     assert(nr == 1 || nr == 2);
 
@@ -558,7 +575,7 @@ Copper::disassemble(u32 addr)
     sprintf(pos, "($%02X,$%02X)", getVP(addr), getHP(addr));
     
     if (getVM(addr) == 0xFF && getHM(addr) == 0xFF) {
-        mask[0] = 0;
+        // sprintf(mask, "");
     } else {
         sprintf(mask, ", ($%02X,$%02X)", getHM(addr), getVM(addr));
     }
@@ -568,18 +585,18 @@ Copper::disassemble(u32 addr)
 }
 
 char *
-Copper::disassemble(isize list, isize offset)
+Copper::disassemble(unsigned list, u32 offset)
 {
     assert(list == 1 || list == 2);
     
-    u32 addr = (u32)((list == 1 ? cop1lc : cop2lc) + 2 * offset);
+    u32 addr = (list == 1 ? cop1lc : cop2lc) + 2 * offset;
     return disassemble(addr);
 }
 
 void
-Copper::dumpCopperList(isize list, isize length)
+Copper::dumpCopperList(unsigned list, unsigned length)
 {
-    for (isize i = 0; i < length; i++) {
-        msg("%s\n", disassemble(list, 2*i));
+    for (unsigned i = 0; i < length; i++) {
+        printf("%s\n", disassemble(list, 2*i));
     }
 }

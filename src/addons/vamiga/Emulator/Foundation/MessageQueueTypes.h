@@ -6,14 +6,15 @@
 //
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
-// THIS FILE MUST CONFORM TO ANSI-C TO BE COMPATIBLE WITH SWIFT
-// -----------------------------------------------------------------------------
 
-#pragma once
+// This file must conform to standard ANSI-C to be compatible with Swift.
+
+#ifndef _MESSAGE_QUEUE_TYPES_H
+#define _MESSAGE_QUEUE_TYPES_H
 
 #include "Aliases.h"
 
-enum_long(MSG_TYPE)
+VAMIGA_ENUM(long, MessageType)
 {
     MSG_NONE = 0,
     
@@ -82,23 +83,17 @@ enum_long(MSG_TYPE)
     
     // Debugging
     MSG_DMA_DEBUG_ON,
-    MSG_DMA_DEBUG_OFF,
-    
-    MSG_COUNT
+    MSG_DMA_DEBUG_OFF
 };
-typedef MSG_TYPE MsgType;
-
-
-//
-// Structures
-//
 
 typedef struct
 {
-    MsgType type;
+    MessageType type;
     long data;
 }
 Message;
 
 // Callback function signature
 typedef void Callback(const void *, long, long);
+
+#endif

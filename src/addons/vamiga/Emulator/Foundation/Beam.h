@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _BEAM_H
+#define _BEAM_H
 
 struct Beam
 {
@@ -31,7 +32,7 @@ struct Beam
     }
 
     Beam(i16 v, i16 h) : v(v), h(h) { }
-    Beam(u32 cycle = 0) : Beam((i16)(cycle / HPOS_CNT), (i16)(cycle % HPOS_CNT)) { }
+    Beam(u32 cycle = 0) : Beam(cycle / HPOS_CNT, cycle % HPOS_CNT) { }
 
     Beam& operator=(const Beam& beam)
     {
@@ -94,3 +95,5 @@ struct Beam
         return *this;
     }
 };
+
+#endif

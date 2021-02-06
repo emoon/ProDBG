@@ -13,37 +13,76 @@ extern "C" {
 unsigned short extractDMS(FILE *fi, FILE *fo);
 }
 
-bool
-DMSFile::isCompatibleName(const string &name)
+DMSFile::DMSFile()
 {
-    return name == "dms" || name == "DMS";
+    setDescription("DMSFile");
 }
 
 bool
-DMSFile::isCompatibleStream(std::istream &stream)
+DMSFile::isDMSBuffer(const u8 *buffer, size_t length)
 {
     u8 signature[] = { 'D', 'M', 'S', '!' };
                                                                                             
-    return matchingStreamHeader(stream, signature, sizeof(signature));
+    assert(buffer != nullptr);
+    return matchingBufferHeader(buffer, signature, sizeof(signature));
 }
 
-isize
-DMSFile::readFromStream(std::istream &stream)
+bool
+DMSFile::isDMSFile(const char *path)
+{
+    u8 signature[] = { 'D', 'M', 'S', '!' };
+    
+    assert(path != nullptr);
+    return matchingFileHeader(path, signature, sizeof(signature));
+}
+
+DMSFile *
+DMSFile::makeWithBuffer(const u8 *buffer, size_t length)
+{
+    DMSFile *dms = new DMSFile();
+    
+    if (!dms->readFromBuffer(buffer, length)) {
+        delete dms;
+        return nullptr;
+    }
+    
+    return dms;
+}
+
+DMSFile *
+DMSFile::makeWithFile(const char *path)
+{
+    DMSFile *dms = new DMSFile();
+    
+    if (!dms->readFromFile(path)) {
+        delete dms;
+        return nullptr;
+    }
+    
+    return dms;
+}
+
+bool
+DMSFile::readFromBuffer(const u8 *buffer, size_t length)
 {
     FILE *fpi, *fpo;
     char *pi, *po;
     size_t si, so;
     
-    isize result = AmigaFile::readFromStream(stream);
+    if (!isDMSBuffer(buffer, length))
+        return false;
         
+    if (!AmigaFile::readFromBuffer(buffer, length))
+        return false;
+    
     // We use a third-party tool called xdms to convert the DMS file into an
     // ADF file. Originally, xdms is a command line utility that is designed
     // to work with the file system. To ease the integration of this tool, we
-    // utilize memory streams for getting data in and out.
+    // utilize memory streams for getting data in and out. 
 
     // Setup input stream
     fpi = open_memstream(&pi, &si);
-    for (isize i = 0; i < size; i++) putc(data[i], fpi);
+    for (size_t i = 0; i < size; i++) putc(data[i], fpi);
     fclose(fpi);
     
     // Setup output file
@@ -55,9 +94,9 @@ DMSFile::readFromStream(std::istream &stream)
     
     // Create ADF
     fpo = fmemopen(po, so, "r");
-    adf = AmigaFile::make <ADFFile> (fpo);
+    adf = ADFFile::makeWithFile(fpo);
     fclose(fpo);
     
-    if (!adf) throw VAError(ERROR_UNKNOWN);
-    return result;
+    return adf != nullptr;
 }
+

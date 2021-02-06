@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _TIME_DELAYED_H
+#define _TIME_DELAYED_H
 
 #include "AmigaObject.h"
 
@@ -24,7 +25,7 @@ template <class T, int delay> class TimeDelayed : AmigaObject {
     i64 timeStamp = 0;
         
     // Pointer to reference clock
-    i64 *clock = nullptr;
+    i64 *clock = NULL;
 
     
     //
@@ -35,21 +36,20 @@ public:
     
     TimeDelayed(u64 *clock) {
         
+        setDescription("TimeDelayed");
         timeStamp = 0;
         this->clock = (i64 *)clock;
         clear();
     }
     
-    TimeDelayed() : TimeDelayed(nullptr) { };
+    TimeDelayed() : TimeDelayed(NULL) { };
           
-    const char *getDescription() const { return "TimeDelayed"; }
-    
     // Sets the reference clock
     void setClock(i64 *clock) { this->clock = clock; }
 
     // Overwrites all pipeline entries with a reset value
     void reset(T value) {
-        for (isize i = 0; i <= delay; i++) pipeline[i] = value;
+        for (unsigned i = 0; i <= delay; i++) pipeline[i] = value;
         timeStamp = 0;
     }
     
@@ -65,7 +65,7 @@ public:
     
     void dump() {
         msg("TimeStamp: %lld clock: %lld\n", timeStamp, AS_DMA_CYCLES(*clock));
-        for (isize i = delay; i >= 0; i--) msg("[%d] ", readWithDelay(i));
+        for (int i = delay; i >= 0; i--) msg("[%d] ", readWithDelay(i));
         msg("\n");
     }
 
@@ -93,7 +93,7 @@ public:
         i64 dmaClock = AS_DMA_CYCLES(*clock);
         // Shift pipeline
         i64 diff = dmaClock - timeStamp;
-        for (isize i = delay; i >= 0; i--) {
+        for (int i = delay; i >= 0; i--) {
             assert(i - diff < 0 || i - diff <= delay);
             pipeline[i] = (i - diff < 0) ? pipeline[0] : pipeline[i - diff];
         }
@@ -115,3 +115,5 @@ public:
         return pipeline[MAX(0, timeStamp - AS_DMA_CYCLES(*clock) + customDelay)];
     }
 };
+
+#endif

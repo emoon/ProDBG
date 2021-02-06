@@ -9,30 +9,25 @@
 
 #include "Amiga.h"
 
-template <isize nr>
+template <int nr>
 StateMachine<nr>::StateMachine(Amiga& ref) : AmigaComponent(ref)
 {
-}
-
-template <isize nr> const char *
-StateMachine<nr>::getDescription() const
-{
     switch (nr) {
-        case 0: return "StateMachine 0";
-        case 1: return "StateMachine 1";
-        case 2: return "StateMachine 2";
-        case 3: return "StateMachine 3";
+        case 0: setDescription("StateMachine 0"); break;
+        case 1: setDescription("StateMachine 1"); break;
+        case 2: setDescription("StateMachine 2"); break;
+        case 3: setDescription("StateMachine 3"); break;
         default: assert(false);
     }
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::_reset(bool hard)
 {
     RESET_SNAPSHOT_ITEMS(hard)
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::_inspect()
 {
     synchronized {
@@ -49,15 +44,15 @@ StateMachine<nr>::_inspect()
     }
 }
 
-template <isize nr> void
-StateMachine<nr>::_dump() const
+template <int nr> void
+StateMachine<nr>::_dump()
 {
-    msg("   State : %d\n", state);
-    msg("  AUDxIP : %d\n", AUDxIP());
-    msg("  AUDxON : %d\n", AUDxON());
+    printf("   State: %d\n", state);
+    printf("  AUDxIP: %d\n", AUDxIP());
+    printf("  AUDxON: %d\n", AUDxON());
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::enableDMA()
 {
     trace(AUD_DEBUG, "Enable DMA\n");
@@ -71,7 +66,7 @@ StateMachine<nr>::enableDMA()
      }
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::disableDMA()
 {
     trace(AUD_DEBUG, "Disable DMA\n");
@@ -90,19 +85,19 @@ StateMachine<nr>::disableDMA()
     }
 }
 
-template <isize nr> bool
-StateMachine<nr>::AUDxON() const
+template <int nr> bool
+StateMachine<nr>::AUDxON()
 {
     return agnus.auddma<nr>();
 }
 
-template <isize nr> bool
-StateMachine<nr>::AUDxIP() const 
+template <int nr> bool
+StateMachine<nr>::AUDxIP()
 {
     return GET_BIT(paula.intreq, 7 + nr);
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::AUDxIR()
 {
     if (DISABLE_AUDIRQ) return;
@@ -113,10 +108,10 @@ StateMachine<nr>::AUDxIR()
     paula.scheduleIrqRel(source, DMA_CYCLES(1));
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::percntrld()
 {
-    const EventSlot slot = (EventSlot)(SLOT_CH0+nr);
+    const EventSlot slot = (EventSlot)(CH0_SLOT+nr);
 
     
     u64 delay = (audperLatch == 0) ? 0x10000 : audperLatch;
@@ -124,7 +119,7 @@ StateMachine<nr>::percntrld()
     agnus.scheduleRel<slot>(DMA_CYCLES(delay), CHX_PERFIN);
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::pbufld1()
 {
     if (!AUDxAV()) { buffer = auddat; return; }
@@ -138,7 +133,7 @@ StateMachine<nr>::pbufld1()
     }
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::pbufld2()
 {
     assert(AUDxAP());
@@ -149,63 +144,69 @@ StateMachine<nr>::pbufld2()
         case 2: paula.channel3.pokeAUDxPER(auddat); break;
         case 3: break;
     }
+    /*
+    if (nr < 3) {
+        // trace("Period modulation %d\n", auddat);
+        audioUnit.pokeAUDxPER(nr + 1, auddat);
+    }
+    */
 }
 
-template <isize nr> bool
-StateMachine<nr>::AUDxAV() const
+template <int nr> bool
+StateMachine<nr>::AUDxAV()
 {
     return (paula.adkcon >> nr) & 0x01;
 }
 
-template <isize nr> bool
-StateMachine<nr>::AUDxAP() const
+template <int nr> bool
+StateMachine<nr>::AUDxAP()
 {
     return (paula.adkcon >> nr) & 0x10;
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::penhi()
 {
     if (!enablePenhi) return;
  
-    Sampler *sampler = paula.muxer.sampler[nr];
+    Sampler &sampler = paula.muxer.sampler[nr];
 
     i8 sample = (i8)HI_BYTE(buffer);
     i16 scaled = sample * audvol;
     
     trace(AUD_DEBUG, "penhi: %d %d\n", sample, scaled);
                 
-    if (!sampler->isFull()) {
-        sampler->write( TaggedSample { agnus.clock, scaled } );
+    if (!sampler.isFull()) {
+        sampler.write( TaggedSample { agnus.clock, scaled } );
     } else {
-        warn("penhi: Sample buffer is full\n");
+        trace("penhi: Sample buffer is full\n");
     }
     
     enablePenhi = false;
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::penlo()
 {
     if (!enablePenlo) return;
 
-    Sampler *sampler = paula.muxer.sampler[nr];
+    Sampler &sampler = paula.muxer.sampler[nr];
     
     i8 sample = (i8)LO_BYTE(buffer);
     i16 scaled = sample * audvol;
 
     trace(AUD_DEBUG, "penlo: %d %d\n", sample, scaled);
 
-    if (!sampler->isFull()) {
-        sampler->write( TaggedSample { agnus.clock, scaled } );
+    if (!sampler.isFull()) {
+        sampler.write( TaggedSample { agnus.clock, scaled } );
     } else {
-        warn("penlo: Sample buffer is full\n");
+        trace("penlo: Sample buffer is full\n");
     }
     
     enablePenlo = false;
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::move_000_010() {
 
     trace(AUD_DEBUG, "move_000_010\n");
@@ -223,7 +224,7 @@ StateMachine<nr>::move_000_010() {
     penhi();
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::move_000_001() {
 
     trace(AUD_DEBUG, "move_000_001\n");
@@ -237,7 +238,7 @@ StateMachine<nr>::move_000_001() {
     state = 0b001;
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::move_001_000() {
 
     trace(AUD_DEBUG, "move_001_000\n");
@@ -248,7 +249,7 @@ StateMachine<nr>::move_001_000() {
     state = 0b000;
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::move_001_101() {
 
     trace(AUD_DEBUG, "move_001_101\n");
@@ -264,7 +265,7 @@ StateMachine<nr>::move_001_101() {
     state = 0b101;
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::move_101_000() {
 
     trace(AUD_DEBUG, "move_101_000\n");
@@ -275,7 +276,7 @@ StateMachine<nr>::move_101_000() {
     state = 0b000;
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::move_101_010() {
 
     trace(AUD_DEBUG, "move_101_010\n");
@@ -292,7 +293,7 @@ StateMachine<nr>::move_101_010() {
     penhi();
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::move_010_011() {
 
     trace(AUD_DEBUG, "move_010_011\n");
@@ -321,19 +322,19 @@ StateMachine<nr>::move_010_011() {
     penlo();
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::move_011_000() {
 
     trace(AUD_DEBUG, "move_011_000\n");
 
-    const EventSlot slot = (EventSlot)(SLOT_CH0+nr);
+    const EventSlot slot = (EventSlot)(CH0_SLOT+nr);
     agnus.cancel<slot>();
 
     intreq2 = false;
     state = 0b000;
 }
 
-template <isize nr> void
+template <int nr> void
 StateMachine<nr>::move_011_010()
 {
     trace(AUD_DEBUG, "move_011_010\n");
@@ -383,25 +384,20 @@ template void StateMachine<1>::disableDMA();
 template void StateMachine<2>::disableDMA();
 template void StateMachine<3>::disableDMA();
 
-template bool StateMachine<0>::AUDxIP() const;
-template bool StateMachine<1>::AUDxIP() const;
-template bool StateMachine<2>::AUDxIP() const;
-template bool StateMachine<3>::AUDxIP() const;
+template bool StateMachine<0>::AUDxIP();
+template bool StateMachine<1>::AUDxIP();
+template bool StateMachine<2>::AUDxIP();
+template bool StateMachine<3>::AUDxIP();
 
-template bool StateMachine<0>::AUDxON() const;
-template bool StateMachine<1>::AUDxON() const;
-template bool StateMachine<2>::AUDxON() const;
-template bool StateMachine<3>::AUDxON() const;
+template bool StateMachine<0>::AUDxON();
+template bool StateMachine<1>::AUDxON();
+template bool StateMachine<2>::AUDxON();
+template bool StateMachine<3>::AUDxON();
 
 template void StateMachine<0>::move_000_010();
 template void StateMachine<1>::move_000_010();
 template void StateMachine<2>::move_000_010();
 template void StateMachine<3>::move_000_010();
-
-template void StateMachine<0>::move_000_001();
-template void StateMachine<1>::move_000_001();
-template void StateMachine<2>::move_000_001();
-template void StateMachine<3>::move_000_001();
 
 template void StateMachine<0>::move_001_101();
 template void StateMachine<1>::move_001_101();

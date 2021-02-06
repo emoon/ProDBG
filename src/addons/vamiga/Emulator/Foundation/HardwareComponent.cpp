@@ -11,7 +11,7 @@
 
 HardwareComponent::~HardwareComponent()
 {
-    debug(RUN_DEBUG, "Terminated\n");
+    trace(RUN_DEBUG, "Terminated\n");
 }
 
 void
@@ -35,12 +35,12 @@ HardwareComponent::reset(bool hard)
     }
     
     // Reset this component
-    debug(RUN_DEBUG, "Reset [%p]\n", this);
+    trace(RUN_DEBUG, "Reset [%p]\n", this);
     _reset(hard);
 }
 
 bool
-HardwareComponent::configure(Option option, long value)
+HardwareComponent::configure(ConfigOption option, long value)
 {
     bool result = false;
     
@@ -56,23 +56,23 @@ HardwareComponent::configure(Option option, long value)
 }
 
 bool
-HardwareComponent::configure(Option option, long id, long value)
+HardwareComponent::configure(unsigned dfn, ConfigOption option, long value)
 {
     bool result = false;
     
     // Configure all subcomponents
     for (HardwareComponent *c : subComponents) {
-        result |= c->configure(option, id, value);
+        result |= c->configure(dfn, option, value);
     }
     
     // Configure this component
-    result |= setConfigItem(option, id, value);
+    result |= setConfigItem(dfn, option, value);
 
     return result;
 }
 
 void
-HardwareComponent::dumpConfig() const
+HardwareComponent::dumpConfig()
 {
     // Dump the configuration of all subcomponents
     for (HardwareComponent *c : subComponents) {
@@ -104,10 +104,10 @@ HardwareComponent::dump()
     _dump();
 }
 
-isize
+size_t
 HardwareComponent::size()
 {
-    isize result = _size();
+    size_t result = _size();
 
     for (HardwareComponent *c : subComponents) {
         result += c->size();
@@ -116,10 +116,10 @@ HardwareComponent::size()
     return result;
 }
 
-isize
-HardwareComponent::load(const u8 *buffer)
+size_t
+HardwareComponent::load(u8 *buffer)
 {
-    const u8 *ptr = buffer;
+    u8 *ptr = buffer;
 
     // Call delegation method
     ptr += willLoadFromBuffer(ptr);
@@ -136,13 +136,13 @@ HardwareComponent::load(const u8 *buffer)
     ptr += didLoadFromBuffer(ptr);
 
     // Verify that the number of written bytes matches the snapshot size
-    trace(SNP_DEBUG, "Loaded %ld bytes (expected %zu)\n", ptr - buffer, size());
-    assert(ptr - buffer == size());
+    trace(SNP_DEBUG, "Loaded %d bytes (expected %d)\n", ptr - buffer, size());
+    assert((size_t)(ptr - buffer) == size());
 
     return ptr - buffer;
 }
 
-isize
+size_t
 HardwareComponent::save(u8 *buffer)
 {
     u8 *ptr = buffer;
@@ -162,8 +162,8 @@ HardwareComponent::save(u8 *buffer)
     ptr += didSaveToBuffer(ptr);
 
     // Verify that the number of written bytes matches the snapshot size
-    trace(SNP_DEBUG, "Saved %ld bytes (expected %zu)\n", ptr - buffer, size());
-    assert(ptr - buffer == size());
+    trace(SNP_DEBUG, "Saved %d bytes (expected %d)\n", ptr - buffer, size());
+    assert((size_t)(ptr - buffer) == size());
 
     return ptr - buffer;
 }
@@ -184,8 +184,8 @@ HardwareComponent::powerOn()
         _reset(true);
 
         // Power this component on
-        debug(RUN_DEBUG, "Powering on\n");
-        state = EMULATOR_STATE_PAUSED;
+        trace(RUN_DEBUG, "Powering on\n");
+        state = STATE_PAUSED;
         _powerOn();
     }
 }
@@ -199,8 +199,8 @@ HardwareComponent::powerOff()
         pause();
         
         // Power off this component
-        debug(RUN_DEBUG, "Powering off\n");
-        state = EMULATOR_STATE_OFF;
+        trace(RUN_DEBUG, "Powering off\n");
+        state = STATE_OFF;
         _powerOff();
 
         // Power all subcomponents off
@@ -224,8 +224,8 @@ HardwareComponent::run()
         }
         
         // Start this component
-        debug(RUN_DEBUG, "Run\n");
-        state = EMULATOR_STATE_RUNNING;
+        trace(RUN_DEBUG, "Run\n");
+        state = STATE_RUNNING;
         _run();
     }
 }
@@ -236,8 +236,8 @@ HardwareComponent::pause()
     if (isRunning()) {
         
         // Pause this component
-        debug(RUN_DEBUG, "Pause\n");
-        state = EMULATOR_STATE_PAUSED;
+        trace(RUN_DEBUG, "Pause\n");
+        state = STATE_PAUSED;
         _pause();
 
         // Pause all subcomponents

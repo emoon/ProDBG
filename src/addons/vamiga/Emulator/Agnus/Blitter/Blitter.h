@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _BLITTER_H
+#define _BLITTER_H
 
 /* The Blitter supports three accuracy levels:
  *
@@ -165,7 +166,7 @@ private:
 public:
     
     // Experimental
-    u8 memguard[KB(512)] = {};
+    u8 memguard[KB(512)];
     
  
     //
@@ -176,8 +177,6 @@ public:
     
     Blitter(Amiga& ref);
 
-    const char *getDescription() const override { return "Blitter"; }
-    
     void initFastBlitter();
     void initSlowBlitter();
 
@@ -261,9 +260,9 @@ private:
         & remaining;
     }
 
-    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
-    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
+    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
     
     //
@@ -272,14 +271,14 @@ private:
 
 public:
     
-    const BlitterConfig &getConfig() const { return config; }
+    BlitterConfig getConfig() { return config; }
     
-    long getConfigItem(Option option) const;
-    bool setConfigItem(Option option, long value) override;
+    long getConfigItem(ConfigOption option);
+    bool setConfigItem(ConfigOption option, long value) override;
 
 private:
     
-    void _dumpConfig() const override;
+    void _dumpConfig() override;
     
     
     //
@@ -294,7 +293,7 @@ private:
     
     // Methods from HardwareComponent
     void _inspect() override;
-    void _dump() const override;
+    void _dump() override;
 
 
     //
@@ -304,13 +303,13 @@ private:
 public:
     
     // Returns true if the Blitter is processing a blit
-    bool isRunning() const { return running; }
+    bool isRunning() { return running; }
 
     // Returns the value of the Blitter Busy Flag
-    bool isBusy() const { return bbusy; }
+    bool isBusy() { return bbusy; }
 
     // Returns the value of the zero flag
-    bool isZero() const { return bzero; }
+    bool isZero() { return bzero; }
 
     // BLTCON0
     void pokeBLTCON0(u16 value);
@@ -319,26 +318,26 @@ public:
     void setBLTCON0L(u16 value);
     void setBLTCON0ASH(u16 ash);
 
-    u16 bltconASH()   const { return bltcon0 >> 12; }
-    u16 bltconLF()    const { return bltcon0 & 0xF; }
-    u16 bltconUSE()   const { return (bltcon0 >> 8) & 0xF; }
-    bool bltconUSEA() const { return bltcon0 & (1 << 11); }
-    bool bltconUSEB() const { return bltcon0 & (1 << 10); }
-    bool bltconUSEC() const { return bltcon0 & (1 << 9); }
-    bool bltconUSED() const { return bltcon0 & (1 << 8); }
+    u16 bltconASH()   { return bltcon0 >> 12; }
+    u16 bltconLF()    { return bltcon0 & 0xF; }
+    u16 bltconUSE()   { return (bltcon0 >> 8) & 0xF; }
+    bool bltconUSEA() { return bltcon0 & (1 << 11); }
+    bool bltconUSEB() { return bltcon0 & (1 << 10); }
+    bool bltconUSEC() { return bltcon0 & (1 << 9); }
+    bool bltconUSED() { return bltcon0 & (1 << 8); }
 
     // BLTCON1
     void pokeBLTCON1(u16 value);
     void setBLTCON1(u16 value);
     void setBLTCON1BSH(u16 bsh);
 
-    u16 bltconBSH()   const { return bltcon1 >> 12; }
-    bool bltconEFE()  const { return bltcon1 & (1 << 4); }
-    bool bltconIFE()  const { return bltcon1 & (1 << 3); }
-    bool bltconFE()   const { return bltconEFE() || bltconIFE(); }
-    bool bltconFCI()  const { return bltcon1 & (1 << 2); }
-    bool bltconDESC() const { return bltcon1 & (1 << 1); }
-    bool bltconLINE() const { return bltcon1 & (1 << 0); }
+    u16 bltconBSH()   { return bltcon1 >> 12; }
+    bool bltconEFE()  { return bltcon1 & (1 << 4); }
+    bool bltconIFE()  { return bltcon1 & (1 << 3); }
+    bool bltconFE()   { return bltconEFE() || bltconIFE(); }
+    bool bltconFCI()  { return bltcon1 & (1 << 2); }
+    bool bltconDESC() { return bltcon1 & (1 << 1); }
+    bool bltconLINE() { return bltcon1 & (1 << 0); }
 
     // BLTAxWM
     void pokeBLTAFWM(u16 value);
@@ -391,24 +390,18 @@ public:
 public:
     
     // Processes a Blitter event
-    void serviceEvent();
+    void serviceEvent(EventID id);
 
 
     //
-    // Running the sub-units
+    // Running the fill and minterm circuits
     //
 
 private:
     
-    // Runs the barrel shifters on data paths A and B
-    void doBarrelA    (u16 aNew, u16 *aOld, u16 *aHold) const;
-    void doBarrelAdesc(u16 aNew, u16 *aOld, u16 *aHold) const;
-    void doBarrelB    (u16 bNew, u16 *bOld, u16 *bHold) const;
-    void doBarrelBdesc(u16 bNew, u16 *bOld, u16 *bHold) const;
-
     // Emulates the minterm logic circuit
-    u16 doMintermLogic     (u16 a, u16 b, u16 c, u8 minterm) const;
-    u16 doMintermLogicQuick(u16 a, u16 b, u16 c, u8 minterm) const;
+    u16 doMintermLogic(u16 a, u16 b, u16 c, u8 minterm);
+    u16 doMintermLogicQuick(u16 a, u16 b, u16 c, u8 minterm);
 
     // Emulates the fill logic circuit
     void doFill(u16 &data, bool &carry);
@@ -472,8 +465,8 @@ private:
     template <u16 instr> void fakeExec();
 
     // Checks iterations
-    bool isFirstWord() const { return xCounter == bltsizeH; }
-    bool isLastWord() const { return xCounter == 1; }
+    bool isFirstWord() { return xCounter == bltsizeH; }
+    bool isLastWord() { return xCounter == 1; }
 
     // Sets the x or y counter to a new value
     void setXCounter(u16 value);
@@ -487,3 +480,5 @@ private:
     void doBarrelShifterA();
     void doBarrelShifterB();
 };
+
+#endif

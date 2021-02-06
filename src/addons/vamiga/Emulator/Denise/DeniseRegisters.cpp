@@ -83,7 +83,6 @@ Denise::setBPLCON0(u16 oldValue, u16 newValue)
     i64 pixel = MAX(4 * agnus.pos.h - 4, 0);
     conChanges.insert(pixel, RegChange { SET_BPLCON0_DENISE, newValue });
     
-    // Check if the HAM bit has changed
     if (ham(oldValue) ^ ham(newValue)) {
         pixelEngine.colChanges.insert(pixel, RegChange { BPLCON0, newValue } );
     }
@@ -94,17 +93,10 @@ Denise::setBPLCON0(u16 oldValue, u16 newValue)
     // Update border color index, because the ECSENA bit might have changed
     updateBorderColor();
     
-    // Check if the BPU bits have changed
-    u16 oldBpuBits = (oldValue >> 12) & 0b111;
-    u16 newBpuBits = (newValue >> 12) & 0b111;
-
-    if (oldBpuBits != newBpuBits) {
-        // trace("Changing BPU bits from %d to %d\n", oldBpuBits, newBpuBits);
-    }
-    
     // Report a suspicious BPU value
-    trace(XFILES && newBpuBits > (hires(bplcon0) ? 4 : 6),
-          "XFILES (BPLCON0): BPU = %d\n", newBpuBits);
+    if (((bplcon0 >> 12) & 0b111) > (hires(bplcon0) ? 5 : 7)) {
+        trace(XFILES, "XFILES (BPLCON0): BPU = %d\n", (bplcon0 >> 12) & 0b111);
+    }
 }
 
 void
@@ -136,18 +128,14 @@ Denise::pokeBPLCON2(u16 value)
 }
 
 void
-Denise::setBPLCON2(u16 newValue)
+Denise::setBPLCON2(u16 value)
 {
-    trace(BPLREG_DEBUG, "setBPLCON2(%X)\n", newValue);
+    trace(BPLREG_DEBUG, "setBPLCON2(%X)\n", value);
 
-    bplcon2 = newValue;
-    
-    debug(XFILES && PF1Px() > 4, "XFILES (BPLCON2): PF1P = %d\n", PF1Px());
-    debug(XFILES && PF2Px() > 4, "XFILES (BPLCON2): PF2P = %d\n", PF2Px());
-    
-    // Record the register change
-    i64 pixel = 4 * agnus.pos.h + 4;
-    conChanges.insert(pixel, RegChange { SET_BPLCON2, newValue });    
+    bplcon2 = value;
+
+    // Record the pixel coordinate where the change takes place
+    conChanges.insert(4 * agnus.pos.h + 4, RegChange { SET_BPLCON2, value });
 }
 
 void
@@ -186,13 +174,13 @@ Denise::pokeCLXCON(u16 value)
     clxcon = value;
 }
 
-template <isize x, Accessor s> void
+template <int x, Accessor s> void
 Denise::pokeBPLxDAT(u16 value)
 {
     assert(x < 6);
-    trace(BPLREG_DEBUG, "pokeBPL%luDAT(%X)\n", x + 1, value);
+    trace(BPLREG_DEBUG, "pokeBPL%dDAT(%X)\n", x + 1, value);
 
-    if (s == ACCESSOR_AGNUS) {
+    if (s == AGNUS_ACCESS) {
         /*
         debug("BPL%dDAT written by Agnus (%x)\n", x, value);
         */
@@ -201,11 +189,11 @@ Denise::pokeBPLxDAT(u16 value)
     setBPLxDAT<x>(value);
 }
 
-template <isize x> void
+template <int x> void
 Denise::setBPLxDAT(u16 value)
 {
     assert(x < 6);
-    trace(BPLDAT_DEBUG, "setBPL%luDAT(%X)\n", x + 1, value);
+    trace(BPLDAT_DEBUG, "setBPL%dDAT(%X)\n", x + 1, value);
         
     bpldat[x] = value;
 
@@ -220,11 +208,11 @@ Denise::setBPLxDAT(u16 value)
     }
 }
 
-template <isize x> void
+template <int x> void
 Denise::pokeSPRxPOS(u16 value)
 {
     assert(x < 8);
-    trace(SPRREG_DEBUG, "pokeSPR%luPOS(%X)\n", x, value);
+    trace(SPRREG_DEBUG, "pokeSPR%dPOS(%X)\n", x, value);
 
     // 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0  (Ex = VSTART)
     // E7 E6 E5 E4 E3 E2 E1 E0 H8 H7 H6 H5 H4 H3 H2 H1  (Hx = HSTART)
@@ -234,11 +222,11 @@ Denise::pokeSPRxPOS(u16 value)
     sprChanges[x/2].insert(pos, RegChange { SET_SPR0POS + x, value } );
 }
 
-template <isize x> void
+template <int x> void
 Denise::pokeSPRxCTL(u16 value)
 {
     assert(x < 8);
-    trace(SPRREG_DEBUG, "pokeSPR%luCTL(%X)\n", x, value);
+    trace(SPRREG_DEBUG, "pokeSPR%dCTL(%X)\n", x, value);
 
     // 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
     // L7 L6 L5 L4 L3 L2 L1 L0 AT  -  -  -  - E8 L8 H0  (Lx = VSTOP)
@@ -251,11 +239,11 @@ Denise::pokeSPRxCTL(u16 value)
     sprChanges[x/2].insert(pos, RegChange { SET_SPR0CTL + x, value } );
 }
 
-template <isize x> void
+template <int x> void
 Denise::pokeSPRxDATA(u16 value)
 {
     assert(x < 8);
-    trace(SPRREG_DEBUG, "pokeSPR%luDATA(%X)\n", x, value);
+    trace(SPRREG_DEBUG, "pokeSPR%dDATA(%X)\n", x, value);
     
     // If requested, let this sprite disappear by making it transparent
     if (GET_BIT(config.hiddenSprites, x)) value = 0;
@@ -268,11 +256,11 @@ Denise::pokeSPRxDATA(u16 value)
     sprChanges[x/2].insert(pos, RegChange { SET_SPR0DATA + x, value } );
 }
 
-template <isize x> void
+template <int x> void
 Denise::pokeSPRxDATB(u16 value)
 {
     assert(x < 8);
-    trace(SPRREG_DEBUG, "pokeSPR%luDATB(%X)\n", x, value);
+    trace(SPRREG_DEBUG, "pokeSPR%dDATB(%X)\n", x, value);
     
     // If requested, let this sprite disappear by making it transparent
     if (GET_BIT(config.hiddenSprites, x)) value = 0;
@@ -282,33 +270,33 @@ Denise::pokeSPRxDATB(u16 value)
     sprChanges[x/2].insert(pos, RegChange { SET_SPR0DATB + x, value });
 }
 
-template <Accessor s, isize xx> void
+template <Accessor s, int xx> void
 Denise::pokeCOLORxx(u16 value)
 {
-    trace(COLREG_DEBUG, "pokeCOLOR%02lu(%X)\n", xx, value);
+    trace(COLREG_DEBUG, "pokeCOLOR%02d(%X)\n", xx, value);
 
     u32 reg = 0x180 + 2*xx;
     i16 pos = agnus.pos.h;
 
     // If the CPU modifies color, the change takes effect one DMA cycle earlier
-    if (s != ACCESSOR_AGNUS && agnus.pos.h != 0) pos--;
+    if (s != AGNUS_ACCESS && agnus.pos.h != 0) pos--;
     
     // Record the color change
     pixelEngine.colChanges.insert(4 * pos, RegChange { reg, value } );
 }
 
-template void Denise::pokeBPLxDAT<0,ACCESSOR_CPU>(u16 value);
-template void Denise::pokeBPLxDAT<0,ACCESSOR_AGNUS>(u16 value);
-template void Denise::pokeBPLxDAT<1,ACCESSOR_CPU>(u16 value);
-template void Denise::pokeBPLxDAT<1,ACCESSOR_AGNUS>(u16 value);
-template void Denise::pokeBPLxDAT<2,ACCESSOR_CPU>(u16 value);
-template void Denise::pokeBPLxDAT<2,ACCESSOR_AGNUS>(u16 value);
-template void Denise::pokeBPLxDAT<3,ACCESSOR_CPU>(u16 value);
-template void Denise::pokeBPLxDAT<3,ACCESSOR_AGNUS>(u16 value);
-template void Denise::pokeBPLxDAT<4,ACCESSOR_CPU>(u16 value);
-template void Denise::pokeBPLxDAT<4,ACCESSOR_AGNUS>(u16 value);
-template void Denise::pokeBPLxDAT<5,ACCESSOR_CPU>(u16 value);
-template void Denise::pokeBPLxDAT<5,ACCESSOR_AGNUS>(u16 value);
+template void Denise::pokeBPLxDAT<0,CPU_ACCESS>(u16 value);
+template void Denise::pokeBPLxDAT<0,AGNUS_ACCESS>(u16 value);
+template void Denise::pokeBPLxDAT<1,CPU_ACCESS>(u16 value);
+template void Denise::pokeBPLxDAT<1,AGNUS_ACCESS>(u16 value);
+template void Denise::pokeBPLxDAT<2,CPU_ACCESS>(u16 value);
+template void Denise::pokeBPLxDAT<2,AGNUS_ACCESS>(u16 value);
+template void Denise::pokeBPLxDAT<3,CPU_ACCESS>(u16 value);
+template void Denise::pokeBPLxDAT<3,AGNUS_ACCESS>(u16 value);
+template void Denise::pokeBPLxDAT<4,CPU_ACCESS>(u16 value);
+template void Denise::pokeBPLxDAT<4,AGNUS_ACCESS>(u16 value);
+template void Denise::pokeBPLxDAT<5,CPU_ACCESS>(u16 value);
+template void Denise::pokeBPLxDAT<5,AGNUS_ACCESS>(u16 value);
 
 template void Denise::setBPLxDAT<0>(u16 value);
 template void Denise::setBPLxDAT<1>(u16 value);
@@ -353,67 +341,67 @@ template void Denise::pokeSPRxDATB<5>(u16 value);
 template void Denise::pokeSPRxDATB<6>(u16 value);
 template void Denise::pokeSPRxDATB<7>(u16 value);
 
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 0>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 0>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 1>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 1>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 2>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 2>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 3>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 3>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 4>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 4>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 5>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 5>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 6>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 6>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 7>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 7>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 8>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 8>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 9>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 9>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 10>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 10>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 11>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 11>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 12>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 12>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 13>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 13>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 14>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 14>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 15>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 15>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 16>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 16>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 17>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 17>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 18>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 18>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 19>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 19>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 20>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 20>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 21>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 21>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 22>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 22>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 23>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 23>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 24>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 24>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 25>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 25>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 26>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 26>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 27>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 27>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 28>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 28>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 29>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 29>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 30>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 30>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_CPU, 31>(u16 value);
-template void Denise::pokeCOLORxx<ACCESSOR_AGNUS, 31>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 0>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 0>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 1>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 1>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 2>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 2>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 3>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 3>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 4>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 4>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 5>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 5>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 6>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 6>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 7>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 7>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 8>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 8>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 9>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 9>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 10>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 10>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 11>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 11>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 12>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 12>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 13>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 13>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 14>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 14>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 15>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 15>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 16>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 16>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 17>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 17>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 18>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 18>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 19>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 19>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 20>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 20>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 21>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 21>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 22>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 22>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 23>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 23>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 24>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 24>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 25>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 25>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 26>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 26>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 27>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 27>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 28>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 28>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 29>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 29>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 30>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 30>(u16 value);
+template void Denise::pokeCOLORxx<CPU_ACCESS, 31>(u16 value);
+template void Denise::pokeCOLORxx<AGNUS_ACCESS, 31>(u16 value);

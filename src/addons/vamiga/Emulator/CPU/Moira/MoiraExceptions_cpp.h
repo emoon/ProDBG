@@ -37,9 +37,9 @@ Moira::saveToStackBrief(u16 sr, u32 pc)
     } else {
 
         reg.sp -= 6;
-        writeM <MEM_DATA, Word> ((reg.sp + 4) & ~1, pc & 0xFFFF);
-        writeM <MEM_DATA, Word> ((reg.sp + 0) & ~1, sr);
-        writeM <MEM_DATA, Word> ((reg.sp + 2) & ~1, pc >> 16);
+        writeM <MEM_DATA, Word> (reg.sp + 4, pc & 0xFFFF);
+        writeM <MEM_DATA, Word> (reg.sp + 0, sr);
+        writeM <MEM_DATA, Word> (reg.sp + 2, pc >> 16);
     }
 }
 
@@ -180,7 +180,7 @@ Moira::execPrivilegeException()
 }
 
 void
-Moira::execIrqException(u8 level)
+Moira::execIrqException(int level)
 {
     assert(level < 8);
     signalInterrupt(level);
@@ -208,7 +208,6 @@ Moira::execIrqException(u8 level)
     reg.sp -= 6;
     writeM <MEM_DATA, Word> (reg.sp + 4, reg.pc & 0xFFFF);
 
-    sync(4);
     queue.ird = getIrqVector(level);
     
     sync(4);

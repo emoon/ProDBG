@@ -8,87 +8,109 @@
 // -----------------------------------------------------------------------------
 
 #include "EXEFile.h"
-#include "FSDevice.h"
+#include "FSVolume.h"
 
-bool
-EXEFile::isCompatibleName(const string &name)
+EXEFile::EXEFile()
 {
-    return name == "exe" || name == "EXE";
+    setDescription("EXEFile");
 }
 
 bool
-EXEFile::isCompatibleStream(std::istream &stream)
+EXEFile::isEXEBuffer(const u8 *buffer, size_t length)
 {
     u8 signature[] = { 0x00, 0x00, 0x03, 0xF3 };
                                                                                             
+    assert(buffer != nullptr);
+    
     // Only accept the file if it fits onto a HD disk
-    if (streamLength(stream) > 1710000) return false;
+    if (length > 1710000) return false;
 
-    return matchingStreamHeader(stream, signature, sizeof(signature));
+    return matchingBufferHeader(buffer, signature, sizeof(signature));
 }
 
-isize
-EXEFile::readFromStream(std::istream &stream)
+bool
+EXEFile::isEXEFile(const char *path)
 {
+    u8 signature[] = { 0x00, 0x00, 0x03, 0xF3 };
+    
+    assert(path != nullptr);
+    
+    return matchingFileHeader(path, signature, sizeof(signature));
+}
+
+EXEFile *
+EXEFile::makeWithBuffer(const u8 *buffer, size_t length)
+{
+    EXEFile *exe = new EXEFile();
+    
+    if (!exe->readFromBuffer(buffer, length)) {
+        delete exe;
+        return NULL;
+    }
+    
+    return exe;
+}
+
+EXEFile *
+EXEFile::makeWithFile(const char *path)
+{
+    EXEFile *exe = new EXEFile();
+    
+    if (!exe->readFromFile(path)) {
+        delete exe;
+        return NULL;
+    }
+    
+    return exe;
+}
+
+bool
+EXEFile::readFromBuffer(const u8 *buffer, size_t length)
+{    
     bool success = false;
     
-    isize result = AmigaFile::readFromStream(stream);
+    if (!isEXEBuffer(buffer, length))
+        return false;
     
-    // Check if this file requires an HD disk
-    bool hd = size > 853000;
+    if (!AmigaFile::readFromBuffer(buffer, length))
+        return false;
         
-    // Create a new file system
-    FSDevice *volume = FSDevice::makeWithFormat(INCH_35, hd ? DISK_HD : DISK_DD);
-    volume->setName(FSName("Disk"));
+    // Check if this file requires an HD disk
+    bool hd = length > 853000;
+    
+    // Create a new file system 
+    FSVolume volume = FSVolume(FS_OFS, "Disk", hd ? 4 * 880 : 2 * 880);
     
     // Make the volume bootable
-    volume->makeBootable(0);
+    volume.installBootBlock();
     
     // Add the executable
-    FSBlock *file = volume->makeFile("file", data, size);
+    FSBlock *file = volume.makeFile("file", buffer, length);
+    // if (file) success = file->append(buffer, length);
     success = file != nullptr;
     
     // Add a script directory
-    volume->makeDir("s");
-    volume->changeDir("s");
+    volume.makeDir("s");
+    volume.changeDir("s");
     
     // Add a startup sequence
-    file = volume->makeFile("startup-sequence", "file");
-    success &= file != nullptr;
-    
-    // Finalize
-    volume->updateChecksums();
+    file = volume.makeFile("startup-sequence", "file");
+    // if (success && file) success = file->append("file");
+    success &= file != nullptr; 
     
     // Check for file system errors
-    volume->changeDir("/");
-    volume->info();
-    volume->printDirectory(true);
-
-    // Check the file system for consistency
-    FSErrorReport report = volume->check(true);
-    if (report.corruptedBlocks > 0) {
-        warn("Found %ld corrupted blocks\n", report.corruptedBlocks);
-        volume->dump();
+    volume.changeDir("/");
+    volume.info();
+    volume.walk(true);
+    
+    if (!volume.check(MFM_DEBUG)) {
+        warn("EXEFile::readFromBuffer: Files system is corrupted.\n");
+        // volume.dump();
     }
+    // volume.dump();
     
     // Convert the volume into an ADF
-    if (success) {
-        ErrorCode fsError;
-        assert(adf == nullptr);
-        adf = ADFFile::makeWithVolume(*volume, &fsError);
-        if (fsError != ERROR_OK) {
-            warn("readFromBuffer: Cannot export volume (%s)\n",
-                 ErrorCodeEnum::key(fsError));
-        }
-    }
-    
-    // REMOVE ASAP
-    const char *path = "/tmp/test";
-    msg("Doing a test export to %s\n", path);
-    
-    volume->exportDirectory(path);
-    
-    if (!adf) throw VAError(ERROR_UNKNOWN);
-    return result;
+    assert(adf == nullptr);
+    if (success) adf = ADFFile::makeWithVolume(volume);
+    return adf != nullptr;
 }
-

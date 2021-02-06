@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _DDF_H
+#define _DDF_H
 
 #include <sys/param.h>
 #include "Aliases.h"
@@ -51,9 +52,9 @@ struct DDF
         return !(*this == ddf);
     }
     
-    bool inRangeOdd(i16 pos) const { return pos > strtOdd && pos < stopOdd; }
-    bool inRangeEven(i16 pos) const { return pos > strtEven && pos < stopEven; }
-    bool oddAndEvenDiffer() const { return strtOdd != strtEven || stopOdd != stopEven; }
+    bool inRangeOdd(i16 pos) { return pos > strtOdd && pos < stopOdd; }
+    bool inRangeEven(i16 pos) { return pos > strtEven && pos < stopEven; }
+    bool oddAndEvenDiffer() { return strtOdd != strtEven || stopOdd != stopEven; }
     
     /* Computes a DDF window
      *
@@ -67,3 +68,5 @@ struct DDF
     void compute(i16 ddfstrt, i16 ddfstop, u16 bplcon1);
     void compute(i16 &strt, i16 &stop, i16 ddfstrt, i16 ddfstop, int scroll);
 };
+
+#endif

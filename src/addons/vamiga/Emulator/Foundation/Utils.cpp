@@ -9,8 +9,6 @@
 
 #include "Utils.h"
 
-#include <ctype.h>
-
 bool
 releaseBuild()
 {
@@ -21,89 +19,100 @@ releaseBuild()
 #endif
 }
 
-void hexdump(u8 *p, isize size, isize cols, isize pad)
+char *
+extractFirstPathComponent(const char *path)
 {
-    while (size) {
-        
-        isize cnt = MIN(size, cols);
-        for (isize x = 0; x < cnt; x++) {
-            fprintf(stderr, "%02X %s", p[x], ((x + 1) % pad) == 0 ? " " : "");
-        }
-        
-        size -= cnt;
-        p += cnt;
-        
-        fprintf(stderr, "\n");
-    }
-    fprintf(stderr, "\n");
+    assert(path != nullptr);
+    
+    const char *pos = strchr(path, '/');
+    return pos ? strdup(pos + 1) : strdup(path);
 }
 
-void hexdump(u8 *p, isize size, isize cols)
+char *
+extractPathComponent(const char *path, unsigned n)
 {
-    hexdump(p, size, cols, cols);
+    assert(path != nullptr);
+
+    // Seek the n-th occurance of '/'
+    while (n--) if ((path = strchr(path, '/')) == nullptr) return nullptr;
+
+    // Return the first path component
+    return extractFirstPathComponent(path);
 }
 
-void hexdumpWords(u8 *p, isize size, isize cols)
+char *
+stripFilename(const char *path)
 {
-    hexdump(p, size, cols, 2);
+    assert(path != nullptr);
+    
+    const char *pos = strrchr(path, '/');
+    return pos ? strndup(path, pos + 1 - path) : strdup("");
 }
 
-void hexdumpLongwords(u8 *p, isize size, isize cols)
+char *
+extractFilename(const char *path)
 {
-    hexdump(p, size, cols, 4);
+    assert(path != nullptr);
+    
+    const char *pos = strrchr(path, '/');
+    return pos ? strdup(pos + 1) : strdup(path);
 }
 
-string extractPath(const string &s)
+char *
+replaceFilename(const char *path, const char *name)
 {
-    auto idx = s.rfind('/');
-    auto pos = 0;
-    auto len = idx != string::npos ? idx + 1 : 0;
-    return s.substr(pos, len);
+    char *dir = stripFilename(path);
+    char *result = (char *)malloc(strlen(dir) + strlen(name) + 1);
+
+    strcpy(result, dir);
+    strcat(result, name);
+
+    delete(dir);
+    return result;
 }
 
-string extractName(const string &s)
+char *
+extractSuffix(const char *path)
 {
-    auto idx = s.rfind('/');
-    auto pos = idx != string::npos ? idx + 1 : 0;
-    auto len = string::npos;
-    return s.substr(pos, len);
+    assert(path != nullptr);
+    
+    const char *pos = strrchr(path, '.');
+    return pos ? strdup(pos + 1) : strdup("");
 }
 
-string extractSuffix(const string &s)
+char *
+extractFilenameWithoutSuffix(const char *path)
 {
-    auto idx = s.rfind('.');
-    auto pos = idx != string::npos ? idx + 1 : 0;
-    auto len = string::npos;
-    return s.substr(pos, len);
+    assert(path != nullptr);
+    
+    char *result;
+    char *filename = extractFilename(path);
+    char *suffix   = extractSuffix(filename);
+    
+    if (strlen(suffix) == 0)
+        result = strdup(filename);
+    else
+        result = strndup(filename, strlen(filename) - strlen(suffix) - 1);
+    
+    free(filename);
+    free(suffix);
+    return result;
 }
 
-string stripPath(const string &s)
+bool
+checkFileSuffix(const char *path, const char *suffix)
 {
-    auto idx = s.rfind('/');
-    auto pos = idx != string::npos ? idx + 1 : 0;
-    auto len = string::npos;
-    return s.substr(pos, len);
-}
-
-string stripName(const string &s)
-{
-    auto idx = s.rfind('/');
-    auto pos = 0;
-    auto len = idx != string::npos ? idx : 0;
-    return s.substr(pos, len);
-}
-
-string stripSuffix(const string &s)
-{
-    auto idx = s.rfind('.');
-    auto pos = 0;
-    auto len = idx != string::npos ? idx : string::npos;
-    return s.substr(pos, len);
-}
-
-bool isDirectory(const string &path)
-{
-    return isDirectory(path.c_str());
+    assert(path != nullptr);
+    assert(suffix != nullptr);
+    
+    if (strlen(suffix) > strlen(path))
+        return false;
+    
+    path += (strlen(path) - strlen(suffix));
+    if (strcmp(path, suffix) == 0)
+        return true;
+    else
+        return false;
 }
 
 bool isDirectory(const char *path)
@@ -119,65 +128,74 @@ bool isDirectory(const char *path)
     return S_ISDIR(fileProperties.st_mode);
 }
 
-isize numDirectoryItems(const string &path)
-{
-    return numDirectoryItems(path.c_str());
-}
-
-isize numDirectoryItems(const char *path)
-{
-    isize count = 0;
-    
-    if (DIR *dir = opendir(path)) {
-        
-        struct dirent *dp;
-        while ((dp = readdir(dir))) {
-            if (dp->d_name[0] != '.') count++;
-        }
-    }
-    
-    return count;
-}
-
-isize
-getSizeOfFile(const string &path)
-{
-    return getSizeOfFile(path.c_str());
-}
-
-isize
+long
 getSizeOfFile(const char *path)
 {
     struct stat fileProperties;
-        
+    
+    if (path == nullptr)
+        return -1;
+    
     if (stat(path, &fileProperties) != 0)
         return -1;
     
     return fileProperties.st_size;
 }
 
-bool matchingStreamHeader(std::istream &stream, const u8 *header, isize len)
+bool
+checkFileSize(const char *path, long size)
 {
-    stream.seekg(0, std::ios::beg);
+    return checkFileSizeRange(path, size, size);
+}
+
+bool
+checkFileSizeRange(const char *path, long min, long max)
+{
+    long filesize = getSizeOfFile(path);
     
-    for (isize i = 0; i < len; i++) {
-        int c = stream.get();
-        if (c != (int)header[i]) {
-            stream.seekg(0, std::ios::beg);
-            return false;
-        }
-    }
-    stream.seekg(0, std::ios::beg);
+    if (filesize == -1)
+        return false;
+    
+    if (min > 0 && filesize < min)
+        return false;
+    
+    if (max > 0 && filesize > max)
+        return false;
+    
     return true;
 }
 
 bool
-matchingBufferHeader(const u8 *buffer, const u8 *header, isize len)
+matchingFileHeader(const char *path, const u8 *header, size_t length)
+{
+    assert(path != nullptr);
+    assert(header != nullptr);
+    
+    bool result = true;
+    FILE *file;
+    
+    if ((file = fopen(path, "r")) == nullptr)
+        return false;
+    
+    for (unsigned i = 0; i < length; i++) {
+        int c = fgetc(file);
+        if (c != (int)header[i]) {
+            result = false;
+            break;
+        }
+    }
+    
+    fclose(file);
+    return result;
+}
+
+bool
+matchingBufferHeader(const u8 *buffer, const u8 *header, size_t length)
 {
     assert(buffer != nullptr);
     assert(header != nullptr);
     
-    for (isize i = 0; i < len; i++) {
+    for (unsigned i = 0; i < length; i++) {
         if (header[i] != buffer[i])
             return false;
     }
@@ -208,7 +226,7 @@ loadFile(const char *path, u8 **buffer, long *size)
     if (data == nullptr) { fclose(file); return false; }
     
     // Read data
-    for (isize i = 0; i < bytes; i++) {
+    for (unsigned i = 0; i < bytes; i++) {
         int c = fgetc(file);
         if (c == EOF) break;
         data[i] = (u8)c;
@@ -234,39 +252,14 @@ loadFile(const char *path, const char *name, u8 **buffer, long *size)
     return loadFile(fullpath, buffer, size);
 }
 
-u32 __attribute__((no_sanitize("unsigned-integer-overflow")))
-fnv_1a_it32(u32 prv, u32 val)
-{
-    return (prv ^ val) * 0x1000193;
-}
- 
-u64 __attribute__((no_sanitize("unsigned-integer-overflow")))
-fnv_1a_it64(u64 prv, u64 val)
-{
-    return (prv ^ val) * 0x100000001b3;
-}
-
-isize
-streamLength(std::istream &stream)
-{
-    auto cur = stream.tellg();
-    stream.seekg(0, std::ios::beg);
-    auto beg = stream.tellg();
-    stream.seekg(0, std::ios::end);
-    auto end = stream.tellg();
-    stream.seekg(cur, std::ios::beg);
-    
-    return (isize)(end - beg);
-}
-
 u32
-fnv_1a_32(const u8 *addr, isize size)
+fnv_1a_32(const u8 *addr, size_t size)
 {
     if (addr == nullptr || size == 0) return 0;
 
     u32 hash = fnv_1a_init32();
 
-    for (isize i = 0; i < size; i++) {
+    for (size_t i = 0; i < size; i++) {
         hash = fnv_1a_it32(hash, (u32)addr[i]);
     }
 
@@ -274,20 +267,20 @@ fnv_1a_32(const u8 *addr, isize size)
 }
 
 u64
-fnv_1a_64(const u8 *addr, isize size)
+fnv_1a_64(const u8 *addr, size_t size)
 {
     if (addr == nullptr || size == 0) return 0;
     
     u64 hash = fnv_1a_init64();
     
-    for (isize i = 0; i < size; i++) {
+    for (size_t i = 0; i < size; i++) {
         hash = fnv_1a_it64(hash, (u64)addr[i]);
     }
     
     return hash;
 }
 
-u16 crc16(const u8 *addr, isize size)
+u16 crc16(const u8 *addr, size_t size)
 {
     u8 x;
     u16 crc = 0xFFFF;
@@ -295,13 +288,13 @@ u16 crc16(const u8 *addr, isize size)
     while (size--){
         x = crc >> 8 ^ *addr++;
         x ^= x>>4;
-        crc = (u16)((crc << 8) ^ ((u16)(x << 12)) ^ ((u16)(x <<5)) ^ ((u16)x));
+        crc = (crc << 8) ^ ((u16)(x << 12)) ^ ((u16)(x <<5)) ^ ((u16)x);
     }
     return crc;
 }
 
 u32
-crc32(const u8 *addr, isize size)
+crc32(const u8 *addr, size_t size)
 {
     if (addr == nullptr || size == 0) return 0;
 
@@ -312,7 +305,7 @@ crc32(const u8 *addr, isize size)
     for(int i = 0; i < 256; i++) table[i] = crc32forByte(i);
 
     // Compute CRC-32 checksum
-     for(isize i = 0; i < size; i++)
+     for(size_t i = 0; i < size; i++)
        result = table[(u8)result ^ addr[i]] ^ result >> 8;
 
     return result;
@@ -324,4 +317,148 @@ crc32forByte(u32 r)
     for(int j = 0; j < 8; ++j)
         r = (r & 1? 0: (u32)0xEDB88320L) ^ r >> 1;
     return r ^ (u32)0xFF000000L;
+}
+
+int
+sha_1(u8 *digest, char *hexdigest, const u8 *addr, size_t size)
+{
+    // Slight modification of https://github.com/CTrabant/teeny-sha1
+
+#define SHA1ROTATELEFT(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
+
+    u32 W[80];
+    u32 H[] = {0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0};
+    u32 a, b, c, d, e, f = 0, k = 0;
+    u32 idx, lidx, widx, didx = 0;
+
+    i32 wcount;
+    u32 temp;
+    u64 databits = ((uint64_t)size) * 8;
+    u32 loopcount = (size + 8) / 64 + 1;
+    u32 tailbytes = 64 * loopcount - size;
+    u8 datatail[128] = {0};
+
+    if (!digest && !hexdigest)
+        return -1;
+
+    if (!addr)
+        return -1;
+
+    // Pre-processing of data tail (includes padding to fill out 512-bit chunk):
+    // Add bit '1' to end of message (big-endian)
+    // Add 64-bit message length in bits at very end (big-endian)
+
+    datatail[0] = 0x80;
+    datatail[tailbytes - 8] = (uint8_t) (databits >> 56 & 0xFF);
+    datatail[tailbytes - 7] = (uint8_t) (databits >> 48 & 0xFF);
+    datatail[tailbytes - 6] = (uint8_t) (databits >> 40 & 0xFF);
+    datatail[tailbytes - 5] = (uint8_t) (databits >> 32 & 0xFF);
+    datatail[tailbytes - 4] = (uint8_t) (databits >> 24 & 0xFF);
+    datatail[tailbytes - 3] = (uint8_t) (databits >> 16 & 0xFF);
+    datatail[tailbytes - 2] = (uint8_t) (databits >> 8 & 0xFF);
+    datatail[tailbytes - 1] = (uint8_t) (databits >> 0 & 0xFF);
+
+    // Process each 512-bit chunk
+    for (lidx = 0; lidx < loopcount; lidx++)
+    {
+        // Compute all elements in W
+        memset (W, 0, 80 * sizeof (uint32_t));
+
+        // Break 512-bit chunk into sixteen 32-bit, big endian words
+        for (widx = 0; widx <= 15; widx++)
+        {
+            wcount = 24;
+
+            // Copy byte-per byte from specified buffer
+            while (didx < size && wcount >= 0)
+            {
+                W[widx] += (((uint32_t)addr[didx]) << wcount);
+                didx++;
+                wcount -= 8;
+            }
+            // Fill out W with padding as needed
+            while (wcount >= 0)
+            {
+                W[widx] += (((uint32_t)datatail[didx - size]) << wcount);
+                didx++;
+                wcount -= 8;
+            }
+        }
+
+        // Extend the sixteen 32-bit words into eighty 32-bit words, with
+        // potential optimization from: "Improving the Performance of the
+        // Secure Hash Algorithm (SHA-1)" by Max Locktyukhin
+        for (widx = 16; widx <= 31; widx++)
+        {
+            W[widx] = SHA1ROTATELEFT ((W[widx - 3] ^ W[widx - 8] ^ W[widx - 14] ^ W[widx - 16]), 1);
+        }
+        for (widx = 32; widx <= 79; widx++)
+        {
+            W[widx] = SHA1ROTATELEFT ((W[widx - 6] ^ W[widx - 16] ^ W[widx - 28] ^ W[widx - 32]), 2);
+        }
+
+        // Main loop
+        a = H[0];
+        b = H[1];
+        c = H[2];
+        d = H[3];
+        e = H[4];
+
+        for (idx = 0; idx <= 79; idx++)
+        {
+            if (idx <= 19)
+            {
+                f = (b & c) | ((~b) & d);
+                k = 0x5A827999;
+            }
+            else if (idx >= 20 && idx <= 39)
+            {
+                f = b ^ c ^ d;
+                k = 0x6ED9EBA1;
+            }
+            else if (idx >= 40 && idx <= 59)
+            {
+                f = (b & c) | (b & d) | (c & d);
+                k = 0x8F1BBCDC;
+            }
+            else if (idx >= 60 && idx <= 79)
+            {
+                f = b ^ c ^ d;
+                k = 0xCA62C1D6;
+            }
+            temp = SHA1ROTATELEFT (a, 5) + f + e + k + W[idx];
+            e = d;
+            d = c;
+            c = SHA1ROTATELEFT (b, 30);
+            b = a;
+            a = temp;
+        }
+
+        H[0] += a;
+        H[1] += b;
+        H[2] += c;
+        H[3] += d;
+        H[4] += e;
+    }
+
+    // Store binary digest in supplied buffer
+    if (digest)
+    {
+        for (idx = 0; idx < 5; idx++)
+        {
+            digest[idx * 4 + 0] = (uint8_t) (H[idx] >> 24);
+            digest[idx * 4 + 1] = (uint8_t) (H[idx] >> 16);
+            digest[idx * 4 + 2] = (uint8_t) (H[idx] >> 8);
+            digest[idx * 4 + 3] = (uint8_t) (H[idx]);
+        }
+    }
+
+    // Store hex version of digest in supplied buffer
+    if (hexdigest)
+    {
+        snprintf (hexdigest, 41, "%08x%08x%08x%08x%08x",
+                  H[0],H[1],H[2],H[3],H[4]);
+    }
+
+    return 0;
 }

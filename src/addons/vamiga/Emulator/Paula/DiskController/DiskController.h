@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _DISK_CONTROLLER_H
+#define _DISK_CONTROLLER_H
 
 #include "AmigaComponent.h"
 
@@ -22,7 +23,7 @@ class DiskController : public AmigaComponent {
     DiskControllerInfo info;
 
     // Temorary storage for a disk waiting to be inserted
-    class Disk *diskToInsert = nullptr;
+    class Disk *diskToInsert = NULL;
 
     // The currently selected drive (-1 if no drive is selected)
     i8 selected = -1;
@@ -94,8 +95,6 @@ public:
     
     DiskController(Amiga& ref);
 
-    const char *getDescription() const override { return "DiskController"; }
-    
     void _reset(bool hard) override;
     
     
@@ -105,18 +104,18 @@ public:
     
 public:
     
-    const DiskControllerConfig &getConfig() const { return config; }
-    bool turboMode() const { return config.speed == -1; }
+    DiskControllerConfig getConfig() { return config; }
+    bool turboMode() { return config.speed == -1; }
 
-    long getConfigItem(Option option) const;
-    long getConfigItem(Option option, long id) const;
+    long getConfigItem(ConfigOption option);
+    long getConfigItem(unsigned dfn, ConfigOption option);
     
-    bool setConfigItem(Option option, long value) override;
-    bool setConfigItem(Option option, long id, long value) override;
+    bool setConfigItem(ConfigOption option, long value) override;
+    bool setConfigItem(unsigned dfn, ConfigOption option, long value) override;
 
 private:
     
-    void _dumpConfig() const override;
+    void _dumpConfig() override;
 
         
     //
@@ -130,7 +129,7 @@ public:
 private:
     
     void _inspect() override;
-    void _dump() const override;
+    void _dump() override;
 
     
     //
@@ -173,9 +172,9 @@ private:
         & prb;
     }
 
-    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
-    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
+    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
 
     //
@@ -185,20 +184,19 @@ private:
 public:
     
     // Returns the number of the currently selected drive
-    i8 getSelected() const { return selected; }
+    i8 getSelected() { return selected; }
 
-    // Returns the currently selected (nullptr if none is selected)
-    // TODO: Return reference
+    // Returns the currently selected (NULL if none is selected)
     class Drive *getSelectedDrive();
 
     // Indicates if the motor of the specified drive is switched on
-    bool spinning(isize driveNr) const;
+    bool spinning(unsigned driveNr);
 
     // Indicates if the motor of at least one drive is switched on
-    bool spinning() const;
+    bool spinning();
     
     // Returns the current drive state
-    DriveState getState() const { return state; }
+    DriveState getState() { return state; }
     
 private:
     
@@ -214,7 +212,7 @@ private:
 public:
     
     // OCR register 0x008 (r)
-    u16 peekDSKDATR() const;
+    u16 peekDSKDATR();
     
     // OCR register 0x024 (w)
     void pokeDSKLEN(u16 value);
@@ -231,7 +229,7 @@ public:
     void pokeDSKSYNC(u16 value);
     
     // Read handler for the PRA register of CIA A
-    u8 driveStatusFlags() const;
+    u8 driveStatusFlags();
     
     // Write handler for the PRB register of CIA B
     void PRBdidChange(u8 oldValue, u8 newValue);
@@ -242,14 +240,19 @@ public:
     //
 
     // Ejects a disk from the specified drive
-    void ejectDisk(isize nr, Cycle delay = 0);
+    void ejectDisk(int nr, Cycle delay = 0);
 
     // Inserts a disk into the specified drive
-    void insertDisk(class Disk *disk, isize nr, Cycle delay = 0);
-    void insertDisk(class DiskFile *file, isize nr, Cycle delay = 0);
-    
+    void insertDisk(class Disk *disk, int nr, Cycle delay = 0);
+    // TODO: REPLACE FOLLOWING BY insertDisk(class DiskFile *file, ...)
+    void insertDisk(class ADFFile *file, int nr, Cycle delay = 0);
+    void insertDisk(class IMGFile *file, int nr, Cycle delay = 0);
+    void insertDisk(class DMSFile *file, int nr, Cycle delay = 0);
+    void insertDisk(class EXEFile *file, int nr, Cycle delay = 0);
+    void insertDisk(class DIRFile *file, int nr, Cycle delay = 0);
+
     // Write protects or unprotects a disk
-    void setWriteProtection(isize nr, bool value);
+    void setWriteProtection(int nr, bool value);
 
         
     //
@@ -276,10 +279,10 @@ public:
 private:
     
     // Informs about the current FIFO fill state
-    bool fifoIsEmpty() const { return fifoCount == 0; }
-    bool fifoIsFull() const { return fifoCount == 6; }
-    bool fifoHasWord() const { return fifoCount >= 2; }
-    bool fifoCanStoreWord() const { return fifoCount <= 4; }
+    bool fifoIsEmpty() { return fifoCount == 0; }
+    bool fifoIsFull() { return fifoCount == 6; }
+    bool fifoHasWord() { return fifoCount >= 2; }
+    bool fifoCanStoreWord() { return fifoCount <= 4; }
 
     // Clears the FIFO buffer
     void clearFifo();
@@ -293,7 +296,7 @@ private:
 
     
     // Returns true if the next word to read matches the specified value
-    bool compareFifo(u16 word) const;
+    bool compareFifo(u16 word);
 
     /* Emulates a data transfert between the selected drive and the FIFO
      * buffer. This function is executed periodically in serviceDiskEvent().
@@ -359,3 +362,5 @@ public:
     void performTurboRead(Drive *drive);
     void performTurboWrite(Drive *drive);
 };
+
+#endif

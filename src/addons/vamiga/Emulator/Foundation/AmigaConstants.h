@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef VA_CONSTANTS_H
+#define VA_CONSTANTS_H
 
 #include "Aliases.h"
 
@@ -344,8 +345,10 @@ static inline bool isHPos(i16 pos) { return pos >= 0 && pos < HPOS_CNT; }
 
 #define HBLANK_MIN    0x0A
 #define HBLANK_MAX    0x30
-#define HBLANK_CNT    0x27 // equals HBLANK_MAX - HBLANK_MIN + 1
+#define HBLANK_CNT    0x27 // HBLANK_MAX - HBLANK_MIN + 1
 
 #define VBLANK_MIN    0x00
 #define VBLANK_MAX    0x19
-#define VBLANK_CNT    0x1A // equals VBLANK_MAX - VBLANK_MIN + 1
+#define VBLANK_CNT    0x1A // VBLANK_MAX - VBLANK_MIN + 1
+
+#endif 

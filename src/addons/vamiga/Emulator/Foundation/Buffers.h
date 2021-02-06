@@ -7,10 +7,6 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
-
-#include "AmigaPublicTypes.h"
-
 /* The emulator uses buffers at various places. Most of them are derived from
  * one of the following two classes:
  *
@@ -18,23 +14,28 @@
  *     SortedRingBuffer : A ringbuffer that keeps the entries sorted
  */
 
-template <class T, isize capacity> struct RingBuffer
+#ifndef _BUFFERS_H
+#define _BUFFERS_H
+
+#include "AmigaTypes.h"
+
+template <class T, size_t capacity> struct RingBuffer
 {
     // Element storage
-    T elements[capacity];
+    T* elements = nullptr;
 
     // Read and write pointers
-    i64 r, w;
+    int r, w;
 
     //
     // Initializing
     //
 
-    RingBuffer() { clear(); }
-    
+    RingBuffer() { elements = new T[capacity]; clear(); }
+
     void clear() { r = w = 0; }
-    void clear(T t) { for (isize i = 0; i < capacity; i++) elements[i] = t; clear(); }
-    void align(i64 offset) { w = (r + offset) % capacity; }
+    void clear(T t) { for (size_t i = 0; i < capacity; i++) elements[i] = t; clear(); }
+    void align(int offset) { w = (r + offset) % capacity; }
 
     //
     // Serializing
@@ -43,50 +44,50 @@ template <class T, isize capacity> struct RingBuffer
     template <class W>
     void applyToItems(W& worker)
     {
-        worker & elements & r & w;
+        //worker & elements & r & w;
     }
 
-    
+
     //
     // Querying the fill status
     //
 
-    isize cap() const { return capacity; }
-    isize count() const { return (capacity + w - r) % capacity; }
+    size_t cap() { return capacity; }
+    size_t count() const { return (capacity + w - r) % capacity; }
     double fillLevel() const { return (double)count() / capacity; }
     bool isEmpty() const { return r == w; }
     bool isFull() const { return count() == capacity - 1; }
 
-    
+
     //
     // Working with indices
     //
 
-    i64 begin() const { return r; }
-    i64 end() const { return w; }
-    static int next(i64 i) { return (capacity + i + 1) % capacity; }
-    static int prev(i64 i) { return (capacity + i - 1) % capacity; }
+    int begin() const { return r; }
+    int end() const { return w; }
+    static int next(int i) { return (capacity + i + 1) % capacity; }
+    static int prev(int i) { return (capacity + i - 1) % capacity; }
 
 
     //
     // Reading and writing elements
     //
 
-    const T& current() const
+    T& current()
     {
         return elements[r];
     }
 
-    const T& current(i64 offset) const
+    T& current(int offset)
     {
         return elements[(r + offset) % capacity];
     }
-    
+
     T& read()
     {
         assert(!isEmpty());
 
-        i64 oldr = r;
+        int oldr = r;
         r = next(r);
         return elements[oldr];
     }
@@ -95,18 +96,18 @@ template <class T, isize capacity> struct RingBuffer
     {
         assert(!isFull());
 
-        i64 oldw = w;
+        int oldw = w;
         w = next(w);
         elements[oldw] = element;
     }
-    
+
     //
     // Examining the element storage
     //
 
 };
 
-template <class T, isize capacity>
+template <class T, int capacity>
 struct SortedRingBuffer : public RingBuffer<T, capacity>
 {
     // Key storage
@@ -117,14 +118,14 @@ struct SortedRingBuffer : public RingBuffer<T, capacity>
      {
          worker & this->elements & this->r & this->w & keys;
      }
-    
+
     // Inserts an element at the proper position
     void insert(i64 key, T element)
     {
         assert(!this->isFull());
 
         // Add the new element
-        i64 oldw = this->w;
+        int oldw = this->w;
         this->write(element);
         keys[oldw] = key;
 
@@ -132,7 +133,7 @@ struct SortedRingBuffer : public RingBuffer<T, capacity>
         while (oldw != this->r) {
 
             // Get the index of the preceeding element
-            i64 p = this->prev(oldw);
+            int p = this->prev(oldw);
 
             // Exit the loop once we've found the correct position
             if (key >= keys[p]) break;
@@ -143,6 +144,19 @@ struct SortedRingBuffer : public RingBuffer<T, capacity>
             oldw = p;
         }
     }
+
+    /*
+    void dump()
+    {
+        printf("%d elements (r = %d w = %d):\n", this->count(), this->r, this->w);
+        for (int i = this->r; i != this->w; i = this->next(i)) {
+            assert(i < capacity);
+            printf("%2i: [%lld] ", i, this->keys[i]);
+            printf("%d\n", this->elements[i]);
+        }
+        printf("\n");
+    }
+    */
 };
 
 
@@ -166,13 +180,31 @@ struct RegChange
     // Constructors
     RegChange() : addr(0), value(0) { }
     RegChange(u32 a, u16 v) : addr(a), value(v) { }
+
+    void print()
+    {
+        printf("addr: %x value: %x\n", addr, value);
+    }
 };
 
-template <isize capacity>
+template <int capacity>
 struct RegChangeRecorder : public SortedRingBuffer<RegChange, capacity>
 {
     // Returns the closest trigger cycle
     Cycle trigger() {
         return this->isEmpty() ? NEVER : this->keys[this->r];
     }
+
+    void dump()
+    {
+        printf("%d elements (r = %d w = %d):\n", this->count(), this->r, this->w);
+        for (int i = this->r; i != this->w; i = this->next(i)) {
+            assert(i < capacity);
+            printf("%2i: [%lld] ", i, this->keys[i]);
+            this->elements[i].print();
+        }
+        printf("\n");
+    }
 };
+
+#endif

@@ -7,126 +7,36 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _AMIGA_FILE_H
+#define _AMIGA_FILE_H
 
 #include "AmigaObject.h"
-#include "FileTypes.h"
 
-/* All media files are organized in the class hierarchy displayed below. Two
- * abstract classes are involed: AmigaFile and DiskFile. AmigaFile provides
- * basic functionality for reading and writing files, streams, and buffers.
- * DiskFile provides an abstract interface for accessing media files that will
- * be mounted as a virtual floppy disk.
- *
- *  ------------
- * | AmigaFile  |
- *  ------------
- *       |
- *       |---------------------------------------------------
- *       |           |           |            |              |
- *       |      ----------   ---------   ---------   -----------------
- *       |     | Snapshot | | HDFFile | | RomFile | | ExtendedRomFile |
- *       |      ----------   ---------   ---------   -----------------
- *       |
- *  ------------
- * |  DiskFile  |
- *  ------------
- *       |
- *       |------------------------------------------------------------
- *       |           |           |           |            |           |
- *   ---------   ---------   ---------   ---------    ---------   ---------
- *  | ADFFile | | EXTFile | | IMGFile | | DMSFile | | EXEFile | | Folder  |
- *   ---------   ---------   ---------   ---------    ---------   ---------
+/* Base class of all file readable types. It provides the basic functionality
+ * for reading and writing files.
  */
-
 class AmigaFile : public AmigaObject {
     
-public:
+protected:
     
-    // Physical location of this file
-    string path = "";
+    // Physical location of this file on disk
+    char *path = NULL;
     
     // The raw data of this file
-    u8 *data = nullptr;
+    u8 *data = NULL;
     
     // The size of this file in bytes
-    isize size = 0;
+    size_t size = 0;
     
+    /* File pointer
+     * An offset into the data array with -1 indicating EOF
+     */
+    long fp = -1;
     
-    //
-    // Creating
-    //
-    
-public:
-    
-    template <class T> static T *make(const string &path, std::istream &stream) throws
-    {
-        if (!T::isCompatibleStream(stream)) throw VAError(ERROR_FILE_TYPE_MISMATCH);
-        
-        T *obj = new T();
-        obj->path = path;
-        
-        try { obj->readFromStream(stream); } catch (VAError &err) {
-            delete obj;
-            throw err;
-        }
-        return obj;
-    }
-
-    template <class T> static T *make(const string &path, std::istream &stream, ErrorCode *err)
-    {
-        *err = ERROR_OK;
-        try { return make <T> (stream); }
-        catch (VAError &exception) { *err = exception.errorCode; }
-        return nullptr;
-    }
-    
-    template <class T> static T *make(const u8 *buf, isize len) throws
-    {
-        std::stringstream stream;
-        stream.write((const char *)buf, len);
-        return make <T> ("", stream);
-    }
-    
-    template <class T> static T *make(const u8 *buf, isize len, ErrorCode *err)
-    {
-        *err = ERROR_OK;
-        try { return make <T> (buf, len); }
-        catch (VAError &exception) { *err = exception.errorCode; }
-        return nullptr;
-    }
-    
-    template <class T> static T *make(const char *path) throws
-    {
-        std::ifstream stream(path);
-        if (!stream.is_open()) throw VAError(ERROR_FILE_NOT_FOUND);
-
-        T *file = make <T> (string(path), stream);
-        return file;
-    }
-
-    template <class T> static T *make(const char *path, ErrorCode *err)
-    {
-        *err = ERROR_OK;
-        try { return make <T> (path); }
-        catch (VAError &exception) { *err = exception.errorCode; }
-        return nullptr;
-    }
-
-    template <class T> static T *make(FILE *file) throws
-    {
-        std::stringstream stream;
-        int c; while ((c = fgetc(file)) != EOF) { stream.put(c); }
-        return make <T> ("", stream);
-    }
-    
-    template <class T> static T *make(FILE *file, ErrorCode *err)
-    {
-        *err = ERROR_OK;
-        try { return make <T> (file); }
-        catch (VAError &exception) { *err = exception.errorCode; }
-        return nullptr;
-    }
+    /* End of file position
+     * This value equals the last valid offset plus 1
+     */
+    long eof = -1;
     
     
     //
@@ -134,49 +44,101 @@ public:
     //
     
 public:
-
-    AmigaFile() { };
-    AmigaFile(isize capacity);
+    
+    AmigaFile();
     virtual ~AmigaFile();
-        
+    
+    // Allocates memory for storing the object data
+    virtual bool alloc(size_t capacity);
+    
+    // Frees the allocated memory
+    virtual void dealloc();
+    
     
     //
     // Accessing file attributes
     //
     
     // Returns the type of this file
-    virtual FileType type() const { return FILETYPE_UKNOWN; }
-            
+    virtual AmigaFileType fileType() { return FILETYPE_UKNOWN; }
+    
+    // Returns a string representation of the file type, e.g., "ADF"
+    virtual const char *typeAsString() { return ""; }
+    
+    // Returns the physical name of this file
+    const char *getPath() { return path ? path : ""; }
+    
+    // Sets the physical name of this file
+    void setPath(const char *path);
+    
     // Returns a fingerprint (hash value) for this file
-    virtual u64 fnv() const { return fnv_1a_64(data, size); }
-        
+    virtual u64 fnv() { return fnv_1a_64(data, size); }
+    
     
     //
-    // Flashing data
+    // Reading data from the file
     //
-            
-    // Copies the file contents into a buffer starting at the provided offset
-    virtual void flash(u8 *buf, isize offset = 0);
+    
+    //  Returns the number of bytes in this file
+    virtual size_t getSize() { return size; }
+    
+    // Moves the file pointer to the specified offset
+    virtual void seek(long offset);
+    
+    //  Reads a byte (returns -1 (EOF) if the end of file has been reached)
+    virtual int read();
+        
+    // Copies the whole file data into a buffer
+    virtual void flash(u8 *buffer, size_t offset = 0);
     
     
     //
     // Serializing
     //
     
-protected:
-    
-    virtual isize readFromStream(std::istream &stream) throws;
-    isize readFromFile(const char *path) throws;
-    isize readFromBuffer(const u8 *buf, isize len) throws;
+    // Returns the required buffer size for this file
+    size_t sizeOnDisk() { return writeToBuffer(NULL); }
 
-public:
-    
-    virtual isize writeToStream(std::ostream &stream) throws;
-    isize writeToStream(std::ostream &stream, ErrorCode *err);
+    /* Returns true iff this specified buffer is compatible with this object.
+     * This function is used in readFromBuffer().
+     */
+    virtual bool bufferHasSameType(const u8 *buffer, size_t length) { return false; }
 
-    isize writeToFile(const char *path) throws;
-    isize writeToFile(const char *path, ErrorCode *err);
+
+    /* Returns true iff this specified file is compatible with this object.
+     * This function is used in readFromFile().
+     */
+    virtual bool fileHasSameType(const char *path) { return false; }
     
-    isize writeToBuffer(u8 *buf) throws;
-    isize writeToBuffer(u8 *buf, ErrorCode *err);    
+    /* Deserializes this object from a memory buffer. This function uses
+     * bufferHasSameType() to verify that the buffer contains a compatible
+     * binary representation.
+     */
+    virtual bool readFromBuffer(const u8 *buffer, size_t length);
+    
+    /* Deserializes this object from a file. This function uses
+     * fileHasSameType() to verify that the file contains a compatible binary
+     * representation. This function requires no custom implementation. It
+     * first reads in the file contents in memory and invokes readFromBuffer
+     * afterwards.
+     */
+    virtual bool readFromFile(const char *filename);
+
+    /* Deserializes this object from a file that is already open.
+     */
+    virtual bool readFromFile(FILE *file);
+
+    /* Writes the file contents into a memory buffer. If a NULL pointer is
+     * passed in, a test run is performed. Test runs can be performed to
+     * determine the size of the file on disk.
+     */
+    virtual size_t writeToBuffer(u8 *buffer);
+    
+    /* Writes the file contents to a file. This function requires no custom
+     * implementation. It invokes writeToBuffer first and writes the data to
+     * disk afterwards.
+     */
+    virtual bool writeToFile(const char *filename);
 };
+
+#endif

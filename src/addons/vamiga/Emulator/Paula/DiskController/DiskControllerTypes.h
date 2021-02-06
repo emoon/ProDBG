@@ -6,16 +6,17 @@
 //
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
-// THIS FILE MUST CONFORM TO ANSI-C TO BE COMPATIBLE WITH SWIFT
-// -----------------------------------------------------------------------------
 
-#pragma once
+// This file must conform to standard ANSI-C to be compatible with Swift.
+
+#ifndef _DISK_CONTROLLER_T_H
+#define _DISK_CONTROLLER_T_H
 
 //
 // Enumerations
 //
 
-enum_long(DRIVE_DMA_STATE)
+VAMIGA_ENUM(int, DriveState)
 {
     DRIVE_DMA_OFF,     // Drive is idle
 
@@ -25,24 +26,24 @@ enum_long(DRIVE_DMA_STATE)
     DRIVE_DMA_WRITE,   // Drive is writing
     DRIVE_DMA_FLUSH,   // Drive is finishing up the write process
 };
-typedef DRIVE_DMA_STATE DriveState;
 
 inline bool isDriveState(long value)
 {
-    return (unsigned long)value <= DRIVE_DMA_FLUSH;
+    return value >= DRIVE_DMA_OFF && value <= DRIVE_DMA_FLUSH;
 }
 
-inline const char *DriveDmaStateName(DriveState state)
+inline const char *driveStateName(DriveState state)
 {
+    assert(isDriveState(state));
+
     switch (state) {
-            
-        case DRIVE_DMA_OFF:   return "OFF";
-        case DRIVE_DMA_WAIT:  return "WAIT";
-        case DRIVE_DMA_READ:  return "READ";
-        case DRIVE_DMA_WRITE: return "WRITE";
-        case DRIVE_DMA_FLUSH: return "FLUSH";
+        case DRIVE_DMA_OFF:   return "DRIVE_DMA_OFF";
+        case DRIVE_DMA_WAIT:  return "DRIVE_DMA_WAIT";
+        case DRIVE_DMA_READ:  return "DRIVE_DMA_READ";
+        case DRIVE_DMA_WRITE: return "DRIVE_DMA_WRITE";
+        case DRIVE_DMA_FLUSH: return "DRIVE_DMA_FLUSH";
+        default:              return "???";
     }
-    return "???";
 }
 
 //
@@ -59,7 +60,7 @@ typedef struct
      * twice as fast. A value of -1 indicates a turbo drive. In this case,
      * the exact value of the acceleration factor has no meaning.
      */
-    i32 speed;
+    long speed;
 
     bool lockDskSync;
     bool autoDskSync;
@@ -87,3 +88,5 @@ typedef struct
     u8 prb;
 }
 DiskControllerInfo;
+
+#endif

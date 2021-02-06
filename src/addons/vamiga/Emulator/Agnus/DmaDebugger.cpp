@@ -11,8 +11,10 @@
 
 DmaDebugger::DmaDebugger(Amiga &ref) : AmigaComponent(ref)
 {
+    setDescription("DmaDebugger");
+
     // By default all DMA channels are visualized, except the CPU channel
-    for (isize i = 0; i < BUS_COUNT; i++) {
+    for (unsigned i = 0; i < BUS_COUNT; i++) {
         visualize[i] = (i != BUS_NONE) && (i != BUS_CPU);
     }
 
@@ -75,7 +77,7 @@ DmaDebugger::setEnabled(bool value)
 }
 
 bool
-DmaDebugger::isVisualized(BusOwner owner) const
+DmaDebugger::isVisualized(BusOwner owner)
 {
     assert(isBusOwner(owner));
     return visualize[owner];
@@ -149,7 +151,7 @@ DmaDebugger::visualizeRefresh(bool value)
 }
 
 RgbColor
-DmaDebugger::getColor(BusOwner owner) const
+DmaDebugger::getColor(BusOwner owner)
 {
     assert(isBusOwner(owner));
     return debugColor[owner][4];
@@ -246,6 +248,12 @@ DmaDebugger::setRefreshColor(double r, double g, double b)
     setColor(BUS_REFRESH, r, g, b);
 }
 
+double
+DmaDebugger::getOpacity()
+{
+    return opacity;
+}
+
 void
 DmaDebugger::setOpacity(double value)
 {
@@ -267,19 +275,19 @@ DmaDebugger::computeOverlay()
 
     switch (displayMode) {
 
-        case DMA_DISPLAY_MODE_FG_LAYER:
+        case MODULATE_FG_LAYER:
 
             bgWeight = 0.0;
             fgWeight = 1.0 - opacity;
             break;
 
-        case DMA_DISPLAY_MODE_BG_LAYER:
+        case MODULATE_BG_LAYER:
 
             bgWeight = 1.0 - opacity;
             fgWeight = 0.0;
             break;
 
-        case DMA_DISPLAY_MODE_ODD_EVEN_LAYERS:
+        case MODULATE_ODD_EVEN_LAYERS:
 
             bgWeight = opacity;
             fgWeight = 1.0 - opacity;
@@ -289,7 +297,7 @@ DmaDebugger::computeOverlay()
 
     }
 
-    for (isize i = 0; i < HPOS_CNT; i++, ptr += 4) {
+    for (int i = 0; i < HPOS_CNT; i++, ptr += 4) {
 
         BusOwner owner = owners[i];
 
@@ -333,8 +341,8 @@ DmaDebugger::vSyncHandler()
 
     // Clear old data in the next frame's VBLANK area
     u32 *ptr = denise.pixelEngine.frameBuffer->data;
-    for (isize row = 0; row < VBLANK_CNT; row++) {
-        for (isize col = 0; col <= LAST_PIXEL; col++) {
+    for (int row = 0; row < VBLANK_CNT; row++) {
+        for (int col = 0; col <= LAST_PIXEL; col++) {
             ptr[row * HPIXELS + col] = PixelEngine::rgbaVBlank;
         }
     }

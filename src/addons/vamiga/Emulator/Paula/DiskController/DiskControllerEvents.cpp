@@ -25,9 +25,9 @@ DiskController::scheduleFirstDiskEvent()
     dskEventDelay = 0.0;
     
     if (turboMode()) {
-        agnus.cancel<SLOT_DSK>();
+        agnus.cancel<DSK_SLOT>();
     } else {
-        agnus.scheduleImm<SLOT_DSK>(DSK_ROTATE);
+        agnus.scheduleImm<DSK_SLOT>(DSK_ROTATE);
     }
 }
 
@@ -44,29 +44,29 @@ DiskController::scheduleNextDiskEvent()
     dskEventDelay -= rounded;
     
     if (turboMode()) {
-        agnus.cancel<SLOT_DSK>();
+        agnus.cancel<DSK_SLOT>();
     } else {
-        agnus.scheduleRel<SLOT_DSK>(DMA_CYCLES(rounded), DSK_ROTATE);
+        agnus.scheduleRel<DSK_SLOT>(DMA_CYCLES(rounded), DSK_ROTATE);
     }
 }
 
 void
 DiskController::serviceDiskChangeEvent()
 {
-    if (agnus.slot[SLOT_DCH].id == EVENT_NONE) return;
+    if (agnus.slot[DCH_SLOT].id == EVENT_NONE) return;
     
-    int n = (int)agnus.slot[SLOT_DCH].data;
+    int n = (int)agnus.slot[DCH_SLOT].data;
     assert(n >= 0 && n <= 3);
 
-    switch (agnus.slot[SLOT_DCH].id) {
+    switch (agnus.slot[DCH_SLOT].id) {
 
         case DCH_INSERT:
 
             trace(DSK_DEBUG, "DCH_INSERT (df%d)\n", n);
 
-            assert(diskToInsert != nullptr);
+            assert(diskToInsert != NULL);
             df[n]->insertDisk(diskToInsert);
-            diskToInsert = nullptr;
+            diskToInsert = NULL;
             break;
 
         case DCH_EJECT:
@@ -80,5 +80,5 @@ DiskController::serviceDiskChangeEvent()
             assert(false);
     }
 
-    agnus.cancel<SLOT_DCH>();
+    agnus.cancel<DCH_SLOT>();
 }

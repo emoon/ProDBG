@@ -7,13 +7,16 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _STATE_MACHINE_H
+#define _STATE_MACHINE_H
 
 #include "AmigaComponent.h"
 #include "Sampler.h"
 
-template <isize nr>
+template <int nr>
 class StateMachine : public AmigaComponent {
+
+    friend class PaulaAudio;
 
     // Result of the latest inspection
     AudioChannelInfo info;
@@ -80,8 +83,6 @@ public:
 
     StateMachine(Amiga& ref);
 
-    const char *getDescription() const override;
-
 private:
     
     void _reset(bool hard) override;
@@ -98,7 +99,7 @@ public:
 private:
     
     void _inspect() override;
-    void _dump() const override;
+    void _dump() override;
     
     
     //
@@ -141,9 +142,9 @@ private:
         & enablePenhi;
     }
 
-    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
-    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
+    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
     
     //
@@ -169,10 +170,10 @@ public:
 public:
 
     // Returns true if the state machine is running in DMA mode
-    bool AUDxON() const;
+    bool AUDxON();
 
     // Returns true if the audio interrupt is pending
-    bool AUDxIP() const;
+    bool AUDxIP();
 
     // Asks Paula to trigger the audio interrupt
     void AUDxIR();
@@ -181,7 +182,7 @@ public:
     void AUDxDR() { audDR = true; }
 
     // Tells Agnus to reset the DMA pointer to the block start
-    void AUDxDSR() { agnus.reloadAUDxPT<nr>(); }
+    void AUDxDSR()  { agnus.reloadAUDxPT<nr>(); }
 
     // Reloads the period counter from its backup latch
     void percntrld();
@@ -205,10 +206,10 @@ public:
     void pbufld2();
 
     // Returns true in attach volume mode
-    bool AUDxAV() const;
+    bool AUDxAV();
 
     // Returns true in attach period mode
-    bool AUDxAP() const;
+    bool AUDxAP();
 
     // Condition for normal DMA and interrupt requests
     bool napnav() { return !AUDxAP() || AUDxAV(); }
@@ -248,3 +249,5 @@ public:
 
     void serviceEvent();
 };
+
+#endif

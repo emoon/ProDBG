@@ -12,17 +12,14 @@
 Oscillator::Oscillator(Amiga& ref) : AmigaComponent(ref)
 {
 #ifdef __MACH__
-    mach_timebase_info(&tb);
-#endif
-}
 
-const char *
-Oscillator::getDescription() const
-{
-#ifdef __MACH__
-    return "Oscillator (Mac)";
+    setDescription("Oscillator (Mac)");
+    mach_timebase_info(&tb);
+    
 #else
-    return "Oscillator (Generic)";
+    
+    setDescription("Oscillator (Generic)");
+    
 #endif
 }
 
@@ -102,7 +99,8 @@ Oscillator::synchronize()
         }
         
         // See you soon...
-        waitUntil(targetTime);
+        oscillator.waitUntil(targetTime);
+        // mach_wait_until(targetTime);
     }
 }
 
@@ -111,7 +109,7 @@ Oscillator::waitUntil(u64 deadline)
 {
 #ifdef __MACH__
     
-    mach_wait_until(nanos_to_abs(deadline));
+    mach_wait_until(deadline);
     
 #else
 

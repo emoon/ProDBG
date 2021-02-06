@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#pragma once
+#ifndef _COLORIZER_H
+#define _COLORIZER_H
 
 #include "AmigaComponent.h"
 
@@ -66,7 +67,7 @@ private:
     Palette palette = PALETTE_COLOR;
     double brightness = 50.0;
     double contrast = 100.0;
-    double saturation = 50.0;
+    double saturation = 1.25;
     
     // Indicates whether HAM mode is switched
     bool hamMode;
@@ -90,8 +91,6 @@ public:
     
     PixelEngine(Amiga& ref);
     ~PixelEngine();
-
-    const char *getDescription() const override { return "PixelEngine"; }
 
     
     //
@@ -139,10 +138,10 @@ private:
         & hamMode;
     }
 
-    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
-    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
-    isize didLoadFromBuffer(const u8 *buffer) override;
+    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
+    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    size_t didLoadFromBuffer(u8 *buffer) override;
 
     
     //
@@ -162,18 +161,18 @@ private:
 public:
 
     // Performs a consistency check for debugging.
-    static bool isRgbaIndex(isize nr) { return nr < rgbaIndexCnt; }
+    static bool isRgbaIndex(int nr) { return nr < rgbaIndexCnt; }
     
     // Changes one of the 32 Amiga color registers.
-    void setColor(isize reg, u16 value);
+    void setColor(int reg, u16 value);
 
     // Returns a color value in Amiga format or RGBA format
-    u16 getColor(isize nr) const { return colreg[nr]; }
-    u32 getRGBA(isize nr) const { return indexedRgba[nr]; }
+    u16 getColor(int nr) { assert(nr < 32); return colreg[nr]; }
+    u32 getRGBA(int nr) { assert(nr < 32); return indexedRgba[nr]; }
 
     // Returns sprite color in Amiga format or RGBA format
-    u16 getSpriteColor(isize s, isize nr) const { return getColor(16 + nr + 2 * (s & 6)); }
-    u32 getSpriteRGBA(isize s, isize nr) const { return rgba[getSpriteColor(s,nr)]; }
+    u16 getSpriteColor(int s, int nr) { assert(s < 8); return getColor(16 + nr + 2 * (s & 6)); }
+    u32 getSpriteRGBA(int s, int nr) { return rgba[getSpriteColor(s,nr)]; }
 
 
     //
@@ -199,10 +198,10 @@ public:
     ScreenBuffer getStableBuffer();
 
     // Returns a pointer to randon noise
-    u32 *getNoise() const;
+    u32 *getNoise();
     
     // Returns the frame buffer address of a certain pixel in the current line
-    u32 *pixelAddr(isize pixel) const;
+    u32 *pixelAddr(int pixel);
 
     // Called after each line in the VBLANK area
     void endOfVBlankLine();
@@ -232,18 +231,21 @@ public:
      * pipelile. It translates a line of color register indices into a line
      * of RGBA values in GPU format.
      */
-    void colorize(isize line);
+    void colorize(int line);
     
 private:
     
-    void colorize(u32 *dst, Pixel from, Pixel to);
-    void colorizeHAM(u32 *dst, Pixel from, Pixel to, u16& ham);
+    void colorize(u32 *dst, int from, int to);
+    void colorizeHAM(u32 *dst, int from, int to, u16& ham);
     
-    /* Hides some graphics layers. This function is an optional stage applied
-     * after colorize(). It can be used to hide some layers for debugging.
+    /* Hides some graphics layers.
+     * This function is an optional stage applied after colorize(). It can
+     * be used to hide some layers for debugging.
      */
     
 public:
     
-    void hide(isize line, u16 layer, u8 alpha);
+    void hide(int line, u16 layer, u8 alpha);
 };
+
+#endif
