@@ -22,7 +22,7 @@
 template <class T, size_t capacity> struct RingBuffer
 {
     // Element storage
-    T* elements = nullptr;
+    T elements[capacity];
 
     // Read and write pointers
     int r, w;
@@ -31,8 +31,8 @@ template <class T, size_t capacity> struct RingBuffer
     // Initializing
     //
 
-    RingBuffer() { elements = new T[capacity]; clear(); }
-
+    RingBuffer() { clear(); }
+    
     void clear() { r = w = 0; }
     void clear(T t) { for (size_t i = 0; i < capacity; i++) elements[i] = t; clear(); }
     void align(int offset) { w = (r + offset) % capacity; }
@@ -44,10 +44,10 @@ template <class T, size_t capacity> struct RingBuffer
     template <class W>
     void applyToItems(W& worker)
     {
-        //worker & elements & r & w;
+        worker & elements & r & w;
     }
 
-
+    
     //
     // Querying the fill status
     //
@@ -58,7 +58,7 @@ template <class T, size_t capacity> struct RingBuffer
     bool isEmpty() const { return r == w; }
     bool isFull() const { return count() == capacity - 1; }
 
-
+    
     //
     // Working with indices
     //
@@ -82,7 +82,7 @@ template <class T, size_t capacity> struct RingBuffer
     {
         return elements[(r + offset) % capacity];
     }
-
+    
     T& read()
     {
         assert(!isEmpty());
@@ -100,7 +100,7 @@ template <class T, size_t capacity> struct RingBuffer
         w = next(w);
         elements[oldw] = element;
     }
-
+    
     //
     // Examining the element storage
     //
@@ -118,7 +118,7 @@ struct SortedRingBuffer : public RingBuffer<T, capacity>
      {
          worker & this->elements & this->r & this->w & keys;
      }
-
+    
     // Inserts an element at the proper position
     void insert(i64 key, T element)
     {

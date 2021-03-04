@@ -1,39 +1,43 @@
-#include "test_harness.h"
-#include "core/logging.h"
+#include "image.h"
+#include <QtWidgets/QPushButton>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST(Logging, debug) {
-    prodbg::log_debug("debug %s\n", "debug");
+prodbg::MemoryView* ImageView::create(QWidget* parent) {
+    ImageView* instance = new ImageView;
+    auto button = new QPushButton(QStringLiteral("Test"), parent);
+
+    connect(button, &QPushButton::clicked, this, []() { printf("pressing button\n"); });
+
+    return instance;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST(Logging, trace) {
-    prodbg::log_trace("trace %s\n", "trace");
+ImageView::~ImageView() {
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST(Logging, info) {
-    prodbg::log_info("info %s\n", "info");
+int ImageView::version() {
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST(Logging, warn) {
-    prodbg::log_warn("warn %s\n", "warn");
+QString ImageView::name() {
+    return QStringLiteral("Image");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST(Logging, error) {
-    prodbg::log_error("error %s\n", "error");
+void ImageView::set_backend_interface(prodbg::IBackendRequests* interface) {
+    //m_interface = interface;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST(Logging, fatal) {
-    prodbg::log_fatal("fatal %s\n", "fatal");
+extern "C" void pd_register_plugin(prodbg::PluginRegister* plugins) {
+    plugins->register_memory_view(new ImageView);
 }
-

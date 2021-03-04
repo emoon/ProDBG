@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QtWidgets/QMainWindow>
-#include "api/include/pd_ui.h"
+//#include "api/include/pd_ui.h"
 #include "ui_main_window.h"
 #include "project.h"
 

@@ -10,6 +10,8 @@
 //#include "RegisterView/RegisterView.h"
 #include "fastdock/FastDock.h"
 #include "view_handler.h"
+#include "view_plugins.h"
+#include "api/include/pd_ui_memory.h"
 
 // Dialogs
 #include "dialogs/prefs_dialog.h"
@@ -53,6 +55,8 @@ MainWindow::MainWindow() : m_statusbar(new QStatusBar(this)), m_backend(nullptr)
     m_view_handler->load_plugins(QCoreApplication::applicationDirPath());
 
     m_recent_projects = new RecentProjects;
+
+    ViewPlugins::add_plugin("image_view");
 
     m_ui.setupUi(this);
 
@@ -421,6 +425,7 @@ void MainWindow::toggle_breakpoint() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::create_view_instance(int index) {
+#if 0
     auto view = m_view_handler->create_instance_by_index(index);
     auto plugin_types = m_view_handler->plugin_types();
 
@@ -448,10 +453,41 @@ void MainWindow::create_view_instance(int index) {
         dock->setObjectName(plugin_name);
     }
     */
+#endif
 
-    m_docking->addToolWindow(view.widget, FastDock::EmptySpace);
+    auto memory_plugin = ViewPlugins::find_plugin(QStringLiteral("Image"));
+
+    if (memory_plugin)
+    {
+        QWidget* widget = new QWidget(nullptr);
+        memory_plugin->create(widget);
+        m_docking->addToolWindow(widget, FastDock::EmptySpace);
+    }
+
     // addDockWidget(Qt::RightDockWidgetArea, dock);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*
+void MainWindow::create_views_menu_2() {
+    QMenu* plugin_menu = menuBar()->addMenu(QStringLiteral("Plugins 2"));
+    //int plugin_index = 0;
+    //auto plugin_types = m_view_handler->plugin_types();
+
+    //for (auto& plugin : plugin_types) {
+        QAction* plugin_menu_entry = new QAction(QStringLiteral("Image"));
+        plugin_menu_entry->setData(plugin_index);
+        plugin_menu->addAction(plugin_menu_entry);
+
+        connect(plugin_menu_entry, &QAction::triggered, this,
+                [this, plugin_index]() { create_view_instance(plugin_index); });
+        plugin_index++;
+    }
+
+    menuBar()->update();
+}
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

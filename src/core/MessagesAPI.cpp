@@ -1,5 +1,5 @@
 #include "MessagesAPI.h"
-#include "Logging.h"
+#include "logging.h"
 #include <stdlib.h>
 #include <string.h>
 #include "api/include/pd_message_readwrite.h"

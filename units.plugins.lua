@@ -195,6 +195,17 @@ ViewPlugin {
 -----------------------------------------------------------------------------------------------------------------------
 
 ViewPlugin {
+    Name = "image_view",
+
+    Sources = {
+        gen_moc("src/plugins/memory/image/image.h"),
+        get_cpp_src("src/plugins/memory/image"),
+    },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+ViewPlugin {
     Name = "memory_view",
 
     Sources = {
@@ -263,6 +274,7 @@ Default "file"
 Default "dummy_backend"
 Default "register_view"
 Default "memory_view"
+Default "image_view"
 
 -- vim: ts=4:sw=4:sts=4
 

@@ -8,7 +8,7 @@
 #include <QtWidgets/QStyleFactory>
 #include <QtWidgets/QTextEdit>
 #include "core/plugin_handler.h"
-#include "../core/BackendPluginHandler.h"
+#include "../core/backend_plugin_handler.h"
 #include "main_window.h"
 #include "config/config.h"
 #include "edbee/edbee.h"

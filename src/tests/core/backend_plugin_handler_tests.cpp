@@ -1,5 +1,5 @@
 #include "test_harness.h"
-#include "core/BackendPluginHandler.h"
+#include "core/backend_plugin_handler.h"
 #include "../api/include/pd_backend.h"
 #include "../api/include/pd_backend_messages.h"
 #include "core/MessagesAPI.h"
