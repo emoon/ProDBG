@@ -3,23 +3,21 @@
 #include <QtCore/QPointer>
 #include <QtCore/QVector>
 #include <QtWidgets/QWidget>
-#include "api/include/pd_ui.h"
+#include "api/include/pd_memory_view.h"
 #include "backend/backend_requests_interface.h"
 
-class Ui_MemoryView;
+class Ui_HexView;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class MemoryView : public QObject, prodbg::PDUIInterface
+class HexView : public prodbg::MemoryView
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID PDUIInterface_iid FILE "memory_view.json")
-    Q_INTERFACES(prodbg::PDUIInterface)
 
 public:
-    prodbg::PDUIInterface* create(QWidget* parent);
+    prodbg::MemoryView* create(QWidget* parent);
     void set_backend_interface(prodbg::IBackendRequests* interface);
-    ~MemoryView();
+    ~HexView();
 
 private:
     Q_SLOT void jump_to_address_expression(const QString& expression);
@@ -33,7 +31,7 @@ private:
     QPointer<prodbg::IBackendRequests> m_backend;
     //static View* createView(QWidget* parent);
 
-    Ui_MemoryView* m_ui = nullptr;
+    Ui_HexView* m_ui = nullptr;
     uint64_t m_eval_address = 0;
 };
 

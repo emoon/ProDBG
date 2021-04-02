@@ -16,13 +16,11 @@ class LocalNode;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class LocalsView : public QObject, prodbg::PDUIInterface {
+class LocalsView : prodbg::View {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID PDUIInterface_iid FILE "locals_view.json")
-    Q_INTERFACES(prodbg::PDUIInterface)
 
 public:
-    prodbg::PDUIInterface* create(QWidget* parent);
+    prodbg::View* create(QWidget* parent);
     void set_backend_interface(prodbg::IBackendRequests* iface);
     virtual ~LocalsView();
 

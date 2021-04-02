@@ -3,20 +3,15 @@
 class QString;
 class QWidegt;
 
-namespace prodbg {
-    class MemoryView;
-    class View;
-}
-
 class ViewPlugins {
 public:
     struct ViewInstance {
-        View* view_plugin;
+        PDIView* view_plugin;
         QWidget* widget;
     };
 
     struct MemoryViewInstance {
-        MemoryView* view_plugin;
+        PDIMemoryView* view_plugin;
         QWidget* widget;
     };
 

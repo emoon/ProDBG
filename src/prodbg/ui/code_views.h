@@ -4,8 +4,6 @@
 #include <QtWidgets/QTabWidget>
 #include "backend/backend_requests_interface.h"
 
-namespace prodbg {
-
 class BreakpointModel;
 class IBackendRequests;
 class DisassemblyView;
@@ -54,6 +52,3 @@ private:
 inline void CodeViews::set_breakpoint_model(BreakpointModel* breakpoints) {
     m_breakpoints = breakpoints;
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-}  // namespace prodbg

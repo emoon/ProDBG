@@ -19,63 +19,63 @@ template <typename EnumType> static void enum_to_combo(QComboBox* combo, int sta
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryView::init(QWidget* parent) {
-    m_ui = new Ui_MemoryView;
+void HexView::init(QWidget* parent) {
+    m_ui = new Ui_HexView;
     m_ui->setupUi(parent);
 
-    connect(m_ui->m_address, &QLineEdit::returnPressed, this, &MemoryView::jump_address_changed);
+    connect(m_ui->m_address, &QLineEdit::returnPressed, this, &HexView::jump_address_changed);
 
-    enum_to_combo<MemoryViewWidget::Endianess>(m_ui->m_endianess, m_ui->m_view->endianess());
-    enum_to_combo<MemoryViewWidget::DataType>(m_ui->m_type, m_ui->m_view->data_type());
+    enum_to_combo<HexViewWidget::Endianess>(m_ui->m_endianess, m_ui->m_view->endianess());
+    enum_to_combo<HexViewWidget::DataType>(m_ui->m_type, m_ui->m_view->data_type());
 
     connect(m_ui->m_endianess, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
-            &MemoryView::endian_changed);
+            &HexView::endian_changed);
     connect(m_ui->m_type, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
-            &MemoryView::data_type_changed);
+            &HexView::data_type_changed);
 
     QIntValidator* count_validator = new QIntValidator(1, 64, this);
     m_ui->m_count->setValidator(count_validator);
 
-    connect(m_ui->m_count, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged), this,
-            &MemoryView::count_changed);
+    connect(m_ui->m_count, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+            &HexView::count_changed);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-prodbg::PDUIInterface* MemoryView::create(QWidget* parent) {
-    MemoryView* instance = new MemoryView;
+prodbg::MemoryView* HexView::create(QWidget* parent) {
+    HexView* instance = new HexView;
     instance->init(parent);
     return instance;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MemoryView::~MemoryView() {
+HexView::~HexView() {
     //writeSettings();
     delete m_ui;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryView::endian_changed(int e) {
-    m_ui->m_view->set_endianess(static_cast<MemoryViewWidget::Endianess>(e));
+void HexView::endian_changed(int e) {
+    m_ui->m_view->set_endianess(static_cast<HexViewWidget::Endianess>(e));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryView::data_type_changed(int t) {
-    m_ui->m_view->set_data_type(static_cast<MemoryViewWidget::DataType>(t));
+void HexView::data_type_changed(int t) {
+    m_ui->m_view->set_data_type(static_cast<HexViewWidget::DataType>(t));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryView::jump_address_changed() {
+void HexView::jump_address_changed() {
     jump_to_address_expression(m_ui->m_address->text());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryView::jump_to_address_expression(const QString& str) {
+void HexView::jump_to_address_expression(const QString& str) {
     /*
     if (m_interface) {
         m_interface->beginResolveAddress(str, &m_evalAddress);
@@ -85,7 +85,7 @@ void MemoryView::jump_to_address_expression(const QString& str) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryView::end_resolve_address(uint64_t* out) {
+void HexView::end_resolve_address(uint64_t* out) {
     if (!out) {
         m_ui->m_view->set_expression_status(false);
     } else {
@@ -99,15 +99,15 @@ void MemoryView::end_resolve_address(uint64_t* out) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryView::set_backend_interface(prodbg::IBackendRequests* interface) {
+void HexView::set_backend_interface(prodbg::IBackendRequests* interface) {
     m_ui->m_view->set_backend_interface(interface);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryView::count_changed(const QString& text) {
+void HexView::count_changed(int index) {
     bool ok = false;
-    int count = text.toInt(&ok, /*base:*/ 0);
+    int count = m_count.itemText(index).toInt(&ok, /*base:*/ 0);
     if (ok) {
         m_ui->m_view->set_elements_per_line(count);
     }
@@ -116,11 +116,11 @@ void MemoryView::count_changed(const QString& text) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-void MemoryView::read_settings() {
+void HexView::read_settings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
 
     // TODO: Support more than one memory view
-    settings.beginGroup(QStringLiteral("MemoryView_0"));
+    settings.beginGroup(QStringLiteral("HexView_0"));
     m_ui->m_endianess->setCurrentIndex(settings.value(QStringLiteral("endian")).toInt());
     m_ui->m_type->setCurrentIndex(settings.value(QStringLiteral("data_type")).toInt());
     settings.endGroup();
@@ -128,11 +128,11 @@ void MemoryView::read_settings() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryView::write_settings() {
+void HexView::write_settings() {
     QSettings settings(QStringLiteral("TBL"), QStringLiteral("ProDBG"));
 
     // TODO: Support more than one memory view
-    settings.beginGroup(QStringLiteral("MemoryView_0"));
+    settings.beginGroup(QStringLiteral("HexView_0"));
     settings.setValue(QStringLiteral("endian"), m_ui->m_endianess->currentIndex());
     settings.setValue(QStringLiteral("data_type"), m_ui->m_type->currentIndex());
     settings.setValue(QStringLiteral("count"), m_ui->m_type->currentIndex());

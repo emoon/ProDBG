@@ -6,26 +6,23 @@
 
 class PDIBackendRequests;
 
+#define PRODG_VIEW_VERSION 1
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class PDIMemoryView : public QObject
+class PDIView : public QObject
 {
 public:
-    virtual ~MemoryView() {}
+    virtual ~View() {}
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    enum class Ver {
-        Version = 1,
-    };
-
-    virtual Ver version() = 0;
+    // Has to return PRODG_MEMORY_VIEW_VERSION. This is to allow supporting different versions of the interface
+    virtual int version() = 0;
 
     // Name of the plugin
     virtual QString name() = 0;
 
     // TODO: Return state if needs animated update
-    virtual MemoryView* create(QWidget* parent) = 0;
+    virtual View* create(QWidget* parent) = 0;
 
     // This gets called from the outside and sets an instance to the backend interface.
     // The backend interface is used by the plugin to request data from the backend (such as memory, registers, etc)

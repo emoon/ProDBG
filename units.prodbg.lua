@@ -99,7 +99,7 @@ Program {
         -- gen_moc("src/prodbg/PluginUI/signal_wrappers.h"),
 
         gen_moc("src/prodbg/ui/view.h"),
-        gen_moc("src/prodbg/ui/view_handler.h"),
+        -- gen_moc("src/prodbg/ui/view_handler.h"),
         gen_moc("src/prodbg/ui/code_view.h"),
         -- gen_moc("src/prodbg/CodeView/DisassemblyView.h"),
 

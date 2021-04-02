@@ -6,8 +6,6 @@
 #include <stdbool.h>
 #include <time.h>
 
-namespace prodbg {
-
 static const char* level_strings[] = { "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
 static const char* level_colors[] = { "\x1b[94m", "\x1b[36m", "\x1b[32m", "\x1b[33m", "\x1b[31m", "\x1b[35m" };
 
@@ -46,6 +44,3 @@ PDLog* log_get_api() {
     return &s_log;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-}  // namespace prodbg

@@ -10,14 +10,12 @@ class Ui_RegisterView;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class RegistersPlugin : public QObject, prodbg::PDUIInterface
+class RegistersPlugin : public prodbg::View
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID PDUIInterface_iid FILE "registers_view.json")
-    Q_INTERFACES(prodbg::PDUIInterface)
 
 public:
-    prodbg::PDUIInterface* create(QWidget* parent);
+    prodbg::View* create(QWidget* parent);
     void set_backend_interface(prodbg::IBackendRequests* interface);
     ~RegistersPlugin();
 
