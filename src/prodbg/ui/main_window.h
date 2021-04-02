@@ -10,8 +10,6 @@ class QThread;
 class QPluginLoader;
 class FastDock;
 
-namespace prodbg {
-
 class Session;
 class CodeView;
 class MemoryView;
@@ -119,5 +117,3 @@ private:
     Project* m_current_project;
 };
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-}  // namespace prodbg

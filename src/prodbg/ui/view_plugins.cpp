@@ -1,66 +1,39 @@
 #include "view_plugins.h"
 
 #include <pd_common.h>
+#include <pd_ui_register_plugin.h>
 #include <vector>
 #include "../core/shared_object.h"
 #include "../core/logging.h"
 #include "api/include/pd_memory_view.h"
 #include "api/include/pd_view.h"
 
-#ifndef _WIN32
-#include <dlfcn.h>
-#include <limits.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#endif
-
-#if defined(PRODBG_NIX)
-#include <dlfcn.h>
-#include <errno.h>
-#include <libgen.h>
-#include <unistd.h>
-#endif
-
-#if defined(PRODBG_LINUX)
-#define SO_PREFIX "lib"
-#define SO_SUFFIX ".so"
-#elif defined(PRODBG_MAC)
-#define SO_PREFIX "lib"
-#define SO_SUFFIX ".dylib"
-#elif defined(PRODBG_WINDOWS)
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#define SO_PREFIX ""
-#define SO_SUFFIX ".dll"
-#else
-#error unsupported platform
-#endif
+#include <QtCore/QDir>
+#include <QtCore/QLibrary>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static std::vector<prodbg::MemoryView*> s_memory_view_plugins;
-static std::vector<prodbg::View*> s_view_plugins;
+static std::vector<PDMemoryView*> s_memory_view_plugins;
+static std::vector<PDView*> s_view_plugins;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class RegPlugins : public prodbg::PluginRegister {
-    void register_memory_view(prodbg::MemoryView* view) {
+class RegPlugins : public PDPluginRegister {
+    void register_memory_view(PDMemoryView* view) {
         s_memory_view_plugins.push_back(view);
     }
 
-    void register_view(prodbg::MemoryView* view) {
+    void register_view(PDView* view) {
         s_view_plugins.push_back(view);
     }
 } s_reg_plugins;
 
-typedef void (*InitPlugin)(prodbg::PluginRegister* reg);
+typedef void (*InitPlugin)(PDPluginRegister* reg);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool ViewPlugins::add_plugin(const QString& plugin_dir) {
+void ViewPlugins::add_plugins(const QString& plugin_dir) {
     QDir dir(plugin_dir);
-    int plugins_found = 0;
 
 #if defined(Q_OS_WIN)
     QString shared_extension = QStringLiteral(".dll");
@@ -99,7 +72,8 @@ bool ViewPlugins::add_plugin(const QString& plugin_dir) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-prodbg::MemoryView* ViewPlugins::find_plugin(const QString& name) {
+/*
+PDMemoryView* ViewPlugins::find_plugin(const QString& name) {
     for (const auto& plugin : s_plugins) {
         if (plugin->name() == name) {
             return plugin;
@@ -108,4 +82,5 @@ prodbg::MemoryView* ViewPlugins::find_plugin(const QString& name) {
 
     return nullptr;
 }
+*/
 

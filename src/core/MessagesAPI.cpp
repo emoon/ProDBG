@@ -84,7 +84,7 @@ MessagesAPI::MessagesAPI(int size) {
     m_data_read = m_data_write = m_memory_start = (uint8_t*)malloc(size);
 
     if (!m_memory_start) {
-        fatal("MessagesAPI: Failed to alloc memory");
+        log_fatal("MessagesAPI: %s", "Failed to alloc memory");
     }
 
     m_total_size = size / 2;

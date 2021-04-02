@@ -14,7 +14,7 @@ class View : public QWidget {
     explicit View(QWidget* parent);
     virtual ~View();
 
-    void set_backend_interface(IBackendRequests* interface);
+    void set_backend_interface(PDIBackendRequests* interface);
 
     // not very nice. Just for testing now
     virtual void interfaceSet() = 0;
@@ -23,9 +23,6 @@ class View : public QWidget {
     virtual void writeSettings() = 0;
 
    protected:
-    QPointer<IBackendRequests> m_interface;
+    QPointer<PDIBackendRequests> m_interface;
 };
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-}  // namespace prodbg

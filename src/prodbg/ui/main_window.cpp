@@ -9,9 +9,8 @@
 #include "core/plugin_handler.h"
 //#include "RegisterView/RegisterView.h"
 #include "fastdock/FastDock.h"
-#include "view_handler.h"
 #include "view_plugins.h"
-#include "api/include/pd_ui_memory.h"
+#include "pd_memory_view.h"
 
 // Dialogs
 #include "dialogs/prefs_dialog.h"
@@ -34,14 +33,14 @@ MainWindow::MainWindow() : m_statusbar(new QStatusBar(this)), m_backend(nullptr)
     qRegisterMetaType<uint32_t>("uint32_t");
     qRegisterMetaType<uint64_t>("uint64_t");
     qRegisterMetaType<uint64_t>("uint64_t");
-    qRegisterMetaType<IBackendRequests::ProgramCounterChange>("IBackendRequests::ProgramCounterChange");
-    qRegisterMetaType<IBackendRequests::VariableData>("IBackendRequests::VariableData");
-    qRegisterMetaType<IBackendRequests::Variables>("IBackendRequests::Variables");
-    qRegisterMetaType<IBackendRequests::BasicRequest>("IBackendRequests::BasicRequest");
-    qRegisterMetaType<IBackendRequests::CallstackEntry>("IBackendRequests::CallstackEntry");
-    qRegisterMetaType<IBackendRequests::Callstack>("IBackendRequests::Callstack");
-    qRegisterMetaType<IBackendRequests::ExpandVars>("IBackendRequests::ExpandVars");
-    qRegisterMetaType<IBackendRequests::ExpandType>("IBackendRequests::ExpandType");
+    qRegisterMetaType<PDIBackendRequests::ProgramCounterChange>("PDIBackendRequests::ProgramCounterChange");
+    qRegisterMetaType<PDIBackendRequests::VariableData>("PDIBackendRequests::VariableData");
+    qRegisterMetaType<PDIBackendRequests::Variables>("PDIBackendRequests::Variables");
+    qRegisterMetaType<PDIBackendRequests::BasicRequest>("PDIBackendRequests::BasicRequest");
+    qRegisterMetaType<PDIBackendRequests::CallstackEntry>("PDIBackendRequests::CallstackEntry");
+    qRegisterMetaType<PDIBackendRequests::Callstack>("PDIBackendRequests::Callstack");
+    qRegisterMetaType<PDIBackendRequests::ExpandVars>("PDIBackendRequests::ExpandVars");
+    qRegisterMetaType<PDIBackendRequests::ExpandType>("PDIBackendRequests::ExpandType");
     qRegisterMetaType<QVector<QString>>("QVector<QString>");
 
     m_docking = new FastDock();
@@ -49,12 +48,12 @@ MainWindow::MainWindow() : m_statusbar(new QStatusBar(this)), m_backend(nullptr)
     // setAllowedAreas(Qt::AllDockWidgetAreas);
 
     // Create the view handler and load all view plugins
-    m_view_handler = new ViewHandler(this);
-    m_view_handler->load_plugins(QCoreApplication::applicationDirPath());
+    //m_view_handler = new ViewHandler(this);
+    //m_view_handler->load_plugins(QCoreApplication::applicationDirPath());
 
     m_recent_projects = new RecentProjects;
 
-    ViewPlugins::add_plugin("image_view");
+    //ViewPlugins::add_plugin("image_view");
 
     m_ui.setupUi(this);
 
@@ -453,6 +452,7 @@ void MainWindow::create_view_instance(int index) {
     */
 #endif
 
+    /*
     auto memory_plugin = ViewPlugins::find_plugin(QStringLiteral("Image"));
 
     if (memory_plugin)
@@ -461,6 +461,7 @@ void MainWindow::create_view_instance(int index) {
         memory_plugin->create(widget);
         m_docking->addToolWindow(widget, FastDock::EmptySpace);
     }
+    */
 
     // addDockWidget(Qt::RightDockWidgetArea, dock);
 }
@@ -490,6 +491,7 @@ void MainWindow::create_views_menu_2() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::create_views_menu() {
+    /*
     QMenu* plugin_menu = menuBar()->addMenu(QStringLiteral("Plugins"));
     int plugin_index = 0;
     auto plugin_types = m_view_handler->plugin_types();
@@ -503,6 +505,7 @@ void MainWindow::create_views_menu() {
                 [this, plugin_index]() { create_view_instance(plugin_index); });
         plugin_index++;
     }
+    */
 
     menuBar()->update();
 }
@@ -575,9 +578,9 @@ void MainWindow::read_settings() {
        View* view = nullptr;
 
     // hack for now
-    if (viewType == QStringLiteral("prodbg::MemoryView")) {
+    if (viewType == QStringLiteral("MemoryView")) {
     view = new MemoryView(this);
-    } else if (viewType == QStringLiteral("prodbg::RegisterView")) {
+    } else if (viewType == QStringLiteral("RegisterView")) {
     view = new RegisterView(this);
     } else {
     Q_ASSERT(view);

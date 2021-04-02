@@ -11,7 +11,7 @@
 #include "api/include/pd_backend_messages.h"
 #include "api/src/remote/pd_readwrite_private.h"
 #include "flatbuffers/flatbuffers.h"
-#include "../core/BackendPluginHandler.h"
+#include "../core/backend_plugin_handler.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -47,7 +47,7 @@ BackendSession* BackendSession::create_backend_session(const QString& backend_na
 bool BackendSession::set_backend(const QString& backend_name) {
     // Names of the backends are stored in utf-8 so convert them here
     QByteArray name = backend_name.toUtf8();
-    PDBackendPlugin* plugin = prodbg::BackendPluginHandler::find_plugin(name.constData());
+    PDBackendPlugin* plugin = BackendPluginHandler::find_plugin(name.constData());
 
     if (!plugin) {
         qDebug() << "Unable to find plugin: " << backend_name;
@@ -373,7 +373,7 @@ void BackendSession::request_memory(uint64_t lo, uint64_t hi, QVector<uint8_t>* 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::request_basic(IBackendRequests::BasicRequest request_id) {
+void BackendSession::request_basic(PDIBackendRequests::BasicRequest request_id) {
     const uint8_t* data;
     uint64_t size;
 
@@ -395,10 +395,10 @@ void BackendSession::request_basic(IBackendRequests::BasicRequest request_id) {
 
         if (msg->message_type() == MessageType_callstack_reply) {
             auto vars = msg->message_as_callstack_reply();
-            IBackendRequests::Callstack callstack;
+            PDIBackendRequests::Callstack callstack;
 
             for (const auto& variable : *vars->entries()) {
-                IBackendRequests::CallstackEntry var = {
+                PDIBackendRequests::CallstackEntry var = {
                     variable->address(),
                     variable->desc() ? QString::fromUtf8(variable->desc()->c_str()) : QString(),
                     variable->lang() ? QString::fromUtf8(variable->lang()->c_str()) : QString(),
@@ -643,7 +643,7 @@ void BackendSession::update_current_pc() {
             auto path = loc->filename()->c_str();
             QString filename = path ? QString::fromUtf8(path) : QString();
 
-            IBackendRequests::ProgramCounterChange pc_change = {filename, loc->address(), loc->line()};
+            PDIBackendRequests::ProgramCounterChange pc_change = {filename, loc->address(), loc->line()};
             program_counter_changed(pc_change);
             break;
         }
@@ -763,7 +763,7 @@ void BackendSession::step_in() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendSession::request_locals(const IBackendRequests::ExpandVars& expanded_vars, uint64_t request_id) {
+void BackendSession::request_locals(const PDIBackendRequests::ExpandVars& expanded_vars, uint64_t request_id) {
     const uint8_t* data;
     uint64_t size;
 
@@ -774,7 +774,7 @@ void BackendSession::request_locals(const IBackendRequests::ExpandVars& expanded
     auto tree = builder.CreateVector<uint16_t>(expanded_vars.tree.data(), expanded_vars.tree.size());
     LocalsRequestBuilder request(builder);
     request.add_tree(tree);
-    request.add_type(expanded_vars.type == IBackendRequests::ExpandType::Single ? ExpandVarsTypeEnum_Single
+    request.add_type(expanded_vars.type == PDIBackendRequests::ExpandType::Single ? ExpandVarsTypeEnum_Single
                                                                                 : ExpandVarsTypeEnum_AllVariables);
     PDMessage_end_msg(m_messages_api->get_writer(), request, builder);
 
@@ -787,10 +787,10 @@ void BackendSession::request_locals(const IBackendRequests::ExpandVars& expanded
 
         if (msg->message_type() == MessageType_locals_reply) {
             auto vars = msg->message_as_locals_reply();
-            IBackendRequests::Variables variables;
+            PDIBackendRequests::Variables variables;
 
             for (const auto& variable : *vars->variables()) {
-                IBackendRequests::VariableData var = {
+                PDIBackendRequests::VariableData var = {
                     variable->address(),
                     variable->name() ? QString::fromUtf8(variable->name()->c_str()) : QString(),
                     variable->value() ? QString::fromUtf8(variable->value()->c_str()) : QString(),

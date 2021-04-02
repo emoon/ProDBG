@@ -3,24 +3,28 @@
 #include <QtCore/QPointer>
 #include <QtCore/QVector>
 #include <QtWidgets/QWidget>
-#include "api/include/pd_ui.h"
+#include "pd_view.h"
 #include "backend/backend_requests_interface.h"
 
 class Ui_RegisterView;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class RegistersPlugin : public prodbg::View
+class RegistersPlugin : public PDView
 {
     Q_OBJECT
 
 public:
-    prodbg::View* create(QWidget* parent);
-    void set_backend_interface(prodbg::IBackendRequests* interface);
+
+    PDView* create(QWidget* parent);
+    void set_backend_interface(PDIBackendRequests* interface);
     ~RegistersPlugin();
+
+    int version() { return PRODG_VIEW_VERSION; }
+    QString name() { return QStringLiteral("Registers"); }
 
 private:
     void init(QWidget* parent);
-    QPointer<prodbg::IBackendRequests> m_backend;
+    QPointer<PDIBackendRequests> m_backend;
     Ui_RegisterView* m_ui = nullptr;
 };

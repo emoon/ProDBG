@@ -191,7 +191,7 @@ static QChar s_ascii_tab[256];
 
 class MemoryViewPrivate {
 public:
-    QPointer<prodbg::IBackendRequests> m_interface;
+    QPointer<PDIBackendRequests> m_interface;
 
     int m_elements_per_row = 8;
     MemoryViewWidget::DataType m_data_type = MemoryViewWidget::X8;
@@ -419,11 +419,11 @@ MemoryViewWidget::~MemoryViewWidget() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryViewWidget::set_backend_interface(prodbg::IBackendRequests* interface) {
+void MemoryViewWidget::set_backend_interface(PDIBackendRequests* interface) {
     m_private->m_interface = interface;
 
     if (interface) {
-        connect(interface, &prodbg::IBackendRequests::reply_memory, this, &MemoryViewWidget::end_read_memory);
+        connect(interface, &PDIBackendRequests::reply_memory, this, &MemoryViewWidget::end_read_memory);
         //connect(interface, &IBackendRequests::program_counter_changed, this, &MemoryViewWidget::program_counter_changed);
     }
 
@@ -432,7 +432,7 @@ void MemoryViewWidget::set_backend_interface(prodbg::IBackendRequests* interface
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MemoryViewWidget::program_counter_changed(const prodbg::IBackendRequests::ProgramCounterChange&) {
+void MemoryViewWidget::program_counter_changed(const PDIBackendRequests::ProgramCounterChange&) {
     // If pc has changed we re-request the current data again
     /*
     if (m_private->m_interface) {

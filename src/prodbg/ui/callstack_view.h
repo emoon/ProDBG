@@ -1,42 +1,38 @@
 #pragma once
 
-#include <QtWidgets/QWidget>
 #include "backend/backend_requests_interface.h"
+#include "pd_view.h"
+
+#include <QtWidgets/QWidget>
 #include <QtCore/QVector>
 #include <QtCore/QString>
 #include <QtCore/QAbstractItemModel>
 
 class Ui_CallstackView;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-namespace prodbg {
-
 class CallstackModel;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class CallstackView : public QWidget {
+class CallstackView : public PDView {
     Q_OBJECT
 public:
-    void set_backend_interface(IBackendRequests* iface);
+    PDView* create(QWidget* parent);
+    void set_backend_interface(PDIBackendRequests* iface);
 
-    explicit CallstackView(QWidget* parent);
     virtual ~CallstackView();
 
 private:
+    void init(QWidget* parent);
+    int version() { return PRODG_VIEW_VERSION; }
+    QString name() { return QStringLiteral("Callstack"); }
 
-    Q_SLOT void reply_callstack(const IBackendRequests::Callstack& variables);
-    Q_SLOT void program_counter_changed(const IBackendRequests::ProgramCounterChange& pc);
+    Q_SLOT void reply_callstack(const PDIBackendRequests::Callstack& variables);
+    Q_SLOT void program_counter_changed(const PDIBackendRequests::ProgramCounterChange& pc);
     Q_SLOT void item_double_clicked(const QModelIndex& item);
 
     CallstackModel* m_model = nullptr;
-    IBackendRequests* m_interface = nullptr;
+    PDIBackendRequests* m_interface = nullptr;
     Ui_CallstackView* m_ui = nullptr;
 };
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-}
-
 

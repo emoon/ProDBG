@@ -51,7 +51,7 @@ void BackendRequests::file_target_request(bool stop_at_main, const QString& path
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void BackendRequests::request_basic(IBackendRequests::BasicRequest request_id) {
+void BackendRequests::request_basic(PDIBackendRequests::BasicRequest request_id) {
     request_basic_signal(request_id);
 }
 

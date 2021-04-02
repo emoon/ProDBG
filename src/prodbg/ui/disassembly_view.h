@@ -16,8 +16,6 @@ class QThread;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace prodbg {
-
 class AddressArea;
 class BreakpointModel;
 
@@ -35,7 +33,7 @@ class DisassemblyView : public QPlainTextEdit {
     void toggleBreakpoint();
     int lineNumberAreaWidth();
     void lineNumberAreaPaintEvent(QPaintEvent* event);
-    void set_backend_interface(IBackendRequests* interface);
+    void set_backend_interface(PDIBackendRequests* interface);
     void setBreakpointModel(BreakpointModel* breakpoints);
 
     //Q_SLOT void endDisassembly(QVector<IBackendRequests::AssemblyInstruction>* instructions, int addressWidth);
@@ -50,7 +48,7 @@ class DisassemblyView : public QPlainTextEdit {
     void setLine(int line);
 
     QWidget* m_addressArea;
-    QPointer<IBackendRequests> m_interface;
+    QPointer<PDIBackendRequests> m_interface;
     BreakpointModel* m_breakpoints;
 
     struct AddressData {
@@ -69,7 +67,7 @@ class DisassemblyView : public QPlainTextEdit {
     QVector<AddressData> m_disassemblyAdresses;
 
     // Temp vector for recving data from backend
-    QVector<IBackendRequests::AssemblyInstruction> m_recvInstructions;
+    QVector<PDIBackendRequests::AssemblyInstruction> m_recvInstructions;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,6 +76,3 @@ inline void DisassemblyView::setBreakpointModel(BreakpointModel* breakpoints) {
     m_breakpoints = breakpoints;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-}  // namespace prodbg

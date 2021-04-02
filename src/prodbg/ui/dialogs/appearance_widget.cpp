@@ -2,8 +2,6 @@
 #include "../config/config.h"
 #include "ui_appearance_widget.h"
 
-namespace prodbg {
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 AppearanceWidget::AppearanceWidget(QWidget* parent)
@@ -31,4 +29,3 @@ AppearanceWidget::AppearanceWidget(QWidget* parent)
 
 AppearanceWidget::~AppearanceWidget() { delete m_ui; }
 
-}  // namespace prodbg

@@ -5,7 +5,7 @@
 #include "backend/backend_requests_interface.h"
 
 class BreakpointModel;
-class IBackendRequests;
+class PDIBackendRequests;
 class DisassemblyView;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -19,10 +19,10 @@ public:
 
     void reload_current_file();
     void toggle_breakpoint();
-    void set_backend_interface(IBackendRequests* iface);
+    void set_backend_interface(PDIBackendRequests* iface);
 
     Q_SLOT void open_file(const QString& filename, bool setActive);
-    Q_SLOT void program_counter_changed(const IBackendRequests::ProgramCounterChange& pc);
+    Q_SLOT void program_counter_changed(const PDIBackendRequests::ProgramCounterChange& pc);
     Q_SLOT void session_ended();
 
 private:
@@ -41,7 +41,7 @@ private:
 
     // DisassemblyView* m_disassemblyView = nullptr;
     BreakpointModel* m_breakpoints = nullptr;
-    QPointer<IBackendRequests> m_interface;
+    QPointer<PDIBackendRequests> m_interface;
     QVector<QString> m_files;
 
     bool m_was_in_source_view = true;

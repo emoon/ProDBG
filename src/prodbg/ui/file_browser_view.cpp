@@ -184,9 +184,10 @@ Qt::ItemFlags FileBrowserModel::flags(const QModelIndex& index) const {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-FileBrowserView::FileBrowserView(QWidget* parent)
-    : QWidget(parent), m_model(new FileBrowserModel), m_ui(new Ui_FileBrowserView) {
-    m_ui->setupUi(this);
+void FileBrowserView::init(QWidget* parent) {
+    m_model = new FileBrowserModel;
+    m_ui = new Ui_FileBrowserView;
+    m_ui->setupUi(parent);
 
     m_filter_model = new QSortFilterProxyModel(this);
     m_filter_model->setSourceModel(m_model);
@@ -198,6 +199,14 @@ FileBrowserView::FileBrowserView(QWidget* parent)
 
     QObject::connect(m_ui->files, &QTreeView::activated, this, &FileBrowserView::open_item);
     QObject::connect(m_ui->files, &QTreeView::doubleClicked, this, &FileBrowserView::open_item);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+PDView* FileBrowserView::create(QWidget* parent) {
+    auto instance = new FileBrowserView;
+    instance->init(parent);
+    return instance;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -223,19 +232,19 @@ void FileBrowserView::open_item(const QModelIndex& item) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void FileBrowserView::set_backend_interface(IBackendRequests* iface) {
+void FileBrowserView::set_backend_interface(PDIBackendRequests* iface) {
     m_interface = iface;
 
     if (iface) {
-        connect(m_interface, &IBackendRequests::program_counter_changed, this,
+        connect(m_interface, &PDIBackendRequests::program_counter_changed, this,
                 &FileBrowserView::program_counter_changed);
-        connect(m_interface, &IBackendRequests::reply_source_files, this, &FileBrowserView::reply_source_files);
+        connect(m_interface, &PDIBackendRequests::reply_source_files, this, &FileBrowserView::reply_source_files);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void FileBrowserView::program_counter_changed(const IBackendRequests::ProgramCounterChange& pc) {
+void FileBrowserView::program_counter_changed(const PDIBackendRequests::ProgramCounterChange& pc) {
     if (m_has_requested_files) {
         return;
     }
@@ -244,7 +253,7 @@ void FileBrowserView::program_counter_changed(const IBackendRequests::ProgramCou
 
     printf("requesting source files\n");
 
-    m_interface->request_basic(IBackendRequests::BasicRequest::SourceFiles);
+    m_interface->request_basic(PDIBackendRequests::BasicRequest::SourceFiles);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

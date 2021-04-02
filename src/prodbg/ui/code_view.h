@@ -11,10 +11,6 @@
 
 class QWidget;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-namespace prodbg {
-
 class BreakpointModel;
 class BreakpointDelegate;
 
@@ -47,7 +43,7 @@ protected:
     void read_settings();
     void write_settings();
 
-    QPointer<IBackendRequests> m_interface;
+    QPointer<PDIBackendRequests> m_interface;
     BreakpointModel* m_breakpoints = 0;
 
     QString m_source_file;
@@ -56,5 +52,3 @@ protected:
     BreakpointDelegate* m_margin_delegate = nullptr;
 };
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-}  // namespace prodbg

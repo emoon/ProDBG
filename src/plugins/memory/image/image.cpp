@@ -1,9 +1,10 @@
 #include "image.h"
+#include "pd_ui_register_plugin.h"
 #include <QtWidgets/QPushButton>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-prodbg::MemoryView* ImageView::create(QWidget* parent) {
+PDMemoryView* ImageView::create(QWidget* parent) {
     ImageView* instance = new ImageView;
     auto button = new QPushButton(QStringLiteral("Test"), parent);
 
@@ -17,27 +18,14 @@ prodbg::MemoryView* ImageView::create(QWidget* parent) {
 ImageView::~ImageView() {
 
 }
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int ImageView::version() {
-    return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-QString ImageView::name() {
-    return QStringLiteral("Image");
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void ImageView::set_backend_interface(prodbg::IBackendRequests* interface) {
+void ImageView::set_backend_interface(PDIBackendRequests* interface) {
     //m_interface = interface;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C" void pd_register_plugin(prodbg::PluginRegister* plugins) {
+extern "C" void pd_register_plugin(PDPluginRegister* plugins) {
     plugins->register_memory_view(new ImageView);
 }

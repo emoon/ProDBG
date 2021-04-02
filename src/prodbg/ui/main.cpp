@@ -31,13 +31,13 @@ int main(int argc, const char** argv) {
     edbee->autoInit();
     edbee->init();
 
-    prodbg::Config::create_instance();
-    prodbg::BackendPluginHandler::add_plugin("lldb_plugin");
-    if (!prodbg::BackendPluginHandler::add_plugin("file")) {
+    Config::create_instance();
+    BackendPluginHandler::add_plugin("lldb_plugin");
+    if (!BackendPluginHandler::add_plugin("file")) {
         printf("failed to add file plugin");
     }
 
-    prodbg::MainWindow main_window;
+    MainWindow main_window;
 
     main_window.show();
 

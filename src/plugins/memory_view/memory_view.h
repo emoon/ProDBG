@@ -6,32 +6,34 @@
 #include "api/include/pd_memory_view.h"
 #include "backend/backend_requests_interface.h"
 
-class Ui_HexView;
+class Ui_MemoryView;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class HexView : public prodbg::MemoryView
+class HexView : public PDMemoryView
 {
     Q_OBJECT
 
 public:
-    prodbg::MemoryView* create(QWidget* parent);
-    void set_backend_interface(prodbg::IBackendRequests* interface);
+    PDMemoryView* create(QWidget* parent);
+    void set_backend_interface(PDIBackendRequests* interface);
     ~HexView();
 
 private:
+    PDMemoryView::Ver version() { return PDMemoryView::Ver::Version; }
+    QString name() { return QStringLiteral("Hex"); }
+
     Q_SLOT void jump_to_address_expression(const QString& expression);
     Q_SLOT void end_resolve_address(uint64_t* out);
     Q_SLOT void jump_address_changed();
     Q_SLOT void endian_changed(int);
     Q_SLOT void data_type_changed(int);
-    Q_SLOT void count_changed(const QString&);
+    Q_SLOT void count_changed(int index);
 
     void init(QWidget* parent);
-    QPointer<prodbg::IBackendRequests> m_backend;
-    //static View* createView(QWidget* parent);
+    QPointer<PDIBackendRequests> m_backend;
 
-    Ui_HexView* m_ui = nullptr;
+    Ui_MemoryView* m_ui = nullptr;
     uint64_t m_eval_address = 0;
 };
 

@@ -5,8 +5,6 @@ class QWidget;
 
 struct PDBackendPlugin;
 
-namespace prodbg {
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct Plugin {
@@ -21,5 +19,3 @@ Plugin* PluginHandler_getPlugins(int* count);
 
 PDBackendPlugin* PluginHandler_findBackendPlugin(const char* name);
 QWidget* PluginHandler_tempLoadUIPlugin(QWidget* parent, const QString& plugin);
-
-}  // namespace prodbg

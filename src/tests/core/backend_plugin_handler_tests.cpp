@@ -8,7 +8,7 @@
 struct Plugin {
     void* user_data;
     PDBackendPlugin* plugin;
-    prodbg::MessagesAPI* msg_api;
+    MessagesAPI* msg_api;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -17,13 +17,13 @@ static Plugin setup_dummy_plugin() {
     void* user_data = nullptr;
     PDBackendPlugin* plugin = nullptr;
 
-    prodbg::MessagesAPI* api = new prodbg::MessagesAPI(512 * 1024);
+    MessagesAPI* api = new MessagesAPI(512 * 1024);
     /*
-    ASSERT_NE(plugin = prodbg::BackendPluginHandler::find_plugin("Dummy Backend"), nullptr);
+    ASSERT_NE(plugin = BackendPluginHandler::find_plugin("Dummy Backend"), nullptr);
     ASSERT_NE(user_data = plugin->create_instance(nullptr), nullptr);
     */
-    prodbg::BackendPluginHandler::add_plugin("dummy_backend");
-    plugin = prodbg::BackendPluginHandler::find_plugin("Dummy Backend");
+    BackendPluginHandler::add_plugin("dummy_backend");
+    plugin = BackendPluginHandler::find_plugin("Dummy Backend");
     user_data = plugin->create_instance(nullptr);
 
     return Plugin { user_data, plugin, api };
@@ -56,25 +56,25 @@ static void close_dummy_plugin(Plugin p) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST(BackendPluginHandler, load_dummy_backend) {
-    ASSERT_EQ(prodbg::BackendPluginHandler::add_plugin("dummy_backend"), true);
+    ASSERT_EQ(BackendPluginHandler::add_plugin("dummy_backend"), true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST(BackendPluginHandler, find_dummy_plugin) {
-    ASSERT_NE(prodbg::BackendPluginHandler::find_plugin("Dummy Backend"), nullptr);
+    ASSERT_NE(BackendPluginHandler::find_plugin("Dummy Backend"), nullptr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST(BackendPluginHandler, load_backend_fail) {
-    ASSERT_EQ(prodbg::BackendPluginHandler::add_plugin("no_such_plugin"), false);
+    ASSERT_EQ(BackendPluginHandler::add_plugin("no_such_plugin"), false);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST(BackendPluginHandler, find_fail) {
-    ASSERT_EQ(prodbg::BackendPluginHandler::find_plugin("No Such plugin"), nullptr);
+    ASSERT_EQ(BackendPluginHandler::find_plugin("No Such plugin"), nullptr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -6,8 +6,6 @@
 #include "code_view.h"
 #include "disassembly_view.h"
 
-namespace prodbg {
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CodeViews::CodeViews(BreakpointModel* breakpoints, QWidget* parent) : QTabWidget(parent), m_breakpoints(breakpoints) {
@@ -105,7 +103,7 @@ void CodeViews::reload_current_file() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::program_counter_changed(const IBackendRequests::ProgramCounterChange& pc) {
+void CodeViews::program_counter_changed(const PDIBackendRequests::ProgramCounterChange& pc) {
     qDebug() << "CodeViews::program_counter_changed";
     qDebug() << pc.line;
     qDebug() << pc.filename;
@@ -159,14 +157,14 @@ void CodeViews::program_counter_changed(const IBackendRequests::ProgramCounterCh
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CodeViews::set_backend_interface(IBackendRequests* iface) {
+void CodeViews::set_backend_interface(PDIBackendRequests* iface) {
     m_interface = iface;
 
     //m_disassemblyView->set_backend_interface(iface);
 
     if (iface) {
-        connect(m_interface, &IBackendRequests::program_counter_changed, this, &CodeViews::program_counter_changed);
-        connect(m_interface, &IBackendRequests::session_ended, this, &CodeViews::session_ended);
+        connect(m_interface, &PDIBackendRequests::program_counter_changed, this, &CodeViews::program_counter_changed);
+        connect(m_interface, &PDIBackendRequests::session_ended, this, &CodeViews::session_ended);
     }
 }
 
@@ -271,8 +269,4 @@ void CodeViews::write_settings() {
     settings.endArray();
     settings.endGroup();
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-}  // namespace prodbg
 

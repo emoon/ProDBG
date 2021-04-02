@@ -20,13 +20,13 @@ template <typename EnumType> static void enum_to_combo(QComboBox* combo, int sta
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void HexView::init(QWidget* parent) {
-    m_ui = new Ui_HexView;
+    m_ui = new Ui_MemoryView;
     m_ui->setupUi(parent);
 
     connect(m_ui->m_address, &QLineEdit::returnPressed, this, &HexView::jump_address_changed);
 
-    enum_to_combo<HexViewWidget::Endianess>(m_ui->m_endianess, m_ui->m_view->endianess());
-    enum_to_combo<HexViewWidget::DataType>(m_ui->m_type, m_ui->m_view->data_type());
+    enum_to_combo<MemoryViewWidget::Endianess>(m_ui->m_endianess, m_ui->m_view->endianess());
+    enum_to_combo<MemoryViewWidget::DataType>(m_ui->m_type, m_ui->m_view->data_type());
 
     connect(m_ui->m_endianess, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
             &HexView::endian_changed);
@@ -42,7 +42,7 @@ void HexView::init(QWidget* parent) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-prodbg::MemoryView* HexView::create(QWidget* parent) {
+PDMemoryView* HexView::create(QWidget* parent) {
     HexView* instance = new HexView;
     instance->init(parent);
     return instance;
@@ -58,13 +58,13 @@ HexView::~HexView() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void HexView::endian_changed(int e) {
-    m_ui->m_view->set_endianess(static_cast<HexViewWidget::Endianess>(e));
+    m_ui->m_view->set_endianess(static_cast<MemoryViewWidget::Endianess>(e));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void HexView::data_type_changed(int t) {
-    m_ui->m_view->set_data_type(static_cast<HexViewWidget::DataType>(t));
+    m_ui->m_view->set_data_type(static_cast<MemoryViewWidget::DataType>(t));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,7 +99,7 @@ void HexView::end_resolve_address(uint64_t* out) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void HexView::set_backend_interface(prodbg::IBackendRequests* interface) {
+void HexView::set_backend_interface(PDIBackendRequests* interface) {
     m_ui->m_view->set_backend_interface(interface);
 }
 
@@ -107,7 +107,7 @@ void HexView::set_backend_interface(prodbg::IBackendRequests* interface) {
 
 void HexView::count_changed(int index) {
     bool ok = false;
-    int count = m_count.itemText(index).toInt(&ok, /*base:*/ 0);
+    int count = m_ui->m_count->itemText(index).toInt(&ok, /*base:*/ 0);
     if (ok) {
         m_ui->m_view->set_elements_per_line(count);
     }

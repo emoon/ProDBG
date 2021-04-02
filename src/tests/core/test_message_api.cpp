@@ -6,7 +6,7 @@
 TEST(MessagesAPI, create) {
     uint64_t size = 1024;
 
-    prodbg::MessagesAPI* api = new prodbg::MessagesAPI(size);
+    MessagesAPI* api = new MessagesAPI(size);
 
     ASSERT_NE(api->m_memory_start, nullptr);
     ASSERT_NE(api->m_data_read, nullptr);
@@ -22,7 +22,7 @@ TEST(MessagesAPI, write) {
     uint64_t size = 1024;
     uint8_t data[] = {1, 2, 3, 4};
 
-    prodbg::MessagesAPI* api = new prodbg::MessagesAPI(size);
+    MessagesAPI* api = new MessagesAPI(size);
     PDWriteMessage* writer = api->get_writer();
 
     // Expected to pass
@@ -38,7 +38,7 @@ TEST(MessagesAPI, read_write) {
     uint8_t data[] = {1, 2, 3, 4};
     uint64_t read_size = 0;
 
-    prodbg::MessagesAPI* api = new prodbg::MessagesAPI(size);
+    MessagesAPI* api = new MessagesAPI(size);
     PDWriteMessage* writer = api->get_writer();
     PDReadMessage* reader = api->get_reader();
 
@@ -64,7 +64,7 @@ TEST(MessagesAPI, read_write) {
 
 TEST(MessagesAPI, too_small_alloc_buffer) {
     uint8_t data[] = {1, 2, 3, 4};
-    prodbg::MessagesAPI* api = new prodbg::MessagesAPI(16);
+    MessagesAPI* api = new MessagesAPI(16);
     auto writer = api->get_writer();
     ASSERT_EQ(PDWriteMessage_write(writer, data, sizeof(data)), false);
 }
@@ -73,7 +73,7 @@ TEST(MessagesAPI, too_small_alloc_buffer) {
 
 TEST(MessagesAPI, small_1_buffer_allowed) {
     uint8_t data[] = {1, 2, 3, 4};
-    prodbg::MessagesAPI* api = new prodbg::MessagesAPI(2 * (8 + 8 + 4));
+    MessagesAPI* api = new MessagesAPI(2 * (8 + 8 + 4));
     auto writer = api->get_writer();
     ASSERT_EQ(PDWriteMessage_write(writer, data, sizeof(data)), true);
     ASSERT_EQ(PDWriteMessage_write(writer, data, sizeof(data)), false);

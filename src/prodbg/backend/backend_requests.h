@@ -7,7 +7,7 @@ class BackendSession;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class BackendRequests : public IBackendRequests {
+class BackendRequests : public PDIBackendRequests {
     Q_OBJECT
 public:
     BackendRequests(BackendSession* session);
@@ -17,7 +17,7 @@ public:
     void file_target_request(bool stop_at_main, const QString& path);
 
     // Request source files from debug target
-    void request_basic(IBackendRequests::BasicRequest request_type);
+    void request_basic(PDIBackendRequests::BasicRequest request_type);
 
     // Add a breakpoint at a specific address
     //void beginAddAddressBreakpoint(uint64_t address);
@@ -74,11 +74,11 @@ public:
     bool request_memory(uint64_t lo, uint64_t hi, QVector<uint8_t>* target);
 
 private:
-    Q_SIGNAL void request_basic_signal(IBackendRequests::BasicRequest request_type);
+    Q_SIGNAL void request_basic_signal(PDIBackendRequests::BasicRequest request_type);
     Q_SIGNAL void request_file_target_signal(bool stop_at_main, const QString& filename);
     Q_SIGNAL void request_add_file_line_breakpoint_signal(const QString& filename, int line);
     Q_SIGNAL void request_remove_file_line_breakpoint_signal(const QString& filename, int line);
-    Q_SIGNAL void request_locals_signal(const IBackendRequests::ExpandVars& expanded_vars, uint64_t request_id);
+    Q_SIGNAL void request_locals_signal(const PDIBackendRequests::ExpandVars& expanded_vars, uint64_t request_id);
     Q_SIGNAL void request_frame_index_signal(int frame_index);
     Q_SIGNAL void request_memory_signal(uint64_t lo, uint64_t hi, QVector<uint8_t>* target);
 

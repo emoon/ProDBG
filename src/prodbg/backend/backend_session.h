@@ -33,9 +33,9 @@ public:
 
     Q_SLOT void step_in();
 
-    Q_SLOT void request_locals(const IBackendRequests::ExpandVars& expanded_vars, uint64_t request_id);
+    Q_SLOT void request_locals(const PDIBackendRequests::ExpandVars& expanded_vars, uint64_t request_id);
 
-    Q_SLOT void request_basic(IBackendRequests::BasicRequest request_id);
+    Q_SLOT void request_basic(PDIBackendRequests::BasicRequest request_id);
     Q_SLOT void request_frame_index(int frame_index);
 
     Q_SLOT void request_memory(uint64_t lo, uint64_t hi, QVector<uint8_t>* target);
@@ -67,11 +67,11 @@ public:
     */
     // Q_SIGNAL void statusUpdate(const QString& update);
     // Q_SIGNAL void sourceFileLineChanged(const QString& filename, uint32_t line);
-    Q_SIGNAL void program_counter_changed(const IBackendRequests::ProgramCounterChange& pc);
+    Q_SIGNAL void program_counter_changed(const PDIBackendRequests::ProgramCounterChange& pc);
     Q_SIGNAL void target_reply(bool status, const QString& error_message);
 
-    Q_SIGNAL void reply_locals(const IBackendRequests::Variables& variables);
-    Q_SIGNAL void reply_callstack(const IBackendRequests::Callstack& callstack);
+    Q_SIGNAL void reply_locals(const PDIBackendRequests::Variables& variables);
+    Q_SIGNAL void reply_callstack(const PDIBackendRequests::Callstack& callstack);
     Q_SIGNAL void reply_source_files(const QVector<QString>& source_files);
     Q_SIGNAL void reply_memory(QVector<uint8_t>* res, uint64_t address, int address_width);
 

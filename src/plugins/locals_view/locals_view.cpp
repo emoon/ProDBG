@@ -227,14 +227,14 @@ void LocalsView::init(QWidget* parent) {
     m_ui->locals->setModel(m_model);
     m_ui->locals->setAlternatingRowColors(true);
 
-    m_expand_vars.type = prodbg::IBackendRequests::ExpandType::AllVariables;
+    m_expand_vars.type = PDIBackendRequests::ExpandType::AllVariables;
 
     QObject::connect(m_ui->locals, &QTreeView::expanded, this, &LocalsView::expand_variable);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-prodbg::PDUIInterface* LocalsView::create(QWidget* parent) {
+PDView* LocalsView::create(QWidget* parent) {
     auto instance = new LocalsView;
     instance->init(parent);
     return instance;
@@ -249,18 +249,18 @@ LocalsView::~LocalsView() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LocalsView::set_backend_interface(prodbg::IBackendRequests* iface) {
+void LocalsView::set_backend_interface(PDIBackendRequests* iface) {
     m_interface = iface;
 
     if (iface) {
-        connect(m_interface, &prodbg::IBackendRequests::program_counter_changed, this, &LocalsView::program_counter_changed);
-        connect(m_interface, &prodbg::IBackendRequests::reply_locals, this, &LocalsView::reply_locals);
+        connect(m_interface, &PDIBackendRequests::program_counter_changed, this, &LocalsView::program_counter_changed);
+        connect(m_interface, &PDIBackendRequests::reply_locals, this, &LocalsView::reply_locals);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LocalsView::reply_locals(const prodbg::IBackendRequests::Variables& vars) {
+void LocalsView::reply_locals(const PDIBackendRequests::Variables& vars) {
     if (vars.request_id != m_request_id) {
         return;
     }
@@ -306,7 +306,7 @@ void LocalsView::collpase_variable(const QModelIndex& index) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LocalsView::expand_variable(const QModelIndex& index) {
-    prodbg::IBackendRequests::ExpandVars expand_vars;
+    PDIBackendRequests::ExpandVars expand_vars;
 
     LocalNode* node = m_model->node_from_index(index);
     node->is_expanded = true;
@@ -335,7 +335,7 @@ void LocalsView::expand_variable(const QModelIndex& index) {
         write_index--;
     }
     expand_vars.tree[0] = count;
-    expand_vars.type = prodbg::IBackendRequests::ExpandType::Single;
+    expand_vars.type = PDIBackendRequests::ExpandType::Single;
 
     // TODO: Build fully from parent
     // m_locals_name_request = node->name;
@@ -347,7 +347,7 @@ void LocalsView::expand_variable(const QModelIndex& index) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LocalsView::program_counter_changed(const prodbg::IBackendRequests::ProgramCounterChange& pc) {
+void LocalsView::program_counter_changed(const PDIBackendRequests::ProgramCounterChange& pc) {
     m_request_node = nullptr;
     printf("LocalsView::program_counter_changed request locals\n");
     m_request_id = m_interface->request_locals(m_expand_vars);

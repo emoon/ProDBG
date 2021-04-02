@@ -5,10 +5,6 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace prodbg {
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 class CallstackModel : public QAbstractTableModel {
 public:
     CallstackModel(QObject* parent);
@@ -18,7 +14,7 @@ public:
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
     bool removeRows(int row, int count, const QModelIndex& parent = QModelIndex());
 
-    IBackendRequests::Callstack m_callstack;
+    PDIBackendRequests::Callstack m_callstack;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,11 +74,20 @@ QVariant CallstackModel::data(const QModelIndex& index, int role) const {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CallstackView::CallstackView(QWidget* parent)
-    : QWidget(parent), m_model(new CallstackModel(nullptr)), m_ui(new Ui_CallstackView) {
-    m_ui->setupUi(this);
+void CallstackView::init(QWidget* parent) {
+    m_model = new CallstackModel(nullptr);
+    m_ui = new Ui_CallstackView;
+    m_ui->setupUi(parent);
     m_ui->callstack->setModel(m_model);
     QObject::connect(m_ui->callstack, &QTreeView::doubleClicked, this, &CallstackView::item_double_clicked);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+PDView* CallstackView::create(QWidget* parent) {
+    auto instance = new CallstackView;
+    instance->init(parent);
+    return instance;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -101,28 +106,25 @@ void CallstackView::item_double_clicked(const QModelIndex& item) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CallstackView::set_backend_interface(IBackendRequests* iface) {
+void CallstackView::set_backend_interface(PDIBackendRequests* iface) {
     m_interface = iface;
 
     if (iface) {
-        connect(m_interface, &IBackendRequests::program_counter_changed, this, &CallstackView::program_counter_changed);
-        connect(m_interface, &IBackendRequests::reply_callstack, this, &CallstackView::reply_callstack);
+        connect(m_interface, &PDIBackendRequests::program_counter_changed, this, &CallstackView::program_counter_changed);
+        connect(m_interface, &PDIBackendRequests::reply_callstack, this, &CallstackView::reply_callstack);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CallstackView::reply_callstack(const IBackendRequests::Callstack& callstack) {
+void CallstackView::reply_callstack(const PDIBackendRequests::Callstack& callstack) {
     m_model->m_callstack = callstack;
     m_model->layoutChanged();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CallstackView::program_counter_changed(const IBackendRequests::ProgramCounterChange& pc) {
-    m_interface->request_basic(IBackendRequests::BasicRequest::Callstack);
+void CallstackView::program_counter_changed(const PDIBackendRequests::ProgramCounterChange& pc) {
+    m_interface->request_basic(PDIBackendRequests::BasicRequest::Callstack);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-}  // namespace prodbg

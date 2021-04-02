@@ -5,8 +5,6 @@
 class Ui_AppearanceWidget;
 class QListWidgetItem;
 
-namespace prodbg {
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // AppearanceWidget shows settings for font and interface, etc. Everything that
@@ -24,5 +22,3 @@ class AppearanceWidget : public QDialog {
    private:
     Ui_AppearanceWidget* m_ui = nullptr;
 };
-
-}  // namespace prodbg

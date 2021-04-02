@@ -47,7 +47,7 @@ public:
     virtual ~MemoryViewWidget();
 
 public:
-    void set_backend_interface(prodbg::IBackendRequests* interface);
+    void set_backend_interface(PDIBackendRequests* interface);
     void set_address(uint64_t address);
     void set_expression_status(bool status);
 
@@ -60,7 +60,7 @@ public:
     DataType data_type() const;
     Q_SLOT void set_data_type(DataType t);
     Q_SLOT void end_read_memory(QVector<uint8_t>* target, uint64_t address, int address_width);
-    Q_SLOT void program_counter_changed(const prodbg::IBackendRequests::ProgramCounterChange& pc);
+    Q_SLOT void program_counter_changed(const PDIBackendRequests::ProgramCounterChange& pc);
 
     Endianess endianess() const;
     Q_SLOT void set_endianess(Endianess e);

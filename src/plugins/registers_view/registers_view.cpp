@@ -27,7 +27,7 @@ void RegistersPlugin::init(QWidget* parent) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-prodbg::PDUIInterface* RegistersPlugin::create(QWidget* parent) {
+PDView* RegistersPlugin::create(QWidget* parent) {
     RegistersPlugin* instance = new RegistersPlugin;
     instance->init(parent);
     return instance;
@@ -41,7 +41,7 @@ RegistersPlugin::~RegistersPlugin() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RegistersPlugin::set_backend_interface(prodbg::IBackendRequests* interface) {
+void RegistersPlugin::set_backend_interface(PDIBackendRequests* interface) {
     m_backend = interface;
 }
 
