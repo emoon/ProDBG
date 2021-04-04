@@ -25,7 +25,7 @@ public:
 private:
     void init(QWidget* parent);
     int version() { return PRODG_VIEW_VERSION; }
-    QString name() { return QStringLiteral("Callstack"); }
+    const char* name() { return "Callstack"; }
 
     Q_SLOT void reply_callstack(const PDIBackendRequests::Callstack& variables);
     Q_SLOT void program_counter_changed(const PDIBackendRequests::ProgramCounterChange& pc);

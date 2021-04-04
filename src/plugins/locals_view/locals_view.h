@@ -27,7 +27,7 @@ public:
 private:
     void init(QWidget* parent);
     int version() { return PRODG_VIEW_VERSION; }
-    QString name() { return QStringLiteral("Locals"); }
+    const char* name() { return "Locals"; }
 
     Q_SLOT void reply_locals(const PDIBackendRequests::Variables& variables);
     Q_SLOT void program_counter_changed(const PDIBackendRequests::ProgramCounterChange& pc);

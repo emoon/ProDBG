@@ -26,6 +26,6 @@ void ImageView::set_backend_interface(PDIBackendRequests* interface) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern "C" void pd_register_plugin(PDPluginRegister* plugins) {
-    plugins->register_memory_view(new ImageView);
+extern "C" void pd_register_view(PDRegisterViewPlugin* reg) {
+    reg->register_memory_view(new ImageView);
 }

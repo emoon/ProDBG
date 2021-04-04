@@ -115,6 +115,12 @@ Program {
         },
     },
 
+	Libs = {
+		{ "Qt5Core.lib"; Config = "win64-*-*" },
+		{ "Qt5Core" ; Config = "linux-*-*" },
+	},
+
+    Frameworks = { "QtCore" },
     Depends = { "core" },
 }
 

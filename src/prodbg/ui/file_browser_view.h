@@ -33,7 +33,7 @@ private:
 
     void init(QWidget* parent);
     int version() { return PRODG_VIEW_VERSION; }
-    QString name() { return QStringLiteral("File Browser"); }
+    const char* name() { return "File Browser"; }
 
     Q_SLOT void open_item(const QModelIndex& item);
     Q_SLOT void filter_updated(const QString& text);

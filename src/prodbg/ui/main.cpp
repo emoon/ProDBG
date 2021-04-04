@@ -7,8 +7,8 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QStyleFactory>
 #include <QtWidgets/QTextEdit>
-#include "core/plugin_handler.h"
-#include "../core/backend_plugin_handler.h"
+//#include "core/plugin_handler.h"
+#include "../core/plugin_handler.h"
 #include "main_window.h"
 #include "config/config.h"
 #include "edbee/edbee.h"
@@ -32,10 +32,12 @@ int main(int argc, const char** argv) {
     edbee->init();
 
     Config::create_instance();
-    BackendPluginHandler::add_plugin("lldb_plugin");
+    //BackendPluginHandler::add_plugin("lldb_plugin");
+    /*
     if (!BackendPluginHandler::add_plugin("file")) {
         printf("failed to add file plugin");
     }
+    */
 
     MainWindow main_window;
 

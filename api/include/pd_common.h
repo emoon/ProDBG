@@ -8,13 +8,12 @@ extern "C" {
 /*! \fn void* ServiceFunc(const char* serviceName)
     Service Function. Provides services for the plugin to use.
     Example:
-     ProDBGUI* ui = serviceFunc(PRODBG_UI_SERVICE);
-     ProDBServerInfo* serverInfo = serviceFunc(PRODBG_SERVERINFO_SERVICE);
+     PDServerInfo* server_info = service_func(PRODBG_SERVERINFO_SERVICE);
      It's ok for the plugin to hold a pointer to the requested service during its life time.
     \param serviceName The name of the requested service. It's *highly* recommended to use the defines for the wanted service.
  */
 typedef void* ServiceFunc(const char* service_name);
-typedef void RegisterPlugin(const char* type, void* data, void* private_data);
+typedef void PDRegisterBackendPlugin(const char* type, void* data, void* private_data);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -1,9 +1,9 @@
 #pragma once
 
 #include <QtCore/QObject>
-#include <QtCore/QString>
 
 class PDIBackendRequests;
+class QWidget;
 
 #define PRODG_VIEW_VERSION 1
 
@@ -18,7 +18,7 @@ public:
     virtual int version() = 0;
 
     // Name of the plugin
-    virtual QString name() = 0;
+    virtual const char* name() = 0;
 
     // TODO: Return state if needs animated update
     virtual PDView* create(QWidget* parent) = 0;

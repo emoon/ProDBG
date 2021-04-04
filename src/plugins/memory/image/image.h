@@ -16,7 +16,7 @@ class ImageView : public PDMemoryView
 public:
     ~ImageView();
     PDMemoryView::Ver version() { return PDMemoryView::Ver::Version; }
-    QString name() { return QStringLiteral("Image"); }
+    const char* name() { return "Image"; }
     PDMemoryView* create(QWidget* parent);
     void set_backend_interface(PDIBackendRequests* interface);
 

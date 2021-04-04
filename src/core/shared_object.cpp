@@ -83,13 +83,8 @@ char* shared_object_exe_directory() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void* shared_object_open(const char* base_path, const char* name) {
-    void* handle = NULL;
-    char path[8192];
-
-    // TODO: Support widechar on windows
-    sprintf(path, "%s/%s%s%s", base_path, SO_PREFIX, name, SO_SUFFIX);
-
+SharedObjectHandle shared_object_open_fullpath(const char* path) {
+    void* handle = nullptr;
 #if defined(PRODBG_WINDOWS)
     handle = (void*)LoadLibraryA(path);
 #elif defined(PRODBG_NIX)
@@ -101,17 +96,32 @@ void* shared_object_open(const char* base_path, const char* name) {
 #else
 #error unsupported platform
 #endif
-
-    return handle;
+    return (SharedObjectHandle)handle;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void* shared_object_symbol(void* handle, const char* symbol_name) {
+SharedObjectHandle shared_object_open(const char* base_path, const char* name) {
+    char path[8192];
+
+    // TODO: Support widechar on windows
+    sprintf(path, "%s/%s%s%s", base_path, SO_PREFIX, name, SO_SUFFIX);
+    return shared_object_open_fullpath(path);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void shared_object_close(SharedObjectHandle handle) {
+    // TODO: implement
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void* shared_object_symbol(SharedObjectHandle handle, const char* symbol_name) {
 #if defined(PRODBG_WINDOWS)
-    return GetProcAddress((HMODULE)handle, symbol_name);
+    return (SharedObjectHandle)GetProcAddress((HMODULE)handle, symbol_name);
 #elif defined(PRODBG_NIX)
-    return dlsym(handle, symbol_name);
+    return (SharedObjectHandle)dlsym(handle, symbol_name);
 #else
 #error unsupported platform
 #endif

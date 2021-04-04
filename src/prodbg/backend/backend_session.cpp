@@ -11,7 +11,7 @@
 #include "api/include/pd_backend_messages.h"
 #include "api/src/remote/pd_readwrite_private.h"
 #include "flatbuffers/flatbuffers.h"
-#include "../core/backend_plugin_handler.h"
+#include "../core/plugin_handler.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -47,7 +47,7 @@ BackendSession* BackendSession::create_backend_session(const QString& backend_na
 bool BackendSession::set_backend(const QString& backend_name) {
     // Names of the backends are stored in utf-8 so convert them here
     QByteArray name = backend_name.toUtf8();
-    PDBackendPlugin* plugin = BackendPluginHandler::find_plugin(name.constData());
+    PDBackendPlugin* plugin = PluginHandler::find_backend_plugin(name.constData());
 
     if (!plugin) {
         qDebug() << "Unable to find plugin: " << backend_name;

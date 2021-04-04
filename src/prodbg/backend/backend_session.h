@@ -3,7 +3,7 @@
 #include <pd_backend.h>
 #include <QtCore/QObject>
 #include "backend_requests_interface.h"
-#include "../core/MessagesAPI.h"
+#include "../core/messages_api.h"
 
 class QString;
 class QTimer;

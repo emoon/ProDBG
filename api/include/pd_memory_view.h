@@ -22,7 +22,7 @@ public:
     virtual Ver version() = 0;
 
     // Name of the plugin
-    virtual QString name() = 0;
+    virtual const char* name() = 0;
 
     // TODO: Return state if needs animated update
     virtual PDMemoryView* create(QWidget* parent) = 0;

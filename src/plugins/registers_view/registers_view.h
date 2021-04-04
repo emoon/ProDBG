@@ -21,7 +21,7 @@ public:
     ~RegistersPlugin();
 
     int version() { return PRODG_VIEW_VERSION; }
-    QString name() { return QStringLiteral("Registers"); }
+    const char* name() { return "Registers"; }
 
 private:
     void init(QWidget* parent);

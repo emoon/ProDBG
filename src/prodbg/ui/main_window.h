@@ -66,6 +66,7 @@ private:
         Custom,
     };
 
+    void init_plugins(const QString& path);
     void create_views_menu();
 
     void init_actions();

@@ -6,10 +6,10 @@
 #include "backend/backend_session.h"
 #include "breakpoint_model.h"
 #include "code_views.h"
-#include "core/plugin_handler.h"
+#include "../core/plugin_handler.h"
 //#include "RegisterView/RegisterView.h"
 #include "fastdock/FastDock.h"
-#include "view_plugins.h"
+//#include "view_plugins.h"
 #include "pd_memory_view.h"
 
 // Dialogs
@@ -45,11 +45,16 @@ MainWindow::MainWindow() : m_statusbar(new QStatusBar(this)), m_backend(nullptr)
 
     m_docking = new FastDock();
 
+    // TODO: Move to separate threads/init
+    init_plugins(QCoreApplication::applicationDirPath());
+
     // setAllowedAreas(Qt::AllDockWidgetAreas);
 
     // Create the view handler and load all view plugins
     //m_view_handler = new ViewHandler(this);
     //m_view_handler->load_plugins(QCoreApplication::applicationDirPath());
+
+    //ViewPlugins::add_plugins(QCoreApplication::applicationDirPath());
 
     m_recent_projects = new RecentProjects;
 
@@ -110,6 +115,33 @@ MainWindow::~MainWindow() {
     delete m_recent_projects;
 
     close_current_backend();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::init_plugins(const QString& path) {
+    QDir dir(path);
+
+#if defined(Q_OS_WIN)
+    QString shared_extension = QStringLiteral(".dll");
+#elif defined(Q_OS_MAC)
+    QString shared_extension = QStringLiteral(".dylib");
+#else
+    QString shared_extension = QStringLiteral(".so");
+#endif
+
+    const QStringList entries = dir.entryList(QDir::Files);
+
+    for (const QString& filename : entries) {
+        if (!filename.endsWith(&shared_extension, Qt::CaseSensitive)) {
+            continue;
+        }
+
+        QString fullpath = dir.absoluteFilePath(filename);
+        QByteArray fname = fullpath.toUtf8();
+
+        PluginHandler::add_plugin(fname.constData());
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
