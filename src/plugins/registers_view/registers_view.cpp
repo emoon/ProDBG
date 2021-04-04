@@ -1,5 +1,6 @@
 #include "registers_view.h"
 #include "ui_RegisterView.h"
+#include "pd_ui_register_plugin.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -43,5 +44,11 @@ RegistersPlugin::~RegistersPlugin() {
 
 void RegistersPlugin::set_backend_interface(PDIBackendRequests* interface) {
     m_backend = interface;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void pd_register_view(PDRegisterViewPlugin* reg) {
+    reg->register_view(new RegistersPlugin);
 }
 

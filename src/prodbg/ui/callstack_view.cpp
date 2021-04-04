@@ -1,5 +1,6 @@
 #include "callstack_view.h"
 #include "ui_callstack_view.h"
+#include "pd_ui_register_plugin.h"
 #include <QtCore/QDebug>
 #include <QtWidgets/QFileSystemModel>
 
@@ -126,5 +127,11 @@ void CallstackView::reply_callstack(const PDIBackendRequests::Callstack& callsta
 
 void CallstackView::program_counter_changed(const PDIBackendRequests::ProgramCounterChange& pc) {
     m_interface->request_basic(PDIBackendRequests::BasicRequest::Callstack);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void pd_register_view(PDRegisterViewPlugin* reg) {
+    reg->register_view(new CallstackView);
 }
 

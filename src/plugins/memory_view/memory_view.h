@@ -21,7 +21,7 @@ public:
 
 private:
     PDMemoryView::Ver version() { return PDMemoryView::Ver::Version; }
-    QString name() { return QStringLiteral("Hex"); }
+    const char* name() { return "Hex"; }
 
     Q_SLOT void jump_to_address_expression(const QString& expression);
     Q_SLOT void end_resolve_address(uint64_t* out);

@@ -44,6 +44,7 @@ SharedLibrary {
     Name = "vamiga",
 
     Includes = {
+        "api/include",
 		"src/addons/vamiga/Emulator",
 		"src/addons/vamiga/Emulator/Agnus",
 		"src/addons/vamiga/Emulator/Agnus/Blitter",

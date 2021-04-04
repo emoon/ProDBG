@@ -3,6 +3,7 @@
 #include <QtCore/QDebug>
 #include <QtWidgets/QFileSystemModel>
 #include "ui_locals_view.h"
+#include "pd_ui_register_plugin.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -352,4 +353,11 @@ void LocalsView::program_counter_changed(const PDIBackendRequests::ProgramCounte
     printf("LocalsView::program_counter_changed request locals\n");
     m_request_id = m_interface->request_locals(m_expand_vars);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void pd_register_view(PDRegisterViewPlugin* reg) {
+    reg->register_view(new LocalsView);
+}
+
 

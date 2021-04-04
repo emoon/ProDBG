@@ -4,6 +4,7 @@
 #include <QtCore/QSettings>
 #include "backend/backend_requests_interface.h"
 #include "ui_memory_view.h"
+#include "pd_ui_register_plugin.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -139,4 +140,11 @@ void HexView::write_settings() {
     settings.endGroup();
 }
 */
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern "C" void pd_register_view(PDRegisterViewPlugin* reg) {
+    reg->register_memory_view(new HexView);
+}
 
