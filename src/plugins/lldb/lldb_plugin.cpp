@@ -706,35 +706,35 @@ static void process_events(LLDBPlugin* plugin, PDReadMessage* reader, PDWriteMes
     uint64_t size;
 
     while ((data = PDReadMessage_next_message(reader, &size))) {
-        const Message* msg = GetMessage(data);
+        const PDMessage* msg = GetPDMessage(data);
 
         switch (msg->message_type()) {
-            case MessageType_exception_location_request: {
+            case PDMessageType_exception_location_request: {
                 exception_location_reply(plugin, writer);
                 break;
             }
 
-            case MessageType_basic_request: {
+            case PDMessageType_basic_request: {
                 basic_reply(plugin, msg->message_as_basic_request(), writer);
                 break;
             }
 
-            case MessageType_locals_request: {
+            case PDMessageType_locals_request: {
                 locals_reply(plugin, msg->message_as_locals_request(), writer);
                 break;
             }
 
-            case MessageType_file_target_request: {
+            case PDMessageType_file_target_request: {
                 target_reply(plugin, msg->message_as_file_target_request(), writer);
                 break;
             }
 
-            case MessageType_file_line_breakpoint_request: {
+            case PDMessageType_file_line_breakpoint_request: {
                 toggle_breakpoint(plugin, msg->message_as_file_line_breakpoint_request(), writer);
                 break;
             }
 
-            case MessageType_frame_select_request: {
+            case PDMessageType_frame_select_request: {
                 select_frame(plugin, msg->message_as_frame_select_request(), writer);
                 break;
             }

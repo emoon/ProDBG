@@ -128,7 +128,7 @@ table CPURegistersReply {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-union MessageType {
+union PDMessageType {
     file_target_request: FileTargetRequest,
     target_reply: TargetReply,
 
@@ -157,9 +157,9 @@ union MessageType {
 // Main message that is being passed between backend and frontend. User data can be used
 // from both sides to pass extra information around which doesn't fit any of the messages
 
-table Message {
-    message: MessageType;
+table PDMessage {
+    message: PDMessageType;
     user_data: [ubyte];
 }
 
-root_type Message;
+root_type PDMessage;

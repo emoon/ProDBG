@@ -119,15 +119,15 @@ static void process_events(FilePlugin* plugin, PDReadMessage* reader, PDWriteMes
     uint64_t size;
 
     while ((data = PDReadMessage_next_message(reader, &size))) {
-        const Message* msg = GetMessage(data);
+        const PDMessage* msg = GetPDMessage(data);
 
         switch (msg->message_type()) {
-            case MessageType_file_target_request: {
+            case PDMessageType_file_target_request: {
                 target_reply(plugin, msg->message_as_file_target_request(), writer);
                 break;
             }
 
-            case MessageType_memory_request: {
+            case PDMessageType_memory_request: {
                 memory_reply(plugin, msg->message_as_memory_request(), writer);
                 break;
             }

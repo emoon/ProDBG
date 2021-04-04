@@ -712,15 +712,15 @@ static PDDebugState update(void* user_data, PDAction action, PDReadMessage* read
 */
 
     while ((data = PDReadMessage_next_message(reader, &size))) {
-        const Message* msg = GetMessage(data);
+        const PDMessage* msg = GetPDMessage(data);
 
         switch (msg->message_type()) {
-            case MessageType_cpu_registers_request: {
+            case PDMessageType_cpu_registers_request: {
                 reply_registes(plugin, msg->message_as_cpu_registers_request(), writer);
                 break;
             }
 
-            case MessageType_memory_request: {
+            case PDMessageType_memory_request: {
                 reply_memory(plugin, msg->message_as_memory_request(), writer);
                 break;
             }

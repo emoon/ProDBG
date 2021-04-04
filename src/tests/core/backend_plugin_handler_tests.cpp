@@ -91,9 +91,9 @@ TEST(PluginHandler, read_integer_registers) {
     bool found_registers = false;
 
     while ((data = PDReadMessage_next_message(reader, &size))) {
-        const Message* msg = GetMessage(data);
+        const PDMessage* msg = GetPDMessage(data);
 
-        if (msg->message_type() == MessageType_cpu_registers_reply) {
+        if (msg->message_type() == PDMessageType_cpu_registers_reply) {
             auto registers = msg->message_as_cpu_registers_reply();
 
             for (auto t : *registers->entries()) {
@@ -158,9 +158,9 @@ TEST(PluginHandler, read_memory_valid_range) {
     bool found_memory = false;
 
     while ((data = PDReadMessage_next_message(reader, &size))) {
-        const Message* msg = GetMessage(data);
+        const PDMessage* msg = GetPDMessage(data);
 
-        if (msg->message_type() == MessageType_memory_reply) {
+        if (msg->message_type() == PDMessageType_memory_reply) {
             auto memory = msg->message_as_memory_reply();
 
             ASSERT_EQ((int)memory->data()->size(), 8);

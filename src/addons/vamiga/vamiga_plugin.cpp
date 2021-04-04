@@ -3,34 +3,41 @@
 #include "pd_backend_messages.h"
 #include "pd_host.h"
 #include "pd_message_readwrite.h"
+#include "Amiga.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct FilePlugin {
-    char* filename;
-    uint8_t* buffer;
-    size_t buffer_size;
-} FilePlugin;
+typedef struct VAmigaPlugin {
+    Amiga* amiga;
+} VAmigaPlugin;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void* create_instance(ServiceFunc* serviceFunc) {
-    FilePlugin* t = (FilePlugin*)calloc(1, sizeof(FilePlugin));
+    VAmigaPlugin* t = new VAmigaPlugin;
+    t->amiga = new Amiga;
+    if (!t->amiga->mem.loadRomFromFile("~/kick13.rom")) {
+        printf("Failed to load kick13.rom\n");
+    } else {
+        t->amiga->powerOn();
+        t->amiga->run();
+    }
+
     return t;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void destroy_instance(void* user_data) {
-    FilePlugin* plugin = (FilePlugin*)user_data;
-    free(plugin->filename);
-    free(plugin->buffer);
-    free(plugin);
+    VAmigaPlugin* plugin = (VAmigaPlugin*)user_data;
+    delete plugin->amiga;
+    delete plugin;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void target_reply(FilePlugin* plugin, const FileTargetRequest* request, PDWriteMessage* writer) {
+static void target_reply(VAmigaPlugin* plugin, const FileTargetRequest* request, PDWriteMessage* writer) {
+    /*
     flatbuffers::FlatBufferBuilder builder(1024);
 
     const char* filename = request->path()->c_str();
@@ -40,7 +47,7 @@ static void target_reply(FilePlugin* plugin, const FileTargetRequest* request, P
     bool status = true;
 
     if (!f) {
-        sprintf(error_msg, "FilePlugin: Unable to open file %s", filename);
+        sprintf(error_msg, "VAmigaPlugin: Unable to open file %s", filename);
         status = false;
     } else {
         fseek(f, 0,  SEEK_END);
@@ -49,7 +56,7 @@ static void target_reply(FilePlugin* plugin, const FileTargetRequest* request, P
         plugin->buffer = (uint8_t*)malloc(size);
 
         if (!plugin->buffer) {
-            sprintf(error_msg, "FilePlugin: To allocate space (%ld) bytes for file %s", size, filename);
+            sprintf(error_msg, "VAmigaPlugin: To allocate space (%ld) bytes for file %s", size, filename);
             status = false;
         } else {
             fread(plugin->buffer, 1, size, f);
@@ -64,11 +71,13 @@ static void target_reply(FilePlugin* plugin, const FileTargetRequest* request, P
     reply.add_status(status);
     reply.add_error_message(error_str);
     PDMessage_end_msg(writer, reply, builder);
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void memory_reply(FilePlugin* plugin, const MemoryRequest* request, PDWriteMessage* writer) {
+static void memory_reply(VAmigaPlugin* plugin, const MemoryRequest* request, PDWriteMessage* writer) {
+    /*
     flatbuffers::FlatBufferBuilder builder(1024);
     std::vector<unsigned char> return_data;
 
@@ -110,24 +119,25 @@ static void memory_reply(FilePlugin* plugin, const MemoryRequest* request, PDWri
     reply.add_data(t);
     reply.add_status(memory_status);
     PDMessage_end_msg(writer, reply, builder);
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void process_events(FilePlugin* plugin, PDReadMessage* reader, PDWriteMessage* writer) {
+static void process_events(VAmigaPlugin* plugin, PDReadMessage* reader, PDWriteMessage* writer) {
     const uint8_t* data;
     uint64_t size;
 
     while ((data = PDReadMessage_next_message(reader, &size))) {
-        const Message* msg = GetMessage(data);
+        const PDMessage* msg = GetPDMessage(data);
 
         switch (msg->message_type()) {
-            case MessageType_file_target_request: {
+            case PDMessageType_file_target_request: {
                 target_reply(plugin, msg->message_as_file_target_request(), writer);
                 break;
             }
 
-            case MessageType_memory_request: {
+            case PDMessageType_memory_request: {
                 memory_reply(plugin, msg->message_as_memory_request(), writer);
                 break;
             }
@@ -140,15 +150,17 @@ static void process_events(FilePlugin* plugin, PDReadMessage* reader, PDWriteMes
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static PDDebugState update(void* user_data, PDAction action, PDReadMessage* reader, PDWriteMessage* writer) {
-    FilePlugin* plugin = (FilePlugin*)user_data;
+    VAmigaPlugin* plugin = (VAmigaPlugin*)user_data;
 
     process_events(plugin, reader, writer);
 
+    /*
     if (plugin->buffer) {
        return PDDebugState_Trace;
     } else {
        return PDDebugState_NoTarget;
     }
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
