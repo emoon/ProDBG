@@ -45,30 +45,30 @@ SharedLibrary {
 
     Includes = {
         "api/include",
-		"src/addons/vamiga/Emulator",
-		"src/addons/vamiga/Emulator/Agnus",
-		"src/addons/vamiga/Emulator/Agnus/Blitter",
-		"src/addons/vamiga/Emulator/Agnus/Copper",
-		"src/addons/vamiga/Emulator/CIA",
-		"src/addons/vamiga/Emulator/CPU",
-		"src/addons/vamiga/Emulator/CPU/Moira",
-		"src/addons/vamiga/Emulator/Denise",
-		"src/addons/vamiga/Emulator/Drive",
-		"src/addons/vamiga/Emulator/Expansion",
-		"src/addons/vamiga/Emulator/Files",
-		"src/addons/vamiga/Emulator/FileSystems",
-		"src/addons/vamiga/Emulator/Foundation",
-		"src/addons/vamiga/Emulator/Memory",
-		"src/addons/vamiga/Emulator/Paula",
-		"src/addons/vamiga/Emulator/Paula/Audio",
-		"src/addons/vamiga/Emulator/Paula/DiskController",
-		"src/addons/vamiga/Emulator/Paula/UART",
-		"src/addons/vamiga/Emulator/Peripherals",
-		"src/addons/vamiga/Emulator/RTC",
-		"src/addons/vamiga/Emulator/xdm",
-		"src/addons/vamiga/Emulator/LogicBoard",
-		"src/addons/vamiga/Emulator/Files/RomFiles",
-		"src/addons/vamiga/Emulator/Files/DiskFiles",
+		"src/addons/amiga/vamiga/Emulator",
+		"src/addons/amiga/vamiga/Emulator/Agnus",
+		"src/addons/amiga/vamiga/Emulator/Agnus/Blitter",
+		"src/addons/amiga/vamiga/Emulator/Agnus/Copper",
+		"src/addons/amiga/vamiga/Emulator/CIA",
+		"src/addons/amiga/vamiga/Emulator/CPU",
+		"src/addons/amiga/vamiga/Emulator/CPU/Moira",
+		"src/addons/amiga/vamiga/Emulator/Denise",
+		"src/addons/amiga/vamiga/Emulator/Drive",
+		"src/addons/amiga/vamiga/Emulator/Expansion",
+		"src/addons/amiga/vamiga/Emulator/Files",
+		"src/addons/amiga/vamiga/Emulator/FileSystems",
+		"src/addons/amiga/vamiga/Emulator/Foundation",
+		"src/addons/amiga/vamiga/Emulator/Memory",
+		"src/addons/amiga/vamiga/Emulator/Paula",
+		"src/addons/amiga/vamiga/Emulator/Paula/Audio",
+		"src/addons/amiga/vamiga/Emulator/Paula/DiskController",
+		"src/addons/amiga/vamiga/Emulator/Paula/UART",
+		"src/addons/amiga/vamiga/Emulator/Peripherals",
+		"src/addons/amiga/vamiga/Emulator/RTC",
+		"src/addons/amiga/vamiga/Emulator/xdm",
+		"src/addons/amiga/vamiga/Emulator/LogicBoard",
+		"src/addons/amiga/vamiga/Emulator/Files/RomFiles",
+		"src/addons/amiga/vamiga/Emulator/Files/DiskFiles",
     },
 
     Env = {
@@ -82,7 +82,7 @@ SharedLibrary {
     },
 
     Sources = {
-        get_cpp_src("src/addons/vamiga", true),
+        get_cpp_src("src/addons/amiga/vamiga", true),
     }
 }
 
@@ -184,6 +184,17 @@ end
 -----------------------------------------------------------------------------------------------------------------------
 
 ViewPlugin {
+    Name = "amiga_frontend",
+
+    Sources = {
+        gen_moc("src/addons/amiga/amiga_views/amiga_framebuffer.h"),
+        get_cpp_src("src/addons/amiga/amiga_views"),
+    },
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
+ViewPlugin {
     Name = "register_view",
 
     Sources = {
@@ -276,6 +287,7 @@ Default "dummy_backend"
 Default "register_view"
 Default "memory_view"
 Default "image_view"
+Default "amiga_frontend"
 
 -- vim: ts=4:sw=4:sts=4
 

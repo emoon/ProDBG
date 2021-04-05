@@ -127,6 +127,19 @@ table CPURegistersReply {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// This is for sending custom requests to the backend and get a reply back.
+
+table CustomRequest {
+    message_id: int;
+    data: [ubyte];
+}
+
+table CustomReply {
+    message_id: int;
+    data: [ubyte];
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 union PDMessageType {
     file_target_request: FileTargetRequest,
@@ -151,6 +164,9 @@ union PDMessageType {
     callstack_reply: CallstackReply,
 
     source_files_reply: SourceFilesReply,
+
+    custom_request: CustomRequest,
+    custom_reply: CustomReply,
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
