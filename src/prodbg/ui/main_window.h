@@ -23,6 +23,7 @@ class ViewHandler;
 class LocalsView;
 class CallstackView;
 class FileBrowserView;
+class PDView;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -80,7 +81,7 @@ private:
     void init_recent_file_actions();
     void stop_internal();
     void open_debug(bool stop_at_main);
-    void create_view_instance(int index);
+    void create_view_instance(PDView* instance);
 
     Q_SLOT void status_update(const QString& status);
     Q_SLOT void process_ended(int exitCode);

@@ -111,26 +111,26 @@ PDMemoryView* PluginHandler::find_memory_view_plugin(const char* name) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<class T>
-inline T* get_type_array(const std::vector<T*>& plugins, int* count) {
+inline T* const* get_type_array(const std::vector<T*>& plugins, int* count) {
     *count = int(plugins.size());
-    return (T*)plugins.data();
+    return plugins.data();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PDBackendPlugin* PluginHandler::get_backend_plugins(int* count) {
+PDBackendPlugin* const* PluginHandler::get_backend_plugins(int* count) {
     return get_type_array<PDBackendPlugin>(s_backend_plugins, count);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PDView* PluginHandler::get_view_plugins(int* count) {
+PDView* const* PluginHandler::get_view_plugins(int* count) {
     return get_type_array<PDView>(s_view_plugins, count);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PDMemoryView* PluginHandler::get_memory_view_plugins(int* count) {
+PDMemoryView* const* PluginHandler::get_memory_view_plugins(int* count) {
     return get_type_array<PDMemoryView>(s_memory_view_plugins, count);
 }
 

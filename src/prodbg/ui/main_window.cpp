@@ -453,14 +453,14 @@ void MainWindow::toggle_breakpoint() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::create_view_instance(int index) {
+void MainWindow::create_view_instance(PDView* temp) {
+    QWidget* widget = new QWidget(nullptr);
+    PDView* instance = temp->create(widget);
+
+    instance->set_backend_interface(m_backend_requests);
+
+    m_docking->addToolWindow(widget, FastDock::EmptySpace);
 #if 0
-    auto view = m_view_handler->create_instance_by_index(index);
-    auto plugin_types = m_view_handler->plugin_types();
-
-    printf("view_plugin ptr %p\n", view.view_plugin);
-
-    view.view_plugin->set_backend_interface(m_backend_requests);
 
     // const QString& plugin_name = plugin_types[index].plugin_name;
 
@@ -523,8 +523,22 @@ void MainWindow::create_views_menu_2() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::create_views_menu() {
+    int count = 0;
+
+    QMenu* plugin_menu = menuBar()->addMenu(QStringLiteral("Views"));
+
+    auto views = PluginHandler::get_view_plugins(&count);
+
+    for (int i = 0; i < count; ++i) {
+        PDView* view = views[i];
+        QAction* plugin_menu_entry = new QAction(QString::fromUtf8(view->name()));
+        plugin_menu->addAction(plugin_menu_entry);
+
+        connect(plugin_menu_entry, &QAction::triggered, this,
+                [this, view]() { create_view_instance(view); });
+    }
+
     /*
-    QMenu* plugin_menu = menuBar()->addMenu(QStringLiteral("Plugins"));
     int plugin_index = 0;
     auto plugin_types = m_view_handler->plugin_types();
 

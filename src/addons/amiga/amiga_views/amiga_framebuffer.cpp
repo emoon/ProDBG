@@ -4,6 +4,7 @@
 #include <QtWidgets/QWidget>
 #include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
+#include <QtCore/QDebug>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -13,11 +14,14 @@ public:
     BufferRender(QWidget* parent) : QWidget(parent) {}
     ~BufferRender() { }
 
-    void paintEvent(QWidget* widget, QPaintEvent* event) {
-        QPainter painter(widget);
+    void paintEvent(QPaintEvent* event) {
+        QPainter painter(this);
+
+        printf("paint!\n");
 
         if (!m_buffer) {
-            QRect rect = event->rect();
+            QRect rect = geometry();
+            qDebug() << rect;
             painter.fillRect(rect, QColor(Qt::black));
         }
     }
@@ -35,6 +39,9 @@ AmigaFrameBuffer::~AmigaFrameBuffer() {
 
 void AmigaFrameBuffer::init(QWidget* parent) {
     m_buffer_render = new BufferRender(parent);
+    m_buffer_render->update();
+    m_buffer_render->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    m_buffer_render->setMinimumSize(400, 400);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

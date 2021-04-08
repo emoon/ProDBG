@@ -24,8 +24,8 @@ public:
     static PDView* find_view_plugin(const char* name);
     static PDMemoryView* find_memory_view_plugin(const char* name);
 
-    static PDBackendPlugin* get_backend_plugins(int* count);
-    static PDView* get_view_plugins(int* count);
-    static PDMemoryView* get_memory_view_plugins(int* count);
+    static PDBackendPlugin* const* get_backend_plugins(int* count);
+    static PDView* const* get_view_plugins(int* count);
+    static PDMemoryView* const* get_memory_view_plugins(int* count);
 };
 
