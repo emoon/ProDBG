@@ -225,6 +225,12 @@ public:
     // addressWidth = number of bytes an address uses. E.g. 4 for a 32-bit target.
     Q_SIGNAL void reply_memory(QVector<uint8_t>* target, uint64_t address, int address_width);
 
+    // Response signal for a memory request. If target size is 0 the operation // failed.
+    // target = filled with requested memory (if successful)
+    // address = starting address
+    // addressWidth = number of bytes an address uses. E.g. 4 for a 32-bit target.
+    Q_SIGNAL void reply_custom(int custom_message_id, QVector<uint8_t>* target);
+
     // This signal is being sent when the program counter of the debugged
     // application has changed This can be used to figure out if it's needed to
     // re-request data. For example a Memory view may want to use this as the

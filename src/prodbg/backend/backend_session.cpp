@@ -350,9 +350,9 @@ void BackendSession::request_memory(uint64_t lo, uint64_t hi, QVector<uint8_t>* 
     auto reader = m_messages_api->get_reader();
 
     while ((data = PDReadMessage_next_message(reader, &size))) {
-        const Message* msg = GetMessage(data);
+        const PDMessage* msg = GetPDMessage(data);
 
-        if (msg->message_type() == MessageType_memory_reply) {
+        if (msg->message_type() == PDMessageType_memory_reply) {
             auto reply = msg->message_as_memory_reply();
             uint64_t address = reply->start_address();
             auto data = reply->data();
@@ -367,6 +367,47 @@ void BackendSession::request_memory(uint64_t lo, uint64_t hi, QVector<uint8_t>* 
 
             // TODO: Fix width
             reply_memory(target, address, 8);
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendSession::request_custom(int custom_message_id, QVector<uint8_t>* target, QVector<uint8_t>* source) {
+    const uint8_t* data;
+    uint64_t size;
+
+    flatbuffers::FlatBufferBuilder builder(1024);
+
+    auto t = builder.CreateVector<uint8_t>(source->data(), source->size());
+
+    CustomRequestBuilder request(builder);
+    request.add_message_id(custom_message_id);
+    request.add_data(t);
+
+    PDMessage_end_msg(m_messages_api->get_writer(), request, builder);
+
+    update();
+
+    auto reader = m_messages_api->get_reader();
+
+    while ((data = PDReadMessage_next_message(reader, &size))) {
+        const PDMessage* msg = GetPDMessage(data);
+
+        if (msg->message_type() == PDMessageType_custom_request) {
+            auto reply = msg->message_as_custom_request();
+            auto data = reply->data();
+            auto size = data->size();
+            auto d = data->data();
+
+            target->resize(size);
+
+            for (uint32_t i = 0; i < size; ++i) {
+                (*target)[i] = d[i];
+            }
+
+            // TODO: Fix width
+            reply_custom(custom_message_id, target);
         }
     }
 }
@@ -391,9 +432,9 @@ void BackendSession::request_basic(PDIBackendRequests::BasicRequest request_id) 
     auto reader = m_messages_api->get_reader();
 
     while ((data = PDReadMessage_next_message(reader, &size))) {
-        const Message* msg = GetMessage(data);
+        const PDMessage* msg = GetPDMessage(data);
 
-        if (msg->message_type() == MessageType_callstack_reply) {
+        if (msg->message_type() == PDMessageType_callstack_reply) {
             auto vars = msg->message_as_callstack_reply();
             PDIBackendRequests::Callstack callstack;
 
@@ -410,7 +451,7 @@ void BackendSession::request_basic(PDIBackendRequests::BasicRequest request_id) 
             }
 
             reply_callstack(callstack);
-        } else if (msg->message_type() == MessageType_source_files_reply) {
+        } else if (msg->message_type() == PDMessageType_source_files_reply) {
             auto files = msg->message_as_source_files_reply();
             QVector<QString> files_reply;
 
@@ -560,9 +601,9 @@ Q_SLOT void BackendSession::file_target_request(bool stop_at_main, const QString
     auto reader = m_messages_api->get_reader();
 
     while ((data = PDReadMessage_next_message(reader, &size))) {
-        const Message* msg = GetMessage(data);
+        const PDMessage* msg = GetPDMessage(data);
 
-        if (msg->message_type() == MessageType_target_reply) {
+        if (msg->message_type() == PDMessageType_target_reply) {
             auto reply = msg->message_as_target_reply();
             auto error_msg = reply->error_message()->c_str();
             QString error_string = error_msg ? QString::fromUtf8(error_msg) : QString();
@@ -636,9 +677,9 @@ void BackendSession::update_current_pc() {
     auto reader = m_messages_api->get_reader();
 
     while ((data = PDReadMessage_next_message(reader, &size))) {
-        const Message* msg = GetMessage(data);
+        const PDMessage* msg = GetPDMessage(data);
 
-        if (msg->message_type() == MessageType_exception_location_reply) {
+        if (msg->message_type() == PDMessageType_exception_location_reply) {
             auto loc = msg->message_as_exception_location_reply();
             auto path = loc->filename()->c_str();
             QString filename = path ? QString::fromUtf8(path) : QString();
@@ -783,9 +824,9 @@ void BackendSession::request_locals(const PDIBackendRequests::ExpandVars& expand
     auto reader = m_messages_api->get_reader();
 
     while ((data = PDReadMessage_next_message(reader, &size))) {
-        const Message* msg = GetMessage(data);
+        const PDMessage* msg = GetPDMessage(data);
 
-        if (msg->message_type() == MessageType_locals_reply) {
+        if (msg->message_type() == PDMessageType_locals_reply) {
             auto vars = msg->message_as_locals_reply();
             PDIBackendRequests::Variables variables;
 

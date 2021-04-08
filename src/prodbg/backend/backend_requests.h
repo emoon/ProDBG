@@ -73,7 +73,12 @@ public:
     // status flags Readable/Writeable/etc
     bool request_memory(uint64_t lo, uint64_t hi, QVector<uint8_t>* target);
 
+    // Custom request that can be used for views/backends in cooperation
+    void request_custom(int custom_message_id, QVector<uint8_t>* target, QVector<uint8_t>* source);
+
 private:
+    // Custom request that can be used for views/backends in cooperation
+    Q_SIGNAL void request_custom_signal(int custom_message_id, QVector<uint8_t>* target, QVector<uint8_t>* source);
     Q_SIGNAL void request_basic_signal(PDIBackendRequests::BasicRequest request_type);
     Q_SIGNAL void request_file_target_signal(bool stop_at_main, const QString& filename);
     Q_SIGNAL void request_add_file_line_breakpoint_signal(const QString& filename, int line);

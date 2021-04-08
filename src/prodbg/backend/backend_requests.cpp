@@ -15,27 +15,10 @@ BackendRequests::BackendRequests(BackendSession* session) {
     connect(this, &BackendRequests::request_frame_index_signal, session, &BackendSession::request_frame_index);
 
     connect(this, &BackendRequests::request_memory_signal, session, &BackendSession::request_memory);
-
-
-    /*
-    connect(this, &BackendRequests::sendCustomStr, session, &BackendSession::sendCustomString);
-
-    connect(this, &BackendRequests::requestDisassembly, session, &BackendSession::beginDisassembly);
-    connect(this, &BackendRequests::readRegisters, session, &BackendSession::beginReadRegisters);
-
-    connect(this, &BackendRequests::toggleAddressBreakpoint, session, &BackendSession::toggleAddressBreakpoint);
-    connect(this, &BackendRequests::toggleFileLineBreakpoint, session, &BackendSession::toggleFileLineBreakpoint);
-
-    connect(this, &BackendRequests::evalExpression, session, &BackendSession::evalExpression);
-    */
-
-    /*
-    connect(session, &BackendSession::endDisassembly, this, &BackendRequests::endDisassembly);
-    connect(session, &BackendSession::endReadRegisters, this, &BackendRequests::endReadRegisters);
-    connect(session, &BackendSession::endResolveAddress, this, &BackendRequests::endResolveAddress);
-    */
+    connect(this, &BackendRequests::request_custom_signal, session, &BackendSession::request_custom);
 
     connect(session, &BackendSession::reply_memory, this, &BackendRequests::reply_memory);
+    connect(session, &BackendSession::reply_custom, this, &BackendRequests::reply_custom);
     connect(session, &BackendSession::reply_callstack, this, &BackendRequests::reply_callstack);
     connect(session, &BackendSession::reply_source_files, this, &BackendRequests::reply_source_files);
     connect(session, &BackendSession::reply_locals, this, &BackendRequests::reply_locals);
@@ -101,6 +84,13 @@ bool BackendRequests::request_memory(uint64_t lo, uint64_t hi, QVector<uint8_t>*
 
     return true;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BackendRequests::request_custom(int custom_message_id, QVector<uint8_t>* target, QVector<uint8_t>* source) {
+    request_custom_signal(custom_message_id, target, source);
+}
+
 
 
 /*
