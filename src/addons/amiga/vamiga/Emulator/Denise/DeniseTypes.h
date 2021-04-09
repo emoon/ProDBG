@@ -7,67 +7,51 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-// This file must conform to standard ANSI-C to be compatible with Swift.
-
-#ifndef _DENISE_TYPES_H
-#define _DENISE_TYPES_H
+#pragma once
 
 #include "Aliases.h"
+#include "Reflection.h"
 
 //
 // Enumerations
 //
 
-VAMIGA_ENUM(long, DeniseRevision)
+enum_long(DENISE_REV)
 {
-    DENISE_OCS,          // Revision 8362R8
-    // DENISE_OCS_BRDRBLNK, // Revision 8362R8 + Border Blank feature
-    DENISE_ECS,          // Revision 8373 (not supported yet)
+    DENISE_OCS,           // Revision 8362R8
+    DENISE_OCS_BRDRBLNK,  // Revision 8362R8 + ECS Border blank feature
+    DENISE_ECS,           // Revision 8373 (not supported yet)
+
     DENISE_COUNT
+};
+typedef DENISE_REV DeniseRevision;
+
+#ifdef __cplusplus
+struct DeniseRevisionEnum : util::Reflection<DeniseRevisionEnum, DeniseRevision> {
     
-};
-
-inline bool isDeniseRevision(long value)
-{
-    return value >= 0 && value < DENISE_COUNT;
-}
-
-inline const char *sDeniseRevision(DeniseRevision value)
-{
-    switch (value) {
-        case DENISE_OCS:  return "DENISE_OCS";
-        case DENISE_ECS:  return "DENISE_ECS";
-        default:          return "???";
+    static bool isValid(long value)
+    {
+        return (unsigned long)value < DENISE_COUNT;
     }
-}
 
-VAMIGA_ENUM(long, Palette)
-{
-    PALETTE_COLOR = 0,
-    PALETTE_BLACK_WHITE,
-    PALETTE_PAPER_WHITE,
-    PALETTE_GREEN,
-    PALETTE_AMBER,
-    PALETTE_SEPIA,
-    PALETTE_COUNT
+    static const char *prefix() { return "DENISE"; }
+    static const char *key(DeniseRevision value)
+    {
+        switch (value) {
+                
+            case DENISE_OCS:          return "OCS";
+            case DENISE_OCS_BRDRBLNK: return "OCS_BRDRBLNK";
+            case DENISE_ECS:          return "ECS";
+            case DENISE_COUNT:        return "???";
+        }
+        return "???";
+    }
 };
-
-inline bool isPalette(long value)
-{
-    return value >= PALETTE_COLOR && value < PALETTE_COUNT;
-}
-
+#endif
 
 //
 // Structures
 //
-
-typedef struct
-{
-    u32 *data;
-    bool longFrame;
-}
-ScreenBuffer;
 
 typedef struct
 {
@@ -89,9 +73,6 @@ typedef struct
 {
     // Emulated chip model
     DeniseRevision revision;
-
-    // Borderblank feature (was introduced with ECS chipset)
-    bool borderblank;
     
     // Hides certain sprites
     u8 hiddenSprites;
@@ -135,5 +116,3 @@ typedef struct
     u32 color[32];
 }
 DeniseInfo;
-
-#endif

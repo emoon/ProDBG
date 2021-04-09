@@ -7,12 +7,14 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _DENISE_H
-#define _DENISE_H
+#pragma once
 
+#include "DeniseTypes.h"
 #include "AmigaComponent.h"
 #include "Colors.h"
+#include "Memory.h"
 #include "PixelEngine.h"
+#include "Reflection.h"
 #include "ScreenRecorder.h"
 
 class Denise : public AmigaComponent {
@@ -159,21 +161,10 @@ public:
      *    has been reached. If sprite drawing was enabled at that position,
      *    it can't be disabled in the same rasterline any more.
      */
-    PixelPos spriteClipBegin;
-    PixelPos spriteClipEnd;
+    Pixel spriteClipBegin;
+    Pixel spriteClipEnd;
 
-    
-    //
-    // Playfield priorities
-    //
-
-private:
-
-    // Playfield priorities (derived from BPLCON2)
-    u16 prio1;
-    u16 prio2;
-
-    
+ 
     //
     // Rasterline data
     //
@@ -277,6 +268,8 @@ public:
 
     Denise(Amiga& ref);
 
+    const char *getDescription() const override { return "Denise"; }
+
     void _reset(bool hard) override;
 
     
@@ -286,15 +279,11 @@ public:
 
 public:
     
-    DeniseConfig getConfig() { return config; }
+    const DeniseConfig &getConfig() const { return config; }
 
-    long getConfigItem(ConfigOption option);
-    bool setConfigItem(ConfigOption option, long value) override;
+    long getConfigItem(Option option) const;
+    bool setConfigItem(Option option, long value) override;
     
-private:
-    
-    void _dumpConfig() override;
-
     
     //
     // Analyzing
@@ -303,15 +292,15 @@ private:
 public:
     
     DeniseInfo getInfo() { return HardwareComponent::getInfo(info); }
-    SpriteInfo getSpriteInfo(int nr);
-    u16 getSpriteHeight(int nr) { return latchedSpriteInfo[nr].height; }
-    u16 getSpriteColor(int nr, int reg) { return latchedSpriteInfo[nr].colors[reg]; }
-    u64 getSpriteData(int nr, int line) { return latchedSpriteData[nr][line]; }
+    SpriteInfo getSpriteInfo(isize nr);
+    u16 getSpriteHeight(isize nr) const { return latchedSpriteInfo[nr].height; }
+    u16 getSpriteColor(isize nr, isize reg) const { return latchedSpriteInfo[nr].colors[reg]; }
+    u64 getSpriteData(isize nr, isize line) const { return latchedSpriteData[nr][line]; }
     
 private:
     
     void _inspect() override;
-    void _dump() override;
+    void _dump(Dump::Category category, std::ostream& os) const override;
 
     
     //
@@ -325,10 +314,10 @@ private:
     {
         worker
 
-        & config.revision
-        & config.clxSprSpr
-        & config.clxSprPlf
-        & config.clxPlfPlf;
+        << config.revision
+        << config.clxSprSpr
+        << config.clxSprPlf
+        << config.clxPlfPlf;
     }
 
     template <class T>
@@ -336,7 +325,7 @@ private:
     {
         worker
 
-        & clock;
+        << clock;
     }
 
     template <class T>
@@ -344,42 +333,40 @@ private:
     {
         worker
         
-        & bplcon0
-        & bplcon1
-        & bplcon2
-        & bplcon3
-        & initialBplcon0
-        & initialBplcon1
-        & initialBplcon2
-        & borderColor
-        & bpldat
-        & clxdat
-        & clxcon
-        & shiftReg
-        & armedEven
-        & armedOdd
-        & pixelOffsetOdd
-        & pixelOffsetEven
-        & conChanges
-        & sprChanges
+        << bplcon0
+        << bplcon1
+        << bplcon2
+        << bplcon3
+        << initialBplcon0
+        << initialBplcon1
+        << initialBplcon2
+        << borderColor
+        << bpldat
+        << clxdat
+        << clxcon
+        << shiftReg
+        << armedEven
+        << armedOdd
+        << pixelOffsetOdd
+        << pixelOffsetEven
+        >> conChanges
+        >> sprChanges
 
-        & sprdata
-        & sprdatb
-        & sprpos
-        & sprctl
-        & ssra
-        & ssrb
-        & armed
-        & wasArmed
-        & spriteClipBegin
-        & spriteClipEnd
-        & prio1
-        & prio2;
+        << sprdata
+        << sprdatb
+        << sprpos
+        << sprctl
+        << ssra
+        << ssrb
+        << armed
+        << wasArmed
+        << spriteClipBegin
+        << spriteClipEnd;
     }
 
-    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
-    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
+    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
     
     //
@@ -402,17 +389,19 @@ public:
     void setBPLCON0(u16 newValue) { setBPLCON0(bplcon0, newValue); }
 
     static bool hires(u16 v) { return GET_BIT(v, 15); }
-    bool hires() { return hires(bplcon0); }
+    bool hires() const { return hires(bplcon0); }
     static bool lores(u16 v) { return !hires(v); }
-    bool lores() { return lores(bplcon0); }
+    bool lores() const { return lores(bplcon0); }
     static bool dbplf(u16 v) { return GET_BIT(v, 10); }
-    bool dbplf() { return dbplf(bplcon0); }
+    bool dbplf() const { return dbplf(bplcon0); }
     static bool lace(u16 v) { return GET_BIT(v, 2); }
-    bool lace() { return lace(bplcon0); }
+    bool lace() const { return lace(bplcon0); }
     static bool ham(u16 v) { return (v & 0x8800) == 0x0800; }
-    bool ham() { return ham(bplcon0); }
+    bool ham() const { return ham(bplcon0); }
     static bool ecsena(u16 v) { return GET_BIT(v, 0); }
-    bool ecsena() { return ecsena(bplcon0); }
+    bool ecsena() const { return ecsena(bplcon0); }
+    static bool invBPU(u16 v) { return ((v >> 12) & 0b111) > (hires(v) ? 4 : 6); }
+    bool invBPU() const { return invBPU(bplcon0); }
 
     /* Returns the Denise view of the BPU bits. The value determines how many
      * shift registers are loaded with the values of their corresponding
@@ -422,7 +411,7 @@ public:
      * Compare with Agnus::bpu() which returns the Agnus view of the BPU bits.
      */
     static int bpu(u16 v);
-    int bpu() { return bpu(bplcon0); }
+    int bpu() const { return bpu(bplcon0); }
 
     // BPLCON1
     void pokeBPLCON1(u16 value);
@@ -431,43 +420,47 @@ public:
     // BPLCON2
     void pokeBPLCON2(u16 value);
     void setBPLCON2(u16 value);
-    static int PF2PRI(u16 v) { return GET_BIT(v, 6); }
-    bool PF2PRI() { return PF2PRI(bplcon2); }
+    static int PF2PRI(u16 value) { return GET_BIT(value, 6); }
+    static u16 PF1Px(u16 bplcon2) { return (bplcon2 & 7); }
+    static u16 PF2Px(u16 bplcon2) { return (bplcon2 >> 3) & 7; }
+    bool PF2PRI() const { return PF2PRI(bplcon2); }
+    u16 PF1Px() const { return PF1Px(bplcon2); }
+    u16 PF2Px() const { return PF2Px(bplcon2); }
 
     // Computes the z buffer depth for playfield 1 or 2
-    static u16 zPF(u16 priorityBits);
-    static u16 zPF1(u16 bplcon2) { return zPF(bplcon2 & 7); }
-    static u16 zPF2(u16 bplcon2) { return zPF((bplcon2 >> 3) & 7); }
-
+    static u16 zPF(u16 prioBits);
+    static u16 zPF1(u16 bplcon2) { return zPF(PF1Px(bplcon2)); }
+    static u16 zPF2(u16 bplcon2) { return zPF(PF2Px(bplcon2)); }
+    
     // BPLCON3
     void pokeBPLCON3(u16 value);
     void setBPLCON3(u16 value);
     static int BRDRBLNK(u16 v) { return GET_BIT(v, 5); }
-    bool BRDRBLNK() { return BRDRBLNK(bplcon3); }
+    bool BRDRBLNK() const { return BRDRBLNK(bplcon3); }
 
     // CLXDAT, CLXCON
     u16 peekCLXDAT();
     void pokeCLXCON(u16 value);
     template <int x> u16 getENSP() { return GET_BIT(clxcon, 12 + (x/2)); }
-    u16 getENBP1() { return (clxcon >> 6) & 0b010101; }
-    u16 getENBP2() { return (clxcon >> 6) & 0b101010; }
-    u16 getMVBP1() { return clxcon & 0b010101; }
-    u16 getMVBP2() { return clxcon & 0b101010; }
+    u16 getENBP1() const { return (clxcon >> 6) & 0b010101; }
+    u16 getENBP2() const { return (clxcon >> 6) & 0b101010; }
+    u16 getMVBP1() const { return clxcon & 0b010101; }
+    u16 getMVBP2() const { return clxcon & 0b101010; }
     
     // BPLxDAT
-    template <int x, Accessor s> void pokeBPLxDAT(u16 value);
-    template <int x> void setBPLxDAT(u16 value);
+    template <isize x, Accessor s> void pokeBPLxDAT(u16 value);
+    template <isize x> void setBPLxDAT(u16 value);
 
     // SPRxPOS, SPRxCTL
-    template <int x> void pokeSPRxPOS(u16 value);
-    template <int x> void pokeSPRxCTL(u16 value);
+    template <isize x> void pokeSPRxPOS(u16 value);
+    template <isize x> void pokeSPRxCTL(u16 value);
 
     // SPRxDATA, SPRxDATB
-    template <int x> void pokeSPRxDATA(u16 value);
-    template <int x> void pokeSPRxDATB(u16 value);
+    template <isize x> void pokeSPRxDATA(u16 value);
+    template <isize x> void pokeSPRxDATB(u16 value);
 
     // COLORxx
-    template <Accessor s, int xx> void pokeCOLORxx(u16 value);
+    template <Accessor s, isize xx> void pokeCOLORxx(u16 value);
 
     
     //
@@ -477,13 +470,15 @@ public:
 public:
     
     // Returns the horizontal position of a sprite in sprite coordinates
-    template <int x> i16 sprhpos() { return ((sprpos[x] & 0xFF) << 1) | (sprctl[x] & 0x01); }
+    template <isize x> Pixel sprhpos() const {
+        return ((sprpos[x] & 0xFF) << 1) | (sprctl[x] & 0x01); }
 
     // Returns the horizontal position of a sprite in pixel coordinates
-    template <int x> i16 sprhppos() { return 2 * (sprhpos<x>() + 1); }
+    template <isize x> Pixel sprhppos() const {
+        return 2 * (sprhpos<x>() + 1); }
     
     // Checks the z buffer and returns true if a sprite pixel is visible
-    bool spritePixelIsVisible(int hpos);
+    bool spritePixelIsVisible(Pixel hpos) const;
 
 
     //
@@ -502,9 +497,9 @@ public:
     
 public:
 
-    template <bool hiresMode> void drawOdd(int offset);
-    template <bool hiresMode> void drawEven(int offset);
-    template <bool hiresMode> void drawBoth(int offset);
+    template <bool hiresMode> void drawOdd(Pixel offset);
+    template <bool hiresMode> void drawEven(Pixel offset);
+    template <bool hiresMode> void drawBoth(Pixel offset);
     void drawHiresOdd()  { if (armedOdd)  drawOdd <true>  (pixelOffsetOdd);  }
     void drawHiresEven() { if (armedEven) drawEven<true>  (pixelOffsetEven); }
     void drawHiresBoth();
@@ -514,15 +509,18 @@ public:
 
 private:
 
+    // Data type used by the translation functions
+    typedef struct { u16 prio1; u16 prio2; bool pf2pri; bool ham; } PFState;
+
     // Translate bitplane data to color register indices
     void translate();
 
     // Called by translate() in single-playfield mode
-    void translateSPF(int from, int to);
+    void translateSPF(Pixel from, Pixel to, PFState &state);
 
     // Called by translate() in dual-playfield mode
-    void translateDPF(bool pf2pri, int from, int to);
-    template <bool pf2pri> void translateDPF(int from, int to);
+    void translateDPF(Pixel from, Pixel to, PFState &state);
+    template <bool pf2pri> void translateDPF(Pixel from, Pixel to, PFState &state);
 
 public:
 
@@ -530,19 +528,19 @@ public:
     void drawSprites();
     
     // Draws an sprite pair. Called by drawSprites()
-    template <unsigned pair> void drawSpritePair();
-    template <unsigned pair> void drawSpritePair(int hstrt, int hstop,
-                                                 int strt1, int strt2,
-                                                 bool armed1, bool armed2);
-
+    template <isize pair> void drawSpritePair();
+    template <isize pair> void drawSpritePair(Pixel hstrt, Pixel hstop,
+                                              Pixel strt1, Pixel strt2,
+                                              bool armed1, bool armed2);
+    
 private:
     
     // Replays all recorded sprite register changes
-    template <unsigned pair> void replaySpriteRegChanges();
+    template <isize pair> void replaySpriteRegChanges();
 
     // Draws a single sprite pixel
-    template <int x> void drawSpritePixel(int hpos);
-    template <int x> void drawAttachedSpritePixelPair(int hpos);
+    template <isize x> void drawSpritePixel(Pixel hpos);
+    template <isize x> void drawAttachedSpritePixelPair(Pixel hpos);
 
     // Determines the color register index for drawing the border
     void updateBorderColor();
@@ -558,10 +556,10 @@ private:
 public:
 
     // Checks for sprite-sprite collisions in the current rasterline
-    template <int x> void checkS2SCollisions(int start, int end);
+    template <int x> void checkS2SCollisions(Pixel start, Pixel end);
 
     // Checks for sprite-playfield collisions in the current rasterline
-    template <int x> void checkS2PCollisions(int start, int end);
+    template <int x> void checkS2PCollisions(Pixel start, Pixel end);
 
     // Checks for playfield-playfield collisions in the current rasterline
     void checkP2PCollisions();
@@ -593,13 +591,11 @@ public:
 public:
     
     // Gathers the sprite data for the displayed sprite
-    void recordSpriteData(unsigned x);
+    void recordSpriteData(isize x);
 
     // Dumps the bBuffer or the iBuffer to the console
-    void dumpIBuffer() { dumpBuffer(iBuffer, sizeof(iBuffer)); }
-    void dumpBBuffer() { dumpBuffer(bBuffer, sizeof(bBuffer)); }
-    void dumpBuffer(u8 *buffer, size_t length);
+    void dumpIBuffer() const { dumpBuffer(iBuffer, sizeof(iBuffer)); }
+    void dumpBBuffer() const { dumpBuffer(bBuffer, sizeof(bBuffer)); }
+    void dumpBuffer(const u8 *buffer, isize length) const;
 
 };
-
-#endif

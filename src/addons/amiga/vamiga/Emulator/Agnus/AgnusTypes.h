@@ -7,36 +7,115 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-// This file must conform to standard ANSI-C to be compatible with Swift.
+#pragma once
 
-#ifndef _AGNUS_TYPES_H
-#define _AGNUS_TYPES_H
+#include "Aliases.h"
+#include "BusTypes.h"
+#include "EventTypes.h"
+#include "EventHandlerTypes.h"
+#include "Reflection.h"
 
-#include "BlitterTypes.h"
-#include "CopperTypes.h"
+//
+// Enumerations
+//
 
-VAMIGA_ENUM(long, AgnusRevision)
+enum_long(AGNUS_REVISION)
 {
     AGNUS_OCS,              // Revision 8367
     AGNUS_ECS_1MB,          // Revision 8372
     AGNUS_ECS_2MB,          // Revision 8375
-    AGNUS_CNT
+    
+    AGNUS_COUNT
 };
+typedef AGNUS_REVISION AgnusRevision;
 
-inline bool isAgnusRevision(long value)
-{
-    return value >= 0 && value < AGNUS_CNT;
-}
-
-inline const char *sAgnusRevision(AgnusRevision value)
-{
-    switch (value) {
-        case AGNUS_OCS:     return "AGNUS_OCS";
-        case AGNUS_ECS_1MB: return "AGNUS_ECS_1MB";
-        case AGNUS_ECS_2MB: return "AGNUS_ECS_2MB";
-        default:            return "???";
+#ifdef __cplusplus
+struct AgnusRevisionEnum : util::Reflection<AgnusRevisionEnum, AgnusRevision> {
+    
+    static bool isValid(long value)
+    {
+        return (unsigned long)value < AGNUS_COUNT;
     }
-}
+
+    static const char *prefix() { return "AGNUS"; }
+    static const char *key(AgnusRevision value)
+    {
+        switch (value) {
+                
+            case AGNUS_OCS:     return "OCS";
+            case AGNUS_ECS_1MB: return "ECS_1MB";
+            case AGNUS_ECS_2MB: return "ECS_2MB";
+            case AGNUS_COUNT:   return "???";
+        }
+        return "???";
+    }
+};
+#endif
+
+enum_long(DDF_STATE)
+{
+    DDF_OFF,
+    DDF_READY,
+    DDF_ON
+};
+typedef DDF_STATE DDFState;
+
+#ifdef __cplusplus
+struct DDFStateEnum : util::Reflection<DDFStateEnum, DDFState> {
+    
+    static bool isValid(long value)
+    {
+        return (unsigned long)value <= DDF_ON;
+    }
+
+    static const char *prefix() { return "DDF"; }
+    static const char *key(AgnusRevision value)
+    {
+        switch (value) {
+                
+            case DDF_OFF:   return "OFF";
+            case DDF_READY: return "READY";
+            case DDF_ON:    return "ON";
+        }
+        return "???";
+    }
+};
+#endif
+
+enum_long(SPR_DMA_STATE)
+{
+    SPR_DMA_IDLE,
+    SPR_DMA_ACTIVE
+};
+typedef SPR_DMA_STATE SprDMAState;
+
+#ifdef __cplusplus
+struct SprDmaStateEnum : util::Reflection<SprDmaStateEnum, SprDMAState> {
+    
+    static bool isValid(long value)
+    {
+        return (unsigned long)value <= SPR_DMA_ACTIVE;
+    }
+
+    static const char *prefix() { return "SPR_DMA"; }
+    static const char *key(SprDMAState value)
+    {
+        switch (value) {
+                
+            case SPR_DMA_IDLE:   return "IDLE";
+            case SPR_DMA_ACTIVE: return "ACTIVE";
+        }
+        return "???";
+    }
+};
+#endif
+
+// Inspection interval in seconds (interval between INS_xxx events)
+static const double inspectionInterval = 0.1;
+
+//
+// Structures
+//
 
 typedef struct
 {
@@ -44,55 +123,6 @@ typedef struct
     bool slowRamMirror;
 }
 AgnusConfig;
-
-VAMIGA_ENUM(i8, BusOwner)
-{
-    BUS_NONE,
-    BUS_CPU,
-    BUS_REFRESH,
-    BUS_DISK,
-    BUS_AUDIO,
-    BUS_BPL1,
-    BUS_BPL2,
-    BUS_BPL3,
-    BUS_BPL4,
-    BUS_BPL5,
-    BUS_BPL6,
-    BUS_SPRITE0,
-    BUS_SPRITE1,
-    BUS_SPRITE2,
-    BUS_SPRITE3,
-    BUS_SPRITE4,
-    BUS_SPRITE5,
-    BUS_SPRITE6,
-    BUS_SPRITE7,
-    BUS_COPPER,
-    BUS_BLITTER,
-    BUS_COUNT
-};
-
-static inline bool isBusOwner(long value)
-{
-    return value >= 0 && value < BUS_COUNT;
-}
-
-VAMIGA_ENUM(long, DDFState)
-{
-    DDF_OFF,
-    DDF_READY,
-    DDF_ON
-};
-
-VAMIGA_ENUM(long, SprDMAState)
-{
-    SPR_DMA_IDLE,
-    SPR_DMA_ACTIVE
-};
-
-
-//
-// Structures
-//
 
 typedef struct
 {
@@ -140,4 +170,37 @@ typedef struct
 }
 AgnusStats;
 
-#endif
+typedef struct
+{
+    EventSlot slot;
+    EventID eventId;
+    const char *eventName;
+
+    // Trigger cycle of the event
+    Cycle trigger;
+    Cycle triggerRel;
+
+    // Trigger relative to the current frame
+    // -1 = earlier frame, 0 = current frame, 1 = later frame
+    long frameRel;
+
+    // The trigger cycle translated to a beam position.
+    long vpos;
+    long hpos;
+}
+EventSlotInfo;
+
+typedef struct
+{
+    Cycle cpuClock;
+    Cycle cpuCycles;
+    Cycle dmaClock;
+    Cycle ciaAClock;
+    Cycle ciaBClock;
+    long frame;
+    long vpos;
+    long hpos;
+
+    EventSlotInfo slotInfo[SLOT_COUNT];
+}
+EventInfo;

@@ -7,8 +7,7 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef STRING_WRITER_H
-#define STRING_WRITER_H
+#pragma once
 
 #include <math.h>
 
@@ -20,15 +19,15 @@ namespace moira {
 
 struct Int        { i32 raw;        Int(i32 v) : raw(v) { } };
 struct UInt       { u32 raw;       UInt(u32 v) : raw(v) { } };
-struct UInt8      { u8  raw;      UInt8(int v) : raw(v) { } };
-struct UInt16     { u16 raw;     UInt16(int v) : raw(v) { } };
-struct UInt32     { u32 raw;     UInt32(int v) : raw(v) { } };
+struct UInt8      { u8  raw;      UInt8(u8  v) : raw(v) { } };
+struct UInt16     { u16 raw;     UInt16(u16 v) : raw(v) { } };
+struct UInt32     { u32 raw;     UInt32(u32 v) : raw(v) { } };
 struct Dn         { int raw;         Dn(int v) : raw(v) { } };
 struct An         { int raw;         An(int v) : raw(v) { } };
 struct Rn         { int raw;         Rn(int v) : raw(v) { } };
-struct Imu        { u32 raw;        Imu(int v) : raw(v) { } };
-struct Ims        { i32 raw;        Ims(int v) : raw(v) { } };
-struct Imd        { u32 raw;        Imd(int v) : raw(v) { } };
+struct Imu        { u32 raw;        Imu(u32 v) : raw(v) { } };
+struct Ims        { i32 raw;        Ims(i32 v) : raw(v) { } };
+struct Imd        { u32 raw;        Imd(u32 v) : raw(v) { } };
 struct Scale      { int raw;      Scale(int v) : raw(v) { } };
 struct Align      { int raw;      Align(int v) : raw(v) { } };
 struct RegList    { u16 raw;    RegList(u16 v) : raw(v) { } };
@@ -88,4 +87,3 @@ private:
 };
 
 }
-#endif

@@ -7,26 +7,32 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "RTC.h"
+#include "CPU.h"
+#include "IO.h"
+#include "Memory.h"
 
 RTC::RTC(Amiga& ref) : AmigaComponent(ref)
 {
-    setDescription("RTC");
+    config.model = RTC_OKI;
 }
 
 long
-RTC::getConfigItem(ConfigOption option)
+RTC::getConfigItem(Option option) const
 {
     switch (option) {
             
         case OPT_RTC_MODEL:  return (long)config.model;
         
-        default: assert(false);
+        default:
+            assert(false);
+            return 0;
     }
 }
 
 bool
-RTC::setConfigItem(ConfigOption option, long value)
+RTC::setConfigItem(Option option, long value)
 {
     switch (option) {
             
@@ -34,12 +40,11 @@ RTC::setConfigItem(ConfigOption option, long value)
             
             #ifdef FORCE_RTC
             value = FORCE_RTC;
-            warn("Overriding RTC revision: %d KB\n", value);
+            warn("Overriding RTC revision: %ld KB\n", value);
             #endif
             
-            if (!isRTCRevision(value)) {
-                warn("Invalid RTC revision: %d\n", value);
-                return false;
+            if (!RTCRevisionEnum::isValid(value)) {
+                throw ConfigArgError(RTCRevisionEnum::keyList());
             }
             if (config.model == value) {
                 return false;
@@ -53,12 +58,6 @@ RTC::setConfigItem(ConfigOption option, long value)
         default:
             return false;
     }
-}
-
-void
-RTC::_dumpConfig()
-{
-    msg("  Revision : %s\n", sRTCRevision(config.model));
 }
 
 void
@@ -84,42 +83,56 @@ RTC::_reset(bool hard)
 }
 
 void
-RTC::_dump()
+RTC::_dump(Dump::Category category, std::ostream& os) const
 {
-    for (unsigned i = 0; i < 16; i++) msg("i: %X ", reg[i]);
-    msg("\n");
+    if (category & Dump::Config) {
+        
+        os << DUMP("Chip Model") << RTCRevisionEnum::key(config.model) << std::endl;
+    }
+    
+    if (category & Dump::Registers) {
+        
+        for (isize i = 0; i < 16; i++) {
+            os << "    " << std::hex << i << " : ";
+            for (isize j = 0; j < 4; j++) {
+                os << HEX8 << (isize)reg[j][i] << " ";
+            }
+            os << std::endl;
+        }
+        os << std::endl;
+    }
 }
 
 time_t
 RTC::getTime()
 {
     Cycle result;
-    Cycle master = amiga.cpu.getMasterClock();
+    Cycle master = cpu.getMasterClock();
 
     long timeBetweenCalls = AS_SEC(master - lastCall);
            
     if (timeBetweenCalls > 2) {
 
         /* If the time between two read accesses is long, we compute the result
-         * of the host machine's current time and variable timeDiff.
+         * out of the host machine's current time and variable timeDiff.
          */
         lastMeasure = master;
-        lastMeasuredValue = time(NULL);
-        result = lastMeasuredValue + timeDiff;
+        lastMeasuredValue = (i64)time(nullptr);
+        result = (time_t)lastMeasuredValue + (time_t)timeDiff;
 
     } else {
 
         /* If the time between two read accesses is short, we compute the result
          * out of the master-clock cycles that have elapsed since the host
-         * machine's time was queried the last time.
-         * This ensures that the real-time clock behaves properly in warp mode.
-         * E.g., when the Amiga boots, Kickstart tests the real-time clock by
-         * peeking the time twice with a time delay of more than 1 second. If
-         * we simply query the host machine's time, the time difference would
-         * be less than 1 second in warp mode.
+         * machine's time was queried the last time. This ensures that the
+         * real-time clock behaves properly in warp mode. E.g., when the Amiga
+         * boots, Kickstart tests the real-time clock by peeking the time twice
+         * with a time delay of more than 1 second. If we simply query the host
+         * machine's time, the time difference would be less than 1 second in
+         * warp mode.
          */
-        long elapsedTime = AS_SEC(master - lastMeasure);
-        result = lastMeasuredValue + elapsedTime;
+        i64 elapsedTime = AS_SEC(master - lastMeasure);
+        result = (time_t)lastMeasuredValue + (time_t)elapsedTime;
     }
     
     lastCall = master;
@@ -129,11 +142,24 @@ RTC::getTime()
 void
 RTC::setTime(time_t t)
 {
-    timeDiff = t - time(NULL);
+    timeDiff = (i64)(t - time(nullptr));
+}
+
+void
+RTC::update()
+{
+    time2registers();
 }
 
 u8
-RTC::peek(unsigned nr)
+RTC::peek(isize nr)
+{
+    update();
+    return spypeek(nr);
+}
+
+u8
+RTC::spypeek(isize nr) const
 {
     assert(nr < 16);
     assert(config.model != RTC_NONE);
@@ -148,7 +174,6 @@ RTC::peek(unsigned nr)
             
         default: // Time or date register
             
-            time2registers();
             result = reg[bank()][nr];
     }
     
@@ -156,16 +181,16 @@ RTC::peek(unsigned nr)
     result = FORCE_RTC_REGISTER;
     #endif
     
-    trace(RTC_DEBUG, "peek(%d) = $%X [bank %d]\n", result, bank());
+    trace(RTC_DEBUG, "peek(%zu) = $%X [bank %zu]\n", nr, result, bank());
     return result;
 }
 
 void
-RTC::poke(unsigned nr, u8 value)
+RTC::poke(isize nr, u8 value)
 {
     assert(nr < 16);
 
-    trace(RTC_DEBUG, "poke(%d, $%02X) [bank %d]\n", nr, value, bank());
+    trace(RTC_DEBUG, "poke(%zu, $%02X) [bank %zu]\n", nr, value, bank());
 
     // Ony proceed if a real-time clock is installed
     if (rtc.isPresent()) return;
@@ -178,6 +203,7 @@ RTC::poke(unsigned nr, u8 value)
             
         default: // Time or date register
             
+            time2registers();
             reg[bank()][nr] = value & 0xF;
             registers2time();
     }

@@ -7,16 +7,16 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-// This file must conform to standard ANSI-C to be compatible with Swift.
+#pragma once
 
-#ifndef _DISK_CONTROLLER_T_H
-#define _DISK_CONTROLLER_T_H
+#include "Aliases.h"
+#include "Reflection.h"
 
 //
 // Enumerations
 //
 
-VAMIGA_ENUM(int, DriveState)
+enum_long(DRIVE_DMA_STATE)
 {
     DRIVE_DMA_OFF,     // Drive is idle
 
@@ -26,25 +26,51 @@ VAMIGA_ENUM(int, DriveState)
     DRIVE_DMA_WRITE,   // Drive is writing
     DRIVE_DMA_FLUSH,   // Drive is finishing up the write process
 };
+typedef DRIVE_DMA_STATE DriveState;
 
 inline bool isDriveState(long value)
 {
-    return value >= DRIVE_DMA_OFF && value <= DRIVE_DMA_FLUSH;
+    return (unsigned long)value <= DRIVE_DMA_FLUSH;
 }
 
-inline const char *driveStateName(DriveState state)
+inline const char *DriveDmaStateName(DriveState state)
 {
-    assert(isDriveState(state));
-
     switch (state) {
-        case DRIVE_DMA_OFF:   return "DRIVE_DMA_OFF";
-        case DRIVE_DMA_WAIT:  return "DRIVE_DMA_WAIT";
-        case DRIVE_DMA_READ:  return "DRIVE_DMA_READ";
-        case DRIVE_DMA_WRITE: return "DRIVE_DMA_WRITE";
-        case DRIVE_DMA_FLUSH: return "DRIVE_DMA_FLUSH";
-        default:              return "???";
+            
+        case DRIVE_DMA_OFF:   return "OFF";
+        case DRIVE_DMA_WAIT:  return "WAIT";
+        case DRIVE_DMA_READ:  return "READ";
+        case DRIVE_DMA_WRITE: return "WRITE";
+        case DRIVE_DMA_FLUSH: return "FLUSH";
     }
+    return "???";
 }
+
+#ifdef __cplusplus
+struct DriveStateEnum : util::Reflection<DriveStateEnum, DriveState> {
+    
+    static bool isValid(long value)
+    {
+        return (unsigned long)value <= DRIVE_DMA_FLUSH;
+    }
+
+    static const char *prefix() { return "DRIVE_DMA"; }
+    static const char *key(DriveState value)
+    {
+        switch (value) {
+                
+            case DRIVE_DMA_OFF:    return "OFF";
+
+            case DRIVE_DMA_WAIT:   return "WAIT";
+            case DRIVE_DMA_READ:   return "READ";
+
+            case DRIVE_DMA_WRITE:  return "WRITE";
+            case DRIVE_DMA_FLUSH:  return "FLUSH";
+        }
+        return "???";
+    }
+};
+#endif
 
 //
 // Structures
@@ -60,7 +86,7 @@ typedef struct
      * twice as fast. A value of -1 indicates a turbo drive. In this case,
      * the exact value of the acceleration factor has no meaning.
      */
-    long speed;
+    i32 speed;
 
     bool lockDskSync;
     bool autoDskSync;
@@ -88,5 +114,3 @@ typedef struct
     u8 prb;
 }
 DiskControllerInfo;
-
-#endif

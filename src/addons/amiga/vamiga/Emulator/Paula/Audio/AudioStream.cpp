@@ -7,135 +7,118 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "AudioStream.h"
+#include <algorithm>
 
 void
-AudioStream::copyMono(float *buffer, size_t n,
-                      i32 &volume, i32 targetVolume, i32 volumeDelta)
+Volume::shift()
 {
-    // The caller has to ensure that no buffer underflows occurs
-    assert(count() >= n);
-
-    if (volume == targetVolume) {
-        
-        float scale = volume / 10000.0f;
-        
-        for (size_t i = 0; i < n; i++) {
-            
-            SamplePair pair = read();
-            *buffer++ = (pair.left + pair.right) * scale;
-        }
-
+    if (current < target) {
+        current += std::min(delta, target - current);
     } else {
-        
-        for (size_t i = 0; i < n; i++) {
-                            
-            if (volume < targetVolume) {
-                volume += MIN(volumeDelta, targetVolume - volume);
-            } else {
-                volume -= MIN(volumeDelta, volume - targetVolume);
-            }
-
-            float scale = volume / 10000.0f;
-
-            SamplePair pair = read();
-            *buffer++ = (pair.left + pair.right) * scale;
-        }
+        current -= std::min(delta, current - target);
     }
 }
 
-void
-AudioStream::copy(float *left, float *right, size_t n,
-                  i32 &volume, i32 targetVolume, i32 volumeDelta)
+template <class T> void
+AudioStream<T>::alignWritePtr()
+{
+    this->align(8192);
+}
+
+template <class T> void
+AudioStream<T>::copy(void *buffer, isize n, Volume &vol)
 {
     // The caller has to ensure that no buffer underflows occurs
-    assert(count() >= n);
+    assert(this->count() >= n);
 
-    if (volume == targetVolume) {
-        
-        float scale = volume / 10000.0f;
-        
-        for (size_t i = 0; i < n; i++) {
-            
-            SamplePair pair = read();
-            *left++ = pair.left * scale;
-            *right++ = pair.right * scale;
-        }
+    // Quick path: Volume is stable at 0 or 1
+    if (!vol.fading()) {
 
-    } else {
-        
-        for (size_t i = 0; i < n; i++) {
-                            
-            if (volume < targetVolume) {
-                volume += MIN(volumeDelta, targetVolume - volume);
-            } else {
-                volume -= MIN(volumeDelta, volume - targetVolume);
+        if (vol.current == 0) {
+
+            for (isize i = 0; i < n; i++) {
+                T zero;
+                for (isize i = 0; i < n; i++) {
+                    zero.copy(buffer, i);
+                }
             }
-
-            float scale = volume / 10000.0f;
-
-            SamplePair pair = read();
-            *left++ = pair.left * scale;
-            *right++ = pair.right * scale;
+            return;
         }
+        if (vol.current == 1.0) {
+
+            for (isize i = 0; i < n; i++) {
+                T sample = this->read();
+                sample.copy(buffer, i);
+            }
+            return;
+        }
+    }
+    
+    // Generic path: Modulate the volume
+    for (isize i = 0; i < n; i++) {
+        vol.shift();
+        T sample = this->read();
+        sample.modulate(vol.current);
+        sample.copy(buffer, i);
     }
 }
 
-void
-AudioStream::copyInterleaved(float *buffer, size_t n,
-                             i32 &volume, i32 targetVolume, i32 volumeDelta)
+template <class T> void
+AudioStream<T>::copy(void *buffer1, void *buffer2, isize n, Volume &vol)
 {
     // The caller has to ensure that no buffer underflows occurs
-    assert(count() >= n);
+    assert(this->count() >= n);
 
-    if (volume == targetVolume) {
-        
-        float scale = volume / 10000.0f;
-        
-        for (size_t i = 0; i < n; i++) {
-            
-            SamplePair pair = read();
-            *buffer++ = pair.left * scale;
-            *buffer++ = pair.right * scale;
-        }
+    // Quick path: Volume is stable at 0 or 1
+    if (!vol.fading()) {
 
-    } else {
-        
-        for (size_t i = 0; i < n; i++) {
-                            
-            if (volume < targetVolume) {
-                volume += MIN(volumeDelta, targetVolume - volume);
-            } else {
-                volume -= MIN(volumeDelta, volume - targetVolume);
+        if (vol.current == 0) {
+
+            T zero;
+            for (isize i = 0; i < n; i++) {
+                zero.copy(buffer1, buffer2, i);
             }
-
-            float scale = volume / 10000.0f;
-
-            SamplePair pair = read();
-            *buffer++ = pair.left * scale;
-            *buffer++ = pair.right * scale;
+            return;
         }
+        if (vol.current == 1.0) {
+
+            for (isize i = 0; i < n; i++) {
+                T sample = this->read();
+                sample.copy(buffer1, buffer2, i);
+            }
+            return;
+        }
+    }
+    
+    // Generic path: Modulate the volume
+    for (isize i = 0; i < n; i++) {
+        vol.shift();
+        T sample = this->read();
+        sample.modulate(vol.current);
+        sample.copy(buffer1, buffer2, i);
     }
 }
 
-float
-AudioStream::draw(unsigned *buffer, int width, int height,
-                          bool left, float highestAmplitude, unsigned color)
+template <class T> float
+AudioStream<T>::draw(u32 *buffer, isize width, isize height,
+                     bool left, float highestAmplitude, u32 color)
 {
-    int dw = cap() / width;
+    isize dw = this->cap() / width;
     float newHighestAmplitude = 0.001;
     
     // Clear buffer
-    for (int i = 0; i < width * height; i++) {
+    for (isize i = 0; i < width * height; i++) {
         buffer[i] = color & 0xFFFFFF;
     }
     
     // Draw waveform
-    for (int w = 0; w < width; w++) {
+    for (isize w = 0; w < width; w++) {
         
         // Read samples from ringbuffer
-        SamplePair pair = current(w * dw);
-        float sample = left ? abs(pair.left) : abs(pair.right);
+        T pair = this->current(w * dw);
+        float sample = pair.magnitude(left);
         
         if (sample == 0) {
             
@@ -151,13 +134,22 @@ AudioStream::draw(unsigned *buffer, int width, int height,
             if (sample > newHighestAmplitude) newHighestAmplitude = sample;
             
             // Scale the sample
-            int scaled = int(sample * height / highestAmplitude);
+            isize scaled = isize(sample * height / highestAmplitude);
             if (scaled > height) scaled = height;
             
             // Draw vertical line
-            unsigned *ptr = buffer + width * ((height - scaled) / 2) + w;
-            for (int j = 0; j < scaled; j++, ptr += width) *ptr = color;
+            u32 *ptr = buffer + width * ((height - scaled) / 2) + w;
+            for (isize j = 0; j < scaled; j++, ptr += width) *ptr = color;
         }
     }
     return newHighestAmplitude;
 }
+
+//
+// Instantiate template functions
+//
+
+template void AudioStream<SampleType>::alignWritePtr();
+template void AudioStream<SampleType>::copy(void *, isize, Volume &);
+template void AudioStream<SampleType>::copy(void *, void *, isize, Volume &);
+template float AudioStream<SampleType>::draw(u32 *, isize, isize, bool, float, u32);

@@ -7,35 +7,38 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "SerialPort.h"
+#include "UART.h"
+#include "IO.h"
 
 SerialPort::SerialPort(Amiga& ref) : AmigaComponent(ref)
 {
-    setDescription("SerialPort");
-
     config.device = SPD_LOOPBACK;
 }
 
 long
-SerialPort::getConfigItem(ConfigOption option)
+SerialPort::getConfigItem(Option option) const
 {
     switch (option) {
             
         case OPT_SERIAL_DEVICE: return (long)config.device;
         
-        default: assert(false);
+        default:
+            assert(false);
+            return 0;
     }
 }
 
 bool
-SerialPort::setConfigItem(ConfigOption option, long value)
+SerialPort::setConfigItem(Option option, long value)
 {
     switch (option) {
             
         case OPT_SERIAL_DEVICE:
             
-            if (!isSerialPortDevice(value)) {
-                warn("Invalid serial port device: %d\n", value);
+            if (!SerialPortDeviceEnum::isValid(value)) {
+                warn("Invalid serial port device: %ld\n", value);
                 return false;
             }
             if (config.device == value) {
@@ -67,14 +70,21 @@ SerialPort::_inspect()
 }
 
 void
-SerialPort::_dump()
+SerialPort::_dump(Dump::Category category, std::ostream& os) const
 {
-    msg("    device: %d\n", config.device);
-    msg("      port: %X\n", port);
+    if (category & Dump::Config) {
+        
+        os << DUMP("device") << SerialPortDeviceEnum::key(config.device) << std::endl;
+    }
+    
+    if (category & Dump::State) {
+    
+        os << DUMP("port") << HEX32 << port;
+    }
 }
 
 bool
-SerialPort::getPin(int nr)
+SerialPort::getPin(isize nr) const
 {
     assert(nr >= 1 && nr <= 25);
 
@@ -85,7 +95,7 @@ SerialPort::getPin(int nr)
 }
 
 void
-SerialPort::setPin(int nr, bool value)
+SerialPort::setPin(isize nr, bool value)
 {
     // debug(SER_DEBUG, "setPin(%d,%d)\n", nr, value);
     assert(nr >= 1 && nr <= 25);
@@ -121,4 +131,3 @@ SerialPort::setPort(u32 mask, bool value)
     // Let the UART know if RXD has changed
     if ((oldPort ^ port) & RXD_MASK) uart.rxdHasChanged(value);
 }
-

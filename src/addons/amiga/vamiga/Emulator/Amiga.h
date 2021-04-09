@@ -7,47 +7,24 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _AMIGA_H
-#define _AMIGA_H
+#pragma once
 
-// General
-#include "AmigaComponent.h"
-#include "Serialization.h"
-#include "MessageQueue.h"
-
-// Sub components
+#include "AmigaTypes.h"
 #include "Agnus.h"
-#include "Blitter.h"
 #include "ControlPort.h"
 #include "CIA.h"
-#include "Copper.h"
 #include "CPU.h"
 #include "Denise.h"
-#include "Disk.h"
 #include "Drive.h"
-#include "Joystick.h"
 #include "Keyboard.h"
 #include "Memory.h"
-#include "Moira.h"
-#include "Mouse.h"
+#include "MsgQueue.h"
 #include "Oscillator.h"
-#include "RTC.h"
 #include "Paula.h"
+#include "RetroShell.h"
+#include "RTC.h"
 #include "SerialPort.h"
 #include "ZorroManager.h"
-
-// File types
-#include "RomFile.h"
-#include "EncryptedRomFile.h"
-#include "ExtendedRomFile.h"
-#include "Snapshot.h"
-#include "ADFFile.h"
-#include "EXTFile.h"
-#include "IMGFile.h"
-#include "DMSFile.h"
-#include "EXEFile.h"
-#include "DIRFile.h"
-#include "FSVolume.h"
 
 void threadTerminated(void *thisAmiga);
 void *threadMain(void *thisAmiga);
@@ -111,6 +88,10 @@ public:
     // Shortcuts to all four drives
     Drive *df[4] = { &df0, &df1, &df2, &df3 };
     
+    // Command shell
+    RetroShell retroShell = RetroShell(*this);
+    
+    
     //
     // Message queue
     //
@@ -118,7 +99,7 @@ public:
     /* Communication channel to the GUI. The GUI registers a listener and a
      * callback function to retrieve messages.
      */
-    MessageQueue messageQueue;
+    MsgQueue queue = MsgQueue(*this);
 
     
     //
@@ -126,6 +107,9 @@ public:
     //
     
 private:
+    
+    // The current emulator state
+    EmulatorState state = EMULATOR_STATE_OFF;
     
     /* Run loop control. This variable is checked at the end of each runloop
      * iteration. Most of the time, the variable is 0 which causes the runloop
@@ -136,30 +120,20 @@ private:
     u32 runLoopCtrl = 0;
     
     // The invocation counter for implementing suspend() / resume()
-    unsigned suspendCounter = 0;
+    isize suspendCounter = 0;
     
     // The emulator thread
     pthread_t p = (pthread_t)0;
-    
-    /* Mutex to coordinate the ownership of the emulator thread.
-     *
-     */
-    pthread_mutex_t threadLock;
-    
-    /* Lock to synchronize the access to all state changing methods such as
-     * run(), pause(), etc.
-     */
-    pthread_mutex_t stateChangeLock;
-    
-    
+        
+
     //
     // Snapshot storage
     //
     
 private:
     
-    Snapshot *autoSnapshot = NULL;
-    Snapshot *userSnapshot = NULL;
+    class Snapshot *autoSnapshot = nullptr;
+    class Snapshot *userSnapshot = nullptr;
 
     
     //
@@ -171,7 +145,9 @@ public:
     Amiga();
     ~Amiga();
 
-    void prefix() override;
+    const char *getDescription() const override { return "Amiga"; }
+
+    void prefix() const override;
 
     void reset(bool hard);
     void hardReset() { reset(true); }
@@ -179,7 +155,7 @@ public:
 
 private:
     
-    void _reset(bool hard) override { RESET_SNAPSHOT_ITEMS(hard) }
+    void _reset(bool hard) override;
 
     
     //
@@ -187,17 +163,14 @@ private:
     //
     
 public:
-    
-    // Returns the current configuration
-    AmigaConfiguration getConfig();
-    
+        
     // Gets a single configuration item
-    long getConfigItem(ConfigOption option);
-    long getConfigItem(unsigned dfn, ConfigOption option);
+    long getConfigItem(Option option) const;
+    long getConfigItem(Option option, long id) const;
     
     // Sets a single configuration item
-    bool configure(ConfigOption option, long value);
-    bool configure(unsigned dfn, ConfigOption option, long value);
+    bool configure(Option option, long value) throws;
+    bool configure(Option option, long id, long value) throws;
     
     
     //
@@ -208,13 +181,13 @@ public:
     
     AmigaInfo getInfo() { return HardwareComponent::getInfo(info); }
     
+    EventID getInspectionTarget() const;
     void setInspectionTarget(EventID id);
-    void clearInspectionTarget();
     
 private:
     
     void _inspect() override;
-    void _dump() override;
+    void _dump(Dump::Category category, std::ostream& os) const override;
     
     
     //
@@ -231,7 +204,6 @@ private:
     template <class T>
     void applyToHardResetItems(T& worker)
     {
-        // worker & clockBase;
     }
 
     template <class T>
@@ -239,9 +211,9 @@ private:
     {
     }
 
-    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
-    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
+    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
 
     //
@@ -250,18 +222,23 @@ private:
     
 public:
     
+    bool isPoweredOff() const override { return state == EMULATOR_STATE_OFF; }
+    bool isPoweredOn() const override { return state != EMULATOR_STATE_OFF; }
+    bool isPaused() const override { return state == EMULATOR_STATE_PAUSED; }
+    bool isRunning() const override { return state == EMULATOR_STATE_RUNNING; }
+
     void powerOn();
     void powerOff();
     void run();
     void pause();
+    void shutdown();
     
-    void setWarp(bool enable);
+    void warpOn();
+    void warpOff();
     bool inWarpMode() { return warpMode; }
-    void enableWarpMode() { setWarp(true); }
-    void disableWarpMode() { setWarp(false); }
 
-    void enableDebugMode() { setDebug(true); }
-    void disableDebugMode() { setDebug(false); }
+    void debugOn();
+    void debugOff();
     bool inDebugMode() { return debugMode; }
 
 private:
@@ -270,7 +247,8 @@ private:
     void _powerOff() override;
     void _run() override;
     void _pause() override;
-    void _setWarp(bool enable) override;
+    void _warpOn() override;
+    void _warpOff() override;
 
     
     //
@@ -279,17 +257,13 @@ private:
     
 public:
     
-    /* Requests the emulator thread to stop and locks the threadLock. The
-     * function is called in all state changing methods to obtain ownership
-     * of the emulator thread. After returning, the emulator is either powered
-     * off (if it was powered off before) or paused (if it was running before).
-     */
-    void acquireThreadLock();
-    
+    // Returns true if the currently executed thread is the emulator thread
+    bool isEmulatorThread() { return pthread_self() == p; }
+        
     /* Returns true if a call to powerOn() will be successful. It returns false,
      * e.g., if no Kickstart Rom or Boot Rom is installed.
      */
-    bool isReady(ErrorCode *error = NULL);
+    bool isReady(ErrorCode *error = nullptr);
     
     /* Pauses the emulation thread temporarily. Because the emulator is running
      * in a separate thread, the GUI has to pause the emulator before changing
@@ -312,11 +286,13 @@ public:
     void clearControlFlags(u32 flags);
     
     // Convenience wrappers for controlling the run loop
+    void signalStop() { setControlFlags(RL_STOP); }
+    void signalInspect() { setControlFlags(RL_INSPECT); }
+    void signalWarpOn() { setControlFlags(RL_WARP_ON); }
+    void signalWarpOff() { setControlFlags(RL_WARP_OFF); }
     void signalAutoSnapshot() { setControlFlags(RL_AUTO_SNAPSHOT); }
     void signalUserSnapshot() { setControlFlags(RL_USER_SNAPSHOT); }
-    void signalInspect() { setControlFlags(RL_INSPECT); }
-    void signalStop() { setControlFlags(RL_STOP); }
-
+    // void signalShutdown() { setControlFlags(RL_STOP | RL_SHUTDOWN); }
 
     //
     // Running the emulator
@@ -374,7 +350,7 @@ public:
     void requestAutoSnapshot();
     void requestUserSnapshot();
      
-    // Returns the most recent snapshot or NULL if none was taken
+    // Returns the most recent snapshot or nullptr if none was taken
     Snapshot *latestAutoSnapshot();
     Snapshot *latestUserSnapshot();
 
@@ -386,5 +362,3 @@ public:
     void loadFromSnapshotUnsafe(Snapshot *snapshot);
     void loadFromSnapshotSafe(Snapshot *snapshot);
 };
-
-#endif

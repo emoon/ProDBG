@@ -7,9 +7,9 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _TOD_H
-#define _TOD_H
+#pragma once
 
+#include "TODTypes.h"
 #include "AmigaComponent.h"
 
 typedef union
@@ -63,7 +63,7 @@ class TOD : public AmigaComponent {
     bool stopped;
     
     /* Indicates if tod time matches the alarm value. This value is read in
-     * checkForInterrupt() for edge detection.
+     * checkIrq() for edge detection.
      */
     bool matching;
     
@@ -76,6 +76,7 @@ public:
 
     TOD(CIA *cia, Amiga& ref);
 
+    const char *getDescription() const override;
     void _reset(bool hard) override;
 
 
@@ -86,7 +87,7 @@ public:
     CounterInfo getInfo() { return HardwareComponent::getInfo(info); }
 
     void _inspect() override;
-    void _dump() override;
+    void _dump(Dump::Category category, std::ostream& os) const override;
 
     
     //
@@ -108,19 +109,19 @@ public:
     {
         worker
 
-        & tod.value
-        & preTod.value
-        & lastInc
-        & latch.value
-        & alarm.value
-        & frozen
-        & stopped
-        & matching;
+        << tod.value
+        << preTod.value
+        << lastInc
+        << latch.value
+        << alarm.value
+        << frozen
+        << stopped
+        << matching;
     }
 
-    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
-    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
+    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
     
     //
@@ -128,22 +129,22 @@ public:
     //
     
     // Returns the counter's high byte (bits 16 - 23).
-    u8 getCounterHi(Cycle timeStamp = INT64_MAX);
+    u8 getCounterHi(Cycle timeStamp = INT64_MAX) const;
 
     // Returns the counter's intermediate byte (bits 8 - 15).
-    u8 getCounterMid(Cycle timeStamp = INT64_MAX);
+    u8 getCounterMid(Cycle timeStamp = INT64_MAX) const;
     
     // Returns the counter's low byte (bits 0 - 7).
-    u8 getCounterLo(Cycle timeStamp = INT64_MAX);
+    u8 getCounterLo(Cycle timeStamp = INT64_MAX) const;
 
     // Returns the alarm value's high byte (bits 16 - 23).
-    u8 getAlarmHi();
+    u8 getAlarmHi() const;
 
     // Returns the alarm value's intermediate byte (bits 8 - 15).
-    u8 getAlarmMid();
+    u8 getAlarmMid() const;
 
     // Returns the alarm value's low byte (bits 0 - 7).
-    u8 getAlarmLo();
+    u8 getAlarmLo() const;
 
     // Sets the counter's high byte (bits 16 - 23).
     void setCounterHi(u8 value);
@@ -178,10 +179,8 @@ private:
     bool incLoNibble(u8 &counter);
     bool incHiNibble(u8 &counter);
 
-    /* Updates variable 'matching'. If a positive edge occurs, the connected
-     * CIA is requested to trigger an interrupt.
-     */
-    void checkForInterrupt();
+    // Updates variable 'matching'. A positive edge triggers an interrupt.
+    void checkIrq();
 
     // Freezes the counter
     void freeze() { if (!frozen) { latch.value = tod.value; frozen = true; } }
@@ -195,7 +194,3 @@ private:
     // Starts the counter
     void cont() { stopped = false; }
 };
-
-#endif
-
-

@@ -7,94 +7,75 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-// This file must conform to standard ANSI-C to be compatible with Swift.
-
-#ifndef _DISK_TYPES_H
-#define _DISK_TYPES_H
+#pragma once
 
 #include "Aliases.h"
+#include "Reflection.h"
 
 //
 // Enumerations
 //
 
-VAMIGA_ENUM(long, DiskType)
+enum_long(DISK_DIAMETER)
 {
-    DISK_35,
-    DISK_525
-};
-
-inline bool isDiskType(DiskType value)
-{
-    return value >= 0 && value <= DISK_525;
-}
-
-/*
-inline bool isAmigaDiskType(DiskType value)
-{
-    return value == DISK_35_DD || value == DISK_35_HD || value == DISK_525_DD;
-}
-*/
-
-inline const char *sDiskType(DiskType value)
-{
-    assert(isDiskType(value));
+    INCH_35,
+    INCH_525,
     
-    switch (value) {
-        case DISK_35:   return "3.5\"";
-        case DISK_525:  return "5.25\"";
-        default:        return "???";
-    }
-}
+    INCH_COUNT
+};
+typedef DISK_DIAMETER DiskDiameter;
 
-VAMIGA_ENUM(long, DiskDensity)
+#ifdef __cplusplus
+struct DiskDiameterEnum : util::Reflection<DiskDiameterEnum, DiskDiameter> {
+    
+    static bool isValid(long value)
+    {
+        return (unsigned long)value < INCH_COUNT;
+    }
+    
+    static const char *prefix() { return ""; }
+    static const char *key(DiskDiameter value)
+    {
+        switch (value) {
+                
+            case INCH_35:     return "INCH_35";
+            case INCH_525:    return "INCH_525";
+            case INCH_COUNT:  return "???";
+        }
+        return "???";
+    }
+};
+#endif
+
+enum_long(DISK_DENSITY)
 {
     DISK_SD,
     DISK_DD,
-    DISK_HD
+    DISK_HD,
+    
+    DISK_COUNT
 };
+typedef DISK_DENSITY DiskDensity;
 
-inline bool isDiskDensity(DiskDensity value)
-{
-    return value >= 0 && value <= DISK_HD;
-}
-
-inline const char *sDiskDensity(DiskDensity value)
-{
-    switch (value) {
-        case DISK_SD:  return "SD";
-        case DISK_DD:  return "DD";
-        case DISK_HD:  return "HD";
-        default:       return "???";
+#ifdef __cplusplus
+struct DiskDensityEnum : util::Reflection<DiskDensityEnum, DiskDensity> {
+    
+    static bool isValid(long value)
+    {
+        return (unsigned long)value < DISK_COUNT;
     }
-}
-
-/*
-VAMIGA_ENUM(long, EmptyDiskFormat)
-{
-    FS_EMPTY,
-    FS_EMPTY_OFS,
-    FS_EMPTY_OFS_BOOTABLE,
-    FS_EMPTY_FFS,
-    FS_EMPTY_FFS_BOOTABLE
+    
+    static const char *prefix() { return "DISK"; }
+    static const char *key(DiskDensity value)
+    {
+        switch (value) {
+                
+            case DISK_SD:     return "SD";
+            case DISK_DD:     return "DD";
+            case DISK_HD:     return "HD";
+            case DISK_COUNT:  return "???";
+        }
+        return "???";
+    }
 };
-
-inline bool isEmptyDiskFormat(EmptyDiskFormat type)
-{
-    return type >= FS_EMPTY && type <= FS_EMPTY_FFS_BOOTABLE;
-}
-
-inline const char *sEmptyDiskFormat(EmptyDiskFormat type)
-{
-    switch (type) {
-        case FS_EMPTY:              return "None";
-        case FS_EMPTY_OFS:          return "OFS";
-        case FS_EMPTY_OFS_BOOTABLE: return "OFS (bootable)";
-        case FS_EMPTY_FFS:          return "FFS";
-        case FS_EMPTY_FFS_BOOTABLE: return "FFS (bootable)";
-        default:                    return "???";
-    }
-}
-*/
-
 #endif

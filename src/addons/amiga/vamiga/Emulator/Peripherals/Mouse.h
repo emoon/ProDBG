@@ -7,22 +7,49 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _MOUSE_H
-#define _MOUSE_H
+#pragma once
 
+#include "MouseTypes.h"
+#include "Joystick.h"
 #include "AmigaComponent.h"
+#include "Chrono.h"
+
+class ShakeDetector {
+    
+    // Horizontal position
+    double x = 0.0;
+    
+    // Moved distance
+    double dxsum = 0.0;
+
+    // Direction (1 or -1)
+    double dxsign = 1.0;
+    
+    // Number of turns
+    isize dxturns = 0;
+    
+    // Time stamps
+    u64 lastTurn = 0;
+    util::Time lastShake;
+    
+public:
+    
+    // Feed in new coordinates and checks for a shake
+    bool isShakingAbs(double x);
+    bool isShakingRel(double dx);
+};
 
 class Mouse : public AmigaComponent {
 
-    // Reference to control port this device belongs to
+    // Reference to the control port this device belongs to
     ControlPort &port;
     
     // Current configuration
     MouseConfig config;
 
-    // The control port this device is connected to
-    // PortNr nr;
-
+    // Shake detector
+    class ShakeDetector shakeDetector;
+    
 public:
     
     // Mouse button states
@@ -47,9 +74,9 @@ private:
     double targetX;
     double targetY;
     
-    // Dividers applied to raw coordinates in setXY()
-    const double dividerX = 128;
-    const double dividerY = 128;
+    // Scaling factors applied to the raw mouse coordinates in setXY()
+    double scaleX = 1.0;
+    double scaleY = 1.0;
     
     // Mouse movement in pixels per execution step
     double shiftX = 31;
@@ -64,6 +91,8 @@ public:
     
     Mouse(Amiga& ref, ControlPort& pref);
     
+    const char *getDescription() const override;
+    
     void _reset(bool hard) override;
     
     
@@ -71,9 +100,25 @@ public:
     // Configuring
     //
     
+public:
+    
+    const MouseConfig &getConfig() const { return config; }
+
+    long getConfigItem(Option option) const;
+    bool setConfigItem(Option option, long id, long value) override;
+    
 private:
     
-    void _dump() override;
+    void updateScalingFactors();
+    
+    
+    //
+    // Analyzing
+    //
+    
+private:
+    
+    void _dump(Dump::Category category, std::ostream& os) const override;
 
     
     //
@@ -85,7 +130,7 @@ private:
     template <class T>
     void applyToPersistentItems(T& worker)
     {
-        worker & config.pullUpResistors;
+        worker << config.pullUpResistors;
     }
 
     template <class T>
@@ -98,9 +143,9 @@ private:
     {
     }
 
-    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
-    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
+    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
 
     //
@@ -110,10 +155,10 @@ private:
 public:
 
     // Modifies the POTGOR bits according to the current button state
-    void changePotgo(u16 &potgo);
+    void changePotgo(u16 &potgo) const;
 
     // Modifies the PRA bits of CIA A according to the current button state
-    void changePra(u8 &pra);
+    void changePra(u8 &pra) const;
 
     
     //
@@ -143,6 +188,3 @@ public:
     // Performs periodic actions for this device
     void execute();
 };
-
-#endif
-

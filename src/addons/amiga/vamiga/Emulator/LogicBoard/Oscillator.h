@@ -7,29 +7,29 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _OSCILLATOR_H
-#define _OSCILLATOR_H
+#pragma once
 
 #include "AmigaComponent.h"
+#include "Chrono.h"
 
 #ifdef __MACH__
 #include <mach/mach_time.h>
 #endif
 
 class Oscillator : public AmigaComponent {
+
+public:
     
-#ifdef __MACH__
+    // Clock rate of the master clock in MHz (PAL Amiga, 28.37516 MHz)
+    static const double masterClockFrequency;
 
-    // Information about the Mach system timer
-    static mach_timebase_info_data_t tb;
+    // Clock rate of the Motorola 68000 CPU (7.09379 MHz)
+    static const double cpuClockFrequency;
 
-    // Converts kernel time to nanoseconds
-    static u64 abs_to_nanos(u64 abs) { return abs * tb.numer / tb.denom; }
-    
-    // Converts nanoseconds to kernel time
-    static u64 nanos_to_abs(u64 nanos) { return nanos * tb.denom / tb.numer; }
+    // Clock rate of the DMA bus (3.546895 MHz)
+    static const double dmaClockFrequency;
 
-#endif
+private:
     
     /* The heart of this class is method sychronize() which puts the thread to
      * sleep for a certain interval. In order to calculate the delay, the
@@ -37,21 +37,33 @@ class Oscillator : public AmigaComponent {
      * clock at the time the synchronization timer was started. The values are
      * stores in the following two variables and recorded in restart().
      */
-    
+        
     // Agnus clock (Amiga master cycles)
     Cycle clockBase = 0;
+    
+    // Counts the number of calls to 'synchronize'
+    isize syncCounter = 0;
+    
+    // Kernel clock
+    util::Time timeBase;
 
-    // Kernel clock (Nanoseconds)
-    u64 timeBase = 0;
+    // The current CPU load (%)
+    float cpuLoad = 0.0;
+    
+    // Clocks for measuring the CPU load
+    util::Clock nonstopClock;
+    util::Clock loadClock;
 
     
     //
-    // Constructing and serializing
+    // Constructing
     //
     
 public:
     
     Oscillator(Amiga& ref);
+
+    const char *getDescription() const override;
 
 private:
     
@@ -72,7 +84,7 @@ private:
     template <class T>
     void applyToHardResetItems(T& worker)
     {
-        worker & clockBase;
+        worker << clockBase;
     }
     
     template <class T>
@@ -80,35 +92,20 @@ private:
     {
     }
 
-    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
-    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
-    
-    
-    //
-    // Reading the system clock
-    //
-    
-public:
-
-    // Returns the current kernel time the nano seconds
-    static u64 nanos();
+    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
+    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
     
     
     //
     // Managing emulation speed
     //
         
+public:
+    
     // Restarts the synchronization timer
     void restart();
 
     // Puts the emulator thread to rest
     void synchronize();
-    
-private:
-    
-    // Puts the thread to rest until the target time has been reached
-    void waitUntil(u64 deadline);
 };
-
-#endif

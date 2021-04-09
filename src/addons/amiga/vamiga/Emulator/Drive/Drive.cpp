@@ -7,21 +7,38 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "Drive.h"
+#include "Agnus.h"
+#include "BootBlockImage.h"
+#include "CIA.h"
+#include "DiskFile.h"
+#include "FSDevice.h"
+#include "MsgQueue.h"
 
-Drive::Drive(Amiga& ref, unsigned n) : AmigaComponent(ref), nr(n)
+Drive::Drive(Amiga& ref, isize n) : AmigaComponent(ref), nr(n)
 {
     assert(nr < 4);
-
-    setDescription(nr == 0 ? "Df0" :
-                   nr == 1 ? "Df1" :
-                   nr == 2 ? "Df2" : "Df3");
-
-    config.type = DRIVE_35_DD;
+    
+    config.type = DRIVE_DD_35;
     config.mechanicalDelays = true;
     config.startDelay = MSEC(380);
     config.stopDelay = MSEC(80);
-    config.stepDelay = USEC(2000);
+    config.stepDelay = USEC(8000);
+    config.pan = IS_EVEN(nr) ? 100 : -100;
+    config.stepVolume = 128;
+    config.pollVolume = 128;
+    config.insertVolume = 128;
+    config.ejectVolume = 128;
+    config.defaultFileSystem = FS_OFS;
+    config.defaultBootBlock = BB_NONE;
+}
+
+const char *
+Drive::getDescription() const
+{
+    assert(nr <= 3);
+    return nr == 0 ? "Df0" : nr == 1 ? "Df1" : nr == 2 ? "Df2" : "Df3";
 }
 
 void
@@ -31,40 +48,53 @@ Drive::_reset(bool hard)
 }
 
 long
-Drive::getConfigItem(ConfigOption option)
+Drive::getConfigItem(Option option) const
 {
     switch (option) {
             
-        case OPT_DRIVE_TYPE:        return (long)config.type;
-        case OPT_EMULATE_MECHANICS: return (long)config.mechanicalDelays;
-            
-        default: assert(false);
+        case OPT_DRIVE_TYPE:          return (long)config.type;
+        case OPT_EMULATE_MECHANICS:   return (long)config.mechanicalDelays;
+        case OPT_DRIVE_PAN:           return (long)config.pan;
+        case OPT_STEP_VOLUME:         return (long)config.stepVolume;
+        case OPT_POLL_VOLUME:         return (long)config.pollVolume;
+        case OPT_EJECT_VOLUME:        return (long)config.ejectVolume;
+        case OPT_INSERT_VOLUME:       return (long)config.insertVolume;
+        case OPT_DEFAULT_FILESYSTEM:  return (long)config.defaultFileSystem;
+        case OPT_DEFAULT_BOOTBLOCK:   return (long)config.defaultBootBlock;
+
+        default:
+            assert(false);
+            return 0;
     }
 }
 
 bool
-Drive::setConfigItem(unsigned dfn, ConfigOption option, long value)
+Drive::setConfigItem(Option option, long value)
 {
-    if (dfn != nr) return false;
+    return setConfigItem(option, nr, value);
+}
+
+bool
+Drive::setConfigItem(Option option, long id, long value)
+{
+    assert(id >= 0 && id <= 3);
+
+    if (id != nr) return false;
  
     switch (option) {
                             
         case OPT_DRIVE_TYPE:
             
-            if (!isDriveType(value)) {
-                warn("Invalid drive type: %d\n", value);
-                return false;
-            }
-            if (value != DRIVE_35_DD && value != DRIVE_35_HD) {
-                warn("Unsupported type: %s\n", driveTypeName((DriveType)value));
-                return false;
+            if (!DriveTypeEnum::isValid(value)) {
+                throw ConfigArgError(DriveTypeEnum::keyList());
             }
             if (config.type == value) {
                 return false;
             }
-            
+            if (value != DRIVE_DD_35 && value != DRIVE_HD_35) {
+                throw ConfigUnsupportedError();
+            }
             config.type = (DriveType)value;
-            trace("Setting type to %s\n", driveTypeName(config.type));
             return true;
 
         case OPT_EMULATE_MECHANICS:
@@ -72,9 +102,69 @@ Drive::setConfigItem(unsigned dfn, ConfigOption option, long value)
             if (config.mechanicalDelays == value) {
                 return false;
             }
-                        
             config.mechanicalDelays = value;
-            trace("Setting emulateMechanics to %d\n", config.mechanicalDelays);
+            return true;
+
+        case OPT_DRIVE_PAN:
+
+            if (config.pan == value) {
+                return false;
+            }
+            config.pan = value;
+            return true;
+
+        case OPT_STEP_VOLUME:
+
+            if (config.stepVolume == value) {
+                return false;
+            }
+            config.stepVolume = value;
+            return true;
+
+        case OPT_POLL_VOLUME:
+
+            if (config.pollVolume == value) {
+                return false;
+            }
+            config.pollVolume = value;
+            return true;
+
+        case OPT_EJECT_VOLUME:
+
+            if (config.ejectVolume == value) {
+                return false;
+            }
+            config.ejectVolume = value;
+            return true;
+
+        case OPT_INSERT_VOLUME:
+
+            if (config.insertVolume == value) {
+                return false;
+            }
+            config.insertVolume = value;
+            return true;
+
+        case OPT_DEFAULT_FILESYSTEM:
+
+            if (!FSVolumeTypeEnum::isValid(value)) {
+                throw ConfigArgError(FSVolumeTypeEnum::keyList());
+            }
+            if (config.defaultFileSystem == value) {
+                return false;
+            }
+            config.defaultFileSystem = value;
+            return true;
+
+        case OPT_DEFAULT_BOOTBLOCK:
+
+            if (!BootBlockIdEnum::isValid(value)) {
+                throw ConfigArgError(BootBlockIdEnum::keyList());
+            }
+            if (config.defaultBootBlock == value) {
+                return false;
+            }
+            config.defaultBootBlock = value;
             return true;
 
         default:
@@ -94,43 +184,50 @@ Drive::_inspect()
 }
 
 void
-Drive::_dumpConfig()
+Drive::_dump(Dump::Category category, std::ostream& os) const
 {
-    msg("              Type : %s\n", driveTypeName(config.type));
-    msg(" Emulate mechanics : %s\n", config.mechanicalDelays ? "yes" : "no");
-    msg("       Start delay : %d\n", config.startDelay);
-    msg("        Stop delay : %d\n", config.stopDelay);
-    msg("        Step delay : %d\n", config.stepDelay);
-}
-
-void
-Drive::_dump()
-{
-    msg("                Nr: %d\n", nr);
-    msg("          Id count: %d\n", idCount);
-    msg("            Id bit: %d\n", idBit);
-    msg("      motorSpeed(): %.2f\n", motorSpeed());
-    msg("        getMotor(): %s\n", getMotor() ? "on" : "off");
-    msg(" motorSpeedingUp(): %s\n", motorSpeedingUp() ? "yes" : "no");
-    msg("motorAtFullSpeed(): %s\n", motorAtFullSpeed() ? "yes" : "no");
-    msg("motorSlowingDown(): %s\n", motorSlowingDown() ? "yes" : "no");
-    msg("    motorStopped(): %s\n", motorStopped() ? "yes" : "no");
-    msg("         dskchange: %d\n", dskchange);
-    msg("            dsklen: %X\n", dsklen);
-    msg("               prb: %X\n", prb);
-    msg("              Side: %d\n", head.side);
-    msg("         Cyclinder: %d\n", head.cylinder);
-    msg("            Offset: %d\n", head.offset);
-    msg("   cylinderHistory: %X\n", cylinderHistory);
-    msg("              Disk: %s\n", disk ? "yes" : "no");
+    if (category & Dump::Config) {
+        
+        os << DUMP("Type") << DriveTypeEnum::key(config.type) << std::endl;
+        os << DUMP("Emulate mechanics") << YESNO(config.mechanicalDelays) << std::endl;
+        os << DUMP("Start delay") << DEC << config.startDelay << std::endl;
+        os << DUMP("Stop delay") << DEC << config.stopDelay << std::endl;
+        os << DUMP("Step delay") << DEC << config.stepDelay << std::endl;
+        os << DUMP("Insert volume") << DEC << (isize)config.insertVolume << std::endl;
+        os << DUMP("Eject volume") << DEC << (isize)config.ejectVolume << std::endl;
+        os << DUMP("Step volume") << DEC << (isize)config.stepVolume << std::endl;
+        os << DUMP("Poll volume") << DEC << (isize)config.pollVolume << std::endl;
+        os << DUMP("Pan") << DEC << (isize)config.pan << std::endl;
+        os << DUMP("Default file system") << FSVolumeTypeEnum::key(config.defaultFileSystem) << std::endl;
+        os << DUMP("Default boot block") << BootBlockIdEnum::key(config.defaultBootBlock) << std::endl;
+    }
     
-    if (disk) disk->dump();
+    if (category & Dump::State) {
+        
+        os << DUMP("Nr") << DEC << (isize)nr << std::endl;
+        os << DUMP("Id count") << DEC << (isize)idCount << std::endl;
+        os << DUMP("Id bit") << DEC << (isize)idBit << std::endl;
+        os << DUMP("motorSpeed()") << DEC << motorSpeed() << std::endl;
+        os << DUMP("getMotor()") << YESNO(getMotor()) << std::endl;
+        os << DUMP("motorSpeedingUp()") << YESNO(motorSpeedingUp()) << std::endl;
+        os << DUMP("motorAtFullSpeed()") << YESNO(motorAtFullSpeed()) << std::endl;
+        os << DUMP("motorSlowingDown()") << YESNO(motorSlowingDown()) << std::endl;
+        os << DUMP("motorStopped()") << YESNO(motorStopped()) << std::endl;
+        os << DUMP("dskchange") << DEC << (isize)dskchange << std::endl;
+        os << DUMP("dsklen") << DEC << (isize)dsklen << std::endl;
+        os << DUMP("prb") << HEX8 << (isize)prb << std::endl;
+        os << DUMP("Side") << DEC << (isize)head.side << std::endl;
+        os << DUMP("Cylinder") << DEC << (isize)head.cylinder << std::endl;
+        os << DUMP("Offset") << DEC << (isize)head.offset << std::endl;
+        os << DUMP("cylinderHistory") << HEX64 << cylinderHistory << std::endl;
+        os << DUMP("Disk") << YESNO(disk) << std::endl;
+    }
 }
 
-size_t
+isize
 Drive::_size()
 {
-    SerCounter counter;
+    util::SerCounter counter;
 
     applyToPersistentItems(counter);
     applyToHardResetItems(counter);
@@ -142,7 +239,7 @@ Drive::_size()
     if (hasDisk()) {
 
         // Add the disk type and disk state
-        counter & disk->getType() & disk->getDensity();
+        counter << disk->getDiameter() << disk->getDensity();
         disk->applyToPersistentItems(counter);
         // counter.count += disk->geometry.diskSize;
     }
@@ -150,11 +247,12 @@ Drive::_size()
     return counter.count;
 }
 
-size_t
-Drive::_load(u8 *buffer)
+isize
+Drive::_load(const u8 *buffer) 
 {
-    SerReader reader(buffer);
-
+    util::SerReader reader(buffer);
+    isize result;
+    
     // Read own state
     applyToPersistentItems(reader);
     applyToHardResetItems(reader);
@@ -163,61 +261,63 @@ Drive::_load(u8 *buffer)
     // Delete the current disk
     if (disk) {
         delete disk;
-        disk = NULL;
+        disk = nullptr;
     }
 
     // Check if the snapshot includes a disk
     bool diskInSnapshot;
-    reader & diskInSnapshot;
+    reader << diskInSnapshot;
 
     // If yes, create recreate the disk
     if (diskInSnapshot) {
-        DiskType type;
+        DiskDiameter type;
         DiskDensity density;
-        reader & type & density;
+        reader << type << density;
         
         disk = Disk::makeWithReader(reader, type, density);
     }
 
-    trace(SNP_DEBUG, "Recreated from %d bytes\n", reader.ptr - buffer);
-    return reader.ptr - buffer;
+    result = (isize)(reader.ptr - buffer);
+    trace(SNP_DEBUG, "Recreated from %zd bytes\n", result);
+    return result;
 }
 
-size_t
+isize
 Drive::_save(u8 *buffer)
 {
-    SerWriter writer(buffer);
-
+    util::SerWriter writer(buffer);
+    isize result;
+    
     // Write own state
     applyToPersistentItems(writer);
     applyToHardResetItems(writer);
     applyToResetItems(writer);
 
     // Indicate whether this drive has a disk is inserted
-    writer & hasDisk();
+    writer << hasDisk();
 
     if (hasDisk()) {
 
         // Write the disk type
-        writer & disk->getType() & disk->getDensity();
+        writer << disk->getDiameter() << disk->getDensity();
 
         // Write the disk's state
         disk->applyToPersistentItems(writer);
-        // writer.copy(disk->oldData, disk->geometry.diskSize);
     }
-
-    trace(SNP_DEBUG, "Serialized to %d bytes\n", writer.ptr - buffer);
-    return writer.ptr - buffer;
+    
+    result = (isize)(writer.ptr - buffer);
+    trace(SNP_DEBUG, "Serialized to %zd bytes\n", result);
+    return result;
 }
 
 bool
-Drive::idMode()
+Drive::idMode() const
 {
     return motorStopped() || motorSpeedingUp();
 }
 
 u32
-Drive::getDriveId()
+Drive::getDriveId() const
 {
     if (nr > 0) {
         
@@ -230,15 +330,18 @@ Drive::getDriveId()
         
         switch(config.type) {
                 
-            case DRIVE_35_DD:
+            case DRIVE_DD_35:
                 return 0xFFFFFFFF;
                 
-            case DRIVE_35_HD:
+            case DRIVE_HD_35:
                 if (disk && disk->getDensity() == DISK_HD) return 0xAAAAAAAA;
                 return 0xFFFFFFFF;
                 
-            case DRIVE_525_DD:
+            case DRIVE_DD_525:
                 return 0x55555555;
+                
+            default:
+                assert(false);
         }
     }
     
@@ -247,7 +350,7 @@ Drive::getDriveId()
 }
 
 u8
-Drive::driveStatusFlags()
+Drive::driveStatusFlags() const
 {
     // if (nr == 0) debug("driveStatusFlags() %d %d %d %d\n", isSelected(), idMode(), motorAtFullSpeed(), motorSlowingDown());
 
@@ -263,7 +366,7 @@ Drive::driveStatusFlags()
         }
         
         // PA4: /DSKTRACK0
-        // debug("Head is at cyclinder %d\n", head.cylinder);
+        // debug("Head is at cylinder %d\n", head.cylinder);
         if (head.cylinder == 0) { result &= 0b11101111; }
         
         // PA3: /DSKPROT
@@ -281,7 +384,7 @@ Drive::driveStatusFlags()
 }
 
 double
-Drive::motorSpeed()
+Drive::motorSpeed()const
 {
     // Quick exit if mechanics is not emulated
     if (!config.mechanicalDelays) return motor ? 100.0 : 0.0;
@@ -293,10 +396,10 @@ Drive::motorSpeed()
     // Compute the current speed
     if (motor) {
         if (config.startDelay == 0) return 100.0;
-        return MIN(switchSpeed + 100.0 * (elapsed / config.startDelay), 100.0);
+        return std::min(switchSpeed + 100.0 * (elapsed / config.startDelay), 100.0);
     } else {
         if (config.stopDelay == 0) return 0.0;
-        return MAX(switchSpeed - 100.0 * (elapsed / config.stopDelay), 0.0);
+        return std::max(switchSpeed - 100.0 * (elapsed / config.stopDelay), 0.0);
     }
 }
 
@@ -322,40 +425,38 @@ Drive::setMotor(bool value)
 }
 
 bool
-Drive::motorSpeedingUp()
+Drive::motorSpeedingUp() const
 {
     return motor && motorSpeed() < 100.0;
 }
 
 bool
-Drive::motorAtFullSpeed()
+Drive::motorAtFullSpeed() const
 {
     return motorSpeed() == 100.0;
 }
 
 bool
-Drive::motorSlowingDown()
+Drive::motorSlowingDown() const
 {
     return !motor && motorSpeed() > 0.0;
 }
 
 bool
-Drive::motorStopped()
+Drive::motorStopped() const
 {
     return motorSpeed() == 0.0;
 }
 
 void
-Drive::selectSide(int side)
+Drive::selectSide(isize side)
 {
     assert(side < 2);
-    if (head.side != side) trace("*** Select side %d\n", side);
-
     head.side = side;
 }
 
 u8
-Drive::readByte()
+Drive::readByte() const
 {
     // Case 1: No disk is inserted
     if (!disk) {
@@ -364,7 +465,7 @@ Drive::readByte()
 
     // Case 2: A step operation is in progress
     if (config.mechanicalDelays && (agnus.clock - stepCycle) < config.stepDelay) {
-      return 0xFF;
+        return (u8)rand(); // 0xFF;
     }
     
     // Case 3: Normal operation
@@ -416,7 +517,7 @@ Drive::rotate()
     long last = disk ? disk->length.cylinder[head.cylinder][head.side] : 12668;
     if (++head.offset >= last) {
         
-        // Start over at the beginning of the current cyclinder
+        // Start over at the beginning of the current cylinder
         head.offset = 0;
 
         // If this drive is selected, we emulate a falling edge on the flag pin
@@ -430,7 +531,7 @@ void
 Drive::findSyncMark()
 {
     long length = disk->length.cylinder[head.cylinder][head.side];
-    for (unsigned i = 0; i < length; i++) {
+    for (isize i = 0; i < length; i++) {
         
         if (readByteAndRotate() != 0x44) continue;
         if (readByteAndRotate() != 0x89) continue;
@@ -441,7 +542,7 @@ Drive::findSyncMark()
 }
 
 bool
-Drive::readyToStep()
+Drive::readyToStep() const
 {
     if (config.mechanicalDelays) {
         return agnus.clock - stepCycle > 1060;
@@ -451,7 +552,7 @@ Drive::readyToStep()
 }
 
 void
-Drive::step(int dir)
+Drive::step(isize dir)
 {    
     // Update disk change signal
     if (hasDisk()) dskchange = true;
@@ -466,8 +567,7 @@ Drive::step(int dir)
             head.cylinder--;
             recordCylinder(head.cylinder);
         }
-        if (DSK_CHECKSUM)
-            debug("Stepping down to cylinder %d\n", head.cylinder);
+        debug(DSK_CHECKSUM, "Stepping down to cylinder %d\n", head.cylinder);
 
     } else {
         
@@ -476,21 +576,21 @@ Drive::step(int dir)
             head.cylinder++;
             recordCylinder(head.cylinder);
         }
-        if (DSK_CHECKSUM)
-            debug("Stepping up to cylinder %d\n", head.cylinder);
+        debug(DSK_CHECKSUM, "Stepping up to cylinder %d\n", head.cylinder);
     }
     
     // Push drive head forward
-    // head.offset = ALIGN_HEAD ? 0 : ((head.offset + 117) % Disk::trackSize);
     if (ALIGN_HEAD) head.offset = 0;
-
-    // Inform the GUI
-    if (pollsForDisk()) {
-        messageQueue.put(MSG_DRIVE_HEAD_POLL, (nr << 8) | head.cylinder);
-    } else {
-        messageQueue.put(MSG_DRIVE_HEAD, (nr << 8) | head.cylinder);
-    }
     
+    // Notify the GUI
+    if (pollsForDisk()) {
+        messageQueue.put(MSG_DRIVE_POLL,
+                         config.pan << 24 | config.pollVolume << 16 | head.cylinder << 8 | nr);
+    } else {
+        messageQueue.put(MSG_DRIVE_STEP,
+                         config.pan << 24 | config.stepVolume << 16 | head.cylinder << 8 | nr);
+    }
+        
     // Remember when we've performed the step
     stepCycle = agnus.clock;
 }
@@ -502,7 +602,7 @@ Drive::recordCylinder(u8 cylinder)
 }
 
 bool
-Drive::pollsForDisk()
+Drive::pollsForDisk() const
 {
     // Disk polling is only performed if no disk is inserted
     if (hasDisk()) return false;
@@ -524,7 +624,7 @@ Drive::pollsForDisk()
     };
 
     u64 mask = 0xFFFFFFFF;
-    for (unsigned i = 0; i < sizeof(signature) / 8; i++) {
+    for (isize i = 0; i < isizeof(signature) / 8; i++) {
         if ((cylinderHistory & mask) == (signature[i] & mask)) return true;
     }
 
@@ -532,13 +632,13 @@ Drive::pollsForDisk()
 }
 
 bool
-Drive::hasWriteEnabledDisk()
+Drive::hasWriteEnabledDisk() const
 {
     return hasDisk() ? !disk->isWriteProtected() : false;
 }
 
 bool
-Drive::hasWriteProtectedDisk()
+Drive::hasWriteProtectedDisk() const
 {
     return hasDisk() ? disk->isWriteProtected() : false;
 }
@@ -581,28 +681,30 @@ Drive::ejectDisk()
         
         // Get rid of the disk
         delete disk;
-        disk = NULL;
+        disk = nullptr;
         
         // Notify the GUI
-        messageQueue.put(MSG_DISK_EJECT, nr);
+        messageQueue.put(MSG_DISK_EJECT,
+                         config.pan << 24 | config.ejectVolume << 16 | nr);
     }
 }
 
 bool
-Drive::isInsertable(DiskType t, DiskDensity d)
+Drive::isInsertable(DiskDiameter t, DiskDensity d) const
 {
-    debug(DSK_DEBUG, "isInsertable(%s, %s)\n", sDiskType(t), sDiskDensity(d));
+    debug(DSK_DEBUG,
+          "isInsertable(%s, %s)\n", DiskDiameterEnum::key(t), DiskDensityEnum::key(d));
     
     switch (config.type) {
             
-        case DRIVE_35_DD:
-            return t == DISK_35 && d == DISK_DD;
+        case DRIVE_DD_35:
+            return t == INCH_35 && d == DISK_DD;
             
-        case DRIVE_35_HD:
-            return t == DISK_35;
+        case DRIVE_HD_35:
+            return t == INCH_35;
             
-        case DRIVE_525_DD:
-            return t == DISK_525 && d == DISK_DD;
+        case DRIVE_DD_525:
+            return t == INCH_525 && d == DISK_DD;
                         
         default:
             assert(false);
@@ -611,23 +713,23 @@ Drive::isInsertable(DiskType t, DiskDensity d)
 }
 
 bool
-Drive::isInsertable(DiskFile *file)
+Drive::isInsertable(DiskFile *file) const
 {
     debug(DSK_DEBUG, "isInsertable(DiskFile %p)\n", file);
    
     if (!file) return false;
     
-    return isInsertable(file->getDiskType(), file->getDiskDensity());
+    return isInsertable(file->getDiskDiameter(), file->getDiskDensity());
 }
 
 bool
-Drive::isInsertable(Disk *disk)
+Drive::isInsertable(Disk *disk) const
 {
     debug(DSK_DEBUG, "isInsertable(Disk %p)\n", disk);
     
     if (!disk) return false;
 
-    return isInsertable(disk->type, disk->density);
+    return isInsertable(disk->diameter, disk->density);
 }
 
 bool
@@ -640,10 +742,13 @@ Drive::insertDisk(Disk *disk)
         // Don't insert a disk if there is already one
         assert(!hasDisk());
 
-        // Insert the disk and inform the GUI
+        // Insert disk
         this->disk = disk;
         head.offset = 0;
-        messageQueue.put(MSG_DISK_INSERT, nr);
+        
+        // Notify the GUI
+        messageQueue.put(MSG_DISK_INSERT,
+                         config.pan << 24 | config.insertVolume << 16 | nr);
         
         return true;
     }
@@ -651,8 +756,23 @@ Drive::insertDisk(Disk *disk)
     return false;
 }
 
+bool
+Drive::insertBlankDisk()
+{
+    auto desc = FSDeviceDescriptor(INCH_35, DISK_DD, config.defaultFileSystem);
+    
+    if (FSDevice *volume = FSDevice::makeWithFormat(desc)) {
+        
+        volume->setName(FSName("Disk"));
+        volume->makeBootable(config.defaultBootBlock);
+        return true;
+    }
+    
+    return false;
+}
+
 u64
-Drive::fnv()
+Drive::fnv() const
 {
     return disk ? disk->getFnv() : 0;
 }

@@ -7,7 +7,11 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "DiskController.h"
+#include "Agnus.h"
+#include "Drive.h"
+#include <cmath>
 
 void
 DiskController::serviceDiskEvent()
@@ -25,9 +29,9 @@ DiskController::scheduleFirstDiskEvent()
     dskEventDelay = 0.0;
     
     if (turboMode()) {
-        agnus.cancel<DSK_SLOT>();
+        agnus.cancel<SLOT_DSK>();
     } else {
-        agnus.scheduleImm<DSK_SLOT>(DSK_ROTATE);
+        agnus.scheduleImm<SLOT_DSK>(DSK_ROTATE);
     }
 }
 
@@ -44,34 +48,34 @@ DiskController::scheduleNextDiskEvent()
     dskEventDelay -= rounded;
     
     if (turboMode()) {
-        agnus.cancel<DSK_SLOT>();
+        agnus.cancel<SLOT_DSK>();
     } else {
-        agnus.scheduleRel<DSK_SLOT>(DMA_CYCLES(rounded), DSK_ROTATE);
+        agnus.scheduleRel<SLOT_DSK>(DMA_CYCLES(rounded), DSK_ROTATE);
     }
 }
 
 void
 DiskController::serviceDiskChangeEvent()
 {
-    if (agnus.slot[DCH_SLOT].id == EVENT_NONE) return;
+    if (agnus.slot[SLOT_DCH].id == EVENT_NONE) return;
     
-    int n = (int)agnus.slot[DCH_SLOT].data;
+    isize n = (int)agnus.slot[SLOT_DCH].data;
     assert(n >= 0 && n <= 3);
 
-    switch (agnus.slot[DCH_SLOT].id) {
+    switch (agnus.slot[SLOT_DCH].id) {
 
         case DCH_INSERT:
 
-            trace(DSK_DEBUG, "DCH_INSERT (df%d)\n", n);
+            trace(DSK_DEBUG, "DCH_INSERT (df%zd)\n", n);
 
-            assert(diskToInsert != NULL);
+            assert(diskToInsert != nullptr);
             df[n]->insertDisk(diskToInsert);
-            diskToInsert = NULL;
+            diskToInsert = nullptr;
             break;
 
         case DCH_EJECT:
 
-            trace(DSK_DEBUG, "DCH_EJECT (df%d)\n", n);
+            trace(DSK_DEBUG, "DCH_EJECT (df%zd)\n", n);
 
             df[n]->ejectDisk();
             break;
@@ -80,5 +84,5 @@ DiskController::serviceDiskChangeEvent()
             assert(false);
     }
 
-    agnus.cancel<DCH_SLOT>();
+    agnus.cancel<SLOT_DCH>();
 }

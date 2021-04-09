@@ -7,31 +7,26 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef MOIRA_H
-#define MOIRA_H
+#pragma once
 
+#include "AmigaComponent.h"
+#include "MoiraConfig.h"
 #include "MoiraTypes.h"
 #include "MoiraDebugger.h"
 #include "StrWriter.h"
+
+#include <assert.h>
 
 namespace moira {
 
 // Execution control flags
 
 
-class Moira {
+class Moira : public AmigaComponent {
 
     friend class Debugger;
     friend class Breakpoints;
     friend class Watchpoints;
-
-public:
-    
-    virtual ~Moira() { };
-    
-    //
-    // Configuration
-    //
 
 protected:
 
@@ -123,22 +118,28 @@ protected:
     int exception;
 
     // Jump table holding the instruction handlers
-    void (Moira::*exec[65536])(u16);
+    typedef void (Moira::*ExecPtr)(u16);
+    ExecPtr exec[65536];
 
     // Jump table holding the disassebler handlers
-    void (Moira::*dasm[65536])(StrWriter&, u32&, u16);
-
+    typedef void (Moira::*DasmPtr)(StrWriter&, u32&, u16);
+    DasmPtr *dasm = nullptr;
+    
+private:
+    
     // Table holding instruction infos
-    InstrInfo info[65536];
+    InstrInfo *info = nullptr;
 
 
     //
-    // Constructing and configuring
+    // Constructing
     //
 
 public:
 
-    Moira();
+    Moira(Amiga &ref);
+    virtual ~Moira();
+
     void createJumpTables();
 
     // Configures the output format of the disassembler
@@ -158,7 +159,7 @@ public:
     void execute();
     
     // Returns true if the CPU is in HALT state
-    bool isHalted() { return flags & CPU_IS_HALTED; }
+    bool isHalted() const { return flags & CPU_IS_HALTED; }
     
 private:
 
@@ -170,7 +171,7 @@ private:
     
 
     //
-    // Running the disassembler
+    // Running the Disassembler
     //
 
 public:
@@ -191,18 +192,19 @@ public:
     // Returns a textual representation for the status register
     void disassembleSR(char *str) { disassembleSR(reg.sr, str); }
     void disassembleSR(const StatusRegister &sr, char *str);
-    void disassembleSR(u16 sr, char *str); // DEPRECATED
 
     // Return an info struct for a certain opcode
-    InstrInfo getInfo(u16 op) { return info[op]; }
+    InstrInfo getInfo(u16 op); 
 
-
+    
     //
     // Interfacing with other components
     //
 
 protected:
 
+#if 0
+    
     // Reads a byte or a word from memory
     virtual u8 read8(u32 addr) = 0;
     virtual u16 read16(u32 addr) = 0;
@@ -216,7 +218,7 @@ protected:
     virtual void write16 (u32 addr, u16 val) = 0;
 
     // Provides the interrupt level in IRQ_USER mode
-    virtual int readIrqUserVector(u8 level) { return 0; }
+    virtual u16 readIrqUserVector(u8 level) const { return 0; }
 
     // Instrution delegates
     virtual void signalReset() { };
@@ -246,6 +248,51 @@ protected:
     // Called when a breakpoint is reached
     virtual void watchpointReached(u32 addr) { };
 
+#endif
+    
+    // Reads a byte or a word from memory
+    u8 read8(u32 addr);
+    u16 read16(u32 addr);
+
+    // Special variants used by the reset routine and the disassembler
+    u16 read16OnReset(u32 addr);
+    u16 read16Dasm(u32 addr);
+
+    // Writes a byte or word into memory
+    void write8  (u32 addr, u8  val);
+    void write16 (u32 addr, u16 val);
+
+    // Provides the interrupt level in IRQ_USER mode
+    u16 readIrqUserVector(u8 level) const;
+
+    // Instrution delegates
+    void signalReset();
+    void signalStop(u16 op);
+    void signalTAS();
+
+    // State delegates
+    void signalHalt();
+
+    // Exception delegates
+    void signalAddressError(AEStackFrame &frame);
+    void signalLineAException(u16 opcode);
+    void signalLineFException(u16 opcode);
+    void signalIllegalOpcodeException(u16 opcode);
+    void signalTraceException();
+    void signalTrapException();
+    void signalPrivilegeViolation();
+    void signalInterrupt(u8 level);
+    void signalJumpToVector(int nr, u32 addr);
+
+    // Exception delegates
+    void addressErrorHandler();
+    
+    // Called when a breakpoint is reached
+    void breakpointReached(u32 addr);
+
+    // Called when a breakpoint is reached
+    void watchpointReached(u32 addr);
+    
 
     //
     // Accessing the clock
@@ -253,13 +300,14 @@ protected:
 
 public:
 
-    i64 getClock() { return clock; }
+    i64 getClock() const { return clock; }
     void setClock(i64 val) { clock = val; }
 
 protected:
 
     // Advances the clock (called before each memory access)
-    virtual void sync(int cycles) { clock += cycles; }
+    void sync(int cycles); 
+    // virtual void sync(int cycles) { clock += cycles; }
 
 
     //
@@ -268,43 +316,43 @@ protected:
 
 public:
 
-    u32 getD(int n) { return readD(n); }
+    u32 getD(int n) const { return readD(n); }
     void setD(int n, u32 v) { writeD(n,v); }
 
-    u32 getA(int n) { return readA(n); }
+    u32 getA(int n) const { return readA(n); }
     void setA(int n, u32 v) { writeA(n,v); }
 
-    u32 getPC() { return reg.pc; }
+    u32 getPC() const { return reg.pc; }
     void setPC(u32 val) { reg.pc = val; }
 
-    u32 getPC0() { return reg.pc0; }
+    u32 getPC0() const { return reg.pc0; }
     void setPC0(u32 val) { reg.pc0 = val; }
 
-    u16 getIRC() { return queue.irc; }
+    u16 getIRC() const { return queue.irc; }
     void setIRC(u16 val) { queue.irc = val; }
 
-    u16 getIRD() { return queue.ird; }
+    u16 getIRD() const { return queue.ird; }
     void setIRD(u16 val) { queue.ird = val; }
 
-    u8 getCCR() { return getCCR(reg.sr); }
+    u8 getCCR() const { return getCCR(reg.sr); }
     void setCCR(u8 val);
 
-    u16 getSR() { return getSR(reg.sr); }
+    u16 getSR() const { return getSR(reg.sr); }
     void setSR(u16 val);
 
-    u32 getSP() { return reg.sp; }
+    u32 getSP() const { return reg.sp; }
     void setSP(u32 val) { reg.sp = val; }
 
-    u32 getSSP() { return reg.sr.s ? reg.sp : reg.ssp; }
+    u32 getSSP() const { return reg.sr.s ? reg.sp : reg.ssp; }
     void setSSP(u32 val) { if (reg.sr.s) reg.sp = val; else reg.ssp = val; }
 
-    u32 getUSP() { return reg.sr.s ? reg.usp : reg.sp; }
+    u32 getUSP() const { return reg.sr.s ? reg.usp : reg.sp; }
     void setUSP(u32 val) { if (reg.sr.s) reg.usp = val; else reg.sp = val; }
 
     void setSupervisorMode(bool enable);
 
-    u8 getCCR(const StatusRegister &sr);
-    u16 getSR(const StatusRegister &sr);
+    u8 getCCR(const StatusRegister &sr) const;
+    u16 getSR(const StatusRegister &sr) const;
 
 private:
 
@@ -313,9 +361,9 @@ private:
 
 protected:
 
-    template<Size S = Long> u32 readD(int n);
-    template<Size S = Long> u32 readA(int n);
-    template<Size S = Long> u32 readR(int n);
+    template<Size S = Long> u32 readD(int n) const;
+    template<Size S = Long> u32 readA(int n) const;
+    template<Size S = Long> u32 readR(int n) const;
     template<Size S = Long> void writeD(int n, u32 v);
     template<Size S = Long> void writeA(int n, u32 v);
     template<Size S = Long> void writeR(int n, u32 v);
@@ -344,7 +392,7 @@ public:
 
 public:
 
-    u8 getIPL() { return ipl; }
+    u8 getIPL() const { return ipl; }
     void setIPL(u8 val);
     
 private:
@@ -353,7 +401,7 @@ private:
     void pollIrq() { reg.ipl = ipl; }
     
     // Selects the IRQ vector to branch to
-    int getIrqVector(int level);
+    u16 getIrqVector(u8 level) const;
     
 #include "MoiraInit.h"
 #include "MoiraALU.h"
@@ -363,4 +411,3 @@ private:
 };
 
 }
-#endif

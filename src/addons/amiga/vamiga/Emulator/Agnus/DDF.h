@@ -7,10 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _DDF_H
-#define _DDF_H
+#pragma once
 
-#include <sys/param.h>
 #include "Aliases.h"
 
 template <bool hires>
@@ -25,15 +23,16 @@ struct DDF
     i16 stopEven;
 
     DDF() : strtOdd(0), strtEven(0), stopOdd(0), stopEven(0) { }
-
-    template <class T> void applyToItems(T& worker) {
-        
+    
+    template <class W>
+    void operator<<(W& worker)
+    {
         worker
         
-        & strtOdd
-        & strtEven
-        & stopOdd
-        & stopEven;
+        << strtOdd
+        << strtEven
+        << stopOdd
+        << stopEven;
     }
     
     void clear() { strtOdd = strtEven = stopOdd = stopEven = 0; }
@@ -52,9 +51,9 @@ struct DDF
         return !(*this == ddf);
     }
     
-    bool inRangeOdd(i16 pos) { return pos > strtOdd && pos < stopOdd; }
-    bool inRangeEven(i16 pos) { return pos > strtEven && pos < stopEven; }
-    bool oddAndEvenDiffer() { return strtOdd != strtEven || stopOdd != stopEven; }
+    bool inRangeOdd(i16 pos) const { return pos > strtOdd && pos < stopOdd; }
+    bool inRangeEven(i16 pos) const { return pos > strtEven && pos < stopEven; }
+    bool oddAndEvenDiffer() const { return strtOdd != strtEven || stopOdd != stopEven; }
     
     /* Computes a DDF window
      *
@@ -68,5 +67,3 @@ struct DDF
     void compute(i16 ddfstrt, i16 ddfstop, u16 bplcon1);
     void compute(i16 &strt, i16 &stop, i16 ddfstrt, i16 ddfstop, int scroll);
 };
-
-#endif

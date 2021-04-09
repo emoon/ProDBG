@@ -7,38 +7,50 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-// This file must conform to standard ANSI-C to be compatible with Swift.
-
-#ifndef _CIA_TYPES_H
-#define _CIA_TYPES_H
+#pragma once
 
 #include "Aliases.h"
+#include "Reflection.h"
+#include "TODTypes.h"
 
 /* Emulated CIA model
  *
  *   CIA_8520_DIP  mimics option "[ ] 391078-01" in UAE (default)
  *   CIA_8520_PLCC mimics option "[X] 391078-01" in UAE (A600)
  */
-VAMIGA_ENUM(long, CIARevision)
+enum_long(CIARevision)
 {
     CIA_8520_DIP,
     CIA_8520_PLCC,
+    
     CIA_COUNT
 };
 
-static inline bool isCIARevision(long value)
-{
-    return value >= 0 && value < CIA_COUNT;
-}
-
-static inline const char *sCIARevision(CIARevision value)
-{
-    switch (value) {
-        case CIA_8520_DIP:   return "CIA_8520_DIP";
-        case CIA_8520_PLCC:  return "CIA_8520_PLCC";
-        default:             return "???";
+#ifdef __cplusplus
+struct CIARevisionEnum : util::Reflection<CIARevisionEnum, CIARevision> {
+    
+    static bool isValid(long value)
+    {
+        return (unsigned long)value < CIA_COUNT;
     }
-}
+
+    static const char *prefix() { return "CIA"; }
+    static const char *key(CIARevision value)
+    {
+        switch (value) {
+                
+            case CIA_8520_DIP:   return "8520_DIP";
+            case CIA_8520_PLCC:  return "8520_PLCC";
+            case CIA_COUNT:      return "???";
+        }
+        return "???";
+    }
+};
+#endif
+
+//
+// Structures
+//
 
 typedef struct
 {
@@ -47,14 +59,6 @@ typedef struct
     bool eClockSyncing;
 }
 CIAConfig;
-
-typedef struct
-{
-    long value;
-    long latch;
-    long alarm;
-}
-CounterInfo;
 
 typedef struct
 {
@@ -102,5 +106,3 @@ typedef struct
     double idlePercentage;
 }
 CIAInfo;
-
-#endif

@@ -7,19 +7,27 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "Oscillator.h"
+#include "Agnus.h"
+#include "Chrono.h"
+
+const double Oscillator::masterClockFrequency = 28.37516;
+const double Oscillator::cpuClockFrequency = masterClockFrequency / 4.0;
+const double Oscillator::dmaClockFrequency = masterClockFrequency / 8.0;
 
 Oscillator::Oscillator(Amiga& ref) : AmigaComponent(ref)
 {
-#ifdef __MACH__
 
-    setDescription("Oscillator (Mac)");
-    mach_timebase_info(&tb);
+}
     
+const char *
+Oscillator::getDescription() const
+{
+#ifdef __MACH__
+    return "Oscillator (Mac)";
 #else
-    
-    setDescription("Oscillator (Generic)");
-    
+    return "Oscillator (Generic)";
 #endif
 }
 
@@ -33,92 +41,64 @@ Oscillator::_reset(bool hard)
     }
 }
 
-u64
-Oscillator::nanos()
-{
-#ifdef __MACH__
-    
-    return abs_to_nanos(mach_absolute_time());
-    
-#else
-    
-    struct timespec ts;
-    (void)clock_gettime(CLOCK_MONOTONIC, &ts);
-    return ts.tv_sec * 1000000000 + ts.tv_nsec;
-    
-#endif
-}
-
 void
 Oscillator::restart()
 {
     clockBase = agnus.clock;
-    timeBase = nanos();
+    timeBase = util::Time::now();
 }
 
 void
 Oscillator::synchronize()
 {
+    syncCounter++;
+    
     // Only proceed if we are not running in warp mode
     if (warpMode) return;
     
-    u64 now          = nanos();
-    Cycle clockDelta = agnus.clock - clockBase;
-    u64 elapsedTime  = (u64)(clockDelta * 1000 / masterClockFrequency);
-    u64 targetTime   = timeBase + elapsedTime;
+    auto now          = util::Time::now();
+    auto elapsedCyles = agnus.clock - clockBase;
+    auto elapsedNanos = util::Time((i64)(elapsedCyles * 1000 / masterClockFrequency));
+    auto targetTime   = timeBase + elapsedNanos;
     
-    /*
-     debug("now         = %lld\n", now);
-     debug("clockDelta  = %lld\n", clockDelta);
-     debug("elapsedTime = %lld\n", elapsedTime);
-     debug("targetTime  = %lld\n", targetTime);
-     debug("\n");
-     */
-    
-    // Check if we're running too slow ...
+    // Check if we're running too slow...
     if (now > targetTime) {
         
-        // Check if we're completely out of sync ...
-        if (now - targetTime > 200000000) {
+        // Check if we're completely out of sync...
+        if ((now - targetTime).asMilliseconds() > 200) {
             
-            // warn("The emulator is way too slow (%lld).\n", now - targetTime);
+            // warn("The emulator is way too slow (%f).\n", (now - targetTime).asSeconds());
             restart();
             return;
         }
     }
     
-    // Check if we're running too fast ...
+    // Check if we're running too fast...
     if (now < targetTime) {
         
-        // Check if we're completely out of sync ...
-        if (targetTime - now > 200000000) {
+        // Check if we're completely out of sync...
+        if ((targetTime - now).asMilliseconds() > 200) {
             
-            warn("The emulator is way too fast (%lld).\n", targetTime - now);
+            warn("The emulator is way too fast (%f).\n", (targetTime - now).asSeconds());
             restart();
             return;
         }
         
         // See you soon...
-        oscillator.waitUntil(targetTime);
-        // mach_wait_until(targetTime);
+        loadClock.stop();
+        targetTime.sleepUntil();
+        loadClock.go();
+    }
+    
+    // Compute the CPU load once in a while
+    if (syncCounter % 32 == 0) {
+        
+        auto used  = loadClock.getElapsedTime().asSeconds();
+        auto total = nonstopClock.getElapsedTime().asSeconds();
+        
+        cpuLoad = used / total;
+        
+        loadClock.restart();
+        nonstopClock.restart();
     }
 }
-
-void
-Oscillator::waitUntil(u64 deadline)
-{
-#ifdef __MACH__
-    
-    mach_wait_until(deadline);
-    
-#else
-
-    assert(false);
-    // TODO: MISSING IMPLEMENTATION
-    
-#endif
-}
-
-#ifdef __MACH__
-mach_timebase_info_data_t Oscillator::tb;
-#endif

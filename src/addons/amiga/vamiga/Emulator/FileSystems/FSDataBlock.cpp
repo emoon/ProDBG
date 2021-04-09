@@ -7,11 +7,14 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "FSVolume.h"
+#include "config.h"
+#include "FSDataBlock.h"
+#include "FSDevice.h"
+#include "FSPartition.h"
 
-FSDataBlock::FSDataBlock(FSVolume &ref, u32 nr) : FSBlock(ref, nr)
+FSDataBlock::FSDataBlock(FSPartition &p, u32 nr) : FSBlock(p, nr)
 {
-    data = new u8[ref.bsize]();
+    data = new u8[p.dev.bsize]();
 }
 
 FSDataBlock::~FSDataBlock()
@@ -24,60 +27,96 @@ FSDataBlock::~FSDataBlock()
 // Original File System (OFS)
 //
 
-OFSDataBlock::OFSDataBlock(FSVolume &ref, u32 nr, u32 cnt) : FSDataBlock(ref, nr)
+OFSDataBlock::OFSDataBlock(FSPartition &p, u32 nr) : FSDataBlock(p, nr)
 {
-    data = new u8[ref.bsize]();
+    data = new u8[bsize()]();
     
-    set32(0, 8);    // Block type
-    set32(2, cnt);  // Position in block sequence (numbering starts with 1)
+    set32(0, 8); // Block type
 }
 
 void
-OFSDataBlock::dump()
-{    
+OFSDataBlock::dump() const
+{
+    msg("File header block : %d\n", getFileHeaderRef());
+    msg("     Chain number : %d\n", getDataBlockNr());
+    msg("       Data bytes : %d\n", getDataBytesInBlock());
+    msg("  Next data block : %d\n", getNextDataBlockRef());
+    msg("\n");
 }
 
-bool
-OFSDataBlock::check(bool verbose)
+FSItemType
+OFSDataBlock::itemType(isize pos) const
 {
-    bool result = FSBlock::check(verbose);
-    
-    /*
-    if (blockNumber < 1) {
+    if (pos < 24) {
         
-        if (verbose) fprintf(stderr, "Block index %d is smaller than 1\n", blockNumber);
-        return false;
+        isize word = pos / 4;
+        
+        switch (word) {
+                
+            case 0: return FSI_TYPE_ID;
+            case 1: return FSI_FILEHEADER_REF;
+            case 2: return FSI_DATA_BLOCK_NUMBER;
+            case 3: return FSI_DATA_COUNT;
+            case 4: return FSI_NEXT_DATA_BLOCK_REF;
+            case 5: return FSI_CHECKSUM;
+        }
     }
-    */
-    /*
-    result &= assertNotNull(fileHeaderBlock, verbose);
-    result &= assertInRange(fileHeaderBlock, verbose);
-    result &= assertInRange(blockNumber, verbose);
-    result &= assertInRange(next, verbose);
-    */
     
-    return result;
+    return FSI_DATA;
 }
 
-void
-OFSDataBlock::updateChecksum()
+ErrorCode
+OFSDataBlock::check(isize byte, u8 *expected, bool strict) const
 {
-    set32(5, 0);
-    set32(5, checksum());
+    /* Note: At location 1, many disks store a reference to the bitmap block
+     * instead of a reference to the file header block. We ignore to report
+     * this common inconsistency if 'strict' is set to false.
+     */
+
+    if (byte < 24) {
+        
+        isize word = byte / 4;
+        u32 value = get32(word);
+                
+        switch (word) {
+                
+            case 0: EXPECT_LONGWORD(8);                 break;
+            case 1: if (strict) EXPECT_FILEHEADER_REF;  break;
+            case 2: EXPECT_DATABLOCK_NUMBER;            break;
+            case 3: EXPECT_LESS_OR_EQUAL(dsize());      break;
+            case 4: EXPECT_OPTIONAL_DATABLOCK_REF;      break;
+            case 5: EXPECT_CHECKSUM;                    break;
+        }
+    }
+    
+    return ERROR_OK;
 }
 
-size_t
-OFSDataBlock::addData(const u8 *buffer, size_t size)
+isize
+OFSDataBlock::writeData(FILE *file, isize size)
 {
-    size_t headerSize = 24;
-    size_t count = MIN(volume.bsize - headerSize, size);
+    assert(file != nullptr);
+    
+    isize count = std::min(dsize(), size);
+    for (isize i = 0; i < count; i++) fputc(data[i + headerSize()], file);
+    return count;
+}
 
-    memcpy(data + headerSize, buffer, count);
+isize
+OFSDataBlock::addData(const u8 *buffer, isize size)
+{
+    isize count = std::min(bsize() - headerSize(), size);
 
-    // Store the number of written bytes in the block header
-    write32(data + 12, count);
+    memcpy(data + headerSize(), buffer, count);
+    setDataBytesInBlock((u32)count);
     
     return count;
+}
+
+isize
+OFSDataBlock::dsize() const
+{
+    return bsize() - headerSize();
 }
 
 
@@ -85,26 +124,39 @@ OFSDataBlock::addData(const u8 *buffer, size_t size)
 // Fast File System (FFS)
 //
 
-FFSDataBlock::FFSDataBlock(FSVolume &ref, u32 nr, u32 cnt) : FSDataBlock(ref, nr)
-{
-}
+FFSDataBlock::FFSDataBlock(FSPartition &p, u32 nr) : FSDataBlock(p, nr) { }
 
 void
-FFSDataBlock::dump()
+FFSDataBlock::dump() const
 {
 }
 
-bool
-FFSDataBlock::check(bool verbose)
+FSItemType
+FFSDataBlock::itemType(isize pos) const
 {
-    bool result = FSBlock::check(verbose);
-    return result;
+    return FSI_DATA;
 }
 
-size_t
-FFSDataBlock::addData(const u8 *buffer, size_t size)
+isize
+FFSDataBlock::writeData(FILE *file, isize size)
 {
-    size_t count = MIN(volume.bsize, size);
+    assert(file != nullptr);
+    
+    isize count = std::min(dsize(), size);
+    for (isize i = 0; i < count; i++) fputc(data[i + headerSize()], file);
+    return count;
+}
+
+isize
+FFSDataBlock::addData(const u8 *buffer, isize size)
+{
+    isize count = std::min(bsize(), size);
     memcpy(data, buffer, count);
     return count;
+}
+
+isize
+FFSDataBlock::dsize() const
+{
+    return bsize() - headerSize();
 }

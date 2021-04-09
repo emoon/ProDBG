@@ -7,9 +7,10 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _CIA_H
-#define _CIA_H
+#pragma once
 
+#include "CIATypes.h"
+#include "AmigaComponent.h"
 #include "TOD.h"
 
 #define CIACountA0     (1ULL << 0) // Decrements timer A
@@ -259,8 +260,8 @@ public:
     
     CIA(int n, Amiga& ref);
 
-    bool isCIAA() { return nr == 0; }
-    bool isCIAB() { return nr == 1; }
+    bool isCIAA() const { return nr == 0; }
+    bool isCIAB() const { return nr == 1; }
 
     void _reset(bool hard) override;
     
@@ -271,16 +272,12 @@ public:
     
 public:
     
-    CIAConfig getConfig() { return config; }
+    const CIAConfig &getConfig() const { return config; }
     
-    long getConfigItem(ConfigOption option);
-    bool setConfigItem(ConfigOption option, long value) override;
+    long getConfigItem(Option option) const;
+    bool setConfigItem(Option option, long value) override;
     
-    bool getEClockSyncing() { return config.eClockSyncing; }
-
-private:
-    
-    void _dumpConfig() override;
+    bool getEClockSyncing() const { return config.eClockSyncing; }
 
     
     //
@@ -294,9 +291,9 @@ private:
     {
         worker
         
-        & config.revision
-        & config.todBug
-        & config.eClockSyncing;
+        << config.revision
+        << config.todBug
+        << config.eClockSyncing;
     }
 
     template <class T>
@@ -304,12 +301,12 @@ private:
     {
         worker
 
-        & clock
-        & idleCycles
-        & tiredness
-        & sleeping
-        & sleepCycle
-        & wakeUpCycle;
+        << clock
+        << idleCycles
+        << tiredness
+        << sleeping
+        << sleepCycle
+        << wakeUpCycle;
     }
 
     template <class T>
@@ -317,37 +314,37 @@ private:
     {
         worker
         
-        & counterA
-        & counterB
-        & latchA
-        & latchB
-        & delay
-        & feed
-        & CRA
-        & CRB
-        & icr
-        & icrAck
-        & imr
-        & PB67TimerMode
-        & PB67TimerOut
-        & PB67Toggle
-        & PRA
-        & PRB
-        & DDRA
-        & DDRB
-        & PA
-        & PB
-        & sdr
-        & ssr
-        & serCounter
-        & SP
-        & CNT
-        & INT;
+        << counterA
+        << counterB
+        << latchA
+        << latchB
+        << delay
+        << feed
+        << CRA
+        << CRB
+        << icr
+        << icrAck
+        << imr
+        << PB67TimerMode
+        << PB67TimerOut
+        << PB67Toggle
+        << PRA
+        << PRB
+        << DDRA
+        << DDRB
+        << PA
+        << PB
+        << sdr
+        << ssr
+        << serCounter
+        << SP
+        << CNT
+        << INT;
     }
 
-    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
-    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
+    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
     
     //
@@ -361,7 +358,7 @@ public:
 protected:
     
     void _inspect() override;
-    void _dump() override;
+    void _dump(Dump::Category category, std::ostream& os) const override;
 
     
     //
@@ -375,7 +372,8 @@ public:
     
     // Reads a value from a CIA register without causing side effects
     u8 spypeek(u16 addr);
-    
+    u8 spypeek(u16 addr) const;
+
     // Writes a value into a CIA register
     void poke(u16 addr, u8 value);
     
@@ -387,32 +385,32 @@ public:
 public:
     
     // Returns the data registers (call updatePA() or updatePB() first)
-    u8 getPA() { return PA; }
-    u8 getPB() { return PB; }
+    u8 getPA() const { return PA; }
+    u8 getPB() const { return PB; }
 
 private:
 
     // Returns the data direction register
-    u8 getDDRA() { return DDRA; }
-    u8 getDDRB() { return DDRB; }
+    u8 getDDRA() const { return DDRA; }
+    u8 getDDRB() const { return DDRB; }
     
     // Computes the values we currently see at port A
     virtual void updatePA() = 0;
     
     // Returns the value driving port A from inside the chip
-    virtual u8 portAinternal() = 0;
+    virtual u8 portAinternal() const = 0;
     
     // Returns the value driving port A from outside the chip
-    virtual u8 portAexternal() = 0;
+    virtual u8 portAexternal() const = 0;
     
     // Computes the value we currently see at port B
     virtual void updatePB() = 0;
     
     // Values driving port B from inside the chip
-    virtual u8 portBinternal() = 0;
+    virtual u8 portBinternal() const = 0;
     
     // Values driving port B from outside the chip
-    virtual u8 portBexternal() = 0;
+    virtual u8 portBexternal() const = 0;
     
 protected:
     
@@ -430,7 +428,7 @@ protected:
 public:
     
     // Getter for the interrupt line
-    bool irqPin() { return INT; }
+    bool irqPin() const { return INT; }
 
     // Simulates an edge edge on the flag pin
     void emulateRisingEdgeOnFlagPin();
@@ -512,16 +510,16 @@ public:
     void wakeUp(Cycle targetCycle);
     
     // Returns true if the CIA is in idle state
-    bool isSleeping() { return sleeping; }
+    bool isSleeping() const { return sleeping; }
     
     // Returns true if the CIA is awake
-    bool isAwake() { return !sleeping; }
+    bool isAwake() const { return !sleeping; }
         
     // The CIA is idle since this number of cycles
-    CIACycle idleSince();
+    CIACycle idleSince() const;
     
     // Total number of cycles the CIA was idle
-    CIACycle idleTotal() { return idleCycles; }
+    CIACycle idleTotal() const { return idleCycles; }
 };
 
 
@@ -534,6 +532,8 @@ class CIAA : public CIA {
 public:
     
     CIAA(Amiga& ref);
+    
+    const char *getDescription() const override { return "CIAA"; }
 
 private:
     
@@ -543,17 +543,17 @@ private:
     void pullDownInterruptLine() override;
     void releaseInterruptLine() override;
     
-    u8 portAinternal() override;
-    u8 portAexternal() override;
+    u8 portAinternal() const override;
+    u8 portAexternal() const override;
     void updatePA() override;
-    u8 portBinternal() override;
-    u8 portBexternal() override;
+    u8 portBinternal() const override;
+    u8 portBexternal() const override;
     void updatePB() override;
     
 public:
 
     // Indicates if the power LED is currently on or off
-    bool powerLED() { return (PA & 0x2) == 0; }
+    bool powerLED() const { return (PA & 0x2) == 0; }
 
     // Emulates the reception of a keycode from the keyboard
     void setKeyCode(u8 keyCode);
@@ -570,17 +570,17 @@ public:
     
     CIAB(Amiga& ref);
     
+    const char *getDescription() const override { return "CIAB"; }
+
 private:
         
     void pullDownInterruptLine() override;
     void releaseInterruptLine() override;
     
-    u8 portAinternal() override;
-    u8 portAexternal() override;
+    u8 portAinternal() const override;
+    u8 portAexternal() const override;
     void updatePA() override;
-    u8 portBinternal() override;
-    u8 portBexternal() override;
+    u8 portBinternal() const override;
+    u8 portBexternal() const override;
     void updatePB() override;
 };
-
-#endif

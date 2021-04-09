@@ -7,20 +7,28 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "PixelEngine.h"
+#include "Agnus.h"
+#include "Colors.h"
+#include "Denise.h"
+#include "DmaDebugger.h"
 
 PixelEngine::PixelEngine(Amiga& ref) : AmigaComponent(ref)
 {
-    setDescription("PixelEngine");
+    config.palette = PALETTE_COLOR;
+    config.brightness = 50;
+    config.contrast = 100;
+    config.saturation = 50;
 
     // Allocate frame buffers
     emuTexture[0].data = new u32[PIXELS]; emuTexture[0].longFrame = true;
     emuTexture[1].data = new u32[PIXELS]; emuTexture[1].longFrame = true;
     
     // Create random background noise pattern
-    const size_t noiseSize = 2 * 512 * 512;
+    const isize noiseSize = 2 * VPIXELS * HPIXELS;
     noise = new u32[noiseSize];
-    for (size_t i = 0; i < noiseSize; i++) {
+    for (isize i = 0; i < noiseSize; i++) {
         noise[i] = rand() % 2 ? 0xFF000000 : 0xFFFFFFFF;
     }
 
@@ -45,8 +53,8 @@ PixelEngine::~PixelEngine()
     delete[] noise;
 }
 
-size_t
-PixelEngine::didLoadFromBuffer(u8 *buffer)
+isize
+PixelEngine::didLoadFromBuffer(const u8 *buffer)
 {
     updateRGBA();
     return 0;
@@ -56,11 +64,11 @@ void
 PixelEngine::_powerOn()
 {
     // Initialize frame buffers with a checkerboard pattern (for debugging)
-    for (unsigned line = 0; line < VPIXELS; line++) {
-        for (unsigned i = 0; i < HPIXELS; i++) {
+    for (isize line = 0; line < VPIXELS; line++) {
+        for (isize i = 0; i < HPIXELS; i++) {
 
-            int pos = line * HPIXELS + i;
-            int col = (line / 4) % 2 == (i / 8) % 2 ? 0xFF222222 : 0xFF444444;
+            isize pos = line * HPIXELS + i;
+            u32 col = (line / 4) % 2 == (i / 8) % 2 ? 0xFF222222 : 0xFF444444;
             emuTexture[0].data[pos] = col;
             emuTexture[1].data[pos] = col;
         }
@@ -76,37 +84,82 @@ PixelEngine::_reset(bool hard)
     updateRGBA();
 }
 
-void
-PixelEngine::setPalette(Palette p)
+long
+PixelEngine::getConfigItem(Option option) const
 {
-    palette = p;
-    updateRGBA();
+    switch (option) {
+            
+        case OPT_PALETTE:     return config.palette;
+        case OPT_BRIGHTNESS:  return config.brightness;
+        case OPT_CONTRAST:    return config.contrast;
+        case OPT_SATURATION:  return config.saturation;
+
+        default:
+            assert(false);
+            return 0;
+    }
+}
+
+bool
+PixelEngine::setConfigItem(Option option, long value)
+{
+    switch (option) {
+            
+        case OPT_PALETTE:
+            
+            if (!PaletteEnum::isValid(value)) {
+                throw ConfigArgError(PaletteEnum::keyList());
+            }
+            if (config.palette == value) {
+                return false;
+            }
+            config.palette = value;
+            updateRGBA();
+            return true;
+
+        case OPT_BRIGHTNESS:
+            
+            if (config.brightness < 0 || config.brightness > 100) {
+                throw ConfigArgError("Expected 0...100");
+            }
+            if (config.brightness == value) {
+                return false;
+            }
+            config.brightness = value;
+            updateRGBA();
+            return true;
+            
+        case OPT_CONTRAST:
+
+            if (config.contrast < 0 || config.contrast > 100) {
+                throw ConfigArgError("Expected 0...100");
+            }
+            if (config.contrast == value) {
+                return false;
+            }
+            config.contrast = value;
+            updateRGBA();
+            return true;
+
+        case OPT_SATURATION:
+        
+            if (config.saturation < 0 || config.saturation > 100) {
+                throw ConfigArgError("Expected 0...100");
+            }
+            if (config.saturation == value) {
+                return false;
+            }
+            config.saturation = value;
+            updateRGBA();
+            return true;
+
+        default:
+            return false;
+    }
 }
 
 void
-PixelEngine::setBrightness(double value)
-{
-    brightness = value;
-    updateRGBA();
-}
-
-void
-PixelEngine::setSaturation(double value)
-{
-    saturation = value;
-    updateRGBA();
-}
-
-void
-PixelEngine::setContrast(double value)
-{
-    contrast = value;
-    updateRGBA();
-
-}
-
-void
-PixelEngine::setColor(int reg, u16 value)
+PixelEngine::setColor(isize reg, u16 value)
 {
     assert(reg < 32);
 
@@ -139,16 +192,16 @@ PixelEngine::updateRGBA()
     }
 
     // Update all RGBA values that are cached in indexedRgba[]
-    for (int i = 0; i < 32; i++) setColor(i, colreg[i]);
+    for (isize i = 0; i < 32; i++) setColor(i, colreg[i]);
 }
 
 void
 PixelEngine::adjustRGB(u8 &r, u8 &g, u8 &b)
 {
     // Normalize adjustment parameters
-    double brightness = this->brightness - 50.0;
-    double contrast = this->contrast / 100.0;
-    double saturation = this->saturation / 50.0;
+    double brightness =  config.brightness - 50.0;
+    double contrast = config.contrast / 100.0;
+    double saturation = config.saturation / 50.0;
 
     // Convert RGB to YUV
     double y =  0.299 * r + 0.587 * g + 0.114 * b;
@@ -168,7 +221,7 @@ PixelEngine::adjustRGB(u8 &r, u8 &g, u8 &b)
     y += brightness;
 
     // Translate to monochrome if applicable
-    switch(palette) {
+    switch(config.palette) {
 
         case PALETTE_BLACK_WHITE:
             u = 0.0;
@@ -196,16 +249,16 @@ PixelEngine::adjustRGB(u8 &r, u8 &g, u8 &b)
             break;
 
         default:
-            assert(palette == PALETTE_COLOR);
+            assert(config.palette == PALETTE_COLOR);
     }
 
     // Convert YUV to RGB
     double newR = y             + 1.140 * v;
     double newG = y - 0.396 * u - 0.581 * v;
     double newB = y + 2.029 * u;
-    newR = MAX(MIN(newR, 255), 0);
-    newG = MAX(MIN(newG, 255), 0);
-    newB = MAX(MIN(newB, 255), 0);
+    newR = std::max(std::min(newR, 255.0), 0.0);
+    newG = std::max(std::min(newG, 255.0), 0.0);
+    newB = std::max(std::min(newB, 255.0), 0.0);
 
     // Apply Gamma correction for PAL models
     /*
@@ -219,20 +272,6 @@ PixelEngine::adjustRGB(u8 &r, u8 &g, u8 &b)
     b = u8(newB);
 }
 
-/*
-bool
-PixelEngine::isLongFrame(ScreenBuffer *buf)
-{
-    return buf->longFrame;
-}
-
-bool
-PixelEngine::isShortFrame(ScreenBuffer *buf)
-{
-    return !buf->longFrame;
-}
-*/
-
 ScreenBuffer
 PixelEngine::getStableBuffer()
 {
@@ -242,20 +281,21 @@ PixelEngine::getStableBuffer()
         result = (frameBuffer == &emuTexture[0]) ? emuTexture[1] : emuTexture[0];
     }
     
+    assert(result.data);
     return result;
 }
 
 u32 *
-PixelEngine::getNoise()
+PixelEngine::getNoise() const
 {
-    int offset = rand() % (512 * 512);
+    int offset = rand() % (VPIXELS * HPIXELS);
     return noise + offset;
 }
 
 u32 *
-PixelEngine::pixelAddr(int pixel)
+PixelEngine::pixelAddr(isize pixel) const
 {
-    u32 offset = pixel + agnus.pos.v * HPIXELS;
+    isize offset = pixel + agnus.pos.v * HPIXELS;
 
     assert(pixel < HPIXELS);
     assert(offset < PIXELS);
@@ -279,7 +319,7 @@ void
 PixelEngine::endOfVBlankLine()
 {
     // Apply all color register changes that happened in this line
-    for (int i = colChanges.begin(); i != colChanges.end(); i = colChanges.next(i)) {
+    for (isize i = colChanges.begin(); i != colChanges.end(); i = colChanges.next(i)) {
         applyRegisterChange(colChanges.elements[i]);
     }
 }
@@ -304,11 +344,11 @@ PixelEngine::applyRegisterChange(const RegChange &change)
 }
 
 void
-PixelEngine::colorize(int line)
+PixelEngine::colorize(isize line)
 {
     // Jump to the first pixel in the specified line in the active frame buffer
     u32 *dst = frameBuffer->data + line * HPIXELS;
-    int pixel = 0;
+    Pixel pixel = 0;
 
     // Initialize the HAM mode hold register with the current background color
     u16 hold = colreg[0];
@@ -317,9 +357,9 @@ PixelEngine::colorize(int line)
     colChanges.insert(HPIXELS, RegChange { SET_NONE, 0 } );
 
     // Iterate over all recorded register changes
-    for (int i = colChanges.begin(); i != colChanges.end(); i = colChanges.next(i)) {
+    for (isize i = colChanges.begin(); i != colChanges.end(); i = colChanges.next(i)) {
 
-        Cycle trigger = colChanges.keys[i];
+        Pixel trigger = (Pixel)colChanges.keys[i];
         RegChange &change = colChanges.elements[i];
 
         // Colorize a chunk of pixels
@@ -335,7 +375,7 @@ PixelEngine::colorize(int line)
     }
 
     // Wipe out the HBLANK area
-    for (int pixel = 4 * HBLANK_MIN; pixel <= 4 * HBLANK_MAX; pixel++) {
+    for (Pixel pixel = 4 * HBLANK_MIN; pixel <= 4 * HBLANK_MAX; pixel++) {
         dst[pixel] = rgbaHBlank;
     }
 
@@ -344,23 +384,23 @@ PixelEngine::colorize(int line)
 }
 
 void
-PixelEngine::colorize(u32 *dst, int from, int to)
+PixelEngine::colorize(u32 *dst, Pixel from, Pixel to)
 {
     u8 *mbuf = denise.mBuffer;
 
-    for (int i = from; i < to; i++) {
+    for (Pixel i = from; i < to; i++) {
         dst[i] = indexedRgba[mbuf[i]];
     }
 }
 
 void
-PixelEngine::colorizeHAM(u32 *dst, int from, int to, u16& ham)
+PixelEngine::colorizeHAM(u32 *dst, Pixel from, Pixel to, u16& ham)
 {
     u8 *bbuf = denise.bBuffer;
     u8 *ibuf = denise.iBuffer;
     u8 *mbuf = denise.mBuffer;
 
-    for (int i = from; i < to; i++) {
+    for (Pixel i = from; i < to; i++) {
 
         u8 index = ibuf[i];
         assert(isRgbaIndex(index));
@@ -405,11 +445,11 @@ PixelEngine::colorizeHAM(u32 *dst, int from, int to, u16& ham)
 }
 
 void
-PixelEngine::hide(int line, u16 layers, u8 alpha)
+PixelEngine::hide(isize line, u16 layers, u8 alpha)
 {
     u32 *p = frameBuffer->data + line * HPIXELS;
 
-    for (int i = 0; i < HPIXELS; i++) {
+    for (Pixel i = 0; i < HPIXELS; i++) {
 
         u16 z = denise.zBuffer[i];
 

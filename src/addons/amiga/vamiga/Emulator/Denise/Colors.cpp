@@ -7,7 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "Colors.h"
 
 RgbColor::RgbColor(const AmigaColor &c)
 {
@@ -31,11 +32,8 @@ RgbColor::RgbColor(const YuvColor &c)
 }
 
 RgbColor
-RgbColor::mix(RgbColor additive, double weight)
+RgbColor::mix(RgbColor additive, double weight) const
 {
-    // printf("mix: old %f %f %f weight = %f\n", r, g, b, weight);
-    // printf("mix: add %f %f %f\n", additive.r, additive.g, additive.b);
-
     assert(additive.r <= 1.0);
     assert(additive.g <= 1.0);
     assert(additive.b <= 1.0);
@@ -43,9 +41,6 @@ RgbColor::mix(RgbColor additive, double weight)
     double newR = r + (additive.r - r) * weight;
     double newG = g + (additive.g - g) * weight;
     double newB = b + (additive.b - b) * weight;
-
-    // RgbColor c = RgbColor(newR, newG, newB);
-    // printf("mix: new %f %f %f\n", c.r, c.g, c.b);
 
     return RgbColor(newR, newG, newB);
 }
@@ -150,7 +145,7 @@ const GpuColor GpuColor::magenta(RgbColor::magenta);
 const GpuColor GpuColor::cyan(RgbColor::cyan);
 
 GpuColor
-GpuColor::mix(const RgbColor &color, double weight)
+GpuColor::mix(const RgbColor &color, double weight) const
 {
     RgbColor mixedColor = RgbColor(*this).mix(color, weight);
     return GpuColor(mixedColor);

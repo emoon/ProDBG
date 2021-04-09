@@ -7,15 +7,14 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "Paula.h"
 
-template <int nr> void
+template <isize nr> void
 StateMachine<nr>::serviceEvent()
 {
-    const EventSlot slot = (EventSlot)(CH0_SLOT+nr);
-
     trace(AUD_DEBUG, "CHX_PERFIN state = %d\n", state);
-    assert(agnus.slot[slot].id == CHX_PERFIN);
+    assert(agnus.slot[SLOT_CH0+nr].id == CHX_PERFIN);
 
     switch (state) {
 

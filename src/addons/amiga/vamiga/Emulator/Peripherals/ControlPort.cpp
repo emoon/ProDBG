@@ -7,17 +7,24 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+
+#include "ControlPort.h"
+#include "IO.h"
+#include "Paula.h"
 
 ControlPort::ControlPort(Amiga& ref, PortNr portNr) : AmigaComponent(ref), nr(portNr)
 {
-    assert(isPortNr(nr));
-    
-    setDescription(nr == PORT_1 ? "ControlPort1" : "ControlPort2");
-
-    subComponents = vector<HardwareComponent *> { &mouse, &joystick };
+    assert_enum(PortNr, portNr);
+    subComponents = std::vector<HardwareComponent *> { &mouse, &joystick };
 }
 
+const char *
+ControlPort::getDescription() const
+{
+    return nr == PORT_1 ? "Port1" : "Port2";
+}
+    
 void
 ControlPort::_inspect()
 {
@@ -42,23 +49,20 @@ ControlPort::_inspect()
 }
 
 void
-ControlPort::_dump()
+ControlPort::_dump(Dump::Category category, std::ostream& os) const
 {
-    msg("         device: %d (%s)\n",
-        device,
-        device == CPD_NONE ? "CPD_NONE" :
-        device == CPD_MOUSE ? "CPD_MOUSE" :
-        device == CPD_JOYSTICK ? "CPD_JOYSTICK" : "???");
-    msg("  mouseCounterX: %d\n", mouseCounterX);
-    msg("  mouseCounterY: %d\n", mouseCounterY);
+    if (category & Dump::State) {
+        
+        os << DUMP("Detected device type") << ControlPortDeviceEnum::key(device);
+        os << std::endl;
+        os << DUMP("Mouse X counter") << (isize)mouseCounterX << std::endl;
+        os << DUMP("Mouse Y counter") << (isize)mouseCounterY << std::endl;
+    }
 }
 
 u16
 ControlPort::joydat()
 {
-    assert(nr == 1 || nr == 2);
-    assert(isControlPortDevice(device));
-
     // Update the mouse counters first if a mouse is connected
     if (device == CPD_MOUSE) {
         mouseCounterX += mouse.getDeltaX();
@@ -89,7 +93,7 @@ ControlPort::pokeJOYTEST(u16 value)
 }
 
 void
-ControlPort::changePotgo(u16 &potgo)
+ControlPort::changePotgo(u16 &potgo) const
 {
     if (device == CPD_MOUSE) {
         mouse.changePotgo(potgo);
@@ -97,7 +101,7 @@ ControlPort::changePotgo(u16 &potgo)
 }
 
 void
-ControlPort::changePra(u8 &pra)
+ControlPort::changePra(u8 &pra) const
 {
     if (device == CPD_MOUSE) {
         mouse.changePra(pra);

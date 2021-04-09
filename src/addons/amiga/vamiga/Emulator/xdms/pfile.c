@@ -34,7 +34,7 @@ static USHORT Process_Track(FILE *, FILE *, UCHAR *, UCHAR *, USHORT, USHORT, US
 static USHORT Unpack_Track(UCHAR *, UCHAR *, USHORT, USHORT, UCHAR, UCHAR);
 static void printbandiz(UCHAR *, USHORT);
 static void dms_decrypt(UCHAR *, USHORT);
-
+USHORT extractDMS(FILE *fi, FILE *fo);
 
 static char modes[7][7]={"NOCOMP","SIMPLE","QUICK ","MEDIUM","DEEP  ","HEAVY1","HEAVY2"};
 static USHORT PWDCRC;

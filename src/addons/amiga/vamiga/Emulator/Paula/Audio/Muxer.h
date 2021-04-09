@@ -7,12 +7,15 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _MUXER_H
-#define _MUXER_H
+#pragma once
+
+#include "MuxerTypes.h"
 
 #include "AmigaComponent.h"
 #include "AudioStream.h"
 #include "AudioFilter.h"
+#include "Chrono.h"
+#include "Sampler.h"
 
 /* Architecture of the audio pipeline
  *
@@ -36,30 +39,6 @@
  *           -----------------------------------------------------
  */
 
-struct Volume {
-
-    // Maximum volume
-    const static i32 maxVolume = 100000;
-
-    // Current volume (will eventually reach the target volume)
-    i32 current = maxVolume;
-
-    // Target volume
-    i32 target = maxVolume;
-
-    // Delta steps (added to volume until the target volume is reached)
-    i32 delta = 0;
-
-    // Shifts the current volume towards the target volume
-    void shift() {
-        if (current < target) {
-            current += MIN(delta, target - current);
-        } else {
-            current -= MIN(delta, current - target);
-        }
-    }
-};
-
 class Muxer : public AmigaComponent {
 
     // Current configuration
@@ -78,11 +57,19 @@ class Muxer : public AmigaComponent {
     double fraction;
 
     // Time stamp of the last write pointer alignment
-    Cycle lastAlignment = 0;
+    util::Time lastAlignment;
 
     // Volume control
     Volume volume;
-        
+            
+    // Volume scaling factors
+    float vol[4];
+    float volL;
+    float volR;
+
+    // Panning factors
+    float pan[4];
+    
     
     //
     // Sub components
@@ -90,11 +77,11 @@ class Muxer : public AmigaComponent {
     
 public:
 
-    // Inputs
-    Sampler sampler[4];
+    // Inputs (one Sampler for each of the four channels)
+    Sampler *sampler[4];
 
     // Output
-    AudioStream stream;
+    AudioStream<SampleType> stream;
     
     // Audio filters
     AudioFilter filterL = AudioFilter(amiga);
@@ -108,14 +95,13 @@ public:
 public:
     
     Muxer(Amiga& ref);
-    
+    ~Muxer();
+
+    const char *getDescription() const override { return "Muxer"; }
     void _reset(bool hard) override;
     
     // Resets the output buffer and the two audio filters
     void clear();
-
-    // Replaces the audio stream by a stream from a different muxer
-    // void cloneStream(AudioStream &other) { stream = other; }
     
     
     //
@@ -124,19 +110,17 @@ public:
     
 public:
     
-    MuxerConfig getConfig() { return config; }
+    const MuxerConfig &getConfig() const { return config; }
 
-    long getConfigItem(ConfigOption option);
-    bool setConfigItem(ConfigOption option, long value) override;
+    long getConfigItem(Option option) const;
+    long getConfigItem(Option option, long id) const;
+    bool setConfigItem(Option option, long value) override;
+    bool setConfigItem(Option option, long id, long value) override;
 
-    bool isMuted() { return config.volL == 0 && config.volR == 0; }
+    bool isMuted() const { return config.volL == 0 && config.volR == 0; }
 
-    double getSampleRate() { return sampleRate; }
+    double getSampleRate() const { return sampleRate; }
     void setSampleRate(double hz);
-
-private:
-    
-    void _dumpConfig() override;
 
 
     //
@@ -146,9 +130,13 @@ private:
 public:
     
     // Returns information about the gathered statistical information
-    MuxerStats getStats() { return stats; }
+    MuxerStats getStats() const { return stats; }
     
+private:
     
+    void _dump(Dump::Category category, std::ostream& os) const override;
+
+        
     //
     // Serializing
     //
@@ -160,22 +148,22 @@ private:
     {
         worker
         
-        & config.samplingMethod
-        & config.filterType
-        & config.filterAlwaysOn
-        & config.vol
-        & config.pan
-        & config.volL
-        & config.volR;
+        << config.samplingMethod
+        << config.filterType
+        << config.filterAlwaysOn
+        << config.pan
+        << config.vol
+        << config.volL
+        << config.volR
+        << pan
+        << vol
+        << volL
+        << volR;
     }
     
     template <class T>
     void applyToHardResetItems(T& worker)
     {
-        worker
-        
-        & sampler
-        & stream;
     }
     
     template <class T>
@@ -183,9 +171,10 @@ private:
     {
     }
 
-    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
-    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
+    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    isize didLoadFromBuffer(const u8 *buffer) override;
     
     
     //
@@ -193,10 +182,7 @@ private:
     //
     
 public:
-    
-    // Sets the current volume
-    // void setVolume(i32 vol) { volume = vol; }
-    
+        
     /* Starts to ramp up the volume. This function configures variables volume
      * and targetVolume to simulate a smooth audio fade in.
      */
@@ -234,14 +220,21 @@ public:
 
 
     //
-    // Copying data
+    // Reading audio samples
     //
     
 public:
     
-    void copyMono(float *buffer, size_t n);
-    void copyStereo(float *left, float *right, size_t n);
-    void copyInterleaved(float *buffer, size_t n);
+    // Copies a certain amout of audio samples into a buffer
+    void copy(void *buffer, isize n);
+    void copy(void *buffer1, void *buffer2, isize n);
+    
+    /* Returns a pointer to a buffer holding a certain amount of audio samples
+     * without copying data. This function has been implemented for speedup.
+     * Instead of copying ring buffer data into the target buffer, it returns
+     * a pointer into the ringbuffer itself. The caller has to make sure that
+     * the ring buffer buffer read pointer is not closer than n elements to the
+     * buffer end.
+     */
+    SampleType *nocopy(isize n);
 };
-
-#endif

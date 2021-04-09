@@ -165,7 +165,7 @@ StrWriter&
 StrWriter::operator<<(Dn dn)
 {
     *ptr++ = 'D';
-    *ptr++ = '0' + dn.raw;
+    *ptr++ = '0' + (char)dn.raw;
     return *this;
 }
 
@@ -173,7 +173,7 @@ StrWriter&
 StrWriter::operator<<(An an)
 {
     *ptr++ = 'A';
-    *ptr++ = '0' + an.raw;
+    *ptr++ = '0' + (char)an.raw;
     return *this;
 }
 
@@ -217,7 +217,7 @@ StrWriter::operator<<(Scale s)
 {
     if (s.raw) {
         *ptr++ = '*';
-        *ptr++ = '0' + (1 << s.raw);
+        *ptr++ = '0' + (char)(1 << s.raw);
     }
     return *this;
 }

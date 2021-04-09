@@ -7,9 +7,9 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _RTC_H
-#define _RTC_H
+#pragma once
 
+#include "RTCTypes.h"
 #include "AmigaComponent.h"
 
 class RTC : public AmigaComponent {
@@ -25,7 +25,7 @@ class RTC : public AmigaComponent {
      * By default, this variable is 0 which means that the Amiga's real-time
      * clock is identical to the one in the host machine.
      */
-    time_t timeDiff;
+    i64 timeDiff;
     
     // The RTC registers
     u8 reg[4][16];
@@ -37,16 +37,18 @@ class RTC : public AmigaComponent {
     Cycle lastMeasure;
 
     // The result of the most recent query
-    time_t lastMeasuredValue;
+    i64 lastMeasuredValue;
     
     
     //
-    // Constructing and serializing
+    // Constructing
     //
     
 public:
     
     RTC(Amiga& ref);
+
+    const char *getDescription() const override { return "RTC"; }
 
 private:
     
@@ -59,16 +61,12 @@ private:
     
 public:
     
-    RTCConfig getConfig() { return config; }
+    const RTCConfig &getConfig() const { return config; }
     
-    long getConfigItem(ConfigOption option);
-    bool setConfigItem(ConfigOption option, long value) override;
+    long getConfigItem(Option option) const;
+    bool setConfigItem(Option option, long value) override;
     
-    bool isPresent() { return config.model != RTC_NONE; }
-
-private:
-    
-    void _dumpConfig() override;
+    bool isPresent() const { return config.model != RTC_NONE; }
 
     
     //
@@ -77,7 +75,7 @@ private:
     
 private:
     
-    void _dump() override;
+    void _dump(Dump::Category category, std::ostream& os) const override;
 
     
     //
@@ -91,7 +89,7 @@ private:
     {
         worker
 
-        & config.model;
+        << config.model;
     }
 
     template <class T>
@@ -99,11 +97,11 @@ private:
     {
         worker
 
-        & timeDiff
-        & reg
-        & lastCall
-        & lastMeasure
-        & lastMeasuredValue;
+        << timeDiff
+        << reg
+        << lastCall
+        << lastMeasure
+        << lastMeasuredValue;
     }
     
     template <class T>
@@ -111,9 +109,9 @@ private:
     {
     }
 
-    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
-    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
+    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
     
     //
@@ -133,18 +131,24 @@ private:
     
 public:
     
-    // Reads one of the 16 RTC registers
-    u8 peek(unsigned nr);
+    // Updates all 16 RTC registers
+    void update();
+    
+    // Reads one of the 16 RTC registers (call update() first)
+    u8 peek(isize nr);
 
+    // Returns the current value in the register cache
+    u8 spypeek(isize nr) const;
+    
     // Writes one of the 16 RTC registers
-    void poke(unsigned nr, u8 value);
+    void poke(isize nr, u8 value);
 
 private:
 
     // Reads one of the three control registers
-    u8 peekD() { return reg[0][0xD]; };
-    u8 peekE() { return config.model == RTC_RICOH ? 0 : reg[0][0xE]; }
-    u8 peekF() { return config.model == RTC_RICOH ? 0 : reg[0][0xF]; }
+    u8 peekD() const { return reg[0][0xD]; };
+    u8 peekE() const { return config.model == RTC_RICOH ? 0 : reg[0][0xE]; }
+    u8 peekF() const { return config.model == RTC_RICOH ? 0 : reg[0][0xF]; }
 
     // Writes one of the three control registers
     void pokeD(u8 value) { reg[0][0xD] = value; }
@@ -155,7 +159,7 @@ private:
      * four register banks. A bank is selected by by bits 0 and 1 in control
      * register D. The OKI clock has a single bank, only.
      */
-    int bank() { return config.model == RTC_RICOH ? (reg[0][0xD] & 0b11) : 0; }
+    isize bank() const { return config.model == RTC_RICOH ? (reg[0][0xD] & 0b11) : 0; }
     
     /* Converts the register value to the internally stored time-stamp. This
      * function has to be called *before* a RTC register is *read*.
@@ -171,5 +175,3 @@ private:
     void registers2timeOki(tm *t);
     void registers2timeRicoh(tm *t);
 };
-
-#endif

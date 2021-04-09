@@ -7,9 +7,13 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-// This file must conform to standard ANSI-C to be compatible with Swift.
+#pragma once
 
-#ifndef _COPPER_TYPES_H
+#include "Aliases.h"
+
+//
+// Structures
+//
 
 typedef struct
 {
@@ -25,5 +29,3 @@ typedef struct
     i16  length2;
 }
 CopperInfo;
-
-#endif

@@ -7,9 +7,9 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _AMIGA_DISK_H
-#define _AMIGA_DISK_H
+#pragma once
 
+#include "DiskTypes.h"
 #include "HardwareComponent.h"
 
 /* MFM encoded disk data of a standard 3.5" DD disk:
@@ -56,7 +56,7 @@ class Disk : public AmigaObject {
 public:
     
     // The form factor of this disk
-    DiskType type;
+    DiskDiameter diameter;
     
     // The density of this disk
     DiskDensity density;
@@ -72,8 +72,8 @@ private:
         
     // Length of each track in bytes
     union {
-        u32 cylinder[84][2];
-        u32 track[168];
+        i32 cylinder[84][2];
+        i32 track[168];
     } length;
 
     
@@ -93,11 +93,13 @@ private:
     
 public:
     
-    Disk(DiskType type, DiskDensity density);
+    Disk(DiskDiameter type, DiskDensity density);
     ~Disk();
 
+    const char *getDescription() const override { return "Disk"; }
+
     static Disk *makeWithFile(class DiskFile *file);
-    static Disk *makeWithReader(SerReader &reader, DiskType type, DiskDensity density);
+    static Disk *makeWithReader(util::SerReader &reader, DiskDiameter type, DiskDensity density);
         
     void dump();
     
@@ -113,12 +115,12 @@ private:
     {
         worker
 
-        & type
-        & density
-        & data.raw
-        & writeProtected
-        & modified
-        & fnv;
+        << diameter
+        << density
+        << data.raw
+        << writeProtected
+        << modified
+        << fnv;
     }
 
 
@@ -128,22 +130,20 @@ private:
 
 public:
 
-    DiskType getType() { return type; }
-    DiskDensity getDensity() { return density; }
+    DiskDiameter getDiameter() const { return diameter; }
+    DiskDensity getDensity() const { return density; }
 
-    long numCylinders() { return type == DISK_525 ? 42 : 84; }
-    long numSides() { return 2; }
-    long numTracks() { return type == DISK_525 ? 84 : 168; }
-    // long trackLength(Track t) { return length.track[t]; }
-    // long trackLength(Cylinder c, Side s) { return length.cylinder[c][s]; }
+    isize numCyls() const { return diameter == INCH_525 ? 42 : 84; }
+    isize numSides() const { return 2; }
+    isize numTracks() const { return diameter == INCH_525 ? 84 : 168; }
 
-    bool isWriteProtected() { return writeProtected; }
+    bool isWriteProtected() const { return writeProtected; }
     void setWriteProtection(bool value) { writeProtected = value; }
     
-    bool isModified() { return modified; }
+    bool isModified() const { return modified; }
     void setModified(bool value) { modified = value; }
     
-    u64 getFnv() { return fnv; }
+    u64 getFnv() const { return fnv; }
     
 
     //
@@ -151,8 +151,8 @@ public:
     //
     
     // Reads a byte from disk
-    u8 readByte(Track track, u16 offset);
-    u8 readByte(Cylinder cylinder, Side side, u16 offset);
+    u8 readByte(Track track, u16 offset) const;
+    u8 readByte(Cylinder cylinder, Side side, u16 offset) const;
 
     // Writes a byte to disk
     void writeByte(u8 value, Track track, u16 offset);
@@ -183,41 +183,6 @@ public:
     // Encodes a disk
     bool encodeDisk(class DiskFile *df);
     
-private:
-    
-    // Encodes a disk, track, or sector in Amiga format
-    /*
-    bool encodeAmigaDisk(class DiskFile *df);
-    bool encodeAmigaTrack(class DiskFile *df, Track t);
-    bool encodeAmigaSector(class DiskFile *df, Track t, Sector s);
-    */
-    
-    // Encodes a disk, track, or sector in DOS format
-    /*
-    bool encodeDosDisk(class DiskFile *df);
-    bool encodeDosTrack(class DiskFile *df, Track t);
-    bool encodeDosSector(class DiskFile *df, Track t, Sector s);
-    */
-    
-    //
-    // Decoding
-    //
-
-public:
-    
-    // Decodes a disk, track, or sector in Amiga format
-    /*
-    bool decodeAmigaDisk(u8 *dst, long numTracks, long numSectors);
-    bool decodeAmigaTrack(u8 *dst, Track t, long numSectors);
-    bool decodeAmigaSector(u8 *dst, u8 *src);
-    */
-    
-    // Decodes a disk, track, or sector in Amiga format
-    /*
-    bool decodeDOSDisk(u8 *dst, long numTracks, long numSectors);
-    bool decodeDOSTrack(u8 *dst, Track t, long numSectors);
-    void decodeDOSSector(u8 *dst, u8 *src);
-    */
     
     //
     // Working with MFM encoded data streams
@@ -225,17 +190,15 @@ public:
     
 public:
     
-    static void encodeMFM(u8 *dst, u8 *src, size_t count);
-    static void decodeMFM(u8 *dst, u8 *src, size_t count);
+    static void encodeMFM(u8 *dst, u8 *src, isize count);
+    static void decodeMFM(u8 *dst, u8 *src, isize count);
 
-    static void encodeOddEven(u8 *dst, u8 *src, size_t count);
-    static void decodeOddEven(u8 *dst, u8 *src, size_t count);
+    static void encodeOddEven(u8 *dst, u8 *src, isize count);
+    static void decodeOddEven(u8 *dst, u8 *src, isize count);
 
-    static void addClockBits(u8 *dst, size_t count);
+    static void addClockBits(u8 *dst, isize count);
     static u8 addClockBits(u8 value, u8 previous);
 
     // Repeats the MFM data inside the track buffer to ease decoding
     void repeatTracks(); 
 };
-
-#endif

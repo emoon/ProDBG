@@ -7,20 +7,26 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "FSVolume.h"
+#include "config.h"
+#include "FSEmptyBlock.h"
+#include <cstring>
 
-FSEmptyBlock::FSEmptyBlock(FSVolume &ref, u32 nr) : FSBlock(ref, nr)
+FSItemType
+FSEmptyBlock::itemType(isize byte) const
 {
-}
-
-FSEmptyBlock::~FSEmptyBlock()
-{
+    return FSI_UNUSED;
 }
 
 void
-FSEmptyBlock::exportBlock(u8 *p, size_t bsize)
+FSEmptyBlock::importBlock(const u8 *p, isize size)
 {
-    assert(bsize == volume.bsize);
+    assert(size = bsize());
+}
+
+void
+FSEmptyBlock::exportBlock(u8 *p, isize size)
+{
+    assert(size == bsize());
     assert(p);
-    memset(p, 0, bsize);
+    memset(p, 0, size);
 }

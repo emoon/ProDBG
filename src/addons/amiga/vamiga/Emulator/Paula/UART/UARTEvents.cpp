@@ -7,7 +7,10 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "UART.h"
+#include "Agnus.h"
+#include "SerialPort.h"
 
 void
 UART::serviceTxdEvent(EventID id)
@@ -41,13 +44,13 @@ UART::serviceTxdEvent(EventID id)
 
                     // Abort the transmission
                     trace(SER_DEBUG, "End of transmission\n");
-                    agnus.cancel<TXD_SLOT>();
+                    agnus.cancel<SLOT_TXD>();
                     break;
                 }
             }
 
             // Schedule the next event
-            agnus.scheduleRel<TXD_SLOT>(rate(), TXD_BIT);
+            agnus.scheduleRel<SLOT_TXD>(rate(), TXD_BIT);
             break;
 
         default:
@@ -75,7 +78,7 @@ UART::serviceRxdEvent(EventID id)
 
         // Stop receiving if the last bit was a stop bit
         if (rxd) {
-            agnus.cancel<RXD_SLOT>();
+            agnus.cancel<SLOT_RXD>();
             return;
         } else {
             // Prepare for the next packet
@@ -84,5 +87,5 @@ UART::serviceRxdEvent(EventID id)
     }
 
     // Schedule the next reception event
-    agnus.scheduleRel<RXD_SLOT>(rate(), RXD_BIT);
+    agnus.scheduleRel<SLOT_RXD>(rate(), RXD_BIT);
 }

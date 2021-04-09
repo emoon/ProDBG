@@ -7,13 +7,81 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Utils.h"
-#include "FSVolume.h"
+#include "config.h"
+#include "FSBlock.h"
+#include "FSBitmapBlock.h"
+#include "FSBitmapExtBlock.h"
+#include "FSBootBlock.h"
+#include "FSDevice.h"
+#include "FSDataBlock.h"
+#include "FSEmptyBlock.h"
+#include "FSFileHeaderBlock.h"
+#include "FSFileListBlock.h"
+#include "FSPartition.h"
+#include "FSRootBlock.h"
+#include "FSUserDirBlock.h"
+
+FSBlock *
+FSBlock::makeWithType(FSPartition &p, Block nr, FSBlockType type)
+{
+    switch (type) {
+
+        case FS_EMPTY_BLOCK:      return new FSEmptyBlock(p, nr);
+        case FS_BOOT_BLOCK:       return new FSBootBlock(p, nr);
+        case FS_ROOT_BLOCK:       return new FSRootBlock(p, nr);
+        case FS_BITMAP_BLOCK:     return new FSBitmapBlock(p, nr);
+        case FS_BITMAP_EXT_BLOCK: return new FSBitmapExtBlock(p, nr);
+        case FS_USERDIR_BLOCK:    return new FSUserDirBlock(p, nr);
+        case FS_FILEHEADER_BLOCK: return new FSFileHeaderBlock(p, nr);
+        case FS_FILELIST_BLOCK:   return new FSFileListBlock(p, nr);
+        case FS_DATA_BLOCK_OFS:   return new OFSDataBlock(p, nr);
+        case FS_DATA_BLOCK_FFS:   return new FFSDataBlock(p, nr);
+            
+        default:                  return nullptr;
+    }
+}
+
+isize
+FSBlock::bsize() const
+{
+    return partition.dev.bsize;
+}
+
+u32
+FSBlock::typeID() const
+{
+    return get32(0);
+}
+
+u32
+FSBlock::subtypeID() const
+{
+    return get32((bsize() / 4) - 1);
+}
+
+isize
+FSBlock::check(bool strict) const
+{
+    ErrorCode error;
+    isize count = 0;
+    u8 expected;
+    
+    for (isize i = 0; i < bsize(); i++) {
+        
+        if ((error = check(i, &expected, strict)) != ERROR_OK) {
+            count++;
+            debug(FS_DEBUG, "Block %d [%zd.%zd]: %s\n", nr, i / 4, i % 4,
+                  ErrorCodeEnum::key(error));
+        }
+    }
+    
+    return count;
+}
 
 u8 *
-FSBlock::addr(int nr)
+FSBlock::addr32(isize nr) const
 {
-    return (data + 4 * nr) + (nr < 0 ? volume.bsize : 0);
+    return (data + 4 * nr) + (nr < 0 ? bsize() : 0);
 }
 
 u32
@@ -31,314 +99,140 @@ FSBlock::write32(u8 *p, u32 value)
     p[3] = (value >>  0) & 0xFF;
 }
 
-/*
-time_t
-FSBlock::readTimeStamp(u8 *p)
-{
-    const u32 secPerDay = 24 * 60 * 60;
-
-    u32 days = read32(p + 0);
-    u32 mins = read32(p + 4);
-    u32 ticks = read32(p + 8);
-    
-    time_t t = days * secPerDay + mins * 60 + ticks / 50;
-    
-    // Shift reference point from  Jan 1, 1978 (Amiga) to Jan 1, 1970 (Unix)
-    t += (8 * 365 + 2) * secPerDay - 60 * 60;
-    
-    return t;
-}
-
 void
-FSBlock::writeTimeStamp(u8 *p, time_t t)
+FSBlock::dumpData() const
 {
-    const u32 secPerDay = 24 * 60 * 60;
-    
-    // Shift reference point from Jan 1, 1970 (Unix) to Jan 1, 1978 (Amiga)
-    t -= (8 * 365 + 2) * secPerDay - 60 * 60;
-    
-    u32 days = t / secPerDay;
-    u32 mins = (t % secPerDay) / 60;
-    u32 ticks = (t % secPerDay % 60) * 50;
-
-    write32(p + 0, days);
-    write32(p + 4, mins);
-    write32(p + 8, ticks);
+    hexdumpLongwords(data, 512);
 }
-*/
 
 u32
-FSBlock::checksum()
+FSBlock::checksum() const
 {
+    isize pos = checksumLocation();
+    assert(pos >= 0 && pos <= 5);
+    
+    // Wipe out the old checksum
+    u32 old = get32(pos);
+    set32(pos, 0);
+    
+    // Compute the new checksum
     u32 result = 0;
-    u32 numLongWords = volume.bsize / 4;
+    for (isize i = 0; i < bsize() / 4; i++) result += get32(i);
+    result = ~result + 1;
     
-    for (u32 i = 0; i < numLongWords; i++) {
-        result += get32(i);
-    }
+    // Undo the modification
+    set32(pos, old);
     
-    return ~result + 1;
-}
-
-u32
-FSBlock::bsize()
-{
-    return volume.bsize;
-}
-
-char *
-FSBlock::assemblePath()
-{
-    FSBlock *parent = getParentBlock();
-    if (!parent) return strdup("");
-    
-    FSName name = getName();
-    
-    char *prefix = parent->assemblePath();
-    char *result = new char [strlen(prefix) + strlen(name.cStr) + 2];
-
-    strcpy(result, prefix);
-    strcat(result, "/");
-    strcat(result, name.cStr);
-
-    delete [] prefix;
     return result;
 }
 
 void
-FSBlock::printPath()
+FSBlock::updateChecksum()
 {
-    char *path = assemblePath();
-    printf("%s", path);
-    delete [] path;
-}
-
-bool
-FSBlock::check(bool verbose)
-{
-    return assertSelfRef(nr, verbose);
-}
-
-bool
-FSBlock::assertNotNull(u32 ref, bool verbose)
-{
-    if (ref != 0) return true;
-    
-    if (verbose) fprintf(stderr, "Block reference is missing.\n");
-    return false;
-}
-
-bool
-FSBlock::assertInRange(u32 ref, bool verbose)
-{
-    if (volume.isBlockNumber(ref)) return true;
-
-    if (verbose) fprintf(stderr, "Block reference %d is invalid\n", ref);
-    return false;
-}
-
-bool
-FSBlock::assertHasType(u32 ref, FSBlockType type, bool verbose)
-{
-    return assertHasType(ref, type, type, verbose);
-}
-
-bool
-FSBlock::assertHasType(u32 ref, FSBlockType type1, FSBlockType type2, bool verbose)
-{
-    assert(isFSBlockType(type1));
-    assert(isFSBlockType(type2));
-
-    FSBlock *block = volume.block(ref);
-    FSBlockType type = block ? block->type() : FS_EMPTY_BLOCK;
-    
-    if (!isFSBlockType(type)) {
-        if (verbose) fprintf(stderr, "Block type %ld is not a known type.\n", type);
-        return false;
-    }
-    
-    if (block && (type == type1 || type == type2)) return true;
-    
-    if (verbose && type1 == type2) {
-        fprintf(stderr, "Block %d has type %s. Expected %s.\n",
-                ref,
-                fsBlockTypeName(type),
-                fsBlockTypeName(type1));
-    }
-    
-    if (verbose && type1 != type2) {
-        fprintf(stderr, "Block %d has type %s. Expected %s or %s.\n",
-                ref,
-                fsBlockTypeName(type),
-                fsBlockTypeName(type1),
-                fsBlockTypeName(type2));
-    }
-
-    return false;
-}
-
-bool
-FSBlock::assertSelfRef(u32 ref, bool verbose)
-{
-    if (ref == nr && volume.block(ref) == this) return true;
-
-    if (ref != nr && verbose) {
-        fprintf(stderr, "%d is not a self-reference.\n", ref);
-    }
-    
-    if (volume.block(ref) != this && verbose) {
-        fprintf(stderr, "Array element %d references an invalid block\n", ref);
-    }
-    
-    return false;
+    isize pos = checksumLocation();
+    if (pos >= 0 && pos < bsize() / 4) set32(pos, checksum());
 }
 
 void
-FSBlock::importBlock(u8 *p, size_t bsize)
-{
-    assert(bsize == volume.bsize);
+FSBlock::importBlock(const u8 *src, isize size)
+{    
+    assert(size == bsize());
+    assert(src != nullptr);
+    assert(data != nullptr);
+        
+    memcpy(data, src, size);
 }
 
 void
-FSBlock::exportBlock(u8 *p, size_t bsize)
+FSBlock::exportBlock(u8 *dst, isize size)
 {
-    assert(bsize == volume.bsize);
+    assert(size == bsize());
             
     // Rectify the checksum
     updateChecksum();
 
     // Export the block
-    assert(p && data);
-    memcpy(p, data, bsize);
+    assert(dst != nullptr);
+    assert(data != nullptr);
+    memcpy(dst, data, size);
 }
 
 FSBlock *
-FSBlock::getParentBlock()
+FSBlock::getParentDirBlock()
 {
-    u32 ref = getParentDirRef();
-    return ref ? volume.block(ref) : nullptr;
+    Block nr = getParentDirRef();
+    return nr ? partition.dev.blockPtr(nr) : nullptr;
 }
 
 FSFileHeaderBlock *
 FSBlock::getFileHeaderBlock()
 {
-    u32 ref = getFileHeaderRef();
-    return ref ? volume.fileHeaderBlock(ref) : nullptr;
-}
-
-FSDataBlock *
-FSBlock::getFirstDataBlock()
-{
-    u32 ref = getFirstDataBlockRef();
-    return ref ? volume.dataBlock(ref) : nullptr;
-}
-
-FSDataBlock *
-FSBlock::getNextDataBlock()
-{
-    u32 ref = getNextDataBlockRef();
-    return ref ? volume.dataBlock(ref) : nullptr;
+    Block nr = getFileHeaderRef();
+    return nr ? partition.dev.fileHeaderBlockPtr(nr) : nullptr;
 }
 
 FSBlock *
 FSBlock::getNextHashBlock()
 {
-    u32 ref = getNextHashRef();
-    return ref ? volume.block(ref) : nullptr;
+    Block nr = getNextHashRef();
+    return nr ? partition.dev.blockPtr(nr) : nullptr;
 }
 
 FSFileListBlock *
-FSBlock::getNextExtensionBlock()
+FSBlock::getNextListBlock()
 {
-    u32 ref = getNextListBlockRef();
-    return ref ? volume.fileListBlock(ref) : nullptr;
+    Block nr = getNextListBlockRef();
+    return nr ? partition.dev.fileListBlockPtr(nr) : nullptr;
+}
+
+FSBitmapExtBlock *
+FSBlock::getNextBmExtBlock()
+{
+    Block nr = getNextBmExtBlockRef();
+    return nr ? partition.dev.bitmapExtBlockPtr(nr) : nullptr;
+}
+
+
+FSDataBlock *
+FSBlock::getFirstDataBlock()
+{
+    Block nr = getFirstDataBlockRef();
+    return nr ? partition.dev.dataBlockPtr(nr) : nullptr;
+}
+
+FSDataBlock *
+FSBlock::getNextDataBlock()
+{
+    Block nr = getNextDataBlockRef();
+    return nr ? partition.dev.dataBlockPtr(nr) : nullptr;
 }
 
 u32
-FSBlock::lookup(u32 nr)
+FSBlock::getHashRef(Block nr) const
 {
-    return (nr < hashTableSize()) ? read32(data + 24 + 4 * nr) : 0;
-}
-
-FSBlock *
-FSBlock::lookup(FSName name)
-{
-    // Don't call this function if no hash table is present
-    assert(hashTableSize() != 0);
-
-    // Compute hash value and table position
-    u32 hash = name.hashValue() % hashTableSize();
-    u8 *tableEntry = data + 24 + 4 * hash;
-    
-    // Read the entry
-    u32 blockRef = read32(tableEntry);
-    assert(lookup(hash) == blockRef);
-    FSBlock *block = blockRef ? volume.block(blockRef) : nullptr;
-    
-    // Traverse the linked list until the item has been found
-    for (int i = 0; block && i < searchLimit; i++) {
-
-        if (block->matches(name)) return block;
-        block = block->getNextHashBlock();
-    }
-
-    return nullptr;
+    return (nr < (Block)hashTableSize()) ? get32(6 + nr) : 0;
 }
 
 void
-FSBlock::addToHashTable(u32 ref)
+FSBlock::setHashRef(Block nr, u32 ref)
 {
-    FSBlock *block = volume.block(ref);
-    if (block == nullptr) return;
-    
-    // Don't call this function if no hash table is present
-    assert(hashTableSize() != 0);
-        
-    // Compute hash value and table position
-    u32 hash = block->hashValue() % hashTableSize();
-    u8 *tableEntry = data + 24 + 4 * hash;
-    
-    // If the hash table slot is empty, put the reference there
-    if (read32(tableEntry) == 0) { write32(tableEntry, ref); return; }
-    
-    // Otherwise, add the reference at the end of the linked list
-    if (auto item = volume.block(read32(tableEntry))) {
-        
-        for (int i = 0; i < searchLimit; i++) {
-            
-            if (item->getNextHashBlock() == nullptr) {
-                item->setNextHashRef(ref);
-                return;
-            }
-            
-            item = item->getNextHashBlock();
-        }
-    }
-}
-
-bool
-FSBlock::checkHashTable(bool verbose)
-{
-    bool result = true;
-    
-    for (u32 i = 0; i < hashTableSize(); i++) {
-        
-        if (u32 ref = read32(data + 24 + 4 * i)) {
-            result &= assertInRange(ref, verbose);
-            result &= assertHasType(ref, FS_USERDIR_BLOCK, FS_FILEHEADER_BLOCK, verbose);
-        }
-    }
-    return result;
+    if (nr < (Block)hashTableSize()) set32(6 + nr, ref);
 }
 
 void
-FSBlock::dumpHashTable()
+FSBlock::dumpHashTable() const
 {
-    for (u32 i = 0; i < hashTableSize(); i++) {
+    for (isize i = 0; i < hashTableSize(); i++) {
         
         u32 value = read32(data + 24 + 4 * i);
         if (value) {
-            printf("%d: %d ", i, value);
+            msg("%zd: %d ", i, value);
         }
     }
+}
+
+isize
+FSBlock::getMaxDataBlockRefs() const
+{
+    return bsize() / 4 - 56;
 }

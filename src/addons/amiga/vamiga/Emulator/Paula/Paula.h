@@ -7,17 +7,22 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _PAULA_H
-#define _PAULA_H
+#pragma once
 
-#include "StateMachine.h"
+#include "PaulaTypes.h"
+#include "AmigaComponent.h"
 #include "AudioFilter.h"
-#include "Muxer.h"
 #include "AudioStream.h"
-#include "Buffers.h"
+#include "ChangeRecorder.h"
 #include "DiskController.h"
-#include "UART.h"
+#include "Muxer.h"
+#include "StateMachine.h"
 #include "TimeDelayed.h"
+#include "UART.h"
+
+//
+// Class
+//
 
 class Paula : public AmigaComponent {
     
@@ -75,7 +80,8 @@ public:
     u64 iplPipe;
     
     // Interrupt priority line (IPL)
-    TimeDelayed <u8,4> ipl = TimeDelayed <u8,4> ();
+    util::TimeDelayed <u8,4> ipl = util::TimeDelayed <u8,4> ();
+    
     
     //
     // Control ports
@@ -107,7 +113,9 @@ public:
 public:
 
     Paula(Amiga& ref);
-    
+
+    const char *getDescription() const override { return "Paula"; }
+
 private:
     
     void _reset(bool hard) override;
@@ -126,7 +134,7 @@ public:
 private:
     
     void _inspect() override;
-    void _dump() override;
+    void _dump(Dump::Category category, std::ostream& os) const override;
     
     
     //
@@ -145,7 +153,7 @@ private:
     {
         worker
 
-        & audioClock;
+        << audioClock;
     }
 
     template <class T>
@@ -153,27 +161,27 @@ private:
     {
         worker
         
-        & intreq
-        & intena
-        & setIntreq
-        & ipl
-        & iplPipe
-        & potgo
-        & potCntX0
-        & potCntY0
-        & potCntX1
-        & potCntY1
-        & chargeX0
-        & chargeY0
-        & chargeX1
-        & chargeY1
-        & adkcon;
+        << intreq
+        << intena
+        << setIntreq
+        >> ipl
+        << iplPipe
+        << potgo
+        << potCntX0
+        << potCntY0
+        << potCntX1
+        << potCntY1
+        << chargeX0
+        << chargeY0
+        << chargeX1
+        << chargeY1
+        << adkcon;
     }
 
-    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
-    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
-    size_t didLoadFromBuffer(u8 *buffer) override;
+    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
+    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    isize didLoadFromBuffer(const u8 *buffer) override;
 
  
     //
@@ -184,7 +192,8 @@ private:
     
     void _run() override;
     void _pause() override;
-    void _setWarp(bool enable) override;
+    void _warpOn() override;
+    void _warpOff() override;
 
 
     //
@@ -194,36 +203,36 @@ private:
 public:
         
     // ADKCONR and ADKCON
-    u16 peekADKCONR();
+    u16 peekADKCONR() const;
     void pokeADKCON(u16 value);
 
-    bool UARTBRK() { return GET_BIT(adkcon, 11); }
+    bool UARTBRK() const { return GET_BIT(adkcon, 11); }
 
     // INTREQR and INTREQ
-    u16 peekINTREQR();
+    u16 peekINTREQR() const;
     template <Accessor s> void pokeINTREQ(u16 value);
     void setINTREQ(bool setclr, u16 value);
     void setINTREQ(u16 value) { setINTREQ(value & 0x8000, value & 0x7FFF); }
 
     // INTENAR and INTENA
-    u16 peekINTENAR() { return intena; }
+    u16 peekINTENAR() const { return intena; }
     template <Accessor s> void pokeINTENA(u16 value);
     void setINTENA(bool setclr, u16 value);
     void setINTENA(u16 value) { setINTENA(value & 0x8000, value & 0x7FFF); }
 
     // POTxDAT
-    template <int x> u16 peekPOTxDAT();
+    template <isize x> u16 peekPOTxDAT() const;
 
     // POTGOR and POTGO
-    u16 peekPOTGOR();
-    bool OUTRY() { return potgo & 0x8000; }
-    bool DATRY() { return potgo & 0x4000; }
-    bool OUTRX() { return potgo & 0x2000; }
-    bool DATRX() { return potgo & 0x1000; }
-    bool OUTLY() { return potgo & 0x0800; }
-    bool DATLY() { return potgo & 0x0400; }
-    bool OUTLX() { return potgo & 0x0200; }
-    bool DATLX() { return potgo & 0x0100; }
+    u16 peekPOTGOR() const;
+    bool OUTRY() const { return potgo & 0x8000; }
+    bool DATRY() const { return potgo & 0x4000; }
+    bool OUTRX() const { return potgo & 0x2000; }
+    bool DATRX() const { return potgo & 0x1000; }
+    bool OUTLY() const { return potgo & 0x0800; }
+    bool DATLY() const { return potgo & 0x0400; }
+    bool OUTLX() const { return potgo & 0x0200; }
+    bool DATLX() const { return potgo & 0x0100; }
     void pokePOTGO(u16 value);
 
 
@@ -267,7 +276,5 @@ public:
 private:
     
     // Computes the interrupt level of a pending interrupt.
-    unsigned interruptLevel();
+    u8 interruptLevel();
 };
-
-#endif

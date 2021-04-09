@@ -7,15 +7,19 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _COLORIZER_H
-#define _COLORIZER_H
+#pragma once
 
+#include "PixelEngineTypes.h"
 #include "AmigaComponent.h"
+#include "ChangeRecorder.h"
 
 class PixelEngine : public AmigaComponent {
 
     friend class DmaDebugger;
     
+    // Current configuration
+    PixelEngineConfig config;
+
 public:
 
     // RGBA colors used to visualize the HBLANK and VBLANK area in the debugger
@@ -62,12 +66,6 @@ private:
      */
     static const int rgbaIndexCnt = 32 + 32 + 1 + 8;
     u32 indexedRgba[rgbaIndexCnt];
-
-    // Color adjustment parameters
-    Palette palette = PALETTE_COLOR;
-    double brightness = 50.0;
-    double contrast = 100.0;
-    double saturation = 1.25;
     
     // Indicates whether HAM mode is switched
     bool hamMode;
@@ -92,25 +90,20 @@ public:
     PixelEngine(Amiga& ref);
     ~PixelEngine();
 
+    const char *getDescription() const override { return "PixelEngine"; }
+
     
     //
     // Configuring
     //
-    
+
 public:
     
-    Palette getPalette() { return palette; }
-    void setPalette(Palette p);
-    
-    double getBrightness() { return brightness; }
-    void setBrightness(double value);
-    
-    double getSaturation() { return saturation; }
-    void setSaturation(double value);
-    
-    double getContrast() { return contrast; }
-    void setContrast(double value);
-    
+    const PixelEngineConfig &getConfig() const { return config; }
+
+    long getConfigItem(Option option) const;
+    bool setConfigItem(Option option, long value) override;
+
     
     //
     // Serializing
@@ -133,15 +126,15 @@ private:
     {
         worker
 
-        & colChanges
-        & colreg
-        & hamMode;
+        >> colChanges
+        << colreg
+        << hamMode;
     }
 
-    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
-    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
-    size_t didLoadFromBuffer(u8 *buffer) override;
+    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
+    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    isize didLoadFromBuffer(const u8 *buffer) override;
 
     
     //
@@ -161,18 +154,18 @@ private:
 public:
 
     // Performs a consistency check for debugging.
-    static bool isRgbaIndex(int nr) { return nr < rgbaIndexCnt; }
+    static bool isRgbaIndex(isize nr) { return nr < rgbaIndexCnt; }
     
     // Changes one of the 32 Amiga color registers.
-    void setColor(int reg, u16 value);
+    void setColor(isize reg, u16 value);
 
     // Returns a color value in Amiga format or RGBA format
-    u16 getColor(int nr) { assert(nr < 32); return colreg[nr]; }
-    u32 getRGBA(int nr) { assert(nr < 32); return indexedRgba[nr]; }
+    u16 getColor(isize nr) const { return colreg[nr]; }
+    u32 getRGBA(isize nr) const { return indexedRgba[nr]; }
 
     // Returns sprite color in Amiga format or RGBA format
-    u16 getSpriteColor(int s, int nr) { assert(s < 8); return getColor(16 + nr + 2 * (s & 6)); }
-    u32 getSpriteRGBA(int s, int nr) { return rgba[getSpriteColor(s,nr)]; }
+    u16 getSpriteColor(isize s, isize nr) const { return getColor(16 + nr + 2 * (s & 6)); }
+    u32 getSpriteRGBA(isize s, isize nr) const { return rgba[getSpriteColor(s,nr)]; }
 
 
     //
@@ -198,10 +191,10 @@ public:
     ScreenBuffer getStableBuffer();
 
     // Returns a pointer to randon noise
-    u32 *getNoise();
+    u32 *getNoise() const;
     
     // Returns the frame buffer address of a certain pixel in the current line
-    u32 *pixelAddr(int pixel);
+    u32 *pixelAddr(isize pixel) const;
 
     // Called after each line in the VBLANK area
     void endOfVBlankLine();
@@ -231,21 +224,18 @@ public:
      * pipelile. It translates a line of color register indices into a line
      * of RGBA values in GPU format.
      */
-    void colorize(int line);
+    void colorize(isize line);
     
 private:
     
-    void colorize(u32 *dst, int from, int to);
-    void colorizeHAM(u32 *dst, int from, int to, u16& ham);
+    void colorize(u32 *dst, Pixel from, Pixel to);
+    void colorizeHAM(u32 *dst, Pixel from, Pixel to, u16& ham);
     
-    /* Hides some graphics layers.
-     * This function is an optional stage applied after colorize(). It can
-     * be used to hide some layers for debugging.
+    /* Hides some graphics layers. This function is an optional stage applied
+     * after colorize(). It can be used to hide some layers for debugging.
      */
     
 public:
     
-    void hide(int line, u16 layer, u8 alpha);
+    void hide(isize line, u16 layer, u8 alpha);
 };
-
-#endif

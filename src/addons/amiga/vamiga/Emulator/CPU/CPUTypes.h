@@ -7,10 +7,9 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-// This file must conform to standard ANSI-C to be compatible with Swift.
+#pragma once
 
-#ifndef _CPU_TYPES_H
-#define _CPU_TYPES_H
+#include "Aliases.h"
 
 #define CPUINFO_INSTR_COUNT 256
 
@@ -24,5 +23,3 @@ typedef struct
     u16 sr;
 }
 CPUInfo;
-
-#endif

@@ -7,7 +7,9 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "Agnus.h"
+#include "Denise.h"
 
 /* A central element in the emulation of an Amiga is the accurate modeling of
 * the DMA timeslot allocation table (Fig. 6-9 im the HRM, 3rd revision). All
@@ -96,12 +98,12 @@ Agnus::initBplEventTableLores()
 {
     memset(bplDMA[0], 0, sizeof(bplDMA[0]));
 
-    for (int bpu = 0; bpu < 7; bpu++) {
+    for (isize bpu = 0; bpu < 7; bpu++) {
 
         EventID *p = &bplDMA[0][bpu][0];
 
         // Iterate through all 22 fetch units
-        for (int i = 0; i <= 0xD8; i += 8, p += 8) {
+        for (isize i = 0; i <= 0xD8; i += 8, p += 8) {
 
             switch(bpu) {
                 case 6: p[2] = BPL_L6;
@@ -123,11 +125,11 @@ Agnus::initBplEventTableHires()
 {
     memset(bplDMA[1], 0, sizeof(bplDMA[1]));
 
-    for (int bpu = 0; bpu < 7; bpu++) {
+    for (isize bpu = 0; bpu < 7; bpu++) {
 
         EventID *p = &bplDMA[1][bpu][0];
 
-        for (int i = 0; i <= 0xD8; i += 8, p += 8) {
+        for (isize i = 0; i <= 0xD8; i += 8, p += 8) {
 
             switch(bpu) {
                 case 6:
@@ -149,7 +151,7 @@ Agnus::initDasEventTable()
 {
     memset(dasDMA, 0, sizeof(dasDMA));
 
-    for (int dmacon = 0; dmacon < 64; dmacon++) {
+    for (isize dmacon = 0; dmacon < 64; dmacon++) {
 
         EventID *p = dasDMA[dmacon];
 
@@ -232,20 +234,13 @@ Agnus::enableBplDmaECS()
     
     i16 posh = pos.h + 4;
     // debug("posh = %d MAX = %d\n", posh, MAX(posh, ddfstrtReached));
-    ddfLores.compute(MAX(posh, ddfstrtReached), ddfstopReached, bplcon1);
-    ddfHires.compute(MAX(posh, ddfstrtReached), ddfstopReached, bplcon1);
+    ddfLores.compute(std::max(posh, ddfstrtReached), ddfstopReached, bplcon1);
+    ddfHires.compute(std::max(posh, ddfstrtReached), ddfstopReached, bplcon1);
     hsyncActions |= HSYNC_PREDICT_DDF;
     
     updateBplEvents();
     updateBplEvent();
     updateDrawingFlags(false);
-    
-    /*
-    if (pos.v == 129) {
-        dumpBplEventTable();
-        dumpEvents();
-    }
-    */
 }
 
 void
@@ -256,7 +251,7 @@ Agnus::disableBplDmaECS()
 }
 
 template <BusOwner owner> bool
-Agnus::busIsFree()
+Agnus::busIsFree() const
 {
     // Deny if the bus is already in use
     if (busOwner[pos.h] != BUS_NONE) return false;
@@ -323,7 +318,7 @@ Agnus::allocateBus()
 u16
 Agnus::doDiskDMA()
 {
-    u16 result = mem.peek16 <AGNUS_ACCESS> (dskpt);
+    u16 result = mem.peek16 <ACCESSOR_AGNUS> (dskpt);
     dskpt += 2;
 
     assert(pos.h < HPOS_CNT);
@@ -337,7 +332,7 @@ Agnus::doDiskDMA()
 template <int channel> u16
 Agnus::doAudioDMA()
 {
-    u16 result = mem.peek16 <AGNUS_ACCESS> (audpt[channel]);
+    u16 result = mem.peek16 <ACCESSOR_AGNUS> (audpt[channel]);
     audpt[channel] += 2;
 
     assert(pos.h < HPOS_CNT);
@@ -354,7 +349,7 @@ Agnus::doBitplaneDMA()
     assert(bitplane >= 0 && bitplane <= 5);
     const BusOwner owner = BusOwner(BUS_BPL1 + bitplane);
     
-    u16 result = mem.peek16 <AGNUS_ACCESS> (bplpt[bitplane]);
+    u16 result = mem.peek16 <ACCESSOR_AGNUS> (bplpt[bitplane]);
     bplpt[bitplane] += 2;
 
     assert(pos.h < HPOS_CNT);
@@ -371,7 +366,7 @@ Agnus::doSpriteDMA()
     assert(channel >= 0 && channel <= 7);
     const BusOwner owner = BusOwner(BUS_SPRITE0 + channel);
 
-    u16 result = mem.peek16 <AGNUS_ACCESS> (sprpt[channel]);
+    u16 result = mem.peek16 <ACCESSOR_AGNUS> (sprpt[channel]);
     sprpt[channel] += 2;
 
     assert(pos.h < HPOS_CNT);
@@ -385,7 +380,7 @@ Agnus::doSpriteDMA()
 u16
 Agnus::doCopperDMA(u32 addr)
 {
-    u16 result = mem.peek16 <AGNUS_ACCESS> (addr);
+    u16 result = mem.peek16 <ACCESSOR_AGNUS> (addr);
 
     assert(pos.h < HPOS_CNT);
     busOwner[pos.h] = BUS_COPPER;
@@ -401,7 +396,7 @@ Agnus::doBlitterDMA(u32 addr)
     // Assure that the Blitter owns the bus when this function is called
     assert(busOwner[pos.h] == BUS_BLITTER);
 
-    u16 result = mem.peek16 <AGNUS_ACCESS> (addr);
+    u16 result = mem.peek16 <ACCESSOR_AGNUS> (addr);
 
     assert(pos.h < HPOS_CNT);
     busOwner[pos.h] = BUS_BLITTER;
@@ -414,7 +409,7 @@ Agnus::doBlitterDMA(u32 addr)
 void
 Agnus::doDiskDMA(u16 value)
 {
-    mem.poke16 <AGNUS_ACCESS> (dskpt, value);
+    mem.poke16 <ACCESSOR_AGNUS> (dskpt, value);
     dskpt += 2;
 
     assert(pos.h < HPOS_CNT);
@@ -426,7 +421,7 @@ Agnus::doDiskDMA(u16 value)
 void
 Agnus::doCopperDMA(u32 addr, u16 value)
 {
-    mem.pokeCustom16<AGNUS_ACCESS>(addr, value);
+    mem.pokeCustom16<ACCESSOR_AGNUS>(addr, value);
     
     assert(pos.h < HPOS_CNT);
     busOwner[pos.h] = BUS_COPPER;
@@ -437,7 +432,7 @@ Agnus::doCopperDMA(u32 addr, u16 value)
 void
 Agnus::doBlitterDMA(u32 addr, u16 value)
 {
-    mem.poke16 <AGNUS_ACCESS> (addr, value);
+    mem.poke16 <ACCESSOR_AGNUS> (addr, value);
     
     assert(pos.h < HPOS_CNT);
     assert(busOwner[pos.h] == BUS_BLITTER); // Bus is already allocated
@@ -448,8 +443,8 @@ Agnus::doBlitterDMA(u32 addr, u16 value)
 void
 Agnus::clearBplEvents()
 {
-    for (int i = 0; i < HPOS_MAX; i++) bplEvent[i] = EVENT_NONE;
-    for (int i = 0; i < HPOS_MAX; i++) nextBplEvent[i] = HPOS_MAX;
+    for (isize i = 0; i < HPOS_MAX; i++) bplEvent[i] = EVENT_NONE;
+    for (isize i = 0; i < HPOS_MAX; i++) nextBplEvent[i] = HPOS_MAX;
 }
 
 void
@@ -470,30 +465,30 @@ Agnus::updateBplEvents(u16 dmacon, u16 bplcon0, int first, int last)
     // Allocate slots
     if (hires) {
         
-        for (int i = first; i <= last; i++)
+        for (isize i = first; i <= last; i++)
             bplEvent[i] =
             inHiresDmaAreaOdd(i) ? bplDMA[1][channels][i] :
             inHiresDmaAreaEven(i) ? bplDMA[1][channels][i] : EVENT_NONE;
         
         // Add extra shift register events if the even/odd DDF windows differ
         // These events are like BPL_H0 events without performing DMA.
-        for (int i = ddfHires.strtEven; i < ddfHires.strtOdd; i++)
+        for (isize i = ddfHires.strtEven; i < ddfHires.strtOdd; i++)
             if ((i & 3) == 3 && bplEvent[i] == EVENT_NONE) bplEvent[i] = BPL_SR;
-        for (int i = ddfHires.stopOdd; i < ddfHires.stopEven; i++)
+        for (isize i = ddfHires.stopOdd; i < ddfHires.stopEven; i++)
             if ((i & 3) == 3 && bplEvent[i] == EVENT_NONE) bplEvent[i] = BPL_SR;
 
     } else {
         
-        for (int i = first; i <= last; i++)
+        for (isize i = first; i <= last; i++)
             bplEvent[i] =
             inLoresDmaAreaOdd(i) ? bplDMA[0][channels][i] :
             inLoresDmaAreaEven(i) ? bplDMA[0][channels][i] : EVENT_NONE;
     
         // Add extra shift register events if the even/odd DDF windows differ
         // These events are like BPL_L0 events without performing DMA.
-        for (int i = ddfLores.strtEven; i < ddfLores.strtOdd; i++)
+        for (isize i = ddfLores.strtEven; i < ddfLores.strtOdd; i++)
              if ((i & 7) == 7 && bplEvent[i] == EVENT_NONE) bplEvent[i] = BPL_SR;
-        for (int i = ddfLores.stopOdd; i < ddfLores.stopEven; i++)
+        for (isize i = ddfLores.stopOdd; i < ddfLores.stopEven; i++)
              if ((i & 7) == 7 && bplEvent[i] == EVENT_NONE) bplEvent[i] = BPL_SR;
     }
         
@@ -515,14 +510,14 @@ Agnus::updateDrawingFlags(bool hires)
     // Superimpose the drawing flags (bits 0 and 1)
     // Bit 0 is used to for odd bitplanes and bit 1 for even bitplanes
     if (hires) {
-        for (int i = scrollHiresOdd; i < HPOS_CNT; i += 4)
+        for (isize i = scrollHiresOdd; i < HPOS_CNT; i += 4)
             bplEvent[i] = (EventID)(bplEvent[i] | 1);
-        for (int i = scrollHiresEven; i < HPOS_CNT; i += 4)
+        for (isize i = scrollHiresEven; i < HPOS_CNT; i += 4)
             bplEvent[i] = (EventID)(bplEvent[i] | 2);
     } else {
-        for (int i = scrollLoresOdd; i < HPOS_CNT; i += 8)
+        for (isize i = scrollLoresOdd; i < HPOS_CNT; i += 8)
             bplEvent[i] = (EventID)(bplEvent[i] | 1);
-        for (int i = scrollLoresEven; i < HPOS_CNT; i += 8)
+        for (isize i = scrollLoresEven; i < HPOS_CNT; i += 8)
             bplEvent[i] = (EventID)(bplEvent[i] | 2);
     }
     updateBplJumpTable();
@@ -540,7 +535,7 @@ Agnus::updateDasEvents(u16 dmacon)
     assert(dmacon < 64);
 
     // Allocate slots and renew the jump table
-    for (int i = 0; i < 0x38; i++) dasEvent[i] = dasDMA[dmacon][i];
+    for (isize i = 0; i < 0x38; i++) dasEvent[i] = dasDMA[dmacon][i];
     updateDasJumpTable(0x38);
 }
 
@@ -550,7 +545,7 @@ Agnus::updateBplJumpTable(i16 end)
     assert(end <= HPOS_MAX);
 
     u8 next = nextBplEvent[end];
-    for (int i = end; i >= 0; i--) {
+    for (isize i = end; i >= 0; i--) {
         nextBplEvent[i] = next;
         if (bplEvent[i]) next = i;
     }
@@ -562,22 +557,22 @@ Agnus::updateDasJumpTable(i16 end)
     assert(end <= HPOS_MAX);
 
     u8 next = nextDasEvent[end];
-    for (int i = end; i >= 0; i--) {
+    for (isize i = end; i >= 0; i--) {
         nextDasEvent[i] = next;
         if (dasEvent[i]) next = i;
     }
 }
 
 void
-Agnus::dumpEventTable(EventID *table, char str[256][3], int from, int to)
+Agnus::dumpEventTable(const EventID *table, char str[256][3], isize from, isize to) const
 {
     char r1[256], r2[256], r3[256], r4[256], r5[256];
-    int i;
+    isize i;
 
     for (i = 0; i <= to - from; i++) {
 
-        int digit1 = (from + i) / 16;
-        int digit2 = (from + i) % 16;
+        isize digit1 = (from + i) / 16;
+        isize digit2 = (from + i) % 16;
 
         r1[i] = (digit1 < 10) ? digit1 + '0' : (digit1 - 10) + 'A';
         r2[i] = (digit2 < 10) ? digit2 + '0' : (digit2 - 10) + 'A';
@@ -595,14 +590,14 @@ Agnus::dumpEventTable(EventID *table, char str[256][3], int from, int to)
 }
 
 void
-Agnus::dumpBplEventTable(int from, int to)
+Agnus::dumpBplEventTable(int from, int to) const
 {
     char str[256][3];
 
     memset(str, '?', sizeof(str));
     
     // Events
-    for (int i = 0; i < 4; i++) {
+    for (isize i = 0; i < 4; i++) {
         str[i][0] = '.';                str[i][1] = '.';
         str[(int)BPL_L1 + i][0]  = 'L'; str[(int)BPL_L1 + i][1]  = '1';
         str[(int)BPL_L2 + i][0]  = 'L'; str[(int)BPL_L2 + i][1]  = '2';
@@ -618,16 +613,16 @@ Agnus::dumpBplEventTable(int from, int to)
     }
 
     // Drawing flags
-    for (int i = 0; i < 256; i += 4) str[i][2] = '.';
-    for (int i = 1; i < 256; i += 4) str[i][2] = 'o';
-    for (int i = 2; i < 256; i += 4) str[i][2] = 'e';
-    for (int i = 3; i < 256; i += 4) str[i][2] = 'b';
+    for (isize i = 0; i < 256; i += 4) str[i][2] = '.';
+    for (isize i = 1; i < 256; i += 4) str[i][2] = 'o';
+    for (isize i = 2; i < 256; i += 4) str[i][2] = 'e';
+    for (isize i = 3; i < 256; i += 4) str[i][2] = 'b';
 
     dumpEventTable(bplEvent, str, from, to);
 }
 
 void
-Agnus::dumpBplEventTable()
+Agnus::dumpBplEventTable() const
 {
     // Dump the event table
     msg("Event table:\n\n");
@@ -643,19 +638,19 @@ Agnus::dumpBplEventTable()
 
     // Dump the jump table
     msg("\nJump table:\n\n");
-    int i = nextBplEvent[0];
-    msg("0 -> %X", i);
+    isize i = nextBplEvent[0];
+    msg("0 -> %zx", i);
     while (i) {
         assert(i < HPOS_CNT);
         assert(nextBplEvent[i] == 0 || nextBplEvent[i] > i);
         i = nextBplEvent[i];
-        msg(" -> %X", i);
+        msg(" -> %zx", i);
     }
     msg("\n");
 }
 
 void
-Agnus::dumpDasEventTable(int from, int to)
+Agnus::dumpDasEventTable(int from, int to) const
 {
     char str[256][3];
 
@@ -689,13 +684,13 @@ Agnus::dumpDasEventTable(int from, int to)
     str[(int)DAS_TICK][0]    = 'T'; str[(int)DAS_TICK][1]    = 'K';
     str[(int)DAS_TICK2][0]   = 'T'; str[(int)DAS_TICK2][1]   = '2';
 
-    for (int i = 1; i < 256; i++) str[i][2] = ' ';
+    for (isize i = 1; i < 256; i++) str[i][2] = ' ';
     
     dumpEventTable(dasEvent, str, from, to);
 }
 
 void
-Agnus::dumpDasEventTable()
+Agnus::dumpDasEventTable() const
 {
     // Dump the event table
     dumpDasEventTable(0x00, 0x4F);
@@ -727,5 +722,5 @@ template u16 Agnus::doSpriteDMA<7>();
 template bool Agnus::allocateBus<BUS_COPPER>();
 template bool Agnus::allocateBus<BUS_BLITTER>();
 
-template bool Agnus::busIsFree<BUS_COPPER>();
-template bool Agnus::busIsFree<BUS_BLITTER>();
+template bool Agnus::busIsFree<BUS_COPPER>() const;
+template bool Agnus::busIsFree<BUS_BLITTER>() const;

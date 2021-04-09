@@ -7,10 +7,13 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-// This file must conform to standard ANSI-C to be compatible with Swift.
+#pragma once
 
-#ifndef _BLITTER_TYPES_H
-#define _BLITTER_TYPES_H
+#include "Aliases.h"
+
+//
+// Structures
+//
 
 typedef struct
 {
@@ -26,10 +29,10 @@ typedef struct
     u16 ash;
     u16 bsh;
     u16 minterm;
-    u16 bltapt;
-    u16 bltbpt;
-    u16 bltcpt;
-    u16 bltdpt;
+    u32 bltapt;
+    u32 bltbpt;
+    u32 bltcpt;
+    u32 bltdpt;
     u16 bltafwm;
     u16 bltalwm;
     i16 bltamod;
@@ -54,5 +57,3 @@ typedef struct
     bool storeToDest;
 }
 BlitterInfo;
-
-#endif

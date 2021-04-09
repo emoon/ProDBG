@@ -7,19 +7,27 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _FS_EMPTY_BLOCK_H
-#define _FS_EMPTY_BLOCK_H
+#pragma once
 
 #include "FSBlock.h"
 
 struct FSEmptyBlock : FSBlock {
     
-    FSEmptyBlock(FSVolume &ref, u32 nr);
-    ~FSEmptyBlock();
+    FSEmptyBlock(FSPartition &p, Block nr) : FSBlock(p, nr) { }
      
-    FSBlockType type() override { return FS_EMPTY_BLOCK; }
+    const char *getDescription() const override { return "FSEmptyBlock"; }
+    
+    
+    //
+    // Methods from Block class
+    //
 
-    void exportBlock(u8 *p, size_t bsize) override;
+    FSBlockType type() const override { return FS_EMPTY_BLOCK; }
+    FSItemType itemType(isize byte) const override; 
+    u32 typeID() const override { return 0; }
+    u32 subtypeID() const override { return 0; }
+    void dumpData() const override { };
+
+    void importBlock(const u8 *src, isize bsize) override;
+    void exportBlock(u8 *dst, isize bsize) override;
 };
-
-#endif

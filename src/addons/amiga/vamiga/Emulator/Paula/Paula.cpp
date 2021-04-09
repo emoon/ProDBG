@@ -7,13 +7,15 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "Paula.h"
+#include "Agnus.h"
+#include "CPU.h"
+#include "IO.h"
 
 Paula::Paula(Amiga& ref) : AmigaComponent(ref)
 {
-    setDescription("Paula");
-
-    subComponents = vector<HardwareComponent *> {
+    subComponents = std::vector<HardwareComponent *> {
         
         &channel0,
         &channel1,
@@ -33,7 +35,7 @@ Paula::_reset(bool hard)
     RESET_SNAPSHOT_ITEMS(hard)
 
     // Interrupts
-    for (int i = 0; i < 16; i++) setIntreq[i] = NEVER;
+    for (isize i = 0; i < 16; i++) setIntreq[i] = NEVER;
     ipl.clear();
     cpu.setIPL(0);
     
@@ -58,13 +60,31 @@ Paula::_inspect()
 }
 
 void
-Paula::_dump()
+Paula::_dump(Dump::Category category, std::ostream& os) const
 {
+    if (category & Dump::State) {
     
+        os << DUMP("potCntX0") << (isize)potCntX0 << std::endl;
+        os << DUMP("potCntY0") << (isize)potCntY0 << std::endl;
+        os << DUMP("potCntX1") << (isize)potCntX1 << std::endl;
+        os << DUMP("potCntY1") << (isize)potCntY1 << std::endl;
+        os << DUMP("chargeX0") << chargeX0 << std::endl;
+        os << DUMP("chargeY0") << chargeX0 << std::endl;
+        os << DUMP("chargeX1") << chargeX1 << std::endl;
+        os << DUMP("chargeY1") << chargeY1 << std::endl;
+    }
+    
+    if (category & Dump::Registers) {
+        
+        os << DUMP("INTENA") << HEX16 << (isize)intena << std::endl;
+        os << DUMP("INTREQ") << HEX16 << (isize)intreq << std::endl;
+        os << DUMP("ADKCON") << HEX16 << (isize)adkcon << std::endl;
+        os << DUMP("POTGO") << HEX16 << (isize)potgo << std::endl;
+    }
 }
 
-size_t
-Paula::didLoadFromBuffer(u8 *buffer)
+isize
+Paula::didLoadFromBuffer(const u8 *buffer)
 {
     muxer.clear();
     return 0;
@@ -83,20 +103,19 @@ Paula::_pause()
 }
 
 void
-Paula::_setWarp(bool enable)
+Paula::_warpOn()
 {
-    if (enable) {
-        
-        // Warping has the unavoidable drawback that audio playback gets out of
-        // sync. To cope with this issue, we ramp down the volume when warping
-        // is switched on and fade in smoothly when it is switched off.
-        muxer.rampDown();
-        
-    } else {
-        
-        muxer.rampUp();
-        muxer.clear();
-    }
+    // Warping has the unavoidable drawback that audio playback gets out of
+    // sync. To cope with this issue, we ramp down the volume when warping
+    // is switched on and fade in smoothly when it is switched off.
+    muxer.rampDown();
+}
+
+void
+Paula::_warpOff()
+{
+    muxer.rampUp();
+    muxer.clear();
 }
 
 void
@@ -116,19 +135,19 @@ Paula::raiseIrq(IrqSource src)
 void
 Paula::scheduleIrqAbs(IrqSource src, Cycle trigger)
 {
-    assert(isIrqSource(src));
+    assert_enum(IrqSource, src);
     assert(trigger != 0);
-    assert(agnus.slot[IRQ_SLOT].id == IRQ_CHECK);
+    assert(agnus.slot[SLOT_IRQ].id == IRQ_CHECK);
 
-    trace(INT_DEBUG, "scheduleIrq(%d, %d)\n", src, trigger);
+    trace(INT_DEBUG, "scheduleIrq(%lld, %lld)\n", src, trigger);
 
     // Record the interrupt request
     if (trigger < setIntreq[src])
         setIntreq[src] = trigger;
 
     // Schedule the interrupt to be triggered with the proper delay
-    if (trigger < agnus.slot[IRQ_SLOT].triggerCycle) {
-        agnus.scheduleAbs<IRQ_SLOT>(trigger, IRQ_CHECK);
+    if (trigger < agnus.slot[SLOT_IRQ].triggerCycle) {
+        agnus.scheduleAbs<SLOT_IRQ>(trigger, IRQ_CHECK);
     }
 }
 
@@ -142,23 +161,21 @@ Paula::scheduleIrqRel(IrqSource src, Cycle trigger)
 void
 Paula::checkInterrupt()
 {
-    unsigned level = interruptLevel();
+    u8 level = interruptLevel();
         
     if ((iplPipe & 0xFF) != level) {
     
-        ipl.write((u8)level);
+        ipl.write(level);
         iplPipe = (iplPipe & ~0xFF) | level;
                 
-        trace(CPU_DEBUG, "iplPipe: %016x\n", iplPipe);
-        
-        u8 iplValue = ipl.delayed();
-        assert(iplValue == ((iplPipe >> 32) & 0xFF));
+        trace(CPU_DEBUG, "iplPipe: %016llx\n", iplPipe);        
+        assert(ipl.delayed() == ((iplPipe >> 32) & 0xFF));
             
-        agnus.scheduleRel<IPL_SLOT>(0, IPL_CHANGE, 5);
+        agnus.scheduleRel<SLOT_IPL>(0, IPL_CHANGE, 5);
     }
 }
 
-unsigned
+u8
 Paula::interruptLevel()
 {
     if (intena & 0x4000) {

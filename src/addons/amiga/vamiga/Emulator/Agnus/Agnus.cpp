@@ -7,13 +7,14 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
+#include "config.h"
+#include "Agnus.h"
 #include "Amiga.h"
+#include "IO.h"
 
 Agnus::Agnus(Amiga& ref) : AmigaComponent(ref)
-{
-    setDescription("Agnus");
-    
-    subComponents = vector<HardwareComponent *> {
+{    
+    subComponents = std::vector<HardwareComponent *> {
         
         &copper,
         &blitter,
@@ -24,6 +25,9 @@ Agnus::Agnus(Amiga& ref) : AmigaComponent(ref)
     ptrMask = 0x0FFFFF;
     
     initLookupTables();
+    
+    // Wipe out the event slots
+    memset(slot, 0, sizeof(slot));
 }
 
 void Agnus::_reset(bool hard)
@@ -37,25 +41,26 @@ void Agnus::_reset(bool hard)
     clearStats();
     
     // Initialize event tables
-    for (int i = pos.h; i < HPOS_CNT; i++) bplEvent[i] = bplDMA[0][0][i];
-    for (int i = pos.h; i < HPOS_CNT; i++) dasEvent[i] = dasDMA[0][i];
+    for (isize i = pos.h; i < HPOS_CNT; i++) bplEvent[i] = bplDMA[0][0][i];
+    for (isize i = pos.h; i < HPOS_CNT; i++) dasEvent[i] = dasDMA[0][i];
     updateBplJumpTable();
     updateDasJumpTable();
     
     // Initialize the event slots
-    for (unsigned i = 0; i < SLOT_COUNT; i++) {
+    for (isize i = 0; i < SLOT_COUNT; i++) {
         slot[i].triggerCycle = NEVER;
         slot[i].id = (EventID)0;
         slot[i].data = 0;
     }
     
     // Schedule initial events
-    scheduleRel<RAS_SLOT>(DMA_CYCLES(HPOS_CNT), RAS_HSYNC);
-    scheduleRel<CIAA_SLOT>(CIA_CYCLES(AS_CIA_CYCLES(clock)), CIA_EXECUTE);
-    scheduleRel<CIAB_SLOT>(CIA_CYCLES(AS_CIA_CYCLES(clock)), CIA_EXECUTE);
-    scheduleRel<SEC_SLOT>(NEVER, SEC_TRIGGER);
-    scheduleRel<VBL_SLOT>(DMA_CYCLES(HPOS_CNT * vStrobeLine()), VBL_STROBE0);
-    scheduleRel<IRQ_SLOT>(NEVER, IRQ_CHECK);
+    scheduleRel<SLOT_RAS>(DMA_CYCLES(HPOS_CNT), RAS_HSYNC);
+    scheduleRel<SLOT_CIAA>(CIA_CYCLES(AS_CIA_CYCLES(clock)), CIA_EXECUTE);
+    scheduleRel<SLOT_CIAB>(CIA_CYCLES(AS_CIA_CYCLES(clock)), CIA_EXECUTE);
+    scheduleRel<SLOT_SEC>(NEVER, SEC_TRIGGER);
+    // scheduleRel<SLOT_VBL>(DMA_CYCLES(HPOS_CNT * vStrobeLine()), VBL_STROBE0);
+    scheduleStrobe0Event();
+    scheduleRel<SLOT_IRQ>(NEVER, IRQ_CHECK);
     diskController.scheduleFirstDiskEvent();
     scheduleNextBplEvent();
     scheduleNextDasEvent();
@@ -68,19 +73,21 @@ void Agnus::_reset(bool hard)
 }
 
 long
-Agnus::getConfigItem(ConfigOption option)
+Agnus::getConfigItem(Option option) const
 {
     switch (option) {
             
         case OPT_AGNUS_REVISION: return config.revision;
         case OPT_SLOW_RAM_MIRROR: return config.slowRamMirror;
             
-        default: assert(false);
+        default:
+            assert(false);
+            return 0;
     }
 }
 
 bool
-Agnus::setConfigItem(ConfigOption option, long value)
+Agnus::setConfigItem(Option option, long value)
 {
     switch (option) {
             
@@ -88,14 +95,12 @@ Agnus::setConfigItem(ConfigOption option, long value)
             
             #ifdef FORCE_AGNUS_REVISION
             value = FORCE_AGNUS_REVISION;
-            warn("Overriding Agnus revision: %d\n", value);
+            warn("Overriding Agnus revision: %ld\n", value);
             #endif
             
-            if (!isAgnusRevision(value)) {
-                warn("Invalid Agnus revision: %d\n", value);
-                return false;
-            }
-            
+            if (!AgnusRevisionEnum::isValid(value)) {
+                throw ConfigArgError(AgnusRevisionEnum::keyList());
+            }            
             if (config.revision == value) {
                 return false;
             }
@@ -127,13 +132,6 @@ Agnus::setConfigItem(ConfigOption option, long value)
     }
 }
 
-void
-Agnus::_dumpConfig()
-{
-    msg("      revision : %s\n", sAgnusRevision(config.revision));
-    msg(" slowRamMirror : %s\n", config.slowRamMirror ? "yes" : "no");
-}
-
 i16
 Agnus::idBits()
 {
@@ -145,7 +143,7 @@ Agnus::idBits()
     }
 }
 
-size_t
+isize
 Agnus::chipRamLimit()
 {
     switch (config.revision) {
@@ -198,42 +196,138 @@ Agnus::_inspect()
         info.bltpt[1] = blitter.bltbpt & ptrMask;
         info.bltpt[2] = blitter.bltcpt & ptrMask;
         info.bltpt[3] = blitter.bltdpt & ptrMask;
-        for (unsigned i = 0; i < 6; i++) info.bplpt[i] = bplpt[i] & ptrMask;
-        for (unsigned i = 0; i < 4; i++) info.audpt[i] = audpt[i] & ptrMask;
-        for (unsigned i = 0; i < 4; i++) info.audlc[i] = audlc[i] & ptrMask;
-        for (unsigned i = 0; i < 8; i++) info.sprpt[i] = sprpt[i] & ptrMask;
+        for (isize i = 0; i < 6; i++) info.bplpt[i] = bplpt[i] & ptrMask;
+        for (isize i = 0; i < 4; i++) info.audpt[i] = audpt[i] & ptrMask;
+        for (isize i = 0; i < 4; i++) info.audlc[i] = audlc[i] & ptrMask;
+        for (isize i = 0; i < 8; i++) info.sprpt[i] = sprpt[i] & ptrMask;
     }
 }
 
 void
-Agnus::_dump()
+Agnus::_dump(Dump::Category category, std::ostream& os) const
 {
-    msg(" actions : %X\n", hsyncActions);
-
-    msg("   dskpt : %X\n", dskpt);
-    for (unsigned i = 0; i < 4; i++) msg("audpt[%d] : %X\n", i, audpt[i]);
-    for (unsigned i = 0; i < 6; i++) msg("bplpt[%d] : %X\n", i, bplpt[i]);
-    for (unsigned i = 0; i < 8; i++) msg("bplpt[%d] : %X\n", i, sprpt[i]);
+    if (category & Dump::Config) {
     
-    msg("   hstrt : %d\n", diwHstrt);
-    msg("   hstop : %d\n", diwHstop);
-    msg("   vstrt : %d\n", diwVstrt);
-    msg("   vstop : %d\n", diwVstop);
+        os << DUMP("Chip Revison");
+        os << AgnusRevisionEnum::key(config.revision) << std::endl;
+        os << DUMP("Slow Ram mirror");
+        os << EMULATED(config.slowRamMirror) << std::endl;
+    }
 
-    msg("\nEvents:\n\n");
-    dumpEvents();
+    if (category & Dump::State) {
+        
+        os << DUMP("Clock") << DEC << clock << std::endl;
+        os << DUMP("Frame") << DEC << (isize)frame.nr << std::endl;
+        os << DUMP("LOF") << DEC << (isize)frame.lof << std::endl;
+        os << DUMP("LOF in previous frame") << DEC << (isize)frame.prevlof << std::endl;
+        os << DUMP("Beam position");
+        os << DEC << "(" << (isize)pos.v << "," << (isize)pos.h << ")" << std::endl;
+        os << DUMP("Latched position");
+        os << DEC << "(" << (isize)pos.vLatched << "," << (isize)pos.hLatched << ")" << std::endl;
+        os << DUMP("scrollLoresOdd") << DEC << (isize)scrollLoresOdd << std::endl;
+        os << DUMP("scrollLoresEven") << DEC << (isize)scrollLoresEven << std::endl;
+        os << DUMP("scrollHiresOdd") << DEC << (isize)scrollHiresOdd << std::endl;
+        os << DUMP("scrollHiresEven") << DEC << (isize)scrollHiresEven << std::endl;
+        os << DUMP("Bitplane DMA line") << YESNO(bplDmaLine) << std::endl;
+        os << DUMP("BLS signal") << ISENABLED(bls) << std::endl;
+    }
 
-    msg("\nBPL DMA table:\n\n");
+    if (category & Dump::Registers) {
+        
+        os << DUMP("DMACON");
+        os << HEX32 << dmacon << std::endl;
+        
+        os << DUMP("DDFSTRT, DDFSTOP");
+        os << HEX32 << ddfstrt << ' ' << HEX32 << ddfstop << ' ' << std::endl;
+        
+        os << DUMP("DIWSTRT, DIWSTOP");
+        os << HEX32 << diwstrt << ' ' << HEX32 << diwstop << ' ' << std::endl;
+
+        os << DUMP("BPLCON0, BPLCON1");
+        os << HEX32 << bplcon0 << ' ' << HEX32 << bplcon1 << ' ' << std::endl;
+
+        os << DUMP("BPL1MOD, BPL2MOD");
+        os << HEX32 << bpl1mod << ' ' << HEX32 << bpl2mod << ' ' << std::endl;
+    
+        os << DUMP("BPL0PT - BPL2PT");
+        os << HEX32 << bplpt[0] << ' ' << HEX32 << bplpt[1] << ' ';
+        os << HEX32 << bplpt[2] << ' ' << ' ' << std::endl;
+        os << DUMP("BPL3PT - BPL5PT");
+        os << HEX32 << bplpt[3] << ' ' << HEX32 << bplpt[4] << ' ';
+        os << HEX32 << bplpt[5] << std::endl;
+
+        os << DUMP("SPR0PT - SPR3PT");
+        os << HEX32 << sprpt[0] << ' ' << HEX32 << sprpt[1] << ' ';
+        os << HEX32 << sprpt[2] << ' ' << HEX32 << sprpt[3] << ' ' << std::endl;
+        os << DUMP("SPR4PT - SPR7PT");
+        os << HEX32 << sprpt[4] << ' ' << HEX32 << sprpt[5] << ' ';
+        os << HEX32 << sprpt[5] << ' ' << HEX32 << sprpt[7] << ' ' << std::endl;
+
+        os << DUMP("AUD0PT - AUD3PT");
+        os << HEX32 << audpt[0] << ' ' << HEX32 << audpt[1] << ' ';
+        os << HEX32 << audpt[2] << ' ' << HEX32 << audpt[3] << ' ' << std::endl;
+
+        os << DUMP("DSKPT");
+        os << HEX32 << dskpt << std::endl;
+    }
+    
+    if (category & Dump::Events) {
+        
+        EventInfo eventInfo;
+        inspectEvents(eventInfo);
+            
+        os << TAB(10) << "Slot";
+        os << TAB(14) << "Event";
+        os << TAB(18) << "Trigger position";
+        os << TAB(16) << "Trigger cycle" << std::endl;
+        
+
+        for (isize i = 0; i < 15; i++) {
+        // for (isize i = 0; i < SLOT_COUNT; i++) {
+
+            EventSlotInfo &info = eventInfo.slotInfo[i];
+            bool willTrigger = info.trigger != NEVER;
+            
+            os << TAB(10) << EventSlotEnum::key(info.slot);
+            os << TAB(14) << info.eventName;
+            
+            if (willTrigger) {
+                
+                if (info.frameRel == -1) {
+                    os << TAB(18) << "previous frame";
+                } else if (info.frameRel > 0) {
+                    os << TAB(18) << "next frame";
+                } else {
+                    string vpos = std::to_string(info.vpos);
+                    string hpos = std::to_string(info.hpos);
+                    string pos = "(" + vpos + "," + hpos + ")";
+                    os << TAB(18) << pos;
+                }
+
+                if (info.triggerRel == 0) {
+                    os << TAB(16) << "due immediately";
+                } else {
+                    string cycle = std::to_string(info.triggerRel / 8);
+                    os << TAB(16) << "due in " + cycle + " DMA cycles";
+                }
+            }
+            os << std::endl;
+        }
+    }
+    
+    /*
+    ss << "\nBPL DMA table:\n\n");
     dumpBplEventTable();
 
-    msg("\nDAS DMA table:\n\n");
+    ss << "\nDAS DMA table:\n\n");
     dumpDasEventTable();
+    */
 }
 
 void
 Agnus::clearStats()
 {
-    for (int i = 0; i < BUS_COUNT; i++) stats.usage[i] = 0;
+    for (isize i = 0; i < BUS_COUNT; i++) stats.usage[i] = 0;
     
     stats.copperActivity = 0;
     stats.blitterActivity = 0;
@@ -278,48 +372,48 @@ Agnus::updateStats()
     stats.spriteActivity = w * stats.spriteActivity + (1 - w) * sprite;
     stats.bitplaneActivity = w * stats.bitplaneActivity + (1 - w) * bitplane;
     
-    for (int i = 0; i < BUS_COUNT; i++) stats.usage[i] = 0;
+    for (isize i = 0; i < BUS_COUNT; i++) stats.usage[i] = 0;
 }
 
 Cycle
-Agnus::cyclesInFrame()
+Agnus::cyclesInFrame() const
 {
     return DMA_CYCLES(frame.numLines() * HPOS_CNT);
 }
 
 Cycle
-Agnus::startOfFrame()
+Agnus::startOfFrame() const
 {
     return clock - DMA_CYCLES(pos.v * HPOS_CNT + pos.h);
 }
 
 Cycle
-Agnus::startOfNextFrame()
+Agnus::startOfNextFrame() const
 {
     return startOfFrame() + cyclesInFrame();
 }
 
 bool
-Agnus::belongsToPreviousFrame(Cycle cycle)
+Agnus::belongsToPreviousFrame(Cycle cycle) const
 {
     return cycle < startOfFrame();
 }
 
 bool
-Agnus::belongsToCurrentFrame(Cycle cycle)
+Agnus::belongsToCurrentFrame(Cycle cycle) const
 {
     return !belongsToPreviousFrame(cycle) && !belongsToNextFrame(cycle);
 }
 
 bool
-Agnus::belongsToNextFrame(Cycle cycle)
+Agnus::belongsToNextFrame(Cycle cycle) const
 {
     return cycle >= startOfNextFrame();
 }
 
 bool
-Agnus::inBplDmaLine(u16 dmacon, u16 bplcon0) {
-
+Agnus::inBplDmaLine(u16 dmacon, u16 bplcon0) const
+{
     return
     ddfVFlop                 // Outside VBLANK, inside DIW
     && bpu(bplcon0)          // At least one bitplane enabled
@@ -327,13 +421,13 @@ Agnus::inBplDmaLine(u16 dmacon, u16 bplcon0) {
 }
 
 Cycle
-Agnus::beamToCycle(Beam beam)
+Agnus::beamToCycle(Beam beam) const
 {
     return startOfFrame() + DMA_CYCLES(beam.v * HPOS_CNT + beam.h);
 }
 
 Beam
-Agnus::cycleToBeam(Cycle cycle)
+Agnus::cycleToBeam(Cycle cycle) const
 {
     Beam result;
 
@@ -346,7 +440,7 @@ Agnus::cycleToBeam(Cycle cycle)
 }
 
 Beam
-Agnus::addToBeam(Beam beam, Cycle cycles)
+Agnus::addToBeam(Beam beam, Cycle cycles) const
 {
     Beam result;
 
@@ -432,7 +526,7 @@ Agnus::computeDDFWindowOCS()
      *  7 | large   | medium  | -       || not handled         | DDF_OFF
      *  8 | large   | large   | -       || Empty               | DDF_OFF
      */
-    const struct { int interval; } table[9] = {
+    const struct { isize interval; } table[9] = {
         { DDF_EMPTY     }, // 0
         { DDF_18_STOP   }, // 1
         { DDF_18_D8     }, // 2
@@ -444,7 +538,7 @@ Agnus::computeDDFWindowOCS()
         { DDF_EMPTY     }  // 8
     };
 
-    int index = 3*strt + stop;
+    isize index = 3*strt + stop;
     switch (table[index].interval) {
 
         case DDF_EMPTY:
@@ -511,7 +605,7 @@ Agnus::computeDDFWindowECS()
      * 16 | large   | large   | DDF_OFF || Empty               | DDF_OFF
      * 17 | large   | large   | DDF_ON  || [0x18 ; 0xD8]       | DDF_ON
      */
-    const struct { int interval; DDFState state; } table[18] = {
+    const struct { isize interval; DDFState state; } table[18] = {
         { DDF_EMPTY ,    DDF_OFF }, // 0
         { DDF_EMPTY ,    DDF_OFF }, // 1
         { DDF_18_STOP ,  DDF_OFF }, // 2
@@ -532,7 +626,7 @@ Agnus::computeDDFWindowECS()
         { DDF_18_D8 ,    DDF_ON  }, // 17
     };
 
-    int index = 6*strt + 2*stop + (ddfState == DDF_ON);
+    isize index = 6*strt + 2*stop + (ddfState == DDF_ON);
     switch (table[index].interval) {
 
         case DDF_EMPTY:
@@ -663,7 +757,7 @@ Agnus::syncWithEClock()
     
     // We want to sync to position (2).
     // If we are already too close, we seek (2) in the next E clock cycle.
-    Cycle delay;
+    Cycle delay = 0;
     switch (eClk) {
         case 0: delay = 4 * (2 + 10); break;
         case 1: delay = 4 * (1 + 10); break;
@@ -688,6 +782,7 @@ Agnus::syncWithEClock()
     cpu.addWaitStates(delay);
 }
 
+/*
 bool
 Agnus::inSyncWithEClock()
 {
@@ -698,8 +793,9 @@ Agnus::inSyncWithEClock()
     Cycle eClk = (clock >> 2) % 10;
     
     // Unsure if this condition is accurate
-    return eClk >= 2 || eClk <= 6;
+    return eClk >= 2 && eClk <= 6;
 }
+*/
 
 void
 Agnus::executeUntilBusIsFree()
@@ -754,7 +850,7 @@ Agnus::executeUntilBusIsFreeForCIA()
             execute();
             if (++delay == 2) bls = true;
             
-        } while (busOwner[posh] != BUS_NONE || !inSyncWithEClock());
+        } while (busOwner[posh] != BUS_NONE);
 
         // Clear the BLS line (Blitter slow down)
         bls = false;
@@ -847,18 +943,18 @@ Agnus::updateSpriteDMA()
 
     // Reset the vertical trigger coordinates in line 25
     if (v == 25 && sprdma()) {
-        for (int i = 0; i < 8; i++) sprVStop[i] = 25;
+        for (isize i = 0; i < 8; i++) sprVStop[i] = 25;
         return;
      }
 
     // Disable DMA in the last rasterline
     if (v == frame.lastLine()) {
-        for (int i = 0; i < 8; i++) sprDmaState[i] = SPR_DMA_IDLE;
+        for (isize i = 0; i < 8; i++) sprDmaState[i] = SPR_DMA_IDLE;
         return;
     }
 
     // Update the DMA status for all sprites
-    for (int i = 0; i < 8; i++) {
+    for (isize i = 0; i < 8; i++) {
         if (v == sprVStrt[i]) sprDmaState[i] = SPR_DMA_ACTIVE;
         if (v == sprVStop[i]) sprDmaState[i] = SPR_DMA_IDLE;
     }
@@ -978,7 +1074,7 @@ Agnus::hsyncHandler()
     }
 
     // Clear the bus usage table
-    for (int i = 0; i < HPOS_CNT; i++) busOwner[i] = BUS_NONE;
+    for (isize i = 0; i < HPOS_CNT; i++) busOwner[i] = BUS_NONE;
 
     // Schedule the first BPL and DAS events
     scheduleNextBplEvent();

@@ -7,10 +7,11 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _UART_H
-#define _UART_H
+#pragma once
 
+#include "UARTTypes.h"
 #include "AmigaComponent.h"
+#include "Event.h"
 
 class UART : public AmigaComponent {
 
@@ -48,6 +49,8 @@ public:
     
     UART(Amiga& ref);
     
+    const char *getDescription() const override { return "UART"; }
+
 private:
     
     void _reset(bool hard) override;
@@ -64,7 +67,7 @@ public:
 private:
     
     void _inspect() override;
-    void _dump() override;
+    void _dump(Dump::Category category, std::ostream& os) const override;
 
     
     //
@@ -88,19 +91,19 @@ private:
     {
         worker
 
-        & serper
-        & receiveBuffer
-        & receiveShiftReg
-        & transmitBuffer
-        & transmitShiftReg
-        & outBit
-        & ovrun
-        & recCnt;
+        << serper
+        << receiveBuffer
+        << receiveShiftReg
+        << transmitBuffer
+        << transmitShiftReg
+        << outBit
+        << ovrun
+        << recCnt;
     }
 
-    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
-    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
+    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
 
     //
@@ -119,15 +122,15 @@ public:
     void pokeSERPER(u16 value);
 
     // Returns the baud rate (converted to DMA cycles)
-    int rate() { return DMA_CYCLES((serper & 0x7FFF) + 1); }
+    int rate() const { return DMA_CYCLES((serper & 0x7FFF) + 1); }
 
 private:
 
     // Returns the length of a received packet (8 or 9 bits)
-    int packetLength() { return GET_BIT(serper, 15) ? 9 : 8; }
+    int packetLength() const { return GET_BIT(serper, 15) ? 9 : 8; }
 
     // Returns true if the shift register is empty
-    bool shiftRegEmpty() { return transmitShiftReg == 0; }
+    bool shiftRegEmpty() const { return transmitShiftReg == 0; }
 
     // Copies the contents of the transmit buffer to the transmit shift register
     void copyToTransmitShiftRegister();
@@ -162,5 +165,3 @@ public:
     void serviceRxdEvent(EventID id);
 
 };
-
-#endif

@@ -7,13 +7,13 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _CPU_H
-#define _CPU_H
+#pragma once
 
+#include "CPUTypes.h"
 #include "AmigaComponent.h"
 #include "Moira.h"
 
-class CPU : public AmigaComponent, public moira::Moira {
+class CPU : public moira::Moira {
 
     // Result of the latest inspection
     CPUInfo info;
@@ -27,6 +27,8 @@ public:
 
     CPU(Amiga& ref);
 
+    const char *getDescription() const override { return "CPU"; }
+    
     void _reset(bool hard) override;
     
     
@@ -37,12 +39,12 @@ public:
 public:
     
     CPUInfo getInfo() { return HardwareComponent::getInfo(info); }
-    
+        
 private:
     
     void _inspect() override;
     void _inspect(u32 dasmStart);
-    void _dump() override;
+    void _dump(Dump::Category category, std::ostream& os) const override;
 
     
     //
@@ -61,30 +63,30 @@ private:
     {
         worker
 
-        & flags
-        & clock
+        << flags
+        << clock
 
-        & reg.pc
-        & reg.pc0
-        & reg.sr.t
-        & reg.sr.s
-        & reg.sr.x
-        & reg.sr.n
-        & reg.sr.z
-        & reg.sr.v
-        & reg.sr.c
-        & reg.sr.ipl
-        & reg.r
-        & reg.usp
-        & reg.ssp
-        & reg.ipl
+        << reg.pc
+        << reg.pc0
+        << reg.sr.t
+        << reg.sr.s
+        << reg.sr.x
+        << reg.sr.n
+        << reg.sr.z
+        << reg.sr.v
+        << reg.sr.c
+        << reg.sr.ipl
+        << reg.r
+        << reg.usp
+        << reg.ssp
+        << reg.ipl
 
-        & queue.irc
-        & queue.ird
+        << queue.irc
+        << queue.ird
 
-        & ipl
-        & fcl
-        & exception;
+        << ipl
+        << fcl
+        << exception;
     }
 
     template <class T>
@@ -92,10 +94,10 @@ private:
     {
     }
 
-    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
-    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
-    size_t didLoadFromBuffer(u8 *buffer) override;
+    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
+    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    isize didLoadFromBuffer(const u8 *buffer) override;
 
 
     //
@@ -104,7 +106,8 @@ private:
     
 private:
 
-    void _setDebug(bool enable) override;
+    void _debugOn() override;
+    void _debugOff() override;
 
         
     //
@@ -113,6 +116,7 @@ private:
 
 private:
 
+    /*
     void sync(int cycles) override;
     u8 read8(u32 addr) override;
     u16 read16(u32 addr) override;
@@ -120,7 +124,7 @@ private:
     u16 read16Dasm(u32 addr) override;
     void write8 (u32 addr, u8  val) override;
     void write16 (u32 addr, u16 val) override;
-    int readIrqUserVector(u8 level) override { return 0; }
+    u16 readIrqUserVector(u8 level) const override { return 0; }
  
     void signalReset() override;
     void signalStop(u16 op) override;
@@ -141,7 +145,7 @@ private:
     
     void breakpointReached(u32 addr) override;
     void watchpointReached(u32 addr) override;
-
+    */
     
     //
     // Working with the clock
@@ -150,10 +154,10 @@ private:
 public:
 
     // Returns the clock in CPU cycles
-    CPUCycle getCpuClock() { return getClock(); }
+    CPUCycle getCpuClock() const { return getClock(); }
 
     // Returns the clock in master cycles
-    Cycle getMasterClock() { return CPU_CYCLES(getClock()); }
+    Cycle getMasterClock() const { return CPU_CYCLES(getClock()); }
 
     // Delays the CPU by a certain amout of master cycles
     void addWaitStates(Cycle cycles) { clock += AS_CPU_CYCLES(cycles); }
@@ -164,19 +168,17 @@ public:
     //
     
     // Disassembles a recorded instruction from the log buffer
-    const char *disassembleRecordedInstr(int i, long *len);
-    const char *disassembleRecordedWords(int i, int len);
-    const char *disassembleRecordedFlags(int i);
-    const char *disassembleRecordedPC(int i);
+    const char *disassembleRecordedInstr(isize i, isize *len);
+    const char *disassembleRecordedWords(isize i, isize len);
+    const char *disassembleRecordedFlags(isize i);
+    const char *disassembleRecordedPC(isize i);
 
     // Disassembles the instruction at the specified address
-    const char *disassembleInstr(u32 addr, long *len);
-    const char *disassembleWords(u32 addr, int len);
+    const char *disassembleInstr(u32 addr, isize *len);
+    const char *disassembleWords(u32 addr, isize len);
     const char *disassembleAddr(u32 addr);
 
     // Disassembles the currently executed instruction
-    const char *disassembleInstr(long *len);
-    const char *disassembleWords(int len);
+    const char *disassembleInstr(isize *len);
+    const char *disassembleWords(isize len);
 };
-
-#endif

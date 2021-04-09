@@ -7,7 +7,11 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "Blitter.h"
+#include "Agnus.h"
+#include "Memory.h"
+#include "Paula.h"
 
 /* Micro-instructions:
  *
@@ -157,7 +161,7 @@ Blitter::initSlowBlitter()
             {
                 {   // Full execution, no fill
                     &Blitter::exec <HOLD_D | BUSIDLE>,
-                    &Blitter::exec <WRITE_D | HOLD_A | HOLD_B | REPEAT>,
+                    &Blitter::exec <WRITE_D | HOLD_A | REPEAT>,
 
                     &Blitter::exec <HOLD_D>,
                     &Blitter::exec <WRITE_D | BLTDONE>,
@@ -167,7 +171,7 @@ Blitter::initSlowBlitter()
                 {   // Full execution, fill
                     &Blitter::exec <FILL | HOLD_D | BUSIDLE>,
                     &Blitter::exec <WRITE_D>,
-                    &Blitter::exec <BUSIDLE | HOLD_A | HOLD_B | REPEAT>,
+                    &Blitter::exec <BUSIDLE | HOLD_A | REPEAT>,
 
                     &Blitter::exec <FILL | HOLD_D>,
                     &Blitter::exec <WRITE_D | BLTDONE>,
@@ -177,7 +181,7 @@ Blitter::initSlowBlitter()
             {
                 {   // Fake execution, no fill
                     &Blitter::fakeExec <HOLD_D | BUSIDLE>,
-                    &Blitter::fakeExec <WRITE_D | HOLD_A | HOLD_B | REPEAT>,
+                    &Blitter::fakeExec <WRITE_D | HOLD_A | REPEAT>,
 
                     &Blitter::fakeExec <HOLD_D>,
                     &Blitter::fakeExec <WRITE_D | BLTDONE>,
@@ -187,7 +191,7 @@ Blitter::initSlowBlitter()
                 {   // Fake execution, fill
                     &Blitter::fakeExec <FILL | HOLD_D | BUSIDLE>,
                     &Blitter::fakeExec <WRITE_D>,
-                    &Blitter::fakeExec <BUSIDLE | HOLD_A | HOLD_B | REPEAT>,
+                    &Blitter::fakeExec <BUSIDLE | HOLD_A | REPEAT>,
 
                     &Blitter::fakeExec <FILL | HOLD_D>,
                     &Blitter::fakeExec <WRITE_D | BLTDONE>,
@@ -201,7 +205,7 @@ Blitter::initSlowBlitter()
             {
                 {   // Full execution, no fill
                     &Blitter::exec <HOLD_D | BUSIDLE>,
-                    &Blitter::exec <FETCH_C | HOLD_A | HOLD_B | REPEAT>,
+                    &Blitter::exec <FETCH_C | HOLD_A | REPEAT>,
 
                     &Blitter::exec <HOLD_D>,
                     &Blitter::exec <BLTDONE>,
@@ -210,7 +214,7 @@ Blitter::initSlowBlitter()
                 },
                 {   // Full execution, fill
                     &Blitter::exec <FILL | HOLD_D | BUSIDLE>,
-                    &Blitter::exec <FETCH_C | HOLD_A | HOLD_B | REPEAT>,
+                    &Blitter::exec <FETCH_C | HOLD_A | REPEAT>,
 
                     &Blitter::exec <FILL | HOLD_D>,
                     &Blitter::exec <BLTDONE>,
@@ -221,7 +225,7 @@ Blitter::initSlowBlitter()
             {
                 {   // Fake execution, no fill
                     &Blitter::fakeExec <HOLD_D | BUSIDLE>,
-                    &Blitter::fakeExec <FETCH_C | HOLD_A | HOLD_B | REPEAT>,
+                    &Blitter::fakeExec <FETCH_C | HOLD_A | REPEAT>,
 
                     &Blitter::fakeExec <HOLD_D>,
                     &Blitter::fakeExec <BLTDONE>,
@@ -230,7 +234,7 @@ Blitter::initSlowBlitter()
                 },
                 {   // Fake execution, fill
                     &Blitter::fakeExec <FILL | HOLD_D | BUSIDLE>,
-                    &Blitter::fakeExec <FETCH_C | HOLD_A | HOLD_B | REPEAT>,
+                    &Blitter::fakeExec <FETCH_C | HOLD_A | REPEAT>,
 
                     &Blitter::fakeExec <FILL | HOLD_D>,
                     &Blitter::fakeExec <BLTDONE>,
@@ -245,7 +249,7 @@ Blitter::initSlowBlitter()
             {
                 {   // Full execution, no fill
                     &Blitter::exec <HOLD_D | BUSIDLE>,
-                    &Blitter::exec <FETCH_C | HOLD_A | HOLD_B>,
+                    &Blitter::exec <FETCH_C | HOLD_A>,
                     &Blitter::exec <WRITE_D | REPEAT>,
 
                     &Blitter::exec <HOLD_D>,
@@ -254,7 +258,7 @@ Blitter::initSlowBlitter()
                 },
                 {   // Full execution, fill
                     &Blitter::exec <FILL | HOLD_D | BUSIDLE>,
-                    &Blitter::exec <FETCH_C | HOLD_A | HOLD_B>,
+                    &Blitter::exec <FETCH_C | HOLD_A>,
                     &Blitter::exec <WRITE_D | REPEAT>,
 
                     &Blitter::exec <FILL | HOLD_D>,
@@ -265,7 +269,7 @@ Blitter::initSlowBlitter()
             {
                 {   // Fake execution, no fill
                     &Blitter::fakeExec <HOLD_D | BUSIDLE>,
-                    &Blitter::fakeExec <FETCH_C | HOLD_A | HOLD_B>,
+                    &Blitter::fakeExec <FETCH_C | HOLD_A>,
                     &Blitter::fakeExec <WRITE_D | REPEAT>,
 
                     &Blitter::fakeExec <HOLD_D>,
@@ -274,7 +278,7 @@ Blitter::initSlowBlitter()
                 },
                 {   // Fake execution, fill
                     &Blitter::fakeExec <FILL | HOLD_D | BUSIDLE>,
-                    &Blitter::fakeExec <FETCH_C | HOLD_A | HOLD_B>,
+                    &Blitter::fakeExec <FETCH_C | HOLD_A>,
                     &Blitter::fakeExec <WRITE_D | REPEAT>,
 
                     &Blitter::fakeExec <FILL | HOLD_D>,
@@ -467,7 +471,7 @@ Blitter::initSlowBlitter()
             {
                 {   // Full execution, no fill
                     &Blitter::exec <FETCH_A | HOLD_D>,
-                    &Blitter::exec <HOLD_A | HOLD_B | BUSIDLE | REPEAT>,
+                    &Blitter::exec <HOLD_A | BUSIDLE | REPEAT>,
 
                     &Blitter::exec <HOLD_D>,
                     &Blitter::exec <BLTDONE>,
@@ -476,7 +480,7 @@ Blitter::initSlowBlitter()
                 },
                 {   // Full execution, fill
                     &Blitter::exec <FETCH_A | FILL | HOLD_D>,
-                    &Blitter::exec <HOLD_A | HOLD_B | BUSIDLE | REPEAT>,
+                    &Blitter::exec <HOLD_A | BUSIDLE | REPEAT>,
 
                     &Blitter::exec <FILL | HOLD_D>,
                     &Blitter::exec <BLTDONE>,
@@ -487,7 +491,7 @@ Blitter::initSlowBlitter()
             {
                 {   // Fake execution, no fill
                     &Blitter::fakeExec <FETCH_A | HOLD_D>,
-                    &Blitter::fakeExec <HOLD_A | HOLD_B | BUSIDLE | REPEAT>,
+                    &Blitter::fakeExec <HOLD_A | BUSIDLE | REPEAT>,
 
                     &Blitter::fakeExec <HOLD_D>,
                     &Blitter::fakeExec <BLTDONE>,
@@ -496,7 +500,7 @@ Blitter::initSlowBlitter()
                 },
                 {   // Fake execution, fill
                     &Blitter::fakeExec <FETCH_A | FILL | HOLD_D>,
-                    &Blitter::fakeExec <HOLD_A | HOLD_B | BUSIDLE | REPEAT>,
+                    &Blitter::fakeExec <HOLD_A | BUSIDLE | REPEAT>,
 
                     &Blitter::fakeExec <FILL | HOLD_D>,
                     &Blitter::fakeExec <BLTDONE>,
@@ -512,7 +516,7 @@ Blitter::initSlowBlitter()
             {
                 {   // Full execution, no fill
                     &Blitter::exec <FETCH_A | HOLD_D>,
-                    &Blitter::exec <WRITE_D | HOLD_A | HOLD_B | REPEAT>,
+                    &Blitter::exec <WRITE_D | HOLD_A | REPEAT>,
 
                     &Blitter::exec <HOLD_D>,
                     &Blitter::exec <WRITE_D | BLTDONE>,
@@ -521,7 +525,7 @@ Blitter::initSlowBlitter()
                 },
                 {   // Full execution, fill
                     &Blitter::exec <FETCH_A | FILL | HOLD_D>,
-                    &Blitter::exec <WRITE_D | HOLD_A | HOLD_B>,
+                    &Blitter::exec <WRITE_D | HOLD_A>,
                     &Blitter::exec <BUSIDLE | REPEAT>,
 
                     &Blitter::exec <FILL | HOLD_D>,
@@ -532,7 +536,7 @@ Blitter::initSlowBlitter()
             {
                 {   // Fake execution, no fill
                     &Blitter::fakeExec <FETCH_A | HOLD_D>,
-                    &Blitter::fakeExec <WRITE_D | HOLD_A | HOLD_B | REPEAT>,
+                    &Blitter::fakeExec <WRITE_D | HOLD_A | REPEAT>,
 
                     &Blitter::fakeExec <HOLD_D>,
                     &Blitter::fakeExec <WRITE_D | BLTDONE>,
@@ -541,7 +545,7 @@ Blitter::initSlowBlitter()
                 },
                 {   // Fake execution, fill
                     &Blitter::fakeExec <FETCH_A | FILL | HOLD_D>,
-                    &Blitter::fakeExec <WRITE_D | HOLD_A | HOLD_B>,
+                    &Blitter::fakeExec <WRITE_D | HOLD_A>,
                     &Blitter::fakeExec <BUSIDLE | REPEAT>,
 
                     &Blitter::fakeExec <FILL | HOLD_D>,
@@ -556,7 +560,7 @@ Blitter::initSlowBlitter()
             {
                 {   // Full execution, no fill
                     &Blitter::exec <FETCH_A | HOLD_D>,
-                    &Blitter::exec <FETCH_C | HOLD_A | HOLD_B | REPEAT>,
+                    &Blitter::exec <FETCH_C | HOLD_A | REPEAT>,
 
                     &Blitter::exec <HOLD_D>,
                     &Blitter::exec <BLTDONE>,
@@ -565,7 +569,7 @@ Blitter::initSlowBlitter()
                 },
                 {   // Full execution, fill
                     &Blitter::exec <FETCH_A | FILL | HOLD_D>,
-                    &Blitter::exec <FETCH_C | HOLD_A | HOLD_B | REPEAT>,
+                    &Blitter::exec <FETCH_C | HOLD_A | REPEAT>,
 
                     &Blitter::exec <FILL | HOLD_D>,
                     &Blitter::exec <BLTDONE>,
@@ -576,7 +580,7 @@ Blitter::initSlowBlitter()
             {
                 {   // Fake execution, no fill
                     &Blitter::fakeExec <FETCH_A | HOLD_D>,
-                    &Blitter::fakeExec <FETCH_C | HOLD_A | HOLD_B | REPEAT>,
+                    &Blitter::fakeExec <FETCH_C | HOLD_A | REPEAT>,
 
                     &Blitter::fakeExec <HOLD_D>,
                     &Blitter::fakeExec <BLTDONE>,
@@ -585,7 +589,7 @@ Blitter::initSlowBlitter()
                 },
                 {   // Fake execution, fill
                     &Blitter::fakeExec <FETCH_A | FILL | HOLD_D>,
-                    &Blitter::fakeExec <FETCH_C | HOLD_A | HOLD_B | REPEAT>,
+                    &Blitter::fakeExec <FETCH_C | HOLD_A | REPEAT>,
 
                     &Blitter::fakeExec <FILL | HOLD_D>,
                     &Blitter::fakeExec <BLTDONE>,
@@ -600,7 +604,7 @@ Blitter::initSlowBlitter()
             {
                 {   // Full execution, no fill
                     &Blitter::exec <FETCH_A | HOLD_D>,
-                    &Blitter::exec <FETCH_C | HOLD_A | HOLD_B>,
+                    &Blitter::exec <FETCH_C | HOLD_A>,
                     &Blitter::exec <WRITE_D | REPEAT>,
 
                     &Blitter::exec <HOLD_D>,
@@ -609,7 +613,7 @@ Blitter::initSlowBlitter()
                 },
                 {   // Full execution, fill
                     &Blitter::exec <FETCH_A | FILL | HOLD_D>,
-                    &Blitter::exec <FETCH_C | HOLD_A | HOLD_B>,
+                    &Blitter::exec <FETCH_C | HOLD_A>,
                     &Blitter::exec <WRITE_D | REPEAT>,
 
                     &Blitter::exec <FILL | HOLD_D>,
@@ -620,7 +624,7 @@ Blitter::initSlowBlitter()
             {
                 {   // Fake execution, no fill
                     &Blitter::fakeExec <FETCH_A | HOLD_D>,
-                    &Blitter::fakeExec <FETCH_C | HOLD_A | HOLD_B>,
+                    &Blitter::fakeExec <FETCH_C | HOLD_A>,
                     &Blitter::fakeExec <WRITE_D | REPEAT>,
 
                     &Blitter::fakeExec <HOLD_D>,
@@ -629,7 +633,7 @@ Blitter::initSlowBlitter()
                 },
                 {   // Fake execution, fill
                     &Blitter::fakeExec <FETCH_A | FILL | HOLD_D>,
-                    &Blitter::fakeExec <FETCH_C | HOLD_A | HOLD_B>,
+                    &Blitter::fakeExec <FETCH_C | HOLD_A>,
                     &Blitter::fakeExec <WRITE_D | REPEAT>,
 
                     &Blitter::fakeExec <FILL | HOLD_D>,
@@ -856,7 +860,7 @@ Blitter::beginFakeLineBlit()
     resetYCounter();
 
     // Schedule the first slow Blitter execution event
-    agnus.scheduleRel<BLT_SLOT>(DMA_CYCLES(1), BLT_LINE_FAKE);
+    agnus.scheduleRel<SLOT_BLT>(DMA_CYCLES(1), BLT_LINE_FAKE);
 }
 
 void
@@ -888,7 +892,7 @@ Blitter::beginFakeCopyBlit()
     lockD = true;
 
     // Schedule the first slow Blitter execution event
-    agnus.scheduleRel<BLT_SLOT>(DMA_CYCLES(1), BLT_COPY_FAKE);
+    agnus.scheduleRel<SLOT_BLT>(DMA_CYCLES(1), BLT_COPY_FAKE);
 }
 
 void
@@ -918,7 +922,7 @@ Blitter::beginSlowCopyBlit()
     lockD = true;
 
     // Schedule the first slow Blitter execution event
-    agnus.scheduleRel<BLT_SLOT>(DMA_CYCLES(1), BLT_COPY_SLOW);
+    agnus.scheduleRel<SLOT_BLT>(DMA_CYCLES(1), BLT_COPY_SLOW);
 
     // In debug mode, we execute the whole micro program immediately.
     // This let's us compare checksums with the fast Blitter.
@@ -927,9 +931,9 @@ Blitter::beginSlowCopyBlit()
         BusOwner owner = agnus.busOwner[agnus.pos.h];
         agnus.setBLS(false);
         
-        while (agnus.hasEvent<BLT_SLOT>()) {
+        while (agnus.hasEvent<SLOT_BLT>()) {
             agnus.busOwner[agnus.pos.h] = BUS_NONE;
-            serviceEvent(agnus.slot[BLT_SLOT].id);
+            serviceEvent();
         }
         
         agnus.busOwner[agnus.pos.h] = owner;
@@ -978,14 +982,13 @@ Blitter::exec()
             }
 
             if (BLT_CHECKSUM) {
-                check1 = fnv_1a_it32(check1, dhold);
-                check2 = fnv_1a_it32(check2, bltdpt);
+                check1 = util::fnv_1a_it32(check1, dhold);
+                check2 = util::fnv_1a_it32(check2, bltdpt);
             }
             trace(BLT_DEBUG, "D: poke(%X), %X (check: %X %X)\n", bltdpt, dhold, check1, check2);
-                
-            bltdpt += desc ? -2 : 2;
+            bltdpt = U32_ADD(bltdpt, desc ? -2 : 2);
             if (--cntD == 0) {
-                bltdpt += desc ? -bltdmod : bltdmod;
+                bltdpt = U32_ADD(bltdpt, desc ? -bltdmod : bltdmod);
                 cntD = bltsizeH;
                 fillCarry = !!bltconFCI();
             }
@@ -999,9 +1002,9 @@ Blitter::exec()
         anew = agnus.doBlitterDMA(bltapt);
         trace(BLT_DEBUG, "    A = peek(%X) = %X\n", bltapt, anew);
         trace(BLT_DEBUG, "    After fetch: A = %X\n", anew);
-        bltapt += desc ? -2 : 2;
+        bltapt = U32_ADD(bltapt, desc ? -2 : 2);
         if (--cntA == 0) {
-            bltapt += desc ? -bltamod : bltamod;
+            bltapt = U32_ADD(bltapt, desc ? -bltamod : bltamod);
             cntA = bltsizeH;
         }
     }
@@ -1013,9 +1016,9 @@ Blitter::exec()
         bnew = agnus.doBlitterDMA(bltbpt);
         trace(BLT_DEBUG, "    B = peek(%X) = %X\n", bltbpt, bnew);
         trace(BLT_DEBUG, "    After fetch: B = %X\n", bnew);
-        bltbpt += desc ? -2 : 2;
+        bltbpt = U32_ADD(bltbpt, desc ? -2 : 2);
         if (--cntB == 0) {
-            bltbpt += desc ? -bltbmod : bltbmod;
+            bltbpt = U32_ADD(bltbpt, desc ? -bltbmod : bltbmod);
             cntB = bltsizeH;
         }
     }
@@ -1027,9 +1030,9 @@ Blitter::exec()
         chold = agnus.doBlitterDMA(bltcpt);
         trace(BLT_DEBUG, "    C = peek(%X) = %X\n", bltcpt, chold);
         trace(BLT_DEBUG, "    After fetch: C = %X\n", chold);
-        bltcpt += desc ? -2 : 2;
+        bltcpt = U32_ADD(bltcpt, desc ? -2 : 2);
         if (--cntC == 0) {
-            bltcpt += desc ? -bltcmod : bltcmod;
+            bltcpt = U32_ADD(bltcpt, desc ? -bltcmod : bltcmod);
             cntC = bltsizeH;
         }
     }
@@ -1043,9 +1046,9 @@ Blitter::exec()
         // Run the barrel shifters on data path A
         trace(BLT_DEBUG, "    ash = %d mask = %X\n", bltconASH(), mask);
         if (desc) {
-            ahold = HI_W_LO_W(anew & mask, aold) >> (16 - bltconASH());
+            ahold = (u16)(HI_W_LO_W(anew & mask, aold) >> (16 - bltconASH()));
         } else {
-            ahold = HI_W_LO_W(aold, anew & mask) >> bltconASH();
+            ahold = (u16)(HI_W_LO_W(aold, anew & mask) >> bltconASH());
         }
         aold = anew & mask;
         trace(BLT_DEBUG, "    After shifting A (%d) A = %x\n", bltconASH(), ahold);
@@ -1058,9 +1061,9 @@ Blitter::exec()
         // Run the barrel shifters on data path B
         trace(BLT_DEBUG, "    bsh = %d\n", bltconBSH());
         if (desc) {
-            bhold = HI_W_LO_W(bnew, bold) >> (16 - bltconBSH());
+            bhold = (u16)(HI_W_LO_W(bnew, bold) >> (16 - bltconBSH()));
         } else {
-            bhold = HI_W_LO_W(bold, bnew) >> bltconBSH();
+            bhold = (u16)(HI_W_LO_W(bold, bnew) >> bltconBSH());
         }
         bold = bnew;
         trace(BLT_DEBUG, "    After shifting B (%d) B = %x\n", bltconBSH(), bhold);
@@ -1073,7 +1076,9 @@ Blitter::exec()
         // Run the minterm logic circuit
         trace(BLT_DEBUG, "    Minterms: ahold = %X bhold = %X chold = %X bltcon0 = %X (hex)\n", ahold, bhold, chold, bltcon0);
         dhold = doMintermLogicQuick(ahold, bhold, chold, bltcon0 & 0xFF);
-        assert(releaseBuild() || dhold == doMintermLogic(ahold, bhold, chold, bltcon0 & 0xFF));
+        if (BLT_DEBUG) {
+            assert(dhold == doMintermLogic(ahold, bhold, chold, bltcon0 & 0xFF));
+        }
 
         if (!lockD) {
 

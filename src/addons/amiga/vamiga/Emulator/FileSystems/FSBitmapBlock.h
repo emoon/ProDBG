@@ -7,33 +7,25 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _FS_BITMAP_BLOCK_H
-#define _FS_BITMAP_BLOCK_H
+#pragma once
 
 #include "FSBlock.h"
 
 struct FSBitmapBlock : FSBlock {
                     
-    FSBitmapBlock(FSVolume &ref, u32 nr);
+    FSBitmapBlock(FSPartition &p, Block nr);
     ~FSBitmapBlock();
      
-    FSBlockType type() override { return FS_BITMAP_BLOCK; }
-    void dump() override;
-    bool check(bool verbose) override;
-    // void exportBlock(u8 *p, size_t size) override;
-    void updateChecksum() override;
+    const char *getDescription() const override { return "FSBitmapBlock"; }
 
-    // Computes location of the allocation bit for a certain block
-    void locateBlockBit(u32 nr, u32 *byte, u32 *bit);
     
-    // Checks whether a block is allocated
-    bool isAllocated(u32 block);
+    //
+    // Methods from Block class
+    //
 
-    // Allocates or deallocates a single block
-    void alloc(u32 block, bool allocate);
-    void alloc(u32 block) { alloc(block, true); }
-    void dealloc(u32 block) { alloc(block, false); }
-    void dealloc();
+    FSBlockType type() const override { return FS_BITMAP_BLOCK; }
+    FSItemType itemType(isize byte) const override;
+    ErrorCode check(isize pos, u8 *expected, bool strict) const override;
+    void dump() const override;
+    isize checksumLocation() const override { return 0; }
 };
-
-#endif

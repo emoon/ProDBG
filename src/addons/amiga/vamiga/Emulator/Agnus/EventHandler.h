@@ -7,6 +7,8 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
+#include "Aliases.h"
+
 /* About the event handler.
  *
  * vAmiga is an event triggered emulator. If an action has to be performed at
@@ -49,20 +51,16 @@
 public:
 
 // Returns true iff the specified slot contains any event
-template<EventSlot s> bool hasEvent() {
-    assert(s < SLOT_COUNT); return slot[s].id != (EventID)0; }
+template<EventSlot s> bool hasEvent() const { return slot[s].id != (EventID)0; }
 
 // Returns true iff the specified slot contains a specific event
-template<EventSlot s> bool hasEvent(EventID id) {
-    assert(s < SLOT_COUNT); return slot[s].id == id; }
+template<EventSlot s> bool hasEvent(EventID id) const { return slot[s].id == id; }
 
 // Returns true iff the specified slot contains a pending event
-template<EventSlot s> bool isPending() {
-    assert(s < SLOT_COUNT); return slot[s].triggerCycle != NEVER; }
+template<EventSlot s> bool isPending() const { return slot[s].triggerCycle != NEVER; }
 
 // Returns true iff the specified slot contains a due event
-template<EventSlot s> bool isDue(Cycle cycle) {
-    assert(s < SLOT_COUNT); return cycle >= slot[s].triggerCycle; }
+template<EventSlot s> bool isDue(Cycle cycle) const { return cycle >= slot[s].triggerCycle; }
 
 
 //
@@ -105,8 +103,8 @@ template<EventSlot s> void scheduleAbs(Cycle cycle, EventID id)
     slot[s].id = id;
     if (cycle < nextTrigger) nextTrigger = cycle;
 
-    if (isSecondarySlot(s) && cycle < slot[SEC_SLOT].triggerCycle)
-        slot[SEC_SLOT].triggerCycle = cycle;
+    if (isSecondarySlot(s) && cycle < slot[SLOT_SEC].triggerCycle)
+        slot[SLOT_SEC].triggerCycle = cycle;
 }
 
 template<EventSlot s> void scheduleAbs(Cycle cycle, EventID id, i64 data)
@@ -163,8 +161,8 @@ template<EventSlot s> void rescheduleAbs(Cycle cycle)
     slot[s].triggerCycle = cycle;
     if (cycle < nextTrigger) nextTrigger = cycle;
     
-     if (isSecondarySlot(s) && cycle < slot[SEC_SLOT].triggerCycle)
-         slot[SEC_SLOT].triggerCycle = cycle;
+     if (isSecondarySlot(s) && cycle < slot[SLOT_SEC].triggerCycle)
+         slot[SLOT_SEC].triggerCycle = cycle;
 }
 
 template<EventSlot s> void rescheduleInc(Cycle cycle)

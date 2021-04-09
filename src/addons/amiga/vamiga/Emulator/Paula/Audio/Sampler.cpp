@@ -7,15 +7,30 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
+#include "config.h"
 #include "Sampler.h"
+
+void
+Sampler::reset()
+{
+    //Replace the existing samples by a single dummy element
+    clear();
+    write( TaggedSample { 0, 0 } );
+}
+
+void
+Sampler::clone(Sampler &other)
+{
+    *this = other;
+}
 
 template <SamplingMethod method> i16
 Sampler::interpolate(Cycle clock)
 {
     assert(!isEmpty());
 
-    int r1 = r;
-    int r2 = next(r1);
+    isize r1 = r;
+    isize r2 = next(r1);
 
     // Remove all outdated entries
     while (r2 != w && elements[r2].tag <= clock) {
@@ -37,9 +52,9 @@ Sampler::interpolate(Cycle clock)
     
     /*
     if (!(clock >= c1 && clock < c2)) {
-        printf("WARNING: clock: %lld count: %d r: %d w: %d r1: %d r2: %d c1: %lld c2: %lld\n", clock, count(), r, w, r1, r2, c1, c2);
-        return 0;
-        
+        printf("WARNING: clock: %lld count: %zu ", clock, count());
+        printf("r: %d w: %d\n", r, w);
+        printf("r1: %d r2: %d c1: %lld c2: %lld\n", r1, r2, c1, c2);
     }
     */
     assert(clock >= c1 && clock < c2);

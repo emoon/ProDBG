@@ -7,8 +7,7 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _ZORRO_MANAGER_H
-#define _ZORRO_MANAGER_H
+#pragma once
 
 #include "AmigaComponent.h"
 
@@ -18,11 +17,7 @@
  *   github.com/PR77/A500_ACCEL_RAM_IDE-Rev-1/blob/master/Logic/RAM/A500_RAM.v
  */
 
-// Manager for plugged in Zorro II devices
 class ZorroManager : public AmigaComponent {
-
-    // Value returned when peeking into the auto-config space
-    u8 autoConfData;
     
     // Current configuration state (0 = unconfigured)
     u8 fastRamConf;
@@ -38,6 +33,8 @@ class ZorroManager : public AmigaComponent {
 public:
     
     ZorroManager(Amiga& ref);
+
+    const char *getDescription() const override { return "Zorro"; }
 
 private:
     
@@ -65,14 +62,13 @@ public:
     {
         worker
 
-        & autoConfData
-        & fastRamConf
-        & fastRamBaseAddr;
+        << fastRamConf
+        << fastRamBaseAddr;
     }
 
-    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
-    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
+    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
         
     //
@@ -81,9 +77,7 @@ public:
     
 public:
     
-    u8 peekFastRamDevice(u32 addr);
-    u8 spypeekFastRamDevice(u32 addr);
+    u8 peekFastRamDevice(u32 addr) const;
+    u8 spypeekFastRamDevice(u32 addr) const;
     void pokeFastRamDevice(u32 addr, u8 value);
 };
-
-#endif

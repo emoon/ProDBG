@@ -7,11 +7,15 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "UART.h"
+#include "Agnus.h"
+#include "MsgQueue.h"
+#include "Paula.h"
+#include "SerialPort.h"
 
 UART::UART(Amiga& ref) : AmigaComponent(ref)
 {
-    setDescription("UART");
 }
 
 void
@@ -34,9 +38,9 @@ UART::_inspect()
 }
 
 void
-UART::_dump()
+UART::_dump(Dump::Category category, std::ostream& os) const
 {
-    msg("   serper: %X\n", serper);
+    os << "serper: %X\n" << (int)serper;
 }
 
 u16
@@ -114,7 +118,7 @@ UART::copyToTransmitShiftRegister()
     paula.raiseIrq(INT_TBE);
 
     // Schedule the transmission of the first bit
-    agnus.scheduleRel<TXD_SLOT>(0, TXD_BIT);
+    agnus.scheduleRel<SLOT_TXD>(0, TXD_BIT);
 }
 
 void
@@ -155,7 +159,7 @@ void
 UART::rxdHasChanged(bool value)
 {
     // Schedule the first reception event if transmission has not yet started
-    if (value == 0 && !agnus.hasEvent<RXD_SLOT>()) {
+    if (value == 0 && !agnus.hasEvent<SLOT_RXD>()) {
 
         // Reset the bit counter
         recCnt = 0;
@@ -164,6 +168,6 @@ UART::rxdHasChanged(bool value)
         Cycle delay = rate() * 3 / 2;
 
         // Schedule the event
-        agnus.scheduleRel<RXD_SLOT>(delay, RXD_BIT);
+        agnus.scheduleRel<SLOT_RXD>(delay, RXD_BIT);
     }
 }

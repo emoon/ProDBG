@@ -7,14 +7,18 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "DmaDebugger.h"
+#include "Agnus.h"
+#include "Bus.h"
+#include "Denise.h"
+#include "MsgQueue.h"
+#include "PixelEngine.h"
 
 DmaDebugger::DmaDebugger(Amiga &ref) : AmigaComponent(ref)
 {
-    setDescription("DmaDebugger");
-
     // By default all DMA channels are visualized, except the CPU channel
-    for (unsigned i = 0; i < BUS_COUNT; i++) {
+    for (isize i = 0; i < BUS_COUNT; i++) {
         visualize[i] = (i != BUS_NONE) && (i != BUS_CPU);
     }
 
@@ -77,16 +81,16 @@ DmaDebugger::setEnabled(bool value)
 }
 
 bool
-DmaDebugger::isVisualized(BusOwner owner)
+DmaDebugger::isVisualized(BusOwner owner) const
 {
-    assert(isBusOwner(owner));
+    assert_enum(BusOwner, owner);
     return visualize[owner];
 }
 
 void
 DmaDebugger::setVisualized(BusOwner owner, bool value)
 {
-    assert(isBusOwner(owner));
+    assert_enum(BusOwner, owner);
     visualize[owner] = value;
 }
 
@@ -151,9 +155,9 @@ DmaDebugger::visualizeRefresh(bool value)
 }
 
 RgbColor
-DmaDebugger::getColor(BusOwner owner)
+DmaDebugger::getColor(BusOwner owner) const
 {
-    assert(isBusOwner(owner));
+    assert_enum(BusOwner, owner);
     return debugColor[owner][4];
 }
 
@@ -169,7 +173,7 @@ DmaDebugger::getColor(BusOwner owner, double *rgb)
 void
 DmaDebugger::setColor(BusOwner owner, RgbColor color)
 {
-    assert(isBusOwner(owner));
+    assert_enum(BusOwner, owner);
 
     // Store the original color at an unused location
     debugColor[owner][4] = color;
@@ -184,7 +188,7 @@ DmaDebugger::setColor(BusOwner owner, RgbColor color)
 void
 DmaDebugger::setColor(BusOwner owner, double r, double g, double b)
 {
-    assert(isBusOwner(owner));
+    assert_enum(BusOwner, owner);
     setColor(owner, RgbColor(r, g, b));
 }
 
@@ -248,12 +252,6 @@ DmaDebugger::setRefreshColor(double r, double g, double b)
     setColor(BUS_REFRESH, r, g, b);
 }
 
-double
-DmaDebugger::getOpacity()
-{
-    return opacity;
-}
-
 void
 DmaDebugger::setOpacity(double value)
 {
@@ -271,23 +269,24 @@ DmaDebugger::computeOverlay()
     u16 *values = agnus.busValue;
     u32 *ptr = denise.pixelEngine.pixelAddr(0);
 
-    double bgWeight, fgWeight;
+    double bgWeight = 0;
+    double fgWeight = 0;
 
     switch (displayMode) {
 
-        case MODULATE_FG_LAYER:
+        case DMA_DISPLAY_MODE_FG_LAYER:
 
             bgWeight = 0.0;
             fgWeight = 1.0 - opacity;
             break;
 
-        case MODULATE_BG_LAYER:
+        case DMA_DISPLAY_MODE_BG_LAYER:
 
             bgWeight = 1.0 - opacity;
             fgWeight = 0.0;
             break;
 
-        case MODULATE_ODD_EVEN_LAYERS:
+        case DMA_DISPLAY_MODE_ODD_EVEN_LAYERS:
 
             bgWeight = opacity;
             fgWeight = 1.0 - opacity;
@@ -297,7 +296,7 @@ DmaDebugger::computeOverlay()
 
     }
 
-    for (int i = 0; i < HPOS_CNT; i++, ptr += 4) {
+    for (isize i = 0; i < HPOS_CNT; i++, ptr += 4) {
 
         BusOwner owner = owners[i];
 
@@ -341,10 +340,9 @@ DmaDebugger::vSyncHandler()
 
     // Clear old data in the next frame's VBLANK area
     u32 *ptr = denise.pixelEngine.frameBuffer->data;
-    for (int row = 0; row < VBLANK_CNT; row++) {
-        for (int col = 0; col <= LAST_PIXEL; col++) {
+    for (isize row = 0; row < VBLANK_CNT; row++) {
+        for (isize col = 0; col <= LAST_PIXEL; col++) {
             ptr[row * HPIXELS + col] = PixelEngine::rgbaVBlank;
         }
     }
 }
-

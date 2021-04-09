@@ -7,7 +7,9 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "Copper.h"
+#include "Agnus.h"
 
 void
 Copper::pokeCOPCON(u16 value)
@@ -26,14 +28,14 @@ Copper::pokeCOPJMP1()
 {
     trace(COPREG_DEBUG, "pokeCOPJMP1: Jumping to %X\n", cop1lc);
 
-    if (s == AGNUS_ACCESS) {
+    if (s == ACCESSOR_AGNUS) {
 
         assert(false);
 
     }
-    if (s == CPU_ACCESS) {
+    if (s == ACCESSOR_CPU) {
 
-        if (agnus.blitter.isRunning()) {
+        if (agnus.blitter.isActive()) {
             trace(XFILES, "pokeCOPJMP1: Blitter is running\n");
         }
         switchToCopperList(1);
@@ -45,14 +47,14 @@ Copper::pokeCOPJMP2()
 {
     trace(COPREG_DEBUG, "pokeCOPJMP2(): Jumping to %X\n", cop2lc);
 
-    if (s == AGNUS_ACCESS) {
+    if (s == ACCESSOR_AGNUS) {
 
         assert(false);
 
     }
-    if (s == CPU_ACCESS) {
+    if (s == ACCESSOR_CPU) {
 
-        if (agnus.blitter.isRunning()) {
+        if (agnus.blitter.isActive()) {
             trace(XFILES, "pokeCOPJMP2: Blitter is running\n");
         }
         switchToCopperList(2);
@@ -149,7 +151,7 @@ Copper::pokeNOOP(u16 value)
     trace(COPREG_DEBUG, "pokeNOOP(%04X)\n", value);
 }
 
-template void Copper::pokeCOPJMP1<CPU_ACCESS>();
-template void Copper::pokeCOPJMP1<AGNUS_ACCESS>();
-template void Copper::pokeCOPJMP2<CPU_ACCESS>();
-template void Copper::pokeCOPJMP2<AGNUS_ACCESS>();
+template void Copper::pokeCOPJMP1<ACCESSOR_CPU>();
+template void Copper::pokeCOPJMP1<ACCESSOR_AGNUS>();
+template void Copper::pokeCOPJMP2<ACCESSOR_CPU>();
+template void Copper::pokeCOPJMP2<ACCESSOR_AGNUS>();

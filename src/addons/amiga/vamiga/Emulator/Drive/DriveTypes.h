@@ -7,40 +7,49 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-// This file must conform to standard ANSI-C to be compatible with Swift.
-
-#ifndef _DRIVE_TYPES_H
-#define _DRIVE_TYPES_H
+#pragma once
 
 #include "Aliases.h"
+#include "BootBlockImageTypes.h"
+#include "FSTypes.h"
+#include "Reflection.h"
 
 //
 // Enumerations
 //
 
-VAMIGA_ENUM(long, DriveType)
+enum_long(DRIVE_TYPE)
 {
-    DRIVE_35_DD,
-    DRIVE_35_HD,
-    DRIVE_525_DD
-};
-
-inline bool isDriveType(long value)
-{
-    return value >= DRIVE_35_DD && value <= DRIVE_525_DD;
-}
-
-inline const char *driveTypeName(DriveType type)
-{
-    assert(isDriveType(type));
+    DRIVE_DD_35,
+    DRIVE_HD_35,
+    DRIVE_DD_525,
     
-    switch (type) {
-        case DRIVE_35_DD:    return "Drive 3.5\" DD";
-        case DRIVE_35_HD:    return "Drive 3.5\" HD";
-        case DRIVE_525_DD:   return "Drive 5.25\" DD";
-        default:             return "???";
+    DRIVE_COUNT
+};
+typedef DRIVE_TYPE DriveType;
+
+#ifdef __cplusplus
+struct DriveTypeEnum : util::Reflection<DriveTypeEnum, DriveType> {
+    
+    static bool isValid(long value)
+    {
+        return (unsigned long)value <  DRIVE_COUNT;
     }
-}
+    
+    static const char *prefix() { return "DRIVE"; }
+    static const char *key(DriveType value)
+    {
+        switch (value) {
+                
+            case DRIVE_DD_35:   return "DD_35";
+            case DRIVE_HD_35:   return "HD_35";
+            case DRIVE_DD_525:  return "DD_525";
+            case DRIVE_COUNT:   return "???";
+        }
+        return "???";
+    }
+};
+#endif
 
 //
 // Structures
@@ -70,6 +79,17 @@ typedef struct
     Cycle startDelay;
     Cycle stopDelay;
     Cycle stepDelay;
+    
+    // Noise settings
+    i16 pan;
+    u8 stepVolume;
+    u8 pollVolume;
+    u8 insertVolume;
+    u8 ejectVolume;
+    
+    // Blank disk defaults
+    FSVolumeType defaultFileSystem;
+    BootBlockId defaultBootBlock;
 }
 DriveConfig;
 
@@ -80,5 +100,3 @@ typedef struct
     bool motor;
 }
 DriveInfo;
-
-#endif

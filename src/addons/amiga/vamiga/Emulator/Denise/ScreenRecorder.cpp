@@ -7,25 +7,25 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
-#include <fcntl.h>
+#include "config.h"
+#include "ScreenRecorder.h"
+#include "IO.h"
+#include "Denise.h"
+#include "MsgQueue.h"
+#include "Paula.h"
 
 ScreenRecorder::ScreenRecorder(Amiga& ref) : AmigaComponent(ref)
 {
-    setDescription("ScreenRecorder");
-
-    subComponents = vector<HardwareComponent *> {
+    subComponents = std::vector<HardwareComponent *> {
         
         &muxer
     };
-    
-    muxer.setDescription("RecMuxer");
 }
 
 bool
-ScreenRecorder::hasFFmpeg()
+ScreenRecorder::hasFFmpeg() const
 {
-    return getSizeOfFile(ffmpegPath()) > 0;
+    return util::getSizeOfFile(ffmpegPath()) > 0;
 }
 
 void
@@ -35,11 +35,12 @@ ScreenRecorder::_reset(bool hard)
 }
 
 void
-ScreenRecorder::_dump()
+ScreenRecorder::_dump(Dump::Category category, std::ostream& os) const
 {
-    msg("%s:%s installed\n", ffmpegPath(), hasFFmpeg() ? "" : " not");
-    msg("Video pipe:%s created\n", videoPipe != -1 ? "" : " not");
-    msg("Audio pipe:%s created\n", audioPipe != -1 ? "" : " not");
+    os << DUMP("ffmpeg path") << ffmpegPath() << std::endl;
+    os << DUMP("Installed") << YESNO(hasFFmpeg()) << std::endl;
+    os << DUMP("Video pipe") << YESNO(videoPipe != -1) << std::endl;
+    os << DUMP("Audio pipe") << YESNO(audioPipe != -1) << std::endl;
 }
     
 bool
@@ -70,7 +71,7 @@ ScreenRecorder::startRecording(int x1, int y1, int x2, int y2,
         cutout.x2 = x2;
         cutout.y1 = y1;
         cutout.y2 = y2;
-        debug("Recorded area: (%d,%d) - (%d,%d)\n", x1, y1, x2, y2);
+        debug(REC_DEBUG, "Recorded area: (%d,%d) - (%d,%d)\n", x1, y1, x2, y2);
         
         //
         // Assemble the command line arguments for the video encoder
@@ -142,8 +143,8 @@ ScreenRecorder::startRecording(int x1, int y1, int x2, int y2,
         // Launch FFmpeg instances
         //
         
-        assert(videoFFmpeg == NULL);
-        assert(audioFFmpeg == NULL);
+        assert(videoFFmpeg == nullptr);
+        assert(audioFFmpeg == nullptr);
         
         msg("\nStarting video encoder with options:\n%s\n", cmd1);
         videoFFmpeg = popen(cmd1, "w");
@@ -156,6 +157,7 @@ ScreenRecorder::startRecording(int x1, int y1, int x2, int y2,
         // Open pipes
         videoPipe = open(videoPipePath(), O_WRONLY);
         audioPipe = open(audioPipePath(), O_WRONLY);
+        debug(REC_DEBUG, "Pipes are open");
         
         recording = videoFFmpeg && audioFFmpeg && videoPipe != -1 && audioPipe != -1;
     }
@@ -178,6 +180,7 @@ ScreenRecorder::stopRecording()
     synchronized {
         recording = false;
         recordCounter++;
+        audioClock = 0;
     }
 
     // Close pipes
@@ -189,9 +192,9 @@ ScreenRecorder::stopRecording()
     // Shut down encoders
     pclose(videoFFmpeg);
     pclose(audioFFmpeg);
-    videoFFmpeg = NULL;
-    audioFFmpeg = NULL;
-
+    videoFFmpeg = nullptr;
+    audioFFmpeg = nullptr;
+    
     debug(REC_DEBUG, "Recording has stopped\n");
     messageQueue.put(MSG_RECORDING_STOPPED);
 }
@@ -228,6 +231,7 @@ ScreenRecorder::exportAs(const char *path)
     //
     
     msg("\nMerging video and audio stream with options:\n%s\n", cmd);
+    /*
     FILE *ffmpeg = popen(cmd, "w");
 
     if (!ffmpeg) {
@@ -237,7 +241,12 @@ ScreenRecorder::exportAs(const char *path)
     
     // Wait for FFmpeg to finish
     fclose(ffmpeg);
+    */
+    if (system(cmd) == -1) {
+        warn("Failed: %s\n", cmd);
+    }
     
+    msg("Done\n");
     return true;
 }
 
@@ -247,8 +256,8 @@ ScreenRecorder::vsyncHandler(Cycle target)
     if (!isRecording()) return;
     
     // debug("vsyncHandler\n");
-    assert(videoFFmpeg != NULL);
-    assert(audioFFmpeg != NULL);
+    assert(videoFFmpeg != nullptr);
+    assert(audioFFmpeg != nullptr);
     
     synchronized {
         
@@ -258,43 +267,45 @@ ScreenRecorder::vsyncHandler(Cycle target)
         
         ScreenBuffer buffer = denise.pixelEngine.getStableBuffer();
         
-        int width = sizeof(u32) * (cutout.x2 - cutout.x1);
-        int height = cutout.y2 - cutout.y1;
-        int offset = cutout.y1 * HPIXELS + cutout.x1 + HBLANK_MIN * 4;
+        isize width = sizeof(u32) * (cutout.x2 - cutout.x1);
+        isize height = cutout.y2 - cutout.y1;
+        isize offset = cutout.y1 * HPIXELS + cutout.x1 + HBLANK_MIN * 4;
         u8 *data = new u8[width * height];
         u8 *src = (u8 *)(buffer.data + offset);
         u8 *dst = data;
-        for (int y = 0; y < height; y++, src += 4 * HPIXELS, dst += width) {
+        for (isize y = 0; y < height; y++, src += 4 * HPIXELS, dst += width) {
             memcpy(dst, src, width);
         }
         
         // Feed the video pipe
         assert(videoPipe != -1);
-        write(videoPipe, data, (size_t)(width * height));
+        (void)write(videoPipe, data, width * height);
         
         //
         // Audio
         //
         
         // Clone Paula's muxer contents
-        muxer.sampler[0] = paula.muxer.sampler[0];
-        muxer.sampler[1] = paula.muxer.sampler[1];
-        muxer.sampler[2] = paula.muxer.sampler[2];
-        muxer.sampler[3] = paula.muxer.sampler[3];
-        assert(muxer.sampler[0].r == paula.muxer.sampler[0].r);
-        assert(muxer.sampler[0].w == paula.muxer.sampler[0].w);
+        muxer.sampler[0]->clone(*paula.muxer.sampler[0]);
+        muxer.sampler[1]->clone(*paula.muxer.sampler[1]);
+        muxer.sampler[2]->clone(*paula.muxer.sampler[2]);
+        muxer.sampler[3]->clone(*paula.muxer.sampler[3]);
+        assert(muxer.sampler[0]->r == paula.muxer.sampler[0]->r);
+        assert(muxer.sampler[0]->w == paula.muxer.sampler[0]->w);
         
-        // Synthesize audio samples for this frame
+        // If this is the first frame to record, adjust the audio clock
         if (audioClock == 0) audioClock = target-1;
+
+        // Synthesize audio samples
         muxer.synthesize(audioClock, target, samplesPerFrame);
         audioClock = target;
         
         // Copy samples to buffer
         float *samples = new float[2 * samplesPerFrame];
-        muxer.copyInterleaved(samples, samplesPerFrame);
+        muxer.copy(samples, samplesPerFrame);
         
         // Feed the audio pipe
         assert(audioPipe != -1);
-        write(audioPipe, (u8 *)samples, (size_t)(2 * sizeof(float) * samplesPerFrame));
+        (void)write(audioPipe, (u8 *)samples, 2 * sizeof(float) * samplesPerFrame);
     }
 }

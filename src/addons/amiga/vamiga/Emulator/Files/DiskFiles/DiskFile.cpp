@@ -7,40 +7,101 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "DiskFile.h"
+#include "ADFFile.h"
+#include "IMGFile.h"
+#include "DMSFile.h"
+#include "EXEFile.h"
+#include "Folder.h"
 
 DiskFile *
-DiskFile::makeWithFile(const char *path)
+DiskFile::make(const string &path)
 {
-    ADFFile *adf = ADFFile::makeWithFile(path);
-    if (adf) return adf;
+    std::ifstream stream(path);
+    if (!stream.is_open()) throw VAError(ERROR_FILE_NOT_FOUND);
     
-    DMSFile *dms = DMSFile::makeWithFile(path);
-    if (dms) return dms;
+    switch (type(path)) {
+            
+        case FILETYPE_ADF:
+            return AmigaFile::make <ADFFile> (path, stream);
+            
+        case FILETYPE_IMG:
+            return AmigaFile::make <IMGFile> (path, stream);
 
-    IMGFile *img = IMGFile::makeWithFile(path);
-    if (img) return img;
+        case FILETYPE_DMS:
+            return AmigaFile::make <DMSFile> (path, stream);
+            
+        case FILETYPE_EXE:
+            return AmigaFile::make <EXEFile> (path, stream);
 
-    return NULL;
+        case FILETYPE_DIR:
+            return Folder::make (path);
+
+        default:
+            break;
+    }
+    throw VAError(ERROR_FILE_TYPE_MISMATCH);
+}
+
+DiskFile *
+DiskFile::make(const string &path, ErrorCode *err)
+{
+    *err = ERROR_OK;
+    try { return make(path); }
+    catch (VAError &exception) { *err = exception.data; }
+    return nullptr;
+}
+
+u8
+DiskFile::readByte(isize t, isize s, isize offset) const
+{
+    return readByte(t * numSectors() + s, offset);
+}
+
+u8
+DiskFile::readByte(isize b, isize offset) const
+{
+    assert(offset < 512);
+    return data[b * 512 + offset];
 }
 
 void
-DiskFile::readSector(u8 *dst, long t, long s)
+DiskFile::readSector(u8 *dst, isize t, isize s) const
 {
     readSector(dst, t * numSectors() + s);
 }
 
 void
-DiskFile::readSector(u8 *dst, long s)
+DiskFile::readSector(u8 *dst, isize s) const
 {
-    size_t sectorSize = 512;
-    size_t offset = s * sectorSize;
+    isize sectorSize = 512;
+    isize offset = s * sectorSize;
 
     assert(dst != nullptr);
     assert(offset + sectorSize <= size);
 
-    for (unsigned i = 0; i < 512; i++) {
+    for (isize i = 0; i < sectorSize; i++) {
         dst[i] = data[offset + i];
+    }
+}
+
+void
+DiskFile::readSectorHex(char *dst, isize t, isize s, isize count) const
+{
+    readSectorHex(dst, t * numSectors() + s, count);
+}
+
+void
+DiskFile::readSectorHex(char *dst, isize s, isize count) const
+{
+    isize sectorSize = 512;
+    isize offset = s * sectorSize;
+
+    assert(dst != nullptr);
+
+    for (isize i = 0; i < count; i++) {
+        sprintf(dst + 3*i, "%02X ", data[offset + i]);
     }
 }
 
@@ -51,9 +112,8 @@ DiskFile::encodeDisk(class Disk *disk)
     return false;
 }
 
-bool
+void
 DiskFile::decodeDisk(class Disk *disk)
 {
     assert(false);
-    return false;
 }

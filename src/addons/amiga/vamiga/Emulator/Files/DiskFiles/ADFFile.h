@@ -7,11 +7,10 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _ADF_H
-#define _ADF_H
+#pragma once
 
 #include "DiskFile.h"
-#include "FSVolume.h"
+#include "FSDevice.h"
 
 #define ADFSIZE_35_DD     901120  //  880 KB
 #define ADFSIZE_35_DD_81  912384  //  891 KB (1 extra cylinder)
@@ -20,8 +19,6 @@
 #define ADFSIZE_35_DD_84  946176  //  924 KB (4 extra cylinders)
 #define ADFSIZE_35_HD    1802240  // 1760 KB
 
-class Disk;
-
 class ADFFile : public DiskFile {
     
 public:
@@ -29,31 +26,29 @@ public:
     //
     // Class methods
     //
-    
-    // Returns true iff the provided buffer contains an ADF file
-    static bool isADFBuffer(const u8 *buffer, size_t length);
-    
-    // Returns true iff if the provided path points to an ADF file
-    static bool isADFFile(const char *path);
+        
+    static bool isCompatiblePath(const string &path);
+    static bool isCompatibleStream(std::istream &stream);
     
     // Returns the size of an ADF file of a given disk type in bytes
-    static size_t fileSize(DiskType t, DiskDensity d);
+    static isize fileSize(DiskDiameter t, DiskDensity d);
+
+    static ADFFile *makeWithType(DiskDiameter t, DiskDensity d);    
+    static ADFFile *makeWithDisk(class Disk *disk) throws;
+    static ADFFile *makeWithDisk(class Disk *disk, ErrorCode *ec);
+    static ADFFile *makeWithDrive(class Drive *drive) throws;
+    static ADFFile *makeWithDrive(class Drive *drive, ErrorCode *ec);
+    static ADFFile *makeWithVolume(FSDevice &volume) throws;
+    static ADFFile *makeWithVolume(FSDevice &volume, ErrorCode *ec);
 
     
     //
-    // Initializing
+    // Methods from AmigaObject
     //
 
 public:
-
-    ADFFile();
     
-    static ADFFile *makeWithDiskType(DiskType t, DiskDensity d);
-    static ADFFile *makeWithBuffer(const u8 *buffer, size_t length);
-    static ADFFile *makeWithFile(const char *path);
-    static ADFFile *makeWithFile(FILE *file);
-    static ADFFile *makeWithDisk(Disk *disk);
-    static ADFFile *makeWithVolume(FSVolume &volume);
+    const char *getDescription() const override { return "ADF"; }
 
     
     //
@@ -62,12 +57,7 @@ public:
     
 public:
     
-    AmigaFileType fileType() override { return FILETYPE_ADF; }
-    const char *typeAsString() override { return "ADF"; }
-    bool bufferHasSameType(const u8 *buffer, size_t length) override {
-        return isADFBuffer(buffer, length); }
-    bool fileHasSameType(const char *path) override { return isADFFile(path); }
-    bool readFromBuffer(const u8 *buffer, size_t length) override;
+    FileType type() const override { return FILETYPE_ADF; }
     
     
     //
@@ -76,13 +66,20 @@ public:
     
 public:
     
-    DiskType getDiskType() override;
-    DiskDensity getDiskDensity() override;
-    long numSides() override;
-    long numCyclinders() override;
-    long numSectors() override;
+    FSVolumeType getDos() const override; 
+    void setDos(FSVolumeType dos) override;
+    DiskDiameter getDiskDiameter() const override;
+    DiskDensity getDiskDensity() const override;
+    isize numSides() const override;
+    isize numCyls() const override;
+    isize numSectors() const override;
+    BootBlockType bootBlockType() const override;
+    const char *bootBlockName() const override;
+    
+    void killVirus() override;
+
     bool encodeDisk(class Disk *disk) override;
-    bool decodeDisk(class Disk *disk) override;
+    void decodeDisk(class Disk *disk) throws override;
 
 private:
     
@@ -94,12 +91,22 @@ private:
 
     
     //
+    // Querying disk properties
+    //
+    
+public:
+
+    // Returns the layout of this disk in form of a device descriptor
+    struct FSDeviceDescriptor layout();
+    
+    
+    //
     // Formatting
     //
  
 public:
     
-    bool formatDisk(FSVolumeType fs); 
+    bool formatDisk(FSVolumeType fs, BootBlockId id);
 
     
     //
@@ -108,7 +115,5 @@ public:
  
 public:
     
-    void dumpSector(int num);
+    void dumpSector(Sector s);
 };
-
-#endif

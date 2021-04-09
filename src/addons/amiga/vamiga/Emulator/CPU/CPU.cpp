@@ -7,10 +7,22 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
+#include "config.h"
+#include "CPU.h"
+#include "Agnus.h"
 #include "Amiga.h"
+#include "IO.h"
+#include "Memory.h"
+#include "MsgQueue.h"
+
+//
+// Moira
+//
+
+namespace moira {
 
 void
-CPU::sync(int cycles)
+Moira::sync(int cycles)
 {
     // Advance the CPU clock
     clock += cycles;
@@ -20,85 +32,60 @@ CPU::sync(int cycles)
 }
 
 u8
-CPU::read8(u32 addr)
+Moira::read8(u32 addr)
 {
-    return mem.peek8 <CPU_ACCESS> (addr);
+    return mem.peek8 <ACCESSOR_CPU> (addr);
 }
 
 u16
-CPU::read16(u32 addr)
+Moira::read16(u32 addr)
 {
-    u16 result = mem.peek16 <CPU_ACCESS> (addr);
- 
-    /*
-    static int counter = 0;
-    if (addr == 0xc001b0) {
-        if (counter == 928) {
-            amiga.signalStop();
-            // COPREG_DEBUG = 1;
-        }
-        debug("%d: exec::allocMem(%x,%x)\n", counter++, reg.d[0], reg.d[1]);
-    }
-    */
-    /*
-    if (addr >= 0xE80000 && addr <= 0xE8FFFF) {
-        debug("get_word: Zorro(%x)  = %x\n", addr, result);
-    }
-    */
-    /*
-    if (addr >= 0xDC0000 && addr <= 0xDEFFFF) {
-        debug("read16(%x) = %x\n", addr, result);
-    }
-    
-    if (addr >= 0xD80000 && addr <= 0xD8FFFF) {
-        debug("read16(%x) = %x (%x,%x %x,%x %x,%x)\n", addr, result,
-              agnus.busOwner[agnus.pos.h-2], agnus.busValue[agnus.pos.h-2],
-              agnus.busOwner[agnus.pos.h-1], agnus.busValue[agnus.pos.h-1],
-              agnus.busOwner[agnus.pos.h-0], agnus.busValue[agnus.pos.h-0]);
-    }
-    */
-    
-    return result;
+    return mem.peek16 <ACCESSOR_CPU> (addr); 
 }
 
 u16
-CPU::read16Dasm(u32 addr)
+Moira::read16Dasm(u32 addr)
 {
-    return mem.spypeek16 <CPU_ACCESS> (addr);
+    return mem.spypeek16 <ACCESSOR_CPU> (addr);
 }
 
 u16
-CPU::read16OnReset(u32 addr)
+Moira::read16OnReset(u32 addr)
 {
     return mem.chip ? read16(addr) : 0;
 }
 
 void
-CPU::write8(u32 addr, u8 val)
+Moira::write8(u32 addr, u8 val)
 {
-    if (XFILES && addr - reg.pc < 5) trace("XFILES: write8 close to PC %x\n", reg.pc);
+    trace(XFILES && addr - reg.pc < 5, "XFILES: write8 close to PC %x\n", reg.pc);
 
-    mem.poke8 <CPU_ACCESS> (addr, val);
+    mem.poke8 <ACCESSOR_CPU> (addr, val);
 }
 
 void
-CPU::write16 (u32 addr, u16 val)
+Moira::write16 (u32 addr, u16 val)
 {
-    if (XFILES && addr - reg.pc < 5) trace("XFILES: write16 close to PC %x\n", reg.pc);
+    trace(XFILES && addr - reg.pc < 5, "XFILES: write16 close to PC %x\n", reg.pc);
 
-    mem.poke16 <CPU_ACCESS> (addr, val);
+    mem.poke16 <ACCESSOR_CPU> (addr, val);
+}
+
+u16
+Moira::readIrqUserVector(u8 level) const
+{
+    return 0;
 }
 
 void
-CPU::signalReset()
+Moira::signalReset()
 {
     trace(XFILES, "XFILES: RESET instruction\n");
     amiga.softReset();
-    trace("Reset done\n");
 }
 
 void
-CPU::signalStop(u16 op)
+Moira::signalStop(u16 op)
 {
     if (!(op & 0x2000)) {
         trace(XFILES, "XFILES: STOP instruction (%x)\n", op);
@@ -106,69 +93,67 @@ CPU::signalStop(u16 op)
 }
 
 void
-CPU::signalTAS()
+Moira::signalTAS()
 {
     trace(XFILES, "XFILES: TAS instruction\n");
 }
 
 void
-CPU::signalHalt()
+Moira::signalHalt()
 {
     messageQueue.put(MSG_CPU_HALT);
 }
 
 void
-CPU::signalAddressError(moira::AEStackFrame &frame)
+Moira::signalAddressError(moira::AEStackFrame &frame)
 {
     trace(XFILES, "XFILES: Address error exception %x %x %x %x %x\n",
           frame.code, frame.addr, frame.ird, frame.sr, frame.pc);
 }
 
 void
-CPU::signalLineAException(u16 opcode)
+Moira::signalLineAException(u16 opcode)
 {
     trace(XFILES, "XFILES: lineAException(%x)\n", opcode);
 }
 
 void
-CPU::signalLineFException(u16 opcode)
+Moira::signalLineFException(u16 opcode)
 {
     trace(XFILES, "XFILES: lineFException(%x)\n", opcode);
 }
 
 void
-CPU::signalIllegalOpcodeException(u16 opcode)
+Moira::signalIllegalOpcodeException(u16 opcode)
 {
     trace(XFILES, "XFILES: illegalOpcodeException(%x)\n", opcode);
 }
 
 void
-CPU::signalTraceException()
+Moira::signalTraceException()
 {
     // debug(XFILES, "XFILES: traceException\n");
 }
 
 void
-CPU::signalTrapException()
+Moira::signalTrapException()
 {
     trace(XFILES, "XFILES: trapException\n");
 }
 
 void
-CPU::signalPrivilegeViolation()
+Moira::signalPrivilegeViolation()
 {
 }
 
 void
-CPU::signalInterrupt(u8 level)
+Moira::signalInterrupt(u8 level)
 {
-    if (INT_DEBUG) {
-        debug("Executing level %d IRQ\n", level);
-    }
+    debug(INT_DEBUG, "Executing level %d IRQ\n", level);
 }
 
 void
-CPU::signalJumpToVector(int nr, u32 addr)
+Moira::signalJumpToVector(int nr, u32 addr)
 {
     bool isIrqException = nr >= 24 && nr <= 31;
 
@@ -178,20 +163,31 @@ CPU::signalJumpToVector(int nr, u32 addr)
 }
 
 void
-CPU::breakpointReached(u32 addr)
+Moira::addressErrorHandler()
+{
+    
+}
+
+void
+Moira::breakpointReached(u32 addr)
 {
     amiga.setControlFlags(RL_BREAKPOINT_REACHED);
 }
 
 void
-CPU::watchpointReached(u32 addr)
+Moira::watchpointReached(u32 addr)
 {
     amiga.setControlFlags(RL_WATCHPOINT_REACHED);
 }
 
-CPU::CPU(Amiga& ref) : AmigaComponent(ref)
+}
+
+//
+// CPU
+//
+
+CPU::CPU(Amiga& ref) : moira::Moira(ref)
 {
-    setDescription("CPU");
 }
 
 void
@@ -233,9 +229,9 @@ CPU::_inspect(u32 dasmStart)
         
         info.pc0 = getPC0() & 0xFFFFFF;
         
-        for (int i = 0; i < 8; i++) {
-            info.d[i] = getD(i);
-            info.a[i] = getA(i);
+        for (isize i = 0; i < 8; i++) {
+            info.d[i] = getD((int)i);
+            info.a[i] = getA((int)i);
         }
         info.usp = getUSP();
         info.ssp = getSSP();
@@ -244,44 +240,65 @@ CPU::_inspect(u32 dasmStart)
 }
 
 void
-CPU::_dump()
+CPU::_dump(Dump::Category category, std::ostream& os) const
 {
-    _inspect();
+    if (category & Dump::State) {
+        
+        os << DUMP("Clock") << DEC << clock << std::endl;
+        os << DUMP("Control flags") <<  std::hex << flags << std::endl;
+        os << DUMP("Last exception") << DEC << exception;
+    }
     
-    msg("     PC0: %8X\n", info.pc0);
-    msg(" D0 - D3: ");
-    for (unsigned i = 0; i < 4; i++) msg("%8X ", info.d[i]);
-    msg("\n");
-    msg(" D4 - D7: ");
-    for (unsigned i = 4; i < 8; i++) msg("%8X ", info.d[i]);
-    msg("\n");
-    msg(" A0 - A3: ");
-    for (unsigned i = 0; i < 4; i++) msg("%8X ", info.a[i]);
-    msg("\n");
-    msg(" A4 - A7: ");
-    for (unsigned i = 4; i < 8; i++) msg("%8X ", info.a[i]);
-    msg("\n");
-    msg("     SSP: %X\n", info.ssp);
-    msg("   Flags: %X\n", info.sr);
+    if (category & Dump::Registers) {
+
+        os << DUMP("PC") << HEX32 << reg.pc0 << std::endl;
+        os << std::endl;
+        os << DUMP("SSP") << HEX32 << reg.ssp << std::endl;
+        os << DUMP("USP") << HEX32 << reg.usp << std::endl;
+        os << DUMP("IRC") << HEX32 << queue.irc << std::endl;
+        os << DUMP("IRD") << HEX32 << queue.ird << std::endl;
+        os << std::endl;
+        os << DUMP("D0 - D3");
+        os << HEX32 << reg.d[0] << ' ' << HEX32 << reg.d[1] << ' ';
+        os << HEX32 << reg.d[2] << ' ' << HEX32 << reg.d[3] << ' ' << std::endl;
+        os << DUMP("D4 - D7");
+        os << HEX32 << reg.d[4] << ' ' << HEX32 << reg.d[5] << ' ';
+        os << HEX32 << reg.d[6] << ' ' << HEX32 << reg.d[7] << ' ' << std::endl;
+        os << DUMP("A0 - A3");
+        os << HEX32 << reg.a[0] << ' ' << HEX32 << reg.a[1] << ' ';
+        os << HEX32 << reg.a[2] << ' ' << HEX32 << reg.a[3] << ' ' << std::endl;
+        os << DUMP("A4 - A7");
+        os << HEX32 << reg.a[4] << ' ' << HEX32 << reg.a[5] << ' ';
+        os << HEX32 << reg.a[6] << ' ' << HEX32 << reg.a[7] << ' ' << std::endl;
+        os << std::endl;
+        os << DUMP("Flags");
+        os << (reg.sr.t ? 'T' : 't');
+        os << (reg.sr.s ? 'S' : 's') << "--";
+        os << "<" << DEC << (int)reg.sr.ipl << ">---";
+        os << (reg.sr.x ? 'X' : 'x');
+        os << (reg.sr.n ? 'N' : 'n');
+        os << (reg.sr.z ? 'Z' : 'z');
+        os << (reg.sr.v ? 'V' : 'v');
+        os << (reg.sr.c ? 'C' : 'c') << std::endl;
+    }
 }
 
 void
-CPU::_setDebug(bool enable)
+CPU::_debugOn()
 {
-    if (enable) {
-         
-         msg("Enabling debug mode\n");
-         debugger.enableLogging();
-
-     } else {
-
-         msg("Disabling debug mode\n");
-         debugger.disableLogging();
-     }
+    msg("Enabling debug mode\n");
+    debugger.enableLogging();
 }
 
-size_t
-CPU::didLoadFromBuffer(u8 *buffer)
+void
+CPU::_debugOff()
+{
+    msg("Disabling debug mode\n");
+    debugger.disableLogging();
+}
+
+isize
+CPU::didLoadFromBuffer(const u8 *buffer)
 {
     /* Because we don't save breakpoints and watchpoints in a snapshot, the
      * CPU flags for checking breakpoints and watchpoints can be in a corrupt
@@ -294,51 +311,51 @@ CPU::didLoadFromBuffer(u8 *buffer)
 }
 
 const char *
-CPU::disassembleRecordedInstr(int i, long *len)
+CPU::disassembleRecordedInstr(isize i, isize *len)
 {
-    return disassembleInstr(debugger.logEntryAbs(i).pc0, len);
+    return disassembleInstr(debugger.logEntryAbs((int)i).pc0, len);
 }
 const char *
-CPU::disassembleRecordedWords(int i, int len)
+CPU::disassembleRecordedWords(isize i, isize len)
 {
-    return disassembleWords(debugger.logEntryAbs(i).pc0, len);
+    return disassembleWords(debugger.logEntryAbs((int)i).pc0, len);
 }
 
 const char *
-CPU::disassembleRecordedFlags(int i)
+CPU::disassembleRecordedFlags(isize i)
 {
     static char result[18];
     
-    disassembleSR(debugger.logEntryAbs(i).sr, result);
+    disassembleSR(debugger.logEntryAbs((int)i).sr, result);
     return result;
 }
 
 const char *
-CPU::disassembleRecordedPC(int i)
+CPU::disassembleRecordedPC(isize i)
 {
     static char result[16];
     
-    Moira::disassemblePC(debugger.logEntryAbs(i).pc0, result);
+    Moira::disassemblePC(debugger.logEntryAbs((int)i).pc0, result);
     return result;
 }
 
 const char *
-CPU::disassembleInstr(u32 addr, long *len)
+CPU::disassembleInstr(u32 addr, isize *len)
 {
     static char result[128];
 
     int l = disassemble(addr, result);
 
-    if (len) *len = (long)l;
+    if (len) *len = (isize)l;
     return result;
 }
 
 const char *
-CPU::disassembleWords(u32 addr, int len)
+CPU::disassembleWords(u32 addr, isize len)
 {
     static char result[64];
 
-    disassembleMemory(addr, len, result);
+    disassembleMemory(addr, (int)len, result);
     return result;
 }
 
@@ -352,12 +369,12 @@ CPU::disassembleAddr(u32 addr)
 }
 
 const char *
-CPU::disassembleInstr(long *len)
+CPU::disassembleInstr(isize *len)
 {
     return disassembleInstr(reg.pc0, len);
 }
 const char *
-CPU::disassembleWords(int len)
+CPU::disassembleWords(isize len)
 {
     return disassembleWords(reg.pc0, len);
     return "";

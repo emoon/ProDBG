@@ -7,8 +7,7 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _SCREEN_RECORDER_H
-#define _SCREEN_RECORDER_H
+#pragma once
 
 #include "AmigaComponent.h"
 #include "Muxer.h"
@@ -52,8 +51,8 @@ class ScreenRecorder : public AmigaComponent {
     //
     
     // File handles to access FFmpeg
-    FILE *videoFFmpeg = NULL;
-    FILE *audioFFmpeg = NULL;
+    FILE *videoFFmpeg = nullptr;
+    FILE *audioFFmpeg = nullptr;
 
     // Video and audio pipe
     int videoPipe = -1;
@@ -97,7 +96,9 @@ public:
     
     ScreenRecorder(Amiga& ref);
     
-    bool hasFFmpeg();
+    const char *getDescription() const override { return "ScreenRecorder"; }
+
+    bool hasFFmpeg() const;
     
     void _reset(bool hard) override;
 
@@ -108,7 +109,7 @@ public:
 
 private:
     
-    void _dump() override;
+    void _dump(Dump::Category category, std::ostream& os) const override;
     
     
     //
@@ -132,9 +133,9 @@ private:
     {
     }
 
-    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
-    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
+    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
     
     //
@@ -184,5 +185,3 @@ public:
     // Records a single frame
     void vsyncHandler(Cycle target);
 };
-
-#endif

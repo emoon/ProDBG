@@ -7,44 +7,55 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-// This file must conform to standard ANSI-C to be compatible with Swift.
-
-#ifndef _RTC_TYPES_H
-#define _RTC_TYPES_H
+#pragma once
 
 #include "Aliases.h"
+#include "Reflection.h"
 
 //
 // Enumerations
 //
 
-VAMIGA_ENUM(long, RTCRevision)
+enum_long(RTC_REVISION)
 {
     RTC_NONE,
     RTC_OKI,
     RTC_RICOH,
+    
     RTC_COUNT
 };
+typedef RTC_REVISION RTCRevision;
 
-inline bool isRTCRevision(long value)
-{
-    return value >= RTC_NONE && value <= RTC_COUNT;
-}
-
-inline const char *sRTCRevision(RTCRevision model)
-{
-    switch (model) {
-        case RTC_NONE:   return "RTC_NONE";
-        case RTC_OKI:    return "RTC_OKI";
-        case RTC_RICOH:  return "RTC_RICOH";
-        default:         return "???";
+#ifdef __cplusplus
+struct RTCRevisionEnum : util::Reflection<RTCRevisionEnum, RTCRevision> {
+    
+    static bool isValid(long value)
+    {
+        return (unsigned long)value < RTC_COUNT;
     }
-}
+
+    static const char *prefix() { return "RTC"; }
+    static const char *key(RTCRevision value)
+    {
+        switch (value) {
+                
+            case RTC_NONE:   return "NONE";
+            case RTC_OKI:    return "OKI";
+            case RTC_RICOH:  return "RICOH";
+            case RTC_COUNT:  return "???";
+        }
+        return "???";
+    }
+};
+#endif
+
+
+//
+// Structures
+//
 
 typedef struct
 {
     RTCRevision model;
 }
 RTCConfig;
-
-#endif

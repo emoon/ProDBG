@@ -7,17 +7,58 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-// This file must conform to standard ANSI-C to be compatible with Swift.
-
-#ifndef _KEYBOARD_TYPES_H
-#define _KEYBOARD_TYPES_H
+#pragma once
 
 #include "Aliases.h"
+#include "Reflection.h"
+
+//
+// Enumerations
+//
+
+enum_long(KB_STATE)
+{
+    KB_SELFTEST,
+    KB_SYNC,
+    KB_STRM_ON,
+    KB_STRM_OFF,
+    KB_SEND,
+    
+    KB_COUNT
+};
+typedef KB_STATE KeyboardState;
+
+#ifdef __cplusplus
+struct KeyboardStateEnum : util::Reflection<KeyboardStateEnum, KeyboardState> {
+    
+    static bool isValid(long value)
+    {
+        return (unsigned long)value <  KB_COUNT;
+    }
+    
+    static const char *prefix() { return "KB"; }
+    static const char *key(KeyboardState value)
+    {
+        switch (value) {
+                
+            case KB_SELFTEST:  return "SELFTEST";
+            case KB_SYNC:      return "SYNC";
+            case KB_STRM_ON:   return "STRM_ON";
+            case KB_STRM_OFF:  return "STRM_OFF";
+            case KB_SEND:      return "SEND";
+            case KB_COUNT:     return "???";
+        }
+        return "???";
+    }
+};
+#endif
+
+//
+// Structures
+//
 
 typedef struct
 {
     bool accurate;
 }
 KeyboardConfig;
-
-#endif

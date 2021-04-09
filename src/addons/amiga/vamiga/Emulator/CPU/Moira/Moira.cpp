@@ -7,12 +7,10 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include <stdio.h>
-#include <assert.h>
-#include <algorithm>
-
 #include "Moira.h"
-#include "MoiraConfig.h"
+
+#include <stdio.h>
+#include <algorithm>
 
 namespace moira {
 
@@ -24,9 +22,18 @@ namespace moira {
 #include "StrWriter_cpp.h"
 #include "MoiraDasm_cpp.h"
 
-Moira::Moira()
+Moira::Moira(Amiga &ref) : AmigaComponent(ref)
 {
+    if (BUILD_INSTR_INFO_TABLE) info = new InstrInfo[65536];
+    if (ENABLE_DASM) dasm = new DasmPtr[65536];
+
     createJumpTables();
+}
+
+Moira::~Moira()
+{
+    if (info) delete [] info;
+    if (dasm) delete [] dasm;
 }
 
 void
@@ -55,11 +62,11 @@ Moira::reset()
     sync(2);
     reg.sp = read16OnReset(0);
     sync(4);
-    reg.ssp = reg.sp = read16OnReset(2) | reg.sp << 16;
+    reg.ssp = reg.sp = (read16OnReset(2) & ~0x1) | reg.sp << 16;
     sync(4);
     reg.pc = read16OnReset(4);
     sync(4);
-    reg.pc = read16OnReset(6) | reg.pc << 16;
+    reg.pc = (read16OnReset(6) & ~0x1) | reg.pc << 16;
 
     // Fill the prefetch queue
     sync(4);
@@ -186,9 +193,7 @@ Moira::checkForIrq()
 
 void
 Moira::halt()
-{
-    printf("HALTING CPU\n");
-    
+{    
     // Halt the CPU
     flags |= CPU_IS_HALTED;
     reg.pc = reg.pc0;
@@ -198,19 +203,19 @@ Moira::halt()
 }
 
 template<Size S> u32
-Moira::readD(int n)
+Moira::readD(int n) const
 {
     return CLIP<S>(reg.d[n]);
 }
 
 template<Size S> u32
-Moira::readA(int n)
+Moira::readA(int n) const
 {
     return CLIP<S>(reg.a[n]);
 }
 
 template<Size S> u32
-Moira::readR(int n)
+Moira::readR(int n) const
 {
     return CLIP<S>(reg.r[n]);
 }
@@ -234,14 +239,9 @@ Moira::writeR(int n, u32 v)
 }
 
 u8
-Moira::getCCR(const StatusRegister &sr)
+Moira::getCCR(const StatusRegister &sr) const
 {
-    return
-    sr.c << 0 |
-    sr.v << 1 |
-    sr.z << 2 |
-    sr.n << 3 |
-    sr.x << 4;
+    return (u8)(sr.c << 0 | sr.v << 1 | sr.z << 2 | sr.n << 3 | sr.x << 4);
 }
 
 void
@@ -255,10 +255,9 @@ Moira::setCCR(u8 val)
 }
 
 u16
-Moira::getSR(const StatusRegister &sr)
+Moira::getSR(const StatusRegister &sr) const
 {
-    return
-    sr.t << 15 | sr.s << 13 | sr.ipl << 8 | getCCR();
+    return (u16)(sr.t << 15 | sr.s << 13 | sr.ipl << 8 | getCCR());
 }
 
 void
@@ -315,12 +314,10 @@ Moira::setIPL(u8 val)
     }
 }
 
-int
-Moira::getIrqVector(int level) {
+u16
+Moira::getIrqVector(u8 level) const {
 
     assert(level < 8);
-
-    sync(4);
 
     switch (irqMode) {
 
@@ -337,6 +334,13 @@ Moira::getIrqVector(int level) {
 int
 Moira::disassemble(u32 addr, char *str)
 {
+    if (ENABLE_DASM == false) {
+
+        printf("This feature requires ENABLE_DASM = true\n");
+        assert(false);
+        return 0;
+    }
+
     u32 pc     = addr;
     u16 opcode = read16Dasm(pc);
 
@@ -393,6 +397,7 @@ Moira::disassembleSR(const StatusRegister &sr, char *str)
     str[16] = 0;
 }
 
+/*
 void
 Moira::disassembleSR(u16 sr, char *str)
 {
@@ -414,10 +419,24 @@ Moira::disassembleSR(u16 sr, char *str)
     str[15] = (sr & 0b0000000000000001) ? 'C' : 'c';
     str[16] = 0;
 }
+*/
+
+InstrInfo
+Moira::getInfo(u16 op)
+{
+    if (BUILD_INSTR_INFO_TABLE == false) {
+
+        printf("This feature requires BUILD_INSTR_INFO_TABLE = true\n");
+        assert(false);
+        return InstrInfo { ILLEGAL, MODE_IP, (Size)0 };
+    }
+        
+    return info[op];    
+}
 
 // Make sure the compiler generates certain instances of template functions
-template u32 Moira::readD <Long> (int n);
-template u32 Moira::readA <Long> (int n);
+template u32 Moira::readD <Long> (int n) const;
+template u32 Moira::readA <Long> (int n) const;
 template void Moira::writeD <Long> (int n, u32 v);
 template void Moira::writeA <Long> (int n, u32 v);
 

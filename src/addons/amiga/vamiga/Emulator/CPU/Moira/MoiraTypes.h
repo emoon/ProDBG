@@ -7,21 +7,20 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef MOIRA_TYPES_H
-#define MOIRA_TYPES_H
+#pragma once
 
 #include <stdint.h>
 
 namespace moira {
 
-typedef int8_t   i8;
-typedef int16_t  i16;
-typedef int32_t  i32;
-typedef int64_t  i64;
-typedef uint8_t  u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
+typedef int8_t             i8;
+typedef int16_t            i16;
+typedef int32_t            i32;
+typedef long long          i64;
+typedef uint8_t            u8;
+typedef uint16_t           u16;
+typedef uint32_t           u32;
+typedef unsigned long long u64;
 
 typedef enum
 {
@@ -316,4 +315,3 @@ static const u64 AE_DEC_ADDR    (1 << 9);  // Decrement ADDR by 2 in stack frame
 static const u64 AE_SET_CB3     (1 << 10); // Set bit 3 in CODE segment
 
 }
-#endif

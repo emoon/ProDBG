@@ -7,13 +7,27 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "Amiga.h"
+#include "config.h"
+#include "Mouse.h"
+#include "Chrono.h"
+#include "ControlPort.h"
+#include "IO.h"
+#include "MsgQueue.h"
+#include "Oscillator.h"
 
 Mouse::Mouse(Amiga& ref, ControlPort& pref) : AmigaComponent(ref), port(pref)
 {
-    setDescription(port.nr == PORT_1 ? "Mouse1" : "Mouse2");
-
     config.pullUpResistors = true;
+    config.shakeDetection = true;
+    config.velocity = 100;
+
+    updateScalingFactors();
+}
+
+const char *
+Mouse::getDescription() const
+{
+    return port.nr == PORT_1 ? "Mouse1" : "Mouse2";
 }
 
 void Mouse::_reset(bool hard)
@@ -30,25 +44,97 @@ void Mouse::_reset(bool hard)
     targetY = 0;
 }
 
-void
-Mouse::_dump()
+long
+Mouse::getConfigItem(Option option) const
 {
-    msg(" leftButton = %d\n", leftButton);
-    msg("rightButton = %d\n", rightButton);
-    msg("     mouseX = %f\n", mouseX);
-    msg("     mouseY = %f\n", mouseY);
-    msg("  oldMouseX = %f\n", oldMouseX);
-    msg("  oldMouseY = %f\n", oldMouseY);
-    msg("    targetX = %f\n", targetX);
-    msg("    targetY = %f\n", targetY);
-    msg("   dividerX = %f\n", dividerX);
-    msg("   dividerY = %f\n", dividerY);
-    msg("     shiftX = %f\n", shiftX);
-    msg("     shiftY = %f\n", shiftY);
+    switch (option) {
+
+        case OPT_PULLUP_RESISTORS:  return config.pullUpResistors;
+        case OPT_SHAKE_DETECTION:   return config.shakeDetection;
+        case OPT_MOUSE_VELOCITY:    return config.velocity;
+
+        default:
+            assert(false);
+            return 0;
+    }
+}
+
+bool
+Mouse::setConfigItem(Option option, long id, long value)
+{
+    if (port.nr != id) return false;
+    
+    switch (option) {
+            
+        case OPT_PULLUP_RESISTORS:
+            
+            if (config.pullUpResistors == value) {
+                return false;
+            }
+            config.pullUpResistors = value;
+            return true;
+ 
+        case OPT_SHAKE_DETECTION:
+            
+            if (config.shakeDetection == value) {
+                return false;
+            }
+            config.shakeDetection = value;
+            return true;
+            
+        case OPT_MOUSE_VELOCITY:
+            
+            printf("config: OPT_MOUSE_VELOCITY\n");
+            
+            if (value < 0 || value > 255) {
+                throw ConfigArgError("0 ... 255");
+            }
+            if (config.velocity == value) {
+                return false;
+            }
+            config.velocity= value;
+            updateScalingFactors();
+            return true;
+
+        default:
+            return false;
+    }
 }
 
 void
-Mouse::changePotgo(u16 &potgo)
+Mouse::updateScalingFactors()
+{
+    assert((unsigned long)config.velocity < 256);
+    scaleX = scaleY = (double)config.velocity / 100.0;
+}
+
+void
+Mouse::_dump(Dump::Category category, std::ostream& os) const
+{
+    if (category & Dump::Config) {
+
+        os << DUMP("Pull-up resistors") << YESNO(config.pullUpResistors) << std::endl;
+        os << DUMP("Shake detection") << YESNO(config.shakeDetection) << std::endl;
+        os << DUMP("Velocity") << config.velocity << std::endl;
+    }
+    
+    if (category & Dump::State) {
+        
+        os << DUMP("leftButton") << leftButton << std::endl;
+        os << DUMP("rightButton") << rightButton << std::endl;
+        os << DUMP("mouseX") << mouseX << std::endl;
+        os << DUMP("mouseY") << mouseY << std::endl;
+        os << DUMP("oldMouseX") << oldMouseX << std::endl;
+        os << DUMP("oldMouseY") << oldMouseY << std::endl;
+        os << DUMP("targetX") << targetX << std::endl;
+        os << DUMP("targetY") << targetY << std::endl;
+        os << DUMP("shiftX") << shiftX << std::endl;
+        os << DUMP("shiftY") << shiftY << std::endl;
+    }
+}
+
+void
+Mouse::changePotgo(u16 &potgo) const
 {
     u16 mask = port.nr == 1 ? 0x0400 : 0x4000;
 
@@ -60,7 +146,7 @@ Mouse::changePotgo(u16 &potgo)
 }
 
 void
-Mouse::changePra(u8 &pra)
+Mouse::changePra(u8 &pra) const
 {
     u16 mask = port.nr == 1 ? 0x0040 : 0x0080;
 
@@ -106,16 +192,26 @@ Mouse::getXY()
 void
 Mouse::setXY(double x, double y)
 {
-    targetX = x / dividerX;
-    targetY = y / dividerY;
+    // Check for a shaking mouse
+    if (config.shakeDetection && shakeDetector.isShakingAbs(x)) {
+        messageQueue.put(MSG_SHAKING);
+    }
+
+    targetX = x * scaleX;
+    targetY = y * scaleY;
+    
     port.device = CPD_MOUSE;
 }
 
 void
 Mouse::setDeltaXY(double dx, double dy)
 {
-    targetX += dx / dividerX;
-    targetY += dy / dividerY;
+    // Check for a shaking mouse
+    if (shakeDetector.isShakingRel(dx)) messageQueue.put(MSG_SHAKING);
+
+    targetX += dx * scaleX;
+    targetY += dy * scaleY;
+    
     port.device = CPD_MOUSE;
 }
 
@@ -140,9 +236,9 @@ Mouse::setRightButton(bool value)
 void
 Mouse::trigger(GamePadAction event)
 {
-    assert(isGamePadAction(event));
+    assert_enum(GamePadAction, event);
 
-    trace(PORT_DEBUG, "trigger(%d)\n", event);
+    trace(PORT_DEBUG, "trigger(%lld)\n", event);
 
     switch (event) {
 
@@ -159,4 +255,58 @@ Mouse::execute()
 {
     mouseX = targetX;
     mouseY = targetY;
+}
+
+bool
+ShakeDetector::isShakingAbs(double newx)
+{
+    return isShakingRel(newx - x);
+}
+
+bool
+ShakeDetector::isShakingRel(double dx) {
+    
+    // Accumulate the travelled distance
+    x += dx;
+    dxsum += abs(dx);
+    
+    // Check for a direction reversal
+    if (dx * dxsign < 0) {
+    
+        u64 dt = util::Time::now().asNanoseconds() - lastTurn;
+        dxsign = -dxsign;
+
+        // A direction reversal is considered part of a shake, if the
+        // previous reversal happened a short while ago.
+        if (dt < 400 * 1000 * 1000) {
+  
+            // Eliminate jitter by demanding that the mouse has travelled
+            // a long enough distance.
+            if (dxsum > 400) {
+                
+                dxturns += 1;
+                dxsum = 0;
+                
+                // Report a shake if the threshold has been reached.
+                if (dxturns > 3) {
+                    
+                    // printf("Mouse shake detected\n");
+                    lastShake = util::Time::now().asNanoseconds();
+                    dxturns = 0;
+                    return true;
+                }
+            }
+            
+        } else {
+            
+            // Time out. The user is definitely not shaking the mouse.
+            // Let's reset the recorded movement histoy.
+            dxturns = 0;
+            dxsum = 0;
+        }
+        
+        lastTurn = util::Time::now().asNanoseconds();
+    }
+    
+    return false;
 }

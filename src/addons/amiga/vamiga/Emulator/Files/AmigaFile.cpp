@@ -7,263 +7,187 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
+#include "config.h"
 #include "AmigaFile.h"
+#include "Snapshot.h"
+#include "ADFFile.h"
+#include "EXTFile.h"
+#include "IMGFile.h"
+#include "DMSFile.h"
+#include "EXEFile.h"
+#include "Folder.h"
+#include "HDFFile.h"
+#include "RomFile.h"
+#include "ExtendedRomFile.h"
 
-AmigaFile::AmigaFile()
+AmigaFile::AmigaFile(isize capacity)
 {
+    data = new u8[capacity]();
+    size = capacity;
 }
 
 AmigaFile::~AmigaFile()
 {
-    dealloc();
-    
-    if (path)
-        free(path);
-}
-
-bool
-AmigaFile::alloc(size_t capacity)
-{
-    dealloc();
-    
-    if ((data = new u8[capacity]) == NULL)
-        return false;
-    
-    size = eof = capacity;
-    fp = 0;
-    
-    return true;
+    if (data) delete[] data;
 }
 
 void
-AmigaFile::dealloc()
+AmigaFile::flash(u8 *buffer, isize offset)
 {
-    if (data == NULL) {
-        assert(size == 0);
-        return;
+    assert(buffer != nullptr);
+    memcpy(buffer + offset, data, size);
+}
+
+FileType
+AmigaFile::type(const string &path)
+{
+    std::ifstream stream(path);
+    if (!stream.is_open()) return FILETYPE_UKNOWN; // throw VAError(ERROR_FILE_NOT_FOUND);
+
+    printf("File was found type()\n");
+    
+    if (Snapshot::isCompatiblePath(path) &&
+        Snapshot::isCompatibleStream(stream)) return FILETYPE_SNAPSHOT;
+
+    if (ADFFile::isCompatiblePath(path) &&
+        ADFFile::isCompatibleStream(stream)) return FILETYPE_ADF;
+
+    if (HDFFile::isCompatiblePath(path) &&
+        HDFFile::isCompatibleStream(stream)) return FILETYPE_HDF;
+
+    if (EXTFile::isCompatiblePath(path) &&
+        EXTFile::isCompatibleStream(stream)) return FILETYPE_EXT;
+
+    if (IMGFile::isCompatiblePath(path) &&
+        IMGFile::isCompatibleStream(stream)) return FILETYPE_IMG;
+
+    if (DMSFile::isCompatiblePath(path) &&
+        DMSFile::isCompatibleStream(stream)) return FILETYPE_DMS;
+
+    if (EXEFile::isCompatiblePath(path) &&
+        EXEFile::isCompatibleStream(stream)) return FILETYPE_EXE;
+
+    if (RomFile::isCompatiblePath(path) &&
+        RomFile::isCompatibleStream(stream)) return FILETYPE_ROM;
+
+    if (EXTFile::isCompatiblePath(path) &&
+        EXTFile::isCompatibleStream(stream)) return FILETYPE_EXT;
+
+    if (Folder::isFolder(path.c_str())) return FILETYPE_DIR;
+
+    return FILETYPE_UKNOWN;
+}
+
+isize
+AmigaFile::readFromStream(std::istream &stream)
+{
+    // Get stream size
+    auto fsize = stream.tellg();
+    stream.seekg(0, std::ios::end);
+    fsize = stream.tellg() - fsize;
+    stream.seekg(0, std::ios::beg);
+
+    // Allocate memory
+    assert(data == nullptr);
+    data = new u8[fsize]();
+    size = (isize)fsize;
+
+    // Read from stream
+    stream.read((char *)data, size);
+        
+    return size;
+}
+
+isize
+AmigaFile::readFromFile(const char *path)
+{
+    assert(path);
+        
+    std::ifstream stream(path);
+
+    if (!stream.is_open()) {
+        throw VAError(ERROR_FILE_CANT_READ);
     }
     
-    delete[] data;
-    data = NULL;
+    isize result = readFromStream(stream);
+    assert(result == size);
     
-    size = 0;
-    fp = -1;
-    eof = -1;
+    this->path = string(path);
+    return result;
 }
 
-void
-AmigaFile::setPath(const char *str)
+isize
+AmigaFile::readFromBuffer(const u8 *buf, isize len)
 {
-    assert(str != NULL);
-    
-    // Set path
-    if (path) free(path);
-    path = strdup(str);
-}
+    assert(buf);
 
-void
-AmigaFile::seek(long offset)
-{
-    eof = size;
-    fp = (offset < eof) ? offset : -1;
-}
-
-int
-AmigaFile::read()
-{
-    int result;
+    std::istringstream stream(string((const char *)buf, len));
     
-    assert(eof <= (long)size);
-    
-    if (fp < 0)
-        return -1;
-    
-    // Get byte
-    result = data[fp++];
-    
-    // Check for end of file
-    if (fp == eof)
-        fp = -1;
+    isize result = readFromStream(stream);
+    assert(result == size);
     
     return result;
 }
 
-void
-AmigaFile::flash(u8 *buffer, size_t offset)
+isize
+AmigaFile::writeToStream(std::ostream &stream)
 {
-    int byte;
-    assert(buffer != NULL);
-    
-    seek(0);
-    
-    while ((byte = read()) != EOF) {
-        buffer[offset++] = (u8)byte;
-    }
-}
-
-bool
-AmigaFile::readFromBuffer(const u8 *buffer, size_t length)
-{
-    assert (buffer != NULL);
-    
-    // Check file type
-    if (!bufferHasSameType(buffer, length)) {
-        return false;
-    }
-    
-    // Allocate memory
-    if (!alloc(length)) {
-        return false;
-    }
-    
-    // Read from buffer
-    memcpy(data, buffer, length);
- 
-    return true;
-}
-
-bool
-AmigaFile::readFromFile(const char *filename)
-{
-    assert (filename != NULL);
-    
-    bool success = false;
-    u8 *buffer = NULL;
-    FILE *file = NULL;
-    struct stat fileProperties;
-    
-    // Check file type
-    if (!fileHasSameType(filename)) {
-        goto exit;
-    }
-    
-    // Get file properties
-    if (stat(filename, &fileProperties) != 0) {
-        goto exit;
-    }
-    
-    // Open file
-    if (!(file = fopen(filename, "r"))) {
-        goto exit;
-    }
-    
-    // Allocate memory
-    if (!(buffer = new u8[fileProperties.st_size])) {
-        goto exit;
-    }
-    
-    // Read from file
-    int c;
-    for (unsigned i = 0; i < fileProperties.st_size; i++) {
-        c = fgetc(file);
-        if (c == EOF)
-            break;
-        buffer[i] = (u8)c;
-    }
-    
-    // Read from buffer
-    dealloc();
-    if (!readFromBuffer(buffer, (unsigned)fileProperties.st_size)) {
-        goto exit;
-    }
-    
-    setPath(filename);
-    success = true;
-        
-exit:
-    
-    if (file)
-        fclose(file);
-    if (buffer)
-        delete[] buffer;
-    
-    return success;
-}
-
-bool
-AmigaFile::readFromFile(FILE *file)
-{
-    assert (file != NULL);
-    
-    u8 *buffer = NULL;
-
-    // Get file size
-    fseek(file, 0, SEEK_END);
-    size_t size = (size_t)ftell(file);
-    rewind(file);
-    
-    // Allocate memory
-    if (!(buffer = new u8[size])) {
-        return false;
-    }
-
-    // Read from file
-    int c;
-    for (unsigned i = 0; i < size; i++) {
-        if ((c = fgetc(file)) == EOF) break;
-        buffer[i] = (u8)c;
-    }
-
-    // Check type
-    if (!bufferHasSameType(buffer, size)) {
-        delete[] buffer;
-        return false;
-    }
-    
-    // Read from buffer
-    dealloc();
-    if (!readFromBuffer(buffer, size)) {
-        delete[] buffer;
-        return false;
-    }
-    
-    delete[] buffer;
-    return true;
-}
-
-size_t
-AmigaFile::writeToBuffer(u8 *buffer)
-{
-    assert(data != NULL);
-    
-    if (buffer) {
-        memcpy(buffer, data, size);
-    }
+    stream.write((char *)data, size);
     return size;
 }
 
-bool
-AmigaFile::writeToFile(const char *filename)
+isize
+AmigaFile::writeToStream(std::ostream &stream, ErrorCode *err)
 {
-    assert (filename != NULL);
+    *err = ERROR_OK;
+    try { return writeToStream(stream); }
+    catch (VAError &exception) { *err = exception.data; }
+    return 0;
+}
 
-    bool success = false;
-    u8 *data = NULL;
-    FILE *file;
-    size_t filesize;
+isize
+AmigaFile::writeToFile(const char *path)
+{
+    assert(path);
+        
+    std::ofstream stream(path);
+
+    if (!stream.is_open()) {
+        throw VAError(ERROR_FILE_CANT_WRITE);
+    }
     
-    // Determine the size of the file in bytes
-    if (!(filesize = writeToBuffer(NULL))) return false;
+    isize result = writeToStream(stream);
+    assert(result == size);
     
-    // Open file
-    if (!(file = fopen(filename, "w"))) goto exit;
+    return result;
+}
+
+isize
+AmigaFile::writeToFile(const char *path, ErrorCode *err)
+{
+    *err = ERROR_OK;
+    try { return writeToFile(path); }
+    catch (VAError &exception) { *err = exception.data; }
+    return 0;
+}
+
+isize
+AmigaFile::writeToBuffer(u8 *buf)
+{
+    assert(buf);
+
+    std::ostringstream stream;
+    isize len = writeToStream(stream);
+    stream.write((char *)buf, len);
     
-    // Allocate a buffer
-    if (!(data = new u8[filesize])) goto exit;
-    
-    // Write contents to the created buffer
-    if (!writeToBuffer(data)) goto exit;
-    
-    // Write the buffer to a file
-    for (unsigned i = 0; i < filesize; i++) fputc(data[i], file);
-    success = true;
-    
-exit:
-    
-    if (file)
-        fclose(file);
-    if (data)
-        delete[] data;
-    
-    return success;
+    return len;
+}
+
+isize
+AmigaFile::writeToBuffer(u8 *buf, ErrorCode *err)
+{
+    *err = ERROR_OK;
+    try { return writeToBuffer(buf); }
+    catch (VAError &exception) { *err = exception.data; }
+    return 0;
 }

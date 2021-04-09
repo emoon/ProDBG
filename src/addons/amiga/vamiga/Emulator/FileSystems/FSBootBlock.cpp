@@ -7,17 +7,21 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#include "FSVolume.h"
+#include "config.h"
+#include "BootBlockImage.h"
+#include "FSBootBlock.h"
+#include "FSDevice.h"
+#include "FSPartition.h"
 
-FSBootBlock::FSBootBlock(FSVolume &ref, u32 nr) : FSBlock(ref, nr)
+FSBootBlock::FSBootBlock(FSPartition &p, Block nr) : FSBlock(p, nr)
 {
-    data = new u8[ref.bsize]();
+    data = new u8[bsize()]();
     
-    if (nr == 0) {        
+    if (nr == p.firstBlock && p.dos != FS_NODOS) {
         data[0] = 'D';
         data[1] = 'O';
         data[2] = 'S';
-        data[3] = (volume.isOFS()) ? 0 : 1;
+        data[3] = (u8)p.dos;
     }
 }
 
@@ -26,55 +30,107 @@ FSBootBlock::~FSBootBlock()
     delete [] data;
 }
 
-void
-FSBootBlock::dump()
+
+FSVolumeType
+FSBootBlock::dos() const
 {
+    // Only proceed if the header begins with 'DOS'
+    if (strncmp((const char *)data, "DOS", 3)) return FS_NODOS;
+        
+    // Only proceed if the DOS version number is valid
+    if (data[3] > 7) return FS_NODOS;
     
+    return (FSVolumeType)data[3];
 }
 
-bool
-FSBootBlock::check(bool verbose)
+FSItemType
+FSBootBlock::itemType(isize byte) const
 {
-    bool result = FSBlock::check(verbose);
-    
-    if (nr > 1 && verbose) {
-        fprintf(stderr, "Block %d must not be a boot block.\n", nr);
-        result = false;
+    if (nr == partition.firstBlock) {
+        
+        if (byte <= 2) return FSI_DOS_HEADER;
+        if (byte == 3) return FSI_DOS_VERSION;
+        if (byte <= 7) return FSI_CHECKSUM;
     }
     
-    return result;
+    return FSI_BOOTCODE;
+}
+
+ErrorCode
+FSBootBlock::check(isize byte, u8 *expected, bool strict) const
+{
+    if (nr == partition.firstBlock) {
+ 
+        isize word = byte / 4;
+        u32 value = data[byte];
+        
+        if (byte == 0) EXPECT_BYTE('D');
+        if (byte == 1) EXPECT_BYTE('O');
+        if (byte == 2) EXPECT_BYTE('S');
+        if (byte == 3) EXPECT_DOS_REVISION;
+        if (word == 1) { value = get32(1); EXPECT_CHECKSUM; }
+    }
+    
+    return ERROR_OK;
+}
+
+isize
+FSBootBlock::checksumLocation() const
+{
+    return (nr == partition.firstBlock) ? 1 : -1;
+}
+
+u32
+FSBootBlock::checksum() const {
+    
+    // Only call this function for the first boot block in a partition
+    assert(nr == partition.firstBlock);
+        
+    u32 result = get32(0), prec;
+
+    // First boot block
+    for (isize i = 2; i < bsize() / 4; i++) {
+        
+        prec = result;
+        if ( (result += get32(i)) < prec) result++;
+    }
+
+    // Second boot block
+    u8 *p = partition.dev.blocks[1]->data;
+    
+    for (isize i = 0; i < bsize() / 4; i++) {
+        
+        prec = result;
+        if ( (result += FSBlock::read32(p + 4*i)) < prec) result++;
+    }
+
+    return ~result;
 }
 
 void
-FSBootBlock::writeBootCode()
+FSBootBlock::dump() const
 {
-    u8 ofsData[] = {
+    msg("       Header : ");
+    for (isize i = 0; i < 8; i++) msg("%02X ", data[i]);
+    msg("\n");
+}
+
+void
+FSBootBlock::writeBootBlock(BootBlockId id, isize page)
+{
+    assert(page == 0 || page == 1);
+    
+    debug(FS_DEBUG, "writeBootBlock(%s, %zd)\n", BootBlockIdEnum::key(id), page);
+    
+    if (id != BB_NONE) {
         
-        0xc0, 0x20, 0x0f, 0x19, 0x00, 0x00, 0x03, 0x70, 0x43, 0xfa, 0x00, 0x18,
-        0x4e, 0xae, 0xff, 0xa0, 0x4a, 0x80, 0x67, 0x0a, 0x20, 0x40, 0x20, 0x68,
-        0x00, 0x16, 0x70, 0x00, 0x4e, 0x75, 0x70, 0xff, 0x60, 0xfa, 0x64, 0x6f,
-        0x73, 0x2e, 0x6c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79
-    };
-    
-    u8 ffsData[] = {
+        // Read boot block image from the database
+        auto image = BootBlockImage(id);
         
-        0xE3, 0x3D, 0x0E, 0x72, 0x00, 0x00, 0x03, 0x70, 0x43, 0xFA, 0x00, 0x3E,
-        0x70, 0x25, 0x4E, 0xAE, 0xFD, 0xD8, 0x4A, 0x80, 0x67, 0x0C, 0x22, 0x40,
-        0x08, 0xE9, 0x00, 0x06, 0x00, 0x22, 0x4E, 0xAE, 0xFE, 0x62, 0x43, 0xFA,
-        0x00, 0x18, 0x4E, 0xAE, 0xFF, 0xA0, 0x4A, 0x80, 0x67, 0x0A, 0x20, 0x40,
-        0x20, 0x68, 0x00, 0x16, 0x70, 0x00, 0x4E, 0x75, 0x70, 0xFF, 0x4E, 0x75,
-        0x64, 0x6F, 0x73, 0x2E, 0x6C, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x00,
-        0x65, 0x78, 0x70, 0x61, 0x6E, 0x73, 0x69, 0x6F, 0x6E, 0x2E, 0x6C, 0x69,
-        0x62, 0x72, 0x61, 0x72, 0x79, 0x00, 0x00, 0x00
-    };
-    
-    memset(data + 4, 0, volume.bsize - 4);
-    
-    if (nr == 0) {
-        if (volume.isOFS()) {
-            memcpy(data + 4, ofsData, sizeof(ofsData));
+        if (page == 0) {
+            image.write(data + 4, 4, 511); // Write 508 bytes (skip header)
         } else {
-            memcpy(data + 4, ffsData, sizeof(ffsData));
+            image.write(data, 512, 1023);  // Write 512 bytes
         }
     }
 }

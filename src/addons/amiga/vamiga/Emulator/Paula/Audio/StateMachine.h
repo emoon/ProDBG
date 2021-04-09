@@ -7,16 +7,15 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef _STATE_MACHINE_H
-#define _STATE_MACHINE_H
+#pragma once
 
+#include "StateMachineTypes.h"
 #include "AmigaComponent.h"
 #include "Sampler.h"
+#include "Agnus.h"
 
-template <int nr>
+template <isize nr>
 class StateMachine : public AmigaComponent {
-
-    friend class PaulaAudio;
 
     // Result of the latest inspection
     AudioChannelInfo info;
@@ -83,6 +82,8 @@ public:
 
     StateMachine(Amiga& ref);
 
+    const char *getDescription() const override;
+
 private:
     
     void _reset(bool hard) override;
@@ -99,7 +100,7 @@ public:
 private:
     
     void _inspect() override;
-    void _dump() override;
+    void _dump(Dump::Category category, std::ostream& os) const override;
     
     
     //
@@ -118,7 +119,7 @@ private:
     {
         worker
 
-        & clock;
+        << clock;
     }
 
     template <class T>
@@ -126,25 +127,25 @@ private:
     {
         worker
         
-        & state
-        & buffer
-        & audlenLatch
-        & audlen
-        & audperLatch
-        & audper
-        & audvolLatch
-        & audvol
-        & auddat
-        & audlcLatch
-        & audDR
-        & intreq2
-        & enablePenlo
-        & enablePenhi;
+        << state
+        << buffer
+        << audlenLatch
+        << audlen
+        << audperLatch
+        << audper
+        << audvolLatch
+        << audvol
+        << auddat
+        << audlcLatch
+        << audDR
+        << intreq2
+        << enablePenlo
+        << enablePenhi;
     }
 
-    size_t _size() override { COMPUTE_SNAPSHOT_SIZE }
-    size_t _load(u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
-    size_t _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
+    isize _size() override { COMPUTE_SNAPSHOT_SIZE }
+    isize _load(const u8 *buffer) override { LOAD_SNAPSHOT_ITEMS }
+    isize _save(u8 *buffer) override { SAVE_SNAPSHOT_ITEMS }
 
     
     //
@@ -170,10 +171,10 @@ public:
 public:
 
     // Returns true if the state machine is running in DMA mode
-    bool AUDxON();
+    bool AUDxON() const;
 
     // Returns true if the audio interrupt is pending
-    bool AUDxIP();
+    bool AUDxIP() const;
 
     // Asks Paula to trigger the audio interrupt
     void AUDxIR();
@@ -182,7 +183,7 @@ public:
     void AUDxDR() { audDR = true; }
 
     // Tells Agnus to reset the DMA pointer to the block start
-    void AUDxDSR()  { agnus.reloadAUDxPT<nr>(); }
+    void AUDxDSR() { agnus.reloadAUDxPT<nr>(); }
 
     // Reloads the period counter from its backup latch
     void percntrld();
@@ -206,10 +207,10 @@ public:
     void pbufld2();
 
     // Returns true in attach volume mode
-    bool AUDxAV();
+    bool AUDxAV() const;
 
     // Returns true in attach period mode
-    bool AUDxAP();
+    bool AUDxAP() const;
 
     // Condition for normal DMA and interrupt requests
     bool napnav() { return !AUDxAP() || AUDxAV(); }
@@ -249,5 +250,3 @@ public:
 
     void serviceEvent();
 };
-
-#endif

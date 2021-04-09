@@ -31,4 +31,4 @@ void execTrapException(int nr);
 void execPrivilegeException();
 
 // Emulates an interrupt exception
-void execIrqException(int level);
+void execIrqException(u8 level);
