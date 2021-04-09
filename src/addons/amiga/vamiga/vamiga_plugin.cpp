@@ -4,6 +4,8 @@
 #include "pd_host.h"
 #include "pd_message_readwrite.h"
 #include "Amiga.h"
+#include "../amiga_structs.h"
+#include "Constants.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -13,15 +15,21 @@ typedef struct VAmigaPlugin {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void log_callback(const void* t, long t0, long t1) {
+
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void* create_instance(ServiceFunc* serviceFunc) {
     VAmigaPlugin* t = new VAmigaPlugin;
     t->amiga = new Amiga;
-    if (!t->amiga->mem.loadRomFromFile("~/kick13.rom")) {
-        printf("Failed to load kick13.rom\n");
-    } else {
-        t->amiga->powerOn();
-        t->amiga->run();
-    }
+    t->amiga->queue.setListener(t, log_callback);
+    t->amiga->mem.loadRomFromFile("/home/emoon/kick13.rom");
+    t->amiga->mem.allocChip(512 * 1024);
+    t->amiga->mem.allocSlow(512 * 1024);
+    t->amiga->powerOn();
+    t->amiga->run();
 
     return t;
 }
@@ -36,6 +44,7 @@ static void destroy_instance(void* user_data) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#if 0
 static void target_reply(VAmigaPlugin* plugin, const FileTargetRequest* request, PDWriteMessage* writer) {
     /*
     flatbuffers::FlatBufferBuilder builder(1024);
@@ -73,6 +82,7 @@ static void target_reply(VAmigaPlugin* plugin, const FileTargetRequest* request,
     PDMessage_end_msg(writer, reply, builder);
     */
 }
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -124,6 +134,60 @@ static void memory_reply(VAmigaPlugin* plugin, const MemoryRequest* request, PDW
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void send_framebuffer(VAmigaPlugin* plugin, PDWriteMessage* writer) {
+
+    u32* source = plugin->amiga->denise.pixelEngine.getStableBuffer().data;
+
+    int xStart = 4 * HBLANK_MAX + 1;
+    int xEnd = HPIXELS + 4 * HBLANK_MIN;
+    int yStart = VBLANK_CNT;
+    int yEnd = VPIXELS - 2;
+
+    int width = (xEnd - xStart);
+    int height = (yEnd - yStart);
+
+    source += xStart + yStart * HPIXELS;
+
+    printf("width %d height %d\n", width, height);
+
+    int buffer_size = sizeof(AmigaFrameBufferData) + (width * height * sizeof(u32));
+
+    AmigaFrameBufferData* output = (AmigaFrameBufferData*)malloc(buffer_size);
+
+    output->width = width;
+    output->height = height;
+
+    for (isize y = 0; y < height; y++) {
+        for (isize x = 0; x < width; x++) {
+            output->data[(y * width) + x] = source[x];
+        }
+        source += HPIXELS;
+    }
+
+    flatbuffers::FlatBufferBuilder builder(1024);
+    auto t = builder.CreateVector<uint8_t>((uint8_t*)output, buffer_size);
+
+    CustomRequestBuilder reply(builder);
+    reply.add_message_id(AmigaMessages_ReplyFrameBuffer);
+    reply.add_data(t);
+    PDMessage_end_msg(writer, reply, builder);
+
+    free(output);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void custom_request(VAmigaPlugin* plugin, const CustomRequest* request, PDWriteMessage* writer) {
+    int id = request->message_id();
+
+    switch (request->message_id()) {
+        case AmigaMessages_RequestFramebuffer: send_framebuffer(plugin, writer); break;
+        default: printf("unknown custom request_id %d\n", id); break;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void process_events(VAmigaPlugin* plugin, PDReadMessage* reader, PDWriteMessage* writer) {
     const uint8_t* data;
     uint64_t size;
@@ -132,8 +196,8 @@ static void process_events(VAmigaPlugin* plugin, PDReadMessage* reader, PDWriteM
         const PDMessage* msg = GetPDMessage(data);
 
         switch (msg->message_type()) {
-            case PDMessageType_file_target_request: {
-                target_reply(plugin, msg->message_as_file_target_request(), writer);
+            case PDMessageType_custom_request: {
+                custom_request(plugin, msg->message_as_custom_request(), writer);
                 break;
             }
 
@@ -155,12 +219,39 @@ static PDDebugState update(void* user_data, PDAction action, PDReadMessage* read
     process_events(plugin, reader, writer);
 
     /*
+    u32* source = plugin->amiga->denise.pixelEngine.getStableBuffer().data;
+
+    int xStart = 4 * HBLANK_MAX + 1;
+    int xEnd = HPIXELS + 4 * HBLANK_MIN;
+    int yStart = VBLANK_CNT;
+    int yEnd = VPIXELS - 2;
+
+    int width = (xEnd - xStart);
+    int height = (yEnd - yStart);
+
+    source += xStart + yStart * HPIXELS;
+
+    printf("width %d height %d\n", width, height);
+
+
+    for (isize y = 0; y < height; y++) {
+        for (isize x = 0; x < width; x++) {
+            target[x] = source[x * dx];
+        }
+        source += dy * HPIXELS;
+        target += width;
+    }
+    */
+
+
+    /*
     if (plugin->buffer) {
        return PDDebugState_Trace;
     } else {
        return PDDebugState_NoTarget;
     }
     */
+    return PDDebugState_Running;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

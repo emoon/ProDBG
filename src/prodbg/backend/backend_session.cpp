@@ -379,13 +379,17 @@ void BackendSession::request_custom(int custom_message_id, QVector<uint8_t>* tar
 
     flatbuffers::FlatBufferBuilder builder(1024);
 
-    auto t = builder.CreateVector<uint8_t>(source->data(), source->size());
-
-    CustomRequestBuilder request(builder);
-    request.add_message_id(custom_message_id);
-    request.add_data(t);
-
-    PDMessage_end_msg(m_messages_api->get_writer(), request, builder);
+    if (source) {
+        auto t = builder.CreateVector<uint8_t>(source->data(), source->size());
+        CustomRequestBuilder request(builder);
+        request.add_message_id(custom_message_id);
+        request.add_data(t);
+        PDMessage_end_msg(m_messages_api->get_writer(), request, builder);
+    } else {
+        CustomRequestBuilder request(builder);
+        request.add_message_id(custom_message_id);
+        PDMessage_end_msg(m_messages_api->get_writer(), request, builder);
+    }
 
     update();
 
@@ -397,17 +401,22 @@ void BackendSession::request_custom(int custom_message_id, QVector<uint8_t>* tar
         if (msg->message_type() == PDMessageType_custom_request) {
             auto reply = msg->message_as_custom_request();
             auto data = reply->data();
-            auto size = data->size();
-            auto d = data->data();
 
-            target->resize(size);
+            if (data) {
+                auto size = data->size();
+                auto d = data->data();
 
-            for (uint32_t i = 0; i < size; ++i) {
-                (*target)[i] = d[i];
+                target->resize(size);
+
+                for (uint32_t i = 0; i < size; ++i) {
+                    (*target)[i] = d[i];
+                }
+
+                // TODO: Fix width
+                reply_custom(reply->message_id(), target);
+            } else {
+                printf("No data for custom reply, skip sending back");
             }
-
-            // TODO: Fix width
-            reply_custom(custom_message_id, target);
         }
     }
 }

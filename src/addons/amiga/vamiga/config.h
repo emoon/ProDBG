@@ -7,8 +7,7 @@
 // See https://www.gnu.org for license information
 // -----------------------------------------------------------------------------
 
-#ifndef VACONFIG_H
-#define VACONFIG_H
+#pragma once
 
 //
 // Release settings
@@ -17,11 +16,20 @@
 // Snapshot version number
 #define V_MAJOR 0
 #define V_MINOR 9
-#define V_SUBMINOR 14
+#define V_SUBMINOR 18
 
 // Uncomment these settings in a release build
 // #define RELEASEBUILD
-// #define NDEBUG
+
+
+//
+// Build settings
+//
+
+// Type alias for the datatype used by the host machine's audio backend
+// struct U16Mono; typedef U16Mono SampleType;
+// struct U16Stereo; typedef U16Stereo SampleType;
+struct FloatStereo; typedef FloatStereo SampleType;
 
 
 //
@@ -58,25 +66,18 @@
 
 
 //
-// Compatibility settings
-//
-
-
-
-//
 // Debug settings
 //
 
 // General
+static const int CNF_DEBUG       = 0; // Configuration options
 static const int XFILES          = 0; // Report paranormal activity
 static const int MIMIC_UAE       = 0; // Enable to compare debug logs with UAE
 static const int NO_SSE          = 0; // Don't use SSE extensions
 
-// Configuration
-static const int OPT_DEBUG       = 0; // Configuration options
-
 // Runloop
 static const int RUN_DEBUG       = 0; // Run loop, component states
+static const int QUEUE_DEBUG     = 0; // Message queue
 static const int SNP_DEBUG       = 0; // Serialization (snapshots)
 
 // CPU
@@ -86,7 +87,7 @@ static const int CPU_DEBUG       = 0; // CPU
 static const int OCSREG_DEBUG    = 0; // General OCS register debugging
 static const int ECSREG_DEBUG    = 0; // Special ECS register debugging
 static const int INVREG_DEBUG    = 0; // Invalid register accesses
-static const int MEM_DEBUG       = 0; // Memory oddities
+static const int MEM_DEBUG       = 0; // Memory
 static const int FAS_DEBUG       = 0; // Fast RAM
 
 // Agnus
@@ -137,6 +138,7 @@ static const int DSK_CHECKSUM    = 0; // Compute disk checksums
 static const int DSKREG_DEBUG    = 0; // Disk controller registers
 static const int DSK_DEBUG       = 0; // Disk controller execution
 static const int MFM_DEBUG       = 0; // Disk encoder / decoder
+static const int FS_DEBUG        = 0; // File System Classes (OFS / FFS)
 
 // Audio
 static const int AUDREG_DEBUG    = 0; // Audio registers
@@ -159,4 +161,12 @@ static const int RTC_DEBUG       = 0; // Real-time clock
 static const int KBD_DEBUG       = 0; // Keyboard
 static const int REC_DEBUG       = 0; // Screen recorder
 
+
+#ifdef RELEASEBUILD
+static const int releaseBuild = 1;
+#define NDEBUG
+#else
+static const int releaseBuild = 0;
 #endif
+
+#include <assert.h>

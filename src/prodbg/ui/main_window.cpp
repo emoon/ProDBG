@@ -97,7 +97,7 @@ MainWindow::MainWindow() : m_statusbar(new QStatusBar(this)), m_backend(nullptr)
 
     setStatusBar(m_statusbar);
 
-    // start_dummy_backend();
+    start_dummy_backend();
 
     init_actions();
     // read_settings();
@@ -363,7 +363,8 @@ void MainWindow::target_reply(bool status, const QString& error_message) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::start_dummy_backend() {
-    BackendSession* backend = BackendSession::create_backend_session(QStringLiteral("Dummy Backend"));
+    // BackendSession* backend = BackendSession::create_backend_session(QStringLiteral("Dummy Backend"));
+    BackendSession* backend = BackendSession::create_backend_session(QStringLiteral("Amiga"));
 
     if (!backend) {
         qDebug() << "Unable to create Dummy Backend";

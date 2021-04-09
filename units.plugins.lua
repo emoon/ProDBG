@@ -45,7 +45,9 @@ SharedLibrary {
 
     Includes = {
         "api/include",
+		"src/addons/amiga/vamiga",
 		"src/addons/amiga/vamiga/Emulator",
+		"src/addons/amiga/vamiga/Emulator/Base",
 		"src/addons/amiga/vamiga/Emulator/Agnus",
 		"src/addons/amiga/vamiga/Emulator/Agnus/Blitter",
 		"src/addons/amiga/vamiga/Emulator/Agnus/Copper",
@@ -65,10 +67,12 @@ SharedLibrary {
 		"src/addons/amiga/vamiga/Emulator/Paula/UART",
 		"src/addons/amiga/vamiga/Emulator/Peripherals",
 		"src/addons/amiga/vamiga/Emulator/RTC",
+		"src/addons/amiga/vamiga/Emulator/RetroShell",
 		"src/addons/amiga/vamiga/Emulator/xdm",
 		"src/addons/amiga/vamiga/Emulator/LogicBoard",
 		"src/addons/amiga/vamiga/Emulator/Files/RomFiles",
 		"src/addons/amiga/vamiga/Emulator/Files/DiskFiles",
+        "src/addons/amiga/vamiga/Utilities",
     },
 
     Env = {

@@ -200,6 +200,8 @@ public:
     // 8 bits are set as combination MemoryAddressFlags
     virtual bool request_memory(uint64_t lo, uint64_t hi, QVector<uint8_t>* target) = 0;
 
+    virtual void request_custom(int message_id, QVector<uint8_t>* target, QVector<uint8_t>* source) = 0;
+
 public:
     // reply from request of source files
     Q_SIGNAL void reply_callstack(const Callstack& callstack);
